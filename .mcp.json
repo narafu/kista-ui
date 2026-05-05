@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "shrimp-task-manager": {
+      "type": "stdio",
+      "command": "sh",
+      "args": [
+        "-c",
+        "DATA_DIR=${HOME}/workspace/kista/kista-ui/.shrimp-data node ${HOME}/workspace/mcp-shrimp-task-manager/dist/index.js"
+      ],
+      "env": {
+        "TEMPLATES_USE": "en"
+      }
+    }
+  }
+}
