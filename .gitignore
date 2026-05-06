@@ -38,4 +38,4 @@ yarn-error.log*
 next-env.d.ts
 
 # shrimp task manager
-.shrimp-data/
+.mcp.json

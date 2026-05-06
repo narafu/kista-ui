@@ -46,4 +46,3 @@ npx shadcn@latest add <component> --yes --defaults
 - **shadcn v4 (@base-ui/react 기반)**: `Button`에 `asChild` 없음 → `cn(buttonVariants({ variant, size }))` + `<Link>` 사용
 - **Next.js 15 dynamic route**: `params`는 `Promise` → `const { id } = await params`
 - **Tailwind v4**: `tailwind.config.ts` 없음 — `postcss.config.mjs` + `globals.css`로 설정
-- **`.shrimp-data/`**: 내부 git repo → 커밋 금지 (.gitignore 처리됨)
