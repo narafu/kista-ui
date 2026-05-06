@@ -1,6 +1,9 @@
 {
+  "enabledMcpjsonServers": [
+    "shrimp-task-manager"
+  ],
   "enabledPlugins": {
-    "frontend-design@claude-plugins-official": true
-  },
-  "enabledMcpjsonServers": ["shrimp-task-manager"]
+    "frontend-design@claude-plugins-official": true,
+    "commit-commands@claude-plugins-official": true
+  }
 }
