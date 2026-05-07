@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -11,14 +12,21 @@ import {
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
   async function handleKakaoLogin() {
+    setErrorMessage(null)
     const supabase = createClient()
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'kakao',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     })
+    if (error) {
+      console.error('카카오 로그인 실패:', error)
+      setErrorMessage('카카오 로그인에 실패했습니다. 잠시 후 다시 시도해주세요.')
+    }
   }
 
   return (
@@ -39,6 +47,9 @@ export default function LoginPage() {
             <p className="text-sm text-muted-foreground text-center">
               초대제 서비스입니다. 가입 후 관리자 승인이 필요합니다.
             </p>
+            {errorMessage && (
+              <p className="text-sm text-destructive text-center">{errorMessage}</p>
+            )}
             <Button
               size="lg"
               className="w-full h-12 bg-[#FEE500] text-[#3C1E1E] hover:bg-[#FDD800] font-semibold"
@@ -58,6 +69,9 @@ export default function LoginPage() {
             한국투자증권 KIS API 기반<br />
             해외주식 자동 분할매매 서비스
           </p>
+          {errorMessage && (
+            <p className="text-sm text-destructive text-center">{errorMessage}</p>
+          )}
         </div>
         <div className="p-6 pb-safe">
           <Button

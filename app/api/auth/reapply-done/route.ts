@@ -23,6 +23,16 @@ export async function POST() {
     }
   )
 
+  // 인증 확인: getUser()로 서버 검증
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // access_token 취득: 인증 확인 후 session 조회
   const {
     data: { session },
   } = await supabase.auth.getSession()

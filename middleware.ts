@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 const STATUS_COOKIE = 'kista-user-status'
+const VALID_STATUSES = new Set(['PENDING', 'REJECTED', 'ACTIVE'])
 const STATUS_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
@@ -16,11 +17,6 @@ const PROTECTED_PREFIXES = ['/dashboard', '/accounts', '/settings']
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-
-  // API 라우트는 통과
-  if (pathname.startsWith('/api/')) {
-    return NextResponse.next()
-  }
 
   let response = NextResponse.next({
     request: { headers: request.headers },
@@ -54,6 +50,11 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // API 라우트는 세션 갱신만 하고 통과
+  if (pathname.startsWith('/api/')) {
+    return response
+  }
+
   if (!user) {
     // 비인증: 보호 경로면 / 리다이렉트
     const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
@@ -67,7 +68,7 @@ export async function middleware(request: NextRequest) {
   const cachedStatus = request.cookies.get(STATUS_COOKIE)?.value
 
   let status: string
-  if (cachedStatus) {
+  if (cachedStatus && VALID_STATUSES.has(cachedStatus)) {
     // 빠른 경로: 쿠키에서 status 읽기
     status = cachedStatus
   } else {

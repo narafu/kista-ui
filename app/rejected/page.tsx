@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { XCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -13,11 +14,19 @@ import {
 
 export default function RejectedPage() {
   const router = useRouter()
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   async function handleReapply() {
-    const res = await fetch('/api/auth/reapply-done', { method: 'POST' })
-    if (res.ok) {
-      router.push('/pending')
+    setErrorMessage(null)
+    try {
+      const res = await fetch('/api/auth/reapply-done', { method: 'POST' })
+      if (res.ok) {
+        router.push('/pending')
+      } else {
+        setErrorMessage('재신청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+      }
+    } catch {
+      setErrorMessage('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
     }
   }
 
@@ -36,7 +45,10 @@ export default function RejectedPage() {
             재신청하거나 관리자에게 문의해 주세요.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-3">
+          {errorMessage && (
+            <p className="text-sm text-destructive">{errorMessage}</p>
+          )}
           <Button size="lg" className="w-full h-12" onClick={handleReapply}>
             다시 가입 신청하기
           </Button>
