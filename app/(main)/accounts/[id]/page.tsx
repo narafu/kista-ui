@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/server'
 import { listAccounts } from '@/lib/api/accounts'
 import { getAccountTrades, getAccountPortfolio } from '@/lib/api/trades'
 import type { TradeHistory, PortfolioSnapshot } from '@/types/trade'
+import type { Account } from '@/types/account'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -38,7 +39,7 @@ export default async function AccountDetailPage({ params }: Props) {
   const token = session.access_token
 
   const [accounts, trades, portfolio] = await Promise.all([
-    listAccounts(token).catch((): never[] => []),
+    listAccounts(token).catch((): Account[] => []),
     getAccountTrades(id, token).catch((): TradeHistory[] => []),
     getAccountPortfolio(id, token).catch((): PortfolioSnapshot | null => null),
   ])
