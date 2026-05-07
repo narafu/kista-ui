@@ -1,8 +1,26 @@
+'use client'
+
 import { XCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 
 export default function RejectedPage() {
+  const router = useRouter()
+
+  async function handleReapply() {
+    const res = await fetch('/api/auth/reapply-done', { method: 'POST' })
+    if (res.ok) {
+      router.push('/pending')
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm text-center shadow-lg">
@@ -19,7 +37,7 @@ export default function RejectedPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button size="lg" className="w-full h-12">
+          <Button size="lg" className="w-full h-12" onClick={handleReapply}>
             다시 가입 신청하기
           </Button>
         </CardContent>

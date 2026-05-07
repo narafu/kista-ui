@@ -1,0 +1,100 @@
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+
+const STATUS_COOKIE = 'kista-user-status'
+
+export async function GET(request: NextRequest) {
+  const { searchParams, origin } = new URL(request.url)
+  const code = searchParams.get('code')
+
+  if (!code) {
+    return NextResponse.redirect(new URL('/?error=no_code', origin))
+  }
+
+  const cookieStore = await cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+
+  if (error || !data.session) {
+    return NextResponse.redirect(new URL('/?error=auth_failed', origin))
+  }
+
+  // kista-api에 사용자 등록/조회
+  const token = data.session.access_token
+  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  // 카카오 userMetadata에서 정보 추출
+  const kakaoId =
+    data.user.user_metadata?.provider_id ?? data.user.id
+  const nickname =
+    data.user.user_metadata?.name ??
+    data.user.user_metadata?.full_name ??
+    '사용자'
+
+  try {
+    const res = await fetch(`${apiUrl}/api/auth/kakao/callback`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ kakaoId, nickname }),
+    })
+
+    if (!res.ok) {
+      return NextResponse.redirect(
+        new URL('/?error=registration_failed', origin)
+      )
+    }
+
+    const user = await res.json()
+    const status: string = user.status
+
+    // status를 쿠키에 저장하여 middleware 빠른 경로 활성화
+    const response = NextResponse.redirect(
+      new URL(getRedirectPath(status), origin)
+    )
+    response.cookies.set(STATUS_COOKIE, status, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 604800,
+      path: '/',
+    })
+
+    return response
+  } catch {
+    return NextResponse.redirect(new URL('/?error=server_error', origin))
+  }
+}
+
+function getRedirectPath(status: string): string {
+  switch (status) {
+    case 'ACTIVE':
+      return '/dashboard'
+    case 'PENDING':
+      return '/pending'
+    case 'REJECTED':
+      return '/rejected'
+    default:
+      return '/'
+  }
+}

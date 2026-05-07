@@ -1,23 +1,144 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-const PUBLIC_PATHS = ['/', '/pending', '/rejected']
-const ACTIVE_PATHS = ['/dashboard', '/accounts', '/settings']
+const STATUS_COOKIE = 'kista-user-status'
+const STATUS_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax' as const,
+  maxAge: 604800,
+  path: '/',
+}
+
+// 인증 필요 경로 prefix
+const PROTECTED_PREFIXES = ['/dashboard', '/accounts', '/settings']
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // auth callback은 통과
-  if (pathname.startsWith('/auth/')) {
+  // API 라우트는 통과
+  if (pathname.startsWith('/api/')) {
     return NextResponse.next()
   }
 
-  // TODO(TASK-004): Supabase SSR 세션 확인 및 상태 기반 라우팅 구현
-  // Phase 1-2에서는 모든 경로 통과 (더미 데이터 UI 개발용)
-  return NextResponse.next()
+  let response = NextResponse.next({
+    request: { headers: request.headers },
+  })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
+          response = NextResponse.next({
+            request: { headers: request.headers },
+          })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+
+  // Supabase 세션 갱신 (토큰 refresh 처리)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    // 비인증: 보호 경로면 / 리다이렉트
+    const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
+    if (isProtected) {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+    return response
+  }
+
+  // 인증됨: status 확인
+  const cachedStatus = request.cookies.get(STATUS_COOKIE)?.value
+
+  let status: string
+  if (cachedStatus) {
+    // 빠른 경로: 쿠키에서 status 읽기
+    status = cachedStatus
+  } else {
+    // 느린 경로: kista-api 호출
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (!token) {
+        return NextResponse.redirect(new URL('/', request.url))
+      }
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+      const meRes = await fetch(`${apiUrl}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (!meRes.ok) {
+        return NextResponse.redirect(new URL('/', request.url))
+      }
+
+      const userData = await meRes.json()
+      status = userData.status
+
+      // 쿠키에 캐싱
+      response.cookies.set(STATUS_COOKIE, status, STATUS_COOKIE_OPTIONS)
+    } catch {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+  }
+
+  // status별 라우팅
+  return routeByStatus(status, pathname, request, response)
+}
+
+function routeByStatus(
+  status: string,
+  pathname: string,
+  request: NextRequest,
+  response: NextResponse
+): NextResponse {
+  if (status === 'PENDING') {
+    if (pathname !== '/pending') {
+      return NextResponse.redirect(new URL('/pending', request.url))
+    }
+    return response
+  }
+
+  if (status === 'REJECTED') {
+    if (pathname !== '/rejected') {
+      return NextResponse.redirect(new URL('/rejected', request.url))
+    }
+    return response
+  }
+
+  if (status === 'ACTIVE') {
+    // 비인증 전용 페이지에서 대시보드로
+    if (
+      pathname === '/' ||
+      pathname === '/pending' ||
+      pathname === '/rejected'
+    ) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+    return response
+  }
+
+  return response
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)'],
 }

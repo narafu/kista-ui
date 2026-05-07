@@ -1,14 +1,35 @@
+'use client'
+
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
+  async function handleKakaoLogin() {
+    const supabase = createClient()
+    await supabase.auth.signInWithOAuth({
+      provider: 'kakao',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
+  }
+
   return (
     <>
       {/* 데스크탑: 중앙 카드 */}
       <div className="hidden sm:block w-full max-w-md px-4">
         <Card className="shadow-lg">
           <CardHeader className="text-center space-y-2">
-            <CardTitle className="text-3xl font-bold tracking-tight">KISTA</CardTitle>
+            <CardTitle className="text-3xl font-bold tracking-tight">
+              KISTA
+            </CardTitle>
             <CardDescription className="text-base">
               한국투자증권 KIS API 기반<br />
               해외주식 자동 분할매매 서비스
@@ -21,6 +42,7 @@ export default function LoginPage() {
             <Button
               size="lg"
               className="w-full h-12 bg-[#FEE500] text-[#3C1E1E] hover:bg-[#FDD800] font-semibold"
+              onClick={handleKakaoLogin}
             >
               카카오로 시작하기
             </Button>
@@ -41,6 +63,7 @@ export default function LoginPage() {
           <Button
             size="lg"
             className="w-full h-14 bg-[#FEE500] text-[#3C1E1E] hover:bg-[#FDD800] font-semibold text-base"
+            onClick={handleKakaoLogin}
           >
             카카오로 시작하기
           </Button>
