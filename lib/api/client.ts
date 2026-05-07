@@ -15,6 +15,9 @@ export async function apiFetch<T>(
   accessToken: string
 ): Promise<T> {
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+  if (!baseUrl) {
+    throw new Error('NEXT_PUBLIC_API_BASE_URL is not configured')
+  }
   const url = `${baseUrl}${path}`
 
   const response = await fetch(url, {

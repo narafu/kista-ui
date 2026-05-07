@@ -20,7 +20,7 @@ export function AccountCard({ account, profitLoss = 0, profitLossRate = 0 }: Pro
         </div>
         <div className="flex items-center gap-2 mt-1">
           <StrategyBadge strategy={account.strategy} />
-          <span className="text-xs text-muted-foreground">{account.accountNo}</span>
+          <span className="text-xs text-muted-foreground">{account.accountNoMasked}</span>
         </div>
       </CardHeader>
       <CardContent>

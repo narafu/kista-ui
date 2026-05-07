@@ -79,11 +79,11 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
         <CardContent className="space-y-3">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">계좌번호</span>
-            <span className="font-medium">{account.accountNo}</span>
+            <span className="font-medium">{account.accountNoMasked}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">보유 수량</span>
-            <span className="font-medium">{portfolio.quantity}주</span>
+            <span className="font-medium">{portfolio.qty}주</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">평균 단가</span>
@@ -95,7 +95,7 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">평가 손익</span>
-            <ProfitDisplay amount={portfolio.profitLoss} rate={portfolio.profitLossRate} />
+            <ProfitDisplay amount={0} rate={0} />
           </div>
         </CardContent>
       </Card>
@@ -121,16 +121,16 @@ function TradesTab({ trades }: { trades: TradeHistory[] }) {
           <Card key={trade.id} className="p-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Badge variant={trade.side === 'BUY' ? 'default' : 'secondary'}>
-                  {trade.side === 'BUY' ? '매수' : '매도'}
+                <Badge variant={trade.direction === 'BUY' ? 'default' : 'secondary'}>
+                  {trade.direction === 'BUY' ? '매수' : '매도'}
                 </Badge>
                 <span className="font-medium text-sm">{trade.symbol}</span>
               </div>
-              <span className="text-sm font-semibold">${trade.amount.toFixed(2)}</span>
+              <span className="text-sm font-semibold">${trade.amountUsd.toFixed(2)}</span>
             </div>
             <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-              <span>{trade.quantity}주 × ${trade.price.toFixed(2)}</span>
-              <span>{new Date(trade.executedAt).toLocaleDateString('ko-KR')}</span>
+              <span>{trade.qty}주 × ${trade.price.toFixed(2)}</span>
+              <span>{new Date(trade.createdAt).toLocaleDateString('ko-KR')}</span>
             </div>
           </Card>
         ))}
@@ -149,16 +149,16 @@ function TradesTab({ trades }: { trades: TradeHistory[] }) {
             {trades.map((trade) => (
               <tr key={trade.id} className="border-t hover:bg-muted/30 transition-colors">
                 <td className="px-4 py-3">
-                  <Badge variant={trade.side === 'BUY' ? 'default' : 'secondary'} className="text-xs">
-                    {trade.side === 'BUY' ? '매수' : '매도'}
+                  <Badge variant={trade.direction === 'BUY' ? 'default' : 'secondary'} className="text-xs">
+                    {trade.direction === 'BUY' ? '매수' : '매도'}
                   </Badge>
                 </td>
                 <td className="px-4 py-3 font-medium">{trade.symbol}</td>
-                <td className="px-4 py-3">{trade.quantity}주</td>
+                <td className="px-4 py-3">{trade.qty}주</td>
                 <td className="px-4 py-3">${trade.price.toFixed(2)}</td>
-                <td className="px-4 py-3 font-medium">${trade.amount.toFixed(2)}</td>
+                <td className="px-4 py-3 font-medium">${trade.amountUsd.toFixed(2)}</td>
                 <td className="px-4 py-3 text-muted-foreground">
-                  {new Date(trade.executedAt).toLocaleDateString('ko-KR')}
+                  {new Date(trade.createdAt).toLocaleDateString('ko-KR')}
                 </td>
               </tr>
             ))}

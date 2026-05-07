@@ -37,7 +37,7 @@ export default async function AccountEditPage({ params }: Props) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="accountNo">계좌번호</Label>
-              <Input id="accountNo" defaultValue={account.accountNo} className="h-12" />
+              <Input id="accountNo" defaultValue={account.accountNoMasked} className="h-12" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="kisAppKey">KIS App Key</Label>

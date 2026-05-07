@@ -59,7 +59,7 @@ export default function SettingsPage() {
                   <Input
                     id="botToken"
                     placeholder="123456:ABC-DEF..."
-                    defaultValue={MOCK_USER.telegramBotToken ?? ''}
+                    defaultValue=""
                     className="h-12"
                   />
                 </div>
@@ -68,7 +68,7 @@ export default function SettingsPage() {
                   <Input
                     id="chatId"
                     placeholder="-100123456789"
-                    defaultValue={MOCK_USER.telegramChatId ?? ''}
+                    defaultValue=""
                     className="h-12"
                   />
                 </div>
@@ -92,17 +92,17 @@ export default function SettingsPage() {
                   <div key={account.id} className="space-y-3 pb-4 border-b last:border-0 last:pb-0">
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-sm">{account.nickname}</span>
-                      <span className="text-xs text-muted-foreground">{account.accountNo}</span>
+                      <span className="text-xs text-muted-foreground">{account.accountNoMasked}</span>
                     </div>
                     <div className="space-y-2">
                       <Input
                         placeholder="Bot Token (선택)"
-                        defaultValue={account.telegramBotToken ?? ''}
+                        defaultValue=""
                         className="h-10 text-sm"
                       />
                       <Input
                         placeholder="Chat ID (선택)"
-                        defaultValue={account.telegramChatId ?? ''}
+                        defaultValue=""
                         className="h-10 text-sm"
                       />
                     </div>
