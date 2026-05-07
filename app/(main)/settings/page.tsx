@@ -1,11 +1,36 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { MOCK_USER, MOCK_ACCOUNTS } from '@/lib/mock-data'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { createClient } from '@/lib/supabase/server'
+import { getMe } from '@/lib/api/auth'
+import { listAccounts } from '@/lib/api/accounts'
+import { TelegramSection } from '@/components/settings/TelegramSection'
+import { AccountTelegramSection } from '@/components/settings/AccountTelegramSection'
+import type { User } from '@/types/user'
+import type { Account } from '@/types/account'
 
-export default function SettingsPage() {
+const STATUS_LABELS: Record<string, { label: string; className: string }> = {
+  ACTIVE: { label: 'ACTIVE', className: 'bg-green-100 text-green-800' },
+  PENDING: { label: 'PENDING', className: 'bg-yellow-100 text-yellow-800' },
+  REJECTED: { label: 'REJECTED', className: 'bg-red-100 text-red-800' },
+}
+
+export default async function SettingsPage() {
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+
+  let user: User | null = null
+  let accounts: Account[] = []
+
+  if (session?.access_token) {
+    const token = session.access_token
+    ;[user, accounts] = await Promise.all([
+      getMe(token).catch(() => null),
+      listAccounts(token).catch(() => []),
+    ])
+  }
+
+  const statusInfo = user ? (STATUS_LABELS[user.status] ?? STATUS_LABELS.PENDING) : null
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">설정</h1>
@@ -36,11 +61,17 @@ export default function SettingsPage() {
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">닉네임</span>
-                  <span className="text-sm font-medium">{MOCK_USER.nickname}</span>
+                  <span className="text-sm font-medium">{user?.nickname ?? '-'}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">상태</span>
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">ACTIVE</Badge>
+                  {statusInfo ? (
+                    <Badge variant="secondary" className={statusInfo.className}>
+                      {statusInfo.label}
+                    </Badge>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">-</span>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -48,69 +79,12 @@ export default function SettingsPage() {
 
           {/* 전체 텔레그램 봇 */}
           <section id="텔레그램 알림">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">텔레그램 알림</CardTitle>
-                <CardDescription>전체 계좌 알림을 받을 텔레그램 봇을 등록하세요.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="botToken">Bot Token</Label>
-                  <Input
-                    id="botToken"
-                    placeholder="123456:ABC-DEF..."
-                    defaultValue=""
-                    className="h-12"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="chatId">Chat ID</Label>
-                  <Input
-                    id="chatId"
-                    placeholder="-100123456789"
-                    defaultValue=""
-                    className="h-12"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button className="flex-1 h-11">저장</Button>
-                  <Button variant="outline" className="h-11 text-destructive hover:text-destructive">해제</Button>
-                </div>
-              </CardContent>
-            </Card>
+            <TelegramSection hasTelegram={user?.hasTelegram ?? false} />
           </section>
 
           {/* 계좌별 텔레그램 봇 */}
           <section id="계좌별 알림">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">계좌별 알림 설정</CardTitle>
-                <CardDescription>계좌마다 별도 텔레그램 봇을 설정할 수 있습니다.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {MOCK_ACCOUNTS.map((account) => (
-                  <div key={account.id} className="space-y-3 pb-4 border-b last:border-0 last:pb-0">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-sm">{account.nickname}</span>
-                      <span className="text-xs text-muted-foreground">{account.accountNoMasked}</span>
-                    </div>
-                    <div className="space-y-2">
-                      <Input
-                        placeholder="Bot Token (선택)"
-                        defaultValue=""
-                        className="h-10 text-sm"
-                      />
-                      <Input
-                        placeholder="Chat ID (선택)"
-                        defaultValue=""
-                        className="h-10 text-sm"
-                      />
-                    </div>
-                    <Button size="sm" variant="outline" className="h-9">저장</Button>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+            <AccountTelegramSection accounts={accounts} />
           </section>
         </div>
       </div>
