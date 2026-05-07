@@ -40,8 +40,16 @@ components/
 ├── layout/
 │   ├── DesktopSidebar.tsx
 │   └── MobileBottomNav.tsx
+├── accounts/
+│   └── AccountEditForm.tsx # 계좌 수정/삭제 폼 (Client Component)
+├── settings/
+│   ├── TelegramSection.tsx         # 전체 텔레그램 설정
+│   └── AccountTelegramSection.tsx  # 계좌별 텔레그램 설정
 └── common/
     ├── AccountCard.tsx
+    ├── AccountDetailTabs.tsx
+    ├── PortfolioChart.tsx   # recharts 시계열 차트
+    ├── ProfitStatsCard.tsx  # 기간 손익 통계
     ├── StrategyBadge.tsx
     ├── TradingStatusIndicator.tsx
     └── ProfitDisplay.tsx
@@ -50,8 +58,12 @@ lib/
 ├── supabase/
 │   ├── client.ts           # 브라우저 클라이언트
 │   └── server.ts           # 서버 컴포넌트용 클라이언트
-├── api/                    # kista-api 호출 함수
-└── mock-data.ts            # Phase 2 더미 데이터
+└── api/                    # kista-api 호출 함수
+    ├── client.ts            # apiFetch + ApiError
+    ├── auth.ts
+    ├── accounts.ts
+    ├── trades.ts
+    └── settings.ts
 
 types/
 ├── user.ts                 # UserStatus, User 타입
@@ -202,11 +214,9 @@ ACTIVE  →  /dashboard
 type UserStatus = 'PENDING' | 'ACTIVE' | 'REJECTED'
 interface User {
   id: string           // Supabase Auth UID
-  kakaoId: string
   nickname: string
   status: UserStatus
-  telegramBotToken?: string
-  telegramChatId?: string
+  hasTelegram: boolean
 }
 ```
 
@@ -216,13 +226,11 @@ type Strategy = 'INFINITE' | 'PRIVACY'
 type StrategyStatus = 'ACTIVE' | 'PAUSED'
 interface Account {
   id: string
-  userId: string
   nickname: string
-  accountNo: string    // 마스킹 표시 (****-**)
+  accountNoMasked: string  // 마스킹된 계좌번호 (****1234)
   strategy: Strategy
   strategyStatus: StrategyStatus
-  telegramBotToken?: string
-  telegramChatId?: string
+  hasTelegram: boolean
 }
 ```
 
@@ -279,7 +287,7 @@ NEXT_PUBLIC_API_BASE_URL=         # kista-api Render URL
 | 새 shadcn/ui 컴포넌트 필요 시 | `npx shadcn@latest add <component>` CLI 사용 |
 | 타입 불명확 시 | `any` 금지 → `unknown` + 타입 가드 |
 | 반응형 분기 추가 시 | `lg` 기준만 사용 (임의 중간 브레이크포인트 추가 금지) |
-| 더미 데이터 vs 실제 API | Phase 2: `lib/mock-data.ts` 사용, Phase 3+: API 함수로 교체 |
+| 실 API 데이터 | 항상 `lib/api/` 함수 경유 — `lib/mock-data.ts`는 더 이상 사용하지 않음 |
 
 ---
 

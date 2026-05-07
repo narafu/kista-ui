@@ -36,8 +36,15 @@ npx shadcn@latest add <component> --yes --defaults
 - API 레이어: `lib/api/{auth,accounts,trades,settings}.ts` — `apiFetch(path, options, accessToken)` 공통 래퍼 사용
 - 모든 API 호출은 `lib/api/` 함수 경유 (컴포넌트 직접 fetch 금지)
 - Supabase 클라이언트: 브라우저 컴포넌트 → `lib/supabase/client.ts`, 서버/미들웨어 → `lib/supabase/server.ts`
-- Server Component token 취득: `const supabase = await createClient(); const { data: { session } } = await supabase.auth.getSession(); const token = session?.access_token`
+- Server Component token 취득: `(await createClient()).auth.getSession()` → `session?.access_token`
 - Client Component token 취득: `createClient().auth.getSession()` (lib/supabase/client.ts)
+
+### 컴포넌트 폴더
+- `components/common/` — 공통 UI (AccountCard, ProfitDisplay, PortfolioChart, ProfitStatsCard 등)
+- `components/accounts/` — 계좌 관련 폼 (AccountEditForm)
+- `components/settings/` — 설정 섹션 (TelegramSection, AccountTelegramSection)
+- `components/layout/` — 레이아웃 (DesktopSidebar, MobileBottomNav)
+- `components/ui/` — shadcn/ui 자동 생성 (직접 수정 금지)
 
 ### 구현 현황
 - **완료**: Phase 1-4 (UI, Auth, API 연동, 통계 차트)
@@ -51,3 +58,11 @@ npx shadcn@latest add <component> --yes --defaults
 - **recharts**: SSR 미지원 → `'use client'` 필수. Tooltip `formatter`의 `value` 파라미터는 `ValueType | undefined` → `Number(value)` 사용
 - **HTTP-only 쿠키 삭제**: Client JS에서 불가 → Route Handler에서 `response.cookies.set(name, '', { maxAge: 0 })` 처리
 - **kista-api DTO**: `UserResponse`는 `{ id, nickname, status, hasTelegram }`, `AccountResponse`는 `{ id, nickname, accountNoMasked, strategy, strategyStatus, hasTelegram }` — `types/` 참고
+
+## 환경변수
+
+```
+NEXT_PUBLIC_SUPABASE_URL=       # Supabase 프로젝트 URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=  # Supabase anon key
+NEXT_PUBLIC_API_BASE_URL=       # kista-api Render URL
+```
