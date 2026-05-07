@@ -25,24 +25,29 @@ npx shadcn@latest add <component> --yes --defaults
 사용자 상태(`UserStatus`)에 따라 `middleware.ts`(루트)가 강제 분기:
 - 비인증 → `/` | PENDING → `/pending` | REJECTED → `/rejected` | ACTIVE → `/dashboard`
 
-`middleware.ts`는 현재 Phase 1-2 더미 구현. Phase 3(TASK-004)에서 Supabase SSR 세션 기반으로 완성 예정.
+`middleware.ts`: Supabase SSR 세션 + `kista-user-status` HTTP-only 쿠키(7일) 캐싱 기반 라우팅.
+미들웨어에서는 `lib/supabase/server.ts` 불가(next/headers 사용 불가) — `@supabase/ssr` createServerClient를 `request.cookies`/`response.cookies`로 직접 구성.
 
 ### 레이아웃 그룹
 - `app/(auth)/` — 비인증/PENDING/REJECTED 공통, 중앙 정렬 레이아웃
 - `app/(main)/` — ACTIVE 전용, `DesktopSidebar`(lg 이상) + `MobileBottomNav`(lg 미만) 반응형
 
 ### API 계층
-- Phase 1-2: `lib/mock-data.ts` 더미 데이터 사용
-- Phase 3+: `lib/api/auth.ts`, `lib/api/accounts.ts`, `lib/api/trades.ts`, `lib/api/settings.ts`로 교체 예정
+- API 레이어: `lib/api/{auth,accounts,trades,settings}.ts` — `apiFetch(path, options, accessToken)` 공통 래퍼 사용
 - 모든 API 호출은 `lib/api/` 함수 경유 (컴포넌트 직접 fetch 금지)
 - Supabase 클라이언트: 브라우저 컴포넌트 → `lib/supabase/client.ts`, 서버/미들웨어 → `lib/supabase/server.ts`
+- Server Component token 취득: `const supabase = await createClient(); const { data: { session } } = await supabase.auth.getSession(); const token = session?.access_token`
+- Client Component token 취득: `createClient().auth.getSession()` (lib/supabase/client.ts)
 
 ### 구현 현황
-- **완료**: Phase 1-2 (프로젝트 초기화, 공통 컴포넌트, 7개 페이지 UI)
-- **대기**: Phase 3-4 — kista-api V2(users/accounts DB + Auth/Account API) 완료 후 진행
+- **완료**: Phase 1-4 (UI, Auth, API 연동, 통계 차트)
 
 ## 기술 스택 quirk
 
-- **shadcn v4 (@base-ui/react 기반)**: `Button`에 `asChild` 없음 → `cn(buttonVariants({ variant, size }))` + `<Link>` 사용
+- **shadcn v4 (@base-ui/react 기반)**: `Button`, `DialogTrigger` 등 모든 컴포넌트에 `asChild` 없음 → `cn(buttonVariants({ variant, size }))` 클래스 직접 적용
 - **Next.js 15 dynamic route**: `params`는 `Promise` → `const { id } = await params`
+- **Next.js 15 Route Handler**: `cookies()`는 async → `const cookieStore = await cookies()`
 - **Tailwind v4**: `tailwind.config.ts` 없음 — `postcss.config.mjs` + `globals.css`로 설정
+- **recharts**: SSR 미지원 → `'use client'` 필수. Tooltip `formatter`의 `value` 파라미터는 `ValueType | undefined` → `Number(value)` 사용
+- **HTTP-only 쿠키 삭제**: Client JS에서 불가 → Route Handler에서 `response.cookies.set(name, '', { maxAge: 0 })` 처리
+- **kista-api DTO**: `UserResponse`는 `{ id, nickname, status, hasTelegram }`, `AccountResponse`는 `{ id, nickname, accountNoMasked, strategy, strategyStatus, hasTelegram }` — `types/` 참고
