@@ -1,5 +1,6 @@
 import { DesktopSidebar } from '@/components/layout/DesktopSidebar'
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav'
+import { Toaster } from '@/components/ui/sonner'
 
 export default function MainLayout({
   children,
@@ -19,6 +20,7 @@ export default function MainLayout({
         </main>
         <MobileBottomNav />
       </div>
+      <Toaster />
     </div>
   )
 }

@@ -1,17 +1,52 @@
 import Link from 'next/link'
 import { ArrowLeft, Pencil } from 'lucide-react'
+import { notFound } from 'next/navigation'
 import { buttonVariants } from '@/components/ui/button'
 import { AccountDetailTabs } from '@/components/common/AccountDetailTabs'
 import { cn } from '@/lib/utils'
-import { MOCK_ACCOUNTS, MOCK_TRADES, MOCK_PORTFOLIO } from '@/lib/mock-data'
+import { createClient } from '@/lib/supabase/server'
+import { listAccounts } from '@/lib/api/accounts'
+import { getAccountTrades, getAccountPortfolio } from '@/lib/api/trades'
+import type { TradeHistory, PortfolioSnapshot } from '@/types/trade'
 
 interface Props {
   params: Promise<{ id: string }>
 }
 
+const EMPTY_PORTFOLIO: PortfolioSnapshot = {
+  id: '',
+  snapshotDate: '',
+  symbol: 'SOXL',
+  qty: 0,
+  avgPrice: 0,
+  currentPrice: 0,
+  marketValueUsd: 0,
+  usdDeposit: 0,
+  totalAssetUsd: 0,
+  createdAt: '',
+}
+
 export default async function AccountDetailPage({ params }: Props) {
   const { id } = await params
-  const account = MOCK_ACCOUNTS.find((a) => a.id === id) ?? MOCK_ACCOUNTS[0]
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+
+  if (!session?.access_token) {
+    return notFound()
+  }
+
+  const token = session.access_token
+
+  const [accounts, trades, portfolio] = await Promise.all([
+    listAccounts(token).catch((): never[] => []),
+    getAccountTrades(id, token).catch((): TradeHistory[] => []),
+    getAccountPortfolio(id, token).catch((): PortfolioSnapshot | null => null),
+  ])
+
+  const account = accounts.find((a) => a.id === id)
+  if (!account) {
+    return notFound()
+  }
 
   return (
     <div className="space-y-4">
@@ -29,8 +64,8 @@ export default async function AccountDetailPage({ params }: Props) {
 
       <AccountDetailTabs
         account={account}
-        trades={MOCK_TRADES}
-        portfolio={MOCK_PORTFOLIO}
+        trades={trades}
+        portfolio={portfolio ?? EMPTY_PORTFOLIO}
       />
     </div>
   )
