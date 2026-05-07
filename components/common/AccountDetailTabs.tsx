@@ -22,6 +22,7 @@ import { ProfitDisplay } from './ProfitDisplay'
 import { createClient } from '@/lib/supabase/client'
 import { pauseStrategy, resumeStrategy, deleteAccount } from '@/lib/api/accounts'
 import { ApiError } from '@/lib/api/client'
+import { ProfitStatsCard } from './ProfitStatsCard'
 import type { Account } from '@/types/account'
 import type { TradeHistory, PortfolioSnapshot } from '@/types/trade'
 
@@ -61,14 +62,14 @@ export function AccountDetailTabs({ account, trades, portfolio }: Props) {
           <SummaryTab account={account} portfolio={portfolio} />
         )}
         {activeTab === 'trades' && <TradesTab trades={trades} />}
-        {activeTab === 'statistics' && <StatisticsPlaceholder />}
+        {activeTab === 'statistics' && <ProfitStatsCard accountId={account.id} />}
       </div>
 
       {/* 데스크탑: 전체 레이아웃 */}
       <div className="hidden lg:block space-y-6">
         <div className="grid grid-cols-5 gap-6">
           <div className="col-span-3">
-            <StatisticsPlaceholder />
+            <ProfitStatsCard accountId={account.id} />
           </div>
           <div className="col-span-2">
             <SummaryTab account={account} portfolio={portfolio} />
@@ -262,13 +263,3 @@ function TradesTab({ trades }: { trades: TradeHistory[] }) {
   )
 }
 
-function StatisticsPlaceholder() {
-  return (
-    <Card className="min-h-[240px] flex items-center justify-center">
-      <div className="text-center text-muted-foreground space-y-2">
-        <p className="text-sm">수익/손실 차트</p>
-        <p className="text-xs">TASK-008에서 구현 예정</p>
-      </div>
-    </Card>
-  )
-}

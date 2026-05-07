@@ -1,0 +1,65 @@
+'use client'
+
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from 'recharts'
+import type { PortfolioSnapshot } from '@/types/trade'
+
+interface Props {
+  snapshots: PortfolioSnapshot[]
+}
+
+export function PortfolioChart({ snapshots }: Props) {
+  if (snapshots.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-[200px] text-sm text-muted-foreground">
+        데이터가 없습니다
+      </div>
+    )
+  }
+
+  const data = snapshots.map((s) => ({
+    date: new Date(s.snapshotDate).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' }),
+    totalAsset: Number(s.totalAssetUsd.toFixed(2)),
+  }))
+
+  return (
+    <ResponsiveContainer width="100%" height={200}>
+      <LineChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+        <XAxis
+          dataKey="date"
+          tick={{ fontSize: 11 }}
+          tickLine={false}
+          axisLine={false}
+        />
+        <YAxis
+          tick={{ fontSize: 11 }}
+          tickLine={false}
+          axisLine={false}
+          tickFormatter={(v: number) => `$${v.toLocaleString()}`}
+          width={64}
+        />
+        <Tooltip
+          formatter={(value) => [`$${Number(value).toLocaleString()}`, '총 자산']}
+          labelStyle={{ fontSize: 12 }}
+          contentStyle={{ fontSize: 12 }}
+        />
+        <Line
+          type="monotone"
+          dataKey="totalAsset"
+          stroke="hsl(var(--primary))"
+          strokeWidth={2}
+          dot={false}
+          activeDot={{ r: 4 }}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  )
+}
