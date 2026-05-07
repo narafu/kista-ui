@@ -3,15 +3,20 @@ export type StrategyStatus = 'ACTIVE' | 'PAUSED'
 
 export interface Account {
   id: string
-  userId: string
   nickname: string
-  accountNo: string
-  kisAppKey: string
-  kisSecretKey: string
+  accountNoMasked: string
   strategy: Strategy
   strategyStatus: StrategyStatus
+  hasTelegram: boolean
+}
+
+export interface AccountRequest {
+  nickname: string
+  accountNo?: string
+  kisAppKey?: string
+  kisSecretKey?: string
+  kisAccountType?: string
+  strategy?: Strategy
   telegramBotToken?: string
   telegramChatId?: string
-  createdAt: string
-  updatedAt: string
 }
