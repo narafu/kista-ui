@@ -34,12 +34,18 @@ export async function GET(request: NextRequest) {
   const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
   if (error || !data.session) {
+    console.error('[auth/callback] Supabase 세션 교환 실패:', error?.message)
     return NextResponse.redirect(new URL('/?error=auth_failed', origin))
   }
 
   // kista-api에 사용자 등록/조회
   const token = data.session.access_token
   const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  if (!apiUrl) {
+    console.error('[auth/callback] NEXT_PUBLIC_API_BASE_URL 환경변수 미설정')
+    return NextResponse.redirect(new URL('/?error=server_error', origin))
+  }
 
   // 카카오 userMetadata에서 정보 추출
   const kakaoId =
@@ -60,6 +66,8 @@ export async function GET(request: NextRequest) {
     })
 
     if (!res.ok) {
+      const body = await res.text().catch(() => '')
+      console.error(`[auth/callback] kista-api 등록 실패: HTTP ${res.status}`, body)
       return NextResponse.redirect(
         new URL('/?error=registration_failed', origin)
       )
@@ -81,7 +89,8 @@ export async function GET(request: NextRequest) {
     })
 
     return response
-  } catch {
+  } catch (e) {
+    console.error('[auth/callback] kista-api 호출 예외:', e)
     return NextResponse.redirect(new URL('/?error=server_error', origin))
   }
 }
