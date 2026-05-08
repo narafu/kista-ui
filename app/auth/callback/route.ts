@@ -10,6 +10,8 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code')
 
   if (!code) {
+    const allParams = Object.fromEntries(searchParams.entries())
+    console.error('[auth/callback] code 없음. 수신된 파라미터:', JSON.stringify(allParams))
     return NextResponse.redirect(new URL('/?error=no_code', origin))
   }
 
