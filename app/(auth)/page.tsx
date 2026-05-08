@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,7 +19,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   server_error: '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
 }
 
-export default function LoginPage() {
+function LoginPageContent() {
   const searchParams = useSearchParams()
   const urlError = searchParams.get('error')
   const [errorMessage, setErrorMessage] = useState<string | null>(
@@ -96,5 +96,13 @@ export default function LoginPage() {
         </div>
       </div>
     </>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginPageContent />
+    </Suspense>
   )
 }
