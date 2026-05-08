@@ -66,3 +66,13 @@ NEXT_PUBLIC_SUPABASE_URL=       # Supabase 프로젝트 URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY=  # Supabase anon key
 NEXT_PUBLIC_API_BASE_URL=       # kista-api Render URL
 ```
+
+## Vercel 배포
+
+- 프로젝트: `narafus-projects/kista-ui` (`prj_bSRl2Q8cUSpdMgeYwpUmptyoiMfi`)
+- GitHub 통합 자동 배포 — `.vercel/project.json` 없음, CLI redeploy 불가
+- 강제 재배포: 빈 커밋 푸시 `git commit --allow-empty -m "..." && git push origin main`
+- `NEXT_PUBLIC_*` 변수는 서버 코드에서도 **빌드 시 인라인** — 값이 비면 런타임 500 (Supabase "URL required")
+- 빌드 캐시는 env var 값이 실제로 바뀌어야 무효화됨 — 값 채운 후 재배포해야 반영
+- Deployment Protection(`live: false`) → 401: Vercel 대시보드 Settings → Deployment Protection → Disabled
+- 런타임 로그: Vercel MCP `get_runtime_logs(projectId, teamId)` — 빌드 로그: `get_deployment_build_logs`
