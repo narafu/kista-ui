@@ -73,22 +73,28 @@ export async function middleware(request: NextRequest) {
     status = cachedStatus
   } else {
     // 느린 경로: kista-api 호출
+    const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
     try {
       const {
         data: { session },
       } = await supabase.auth.getSession()
       const token = session?.access_token
       if (!token) {
-        return NextResponse.redirect(new URL('/', request.url))
+        return isProtected
+          ? NextResponse.redirect(new URL('/', request.url))
+          : response
       }
 
       const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL
       const meRes = await fetch(`${apiUrl}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(5000),
       })
 
       if (!meRes.ok) {
-        return NextResponse.redirect(new URL('/', request.url))
+        return isProtected
+          ? NextResponse.redirect(new URL('/', request.url))
+          : response
       }
 
       const userData = await meRes.json()
@@ -97,7 +103,9 @@ export async function middleware(request: NextRequest) {
       // 쿠키에 캐싱
       response.cookies.set(STATUS_COOKIE, status, STATUS_COOKIE_OPTIONS)
     } catch {
-      return NextResponse.redirect(new URL('/', request.url))
+      return isProtected
+        ? NextResponse.redirect(new URL('/', request.url))
+        : response
     }
   }
 
