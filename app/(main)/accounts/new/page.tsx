@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -20,7 +20,9 @@ export default function AccountNewPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [nickname, setNickname] = useState('')
-  const [accountNo, setAccountNo] = useState('')
+  const [accountNoPart1, setAccountNoPart1] = useState('')
+  const [accountNoPart2, setAccountNoPart2] = useState('')
+  const part2Ref = useRef<HTMLInputElement>(null)
   const [kisAppKey, setKisAppKey] = useState('')
   const [kisSecretKey, setKisSecretKey] = useState('')
   const [strategy, setStrategy] = useState<Strategy | ''>('')
@@ -29,7 +31,10 @@ export default function AccountNewPage() {
     e.preventDefault()
     if (!strategy) { toast.error('매매 전략을 선택해주세요'); return }
     if (!nickname.trim()) { toast.error('계좌 별칭을 입력해주세요'); return }
-    if (!accountNo.trim()) { toast.error('계좌번호를 입력해주세요'); return }
+    if (accountNoPart1.length !== 8 || accountNoPart2.length !== 2) {
+      toast.error('계좌번호를 올바르게 입력해주세요 (예: 74420614-01)')
+      return
+    }
     if (!kisAppKey.trim()) { toast.error('KIS App Key를 입력해주세요'); return }
     if (!kisSecretKey.trim()) { toast.error('KIS Secret Key를 입력해주세요'); return }
 
@@ -41,7 +46,7 @@ export default function AccountNewPage() {
 
       await createAccount({
         nickname: nickname.trim(),
-        accountNo: accountNo.trim(),
+        accountNo: `${accountNoPart1}-${accountNoPart2}`,
         kisAppKey: kisAppKey.trim(),
         kisSecretKey: kisSecretKey.trim(),
         strategy: strategy as Strategy,
@@ -91,15 +96,36 @@ export default function AccountNewPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="accountNo">계좌번호</Label>
-                <Input
-                  id="accountNo"
-                  placeholder="한국투자증권 계좌번호"
-                  className="h-12"
-                  value={accountNo}
-                  onChange={(e) => setAccountNo(e.target.value)}
-                  disabled={isLoading}
-                />
+                <Label>계좌번호</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    placeholder="12345678"
+                    inputMode="numeric"
+                    maxLength={8}
+                    className="h-12 text-center tracking-widest"
+                    value={accountNoPart1}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/\D/g, '').slice(0, 8)
+                      setAccountNoPart1(v)
+                      if (v.length === 8) part2Ref.current?.focus()
+                    }}
+                    disabled={isLoading}
+                  />
+                  <span className="text-lg font-semibold text-muted-foreground select-none">-</span>
+                  <Input
+                    ref={part2Ref}
+                    placeholder="01"
+                    inputMode="numeric"
+                    maxLength={2}
+                    className="h-12 w-20 text-center tracking-widest"
+                    value={accountNoPart2}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/\D/g, '').slice(0, 2)
+                      setAccountNoPart2(v)
+                    }}
+                    disabled={isLoading}
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="kisAppKey">KIS App Key</Label>

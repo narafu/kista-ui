@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { createClient } from '@/lib/supabase/client'
 import { reapply } from '@/lib/api/auth'
 import { ApiError } from '@/lib/api/client'
 
@@ -30,9 +29,7 @@ export function ReapplyButton() {
     }
     setIsLoading(true)
     try {
-      const { data: { session } } = await createClient().auth.getSession()
-      if (!session?.access_token) { toast.error('로그인이 필요합니다'); return }
-      await reapply(session.access_token)
+      await reapply()
       localStorage.setItem(STORAGE_KEY, Date.now().toString())
       setCooldownMinutes(60)
       toast.success('승인 재요청이 완료되었습니다')
