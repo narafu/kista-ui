@@ -84,9 +84,11 @@ NEXT_PUBLIC_API_BASE_URL=       # kista-api Render URL
 
 ## CORS 주의사항
 
-- Server Component / route.ts의 fetch → Vercel 서버에서 Render 호출 → CORS 무관 (정상 동작)
+- Server Component / route.ts의 fetch → Vercel 서버에서 Render 호출 → **CORS 영향 받음** (Node.js fetch가 Origin 헤더 포함 시 Spring CORS 필터 적용)
 - `'use client'` 컴포넌트의 fetch → 브라우저에서 Render 호출 → **CORS 필수**
-- kista-api에 `CORS_ALLOWED_ORIGINS=https://kista-ui.vercel.app` 환경변수 설정 확인
+- kista-api `CORS_ALLOWED_ORIGINS` 올바른 값: `https://kista-ui.vercel.app,https://kista-ui-narafus-projects.vercel.app`
+- Route Handler 403 진단: Render 앱 로그에 기록 없는 403 → CORS 필터 차단 → `CORS_ALLOWED_ORIGINS` Render 환경변수 확인
+- Route Handler 디버깅: kista-api 응답 body를 `console.error`로 로깅하면 Vercel 런타임 로그에서 원인 확인 가능
 
 ## Git 규칙
 
