@@ -64,6 +64,8 @@ npx shadcn@latest add <component> --yes --defaults
 - **HTTP-only 쿠키 삭제**: Client JS에서 불가 → Route Handler에서 `response.cookies.set(name, '', { maxAge: 0 })` 처리
 - **kista-api DTO**: `UserResponse`는 `{ id, nickname, status, hasTelegram }`, `AccountResponse`는 `{ id, nickname, accountNoMasked, strategy, strategyStatus, hasTelegram }` — `types/` 참고
 - **middleware 리다이렉트 루프**: slow path(API 호출)에서 실패 시 무조건 `redirect('/')`하면 `/`에서 셀프 루프 → `ERR_TOO_MANY_REDIRECTS`. 비보호 경로(`/`, `/auth/*`)에선 실패해도 `response` 반환 필요
+- **SSE 인증 패턴**: 브라우저 `EventSource`는 커스텀 헤더 미지원 → JWT 인증이 필요한 SSE는 Next.js Route Handler가 Bearer 토큰 포함 후 kista-api로 중계 (`app/api/auth/status-stream/route.ts` 참고)
+- **PENDING 상태 쿠키 캐싱 금지**: `kista-user-status` 쿠키에 PENDING을 저장하면 승인 후 새로고침 시 API 미호출 → PENDING 화면 유지 버그. `status !== 'PENDING'`일 때만 쿠키 저장
 
 ## 환경변수
 
@@ -72,6 +74,12 @@ NEXT_PUBLIC_SUPABASE_URL=       # Supabase 프로젝트 URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY=  # Supabase anon key
 NEXT_PUBLIC_API_BASE_URL=       # kista-api Render URL
 ```
+
+## CORS 주의사항
+
+- Server Component / route.ts의 fetch → Vercel 서버에서 Render 호출 → CORS 무관 (정상 동작)
+- `'use client'` 컴포넌트의 fetch → 브라우저에서 Render 호출 → **CORS 필수**
+- kista-api에 `CORS_ALLOWED_ORIGINS=https://kista-ui.vercel.app` 환경변수 설정 확인
 
 ## Git 규칙
 

@@ -100,8 +100,10 @@ export async function middleware(request: NextRequest) {
       const userData = await meRes.json()
       status = userData.status
 
-      // 쿠키에 캐싱
-      response.cookies.set(STATUS_COOKIE, status, STATUS_COOKIE_OPTIONS)
+      // PENDING은 캐싱 금지 — 승인 후 새로고침 시 쿠키 캐시 히트로 PENDING 유지되는 버그 방지
+      if (status !== 'PENDING') {
+        response.cookies.set(STATUS_COOKIE, status, STATUS_COOKIE_OPTIONS)
+      }
     } catch {
       return isProtected
         ? NextResponse.redirect(new URL('/', request.url))

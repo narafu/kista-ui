@@ -86,13 +86,16 @@ export async function GET(request: NextRequest) {
     const response = NextResponse.redirect(
       new URL(getRedirectPath(status), origin)
     )
-    response.cookies.set(STATUS_COOKIE, status, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 604800,
-      path: '/',
-    })
+    // PENDING은 캐싱 금지 — 승인 후 새로고침 시 쿠키 캐시 히트로 PENDING 유지되는 버그 방지
+    if (status !== 'PENDING') {
+      response.cookies.set(STATUS_COOKIE, status, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 604800,
+        path: '/',
+      })
+    }
 
     return response
   } catch (e) {
