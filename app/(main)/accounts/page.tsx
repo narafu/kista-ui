@@ -1,3 +1,4 @@
+import { PlusCircle } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
@@ -16,7 +17,13 @@ export default async function AccountsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">계좌 관리</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">계좌 관리</h1>
+        <Link href="/accounts/new" className={cn(buttonVariants({ size: 'sm' }))}>
+          <PlusCircle className="h-4 w-4 mr-1.5" />
+          계좌 등록
+        </Link>
+      </div>
       {accounts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
           <p>등록된 계좌가 없습니다.</p>

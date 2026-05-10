@@ -70,8 +70,9 @@ npx shadcn@latest add <component> --yes --defaults
 - **TradesTab**: `AccountDetailTabs.tsx` 내부 로컬 함수 (export 없음) — 재사용 필요 시 인라인 구현
 - **getTrades 파라미터**: `{ startDate?, endDate? }` (from/to 아님); `getAccountReservationOrders`/`getAccountDailyTrades`는 `{ from, to }` 사용
 - **승인 재요청 Route Handler**: `ReapplyButton`은 `/api/auth/reapply-done` Route Handler 경유 — `apiFetch`로 kista-api 직접 호출 금지 (인증·CORS는 Route Handler에서 처리)
+- **재신청 쿨다운 localStorage 키**: pending 페이지(`ReapplyButton`) → `reapply_last_requested_at`(1시간), rejected 페이지 → `reapply_rejected_last_at`(24시간)
 - **계좌번호 형식**: `74420614-01` (숫자 8자리 + `-` + 숫자 2자리) — 분할 Input UI 사용
-- **UserService.reapply() 제약**: REJECTED 상태 사용자만 reapply 가능 — PENDING 사용자 클릭 시 400
+- **UserService.reapply() 제약**: PENDING(1시간 쿨다운) / REJECTED(24시간 쿨다운) 모두 reapply 가능. 그 외 상태(ACTIVE 등) 클릭 시 400
 
 ## 환경변수
 
