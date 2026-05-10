@@ -1,8 +1,19 @@
 import { Clock } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { createClient } from '@/lib/supabase/server'
+import { getMe } from '@/lib/api/auth'
+import { TelegramConnect } from './TelegramConnect'
 
-export default function PendingPage() {
+export default async function PendingPage() {
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  const token = session?.access_token
+
+  let hasTelegram = false
+  if (token) {
+    hasTelegram = await getMe(token).then((u) => u.hasTelegram).catch(() => false)
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm text-center shadow-lg">
@@ -18,13 +29,8 @@ export default function PendingPage() {
             관리자가 검토 후 승인하면 서비스를 이용하실 수 있습니다.
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <Button variant="outline" size="lg" className="w-full h-12">
-            텔레그램 봇 연동하기
-          </Button>
-          <p className="text-xs text-muted-foreground">
-            텔레그램 봇을 연동하면 승인 결과를 알림으로 받을 수 있습니다.
-          </p>
+        <CardContent>
+          <TelegramConnect hasTelegram={hasTelegram} />
         </CardContent>
       </Card>
     </div>
