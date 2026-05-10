@@ -50,6 +50,8 @@ export async function POST() {
     })
 
     if (!res.ok) {
+      const body = await res.text().catch(() => '')
+      console.error(`[reapply-done] kista-api ${res.status}: ${body}`)
       return NextResponse.json(
         { error: 'Reapply failed' },
         { status: res.status }
