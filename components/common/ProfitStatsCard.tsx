@@ -14,13 +14,13 @@ interface Props {
   accountId: string
 }
 
-function getDateRange(days: Period): { startDate: string; endDate: string } {
+function getDateRange(days: Period): { from: string; to: string } {
   const end = new Date()
   const start = new Date()
   start.setDate(start.getDate() - days)
   return {
-    startDate: start.toISOString().split('T')[0],
-    endDate: end.toISOString().split('T')[0],
+    from: start.toISOString().split('T')[0],
+    to: end.toISOString().split('T')[0],
   }
 }
 
@@ -40,10 +40,10 @@ export function ProfitStatsCard({ accountId }: Props) {
         const { data: { session } } = await supabase.auth.getSession()
         if (!session) return
 
-        const params = getDateRange(period)
+        const dateRange = getDateRange(period)
         const [profitData, snapshotData] = await Promise.all([
-          getAccountProfit(accountId, params, session.access_token).catch(() => null),
-          getPortfolioSnapshots(params, session.access_token).catch((): PortfolioSnapshot[] => []),
+          getAccountProfit(accountId, dateRange, session.access_token).catch(() => null),
+          getPortfolioSnapshots({ startDate: dateRange.from, endDate: dateRange.to }, session.access_token).catch((): PortfolioSnapshot[] => []),
         ])
 
         if (!cancelled) {

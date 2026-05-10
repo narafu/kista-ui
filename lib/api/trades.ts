@@ -28,14 +28,20 @@ export async function getPortfolioSnapshots(
 
 export async function getAccountProfit(
   accountId: string,
-  params: { startDate?: string; endDate?: string },
+  params: { from: string; to: string },
   token: string
 ): Promise<ProfitSummary> {
-  return apiFetch<ProfitSummary>(`/api/accounts/${accountId}/profit${buildDateQuery(params)}`, { method: 'GET' }, token)
+  const q = new URLSearchParams({ from: params.from, to: params.to })
+  return apiFetch<ProfitSummary>(`/api/accounts/${accountId}/profit?${q}`, { method: 'GET' }, token)
 }
 
-export async function getAccountTrades(accountId: string, token: string): Promise<TradeHistory[]> {
-  return apiFetch<TradeHistory[]>(`/api/accounts/${accountId}/trades`, { method: 'GET' }, token)
+export async function getAccountTrades(
+  accountId: string,
+  params: { from: string; to: string },
+  token: string
+): Promise<TradeHistory[]> {
+  const q = new URLSearchParams({ from: params.from, to: params.to })
+  return apiFetch<TradeHistory[]>(`/api/accounts/${accountId}/trades?${q}`, { method: 'GET' }, token)
 }
 
 export async function getAccountPortfolio(accountId: string, token: string): Promise<PortfolioSnapshot> {

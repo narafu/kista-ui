@@ -38,9 +38,17 @@ export default async function AccountDetailPage({ params }: Props) {
 
   const token = session.access_token
 
+  const today = new Date()
+  const from30d = new Date(today)
+  from30d.setDate(today.getDate() - 30)
+  const dateRange = {
+    from: from30d.toISOString().split('T')[0],
+    to: today.toISOString().split('T')[0],
+  }
+
   const [accounts, trades, portfolio] = await Promise.all([
     listAccounts(token).catch((): Account[] => []),
-    getAccountTrades(id, token).catch((): TradeHistory[] => []),
+    getAccountTrades(id, dateRange, token).catch((): TradeHistory[] => []),
     getAccountPortfolio(id, token).catch((): PortfolioSnapshot | null => null),
   ])
 
