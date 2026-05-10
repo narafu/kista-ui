@@ -45,3 +45,51 @@ export interface DailyProfit {
   profitLoss: number
   profitLossRate: number
 }
+
+export interface MarginItem {
+  currency: string
+  integratedOrderableAmount: number
+  foreignBalance: number
+}
+
+export interface ReservationOrder {
+  receiptDate: string
+  receiptTime: string
+  reservationOrderId: string
+  direction: OrderDirection
+  statusCode: string
+  statusName: string
+  symbol: string
+  symbolName: string
+  exchangeCode: string
+  orderedQty: number
+  orderedPrice: number
+  filledQty: number
+  cancelled: boolean
+}
+
+export interface DailyTransaction {
+  tradeDate: string
+  settlementDate: string
+  direction: OrderDirection
+  symbol: string
+  symbolName: string
+  qty: number
+  price: number
+  tradeAmountUsd: number
+  settlementAmountKrw: number
+  exchangeRate: number
+  currency: string
+}
+
+export interface DailyTransactionSummary {
+  buyAmountFcr: number
+  sellAmountFcr: number
+  domesticFee: number
+  overseasFee: number
+}
+
+export interface DailyTransactionResult {
+  items: DailyTransaction[]
+  summary: DailyTransactionSummary
+}

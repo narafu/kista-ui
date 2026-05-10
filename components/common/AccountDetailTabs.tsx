@@ -23,10 +23,12 @@ import { createClient } from '@/lib/supabase/client'
 import { pauseStrategy, resumeStrategy, deleteAccount } from '@/lib/api/accounts'
 import { ApiError } from '@/lib/api/client'
 import { ProfitStatsCard } from './ProfitStatsCard'
+import { MarginCard } from './MarginCard'
+import { ReservationOrdersCard } from './ReservationOrdersCard'
 import type { Account } from '@/types/account'
 import type { TradeHistory, PortfolioSnapshot } from '@/types/trade'
 
-type Tab = 'summary' | 'trades' | 'statistics'
+type Tab = 'summary' | 'trades' | 'statistics' | 'reservation' | 'margin'
 
 interface Props {
   account: Account
@@ -40,18 +42,18 @@ export function AccountDetailTabs({ account, trades, portfolio }: Props) {
   return (
     <div className="space-y-4">
       {/* 모바일 탭 헤더 */}
-      <div className="flex lg:hidden gap-1 border-b">
-        {(['summary', 'trades', 'statistics'] as Tab[]).map((tab) => (
+      <div className="flex lg:hidden gap-1 border-b overflow-x-auto">
+        {(['summary', 'trades', 'statistics', 'reservation', 'margin'] as Tab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${
+            className={`flex-shrink-0 py-3 px-2 text-sm font-medium border-b-2 transition-colors ${
               activeTab === tab
                 ? 'border-primary text-primary'
                 : 'border-transparent text-muted-foreground'
             }`}
           >
-            {tab === 'summary' ? '요약' : tab === 'trades' ? '거래 내역' : '통계'}
+            {tab === 'summary' ? '요약' : tab === 'trades' ? '거래내역' : tab === 'statistics' ? '통계' : tab === 'reservation' ? '예약주문' : '증거금'}
           </button>
         ))}
       </div>
@@ -63,6 +65,8 @@ export function AccountDetailTabs({ account, trades, portfolio }: Props) {
         )}
         {activeTab === 'trades' && <TradesTab trades={trades} />}
         {activeTab === 'statistics' && <ProfitStatsCard accountId={account.id} />}
+        {activeTab === 'reservation' && <ReservationOrdersCard accountId={account.id} />}
+        {activeTab === 'margin' && <MarginCard accountId={account.id} />}
       </div>
 
       {/* 데스크탑: 전체 레이아웃 */}
@@ -76,6 +80,10 @@ export function AccountDetailTabs({ account, trades, portfolio }: Props) {
           </div>
         </div>
         <TradesTab trades={trades} />
+        <div className="grid grid-cols-2 gap-6">
+          <ReservationOrdersCard accountId={account.id} />
+          <MarginCard accountId={account.id} />
+        </div>
       </div>
     </div>
   )

@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "KISTA V2",
+  title: "KISTA",
   description: "한국투자증권 KIS API 기반 해외주식 자동 분할매매 SaaS",
 };
 

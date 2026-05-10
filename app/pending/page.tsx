@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getMe } from '@/lib/api/auth'
 import { TelegramConnect } from './TelegramConnect'
 import { PendingStatusWatcher } from './PendingStatusWatcher'
+import { ReapplyButton } from './ReapplyButton'
 
 export default async function PendingPage() {
   const supabase = await createClient()
@@ -32,6 +33,7 @@ export default async function PendingPage() {
         </CardHeader>
         <CardContent>
           <PendingStatusWatcher />
+          <ReapplyButton />
           <TelegramConnect hasTelegram={hasTelegram} />
         </CardContent>
       </Card>
