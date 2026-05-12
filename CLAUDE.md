@@ -22,11 +22,11 @@ npx shadcn@latest add <component> --yes --defaults
 ## 아키텍처
 
 ### 인증 상태 라우팅
-사용자 상태(`UserStatus`)에 따라 `middleware.ts`(루트)가 강제 분기:
+사용자 상태(`UserStatus`)에 따라 `proxy.ts`(루트)가 강제 분기:
 - 비인증 → `/` | PENDING → `/pending` | REJECTED → `/rejected` | ACTIVE → `/dashboard`
 
-`middleware.ts`: Supabase SSR 세션 + `kista-user-status` HTTP-only 쿠키(7일) 캐싱 기반 라우팅.
-미들웨어에서는 `lib/supabase/server.ts` 불가(next/headers 사용 불가) — `@supabase/ssr` createServerClient를 `request.cookies`/`response.cookies`로 직접 구성.
+`proxy.ts`: Supabase SSR 세션 + `kista-user-status` HTTP-only 쿠키(7일) 캐싱 기반 라우팅.
+proxy에서는 `lib/supabase/server.ts` 불가(next/headers 사용 불가) — `@supabase/ssr` createServerClient를 `request.cookies`/`response.cookies`로 직접 구성.
 
 ### 레이아웃 그룹
 - `app/(auth)/` — 비인증 전용 (`/` 로그인 페이지)
@@ -63,7 +63,7 @@ npx shadcn@latest add <component> --yes --defaults
 - **recharts**: SSR 미지원 → `'use client'` 필수. Tooltip `formatter`의 `value` 파라미터는 `ValueType | undefined` → `Number(value)` 사용
 - **HTTP-only 쿠키 삭제**: Client JS에서 불가 → Route Handler에서 `response.cookies.set(name, '', { maxAge: 0 })` 처리
 - **kista-api DTO**: `UserResponse`는 `{ id, nickname, status, hasTelegram }`, `AccountResponse`는 `{ id, nickname, accountNoMasked, strategy, strategyStatus, hasTelegram }` — `types/` 참고
-- **middleware 리다이렉트 루프**: slow path(API 호출)에서 실패 시 무조건 `redirect('/')`하면 `/`에서 셀프 루프 → `ERR_TOO_MANY_REDIRECTS`. 비보호 경로(`/`, `/auth/*`)에선 실패해도 `response` 반환 필요
+- **proxy 리다이렉트 루프**: slow path(API 호출)에서 실패 시 무조건 `redirect('/')`하면 `/`에서 셀프 루프 → `ERR_TOO_MANY_REDIRECTS`. 비보호 경로(`/`, `/auth/*`)에선 실패해도 `response` 반환 필요
 - **SSE 인증 패턴**: 브라우저 `EventSource`는 커스텀 헤더 미지원 → JWT 인증이 필요한 SSE는 Next.js Route Handler가 Bearer 토큰 포함 후 kista-api로 중계 (`app/api/auth/status-stream/route.ts` 참고)
 - **PENDING 상태 쿠키 캐싱 금지**: `kista-user-status` 쿠키에 PENDING을 저장하면 승인 후 새로고침 시 API 미호출 → PENDING 화면 유지 버그. `status !== 'PENDING'`일 때만 쿠키 저장
 - **ProfitStatsCard**: self-fetching client component — `accountId` prop만 넘기면 내부 useEffect에서 직접 API 호출 (Server Component에서 token 전달 불필요)
@@ -73,7 +73,8 @@ npx shadcn@latest add <component> --yes --defaults
 - **재신청 쿨다운 localStorage 키**: pending 페이지(`ReapplyButton`) → `reapply_last_requested_at`(1시간), rejected 페이지 → `reapply_rejected_last_at`(24시간)
 - **계좌번호 형식**: `74420614-01` (숫자 8자리 + `-` + 숫자 2자리) — 분할 Input UI 사용
 - **UserService.reapply() 제약**: PENDING(1시간 쿨다운) / REJECTED(24시간 쿨다운) 모두 reapply 가능. 그 외 상태(ACTIVE 등) 클릭 시 400
-- **Docker standalone 리다이렉트**: `request.url`은 `os.hostname()`(컨테이너 ID) 기반 → `new URL('/path', request.url)` 사용 금지. middleware는 `request.nextUrl.clone()` + `url.pathname = '/...'`, Route Handler는 `request.nextUrl.origin` 사용
+- **Docker standalone 리다이렉트**: `request.url`은 `os.hostname()`(컨테이너 ID) 기반 → `new URL('/path', request.url)` 사용 금지. proxy는 `request.nextUrl.clone()` + `url.pathname = '/...'`, Route Handler는 `request.nextUrl.origin` 사용
+- **Next.js 16 proxy 파일 컨벤션**: `middleware.ts` deprecated → `proxy.ts`로 rename, export 함수명도 `middleware` → `proxy`. `config` export 및 동작은 동일. 마이그레이션: `npx @next/codemod@canary middleware-to-proxy .`
 
 ## 환경변수
 
