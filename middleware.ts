@@ -59,7 +59,7 @@ export async function middleware(request: NextRequest) {
     // 비인증: 보호 경로면 / 리다이렉트
     const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
     if (isProtected) {
-      return NextResponse.redirect(new URL('/', request.url))
+      return redirectTo('/', request)
     }
     return response
   }
@@ -80,9 +80,7 @@ export async function middleware(request: NextRequest) {
       } = await supabase.auth.getSession()
       const token = session?.access_token
       if (!token) {
-        return isProtected
-          ? NextResponse.redirect(new URL('/', request.url))
-          : response
+        return isProtected ? redirectTo('/', request) : response
       }
 
       const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL
@@ -92,9 +90,7 @@ export async function middleware(request: NextRequest) {
       })
 
       if (!meRes.ok) {
-        return isProtected
-          ? NextResponse.redirect(new URL('/', request.url))
-          : response
+        return isProtected ? redirectTo('/', request) : response
       }
 
       const userData = await meRes.json()
@@ -105,14 +101,18 @@ export async function middleware(request: NextRequest) {
         response.cookies.set(STATUS_COOKIE, status, STATUS_COOKIE_OPTIONS)
       }
     } catch {
-      return isProtected
-        ? NextResponse.redirect(new URL('/', request.url))
-        : response
+      return isProtected ? redirectTo('/', request) : response
     }
   }
 
   // status별 라우팅
   return routeByStatus(status, pathname, request, response)
+}
+
+function redirectTo(pathname: string, request: NextRequest): NextResponse {
+  const url = request.nextUrl.clone()
+  url.pathname = pathname
+  return NextResponse.redirect(url)
 }
 
 function routeByStatus(
@@ -123,14 +123,14 @@ function routeByStatus(
 ): NextResponse {
   if (status === 'PENDING') {
     if (pathname !== '/pending') {
-      return NextResponse.redirect(new URL('/pending', request.url))
+      return redirectTo('/pending', request)
     }
     return response
   }
 
   if (status === 'REJECTED') {
     if (pathname !== '/rejected') {
-      return NextResponse.redirect(new URL('/rejected', request.url))
+      return redirectTo('/rejected', request)
     }
     return response
   }
@@ -142,7 +142,7 @@ function routeByStatus(
       pathname === '/pending' ||
       pathname === '/rejected'
     ) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+      return redirectTo('/dashboard', request)
     }
     return response
   }

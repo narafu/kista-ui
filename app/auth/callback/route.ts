@@ -6,7 +6,8 @@ import type { NextRequest } from 'next/server'
 const STATUS_COOKIE = 'kista-user-status'
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url)
+  const { searchParams } = request.nextUrl
+  const origin = request.nextUrl.origin
   const code = searchParams.get('code')
 
   if (!code) {

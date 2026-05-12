@@ -73,6 +73,7 @@ npx shadcn@latest add <component> --yes --defaults
 - **재신청 쿨다운 localStorage 키**: pending 페이지(`ReapplyButton`) → `reapply_last_requested_at`(1시간), rejected 페이지 → `reapply_rejected_last_at`(24시간)
 - **계좌번호 형식**: `74420614-01` (숫자 8자리 + `-` + 숫자 2자리) — 분할 Input UI 사용
 - **UserService.reapply() 제약**: PENDING(1시간 쿨다운) / REJECTED(24시간 쿨다운) 모두 reapply 가능. 그 외 상태(ACTIVE 등) 클릭 시 400
+- **Docker standalone 리다이렉트**: `request.url`은 `os.hostname()`(컨테이너 ID) 기반 → `new URL('/path', request.url)` 사용 금지. middleware는 `request.nextUrl.clone()` + `url.pathname = '/...'`, Route Handler는 `request.nextUrl.origin` 사용
 
 ## 환경변수
 
