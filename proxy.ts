@@ -1,8 +1,8 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 const STATUS_COOKIE = 'kista-user-status'
+const KISTA_TOKEN_COOKIE = 'kista-token'
 const VALID_STATUSES = new Set(['PENDING', 'REJECTED', 'ACTIVE'])
 const STATUS_COOKIE_OPTIONS = {
   httpOnly: true,
@@ -11,78 +11,34 @@ const STATUS_COOKIE_OPTIONS = {
   maxAge: 604800,
   path: '/',
 }
-
-// 인증 필요 경로 prefix
 const PROTECTED_PREFIXES = ['/dashboard', '/accounts', '/settings']
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
+  let response = NextResponse.next({ request: { headers: request.headers } })
 
-  let response = NextResponse.next({
-    request: { headers: request.headers },
-  })
+  // API 라우트는 통과
+  if (pathname.startsWith('/api/')) return response
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
-          response = NextResponse.next({
-            request: { headers: request.headers },
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
+  const token = request.cookies.get(KISTA_TOKEN_COOKIE)?.value
 
-  // Supabase 세션 갱신 (토큰 refresh 처리)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  // API 라우트는 세션 갱신만 하고 통과
-  if (pathname.startsWith('/api/')) {
-    return response
-  }
-
-  if (!user) {
-    // 비인증: 보호 경로면 / 리다이렉트
+  if (!token) {
     const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
-    if (isProtected) {
-      return redirectTo('/', request)
-    }
+    if (isProtected) return redirectTo('/', request)
     return response
   }
 
-  // 인증됨: status 확인
+  // 인증됨: status 캐시 확인
   const cachedStatus = request.cookies.get(STATUS_COOKIE)?.value
 
   let status: string
   if (cachedStatus && VALID_STATUSES.has(cachedStatus)) {
-    // 빠른 경로: 쿠키에서 status 읽기
+    // 빠른 경로: 쿠키 캐시 사용
     status = cachedStatus
   } else {
-    // 느린 경로: kista-api 호출
+    // 느린 경로: kista-api /me 호출
     const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      const token = session?.access_token
-      if (!token) {
-        return isProtected ? redirectTo('/', request) : response
-      }
-
       const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL
       const meRes = await fetch(`${apiUrl}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -96,7 +52,7 @@ export async function proxy(request: NextRequest) {
       const userData = await meRes.json()
       status = userData.status
 
-      // PENDING은 캐싱 금지 — 승인 후 새로고침 시 쿠키 캐시 히트로 PENDING 유지되는 버그 방지
+      // PENDING은 캐싱 금지 — 승인 후 캐시 히트 버그 방지
       if (status !== 'PENDING') {
         response.cookies.set(STATUS_COOKIE, status, STATUS_COOKIE_OPTIONS)
       }
@@ -105,7 +61,6 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // status별 라우팅
   return routeByStatus(status, pathname, request, response)
 }
 
@@ -122,31 +77,19 @@ function routeByStatus(
   response: NextResponse
 ): NextResponse {
   if (status === 'PENDING') {
-    if (pathname !== '/pending') {
-      return redirectTo('/pending', request)
-    }
+    if (pathname !== '/pending') return redirectTo('/pending', request)
     return response
   }
-
   if (status === 'REJECTED') {
-    if (pathname !== '/rejected') {
-      return redirectTo('/rejected', request)
-    }
+    if (pathname !== '/rejected') return redirectTo('/rejected', request)
     return response
   }
-
   if (status === 'ACTIVE') {
-    // 비인증 전용 페이지에서 대시보드로
-    if (
-      pathname === '/' ||
-      pathname === '/pending' ||
-      pathname === '/rejected'
-    ) {
+    if (pathname === '/' || pathname === '/pending' || pathname === '/rejected') {
       return redirectTo('/dashboard', request)
     }
     return response
   }
-
   return response
 }
 
