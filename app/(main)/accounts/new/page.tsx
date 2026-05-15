@@ -162,8 +162,8 @@ export default function AccountNewPage() {
                     <SelectValue placeholder="전략을 선택하세요" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="INFINITE">Infinite — SOXL 20차수 분할매매</SelectItem>
-                    <SelectItem value="PRIVACY">Privacy — SOXL (최소 $2,500)</SelectItem>
+                    <SelectItem value="INFINITE">Infinite</SelectItem>
+                    <SelectItem value="PRIVACY">Privacy</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
