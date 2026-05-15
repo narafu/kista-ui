@@ -25,8 +25,8 @@ npx shadcn@latest add <component> --yes --defaults
 사용자 상태(`UserStatus`)에 따라 `proxy.ts`(루트)가 강제 분기:
 - 비인증 → `/` | PENDING → `/pending` | REJECTED → `/rejected` | ACTIVE → `/dashboard`
 
-`proxy.ts`: Supabase SSR 세션 + `kista-user-status` HTTP-only 쿠키(7일) 캐싱 기반 라우팅.
-proxy에서는 `lib/supabase/server.ts` 불가(next/headers 사용 불가) — `@supabase/ssr` createServerClient를 `request.cookies`/`response.cookies`로 직접 구성.
+`proxy.ts`: `kista-token` 쿠키 + `kista-user-status` HTTP-only 쿠키 캐싱 기반 라우팅 (Supabase 완전 제거됨).
+kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token')`으로 직접 읽음.
 
 ### 레이아웃 그룹
 - `app/(auth)/` — 비인증 전용 (`/` 로그인 페이지)
@@ -36,9 +36,9 @@ proxy에서는 `lib/supabase/server.ts` 불가(next/headers 사용 불가) — `
 ### API 계층
 - API 레이어: `lib/api/{auth,accounts,trades,settings}.ts` — `apiFetch(path, options, accessToken)` 공통 래퍼 사용
 - 모든 API 호출은 `lib/api/` 함수 경유 (컴포넌트 직접 fetch 금지)
-- Supabase 클라이언트: 브라우저 컴포넌트 → `lib/supabase/client.ts`, 서버/미들웨어 → `lib/supabase/server.ts`
-- Server Component token 취득: `(await createClient()).auth.getSession()` → `session?.access_token`
-- Client Component token 취득: `createClient().auth.getSession()` (lib/supabase/client.ts)
+- Server Component token 취득: `import { getAuthToken } from '@/lib/auth/token'` → `await getAuthToken()` (next/headers 쿠키 읽기)
+- Client Component token 취득: `import { getAuthTokenClient } from '@/lib/auth/token'` → `getAuthTokenClient()` (동기, document.cookie 파싱)
+- 로그아웃: `POST /api/auth/logout` Route Handler — kista-token + kista-user-status 쿠키 삭제
 
 ### 컴포넌트 폴더
 - `components/common/` — 공통 UI (AccountCard, ProfitDisplay, PortfolioChart, ProfitStatsCard 등)
@@ -82,8 +82,7 @@ proxy에서는 `lib/supabase/server.ts` 불가(next/headers 사용 불가) — `
 ## 환경변수
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=       # Supabase 프로젝트 URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY=  # Supabase anon key
+NEXT_PUBLIC_KAKAO_CLIENT_ID=    # 카카오 앱 REST API 키
 NEXT_PUBLIC_API_BASE_URL=       # kista-api Render URL
 ```
 
@@ -104,7 +103,7 @@ NEXT_PUBLIC_API_BASE_URL=       # kista-api Render URL
 - 프로젝트: `narafus-projects/kista-ui` (`prj_bSRl2Q8cUSpdMgeYwpUmptyoiMfi`)
 - GitHub 통합 자동 배포 — `.vercel/project.json` 없음, CLI redeploy 불가
 - 강제 재배포: 빈 커밋 푸시 `git commit --allow-empty -m "..." && git push origin main`
-- `NEXT_PUBLIC_*` 변수는 서버 코드에서도 **빌드 시 인라인** — 값이 비면 런타임 500 (Supabase "URL required")
+- `NEXT_PUBLIC_*` 변수는 서버 코드에서도 **빌드 시 인라인** — 값이 비면 런타임 500 (카카오 로그인 불가)
 - 빌드 캐시는 env var 값이 실제로 바뀌어야 무효화됨 — 값 채운 후 재배포해야 반영
 - Deployment Protection: Vercel 대시보드 Settings → Deployment Protection → Disabled (현재 비활성화됨)
 - `live: false` (API 응답 필드)는 Deployment Protection과 무관 — 배포 라이브 여부 표시
@@ -112,4 +111,5 @@ NEXT_PUBLIC_API_BASE_URL=       # kista-api Render URL
 - 환경변수 확인: `vercel env ls production` (링크 후 사용 가능)
 - 런타임 로그: Vercel MCP `get_runtime_logs(projectId, teamId)` — 빌드 로그: `get_deployment_build_logs`
 - MCP 로그는 메시지 잘림 → 에러 전문은 `vercel logs --scope narafus-projects --json` 사용
-- 카카오 OAuth 레이트 리밋 주의: 로컬(`localhost:3000`)과 운영이 같은 Supabase/카카오 앱 공유 → 로컬 반복 테스트 시 운영 로그인 장애 유발 가능 (`oauth2: token request rate limit exceeded`)
+- 카카오 redirect URI: 카카오 개발자 콘솔에서 `http://localhost:3000/auth/callback`(로컬)과 운영 URL 모두 등록 필요
+- 카카오 OAuth 레이트 리밋 주의: 로컬과 운영이 같은 카카오 앱 공유 → 반복 테스트 시 운영 로그인 장애 유발 가능
