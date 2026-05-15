@@ -39,7 +39,7 @@ export async function proxy(request: NextRequest) {
     // 느린 경로: kista-api /me 호출
     const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+      const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
       const meRes = await fetch(`${apiUrl}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
         signal: AbortSignal.timeout(5000),

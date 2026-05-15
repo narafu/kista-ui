@@ -13,7 +13,9 @@ const TOKEN_COOKIE_OPTIONS = {
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
-  const origin = request.nextUrl.origin
+  const host = request.headers.get('host') ?? 'localhost:3000'
+  const proto = request.headers.get('x-forwarded-proto') ?? 'http'
+  const origin = `${proto}://${host}`
   const code = searchParams.get('code')
 
   if (!code) {
@@ -24,7 +26,7 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+  const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
   if (!apiUrl) {
     console.error('[auth/callback] NEXT_PUBLIC_API_BASE_URL 미설정')
     return NextResponse.redirect(new URL('/?error=server_error', origin))

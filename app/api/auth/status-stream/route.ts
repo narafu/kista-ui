@@ -9,7 +9,7 @@ export async function GET() {
     return new Response('Unauthorized', { status: 401 })
   }
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+  const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
   const upstream = await fetch(`${apiUrl}/api/auth/status-stream`, {
     headers: { Authorization: `Bearer ${token}` },
   })

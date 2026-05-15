@@ -9,7 +9,7 @@ export async function POST() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+  const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
   try {
     const res = await fetch(`${apiUrl}/api/auth/reapply`, {
       method: 'POST',
