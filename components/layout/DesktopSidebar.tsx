@@ -1,5 +1,7 @@
+'use client'
+
 import Link from 'next/link'
-import { LayoutDashboard, CreditCard, BarChart2, Settings } from 'lucide-react'
+import { LayoutDashboard, CreditCard, BarChart2, Settings, LogOut } from 'lucide-react'
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: '대시보드', icon: LayoutDashboard },
@@ -9,6 +11,11 @@ const NAV_ITEMS = [
 ]
 
 export function DesktopSidebar() {
+  async function handleLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' })
+    window.location.href = '/'
+  }
+
   return (
     <aside className="hidden lg:flex flex-col w-60 min-h-screen border-r bg-card px-4 py-6 shrink-0">
       <div className="mb-8 px-2">
@@ -26,6 +33,15 @@ export function DesktopSidebar() {
           </Link>
         ))}
       </nav>
+      <div className="mt-auto">
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+        >
+          <LogOut className="h-4 w-4" />
+          로그아웃
+        </button>
+      </div>
     </aside>
   )
 }

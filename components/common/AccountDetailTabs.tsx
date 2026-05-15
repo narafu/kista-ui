@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils'
 import { StrategyBadge } from './StrategyBadge'
 import { TradingStatusIndicator } from './TradingStatusIndicator'
 import { ProfitDisplay } from './ProfitDisplay'
-import { createClient } from '@/lib/supabase/client'
+import { getAuthTokenClient } from '@/lib/auth/token'
 import { pauseStrategy, resumeStrategy, deleteAccount } from '@/lib/api/accounts'
 import { ApiError } from '@/lib/api/client'
 import { ProfitStatsCard } from './ProfitStatsCard'
@@ -98,15 +98,14 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
   async function handleStrategyToggle() {
     setIsStrategyLoading(true)
     try {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { toast.error('로그인이 필요합니다'); return }
+      const token = getAuthTokenClient()
+      if (!token) { toast.error('로그인이 필요합니다'); return }
 
       if (account.strategyStatus === 'ACTIVE') {
-        await pauseStrategy(account.id, session.access_token)
+        await pauseStrategy(account.id, token)
         toast.success('전략이 중지되었습니다')
       } else {
-        await resumeStrategy(account.id, session.access_token)
+        await resumeStrategy(account.id, token)
         toast.success('전략이 재개되었습니다')
       }
       router.refresh()
@@ -120,11 +119,10 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
   async function handleDelete() {
     setIsDeleteLoading(true)
     try {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { toast.error('로그인이 필요합니다'); return }
+      const token = getAuthTokenClient()
+      if (!token) { toast.error('로그인이 필요합니다'); return }
 
-      await deleteAccount(account.id, session.access_token)
+      await deleteAccount(account.id, token)
       toast.success('계좌가 삭제되었습니다')
       router.push('/dashboard')
     } catch (err) {

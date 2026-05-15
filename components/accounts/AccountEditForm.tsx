@@ -19,7 +19,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/client'
+import { getAuthTokenClient } from '@/lib/auth/token'
 import { updateAccount, deleteAccount } from '@/lib/api/accounts'
 import { ApiError } from '@/lib/api/client'
 import type { Account, Strategy } from '@/types/account'
@@ -45,16 +45,15 @@ export function AccountEditForm({ account }: Props) {
 
     setIsLoading(true)
     try {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { toast.error('로그인이 필요합니다'); return }
+      const token = getAuthTokenClient()
+      if (!token) { toast.error('로그인이 필요합니다'); return }
 
       await updateAccount(account.id, {
         nickname: nickname.trim(),
         strategy,
         ...(kisAppKey.trim() && { kisAppKey: kisAppKey.trim() }),
         ...(kisSecretKey.trim() && { kisSecretKey: kisSecretKey.trim() }),
-      }, session.access_token)
+      }, token)
 
       toast.success('계좌가 수정되었습니다')
       router.push(`/accounts/${account.id}`)
@@ -69,11 +68,10 @@ export function AccountEditForm({ account }: Props) {
   async function handleDelete() {
     setIsDeleteLoading(true)
     try {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { toast.error('로그인이 필요합니다'); return }
+      const token = getAuthTokenClient()
+      if (!token) { toast.error('로그인이 필요합니다'); return }
 
-      await deleteAccount(account.id, session.access_token)
+      await deleteAccount(account.id, token)
       toast.success('계좌가 삭제되었습니다')
       router.push('/dashboard')
     } catch (err) {

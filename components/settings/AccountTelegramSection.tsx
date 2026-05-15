@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { createClient } from '@/lib/supabase/client'
+import { getAuthTokenClient } from '@/lib/auth/token'
 import { updateAccount } from '@/lib/api/accounts'
 import { ApiError } from '@/lib/api/client'
 import type { Account } from '@/types/account'
@@ -22,15 +22,14 @@ function AccountTelegramRow({ account }: AccountRowProps) {
   async function handleSave() {
     setIsLoading(true)
     try {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { toast.error('로그인이 필요합니다'); return }
+      const token = getAuthTokenClient()
+      if (!token) { toast.error('로그인이 필요합니다'); return }
 
       await updateAccount(account.id, {
         nickname: account.nickname,
         telegramBotToken: botToken.trim() || undefined,
         telegramChatId: chatId.trim() || undefined,
-      }, session.access_token)
+      }, token)
 
       toast.success(`${account.nickname} 텔레그램 설정이 저장되었습니다`)
       setBotToken('')

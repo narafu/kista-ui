@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { createClient } from '@/lib/supabase/client'
+import { getAuthTokenClient } from '@/lib/auth/token'
 import { getAccountReservationOrders } from '@/lib/api/trades'
 import type { ReservationOrder } from '@/types/trade'
 
@@ -31,12 +31,12 @@ export function ReservationOrdersCard({ accountId }: Props) {
     async function load() {
       setIsLoading(true)
       try {
-        const { data: { session } } = await createClient().auth.getSession()
-        if (!session) return
+        const token = getAuthTokenClient()
+        if (!token) return
         const data = await getAccountReservationOrders(
           accountId,
           getDefaultRange(),
-          session.access_token
+          token
         ).catch((): ReservationOrder[] => [])
         if (!cancelled) setOrders(data)
       } finally {

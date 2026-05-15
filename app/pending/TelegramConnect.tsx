@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { createClient } from '@/lib/supabase/client'
+import { getAuthTokenClient } from '@/lib/auth/token'
 import { updateTelegram, deleteTelegram } from '@/lib/api/settings'
 import { ApiError } from '@/lib/api/client'
 
@@ -21,18 +21,13 @@ export function TelegramConnect({ hasTelegram }: Props) {
   const [isLoading, setIsLoading] = useState(false)
   const [isDeleteLoading, setIsDeleteLoading] = useState(false)
 
-  async function getToken() {
-    const { data: { session } } = await createClient().auth.getSession()
-    return session?.access_token
-  }
-
   async function handleSave() {
     if (!botToken.trim()) { toast.error('Bot Token을 입력해주세요'); return }
     if (!chatId.trim()) { toast.error('Chat ID를 입력해주세요'); return }
 
     setIsLoading(true)
     try {
-      const token = await getToken()
+      const token = getAuthTokenClient()
       if (!token) { toast.error('로그인이 필요합니다'); return }
 
       await updateTelegram({ botToken: botToken.trim(), chatId: chatId.trim() }, token)
@@ -51,7 +46,7 @@ export function TelegramConnect({ hasTelegram }: Props) {
   async function handleDelete() {
     setIsDeleteLoading(true)
     try {
-      const token = await getToken()
+      const token = getAuthTokenClient()
       if (!token) { toast.error('로그인이 필요합니다'); return }
 
       await deleteTelegram(token)

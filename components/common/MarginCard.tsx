@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { createClient } from '@/lib/supabase/client'
+import { getAuthTokenClient } from '@/lib/auth/token'
 import { getAccountMargin } from '@/lib/api/trades'
 import type { MarginItem } from '@/types/trade'
 
@@ -20,9 +20,9 @@ export function MarginCard({ accountId }: Props) {
     async function load() {
       setIsLoading(true)
       try {
-        const { data: { session } } = await createClient().auth.getSession()
-        if (!session) return
-        const data = await getAccountMargin(accountId, session.access_token).catch((): MarginItem[] => [])
+        const token = getAuthTokenClient()
+        if (!token) return
+        const data = await getAccountMargin(accountId, token).catch((): MarginItem[] => [])
         if (!cancelled) setItems(data)
       } finally {
         if (!cancelled) setIsLoading(false)

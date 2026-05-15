@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PortfolioChart } from './PortfolioChart'
-import { createClient } from '@/lib/supabase/client'
+import { getAuthTokenClient } from '@/lib/auth/token'
 import { getAccountProfit, getPortfolioSnapshots } from '@/lib/api/trades'
 import type { ProfitSummary, PortfolioSnapshot } from '@/types/trade'
 
@@ -36,14 +36,13 @@ export function ProfitStatsCard({ accountId }: Props) {
     async function load() {
       setIsLoading(true)
       try {
-        const supabase = createClient()
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session) return
+        const token = getAuthTokenClient()
+        if (!token) return
 
         const dateRange = getDateRange(period)
         const [profitData, snapshotData] = await Promise.all([
-          getAccountProfit(accountId, dateRange, session.access_token).catch(() => null),
-          getPortfolioSnapshots({ startDate: dateRange.from, endDate: dateRange.to }, session.access_token).catch((): PortfolioSnapshot[] => []),
+          getAccountProfit(accountId, dateRange, token).catch(() => null),
+          getPortfolioSnapshots({ startDate: dateRange.from, endDate: dateRange.to }, token).catch((): PortfolioSnapshot[] => []),
         ])
 
         if (!cancelled) {

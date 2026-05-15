@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/client'
+import { getAuthTokenClient } from '@/lib/auth/token'
 import { createAccount } from '@/lib/api/accounts'
 import { ApiError } from '@/lib/api/client'
 import type { Strategy } from '@/types/account'
@@ -40,9 +40,8 @@ export default function AccountNewPage() {
 
     setIsLoading(true)
     try {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { toast.error('로그인이 필요합니다'); return }
+      const token = getAuthTokenClient()
+      if (!token) { toast.error('로그인이 필요합니다'); return }
 
       await createAccount({
         nickname: nickname.trim(),
@@ -51,7 +50,7 @@ export default function AccountNewPage() {
         kisSecretKey: kisSecretKey.trim(),
         strategy: strategy as Strategy,
         kisAccountType: '01',
-      }, session.access_token)
+      }, token)
 
       toast.success('계좌가 등록되었습니다')
       router.push('/dashboard')
