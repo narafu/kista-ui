@@ -52,6 +52,7 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 
 ## 기술 스택 quirk
 
+- **git author**: 커밋 전 `git config user.name` 확인 필수 — 올바른 값: `narafu <narafu@kakao.com>`
 - **Bash 괄호 경로**: `git add app/(main)/layout.tsx` 실패 → `git add "app/(main)/layout.tsx"` (큰따옴표 필수)
 - **PENDING 사용자 API 접근**: kista-api SettingsController는 UserStatus 미검증 → PENDING 상태도 JWT로 `/api/settings/telegram` 호출 가능
 - **kista-api 위치**: 백엔드 소스는 `../kista-api/` (상위 workspace 내 별도 프로젝트)
@@ -93,6 +94,12 @@ NEXT_PUBLIC_API_BASE_URL=       # kista-api Render URL
 - kista-api `CORS_ALLOWED_ORIGINS` 올바른 값: `https://kista-ui.vercel.app,https://kista-ui-narafus-projects.vercel.app`
 - Route Handler 403 진단: Render 앱 로그에 기록 없는 403 → CORS 필터 차단 → `CORS_ALLOWED_ORIGINS` Render 환경변수 확인
 - Route Handler 디버깅: kista-api 응답 body를 `console.error`로 로깅하면 Vercel 런타임 로그에서 원인 확인 가능
+
+## Docker
+
+- `docker-compose.yml` 존재 — `.env` 파일의 `NEXT_PUBLIC_*` 변수를 빌드 인자로 자동 주입
+- 빌드 + 실행: `docker compose up -d --build` / 중지: `docker compose down`
+- `NEXT_PUBLIC_*`는 빌드 타임 인라인 → `docker run -e`로 런타임 주입 불가, Dockerfile `ARG`/`ENV` 필수 (builder 스테이지에 선언)
 
 ## Git 규칙
 

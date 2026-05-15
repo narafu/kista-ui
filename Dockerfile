@@ -12,6 +12,11 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+ARG NEXT_PUBLIC_KAKAO_CLIENT_ID
+ARG NEXT_PUBLIC_API_BASE_URL
+ENV NEXT_PUBLIC_KAKAO_CLIENT_ID=$NEXT_PUBLIC_KAKAO_CLIENT_ID
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+
 # 빌드 시 lightningcss 등이 해당 OS(Linux)에 맞춰 컴파일되거나 설치됩니다.
 RUN npm run build
 
