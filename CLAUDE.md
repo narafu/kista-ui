@@ -67,10 +67,15 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **proxy 리다이렉트 루프**: slow path(API 호출)에서 실패 시 무조건 `redirect('/')`하면 `/`에서 셀프 루프 → `ERR_TOO_MANY_REDIRECTS`. 비보호 경로(`/`, `/auth/*`)에선 실패해도 `response` 반환 필요
 - **SSE 인증 패턴**: 브라우저 `EventSource`는 커스텀 헤더 미지원 → JWT 인증이 필요한 SSE는 Next.js Route Handler가 Bearer 토큰 포함 후 kista-api로 중계 (`app/api/auth/status-stream/route.ts` 참고)
 - **PENDING 상태 쿠키 캐싱 금지**: `kista-user-status` 쿠키에 PENDING을 저장하면 승인 후 새로고침 시 API 미호출 → PENDING 화면 유지 버그. `status !== 'PENDING'`일 때만 쿠키 저장
+- **Safari `Secure` 쿠키 + HTTP 차단**: Chrome은 `localhost`에서 HTTP+`Secure` 쿠키 허용(예외)이지만, Safari는 HTTP 연결의 `Secure` 쿠키를 무조건 무시함 → `document.cookie`에서 읽을 수 없어 클라이언트 인증 실패. 쿠키의 `secure` 플래그는 `NODE_ENV`가 아닌 `x-forwarded-proto === 'https'`(실제 요청 프로토콜)로 결정할 것 (`app/auth/callback/route.ts` 참고)
+- **로컬 Docker `NEXT_PUBLIC_API_BASE_URL`**: `.env`에서 `http://localhost:8080` 유지 필수 — Render URL로 설정하면 브라우저가 Render에 로컬 JWT 전송 → 401. Vercel 배포는 Vercel 대시보드 env var 사용하므로 `.env` 값과 무관
+- **`apiFetch` baseUrl 패턴**: `client.ts`는 `API_BASE_URL ?? NEXT_PUBLIC_API_BASE_URL` 순서 — 서버사이드(Docker)는 `API_BASE_URL=http://host.docker.internal:8080` 우선, 브라우저는 `undefined ??` 폴백으로 `NEXT_PUBLIC_API_BASE_URL` 사용
+- **쿠키 관련 수정 후 검증**: 쿠키 옵션 변경 후 재빌드만으로는 기존 세션에 미적용 — 브라우저 쿠키 직접 삭제 후 카카오 재로그인 필요. kista-api 로그에 `/api/auth/me` 호출이 없으면 브라우저에 `kista-token`이 없다는 증거
 - **ProfitStatsCard**: self-fetching client component — `accountId` prop만 넘기면 내부 useEffect에서 직접 API 호출 (Server Component에서 token 전달 불필요)
 - **TradesTab**: `AccountDetailTabs.tsx` 내부 로컬 함수 (export 없음) — 재사용 필요 시 인라인 구현
 - **API 날짜 파라미터**: `getAccountTrades`/`getAccountProfit`/`getAccountReservationOrders`/`getAccountDailyTrades` 모두 `{ from, to }` (ISO date string, 필수) — `buildDateQuery`의 `startDate`/`endDate` 키와 혼동 주의
 - **승인 재요청 Route Handler**: `ReapplyButton`은 `/api/auth/reapply-done` Route Handler 경유 — `apiFetch`로 kista-api 직접 호출 금지 (인증·CORS는 Route Handler에서 처리)
+- **텔레그램 설정 Route Handler**: `updateTelegram`/`deleteTelegram`은 `/api/settings/telegram` Route Handler 경유 — `getAuthTokenClient()` 브라우저 쿠키 읽기 방식 금지 (Docker HTTP 환경에서 쿠키 읽기 실패 사례 있음)
 - **재신청 쿨다운 localStorage 키**: pending 페이지(`ReapplyButton`) → `reapply_last_requested_at`(1시간), rejected 페이지 → `reapply_rejected_last_at`(24시간)
 - **계좌번호 형식**: `74420614-01` (숫자 8자리 + `-` + 숫자 2자리) — 분할 Input UI 사용
 - **UserService.reapply() 제약**: PENDING(1시간 쿨다운) / REJECTED(24시간 쿨다운) 모두 reapply 가능. 그 외 상태(ACTIVE 등) 클릭 시 400

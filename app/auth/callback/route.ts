@@ -3,18 +3,18 @@ import type { NextRequest } from 'next/server'
 
 const STATUS_COOKIE = 'kista-user-status'
 const KISTA_TOKEN_COOKIE = 'kista-token'
-const TOKEN_COOKIE_OPTIONS = {
-  httpOnly: false,   // 클라이언트 컴포넌트가 document.cookie로 읽어야 하므로 false
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,
-  maxAge: 604800,    // 7일 — JWT TTL과 동일
-  path: '/',
-}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const host = request.headers.get('host') ?? 'localhost:3000'
   const proto = request.headers.get('x-forwarded-proto') ?? 'http'
+  const TOKEN_COOKIE_OPTIONS = {
+    httpOnly: false,   // 클라이언트 컴포넌트가 document.cookie로 읽어야 하므로 false
+    secure: proto === 'https',  // 실제 프로토콜 기반 — HTTP(로컬)에서도 Safari가 쿠키 수락
+    sameSite: 'lax' as const,
+    maxAge: 604800,    // 7일 — JWT TTL과 동일
+    path: '/',
+  }
   const origin = `${proto}://${host}`
   const code = searchParams.get('code')
 

@@ -5,7 +5,6 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { getAuthTokenClient } from '@/lib/auth/token'
 import { updateTelegram, deleteTelegram } from '@/lib/api/settings'
 import { ApiError } from '@/lib/api/client'
 
@@ -27,10 +26,7 @@ export function TelegramConnect({ hasTelegram }: Props) {
 
     setIsLoading(true)
     try {
-      const token = getAuthTokenClient()
-      if (!token) { toast.error('로그인이 필요합니다'); return }
-
-      await updateTelegram({ botToken: botToken.trim(), chatId: chatId.trim() }, token)
+      await updateTelegram({ botToken: botToken.trim(), chatId: chatId.trim() })
       toast.success('텔레그램 봇이 연동되었습니다')
       setIsConnected(true)
       setShowForm(false)
@@ -46,10 +42,7 @@ export function TelegramConnect({ hasTelegram }: Props) {
   async function handleDelete() {
     setIsDeleteLoading(true)
     try {
-      const token = getAuthTokenClient()
-      if (!token) { toast.error('로그인이 필요합니다'); return }
-
-      await deleteTelegram(token)
+      await deleteTelegram()
       toast.success('텔레그램 봇이 해제되었습니다')
       setIsConnected(false)
     } catch (err) {
