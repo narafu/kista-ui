@@ -37,7 +37,7 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - API 레이어: `lib/api/{auth,accounts,trades,settings}.ts` — `apiFetch(path, options, accessToken)` 공통 래퍼 사용
 - 모든 API 호출은 `lib/api/` 함수 경유 (컴포넌트 직접 fetch 금지)
 - Server Component token 취득: `import { getAuthToken } from '@/lib/auth/token'` → `await getAuthToken()` (next/headers 쿠키 읽기)
-- Client Component token 취득: `import { getAuthTokenClient } from '@/lib/auth/token'` → `getAuthTokenClient()` (동기, document.cookie 파싱)
+- **Client Component API 호출 금지 패턴**: `getAuthTokenClient()` 사용 금지 (Docker HTTP에서 쿠키 읽기 무음 실패) — 클라이언트 컴포넌트는 token 없이 lib/api 함수 호출 → Route Handler 자동 경유
 - 로그아웃: `POST /api/auth/logout` Route Handler — kista-token + kista-user-status 쿠키 삭제
 
 ### 컴포넌트 폴더
@@ -76,6 +76,8 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **API 날짜 파라미터**: `getAccountTrades`/`getAccountProfit`/`getAccountReservationOrders`/`getAccountDailyTrades` 모두 `{ from, to }` (ISO date string, 필수) — `buildDateQuery`의 `startDate`/`endDate` 키와 혼동 주의
 - **승인 재요청 Route Handler**: `ReapplyButton`은 `/api/auth/reapply-done` Route Handler 경유 — `apiFetch`로 kista-api 직접 호출 금지 (인증·CORS는 Route Handler에서 처리)
 - **텔레그램 설정 Route Handler**: `updateTelegram`/`deleteTelegram`은 `/api/settings/telegram` Route Handler 경유 — `getAuthTokenClient()` 브라우저 쿠키 읽기 방식 금지 (Docker HTTP 환경에서 쿠키 읽기 실패 사례 있음)
+- **lib/api 클라이언트 호출 패턴**: `createAccount(data)`, `updateAccount(id, data)`, `pauseStrategy(id)`, `getAccountMargin(id)` 등 — token 파라미터 생략 시 자동으로 Route Handler(`/api/...`) 경유. token 전달은 서버 컴포넌트 전용
+- **클라이언트 → kista-api 직접 호출 전면 금지**: 모든 클라이언트 API 호출은 Route Handler 경유 의무. 기존 Route Handler: `/api/auth/*`, `/api/settings/telegram`, `/api/accounts/[[...path]]`(전체 계좌 API), `/api/portfolio/[[...path]]`(포트폴리오). 진단: kista-api 로그에 요청 없음 = 브라우저에서 실패한 것
 - **재신청 쿨다운 localStorage 키**: pending 페이지(`ReapplyButton`) → `reapply_last_requested_at`(1시간), rejected 페이지 → `reapply_rejected_last_at`(24시간)
 - **계좌번호 형식**: `74420614-01` (숫자 8자리 + `-` + 숫자 2자리) — 분할 Input UI 사용
 - **UserService.reapply() 제약**: PENDING(1시간 쿨다운) / REJECTED(24시간 쿨다운) 모두 reapply 가능. 그 외 상태(ACTIVE 등) 클릭 시 400

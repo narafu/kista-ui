@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getAuthTokenClient } from '@/lib/auth/token'
 import { getAccountMargin } from '@/lib/api/trades'
 import type { MarginItem } from '@/types/trade'
 
@@ -20,9 +19,7 @@ export function MarginCard({ accountId }: Props) {
     async function load() {
       setIsLoading(true)
       try {
-        const token = getAuthTokenClient()
-        if (!token) return
-        const data = await getAccountMargin(accountId, token).catch((): MarginItem[] => [])
+        const data = await getAccountMargin(accountId).catch((): MarginItem[] => [])
         if (!cancelled) setItems(data)
       } finally {
         if (!cancelled) setIsLoading(false)

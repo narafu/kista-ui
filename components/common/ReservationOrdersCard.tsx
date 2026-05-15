@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { getAuthTokenClient } from '@/lib/auth/token'
 import { getAccountReservationOrders } from '@/lib/api/trades'
 import type { ReservationOrder } from '@/types/trade'
 
@@ -31,12 +30,9 @@ export function ReservationOrdersCard({ accountId }: Props) {
     async function load() {
       setIsLoading(true)
       try {
-        const token = getAuthTokenClient()
-        if (!token) return
         const data = await getAccountReservationOrders(
           accountId,
-          getDefaultRange(),
-          token
+          getDefaultRange()
         ).catch((): ReservationOrder[] => [])
         if (!cancelled) setOrders(data)
       } finally {
