@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { getAuthToken } from '@/lib/auth/token'
 import { listAccounts } from '@/lib/api/accounts'
 import { getCurrentPortfolio, getTrades } from '@/lib/api/trades'
 import { ProfitStatsCard } from '@/components/common/ProfitStatsCard'
@@ -8,9 +8,7 @@ import type { Account } from '@/types/account'
 import type { TradeHistory, PortfolioSnapshot } from '@/types/trade'
 
 export default async function StatisticsPage() {
-  const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  const token = session?.access_token
+  const token = await getAuthToken()
 
   let accounts: Account[] = []
   let portfolio: PortfolioSnapshot | null = null

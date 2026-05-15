@@ -3,16 +3,15 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
 import { AccountCard } from '@/components/common/AccountCard'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthToken } from '@/lib/auth/token'
 import { listAccounts } from '@/lib/api/accounts'
 import type { Account } from '@/types/account'
 
 export default async function AccountsPage() {
-  const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const token = await getAuthToken()
   let accounts: Account[] = []
-  if (session?.access_token) {
-    accounts = await listAccounts(session.access_token).catch((): Account[] => [])
+  if (token) {
+    accounts = await listAccounts(token).catch((): Account[] => [])
   }
 
   return (

@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthToken } from '@/lib/auth/token'
 import { listAccounts } from '@/lib/api/accounts'
 import { AccountEditForm } from '@/components/accounts/AccountEditForm'
 
@@ -13,14 +13,13 @@ interface Props {
 
 export default async function AccountEditPage({ params }: Props) {
   const { id } = await params
-  const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const token = await getAuthToken()
 
-  if (!session?.access_token) {
+  if (!token) {
     return notFound()
   }
 
-  const accounts = await listAccounts(session.access_token).catch(() => [])
+  const accounts = await listAccounts(token).catch(() => [])
   const account = accounts.find((a) => a.id === id)
 
   if (!account) {

@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthToken } from '@/lib/auth/token'
 import { getMe } from '@/lib/api/auth'
 import { listAccounts } from '@/lib/api/accounts'
 import { TelegramSection } from '@/components/settings/TelegramSection'
@@ -15,14 +15,12 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
 }
 
 export default async function SettingsPage() {
-  const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const token = await getAuthToken()
 
   let user: User | null = null
   let accounts: Account[] = []
 
-  if (session?.access_token) {
-    const token = session.access_token
+  if (token) {
     ;[user, accounts] = await Promise.all([
       getMe(token).catch(() => null),
       listAccounts(token).catch(() => []),

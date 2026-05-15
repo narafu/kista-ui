@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import { buttonVariants } from '@/components/ui/button'
 import { AccountDetailTabs } from '@/components/common/AccountDetailTabs'
 import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthToken } from '@/lib/auth/token'
 import { listAccounts } from '@/lib/api/accounts'
 import { getAccountTrades, getAccountPortfolio } from '@/lib/api/trades'
 import type { TradeHistory, PortfolioSnapshot } from '@/types/trade'
@@ -29,14 +29,11 @@ const EMPTY_PORTFOLIO: PortfolioSnapshot = {
 
 export default async function AccountDetailPage({ params }: Props) {
   const { id } = await params
-  const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const token = await getAuthToken()
 
-  if (!session?.access_token) {
+  if (!token) {
     return notFound()
   }
-
-  const token = session.access_token
 
   const today = new Date()
   const from30d = new Date(today)

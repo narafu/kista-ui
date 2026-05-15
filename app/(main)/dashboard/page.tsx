@@ -4,18 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AccountCard } from '@/components/common/AccountCard'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthToken } from '@/lib/auth/token'
 import { listAccounts } from '@/lib/api/accounts'
 import type { Account } from '@/types/account'
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const token = await getAuthToken()
 
   let accounts: Account[] = []
-  if (session?.access_token) {
+  if (token) {
     try {
-      accounts = await listAccounts(session.access_token)
+      accounts = await listAccounts(token)
     } catch {
       // 조회 실패 시 빈 배열
     }

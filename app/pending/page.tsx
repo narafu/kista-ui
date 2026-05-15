@@ -1,15 +1,13 @@
 import { Clock } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthToken } from '@/lib/auth/token'
 import { getMe } from '@/lib/api/auth'
 import { TelegramConnect } from './TelegramConnect'
 import { PendingStatusWatcher } from './PendingStatusWatcher'
 import { ReapplyButton } from './ReapplyButton'
 
 export default async function PendingPage() {
-  const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  const token = session?.access_token
+  const token = await getAuthToken()
 
   let hasTelegram = false
   if (token) {
