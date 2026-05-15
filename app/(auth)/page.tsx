@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {createClient} from "@/lib/supabase/client";
 
 const ERROR_MESSAGES: Record<string, string> = {
   no_code: "로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.",
@@ -28,21 +27,16 @@ function LoginPageContent() {
       : null,
   );
 
-  async function handleKakaoLogin() {
-    setErrorMessage(null);
-    const supabase = createClient();
-    const {error} = await supabase.auth.signInWithOAuth({
-      provider: "kakao",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    if (error) {
-      console.error("카카오 로그인 실패:", error);
-      setErrorMessage(
-        "카카오 로그인에 실패했습니다. 잠시 후 다시 시도해주세요.",
-      );
+  function handleKakaoLogin() {
+    setErrorMessage(null)
+    const clientId = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID
+    if (!clientId) {
+      setErrorMessage('카카오 로그인 설정이 올바르지 않습니다.')
+      return
     }
+    const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`)
+    window.location.href =
+      `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}`
   }
 
   return (

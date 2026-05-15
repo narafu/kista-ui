@@ -1,11 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
+import { getAuthToken } from '@/lib/auth/token'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
-  const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  const token = session?.access_token
+  const token = await getAuthToken()
 
   if (!token) {
     return new Response('Unauthorized', { status: 401 })
