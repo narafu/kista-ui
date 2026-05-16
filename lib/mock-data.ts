@@ -14,19 +14,19 @@ export const MOCK_ACCOUNTS: Account[] = [
     id: 'acc-001',
     nickname: '주계좌',
     accountNoMasked: '****-01',
-    strategy: 'INFINITE',
+    strategyType: 'INFINITE',
     strategyStatus: 'ACTIVE',
     hasTelegram: false,
-    symbol: 'SOXL',
+    ticker: 'SOXL',
   },
   {
     id: 'acc-002',
     nickname: '테스트 계좌',
     accountNoMasked: '****-02',
-    strategy: 'PRIVACY',
+    strategyType: 'PRIVACY',
     strategyStatus: 'PAUSED',
     hasTelegram: false,
-    symbol: 'SOXL',
+    ticker: 'SOXL',
   },
 ]
 

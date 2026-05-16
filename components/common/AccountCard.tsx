@@ -42,7 +42,7 @@ export function AccountCard({ account, profitLoss = 0, profitLossRate = 0 }: Pro
         <TradingStatusIndicator status={account.strategyStatus} />
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
-        <StrategyBadge strategy={account.strategy} />
+        <StrategyBadge strategy={account.strategyType} />
         <span className="num" style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{account.accountNoMasked}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

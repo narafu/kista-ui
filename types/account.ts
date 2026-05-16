@@ -5,10 +5,10 @@ export interface Account {
   id: string
   nickname: string
   accountNoMasked: string
-  strategy: Strategy
+  strategyType: Strategy
   strategyStatus: StrategyStatus
   hasTelegram: boolean
-  symbol: string
+  ticker: string
 }
 
 export interface AccountRequest {

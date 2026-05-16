@@ -1,6 +1,6 @@
 export type OrderDirection = 'BUY' | 'SELL'
-export type OrderType = 'LIMIT' | 'MARKET'
-export type OrderStatus = 'SUBMITTED' | 'FILLED' | 'CANCELLED' | 'FAILED'
+export type OrderType = 'LOC' | 'MOC' | 'LIMIT'
+export type OrderStatus = 'PLACED' | 'FILLED' | 'FAILED'
 
 export interface TradeHistory {
   id: string

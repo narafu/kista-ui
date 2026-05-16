@@ -36,8 +36,8 @@ export function AccountEditForm({ account }: Props) {
   const [nickname, setNickname] = useState(account.nickname)
   const [kisAppKey, setKisAppKey] = useState('')
   const [kisSecretKey, setKisSecretKey] = useState('')
-  const [strategy, setStrategy] = useState<Strategy>(account.strategy)
-  const [symbol, setSymbol] = useState<string>(account.symbol ?? 'TQQQ')
+  const [strategy, setStrategy] = useState<Strategy>(account.strategyType)
+  const [symbol, setSymbol] = useState<string>(account.ticker ?? 'TQQQ')
 
   function handleStrategyChange(key: Strategy) {
     setStrategy(key)

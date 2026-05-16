@@ -134,7 +134,7 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
             <CardTitle className="text-base">{account.nickname}</CardTitle>
             <TradingStatusIndicator status={account.strategyStatus} />
           </div>
-          <StrategyBadge strategy={account.strategy} />
+          <StrategyBadge strategy={account.strategyType} />
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex justify-between text-sm">

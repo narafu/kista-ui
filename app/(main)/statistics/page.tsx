@@ -153,7 +153,7 @@ export default async function StatisticsPage() {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                   <span style={{ fontSize: 14, fontWeight: 700 }}>{account.nickname}</span>
                   <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 10px', borderRadius: 999, fontSize: 11.5, fontWeight: 600, background: 'var(--rose-50)', color: 'var(--rose-600)' }}>
-                    {account.strategy}
+                    {account.strategyType}
                   </span>
                 </div>
                 <ProfitStatsCard accountId={account.id} />

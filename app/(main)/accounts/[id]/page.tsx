@@ -88,7 +88,7 @@ export default async function AccountDetailPage({ params }: Props) {
           </Link>
           <div>
             <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--rose-500)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 1 }}>
-              {account.strategy}
+              {account.strategyType}
             </p>
             <h1 style={{ fontSize: 20, fontWeight: 700 }}>{account.nickname}</h1>
           </div>

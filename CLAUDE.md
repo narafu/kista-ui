@@ -68,7 +68,7 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **Tailwind v4**: `tailwind.config.ts` 없음 — `postcss.config.mjs` + `globals.css`로 설정
 - **recharts**: SSR 미지원 → `'use client'` 필수. Tooltip `formatter`의 `value` 파라미터는 `ValueType | undefined` → `Number(value)` 사용
 - **HTTP-only 쿠키 삭제**: Client JS에서 불가 → Route Handler에서 `response.cookies.set(name, '', { maxAge: 0 })` 처리
-- **kista-api DTO**: `UserResponse`는 `{ id, nickname, status, hasTelegram }`, `AccountResponse`는 `{ id, nickname, accountNoMasked, strategy, strategyStatus, hasTelegram, symbol }` — `types/` 참고
+- **kista-api DTO**: `UserResponse`는 `{ id, nickname, status, hasTelegram }`, `AccountResponse`는 `{ id, nickname, accountNoMasked, strategyType, strategyStatus, hasTelegram, ticker }` — `types/` 참고 (구버전 `strategy`/`symbol`에서 변경됨, 혼동 주의)
 - **mock-data.ts 동기화**: `lib/mock-data.ts`는 `Account` mock 객체를 하드코딩 — `types/account.ts`의 `Account` 인터페이스에 필수 필드 추가 시 반드시 동기화 필요 (`npm run typecheck`로 확인)
 - **proxy 리다이렉트 루프**: slow path(API 호출)에서 실패 시 무조건 `redirect('/')`하면 `/`에서 셀프 루프 → `ERR_TOO_MANY_REDIRECTS`. 비보호 경로(`/`, `/auth/*`)에선 실패해도 `response` 반환 필요
 - **SSE 인증 패턴**: 브라우저 `EventSource`는 커스텀 헤더 미지원 → JWT 인증이 필요한 SSE는 Next.js Route Handler가 Bearer 토큰 포함 후 kista-api로 중계 (`app/api/auth/status-stream/route.ts` 참고)
@@ -86,7 +86,8 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **클라이언트 → kista-api 직접 호출 전면 금지**: 모든 클라이언트 API 호출은 Route Handler 경유 의무. 기존 Route Handler: `/api/auth/*`, `/api/settings/telegram`, `/api/accounts/[[...path]]`(전체 계좌 API), `/api/portfolio/[[...path]]`(포트폴리오). 진단: kista-api 로그에 요청 없음 = 브라우저에서 실패한 것
 - **재신청 쿨다운 localStorage 키**: pending 페이지(`ReapplyButton`) → `reapply_last_requested_at`(1시간), rejected 페이지 → `reapply_rejected_last_at`(24시간)
 - **계좌번호 형식**: `74420614-01` (숫자 8자리 + `-` + 숫자 2자리) — 분할 Input UI 사용
-- **AccountRequest vs AccountResponse 필드명 불일치**: 요청 DTO는 `strategyType`(not `strategy`), `ticker`(not `symbol`), `accountNo`(8자리만, not "74420614-01"), `kisAccountType`("01") 분리 — AccountResponse의 `strategy`/`symbol`과 혼동 주의, 불일치 시 `@NotNull strategyType` 위반으로 400 반환
+- **AccountRequest 필드명**: 요청 DTO는 `strategyType`, `ticker`, `accountNo`(8자리만), `kisAccountType`("01") — update 시 `strategyType`은 서버에서 무시(DB 기존값 유지), register에만 `@NotNull @Valid` 적용. `accountNo` 미포함 시 400이 아닌 무시됨
+- **TradeHistory enum 실제 값**: `OrderType` = `LOC | MOC | LIMIT` (MARKET 없음), `OrderStatus` = `PLACED | FILLED | FAILED` (SUBMITTED/CANCELLED 없음) — `types/trade.ts` 참고
 - **UserService.reapply() 제약**: PENDING(1시간 쿨다운) / REJECTED(24시간 쿨다운) 모두 reapply 가능. 그 외 상태(ACTIVE 등) 클릭 시 400
 - **Docker standalone 리다이렉트**: `request.url`/`request.nextUrl.origin` 모두 `os.hostname()`(컨테이너 ID) 기반 → 사용 금지. proxy(Edge runtime)는 `request.nextUrl.clone()` + `url.pathname = '/...'`, Route Handler(Node.js runtime)는 `request.headers.get('host')` + `request.headers.get('x-forwarded-proto')`로 origin 직접 구성
 - **Docker 서버사이드 API URL**: `NEXT_PUBLIC_API_BASE_URL`은 빌드타임 인라인 → 컨테이너 내 `localhost` 불가. `docker-compose.yml`에 `API_BASE_URL=http://host.docker.internal:8080` + `extra_hosts: [host.docker.internal:host-gateway]` 설정. **모든 Route Handler**의 API URL은 반드시 `process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL` 패턴 사용 (`NEXT_PUBLIC_*` 단독 사용 → Docker에서 ECONNREFUSED)
