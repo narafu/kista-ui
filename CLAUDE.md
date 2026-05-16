@@ -86,7 +86,7 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **클라이언트 → kista-api 직접 호출 전면 금지**: 모든 클라이언트 API 호출은 Route Handler 경유 의무. 기존 Route Handler: `/api/auth/*`, `/api/settings/telegram`, `/api/accounts/[[...path]]`(전체 계좌 API), `/api/portfolio/[[...path]]`(포트폴리오). 진단: kista-api 로그에 요청 없음 = 브라우저에서 실패한 것
 - **재신청 쿨다운 localStorage 키**: pending 페이지(`ReapplyButton`) → `reapply_last_requested_at`(1시간), rejected 페이지 → `reapply_rejected_last_at`(24시간)
 - **계좌번호 형식**: `74420614-01` (숫자 8자리 + `-` + 숫자 2자리) — 분할 Input UI 사용
-- **AccountRequest 필드명**: 요청 DTO는 `strategyType`, `ticker`, `accountNo`(8자리만), `kisAccountType`("01") — update 시 `strategyType`은 서버에서 무시(DB 기존값 유지), register에만 `@NotNull @Valid` 적용. `accountNo` 미포함 시 400이 아닌 무시됨
+- **AccountRequest 필드명**: 요청 DTO는 `strategyType`, `ticker`, `accountNo`(8자리만), `kisAccountType`("01") — update 시 `strategyType` 변경 지원(null이면 기존값 유지), PRIVACY 전환 시 ticker 서버에서 SOXL 강제, register에만 `@NotNull @Valid` 적용. `accountNo` 미포함 시 400이 아닌 무시됨
 - **TradeHistory enum 실제 값**: `OrderType` = `LOC | MOC | LIMIT` (MARKET 없음), `OrderStatus` = `PLACED | FILLED | FAILED` (SUBMITTED/CANCELLED 없음) — `types/trade.ts` 참고
 - **UserService.reapply() 제약**: PENDING(1시간 쿨다운) / REJECTED(24시간 쿨다운) 모두 reapply 가능. 그 외 상태(ACTIVE 등) 클릭 시 400
 - **Docker standalone 리다이렉트**: `request.url`/`request.nextUrl.origin` 모두 `os.hostname()`(컨테이너 ID) 기반 → 사용 금지. proxy(Edge runtime)는 `request.nextUrl.clone()` + `url.pathname = '/...'`, Route Handler(Node.js runtime)는 `request.headers.get('host')` + `request.headers.get('x-forwarded-proto')`로 origin 직접 구성
