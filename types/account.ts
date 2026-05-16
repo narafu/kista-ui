@@ -17,8 +17,8 @@ export interface AccountRequest {
   kisAppKey?: string
   kisSecretKey?: string
   kisAccountType?: string
-  strategy?: Strategy
-  symbol?: string
+  strategyType?: Strategy
+  ticker?: string
   telegramBotToken?: string
   telegramChatId?: string
 }

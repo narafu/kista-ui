@@ -53,7 +53,7 @@ export function AccountEditForm({ account }: Props) {
     try {
       await updateAccount(account.id, {
         nickname: nickname.trim(),
-        symbol,
+        ticker: symbol,
         ...(kisAppKey.trim() && { kisAppKey: kisAppKey.trim() }),
         ...(kisSecretKey.trim() && { kisSecretKey: kisSecretKey.trim() }),
       })
