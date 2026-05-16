@@ -52,6 +52,11 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 
 ## 기술 스택 quirk
 
+- **인라인 style vs Tailwind 반응형 충돌**: `style={{ display: 'flex' }}`는 인라인 명시도로 `lg:hidden`/`lg:flex` 등 Tailwind 반응형 클래스를 무효화 — display 관련 속성은 반드시 className으로만 제어. 반응형 grid도 동일: `style={{ gridTemplateColumns: '...' }}`는 CSS 클래스 미디어 쿼리를 override → 인라인에서 제거하고 `globals.css`에 `@media` 규칙으로 정의. **버그 발견 시 유사 패턴 탐지**: `grep -rn "style={{ display:" app components --include="*.tsx"` 실행 후 `lg:hidden`/`lg:flex` 등 반응형 className과 함께 쓰이는 항목 확인
+- **AuthLayout의 flex 자식 너비 수축**: `flex items-center justify-center` 컨테이너 내 자식 div가 인라인 배경(gradient 등)을 갖는 경우, 자식이 flex item으로 콘텐츠 너비만큼 수축 → 배경이 전체 화면을 덮지 못함. 페이지가 자체 min-height + 중앙 정렬을 갖는다면 AuthLayout은 `<>{children}</>` 프래그먼트로 둠
+- **커스텀 반응형 그리드**: Tailwind에 없는 `gridTemplateColumns`(예: `1fr 1fr 1.4fr`) — `globals.css` 끝에 `.sm\:kpi-grid { display:grid; }` 형태로 추가, 인라인 `gridTemplateColumns` 제거 필수 (명시도 충돌). 기존 정의: `sm\:kpi-grid`, `sm\:portfolio-grid`, `md\:profit-grid`, `lg\:form-grid`, `lg\:settings-grid`
+- **개발 서버 포트 충돌**: Docker가 포트 3000 점유 시 `npm run dev`는 3003으로 fallback — 스크린샷/curl 시 반드시 실제 포트 확인 (`cat /tmp/kista_dev.log | grep "Local:"`)
+- **UI 검증 (Playwright)**: `npx playwright screenshot --browser chromium --full-page --viewport-size "1440,900" http://localhost:PORT/path /tmp/출력.png` — 첫 실행 시 `npx playwright install chromium` 필요
 - **git author**: 커밋 전 `git config user.name` 확인 필수 — 올바른 값: `narafu <narafu@kakao.com>`
 - **Bash 괄호 경로**: `git add app/(main)/layout.tsx` 실패 → `git add "app/(main)/layout.tsx"` (큰따옴표 필수)
 - **PENDING 사용자 API 접근**: kista-api SettingsController는 UserStatus 미검증 → PENDING 상태도 JWT로 `/api/settings/telegram` 호출 가능

@@ -27,12 +27,17 @@ export default async function AccountEditPage({ params }: Props) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Link href={`/accounts/${id}`} className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}>
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-xl font-bold">계좌 수정</h1>
+        <div>
+          <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--rose-500)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 1 }}>
+            {account.nickname}
+          </p>
+          <h1 style={{ fontSize: 20, fontWeight: 700 }}>계좌 수정</h1>
+        </div>
       </div>
 
       <AccountEditForm account={account} />

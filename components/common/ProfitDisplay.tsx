@@ -1,41 +1,27 @@
 interface Props {
   amount: number
   rate?: number
-  className?: string
+  size?: number
 }
 
-function formatAmount(amount: number): string {
-  const abs = Math.abs(amount)
-  if (abs >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)}M`
-  if (abs >= 1_000) return `${(amount / 1_000).toFixed(1)}K`
-  return amount.toFixed(0)
-}
-
-function formatFull(amount: number): string {
-  return new Intl.NumberFormat('ko-KR', {
+export function ProfitDisplay({ amount, rate, size = 14 }: Props) {
+  const isPos = amount >= 0
+  const color = isPos ? 'var(--pos)' : 'var(--neg)'
+  const sign = isPos ? '+' : ''
+  const formatted = new Intl.NumberFormat('ko-KR', {
     style: 'currency',
     currency: 'USD',
     maximumFractionDigits: 0,
-  }).format(amount)
-}
-
-export function ProfitDisplay({ amount, rate, className }: Props) {
-  const isPositive = amount >= 0
-  const colorClass = isPositive ? 'text-green-600' : 'text-red-500'
-  const sign = isPositive ? '+' : ''
+  }).format(Math.abs(amount))
 
   return (
-    <span className={`font-semibold ${colorClass} ${className ?? ''}`}>
-      {/* 모바일: 축약형 */}
-      <span className="lg:hidden">
-        {sign}{formatAmount(amount)}
-        {rate !== undefined && <span className="text-xs ml-1">({sign}{rate.toFixed(2)}%)</span>}
-      </span>
-      {/* 데스크탑: 전체 금액 */}
-      <span className="hidden lg:inline">
-        {sign}{formatFull(amount)}
-        {rate !== undefined && <span className="text-xs ml-1">({sign}{rate.toFixed(2)}%)</span>}
-      </span>
+    <span className="num" style={{ color, fontWeight: 700, fontSize: size }}>
+      {isPos ? '+' : '-'}{formatted}
+      {rate !== undefined && (
+        <span style={{ fontSize: size - 2.5, marginLeft: 5, fontWeight: 600 }}>
+          ({sign}{Math.abs(rate).toFixed(2)}%)
+        </span>
+      )}
     </span>
   )
 }

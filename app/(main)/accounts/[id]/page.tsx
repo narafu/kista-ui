@@ -61,7 +61,12 @@ export default async function AccountDetailPage({ params }: Props) {
           <Link href="/dashboard" className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}>
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-xl font-bold">{account.nickname}</h1>
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--rose-500)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 1 }}>
+              {account.strategy}
+            </p>
+            <h1 style={{ fontSize: 20, fontWeight: 700 }}>{account.nickname}</h1>
+          </div>
         </div>
         <Link href={`/accounts/${id}/edit`} className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}>
           <Pencil className="h-4 w-4" />

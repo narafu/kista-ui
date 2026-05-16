@@ -1,3 +1,5 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,600;1,700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -46,85 +48,221 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* KISTA brand colors for Tailwind utility classes */
+  --color-rose-50:  var(--rose-50);
+  --color-rose-100: var(--rose-100);
+  --color-rose-200: var(--rose-200);
+  --color-rose-300: var(--rose-300);
+  --color-rose-400: var(--rose-400);
+  --color-rose-500: var(--rose-500);
+  --color-rose-600: var(--rose-600);
+  --color-rose-700: var(--rose-700);
+  --color-pos: var(--pos);
+  --color-pos-bg: var(--pos-bg);
+  --color-neg: var(--neg);
+  --color-neg-bg: var(--neg-bg);
+  --color-status-ok: var(--status-ok);
+  --color-status-ok-bg: var(--status-ok-bg);
+  --color-warn: var(--warn);
+  --color-warn-bg: var(--warn-bg);
+  --color-brand-fg: var(--brand-fg);
+  --color-brand-fg-soft: var(--brand-fg-soft);
+  --color-sidebar-bg: var(--sidebar-bg);
 }
 
+/* ── KISTA Light Mode ───────────────────────────────────────── */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Rose-gold palette */
+  --rose-50:  #FCEFE8;
+  --rose-100: #F7DCCD;
+  --rose-200: #EFC2AB;
+  --rose-300: #E0A38C;
+  --rose-400: #CB836A;
+  --rose-500: #B66951;
+  --rose-600: #95513C;
+  --rose-700: #6E3A2A;
+  --rose-800: #4A271C;
+  --gold:     #B68A4A;
+
+  /* shadcn core tokens → rose-gold */
+  --background:         oklch(0.995 0.004 60);
+  --foreground:         oklch(0.18 0.012 35);
+  --card:               oklch(1 0 0);
+  --card-foreground:    oklch(0.18 0.012 35);
+  --popover:            oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.012 35);
+  --primary:            #B66951;
+  --primary-foreground: #FFFFFF;
+  --secondary:          oklch(0.965 0.008 55);
+  --secondary-foreground: oklch(0.18 0.012 35);
+  --muted:              oklch(0.965 0.008 55);
+  --muted-foreground:   oklch(0.55 0.012 40);
+  --accent:             #FCEFE8;
+  --accent-foreground:  #95513C;
+  --destructive:        #D14B3F;
+  --border:             oklch(0.92 0.012 50);
+  --input:              oklch(0.92 0.012 50);
+  --ring:               #CB836A;
+  --radius:             0.75rem;
+
+  /* Charts */
+  --chart-1: #B66951;
+  --chart-2: #B68A4A;
+  --chart-3: #E0A38C;
+  --chart-4: #7A4F3F;
+  --chart-5: #C2A079;
+
+  /* shadcn sidebar tokens */
+  --sidebar:                  #FBF6F1;
+  --sidebar-foreground:       oklch(0.32 0.018 40);
+  --sidebar-primary:          #B66951;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent:           #FFFFFF;
+  --sidebar-accent-foreground: #95513C;
+  --sidebar-border:           oklch(0.92 0.012 50);
+  --sidebar-ring:             #CB836A;
+
+  /* KISTA-specific layout tokens */
+  --sidebar-bg:         #FBF6F1;
+  --sidebar-fg:         oklch(0.32 0.018 40);
+  --sidebar-active-bg:  #FFFFFF;
+  --sidebar-active-fg:  #95513C;
+
+  /* Korean securities color convention */
+  --pos:        #D14B3F;   --pos-bg: #FBE4E0;   /* 상승/매수/수익 — 빨강 */
+  --neg:        #1F6FE5;   --neg-bg: #DEE9FA;   /* 하락/매도/손실 — 파랑 */
+  --warn:       #B07A1F;   --warn-bg:#F6E5C2;
+  --status-ok:  #2F8A57;   --status-ok-bg: #DCEFE0;   /* 운영중 — 초록 */
+
+  /* Brand semantic tokens */
+  --brand-fg:      #6E3A2A;
+  --brand-fg-soft: #B66951;
+  --brand-soft-bg: linear-gradient(135deg, #FCEFE8 0%, #FFFFFF 70%);
+
+  /* Primary gradient & glow */
+  --primary-grad: linear-gradient(135deg, #D89881 0%, #B66951 55%, #8E4530 100%);
+  --primary-glow: 0 1px 0 rgba(255,255,255,.35) inset, 0 6px 16px rgba(143,68,48,.28);
+
+  /* Shadows */
+  --sh-card: 0 1px 2px rgba(74,38,22,.04), 0 6px 16px rgba(74,38,22,.05);
+  --sh-pop:  0 14px 38px rgba(74,38,22,.14);
+  --sh-rose: 0 8px 22px rgba(176,100,79,.32);
+
+  /* Typography */
+  --font-sans:    'Pretendard Variable', 'Pretendard', system-ui, -apple-system, sans-serif;
+  --font-display: 'Cormorant Garamond', serif;
 }
 
+/* ── KISTA Dark Mode ────────────────────────────────────────── */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background:         #131416;
+  --foreground:         #E8E6E3;
+  --card:               #1B1C1F;
+  --card-foreground:    #E8E6E3;
+  --popover:            #1B1C1F;
+  --popover-foreground: #E8E6E3;
+  --primary:            #C99780;
+  --primary-foreground: #1A1108;
+  --secondary:          #232427;
+  --secondary-foreground: #E8E6E3;
+  --muted:              #232427;
+  --muted-foreground:   #9B9892;
+  --accent:             rgba(214,169,142,0.16);
+  --accent-foreground:  #EAC3AC;
+  --destructive:        #FF6A5C;
+  --border:             rgba(232,230,227,0.07);
+  --input:              rgba(232,230,227,0.10);
+  --ring:               #C99780;
+
+  --chart-1: #D6A98E;
+  --chart-2: #D9B375;
+  --chart-3: #E0A38C;
+  --chart-4: #7A4F3F;
+  --chart-5: #C2A079;
+
+  --sidebar:                  #0E0F11;
+  --sidebar-foreground:       #9B9892;
+  --sidebar-primary:          #C99780;
+  --sidebar-primary-foreground: #1A1108;
+  --sidebar-accent:           #1B1C1F;
+  --sidebar-accent-foreground: #D6A98E;
+  --sidebar-border:           rgba(232,230,227,0.07);
+  --sidebar-ring:             #C99780;
+
+  --sidebar-bg:         #0E0F11;
+  --sidebar-fg:         #9B9892;
+  --sidebar-active-bg:  #1B1C1F;
+  --sidebar-active-fg:  #D6A98E;
+
+  --pos:        #FF6A5C;   --pos-bg: rgba(255,106,92,0.13);
+  --neg:        #5AA0FF;   --neg-bg: rgba(90,160,255,0.13);
+  --warn:       #DCB36A;   --warn-bg:rgba(220,179,106,0.13);
+  --status-ok:  #6FCD8E;   --status-ok-bg: rgba(111,205,142,0.13);
+
+  --brand-fg:      #EAC3AC;
+  --brand-fg-soft: #D6A98E;
+  --brand-soft-bg: linear-gradient(135deg, rgba(214,169,142,0.16) 0%, var(--card) 70%);
+
+  --primary-grad: linear-gradient(135deg, #D6A98E 0%, #B5826A 55%, #8A5740 100%);
+  --primary-glow: 0 1px 0 rgba(255,235,222,.12) inset, 0 8px 20px rgba(180,118,95,.32);
+
+  --sh-card: 0 1px 2px rgba(0,0,0,.36), 0 8px 18px rgba(0,0,0,.42);
+  --sh-pop:  0 16px 42px rgba(0,0,0,.55);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    -webkit-font-smoothing: antialiased;
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans);
   }
   html {
-    @apply font-sans;
+    font-family: var(--font-sans);
   }
+}
+
+/* ── KISTA utility classes ──────────────────────────────────── */
+.num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+}
+
+.text-pos  { color: var(--pos); }
+.text-neg  { color: var(--neg); }
+.text-pos-bg { background-color: var(--pos-bg); }
+.text-neg-bg { background-color: var(--neg-bg); }
+.bg-pos-bg  { background-color: var(--pos-bg); }
+.bg-neg-bg  { background-color: var(--neg-bg); }
+.bg-status-ok-bg { background-color: var(--status-ok-bg); }
+.text-status-ok  { color: var(--status-ok); }
+.text-warn       { color: var(--warn); }
+.bg-warn-bg      { background-color: var(--warn-bg); }
+
+/* 반응형 그리드 유틸리티 */
+.sm\:kpi-grid       { display: grid; grid-template-columns: 1fr; }
+.sm\:portfolio-grid { display: grid; grid-template-columns: repeat(2, 1fr); }
+.md\:profit-grid    { display: grid; grid-template-columns: 1fr; }
+.lg\:form-grid      { display: grid; grid-template-columns: 1fr; }
+.lg\:settings-grid  { display: grid; grid-template-columns: 1fr; }
+
+@media (min-width: 640px) {
+  .sm\:kpi-grid       { grid-template-columns: 1fr 1fr 1.4fr; }
+  .sm\:portfolio-grid { grid-template-columns: repeat(7, 1fr); }
+}
+@media (min-width: 768px) {
+  .md\:profit-grid    { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 1024px) {
+  .lg\:form-grid      { grid-template-columns: 1.4fr 1fr; }
+  .lg\:settings-grid  { grid-template-columns: 200px 1fr; }
 }

@@ -1,26 +1,29 @@
-import { Badge } from '@/components/ui/badge'
 import type { Strategy } from '@/types/account'
 
 interface Props {
   strategy: Strategy
 }
 
-const STRATEGY_CONFIG: Record<Strategy, { label: string; className: string }> = {
-  INFINITE: {
-    label: 'Infinite',
-    className: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
-  },
-  PRIVACY: {
-    label: 'Privacy',
-    className: 'bg-purple-100 text-purple-800 hover:bg-purple-100',
-  },
-}
-
 export function StrategyBadge({ strategy }: Props) {
-  const config = STRATEGY_CONFIG[strategy]
+  const styles = strategy === 'INFINITE'
+    ? { background: 'var(--rose-50)', color: 'var(--rose-600)' }
+    : { background: '#EFE7DD', color: '#7A5B33' }
+
   return (
-    <Badge variant="secondary" className={config.className}>
-      {config.label}
-    </Badge>
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        height: 22,
+        padding: '0 8px',
+        borderRadius: 999,
+        fontSize: 11.5,
+        fontWeight: 600,
+        lineHeight: 1,
+        ...styles,
+      }}
+    >
+      {strategy === 'INFINITE' ? 'Infinite' : 'Privacy'}
+    </span>
   )
 }

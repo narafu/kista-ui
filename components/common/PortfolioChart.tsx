@@ -2,8 +2,8 @@
 
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
@@ -31,7 +31,13 @@ export function PortfolioChart({ snapshots }: Props) {
 
   return (
     <ResponsiveContainer width="100%" height={200}>
-      <LineChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+      <AreaChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+        <defs>
+          <linearGradient id="roseGold" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#B66951" stopOpacity={0.22} />
+            <stop offset="100%" stopColor="#B66951" stopOpacity={0} />
+          </linearGradient>
+        </defs>
         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
         <XAxis
           dataKey="date"
@@ -51,15 +57,16 @@ export function PortfolioChart({ snapshots }: Props) {
           labelStyle={{ fontSize: 12 }}
           contentStyle={{ fontSize: 12 }}
         />
-        <Line
+        <Area
           type="monotone"
           dataKey="totalAsset"
-          stroke="hsl(var(--primary))"
+          stroke="#B66951"
           strokeWidth={2}
+          fill="url(#roseGold)"
           dot={false}
-          activeDot={{ r: 4 }}
+          activeDot={{ r: 4, fill: '#B66951' }}
         />
-      </LineChart>
+      </AreaChart>
     </ResponsiveContainer>
   )
 }

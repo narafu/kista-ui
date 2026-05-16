@@ -1,15 +1,8 @@
 "use client";
 
-import {Suspense, useState} from "react";
-import {useSearchParams} from "next/navigation";
-import {Button} from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 
 const ERROR_MESSAGES: Record<string, string> = {
   no_code: "로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.",
@@ -28,78 +21,156 @@ function LoginPageContent() {
   );
 
   function handleKakaoLogin() {
-    setErrorMessage(null)
-    const clientId = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID
+    setErrorMessage(null);
+    const clientId = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID;
     if (!clientId) {
-      setErrorMessage('카카오 로그인 설정이 올바르지 않습니다.')
-      return
+      setErrorMessage("카카오 로그인 설정이 올바르지 않습니다.");
+      return;
     }
-    const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`)
-    window.location.href =
-      `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}`
+    const redirectUri = encodeURIComponent(
+      `${window.location.origin}/auth/callback`,
+    );
+    window.location.href = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}`;
   }
 
   return (
-    <>
-      {/* 데스크탑: 중앙 카드 */}
-      <div className="hidden sm:block w-full max-w-md px-4">
-        <Card className="shadow-lg">
-          <CardHeader className="text-center space-y-2">
-            <CardTitle className="text-3xl font-bold tracking-tight">
-              KISTA
-            </CardTitle>
-            <CardDescription className="text-base">
-              한국투자증권 KIS API 기반
-              <br />
-              해외주식 자동 분할매매 서비스
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <p className="text-sm text-muted-foreground text-center">
-              가입 후 관리자 승인이 필요합니다.
-            </p>
-            {errorMessage && (
-              <p className="text-sm text-destructive text-center">
-                {errorMessage}
-              </p>
-            )}
-            <Button
-              size="lg"
-              className="w-full h-12 bg-[#FEE500] text-[#3C1E1E] hover:bg-[#FDD800] font-semibold"
-              onClick={handleKakaoLogin}
-            >
-              카카오로 시작하기
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "grid",
+        placeItems: "center",
+        background:
+          "radial-gradient(1200px 600px at 75% 20%, rgba(224,163,140,0.22), transparent 60%), radial-gradient(900px 500px at 10% 90%, rgba(247,220,205,0.55), transparent 60%), #FBF6F1",
+        padding: "24px 16px",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 440,
+          padding: 36,
+          background: "rgba(255,255,255,0.78)",
+          backdropFilter: "blur(20px)",
+          borderRadius: 18,
+          border: "1px solid rgba(199,123,102,0.22)",
+          boxShadow: "0 24px 60px rgba(74,38,22,0.12)",
+          position: "relative",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 22 }}>
+          <Image
+            src="/logo.png"
+            alt="KISTA"
+            width={56}
+            height={56}
+            style={{ borderRadius: 14, boxShadow: "0 2px 8px rgba(143,68,48,.22)" }}
+          />
+        </div>
 
-      {/* 모바일: 전체화면 */}
-      <div className="sm:hidden fixed inset-0 flex flex-col bg-background">
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6">
-          <h1 className="text-4xl font-bold tracking-tight">KISTA</h1>
-          <p className="text-center text-muted-foreground text-sm">
-            한국투자증권 KIS API 기반
-            <br />
-            해외주식 자동 분할매매 서비스
-          </p>
-          {errorMessage && (
-            <p className="text-sm text-destructive text-center">
-              {errorMessage}
-            </p>
-          )}
-        </div>
-        <div className="p-6 pb-safe">
-          <Button
-            size="lg"
-            className="w-full h-14 bg-[#FEE500] text-[#3C1E1E] hover:bg-[#FDD800] font-semibold text-base"
-            onClick={handleKakaoLogin}
+        <div style={{ textAlign: "center", marginBottom: 6 }}>
+          <h1
+            style={{
+              margin: 0,
+              fontSize: 38,
+              fontWeight: 800,
+              color: "var(--rose-700)",
+              letterSpacing: 2,
+              fontFamily: "var(--font-sans)",
+            }}
           >
-            카카오로 시작하기
-          </Button>
+            KISTA
+          </h1>
+          <div
+            style={{
+              marginTop: 6,
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: 3.2,
+              color: "var(--rose-500)",
+              textTransform: "uppercase",
+            }}
+          >
+            K Investment · Smart · Trading · Auto
+          </div>
+        </div>
+
+        <p
+          style={{
+            margin: "22px 0 6px",
+            textAlign: "center",
+            fontSize: 13.5,
+            color: "var(--muted-foreground)",
+            lineHeight: 1.6,
+          }}
+        >
+          한국투자증권 KIS API 기반
+          <br />
+          해외주식 자동 분할매매 서비스
+        </p>
+
+        <div
+          style={{
+            margin: "22px 0",
+            padding: "10px 14px",
+            borderRadius: 10,
+            background: "var(--rose-50)",
+            border: "1px solid var(--rose-100)",
+            fontSize: 12.5,
+            color: "var(--rose-700)",
+            textAlign: "center",
+            fontWeight: 500,
+          }}
+        >
+          가입 후 관리자 승인이 필요합니다.
+        </div>
+
+        {errorMessage && (
+          <p
+            style={{
+              fontSize: 13,
+              color: "var(--destructive)",
+              textAlign: "center",
+              margin: "0 0 12px",
+            }}
+          >
+            {errorMessage}
+          </p>
+        )}
+
+        <button
+          onClick={handleKakaoLogin}
+          style={{
+            width: "100%",
+            height: 52,
+            border: 0,
+            cursor: "pointer",
+            background: "#FEE500",
+            color: "#3C1E1E",
+            fontFamily: "inherit",
+            fontWeight: 700,
+            fontSize: 15.5,
+            borderRadius: 10,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#3C1E1E">
+            <path d="M12 3C6.5 3 2 6.4 2 10.6c0 2.7 1.9 5 4.7 6.4l-1 3.7c-.1.4.3.7.7.5l4.4-2.9c.4 0 .8.1 1.2.1 5.5 0 10-3.4 10-7.6C22 6.4 17.5 3 12 3z" />
+          </svg>
+          카카오로 시작하기
+        </button>
+
+        <div style={{ marginTop: 18, textAlign: "center", fontSize: 11.5, color: "var(--muted-foreground)" }}>
+          가입 시{" "}
+          <a href="#" style={{ color: "var(--rose-600)" }}>서비스 약관</a>
+          {" "}및{" "}
+          <a href="#" style={{ color: "var(--rose-600)" }}>개인정보 처리방침</a>
+          에 동의합니다.
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

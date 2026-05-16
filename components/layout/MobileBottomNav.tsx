@@ -1,4 +1,7 @@
+'use client'
+
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { LayoutDashboard, CreditCard, BarChart2, Settings, User } from 'lucide-react'
 
 const TAB_ITEMS = [
@@ -10,18 +13,45 @@ const TAB_ITEMS = [
 ] as const
 
 export function MobileBottomNav() {
+  const pathname = usePathname()
+
   return (
-    <nav className="flex lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t">
-      {TAB_ITEMS.map(({ href, label, icon: Icon }) => (
-        <Link
-          key={href}
-          href={href}
-          className="flex flex-1 flex-col items-center justify-center py-2 gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <Icon className="h-5 w-5" />
-          <span>{label}</span>
-        </Link>
-      ))}
+    <nav style={{
+      position: 'fixed',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 64,
+      paddingBottom: 8,
+      background: 'var(--card)',
+      borderTop: '1px solid var(--border)',
+      zIndex: 50,
+    }} className="flex lg:hidden">
+      {TAB_ITEMS.map(({ href, label, icon: Icon }) => {
+        const isActive = pathname === href || pathname.startsWith(href + '/')
+        return (
+          <Link
+            key={href}
+            href={href}
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 3,
+              textDecoration: 'none',
+              color: isActive ? 'var(--rose-500)' : 'var(--muted-foreground)',
+              fontSize: 10.5,
+              fontWeight: isActive ? 700 : 600,
+              transition: 'color .15s',
+            }}
+          >
+            <Icon size={19} />
+            <span>{label}</span>
+          </Link>
+        )
+      })}
     </nav>
   )
 }
