@@ -37,6 +37,13 @@ export function AccountEditForm({ account }: Props) {
   const [kisAppKey, setKisAppKey] = useState('')
   const [kisSecretKey, setKisSecretKey] = useState('')
   const [strategy, setStrategy] = useState<Strategy>(account.strategy)
+  const [symbol, setSymbol] = useState<string>(account.symbol ?? 'TQQQ')
+
+  function handleStrategyChange(key: Strategy) {
+    setStrategy(key)
+    if (key === 'PRIVACY') setSymbol('SOXL')
+    // INFINITE 전환 시 기존 symbol 유지 (사용자가 직접 선택)
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -46,7 +53,7 @@ export function AccountEditForm({ account }: Props) {
     try {
       await updateAccount(account.id, {
         nickname: nickname.trim(),
-        strategy,
+        symbol,
         ...(kisAppKey.trim() && { kisAppKey: kisAppKey.trim() }),
         ...(kisSecretKey.trim() && { kisSecretKey: kisSecretKey.trim() }),
       })
@@ -151,7 +158,7 @@ export function AccountEditForm({ account }: Props) {
                   <button
                     key={key}
                     type="button"
-                    onClick={() => setStrategy(key)}
+                    onClick={() => handleStrategyChange(key)}
                     disabled={isLoading}
                     style={{
                       padding: 16,
@@ -169,6 +176,38 @@ export function AccountEditForm({ account }: Props) {
                 )
               })}
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>종목</Label>
+            {strategy === 'INFINITE' ? (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                {(['TQQQ', 'SOXL', 'USD'] as const).map((s) => {
+                  const sel = symbol === s
+                  const desc: Record<string, string> = { TQQQ: '나스닥100 3x', SOXL: '반도체 3x', USD: '달러' }
+                  return (
+                    <button key={s} type="button"
+                      onClick={() => setSymbol(s)}
+                      disabled={isLoading}
+                      style={{
+                        padding: '12px 4px', borderRadius: 10, textAlign: 'center',
+                        cursor: isLoading ? 'not-allowed' : 'pointer',
+                        border: sel ? '2px solid var(--rose-500)' : '1px solid var(--border)',
+                        background: sel ? 'var(--rose-50)' : 'var(--card)',
+                        transition: 'border-color .15s, background .15s',
+                      }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: sel ? 'var(--rose-600)' : 'var(--foreground)' }}>{s}</div>
+                      <div style={{ fontSize: 11, color: sel ? 'var(--rose-500)' : 'var(--muted-foreground)', marginTop: 2 }}>{desc[s]}</div>
+                    </button>
+                  )
+                })}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--muted)' }}>
+                <span style={{ fontSize: 14, fontWeight: 700 }}>SOXL</span>
+                <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>(Privacy 전략 고정)</span>
+              </div>
+            )}
           </div>
 
           <div className="hidden sm:flex gap-3 pt-2">

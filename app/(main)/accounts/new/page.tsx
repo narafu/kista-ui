@@ -30,6 +30,12 @@ export default function AccountNewPage() {
   const [kisAppKey, setKisAppKey] = useState('')
   const [kisSecretKey, setKisSecretKey] = useState('')
   const [strategy, setStrategy] = useState<Strategy | ''>('')
+  const [symbol, setSymbol] = useState<string>('TQQQ')
+
+  function handleStrategyChange(key: Strategy) {
+    setStrategy(key)
+    setSymbol(key === 'PRIVACY' ? 'SOXL' : 'TQQQ')
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -51,6 +57,7 @@ export default function AccountNewPage() {
         kisSecretKey: kisSecretKey.trim(),
         strategy: strategy as Strategy,
         kisAccountType: '01',
+        symbol,
       })
       toast.success('계좌가 등록되었습니다')
       router.push('/dashboard')
@@ -154,7 +161,7 @@ export default function AccountNewPage() {
                   const selected = strategy === key
                   return (
                     <button key={key} type="button"
-                      onClick={() => setStrategy(key as Strategy)}
+                      onClick={() => handleStrategyChange(key as Strategy)}
                       disabled={isLoading}
                       style={{
                         padding: 14, borderRadius: 10, textAlign: 'left', cursor: isLoading ? 'not-allowed' : 'pointer',
@@ -171,6 +178,40 @@ export default function AccountNewPage() {
                   )
                 })}
               </div>
+              {/* 종목 선택 — 전략 선택 시 나타남 */}
+              {strategy === 'INFINITE' && (
+                <div style={{ marginTop: 10 }}>
+                  <div style={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 6 }}>종목 선택</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                    {(['TQQQ', 'SOXL', 'USD'] as const).map((s) => {
+                      const sel = symbol === s
+                      const desc: Record<string, string> = { TQQQ: '나스닥100 3x', SOXL: '반도체 3x', USD: '달러' }
+                      return (
+                        <button key={s} type="button"
+                          onClick={() => setSymbol(s)}
+                          disabled={isLoading}
+                          style={{
+                            padding: '10px 4px', borderRadius: 8, textAlign: 'center',
+                            cursor: isLoading ? 'not-allowed' : 'pointer',
+                            border: `2px solid ${sel ? 'var(--rose-400)' : 'var(--border)'}`,
+                            background: sel ? 'var(--rose-50)' : 'var(--card)',
+                            transition: 'border-color .15s, background .15s',
+                          }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: sel ? 'var(--rose-600)' : 'var(--foreground)' }}>{s}</div>
+                          <div style={{ fontSize: 10, color: sel ? 'var(--rose-500)' : 'var(--muted-foreground)', marginTop: 2 }}>{desc[s]}</div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+              {strategy === 'PRIVACY' && (
+                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>종목:</span>
+                  <span style={{ fontSize: 13, fontWeight: 700 }}>SOXL</span>
+                  <span style={{ fontSize: 11.5, color: 'var(--muted-foreground)' }}>(고정)</span>
+                </div>
+              )}
             </div>
 
             <div style={{ marginBottom: 18 }}>

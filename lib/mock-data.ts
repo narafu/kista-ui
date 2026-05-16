@@ -17,6 +17,7 @@ export const MOCK_ACCOUNTS: Account[] = [
     strategy: 'INFINITE',
     strategyStatus: 'ACTIVE',
     hasTelegram: false,
+    symbol: 'SOXL',
   },
   {
     id: 'acc-002',
@@ -25,6 +26,7 @@ export const MOCK_ACCOUNTS: Account[] = [
     strategy: 'PRIVACY',
     strategyStatus: 'PAUSED',
     hasTelegram: false,
+    symbol: 'SOXL',
   },
 ]
 

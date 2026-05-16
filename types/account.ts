@@ -8,6 +8,7 @@ export interface Account {
   strategy: Strategy
   strategyStatus: StrategyStatus
   hasTelegram: boolean
+  symbol: string
 }
 
 export interface AccountRequest {
@@ -17,6 +18,7 @@ export interface AccountRequest {
   kisSecretKey?: string
   kisAccountType?: string
   strategy?: Strategy
+  symbol?: string
   telegramBotToken?: string
   telegramChatId?: string
 }
