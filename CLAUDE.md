@@ -92,7 +92,6 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **Next.js 16 proxy 파일 컨벤션**: `middleware.ts` deprecated → `proxy.ts`로 rename, export 함수명도 `middleware` → `proxy`. `config` export 및 동작은 동일. 마이그레이션: `npx @next/codemod@canary middleware-to-proxy .`
 - **Next.js 16 dev 자동 수정**: 첫 `npm run dev` 실행 시 `tsconfig.json`의 `jsx`를 `"preserve"` → `"react-jsx"`로, `include`에 `.next/dev/types/**/*.ts` 자동 추가 — 의도적 변경이므로 커밋 포함
 - **WSL2 CRLF 오염**: Windows에서 `npm install` 등 실행 시 일부 파일에 CRLF 유입 → `.gitattributes`에 `* text=auto eol=lf` 설정 권장
-- **Supabase PKCE 오류 (`code verifier not found`)**: `kista-api/supabase/config.toml`의 `site_url`과 `additional_redirect_urls` 확인 — `site_url = "http://localhost:3000"` (IP 아닌 hostname 필수) + `/auth/callback` 경로가 `additional_redirect_urls`에 포함되어야 함. `localhost`와 `127.0.0.1`은 쿠키 도메인이 달라 code_verifier 공유 불가
 
 ## 환경변수
 
