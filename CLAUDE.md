@@ -94,6 +94,9 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **Next.js 16 dev 자동 수정**: 첫 `npm run dev` 실행 시 `tsconfig.json`의 `jsx`를 `"preserve"` → `"react-jsx"`로, `include`에 `.next/dev/types/**/*.ts` 자동 추가 — 의도적 변경이므로 커밋 포함
 - **WSL2 CRLF 오염**: Windows에서 `npm install` 등 실행 시 일부 파일에 CRLF 유입 → `.gitattributes`에 `* text=auto eol=lf` 설정 권장
 - **이벤트 핸들러 컴포넌트 `'use client'` 필수**: `onMouseEnter`/`onMouseLeave` 등 DOM 이벤트 핸들러를 사용하는 컴포넌트는 반드시 `'use client'` 선언 필요 — 미선언 시 Server Component에서 임포트할 때 `Error: Event handlers cannot be passed to Client Component props` 발생 (예: `AccountCard.tsx`)
+- **Next.js App Router 에러 페이지**: `app/error.tsx`(런타임 에러, 전체화면) + `app/(main)/error.tsx`(사이드바 유지, 콘텐츠 영역만) 모두 `'use client'` + `{ error: Error, reset: () => void }` props 필수. `app/not-found.tsx`는 Server Component 가능. `app/global-error.tsx`는 `'use client'` + `<html><body>` 직접 포함 필수
+- **`new Date()` SSR 수화 불일치**: Client Component에서 `new Date()` 직접 렌더링 시 서버/클라이언트 시간 차로 hydration warning 발생 → `useState('')` + `useEffect(() => { setState(new Date()...) }, [])` 패턴 사용
+- **다크 모드 gradient 텍스트 오버라이드**: `--rose-300~700` 팔레트는 `.dark`에서 재정의 없음 → dark 배경에서 rose-700(#6E3A2A) 끝색이 묻힘. `globals.css`에 `.dark .class-name { background: gradient(lighter values); -webkit-background-clip: text; ... }` 별도 오버라이드 필요
 - **StatisticsController KIS 응답 형식 불일치**: `GET /api/accounts/{id}/portfolio` → `PresentBalanceResult { items[{avgPrice,...}] }`, `GET /api/accounts/{id}/profit` → `PeriodProfitResult { totalRealizedProfit, totalReturnRate }` — kista-ui `PortfolioSnapshot`/`ProfitSummary`와 필드명·구조 다름. `normalizePortfolio()` 변환 함수 + `ProfitSummary` optional 필드로 대응 (`accounts/[id]/page.tsx`, `ProfitStatsCard.tsx` 참고)
 
 ## 환경변수
