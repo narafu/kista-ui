@@ -266,3 +266,44 @@
   .lg\:form-grid      { grid-template-columns: 1.4fr 1fr; }
   .lg\:settings-grid  { grid-template-columns: 200px 1fr; }
 }
+
+/* ── 에러 페이지 ────────────────────────────────────────────── */
+@keyframes errorFadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes errorDotBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
+}
+
+.error-pulse-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--pos);
+  flex-shrink: 0;
+  animation: errorDotBlink 1.3s ease-in-out infinite;
+}
+
+.error-code-num {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(82px, 16vw, 136px);
+  line-height: 0.88;
+  margin-bottom: 28px;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #E0A38C 0%, #B66951 45%, #6E3A2A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: errorFadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.dark .error-code-num {
+  background: linear-gradient(135deg, #F2C8B0 0%, #D6A98E 45%, #C99780 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

@@ -81,23 +81,27 @@ export function ProfitStatsCard({ accountId }: Props) {
           </div>
         ) : (
           <>
-            {/* 손익 요약 */}
-            {profit && (
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground">기간 손익</p>
-                  <p className={`text-lg font-bold ${profit.totalProfitLoss >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                    {profit.totalProfitLoss >= 0 ? '+' : ''}${profit.totalProfitLoss.toFixed(2)}
-                  </p>
+            {/* 손익 요약 — PeriodProfitResult(totalRealizedProfit) / ProfitSummary(totalProfitLoss) 양쪽 호환 */}
+            {profit && (() => {
+              const totalPL = profit.totalProfitLoss ?? profit.totalRealizedProfit ?? 0
+              const totalRate = profit.totalProfitLossRate ?? profit.totalReturnRate ?? 0
+              return (
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">기간 손익</p>
+                    <p className={`text-lg font-bold ${totalPL >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                      {totalPL >= 0 ? '+' : ''}${totalPL.toFixed(2)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">수익률</p>
+                    <p className={`text-lg font-bold ${totalRate >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                      {totalRate >= 0 ? '+' : ''}{totalRate.toFixed(2)}%
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">수익률</p>
-                  <p className={`text-lg font-bold ${profit.totalProfitLossRate >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                    {profit.totalProfitLossRate >= 0 ? '+' : ''}{profit.totalProfitLossRate.toFixed(2)}%
-                  </p>
-                </div>
-              </div>
-            )}
+              )
+            })()}
             {/* 포트폴리오 추이 차트 */}
             <PortfolioChart snapshots={snapshots} />
           </>

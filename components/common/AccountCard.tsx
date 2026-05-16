@@ -1,3 +1,5 @@
+'use client'
+
 import { StrategyBadge } from './StrategyBadge'
 import { TradingStatusIndicator } from './TradingStatusIndicator'
 import { ProfitDisplay } from './ProfitDisplay'

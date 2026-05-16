@@ -30,14 +30,16 @@ export interface PortfolioSnapshot {
   createdAt: string
 }
 
-// KIS API 통계 응답 (상세 형태 미정 - 추후 업데이트)
+// KIS API 통계 응답 (PeriodProfitResult 호환 필드 포함)
 export interface ProfitSummary {
   accountId: string
   startDate: string
   endDate: string
-  totalProfitLoss: number
-  totalProfitLossRate: number
+  totalProfitLoss?: number          // 일반 형식
+  totalProfitLossRate?: number      // 일반 형식
   dailyProfits: DailyProfit[]
+  totalRealizedProfit?: number      // PeriodProfitResult.totalRealizedProfit (KIS TTTS3039R)
+  totalReturnRate?: number          // PeriodProfitResult.totalReturnRate (KIS TTTS3039R)
 }
 
 export interface DailyProfit {

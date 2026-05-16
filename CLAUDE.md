@@ -93,6 +93,8 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **Next.js 16 proxy 파일 컨벤션**: `middleware.ts` deprecated → `proxy.ts`로 rename, export 함수명도 `middleware` → `proxy`. `config` export 및 동작은 동일. 마이그레이션: `npx @next/codemod@canary middleware-to-proxy .`
 - **Next.js 16 dev 자동 수정**: 첫 `npm run dev` 실행 시 `tsconfig.json`의 `jsx`를 `"preserve"` → `"react-jsx"`로, `include`에 `.next/dev/types/**/*.ts` 자동 추가 — 의도적 변경이므로 커밋 포함
 - **WSL2 CRLF 오염**: Windows에서 `npm install` 등 실행 시 일부 파일에 CRLF 유입 → `.gitattributes`에 `* text=auto eol=lf` 설정 권장
+- **이벤트 핸들러 컴포넌트 `'use client'` 필수**: `onMouseEnter`/`onMouseLeave` 등 DOM 이벤트 핸들러를 사용하는 컴포넌트는 반드시 `'use client'` 선언 필요 — 미선언 시 Server Component에서 임포트할 때 `Error: Event handlers cannot be passed to Client Component props` 발생 (예: `AccountCard.tsx`)
+- **StatisticsController KIS 응답 형식 불일치**: `GET /api/accounts/{id}/portfolio` → `PresentBalanceResult { items[{avgPrice,...}] }`, `GET /api/accounts/{id}/profit` → `PeriodProfitResult { totalRealizedProfit, totalReturnRate }` — kista-ui `PortfolioSnapshot`/`ProfitSummary`와 필드명·구조 다름. `normalizePortfolio()` 변환 함수 + `ProfitSummary` optional 필드로 대응 (`accounts/[id]/page.tsx`, `ProfitStatsCard.tsx` 참고)
 
 ## 환경변수
 

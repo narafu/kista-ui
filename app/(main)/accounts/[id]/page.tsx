@@ -14,6 +14,30 @@ interface Props {
   params: Promise<{ id: string }>
 }
 
+// KIS CTRP6504R 응답(PresentBalanceResult)의 items 구조
+interface PresentBalanceItem {
+  symbol: string; qty: number; avgPrice: number
+  currentPrice: number; evalAmountUsd: number
+}
+
+// PresentBalanceResult → PortfolioSnapshot 변환 (StatisticsController 응답 형식 정규화)
+function normalizePortfolio(raw: PortfolioSnapshot | null): PortfolioSnapshot | null {
+  if (!raw) return null
+  const r = raw as unknown as Record<string, unknown>
+  if (!Array.isArray(r.items)) return raw
+  const items = r.items as PresentBalanceItem[]
+  const item = items[0]
+  if (!item) return null // 보유 종목 없음
+  return {
+    id: '', snapshotDate: new Date().toISOString().split('T')[0],
+    symbol: item.symbol, qty: item.qty,
+    avgPrice: item.avgPrice, currentPrice: item.currentPrice,
+    marketValueUsd: item.evalAmountUsd, usdDeposit: 0,
+    totalAssetUsd: (r.totalAssetUsd as number) ?? 0,
+    createdAt: new Date().toISOString(),
+  }
+}
+
 const EMPTY_PORTFOLIO: PortfolioSnapshot = {
   id: '',
   snapshotDate: '',
@@ -43,11 +67,12 @@ export default async function AccountDetailPage({ params }: Props) {
     to: today.toISOString().split('T')[0],
   }
 
-  const [accounts, trades, portfolio] = await Promise.all([
+  const [accounts, trades, portfolioRaw] = await Promise.all([
     listAccounts(token).catch((): Account[] => []),
     getAccountTrades(id, dateRange, token).catch((): TradeHistory[] => []),
     getAccountPortfolio(id, token).catch((): PortfolioSnapshot | null => null),
   ])
+  const portfolio = normalizePortfolio(portfolioRaw)
 
   const account = accounts.find((a) => a.id === id)
   if (!account) {
