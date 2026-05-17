@@ -1,4 +1,5 @@
 import { getAuthToken } from '@/lib/auth/token'
+import { DeleteAccountButton } from '@/components/settings/DeleteAccountButton'
 import { getMe } from '@/lib/api/auth'
 import { listAccounts } from '@/lib/api/accounts'
 import { TelegramSection } from '@/components/settings/TelegramSection'
@@ -134,14 +135,7 @@ export default async function SettingsPage() {
           <section id="danger" className="rounded-[var(--r-lg)] border border-neg/30 p-6">
             <h2 className="font-bold text-base text-neg mb-1">위험 구역</h2>
             <p className="text-sm text-muted-foreground mb-4">되돌릴 수 없는 작업입니다.</p>
-            <button
-              disabled
-              title="곧 제공됩니다 (Phase 2)"
-              className="px-4 py-2 rounded-[var(--r-md)] border border-neg/50 text-neg text-sm font-semibold opacity-40 cursor-not-allowed"
-            >
-              회원 탈퇴
-            </button>
-            <p className="text-[11px] text-muted-foreground mt-2">곧 제공됩니다</p>
+            <DeleteAccountButton />
           </section>
 
         </div>
