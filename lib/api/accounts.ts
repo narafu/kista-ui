@@ -33,16 +33,14 @@ export async function deleteAccount(id: string, token?: string): Promise<void> {
   if (!res.ok) throw new ApiError(res.status, null)
 }
 
-export async function pauseStrategy(id: string, token?: string): Promise<Account> {
-  if (token) return apiFetch<Account>(`/api/accounts/${id}/strategy/pause`, { method: 'PATCH' }, token)
+export async function pauseStrategy(id: string, token?: string): Promise<void> {
+  if (token) return apiFetch<void>(`/api/accounts/${id}/strategy/pause`, { method: 'PATCH' }, token)
   const res = await fetch(`/api/accounts/${id}/strategy/pause`, { method: 'PATCH' })
   if (!res.ok) throw new ApiError(res.status, null)
-  return res.json()
 }
 
-export async function resumeStrategy(id: string, token?: string): Promise<Account> {
-  if (token) return apiFetch<Account>(`/api/accounts/${id}/strategy/resume`, { method: 'PATCH' }, token)
+export async function resumeStrategy(id: string, token?: string): Promise<void> {
+  if (token) return apiFetch<void>(`/api/accounts/${id}/strategy/resume`, { method: 'PATCH' }, token)
   const res = await fetch(`/api/accounts/${id}/strategy/resume`, { method: 'PATCH' })
   if (!res.ok) throw new ApiError(res.status, null)
-  return res.json()
 }

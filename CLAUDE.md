@@ -76,6 +76,7 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **Safari `Secure` 쿠키 + HTTP 차단**: Chrome은 `localhost`에서 HTTP+`Secure` 쿠키 허용(예외)이지만, Safari는 HTTP 연결의 `Secure` 쿠키를 무조건 무시함 → `document.cookie`에서 읽을 수 없어 클라이언트 인증 실패. 쿠키의 `secure` 플래그는 `NODE_ENV`가 아닌 `x-forwarded-proto === 'https'`(실제 요청 프로토콜)로 결정할 것 (`app/auth/callback/route.ts` 참고)
 - **로컬 Docker `NEXT_PUBLIC_API_BASE_URL`**: `.env`에서 `http://localhost:8080` 유지 필수 — Render URL로 설정하면 브라우저가 Render에 로컬 JWT 전송 → 401. Vercel 배포는 Vercel 대시보드 env var 사용하므로 `.env` 값과 무관
 - **`apiFetch` baseUrl 패턴**: `client.ts`는 `API_BASE_URL ?? NEXT_PUBLIC_API_BASE_URL` 순서 — 서버사이드(Docker)는 `API_BASE_URL=http://host.docker.internal:8080` 우선, 브라우저는 `undefined ??` 폴백으로 `NEXT_PUBLIC_API_BASE_URL` 사용
+- **204 반환 엔드포인트 no-token 수동 fetch**: `res.json()` 호출 금지 → `SyntaxError: Unexpected end of JSON input`. `apiFetch`는 204 자동 처리(content-length=0 감지), no-token 경로는 `if (!res.ok) throw new ApiError(...); return;` 패턴 사용 (pauseStrategy/resumeStrategy 사례)
 - **쿠키 관련 수정 후 검증**: 쿠키 옵션 변경 후 재빌드만으로는 기존 세션에 미적용 — 브라우저 쿠키 직접 삭제 후 카카오 재로그인 필요. kista-api 로그에 `/api/auth/me` 호출이 없으면 브라우저에 `kista-token`이 없다는 증거
 - **ProfitStatsCard**: self-fetching client component — `accountId` prop만 넘기면 내부 useEffect에서 직접 API 호출 (Server Component에서 token 전달 불필요)
 - **TradesTab**: `AccountDetailTabs.tsx` 내부 로컬 함수 (export 없음) — 재사용 필요 시 인라인 구현
