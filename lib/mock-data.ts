@@ -6,6 +6,7 @@ export const MOCK_USER: User = {
   id: 'user-001',
   nickname: '홍길동',
   status: 'ACTIVE',
+  role: 'USER',
   hasTelegram: false,
 }
 
