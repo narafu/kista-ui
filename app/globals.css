@@ -333,3 +333,14 @@
   background: rgba(24, 22, 20, 0.82);
   border-color: rgba(199, 123, 102, 0.14);
 }
+
+/* ── AccountDetail Row 1 grid ─────────────────────────────── */
+.account-detail-row1 { display: block; }
+
+@media (min-width: 1024px) {
+  .account-detail-row1 {
+    display: grid;
+    grid-template-columns: 1.7fr 1fr;
+    gap: 1.5rem;
+  }
+}

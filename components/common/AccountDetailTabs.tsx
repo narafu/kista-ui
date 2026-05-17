@@ -70,13 +70,9 @@ export function AccountDetailTabs({ account, trades, portfolio }: Props) {
 
       {/* 데스크탑: 전체 레이아웃 */}
       <div className="hidden lg:block space-y-6">
-        <div className="grid grid-cols-5 gap-6">
-          <div className="col-span-3">
-            <ProfitStatsCard accountId={account.id} />
-          </div>
-          <div className="col-span-2">
-            <SummaryTab account={account} portfolio={portfolio} />
-          </div>
+        <div className="account-detail-row1 mb-6">
+          <ProfitStatsCard accountId={account.id} />
+          <SummaryTab account={account} portfolio={portfolio} />
         </div>
         <TradesTab trades={trades} />
         <div className="grid grid-cols-2 gap-6">

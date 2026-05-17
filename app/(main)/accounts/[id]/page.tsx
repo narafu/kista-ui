@@ -1,8 +1,9 @@
 import Link from 'next/link'
-import { ArrowLeft, Pencil } from 'lucide-react'
+import { Pencil } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { buttonVariants } from '@/components/ui/button'
 import { AccountDetailTabs } from '@/components/common/AccountDetailTabs'
+import { PageHeader } from '@/components/common/PageHeader'
 import { cn } from '@/lib/utils'
 import { getAuthToken } from '@/lib/auth/token'
 import { listAccounts } from '@/lib/api/accounts'
@@ -81,22 +82,15 @@ export default async function AccountDetailPage({ params }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard" className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}>
-            <ArrowLeft className="h-5 w-5" />
+      <PageHeader
+        eyebrow="계좌 관리"
+        title={account.nickname}
+        actions={
+          <Link href={`/accounts/${id}/edit`} className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}>
+            <Pencil className="h-4 w-4" />
           </Link>
-          <div>
-            <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--rose-500)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 1 }}>
-              {account.strategyType}
-            </p>
-            <h1 style={{ fontSize: 20, fontWeight: 700 }}>{account.nickname}</h1>
-          </div>
-        </div>
-        <Link href={`/accounts/${id}/edit`} className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}>
-          <Pencil className="h-4 w-4" />
-        </Link>
-      </div>
+        }
+      />
 
       <AccountDetailTabs
         account={account}
