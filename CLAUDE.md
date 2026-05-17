@@ -32,6 +32,7 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - `app/(auth)/` — 비인증 전용 (`/` 로그인 페이지)
 - `app/pending/`, `app/rejected/` — (main) 밖 최상위 경로 — Sidebar/Toaster 등 (main) 레이아웃 미적용
 - `app/(main)/` — ACTIVE 전용, `DesktopSidebar`(lg 이상) + `MobileBottomNav`(lg 미만) 반응형
+- `app/(admin)/` — ADMIN role 전용. `AdminSidebar`(lg 이상) + `AdminTopBar`(lg 미만) 반응형. proxy.ts가 비ADMIN 사용자를 `/dashboard`로 리다이렉트
 
 ### API 계층
 - API 레이어: `lib/api/{auth,accounts,trades,settings}.ts` — `apiFetch(path, options, accessToken)` 공통 래퍼 사용
@@ -45,13 +46,15 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - `components/accounts/` — 계좌 관련 폼 (AccountEditForm)
 - `components/settings/` — 설정 섹션 (TelegramSection, AccountTelegramSection)
 - `components/layout/` — 레이아웃 (DesktopSidebar, MobileBottomNav)
+- `components/admin/` — 관리자 전용 (AdminSidebar, AdminTopBar, ApproveRejectButtons, ChangeRoleButton)
 - `components/ui/` — shadcn/ui 자동 생성 (직접 수정 금지)
 
 ### 구현 현황
-- **완료**: Phase 1-4 (UI, Auth, API 연동, 통계 차트)
+- **완료**: Phase 1-4 (UI, Auth, API 연동, 통계 차트) + Phase 2A-D (admin 권한/API/화면 12종, 회원탈퇴, test-connection)
 
 ## 기술 스택 quirk
 
+- **proxy.ts admin role 가드**: `ROLE_COOKIE = 'kista-user-role'`(httpOnly 캐시) + `ADMIN_PREFIXES = ['/admin']` — 비ADMIN 사용자가 `/admin/**` 접근 시 `/dashboard`로 자동 리다이렉트. role은 `/api/auth/me` 응답의 `role` 필드에서 읽어 쿠키에 캐시. admin 화면 추가 시 별도 라우팅 설정 불필요 (catch-all)
 - **인라인 style vs Tailwind 반응형 충돌**: `style={{ display: 'flex' }}`는 인라인 명시도로 `lg:hidden`/`lg:flex` 등 Tailwind 반응형 클래스를 무효화 — display 관련 속성은 반드시 className으로만 제어. 반응형 grid도 동일: `style={{ gridTemplateColumns: '...' }}`는 CSS 클래스 미디어 쿼리를 override → 인라인에서 제거하고 `globals.css`에 `@media` 규칙으로 정의. **버그 발견 시 유사 패턴 탐지**: `grep -rn "style={{ display:" app components --include="*.tsx"` 실행 후 `lg:hidden`/`lg:flex` 등 반응형 className과 함께 쓰이는 항목 확인
 - **AuthLayout의 flex 자식 너비 수축**: `flex items-center justify-center` 컨테이너 내 자식 div가 인라인 배경(gradient 등)을 갖는 경우, 자식이 flex item으로 콘텐츠 너비만큼 수축 → 배경이 전체 화면을 덮지 못함. 페이지가 자체 min-height + 중앙 정렬을 갖는다면 AuthLayout은 `<>{children}</>` 프래그먼트로 둠
 - **커스텀 반응형 그리드**: Tailwind에 없는 `gridTemplateColumns`(예: `1fr 1fr 1.4fr`) — `globals.css` 끝에 `.sm\:kpi-grid { display:grid; }` 형태로 추가, 인라인 `gridTemplateColumns` 제거 필수 (명시도 충돌). 기존 정의: `sm\:kpi-grid`, `sm\:portfolio-grid`, `md\:profit-grid`, `lg\:form-grid`, `lg\:settings-grid`
@@ -83,11 +86,11 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **API 날짜 파라미터**: `getAccountTrades`/`getAccountProfit`/`getAccountReservationOrders`/`getAccountDailyTrades` 모두 `{ from, to }` (ISO date string, 필수) — `buildDateQuery`의 `startDate`/`endDate` 키와 혼동 주의
 - **승인 재요청 Route Handler**: `ReapplyButton`은 `/api/auth/reapply-done` Route Handler 경유 — `apiFetch`로 kista-api 직접 호출 금지 (인증·CORS는 Route Handler에서 처리)
 - **텔레그램 설정 Route Handler**: `updateTelegram`/`deleteTelegram`은 `/api/settings/telegram` Route Handler 경유 — `getAuthTokenClient()` 브라우저 쿠키 읽기 방식 금지 (Docker HTTP 환경에서 쿠키 읽기 실패 사례 있음)
-- **lib/api 클라이언트 호출 패턴**: `createAccount(data)`, `updateAccount(id, data)`, `pauseStrategy(id)`, `getAccountMargin(id)` 등 — token 파라미터 생략 시 자동으로 Route Handler(`/api/...`) 경유. token 전달은 서버 컴포넌트 전용
+- **lib/api 클라이언트 호출 패턴**: `listAccounts(token?)`, `createAccount(data)`, `deleteAccount(id)`, `updateAccount(id, data)`, `pauseStrategy(id)`, `getAccountMargin(id)` 등 — token 파라미터 생략 시 자동으로 Route Handler(`/api/...`) 경유. token 전달은 서버 컴포넌트 전용. 함수명 주의: `getAccounts` 아님, `listAccounts`
 - **클라이언트 → kista-api 직접 호출 전면 금지**: 모든 클라이언트 API 호출은 Route Handler 경유 의무. 기존 Route Handler: `/api/auth/*`, `/api/settings/telegram`, `/api/accounts/[[...path]]`(전체 계좌 API), `/api/portfolio/[[...path]]`(포트폴리오). 진단: kista-api 로그에 요청 없음 = 브라우저에서 실패한 것
 - **재신청 쿨다운 localStorage 키**: pending 페이지(`ReapplyButton`) → `reapply_last_requested_at`(1시간), rejected 페이지 → `reapply_rejected_last_at`(24시간)
 - **계좌번호 형식**: `74420614-01` (숫자 8자리 + `-` + 숫자 2자리) — 분할 Input UI 사용
-- **AccountRequest 필드명**: 요청 DTO는 `strategyType`, `ticker`, `accountNo`(8자리만), `kisAccountType`("01") — update 시 `strategyType` 변경 지원(null이면 기존값 유지), PRIVACY 전환 시 ticker 서버에서 SOXL 강제, register에만 `@NotNull @Valid` 적용. `accountNo` 미포함 시 400이 아닌 무시됨
+- **AccountRequest 필드명**: 요청 DTO는 `kisAppKey`(≠apiKey), `kisSecretKey`(≠apiSecret), `strategyType`, `ticker`, `accountNo`(8자리만), `kisAccountType`("01") — update 시 `strategyType` 변경 지원(null이면 기존값 유지), PRIVACY 전환 시 ticker 서버에서 SOXL 강제, register에만 `@NotNull @Valid` 적용
 - **TradeHistory enum 실제 값**: `OrderType` = `LOC | MOC | LIMIT` (MARKET 없음), `OrderStatus` = `PLACED | FILLED | FAILED` (SUBMITTED/CANCELLED 없음) — `types/trade.ts` 참고
 - **UserService.reapply() 제약**: PENDING(1시간 쿨다운) / REJECTED(24시간 쿨다운) 모두 reapply 가능. 그 외 상태(ACTIVE 등) 클릭 시 400
 - **Docker standalone 리다이렉트**: `request.url`/`request.nextUrl.origin` 모두 `os.hostname()`(컨테이너 ID) 기반 → 사용 금지. proxy(Edge runtime)는 `request.nextUrl.clone()` + `url.pathname = '/...'`, Route Handler(Node.js runtime)는 `request.headers.get('host')` + `request.headers.get('x-forwarded-proto')`로 origin 직접 구성
@@ -99,7 +102,8 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **Next.js App Router 에러 페이지**: `app/error.tsx`(런타임 에러, 전체화면) + `app/(main)/error.tsx`(사이드바 유지, 콘텐츠 영역만) 모두 `'use client'` + `{ error: Error, reset: () => void }` props 필수. `app/not-found.tsx`는 Server Component 가능. `app/global-error.tsx`는 `'use client'` + `<html><body>` 직접 포함 필수
 - **`new Date()` SSR 수화 불일치**: Client Component에서 `new Date()` 직접 렌더링 시 서버/클라이언트 시간 차로 hydration warning 발생 → `useState('')` + `useEffect(() => { setState(new Date()...) }, [])` 패턴 사용
 - **다크 모드 gradient 텍스트 오버라이드**: `--rose-300~700` 팔레트는 `.dark`에서 재정의 없음 → dark 배경에서 rose-700(#6E3A2A) 끝색이 묻힘. `globals.css`에 `.dark .class-name { background: gradient(lighter values); -webkit-background-clip: text; ... }` 별도 오버라이드 필요
-- **StatisticsController KIS 응답 형식 불일치**: `GET /api/accounts/{id}/portfolio` → `PresentBalanceResult { items[{avgPrice,...}] }`, `GET /api/accounts/{id}/profit` → `PeriodProfitResult { totalRealizedProfit, totalReturnRate }` — kista-ui `PortfolioSnapshot`/`ProfitSummary`와 필드명·구조 다름. `normalizePortfolio()` 변환 함수 + `ProfitSummary` optional 필드로 대응 (`accounts/[id]/page.tsx`, `ProfitStatsCard.tsx` 참고)
+- **StatisticsController 응답 형식**: `GET /api/accounts/{id}/portfolio` → `PortfolioSummaryResponse { positions[{symbol,qty,avgPrice,currentPrice,evalAmount,profitAmount,profitRate}], summary{totalAssets,totalProfit,totalProfitRate} }` (Phase 1 서버사이드 normalizer 적용 완료). `GET /api/accounts/{id}/profit` → `PeriodProfitResult { totalRealizedProfit, totalReturnRate }` (미변경)
+- **Server Component + 인터랙션 패턴**: 데이터 fetching Server Component에 버튼/다이얼로그 추가 시 → `*Button.tsx`/`*Trigger.tsx` 별도 Client Component(`'use client'` + `useState`)로 분리 후 Server Component에서 import (예: `AccountEditDeleteButton.tsx`). 페이지 전체 `'use client'` 전환 금지
 
 ## 환경변수
 
