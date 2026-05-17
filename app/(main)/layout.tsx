@@ -1,6 +1,7 @@
 import { DesktopSidebar } from '@/components/layout/DesktopSidebar'
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav'
 import { MobileHeader } from '@/components/layout/MobileHeader'
+import { TradeNotificationProvider } from '@/components/trading/TradeNotificationProvider'
 import { Toaster } from 'sonner'
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
@@ -13,6 +14,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <MobileBottomNav />
       </div>
       <Toaster richColors position="top-right" />
+      <TradeNotificationProvider />
     </div>
   )
 }
