@@ -152,6 +152,13 @@
   /* Typography */
   --font-sans:    'Pretendard Variable', 'Pretendard', system-ui, -apple-system, sans-serif;
   --font-display: 'Cormorant Garamond', serif;
+
+  /* Border & radius tokens */
+  --border-strong: oklch(0.86 0.018 50);
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
 }
 
 /* ── KISTA Dark Mode ────────────────────────────────────────── */
@@ -209,6 +216,11 @@
 
   --sh-card: 0 1px 2px rgba(0,0,0,.36), 0 8px 18px rgba(0,0,0,.42);
   --sh-pop:  0 16px 42px rgba(0,0,0,.55);
+
+  /* Dark mode border & alpha rose */
+  --border-strong: rgba(232, 230, 227, 0.14);
+  --rose-100: rgba(214, 169, 142, 0.10);
+  --rose-200: rgba(214, 169, 142, 0.18);
 }
 
 @layer base {
@@ -306,4 +318,18 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* ── Glass Card ───────────────────────────────────────────── */
+.glass-card {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(199, 123, 102, 0.22);
+  border-radius: var(--r-xl);
+}
+
+.dark .glass-card {
+  background: rgba(24, 22, 20, 0.82);
+  border-color: rgba(199, 123, 102, 0.14);
 }
