@@ -1,7 +1,7 @@
 'use client'
 
 import { StrategyBadge } from './StrategyBadge'
-import { TradingStatusIndicator } from './TradingStatusIndicator'
+import { StatusDot } from './StatusDot'
 import { ProfitDisplay } from './ProfitDisplay'
 import type { Account } from '@/types/account'
 
@@ -39,7 +39,7 @@ export function AccountCard({ account, profitLoss = 0, profitLossRate = 0 }: Pro
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--foreground)' }}>{account.nickname}</div>
-        <TradingStatusIndicator status={account.strategyStatus} />
+        <StatusDot status={account.strategyStatus} />
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
         <StrategyBadge strategy={account.strategyType} />

@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { StrategyBadge } from './StrategyBadge'
-import { TradingStatusIndicator } from './TradingStatusIndicator'
+import { StatusDot } from './StatusDot'
 import { ProfitDisplay } from './ProfitDisplay'
 import { pauseStrategy, resumeStrategy, deleteAccount } from '@/lib/api/accounts'
 import { ApiError } from '@/lib/api/client'
@@ -132,7 +132,7 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">{account.nickname}</CardTitle>
-            <TradingStatusIndicator status={account.strategyStatus} />
+            <StatusDot status={account.strategyStatus} />
           </div>
           <StrategyBadge strategy={account.strategyType} />
         </CardHeader>
