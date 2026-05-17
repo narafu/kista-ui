@@ -1,10 +1,20 @@
 import Image from 'next/image'
+import { Clock } from 'lucide-react'
 import { getAuthToken } from '@/lib/auth/token'
 import { getMe } from '@/lib/api/auth'
+import { GlassCard } from '@/components/common/GlassCard'
+import { Timeline } from '@/components/common/Timeline'
 import { TelegramConnect } from './TelegramConnect'
 import { PendingStatusWatcher } from './PendingStatusWatcher'
 import { ReapplyButton } from './ReapplyButton'
 import { LogoutButton } from './LogoutButton'
+
+const STEPS = [
+  { label: '신청 완료', description: '카카오 로그인 및 회원가입 완료', done: true },
+  { label: '관리자 검토', description: '영업일 기준 1-2일 소요', done: false },
+  { label: '계좌 연동', description: 'KIS API 자격증명 입력', done: false },
+  { label: '운영 시작', description: '자동 매매 활성화', done: false },
+]
 
 export default async function PendingPage() {
   const token = await getAuthToken()
@@ -15,14 +25,7 @@ export default async function PendingPage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      position: 'relative',
-      background: 'radial-gradient(1200px 600px at 75% 20%, rgba(224,163,140,0.22), transparent 60%), radial-gradient(900px 500px at 10% 90%, rgba(247,220,205,0.55), transparent 60%), var(--background)',
-      display: 'grid',
-      placeItems: 'center',
-      overflow: 'hidden',
-    }}>
+    <div className="relative" style={{ minHeight: '100vh' }}>
       {/* 상단 헤더 */}
       <div style={{ position: 'absolute', top: 28, left: 36, display: 'flex', alignItems: 'center', gap: 8 }}>
         <Image src="/logo.png" alt="KISTA" width={26} height={26} style={{ borderRadius: 6 }} />
@@ -32,97 +35,33 @@ export default async function PendingPage() {
         <LogoutButton />
       </div>
 
-      <div style={{
-        width: '100%',
-        maxWidth: 540,
-        padding: 40,
-        borderRadius: 18,
-        background: 'rgba(255,255,255,0.86)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(199,123,102,0.22)',
-        boxShadow: '0 24px 60px rgba(74,38,22,0.12)',
-        textAlign: 'center',
-        margin: '80px 16px',
-      }}>
-        {/* 로고 박스 */}
-        <div style={{
-          width: 88, height: 88, margin: '0 auto 20px',
-          borderRadius: 20, background: 'var(--rose-50)',
-          border: '1px solid var(--rose-100)',
-          display: 'grid', placeItems: 'center', position: 'relative',
-        }}>
-          <Image src="/logo.png" alt="KISTA" width={66} height={66}
-            style={{ borderRadius: 14, objectFit: 'cover', boxShadow: '0 4px 12px rgba(143,68,48,.18)' }} />
-          <span style={{
-            position: 'absolute', bottom: -4, right: -4,
-            width: 32, height: 32, borderRadius: 999,
-            background: 'var(--warn)', color: '#fff',
-            display: 'grid', placeItems: 'center',
-            boxShadow: '0 4px 10px rgba(176,122,31,.3)',
-            border: '3px solid white',
-            fontSize: 14,
-          }}>⌛</span>
+      <GlassCard maxWidth="480px">
+        {/* 헤더 섹션 */}
+        <div className="flex flex-col items-center gap-2 mb-8">
+          <Image src="/logo.png" alt="KISTA" width={44} height={44} className="rounded-[10px] mb-2" />
+          <div
+            className="flex items-center gap-2 px-3 py-1 rounded-full"
+            style={{ background: 'var(--warn-bg)' }}
+          >
+            <Clock className="size-3.5" style={{ color: 'var(--warn)' }} />
+            <span className="text-xs font-semibold" style={{ color: 'var(--warn)' }}>검토 대기중</span>
+          </div>
+          <h1 className="text-xl font-bold text-foreground mt-1">승인 대기 중입니다</h1>
+          <p className="text-sm text-muted-foreground text-center">
+            관리자가 신청을 검토하고 있습니다.<br />승인 후 자동으로 이동됩니다.
+          </p>
         </div>
 
-        {/* PENDING 배지 */}
-        <span style={{
-          display: 'inline-flex', alignItems: 'center',
-          padding: '4px 12px', borderRadius: 999,
-          fontSize: 12, fontWeight: 700,
-          background: 'var(--warn-bg)', color: 'var(--warn)',
-          marginBottom: 14,
-        }}>● PENDING</span>
-
-        <h1 style={{ fontSize: 22, fontWeight: 700, margin: '0 0 8px', color: 'var(--foreground)' }}>
-          승인 검토 중입니다
-        </h1>
-        <p style={{ margin: '0 0 22px', fontSize: 14, color: 'var(--muted-foreground)', lineHeight: 1.6 }}>
-          가입 신청이 접수되었습니다.<br />
-          관리자 승인 후 서비스 이용이 가능합니다.
-        </p>
-
-        {/* 단계 타임라인 */}
-        <div style={{
-          padding: 18, borderRadius: 12, background: 'var(--muted)',
-          marginBottom: 22, textAlign: 'left',
-        }}>
-          {[
-            { label: '카카오 로그인 완료', done: true,  active: false, note: '완료' },
-            { label: '가입 신청 접수',     done: true,  active: false, note: '완료' },
-            { label: '관리자 승인 대기',   done: false, active: true,  note: '진행 중' },
-            { label: '서비스 이용 가능',   done: false, active: false, note: '대기 중' },
-          ].map((s, i, arr) => (
-            <div key={s.label} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, paddingBottom: i < arr.length - 1 ? 12 : 0 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <span style={{
-                  width: 20, height: 20, borderRadius: 999, flexShrink: 0,
-                  background: s.done ? 'var(--status-ok)' : s.active ? 'var(--warn)' : 'var(--border)',
-                  color: '#fff', display: 'grid', placeItems: 'center',
-                  fontSize: 11, fontWeight: 700,
-                  boxShadow: s.active ? '0 0 0 4px rgba(176,122,31,.16)' : 'none',
-                }}>{s.done ? '✓' : ''}</span>
-                {i < arr.length - 1 && (
-                  <div style={{ width: 1, flex: 1, minHeight: 16, background: 'var(--border)', marginTop: 2 }} />
-                )}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{
-                  fontSize: 13, fontWeight: s.active ? 700 : 600,
-                  color: s.done ? 'var(--foreground)' : s.active ? 'var(--warn)' : 'var(--muted-foreground)',
-                }}>{s.label}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--muted-foreground)', marginTop: 2 }}>{s.note}</div>
-              </div>
-            </div>
-          ))}
-        </div>
+        {/* 타임라인 */}
+        <Timeline steps={STEPS} />
 
         {/* 버튼 영역 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div className="mt-6 pt-6 border-t border-border flex flex-col gap-2.5">
           <PendingStatusWatcher />
           <ReapplyButton />
           <TelegramConnect hasTelegram={hasTelegram} />
         </div>
-      </div>
+      </GlassCard>
     </div>
   )
 }

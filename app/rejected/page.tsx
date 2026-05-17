@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { XCircle } from 'lucide-react'
+import { GlassCard } from '@/components/common/GlassCard'
 
 const STORAGE_KEY = 'reapply_rejected_last_at'
 const COOLDOWN_MS = 24 * 60 * 60 * 1000
@@ -71,80 +73,42 @@ export default function RejectedPage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      position: 'relative',
-      background: 'radial-gradient(1200px 600px at 75% 20%, rgba(224,163,140,0.16), transparent 60%), radial-gradient(900px 500px at 10% 90%, rgba(247,220,205,0.4), transparent 60%), var(--background)',
-      display: 'grid',
-      placeItems: 'center',
-      overflow: 'hidden',
-    }}>
+    <div className="relative" style={{ minHeight: '100vh' }}>
       {/* 상단 헤더 */}
-      <div style={{ position: 'absolute', top: 28, left: 36, display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ position: 'absolute', top: 28, left: 36, display: 'flex', alignItems: 'center', gap: 8, zIndex: 10 }}>
         <Image src="/logo.png" alt="KISTA" width={26} height={26} style={{ borderRadius: 6 }} />
         <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--rose-700)', letterSpacing: 1 }}>KISTA</span>
       </div>
-      <div style={{ position: 'absolute', top: 28, right: 36 }}>
+      <div style={{ position: 'absolute', top: 28, right: 36, zIndex: 10 }}>
         <LogoutButton />
       </div>
 
-      <div style={{
-        width: '100%',
-        maxWidth: 540,
-        padding: 40,
-        borderRadius: 18,
-        background: 'rgba(255,255,255,0.86)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(199,123,102,0.22)',
-        boxShadow: '0 24px 60px rgba(74,38,22,0.12)',
-        textAlign: 'center',
-        margin: '80px 16px',
-      }}>
-        {/* 로고 박스 */}
-        <div style={{
-          width: 88, height: 88, margin: '0 auto 20px',
-          borderRadius: 20, background: 'var(--rose-50)',
-          border: '1px solid var(--rose-100)',
-          display: 'grid', placeItems: 'center', position: 'relative',
-        }}>
-          <Image src="/logo.png" alt="KISTA" width={66} height={66}
-            style={{ borderRadius: 14, objectFit: 'cover', opacity: 0.55, filter: 'grayscale(0.3)' }} />
-          <span style={{
-            position: 'absolute', bottom: -4, right: -4,
-            width: 32, height: 32, borderRadius: 999,
-            background: '#C8443A', color: '#fff',
-            display: 'grid', placeItems: 'center',
-            boxShadow: '0 4px 10px rgba(200,68,58,.3)',
-            border: '3px solid white',
-            fontSize: 16,
-          }}>✕</span>
+      <GlassCard maxWidth="480px">
+        {/* 헤더 섹션 */}
+        <div className="flex flex-col items-center gap-2 mb-8">
+          <Image src="/logo.png" alt="KISTA" width={44} height={44} className="rounded-[10px] mb-2" style={{ opacity: 0.7 }} />
+          <div
+            className="flex items-center gap-2 px-3 py-1 rounded-full"
+            style={{ background: 'rgba(200,68,58,0.12)' }}
+          >
+            <XCircle className="size-3.5" style={{ color: '#C8443A' }} />
+            <span className="text-xs font-semibold" style={{ color: '#C8443A' }}>신청 반려</span>
+          </div>
+          <h1 className="text-xl font-bold text-foreground mt-1">신청이 반려되었습니다</h1>
+          <p className="text-sm text-muted-foreground text-center">
+            관리자가 신청을 검토한 결과<br />현재 서비스 이용이 어렵습니다.
+          </p>
         </div>
 
-        {/* REJECTED 배지 */}
-        <span style={{
-          display: 'inline-flex', alignItems: 'center',
-          padding: '4px 12px', borderRadius: 999,
-          fontSize: 12, fontWeight: 700,
-          background: 'rgba(200,68,58,0.12)', color: '#C8443A',
-          marginBottom: 14,
-        }}>● REJECTED</span>
-
-        <h1 style={{ fontSize: 22, fontWeight: 700, margin: '0 0 8px', color: 'var(--foreground)' }}>
-          가입이 거절되었습니다
-        </h1>
-        <p style={{ margin: '0 0 22px', fontSize: 14, color: 'var(--muted-foreground)', lineHeight: 1.6 }}>
-          가입 신청이 반려되었습니다.<br />
-          아래 사유를 확인하시고 필요 시 재신청해주세요.
-        </p>
-
         {/* 반려 사유 카드 */}
-        <div style={{
-          padding: 16, borderRadius: 12,
-          background: 'rgba(200,68,58,0.06)',
-          border: '1px solid rgba(200,68,58,0.16)',
-          textAlign: 'left', marginBottom: 22,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+        <div
+          className="rounded-[10px] p-4 mb-6"
+          style={{
+            background: 'rgba(200,68,58,0.06)',
+            border: '1px solid rgba(200,68,58,0.16)',
+          }}
+        >
+          <div className="flex items-start gap-2">
             <span style={{ color: '#C8443A', marginTop: 2, fontSize: 15 }}>⚠</span>
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#C8443A', marginBottom: 4 }}>반려 사유</div>
@@ -156,7 +120,7 @@ export default function RejectedPage() {
         </div>
 
         {errorMessage && (
-          <p style={{ fontSize: 13, color: 'var(--destructive)', textAlign: 'center', margin: '0 0 12px' }}>
+          <p className="text-[13px] text-destructive text-center mb-3">
             {errorMessage}
           </p>
         )}
@@ -176,10 +140,10 @@ export default function RejectedPage() {
         >
           {cooldownMinutes > 0 ? formatCooldown(cooldownMinutes) : '승인 재신청'}
         </button>
-        <div style={{ fontSize: 11.5, color: 'var(--muted-foreground)', marginTop: 10 }}>
+        <div style={{ fontSize: 11.5, color: 'var(--muted-foreground)', marginTop: 10, textAlign: 'center' }}>
           재신청은 24시간에 한 번만 가능합니다.
         </div>
-      </div>
+      </GlassCard>
     </div>
   )
 }
