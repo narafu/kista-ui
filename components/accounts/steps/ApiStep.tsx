@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 import type { StepData } from '../NewAccountStepper'
 
 interface Props {
@@ -9,12 +9,46 @@ interface Props {
   onNext: (payload: Partial<StepData>) => void
 }
 
+type TestStatus = null | 'testing' | 'ok' | 'fail'
+
 export function ApiStep({ data, onNext }: Props) {
   const [apiKey, setApiKey] = useState(data.apiKey)
   const [apiSecret, setApiSecret] = useState(data.apiSecret)
   const [showSecret, setShowSecret] = useState(false)
+  const [testStatus, setTestStatus] = useState<TestStatus>(null)
+  const [testMessage, setTestMessage] = useState('')
 
-  const valid = apiKey.length >= 10 && apiSecret.length >= 10
+  const canTest = apiKey.length >= 10 && apiSecret.length >= 10
+
+  // 키 변경 시 테스트 결과 초기화
+  function handleKeyChange(setter: (v: string) => void) {
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      setter(e.target.value)
+      setTestStatus(null)
+    }
+  }
+
+  async function handleTest() {
+    setTestStatus('testing')
+    setTestMessage('')
+    try {
+      const res = await fetch('/api/accounts/test-connection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appKey: apiKey, appSecret: apiSecret }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        setTestStatus('ok')
+      } else {
+        setTestStatus('fail')
+        setTestMessage(json.message ?? 'KIS API 연결에 실패했습니다.')
+      }
+    } catch {
+      setTestStatus('fail')
+      setTestMessage('네트워크 오류가 발생했습니다.')
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -27,7 +61,7 @@ export function ApiStep({ data, onNext }: Props) {
           <label className="text-sm font-semibold mb-1.5 block">App Key</label>
           <input
             value={apiKey}
-            onChange={e => setApiKey(e.target.value)}
+            onChange={handleKeyChange(setApiKey)}
             placeholder="발급받은 App Key"
             className="w-full px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-rose-400"
           />
@@ -38,7 +72,7 @@ export function ApiStep({ data, onNext }: Props) {
             <input
               type={showSecret ? 'text' : 'password'}
               value={apiSecret}
-              onChange={e => setApiSecret(e.target.value)}
+              onChange={handleKeyChange(setApiSecret)}
               placeholder="발급받은 App Secret"
               className="w-full px-3 py-2.5 pr-10 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-rose-400"
             />
@@ -52,8 +86,35 @@ export function ApiStep({ data, onNext }: Props) {
           </div>
         </div>
       </div>
+
+      {/* 연결 테스트 */}
+      <div className="flex flex-col gap-2">
+        <button
+          disabled={!canTest || testStatus === 'testing'}
+          onClick={handleTest}
+          className="w-full h-10 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+        >
+          {testStatus === 'testing' ? (
+            <><Loader2 className="size-4 animate-spin" /> 연결 확인 중...</>
+          ) : (
+            '연결 테스트'
+          )}
+        </button>
+        {testStatus === 'ok' && (
+          <div className="flex items-center gap-1.5 text-[12.5px] text-emerald-600">
+            <CheckCircle2 className="size-4" /> 연결 성공
+          </div>
+        )}
+        {testStatus === 'fail' && (
+          <div className="flex items-center gap-1.5 text-[12.5px] text-neg">
+            <XCircle className="size-4" /> {testMessage}
+          </div>
+        )}
+      </div>
+
+      {/* 연결 테스트 성공 후에만 다음 활성화 */}
       <button
-        disabled={!valid}
+        disabled={testStatus !== 'ok'}
         onClick={() => onNext({ apiKey, apiSecret })}
         className="w-full h-11 rounded-[var(--r-md)] bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
