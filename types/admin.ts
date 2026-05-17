@@ -15,3 +15,64 @@ export interface AdminStats {
   rejectedCount: number
   totalAccounts: number
 }
+
+export interface AdminAccount {
+  id: string
+  userId: string
+  ownerNickname: string
+  accountNoMasked: string
+  ticker: string
+  strategyType: string
+  strategyStatus: string
+}
+
+export interface AdminTrade {
+  id: string
+  userId: string
+  ownerNickname: string
+  tradeDate: string   // YYYY-MM-DD
+  ticker: string
+  direction: 'BUY' | 'SELL'
+  orderType: 'LOC' | 'MOC' | 'LIMIT'
+  qty: number
+  price: number
+  status: 'PLACED' | 'FILLED' | 'FAILED'
+}
+
+export interface AdminAuditLog {
+  id: string
+  adminId: string
+  action: string
+  targetType: string | null
+  targetId: string | null
+  payload: Record<string, unknown> | null
+  createdAt: string  // ISO-8601 timestamp
+}
+
+export interface AdminAnomalyAccount {
+  id: string
+  userId: string
+  ownerNickname: string
+  accountNoMasked: string
+  ticker: string | null
+  strategyType: string | null
+  strategyStatus: string | null
+}
+
+export interface AdminAnomalyTrade {
+  id: string
+  accountId: string | null
+  ownerNickname: string
+  tradeDate: string
+  ticker: string
+  direction: string
+  orderType: string
+  qty: number
+  price: number
+}
+
+export interface AdminAnomalies {
+  failedTrades: AdminAnomalyTrade[]
+  pausedAccounts: AdminAnomalyAccount[]
+  inactiveAccounts: AdminAnomalyAccount[]
+}

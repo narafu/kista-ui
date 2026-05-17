@@ -2,12 +2,16 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Clock, Users, LogOut } from 'lucide-react'
+import { LayoutDashboard, Clock, Users, LogOut, Wallet, ArrowLeftRight, ScrollText, AlertTriangle } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { href: '/admin',         label: 'Overview',  icon: LayoutDashboard, exact: true },
-  { href: '/admin/pending', label: '승인 대기', icon: Clock },
-  { href: '/admin/users',   label: '사용자',    icon: Users },
+  { href: '/admin',             label: 'Overview',  icon: LayoutDashboard, exact: true },
+  { href: '/admin/pending',     label: '승인 대기', icon: Clock },
+  { href: '/admin/users',       label: '사용자',    icon: Users },
+  { href: '/admin/accounts',    label: '계좌 현황', icon: Wallet },
+  { href: '/admin/trades',      label: '거래 내역', icon: ArrowLeftRight },
+  { href: '/admin/audit',       label: '감사 로그', icon: ScrollText },
+  { href: '/admin/anomalies',   label: '이상 징후', icon: AlertTriangle },
 ]
 
 export function AdminSidebar() {

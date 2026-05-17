@@ -1,5 +1,5 @@
 import { apiFetch } from './client'
-import type { AdminUser, AdminStats } from '@/types/admin'
+import type { AdminUser, AdminStats, AdminAccount, AdminTrade, AdminAuditLog, AdminAnomalies } from '@/types/admin'
 import type { UserRole, UserStatus } from '@/types/user'
 
 // 사용자 목록 조회 (status 필터 옵션) — Server Component에서 token으로 직접 호출
@@ -39,4 +39,24 @@ export async function deleteAdminUser(userId: string): Promise<void> {
 // 대시보드 통계 — Server Component에서 token으로 직접 호출
 export async function getAdminStats(token: string): Promise<AdminStats> {
   return apiFetch<AdminStats>('/api/admin/dashboard/stats', { method: 'GET' }, token)
+}
+
+// 계좌 목록 — Server Component에서 token으로 직접 호출
+export async function listAdminAccounts(token: string): Promise<AdminAccount[]> {
+  return apiFetch<AdminAccount[]>('/api/admin/accounts', { method: 'GET' }, token)
+}
+
+// 거래 내역 — Server Component에서 token으로 직접 호출
+export async function listAdminTrades(token: string): Promise<AdminTrade[]> {
+  return apiFetch<AdminTrade[]>('/api/admin/trades', { method: 'GET' }, token)
+}
+
+// 감사 로그 — Server Component에서 token으로 직접 호출
+export async function listAdminAuditLogs(token: string): Promise<AdminAuditLog[]> {
+  return apiFetch<AdminAuditLog[]>('/api/admin/audit-logs', { method: 'GET' }, token)
+}
+
+// 이상 징후 — Server Component에서 token으로 직접 호출
+export async function getAdminAnomalies(token: string): Promise<AdminAnomalies> {
+  return apiFetch<AdminAnomalies>('/api/admin/anomalies', { method: 'GET' }, token)
 }
