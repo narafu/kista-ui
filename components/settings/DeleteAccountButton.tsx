@@ -42,6 +42,7 @@ export function DeleteAccountButton() {
             <div className="flex gap-3">
               <button
                 onClick={() => setOpen(false)}
+                disabled={loading}
                 className="flex-1 py-2 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted transition-colors"
               >
                 취소

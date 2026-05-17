@@ -23,7 +23,7 @@ export async function DELETE() {
   // 탈퇴 성공 — 3개 인증 쿠키 삭제
   const response = new NextResponse(null, { status: 204 })
   response.cookies.set(TOKEN_COOKIE, '', { maxAge: 0, path: '/' })
-  response.cookies.set(STATUS_COOKIE, '', { maxAge: 0, path: '/' })
-  response.cookies.set(ROLE_COOKIE, '', { maxAge: 0, path: '/' })
+  response.cookies.set(STATUS_COOKIE, '', { maxAge: 0, path: '/', httpOnly: true })
+  response.cookies.set(ROLE_COOKIE, '', { maxAge: 0, path: '/', httpOnly: true })
   return response
 }
