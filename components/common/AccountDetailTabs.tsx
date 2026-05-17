@@ -25,13 +25,13 @@ import { ProfitStatsCard } from './ProfitStatsCard'
 import { MarginCard } from './MarginCard'
 import { ReservationOrdersCard } from './ReservationOrdersCard'
 import type { Account } from '@/types/account'
-import type { TradeHistory, PortfolioSnapshot } from '@/types/trade'
+import type { Execution, PortfolioSnapshot } from '@/types/trade'
 
 type Tab = 'summary' | 'trades' | 'statistics' | 'reservation' | 'margin'
 
 interface Props {
   account: Account
-  trades: TradeHistory[]
+  trades: Execution[]
   portfolio: PortfolioSnapshot
 }
 
@@ -143,11 +143,11 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">평균 단가</span>
-            <span className="font-medium">${portfolio.avgPrice.toFixed(2)}</span>
+            <span className="font-medium">${(portfolio.avgPrice ?? 0).toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">현재가</span>
-            <span className="font-medium">${portfolio.currentPrice.toFixed(2)}</span>
+            <span className="font-medium">${(portfolio.currentPrice ?? 0).toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">평가 손익</span>
@@ -194,7 +194,7 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
   )
 }
 
-function TradesTab({ trades }: { trades: TradeHistory[] }) {
+function TradesTab({ trades }: { trades: Execution[] }) {
   return (
     <div className="space-y-3">
       <h3 className="font-semibold text-sm text-muted-foreground hidden lg:block">거래 내역</h3>
@@ -205,7 +205,7 @@ function TradesTab({ trades }: { trades: TradeHistory[] }) {
           {/* 모바일: 카드 리스트 */}
           <div className="space-y-2 lg:hidden">
             {trades.map((trade) => (
-              <Card key={trade.id} className="p-3">
+              <Card key={`${trade.kisOrderId ?? ''}-${trade.tradeDate}-${trade.symbol}`} className="p-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Badge variant={trade.direction === 'BUY' ? 'default' : 'secondary'}>
@@ -213,11 +213,11 @@ function TradesTab({ trades }: { trades: TradeHistory[] }) {
                     </Badge>
                     <span className="font-medium text-sm">{trade.symbol}</span>
                   </div>
-                  <span className="text-sm font-semibold">${trade.amountUsd.toFixed(2)}</span>
+                  <span className="text-sm font-semibold">${(trade.amountUsd ?? 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                  <span>{trade.qty}주 × ${trade.price.toFixed(2)}</span>
-                  <span>{new Date(trade.createdAt).toLocaleDateString('ko-KR')}</span>
+                  <span>{trade.qty}주 × ${(trade.price ?? 0).toFixed(2)}</span>
+                  <span>{new Date(trade.tradeDate).toLocaleDateString('ko-KR')}</span>
                 </div>
               </Card>
             ))}
@@ -234,7 +234,7 @@ function TradesTab({ trades }: { trades: TradeHistory[] }) {
               </thead>
               <tbody>
                 {trades.map((trade) => (
-                  <tr key={trade.id} className="border-t hover:bg-muted/30 transition-colors">
+                  <tr key={`${trade.kisOrderId ?? ''}-${trade.tradeDate}-${trade.symbol}`} className="border-t hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3">
                       <Badge variant={trade.direction === 'BUY' ? 'default' : 'secondary'} className="text-xs">
                         {trade.direction === 'BUY' ? '매수' : '매도'}
@@ -242,10 +242,10 @@ function TradesTab({ trades }: { trades: TradeHistory[] }) {
                     </td>
                     <td className="px-4 py-3 font-medium">{trade.symbol}</td>
                     <td className="px-4 py-3">{trade.qty}주</td>
-                    <td className="px-4 py-3">${trade.price.toFixed(2)}</td>
-                    <td className="px-4 py-3 font-medium">${trade.amountUsd.toFixed(2)}</td>
+                    <td className="px-4 py-3">${(trade.price ?? 0).toFixed(2)}</td>
+                    <td className="px-4 py-3 font-medium">${(trade.amountUsd ?? 0).toFixed(2)}</td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {new Date(trade.createdAt).toLocaleDateString('ko-KR')}
+                      {new Date(trade.tradeDate).toLocaleDateString('ko-KR')}
                     </td>
                   </tr>
                 ))}

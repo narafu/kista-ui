@@ -8,33 +8,42 @@ import { cn } from '@/lib/utils'
 import { getAuthToken } from '@/lib/auth/token'
 import { listAccounts } from '@/lib/api/accounts'
 import { getAccountTrades, getAccountPortfolio } from '@/lib/api/trades'
-import type { TradeHistory, PortfolioSnapshot } from '@/types/trade'
+import type { Execution, PortfolioSnapshot } from '@/types/trade'
 import type { Account } from '@/types/account'
 
 interface Props {
   params: Promise<{ id: string }>
 }
 
-// KIS CTRP6504R 응답(PresentBalanceResult)의 items 구조
-interface PresentBalanceItem {
-  symbol: string; qty: number; avgPrice: number
-  currentPrice: number; evalAmountUsd: number
+// kista-api PortfolioSummaryResponse { positions: PositionDto[], summary: SummaryDto } 응답 형식
+interface PortfolioPosition {
+  symbol: string; qty: number
+  avgPrice: number | string | null; currentPrice: number | string | null
+  evalAmountUsd: number | string | null
+}
+interface PortfolioSummaryRaw {
+  positions?: PortfolioPosition[]
+  summary?: { totalAssetUsd?: number | string | null }
 }
 
-// PresentBalanceResult → PortfolioSnapshot 변환 (StatisticsController 응답 형식 정규화)
+const toNum = (v: unknown): number => {
+  const n = typeof v === 'string' ? parseFloat(v) : (v as number)
+  return Number.isFinite(n) ? n : 0
+}
+
+// PortfolioSummaryResponse → PortfolioSnapshot 변환 (StatisticsController 응답 형식 정규화)
 function normalizePortfolio(raw: PortfolioSnapshot | null): PortfolioSnapshot | null {
   if (!raw) return null
-  const r = raw as unknown as Record<string, unknown>
-  if (!Array.isArray(r.items)) return raw
-  const items = r.items as PresentBalanceItem[]
-  const item = items[0]
-  if (!item) return null // 보유 종목 없음
+  const r = raw as unknown as PortfolioSummaryRaw
+  if (!Array.isArray(r.positions)) return null
+  const top = r.positions[0]
+  if (!top) return null // 보유 종목 없음
   return {
     id: '', snapshotDate: new Date().toISOString().split('T')[0],
-    symbol: item.symbol, qty: item.qty,
-    avgPrice: item.avgPrice, currentPrice: item.currentPrice,
-    marketValueUsd: item.evalAmountUsd, usdDeposit: 0,
-    totalAssetUsd: (r.totalAssetUsd as number) ?? 0,
+    symbol: top.symbol, qty: top.qty,
+    avgPrice: toNum(top.avgPrice), currentPrice: toNum(top.currentPrice),
+    marketValueUsd: toNum(top.evalAmountUsd), usdDeposit: 0,
+    totalAssetUsd: toNum(r.summary?.totalAssetUsd),
     createdAt: new Date().toISOString(),
   }
 }
@@ -70,7 +79,7 @@ export default async function AccountDetailPage({ params }: Props) {
 
   const [accounts, trades, portfolioRaw] = await Promise.all([
     listAccounts(token).catch((): Account[] => []),
-    getAccountTrades(id, dateRange, token).catch((): TradeHistory[] => []),
+    getAccountTrades(id, dateRange, token).catch((): Execution[] => []),
     getAccountPortfolio(id, token).catch((): PortfolioSnapshot | null => null),
   ])
   const portfolio = normalizePortfolio(portfolioRaw)

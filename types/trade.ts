@@ -17,6 +17,17 @@ export interface TradeHistory {
   createdAt: string
 }
 
+// StatisticsController GET /api/accounts/{id}/trades 응답 (KIS Execution 도메인 모델)
+export interface Execution {
+  tradeDate: string
+  symbol: string
+  direction: OrderDirection
+  qty: number
+  price: number
+  amountUsd: number
+  kisOrderId: string | null
+}
+
 export interface PortfolioSnapshot {
   id: string
   snapshotDate: string

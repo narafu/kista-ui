@@ -1,5 +1,5 @@
 import { apiFetch, ApiError } from './client'
-import type { TradeHistory, PortfolioSnapshot, ProfitSummary, MarginItem, ReservationOrder, DailyTransactionResult } from '@/types/trade'
+import type { TradeHistory, Execution, PortfolioSnapshot, ProfitSummary, MarginItem, ReservationOrder, DailyTransactionResult } from '@/types/trade'
 
 function buildDateQuery(params: { startDate?: string; endDate?: string }): string {
   const q = new URLSearchParams()
@@ -45,9 +45,9 @@ export async function getAccountTrades(
   accountId: string,
   params: { from: string; to: string },
   token: string
-): Promise<TradeHistory[]> {
+): Promise<Execution[]> {
   const q = new URLSearchParams({ from: params.from, to: params.to })
-  return apiFetch<TradeHistory[]>(`/api/accounts/${accountId}/trades?${q}`, { method: 'GET' }, token)
+  return apiFetch<Execution[]>(`/api/accounts/${accountId}/trades?${q}`, { method: 'GET' }, token)
 }
 
 export async function getAccountPortfolio(accountId: string, token: string): Promise<PortfolioSnapshot> {
