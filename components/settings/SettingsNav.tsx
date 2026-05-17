@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
+import { cn } from '@/lib/utils'
 
 const SECTIONS = [
-  { id: 'profile',   label: '프로필' },
-  { id: 'prefs',     label: '환경 설정' },
-  { id: 'telegram',  label: '텔레그램 알림' },
-  { id: 'accounts',  label: '계좌별 알림' },
+  { id: 'profile',       label: '프로필' },
+  { id: 'notifications', label: '알림' },
+  { id: 'security',      label: '보안' },
+  { id: 'preferences',   label: '환경설정' },
+  { id: 'danger',        label: '계정' },
 ]
 
 export function SettingsNav() {
@@ -36,7 +38,7 @@ export function SettingsNav() {
   }
 
   return (
-    <nav style={{ display: 'flex', flexDirection: 'column', gap: 2, position: 'sticky', top: 24 }}>
+    <nav className="sticky top-24 flex flex-col gap-1">
       {SECTIONS.map((it) => {
         const on = active === it.id
         return (
@@ -44,16 +46,12 @@ export function SettingsNav() {
             key={it.id}
             href={`#${it.id}`}
             onClick={(e) => { e.preventDefault(); go(it.id) }}
-            style={{
-              padding: '9px 12px',
-              borderRadius: 7,
-              fontSize: 13.5,
-              fontWeight: 600,
-              color: on ? 'var(--rose-600)' : 'var(--muted-foreground)',
-              background: on ? 'var(--rose-50)' : 'transparent',
-              textDecoration: 'none',
-              transition: 'background .15s, color .15s',
-            }}
+            className={cn(
+              'px-3 py-2 rounded-[var(--r-md)] text-[13.5px] font-semibold no-underline transition-colors duration-150',
+              on
+                ? 'text-rose-600 bg-rose-50 dark:bg-rose-950/40 dark:text-rose-400'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
+            )}
           >
             {it.label}
           </a>
