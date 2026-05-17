@@ -1,29 +1,22 @@
-import type { Strategy } from '@/types/account'
+import { cn } from '@/lib/utils'
 
-interface Props {
-  strategy: Strategy
+type Strategy = 'INFINITE' | 'PRIVACY'
+
+const CONFIG: Record<Strategy, { label: string; bg: string; text: string }> = {
+  INFINITE: { label: '인피니트',  bg: 'bg-rose-50',  text: 'text-rose-600' },
+  PRIVACY:  { label: '프라이버시', bg: 'bg-muted',   text: 'text-muted-foreground' },
 }
 
-export function StrategyBadge({ strategy }: Props) {
-  const styles = strategy === 'INFINITE'
-    ? { background: 'var(--rose-50)', color: 'var(--rose-600)' }
-    : { background: '#EFE7DD', color: '#7A5B33' }
-
+export function StrategyBadge({ strategy, className }: { strategy: Strategy; className?: string }) {
+  const cfg = CONFIG[strategy] ?? CONFIG.INFINITE
   return (
     <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        height: 22,
-        padding: '0 8px',
-        borderRadius: 999,
-        fontSize: 11.5,
-        fontWeight: 600,
-        lineHeight: 1,
-        ...styles,
-      }}
+      className={cn(
+        'inline-flex items-center px-2.5 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap',
+        cfg.bg, cfg.text, className,
+      )}
     >
-      {strategy === 'INFINITE' ? 'Infinite' : 'Privacy'}
+      {cfg.label}
     </span>
   )
 }

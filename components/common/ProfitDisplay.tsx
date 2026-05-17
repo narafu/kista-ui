@@ -1,26 +1,33 @@
+import { cn } from '@/lib/utils'
+
 interface Props {
-  amount: number
+  amount?: number
   rate?: number
-  size?: number
+  size?: 'sm' | 'md' | 'lg'
+  full?: boolean  // true이면 금액+수익률 함께 표시
+  className?: string
 }
 
-export function ProfitDisplay({ amount, rate, size = 14 }: Props) {
-  const isPos = amount >= 0
-  const color = isPos ? 'var(--pos)' : 'var(--neg)'
+export function ProfitDisplay({ amount, rate, size = 'md', full, className }: Props) {
+  const isPos = (rate ?? amount ?? 0) >= 0
+  const color = isPos ? 'text-pos' : 'text-neg'
+  const sizeMap = { sm: 'text-sm', md: 'text-base', lg: 'text-xl font-bold' }
   const sign = isPos ? '+' : ''
-  const formatted = new Intl.NumberFormat('ko-KR', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(Math.abs(amount))
 
   return (
-    <span className="num" style={{ color, fontWeight: 700, fontSize: size }}>
-      {isPos ? '+' : '-'}{formatted}
-      {rate !== undefined && (
-        <span style={{ fontSize: size - 2.5, marginLeft: 5, fontWeight: 600 }}>
-          ({sign}{Math.abs(rate).toFixed(2)}%)
+    <span className={cn('inline-flex items-baseline gap-1.5 flex-wrap', sizeMap[size], color, className)}>
+      {full && amount !== undefined && (
+        <span>
+          {sign}${Math.abs(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </span>
+      )}
+      {rate !== undefined && (
+        <span className={full ? 'text-[0.85em] opacity-80' : ''}>
+          {sign}{Math.abs(rate).toFixed(2)}%
+        </span>
+      )}
+      {!full && amount !== undefined && rate === undefined && (
+        <span>{sign}{amount.toLocaleString()}</span>
       )}
     </span>
   )
