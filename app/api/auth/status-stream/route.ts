@@ -1,8 +1,9 @@
 import { getAuthToken } from '@/lib/auth/token'
+import type { NextRequest } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const token = await getAuthToken()
 
   if (!token) {
@@ -12,6 +13,7 @@ export async function GET() {
   const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
   const upstream = await fetch(`${apiUrl}/api/auth/status-stream`, {
     headers: { Authorization: `Bearer ${token}` },
+    signal: request.signal,
   })
 
   if (!upstream.ok) {

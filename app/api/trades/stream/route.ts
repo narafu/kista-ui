@@ -1,8 +1,9 @@
 import { getAuthToken } from '@/lib/auth/token'
+import type { NextRequest } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const token = await getAuthToken()
   if (!token) {
     return new Response('Unauthorized', { status: 401 })
@@ -15,6 +16,7 @@ export async function GET() {
       Accept: 'text/event-stream',
       'Cache-Control': 'no-cache',
     },
+    signal: request.signal,
   })
 
   if (!upstream.ok) {
