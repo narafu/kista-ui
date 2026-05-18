@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Send, Check } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -21,6 +22,7 @@ export function TelegramSection({ hasTelegram, telegramBotUsername }: Props) {
   const [isDeleteLoading, setIsDeleteLoading] = useState(false)
   const [currentHasTelegram, setCurrentHasTelegram] = useState(hasTelegram)
   const [currentUsername, setCurrentUsername] = useState(telegramBotUsername ?? null)
+  const router = useRouter()
 
   async function handleSave() {
     if (!botToken.trim()) { toast.error('Bot Token을 입력해주세요'); return }
@@ -33,6 +35,7 @@ export function TelegramSection({ hasTelegram, telegramBotUsername }: Props) {
       setCurrentHasTelegram(true)
       setBotToken('')
       setChatId('')
+      router.refresh() // Server Component 재실행 → telegramBotUsername 최신화
     } catch (err) {
       if (err instanceof ApiError && err.status === 400) {
         toast.error('유효하지 않은 Bot Token입니다')
