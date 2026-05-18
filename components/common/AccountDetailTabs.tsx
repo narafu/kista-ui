@@ -134,7 +134,7 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-0 px-6">
+        <CardContent className="px-6">
           {([
             ['계좌번호', <span key="acct" className="font-medium text-sm">{account.accountNoMasked}</span>],
             ['종목',     <span key="ticker" className="font-bold text-sm">{account.ticker}</span>],
@@ -146,9 +146,10 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
           ] as [string, ReactNode][]).map(([label, value], i, arr) => (
             <div
               key={label}
-              className={`flex justify-between items-center text-sm py-2.5 ${
-                i < arr.length - 1 ? 'border-b border-border' : ''
-              }`}
+              className={cn(
+                'flex justify-between items-center text-sm py-2.5',
+                i < arr.length - 1 && 'border-b border-border'
+              )}
             >
               <span className="text-muted-foreground">{label}</span>
               {value}
