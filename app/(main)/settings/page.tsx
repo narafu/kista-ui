@@ -1,43 +1,26 @@
 import { getAuthToken } from '@/lib/auth/token'
 import { DeleteAccountButton } from '@/components/settings/DeleteAccountButton'
 import { getMe } from '@/lib/api/auth'
-import { listAccounts } from '@/lib/api/accounts'
 import { TelegramSection } from '@/components/settings/TelegramSection'
-import { AccountTelegramSection } from '@/components/settings/AccountTelegramSection'
 import { ThemeCards } from '@/components/settings/ThemeCards'
-import { SettingsNav } from '@/components/settings/SettingsNav'
 import { PageHeader } from '@/components/common/PageHeader'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 import type { User } from '@/types/user'
-import type { Account } from '@/types/account'
 
 export default async function SettingsPage() {
   const token = await getAuthToken()
 
   let user: User | null = null
-  let accounts: Account[] = []
 
   if (token) {
-    ;[user, accounts] = await Promise.all([
-      getMe(token).catch(() => null),
-      listAccounts(token).catch(() => []),
-    ])
+    user = await getMe(token).catch(() => null)
   }
 
   return (
     <div>
       <PageHeader eyebrow="설정" title="계정 설정" />
 
-      <div className="flex gap-8">
-        {/* 좌측 스크롤스파이 네비 (데스크탑) */}
-        <nav className="hidden lg:block w-[200px] shrink-0">
-          <div className="sticky top-24 flex flex-col gap-1">
-            <SettingsNav />
-          </div>
-        </nav>
-
-        {/* 콘텐츠 */}
-        <div className="flex flex-col gap-[18px] flex-1 min-w-0">
+      <div className="flex flex-col gap-[18px]">
 
           {/* 프로필 */}
           <section id="profile" className="rounded-[var(--r-lg)] bg-card border border-border shadow-[var(--sh-card)] p-6">
@@ -89,13 +72,6 @@ export default async function SettingsPage() {
             <TelegramSection hasTelegram={user?.hasTelegram ?? false} />
           </section>
 
-          {/* 계좌별 알림 */}
-          <section id="security" className="rounded-[var(--r-lg)] bg-card border border-border shadow-[var(--sh-card)] p-6">
-            <div className="text-sm font-bold mb-0.5">보안</div>
-            <div className="text-[12.5px] text-muted-foreground mb-[18px]">계좌별로 텔레그램 알림 수신을 설정합니다.</div>
-            <AccountTelegramSection accounts={accounts} />
-          </section>
-
           {/* 환경설정 */}
           <section id="preferences" className="rounded-[var(--r-lg)] bg-card border border-border shadow-[var(--sh-card)] p-6">
             <div className="text-sm font-bold mb-0.5">환경설정</div>
@@ -138,7 +114,6 @@ export default async function SettingsPage() {
             <DeleteAccountButton />
           </section>
 
-        </div>
       </div>
     </div>
   )

@@ -3,9 +3,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { updateTelegram, deleteTelegram } from '@/lib/api/settings'
 import { ApiError } from '@/lib/api/client'
 import { cn } from '@/lib/utils'
@@ -53,55 +51,47 @@ export function TelegramSection({ hasTelegram }: Props) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">텔레그램 알림</CardTitle>
-        <CardDescription>
-          전체 계좌 알림을 받을 텔레그램 봇을 등록하세요.
-          {currentHasTelegram && (
-            <span className="ml-2 text-green-600 font-medium">✓ 등록됨</span>
-          )}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="botToken">Bot Token</Label>
+    <div className="flex flex-col gap-3">
+      {currentHasTelegram && (
+        <div className="text-[12.5px] font-semibold text-status-ok">● 봇 등록됨</div>
+      )}
+      <div className="flex flex-col gap-3">
+        <div>
+          <div className="text-[11.5px] text-muted-foreground mb-1">Bot Token</div>
           <Input
-            id="botToken"
             placeholder="123456:ABC-DEF..."
-            className="h-12"
+            className="h-10 text-[13px]"
             value={botToken}
             onChange={(e) => setBotToken(e.target.value)}
             disabled={isLoading}
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="chatId">Chat ID</Label>
+        <div>
+          <div className="text-[11.5px] text-muted-foreground mb-1">Chat ID</div>
           <Input
-            id="chatId"
             placeholder="-100123456789"
-            className="h-12"
+            className="h-10 text-[13px]"
             value={chatId}
             onChange={(e) => setChatId(e.target.value)}
             disabled={isLoading}
           />
         </div>
-        <div className="flex gap-2">
-          <Button className="flex-1 h-11" onClick={handleSave} disabled={isLoading}>
-            {isLoading ? '저장 중...' : '저장'}
-          </Button>
-          {currentHasTelegram && (
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={isDeleteLoading}
-              className={cn(buttonVariants({ variant: 'outline' }), 'h-11 text-destructive hover:text-destructive')}
-            >
-              {isDeleteLoading ? '해제 중...' : '해제'}
-            </button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+      <div className="flex gap-2 pt-1">
+        <Button className="h-10 px-5" onClick={handleSave} disabled={isLoading}>
+          {isLoading ? '저장 중...' : '저장'}
+        </Button>
+        {currentHasTelegram && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={isDeleteLoading}
+            className={cn(buttonVariants({ variant: 'outline' }), 'h-10 text-destructive hover:text-destructive')}
+          >
+            {isDeleteLoading ? '해제 중...' : '해제'}
+          </button>
+        )}
+      </div>
+    </div>
   )
 }
