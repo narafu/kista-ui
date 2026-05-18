@@ -142,7 +142,12 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
             ['평균 단가', <span key="avg" className="font-medium text-sm">${(portfolio.avgPrice ?? 0).toFixed(2)}</span>],
             ['현재가',   <span key="cur" className="font-medium text-sm">${(portfolio.currentPrice ?? 0).toFixed(2)}</span>],
             ['평가금액', <span key="mval" className="font-medium text-sm">${(portfolio.marketValueUsd ?? 0).toFixed(2)}</span>],
-            ['평가 손익', <ProfitDisplay key="pl" amount={0} rate={0} />],
+            ['평가 손익', (() => {
+              const cost = (portfolio.avgPrice ?? 0) * (portfolio.qty ?? 0)
+              const unrealized = (portfolio.marketValueUsd ?? 0) - cost
+              const rate = cost > 0 ? (unrealized / cost) * 100 : 0
+              return <ProfitDisplay key="pl" amount={unrealized} rate={rate} />
+            })()],
           ] as [string, ReactNode][]).map(([label, value], i, arr) => (
             <div
               key={label}
@@ -207,12 +212,15 @@ function TradesTab({ trades }: { trades: Execution[] }) {
       <div className="px-5 py-4 flex items-start justify-between border-b bg-background">
         <div>
           <p className="text-[13.5px] font-semibold">거래 내역</p>
-          <p className="text-xs text-muted-foreground mt-0.5">최근 30일 · 총 {trades.length}건</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            최근 30일 · {filter === 'ALL' ? `총 ${trades.length}건` : `${filtered.length}/${trades.length}건`}
+          </p>
         </div>
         <div className="flex gap-1.5">
           {(['ALL', 'BUY', 'SELL'] as const).map((f) => (
             <button
               key={f}
+              type="button"
               onClick={() => setFilter(f)}
               className={cn(
                 'px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors',

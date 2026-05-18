@@ -65,6 +65,7 @@ export function ProfitStatsCard({ accountId }: Props) {
             {([7, 30, 90] as Period[]).map((p) => (
               <button
                 key={p}
+                type="button"
                 onClick={() => setPeriod(p)}
                 className={`flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
                   period === p
