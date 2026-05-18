@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -127,34 +127,36 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base">{account.nickname}</CardTitle>
-            <StatusDot status={account.strategyStatus} />
+            <CardTitle className="text-base">계좌 요약</CardTitle>
+            <div className="flex items-center gap-2">
+              <StatusDot status={account.strategyStatus} />
+              <StrategyBadge strategy={account.strategyType} />
+            </div>
           </div>
-          <StrategyBadge strategy={account.strategyType} />
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">계좌번호</span>
-            <span className="font-medium">{account.accountNoMasked}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">보유 수량</span>
-            <span className="font-medium">{portfolio.qty}주</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">평균 단가</span>
-            <span className="font-medium">${(portfolio.avgPrice ?? 0).toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">현재가</span>
-            <span className="font-medium">${(portfolio.currentPrice ?? 0).toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">평가 손익</span>
-            <ProfitDisplay amount={0} rate={0} />
-          </div>
+        <CardContent className="space-y-0 px-6">
+          {([
+            ['계좌번호', <span key="acct" className="font-medium text-sm">{account.accountNoMasked}</span>],
+            ['종목',     <span key="ticker" className="font-bold text-sm">{account.ticker}</span>],
+            ['보유 수량', <span key="qty" className="font-medium text-sm">{portfolio.qty}주</span>],
+            ['평균 단가', <span key="avg" className="font-medium text-sm">${(portfolio.avgPrice ?? 0).toFixed(2)}</span>],
+            ['현재가',   <span key="cur" className="font-medium text-sm">${(portfolio.currentPrice ?? 0).toFixed(2)}</span>],
+            ['평가금액', <span key="mval" className="font-medium text-sm">${(portfolio.marketValueUsd ?? 0).toFixed(2)}</span>],
+            ['평가 손익', <ProfitDisplay key="pl" amount={0} rate={0} />],
+          ] as [string, ReactNode][]).map(([label, value], i, arr) => (
+            <div
+              key={label}
+              className={`flex justify-between items-center text-sm py-2.5 ${
+                i < arr.length - 1 ? 'border-b border-border' : ''
+              }`}
+            >
+              <span className="text-muted-foreground">{label}</span>
+              {value}
+            </div>
+          ))}
         </CardContent>
       </Card>
+
       <div className="flex gap-2">
         <Button
           variant="outline"
@@ -169,7 +171,7 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
         </Button>
 
         <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-          <DialogTrigger className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'h-10 px-4 text-destructive hover:text-destructive')}>
+          <DialogTrigger className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'h-10 px-4 text-destructive hover:text-destructive')}>
             계좌 삭제
           </DialogTrigger>
           <DialogContent>
