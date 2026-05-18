@@ -5,21 +5,24 @@ interface Props {
   rate?: number
   size?: 'sm' | 'md' | 'lg'
   full?: boolean  // true이면 금액+수익률 함께 표시
+  currency?: 'USD' | 'KRW'
   className?: string
 }
 
-export function ProfitDisplay({ amount, rate, size = 'md', full, className }: Props) {
+export function ProfitDisplay({ amount, rate, size = 'md', full, currency = 'USD', className }: Props) {
   const isPos = (rate ?? amount ?? 0) >= 0
   const color = isPos ? 'text-pos' : 'text-neg'
   const sizeMap = { sm: 'text-sm', md: 'text-base', lg: 'text-xl font-bold' }
-  const sign = isPos ? '+' : ''
+  const sign = isPos ? '+' : '-'
+  const sym = currency === 'KRW' ? '₩' : '$'
+  const fmt = (n: number) => currency === 'KRW'
+    ? n.toLocaleString('ko-KR', { maximumFractionDigits: 0 })
+    : n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
   return (
     <span className={cn('inline-flex items-baseline gap-1.5 flex-wrap', sizeMap[size], color, className)}>
       {full && amount !== undefined && (
-        <span>
-          {sign}${Math.abs(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </span>
+        <span>{sign}{sym}{fmt(Math.abs(amount))}</span>
       )}
       {rate !== undefined && (
         <span className={full ? 'text-[0.85em] opacity-80' : ''}>
@@ -27,7 +30,7 @@ export function ProfitDisplay({ amount, rate, size = 'md', full, className }: Pr
         </span>
       )}
       {!full && amount !== undefined && rate === undefined && (
-        <span>{sign}{amount.toLocaleString()}</span>
+        <span>{sign}{fmt(Math.abs(amount))}</span>
       )}
     </span>
   )
