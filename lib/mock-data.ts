@@ -8,6 +8,7 @@ export const MOCK_USER: User = {
   status: 'ACTIVE',
   role: 'USER',
   hasTelegram: false,
+  telegramBotUsername: null,
 }
 
 export const MOCK_ACCOUNTS: Account[] = [

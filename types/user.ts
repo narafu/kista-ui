@@ -7,4 +7,5 @@ export interface User {
   status: UserStatus
   role: UserRole
   hasTelegram: boolean
+  telegramBotUsername?: string | null
 }

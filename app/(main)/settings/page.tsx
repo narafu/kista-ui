@@ -67,9 +67,11 @@ export default async function SettingsPage() {
 
           {/* 알림 */}
           <section id="notifications" className="rounded-[var(--r-lg)] bg-card border border-border shadow-[var(--sh-card)] p-6">
-            <div className="text-sm font-bold mb-0.5">알림</div>
-            <div className="text-[12.5px] text-muted-foreground mb-[18px]">텔레그램 봇과 연동해 매매 알림을 받으세요.</div>
-            <TelegramSection hasTelegram={user?.hasTelegram ?? false} />
+            <div className="text-sm font-bold mb-[18px]">알림</div>
+            <TelegramSection
+              hasTelegram={user?.hasTelegram ?? false}
+              telegramBotUsername={user?.telegramBotUsername}
+            />
           </section>
 
           {/* 환경설정 */}
