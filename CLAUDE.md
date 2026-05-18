@@ -71,7 +71,8 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **Tailwind v4**: `tailwind.config.ts` 없음 — `postcss.config.mjs` + `globals.css`로 설정
 - **recharts**: SSR 미지원 → `'use client'` 필수. Tooltip `formatter`의 `value` 파라미터는 `ValueType | undefined` → `Number(value)` 사용
 - **HTTP-only 쿠키 삭제**: Client JS에서 불가 → Route Handler에서 `response.cookies.set(name, '', { maxAge: 0 })` 처리
-- **kista-api DTO**: `UserResponse`는 `{ id, nickname, status, hasTelegram }`, `AccountResponse`는 `{ id, nickname, accountNoMasked, strategyType, strategyStatus, hasTelegram, ticker }` — `types/` 참고 (구버전 `strategy`/`symbol`에서 변경됨, 혼동 주의)
+- **kista-api DTO**: `UserResponse`는 `{ id, nickname, status, hasTelegram, role, telegramBotUsername }`, `AccountResponse`는 `{ id, nickname, accountNoMasked, strategyType, strategyStatus, hasTelegram, ticker }` — `types/` 참고 (구버전 `strategy`/`symbol`에서 변경됨, 혼동 주의)
+- **클로드 디자인 원본**: `/private/tmp/kista_design/design-system/project/screens.jsx` (데스크탑), `screens-mobile.jsx` (모바일) — 화면 디자인 매칭 시 직접 참조
 - **mock-data.ts 동기화**: `lib/mock-data.ts`는 `Account` mock 객체를 하드코딩 — `types/account.ts`의 `Account` 인터페이스에 필수 필드 추가 시 반드시 동기화 필요 (`npm run typecheck`로 확인)
 - **proxy 리다이렉트 루프**: slow path(API 호출)에서 실패 시 무조건 `redirect('/')`하면 `/`에서 셀프 루프 → `ERR_TOO_MANY_REDIRECTS`. 비보호 경로(`/`, `/auth/*`)에선 실패해도 `response` 반환 필요
 - **SSE 인증 패턴**: 브라우저 `EventSource`는 커스텀 헤더 미지원 → JWT 인증이 필요한 SSE는 Next.js Route Handler가 Bearer 토큰 포함 후 kista-api로 중계 (`app/api/auth/status-stream/route.ts` 참고)
