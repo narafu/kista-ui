@@ -1420,7 +1420,7 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
             <input
               value={accountNo}
               onChange={e => setAccountNo(e.target.value.replace(/\D/g, '').slice(0, 8))}
-              placeholder="74420614"
+              placeholder="12345678"
               maxLength={8}
               className="flex-1 px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-rose-400"
             />
