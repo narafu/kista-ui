@@ -198,16 +198,43 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
 }
 
 function TradesTab({ trades }: { trades: Execution[] }) {
+  const [filter, setFilter] = useState<'ALL' | 'BUY' | 'SELL'>('ALL')
+  const filtered = filter === 'ALL' ? trades : trades.filter(t => t.direction === filter)
+
   return (
-    <div className="space-y-3">
-      <h3 className="font-semibold text-sm text-muted-foreground hidden lg:block">거래 내역</h3>
-      {trades.length === 0 ? (
+    <div className="rounded-xl border overflow-hidden">
+      {/* 헤더 */}
+      <div className="px-5 py-4 flex items-start justify-between border-b bg-background">
+        <div>
+          <p className="text-[13.5px] font-semibold">거래 내역</p>
+          <p className="text-xs text-muted-foreground mt-0.5">최근 30일 · 총 {trades.length}건</p>
+        </div>
+        <div className="flex gap-1.5">
+          {(['ALL', 'BUY', 'SELL'] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={cn(
+                'px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors',
+                filter === f
+                  ? 'bg-rose-50 text-rose-600 border-rose-100'
+                  : 'text-muted-foreground border-transparent hover:border-border'
+              )}
+            >
+              {f === 'ALL' ? '전체' : f === 'BUY' ? '매수' : '매도'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 콘텐츠 */}
+      {filtered.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-8">거래 내역이 없습니다.</p>
       ) : (
         <>
           {/* 모바일: 카드 리스트 */}
-          <div className="space-y-2 lg:hidden">
-            {trades.map((trade) => (
+          <div className="space-y-2 p-4 lg:hidden">
+            {filtered.map((trade) => (
               <Card key={`${trade.kisOrderId ?? ''}-${trade.tradeDate}-${trade.symbol}`} className="p-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -226,7 +253,7 @@ function TradesTab({ trades }: { trades: Execution[] }) {
             ))}
           </div>
           {/* 데스크탑: 테이블 */}
-          <div className="hidden lg:block rounded-md border overflow-hidden">
+          <div className="hidden lg:block">
             <table className="w-full text-sm">
               <thead className="bg-muted/50">
                 <tr>
@@ -236,7 +263,7 @@ function TradesTab({ trades }: { trades: Execution[] }) {
                 </tr>
               </thead>
               <tbody>
-                {trades.map((trade) => (
+                {filtered.map((trade) => (
                   <tr key={`${trade.kisOrderId ?? ''}-${trade.tradeDate}-${trade.symbol}`} className="border-t hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3">
                       <Badge variant={trade.direction === 'BUY' ? 'default' : 'secondary'} className="text-xs">
