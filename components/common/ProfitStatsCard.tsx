@@ -88,7 +88,9 @@ export function ProfitStatsCard({ accountId }: Props) {
             {profit && (() => {
               const totalPL = profit.totalProfitLoss ?? profit.totalRealizedProfit ?? 0
               const totalRate = profit.totalProfitLossRate ?? profit.totalReturnRate ?? 0
-              const latestSnapshot = snapshots[snapshots.length - 1]
+              const latestSnapshot = snapshots.length
+                ? snapshots.reduce((a, b) => a.snapshotDate > b.snapshotDate ? a : b)
+                : null
               const realized = profit.totalRealizedProfit ?? profit.totalProfitLoss ?? 0
               const unrealized = latestSnapshot
                 ? (latestSnapshot.marketValueUsd ?? 0) - (latestSnapshot.avgPrice ?? 0) * (latestSnapshot.qty ?? 0)
