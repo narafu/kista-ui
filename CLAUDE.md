@@ -110,6 +110,7 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
   - `GET /api/accounts/{id}/profit` → `PeriodProfitResult { totalRealizedProfit, totalReturnRate }`. kista-ui `ProfitSummary` 타입의 `accountId`/`startDate`/`endDate`/`dailyProfits` 필드는 서버가 보내지 않음 — `ProfitStatsCard`가 `?? 0`로 가드 중.
   - 신규 KIS live 엔드포인트 추가 시 kista-api DTO ↔ kista-ui 타입 필드명 반드시 대조 (drift 발생 시 `undefined.toFixed()` 패턴으로 500 에러 유발)
 - **Server Component + 인터랙션 패턴**: 데이터 fetching Server Component에 버튼/다이얼로그 추가 시 → `*Button.tsx`/`*Trigger.tsx` 별도 Client Component(`'use client'` + `useState`)로 분리 후 Server Component에서 import (예: `AccountEditDeleteButton.tsx`). 페이지 전체 `'use client'` 전환 금지
+- **Server Component 데이터 갱신 패턴**: Client Component에서 API 호출(PUT/POST/DELETE) 성공 후 부모 Server Component의 데이터를 최신화하려면 `router.refresh()` (`next/navigation`) 호출 — useState로 로컬 상태만 업데이트하면 서버에서 계산된 값(예: telegramBotUsername)이 반영 안 됨
 
 ## 환경변수
 
