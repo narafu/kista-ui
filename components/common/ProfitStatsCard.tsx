@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { PortfolioChart } from './PortfolioChart'
 import { getAccountProfit, getPortfolioSnapshots } from '@/lib/api/trades'
 import type { ProfitSummary, PortfolioSnapshot } from '@/types/trade'
@@ -58,18 +57,23 @@ export function ProfitStatsCard({ accountId }: Props) {
     <Card className="min-h-[240px]">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">수익/손실 통계</CardTitle>
-          <div className="flex gap-1">
+          <div>
+            <CardTitle className="text-base">수익/손실 통계</CardTitle>
+            <p className="text-xs text-muted-foreground mt-0.5">최근 {period}일 포트폴리오 추이</p>
+          </div>
+          <div className="flex gap-0.5 rounded-lg bg-muted p-1">
             {([7, 30, 90] as Period[]).map((p) => (
-              <Button
+              <button
                 key={p}
-                variant={period === p ? 'default' : 'outline'}
-                size="sm"
-                className="h-7 px-2 text-xs"
                 onClick={() => setPeriod(p)}
+                className={`flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
+                  period === p
+                    ? 'bg-background text-rose-600 shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
               >
                 {p}일
-              </Button>
+              </button>
             ))}
           </div>
         </div>
@@ -81,12 +85,16 @@ export function ProfitStatsCard({ accountId }: Props) {
           </div>
         ) : (
           <>
-            {/* 손익 요약 — PeriodProfitResult(totalRealizedProfit) / ProfitSummary(totalProfitLoss) 양쪽 호환 */}
             {profit && (() => {
               const totalPL = profit.totalProfitLoss ?? profit.totalRealizedProfit ?? 0
               const totalRate = profit.totalProfitLossRate ?? profit.totalReturnRate ?? 0
+              const latestSnapshot = snapshots[snapshots.length - 1]
+              const realized = profit.totalRealizedProfit ?? profit.totalProfitLoss ?? 0
+              const unrealized = latestSnapshot
+                ? (latestSnapshot.marketValueUsd ?? 0) - (latestSnapshot.avgPrice ?? 0) * (latestSnapshot.qty ?? 0)
+                : 0
               return (
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
                     <p className="text-muted-foreground">기간 손익</p>
                     <p className={`text-lg font-bold ${totalPL >= 0 ? 'text-green-600' : 'text-red-500'}`}>
@@ -99,10 +107,21 @@ export function ProfitStatsCard({ accountId }: Props) {
                       {totalRate >= 0 ? '+' : ''}{totalRate.toFixed(2)}%
                     </p>
                   </div>
+                  <div>
+                    <p className="text-muted-foreground">실현 / 평가</p>
+                    <p className="text-base font-bold leading-tight mt-0.5">
+                      <span className={realized >= 0 ? 'text-green-600' : 'text-red-500'}>
+                        ${realized.toFixed(0)}
+                      </span>
+                      <span className="text-muted-foreground font-normal text-sm"> / </span>
+                      <span className={unrealized >= 0 ? 'text-green-600' : 'text-red-500'}>
+                        ${unrealized.toFixed(0)}
+                      </span>
+                    </p>
+                  </div>
                 </div>
               )
             })()}
-            {/* 포트폴리오 추이 차트 */}
             <PortfolioChart snapshots={snapshots} />
           </>
         )}
