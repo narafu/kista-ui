@@ -43,10 +43,14 @@ export function MarginCard({ accountId }: Props) {
         ) : items.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-4">증거금 정보가 없습니다.</p>
         ) : (
-          <div className="space-y-3">
+          <div>
             {items.map((item) => (
-              <div key={item.currency} className="rounded-md border p-3 space-y-2">
-                <p className="text-sm font-semibold">{item.currency}</p>
+              <div key={item.currency} className="rounded-lg border p-3.5 bg-muted mb-3 last:mb-0">
+                <div className="mb-2.5">
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-rose-50 text-rose-600 tracking-wide">
+                    {item.currency}
+                  </span>
+                </div>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <p className="text-muted-foreground text-xs">주문가능금액</p>
