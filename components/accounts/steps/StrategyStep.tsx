@@ -24,7 +24,7 @@ export function StrategyStep({ data, onNext, onBack }: Props) {
 
       <div className="flex flex-col gap-3">
         {([
-          { id: 'INFINITE' as const, name: '인피니트', desc: '무한매수법 — TQQQ/SOXL 분할매매' },
+          { id: 'INFINITE' as const, name: '인피니트', desc: '무한매수법' },
           { id: 'PRIVACY' as const,  name: '프라이버시', desc: 'SOXL 고정 분할매매 (전략 노출 최소화)' },
         ]).map(s => (
           <button
@@ -49,7 +49,7 @@ export function StrategyStep({ data, onNext, onBack }: Props) {
         <div>
           <p className="text-sm font-semibold mb-2">종목 선택</p>
           <div className="flex gap-2">
-            {(['TQQQ', 'SOXL'] as const).map(t => (
+            {(['TQQQ', 'SOXL', 'USD'] as const).map(t => (
               <button
                 key={t}
                 onClick={() => setTicker(t)}
