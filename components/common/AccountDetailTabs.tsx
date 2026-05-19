@@ -89,6 +89,11 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [isDeleteLoading, setIsDeleteLoading] = useState(false)
 
+  // Hoist calculation variables
+  const cost = (portfolio.avgPrice ?? 0) * (portfolio.qty ?? 0)
+  const unrealized = (portfolio.marketValueUsd ?? 0) - cost
+  const rate = cost > 0 ? (unrealized / cost) * 100 : 0
+
   async function handleStrategyToggle() {
     setIsStrategyLoading(true)
     try {
@@ -134,31 +139,24 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
           </div>
         </CardHeader>
         <CardContent className="px-6 pb-6">
-          {(() => {
-            const cost = (portfolio.avgPrice ?? 0) * (portfolio.qty ?? 0)
-            const unrealized = (portfolio.marketValueUsd ?? 0) - cost
-            const rate = cost > 0 ? (unrealized / cost) * 100 : 0
-            return (
-              <div className="grid grid-cols-2 gap-3">
-                <KpiCard label="계좌번호" value={account.accountNoMasked} />
-                <KpiCard label="종목" value={account.ticker} />
-                <KpiCard label="보유 수량" value={`${portfolio.qty}주`} />
-                <KpiCard label="평균 단가" value={`$${(portfolio.avgPrice ?? 0).toFixed(2)}`} />
-                <KpiCard label="현재가" value={`$${(portfolio.currentPrice ?? 0).toFixed(2)}`} />
-                <KpiCard label="평가금액" value={`$${(portfolio.marketValueUsd ?? 0).toFixed(2)}`} />
-                <KpiCard
-                  label="평가 손익"
-                  className="col-span-2"
-                  variant="accent"
-                  value={
-                    <span style={{ color: unrealized >= 0 ? 'var(--pos)' : 'var(--neg)' }}>
-                      {unrealized >= 0 ? '+' : ''}${unrealized.toFixed(2)} ({rate >= 0 ? '+' : ''}{rate.toFixed(2)}%)
-                    </span>
-                  }
-                />
-              </div>
-            )
-          })()}
+          <div className="grid grid-cols-2 gap-3">
+            <KpiCard label="계좌번호" value={account.accountNoMasked} />
+            <KpiCard label="종목" value={account.ticker} />
+            <KpiCard label="보유 수량" value={`${portfolio.qty}주`} />
+            <KpiCard label="평균 단가" value={`$${(portfolio.avgPrice ?? 0).toFixed(2)}`} />
+            <KpiCard label="현재가" value={`$${(portfolio.currentPrice ?? 0).toFixed(2)}`} />
+            <KpiCard label="평가금액" value={`$${(portfolio.marketValueUsd ?? 0).toFixed(2)}`} />
+            <KpiCard
+              label="평가 손익"
+              className="col-span-2"
+              variant="accent"
+              value={
+                <span style={{ color: unrealized >= 0 ? 'var(--pos)' : 'var(--neg)' }}>
+                  {unrealized >= 0 ? '+' : ''}${unrealized.toFixed(2)} ({rate >= 0 ? '+' : ''}{rate.toFixed(2)}%)
+                </span>
+              }
+            />
+          </div>
         </CardContent>
       </Card>
 
