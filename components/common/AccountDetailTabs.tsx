@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { KpiCard } from './KpiCard'
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,6 @@ import {
 import { cn } from '@/lib/utils'
 import { StrategyBadge } from './StrategyBadge'
 import { StatusDot } from './StatusDot'
-import { ProfitDisplay } from './ProfitDisplay'
 import { pauseStrategy, resumeStrategy, deleteAccount } from '@/lib/api/accounts'
 import { ApiError } from '@/lib/api/client'
 import { ProfitStatsCard } from './ProfitStatsCard'
@@ -134,32 +133,32 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
             </div>
           </div>
         </CardHeader>
-        <CardContent className="px-6">
-          {([
-            ['계좌번호', <span key="acct" className="font-medium text-sm">{account.accountNoMasked}</span>],
-            ['종목',     <span key="ticker" className="font-bold text-sm">{account.ticker}</span>],
-            ['보유 수량', <span key="qty" className="font-medium text-sm">{portfolio.qty}주</span>],
-            ['평균 단가', <span key="avg" className="font-medium text-sm">${(portfolio.avgPrice ?? 0).toFixed(2)}</span>],
-            ['현재가',   <span key="cur" className="font-medium text-sm">${(portfolio.currentPrice ?? 0).toFixed(2)}</span>],
-            ['평가금액', <span key="mval" className="font-medium text-sm">${(portfolio.marketValueUsd ?? 0).toFixed(2)}</span>],
-            ['평가 손익', (() => {
-              const cost = (portfolio.avgPrice ?? 0) * (portfolio.qty ?? 0)
-              const unrealized = (portfolio.marketValueUsd ?? 0) - cost
-              const rate = cost > 0 ? (unrealized / cost) * 100 : 0
-              return <ProfitDisplay key="pl" amount={unrealized} rate={rate} />
-            })()],
-          ] as [string, ReactNode][]).map(([label, value], i, arr) => (
-            <div
-              key={label}
-              className={cn(
-                'flex justify-between items-center text-sm py-2.5',
-                i < arr.length - 1 && 'border-b border-border'
-              )}
-            >
-              <span className="text-muted-foreground">{label}</span>
-              {value}
-            </div>
-          ))}
+        <CardContent className="px-6 pb-6">
+          {(() => {
+            const cost = (portfolio.avgPrice ?? 0) * (portfolio.qty ?? 0)
+            const unrealized = (portfolio.marketValueUsd ?? 0) - cost
+            const rate = cost > 0 ? (unrealized / cost) * 100 : 0
+            return (
+              <div className="grid grid-cols-2 gap-3">
+                <KpiCard label="계좌번호" value={account.accountNoMasked} />
+                <KpiCard label="종목" value={account.ticker} />
+                <KpiCard label="보유 수량" value={`${portfolio.qty}주`} />
+                <KpiCard label="평균 단가" value={`$${(portfolio.avgPrice ?? 0).toFixed(2)}`} />
+                <KpiCard label="현재가" value={`$${(portfolio.currentPrice ?? 0).toFixed(2)}`} />
+                <KpiCard label="평가금액" value={`$${(portfolio.marketValueUsd ?? 0).toFixed(2)}`} />
+                <KpiCard
+                  label="평가 손익"
+                  className="col-span-2"
+                  variant="accent"
+                  value={
+                    <span style={{ color: unrealized >= 0 ? 'var(--pos)' : 'var(--neg)' }}>
+                      {unrealized >= 0 ? '+' : ''}${unrealized.toFixed(2)} ({rate >= 0 ? '+' : ''}{rate.toFixed(2)}%)
+                    </span>
+                  }
+                />
+              </div>
+            )
+          })()}
         </CardContent>
       </Card>
 
@@ -246,9 +245,17 @@ function TradesTab({ trades }: { trades: Execution[] }) {
               <Card key={`${trade.kisOrderId ?? ''}-${trade.tradeDate}-${trade.symbol}`} className="p-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Badge variant={trade.direction === 'BUY' ? 'default' : 'secondary'}>
-                      {trade.direction === 'BUY' ? '매수' : '매도'}
-                    </Badge>
+                    {trade.direction === 'BUY' ? (
+                      <span
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
+                        style={{ background: 'var(--pos-bg)', color: 'var(--pos)' }}
+                      >매수</span>
+                    ) : (
+                      <span
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
+                        style={{ background: 'var(--neg-bg)', color: 'var(--neg)' }}
+                      >매도</span>
+                    )}
                     <span className="font-medium text-sm">{trade.symbol}</span>
                   </div>
                   <span className="text-sm font-semibold">${(trade.amountUsd ?? 0).toFixed(2)}</span>
@@ -266,7 +273,7 @@ function TradesTab({ trades }: { trades: Execution[] }) {
               <thead className="bg-muted/50">
                 <tr>
                   {['구분', '종목', '수량', '단가', '금액', '체결일'].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left font-medium text-muted-foreground">{h}</th>
+                    <th key={h} className="px-4 py-3 text-left text-[11px] uppercase tracking-widest text-rose-500">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -274,9 +281,17 @@ function TradesTab({ trades }: { trades: Execution[] }) {
                 {filtered.map((trade) => (
                   <tr key={`${trade.kisOrderId ?? ''}-${trade.tradeDate}-${trade.symbol}`} className="border-t hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3">
-                      <Badge variant={trade.direction === 'BUY' ? 'default' : 'secondary'} className="text-xs">
-                        {trade.direction === 'BUY' ? '매수' : '매도'}
-                      </Badge>
+                      {trade.direction === 'BUY' ? (
+                        <span
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
+                          style={{ background: 'var(--pos-bg)', color: 'var(--pos)' }}
+                        >매수</span>
+                      ) : (
+                        <span
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
+                          style={{ background: 'var(--neg-bg)', color: 'var(--neg)' }}
+                        >매도</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 font-medium">{trade.symbol}</td>
                     <td className="px-4 py-3">{trade.qty}주</td>
