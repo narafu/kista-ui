@@ -100,24 +100,24 @@ export function ProfitStatsCard({ accountId }: Props) {
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
                     <p className="text-muted-foreground">기간 손익</p>
-                    <p className={`text-lg font-bold ${totalPL >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                    <p className="text-lg font-bold" style={{ color: totalPL >= 0 ? 'var(--pos)' : 'var(--neg)' }}>
                       {totalPL >= 0 ? '+' : ''}${totalPL.toFixed(2)}
                     </p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">수익률</p>
-                    <p className={`text-lg font-bold ${totalRate >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                    <p className="text-lg font-bold" style={{ color: totalRate >= 0 ? 'var(--pos)' : 'var(--neg)' }}>
                       {totalRate >= 0 ? '+' : ''}{totalRate.toFixed(2)}%
                     </p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">실현 / 평가</p>
                     <p className="text-base font-bold leading-tight mt-0.5">
-                      <span className={realized >= 0 ? 'text-green-600' : 'text-red-500'}>
+                      <span style={{ color: realized >= 0 ? 'var(--pos)' : 'var(--neg)' }}>
                         ${realized.toFixed(0)}
                       </span>
                       <span className="text-muted-foreground font-normal text-sm"> / </span>
-                      <span className={unrealized >= 0 ? 'text-green-600' : 'text-red-500'}>
+                      <span style={{ color: unrealized >= 0 ? 'var(--pos)' : 'var(--neg)' }}>
                         ${unrealized.toFixed(0)}
                       </span>
                     </p>
