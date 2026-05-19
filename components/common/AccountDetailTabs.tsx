@@ -149,7 +149,7 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
             <KpiCard
               label="평가 손익"
               className="col-span-2"
-              variant="accent"
+              variant="default"
               value={
                 <span style={{ color: unrealized >= 0 ? 'var(--pos)' : 'var(--neg)' }}>
                   {unrealized >= 0 ? '+' : ''}${unrealized.toFixed(2)} ({rate >= 0 ? '+' : ''}{rate.toFixed(2)}%)
@@ -222,9 +222,10 @@ function TradesTab({ trades }: { trades: Execution[] }) {
               className={cn(
                 'px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors',
                 filter === f
-                  ? 'bg-rose-50 text-rose-600 border-rose-100'
+                  ? 'border-transparent'
                   : 'text-muted-foreground border-transparent hover:border-border'
               )}
+              style={filter === f ? { background: 'var(--rose-50)', color: 'var(--rose-600)' } : undefined}
             >
               {f === 'ALL' ? '전체' : f === 'BUY' ? '매수' : '매도'}
             </button>
