@@ -67,7 +67,7 @@ export function ReservationOrdersCard({ accountId }: Props) {
                       <Badge variant={order.direction === 'BUY' ? 'default' : 'secondary'}>
                         {order.direction === 'BUY' ? '매수' : '매도'}
                       </Badge>
-                      <span className="font-medium text-sm">{order.symbol}</span>
+                      <span className="font-medium text-sm">{order.ticker}</span>
                       {order.symbolName && (
                         <span className="text-xs text-muted-foreground">{order.symbolName}</span>
                       )}
@@ -100,7 +100,7 @@ export function ReservationOrdersCard({ accountId }: Props) {
                         {order.receiptDate} {order.receiptTime}
                       </td>
                       <td className="px-3 py-3">
-                        <div className="font-medium">{order.symbol}</div>
+                        <div className="font-medium">{order.ticker}</div>
                         {order.symbolName && (
                           <div className="text-xs text-muted-foreground">{order.symbolName}</div>
                         )}

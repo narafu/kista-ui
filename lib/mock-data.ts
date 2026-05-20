@@ -36,7 +36,7 @@ export const MOCK_TRADES: TradeHistory[] = [
   {
     id: 'trade-001',
     tradeDate: '2026-04-28',
-    symbol: 'SOXL',
+    ticker: 'SOXL',
     strategy: 'INFINITE',
     orderType: 'LIMIT',
     direction: 'BUY',
@@ -50,7 +50,7 @@ export const MOCK_TRADES: TradeHistory[] = [
   {
     id: 'trade-002',
     tradeDate: '2026-04-29',
-    symbol: 'SOXL',
+    ticker: 'SOXL',
     strategy: 'INFINITE',
     orderType: 'LIMIT',
     direction: 'SELL',
@@ -66,7 +66,7 @@ export const MOCK_TRADES: TradeHistory[] = [
 export const MOCK_PORTFOLIO: PortfolioSnapshot = {
   id: 'snap-001',
   snapshotDate: '2026-04-30',
-  symbol: 'SOXL',
+  ticker: 'SOXL',
   qty: 5,
   avgPrice: 32.5,
   currentPrice: 35.2,

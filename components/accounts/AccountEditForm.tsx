@@ -37,12 +37,12 @@ export function AccountEditForm({ account }: Props) {
   const [kisAppKey, setKisAppKey] = useState('')
   const [kisSecretKey, setKisSecretKey] = useState('')
   const [strategy, setStrategy] = useState<Strategy>(account.strategyType)
-  const [symbol, setSymbol] = useState<string>(account.ticker ?? 'TQQQ')
+  const [ticker, setTicker] = useState<string>(account.ticker ?? 'TQQQ')
 
   function handleStrategyChange(key: Strategy) {
     setStrategy(key)
-    if (key === 'PRIVACY') setSymbol('SOXL')
-    // INFINITE 전환 시 기존 symbol 유지 (사용자가 직접 선택)
+    if (key === 'PRIVACY') setTicker('SOXL')
+    // INFINITE 전환 시 기존 ticker 유지 (사용자가 직접 선택)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -53,7 +53,7 @@ export function AccountEditForm({ account }: Props) {
     try {
       await updateAccount(account.id, {
         nickname: nickname.trim(),
-        ticker: symbol,
+        ticker: ticker,
         strategyType: strategy,
         ...(kisAppKey.trim() && { kisAppKey: kisAppKey.trim() }),
         ...(kisSecretKey.trim() && { kisSecretKey: kisSecretKey.trim() }),
@@ -184,11 +184,11 @@ export function AccountEditForm({ account }: Props) {
             {strategy === 'INFINITE' ? (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
                 {(['TQQQ', 'SOXL', 'USD'] as const).map((s) => {
-                  const sel = symbol === s
+                  const sel = ticker === s
                   const desc: Record<string, string> = { TQQQ: '나스닥100 3x', SOXL: '반도체 3x', USD: '달러' }
                   return (
                     <button key={s} type="button"
-                      onClick={() => setSymbol(s)}
+                      onClick={() => setTicker(s)}
                       disabled={isLoading}
                       style={{
                         padding: '12px 4px', borderRadius: 10, textAlign: 'center',

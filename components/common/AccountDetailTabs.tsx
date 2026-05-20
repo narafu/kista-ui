@@ -241,7 +241,7 @@ function TradesTab({ trades }: { trades: Execution[] }) {
           {/* 모바일: 카드 리스트 */}
           <div className="space-y-2 p-4 lg:hidden">
             {filtered.map((trade) => (
-              <Card key={`${trade.kisOrderId ?? ''}-${trade.tradeDate}-${trade.symbol}`} className="p-3">
+              <Card key={`${trade.kisOrderId ?? ''}-${trade.tradeDate}-${trade.ticker}`} className="p-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {trade.direction === 'BUY' ? (
@@ -255,7 +255,7 @@ function TradesTab({ trades }: { trades: Execution[] }) {
                         style={{ background: 'var(--neg-bg)', color: 'var(--neg)' }}
                       >매도</span>
                     )}
-                    <span className="font-medium text-sm">{trade.symbol}</span>
+                    <span className="font-medium text-sm">{trade.ticker}</span>
                   </div>
                   <span className="text-sm font-semibold">${(trade.amountUsd ?? 0).toFixed(2)}</span>
                 </div>
@@ -278,7 +278,7 @@ function TradesTab({ trades }: { trades: Execution[] }) {
               </thead>
               <tbody>
                 {filtered.map((trade) => (
-                  <tr key={`${trade.kisOrderId ?? ''}-${trade.tradeDate}-${trade.symbol}`} className="border-t hover:bg-muted/30 transition-colors">
+                  <tr key={`${trade.kisOrderId ?? ''}-${trade.tradeDate}-${trade.ticker}`} className="border-t hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3">
                       {trade.direction === 'BUY' ? (
                         <span
@@ -292,7 +292,7 @@ function TradesTab({ trades }: { trades: Execution[] }) {
                         >매도</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 font-medium">{trade.symbol}</td>
+                    <td className="px-4 py-3 font-medium">{trade.ticker}</td>
                     <td className="px-4 py-3">{trade.qty}주</td>
                     <td className="px-4 py-3">${(trade.price ?? 0).toFixed(2)}</td>
                     <td className="px-4 py-3 font-medium">${(trade.amountUsd ?? 0).toFixed(2)}</td>

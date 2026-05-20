@@ -5,7 +5,7 @@ export type OrderStatus = 'PLACED' | 'FILLED' | 'FAILED'
 export interface TradeHistory {
   id: string
   tradeDate: string
-  symbol: string
+  ticker: string
   strategy: string
   orderType: OrderType
   direction: OrderDirection
@@ -20,7 +20,7 @@ export interface TradeHistory {
 // StatisticsController GET /api/accounts/{id}/trades 응답 (KIS Execution 도메인 모델)
 export interface Execution {
   tradeDate: string
-  symbol: string
+  ticker: string
   direction: OrderDirection
   qty: number
   price: number
@@ -31,7 +31,7 @@ export interface Execution {
 export interface PortfolioSnapshot {
   id: string
   snapshotDate: string
-  symbol: string
+  ticker: string
   qty: number
   avgPrice: number
   currentPrice: number
@@ -72,7 +72,7 @@ export interface ReservationOrder {
   direction: OrderDirection
   statusCode: string
   statusName: string
-  symbol: string
+  ticker: string
   symbolName: string
   exchangeCode: string
   orderedQty: number
@@ -85,7 +85,7 @@ export interface DailyTransaction {
   tradeDate: string
   settlementDate: string
   direction: OrderDirection
-  symbol: string
+  ticker: string
   symbolName: string
   qty: number
   price: number
