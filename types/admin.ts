@@ -34,7 +34,7 @@ export interface AdminTrade {
   ticker: string
   direction: 'BUY' | 'SELL'
   orderType: 'LOC' | 'MOC' | 'LIMIT'
-  qty: number
+  quantity: number
   price: number
   status: 'PLACED' | 'FILLED' | 'FAILED'
 }
@@ -67,7 +67,7 @@ export interface AdminAnomalyTrade {
   ticker: string
   direction: string
   orderType: string
-  qty: number
+  quantity: number
   price: number
 }
 

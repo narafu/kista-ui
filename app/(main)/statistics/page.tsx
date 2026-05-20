@@ -47,7 +47,7 @@ export default async function StatisticsPage() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <KpiCard label="종목" value={portfolio.ticker} />
-            <KpiCard label="보유 수량" value={`${portfolio.qty}주`} />
+            <KpiCard label="보유 수량" value={`${portfolio.holdings}주`} />
             <KpiCard label="평균 단가" value={`$${portfolio.avgPrice.toFixed(2)}`} />
             <KpiCard label="현재가" value={`$${portfolio.currentPrice.toFixed(2)}`} />
             <KpiCard label="평가금액" value={`$${portfolio.marketValueUsd.toFixed(2)}`} />
@@ -104,7 +104,7 @@ export default async function StatisticsPage() {
                     <span className="text-sm font-semibold">${trade.amountUsd.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                    <span>{trade.qty}주 × ${trade.price.toFixed(2)}</span>
+                    <span>{trade.quantity}주 × ${trade.price.toFixed(2)}</span>
                     <span>{new Date(trade.createdAt).toLocaleDateString('ko-KR')}</span>
                   </div>
                 </div>
@@ -145,7 +145,7 @@ export default async function StatisticsPage() {
                       </td>
                       <td className="px-4 py-3 font-bold">{trade.ticker}</td>
                       <td className="px-4 py-3 text-muted-foreground text-xs">{trade.strategy}</td>
-                      <td className="px-4 py-3 tabular-nums">{trade.qty}주</td>
+                      <td className="px-4 py-3 tabular-nums">{trade.quantity}주</td>
                       <td className="px-4 py-3 tabular-nums">${trade.price.toFixed(2)}</td>
                       <td className="px-4 py-3 font-bold tabular-nums">${trade.amountUsd.toFixed(2)}</td>
                       <td className="px-4 py-3 text-muted-foreground tabular-nums">

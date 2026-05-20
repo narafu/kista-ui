@@ -28,7 +28,7 @@ export function TradeToast({ event }: Props) {
         </div>
         <p className="text-sm font-semibold text-foreground mt-0.5">
           {event.ticker}
-          {event.qty != null && ` ${event.qty}주`}
+          {event.quantity != null && ` ${event.quantity}주`}
           {event.price != null && ` @ $${event.price.toFixed(2)}`}
         </p>
         {event.message && (

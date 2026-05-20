@@ -90,7 +90,7 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
   const [isDeleteLoading, setIsDeleteLoading] = useState(false)
 
   // Hoist calculation variables
-  const cost = (portfolio.avgPrice ?? 0) * (portfolio.qty ?? 0)
+  const cost = (portfolio.avgPrice ?? 0) * (portfolio.holdings ?? 0)
   const unrealized = (portfolio.marketValueUsd ?? 0) - cost
   const rate = cost > 0 ? (unrealized / cost) * 100 : 0
 
@@ -142,7 +142,7 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
           <div className="grid grid-cols-2 gap-3">
             <KpiCard label="계좌번호" value={account.accountNoMasked} />
             <KpiCard label="종목" value={account.ticker} />
-            <KpiCard label="보유 수량" value={`${portfolio.qty}주`} />
+            <KpiCard label="보유 수량" value={`${portfolio.holdings}주`} />
             <KpiCard label="평균 단가" value={`$${(portfolio.avgPrice ?? 0).toFixed(2)}`} />
             <KpiCard label="현재가" value={`$${(portfolio.currentPrice ?? 0).toFixed(2)}`} />
             <KpiCard label="평가금액" value={`$${(portfolio.marketValueUsd ?? 0).toFixed(2)}`} />
@@ -260,7 +260,7 @@ function TradesTab({ trades }: { trades: Execution[] }) {
                   <span className="text-sm font-semibold">${(trade.amountUsd ?? 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                  <span>{trade.qty}주 × ${(trade.price ?? 0).toFixed(2)}</span>
+                  <span>{trade.quantity}주 × ${(trade.price ?? 0).toFixed(2)}</span>
                   <span>{new Date(trade.tradeDate).toLocaleDateString('ko-KR')}</span>
                 </div>
               </Card>
@@ -293,7 +293,7 @@ function TradesTab({ trades }: { trades: Execution[] }) {
                       )}
                     </td>
                     <td className="px-4 py-3 font-medium">{trade.ticker}</td>
-                    <td className="px-4 py-3">{trade.qty}주</td>
+                    <td className="px-4 py-3">{trade.quantity}주</td>
                     <td className="px-4 py-3">${(trade.price ?? 0).toFixed(2)}</td>
                     <td className="px-4 py-3 font-medium">${(trade.amountUsd ?? 0).toFixed(2)}</td>
                     <td className="px-4 py-3 text-muted-foreground">

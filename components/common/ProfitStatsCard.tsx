@@ -94,7 +94,7 @@ export function ProfitStatsCard({ accountId }: Props) {
                 : null
               const realized = profit.totalRealizedProfit ?? profit.totalProfitLoss ?? 0
               const unrealized = latestSnapshot
-                ? (latestSnapshot.marketValueUsd ?? 0) - (latestSnapshot.avgPrice ?? 0) * (latestSnapshot.qty ?? 0)
+                ? (latestSnapshot.marketValueUsd ?? 0) - (latestSnapshot.avgPrice ?? 0) * (latestSnapshot.holdings ?? 0)
                 : 0
               return (
                 <div className="grid grid-cols-3 gap-4 text-sm">

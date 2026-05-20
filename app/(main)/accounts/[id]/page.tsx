@@ -17,7 +17,7 @@ interface Props {
 
 // kista-api PortfolioSummaryResponse { positions: PositionDto[], summary: SummaryDto } 응답 형식
 interface PortfolioPosition {
-  ticker: string; qty: number
+  ticker: string; holdings: number
   avgPrice: number | string | null; currentPrice: number | string | null
   evalAmountUsd: number | string | null
 }
@@ -40,7 +40,7 @@ function normalizePortfolio(raw: PortfolioSnapshot | null): PortfolioSnapshot | 
   if (!top) return null // 보유 종목 없음
   return {
     id: '', snapshotDate: new Date().toISOString().split('T')[0],
-    ticker: top.ticker, qty: top.qty,
+    ticker: top.ticker, holdings: top.holdings,
     avgPrice: toNum(top.avgPrice), currentPrice: toNum(top.currentPrice),
     marketValueUsd: toNum(top.evalAmountUsd), usdDeposit: 0,
     totalAssetUsd: toNum(r.summary?.totalAssetUsd),
@@ -52,7 +52,7 @@ const EMPTY_PORTFOLIO: PortfolioSnapshot = {
   id: '',
   snapshotDate: '',
   ticker: 'SOXL',
-  qty: 0,
+  holdings: 0,
   avgPrice: 0,
   currentPrice: 0,
   marketValueUsd: 0,

@@ -60,7 +60,7 @@ export default async function AdminAnomaliesPage() {
                       <td className={`px-4 py-2.5 font-semibold ${t.direction === 'BUY' ? 'text-blue-600' : 'text-red-500'}`}>
                         {t.direction === 'BUY' ? '매수' : '매도'}
                       </td>
-                      <td className="px-4 py-2.5 text-right">{t.qty}</td>
+                      <td className="px-4 py-2.5 text-right">{t.quantity}</td>
                     </tr>
                   ))}
                 </tbody>

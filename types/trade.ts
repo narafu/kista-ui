@@ -9,7 +9,7 @@ export interface TradeHistory {
   strategy: string
   orderType: OrderType
   direction: OrderDirection
-  qty: number
+  quantity: number
   price: number
   amountUsd: number
   status: OrderStatus
@@ -22,7 +22,7 @@ export interface Execution {
   tradeDate: string
   ticker: string
   direction: OrderDirection
-  qty: number
+  quantity: number
   price: number
   amountUsd: number
   kisOrderId: string | null
@@ -32,7 +32,7 @@ export interface PortfolioSnapshot {
   id: string
   snapshotDate: string
   ticker: string
-  qty: number
+  holdings: number
   avgPrice: number
   currentPrice: number
   marketValueUsd: number
@@ -87,7 +87,7 @@ export interface DailyTransaction {
   direction: OrderDirection
   ticker: string
   symbolName: string
-  qty: number
+  quantity: number
   price: number
   tradeAmountUsd: number
   settlementAmountKrw: number
