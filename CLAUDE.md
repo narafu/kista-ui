@@ -43,8 +43,10 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 
 ### 컴포넌트 폴더
 - `components/common/` — 공통 UI (AccountCard, ProfitDisplay, PortfolioChart, ProfitStatsCard 등)
-- `components/accounts/` — 계좌 관련 폼 (AccountEditForm)
-- `components/settings/` — 설정 섹션 (TelegramSection, AccountTelegramSection)
+- `components/accounts/` — 계좌 관련 폼 (AccountEditForm, NewAccountStepper — 3-Step: API키/계좌정보/확인)
+- `components/strategies/` — 전략 컴포넌트 (StrategyCard, StrategyList, StrategyForm, StrategyFormDialog)
+- `components/providers/` — 컨텍스트 제공자 (MetaProvider — `useMeta()` 훅)
+- `components/settings/` — 설정 섹션 (TelegramSection)
 - `components/layout/` — 레이아웃 (DesktopSidebar, MobileBottomNav)
 - `components/admin/` — 관리자 전용 (AdminSidebar, AdminTopBar, ApproveRejectButtons, ChangeRoleButton)
 - `components/ui/` — shadcn/ui 자동 생성 (직접 수정 금지)
@@ -71,7 +73,11 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **Tailwind v4**: `tailwind.config.ts` 없음 — `postcss.config.mjs` + `globals.css`로 설정
 - **recharts**: SSR 미지원 → `'use client'` 필수. Tooltip `formatter`의 `value` 파라미터는 `ValueType | undefined` → `Number(value)` 사용
 - **HTTP-only 쿠키 삭제**: Client JS에서 불가 → Route Handler에서 `response.cookies.set(name, '', { maxAge: 0 })` 처리
-- **kista-api DTO**: `UserResponse`는 `{ id, nickname, status, hasTelegram, role, telegramBotUsername }`, `AccountResponse`는 `{ id, nickname, accountNoMasked, strategyType, strategyStatus, hasTelegram, ticker }` — `types/` 참고 (구버전 `strategy`/`symbol`에서 변경됨, 혼동 주의)
+- **Account/Strategy 분리 (V35 이후)**: `Account` 타입은 `id/nickname/accountNoMasked/broker` 4개 필드만 — strategyType/strategyStatus/ticker/hasTelegram 없음. 전략은 별도 `Strategy` 타입(`types/strategy.ts`)으로 분리, 모두 `string` (union 리터럴 아님)
+- **MetaProvider + useMeta()**: `(main)/layout.tsx`에서 `GET /api/meta` prefetch → `<MetaProvider meta={meta}>` 공급. Client Component에서 `useMeta()` 훅으로 `findStrategyType(code)`, `findTicker(code)`, `labelOf(category, code)` 접근. `'INFINITE'` 같은 enum 리터럴 UI 분기 금지 — `meta.strategyTypes.find(t => t.code === strategy.type)?.label` 패턴 사용
+- **전략 API**: `lib/api/strategies.ts` — `listStrategies(accountId)`, `createStrategy`, `updateStrategy`, `deleteStrategy`, `pauseStrategy(strategyId)`, `resumeStrategy(strategyId)`. Route Handler: `/api/strategies/[[...path]]`. **전략 pause/resume은 strategyId 기준** (구 accountId 아님)
+- **메타 API**: `lib/api/meta.ts` — `getMetaBundle()`. Route Handler: `/api/meta/[[...path]]`. `StrategyTypeMeta`에 `availableTickers`, `defaultTicker`, `defaultMultiple` 포함
+- **kista-api DTO**: `UserResponse`는 `{ id, nickname, status, hasTelegram, role, telegramBotUsername }`, `AccountResponse`는 `{ id, nickname, accountNoMasked, broker }`, `StrategyResponse`는 `{ id, accountId, type, status, ticker, multiple }` — `types/` 참고
 - **클로드 디자인 원본**: `/private/tmp/kista_design/design-system/project/screens.jsx` (데스크탑), `screens-mobile.jsx` (모바일) — 화면 디자인 매칭 시 직접 참조
 - **mock-data.ts 동기화**: `lib/mock-data.ts`는 `Account` mock 객체를 하드코딩 — `types/account.ts`의 `Account` 인터페이스에 필수 필드 추가 시 반드시 동기화 필요 (`npm run typecheck`로 확인)
 - **proxy 리다이렉트 루프**: slow path(API 호출)에서 실패 시 무조건 `redirect('/')`하면 `/`에서 셀프 루프 → `ERR_TOO_MANY_REDIRECTS`. 비보호 경로(`/`, `/auth/*`)에선 실패해도 `response` 반환 필요
