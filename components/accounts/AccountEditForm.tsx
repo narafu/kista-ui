@@ -20,7 +20,7 @@ import {
 import { cn } from '@/lib/utils'
 import { updateAccount, deleteAccount } from '@/lib/api/accounts'
 import { ApiError } from '@/lib/api/client'
-import type { Account, Strategy } from '@/types/account'
+import type { Account } from '@/types/account'
 
 interface Props {
   account: Account
@@ -36,14 +36,6 @@ export function AccountEditForm({ account }: Props) {
   const [nickname, setNickname] = useState(account.nickname)
   const [kisAppKey, setKisAppKey] = useState('')
   const [kisSecretKey, setKisSecretKey] = useState('')
-  const [strategy, setStrategy] = useState<Strategy>(account.strategyType)
-  const [ticker, setTicker] = useState<string>(account.ticker ?? 'TQQQ')
-
-  function handleStrategyChange(key: Strategy) {
-    setStrategy(key)
-    if (key === 'PRIVACY') setTicker('SOXL')
-    // INFINITE 전환 시 기존 ticker 유지 (사용자가 직접 선택)
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -53,8 +45,6 @@ export function AccountEditForm({ account }: Props) {
     try {
       await updateAccount(account.id, {
         nickname: nickname.trim(),
-        ticker: ticker,
-        strategyType: strategy,
         ...(kisAppKey.trim() && { kisAppKey: kisAppKey.trim() }),
         ...(kisSecretKey.trim() && { kisSecretKey: kisSecretKey.trim() }),
       })
@@ -147,69 +137,9 @@ export function AccountEditForm({ account }: Props) {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>매매 전략</Label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              {([
-                { key: 'INFINITE', label: 'Infinite', desc: '무한 분할매수' },
-                { key: 'PRIVACY', label: 'Privacy', desc: '비공개 전략' },
-              ] as const).map(({ key, label, desc }) => {
-                const selected = strategy === key
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => handleStrategyChange(key)}
-                    disabled={isLoading}
-                    style={{
-                      padding: 16,
-                      borderRadius: 12,
-                      border: selected ? '2px solid var(--rose-500)' : '1px solid var(--border)',
-                      background: selected ? 'var(--rose-50)' : 'var(--card)',
-                      cursor: isLoading ? 'not-allowed' : 'pointer',
-                      textAlign: 'left',
-                      transition: 'border-color .15s, background .15s',
-                    }}
-                  >
-                    <p style={{ fontSize: 14, fontWeight: 700, color: selected ? 'var(--rose-600)' : 'var(--foreground)' }}>{label}</p>
-                    <p style={{ fontSize: 12, color: 'var(--muted-foreground)', marginTop: 2 }}>{desc}</p>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>종목</Label>
-            {strategy === 'INFINITE' ? (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                {(['TQQQ', 'SOXL', 'USD'] as const).map((s) => {
-                  const sel = ticker === s
-                  const desc: Record<string, string> = { TQQQ: '나스닥100 3x', SOXL: '반도체 3x', USD: '달러' }
-                  return (
-                    <button key={s} type="button"
-                      onClick={() => setTicker(s)}
-                      disabled={isLoading}
-                      style={{
-                        padding: '12px 4px', borderRadius: 10, textAlign: 'center',
-                        cursor: isLoading ? 'not-allowed' : 'pointer',
-                        border: sel ? '2px solid var(--rose-500)' : '1px solid var(--border)',
-                        background: sel ? 'var(--rose-50)' : 'var(--card)',
-                        transition: 'border-color .15s, background .15s',
-                      }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: sel ? 'var(--rose-600)' : 'var(--foreground)' }}>{s}</div>
-                      <div style={{ fontSize: 11, color: sel ? 'var(--rose-500)' : 'var(--muted-foreground)', marginTop: 2 }}>{desc[s]}</div>
-                    </button>
-                  )
-                })}
-              </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--muted)' }}>
-                <span style={{ fontSize: 14, fontWeight: 700 }}>SOXL</span>
-                <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>(Privacy 전략 고정)</span>
-              </div>
-            )}
-          </div>
+          <p className="text-xs text-muted-foreground">
+            전략은 계좌 상세 화면에서 등록·수정할 수 있습니다.
+          </p>
 
           <div className="hidden sm:flex gap-3 pt-2">
             <Link href={`/accounts/${account.id}`} className={cn(buttonVariants({ variant: 'outline' }), 'flex-1 h-12')}>

@@ -16,15 +16,16 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
-import { StrategyBadge } from './StrategyBadge'
-import { StatusDot } from './StatusDot'
-import { pauseStrategy, resumeStrategy, deleteAccount } from '@/lib/api/accounts'
+import { deleteAccount } from '@/lib/api/accounts'
 import { ApiError } from '@/lib/api/client'
 import { ProfitStatsCard } from './ProfitStatsCard'
 import { MarginCard } from './MarginCard'
 import { ReservationOrdersCard } from './ReservationOrdersCard'
+import { StrategyList } from '@/components/strategies/StrategyList'
+import { useMeta } from '@/components/providers/MetaProvider'
 import type { Account } from '@/types/account'
 import type { Execution, PortfolioSnapshot } from '@/types/trade'
+import type { Strategy } from '@/types/strategy'
 
 type Tab = 'summary' | 'trades' | 'statistics' | 'reservation' | 'margin'
 
@@ -32,9 +33,10 @@ interface Props {
   account: Account
   trades: Execution[]
   portfolio: PortfolioSnapshot
+  strategies: Strategy[]
 }
 
-export function AccountDetailTabs({ account, trades, portfolio }: Props) {
+export function AccountDetailTabs({ account, trades, portfolio, strategies }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('summary')
 
   return (
@@ -59,7 +61,7 @@ export function AccountDetailTabs({ account, trades, portfolio }: Props) {
       {/* 모바일: 탭 콘텐츠 */}
       <div className="lg:hidden">
         {activeTab === 'summary' && (
-          <SummaryTab account={account} portfolio={portfolio} />
+          <SummaryTab account={account} portfolio={portfolio} strategies={strategies} />
         )}
         {activeTab === 'trades' && <TradesTab trades={trades} />}
         {activeTab === 'statistics' && <ProfitStatsCard accountId={account.id} />}
@@ -71,7 +73,7 @@ export function AccountDetailTabs({ account, trades, portfolio }: Props) {
       <div className="hidden lg:block space-y-6">
         <div className="account-detail-row1 mb-6">
           <ProfitStatsCard accountId={account.id} />
-          <SummaryTab account={account} portfolio={portfolio} />
+          <SummaryTab account={account} portfolio={portfolio} strategies={strategies} />
         </div>
         <TradesTab trades={trades} />
         <div className="grid grid-cols-2 gap-6">
@@ -83,34 +85,28 @@ export function AccountDetailTabs({ account, trades, portfolio }: Props) {
   )
 }
 
-function SummaryTab({ account, portfolio }: { account: Account; portfolio: PortfolioSnapshot }) {
+function SummaryTab({
+  account,
+  portfolio,
+  strategies,
+}: {
+  account: Account
+  portfolio: PortfolioSnapshot
+  strategies: Strategy[]
+}) {
   const router = useRouter()
-  const [isStrategyLoading, setIsStrategyLoading] = useState(false)
+  const { findStrategyType } = useMeta()
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [isDeleteLoading, setIsDeleteLoading] = useState(false)
+
+  // 운영상 계좌당 1개의 ACTIVE 전략을 우선 — 없으면 첫 번째
+  const primary = strategies.find((s) => s.status === 'ACTIVE') ?? strategies[0]
+  const typeLabel = primary ? findStrategyType(primary.type)?.label ?? primary.type : null
 
   // Hoist calculation variables
   const cost = (portfolio.avgPrice ?? 0) * (portfolio.holdings ?? 0)
   const unrealized = (portfolio.marketValueUsd ?? 0) - cost
   const rate = cost > 0 ? (unrealized / cost) * 100 : 0
-
-  async function handleStrategyToggle() {
-    setIsStrategyLoading(true)
-    try {
-      if (account.strategyStatus === 'ACTIVE') {
-        await pauseStrategy(account.id)
-        toast.success('전략이 중지되었습니다')
-      } else {
-        await resumeStrategy(account.id)
-        toast.success('전략이 재개되었습니다')
-      }
-      router.refresh()
-    } catch (err) {
-      toast.error(err instanceof ApiError ? '처리에 실패했습니다' : '오류가 발생했습니다')
-    } finally {
-      setIsStrategyLoading(false)
-    }
-  }
 
   async function handleDelete() {
     setIsDeleteLoading(true)
@@ -132,47 +128,48 @@ function SummaryTab({ account, portfolio }: { account: Account; portfolio: Portf
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">계좌 요약</CardTitle>
-            <div className="flex items-center gap-2">
-              <StatusDot status={account.strategyStatus} />
-              <StrategyBadge strategy={account.strategyType} />
-            </div>
+            {primary && (
+              <span className="inline-flex items-center px-2.5 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-rose-50 text-rose-600">
+                {typeLabel}
+              </span>
+            )}
           </div>
         </CardHeader>
         <CardContent className="px-6 pb-6">
-          <div className="grid grid-cols-2 gap-3">
-            <KpiCard label="계좌번호" value={account.accountNoMasked} />
-            <KpiCard label="종목" value={account.ticker} />
-            <KpiCard label="보유 수량" value={`${portfolio.holdings}주`} />
-            <KpiCard label="평균 단가" value={`$${(portfolio.avgPrice ?? 0).toFixed(2)}`} />
-            <KpiCard label="현재가" value={`$${(portfolio.currentPrice ?? 0).toFixed(2)}`} />
-            <KpiCard label="평가금액" value={`$${(portfolio.marketValueUsd ?? 0).toFixed(2)}`} />
-            <KpiCard
-              label="평가 손익"
-              className="col-span-2"
-              variant="default"
-              value={
-                <span style={{ color: unrealized >= 0 ? 'var(--pos)' : 'var(--neg)' }}>
-                  {unrealized >= 0 ? '+' : ''}${unrealized.toFixed(2)} ({rate >= 0 ? '+' : ''}{rate.toFixed(2)}%)
-                </span>
-              }
-            />
-          </div>
+          {primary ? (
+            <div className="grid grid-cols-2 gap-3">
+              <KpiCard label="계좌번호" value={account.accountNoMasked} />
+              <KpiCard label="종목" value={primary.ticker} />
+              <KpiCard label="보유 수량" value={`${portfolio.holdings}주`} />
+              <KpiCard label="평균 단가" value={`$${(portfolio.avgPrice ?? 0).toFixed(2)}`} />
+              <KpiCard label="현재가" value={`$${(portfolio.currentPrice ?? 0).toFixed(2)}`} />
+              <KpiCard label="평가금액" value={`$${(portfolio.marketValueUsd ?? 0).toFixed(2)}`} />
+              <KpiCard
+                label="평가 손익"
+                className="col-span-2"
+                variant="default"
+                value={
+                  <span style={{ color: unrealized >= 0 ? 'var(--pos)' : 'var(--neg)' }}>
+                    {unrealized >= 0 ? '+' : ''}${unrealized.toFixed(2)} ({rate >= 0 ? '+' : ''}{rate.toFixed(2)}%)
+                  </span>
+                }
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3">
+              <KpiCard label="계좌번호" value={account.accountNoMasked} />
+              <p className="text-sm text-muted-foreground text-center py-3">
+                전략을 먼저 등록해주세요.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      <div className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1 h-10"
-          onClick={handleStrategyToggle}
-          disabled={isStrategyLoading}
-        >
-          {isStrategyLoading
-            ? '처리 중...'
-            : account.strategyStatus === 'ACTIVE' ? '전략 중지' : '전략 재개'}
-        </Button>
+      {/* 전략 섹션 */}
+      <StrategyList accountId={account.id} strategies={strategies} />
 
+      <div className="flex gap-2">
         <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
           <DialogTrigger className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'h-10 px-4 text-destructive hover:text-destructive')}>
             계좌 삭제
@@ -309,4 +306,3 @@ function TradesTab({ trades }: { trades: Execution[] }) {
     </div>
   )
 }
-

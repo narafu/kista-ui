@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { StrategyBadge } from '@/components/common/StrategyBadge'
 import type { StepData } from '../NewAccountStepper'
 
 interface Props {
@@ -20,16 +19,14 @@ export function ConfirmStep({ data, onBack }: Props) {
     setError('')
     try {
       const { createAccount } = await import('@/lib/api/accounts')
-      await createAccount({
+      const saved = await createAccount({
         nickname: data.nickname,
         kisAppKey: data.apiKey,
         kisSecretKey: data.apiSecret,
         accountNo: data.accountNo,
-        kisAccountType: data.kisAccountType,
-        strategyType: data.strategyType as 'INFINITE' | 'PRIVACY',
-        ticker: data.ticker as 'TQQQ' | 'SOXL',
       })
-      router.push('/dashboard')
+      // 전략 등록을 위한 계좌 상세 화면으로 이동
+      router.push(`/accounts/${saved.id}`)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : '계좌 연결에 실패했습니다.')
     } finally {
@@ -41,7 +38,9 @@ export function ConfirmStep({ data, onBack }: Props) {
     <div className="flex flex-col gap-6">
       <div>
         <h2 className="text-lg font-bold mb-1">입력 확인</h2>
-        <p className="text-sm text-muted-foreground">아래 정보로 계좌를 연결합니다.</p>
+        <p className="text-sm text-muted-foreground">
+          아래 정보로 계좌를 연결합니다. 등록 후 전략을 추가할 수 있습니다.
+        </p>
       </div>
 
       <div className="rounded-[var(--r-lg)] border border-border bg-card divide-y divide-border">
@@ -51,19 +50,7 @@ export function ConfirmStep({ data, onBack }: Props) {
         </div>
         <div className="flex items-center justify-between px-4 py-3">
           <span className="text-sm text-muted-foreground">계좌번호</span>
-          <span className="text-sm font-semibold">{data.accountNo}-{data.kisAccountType}</span>
-        </div>
-        <div className="flex items-center justify-between px-4 py-3">
-          <span className="text-sm text-muted-foreground">전략</span>
-          <span className="text-sm font-semibold">
-            {data.strategyType
-              ? <StrategyBadge strategy={data.strategyType as 'INFINITE' | 'PRIVACY'} />
-              : '-'}
-          </span>
-        </div>
-        <div className="flex items-center justify-between px-4 py-3">
-          <span className="text-sm text-muted-foreground">종목</span>
-          <span className="text-sm font-semibold">{data.ticker || '-'}</span>
+          <span className="text-sm font-semibold">{data.accountNo}-01</span>
         </div>
         <div className="flex items-center justify-between px-4 py-3">
           <span className="text-sm text-muted-foreground">API Key</span>

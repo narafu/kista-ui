@@ -1,16 +1,22 @@
 'use client'
 
 import Link from 'next/link'
-import { StrategyBadge } from './StrategyBadge'
 import { StatusDot } from './StatusDot'
-import { ProfitDisplay } from './ProfitDisplay'
+import { useMeta } from '@/components/providers/MetaProvider'
 import type { Account } from '@/types/account'
+import type { Strategy } from '@/types/strategy'
 
 interface Props {
   account: Account
+  strategies?: Strategy[]
 }
 
-export function AccountCard({ account }: Props) {
+export function AccountCard({ account, strategies = [] }: Props) {
+  const { findStrategyType } = useMeta()
+  // 운영상 계좌당 1건이지만, 방어적으로 첫 번째만 표시
+  const primary = strategies[0]
+  const typeLabel = primary ? findStrategyType(primary.type)?.label ?? primary.type : null
+
   return (
     <Link
       href={`/accounts/${account.id}`}
@@ -21,11 +27,25 @@ export function AccountCard({ account }: Props) {
           <p className="font-semibold text-base text-foreground leading-snug">{account.nickname}</p>
           <p className="text-xs text-muted-foreground mt-0.5">{account.accountNoMasked}</p>
         </div>
-        <StatusDot status={account.strategyStatus as 'ACTIVE' | 'PAUSED'} />
+        {primary ? (
+          <StatusDot status={(primary.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
+        ) : (
+          <StatusDot status="UNKNOWN" />
+        )}
       </div>
       <div className="flex items-center gap-2 mb-3">
-        <StrategyBadge strategy={account.strategyType} />
-        <span className="text-xs text-muted-foreground">{account.ticker}</span>
+        {primary ? (
+          <>
+            <span
+              className="inline-flex items-center px-2.5 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-rose-50 text-rose-600"
+            >
+              {typeLabel}
+            </span>
+            <span className="text-xs text-muted-foreground">{primary.ticker}</span>
+          </>
+        ) : (
+          <span className="text-xs text-muted-foreground">전략 미등록</span>
+        )}
       </div>
     </Link>
   )

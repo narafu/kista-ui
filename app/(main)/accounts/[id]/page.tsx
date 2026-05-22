@@ -8,8 +8,10 @@ import { cn } from '@/lib/utils'
 import { getAuthToken } from '@/lib/auth/token'
 import { listAccounts } from '@/lib/api/accounts'
 import { getAccountTrades, getAccountPortfolio } from '@/lib/api/trades'
+import { listStrategies } from '@/lib/api/strategies'
 import type { Execution, PortfolioSnapshot } from '@/types/trade'
 import type { Account } from '@/types/account'
+import type { Strategy } from '@/types/strategy'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -77,10 +79,11 @@ export default async function AccountDetailPage({ params }: Props) {
     to: today.toISOString().split('T')[0],
   }
 
-  const [accounts, trades, portfolioRaw] = await Promise.all([
+  const [accounts, trades, portfolioRaw, strategies] = await Promise.all([
     listAccounts(token).catch((): Account[] => []),
     getAccountTrades(id, dateRange, token).catch((): Execution[] => []),
     getAccountPortfolio(id, token).catch((): PortfolioSnapshot | null => null),
+    listStrategies(id, token).catch((): Strategy[] => []),
   ])
   const portfolio = normalizePortfolio(portfolioRaw)
 
@@ -105,6 +108,7 @@ export default async function AccountDetailPage({ params }: Props) {
         account={account}
         trades={trades}
         portfolio={portfolio ?? EMPTY_PORTFOLIO}
+        strategies={strategies}
       />
     </div>
   )

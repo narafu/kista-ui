@@ -128,8 +128,6 @@ function AccountTable({ accounts }: { accounts: AdminAnomalyAccount[] }) {
           <tr>
             <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">소유자</th>
             <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">계좌번호</th>
-            <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">종목</th>
-            <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">전략</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
@@ -137,8 +135,6 @@ function AccountTable({ accounts }: { accounts: AdminAnomalyAccount[] }) {
             <tr key={a.id} className="hover:bg-muted/20">
               <td className="px-4 py-2.5 font-medium">{a.ownerNickname}</td>
               <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground">{a.accountNoMasked}</td>
-              <td className="px-4 py-2.5">{a.ticker ?? '-'}</td>
-              <td className="px-4 py-2.5">{a.strategyType ?? '-'}</td>
             </tr>
           ))}
         </tbody>

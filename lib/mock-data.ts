@@ -1,5 +1,6 @@
 import type { User } from '@/types/user'
 import type { Account } from '@/types/account'
+import type { Strategy } from '@/types/strategy'
 import type { TradeHistory, PortfolioSnapshot, ProfitSummary } from '@/types/trade'
 
 export const MOCK_USER: User = {
@@ -16,19 +17,32 @@ export const MOCK_ACCOUNTS: Account[] = [
     id: 'acc-001',
     nickname: '주계좌',
     accountNoMasked: '****-01',
-    strategyType: 'INFINITE',
-    strategyStatus: 'ACTIVE',
-    hasTelegram: false,
-    ticker: 'SOXL',
+    broker: 'KIS',
   },
   {
     id: 'acc-002',
     nickname: '테스트 계좌',
     accountNoMasked: '****-02',
-    strategyType: 'PRIVACY',
-    strategyStatus: 'PAUSED',
-    hasTelegram: false,
+    broker: 'KIS',
+  },
+]
+
+export const MOCK_STRATEGIES: Strategy[] = [
+  {
+    id: 'str-001',
+    accountId: 'acc-001',
+    type: 'INFINITE',
+    status: 'ACTIVE',
     ticker: 'SOXL',
+    multiple: '1.0',
+  },
+  {
+    id: 'str-002',
+    accountId: 'acc-002',
+    type: 'PRIVACY',
+    status: 'PAUSED',
+    ticker: 'SOXL',
+    multiple: '1.0',
   },
 ]
 

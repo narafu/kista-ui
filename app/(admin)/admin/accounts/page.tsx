@@ -26,9 +26,6 @@ export default async function AdminAccountsPage() {
               <tr>
                 <th className="text-left px-4 py-3 font-semibold text-muted-foreground">소유자</th>
                 <th className="text-left px-4 py-3 font-semibold text-muted-foreground">계좌번호</th>
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">종목</th>
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">전략</th>
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">상태</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -36,17 +33,6 @@ export default async function AdminAccountsPage() {
                 <tr key={acc.id} className="hover:bg-muted/20 transition-colors">
                   <td className="px-4 py-3 font-medium">{acc.ownerNickname}</td>
                   <td className="px-4 py-3 text-muted-foreground font-mono text-xs">{acc.accountNoMasked}</td>
-                  <td className="px-4 py-3">{acc.ticker ?? '-'}</td>
-                  <td className="px-4 py-3">{acc.strategyType ?? '-'}</td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
-                      acc.strategyStatus === 'ACTIVE'
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : 'bg-amber-100 text-amber-700'
-                    }`}>
-                      {acc.strategyStatus ?? '-'}
-                    </span>
-                  </td>
                 </tr>
               ))}
             </tbody>

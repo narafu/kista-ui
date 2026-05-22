@@ -21,9 +21,6 @@ export interface AdminAccount {
   userId: string
   ownerNickname: string
   accountNoMasked: string
-  ticker: string
-  strategyType: string
-  strategyStatus: string
 }
 
 export interface AdminTrade {
@@ -54,9 +51,6 @@ export interface AdminAnomalyAccount {
   userId: string
   ownerNickname: string
   accountNoMasked: string
-  ticker: string | null
-  strategyType: string | null
-  strategyStatus: string | null
 }
 
 export interface AdminAnomalyTrade {

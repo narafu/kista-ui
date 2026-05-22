@@ -4,7 +4,6 @@ import { getCurrentPortfolio, getTrades } from '@/lib/api/trades'
 import { ProfitStatsCard } from '@/components/common/ProfitStatsCard'
 import { PageHeader } from '@/components/common/PageHeader'
 import { KpiCard } from '@/components/common/KpiCard'
-import { StrategyBadge } from '@/components/common/StrategyBadge'
 import type { Account } from '@/types/account'
 import type { TradeHistory, PortfolioSnapshot } from '@/types/trade'
 
@@ -177,7 +176,7 @@ export default async function StatisticsPage() {
               >
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-[14px] font-bold">{account.nickname}</span>
-                  <StrategyBadge strategy={account.strategyType} />
+                  <span className="text-[11.5px] text-muted-foreground">{account.accountNoMasked}</span>
                 </div>
                 <ProfitStatsCard accountId={account.id} />
               </div>

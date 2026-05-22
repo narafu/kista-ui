@@ -212,9 +212,6 @@ function DashboardDesktop({
   totalEvalProfit,
   weightedReturnRate,
 }: DashboardProps) {
-  const activeCount = accounts.filter(a => a.strategyStatus === 'ACTIVE').length
-  const pausedCount = accounts.length - activeCount
-
   return (
     <div className="hidden lg:block">
       <PageHeader
@@ -235,12 +232,7 @@ function DashboardDesktop({
         <KpiCard
           label="운용 계좌"
           value={`${accounts.length}개`}
-          sub={
-            <span>
-              <span className="text-pos font-semibold">● {activeCount} 운영중</span>
-              {' · '}{pausedCount} 일시중지
-            </span>
-          }
+          sub="등록된 계좌"
         />
         <KpiCard
           label="총 평가손익"
