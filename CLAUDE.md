@@ -66,6 +66,7 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **Bash 괄호 경로**: `git add app/(main)/layout.tsx` 실패 → `git add "app/(main)/layout.tsx"` (큰따옴표 필수)
 - **PENDING 사용자 API 접근**: kista-api SettingsController는 UserStatus 미검증 → PENDING 상태도 JWT로 `/api/settings/telegram` 호출 가능
 - **kista-api 위치**: 백엔드 소스는 `../kista-api/` (상위 workspace 내 별도 프로젝트)
+- **kista-api 빌드**: `cd ../kista-api && ./gradlew compileJava` — Java 컴파일 확인. 인터페이스 변경 시 `TradingService`도 영향권 확인 필수 (`KisExecutionPort` 등 공용 포트 사용)
 - **Toaster 스코프**: `<Toaster />`는 루트 `app/layout.tsx`에 배치 — `/pending`, `/rejected` 등 (main) 밖 라우트에서 toast 사용 가능
 - **shadcn v4 (@base-ui/react 기반)**: `Button`, `DialogTrigger` 등 모든 컴포넌트에 `asChild` 없음 → `cn(buttonVariants({ variant, size }))` 클래스 직접 적용
 - **Next.js dynamic route**: `params`는 `Promise` → `const { id } = await params` (v15+)
@@ -97,6 +98,9 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **clientFetch vs apiFetch 구분**: `apiFetch(path, opts, token)` = Server Component 전용(kista-api 직접 호출). `clientFetch<T>(path, opts?)` = Client Component 전용(Route Handler 경유, 401 수신 시 자동 `/api/auth/logout` + `window.location.href='/'`) — Client Component에서 raw `fetch('/api/...')+throw` 패턴 금지, 반드시 `clientFetch` 사용
 - **쿠키 관련 수정 후 검증**: 쿠키 옵션 변경 후 재빌드만으로는 기존 세션에 미적용 — 브라우저 쿠키 직접 삭제 후 카카오 재로그인 필요. kista-api 로그에 `/api/auth/me` 호출이 없으면 브라우저에 `kista-token`이 없다는 증거
 - **ProfitStatsCard**: self-fetching client component — `accountId` prop만 넘기면 내부 useEffect에서 직접 API 호출 (Server Component에서 token 전달 불필요)
+- **ProfitStatsCard 차트 공백**: `getPortfolioSnapshots()` = DB 저장 스냅샷 기반 (실시간 KIS 아님). kista-api가 주기적으로 스냅샷 저장 안 하면 항상 "데이터가 없습니다"
+- **Dashboard AccountCard strategies 전달 필수**: DashboardPage에서 AccountCard 렌더링 시 반드시 `strategies={strategiesByAccount[i]}` 전달 — 미전달 시 strategies 기본값 [] → "알 수 없음"/"전략 미등록" 표시
+- **계좌 요약 항목 출처**: 종목=`portfolio.ticker`(KIS positions[0].ticker, 전략 DB값 아님), 보유수량/평균단가/현재가/평가금액=KIS CTRP6504R positions[0] 기반, 평가손익=`평가금액-(평균단가×보유수량)` 직접 계산(KIS evlu_pfls_amt2/evlu_pfls_rt1 미사용)
 - **TradesTab**: `AccountDetailTabs.tsx` 내부 로컬 함수 (export 없음) — 재사용 필요 시 인라인 구현
 - **API 날짜 파라미터**: `getAccountTrades`/`getAccountProfit`/`getAccountReservationOrders`/`getAccountDailyTrades` 모두 `{ from, to }` (ISO date string, 필수) — `buildDateQuery`의 `startDate`/`endDate` 키와 혼동 주의
 - **승인 재요청 Route Handler**: `ReapplyButton`은 `/api/auth/reapply-done` Route Handler 경유 — `apiFetch`로 kista-api 직접 호출 금지 (인증·CORS는 Route Handler에서 처리)
@@ -124,7 +128,7 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **StrategyBadge 사용 필수**: `account.strategyType` 표시 시 항상 `<StrategyBadge strategy={account.strategyType} />` (인라인 span + rose 스타일 직접 작성 금지). INFINITE→인피니트, PRIVACY→프라이버시 레이블 매핑 내장
 - **JSX 내 IIFE 금지**: `{(() => { const x = ...; return <div/> })()}` 패턴 사용 금지 — 계산 변수는 컴포넌트 함수 본문 상단으로 호이스팅
 - **StatisticsController 응답 형식 (주의: kista-ui 타입과 불일치)**: KIS live API를 직접 호출하는 엔드포인트는 도메인 모델/전용 DTO를 그대로 반환 → kista-ui 소비 시 반드시 응답 형식을 대조하고 normalizer 또는 정확한 타입 적용 필요.
-  - `GET /api/accounts/{id}/portfolio` → `PortfolioSummaryResponse { positions[{symbol,qty,avgPrice,currentPrice,evalAmountUsd,profitLossUsd,profitRate,exchangeCode}], summary{totalAssetUsd,totalEvalProfit,totalReturnRate} }`. kista-ui: `normalizePortfolio()`가 `r.positions[0]` + `r.summary.totalAssetUsd` 읽어 `PortfolioSnapshot`으로 변환 (`app/(main)/accounts/[id]/page.tsx`). BigDecimal → `toNum()` 헬퍼로 null/string 안전 변환. **통화 주의**: KIS `CTRP6504R` API에서 `positions[].evalAmountUsd`(=`frcr_evlu_amt2`)는 USD이지만, `summary.totalAssetUsd`(=`tot_asst_amt`)와 `summary.totalEvalProfit`(=`tot_evlu_pfls_amt`)는 **원화(KRW)** — 필드명에 Usd가 붙어있어도 KRW임. 대시보드에서 ₩ 표시 필요, 두 통화를 혼합 계산(KRW - USD) 금지.
+  - `GET /api/accounts/{id}/portfolio` → `PortfolioSummaryResponse { positions[{ticker(Ticker enum),holdings(int),avgPrice,currentPrice,evalAmountUsd,profitLossUsd,profitRate,exchangeCode}], summary{totalAssetUsd,totalEvalProfit,totalReturnRate} }`. kista-ui: `normalizePortfolio()`가 `r.positions[0]` + `r.summary.totalAssetUsd` 읽어 `PortfolioSnapshot`으로 변환 (`app/(main)/accounts/[id]/page.tsx`). BigDecimal → `toNum()` 헬퍼로 null/string 안전 변환. **통화 주의**: KIS `CTRP6504R` API에서 `positions[].evalAmountUsd`(=`frcr_evlu_amt2`)는 USD이지만, `summary.totalAssetUsd`(=`tot_asst_amt`)와 `summary.totalEvalProfit`(=`tot_evlu_pfls_amt`)는 **원화(KRW)** — 필드명에 Usd가 붙어있어도 KRW임. 대시보드에서 ₩ 표시 필요, 두 통화를 혼합 계산(KRW - USD) 금지.
   - `GET /api/accounts/{id}/trades` → `Execution[] { tradeDate,symbol,direction,qty,price,amountUsd,kisOrderId }`. kista-ui: `types/trade.ts`의 `Execution` 타입 사용 (`TradeHistory` 아님 — `id`/`strategy`/`orderType`/`status`/`createdAt` 필드 없음). `AccountDetailTabs` key는 `${kisOrderId}-${tradeDate}-${symbol}` 합성키, 날짜는 `tradeDate`.
   - `GET /api/accounts/{id}/profit` → `PeriodProfitResult { totalRealizedProfit, totalReturnRate }`. kista-ui `ProfitSummary` 타입의 `accountId`/`startDate`/`endDate`/`dailyProfits` 필드는 서버가 보내지 않음 — `ProfitStatsCard`가 `?? 0`로 가드 중.
   - 신규 KIS live 엔드포인트 추가 시 kista-api DTO ↔ kista-ui 타입 필드명 반드시 대조 (drift 발생 시 `undefined.toFixed()` 패턴으로 500 에러 유발)
