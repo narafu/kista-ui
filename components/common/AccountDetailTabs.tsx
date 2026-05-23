@@ -108,7 +108,7 @@ function SummaryTab({
           {primary ? (
             <div className="grid grid-cols-2 gap-3">
               <KpiCard label="계좌번호" value={<span className="font-mono tracking-wider">{account.accountNoMasked}</span>} />
-              <KpiCard label="종목" value={primary.ticker} />
+              <KpiCard label="종목" value={portfolio.ticker || primary.ticker} />
               <KpiCard label="보유 수량" value={`${portfolio.holdings}주`} />
               <KpiCard label="평균 단가" value={`$${(portfolio.avgPrice ?? 0).toFixed(2)}`} />
               <KpiCard label="현재가" value={`$${(portfolio.currentPrice ?? 0).toFixed(2)}`} />

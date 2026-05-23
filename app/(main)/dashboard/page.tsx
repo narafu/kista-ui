@@ -4,12 +4,14 @@ import { Plus, TrendingUp } from 'lucide-react'
 import { getAuthToken } from '@/lib/auth/token'
 import { listAccounts } from '@/lib/api/accounts'
 import { getAccountPortfolio } from '@/lib/api/trades'
+import { listStrategies } from '@/lib/api/strategies'
 import { PageHeader } from '@/components/common/PageHeader'
 import { KpiCard } from '@/components/common/KpiCard'
 import { AccountCard } from '@/components/common/AccountCard'
 import { ProfitDisplay } from '@/components/common/ProfitDisplay'
 import type { Account } from '@/types/account'
 import type { PortfolioSnapshot } from '@/types/trade'
+import type { Strategy } from '@/types/strategy'
 
 // kista-api PortfolioSummaryResponse 실제 형식 (CLAUDE.md "StatisticsController 응답" 참고)
 interface PortfolioSummaryRaw {
@@ -197,6 +199,7 @@ function EmptyMobile() {
 
 interface DashboardProps {
   accounts: Account[]
+  strategiesByAccount: Strategy[][]
   totalAssetUsd: number
   marketValueUsd: number
   usdDeposit: number
@@ -206,6 +209,7 @@ interface DashboardProps {
 
 function DashboardDesktop({
   accounts,
+  strategiesByAccount,
   totalAssetUsd,
   marketValueUsd,
   usdDeposit,
@@ -258,8 +262,8 @@ function DashboardDesktop({
         </Link>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {accounts.map(account => (
-          <AccountCard key={account.id} account={account} />
+        {accounts.map((account, i) => (
+          <AccountCard key={account.id} account={account} strategies={strategiesByAccount[i]} />
         ))}
       </div>
     </div>
@@ -268,6 +272,7 @@ function DashboardDesktop({
 
 function DashboardMobile({
   accounts,
+  strategiesByAccount,
   totalAssetUsd,
   totalEvalProfit,
   weightedReturnRate,
@@ -302,8 +307,8 @@ function DashboardMobile({
         </Link>
       </div>
       <div className="grid grid-cols-1 gap-3">
-        {accounts.map(account => (
-          <AccountCard key={account.id} account={account} />
+        {accounts.map((account, i) => (
+          <AccountCard key={account.id} account={account} strategies={strategiesByAccount[i]} />
         ))}
       </div>
     </div>
@@ -325,15 +330,19 @@ export default async function DashboardPage() {
     )
   }
 
-  const portfolioRaws = token
-    ? await Promise.all(accounts.map(a => getAccountPortfolio(a.id, token).catch(() => null)))
-    : []
+  const [portfolioRaws, strategiesByAccount] = token
+    ? await Promise.all([
+        Promise.all(accounts.map(a => getAccountPortfolio(a.id, token).catch(() => null))),
+        Promise.all(accounts.map(a => listStrategies(a.id, token).catch((): Strategy[] => []))),
+      ])
+    : [[], accounts.map((): Strategy[] => [])]
 
   const { totalAssetUsd, marketValueUsd, usdDeposit, totalEvalProfit, weightedReturnRate } =
     aggregatePortfolios(portfolioRaws)
 
   const props: DashboardProps = {
     accounts,
+    strategiesByAccount,
     totalAssetUsd,
     marketValueUsd,
     usdDeposit,
