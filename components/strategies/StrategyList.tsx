@@ -16,20 +16,25 @@ export function StrategyList({ accountId, strategies }: Props) {
   const canAdd = strategies.length < MAX_STRATEGIES
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">전략</CardTitle>
-          <StrategyFormDialog accountId={accountId} disabled={!canAdd} />
+          {canAdd && strategies.length > 0 && (
+            <StrategyFormDialog accountId={accountId} disabled={false} />
+          )}
         </div>
       </CardHeader>
-      <CardContent className="px-6 pb-6">
+      <CardContent className="px-6 pb-6 flex-1 flex flex-col">
         {strategies.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">
-            등록된 전략이 없습니다. 위의 전략 추가 버튼으로 전략을 등록하세요.
-          </p>
+          <div className="flex-1 flex flex-col items-center justify-center gap-3">
+            <p className="text-sm text-muted-foreground text-center">
+              등록된 전략이 없습니다.
+            </p>
+            <StrategyFormDialog accountId={accountId} disabled={false} />
+          </div>
         ) : (
-          <div className="grid grid-cols-1 gap-3">
+          <div className="flex-1">
             {strategies.map((s) => (
               <StrategyCard key={s.id} strategy={s} />
             ))}

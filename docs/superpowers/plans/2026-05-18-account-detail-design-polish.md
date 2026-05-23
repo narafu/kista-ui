@@ -196,7 +196,7 @@ git commit -m "feat: ProfitStatsCard — tab period picker, subtitle, 3-col KPI 
 
 - [ ] **Step 1: SummaryTab의 return 블록 교체**
 
-`AccountDetailTabs.tsx` 안의 `function SummaryTab` 전체 return 블록을 아래로 교체.  
+`AccountDetailTabs.tsx` 안의 `function SummaryTab` 전체 return 블록을 아래로 교체.
 `handleStrategyToggle`, `handleDelete` 함수는 그대로 유지.
 
 ```tsx
@@ -220,7 +220,7 @@ git commit -m "feat: ProfitStatsCard — tab period picker, subtitle, 3-col KPI 
             ['평균 단가', <span key="avg" className="font-medium text-sm">${(portfolio.avgPrice ?? 0).toFixed(2)}</span>],
             ['현재가',   <span key="cur" className="font-medium text-sm">${(portfolio.currentPrice ?? 0).toFixed(2)}</span>],
             ['평가금액', <span key="mval" className="font-medium text-sm">${(portfolio.marketValueUsd ?? 0).toFixed(2)}</span>],
-            ['평가 손익', <ProfitDisplay key="pl" amount={0} rate={0} />],
+            ['평가손익', <ProfitDisplay key="pl" amount={0} rate={0} />],
           ] as [string, ReactNode][]).map(([label, value], i, arr) => (
             <div
               key={label}

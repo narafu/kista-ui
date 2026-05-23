@@ -1,14 +1,14 @@
 # 계좌 상세화면 디자인 정밀화
 
-**날짜:** 2026-05-18  
-**범위:** kista-ui 프론트엔드 전용 (kista-api 변경 없음)  
+**날짜:** 2026-05-18
+**범위:** kista-ui 프론트엔드 전용 (kista-api 변경 없음)
 **수정 파일:** 3개
 
 ---
 
 ## 목표
 
-`screens.jsx` Claude Design과 현재 구현 사이의 시각적 차이를 해소한다.  
+`screens.jsx` Claude Design과 현재 구현 사이의 시각적 차이를 해소한다.
 로직·API 계층은 건드리지 않고 마크업·스타일만 변경한다.
 
 ---
@@ -64,7 +64,7 @@ CardTitle 아래에 `<p className="text-xs text-muted-foreground mt-0.5">최근 
 4. 평균 단가
 5. 현재가
 6. 평가금액 ← 신규
-7. 평가 손익
+7. 평가손익
 
 ### TradesTab
 

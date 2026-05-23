@@ -18,12 +18,11 @@ interface Props {
 
 export function StrategyCard({ strategy, onChanged }: Props) {
   const router = useRouter()
-  const { findStrategyType, findTicker, labelOf } = useMeta()
+  const { findStrategyType, findTicker } = useMeta()
   const [loading, setLoading] = useState(false)
 
   const typeMeta = findStrategyType(strategy.type)
   const tickerMeta = findTicker(strategy.ticker)
-  const statusLabel = labelOf('strategyStatuses', strategy.status)
 
   async function handleToggle() {
     setLoading(true)
@@ -60,32 +59,30 @@ export function StrategyCard({ strategy, onChanged }: Props) {
   }
 
   return (
-    <Card>
-      <CardContent className="p-4 space-y-3">
-        <div className="flex items-start justify-between gap-3">
+    <Card className="h-full flex flex-col">
+      <CardContent className="p-6 flex-1 flex flex-col gap-6">
+        {/* 헤더: 전략 타입 배지 + 상태 */}
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center px-2.5 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-rose-50 text-rose-600">
+            {typeMeta?.label ?? strategy.type}
+          </span>
+          <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
+        </div>
+
+        {/* 정보 */}
+        <div className="grid grid-cols-2 gap-6 flex-1">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center px-2.5 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-rose-50 text-rose-600">
-                {typeMeta?.label ?? strategy.type}
-              </span>
-              <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
-            </div>
-            <p className="text-xs text-muted-foreground">{statusLabel}</p>
+            <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">종목</p>
+            <p className="text-lg font-semibold">{tickerMeta?.label ?? strategy.ticker}</p>
+          </div>
+          <div>
+            <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">매수 배수</p>
+            <p className="text-lg font-semibold">{strategy.multiple}×</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wider">종목</p>
-            <p className="font-semibold">{tickerMeta?.label ?? strategy.ticker}</p>
-          </div>
-          <div>
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wider">매수 배수</p>
-            <p className="font-semibold">{strategy.multiple}</p>
-          </div>
-        </div>
-
-        <div className="flex gap-2 pt-1">
+        {/* 버튼: 하단 고정 */}
+        <div className="flex gap-2 pt-4 border-t">
           <Button
             variant="outline"
             size="sm"

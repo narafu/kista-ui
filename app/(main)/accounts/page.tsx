@@ -5,7 +5,9 @@ import { buttonVariants } from '@/components/ui/button'
 import { AccountCard } from '@/components/common/AccountCard'
 import { getAuthToken } from '@/lib/auth/token'
 import { listAccounts } from '@/lib/api/accounts'
+import { listStrategies } from '@/lib/api/strategies'
 import type { Account } from '@/types/account'
+import type { Strategy } from '@/types/strategy'
 
 export default async function AccountsPage() {
   const token = await getAuthToken()
@@ -13,6 +15,12 @@ export default async function AccountsPage() {
   if (token) {
     accounts = await listAccounts(token).catch((): Account[] => [])
   }
+
+  const strategiesByAccount: Strategy[][] = token
+    ? await Promise.all(
+        accounts.map((a) => listStrategies(a.id, token).catch((): Strategy[] => []))
+      )
+    : accounts.map(() => [])
 
   return (
     <div className="space-y-6">
@@ -32,10 +40,8 @@ export default async function AccountsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {accounts.map((account) => (
-            <Link key={account.id} href={`/accounts/${account.id}`}>
-              <AccountCard account={account} />
-            </Link>
+          {accounts.map((account, i) => (
+            <AccountCard key={account.id} account={account} strategies={strategiesByAccount[i]} />
           ))}
         </div>
       )}

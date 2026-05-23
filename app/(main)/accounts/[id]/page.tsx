@@ -7,9 +7,9 @@ import { PageHeader } from '@/components/common/PageHeader'
 import { cn } from '@/lib/utils'
 import { getAuthToken } from '@/lib/auth/token'
 import { listAccounts } from '@/lib/api/accounts'
-import { getAccountTrades, getAccountPortfolio } from '@/lib/api/trades'
+import { getAccountTrades, getAccountPortfolio, getAccountMargin } from '@/lib/api/trades'
 import { listStrategies } from '@/lib/api/strategies'
-import type { Execution, PortfolioSnapshot } from '@/types/trade'
+import type { Execution, PortfolioSnapshot, MarginItem } from '@/types/trade'
 import type { Account } from '@/types/account'
 import type { Strategy } from '@/types/strategy'
 
@@ -40,7 +40,7 @@ function normalizePortfolio(raw: PortfolioSnapshot | null, strategyTicker?: stri
   const r = raw as unknown as PortfolioSummaryRaw
   if (!Array.isArray(r.positions)) return null
   const top = strategyTicker
-    ? (r.positions.find(p => String(p.ticker) === strategyTicker) ?? r.positions[0])
+    ? r.positions.find(p => String(p.ticker) === strategyTicker)
     : r.positions[0]
   if (!top) return null // 보유 종목 없음
   return {
@@ -53,18 +53,6 @@ function normalizePortfolio(raw: PortfolioSnapshot | null, strategyTicker?: stri
   }
 }
 
-const EMPTY_PORTFOLIO: PortfolioSnapshot = {
-  id: '',
-  snapshotDate: '',
-  ticker: 'SOXL',
-  holdings: 0,
-  avgPrice: 0,
-  currentPrice: 0,
-  marketValueUsd: 0,
-  usdDeposit: 0,
-  totalAssetUsd: 0,
-  createdAt: '',
-}
 
 export default async function AccountDetailPage({ params }: Props) {
   const { id } = await params
@@ -82,7 +70,7 @@ export default async function AccountDetailPage({ params }: Props) {
     to: today.toISOString().split('T')[0],
   }
 
-  const [accounts, trades, portfolioRaw, strategies] = await Promise.all([
+  const [accounts, trades, portfolioRaw, strategies, margins] = await Promise.all([
     listAccounts(token).catch((): Account[] => []),
     getAccountTrades(id, dateRange, token).catch((): Execution[] => []),
     getAccountPortfolio(id, token).catch((): PortfolioSnapshot | null => null),
@@ -90,9 +78,11 @@ export default async function AccountDetailPage({ params }: Props) {
       console.error('[AccountDetailPage] listStrategies 실패:', e)
       return []
     }),
+    getAccountMargin(id, token).catch((): MarginItem[] => []),
   ])
   const primaryStrategy = strategies.find(s => s.status === 'ACTIVE') ?? strategies[0]
   const portfolio = normalizePortfolio(portfolioRaw, primaryStrategy?.ticker)
+  const usdDeposit = margins.find(m => m.currency === 'USD')?.integratedOrderableAmount ?? 0
 
   const account = accounts.find((a) => a.id === id)
   if (!account) {
@@ -114,8 +104,9 @@ export default async function AccountDetailPage({ params }: Props) {
       <AccountDetailTabs
         account={account}
         trades={trades}
-        portfolio={portfolio ?? EMPTY_PORTFOLIO}
+        portfolio={portfolio}
         strategies={strategies}
+        usdDeposit={usdDeposit}
       />
     </div>
   )
