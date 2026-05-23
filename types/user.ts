@@ -1,5 +1,6 @@
 export type UserStatus = 'PENDING' | 'ACTIVE' | 'REJECTED'
 export type UserRole = 'USER' | 'ADMIN'
+export type NotificationChannel = 'TELEGRAM' | 'FCM' | 'ALL'
 
 export interface User {
   id: string
@@ -8,4 +9,5 @@ export interface User {
   role: UserRole
   hasTelegram: boolean
   telegramBotUsername?: string | null
+  notificationChannel?: NotificationChannel
 }

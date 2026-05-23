@@ -2,6 +2,7 @@ import { getAuthToken } from '@/lib/auth/token'
 import { DeleteAccountButton } from '@/components/settings/DeleteAccountButton'
 import { getMe } from '@/lib/api/auth'
 import { TelegramSection } from '@/components/settings/TelegramSection'
+import { NotificationSettings } from '@/components/settings/NotificationSettings'
 import { ThemeCards } from '@/components/settings/ThemeCards'
 import { PageHeader } from '@/components/common/PageHeader'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
@@ -67,10 +68,14 @@ export default async function SettingsPage() {
 
           {/* 알림 */}
           <section id="notifications" className="rounded-[var(--r-lg)] bg-card border border-border shadow-[var(--sh-card)] p-6">
-            <div className="text-sm font-bold mb-[18px]">알림</div>
+            <div className="text-sm font-bold mb-0.5">알림</div>
+            <div className="text-[12.5px] text-muted-foreground mb-[18px]">알림 채널과 텔레그램 연동을 설정합니다.</div>
             <TelegramSection
               hasTelegram={user?.hasTelegram ?? false}
               telegramBotUsername={user?.telegramBotUsername}
+            />
+            <NotificationSettings
+              currentChannel={user?.notificationChannel ?? 'TELEGRAM'}
             />
           </section>
 
