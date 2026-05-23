@@ -51,15 +51,9 @@ export function MarginCard({ accountId }: Props) {
                     {item.currency}
                   </span>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <p className="text-muted-foreground text-xs">주문가능금액</p>
-                    <p className="font-medium">{item.integratedOrderableAmount.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground text-xs">외화잔고</p>
-                    <p className="font-medium">{item.foreignBalance.toLocaleString()}</p>
-                  </div>
+                <div className="text-sm">
+                  <p className="text-muted-foreground text-xs">주문가능금액</p>
+                  <p className="font-medium">{item.integratedOrderableAmount.toLocaleString()}</p>
                 </div>
               </div>
             ))}

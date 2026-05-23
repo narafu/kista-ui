@@ -62,7 +62,6 @@ export interface DailyProfit {
 export interface MarginItem {
   currency: string
   integratedOrderableAmount: number
-  foreignBalance: number
 }
 
 export interface ReservationOrder {
