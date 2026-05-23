@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { getAccountReservationOrders } from '@/lib/api/trades'
 import type { ReservationOrder } from '@/types/trade'
 
@@ -45,36 +44,49 @@ export function ReservationOrdersCard({ accountId }: Props) {
   }, [accountId])
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader className="pb-3">
         <CardTitle className="text-base">예약주문 (최근 30일)</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         {isLoading ? (
-          <div className="flex items-center justify-center h-20 text-sm text-muted-foreground">
+          <div className="flex items-center justify-center h-20 text-sm text-muted-foreground px-6">
             로딩 중...
           </div>
         ) : orders.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">예약주문 내역이 없습니다.</p>
+          <p className="text-sm text-muted-foreground text-center py-8 px-6">예약주문 내역이 없습니다.</p>
         ) : (
           <>
             {/* 모바일: 카드 리스트 */}
-            <div className="space-y-2 lg:hidden">
+            <div className="space-y-2 p-4 lg:hidden">
               {orders.map((order) => (
                 <Card key={order.reservationOrderId} className="p-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Badge variant={order.direction === 'BUY' ? 'default' : 'secondary'}>
-                        {order.direction === 'BUY' ? '매수' : '매도'}
-                      </Badge>
+                      {order.direction === 'BUY' ? (
+                        <span
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
+                          style={{ background: 'var(--pos-bg)', color: 'var(--pos)' }}
+                        >매수</span>
+                      ) : (
+                        <span
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
+                          style={{ background: 'var(--neg-bg)', color: 'var(--neg)' }}
+                        >매도</span>
+                      )}
                       <span className="font-medium text-sm">{order.ticker}</span>
                       {order.symbolName && (
                         <span className="text-xs text-muted-foreground">{order.symbolName}</span>
                       )}
                     </div>
-                    <Badge variant={order.cancelled ? 'destructive' : 'outline'} className="text-xs">
-                      {order.cancelled ? '취소' : order.statusName}
-                    </Badge>
+                    {order.cancelled ? (
+                      <span
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
+                        style={{ background: 'var(--neg-bg)', color: 'var(--neg)' }}
+                      >취소</span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">{order.statusName}</span>
+                    )}
                   </div>
                   <div className="flex justify-between mt-2 text-xs text-muted-foreground">
                     <span>{order.orderedQty}주 × ${order.orderedPrice.toFixed(2)} (체결 {order.filledQty}주)</span>
@@ -84,39 +96,51 @@ export function ReservationOrdersCard({ accountId }: Props) {
               ))}
             </div>
             {/* 데스크탑: 테이블 */}
-            <div className="hidden lg:block rounded-md border overflow-hidden">
+            <div className="hidden lg:block">
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>
-                    {['접수일시', '종목', '구분', '주문수량', '주문단가', '체결수량', '상태', '취소'].map((h) => (
-                      <th key={h} className="px-3 py-3 text-left font-medium text-muted-foreground">{h}</th>
+                    {['접수일시', '종목', '구분', '주문수량', '주문단가', '체결수량', '상태'].map((h) => (
+                      <th key={h} className="px-4 py-3 text-left text-[11px] uppercase tracking-widest text-rose-500">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {orders.map((order) => (
                     <tr key={order.reservationOrderId} className="border-t hover:bg-muted/30 transition-colors">
-                      <td className="px-3 py-3 text-muted-foreground text-xs">
+                      <td className="px-4 py-3 text-muted-foreground text-xs">
                         {order.receiptDate} {order.receiptTime}
                       </td>
-                      <td className="px-3 py-3">
+                      <td className="px-4 py-3">
                         <div className="font-medium">{order.ticker}</div>
                         {order.symbolName && (
                           <div className="text-xs text-muted-foreground">{order.symbolName}</div>
                         )}
                       </td>
-                      <td className="px-3 py-3">
-                        <Badge variant={order.direction === 'BUY' ? 'default' : 'secondary'} className="text-xs">
-                          {order.direction === 'BUY' ? '매수' : '매도'}
-                        </Badge>
+                      <td className="px-4 py-3">
+                        {order.direction === 'BUY' ? (
+                          <span
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
+                            style={{ background: 'var(--pos-bg)', color: 'var(--pos)' }}
+                          >매수</span>
+                        ) : (
+                          <span
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
+                            style={{ background: 'var(--neg-bg)', color: 'var(--neg)' }}
+                          >매도</span>
+                        )}
                       </td>
-                      <td className="px-3 py-3">{order.orderedQty}주</td>
-                      <td className="px-3 py-3">${order.orderedPrice.toFixed(2)}</td>
-                      <td className="px-3 py-3">{order.filledQty}주</td>
-                      <td className="px-3 py-3 text-xs">{order.statusName}</td>
-                      <td className="px-3 py-3">
-                        {order.cancelled && (
-                          <Badge variant="destructive" className="text-xs">취소</Badge>
+                      <td className="px-4 py-3">{order.orderedQty}주</td>
+                      <td className="px-4 py-3">${order.orderedPrice.toFixed(2)}</td>
+                      <td className="px-4 py-3">{order.filledQty}주</td>
+                      <td className="px-4 py-3 text-xs">
+                        {order.cancelled ? (
+                          <span
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
+                            style={{ background: 'var(--neg-bg)', color: 'var(--neg)' }}
+                          >취소</span>
+                        ) : (
+                          order.statusName
                         )}
                       </td>
                     </tr>

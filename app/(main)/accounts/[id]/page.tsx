@@ -34,11 +34,14 @@ const toNum = (v: unknown): number => {
 }
 
 // PortfolioSummaryResponse → PortfolioSnapshot 변환 (StatisticsController 응답 형식 정규화)
-function normalizePortfolio(raw: PortfolioSnapshot | null): PortfolioSnapshot | null {
+// strategyTicker: 전략 종목 코드 — positions에서 해당 종목 포지션을 우선 선택
+function normalizePortfolio(raw: PortfolioSnapshot | null, strategyTicker?: string): PortfolioSnapshot | null {
   if (!raw) return null
   const r = raw as unknown as PortfolioSummaryRaw
   if (!Array.isArray(r.positions)) return null
-  const top = r.positions[0]
+  const top = strategyTicker
+    ? (r.positions.find(p => String(p.ticker) === strategyTicker) ?? r.positions[0])
+    : r.positions[0]
   if (!top) return null // 보유 종목 없음
   return {
     id: '', snapshotDate: new Date().toISOString().split('T')[0],
@@ -88,7 +91,8 @@ export default async function AccountDetailPage({ params }: Props) {
       return []
     }),
   ])
-  const portfolio = normalizePortfolio(portfolioRaw)
+  const primaryStrategy = strategies.find(s => s.status === 'ACTIVE') ?? strategies[0]
+  const portfolio = normalizePortfolio(portfolioRaw, primaryStrategy?.ticker)
 
   const account = accounts.find((a) => a.id === id)
   if (!account) {
