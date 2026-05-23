@@ -1,5 +1,6 @@
 import { getToken } from 'firebase/messaging'
 import { getFirebaseMessaging } from './firebase'
+import { clientFetch } from './api/client'
 
 const VAPID_KEY = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY ?? ''
 
@@ -22,17 +23,15 @@ export async function requestFcmToken(): Promise<string | null> {
 }
 
 export async function registerTokenToServer(token: string): Promise<void> {
-  const res = await fetch('/api/fcm/tokens', {
+  await clientFetch<void>('/api/fcm/tokens', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ token, platform: 'WEB' }),
   })
-  if (!res.ok) throw new Error(`FCM 토큰 등록 실패: ${res.status}`)
 }
 
 export async function unregisterTokenFromServer(token: string): Promise<void> {
-  const res = await fetch(`/api/fcm/tokens/${encodeURIComponent(token)}`, {
+  await clientFetch<void>(`/api/fcm/tokens/${encodeURIComponent(token)}`, {
     method: 'DELETE',
   })
-  if (!res.ok) throw new Error(`FCM 토큰 삭제 실패: ${res.status}`)
 }
