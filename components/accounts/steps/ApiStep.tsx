@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Eye, EyeOff, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, CheckCircle2, XCircle, Loader2, ExternalLink } from 'lucide-react'
 import type { StepData } from '../NewAccountStepper'
 
 interface Props {
@@ -55,6 +55,14 @@ export function ApiStep({ data, onNext }: Props) {
       <div>
         <h2 className="text-lg font-bold mb-1">KIS API 키 입력</h2>
         <p className="text-sm text-muted-foreground">한국투자증권 Open API 자격증명을 입력하세요.</p>
+        <a
+          href="https://securities.koreainvestment.com/main/customer/systemdown/RestAPIService.jsp"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-rose-500 hover:text-rose-600 transition-colors"
+        >
+          KIS API 키 발급받기 <ExternalLink className="size-3" />
+        </a>
       </div>
       <div className="flex flex-col gap-4">
         <div>

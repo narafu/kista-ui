@@ -85,6 +85,8 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **proxy 리다이렉트 루프**: slow path(API 호출)에서 실패 시 무조건 `redirect('/')`하면 `/`에서 셀프 루프 → `ERR_TOO_MANY_REDIRECTS`. 비보호 경로(`/`, `/auth/*`)에선 실패해도 `response` 반환 필요
 - **proxy.ts 캐시 취약점**: `kista-user-status`/`kista-user-role` 캐시 쿠키가 살아있으면 JWT 만료되어도 빠른 경로로 대시보드 통과. 캐시 maxAge는 3600초(1시간) — 초과 시 `/me` 재호출로 JWT 재검증
 - **kista-api JWT 없는 요청 → WARN 없이 401**: `JwtAuthFilter`는 Authorization 헤더 없으면 `if (token != null)` 블록 건너뜀 → Spring Security가 조용히 401 반환. 로그에 WARN 없이 401만 찍히면 "헤더가 아예 없는 것"이 원인
+- **Spring Security `/error` forward 주의**: `anyRequest().authenticated()` 설정 시 예외 발생 → Spring MVC가 `/error`로 forward → anonymous context로 401 반환. kista-api `SecurityConfig`에 `.requestMatchers("/error").permitAll()` 필수 — 미설정 시 내부 서버 에러가 401로 둔갑해 clientFetch 자동 로그아웃 유발
+- **KIS API 토큰 1분 발급 제한 (EGW00133)**: 연결 테스트 직후 서버에서 `kisTokenPort.testToken()` 재호출 시 1분 제한 위반 → 403 → `/error` forward → 401. 계좌 등록/수정 서버 로직에서 UI가 이미 검증한 키를 재검증 금지
 - **proxy.ts /me 실패 처리**: JWT 만료/무효로 /me 401 반환 시 → `STATUS_COOKIE`, `ROLE_COOKIE` 강제 삭제 필수 — 미삭제 시 다음 방문에서도 캐시 히트로 /me 재호출 안됨
 - **SSE 인증 패턴**: 브라우저 `EventSource`는 커스텀 헤더 미지원 → JWT 인증이 필요한 SSE는 Next.js Route Handler가 Bearer 토큰 포함 후 kista-api로 중계 (`app/api/auth/status-stream/route.ts` 참고)
 - **PENDING 상태 쿠키 캐싱 금지**: `kista-user-status` 쿠키에 PENDING을 저장하면 승인 후 새로고침 시 API 미호출 → PENDING 화면 유지 버그. `status !== 'PENDING'`일 때만 쿠키 저장

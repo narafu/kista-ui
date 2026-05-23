@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { KpiCard } from './KpiCard'
-import { RevealableValue } from './RevealableValue'
 import { cn } from '@/lib/utils'
 import { ProfitStatsCard } from './ProfitStatsCard'
 import { MarginCard } from './MarginCard'
@@ -108,7 +107,7 @@ function SummaryTab({
         <CardContent className="px-6 pb-6">
           {primary ? (
             <div className="grid grid-cols-2 gap-3">
-              <KpiCard label="계좌번호" value={<RevealableValue value={account.accountNoMasked} />} />
+              <KpiCard label="계좌번호" value={<span className="font-mono tracking-wider">{account.accountNoMasked}</span>} />
               <KpiCard label="종목" value={primary.ticker} />
               <KpiCard label="보유 수량" value={`${portfolio.holdings}주`} />
               <KpiCard label="평균 단가" value={`$${(portfolio.avgPrice ?? 0).toFixed(2)}`} />
@@ -127,7 +126,7 @@ function SummaryTab({
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3">
-              <KpiCard label="계좌번호" value={<RevealableValue value={account.accountNoMasked} />} />
+              <KpiCard label="계좌번호" value={<span className="font-mono tracking-wider">{account.accountNoMasked}</span>} />
               <p className="text-sm text-muted-foreground text-center py-3">
                 전략을 먼저 등록해주세요.
               </p>

@@ -44,3 +44,5 @@ next-env.d.ts
 
 # shrimp task manager
 .mcp.json
+
+*.log

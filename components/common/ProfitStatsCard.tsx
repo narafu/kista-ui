@@ -61,13 +61,13 @@ export function ProfitStatsCard({ accountId }: Props) {
             <CardTitle className="text-base">수익/손실 통계</CardTitle>
             <p className="text-xs text-muted-foreground mt-0.5">최근 {period}일 포트폴리오 추이</p>
           </div>
-          <div className="flex gap-0.5 rounded-lg bg-muted p-1">
+          <div className="flex gap-0.5 rounded-lg bg-muted p-1 shrink-0">
             {([7, 30, 90] as Period[]).map((p) => (
               <button
                 key={p}
                 type="button"
                 onClick={() => setPeriod(p)}
-                className={`flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
+                className={`flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
                   period === p
                     ? 'bg-background text-rose-600 shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'

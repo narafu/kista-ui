@@ -83,7 +83,10 @@ export default async function AccountDetailPage({ params }: Props) {
     listAccounts(token).catch((): Account[] => []),
     getAccountTrades(id, dateRange, token).catch((): Execution[] => []),
     getAccountPortfolio(id, token).catch((): PortfolioSnapshot | null => null),
-    listStrategies(id, token).catch((): Strategy[] => []),
+    listStrategies(id, token).catch((e): Strategy[] => {
+      console.error('[AccountDetailPage] listStrategies 실패:', e)
+      return []
+    }),
   ])
   const portfolio = normalizePortfolio(portfolioRaw)
 
