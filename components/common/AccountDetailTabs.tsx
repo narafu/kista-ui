@@ -1,23 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { KpiCard } from './KpiCard'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { RevealableValue } from './RevealableValue'
 import { cn } from '@/lib/utils'
-import { deleteAccount } from '@/lib/api/accounts'
-import { ApiError } from '@/lib/api/client'
 import { ProfitStatsCard } from './ProfitStatsCard'
 import { MarginCard } from './MarginCard'
 import { ReservationOrdersCard } from './ReservationOrdersCard'
@@ -94,10 +81,7 @@ function SummaryTab({
   portfolio: PortfolioSnapshot
   strategies: Strategy[]
 }) {
-  const router = useRouter()
   const { findStrategyType } = useMeta()
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
-  const [isDeleteLoading, setIsDeleteLoading] = useState(false)
 
   // 운영상 계좌당 1개의 ACTIVE 전략을 우선 — 없으면 첫 번째
   const primary = strategies.find((s) => s.status === 'ACTIVE') ?? strategies[0]
@@ -107,20 +91,6 @@ function SummaryTab({
   const cost = (portfolio.avgPrice ?? 0) * (portfolio.holdings ?? 0)
   const unrealized = (portfolio.marketValueUsd ?? 0) - cost
   const rate = cost > 0 ? (unrealized / cost) * 100 : 0
-
-  async function handleDelete() {
-    setIsDeleteLoading(true)
-    try {
-      await deleteAccount(account.id)
-      toast.success('계좌가 삭제되었습니다')
-      router.push('/dashboard')
-    } catch (err) {
-      toast.error(err instanceof ApiError ? '삭제에 실패했습니다' : '오류가 발생했습니다')
-      setIsDeleteOpen(false)
-    } finally {
-      setIsDeleteLoading(false)
-    }
-  }
 
   return (
     <div className="space-y-4">
@@ -138,7 +108,7 @@ function SummaryTab({
         <CardContent className="px-6 pb-6">
           {primary ? (
             <div className="grid grid-cols-2 gap-3">
-              <KpiCard label="계좌번호" value={account.accountNoMasked} />
+              <KpiCard label="계좌번호" value={<RevealableValue value={account.accountNoMasked} />} />
               <KpiCard label="종목" value={primary.ticker} />
               <KpiCard label="보유 수량" value={`${portfolio.holdings}주`} />
               <KpiCard label="평균 단가" value={`$${(portfolio.avgPrice ?? 0).toFixed(2)}`} />
@@ -157,7 +127,7 @@ function SummaryTab({
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3">
-              <KpiCard label="계좌번호" value={account.accountNoMasked} />
+              <KpiCard label="계좌번호" value={<RevealableValue value={account.accountNoMasked} />} />
               <p className="text-sm text-muted-foreground text-center py-3">
                 전략을 먼저 등록해주세요.
               </p>
@@ -168,30 +138,6 @@ function SummaryTab({
 
       {/* 전략 섹션 */}
       <StrategyList accountId={account.id} strategies={strategies} />
-
-      <div className="flex gap-2">
-        <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-          <DialogTrigger className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'h-10 px-4 text-destructive hover:text-destructive')}>
-            계좌 삭제
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>계좌 삭제</DialogTitle>
-              <DialogDescription>
-                {account.nickname} 계좌를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDeleteOpen(false)} disabled={isDeleteLoading}>
-                취소
-              </Button>
-              <Button variant="destructive" onClick={handleDelete} disabled={isDeleteLoading}>
-                {isDeleteLoading ? '삭제 중...' : '삭제'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
     </div>
   )
 }

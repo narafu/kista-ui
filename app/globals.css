@@ -235,6 +235,14 @@
   html {
     font-family: var(--font-sans);
   }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a,
+  select:not(:disabled),
+  label[for],
+  summary {
+    cursor: pointer;
+  }
 }
 
 /* ── KISTA utility classes ──────────────────────────────────── */

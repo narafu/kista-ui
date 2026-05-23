@@ -3,7 +3,6 @@ import { getAuthToken } from '@/lib/auth/token'
 import { listAccounts } from '@/lib/api/accounts'
 import { AccountEditForm } from '@/components/accounts/AccountEditForm'
 import { PageHeader } from '@/components/common/PageHeader'
-import { AccountEditDeleteButton } from '@/components/accounts/AccountEditDeleteButton'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -29,9 +28,6 @@ export default async function AccountEditPage({ params }: Props) {
       <PageHeader
         eyebrow="계좌 관리"
         title="계좌 수정"
-        actions={
-          <AccountEditDeleteButton accountId={id} nickname={account.nickname} />
-        }
       />
 
       <AccountEditForm account={account} />
