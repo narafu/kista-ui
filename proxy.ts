@@ -5,11 +5,12 @@ const STATUS_COOKIE = 'kista-user-status'
 const ROLE_COOKIE = 'kista-user-role'
 const KISTA_TOKEN_COOKIE = 'kista-token'
 const VALID_STATUSES = new Set(['PENDING', 'REJECTED', 'ACTIVE'])
+// status/role 캐시: 1시간마다 만료 → /me 재호출로 JWT 유효성 재검증
 const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'lax' as const,
-  maxAge: 604800,
+  maxAge: 3600,
   path: '/',
 }
 const PROTECTED_PREFIXES = ['/dashboard', '/accounts', '/settings', '/statistics']
@@ -56,7 +57,11 @@ export async function proxy(request: NextRequest) {
       })
 
       if (!meRes.ok) {
-        return isProtected ? redirectTo('/', request) : response
+        const dest = isProtected ? redirectTo('/', request) : response
+        // JWT 만료/무효 → 캐시 쿠키 초기화하여 다음 방문 시 재검증 강제
+        dest.cookies.delete(STATUS_COOKIE)
+        dest.cookies.delete(ROLE_COOKIE)
+        return dest
       }
 
       const userData = await meRes.json()
