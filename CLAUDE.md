@@ -131,6 +131,8 @@ NEXT_PUBLIC_KAKAO_CLIENT_ID=    # 카카오 앱 REST API 키
 NEXT_PUBLIC_API_BASE_URL=       # kista-api Render URL
 ```
 
+- **환경변수 추가 시 `.env.local.example` 동기화 필수**: 새 `NEXT_PUBLIC_*` 변수 추가 시 `.env.local.example`에도 빈 값 + 주석으로 반드시 추가
+
 ## CORS 주의사항
 
 - Server Component / route.ts의 fetch → Vercel 서버에서 Render 호출 → **CORS 영향 받음** (Node.js fetch가 Origin 헤더 포함 시 Spring CORS 필터 적용)
