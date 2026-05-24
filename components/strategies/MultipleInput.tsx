@@ -3,29 +3,29 @@
 import { useRef } from 'react'
 import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
 
 interface Props {
   value: string
   onChange: (v: string) => void
-  max: number | null        // null = 계산 불가 (기준가 없음)
+  max: number | null        // null = 계산 불가
+  min: number               // INFINITE=1, PRIVACY=0.5
+  step: number              // INFINITE=0.1, PRIVACY=0.5
   disabled?: boolean
-  loading?: boolean         // 기준가 조회 중
+  loading?: boolean
 }
 
-const STEP = 0.5
-const MIN = 0.5
-
-function snapToStep(raw: number): number {
-  return Math.round(raw / STEP) * STEP
+function snapToStep(raw: number, step: number): number {
+  const precision = Math.round(1 / step)
+  return Math.round(raw * precision) / precision
 }
 
-function floorToStep(raw: number): number {
-  return Math.floor(raw / STEP) * STEP
+function floorToStep(raw: number, step: number): number {
+  const precision = Math.round(1 / step)
+  return Math.floor(raw * precision) / precision
 }
 
-export function MultipleInput({ value, onChange, max, disabled, loading }: Props) {
-  const prevRef = useRef(value) // blur 시 MAX 초과 복원용
+export function MultipleInput({ value, onChange, max, min, step, disabled, loading }: Props) {
+  const prevRef = useRef(value)
 
   const parsed = parseFloat(value)
   const isValid = !isNaN(parsed)
@@ -37,19 +37,23 @@ export function MultipleInput({ value, onChange, max, disabled, loading }: Props
       onChange(prevRef.current)
       return
     }
-
-    // MAX 초과 검사
+    // MIN 미만 → min으로 스냅
+    if (raw < min) {
+      onChange(String(min))
+      prevRef.current = String(min)
+      return
+    }
+    // MAX 초과 → 조용히 복원 (alert 없음, 부모 multipleError로 표시됨)
     if (max !== null && raw > max) {
-      alert(`최대 ${max}배까지 입력 가능합니다 (예수금 기준)`)
       onChange(prevRef.current)
       return
     }
-
-    // 0.5 단위 스냅
-    const snapped = snapToStep(raw)
+    // step 단위 스냅
+    const snapped = snapToStep(raw, step)
     if (Math.abs(snapped - raw) > 1e-9) {
       onChange(String(snapped))
-      toast.info(`0.5 단위로 조정되었습니다: ${snapped}`)
+      prevRef.current = String(snapped)
+      toast.info(`${step} 단위로 조정되었습니다: ${snapped}`)
     } else {
       prevRef.current = value
     }
@@ -63,29 +67,24 @@ export function MultipleInput({ value, onChange, max, disabled, loading }: Props
     prevRef.current = value
   }
 
-  function step(dir: 1 | -1) {
-    const current = isValid ? parsed : 0
-    const next = current + dir * STEP
-    if (next < MIN) return
-    if (max !== null && next > max) {
-      alert(`최대 ${max}배까지 입력 가능합니다 (예수금 기준)`)
-      return
-    }
-    // 부동소수점 오차 방지
-    const rounded = Math.round(next * 10) / 10
-    onChange(String(rounded))
-    prevRef.current = String(rounded)
+  function increment(dir: 1 | -1) {
+    const current = isValid ? parsed : min
+    const next = snapToStep(current + dir * step, step)
+    if (next < min) return
+    if (max !== null && next > max) return  // atMax로 버튼 disabled 처리됨
+    onChange(String(next))
+    prevRef.current = String(next)
   }
 
   function handleMax() {
     if (max === null) return
-    const maxVal = floorToStep(max)
+    const maxVal = floorToStep(max, step)
     onChange(String(maxVal))
     prevRef.current = String(maxVal)
   }
 
-  const atMin = isValid && parsed <= MIN
-  const atMax = max !== null && isValid && parsed >= floorToStep(max)
+  const atMin = isValid && parsed <= min
+  const atMax = max !== null && isValid && parsed >= floorToStep(max, step)
   const maxDisabled = max === null || disabled || loading
 
   return (
@@ -93,7 +92,7 @@ export function MultipleInput({ value, onChange, max, disabled, loading }: Props
       {/* 감소 버튼 */}
       <button
         type="button"
-        onClick={() => step(-1)}
+        onClick={() => increment(-1)}
         disabled={disabled || loading || atMin}
         style={{
           width: 36,
@@ -111,7 +110,7 @@ export function MultipleInput({ value, onChange, max, disabled, loading }: Props
           transition: 'opacity .15s',
           opacity: disabled || loading || atMin ? 0.4 : 1,
         }}
-        aria-label="0.5 감소"
+        aria-label={`${step} 감소`}
       >
         −
       </button>
@@ -125,7 +124,7 @@ export function MultipleInput({ value, onChange, max, disabled, loading }: Props
         onBlur={handleBlur}
         onFocus={handleFocus}
         disabled={disabled || loading}
-        placeholder={loading ? '조회 중...' : '1.0'}
+        placeholder={loading ? '조회 중...' : String(min)}
         className="text-center flex-1"
         style={{ minWidth: 0 }}
       />
@@ -133,7 +132,7 @@ export function MultipleInput({ value, onChange, max, disabled, loading }: Props
       {/* 증가 버튼 */}
       <button
         type="button"
-        onClick={() => step(1)}
+        onClick={() => increment(1)}
         disabled={disabled || loading || atMax}
         style={{
           width: 36,
@@ -151,7 +150,7 @@ export function MultipleInput({ value, onChange, max, disabled, loading }: Props
           transition: 'opacity .15s',
           opacity: disabled || loading || atMax ? 0.4 : 1,
         }}
-        aria-label="0.5 증가"
+        aria-label={`${step} 증가`}
       >
         +
       </button>
@@ -161,7 +160,7 @@ export function MultipleInput({ value, onChange, max, disabled, loading }: Props
         type="button"
         onClick={handleMax}
         disabled={maxDisabled}
-        title={loading ? '기준가 조회 중' : max === null ? '기준가 없음' : `MAX ${floorToStep(max)}배`}
+        title={loading ? '기준가 조회 중' : max === null ? '기준가 없음' : `MAX ${floorToStep(max, step)}배`}
         style={{
           height: 36,
           padding: '0 12px',

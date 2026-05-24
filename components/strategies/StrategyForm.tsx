@@ -34,16 +34,23 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
   const [usdDeposit, setUsdDeposit] = useState<number | null>(null)
   const [prices, setPrices] = useState<PriceMap | null>(null)
   const [privacyBase, setPrivacyBase] = useState<number | null>(null)
-  const [loadingBase, setLoadingBase] = useState(!initial) // 수정 모드는 스킵
+  const [loadingBase, setLoadingBase] = useState(!initial)
 
   const typeMeta = useMemo(() => findStrategyType(type), [findStrategyType, type])
   const availableTickers = typeMeta?.availableTickers ?? []
 
+  // INFINITE(3종목) vs PRIVACY(1종목) 판별
+  const isInfinite = typeMeta?.availableTickers?.length === 3
+
+  // 전략 타입별 배수 단위/최솟값
+  const minMultiple = isInfinite ? 1 : 0.5
+  const stepMultiple = isInfinite ? 0.1 : 0.5
+
   // 다이얼로그 열릴 때 예수금 + 종목가격 + PRIVACY 기준가 한 번에 조회
   useEffect(() => {
-    if (initial) return // 수정 모드 스킵
+    if (initial) return
     setLoadingBase(true)
-    // per-promise .catch: 하나 실패해도 나머지 결과는 살림 (Promise.all fail-fast 방지)
+    // per-promise .catch: 하나 실패해도 나머지 결과는 살림
     Promise.all([
       getMargin(accountId).catch(() => null),
       getPrices(accountId, INFINITE_TICKERS).catch(() => null),
@@ -74,46 +81,56 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type])
 
-  // 현재 선택된 type + ticker 에 대한 기준가
+  // 현재 선택된 type + ticker에 대한 기준가
   const basePrice = useMemo(() => {
     if (!type || !ticker) return null
-    // 메타 코드 기반으로 INFINITE/PRIVACY 판별 (리터럴 하드코딩 피함)
-    const isInfinite = typeMeta?.availableTickers?.length === 3
     if (isInfinite) return prices?.[ticker] ?? null
-    // PRIVACY (single ticker)
     return privacyBase
-  }, [type, ticker, typeMeta, prices, privacyBase])
+  }, [type, ticker, isInfinite, prices, privacyBase])
 
-  // MAX 배수 = floor(예수금 / 기준가 / 0.5) * 0.5
+  // 최소 시드: INFINITE = 종목가 × 20 × 2 × 1.1 (배수 1의 값)
+  //           PRIVACY  = currentCycleStart / 2     (배수 0.5의 값)
+  const minSeed = useMemo(() => {
+    if (initial) return null
+    if (isInfinite) return basePrice !== null ? basePrice * 20 * 2 * 1.1 : null
+    return privacyBase !== null ? privacyBase / 2 : null
+  }, [isInfinite, basePrice, privacyBase, initial])
+
+  const isBelowMinSeed = !initial && usdDeposit !== null && minSeed !== null && usdDeposit < minSeed
+
+  // MAX 배수: INFINITE = floor(예수금 / 최소시드 × 10) / 10
+  //           PRIVACY  = floor(예수금 / 기준가 × 2) / 2
   const maxMultiple = useMemo(() => {
-    if (basePrice == null || usdDeposit == null || basePrice <= 0 || usdDeposit <= 0) return null
-    return Math.floor(usdDeposit / basePrice / 0.5) * 0.5
-  }, [basePrice, usdDeposit])
+    if (initial || isBelowMinSeed || usdDeposit === null) return null
+    if (isInfinite && minSeed !== null) return Math.floor(usdDeposit / minSeed * 10) / 10
+    if (!isInfinite && privacyBase !== null) return Math.floor(usdDeposit / privacyBase * 2) / 2
+    return null
+  }, [initial, isBelowMinSeed, isInfinite, usdDeposit, minSeed, privacyBase])
+
+  // 입력값 검증 (step 단위, MAX 초과)
+  const multipleError = useMemo(() => {
+    const num = parseFloat(multiple)
+    if (!multiple || isNaN(num)) return null
+    if (num < minMultiple) return `최소 ${minMultiple}배부터 입력해주세요`
+    const remainder = Math.abs(Math.round(num / stepMultiple) * stepMultiple - num)
+    if (remainder > 1e-9) return `${stepMultiple} 단위로 입력해주세요`
+    if (maxMultiple !== null && num > maxMultiple) return `최대 ${maxMultiple}배를 초과했습니다`
+    return null
+  }, [multiple, minMultiple, stepMultiple, maxMultiple])
+
+  // 등록 불가 조건 (버튼 disabled)
+  const cannotSubmit = !initial && (
+    isBelowMinSeed ||
+    (!isInfinite && privacyBase === null)
+  )
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!type) { toast.error('전략 타입을 선택하세요'); return }
     if (!ticker) { toast.error('종목을 선택하세요'); return }
-
-    // PRIVACY 기준 매매표 없으면 등록 차단
-    const isSingleTicker = availableTickers.length === 1
-    if (isSingleTicker && privacyBase === null && !initial) {
-      alert('오늘 이후 날짜의 기준 매매표가 없어 등록할 수 없습니다')
-      return
-    }
-
-    // 매수 배수 검증
     if (multiple) {
       const multipleNum = parseFloat(multiple)
       if (isNaN(multipleNum)) { toast.error('매수 배수가 올바르지 않습니다'); return }
-      if (Math.abs(Math.round(multipleNum / 0.5) * 0.5 - multipleNum) > 1e-9) {
-        alert('매수 배수는 0.5 단위로 입력해야 합니다')
-        return
-      }
-      if (maxMultiple !== null && multipleNum > maxMultiple) {
-        alert(`최대 ${maxMultiple}배까지 입력 가능합니다 (예수금 기준)`)
-        return
-      }
     }
 
     setLoading(true)
@@ -139,6 +156,32 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
       setLoading(false)
     }
   }
+
+  // 보조 텍스트 (기준가 / MAX / 최소 시드 / 경고)
+  function auxText(): { text: string; isWarning: boolean } {
+    if (loadingBase) return { text: '기준가 조회 중...', isWarning: false }
+    if (isBelowMinSeed && minSeed !== null)
+      return {
+        text: `최소 예수금 $${minSeed.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        isWarning: true,
+      }
+    if (!isInfinite && privacyBase === null)
+      return { text: '오늘 이후 기준 매매표가 없습니다', isWarning: true }
+    if (basePrice !== null && maxMultiple !== null)
+      return {
+        text: `기준가: $${basePrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} · MAX: ${maxMultiple}배`,
+        isWarning: false,
+      }
+    if (basePrice !== null)
+      return {
+        text: `기준가: $${basePrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`,
+        isWarning: false,
+      }
+    if (ticker) return { text: '기준가를 가져오지 못했습니다', isWarning: true }
+    return { text: '종목을 선택하면 MAX가 계산됩니다', isWarning: false }
+  }
+
+  const aux = !initial ? auxText() : null
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
@@ -232,7 +275,7 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
         )}
       </div>
 
-      {/* 예수금 표시 (등록 모드 전용) */}
+      {/* USD 예수금 (등록 모드 전용) */}
       {!initial && (
         <div
           style={{
@@ -260,23 +303,24 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
           value={multiple}
           onChange={setMultiple}
           max={maxMultiple}
+          min={minMultiple}
+          step={stepMultiple}
           disabled={loading}
           loading={loadingBase}
         />
-        {/* 기준가 / MAX 보조 텍스트 */}
-        {!initial && (
-          <p className="text-[11px] text-muted-foreground">
-            {loadingBase
-              ? '기준가 조회 중...'
-              : basePrice !== null && maxMultiple !== null
-                ? `기준가: $${basePrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} · MAX: ${maxMultiple}배`
-                : basePrice !== null
-                  ? `기준가: $${basePrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`
-                  : ticker
-                    ? '기준가를 가져오지 못했습니다'
-                    : '종목을 선택하면 MAX가 계산됩니다'}
+
+        {/* 배수 입력 오류 */}
+        {multipleError && (
+          <p className="text-[11px]" style={{ color: 'var(--rose-600)' }}>{multipleError}</p>
+        )}
+
+        {/* 기준가 / MAX / 최소 시드 보조 텍스트 */}
+        {aux && (
+          <p className="text-[11px]" style={{ color: aux.isWarning ? 'var(--rose-600)' : 'var(--muted-foreground)' }}>
+            {aux.text}
           </p>
         )}
+
         {typeMeta?.defaultMultiple && (
           <p className="text-[11px] text-muted-foreground">기본값: {typeMeta.defaultMultiple}</p>
         )}
@@ -288,7 +332,11 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
             취소
           </Button>
         )}
-        <Button type="submit" className="flex-1" disabled={loading}>
+        <Button
+          type="submit"
+          className="flex-1"
+          disabled={loading || cannotSubmit || !!multipleError}
+        >
           {loading ? '저장 중...' : initial ? '수정' : '등록'}
         </Button>
       </div>
