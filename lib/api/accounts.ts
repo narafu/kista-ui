@@ -44,8 +44,8 @@ interface MultiPriceResponseRaw {
 }
 
 export async function getPrices(accountId: string, tickers: string[]): Promise<PriceMap> {
-  const query = tickers.join(',')
-  const raw = await clientFetch<MultiPriceResponseRaw>(`/api/accounts/${accountId}/prices?tickers=${query}`)
+  const query = tickers.map(t => `tickers=${encodeURIComponent(t)}`).join('&')
+  const raw = await clientFetch<MultiPriceResponseRaw>(`/api/accounts/${accountId}/prices?${query}`)
   return Object.fromEntries(
     raw.prices.map(({ ticker, price }) => [ticker, typeof price === 'string' ? parseFloat(price) : price])
   )

@@ -43,17 +43,19 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
   useEffect(() => {
     if (initial) return // 수정 모드 스킵
     setLoadingBase(true)
+    // per-promise .catch: 하나 실패해도 나머지 결과는 살림 (Promise.all fail-fast 방지)
     Promise.all([
-      getMargin(accountId),
-      getPrices(accountId, INFINITE_TICKERS),
-      getPrivacyCurrentBase().catch(() => null), // 기준 매매표 없으면 null
+      getMargin(accountId).catch(() => null),
+      getPrices(accountId, INFINITE_TICKERS).catch(() => null),
+      getPrivacyCurrentBase().catch(() => null),
     ]).then(([margin, priceMap, privacy]) => {
-      const usd = margin.find((m) => m.currency === 'USD')?.integratedOrderableAmount ?? null
+      const usd = margin?.find((m) => m.currency === 'USD')?.integratedOrderableAmount ?? null
       setUsdDeposit(usd)
       setPrices(priceMap)
       setPrivacyBase(privacy?.currentCycleStart ?? null)
-    }).catch(() => {
-      toast.error('예수금 / 기준가 조회에 실패했습니다')
+      if (!margin && !priceMap && !privacy) {
+        toast.error('예수금 / 기준가 조회에 실패했습니다')
+      }
     }).finally(() => {
       setLoadingBase(false)
     })
