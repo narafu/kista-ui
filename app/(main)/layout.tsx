@@ -3,13 +3,18 @@ import { MobileBottomNav } from '@/components/layout/MobileBottomNav'
 import { MobileHeader } from '@/components/layout/MobileHeader'
 import { TradeNotificationProvider } from '@/components/trading/TradeNotificationProvider'
 import { MetaProvider } from '@/components/providers/MetaProvider'
+import { FcmAutoRegister } from '@/components/providers/FcmAutoRegister'
 import { getMetaBundle } from '@/lib/api/meta'
+import { getMe } from '@/lib/api/auth'
 import { getAuthToken } from '@/lib/auth/token'
 import { Toaster } from 'sonner'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const token = await getAuthToken()
-  const meta = await getMetaBundle(token)
+  const [meta, user] = await Promise.all([
+    getMetaBundle(token),
+    token ? getMe(token).catch(() => null) : null,
+  ])
 
   return (
     <MetaProvider meta={meta}>
@@ -22,6 +27,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         </div>
         <Toaster richColors position="top-right" />
         <TradeNotificationProvider />
+        <FcmAutoRegister notificationChannel={user?.notificationChannel ?? 'TELEGRAM'} />
       </div>
     </MetaProvider>
   )
