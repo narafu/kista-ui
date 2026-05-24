@@ -1,6 +1,13 @@
 import { apiFetch, clientFetch } from './client'
 import type { Account, AccountRequest } from '@/types/account'
 
+export interface MarginItem {
+  currency: string
+  integratedOrderableAmount: number
+}
+
+export type PriceMap = Record<string, number>
+
 export async function listAccounts(token: string): Promise<Account[]> {
   return apiFetch<Account[]>('/api/accounts', { method: 'GET' }, token)
 }
@@ -26,5 +33,21 @@ export async function updateAccount(id: string, data: AccountRequest, token?: st
 export async function deleteAccount(id: string, token?: string): Promise<void> {
   if (token) return apiFetch<void>(`/api/accounts/${id}`, { method: 'DELETE' }, token)
   await clientFetch<void>(`/api/accounts/${id}`, { method: 'DELETE' })
+}
+
+export async function getMargin(accountId: string): Promise<MarginItem[]> {
+  return clientFetch<MarginItem[]>(`/api/accounts/${accountId}/margin`)
+}
+
+interface MultiPriceResponseRaw {
+  prices: Array<{ ticker: string; price: number | string }>
+}
+
+export async function getPrices(accountId: string, tickers: string[]): Promise<PriceMap> {
+  const query = tickers.join(',')
+  const raw = await clientFetch<MultiPriceResponseRaw>(`/api/accounts/${accountId}/prices?tickers=${query}`)
+  return Object.fromEntries(
+    raw.prices.map(({ ticker, price }) => [ticker, typeof price === 'string' ? parseFloat(price) : price])
+  )
 }
 

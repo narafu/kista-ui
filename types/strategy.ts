@@ -12,4 +12,5 @@ export interface StrategyRequest {
   type: string
   ticker?: string
   multiple?: string
+  initialUsdDeposit?: number
 }
