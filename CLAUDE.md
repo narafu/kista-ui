@@ -98,6 +98,10 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **`apiFetch` baseUrl 패턴**: `client.ts`는 `API_BASE_URL ?? NEXT_PUBLIC_API_BASE_URL` 순서 — 서버사이드(Docker)는 `API_BASE_URL=http://host.docker.internal:8080` 우선, 브라우저는 `undefined ??` 폴백으로 `NEXT_PUBLIC_API_BASE_URL` 사용
 - **204 반환 엔드포인트 처리**: `res.json()` 호출 금지 → `SyntaxError: Unexpected end of JSON input`. `apiFetch`/`clientFetch` 모두 204·content-length=0 자동 처리 — no-token 경로에서 raw `fetch` + 수동 204 처리 패턴 금지, 반드시 `clientFetch<void>` 사용
 - **clientFetch vs apiFetch 구분**: `apiFetch(path, opts, token)` = Server Component 전용(kista-api 직접 호출). `clientFetch<T>(path, opts?)` = Client Component 전용(Route Handler 경유, 401 수신 시 자동 `/api/auth/logout` + `window.location.href='/'`) — Client Component에서 raw `fetch('/api/...')+throw` 패턴 금지, 반드시 `clientFetch` 사용
+- **FCM 다중 기기 지원**: `fcm_device_tokens` 테이블은 사용자당 여러 토큰 허용 (기기/브라우저별). `FcmAdapter.send()`는 `MulticastMessage`로 모든 토큰에 동시 발송. `save()`는 중복 토큰 자동 skip (UNIQUE 제약 + 존재 여부 사전 체크)
+- **FCM 자동 토큰 등록**: `components/providers/FcmAutoRegister.tsx` — `(main)/layout.tsx`에 마운트. 알림 채널이 FCM/ALL이고 `Notification.permission === 'granted'`인 기기에서 앱 진입 시 자동으로 토큰 등록 (새 기기/브라우저 대응). `getToken()`은 멱등 → 반복 호출 안전
+- **FCM 알림 발송 시점**: 매매 결산(`TradingService.execute()` 완료), 가입 승인, 가입 거절. 신규 가입 알림·전략 변경 알림은 관리자 전용(텔레그램만, FCM no-op). `NotificationChannel`: TELEGRAM/FCM/ALL
+- **lib/fcm.ts clientFetch 필수**: `registerTokenToServer`/`unregisterTokenFromServer`는 `clientFetch<void>` 사용 — raw fetch 금지 (401 자동 로그아웃 누락)
 - **쿠키 관련 수정 후 검증**: 쿠키 옵션 변경 후 재빌드만으로는 기존 세션에 미적용 — 브라우저 쿠키 직접 삭제 후 카카오 재로그인 필요. kista-api 로그에 `/api/auth/me` 호출이 없으면 브라우저에 `kista-token`이 없다는 증거
 - **ProfitStatsCard**: self-fetching client component — `accountId` prop만 넘기면 내부 useEffect에서 직접 API 호출 (Server Component에서 token 전달 불필요)
 - **ProfitStatsCard 차트 공백**: `getPortfolioSnapshots()` = DB 저장 스냅샷 기반 (실시간 KIS 아님). kista-api가 주기적으로 스냅샷 저장 안 하면 항상 "데이터가 없습니다"
