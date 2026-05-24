@@ -60,6 +60,7 @@ export function AccountDetailTabs({
               account={account}
               portfolio={portfolio}
               usdDeposit={usdDeposit}
+              hasStrategy={strategies.length > 0}
             />
             <StrategyList accountId={account.id} strategies={strategies} />
           </div>
@@ -77,6 +78,7 @@ export function AccountDetailTabs({
             account={account}
             portfolio={portfolio}
             usdDeposit={usdDeposit}
+            hasStrategy={strategies.length > 0}
           />
           <StrategyList accountId={account.id} strategies={strategies} />
         </div>
@@ -93,10 +95,12 @@ function AccountSummaryCard({
   account,
   portfolio,
   usdDeposit,
+  hasStrategy,
 }: {
   account: Account;
   portfolio: PortfolioSnapshot | null;
   usdDeposit: number;
+  hasStrategy: boolean;
 }) {
   const cost = portfolio
     ? (portfolio.avgPrice ?? 0) * (portfolio.holdings ?? 0)
@@ -120,7 +124,7 @@ function AccountSummaryCard({
             }
           />
           <KpiCard label="예수금" value={`$${(usdDeposit ?? 0).toFixed(2)}`} />
-          {portfolio && (
+          {hasStrategy && portfolio && (
             <>
               <KpiCard label="종목" value={portfolio.ticker} />
               <KpiCard
