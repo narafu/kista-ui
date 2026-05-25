@@ -5,12 +5,13 @@ import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {KpiCard} from "./KpiCard";
 import {cn} from "@/lib/utils";
 import {ReservationOrdersCard} from "./ReservationOrdersCard";
+import {NextOrderPreviewCard} from "./NextOrderPreviewCard";
 import {StrategyList} from "@/components/strategies/StrategyList";
 import type {Account} from "@/types/account";
 import type {Execution, PortfolioSnapshot} from "@/types/trade";
 import type {Strategy} from "@/types/strategy";
 
-type Tab = "summary" | "trades" | "reservation";
+type Tab = "summary" | "trades" | "reservation" | "preview";
 
 interface Props {
   account: Account;
@@ -33,7 +34,7 @@ export function AccountDetailTabs({
     <div className="space-y-4">
       {/* 모바일 탭 헤더 */}
       <div className="flex lg:hidden gap-1 border-b overflow-x-auto">
-        {(["summary", "trades", "reservation"] as Tab[]).map((tab) => (
+        {(["summary", "trades", "reservation", "preview"] as Tab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -47,7 +48,9 @@ export function AccountDetailTabs({
               ? "요약"
               : tab === "trades"
                 ? "거래내역"
-                : "예약 주문"}
+                : tab === "reservation"
+                  ? "예약 주문"
+                  : "다음 주문"}
           </button>
         ))}
       </div>
@@ -69,6 +72,14 @@ export function AccountDetailTabs({
         {activeTab === "reservation" && (
           <ReservationOrdersCard accountId={account.id} />
         )}
+        {activeTab === "preview" && (
+          <NextOrderPreviewCard
+            accountId={account.id}
+            strategyType={
+              (strategies.find((s) => s.status === "ACTIVE") ?? strategies[0])?.type
+            }
+          />
+        )}
       </div>
 
       {/* 데스크탑: 전체 레이아웃 */}
@@ -86,6 +97,12 @@ export function AccountDetailTabs({
           <TradesTab trades={trades} />
           <ReservationOrdersCard accountId={account.id} />
         </div>
+        <NextOrderPreviewCard
+          accountId={account.id}
+          strategyType={
+            (strategies.find((s) => s.status === "ACTIVE") ?? strategies[0])?.type
+          }
+        />
       </div>
     </div>
   );
