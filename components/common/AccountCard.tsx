@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { StatusDot } from './StatusDot'
-import { useMeta } from '@/components/providers/MetaProvider'
 import type { Account } from '@/types/account'
 import type { Strategy } from '@/types/strategy'
 
@@ -12,10 +11,9 @@ interface Props {
 }
 
 export function AccountCard({ account, strategies = [] }: Props) {
-  const { findStrategyType } = useMeta()
   // 운영상 계좌당 1건이지만, 방어적으로 첫 번째만 표시
   const primary = strategies[0]
-  const typeLabel = primary ? findStrategyType(primary.type)?.label ?? primary.type : null
+  const typeLabel = primary?.type ?? null
 
   return (
     <Link

@@ -4,13 +4,15 @@ export interface EnumMeta {
   description?: string
 }
 
-export interface StrategyTypeMeta extends EnumMeta {
+export interface StrategyTypeMeta {
+  code: string
+  description?: string
   availableTickers: string[]
-  defaultTicker: string
-  defaultMultiple: string
 }
 
-export interface TickerMeta extends EnumMeta {
+export interface TickerMeta {
+  code: string
+  description?: string
   exchangeCode: string
   targetProfitRate: string
 }

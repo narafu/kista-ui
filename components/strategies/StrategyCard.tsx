@@ -5,7 +5,6 @@ import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { useMeta } from '@/components/providers/MetaProvider'
 import { StatusDot } from '@/components/common/StatusDot'
 import { pauseStrategy, resumeStrategy, deleteStrategy } from '@/lib/api/strategies'
 import { ApiError } from '@/lib/api/client'
@@ -18,11 +17,7 @@ interface Props {
 
 export function StrategyCard({ strategy, onChanged }: Props) {
   const router = useRouter()
-  const { findStrategyType, findTicker } = useMeta()
   const [loading, setLoading] = useState(false)
-
-  const typeMeta = findStrategyType(strategy.type)
-  const tickerMeta = findTicker(strategy.ticker)
 
   async function handleToggle() {
     setLoading(true)
@@ -64,7 +59,7 @@ export function StrategyCard({ strategy, onChanged }: Props) {
         {/* 헤더: 전략 타입 배지 + 상태 */}
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center px-2.5 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-rose-50 text-rose-600">
-            {typeMeta?.label ?? strategy.type}
+            {strategy.type}
           </span>
           <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
         </div>
@@ -73,7 +68,7 @@ export function StrategyCard({ strategy, onChanged }: Props) {
         <div className="grid grid-cols-2 gap-6 flex-1">
           <div>
             <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">종목</p>
-            <p className="text-lg font-semibold">{tickerMeta?.label ?? strategy.ticker}</p>
+            <p className="text-lg font-semibold">{strategy.ticker}</p>
           </div>
           <div>
             <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">매수 배수</p>

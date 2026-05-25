@@ -44,8 +44,8 @@ export function StrategyForm({accountId, initial, onSuccess, onCancel}: Props) {
   );
   const availableTickers = typeMeta?.availableTickers ?? [];
 
-  // INFINITE(3종목) vs PRIVACY(1종목) 판별
-  const isInfinite = typeMeta?.availableTickers?.length === 3;
+  // PRIVACY만 단일(SOXL), INFINITE는 다종목 — length로 판별
+  const isInfinite = (typeMeta?.availableTickers?.length ?? 0) > 1;
 
   // 전략 타입별 배수 단위/최솟값
   const minMultiple = isInfinite ? 1 : 0.5;
@@ -82,10 +82,10 @@ export function StrategyForm({accountId, initial, onSuccess, onCancel}: Props) {
   useEffect(() => {
     if (!typeMeta) return;
     if (!ticker || !availableTickers.includes(ticker)) {
-      setTicker(typeMeta.defaultTicker);
+      setTicker(typeMeta.availableTickers[0]);
     }
     if (!multiple) {
-      setMultiple(typeMeta.defaultMultiple);
+      setMultiple("1");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type]);
@@ -244,7 +244,7 @@ export function StrategyForm({accountId, initial, onSuccess, onCancel}: Props) {
                     color: selected ? "var(--rose-600)" : "var(--foreground)",
                   }}
                 >
-                  {t.label}
+                  {t.code}
                 </p>
                 {t.description && (
                   <p
@@ -274,7 +274,6 @@ export function StrategyForm({accountId, initial, onSuccess, onCancel}: Props) {
             }}
           >
             {availableTickers.map((code) => {
-              const tickerMeta = meta.tickers.find((tk) => tk.code === code);
               const sel = ticker === code;
               return (
                 <button
@@ -303,19 +302,6 @@ export function StrategyForm({accountId, initial, onSuccess, onCancel}: Props) {
                   >
                     {code}
                   </div>
-                  {tickerMeta?.label && tickerMeta.label !== code && (
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: sel
-                          ? "var(--rose-500)"
-                          : "var(--muted-foreground)",
-                        marginTop: 2,
-                      }}
-                    >
-                      {tickerMeta.label}
-                    </div>
-                  )}
                 </button>
               );
             })}
