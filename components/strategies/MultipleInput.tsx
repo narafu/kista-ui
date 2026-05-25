@@ -43,8 +43,9 @@ export function MultipleInput({ value, onChange, max, min, step, disabled, loadi
       prevRef.current = String(min)
       return
     }
-    // MAX 초과 → 조용히 복원 (alert 없음, 부모 multipleError로 표시됨)
+    // MAX 초과 → toast 경고 후 복원
     if (max !== null && raw > max) {
+      toast.warning(`MAX는 ${floorToStep(max, step)}배예요. 더 큰 값은 예수금 추가가 필요해요.`)
       onChange(prevRef.current)
       return
     }

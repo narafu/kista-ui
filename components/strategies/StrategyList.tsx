@@ -20,9 +20,16 @@ export function StrategyList({ accountId, strategies }: Props) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">전략</CardTitle>
-          {canAdd && strategies.length > 0 && (
-            <StrategyFormDialog accountId={accountId} disabled={false} />
-          )}
+          {/* 전략 있을 때: 변경 버튼 / 없을 때: 추가 버튼 (헤더) */}
+          {strategies.length > 0 ? (
+            <StrategyFormDialog
+              accountId={accountId}
+              initial={strategies[0]}
+              triggerLabel="전략 변경"
+              triggerVariant="ghost"
+              disabled={false}
+            />
+          ) : null}
         </div>
       </CardHeader>
       <CardContent className="px-6 pb-6 flex-1 flex flex-col">
@@ -31,7 +38,10 @@ export function StrategyList({ accountId, strategies }: Props) {
             <p className="text-sm text-muted-foreground text-center">
               등록된 전략이 없습니다.
             </p>
-            <StrategyFormDialog accountId={accountId} disabled={false} />
+            <p className="text-xs text-muted-foreground text-center">
+              계좌당 {MAX_STRATEGIES}개 전략을 설정할 수 있습니다.
+            </p>
+            {canAdd && <StrategyFormDialog accountId={accountId} disabled={false} />}
           </div>
         ) : (
           <div className="flex-1">
