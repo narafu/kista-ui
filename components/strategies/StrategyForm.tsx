@@ -20,8 +20,6 @@ interface Props {
   onCancel?: () => void;
 }
 
-const INFINITE_TICKERS = ["TQQQ", "SOXL", "USD"];
-
 export function StrategyForm({accountId, initial, onSuccess, onCancel}: Props) {
   const router = useRouter();
   const {meta, findStrategyType} = useMeta();
@@ -58,7 +56,7 @@ export function StrategyForm({accountId, initial, onSuccess, onCancel}: Props) {
     // per-promise .catch: 하나 실패해도 나머지 결과는 살림
     Promise.all([
       getMargin(accountId).catch(() => null),
-      getPrices(accountId, INFINITE_TICKERS).catch(() => null),
+      getPrices(accountId, meta.tickers.map((t) => t.code)).catch(() => null),
       getPrivacyCurrentBase().catch(() => null),
     ])
       .then(([margin, priceMap, privacy]) => {
