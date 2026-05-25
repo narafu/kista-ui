@@ -192,3 +192,6 @@ NEXT_PUBLIC_API_BASE_URL=       # kista-api Render URL
 - MCP 로그는 메시지 잘림 → 에러 전문은 `vercel logs --scope narafus-projects --json` 사용
 - 카카오 redirect URI: 카카오 개발자 콘솔에서 `http://localhost:3000/auth/callback`(로컬)과 운영 URL 모두 등록 필요
 - 카카오 OAuth 레이트 리밋 주의: 로컬과 운영이 같은 카카오 앱 공유 → 반복 테스트 시 운영 로그인 장애 유발 가능
+- **catch-all Route Handler URL 변경 규칙**: `accounts/[[...path]]`, `admin/[[...path]]`, `privacy-trades/[[...path]]`, `meta/[[...path]]` 등 catch-all은 kista-api subpath 변경 시 Route Handler 수정 불필요 — 호출부(`lib/api/`, `components/`) URL만 변경. 예외: `app/api/auth/reapply-done/route.ts`처럼 전용 Route Handler에 kista-api URL이 하드코딩된 경우 직접 수정
+- **admin 사용자 상태 변경 엔드포인트**: `approveAdminUser`/`rejectAdminUser` → `PATCH /api/admin/users/{id}/status` body `{ status: 'ACTIVE' | 'REJECTED' }` (구 `POST /approve`, `POST /reject` 폐기)
+- **`orders/preview` 프론트엔드 미구현**: `GET /api/accounts/{accountId}/orders/preview` (구 `orders/next`) — `lib/api/`, `components/` 전체에 호출 코드 없음

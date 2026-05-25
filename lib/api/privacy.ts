@@ -7,5 +7,5 @@ export interface PrivacyCurrentBase {
 }
 
 export async function getPrivacyCurrentBase(): Promise<PrivacyCurrentBase> {
-  return clientFetch<PrivacyCurrentBase>('/api/privacy-trades/current-base')
+  return clientFetch<PrivacyCurrentBase>('/api/privacy-trades/base/latest')
 }

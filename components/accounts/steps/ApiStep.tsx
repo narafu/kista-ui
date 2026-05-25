@@ -32,7 +32,7 @@ export function ApiStep({ data, onNext }: Props) {
     setTestStatus('testing')
     setTestMessage('')
     try {
-      const res = await fetch('/api/accounts/test-connection', {
+      const res = await fetch('/api/accounts/connection-tests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ appKey: apiKey, appSecret: apiSecret }),

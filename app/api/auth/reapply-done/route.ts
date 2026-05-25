@@ -11,7 +11,7 @@ export async function POST() {
 
   const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
   try {
-    const res = await fetch(`${apiUrl}/api/auth/reapply`, {
+    const res = await fetch(`${apiUrl}/api/auth/approval-requests`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
     })

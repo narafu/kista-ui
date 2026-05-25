@@ -10,13 +10,21 @@ export async function listAdminUsers(token: string, status?: UserStatus): Promis
 
 // 사용자 승인 — Client Component에서 Route Handler 경유 호출 (token 불필요)
 export async function approveAdminUser(userId: string): Promise<void> {
-  const res = await fetch(`/api/admin/users/${userId}/approve`, { method: 'POST' })
+  const res = await fetch(`/api/admin/users/${userId}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: 'ACTIVE' }),
+  })
   if (!res.ok) throw new Error(`approve failed: ${res.status}`)
 }
 
 // 사용자 거절 — Client Component에서 Route Handler 경유 호출
 export async function rejectAdminUser(userId: string): Promise<void> {
-  const res = await fetch(`/api/admin/users/${userId}/reject`, { method: 'POST' })
+  const res = await fetch(`/api/admin/users/${userId}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: 'REJECTED' }),
+  })
   if (!res.ok) throw new Error(`reject failed: ${res.status}`)
 }
 
