@@ -114,21 +114,17 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
 
   const minSeed = useMemo(() => {
     if (initial) return null;
-    if (isInfinite) return basePrice !== null ? basePrice * 20 * 2 * 1.1 : null;
-    return privacyBase !== null ? privacyBase / 2 : null;
+    if (isInfinite) return basePrice !== null ? basePrice * 20 * 2 : null;
+    return privacyBase !== null ? privacyBase : null;
   }, [isInfinite, basePrice, privacyBase, initial]);
 
   const isBelowMinSeed =
     !initial && usdDeposit !== null && minSeed !== null && usdDeposit < minSeed;
 
   const maxMultiple = useMemo(() => {
-    if (initial || isBelowMinSeed || usdDeposit === null) return null;
-    if (isInfinite && minSeed !== null)
-      return Math.floor((usdDeposit / minSeed) * 10) / 10;
-    if (!isInfinite && privacyBase !== null)
-      return Math.floor((usdDeposit / privacyBase) * 2) / 2;
-    return null;
-  }, [initial, isBelowMinSeed, isInfinite, usdDeposit, minSeed, privacyBase]);
+    if (initial || isBelowMinSeed || usdDeposit === null || minSeed === null) return null;
+    return floorToStep(usdDeposit / minSeed, stepMultiple);
+  }, [initial, isBelowMinSeed, usdDeposit, minSeed, stepMultiple]);
 
   const multipleError = useMemo(() => {
     const num = parseFloat(multiple);
@@ -156,14 +152,15 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
 
   // 실시간 미리보기 (G — 신규 등록 전용 자체 계산)
   const previewStrip = useMemo(() => {
-    if (initial || !usdDeposit || !basePrice) return null;
+    if (initial || !usdDeposit || !basePrice || minSeed === null) return null;
     const mul = parseFloat(multiple) || minMultiple;
-    const unitAmt = (usdDeposit / 20) * mul;
+    const allocatedSeed = minSeed * mul;
+    const unitAmt = allocatedSeed / 20;
     const firstBuyQty = Math.floor(unitAmt / (basePrice * 2));
     const firstBuyAmt = firstBuyQty * basePrice;
     const remainingRounds = Math.round(20 / mul);
     return { unitAmt, firstBuyQty, firstBuyAmt, remainingRounds };
-  }, [initial, usdDeposit, basePrice, multiple, minMultiple]);
+  }, [initial, usdDeposit, basePrice, minSeed, multiple, minMultiple]);
 
   // 빠른 선택 칩 값 (D)
   const quickChips = isInfinite
@@ -180,11 +177,14 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
     }
     setLoading(true);
     try {
+      const mulNum = parseFloat(multiple) || minMultiple;
+      const computedInitialDeposit =
+        !initial && minSeed !== null ? Math.round(minSeed * mulNum * 100) / 100 : undefined;
       const payload: StrategyRequest = {
         type,
         ticker,
         multiple: multiple || undefined,
-        initialUsdDeposit: !initial && usdDeposit !== null ? usdDeposit : undefined,
+        initialUsdDeposit: computedInitialDeposit,
       };
       if (initial) {
         await updateStrategy(initial.id, payload);
@@ -435,8 +435,10 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
             background: "var(--rose-50)", border: "1px solid var(--rose-200)",
             color: "var(--rose-700)", lineHeight: 1.6,
           }}>
-            MAX = 예수금 ÷ (기준가 × 20차 × 2분할 × 1.1여유) ={" "}
-            <strong>{floorToStep(maxMultiple, stepMultiple)}×</strong>
+            {isInfinite
+            ? <>MAX = 예수금 ÷ (기준가 × 20차 × 2분할) = <strong>{floorToStep(maxMultiple, stepMultiple)}×</strong></>
+            : <>MAX = 예수금 ÷ 기준가 = <strong>{floorToStep(maxMultiple, stepMultiple)}×</strong></>
+          }
           </div>
         )}
 
