@@ -24,7 +24,7 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
   // MIN 클릭 시 세팅할 pct (5 단위 올림)
   const minPct =
     deposit != null && minSeed != null && deposit > 0
-      ? Math.min(100, Math.ceil(((minSeed / deposit) * 100) / 5) * 5)
+      ? Math.min(100, Math.ceil((minSeed / deposit) * 100))
       : null
 
   return (
@@ -60,15 +60,15 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
           opacity: allDisabled ? 0.5 : 1,
         }}>
           <input
-            type="number"
-            min={0}
-            max={100}
-            step={5}
-            value={value}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={String(value)}
             disabled={allDisabled}
             onChange={(e) => {
-              const v = Math.min(100, Math.max(0, Number(e.target.value)))
-              onChange(Math.round(v / 5) * 5)
+              const raw = e.target.value.replace(/[^\d]/g, '')
+              if (raw === '') { onChange(0); return }
+              onChange(Math.min(100, Math.max(0, Math.round(Number(raw)))))
             }}
             style={{
               flex: 1, border: 'none', outline: 'none', background: 'transparent',
@@ -144,7 +144,7 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
             type="range"
             min={0}
             max={100}
-            step={5}
+            step={1}
             value={value}
             disabled={allDisabled}
             onChange={(e) => onChange(Number(e.target.value))}
