@@ -294,6 +294,7 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
                 value={pct}
                 onChange={setPct}
                 deposit={usdDeposit}
+                minSeed={minSeed}
                 disabled={loading}
               />
 
