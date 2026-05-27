@@ -18,9 +18,7 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
   const trackH = compact ? 8 : 10
   const allocated = deposit !== null ? Math.round(deposit * value) / 100 : null
 
-  // 예수금 부족 여부
   const depositInsufficient = deposit != null && minSeed != null && deposit < minSeed
-  // 모든 입력 비활성화 조건
   const allDisabled = disabled || depositInsufficient
 
   // MIN 클릭 시 세팅할 pct (5 단위 올림)
@@ -31,8 +29,28 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
 
   return (
     <div>
-      {/* 숫자 입력 행 + MIN + MAX 버튼 */}
+      {/* 숫자 입력 행: [MIN] [입력칸] [MAX] */}
       <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: compact ? 12 : 14 }}>
+        {/* MIN 버튼 (minPct가 null이면 hidden) */}
+        {minPct !== null && (
+          <button
+            type="button"
+            disabled={allDisabled}
+            onClick={() => onChange(minPct)}
+            style={{
+              height: compact ? 38 : 40, padding: '0 12px', borderRadius: 8,
+              border: '1px solid var(--border)',
+              background: 'var(--muted)',
+              color: allDisabled ? 'var(--muted-foreground)' : 'var(--foreground)',
+              fontSize: 12, fontWeight: 700, letterSpacing: '0.05em',
+              cursor: allDisabled ? 'not-allowed' : 'pointer',
+              opacity: allDisabled ? 0.5 : 1,
+            }}
+          >
+            MIN
+          </button>
+        )}
+
         <div style={{
           flex: 1, position: 'relative',
           height: compact ? 38 : 40, borderRadius: 8,
@@ -61,25 +79,6 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
           <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--rose-600)', marginLeft: 4 }}>%</span>
         </div>
 
-        {/* MIN 버튼 (minPct가 null이면 hidden) */}
-        {minPct !== null && (
-          <button
-            type="button"
-            disabled={allDisabled}
-            onClick={() => onChange(minPct)}
-            style={{
-              height: compact ? 38 : 40, padding: '0 12px', borderRadius: 8,
-              border: '1px solid var(--border)',
-              background: allDisabled ? 'var(--muted)' : 'var(--muted)',
-              color: allDisabled ? 'var(--muted-foreground)' : 'var(--foreground)',
-              fontSize: 12, fontWeight: 700, letterSpacing: '0.05em', cursor: allDisabled ? 'not-allowed' : 'pointer',
-              opacity: allDisabled ? 0.5 : 1,
-            }}
-          >
-            MIN
-          </button>
-        )}
-
         {/* MAX 버튼 */}
         <button
           type="button"
@@ -99,59 +98,62 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
       </div>
 
       {/* 슬라이더 트랙 */}
-      <div style={{ position: 'relative', height: handleSize + 4, marginBottom: 10, opacity: allDisabled ? 0.5 : 1 }}>
-        {/* tick 마크 */}
-        <div style={{
-          position: 'absolute', left: 0, right: 0,
-          top: (handleSize + 4) / 2 - trackH / 2 - 3,
-          height: 3, display: 'flex', justifyContent: 'space-between', pointerEvents: 'none',
-        }}>
-          {[0, 25, 50, 75, 100].map((t) => (
-            <span key={t} style={{ width: 1, height: 3, background: 'var(--border-strong)', opacity: 0.6 }} />
-          ))}
-        </div>
-
-        {/* 트랙 배경 */}
-        <div style={{
-          position: 'absolute', left: 0, right: 0,
-          top: (handleSize + 4) / 2 - trackH / 2,
-          height: trackH, borderRadius: 999,
-          background: 'var(--muted)', border: '1px solid var(--border)',
-        }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+        {/* 슬라이더 트랙 */}
+        <div style={{ flex: 1, position: 'relative', height: handleSize + 4, opacity: allDisabled ? 0.5 : 1 }}>
+          {/* tick 마크 */}
           <div style={{
-            position: 'absolute', left: 0, top: -1, bottom: -1,
-            width: `${value}%`, borderRadius: 999,
-            background: 'linear-gradient(90deg, var(--rose-300), var(--rose-500))',
-            border: '1px solid var(--rose-500)',
-          }} />
-        </div>
+            position: 'absolute', left: 0, right: 0,
+            top: (handleSize + 4) / 2 - trackH / 2 - 3,
+            height: 3, display: 'flex', justifyContent: 'space-between', pointerEvents: 'none',
+          }}>
+            {[0, 25, 50, 75, 100].map((t) => (
+              <span key={t} style={{ width: 1, height: 3, background: 'var(--border-strong)', opacity: 0.6 }} />
+            ))}
+          </div>
 
-        {/* 핸들 */}
-        <div style={{
-          position: 'absolute', top: 0, left: `${value}%`, transform: 'translateX(-50%)',
-          width: handleSize, height: handleSize, borderRadius: 999,
-          background: '#fff', border: '2px solid var(--rose-500)',
-          boxShadow: '0 2px 6px rgba(143,68,48,0.28)',
-          display: 'grid', placeItems: 'center',
-          pointerEvents: 'none',
-        }}>
-          <span style={{ width: 4, height: 4, borderRadius: 999, background: 'var(--rose-500)' }} />
-        </div>
+          {/* 트랙 배경 */}
+          <div style={{
+            position: 'absolute', left: 0, right: 0,
+            top: (handleSize + 4) / 2 - trackH / 2,
+            height: trackH, borderRadius: 999,
+            background: 'var(--muted)', border: '1px solid var(--border)',
+          }}>
+            <div style={{
+              position: 'absolute', left: 0, top: -1, bottom: -1,
+              width: `${value}%`, borderRadius: 999,
+              background: 'linear-gradient(90deg, var(--rose-300), var(--rose-500))',
+              border: '1px solid var(--rose-500)',
+            }} />
+          </div>
 
-        {/* 실제 range input (투명, 위에 씌움) */}
-        <input
-          type="range"
-          min={0}
-          max={100}
-          step={5}
-          value={value}
-          disabled={allDisabled}
-          onChange={(e) => onChange(Number(e.target.value))}
-          style={{
-            position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
-            width: '100%', opacity: 0, cursor: allDisabled ? 'not-allowed' : 'pointer', margin: 0,
-          }}
-        />
+          {/* 핸들 */}
+          <div style={{
+            position: 'absolute', top: 0, left: `${value}%`, transform: 'translateX(-50%)',
+            width: handleSize, height: handleSize, borderRadius: 999,
+            background: '#fff', border: '2px solid var(--rose-500)',
+            boxShadow: '0 2px 6px rgba(143,68,48,0.28)',
+            display: 'grid', placeItems: 'center',
+            pointerEvents: 'none',
+          }}>
+            <span style={{ width: 4, height: 4, borderRadius: 999, background: 'var(--rose-500)' }} />
+          </div>
+
+          {/* 실제 range input (투명, 위에 씌움) */}
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={5}
+            value={value}
+            disabled={allDisabled}
+            onChange={(e) => onChange(Number(e.target.value))}
+            style={{
+              position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
+              width: '100%', opacity: 0, cursor: allDisabled ? 'not-allowed' : 'pointer', margin: 0,
+            }}
+          />
+        </div>
       </div>
 
       {/* tick 라벨 */}

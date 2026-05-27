@@ -79,12 +79,22 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accountId])
 
-  // type 변경 시 ticker 기본값 설정
+  // type 변경 시 ticker 기본값 설정 + pct 초기화
   useEffect(() => {
+    if (initial) return
     if (!typeMeta) return
+    const newTicker = (!ticker || !availableTickers.includes(ticker))
+      ? (typeMeta.availableTickers[0] ?? '')
+      : ticker
     if (!ticker || !availableTickers.includes(ticker)) {
-      setTicker(typeMeta.availableTickers[0] ?? '')
+      setTicker(newTicker)
     }
+    const newIsInfinite = (typeMeta.availableTickers?.length ?? 0) > 1
+    const newBasePrice = newIsInfinite ? (prices?.[newTicker] ?? null) : privacyBase
+    const newMinSeed = newIsInfinite
+      ? (newBasePrice !== null ? newBasePrice * 20 * 2 * 1.1 : null)
+      : (privacyBase !== null ? privacyBase / 2 : null)
+    setPct((usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed) ? 0 : 100)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type])
 
@@ -95,10 +105,10 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
     return privacyBase
   }, [type, ticker, isInfinite, prices, privacyBase])
 
-  // INFINITE: basePrice × 20 × 2 / PRIVACY: currentCycleStart / 2
+  // INFINITE: basePrice × 20 × 2 × 1.1 / PRIVACY: currentCycleStart / 2
   const minSeed = useMemo(() => {
     if (initial) return null
-    if (isInfinite) return basePrice !== null ? basePrice * 20 * 2 : null
+    if (isInfinite) return basePrice !== null ? basePrice * 20 * 2 * 1.1 : null
     return privacyBase !== null ? privacyBase / 2 : null
   }, [isInfinite, basePrice, privacyBase, initial])
 
@@ -230,7 +240,12 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
                 <button
                   key={code}
                   type="button"
-                  onClick={() => setTicker(code)}
+                  onClick={() => {
+                    setTicker(code)
+                    const newBasePrice = prices?.[code] ?? null
+                    const newMinSeed = newBasePrice !== null ? newBasePrice * 20 * 2 * 1.1 : null
+                    setPct((usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed) ? 0 : 100)
+                  }}
                   disabled={loading}
                   style={{
                     flexShrink: 0, minWidth: 78, padding: '8px 12px',
