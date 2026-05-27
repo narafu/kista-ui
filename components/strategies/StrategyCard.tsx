@@ -85,8 +85,10 @@ export function StrategyCard({ strategy, onChanged }: Props) {
             <p className="text-lg font-semibold">{strategy.ticker}</p>
           </div>
           <div>
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">매수 배수</p>
-            <p className="text-lg font-semibold">{strategy.multiple}×</p>
+            <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">다음 사이클</p>
+            <p className="text-lg font-semibold">
+              {strategy.cycleSeedType === 'NONE' ? '수동' : strategy.cycleSeedType === 'MAX' ? '자동(MAX)' : '자동(유지)'}
+            </p>
           </div>
         </div>
 

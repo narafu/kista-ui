@@ -34,7 +34,7 @@ export const MOCK_STRATEGIES: Strategy[] = [
     type: 'INFINITE',
     status: 'ACTIVE',
     ticker: 'SOXL',
-    multiple: '1.0',
+    cycleSeedType: 'NONE',
   },
   {
     id: 'str-002',
@@ -42,7 +42,7 @@ export const MOCK_STRATEGIES: Strategy[] = [
     type: 'PRIVACY',
     status: 'PAUSED',
     ticker: 'SOXL',
-    multiple: '1.0',
+    cycleSeedType: 'NONE',
   },
 ]
 

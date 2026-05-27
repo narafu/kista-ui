@@ -1,5 +1,5 @@
 import { apiFetch, clientFetch } from './client'
-import type { Strategy, StrategyRequest } from '@/types/strategy'
+import type { CycleSeedType, Strategy, StrategyRequest } from '@/types/strategy'
 
 function normalizeStrategy(raw: unknown): Strategy {
   const s = raw as Record<string, unknown>
@@ -9,7 +9,7 @@ function normalizeStrategy(raw: unknown): Strategy {
     type: String(s.type),
     status: String(s.status),
     ticker: String(s.ticker),
-    multiple: String(s.multiple),
+    cycleSeedType: (s.cycleSeedType as CycleSeedType) ?? 'NONE',
   }
 }
 
