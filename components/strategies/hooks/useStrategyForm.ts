@@ -115,9 +115,11 @@ export function useStrategyForm({
     }
     const newIsInfinite = (typeMeta.availableTickers?.length ?? 0) > 1
     const newBasePrice = newIsInfinite ? (prices?.[newTicker] ?? null) : privacyBase
-    const newMinSeed = newIsInfinite
-      ? newBasePrice !== null ? newBasePrice * 20 * 2 * 1.1 : null
-      : privacyBase !== null ? privacyBase / 2 : null
+    const newMinSeed = process.env.NEXT_PUBLIC_DEV_BYPASS_MIN_SEED === 'true'
+      ? null
+      : newIsInfinite
+        ? newBasePrice !== null ? newBasePrice * 20 * 2 * 1.1 : null
+        : privacyBase !== null ? privacyBase / 2 : null
     setPct(
       usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
     )
@@ -131,6 +133,7 @@ export function useStrategyForm({
 
   const minSeed = useMemo(() => {
     if (initial) return null
+    if (process.env.NEXT_PUBLIC_DEV_BYPASS_MIN_SEED === 'true') return null
     if (isInfinite) return basePrice !== null ? basePrice * 20 * 2 * 1.1 : null
     return privacyBase !== null ? privacyBase / 2 : null
   }, [isInfinite, basePrice, privacyBase, initial])
@@ -149,7 +152,9 @@ export function useStrategyForm({
   function handleTickerChange(code: string) {
     setTicker(code)
     const newBasePrice = prices?.[code] ?? null
-    const newMinSeed = newBasePrice !== null ? newBasePrice * 20 * 2 * 1.1 : null
+    const newMinSeed = process.env.NEXT_PUBLIC_DEV_BYPASS_MIN_SEED === 'true'
+      ? null
+      : newBasePrice !== null ? newBasePrice * 20 * 2 * 1.1 : null
     setPct(
       usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
     )
