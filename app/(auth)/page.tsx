@@ -97,6 +97,7 @@ function LoginPageContent() {
 
       {/* 카카오 로그인 */}
       <button
+        type="button"
         onClick={handleKakaoLogin}
         className="flex items-center justify-center gap-2.5 w-full h-[52px] rounded-[10px] font-bold text-[15.5px] transition-opacity hover:opacity-90 select-none cursor-pointer border-0"
         style={{ background: "#FEE500", color: "#3C1E1E", fontFamily: "inherit" }}
@@ -109,9 +110,9 @@ function LoginPageContent() {
 
       <div className="mt-4 text-center text-[11.5px] text-muted-foreground">
         가입 시{" "}
-        <a href="#" style={{ color: "var(--rose-600)" }}>서비스 약관</a>
+        <button type="button" style={{ background: 'none', border: 'none', padding: 0, color: "var(--rose-600)", cursor: 'pointer', font: 'inherit', textDecoration: 'underline' }}>서비스 약관</button>
         {" "}및{" "}
-        <a href="#" style={{ color: "var(--rose-600)" }}>개인정보 처리방침</a>
+        <button type="button" style={{ background: 'none', border: 'none', padding: 0, color: "var(--rose-600)", cursor: 'pointer', font: 'inherit', textDecoration: 'underline' }}>개인정보 처리방침</button>
         에 동의합니다.
       </div>
     </GlassCard>

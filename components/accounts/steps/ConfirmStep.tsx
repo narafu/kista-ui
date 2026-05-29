@@ -64,6 +64,7 @@ export function ConfirmStep({ data, onBack }: Props) {
 
       <div className="flex gap-3">
         <button
+          type="button"
           onClick={onBack}
           disabled={loading}
           className="flex-1 h-11 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted transition-colors disabled:opacity-40"
@@ -71,6 +72,7 @@ export function ConfirmStep({ data, onBack }: Props) {
           이전
         </button>
         <button
+          type="button"
           onClick={handleSubmit}
           disabled={loading}
           className="flex-1 h-11 rounded-[var(--r-md)] bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 disabled:opacity-60 transition-colors"

@@ -14,7 +14,7 @@ export function Stepper({ steps, current }: StepperProps) {
         const done = idx < current
         const active = idx === current
         return (
-          <div key={idx} className="flex items-center flex-1 last:flex-none">
+          <div key={label} className="flex items-center flex-1 last:flex-none">
             <div className="flex flex-col items-center gap-1.5 shrink-0">
               <div
                 className={cn(

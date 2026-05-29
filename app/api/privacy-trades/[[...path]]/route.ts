@@ -14,7 +14,7 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
   const url = `${API_BASE_URL}/api/privacy-trades${subPath}${request.nextUrl.search}`
   const headers: HeadersInit = { 'Authorization': `Bearer ${token}` }
 
-  const res = await fetch(url, { method: request.method, headers })
+  const res = await fetch(url, { method: request.method, headers, cache: 'no-store' })
 
   if (!res.ok) {
     const errBody = await res.text().catch(() => '')

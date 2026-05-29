@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext } from 'react'
+import { createContext, use } from 'react'
 import type { MetaBundle, StrategyTypeMeta, TickerMeta, EnumMeta } from '@/types/meta'
 
 interface MetaContextValue {
@@ -30,7 +30,7 @@ export function MetaProvider({ children, meta }: { children: React.ReactNode; me
 }
 
 export function useMeta(): MetaContextValue {
-  const ctx = useContext(MetaContext)
+  const ctx = use(MetaContext)
   if (!ctx) throw new Error('useMeta must be used inside MetaProvider')
   return ctx
 }

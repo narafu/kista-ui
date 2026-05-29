@@ -43,6 +43,7 @@ export function ApproveRejectButtons({ userId, nickname }: Props) {
   return (
     <div className="flex gap-2">
       <button
+        type="button"
         onClick={handleApprove}
         disabled={loading !== null}
         className="px-3 py-1.5 text-xs font-semibold rounded-md bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50 transition-colors"
@@ -50,6 +51,7 @@ export function ApproveRejectButtons({ userId, nickname }: Props) {
         {loading === 'approve' ? '...' : '승인'}
       </button>
       <button
+        type="button"
         onClick={handleReject}
         disabled={loading !== null}
         className="px-3 py-1.5 text-xs font-semibold rounded-md border border-border text-muted-foreground hover:bg-muted disabled:opacity-50 transition-colors"

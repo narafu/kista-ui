@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { PlusCircle } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -8,6 +9,11 @@ import { listAccounts } from '@/lib/api/accounts'
 import { listStrategies } from '@/lib/api/strategies'
 import type { Account } from '@/types/account'
 import type { Strategy } from '@/types/strategy'
+
+export const metadata: Metadata = {
+  title: '내 계좌 | KISTA',
+  description: '연결된 한국투자증권 계좌 목록',
+}
 
 export default async function AccountsPage() {
   const token = await getAuthToken()
@@ -27,7 +33,7 @@ export default async function AccountsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">계좌 관리</h1>
         <Link href="/accounts/new" className={cn(buttonVariants({ size: 'sm' }))}>
-          <PlusCircle className="h-4 w-4 mr-1.5" />
+          <PlusCircle className="size-4 mr-1.5" />
           계좌 등록
         </Link>
       </div>

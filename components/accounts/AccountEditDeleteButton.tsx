@@ -14,6 +14,7 @@ export function AccountEditDeleteButton({ accountId, nickname }: Props) {
   return (
     <>
       <button
+        type="button"
         onClick={() => setShowDelete(true)}
         className="px-4 py-2 rounded-[var(--r-md)] border border-neg/50 text-neg text-sm font-semibold hover:bg-neg/10 transition-colors"
       >

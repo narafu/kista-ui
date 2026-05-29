@@ -29,9 +29,3 @@ export async function registerTokenToServer(token: string): Promise<void> {
     body: JSON.stringify({ token, platform: 'WEB' }),
   })
 }
-
-export async function unregisterTokenFromServer(token: string): Promise<void> {
-  await clientFetch<void>(`/api/fcm/tokens/${encodeURIComponent(token)}`, {
-    method: 'DELETE',
-  })
-}

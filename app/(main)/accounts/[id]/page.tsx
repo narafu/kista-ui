@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Pencil } from 'lucide-react'
 import { notFound } from 'next/navigation'
@@ -54,6 +55,11 @@ function normalizePortfolio(raw: PortfolioSnapshot | null, strategyTicker?: stri
 }
 
 
+export const metadata: Metadata = {
+  title: '계좌 상세 | KISTA',
+  description: '계좌 포트폴리오 및 거래 내역',
+}
+
 export default async function AccountDetailPage({ params }: Props) {
   const { id } = await params
   const token = await getAuthToken()
@@ -96,7 +102,7 @@ export default async function AccountDetailPage({ params }: Props) {
         title={account.nickname}
         actions={
           <Link href={`/accounts/${id}/edit`} className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}>
-            <Pencil className="h-4 w-4" />
+            <Pencil className="size-4" />
           </Link>
         }
       />

@@ -23,6 +23,7 @@ export function DeleteAccountButton() {
   return (
     <>
       <button
+        type="button"
         onClick={() => setOpen(true)}
         className="px-4 py-2 rounded-[var(--r-md)] border border-neg/50 text-neg text-sm font-semibold hover:bg-neg/5 transition-colors"
       >
@@ -41,6 +42,7 @@ export function DeleteAccountButton() {
             </p>
             <div className="flex gap-3">
               <button
+                type="button"
                 onClick={() => setOpen(false)}
                 disabled={loading}
                 className="flex-1 py-2 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted transition-colors"
@@ -48,6 +50,7 @@ export function DeleteAccountButton() {
                 취소
               </button>
               <button
+                type="button"
                 onClick={handleDelete}
                 disabled={loading}
                 className="flex-1 py-2 rounded-[var(--r-md)] bg-neg text-white text-sm font-semibold hover:bg-neg/90 disabled:opacity-60 transition-colors"

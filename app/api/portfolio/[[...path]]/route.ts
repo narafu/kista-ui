@@ -15,6 +15,7 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
 
   const res = await fetch(url, {
     headers: { 'Authorization': `Bearer ${token}` },
+    cache: 'no-store',
   })
 
   if (!res.ok) {

@@ -5,12 +5,14 @@ import { StatusDot } from './StatusDot'
 import type { Account } from '@/types/account'
 import type { Strategy } from '@/types/strategy'
 
+const EMPTY_STRATEGIES: Strategy[] = []
+
 interface Props {
   account: Account
   strategies?: Strategy[]
 }
 
-export function AccountCard({ account, strategies = [] }: Props) {
+export function AccountCard({ account, strategies = EMPTY_STRATEGIES }: Props) {
   // 운영상 계좌당 1건이지만, 방어적으로 첫 번째만 표시
   const primary = strategies[0]
   const typeLabel = primary?.type ?? null

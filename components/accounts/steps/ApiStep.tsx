@@ -66,8 +66,9 @@ export function ApiStep({ data, onNext }: Props) {
       </div>
       <div className="flex flex-col gap-4">
         <div>
-          <label className="text-sm font-semibold mb-1.5 block">App Key</label>
+          <label htmlFor="api-key" className="text-sm font-semibold mb-1.5 block">App Key</label>
           <input
+            id="api-key"
             value={apiKey}
             onChange={handleKeyChange(setApiKey)}
             placeholder="발급받은 App Key"
@@ -75,9 +76,10 @@ export function ApiStep({ data, onNext }: Props) {
           />
         </div>
         <div>
-          <label className="text-sm font-semibold mb-1.5 block">App Secret</label>
+          <label htmlFor="api-secret" className="text-sm font-semibold mb-1.5 block">App Secret</label>
           <div className="relative">
             <input
+              id="api-secret"
               type={showSecret ? 'text' : 'password'}
               value={apiSecret}
               onChange={handleKeyChange(setApiSecret)}
@@ -98,6 +100,7 @@ export function ApiStep({ data, onNext }: Props) {
       {/* 연결 테스트 */}
       <div className="flex flex-col gap-2">
         <button
+          type="button"
           disabled={!canTest || testStatus === 'testing'}
           onClick={handleTest}
           className="w-full h-10 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
@@ -122,6 +125,7 @@ export function ApiStep({ data, onNext }: Props) {
 
       {/* 연결 테스트 성공 후에만 다음 활성화 */}
       <button
+        type="button"
         disabled={testStatus !== 'ok'}
         onClick={() => onNext({ apiKey, apiSecret })}
         className="w-full h-11 rounded-[var(--r-md)] bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"

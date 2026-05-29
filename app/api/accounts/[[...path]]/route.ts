@@ -22,7 +22,7 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
     if (text) body = text
   }
 
-  const res = await fetch(url, { method: request.method, headers, body })
+  const res = await fetch(url, { method: request.method, headers, body, cache: 'no-store' })
 
   if (!res.ok) {
     const errBody = await res.text().catch(() => '')

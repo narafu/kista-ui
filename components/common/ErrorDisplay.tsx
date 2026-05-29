@@ -134,6 +134,7 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
           대시보드
         </Link>
         <button
+          type="button"
           onClick={() => router.back()}
           style={{
             display: 'inline-flex', alignItems: 'center',
@@ -148,6 +149,7 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
         </button>
         {reset && (
           <button
+            type="button"
             onClick={reset}
             style={{
               display: 'inline-flex', alignItems: 'center',

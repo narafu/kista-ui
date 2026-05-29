@@ -13,6 +13,7 @@ export async function PUT(request: NextRequest) {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
     body: JSON.stringify(body),
+    cache: 'no-store',
   })
 
   if (!res.ok) {
@@ -30,6 +31,7 @@ export async function DELETE() {
   const res = await fetch(`${API_BASE_URL}/api/settings/telegram`, {
     method: 'DELETE',
     headers: { 'Authorization': `Bearer ${token}` },
+    cache: 'no-store',
   })
 
   if (!res.ok) {

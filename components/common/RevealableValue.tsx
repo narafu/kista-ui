@@ -22,8 +22,8 @@ export function RevealableValue({ value, hiddenDisplay = '•••••••�
         aria-label={revealed ? '숨기기' : '보기'}
       >
         {revealed
-          ? <EyeOff className="h-4 w-4" />
-          : <Eye className="h-4 w-4" />
+          ? <EyeOff className="size-4" />
+          : <Eye className="size-4" />
         }
       </button>
     </span>

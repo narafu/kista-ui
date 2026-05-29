@@ -38,12 +38,6 @@ export async function changeAdminUserRole(userId: string, role: UserRole): Promi
   if (!res.ok) throw new Error(`changeRole failed: ${res.status}`)
 }
 
-// 사용자 삭제 — Client Component에서 Route Handler 경유 호출
-export async function deleteAdminUser(userId: string): Promise<void> {
-  const res = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' })
-  if (!res.ok) throw new Error(`delete failed: ${res.status}`)
-}
-
 // 대시보드 통계 — Server Component에서 token으로 직접 호출
 export async function getAdminStats(token: string): Promise<AdminStats> {
   return apiFetch<AdminStats>('/api/admin/dashboard/stats', { method: 'GET' }, token)

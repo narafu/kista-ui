@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
       'Authorization': `Bearer ${token}`,
     },
     body: JSON.stringify(body),
+    cache: 'no-store',
   })
 
   if (!res.ok) {

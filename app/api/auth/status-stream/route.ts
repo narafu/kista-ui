@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
   const upstream = await fetch(`${apiUrl}/api/auth/status-stream`, {
     headers: { Authorization: `Bearer ${token}` },
     signal: request.signal,
+    cache: 'no-store',
   })
 
   if (!upstream.ok) {

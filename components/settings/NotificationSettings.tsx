@@ -54,6 +54,7 @@ export function NotificationSettings({ currentChannel }: NotificationSettingsPro
         {channels.map((c) => (
           <button
             key={c.value}
+            type="button"
             onClick={() => handleChannelSelect(c.value)}
             disabled={loading}
             className="rounded-lg border px-3 py-2 text-sm transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"

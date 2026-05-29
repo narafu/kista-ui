@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { getAuthToken } from '@/lib/auth/token'
 import { listAccounts } from '@/lib/api/accounts'
 import { getCurrentPortfolio, getTrades } from '@/lib/api/trades'
@@ -6,6 +7,11 @@ import { PageHeader } from '@/components/common/PageHeader'
 import { KpiCard } from '@/components/common/KpiCard'
 import type { Account } from '@/types/account'
 import type { TradeHistory, PortfolioSnapshot } from '@/types/trade'
+
+export const metadata: Metadata = {
+  title: '수익 통계 | KISTA',
+  description: '계좌별 수익/손실 통계 및 거래 내역',
+}
 
 export default async function StatisticsPage() {
   const token = await getAuthToken()

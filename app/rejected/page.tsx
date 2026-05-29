@@ -26,6 +26,7 @@ function LogoutButton() {
   }
   return (
     <button
+      type="button"
       onClick={handleLogout}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -126,6 +127,7 @@ export default function RejectedPage() {
         )}
 
         <button
+          type="button"
           onClick={handleReapply}
           disabled={cooldownMinutes > 0}
           style={{

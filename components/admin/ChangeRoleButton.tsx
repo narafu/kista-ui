@@ -31,6 +31,7 @@ export function ChangeRoleButton({ userId, currentRole }: Props) {
 
   return (
     <button
+      type="button"
       onClick={handleChange}
       disabled={loading}
       className="px-2.5 py-1 text-xs font-semibold rounded-md border border-border text-muted-foreground hover:bg-muted disabled:opacity-50 transition-colors"

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Image from 'next/image'
 import { Clock } from 'lucide-react'
 import { getAuthToken } from '@/lib/auth/token'
@@ -15,6 +16,11 @@ const STEPS = [
   { label: '계좌 연동', description: 'KIS API 자격증명 입력', done: false },
   { label: '운영 시작', description: '자동 매매 활성화', done: false },
 ]
+
+export const metadata: Metadata = {
+  title: '승인 대기 | KISTA',
+  description: '관리자 승인을 기다리고 있습니다',
+}
 
 export default async function PendingPage() {
   const token = await getAuthToken()

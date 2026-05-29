@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
       'Cache-Control': 'no-cache',
     },
     signal: request.signal,
+    cache: 'no-store',
   })
 
   if (!upstream.ok) {

@@ -83,8 +83,8 @@ function EmptyDesktop() {
         className="rounded-[var(--r-lg)] border border-rose-200 p-9 flex items-center gap-7 mb-5 overflow-hidden relative"
         style={{ background: 'var(--brand-soft-bg)' }}
       >
-        <div className="w-24 h-24 rounded-[22px] bg-card flex items-center justify-center flex-shrink-0 shadow-[0_8px_24px_rgba(143,68,48,0.18)]">
-          <Image src="/logo.png" alt="KISTA" width={78} height={78} className="rounded-2xl w-[78px] h-[78px]" />
+        <div className="size-24 rounded-[22px] bg-card flex items-center justify-center flex-shrink-0 shadow-[0_8px_24px_rgba(143,68,48,0.18)]">
+          <Image src="/logo.png" alt="KISTA" width={78} height={78} className="rounded-2xl size-[78px]" />
         </div>
         <div className="flex-1">
           <p className="text-[11.5px] font-bold tracking-[0.12em] uppercase text-rose-500 mb-1.5">Welcome to KISTA</p>
@@ -131,7 +131,7 @@ function EmptyDesktop() {
           },
         ].map(s => (
           <div key={s.n} className="rounded-[var(--r-lg)] border border-border bg-card p-5 shadow-[var(--sh-card)]">
-            <div className="w-9 h-9 rounded-[10px] bg-rose-50 border border-rose-100 text-rose-500 flex items-center justify-center font-extrabold text-base mb-3.5">
+            <div className="size-9 rounded-[10px] bg-rose-50 border border-rose-100 text-rose-500 flex items-center justify-center font-extrabold text-base mb-3.5">
               {s.n}
             </div>
             <p className="text-[14.5px] font-bold mb-1.5">{s.title}</p>
@@ -158,8 +158,8 @@ function EmptyMobile() {
         className="rounded-[var(--r-lg)] border border-rose-200 p-5 mb-4 text-center"
         style={{ background: 'var(--brand-soft-bg)' }}
       >
-        <div className="w-16 h-16 rounded-2xl bg-card flex items-center justify-center mx-auto mb-3 shadow-[0_4px_12px_rgba(143,68,48,0.18)]">
-          <Image src="/logo.png" alt="KISTA" width={52} height={52} className="rounded-xl w-[52px] h-[52px]" />
+        <div className="size-16 rounded-2xl bg-card flex items-center justify-center mx-auto mb-3 shadow-[0_4px_12px_rgba(143,68,48,0.18)]">
+          <Image src="/logo.png" alt="KISTA" width={52} height={52} className="rounded-xl size-[52px]" />
         </div>
         <p className="text-[11px] font-bold tracking-[0.15em] uppercase text-rose-500 mb-1.5">Welcome to KISTA</p>
         <p className="text-xs text-muted-foreground leading-relaxed mb-4">
@@ -181,7 +181,7 @@ function EmptyMobile() {
           { n: 3, title: '텔레그램 연동', desc: '봇과 대화 시작하면 실시간 알림' },
         ].map(s => (
           <div key={s.n} className="rounded-[var(--r-lg)] border border-border bg-card p-3.5 flex items-start gap-3">
-            <span className="w-7 h-7 rounded-lg bg-rose-50 border border-rose-100 text-rose-500 flex items-center justify-center font-extrabold text-sm flex-shrink-0">
+            <span className="size-7 rounded-lg bg-rose-50 border border-rose-100 text-rose-500 flex items-center justify-center font-extrabold text-sm flex-shrink-0">
               {s.n}
             </span>
             <div>

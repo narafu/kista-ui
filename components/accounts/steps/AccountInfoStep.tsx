@@ -25,10 +25,11 @@ export function AccountInfoStep({data, onNext, onBack}: Props) {
       </div>
       <div className="flex flex-col gap-4">
         <div>
-          <label className="text-sm font-semibold mb-1.5 block">
+          <label htmlFor="account-nickname" className="text-sm font-semibold mb-1.5 block">
             계좌 별칭
           </label>
           <input
+            id="account-nickname"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             placeholder="예: 메인 계좌"
@@ -36,11 +37,12 @@ export function AccountInfoStep({data, onNext, onBack}: Props) {
           />
         </div>
         <div>
-          <label className="text-sm font-semibold mb-1.5 block">
+          <label htmlFor="account-no" className="text-sm font-semibold mb-1.5 block">
             계좌번호 (8자리)
           </label>
           <div className="flex items-center gap-2">
             <input
+              id="account-no"
               value={accountNo}
               onChange={(e) =>
                 setAccountNo(e.target.value.replace(/\D/g, "").slice(0, 8))
@@ -60,12 +62,14 @@ export function AccountInfoStep({data, onNext, onBack}: Props) {
       </div>
       <div className="flex gap-3">
         <button
+          type="button"
           onClick={onBack}
           className="flex-1 h-11 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted transition-colors"
         >
           이전
         </button>
         <button
+          type="button"
           disabled={!valid}
           onClick={() =>
             onNext({nickname: nickname.trim(), accountNo})

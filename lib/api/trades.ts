@@ -1,5 +1,5 @@
 import { apiFetch, clientFetch } from './client'
-import type { TradeHistory, Execution, PortfolioSnapshot, ProfitSummary, MarginItem, ReservationOrder, DailyTransactionResult } from '@/types/trade'
+import type { TradeHistory, Execution, PortfolioSnapshot, ProfitSummary, MarginItem, ReservationOrder } from '@/types/trade'
 
 function buildDateQuery(params: { startDate?: string; endDate?: string }): string {
   const q = new URLSearchParams()
@@ -63,13 +63,4 @@ export async function getAccountReservationOrders(
   const q = new URLSearchParams({ from: params.from, to: params.to })
   if (token) return apiFetch<ReservationOrder[]>(`/api/accounts/${accountId}/reservation-orders?${q}`, { method: 'GET' }, token)
   return clientFetch<ReservationOrder[]>(`/api/accounts/${accountId}/reservation-orders?${q}`)
-}
-
-export async function getAccountDailyTrades(
-  accountId: string,
-  params: { from: string; to: string },
-  token: string
-): Promise<DailyTransactionResult> {
-  const q = new URLSearchParams({ from: params.from, to: params.to })
-  return apiFetch<DailyTransactionResult>(`/api/accounts/${accountId}/daily-trades?${q}`, { method: 'GET' }, token)
 }

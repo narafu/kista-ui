@@ -61,6 +61,7 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
         }}>
           <input
             type="number"
+            aria-label="사용 비율 (%)"
             min={0}
             max={100}
             step={5}
@@ -142,6 +143,7 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
           {/* 실제 range input (투명, 위에 씌움) */}
           <input
             type="range"
+            aria-label="사용 비율 슬라이더"
             min={0}
             max={100}
             step={5}

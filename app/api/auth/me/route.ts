@@ -13,6 +13,7 @@ export async function DELETE() {
   const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
   })
 
   if (!res.ok) {

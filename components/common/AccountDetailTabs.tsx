@@ -37,6 +37,7 @@ export function AccountDetailTabs({
         {(["summary", "trades", "reservation", "preview"] as Tab[]).map((tab) => (
           <button
             key={tab}
+            type="button"
             onClick={() => setActiveTab(tab)}
             className={`flex-shrink-0 py-3 px-2 text-sm font-medium border-b-2 transition-colors ${
               activeTab === tab

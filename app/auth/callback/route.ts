@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code, redirectUri }),
+      cache: 'no-store',
     })
 
     if (!res.ok) {

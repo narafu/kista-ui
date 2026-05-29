@@ -15,6 +15,7 @@ export async function DELETE(
   const res = await fetch(`${API_BASE_URL}/api/fcm/tokens/${encodeURIComponent(token)}`, {
     method: 'DELETE',
     headers: { 'Authorization': `Bearer ${authToken}` },
+    cache: 'no-store',
   })
 
   if (!res.ok) {

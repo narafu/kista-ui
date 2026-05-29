@@ -68,6 +68,7 @@ export function DesktopSidebar() {
           <ThemeToggle />
         </div>
         <button
+          type="button"
           onClick={handleLogout}
           className="flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium text-muted-foreground hover:bg-rose-50/60 hover:text-foreground transition-colors w-full text-left"
         >

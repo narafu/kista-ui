@@ -15,7 +15,7 @@ export function Timeline({ steps }: TimelineProps) {
   return (
     <div className="flex flex-col">
       {steps.map((step, i) => (
-        <div key={i} className="flex gap-4">
+        <div key={step.label} className="flex gap-4">
           <div className="flex flex-col items-center">
             <div
               className={cn(

@@ -22,7 +22,7 @@ export function ReapplyButton() {
     }
   }, [])
 
-  async function handleClick() {
+  async function handleReapply() {
     if (cooldownMinutes > 0) {
       alert(`${cooldownMinutes}분 후 다시 요청할 수 있습니다`)
       return
@@ -46,7 +46,7 @@ export function ReapplyButton() {
         variant="outline"
         size="lg"
         className="w-full h-12"
-        onClick={handleClick}
+        onClick={handleReapply}
         disabled={isLoading}
       >
         {isLoading ? '요청 중...' : cooldownMinutes > 0 ? `${cooldownMinutes}분 후 재요청 가능` : '승인 재요청'}

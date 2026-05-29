@@ -41,6 +41,8 @@ export function DeleteAccountDialog({ accountId, nickname, onClose }: Props) {
           계속하려면 계좌 별칭 <strong className="text-foreground">{nickname}</strong>을 입력하세요.
         </p>
         <input
+          id="confirm-nickname"
+          aria-label="계좌 별칭 확인"
           value={confirm}
           onChange={e => setConfirm(e.target.value)}
           placeholder={nickname}
@@ -48,10 +50,11 @@ export function DeleteAccountDialog({ accountId, nickname, onClose }: Props) {
         />
         {error && <p className="text-sm text-neg mb-3">{error}</p>}
         <div className="flex gap-3">
-          <button onClick={onClose} disabled={loading} className="flex-1 h-10 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted transition-colors">
+          <button type="button" onClick={onClose} disabled={loading} className="flex-1 h-10 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted transition-colors">
             취소
           </button>
           <button
+            type="button"
             disabled={!canDelete || loading}
             onClick={handleDelete}
             className="flex-1 h-10 rounded-[var(--r-md)] bg-neg text-white text-sm font-semibold hover:bg-neg/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"

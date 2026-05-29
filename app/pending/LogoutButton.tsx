@@ -12,6 +12,7 @@ export function LogoutButton() {
 
   return (
     <button
+      type="button"
       onClick={handleLogout}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 6,

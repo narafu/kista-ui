@@ -1,6 +1,6 @@
 "use client";
 
-import {useState, useEffect, useCallback} from "react";
+import {useState, useEffect, useCallback, useMemo} from "react";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {KpiCard} from "./KpiCard";
 import {ApiError} from "@/lib/api/client";
@@ -20,9 +20,10 @@ export function NextOrderPreviewCard({accountId, strategyType}: Props) {
   const [error, setError] = useState<"no-strategy" | "kis-fail" | null>(null);
   const [lastUpdatedAt, setLastUpdatedAt] = useState("");
 
-  const isInfinite =
-    strategyType != null &&
-    (findStrategyType(strategyType)?.availableTickers?.length ?? 0) > 1;
+  const isInfinite = useMemo(
+    () => strategyType != null && (findStrategyType(strategyType)?.availableTickers?.length ?? 0) > 1,
+    [strategyType, findStrategyType],
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -189,7 +190,7 @@ export function NextOrderPreviewCard({accountId, strategyType}: Props) {
                   const total = price > 0 ? price * order.quantity : null;
                   return (
                     <div
-                      key={i}
+                      key={`${order.ticker}-${order.direction}-${order.orderType}-${i}`}
                       className="flex items-center justify-between rounded-lg border border-border px-4 py-3"
                     >
                       <div className="flex items-center gap-2">

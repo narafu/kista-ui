@@ -14,6 +14,7 @@ export async function POST() {
     const res = await fetch(`${apiUrl}/api/auth/approval-requests`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
     })
 
     if (!res.ok) {
