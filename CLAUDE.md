@@ -200,3 +200,27 @@ NEXT_PUBLIC_API_BASE_URL=       # kista-api Render URL
 - **catch-all Route Handler URL 변경 규칙**: `accounts/[[...path]]`, `admin/[[...path]]`, `privacy-trades/[[...path]]`, `meta/[[...path]]` 등 catch-all은 kista-api subpath 변경 시 Route Handler 수정 불필요 — 호출부(`lib/api/`, `components/`) URL만 변경. 예외: `app/api/auth/reapply-done/route.ts`처럼 전용 Route Handler에 kista-api URL이 하드코딩된 경우 직접 수정
 - **admin 사용자 상태 변경 엔드포인트**: `approveAdminUser`/`rejectAdminUser` → `PATCH /api/admin/users/{id}/status` body `{ status: 'ACTIVE' | 'REJECTED' }` (구 `POST /approve`, `POST /reject` 폐기)
 - **`orders/preview` 프론트엔드 미구현**: `GET /api/accounts/{accountId}/orders/preview` (구 `orders/next`) — `lib/api/`, `components/` 전체에 호출 코드 없음
+
+## FE 코딩 가이드라인
+
+### 아키텍처 (FSD & Clean)
+- **계층 단방향 의존성**: `app` > `pages` > `widgets` > `features` > `entities` > `shared` — 하위→상위 참조 및 동일 계층 Cross-import 금지
+
+### 컴포넌트 설계 (SRP & TDA)
+- **순수 뷰**: UI 컴포넌트는 데이터 패칭/상태 변경 로직 금지 — 주입받은 상태만 렌더링
+- **비즈니스 로직 격리**: 모든 상태 관리·API 호출은 Custom Hook으로 캡슐화
+- **TDA**: 뷰에서 직접 계산하지 말고, Hook이 완성된 선언적 상태(`hasError` 등)를 제공할 것
+
+### 상태 관리 (CQRS)
+- **서버 상태**: 모든 API 통신은 React Query — 조회(Query)·명령(Mutation) 훅 분리. 서버 상태를 로컬 상태(`useState`)에 복사 금지
+- **클라이언트 상태**: UI 상태는 `useState` 우선, Zustand는 테마·인증 등 진정한 전역에만 제한
+
+### 코딩 컨벤션
+- **TypeScript**: `any` 엄격 금지 — 제네릭, `?.`, `??` 적극 활용
+- **불변성**: 상태 직접 변경 금지 — `map`/`filter`/스프레드 연산자 강제
+- **비동기 제어**: 로딩·에러는 `Suspense`, `ErrorBoundary`, `loading.tsx`, `error.tsx`로 선언적 위임
+
+### 스타일링 (Tailwind + shadcn)
+- **shadcn 컴포넌트 위치**: `shared/ui`에만 배치, 비즈니스 로직 포함 금지
+- **인라인 style 금지**: `style={{ ... }}` 엄격 금지 — Tailwind 유틸리티 클래스만 사용 (반응형 클래스 무효화 방지)
+- **동적 스타일**: 조건부 클래스 병합은 `cn()`, 복잡한 변형은 `cva` 사용
