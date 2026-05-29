@@ -189,15 +189,7 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
   }
 
   return (
-    <div style={{
-      minHeight: '100vh', display: 'grid', placeItems: 'center',
-      position: 'relative', overflow: 'hidden',
-      background: [
-        'radial-gradient(700px 500px at 80% 15%, rgba(224,163,140,0.13), transparent 60%)',
-        'radial-gradient(500px 400px at 15% 85%, rgba(182,105,81,0.08), transparent 55%)',
-        'var(--background)',
-      ].join(', '),
-    }}>
+    <div className="error-page-bg min-h-screen grid place-items-center relative overflow-hidden">
       <div style={{
         position: 'absolute', top: 24, left: 32,
         display: 'flex', alignItems: 'center', gap: 8,

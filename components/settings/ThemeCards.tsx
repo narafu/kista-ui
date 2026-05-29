@@ -33,13 +33,21 @@ export function ThemeCards() {
   const { theme, setTheme } = useTheme()
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+    <div className="grid grid-cols-3 gap-3">
       {THEMES.map((o) => {
         const on = (theme ?? 'system') === o.key
         return (
           <div
             key={o.key}
+            role="button"
+            tabIndex={0}
             onClick={() => setTheme(o.key)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setTheme(o.key)
+              }
+            }}
             style={{
               padding: 12,
               borderRadius: 12,

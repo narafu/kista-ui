@@ -159,6 +159,11 @@
   --r-md: 12px;
   --r-lg: 16px;
   --r-xl: 22px;
+
+  /* Status: error (반려/거절) */
+  --status-error: #C8443A;
+  --status-error-bg: rgba(200, 68, 58, 0.08);
+  --status-error-border: rgba(200, 68, 58, 0.18);
 }
 
 /* ── KISTA Dark Mode ────────────────────────────────────────── */
@@ -221,6 +226,11 @@
   --border-strong: rgba(232, 230, 227, 0.14);
   --rose-100: rgba(214, 169, 142, 0.10);
   --rose-200: rgba(214, 169, 142, 0.18);
+
+  /* Status: error — 다크모드에서 더 밝게 */
+  --status-error: #F87171;
+  --status-error-bg: rgba(248, 113, 113, 0.10);
+  --status-error-border: rgba(248, 113, 113, 0.20);
 }
 
 @layer base {
@@ -341,5 +351,19 @@
 .dark .glass-card {
   background: rgba(24, 22, 20, 0.82);
   border-color: rgba(199, 123, 102, 0.14);
+}
+
+/* ── Rejected page ──────────────────────────────────────────── */
+.rejected-reason-card {
+  background: var(--status-error-bg);
+  border: 1px solid var(--status-error-border);
+}
+
+/* ── Error page background ──────────────────────────────────── */
+.error-page-bg {
+  background:
+    radial-gradient(700px 500px at 80% 15%, rgba(224,163,140,0.13), transparent 60%),
+    radial-gradient(500px 400px at 15% 85%, rgba(182,105,81,0.08), transparent 55%),
+    var(--background);
 }
 

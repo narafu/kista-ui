@@ -22,22 +22,15 @@ function formatCooldown(minutes: number): string {
 function LogoutButton() {
   const router = useRouter()
   async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' })
+    await clientFetch<void>('/api/auth/logout', { method: 'POST' }).catch(() => {})
     router.push('/')
   }
   return (
     <button
       type="button"
       onClick={handleLogout}
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: 6,
-        padding: '6px 14px', borderRadius: 8,
-        fontSize: 13, fontWeight: 600,
-        background: 'transparent',
-        color: 'var(--muted-foreground)',
-        border: '1px solid var(--border)',
-        cursor: 'pointer',
-      }}
+      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[13px] font-semibold bg-transparent border border-border cursor-pointer"
+      style={{ color: 'var(--muted-foreground)' }}
     >
       로그아웃
     </button>
@@ -71,26 +64,31 @@ export default function RejectedPage() {
   }
 
   return (
-    <div className="relative" style={{ minHeight: '100vh' }}>
+    <div className="relative min-h-screen">
       {/* 상단 헤더 */}
-      <div style={{ position: 'absolute', top: 28, left: 36, display: 'flex', alignItems: 'center', gap: 8, zIndex: 10 }}>
-        <Image src="/logo.png" alt="KISTA" width={26} height={26} style={{ borderRadius: 6 }} />
-        <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--rose-700)', letterSpacing: 1 }}>KISTA</span>
+      <div className="absolute top-7 left-9 flex items-center gap-2 z-10">
+        <Image src="/logo.png" alt="KISTA" width={26} height={26} className="rounded" />
+        <span
+          className="text-[15px] font-extrabold tracking-wide"
+          style={{ color: 'var(--rose-700)' }}
+        >
+          KISTA
+        </span>
       </div>
-      <div style={{ position: 'absolute', top: 28, right: 36, zIndex: 10 }}>
+      <div className="absolute top-7 right-9 z-10">
         <LogoutButton />
       </div>
 
       <GlassCard maxWidth="480px">
         {/* 헤더 섹션 */}
         <div className="flex flex-col items-center gap-2 mb-8">
-          <Image src="/logo.png" alt="KISTA" width={44} height={44} className="rounded-[10px] mb-2" style={{ opacity: 0.7 }} />
+          <Image src="/logo.png" alt="KISTA" width={44} height={44} className="rounded-[10px] mb-2 opacity-70" />
           <div
             className="flex items-center gap-2 px-3 py-1 rounded-full"
-            style={{ background: 'rgba(200,68,58,0.12)' }}
+            style={{ background: 'var(--status-error-bg)' }}
           >
-            <XCircle className="size-3.5" style={{ color: '#C8443A' }} />
-            <span className="text-xs font-semibold" style={{ color: '#C8443A' }}>신청 반려</span>
+            <XCircle className="size-3.5" style={{ color: 'var(--status-error)' }} />
+            <span className="text-xs font-semibold" style={{ color: 'var(--status-error)' }}>신청 반려</span>
           </div>
           <h1 className="text-xl font-bold text-foreground mt-1">신청이 반려되었습니다</h1>
           <p className="text-sm text-muted-foreground text-center">
@@ -99,18 +97,17 @@ export default function RejectedPage() {
         </div>
 
         {/* 반려 사유 카드 */}
-        <div
-          className="rounded-[10px] p-4 mb-6"
-          style={{
-            background: 'rgba(200,68,58,0.06)',
-            border: '1px solid rgba(200,68,58,0.16)',
-          }}
-        >
+        <div className="rejected-reason-card rounded-[10px] p-4 mb-6">
           <div className="flex items-start gap-2">
-            <span style={{ color: '#C8443A', marginTop: 2, fontSize: 15 }}>⚠</span>
+            <span className="mt-0.5 text-[15px]" style={{ color: 'var(--status-error)' }}>⚠</span>
             <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#C8443A', marginBottom: 4 }}>반려 사유</div>
-              <div style={{ fontSize: 13, color: 'var(--foreground)', lineHeight: 1.6 }}>
+              <div
+                className="text-xs font-bold mb-1"
+                style={{ color: 'var(--status-error)' }}
+              >
+                반려 사유
+              </div>
+              <div className="text-[13px] leading-relaxed text-foreground">
                 관리자가 가입 신청을 거절했습니다. 재신청하거나 관리자에게 문의해 주세요.
               </div>
             </div>
@@ -139,7 +136,7 @@ export default function RejectedPage() {
         >
           {cooldownMinutes > 0 ? formatCooldown(cooldownMinutes) : '승인 재신청'}
         </button>
-        <div style={{ fontSize: 11.5, color: 'var(--muted-foreground)', marginTop: 10, textAlign: 'center' }}>
+        <div className="text-[11.5px] text-muted-foreground mt-2.5 text-center">
           재신청은 24시간에 한 번만 가능합니다.
         </div>
       </GlassCard>

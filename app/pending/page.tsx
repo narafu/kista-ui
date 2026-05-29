@@ -31,13 +31,18 @@ export default async function PendingPage() {
   }
 
   return (
-    <div className="relative" style={{ minHeight: '100vh' }}>
+    <div className="relative min-h-screen">
       {/* 상단 헤더 */}
-      <div style={{ position: 'absolute', top: 28, left: 36, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <Image src="/logo.png" alt="KISTA" width={26} height={26} style={{ borderRadius: 6 }} />
-        <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--rose-700)', letterSpacing: 1 }}>KISTA</span>
+      <div className="absolute top-7 left-9 flex items-center gap-2">
+        <Image src="/logo.png" alt="KISTA" width={26} height={26} className="rounded" />
+        <span
+          className="text-[15px] font-extrabold tracking-wide"
+          style={{ color: 'var(--rose-700)' }}
+        >
+          KISTA
+        </span>
       </div>
-      <div style={{ position: 'absolute', top: 28, right: 36 }}>
+      <div className="absolute top-7 right-9">
         <LogoutButton />
       </div>
 
