@@ -4,6 +4,8 @@ import type { Account, AccountRequest } from '@/types/account'
 export interface MarginItem {
   currency: string
   integratedOrderableAmount: number
+  foreignOrderableAmount: number
+  purchasableAmount: number
 }
 
 export type PriceMap = Record<string, number>

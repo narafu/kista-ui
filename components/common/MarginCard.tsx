@@ -53,7 +53,7 @@ export function MarginCard({ accountId }: Props) {
                 </div>
                 <div className="text-sm">
                   <p className="text-muted-foreground text-xs">주문가능금액</p>
-                  <p className="font-medium">${item.integratedOrderableAmount.toLocaleString()}</p>
+                  <p className="font-medium">${item.purchasableAmount.toLocaleString()}</p>
                 </div>
               </div>
             ))}

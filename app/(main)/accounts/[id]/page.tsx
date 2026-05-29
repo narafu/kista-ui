@@ -83,7 +83,7 @@ export default async function AccountDetailPage({ params }: Props) {
   ])
   const primaryStrategy = strategies.find(s => s.status === 'ACTIVE') ?? strategies[0]
   const portfolio = normalizePortfolio(portfolioRaw, primaryStrategy?.ticker)
-  const usdDeposit = margins.find(m => m.currency === 'USD')?.integratedOrderableAmount ?? 0
+  const usdDeposit = margins.find(m => m.currency === 'USD')?.purchasableAmount ?? 0
 
   const account = accounts.find((a) => a.id === id)
   if (!account) {

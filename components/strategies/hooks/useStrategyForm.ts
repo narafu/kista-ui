@@ -87,7 +87,7 @@ export function useStrategyForm({
     ])
       .then(([margin, priceMap, privacy]) => {
         const usd =
-          margin?.find((m) => m.currency === 'USD')?.integratedOrderableAmount ?? null
+          margin?.find((m) => m.currency === 'USD')?.purchasableAmount ?? null
         setUsdDeposit(usd)
         setPrices(priceMap)
         setPrivacyBase(privacy?.currentCycleStart ?? null)
