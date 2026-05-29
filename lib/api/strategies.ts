@@ -1,4 +1,5 @@
 import { apiFetch, clientFetch } from './client'
+import { toNum } from '@/lib/utils'
 import type { CycleSeedType, Strategy, StrategyRequest } from '@/types/strategy'
 
 function normalizeStrategy(raw: unknown): Strategy {
@@ -10,6 +11,7 @@ function normalizeStrategy(raw: unknown): Strategy {
     status: String(s.status),
     ticker: String(s.ticker),
     cycleSeedType: (s.cycleSeedType as CycleSeedType) ?? 'NONE',
+    initialUsdDeposit: s.initialUsdDeposit != null ? toNum(s.initialUsdDeposit) : undefined,
   }
 }
 

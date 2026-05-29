@@ -13,7 +13,7 @@ KISTA V2 — 한국투자증권 KIS API 기반 해외주식 자동 분할매매 
 npm run dev        # 개발 서버 (Turbopack)
 npm run build      # 프로덕션 빌드 (Turbopack)
 npm run typecheck  # TypeScript 타입 검사 (tsc --noEmit)
-npm run lint       # ESLint
+npm run lint       # ESLint (⚠️ eslintrc + react plugin circular JSON 오류로 현재 실행 불가 — 타입 검증은 typecheck만 사용)
 
 # shadcn 컴포넌트 추가
 npx shadcn@latest add <component> --yes
@@ -91,8 +91,9 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **Promise.all 병렬 API 호출 — per-promise .catch() 필수**: `Promise.all([a(), b(), c()])` 중 하나라도 reject되면 `.then()` 자체가 실행되지 않아 모든 setState가 누락됨 — fail-fast 방지를 위해 각 항목에 `.catch(() => null)` 추가 필수. `StrategyForm.tsx`의 getMargin/getPrices/getPrivacyCurrentBase 패턴 참고. 세 개 모두 null일 때만 toast 표시
 - **PRIVACY 기준가 API**: `getPrivacyCurrentBase()` → `lib/api/privacy.ts`, Route Handler `app/api/privacy-trades/[[...path]]/route.ts`, 응답 `{ ticker, currentCycleStart, tradeDate }`. 기준 매매표 없으면 404
 - **INFINITE vs PRIVACY UI 판별**: `'INFINITE'`/`'PRIVACY'` 리터럴 직접 사용 금지 (MetaProvider SSOT 원칙). `typeMeta?.availableTickers?.length`로 간접 판별 — INFINITE=다종목(`Ticker` 전체), PRIVACY=1종목(SOXL). 패턴: `(typeMeta?.availableTickers?.length ?? 0) > 1`. **API 호출 인자도 동일 원칙 적용** — `getPrices()` ticker 리스트를 `["TQQQ","SOXL","USD"]` 등 하드코딩 금지; 반드시 `meta.tickers.map(t => t.code)` 사용. 종목 확장 시 프론트 수정 없이 자동 반영됨
-- **kista-api DTO**: `UserResponse`는 `{ id, nickname, status, hasTelegram, role, telegramBotUsername }`, `AccountResponse`는 `{ id, nickname, accountNoMasked, broker }`, `TradingCycleResponse`는 `{ id, accountId, type, status, ticker, cycleSeedType }` — `multiple` 필드는 백엔드/프론트 모두 제거됨(커밋 `e63cdfb2`). `types/` 참고
+- **kista-api DTO**: `UserResponse`는 `{ id, nickname, status, hasTelegram, role, telegramBotUsername }`, `AccountResponse`는 `{ id, nickname, accountNoMasked, broker }`, `TradingCycleResponse`는 `{ id, accountId, type, status, ticker, cycleSeedType, initialUsdDeposit }` — `multiple` 필드는 백엔드/프론트 모두 제거됨(커밋 `e63cdfb2`). `types/` 참고
 - **전략 cycleSeedType**: `Strategy` 타입에 `cycleSeedType: CycleSeedType`(`NONE`/`MAX`/`MAINTAIN`) 필드. `normalizeStrategy()`에서 `(s.cycleSeedType as CycleSeedType) ?? 'NONE'`로 정규화. 자동실행 false=`NONE`, 시드 MAX=`MAX`, 시드 유지=`MAINTAIN`
+- **TradingCycleResponse 필드 추가 시**: `types/strategy.ts`의 `Strategy` 인터페이스와 `lib/api/strategies.ts`의 `normalizeStrategy()` **두 곳 모두 동시 업데이트 필수** — BigDecimal/nullable 변환은 `toNum()` 사용. 한 곳만 수정하면 타입은 통과해도 런타임에서 `undefined`
 - **StrategyForm 최소 시드 산식**: INFINITE = `basePrice * 20 * 2 * 1.1` (10% 여유 버퍼 포함), PRIVACY = `currentCycleStart / 2`. 미달 시 등록 버튼 비활성화, `deposit < minSeed`이면 `PercentGauge` 전체 입력도 disabled. `PercentGauge`의 `minSeed` prop으로 전달
 - **PercentGauge pct 초기화 규칙**: 전략 타입 또는 종목 변경 시 `pct`를 100%로 초기화. `deposit < newMinSeed`이면 0%로. type 변경 useEffect + ticker 칩 onClick에 각각 인라인으로 newMinSeed 계산 후 setPct
 - **RevealableValue**: `components/common/RevealableValue.tsx` — `****0614` 같은 마스킹 값을 기본 숨김(`••••••••`) → 눈 아이콘 클릭 시 공개. `KpiCard`의 `value={<RevealableValue value={account.accountNoMasked} />}` 패턴으로 사용
@@ -163,6 +164,8 @@ NEXT_PUBLIC_API_BASE_URL=       # kista-api Render URL
 ```
 
 - **환경변수 추가 시 `.env.local.example` 동기화 필수**: 새 `NEXT_PUBLIC_*` 변수 추가 시 `.env.local.example`에도 빈 값 + 주석으로 반드시 추가
+- **env 파일 로딩 동작**: `npm run dev`는 `.env.local` 자동 읽음. Docker Compose는 `.env`로 `docker-compose.yml` 변수 치환 후, `build.args`에 명시된 변수만 빌드에 전달 — `.env.local`은 Docker에 전달 안 됨
+- **`NEXT_PUBLIC_DEV_BYPASS_MIN_SEED=true`**: `.env.local`에 설정 시 전략 등록 최소 시드 제한 우회 (로컬 개발 전용 — `docker-compose.yml` `build.args` 미포함으로 운영 환경 영향 없음)
 
 ## CORS 주의사항
 

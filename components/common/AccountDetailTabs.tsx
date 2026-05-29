@@ -29,6 +29,7 @@ export function AccountDetailTabs({
   usdDeposit,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("summary");
+  const activeStrategy = strategies.find((s) => s.status === "ACTIVE") ?? strategies[0];
 
   return (
     <div className="space-y-4">
@@ -74,10 +75,8 @@ export function AccountDetailTabs({
         {activeTab === "preview" && (
           <NextOrderPreviewCard
             accountId={account.id}
-            strategyType={
-              (strategies.find((s) => s.status === "ACTIVE") ?? strategies[0])
-                ?.type
-            }
+            strategyType={activeStrategy?.type}
+            initialUsdDeposit={activeStrategy?.initialUsdDeposit}
           />
         )}
         {activeTab === "reservation" && (
@@ -103,10 +102,8 @@ export function AccountDetailTabs({
         </div>
         <NextOrderPreviewCard
           accountId={account.id}
-          strategyType={
-            (strategies.find((s) => s.status === "ACTIVE") ?? strategies[0])
-              ?.type
-          }
+          strategyType={activeStrategy?.type}
+          initialUsdDeposit={activeStrategy?.initialUsdDeposit}
         />
       </div>
     </div>

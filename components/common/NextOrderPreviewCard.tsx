@@ -11,9 +11,10 @@ import type {NextOrderPreview} from "@/types/preview";
 interface Props {
   accountId: string;
   strategyType?: string;
+  initialUsdDeposit?: number;
 }
 
-export function NextOrderPreviewCard({accountId, strategyType}: Props) {
+export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit}: Props) {
   const {findStrategyType} = useMeta();
   const [preview, setPreview] = useState<NextOrderPreview | null>(null);
   const [loading, setLoading] = useState(false);
@@ -80,11 +81,6 @@ export function NextOrderPreviewCard({accountId, strategyType}: Props) {
   }
 
   const pos = preview?.position;
-  const offsetRate = pos ? parseFloat(pos.priceOffsetRate) : 0;
-  const offsetLabel =
-    offsetRate > 0
-      ? `+${(offsetRate * 100).toFixed(2)}%`
-      : `${(offsetRate * 100).toFixed(2)}%`;
 
   return (
     <Card>
@@ -139,7 +135,7 @@ export function NextOrderPreviewCard({accountId, strategyType}: Props) {
         {preview && (
           <div className="space-y-4">
             {/* 포지션 KPI */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <KpiCard
                 label="회차(T)"
                 value={`${pos!.currentRound.toFixed(1)}회차`}
@@ -149,20 +145,12 @@ export function NextOrderPreviewCard({accountId, strategyType}: Props) {
                 value={`$${parseFloat(pos!.unitAmount).toFixed(2)}`}
               />
               <KpiCard
-                label="목표가"
-                value={`$${parseFloat(pos!.targetPrice).toFixed(2)}`}
-              />
-              <KpiCard
-                label="가격 보정률(별 %)"
-                value={<span>{offsetLabel}</span>}
-              />
-              <KpiCard
-                label="시드"
-                value={`$${parseFloat(pos!.totalAssets).toFixed(2)}`}
-              />
-              <KpiCard
                 label="기준가(별% 가격)"
                 value={`$${parseFloat(pos!.referencePrice).toFixed(2)}`}
+              />
+              <KpiCard
+                label="목표가"
+                value={`$${parseFloat(pos!.targetPrice).toFixed(2)}`}
               />
             </div>
 

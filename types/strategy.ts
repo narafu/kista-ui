@@ -8,6 +8,7 @@ export interface Strategy {
   status: string      // 'ACTIVE' | 'PAUSED'
   ticker: string      // 메타의 TickerMeta.code
   cycleSeedType: CycleSeedType
+  initialUsdDeposit?: number
 }
 
 export interface StrategyRequest {

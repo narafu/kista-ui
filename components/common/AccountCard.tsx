@@ -5,17 +5,13 @@ import { StatusDot } from './StatusDot'
 import type { Account } from '@/types/account'
 import type { Strategy } from '@/types/strategy'
 
-const EMPTY_STRATEGIES: Strategy[] = []
-
 interface Props {
   account: Account
   strategies?: Strategy[]
 }
 
-export function AccountCard({ account, strategies = EMPTY_STRATEGIES }: Props) {
-  // 운영상 계좌당 1건이지만, 방어적으로 첫 번째만 표시
+export function AccountCard({ account, strategies = [] }: Props) {
   const primary = strategies[0]
-  const typeLabel = primary?.type ?? null
 
   return (
     <Link
@@ -27,22 +23,25 @@ export function AccountCard({ account, strategies = EMPTY_STRATEGIES }: Props) {
           <p className="font-semibold text-base text-foreground leading-snug">{account.nickname}</p>
           <p className="text-xs text-muted-foreground mt-0.5">{account.accountNoMasked}</p>
         </div>
-        {primary ? (
-          <StatusDot status={(primary.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
-        ) : (
-          <StatusDot status="UNKNOWN" />
-        )}
+        <StatusDot status={(primary?.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
       </div>
-      <div className="flex items-center gap-2 mb-3">
-        {primary ? (
-          <>
-            <span
-              className="inline-flex items-center px-2.5 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-rose-50 text-rose-600"
-            >
-              {typeLabel}
-            </span>
-            <span className="text-xs text-muted-foreground">{primary.ticker}</span>
-          </>
+      <div className="mb-1">
+        {strategies.length > 0 ? (
+          <ul className="space-y-1.5">
+            {strategies.map((s) => (
+              <li key={s.id} className="flex items-center gap-2 text-xs">
+                <span className="inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold whitespace-nowrap bg-rose-50 text-rose-600">
+                  {s.type}
+                </span>
+                <span className="text-muted-foreground">{s.ticker}</span>
+                {s.initialUsdDeposit != null && (
+                  <span className="ml-auto font-medium text-foreground">
+                    ${s.initialUsdDeposit.toLocaleString('en-US')}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
         ) : (
           <span className="text-xs text-muted-foreground">전략 미등록</span>
         )}
