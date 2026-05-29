@@ -141,36 +141,28 @@ export function NextOrderPreviewCard({accountId, strategyType}: Props) {
             {/* 포지션 KPI */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <KpiCard
-                label="회차"
+                label="회차(T)"
                 value={`${pos!.currentRound.toFixed(1)}회차`}
               />
               <KpiCard
-                label="단위금액"
+                label="단위금액(회)"
                 value={`$${parseFloat(pos!.unitAmount).toFixed(2)}`}
-              />
-              <KpiCard
-                label="기준가"
-                value={`$${parseFloat(pos!.referencePrice).toFixed(2)}`}
               />
               <KpiCard
                 label="목표가"
                 value={`$${parseFloat(pos!.targetPrice).toFixed(2)}`}
               />
               <KpiCard
-                label="가격 보정률"
-                value={
-                  <span
-                    style={{
-                      color: offsetRate >= 0 ? "var(--pos)" : "var(--neg)",
-                    }}
-                  >
-                    {offsetLabel}
-                  </span>
-                }
+                label="가격 보정률(별 %)"
+                value={<span>{offsetLabel}</span>}
               />
               <KpiCard
-                label="총자산"
+                label="시드"
                 value={`$${parseFloat(pos!.totalAssets).toFixed(2)}`}
+              />
+              <KpiCard
+                label="기준가(별% 가격)"
+                value={`$${parseFloat(pos!.referencePrice).toFixed(2)}`}
               />
             </div>
 

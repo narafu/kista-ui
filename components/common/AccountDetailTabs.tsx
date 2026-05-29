@@ -11,7 +11,7 @@ import type {Account} from "@/types/account";
 import type {Execution, PortfolioSnapshot} from "@/types/trade";
 import type {Strategy} from "@/types/strategy";
 
-type Tab = "summary" | "trades" | "reservation" | "preview";
+type Tab = "summary" | "preview" | "reservation" | "trades";
 
 interface Props {
   account: Account;
@@ -34,26 +34,28 @@ export function AccountDetailTabs({
     <div className="space-y-4">
       {/* 모바일 탭 헤더 */}
       <div className="flex lg:hidden gap-1 border-b overflow-x-auto">
-        {(["summary", "trades", "reservation", "preview"] as Tab[]).map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setActiveTab(tab)}
-            className={`flex-shrink-0 py-3 px-2 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === tab
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground"
-            }`}
-          >
-            {tab === "summary"
-              ? "요약"
-              : tab === "trades"
-                ? "거래내역"
-                : tab === "reservation"
-                  ? "예약 주문"
-                  : "다음 주문"}
-          </button>
-        ))}
+        {(["summary", "preview", "reservation", "trades"] as Tab[]).map(
+          (tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={`flex-shrink-0 py-3 px-2 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === tab
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground"
+              }`}
+            >
+              {tab === "summary"
+                ? "요약"
+                : tab === "preview"
+                  ? "다음 주문"
+                  : tab === "reservation"
+                    ? "예약 주문"
+                    : "거래 내역"}
+            </button>
+          ),
+        )}
       </div>
 
       {/* 모바일: 탭 콘텐츠 */}
@@ -69,18 +71,19 @@ export function AccountDetailTabs({
             <StrategyList accountId={account.id} strategies={strategies} />
           </div>
         )}
-        {activeTab === "trades" && <TradesTab trades={trades} />}
-        {activeTab === "reservation" && (
-          <ReservationOrdersCard accountId={account.id} />
-        )}
         {activeTab === "preview" && (
           <NextOrderPreviewCard
             accountId={account.id}
             strategyType={
-              (strategies.find((s) => s.status === "ACTIVE") ?? strategies[0])?.type
+              (strategies.find((s) => s.status === "ACTIVE") ?? strategies[0])
+                ?.type
             }
           />
         )}
+        {activeTab === "reservation" && (
+          <ReservationOrdersCard accountId={account.id} />
+        )}
+        {activeTab === "trades" && <TradesTab trades={trades} />}
       </div>
 
       {/* 데스크탑: 전체 레이아웃 */}
@@ -101,7 +104,8 @@ export function AccountDetailTabs({
         <NextOrderPreviewCard
           accountId={account.id}
           strategyType={
-            (strategies.find((s) => s.status === "ACTIVE") ?? strategies[0])?.type
+            (strategies.find((s) => s.status === "ACTIVE") ?? strategies[0])
+              ?.type
           }
         />
       </div>
@@ -155,11 +159,11 @@ function AccountSummaryCard({
                 value={`$${(portfolio.avgPrice ?? 0).toFixed(2)}`}
               />
               <KpiCard
-                label="평가금액"
+                label="평가 금액"
                 value={`$${(portfolio.marketValueUsd ?? 0).toFixed(2)}`}
               />
               <KpiCard
-                label="평가손익"
+                label="평가 손익"
                 variant="default"
                 value={
                   <span

@@ -78,7 +78,7 @@ export function StrategyFormDialog({
             <DrawerTitle>{title}</DrawerTitle>
             <DrawerDescription>{description}</DrawerDescription>
           </DrawerHeader>
-          <div className="overflow-y-auto px-4 pb-4">
+          <div className="min-w-0 w-full overflow-x-hidden overflow-y-auto px-4 pb-4">
             {form}
           </div>
         </DrawerContent>
@@ -94,12 +94,14 @@ export function StrategyFormDialog({
       >
         {triggerLabel}
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="overflow-hidden sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        {form}
+        <div className="min-w-0 w-full overflow-x-hidden">
+          {form}
+        </div>
       </DialogContent>
     </Dialog>
   )
