@@ -221,6 +221,8 @@ NEXT_PUBLIC_API_BASE_URL=       # kista-api Render URL
 - **클라이언트 상태**: UI 상태는 `useState` 우선, Zustand는 테마·인증 등 진정한 전역에만 제한
 
 ### 코딩 컨벤션
+- **포맷 스타일 (Prettier 기준)**: 싱글 쿼트(`'`) · 세미콜론 없음 · import 중괄호 공백 있음(`{ useState }`) — `.prettierrc` 설정과 일치시킬 것
+- **포맷 무단 변경 금지**: 기능 작업 중 기존 파일의 따옴표·세미콜론·공백 등 포맷을 일괄 변경하지 말 것 — 포맷 변경이 필요하다면 별도 커밋으로 분리
 - **TypeScript**: `any` 엄격 금지 — 제네릭, `?.`, `??` 적극 활용
 - **불변성**: 상태 직접 변경 금지 — `map`/`filter`/스프레드 연산자 강제
 - **비동기 제어**: 로딩·에러는 `Suspense`, `ErrorBoundary`, `loading.tsx`, `error.tsx`로 선언적 위임
