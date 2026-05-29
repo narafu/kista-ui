@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { clientFetch } from '@/lib/api/client'
 import { useFcmToken } from '@/hooks/useFcmToken'
 
 type Channel = 'TELEGRAM' | 'FCM' | 'ALL'
@@ -25,12 +26,11 @@ export function NotificationSettings({ currentChannel }: NotificationSettingsPro
         await requestAndRegister()
       }
 
-      const res = await fetch('/api/settings/notification-channel', {
+      await clientFetch<void>('/api/settings/notification-channel', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ channel: next }),
       })
-      if (!res.ok) throw new Error('채널 변경 실패')
 
       setChannel(next)
       router.refresh()

@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Plus, TrendingUp } from 'lucide-react'
+import { toNum } from '@/lib/utils'
 import { getAuthToken } from '@/lib/auth/token'
 import { listAccounts } from '@/lib/api/accounts'
 import { getAccountPortfolio } from '@/lib/api/trades'
@@ -21,11 +22,6 @@ interface PortfolioSummaryRaw {
     totalEvalProfit?: number | string | null
     totalReturnRate?: number | string | null
   }
-}
-
-const toNum = (v: unknown): number => {
-  const n = typeof v === 'string' ? parseFloat(v) : (v as number)
-  return Number.isFinite(n) ? n : 0
 }
 
 function aggregatePortfolios(raws: (PortfolioSnapshot | null)[]): {

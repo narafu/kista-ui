@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation'
 import { buttonVariants } from '@/components/ui/button'
 import { AccountDetailTabs } from '@/components/common/AccountDetailTabs'
 import { PageHeader } from '@/components/common/PageHeader'
-import { cn } from '@/lib/utils'
+import { cn, toNum } from '@/lib/utils'
 import { getAuthToken } from '@/lib/auth/token'
 import { listAccounts } from '@/lib/api/accounts'
 import { getAccountTrades, getAccountPortfolio, getAccountMargin } from '@/lib/api/trades'
@@ -27,11 +27,6 @@ interface PortfolioPosition {
 interface PortfolioSummaryRaw {
   positions?: PortfolioPosition[]
   summary?: { totalAssetUsd?: number | string | null }
-}
-
-const toNum = (v: unknown): number => {
-  const n = typeof v === 'string' ? parseFloat(v) : (v as number)
-  return Number.isFinite(n) ? n : 0
 }
 
 // PortfolioSummaryResponse → PortfolioSnapshot 변환 (StatisticsController 응답 형식 정규화)

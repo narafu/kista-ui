@@ -1,5 +1,6 @@
 'use client'
 
+import { toNum } from '@/lib/utils'
 import {
   ResponsiveContainer,
   AreaChart,
@@ -18,7 +19,7 @@ interface Props {
 export default function PortfolioChartInner({ snapshots }: Props) {
   const data = snapshots.map((s) => ({
     date: new Date(s.snapshotDate).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' }),
-    totalAsset: Number(s.totalAssetUsd.toFixed(2)),
+    totalAsset: toNum(s.totalAssetUsd),
   }))
 
   return (

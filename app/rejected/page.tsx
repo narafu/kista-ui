@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { XCircle } from 'lucide-react'
+import { clientFetch } from '@/lib/api/client'
 import { GlassCard } from '@/components/common/GlassCard'
 
 const STORAGE_KEY = 'reapply_rejected_last_at'
@@ -61,15 +62,11 @@ export default function RejectedPage() {
     if (cooldownMinutes > 0) return
     setErrorMessage(null)
     try {
-      const res = await fetch('/api/auth/reapply-done', { method: 'POST' })
-      if (res.ok) {
-        localStorage.setItem(STORAGE_KEY, Date.now().toString())
-        router.push('/pending')
-      } else {
-        setErrorMessage('재신청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
-      }
+      await clientFetch<void>('/api/auth/reapply-done', { method: 'POST' })
+      localStorage.setItem(STORAGE_KEY, Date.now().toString())
+      router.push('/pending')
     } catch {
-      setErrorMessage('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+      setErrorMessage('재신청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
     }
   }
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Eye, EyeOff, CheckCircle2, XCircle, Loader2, ExternalLink } from 'lucide-react'
+import { clientFetch, ApiError } from '@/lib/api/client'
 import type { StepData } from '../NewAccountStepper'
 
 interface Props {
@@ -32,21 +33,20 @@ export function ApiStep({ data, onNext }: Props) {
     setTestStatus('testing')
     setTestMessage('')
     try {
-      const res = await fetch('/api/accounts/connection-tests', {
+      const json = await clientFetch<{ success: boolean; message?: string }>('/api/accounts/connection-tests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ appKey: apiKey, appSecret: apiSecret }),
       })
-      const json = await res.json()
-      if (json.success) {
+      if (json?.success) {
         setTestStatus('ok')
       } else {
         setTestStatus('fail')
-        setTestMessage(json.message ?? 'KIS API 연결에 실패했습니다.')
+        setTestMessage(json?.message ?? 'KIS API 연결에 실패했습니다.')
       }
-    } catch {
+    } catch (err) {
       setTestStatus('fail')
-      setTestMessage('네트워크 오류가 발생했습니다.')
+      setTestMessage(err instanceof ApiError ? 'KIS API 연결에 실패했습니다.' : '네트워크 오류가 발생했습니다.')
     }
   }
 

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { LayoutDashboard, Clock, Users, LogOut, Wallet, ArrowLeftRight, ScrollText, AlertTriangle } from 'lucide-react'
+import { clientFetch } from '@/lib/api/client'
 
 const NAV_ITEMS = [
   { href: '/admin',             label: 'Overview',  icon: LayoutDashboard, exact: true },
@@ -19,7 +20,7 @@ export function AdminSidebar() {
   const router = useRouter()
 
   async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' })
+    await clientFetch<void>('/api/auth/logout', { method: 'POST' }).catch(() => {})
     router.push('/')
   }
 

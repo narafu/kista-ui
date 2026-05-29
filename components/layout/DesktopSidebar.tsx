@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { LayoutDashboard, CreditCard, BarChart2, Settings, LogOut } from 'lucide-react'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
+import { clientFetch } from '@/lib/api/client'
 
 const NAV_ITEMS = [
   { href: '/dashboard',  label: '대시보드', icon: LayoutDashboard },
@@ -18,7 +19,7 @@ export function DesktopSidebar() {
   const router = useRouter()
 
   async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' })
+    await clientFetch<void>('/api/auth/logout', { method: 'POST' }).catch(() => {})
     router.push('/')
   }
 

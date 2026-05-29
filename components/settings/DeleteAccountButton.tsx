@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { clientFetch } from '@/lib/api/client'
 
 export function DeleteAccountButton() {
   const [open, setOpen] = useState(false)
@@ -9,12 +10,10 @@ export function DeleteAccountButton() {
   async function handleDelete() {
     setLoading(true)
     try {
-      const res = await fetch('/api/auth/me', { method: 'DELETE' })
-      if (res.ok) {
-        window.location.href = '/'
-      } else {
-        alert('탈퇴 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
-      }
+      await clientFetch<void>('/api/auth/me', { method: 'DELETE' })
+      window.location.href = '/'
+    } catch {
+      alert('탈퇴 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
     } finally {
       setLoading(false)
     }
