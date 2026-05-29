@@ -1,7 +1,11 @@
 import { getAuthToken } from '@/lib/auth/token'
 import type { NextRequest } from 'next/server'
+import { Agent } from 'undici'
 
 export const dynamic = 'force-dynamic'
+
+// SSE는 장기 연결이므로 undici 기본 bodyTimeout(300s) 비활성화
+const sseAgent = new Agent({ bodyTimeout: 0 })
 
 export async function GET(request: NextRequest) {
   const token = await getAuthToken()
@@ -13,6 +17,8 @@ export async function GET(request: NextRequest) {
   const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
   const upstream = await fetch(`${apiUrl}/api/auth/status-stream`, {
     headers: { Authorization: `Bearer ${token}` },
+    // @ts-ignore — undici-specific dispatcher, not in standard RequestInit
+    dispatcher: sseAgent,
     signal: request.signal,
     cache: 'no-store',
   })
