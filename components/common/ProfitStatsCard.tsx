@@ -101,7 +101,7 @@ export function ProfitStatsCard({accountId}: Props) {
                   profit.totalProfitLossRate ?? profit.totalReturnRate ?? 0;
                 const latestSnapshot = snapshots.length
                   ? snapshots.reduce((a, b) =>
-                      a.snapshotDate > b.snapshotDate ? a : b,
+                      a.createdAt > b.createdAt ? a : b,
                     )
                   : null;
                 const realized =

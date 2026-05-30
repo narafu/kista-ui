@@ -79,7 +79,6 @@ export const MOCK_TRADES: TradeHistory[] = [
 
 export const MOCK_PORTFOLIO: PortfolioSnapshot = {
   id: 'snap-001',
-  snapshotDate: '2026-04-30',
   ticker: 'SOXL',
   holdings: 5,
   avgPrice: 32.5,

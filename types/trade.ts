@@ -39,11 +39,10 @@ export interface Execution {
 
 export interface PortfolioSnapshot {
   id: string
-  snapshotDate: string
   ticker: string
   holdings: number
   avgPrice: number
-  currentPrice: number
+  currentPrice: number | null
   marketValueUsd: number
   usdDeposit: number
   totalAssetUsd: number

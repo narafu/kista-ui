@@ -119,6 +119,7 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **쿠키 관련 수정 후 검증**: 쿠키 옵션 변경 후 재빌드만으로는 기존 세션에 미적용 — 브라우저 쿠키 직접 삭제 후 카카오 재로그인 필요. kista-api 로그에 `/api/auth/me` 호출이 없으면 브라우저에 `kista-token`이 없다는 증거
 - **ProfitStatsCard**: self-fetching client component — `accountId` prop만 넘기면 내부 useEffect에서 직접 API 호출 (Server Component에서 token 전달 불필요)
 - **ProfitStatsCard 차트 공백**: `getPortfolioSnapshots()` = DB 저장 스냅샷 기반 (실시간 KIS 아님). kista-api가 주기적으로 스냅샷 저장 안 하면 항상 "데이터가 없습니다"
+- **PortfolioSnapshot 타입 (V49/V50 이후)**: `snapshotDate` 필드 제거됨 — 날짜 관련 로직은 반드시 `createdAt` 사용. `currentPrice`는 `number | null` — 표시 시 null 가드(`currentPrice != null ? ... : '-'`) 필수. `GET /api/portfolio/current` + `GET /api/portfolio/snapshots` 모두 동일 변경 적용
 - **Dashboard AccountCard strategies 전달 필수**: DashboardPage에서 AccountCard 렌더링 시 반드시 `strategies={strategiesByAccount[i]}` 전달 — 미전달 시 strategies 기본값 [] → "알 수 없음"/"전략 미등록" 표시
 - **계좌 요약 항목 출처**: 종목=`portfolio.ticker`(전략 있음: 해당 ticker 포지션만 — 매칭 없으면 null; 전략 없음: positions[0] 폴백), 보유수량/평균단가/현재가/평가금액=KIS CTRP6504R positions 기반, 평가손익=`평가금액-(평균단가×보유수량)` 직접 계산(KIS evlu_pfls_amt2/evlu_pfls_rt1 미사용)
 - **TradesTab**: `AccountDetailTabs.tsx` 내부 로컬 함수 (export 없음) — 재사용 필요 시 인라인 구현

@@ -40,7 +40,7 @@ function normalizePortfolio(raw: PortfolioSnapshot | null, strategyTicker?: stri
     : r.positions[0]
   if (!top) return null // 보유 종목 없음
   return {
-    id: '', snapshotDate: new Date().toISOString().split('T')[0],
+    id: '',
     ticker: top.ticker, holdings: top.holdings,
     avgPrice: toNum(top.avgPrice), currentPrice: toNum(top.currentPrice),
     marketValueUsd: toNum(top.evalAmountUsd), usdDeposit: 0,

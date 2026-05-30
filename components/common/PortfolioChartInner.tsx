@@ -18,7 +18,7 @@ interface Props {
 
 export default function PortfolioChartInner({ snapshots }: Props) {
   const data = snapshots.map((s) => ({
-    date: new Date(s.snapshotDate).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' }),
+    date: new Date(s.createdAt).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' }),
     totalAsset: toNum(s.totalAssetUsd),
   }))
 
