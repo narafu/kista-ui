@@ -152,10 +152,10 @@ export function AccountEditForm({ account }: Props) {
         </div>
 
         {/* 위험 구역 */}
-        <div style={{ ...cardStyle, border: '1px solid rgba(209,75,63,0.25)', background: 'rgba(251,228,224,0.4)' }}>
+        <div style={{ ...cardStyle, border: '1px solid var(--status-error-border)', background: 'var(--status-error-bg)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <AlertTriangle style={{ width: 16, height: 16, color: 'var(--pos)' }} />
-            <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--pos)' }}>위험 구역</h2>
+            <AlertTriangle style={{ width: 16, height: 16, color: 'var(--status-error)' }} />
+            <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--status-error)' }}>위험 구역</h2>
           </div>
           <p style={{ fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 16 }}>
             계좌를 삭제하면 모든 거래 기록과 설정이 영구적으로 제거됩니다.
