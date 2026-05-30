@@ -3,19 +3,18 @@
 import {useState} from "react";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {KpiCard} from "./KpiCard";
-import {cn} from "@/lib/utils";
 import {ReservationOrdersCard} from "./ReservationOrdersCard";
 import {NextOrderPreviewCard} from "./NextOrderPreviewCard";
 import {StrategyList} from "@/components/strategies/StrategyList";
 import type {Account} from "@/types/account";
-import type {Execution, PortfolioSnapshot} from "@/types/trade";
+import type {CycleHistoryItem, PortfolioSnapshot} from "@/types/trade";
 import type {Strategy} from "@/types/strategy";
 
 type Tab = "summary" | "preview" | "reservation" | "trades";
 
 interface Props {
   account: Account;
-  trades: Execution[];
+  cycleHistory: CycleHistoryItem[];
   portfolio: PortfolioSnapshot | null;
   strategies: Strategy[];
   usdDeposit: number;
@@ -23,7 +22,7 @@ interface Props {
 
 export function AccountDetailTabs({
   account,
-  trades,
+  cycleHistory,
   portfolio,
   strategies,
   usdDeposit,
@@ -82,7 +81,7 @@ export function AccountDetailTabs({
         {activeTab === "reservation" && (
           <ReservationOrdersCard accountId={account.id} />
         )}
-        {activeTab === "trades" && <TradesTab trades={trades} />}
+        {activeTab === "trades" && <TradesTab cycleHistory={cycleHistory} />}
       </div>
 
       {/* 데스크탑: 전체 레이아웃 */}
@@ -97,7 +96,7 @@ export function AccountDetailTabs({
           <StrategyList accountId={account.id} strategies={strategies} />
         </div>
         <div className="grid grid-cols-2 gap-6">
-          <TradesTab trades={trades} />
+          <TradesTab cycleHistory={cycleHistory} />
           <ReservationOrdersCard accountId={account.id} />
         </div>
         <NextOrderPreviewCard
@@ -182,51 +181,20 @@ function AccountSummaryCard({
   );
 }
 
-function TradesTab({trades}: {trades: Execution[]}) {
-  const [filter, setFilter] = useState<"ALL" | "BUY" | "SELL">("ALL");
-  const filtered =
-    filter === "ALL" ? trades : trades.filter((t) => t.direction === filter);
-
+function TradesTab({cycleHistory}: {cycleHistory: CycleHistoryItem[]}) {
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-base">거래 내역</CardTitle>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              최근 30일 ·{" "}
-              {filter === "ALL"
-                ? `총 ${trades.length}건`
-                : `${filtered.length}/${trades.length}건`}
-            </p>
-          </div>
-          <div className="flex gap-1.5">
-            {(["ALL", "BUY", "SELL"] as const).map((f) => (
-              <button
-                key={f}
-                type="button"
-                onClick={() => setFilter(f)}
-                className={cn(
-                  "px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors",
-                  filter === f
-                    ? "border-transparent"
-                    : "text-muted-foreground border-transparent hover:border-border",
-                )}
-                style={
-                  filter === f
-                    ? {background: "var(--rose-50)", color: "var(--rose-600)"}
-                    : undefined
-                }
-              >
-                {f === "ALL" ? "전체" : f === "BUY" ? "매수" : "매도"}
-              </button>
-            ))}
-          </div>
+        <div>
+          <CardTitle className="text-base">거래 내역</CardTitle>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            최근 30일 · 총 {cycleHistory.length}건
+          </p>
         </div>
       </CardHeader>
 
       <CardContent className="p-0">
-        {filtered.length === 0 ? (
+        {cycleHistory.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8 px-6">
             거래 내역이 없습니다.
           </p>
@@ -234,48 +202,21 @@ function TradesTab({trades}: {trades: Execution[]}) {
           <>
             {/* 모바일: 카드 리스트 */}
             <div className="space-y-2 p-4 lg:hidden overflow-y-auto max-h-[440px]">
-              {filtered.map((trade) => (
-                <Card
-                  key={`${trade.kisOrderId ?? ""}-${trade.tradeDate}-${trade.ticker}`}
-                  className="p-3"
-                >
+              {cycleHistory.map((entry) => (
+                <Card key={entry.createdAt} className="p-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {trade.direction === "BUY" ? (
-                        <span
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
-                          style={{
-                            background: "var(--pos-bg)",
-                            color: "var(--pos)",
-                          }}
-                        >
-                          매수
-                        </span>
-                      ) : (
-                        <span
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
-                          style={{
-                            background: "var(--neg-bg)",
-                            color: "var(--neg)",
-                          }}
-                        >
-                          매도
-                        </span>
-                      )}
-                      <span className="font-medium text-sm">
-                        {trade.ticker}
-                      </span>
-                    </div>
+                    <span className="font-medium text-sm">{entry.ticker ?? "-"}</span>
                     <span className="text-sm font-semibold">
-                      ${(trade.amountUsd ?? 0).toFixed(2)}
+                      ${(entry.usdDeposit ?? 0).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between mt-2 text-xs text-muted-foreground">
                     <span>
-                      {trade.quantity}주 × ${(trade.price ?? 0).toFixed(2)}
+                      {entry.holdings}주
+                      {entry.avgPrice != null ? ` · 평균 $${entry.avgPrice.toFixed(2)}` : ""}
                     </span>
                     <span>
-                      {new Date(trade.tradeDate).toLocaleDateString("ko-KR")}
+                      {new Date(entry.createdAt).toLocaleDateString("ko-KR")}
                     </span>
                   </div>
                 </Card>
@@ -286,57 +227,32 @@ function TradesTab({trades}: {trades: Execution[]}) {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 sticky top-0 z-10">
                   <tr>
-                    {["구분", "종목", "수량", "단가", "금액", "체결일"].map(
-                      (h) => (
-                        <th
-                          key={h}
-                          className="px-4 py-3 text-left text-[11px] uppercase tracking-widest text-rose-500"
-                        >
-                          {h}
-                        </th>
-                      ),
-                    )}
+                    {["일시", "종목", "보유수량", "평균단가", "예수금"].map((h) => (
+                      <th
+                        key={h}
+                        className="px-4 py-3 text-left text-[11px] uppercase tracking-widest text-rose-500"
+                      >
+                        {h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((trade) => (
+                  {cycleHistory.map((entry) => (
                     <tr
-                      key={`${trade.kisOrderId ?? ""}-${trade.tradeDate}-${trade.ticker}`}
+                      key={entry.createdAt}
                       className="border-t hover:bg-muted/30 transition-colors"
                     >
-                      <td className="px-4 py-3">
-                        {trade.direction === "BUY" ? (
-                          <span
-                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
-                            style={{
-                              background: "var(--pos-bg)",
-                              color: "var(--pos)",
-                            }}
-                          >
-                            매수
-                          </span>
-                        ) : (
-                          <span
-                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
-                            style={{
-                              background: "var(--neg-bg)",
-                              color: "var(--neg)",
-                            }}
-                          >
-                            매도
-                          </span>
-                        )}
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {new Date(entry.createdAt).toLocaleDateString("ko-KR")}
                       </td>
-                      <td className="px-4 py-3 font-medium">{trade.ticker}</td>
-                      <td className="px-4 py-3">{trade.quantity}주</td>
+                      <td className="px-4 py-3 font-medium">{entry.ticker ?? "-"}</td>
+                      <td className="px-4 py-3">{entry.holdings}주</td>
                       <td className="px-4 py-3">
-                        ${(trade.price ?? 0).toFixed(2)}
+                        {entry.avgPrice != null ? `$${entry.avgPrice.toFixed(2)}` : "-"}
                       </td>
                       <td className="px-4 py-3 font-medium">
-                        ${(trade.amountUsd ?? 0).toFixed(2)}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {new Date(trade.tradeDate).toLocaleDateString("ko-KR")}
+                        ${(entry.usdDeposit ?? 0).toFixed(2)}
                       </td>
                     </tr>
                   ))}

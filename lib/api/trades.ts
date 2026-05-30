@@ -1,5 +1,5 @@
 import { apiFetch, clientFetch } from './client'
-import type { TradeHistory, Execution, PortfolioSnapshot, ProfitSummary, MarginItem, ReservationOrder } from '@/types/trade'
+import type { TradeHistory, Execution, CycleHistoryItem, PortfolioSnapshot, ProfitSummary, MarginItem, ReservationOrder } from '@/types/trade'
 
 function buildDateQuery(params: { startDate?: string; endDate?: string }): string {
   const q = new URLSearchParams()
@@ -44,6 +44,15 @@ export async function getAccountTrades(
 ): Promise<Execution[]> {
   const q = new URLSearchParams({ from: params.from, to: params.to })
   return apiFetch<Execution[]>(`/api/accounts/${accountId}/trades?${q}`, { method: 'GET' }, token)
+}
+
+export async function getAccountCycleHistory(
+  accountId: string,
+  params: { from: string; to: string },
+  token: string
+): Promise<CycleHistoryItem[]> {
+  const q = new URLSearchParams({ from: params.from, to: params.to })
+  return apiFetch<CycleHistoryItem[]>(`/api/accounts/${accountId}/cycle-history?${q}`, { method: 'GET' }, token)
 }
 
 export async function getAccountPortfolio(accountId: string, token: string): Promise<PortfolioSnapshot> {

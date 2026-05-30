@@ -17,6 +17,15 @@ export interface TradeHistory {
   createdAt: string
 }
 
+// GET /api/accounts/{id}/cycle-history 응답 (trading_cycle_history DB 기반)
+export interface CycleHistoryItem {
+  createdAt: string        // ISO-8601
+  ticker: string | null
+  holdings: number
+  avgPrice: number | null
+  usdDeposit: number
+}
+
 // StatisticsController GET /api/accounts/{id}/trades 응답 (KIS Execution 도메인 모델)
 export interface Execution {
   tradeDate: string
