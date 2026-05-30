@@ -22,6 +22,6 @@ export interface NextOrderItem {
 
 export interface NextOrderPreview {
   tradeDate: string
-  position: NextOrderPositionSnapshot
+  position: NextOrderPositionSnapshot | null
   orders: NextOrderItem[]
 }

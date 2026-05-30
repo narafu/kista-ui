@@ -39,9 +39,9 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
   }, [accountId]);
 
   useEffect(() => {
-    if (!isInfinite) return;
+    if (!strategyType) return;
     load();
-  }, [isInfinite, load]);
+  }, [strategyType, load]);
 
   if (!strategyType) {
     return (
@@ -52,21 +52,6 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
         <CardContent>
           <p className="text-sm text-muted-foreground py-4 text-center">
             활성 전략을 등록하면 다음 주문을 미리 확인할 수 있습니다.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!isInfinite) {
-    return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">다음 주문 미리보기</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground py-4 text-center">
-            현재 전략(프라이버시)은 미리보기를 지원하지 않습니다.
           </p>
         </CardContent>
       </Card>
@@ -127,25 +112,27 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
 
         {preview && (
           <div className="space-y-4">
-            {/* 포지션 KPI */}
-            <div className="grid grid-cols-2 gap-3">
-              <KpiCard
-                label="회차(T)"
-                value={`${pos!.currentRound.toFixed(1)}회차`}
-              />
-              <KpiCard
-                label="단위금액(회)"
-                value={`$${parseFloat(pos!.unitAmount).toFixed(2)}`}
-              />
-              <KpiCard
-                label="기준가(별% 가격)"
-                value={`$${parseFloat(pos!.referencePrice).toFixed(2)}`}
-              />
-              <KpiCard
-                label="목표가"
-                value={`$${parseFloat(pos!.targetPrice).toFixed(2)}`}
-              />
-            </div>
+            {/* 포지션 KPI (INFINITE 전략만 non-null) */}
+            {pos && (
+              <div className="grid grid-cols-2 gap-3">
+                <KpiCard
+                  label="회차(T)"
+                  value={`${pos.currentRound.toFixed(1)}회차`}
+                />
+                <KpiCard
+                  label="단위금액(회)"
+                  value={`$${parseFloat(pos.unitAmount).toFixed(2)}`}
+                />
+                <KpiCard
+                  label="기준가(별% 가격)"
+                  value={`$${parseFloat(pos.referencePrice).toFixed(2)}`}
+                />
+                <KpiCard
+                  label="목표가"
+                  value={`$${parseFloat(pos.targetPrice).toFixed(2)}`}
+                />
+              </div>
+            )}
 
             {/* 주문 리스트 */}
             {preview.orders.length === 0 ? (

@@ -3,7 +3,7 @@ import type { NextOrderPreview } from '@/types/preview'
 
 function normalizePreview(raw: unknown): NextOrderPreview {
   const r = raw as Record<string, unknown>
-  const pos = r.position as Record<string, unknown>
+  const rawPos = r.position as Record<string, unknown> | null
   const orders = (r.orders as unknown[]).map((o) => {
     const item = o as Record<string, unknown>
     return {
@@ -14,23 +14,22 @@ function normalizePreview(raw: unknown): NextOrderPreview {
       price: String(item.price),
     }
   })
-  return {
-    tradeDate: String(r.tradeDate),
-    position: {
-      ticker: String(pos.ticker),
-      holdings: Number(pos.holdings),
-      averagePrice: String(pos.averagePrice),
-      currentPrice: String(pos.currentPrice),
-      usdDeposit: String(pos.usdDeposit),
-      totalAssets: String(pos.totalAssets),
-      priceOffsetRate: String(pos.priceOffsetRate),
-      currentRound: Number(pos.currentRound),
-      unitAmount: String(pos.unitAmount),
-      referencePrice: String(pos.referencePrice),
-      targetPrice: String(pos.targetPrice),
-    },
-    orders,
-  }
+  const position = rawPos
+    ? {
+        ticker: String(rawPos.ticker),
+        holdings: Number(rawPos.holdings),
+        averagePrice: String(rawPos.averagePrice),
+        currentPrice: String(rawPos.currentPrice),
+        usdDeposit: String(rawPos.usdDeposit),
+        totalAssets: String(rawPos.totalAssets),
+        priceOffsetRate: String(rawPos.priceOffsetRate),
+        currentRound: Number(rawPos.currentRound),
+        unitAmount: String(rawPos.unitAmount),
+        referencePrice: String(rawPos.referencePrice),
+        targetPrice: String(rawPos.targetPrice),
+      }
+    : null
+  return { tradeDate: String(r.tradeDate), position, orders }
 }
 
 export async function getNextOrdersPreview(accountId: string): Promise<NextOrderPreview> {
