@@ -368,11 +368,18 @@
 }
 
 /* ── Next.js Image + Tailwind preflight 충돌 방지 ────────────── */
-/* Tailwind preflight: img { max-width: 100%; height: auto }
-   비정사각형 이미지에서 height: auto → 렌더 height ≠ HTML height attr → 경고 유발.
-   height: revert는 UA 기본값(auto)으로 되돌아가므로 단독으로는 효과 없음.
-   max-width만 revert해 제약 해제, 각 Image 컴포넌트에 h-[Npx] 클래스로 CSS height를 명시 */
-img[data-nimg] {
-  max-width: revert;
-}
+/* Tailwind preflight: img { height: auto } (@layer base)
+   비정사각형 이미지(logo.png=256×139)를 32×32 등 정사각형으로 표시 시 height: auto →
+   렌더 height ≠ HTML height attr → Next.js "has either width or height modified" 경고.
+   근본 해결: 각 <Image> style prop에 height/width 인라인 명시 (HTML에 포함, CSS 타이밍 무관).
+   아래 속성 선택자는 보조 수단으로 유지 (max-width: revert는 여전히 필요) */
+img[data-nimg] { max-width: revert; }
+img[data-nimg][height="22"] { height: 22px; }
+img[data-nimg][height="26"] { height: 26px; }
+img[data-nimg][height="28"] { height: 28px; }
+img[data-nimg][height="32"] { height: 32px; }
+img[data-nimg][height="44"] { height: 44px; }
+img[data-nimg][height="52"] { height: 52px; }
+img[data-nimg][height="56"] { height: 56px; }
+img[data-nimg][height="78"] { height: 78px; }
 

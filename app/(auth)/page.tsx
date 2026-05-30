@@ -43,8 +43,8 @@ function LoginPageContent() {
           alt="KISTA"
           width={56}
           height={56}
-          className="rounded-[12px] h-[56px]"
-          style={{ boxShadow: "0 4px 16px rgba(143,68,48,.25)" }}
+          className="rounded-[12px]"
+          style={{ boxShadow: "0 4px 16px rgba(143,68,48,.25)", height: 56, width: 56 }}
         />
         <div className="text-center">
           <h1

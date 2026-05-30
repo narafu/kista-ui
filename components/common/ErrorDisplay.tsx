@@ -194,7 +194,7 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
         position: 'absolute', top: 24, left: 32,
         display: 'flex', alignItems: 'center', gap: 8,
       }}>
-        <Image src="/logo.png" alt="KISTA" width={22} height={22} className="h-[22px]" style={{ borderRadius: 5 }} />
+        <Image src="/logo.png" alt="KISTA" width={22} height={22} style={{ borderRadius: 5, height: 22, width: 22 }} />
         <span style={{
           fontSize: 12.5, fontWeight: 800,
           color: 'var(--rose-700)', letterSpacing: 2,

@@ -1,7 +1,6 @@
 import { DesktopSidebar } from '@/components/layout/DesktopSidebar'
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav'
 import { MobileHeader } from '@/components/layout/MobileHeader'
-import { TradeNotificationProvider } from '@/components/trading/TradeNotificationProvider'
 import { MetaProvider } from '@/components/providers/MetaProvider'
 import { FcmAutoRegister } from '@/components/providers/FcmAutoRegister'
 import { getMetaBundle } from '@/lib/api/meta'
@@ -24,7 +23,6 @@ export default async function MainLayout({ children }: { children: React.ReactNo
           <main className="flex-1 p-4 lg:p-9 pb-24 lg:pb-9">{children}</main>
           <MobileBottomNav />
         </div>
-        <TradeNotificationProvider />
         <FcmAutoRegister notificationChannel={user?.notificationChannel ?? 'TELEGRAM'} />
       </div>
     </MetaProvider>
