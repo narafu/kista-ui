@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 
 const THEMES = [
@@ -31,11 +32,13 @@ const THEMES = [
 
 export function ThemeCards() {
   const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
 
   return (
     <div className="grid grid-cols-3 gap-3">
       {THEMES.map((o) => {
-        const on = (theme ?? 'system') === o.key
+        const on = mounted && (theme ?? 'system') === o.key
         return (
           <div
             key={o.key}

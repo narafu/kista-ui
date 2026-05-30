@@ -5,7 +5,7 @@ import { Agent } from 'undici'
 export const dynamic = 'force-dynamic'
 
 // SSE는 장기 연결이므로 undici 기본 bodyTimeout(300s) 비활성화
-const sseAgent = new Agent({ bodyTimeout: 0 })
+const sseAgent = new Agent({ bodyTimeout: 0, headersTimeout: 0 })
 
 export async function GET(request: NextRequest) {
   const token = await getAuthToken()

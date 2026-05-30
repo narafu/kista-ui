@@ -80,7 +80,7 @@ function EmptyDesktop() {
         style={{ background: 'var(--brand-soft-bg)' }}
       >
         <div className="size-24 rounded-[22px] bg-card flex items-center justify-center flex-shrink-0 shadow-[0_8px_24px_rgba(143,68,48,0.18)]">
-          <Image src="/logo.png" alt="KISTA" width={78} height={78} className="rounded-2xl" />
+          <Image src="/logo.png" alt="KISTA" width={78} height={78} className="rounded-2xl h-[78px]" />
         </div>
         <div className="flex-1">
           <p className="text-[11.5px] font-bold tracking-[0.12em] uppercase text-rose-500 mb-1.5">Welcome to KISTA</p>
@@ -155,7 +155,7 @@ function EmptyMobile() {
         style={{ background: 'var(--brand-soft-bg)' }}
       >
         <div className="size-16 rounded-2xl bg-card flex items-center justify-center mx-auto mb-3 shadow-[0_4px_12px_rgba(143,68,48,0.18)]">
-          <Image src="/logo.png" alt="KISTA" width={52} height={52} className="rounded-xl" />
+          <Image src="/logo.png" alt="KISTA" width={52} height={52} className="rounded-xl h-[52px]" />
         </div>
         <p className="text-[11px] font-bold tracking-[0.15em] uppercase text-rose-500 mb-1.5">Welcome to KISTA</p>
         <p className="text-xs text-muted-foreground leading-relaxed mb-4">
