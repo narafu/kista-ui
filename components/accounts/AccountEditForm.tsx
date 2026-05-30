@@ -34,8 +34,6 @@ export function AccountEditForm({ account }: Props) {
   const [deleteConfirm, setDeleteConfirm] = useState('')
 
   const [nickname, setNickname] = useState(account.nickname)
-  const [kisAppKey, setKisAppKey] = useState('')
-  const [kisSecretKey, setKisSecretKey] = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -43,11 +41,7 @@ export function AccountEditForm({ account }: Props) {
 
     setIsLoading(true)
     try {
-      await updateAccount(account.id, {
-        nickname: nickname.trim(),
-        ...(kisAppKey.trim() && { kisAppKey: kisAppKey.trim() }),
-        ...(kisSecretKey.trim() && { kisSecretKey: kisSecretKey.trim() }),
-      })
+      await updateAccount(account.id, { nickname: nickname.trim() })
 
       toast.success('계좌가 수정되었습니다')
       router.push(`/accounts/${account.id}`)
@@ -109,32 +103,6 @@ export function AccountEditForm({ account }: Props) {
               disabled
             />
             <p className="text-xs text-muted-foreground">계좌번호는 변경할 수 없습니다</p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="kisAppKey">KIS App Key</Label>
-            <Input
-              id="kisAppKey"
-              placeholder="변경 시에만 입력"
-              type="password"
-              className="h-12"
-              value={kisAppKey}
-              onChange={(e) => setKisAppKey(e.target.value)}
-              disabled={isLoading}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="kisSecretKey">KIS Secret Key</Label>
-            <Input
-              id="kisSecretKey"
-              placeholder="변경 시에만 입력"
-              type="password"
-              className="h-12"
-              value={kisSecretKey}
-              onChange={(e) => setKisSecretKey(e.target.value)}
-              disabled={isLoading}
-            />
           </div>
 
           <p className="text-xs text-muted-foreground">
