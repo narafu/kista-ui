@@ -367,3 +367,13 @@
     var(--background);
 }
 
+/* ── Next.js Image + Tailwind preflight 충돌 방지 ────────────── */
+/* Tailwind preflight: img { max-width: 100%; height: auto }
+   이 규칙이 height만 CSS로 수정하고 width는 건드리지 않아
+   Next.js Image "has either width or height modified, but not the other" 경고 유발.
+   img[data-nimg] 선택자(높은 명시도)로 author CSS를 revert → UA 기본값 사용 */
+img[data-nimg] {
+  max-width: revert;
+  height: revert;
+}
+

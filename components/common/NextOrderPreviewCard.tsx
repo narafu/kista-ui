@@ -1,11 +1,10 @@
 "use client";
 
-import {useState, useEffect, useCallback, useMemo} from "react";
+import {useState, useEffect, useCallback} from "react";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {KpiCard} from "./KpiCard";
 import {ApiError} from "@/lib/api/client";
 import {getNextOrdersPreview} from "@/lib/api/orders";
-import {useMeta} from "@/components/providers/MetaProvider";
 import type {NextOrderPreview} from "@/types/preview";
 
 interface Props {
@@ -15,16 +14,10 @@ interface Props {
 }
 
 export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit}: Props) {
-  const {findStrategyType} = useMeta();
   const [preview, setPreview] = useState<NextOrderPreview | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<"no-strategy" | "kis-fail" | null>(null);
   const [lastUpdatedAt, setLastUpdatedAt] = useState("");
-
-  const isInfinite = useMemo(
-    () => strategyType != null && (findStrategyType(strategyType)?.availableTickers?.length ?? 0) > 1,
-    [strategyType, findStrategyType],
-  );
 
   const load = useCallback(async () => {
     setLoading(true);
