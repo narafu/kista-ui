@@ -21,9 +21,10 @@ export function NotificationSettings({ currentChannel }: NotificationSettingsPro
     if (next === channel) return
     setLoading(true)
     try {
-      // FCM 선택 시 먼저 토큰 등록
+      // FCM 선택 시 먼저 토큰 등록 — 실패 시 채널 변경 중단
       if ((next === 'FCM' || next === 'ALL') && fcmStatus !== 'registered') {
-        await requestAndRegister()
+        const ok = await requestAndRegister()
+        if (!ok) return
       }
 
       await clientFetch<void>('/api/settings/notification-channel', {

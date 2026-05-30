@@ -8,18 +8,20 @@ type Status = 'idle' | 'requesting' | 'registered' | 'denied' | 'error'
 export function useFcmToken() {
   const [status, setStatus] = useState<Status>('idle')
 
-  const requestAndRegister = useCallback(async () => {
+  const requestAndRegister = useCallback(async (): Promise<boolean> => {
     setStatus('requesting')
     try {
       const token = await requestFcmToken()
       if (!token) {
         setStatus('denied')
-        return
+        return false
       }
       await registerTokenToServer(token)
       setStatus('registered')
+      return true
     } catch {
       setStatus('error')
+      return false
     }
   }, [])
 
