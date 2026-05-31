@@ -217,7 +217,7 @@ git commit -m "feat: ProfitStatsCard — tab period picker, subtitle, 3-col KPI 
             ['계좌번호', <span key="acct" className="font-medium text-sm">{account.accountNoMasked}</span>],
             ['종목',     <span key="ticker" className="font-bold text-sm">{account.ticker}</span>],
             ['보유 수량', <span key="qty" className="font-medium text-sm">{portfolio.qty}주</span>],
-            ['평균 단가', <span key="avg" className="font-medium text-sm">${(portfolio.avgPrice ?? 0).toFixed(2)}</span>],
+            ['평단가', <span key="avg" className="font-medium text-sm">${(portfolio.avgPrice ?? 0).toFixed(2)}</span>],
             ['현재가',   <span key="cur" className="font-medium text-sm">${(portfolio.currentPrice ?? 0).toFixed(2)}</span>],
             ['평가금액', <span key="mval" className="font-medium text-sm">${(portfolio.marketValueUsd ?? 0).toFixed(2)}</span>],
             ['평가손익', <ProfitDisplay key="pl" amount={0} rate={0} />],

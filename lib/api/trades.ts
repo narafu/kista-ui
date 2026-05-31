@@ -48,11 +48,15 @@ export async function getAccountTrades(
 
 export async function getAccountCycleHistory(
   accountId: string,
-  params: { from: string; to: string },
-  token: string
+  params: { from?: string; to?: string },
+  token?: string
 ): Promise<CycleHistoryItem[]> {
-  const q = new URLSearchParams({ from: params.from, to: params.to })
-  return apiFetch<CycleHistoryItem[]>(`/api/accounts/${accountId}/cycle-history?${q}`, { method: 'GET' }, token)
+  const q = new URLSearchParams()
+  if (params.from) q.set('from', params.from)
+  if (params.to) q.set('to', params.to)
+  const qs = q.size ? `?${q}` : ''
+  if (token) return apiFetch<CycleHistoryItem[]>(`/api/accounts/${accountId}/cycle-history${qs}`, { method: 'GET' }, token)
+  return clientFetch<CycleHistoryItem[]>(`/api/accounts/${accountId}/cycle-history${qs}`)
 }
 
 export async function getAccountPortfolio(accountId: string, token: string): Promise<PortfolioSnapshot> {

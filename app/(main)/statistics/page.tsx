@@ -34,35 +34,24 @@ export default async function StatisticsPage() {
 
       {/* 포트폴리오 현황 */}
       {portfolio && (
-        <div
-          className="rounded-[var(--r-lg)] p-5 shadow-[var(--sh-card)] border border-border mb-5"
-          style={{ background: 'var(--card)' }}
-        >
+        <div className="rounded-[var(--r-lg)] p-5 shadow-[var(--sh-card)] border border-border mb-5" style={{ background: 'var(--card)' }}>
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="text-[13.5px] font-semibold">포트폴리오 현황</div>
               <div className="text-[11.5px] text-muted-foreground mt-0.5">최근 종가 기준</div>
             </div>
-            <span
-              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11.5px] font-semibold"
-              style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
-            >
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11.5px] font-semibold" style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}>
               {portfolio.ticker}
             </span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <KpiCard label="종목" value={portfolio.ticker} />
             <KpiCard label="보유 수량" value={`${portfolio.holdings}주`} />
-            <KpiCard label="평균 단가" value={`$${portfolio.avgPrice.toFixed(2)}`} />
+            <KpiCard label="평단가" value={portfolio.avgPrice != null ? `$${portfolio.avgPrice.toFixed(2)}` : '-'} />
             <KpiCard label="현재가" value={portfolio.currentPrice != null ? `$${portfolio.currentPrice.toFixed(2)}` : '-'} />
             <KpiCard label="평가금액" value={`$${portfolio.marketValueUsd.toFixed(2)}`} />
             <KpiCard label="USD 예수금" value={`$${portfolio.usdDeposit.toFixed(2)}`} />
-            <KpiCard
-              label="총 자산"
-              value={`$${portfolio.totalAssetUsd.toFixed(2)}`}
-              variant="accent"
-              className="col-span-2"
-            />
+            <KpiCard label="총 자산" value={`$${portfolio.totalAssetUsd.toFixed(2)}`} variant="soft" />
           </div>
         </div>
       )}
@@ -86,30 +75,26 @@ export default async function StatisticsPage() {
             {/* 모바일: 카드 리스트 */}
             <div className="space-y-2 lg:hidden">
               {trades.map((trade) => (
-                <div
-                  key={trade.id}
-                  className="rounded-xl p-3 shadow-[var(--sh-card)] border border-border"
-                  style={{ background: 'var(--card)' }}
-                >
+                <div key={trade.id} className="rounded-xl p-3 shadow-[var(--sh-card)] border border-border" style={{ background: 'var(--card)' }}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {trade.direction === 'BUY' ? (
-                        <span
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
-                          style={{ background: 'var(--pos-bg)', color: 'var(--pos)' }}
-                        >매수</span>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold" style={{ background: 'var(--pos-bg)', color: 'var(--pos)' }}>
+                          매수
+                        </span>
                       ) : (
-                        <span
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
-                          style={{ background: 'var(--neg-bg)', color: 'var(--neg)' }}
-                        >매도</span>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold" style={{ background: 'var(--neg-bg)', color: 'var(--neg)' }}>
+                          매도
+                        </span>
                       )}
                       <span className="font-medium text-sm">{trade.ticker}</span>
                     </div>
                     <span className="text-sm font-semibold">${(trade.price * trade.quantity).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                    <span>{trade.quantity}주 × ${trade.price.toFixed(2)}</span>
+                    <span>
+                      {trade.quantity}주 × ${trade.price.toFixed(2)}
+                    </span>
                     <span>{new Date(trade.tradeDate).toLocaleDateString('ko-KR')}</span>
                   </div>
                 </div>
@@ -117,18 +102,14 @@ export default async function StatisticsPage() {
             </div>
 
             {/* 데스크탑: 테이블 */}
-            <div
-              className="hidden lg:block rounded-[var(--r-lg)] border border-border overflow-hidden shadow-[var(--sh-card)]"
-              style={{ background: 'var(--card)' }}
-            >
+            <div className="hidden lg:block rounded-[var(--r-lg)] border border-border overflow-hidden shadow-[var(--sh-card)]" style={{ background: 'var(--card)' }}>
               <table className="w-full text-sm">
                 <thead style={{ background: 'var(--muted)' }}>
                   <tr>
                     {['구분', '종목', '수량', '단가', '금액', '체결일'].map((h) => (
-                      <th
-                        key={h}
-                        className="px-4 py-3 text-left text-[11px] uppercase tracking-widest text-rose-500"
-                      >{h}</th>
+                      <th key={h} className="px-4 py-3 text-left text-[11px] uppercase tracking-widest text-rose-500">
+                        {h}
+                      </th>
                     ))}
                   </tr>
                 </thead>
@@ -137,24 +118,20 @@ export default async function StatisticsPage() {
                     <tr key={trade.id} className="border-t border-border hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3">
                         {trade.direction === 'BUY' ? (
-                          <span
-                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
-                            style={{ background: 'var(--pos-bg)', color: 'var(--pos)' }}
-                          >매수</span>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold" style={{ background: 'var(--pos-bg)', color: 'var(--pos)' }}>
+                            매수
+                          </span>
                         ) : (
-                          <span
-                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
-                            style={{ background: 'var(--neg-bg)', color: 'var(--neg)' }}
-                          >매도</span>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold" style={{ background: 'var(--neg-bg)', color: 'var(--neg)' }}>
+                            매도
+                          </span>
                         )}
                       </td>
                       <td className="px-4 py-3 font-bold">{trade.ticker}</td>
                       <td className="px-4 py-3 tabular-nums">{trade.quantity}주</td>
                       <td className="px-4 py-3 tabular-nums">${trade.price.toFixed(2)}</td>
                       <td className="px-4 py-3 font-bold tabular-nums">${(trade.price * trade.quantity).toFixed(2)}</td>
-                      <td className="px-4 py-3 text-muted-foreground tabular-nums">
-                        {new Date(trade.tradeDate).toLocaleDateString('ko-KR')}
-                      </td>
+                      <td className="px-4 py-3 text-muted-foreground tabular-nums">{new Date(trade.tradeDate).toLocaleDateString('ko-KR')}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -174,11 +151,7 @@ export default async function StatisticsPage() {
           <h2 className="text-[17px] font-bold mb-3">계좌별 손익 통계</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {accounts.map((account) => (
-              <div
-                key={account.id}
-                className="rounded-[var(--r-lg)] p-5 shadow-[var(--sh-card)] border border-border"
-                style={{ background: 'var(--card)' }}
-              >
+              <div key={account.id} className="rounded-[var(--r-lg)] p-5 shadow-[var(--sh-card)] border border-border" style={{ background: 'var(--card)' }}>
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-[14px] font-bold">{account.nickname}</span>
                   <span className="text-[11.5px] text-muted-foreground">{account.accountNoMasked}</span>

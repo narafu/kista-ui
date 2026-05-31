@@ -61,7 +61,7 @@ CardTitle 아래에 `<p className="text-xs text-muted-foreground mt-0.5">최근 
 1. 계좌번호
 2. 종목 ← 신규
 3. 보유 수량
-4. 평균 단가
+4. 평단가
 5. 현재가
 6. 평가금액 ← 신규
 7. 평가손익

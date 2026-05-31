@@ -8,9 +8,9 @@ import { PageHeader } from '@/components/common/PageHeader'
 import { cn, toNum } from '@/lib/utils'
 import { getAuthToken } from '@/lib/auth/token'
 import { listAccounts } from '@/lib/api/accounts'
-import { getAccountCycleHistory, getAccountPortfolio, getAccountMargin } from '@/lib/api/trades'
+import { getAccountPortfolio, getAccountMargin } from '@/lib/api/trades'
 import { listStrategies } from '@/lib/api/strategies'
-import type { CycleHistoryItem, PortfolioSnapshot, MarginItem } from '@/types/trade'
+import type { PortfolioSnapshot, MarginItem } from '@/types/trade'
 import type { Account } from '@/types/account'
 import type { Strategy } from '@/types/strategy'
 
@@ -63,17 +63,8 @@ export default async function AccountDetailPage({ params }: Props) {
     return notFound()
   }
 
-  const today = new Date()
-  const from30d = new Date(today)
-  from30d.setDate(today.getDate() - 30)
-  const dateRange = {
-    from: from30d.toISOString().split('T')[0],
-    to: today.toISOString().split('T')[0],
-  }
-
-  const [accounts, cycleHistory, portfolioRaw, strategies, margins] = await Promise.all([
+  const [accounts, portfolioRaw, strategies, margins] = await Promise.all([
     listAccounts(token).catch((): Account[] => []),
-    getAccountCycleHistory(id, dateRange, token).catch((): CycleHistoryItem[] => []),
     getAccountPortfolio(id, token).catch((): PortfolioSnapshot | null => null),
     listStrategies(id, token).catch((e): Strategy[] => {
       console.error('[AccountDetailPage] listStrategies 실패:', e)
@@ -104,7 +95,6 @@ export default async function AccountDetailPage({ params }: Props) {
 
       <AccountDetailTabs
         account={account}
-        cycleHistory={cycleHistory}
         portfolio={portfolio}
         strategies={strategies}
         usdDeposit={usdDeposit}
