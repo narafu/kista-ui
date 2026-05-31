@@ -1,25 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { KpiCard } from './KpiCard'
 import { NextOrderPreviewCard } from './NextOrderPreviewCard'
 import { StrategyList } from '@/components/strategies/StrategyList'
+import { getAccountCycleHistory } from '@/lib/api/trades'
 import type { Account } from '@/types/account'
 import type { CycleHistoryItem, PortfolioSnapshot } from '@/types/trade'
 import type { Strategy } from '@/types/strategy'
 
 type Tab = 'summary' | 'preview' | 'trades'
+type RangeType = 'all' | '7d' | '30d' | 'custom'
 
 interface Props {
   account: Account
-  cycleHistory: CycleHistoryItem[]
   portfolio: PortfolioSnapshot | null
   strategies: Strategy[]
   usdDeposit: number
 }
 
-export function AccountDetailTabs({ account, cycleHistory, portfolio, strategies, usdDeposit }: Props) {
+export function AccountDetailTabs({ account, portfolio, strategies, usdDeposit }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('summary')
   const activeStrategy = strategies.find((s) => s.status === 'ACTIVE') ?? strategies[0]
 
@@ -48,7 +49,7 @@ export function AccountDetailTabs({ account, cycleHistory, portfolio, strategies
           </div>
         )}
         {activeTab === 'preview' && <NextOrderPreviewCard accountId={account.id} strategyType={activeStrategy?.type} initialUsdDeposit={activeStrategy?.initialUsdDeposit} />}
-        {activeTab === 'trades' && <TradesTab cycleHistory={cycleHistory} />}
+        {activeTab === 'trades' && <TradesTab accountId={account.id} />}
       </div>
 
       {/* 데스크탑: 전체 레이아웃 */}
@@ -58,7 +59,7 @@ export function AccountDetailTabs({ account, cycleHistory, portfolio, strategies
           <StrategyList accountId={account.id} strategies={strategies} />
         </div>
         <div className="grid grid-cols-2 gap-6">
-          <TradesTab cycleHistory={cycleHistory} />
+          <TradesTab accountId={account.id} />
           <NextOrderPreviewCard accountId={account.id} strategyType={activeStrategy?.type} initialUsdDeposit={activeStrategy?.initialUsdDeposit} />
         </div>
       </div>
@@ -109,18 +110,120 @@ function AccountSummaryCard({ account, portfolio, usdDeposit, hasStrategy }: { a
   )
 }
 
-function TradesTab({ cycleHistory }: { cycleHistory: CycleHistoryItem[] }) {
+const RANGE_LABELS: Record<RangeType, string> = {
+  all: '전체',
+  '7d': '7일',
+  '30d': '30일',
+  custom: '직접입력',
+}
+
+function buildParams(rangeType: RangeType, customFrom: string, customTo: string): { from?: string; to?: string } | null {
+  const today = new Date().toISOString().split('T')[0]
+  if (rangeType === 'all') return {}
+  if (rangeType === '30d') {
+    const from = new Date()
+    from.setDate(from.getDate() - 30)
+    return { from: from.toISOString().split('T')[0], to: today }
+  }
+  if (rangeType === '7d') {
+    const from = new Date()
+    from.setDate(from.getDate() - 7)
+    return { from: from.toISOString().split('T')[0], to: today }
+  }
+  if (!customFrom || !customTo) return null
+  return { from: customFrom, to: customTo }
+}
+
+function TradesTab({ accountId }: { accountId: string }) {
+  const [rangeType, setRangeType] = useState<RangeType>('30d')
+  const [customFrom, setCustomFrom] = useState('')
+  const [customTo, setCustomTo] = useState('')
+  const [cycleHistory, setCycleHistory] = useState<CycleHistoryItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const params = buildParams(rangeType, customFrom, customTo)
+    if (params === null) return
+
+    let cancelled = false
+    setIsLoading(true)
+    getAccountCycleHistory(accountId, params)
+      .then((data) => {
+        if (!cancelled) setCycleHistory(data)
+      })
+      .catch(() => {
+        if (!cancelled) setCycleHistory([])
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [accountId, rangeType, customFrom, customTo])
+
+  const rangeLabel =
+    rangeType === 'all'
+      ? '전체'
+      : rangeType === '7d'
+        ? '최근 7일'
+        : rangeType === '30d'
+          ? '최근 30일'
+          : customFrom && customTo
+            ? `${customFrom} ~ ${customTo}`
+            : '기간 선택 중'
+
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
-        <div>
-          <CardTitle className="text-base">거래 내역</CardTitle>
-          <p className="text-xs text-muted-foreground mt-0.5">최근 30일 · 총 {cycleHistory.length}건</p>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div>
+              <CardTitle className="text-base">거래 내역</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {rangeLabel} · 총 {isLoading ? '…' : cycleHistory.length}건
+              </p>
+            </div>
+            <div className="flex gap-0.5 rounded-lg bg-muted p-1 shrink-0">
+              {(['all', '7d', '30d', 'custom'] as RangeType[]).map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRangeType(r)}
+                  className={`flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
+                    rangeType === r ? 'bg-background text-rose-600 shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {RANGE_LABELS[r]}
+                </button>
+              ))}
+            </div>
+          </div>
+          {rangeType === 'custom' && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <input
+                type="date"
+                value={customFrom}
+                onChange={(e) => setCustomFrom(e.target.value)}
+                className="rounded-md border border-input bg-background px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
+              />
+              <span className="text-xs text-muted-foreground">~</span>
+              <input
+                type="date"
+                value={customTo}
+                min={customFrom || undefined}
+                onChange={(e) => setCustomTo(e.target.value)}
+                className="rounded-md border border-input bg-background px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+          )}
         </div>
       </CardHeader>
 
       <CardContent className="p-0">
-        {cycleHistory.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">로딩 중...</div>
+        ) : cycleHistory.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8 px-6">거래 내역이 없습니다.</p>
         ) : (
           <>
