@@ -38,8 +38,8 @@ export function ProfitStatsCard({accountId}: Props) {
         const [profitData, snapshotData] = await Promise.all([
           getAccountProfit(accountId, dateRange).catch(() => null),
           getPortfolioSnapshots({
-            startDate: dateRange.from,
-            endDate: dateRange.to,
+            from: dateRange.from,
+            to: dateRange.to,
           }).catch((): PortfolioSnapshot[] => []),
         ]);
 

@@ -6,15 +6,12 @@ export interface TradeHistory {
   id: string
   tradeDate: string
   ticker: string
-  strategy: string
   orderType: OrderType
   direction: OrderDirection
   quantity: number
   price: number
-  amountUsd: number
   status: OrderStatus
   kisOrderId: string | null
-  createdAt: string
 }
 
 // GET /api/accounts/{id}/cycle-history 응답 (trading_cycle_history DB 기반)
@@ -33,7 +30,6 @@ export interface Execution {
   direction: OrderDirection
   quantity: number
   price: number
-  amountUsd: number
   kisOrderId: string | null
 }
 

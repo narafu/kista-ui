@@ -1,15 +1,15 @@
 import { apiFetch, clientFetch } from './client'
-import type { TradeHistory, Execution, CycleHistoryItem, PortfolioSnapshot, ProfitSummary, MarginItem, ReservationOrder } from '@/types/trade'
+import type { TradeHistory, Execution, CycleHistoryItem, DailyTransactionResult, PortfolioSnapshot, ProfitSummary, MarginItem, ReservationOrder } from '@/types/trade'
 
-function buildDateQuery(params: { startDate?: string; endDate?: string }): string {
+function buildDateQuery(params: { from?: string; to?: string }): string {
   const q = new URLSearchParams()
-  if (params.startDate) q.set('startDate', params.startDate)
-  if (params.endDate) q.set('endDate', params.endDate)
+  if (params.from) q.set('from', params.from)
+  if (params.to) q.set('to', params.to)
   return q.size ? `?${q}` : ''
 }
 
 export async function getTrades(
-  params: { startDate?: string; endDate?: string },
+  params: { from?: string; to?: string },
   token: string
 ): Promise<TradeHistory[]> {
   return apiFetch<TradeHistory[]>(`/api/trades${buildDateQuery(params)}`, { method: 'GET' }, token)
@@ -20,7 +20,7 @@ export async function getCurrentPortfolio(token: string): Promise<PortfolioSnaps
 }
 
 export async function getPortfolioSnapshots(
-  params: { startDate?: string; endDate?: string },
+  params: { from?: string; to?: string },
   token?: string
 ): Promise<PortfolioSnapshot[]> {
   if (token) return apiFetch<PortfolioSnapshot[]>(`/api/portfolio/snapshots${buildDateQuery(params)}`, { method: 'GET' }, token)
@@ -62,6 +62,16 @@ export async function getAccountPortfolio(accountId: string, token: string): Pro
 export async function getAccountMargin(accountId: string, token?: string): Promise<MarginItem[]> {
   if (token) return apiFetch<MarginItem[]>(`/api/accounts/${accountId}/margin`, { method: 'GET' }, token)
   return clientFetch<MarginItem[]>(`/api/accounts/${accountId}/margin`)
+}
+
+export async function getDailyTransactions(
+  accountId: string,
+  params: { from: string; to: string },
+  token?: string
+): Promise<DailyTransactionResult> {
+  const q = new URLSearchParams({ from: params.from, to: params.to })
+  if (token) return apiFetch<DailyTransactionResult>(`/api/accounts/${accountId}/daily-trades?${q}`, { method: 'GET' }, token)
+  return clientFetch<DailyTransactionResult>(`/api/accounts/${accountId}/daily-trades?${q}`)
 }
 
 export async function getAccountReservationOrders(

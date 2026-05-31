@@ -106,11 +106,11 @@ export default async function StatisticsPage() {
                       )}
                       <span className="font-medium text-sm">{trade.ticker}</span>
                     </div>
-                    <span className="text-sm font-semibold">${trade.amountUsd.toFixed(2)}</span>
+                    <span className="text-sm font-semibold">${(trade.price * trade.quantity).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between mt-2 text-xs text-muted-foreground">
                     <span>{trade.quantity}주 × ${trade.price.toFixed(2)}</span>
-                    <span>{new Date(trade.createdAt).toLocaleDateString('ko-KR')}</span>
+                    <span>{new Date(trade.tradeDate).toLocaleDateString('ko-KR')}</span>
                   </div>
                 </div>
               ))}
@@ -124,7 +124,7 @@ export default async function StatisticsPage() {
               <table className="w-full text-sm">
                 <thead style={{ background: 'var(--muted)' }}>
                   <tr>
-                    {['구분', '종목', '전략', '수량', '단가', '금액', '체결일'].map((h) => (
+                    {['구분', '종목', '수량', '단가', '금액', '체결일'].map((h) => (
                       <th
                         key={h}
                         className="px-4 py-3 text-left text-[11px] uppercase tracking-widest text-rose-500"
@@ -149,12 +149,11 @@ export default async function StatisticsPage() {
                         )}
                       </td>
                       <td className="px-4 py-3 font-bold">{trade.ticker}</td>
-                      <td className="px-4 py-3 text-muted-foreground text-xs">{trade.strategy}</td>
                       <td className="px-4 py-3 tabular-nums">{trade.quantity}주</td>
                       <td className="px-4 py-3 tabular-nums">${trade.price.toFixed(2)}</td>
-                      <td className="px-4 py-3 font-bold tabular-nums">${trade.amountUsd.toFixed(2)}</td>
+                      <td className="px-4 py-3 font-bold tabular-nums">${(trade.price * trade.quantity).toFixed(2)}</td>
                       <td className="px-4 py-3 text-muted-foreground tabular-nums">
-                        {new Date(trade.createdAt).toLocaleDateString('ko-KR')}
+                        {new Date(trade.tradeDate).toLocaleDateString('ko-KR')}
                       </td>
                     </tr>
                   ))}

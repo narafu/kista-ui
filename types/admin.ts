@@ -53,20 +53,7 @@ export interface AdminAnomalyAccount {
   accountNoMasked: string
 }
 
-export interface AdminAnomalyTrade {
-  id: string
-  accountId: string | null
-  ownerNickname: string
-  tradeDate: string
-  ticker: string
-  direction: string
-  orderType: string
-  quantity: number
-  price: number
-}
-
 export interface AdminAnomalies {
-  failedTrades: AdminAnomalyTrade[]
   pausedAccounts: AdminAnomalyAccount[]
   inactiveAccounts: AdminAnomalyAccount[]
 }

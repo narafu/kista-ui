@@ -1,9 +1,8 @@
 import { getAuthToken } from '@/lib/auth/token'
 import { getAdminAnomalies } from '@/lib/api/admin'
-import type { AdminAnomalies, AdminAnomalyAccount, AdminAnomalyTrade } from '@/types/admin'
+import type { AdminAnomalies, AdminAnomalyAccount } from '@/types/admin'
 
 const EMPTY_ANOMALIES: AdminAnomalies = {
-  failedTrades: [],
   pausedAccounts: [],
   inactiveAccounts: [],
 }
@@ -15,7 +14,6 @@ export default async function AdminAnomaliesPage() {
     : EMPTY_ANOMALIES
 
   const totalCount =
-    anomalies.failedTrades.length +
     anomalies.pausedAccounts.length +
     anomalies.inactiveAccounts.length
 
@@ -31,44 +29,6 @@ export default async function AdminAnomaliesPage() {
       </div>
 
       <div className="space-y-8">
-        {/* 실패 거래 */}
-        <section>
-          <h2 className="text-base font-bold mb-3 flex items-center gap-2">
-            실패한 거래
-            <Badge count={anomalies.failedTrades.length} color="red" />
-          </h2>
-          {anomalies.failedTrades.length === 0 ? (
-            <EmptyState text="최근 30일간 실패한 거래가 없습니다" />
-          ) : (
-            <div className="rounded-xl border border-border overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/40 border-b border-border">
-                  <tr>
-                    <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">날짜</th>
-                    <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">소유자</th>
-                    <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">종목</th>
-                    <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">방향</th>
-                    <th className="text-right px-4 py-2.5 font-semibold text-muted-foreground">수량</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {anomalies.failedTrades.map((t: AdminAnomalyTrade) => (
-                    <tr key={t.id} className="hover:bg-muted/20">
-                      <td className="px-4 py-2.5 text-xs text-muted-foreground">{t.tradeDate}</td>
-                      <td className="px-4 py-2.5 font-medium">{t.ownerNickname}</td>
-                      <td className="px-4 py-2.5">{t.ticker}</td>
-                      <td className={`px-4 py-2.5 font-semibold ${t.direction === 'BUY' ? 'text-blue-600' : 'text-red-500'}`}>
-                        {t.direction === 'BUY' ? '매수' : '매도'}
-                      </td>
-                      <td className="px-4 py-2.5 text-right">{t.quantity}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-
         {/* 일시정지 계좌 */}
         <section>
           <h2 className="text-base font-bold mb-3 flex items-center gap-2">
