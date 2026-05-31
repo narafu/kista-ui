@@ -7,10 +7,24 @@ import {Card, CardContent} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {StatusDot} from "@/components/common/StatusDot";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   pauseStrategy,
   resumeStrategy,
+  deleteStrategy,
 } from "@/lib/api/strategies";
 import {ApiError} from "@/lib/api/client";
+import {cn} from "@/lib/utils";
+import {buttonVariants} from "@/components/ui/button";
 import type {Strategy} from "@/types/strategy";
 
 interface Props {
@@ -21,6 +35,24 @@ interface Props {
 export function StrategyCard({strategy, onChanged}: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
+  async function handleDelete() {
+    setLoading(true);
+    try {
+      await deleteStrategy(strategy.id);
+      toast.success("전략이 삭제되었습니다");
+      setDeleteOpen(false);
+      onChanged?.();
+      router.refresh();
+    } catch (err) {
+      toast.error(
+        err instanceof ApiError ? "삭제에 실패했습니다" : "오류가 발생했습니다",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function handleToggle() {
     setLoading(true);
@@ -104,6 +136,36 @@ export function StrategyCard({strategy, onChanged}: Props) {
                 : "재개"}
           </Button>
 
+          <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+            <AlertDialogTrigger
+              className={cn(
+                buttonVariants({variant: "ghost", size: "sm"}),
+                "text-destructive hover:text-destructive",
+              )}
+              disabled={loading}
+            >
+              삭제
+            </AlertDialogTrigger>
+            <AlertDialogContent size="sm">
+              <AlertDialogHeader>
+                <AlertDialogTitle>전략 삭제</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {strategy.ticker} 전략을 삭제하시겠습니까? 진행 중인 사이클이
+                  종료됩니다.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={loading}>취소</AlertDialogCancel>
+                <AlertDialogAction
+                  variant="destructive"
+                  onClick={handleDelete}
+                  disabled={loading}
+                >
+                  {loading ? "삭제 중..." : "삭제"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </CardContent>
     </Card>
