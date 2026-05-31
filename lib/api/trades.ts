@@ -59,6 +59,19 @@ export async function getAccountCycleHistory(
   return clientFetch<CycleHistoryItem[]>(`/api/accounts/${accountId}/cycle-history${qs}`)
 }
 
+export async function getStrategyCycleHistory(
+  strategyId: string,
+  params: { from?: string; to?: string },
+  token?: string
+): Promise<CycleHistoryItem[]> {
+  const q = new URLSearchParams()
+  if (params.from) q.set('from', params.from)
+  if (params.to) q.set('to', params.to)
+  const qs = q.size ? `?${q}` : ''
+  if (token) return apiFetch<CycleHistoryItem[]>(`/api/trading-cycles/${strategyId}/history${qs}`, { method: 'GET' }, token)
+  return clientFetch<CycleHistoryItem[]>(`/api/trading-cycles/${strategyId}/history${qs}`)
+}
+
 export async function getAccountPortfolio(accountId: string, token: string): Promise<PortfolioSnapshot> {
   return apiFetch<PortfolioSnapshot>(`/api/accounts/${accountId}/portfolio`, { method: 'GET' }, token)
 }
