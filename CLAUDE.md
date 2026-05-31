@@ -189,6 +189,7 @@ NEXT_PUBLIC_API_BASE_URL=       # kista-api Render URL
 - 로그 확인: `docker compose logs` (컨테이너 ID hostname, ECONNREFUSED 등 디버깅)
 - `NEXT_PUBLIC_*`는 빌드 타임 인라인 → `docker run -e`로 런타임 주입 불가, Dockerfile `ARG`/`ENV` 필수 (builder 스테이지에 선언)
 - 로컬 Docker + 호스트 kista-api 연동: `docker-compose.yml`의 `API_BASE_URL=http://host.docker.internal:8080` + `extra_hosts: [host.docker.internal:host-gateway]`로 해결 (자세한 내용은 "Docker 서버사이드 API URL" quirk 참고)
+- **Dockerfile Node.js 버전 (현재: 22)**: `undici` v8.x는 Node.js 22+에서만 지원되는 `v8.markAsUncloneable()` 사용 → Docker 빌드 시 `s.util.markAsUncloneable is not a function` 오류 발생. 로컬 Node.js 26에서는 정상 빌드되어 환경 차이가 원인임. Dockerfile 3 스테이지(deps/builder/runner) 모두 `node:22-alpine` 유지 필수 — `node:20-alpine`으로 다운그레이드 금지
 
 ## Git 규칙
 
