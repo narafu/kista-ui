@@ -4,8 +4,17 @@ import { Providers } from "@/components/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "KISTA",
-  description: "한국투자증권 KIS API 기반 해외주식 자동 분할매매 SaaS",
+  title: 'KISTA',
+  description: '한국투자증권 KIS API 기반 해외주식 자동 분할매매 SaaS',
+  manifest: '/manifest.webmanifest',
+  icons: {
+    apple: '/apple-touch-icon.png',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'KISTA',
+  },
 };
 
 export default function RootLayout({
