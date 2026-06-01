@@ -79,23 +79,6 @@ export default async function SettingsPage() {
               currentChannel={user?.notificationChannel ?? 'NONE'}
               hasTelegram={user?.hasTelegram ?? false}
             />
-          </section>
-
-          {/* 환경설정 */}
-          <section id="preferences" className="rounded-[var(--r-lg)] bg-card border border-border shadow-[var(--sh-card)] p-6">
-            <div className="text-sm font-bold mb-0.5">환경설정</div>
-            <div className="text-[12.5px] text-muted-foreground mb-[18px]">테마와 알림 환경을 조정합니다.</div>
-
-            <div className="text-[12.5px] font-semibold text-muted-foreground mb-2">테마</div>
-            <ThemeCards />
-
-            <div className="flex items-center justify-between mt-5 pt-4 border-t border-border">
-              <div>
-                <div className="text-[13px] font-bold">다크 모드</div>
-                <div className="text-[11.5px] text-muted-foreground mt-0.5">시스템 테마 대신 직접 전환</div>
-              </div>
-              <ThemeToggle />
-            </div>
 
             <div className="text-[12.5px] font-semibold text-muted-foreground mt-5 mb-2">알림 종류</div>
             {[
@@ -114,6 +97,24 @@ export default async function SettingsPage() {
                 </div>
               </div>
             ))}
+          </section>
+
+          {/* 환경설정 */}
+          <section id="preferences" className="rounded-[var(--r-lg)] bg-card border border-border shadow-[var(--sh-card)] p-6">
+            <div className="text-sm font-bold mb-0.5">환경설정</div>
+            <div className="text-[12.5px] text-muted-foreground mb-[18px]">테마와 알림 환경을 조정합니다.</div>
+
+            <div className="text-[12.5px] font-semibold text-muted-foreground mb-2">테마</div>
+            <ThemeCards />
+
+            <div className="flex items-center justify-between mt-5 pt-4 border-t border-border">
+              <div>
+                <div className="text-[13px] font-bold">다크 모드</div>
+                <div className="text-[11.5px] text-muted-foreground mt-0.5">시스템 테마 대신 직접 전환</div>
+              </div>
+              <ThemeToggle />
+            </div>
+
           </section>
 
           {/* 위험 구역 */}
