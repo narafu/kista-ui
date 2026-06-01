@@ -1,6 +1,6 @@
 import { getAuthToken } from '@/lib/auth/token'
 import { DeleteAccountButton } from '@/components/settings/DeleteAccountButton'
-import { getMe } from '@/lib/api/auth'
+import { getCachedUser } from '@/lib/cache/cached-api'
 import { TelegramSection } from '@/components/settings/TelegramSection'
 import { NotificationSettings } from '@/components/settings/NotificationSettings'
 import { ThemeCards } from '@/components/settings/ThemeCards'
@@ -14,7 +14,7 @@ export default async function SettingsPage() {
   let user: User | null = null
 
   if (token) {
-    user = await getMe(token).catch(() => null)
+    user = await getCachedUser(token).catch(() => null)
   }
 
   return (

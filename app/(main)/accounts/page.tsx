@@ -5,8 +5,7 @@ import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
 import { AccountCard } from '@/components/common/AccountCard'
 import { getAuthToken } from '@/lib/auth/token'
-import { listAccounts } from '@/lib/api/accounts'
-import { listStrategies } from '@/lib/api/strategies'
+import { getCachedAccounts, getCachedStrategies } from '@/lib/cache/cached-api'
 import type { Account } from '@/types/account'
 import type { Strategy } from '@/types/strategy'
 
@@ -19,12 +18,12 @@ export default async function AccountsPage() {
   const token = await getAuthToken()
   let accounts: Account[] = []
   if (token) {
-    accounts = await listAccounts(token).catch((): Account[] => [])
+    accounts = await getCachedAccounts(token).catch((): Account[] => [])
   }
 
   const strategiesByAccount: Strategy[][] = token
     ? await Promise.all(
-        accounts.map((a) => listStrategies(a.id, token).catch((): Strategy[] => []))
+        accounts.map((a) => getCachedStrategies(a.id, token).catch((): Strategy[] => []))
       )
     : accounts.map(() => [])
 

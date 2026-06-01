@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { revalidateTag } from 'next/cache'
 import { getAuthToken } from '@/lib/auth/token'
+import { cacheTags } from '@/lib/cache/tags'
 
 const API_BASE_URL = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
 
@@ -29,6 +31,11 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
     console.error(`[trading-cycles${subPath} ${request.method}] ${res.status}`, errBody)
     return NextResponse.json({ error: 'Failed' }, { status: res.status })
   }
+
+  if (request.method !== 'GET') {
+    revalidateTag(cacheTags.strategies(token), 'max')
+  }
+
   if (res.status === 204) return new NextResponse(null, { status: 204 })
   return NextResponse.json(await res.json(), { status: res.status })
 }
