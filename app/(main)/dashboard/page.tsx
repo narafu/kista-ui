@@ -3,9 +3,8 @@ import Link from 'next/link'
 import { Plus, TrendingUp } from 'lucide-react'
 import { toNum } from '@/lib/utils'
 import { getAuthToken } from '@/lib/auth/token'
-import { listAccounts } from '@/lib/api/accounts'
 import { getAccountPortfolio } from '@/lib/api/trades'
-import { listStrategies } from '@/lib/api/strategies'
+import { getCachedAccounts, getCachedStrategies } from '@/lib/cache/cached-api'
 import { PageHeader } from '@/components/common/PageHeader'
 import { KpiCard } from '@/components/common/KpiCard'
 import { AccountCard } from '@/components/common/AccountCard'
@@ -315,7 +314,7 @@ function DashboardMobile({
 
 export default async function DashboardPage() {
   const token = await getAuthToken()
-  const accounts: Account[] = token ? await listAccounts(token).catch(() => []) : []
+  const accounts: Account[] = token ? await getCachedAccounts(token).catch(() => []) : []
 
   if (accounts.length === 0) {
     return (
@@ -329,7 +328,7 @@ export default async function DashboardPage() {
   const [portfolioRaws, strategiesByAccount] = token
     ? await Promise.all([
         Promise.all(accounts.map(a => getAccountPortfolio(a.id, token).catch(() => null))),
-        Promise.all(accounts.map(a => listStrategies(a.id, token).catch((): Strategy[] => []))),
+        Promise.all(accounts.map(a => getCachedStrategies(a.id, token).catch((): Strategy[] => []))),
       ])
     : [[], accounts.map((): Strategy[] => [])]
 

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { getAuthToken } from '@/lib/auth/token'
-import { listAccounts } from '@/lib/api/accounts'
 import { getCurrentPortfolio, getTrades } from '@/lib/api/trades'
+import { getCachedAccounts } from '@/lib/cache/cached-api'
 import { ProfitStatsCard } from '@/components/common/ProfitStatsCard'
 import { PageHeader } from '@/components/common/PageHeader'
 import { KpiCard } from '@/components/common/KpiCard'
@@ -22,7 +22,7 @@ export default async function StatisticsPage() {
 
   if (token) {
     ;[accounts, portfolio, trades] = await Promise.all([
-      listAccounts(token).catch((): Account[] => []),
+      getCachedAccounts(token).catch((): Account[] => []),
       getCurrentPortfolio(token).catch(() => null),
       getTrades({}, token).catch((): TradeHistory[] => []),
     ])

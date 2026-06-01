@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { revalidateTag } from 'next/cache'
 import { getAuthToken } from '@/lib/auth/token'
+import { cacheTags } from '@/lib/cache/tags'
 
 const API_BASE_URL = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
 
@@ -24,5 +26,6 @@ export async function PATCH(request: NextRequest) {
     console.error('[settings/notification-channel PATCH] kista-api 실패:', res.status, errBody)
     return NextResponse.json({ error: 'Failed' }, { status: res.status })
   }
+  revalidateTag(cacheTags.user(token), 'max')
   return new NextResponse(null, { status: 204 })
 }
