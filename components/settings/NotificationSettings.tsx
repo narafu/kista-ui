@@ -34,7 +34,13 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Notificati
       if ((next === 'FCM' || next === 'ALL') && fcmStatus !== 'registered') {
         const ok = await requestAndRegister()
         if (!ok) {
-          toast.error('브라우저 알림 권한을 허용해주세요')
+          if (typeof Notification === 'undefined') {
+            toast.error('이 브라우저는 푸시 알림을 지원하지 않습니다')
+          } else if (Notification.permission === 'denied') {
+            toast.error('알림이 차단되어 있습니다. 브라우저 설정 > 알림에서 허용 후 다시 시도해주세요')
+          } else {
+            toast.error('브라우저 알림 권한을 허용해주세요')
+          }
           return
         }
       }
@@ -101,7 +107,7 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Notificati
       )}
       {fcmStatus === 'denied' && (
         <p className="text-[11.5px] mt-2" style={{ color: 'var(--neg)' }}>
-          브라우저 알림 권한이 거부되었습니다. 브라우저 설정에서 허용해주세요.
+          알림이 차단되어 있습니다. 브라우저 설정 &gt; 알림에서 이 사이트를 허용해주세요.
         </p>
       )}
     </div>
