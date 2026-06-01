@@ -1,6 +1,6 @@
 export type UserStatus = 'PENDING' | 'ACTIVE' | 'REJECTED'
 export type UserRole = 'USER' | 'ADMIN'
-export type NotificationChannel = 'TELEGRAM' | 'FCM' | 'ALL'
+export type NotificationChannel = 'NONE' | 'TELEGRAM' | 'FCM' | 'ALL'
 
 export interface User {
   id: string

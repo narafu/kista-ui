@@ -1,27 +1,36 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { clientFetch } from '@/lib/api/client'
 import { useFcmToken } from '@/hooks/useFcmToken'
-
-type Channel = 'TELEGRAM' | 'FCM' | 'ALL'
+import type { NotificationChannel } from '@/types/user'
 
 interface NotificationSettingsProps {
-  currentChannel: Channel
+  currentChannel: NotificationChannel
+  hasTelegram: boolean
 }
 
-export function NotificationSettings({ currentChannel }: NotificationSettingsProps) {
+export function NotificationSettings({ currentChannel, hasTelegram }: NotificationSettingsProps) {
   const router = useRouter()
-  const [channel, setChannel] = useState<Channel>(currentChannel)
+  const [channel, setChannel] = useState<NotificationChannel>(currentChannel)
   const [loading, setLoading] = useState(false)
+
+  // router.refresh() 후 서버에서 내려온 currentChannel을 state에 동기화
+  useEffect(() => {
+    setChannel(currentChannel)
+  }, [currentChannel])
   const { status: fcmStatus, requestAndRegister } = useFcmToken()
 
-  async function handleChannelSelect(next: Channel) {
+  async function handleChannelSelect(next: NotificationChannel) {
     if (next === channel) return
+    if ((next === 'TELEGRAM' || next === 'ALL') && !hasTelegram) {
+      toast.error('텔레그램 봇을 먼저 연결해주세요')
+      return
+    }
     setLoading(true)
     try {
-      // FCM 선택 시 먼저 토큰 등록 — 실패 시 채널 변경 중단
       if ((next === 'FCM' || next === 'ALL') && fcmStatus !== 'registered') {
         const ok = await requestAndRegister()
         if (!ok) return
@@ -34,6 +43,9 @@ export function NotificationSettings({ currentChannel }: NotificationSettingsPro
       })
 
       setChannel(next)
+      if (next === 'FCM' || next === 'ALL') {
+        toast.success('푸시 알림이 등록되었습니다')
+      }
       router.refresh()
     } catch (err) {
       console.error('알림 채널 변경 실패:', err)
@@ -42,11 +54,15 @@ export function NotificationSettings({ currentChannel }: NotificationSettingsPro
     }
   }
 
-  const channels: { value: Channel; label: string; desc: string }[] = [
-    { value: 'TELEGRAM', label: '텔레그램', desc: '텔레그램 봇 알림' },
+  const channels: { value: NotificationChannel; label: string; desc: string }[] = [
+    { value: 'NONE', label: '끄기', desc: '알림을 받지 않습니다' },
     { value: 'FCM', label: '푸시 알림', desc: '브라우저 / 모바일 푸시' },
+    { value: 'TELEGRAM', label: '텔레그램', desc: '텔레그램 봇 알림' },
     { value: 'ALL', label: '모두', desc: '텔레그램 + 푸시 동시 수신' },
   ]
+
+  const needsTelegram =
+    !hasTelegram && (channel === 'TELEGRAM' || channel === 'ALL')
 
   return (
     <div className="mt-4 pt-4 border-t border-border">
@@ -74,14 +90,15 @@ export function NotificationSettings({ currentChannel }: NotificationSettingsPro
           </button>
         ))}
       </div>
+
+      {needsTelegram && (
+        <p className="text-[11.5px] mt-2" style={{ color: 'var(--warn)' }}>
+          텔레그램 알림을 받으려면 위에서 텔레그램 봇을 먼저 연결해주세요.
+        </p>
+      )}
       {fcmStatus === 'denied' && (
         <p className="text-[11.5px] mt-2" style={{ color: 'var(--neg)' }}>
           브라우저 알림 권한이 거부되었습니다. 브라우저 설정에서 허용해주세요.
-        </p>
-      )}
-      {fcmStatus === 'registered' && (
-        <p className="text-[11.5px] mt-2" style={{ color: 'var(--pos)' }}>
-          푸시 알림이 등록되었습니다.
         </p>
       )}
     </div>

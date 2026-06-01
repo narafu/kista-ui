@@ -163,6 +163,9 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **ProfitDisplay currency prop**: `currency='USD'`(기본) 또는 `currency='KRW'` — KRW 시 `₩` 기호 + 소수점 없는 한국식 포맷, USD 시 `$` + 소수점 2자리. KIS portfolio summary 값(totalEvalProfit 등)은 KRW이므로 반드시 `currency="KRW"` 전달.
 - **Server Component + 인터랙션 패턴**: 데이터 fetching Server Component에 버튼/다이얼로그 추가 시 → `*Button.tsx`/`*Trigger.tsx` 별도 Client Component(`'use client'` + `useState`)로 분리 후 Server Component에서 import (예: `AccountEditDeleteButton.tsx`). 페이지 전체 `'use client'` 전환 금지
 - **Server Component 데이터 갱신 패턴**: Client Component에서 API 호출(PUT/POST/DELETE) 성공 후 부모 Server Component의 데이터를 최신화하려면 `router.refresh()` (`next/navigation`) 호출 — useState로 로컬 상태만 업데이트하면 서버에서 계산된 값(예: telegramBotUsername)이 반영 안 됨
+- **형제 컴포넌트 `router.refresh()` 후 `useState` 미동기화**: Client Component A가 `useState(prop)`으로 초기화하고, 형제 Client Component B가 `router.refresh()`를 호출하면, 부모 Server Component가 새 props를 내려보내도 A의 state는 자동 갱신 안 됨 — `useEffect(() => { setState(prop) }, [prop])` 패턴으로 동기화 필수. 예: `NotificationSettings.tsx`의 `channel` state ↔ `TelegramSection.tsx`의 `router.refresh()`
+- **Toast vs 영구 `<p>` 기준**: "방금 한 동작의 결과"(등록됨, 저장됨)는 `toast.success()` — 컴포넌트 생존 기간 내내 state가 유지되므로 `<p>`로 표시하면 다른 옵션 선택 후에도 계속 보임. "현재 상태로 조치 필요"(권한 거부, 미연결 경고)는 `<p>` 유지
+- **독립 API 호출 try/catch 분리**: 논리적으로 독립된 API 호출 두 개(예: 텔레그램 등록 + 채널 전환)는 try/catch를 분리할 것. 같은 블록에 묶으면 두 번째 실패 시 첫 번째 성공 toast가 catch의 에러 toast로 대체됨. 두 번째 호출이 부수 효과이면 실패해도 catch 내부에서 무시하고 첫 번째 성공 흐름 계속 진행
 
 ## 환경변수
 

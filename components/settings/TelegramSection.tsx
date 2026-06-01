@@ -1,21 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Send, Check } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { updateTelegram, deleteTelegram } from '@/lib/api/settings'
-import { ApiError } from '@/lib/api/client'
+import { ApiError, clientFetch } from '@/lib/api/client'
 import { cn } from '@/lib/utils'
+import type { NotificationChannel } from '@/types/user'
 
 interface Props {
   hasTelegram: boolean
   telegramBotUsername?: string | null
+  currentChannel: NotificationChannel
 }
 
-export function TelegramSection({ hasTelegram, telegramBotUsername }: Props) {
+export function TelegramSection({ hasTelegram, telegramBotUsername, currentChannel }: Props) {
   const [botToken, setBotToken] = useState('')
   const [chatId, setChatId] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -24,6 +26,12 @@ export function TelegramSection({ hasTelegram, telegramBotUsername }: Props) {
   const [currentUsername, setCurrentUsername] = useState(telegramBotUsername ?? null)
   const router = useRouter()
 
+  useEffect(() => {
+    if (telegramBotUsername != null) {
+      setCurrentUsername(telegramBotUsername)
+    }
+  }, [telegramBotUsername])
+
   async function handleSave() {
     if (!botToken.trim()) { toast.error('Bot Token을 입력해주세요'); return }
     if (!chatId.trim()) { toast.error('Chat ID를 입력해주세요'); return }
@@ -31,20 +39,35 @@ export function TelegramSection({ hasTelegram, telegramBotUsername }: Props) {
     setIsLoading(true)
     try {
       await updateTelegram({ botToken: botToken.trim(), chatId: chatId.trim() })
-      toast.success('텔레그램 봇이 연결되었습니다')
-      setCurrentHasTelegram(true)
-      setBotToken('')
-      setChatId('')
-      router.refresh() // Server Component 재실행 → telegramBotUsername 최신화
     } catch (err) {
-      if (err instanceof ApiError && err.status === 400) {
-        toast.error('유효하지 않은 Bot Token입니다')
-      } else {
-        toast.error('연결에 실패했습니다')
-      }
-    } finally {
+      toast.error(err instanceof ApiError && err.status === 400 ? '유효하지 않은 Bot Token입니다' : '연결에 실패했습니다')
       setIsLoading(false)
+      return
     }
+
+    // 텔레그램 등록 성공 → 알림 수단 자동 전환 (끄기→텔레그램, 푸시→모두)
+    const nextChannel: NotificationChannel | null =
+      currentChannel === 'NONE' ? 'TELEGRAM'
+      : currentChannel === 'FCM' ? 'ALL'
+      : null
+    if (nextChannel) {
+      try {
+        await clientFetch<void>('/api/settings/notification-channel', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channel: nextChannel }),
+        })
+      } catch {
+        // 채널 전환 실패해도 텔레그램 연결 자체는 성공
+      }
+    }
+
+    toast.success('텔레그램 봇이 연결되었습니다')
+    setCurrentHasTelegram(true)
+    setBotToken('')
+    setChatId('')
+    router.refresh()
+    setIsLoading(false)
   }
 
   async function handleDelete() {
@@ -56,9 +79,8 @@ export function TelegramSection({ hasTelegram, telegramBotUsername }: Props) {
       setCurrentUsername(null)
     } catch (err) {
       toast.error(err instanceof ApiError ? '해제에 실패했습니다' : '오류가 발생했습니다')
-    } finally {
-      setIsDeleteLoading(false)
     }
+    setIsDeleteLoading(false)
   }
 
   return (
@@ -85,7 +107,9 @@ export function TelegramSection({ hasTelegram, telegramBotUsername }: Props) {
         <div className="flex items-center justify-between bg-muted rounded-[10px] px-[14px] py-[12px]">
           <div>
             <div className="text-[11.5px] text-muted-foreground mb-0.5">연결된 채팅</div>
-            <div className="text-sm font-bold font-mono">@{currentUsername ?? 'bot'}</div>
+            <div className="text-sm font-bold font-mono">
+              {currentUsername ? `@${currentUsername}` : '불러오는 중...'}
+            </div>
           </div>
           <button
             type="button"

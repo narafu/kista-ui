@@ -73,9 +73,11 @@ export default async function SettingsPage() {
             <TelegramSection
               hasTelegram={user?.hasTelegram ?? false}
               telegramBotUsername={user?.telegramBotUsername}
+              currentChannel={user?.notificationChannel ?? 'NONE'}
             />
             <NotificationSettings
-              currentChannel={user?.notificationChannel ?? 'TELEGRAM'}
+              currentChannel={user?.notificationChannel ?? 'NONE'}
+              hasTelegram={user?.hasTelegram ?? false}
             />
           </section>
 
