@@ -10,7 +10,7 @@ import type { Account } from '@/types/account'
 import type { CycleHistoryItem, PortfolioSnapshot } from '@/types/trade'
 import type { Strategy } from '@/types/strategy'
 
-type Tab = 'summary' | 'account-trades' | 'strategy' | 'preview'
+type Tab = 'summary' | 'strategy' | 'preview'
 type RangeType = 'all' | '7d' | '30d' | 'custom'
 
 interface Props {
@@ -28,14 +28,14 @@ export function AccountDetailTabs({ account, portfolio, strategies, usdDeposit }
     <div className="space-y-4">
       {/* 모바일 탭 헤더 */}
       <div className="flex lg:hidden gap-1 border-b overflow-x-auto">
-        {(['summary', 'account-trades', 'strategy', 'preview'] as Tab[]).map((tab) => (
+        {(['summary', 'strategy', 'preview'] as Tab[]).map((tab) => (
           <button
             key={tab}
             type="button"
             onClick={() => setActiveTab(tab)}
             className={`flex-shrink-0 py-3 px-2 text-sm font-medium border-b-2 transition-colors ${activeTab === tab ? 'border-primary text-primary' : 'border-transparent text-muted-foreground'}`}
           >
-            {tab === 'summary' ? '요약' : tab === 'account-trades' ? '계좌 거래' : tab === 'strategy' ? '전략' : '다음 주문'}
+            {tab === 'summary' ? '계좌' : tab === 'strategy' ? '전략' : '다음 주문'}
           </button>
         ))}
       </div>
@@ -43,9 +43,11 @@ export function AccountDetailTabs({ account, portfolio, strategies, usdDeposit }
       {/* 모바일: 탭 콘텐츠 */}
       <div className="lg:hidden">
         {activeTab === 'summary' && (
-          <AccountSummaryCard account={account} portfolio={portfolio} usdDeposit={usdDeposit} hasStrategy={strategies.length > 0} />
+          <div className="space-y-4">
+            <AccountSummaryCard account={account} portfolio={portfolio} usdDeposit={usdDeposit} hasStrategy={strategies.length > 0} />
+            <TradesTab accountId={account.id} />
+          </div>
         )}
-        {activeTab === 'account-trades' && <TradesTab accountId={account.id} />}
         {activeTab === 'strategy' && (
           <div className="space-y-4">
             <StrategyList accountId={account.id} strategies={strategies} />
