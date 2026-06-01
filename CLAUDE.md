@@ -166,6 +166,13 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **형제 컴포넌트 `router.refresh()` 후 `useState` 미동기화**: Client Component A가 `useState(prop)`으로 초기화하고, 형제 Client Component B가 `router.refresh()`를 호출하면, 부모 Server Component가 새 props를 내려보내도 A의 state는 자동 갱신 안 됨 — `useEffect(() => { setState(prop) }, [prop])` 패턴으로 동기화 필수. 예: `NotificationSettings.tsx`의 `channel` state ↔ `TelegramSection.tsx`의 `router.refresh()`
 - **Toast vs 영구 `<p>` 기준**: "방금 한 동작의 결과"(등록됨, 저장됨)는 `toast.success()` — 컴포넌트 생존 기간 내내 state가 유지되므로 `<p>`로 표시하면 다른 옵션 선택 후에도 계속 보임. "현재 상태로 조치 필요"(권한 거부, 미연결 경고)는 `<p>` 유지
 - **독립 API 호출 try/catch 분리**: 논리적으로 독립된 API 호출 두 개(예: 텔레그램 등록 + 채널 전환)는 try/catch를 분리할 것. 같은 블록에 묶으면 두 번째 실패 시 첫 번째 성공 toast가 catch의 에러 toast로 대체됨. 두 번째 호출이 부수 효과이면 실패해도 catch 내부에서 무시하고 첫 번째 성공 흐름 계속 진행
+- **탭 전환 딜레이 원인**: `(main)/` 하위 각 페이지(dashboard/accounts/statistics/settings)는 SSR Server Component → 탭 클릭마다 kista-api(Render) API 호출 발생 → 1-2초 지연. 레이아웃(`(main)/layout.tsx`)은 탭 이동 시 재렌더링 안 됨(Next.js App Router 레이아웃 캐시). 지연 원인은 페이지별 API 호출임
+- **`unstable_cache` + `revalidateTag` 캐싱 패턴**: `lib/cache/tags.ts`(JWT suffix 기반 사용자별 태그) + `lib/cache/cached-api.ts`(getCachedAccounts, getCachedStrategies, getCachedUser) — 5분 TTL, 태그 기반 즉시 무효화. **캐싱 대상**: listAccounts, listStrategies, getMe(설정). **캐싱 제외**: getAccountPortfolio, getCurrentPortfolio, getTrades (KIS 실시간 데이터). **무효화 위치**: accounts Route Handler(계좌 변경 → accounts+strategies 태그), trading-cycles Route Handler(전략 변경 → strategies 태그), settings/telegram + settings/notification-channel Route Handler(설정 변경 → user 태그)
+- **Next.js 16 `revalidateTag` 2인자 필수**: `revalidateTag(tag)` → TS 에러 `Expected 2 arguments, but got 1`. 두 번째 인자로 profile 필수 — `revalidateTag(tag, 'max')` 사용. 런타임에서는 1인자도 동작하나 deprecation warning 출력
+- **`loading.tsx` 위치**: `app/(main)/dashboard|accounts|statistics|settings/loading.tsx` — 탭 클릭 즉시 스켈레톤 표시 (캐시 미스 시 체감 딜레이 개선). `animate-pulse` + muted background + 실제 레이아웃 구조를 모방한 skeleton 권장
+- **iOS 푸시 알림 제약**: iOS의 모든 브라우저(Chrome 포함)는 WebKit 기반 → `PushManager` 미지원 → Web Push 불가. iOS 16.4+ Safari에서 홈 화면에 추가한 PWA 앱만 Web Push 수신 가능. Android Chrome은 일반 브라우저에서도 지원됨. 푸시 알림 선택 전 `'PushManager' in window` 사전 체크 필수 (iOS에서 즉시 에러 메시지 표시)
+- **PWA 구성**: `app/manifest.ts`(Next.js App Router 방식, `/manifest.webmanifest` 자동 서빙), `app/layout.tsx` metadata에 `manifest`/`icons.apple`/`appleWebApp` 필드 추가, `public/icon-192.png` + `public/icon-512.png` + `public/apple-touch-icon.png` 생성 (sips로 logo.png 리샘플+패딩). 기존 `public/firebase-messaging-sw.js` 재활용 (별도 수정 불필요)
+- **`firebase-messaging-sw.js` git 추적 필수**: Service Worker 파일이 git에 없으면 Vercel 배포 후 `/firebase-messaging-sw.js` 404 → `navigator.serviceWorker.register()` 실패 → FCM 토큰 발급 불가 → 푸시 알림 선택 시 무반응. 로컬에서 크롬이 캐시한 SW로 동작해 눈에 안 띔
 
 ## 환경변수
 
