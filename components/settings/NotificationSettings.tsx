@@ -33,7 +33,10 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Notificati
     try {
       if ((next === 'FCM' || next === 'ALL') && fcmStatus !== 'registered') {
         const ok = await requestAndRegister()
-        if (!ok) return
+        if (!ok) {
+          toast.error('브라우저 알림 권한을 허용해주세요')
+          return
+        }
       }
 
       await clientFetch<void>('/api/settings/notification-channel', {
