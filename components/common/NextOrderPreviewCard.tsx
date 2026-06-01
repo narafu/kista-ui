@@ -5,6 +5,8 @@ import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {KpiCard} from "./KpiCard";
 import {ApiError} from "@/lib/api/client";
 import {getNextOrdersPreview} from "@/lib/api/orders";
+import {getMargin} from "@/lib/api/accounts";
+import type {MarginItem} from "@/lib/api/accounts";
 import type {NextOrderPreview} from "@/types/preview";
 
 interface Props {
@@ -15,6 +17,7 @@ interface Props {
 
 export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit}: Props) {
   const [preview, setPreview] = useState<NextOrderPreview | null>(null);
+  const [margin, setMargin] = useState<MarginItem[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<"no-strategy" | "kis-fail" | null>(null);
   const [lastUpdatedAt, setLastUpdatedAt] = useState("");
@@ -22,9 +25,14 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setMargin(null);
     try {
-      const data = await getNextOrdersPreview(accountId);
+      const [data, marginData] = await Promise.all([
+        getNextOrdersPreview(accountId),
+        getMargin(accountId).catch(() => null),
+      ]);
       setPreview(data);
+      setMargin(marginData);
       setLastUpdatedAt(new Date().toLocaleTimeString("ko-KR"));
     } catch (e) {
       if (e instanceof ApiError && e.status === 404) {
@@ -59,6 +67,34 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
   }
 
   const pos = preview?.position;
+
+  const insufficientUnitAmount =
+    preview?.skipReason === "INSUFFICIENT_BALANCE" && preview?.position != null
+      ? parseFloat(preview.position.unitAmount)
+      : null;
+  const insufficientCurrentPrice =
+    preview?.skipReason === "INSUFFICIENT_BALANCE" && preview?.position != null
+      ? parseFloat(preview.position.currentPrice)
+      : null;
+  const insufficientShortfall =
+    insufficientCurrentPrice !== null && insufficientUnitAmount !== null
+      ? insufficientCurrentPrice - insufficientUnitAmount
+      : null;
+
+  const totalBuy = preview?.orders
+    .filter((o) => o.direction === "BUY")
+    .reduce((sum, o) => {
+      const price = parseFloat(o.price);
+      return price > 0 && o.quantity > 0 ? sum + price * o.quantity : sum;
+    }, 0) ?? 0;
+
+  const usdMargin = margin?.find((m) => m.currency === "USD") ?? null;
+  const purchasable = usdMargin?.purchasableAmount ?? null;
+
+  const showInsufficientBanner =
+    totalBuy > 0 && purchasable !== null && totalBuy > purchasable;
+
+  const shortfall = showInsufficientBanner ? totalBuy - (purchasable ?? 0) : 0;
 
   return (
     <Card>
@@ -112,6 +148,15 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
 
         {preview && (
           <div className="space-y-4">
+            {/* 잔고 부족 경고 배너 */}
+            {showInsufficientBanner && (
+              <div className="rounded-lg px-4 py-2.5 bg-warn-bg">
+                <p className="text-xs font-semibold text-warn leading-relaxed">
+                  ⚠️ 매수 예정 금액 ${totalBuy.toFixed(2)} • 예수금 ${(purchasable ?? 0).toFixed(2)} • 잔고 부족 ${shortfall.toFixed(2)}
+                </p>
+              </div>
+            )}
+
             {/* 포지션 KPI (INFINITE 전략만 non-null) */}
             {pos && (
               <div className="grid grid-cols-2 gap-3">
@@ -136,9 +181,20 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
 
             {/* 주문 리스트 */}
             {preview.orders.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-3">
-                이번 사이클은 예정된 주문이 없습니다.
-              </p>
+              preview.skipReason === "INSUFFICIENT_BALANCE" && insufficientShortfall !== null ? (
+                <div className="rounded-lg px-4 py-2.5 bg-warn-bg">
+                  <p className="text-xs font-semibold text-warn leading-relaxed">
+                    ⚠️ 단위금액 ${insufficientUnitAmount!.toFixed(2)} • 현재가 ${insufficientCurrentPrice!.toFixed(2)} • 부족 ${insufficientShortfall.toFixed(2)}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-3">
+                  {preview.skipReason === "NO_CYCLE_HISTORY" && "첫 자동 매매 전에는 미리보기를 계산할 수 없습니다."}
+                  {preview.skipReason === "INSUFFICIENT_BALANCE" && "잔고 부족으로 이번 사이클은 건너뜁니다."}
+                  {preview.skipReason === "NO_PRIVACY_BASE" && "오늘의 기준 매매표가 아직 수신되지 않았습니다."}
+                  {!preview.skipReason && "이번 사이클은 예정된 주문이 없습니다."}
+                </p>
+              )
             ) : (
               <div className="space-y-2">
                 <p className="text-[11px] uppercase tracking-widest text-rose-500 font-semibold">

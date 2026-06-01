@@ -1,5 +1,5 @@
 import { clientFetch } from './client'
-import type { NextOrderPreview } from '@/types/preview'
+import type { NextOrderPreview, SkipReason } from '@/types/preview'
 
 function normalizePreview(raw: unknown): NextOrderPreview {
   const r = raw as Record<string, unknown>
@@ -29,7 +29,8 @@ function normalizePreview(raw: unknown): NextOrderPreview {
         targetPrice: String(rawPos.targetPrice),
       }
     : null
-  return { tradeDate: String(r.tradeDate), position, orders }
+  const skipReason = (r.skipReason as SkipReason | null | undefined) ?? null
+  return { tradeDate: String(r.tradeDate), position, orders, skipReason }
 }
 
 export async function getNextOrdersPreview(accountId: string): Promise<NextOrderPreview> {
