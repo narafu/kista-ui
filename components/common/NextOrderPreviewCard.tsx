@@ -1,11 +1,23 @@
 "use client";
 
 import {useState, useEffect, useCallback} from "react";
+import {toast} from "sonner";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {KpiCard} from "./KpiCard";
 import {ApiError} from "@/lib/api/client";
 import {getNextOrdersPreview} from "@/lib/api/orders";
 import {getMargin} from "@/lib/api/accounts";
+import {executeStrategy} from "@/lib/api/strategies";
 import type {MarginItem} from "@/lib/api/accounts";
 import type {NextOrderPreview} from "@/types/preview";
 
@@ -13,14 +25,17 @@ interface Props {
   accountId: string;
   strategyType?: string;
   initialUsdDeposit?: number;
+  strategyId?: string;
 }
 
-export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit}: Props) {
+export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit, strategyId}: Props) {
   const [preview, setPreview] = useState<NextOrderPreview | null>(null);
   const [margin, setMargin] = useState<MarginItem[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<"no-strategy" | "kis-fail" | null>(null);
   const [lastUpdatedAt, setLastUpdatedAt] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [executing, setExecuting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -45,6 +60,33 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
       setLoading(false);
     }
   }, [accountId]);
+
+  const handleExecute = useCallback(async () => {
+    if (!strategyId) return;
+    setExecuting(true);
+    try {
+      await executeStrategy(strategyId);
+      toast.success("매매 실행이 요청됐습니다. 장 마감 후 체결 결과를 확인하세요.");
+      load();
+    } catch (e) {
+      if (e instanceof ApiError) {
+        if (e.status === 409) {
+          toast.error("오늘 이미 실행됐습니다.");
+        } else if (e.status === 400) {
+          toast.error("실행할 수 없는 전략입니다.");
+        } else if (e.status === 403) {
+          toast.error("권한이 없습니다.");
+        } else {
+          toast.error("실행 중 오류가 발생했습니다.");
+        }
+      } else {
+        toast.error("실행 중 오류가 발생했습니다.");
+      }
+    } finally {
+      setExecuting(false);
+      setConfirmOpen(false);
+    }
+  }, [strategyId, load]);
 
   useEffect(() => {
     if (!strategyType) return;
@@ -97,27 +139,61 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
   const shortfall = showInsufficientBanner ? totalBuy - (purchasable ?? 0) : 0;
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-base">다음 주문 미리보기</CardTitle>
-            {lastUpdatedAt && (
-              <p className="text-xs text-muted-foreground mt-0.5">
-                방금 갱신 · {lastUpdatedAt}
-              </p>
-            )}
+    <>
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>지금 매매를 실행하시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription>
+              오늘 날짜의 LOC 주문을 즉시 접수합니다. 장 마감 시 체결되며 취소할 수 없습니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={executing}>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleExecute(); }}
+              disabled={executing}
+              className="bg-rose-600 hover:bg-rose-700 text-white"
+            >
+              {executing ? "실행 중..." : "실행"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base">다음 주문 미리보기</CardTitle>
+              {lastUpdatedAt && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  방금 갱신 · {lastUpdatedAt}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {strategyId && (
+                <button
+                  type="button"
+                  onClick={() => setConfirmOpen(true)}
+                  disabled={loading || executing}
+                  className="text-xs px-3 py-1.5 rounded-md bg-rose-600 text-white hover:bg-rose-700 transition-colors disabled:opacity-50"
+                >
+                  지금 실행
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={load}
+                disabled={loading}
+                className="text-xs px-3 py-1.5 rounded-md border border-border text-muted-foreground hover:border-rose-300 hover:text-rose-600 transition-colors disabled:opacity-50"
+              >
+                {loading ? "조회 중..." : "새로고침"}
+              </button>
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={load}
-            disabled={loading}
-            className="text-xs px-3 py-1.5 rounded-md border border-border text-muted-foreground hover:border-rose-300 hover:text-rose-600 transition-colors disabled:opacity-50"
-          >
-            {loading ? "조회 중..." : "새로고침"}
-          </button>
-        </div>
-      </CardHeader>
+        </CardHeader>
       <CardContent>
         {loading && !preview && (
           <div className="flex items-center justify-center h-24 text-sm text-muted-foreground">
@@ -247,6 +323,7 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
           </div>
         )}
       </CardContent>
-    </Card>
+      </Card>
+    </>
   );
 }

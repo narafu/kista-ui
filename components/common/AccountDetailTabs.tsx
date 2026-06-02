@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { KpiCard } from './KpiCard'
 import { NextOrderPreviewCard } from './NextOrderPreviewCard'
 import { StrategyList } from '@/components/strategies/StrategyList'
+import { useMeta } from '@/components/providers/MetaProvider'
 import { getAccountCycleHistory, getStrategyCycleHistory } from '@/lib/api/trades'
 import type { Account } from '@/types/account'
 import type { CycleHistoryItem, PortfolioSnapshot } from '@/types/trade'
@@ -22,7 +23,12 @@ interface Props {
 
 export function AccountDetailTabs({ account, portfolio, strategies, usdDeposit }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('summary')
+  const { findStrategyType } = useMeta()
   const activeStrategy = strategies.find((s) => s.status === 'ACTIVE') ?? strategies[0]
+  const activeTypeMeta = activeStrategy ? findStrategyType(activeStrategy.type) : null
+  const isInfiniteActive =
+    activeStrategy?.status === 'ACTIVE' && (activeTypeMeta?.availableTickers?.length ?? 0) > 1
+  const executeStrategyId = isInfiniteActive ? activeStrategy!.id : undefined
 
   return (
     <div className="space-y-4">
@@ -54,7 +60,7 @@ export function AccountDetailTabs({ account, portfolio, strategies, usdDeposit }
             <StrategyTradesTab strategyId={activeStrategy?.id} />
           </div>
         )}
-        {activeTab === 'preview' && <NextOrderPreviewCard accountId={account.id} strategyType={activeStrategy?.type} initialUsdDeposit={activeStrategy?.initialUsdDeposit} />}
+        {activeTab === 'preview' && <NextOrderPreviewCard accountId={account.id} strategyType={activeStrategy?.type} initialUsdDeposit={activeStrategy?.initialUsdDeposit} strategyId={executeStrategyId} />}
       </div>
 
       {/* 데스크탑: 전체 레이아웃 */}
@@ -70,7 +76,7 @@ export function AccountDetailTabs({ account, portfolio, strategies, usdDeposit }
           <StrategyTradesTab strategyId={activeStrategy?.id} />
         </div>
         {/* Row 3: 미리보기 */}
-        <NextOrderPreviewCard accountId={account.id} strategyType={activeStrategy?.type} initialUsdDeposit={activeStrategy?.initialUsdDeposit} />
+        <NextOrderPreviewCard accountId={account.id} strategyType={activeStrategy?.type} initialUsdDeposit={activeStrategy?.initialUsdDeposit} strategyId={executeStrategyId} />
       </div>
     </div>
   )

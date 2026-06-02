@@ -72,3 +72,7 @@ export async function resumeStrategy(id: string, token?: string): Promise<void> 
   if (token) return apiFetch<void>(`/api/trading-cycles/${id}/resume`, { method: 'PATCH' }, token)
   await clientFetch<void>(`/api/trading-cycles/${id}/resume`, { method: 'PATCH' })
 }
+
+export async function executeStrategy(id: string): Promise<void> {
+  await clientFetch<void>(`/api/trading-cycles/${id}/execute`, { method: 'POST' })
+}
