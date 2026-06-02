@@ -15,11 +15,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import {KpiCard} from "./KpiCard";
 import {ApiError} from "@/lib/api/client";
-import {getNextOrdersPreview} from "@/lib/api/orders";
+import {getNextOrdersPreview, cancelAllOrders, cancelOneOrder} from "@/lib/api/orders";
 import {getMargin} from "@/lib/api/accounts";
 import {executeStrategy} from "@/lib/api/strategies";
 import type {MarginItem} from "@/lib/api/accounts";
-import type {NextOrderPreview} from "@/types/preview";
+import type {NextOrderPreview, PlacedOrder} from "@/types/preview";
 
 interface Props {
   accountId: string;
@@ -34,15 +34,39 @@ type LoadState = {
   loading: boolean;
   error: "no-strategy" | "kis-fail" | null;
   lastUpdatedAt: string;
+  mode: "preview" | "executed";
+  placedOrders: PlacedOrder[];
 };
 
-const INITIAL_LOAD_STATE: LoadState = { preview: null, margin: null, loading: false, error: null, lastUpdatedAt: "" };
+const INITIAL_LOAD_STATE: LoadState = {
+  preview: null,
+  margin: null,
+  loading: false,
+  error: null,
+  lastUpdatedAt: "",
+  mode: "preview",
+  placedOrders: [],
+};
+
+type ExecState = {
+  open: boolean;
+  running: boolean;
+  cancelling: boolean;
+  cancellingOrderId: string | null;
+};
+
+const INITIAL_EXEC_STATE: ExecState = {
+  open: false,
+  running: false,
+  cancelling: false,
+  cancellingOrderId: null,
+};
 
 export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit, strategyId}: Props) {
   const [loadState, setLoadState] = useState<LoadState>(INITIAL_LOAD_STATE);
-  const [execState, setExecState] = useState({ open: false, running: false });
+  const [execState, setExecState] = useState<ExecState>(INITIAL_EXEC_STATE);
 
-  const { preview, margin, loading, error, lastUpdatedAt } = loadState;
+  const { preview, margin, loading, error, lastUpdatedAt, mode, placedOrders } = loadState;
 
   const load = useCallback(async () => {
     setLoadState((s) => ({ ...s, loading: true, error: null, margin: null }));
@@ -51,19 +75,35 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
         getNextOrdersPreview(accountId),
         getMargin(accountId).catch(() => null),
       ]);
-      setLoadState({ preview: data, margin: marginData, loading: false, error: null, lastUpdatedAt: new Date().toLocaleTimeString("ko-KR") });
+      setLoadState({
+        preview: data,
+        margin: marginData,
+        loading: false,
+        error: null,
+        lastUpdatedAt: new Date().toLocaleTimeString("ko-KR"),
+        mode: "preview",
+        placedOrders: [],
+      });
     } catch (e) {
-      setLoadState({ preview: null, margin: null, loading: false, error: e instanceof ApiError && e.status === 404 ? "no-strategy" : "kis-fail", lastUpdatedAt: "" });
+      setLoadState({
+        preview: null,
+        margin: null,
+        loading: false,
+        error: e instanceof ApiError && e.status === 404 ? "no-strategy" : "kis-fail",
+        lastUpdatedAt: "",
+        mode: "preview",
+        placedOrders: [],
+      });
     }
   }, [accountId]);
 
   const handleExecute = useCallback(async () => {
     if (!strategyId) return;
-    setExecState({ open: true, running: true });
+    setExecState((s) => ({ ...s, running: true }));
     try {
-      await executeStrategy(strategyId);
+      const orders = await executeStrategy(strategyId);
       toast.success("매매 실행이 요청됐습니다. 장 마감 후 체결 결과를 확인하세요.");
-      load();
+      setLoadState((s) => ({ ...s, mode: "executed", placedOrders: orders }));
     } catch (e) {
       if (e instanceof ApiError) {
         if (e.status === 409) {
@@ -79,9 +119,48 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
         toast.error("실행 중 오류가 발생했습니다.");
       }
     } finally {
-      setExecState({ open: false, running: false });
+      setExecState((s) => ({ ...s, open: false, running: false }));
+    }
+  }, [strategyId]);
+
+  const handleCancelAll = useCallback(async () => {
+    if (!strategyId) return;
+    setExecState((s) => ({ ...s, cancelling: true }));
+    try {
+      const result = await cancelAllOrders(strategyId);
+      if (result.failedCount === 0) {
+        toast.success(`${result.cancelledCount}건 모두 취소됐습니다.`);
+      } else {
+        toast.warning(
+          `${result.cancelledCount}건 취소, ${result.failedCount}건 실패 — KIS에서 직접 확인하세요.`
+        );
+      }
+      setLoadState((s) => ({ ...s, mode: "preview", placedOrders: [] }));
+      load();
+    } catch {
+      toast.error("취소 중 오류가 발생했습니다.");
+    } finally {
+      setExecState((s) => ({ ...s, cancelling: false }));
     }
   }, [strategyId, load]);
+
+  const handleCancelOne = useCallback(async (orderId: string) => {
+    setExecState((s) => ({ ...s, cancellingOrderId: orderId }));
+    try {
+      await cancelOneOrder(orderId);
+      const remaining = placedOrders.filter((o) => o.id !== orderId);
+      if (remaining.length === 0) {
+        setLoadState((s) => ({ ...s, mode: "preview", placedOrders: [] }));
+        load();
+      } else {
+        setLoadState((s) => ({ ...s, placedOrders: remaining }));
+      }
+    } catch {
+      toast.error("주문 취소 중 오류가 발생했습니다.");
+    } finally {
+      setExecState((s) => ({ ...s, cancellingOrderId: null }));
+    }
+  }, [placedOrders, load]);
 
   useEffect(() => {
     if (!strategyType) return;
@@ -140,7 +219,7 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
           <AlertDialogHeader>
             <AlertDialogTitle>지금 매매를 실행하시겠습니까?</AlertDialogTitle>
             <AlertDialogDescription>
-              오늘 날짜의 LOC 주문을 즉시 접수합니다. 장 마감 시 체결되며 취소할 수 없습니다.
+              오늘 날짜의 LOC 주문을 즉시 접수합니다. 장 마감 시 체결됩니다.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -168,7 +247,7 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
               )}
             </div>
             <div className="flex items-center gap-2">
-              {strategyId && (
+              {strategyId && mode === "preview" && (
                 <button
                   type="button"
                   onClick={() => setExecState((s) => ({ ...s, open: true }))}
@@ -178,146 +257,241 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
                   지금 실행
                 </button>
               )}
-              <button
-                type="button"
-                onClick={load}
-                disabled={loading}
-                className="text-xs px-3 py-1.5 rounded-md border border-border text-muted-foreground hover:border-rose-300 hover:text-rose-600 transition-colors disabled:opacity-50"
-              >
-                {loading ? "조회 중..." : "새로고침"}
-              </button>
+              {mode === "preview" && (
+                <button
+                  type="button"
+                  onClick={load}
+                  disabled={loading}
+                  className="text-xs px-3 py-1.5 rounded-md border border-border text-muted-foreground hover:border-rose-300 hover:text-rose-600 transition-colors disabled:opacity-50"
+                >
+                  {loading ? "조회 중..." : "새로고침"}
+                </button>
+              )}
             </div>
           </div>
         </CardHeader>
-      <CardContent>
-        {loading && !preview && (
-          <div className="flex items-center justify-center h-24 text-sm text-muted-foreground">
-            KIS에서 현재가와 잔고를 조회 중...
-          </div>
-        )}
-
-        {error === "no-strategy" && (
-          <p className="text-sm text-muted-foreground py-4 text-center">
-            활성 전략이 없습니다.
-          </p>
-        )}
-
-        {error === "kis-fail" && (
-          <div className="flex flex-col items-center gap-3 py-4">
-            <p className="text-sm text-muted-foreground text-center">
-              KIS API 조회에 실패했습니다. 잠시 후 다시 시도해주세요.
-            </p>
-            <button
-              type="button"
-              onClick={load}
-              className="text-xs px-3 py-1.5 rounded-md border border-border hover:border-rose-300 hover:text-rose-600 transition-colors"
-            >
-              재시도
-            </button>
-          </div>
-        )}
-
-        {preview && (
-          <div className="space-y-4">
-            {/* 잔고 부족 경고 배너 */}
-            {showInsufficientBanner && (
-              <div className="rounded-lg px-4 py-2.5 bg-warn-bg">
-                <p className="text-xs font-semibold text-warn leading-relaxed">
-                  ⚠️ 매수 예정 금액 ${totalBuy.toFixed(2)} • 예수금 ${(purchasable ?? 0).toFixed(2)} • 잔고 부족 ${shortfall.toFixed(2)}
-                </p>
-              </div>
-            )}
-
-            {/* 포지션 KPI (INFINITE 전략만 non-null) */}
-            {pos && (
-              <div className="grid grid-cols-2 gap-3">
-                <KpiCard
-                  label="회차(T)"
-                  value={`${pos.currentRound.toFixed(1)}회차`}
-                />
-                <KpiCard
-                  label="단위금액(회)"
-                  value={`$${parseFloat(pos.unitAmount).toFixed(2)}`}
-                />
-                <KpiCard
-                  label="기준가(별% 가격)"
-                  value={`$${parseFloat(pos.referencePrice).toFixed(2)}`}
-                />
-                <KpiCard
-                  label="목표가"
-                  value={`$${parseFloat(pos.targetPrice).toFixed(2)}`}
-                />
-              </div>
-            )}
-
-            {/* 주문 리스트 */}
-            {preview.orders.length === 0 ? (
-              preview.skipReason === "INSUFFICIENT_BALANCE" && insufficientShortfall !== null ? (
-                <div className="rounded-lg px-4 py-2.5 bg-warn-bg">
-                  <p className="text-xs font-semibold text-warn leading-relaxed">
-                    ⚠️ 단위금액 ${insufficientUnitAmount!.toFixed(2)} • 현재가 ${insufficientCurrentPrice!.toFixed(2)} • 부족 ${insufficientShortfall.toFixed(2)}
+        <CardContent>
+          {/* ── executed 모드: 접수된 주문 목록 + 취소 버튼 ── */}
+          {mode === "executed" && (
+            <div className="space-y-3">
+              <div className="rounded-lg border border-border">
+                <div className="flex items-center justify-between px-4 py-2.5 border-b border-border">
+                  <p
+                    className="text-[11px] uppercase tracking-widest font-semibold"
+                    style={{ color: "var(--warn)" }}
+                  >
+                    ✓{" "}
+                    {placedOrders.length > 0
+                      ? `${placedOrders.length}건 접수됨`
+                      : "접수됨"}
                   </p>
+                  <button
+                    type="button"
+                    onClick={handleCancelAll}
+                    disabled={execState.cancelling || execState.cancellingOrderId !== null}
+                    className="text-xs px-2.5 py-1 rounded-md bg-warn-bg text-warn hover:opacity-80 transition-opacity disabled:opacity-50"
+                  >
+                    {execState.cancelling ? "취소 중..." : "전체 취소"}
+                  </button>
                 </div>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-3">
-                  {preview.skipReason === "NO_CYCLE_HISTORY" && "첫 자동 매매 전에는 미리보기를 계산할 수 없습니다."}
-                  {preview.skipReason === "INSUFFICIENT_BALANCE" && "잔고 부족으로 이번 사이클은 건너뜁니다."}
-                  {preview.skipReason === "NO_PRIVACY_BASE" && "오늘의 기준 매매표가 아직 수신되지 않았습니다."}
-                  {!preview.skipReason && "이번 사이클은 예정된 주문이 없습니다."}
-                </p>
-              )
-            ) : (
-              <div className="space-y-2">
-                <p className="text-[11px] uppercase tracking-widest text-rose-500 font-semibold">
-                  예정 주문 {preview.orders.length}건
-                </p>
-                {preview.orders.map((order, i) => {
-                  const isBuy = order.direction === "BUY";
-                  const price = parseFloat(order.price);
-                  const total = price > 0 ? price * order.quantity : null;
-                  return (
-                    <div
-                      key={`${order.ticker}-${order.direction}-${order.orderType}-${i}`}
-                      className="flex items-center justify-between rounded-lg border border-border px-4 py-3"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
-                          style={{
-                            background: isBuy
-                              ? "var(--pos-bg)"
-                              : "var(--neg-bg)",
-                            color: isBuy ? "var(--pos)" : "var(--neg)",
-                          }}
+
+                {placedOrders.length > 0 ? (
+                  <div className="divide-y divide-border">
+                    {placedOrders.map((order) => {
+                      const isBuy = order.direction === "BUY";
+                      const price = parseFloat(order.price);
+                      const total = price > 0 ? price * order.quantity : null;
+                      const isCancellingThis = execState.cancellingOrderId === order.id;
+                      return (
+                        <div
+                          key={order.id}
+                          className="flex items-center justify-between px-4 py-3"
                         >
-                          {isBuy ? "매수" : "매도"}
-                        </span>
-                        <span className="text-xs text-muted-foreground font-medium">
-                          {order.orderType}
-                        </span>
-                        <span className="text-sm font-medium">
-                          {order.ticker}
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold">
-                          {order.quantity}주
-                          {price > 0 && ` × $${price.toFixed(2)}`}
-                        </p>
-                        {total != null && (
-                          <p className="text-xs text-muted-foreground">
-                            = ${total.toFixed(2)}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
+                              style={{
+                                background: isBuy ? "var(--pos-bg)" : "var(--neg-bg)",
+                                color: isBuy ? "var(--pos)" : "var(--neg)",
+                              }}
+                            >
+                              {isBuy ? "매수" : "매도"}
+                            </span>
+                            <span className="text-xs text-muted-foreground font-medium">
+                              {order.orderType}
+                            </span>
+                            <span className="text-sm font-medium">{order.ticker}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="text-right">
+                              <p className="text-sm font-semibold">
+                                {order.quantity}주
+                                {price > 0 && ` × $${price.toFixed(2)}`}
+                              </p>
+                              {total != null && (
+                                <p className="text-xs text-muted-foreground">
+                                  = ${total.toFixed(2)}
+                                </p>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleCancelOne(order.id)}
+                              disabled={
+                                execState.cancelling ||
+                                execState.cancellingOrderId !== null
+                              }
+                              className="text-xs px-2 py-1 rounded-md border border-border text-muted-foreground hover:border-rose-300 hover:text-rose-600 transition-colors disabled:opacity-50"
+                            >
+                              {isCancellingThis ? "..." : "✕"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    접수된 주문 목록은 백엔드 업데이트 후 표시됩니다.
+                  </p>
+                )}
               </div>
-            )}
-          </div>
-        )}
-      </CardContent>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setLoadState((s) => ({ ...s, mode: "preview" }));
+                  load();
+                }}
+                className="w-full text-xs px-3 py-1.5 rounded-md border border-border text-muted-foreground hover:border-rose-300 hover:text-rose-600 transition-colors"
+              >
+                ↩ 다시 미리보기
+              </button>
+            </div>
+          )}
+
+          {/* ── preview 모드: 기존 콘텐츠 (loading / error / preview 분기) ── */}
+          {mode === "preview" && (
+            <>
+              {loading && !preview && (
+                <div className="flex items-center justify-center h-24 text-sm text-muted-foreground">
+                  KIS에서 현재가와 잔고를 조회 중...
+                </div>
+              )}
+
+              {error === "no-strategy" && (
+                <p className="text-sm text-muted-foreground py-4 text-center">
+                  활성 전략이 없습니다.
+                </p>
+              )}
+
+              {error === "kis-fail" && (
+                <div className="flex flex-col items-center gap-3 py-4">
+                  <p className="text-sm text-muted-foreground text-center">
+                    KIS API 조회에 실패했습니다. 잠시 후 다시 시도해주세요.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={load}
+                    className="text-xs px-3 py-1.5 rounded-md border border-border hover:border-rose-300 hover:text-rose-600 transition-colors"
+                  >
+                    재시도
+                  </button>
+                </div>
+              )}
+
+              {preview && (
+                <div className="space-y-4">
+                  {showInsufficientBanner && (
+                    <div className="rounded-lg px-4 py-2.5 bg-warn-bg">
+                      <p className="text-xs font-semibold text-warn leading-relaxed">
+                        ⚠️ 매수 예정 금액 ${totalBuy.toFixed(2)} • 예수금 $
+                        {(purchasable ?? 0).toFixed(2)} • 잔고 부족 $
+                        {shortfall.toFixed(2)}
+                      </p>
+                    </div>
+                  )}
+
+                  {pos && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <KpiCard label="회차(T)" value={`${pos.currentRound.toFixed(1)}회차`} />
+                      <KpiCard label="단위금액(회)" value={`$${parseFloat(pos.unitAmount).toFixed(2)}`} />
+                      <KpiCard label="기준가(별% 가격)" value={`$${parseFloat(pos.referencePrice).toFixed(2)}`} />
+                      <KpiCard label="목표가" value={`$${parseFloat(pos.targetPrice).toFixed(2)}`} />
+                    </div>
+                  )}
+
+                  {preview.orders.length === 0 ? (
+                    preview.skipReason === "INSUFFICIENT_BALANCE" &&
+                    insufficientShortfall !== null ? (
+                      <div className="rounded-lg px-4 py-2.5 bg-warn-bg">
+                        <p className="text-xs font-semibold text-warn leading-relaxed">
+                          ⚠️ 단위금액 ${insufficientUnitAmount!.toFixed(2)} • 현재가 $
+                          {insufficientCurrentPrice!.toFixed(2)} • 부족 $
+                          {insufficientShortfall.toFixed(2)}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-3">
+                        {preview.skipReason === "NO_CYCLE_HISTORY" &&
+                          "첫 자동 매매 전에는 미리보기를 계산할 수 없습니다."}
+                        {preview.skipReason === "INSUFFICIENT_BALANCE" &&
+                          "잔고 부족으로 이번 사이클은 건너뜁니다."}
+                        {preview.skipReason === "NO_PRIVACY_BASE" &&
+                          "오늘의 기준 매매표가 아직 수신되지 않았습니다."}
+                        {!preview.skipReason && "이번 사이클은 예정된 주문이 없습니다."}
+                      </p>
+                    )
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-[11px] uppercase tracking-widest text-rose-500 font-semibold">
+                        예정 주문 {preview.orders.length}건
+                      </p>
+                      {preview.orders.map((order, i) => {
+                        const isBuy = order.direction === "BUY";
+                        const price = parseFloat(order.price);
+                        const total = price > 0 ? price * order.quantity : null;
+                        return (
+                          <div
+                            key={`${order.ticker}-${order.direction}-${order.orderType}-${i}`}
+                            className="flex items-center justify-between rounded-lg border border-border px-4 py-3"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
+                                style={{
+                                  background: isBuy ? "var(--pos-bg)" : "var(--neg-bg)",
+                                  color: isBuy ? "var(--pos)" : "var(--neg)",
+                                }}
+                              >
+                                {isBuy ? "매수" : "매도"}
+                              </span>
+                              <span className="text-xs text-muted-foreground font-medium">
+                                {order.orderType}
+                              </span>
+                              <span className="text-sm font-medium">{order.ticker}</span>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-semibold">
+                                {order.quantity}주
+                                {price > 0 && ` × $${price.toFixed(2)}`}
+                              </p>
+                              {total != null && (
+                                <p className="text-xs text-muted-foreground">
+                                  = ${total.toFixed(2)}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
       </Card>
     </>
   );
