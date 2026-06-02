@@ -1,6 +1,11 @@
 import { clientFetch } from './client'
 import type { NextOrderPreview, SkipReason } from '@/types/preview'
 
+export interface CancelOrdersResult {
+  cancelledCount: number
+  failedCount: number
+}
+
 function normalizePreview(raw: unknown): NextOrderPreview {
   const r = raw as Record<string, unknown>
   const rawPos = r.position as Record<string, unknown> | null
@@ -36,4 +41,16 @@ function normalizePreview(raw: unknown): NextOrderPreview {
 export async function getNextOrdersPreview(accountId: string): Promise<NextOrderPreview> {
   const raw = await clientFetch<unknown>(`/api/accounts/${accountId}/orders/preview`)
   return normalizePreview(raw)
+}
+
+// 오늘 PLACED된 주문 전체 취소 — DELETE /api/trading-cycles/{id}/execute
+export async function cancelAllOrders(strategyId: string): Promise<CancelOrdersResult> {
+  return clientFetch<CancelOrdersResult>(`/api/trading-cycles/${strategyId}/execute`, {
+    method: 'DELETE',
+  })
+}
+
+// 개별 주문 1건 취소 — DELETE /api/orders/{orderId}
+export async function cancelOneOrder(orderId: string): Promise<void> {
+  await clientFetch<void>(`/api/orders/${orderId}`, { method: 'DELETE' })
 }

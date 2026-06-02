@@ -1,6 +1,7 @@
 import { apiFetch, clientFetch } from './client'
 import { toNum } from '@/lib/utils'
 import type { CycleSeedType, Strategy, StrategyRequest } from '@/types/strategy'
+import type { PlacedOrder } from '@/types/preview'
 
 function normalizeStrategy(raw: unknown): Strategy {
   const s = raw as Record<string, unknown>
@@ -73,6 +74,22 @@ export async function resumeStrategy(id: string, token?: string): Promise<void> 
   await clientFetch<void>(`/api/trading-cycles/${id}/resume`, { method: 'PATCH' })
 }
 
-export async function executeStrategy(id: string): Promise<void> {
-  await clientFetch<void>(`/api/trading-cycles/${id}/execute`, { method: 'POST' })
+function normalizePlacedOrder(raw: unknown): PlacedOrder {
+  const o = raw as Record<string, unknown>
+  return {
+    id: String(o.id),
+    ticker: String(o.ticker),
+    direction: String(o.direction) as 'BUY' | 'SELL',
+    orderType: String(o.orderType),
+    quantity: Number(o.quantity),
+    price: String(o.price),
+  }
+}
+
+export async function executeStrategy(id: string): Promise<PlacedOrder[]> {
+  const raw = await clientFetch<{ orders?: unknown[] } | undefined>(
+    `/api/trading-cycles/${id}/execute`,
+    { method: 'POST' }
+  )
+  return (raw?.orders ?? []).map(normalizePlacedOrder)
 }
