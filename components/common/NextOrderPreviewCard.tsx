@@ -28,42 +28,38 @@ interface Props {
   strategyId?: string;
 }
 
+type LoadState = {
+  preview: NextOrderPreview | null;
+  margin: MarginItem[] | null;
+  loading: boolean;
+  error: "no-strategy" | "kis-fail" | null;
+  lastUpdatedAt: string;
+};
+
+const INITIAL_LOAD_STATE: LoadState = { preview: null, margin: null, loading: false, error: null, lastUpdatedAt: "" };
+
 export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit, strategyId}: Props) {
-  const [preview, setPreview] = useState<NextOrderPreview | null>(null);
-  const [margin, setMargin] = useState<MarginItem[] | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<"no-strategy" | "kis-fail" | null>(null);
-  const [lastUpdatedAt, setLastUpdatedAt] = useState("");
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [executing, setExecuting] = useState(false);
+  const [loadState, setLoadState] = useState<LoadState>(INITIAL_LOAD_STATE);
+  const [execState, setExecState] = useState({ open: false, running: false });
+
+  const { preview, margin, loading, error, lastUpdatedAt } = loadState;
 
   const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    setMargin(null);
+    setLoadState((s) => ({ ...s, loading: true, error: null, margin: null }));
     try {
       const [data, marginData] = await Promise.all([
         getNextOrdersPreview(accountId),
         getMargin(accountId).catch(() => null),
       ]);
-      setPreview(data);
-      setMargin(marginData);
-      setLastUpdatedAt(new Date().toLocaleTimeString("ko-KR"));
+      setLoadState({ preview: data, margin: marginData, loading: false, error: null, lastUpdatedAt: new Date().toLocaleTimeString("ko-KR") });
     } catch (e) {
-      if (e instanceof ApiError && e.status === 404) {
-        setError("no-strategy");
-      } else {
-        setError("kis-fail");
-      }
-      setPreview(null);
-    } finally {
-      setLoading(false);
+      setLoadState({ preview: null, margin: null, loading: false, error: e instanceof ApiError && e.status === 404 ? "no-strategy" : "kis-fail", lastUpdatedAt: "" });
     }
   }, [accountId]);
 
   const handleExecute = useCallback(async () => {
     if (!strategyId) return;
-    setExecuting(true);
+    setExecState({ open: true, running: true });
     try {
       await executeStrategy(strategyId);
       toast.success("매매 실행이 요청됐습니다. 장 마감 후 체결 결과를 확인하세요.");
@@ -83,8 +79,7 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
         toast.error("실행 중 오류가 발생했습니다.");
       }
     } finally {
-      setExecuting(false);
-      setConfirmOpen(false);
+      setExecState({ open: false, running: false });
     }
   }, [strategyId, load]);
 
@@ -140,7 +135,7 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
 
   return (
     <>
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <AlertDialog open={execState.open} onOpenChange={(open) => setExecState((s) => ({ ...s, open }))}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>지금 매매를 실행하시겠습니까?</AlertDialogTitle>
@@ -149,13 +144,13 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={executing}>취소</AlertDialogCancel>
+            <AlertDialogCancel disabled={execState.running}>취소</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => { e.preventDefault(); handleExecute(); }}
-              disabled={executing}
+              disabled={execState.running}
               className="bg-rose-600 hover:bg-rose-700 text-white"
             >
-              {executing ? "실행 중..." : "실행"}
+              {execState.running ? "실행 중..." : "실행"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -176,8 +171,8 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
               {strategyId && (
                 <button
                   type="button"
-                  onClick={() => setConfirmOpen(true)}
-                  disabled={loading || executing}
+                  onClick={() => setExecState((s) => ({ ...s, open: true }))}
+                  disabled={loading || execState.running}
                   className="text-xs px-3 py-1.5 rounded-md bg-rose-600 text-white hover:bg-rose-700 transition-colors disabled:opacity-50"
                 >
                   지금 실행
