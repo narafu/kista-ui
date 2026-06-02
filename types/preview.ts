@@ -28,3 +28,12 @@ export interface NextOrderPreview {
   orders: NextOrderItem[]
   skipReason: SkipReason | null
 }
+
+export interface PlacedOrder {
+  id: string
+  ticker: string
+  direction: 'BUY' | 'SELL'
+  orderType: string
+  quantity: number
+  price: string
+}
