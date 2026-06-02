@@ -4,11 +4,13 @@ import { Plus, TrendingUp } from 'lucide-react'
 import { toNum } from '@/lib/utils'
 import { getAuthToken } from '@/lib/auth/token'
 import { getAccountPortfolio } from '@/lib/api/trades'
+import { getMonthlyHolidays } from '@/lib/api/market'
 import { getCachedAccounts, getCachedStrategies } from '@/lib/cache/cached-api'
 import { PageHeader } from '@/components/common/PageHeader'
 import { KpiCard } from '@/components/common/KpiCard'
 import { AccountCard } from '@/components/common/AccountCard'
 import { ProfitDisplay } from '@/components/common/ProfitDisplay'
+import { MarketHolidayCalendar } from '@/components/common/MarketHolidayCalendar'
 import type { Account } from '@/types/account'
 import type { PortfolioSnapshot } from '@/types/trade'
 import type { Strategy } from '@/types/strategy'
@@ -68,33 +70,44 @@ function fmtKrw(n: number): string {
 
 // ─── Empty 상태 ───────────────────────────────────────────────
 
-function EmptyDesktop() {
+interface EmptyProps {
+  holidays: string[]
+  calendarYear: number
+  calendarMonth: number
+}
+
+function EmptyDesktop({ holidays, calendarYear, calendarMonth }: EmptyProps) {
   return (
     <div className="hidden lg:block">
       <PageHeader eyebrow="Dashboard" title="대시보드" />
 
-      {/* Welcome hero */}
-      <div
-        className="rounded-[var(--r-lg)] border border-rose-200 p-9 flex items-center gap-7 mb-5 overflow-hidden relative"
-        style={{ background: 'var(--brand-soft-bg)' }}
-      >
-        <div className="size-24 rounded-[22px] bg-card flex items-center justify-center flex-shrink-0 shadow-[0_8px_24px_rgba(143,68,48,0.18)]">
-          <Image src="/logo.png" alt="KISTA" width={78} height={78} className="rounded-2xl" style={{ height: 78, width: 78 }} />
-        </div>
-        <div className="flex-1">
-          <p className="text-[11.5px] font-bold tracking-[0.12em] uppercase text-rose-500 mb-1.5">Welcome to KISTA</p>
-          <p className="text-sm text-muted-foreground leading-relaxed max-w-lg">
-            한국투자증권 KIS API 키만 입력하면 분할매매 자동화가 시작됩니다.<br />
-            계좌 한 개당 INFINITE 또는 PRIVACY 전략을 선택할 수 있어요.
-          </p>
-        </div>
-        <Link
-          href="/accounts/new"
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-[var(--r-md)] bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 transition-colors flex-shrink-0"
+      {/* Welcome hero + calendar side by side */}
+      <div className="flex gap-4 mb-5 items-stretch">
+        <div
+          className="flex-1 rounded-[var(--r-lg)] border border-rose-200 p-9 flex items-center gap-7 overflow-hidden relative"
+          style={{ background: 'var(--brand-soft-bg)' }}
         >
-          <Plus className="size-4" />
-          첫 계좌 등록하기
-        </Link>
+          <div className="size-24 rounded-[22px] bg-card flex items-center justify-center flex-shrink-0 shadow-[0_8px_24px_rgba(143,68,48,0.18)]">
+            <Image src="/logo.png" alt="KISTA" width={78} height={78} className="rounded-2xl" style={{ height: 78, width: 78 }} />
+          </div>
+          <div className="flex-1">
+            <p className="text-[11.5px] font-bold tracking-[0.12em] uppercase text-rose-500 mb-1.5">Welcome to KISTA</p>
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-lg">
+              한국투자증권 KIS API 키만 입력하면 분할매매 자동화가 시작됩니다.<br />
+              계좌 한 개당 INFINITE 또는 PRIVACY 전략을 선택할 수 있어요.
+            </p>
+          </div>
+          <Link
+            href="/accounts/new"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-[var(--r-md)] bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 transition-colors flex-shrink-0"
+          >
+            <Plus className="size-4" />
+            첫 계좌 등록하기
+          </Link>
+        </div>
+        <div className="flex-shrink-0">
+          <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
+        </div>
       </div>
 
       {/* Onboarding steps */}
@@ -146,7 +159,7 @@ function EmptyDesktop() {
   )
 }
 
-function EmptyMobile() {
+function EmptyMobile({ holidays, calendarYear, calendarMonth }: EmptyProps) {
   return (
     <div className="lg:hidden">
       <div
@@ -167,6 +180,10 @@ function EmptyMobile() {
           <Plus className="size-4" />
           첫 계좌 등록하기
         </Link>
+      </div>
+
+      <div className="mb-4">
+        <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
       </div>
 
       <div className="flex flex-col gap-2">
@@ -200,6 +217,9 @@ interface DashboardProps {
   usdDeposit: number
   totalEvalProfit: number
   weightedReturnRate: number
+  holidays: string[]
+  calendarYear: number
+  calendarMonth: number
 }
 
 function DashboardDesktop({
@@ -210,6 +230,9 @@ function DashboardDesktop({
   usdDeposit,
   totalEvalProfit,
   weightedReturnRate,
+  holidays,
+  calendarYear,
+  calendarMonth,
 }: DashboardProps) {
   return (
     <div className="hidden lg:block">
@@ -248,6 +271,7 @@ function DashboardDesktop({
           value={`₩${fmtKrw(totalAssetUsd)}`}
           sub={`평가금액 $${fmtUsd(marketValueUsd)} (USD)`}
         />
+        <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
       </div>
 
       <div className="flex items-end justify-between mb-3">
@@ -271,6 +295,9 @@ function DashboardMobile({
   totalAssetUsd,
   totalEvalProfit,
   weightedReturnRate,
+  holidays,
+  calendarYear,
+  calendarMonth,
 }: DashboardProps) {
   return (
     <div className="lg:hidden">
@@ -295,6 +322,10 @@ function DashboardMobile({
         </div>
       </div>
 
+      <div className="mb-4">
+        <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
+      </div>
+
       <div className="flex items-end justify-between mb-3">
         <h2 className="text-base font-bold">계좌 목록</h2>
         <Link href="/accounts" className="text-xs font-semibold text-rose-500 hover:text-rose-600 transition-colors">
@@ -314,23 +345,39 @@ function DashboardMobile({
 
 export default async function DashboardPage() {
   const token = await getAuthToken()
-  const accounts: Account[] = token ? await getCachedAccounts(token).catch(() => []) : []
+
+  const now = new Date()
+  const calendarYear = now.getFullYear()
+  const calendarMonth = now.getMonth() + 1
+
+  let accounts: Account[] = []
+  let holidays: string[] = []
+
+  if (token) {
+    try { accounts = await getCachedAccounts(token) } catch {}
+    try { holidays = await getMonthlyHolidays(calendarYear, calendarMonth, token) } catch {}
+  }
 
   if (accounts.length === 0) {
     return (
       <>
-        <EmptyDesktop />
-        <EmptyMobile />
+        <EmptyDesktop holidays={holidays} calendarYear={calendarYear} calendarMonth={calendarMonth} />
+        <EmptyMobile holidays={holidays} calendarYear={calendarYear} calendarMonth={calendarMonth} />
       </>
     )
   }
 
-  const [portfolioRaws, strategiesByAccount] = token
-    ? await Promise.all([
+  let portfolioRaws: (PortfolioSnapshot | null)[] = accounts.map(() => null)
+  let strategiesByAccount: Strategy[][] = accounts.map(() => [])
+
+  if (token) {
+    try {
+      [portfolioRaws, strategiesByAccount] = await Promise.all([
         Promise.all(accounts.map(a => getAccountPortfolio(a.id, token).catch(() => null))),
         Promise.all(accounts.map(a => getCachedStrategies(a.id, token).catch((): Strategy[] => []))),
       ])
-    : [[], accounts.map((): Strategy[] => [])]
+    } catch {}
+  }
 
   const { totalAssetUsd, marketValueUsd, usdDeposit, totalEvalProfit, weightedReturnRate } =
     aggregatePortfolios(portfolioRaws)
@@ -343,6 +390,9 @@ export default async function DashboardPage() {
     usdDeposit,
     totalEvalProfit,
     weightedReturnRate,
+    holidays,
+    calendarYear,
+    calendarMonth,
   }
 
   return (

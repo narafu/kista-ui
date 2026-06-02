@@ -294,6 +294,7 @@
   .md\:profit-grid    { grid-template-columns: 1fr 1fr; }
 }
 @media (min-width: 1024px) {
+  .sm\:kpi-grid       { grid-template-columns: 1fr 1.2fr 1fr 1fr; }
   .lg\:form-grid      { grid-template-columns: 1.4fr 1fr; }
   .lg\:settings-grid  { grid-template-columns: 200px 1fr; }
 }

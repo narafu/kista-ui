@@ -1,0 +1,11 @@
+import { apiFetch, clientFetch } from './client'
+
+// Server Component 전용 — kista-api 직접 호출
+export function getMonthlyHolidays(year: number, month: number, token: string): Promise<string[]> {
+  return apiFetch<string[]>(`/api/market/holidays?year=${year}&month=${month}`, { method: 'GET' }, token)
+}
+
+// Client Component 전용 — Route Handler 경유
+export function getMonthlyHolidaysClient(year: number, month: number): Promise<string[]> {
+  return clientFetch<string[]>(`/api/market/holidays?year=${year}&month=${month}`)
+}
