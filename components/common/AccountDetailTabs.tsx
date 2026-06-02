@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useReducer } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { KpiCard } from './KpiCard'
 import { NextOrderPreviewCard } from './NextOrderPreviewCard'
@@ -202,6 +202,7 @@ function CycleHistoryTable({ title, cycleHistory, isLoading, rangeType, setRange
             <div className="flex items-center gap-2 flex-wrap">
               <input
                 type="date"
+                aria-label="시작 날짜"
                 value={customFrom}
                 onChange={(e) => setCustomFrom(e.target.value)}
                 className="rounded-md border border-input bg-background px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
@@ -209,6 +210,7 @@ function CycleHistoryTable({ title, cycleHistory, isLoading, rangeType, setRange
               <span className="text-xs text-muted-foreground">~</span>
               <input
                 type="date"
+                aria-label="종료 날짜"
                 value={customTo}
                 min={customFrom || undefined}
                 onChange={(e) => setCustomTo(e.target.value)}
@@ -275,32 +277,47 @@ function CycleHistoryTable({ title, cycleHistory, isLoading, rangeType, setRange
   )
 }
 
+type TradeTabState = {
+  rangeType: RangeType
+  customFrom: string
+  customTo: string
+  cycleHistory: CycleHistoryItem[]
+  isLoading: boolean
+}
+
+type TradeTabAction =
+  | { type: 'SET_RANGE'; rangeType: RangeType }
+  | { type: 'SET_CUSTOM_FROM'; value: string }
+  | { type: 'SET_CUSTOM_TO'; value: string }
+  | { type: 'FETCH_START' }
+  | { type: 'FETCH_DONE'; data: CycleHistoryItem[] }
+
+function tradeTabReducer(state: TradeTabState, action: TradeTabAction): TradeTabState {
+  switch (action.type) {
+    case 'SET_RANGE': return { ...state, rangeType: action.rangeType }
+    case 'SET_CUSTOM_FROM': return { ...state, customFrom: action.value }
+    case 'SET_CUSTOM_TO': return { ...state, customTo: action.value }
+    case 'FETCH_START': return { ...state, isLoading: true }
+    case 'FETCH_DONE': return { ...state, isLoading: false, cycleHistory: action.data }
+  }
+}
+
+const INITIAL_TAB_STATE: TradeTabState = { rangeType: '30d', customFrom: '', customTo: '', cycleHistory: [], isLoading: true }
+
 function TradesTab({ accountId }: { accountId: string }) {
-  const [rangeType, setRangeType] = useState<RangeType>('30d')
-  const [customFrom, setCustomFrom] = useState('')
-  const [customTo, setCustomTo] = useState('')
-  const [cycleHistory, setCycleHistory] = useState<CycleHistoryItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [state, dispatch] = useReducer(tradeTabReducer, INITIAL_TAB_STATE)
+  const { rangeType, customFrom, customTo, cycleHistory, isLoading } = state
 
   useEffect(() => {
     const params = buildParams(rangeType, customFrom, customTo)
     if (params === null) return
 
     let cancelled = false
-    setIsLoading(true)
+    dispatch({ type: 'FETCH_START' })
     getAccountCycleHistory(accountId, params)
-      .then((data) => {
-        if (!cancelled) setCycleHistory(data)
-      })
-      .catch(() => {
-        if (!cancelled) setCycleHistory([])
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
+      .then((data) => { if (!cancelled) dispatch({ type: 'FETCH_DONE', data }) })
+      .catch(() => { if (!cancelled) dispatch({ type: 'FETCH_DONE', data: [] }) })
+    return () => { cancelled = true }
   }, [accountId, rangeType, customFrom, customTo])
 
   return (
@@ -309,45 +326,33 @@ function TradesTab({ accountId }: { accountId: string }) {
       cycleHistory={cycleHistory}
       isLoading={isLoading}
       rangeType={rangeType}
-      setRangeType={setRangeType}
+      setRangeType={(r) => dispatch({ type: 'SET_RANGE', rangeType: r })}
       customFrom={customFrom}
-      setCustomFrom={setCustomFrom}
+      setCustomFrom={(v) => dispatch({ type: 'SET_CUSTOM_FROM', value: v })}
       customTo={customTo}
-      setCustomTo={setCustomTo}
+      setCustomTo={(v) => dispatch({ type: 'SET_CUSTOM_TO', value: v })}
     />
   )
 }
 
 function StrategyTradesTab({ strategyId }: { strategyId: string | undefined }) {
-  const [rangeType, setRangeType] = useState<RangeType>('30d')
-  const [customFrom, setCustomFrom] = useState('')
-  const [customTo, setCustomTo] = useState('')
-  const [cycleHistory, setCycleHistory] = useState<CycleHistoryItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [state, dispatch] = useReducer(tradeTabReducer, INITIAL_TAB_STATE)
+  const { rangeType, customFrom, customTo, cycleHistory, isLoading } = state
 
   useEffect(() => {
     if (!strategyId) {
-      setIsLoading(false)
+      dispatch({ type: 'FETCH_DONE', data: [] })
       return
     }
     const params = buildParams(rangeType, customFrom, customTo)
     if (params === null) return
 
     let cancelled = false
-    setIsLoading(true)
+    dispatch({ type: 'FETCH_START' })
     getStrategyCycleHistory(strategyId, params)
-      .then((data) => {
-        if (!cancelled) setCycleHistory(data)
-      })
-      .catch(() => {
-        if (!cancelled) setCycleHistory([])
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
+      .then((data) => { if (!cancelled) dispatch({ type: 'FETCH_DONE', data }) })
+      .catch(() => { if (!cancelled) dispatch({ type: 'FETCH_DONE', data: [] }) })
+    return () => { cancelled = true }
   }, [strategyId, rangeType, customFrom, customTo])
 
   if (!strategyId) {
@@ -369,11 +374,11 @@ function StrategyTradesTab({ strategyId }: { strategyId: string | undefined }) {
       cycleHistory={cycleHistory}
       isLoading={isLoading}
       rangeType={rangeType}
-      setRangeType={setRangeType}
+      setRangeType={(r) => dispatch({ type: 'SET_RANGE', rangeType: r })}
       customFrom={customFrom}
-      setCustomFrom={setCustomFrom}
+      setCustomFrom={(v) => dispatch({ type: 'SET_CUSTOM_FROM', value: v })}
       customTo={customTo}
-      setCustomTo={setCustomTo}
+      setCustomTo={(v) => dispatch({ type: 'SET_CUSTOM_TO', value: v })}
     />
   )
 }
