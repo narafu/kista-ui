@@ -66,14 +66,14 @@ export function useNextOrderPreview(accountId: string, strategyId: string | unde
     onSuccess: (result) => {
       if (result.failedCount === 0) {
         toast.success(`${result.cancelledCount}건 모두 취소됐습니다.`)
+        setMode('preview')
+        setPlacedOrders([])
+        previewQuery.refetch()
       } else {
         toast.warning(
           `${result.cancelledCount}건 취소, ${result.failedCount}건 실패 — KIS에서 직접 확인하세요.`,
         )
       }
-      setMode('preview')
-      setPlacedOrders([])
-      previewQuery.refetch()
     },
     onError: () => toast.error('취소 중 오류가 발생했습니다.'),
   })

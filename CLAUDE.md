@@ -32,16 +32,13 @@ npx shadcn@latest add <component> --yes
 - `app/(admin)/` — ADMIN role 전용
 
 ### API 계층
-- `lib/api/{auth,accounts,trades,settings,strategies,...}.ts` — `apiFetch` / `clientFetch` 공통 래퍼
+- `lib/api/{auth,accounts,trades,settings,strategies,orders,market,...}.ts` — `apiFetch` / `clientFetch` 공통 래퍼
 - Server Component: `getAuthToken()` → token 취득 후 `apiFetch` 호출
 - Client Component: token 없이 `lib/api` 함수 호출 → Route Handler 자동 경유 (`clientFetch` 내부)
 - **Client Component에서 직접 kista-api 호출 전면 금지** (CORS + 쿠키 문제)
 
 ### 컴포넌트 폴더
 `common/` · `accounts/` · `strategies/` · `providers/` · `settings/` · `layout/` · `admin/` · `ui/`(shadcn — 직접 수정 금지)
-
-### 구현 현황
-Phase 1-4 완료 + Phase 2A-D (admin 12종, 회원탈퇴, test-connection)
 
 ## 환경변수
 
@@ -92,7 +89,7 @@ NEXT_PUBLIC_API_BASE_URL=      # kista-api Render URL
 ## FE 코딩 가이드라인
 
 ### 아키텍처 (SRP·Clean)
-- **계층 단방향 의존성**: `app` > `widgets` > `features` > `entities` > `shared` — 동일 계층 Cross-import 금지
+- **계층 단방향 의존성**: `app/`(라우팅) > `components/`(UI) > `hooks/`(상태·쿼리) > `lib/`(API·유틸) — 동일 계층 Cross-import 금지
 - **순수 뷰**: UI 컴포넌트는 데이터 패칭/로직 금지 — 주입받은 상태만 렌더링
 - **비즈니스 로직 격리**: 모든 상태 관리·API 호출은 Custom Hook으로 캡슐화
 

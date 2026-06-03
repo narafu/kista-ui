@@ -10,9 +10,9 @@
 
 ## Route Handler 목록
 
-기존 catch-all Route Handler: `/api/auth/*`, `/api/accounts/[[...path]]`, `/api/trading-cycles/[[...path]]`, `/api/portfolio/[[...path]]`, `/api/meta/[[...path]]`, `/api/privacy-trades/[[...path]]`, `/api/admin/[[...path]]`
+catch-all Route Handler: `/api/accounts/[[...path]]`, `/api/admin/[[...path]]`, `/api/market/[[...path]]`, `/api/meta/[[...path]]`, `/api/orders/[[...path]]`, `/api/portfolio/[[...path]]`, `/api/privacy-trades/[[...path]]`, `/api/strategies/[[...path]]`, `/api/trading-cycles/[[...path]]`
 
-전용 Route Handler (kista-api URL 하드코딩): `app/api/auth/reapply-done/route.ts`, `app/api/settings/telegram/route.ts`, `app/api/auth/status-stream/route.ts`, `app/api/trades/stream/route.ts`
+전용 Route Handler: `app/api/auth/logout`, `app/api/auth/me`, `app/api/auth/reapply-done`, `app/api/auth/status-stream`, `app/api/fcm/tokens`, `app/api/fcm/tokens/[token]`, `app/api/settings/notification-channel`, `app/api/settings/telegram`, `app/api/trades/stream`
 
 ## kista-api DTO 필드
 
