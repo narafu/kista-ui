@@ -28,8 +28,8 @@ export function AdminSidebar() {
     <aside className="hidden lg:flex flex-col w-[220px] min-h-screen shrink-0 border-r border-border px-4 py-6 bg-muted/30">
       {/* 로고 */}
       <Link href="/admin" className="flex items-center gap-2 px-2 pb-6">
-        <span className="font-extrabold text-lg tracking-wide text-rose-600">KISTA</span>
-        <span className="text-xs font-semibold bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded">ADMIN</span>
+        <span className="font-extrabold text-lg tracking-wide" style={{ color: 'var(--brand-fg-soft)' }}>KISTA</span>
+        <span className="text-xs font-semibold px-1.5 py-0.5 rounded" style={{ background: 'var(--rose-200)', color: 'var(--brand-fg-soft)' }}>ADMIN</span>
       </Link>
 
       {/* 네비게이션 */}
