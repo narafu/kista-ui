@@ -18,6 +18,7 @@ import {ApiError} from "@/lib/api/client";
 import {getNextOrdersPreview, cancelAllOrders, cancelOneOrder} from "@/lib/api/orders";
 import {getMargin} from "@/lib/api/accounts";
 import {executeStrategy} from "@/lib/api/strategies";
+import {getMarketSession, getMonthlyHolidaysClient} from "@/lib/api/market";
 import type {MarginItem} from "@/lib/api/accounts";
 import type {NextOrderPreview, PlacedOrder} from "@/types/preview";
 
@@ -65,6 +66,8 @@ const INITIAL_EXEC_STATE: ExecState = {
 export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit, strategyId}: Props) {
   const [loadState, setLoadState] = useState<LoadState>(INITIAL_LOAD_STATE);
   const [execState, setExecState] = useState<ExecState>(INITIAL_EXEC_STATE);
+  const [isBlocked, setIsBlocked] = useState(false); // BLOCKED 시간대 여부
+  const [isHoliday, setIsHoliday] = useState(false); // 오늘 휴장일 여부
 
   const { preview, margin, loading, error, lastUpdatedAt, mode, placedOrders } = loadState;
 
@@ -167,6 +170,22 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
     load();
   }, [strategyType, load]);
 
+  // 시장 세션 + 오늘 휴장일 조회 — 수동 실행 버튼 활성화 판단
+  useEffect(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+    const todayStr = today.toISOString().slice(0, 10);
+
+    Promise.all([
+      getMarketSession().catch(() => null),
+      getMonthlyHolidaysClient(year, month).catch(() => [] as string[]),
+    ]).then(([session, holidays]) => {
+      setIsBlocked(session?.session === 'BLOCKED');
+      setIsHoliday((holidays ?? []).includes(todayStr));
+    });
+  }, []);
+
   if (!strategyType) {
     return (
       <Card>
@@ -251,7 +270,14 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
                 <button
                   type="button"
                   onClick={() => setExecState((s) => ({ ...s, open: true }))}
-                  disabled={loading || execState.running}
+                  disabled={loading || execState.running || isBlocked || isHoliday}
+                  title={
+                    isHoliday
+                      ? "오늘은 미국 증시 휴장일입니다"
+                      : isBlocked
+                        ? "주문 불가 시간대입니다 (프리마켓/정규장 시간에만 가능)"
+                        : undefined
+                  }
                   className="text-xs px-3 py-1.5 rounded-md bg-rose-600 text-white hover:bg-rose-700 transition-colors disabled:opacity-50"
                 >
                   지금 실행

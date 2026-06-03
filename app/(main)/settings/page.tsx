@@ -82,7 +82,7 @@ export default async function SettingsPage() {
 
             <div className="text-[12.5px] font-semibold text-muted-foreground mt-5 mb-2">알림 종류</div>
             {[
-              { label: '매매 알림',       desc: '체결 및 예약주문 상태 변경 시' },
+              { label: '매매 알림',       desc: '매매 체결 결과 알림' },
               { label: '시스템 점검 알림', desc: 'KIS API 점검 시간 안내' },
               { label: '주간 리포트',     desc: '매주 월요일 아침 9시 발송' },
             ].map((row, i, arr) => (

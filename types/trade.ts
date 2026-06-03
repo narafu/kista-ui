@@ -70,22 +70,6 @@ export interface MarginItem {
   purchasableAmount: number
 }
 
-export interface ReservationOrder {
-  receiptDate: string
-  receiptTime: string
-  reservationOrderId: string
-  direction: OrderDirection
-  statusCode: string
-  statusName: string
-  ticker: string
-  symbolName: string
-  exchangeCode: string
-  orderedQty: number
-  orderedPrice: number
-  filledQty: number
-  cancelled: boolean
-}
-
 export interface DailyTransaction {
   tradeDate: string
   settlementDate: string
