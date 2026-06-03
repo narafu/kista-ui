@@ -45,10 +45,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# shrimp task manager
-.mcp.json
-
 *.log
 .claude/settings.local.json
 
-.env*
