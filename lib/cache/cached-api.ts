@@ -2,6 +2,7 @@ import { unstable_cache } from 'next/cache'
 import { listAccounts } from '@/lib/api/accounts'
 import { listStrategies } from '@/lib/api/strategies'
 import { getMe } from '@/lib/api/auth'
+import { ApiError } from '@/lib/api/client'
 import { cacheTags } from './tags'
 import type { Account } from '@/types/account'
 import type { Strategy } from '@/types/strategy'
@@ -21,7 +22,14 @@ export function getCachedAccounts(token: string): Promise<Account[]> {
 export function getCachedStrategies(accountId: string, token: string): Promise<Strategy[]> {
   const tag = cacheTags.strategies(token)
   return unstable_cache(
-    async () => listStrategies(accountId, token),
+    async () => {
+      try {
+        return await listStrategies(accountId, token)
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 404) return []
+        throw e
+      }
+    },
     [tag, accountId],
     { tags: [tag], revalidate: REVALIDATE }
   )()

@@ -22,8 +22,8 @@ export default async function AdminOverviewPage() {
       {/* Hero 통계 카드 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         <StatCard icon={<Users className="size-5 text-rose-500" />} label="전체" value={stats?.totalUsers ?? '-'} />
-        <StatCard icon={<Clock className="size-5 text-amber-500" />} label="승인 대기" value={stats?.pendingCount ?? '-'} accent="amber" />
-        <StatCard icon={<CheckCircle className="size-5 text-emerald-500" />} label="승인됨" value={stats?.activeCount ?? '-'} accent="emerald" />
+        <StatCard icon={<Clock className="size-5 text-amber-500" />} label="승인 대기" value={stats?.pendingCount ?? '-'} />
+        <StatCard icon={<CheckCircle className="size-5 text-emerald-500" />} label="승인됨" value={stats?.activeCount ?? '-'} />
         <StatCard icon={<XCircle className="size-5 text-slate-400" />} label="거절됨" value={stats?.rejectedCount ?? '-'} />
       </div>
 
@@ -66,16 +66,13 @@ function StatCard({
   icon,
   label,
   value,
-  accent,
 }: {
   icon: React.ReactNode
   label: string
   value: number | string
-  accent?: 'amber' | 'emerald'
 }) {
-  const bg = accent === 'amber' ? 'bg-amber-50' : accent === 'emerald' ? 'bg-emerald-50' : 'bg-muted/40'
   return (
-    <div className={`rounded-xl border border-border p-4 ${bg}`}>
+    <div className="rounded-xl border border-border p-4 bg-muted/40">
       <div className="flex items-center gap-2 mb-3">
         {icon}
         <span className="text-xs text-muted-foreground font-medium">{label}</span>
