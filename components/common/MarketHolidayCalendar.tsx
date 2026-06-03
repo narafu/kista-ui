@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { getMonthlyHolidaysClient } from '@/lib/api/market'
+import { useMonthlyHolidays } from '@/hooks/useMonthlyHolidays'
 
 interface Props {
   holidays: string[]
@@ -21,25 +21,17 @@ function pad(n: number): string {
 export function MarketHolidayCalendar({ holidays, year, month }: Props) {
   const [displayYear, setDisplayYear] = useState(year)
   const [displayMonth, setDisplayMonth] = useState(month)
-  const [localHolidays, setLocalHolidays] = useState(holidays) // 서버 초기값 재사용
-  const [loading, setLoading] = useState(false)
-  const isInitialMount = useRef(true) // 초기 마운트 fetch skip
+
+  const isInitialMonth = displayYear === year && displayMonth === month
+  const { holidays: localHolidays, loading } = useMonthlyHolidays(
+    displayYear,
+    displayMonth,
+    isInitialMonth ? holidays : undefined,
+  )
 
   // SSR 수화 불일치 방지: 클라이언트 마운트 후에만 오늘 날짜 설정
   const [today, setToday] = useState<Date | null>(null)
   useEffect(() => { setToday(new Date()) }, [])
-
-  // 달 변경 시에만 fetch (초기 마운트는 props.holidays 사용)
-  useEffect(() => {
-    if (isInitialMount.current) { isInitialMount.current = false; return }
-    let cancelled = false
-    setLoading(true)
-    getMonthlyHolidaysClient(displayYear, displayMonth)
-      .then(data => { if (!cancelled) setLocalHolidays(data) })
-      .catch(() => { if (!cancelled) setLocalHolidays([]) })
-      .finally(() => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
-  }, [displayYear, displayMonth])
 
   function prevMonth() {
     if (displayMonth === 1) { setDisplayYear(y => y - 1); setDisplayMonth(12) }

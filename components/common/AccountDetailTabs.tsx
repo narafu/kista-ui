@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useReducer } from 'react'
+import { useState, useReducer } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { KpiCard } from './KpiCard'
 import { NextOrderPreviewCard } from './NextOrderPreviewCard'
 import { StrategyList } from '@/components/strategies/StrategyList'
 import { useMeta } from '@/components/providers/MetaProvider'
-import { getAccountCycleHistory, getStrategyCycleHistory } from '@/lib/api/trades'
+import { useAccountCycleHistory, useStrategyCycleHistory } from '@/hooks/useCycleHistory'
 import type { Account } from '@/types/account'
 import type { CycleHistoryItem, PortfolioSnapshot } from '@/types/trade'
 import type { Strategy } from '@/types/strategy'
@@ -281,44 +281,28 @@ type TradeTabState = {
   rangeType: RangeType
   customFrom: string
   customTo: string
-  cycleHistory: CycleHistoryItem[]
-  isLoading: boolean
 }
 
 type TradeTabAction =
   | { type: 'SET_RANGE'; rangeType: RangeType }
   | { type: 'SET_CUSTOM_FROM'; value: string }
   | { type: 'SET_CUSTOM_TO'; value: string }
-  | { type: 'FETCH_START' }
-  | { type: 'FETCH_DONE'; data: CycleHistoryItem[] }
 
 function tradeTabReducer(state: TradeTabState, action: TradeTabAction): TradeTabState {
   switch (action.type) {
     case 'SET_RANGE': return { ...state, rangeType: action.rangeType }
     case 'SET_CUSTOM_FROM': return { ...state, customFrom: action.value }
     case 'SET_CUSTOM_TO': return { ...state, customTo: action.value }
-    case 'FETCH_START': return { ...state, isLoading: true }
-    case 'FETCH_DONE': return { ...state, isLoading: false, cycleHistory: action.data }
   }
 }
 
-const INITIAL_TAB_STATE: TradeTabState = { rangeType: '30d', customFrom: '', customTo: '', cycleHistory: [], isLoading: true }
+const INITIAL_TAB_STATE: TradeTabState = { rangeType: '30d', customFrom: '', customTo: '' }
 
 function TradesTab({ accountId }: { accountId: string }) {
   const [state, dispatch] = useReducer(tradeTabReducer, INITIAL_TAB_STATE)
-  const { rangeType, customFrom, customTo, cycleHistory, isLoading } = state
-
-  useEffect(() => {
-    const params = buildParams(rangeType, customFrom, customTo)
-    if (params === null) return
-
-    let cancelled = false
-    dispatch({ type: 'FETCH_START' })
-    getAccountCycleHistory(accountId, params)
-      .then((data) => { if (!cancelled) dispatch({ type: 'FETCH_DONE', data }) })
-      .catch(() => { if (!cancelled) dispatch({ type: 'FETCH_DONE', data: [] }) })
-    return () => { cancelled = true }
-  }, [accountId, rangeType, customFrom, customTo])
+  const { rangeType, customFrom, customTo } = state
+  const params = buildParams(rangeType, customFrom, customTo)
+  const { cycleHistory, isLoading } = useAccountCycleHistory(accountId, params)
 
   return (
     <CycleHistoryTable
@@ -337,23 +321,9 @@ function TradesTab({ accountId }: { accountId: string }) {
 
 function StrategyTradesTab({ strategyId }: { strategyId: string | undefined }) {
   const [state, dispatch] = useReducer(tradeTabReducer, INITIAL_TAB_STATE)
-  const { rangeType, customFrom, customTo, cycleHistory, isLoading } = state
-
-  useEffect(() => {
-    if (!strategyId) {
-      dispatch({ type: 'FETCH_DONE', data: [] })
-      return
-    }
-    const params = buildParams(rangeType, customFrom, customTo)
-    if (params === null) return
-
-    let cancelled = false
-    dispatch({ type: 'FETCH_START' })
-    getStrategyCycleHistory(strategyId, params)
-      .then((data) => { if (!cancelled) dispatch({ type: 'FETCH_DONE', data }) })
-      .catch(() => { if (!cancelled) dispatch({ type: 'FETCH_DONE', data: [] }) })
-    return () => { cancelled = true }
-  }, [strategyId, rangeType, customFrom, customTo])
+  const { rangeType, customFrom, customTo } = state
+  const params = buildParams(rangeType, customFrom, customTo)
+  const { cycleHistory, isLoading } = useStrategyCycleHistory(strategyId, params)
 
   if (!strategyId) {
     return (
