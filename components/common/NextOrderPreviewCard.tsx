@@ -267,21 +267,21 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
             </div>
             <div className="flex items-center gap-2">
               {strategyId && mode === "preview" && (
-                <button
-                  type="button"
-                  onClick={() => setExecState((s) => ({ ...s, open: true }))}
-                  disabled={loading || execState.running || isBlocked || isHoliday}
-                  title={
-                    isHoliday
-                      ? "오늘은 미국 증시 휴장일입니다"
-                      : isBlocked
-                        ? "주문 불가 시간대입니다 (프리마켓/정규장 시간에만 가능)"
-                        : undefined
-                  }
-                  className="text-xs px-3 py-1.5 rounded-md bg-rose-600 text-white hover:bg-rose-700 transition-colors disabled:opacity-50"
-                >
-                  지금 실행
-                </button>
+                <div className="relative group inline-flex">
+                  <button
+                    type="button"
+                    onClick={() => setExecState((s) => ({ ...s, open: true }))}
+                    disabled={loading || execState.running || isBlocked || isHoliday}
+                    className="text-xs px-3 py-1.5 rounded-md bg-rose-600 text-white hover:bg-rose-700 transition-colors disabled:opacity-50"
+                  >
+                    지금 실행
+                  </button>
+                  {(isBlocked || isHoliday) && (
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-foreground text-background text-xs rounded-md shadow-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                      {isHoliday ? "오늘은 미국 증시 휴장일입니다" : "주문 불가 시간대입니다 (프리마켓/정규장 시간에만 가능)"}
+                    </div>
+                  )}
+                </div>
               )}
               {mode === "preview" && (
                 <button

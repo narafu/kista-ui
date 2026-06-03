@@ -72,6 +72,7 @@ kista-token은 httpOnly=false — proxy에서 `request.cookies.get('kista-token'
 - **Toaster 스코프 및 중복 금지**: `<Toaster richColors position="top-right" />`는 루트 `app/layout.tsx`에 단 하나만 배치 — 하위 레이아웃(`(main)/layout.tsx` 등)에 추가 `<Toaster>` 금지. 중복 시 하나의 `toast()` 호출에 두 개 동시 표시됨(상단 컬러 + 하단 흑백). `/pending`, `/rejected` 등 (main) 밖 라우트도 루트 Toaster로 커버됨
 - **shadcn v4 (@base-ui/react 기반)**: `Button`, `DialogTrigger` 등 모든 컴포넌트에 `asChild` 없음 → `cn(buttonVariants({ variant, size }))` 클래스 직접 적용
 - **AlertDialog open 제어**: `open`/`onOpenChange` state 직접 관리 필수 — AlertDialogAction 클릭 시 자동 close 안 됨. `AlertDialogTrigger`에 `disabled` prop 없음 → `className`으로 `opacity-40 pointer-events-none` 처리
+- **disabled 버튼 툴팁**: `title` 속성은 브라우저 기본 딜레이(1~3초) 발생 — wrapper `div`에 `group` + 툴팁 div에 `opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50` 패턴 사용. disabled 버튼은 JS hover 이벤트 차단되지만 부모 div의 CSS hover는 정상 동작
 - **vaul Drawer (모바일 BottomSheet)**: `components/ui/drawer.tsx` — `direction="bottom"`, DrawerContent 내 폼 스크롤은 `overflow-y-auto` 래퍼 필요. 모바일 판별: `useEffect`에서 `window.matchMedia('(max-width: 1023px)')` + `addEventListener('change', handler)` 패턴
 - **CSS `--warn`/`--warn-bg` 토큰**: `globals.css`에 이미 정의됨 (`.text-warn`, `.bg-warn-bg` 유틸 클래스도 존재) — 경고 상태 색상에 활용
 - **CSS `--status-error` 토큰**: 반려/거절 상태 색상 (라이트 `#C8443A`, 다크 `#F87171`). `--status-error-bg`/`--status-error-border`도 함께 정의. `.rejected-reason-card` 유틸 클래스 사용 가능. 하드코딩 `#C8443A` 금지
