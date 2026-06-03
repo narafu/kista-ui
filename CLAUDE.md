@@ -85,6 +85,7 @@ NEXT_PUBLIC_API_BASE_URL=      # kista-api Render URL
 ## 개발 도구
 
 - 포트 충돌: Docker가 3000 점유 시 `npm run dev`는 3001 등으로 fallback → 실제 포트 확인: `cat /tmp/kista_dev.log | grep "Local:"`
+- 개발 서버 요청/에러 로그: `.next/dev/logs/next-development.log` (JSON 형식, `tail -f`로 실시간 확인)
 - Playwright: `npx playwright screenshot --browser chromium --viewport-size "1440,900" http://localhost:PORT/path /tmp/out.png` (첫 실행 시 `npx playwright install chromium`)
 - kista-api 위치: `../kista-api/` — 빌드: `cd ../kista-api && ./gradlew compileJava`
 

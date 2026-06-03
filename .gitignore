@@ -1,3 +1,6 @@
+# Serena MCP 런타임 디렉토리 (memories는 공유, 로컬 환경 설정만 제외)
+.serena/project.local.yml
+
 # dependencies
 /node_modules
 /.pnp
