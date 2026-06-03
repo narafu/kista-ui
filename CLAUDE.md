@@ -76,7 +76,10 @@ NEXT_PUBLIC_API_BASE_URL=      # kista-api Render URL
 - `NEXT_PUBLIC_*` 비면 런타임 500 — Vercel 대시보드 env var 확인
 - 환경변수: `vercel link --scope narafus-projects --project prj_...` 후 `vercel env ls production`
 - 런타임 로그: `vercel logs --scope narafus-projects --json`
-- admin 엔드포인트: `PATCH /api/admin/users/{id}/status` body `{ status: 'ACTIVE' | 'REJECTED' }`
+- admin 엔드포인트:
+  - `PATCH /api/admin/users/{id}/status` body `{ status: 'ACTIVE' | 'REJECTED' }` — 승인/거절
+  - `PATCH /api/admin/users/{id}/role` body `{ role: 'USER' | 'ADMIN' }` — 역할 변경
+  - `DELETE /api/admin/users/{id}` — 사용자 삭제
 - catch-all Route Handler URL 변경 시 호출부(`lib/api/`, `components/`)만 수정 — Route Handler 수정 불필요
 
 ## 개발 도구

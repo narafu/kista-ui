@@ -176,8 +176,8 @@ export function useStrategyForm({
         await createStrategy(accountId, payload)
         toast.success('전략이 등록되었습니다')
       }
-      onSuccess?.()
       router.refresh()
+      onSuccess?.()
     } catch (err) {
       toast.error(err instanceof ApiError ? '저장에 실패했습니다' : '오류가 발생했습니다')
     } finally {
