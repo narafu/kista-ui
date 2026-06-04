@@ -1,0 +1,207 @@
+'use client'
+
+import { cn } from '@shared/lib/utils'
+
+interface Props {
+  value: number
+  onChange: (value: number) => void
+  deposit: number | null
+  minSeed?: number | null
+  compact?: boolean
+  disabled?: boolean
+}
+
+function fmtUsd(n: number) {
+  return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+export function PercentGauge({ value, onChange, deposit, minSeed, compact, disabled }: Props) {
+  const handleSize = compact ? 18 : 22
+  const halfHandle = handleSize / 2
+  const trackH = compact ? 8 : 10
+  const allocated = deposit !== null ? Math.round(deposit * value) / 100 : null
+
+  const depositInsufficient = deposit != null && minSeed != null && deposit < minSeed
+  const allDisabled = disabled || depositInsufficient
+
+  const minPct =
+    deposit != null && minSeed != null && deposit > 0
+      ? Math.min(100, Math.ceil((minSeed / deposit) * 100))
+      : null
+
+  return (
+    <div className="min-w-0">
+      {/* 숫자 입력 행: [MIN] [입력칸] [MAX] */}
+      <div
+        className="flex gap-1.5 items-center justify-around"
+        style={{ marginBottom: compact ? 12 : 14 }}
+      >
+        {/* MIN 버튼 */}
+        {minPct !== null && (
+          <button
+            type="button"
+            disabled={allDisabled}
+            onClick={() => onChange(minPct)}
+            style={{ height: compact ? 38 : 40 }}
+            className={cn(
+              'px-3 rounded-lg border border-border bg-muted text-xs font-bold tracking-[0.05em]',
+              allDisabled ? 'text-muted-foreground cursor-not-allowed opacity-50' : 'text-foreground cursor-pointer'
+            )}
+          >
+            MIN
+          </button>
+        )}
+
+        {/* 퍼센트 입력칸 */}
+        <div
+          className={cn(
+            'flex-1 relative rounded-lg border border-[var(--rose-400)] bg-card flex items-center px-3.5 w-[65%]',
+            allDisabled && 'opacity-50'
+          )}
+          style={{
+            height: compact ? 38 : 40,
+            boxShadow: allDisabled ? 'none' : '0 0 0 3px rgba(203,131,106,0.18)',
+          }}
+        >
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            aria-label="사용 비율 (%)"
+            value={String(value)}
+            disabled={allDisabled}
+            onChange={(e) => {
+              const raw = e.target.value.replace(/[^\d]/g, '')
+              if (raw === '') { onChange(0); return }
+              onChange(Math.min(100, Math.max(0, Math.round(Number(raw)))))
+            }}
+            className="flex-1 border-0 outline-none bg-transparent font-extrabold text-foreground text-right min-w-0"
+            style={{ fontSize: compact ? 16 : 18, fontFamily: 'inherit' }}
+          />
+          <span className="text-sm font-extrabold text-[var(--rose-600)] ml-1">%</span>
+        </div>
+
+        {/* MAX 버튼 */}
+        <button
+          type="button"
+          disabled={allDisabled}
+          onClick={() => onChange(100)}
+          style={{
+            height: compact ? 38 : 40,
+            background: allDisabled
+              ? 'var(--muted)'
+              : 'linear-gradient(135deg, var(--rose-400), var(--rose-600))',
+          }}
+          className={cn(
+            'px-3.5 rounded-lg border border-[var(--rose-400)] text-xs font-bold tracking-[0.05em]',
+            allDisabled ? 'text-muted-foreground cursor-not-allowed opacity-50' : 'text-white cursor-pointer'
+          )}
+        >
+          MAX
+        </button>
+      </div>
+
+      {/* 슬라이더 트랙 */}
+      <div
+        className="flex gap-2 items-center mb-2.5"
+        style={{ paddingLeft: halfHandle, paddingRight: halfHandle }}
+      >
+        <div
+          className={cn('flex-1 relative', allDisabled && 'opacity-50')}
+          style={{ height: handleSize + 4 }}
+        >
+          {/* tick 마크 */}
+          <div
+            className="absolute inset-x-0 h-[3px] flex justify-between pointer-events-none"
+            style={{ top: (handleSize + 4) / 2 - trackH / 2 - 3 }}
+          >
+            {[0, 25, 50, 75, 100].map((t) => (
+              <span key={t} className="w-px h-[3px] bg-[var(--border-strong)] opacity-60" />
+            ))}
+          </div>
+
+          {/* 트랙 배경 */}
+          <div
+            className="absolute inset-x-0 rounded-full bg-muted border border-border"
+            style={{ top: (handleSize + 4) / 2 - trackH / 2, height: trackH }}
+          >
+            {/* 채워진 트랙 */}
+            <div
+              className="absolute inset-y-[-1px] left-0 rounded-full border border-[var(--rose-500)]"
+              style={{
+                width: `${value}%`,
+                background: 'linear-gradient(90deg, var(--rose-300), var(--rose-500))',
+              }}
+            />
+          </div>
+
+          {/* 핸들 */}
+          <div
+            className="absolute top-0 -translate-x-1/2 rounded-full bg-white border-2 border-[var(--rose-500)] shadow-[0_2px_6px_rgba(143,68,48,0.28)] grid place-items-center pointer-events-none"
+            style={{ left: `${value}%`, width: handleSize, height: handleSize }}
+          >
+            <span className="size-1 rounded-full bg-[var(--rose-500)]" />
+          </div>
+
+          {/* 실제 range input (투명, 위에 씌움) */}
+          <input
+            type="range"
+            aria-label="사용 비율 슬라이더"
+            min={0}
+            max={100}
+            step={1}
+            value={value}
+            disabled={allDisabled}
+            onChange={(e) => onChange(Number(e.target.value))}
+            className={cn(
+              'absolute inset-0 w-full opacity-0 m-0',
+              allDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
+            )}
+          />
+        </div>
+      </div>
+
+      {/* tick 라벨 */}
+      <div
+        className="flex justify-between text-[10px] text-muted-foreground font-semibold mb-3"
+        style={{ paddingLeft: halfHandle, paddingRight: halfHandle }}
+      >
+        <span>0%</span>
+        <span>25%</span>
+        <span>50%</span>
+        <span>75%</span>
+        <span>100%</span>
+      </div>
+
+      {/* 사용 금액 미리보기 / 예수금 부족 경고 */}
+      {deposit !== null &&
+        (depositInsufficient && minSeed !== null ? (
+          <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--warn-bg)] border border-[var(--warn)]">
+            <span className="text-[11px] text-[var(--warn)] font-bold">예수금 부족</span>
+            <span
+              className="font-extrabold text-[var(--warn)] tabular-nums"
+              style={{ fontSize: compact ? 12 : 13 }}
+            >
+              필요: ${fmtUsd(minSeed)}
+              <span className="text-[10.5px] font-semibold text-[var(--warn)] ml-1.5 opacity-80">
+                / 보유: ${fmtUsd(deposit)}
+              </span>
+            </span>
+          </div>
+        ) : (
+          <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--brand-soft-bg)] border border-[var(--rose-200)]">
+            <span className="text-[11px] text-[var(--brand-fg-soft)] font-bold">사용 금액 예상</span>
+            <span
+              className="font-extrabold text-[var(--brand-fg)] tabular-nums"
+              style={{ fontSize: compact ? 12.5 : 13.5 }}
+            >
+              ${allocated !== null ? fmtUsd(allocated) : '--'}
+              <span className="text-[10.5px] font-semibold text-muted-foreground ml-1.5">
+                / ${fmtUsd(deposit)}
+              </span>
+            </span>
+          </div>
+        ))}
+    </div>
+  )
+}
