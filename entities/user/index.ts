@@ -1,1 +1,42 @@
-// entities/user public API
+export type {
+  UserStatus,
+  UserRole,
+  NotificationChannel,
+  User,
+  AdminUser,
+  AdminStats,
+  AdminAccount,
+  AdminTrade,
+  AdminAuditLog,
+  AdminAnomalyAccount,
+  AdminAnomalies,
+} from './model/types'
+export {
+  getMe,
+  reapply,
+  deleteMe,
+  updateNotificationChannel,
+  updateTelegram,
+  deleteTelegram,
+  listAdminUsers,
+  approveAdminUser,
+  rejectAdminUser,
+  changeAdminUserRole,
+  deleteAdminUser,
+  getAdminStats,
+  listAdminAccounts,
+  listAdminTrades,
+  listAdminAuditLogs,
+  getAdminAnomalies,
+} from './api'
+export {
+  useReapplyMutation,
+  useDeleteMeMutation,
+  useUpdateNotificationChannelMutation,
+  useUpdateTelegramMutation,
+  useDeleteTelegramMutation,
+  useApproveUserMutation,
+  useRejectUserMutation,
+  useChangeUserRoleMutation,
+  useDeleteAdminUserMutation,
+} from './hooks/useUserQueries'

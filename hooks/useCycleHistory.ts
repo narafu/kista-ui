@@ -1,29 +1,6 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
-import { getAccountCycleHistory, getStrategyCycleHistory } from '@/lib/api/trades'
-import type { CycleHistoryItem } from '@/types/trade'
-
-type Params = { from?: string; to?: string } | null
-
-export function useAccountCycleHistory(accountId: string, params: Params) {
-  const { data: cycleHistory = [], isLoading } = useQuery<CycleHistoryItem[]>({
-    queryKey: ['accountCycleHistory', accountId, params],
-    queryFn: () =>
-      getAccountCycleHistory(accountId, params!).catch((): CycleHistoryItem[] => []),
-    enabled: params !== null,
-    placeholderData: (prev) => prev,
-  })
-  return { cycleHistory, isLoading }
-}
-
-export function useStrategyCycleHistory(strategyId: string | undefined, params: Params) {
-  const { data: cycleHistory = [], isLoading } = useQuery<CycleHistoryItem[]>({
-    queryKey: ['strategyCycleHistory', strategyId, params],
-    queryFn: () =>
-      getStrategyCycleHistory(strategyId!, params!).catch((): CycleHistoryItem[] => []),
-    enabled: params !== null && !!strategyId,
-    placeholderData: (prev) => prev,
-  })
-  return { cycleHistory, isLoading }
-}
+export {
+  useAccountCycleHistoryQuery as useAccountCycleHistory,
+  useStrategyCycleHistoryQuery as useStrategyCycleHistory,
+} from '@entities/trade'
