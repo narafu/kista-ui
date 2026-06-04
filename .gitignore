@@ -1,6 +1,9 @@
 # Serena MCP 런타임 디렉토리 (memories는 공유, 로컬 환경 설정만 제외)
 .serena/project.local.yml
 
+# Superpowers 브레인스토밍 세션 임시 파일
+.superpowers/
+
 # dependencies
 /node_modules
 /.pnp

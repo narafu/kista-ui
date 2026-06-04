@@ -13,7 +13,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { KpiCard } from "./KpiCard";
-import { useNextOrderPreview } from "@/hooks/useNextOrderPreview";
+import { useNextOrderPreview } from "@/hooks/useNextOrderPreview"
+import { toast } from "sonner";
 
 interface Props {
   accountId: string;
@@ -136,9 +137,13 @@ export function NextOrderPreviewCard({ accountId, strategyType, initialUsdDeposi
                 <div className="relative group inline-flex">
                   <button
                     type="button"
-                    onClick={() => setDialogOpen(true)}
-                    disabled={isFetching || isRunning || isBlocked || isHoliday}
-                    className="text-xs px-3 py-1.5 rounded-md bg-rose-600 text-white hover:bg-rose-700 transition-colors disabled:opacity-50"
+                    onClick={() => {
+                      if (isHoliday) { toast.info('오늘은 미국 증시 휴장일입니다'); return }
+                      if (isBlocked) { toast.info('주문 불가 시간대입니다 (프리마켓/정규장 시간에만 가능)'); return }
+                      setDialogOpen(true)
+                    }}
+                    disabled={isFetching || isRunning}
+                    className={`text-xs px-3 py-1.5 rounded-md bg-rose-600 text-white hover:bg-rose-700 transition-colors disabled:opacity-50${isBlocked || isHoliday ? ' opacity-50 cursor-not-allowed' : ''}`}
                   >
                     지금 실행
                   </button>
