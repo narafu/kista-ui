@@ -1,34 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getAccountMargin } from '@/lib/api/trades'
-import type { MarginItem } from '@/types/trade'
+import { useAccountMarginQuery } from '@/hooks/useAccountMarginQuery'
 
 interface Props {
   accountId: string
 }
 
 export function MarginCard({ accountId }: Props) {
-  const [items, setItems] = useState<MarginItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function load() {
-      setIsLoading(true)
-      try {
-        const data = await getAccountMargin(accountId).catch((): MarginItem[] => [])
-        if (!cancelled) setItems(data)
-      } finally {
-        if (!cancelled) setIsLoading(false)
-      }
-    }
-
-    load()
-    return () => { cancelled = true }
-  }, [accountId])
+  const { items, isLoading } = useAccountMarginQuery(accountId)
 
   return (
     <Card>

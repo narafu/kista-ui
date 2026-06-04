@@ -1,8 +1,7 @@
 "use client";
 
-import {useState, useEffect, useCallback} from "react";
-import {toast} from "sonner";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,14 +12,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {KpiCard} from "./KpiCard";
-import {ApiError} from "@/lib/api/client";
-import {getNextOrdersPreview, cancelAllOrders, cancelOneOrder} from "@/lib/api/orders";
-import {getMargin} from "@/lib/api/accounts";
-import {executeStrategy} from "@/lib/api/strategies";
-import {getMarketSession, getMonthlyHolidaysClient} from "@/lib/api/market";
-import type {MarginItem} from "@/lib/api/accounts";
-import type {NextOrderPreview, PlacedOrder} from "@/types/preview";
+import { KpiCard } from "./KpiCard";
+import { useNextOrderPreview } from "@/hooks/useNextOrderPreview";
 
 interface Props {
   accountId: string;
@@ -29,162 +22,26 @@ interface Props {
   strategyId?: string;
 }
 
-type LoadState = {
-  preview: NextOrderPreview | null;
-  margin: MarginItem[] | null;
-  loading: boolean;
-  error: "no-strategy" | "kis-fail" | null;
-  lastUpdatedAt: string;
-  mode: "preview" | "executed";
-  placedOrders: PlacedOrder[];
-};
+export function NextOrderPreviewCard({ accountId, strategyType, initialUsdDeposit, strategyId }: Props) {
+  const [dialogOpen, setDialogOpen] = useState(false);
 
-const INITIAL_LOAD_STATE: LoadState = {
-  preview: null,
-  margin: null,
-  loading: false,
-  error: null,
-  lastUpdatedAt: "",
-  mode: "preview",
-  placedOrders: [],
-};
-
-type ExecState = {
-  open: boolean;
-  running: boolean;
-  cancelling: boolean;
-  cancellingOrderId: string | null;
-};
-
-const INITIAL_EXEC_STATE: ExecState = {
-  open: false,
-  running: false,
-  cancelling: false,
-  cancellingOrderId: null,
-};
-
-export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit, strategyId}: Props) {
-  const [loadState, setLoadState] = useState<LoadState>(INITIAL_LOAD_STATE);
-  const [execState, setExecState] = useState<ExecState>(INITIAL_EXEC_STATE);
-  const [isBlocked, setIsBlocked] = useState(false); // BLOCKED 시간대 여부
-  const [isHoliday, setIsHoliday] = useState(false); // 오늘 휴장일 여부
-
-  const { preview, margin, loading, error, lastUpdatedAt, mode, placedOrders } = loadState;
-
-  const load = useCallback(async () => {
-    setLoadState((s) => ({ ...s, loading: true, error: null, margin: null }));
-    try {
-      const [data, marginData] = await Promise.all([
-        getNextOrdersPreview(accountId),
-        getMargin(accountId).catch(() => null),
-      ]);
-      setLoadState({
-        preview: data,
-        margin: marginData,
-        loading: false,
-        error: null,
-        lastUpdatedAt: new Date().toLocaleTimeString("ko-KR"),
-        mode: "preview",
-        placedOrders: [],
-      });
-    } catch (e) {
-      setLoadState({
-        preview: null,
-        margin: null,
-        loading: false,
-        error: e instanceof ApiError && e.status === 404 ? "no-strategy" : "kis-fail",
-        lastUpdatedAt: "",
-        mode: "preview",
-        placedOrders: [],
-      });
-    }
-  }, [accountId]);
-
-  const handleExecute = useCallback(async () => {
-    if (!strategyId) return;
-    setExecState((s) => ({ ...s, running: true }));
-    try {
-      const orders = await executeStrategy(strategyId);
-      toast.success("매매 실행이 요청됐습니다. 장 마감 후 체결 결과를 확인하세요.");
-      setLoadState((s) => ({ ...s, mode: "executed", placedOrders: orders }));
-    } catch (e) {
-      if (e instanceof ApiError) {
-        if (e.status === 409) {
-          toast.error("오늘 이미 실행됐습니다.");
-        } else if (e.status === 400) {
-          toast.error("실행할 수 없는 전략입니다.");
-        } else if (e.status === 403) {
-          toast.error("권한이 없습니다.");
-        } else {
-          toast.error("실행 중 오류가 발생했습니다.");
-        }
-      } else {
-        toast.error("실행 중 오류가 발생했습니다.");
-      }
-    } finally {
-      setExecState((s) => ({ ...s, open: false, running: false }));
-    }
-  }, [strategyId]);
-
-  const handleCancelAll = useCallback(async () => {
-    if (!strategyId) return;
-    setExecState((s) => ({ ...s, cancelling: true }));
-    try {
-      const result = await cancelAllOrders(strategyId);
-      if (result.failedCount === 0) {
-        toast.success(`${result.cancelledCount}건 모두 취소됐습니다.`);
-      } else {
-        toast.warning(
-          `${result.cancelledCount}건 취소, ${result.failedCount}건 실패 — KIS에서 직접 확인하세요.`
-        );
-      }
-      setLoadState((s) => ({ ...s, mode: "preview", placedOrders: [] }));
-      load();
-    } catch {
-      toast.error("취소 중 오류가 발생했습니다.");
-    } finally {
-      setExecState((s) => ({ ...s, cancelling: false }));
-    }
-  }, [strategyId, load]);
-
-  const handleCancelOne = useCallback(async (orderId: string) => {
-    setExecState((s) => ({ ...s, cancellingOrderId: orderId }));
-    try {
-      await cancelOneOrder(orderId);
-      const remaining = placedOrders.filter((o) => o.id !== orderId);
-      if (remaining.length === 0) {
-        setLoadState((s) => ({ ...s, mode: "preview", placedOrders: [] }));
-        load();
-      } else {
-        setLoadState((s) => ({ ...s, placedOrders: remaining }));
-      }
-    } catch {
-      toast.error("주문 취소 중 오류가 발생했습니다.");
-    } finally {
-      setExecState((s) => ({ ...s, cancellingOrderId: null }));
-    }
-  }, [placedOrders, load]);
-
-  useEffect(() => {
-    if (!strategyType) return;
-    load();
-  }, [strategyType, load]);
-
-  // 시장 세션 + 오늘 휴장일 조회 — 수동 실행 버튼 활성화 판단
-  useEffect(() => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth() + 1;
-    const todayStr = today.toISOString().slice(0, 10);
-
-    Promise.all([
-      getMarketSession().catch(() => null),
-      getMonthlyHolidaysClient(year, month).catch(() => [] as string[]),
-    ]).then(([session, holidays]) => {
-      setIsBlocked(session?.session === 'BLOCKED');
-      setIsHoliday((holidays ?? []).includes(todayStr));
-    });
-  }, []);
+  const {
+    preview,
+    margin,
+    isLoading,
+    isFetching,
+    error,
+    lastUpdatedAt,
+    refetch,
+    isBlocked,
+    isHoliday,
+    mode,
+    setMode,
+    placedOrders,
+    executeMutation,
+    cancelAllMutation,
+    cancelOneMutation,
+  } = useNextOrderPreview(accountId, strategyId);
 
   if (!strategyType) {
     return (
@@ -216,24 +73,28 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
       ? insufficientCurrentPrice - insufficientUnitAmount
       : null;
 
-  const totalBuy = preview?.orders
-    .filter((o) => o.direction === "BUY")
-    .reduce((sum, o) => {
-      const price = parseFloat(o.price);
-      return price > 0 && o.quantity > 0 ? sum + price * o.quantity : sum;
-    }, 0) ?? 0;
+  const totalBuy =
+    preview?.orders
+      .filter((o) => o.direction === "BUY")
+      .reduce((sum, o) => {
+        const price = parseFloat(o.price);
+        return price > 0 && o.quantity > 0 ? sum + price * o.quantity : sum;
+      }, 0) ?? 0;
 
   const usdMargin = margin?.find((m) => m.currency === "USD") ?? null;
   const purchasable = usdMargin?.purchasableAmount ?? null;
 
   const showInsufficientBanner =
     totalBuy > 0 && purchasable !== null && totalBuy > purchasable;
-
   const shortfall = showInsufficientBanner ? totalBuy - (purchasable ?? 0) : 0;
+
+  const isRunning = executeMutation.isPending;
+  const isCancelling = cancelAllMutation.isPending;
+  const cancellingOrderId = cancelOneMutation.isPending ? cancelOneMutation.variables : null;
 
   return (
     <>
-      <AlertDialog open={execState.open} onOpenChange={(open) => setExecState((s) => ({ ...s, open }))}>
+      <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>지금 매매를 실행하시겠습니까?</AlertDialogTitle>
@@ -242,13 +103,18 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={execState.running}>취소</AlertDialogCancel>
+            <AlertDialogCancel disabled={isRunning}>취소</AlertDialogCancel>
             <AlertDialogAction
-              onClick={(e) => { e.preventDefault(); handleExecute(); }}
-              disabled={execState.running}
+              onClick={(e) => {
+                e.preventDefault();
+                executeMutation.mutate(undefined, {
+                  onSettled: () => setDialogOpen(false),
+                });
+              }}
+              disabled={isRunning}
               className="bg-rose-600 hover:bg-rose-700 text-white"
             >
-              {execState.running ? "실행 중..." : "실행"}
+              {isRunning ? "실행 중..." : "실행"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -270,15 +136,17 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
                 <div className="relative group inline-flex">
                   <button
                     type="button"
-                    onClick={() => setExecState((s) => ({ ...s, open: true }))}
-                    disabled={loading || execState.running || isBlocked || isHoliday}
+                    onClick={() => setDialogOpen(true)}
+                    disabled={isFetching || isRunning || isBlocked || isHoliday}
                     className="text-xs px-3 py-1.5 rounded-md bg-rose-600 text-white hover:bg-rose-700 transition-colors disabled:opacity-50"
                   >
                     지금 실행
                   </button>
                   {(isBlocked || isHoliday) && (
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-foreground text-background text-xs rounded-md shadow-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                      {isHoliday ? "오늘은 미국 증시 휴장일입니다" : "주문 불가 시간대입니다 (프리마켓/정규장 시간에만 가능)"}
+                    <div className="absolute top-full right-0 mt-2 px-2.5 py-1.5 bg-foreground text-background text-xs rounded-md shadow-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                      {isHoliday
+                        ? "오늘은 미국 증시 휴장일입니다"
+                        : "주문 불가 시간대입니다 (프리마켓/정규장 시간에만 가능)"}
                     </div>
                   )}
                 </div>
@@ -286,11 +154,11 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
               {mode === "preview" && (
                 <button
                   type="button"
-                  onClick={load}
-                  disabled={loading}
+                  onClick={() => refetch()}
+                  disabled={isFetching}
                   className="text-xs px-3 py-1.5 rounded-md border border-border text-muted-foreground hover:border-rose-300 hover:text-rose-600 transition-colors disabled:opacity-50"
                 >
-                  {loading ? "조회 중..." : "새로고침"}
+                  {isFetching ? "조회 중..." : "새로고침"}
                 </button>
               )}
             </div>
@@ -307,17 +175,15 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
                     style={{ color: "var(--warn)" }}
                   >
                     ✓{" "}
-                    {placedOrders.length > 0
-                      ? `${placedOrders.length}건 접수됨`
-                      : "접수됨"}
+                    {placedOrders.length > 0 ? `${placedOrders.length}건 접수됨` : "접수됨"}
                   </p>
                   <button
                     type="button"
-                    onClick={handleCancelAll}
-                    disabled={execState.cancelling || execState.cancellingOrderId !== null}
+                    onClick={() => cancelAllMutation.mutate()}
+                    disabled={isCancelling || cancellingOrderId !== null}
                     className="text-xs px-2.5 py-1 rounded-md bg-warn-bg text-warn hover:opacity-80 transition-opacity disabled:opacity-50"
                   >
-                    {execState.cancelling ? "취소 중..." : "전체 취소"}
+                    {isCancelling ? "취소 중..." : "전체 취소"}
                   </button>
                 </div>
 
@@ -327,7 +193,7 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
                       const isBuy = order.direction === "BUY";
                       const price = parseFloat(order.price);
                       const total = price > 0 ? price * order.quantity : null;
-                      const isCancellingThis = execState.cancellingOrderId === order.id;
+                      const isCancellingThis = cancellingOrderId === order.id;
                       return (
                         <div
                           key={order.id}
@@ -362,11 +228,8 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
                             </div>
                             <button
                               type="button"
-                              onClick={() => handleCancelOne(order.id)}
-                              disabled={
-                                execState.cancelling ||
-                                execState.cancellingOrderId !== null
-                              }
+                              onClick={() => cancelOneMutation.mutate(order.id)}
+                              disabled={isCancelling || cancellingOrderId !== null}
                               className="text-xs px-2 py-1 rounded-md border border-border text-muted-foreground hover:border-rose-300 hover:text-rose-600 transition-colors disabled:opacity-50"
                             >
                               {isCancellingThis ? "..." : "✕"}
@@ -386,8 +249,8 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
               <button
                 type="button"
                 onClick={() => {
-                  setLoadState((s) => ({ ...s, mode: "preview" }));
-                  load();
+                  setMode("preview");
+                  refetch();
                 }}
                 className="w-full text-xs px-3 py-1.5 rounded-md border border-border text-muted-foreground hover:border-rose-300 hover:text-rose-600 transition-colors"
               >
@@ -399,7 +262,7 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
           {/* ── preview 모드: 기존 콘텐츠 (loading / error / preview 분기) ── */}
           {mode === "preview" && (
             <>
-              {loading && !preview && (
+              {isLoading && !preview && (
                 <div className="flex items-center justify-center h-24 text-sm text-muted-foreground">
                   KIS에서 현재가와 잔고를 조회 중...
                 </div>
@@ -418,7 +281,7 @@ export function NextOrderPreviewCard({accountId, strategyType, initialUsdDeposit
                   </p>
                   <button
                     type="button"
-                    onClick={load}
+                    onClick={() => refetch()}
                     className="text-xs px-3 py-1.5 rounded-md border border-border hover:border-rose-300 hover:text-rose-600 transition-colors"
                   >
                     재시도
