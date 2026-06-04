@@ -1,0 +1,1 @@
+// entities/privacy public API
