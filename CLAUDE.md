@@ -5,6 +5,8 @@
 - `lib/CLAUDE.md` — API 계층·kista-api DTO·KIS quirk·캐시
 - `components/CLAUDE.md` — 컴포넌트 패턴·스타일링·React Query
 
+> **FSD 리팩토링 진행 중**: `entities/`, `features/`, `widgets/`, `shared/` 계층이 신설됨. 기존 `lib/api/*`, `hooks/*`, `components/*`에 남은 파일들은 re-export shim이거나 아직 이동 전 파일임. 새 코드는 FSD 계층에 작성할 것 (아래 아키텍처 참고).
+
 ## 프로젝트 개요
 
 KISTA V2 — 한국투자증권 KIS API 기반 해외주식 자동 분할매매 **초대제 멀티 사용자 SaaS** 프론트엔드.
@@ -31,14 +33,30 @@ npx shadcn@latest add <component> --yes
 - `app/(main)/` — ACTIVE 전용, DesktopSidebar(lg↑) + MobileBottomNav(lg↓)
 - `app/(admin)/` — ADMIN role 전용
 
+### FSD 계층 구조 (신규)
+
+```
+app/           → Next.js 라우팅만 (Server Component 데이터 페칭 + 레이아웃)
+widgets/       → 페이지 합성 단위 (dashboard, account-detail, next-order-preview, ...)
+features/      → 사용자 시나리오 (auth, settings, strategy, account, admin, ...)
+entities/      → 도메인 모델 + API 함수 + React Query 훅 (account, strategy, order, ...)
+shared/        → 도메인 무관 공용 (ui/, lib/api-client, lib/format, lib/utils, providers/)
+```
+
+의존성: `app → widgets → features → entities → shared` (단방향, 동일 계층 cross-import 금지)
+
 ### API 계층
-- `lib/api/{auth,accounts,trades,settings,strategies,orders,market,...}.ts` — `apiFetch` / `clientFetch` 공통 래퍼
+- `shared/lib/api-client/`: `apiFetch` (Server Component 전용, token 필요) / `clientFetch` (Client Component, Route Handler 경유) / `ApiError`
+- `entities/{도메인}/api/`: 도메인별 API 함수 — `lib/api/*`는 re-export shim
 - Server Component: `getAuthToken()` → token 취득 후 `apiFetch` 호출
-- Client Component: token 없이 `lib/api` 함수 호출 → Route Handler 자동 경유 (`clientFetch` 내부)
+- Client Component: token 없이 `entities/{도메인}/api` 함수 → Route Handler 자동 경유
 - **Client Component에서 직접 kista-api 호출 전면 금지** (CORS + 쿠키 문제)
 
 ### 컴포넌트 폴더
-`common/` · `accounts/` · `strategies/` · `providers/` · `settings/` · `layout/` · `admin/` · `ui/`(shadcn — 직접 수정 금지)
+기존: `components/{common,accounts,strategies,providers,settings,layout,admin}/`  
+신규: `widgets/`, `features/`, `entities/`, `shared/` (FSD 계층)  
+`components/` 내 파일 중 상당수는 re-export shim — 실제 구현은 FSD 계층에 있음  
+`components/ui/` (shadcn) — 직접 수정 금지
 
 ## 환경변수
 
@@ -92,9 +110,10 @@ NEXT_PUBLIC_API_BASE_URL=      # kista-api Render URL
 ## FE 코딩 가이드라인
 
 ### 아키텍처 (SRP·Clean)
-- **계층 단방향 의존성**: `app/`(라우팅) > `components/`(UI) > `hooks/`(상태·쿼리) > `lib/`(API·유틸) — 동일 계층 Cross-import 금지
+- **계층 단방향 의존성**: `app → widgets → features → entities → shared` — 동일 계층 Cross-import 금지
+- **새 코드 위치**: entities(도메인 API·훅), features(사용자 시나리오), widgets(페이지 합성), shared(공용 유틸)
 - **순수 뷰**: UI 컴포넌트는 데이터 패칭/로직 금지 — 주입받은 상태만 렌더링
-- **비즈니스 로직 격리**: 모든 상태 관리·API 호출은 Custom Hook으로 캡슐화
+- **비즈니스 로직 격리**: 서버 상태는 `entities/{domain}/hooks/` React Query 훅으로 캡슐화. UI 상태만 `useState`
 
 ### 상태 관리 (CQRS)
 - **서버 상태**: React Query (`@tanstack/react-query` 도입 완료) — Query/Mutation 훅 분리. 서버 상태를 `useState`에 복사 금지
