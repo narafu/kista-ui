@@ -1,0 +1,115 @@
+'use client'
+
+import { useState } from 'react'
+import { Eye, EyeOff, CheckCircle2, XCircle, Loader2, ExternalLink } from 'lucide-react'
+import { useTestKisConnectionMutation } from '@entities/account'
+import type { StepData } from '../CreateAccountStepper'
+
+interface Props {
+  data: StepData
+  onNext: (payload: Partial<StepData>) => void
+}
+
+export function ApiStep({ data, onNext }: Props) {
+  const [apiKey, setApiKey] = useState(data.apiKey)
+  const [apiSecret, setApiSecret] = useState(data.apiSecret)
+  const [showSecret, setShowSecret] = useState(false)
+  const testMutation = useTestKisConnectionMutation()
+
+  const canTest = apiKey.length >= 10 && apiSecret.length >= 10
+  const testOk = testMutation.isSuccess && testMutation.data?.success === true
+  const testFail = testMutation.isError || (testMutation.isSuccess && !testMutation.data?.success)
+  const testMessage = testMutation.isError
+    ? '네트워크 오류가 발생했습니다.'
+    : (testMutation.data?.message ?? 'KIS API 연결에 실패했습니다.')
+
+  function handleKeyChange(setter: (v: string) => void) {
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      setter(e.target.value)
+      testMutation.reset()
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h2 className="text-lg font-bold mb-1">KIS API 키 입력</h2>
+        <p className="text-sm text-muted-foreground">한국투자증권 Open API 자격증명을 입력하세요.</p>
+        <a
+          href="https://securities.koreainvestment.com/main/customer/systemdown/RestAPIService.jsp"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-rose-500 hover:text-rose-600 transition-colors"
+        >
+          KIS API 키 발급받기 <ExternalLink className="size-3" />
+        </a>
+      </div>
+      <div className="flex flex-col gap-4">
+        <div>
+          <label htmlFor="api-key" className="text-sm font-semibold mb-1.5 block">App Key</label>
+          <input
+            id="api-key"
+            value={apiKey}
+            onChange={handleKeyChange(setApiKey)}
+            placeholder="발급받은 App Key"
+            className="w-full px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-rose-400"
+          />
+        </div>
+        <div>
+          <label htmlFor="api-secret" className="text-sm font-semibold mb-1.5 block">App Secret</label>
+          <div className="relative">
+            <input
+              id="api-secret"
+              type={showSecret ? 'text' : 'password'}
+              value={apiSecret}
+              onChange={handleKeyChange(setApiSecret)}
+              placeholder="발급받은 App Secret"
+              className="w-full px-3 py-2.5 pr-10 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-rose-400"
+            />
+            <button
+              type="button"
+              onClick={() => setShowSecret(s => !s)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            >
+              {showSecret ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <button
+          type="button"
+          disabled={!canTest || testMutation.isPending}
+          onClick={() => testMutation.mutate({ appKey: apiKey, appSecret: apiSecret })}
+          className="w-full h-10 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+        >
+          {testMutation.isPending ? (
+            <><Loader2 className="size-4 animate-spin" /> 연결 확인 중...</>
+          ) : (
+            '연결 테스트'
+          )}
+        </button>
+        {testOk && (
+          <div className="flex items-center gap-1.5 text-[12.5px] text-emerald-600">
+            <CheckCircle2 className="size-4" /> 연결 성공
+          </div>
+        )}
+        {testFail && (
+          <div className="flex items-center gap-1.5 text-[12.5px] text-neg">
+            <XCircle className="size-4" /> {testMessage}
+          </div>
+        )}
+      </div>
+
+      <button
+        type="button"
+        disabled={!testOk}
+        onClick={() => onNext({ apiKey, apiSecret })}
+        className="w-full h-11 rounded-[var(--r-md)] bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      >
+        다음
+      </button>
+    </div>
+  )
+}

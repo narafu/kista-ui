@@ -52,3 +52,16 @@ export async function getPrices(accountId: string, tickers: string[]): Promise<P
     raw.prices.map(({ ticker, price }) => [ticker, typeof price === 'string' ? parseFloat(price) : price])
   )
 }
+
+export interface KisConnectionResult {
+  success: boolean
+  message?: string
+}
+
+export async function testKisConnection(appKey: string, appSecret: string): Promise<KisConnectionResult> {
+  return clientFetch<KisConnectionResult>('/api/accounts/connection-tests', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ appKey, appSecret }),
+  })
+}

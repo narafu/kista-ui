@@ -15,4 +15,6 @@ export {
   useAccountPricesQuery,
   useUpdateAccountMutation,
   useDeleteAccountMutation,
+  useCreateAccountMutation,
+  useTestKisConnectionMutation,
 } from './hooks/useAccountMarginQuery'

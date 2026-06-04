@@ -5,12 +5,15 @@ import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import {
   listAccounts,
+  createAccount,
   updateAccount,
   deleteAccount,
   getMargin,
   getPrices,
+  testKisConnection,
   type MarginItem,
   type PriceMap,
+  type KisConnectionResult,
 } from '../api'
 import type { Account, AccountRequest } from '../model/types'
 
@@ -64,5 +67,25 @@ export function useDeleteAccountMutation(accountId: string) {
       router.push('/dashboard')
     },
     onError: () => toast.error('삭제에 실패했습니다'),
+  })
+}
+
+export function useCreateAccountMutation() {
+  const router = useRouter()
+  const queryClient = useQueryClient()
+  return useMutation<Account, Error, AccountRequest>({
+    mutationFn: (data) => createAccount(data),
+    onSuccess: (saved) => {
+      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+      router.push(`/accounts/${saved.id}`)
+    },
+    onError: () => toast.error('계좌 연결에 실패했습니다'),
+  })
+}
+
+// side effect 없음 — UI에서 mutation.data/isSuccess/isError로 인라인 표시
+export function useTestKisConnectionMutation() {
+  return useMutation<KisConnectionResult, Error, { appKey: string; appSecret: string }>({
+    mutationFn: ({ appKey, appSecret }) => testKisConnection(appKey, appSecret),
   })
 }
