@@ -1,9 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Clock, Users, LogOut, Wallet, ArrowLeftRight, ScrollText, AlertTriangle } from 'lucide-react'
-import { clientFetch } from '@/lib/api/client'
+import { LogoutButton } from '@features/auth/logout/LogoutButton'
 
 const NAV_ITEMS = [
   { href: '/admin',             label: 'Overview',  icon: LayoutDashboard, exact: true },
@@ -17,12 +17,6 @@ const NAV_ITEMS = [
 
 export function AdminSidebar() {
   const pathname = usePathname()
-  const router = useRouter()
-
-  async function handleLogout() {
-    await clientFetch<void>('/api/auth/logout', { method: 'POST' }).catch(() => {})
-    router.push('/')
-  }
 
   return (
     <aside className="hidden lg:flex flex-col w-[220px] min-h-screen shrink-0 border-r border-border px-4 py-6 bg-muted/30">
@@ -54,14 +48,10 @@ export function AdminSidebar() {
       </nav>
 
       {/* 로그아웃 */}
-      <button
-        type="button"
-        onClick={handleLogout}
-        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full text-left"
-      >
+      <LogoutButton className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full text-left">
         <LogOut className="size-[18px] shrink-0" />
         로그아웃
-      </button>
+      </LogoutButton>
     </aside>
   )
 }

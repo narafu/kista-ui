@@ -1,11 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { LayoutDashboard, CreditCard, BarChart2, Settings, LogOut } from 'lucide-react'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
-import { clientFetch } from '@/lib/api/client'
+import { LogoutButton } from '@features/auth/logout/LogoutButton'
 
 const NAV_ITEMS = [
   { href: '/dashboard',  label: '대시보드', icon: LayoutDashboard },
@@ -16,12 +16,6 @@ const NAV_ITEMS = [
 
 export function DesktopSidebar() {
   const pathname = usePathname()
-  const router = useRouter()
-
-  async function handleLogout() {
-    await clientFetch<void>('/api/auth/logout', { method: 'POST' }).catch(() => {})
-    router.push('/')
-  }
 
   return (
     <aside
@@ -68,14 +62,10 @@ export function DesktopSidebar() {
           <span className="text-xs text-muted-foreground">테마</span>
           <ThemeToggle />
         </div>
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium text-muted-foreground hover:bg-rose-50/60 hover:text-foreground transition-colors w-full text-left"
-        >
+        <LogoutButton className="flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium text-muted-foreground hover:bg-rose-50/60 hover:text-foreground transition-colors w-full text-left">
           <LogOut className="size-[18px] shrink-0" />
           로그아웃
-        </button>
+        </LogoutButton>
       </div>
     </aside>
   )

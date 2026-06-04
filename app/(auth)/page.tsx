@@ -59,14 +59,8 @@ function LoginPageContent() {
             KISTA
           </h1>
           <div
-            style={{
-              marginTop: 4,
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "3.2px",
-              color: "var(--rose-500)",
-              textTransform: "uppercase",
-            }}
+            className="mt-1 text-[11px] font-bold tracking-[3.2px] uppercase"
+            style={{ color: 'var(--rose-500)' }}
           >
             K Investment · Smart · Trading · Auto
           </div>
@@ -110,9 +104,9 @@ function LoginPageContent() {
 
       <div className="mt-4 text-center text-[11.5px] text-muted-foreground">
         가입 시{" "}
-        <button type="button" style={{ background: 'none', border: 'none', padding: 0, color: "var(--rose-600)", cursor: 'pointer', font: 'inherit', textDecoration: 'underline' }}>서비스 약관</button>
+        <button type="button" className="bg-transparent border-0 p-0 cursor-pointer underline" style={{ color: "var(--rose-600)" }}>서비스 약관</button>
         {" "}및{" "}
-        <button type="button" style={{ background: 'none', border: 'none', padding: 0, color: "var(--rose-600)", cursor: 'pointer', font: 'inherit', textDecoration: 'underline' }}>개인정보 처리방침</button>
+        <button type="button" className="bg-transparent border-0 p-0 cursor-pointer underline" style={{ color: "var(--rose-600)" }}>개인정보 처리방침</button>
         에 동의합니다.
       </div>
     </GlassCard>
