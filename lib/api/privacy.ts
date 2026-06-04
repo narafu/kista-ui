@@ -1,11 +1,2 @@
-import { clientFetch } from './client'
-
-export interface PrivacyCurrentBase {
-  ticker: string
-  currentCycleStart: number
-  tradeDate: string
-}
-
-export async function getPrivacyCurrentBase(): Promise<PrivacyCurrentBase> {
-  return clientFetch<PrivacyCurrentBase>('/api/privacy-trades/base/latest')
-}
+export type { PrivacyCurrentBase } from '@entities/privacy'
+export { getPrivacyCurrentBase } from '@entities/privacy'
