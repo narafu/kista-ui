@@ -1,5 +1,7 @@
 # components/ — 컴포넌트 패턴 · 스타일링 · React Query
 
+> **FSD 리팩토링 완료**: `components/{common,accounts,strategies,settings,layout,admin}/` 내 상당수 파일은 **re-export shim**. 실제 구현은 `widgets/`, `features/`, `entities/` 계층에 있음. 새 컴포넌트는 FSD 계층에 작성할 것.
+
 ## shadcn / UI 컴포넌트
 
 - **shadcn v4**: `Button`, `DialogTrigger` 등 모든 컴포넌트에 `asChild` 없음 → `cn(buttonVariants({ variant, size }))` 클래스 직접 적용
@@ -25,7 +27,7 @@
 ## 컴포넌트 설계 패턴
 
 - **Server Component + 인터랙션**: 버튼/다이얼로그 추가 시 `*Button.tsx`/`*Trigger.tsx` 별도 Client Component로 분리 후 Server Component에서 import. 페이지 전체 `'use client'` 전환 금지
-- **Server Component 데이터 갱신**: API 호출 성공 후 `router.refresh()` — useState 로컬 업데이트만으론 서버 계산 값 반영 안됨
+- **Server Component 데이터 갱신**: API 호출 성공 후 `router.refresh()` — useState 로컬 업데이트만으론 서버 계산 값 반영 안됨. Mutation 훅에서 `queryClient.invalidateQueries` + `router.refresh()` 함께 호출
 - **형제 컴포넌트 router.refresh() 후 setState 미동기화**: `useEffect(() => { setState(prop) }, [prop])` 패턴으로 동기화 필수
 - **Toast vs 영구 `<p>`**: "방금 동작 결과"는 `toast.success()`. "현재 상태 경고"는 `<p>` 유지
 - **독립 API 호출 try/catch 분리**: 두 개를 같은 블록에 묶으면 두 번째 실패 시 첫 번째 성공 toast가 에러 toast로 대체됨
@@ -46,10 +48,34 @@
 
 ## AccountDetailTabs 구조
 
-- 데스크탑 3행: 1행=`계좌요약|TradesTab(accountId)`, 2행=`StrategyList|StrategyTradesTab(strategyId)`, 3행=`NextOrderPreviewCard(전폭)`
-- 모바일: 요약/계좌거래/전략/다음주문 탭 4개
-- `TradesTab`·`StrategyTradesTab`은 `AccountDetailTabs.tsx` 내부 로컬 함수 (export 없음). `useCycleHistory.ts` 훅 사용
+실제 구현 위치: **`widgets/account-detail/`** (`components/common/AccountDetailTabs.tsx`는 re-export shim)
+
+- 데스크탑 3행: 1행=`AccountSummaryCard|TradesTab(accountId)`, 2행=`StrategyList|StrategyTradesTab(strategyId)`, 3행=`NextOrderPreviewCard(전폭)`
+- 모바일: 요약/전략/다음 주문 탭 3개
+- `TradesTab`·`StrategyTradesTab` → `widgets/account-detail/TradesTab.tsx`, `StrategyTradesTab.tsx` (각자 range 상태를 useReducer로 관리)
+- `CycleHistoryTable` → `widgets/account-detail/CycleHistoryTable.tsx` (테이블+모바일 카드 공용 컴포넌트)
+- `buildParams(rangeType, customFrom, customTo)` → `widgets/account-detail/lib/buildParams.ts`
 - `ProfitStatsCard`는 통계 페이지 전용 (계좌 상세에 없음)
+
+## NextOrderPreviewCard 구조
+
+실제 구현 위치: **`widgets/next-order-preview/`** (`components/common/NextOrderPreviewCard.tsx`는 re-export shim)
+
+- `NextOrderPreviewCard.tsx` — 얇은 컨테이너 (useNextOrderPreview 훅 호출, 파생 상태 계산, mode 분기)
+- `PreviewMode.tsx` — 미리보기 모드 (로딩/에러/주문 목록)
+- `ExecutedMode.tsx` — 실행 후 접수 목록 + 취소 버튼
+- `ExecuteDialog.tsx` — AlertDialog 분리
+- `OrderRow.tsx` — BUY/SELL 행 (PreviewMode/ExecutedMode 공용)
+- `useNextOrderPreview` 훅: `hooks/useNextOrderPreview.ts` (preview, margin, marketSession, holidays, execute/cancelAll/cancelOne mutation 통합)
+
+## Dashboard 구조
+
+실제 구현 위치: **`widgets/dashboard/`** (`app/(main)/dashboard/page.tsx`는 53 LOC Server Component)
+
+- `DashboardEmpty.tsx` — 계좌 미등록 상태 (데스크탑+모바일 통합 반응형)
+- `DashboardOverview.tsx` — 계좌 있는 상태 (KPI 카드 + 계좌 목록, 데스크탑+모바일 통합)
+- `aggregatePortfolios(raws)` → `widgets/dashboard/aggregatePortfolios.ts` (포트폴리오 집계 순수 함수)
+- `fmtUsd`/`fmtKrw` → `shared/lib/format/` 사용
 
 ## Dashboard · 계좌
 

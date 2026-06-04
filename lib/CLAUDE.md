@@ -1,6 +1,10 @@
 # lib/ — API 계층 · kista-api DTO · KIS quirk · 캐시
 
+> **FSD 리팩토링 완료**: `lib/api/*.ts`, `hooks/*.ts`, `lib/fcm.ts`는 대부분 **re-export shim**. 실제 구현은 `entities/{domain}/{api|hooks}/`에 있음. 새 코드는 entities 계층에 작성할 것.
+
 ## clientFetch vs apiFetch
+
+현재 구현 위치: **`shared/lib/api-client/index.ts`** (`lib/api/client.ts`는 re-export shim)
 
 - **`apiFetch(path, opts, token)`**: Server Component 전용 — kista-api 직접 호출
 - **`clientFetch<T>(path, opts?)`**: Client Component 전용 — Route Handler 경유, 401 시 자동 로그아웃(`/api/auth/logout` + `window.location.href='/'`)
@@ -19,7 +23,7 @@ catch-all Route Handler: `/api/accounts/[[...path]]`, `/api/admin/[[...path]]`, 
 - `UserResponse`: `{ id, nickname, status, hasTelegram, role, telegramBotUsername }`
 - `AccountResponse`: `{ id, nickname, accountNoMasked, broker }` — strategyType/ticker/hasTelegram 없음 (V35 이후)
 - `TradingCycleResponse`: `{ id, accountId, type, status, ticker, cycleSeedType, initialUsdDeposit }` — `multiple` 필드 제거됨(커밋 `e63cdfb2`)
-- **TradingCycleResponse 필드 추가 시**: `types/strategy.ts` + `lib/api/strategies.ts`의 `normalizeStrategy()` **두 곳 동시 업데이트 필수**. BigDecimal → `toNum()` 사용. 한 곳만 수정 시 런타임 `undefined`
+- **TradingCycleResponse 필드 추가 시**: `entities/strategy/model/types.ts` + `entities/strategy/api/index.ts`의 `normalizeStrategy()` **두 곳 동시 업데이트 필수**. BigDecimal → `toNum()` 사용. 한 곳만 수정 시 런타임 `undefined`
 
 ## 전략 (Strategy / TradingCycle)
 
@@ -40,7 +44,7 @@ catch-all Route Handler: `/api/accounts/[[...path]]`, `/api/admin/[[...path]]`, 
 
 - **OVRS_EXCG_CD**: `TTTS3035R`에서 거래소 코드는 `ticker.exchangeCode()` 사용. SOXL="AMS", TQQQ/USD="NASD". 하드코딩 "NASD"로 SOXL 조회 시 빈 배열
 - **TTTC2101R 외화증거금**: `frcr_ord_psbl_amt1`은 통합증거금 OFF 시 0. `frcr_gnrl_ord_psbl_amt`가 항상 유효. `KisMarginAdapter`: `max(itgr_ord_psbl_amt, frcr_gnrl_ord_psbl_amt)`
-- **`getPrices` 쿼리 직렬화**: `?tickers=TQQQ,SOXL` 콤마 금지 → Spring `@RequestParam List<Ticker>`는 반복 파라미터만. `tickers.map(t => 'tickers=' + encodeURIComponent(t)).join('&')` 패턴 (`lib/api/accounts.ts:getPrices` 참고)
+- **`getPrices` 쿼리 직렬화**: `?tickers=TQQQ,SOXL` 콤마 금지 → Spring `@RequestParam List<Ticker>`는 반복 파라미터만. `tickers.map(t => 'tickers=' + encodeURIComponent(t)).join('&')` 패턴 (`entities/account/api/index.ts:getPrices` 참고)
 - **MultiPriceResponse**: 응답 `{ prices: [{ticker, price}] }` (flat map 아님) → `getPrices()`에서 `PriceMap`으로 normalizer 변환 필수. 미변환 시 `prices["TQQQ"]` = undefined → MAX 배수 버튼 비활성화
 - **통화 주의**: KIS `CTRP6504R`의 `positions[].evalAmountUsd`는 USD, `summary.totalAssetUsd`/`totalEvalProfit`은 **KRW** (필드명에 Usd 있어도 KRW)
 - **StatisticsController 응답 형식**: KIS live 엔드포인트는 DTO를 그대로 반환 → kista-ui 타입과 drift 발생 가능. 신규 엔드포인트 추가 시 필드명 반드시 대조 (불일치 시 `undefined.toFixed()` → 500)
@@ -58,11 +62,29 @@ catch-all Route Handler: `/api/accounts/[[...path]]`, `/api/admin/[[...path]]`, 
 
 ## React Query 훅
 
-- **QueryProvider**: `components/providers/QueryProvider.tsx` — `{ retry: 0, staleTime: 0, gcTime: 5min }`. `components/providers.tsx`에서 ThemeProvider 외부 감쌈
-- **queryKey 목록**: `['profit', accountId, period]`, `['snapshots', accountId, period]`, `['accountMargin', accountId]`, `['accountCycleHistory', accountId, params]`, `['strategyCycleHistory', strategyId, params]`, `['nextOrderPreview', accountId]`, `['previewMargin', accountId]`, `['holidays', year, month]`(공유 캐시), `['marketSession']`
-- **훅 파일 위치**: 범용 → `hooks/` 루트. 컴포넌트 전용 → `components/{feature}/hooks/`
-- **SSR initialData 패턴**: `useQuery`의 `initialData` + `staleTime` 설정으로 마운트 시 재요청 방지 (예: `useMonthlyHolidays(year, month, holidays)` — `staleTime: 1h`)
-- **useMutation 패턴**: toast + setState 모두 훅 내부 `onSuccess`/`onError`. 취소 중인 ID: `mutation.variables` 추적
+- **QueryProvider**: `shared/providers/QueryProvider.tsx` (구 `components/providers/QueryProvider.tsx` — re-export shim 유지). `{ retry: 0, staleTime: 0, gcTime: 5min }`.
+- **훅 파일 위치**: 도메인 훅 → `entities/{domain}/hooks/`. 범용 복합 훅 → `hooks/` 루트 (re-export shim만 남아있을 수 있음).
+
+### 도메인별 훅 목록
+
+| 도메인 | 파일 | 주요 훅 |
+|---|---|---|
+| account | `entities/account/hooks/useAccountMarginQuery.ts` | `useAccountMarginQuery`, `useAccountPricesQuery`, `useUpdateAccountMutation`, `useDeleteAccountMutation` |
+| strategy | `entities/strategy/hooks/useStrategyQueries.ts` | `useCreateStrategyMutation`, `useUpdateStrategyMutation`, `usePauseStrategyMutation`, `useResumeStrategyMutation`, `useExecuteStrategyMutation` |
+| order | `entities/order/hooks/useOrderQueries.ts` | `useNextOrderPreviewQuery`, `useCancelAllOrdersMutation`, `useCancelOneOrderMutation` |
+| user | `entities/user/hooks/useUserQueries.ts` | `useReapplyMutation`, `useDeleteMeMutation`, `useUpdateTelegramMutation`, `useDeleteTelegramMutation`, `useApproveUserMutation`, `useRejectUserMutation`, `useChangeUserRoleMutation` |
+| trade | `entities/trade/hooks/useCycleHistory.ts` | `useAccountCycleHistoryQuery`, `useStrategyCycleHistoryQuery` |
+| trade | `entities/trade/hooks/useProfitStats.ts` | `useProfitStatsQuery` |
+| market | `entities/market/hooks/useMarketQueries.ts` | `useMonthlyHolidaysQuery`, `useMarketSessionQuery` |
+| privacy | `entities/privacy/hooks/usePrivacyQueries.ts` | `usePrivacyCurrentBaseQuery` |
+| fcm | `entities/fcm/hooks/useFcmToken.ts` | `useFcmToken` |
+
+### queryKey 목록
+
+`['accounts']`, `['accountMargin', accountId]`, `['accountPrices', accountId, tickers]`, `['strategies', accountId]`, `['nextOrderPreview', accountId]`, `['previewMargin', accountId]`, `['holidays', year, month]`(공유 캐시), `['marketSession']`, `['accountCycleHistory', accountId, params]`, `['strategyCycleHistory', strategyId, params]`, `['profit', accountId, period]`, `['snapshots', accountId, period]`, `['privacyCurrentBase']`
+
+- **SSR initialData 패턴**: `useMonthlyHolidaysQuery(year, month, holidays)` — `initialData` + `staleTime: 1h`로 마운트 시 재요청 방지
+- **useMutation 패턴**: toast + invalidateQueries를 훅 내부 `onSuccess`/`onError`에 캡슐화. 호출부에서 추가 동작(onChanged 등)은 `mutation.mutate(data, { onSuccess: () => callback() })` 패턴 사용
 
 ## Promise.all 패턴
 
@@ -70,14 +92,16 @@ catch-all Route Handler: `/api/accounts/[[...path]]`, `/api/admin/[[...path]]`, 
 
 ## PRIVACY 기준가 API
 
-- `getPrivacyCurrentBase()` → `lib/api/privacy.ts`, Route Handler `app/api/privacy-trades/[[...path]]/route.ts`, 응답 `{ ticker, currentCycleStart, tradeDate }`. 기준 매매표 없으면 404
+- `getPrivacyCurrentBase()` → `entities/privacy/api/index.ts`, Route Handler `app/api/privacy-trades/[[...path]]/route.ts`, 응답 `{ ticker, currentCycleStart, tradeDate }`. 기준 매매표 없으면 404
 
 ## FCM
 
-- **`lib/fcm.ts`**: `registerTokenToServer`/`unregisterTokenFromServer` → `clientFetch<void>` 사용 (raw fetch 금지 — 401 자동 로그아웃 누락)
+- **`entities/fcm/api/index.ts`**: `registerTokenToServer`/`unregisterTokenFromServer` → `clientFetch<void>` 사용 (raw fetch 금지 — 401 자동 로그아웃 누락)
 - **다중 기기**: `fcm_device_tokens` 테이블은 사용자당 여러 토큰 허용. `FcmAdapter.send()` → `MulticastMessage`. `save()` 중복 토큰 자동 skip
 - **발송 시점**: 매매 결산, 가입 승인, 가입 거절. 신규 가입·전략 변경 알림은 텔레그램만 (FCM no-op)
 
-## mock-data
+## 캐시 헬퍼
 
-- `lib/mock-data.ts`의 `Account` mock은 하드코딩 → `types/account.ts` 인터페이스 필드 추가 시 동기화 필수 (`npm run typecheck`로 확인)
+- `shared/lib/cache/cached-api.ts`: `getCachedAccounts`, `getCachedStrategies`, `getMe` — Server Component용 unstable_cache 래퍼. 5분 TTL. (`lib/cache/cached-api.ts`는 re-export shim)
+- **`unstable_cache` 에러 핸들링**: `.catch()` 체인 금지 → `try { await getCachedX() } catch {}` 패턴
+- **`revalidateTag` 2인자**: `revalidateTag(tag, 'max')` — 1인자만 쓰면 TS 에러
