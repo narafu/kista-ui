@@ -1,5 +1,6 @@
 'use client'
 
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useMeta } from '@/components/providers/MetaProvider'
 import { useStrategyForm } from './hooks/useStrategyForm'
@@ -63,14 +64,14 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
         loading={form.loading}
       />
 
-      <div style={{ display: 'flex', gap: 10, paddingTop: 24, paddingBottom: 24 }}>
+      <div className="flex gap-2.5 py-6">
         {onCancel && (
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
             disabled={form.loading}
-            style={{ flex: 1, height: 46, borderRadius: '8px', fontSize: 14, fontWeight: 700 }}
+            className="flex-1 h-[46px] rounded-lg text-sm font-bold"
           >
             취소
           </Button>
@@ -78,10 +79,7 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
         <Button
           type="submit"
           disabled={form.loading || form.cannotSubmit}
-          style={{
-            flex: onCancel ? 1.5 : 1,
-            height: 46, borderRadius: '8px', fontSize: 14, fontWeight: 800,
-          }}
+          className={cn('h-[46px] rounded-lg text-sm font-[800]', onCancel ? 'flex-[1.5]' : 'flex-1')}
         >
           {form.loading ? '저장 중...' : initial ? '수정' : '등록'}
         </Button>

@@ -43,8 +43,8 @@ function LoginPageContent() {
           alt="KISTA"
           width={56}
           height={56}
-          className="rounded-[12px]"
-          style={{ boxShadow: "0 4px 16px rgba(143,68,48,.25)", height: 56, width: 56 }}
+          className="rounded-[12px] shadow-[0_4px_16px_rgba(143,68,48,.25)]"
+          style={{ height: 56, width: 56 }}
         />
         <div className="text-center">
           <h1
@@ -93,8 +93,7 @@ function LoginPageContent() {
       <button
         type="button"
         onClick={handleKakaoLogin}
-        className="flex items-center justify-center gap-2.5 w-full h-[52px] rounded-[10px] font-bold text-[15.5px] transition-opacity hover:opacity-90 select-none cursor-pointer border-0"
-        style={{ background: "#FEE500", color: "#3C1E1E", fontFamily: "inherit" }}
+        className="flex items-center justify-center gap-2.5 w-full h-[52px] rounded-[10px] font-bold text-[15.5px] transition-opacity hover:opacity-90 select-none cursor-pointer border-0 bg-[#FEE500] text-[#3C1E1E]"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="#3C1E1E" aria-hidden="true">
           <path d="M12 3C6.5 3 2 6.4 2 10.6c0 2.7 1.9 5 4.7 6.4l-1 3.7c-.1.4.3.7.7.5l4.4-2.9c.4 0 .8.1 1.2.1 5.5 0 10-3.4 10-7.6C22 6.4 17.5 3 12 3z" />

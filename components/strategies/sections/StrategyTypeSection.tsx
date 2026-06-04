@@ -1,6 +1,7 @@
 'use client'
 
 import { Zap, Activity } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import type { Strategy } from '@/types/strategy'
 import type { StrategyTypeMeta } from '@/types/meta'
@@ -15,30 +16,19 @@ interface Props {
 
 export function StrategyTypeSection({ initial, type, setType, loading, strategyTypes }: Props) {
   return (
-    <div style={{ padding: '18px 0 18px', borderBottom: '1px solid var(--border)' }}>
+    <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel hint="계좌당 1개">매매 전략</StrategyFieldLabel>
       {initial ? (
-        <div
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            padding: '12px 14px', borderRadius: 'var(--r-sm)',
-            border: '1px solid var(--border)', background: 'var(--muted)',
-          }}
-        >
-          <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--rose-600)' }}>
+        <div className="flex items-center gap-2 px-[14px] py-3 rounded-[var(--r-sm)] border border-border bg-muted">
+          <span className="text-[13px] font-[800] text-rose-600">
             {initial.type}
           </span>
-          <span
-            style={{
-              fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999,
-              background: 'var(--muted-foreground)', color: 'var(--card)', letterSpacing: '0.06em',
-            }}
-          >
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted-foreground text-card tracking-[0.06em]">
             고정
           </span>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <div className="grid grid-cols-2 gap-2.5">
           {strategyTypes.map((t) => {
             const selected = type === t.code
             const singleTicker = (t.availableTickers?.length ?? 0) <= 1
@@ -48,29 +38,25 @@ export function StrategyTypeSection({ initial, type, setType, loading, strategyT
                 type="button"
                 onClick={() => setType(t.code)}
                 disabled={loading}
+                className={cn(
+                  'flex items-center gap-2 px-[14px] py-4 rounded-[var(--r-md)] text-left transition-[border-color,background] duration-150',
+                  loading ? 'cursor-not-allowed' : 'cursor-pointer',
+                )}
                 style={{
-                  padding: '16px 14px', borderRadius: 'var(--r-md)',
                   border: selected ? '1.5px solid var(--rose-500)' : '1px solid var(--border)',
                   background: selected ? 'var(--rose-50)' : 'var(--card)',
                   boxShadow: selected ? 'var(--sh-card)' : 'none',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  textAlign: 'left', transition: 'border-color .15s, background .15s',
                 }}
               >
                 <span
-                  style={{
-                    width: 16, height: 16, flexShrink: 0,
-                    color: selected ? 'var(--rose-600)' : 'var(--muted-foreground)',
-                  }}
+                  className="size-4 shrink-0"
+                  style={{ color: selected ? 'var(--rose-600)' : 'var(--muted-foreground)' }}
                 >
                   {singleTicker ? <Activity size={16} /> : <Zap size={16} />}
                 </span>
                 <span
-                  style={{
-                    fontSize: 14, fontWeight: 800,
-                    color: selected ? 'var(--rose-600)' : 'var(--foreground)',
-                  }}
+                  className="text-sm font-[800]"
+                  style={{ color: selected ? 'var(--rose-600)' : 'var(--foreground)' }}
                 >
                   {t.code}
                 </span>

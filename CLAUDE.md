@@ -5,7 +5,7 @@
 - `lib/CLAUDE.md` — API 계층·kista-api DTO·KIS quirk·캐시
 - `components/CLAUDE.md` — 컴포넌트 패턴·스타일링·React Query
 
-> **FSD 리팩토링 진행 중**: `entities/`, `features/`, `widgets/`, `shared/` 계층이 신설됨. 기존 `lib/api/*`, `hooks/*`, `components/*`에 남은 파일들은 re-export shim이거나 아직 이동 전 파일임. 새 코드는 FSD 계층에 작성할 것 (아래 아키텍처 참고).
+> **FSD 리팩토링 완료**: `entities/`, `features/`, `widgets/`, `shared/` 계층 도입 완료. `lib/api/*`, `components/*` 내 파일들은 FSD 계층으로의 re-export shim — 실제 구현은 FSD 계층에 있음. 새 코드는 반드시 FSD 계층에 작성할 것 (아래 아키텍처 참고).
 
 ## 프로젝트 개요
 

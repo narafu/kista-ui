@@ -18,8 +18,8 @@ export function MobileHeader({ trailing }: Props) {
           alt="KISTA"
           width={28}
           height={28}
-          className="rounded-[6px]"
-          style={{ boxShadow: '0 2px 6px rgba(143,68,48,.22)', height: 28, width: 28 }}
+          className="rounded-[6px] shadow-[0_2px_6px_rgba(143,68,48,.22)]"
+          style={{ height: 28, width: 28 }}
         />
         <span className="font-[800] text-[17px] tracking-wide text-brand-fg">KISTA</span>
       </Link>

@@ -29,8 +29,8 @@ export function DesktopSidebar() {
           alt="KISTA"
           width={32}
           height={32}
-          className="rounded-[7px]"
-          style={{ boxShadow: '0 2px 8px rgba(143,68,48,.22)', height: 32, width: 32 }}
+          className="rounded-[7px] shadow-[0_2px_8px_rgba(143,68,48,.22)]"
+          style={{ height: 32, width: 32 }}
         />
         <span className="font-[800] text-xl tracking-[1.2px] text-brand-fg">KISTA</span>
       </Link>

@@ -69,7 +69,7 @@ catch-all Route Handler: `/api/accounts/[[...path]]`, `/api/admin/[[...path]]`, 
 
 | 도메인 | 파일 | 주요 훅 |
 |---|---|---|
-| account | `entities/account/hooks/useAccountMarginQuery.ts` | `useAccountMarginQuery`, `useAccountPricesQuery`, `useUpdateAccountMutation`, `useDeleteAccountMutation` |
+| account | `entities/account/hooks/useAccountMarginQuery.ts` | `useAccountMarginQuery`, `useAccountPricesQuery`, `useCreateAccountMutation`, `useTestKisConnectionMutation`, `useUpdateAccountMutation`, `useDeleteAccountMutation` |
 | strategy | `entities/strategy/hooks/useStrategyQueries.ts` | `useCreateStrategyMutation`, `useUpdateStrategyMutation`, `usePauseStrategyMutation`, `useResumeStrategyMutation`, `useExecuteStrategyMutation` |
 | order | `entities/order/hooks/useOrderQueries.ts` | `useNextOrderPreviewQuery`, `useCancelAllOrdersMutation`, `useCancelOneOrderMutation` |
 | user | `entities/user/hooks/useUserQueries.ts` | `useReapplyMutation`, `useDeleteMeMutation`, `useUpdateTelegramMutation`, `useDeleteTelegramMutation`, `useApproveUserMutation`, `useRejectUserMutation`, `useChangeUserRoleMutation` |

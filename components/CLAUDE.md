@@ -46,6 +46,18 @@
 - `useMeta()` → `findStrategyType(code)`, `findTicker(code)`, `labelOf(category, code)`. `'INFINITE'`/`'PRIVACY'` 리터럴 분기 금지 — `findStrategyType(strategy.type)?.code` 또는 `availableTickers.length > 1` 판별
 - `MetaProvider`는 `(main)/layout.tsx`에서 제공 — `(main)` 밖에서는 `useMeta()` 호출 불가
 
+## Account 기능 구조
+
+실제 구현 위치: **`features/account/`** (`components/accounts/*`는 re-export shim)
+
+- `features/account/create-account/CreateAccountStepper.tsx` — 3단계 계좌 등록 스테퍼
+- `features/account/create-account/steps/{AccountInfoStep,ApiStep,ConfirmStep}.tsx` — 각 단계 폼
+  - `ApiStep`: `useTestKisConnectionMutation` 사용 — KIS 연결 테스트
+  - `ConfirmStep`: `useCreateAccountMutation` 사용 — 계좌 최종 등록
+- `features/account/edit-account/EditAccountForm.tsx` — 계좌 수정 폼 (`useUpdateAccountMutation`)
+- `features/account/delete-account/DeleteAccountDialog.tsx` — 계좌 삭제 확인 다이얼로그 (`useDeleteAccountMutation`)
+- `widgets/account-card/AccountCard.tsx` — 순수 뷰 카드
+
 ## AccountDetailTabs 구조
 
 실제 구현 위치: **`widgets/account-detail/`** (`components/common/AccountDetailTabs.tsx`는 re-export shim)

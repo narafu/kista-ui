@@ -1,5 +1,6 @@
 'use client'
 
+import { cn } from '@/lib/utils'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 
 interface Props {
@@ -17,22 +18,16 @@ const SEED_MODES = [
 
 export function CycleSeedSection({ autoStart, setAutoStart, seedMode, setSeedMode, loading }: Props) {
   return (
-    <div style={{ padding: '18px 0 0' }}>
+    <div className="pt-[18px]">
       <StrategyFieldLabel hint="">사이클 연속여부</StrategyFieldLabel>
 
       {/* 자동 시작 토글 */}
-      <div
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '12px 14px', borderRadius: 'var(--r-sm)',
-          border: '1px solid var(--border)', background: 'var(--card)', marginBottom: 14,
-        }}
-      >
+      <div className="flex items-center justify-between px-[14px] py-3 rounded-[var(--r-sm)] border border-border bg-card mb-[14px]">
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground)' }}>
+          <div className="text-[13px] font-bold text-foreground">
             다음 사이클 자동 시작
           </div>
-          <div style={{ fontSize: 10.5, color: 'var(--muted-foreground)', marginTop: 2 }}>
+          <div className="text-[10.5px] text-muted-foreground mt-0.5">
             익절 종료 후 새 사이클을 자동 개시합니다.
           </div>
         </div>
@@ -40,24 +35,17 @@ export function CycleSeedSection({ autoStart, setAutoStart, seedMode, setSeedMod
           type="button"
           disabled={loading}
           onClick={() => setAutoStart(!autoStart)}
-          style={{
-            width: 38, height: 22, borderRadius: 999,
-            background: autoStart ? 'var(--rose-500)' : 'var(--muted)',
-            border: 'none', position: 'relative',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            flexShrink: 0, transition: 'background .2s',
-            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.08)',
-          }}
+          className={cn(
+            'relative shrink-0 w-[38px] h-[22px] rounded-full border-none transition-[background] duration-200 shadow-[inset_0_1px_2px_rgba(0,0,0,0.08)]',
+            loading ? 'cursor-not-allowed' : 'cursor-pointer',
+          )}
+          style={{ background: autoStart ? 'var(--rose-500)' : 'var(--muted)' }}
           aria-pressed={autoStart}
           aria-label="다음 사이클 자동 시작"
         >
           <div
-            style={{
-              position: 'absolute', top: 3, left: autoStart ? 18 : 4,
-              width: 16, height: 16, borderRadius: 999,
-              background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.18)',
-              transition: 'left .2s',
-            }}
+            className="absolute top-[3px] size-4 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.18)] transition-[left] duration-200"
+            style={{ left: autoStart ? 18 : 4 }}
           />
         </button>
       </div>
@@ -65,20 +53,10 @@ export function CycleSeedSection({ autoStart, setAutoStart, seedMode, setSeedMod
       {/* 시드 모드 세그먼트 */}
       {autoStart && (
         <>
-          <div
-            style={{
-              fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground)',
-              marginBottom: 6, letterSpacing: '0.04em',
-            }}
-          >
+          <div className="text-[11px] font-bold text-muted-foreground mb-1.5 tracking-[0.04em]">
             시드 모드
           </div>
-          <div
-            style={{
-              display: 'flex', gap: 4, padding: 3,
-              background: 'var(--muted)', borderRadius: 10,
-            }}
-          >
+          <div className="flex gap-1 p-[3px] bg-muted rounded-[10px]">
             {SEED_MODES.map((m) => {
               const active = seedMode === m.code
               return (
@@ -87,23 +65,22 @@ export function CycleSeedSection({ autoStart, setAutoStart, seedMode, setSeedMod
                   type="button"
                   disabled={loading}
                   onClick={() => setSeedMode(m.code)}
+                  className={cn(
+                    'flex-1 px-3 py-2.5 border-none rounded-[7px] text-center transition-[background,box-shadow] duration-150',
+                    loading ? 'cursor-not-allowed' : 'cursor-pointer',
+                  )}
                   style={{
-                    flex: 1, padding: '10px 12px', border: 'none', borderRadius: 7,
-                    cursor: loading ? 'not-allowed' : 'pointer', textAlign: 'center',
                     background: active ? 'var(--card)' : 'transparent',
                     boxShadow: active ? 'var(--sh-card)' : 'none',
-                    transition: 'background .15s, box-shadow .15s',
                   }}
                 >
                   <div
-                    style={{
-                      fontSize: 12.5, fontWeight: 700,
-                      color: active ? 'var(--rose-600)' : 'var(--muted-foreground)',
-                    }}
+                    className="text-[12.5px] font-bold"
+                    style={{ color: active ? 'var(--rose-600)' : 'var(--muted-foreground)' }}
                   >
                     {m.label}
                   </div>
-                  <div style={{ fontSize: 10, color: 'var(--muted-foreground)', marginTop: 2 }}>
+                  <div className="text-[10px] text-muted-foreground mt-0.5">
                     {m.sub}
                   </div>
                 </button>

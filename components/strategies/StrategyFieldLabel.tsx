@@ -6,19 +6,12 @@ export function StrategyFieldLabel({
   hint?: string
 }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 8,
-      }}
-    >
-      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--foreground)' }}>
+    <div className="flex items-center justify-between mb-2">
+      <span className="text-xs font-bold text-foreground">
         {children}
       </span>
       {hint && (
-        <span style={{ fontSize: 10.5, color: 'var(--muted-foreground)' }}>
+        <span className="text-[10.5px] text-muted-foreground">
           {hint}
         </span>
       )}

@@ -51,42 +51,24 @@ export function ThemeCards() {
                 setTheme(o.key)
               }
             }}
-            style={{
-              padding: 12,
-              borderRadius: 12,
-              border: `2px solid ${on ? 'var(--rose-400)' : 'var(--border)'}`,
-              background: 'var(--card)',
-              cursor: 'pointer',
-              transition: 'border-color .15s',
-            }}
+            className="p-3 rounded-xl bg-card cursor-pointer transition-[border-color] duration-150"
+            style={{ border: `2px solid ${on ? 'var(--rose-400)' : 'var(--border)'}` }}
           >
-            <div style={{
-              height: 64,
-              borderRadius: 8,
-              background: o.bg,
-              padding: 8,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 4,
-              marginBottom: 10,
-              border: '1px solid var(--border)',
-            }}>
-              <div style={{ height: 5, borderRadius: 2, background: o.card, width: '60%' }} />
-              <div style={{ height: 16, borderRadius: 4, background: o.card }} />
-              <div style={{ height: 4, borderRadius: 2, background: o.accent, width: '40%', marginTop: 'auto' }} />
+            <div
+              className="h-16 rounded-lg p-2 flex flex-col gap-1 mb-2.5 border border-border"
+              style={{ background: o.bg }}
+            >
+              <div className="h-[5px] rounded-sm w-[60%]" style={{ background: o.card }} />
+              <div className="h-4 rounded" style={{ background: o.card }} />
+              <div className="h-1 rounded-sm w-[40%] mt-auto" style={{ background: o.accent }} />
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div className="flex items-center justify-between">
               <div>
-                <div style={{ fontSize: 12.5, fontWeight: 700 }}>{o.label}</div>
-                <div style={{ fontSize: 10.5, color: 'var(--muted-foreground)' }}>{o.desc}</div>
+                <div className="text-[12.5px] font-bold">{o.label}</div>
+                <div className="text-[10.5px] text-muted-foreground">{o.desc}</div>
               </div>
               {on && (
-                <span style={{
-                  width: 16, height: 16, borderRadius: 999,
-                  background: 'var(--rose-500)', color: '#fff',
-                  display: 'grid', placeItems: 'center',
-                  fontSize: 10,
-                }}>✓</span>
+                <span className="size-4 rounded-full bg-rose-500 text-white grid place-items-center text-[10px]">✓</span>
               )}
             </div>
           </div>

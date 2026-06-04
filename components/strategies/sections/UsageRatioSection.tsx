@@ -26,18 +26,13 @@ export function UsageRatioSection({
   isBelowMinSeed, isInfinite, privacyBase, basePrice,
 }: Props) {
   return (
-    <div style={{ padding: '18px 0 18px', borderBottom: '1px solid var(--border)' }}>
+    <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel hint="USD 예수금 기준 · 드래그하거나 입력">
         사용 비율
       </StrategyFieldLabel>
 
       {loadingBase ? (
-        <div
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            color: 'var(--muted-foreground)', fontSize: 12, padding: '12px 0',
-          }}
-        >
+        <div className="flex items-center gap-1.5 text-muted-foreground text-xs py-3">
           <Loader2 size={14} className="animate-spin" />
           예수금 조회 중...
         </div>
@@ -51,29 +46,24 @@ export function UsageRatioSection({
             disabled={loading}
           />
 
-          <div
-            style={{
-              display: 'inline-flex', alignItems: 'center',
-              gap: 6, fontSize: 11, fontWeight: 700, marginTop: 12,
-            }}
-          >
+          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold mt-3">
             {isBelowMinSeed && minSeed !== null ? (
               <>
-                <span style={{ width: 14, height: 14, color: 'var(--warn)' }}>
+                <span className="size-[14px]" style={{ color: 'var(--warn)' }}>
                   <AlertTriangle size={14} />
                 </span>
                 <span style={{ color: 'var(--warn)' }}>최소 ${fmtUsd(minSeed)} 필요</span>
               </>
             ) : !isInfinite && privacyBase === null ? (
               <>
-                <span style={{ width: 14, height: 14, color: 'var(--warn)' }}>
+                <span className="size-[14px]" style={{ color: 'var(--warn)' }}>
                   <AlertTriangle size={14} />
                 </span>
                 <span style={{ color: 'var(--warn)' }}>기준 매매표가 없습니다</span>
               </>
             ) : basePrice !== null ? (
               <>
-                <span style={{ width: 14, height: 14, color: 'var(--status-ok)' }}>
+                <span className="size-[14px]" style={{ color: 'var(--status-ok)' }}>
                   <Check size={14} />
                 </span>
                 <span style={{ color: 'var(--status-ok)' }}>유효한 입력</span>

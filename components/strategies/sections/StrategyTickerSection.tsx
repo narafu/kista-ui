@@ -1,5 +1,6 @@
 'use client'
 
+import { cn } from '@/lib/utils'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import type { Strategy } from '@/types/strategy'
 import type { PriceMap } from '@/lib/api/accounts'
@@ -22,40 +23,24 @@ export function StrategyTickerSection({
   initial, ticker, availableTickers, prices, basePrice, loading, onTickerChange,
 }: Props) {
   return (
-    <div style={{ padding: '18px 0 18px', borderBottom: '1px solid var(--border)' }}>
+    <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel>종목</StrategyFieldLabel>
       {initial ? (
-        <div
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '12px 14px', borderRadius: 'var(--r-sm)',
-            border: '1px solid var(--border)', background: 'var(--muted)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 14, fontWeight: 800 }}>{initial.ticker}</span>
-            <span
-              style={{
-                fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999,
-                background: 'var(--muted-foreground)', color: 'var(--card)', letterSpacing: '0.06em',
-              }}
-            >
+        <div className="flex items-center justify-between px-[14px] py-3 rounded-[var(--r-sm)] border border-border bg-muted">
+          <div className="flex items-center gap-2.5">
+            <span className="text-sm font-[800]">{initial.ticker}</span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted-foreground text-card tracking-[0.06em]">
               고정
             </span>
           </div>
           {basePrice !== null && (
-            <span style={{ fontSize: 12, color: 'var(--muted-foreground)', fontVariantNumeric: 'tabular-nums' }}>
+            <span className="text-xs text-muted-foreground tabular-nums">
               ${fmtUsd(basePrice)}
             </span>
           )}
         </div>
       ) : availableTickers.length > 1 ? (
-        <div
-          style={{
-            display: 'flex', gap: 8, overflowX: 'auto', minWidth: 0,
-            padding: '2px 4px',
-          }}
-        >
+        <div className="flex gap-2 overflow-x-auto min-w-0 px-1 py-0.5">
           {availableTickers.map((code) => {
             const sel = ticker === code
             const price = prices?.[code]
@@ -65,30 +50,23 @@ export function StrategyTickerSection({
                 type="button"
                 onClick={() => onTickerChange(code)}
                 disabled={loading}
+                className={cn(
+                  'shrink-0 min-w-[78px] px-3 py-2 rounded-[var(--r-sm)] text-center transition-[border-color,background] duration-150',
+                  loading ? 'cursor-not-allowed' : 'cursor-pointer',
+                )}
                 style={{
-                  flexShrink: 0, minWidth: 78, padding: '8px 12px',
-                  borderRadius: 'var(--r-sm)', textAlign: 'center',
                   border: sel ? '1.5px solid var(--rose-500)' : '1px solid var(--border)',
                   background: sel ? 'var(--rose-50)' : 'var(--card)',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  transition: 'border-color .15s, background .15s',
                 }}
               >
                 <div
-                  style={{
-                    fontSize: 13, fontWeight: 800,
-                    color: sel ? 'var(--rose-600)' : 'var(--foreground)',
-                  }}
+                  className="text-[13px] font-[800]"
+                  style={{ color: sel ? 'var(--rose-600)' : 'var(--foreground)' }}
                 >
                   {code}
                 </div>
                 {price !== undefined && (
-                  <div
-                    style={{
-                      fontSize: 10.5, color: 'var(--muted-foreground)',
-                      marginTop: 2, fontVariantNumeric: 'tabular-nums',
-                    }}
-                  >
+                  <div className="text-[10.5px] text-muted-foreground mt-0.5 tabular-nums">
                     ${fmtUsd(price)}
                   </div>
                 )}
@@ -97,32 +75,21 @@ export function StrategyTickerSection({
           })}
         </div>
       ) : availableTickers.length === 1 ? (
-        <div
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '12px 14px', borderRadius: 'var(--r-sm)',
-            border: '1px solid var(--border)', background: 'var(--muted)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 14, fontWeight: 800 }}>{availableTickers[0]}</span>
-            <span
-              style={{
-                fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999,
-                background: 'var(--muted-foreground)', color: 'var(--card)', letterSpacing: '0.06em',
-              }}
-            >
+        <div className="flex items-center justify-between px-[14px] py-3 rounded-[var(--r-sm)] border border-border bg-muted">
+          <div className="flex items-center gap-2.5">
+            <span className="text-sm font-[800]">{availableTickers[0]}</span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted-foreground text-card tracking-[0.06em]">
               고정
             </span>
           </div>
           {prices?.[availableTickers[0]] !== undefined && (
-            <span style={{ fontSize: 12, color: 'var(--muted-foreground)', fontVariantNumeric: 'tabular-nums' }}>
+            <span className="text-xs text-muted-foreground tabular-nums">
               ${fmtUsd(prices![availableTickers[0]])}
             </span>
           )}
         </div>
       ) : (
-        <p style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>
+        <p className="text-xs text-muted-foreground">
           선택 가능한 종목이 없습니다.
         </p>
       )}

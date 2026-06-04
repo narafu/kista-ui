@@ -17,7 +17,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
   return (
     <MetaProvider meta={meta}>
-      <div className="flex min-h-screen" style={{ background: 'var(--background)' }}>
+      <div className="flex min-h-screen bg-background">
         <DesktopSidebar />
         <div className="flex flex-col flex-1 min-w-0">
           <MobileHeader />
