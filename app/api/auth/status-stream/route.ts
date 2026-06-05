@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
   const upstream = await fetch(`${apiUrl}/api/auth/status-stream`, {
     headers: { Authorization: `Bearer ${token}` },
-    // @ts-ignore — undici-specific dispatcher, not in standard RequestInit
+    // @ts-expect-error — undici-specific dispatcher, not in standard RequestInit
     dispatcher: sseAgent,
     signal: request.signal,
     cache: 'no-store',

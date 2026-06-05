@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       Accept: 'text/event-stream',
       'Cache-Control': 'no-cache',
     },
-    // @ts-ignore — undici-specific dispatcher, not in standard RequestInit
+    // @ts-expect-error — undici-specific dispatcher, not in standard RequestInit
     dispatcher: sseAgent,
     signal: request.signal,
     cache: 'no-store',
