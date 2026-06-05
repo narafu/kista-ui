@@ -1,14 +1,11 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
 import { useMeta } from '@entities/meta'
 import { useAccountMarginQuery, useAccountPricesQuery } from '@entities/account'
 import { usePrivacyCurrentBaseQuery } from '@entities/privacy'
-import { createStrategy, updateStrategy } from '@entities/strategy'
-import { ApiError } from '@shared/lib/api-client'
+import { useCreateStrategyMutation, useUpdateStrategyMutation } from '@entities/strategy'
 import type { CycleSeedType, Strategy, StrategyRequest } from '@entities/strategy'
 import type { PriceMap } from '@entities/account'
 
@@ -44,7 +41,7 @@ export interface UseStrategyFormReturn {
 
   loading: boolean
   cannotSubmit: boolean
-  handleSubmit: (e: React.FormEvent) => Promise<void>
+  handleSubmit: (e: React.FormEvent) => void
 }
 
 export function useStrategyForm({
@@ -52,9 +49,10 @@ export function useStrategyForm({
   initial,
   onSuccess,
 }: UseStrategyFormOptions): UseStrategyFormReturn {
-  const router = useRouter()
-  const queryClient = useQueryClient()
   const { meta, findStrategyType } = useMeta()
+
+  const createMutation = useCreateStrategyMutation(accountId, onSuccess)
+  const updateMutation = useUpdateStrategyMutation(initial?.id ?? '', onSuccess)
 
   // UI 상태만 유지
   const [type, setType] = useState<string>(initial?.type ?? meta.strategyTypes[0]?.code ?? '')
@@ -64,7 +62,6 @@ export function useStrategyForm({
   const [seedMode, setSeedMode] = useState<'KEEP' | 'MAX'>(
     initial?.cycleSeedType === 'MAINTAIN' ? 'KEEP' : 'MAX',
   )
-  const [loading, setLoading] = useState(false)
 
   // 서버 상태는 React Query 훅으로
   const { items: marginItems, isLoading: marginLoading } = useAccountMarginQuery(accountId)
@@ -146,29 +143,19 @@ export function useStrategyForm({
     )
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!type) { toast.error('전략 타입을 선택하세요'); return }
     if (!ticker) { toast.error('종목을 선택하세요'); return }
-    setLoading(true)
-    try {
-      const payload: StrategyRequest = initial
-        ? { type: initial.type, ticker: initial.ticker, cycleSeedType }
-        : { type, ticker, cycleSeedType, initialUsdDeposit: seedUsd ?? undefined }
-      if (initial) {
-        await updateStrategy(initial.id, payload)
-        toast.success('전략이 수정되었습니다')
-      } else {
-        await createStrategy(accountId, payload)
-        toast.success('전략이 등록되었습니다')
-      }
-      queryClient.invalidateQueries({ queryKey: ['strategies', accountId] })
-      router.refresh()
-      onSuccess?.()
-    } catch (err) {
-      toast.error(err instanceof ApiError ? '저장에 실패했습니다' : '오류가 발생했습니다')
-    } finally {
-      setLoading(false)
+
+    const payload: StrategyRequest = initial
+      ? { type: initial.type, ticker: initial.ticker, cycleSeedType }
+      : { type, ticker, cycleSeedType, initialUsdDeposit: seedUsd ?? undefined }
+
+    if (initial) {
+      updateMutation.mutate(payload)
+    } else {
+      createMutation.mutate(payload)
     }
   }
 
@@ -177,6 +164,8 @@ export function useStrategyForm({
     ticker, availableTickers, handleTickerChange, basePrice, prices,
     pct, setPct, usdDeposit, minSeed, isBelowMinSeed, loadingBase, privacyBase,
     autoStart, setAutoStart, seedMode, setSeedMode,
-    loading, cannotSubmit, handleSubmit,
+    loading: createMutation.isPending || updateMutation.isPending,
+    cannotSubmit,
+    handleSubmit,
   }
 }
