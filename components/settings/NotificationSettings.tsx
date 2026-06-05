@@ -1,3 +1,1 @@
-'use client'
-
-export { NotificationSettings } from '@features/settings/notification-channel/NotificationSettings'
+export { NotificationSettings } from '@features/settings/notification-channel'

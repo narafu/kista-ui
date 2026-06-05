@@ -1,3 +1,1 @@
-'use client'
-
-export { DeleteAccountButton } from '@features/settings/delete-user-account/DeleteAccountButton'
+export { DeleteAccountButton } from '@features/settings/delete-user-account'
