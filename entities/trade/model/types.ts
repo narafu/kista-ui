@@ -36,7 +36,7 @@ export interface PortfolioSnapshot {
   ticker: string
   holdings: number
   avgPrice: number | null
-  currentPrice: number | null
+  closingPrice: number | null
   marketValueUsd: number
   usdDeposit: number
   totalAssetUsd: number

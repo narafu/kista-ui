@@ -48,7 +48,7 @@ export default async function StatisticsPage() {
             <KpiCard label="종목" value={portfolio.ticker} />
             <KpiCard label="보유 수량" value={`${portfolio.holdings}주`} />
             <KpiCard label="평단가" value={portfolio.avgPrice != null ? `$${portfolio.avgPrice.toFixed(2)}` : '-'} />
-            <KpiCard label="현재가" value={portfolio.currentPrice != null ? `$${portfolio.currentPrice.toFixed(2)}` : '-'} />
+            <KpiCard label="종가" value={portfolio.closingPrice != null ? `$${portfolio.closingPrice.toFixed(2)}` : '-'} />
             <KpiCard label="평가금액" value={`$${portfolio.marketValueUsd.toFixed(2)}`} />
             <KpiCard label="USD 예수금" value={`$${portfolio.usdDeposit.toFixed(2)}`} />
             <KpiCard label="총 자산" value={`$${portfolio.totalAssetUsd.toFixed(2)}`} variant="soft" />

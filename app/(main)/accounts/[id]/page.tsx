@@ -42,7 +42,7 @@ function normalizePortfolio(raw: PortfolioSnapshot | null, strategyTicker?: stri
   return {
     id: '',
     ticker: top.ticker, holdings: top.holdings,
-    avgPrice: toNum(top.avgPrice), currentPrice: toNum(top.currentPrice),
+    avgPrice: toNum(top.avgPrice), closingPrice: toNum(top.currentPrice),
     marketValueUsd: toNum(top.evalAmountUsd), usdDeposit: 0,
     totalAssetUsd: toNum(r.summary?.totalAssetUsd),
     createdAt: new Date().toISOString(),

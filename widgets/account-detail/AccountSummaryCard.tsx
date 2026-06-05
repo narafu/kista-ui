@@ -30,7 +30,7 @@ export function AccountSummaryCard({ account, portfolio, usdDeposit, hasStrategy
           {hasStrategy && portfolio && (
             <>
               <KpiCard label="종목" value={portfolio.ticker} />
-              <KpiCard label="현재가" value={`$${(portfolio.currentPrice ?? 0).toFixed(2)}`} />
+              <KpiCard label="종가" value={`$${(portfolio.closingPrice ?? 0).toFixed(2)}`} />
               <KpiCard label="보유 수량" value={`${portfolio.holdings}주`} />
               <KpiCard label="평단가" value={`$${(portfolio.avgPrice ?? 0).toFixed(2)}`} />
               <KpiCard label="평가 금액" value={`$${(portfolio.marketValueUsd ?? 0).toFixed(2)}`} />
