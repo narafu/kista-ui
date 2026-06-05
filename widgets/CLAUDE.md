@@ -35,7 +35,6 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 | `profit-display` | `ProfitDisplay` | 손익 표시 (USD/KRW) |
 | `margin-card` | `MarginCard` | 증거금 카드 (`useAccountMarginQuery` 내장) |
 | `market-holiday-calendar` | `MarketHolidayCalendar` | 시장 휴일 달력 |
-| `portfolio-chart` | `PortfolioChart` | 독립형 포트폴리오 차트 |
 | `revealable-value` | `RevealableValue` | 마스킹 토글 값 |
 | `glass-card` | `GlassCard` | 유리 효과 카드 래퍼 |
 | `page-header` | `PageHeader` | 페이지 헤더 |
@@ -60,7 +59,7 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 
 - **`dashboard/aggregatePortfolios`**: 포트폴리오 집계 순수 함수. Server Component에서 호출.
 - **`account-detail`**: `TradesTab`/`StrategyTradesTab`은 range 상태를 각자 `useReducer`로 관리. `buildParams()` → `lib/buildParams.ts`.
-- **`next-order-preview`**: mode(`preview`/`executed`) 상태는 `NextOrderPreviewCard` 컨테이너가 관리. `useNextOrderPreview` 훅 통합.
+- **`next-order-preview`**: mode(`preview`/`executed`) 상태는 `NextOrderPreviewCard` 컨테이너가 관리. `useNextOrderPreview.ts` — 슬라이스 내부 복합 훅 (preview·margin·marketSession·holidays·execute/cancel 통합, 외부 export 없음).
 - **`percent-gauge`**: 슬라이더 handle 위치(`left`, `width`, `height`)는 픽셀 계산이라 인라인 style 유지. 그 외는 Tailwind.
 - **`profit-stats-card`**: `PortfolioChart`/`PortfolioChartInner`는 이 슬라이스 내부 파일 — 외부 export 없음.
 - **`glass-card`**: `maxWidth` prop + CSS 토큰(`var(--background)`)은 인라인 style 유지.

@@ -21,16 +21,16 @@ feature 슬라이스끼리 cross-import 금지. 두 feature를 조합해야 하�
 | `account` | `edit-account` | `EditAccountForm` |
 | `account` | `delete-account` | `DeleteAccountDialog`, `AccountEditDeleteButton` |
 | `strategy` | `create-strategy` | `StrategyFormDialog`, `StrategyForm`, sections |
-| `strategy` | `edit-strategy` | 수정 폼 |
-| `strategy` | `execute-strategy` | `ExecuteStrategyButton` |
-| `strategy` | `cancel-orders` | `CancelOrdersButton` |
+| `strategy` | `edit-strategy` | ⚠ 빈 폴더 (미구현 — 현재 create-strategy 재사용) |
+| `strategy` | `execute-strategy` | ⚠ 빈 폴더 (미구현 — 실행은 next-order-preview 위젯 내부) |
+| `strategy` | `cancel-orders` | ⚠ 빈 폴더 (미구현 — 취소는 next-order-preview 위젯 내부) |
 | `settings` | `telegram-connect` | `TelegramSection`, `PendingTelegramConnect` |
 | `settings` | `notification-channel` | `NotificationSettings` |
 | `settings` | `delete-user-account` | `DeleteAccountButton` |
 | `settings` | `theme-select` | `ThemeCards` |
 | `admin` | `approve-reject` | `ApproveRejectButtons` |
 | `admin` | `change-role` | `ChangeRoleButton` |
-| `fcm` | `auto-register` | (레거시 — `entities/fcm/providers/FcmAutoRegister` 사용 권장) |
+| `fcm` | `auto-register` | ⚠ 빈 폴더 (미구현 — `entities/fcm/providers/FcmAutoRegister` 사용) |
 
 ## 슬라이스 내부 구조
 
