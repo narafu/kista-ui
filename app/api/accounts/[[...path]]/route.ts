@@ -27,8 +27,7 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
   const res = await fetch(url, { method: request.method, headers, body, cache: 'no-store' })
 
   if (!res.ok) {
-    const errBody = await res.text().catch(() => '')
-    console.error(`[accounts${subPath} ${request.method}] ${res.status}`, errBody)
+    if (res.status >= 500) console.error(`[accounts${subPath} ${request.method}] ${res.status}`, await res.text().catch(() => ''))
     return NextResponse.json({ error: 'Failed' }, { status: res.status })
   }
 

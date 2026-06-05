@@ -17,7 +17,7 @@ export async function DELETE() {
   })
 
   if (!res.ok) {
-    console.error(`[DELETE /api/auth/me] ${res.status}`)
+    if (res.status >= 500) console.error(`[DELETE /api/auth/me] ${res.status}`)
     return NextResponse.json({ error: 'Failed' }, { status: res.status })
   }
 

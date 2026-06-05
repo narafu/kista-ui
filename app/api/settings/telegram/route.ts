@@ -19,8 +19,7 @@ export async function PUT(request: NextRequest) {
   })
 
   if (!res.ok) {
-    const errBody = await res.text().catch(() => '')
-    console.error(`[settings/telegram PUT] kista-api 실패: ${res.status}`, errBody)
+    if (res.status >= 500) console.error(`[settings/telegram PUT] kista-api 실패: ${res.status}`, await res.text().catch(() => ''))
     return NextResponse.json({ error: 'Failed' }, { status: res.status })
   }
   revalidateTag(cacheTags.user(token), 'max')
@@ -38,8 +37,7 @@ export async function DELETE() {
   })
 
   if (!res.ok) {
-    const errBody = await res.text().catch(() => '')
-    console.error(`[settings/telegram DELETE] kista-api 실패: ${res.status}`, errBody)
+    if (res.status >= 500) console.error(`[settings/telegram DELETE] kista-api 실패: ${res.status}`, await res.text().catch(() => ''))
     return NextResponse.json({ error: 'Failed' }, { status: res.status })
   }
   revalidateTag(cacheTags.user(token), 'max')

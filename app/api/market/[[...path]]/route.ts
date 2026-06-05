@@ -20,8 +20,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   })
 
   if (!res.ok) {
-    const errBody = await res.text().catch(() => '')
-    console.error(`[market${subPath} GET] ${res.status}`, errBody)
+    if (res.status >= 500) console.error(`[market${subPath} GET] ${res.status}`, await res.text().catch(() => ''))
     return NextResponse.json({ error: 'Failed' }, { status: res.status })
   }
 

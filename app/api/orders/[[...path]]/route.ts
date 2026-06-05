@@ -22,8 +22,7 @@ async function proxy(request: NextRequest, pathSegments: string[]) {
   })
 
   if (!res.ok) {
-    const errBody = await res.text().catch(() => '')
-    console.error(`[orders${subPath} ${request.method}] ${res.status}`, errBody)
+    if (res.status >= 500) console.error(`[orders${subPath} ${request.method}] ${res.status}`, await res.text().catch(() => ''))
     return NextResponse.json({ error: 'Failed' }, { status: res.status })
   }
 

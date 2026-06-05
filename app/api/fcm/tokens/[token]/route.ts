@@ -19,8 +19,7 @@ export async function DELETE(
   })
 
   if (!res.ok) {
-    const errBody = await res.text().catch(() => '')
-    console.error('[fcm/tokens DELETE] kista-api 실패:', res.status, errBody)
+    if (res.status >= 500) console.error('[fcm/tokens DELETE] kista-api 실패:', res.status, await res.text().catch(() => ''))
     return NextResponse.json({ error: 'Failed' }, { status: res.status })
   }
   return new NextResponse(null, { status: 204 })
