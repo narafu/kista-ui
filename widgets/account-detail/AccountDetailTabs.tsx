@@ -49,7 +49,7 @@ export function AccountDetailTabs({ account, portfolio, strategies, usdDeposit }
       <div className="lg:hidden">
         {activeTab === 'summary' && (
           <div className="space-y-4">
-            <AccountSummaryCard account={account} portfolio={portfolio} usdDeposit={usdDeposit} hasStrategy={strategies.length > 0} />
+            <AccountSummaryCard account={account} portfolio={portfolio} usdDeposit={usdDeposit} />
             <TradesTab accountId={account.id} />
           </div>
         )}
@@ -67,7 +67,7 @@ export function AccountDetailTabs({ account, portfolio, strategies, usdDeposit }
       {/* 데스크탑: 전체 레이아웃 */}
       <div className="hidden lg:block space-y-6">
         <div className="grid grid-cols-2 gap-6">
-          <AccountSummaryCard account={account} portfolio={portfolio} usdDeposit={usdDeposit} hasStrategy={strategies.length > 0} />
+          <AccountSummaryCard account={account} portfolio={portfolio} usdDeposit={usdDeposit} />
           <TradesTab accountId={account.id} />
         </div>
         <div className="grid grid-cols-2 gap-6">
