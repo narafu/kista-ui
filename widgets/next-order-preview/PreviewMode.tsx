@@ -1,14 +1,12 @@
 'use client'
 
-import { KpiCard } from '@widgets/kpi-card'
 import { OrderRow } from './OrderRow'
-import type { NextOrderPreview, NextOrderPositionSnapshot } from '@entities/order'
+import type { NextOrderPreview } from '@entities/order'
 
 interface Props {
   preview: NextOrderPreview | null
   isLoading: boolean
   error: 'no-strategy' | 'kis-fail' | null
-  pos: NextOrderPositionSnapshot | undefined
   showInsufficientBanner: boolean
   totalBuy: number
   purchasable: number | null
@@ -23,7 +21,6 @@ export function PreviewMode({
   preview,
   isLoading,
   error,
-  pos,
   showInsufficientBanner,
   totalBuy,
   purchasable,
@@ -73,15 +70,6 @@ export function PreviewMode({
           <p className="text-xs font-semibold text-warn leading-relaxed">
             ⚠️ 매수 예정 금액 ${totalBuy.toFixed(2)} • 예수금 ${(purchasable ?? 0).toFixed(2)} • 잔고 부족 ${shortfall.toFixed(2)}
           </p>
-        </div>
-      )}
-
-      {pos && (
-        <div className="grid grid-cols-2 gap-3">
-          <KpiCard label="회차(T)" value={`${pos.currentRound.toFixed(1)}회차`} />
-          <KpiCard label="단위금액(회)" value={`$${parseFloat(pos.unitAmount).toFixed(2)}`} />
-          <KpiCard label="기준가(별% 가격)" value={`$${parseFloat(pos.referencePrice).toFixed(2)}`} />
-          <KpiCard label="목표가" value={`$${parseFloat(pos.targetPrice).toFixed(2)}`} />
         </div>
       )}
 

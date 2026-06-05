@@ -50,8 +50,6 @@ export function NextOrderPreviewCard({ accountId, strategyType, strategyId }: Pr
     )
   }
 
-  const pos = preview?.position ?? undefined
-
   const insufficientUnitAmount =
     preview?.skipReason === 'INSUFFICIENT_BALANCE' && preview?.position != null
       ? parseFloat(preview.position.unitAmount)
@@ -151,7 +149,6 @@ export function NextOrderPreviewCard({ accountId, strategyType, strategyId }: Pr
               preview={preview}
               isLoading={isLoading}
               error={error}
-              pos={pos}
               showInsufficientBanner={showInsufficientBanner}
               totalBuy={totalBuy}
               purchasable={purchasable}
