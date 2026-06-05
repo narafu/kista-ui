@@ -1,5 +1,5 @@
 // components/common/StatusDot.tsx
-import { cn } from '@/lib/utils'
+import { cn } from '@lib/utils'
 
 type Status = 'ACTIVE' | 'PAUSED' | 'PENDING' | 'UNKNOWN'
 

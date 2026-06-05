@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { requestFcmToken, registerTokenToServer } from '@/lib/fcm'
+import { requestFcmToken, registerTokenToServer } from '@lib/fcm'
 import type { NotificationChannel } from '@/types/user'
 
 interface Props {

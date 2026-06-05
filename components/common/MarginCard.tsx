@@ -1,7 +1,7 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useAccountMarginQuery } from '@/hooks/useAccountMarginQuery'
+import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
+import { useAccountMarginQuery } from '@hooks/useAccountMarginQuery'
 
 interface Props {
   accountId: string

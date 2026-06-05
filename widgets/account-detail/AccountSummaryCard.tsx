@@ -1,7 +1,7 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { KpiCard } from '@/components/common/KpiCard'
+import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
+import { KpiCard } from '@components/common/KpiCard'
 import type { Account } from '@entities/account'
 import type { PortfolioSnapshot } from '@entities/trade'
 

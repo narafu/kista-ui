@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getAuthToken } from '@/lib/auth/token'
-import { listAccounts } from '@/lib/api/accounts'
-import { AccountEditForm } from '@/components/accounts/AccountEditForm'
-import { PageHeader } from '@/components/common/PageHeader'
+import { getAuthToken } from '@lib/auth/token'
+import { listAccounts } from '@lib/api/accounts'
+import { AccountEditForm } from '@components/accounts/AccountEditForm'
+import { PageHeader } from '@components/common/PageHeader'
 
 export const metadata: Metadata = {
   title: '계좌 수정 | KISTA',

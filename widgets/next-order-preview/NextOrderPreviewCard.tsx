@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useNextOrderPreview } from '@/hooks/useNextOrderPreview'
+import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
+import { useNextOrderPreview } from '@hooks/useNextOrderPreview'
 import { ExecuteDialog } from './ExecuteDialog'
 import { PreviewMode } from './PreviewMode'
 import { ExecutedMode } from './ExecutedMode'

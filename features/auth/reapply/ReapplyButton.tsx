@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
+import { Button } from '@components/ui/button'
 import { reapply } from '@entities/user'
 import { ApiError } from '@shared/lib/api-client'
 

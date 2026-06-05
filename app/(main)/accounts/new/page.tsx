@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import { PageHeader } from '@/components/common/PageHeader'
-import { NewAccountStepper } from '@/components/accounts/NewAccountStepper'
+import { PageHeader } from '@components/common/PageHeader'
+import { NewAccountStepper } from '@components/accounts/NewAccountStepper'
 
 export const metadata: Metadata = {
   title: '계좌 연결 | KISTA',

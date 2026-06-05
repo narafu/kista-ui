@@ -23,12 +23,18 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"],
       "@app/*": ["./app/*"],
       "@widgets/*": ["./widgets/*"],
       "@features/*": ["./features/*"],
       "@entities/*": ["./entities/*"],
-      "@shared/*": ["./shared/*"]
+      "@shared/*": ["./shared/*"],
+      "@components/*": ["./components/*"],
+      "@lib/*": ["./lib/*"],
+      "@hooks/*": ["./hooks/*"],
+      "@/lib/*": ["./lib/*"],
+      "@/components/*": ["./components/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/types/*": ["./types/*"]
     }
   },
   "include": [

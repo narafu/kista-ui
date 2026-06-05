@@ -1,5 +1,5 @@
-import { getAuthToken } from '@/lib/auth/token'
-import { listAdminAuditLogs } from '@/lib/api/admin'
+import { getAuthToken } from '@lib/auth/token'
+import { listAdminAuditLogs } from '@lib/api/admin'
 import type { AdminAuditLog } from '@/types/admin'
 
 export default async function AdminAuditPage() {

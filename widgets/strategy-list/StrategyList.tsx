@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { StrategyCard } from '@widgets/strategy-card'
 import { StrategyFormDialog } from '@features/strategy/create-strategy'
 import type { Strategy } from '@/types/strategy'

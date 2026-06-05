@@ -1,6 +1,6 @@
 'use client'
 
-import { ErrorDisplay } from '@/components/common/ErrorDisplay'
+import { ErrorDisplay } from '@components/common/ErrorDisplay'
 
 export default function Error({
   reset,

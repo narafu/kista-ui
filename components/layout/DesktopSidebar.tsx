@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { LayoutDashboard, CreditCard, BarChart2, Settings, LogOut } from 'lucide-react'
-import { ThemeToggle } from '@/components/common/ThemeToggle'
+import { ThemeToggle } from '@components/common/ThemeToggle'
 import { LogoutButton } from '@features/auth/logout/LogoutButton'
 
 const NAV_ITEMS = [

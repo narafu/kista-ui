@@ -3,11 +3,11 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { getNextOrdersPreview, cancelAllOrders, cancelOneOrder } from '@/lib/api/orders'
-import { getMargin } from '@/lib/api/accounts'
-import { executeStrategy } from '@/lib/api/strategies'
-import { getMarketSession, getMonthlyHolidaysClient } from '@/lib/api/market'
-import { ApiError } from '@/lib/api/client'
+import { getNextOrdersPreview, cancelAllOrders, cancelOneOrder } from '@lib/api/orders'
+import { getMargin } from '@lib/api/accounts'
+import { executeStrategy } from '@lib/api/strategies'
+import { getMarketSession, getMonthlyHolidaysClient } from '@lib/api/market'
+import { ApiError } from '@lib/api/client'
 import type { PlacedOrder } from '@/types/preview'
 
 export function useNextOrderPreview(accountId: string, strategyId: string | undefined) {

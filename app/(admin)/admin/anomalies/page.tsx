@@ -1,5 +1,5 @@
-import { getAuthToken } from '@/lib/auth/token'
-import { getAdminAnomalies } from '@/lib/api/admin'
+import { getAuthToken } from '@lib/auth/token'
+import { getAdminAnomalies } from '@lib/api/admin'
 import type { AdminAnomalies, AdminAnomalyAccount } from '@/types/admin'
 
 const EMPTY_ANOMALIES: AdminAnomalies = {

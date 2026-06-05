@@ -1,7 +1,7 @@
 'use client'
 
 import { useReducer } from 'react'
-import { Stepper } from '@/components/common/Stepper'
+import { Stepper } from '@components/common/Stepper'
 import { ApiStep } from './steps/ApiStep'
 import { AccountInfoStep } from './steps/AccountInfoStep'
 import { ConfirmStep } from './steps/ConfirmStep'

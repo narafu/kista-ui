@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { useMonthlyHolidays } from '@/hooks/useMonthlyHolidays'
+import { cn } from '@lib/utils'
+import { useMonthlyHolidays } from '@hooks/useMonthlyHolidays'
 
 interface Props {
   holidays: string[]

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Eye, EyeOff, CheckCircle2, XCircle, Loader2, ExternalLink } from 'lucide-react'
-import { clientFetch, ApiError } from '@/lib/api/client'
+import { clientFetch, ApiError } from '@lib/api/client'
 import type { StepData } from '../NewAccountStepper'
 
 interface Props {

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { revalidateTag } from 'next/cache'
-import { getAuthToken } from '@/lib/auth/token'
-import { cacheTags } from '@/lib/cache/tags'
+import { getAuthToken } from '@lib/auth/token'
+import { cacheTags } from '@lib/cache/tags'
 
 const API_BASE_URL = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
 

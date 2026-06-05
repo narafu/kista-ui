@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@lib/utils'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import type { Strategy } from '@/types/strategy'
 import type { PriceMap } from '@entities/account'

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getAuthToken } from '@/lib/auth/token'
+import { getAuthToken } from '@lib/auth/token'
 
 const STATUS_COOKIE = 'kista-user-status'
 

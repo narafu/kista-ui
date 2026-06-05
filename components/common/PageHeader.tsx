@@ -1,5 +1,5 @@
 // components/common/PageHeader.tsx
-import { cn } from '@/lib/utils'
+import { cn } from '@lib/utils'
 import type { ReactNode } from 'react'
 
 interface Props {

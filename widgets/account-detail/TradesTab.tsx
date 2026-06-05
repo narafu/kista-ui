@@ -1,7 +1,7 @@
 'use client'
 
 import { useReducer } from 'react'
-import { useAccountCycleHistory } from '@/hooks/useCycleHistory'
+import { useAccountCycleHistory } from '@hooks/useCycleHistory'
 import { CycleHistoryTable } from './CycleHistoryTable'
 import { buildParams, type RangeType } from './lib/buildParams'
 

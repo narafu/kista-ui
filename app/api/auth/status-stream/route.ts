@@ -1,4 +1,4 @@
-import { getAuthToken } from '@/lib/auth/token'
+import { getAuthToken } from '@lib/auth/token'
 import type { NextRequest } from 'next/server'
 import { Agent } from 'undici'
 

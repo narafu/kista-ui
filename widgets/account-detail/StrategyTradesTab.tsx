@@ -1,8 +1,8 @@
 'use client'
 
 import { useReducer } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useStrategyCycleHistory } from '@/hooks/useCycleHistory'
+import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
+import { useStrategyCycleHistory } from '@hooks/useCycleHistory'
 import { CycleHistoryTable } from './CycleHistoryTable'
 import { buildParams, type RangeType } from './lib/buildParams'
 

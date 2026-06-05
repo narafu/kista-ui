@@ -1,6 +1,6 @@
-import { getAuthToken } from '@/lib/auth/token'
-import { listAdminUsers } from '@/lib/api/admin'
-import { ChangeRoleButton } from '@/components/admin/ChangeRoleButton'
+import { getAuthToken } from '@lib/auth/token'
+import { listAdminUsers } from '@lib/api/admin'
+import { ChangeRoleButton } from '@components/admin/ChangeRoleButton'
 import type { UserStatus } from '@/types/user'
 
 const STATUS_LABEL: Record<UserStatus, string> = {

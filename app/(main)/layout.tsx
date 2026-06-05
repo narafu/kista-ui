@@ -1,12 +1,12 @@
-import { DesktopSidebar } from '@/components/layout/DesktopSidebar'
-import { MobileBottomNav } from '@/components/layout/MobileBottomNav'
-import { MobileHeader } from '@/components/layout/MobileHeader'
-import { MetaProvider } from '@/components/providers/MetaProvider'
-import { FcmAutoRegister } from '@/components/providers/FcmAutoRegister'
-import { PullToRefresh } from '@/components/common/PullToRefresh'
-import { getMetaBundle } from '@/lib/api/meta'
-import { getMe } from '@/lib/api/auth'
-import { getAuthToken } from '@/lib/auth/token'
+import { DesktopSidebar } from '@components/layout/DesktopSidebar'
+import { MobileBottomNav } from '@components/layout/MobileBottomNav'
+import { MobileHeader } from '@components/layout/MobileHeader'
+import { MetaProvider } from '@components/providers/MetaProvider'
+import { FcmAutoRegister } from '@components/providers/FcmAutoRegister'
+import { PullToRefresh } from '@components/common/PullToRefresh'
+import { getMetaBundle } from '@lib/api/meta'
+import { getMe } from '@lib/api/auth'
+import { getAuthToken } from '@lib/auth/token'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const token = await getAuthToken()

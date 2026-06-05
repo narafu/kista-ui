@@ -1,5 +1,5 @@
-import { getAuthToken } from '@/lib/auth/token'
-import { listAdminTrades } from '@/lib/api/admin'
+import { getAuthToken } from '@lib/auth/token'
+import { listAdminTrades } from '@lib/api/admin'
 import type { AdminTrade } from '@/types/admin'
 
 const DIRECTION_LABEL: Record<string, string> = { BUY: '매수', SELL: '매도' }

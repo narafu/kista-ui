@@ -1,5 +1,5 @@
-import { getAuthToken } from '@/lib/auth/token'
-import { listAdminAccounts } from '@/lib/api/admin'
+import { getAuthToken } from '@lib/auth/token'
+import { listAdminAccounts } from '@lib/api/admin'
 import type { AdminAccount } from '@/types/admin'
 
 export default async function AdminAccountsPage() {

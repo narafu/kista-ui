@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { RefreshCw } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn } from '@lib/utils'
 
 const THRESHOLD = 70
 const MAX_PULL = 110

@@ -1,7 +1,7 @@
 'use client'
 
 import { Zap, Activity } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn } from '@lib/utils'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import type { Strategy } from '@/types/strategy'
 import type { StrategyTypeMeta } from '@/types/meta'
