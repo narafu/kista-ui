@@ -81,22 +81,23 @@ export default async function SettingsPage() {
             />
 
             <div className="text-[12.5px] font-semibold text-muted-foreground mt-5 mb-2">알림 종류</div>
-            {[
-              { label: '매매 알림',       desc: '매매 체결 결과 알림' },
-              { label: '시스템 점검 알림', desc: 'KIS API 점검 시간 안내' },
-              { label: '주간 리포트',     desc: '매주 월요일 아침 9시 발송' },
-            ].map((row, i, arr) => (
-              <div
-                key={row.label}
-                className="flex items-center gap-[14px] py-3"
-                style={{ borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none' }}
-              >
-                <div className="flex-1">
-                  <div className="text-[13px] font-bold">{row.label}</div>
-                  <div className="text-[11.5px] text-muted-foreground mt-0.5">{row.desc}</div>
+            <div className="divide-y divide-border">
+              {[
+                { label: '매매 알림',       desc: '매매 체결 결과 알림' },
+                { label: '시스템 점검 알림', desc: 'KIS API 점검 시간 안내' },
+                { label: '주간 리포트',     desc: '매주 월요일 아침 9시 발송' },
+              ].map((row) => (
+                <div
+                  key={row.label}
+                  className="flex items-center gap-[14px] py-3"
+                >
+                  <div className="flex-1">
+                    <div className="text-[13px] font-bold">{row.label}</div>
+                    <div className="text-[11.5px] text-muted-foreground mt-0.5">{row.desc}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </section>
 
           {/* 환경설정 */}

@@ -32,19 +32,16 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
   return (
     <div className="min-w-0">
       {/* 숫자 입력 행: [MIN] [입력칸] [MAX] */}
-      <div
-        className="flex gap-1.5 items-center justify-around"
-        style={{ marginBottom: compact ? 12 : 14 }}
-      >
+      <div className={cn('flex gap-1.5 items-center justify-around', compact ? 'mb-3' : 'mb-3.5')}>
         {/* MIN 버튼 */}
         {minPct !== null && (
           <button
             type="button"
             disabled={allDisabled}
             onClick={() => onChange(minPct)}
-            style={{ height: compact ? 38 : 40 }}
             className={cn(
               'px-3 rounded-lg border border-border bg-muted text-xs font-bold tracking-[0.05em]',
+              compact ? 'h-[38px]' : 'h-10',
               allDisabled ? 'text-muted-foreground cursor-not-allowed opacity-50' : 'text-foreground cursor-pointer'
             )}
           >
@@ -56,12 +53,9 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
         <div
           className={cn(
             'flex-1 relative rounded-lg border border-[var(--rose-400)] bg-card flex items-center px-3.5 w-[65%]',
-            allDisabled && 'opacity-50'
+            compact ? 'h-[38px]' : 'h-10',
+            allDisabled ? 'opacity-50' : 'shadow-[0_0_0_3px_rgba(203,131,106,0.18)]',
           )}
-          style={{
-            height: compact ? 38 : 40,
-            boxShadow: allDisabled ? 'none' : '0 0 0 3px rgba(203,131,106,0.18)',
-          }}
         >
           <input
             type="text"
@@ -87,13 +81,13 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
           disabled={allDisabled}
           onClick={() => onChange(100)}
           style={{
-            height: compact ? 38 : 40,
             background: allDisabled
               ? 'var(--muted)'
               : 'linear-gradient(135deg, var(--rose-400), var(--rose-600))',
           }}
           className={cn(
             'px-3.5 rounded-lg border border-[var(--rose-400)] text-xs font-bold tracking-[0.05em]',
+            compact ? 'h-[38px]' : 'h-10',
             allDisabled ? 'text-muted-foreground cursor-not-allowed opacity-50' : 'text-white cursor-pointer'
           )}
         >
@@ -179,8 +173,7 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
           <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--warn-bg)] border border-[var(--warn)]">
             <span className="text-[11px] text-[var(--warn)] font-bold">예수금 부족</span>
             <span
-              className="font-extrabold text-[var(--warn)] tabular-nums"
-              style={{ fontSize: compact ? 12 : 13 }}
+              className={cn('font-extrabold text-[var(--warn)] tabular-nums', compact ? 'text-[12px]' : 'text-[13px]')}
             >
               필요: ${fmtUsd(minSeed)}
               <span className="text-[10.5px] font-semibold text-[var(--warn)] ml-1.5 opacity-80">
