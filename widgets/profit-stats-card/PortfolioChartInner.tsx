@@ -1,6 +1,6 @@
 'use client'
 
-import { toNum } from '@lib/utils'
+import { toNum } from '@shared/lib/utils'
 import {
   ResponsiveContainer,
   AreaChart,
