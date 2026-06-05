@@ -3,8 +3,8 @@
 import { Zap, Activity } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
-import type { Strategy } from '@/types/strategy'
-import type { StrategyTypeMeta } from '@/types/meta'
+import type { Strategy } from '@entities/strategy'
+import type { StrategyTypeMeta } from '@entities/meta'
 
 interface Props {
   initial?: Strategy

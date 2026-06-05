@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { requestFcmToken, registerTokenToServer } from '@entities/fcm'
-import type { NotificationChannel } from '@/types/user'
+import type { NotificationChannel } from '@entities/user'
 
 interface Props {
   notificationChannel: NotificationChannel

@@ -4,9 +4,9 @@ import { listStrategies } from '@entities/strategy'
 import { getMe } from '@entities/user'
 import { ApiError } from '@shared/lib/api-client'
 import { cacheTags } from './tags'
-import type { Account } from '@/types/account'
-import type { Strategy } from '@/types/strategy'
-import type { User } from '@/types/user'
+import type { Account } from '@entities/account'
+import type { Strategy } from '@entities/strategy'
+import type { User } from '@entities/user'
 
 const REVALIDATE = 300 // 5분 — 태그 무효화로 즉시 갱신 가능
 

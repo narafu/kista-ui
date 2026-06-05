@@ -2,13 +2,13 @@
 
 import { cn } from '@shared/lib/utils'
 import { Button } from '@components/ui/button'
-import { useMeta } from '@components/providers/MetaProvider'
+import { useMeta } from '@entities/meta'
 import { useStrategyForm } from './model/useStrategyForm'
 import { StrategyTypeSection } from './sections/StrategyTypeSection'
 import { StrategyTickerSection } from './sections/StrategyTickerSection'
 import { UsageRatioSection } from './sections/UsageRatioSection'
 import { CycleSeedSection } from './sections/CycleSeedSection'
-import type { Strategy } from '@/types/strategy'
+import type { Strategy } from '@entities/strategy'
 
 interface Props {
   accountId: string

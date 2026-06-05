@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import type { PortfolioSnapshot } from '@/types/trade'
+import type { PortfolioSnapshot } from '@entities/trade'
 
 interface Props {
   snapshots: PortfolioSnapshot[]

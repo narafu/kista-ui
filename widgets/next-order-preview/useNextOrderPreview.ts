@@ -8,7 +8,7 @@ import { getMargin } from '@entities/account'
 import { executeStrategy } from '@entities/strategy'
 import { getMarketSession, getMonthlyHolidaysClient } from '@entities/market'
 import { ApiError } from '@shared/lib/api-client'
-import type { PlacedOrder } from '@/types/preview'
+import type { PlacedOrder } from '@entities/order'
 
 export function useNextOrderPreview(accountId: string, strategyId: string | undefined) {
   const [mode, setMode] = useState<'preview' | 'executed'>('preview')

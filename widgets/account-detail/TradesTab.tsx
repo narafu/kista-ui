@@ -1,7 +1,7 @@
 'use client'
 
 import { useReducer } from 'react'
-import { useAccountCycleHistory } from '@hooks/useCycleHistory'
+import { useAccountCycleHistoryQuery } from '@entities/trade'
 import { CycleHistoryTable } from './CycleHistoryTable'
 import { buildParams, type RangeType } from './lib/buildParams'
 
@@ -29,7 +29,7 @@ export function TradesTab({ accountId }: Props) {
   const [state, dispatch] = useReducer(reducer, INITIAL)
   const { rangeType, customFrom, customTo } = state
   const params = buildParams(rangeType, customFrom, customTo)
-  const { cycleHistory, isLoading } = useAccountCycleHistory(accountId, params)
+  const { cycleHistory, isLoading } = useAccountCycleHistoryQuery(accountId, params)
 
   return (
     <CycleHistoryTable

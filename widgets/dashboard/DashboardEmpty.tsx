@@ -1,8 +1,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
-import { PageHeader } from '@components/common/PageHeader'
-import { MarketHolidayCalendar } from '@components/common/MarketHolidayCalendar'
+import { PageHeader } from '@widgets/page-header'
+import { MarketHolidayCalendar } from '@widgets/market-holiday-calendar'
 
 interface Props {
   holidays: string[]

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { useMeta } from '@components/providers/MetaProvider'
+import { useMeta } from '@entities/meta'
 import { useAccountMarginQuery, useAccountPricesQuery } from '@entities/account'
 import { usePrivacyCurrentBaseQuery } from '@entities/privacy'
 import { createStrategy, updateStrategy } from '@entities/strategy'

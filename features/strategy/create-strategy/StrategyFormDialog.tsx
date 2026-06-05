@@ -20,7 +20,7 @@ import {
   DrawerTrigger,
 } from '@components/ui/drawer'
 import { StrategyForm } from './StrategyForm'
-import type { Strategy } from '@/types/strategy'
+import type { Strategy } from '@entities/strategy'
 
 interface Props {
   accountId: string

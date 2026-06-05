@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { StatusDot } from '@components/common/StatusDot'
+import { StatusDot } from '@widgets/status-dot'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 

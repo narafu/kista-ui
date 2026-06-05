@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { StrategyCard } from '@widgets/strategy-card'
 import { StrategyFormDialog } from '@features/strategy/create-strategy'
-import type { Strategy } from '@/types/strategy'
+import type { Strategy } from '@entities/strategy'
 
 const MAX_STRATEGIES = 1
 

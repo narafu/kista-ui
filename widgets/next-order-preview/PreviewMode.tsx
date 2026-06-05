@@ -1,6 +1,6 @@
 'use client'
 
-import { KpiCard } from '@components/common/KpiCard'
+import { KpiCard } from '@widgets/kpi-card'
 import { OrderRow } from './OrderRow'
 import type { NextOrderPreview, NextOrderPositionSnapshot } from '@entities/order'
 

@@ -2,7 +2,7 @@
 
 import { useReducer } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
-import { useStrategyCycleHistory } from '@hooks/useCycleHistory'
+import { useStrategyCycleHistoryQuery } from '@entities/trade'
 import { CycleHistoryTable } from './CycleHistoryTable'
 import { buildParams, type RangeType } from './lib/buildParams'
 
@@ -30,7 +30,7 @@ export function StrategyTradesTab({ strategyId }: Props) {
   const [state, dispatch] = useReducer(reducer, INITIAL)
   const { rangeType, customFrom, customTo } = state
   const params = buildParams(rangeType, customFrom, customTo)
-  const { cycleHistory, isLoading } = useStrategyCycleHistory(strategyId, params)
+  const { cycleHistory, isLoading } = useStrategyCycleHistoryQuery(strategyId, params)
 
   if (!strategyId) {
     return (

@@ -2,7 +2,7 @@
 
 import { cn } from '@shared/lib/utils'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
-import type { Strategy } from '@/types/strategy'
+import type { Strategy } from '@entities/strategy'
 import type { PriceMap } from '@entities/account'
 
 function fmtUsd(n: number, digits = 2) {

@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { NextOrderPreviewCard } from '@components/common/NextOrderPreviewCard'
-import { StrategyList } from '@components/strategies/StrategyList'
-import { useMeta } from '@components/providers/MetaProvider'
+import { NextOrderPreviewCard } from '@widgets/next-order-preview'
+import { StrategyList } from '@widgets/strategy-list'
+import { useMeta } from '@entities/meta'
 import { AccountSummaryCard } from './AccountSummaryCard'
 import { TradesTab } from './TradesTab'
 import { StrategyTradesTab } from './StrategyTradesTab'

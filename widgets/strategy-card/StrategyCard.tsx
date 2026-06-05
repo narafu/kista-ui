@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Card, CardContent } from '@components/ui/card'
 import { Button } from '@components/ui/button'
-import { StatusDot } from '@components/common/StatusDot'
+import { StatusDot } from '@widgets/status-dot'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +22,7 @@ import {
 } from '@entities/strategy'
 import { cn } from '@shared/lib/utils'
 import { buttonVariants } from '@components/ui/button'
-import type { Strategy } from '@/types/strategy'
+import type { Strategy } from '@entities/strategy'
 
 interface Props {
   strategy: Strategy
