@@ -7,6 +7,7 @@ import { ApiError } from '@shared/lib/api-client'
 import {
   createStrategy,
   updateStrategy,
+  deleteStrategy,
   pauseStrategy,
   resumeStrategy,
   executeStrategy,
@@ -66,6 +67,21 @@ export function useResumeStrategyMutation() {
       router.refresh()
     },
     onError: () => toast.error('재개에 실패했습니다'),
+  })
+}
+
+export function useDeleteStrategyMutation(onSuccess?: () => void) {
+  const router = useRouter()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => deleteStrategy(id),
+    onSuccess: () => {
+      toast.success('전략이 삭제되었습니다')
+      queryClient.invalidateQueries({ queryKey: ['strategies'] })
+      router.refresh()
+      onSuccess?.()
+    },
+    onError: (err) => toast.error(err instanceof ApiError ? '삭제에 실패했습니다' : '오류가 발생했습니다'),
   })
 }
 

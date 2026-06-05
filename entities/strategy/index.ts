@@ -11,6 +11,7 @@ export {
 export {
   useCreateStrategyMutation,
   useUpdateStrategyMutation,
+  useDeleteStrategyMutation,
   usePauseStrategyMutation,
   useResumeStrategyMutation,
   useExecuteStrategyMutation,
