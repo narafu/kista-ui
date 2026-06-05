@@ -9,6 +9,7 @@ export {
   executeStrategy,
 } from './api'
 export {
+  useStrategiesQuery,
   useCreateStrategyMutation,
   useUpdateStrategyMutation,
   useDeleteStrategyMutation,

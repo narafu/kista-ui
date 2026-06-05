@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { NextOrderPreviewCard } from '@widgets/next-order-preview'
 import { StrategyList } from '@widgets/strategy-list'
 import { useMeta } from '@entities/meta'
+import { useStrategiesQuery } from '@entities/strategy'
 import { AccountSummaryCard } from './AccountSummaryCard'
 import { TradesTab } from './TradesTab'
 import { StrategyTradesTab } from './StrategyTradesTab'
@@ -20,7 +21,8 @@ interface Props {
   usdDeposit: number
 }
 
-export function AccountDetailTabs({ account, portfolio, strategies, usdDeposit }: Props) {
+export function AccountDetailTabs({ account, portfolio, strategies: initialStrategies, usdDeposit }: Props) {
+  const { data: strategies = initialStrategies } = useStrategiesQuery(account.id, initialStrategies)
   const [activeTab, setActiveTab] = useState<Tab>('summary')
   const { findStrategyType } = useMeta()
   const activeStrategy = strategies.find((s) => s.status === 'ACTIVE') ?? strategies[0]

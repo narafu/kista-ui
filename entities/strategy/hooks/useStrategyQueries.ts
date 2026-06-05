@@ -1,10 +1,11 @@
 'use client'
 
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { ApiError } from '@shared/lib/api-client'
 import {
+  listStrategies,
   createStrategy,
   updateStrategy,
   deleteStrategy,
@@ -12,7 +13,16 @@ import {
   resumeStrategy,
   executeStrategy,
 } from '../api'
-import type { StrategyRequest } from '../model/types'
+import type { Strategy, StrategyRequest } from '../model/types'
+
+export function useStrategiesQuery(accountId: string, initialData?: Strategy[]) {
+  return useQuery<Strategy[]>({
+    queryKey: ['strategies', accountId],
+    queryFn: () => listStrategies(accountId),
+    initialData,
+    staleTime: 30_000,
+  })
+}
 
 export function useCreateStrategyMutation(accountId: string, onSuccess?: () => void) {
   const router = useRouter()

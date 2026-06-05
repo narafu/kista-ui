@@ -1,6 +1,7 @@
 'use client'
 
 import { useCreateAccountMutation } from '@entities/account'
+import { ApiError } from '@shared/lib/api-client'
 import type { StepData } from '../CreateAccountStepper'
 
 interface Props {
@@ -38,7 +39,11 @@ export function ConfirmStep({ data, onBack }: Props) {
       </div>
 
       {isError && (
-        <p className="text-sm text-neg">{error?.message ?? '계좌 연결에 실패했습니다.'}</p>
+        <p className="text-sm text-neg">
+          {error instanceof ApiError && error.status === 422
+            ? '계좌번호가 KIS 자격증명과 일치하지 않습니다'
+            : '계좌 연결에 실패했습니다'}
+        </p>
       )}
 
       <div className="flex gap-3">

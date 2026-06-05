@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { ApiError } from '@shared/lib/api-client'
 import {
   listAccounts,
   createAccount,
@@ -63,7 +64,7 @@ export function useDeleteAccountMutation(accountId: string) {
     mutationFn: () => deleteAccount(accountId),
     onSuccess: () => {
       toast.success('계좌가 삭제되었습니다')
-      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+      queryClient.removeQueries({ queryKey: ['accounts'] })
       router.push('/dashboard')
     },
     onError: () => toast.error('삭제에 실패했습니다'),
@@ -79,7 +80,13 @@ export function useCreateAccountMutation() {
       queryClient.invalidateQueries({ queryKey: ['accounts'] })
       router.push(`/accounts/${saved.id}`)
     },
-    onError: () => toast.error('계좌 연결에 실패했습니다'),
+    onError: (error) => {
+      if (error instanceof ApiError && error.status === 422) {
+        toast.error('계좌번호가 KIS 자격증명과 일치하지 않습니다')
+      } else {
+        toast.error('계좌 연결에 실패했습니다')
+      }
+    },
   })
 }
 
