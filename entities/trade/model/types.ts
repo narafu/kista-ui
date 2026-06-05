@@ -1,3 +1,14 @@
+export interface TradeEvent {
+  kind: 'BUY' | 'SELL' | 'INFO' | 'FAIL'
+  ticker: string
+  quantity?: number
+  price?: number
+  amount?: number
+  time: string
+  accountNickname: string
+  message?: string
+}
+
 export type OrderDirection = 'BUY' | 'SELL'
 export type OrderType = 'LOC' | 'MOC' | 'LIMIT'
 export type OrderStatus = 'PLACED' | 'FILLED' | 'FAILED' | 'CANCELLED'

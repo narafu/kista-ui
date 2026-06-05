@@ -1,5 +1,5 @@
 import { TrendingUp, TrendingDown, Info, AlertCircle } from 'lucide-react'
-import type { TradeEvent } from '@/types/trade-event'
+import type { TradeEvent } from '@entities/trade'
 
 interface Props {
   event: TradeEvent

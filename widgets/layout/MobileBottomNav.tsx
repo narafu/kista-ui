@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, CreditCard, BarChart2, Settings } from 'lucide-react'
-import { cn } from '@lib/utils'
+import { cn } from '@shared/lib/utils'
 
 const TABS = [
   { href: '/dashboard',  label: '대시보드', icon: LayoutDashboard },

@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { TradeToast } from './TradeToast'
-import type { TradeEvent } from '@/types/trade-event'
+import type { TradeEvent } from '@entities/trade'
 
 const RECONNECT_DELAY_MS = 5000
 

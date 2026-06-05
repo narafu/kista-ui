@@ -20,7 +20,7 @@ import {
   usePauseStrategyMutation,
   useResumeStrategyMutation,
 } from '@entities/strategy'
-import { cn } from '@lib/utils'
+import { cn } from '@shared/lib/utils'
 import { buttonVariants } from '@components/ui/button'
 import type { Strategy } from '@/types/strategy'
 

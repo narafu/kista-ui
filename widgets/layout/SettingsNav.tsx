@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { cn } from '@lib/utils'
+import { cn } from '@shared/lib/utils'
 
 const SECTIONS = [
   { id: 'profile',       label: '프로필' },

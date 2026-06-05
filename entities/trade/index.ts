@@ -1,4 +1,5 @@
 export type {
+  TradeEvent,
   OrderDirection,
   OrderType,
   OrderStatus,
