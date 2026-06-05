@@ -3,6 +3,7 @@ import type {
   TradeHistory,
   Execution,
   CycleHistoryItem,
+  CycleHistoryPage,
   DailyTransactionResult,
   PortfolioSnapshot,
   ProfitSummary,
@@ -13,6 +14,20 @@ function buildDateQuery(params: { from?: string; to?: string }): string {
   const q = new URLSearchParams()
   if (params.from) q.set('from', params.from)
   if (params.to) q.set('to', params.to)
+  return q.size ? `?${q}` : ''
+}
+
+function buildCycleHistoryQuery(params: {
+  from?: string
+  to?: string
+  cursor?: string
+  size?: number
+}): string {
+  const q = new URLSearchParams()
+  if (params.from) q.set('from', params.from)
+  if (params.to) q.set('to', params.to)
+  if (params.cursor) q.set('cursor', params.cursor)
+  if (params.size != null) q.set('size', String(params.size))
   return q.size ? `?${q}` : ''
 }
 
@@ -56,22 +71,22 @@ export async function getAccountTrades(
 
 export async function getAccountCycleHistory(
   accountId: string,
-  params: { from?: string; to?: string },
+  params: { from?: string; to?: string; cursor?: string; size?: number },
   token?: string
-): Promise<CycleHistoryItem[]> {
-  const qs = buildDateQuery(params)
-  if (token) return apiFetch<CycleHistoryItem[]>(`/api/accounts/${accountId}/cycle-history${qs}`, { method: 'GET' }, token)
-  return clientFetch<CycleHistoryItem[]>(`/api/accounts/${accountId}/cycle-history${qs}`)
+): Promise<CycleHistoryPage> {
+  const qs = buildCycleHistoryQuery(params)
+  if (token) return apiFetch<CycleHistoryPage>(`/api/accounts/${accountId}/cycle-history${qs}`, { method: 'GET' }, token)
+  return clientFetch<CycleHistoryPage>(`/api/accounts/${accountId}/cycle-history${qs}`)
 }
 
 export async function getStrategyCycleHistory(
   strategyId: string,
-  params: { from?: string; to?: string },
+  params: { from?: string; to?: string; cursor?: string; size?: number },
   token?: string
-): Promise<CycleHistoryItem[]> {
-  const qs = buildDateQuery(params)
-  if (token) return apiFetch<CycleHistoryItem[]>(`/api/trading-cycles/${strategyId}/history${qs}`, { method: 'GET' }, token)
-  return clientFetch<CycleHistoryItem[]>(`/api/trading-cycles/${strategyId}/history${qs}`)
+): Promise<CycleHistoryPage> {
+  const qs = buildCycleHistoryQuery(params)
+  if (token) return apiFetch<CycleHistoryPage>(`/api/trading-cycles/${strategyId}/history${qs}`, { method: 'GET' }, token)
+  return clientFetch<CycleHistoryPage>(`/api/trading-cycles/${strategyId}/history${qs}`)
 }
 
 export async function getAccountPortfolio(accountId: string, token: string): Promise<PortfolioSnapshot> {

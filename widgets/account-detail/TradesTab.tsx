@@ -29,7 +29,8 @@ export function TradesTab({ accountId }: Props) {
   const [state, dispatch] = useReducer(reducer, INITIAL)
   const { rangeType, customFrom, customTo } = state
   const params = buildParams(rangeType, customFrom, customTo)
-  const { cycleHistory, isLoading } = useAccountCycleHistoryQuery(accountId, params)
+  const { cycleHistory, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useAccountCycleHistoryQuery(accountId, params)
 
   return (
     <CycleHistoryTable
@@ -42,6 +43,9 @@ export function TradesTab({ accountId }: Props) {
       setCustomFrom={(v) => dispatch({ type: 'SET_CUSTOM_FROM', value: v })}
       customTo={customTo}
       setCustomTo={(v) => dispatch({ type: 'SET_CUSTOM_TO', value: v })}
+      fetchNextPage={fetchNextPage}
+      hasNextPage={hasNextPage}
+      isFetchingNextPage={isFetchingNextPage}
     />
   )
 }

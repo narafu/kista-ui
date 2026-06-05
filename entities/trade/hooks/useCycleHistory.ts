@@ -1,29 +1,47 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import { getAccountCycleHistory, getStrategyCycleHistory } from '../api'
-import type { CycleHistoryItem } from '../model/types'
+import type { CycleHistoryItem, CycleHistoryPage } from '../model/types'
 
-type Params = { from?: string; to?: string } | null
+type DateParams = { from?: string; to?: string } | null
 
-export function useAccountCycleHistoryQuery(accountId: string, params: Params) {
-  const { data: cycleHistory = [], isLoading } = useQuery<CycleHistoryItem[]>({
-    queryKey: ['accountCycleHistory', accountId, params],
-    queryFn: () =>
-      getAccountCycleHistory(accountId, params!).catch((): CycleHistoryItem[] => []),
-    enabled: params !== null,
-    placeholderData: (prev) => prev,
-  })
-  return { cycleHistory, isLoading }
+const EMPTY_PAGE: CycleHistoryPage = { items: [], nextCursor: null, hasMore: false }
+
+export function useAccountCycleHistoryQuery(accountId: string, params: DateParams) {
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery<CycleHistoryPage>({
+      queryKey: ['accountCycleHistory', accountId, params],
+      queryFn: ({ pageParam }) =>
+        getAccountCycleHistory(accountId, {
+          ...(params ?? {}),
+          cursor: pageParam as string | undefined,
+        }).catch(() => EMPTY_PAGE),
+      initialPageParam: undefined,
+      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+      enabled: params !== null,
+      placeholderData: (prev) => prev,
+    })
+
+  const cycleHistory: CycleHistoryItem[] = data?.pages.flatMap((p) => p.items) ?? []
+  return { cycleHistory, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage }
 }
 
-export function useStrategyCycleHistoryQuery(strategyId: string | undefined, params: Params) {
-  const { data: cycleHistory = [], isLoading } = useQuery<CycleHistoryItem[]>({
-    queryKey: ['strategyCycleHistory', strategyId, params],
-    queryFn: () =>
-      getStrategyCycleHistory(strategyId!, params!).catch((): CycleHistoryItem[] => []),
-    enabled: params !== null && !!strategyId,
-    placeholderData: (prev) => prev,
-  })
-  return { cycleHistory, isLoading }
+export function useStrategyCycleHistoryQuery(strategyId: string | undefined, params: DateParams) {
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery<CycleHistoryPage>({
+      queryKey: ['strategyCycleHistory', strategyId, params],
+      queryFn: ({ pageParam }) =>
+        getStrategyCycleHistory(strategyId!, {
+          ...(params ?? {}),
+          cursor: pageParam as string | undefined,
+        }).catch(() => EMPTY_PAGE),
+      initialPageParam: undefined,
+      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+      enabled: params !== null && !!strategyId,
+      placeholderData: (prev) => prev,
+    })
+
+  const cycleHistory: CycleHistoryItem[] = data?.pages.flatMap((p) => p.items) ?? []
+  return { cycleHistory, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage }
 }

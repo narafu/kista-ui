@@ -2,5 +2,18 @@
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": true,
     "commit-commands@claude-plugins-official": true
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'cd /d/src/study/kista/kista-ui && npm run typecheck 2>&1 | tail -8'"
+          }
+        ]
+      }
+    ]
   }
 }

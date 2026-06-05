@@ -33,6 +33,12 @@ export interface CycleHistoryItem {
   usdDeposit: number
 }
 
+export interface CycleHistoryPage {
+  items: CycleHistoryItem[]
+  nextCursor: string | null
+  hasMore: boolean
+}
+
 export interface Execution {
   tradeDate: string
   ticker: string

@@ -30,7 +30,8 @@ export function StrategyTradesTab({ strategyId }: Props) {
   const [state, dispatch] = useReducer(reducer, INITIAL)
   const { rangeType, customFrom, customTo } = state
   const params = buildParams(rangeType, customFrom, customTo)
-  const { cycleHistory, isLoading } = useStrategyCycleHistoryQuery(strategyId, params)
+  const { cycleHistory, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useStrategyCycleHistoryQuery(strategyId, params)
 
   if (!strategyId) {
     return (
@@ -56,6 +57,9 @@ export function StrategyTradesTab({ strategyId }: Props) {
       setCustomFrom={(v) => dispatch({ type: 'SET_CUSTOM_FROM', value: v })}
       customTo={customTo}
       setCustomTo={(v) => dispatch({ type: 'SET_CUSTOM_TO', value: v })}
+      fetchNextPage={fetchNextPage}
+      hasNextPage={hasNextPage}
+      isFetchingNextPage={isFetchingNextPage}
     />
   )
 }

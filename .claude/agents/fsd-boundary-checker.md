@@ -1,0 +1,41 @@
+---
+name: fsd-boundary-checker
+description: FSD 계층 단방향 의존성 위반을 grep으로 감지. 코드 리뷰 또는 리팩토링 후 호출.
+---
+
+kista-ui FSD 계층 규칙: `app → widgets → features → entities → shared` (단방향).
+같은 계층 내 cross-domain import 금지 (예: `features/auth → features/strategy`).
+
+다음 위반 패턴을 순서대로 grep으로 검사하세요 (프로젝트 루트 기준):
+
+**1. widgets/ 에서 features/ import (상향 금지)**
+```
+grep -rn "from '@features/" widgets/
+```
+
+**2. entities/ 에서 features/ 또는 widgets/ import (상향 금지)**
+```
+grep -rn "from '@features/\|from '@widgets/" entities/
+```
+
+**3. shared/ 에서 entities/ 이상 import (상향 금지)**
+```
+grep -rn "from '@entities/\|from '@features/\|from '@widgets/" shared/
+```
+
+**4. features 내 cross-domain import (동일 계층 금지)**
+```
+grep -rn "from '@features/" features/
+```
+결과에서 자기 슬라이스 외 import를 추출. 예: `features/auth/` 파일에서 `@features/strategy` import → 위반.
+
+---
+
+각 위반을 아래 형식으로 리포트:
+```
+파일경로:라인번호 — import 구문
+  → 위반 이유: [상향 import / 동일 계층 cross-domain]
+  → 올바른 처리 방향: [위 계층(widgets/app)에서 조합하거나 shared로 추출]
+```
+
+위반 없으면 "FSD 계층 위반 없음" 출력.

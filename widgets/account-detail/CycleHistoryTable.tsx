@@ -14,6 +14,9 @@ interface Props {
   setCustomFrom: (v: string) => void
   customTo: string
   setCustomTo: (v: string) => void
+  hasNextPage?: boolean
+  isFetchingNextPage?: boolean
+  fetchNextPage?: () => void
 }
 
 export function CycleHistoryTable({
@@ -26,6 +29,9 @@ export function CycleHistoryTable({
   setCustomFrom,
   customTo,
   setCustomTo,
+  hasNextPage,
+  isFetchingNextPage,
+  fetchNextPage,
 }: Props) {
   const rangeLabel =
     rangeType === 'all'
@@ -95,7 +101,7 @@ export function CycleHistoryTable({
         ) : (
           <>
             {/* 모바일: 카드 리스트 */}
-            <div className="space-y-2 p-4 lg:hidden overflow-y-auto max-h-[440px]">
+            <div className="space-y-2 p-4 lg:hidden">
               {cycleHistory.map((entry) => (
                 <Card key={entry.createdAt} className="p-3">
                   <div className="flex items-center justify-between">
@@ -112,7 +118,7 @@ export function CycleHistoryTable({
               ))}
             </div>
             {/* 데스크탑: 테이블 */}
-            <div className="hidden lg:block overflow-y-auto max-h-[440px]">
+            <div className="hidden lg:block">
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 sticky top-0 z-10">
                   <tr>
@@ -136,6 +142,19 @@ export function CycleHistoryTable({
                 </tbody>
               </table>
             </div>
+            {/* 더 보기 버튼 — 모바일·데스크탑 공통 */}
+            {(hasNextPage || isFetchingNextPage) && (
+              <div className="flex justify-center py-4 border-t">
+                <button
+                  type="button"
+                  onClick={fetchNextPage}
+                  disabled={isFetchingNextPage}
+                  className="px-4 py-2 text-sm font-medium text-rose-600 hover:text-rose-700 disabled:opacity-50"
+                >
+                  {isFetchingNextPage ? '불러오는 중…' : '더 보기'}
+                </button>
+              </div>
+            )}
           </>
         )}
       </CardContent>
