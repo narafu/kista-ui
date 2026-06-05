@@ -4,6 +4,7 @@ import { MobileHeader } from '@components/layout/MobileHeader'
 import { MetaProvider } from '@components/providers/MetaProvider'
 import { FcmAutoRegister } from '@components/providers/FcmAutoRegister'
 import { PullToRefresh } from '@components/common/PullToRefresh'
+import { TradeNotificationProvider } from '@entities/trade'
 import { getMetaBundle } from '@lib/api/meta'
 import { getMe } from '@lib/api/auth'
 import { getAuthToken } from '@lib/auth/token'
@@ -26,6 +27,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
           <MobileBottomNav />
         </div>
         <FcmAutoRegister notificationChannel={user?.notificationChannel ?? 'TELEGRAM'} />
+        <TradeNotificationProvider />
       </div>
     </MetaProvider>
   )

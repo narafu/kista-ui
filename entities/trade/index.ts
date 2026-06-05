@@ -27,3 +27,4 @@ export {
 } from './api'
 export { useAccountCycleHistoryQuery, useStrategyCycleHistoryQuery } from './hooks/useCycleHistory'
 export { useProfitStatsQuery } from './hooks/useProfitStats'
+export { TradeNotificationProvider } from './providers/TradeNotificationProvider'
