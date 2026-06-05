@@ -45,6 +45,26 @@ shared/        → 도메인 무관 공용 (ui/, lib/api-client, lib/format, lib
 
 의존성: `app → widgets → features → entities → shared` (단방향, 동일 계층 cross-import 금지)
 
+### tsconfig 경로 alias
+
+```
+@app/*          → ./app/*
+@widgets/*      → ./widgets/*
+@features/*     → ./features/*
+@entities/*     → ./entities/*
+@shared/*       → ./shared/*
+@components/*   → ./components/*      (레거시 shim 접근)
+@lib/*          → ./lib/*             (레거시 shim 접근)
+@hooks/*        → ./hooks/*           (레거시 shim 접근)
+@/lib/*         → ./lib/*             (shadcn ui 호환 — 수정 금지)
+@/components/*  → ./components/*      (shadcn ui 호환 — 수정 금지)
+@/hooks/*       → ./hooks/*           (shadcn ui 호환)
+@/types/*       → ./types/*           (타입 shim 접근)
+```
+
+새 코드는 반드시 FSD alias(`@entities/*`, `@features/*`, `@widgets/*`, `@shared/*`) 사용.  
+`@/lib/*`, `@/components/*`는 shadcn 자동생성 파일 전용 — 직접 사용 금지.
+
 ### API 계층
 - `shared/lib/api-client/`: `apiFetch` (Server Component 전용, token 필요) / `clientFetch` (Client Component, Route Handler 경유) / `ApiError`
 - `entities/{도메인}/api/`: 도메인별 API 함수 — `lib/api/*`는 re-export shim
