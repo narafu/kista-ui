@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { StatusDot } from '@widgets/status-dot'
+import { KpiCard } from '@widgets/kpi-card'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,13 +24,15 @@ import {
 import { cn } from '@shared/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
 import type { Strategy } from '@entities/strategy'
+import type { NextOrderPositionSnapshot } from '@entities/order'
 
 interface Props {
   strategy: Strategy
+  position?: NextOrderPositionSnapshot | null
   onChanged?: () => void
 }
 
-export function StrategyCard({ strategy, onChanged }: Props) {
+export function StrategyCard({ strategy, position, onChanged }: Props) {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const deleteMutation = useDeleteStrategyMutation(() => { setDeleteOpen(false); onChanged?.() })
   const pauseMutation = usePauseStrategyMutation()
@@ -53,38 +56,42 @@ export function StrategyCard({ strategy, onChanged }: Props) {
 
   return (
     <Card className="h-full flex flex-col">
-      <CardContent className="p-6 flex-1 flex flex-col gap-6">
+      <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center px-2.5 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-rose-50 text-rose-600">
             {strategy.type}
           </span>
           <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
         </div>
+      </CardHeader>
 
-        <div className="grid grid-cols-2 gap-6 flex-1">
-          <div>
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">종목</p>
-            <p className="text-lg font-semibold">{strategy.ticker}</p>
-          </div>
-          <div>
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">다음 사이클</p>
-            <p className="text-lg font-semibold">
-              {strategy.cycleSeedType === 'NONE'
+      <CardContent className="px-6 pb-6 flex-1 flex flex-col gap-4">
+        <div className="grid grid-cols-2 gap-3">
+          <KpiCard label="종목" value={strategy.ticker} />
+          <KpiCard
+            label="다음 사이클"
+            value={
+              strategy.cycleSeedType === 'NONE'
                 ? '수동'
                 : strategy.cycleSeedType === 'MAX'
                   ? '자동(MAX)'
-                  : '자동(유지)'}
-            </p>
-          </div>
+                  : '자동(유지)'
+            }
+          />
           {strategy.initialUsdDeposit != null && (
-            <div>
-              <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-2">시작금액</p>
-              <p className="text-lg font-semibold">${strategy.initialUsdDeposit.toLocaleString('en-US')}</p>
-            </div>
+            <KpiCard label="시작금액" value={`$${strategy.initialUsdDeposit.toLocaleString('en-US')}`} />
+          )}
+          {position && (
+            <>
+              <KpiCard label="회차(T)" value={`${position.currentRound.toFixed(1)}회차`} />
+              <KpiCard label="단위금액(회)" value={`$${parseFloat(position.unitAmount).toFixed(2)}`} />
+              <KpiCard label="기준가" value={`$${parseFloat(position.referencePrice).toFixed(2)}`} />
+              <KpiCard label="목표가" value={`$${parseFloat(position.targetPrice).toFixed(2)}`} />
+            </>
           )}
         </div>
 
-        <div className="flex gap-2 pt-4 border-t">
+        <div className="flex gap-2 pt-4 border-t mt-auto">
           <Button
             variant="outline"
             size="sm"
