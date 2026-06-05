@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Clock, Users, Wallet, ArrowLeftRight, ScrollText, AlertTriangle } from 'lucide-react'
+import { LayoutDashboard, Clock, Users, Wallet, ArrowLeftRight, ScrollText, AlertTriangle, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
 const NAV_ITEMS = [
@@ -22,7 +22,16 @@ export function AdminTopBar() {
       {/* 헤더 타이틀 */}
       <div className="flex items-center justify-between px-4 py-3">
         <span className="font-extrabold text-base text-rose-600">KISTA</span>
-        <span className="text-xs font-semibold bg-rose-100 text-rose-600 px-2 py-0.5 rounded">ADMIN</span>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="size-3" />
+            앱으로
+          </Link>
+          <span className="text-xs font-semibold bg-rose-100 text-rose-600 px-2 py-0.5 rounded">ADMIN</span>
+        </div>
       </div>
       {/* 탭 네비게이션 */}
       <nav className="flex border-t border-border">

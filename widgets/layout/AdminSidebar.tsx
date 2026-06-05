@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Clock, Users, LogOut, Wallet, ArrowLeftRight, ScrollText, AlertTriangle } from 'lucide-react'
+import { LayoutDashboard, Clock, Users, LogOut, Wallet, ArrowLeftRight, ScrollText, AlertTriangle, ArrowLeft } from 'lucide-react'
 import { LogoutButton } from '@features/auth/logout/LogoutButton'
 
 const NAV_ITEMS = [
@@ -47,7 +47,14 @@ export function AdminSidebar() {
         })}
       </nav>
 
-      {/* 로그아웃 */}
+      {/* 앱으로 돌아가기 + 로그아웃 */}
+      <Link
+        href="/dashboard"
+        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="size-[18px] shrink-0" />
+        앱으로 돌아가기
+      </Link>
       <LogoutButton className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full text-left">
         <LogOut className="size-[18px] shrink-0" />
         로그아웃
