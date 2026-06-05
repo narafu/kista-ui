@@ -46,7 +46,7 @@ export function EditAccountForm({ account }: Props) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="max-w-xl space-y-4">
+      <div className="max-w-xl space-y-4 pb-12 sm:pb-0">
         <div className={cn(cardClass, 'space-y-4')}>
           <h2 className="text-sm font-semibold mb-1">계좌 정보 수정</h2>
 
@@ -133,7 +133,7 @@ export function EditAccountForm({ account }: Props) {
         </div>
       </div>
 
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 p-4 bg-background border-t z-40">
+      <div className="sm:hidden fixed bottom-14 left-0 right-0 p-4 bg-background border-t z-40">
         <Button type="submit" className="w-full h-14 text-base font-semibold" disabled={updateMutation.isPending}>
           {updateMutation.isPending ? '저장 중...' : '저장'}
         </Button>
