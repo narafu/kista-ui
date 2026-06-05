@@ -1,7 +1,7 @@
 'use client'
 
 import { useReducer } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useStrategyCycleHistoryQuery } from '@entities/trade'
 import { CycleHistoryTable } from './CycleHistoryTable'
 import { buildParams, type RangeType } from './lib/buildParams'

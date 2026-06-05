@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { CycleHistoryItem } from '@entities/trade'
 import { RANGE_LABELS, type RangeType } from './lib/buildParams'
 

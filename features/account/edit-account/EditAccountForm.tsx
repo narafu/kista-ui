@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { AlertTriangle } from 'lucide-react'
-import { Button, buttonVariants } from '@components/ui/button'
-import { Input } from '@components/ui/input'
-import { Label } from '@components/ui/label'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@components/ui/dialog'
+} from '@/components/ui/dialog'
 import { cn } from '@shared/lib/utils'
 import { useUpdateAccountMutation, useDeleteAccountMutation } from '@entities/account'
 import type { Account } from '@entities/account'

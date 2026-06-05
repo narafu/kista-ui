@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent } from '@components/ui/card'
-import { Button } from '@components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { StatusDot } from '@widgets/status-dot'
 import {
   AlertDialog,
@@ -14,14 +14,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@components/ui/alert-dialog'
+} from '@/components/ui/alert-dialog'
 import {
   useDeleteStrategyMutation,
   usePauseStrategyMutation,
   useResumeStrategyMutation,
 } from '@entities/strategy'
 import { cn } from '@shared/lib/utils'
-import { buttonVariants } from '@components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import type { Strategy } from '@entities/strategy'
 
 interface Props {

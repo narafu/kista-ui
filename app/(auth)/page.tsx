@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { GlassCard } from "@/components/common/GlassCard";
+import { GlassCard } from '@widgets/glass-card'
 
 const ERROR_MESSAGES: Record<string, string> = {
   no_code: "로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.",

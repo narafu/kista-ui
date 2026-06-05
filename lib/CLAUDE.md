@@ -1,10 +1,12 @@
-# lib/ — API 계층 · kista-api DTO · KIS quirk · 캐시
+# lib/ — kista-api DTO · KIS quirk · React Query 훅
 
-> **FSD 리팩토링 완료**: `lib/api/*.ts`, `hooks/*.ts`, `lib/fcm.ts`는 대부분 **re-export shim**. 실제 구현은 `entities/{domain}/{api|hooks}/`에 있음. 새 코드는 entities 계층에 작성할 것.
+> **현재 `lib/`**: `utils.ts`(shadcn `@/lib/utils` 호환 shim — 수정 금지) + `CLAUDE.md`만 남아있음.  
+> 모든 구현은 FSD 계층에 있음: `entities/{domain}/{api|hooks}/`, `shared/lib/`, `widgets/`, `features/`.  
+> 새 코드는 반드시 FSD 계층에 작성할 것.
 
 ## clientFetch vs apiFetch
 
-현재 구현 위치: **`shared/lib/api-client/index.ts`** (`lib/api/client.ts`는 re-export shim)
+구현 위치: **`shared/lib/api-client/index.ts`**
 
 - **`apiFetch(path, opts, token)`**: Server Component 전용 — kista-api 직접 호출
 - **`clientFetch<T>(path, opts?)`**: Client Component 전용 — Route Handler 경유, 401 시 자동 로그아웃(`/api/auth/logout` + `window.location.href='/'`)
@@ -62,8 +64,8 @@ catch-all Route Handler: `/api/accounts/[[...path]]`, `/api/admin/[[...path]]`, 
 
 ## React Query 훅
 
-- **QueryProvider**: `shared/providers/QueryProvider.tsx` (구 `components/providers/QueryProvider.tsx` — re-export shim 유지). `{ retry: 0, staleTime: 0, gcTime: 5min }`.
-- **훅 파일 위치**: 도메인 훅 → `entities/{domain}/hooks/`. 범용 복합 훅 → `hooks/` 루트 (re-export shim만 남아있을 수 있음).
+- **QueryProvider**: `shared/providers/QueryProvider.tsx`. `{ retry: 0, staleTime: 0, gcTime: 5min }`.
+- **훅 파일 위치**: 도메인 훅 → `entities/{domain}/hooks/`. 다중 entities 조합 복합 훅 → `widgets/{slice}/use{Name}.ts` (외부 export 없음).
 
 ### 도메인별 훅 목록
 
@@ -102,6 +104,6 @@ catch-all Route Handler: `/api/accounts/[[...path]]`, `/api/admin/[[...path]]`, 
 
 ## 캐시 헬퍼
 
-- `shared/lib/cache/cached-api.ts`: `getCachedAccounts`, `getCachedStrategies`, `getMe` — Server Component용 unstable_cache 래퍼. 5분 TTL. (`lib/cache/cached-api.ts`는 re-export shim)
+- `shared/lib/cache/cached-api.ts`: `getCachedAccounts`, `getCachedStrategies`, `getCachedUser` — Server Component용 unstable_cache 래퍼. 5분 TTL.
 - **`unstable_cache` 에러 핸들링**: `.catch()` 체인 금지 → `try { await getCachedX() } catch {}` 패턴
 - **`revalidateTag` 2인자**: `revalidateTag(tag, 'max')` — 1인자만 쓰면 TS 에러

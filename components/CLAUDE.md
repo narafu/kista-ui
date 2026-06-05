@@ -1,6 +1,8 @@
 # components/ — 컴포넌트 패턴 · 스타일링 · React Query
 
-> **FSD 리팩토링 완료**: `components/{common,accounts,strategies,settings,layout,admin}/` 내 상당수 파일은 **re-export shim**. 실제 구현은 `widgets/`, `features/`, `entities/` 계층에 있음. 새 컴포넌트는 FSD 계층에 작성할 것.
+> **현재 `components/`**: `ui/`(shadcn — 수정 금지) + `CLAUDE.md`만 남아있음.  
+> 모든 컴포넌트 구현은 FSD 계층: `widgets/`, `features/`, `entities/`, `shared/`.  
+> 새 컴포넌트는 반드시 FSD 계층에 작성할 것.
 
 ## shadcn / UI 컴포넌트
 
@@ -48,8 +50,6 @@
 
 ## Account 기능 구조
 
-실제 구현 위치: **`features/account/`** (`components/accounts/*`는 re-export shim)
-
 - `features/account/create-account/CreateAccountStepper.tsx` — 3단계 계좌 등록 스테퍼
 - `features/account/create-account/steps/{AccountInfoStep,ApiStep,ConfirmStep}.tsx` — 각 단계 폼
   - `ApiStep`: `useTestKisConnectionMutation` 사용 — KIS 연결 테스트
@@ -60,8 +60,6 @@
 
 ## AccountDetailTabs 구조
 
-실제 구현 위치: **`widgets/account-detail/`** (`components/common/AccountDetailTabs.tsx`는 re-export shim)
-
 - 데스크탑 3행: 1행=`AccountSummaryCard|TradesTab(accountId)`, 2행=`StrategyList|StrategyTradesTab(strategyId)`, 3행=`NextOrderPreviewCard(전폭)`
 - 모바일: 요약/전략/다음 주문 탭 3개
 - `TradesTab`·`StrategyTradesTab` → `widgets/account-detail/TradesTab.tsx`, `StrategyTradesTab.tsx` (각자 range 상태를 useReducer로 관리)
@@ -71,18 +69,14 @@
 
 ## NextOrderPreviewCard 구조
 
-실제 구현 위치: **`widgets/next-order-preview/`** (`components/common/NextOrderPreviewCard.tsx`는 re-export shim)
-
 - `NextOrderPreviewCard.tsx` — 얇은 컨테이너 (useNextOrderPreview 훅 호출, 파생 상태 계산, mode 분기)
 - `PreviewMode.tsx` — 미리보기 모드 (로딩/에러/주문 목록)
 - `ExecutedMode.tsx` — 실행 후 접수 목록 + 취소 버튼
 - `ExecuteDialog.tsx` — AlertDialog 분리
 - `OrderRow.tsx` — BUY/SELL 행 (PreviewMode/ExecutedMode 공용)
-- `useNextOrderPreview` 훅: `hooks/useNextOrderPreview.ts` (preview, margin, marketSession, holidays, execute/cancelAll/cancelOne mutation 통합)
+- `useNextOrderPreview` 훅: `widgets/next-order-preview/useNextOrderPreview.ts` (preview, margin, marketSession, holidays, execute/cancelAll/cancelOne mutation 통합, 외부 export 없음)
 
 ## Dashboard 구조
-
-실제 구현 위치: **`widgets/dashboard/`** (`app/(main)/dashboard/page.tsx`는 53 LOC Server Component)
 
 - `DashboardEmpty.tsx` — 계좌 미등록 상태 (데스크탑+모바일 통합 반응형)
 - `DashboardOverview.tsx` — 계좌 있는 상태 (KPI 카드 + 계좌 목록, 데스크탑+모바일 통합)

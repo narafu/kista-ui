@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@shared/lib/utils'
-import { Button } from '@components/ui/button'
+import { Button } from '@/components/ui/button'
 import { useMeta } from '@entities/meta'
 import { useStrategyForm } from './model/useStrategyForm'
 import { StrategyTypeSection } from './sections/StrategyTypeSection'
