@@ -54,6 +54,13 @@ export function StrategyCard({ strategy, position, onChanged }: Props) {
     }
   }
 
+  const cycleSeedLabel =
+    strategy.cycleSeedType === 'NONE'
+      ? '수동'
+      : strategy.cycleSeedType === 'MAX'
+        ? '자동(MAX)'
+        : '자동(유지)'
+
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-3">
@@ -62,6 +69,12 @@ export function StrategyCard({ strategy, position, onChanged }: Props) {
             {strategy.type}
           </span>
           <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
+          <span className="ml-auto inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            다음 사이클
+            <span className="px-1.5 py-0.5 rounded bg-muted text-foreground font-semibold">
+              {cycleSeedLabel}
+            </span>
+          </span>
         </div>
       </CardHeader>
 
@@ -69,18 +82,9 @@ export function StrategyCard({ strategy, position, onChanged }: Props) {
         <div className="grid grid-cols-2 gap-3">
           <KpiCard label="종목" value={strategy.ticker} />
           <KpiCard
-            label="다음 사이클"
-            value={
-              strategy.cycleSeedType === 'NONE'
-                ? '수동'
-                : strategy.cycleSeedType === 'MAX'
-                  ? '자동(MAX)'
-                  : '자동(유지)'
-            }
+            label="시작금액"
+            value={strategy.initialUsdDeposit != null ? `$${strategy.initialUsdDeposit.toLocaleString('en-US')}` : '-'}
           />
-          {strategy.initialUsdDeposit != null && (
-            <KpiCard label="시작금액" value={`$${strategy.initialUsdDeposit.toLocaleString('en-US')}`} />
-          )}
           {position && (
             <>
               <KpiCard label="회차(T)" value={`${position.currentRound.toFixed(1)}회차`} />
