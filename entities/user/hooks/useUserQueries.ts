@@ -1,10 +1,19 @@
 'use client'
 
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { reapply, deleteMe, updateNotificationChannel, updateTelegram, deleteTelegram, approveAdminUser, rejectAdminUser, changeAdminUserRole, deleteAdminUser } from '../api'
-import type { UserRole } from '../model/types'
+import { listAdminUsers, reapply, deleteMe, updateNotificationChannel, updateTelegram, deleteTelegram, approveAdminUser, rejectAdminUser, changeAdminUserRole, deleteAdminUser } from '../api'
+import type { AdminUser, UserRole, UserStatus } from '../model/types'
+
+export function useAdminUsersQuery(filter?: UserStatus, initialData?: AdminUser[]) {
+  return useQuery<AdminUser[]>({
+    queryKey: ['adminUsers', filter],
+    queryFn: () => listAdminUsers(undefined, filter),
+    initialData,
+    staleTime: 30_000,
+  })
+}
 
 export function useReapplyMutation() {
   return useMutation({

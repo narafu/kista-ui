@@ -1,6 +1,6 @@
 import { getAuthToken } from '@shared/lib/auth/token'
 import { getAdminStats, listAdminUsers } from '@entities/user'
-import { ApproveRejectButtons } from '@features/admin/approve-reject'
+import { AdminPendingList } from '@widgets/admin-user-list'
 import { Users, Clock, CheckCircle, XCircle } from 'lucide-react'
 
 export default async function AdminOverviewPage() {
@@ -38,25 +38,7 @@ export default async function AdminOverviewPage() {
           ) : null}
         </h2>
 
-        {recentPending.length === 0 ? (
-          <div className="rounded-xl border border-border p-8 text-center text-sm text-muted-foreground">
-            대기 중인 사용자가 없습니다
-          </div>
-        ) : (
-          <div className="rounded-xl border border-border divide-y divide-border">
-            {recentPending.map((user) => (
-              <div key={user.id} className="flex items-center justify-between px-4 py-3">
-                <div>
-                  <p className="text-sm font-semibold">{user.nickname}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(user.createdAt).toLocaleDateString('ko-KR')}
-                  </p>
-                </div>
-                <ApproveRejectButtons userId={user.id} nickname={user.nickname} />
-              </div>
-            ))}
-          </div>
-        )}
+        <AdminPendingList initialUsers={recentPending} />
       </section>
     </div>
   )

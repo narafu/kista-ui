@@ -30,6 +30,7 @@ export {
   getAdminAnomalies,
 } from './api'
 export {
+  useAdminUsersQuery,
   useReapplyMutation,
   useDeleteMeMutation,
   useUpdateNotificationChannelMutation,

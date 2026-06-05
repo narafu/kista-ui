@@ -38,9 +38,10 @@ export async function deleteTelegram(): Promise<void> {
   await clientFetch<void>('/api/settings/telegram', { method: 'DELETE' })
 }
 
-export async function listAdminUsers(token: string, status?: UserStatus): Promise<AdminUser[]> {
+export async function listAdminUsers(token?: string, status?: UserStatus): Promise<AdminUser[]> {
   const query = status ? `?status=${status}` : ''
-  return apiFetch<AdminUser[]>(`/api/admin/users${query}`, { method: 'GET' }, token)
+  if (token) return apiFetch<AdminUser[]>(`/api/admin/users${query}`, { method: 'GET' }, token)
+  return clientFetch<AdminUser[]>(`/api/admin/users${query}`)
 }
 
 export async function approveAdminUser(userId: string): Promise<void> {
