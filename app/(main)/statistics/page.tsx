@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
-import { getAuthToken } from '@lib/auth/token'
-import { getCurrentPortfolio, getTrades } from '@lib/api/trades'
-import { getCachedAccounts } from '@lib/cache/cached-api'
-import { ProfitStatsCard } from '@components/common/ProfitStatsCard'
-import { PageHeader } from '@components/common/PageHeader'
-import { KpiCard } from '@components/common/KpiCard'
-import type { Account } from '@/types/account'
-import type { TradeHistory, PortfolioSnapshot } from '@/types/trade'
+import { getAuthToken } from '@shared/lib/auth/token'
+import { getCurrentPortfolio, getTrades } from '@entities/trade'
+import { getCachedAccounts } from '@shared/lib/cache/cached-api'
+import { ProfitStatsCard } from '@widgets/profit-stats-card'
+import { PageHeader } from '@widgets/page-header'
+import { KpiCard } from '@widgets/kpi-card'
+import type { Account } from '@entities/account'
+import type { TradeHistory, PortfolioSnapshot } from '@entities/trade'
 
 export const metadata: Metadata = {
   title: '수익 통계 | KISTA',

@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 import { PlusCircle } from 'lucide-react'
 import Link from 'next/link'
-import { cn } from '@lib/utils'
+import { cn } from '@shared/lib/utils'
 import { buttonVariants } from '@components/ui/button'
-import { AccountCard } from '@components/common/AccountCard'
-import { getAuthToken } from '@lib/auth/token'
-import { getCachedAccounts, getCachedStrategies } from '@lib/cache/cached-api'
-import type { Account } from '@/types/account'
-import type { Strategy } from '@/types/strategy'
+import { AccountCard } from '@widgets/account-card'
+import { getAuthToken } from '@shared/lib/auth/token'
+import { getCachedAccounts, getCachedStrategies } from '@shared/lib/cache/cached-api'
+import type { Account } from '@entities/account'
+import type { Strategy } from '@entities/strategy'
 
 export const metadata: Metadata = {
   title: '내 계좌 | KISTA',

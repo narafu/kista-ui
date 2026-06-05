@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getAuthToken } from '@lib/auth/token'
-import { listAccounts } from '@lib/api/accounts'
-import { AccountEditForm } from '@components/accounts/AccountEditForm'
-import { PageHeader } from '@components/common/PageHeader'
+import { getAuthToken } from '@shared/lib/auth/token'
+import { listAccounts } from '@entities/account'
+import { EditAccountForm } from '@features/account/edit-account'
+import { PageHeader } from '@widgets/page-header'
 
 export const metadata: Metadata = {
   title: '계좌 수정 | KISTA',
@@ -36,7 +36,7 @@ export default async function AccountEditPage({ params }: Props) {
         title="계좌 수정"
       />
 
-      <AccountEditForm account={account} />
+      <EditAccountForm account={account} />
     </div>
   )
 }

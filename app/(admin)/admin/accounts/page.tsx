@@ -1,6 +1,6 @@
-import { getAuthToken } from '@lib/auth/token'
-import { listAdminAccounts } from '@lib/api/admin'
-import type { AdminAccount } from '@/types/admin'
+import { getAuthToken } from '@shared/lib/auth/token'
+import { listAdminAccounts } from '@entities/user'
+import type { AdminAccount } from '@entities/user'
 
 export default async function AdminAccountsPage() {
   const token = await getAuthToken()

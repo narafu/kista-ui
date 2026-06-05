@@ -1,6 +1,6 @@
-import { getAuthToken } from '@lib/auth/token'
-import { getAdminAnomalies } from '@lib/api/admin'
-import type { AdminAnomalies, AdminAnomalyAccount } from '@/types/admin'
+import { getAuthToken } from '@shared/lib/auth/token'
+import { getAdminAnomalies } from '@entities/user'
+import type { AdminAnomalies, AdminAnomalyAccount } from '@entities/user'
 
 const EMPTY_ANOMALIES: AdminAnomalies = {
   pausedAccounts: [],

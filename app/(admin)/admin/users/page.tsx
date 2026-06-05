@@ -1,7 +1,7 @@
-import { getAuthToken } from '@lib/auth/token'
-import { listAdminUsers } from '@lib/api/admin'
-import { ChangeRoleButton } from '@components/admin/ChangeRoleButton'
-import type { UserStatus } from '@/types/user'
+import { getAuthToken } from '@shared/lib/auth/token'
+import { listAdminUsers } from '@entities/user'
+import { ChangeRoleButton } from '@features/admin/change-role'
+import type { UserStatus } from '@entities/user'
 
 const STATUS_LABEL: Record<UserStatus, string> = {
   PENDING: '대기',

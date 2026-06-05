@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import { PageHeader } from '@components/common/PageHeader'
-import { NewAccountStepper } from '@components/accounts/NewAccountStepper'
+import { PageHeader } from '@widgets/page-header'
+import { CreateAccountStepper } from '@features/account/create-account'
 
 export const metadata: Metadata = {
   title: '계좌 연결 | KISTA',
@@ -11,7 +11,7 @@ export default function NewAccountPage() {
   return (
     <div>
       <PageHeader eyebrow="계좌 관리" title="새 계좌 연결" />
-      <NewAccountStepper />
+      <CreateAccountStepper />
     </div>
   )
 }

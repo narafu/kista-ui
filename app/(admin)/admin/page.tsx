@@ -1,6 +1,6 @@
-import { getAuthToken } from '@lib/auth/token'
-import { getAdminStats, listAdminUsers } from '@lib/api/admin'
-import { ApproveRejectButtons } from '@components/admin/ApproveRejectButtons'
+import { getAuthToken } from '@shared/lib/auth/token'
+import { getAdminStats, listAdminUsers } from '@entities/user'
+import { ApproveRejectButtons } from '@features/admin/approve-reject'
 import { Users, Clock, CheckCircle, XCircle } from 'lucide-react'
 
 export default async function AdminOverviewPage() {

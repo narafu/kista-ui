@@ -1,0 +1,1 @@
+export { AccountDetailTabs } from './AccountDetailTabs'

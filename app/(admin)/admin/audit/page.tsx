@@ -1,6 +1,6 @@
-import { getAuthToken } from '@lib/auth/token'
-import { listAdminAuditLogs } from '@lib/api/admin'
-import type { AdminAuditLog } from '@/types/admin'
+import { getAuthToken } from '@shared/lib/auth/token'
+import { listAdminAuditLogs } from '@entities/user'
+import type { AdminAuditLog } from '@entities/user'
 
 export default async function AdminAuditPage() {
   const token = await getAuthToken()

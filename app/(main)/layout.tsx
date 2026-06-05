@@ -1,13 +1,13 @@
-import { DesktopSidebar } from '@components/layout/DesktopSidebar'
-import { MobileBottomNav } from '@components/layout/MobileBottomNav'
-import { MobileHeader } from '@components/layout/MobileHeader'
-import { MetaProvider } from '@components/providers/MetaProvider'
-import { FcmAutoRegister } from '@components/providers/FcmAutoRegister'
-import { PullToRefresh } from '@components/common/PullToRefresh'
+import { DesktopSidebar } from '@widgets/layout/DesktopSidebar'
+import { MobileBottomNav } from '@widgets/layout/MobileBottomNav'
+import { MobileHeader } from '@widgets/layout/MobileHeader'
+import { MetaProvider } from '@entities/meta'
+import { FcmAutoRegister } from '@entities/fcm'
+import { PullToRefresh } from '@widgets/pull-to-refresh'
 import { TradeNotificationProvider } from '@entities/trade'
-import { getMetaBundle } from '@lib/api/meta'
-import { getMe } from '@lib/api/auth'
-import { getAuthToken } from '@lib/auth/token'
+import { getMetaBundle } from '@entities/meta'
+import { getMe } from '@entities/user'
+import { getAuthToken } from '@shared/lib/auth/token'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const token = await getAuthToken()

@@ -1,6 +1,6 @@
-import { getAuthToken } from '@lib/auth/token'
-import { listAdminUsers } from '@lib/api/admin'
-import { ApproveRejectButtons } from '@components/admin/ApproveRejectButtons'
+import { getAuthToken } from '@shared/lib/auth/token'
+import { listAdminUsers } from '@entities/user'
+import { ApproveRejectButtons } from '@features/admin/approve-reject'
 import { Clock } from 'lucide-react'
 
 export default async function AdminPendingPage() {

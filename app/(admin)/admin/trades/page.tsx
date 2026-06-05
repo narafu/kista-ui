@@ -1,6 +1,6 @@
-import { getAuthToken } from '@lib/auth/token'
-import { listAdminTrades } from '@lib/api/admin'
-import type { AdminTrade } from '@/types/admin'
+import { getAuthToken } from '@shared/lib/auth/token'
+import { listAdminTrades } from '@entities/user'
+import type { AdminTrade } from '@entities/user'
 
 const DIRECTION_LABEL: Record<string, string> = { BUY: '매수', SELL: '매도' }
 const STATUS_STYLE: Record<string, string> = {

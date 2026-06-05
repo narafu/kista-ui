@@ -1,12 +1,12 @@
-import { getAuthToken } from '@lib/auth/token'
-import { DeleteAccountButton } from '@components/settings/DeleteAccountButton'
-import { getCachedUser } from '@lib/cache/cached-api'
-import { TelegramSection } from '@components/settings/TelegramSection'
-import { NotificationSettings } from '@components/settings/NotificationSettings'
-import { ThemeCards } from '@components/settings/ThemeCards'
-import { PageHeader } from '@components/common/PageHeader'
-import { ThemeToggle } from '@components/common/ThemeToggle'
-import type { User } from '@/types/user'
+import { getAuthToken } from '@shared/lib/auth/token'
+import { DeleteAccountButton } from '@features/settings/delete-user-account'
+import { getCachedUser } from '@shared/lib/cache/cached-api'
+import { TelegramSection } from '@features/settings/telegram-connect'
+import { NotificationSettings } from '@features/settings/notification-channel'
+import { ThemeCards } from '@features/settings/theme-select'
+import { PageHeader } from '@widgets/page-header'
+import { ThemeToggle } from '@widgets/theme-toggle'
+import type { User } from '@entities/user'
 
 export default async function SettingsPage() {
   const token = await getAuthToken()

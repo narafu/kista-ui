@@ -1,13 +1,13 @@
-import { getAuthToken } from '@lib/auth/token'
-import { getAccountPortfolio } from '@lib/api/trades'
-import { getMonthlyHolidays } from '@lib/api/market'
-import { getCachedAccounts, getCachedStrategies } from '@lib/cache/cached-api'
+import { getAuthToken } from '@shared/lib/auth/token'
+import { getAccountPortfolio } from '@entities/trade'
+import { getMonthlyHolidays } from '@entities/market'
+import { getCachedAccounts, getCachedStrategies } from '@shared/lib/cache/cached-api'
 import { DashboardEmpty } from '@widgets/dashboard/DashboardEmpty'
 import { DashboardOverview } from '@widgets/dashboard/DashboardOverview'
 import { aggregatePortfolios } from '@widgets/dashboard/aggregatePortfolios'
-import type { Account } from '@/types/account'
-import type { PortfolioSnapshot } from '@/types/trade'
-import type { Strategy } from '@/types/strategy'
+import type { Account } from '@entities/account'
+import type { PortfolioSnapshot } from '@entities/trade'
+import type { Strategy } from '@entities/strategy'
 
 export default async function DashboardPage() {
   const token = await getAuthToken()

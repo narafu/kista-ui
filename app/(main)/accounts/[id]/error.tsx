@@ -1,6 +1,6 @@
 'use client'
 
-import { ErrorDisplay } from '@components/common/ErrorDisplay'
+import { ErrorDisplay } from '@widgets/error-display'
 
 export default function AccountDetailError({
   reset,

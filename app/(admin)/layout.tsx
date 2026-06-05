@@ -1,5 +1,5 @@
-import { AdminSidebar } from '@components/admin/AdminSidebar'
-import { AdminTopBar } from '@components/admin/AdminTopBar'
+import { AdminSidebar } from '@widgets/layout/AdminSidebar'
+import { AdminTopBar } from '@widgets/layout/AdminTopBar'
 import { Toaster } from 'sonner'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
