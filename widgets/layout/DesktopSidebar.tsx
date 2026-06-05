@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
-import { LayoutDashboard, CreditCard, BarChart2, Settings, LogOut } from 'lucide-react'
+import { LayoutDashboard, CreditCard, BarChart2, Settings, LogOut, ShieldCheck } from 'lucide-react'
 import { ThemeToggle } from '@widgets/theme-toggle'
 import { LogoutButton } from '@features/auth/logout/LogoutButton'
 
@@ -14,7 +14,11 @@ const NAV_ITEMS = [
   { href: '/settings',   label: '설정',     icon: Settings },
 ]
 
-export function DesktopSidebar() {
+interface Props {
+  isAdmin?: boolean
+}
+
+export function DesktopSidebar({ isAdmin }: Props) {
   const pathname = usePathname()
 
   return (
@@ -54,6 +58,25 @@ export function DesktopSidebar() {
             </Link>
           )
         })}
+        {isAdmin && (
+          <>
+            <hr className="my-1 border-border" />
+            <Link
+              href="/admin"
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium transition-colors ${
+                pathname.startsWith('/admin')
+                  ? 'bg-violet-50 text-violet-600'
+                  : 'text-violet-600 hover:bg-violet-50/60'
+              }`}
+            >
+              <ShieldCheck className="size-[18px] shrink-0" />
+              관리자
+              <span className="ml-auto text-[10px] font-bold bg-violet-600 text-white rounded-full px-1.5 py-0.5 leading-none">
+                ADMIN
+              </span>
+            </Link>
+          </>
+        )}
       </nav>
 
       {/* Footer: ThemeToggle + Logout */}
