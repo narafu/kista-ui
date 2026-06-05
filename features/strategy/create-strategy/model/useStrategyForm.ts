@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { useMeta } from '@entities/meta'
@@ -52,6 +53,7 @@ export function useStrategyForm({
   onSuccess,
 }: UseStrategyFormOptions): UseStrategyFormReturn {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const { meta, findStrategyType } = useMeta()
 
   // UI 상태만 유지
@@ -160,6 +162,7 @@ export function useStrategyForm({
         await createStrategy(accountId, payload)
         toast.success('전략이 등록되었습니다')
       }
+      queryClient.invalidateQueries({ queryKey: ['strategies', accountId] })
       router.refresh()
       onSuccess?.()
     } catch (err) {
