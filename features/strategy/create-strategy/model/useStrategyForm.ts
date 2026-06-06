@@ -49,7 +49,7 @@ export function useStrategyForm({
   initial,
   onSuccess,
 }: UseStrategyFormOptions): UseStrategyFormReturn {
-  const { meta, findStrategyType } = useMeta()
+  const { meta, findStrategyType, findTicker } = useMeta()
 
   const createMutation = useCreateStrategyMutation(accountId, onSuccess)
   const updateMutation = useUpdateStrategyMutation(initial?.id ?? '', onSuccess)
@@ -82,6 +82,11 @@ export function useStrategyForm({
     }
   }, [loadingBase]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  function tickerBuffer(code: string): number {
+    const rate = findTicker(code)?.targetProfitRate
+    return 1 + (rate ? parseFloat(rate) : 0.1)
+  }
+
   const typeMeta = useMemo(() => findStrategyType(type), [findStrategyType, type])
   const availableTickers = typeMeta?.availableTickers ?? []
   const isInfinite = (typeMeta?.availableTickers?.length ?? 0) > 1
@@ -102,7 +107,7 @@ export function useStrategyForm({
     const newMinSeed = process.env.NEXT_PUBLIC_DEV_BYPASS_MIN_SEED === 'true'
       ? null
       : newIsInfinite
-        ? newBasePrice !== null ? newBasePrice * 20 * 2 * 1.1 : null
+        ? newBasePrice !== null ? newBasePrice * 20 * 2 * tickerBuffer(newTicker) : null
         : privacyBase !== null ? privacyBase / 2 : null
     setPct(
       usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
@@ -118,7 +123,7 @@ export function useStrategyForm({
   const minSeed = useMemo(() => {
     if (initial) return null
     if (process.env.NEXT_PUBLIC_DEV_BYPASS_MIN_SEED === 'true') return null
-    if (isInfinite) return basePrice !== null ? basePrice * 20 * 2 * 1.1 : null
+    if (isInfinite) return basePrice !== null ? basePrice * 20 * 2 * tickerBuffer(ticker) : null
     return privacyBase !== null ? privacyBase / 2 : null
   }, [isInfinite, basePrice, privacyBase, initial])
 
@@ -137,7 +142,7 @@ export function useStrategyForm({
     const newBasePrice = prices?.[code] ?? null
     const newMinSeed = process.env.NEXT_PUBLIC_DEV_BYPASS_MIN_SEED === 'true'
       ? null
-      : newBasePrice !== null ? newBasePrice * 20 * 2 * 1.1 : null
+      : newBasePrice !== null ? newBasePrice * 20 * 2 * tickerBuffer(code) : null
     setPct(
       usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
     )
