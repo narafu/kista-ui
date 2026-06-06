@@ -1,12 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { Send, Check } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { updateTelegram, deleteTelegram, updateNotificationChannel } from '@entities/user'
+import { useUpdateTelegramMutation, useDeleteTelegramMutation, useUpdateNotificationChannelMutation } from '@entities/user'
 import { ApiError } from '@shared/lib/api-client'
 import { cn } from '@shared/lib/utils'
 import type { NotificationChannel } from '@entities/user'
@@ -20,60 +19,39 @@ interface Props {
 export function TelegramSection({ hasTelegram, telegramBotUsername, currentChannel }: Props) {
   const [botToken, setBotToken] = useState('')
   const [chatId, setChatId] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [isDeleteLoading, setIsDeleteLoading] = useState(false)
-  const [currentHasTelegram, setCurrentHasTelegram] = useState(hasTelegram)
-  const [currentUsername, setCurrentUsername] = useState(telegramBotUsername ?? null)
-  const router = useRouter()
 
-  useEffect(() => {
-    if (telegramBotUsername != null) {
-      setCurrentUsername(telegramBotUsername)
-    }
-  }, [telegramBotUsername])
+  const updateChannelMutation = useUpdateNotificationChannelMutation()
+  const updateMutation = useUpdateTelegramMutation()
+  const deleteMutation = useDeleteTelegramMutation()
 
-  async function handleSave() {
+  function handleSave() {
     if (!botToken.trim()) { toast.error('Bot Token을 입력해주세요'); return }
     if (!chatId.trim()) { toast.error('Chat ID를 입력해주세요'); return }
 
-    setIsLoading(true)
-    try {
-      await updateTelegram({ botToken: botToken.trim(), chatId: chatId.trim() })
-    } catch (err) {
-      toast.error(err instanceof ApiError && err.status === 400 ? '유효하지 않은 Bot Token입니다' : '연결에 실패했습니다')
-      setIsLoading(false)
-      return
-    }
-
-    // 텔레그램 등록 성공 → 알림 수단 자동 전환 (끄기→텔레그램, 푸시→모두)
-    const nextChannel: NotificationChannel | null =
-      currentChannel === 'NONE' ? 'TELEGRAM'
-      : currentChannel === 'FCM' ? 'ALL'
-      : null
-    if (nextChannel) {
-      await updateNotificationChannel(nextChannel).catch(() => {})
-    }
-
-    toast.success('텔레그램 봇이 연결되었습니다')
-    setCurrentHasTelegram(true)
-    setBotToken('')
-    setChatId('')
-    router.refresh()
-    setIsLoading(false)
+    updateMutation.mutate(
+      { botToken: botToken.trim(), chatId: chatId.trim() },
+      {
+        onSuccess: () => {
+          setBotToken('')
+          setChatId('')
+          // 텔레그램 등록 성공 → 알림 수단 자동 전환 (끄기→텔레그램, 푸시→모두)
+          const nextChannel: NotificationChannel | null =
+            currentChannel === 'NONE' ? 'TELEGRAM'
+            : currentChannel === 'FCM' ? 'ALL'
+            : null
+          if (nextChannel) {
+            updateChannelMutation.mutate(nextChannel)
+          }
+        },
+        onError: (err) => {
+          toast.error(err instanceof ApiError && err.status === 400 ? '유효하지 않은 Bot Token입니다' : '연결에 실패했습니다')
+        },
+      }
+    )
   }
 
-  async function handleDelete() {
-    setIsDeleteLoading(true)
-    try {
-      await deleteTelegram()
-      toast.success('텔레그램 봇이 연결 해제되었습니다')
-      setCurrentHasTelegram(false)
-      setCurrentUsername(null)
-    } catch (err) {
-      toast.error(err instanceof ApiError ? '해제에 실패했습니다' : '오류가 발생했습니다')
-    }
-    setIsDeleteLoading(false)
-  }
+  const isLoading = updateMutation.isPending
+  const isDeleteLoading = deleteMutation.isPending
 
   return (
     <div className="flex flex-col gap-4">
@@ -86,7 +64,7 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
           <div className="text-sm font-bold leading-tight">텔레그램 알림</div>
           <div className="text-[12px] text-muted-foreground mt-0.5">매매 체결 및 시스템 이벤트 실시간 알림</div>
         </div>
-        {currentHasTelegram && (
+        {hasTelegram && (
           <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--status-ok-bg,#dcfce7)] text-[var(--status-ok,#16a34a)] text-[11.5px] font-semibold shrink-0">
             <Check size={10} />
             <span>연결됨</span>
@@ -95,17 +73,17 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
       </div>
 
       {/* 연결됨 — muted 패널 */}
-      {currentHasTelegram && (
+      {hasTelegram && (
         <div className="flex items-center justify-between bg-muted rounded-[10px] px-[14px] py-[12px]">
           <div>
             <div className="text-[11.5px] text-muted-foreground mb-0.5">연결된 채팅</div>
             <div className="text-sm font-bold font-mono">
-              {currentUsername ? `@${currentUsername}` : '불러오는 중...'}
+              {telegramBotUsername ? `@${telegramBotUsername}` : '불러오는 중...'}
             </div>
           </div>
           <button
             type="button"
-            onClick={handleDelete}
+            onClick={() => deleteMutation.mutate()}
             disabled={isDeleteLoading}
             className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'text-destructive hover:text-destructive')}
           >
@@ -115,7 +93,7 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
       )}
 
       {/* 미연결 — 입력 폼 */}
-      {!currentHasTelegram && (
+      {!hasTelegram && (
         <div className="flex flex-col gap-3">
           <div>
             <div className="text-[11.5px] text-muted-foreground mb-1">Bot Token</div>

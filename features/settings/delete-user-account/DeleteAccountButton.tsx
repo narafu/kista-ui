@@ -1,21 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { deleteMe } from '@entities/user'
+import { useDeleteMeMutation } from '@entities/user'
 
 export function DeleteAccountButton() {
   const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const mutation = useDeleteMeMutation()
 
   async function handleDelete() {
-    setLoading(true)
     try {
-      await deleteMe()
+      await mutation.mutateAsync()
       window.location.href = '/'
     } catch {
       alert('탈퇴 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -43,7 +40,7 @@ export function DeleteAccountButton() {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                disabled={loading}
+                disabled={mutation.isPending}
                 className="flex-1 py-2 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted transition-colors"
               >
                 취소
@@ -51,10 +48,10 @@ export function DeleteAccountButton() {
               <button
                 type="button"
                 onClick={handleDelete}
-                disabled={loading}
+                disabled={mutation.isPending}
                 className="flex-1 py-2 rounded-[var(--r-md)] bg-neg text-white text-sm font-semibold hover:bg-neg/90 disabled:opacity-60 transition-colors"
               >
-                {loading ? '처리 중...' : '탈퇴 확인'}
+                {mutation.isPending ? '처리 중...' : '탈퇴 확인'}
               </button>
             </div>
           </div>

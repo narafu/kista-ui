@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { updateTelegram, deleteTelegram } from '@entities/user'
+import { useUpdateTelegramMutation, useDeleteTelegramMutation } from '@entities/user'
 import { ApiError } from '@shared/lib/api-client'
 
 interface Props {
@@ -13,46 +13,36 @@ interface Props {
 }
 
 export function PendingTelegramConnect({ hasTelegram }: Props) {
-  const [isConnected, setIsConnected] = useState(hasTelegram)
   const [showForm, setShowForm] = useState(false)
   const [botToken, setBotToken] = useState('')
   const [chatId, setChatId] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [isDeleteLoading, setIsDeleteLoading] = useState(false)
 
-  async function handleSave() {
+  const updateMutation = useUpdateTelegramMutation()
+  const deleteMutation = useDeleteTelegramMutation()
+
+  function handleSave() {
     if (!botToken.trim()) { toast.error('Bot Token을 입력해주세요'); return }
     if (!chatId.trim()) { toast.error('Chat ID를 입력해주세요'); return }
 
-    setIsLoading(true)
-    try {
-      await updateTelegram({ botToken: botToken.trim(), chatId: chatId.trim() })
-      toast.success('텔레그램 봇이 연동되었습니다')
-      setIsConnected(true)
-      setShowForm(false)
-      setBotToken('')
-      setChatId('')
-    } catch (err) {
-      toast.error(err instanceof ApiError ? '연동에 실패했습니다' : '오류가 발생했습니다')
-    } finally {
-      setIsLoading(false)
-    }
+    updateMutation.mutate(
+      { botToken: botToken.trim(), chatId: chatId.trim() },
+      {
+        onSuccess: () => {
+          setShowForm(false)
+          setBotToken('')
+          setChatId('')
+        },
+        onError: (err) => {
+          toast.error(err instanceof ApiError ? '연동에 실패했습니다' : '오류가 발생했습니다')
+        },
+      }
+    )
   }
 
-  async function handleDelete() {
-    setIsDeleteLoading(true)
-    try {
-      await deleteTelegram()
-      toast.success('텔레그램 봇이 해제되었습니다')
-      setIsConnected(false)
-    } catch (err) {
-      toast.error(err instanceof ApiError ? '해제에 실패했습니다' : '오류가 발생했습니다')
-    } finally {
-      setIsDeleteLoading(false)
-    }
-  }
+  const isLoading = updateMutation.isPending
+  const isDeleteLoading = deleteMutation.isPending
 
-  if (isConnected) {
+  if (hasTelegram) {
     return (
       <div className="flex flex-col gap-3">
         <p className="text-sm text-green-600 font-medium">✓ 텔레그램 봇이 연동되었습니다</p>
@@ -60,7 +50,7 @@ export function PendingTelegramConnect({ hasTelegram }: Props) {
           variant="outline"
           size="lg"
           className="w-full h-12"
-          onClick={handleDelete}
+          onClick={() => deleteMutation.mutate()}
           disabled={isDeleteLoading}
         >
           {isDeleteLoading ? '해제 중...' : '연동 해제'}
