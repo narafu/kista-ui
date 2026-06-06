@@ -14,11 +14,6 @@
 - **204 처리**: `clientFetch<void>` 사용 — `res.json()` 금지 (`SyntaxError: Unexpected end of JSON`)
 - **lib/api 호출 패턴**: `listAccounts(token?)` — token 생략 시 Route Handler 경유. token 전달은 Server Component 전용. 함수명: `listAccounts` (`getAccounts` 아님)
 
-## Route Handler 목록
-
-catch-all Route Handler: `/api/accounts/[[...path]]`, `/api/admin/[[...path]]`, `/api/market/[[...path]]`, `/api/meta/[[...path]]`, `/api/orders/[[...path]]`, `/api/portfolio/[[...path]]`, `/api/privacy-trades/[[...path]]`, `/api/strategies/[[...path]]`, `/api/trading-cycles/[[...path]]`
-
-전용 Route Handler: `app/api/auth/logout`, `app/api/auth/me`, `app/api/auth/reapply-done`, `app/api/auth/status-stream`, `app/api/fcm/tokens`, `app/api/fcm/tokens/[token]`, `app/api/settings/notification-channel`, `app/api/settings/telegram`, `app/api/trades/stream`
 
 ## kista-api DTO 필드
 
@@ -67,19 +62,6 @@ catch-all Route Handler: `/api/accounts/[[...path]]`, `/api/admin/[[...path]]`, 
 - **QueryProvider**: `shared/providers/QueryProvider.tsx`. `{ retry: 0, staleTime: 0, gcTime: 5min }`.
 - **훅 파일 위치**: 도메인 훅 → `entities/{domain}/hooks/`. 다중 entities 조합 복합 훅 → `widgets/{slice}/use{Name}.ts` (외부 export 없음).
 
-### 도메인별 훅 목록
-
-| 도메인 | 파일 | 주요 훅 |
-|---|---|---|
-| account | `entities/account/hooks/useAccountMarginQuery.ts` | `useAccountMarginQuery`, `useAccountPricesQuery`, `useCreateAccountMutation`, `useTestKisConnectionMutation`, `useUpdateAccountMutation`, `useDeleteAccountMutation` |
-| strategy | `entities/strategy/hooks/useStrategyQueries.ts` | `useStrategiesQuery`, `useCreateStrategyMutation`, `useUpdateStrategyMutation`, `useDeleteStrategyMutation`, `usePauseStrategyMutation`, `useResumeStrategyMutation`, `useExecuteStrategyMutation` |
-| order | `entities/order/hooks/useOrderQueries.ts` | `useNextOrderPreviewQuery`, `useCancelAllOrdersMutation`, `useCancelOneOrderMutation` |
-| user | `entities/user/hooks/useUserQueries.ts` | `useAdminUsersQuery`, `useReapplyMutation`, `useDeleteMeMutation`, `useUpdateNotificationChannelMutation`, `useUpdateTelegramMutation`, `useDeleteTelegramMutation`, `useApproveUserMutation`, `useRejectUserMutation`, `useChangeUserRoleMutation`, `useDeleteAdminUserMutation` |
-| trade | `entities/trade/hooks/useCycleHistory.ts` | `useAccountCycleHistoryQuery`, `useStrategyCycleHistoryQuery` |
-| trade | `entities/trade/hooks/useProfitStats.ts` | `useProfitStatsQuery` |
-| market | `entities/market/hooks/useMarketQueries.ts` | `useMonthlyHolidaysQuery`, `useMarketSessionQuery` |
-| privacy | `entities/privacy/hooks/usePrivacyQueries.ts` | `usePrivacyCurrentBaseQuery` |
-| fcm | `entities/fcm/hooks/useFcmToken.ts` | `useFcmToken` |
 
 ### queryKey 목록
 

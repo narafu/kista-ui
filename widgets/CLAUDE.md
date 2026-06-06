@@ -45,16 +45,6 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 | `timeline` | `Timeline` | 타임라인 |
 | `pull-to-refresh` | `PullToRefresh` | 모바일 당겨서 새로고침 |
 
-### 레이아웃 위젯
-
-| 슬라이스 | 파일 | 설명 |
-|---|---|---|
-| `layout` | `DesktopSidebar` | lg↑ 사이드바 |
-| `layout` | `MobileBottomNav` | lg↓ 하단 탭바 |
-| `layout` | `MobileHeader` | 모바일 상단 헤더 |
-| `layout` | `AdminSidebar` | 어드민 사이드바 |
-| `layout` | `AdminTopBar` | 어드민 상단바 |
-| `layout` | `SettingsNav` | 설정 페이지 네비게이션 |
 
 ## 주요 슬라이스 quirk
 

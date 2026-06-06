@@ -114,10 +114,6 @@ NEXT_PUBLIC_API_BASE_URL=      # kista-api Render URL
 - `NEXT_PUBLIC_*` 비면 런타임 500 — Vercel 대시보드 env var 확인
 - 환경변수: `vercel link --scope narafus-projects --project prj_...` 후 `vercel env ls production`
 - 런타임 로그: `vercel logs --scope narafus-projects --json`
-- admin 엔드포인트:
-  - `PATCH /api/admin/users/{id}/status` body `{ status: 'ACTIVE' | 'REJECTED' }` — 승인/거절
-  - `PATCH /api/admin/users/{id}/role` body `{ role: 'USER' | 'ADMIN' }` — 역할 변경
-  - `DELETE /api/admin/users/{id}` — 사용자 삭제
 - catch-all Route Handler URL 변경 시 호출부(`lib/api/`, `components/`)만 수정 — Route Handler 수정 불필요
 
 ## 개발 도구
@@ -142,8 +138,6 @@ NEXT_PUBLIC_API_BASE_URL=      # kista-api Render URL
 ### 코딩 컨벤션
 - **포맷**: 싱글 쿼트 · 세미콜론 없음 · import 중괄호 공백 (`{ useState }`)
 - **포맷 무단 변경 금지**: 기능 작업 중 기존 파일 포맷 일괄 변경 금지 — 별도 커밋으로 분리
-- **TypeScript**: `any` 엄격 금지 — 제네릭·`?.`·`??` 활용
-- **비동기 제어**: `Suspense`, `ErrorBoundary`, `loading.tsx`, `error.tsx`로 선언적 위임
 
 ### 스타일링
 - **인라인 style 금지**: `style={{ ... }}` 엄격 금지 — Tailwind 유틸리티 클래스만 (반응형 무효화 방지). 예외: CSS 토큰 값(`var(--pos)`)은 `style={{ color: ... }}`로 사용

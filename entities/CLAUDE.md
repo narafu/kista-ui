@@ -45,20 +45,6 @@ entities/{domain}/
 - Mutation 훅: `useXxxMutation` — `onSuccess`에 `toast.success` + `queryClient.invalidateQueries`, `onError`에 `toast.error` **캡슐화 필수**
 - 호출부에서 추가 동작이 필요하면 `mutation.mutate(data, { onSuccess: () => callback() })` 패턴 사용
 
-```ts
-// 예시
-export function useDeleteAccountMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (id: number) => deleteAccount(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['accounts'] })
-      toast.success('계좌가 삭제되었습니다')
-    },
-    onError: () => toast.error('삭제 실패'),
-  })
-}
-```
 
 ## index.ts 규칙
 

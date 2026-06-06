@@ -48,40 +48,6 @@
 - `useMeta()` → `findStrategyType(code)`, `findTicker(code)`, `labelOf(category, code)`. `'INFINITE'`/`'PRIVACY'` 리터럴 분기 금지 — `findStrategyType(strategy.type)?.code` 또는 `availableTickers.length > 1` 판별
 - `MetaProvider`는 `(main)/layout.tsx`에서 제공 — `(main)` 밖에서는 `useMeta()` 호출 불가
 
-## Account 기능 구조
-
-- `features/account/create-account/CreateAccountStepper.tsx` — 3단계 계좌 등록 스테퍼
-- `features/account/create-account/steps/{AccountInfoStep,ApiStep,ConfirmStep}.tsx` — 각 단계 폼
-  - `ApiStep`: `useTestKisConnectionMutation` 사용 — KIS 연결 테스트
-  - `ConfirmStep`: `useCreateAccountMutation` 사용 — 계좌 최종 등록
-- `features/account/edit-account/EditAccountForm.tsx` — 계좌 수정 폼 (`useUpdateAccountMutation`)
-- `features/account/delete-account/DeleteAccountDialog.tsx` — 계좌 삭제 확인 다이얼로그 (`useDeleteAccountMutation`)
-- `widgets/account-card/AccountCard.tsx` — 순수 뷰 카드
-
-## AccountDetailTabs 구조
-
-- 데스크탑 3행: 1행=`AccountSummaryCard|TradesTab(accountId)`, 2행=`StrategyList|StrategyTradesTab(strategyId)`, 3행=`NextOrderPreviewCard(전폭)`
-- 모바일: 요약/전략/다음 주문 탭 3개
-- `TradesTab`·`StrategyTradesTab` → `widgets/account-detail/TradesTab.tsx`, `StrategyTradesTab.tsx` (각자 range 상태를 useReducer로 관리)
-- `CycleHistoryTable` → `widgets/account-detail/CycleHistoryTable.tsx` (테이블+모바일 카드 공용 컴포넌트)
-- `buildParams(rangeType, customFrom, customTo)` → `widgets/account-detail/lib/buildParams.ts`
-- `ProfitStatsCard`는 통계 페이지 전용 (계좌 상세에 없음)
-
-## NextOrderPreviewCard 구조
-
-- `NextOrderPreviewCard.tsx` — 얇은 컨테이너 (useNextOrderPreview 훅 호출, 파생 상태 계산, mode 분기)
-- `PreviewMode.tsx` — 미리보기 모드 (로딩/에러/주문 목록)
-- `ExecutedMode.tsx` — 실행 후 접수 목록 + 취소 버튼
-- `ExecuteDialog.tsx` — AlertDialog 분리
-- `OrderRow.tsx` — BUY/SELL 행 (PreviewMode/ExecutedMode 공용)
-- `useNextOrderPreview` 훅: `widgets/next-order-preview/useNextOrderPreview.ts` (preview, margin, marketSession, holidays, execute/cancelAll/cancelOne mutation 통합, 외부 export 없음)
-
-## Dashboard 구조
-
-- `DashboardEmpty.tsx` — 계좌 미등록 상태 (데스크탑+모바일 통합 반응형)
-- `DashboardOverview.tsx` — 계좌 있는 상태 (KPI 카드 + 계좌 목록, 데스크탑+모바일 통합)
-- `aggregatePortfolios(raws)` → `widgets/dashboard/aggregatePortfolios.ts` (포트폴리오 집계 순수 함수)
-- `fmtUsd`/`fmtKrw` → `shared/lib/format/` 사용
 
 ## Dashboard · 계좌
 
