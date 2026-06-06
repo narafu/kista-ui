@@ -17,6 +17,7 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 
 | 슬라이스 | 주요 컴포넌트 | 사용 위치 |
 |---|---|---|
+| `admin-user-list` | `AdminPendingList`, `AdminUsersTable` | `app/(admin)/admin/` 페이지들 |
 | `dashboard` | `DashboardEmpty`, `DashboardOverview`, `aggregatePortfolios` | `app/(main)/dashboard/page.tsx` |
 | `account-detail` | `AccountDetailTabs`, `AccountSummaryCard`, `CycleHistoryTable`, `TradesTab`, `StrategyTradesTab` | `app/(main)/accounts/[id]/page.tsx` |
 | `next-order-preview` | `NextOrderPreviewCard`, `PreviewMode`, `ExecutedMode`, `ExecuteDialog`, `OrderRow` | `account-detail`, `dashboard` |

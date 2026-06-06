@@ -39,6 +39,8 @@ entities/{domain}/
 
 ## 훅 작성 패턴
 
+- **Server Component prop → initialData**: 서버가 내려준 prop을 `useXxxQuery(id, initialData)`로 연결 — 뮤테이션 후 `invalidateQueries`로 즉시 리페치. `AccountDetailTabs`/`AdminPendingList` 등이 이 패턴 사용.
+- **삭제 후 페이지 이동**: `invalidateQueries` 대신 `removeQueries` 사용 — `invalidateQueries`는 캐시를 만료 표시만 해 이동 후 stale 데이터 잠깐 표시됨. `useDeleteAccountMutation` 참고.
 - Query 훅: `useXxxQuery` — `queryKey`, `queryFn`, 필요 시 `initialData`/`staleTime`
 - Mutation 훅: `useXxxMutation` — `onSuccess`에 `toast.success` + `queryClient.invalidateQueries`, `onError`에 `toast.error` **캡슐화 필수**
 - 호출부에서 추가 동작이 필요하면 `mutation.mutate(data, { onSuccess: () => callback() })` 패턴 사용
@@ -75,5 +77,5 @@ import { deleteAccount } from '@entities/account'
 
 - **account**: `accountNo`는 8자리만. `kisAccountType`은 항상 `"01"`. `AccountResponse`에 strategyType 없음.
 - **strategy**: 백엔드 이름은 `TradingCycle`. `normalizeStrategy()`로 DTO → Strategy 변환. `cycleSeedType`은 `?? 'NONE'` 기본값.
-- **meta**: `MetaProvider`는 `(main)/layout.tsx`에서만 제공 → `(main)` 밖 `useMeta()` 호출 불가.
+- **meta**: `MetaProvider`는 `(main)/layout.tsx`에서만 제공 → `(main)` 밖 `useMeta()` 호출 불가. `useMeta()`는 `findTicker(code)` 헬퍼 제공. `TickerMeta.targetProfitRate`는 `string` 타입 — 사용 시 `parseFloat()` 변환 필요.
 - **trade/providers**: `TradeNotificationProvider` — SSE `/api/trades/stream` 구독, 체결 toast 표시. `(main)/layout.tsx`에 마운트.

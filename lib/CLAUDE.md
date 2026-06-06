@@ -72,9 +72,9 @@ catch-all Route Handler: `/api/accounts/[[...path]]`, `/api/admin/[[...path]]`, 
 | 도메인 | 파일 | 주요 훅 |
 |---|---|---|
 | account | `entities/account/hooks/useAccountMarginQuery.ts` | `useAccountMarginQuery`, `useAccountPricesQuery`, `useCreateAccountMutation`, `useTestKisConnectionMutation`, `useUpdateAccountMutation`, `useDeleteAccountMutation` |
-| strategy | `entities/strategy/hooks/useStrategyQueries.ts` | `useCreateStrategyMutation`, `useUpdateStrategyMutation`, `usePauseStrategyMutation`, `useResumeStrategyMutation`, `useExecuteStrategyMutation` |
+| strategy | `entities/strategy/hooks/useStrategyQueries.ts` | `useStrategiesQuery`, `useCreateStrategyMutation`, `useUpdateStrategyMutation`, `useDeleteStrategyMutation`, `usePauseStrategyMutation`, `useResumeStrategyMutation`, `useExecuteStrategyMutation` |
 | order | `entities/order/hooks/useOrderQueries.ts` | `useNextOrderPreviewQuery`, `useCancelAllOrdersMutation`, `useCancelOneOrderMutation` |
-| user | `entities/user/hooks/useUserQueries.ts` | `useReapplyMutation`, `useDeleteMeMutation`, `useUpdateTelegramMutation`, `useDeleteTelegramMutation`, `useApproveUserMutation`, `useRejectUserMutation`, `useChangeUserRoleMutation` |
+| user | `entities/user/hooks/useUserQueries.ts` | `useAdminUsersQuery`, `useReapplyMutation`, `useDeleteMeMutation`, `useUpdateNotificationChannelMutation`, `useUpdateTelegramMutation`, `useDeleteTelegramMutation`, `useApproveUserMutation`, `useRejectUserMutation`, `useChangeUserRoleMutation`, `useDeleteAdminUserMutation` |
 | trade | `entities/trade/hooks/useCycleHistory.ts` | `useAccountCycleHistoryQuery`, `useStrategyCycleHistoryQuery` |
 | trade | `entities/trade/hooks/useProfitStats.ts` | `useProfitStatsQuery` |
 | market | `entities/market/hooks/useMarketQueries.ts` | `useMonthlyHolidaysQuery`, `useMarketSessionQuery` |
@@ -83,7 +83,7 @@ catch-all Route Handler: `/api/accounts/[[...path]]`, `/api/admin/[[...path]]`, 
 
 ### queryKey 목록
 
-`['accounts']`, `['accountMargin', accountId]`, `['accountPrices', accountId, tickers]`, `['strategies', accountId]`, `['nextOrderPreview', accountId]`, `['previewMargin', accountId]`, `['holidays', year, month]`(공유 캐시), `['marketSession']`, `['accountCycleHistory', accountId, params]`, `['strategyCycleHistory', strategyId, params]`, `['profit', accountId, period]`, `['snapshots', accountId, period]`, `['privacyCurrentBase']`
+`['accounts']`, `['accountMargin', accountId]`, `['accountPrices', accountId, tickers]`, `['strategies', accountId]`, `['nextOrderPreview', accountId]`, `['previewMargin', accountId]`(widgets 내부), `['holidays', year, month]`(공유 캐시), `['marketSession']`, `['accountCycleHistory', accountId, params]`, `['strategyCycleHistory', strategyId, params]`, `['profit', accountId, period]`, `['snapshots', accountId, period]`, `['privacyCurrentBase']`, `['me']`, `['adminUsers', filter]`
 
 - **SSR initialData 패턴**: `useMonthlyHolidaysQuery(year, month, holidays)` — `initialData` + `staleTime: 1h`로 마운트 시 재요청 방지
 - **useMutation 패턴**: toast + invalidateQueries를 훅 내부 `onSuccess`/`onError`에 캡슐화. 호출부에서 추가 동작(onChanged 등)은 `mutation.mutate(data, { onSuccess: () => callback() })` 패턴 사용
