@@ -32,7 +32,7 @@ export function DashboardOverview({
   calendarYear,
   calendarMonth,
 }: Props) {
-  const noProfit = totalEvalProfit === 0 && weightedReturnRate === 0
+  const noProfit = marketValueUsd === 0
 
   return (
     <>

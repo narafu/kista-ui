@@ -54,8 +54,8 @@ export function AdminUsersTable({ initialUsers }: Props) {
               <td className="px-4 py-3">
                 <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${
                   user.role === 'ADMIN'
-                    ? 'bg-rose-100 text-rose-700'
-                    : 'bg-slate-100 text-slate-600'
+                    ? 'bg-rose-500 text-white'
+                    : 'bg-slate-500 text-white'
                 }`}>
                   {user.role}
                 </span>
