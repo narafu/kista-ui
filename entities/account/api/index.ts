@@ -53,13 +53,8 @@ export async function getPrices(accountId: string, tickers: string[]): Promise<P
   )
 }
 
-export interface KisConnectionResult {
-  success: boolean
-  message?: string
-}
-
-export async function testKisConnection(appKey: string, appSecret: string): Promise<KisConnectionResult> {
-  return clientFetch<KisConnectionResult>('/api/accounts/connection-tests', {
+export async function testKisConnection(appKey: string, appSecret: string): Promise<void> {
+  await clientFetch<void>('/api/accounts/connection-tests', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ appKey, appSecret }),

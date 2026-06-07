@@ -14,7 +14,6 @@ import {
   testKisConnection,
   type MarginItem,
   type PriceMap,
-  type KisConnectionResult,
 } from '../api'
 import type { Account, AccountRequest } from '../model/types'
 
@@ -90,9 +89,9 @@ export function useCreateAccountMutation() {
   })
 }
 
-// side effect 없음 — UI에서 mutation.data/isSuccess/isError로 인라인 표시
+// side effect 없음 — UI에서 isSuccess/isError로 인라인 표시
 export function useTestKisConnectionMutation() {
-  return useMutation<KisConnectionResult, Error, { appKey: string; appSecret: string }>({
+  return useMutation<void, Error, { appKey: string; appSecret: string }>({
     mutationFn: ({ appKey, appSecret }) => testKisConnection(appKey, appSecret),
   })
 }

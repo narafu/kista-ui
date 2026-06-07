@@ -17,11 +17,9 @@ export function ApiStep({ data, onNext }: Props) {
   const testMutation = useTestKisConnectionMutation()
 
   const canTest = apiKey.length >= 10 && apiSecret.length >= 10
-  const testOk = testMutation.isSuccess && testMutation.data?.success === true
-  const testFail = testMutation.isError || (testMutation.isSuccess && !testMutation.data?.success)
-  const testMessage = testMutation.isError
-    ? '네트워크 오류가 발생했습니다.'
-    : (testMutation.data?.message ?? 'KIS API 연결에 실패했습니다.')
+  const testOk = testMutation.isSuccess
+  const testFail = testMutation.isError
+  const testMessage = 'KIS API 인증에 실패했습니다. appKey 또는 appSecret을 확인하세요.'
 
   function handleKeyChange(setter: (v: string) => void) {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
