@@ -1,8 +1,7 @@
 export interface NextOrderPositionSnapshot {
   ticker: string
   holdings: number
-  averagePrice: string
-  currentPrice: string
+  averagePrice: string  // 0회차: 전일종가, 이후: 평균 매입가
   usdDeposit: string
   totalAssets: string
   priceOffsetRate: string

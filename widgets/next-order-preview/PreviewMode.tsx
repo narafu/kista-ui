@@ -12,8 +12,6 @@ interface Props {
   purchasable: number | null
   shortfall: number
   insufficientUnitAmount: number | null
-  insufficientCurrentPrice: number | null
-  insufficientShortfall: number | null
   onRefetch: () => void
 }
 
@@ -26,8 +24,6 @@ export function PreviewMode({
   purchasable,
   shortfall,
   insufficientUnitAmount,
-  insufficientCurrentPrice,
-  insufficientShortfall,
   onRefetch,
 }: Props) {
   if (isLoading && !preview) {
@@ -74,10 +70,10 @@ export function PreviewMode({
       )}
 
       {preview.orders.length === 0 ? (
-        preview.skipReason === 'INSUFFICIENT_BALANCE' && insufficientShortfall !== null ? (
+        preview.skipReason === 'INSUFFICIENT_BALANCE' && insufficientUnitAmount !== null ? (
           <div className="rounded-lg px-4 py-2.5 bg-warn-bg">
             <p className="text-xs font-semibold text-warn leading-relaxed">
-              ⚠️ 단위금액 ${insufficientUnitAmount!.toFixed(2)} • 현재가 ${insufficientCurrentPrice!.toFixed(2)} • 부족 ${insufficientShortfall.toFixed(2)}
+              ⚠️ 단위금액 ${insufficientUnitAmount.toFixed(2)} • 전일종가가 단위금액을 초과해 이번 사이클은 건너뜁니다
             </p>
           </div>
         ) : (

@@ -54,14 +54,6 @@ export function NextOrderPreviewCard({ accountId, strategyType, strategyId }: Pr
     preview?.skipReason === 'INSUFFICIENT_BALANCE' && preview?.position != null
       ? parseFloat(preview.position.unitAmount)
       : null
-  const insufficientCurrentPrice =
-    preview?.skipReason === 'INSUFFICIENT_BALANCE' && preview?.position != null
-      ? parseFloat(preview.position.currentPrice)
-      : null
-  const insufficientShortfall =
-    insufficientCurrentPrice !== null && insufficientUnitAmount !== null
-      ? insufficientCurrentPrice - insufficientUnitAmount
-      : null
 
   const totalBuy =
     preview?.orders
@@ -154,8 +146,6 @@ export function NextOrderPreviewCard({ accountId, strategyType, strategyId }: Pr
               purchasable={purchasable}
               shortfall={shortfall}
               insufficientUnitAmount={insufficientUnitAmount}
-              insufficientCurrentPrice={insufficientCurrentPrice}
-              insufficientShortfall={insufficientShortfall}
               onRefetch={refetch}
             />
           )}

@@ -24,7 +24,6 @@ function normalizePreview(raw: unknown): NextOrderPreview {
         ticker: String(rawPos.ticker),
         holdings: Number(rawPos.holdings),
         averagePrice: String(rawPos.averagePrice),
-        currentPrice: String(rawPos.currentPrice),
         usdDeposit: String(rawPos.usdDeposit),
         totalAssets: String(rawPos.totalAssets),
         priceOffsetRate: String(rawPos.priceOffsetRate),
