@@ -3,9 +3,6 @@
 세부 quirk는 각 디렉토리 CLAUDE.md 참고:
 - `app/CLAUDE.md` — proxy·쿠키·Next.js·SSE·PWA quirk
 - `lib/CLAUDE.md` — API 계층·kista-api DTO·KIS quirk·캐시
-- `components/CLAUDE.md` — 컴포넌트 패턴·스타일링·React Query
-
-> **FSD 리팩토링 완료**: `entities/`, `features/`, `widgets/`, `shared/` 계층 도입 완료. `lib/api/*`, `components/*` 내 파일들은 FSD 계층으로의 re-export shim — 실제 구현은 FSD 계층에 있음. 새 코드는 반드시 FSD 계층에 작성할 것 (아래 아키텍처 참고).
 
 ## 프로젝트 개요
 
@@ -53,13 +50,8 @@ shared/        → 도메인 무관 공용 (ui/, lib/api-client, lib/format, lib
 @features/*     → ./features/*
 @entities/*     → ./entities/*
 @shared/*       → ./shared/*
-@components/*   → ./components/*      (레거시 shim 접근)
-@lib/*          → ./lib/*             (레거시 shim 접근)
-@hooks/*        → ./hooks/*           (레거시 shim 접근)
 @/lib/*         → ./lib/*             (shadcn ui 호환 — 수정 금지)
 @/components/*  → ./components/*      (shadcn ui 호환 — 수정 금지)
-@/hooks/*       → ./hooks/*           (shadcn ui 호환)
-@/types/*       → ./types/*           (타입 shim 접근)
 ```
 
 새 코드는 반드시 FSD alias(`@entities/*`, `@features/*`, `@widgets/*`, `@shared/*`) 사용.  
@@ -67,16 +59,14 @@ shared/        → 도메인 무관 공용 (ui/, lib/api-client, lib/format, lib
 
 ### API 계층
 - `shared/lib/api-client/`: `apiFetch` (Server Component 전용, token 필요) / `clientFetch` (Client Component, Route Handler 경유) / `ApiError`
-- `entities/{도메인}/api/`: 도메인별 API 함수 — `lib/api/*`는 re-export shim
+- `entities/{도메인}/api/`: 도메인별 API 함수
 - Server Component: `getAuthToken()` → token 취득 후 `apiFetch` 호출
 - Client Component: token 없이 `entities/{도메인}/api` 함수 → Route Handler 자동 경유
 - **Client Component에서 직접 kista-api 호출 전면 금지** (CORS + 쿠키 문제)
 
 ### 컴포넌트 폴더
-기존: `components/{common,accounts,strategies,providers,settings,layout,admin}/`  
-신규: `widgets/`, `features/`, `entities/`, `shared/` (FSD 계층)  
-`components/` 내 파일 중 상당수는 re-export shim — 실제 구현은 FSD 계층에 있음  
-`components/ui/` (shadcn) — 직접 수정 금지
+`components/ui/` — shadcn 자동생성 컴포넌트 (직접 수정 금지)  
+실제 구현은 FSD 계층: `widgets/`, `features/`, `entities/`, `shared/`
 
 ## 환경변수
 
@@ -114,7 +104,7 @@ NEXT_PUBLIC_API_BASE_URL=      # kista-api Render URL
 - `NEXT_PUBLIC_*` 비면 런타임 500 — Vercel 대시보드 env var 확인
 - 환경변수: `vercel link --scope narafus-projects --project prj_...` 후 `vercel env ls production`
 - 런타임 로그: `vercel logs --scope narafus-projects --json`
-- catch-all Route Handler URL 변경 시 호출부(`lib/api/`, `components/`)만 수정 — Route Handler 수정 불필요
+- catch-all Route Handler URL 변경 시 호출부(`entities/{domain}/api/`)만 수정 — Route Handler 수정 불필요
 
 ## 개발 도구
 
