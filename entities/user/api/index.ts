@@ -15,7 +15,7 @@ export async function reapply(): Promise<void> {
 }
 
 export async function deleteMe(): Promise<void> {
-  await clientFetch<void>('/api/settings/account', { method: 'DELETE' })
+  await clientFetch<void>('/api/auth/me', { method: 'DELETE' })
 }
 
 export async function updateNotificationChannel(channel: string): Promise<void> {
