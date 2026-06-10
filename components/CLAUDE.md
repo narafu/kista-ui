@@ -43,12 +43,6 @@
 - **ProfitDisplay**: `currency='USD'`(기본) 또는 `currency='KRW'`. KIS portfolio summary(totalEvalProfit 등)는 KRW → `currency="KRW"` 필수
 - **`skipReason` + position 배너**: `NextOrderPreviewCard`의 `INSUFFICIENT_BALANCE` — `position` 있으면 배너(`bg-warn-bg/text-warn`), 없으면 텍스트. 계산 변수는 JSX 외부 선언 (IIFE 금지)
 
-## MetaProvider
-
-- `useMeta()` → `findStrategyType(code)`, `findTicker(code)`, `labelOf(category, code)`. `'INFINITE'`/`'PRIVACY'` 리터럴 분기 금지 — `findStrategyType(strategy.type)?.code` 또는 `availableTickers.length > 1` 판별
-- `MetaProvider`는 `(main)/layout.tsx`에서 제공 — `(main)` 밖에서는 `useMeta()` 호출 불가
-
-
 ## Dashboard · 계좌
 
 - **Dashboard AccountCard**: `strategies={strategiesByAccount[i]}` 전달 필수 — 미전달 시 "알 수 없음"/"전략 미등록" 표시
@@ -64,7 +58,6 @@
 
 ## 기타
 
-- **재신청 쿨다운 localStorage 키**: pending → `reapply_last_requested_at`(1시간), rejected → `reapply_rejected_last_at`(24시간)
 - **승인 재요청 Route Handler**: `ReapplyButton` → `/api/auth/reapply-done` 경유 (직접 kista-api 호출 금지)
 - **텔레그램 설정**: `updateTelegram`/`deleteTelegram` → `/api/settings/telegram` Route Handler 경유
 - **클로드 디자인 원본**: `/private/tmp/kista_design/design-system/project/screens.jsx` (데스크탑), `screens-mobile.jsx` (모바일)

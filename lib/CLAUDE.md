@@ -32,9 +32,8 @@
 - **PercentGauge pct 초기화**: 타입/종목 변경 시 100% → `deposit < newMinSeed`이면 0%로
 - **INFINITE vs PRIVACY 판별**: 리터럴 직접 사용 금지. `typeMeta?.availableTickers?.length > 1` = INFINITE. API 인자도 `meta.tickers.map(t => t.code)` 사용 (하드코딩 금지)
 
-## MetaProvider / API
+## Meta 응답 구조
 
-- **MetaProvider**: `(main)/layout.tsx`에서 `GET /api/meta` prefetch → `<MetaProvider meta={meta}>`. Client에서 `useMeta()` → `findStrategyType(code)`, `findTicker(code)`, `labelOf(category, code)`
 - `StrategyTypeMeta`에 `availableTickers` 포함 (`defaultTicker`/`defaultMultiple` 없음). UI 초기화: `availableTickers[0]` + 상수 `"1"`
 
 ## KIS live API quirk
@@ -86,6 +85,4 @@
 
 ## 캐시 헬퍼
 
-- `shared/lib/cache/cached-api.ts`: `getCachedAccounts`, `getCachedStrategies`, `getCachedUser` — Server Component용 unstable_cache 래퍼. 5분 TTL.
-- **`unstable_cache` 에러 핸들링**: `.catch()` 체인 금지 → `try { await getCachedX() } catch {}` 패턴
-- **`revalidateTag` 2인자**: `revalidateTag(tag, 'max')` — 1인자만 쓰면 TS 에러
+- `shared/lib/cache/cached-api.ts`: `getCachedAccounts`, `getCachedStrategies`, `getCachedUser` — Server Component용 unstable_cache 래퍼. 5분 TTL. 에러 핸들링·`revalidateTag` 사용법은 `shared/CLAUDE.md` 참고.

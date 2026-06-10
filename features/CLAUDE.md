@@ -49,7 +49,7 @@ features/{domain}/{slice}/
 
 - **`create-account/steps/ApiStep`**: `useTestKisConnectionMutation` 사용 — KIS 토큰 1분 제한 주의 (`app/CLAUDE.md` 참고)
 - **`create-account/steps/ConfirmStep`**: `useCreateAccountMutation` 사용
-- **`auth/reapply`**: `ReapplyButton`(pending, 1시간) / `RejectedReapplyButton`(rejected, 24시간) — localStorage 쿨다운 키 다름
+- **`auth/reapply`**: `ReapplyButton`(pending, 1시간) / `RejectedReapplyButton`(rejected, 24시간) — localStorage 쿨다운 키: pending → `reapply_last_requested_at`, rejected → `reapply_rejected_last_at`
 - **`strategy/create-strategy/StrategyFormDialog`**: `initial?: Strategy` prop 유무로 create/edit 분기. create → `useCreateStrategyMutation`, edit → `useUpdateStrategyMutation`
 - **`settings/telegram-connect`**: pending 페이지와 settings 페이지 양쪽에서 동일 컴포넌트 공유 (`TelegramSection` / `PendingTelegramConnect`)
 - **`strategy/create-strategy/sections`**: CSS 토큰 기반 인라인 style 다수 — `globals.css` 커스텀 토큰(`--rose-500`, `--warn` 등) 사용

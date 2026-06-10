@@ -63,5 +63,5 @@ import { deleteAccount } from '@entities/account'
 
 - **account**: `accountNo`는 8자리만. `kisAccountType`은 항상 `"01"`. `AccountResponse`에 strategyType 없음.
 - **strategy**: 백엔드 이름은 `TradingCycle`. `normalizeStrategy()`로 DTO → Strategy 변환. `cycleSeedType`은 `?? 'NONE'` 기본값.
-- **meta**: `MetaProvider`는 `(main)/layout.tsx`에서만 제공 → `(main)` 밖 `useMeta()` 호출 불가. `useMeta()`는 `findTicker(code)` 헬퍼 제공. `TickerMeta.targetProfitRate`는 `string` 타입 — 사용 시 `parseFloat()` 변환 필요.
+- **meta**: `MetaProvider`는 `(main)/layout.tsx`에서만 제공 → `(main)` 밖 `useMeta()` 호출 불가. `useMeta()` → `findStrategyType(code)`, `findTicker(code)`, `labelOf(category, code)`. `TickerMeta.targetProfitRate`는 `string` 타입 — 사용 시 `parseFloat()` 변환 필요. INFINITE/PRIVACY 판별 방법은 `lib/CLAUDE.md` 참고.
 - **trade/providers**: `TradeNotificationProvider` — SSE `/api/trades/stream` 구독, 체결 toast 표시. `(main)/layout.tsx`에 마운트.

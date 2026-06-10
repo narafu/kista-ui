@@ -68,5 +68,4 @@ shadcn 파일 내부에서 `@/components/ui/*`, `@/lib/utils` alias 사용 — �
 
 ## providers
 
-`Providers` 컴포넌트는 루트 `app/layout.tsx`에서 마운트. `QueryProvider` 단독 사용도 가능.  
-`<Toaster richColors position="top-right" />`는 루트 layout에 단 하나만 — 중복 금지.
+`Providers` 컴포넌트는 루트 `app/layout.tsx`에서 마운트. `QueryProvider` 단독 사용도 가능. Toaster 배치 규칙은 `app/CLAUDE.md` 참고.

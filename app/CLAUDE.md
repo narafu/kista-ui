@@ -40,9 +40,7 @@
 
 ## 캐싱 (Server Component)
 
-- **`unstable_cache` + `revalidateTag`**: `lib/cache/tags.ts`(JWT suffix 기반 태그) + `lib/cache/cached-api.ts`. 5분 TTL. 대상: listAccounts·listStrategies·getMe. 제외: KIS 실시간(portfolio·trades)
-- **`unstable_cache` 에러 핸들링**: `.catch()` 체인 금지 → `try { await getCachedX() } catch {}` 패턴
-- **`revalidateTag` 2인자**: `revalidateTag(tag, 'max')` — 1인자만 쓰면 TS 에러
+- **`unstable_cache` + `revalidateTag`**: `shared/lib/cache/`. 5분 TTL. 대상: listAccounts·listStrategies·getMe. 제외: KIS 실시간(portfolio·trades). 에러 핸들링·`revalidateTag` 사용법은 `shared/CLAUDE.md` 참고
 - **탭 전환 딜레이**: 각 페이지 SSR Server Component → 탭마다 kista-api 호출 → 1-2초 지연. 레이아웃 캐시됨
 
 ## Toaster · UI 전역
