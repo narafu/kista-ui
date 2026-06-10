@@ -20,7 +20,7 @@ export async function deleteMe(): Promise<void> {
 
 export async function updateNotificationChannel(channel: string): Promise<void> {
   await clientFetch<void>('/api/settings/notification-channel', {
-    method: 'PUT',
+    method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ channel }),
   })
