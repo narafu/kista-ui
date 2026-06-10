@@ -41,20 +41,18 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
         onTickerChange={form.handleTickerChange}
       />
 
-      {!initial && (
-        <UsageRatioSection
-          pct={form.pct}
-          setPct={form.setPct}
-          usdDeposit={form.usdDeposit}
-          minSeed={form.minSeed}
-          loading={form.loading}
-          loadingBase={form.loadingBase}
-          isBelowMinSeed={form.isBelowMinSeed}
-          isInfinite={form.isInfinite}
-          privacyBase={form.privacyBase}
-          basePrice={form.basePrice}
-        />
-      )}
+      <UsageRatioSection
+        pct={form.pct}
+        setPct={form.setPct}
+        usdDeposit={form.usdDeposit}
+        minSeed={form.minSeed}
+        loading={form.loading}
+        loadingBase={form.loadingBase}
+        isBelowMinSeed={form.isBelowMinSeed}
+        isInfinite={form.isInfinite}
+        privacyBase={form.privacyBase}
+        basePrice={form.basePrice}
+      />
 
       <CycleSeedSection
         autoStart={form.autoStart}

@@ -47,6 +47,8 @@ export function useUpdateStrategyMutation(strategyId: string, onSuccess?: () => 
     onSuccess: () => {
       toast.success('전략이 수정되었습니다')
       queryClient.invalidateQueries({ queryKey: ['strategies'] })
+      // 시드 변경 → 회차/기준가 재계산 반영
+      queryClient.invalidateQueries({ queryKey: ['nextOrderPreview'] })
       router.refresh()
       onSuccess?.()
     },

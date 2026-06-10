@@ -15,5 +15,5 @@ export interface StrategyRequest {
   type: string
   ticker?: string
   cycleSeedType: CycleSeedType
-  initialUsdDeposit?: number  // 신규 등록 시에만 전송
+  initialUsdDeposit?: number  // 등록 시 또는 시드 수정 시 전송
 }

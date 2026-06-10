@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { useMeta } from '@entities/meta'
 import { useAccountMarginQuery, useAccountPricesQuery } from '@entities/account'
@@ -57,7 +57,16 @@ export function useStrategyForm({
   // UI 상태만 유지
   const [type, setType] = useState<string>(initial?.type ?? meta.strategyTypes[0]?.code ?? '')
   const [ticker, setTicker] = useState<string>(initial?.ticker ?? '')
-  const [pct, setPct] = useState(100)
+  const [pct, setPctInternal] = useState(100)
+  const [seedTouched, setSeedTouched] = useState(false)
+  const pctInitialized = useRef(false)
+
+  // 사용자가 게이지를 직접 조작한 경우에만 시드 변경으로 간주 (수정 시 미조작이면 시드 미전송)
+  function setPct(p: number) {
+    setSeedTouched(true)
+    setPctInternal(p)
+  }
+
   const [autoStart, setAutoStart] = useState(initial ? initial.cycleSeedType !== 'NONE' : true)
   const [seedMode, setSeedMode] = useState<'KEEP' | 'MAX'>(
     initial?.cycleSeedType === 'MAINTAIN' ? 'KEEP' : 'MAX',
@@ -72,15 +81,25 @@ export function useStrategyForm({
   const prices = pricesData ?? null
   const usdDeposit = marginItems.find((m) => m.currency === 'USD')?.purchasableAmount ?? null
   const privacyBase = privacyData?.currentCycleStart ?? null
-  const loadingBase = !initial && (marginLoading || pricesLoading || privacyLoading)
+  const loadingBase = marginLoading || pricesLoading || privacyLoading
 
-  // 서버 데이터 로드 실패 토스트 (신규 등록 시에만)
+  // 서버 데이터 로드 실패 토스트
   useEffect(() => {
-    if (initial || loadingBase) return
+    if (loadingBase) return
     if (usdDeposit === null && prices === null && privacyBase === null) {
       toast.error('예수금 / 현재가 조회에 실패했습니다')
     }
   }, [loadingBase]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 수정 모드: 예수금 로드 후 현재 시드 비율로 게이지 1회 초기화
+  useEffect(() => {
+    if (!initial || pctInitialized.current) return
+    if (usdDeposit === null || usdDeposit === 0) return
+    if (initial.initialUsdDeposit == null) return
+    const ratio = Math.round((initial.initialUsdDeposit / usdDeposit) * 100)
+    setPctInternal(Math.min(100, Math.max(0, ratio)))
+    pctInitialized.current = true
+  }, [initial, usdDeposit])
 
   const typeMeta = useMemo(() => findStrategyType(type), [findStrategyType, type])
   const availableTickers = typeMeta?.availableTickers ?? []
@@ -104,7 +123,7 @@ export function useStrategyForm({
       : newIsInfinite
         ? newBasePrice !== null ? newBasePrice * 20 * 2 : null
         : privacyBase !== null ? privacyBase / 2 : null
-    setPct(
+    setPctInternal(
       usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
     )
   }, [type]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -116,15 +135,14 @@ export function useStrategyForm({
   }, [type, ticker, isInfinite, prices, privacyBase])
 
   const minSeed = useMemo(() => {
-    if (initial) return null
     if (process.env.NEXT_PUBLIC_DEV_BYPASS_MIN_SEED === 'true') return null
     if (isInfinite) return basePrice !== null ? basePrice * 20 * 2 : null
     return privacyBase !== null ? privacyBase / 2 : null
-  }, [isInfinite, basePrice, privacyBase, initial])
+  }, [isInfinite, basePrice, privacyBase])
 
   const seedUsd = usdDeposit !== null ? Math.round(usdDeposit * pct) / 100 : null
-  const isBelowMinSeed = !initial && seedUsd !== null && minSeed !== null && seedUsd < minSeed
-  const cannotSubmit = !initial && (isBelowMinSeed || basePrice === null)
+  const isBelowMinSeed = seedUsd !== null && minSeed !== null && seedUsd < minSeed
+  const cannotSubmit = isBelowMinSeed || basePrice === null
 
   const cycleSeedType: CycleSeedType = !autoStart
     ? 'NONE'
@@ -138,7 +156,7 @@ export function useStrategyForm({
     const newMinSeed = process.env.NEXT_PUBLIC_DEV_BYPASS_MIN_SEED === 'true'
       ? null
       : newBasePrice !== null ? newBasePrice * 20 * 2 : null
-    setPct(
+    setPctInternal(
       usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
     )
   }
@@ -149,7 +167,12 @@ export function useStrategyForm({
     if (!ticker) { toast.error('종목을 선택하세요'); return }
 
     const payload: StrategyRequest = initial
-      ? { type: initial.type, ticker: initial.ticker, cycleSeedType }
+      ? {
+          type: initial.type,
+          ticker: initial.ticker,
+          cycleSeedType,
+          ...(seedTouched && seedUsd != null ? { initialUsdDeposit: seedUsd } : {}),
+        }
       : { type, ticker, cycleSeedType, initialUsdDeposit: seedUsd ?? undefined }
 
     if (initial) {
