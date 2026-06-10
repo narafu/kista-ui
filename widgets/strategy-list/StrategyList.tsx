@@ -15,7 +15,7 @@ interface Props {
 
 export function StrategyList({ accountId, strategies }: Props) {
   const canAdd = strategies.length < MAX_STRATEGIES
-  const { data: preview } = useNextOrderPreviewQuery(accountId)
+  const { data: preview, isLoading: isLoadingPosition } = useNextOrderPreviewQuery(accountId)
   const position = preview?.position ?? null
 
   return (
@@ -48,7 +48,7 @@ export function StrategyList({ accountId, strategies }: Props) {
         ) : (
           <div className="flex-1">
             {strategies.map((s) => (
-              <StrategyCard key={s.id} strategy={s} position={position} />
+              <StrategyCard key={s.id} strategy={s} position={position} isLoadingPosition={isLoadingPosition} />
             ))}
           </div>
         )}

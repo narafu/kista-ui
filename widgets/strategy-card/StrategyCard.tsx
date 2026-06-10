@@ -29,10 +29,11 @@ import type { NextOrderPositionSnapshot } from '@entities/order'
 interface Props {
   strategy: Strategy
   position?: NextOrderPositionSnapshot | null
+  isLoadingPosition?: boolean
   onChanged?: () => void
 }
 
-export function StrategyCard({ strategy, position, onChanged }: Props) {
+export function StrategyCard({ strategy, position, isLoadingPosition = false, onChanged }: Props) {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const deleteMutation = useDeleteStrategyMutation(() => { setDeleteOpen(false); onChanged?.() })
   const pauseMutation = usePauseStrategyMutation()
@@ -83,16 +84,27 @@ export function StrategyCard({ strategy, position, onChanged }: Props) {
           <KpiCard label="종목" value={strategy.ticker} />
           <KpiCard
             label="시작금액"
-            value={strategy.initialUsdDeposit != null ? `$${strategy.initialUsdDeposit.toLocaleString('en-US')}` : '-'}
+            value={
+              strategy.initialUsdDeposit != null
+                ? `$${strategy.initialUsdDeposit.toLocaleString('en-US')}`
+                : <span className="text-sm font-normal text-muted-foreground">미설정</span>
+            }
           />
-          {position && (
+          {isLoadingPosition ? (
+            <>
+              <KpiCard label="회차(T)" skeleton />
+              <KpiCard label="단위금액(회)" skeleton />
+              <KpiCard label="기준가" skeleton />
+              <KpiCard label="목표가" skeleton />
+            </>
+          ) : position ? (
             <>
               <KpiCard label="회차(T)" value={`${position.currentRound.toFixed(1)}회차`} />
               <KpiCard label="단위금액(회)" value={`$${parseFloat(position.unitAmount).toFixed(2)}`} />
               <KpiCard label="기준가" value={`$${parseFloat(position.referencePrice).toFixed(2)}`} />
               <KpiCard label="목표가" value={`$${parseFloat(position.targetPrice).toFixed(2)}`} />
             </>
-          )}
+          ) : null}
         </div>
 
         <div className="flex gap-2 pt-4 border-t mt-auto">

@@ -3,13 +3,14 @@ import type { ReactNode } from 'react'
 
 interface Props {
   label: string
-  value: ReactNode
+  value?: ReactNode
   sub?: ReactNode
   variant?: 'default' | 'accent' | 'soft'
   className?: string
+  skeleton?: boolean
 }
 
-export function KpiCard({ label, value, sub, variant = 'default', className }: Props) {
+export function KpiCard({ label, value, sub, variant = 'default', className, skeleton = false }: Props) {
   return (
     <div
       className={cn(
@@ -43,7 +44,9 @@ export function KpiCard({ label, value, sub, variant = 'default', className }: P
           variant === 'soft' && 'text-[var(--brand-fg)]',
         )}
       >
-        {value}
+        {skeleton ? (
+          <div className="h-7 w-20 rounded bg-muted animate-pulse" />
+        ) : value}
       </div>
       {sub && (
         <div
