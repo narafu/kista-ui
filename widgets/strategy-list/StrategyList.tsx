@@ -6,15 +6,12 @@ import { StrategyFormDialog } from '@features/strategy/create-strategy'
 import { useNextOrderPreviewQuery } from '@entities/order'
 import type { Strategy } from '@entities/strategy'
 
-const MAX_STRATEGIES = 1
-
 interface Props {
   accountId: string
   strategies: Strategy[]
 }
 
 export function StrategyList({ accountId, strategies }: Props) {
-  const canAdd = strategies.length < MAX_STRATEGIES
   const { data: preview, isLoading: isLoadingPosition } = useNextOrderPreviewQuery(accountId)
   const position = preview?.position ?? null
 
@@ -23,15 +20,7 @@ export function StrategyList({ accountId, strategies }: Props) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">전략</CardTitle>
-          {strategies.length > 0 ? (
-            <StrategyFormDialog
-              accountId={accountId}
-              initial={strategies[0]}
-              triggerLabel="전략 변경"
-              triggerVariant="ghost"
-              disabled={false}
-            />
-          ) : null}
+          <StrategyFormDialog accountId={accountId} disabled={false} />
         </div>
       </CardHeader>
       <CardContent className="px-6 pb-6 flex-1 flex flex-col">
@@ -41,14 +30,20 @@ export function StrategyList({ accountId, strategies }: Props) {
               등록된 전략이 없습니다.
             </p>
             <p className="text-xs text-muted-foreground text-center">
-              계좌당 {MAX_STRATEGIES}개 전략을 설정할 수 있습니다.
+              종목당 1개씩, 여러 전략을 추가할 수 있습니다.
             </p>
-            {canAdd && <StrategyFormDialog accountId={accountId} disabled={false} />}
+            <StrategyFormDialog accountId={accountId} disabled={false} />
           </div>
         ) : (
-          <div className="flex-1">
+          <div className="flex-1 flex flex-col gap-4">
             {strategies.map((s) => (
-              <StrategyCard key={s.id} strategy={s} position={position} isLoadingPosition={isLoadingPosition} />
+              <StrategyCard
+                key={s.id}
+                accountId={accountId}
+                strategy={s}
+                position={position?.ticker === s.ticker ? position : null}
+                isLoadingPosition={isLoadingPosition}
+              />
             ))}
           </div>
         )}

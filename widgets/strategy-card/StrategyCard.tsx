@@ -21,19 +21,21 @@ import {
   usePauseStrategyMutation,
   useResumeStrategyMutation,
 } from '@entities/strategy'
+import { StrategyFormDialog } from '@features/strategy/create-strategy'
 import { cn } from '@shared/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
 import type { Strategy } from '@entities/strategy'
 import type { NextOrderPositionSnapshot } from '@entities/order'
 
 interface Props {
+  accountId: string
   strategy: Strategy
   position?: NextOrderPositionSnapshot | null
   isLoadingPosition?: boolean
   onChanged?: () => void
 }
 
-export function StrategyCard({ strategy, position, isLoadingPosition = false, onChanged }: Props) {
+export function StrategyCard({ accountId, strategy, position, isLoadingPosition = false, onChanged }: Props) {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const deleteMutation = useDeleteStrategyMutation(() => { setDeleteOpen(false); onChanged?.() })
   const pauseMutation = usePauseStrategyMutation()
@@ -117,6 +119,14 @@ export function StrategyCard({ strategy, position, isLoadingPosition = false, on
           >
             {toggleLoading ? '처리 중...' : strategy.status === 'ACTIVE' ? '중지' : '재개'}
           </Button>
+
+          <StrategyFormDialog
+            accountId={accountId}
+            initial={strategy}
+            triggerLabel="수정"
+            triggerVariant="ghost"
+            disabled={loading}
+          />
 
           <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
             <AlertDialogTrigger
