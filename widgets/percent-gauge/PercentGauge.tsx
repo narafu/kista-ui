@@ -148,7 +148,7 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
             disabled={allDisabled}
             onChange={(e) => onChange(Number(e.target.value))}
             className={cn(
-              'absolute inset-0 w-full opacity-0 m-0',
+              'absolute inset-0 w-full opacity-0 m-0 touch-pan-y',
               allDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
             )}
           />

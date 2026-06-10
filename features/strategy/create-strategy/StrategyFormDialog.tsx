@@ -78,7 +78,7 @@ export function StrategyFormDialog({
             <DrawerTitle>{title}</DrawerTitle>
             <DrawerDescription>{description}</DrawerDescription>
           </DrawerHeader>
-          <div className="min-w-0 w-full overflow-x-hidden overflow-y-auto px-4 pb-4">
+          <div className="min-w-0 w-full flex-1 min-h-0 overflow-x-hidden overflow-y-auto overscroll-contain px-4 pb-4">
             {form}
           </div>
         </DrawerContent>
@@ -99,7 +99,7 @@ export function StrategyFormDialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <div className="min-w-0 w-full overflow-x-hidden">
+        <div className="min-w-0 w-full max-h-[70vh] overflow-x-hidden overflow-y-auto overscroll-contain">
           {form}
         </div>
       </DialogContent>

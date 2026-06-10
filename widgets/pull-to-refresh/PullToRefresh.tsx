@@ -16,6 +16,9 @@ export function PullToRefresh() {
   const isPullingRef = useRef(false)
 
   const handleTouchStart = useCallback((e: TouchEvent) => {
+    const target = e.target as Element | null
+    // 드로어/다이얼로그 등 오버레이 내부 터치는 PTR 대상에서 제외
+    if (target?.closest('[data-slot="drawer-content"], [data-slot="dialog-content"]')) return
     if (window.scrollY > 0) return
     startYRef.current = e.touches[0].clientY
     isPullingRef.current = true
