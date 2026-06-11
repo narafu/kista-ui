@@ -21,24 +21,15 @@ export default function GlobalError({
       }}>
         <div style={{ textAlign: 'center', padding: '0 24px', maxWidth: 440, width: '100%' }}>
           {/* 상태 표시줄 */}
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 14,
-            padding: '7px 18px', borderRadius: 999,
-            background: 'rgba(255,255,255,0.06)',
-            border: '1px solid var(--border)',
-            marginBottom: 44, fontSize: 10.5,
-            color: 'var(--muted-foreground)', letterSpacing: '0.1em',
-            fontFamily: 'monospace',
-          }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-              <span style={{
-                display: 'inline-block', width: 6, height: 6,
-                borderRadius: '50%', background: 'var(--pos)',
-                animation: 'blink 1.3s ease-in-out infinite',
-              }} />
+          <div
+            className="inline-flex items-center gap-[14px] px-[18px] py-[7px] rounded-full border border-border mb-11 text-[10.5px] text-muted-foreground tracking-[0.1em]"
+            style={{ background: 'rgba(255,255,255,0.06)', fontFamily: 'monospace' }}
+          >
+            <span className="flex items-center gap-[7px]">
+              <span className="error-pulse-dot" />
               거래 정지
             </span>
-            <span style={{ opacity: 0.35 }}>·</span>
+            <span className="opacity-35">·</span>
             <span>KISTA</span>
           </div>
 
@@ -53,14 +44,10 @@ export default function GlobalError({
           </div>
 
           {/* 배지 */}
-          <div style={{
-            display: 'inline-flex', alignItems: 'center',
-            padding: '4px 13px', borderRadius: 999,
-            background: 'var(--pos-bg)', color: 'var(--pos)',
-            fontSize: 10, fontWeight: 700, letterSpacing: '0.14em',
-            border: '1px solid var(--border)',
-            marginBottom: 16, fontFamily: 'monospace',
-          }}>
+          <div
+            className="inline-flex items-center px-[13px] py-1 rounded-full text-[10px] font-bold tracking-[0.14em] border border-border mb-4"
+            style={{ background: 'var(--pos-bg)', color: 'var(--pos)', fontFamily: 'monospace' }}
+          >
             CIRCUIT BREAKER
           </div>
 
@@ -80,23 +67,10 @@ export default function GlobalError({
           <button
             type="button"
             onClick={reset}
-            style={{
-              display: 'inline-flex', alignItems: 'center',
-              padding: '9px 22px', borderRadius: 10,
-              background: 'var(--primary)', color: 'var(--primary-foreground)',
-              fontSize: 13, fontWeight: 700, border: 'none',
-              cursor: 'pointer', letterSpacing: '-0.01em',
-            }}
+            className="inline-flex items-center px-[22px] py-[9px] rounded-[10px] bg-primary text-primary-foreground text-[13px] font-bold tracking-[-0.01em] border-none"
           >
             다시 시도
           </button>
-
-          <style>{`
-            @keyframes blink {
-              0%, 100% { opacity: 1; }
-              50% { opacity: 0.2; }
-            }
-          `}</style>
         </div>
       </body>
     </html>
