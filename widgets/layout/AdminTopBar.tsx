@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Clock, Users, Wallet, ArrowLeftRight, ScrollText, AlertTriangle, ArrowLeft } from 'lucide-react'
+import { LayoutDashboard, Clock, Users, Wallet, ArrowLeftRight, ScrollText, AlertTriangle, ArrowLeft, Table2 } from 'lucide-react'
 import Link from 'next/link'
 
 const NAV_ITEMS = [
@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: '/admin/users',       label: '사용자',    icon: Users },
   { href: '/admin/accounts',    label: '계좌',      icon: Wallet },
   { href: '/admin/trades',      label: '거래',      icon: ArrowLeftRight },
+  { href: '/admin/privacy-trades', label: '매매표', icon: Table2 },
   { href: '/admin/audit',       label: '감사',      icon: ScrollText },
   { href: '/admin/anomalies',   label: '이상',      icon: AlertTriangle },
 ]
