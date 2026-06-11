@@ -42,6 +42,11 @@ export async function getNextOrdersPreview(accountId: string): Promise<NextOrder
   return normalizePreview(raw)
 }
 
+export async function getStrategyOrdersPreview(strategyId: string): Promise<NextOrderPreview> {
+  const raw = await clientFetch<unknown>(`/api/trading-cycles/${strategyId}/preview`)
+  return normalizePreview(raw)
+}
+
 // 오늘 PLACED된 주문 전체 취소 — DELETE /api/trading-cycles/{id}/execute
 export async function cancelAllOrders(strategyId: string): Promise<CancelOrdersResult> {
   return clientFetch<CancelOrdersResult>(`/api/trading-cycles/${strategyId}/execute`, {

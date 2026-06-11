@@ -3,7 +3,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StrategyCard } from '@widgets/strategy-card'
 import { StrategyFormDialog } from '@features/strategy/create-strategy'
-import { useNextOrderPreviewQuery } from '@entities/order'
 import type { Strategy } from '@entities/strategy'
 
 interface Props {
@@ -12,9 +11,6 @@ interface Props {
 }
 
 export function StrategyList({ accountId, strategies }: Props) {
-  const { data: preview, isLoading: isLoadingPosition } = useNextOrderPreviewQuery(accountId)
-  const position = preview?.position ?? null
-
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-3">
@@ -35,15 +31,9 @@ export function StrategyList({ accountId, strategies }: Props) {
             <StrategyFormDialog accountId={accountId} disabled={false} />
           </div>
         ) : (
-          <div className="flex-1 flex flex-col gap-4">
+          <div className="flex-1 flex flex-col gap-2">
             {strategies.map((s) => (
-              <StrategyCard
-                key={s.id}
-                accountId={accountId}
-                strategy={s}
-                position={position?.ticker === s.ticker ? position : null}
-                isLoadingPosition={isLoadingPosition}
-              />
+              <StrategyCard key={s.id} accountId={accountId} strategy={s} />
             ))}
           </div>
         )}

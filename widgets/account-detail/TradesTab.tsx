@@ -2,8 +2,7 @@
 
 import { useReducer } from 'react'
 import { useAccountCycleHistoryQuery } from '@entities/trade'
-import { CycleHistoryTable } from './CycleHistoryTable'
-import { buildParams, type RangeType } from './lib/buildParams'
+import { CycleHistoryTable, buildParams, type RangeType } from '@widgets/cycle-history'
 
 type State = { rangeType: RangeType; customFrom: string; customTo: string }
 type Action =

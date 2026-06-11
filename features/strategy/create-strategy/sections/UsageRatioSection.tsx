@@ -28,47 +28,43 @@ export function UsageRatioSection({
         사용 비율
       </StrategyFieldLabel>
 
-      {loadingBase ? (
-        <div className="flex items-center gap-1.5 text-muted-foreground text-xs py-3">
-          <Loader2 size={14} className="animate-spin" />
-          예수금 조회 중...
-        </div>
-      ) : (
-        <>
-          <PercentGauge
-            value={pct}
-            onChange={setPct}
-            deposit={usdDeposit}
-            minSeed={minSeed}
-            disabled={loading}
-          />
+      <PercentGauge
+        value={pct}
+        onChange={setPct}
+        deposit={usdDeposit}
+        minSeed={minSeed}
+        disabled={loading || loadingBase}
+      />
 
-          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold mt-3">
-            {isBelowMinSeed && minSeed !== null ? (
-              <>
-                <span className="size-[14px]" style={{ color: 'var(--warn)' }}>
-                  <AlertTriangle size={14} />
-                </span>
-                <span style={{ color: 'var(--warn)' }}>최소 ${fmtUsd(minSeed)} 필요</span>
-              </>
-            ) : !isInfinite && privacyBase === null ? (
-              <>
-                <span className="size-[14px]" style={{ color: 'var(--warn)' }}>
-                  <AlertTriangle size={14} />
-                </span>
-                <span style={{ color: 'var(--warn)' }}>기준 매매표가 없습니다</span>
-              </>
-            ) : basePrice !== null ? (
-              <>
-                <span className="size-[14px]" style={{ color: 'var(--status-ok)' }}>
-                  <Check size={14} />
-                </span>
-                <span style={{ color: 'var(--status-ok)' }}>유효한 입력</span>
-              </>
-            ) : null}
-          </div>
-        </>
-      )}
+      <div className="inline-flex items-center gap-1.5 text-[11px] font-bold mt-3">
+        {loadingBase ? (
+          <>
+            <Loader2 size={14} className="animate-spin text-muted-foreground" />
+            <span className="text-muted-foreground">예수금 조회 중...</span>
+          </>
+        ) : isBelowMinSeed && minSeed !== null ? (
+          <>
+            <span className="size-[14px]" style={{ color: 'var(--warn)' }}>
+              <AlertTriangle size={14} />
+            </span>
+            <span style={{ color: 'var(--warn)' }}>최소 ${fmtUsd(minSeed)} 필요</span>
+          </>
+        ) : !isInfinite && privacyBase === null ? (
+          <>
+            <span className="size-[14px]" style={{ color: 'var(--warn)' }}>
+              <AlertTriangle size={14} />
+            </span>
+            <span style={{ color: 'var(--warn)' }}>기준 매매표가 없습니다</span>
+          </>
+        ) : basePrice !== null ? (
+          <>
+            <span className="size-[14px]" style={{ color: 'var(--status-ok)' }}>
+              <Check size={14} />
+            </span>
+            <span style={{ color: 'var(--status-ok)' }}>유효한 입력</span>
+          </>
+        ) : null}
+      </div>
     </div>
   )
 }
