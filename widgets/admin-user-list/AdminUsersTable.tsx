@@ -2,6 +2,7 @@
 
 import { useAdminUsersQuery } from '@entities/user'
 import { ChangeRoleButton } from '@features/admin/change-role'
+import { fmtDate } from '@shared/lib/format'
 import type { AdminUser, UserStatus } from '@entities/user'
 
 const STATUS_LABEL: Record<UserStatus, string> = {
@@ -61,7 +62,7 @@ export function AdminUsersTable({ initialUsers }: Props) {
                 </span>
               </td>
               <td className="px-4 py-3 text-muted-foreground">
-                {new Date(user.createdAt).toLocaleDateString('ko-KR')}
+                {fmtDate(user.createdAt)}
               </td>
               <td className="px-4 py-3">
                 <ChangeRoleButton userId={user.id} currentRole={user.role} />

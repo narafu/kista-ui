@@ -2,12 +2,9 @@
 
 import { cn } from '@shared/lib/utils'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
+import { fmtUsd } from '@shared/lib/format'
 import type { Strategy } from '@entities/strategy'
 import type { PriceMap } from '@entities/account'
-
-function fmtUsd(n: number, digits = 2) {
-  return n.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits })
-}
 
 interface Props {
   initial?: Strategy

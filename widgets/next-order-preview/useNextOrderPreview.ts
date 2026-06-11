@@ -8,6 +8,7 @@ import { getMargin } from '@entities/account'
 import { executeStrategy } from '@entities/strategy'
 import { getMarketSession, getMonthlyHolidaysClient } from '@entities/market'
 import { ApiError } from '@shared/lib/api-client'
+import { fmtTime } from '@shared/lib/format'
 import type { PlacedOrder } from '@entities/order'
 
 export function useNextOrderPreview(accountId: string, strategyId: string | undefined) {
@@ -104,9 +105,7 @@ export function useNextOrderPreview(accountId: string, strategyId: string | unde
     isLoading: previewQuery.isLoading,
     isFetching: previewQuery.isFetching,
     error,
-    lastUpdatedAt: previewQuery.dataUpdatedAt
-      ? new Date(previewQuery.dataUpdatedAt).toLocaleTimeString('ko-KR')
-      : '',
+    lastUpdatedAt: previewQuery.dataUpdatedAt ? fmtTime(previewQuery.dataUpdatedAt) : '',
     refetch: previewQuery.refetch,
     isBlocked: marketSession?.session === 'BLOCKED',
     isHoliday: holidays.includes(todayStr),

@@ -14,6 +14,12 @@ import type { Strategy } from '@entities/strategy'
 
 type Tab = 'summary' | 'strategy' | 'preview'
 
+const TAB_LABELS: Record<Tab, string> = {
+  summary: '계좌',
+  strategy: '전략',
+  preview: '다음 주문',
+}
+
 interface Props {
   account: Account
   portfolio: PortfolioSnapshot | null
@@ -42,7 +48,7 @@ export function AccountDetailTabs({ account, portfolio, strategies: initialStrat
             onClick={() => setActiveTab(tab)}
             className={`flex-shrink-0 py-3 px-2 text-sm font-medium border-b-2 transition-colors ${activeTab === tab ? 'border-primary text-primary' : 'border-transparent text-muted-foreground'}`}
           >
-            {tab === 'summary' ? '계좌' : tab === 'strategy' ? '전략' : '다음 주문'}
+            {TAB_LABELS[tab]}
           </button>
         ))}
       </div>

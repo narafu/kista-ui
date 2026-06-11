@@ -1,4 +1,5 @@
-import { apiFetch, clientFetch } from '@shared/lib/api-client'
+import { apiFetch, clientFetch, fetchEither } from '@shared/lib/api-client'
+import { toNum } from '@shared/lib/utils'
 import type { Account, AccountRequest } from '../model/types'
 
 export interface MarginItem {
@@ -15,26 +16,23 @@ export async function listAccounts(token: string): Promise<Account[]> {
 }
 
 export async function createAccount(data: AccountRequest, token?: string): Promise<Account> {
-  if (token) return apiFetch<Account>('/api/accounts', { method: 'POST', body: JSON.stringify(data) }, token)
-  return clientFetch<Account>('/api/accounts', {
+  return fetchEither<Account>('/api/accounts', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
-  })
+  }, token)
 }
 
 export async function updateAccount(id: string, data: AccountRequest, token?: string): Promise<Account> {
-  if (token) return apiFetch<Account>(`/api/accounts/${id}`, { method: 'PUT', body: JSON.stringify(data) }, token)
-  return clientFetch<Account>(`/api/accounts/${id}`, {
+  return fetchEither<Account>(`/api/accounts/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
-  })
+  }, token)
 }
 
 export async function deleteAccount(id: string, token?: string): Promise<void> {
-  if (token) return apiFetch<void>(`/api/accounts/${id}`, { method: 'DELETE' }, token)
-  await clientFetch<void>(`/api/accounts/${id}`, { method: 'DELETE' })
+  return fetchEither<void>(`/api/accounts/${id}`, { method: 'DELETE' }, token)
 }
 
 export async function getMargin(accountId: string): Promise<MarginItem[]> {
@@ -48,9 +46,7 @@ interface MultiPriceResponseRaw {
 export async function getPrices(accountId: string, tickers: string[]): Promise<PriceMap> {
   const query = tickers.map(t => `tickers=${encodeURIComponent(t)}`).join('&')
   const raw = await clientFetch<MultiPriceResponseRaw>(`/api/accounts/${accountId}/prices?${query}`)
-  return Object.fromEntries(
-    raw.prices.map(({ ticker, price }) => [ticker, typeof price === 'string' ? parseFloat(price) : price])
-  )
+  return Object.fromEntries(raw.prices.map(({ ticker, price }) => [ticker, toNum(price)]))
 }
 
 export async function testKisConnection(appKey: string, appSecret: string): Promise<void> {

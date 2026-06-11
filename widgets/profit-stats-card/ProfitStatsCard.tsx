@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PortfolioChart } from './PortfolioChart'
 import { useProfitStatsQuery } from '@entities/trade'
+import { fmtUsd, fmtPercent } from '@shared/lib/format'
 
 type Period = 7 | 30 | 90
 
@@ -69,7 +70,7 @@ export function ProfitStatsCard({ accountId }: Props) {
                     className="text-lg font-bold"
                     style={{ color: totalPL >= 0 ? 'var(--pos)' : 'var(--neg)' }}
                   >
-                    {totalPL >= 0 ? '+' : ''}${totalPL.toFixed(2)}
+                    {totalPL >= 0 ? '+' : ''}${fmtUsd(totalPL)}
                   </p>
                 </div>
                 <div>
@@ -78,8 +79,7 @@ export function ProfitStatsCard({ accountId }: Props) {
                     className="text-lg font-bold"
                     style={{ color: totalRate >= 0 ? 'var(--pos)' : 'var(--neg)' }}
                   >
-                    {totalRate >= 0 ? '+' : ''}
-                    {totalRate.toFixed(2)}%
+                    {fmtPercent(totalRate)}
                   </p>
                 </div>
                 <div>
@@ -88,7 +88,7 @@ export function ProfitStatsCard({ accountId }: Props) {
                     className="text-lg font-bold"
                     style={{ color: realized >= 0 ? 'var(--pos)' : 'var(--neg)' }}
                   >
-                    {realized >= 0 ? '+' : ''}${realized.toFixed(2)}
+                    {realized >= 0 ? '+' : ''}${fmtUsd(realized)}
                   </p>
                 </div>
                 <div>
@@ -97,7 +97,7 @@ export function ProfitStatsCard({ accountId }: Props) {
                     className="text-lg font-bold"
                     style={{ color: unrealized >= 0 ? 'var(--pos)' : 'var(--neg)' }}
                   >
-                    {unrealized >= 0 ? '+' : ''}${unrealized.toFixed(2)}
+                    {unrealized >= 0 ? '+' : ''}${fmtUsd(unrealized)}
                   </p>
                 </div>
               </div>

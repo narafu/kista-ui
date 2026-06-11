@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@shared/lib/utils'
+import { fmtUsd } from '@shared/lib/format'
 
 interface Props {
   value: number
@@ -9,10 +10,6 @@ interface Props {
   minSeed?: number | null
   compact?: boolean
   disabled?: boolean
-}
-
-function fmtUsd(n: number) {
-  return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 export function PercentGauge({ value, onChange, deposit, minSeed, compact, disabled }: Props) {

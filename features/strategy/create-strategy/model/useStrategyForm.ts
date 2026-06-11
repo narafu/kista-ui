@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { useMeta } from '@entities/meta'
 import { useAccountMarginQuery, useAccountPricesQuery } from '@entities/account'
 import { usePrivacyCurrentBaseQuery } from '@entities/privacy'
-import { useCreateStrategyMutation, useUpdateStrategyMutation } from '@entities/strategy'
+import { useCreateStrategyMutation, useUpdateStrategyMutation, calcMinSeed } from '@entities/strategy'
 import type { CycleSeedType, Strategy, StrategyRequest } from '@entities/strategy'
 import type { PriceMap } from '@entities/account'
 
@@ -118,11 +118,7 @@ export function useStrategyForm({
     }
     const newIsInfinite = (typeMeta.availableTickers?.length ?? 0) > 1
     const newBasePrice = newIsInfinite ? (prices?.[newTicker] ?? null) : privacyBase
-    const newMinSeed = process.env.NEXT_PUBLIC_DEV_BYPASS_MIN_SEED === 'true'
-      ? null
-      : newIsInfinite
-        ? newBasePrice !== null ? newBasePrice * 20 * 2 : null
-        : privacyBase !== null ? privacyBase / 2 : null
+    const newMinSeed = calcMinSeed(newBasePrice, newIsInfinite)
     setPctInternal(
       usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
     )
@@ -134,11 +130,10 @@ export function useStrategyForm({
     return privacyBase
   }, [type, ticker, isInfinite, prices, privacyBase])
 
-  const minSeed = useMemo(() => {
-    if (process.env.NEXT_PUBLIC_DEV_BYPASS_MIN_SEED === 'true') return null
-    if (isInfinite) return basePrice !== null ? basePrice * 20 * 2 : null
-    return privacyBase !== null ? privacyBase / 2 : null
-  }, [isInfinite, basePrice, privacyBase])
+  const minSeed = useMemo(
+    () => calcMinSeed(basePrice, isInfinite),
+    [isInfinite, basePrice],
+  )
 
   const seedUsd = usdDeposit !== null ? Math.round(usdDeposit * pct) / 100 : null
   const isBelowMinSeed = seedUsd !== null && minSeed !== null && seedUsd < minSeed
@@ -153,9 +148,7 @@ export function useStrategyForm({
   function handleTickerChange(code: string) {
     setTicker(code)
     const newBasePrice = prices?.[code] ?? null
-    const newMinSeed = process.env.NEXT_PUBLIC_DEV_BYPASS_MIN_SEED === 'true'
-      ? null
-      : newBasePrice !== null ? newBasePrice * 20 * 2 : null
+    const newMinSeed = calcMinSeed(newBasePrice, true)
     setPctInternal(
       usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
     )

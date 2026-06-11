@@ -1,5 +1,8 @@
 'use client'
 
+import { fmtUsd } from '@shared/lib/format'
+import { toNum } from '@shared/lib/utils'
+
 interface Props {
   ticker: string
   direction: string
@@ -24,7 +27,7 @@ export function OrderRow({
   isCancellingThis,
 }: Props) {
   const isBuy = direction === 'BUY'
-  const priceNum = parseFloat(price)
+  const priceNum = toNum(price)
   const total = priceNum > 0 ? priceNum * quantity : null
 
   return (
@@ -45,10 +48,10 @@ export function OrderRow({
       <div className="flex items-center gap-2">
         <div className="text-right">
           <p className="text-sm font-semibold">
-            {quantity}주{priceNum > 0 && ` × $${priceNum.toFixed(2)}`}
+            {quantity}주{priceNum > 0 && ` × $${fmtUsd(priceNum)}`}
           </p>
           {total != null && (
-            <p className="text-xs text-muted-foreground">= ${total.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">= ${fmtUsd(total)}</p>
           )}
         </div>
         {onCancel && id && (

@@ -1,4 +1,4 @@
-import { apiFetch, clientFetch } from '@shared/lib/api-client'
+import { clientFetch, fetchEither } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
 import type { CycleSeedType, Strategy, StrategyRequest } from '../model/types'
 import type { PlacedOrder } from '@entities/order/model/types'
@@ -17,61 +17,38 @@ function normalizeStrategy(raw: unknown): Strategy {
 }
 
 export async function listStrategies(accountId: string, token?: string): Promise<Strategy[]> {
-  if (token) {
-    const raw = await apiFetch<unknown[]>(`/api/accounts/${accountId}/trading-cycles`, {}, token)
-    return raw.map(normalizeStrategy)
-  }
-  const raw = await clientFetch<unknown[]>(`/api/accounts/${accountId}/trading-cycles`)
+  const raw = await fetchEither<unknown[]>(`/api/accounts/${accountId}/trading-cycles`, undefined, token)
   return raw.map(normalizeStrategy)
 }
 
 export async function createStrategy(accountId: string, data: StrategyRequest, token?: string): Promise<Strategy> {
-  if (token) {
-    const raw = await apiFetch<unknown>(`/api/accounts/${accountId}/trading-cycles`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    }, token)
-    return normalizeStrategy(raw)
-  }
-  const raw = await clientFetch<unknown>(`/api/accounts/${accountId}/trading-cycles`, {
+  const raw = await fetchEither<unknown>(`/api/accounts/${accountId}/trading-cycles`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
-  })
+  }, token)
   return normalizeStrategy(raw)
 }
 
 export async function updateStrategy(id: string, data: Partial<StrategyRequest>, token?: string): Promise<Strategy> {
-  if (token) {
-    const raw = await apiFetch<unknown>(`/api/trading-cycles/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    }, token)
-    return normalizeStrategy(raw)
-  }
-  const raw = await clientFetch<unknown>(`/api/trading-cycles/${id}`, {
+  const raw = await fetchEither<unknown>(`/api/trading-cycles/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
-  })
+  }, token)
   return normalizeStrategy(raw)
 }
 
 export async function deleteStrategy(id: string, token?: string): Promise<void> {
-  if (token) return apiFetch<void>(`/api/trading-cycles/${id}`, { method: 'DELETE' }, token)
-  await clientFetch<void>(`/api/trading-cycles/${id}`, { method: 'DELETE' })
+  return fetchEither<void>(`/api/trading-cycles/${id}`, { method: 'DELETE' }, token)
 }
 
 export async function pauseStrategy(id: string, token?: string): Promise<void> {
-  if (token) return apiFetch<void>(`/api/trading-cycles/${id}/pause`, { method: 'PATCH' }, token)
-  await clientFetch<void>(`/api/trading-cycles/${id}/pause`, { method: 'PATCH' })
+  return fetchEither<void>(`/api/trading-cycles/${id}/pause`, { method: 'PATCH' }, token)
 }
 
 export async function resumeStrategy(id: string, token?: string): Promise<void> {
-  if (token) return apiFetch<void>(`/api/trading-cycles/${id}/resume`, { method: 'PATCH' }, token)
-  await clientFetch<void>(`/api/trading-cycles/${id}/resume`, { method: 'PATCH' })
+  return fetchEither<void>(`/api/trading-cycles/${id}/resume`, { method: 'PATCH' }, token)
 }
 
 function normalizePlacedOrder(raw: unknown): PlacedOrder {

@@ -1,5 +1,7 @@
 'use client'
 
+import './globals.css'
+
 export default function GlobalError({
   reset,
 }: {
@@ -7,12 +9,12 @@ export default function GlobalError({
   reset: () => void
 }) {
   return (
-    <html lang="ko">
+    <html lang="ko" className="dark">
       <body style={{
         margin: 0,
-        fontFamily: "'Pretendard Variable', system-ui, sans-serif",
-        background: '#131416',
-        color: '#E8E6E3',
+        fontFamily: 'var(--font-sans)',
+        background: 'var(--background)',
+        color: 'var(--foreground)',
         display: 'grid',
         placeItems: 'center',
         minHeight: '100vh',
@@ -23,15 +25,15 @@ export default function GlobalError({
             display: 'inline-flex', alignItems: 'center', gap: 14,
             padding: '7px 18px', borderRadius: 999,
             background: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(232,230,227,0.1)',
+            border: '1px solid var(--border)',
             marginBottom: 44, fontSize: 10.5,
-            color: '#9B9892', letterSpacing: '0.1em',
+            color: 'var(--muted-foreground)', letterSpacing: '0.1em',
             fontFamily: 'monospace',
           }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
               <span style={{
                 display: 'inline-block', width: 6, height: 6,
-                borderRadius: '50%', background: '#FF6A5C',
+                borderRadius: '50%', background: 'var(--pos)',
                 animation: 'blink 1.3s ease-in-out infinite',
               }} />
               거래 정지
@@ -45,7 +47,7 @@ export default function GlobalError({
             fontSize: 'clamp(82px, 16vw, 136px)',
             fontStyle: 'italic', fontWeight: 700,
             lineHeight: 0.88, marginBottom: 28,
-            letterSpacing: '-0.02em', color: '#C99780',
+            letterSpacing: '-0.02em', color: 'var(--primary)',
           }}>
             500
           </div>
@@ -54,9 +56,9 @@ export default function GlobalError({
           <div style={{
             display: 'inline-flex', alignItems: 'center',
             padding: '4px 13px', borderRadius: 999,
-            background: 'rgba(255,106,92,0.13)', color: '#FF6A5C',
+            background: 'var(--pos-bg)', color: 'var(--pos)',
             fontSize: 10, fontWeight: 700, letterSpacing: '0.14em',
-            border: '1px solid rgba(232,230,227,0.1)',
+            border: '1px solid var(--border)',
             marginBottom: 16, fontFamily: 'monospace',
           }}>
             CIRCUIT BREAKER
@@ -64,12 +66,12 @@ export default function GlobalError({
 
           <h1 style={{
             fontSize: 19, fontWeight: 700, letterSpacing: '-0.02em',
-            color: '#E8E6E3', margin: '0 0 8px',
+            color: 'var(--foreground)', margin: '0 0 8px',
           }}>
             서버 장애 감지
           </h1>
           <p style={{
-            fontSize: 13.5, color: '#9B9892',
+            fontSize: 13.5, color: 'var(--muted-foreground)',
             lineHeight: 1.65, margin: '0 0 32px',
           }}>
             예상치 못한 내부 오류가 발생했습니다
@@ -81,7 +83,7 @@ export default function GlobalError({
             style={{
               display: 'inline-flex', alignItems: 'center',
               padding: '9px 22px', borderRadius: 10,
-              background: '#C99780', color: '#1A1108',
+              background: 'var(--primary)', color: 'var(--primary-foreground)',
               fontSize: 13, fontWeight: 700, border: 'none',
               cursor: 'pointer', letterSpacing: '-0.01em',
             }}

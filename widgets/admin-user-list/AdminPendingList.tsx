@@ -3,6 +3,7 @@
 import { Clock } from 'lucide-react'
 import { useAdminUsersQuery } from '@entities/user'
 import { ApproveRejectButtons } from '@features/admin/approve-reject'
+import { fmtDate } from '@shared/lib/format'
 import type { AdminUser } from '@entities/user'
 
 interface Props {
@@ -33,7 +34,7 @@ export function AdminPendingList({ initialUsers, max }: Props) {
           <div className="min-w-0">
             <p className="font-semibold truncate">{user.nickname}</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              가입일 {new Date(user.createdAt).toLocaleDateString('ko-KR')}
+              가입일 {fmtDate(user.createdAt)}
             </p>
           </div>
           <ApproveRejectButtons userId={user.id} nickname={user.nickname} />

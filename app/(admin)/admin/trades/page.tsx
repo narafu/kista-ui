@@ -1,5 +1,6 @@
 import { getAuthToken } from '@shared/lib/auth/token'
 import { listAdminTrades } from '@entities/user'
+import { fmtUsd } from '@shared/lib/format'
 import type { AdminTrade } from '@entities/user'
 
 const DIRECTION_LABEL: Record<string, string> = { BUY: '매수', SELL: '매도' }
@@ -52,7 +53,7 @@ export default async function AdminTradesPage() {
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{t.orderType}</td>
                   <td className="px-4 py-3 text-right">{t.quantity}</td>
-                  <td className="px-4 py-3 text-right font-mono text-xs">${t.price.toFixed(2)}</td>
+                  <td className="px-4 py-3 text-right font-mono text-xs">${fmtUsd(t.price)}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLE[t.status] ?? 'bg-muted text-muted-foreground'}`}>
                       {t.status}

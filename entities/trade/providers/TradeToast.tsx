@@ -1,4 +1,5 @@
 import { TrendingUp, TrendingDown, Info, AlertCircle } from 'lucide-react'
+import { fmtUsd } from '@shared/lib/format'
 import type { TradeEvent } from '@entities/trade'
 
 interface Props {
@@ -29,7 +30,7 @@ export function TradeToast({ event }: Props) {
         <p className="text-sm font-semibold text-foreground mt-0.5">
           {event.ticker}
           {event.quantity != null && ` ${event.quantity}주`}
-          {event.price != null && ` @ $${event.price.toFixed(2)}`}
+          {event.price != null && ` @ $${fmtUsd(event.price)}`}
         </p>
         {event.message && (
           <p className="text-xs text-muted-foreground mt-0.5">{event.message}</p>

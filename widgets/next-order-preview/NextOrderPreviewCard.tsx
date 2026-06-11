@@ -7,6 +7,7 @@ import { useNextOrderPreview } from './useNextOrderPreview'
 import { ExecuteDialog } from './ExecuteDialog'
 import { PreviewMode } from './PreviewMode'
 import { ExecutedMode } from './ExecutedMode'
+import { toNum } from '@shared/lib/utils'
 
 interface Props {
   accountId: string
@@ -52,14 +53,14 @@ export function NextOrderPreviewCard({ accountId, strategyType, strategyId }: Pr
 
   const insufficientUnitAmount =
     preview?.skipReason === 'INSUFFICIENT_BALANCE' && preview?.position != null
-      ? parseFloat(preview.position.unitAmount)
+      ? toNum(preview.position.unitAmount)
       : null
 
   const totalBuy =
     preview?.orders
       .filter((o) => o.direction === 'BUY')
       .reduce((sum, o) => {
-        const price = parseFloat(o.price)
+        const price = toNum(o.price)
         return price > 0 && o.quantity > 0 ? sum + price * o.quantity : sum
       }, 0) ?? 0
 

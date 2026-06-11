@@ -22,7 +22,8 @@ import {
   useResumeStrategyMutation,
 } from '@entities/strategy'
 import { StrategyFormDialog } from '@features/strategy/create-strategy'
-import { cn } from '@shared/lib/utils'
+import { cn, toNum } from '@shared/lib/utils'
+import { fmtUsd } from '@shared/lib/format'
 import { buttonVariants } from '@/components/ui/button'
 import type { Strategy } from '@entities/strategy'
 import type { NextOrderPositionSnapshot } from '@entities/order'
@@ -57,6 +58,8 @@ export function StrategyCard({ accountId, strategy, position, isLoadingPosition 
     }
   }
 
+  const toggleLabel = toggleLoading ? '처리 중...' : strategy.status === 'ACTIVE' ? '중지' : '재개'
+
   const cycleSeedLabel =
     strategy.cycleSeedType === 'NONE'
       ? '수동'
@@ -88,7 +91,7 @@ export function StrategyCard({ accountId, strategy, position, isLoadingPosition 
             label="시작금액"
             value={
               strategy.initialUsdDeposit != null
-                ? `$${strategy.initialUsdDeposit.toLocaleString('en-US')}`
+                ? `$${fmtUsd(strategy.initialUsdDeposit)}`
                 : <span className="text-sm font-normal text-muted-foreground">미설정</span>
             }
           />
@@ -102,9 +105,9 @@ export function StrategyCard({ accountId, strategy, position, isLoadingPosition 
           ) : position ? (
             <>
               <KpiCard label="회차(T)" value={`${position.currentRound.toFixed(1)}회차`} />
-              <KpiCard label="단위금액(회)" value={`$${parseFloat(position.unitAmount).toFixed(2)}`} />
-              <KpiCard label="기준가" value={`$${parseFloat(position.referencePrice).toFixed(2)}`} />
-              <KpiCard label="목표가" value={`$${parseFloat(position.targetPrice).toFixed(2)}`} />
+              <KpiCard label="단위금액(회)" value={`$${fmtUsd(toNum(position.unitAmount))}`} />
+              <KpiCard label="기준가" value={`$${fmtUsd(toNum(position.referencePrice))}`} />
+              <KpiCard label="목표가" value={`$${fmtUsd(toNum(position.targetPrice))}`} />
             </>
           ) : null}
         </div>
@@ -117,7 +120,7 @@ export function StrategyCard({ accountId, strategy, position, isLoadingPosition 
             onClick={handleToggle}
             disabled={loading}
           >
-            {toggleLoading ? '처리 중...' : strategy.status === 'ACTIVE' ? '중지' : '재개'}
+            {toggleLabel}
           </Button>
 
           <StrategyFormDialog

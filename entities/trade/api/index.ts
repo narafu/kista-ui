@@ -1,4 +1,4 @@
-import { apiFetch, clientFetch } from '@shared/lib/api-client'
+import { apiFetch, fetchEither } from '@shared/lib/api-client'
 import type {
   TradeHistory,
   Execution,
@@ -46,8 +46,7 @@ export async function getPortfolioSnapshots(
   params: { from?: string; to?: string },
   token?: string
 ): Promise<PortfolioSnapshot[]> {
-  if (token) return apiFetch<PortfolioSnapshot[]>(`/api/portfolio/snapshots${buildDateQuery(params)}`, { method: 'GET' }, token)
-  return clientFetch<PortfolioSnapshot[]>(`/api/portfolio/snapshots${buildDateQuery(params)}`)
+  return fetchEither<PortfolioSnapshot[]>(`/api/portfolio/snapshots${buildDateQuery(params)}`, { method: 'GET' }, token)
 }
 
 export async function getAccountProfit(
@@ -56,8 +55,7 @@ export async function getAccountProfit(
   token?: string
 ): Promise<ProfitSummary> {
   const q = new URLSearchParams({ from: params.from, to: params.to })
-  if (token) return apiFetch<ProfitSummary>(`/api/accounts/${accountId}/profit?${q}`, { method: 'GET' }, token)
-  return clientFetch<ProfitSummary>(`/api/accounts/${accountId}/profit?${q}`)
+  return fetchEither<ProfitSummary>(`/api/accounts/${accountId}/profit?${q}`, { method: 'GET' }, token)
 }
 
 export async function getAccountTrades(
@@ -75,8 +73,7 @@ export async function getAccountCycleHistory(
   token?: string
 ): Promise<CycleHistoryPage> {
   const qs = buildCycleHistoryQuery(params)
-  if (token) return apiFetch<CycleHistoryPage>(`/api/accounts/${accountId}/cycle-history${qs}`, { method: 'GET' }, token)
-  return clientFetch<CycleHistoryPage>(`/api/accounts/${accountId}/cycle-history${qs}`)
+  return fetchEither<CycleHistoryPage>(`/api/accounts/${accountId}/cycle-history${qs}`, { method: 'GET' }, token)
 }
 
 export async function getStrategyCycleHistory(
@@ -85,8 +82,7 @@ export async function getStrategyCycleHistory(
   token?: string
 ): Promise<CycleHistoryPage> {
   const qs = buildCycleHistoryQuery(params)
-  if (token) return apiFetch<CycleHistoryPage>(`/api/trading-cycles/${strategyId}/history${qs}`, { method: 'GET' }, token)
-  return clientFetch<CycleHistoryPage>(`/api/trading-cycles/${strategyId}/history${qs}`)
+  return fetchEither<CycleHistoryPage>(`/api/trading-cycles/${strategyId}/history${qs}`, { method: 'GET' }, token)
 }
 
 export async function getAccountPortfolio(accountId: string, token: string): Promise<PortfolioSnapshot> {
@@ -94,8 +90,7 @@ export async function getAccountPortfolio(accountId: string, token: string): Pro
 }
 
 export async function getAccountMargin(accountId: string, token?: string): Promise<MarginItem[]> {
-  if (token) return apiFetch<MarginItem[]>(`/api/accounts/${accountId}/margin`, { method: 'GET' }, token)
-  return clientFetch<MarginItem[]>(`/api/accounts/${accountId}/margin`)
+  return fetchEither<MarginItem[]>(`/api/accounts/${accountId}/margin`, { method: 'GET' }, token)
 }
 
 export async function getDailyTransactions(
@@ -104,6 +99,5 @@ export async function getDailyTransactions(
   token?: string
 ): Promise<DailyTransactionResult> {
   const q = new URLSearchParams({ from: params.from, to: params.to })
-  if (token) return apiFetch<DailyTransactionResult>(`/api/accounts/${accountId}/daily-trades?${q}`, { method: 'GET' }, token)
-  return clientFetch<DailyTransactionResult>(`/api/accounts/${accountId}/daily-trades?${q}`)
+  return fetchEither<DailyTransactionResult>(`/api/accounts/${accountId}/daily-trades?${q}`, { method: 'GET' }, token)
 }

@@ -20,6 +20,8 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 | `admin-user-list` | `AdminPendingList`, `AdminUsersTable` | `app/(admin)/admin/` 페이지들 |
 | `dashboard` | `DashboardEmpty`, `DashboardOverview`, `aggregatePortfolios` | `app/(main)/dashboard/page.tsx` |
 | `account-detail` | `AccountDetailTabs`, `AccountSummaryCard`, `CycleHistoryTable`, `TradesTab`, `StrategyTradesTab` | `app/(main)/accounts/[id]/page.tsx` |
+| `portfolio-summary-card` | `PortfolioSummaryCard` | `app/(main)/statistics/page.tsx` |
+| `trade-history-list` | `TradeHistoryList`, `TradeDirectionBadge`(내부 전용) | `app/(main)/statistics/page.tsx` |
 | `next-order-preview` | `NextOrderPreviewCard`, `PreviewMode`, `ExecutedMode`, `ExecuteDialog`, `OrderRow` | `account-detail`, `dashboard` |
 | `percent-gauge` | `PercentGauge` (슬라이더 UI) | 전략 등록/수정 폼 |
 | `error-display` | `ErrorDisplay` | `error.tsx` fallback |

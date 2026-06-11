@@ -1,4 +1,5 @@
 import { cn } from '@shared/lib/utils'
+import { fmtUsd, fmtKrw, fmtPercent } from '@shared/lib/format'
 
 interface Props {
   amount?: number
@@ -15,9 +16,7 @@ export function ProfitDisplay({ amount, rate, size = 'md', full, currency = 'USD
   const sizeMap = { sm: 'text-sm', md: 'text-base', lg: 'text-xl font-bold' }
   const sign = isPos ? '+' : '-'
   const sym = currency === 'KRW' ? '₩' : '$'
-  const fmt = (n: number) => currency === 'KRW'
-    ? n.toLocaleString('ko-KR', { maximumFractionDigits: 0 })
-    : n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const fmt = (n: number) => currency === 'KRW' ? fmtKrw(n) : fmtUsd(n)
 
   return (
     <span className={cn('inline-flex items-baseline gap-1.5 flex-wrap', sizeMap[size], color, className)}>
@@ -26,7 +25,7 @@ export function ProfitDisplay({ amount, rate, size = 'md', full, currency = 'USD
       )}
       {rate !== undefined && (
         <span className={full ? 'text-[0.85em] opacity-80' : ''}>
-          {sign}{Math.abs(rate).toFixed(2)}%
+          {fmtPercent(rate)}
         </span>
       )}
       {!full && amount !== undefined && rate === undefined && (

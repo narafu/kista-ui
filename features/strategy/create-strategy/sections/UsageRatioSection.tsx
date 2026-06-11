@@ -3,10 +3,7 @@
 import { Check, AlertTriangle, Loader2 } from 'lucide-react'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import { PercentGauge } from '@widgets/percent-gauge'
-
-function fmtUsd(n: number, digits = 2) {
-  return n.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits })
-}
+import { fmtUsd } from '@shared/lib/format'
 
 interface Props {
   pct: number

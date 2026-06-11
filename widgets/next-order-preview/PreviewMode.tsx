@@ -1,6 +1,7 @@
 'use client'
 
 import { OrderRow } from './OrderRow'
+import { fmtUsd } from '@shared/lib/format'
 import type { NextOrderPreview } from '@entities/order'
 
 interface Props {
@@ -64,7 +65,7 @@ export function PreviewMode({
       {showInsufficientBanner && (
         <div className="rounded-lg px-4 py-2.5 bg-warn-bg">
           <p className="text-xs font-semibold text-warn leading-relaxed">
-            ⚠️ 매수 예정 금액 ${totalBuy.toFixed(2)} • 예수금 ${(purchasable ?? 0).toFixed(2)} • 잔고 부족 ${shortfall.toFixed(2)}
+            ⚠️ 매수 예정 금액 ${fmtUsd(totalBuy)} • 예수금 ${fmtUsd(purchasable ?? 0)} • 잔고 부족 ${fmtUsd(shortfall)}
           </p>
         </div>
       )}
@@ -73,7 +74,7 @@ export function PreviewMode({
         preview.skipReason === 'INSUFFICIENT_BALANCE' && insufficientUnitAmount !== null ? (
           <div className="rounded-lg px-4 py-2.5 bg-warn-bg">
             <p className="text-xs font-semibold text-warn leading-relaxed">
-              ⚠️ 단위금액 ${insufficientUnitAmount.toFixed(2)} • 전일종가가 단위금액을 초과해 이번 사이클은 건너뜁니다
+              ⚠️ 단위금액 ${fmtUsd(insufficientUnitAmount)} • 전일종가가 단위금액을 초과해 이번 사이클은 건너뜁니다
             </p>
           </div>
         ) : (

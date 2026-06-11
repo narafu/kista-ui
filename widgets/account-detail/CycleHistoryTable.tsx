@@ -1,6 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { fmtUsd, fmtDate } from '@shared/lib/format'
 import type { CycleHistoryItem } from '@entities/trade'
 import { RANGE_LABELS, type RangeType } from './lib/buildParams'
 
@@ -106,13 +107,13 @@ export function CycleHistoryTable({
                 <Card key={entry.createdAt} className="p-3">
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-sm">{entry.ticker ?? '-'}</span>
-                    <span className="text-sm font-semibold">${(entry.usdDeposit ?? 0).toFixed(2)}</span>
+                    <span className="text-sm font-semibold">${fmtUsd(entry.usdDeposit ?? 0)}</span>
                   </div>
                   <div className="flex justify-between mt-2 text-xs text-muted-foreground">
                     <span>
-                      {entry.holdings}주{entry.avgPrice != null ? ` · 평균 $${entry.avgPrice.toFixed(2)}` : ''}
+                      {entry.holdings}주{entry.avgPrice != null ? ` · 평균 $${fmtUsd(entry.avgPrice)}` : ''}
                     </span>
-                    <span>{new Date(entry.createdAt).toLocaleDateString('ko-KR')}</span>
+                    <span>{fmtDate(entry.createdAt)}</span>
                   </div>
                 </Card>
               ))}
@@ -132,11 +133,11 @@ export function CycleHistoryTable({
                 <tbody>
                   {cycleHistory.map((entry) => (
                     <tr key={entry.createdAt} className="border-t hover:bg-muted/30 transition-colors">
-                      <td className="px-4 py-3 text-muted-foreground">{new Date(entry.createdAt).toLocaleDateString('ko-KR')}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{fmtDate(entry.createdAt)}</td>
                       <td className="px-4 py-3 font-medium">{entry.ticker ?? '-'}</td>
                       <td className="px-4 py-3">{entry.holdings}주</td>
-                      <td className="px-4 py-3">{entry.avgPrice != null ? `$${entry.avgPrice.toFixed(2)}` : '-'}</td>
-                      <td className="px-4 py-3 font-medium">${(entry.usdDeposit ?? 0).toFixed(2)}</td>
+                      <td className="px-4 py-3">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</td>
+                      <td className="px-4 py-3 font-medium">${fmtUsd(entry.usdDeposit ?? 0)}</td>
                     </tr>
                   ))}
                 </tbody>

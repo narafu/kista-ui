@@ -1,4 +1,4 @@
-import { apiFetch, clientFetch, ApiError } from '@shared/lib/api-client'
+import { apiFetch, clientFetch, fetchEither } from '@shared/lib/api-client'
 import type { User, UserRole, UserStatus, AdminUser, AdminStats, AdminAccount, AdminTrade, AdminAuditLog, AdminAnomalies } from '../model/types'
 
 export async function getMe(token: string): Promise<User> {
@@ -6,12 +6,7 @@ export async function getMe(token: string): Promise<User> {
 }
 
 export async function reapply(): Promise<void> {
-  const res = await fetch('/api/auth/reapply-done', { method: 'POST' })
-  if (!res.ok) {
-    let body: unknown
-    try { body = await res.json() } catch { body = null }
-    throw new ApiError(res.status, body)
-  }
+  await clientFetch<void>('/api/auth/reapply-done', { method: 'POST' })
 }
 
 export async function deleteMe(): Promise<void> {
@@ -40,40 +35,35 @@ export async function deleteTelegram(): Promise<void> {
 
 export async function listAdminUsers(token?: string, status?: UserStatus): Promise<AdminUser[]> {
   const query = status ? `?status=${status}` : ''
-  if (token) return apiFetch<AdminUser[]>(`/api/admin/users${query}`, { method: 'GET' }, token)
-  return clientFetch<AdminUser[]>(`/api/admin/users${query}`)
+  return fetchEither<AdminUser[]>(`/api/admin/users${query}`, { method: 'GET' }, token)
 }
 
 export async function approveAdminUser(userId: string): Promise<void> {
-  const res = await fetch(`/api/admin/users/${userId}/status`, {
+  await clientFetch<void>(`/api/admin/users/${userId}/status`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ status: 'ACTIVE' }),
   })
-  if (!res.ok) throw new Error(`approve failed: ${res.status}`)
 }
 
 export async function rejectAdminUser(userId: string): Promise<void> {
-  const res = await fetch(`/api/admin/users/${userId}/status`, {
+  await clientFetch<void>(`/api/admin/users/${userId}/status`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ status: 'REJECTED' }),
   })
-  if (!res.ok) throw new Error(`reject failed: ${res.status}`)
 }
 
 export async function changeAdminUserRole(userId: string, role: UserRole): Promise<void> {
-  const res = await fetch(`/api/admin/users/${userId}/role`, {
+  await clientFetch<void>(`/api/admin/users/${userId}/role`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ role }),
   })
-  if (!res.ok) throw new Error(`changeRole failed: ${res.status}`)
 }
 
 export async function deleteAdminUser(userId: string): Promise<void> {
-  const res = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' })
-  if (!res.ok) throw new Error(`deleteUser failed: ${res.status}`)
+  await clientFetch<void>(`/api/admin/users/${userId}`, { method: 'DELETE' })
 }
 
 export async function getAdminStats(token: string): Promise<AdminStats> {
