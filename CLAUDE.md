@@ -2,11 +2,15 @@
 
 세부 quirk는 각 디렉토리 CLAUDE.md 참고:
 - `app/CLAUDE.md` — proxy·쿠키·Next.js·SSE·PWA quirk
-- `lib/CLAUDE.md` — API 계층·kista-api DTO·KIS quirk·캐시
+- `entities/CLAUDE.md` — 도메인 모델·kista-api DTO·KIS quirk·queryKey
+- `features/CLAUDE.md` — 사용자 시나리오·뮤테이션 훅 규칙
+- `widgets/CLAUDE.md` — 페이지 합성·shadcn·CSS 토큰·UI 패턴
+- `shared/CLAUDE.md` — api-client·format·cache·providers
 
 ## 프로젝트 개요
 
 KISTA V2 — 한국투자증권 KIS API 기반 해외주식 자동 분할매매 **초대제 멀티 사용자 SaaS** 프론트엔드.
+기술 스택: **Next.js 16** · TypeScript · Tailwind CSS · shadcn/ui · React Query · Firebase (FCM)
 
 ## 주요 명령어
 
@@ -64,10 +68,6 @@ shared/        → 도메인 무관 공용 (ui/, lib/api-client, lib/format, lib
 - Client Component: token 없이 `entities/{도메인}/api` 함수 → Route Handler 자동 경유
 - **Client Component에서 직접 kista-api 호출 전면 금지** (CORS + 쿠키 문제)
 
-### 컴포넌트 폴더
-`components/ui/` — shadcn 자동생성 컴포넌트 (직접 수정 금지)  
-실제 구현은 FSD 계층: `widgets/`, `features/`, `entities/`, `shared/`
-
 ## 환경변수
 
 ```
@@ -88,7 +88,7 @@ NEXT_PUBLIC_API_BASE_URL=      # kista-api Render URL
 
 - `docker compose up -d --build` / `docker compose down` / `docker compose logs`
 - `NEXT_PUBLIC_*` 빌드 타임 인라인 → Dockerfile `ARG`/`ENV` 필수
-- API URL: `API_BASE_URL=http://host.docker.internal:8080` + `extra_hosts: host-gateway` (자세한 내용 → `lib/CLAUDE.md`)
+- API URL: `API_BASE_URL=http://host.docker.internal:8080` + `extra_hosts: host-gateway` (자세한 내용 → `app/CLAUDE.md`)
 - Dockerfile Node.js 22 고정 필수 (`undici` v8 호환, 20으로 다운그레이드 금지)
 
 ## Git 규칙
@@ -114,16 +114,6 @@ NEXT_PUBLIC_API_BASE_URL=      # kista-api Render URL
 - kista-api 위치: `../kista-api/` — 빌드: `cd ../kista-api && ./gradlew compileJava`
 
 ## FE 코딩 가이드라인
-
-### 아키텍처 (SRP·Clean)
-- **계층 단방향 의존성**: `app → widgets → features → entities → shared` — 동일 계층 Cross-import 금지
-- **새 코드 위치**: entities(도메인 API·훅), features(사용자 시나리오), widgets(페이지 합성), shared(공용 유틸)
-- **순수 뷰**: UI 컴포넌트는 데이터 패칭/로직 금지 — 주입받은 상태만 렌더링
-- **비즈니스 로직 격리**: 서버 상태는 `entities/{domain}/hooks/` React Query 훅으로 캡슐화. UI 상태만 `useState`
-
-### 상태 관리 (CQRS)
-- **서버 상태**: React Query (`@tanstack/react-query` 도입 완료) — Query/Mutation 훅 분리. 서버 상태를 `useState`에 복사 금지
-- **클라이언트 상태**: UI 상태는 `useState` 우선. Zustand는 진정한 전역에만
 
 ### 코딩 컨벤션
 - **포맷**: 싱글 쿼트 · 세미콜론 없음 · import 중괄호 공백 (`{ useState }`)

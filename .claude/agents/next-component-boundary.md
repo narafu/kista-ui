@@ -1,0 +1,46 @@
+---
+name: next-component-boundary
+description: Next.js Server/Client 컴포넌트 경계 위반 감지. 코드 리뷰 또는 새 컴포넌트 추가 후 호출.
+---
+
+다음 위반 패턴을 순서대로 grep으로 검사하세요. 대상 디렉토리: `app/`, `widgets/`, `features/`, `entities/`.
+
+## 1. 'use client' 없이 훅 사용
+
+```bash
+grep -rln "useState\|useEffect\|useRef\|useCallback\|useReducer" app/ widgets/ features/ entities/ --include="*.tsx"
+```
+
+각 파일에 대해 `grep -l "'use client'" <file>` 로 확인. 훅이 있는데 'use client'가 없으면 위반.
+
+예외: `use client` 없는 Server Component에서 훅을 import만 하고 실제로 호출하지 않는 경우는 허용.
+
+## 2. app/ 페이지 파일의 불필요한 'use client'
+
+```bash
+grep -rln "'use client'" app/ --include="page.tsx"
+```
+
+`page.tsx`에 `'use client'`가 선언된 파일 목록을 출력합니다.  
+→ 페이지는 Server Component 유지가 원칙. 인터랙션이 필요하면 별도 `*Button.tsx` / `*Trigger.tsx`로 분리해야 함.  
+→ 단, `app/(auth)/`, `app/pending/` 같이 인증 흐름 페이지는 예외일 수 있음.
+
+## 3. Server Component에서 이벤트 핸들러 직접 사용
+
+```bash
+grep -rn "onClick=\|onChange=\|onSubmit=\|onMouseEnter=\|onKeyDown=" app/ --include="*.tsx"
+```
+
+각 파일에 'use client'가 없으면 위반.
+
+---
+
+보고 형식:
+```
+[위반 #N] 파일경로:라인번호
+  패턴: 훅 없는 'use client' / 페이지 클라이언트화 / 이벤트 핸들러
+  문제: [구체적 내용]
+  권장: [처리 방법]
+```
+
+위반 없으면 "Server/Client 경계 위반 없음" 출력.

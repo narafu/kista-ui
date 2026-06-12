@@ -4,13 +4,24 @@
     "commit-commands@claude-plugins-official": true
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /d/src/study/kista/kista-ui/.claude/hooks/block-env-local.sh"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'cd /d/src/study/kista/kista-ui && npm run typecheck 2>&1 | tail -8'"
+            "command": "bash /d/src/study/kista/kista-ui/.claude/hooks/typecheck-ts-only.sh"
           }
         ]
       }

@@ -48,8 +48,8 @@ features/{domain}/{slice}/
 ## 주요 슬라이스 quirk
 
 - **`create-account/steps/ApiStep`**: `useTestKisConnectionMutation` 사용 — KIS 토큰 1분 제한 주의 (`app/CLAUDE.md` 참고)
-- **`create-account/steps/ConfirmStep`**: `useCreateAccountMutation` 사용
-- **`auth/reapply`**: `ReapplyButton`(pending, 1시간) / `RejectedReapplyButton`(rejected, 24시간) — localStorage 쿨다운 키: pending → `reapply_last_requested_at`, rejected → `reapply_rejected_last_at`
+- **`create-account/steps/ConfirmStep`**: `useCreateAccountMutation` 사용. 계좌번호 입력은 `74420614-01`(8자리 + `-` + 2자리) 분할 Input UI
+- **`auth/reapply`**: `ReapplyButton`(pending, 1시간) / `RejectedReapplyButton`(rejected, 24시간) — localStorage 쿨다운 키: pending → `reapply_last_requested_at`, rejected → `reapply_rejected_last_at`. `/api/auth/reapply-done` Route Handler 경유 (직접 kista-api 호출 금지)
 - **`strategy/create-strategy/StrategyFormDialog`**: `initial?: Strategy` prop 유무로 create/edit 분기. create → `useCreateStrategyMutation`, edit → `useUpdateStrategyMutation`
-- **`settings/telegram-connect`**: pending 페이지와 settings 페이지 양쪽에서 동일 컴포넌트 공유 (`TelegramSection` / `PendingTelegramConnect`)
+- **`settings/telegram-connect`**: pending 페이지와 settings 페이지 양쪽에서 동일 컴포넌트 공유 (`TelegramSection` / `PendingTelegramConnect`). `updateTelegram`/`deleteTelegram` → `/api/settings/telegram` Route Handler 경유
 - **`strategy/create-strategy/sections`**: CSS 토큰 기반 인라인 style 다수 — `globals.css` 커스텀 토큰(`--rose-500`, `--warn` 등) 사용
