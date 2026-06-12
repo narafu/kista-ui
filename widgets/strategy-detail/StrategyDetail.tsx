@@ -48,7 +48,7 @@ interface Props {
 }
 
 export function StrategyDetail({ accountId, strategy }: Props) {
-  const router = useRouter()
+  const { push } = useRouter()
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [mode, setMode] = useState<'preview' | 'executed'>('preview')
   const [placedOrders, setPlacedOrders] = useState<PlacedOrder[]>([])
@@ -65,7 +65,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
   const isHoliday = holidays.includes(todayStr)
   const canExecute = strategy.type === 'INFINITE' && strategy.status === 'ACTIVE'
 
-  const deleteMutation = useDeleteStrategyMutation(() => router.push(`/accounts/${accountId}`))
+  const deleteMutation = useDeleteStrategyMutation(() => push(`/accounts/${accountId}`))
   const pauseMutation = usePauseStrategyMutation()
   const resumeMutation = useResumeStrategyMutation()
   const executeMutation = useExecuteStrategyMutation(strategy.id)
@@ -105,7 +105,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
               {cycleSeedLabel}
             </span>
           </span>
-          <span className="ml-auto text-sm font-medium text-foreground">
+          <span className="w-full sm:w-auto sm:ml-auto text-sm font-medium text-foreground">
             시작금액{' '}
             {strategy.initialUsdDeposit != null ? (
               `$${fmtUsd(strategy.initialUsdDeposit)}`
