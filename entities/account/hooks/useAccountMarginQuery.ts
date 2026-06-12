@@ -81,7 +81,7 @@ export function useCreateAccountMutation() {
     },
     onError: (error) => {
       if (error instanceof ApiError && error.status === 422) {
-        toast.error('계좌번호가 KIS 자격증명과 일치하지 않습니다')
+        toast.error('자격증명 인증에 실패했습니다')
       } else {
         toast.error('계좌 연결에 실패했습니다')
       }

@@ -1,8 +1,10 @@
+export type BrokerCode = 'KIS' | 'TOSS'
+
 export interface Account {
   id: string
   nickname: string
   accountNoMasked: string
-  broker: string
+  broker: BrokerCode
 }
 
 export interface AccountRequest {
@@ -10,4 +12,5 @@ export interface AccountRequest {
   accountNo?: string
   kisAppKey?: string
   kisSecretKey?: string
+  broker?: BrokerCode
 }
