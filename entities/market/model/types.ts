@@ -1,4 +1,6 @@
+import type { MarketSessionStatus } from '@shared/lib/api-schema'
+
 export interface MarketSession {
-  session: 'DIRECT' | 'BLOCKED'
+  session: MarketSessionStatus
   isDst: boolean
 }

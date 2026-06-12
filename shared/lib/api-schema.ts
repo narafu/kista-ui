@@ -17,3 +17,5 @@ export type OrderDirection = NonNullable<components['schemas']['Order']['directi
 export type OrderStatus = NonNullable<components['schemas']['Order']['status']>
 
 export type SkipReason = NonNullable<components['schemas']['NextOrdersResponse']['skipReason']>
+
+export type MarketSessionStatus = NonNullable<components['schemas']['MarketSessionResponse']['session']>

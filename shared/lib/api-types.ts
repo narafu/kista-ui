@@ -1582,7 +1582,8 @@ export interface components {
             targetProfitRate?: number;
         };
         MarketSessionResponse: {
-            session?: string;
+            /** @enum {string} */
+            session?: "DIRECT" | "BLOCKED";
             isDst?: boolean;
         };
         AdminUserResponse: {
