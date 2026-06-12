@@ -18,17 +18,19 @@ const BROKER_CONFIG = {
     keyLabel: 'App Key',
     secretLabel: 'App Secret',
     linkHref: 'https://securities.koreainvestment.com/main/customer/systemdown/RestAPIService.jsp',
-    linkLabel: 'KIS API 키 발급받기',
+    linkLabel: '한국투자증권(KIS) API 키 발급',
     needsTest: true,
+    hint: '로그인 후 API 키를 발급받을 수 있습니다.',
   },
   TOSS: {
     title: '토스증권 API 키 입력',
     desc: '토스증권 Open API 자격증명을 입력하세요.',
     keyLabel: 'Client ID',
     secretLabel: 'Client Secret',
-    linkHref: 'https://openapi.tossinvest.com',
-    linkLabel: '토스증권 API 가이드',
+    linkHref: 'https://www.tossinvest.com',
+    linkLabel: '토스증권 API 키 발급',
     needsTest: false,
+    hint: '로그인 후 우측 하단 [설정 - Open API] 메뉴에서 API 키를 발급받을 수 있습니다.',
   },
 } as const
 
@@ -57,14 +59,10 @@ export function ApiStep({ data, onNext, onBack }: Props) {
       <div>
         <h2 className="text-lg font-bold mb-1">{config.title}</h2>
         <p className="text-sm text-muted-foreground">{config.desc}</p>
-        <a
-          href={config.linkHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-rose-500 hover:text-rose-600 transition-colors"
-        >
+        <a href={config.linkHref} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-rose-500 hover:text-rose-600 transition-colors">
           {config.linkLabel} <ExternalLink className="size-3" />
         </a>
+        <p className="text-xs text-muted-foreground mt-2">{config.hint}</p>
       </div>
 
       <div className="flex flex-col gap-4">
@@ -93,11 +91,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
               placeholder={`발급받은 ${config.secretLabel}`}
               className="w-full px-3 py-2.5 pr-10 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-rose-400"
             />
-            <button
-              type="button"
-              onClick={() => setShowSecret(s => !s)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            >
+            <button type="button" onClick={() => setShowSecret((s) => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
               {showSecret ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
             </button>
           </div>
@@ -113,8 +107,12 @@ export function ApiStep({ data, onNext, onBack }: Props) {
             className="w-full h-10 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
           >
             {testMutation.isPending ? (
-              <><Loader2 className="size-4 animate-spin" /> 연결 확인 중...</>
-            ) : '연결 테스트'}
+              <>
+                <Loader2 className="size-4 animate-spin" /> 연결 확인 중...
+              </>
+            ) : (
+              '연결 테스트'
+            )}
           </button>
           {testMutation.isSuccess && (
             <div className="flex items-center gap-1.5 text-[12.5px] text-emerald-600">
@@ -131,11 +129,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
       )}
 
       <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex-1 h-11 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted transition-colors"
-        >
+        <button type="button" onClick={onBack} className="flex-1 h-11 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted transition-colors">
           이전
         </button>
         <button

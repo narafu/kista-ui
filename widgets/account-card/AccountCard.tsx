@@ -5,6 +5,11 @@ import { StatusDot } from '@widgets/status-dot'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 
+const BROKER_LABELS: Record<string, string> = {
+  KIS: '한국투자증권',
+  TOSS: '토스증권',
+}
+
 interface Props {
   account: Account
   strategies?: Strategy[]
@@ -12,6 +17,7 @@ interface Props {
 
 export function AccountCard({ account, strategies = [] }: Props) {
   const primary = strategies[0]
+  const brokerLabel = BROKER_LABELS[account.broker] ?? account.broker
 
   return (
     <Link
@@ -21,7 +27,15 @@ export function AccountCard({ account, strategies = [] }: Props) {
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
           <p className="font-semibold text-base text-foreground leading-snug">{account.nickname}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">{account.accountNoMasked}</p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <p className="text-xs text-muted-foreground">{account.accountNoMasked}</p>
+            <span
+              className="inline-flex items-center px-1.5 h-[18px] rounded text-[10px] font-semibold"
+              style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
+            >
+              {brokerLabel}
+            </span>
+          </div>
         </div>
         <StatusDot status={(primary?.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
       </div>

@@ -6,6 +6,11 @@ import { fmtUsd, fmtPercent } from '@shared/lib/format'
 import type { Account } from '@entities/account'
 import type { PortfolioSnapshot } from '@entities/trade'
 
+const BROKER_LABELS: Record<string, string> = {
+  KIS: '한국투자증권',
+  TOSS: '토스증권',
+}
+
 interface Props {
   account: Account
   portfolio: PortfolioSnapshot | null
@@ -13,6 +18,7 @@ interface Props {
 }
 
 export function AccountSummaryCard({ account, portfolio, usdDeposit }: Props) {
+  const brokerLabel = BROKER_LABELS[account.broker] ?? account.broker
   const cost = portfolio ? (portfolio.avgPrice ?? 0) * (portfolio.holdings ?? 0) : 0
   const unrealized = portfolio ? (portfolio.marketValueUsd ?? 0) - cost : 0
   const rate = cost > 0 ? (unrealized / cost) * 100 : 0
@@ -25,7 +31,7 @@ export function AccountSummaryCard({ account, portfolio, usdDeposit }: Props) {
       <CardContent className="px-6 pb-6">
         <div className="grid grid-cols-2 gap-3">
           <KpiCard label="계좌번호" value={<span className="font-mono tracking-wider">{account.accountNoMasked}</span>} />
-          <KpiCard label="증권사" value={account.broker} />
+          <KpiCard label="증권사" value={brokerLabel} />
           <KpiCard label="예수금" value={`$${fmtUsd(usdDeposit ?? 0)}`} />
           <KpiCard
             label="평가손익"
