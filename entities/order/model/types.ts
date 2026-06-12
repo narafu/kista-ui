@@ -19,7 +19,8 @@ export interface NextOrderItem {
   price: string
 }
 
-export type SkipReason = 'NO_CYCLE_HISTORY' | 'INSUFFICIENT_BALANCE' | 'NO_PRIVACY_BASE'
+export type { SkipReason } from '@shared/lib/api-schema'
+import type { SkipReason } from '@shared/lib/api-schema'
 
 export interface NextOrderPreview {
   tradeDate: string

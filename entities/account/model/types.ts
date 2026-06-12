@@ -1,4 +1,5 @@
-export type BrokerCode = 'KIS' | 'TOSS'
+export type { BrokerCode } from '@shared/lib/api-schema'
+import type { BrokerCode } from '@shared/lib/api-schema'
 
 export interface Account {
   id: string

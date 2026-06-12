@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "doctor": "npx react-doctor@latest"
+    "doctor": "npx react-doctor@latest",
+    "fetch:spec": "curl -s http://localhost:8080/api-docs -o openapi.json",
+    "gen:types": "openapi-typescript openapi.json -o shared/lib/api-types.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
@@ -37,6 +39,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "openapi-typescript": "^7.13.0",
     "react-doctor": "^0.2.8",
     "tailwindcss": "^4",
     "typescript": "^5"

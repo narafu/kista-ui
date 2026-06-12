@@ -22,4 +22,5 @@ export interface MetaBundle {
   tickers: TickerMeta[]
   brokers: EnumMeta[]
   strategyStatuses: EnumMeta[]
+  cycleSeedTypes: EnumMeta[]
 }

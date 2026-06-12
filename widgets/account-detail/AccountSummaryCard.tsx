@@ -3,10 +3,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { KpiCard } from '@widgets/kpi-card'
 import { fmtUsd, fmtPercent } from '@shared/lib/format'
-import type { Account } from '@entities/account'
+import type { Account, BrokerCode } from '@entities/account'
 import type { PortfolioSnapshot } from '@entities/trade'
 
-const BROKER_LABELS: Record<string, string> = {
+const BROKER_LABELS: Record<BrokerCode, string> = {
   KIS: '한국투자증권',
   TOSS: '토스증권',
 }

@@ -9,9 +9,8 @@ export interface TradeEvent {
   message?: string
 }
 
-export type OrderDirection = 'BUY' | 'SELL'
-export type OrderType = 'LOC' | 'MOC' | 'LIMIT'
-export type OrderStatus = 'PLACED' | 'FILLED' | 'FAILED' | 'CANCELLED'
+export type { OrderDirection, OrderType, OrderStatus } from '@shared/lib/api-schema'
+import type { OrderDirection, OrderType, OrderStatus } from '@shared/lib/api-schema'
 
 export interface TradeHistory {
   id: string

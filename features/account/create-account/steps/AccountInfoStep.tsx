@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import type { BrokerCode } from '@entities/account'
 import type { StepData } from '../CreateAccountStepper'
 
 interface Props {
@@ -32,7 +33,7 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
   const [nickname, setNickname] = useState(data.nickname)
   const [accountNo, setAccountNo] = useState(data.accountNo)
 
-  const broker = (data.broker || 'KIS') as 'KIS' | 'TOSS'
+  const broker = (data.broker || 'KIS') as BrokerCode
   const config = ACCOUNT_CONFIG[broker]
   const valid = nickname.trim().length >= 1 && config.pattern.test(accountNo)
 

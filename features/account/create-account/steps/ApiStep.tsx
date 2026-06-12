@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Eye, EyeOff, CheckCircle2, XCircle, Loader2, ExternalLink } from 'lucide-react'
 import { useTestKisConnectionMutation } from '@entities/account'
+import type { BrokerCode } from '@entities/account'
 import type { StepData } from '../CreateAccountStepper'
 
 interface Props {
@@ -41,7 +42,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
   // KIS/TOSS 모두 훅을 호출해야 함 (조건부 훅 호출 금지)
   const testMutation = useTestKisConnectionMutation()
 
-  const broker = (data.broker || 'KIS') as 'KIS' | 'TOSS'
+  const broker = (data.broker || 'KIS') as BrokerCode
   const config = BROKER_CONFIG[broker]
   const canTest = apiKey.length >= 10 && apiSecret.length >= 10
   // KIS: 연결 테스트 통과 후 다음 활성화 / TOSS: 입력값만 있으면 다음 활성화

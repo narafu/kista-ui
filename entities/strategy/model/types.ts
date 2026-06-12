@@ -1,5 +1,7 @@
-// enum 값은 모두 string — 백엔드 메타 API가 SSOT
-export type CycleSeedType = 'NONE' | 'MAX' | 'MAINTAIN'
+// type/status/ticker는 string — 백엔드 메타 API가 SSOT (리터럴 직접 사용 금지)
+// CycleSeedType은 요청 DTO에서 enum으로 선언 → api-schema에서 파생
+export type { CycleSeedType } from '@shared/lib/api-schema'
+import type { CycleSeedType } from '@shared/lib/api-schema'
 
 export interface Strategy {
   id: string

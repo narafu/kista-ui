@@ -1,6 +1,5 @@
-export type UserStatus = 'PENDING' | 'ACTIVE' | 'REJECTED'
-export type UserRole = 'USER' | 'ADMIN'
-export type NotificationChannel = 'NONE' | 'TELEGRAM' | 'FCM' | 'ALL'
+export type { UserStatus, UserRole, NotificationChannel } from '@shared/lib/api-schema'
+import type { UserStatus, UserRole, NotificationChannel, OrderDirection, OrderType } from '@shared/lib/api-schema'
 
 export interface User {
   id: string
@@ -41,8 +40,8 @@ export interface AdminTrade {
   ownerNickname: string
   tradeDate: string
   ticker: string
-  direction: 'BUY' | 'SELL'
-  orderType: 'LOC' | 'MOC' | 'LIMIT'
+  direction: OrderDirection
+  orderType: OrderType
   quantity: number
   price: number
   status: 'PLACED' | 'FILLED' | 'FAILED'
