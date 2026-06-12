@@ -31,18 +31,18 @@ export function AdminPrivacyBaseTable({ bases }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-border overflow-hidden">
+    <div className="rounded-xl border border-border overflow-x-auto">
       <table className="w-full text-sm">
         <thead className="bg-muted/40 border-b border-border">
           <tr>
             <th className="w-8 px-2 py-3"></th>
-            <th className="text-left px-4 py-3 font-semibold text-muted-foreground">날짜</th>
-            <th className="text-left px-4 py-3 font-semibold text-muted-foreground">종목</th>
-            <th className="text-right px-4 py-3 font-semibold text-muted-foreground">사이클 시작금액</th>
-            <th className="hidden sm:table-cell text-right px-4 py-3 font-semibold text-muted-foreground">평단가</th>
-            <th className="text-right px-4 py-3 font-semibold text-muted-foreground">보유</th>
-            <th className="hidden sm:table-cell text-right px-4 py-3 font-semibold text-muted-foreground">실현손익</th>
-            <th className="hidden sm:table-cell text-right px-4 py-3 font-semibold text-muted-foreground">주문</th>
+            <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">날짜</th>
+            <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">종목</th>
+            <th className="text-right px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">사이클 시작금액</th>
+            <th className="hidden sm:table-cell text-right px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">평단가</th>
+            <th className="text-right px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">보유</th>
+            <th className="hidden sm:table-cell text-right px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">실현손익</th>
+            <th className="hidden sm:table-cell text-right px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">주문</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
@@ -65,15 +65,15 @@ function FragmentRow({ base: b, open, onToggle }: { base: AdminPrivacyBase; open
         <td className="px-2 py-3 text-muted-foreground">
           {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
         </td>
-        <td className="px-4 py-3 text-muted-foreground text-xs">{b.tradeDate}</td>
-        <td className="px-4 py-3">{b.ticker}</td>
-        <td className="px-4 py-3 text-right font-mono text-xs">${fmtUsd(b.currentCycleStart)}</td>
-        <td className="hidden sm:table-cell px-4 py-3 text-right font-mono text-xs">{b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`}</td>
-        <td className="px-4 py-3 text-right">{b.holdings}</td>
-        <td className={`hidden sm:table-cell px-4 py-3 text-right font-mono text-xs ${b.currentCycleRealizedPnl >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+        <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">{b.tradeDate}</td>
+        <td className="px-4 py-3 whitespace-nowrap">{b.ticker}</td>
+        <td className="px-4 py-3 text-right font-mono text-xs whitespace-nowrap">${fmtUsd(b.currentCycleStart)}</td>
+        <td className="hidden sm:table-cell px-4 py-3 text-right font-mono text-xs whitespace-nowrap">{b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`}</td>
+        <td className="px-4 py-3 text-right whitespace-nowrap">{b.holdings}</td>
+        <td className={`hidden sm:table-cell px-4 py-3 text-right font-mono text-xs whitespace-nowrap ${b.currentCycleRealizedPnl >= 0 ? 'text-pos' : 'text-neg'}`}>
           {b.currentCycleRealizedPnl >= 0 ? '+' : ''}{fmtUsd(b.currentCycleRealizedPnl)}
         </td>
-        <td className="hidden sm:table-cell px-4 py-3 text-right text-muted-foreground">{b.orders.length}건</td>
+        <td className="hidden sm:table-cell px-4 py-3 text-right text-muted-foreground whitespace-nowrap">{b.orders.length}건</td>
       </tr>
       {open && b.orders.length > 0 && (
         <tr className="bg-muted/10">
@@ -91,7 +91,7 @@ function FragmentRow({ base: b, open, onToggle }: { base: AdminPrivacyBase; open
               <tbody>
                 {b.orders.map((o) => (
                   <tr key={o.id}>
-                    <td className={`py-1 font-semibold ${o.direction === 'BUY' ? 'text-blue-600' : 'text-red-500'}`}>
+                    <td className={`py-1 font-semibold ${o.direction === 'BUY' ? 'text-pos' : 'text-neg'}`}>
                       {DIRECTION_LABEL[o.direction] ?? o.direction}
                     </td>
                     <td className="py-1 text-muted-foreground">{o.orderType}</td>

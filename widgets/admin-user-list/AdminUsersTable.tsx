@@ -10,11 +10,6 @@ const STATUS_LABEL: Record<UserStatus, string> = {
   ACTIVE: '승인',
   REJECTED: '거절',
 }
-const STATUS_COLOR: Record<UserStatus, string> = {
-  PENDING: 'bg-amber-100 text-amber-700',
-  ACTIVE: 'bg-emerald-100 text-emerald-700',
-  REJECTED: 'bg-slate-100 text-slate-600',
-}
 
 interface Props {
   initialUsers: AdminUser[]
@@ -32,39 +27,31 @@ export function AdminUsersTable({ initialUsers }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-border overflow-hidden">
+    <div className="rounded-xl border border-border overflow-x-auto">
       <table className="w-full text-sm">
         <thead className="bg-muted/40 text-xs text-muted-foreground font-semibold">
           <tr>
-            <th className="text-left px-4 py-3">닉네임</th>
-            <th className="text-left px-4 py-3">상태</th>
-            <th className="text-left px-4 py-3">역할</th>
-            <th className="text-left px-4 py-3">가입일</th>
-            <th className="text-left px-4 py-3">역할 변경</th>
+            <th className="text-left px-4 py-3 whitespace-nowrap">닉네임</th>
+            <th className="text-left px-4 py-3 whitespace-nowrap">상태</th>
+            <th className="text-left px-4 py-3 whitespace-nowrap">역할</th>
+            <th className="text-left px-4 py-3 whitespace-nowrap">가입일</th>
+            <th className="text-left px-4 py-3 whitespace-nowrap">역할 변경</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
           {users.map((user) => (
             <tr key={user.id} className="hover:bg-muted/20 transition-colors">
-              <td className="px-4 py-3 font-medium">{user.nickname}</td>
-              <td className="px-4 py-3">
-                <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_COLOR[user.status]}`}>
-                  {STATUS_LABEL[user.status]}
-                </span>
+              <td className="px-4 py-3 font-medium whitespace-nowrap">{user.nickname}</td>
+              <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">
+                {STATUS_LABEL[user.status]}
               </td>
-              <td className="px-4 py-3">
-                <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${
-                  user.role === 'ADMIN'
-                    ? 'bg-rose-500 text-white'
-                    : 'bg-slate-500 text-white'
-                }`}>
-                  {user.role}
-                </span>
+              <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">
+                {user.role}
               </td>
-              <td className="px-4 py-3 text-muted-foreground">
+              <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                 {fmtDate(user.createdAt)}
               </td>
-              <td className="px-4 py-3">
+              <td className="px-4 py-3 whitespace-nowrap">
                 <ChangeRoleButton userId={user.id} currentRole={user.role} />
               </td>
             </tr>

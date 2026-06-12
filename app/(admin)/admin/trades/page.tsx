@@ -28,33 +28,33 @@ export default async function AdminTradesPage() {
           거래 내역이 없습니다
         </div>
       ) : (
-        <div className="rounded-xl border border-border overflow-hidden">
+        <div className="rounded-xl border border-border overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-muted/40 border-b border-border">
               <tr>
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">날짜</th>
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">소유자</th>
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">종목</th>
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">방향</th>
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">유형</th>
-                <th className="text-right px-4 py-3 font-semibold text-muted-foreground">수량</th>
-                <th className="text-right px-4 py-3 font-semibold text-muted-foreground">가격</th>
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground">상태</th>
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">날짜</th>
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">소유자</th>
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">종목</th>
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">방향</th>
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">유형</th>
+                <th className="text-right px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">수량</th>
+                <th className="text-right px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">가격</th>
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">상태</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {trades.map((t) => (
                 <tr key={t.id} className="hover:bg-muted/20 transition-colors">
-                  <td className="px-4 py-3 text-muted-foreground text-xs">{t.tradeDate}</td>
-                  <td className="px-4 py-3 font-medium">{t.ownerNickname}</td>
-                  <td className="px-4 py-3">{t.ticker}</td>
-                  <td className={`px-4 py-3 font-semibold ${t.direction === 'BUY' ? 'text-blue-600' : 'text-red-500'}`}>
+                  <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">{t.tradeDate}</td>
+                  <td className="px-4 py-3 font-medium whitespace-nowrap">{t.ownerNickname}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">{t.ticker}</td>
+                  <td className={`px-4 py-3 font-semibold whitespace-nowrap ${t.direction === 'BUY' ? 'text-pos' : 'text-neg'}`}>
                     {DIRECTION_LABEL[t.direction] ?? t.direction}
                   </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">{t.orderType}</td>
-                  <td className="px-4 py-3 text-right">{t.quantity}</td>
-                  <td className="px-4 py-3 text-right font-mono text-xs">${fmtUsd(t.price)}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">{t.orderType}</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap">{t.quantity}</td>
+                  <td className="px-4 py-3 text-right font-mono text-xs whitespace-nowrap">${fmtUsd(t.price)}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLE[t.status] ?? 'bg-muted text-muted-foreground'}`}>
                       {t.status}
                     </span>
