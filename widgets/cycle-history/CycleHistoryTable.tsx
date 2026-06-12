@@ -1,5 +1,6 @@
 'use client'
 
+import { Fragment } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { fmtUsd, fmtDate } from '@shared/lib/format'
 import type { CycleHistoryItem } from '@entities/trade'
@@ -34,6 +35,15 @@ export function CycleHistoryTable({
   isFetchingNextPage,
   fetchNextPage,
 }: Props) {
+  // 날짜(fmtDate 결과)별 그룹 — 입력 순서(최신순) 유지
+  const groups = cycleHistory.reduce<{ date: string; items: CycleHistoryItem[] }[]>((acc, item) => {
+    const date = fmtDate(item.createdAt)
+    const last = acc[acc.length - 1]
+    if (last && last.date === date) last.items.push(item)
+    else acc.push({ date, items: [item] })
+    return acc
+  }, [])
+
   const rangeLabel =
     rangeType === 'all'
       ? '전체'
@@ -103,19 +113,23 @@ export function CycleHistoryTable({
           <>
             {/* 모바일: 카드 리스트 */}
             <div className="space-y-2 p-4 lg:hidden">
-              {cycleHistory.map((entry) => (
-                <Card key={entry.createdAt} className="p-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-sm">{entry.ticker ?? '-'}</span>
-                    <span className="text-sm font-semibold">${fmtUsd(entry.usdDeposit ?? 0)}</span>
-                  </div>
-                  <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                    <span>
-                      {entry.holdings}주{entry.avgPrice != null ? ` · 평균 $${fmtUsd(entry.avgPrice)}` : ''}
-                    </span>
-                    <span>{fmtDate(entry.createdAt)}</span>
-                  </div>
-                </Card>
+              {groups.map((g) => (
+                <div key={g.date} className="space-y-2">
+                  <div className="px-1 pt-2 text-[11px] uppercase tracking-widest text-muted-foreground">{g.date}</div>
+                  {g.items.map((entry) => (
+                    <Card key={entry.createdAt} className="p-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-sm">{entry.ticker ?? '-'}</span>
+                        <span className="text-sm font-semibold">${fmtUsd(entry.usdDeposit ?? 0)}</span>
+                      </div>
+                      <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+                        <span>
+                          {entry.holdings}주{entry.avgPrice != null ? ` · 평균 $${fmtUsd(entry.avgPrice)}` : ''}
+                        </span>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
               ))}
             </div>
             {/* 데스크탑: 테이블 */}
@@ -123,7 +137,7 @@ export function CycleHistoryTable({
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 sticky top-0 z-10">
                   <tr>
-                    {['일시', '종목', '보유수량', '평균단가', '예수금'].map((h) => (
+                    {['종목', '보유수량', '평균단가', '예수금'].map((h) => (
                       <th key={h} className="px-4 py-3 text-left text-[11px] uppercase tracking-widest text-rose-500">
                         {h}
                       </th>
@@ -131,14 +145,20 @@ export function CycleHistoryTable({
                   </tr>
                 </thead>
                 <tbody>
-                  {cycleHistory.map((entry) => (
-                    <tr key={entry.createdAt} className="border-t hover:bg-muted/30 transition-colors">
-                      <td className="px-4 py-3 text-muted-foreground">{fmtDate(entry.createdAt)}</td>
-                      <td className="px-4 py-3 font-medium">{entry.ticker ?? '-'}</td>
-                      <td className="px-4 py-3">{entry.holdings}주</td>
-                      <td className="px-4 py-3">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</td>
-                      <td className="px-4 py-3 font-medium">${fmtUsd(entry.usdDeposit ?? 0)}</td>
-                    </tr>
+                  {groups.map((g) => (
+                    <Fragment key={g.date}>
+                      <tr>
+                        <td colSpan={4} className="bg-muted/30 px-4 py-2 text-[11px] uppercase tracking-widest text-muted-foreground">{g.date}</td>
+                      </tr>
+                      {g.items.map((entry) => (
+                        <tr key={entry.createdAt} className="border-t hover:bg-muted/30 transition-colors">
+                          <td className="px-4 py-3 font-medium">{entry.ticker ?? '-'}</td>
+                          <td className="px-4 py-3">{entry.holdings}주</td>
+                          <td className="px-4 py-3">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</td>
+                          <td className="px-4 py-3 font-medium">${fmtUsd(entry.usdDeposit ?? 0)}</td>
+                        </tr>
+                      ))}
+                    </Fragment>
                   ))}
                 </tbody>
               </table>

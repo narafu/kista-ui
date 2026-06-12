@@ -16,6 +16,11 @@ function normalizeStrategy(raw: unknown): Strategy {
   }
 }
 
+export async function listAllStrategies(token?: string): Promise<Strategy[]> {
+  const raw = await fetchEither<unknown[]>(`/api/trading-cycles`, undefined, token)
+  return raw.map(normalizeStrategy)
+}
+
 export async function listStrategies(accountId: string, token?: string): Promise<Strategy[]> {
   const raw = await fetchEither<unknown[]>(`/api/accounts/${accountId}/trading-cycles`, undefined, token)
   return raw.map(normalizeStrategy)

@@ -1,6 +1,5 @@
 import { apiFetch, fetchEither } from '@shared/lib/api-client'
 import type {
-  TradeHistory,
   Execution,
   CycleHistoryItem,
   CycleHistoryPage,
@@ -29,17 +28,6 @@ function buildCycleHistoryQuery(params: {
   if (params.cursor) q.set('cursor', params.cursor)
   if (params.size != null) q.set('size', String(params.size))
   return q.size ? `?${q}` : ''
-}
-
-export async function getTrades(
-  params: { from?: string; to?: string },
-  token: string
-): Promise<TradeHistory[]> {
-  return apiFetch<TradeHistory[]>(`/api/trades${buildDateQuery(params)}`, { method: 'GET' }, token)
-}
-
-export async function getCurrentPortfolio(token: string): Promise<PortfolioSnapshot> {
-  return apiFetch<PortfolioSnapshot>('/api/portfolio/current', { method: 'GET' }, token)
 }
 
 export async function getPortfolioSnapshots(

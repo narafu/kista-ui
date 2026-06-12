@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { ApiError } from '@shared/lib/api-client'
 import {
+  listAllStrategies,
   listStrategies,
   createStrategy,
   updateStrategy,
@@ -14,6 +15,15 @@ import {
   executeStrategy,
 } from '../api'
 import type { Strategy, StrategyRequest } from '../model/types'
+
+export function useAllStrategiesQuery(initialData?: Strategy[]) {
+  return useQuery<Strategy[]>({
+    queryKey: ['strategies', 'all'],
+    queryFn: () => listAllStrategies(),
+    initialData,
+    staleTime: 30_000,
+  })
+}
 
 export function useStrategiesQuery(accountId: string, initialData?: Strategy[]) {
   return useQuery<Strategy[]>({

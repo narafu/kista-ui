@@ -3,7 +3,6 @@ export type {
   OrderDirection,
   OrderType,
   OrderStatus,
-  TradeHistory,
   CycleHistoryItem,
   Execution,
   PortfolioSnapshot,
@@ -15,8 +14,6 @@ export type {
   DailyTransactionResult,
 } from './model/types'
 export {
-  getTrades,
-  getCurrentPortfolio,
   getPortfolioSnapshots,
   getAccountProfit,
   getAccountTrades,
