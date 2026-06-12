@@ -100,5 +100,16 @@ export function useDeleteStrategyMutation(onSuccess?: () => void) {
 export function useExecuteStrategyMutation(strategyId: string | undefined) {
   return useMutation({
     mutationFn: () => executeStrategy(strategyId!),
+    onSuccess: () => toast.success('매매 실행이 요청됐습니다. 장 마감 후 체결 결과를 확인하세요.'),
+    onError: (e) => {
+      if (e instanceof ApiError) {
+        if (e.status === 409) toast.error('오늘 이미 실행됐습니다.')
+        else if (e.status === 400) toast.error('실행할 수 없는 전략입니다.')
+        else if (e.status === 403) toast.error('권한이 없습니다.')
+        else toast.error('실행 중 오류가 발생했습니다.')
+      } else {
+        toast.error('실행 중 오류가 발생했습니다.')
+      }
+    },
   })
 }

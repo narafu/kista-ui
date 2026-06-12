@@ -2,16 +2,8 @@
 
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { getNextOrdersPreview, getStrategyOrdersPreview, cancelAllOrders, cancelOneOrder } from '../api'
+import { getStrategyOrdersPreview, cancelAllOrders, cancelOneOrder } from '../api'
 import type { NextOrderPreview } from '../model/types'
-
-export function useNextOrderPreviewQuery(accountId: string) {
-  return useQuery<NextOrderPreview>({
-    queryKey: ['nextOrderPreview', accountId],
-    queryFn: () => getNextOrdersPreview(accountId),
-    retry: false,
-  })
-}
 
 export function useStrategyOrderPreviewQuery(strategyId: string) {
   return useQuery<NextOrderPreview>({

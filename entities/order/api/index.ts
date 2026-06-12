@@ -37,11 +37,6 @@ function normalizePreview(raw: unknown): NextOrderPreview {
   return { tradeDate: String(r.tradeDate), position, orders, skipReason }
 }
 
-export async function getNextOrdersPreview(accountId: string): Promise<NextOrderPreview> {
-  const raw = await clientFetch<unknown>(`/api/accounts/${accountId}/orders/preview`)
-  return normalizePreview(raw)
-}
-
 export async function getStrategyOrdersPreview(strategyId: string): Promise<NextOrderPreview> {
   const raw = await clientFetch<unknown>(`/api/trading-cycles/${strategyId}/preview`)
   return normalizePreview(raw)

@@ -1,9 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { NextOrderPreviewCard } from '@widgets/next-order-preview'
 import { StrategyList } from '@widgets/strategy-list'
-import { useMeta } from '@entities/meta'
 import { useStrategiesQuery } from '@entities/strategy'
 import { AccountSummaryCard } from './AccountSummaryCard'
 import { TradesTab } from './TradesTab'
@@ -12,12 +10,11 @@ import type { Account } from '@entities/account'
 import type { PortfolioSnapshot } from '@entities/trade'
 import type { Strategy } from '@entities/strategy'
 
-type Tab = 'summary' | 'strategy' | 'preview'
+type Tab = 'summary' | 'strategy'
 
 const TAB_LABELS: Record<Tab, string> = {
   summary: '계좌',
   strategy: '전략',
-  preview: '다음 주문',
 }
 
 interface Props {
@@ -30,18 +27,13 @@ interface Props {
 export function AccountDetailTabs({ account, portfolio, strategies: initialStrategies, usdDeposit }: Props) {
   const { data: strategies = initialStrategies } = useStrategiesQuery(account.id, initialStrategies)
   const [activeTab, setActiveTab] = useState<Tab>('summary')
-  const { findStrategyType } = useMeta()
   const activeStrategy = strategies.find((s) => s.status === 'ACTIVE') ?? strategies[0]
-  const activeTypeMeta = activeStrategy ? findStrategyType(activeStrategy.type) : null
-  const isInfiniteActive =
-    activeStrategy?.status === 'ACTIVE' && (activeTypeMeta?.availableTickers?.length ?? 0) > 1
-  const executeStrategyId = isInfiniteActive ? activeStrategy!.id : undefined
 
   return (
     <div className="space-y-4">
       {/* 모바일 탭 헤더 */}
       <div className="flex lg:hidden gap-1 border-b overflow-x-auto">
-        {(['summary', 'strategy', 'preview'] as Tab[]).map((tab) => (
+        {(['summary', 'strategy'] as Tab[]).map((tab) => (
           <button
             key={tab}
             type="button"
@@ -67,9 +59,6 @@ export function AccountDetailTabs({ account, portfolio, strategies: initialStrat
             <StrategyTradesTab strategyId={activeStrategy?.id} />
           </div>
         )}
-        {activeTab === 'preview' && (
-          <NextOrderPreviewCard accountId={account.id} strategyType={activeStrategy?.type} strategyId={executeStrategyId} />
-        )}
       </div>
 
       {/* 데스크탑: 전체 레이아웃 */}
@@ -82,7 +71,6 @@ export function AccountDetailTabs({ account, portfolio, strategies: initialStrat
           <StrategyList accountId={account.id} strategies={strategies} />
           <StrategyTradesTab strategyId={activeStrategy?.id} />
         </div>
-        <NextOrderPreviewCard accountId={account.id} strategyType={activeStrategy?.type} strategyId={executeStrategyId} />
       </div>
     </div>
   )
