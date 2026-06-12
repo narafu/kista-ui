@@ -58,9 +58,7 @@ export function ConfirmStep({ data, onBack }: Props) {
         </div>
         <div className="flex items-center justify-between px-4 py-3">
           <span className="text-sm text-muted-foreground">계좌번호</span>
-          <span className="text-sm font-semibold font-mono">
-            {broker === 'KIS' ? `${data.accountNo}-01` : data.accountNo}
-          </span>
+          <span className="text-sm font-semibold font-mono">{data.accountNo}</span>
         </div>
         <div className="flex items-center justify-between px-4 py-3">
           <span className="text-sm text-muted-foreground">API Key</span>
