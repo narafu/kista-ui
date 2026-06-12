@@ -37,7 +37,7 @@ export function StrategyTradesTab({ strategyId }: Props) {
     return (
       <Card className="overflow-hidden">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">거래 내역 (전략)</CardTitle>
+          <CardTitle className="text-base">잔고 이력</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground text-center py-8">전략이 없습니다.</p>
@@ -48,7 +48,7 @@ export function StrategyTradesTab({ strategyId }: Props) {
 
   return (
     <CycleHistoryTable
-      title="거래 내역 (전략)"
+      title="잔고 이력"
       cycleHistory={cycleHistory}
       isLoading={isLoading}
       rangeType={rangeType}

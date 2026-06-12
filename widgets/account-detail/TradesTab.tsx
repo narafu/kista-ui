@@ -33,7 +33,7 @@ export function TradesTab({ accountId }: Props) {
 
   return (
     <CycleHistoryTable
-      title="거래 내역 (계좌)"
+      title="잔고 이력"
       cycleHistory={cycleHistory}
       isLoading={isLoading}
       rangeType={rangeType}

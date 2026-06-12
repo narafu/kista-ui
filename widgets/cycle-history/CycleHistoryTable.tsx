@@ -108,26 +108,32 @@ export function CycleHistoryTable({
         {isLoading ? (
           <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">로딩 중...</div>
         ) : cycleHistory.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8 px-6">거래 내역이 없습니다.</p>
+          <p className="text-sm text-muted-foreground text-center py-8 px-6">잔고 이력이 없습니다.</p>
         ) : (
           <>
             {/* 모바일: 카드 리스트 */}
             <div className="space-y-2 p-4 lg:hidden">
               {groups.map((g) => (
-                <div key={g.date} className="space-y-2">
+                <div key={g.date} className="space-y-1.5">
                   <div className="px-1 pt-2 text-[11px] uppercase tracking-widest text-muted-foreground">{g.date}</div>
                   {g.items.map((entry) => (
-                    <Card key={entry.createdAt} className="p-3">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-sm">{entry.ticker ?? '-'}</span>
-                        <span className="text-sm font-semibold">${fmtUsd(entry.usdDeposit ?? 0)}</span>
+                    <div key={entry.createdAt} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="inline-flex items-center px-2.5 h-5 rounded-full text-[10px] font-bold whitespace-nowrap bg-rose-50 text-rose-600">
+                            {entry.ticker ?? '-'}
+                          </span>
+                          <span className="text-sm font-semibold">{entry.holdings}주</span>
+                          {entry.avgPrice != null && entry.holdings > 0 && (
+                            <span className="text-xs text-muted-foreground truncate">${fmtUsd(entry.avgPrice)}</span>
+                          )}
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-semibold">${fmtUsd(entry.usdDeposit ?? 0)}</p>
+                          <p className="text-[10px] text-muted-foreground">예수금</p>
+                        </div>
                       </div>
-                      <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                        <span>
-                          {entry.holdings}주{entry.avgPrice != null ? ` · 평균 $${fmtUsd(entry.avgPrice)}` : ''}
-                        </span>
-                      </div>
-                    </Card>
+                    </div>
                   ))}
                 </div>
               ))}

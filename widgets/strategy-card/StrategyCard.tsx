@@ -7,9 +7,10 @@ import type { Strategy } from '@entities/strategy'
 interface Props {
   accountId: string
   strategy: Strategy
+  accountLabel?: string
 }
 
-export function StrategyCard({ accountId, strategy }: Props) {
+export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
   return (
     <Link
       href={`/accounts/${accountId}/strategies/${strategy.id}`}
@@ -20,6 +21,9 @@ export function StrategyCard({ accountId, strategy }: Props) {
       </span>
       <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} hideLabel />
       <span className="font-semibold text-sm text-foreground">{strategy.ticker}</span>
+      {accountLabel && (
+        <span className="text-[11px] text-muted-foreground">{accountLabel}</span>
+      )}
       <span className="ml-auto text-sm font-medium text-foreground">
         {strategy.initialUsdDeposit != null ? (
           `$${fmtUsd(strategy.initialUsdDeposit)}`

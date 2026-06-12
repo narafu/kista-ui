@@ -5,7 +5,6 @@ import { StrategyList } from '@widgets/strategy-list'
 import { useStrategiesQuery } from '@entities/strategy'
 import { AccountSummaryCard } from './AccountSummaryCard'
 import { TradesTab } from './TradesTab'
-import { StrategyTradesTab } from '@widgets/cycle-history'
 import type { Account } from '@entities/account'
 import type { PortfolioSnapshot } from '@entities/trade'
 import type { Strategy } from '@entities/strategy'
@@ -27,7 +26,6 @@ interface Props {
 export function AccountDetailTabs({ account, portfolio, strategies: initialStrategies, usdDeposit }: Props) {
   const { data: strategies = initialStrategies } = useStrategiesQuery(account.id, initialStrategies)
   const [activeTab, setActiveTab] = useState<Tab>('summary')
-  const activeStrategy = strategies.find((s) => s.status === 'ACTIVE') ?? strategies[0]
 
   return (
     <div className="space-y-4">
@@ -54,10 +52,7 @@ export function AccountDetailTabs({ account, portfolio, strategies: initialStrat
           </div>
         )}
         {activeTab === 'strategy' && (
-          <div className="space-y-4">
-            <StrategyList accountId={account.id} strategies={strategies} />
-            <StrategyTradesTab strategyId={activeStrategy?.id} />
-          </div>
+          <StrategyList accountId={account.id} strategies={strategies} />
         )}
       </div>
 
@@ -67,10 +62,7 @@ export function AccountDetailTabs({ account, portfolio, strategies: initialStrat
           <AccountSummaryCard account={account} portfolio={portfolio} usdDeposit={usdDeposit} />
           <TradesTab accountId={account.id} />
         </div>
-        <div className="grid grid-cols-2 gap-6">
-          <StrategyList accountId={account.id} strategies={strategies} />
-          <StrategyTradesTab strategyId={activeStrategy?.id} />
-        </div>
+        <StrategyList accountId={account.id} strategies={strategies} />
       </div>
     </div>
   )
