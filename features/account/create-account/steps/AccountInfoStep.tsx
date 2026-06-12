@@ -9,11 +9,32 @@ interface Props {
   onBack: () => void
 }
 
+const ACCOUNT_CONFIG = {
+  KIS: {
+    label: '계좌번호 (8자리)',
+    maxLen: 8,
+    placeholder: '12345678',
+    pattern: /^\d{8}$/,
+    hint: '상품 코드(01)는 자동 설정됩니다',
+    showSuffix: true,
+  },
+  TOSS: {
+    label: '계좌번호 (11자리)',
+    maxLen: 11,
+    placeholder: '12345678901',
+    pattern: /^\d{11}$/,
+    hint: '토스증권 계좌번호 11자리를 입력하세요',
+    showSuffix: false,
+  },
+} as const
+
 export function AccountInfoStep({ data, onNext, onBack }: Props) {
   const [nickname, setNickname] = useState(data.nickname)
   const [accountNo, setAccountNo] = useState(data.accountNo)
 
-  const valid = nickname.trim().length >= 1 && /^\d{8}$/.test(accountNo)
+  const broker = (data.broker || 'KIS') as 'KIS' | 'TOSS'
+  const config = ACCOUNT_CONFIG[broker]
+  const valid = nickname.trim().length >= 1 && config.pattern.test(accountNo)
 
   return (
     <div className="flex flex-col gap-6">
@@ -38,26 +59,24 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
         </div>
         <div>
           <label htmlFor="account-no" className="text-sm font-semibold mb-1.5 block">
-            계좌번호 (8자리)
+            {config.label}
           </label>
           <div className="flex items-center gap-2">
             <input
               id="account-no"
               value={accountNo}
               onChange={(e) =>
-                setAccountNo(e.target.value.replace(/\D/g, '').slice(0, 8))
+                setAccountNo(e.target.value.replace(/\D/g, '').slice(0, config.maxLen))
               }
-              placeholder="12345678"
-              maxLength={8}
+              placeholder={config.placeholder}
+              maxLength={config.maxLen}
               className="flex-1 px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-rose-400"
             />
-            <span className="text-muted-foreground text-sm font-mono">
-              - 01
-            </span>
+            {config.showSuffix && (
+              <span className="text-muted-foreground text-sm font-mono">- 01</span>
+            )}
           </div>
-          <p className="text-[11px] text-muted-foreground mt-1">
-            상품 코드(01)는 자동 설정됩니다
-          </p>
+          <p className="text-[11px] text-muted-foreground mt-1">{config.hint}</p>
         </div>
       </div>
       <div className="flex gap-3">
