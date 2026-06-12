@@ -2,18 +2,21 @@
 
 import { useReducer } from 'react'
 import { Stepper } from '@widgets/stepper'
+import type { BrokerCode } from '@entities/account'
+import { BrokerStep } from './steps/BrokerStep'
 import { ApiStep } from './steps/ApiStep'
 import { AccountInfoStep } from './steps/AccountInfoStep'
 import { ConfirmStep } from './steps/ConfirmStep'
 
 export type StepData = {
+  broker: BrokerCode | ''
   apiKey: string
   apiSecret: string
   accountNo: string
   nickname: string
 }
 
-type State = { step: 1 | 2 | 3; data: StepData }
+type State = { step: 1 | 2 | 3 | 4; data: StepData }
 type Action =
   | { type: 'NEXT'; payload: Partial<StepData> }
   | { type: 'BACK' }
@@ -21,6 +24,7 @@ type Action =
 const initialState: State = {
   step: 1,
   data: {
+    broker: '',
     apiKey: '',
     apiSecret: '',
     accountNo: '',
@@ -30,13 +34,13 @@ const initialState: State = {
 
 function reducer(state: State, action: Action): State {
   if (action.type === 'BACK') {
-    return { ...state, step: (Math.max(1, state.step - 1) as 1 | 2 | 3) }
+    return { ...state, step: (Math.max(1, state.step - 1) as 1 | 2 | 3 | 4) }
   }
   const newData = { ...state.data, ...action.payload }
-  return { step: (Math.min(3, state.step + 1) as 1 | 2 | 3), data: newData }
+  return { step: (Math.min(4, state.step + 1) as 1 | 2 | 3 | 4), data: newData }
 }
 
-const STEPS = ['API 키', '계좌 정보', '확인']
+const STEPS = ['증권사', 'API 키', '계좌 정보', '확인']
 
 export function CreateAccountStepper() {
   const [{ step, data }, dispatch] = useReducer(reducer, initialState)
@@ -48,9 +52,10 @@ export function CreateAccountStepper() {
       <div className="mb-8">
         <Stepper steps={STEPS} current={step} />
       </div>
-      {step === 1 && <ApiStep data={data} onNext={next} />}
-      {step === 2 && <AccountInfoStep data={data} onNext={next} onBack={back} />}
-      {step === 3 && <ConfirmStep data={data} onBack={back} />}
+      {step === 1 && <BrokerStep onNext={next} />}
+      {step === 2 && <ApiStep data={data} onNext={next} onBack={back} />}
+      {step === 3 && <AccountInfoStep data={data} onNext={next} onBack={back} />}
+      {step === 4 && <ConfirmStep data={data} onBack={back} />}
     </div>
   )
 }
