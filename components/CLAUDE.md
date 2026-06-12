@@ -41,7 +41,6 @@
 - **StrategyBadge**: `account.strategyType` 표시 시 항상 `<StrategyBadge strategy={account.strategyType} />`. 인라인 span + rose 스타일 직접 작성 금지
 - **RevealableValue**: `components/common/RevealableValue.tsx` — `****0614` 마스킹 → 눈 아이콘으로 공개. `KpiCard`의 `value={<RevealableValue value={account.accountNoMasked} />}` 패턴
 - **ProfitDisplay**: `currency='USD'`(기본) 또는 `currency='KRW'`. KIS portfolio summary(totalEvalProfit 등)는 KRW → `currency="KRW"` 필수
-- **`skipReason` + position 배너**: `NextOrderPreviewCard`의 `INSUFFICIENT_BALANCE` — `position` 있으면 배너(`bg-warn-bg/text-warn`), 없으면 텍스트. 계산 변수는 JSX 외부 선언 (IIFE 금지)
 
 ## Dashboard · 계좌
 

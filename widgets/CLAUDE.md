@@ -24,7 +24,6 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 | `cycle-history` | `CycleHistoryTable`, `StrategyTradesTab`, `buildParams`/`RangeType` | `account-detail`, `strategy-detail` |
 | `portfolio-summary-card` | `PortfolioSummaryCard` | `app/(main)/statistics/page.tsx` |
 | `trade-history-list` | `TradeHistoryList`, `TradeDirectionBadge`(내부 전용) | `app/(main)/statistics/page.tsx` |
-| `next-order-preview` | `NextOrderPreviewCard`, `PreviewMode`, `ExecutedMode`, `ExecuteDialog`, `OrderRow` | `account-detail`, `dashboard` |
 | `percent-gauge` | `PercentGauge` (슬라이더 UI) | 전략 등록/수정 폼 |
 | `error-display` | `ErrorDisplay` | `error.tsx` fallback |
 
@@ -56,7 +55,6 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 - **`account-detail`**: `TradesTab`은 range 상태를 `useReducer`로 관리하고 `@widgets/cycle-history`의 `CycleHistoryTable`/`buildParams`를 사용.
 - **`cycle-history`**: `StrategyTradesTab`은 range 상태를 `useReducer`로 관리하고 `CycleHistoryTable`에 위임. `account-detail`의 전략 탭과 `strategy-detail` 양쪽에서 사용.
 - **`strategy-detail`**: `useStrategyOrderPreviewQuery(strategyId)`로 전략별 KPI/다음 주문을 조회. `position=null`이면 `skipReason` 안내 문구 표시.
-- **`next-order-preview`**: mode(`preview`/`executed`) 상태는 `NextOrderPreviewCard` 컨테이너가 관리. `useNextOrderPreview.ts` — 슬라이스 내부 복합 훅 (preview·margin·marketSession·holidays·execute/cancel 통합, 외부 export 없음).
 - **`percent-gauge`**: 슬라이더 handle 위치(`left`, `width`, `height`)는 픽셀 계산이라 인라인 style 유지. 그 외는 Tailwind.
 - **`profit-stats-card`**: `PortfolioChart`/`PortfolioChartInner`는 이 슬라이스 내부 파일 — 외부 export 없음.
 - **`glass-card`**: `maxWidth` prop + CSS 토큰(`var(--background)`)은 인라인 style 유지.

@@ -38,11 +38,11 @@ export function AdminPrivacyBaseTable({ bases }: Props) {
             <th className="w-8 px-2 py-3"></th>
             <th className="text-left px-4 py-3 font-semibold text-muted-foreground">날짜</th>
             <th className="text-left px-4 py-3 font-semibold text-muted-foreground">종목</th>
-            <th className="text-right px-4 py-3 font-semibold text-muted-foreground">기준가</th>
-            <th className="text-right px-4 py-3 font-semibold text-muted-foreground">평단가</th>
+            <th className="text-right px-4 py-3 font-semibold text-muted-foreground">사이클 시작금액</th>
+            <th className="hidden sm:table-cell text-right px-4 py-3 font-semibold text-muted-foreground">평단가</th>
             <th className="text-right px-4 py-3 font-semibold text-muted-foreground">보유</th>
-            <th className="text-right px-4 py-3 font-semibold text-muted-foreground">실현손익</th>
-            <th className="text-right px-4 py-3 font-semibold text-muted-foreground">주문</th>
+            <th className="hidden sm:table-cell text-right px-4 py-3 font-semibold text-muted-foreground">실현손익</th>
+            <th className="hidden sm:table-cell text-right px-4 py-3 font-semibold text-muted-foreground">주문</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
@@ -68,12 +68,12 @@ function FragmentRow({ base: b, open, onToggle }: { base: AdminPrivacyBase; open
         <td className="px-4 py-3 text-muted-foreground text-xs">{b.tradeDate}</td>
         <td className="px-4 py-3">{b.ticker}</td>
         <td className="px-4 py-3 text-right font-mono text-xs">${fmtUsd(b.currentCycleStart)}</td>
-        <td className="px-4 py-3 text-right font-mono text-xs">{b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`}</td>
+        <td className="hidden sm:table-cell px-4 py-3 text-right font-mono text-xs">{b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`}</td>
         <td className="px-4 py-3 text-right">{b.holdings}</td>
-        <td className={`px-4 py-3 text-right font-mono text-xs ${b.currentCycleRealizedPnl >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+        <td className={`hidden sm:table-cell px-4 py-3 text-right font-mono text-xs ${b.currentCycleRealizedPnl >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
           {b.currentCycleRealizedPnl >= 0 ? '+' : ''}{fmtUsd(b.currentCycleRealizedPnl)}
         </td>
-        <td className="px-4 py-3 text-right text-muted-foreground">{b.orders.length}건</td>
+        <td className="hidden sm:table-cell px-4 py-3 text-right text-muted-foreground">{b.orders.length}건</td>
       </tr>
       {open && b.orders.length > 0 && (
         <tr className="bg-muted/10">
@@ -85,7 +85,7 @@ function FragmentRow({ base: b, open, onToggle }: { base: AdminPrivacyBase; open
                   <th className="text-left py-1 font-medium">방향</th>
                   <th className="text-left py-1 font-medium">유형</th>
                   <th className="text-right py-1 font-medium">가격</th>
-                  <th className="text-right py-1 font-medium">수량</th>
+                  <th className="hidden sm:table-cell text-right py-1 font-medium">수량</th>
                 </tr>
               </thead>
               <tbody>
@@ -96,7 +96,7 @@ function FragmentRow({ base: b, open, onToggle }: { base: AdminPrivacyBase; open
                     </td>
                     <td className="py-1 text-muted-foreground">{o.orderType}</td>
                     <td className="py-1 text-right font-mono">${fmtUsd(o.price)}</td>
-                    <td className="py-1 text-right">{o.quantity ?? '-'}</td>
+                    <td className="hidden sm:table-cell py-1 text-right">{o.quantity ?? '-'}</td>
                   </tr>
                 ))}
               </tbody>

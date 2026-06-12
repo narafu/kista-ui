@@ -1,12 +1,11 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Clock, Users, Wallet, ArrowLeftRight, ScrollText, AlertTriangle, ArrowLeft, Table2 } from 'lucide-react'
+import { LayoutDashboard, Users, Wallet, ArrowLeftRight, ScrollText, AlertTriangle, ArrowLeft, Table2 } from 'lucide-react'
 import Link from 'next/link'
 
 const NAV_ITEMS = [
   { href: '/admin',             label: 'Overview',  icon: LayoutDashboard, exact: true },
-  { href: '/admin/pending',     label: '승인 대기', icon: Clock },
   { href: '/admin/users',       label: '사용자',    icon: Users },
   { href: '/admin/accounts',    label: '계좌',      icon: Wallet },
   { href: '/admin/trades',      label: '거래',      icon: ArrowLeftRight },

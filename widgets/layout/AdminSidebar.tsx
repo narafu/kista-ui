@@ -2,12 +2,11 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Clock, Users, LogOut, Wallet, ArrowLeftRight, ScrollText, AlertTriangle, ArrowLeft, Table2 } from 'lucide-react'
+import { LayoutDashboard, Users, LogOut, Wallet, ArrowLeftRight, ScrollText, AlertTriangle, ArrowLeft, Table2 } from 'lucide-react'
 import { LogoutButton } from '@features/auth/logout/LogoutButton'
 
 const NAV_ITEMS = [
   { href: '/admin',             label: 'Overview',  icon: LayoutDashboard, exact: true },
-  { href: '/admin/pending',     label: '승인 대기', icon: Clock },
   { href: '/admin/users',       label: '사용자',    icon: Users },
   { href: '/admin/accounts',    label: '계좌 현황', icon: Wallet },
   { href: '/admin/trades',      label: '거래 내역', icon: ArrowLeftRight },
