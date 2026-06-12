@@ -1,6 +1,6 @@
 import { getAuthToken } from '@shared/lib/auth/token'
 import type { NextRequest } from 'next/server'
-import { Agent } from 'undici'
+import { Agent, fetch as undiciFetch } from 'undici'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,16 +14,15 @@ export async function GET(request: NextRequest) {
   }
 
   const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
-  const upstream = await fetch(`${apiUrl}/api/trades/stream`, {
+  // undici fetch 사용 — dispatcher 옵션이 전역 fetch에서 지원되지 않아 TypeError 발생
+  const upstream = await undiciFetch(`${apiUrl}/api/trades/stream`, {
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: 'text/event-stream',
       'Cache-Control': 'no-cache',
     },
-    // @ts-expect-error — undici-specific dispatcher, not in standard RequestInit
     dispatcher: sseAgent,
     signal: request.signal,
-    cache: 'no-store',
   })
 
   if (!upstream.ok) {
