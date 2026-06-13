@@ -12,18 +12,12 @@ interface Props {
 }
 
 const DIVISION_OPTIONS = [
-  { value: 20, label: '20분할', sub: '기본 · 안정적' },
-  { value: 30, label: '30분할', sub: '적극적' },
-  { value: 40, label: '40분할', sub: '고위험' },
+  { value: 20, label: '20분할' },
+  { value: 30, label: '30분할' },
+  { value: 40, label: '40분할' },
 ] as const
 
-export function DivisionCountSection({
-  isInfinite,
-  divisionCount,
-  setDivisionCount,
-  loading,
-  isEdit,
-}: Props) {
+export function DivisionCountSection({ isInfinite, divisionCount, setDivisionCount, loading, isEdit }: Props) {
   if (!isInfinite) return null
 
   return (
@@ -39,33 +33,20 @@ export function DivisionCountSection({
               type="button"
               disabled={disabled}
               onClick={() => !isEdit && setDivisionCount(opt.value)}
-              className={cn(
-                'flex-1 px-3 py-2.5 border-none rounded-[7px] text-center transition-[background,box-shadow] duration-150',
-                disabled ? 'cursor-not-allowed' : 'cursor-pointer',
-              )}
+              className={cn('flex-1 px-3 py-2.5 border-none rounded-[7px] text-center transition-[background,box-shadow] duration-150', disabled ? 'cursor-not-allowed' : 'cursor-pointer')}
               style={{
                 background: active ? 'var(--card)' : 'transparent',
                 boxShadow: active ? 'var(--sh-card)' : 'none',
               }}
             >
-              <div
-                className="text-[12.5px] font-bold"
-                style={{ color: active ? 'var(--rose-600)' : 'var(--muted-foreground)' }}
-              >
+              <div className="text-[12.5px] font-bold" style={{ color: active ? 'var(--rose-600)' : 'var(--muted-foreground)' }}>
                 {opt.label}
-              </div>
-              <div className="text-[10px] text-muted-foreground mt-0.5">
-                {opt.sub}
               </div>
             </button>
           )
         })}
       </div>
-      {isEdit && (
-        <p className="text-[11px] text-muted-foreground mt-1.5 px-1">
-          분할 수는 등록 후 변경할 수 없습니다.
-        </p>
-      )}
+      {isEdit && <p className="text-[11px] text-muted-foreground mt-1.5 px-1">분할 수는 등록 후 변경할 수 없습니다.</p>}
     </div>
   )
 }
