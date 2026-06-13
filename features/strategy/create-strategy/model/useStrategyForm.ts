@@ -39,6 +39,9 @@ export interface UseStrategyFormReturn {
   seedMode: 'KEEP' | 'MAX'
   setSeedMode: (m: 'KEEP' | 'MAX') => void
 
+  divisionCount: number
+  setDivisionCount: (n: number) => void
+
   loading: boolean
   cannotSubmit: boolean
   handleSubmit: (e: React.FormEvent) => void
@@ -71,6 +74,7 @@ export function useStrategyForm({
   const [seedMode, setSeedMode] = useState<'KEEP' | 'MAX'>(
     initial?.cycleSeedType === 'MAINTAIN' ? 'KEEP' : 'MAX',
   )
+  const [divisionCount, setDivisionCount] = useState<number>(initial?.divisionCount ?? 20)
 
   // 서버 상태는 React Query 훅으로
   const { items: marginItems, isLoading: marginLoading } = useAccountMarginQuery(accountId)
@@ -118,7 +122,7 @@ export function useStrategyForm({
     }
     const newIsInfinite = (typeMeta.availableTickers?.length ?? 0) > 1
     const newBasePrice = newIsInfinite ? (prices?.[newTicker] ?? null) : privacyBase
-    const newMinSeed = calcMinSeed(newBasePrice, newIsInfinite)
+    const newMinSeed = calcMinSeed(newBasePrice, newIsInfinite, divisionCount)
     setPctInternal(
       usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
     )
@@ -131,8 +135,8 @@ export function useStrategyForm({
   }, [type, ticker, isInfinite, prices, privacyBase])
 
   const minSeed = useMemo(
-    () => calcMinSeed(basePrice, isInfinite),
-    [isInfinite, basePrice],
+    () => calcMinSeed(basePrice, isInfinite, divisionCount),
+    [isInfinite, basePrice, divisionCount],
   )
 
   const seedUsd = usdDeposit !== null ? Math.round(usdDeposit * pct) / 100 : null
@@ -148,7 +152,7 @@ export function useStrategyForm({
   function handleTickerChange(code: string) {
     setTicker(code)
     const newBasePrice = prices?.[code] ?? null
-    const newMinSeed = calcMinSeed(newBasePrice, true)
+    const newMinSeed = calcMinSeed(newBasePrice, true, divisionCount)
     setPctInternal(
       usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
     )
@@ -166,7 +170,13 @@ export function useStrategyForm({
           cycleSeedType,
           ...(seedTouched && seedUsd != null ? { initialUsdDeposit: seedUsd } : {}),
         }
-      : { type, ticker, cycleSeedType, initialUsdDeposit: seedUsd ?? undefined }
+      : {
+          type,
+          ticker,
+          cycleSeedType,
+          initialUsdDeposit: seedUsd ?? undefined,
+          ...(isInfinite ? { divisionCount } : {}),
+        }
 
     if (initial) {
       updateMutation.mutate(payload)
@@ -180,6 +190,7 @@ export function useStrategyForm({
     ticker, availableTickers, handleTickerChange, basePrice, prices,
     pct, setPct, usdDeposit, minSeed, isBelowMinSeed, loadingBase, privacyBase,
     autoStart, setAutoStart, seedMode, setSeedMode,
+    divisionCount, setDivisionCount,
     loading: createMutation.isPending || updateMutation.isPending,
     cannotSubmit,
     handleSubmit,
