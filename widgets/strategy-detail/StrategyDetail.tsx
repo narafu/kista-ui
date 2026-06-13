@@ -98,6 +98,11 @@ export function StrategyDetail({ accountId, strategy }: Props) {
           <span className="inline-flex items-center px-2.5 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-rose-50 text-rose-600">
             {strategy.type}
           </span>
+          {strategy.type === 'INFINITE' && (
+            <span className="inline-flex items-center px-2 h-[22px] rounded-full text-[11px] font-medium whitespace-nowrap bg-muted text-muted-foreground">
+              {strategy.divisionCount}분할
+            </span>
+          )}
           <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
           <span className="text-sm text-muted-foreground">
             다음 사이클
