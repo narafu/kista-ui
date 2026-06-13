@@ -49,7 +49,7 @@ export function AccountCard({ account, strategies = [] }: Props) {
             미등록
           </span>
         )}
-        <StatusDot status={(primary?.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} hideLabel className="shrink-0" />
+        {primary && <StatusDot status={primary.status as 'ACTIVE' | 'PAUSED'} hideLabel className="shrink-0" />}
         <ChevronRight className="size-4 text-muted-foreground group-hover:text-rose-500 transition-colors shrink-0" />
       </div>
 
@@ -77,10 +77,12 @@ export function AccountCard({ account, strategies = [] }: Props) {
               {account.accountNoMasked}
             </p>
           </div>
-          <StatusDot
-            status={(primary?.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'}
-            className="mt-0.5 shrink-0"
-          />
+          {primary && (
+            <StatusDot
+              status={primary.status as 'ACTIVE' | 'PAUSED'}
+              className="mt-0.5 shrink-0"
+            />
+          )}
         </div>
 
         {/* 구분선 */}
