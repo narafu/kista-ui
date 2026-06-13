@@ -22,34 +22,58 @@ export function AccountCard({ account, strategies = [] }: Props) {
   return (
     <Link
       href={`/accounts/${account.id}`}
-      className="group block rounded-[var(--r-lg)] border border-border bg-card p-5 shadow-[var(--sh-card)] hover:border-rose-300 hover:shadow-[var(--sh-rose)] transition-all"
+      className="group block rounded-[var(--r-lg)] border border-border bg-card shadow-[var(--sh-card)] hover:border-rose-200 hover:shadow-[var(--sh-rose)] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
     >
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div>
-          <p className="font-semibold text-base text-foreground leading-snug">{account.nickname}</p>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <p className="text-xs text-muted-foreground">{account.accountNoMasked}</p>
-            <span
-              className="inline-flex items-center px-1.5 h-[18px] rounded text-[10px] font-semibold"
-              style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
-            >
-              {brokerLabel}
-            </span>
+      {/* 로즈골드 그라디언트 액센트 바 */}
+      <div
+        className="h-[3px] w-full opacity-60 group-hover:opacity-100 transition-opacity duration-200"
+        style={{ background: 'var(--primary-grad)' }}
+      />
+
+      <div className="p-5">
+        {/* 헤더: 계좌명 + 번호 + 증권사 / 상태 */}
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div className="min-w-0">
+            <p className="font-semibold text-[15px] text-foreground leading-tight truncate">
+              {account.nickname}
+            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[11px] font-mono text-muted-foreground tracking-wider">
+                {account.accountNoMasked}
+              </span>
+              <span
+                className="inline-flex items-center px-1.5 h-[17px] rounded-sm text-[10px] font-semibold shrink-0"
+                style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}
+              >
+                {brokerLabel}
+              </span>
+            </div>
           </div>
+          <StatusDot
+            status={(primary?.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'}
+            className="mt-0.5 shrink-0"
+          />
         </div>
-        <StatusDot status={(primary?.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
-      </div>
-      <div className="mb-1">
+
+        {/* 구분선 */}
+        <div className="h-px bg-border mb-3" />
+
+        {/* 전략 목록 */}
         {strategies.length > 0 ? (
-          <ul className="space-y-1.5">
+          <ul className="space-y-2">
             {strategies.map((s) => (
-              <li key={s.id} className="flex items-center gap-2 text-xs">
-                <span className="inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold whitespace-nowrap bg-rose-50 text-rose-600">
+              <li key={s.id} className="flex items-center gap-2 min-w-0">
+                <span
+                  className="inline-flex items-center justify-center px-2 h-[18px] rounded-sm text-[9px] font-bold tracking-widest uppercase shrink-0"
+                  style={{ background: 'var(--primary-grad)', color: '#ffffff' }}
+                >
                   {s.type}
                 </span>
-                <span className="text-muted-foreground">{s.ticker}</span>
+                <span className="text-[11px] font-mono font-medium text-foreground/70 tracking-wider">
+                  {s.ticker}
+                </span>
                 {s.initialUsdDeposit != null && (
-                  <span className="ml-auto font-medium text-foreground">
+                  <span className="ml-auto text-[12px] font-semibold text-foreground tabular-nums shrink-0">
                     ${s.initialUsdDeposit.toLocaleString('en-US')}
                   </span>
                 )}
@@ -57,7 +81,7 @@ export function AccountCard({ account, strategies = [] }: Props) {
             ))}
           </ul>
         ) : (
-          <span className="text-xs text-muted-foreground">전략 미등록</span>
+          <p className="text-xs text-muted-foreground">전략 미등록</p>
         )}
       </div>
     </Link>
