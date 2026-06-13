@@ -8,6 +8,7 @@ import { StrategyTypeSection } from './sections/StrategyTypeSection'
 import { StrategyTickerSection } from './sections/StrategyTickerSection'
 import { UsageRatioSection } from './sections/UsageRatioSection'
 import { CycleSeedSection } from './sections/CycleSeedSection'
+import { DivisionCountSection } from './sections/DivisionCountSection'
 import type { Strategy } from '@entities/strategy'
 
 interface Props {
@@ -29,6 +30,14 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
         setType={form.setType}
         loading={form.loading}
         strategyTypes={meta.strategyTypes}
+      />
+
+      <DivisionCountSection
+        isInfinite={form.isInfinite}
+        divisionCount={form.divisionCount}
+        setDivisionCount={form.setDivisionCount}
+        loading={form.loading}
+        isEdit={!!initial}
       />
 
       <StrategyTickerSection
