@@ -51,8 +51,8 @@ export function DashboardOverview({
             </Link>
           }
         />
-        <div className="sm:kpi-grid gap-4 mb-6">
-          <KpiCard label="운용 계좌" value={`${accounts.length}개`} sub="등록된 계좌" />
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
           <KpiCard
             label="총 평가손익"
             value={
@@ -68,7 +68,6 @@ export function DashboardOverview({
             value={`₩${fmtKrw(totalAssetUsd)}`}
             sub={`평가금액 $${fmtUsd(marketValueUsd)} (USD)`}
           />
-          <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
         </div>
         <div className="flex items-end justify-between mb-3">
           <h2 className="text-[17px] font-bold">계좌 목록</h2>
