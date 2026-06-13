@@ -95,7 +95,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
     <div className="space-y-4">
       <Card>
         <div className="flex flex-wrap items-center gap-2 px-5 pt-4 pb-3">
-          <span className="inline-flex items-center px-2.5 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-rose-50 text-rose-600">
+          <span className="inline-flex items-center px-2.5 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400">
             {strategy.type}
           </span>
           {strategy.type === 'INFINITE' && (
@@ -212,7 +212,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
               <ul className="lg:hidden">
                 {placedOrders.map((o) => (
                   <li key={o.id} className="flex items-center gap-3 text-sm px-6 py-3 border-b border-border last:border-b-0">
-                    <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold', o.direction === 'BUY' ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600')}>
+                    <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold', o.direction === 'BUY' ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400' : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400')}>
                       {o.direction === 'BUY' ? '매수' : '매도'}
                     </span>
                     <span className="font-medium">{o.ticker}</span>
@@ -241,18 +241,18 @@ export function StrategyDetail({ accountId, strategy }: Props) {
               <table className="hidden lg:table w-full">
                 <thead>
                   <tr>
-                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 bg-rose-50 border-b border-border font-semibold">구분</th>
-                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 bg-rose-50 border-b border-border font-semibold">종목</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 bg-rose-50 border-b border-border font-semibold">수량</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 bg-rose-50 border-b border-border font-semibold">주문가</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 bg-rose-50 border-b border-border font-semibold">취소</th>
+                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border-b border-border font-semibold">구분</th>
+                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border-b border-border font-semibold">종목</th>
+                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border-b border-border font-semibold">수량</th>
+                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border-b border-border font-semibold">주문가</th>
+                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border-b border-border font-semibold">취소</th>
                   </tr>
                 </thead>
                 <tbody>
                   {placedOrders.map((o) => (
                     <tr key={o.id} className="border-b border-border last:border-b-0">
                       <td className="px-5 py-3">
-                        <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold', o.direction === 'BUY' ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600')}>
+                        <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold', o.direction === 'BUY' ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400' : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400')}>
                           {o.direction === 'BUY' ? '매수' : '매도'}
                         </span>
                       </td>
@@ -304,7 +304,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
                     key={`${o.ticker}-${o.direction}-${i}`}
                     className="flex items-center gap-3 text-sm px-6 py-3 border-b border-border last:border-b-0"
                   >
-                    <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold', o.direction === 'BUY' ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600')}>
+                    <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold', o.direction === 'BUY' ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400' : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400')}>
                       {o.direction === 'BUY' ? '매수' : '매도'}
                     </span>
                     <span className="font-medium">{o.ticker}</span>
@@ -317,17 +317,17 @@ export function StrategyDetail({ accountId, strategy }: Props) {
               <table className="hidden lg:table w-full">
                 <thead>
                   <tr>
-                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 bg-rose-50 border-b border-border font-semibold">구분</th>
-                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 bg-rose-50 border-b border-border font-semibold">종목</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 bg-rose-50 border-b border-border font-semibold">수량</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 bg-rose-50 border-b border-border font-semibold">주문가</th>
+                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border-b border-border font-semibold">구분</th>
+                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border-b border-border font-semibold">종목</th>
+                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border-b border-border font-semibold">수량</th>
+                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border-b border-border font-semibold">주문가</th>
                   </tr>
                 </thead>
                 <tbody>
                   {orders.map((o, i) => (
                     <tr key={`${o.ticker}-${o.direction}-${i}`} className="border-b border-border last:border-b-0">
                       <td className="px-5 py-3">
-                        <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold', o.direction === 'BUY' ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600')}>
+                        <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold', o.direction === 'BUY' ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400' : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400')}>
                           {o.direction === 'BUY' ? '매수' : '매도'}
                         </span>
                       </td>
