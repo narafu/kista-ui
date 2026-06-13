@@ -31,7 +31,7 @@ export function AccountSummaryCard({ account, portfolio, usdDeposit }: Props) {
       <CardContent className="px-6 pb-6">
         <div className="grid grid-cols-2 gap-3">
           <KpiCard label="계좌번호" value={<span className="font-mono tracking-wider">{account.accountNoMasked}</span>} />
-          <KpiCard label="증권사" value={brokerLabel} />
+          <KpiCard label="증권사" value={<span className="text-base font-semibold leading-snug">{brokerLabel}</span>} />
           <KpiCard label="예수금" value={`$${fmtUsd(usdDeposit ?? 0)}`} />
           <KpiCard
             label="평가손익"
