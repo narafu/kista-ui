@@ -32,10 +32,17 @@ export function ConfirmStep({ data, onBack }: Props) {
   }
 
   let errorMessage = '계좌 연결에 실패했습니다'
-  if (error instanceof ApiError && error.status === 422) {
-    errorMessage = broker === 'TOSS'
-      ? 'Toss 자격증명 인증에 실패했습니다. Client ID와 Client Secret을 확인하세요.'
-      : '계좌번호가 KIS 자격증명과 일치하지 않습니다'
+  if (error instanceof ApiError) {
+    const detail = (error.body as { detail?: string } | null)?.detail
+    if (error.status === 409) {
+      errorMessage = detail ?? '이미 등록된 계좌번호입니다.'
+    } else if (error.status === 422) {
+      errorMessage = broker === 'TOSS'
+        ? 'Toss 자격증명 인증에 실패했습니다. Client ID와 Client Secret을 확인하세요.'
+        : '계좌번호가 KIS 자격증명과 일치하지 않습니다'
+    } else if (detail) {
+      errorMessage = detail
+    }
   }
 
   return (

@@ -18,7 +18,11 @@ export async function clientFetch<T>(path: string, options?: RequestInit): Promi
     window.location.href = '/'
     await new Promise(() => {}) // 리다이렉트 완료 전까지 중단
   }
-  if (!res.ok) throw new ApiError(res.status, null)
+  if (!res.ok) {
+    let body: unknown = null
+    try { body = await res.json() } catch {}
+    throw new ApiError(res.status, body)
+  }
   if (res.status === 204 || res.headers.get('content-length') === '0') return undefined as T
   return res.json()
 }

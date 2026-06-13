@@ -52,8 +52,14 @@ export function createProxyRoute(opts: CreateProxyRouteOptions): {
           `[${label}${subPath} ${request.method}] ${res.status}`,
           await res.text().catch(() => ''),
         )
+        return NextResponse.json({ error: 'Failed' }, { status: res.status })
       }
-      return NextResponse.json({ error: 'Failed' }, { status: res.status })
+      try {
+        const errBody = await res.json()
+        return NextResponse.json(errBody, { status: res.status })
+      } catch {
+        return NextResponse.json({ error: 'Failed' }, { status: res.status })
+      }
     }
 
     if (request.method !== 'GET' && opts.revalidateTags) {
