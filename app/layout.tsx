@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GeistMono } from 'geist/font/mono'
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from '@shared/providers/Providers'
 import "./globals.css";
@@ -23,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" suppressHydrationWarning>
+    <html lang="ko" suppressHydrationWarning className={GeistMono.variable}>
       <body className="antialiased">
         <Providers>
           {children}

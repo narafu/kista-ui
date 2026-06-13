@@ -11,8 +11,7 @@ interface Props {
   month: number
 }
 
-const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
-const WEEKEND_IDX = new Set([0, 6])
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 
 function pad(n: number): string {
   return String(n).padStart(2, '0')
@@ -86,9 +85,7 @@ export function MarketHolidayCalendar({ holidays, year, month }: Props) {
             key={d}
             className={cn(
               'text-[10px] font-medium py-0.5',
-              WEEKEND_IDX.has(i)
-                ? 'text-rose-400 dark:text-rose-500'
-                : 'text-muted-foreground',
+              i === 0 ? 'text-pos' : i === 6 ? 'text-neg' : 'text-muted-foreground',
             )}
           >
             {d}
@@ -101,7 +98,8 @@ export function MarketHolidayCalendar({ holidays, year, month }: Props) {
           const holiday = isHoliday(day)
           const todayCell = isToday(day)
           const dow = (startOffset + day - 1) % 7
-          const weekend = WEEKEND_IDX.has(dow)
+          const isSun = dow === 0
+          const isSat = dow === 6
           return (
             <div
               key={day}
@@ -109,17 +107,24 @@ export function MarketHolidayCalendar({ holidays, year, month }: Props) {
               className={cn(
                 'w-7 h-7 flex items-center justify-center text-xs rounded-full mx-auto',
                 holiday
-                  ? 'bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400'
-                  : weekend
-                    ? 'text-rose-400 dark:text-rose-500'
-                    : 'text-foreground',
-                todayCell && 'ring-2 ring-rose-400',
+                  ? 'bg-neg-bg text-neg'
+                  : todayCell
+                    ? 'bg-rose-50 text-rose-600'
+                    : isSun
+                      ? 'text-pos'
+                      : isSat
+                        ? 'text-neg'
+                        : 'text-foreground',
               )}
             >
               {day}
             </div>
           )
         })}
+      </div>
+      <div className="mt-2 flex items-center gap-1.5 text-[10.5px] text-muted-foreground">
+        <span className="size-[7px] rounded-full bg-neg shrink-0" />
+        미국 증시 휴장
       </div>
     </div>
   )
