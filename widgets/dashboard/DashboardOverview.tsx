@@ -85,21 +85,21 @@ export function DashboardOverview({
       {/* Mobile */}
       <div className="lg:hidden">
         <div
-          className="rounded-[var(--r-lg)] border border-rose-200 p-5 mb-4"
+          className="rounded-[var(--r-lg)] border border-rose-200 p-5 mb-3"
           style={{ background: 'var(--brand-soft-bg)' }}
         >
           <p className="text-[11.5px] font-bold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] mb-1.5">총 자산</p>
           <div className="text-[30px] font-extrabold text-[var(--brand-fg)] leading-tight">
             ₩{fmtKrw(totalAssetUsd)}
           </div>
-          <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">총 평가손익</span>
-            {noProfit ? (
-              <span className="text-xs text-muted-foreground">데이터 없음</span>
-            ) : (
-              <ProfitDisplay amount={totalEvalProfit} rate={weightedReturnRate} size="md" full currency="KRW" />
-            )}
-          </div>
+        </div>
+        <div className="rounded-[var(--r-lg)] border border-border bg-card p-5 mb-4">
+          <p className="text-[11.5px] font-bold tracking-[0.12em] uppercase text-muted-foreground mb-2">총 평가손익</p>
+          {noProfit ? (
+            <span className="text-base text-muted-foreground font-medium">데이터 없음</span>
+          ) : (
+            <ProfitDisplay amount={totalEvalProfit} rate={weightedReturnRate} size="lg" full currency="KRW" />
+          )}
         </div>
         <div className="mb-4">
           <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />

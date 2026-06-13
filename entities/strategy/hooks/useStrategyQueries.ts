@@ -16,6 +16,15 @@ import {
 } from '../api'
 import type { Strategy, StrategyRequest } from '../model/types'
 
+function apiMsg(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) {
+    const b = err.body as Record<string, unknown> | null
+    const msg = b?.detail ?? b?.message
+    if (typeof msg === 'string' && msg) return msg
+  }
+  return fallback
+}
+
 export function useAllStrategiesQuery(initialData?: Strategy[]) {
   return useQuery<Strategy[]>({
     queryKey: ['strategies', 'all'],
@@ -45,7 +54,7 @@ export function useCreateStrategyMutation(accountId: string, onSuccess?: () => v
       router.refresh()
       onSuccess?.()
     },
-    onError: (err) => toast.error(err instanceof ApiError ? '저장에 실패했습니다' : '오류가 발생했습니다'),
+    onError: (err) => toast.error(apiMsg(err, '저장에 실패했습니다')),
   })
 }
 
@@ -62,7 +71,7 @@ export function useUpdateStrategyMutation(strategyId: string, onSuccess?: () => 
       router.refresh()
       onSuccess?.()
     },
-    onError: (err) => toast.error(err instanceof ApiError ? '저장에 실패했습니다' : '오류가 발생했습니다'),
+    onError: (err) => toast.error(apiMsg(err, '저장에 실패했습니다')),
   })
 }
 
@@ -75,7 +84,7 @@ export function usePauseStrategyMutation() {
       queryClient.invalidateQueries({ queryKey: ['strategies'] })
       router.refresh()
     },
-    onError: () => toast.error('일시정지에 실패했습니다'),
+    onError: (err) => toast.error(apiMsg(err, '일시정지에 실패했습니다')),
   })
 }
 
@@ -88,7 +97,7 @@ export function useResumeStrategyMutation() {
       queryClient.invalidateQueries({ queryKey: ['strategies'] })
       router.refresh()
     },
-    onError: () => toast.error('재개에 실패했습니다'),
+    onError: (err) => toast.error(apiMsg(err, '재개에 실패했습니다')),
   })
 }
 
@@ -103,7 +112,7 @@ export function useDeleteStrategyMutation(onSuccess?: () => void) {
       router.refresh()
       onSuccess?.()
     },
-    onError: (err) => toast.error(err instanceof ApiError ? '삭제에 실패했습니다' : '오류가 발생했습니다'),
+    onError: (err) => toast.error(apiMsg(err, '삭제에 실패했습니다')),
   })
 }
 
@@ -113,10 +122,9 @@ export function useExecuteStrategyMutation(strategyId: string | undefined) {
     onSuccess: () => toast.success('매매 실행이 요청됐습니다. 장 마감 후 체결 결과를 확인하세요.'),
     onError: (e) => {
       if (e instanceof ApiError) {
-        if (e.status === 409) toast.error('오늘 이미 실행됐습니다.')
-        else if (e.status === 400) toast.error('실행할 수 없는 전략입니다.')
-        else if (e.status === 403) toast.error('권한이 없습니다.')
-        else toast.error('실행 중 오류가 발생했습니다.')
+        if (e.status === 409) toast.error(apiMsg(e, '오늘 이미 실행됐습니다.'))
+        else if (e.status === 403) toast.error(apiMsg(e, '권한이 없습니다.'))
+        else toast.error(apiMsg(e, '실행 중 오류가 발생했습니다.'))
       } else {
         toast.error('실행 중 오류가 발생했습니다.')
       }
