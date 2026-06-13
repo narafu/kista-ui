@@ -12,6 +12,7 @@ export interface Strategy {
   cycleSeedType: CycleSeedType
   initialUsdDeposit?: number
   divisionCount: number   // 분할 수 (20/30/40)
+  isReverseMode: boolean  // 리버스모드 활성 여부 (소진 후 모드)
 }
 
 export interface StrategyRequest {

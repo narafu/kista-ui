@@ -14,6 +14,7 @@ function normalizeStrategy(raw: unknown): Strategy {
     cycleSeedType: (s.cycleSeedType as CycleSeedType) ?? 'NONE',
     initialUsdDeposit: s.initialUsdDeposit != null ? toNum(s.initialUsdDeposit) : undefined,
     divisionCount: s.divisionCount != null ? Number(s.divisionCount) : 20,
+    isReverseMode: Boolean(s.isReverseMode),
   }
 }
 

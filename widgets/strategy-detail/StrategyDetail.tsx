@@ -103,6 +103,11 @@ export function StrategyDetail({ accountId, strategy }: Props) {
               {strategy.divisionCount}분할
             </span>
           )}
+          {strategy.isReverseMode && (
+            <span className="inline-flex items-center px-2 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-amber-50 text-amber-600">
+              리버스모드
+            </span>
+          )}
           <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
           <span className="text-sm text-muted-foreground">
             다음 사이클
