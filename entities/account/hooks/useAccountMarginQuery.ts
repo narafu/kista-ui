@@ -65,6 +65,7 @@ export function useDeleteAccountMutation(accountId: string) {
       toast.success('계좌가 삭제되었습니다')
       queryClient.removeQueries({ queryKey: ['accounts'] })
       router.push('/dashboard')
+      router.refresh()
     },
     onError: () => toast.error('삭제에 실패했습니다'),
   })
@@ -78,6 +79,7 @@ export function useCreateAccountMutation() {
     onSuccess: (saved) => {
       queryClient.invalidateQueries({ queryKey: ['accounts'] })
       router.push(`/accounts/${saved.id}`)
+      router.refresh()
     },
     onError: (error) => {
       if (error instanceof ApiError && error.status === 422) {
