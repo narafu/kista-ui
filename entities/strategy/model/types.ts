@@ -11,6 +11,7 @@ export interface Strategy {
   ticker: string      // 메타의 TickerMeta.code
   cycleSeedType: CycleSeedType
   initialUsdDeposit?: number
+  divisionCount: number   // 분할 수 (20/30/40)
 }
 
 export interface StrategyRequest {
@@ -18,4 +19,5 @@ export interface StrategyRequest {
   ticker?: string
   cycleSeedType: CycleSeedType
   initialUsdDeposit?: number  // 등록 시 또는 시드 수정 시 전송
+  divisionCount?: number      // 분할 수 (20/30/40, 미전송 시 백엔드 기본값 20)
 }

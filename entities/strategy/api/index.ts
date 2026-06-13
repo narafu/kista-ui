@@ -13,6 +13,7 @@ function normalizeStrategy(raw: unknown): Strategy {
     ticker: String(s.ticker),
     cycleSeedType: (s.cycleSeedType as CycleSeedType) ?? 'NONE',
     initialUsdDeposit: s.initialUsdDeposit != null ? toNum(s.initialUsdDeposit) : undefined,
+    divisionCount: s.divisionCount != null ? Number(s.divisionCount) : 20,
   }
 }
 
