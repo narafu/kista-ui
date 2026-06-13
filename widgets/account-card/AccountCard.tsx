@@ -34,15 +34,15 @@ export function AccountCard({ account, strategies = [] }: Props) {
         {/* 헤더: 계좌명 + 번호 + 증권사 / 상태 */}
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="min-w-0">
-            <p className="font-semibold text-[15px] text-foreground leading-tight truncate">
+            <p className="font-semibold text-base text-foreground leading-tight truncate">
               {account.nickname}
             </p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-[11px] font-mono text-muted-foreground tracking-wider">
+              <span className="text-xs font-mono text-muted-foreground tracking-wider">
                 {account.accountNoMasked}
               </span>
               <span
-                className="inline-flex items-center px-1.5 h-[17px] rounded-sm text-[10px] font-semibold shrink-0"
+                className="inline-flex items-center px-2 h-[19px] rounded-sm text-[11px] font-semibold shrink-0"
                 style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}
               >
                 {brokerLabel}
@@ -64,16 +64,16 @@ export function AccountCard({ account, strategies = [] }: Props) {
             {strategies.map((s) => (
               <li key={s.id} className="flex items-center gap-2 min-w-0">
                 <span
-                  className="inline-flex items-center justify-center px-2 h-[18px] rounded-sm text-[9px] font-bold tracking-widest uppercase shrink-0"
+                  className="inline-flex items-center justify-center px-2 h-[20px] rounded-sm text-[10px] font-bold tracking-widest uppercase shrink-0"
                   style={{ background: 'var(--primary-grad)', color: '#ffffff' }}
                 >
                   {s.type}
                 </span>
-                <span className="text-[11px] font-mono font-medium text-foreground/70 tracking-wider">
+                <span className="text-xs font-mono font-medium text-foreground/70 tracking-wider">
                   {s.ticker}
                 </span>
                 {s.initialUsdDeposit != null && (
-                  <span className="ml-auto text-[12px] font-semibold text-foreground tabular-nums shrink-0">
+                  <span className="ml-auto text-sm font-semibold text-foreground tabular-nums shrink-0">
                     ${s.initialUsdDeposit.toLocaleString('en-US')}
                   </span>
                 )}
@@ -81,7 +81,7 @@ export function AccountCard({ account, strategies = [] }: Props) {
             ))}
           </ul>
         ) : (
-          <p className="text-xs text-muted-foreground">전략 미등록</p>
+          <p className="text-sm text-muted-foreground">전략 미등록</p>
         )}
       </div>
     </Link>
