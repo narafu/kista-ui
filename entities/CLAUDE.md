@@ -65,8 +65,10 @@ import { deleteAccount } from '@entities/account'
 
 - `UserResponse`: `{ id, nickname, status, hasTelegram, role, telegramBotUsername }`
 - `AccountResponse`: `{ id, nickname, accountNoMasked, broker }` — strategyType/ticker/hasTelegram 없음 (V35 이후)
-- `TradingCycleResponse`: `{ id, accountId, type, status, ticker, cycleSeedType, initialUsdDeposit }` — `multiple` 필드 제거됨(커밋 `e63cdfb2`)
+- `TradingCycleResponse`: `{ id, accountId, type, status, ticker, cycleSeedType, initialUsdDeposit, divisionCount, isReverseMode }` — `multiple` 필드 제거됨(커밋 `e63cdfb2`)
 - **TradingCycleResponse 필드 추가 시**: `entities/strategy/model/types.ts` + `entities/strategy/api/index.ts`의 `normalizeStrategy()` **두 곳 동시 업데이트 필수**. BigDecimal → `toNum()` 사용. 한 곳만 수정 시 런타임 `undefined`
+- **`divisionCount`**: 분할 수 (20/30/40). normalizeStrategy에서 `s.divisionCount != null ? Number(s.divisionCount) : 20` 기본값 처리. INFINITE 전략 전용 (`!isInfinite`이면 `DivisionCountSection` 미표시)
+- **`isReverseMode`**: 리버스모드 활성 여부. normalizeStrategy에서 `Boolean(s.isReverseMode)`. `StrategyRequest`에 없음 — 현재 생성/수정 폼에서 전송 불필요
 - `PortfolioSnapshot`: `snapshotDate` 필드 제거됨 — 날짜는 `createdAt` 사용. `currentPrice`는 `number | null` → null 가드 필수
 - `AdminAnomalies`: 현재 필드 `pausedAccounts`, `inactiveAccounts` — `failedTrades` 제거됨
 - API 함수명은 `listAccounts(token?)` (`getAccounts` 아님) — token 생략 시 Route Handler 경유, 전달은 Server Component 전용
@@ -91,6 +93,19 @@ import { deleteAccount } from '@entities/account'
 - **통화 주의**: KIS `CTRP6504R`의 `positions[].evalAmountUsd`는 USD, `summary.totalAssetUsd`/`totalEvalProfit`은 **KRW** (필드명에 Usd 있어도 KRW)
 - **StatisticsController 응답 형식**: KIS live 엔드포인트는 DTO를 그대로 반환 → kista-ui 타입과 drift 발생 가능. 신규 엔드포인트 추가 시 필드명 반드시 대조 (불일치 시 `undefined.toFixed()` → 500)
 - **`GET /api/accounts/{id}/profit`**: `PeriodProfitResult { totalRealizedProfit, totalReturnRate }`. `accountId`/`startDate`/`endDate`/`dailyProfits`는 서버 미전송 → `?? 0` 가드 필요
+
+## OpenAPI 타입 생성
+
+`shared/lib/api-types.ts`는 `openapi.json`에서 자동 생성된 타입 파일 — 직접 수정 금지.  
+`shared/lib/api-schema.ts`는 api-types에서 필요한 타입만 export하는 facade — enum 타입 직접 정의 금지.
+
+```bash
+# openapi.json 교체 후 타입 재생성
+npm run gen:types
+```
+
+현재 export 목록: `BrokerCode`, `UserStatus`, `UserRole`, `NotificationChannel`, `CycleSeedType`, `StrategyType`, `StrategyTicker`, `OrderType`, `OrderDirection`, `OrderStatus`, `SkipReason`, `MarketSessionStatus`.  
+새 enum 타입이 필요하면 `openapi.json` → `api-types.ts` → `api-schema.ts` 순으로 추가.
 
 ## API 날짜 파라미터
 

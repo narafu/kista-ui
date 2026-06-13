@@ -72,7 +72,7 @@ shared/        → 도메인 무관 공용 (ui/, lib/api-client, lib/format, lib
 
 ```
 NEXT_PUBLIC_KAKAO_CLIENT_ID=   # 카카오 REST API 키
-NEXT_PUBLIC_API_BASE_URL=      # kista-api Render URL
+NEXT_PUBLIC_API_BASE_URL=      # kista-api Fly.io URL (https://kista-api.fly.dev)
 ```
 - 새 `NEXT_PUBLIC_*` 추가 시 `.env.local.example` 동기화 필수
 - Docker: `.env.local` 미전달 → `docker-compose.yml` `build.args`에 명시 필요
@@ -80,9 +80,9 @@ NEXT_PUBLIC_API_BASE_URL=      # kista-api Render URL
 
 ## CORS
 
-- Server Component fetch → Vercel 서버 → Render — CORS 영향 있음
+- Server Component fetch → Vercel 서버 → Fly.io — CORS 영향 있음
 - `kista-api CORS_ALLOWED_ORIGINS`: `https://kista-ui.vercel.app,https://kista-ui-narafus-projects.vercel.app`
-- Render 로그에 없는 403 → CORS 필터 차단
+- Fly.io 로그에 없는 403 → CORS 필터 차단
 
 ## Docker
 

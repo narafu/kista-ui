@@ -9,9 +9,12 @@
 shared/
   lib/
     api-client/   # apiFetch, clientFetch, ApiError
+    api-types.ts  # openapi-typescript 자동생성 — 직접 수정 금지 (npm run gen:types로 재생성)
+    api-schema.ts # api-types에서 필요한 enum 타입만 re-export하는 facade
     auth/         # getAuthToken (Server Component 전용)
     cache/        # getCachedAccounts, getCachedStrategies, getMe (unstable_cache 래퍼)
     format/       # fmtUsd, fmtKrw, fmtPercent, fmtDate, fmtTime
+    proxy/        # createProxyRoute — catch-all Route Handler 공통 로직 (인증·revalidateTag 내장)
     firebase.ts   # Firebase 앱 초기화
     utils.ts      # cn(), toNum()
   providers/
@@ -60,6 +63,25 @@ import { getCachedAccounts, getCachedStrategies, getMe } from '@shared/lib/cache
 import { cn } from '@shared/lib/utils'   // clsx + tailwind-merge
 import { toNum } from '@shared/lib/utils' // BigDecimal string → number
 ```
+
+## api-schema (OpenAPI 타입 파생)
+
+```ts
+import type { BrokerCode, CycleSeedType, UserStatus } from '@shared/lib/api-schema'
+```
+
+`openapi.json`이 SSOT — enum 타입을 직접 정의하지 말고 `api-schema.ts`에서 import.  
+`api-types.ts` 재생성: `npm run gen:types` (`openapi.json` 교체 후 실행).  
+새 타입이 필요하면 `api-schema.ts`에 `NonNullable<components['schemas']['XxxResponse']['field']>` 형태로 추가.
+
+## proxy (Route Handler 공통)
+
+```ts
+import { createProxyRoute } from '@shared/lib/proxy'
+```
+
+catch-all Route Handler에서 kista-api 요청 프록시 + 인증 토큰 포함 + `revalidateTag` 자동 처리.  
+Route Handler URL 변경 시 `entities/{domain}/api/` 호출부만 수정 — `createProxyRoute` 내부 수정 불필요.
 
 ## ui (shadcn)
 

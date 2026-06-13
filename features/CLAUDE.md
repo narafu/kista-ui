@@ -16,10 +16,10 @@ feature 슬라이스끼리 cross-import 금지. 두 feature를 조합해야 하�
 |---|---|---|
 | `auth` | `logout` | `LogoutButton` |
 | `auth` | `reapply` | `ReapplyButton`, `RejectedReapplyButton` (1시간/24시간 쿨다운 localStorage) |
-| `account` | `create-account` | `CreateAccountStepper` + steps |
+| `account` | `create-account` | `CreateAccountStepper` + steps (4단계: Broker → API → AccountInfo → Confirm) |
 | `account` | `edit-account` | `EditAccountForm` |
 | `account` | `delete-account` | `DeleteAccountDialog`, `AccountEditDeleteButton` |
-| `strategy` | `create-strategy` | `StrategyFormDialog`, `StrategyForm`, sections (create·edit 공용) |
+| `strategy` | `create-strategy` | `StrategyFormDialog`, `StrategyForm`, sections: `StrategyTypeSection`, `StrategyTickerSection`, `DivisionCountSection`(INFINITE 전용), `CycleSeedSection`, `UsageRatioSection` |
 | `settings` | `telegram-connect` | `TelegramSection`, `PendingTelegramConnect` |
 | `settings` | `notification-channel` | `NotificationSettings` |
 | `settings` | `delete-user-account` | `DeleteAccountButton` |
@@ -47,9 +47,13 @@ features/{domain}/{slice}/
 
 ## 주요 슬라이스 quirk
 
-- **`create-account/steps/ApiStep`**: `useTestKisConnectionMutation` 사용 — KIS 토큰 1분 제한 주의 (`app/CLAUDE.md` 참고)
-- **`create-account/steps/ConfirmStep`**: `useCreateAccountMutation` 사용. 계좌번호 입력은 `74420614-01`(8자리 + `-` + 2자리) 분할 Input UI
+- **`create-account` 4-step 플로우**: `BrokerStep` → `ApiStep` → `AccountInfoStep` → `ConfirmStep`. `StepData`가 각 단계 payload를 축적하며 `CreateAccountStepper`가 상태 관리
+- **`create-account/steps/BrokerStep`**: KIS(`'KIS'`) / TOSS(`'TOSS'`) 중 선택. `BrokerCode`는 `@shared/lib/api-schema`에서 파생
+- **`create-account/steps/ApiStep`**: broker 분기 — KIS: `useTestKisConnectionMutation` (토큰 1분 제한 주의, `app/CLAUDE.md` 참고) / TOSS: clientId·clientSecret 입력
+- **`create-account/steps/AccountInfoStep`**: broker 분기 — KIS: `74420614-01`(8자리 + `-01` 고정), TOSS: `131-01-001931`(XXX-XX-XXXXXX, 11자리 자유형) 형식 다름
+- **`create-account/steps/ConfirmStep`**: `useCreateAccountMutation` 사용. `AccountRequest`에 `broker` 필드 포함
 - **`auth/reapply`**: `ReapplyButton`(pending, 1시간) / `RejectedReapplyButton`(rejected, 24시간) — localStorage 쿨다운 키: pending → `reapply_last_requested_at`, rejected → `reapply_rejected_last_at`. `/api/auth/reapply-done` Route Handler 경유 (직접 kista-api 호출 금지)
 - **`strategy/create-strategy/StrategyFormDialog`**: `initial?: Strategy` prop 유무로 create/edit 분기. create → `useCreateStrategyMutation`, edit → `useUpdateStrategyMutation`
+- **`strategy/create-strategy/sections/DivisionCountSection`**: INFINITE 전략에서만 렌더링 (`!isInfinite`이면 `return null`). 옵션: 20분할(기본·안정), 30분할(적극), 40분할(고위험). edit 시 기존값 유지
 - **`settings/telegram-connect`**: pending 페이지와 settings 페이지 양쪽에서 동일 컴포넌트 공유 (`TelegramSection` / `PendingTelegramConnect`). `updateTelegram`/`deleteTelegram` → `/api/settings/telegram` Route Handler 경유
 - **`strategy/create-strategy/sections`**: CSS 토큰 기반 인라인 style 다수 — `globals.css` 커스텀 토큰(`--rose-500`, `--warn` 등) 사용
