@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     return new Response('Upstream error', { status: upstream.status })
   }
 
-  return new Response(upstream.body, {
+  return new Response(upstream.body as BodyInit, {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
