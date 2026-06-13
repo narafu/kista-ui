@@ -1,3 +1,4 @@
+import { AlertTriangle } from 'lucide-react'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { DeleteAccountButton } from '@features/settings/delete-user-account'
 import { getCachedUser } from '@shared/lib/cache/cached-api'
@@ -73,10 +74,10 @@ export default async function SettingsPage() {
             <TelegramSection
               hasTelegram={user?.hasTelegram ?? false}
               telegramBotUsername={user?.telegramBotUsername}
-              currentChannel={user?.notificationChannel ?? 'NONE'}
+              currentChannel={user?.notificationChannel ?? (user?.hasTelegram ? 'TELEGRAM' : 'NONE')}
             />
             <NotificationSettings
-              currentChannel={user?.notificationChannel ?? 'NONE'}
+              currentChannel={user?.notificationChannel ?? (user?.hasTelegram ? 'TELEGRAM' : 'NONE')}
               hasTelegram={user?.hasTelegram ?? false}
             />
 
@@ -119,9 +120,12 @@ export default async function SettingsPage() {
           </section>
 
           {/* 위험 구역 */}
-          <section id="danger" className="rounded-[var(--r-lg)] border border-neg/30 p-6">
-            <h2 className="font-bold text-base text-neg mb-1">위험 구역</h2>
-            <p className="text-sm text-muted-foreground mb-4">되돌릴 수 없는 작업입니다.</p>
+          <section id="danger" className="rounded-[var(--r-lg)] border border-[var(--status-error-border)] bg-[var(--status-error-bg)] p-6">
+            <div className="flex items-center gap-2.5 mb-3">
+              <AlertTriangle className="size-4 text-[var(--status-error)]" />
+              <h2 className="text-sm font-semibold text-[var(--status-error)]">위험 구역</h2>
+            </div>
+            <p className="text-[13px] text-muted-foreground mb-4">되돌릴 수 없는 작업입니다.</p>
             <DeleteAccountButton />
           </section>
 
