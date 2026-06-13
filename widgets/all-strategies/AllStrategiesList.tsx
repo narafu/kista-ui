@@ -16,7 +16,7 @@ export function AllStrategiesList({ strategies, accounts }: Props) {
   const accountMap = new Map(accounts.map((a) => [a.id, a.accountNoMasked]))
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 lg:gap-3">
       {strategies.map((s) => (
         <StrategyCard
           key={s.id}

@@ -94,7 +94,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
   return (
     <div className="space-y-4">
       <Card>
-        <CardContent className="p-5 flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 px-5 pt-4 pb-3">
           <span className="inline-flex items-center px-2.5 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-rose-50 text-rose-600">
             {strategy.type}
           </span>
@@ -108,22 +108,27 @@ export function StrategyDetail({ accountId, strategy }: Props) {
               리버스모드
             </span>
           )}
-          <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
-          <span className="text-sm text-muted-foreground">
-            다음 사이클
-            <span className="ml-1.5 px-1.5 py-0.5 rounded bg-muted text-foreground font-semibold">
-              {cycleSeedLabel}
-            </span>
-          </span>
-          <span className="w-full sm:w-auto sm:ml-auto text-sm font-medium text-foreground">
-            시작금액{' '}
-            {strategy.initialUsdDeposit != null ? (
-              `$${fmtUsd(strategy.initialUsdDeposit)}`
-            ) : (
-              <span className="text-muted-foreground">미설정</span>
-            )}
-          </span>
-        </CardContent>
+        </div>
+        <div className="grid grid-cols-3 border-t border-border">
+          <div className="px-5 py-3 border-r border-border">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">상태</p>
+            <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
+          </div>
+          <div className="px-5 py-3 border-r border-border">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">다음 사이클</p>
+            <p className="text-sm font-semibold text-foreground">{cycleSeedLabel}</p>
+          </div>
+          <div className="px-5 py-3">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">시작금액</p>
+            <p className="text-sm font-semibold text-foreground">
+              {strategy.initialUsdDeposit != null ? (
+                `$${fmtUsd(strategy.initialUsdDeposit)}`
+              ) : (
+                <span className="text-muted-foreground font-normal">미설정</span>
+              )}
+            </p>
+          </div>
+        </div>
       </Card>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -175,10 +180,10 @@ export function StrategyDetail({ accountId, strategy }: Props) {
             )}
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {mode === 'executed' ? (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center justify-between px-6 py-3 border-b border-border">
                 <p className="text-[11px] uppercase tracking-widest font-semibold text-amber-600">
                   {placedOrders.length > 0 ? `${placedOrders.length}건 접수됨` : '접수됨'}
                 </p>
@@ -203,18 +208,11 @@ export function StrategyDetail({ accountId, strategy }: Props) {
                   {cancelAllMutation.isPending ? '취소 중...' : '전체 취소'}
                 </button>
               </div>
-              <ul className="space-y-2">
+              {/* 모바일 리스트 */}
+              <ul className="lg:hidden">
                 {placedOrders.map((o) => (
-                  <li
-                    key={o.id}
-                    className="flex items-center gap-3 text-sm py-2 border-b border-border last:border-b-0"
-                  >
-                    <span
-                      className={cn(
-                        'inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold',
-                        o.direction === 'BUY' ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600',
-                      )}
-                    >
+                  <li key={o.id} className="flex items-center gap-3 text-sm px-6 py-3 border-b border-border last:border-b-0">
+                    <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold', o.direction === 'BUY' ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600')}>
                       {o.direction === 'BUY' ? '매수' : '매도'}
                     </span>
                     <span className="font-medium">{o.ticker}</span>
@@ -239,39 +237,108 @@ export function StrategyDetail({ accountId, strategy }: Props) {
                   </li>
                 ))}
               </ul>
-              <button
-                type="button"
-                onClick={() => setMode('preview')}
-                className="w-full text-xs px-3 py-1.5 rounded-md border border-border text-muted-foreground hover:border-rose-300 hover:text-rose-600"
-              >
-                ↩ 다시 미리보기
-              </button>
+              {/* PC 테이블 */}
+              <table className="hidden lg:table w-full">
+                <thead>
+                  <tr>
+                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 bg-rose-50 border-b border-border font-semibold">구분</th>
+                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 bg-rose-50 border-b border-border font-semibold">종목</th>
+                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 bg-rose-50 border-b border-border font-semibold">수량</th>
+                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 bg-rose-50 border-b border-border font-semibold">주문가</th>
+                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 bg-rose-50 border-b border-border font-semibold">취소</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {placedOrders.map((o) => (
+                    <tr key={o.id} className="border-b border-border last:border-b-0">
+                      <td className="px-5 py-3">
+                        <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold', o.direction === 'BUY' ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600')}>
+                          {o.direction === 'BUY' ? '매수' : '매도'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-sm font-semibold">{o.ticker}</td>
+                      <td className="px-5 py-3 text-sm text-muted-foreground text-right">{o.quantity}주</td>
+                      <td className="px-5 py-3 text-sm font-semibold text-right">${fmtUsd(toNum(o.price))}</td>
+                      <td className="px-5 py-3 text-right">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            cancelOneMutation.mutate(o.id, {
+                              onSuccess: () => {
+                                const remaining = placedOrders.filter((x) => x.id !== o.id)
+                                setPlacedOrders(remaining)
+                                if (remaining.length === 0) setMode('preview')
+                              },
+                            })
+                          }
+                          disabled={cancelOneMutation.isPending}
+                          className="text-[11px] px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
+                        >
+                          취소
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="px-6 py-3">
+                <button
+                  type="button"
+                  onClick={() => setMode('preview')}
+                  className="w-full text-xs px-3 py-1.5 rounded-md border border-border text-muted-foreground hover:border-rose-300 hover:text-rose-600"
+                >
+                  ↩ 다시 미리보기
+                </button>
+              </div>
             </div>
           ) : isLoadingPreview ? (
-            <p className="text-sm text-muted-foreground text-center py-4">로딩 중...</p>
+            <p className="text-sm text-muted-foreground text-center px-6 py-4">로딩 중...</p>
           ) : orders.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">예정된 주문이 없습니다.</p>
+            <p className="text-sm text-muted-foreground text-center px-6 py-4">예정된 주문이 없습니다.</p>
           ) : (
-            <ul className="space-y-2">
-              {orders.map((o, i) => (
-                <li
-                  key={`${o.ticker}-${o.direction}-${i}`}
-                  className="flex items-center gap-3 text-sm py-2 border-b border-border last:border-b-0"
-                >
-                  <span
-                    className={cn(
-                      'inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold',
-                      o.direction === 'BUY' ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600',
-                    )}
+            <div>
+              {/* 모바일 리스트 */}
+              <ul className="lg:hidden">
+                {orders.map((o, i) => (
+                  <li
+                    key={`${o.ticker}-${o.direction}-${i}`}
+                    className="flex items-center gap-3 text-sm px-6 py-3 border-b border-border last:border-b-0"
                   >
-                    {o.direction === 'BUY' ? '매수' : '매도'}
-                  </span>
-                  <span className="font-medium">{o.ticker}</span>
-                  <span className="text-muted-foreground">{o.quantity}주</span>
-                  <span className="ml-auto font-semibold">${fmtUsd(toNum(o.price))}</span>
-                </li>
-              ))}
-            </ul>
+                    <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold', o.direction === 'BUY' ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600')}>
+                      {o.direction === 'BUY' ? '매수' : '매도'}
+                    </span>
+                    <span className="font-medium">{o.ticker}</span>
+                    <span className="text-muted-foreground">{o.quantity}주</span>
+                    <span className="ml-auto font-semibold">${fmtUsd(toNum(o.price))}</span>
+                  </li>
+                ))}
+              </ul>
+              {/* PC 테이블 */}
+              <table className="hidden lg:table w-full">
+                <thead>
+                  <tr>
+                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 bg-rose-50 border-b border-border font-semibold">구분</th>
+                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 bg-rose-50 border-b border-border font-semibold">종목</th>
+                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 bg-rose-50 border-b border-border font-semibold">수량</th>
+                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 bg-rose-50 border-b border-border font-semibold">주문가</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map((o, i) => (
+                    <tr key={`${o.ticker}-${o.direction}-${i}`} className="border-b border-border last:border-b-0">
+                      <td className="px-5 py-3">
+                        <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold', o.direction === 'BUY' ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600')}>
+                          {o.direction === 'BUY' ? '매수' : '매도'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-sm font-semibold">{o.ticker}</td>
+                      <td className="px-5 py-3 text-sm text-muted-foreground text-right">{o.quantity}주</td>
+                      <td className="px-5 py-3 text-sm font-semibold text-right">${fmtUsd(toNum(o.price))}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </CardContent>
       </Card>
