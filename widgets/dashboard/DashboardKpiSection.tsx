@@ -52,9 +52,9 @@ export function DashboardKpiSection({
   )
 
   const cards = [
-    { label: '예수금', value: totalDepositUsd, entries: accountEntries.map(e => ({ nickname: e.nickname, usd: e.usdDeposit })) },
-    { label: '평가금', value: totalPosEvalUsd, entries: accountEntries.map(e => ({ nickname: e.nickname, usd: e.posEvalUsd })) },
-    { label: '총 자산', value: totalAssetUsd, entries: accountEntries.map(e => ({ nickname: e.nickname, usd: e.totalAssetUsd })) },
+    { label: '예수금', value: totalDepositUsd, entries: accountEntries.map(e => ({ id: e.accountId, nickname: e.nickname, usd: e.usdDeposit })) },
+    { label: '평가금', value: totalPosEvalUsd, entries: accountEntries.map(e => ({ id: e.accountId, nickname: e.nickname, usd: e.posEvalUsd })) },
+    { label: '총 자산', value: totalAssetUsd, entries: accountEntries.map(e => ({ id: e.accountId, nickname: e.nickname, usd: e.totalAssetUsd })) },
   ]
 
   if (variant === 'mobile') {
@@ -76,8 +76,8 @@ export function DashboardKpiSection({
               </div>
               {entries.length > 1 && (
                 <div className="space-y-1 border-t border-rose-200/60 pt-2">
-                  {entries.map(({ nickname, usd }) => (
-                    <div key={nickname} className="flex justify-between text-[12px] text-[var(--brand-fg-soft)]">
+                  {entries.map(({ id, nickname, usd }) => (
+                    <div key={id} className="flex justify-between text-[12px] text-[var(--brand-fg-soft)]">
                       <span className="truncate max-w-[60%]">{nickname}</span>
                       <span className="font-semibold">{fmt(usd)}</span>
                     </div>
