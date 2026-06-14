@@ -158,7 +158,7 @@ export function useStrategyForm({
     if (balanceCheckEnabled) return
     if (initial) return
     if (seedUsdInput !== null) return
-    if (minSeed !== null) setSeedUsdInputInternal(minSeed)
+    if (minSeed !== null) setSeedUsdInputInternal(Math.round(minSeed))
   }, [balanceCheckEnabled, minSeed]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const seedUsd = !balanceCheckEnabled
@@ -182,6 +182,7 @@ export function useStrategyForm({
     setPctInternal(
       usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
     )
+    setSeedUsdInputInternal(newMinSeed !== null ? Math.round(newMinSeed) : null)
   }
 
   function handleSubmit(e: React.FormEvent) {
