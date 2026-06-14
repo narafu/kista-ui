@@ -10,15 +10,16 @@ interface Props {
   minSeed?: number | null
   compact?: boolean
   disabled?: boolean
+  balanceCheckEnabled?: boolean
 }
 
-export function PercentGauge({ value, onChange, deposit, minSeed, compact, disabled }: Props) {
+export function PercentGauge({ value, onChange, deposit, minSeed, compact, disabled, balanceCheckEnabled = true }: Props) {
   const handleSize = compact ? 18 : 22
   const halfHandle = handleSize / 2
   const trackH = compact ? 8 : 10
   const allocated = deposit !== null ? Math.round(deposit * value) / 100 : null
 
-  const depositInsufficient = deposit != null && minSeed != null && deposit < minSeed
+  const depositInsufficient = balanceCheckEnabled && deposit != null && minSeed != null && deposit < minSeed
   const allDisabled = disabled || depositInsufficient
 
   const minPct =

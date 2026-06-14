@@ -5,6 +5,7 @@ import { getCachedUser } from '@shared/lib/cache/cached-api'
 import { TelegramSection } from '@features/settings/telegram-connect'
 import { NotificationSettings } from '@features/settings/notification-channel'
 import { ThemeCards } from '@features/settings/theme-select'
+import { BalanceCheckSetting } from '@features/settings/balance-check-setting'
 import { PageHeader } from '@widgets/page-header'
 import { ThemeToggle } from '@widgets/theme-toggle'
 import type { User } from '@entities/user'
@@ -115,6 +116,10 @@ export default async function SettingsPage() {
                 <div className="text-[11.5px] text-muted-foreground mt-0.5">시스템 테마 대신 직접 전환</div>
               </div>
               <ThemeToggle />
+            </div>
+
+            <div className="mt-5 pt-4 border-t border-border">
+              <BalanceCheckSetting initialEnabled={user?.balanceCheckEnabled ?? true} />
             </div>
 
           </section>

@@ -6,6 +6,20 @@ const TOKEN_COOKIE = 'kista-token'
 const STATUS_COOKIE = 'kista-user-status'
 const ROLE_COOKIE = 'kista-user-role'
 
+export async function GET() {
+  const token = await getAuthToken()
+  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  })
+
+  if (!res.ok) return NextResponse.json({ error: 'Failed' }, { status: res.status })
+  return NextResponse.json(await res.json())
+}
+
 export async function DELETE() {
   const token = await getAuthToken()
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

@@ -61,6 +61,7 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
         isInfinite={form.isInfinite}
         privacyBase={form.privacyBase}
         basePrice={form.basePrice}
+        balanceCheckEnabled={form.balanceCheckEnabled}
       />
 
       <CycleSeedSection

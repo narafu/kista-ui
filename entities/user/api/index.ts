@@ -5,6 +5,18 @@ export async function getMe(token: string): Promise<User> {
   return apiFetch<User>('/api/auth/me', { method: 'GET' }, token)
 }
 
+export async function getMeClient(): Promise<User> {
+  return clientFetch<User>('/api/auth/me', { method: 'GET' })
+}
+
+export async function updateBalanceCheckEnabled(enabled: boolean): Promise<void> {
+  await clientFetch<void>('/api/settings/balance-check', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ enabled }),
+  })
+}
+
 export async function reapply(): Promise<void> {
   await clientFetch<void>('/api/auth/reapply-done', { method: 'POST' })
 }

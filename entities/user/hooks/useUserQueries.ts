@@ -3,8 +3,28 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { listAdminUsers, reapply, deleteMe, updateNotificationChannel, updateTelegram, deleteTelegram, approveAdminUser, rejectAdminUser, changeAdminUserRole, deleteAdminUser } from '../api'
-import type { AdminUser, UserRole, UserStatus } from '../model/types'
+import { listAdminUsers, reapply, deleteMe, updateNotificationChannel, updateTelegram, deleteTelegram, approveAdminUser, rejectAdminUser, changeAdminUserRole, deleteAdminUser, getMeClient, updateBalanceCheckEnabled } from '../api'
+import type { AdminUser, User, UserRole, UserStatus } from '../model/types'
+
+export function useMeQuery(initialData?: User) {
+  return useQuery<User>({
+    queryKey: ['me'],
+    queryFn: getMeClient,
+    initialData,
+    staleTime: 60_000,
+  })
+}
+
+export function useUpdateBalanceCheckEnabledMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (enabled: boolean) => updateBalanceCheckEnabled(enabled),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['me'] })
+    },
+    onError: () => toast.error('잔고 검증 설정 변경에 실패했습니다.'),
+  })
+}
 
 export function useAdminUsersQuery(filter?: UserStatus, initialData?: AdminUser[]) {
   return useQuery<AdminUser[]>({

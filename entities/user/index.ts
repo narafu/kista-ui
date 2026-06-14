@@ -13,11 +13,13 @@ export type {
 } from './model/types'
 export {
   getMe,
+  getMeClient,
   reapply,
   deleteMe,
   updateNotificationChannel,
   updateTelegram,
   deleteTelegram,
+  updateBalanceCheckEnabled,
   listAdminUsers,
   approveAdminUser,
   rejectAdminUser,
@@ -30,12 +32,14 @@ export {
   getAdminAnomalies,
 } from './api'
 export {
+  useMeQuery,
   useAdminUsersQuery,
   useReapplyMutation,
   useDeleteMeMutation,
   useUpdateNotificationChannelMutation,
   useUpdateTelegramMutation,
   useDeleteTelegramMutation,
+  useUpdateBalanceCheckEnabledMutation,
   useApproveUserMutation,
   useRejectUserMutation,
   useChangeUserRoleMutation,

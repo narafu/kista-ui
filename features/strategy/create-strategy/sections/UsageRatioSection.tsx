@@ -16,14 +16,15 @@ interface Props {
   isInfinite: boolean
   privacyBase: number | null
   basePrice: number | null
+  balanceCheckEnabled?: boolean
 }
 
-export function UsageRatioSection({ pct, setPct, usdDeposit, minSeed, loading, loadingBase, isBelowMinSeed, isInfinite, privacyBase, basePrice }: Props) {
+export function UsageRatioSection({ pct, setPct, usdDeposit, minSeed, loading, loadingBase, isBelowMinSeed, isInfinite, privacyBase, basePrice, balanceCheckEnabled = true }: Props) {
   return (
     <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel hint="USD 예수금 기준 · 드래그하거나 입력">사용 비율</StrategyFieldLabel>
 
-      <PercentGauge value={pct} onChange={setPct} deposit={usdDeposit} minSeed={minSeed} disabled={loading || loadingBase} />
+      <PercentGauge value={pct} onChange={setPct} deposit={usdDeposit} minSeed={minSeed} disabled={loading || loadingBase} balanceCheckEnabled={balanceCheckEnabled} />
 
       <div className="inline-flex items-center gap-1.5 text-[11px] font-bold mt-3">
         {loadingBase ? (

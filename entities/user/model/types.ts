@@ -9,6 +9,7 @@ export interface User {
   hasTelegram: boolean
   telegramBotUsername?: string | null
   notificationChannel?: NotificationChannel
+  balanceCheckEnabled: boolean
 }
 
 export interface AdminUser {

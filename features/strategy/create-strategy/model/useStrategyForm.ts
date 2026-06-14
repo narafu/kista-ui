@@ -8,6 +8,7 @@ import { usePrivacyCurrentBaseQuery } from '@entities/privacy'
 import { useCreateStrategyMutation, useUpdateStrategyMutation, calcMinSeed } from '@entities/strategy'
 import type { CycleSeedType, Strategy, StrategyRequest } from '@entities/strategy'
 import type { PriceMap } from '@entities/account'
+import { useMeQuery } from '@entities/user'
 
 interface UseStrategyFormOptions {
   accountId: string
@@ -33,6 +34,7 @@ export interface UseStrategyFormReturn {
   isBelowMinSeed: boolean
   loadingBase: boolean
   privacyBase: number | null
+  balanceCheckEnabled: boolean
 
   autoStart: boolean
   setAutoStart: (v: boolean) => void
@@ -77,6 +79,8 @@ export function useStrategyForm({
   const [divisionCount, setDivisionCount] = useState<number>(initial?.divisionCount ?? 20)
 
   // 서버 상태는 React Query 훅으로
+  const { data: meData } = useMeQuery()
+  const balanceCheckEnabled = meData?.balanceCheckEnabled ?? true
   const { items: marginItems, isLoading: marginLoading } = useAccountMarginQuery(accountId)
   const allTickerCodes = useMemo(() => meta.tickers.map((t) => t.code), [meta.tickers])
   const { data: pricesData, isLoading: pricesLoading } = useAccountPricesQuery(accountId, allTickerCodes)
@@ -140,7 +144,9 @@ export function useStrategyForm({
   )
 
   const seedUsd = usdDeposit !== null ? Math.round(usdDeposit * pct) / 100 : null
-  const isBelowMinSeed = seedUsd !== null && minSeed !== null && seedUsd < minSeed
+  const isBelowMinSeed = balanceCheckEnabled
+    ? seedUsd !== null && minSeed !== null && seedUsd < minSeed
+    : false
   const cannotSubmit = isBelowMinSeed || basePrice === null
 
   const cycleSeedType: CycleSeedType = !autoStart
@@ -189,6 +195,7 @@ export function useStrategyForm({
     type, setType, isInfinite,
     ticker, availableTickers, handleTickerChange, basePrice, prices,
     pct, setPct, usdDeposit, minSeed, isBelowMinSeed, loadingBase, privacyBase,
+    balanceCheckEnabled,
     autoStart, setAutoStart, seedMode, setSeedMode,
     divisionCount, setDivisionCount,
     loading: createMutation.isPending || updateMutation.isPending,
