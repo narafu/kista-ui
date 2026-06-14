@@ -6,6 +6,7 @@ export type {
   CycleHistoryItem,
   Execution,
   PortfolioSnapshot,
+  PortfolioSummary,
   DailyProfit,
   ProfitSummary,
   MarginItem,

@@ -6,7 +6,7 @@ import { DashboardEmpty } from '@widgets/dashboard/DashboardEmpty'
 import { DashboardOverview } from '@widgets/dashboard/DashboardOverview'
 import { aggregatePortfolios } from '@widgets/dashboard/aggregatePortfolios'
 import type { Account } from '@entities/account'
-import type { PortfolioSnapshot } from '@entities/trade'
+import type { PortfolioSummary } from '@entities/trade'
 import type { Strategy } from '@entities/strategy'
 
 export default async function DashboardPage() {
@@ -28,7 +28,7 @@ export default async function DashboardPage() {
     return <DashboardEmpty holidays={holidays} calendarYear={calendarYear} calendarMonth={calendarMonth} />
   }
 
-  let portfolioRaws: (PortfolioSnapshot | null)[] = accounts.map(() => null)
+  let portfolioRaws: (PortfolioSummary | null)[] = accounts.map(() => null)
   let strategiesByAccount: Strategy[][] = accounts.map(() => [])
 
   if (token) {

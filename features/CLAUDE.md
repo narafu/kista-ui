@@ -49,7 +49,7 @@ features/{domain}/{slice}/
 
 - **`create-account` 4-step 플로우**: `BrokerStep` → `ApiStep` → `AccountInfoStep` → `ConfirmStep`. `StepData`가 각 단계 payload를 축적하며 `CreateAccountStepper`가 상태 관리
 - **`create-account/steps/BrokerStep`**: KIS(`'KIS'`) / TOSS(`'TOSS'`) 중 선택. `BrokerCode`는 `@shared/lib/api-schema`에서 파생
-- **`create-account/steps/ApiStep`**: broker 분기 — KIS: `useTestKisConnectionMutation` (토큰 1분 제한 주의, `app/CLAUDE.md` 참고) / TOSS: clientId·clientSecret 입력
+- **`create-account/steps/ApiStep`**: broker 분기 — KIS: `useTestKisConnectionMutation` (토큰 1분 제한 주의, `app/CLAUDE.md` 참고) / TOSS: clientId·clientSecret 입력 (UI만 구현, 실매매 미지원)
 - **`create-account/steps/AccountInfoStep`**: broker 분기 — KIS: `74420614-01`(8자리 + `-01` 고정), TOSS: `131-01-001931`(XXX-XX-XXXXXX, 11자리 자유형) 형식 다름
 - **`create-account/steps/ConfirmStep`**: `useCreateAccountMutation` 사용. `AccountRequest`에 `broker` 필드 포함
 - **`auth/reapply`**: `ReapplyButton`(pending, 1시간) / `RejectedReapplyButton`(rejected, 24시간) — localStorage 쿨다운 키: pending → `reapply_last_requested_at`, rejected → `reapply_rejected_last_at`. `/api/auth/reapply-done` Route Handler 경유 (직접 kista-api 호출 금지)

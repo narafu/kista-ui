@@ -59,6 +59,29 @@ export interface PortfolioSnapshot {
   createdAt: string
 }
 
+export interface PortfolioSummary {
+  positions?: Array<{
+    ticker?: string | null
+    holdings?: number | null
+    avgPrice?: number | string | null
+    currentPrice?: number | string | null
+    evalAmountUsd?: number | string | null
+    profitLossUsd?: number | string | null
+    profitRate?: number | string | null
+    exchangeCode?: string | null
+  }>
+  summary?: {
+    totalAssetUsd?: number | string | null
+    totalEvalProfit?: number | string | null
+    totalReturnRate?: number | string | null
+    totalAssetUsdActual?: number | string | null
+    evalProfitUsdSum?: number | string | null
+    usdDeposit?: number | string | null
+    posEvalUsd?: number | string | null
+    exchangeRateKrwPerUsd?: number | string | null
+  }
+}
+
 export interface DailyProfit {
   date: string
   profitLoss: number

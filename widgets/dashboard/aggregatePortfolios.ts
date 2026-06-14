@@ -1,19 +1,5 @@
 import { toNum } from '@shared/lib/utils'
-import type { PortfolioSnapshot } from '@entities/trade'
-
-interface PortfolioSummaryRaw {
-  positions?: Array<{ evalAmountUsd?: number | string | null }>
-  summary?: {
-    totalAssetUsd?: number | string | null       // KRW 총자산
-    totalEvalProfit?: number | string | null      // KRW 평가손익
-    totalReturnRate?: number | string | null
-    totalAssetUsdActual?: number | string | null
-    evalProfitUsdSum?: number | string | null
-    usdDeposit?: number | string | null           // USD 예수금
-    posEvalUsd?: number | string | null           // USD 평가금
-    exchangeRateKrwPerUsd?: number | string | null // 환율
-  }
-}
+import type { PortfolioSummary } from '@entities/trade'
 
 export interface PortfolioAccountEntry {
   accountId: string
@@ -39,7 +25,7 @@ export interface AggregatedPortfolio {
 }
 
 export function aggregatePortfolios(
-  raws: (PortfolioSnapshot | null)[],
+  raws: (PortfolioSummary | null)[],
   accounts: Array<{ id: string; nickname: string }> = [],
 ): AggregatedPortfolio {
   let totalDepositUsd = 0
@@ -54,16 +40,15 @@ export function aggregatePortfolios(
   for (let i = 0; i < raws.length; i++) {
     const raw = raws[i]
     if (!raw) continue
-    const r = raw as unknown as PortfolioSummaryRaw
     const account = accounts[i]
 
-    const depositUsd = toNum(r.summary?.usdDeposit)
-    const posEvalUsd = toNum(r.summary?.posEvalUsd)
+    const depositUsd = toNum(raw.summary?.usdDeposit)
+    const posEvalUsd = toNum(raw.summary?.posEvalUsd)
     const assetUsd = depositUsd + posEvalUsd
-    const evalProfit = toNum(r.summary?.totalEvalProfit)
-    const returnRate = toNum(r.summary?.totalReturnRate)
-    const evalProfitUsd = toNum(r.summary?.evalProfitUsdSum)
-    const rate = toNum(r.summary?.exchangeRateKrwPerUsd)
+    const evalProfit = toNum(raw.summary?.totalEvalProfit)
+    const returnRate = toNum(raw.summary?.totalReturnRate)
+    const evalProfitUsd = toNum(raw.summary?.evalProfitUsdSum)
+    const rate = toNum(raw.summary?.exchangeRateKrwPerUsd)
 
     totalDepositUsd += depositUsd
     totalPosEvalUsd += posEvalUsd

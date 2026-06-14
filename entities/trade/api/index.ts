@@ -5,6 +5,7 @@ import type {
   CycleHistoryPage,
   DailyTransactionResult,
   PortfolioSnapshot,
+  PortfolioSummary,
   ProfitSummary,
   MarginItem,
 } from '../model/types'
@@ -73,8 +74,8 @@ export async function getStrategyCycleHistory(
   return fetchEither<CycleHistoryPage>(`/api/trading-cycles/${strategyId}/history${qs}`, { method: 'GET' }, token)
 }
 
-export async function getAccountPortfolio(accountId: string, token: string): Promise<PortfolioSnapshot> {
-  return apiFetch<PortfolioSnapshot>(`/api/accounts/${accountId}/portfolio`, { method: 'GET' }, token)
+export async function getAccountPortfolio(accountId: string, token: string): Promise<PortfolioSummary> {
+  return apiFetch<PortfolioSummary>(`/api/accounts/${accountId}/portfolio`, { method: 'GET' }, token)
 }
 
 export async function getAccountMargin(accountId: string, token?: string): Promise<MarginItem[]> {

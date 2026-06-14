@@ -10,7 +10,7 @@ import { getAuthToken } from '@shared/lib/auth/token'
 import { listAccounts } from '@entities/account'
 import { getAccountPortfolio, getAccountMargin } from '@entities/trade'
 import { listStrategies } from '@entities/strategy'
-import type { PortfolioSnapshot, MarginItem } from '@entities/trade'
+import type { PortfolioSnapshot, PortfolioSummary, MarginItem } from '@entities/trade'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 
@@ -18,33 +18,20 @@ interface Props {
   params: Promise<{ id: string }>
 }
 
-// kista-api PortfolioSummaryResponse { positions: PositionDto[], summary: SummaryDto } 응답 형식
-interface PortfolioPosition {
-  ticker: string; holdings: number
-  avgPrice: number | string | null; currentPrice: number | string | null
-  evalAmountUsd: number | string | null
-}
-interface PortfolioSummaryRaw {
-  positions?: PortfolioPosition[]
-  summary?: { totalAssetUsd?: number | string | null }
-}
-
-// PortfolioSummaryResponse → PortfolioSnapshot 변환 (StatisticsController 응답 형식 정규화)
+// PortfolioSummary → PortfolioSnapshot 변환
 // strategyTicker: 전략 종목 코드 — positions에서 해당 종목 포지션을 우선 선택
-function normalizePortfolio(raw: PortfolioSnapshot | null, strategyTicker?: string): PortfolioSnapshot | null {
-  if (!raw) return null
-  const r = raw as unknown as PortfolioSummaryRaw
-  if (!Array.isArray(r.positions)) return null
+function normalizePortfolio(raw: PortfolioSummary | null, strategyTicker?: string): PortfolioSnapshot | null {
+  if (!raw || !Array.isArray(raw.positions)) return null
   const top = strategyTicker
-    ? r.positions.find(p => String(p.ticker) === strategyTicker)
-    : r.positions[0]
+    ? raw.positions.find(p => String(p.ticker) === strategyTicker)
+    : raw.positions[0]
   if (!top) return null // 보유 종목 없음
   return {
     id: '',
-    ticker: top.ticker, holdings: top.holdings,
+    ticker: String(top.ticker ?? ''), holdings: Number(top.holdings ?? 0),
     avgPrice: toNum(top.avgPrice), closingPrice: toNum(top.currentPrice),
     marketValueUsd: toNum(top.evalAmountUsd), usdDeposit: 0,
-    totalAssetUsd: toNum(r.summary?.totalAssetUsd),
+    totalAssetUsd: toNum(raw.summary?.totalAssetUsd),
     createdAt: new Date().toISOString(),
   }
 }
@@ -65,7 +52,7 @@ export default async function AccountDetailPage({ params }: Props) {
 
   const [accounts, portfolioRaw, strategies, margins] = await Promise.all([
     listAccounts(token).catch((): Account[] => []),
-    getAccountPortfolio(id, token).catch((): PortfolioSnapshot | null => null),
+    getAccountPortfolio(id, token).catch((): PortfolioSummary | null => null),
     listStrategies(id, token).catch((e): Strategy[] => {
       console.error('[AccountDetailPage] listStrategies 실패:', e)
       return []
