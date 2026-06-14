@@ -24,7 +24,17 @@ interface Props {
 export function UsageRatioSection({ pct, setPct, seedUsdInput, setSeedUsdInput, usdDeposit, minSeed, loading, loadingBase, isBelowMinSeed, isInfinite, privacyBase, basePrice, balanceCheckEnabled = true }: Props) {
   return (
     <div className="py-[18px] border-b border-border">
-      <StrategyFieldLabel hint={balanceCheckEnabled ? 'USD 예수금 기준 · 드래그하거나 입력' : '잔고검증 OFF · 직접 입력'}>
+      <StrategyFieldLabel
+        hint={balanceCheckEnabled
+          ? 'USD 예수금 기준 · 드래그하거나 입력'
+          : <span
+              className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
+              style={{ background: 'var(--rose-50, rgba(251,207,232,.15))', color: 'var(--rose-500)', borderColor: 'var(--rose-300)' }}
+            >
+              잔고검증 OFF
+            </span>
+        }
+      >
         {balanceCheckEnabled ? '사용 비율' : '시드 금액'}
       </StrategyFieldLabel>
 

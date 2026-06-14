@@ -3,7 +3,7 @@ export function StrategyFieldLabel({
   hint,
 }: {
   children: React.ReactNode
-  hint?: string
+  hint?: React.ReactNode
 }) {
   return (
     <div className="flex items-center justify-between mb-2">

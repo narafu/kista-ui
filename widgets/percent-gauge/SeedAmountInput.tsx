@@ -18,67 +18,77 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled }:
       : null
   const sufficient = deposit !== null && value !== null && value > 0 && deposit >= value
 
+  const step = minSeed ?? 0
+  const canDecrease = !disabled && step > 0 && value !== null && value > step
+  const canIncrease = !disabled && step > 0
+
+  function handleDecrease() {
+    if (!canDecrease || value === null) return
+    onChange(Math.max(step, value - step))
+  }
+
+  function handleIncrease() {
+    if (!canIncrease) return
+    onChange((value ?? step) + step)
+  }
+
   return (
     <div className="min-w-0">
-      {/* 입력칸 — 전체 너비 */}
-      <div
-        className={cn(
-          'w-full rounded-lg border bg-card flex items-center px-3.5 h-10 mb-1.5',
-          disabled ? 'opacity-50' : 'border-[var(--rose-400)] shadow-[0_0_0_3px_rgba(203,131,106,0.18)]',
-        )}
-      >
-        <span className="text-sm font-extrabold text-[var(--rose-600)] mr-1.5">$</span>
-        <input
-          type="text"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          aria-label="시드 금액 (USD)"
-          value={value !== null ? String(value) : ''}
-          disabled={disabled}
-          placeholder="0"
-          onChange={(e) => {
-            const raw = e.target.value.replace(/[^\d]/g, '')
-            if (raw === '') { onChange(null); return }
-            onChange(Math.max(0, Math.round(Number(raw))))
-          }}
-          className="flex-1 border-0 outline-none bg-transparent font-extrabold text-foreground text-right min-w-0 text-[18px]"
-        />
-        <span className="text-xs font-semibold text-muted-foreground ml-1.5">USD</span>
-      </div>
-
-      {/* 최소시드 버튼 — 다음 행, 전체 너비 */}
-      <button
-        type="button"
-        disabled={disabled || minSeed === null}
-        onClick={() => minSeed !== null && onChange(minSeed)}
-        style={{
-          background:
-            disabled || minSeed === null
-              ? 'var(--muted)'
-              : 'linear-gradient(135deg, var(--rose-400), var(--rose-600))',
-        }}
-        className={cn(
-          'w-full h-9 rounded-lg border border-[var(--rose-400)] text-xs font-bold tracking-[0.05em] mb-3',
-          disabled || minSeed === null
-            ? 'text-muted-foreground cursor-not-allowed opacity-50'
-            : 'text-white cursor-pointer',
-        )}
-      >
-        최소시드
-      </button>
-
-      {/* 잔고검증 OFF 배지 */}
-      <div className="flex items-center justify-end mb-2">
-        <span
-          className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
-          style={{
-            background: 'var(--rose-50, rgba(251,207,232,.15))',
-            color: 'var(--rose-500)',
-            borderColor: 'var(--rose-300)',
-          }}
+      {/* 스테퍼 행: [-] [입력칸] [+] */}
+      <div className="flex gap-1.5 items-center mb-3">
+        {/* - 버튼 */}
+        <button
+          type="button"
+          disabled={!canDecrease}
+          onClick={handleDecrease}
+          className={cn(
+            'shrink-0 size-10 rounded-lg border border-border bg-muted text-lg font-bold leading-none grid place-items-center',
+            !canDecrease ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-muted/80'
+          )}
+          aria-label="최소시드 단위 감소"
         >
-          잔고검증 OFF
-        </span>
+          −
+        </button>
+
+        {/* 입력칸 */}
+        <div
+          className={cn(
+            'flex-1 rounded-lg border bg-card flex items-center px-3.5 h-10',
+            disabled ? 'opacity-50' : 'border-[var(--rose-400)] shadow-[0_0_0_3px_rgba(203,131,106,0.18)]',
+          )}
+        >
+          <span className="text-sm font-extrabold text-[var(--rose-600)] mr-1.5">$</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            aria-label="시드 금액 (USD)"
+            value={value !== null ? String(value) : ''}
+            disabled={disabled}
+            placeholder="0"
+            onChange={(e) => {
+              const raw = e.target.value.replace(/[^\d]/g, '')
+              if (raw === '') { onChange(null); return }
+              onChange(Math.max(0, Math.round(Number(raw))))
+            }}
+            className="flex-1 border-0 outline-none bg-transparent font-extrabold text-foreground text-right min-w-0 text-[18px]"
+          />
+          <span className="text-xs font-semibold text-muted-foreground ml-1.5">USD</span>
+        </div>
+
+        {/* + 버튼 */}
+        <button
+          type="button"
+          disabled={!canIncrease}
+          onClick={handleIncrease}
+          className={cn(
+            'shrink-0 size-10 rounded-lg border border-border bg-muted text-lg font-bold leading-none grid place-items-center',
+            !canIncrease ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-muted/80'
+          )}
+          aria-label="최소시드 단위 증가"
+        >
+          +
+        </button>
       </div>
 
       {/* 정보 박스 */}
