@@ -41,7 +41,7 @@ export function BalanceCheckSetting({ initialEnabled }: Props) {
       >
         <span
           className={[
-            'pointer-events-none inline-block size-5 rounded-full bg-background shadow-lg ring-0 transition-transform',
+            'pointer-events-none inline-block size-5 rounded-full bg-white shadow-lg ring-0 transition-transform',
             enabled ? 'translate-x-5' : 'translate-x-0',
           ].join(' ')}
         />
