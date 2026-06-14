@@ -2,6 +2,7 @@
 
 import { cn } from '@shared/lib/utils'
 import { fmtUsd } from '@shared/lib/format'
+import { SeedAmountInput } from './SeedAmountInput'
 
 interface Props {
   value: number
@@ -11,9 +12,23 @@ interface Props {
   compact?: boolean
   disabled?: boolean
   balanceCheckEnabled?: boolean
+  seedUsdInput?: number | null
+  onSeedUsdChange?: (v: number | null) => void
 }
 
-export function PercentGauge({ value, onChange, deposit, minSeed, compact, disabled, balanceCheckEnabled = true }: Props) {
+export function PercentGauge({ value, onChange, deposit, minSeed, compact, disabled, balanceCheckEnabled = true, seedUsdInput, onSeedUsdChange }: Props) {
+  if (!balanceCheckEnabled) {
+    return (
+      <SeedAmountInput
+        value={seedUsdInput ?? null}
+        onChange={onSeedUsdChange ?? (() => {})}
+        deposit={deposit}
+        minSeed={minSeed ?? null}
+        disabled={disabled}
+      />
+    )
+  }
+
   const handleSize = compact ? 18 : 22
   const halfHandle = handleSize / 2
   const trackH = compact ? 8 : 10

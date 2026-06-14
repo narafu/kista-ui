@@ -29,6 +29,8 @@ export interface UseStrategyFormReturn {
 
   pct: number
   setPct: (p: number) => void
+  seedUsdInput: number | null
+  setSeedUsdInput: (v: number | null) => void
   usdDeposit: number | null
   minSeed: number | null
   isBelowMinSeed: boolean
@@ -65,11 +67,18 @@ export function useStrategyForm({
   const [pct, setPctInternal] = useState(100)
   const [seedTouched, setSeedTouched] = useState(false)
   const pctInitialized = useRef(false)
+  const [seedUsdInput, setSeedUsdInputInternal] = useState<number | null>(
+    initial?.initialUsdDeposit ?? null,
+  )
 
   // 사용자가 게이지를 직접 조작한 경우에만 시드 변경으로 간주 (수정 시 미조작이면 시드 미전송)
   function setPct(p: number) {
     setSeedTouched(true)
     setPctInternal(p)
+  }
+
+  function setSeedUsdInput(v: number | null) {
+    setSeedUsdInputInternal(v)
   }
 
   const [autoStart, setAutoStart] = useState(initial ? initial.cycleSeedType !== 'NONE' : true)
@@ -130,6 +139,7 @@ export function useStrategyForm({
     setPctInternal(
       usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
     )
+    setSeedUsdInputInternal(null) // OFF 모드 시 타입 변경 → 자동 초기화 useEffect가 재실행
   }, [type]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const basePrice = useMemo(() => {
@@ -143,7 +153,17 @@ export function useStrategyForm({
     [isInfinite, basePrice, divisionCount],
   )
 
-  const seedUsd = usdDeposit !== null ? Math.round(usdDeposit * pct) / 100 : null
+  // 잔고검증 OFF + 신규 등록 시 minSeed로 자동 초기화
+  useEffect(() => {
+    if (balanceCheckEnabled) return
+    if (initial) return
+    if (seedUsdInput !== null) return
+    if (minSeed !== null) setSeedUsdInputInternal(minSeed)
+  }, [balanceCheckEnabled, minSeed]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const seedUsd = !balanceCheckEnabled
+    ? seedUsdInput
+    : (usdDeposit !== null ? Math.round(usdDeposit * pct) / 100 : null)
   const isBelowMinSeed = balanceCheckEnabled
     ? seedUsd !== null && minSeed !== null && seedUsd < minSeed
     : false
@@ -194,7 +214,7 @@ export function useStrategyForm({
   return {
     type, setType, isInfinite,
     ticker, availableTickers, handleTickerChange, basePrice, prices,
-    pct, setPct, usdDeposit, minSeed, isBelowMinSeed, loadingBase, privacyBase,
+    pct, setPct, seedUsdInput, setSeedUsdInput, usdDeposit, minSeed, isBelowMinSeed, loadingBase, privacyBase,
     balanceCheckEnabled,
     autoStart, setAutoStart, seedMode, setSeedMode,
     divisionCount, setDivisionCount,

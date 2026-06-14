@@ -53,6 +53,8 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
       <UsageRatioSection
         pct={form.pct}
         setPct={form.setPct}
+        seedUsdInput={form.seedUsdInput}
+        setSeedUsdInput={form.setSeedUsdInput}
         usdDeposit={form.usdDeposit}
         minSeed={form.minSeed}
         loading={form.loading}
