@@ -24,12 +24,12 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled }:
 
   function handleDecrease() {
     if (!canDecrease || value === null) return
-    onChange(Math.max(step, value - step))
+    onChange(Math.round(Math.max(step, value - step)))
   }
 
   function handleIncrease() {
     if (!canIncrease) return
-    onChange((value ?? step) + step)
+    onChange(Math.round((value ?? step) + step))
   }
 
   return (

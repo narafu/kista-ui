@@ -139,7 +139,7 @@ export function useStrategyForm({
     setPctInternal(
       usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
     )
-    setSeedUsdInputInternal(null) // OFF 모드 시 타입 변경 → 자동 초기화 useEffect가 재실행
+    setSeedUsdInputInternal(newMinSeed !== null ? Math.round(newMinSeed) : null)
   }, [type]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const basePrice = useMemo(() => {
