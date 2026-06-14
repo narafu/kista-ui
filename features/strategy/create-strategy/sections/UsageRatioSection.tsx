@@ -49,9 +49,9 @@ export function UsageRatioSection({ pct, setPct, seedUsdInput, setSeedUsdInput, 
         onSeedUsdChange={setSeedUsdInput}
       />
 
-      {balanceCheckEnabled && (
+      {(balanceCheckEnabled || isBelowMinSeed || (!isInfinite && privacyBase === null)) && (
         <div className="inline-flex items-center gap-1.5 text-[11px] font-bold mt-3">
-          {loadingBase ? (
+          {balanceCheckEnabled && loadingBase ? (
             <>
               <Loader2 size={14} className="animate-spin text-muted-foreground" />
               <span className="text-muted-foreground">예수금 조회 중...</span>

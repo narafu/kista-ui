@@ -97,6 +97,13 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled }:
           <span className="text-[11px] text-muted-foreground font-bold">예수금 조회 불가</span>
           <span className="text-[10.5px] text-muted-foreground">KIS 연결 확인 필요</span>
         </div>
+      ) : minSeed !== null && value !== null && value > 0 && value < minSeed ? (
+        <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--warn-bg)] border border-[var(--warn)]">
+          <span className="text-[11px] text-[var(--warn)] font-bold">최소 시드 미달</span>
+          <span className="text-[13px] font-extrabold text-[var(--warn)] tabular-nums">
+            최소 ${fmtUsd(minSeed)}
+          </span>
+        </div>
       ) : shortage !== null ? (
         <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--warn-bg)] border border-[var(--warn)]">
           <span className="text-[11px] text-[var(--warn)] font-bold">추가 입금 필요</span>

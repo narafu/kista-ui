@@ -164,9 +164,7 @@ export function useStrategyForm({
   const seedUsd = !balanceCheckEnabled
     ? seedUsdInput
     : (usdDeposit !== null ? Math.round(usdDeposit * pct) / 100 : null)
-  const isBelowMinSeed = balanceCheckEnabled
-    ? seedUsd !== null && minSeed !== null && seedUsd < minSeed
-    : false
+  const isBelowMinSeed = seedUsd !== null && minSeed !== null && seedUsd < minSeed
   const cannotSubmit = isBelowMinSeed || basePrice === null
 
   const cycleSeedType: CycleSeedType = !autoStart
