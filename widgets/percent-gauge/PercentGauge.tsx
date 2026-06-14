@@ -94,13 +94,24 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
       </div>
 
       {/* 슬라이더 트랙 */}
-      <div
-        className="flex gap-2 items-center mb-2.5"
-        style={{ paddingLeft: halfHandle, paddingRight: halfHandle }}
-      >
+      <div className="flex gap-2 items-center mb-2.5">
+        {/* - 버튼 */}
+        <button
+          type="button"
+          disabled={allDisabled || value <= 0}
+          onClick={() => onChange(Math.max(0, value - 1))}
+          className={cn(
+            'shrink-0 size-7 rounded-md border border-border bg-muted text-sm font-bold leading-none grid place-items-center',
+            allDisabled || value <= 0 ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-muted/80'
+          )}
+          aria-label="1% 감소"
+        >
+          −
+        </button>
+
         <div
           className={cn('flex-1 relative', allDisabled && 'opacity-50')}
-          style={{ height: handleSize + 4 }}
+          style={{ height: handleSize + 4, paddingLeft: halfHandle, paddingRight: halfHandle }}
         >
           {/* tick 마크 */}
           <div
@@ -151,12 +162,26 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
             )}
           />
         </div>
+
+        {/* + 버튼 */}
+        <button
+          type="button"
+          disabled={allDisabled || value >= 100}
+          onClick={() => onChange(Math.min(100, value + 1))}
+          className={cn(
+            'shrink-0 size-7 rounded-md border border-border bg-muted text-sm font-bold leading-none grid place-items-center',
+            allDisabled || value >= 100 ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-muted/80'
+          )}
+          aria-label="1% 증가"
+        >
+          +
+        </button>
       </div>
 
-      {/* tick 라벨 */}
+      {/* tick 라벨 — -/+ 버튼(28px) + gap(8px) + 핸들 반경(halfHandle)만큼 들여쓰기 */}
       <div
         className="flex justify-between text-[10px] text-muted-foreground font-semibold mb-3"
-        style={{ paddingLeft: halfHandle, paddingRight: halfHandle }}
+        style={{ paddingLeft: 28 + 8 + halfHandle, paddingRight: 28 + 8 + halfHandle }}
       >
         <span>0%</span>
         <span>25%</span>
