@@ -18,23 +18,12 @@ interface Props {
   basePrice: number | null
 }
 
-export function UsageRatioSection({
-  pct, setPct, usdDeposit, minSeed, loading, loadingBase,
-  isBelowMinSeed, isInfinite, privacyBase, basePrice,
-}: Props) {
+export function UsageRatioSection({ pct, setPct, usdDeposit, minSeed, loading, loadingBase, isBelowMinSeed, isInfinite, privacyBase, basePrice }: Props) {
   return (
     <div className="py-[18px] border-b border-border">
-      <StrategyFieldLabel hint="USD 예수금 기준 · 드래그하거나 입력">
-        사용 비율
-      </StrategyFieldLabel>
+      <StrategyFieldLabel hint="USD 예수금 기준 · 드래그하거나 입력">사용 비율</StrategyFieldLabel>
 
-      <PercentGauge
-        value={pct}
-        onChange={setPct}
-        deposit={usdDeposit}
-        minSeed={minSeed}
-        disabled={loading || loadingBase}
-      />
+      <PercentGauge value={pct} onChange={setPct} deposit={usdDeposit} minSeed={minSeed} disabled={loading || loadingBase} />
 
       <div className="inline-flex items-center gap-1.5 text-[11px] font-bold mt-3">
         {loadingBase ? (
@@ -55,13 +44,6 @@ export function UsageRatioSection({
               <AlertTriangle size={14} />
             </span>
             <span style={{ color: 'var(--warn)' }}>기준 매매표가 없습니다</span>
-          </>
-        ) : basePrice !== null ? (
-          <>
-            <span className="size-[14px]" style={{ color: 'var(--status-ok)' }}>
-              <Check size={14} />
-            </span>
-            <span style={{ color: 'var(--status-ok)' }}>유효한 입력</span>
           </>
         ) : null}
       </div>

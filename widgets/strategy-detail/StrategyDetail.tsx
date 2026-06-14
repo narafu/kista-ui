@@ -33,6 +33,7 @@ import {
 import { useMarketSessionQuery, useMonthlyHolidaysQuery } from '@entities/market'
 import { cn, toNum } from '@shared/lib/utils'
 import { fmtUsd } from '@shared/lib/format'
+import { ApiError } from '@shared/lib/api-client'
 import type { Strategy } from '@entities/strategy'
 import type { SkipReason, PlacedOrder } from '@entities/order'
 
@@ -40,6 +41,14 @@ const SKIP_REASON_LABELS: Record<SkipReason, string> = {
   NO_CYCLE_HISTORY: '첫 매매 전입니다. 사이클 정보가 아직 없습니다.',
   INSUFFICIENT_BALANCE: '예수금 부족으로 다음 주문을 계산할 수 없습니다.',
   NO_PRIVACY_BASE: '기준 매매표가 없습니다.',
+}
+
+function previewErrorMsg(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 404) return '전략 사이클 정보를 찾을 수 없습니다.'
+    if (error.status === 503) return 'KIS API에 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+  }
+  return '주문 미리보기를 불러오는 중 오류가 발생했습니다.'
 }
 
 interface Props {
@@ -53,7 +62,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
   const [mode, setMode] = useState<'preview' | 'executed'>('preview')
   const [placedOrders, setPlacedOrders] = useState<PlacedOrder[]>([])
 
-  const { data: preview, isLoading: isLoadingPreview } = useStrategyOrderPreviewQuery(strategy.id)
+  const { data: preview, isLoading: isLoadingPreview, isError: isPreviewError, error: previewError } = useStrategyOrderPreviewQuery(strategy.id)
   const position = preview?.position ?? null
   const orders = preview?.orders ?? []
 
@@ -131,29 +140,37 @@ export function StrategyDetail({ accountId, strategy }: Props) {
         </div>
       </Card>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {isLoadingPreview ? (
-          <>
-            <KpiCard label="회차(T)" skeleton />
-            <KpiCard label="단위금액(회)" skeleton />
-            <KpiCard label="기준가" skeleton />
-            <KpiCard label="목표가" skeleton />
-          </>
-        ) : position ? (
-          <>
-            <KpiCard label="회차(T)" value={`${position.currentRound.toFixed(1)}회차`} />
-            <KpiCard label="단위금액(회)" value={`$${fmtUsd(toNum(position.unitAmount))}`} />
-            <KpiCard label="기준가" value={`$${fmtUsd(toNum(position.referencePrice))}`} />
-            <KpiCard label="목표가" value={`$${fmtUsd(toNum(position.targetPrice))}`} />
-          </>
-        ) : (
-          <Card className="col-span-2 lg:col-span-4">
-            <CardContent className="p-5 text-sm text-muted-foreground text-center">
-              {preview?.skipReason ? SKIP_REASON_LABELS[preview.skipReason] : '다음 주문 정보를 불러올 수 없습니다.'}
-            </CardContent>
-          </Card>
-        )}
-      </div>
+      {strategy.type === 'INFINITE' && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {isLoadingPreview ? (
+            <>
+              <KpiCard label="회차(T)" skeleton />
+              <KpiCard label="단위금액(회)" skeleton />
+              <KpiCard label="기준가" skeleton />
+              <KpiCard label="목표가" skeleton />
+            </>
+          ) : isPreviewError ? (
+            <Card className="col-span-2 lg:col-span-4">
+              <CardContent className="p-5 text-sm text-muted-foreground text-center">
+                {previewErrorMsg(previewError)}
+              </CardContent>
+            </Card>
+          ) : position ? (
+            <>
+              <KpiCard label="회차(T)" value={`${position.currentRound.toFixed(1)}회차`} />
+              <KpiCard label="단위금액(회)" value={`$${fmtUsd(toNum(position.unitAmount))}`} />
+              <KpiCard label="기준가" value={`$${fmtUsd(toNum(position.referencePrice))}`} />
+              <KpiCard label="목표가" value={`$${fmtUsd(toNum(position.targetPrice))}`} />
+            </>
+          ) : (
+            <Card className="col-span-2 lg:col-span-4">
+              <CardContent className="p-5 text-sm text-muted-foreground text-center">
+                {preview?.skipReason ? SKIP_REASON_LABELS[preview.skipReason] : '다음 주문 정보를 불러올 수 없습니다.'}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       <Card>
         <CardHeader className="pb-3">
@@ -241,11 +258,11 @@ export function StrategyDetail({ accountId, strategy }: Props) {
               <table className="hidden lg:table w-full">
                 <thead>
                   <tr>
-                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border-b border-border font-semibold">구분</th>
-                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border-b border-border font-semibold">종목</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border-b border-border font-semibold">수량</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border-b border-border font-semibold">주문가</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border-b border-border font-semibold">취소</th>
+                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-muted/50 border-b border-border font-semibold">구분</th>
+                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-muted/50 border-b border-border font-semibold">종목</th>
+                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-muted/50 border-b border-border font-semibold">수량</th>
+                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-muted/50 border-b border-border font-semibold">주문가</th>
+                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-muted/50 border-b border-border font-semibold">취소</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -293,6 +310,8 @@ export function StrategyDetail({ accountId, strategy }: Props) {
             </div>
           ) : isLoadingPreview ? (
             <p className="text-sm text-muted-foreground text-center px-6 py-4">로딩 중...</p>
+          ) : isPreviewError ? (
+            <p className="text-sm text-muted-foreground text-center px-6 py-4">{previewErrorMsg(previewError)}</p>
           ) : orders.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center px-6 py-4">예정된 주문이 없습니다.</p>
           ) : (
@@ -317,10 +336,10 @@ export function StrategyDetail({ accountId, strategy }: Props) {
               <table className="hidden lg:table w-full">
                 <thead>
                   <tr>
-                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border-b border-border font-semibold">구분</th>
-                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border-b border-border font-semibold">종목</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border-b border-border font-semibold">수량</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border-b border-border font-semibold">주문가</th>
+                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-muted/50 border-b border-border font-semibold">구분</th>
+                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-muted/50 border-b border-border font-semibold">종목</th>
+                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-muted/50 border-b border-border font-semibold">수량</th>
+                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-rose-500 dark:text-rose-400 bg-muted/50 border-b border-border font-semibold">주문가</th>
                   </tr>
                 </thead>
                 <tbody>
