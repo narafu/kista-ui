@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef } from 'react'
 import { cn } from '@shared/lib/utils'
 import { fmtUsd } from '@shared/lib/format'
 import { SeedAmountInput } from './SeedAmountInput'
@@ -17,6 +18,9 @@ interface Props {
 }
 
 export function PercentGauge({ value, onChange, deposit, minSeed, compact, disabled, balanceCheckEnabled = true, seedUsdInput, onSeedUsdChange }: Props) {
+  const trackRef = useRef<HTMLDivElement>(null)
+  const rangeRef = useRef<HTMLInputElement>(null)
+
   if (!balanceCheckEnabled) {
     return (
       <SeedAmountInput
@@ -41,6 +45,15 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
     deposit != null && minSeed != null && deposit > 0
       ? Math.min(100, Math.ceil((minSeed / deposit) * 100))
       : null
+
+  function getValueFromClientX(clientX: number): number {
+    if (!trackRef.current) return value
+    const rect = trackRef.current.getBoundingClientRect()
+    const trackLeft = rect.left + halfHandle
+    const trackWidth = rect.width - halfHandle * 2
+    const pct = ((clientX - trackLeft) / trackWidth) * 100
+    return Math.min(100, Math.max(0, Math.round(pct)))
+  }
 
   return (
     <div className="min-w-0">
@@ -124,9 +137,26 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
           −
         </button>
 
+        {/* 드래그 가능한 트랙 영역 */}
         <div
-          className={cn('flex-1 relative', allDisabled && 'opacity-50')}
+          ref={trackRef}
+          className={cn(
+            'flex-1 relative select-none touch-none',
+            allDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
+          )}
           style={{ height: handleSize + 4, paddingLeft: halfHandle, paddingRight: halfHandle }}
+          onPointerDown={(e) => {
+            if (allDisabled) return
+            e.currentTarget.setPointerCapture(e.pointerId)
+            onChange(getValueFromClientX(e.clientX))
+            rangeRef.current?.focus()
+          }}
+          onPointerMove={(e) => {
+            if (allDisabled || !e.currentTarget.hasPointerCapture(e.pointerId)) return
+            onChange(getValueFromClientX(e.clientX))
+          }}
+          onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId) }}
+          onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId) }}
         >
           {/* tick 마크 */}
           <div
@@ -161,8 +191,9 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
             <span className="size-1 rounded-full bg-[var(--rose-500)]" />
           </div>
 
-          {/* 실제 range input (투명, 위에 씌움) */}
+          {/* 키보드 접근성용 range input (포인터 이벤트 비활성) */}
           <input
+            ref={rangeRef}
             type="range"
             aria-label="사용 비율 슬라이더"
             min={0}
@@ -171,10 +202,7 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
             value={value}
             disabled={allDisabled}
             onChange={(e) => onChange(Number(e.target.value))}
-            className={cn(
-              'absolute inset-0 w-full opacity-0 m-0 touch-pan-y',
-              allDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
-            )}
+            className="absolute inset-0 w-full opacity-0 pointer-events-none m-0"
           />
         </div>
 
