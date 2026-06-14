@@ -40,7 +40,7 @@ export default async function DashboardPage() {
     } catch {}
   }
 
-  const { totalAssetUsd, marketValueUsd, totalEvalProfit, weightedReturnRate } =
+  const { totalAssetUsd, marketValueUsd, totalEvalProfit, weightedReturnRate, totalAssetUsdActual, totalEvalProfitUsd } =
     aggregatePortfolios(portfolioRaws)
 
   return (
@@ -51,6 +51,8 @@ export default async function DashboardPage() {
       marketValueUsd={marketValueUsd}
       totalEvalProfit={totalEvalProfit}
       weightedReturnRate={weightedReturnRate}
+      totalAssetUsdActual={totalAssetUsdActual}
+      totalEvalProfitUsd={totalEvalProfitUsd}
       holidays={holidays}
       calendarYear={calendarYear}
       calendarMonth={calendarMonth}

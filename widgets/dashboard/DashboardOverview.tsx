@@ -1,11 +1,9 @@
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
-import { fmtUsd, fmtKrw } from '@shared/lib/format'
 import { PageHeader } from '@widgets/page-header'
-import { KpiCard } from '@widgets/kpi-card'
 import { AccountCard } from '@widgets/account-card'
-import { ProfitDisplay } from '@widgets/profit-display'
 import { MarketHolidayCalendar } from '@widgets/market-holiday-calendar'
+import { DashboardKpiSection } from '@widgets/dashboard/DashboardKpiSection'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 
@@ -16,6 +14,8 @@ interface Props {
   marketValueUsd: number
   totalEvalProfit: number
   weightedReturnRate: number
+  totalAssetUsdActual: number
+  totalEvalProfitUsd: number
   holidays: string[]
   calendarYear: number
   calendarMonth: number
@@ -28,11 +28,20 @@ export function DashboardOverview({
   marketValueUsd,
   totalEvalProfit,
   weightedReturnRate,
+  totalAssetUsdActual,
+  totalEvalProfitUsd,
   holidays,
   calendarYear,
   calendarMonth,
 }: Props) {
-  const noProfit = marketValueUsd === 0
+  const kpiProps = {
+    totalAssetKrw: totalAssetUsd,
+    totalEvalProfitKrw: totalEvalProfit,
+    totalAssetUsd: totalAssetUsdActual,
+    totalEvalProfitUsd,
+    weightedReturnRate,
+    marketValueUsd,
+  }
 
   return (
     <>
@@ -53,21 +62,7 @@ export function DashboardOverview({
         />
         <div className="grid grid-cols-3 gap-4 mb-6">
           <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
-          <KpiCard
-            label="총 평가손익"
-            value={
-              noProfit
-                ? <span className="text-muted-foreground text-base font-medium">데이터 없음</span>
-                : <ProfitDisplay amount={totalEvalProfit} rate={weightedReturnRate} size="lg" full currency="KRW" />
-            }
-            sub="현재 보유 포지션 기준"
-          />
-          <KpiCard
-            variant="soft"
-            label="총 자산 (KRW)"
-            value={`₩${fmtKrw(totalAssetUsd)}`}
-            sub={`평가금액 $${fmtUsd(marketValueUsd)} (USD)`}
-          />
+          <DashboardKpiSection {...kpiProps} variant="desktop" />
         </div>
         <div className="flex items-end justify-between mb-3">
           <h2 className="text-[17px] font-bold">계좌 목록</h2>
@@ -84,23 +79,7 @@ export function DashboardOverview({
 
       {/* Mobile */}
       <div className="lg:hidden">
-        <div
-          className="rounded-[var(--r-lg)] border border-rose-200 p-5 mb-3"
-          style={{ background: 'var(--brand-soft-bg)' }}
-        >
-          <p className="text-[11.5px] font-bold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] mb-1.5">총 자산</p>
-          <div className="text-[30px] font-extrabold text-[var(--brand-fg)] leading-tight">
-            ₩{fmtKrw(totalAssetUsd)}
-          </div>
-        </div>
-        <div className="rounded-[var(--r-lg)] border border-border bg-card p-5 mb-4">
-          <p className="text-[11.5px] font-bold tracking-[0.12em] uppercase text-muted-foreground mb-2">총 평가손익</p>
-          {noProfit ? (
-            <span className="text-base text-muted-foreground font-medium">데이터 없음</span>
-          ) : (
-            <ProfitDisplay amount={totalEvalProfit} rate={weightedReturnRate} size="lg" full currency="KRW" />
-          )}
-        </div>
+        <DashboardKpiSection {...kpiProps} variant="mobile" />
         <div className="mb-4">
           <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
         </div>
