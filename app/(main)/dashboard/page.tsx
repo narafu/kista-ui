@@ -40,19 +40,18 @@ export default async function DashboardPage() {
     } catch {}
   }
 
-  const { totalAssetUsd, marketValueUsd, totalEvalProfit, weightedReturnRate, totalAssetUsdActual, totalEvalProfitUsd } =
-    aggregatePortfolios(portfolioRaws)
+  const { totalDepositUsd, totalPosEvalUsd, totalAssetUsd, exchangeRate, accountEntries } =
+    aggregatePortfolios(portfolioRaws, accounts.map(a => ({ id: a.id, nickname: a.nickname })))
 
   return (
     <DashboardOverview
       accounts={accounts}
       strategiesByAccount={strategiesByAccount}
+      totalDepositUsd={totalDepositUsd}
+      totalPosEvalUsd={totalPosEvalUsd}
       totalAssetUsd={totalAssetUsd}
-      marketValueUsd={marketValueUsd}
-      totalEvalProfit={totalEvalProfit}
-      weightedReturnRate={weightedReturnRate}
-      totalAssetUsdActual={totalAssetUsdActual}
-      totalEvalProfitUsd={totalEvalProfitUsd}
+      exchangeRate={exchangeRate}
+      accountEntries={accountEntries}
       holidays={holidays}
       calendarYear={calendarYear}
       calendarMonth={calendarMonth}

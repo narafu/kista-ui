@@ -6,16 +6,16 @@ import { MarketHolidayCalendar } from '@widgets/market-holiday-calendar'
 import { DashboardKpiSection } from '@widgets/dashboard/DashboardKpiSection'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
+import type { PortfolioAccountEntry } from '@widgets/dashboard/aggregatePortfolios'
 
 interface Props {
   accounts: Account[]
   strategiesByAccount: Strategy[][]
+  totalDepositUsd: number
+  totalPosEvalUsd: number
   totalAssetUsd: number
-  marketValueUsd: number
-  totalEvalProfit: number
-  weightedReturnRate: number
-  totalAssetUsdActual: number
-  totalEvalProfitUsd: number
+  exchangeRate: number
+  accountEntries: PortfolioAccountEntry[]
   holidays: string[]
   calendarYear: number
   calendarMonth: number
@@ -24,23 +24,21 @@ interface Props {
 export function DashboardOverview({
   accounts,
   strategiesByAccount,
+  totalDepositUsd,
+  totalPosEvalUsd,
   totalAssetUsd,
-  marketValueUsd,
-  totalEvalProfit,
-  weightedReturnRate,
-  totalAssetUsdActual,
-  totalEvalProfitUsd,
+  exchangeRate,
+  accountEntries,
   holidays,
   calendarYear,
   calendarMonth,
 }: Props) {
   const kpiProps = {
-    totalAssetKrw: totalAssetUsd,
-    totalEvalProfitKrw: totalEvalProfit,
-    totalAssetUsd: totalAssetUsdActual,
-    totalEvalProfitUsd,
-    weightedReturnRate,
-    marketValueUsd,
+    totalDepositUsd,
+    totalPosEvalUsd,
+    totalAssetUsd,
+    exchangeRate,
+    accountEntries,
   }
 
   return (
@@ -60,7 +58,7 @@ export function DashboardOverview({
             </Link>
           }
         />
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-4 gap-4 mb-6">
           <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
           <DashboardKpiSection {...kpiProps} variant="desktop" />
         </div>
