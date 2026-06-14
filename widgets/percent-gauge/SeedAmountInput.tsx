@@ -53,7 +53,7 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled }:
         {/* 입력칸 */}
         <div
           className={cn(
-            'flex-1 rounded-lg border bg-card flex items-center px-3.5 h-10',
+            'flex-1 min-w-0 rounded-lg border bg-card flex items-center px-3.5 h-10',
             disabled ? 'opacity-50' : 'border-[var(--rose-400)] shadow-[0_0_0_3px_rgba(203,131,106,0.18)]',
           )}
         >
