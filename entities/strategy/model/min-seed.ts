@@ -6,7 +6,6 @@ export function calcMinSeed(
   isInfinite: boolean,
   divisionCount: number = MIN_SEED_DIVISIONS,
 ): number | null {
-  if (process.env.NEXT_PUBLIC_DEV_BYPASS_MIN_SEED === 'true') return null
   if (basePrice === null) return null
   return isInfinite
     ? basePrice * divisionCount * MIN_SEED_MULTIPLIER

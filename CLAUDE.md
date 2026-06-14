@@ -76,7 +76,6 @@ NEXT_PUBLIC_API_BASE_URL=      # kista-api Fly.io URL (https://kista-api.fly.dev
 ```
 - 새 `NEXT_PUBLIC_*` 추가 시 `.env.local.example` 동기화 필수
 - Docker: `.env.local` 미전달 → `docker-compose.yml` `build.args`에 명시 필요
-- `NEXT_PUBLIC_DEV_BYPASS_MIN_SEED=true` — 최소 시드 제한 우회 (로컬 전용)
 
 ## CORS
 
