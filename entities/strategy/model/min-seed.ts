@@ -9,5 +9,5 @@ export function calcMinSeed(
   if (basePrice === null) return null
   return isInfinite
     ? basePrice * divisionCount * MIN_SEED_MULTIPLIER
-    : basePrice / MIN_SEED_MULTIPLIER
+    : basePrice
 }
