@@ -2,47 +2,46 @@
 
 import { useState } from 'react'
 import { fmtUsd, fmtKrw } from '@shared/lib/format'
-import { KpiCard } from '@widgets/kpi-card'
-import { ProfitDisplay } from '@widgets/profit-display'
+import type { PortfolioAccountEntry } from '@widgets/dashboard/aggregatePortfolios'
 
 interface Props {
-  totalAssetKrw: number
-  totalEvalProfitKrw: number
+  totalDepositUsd: number
+  totalPosEvalUsd: number
   totalAssetUsd: number
-  totalEvalProfitUsd: number
-  weightedReturnRate: number
-  marketValueUsd: number
-  /** 데스크탑: KpiCard 2개 나란히 / 모바일: 박스 스택 */
+  exchangeRate: number
+  accountEntries: PortfolioAccountEntry[]
   variant?: 'desktop' | 'mobile'
 }
 
 export function DashboardKpiSection({
-  totalAssetKrw,
-  totalEvalProfitKrw,
+  totalDepositUsd,
+  totalPosEvalUsd,
   totalAssetUsd,
-  totalEvalProfitUsd,
-  weightedReturnRate,
-  marketValueUsd,
+  exchangeRate,
+  accountEntries,
   variant = 'desktop',
 }: Props) {
-  const [currency, setCurrency] = useState<'KRW' | 'USD'>('KRW')
-  const noProfit = marketValueUsd === 0
-  const isKrw = currency === 'KRW'
+  const [currency, setCurrency] = useState<'USD' | 'KRW'>('USD')
+  const hasRate = exchangeRate > 0
+  const isKrw = currency === 'KRW' && hasRate
 
-  const evalProfit = isKrw ? totalEvalProfitKrw : totalEvalProfitUsd
-  const totalAsset = isKrw ? totalAssetKrw : totalAssetUsd
+  function fmt(usd: number) {
+    if (isKrw) return `₩${fmtKrw(usd * exchangeRate)}`
+    return `$${fmtUsd(usd)}`
+  }
 
   const toggle = (
-    <div className="flex justify-end mb-2">
+    <div className="flex justify-end mb-3">
       <div className="inline-flex rounded-md border border-border overflow-hidden text-xs font-semibold">
-        {(['KRW', 'USD'] as const).map((c) => (
+        {(['USD', 'KRW'] as const).map((c) => (
           <button
             key={c}
             onClick={() => setCurrency(c)}
+            disabled={c === 'KRW' && !hasRate}
             className={
               currency === c
                 ? 'px-3 py-1 bg-rose-600 text-white'
-                : 'px-3 py-1 text-muted-foreground hover:bg-accent transition-colors'
+                : 'px-3 py-1 text-muted-foreground hover:bg-accent transition-colors disabled:opacity-40 disabled:pointer-events-none'
             }
           >
             {c}
@@ -52,51 +51,75 @@ export function DashboardKpiSection({
     </div>
   )
 
+  const cards = [
+    { label: '예수금', value: totalDepositUsd, entries: accountEntries.map(e => ({ nickname: e.nickname, usd: e.usdDeposit })) },
+    { label: '평가금', value: totalPosEvalUsd, entries: accountEntries.map(e => ({ nickname: e.nickname, usd: e.posEvalUsd })) },
+    { label: '총 자산', value: totalAssetUsd, entries: accountEntries.map(e => ({ nickname: e.nickname, usd: e.totalAssetUsd })) },
+  ]
+
   if (variant === 'mobile') {
     return (
       <>
         {toggle}
-        <div
-          className="rounded-[var(--r-lg)] border border-rose-200 p-5 mb-3"
-          style={{ background: 'var(--brand-soft-bg)' }}
-        >
-          <p className="text-[11.5px] font-bold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] mb-1.5">총 자산</p>
-          <div className="text-[30px] font-extrabold text-[var(--brand-fg)] leading-tight">
-            {isKrw ? `₩${fmtKrw(totalAsset)}` : `$${fmtUsd(totalAsset)}`}
-          </div>
-        </div>
-        <div className="rounded-[var(--r-lg)] border border-border bg-card p-5 mb-4">
-          <p className="text-[11.5px] font-bold tracking-[0.12em] uppercase text-muted-foreground mb-2">총 평가손익</p>
-          {noProfit ? (
-            <span className="text-base text-muted-foreground font-medium">데이터 없음</span>
-          ) : (
-            <ProfitDisplay amount={evalProfit} rate={weightedReturnRate} size="lg" full currency={currency} />
-          )}
+        <div className="flex flex-col gap-3 mb-4">
+          {cards.map(({ label, value, entries }) => (
+            <div
+              key={label}
+              className="rounded-[var(--r-lg)] border border-rose-200 p-5"
+              style={{ background: 'var(--brand-soft-bg)' }}
+            >
+              <p className="text-[11px] font-semibold tracking-widest uppercase text-[var(--brand-fg-soft)] mb-1.5">
+                {label}
+              </p>
+              <div className="text-[26px] font-extrabold text-[var(--brand-fg)] leading-tight mb-3">
+                {fmt(value)}
+              </div>
+              {entries.length > 1 && (
+                <div className="space-y-1 border-t border-rose-200/60 pt-2">
+                  {entries.map(({ nickname, usd }) => (
+                    <div key={nickname} className="flex justify-between text-[12px] text-[var(--brand-fg-soft)]">
+                      <span className="truncate max-w-[60%]">{nickname}</span>
+                      <span className="font-semibold">{fmt(usd)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </>
     )
   }
 
-  // desktop: col-span-2 그리드 내 toggle + 2 KpiCard
+  // desktop: col-span-3 안에 toggle + 3 KPI 카드
   return (
-    <div className="col-span-2 flex flex-col">
+    <div className="col-span-3 flex flex-col">
       {toggle}
-      <div className="grid grid-cols-2 gap-4 flex-1">
-        <KpiCard
-          label="총 평가손익"
-          value={
-            noProfit
-              ? <span className="text-muted-foreground text-base font-medium">데이터 없음</span>
-              : <ProfitDisplay amount={evalProfit} rate={weightedReturnRate} size="lg" full currency={currency} />
-          }
-          sub="현재 보유 포지션 기준"
-        />
-        <KpiCard
-          variant="soft"
-          label={`총 자산 (${currency})`}
-          value={isKrw ? `₩${fmtKrw(totalAsset)}` : `$${fmtUsd(totalAsset)}`}
-          sub={isKrw ? `평가금액 $${fmtUsd(marketValueUsd)} (USD)` : 'USD 포지션 평가금액 기준'}
-        />
+      <div className="grid grid-cols-3 gap-4 flex-1">
+        {cards.map(({ label, value, entries }) => (
+          <div
+            key={label}
+            className="rounded-[var(--r-lg)] border border-rose-200 p-5 flex flex-col"
+            style={{ background: 'var(--brand-soft-bg)' }}
+          >
+            <p className="text-[11px] font-semibold tracking-widest uppercase text-[var(--brand-fg-soft)] mb-1.5">
+              {label}
+            </p>
+            <div className="text-[24px] font-extrabold text-[var(--brand-fg)] leading-tight mb-3">
+              {fmt(value)}
+            </div>
+            {entries.length > 1 && (
+              <div className="space-y-1 border-t border-rose-200/60 pt-2 mt-auto">
+                {entries.map(({ nickname, usd }) => (
+                  <div key={nickname} className="flex justify-between text-[12px] text-[var(--brand-fg-soft)]">
+                    <span className="truncate max-w-[60%]">{nickname}</span>
+                    <span className="font-semibold">{fmt(usd)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   )
