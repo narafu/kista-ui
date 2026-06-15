@@ -36,7 +36,7 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
   const handleSize = compact ? 18 : 22
   const halfHandle = handleSize / 2
   const trackH = compact ? 8 : 10
-  const allocated = deposit !== null ? Math.round(deposit * value) / 100 : null
+  const allocated = deposit !== null ? (value === 100 ? Math.floor(deposit) : Math.ceil((deposit * value) / 100)) : null
 
   const depositInsufficient = balanceCheckEnabled && deposit != null && minSeed != null && deposit < minSeed
   const allDisabled = disabled || depositInsufficient
@@ -93,7 +93,7 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
             onChange={(e) => {
               const raw = e.target.value.replace(/[^\d]/g, '')
               if (raw === '') { onChange(0); return }
-              onChange(Math.min(100, Math.max(0, Math.round(Number(raw)))))
+              onChange(Math.min(100, Number(raw)))
             }}
             className="flex-1 border-0 outline-none bg-transparent font-extrabold text-foreground text-right min-w-0"
             style={{ fontSize: compact ? 16 : 18, fontFamily: 'inherit' }}

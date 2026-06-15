@@ -139,7 +139,7 @@ export function useStrategyForm({
     setPctInternal(
       usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
     )
-    setSeedUsdInputInternal(newMinSeed !== null ? Math.round(newMinSeed) : null)
+    setSeedUsdInputInternal(newMinSeed !== null ? Math.ceil(newMinSeed) : null)
   }, [type]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const basePrice = useMemo(() => {
@@ -158,12 +158,12 @@ export function useStrategyForm({
     if (balanceCheckEnabled) return
     if (initial) return
     if (seedUsdInput !== null) return
-    if (minSeed !== null) setSeedUsdInputInternal(Math.round(minSeed))
+    if (minSeed !== null) setSeedUsdInputInternal(Math.ceil(minSeed))
   }, [balanceCheckEnabled, minSeed]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const seedUsd = !balanceCheckEnabled
     ? seedUsdInput
-    : (usdDeposit !== null ? Math.round(usdDeposit * pct) / 100 : null)
+    : (usdDeposit !== null ? (pct === 100 ? Math.floor(usdDeposit) : Math.ceil((usdDeposit * pct) / 100)) : null)
   const isBelowMinSeed = seedUsd !== null && minSeed !== null && seedUsd < minSeed
   const cannotSubmit = isBelowMinSeed || basePrice === null
 
@@ -180,7 +180,7 @@ export function useStrategyForm({
     setPctInternal(
       usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
     )
-    setSeedUsdInputInternal(newMinSeed !== null ? Math.round(newMinSeed) : null)
+    setSeedUsdInputInternal(newMinSeed !== null ? Math.ceil(newMinSeed) : null)
   }
 
   function handleSubmit(e: React.FormEvent) {

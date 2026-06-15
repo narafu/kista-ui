@@ -24,12 +24,12 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled }:
 
   function handleDecrease() {
     if (!canDecrease || value === null) return
-    onChange(Math.round(Math.max(step, value - step)))
+    onChange(Math.ceil(Math.max(step, value - step)))
   }
 
   function handleIncrease() {
     if (!canIncrease) return
-    onChange(Math.round((value ?? step) + step))
+    onChange(Math.ceil((value ?? step) + step))
   }
 
   return (
@@ -69,7 +69,7 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled }:
             onChange={(e) => {
               const raw = e.target.value.replace(/[^\d]/g, '')
               if (raw === '') { onChange(null); return }
-              onChange(Math.max(0, Math.round(Number(raw))))
+              onChange(Number(raw))
             }}
             className="flex-1 border-0 outline-none bg-transparent font-extrabold text-foreground text-right min-w-0 text-[18px]"
           />
