@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { StatusDot } from '@widgets/status-dot'
 import { KpiCard } from '@widgets/kpi-card'
+import { RevealableValue } from '@widgets/revealable-value'
 import { StrategyTradesTab } from '@widgets/cycle-history'
 import {
   useDeleteStrategyMutation,
@@ -54,10 +55,11 @@ function previewErrorMsg(error: unknown): string {
 interface Props {
   accountId: string
   accountNoMasked: string
+  accountNo?: string
   strategy: Strategy
 }
 
-export function StrategyDetail({ accountId, accountNoMasked, strategy }: Props) {
+export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy }: Props) {
   const { push } = useRouter()
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [mode, setMode] = useState<'preview' | 'executed'>('preview')
@@ -126,9 +128,11 @@ export function StrategyDetail({ accountId, accountNoMasked, strategy }: Props) 
               리버스모드
             </span>
           )}
-          <span className="ml-auto font-mono text-[11px] text-muted-foreground">
-            {accountNoMasked}
-          </span>
+          <RevealableValue
+            value={accountNo ?? accountNoMasked}
+            hiddenDisplay={accountNoMasked}
+            className="ml-auto text-[11px] text-muted-foreground"
+          />
         </div>
         <div className="grid grid-cols-3 border-t border-border">
           <div className="px-5 py-3 border-r border-border">
@@ -232,7 +236,7 @@ export function StrategyDetail({ accountId, accountNoMasked, strategy }: Props) 
                     })
                   }
                   disabled={cancelAllMutation.isPending}
-                  className="text-xs px-2.5 py-1 rounded-md border border-amber-300 text-amber-600 hover:opacity-80 disabled:opacity-50"
+                  className="text-xs px-2.5 py-1 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 disabled:opacity-50"
                 >
                   {cancelAllMutation.isPending ? '취소 중...' : '전체 취소'}
                 </button>

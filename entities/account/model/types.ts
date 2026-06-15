@@ -5,6 +5,7 @@ export interface Account {
   id: string
   nickname: string
   accountNoMasked: string
+  accountNo?: string
   broker: BrokerCode
 }
 
