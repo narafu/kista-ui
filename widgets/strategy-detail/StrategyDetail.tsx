@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -53,10 +53,11 @@ function previewErrorMsg(error: unknown): string {
 
 interface Props {
   accountId: string
+  accountNoMasked: string
   strategy: Strategy
 }
 
-export function StrategyDetail({ accountId, strategy }: Props) {
+export function StrategyDetail({ accountId, accountNoMasked, strategy }: Props) {
   const { push } = useRouter()
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [mode, setMode] = useState<'preview' | 'executed'>('preview')
@@ -65,6 +66,14 @@ export function StrategyDetail({ accountId, strategy }: Props) {
   const { data: preview, isLoading: isLoadingPreview, isError: isPreviewError, error: previewError } = useStrategyOrderPreviewQuery(strategy.id)
   const position = preview?.position ?? null
   const orders = preview?.orders ?? []
+
+  // 새로고침 후 복원: 오늘 PLANNED 주문이 있으면 자동으로 executed 모드로 진입
+  useEffect(() => {
+    if (!preview?.todayOrders?.length) return
+    if (mode === 'executed') return
+    setMode('executed')
+    setPlacedOrders(preview.todayOrders)
+  }, [preview?.todayOrders]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: marketSession } = useMarketSessionQuery()
   const today = new Date()
@@ -117,6 +126,9 @@ export function StrategyDetail({ accountId, strategy }: Props) {
               리버스모드
             </span>
           )}
+          <span className="ml-auto font-mono text-[11px] text-muted-foreground">
+            {accountNoMasked}
+          </span>
         </div>
         <div className="grid grid-cols-3 border-t border-border">
           <div className="px-5 py-3 border-r border-border">

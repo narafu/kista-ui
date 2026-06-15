@@ -27,6 +27,7 @@ export interface NextOrderPreview {
   position: NextOrderPositionSnapshot | null
   orders: NextOrderItem[]
   skipReason: SkipReason | null
+  todayOrders: PlacedOrder[]  // 오늘 이미 등록된 PLANNED 주문 (없으면 빈 배열)
 }
 
 export interface PlacedOrder {

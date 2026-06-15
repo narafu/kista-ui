@@ -46,7 +46,7 @@ export default async function StrategyDetailPage({ params }: Props) {
         }
       />
 
-      <StrategyDetail accountId={id} strategy={strategy} />
+      <StrategyDetail accountId={id} accountNoMasked={account.accountNoMasked} strategy={strategy} />
     </div>
   )
 }
