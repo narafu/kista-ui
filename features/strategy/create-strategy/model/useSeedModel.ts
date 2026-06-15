@@ -68,13 +68,13 @@ export function useSeedModel({
     pctInitialized.current = true
   }, [initial, usdDeposit])
 
-  // 잔고검증 OFF + 신규 등록 시 minSeed로 자동 초기화
+  // 잔고검증 OFF + 신규 등록 시 minSeed로 자동 동기화 (사용자가 직접 조작하기 전까지)
   useEffect(() => {
     if (balanceCheckEnabled) return
     if (initial) return
-    if (seedUsdInput !== null) return
+    if (isDirty) return
     if (minSeed !== null) setSeedUsdInputInternal(Math.round(minSeed))
-  }, [balanceCheckEnabled, minSeed]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [balanceCheckEnabled, minSeed, isDirty]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 100%일 때는 내림(예수금 초과 방지), 그 외는 올림(시드 부족 방지)
   const seedUsd = !balanceCheckEnabled
