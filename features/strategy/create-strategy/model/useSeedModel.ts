@@ -76,9 +76,12 @@ export function useSeedModel({
     if (minSeed !== null) setSeedUsdInputInternal(Math.round(minSeed))
   }, [balanceCheckEnabled, minSeed]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // 100%일 때는 내림(예수금 초과 방지), 그 외는 올림(시드 부족 방지)
   const seedUsd = !balanceCheckEnabled
     ? seedUsdInput
-    : (usdDeposit !== null ? Math.round(usdDeposit * pct) / 100 : null)
+    : (usdDeposit !== null
+        ? (pct === 100 ? Math.floor(usdDeposit) : Math.ceil((usdDeposit * pct) / 100))
+        : null)
 
   const isBelowMinSeed = seedUsd !== null && minSeed !== null && seedUsd < minSeed
 

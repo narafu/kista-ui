@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, CreditCard, ListChecks, BarChart2, Settings } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
+import { isNavItemActive } from './nav-utils'
 
 const TABS = [
   { href: '/dashboard',  label: '대시보드', icon: LayoutDashboard },
@@ -21,7 +22,7 @@ export function MobileBottomNav() {
       style={{ background: 'var(--sidebar-bg)' }}
     >
       {TABS.map(({ href, label, icon: Icon }) => {
-        const active = pathname.startsWith(href)
+        const active = isNavItemActive(pathname, href)
         return (
           <Link key={href} href={href} className="flex-1 flex flex-col items-center gap-1 py-2.5 relative">
             {active && (

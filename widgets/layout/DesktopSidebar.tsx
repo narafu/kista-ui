@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { LayoutDashboard, CreditCard, ListChecks, BarChart2, Settings, LogOut, ShieldCheck } from 'lucide-react'
 import { ThemeToggle } from '@widgets/theme-toggle'
 import { LogoutButton } from '@features/auth/logout/LogoutButton'
+import { isNavItemActive } from './nav-utils'
 
 const NAV_ITEMS = [
   { href: '/dashboard',  label: '대시보드', icon: LayoutDashboard },
@@ -43,7 +44,7 @@ export function DesktopSidebar({ isAdmin }: Props) {
       {/* Nav */}
       <nav className="flex flex-col gap-0.5 flex-1">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const active = pathname.startsWith(href)
+          const active = isNavItemActive(pathname, href)
           return (
             <Link
               key={href}

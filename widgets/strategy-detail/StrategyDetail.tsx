@@ -95,10 +95,10 @@ export function StrategyDetail({ accountId, strategy }: Props) {
 
   const cycleSeedLabel =
     strategy.cycleSeedType === 'NONE'
-      ? '수동'
+      ? 'OFF'
       : strategy.cycleSeedType === 'MAX'
-        ? '자동(MAX)'
-        : '자동(유지)'
+        ? 'ON(MAX)'
+        : 'ON(유지)'
 
   return (
     <div className="space-y-4">

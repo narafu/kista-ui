@@ -141,7 +141,7 @@ export function useStrategyForm({
     const newMinSeed = calcMinSeed(newBasePrice, newIsInfinite, divisionCount)
     resetSeed({
       pct: usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
-      seedUsdInput: newMinSeed !== null ? Math.round(newMinSeed) : null,
+      seedUsdInput: newMinSeed !== null ? Math.ceil(newMinSeed) : null,
     })
   }, [type]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -159,7 +159,7 @@ export function useStrategyForm({
     const newMinSeed = calcMinSeed(newBasePrice, true, divisionCount)
     resetSeed({
       pct: usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
-      seedUsdInput: newMinSeed !== null ? Math.round(newMinSeed) : null,
+      seedUsdInput: newMinSeed !== null ? Math.ceil(newMinSeed) : null,
     })
   }
 
