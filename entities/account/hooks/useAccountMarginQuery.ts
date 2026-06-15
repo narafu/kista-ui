@@ -25,10 +25,11 @@ export function useAccountsQuery(token?: string) {
   })
 }
 
-export function useAccountMarginQuery(accountId: string) {
+export function useAccountMarginQuery(accountId: string, options?: { enabled?: boolean }) {
   const { data: items = [], isLoading } = useQuery<MarginItem[]>({
     queryKey: ['accountMargin', accountId],
     queryFn: () => getMargin(accountId).catch((): MarginItem[] => []),
+    enabled: options?.enabled !== false,
   })
   return { items, isLoading }
 }

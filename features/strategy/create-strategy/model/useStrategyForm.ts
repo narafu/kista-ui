@@ -83,12 +83,24 @@ export function useStrategyForm({
   const seedMode = form.watch('seedMode')
   const divisionCount = form.watch('divisionCount')
 
+  // typeMeta/isInfinite를 쿼리보다 먼저 계산해 enabled 최적화에 사용
+  const typeMeta = useMemo(() => findStrategyType(type), [findStrategyType, type])
+  const availableTickers = typeMeta?.availableTickers ?? []
+  const isInfinite = (typeMeta?.availableTickers?.length ?? 0) > 1
+
   const { data: meData } = useMeQuery()
   const balanceCheckEnabled = meData?.balanceCheckEnabled ?? true
-  const { items: marginItems, isLoading: marginLoading } = useAccountMarginQuery(accountId)
+
+  // 잔고검증 OFF면 예수금 불필요 → margin 쿼리 skip
+  const { items: marginItems, isLoading: marginLoading } = useAccountMarginQuery(accountId, {
+    enabled: balanceCheckEnabled,
+  })
   const allTickerCodes = useMemo(() => meta.tickers.map((t) => t.code), [meta.tickers])
   const { data: pricesData, isLoading: pricesLoading } = useAccountPricesQuery(accountId, allTickerCodes)
-  const { data: privacyData, isLoading: privacyLoading } = usePrivacyCurrentBaseQuery()
+  // INFINITE 타입 선택 중엔 privacyBase 불필요 → 비활성, PRIVACY 클릭 시 쿼리 시작
+  const { data: privacyData, isLoading: privacyLoading } = usePrivacyCurrentBaseQuery({
+    enabled: !isInfinite,
+  })
 
   const prices = pricesData ?? null
   const usdDeposit = marginItems.find((m) => m.currency === 'USD')?.purchasableAmount ?? null
@@ -101,10 +113,6 @@ export function useStrategyForm({
       toast.error('예수금 / 현재가 조회에 실패했습니다')
     }
   }, [loadingBase]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const typeMeta = useMemo(() => findStrategyType(type), [findStrategyType, type])
-  const availableTickers = typeMeta?.availableTickers ?? []
-  const isInfinite = (typeMeta?.availableTickers?.length ?? 0) > 1
 
   const basePrice = useMemo(() => {
     if (!type || !ticker) return null
