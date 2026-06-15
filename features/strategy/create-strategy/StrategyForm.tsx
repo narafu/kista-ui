@@ -9,6 +9,7 @@ import { StrategyTickerSection } from './sections/StrategyTickerSection'
 import { UsageRatioSection } from './sections/UsageRatioSection'
 import { CycleSeedSection } from './sections/CycleSeedSection'
 import { DivisionCountSection } from './sections/DivisionCountSection'
+import { StrategyFormSkeleton } from './StrategyFormSkeleton'
 import type { Strategy } from '@entities/strategy'
 
 interface Props {
@@ -21,6 +22,10 @@ interface Props {
 export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props) {
   const { meta } = useMeta()
   const form = useStrategyForm({ accountId, initial, onSuccess })
+
+  if (form.loadingBase) {
+    return <StrategyFormSkeleton hasCancel={!!onCancel} />
+  }
 
   return (
     <form onSubmit={form.handleSubmit}>
