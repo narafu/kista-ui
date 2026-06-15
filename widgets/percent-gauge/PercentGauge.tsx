@@ -3,7 +3,6 @@
 import { useRef } from 'react'
 import { cn } from '@shared/lib/utils'
 import { fmtUsd } from '@shared/lib/format'
-import { SeedAmountInput } from './SeedAmountInput'
 
 interface Props {
   value: number
@@ -12,33 +11,18 @@ interface Props {
   minSeed?: number | null
   compact?: boolean
   disabled?: boolean
-  balanceCheckEnabled?: boolean
-  seedUsdInput?: number | null
-  onSeedUsdChange?: (v: number | null) => void
 }
 
-export function PercentGauge({ value, onChange, deposit, minSeed, compact, disabled, balanceCheckEnabled = true, seedUsdInput, onSeedUsdChange }: Props) {
+export function PercentGauge({ value, onChange, deposit, minSeed, compact, disabled }: Props) {
   const trackRef = useRef<HTMLDivElement>(null)
   const rangeRef = useRef<HTMLInputElement>(null)
-
-  if (!balanceCheckEnabled) {
-    return (
-      <SeedAmountInput
-        value={seedUsdInput ?? null}
-        onChange={onSeedUsdChange ?? (() => {})}
-        deposit={deposit}
-        minSeed={minSeed ?? null}
-        disabled={disabled}
-      />
-    )
-  }
 
   const handleSize = compact ? 18 : 22
   const halfHandle = handleSize / 2
   const trackH = compact ? 8 : 10
   const allocated = deposit !== null ? Math.round(deposit * value) / 100 : null
 
-  const depositInsufficient = balanceCheckEnabled && deposit != null && minSeed != null && deposit < minSeed
+  const depositInsufficient = deposit != null && minSeed != null && deposit < minSeed
   const allDisabled = disabled || depositInsufficient
 
   const minPct =

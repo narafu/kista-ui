@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { useMeta } from '@entities/meta'
 import { useAccountMarginQuery, useAccountPricesQuery } from '@entities/account'
@@ -9,6 +9,7 @@ import { useCreateStrategyMutation, useUpdateStrategyMutation, calcMinSeed } fro
 import type { CycleSeedType, Strategy, StrategyRequest } from '@entities/strategy'
 import type { PriceMap } from '@entities/account'
 import { useMeQuery } from '@entities/user'
+import { useSeedModel } from './useSeedModel'
 
 interface UseStrategyFormOptions {
   accountId: string
@@ -61,33 +62,14 @@ export function useStrategyForm({
   const createMutation = useCreateStrategyMutation(accountId, onSuccess)
   const updateMutation = useUpdateStrategyMutation(initial?.id ?? '', onSuccess)
 
-  // UI 상태만 유지
   const [type, setType] = useState<string>(initial?.type ?? meta.strategyTypes[0]?.code ?? '')
   const [ticker, setTicker] = useState<string>(initial?.ticker ?? '')
-  const [pct, setPctInternal] = useState(100)
-  const [seedTouched, setSeedTouched] = useState(false)
-  const pctInitialized = useRef(false)
-  const [seedUsdInput, setSeedUsdInputInternal] = useState<number | null>(
-    initial?.initialUsdDeposit ?? null,
-  )
-
-  // 사용자가 게이지를 직접 조작한 경우에만 시드 변경으로 간주 (수정 시 미조작이면 시드 미전송)
-  function setPct(p: number) {
-    setSeedTouched(true)
-    setPctInternal(p)
-  }
-
-  function setSeedUsdInput(v: number | null) {
-    setSeedUsdInputInternal(v)
-  }
-
   const [autoStart, setAutoStart] = useState(initial ? initial.cycleSeedType !== 'NONE' : true)
   const [seedMode, setSeedMode] = useState<'KEEP' | 'MAX'>(
     initial?.cycleSeedType === 'MAINTAIN' ? 'KEEP' : 'MAX',
   )
   const [divisionCount, setDivisionCount] = useState<number>(initial?.divisionCount ?? 20)
 
-  // 서버 상태는 React Query 훅으로
   const { data: meData } = useMeQuery()
   const balanceCheckEnabled = meData?.balanceCheckEnabled ?? true
   const { items: marginItems, isLoading: marginLoading } = useAccountMarginQuery(accountId)
@@ -100,7 +82,6 @@ export function useStrategyForm({
   const privacyBase = privacyData?.currentCycleStart ?? null
   const loadingBase = marginLoading || pricesLoading || privacyLoading
 
-  // 서버 데이터 로드 실패 토스트
   useEffect(() => {
     if (loadingBase) return
     if (usdDeposit === null && prices === null && privacyBase === null) {
@@ -108,21 +89,30 @@ export function useStrategyForm({
     }
   }, [loadingBase]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 수정 모드: 예수금 로드 후 현재 시드 비율로 게이지 1회 초기화
-  useEffect(() => {
-    if (!initial || pctInitialized.current) return
-    if (usdDeposit === null || usdDeposit === 0) return
-    if (initial.initialUsdDeposit == null) return
-    const ratio = Math.round((initial.initialUsdDeposit / usdDeposit) * 100)
-    setPctInternal(Math.min(100, Math.max(0, ratio)))
-    pctInitialized.current = true
-  }, [initial, usdDeposit])
-
   const typeMeta = useMemo(() => findStrategyType(type), [findStrategyType, type])
   const availableTickers = typeMeta?.availableTickers ?? []
   const isInfinite = (typeMeta?.availableTickers?.length ?? 0) > 1
 
-  // type 변경 시 ticker 기본값 + pct 초기화
+  const basePrice = useMemo(() => {
+    if (!type || !ticker) return null
+    if (isInfinite) return prices?.[ticker] ?? null
+    return privacyBase
+  }, [type, ticker, isInfinite, prices, privacyBase])
+
+  const minSeed = useMemo(
+    () => calcMinSeed(basePrice, isInfinite, divisionCount),
+    [isInfinite, basePrice, divisionCount],
+  )
+
+  const {
+    pct, setPct,
+    seedUsdInput, setSeedUsdInput,
+    resetSeed,
+    seedUsd, isDirty,
+    isBelowMinSeed, isInvalidSeed,
+  } = useSeedModel({ balanceCheckEnabled, initial, usdDeposit, minSeed })
+
+  // type 변경 시 ticker 기본값 + 시드 초기화
   useEffect(() => {
     if (initial) return
     if (!typeMeta) return
@@ -136,36 +126,13 @@ export function useStrategyForm({
     const newIsInfinite = (typeMeta.availableTickers?.length ?? 0) > 1
     const newBasePrice = newIsInfinite ? (prices?.[newTicker] ?? null) : privacyBase
     const newMinSeed = calcMinSeed(newBasePrice, newIsInfinite, divisionCount)
-    setPctInternal(
-      usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
-    )
-    setSeedUsdInputInternal(newMinSeed !== null ? Math.round(newMinSeed) : null)
+    resetSeed({
+      pct: usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
+      seedUsdInput: newMinSeed !== null ? Math.round(newMinSeed) : null,
+    })
   }, [type]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const basePrice = useMemo(() => {
-    if (!type || !ticker) return null
-    if (isInfinite) return prices?.[ticker] ?? null
-    return privacyBase
-  }, [type, ticker, isInfinite, prices, privacyBase])
-
-  const minSeed = useMemo(
-    () => calcMinSeed(basePrice, isInfinite, divisionCount),
-    [isInfinite, basePrice, divisionCount],
-  )
-
-  // 잔고검증 OFF + 신규 등록 시 minSeed로 자동 초기화
-  useEffect(() => {
-    if (balanceCheckEnabled) return
-    if (initial) return
-    if (seedUsdInput !== null) return
-    if (minSeed !== null) setSeedUsdInputInternal(Math.round(minSeed))
-  }, [balanceCheckEnabled, minSeed]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const seedUsd = !balanceCheckEnabled
-    ? seedUsdInput
-    : (usdDeposit !== null ? Math.round(usdDeposit * pct) / 100 : null)
-  const isBelowMinSeed = seedUsd !== null && minSeed !== null && seedUsd < minSeed
-  const cannotSubmit = isBelowMinSeed || basePrice === null
+  const cannotSubmit = isBelowMinSeed || isInvalidSeed || basePrice === null
 
   const cycleSeedType: CycleSeedType = !autoStart
     ? 'NONE'
@@ -177,10 +144,10 @@ export function useStrategyForm({
     setTicker(code)
     const newBasePrice = prices?.[code] ?? null
     const newMinSeed = calcMinSeed(newBasePrice, true, divisionCount)
-    setPctInternal(
-      usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
-    )
-    setSeedUsdInputInternal(newMinSeed !== null ? Math.round(newMinSeed) : null)
+    resetSeed({
+      pct: usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
+      seedUsdInput: newMinSeed !== null ? Math.round(newMinSeed) : null,
+    })
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -193,7 +160,7 @@ export function useStrategyForm({
           type: initial.type,
           ticker: initial.ticker,
           cycleSeedType,
-          ...(seedTouched && seedUsd != null ? { initialUsdDeposit: seedUsd } : {}),
+          ...(isDirty && seedUsd != null ? { initialUsdDeposit: seedUsd } : {}),
         }
       : {
           type,
