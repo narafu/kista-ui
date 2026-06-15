@@ -188,13 +188,20 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base">다음 주문 미리보기</CardTitle>
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-base">다음 주문 미리보기</CardTitle>
+              <span className="text-[11px] text-muted-foreground">매 거래일 04:00 자동 실행</span>
+            </div>
             {canExecute && mode === 'preview' && (
               <button
                 type="button"
                 onClick={() => {
                   if (isHoliday) { toast.info('오늘은 미국 증시 휴장일입니다'); return }
-                  if (isBlocked) { toast.info('주문 불가 시간대입니다'); return }
+                  if (isBlocked) {
+                    const hours = marketSession?.isDst ? '17:00 ~ 05:00 KST' : '18:00 ~ 06:00 KST'
+                    toast.info(`직접 주문은 ${hours}에만 가능합니다`)
+                    return
+                  }
                   executeMutation.mutate(undefined, {
                     onSuccess: (placed) => { setMode('executed'); setPlacedOrders(placed) },
                   })
