@@ -1,18 +1,11 @@
+'use client'
+
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { StatusDot } from '@widgets/status-dot'
-import type { Account, BrokerCode } from '@entities/account'
+import { useMeta } from '@entities/meta'
+import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
-
-const BROKER_LABELS: Record<BrokerCode, string> = {
-  KIS: '한국투자증권',
-  TOSS: '토스증권',
-}
-
-const BROKER_SHORT: Record<BrokerCode, string> = {
-  KIS: '한투',
-  TOSS: '토스',
-}
 
 interface Props {
   account: Account
@@ -20,9 +13,11 @@ interface Props {
 }
 
 export function AccountCard({ account, strategies = [] }: Props) {
+  const { findBroker } = useMeta()
   const primary = strategies[0]
-  const brokerLabel = BROKER_LABELS[account.broker] ?? account.broker
-  const brokerShort = BROKER_SHORT[account.broker] ?? account.broker
+  const broker = findBroker(account.broker)
+  const brokerLabel = broker?.label ?? account.broker
+  const brokerShort = broker?.description ?? account.broker
 
   return (
     <Link

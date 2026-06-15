@@ -1,6 +1,7 @@
 'use client'
 
 import { useCreateAccountMutation } from '@entities/account'
+import { useMeta } from '@entities/meta'
 import { ApiError } from '@shared/lib/api-client'
 import type { BrokerCode, AccountRequest } from '@entities/account'
 import type { StepData } from '../CreateAccountStepper'
@@ -10,13 +11,9 @@ interface Props {
   onBack: () => void
 }
 
-const BROKER_LABELS: Record<BrokerCode, string> = {
-  KIS: '한국투자증권',
-  TOSS: '토스증권',
-}
-
 export function ConfirmStep({ data, onBack }: Props) {
   const { mutate, isPending, isError, error } = useCreateAccountMutation()
+  const { labelOf } = useMeta()
 
   const broker = (data.broker || 'KIS') as BrokerCode
 
@@ -59,7 +56,7 @@ export function ConfirmStep({ data, onBack }: Props) {
       <div className="rounded-[var(--r-lg)] border border-border bg-card divide-y divide-border">
         <div className="flex items-center justify-between px-4 py-3">
           <span className="text-sm text-muted-foreground">증권사</span>
-          <span className="text-sm font-semibold">{BROKER_LABELS[broker]}</span>
+          <span className="text-sm font-semibold">{labelOf('brokers', broker)}</span>
         </div>
         <div className="flex items-center justify-between px-4 py-3">
           <span className="text-sm text-muted-foreground">별칭</span>

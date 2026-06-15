@@ -3,13 +3,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { KpiCard } from '@widgets/kpi-card'
 import { fmtUsd, fmtPercent } from '@shared/lib/format'
-import type { Account, BrokerCode } from '@entities/account'
+import { useMeta } from '@entities/meta'
+import type { Account } from '@entities/account'
 import type { PortfolioSnapshot } from '@entities/trade'
-
-const BROKER_LABELS: Record<BrokerCode, string> = {
-  KIS: '한국투자증권',
-  TOSS: '토스증권',
-}
 
 interface Props {
   account: Account
@@ -18,7 +14,8 @@ interface Props {
 }
 
 export function AccountSummaryCard({ account, portfolio, usdDeposit }: Props) {
-  const brokerLabel = BROKER_LABELS[account.broker] ?? account.broker
+  const { labelOf } = useMeta()
+  const brokerLabel = labelOf('brokers', account.broker)
   const cost = portfolio ? (portfolio.avgPrice ?? 0) * (portfolio.holdings ?? 0) : 0
   const unrealized = portfolio ? (portfolio.marketValueUsd ?? 0) - cost : 0
   const rate = cost > 0 ? (unrealized / cost) * 100 : 0

@@ -32,6 +32,7 @@ import {
   useCancelOneOrderMutation,
 } from '@entities/order'
 import { useMarketSessionQuery, useMonthlyHolidaysQuery } from '@entities/market'
+import { useMeta } from '@entities/meta'
 import { cn, toNum } from '@shared/lib/utils'
 import { fmtUsd } from '@shared/lib/format'
 import { ApiError } from '@shared/lib/api-client'
@@ -104,12 +105,8 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
 
   const toggleLabel = toggleLoading ? '처리 중...' : strategy.status === 'ACTIVE' ? '중지' : '재개'
 
-  const cycleSeedLabel =
-    strategy.cycleSeedType === 'NONE'
-      ? 'OFF'
-      : strategy.cycleSeedType === 'MAX'
-        ? 'ON(MAX)'
-        : 'ON(유지)'
+  const { labelOf } = useMeta()
+  const cycleSeedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
 
   return (
     <div className="space-y-4">
