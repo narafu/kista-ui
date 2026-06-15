@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Send, Check } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export function TelegramSection({ hasTelegram, telegramBotUsername, currentChannel }: Props) {
+  const router = useRouter()
   const [botToken, setBotToken] = useState('')
   const [chatId, setChatId] = useState('')
 
@@ -34,13 +36,14 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
         onSuccess: () => {
           setBotToken('')
           setChatId('')
-          // 텔레그램 등록 성공 → 알림 수단 자동 전환 (끄기→텔레그램, 푸시→모두)
           const nextChannel: NotificationChannel | null =
             currentChannel === 'NONE' ? 'TELEGRAM'
             : currentChannel === 'FCM' ? 'ALL'
             : null
           if (nextChannel) {
-            updateChannelMutation.mutate(nextChannel)
+            updateChannelMutation.mutate(nextChannel, { onSuccess: () => router.refresh() })
+          } else {
+            router.refresh()
           }
         },
         onError: (err) => {
@@ -83,7 +86,7 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
           </div>
           <button
             type="button"
-            onClick={() => deleteMutation.mutate()}
+            onClick={() => deleteMutation.mutate(undefined, { onSuccess: () => router.refresh() })}
             disabled={isDeleteLoading}
             className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'text-destructive hover:text-destructive')}
           >

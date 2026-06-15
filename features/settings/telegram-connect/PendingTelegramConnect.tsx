@@ -5,20 +5,23 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useUpdateTelegramMutation, useDeleteTelegramMutation } from '@entities/user'
+import { useUpdateTelegramMutation, useDeleteTelegramMutation, useUpdateNotificationChannelMutation } from '@entities/user'
 import { ApiError } from '@shared/lib/api-client'
+import type { NotificationChannel } from '@entities/user'
 
 interface Props {
   hasTelegram: boolean
+  currentChannel: NotificationChannel
 }
 
-export function PendingTelegramConnect({ hasTelegram }: Props) {
+export function PendingTelegramConnect({ hasTelegram, currentChannel }: Props) {
   const [showForm, setShowForm] = useState(false)
   const [botToken, setBotToken] = useState('')
   const [chatId, setChatId] = useState('')
 
   const updateMutation = useUpdateTelegramMutation()
   const deleteMutation = useDeleteTelegramMutation()
+  const updateChannelMutation = useUpdateNotificationChannelMutation()
 
   function handleSave() {
     if (!botToken.trim()) { toast.error('Bot Token을 입력해주세요'); return }
@@ -31,6 +34,13 @@ export function PendingTelegramConnect({ hasTelegram }: Props) {
           setShowForm(false)
           setBotToken('')
           setChatId('')
+          const nextChannel: NotificationChannel | null =
+            currentChannel === 'NONE' ? 'TELEGRAM'
+            : currentChannel === 'FCM' ? 'ALL'
+            : null
+          if (nextChannel) {
+            updateChannelMutation.mutate(nextChannel)
+          }
         },
         onError: (err) => {
           toast.error(err instanceof ApiError ? '연동에 실패했습니다' : '오류가 발생했습니다')
