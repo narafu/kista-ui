@@ -15,16 +15,16 @@ const BROKERS: Array<{
   Icon: React.ComponentType<{ className?: string }>
 }> = [
   {
-    code: 'KIS',
-    name: '한국투자증권',
-    description: 'Open API App Key / App Secret 방식',
-    Icon: Building2,
-  },
-  {
     code: 'TOSS',
     name: '토스증권',
     description: 'Client ID / Client Secret 방식',
     Icon: TrendingUp,
+  },
+  {
+    code: 'KIS',
+    name: '한국투자증권',
+    description: 'App Key / App Secret 방식',
+    Icon: Building2,
   },
 ]
 
@@ -33,9 +33,7 @@ export function BrokerStep({ onNext }: Props) {
     <div className="flex flex-col gap-6">
       <div>
         <h2 className="text-lg font-bold mb-1">증권사 선택</h2>
-        <p className="text-sm text-muted-foreground">
-          연결할 증권사를 선택하세요.
-        </p>
+        <p className="text-sm text-muted-foreground">연결할 증권사를 선택하세요.</p>
       </div>
       <div className="flex flex-col gap-3">
         {BROKERS.map(({ code, name, description, Icon }) => (
