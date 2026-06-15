@@ -75,7 +75,7 @@ import { deleteAccount } from '@entities/account'
 
 ## 주요 도메인별 quirk
 
-- **account**: `accountNo`는 8자리만(표시 형식 `74420614-01`). `kisAccountType`은 항상 `"01"`. `AccountRequest` 필드명: `kisAppKey`(≠apiKey), `kisSecretKey`(≠apiSecret). `AccountResponse`에 strategyType 없음.
+- **account**: `accountNo`는 8자리만(표시 형식 `74420614-01`). `kisAccountType`은 항상 `"01"`. `AccountRequest` 필드명: `appKey`(≠apiKey), `secretKey`(≠apiSecret). `AccountResponse`에 strategyType 없음.
 - **strategy**: 백엔드 이름은 `TradingCycle`. 목록 `/api/accounts/{id}/trading-cycles`, 개별 `/api/trading-cycles/{id}`. pause/resume은 **strategyId 기준**(구 accountId 아님). `normalizeStrategy()`로 DTO → Strategy 변환. `cycleSeedType`: `NONE`(자동실행 off)/`MAX`(시드 MAX)/`MAINTAIN`(시드 유지) — `?? 'NONE'` 기본값.
   - **최소 시드**: INFINITE = `basePrice * divisionCount * 2`, PRIVACY = `currentCycleStart`. 미달 시 등록 버튼 비활성화 (`StrategyForm`).
   - **INFINITE vs PRIVACY 판별**: 리터럴 직접 사용 금지. `typeMeta?.availableTickers?.length > 1` = INFINITE. API 인자도 `meta.tickers.map(t => t.code)` 사용 (하드코딩 금지).

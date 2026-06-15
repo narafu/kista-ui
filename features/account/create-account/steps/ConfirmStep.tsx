@@ -23,8 +23,8 @@ export function ConfirmStep({ data, onBack }: Props) {
   function handleSubmit() {
     const req: AccountRequest = {
       nickname: data.nickname,
-      kisAppKey: data.apiKey,
-      kisSecretKey: data.apiSecret,
+      appKey: data.apiKey,
+      secretKey: data.apiSecret,
       accountNo: data.accountNo,
       broker,
     }

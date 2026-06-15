@@ -365,6 +365,26 @@ export interface paths {
         patch: operations["updateNotificationChannel"];
         trace?: never;
     };
+    "/api/settings/balance-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * 잔고 검증 설정
+         * @description false 시 실잔고 미확인 모드 — 예수금 부족해도 전략 등록·재등록 가능. body: {"enabled": false}
+         */
+        patch: operations["updateBalanceCheck"];
+        trace?: never;
+    };
     "/api/admin/users/{userId}/status": {
         parameters: {
             query?: never;
@@ -1086,6 +1106,12 @@ export interface components {
              * @enum {string}
              */
             cycleSeedType?: "NONE" | "MAINTAIN" | "MAX";
+            /**
+             * Format: int32
+             * @description 분할 수 (20/30/40, null이면 20)
+             * @example 20
+             */
+            divisionCount?: number;
         };
         TradingCycleResponse: {
             /**
@@ -1123,6 +1149,17 @@ export interface components {
              * @example NONE
              */
             cycleSeedType?: string;
+            /**
+             * Format: int32
+             * @description 분할 수 (20/30/40)
+             * @example 20
+             */
+            divisionCount?: number;
+            /**
+             * @description 리버스모드 활성 여부 (소진 후 모드)
+             * @example false
+             */
+            isReverseMode?: boolean;
         };
         TelegramUpdateRequest: {
             botToken: string;
@@ -1135,17 +1172,17 @@ export interface components {
              */
             nickname: string;
             /**
-             * @description 계좌번호 — KIS 8자리 또는 Toss 11자리
-             * @example 74420614
+             * @description 계좌번호 — KIS: XXXXXXXX-XX (예: 74420614-01), Toss: XXX-XX-XXXXXX (예: 131-01-001931)
+             * @example 74420614-01
              */
             accountNo: string;
             /**
              * @description API 앱 키 (KIS App Key / Toss Client ID)
              * @example PSxxxxxxxxxx
              */
-            kisAppKey?: string;
+            appKey?: string;
             /** @description API 앱 시크릿 (KIS App Secret / Toss Client Secret) */
-            kisSecretKey?: string;
+            secretKey?: string;
             /**
              * @description 증권사 — null이면 KIS 기본값 적용
              * @example KIS
@@ -1337,6 +1374,11 @@ export interface components {
              * @enum {string}
              */
             notificationChannel?: "NONE" | "TELEGRAM" | "FCM" | "ALL";
+            /**
+             * @description 전략 등록·재등록 시 실잔고 검증 여부 (false=바이패스)
+             * @example true
+             */
+            balanceCheckEnabled?: boolean;
         };
         TokenResponse: {
             /**
@@ -1364,6 +1406,9 @@ export interface components {
         };
         NotificationChannelRequest: {
             channel: string;
+        };
+        BalanceCheckRequest: {
+            enabled?: boolean;
         };
         StatusRequest: {
             /** @enum {string} */
@@ -1784,6 +1829,11 @@ export interface components {
             totalAssetUsd?: number;
             totalEvalProfit?: number;
             totalReturnRate?: number;
+            totalAssetUsdActual?: number;
+            evalProfitUsdSum?: number;
+            usdDeposit?: number;
+            posEvalUsd?: number;
+            exchangeRateKrwPerUsd?: number;
         };
         MarginResponse: {
             /** @enum {string} */
@@ -2468,6 +2518,28 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["NotificationChannelRequest"];
+            };
+        };
+        responses: {
+            /** @description 변경 성공 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateBalanceCheck: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BalanceCheckRequest"];
             };
         };
         responses: {

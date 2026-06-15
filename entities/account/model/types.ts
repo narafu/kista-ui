@@ -11,7 +11,7 @@ export interface Account {
 export interface AccountRequest {
   nickname: string
   accountNo?: string
-  kisAppKey?: string
-  kisSecretKey?: string
+  appKey?: string
+  secretKey?: string
   broker?: BrokerCode
 }
