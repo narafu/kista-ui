@@ -298,15 +298,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
                   ))}
                 </tbody>
               </table>
-              <div className="px-6 py-3">
-                <button
-                  type="button"
-                  onClick={() => setMode('preview')}
-                  className="w-full text-xs px-3 py-1.5 rounded-md border border-border text-muted-foreground hover:border-rose-300 hover:text-rose-600"
-                >
-                  ↩ 다시 미리보기
-                </button>
-              </div>
+
             </div>
           ) : isLoadingPreview ? (
             <p className="text-sm text-muted-foreground text-center px-6 py-4">로딩 중...</p>
