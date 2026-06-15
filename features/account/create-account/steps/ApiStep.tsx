@@ -20,7 +20,7 @@ const BROKER_CONFIG = {
     secretLabel: 'App Secret',
     linkHref: 'https://securities.koreainvestment.com/main/customer/systemdown/RestAPIService.jsp',
     linkLabel: '한국투자증권(KIS) API 키 발급',
-    needsTest: true,
+    needsTest: false,
     hint: '로그인 후 API 키를 발급받을 수 있습니다.',
   },
   TOSS: {
