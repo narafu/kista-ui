@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { useMeta } from '@entities/meta'
 import { useAccountMarginQuery, useAccountPricesQuery } from '@entities/account'
@@ -10,6 +12,7 @@ import type { CycleSeedType, Strategy, StrategyRequest } from '@entities/strateg
 import type { PriceMap } from '@entities/account'
 import { useMeQuery } from '@entities/user'
 import { useSeedModel } from './useSeedModel'
+import { strategyFormSchema, type StrategyFormValues } from './strategyFormSchema'
 
 interface UseStrategyFormOptions {
   accountId: string
@@ -62,13 +65,23 @@ export function useStrategyForm({
   const createMutation = useCreateStrategyMutation(accountId, onSuccess)
   const updateMutation = useUpdateStrategyMutation(initial?.id ?? '', onSuccess)
 
-  const [type, setType] = useState<string>(initial?.type ?? meta.strategyTypes[0]?.code ?? '')
-  const [ticker, setTicker] = useState<string>(initial?.ticker ?? '')
-  const [autoStart, setAutoStart] = useState(initial ? initial.cycleSeedType !== 'NONE' : true)
-  const [seedMode, setSeedMode] = useState<'KEEP' | 'MAX'>(
-    initial?.cycleSeedType === 'MAINTAIN' ? 'KEEP' : 'MAX',
-  )
-  const [divisionCount, setDivisionCount] = useState<number>(initial?.divisionCount ?? 20)
+  // react-hook-form — type/ticker/autoStart/seedMode/divisionCount 관리
+  const form = useForm<StrategyFormValues>({
+    resolver: zodResolver(strategyFormSchema),
+    defaultValues: {
+      type: initial?.type ?? meta.strategyTypes[0]?.code ?? '',
+      ticker: initial?.ticker ?? '',
+      autoStart: initial ? initial.cycleSeedType !== 'NONE' : true,
+      seedMode: initial?.cycleSeedType === 'MAINTAIN' ? 'KEEP' : 'MAX',
+      divisionCount: initial?.divisionCount ?? 20,
+    },
+  })
+
+  const type = form.watch('type')
+  const ticker = form.watch('ticker')
+  const autoStart = form.watch('autoStart')
+  const seedMode = form.watch('seedMode')
+  const divisionCount = form.watch('divisionCount')
 
   const { data: meData } = useMeQuery()
   const balanceCheckEnabled = meData?.balanceCheckEnabled ?? true
@@ -121,7 +134,7 @@ export function useStrategyForm({
         ? (typeMeta.availableTickers[0] ?? '')
         : ticker
     if (!ticker || !availableTickers.includes(ticker)) {
-      setTicker(newTicker)
+      form.setValue('ticker', newTicker)
     }
     const newIsInfinite = (typeMeta.availableTickers?.length ?? 0) > 1
     const newBasePrice = newIsInfinite ? (prices?.[newTicker] ?? null) : privacyBase
@@ -141,7 +154,7 @@ export function useStrategyForm({
       : 'MAX'
 
   function handleTickerChange(code: string) {
-    setTicker(code)
+    form.setValue('ticker', code)
     const newBasePrice = prices?.[code] ?? null
     const newMinSeed = calcMinSeed(newBasePrice, true, divisionCount)
     resetSeed({
@@ -150,31 +163,46 @@ export function useStrategyForm({
     })
   }
 
+  function setType(t: string) {
+    form.setValue('type', t)
+  }
+
+  function setAutoStart(v: boolean) {
+    form.setValue('autoStart', v)
+  }
+
+  function setSeedMode(m: 'KEEP' | 'MAX') {
+    form.setValue('seedMode', m)
+  }
+
+  function setDivisionCount(n: number) {
+    form.setValue('divisionCount', n)
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!type) { toast.error('전략 타입을 선택하세요'); return }
-    if (!ticker) { toast.error('종목을 선택하세요'); return }
+    form.handleSubmit(() => {
+      const payload: StrategyRequest = initial
+        ? {
+            type: initial.type,
+            ticker: initial.ticker,
+            cycleSeedType,
+            ...(isDirty && seedUsd != null ? { initialUsdDeposit: seedUsd } : {}),
+          }
+        : {
+            type,
+            ticker,
+            cycleSeedType,
+            initialUsdDeposit: seedUsd ?? undefined,
+            ...(isInfinite ? { divisionCount } : {}),
+          }
 
-    const payload: StrategyRequest = initial
-      ? {
-          type: initial.type,
-          ticker: initial.ticker,
-          cycleSeedType,
-          ...(isDirty && seedUsd != null ? { initialUsdDeposit: seedUsd } : {}),
-        }
-      : {
-          type,
-          ticker,
-          cycleSeedType,
-          initialUsdDeposit: seedUsd ?? undefined,
-          ...(isInfinite ? { divisionCount } : {}),
-        }
-
-    if (initial) {
-      updateMutation.mutate(payload)
-    } else {
-      createMutation.mutate(payload)
-    }
+      if (initial) {
+        updateMutation.mutate(payload)
+      } else {
+        createMutation.mutate(payload)
+      }
+    })(e)
   }
 
   return {
