@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -51,6 +51,7 @@ export interface UseStrategyFormReturn {
   setDivisionCount: (n: number) => void
 
   loading: boolean
+  initializing: boolean
   cannotSubmit: boolean
   handleSubmit: (e: React.FormEvent) => void
 }
@@ -106,6 +107,12 @@ export function useStrategyForm({
   const usdDeposit = marginItems.find((m) => m.currency === 'USD')?.purchasableAmount ?? null
   const privacyBase = privacyData?.currentCycleStart ?? null
   const loadingBase = marginLoading || pricesLoading || privacyLoading
+
+  // 초기 로딩 완료 후엔 true로 고정 — 타입 전환 시 재스켈레톤 방지
+  const [initialized, setInitialized] = useState(false)
+  useEffect(() => {
+    if (!loadingBase) setInitialized(true)
+  }, [loadingBase])
 
   useEffect(() => {
     if (loadingBase) return
@@ -221,6 +228,7 @@ export function useStrategyForm({
     autoStart, setAutoStart, seedMode, setSeedMode,
     divisionCount, setDivisionCount,
     loading: createMutation.isPending || updateMutation.isPending,
+    initializing: !initialized && loadingBase,
     cannotSubmit,
     handleSubmit,
   }

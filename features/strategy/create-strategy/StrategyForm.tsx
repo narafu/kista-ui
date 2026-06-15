@@ -23,7 +23,7 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
   const { meta } = useMeta()
   const form = useStrategyForm({ accountId, initial, onSuccess })
 
-  if (form.loadingBase) {
+  if (form.initializing) {
     return <StrategyFormSkeleton hasCancel={!!onCancel} />
   }
 
