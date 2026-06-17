@@ -50,7 +50,7 @@ export function UsageRatioSection({
           value={seedUsdInput}
           onChange={setSeedUsdInput}
           deposit={usdDeposit}
-          minSeed={minSeed}
+          minSeed={null}
           disabled={loading}
         />
       ) : (
