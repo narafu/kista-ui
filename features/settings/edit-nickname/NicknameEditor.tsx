@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Pencil, Check, X } from 'lucide-react'
 import { useUpdateNicknameMutation } from '@entities/user'
 
@@ -15,6 +16,7 @@ export function NicknameEditor({ initialNickname }: Props) {
   const [value, setValue] = useState(initialNickname)
   const [error, setError] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+  const router = useRouter()
   const mutation = useUpdateNicknameMutation()
 
   useEffect(() => {
@@ -43,7 +45,7 @@ export function NicknameEditor({ initialNickname }: Props) {
       return
     }
     mutation.mutate(trimmed, {
-      onSuccess: () => setEditing(false),
+      onSuccess: () => { setEditing(false); router.refresh() },
     })
   }
 

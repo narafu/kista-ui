@@ -109,7 +109,7 @@ NEXT_PUBLIC_API_BASE_URL=      # kista-api Fly.io URL (https://kista-api.fly.dev
 - GitHub 통합 자동 배포. 강제 재배포: `git commit --allow-empty -m "redeploy" && git push`
 - `NEXT_PUBLIC_*` 비면 런타임 500 — Vercel 대시보드 env var 확인
 - 환경변수: `vercel link --scope narafus-projects --project prj_...` 후 `vercel env ls production`
-- 런타임 로그: `vercel logs --scope narafus-projects --json`
+- **운영 로그 (vercel-cli)**: `vercel logs --scope narafus-projects --json`
 - catch-all Route Handler URL 변경 시 호출부(`entities/{domain}/api/`)만 수정 — Route Handler 수정 불필요
 
 ## 개발 도구
