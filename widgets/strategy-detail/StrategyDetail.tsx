@@ -220,14 +220,15 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                     toast.info(`직접 주문은 ${hours}에만 가능합니다`)
                     return
                   }
+                  if (hasDeficit) { toast.info('예수금이 부족합니다'); return }
                   executeMutation.mutate(undefined, {
                     onSuccess: (placed) => { setMode('executed'); setPlacedOrders(placed) },
                   })
                 }}
-                disabled={executeMutation.isPending || orders.length === 0 || hasDeficit || isMarginLoading}
+                disabled={executeMutation.isPending || orders.length === 0 || isMarginLoading}
                 className={cn(
                   'text-xs px-3 py-1.5 rounded-md bg-rose-600 text-white hover:bg-rose-700 transition-colors disabled:opacity-50',
-                  (isBlocked || isHoliday) && 'opacity-50 cursor-not-allowed',
+                  (isBlocked || isHoliday || hasDeficit) && 'opacity-50 cursor-not-allowed',
                 )}
               >
                 {executeMutation.isPending ? '실행 중...' : '지금 실행'}
