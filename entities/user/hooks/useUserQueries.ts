@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { listAdminUsers, reapply, deleteMe, updateNotificationChannel, updateTelegram, deleteTelegram, approveAdminUser, rejectAdminUser, changeAdminUserRole, deleteAdminUser, getMeClient, updateBalanceCheckEnabled } from '../api'
+import { listAdminUsers, reapply, deleteMe, updateNotificationChannel, updateTelegram, deleteTelegram, approveAdminUser, rejectAdminUser, changeAdminUserRole, deleteAdminUser, getMeClient, updateBalanceCheckEnabled, updateNickname } from '../api'
 import type { AdminUser, User, UserRole, UserStatus } from '../model/types'
 
 export function useMeQuery(initialData?: User) {
@@ -23,6 +23,18 @@ export function useUpdateBalanceCheckEnabledMutation() {
       queryClient.invalidateQueries({ queryKey: ['me'] })
     },
     onError: () => toast.error('잔고 검증 설정 변경에 실패했습니다.'),
+  })
+}
+
+export function useUpdateNicknameMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (nickname: string) => updateNickname(nickname),
+    onSuccess: () => {
+      toast.success('닉네임이 변경됐습니다.')
+      queryClient.invalidateQueries({ queryKey: ['me'] })
+    },
+    onError: () => toast.error('닉네임 변경에 실패했습니다.'),
   })
 }
 

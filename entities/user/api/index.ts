@@ -17,6 +17,14 @@ export async function updateBalanceCheckEnabled(enabled: boolean): Promise<void>
   })
 }
 
+export async function updateNickname(nickname: string): Promise<void> {
+  await clientFetch<void>('/api/settings/nickname', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nickname }),
+  })
+}
+
 export async function reapply(): Promise<void> {
   await clientFetch<void>('/api/auth/reapply-done', { method: 'POST' })
 }

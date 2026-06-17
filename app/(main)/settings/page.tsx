@@ -6,6 +6,7 @@ import { TelegramSection } from '@features/settings/telegram-connect'
 import { NotificationSettings } from '@features/settings/notification-channel'
 import { ThemeCards } from '@features/settings/theme-select'
 import { BalanceCheckSetting } from '@features/settings/balance-check-setting'
+import { NicknameEditor } from '@features/settings/edit-nickname'
 import { PageHeader } from '@widgets/page-header'
 import { ThemeToggle } from '@widgets/theme-toggle'
 import type { User } from '@entities/user'
@@ -53,7 +54,7 @@ export default async function SettingsPage() {
               <div className="profile-meta-grid gap-4">
                 <div>
                   <div className="text-[11.5px] text-muted-foreground mb-1">닉네임</div>
-                  <div className="text-[13.5px] font-semibold">{user?.nickname ?? '-'}</div>
+                  <NicknameEditor initialNickname={user?.nickname ?? ''} />
                 </div>
                 <div>
                   <div className="text-[11.5px] text-muted-foreground mb-1">상태</div>
