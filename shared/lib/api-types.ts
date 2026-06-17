@@ -1438,7 +1438,7 @@ export interface components {
             position?: components["schemas"]["PositionSnapshot"];
             orders?: components["schemas"]["OrderItem"][];
             /** @enum {string} */
-            skipReason?: "NO_CYCLE_HISTORY" | "INSUFFICIENT_BALANCE" | "NO_PRIVACY_BASE";
+            skipReason?: "NO_CYCLE_HISTORY" | "NO_PRIVACY_BASE";
         };
         OrderItem: {
             /** @enum {string} */

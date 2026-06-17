@@ -32,6 +32,7 @@ import {
   useCancelAllOrdersMutation,
   useCancelOneOrderMutation,
 } from '@entities/order'
+import { useAccountMarginQuery } from '@entities/account'
 import { useMarketSessionQuery, useMonthlyHolidaysQuery } from '@entities/market'
 import { useMeta } from '@entities/meta'
 import { cn, toNum } from '@shared/lib/utils'
@@ -42,7 +43,6 @@ import type { SkipReason, PlacedOrder } from '@entities/order'
 
 const SKIP_REASON_LABELS: Record<SkipReason, string> = {
   NO_CYCLE_HISTORY: '첫 매매 전입니다. 사이클 정보가 아직 없습니다.',
-  INSUFFICIENT_BALANCE: '예수금이 부족합니다.',
   NO_PRIVACY_BASE: '기준 매매표가 없습니다.',
 }
 
@@ -70,6 +70,22 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
   const { data: preview, isLoading: isLoadingPreview, isError: isPreviewError, error: previewError } = useStrategyOrderPreviewQuery(strategy.id)
   const position = preview?.position ?? null
   const orders = preview?.orders ?? []
+
+  // 매수 주문이 있을 때만 브로커 실잔고 조회 — 부족분은 프론트에서 계산
+  const hasBuyOrders = orders.some(o => o.direction === 'BUY')
+  const { items: marginItems, isLoading: isMarginLoading } = useAccountMarginQuery(accountId, {
+    enabled: !isLoadingPreview && hasBuyOrders,
+  })
+  const previewDeficit = (() => {
+    if (!hasBuyOrders || isMarginLoading) return 0
+    const totalBuy = orders
+      .filter(o => o.direction === 'BUY')
+      .reduce((sum, o) => sum + toNum(o.price) * o.quantity, 0)
+    const usdItem = marginItems.find(i => i.currency === 'USD')
+    const purchasable = usdItem?.purchasableAmount ?? 0
+    return Math.max(0, totalBuy - purchasable)
+  })()
+  const hasDeficit = previewDeficit > 0
 
   // 새로고침 후 복원: 오늘 PLANNED 주문이 있으면 자동으로 executed 모드로 진입
   useEffect(() => {
@@ -176,14 +192,6 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
               <KpiCard label="기준가" value={`$${fmtUsd(toNum(position.referencePrice))}`} />
               <KpiCard label="목표가" value={`$${fmtUsd(toNum(position.targetPrice))}`} />
             </>
-          ) : preview?.skipReason === 'INSUFFICIENT_BALANCE' ? (
-            <Card className="col-span-2 lg:col-span-4">
-              <CardContent className="p-5 text-sm text-amber-600 dark:text-amber-400 text-center">
-                {preview.balanceDeficit && toNum(preview.balanceDeficit) > 0
-                  ? `예수금 $${fmtUsd(toNum(preview.balanceDeficit))} 부족 — 주문 계획은 아래에서 확인하세요.`
-                  : '예수금 또는 보유수량이 부족합니다. 주문 계획은 아래에서 확인하세요.'}
-              </CardContent>
-            </Card>
           ) : (
             <Card className="col-span-2 lg:col-span-4">
               <CardContent className="p-5 text-sm text-muted-foreground text-center">
@@ -215,7 +223,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                     onSuccess: (placed) => { setMode('executed'); setPlacedOrders(placed) },
                   })
                 }}
-                disabled={executeMutation.isPending || orders.length === 0 || preview?.skipReason === 'INSUFFICIENT_BALANCE'}
+                disabled={executeMutation.isPending || orders.length === 0 || hasDeficit || isMarginLoading}
                 className={cn(
                   'text-xs px-3 py-1.5 rounded-md bg-rose-600 text-white hover:bg-rose-700 transition-colors disabled:opacity-50',
                   (isBlocked || isHoliday) && 'opacity-50 cursor-not-allowed',
@@ -339,11 +347,14 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
             </p>
           ) : (
             <div>
-              {preview?.skipReason === 'INSUFFICIENT_BALANCE' && (
+              {hasBuyOrders && isMarginLoading && (
+                <div className="px-6 py-3 border-b border-border">
+                  <div className="h-4 w-64 bg-muted animate-pulse rounded" />
+                </div>
+              )}
+              {hasBuyOrders && !isMarginLoading && hasDeficit && (
                 <div className="px-6 py-3 border-b border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 text-sm text-amber-700 dark:text-amber-400">
-                  {preview.balanceDeficit && toNum(preview.balanceDeficit) > 0
-                    ? `예수금 $${fmtUsd(toNum(preview.balanceDeficit))} 부족 — 지금 실행하면 거부될 수 있습니다.`
-                    : '예수금 또는 보유수량이 부족합니다 — 지금 실행하면 거부될 수 있습니다.'}
+                  {`예수금 $${fmtUsd(previewDeficit)} 부족 — 지금 실행하면 거부될 수 있습니다.`}
                 </div>
               )}
               {/* 모바일 리스트 */}
