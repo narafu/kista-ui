@@ -13,8 +13,6 @@ export interface Strategy {
   initialUsdDeposit?: number
   divisionCount: number   // 분할 수 (20/30/40)
   isReverseMode: boolean  // 리버스모드 활성 여부 (소진 후 모드)
-  canManualExecute: boolean  // 수동 즉시 실행 지원 여부
-  supportsPreview: boolean   // 미리보기 탭 표시 여부
 }
 
 export interface StrategyRequest {

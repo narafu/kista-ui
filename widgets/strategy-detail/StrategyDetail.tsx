@@ -101,7 +101,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
   const todayStr = today.toISOString().slice(0, 10)
   const isBlocked = marketSession?.session === 'BLOCKED'
   const isHoliday = holidays.includes(todayStr)
-  const canExecute = strategy.canManualExecute && strategy.status === 'ACTIVE'
+  const canExecute = strategy.status === 'ACTIVE'
 
   const deleteMutation = useDeleteStrategyMutation(() => push(`/accounts/${accountId}`))
   const pauseMutation = usePauseStrategyMutation()
@@ -122,8 +122,9 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
 
   const toggleLabel = toggleLoading ? '처리 중...' : strategy.status === 'ACTIVE' ? '중지' : '재개'
 
-  const { labelOf } = useMeta()
+  const { labelOf, findStrategyType } = useMeta()
   const cycleSeedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
+  const isInfinite = (findStrategyType(strategy.type)?.availableTickers?.length ?? 0) > 1
 
   return (
     <div className="space-y-4">
@@ -132,7 +133,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
           <span className="inline-flex items-center px-2.5 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400">
             {strategy.type}
           </span>
-          {strategy.supportsPreview && (
+          {isInfinite && (
             <span className="inline-flex items-center px-2 h-[22px] rounded-full text-[11px] font-medium whitespace-nowrap bg-muted text-muted-foreground">
               {strategy.divisionCount}분할
             </span>
@@ -170,7 +171,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
         </div>
       </Card>
 
-      {strategy.supportsPreview && (
+      {isInfinite && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {isLoadingPreview ? (
             <>

@@ -1,7 +1,10 @@
+'use client'
+
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { StatusDot } from '@widgets/status-dot'
 import { fmtUsd } from '@shared/lib/format'
+import { useMeta } from '@entities/meta'
 import type { Strategy } from '@entities/strategy'
 
 interface Props {
@@ -11,6 +14,9 @@ interface Props {
 }
 
 export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
+  const { findStrategyType } = useMeta()
+  const isInfinite = (findStrategyType(strategy.type)?.availableTickers?.length ?? 0) > 1
+
   return (
     <Link
       href={`/accounts/${accountId}/strategies/${strategy.id}`}
@@ -42,7 +48,7 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
           <span className="inline-flex items-center px-2.5 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-rose-50 text-rose-600">
             {strategy.type}
           </span>
-          {strategy.supportsPreview && (
+          {isInfinite && (
             <span className="inline-flex items-center px-2 h-[22px] rounded-full text-[11px] font-medium whitespace-nowrap bg-muted text-muted-foreground">
               {strategy.divisionCount}분할
             </span>
