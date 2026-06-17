@@ -49,7 +49,7 @@ const SKIP_REASON_LABELS: Record<SkipReason, string> = {
 function previewErrorMsg(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.status === 404) return '전략 사이클 정보를 찾을 수 없습니다.'
-    if (error.status === 503) return 'KIS API에 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+    if (error.status === 503) return '증권사 API에 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
   }
   return '주문 미리보기를 불러오는 중 오류가 발생했습니다.'
 }
@@ -353,8 +353,11 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                 </div>
               )}
               {hasBuyOrders && !isMarginLoading && hasDeficit && (
-                <div className="px-6 py-3 border-b border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 text-sm text-amber-700 dark:text-amber-400">
-                  {`예수금 $${fmtUsd(previewDeficit)} 부족 — 지금 실행하면 거부될 수 있습니다.`}
+                <div className="px-6 py-2.5 border-b border-border flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400">
+                    예수금 부족
+                  </span>
+                  {`$${fmtUsd(previewDeficit)} 부족`}
                 </div>
               )}
               {/* 모바일 리스트 */}
