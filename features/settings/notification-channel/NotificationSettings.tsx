@@ -1,9 +1,10 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useUpdateNotificationChannelMutation } from '@entities/user'
-import { useFcmToken } from '@entities/fcm'
+import { useFcmToken, registerTokenToServer } from '@entities/fcm'
 import type { NotificationChannel } from '@entities/user'
 
 interface Props {
@@ -13,8 +14,13 @@ interface Props {
 
 export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
   const router = useRouter()
-  const { status: fcmStatus, requestAndRegister } = useFcmToken()
+  const { status: fcmStatus, prewarm, acquireToken } = useFcmToken()
   const mutation = useUpdateNotificationChannelMutation()
+
+  // permission 이미 granted인 경우 설정 페이지 진입 시 토큰 사전 취득
+  useEffect(() => {
+    prewarm()
+  }, [prewarm])
 
   async function handleChannelSelect(next: NotificationChannel) {
     if (next === currentChannel) return
@@ -28,8 +34,10 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
         toast.error('이 기기/브라우저에서는 푸시 알림이 지원되지 않습니다. 데스크탑 브라우저를 이용해주세요')
         return
       }
-      const ok = await requestAndRegister()
-      if (!ok) {
+
+      // 사전 취득된 토큰 있으면 즉시 사용, 없으면 permission 요청 후 취득
+      const token = await acquireToken()
+      if (!token) {
         if (Notification.permission === 'denied') {
           toast.error('알림이 차단되어 있습니다. 브라우저 설정 > 알림에서 허용 후 다시 시도해주세요')
         } else {
@@ -37,6 +45,23 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
         }
         return
       }
+
+      // 토큰 서버 등록 + 채널 변경 병렬 실행
+      const [regResult, channelResult] = await Promise.allSettled([
+        registerTokenToServer(token),
+        mutation.mutateAsync(next),
+      ])
+
+      if (regResult.status === 'rejected') {
+        toast.error('푸시 알림 등록에 실패했습니다')
+        return
+      }
+      if (channelResult.status === 'rejected') {
+        return
+      }
+      toast.success('푸시 알림이 등록되었습니다')
+      router.refresh()
+      return
     }
 
     mutation.mutate(next, {

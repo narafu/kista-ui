@@ -8,13 +8,16 @@ export async function requestFcmToken(): Promise<string | null> {
   const messaging = getFirebaseMessaging()
   if (!messaging) return null
 
+  // SW 등록을 먼저 시작해두면 permission 다이얼로그 대기 중에 설치가 완료됨
+  const swRegPromise = navigator.serviceWorker.register('/firebase-messaging-sw.js')
+
   const permission = await Notification.requestPermission()
   if (permission !== 'granted') return null
 
   try {
     return await getToken(messaging, {
       vapidKey: VAPID_KEY,
-      serviceWorkerRegistration: await navigator.serviceWorker.register('/firebase-messaging-sw.js'),
+      serviceWorkerRegistration: await swRegPromise,
     })
   } catch (error) {
     console.error('FCM 토큰 발급 실패:', error)
