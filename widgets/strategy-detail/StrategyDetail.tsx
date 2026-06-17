@@ -42,7 +42,7 @@ import type { SkipReason, PlacedOrder } from '@entities/order'
 
 const SKIP_REASON_LABELS: Record<SkipReason, string> = {
   NO_CYCLE_HISTORY: '첫 매매 전입니다. 사이클 정보가 아직 없습니다.',
-  INSUFFICIENT_BALANCE: '예수금 부족으로 다음 주문을 계산할 수 없습니다.',
+  INSUFFICIENT_BALANCE: '예수금이 부족합니다.',
   NO_PRIVACY_BASE: '기준 매매표가 없습니다.',
 }
 
@@ -176,6 +176,14 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
               <KpiCard label="기준가" value={`$${fmtUsd(toNum(position.referencePrice))}`} />
               <KpiCard label="목표가" value={`$${fmtUsd(toNum(position.targetPrice))}`} />
             </>
+          ) : preview?.skipReason === 'INSUFFICIENT_BALANCE' ? (
+            <Card className="col-span-2 lg:col-span-4">
+              <CardContent className="p-5 text-sm text-amber-600 dark:text-amber-400 text-center">
+                {preview.balanceDeficit && toNum(preview.balanceDeficit) > 0
+                  ? `예수금 $${fmtUsd(toNum(preview.balanceDeficit))} 부족 — 주문 계획은 아래에서 확인하세요.`
+                  : '예수금 또는 보유수량이 부족합니다. 주문 계획은 아래에서 확인하세요.'}
+              </CardContent>
+            </Card>
           ) : (
             <Card className="col-span-2 lg:col-span-4">
               <CardContent className="p-5 text-sm text-muted-foreground text-center">
@@ -207,7 +215,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                     onSuccess: (placed) => { setMode('executed'); setPlacedOrders(placed) },
                   })
                 }}
-                disabled={executeMutation.isPending || orders.length === 0}
+                disabled={executeMutation.isPending || orders.length === 0 || preview?.skipReason === 'INSUFFICIENT_BALANCE'}
                 className={cn(
                   'text-xs px-3 py-1.5 rounded-md bg-rose-600 text-white hover:bg-rose-700 transition-colors disabled:opacity-50',
                   (isBlocked || isHoliday) && 'opacity-50 cursor-not-allowed',
@@ -331,6 +339,13 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
             </p>
           ) : (
             <div>
+              {preview?.skipReason === 'INSUFFICIENT_BALANCE' && (
+                <div className="px-6 py-3 border-b border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 text-sm text-amber-700 dark:text-amber-400">
+                  {preview.balanceDeficit && toNum(preview.balanceDeficit) > 0
+                    ? `예수금 $${fmtUsd(toNum(preview.balanceDeficit))} 부족 — 지금 실행하면 거부될 수 있습니다.`
+                    : '예수금 또는 보유수량이 부족합니다 — 지금 실행하면 거부될 수 있습니다.'}
+                </div>
+              )}
               {/* 모바일 리스트 */}
               <ul className="lg:hidden">
                 {orders.map((o, i) => (

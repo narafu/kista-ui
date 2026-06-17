@@ -28,6 +28,7 @@ export interface NextOrderPreview {
   orders: NextOrderItem[]
   skipReason: SkipReason | null
   todayOrders: PlacedOrder[]  // 오늘 이미 등록된 PLANNED 주문 (없으면 빈 배열)
+  balanceDeficit: string | null  // null: 정상 or 기타 skip, '0'+: 매수 부족 금액 (USD)
 }
 
 export interface PlacedOrder {

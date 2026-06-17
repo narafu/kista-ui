@@ -34,6 +34,7 @@ function normalizePreview(raw: unknown): NextOrderPreview {
       }
     : null
   const skipReason = (r.skipReason as SkipReason | null | undefined) ?? null
+  const balanceDeficit = r.balanceDeficit != null ? String(r.balanceDeficit) : null
   const todayOrders = ((r.todayOrders as unknown[]) ?? []).map((o) => {
     const item = o as Record<string, unknown>
     return {
@@ -45,7 +46,7 @@ function normalizePreview(raw: unknown): NextOrderPreview {
       price: String(item.price),
     }
   })
-  return { tradeDate: String(r.tradeDate), position, orders, skipReason, todayOrders }
+  return { tradeDate: String(r.tradeDate), position, orders, skipReason, todayOrders, balanceDeficit }
 }
 
 export async function getStrategyOrdersPreview(strategyId: string): Promise<NextOrderPreview> {
