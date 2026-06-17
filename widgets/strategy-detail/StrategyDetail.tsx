@@ -325,7 +325,9 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
           ) : isPreviewError ? (
             <p className="text-sm text-muted-foreground text-center px-6 py-4">{previewErrorMsg(previewError)}</p>
           ) : orders.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center px-6 py-4">예정된 주문이 없습니다.</p>
+            <p className="text-sm text-muted-foreground text-center px-6 py-4">
+              {preview?.skipReason ? SKIP_REASON_LABELS[preview.skipReason] : '예정된 주문이 없습니다.'}
+            </p>
           ) : (
             <div>
               {/* 모바일 리스트 */}
