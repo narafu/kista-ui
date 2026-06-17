@@ -90,6 +90,11 @@ NEXT_PUBLIC_API_BASE_URL=      # kista-api Fly.io URL (https://kista-api.fly.dev
 - API URL: `API_BASE_URL=http://host.docker.internal:8080` + `extra_hosts: host-gateway` (자세한 내용 → `app/CLAUDE.md`)
 - Dockerfile Node.js 22 고정 필수 (`undici` v8 호환, 20으로 다운그레이드 금지)
 
+## 작업 방식
+
+- **기존 오류 발견 시 적극 수정**: 작업 중 발견한 타입 오류, 컴파일 오류, 명백한 버그는 별도 확인 없이 즉시 수정할 것 (범위가 넓으면 먼저 언급)
+- **작업 완료 후 자동 커밋**: 요청된 작업이 완전히 완료되면 스스로 커밋을 생성할 것 — 사용자가 별도로 "커밋해줘"라고 요청하지 않아도 됨
+
 ## Git 규칙
 
 - **git push는 사용자가 명시적으로 요청할 때만 실행** — 요청 없이 자동 푸시 금지, 요청하면 즉시 실행
