@@ -105,11 +105,11 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled }:
           </span>
         </div>
       ) : shortage !== null ? (
-        <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--warn-bg)] border border-[var(--warn)]">
-          <span className="text-[11px] text-[var(--warn)] font-bold">추가 입금 필요</span>
-          <span className="text-[13px] font-extrabold text-[var(--warn)] tabular-nums">
+        <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-muted border border-border">
+          <span className="text-[11px] text-muted-foreground font-medium">추가 입금 필요</span>
+          <span className="text-[13px] font-semibold text-foreground tabular-nums">
             ${fmtUsd(shortage)}
-            <span className="text-[10.5px] font-semibold opacity-80 ml-1.5">
+            <span className="text-[10.5px] font-normal opacity-60 ml-1.5">
               보유 ${fmtUsd(deposit)}
             </span>
           </span>
