@@ -67,7 +67,6 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
         isBelowMinSeed={form.isBelowMinSeed}
         isInfinite={form.isInfinite}
         privacyBase={form.privacyBase}
-        basePrice={form.basePrice}
         balanceCheckEnabled={form.balanceCheckEnabled}
       />
 

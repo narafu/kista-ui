@@ -16,9 +16,9 @@ describe('calcMinSeed', () => {
     expect(calcMinSeed(25.0, true, 30)).toBe(25.0 * 30 * MIN_SEED_MULTIPLIER)
   })
 
-  it('PRIVACY 전략(isInfinite=false): basePrice 그대로 반환', () => {
-    expect(calcMinSeed(25.0, false)).toBe(25.0)
-    expect(calcMinSeed(25.0, false, 30)).toBe(25.0)
+  it('PRIVACY 전략(isInfinite=false): basePrice / 2 반환', () => {
+    expect(calcMinSeed(25.0, false)).toBe(12.5)
+    expect(calcMinSeed(25.0, false, 30)).toBe(12.5)
   })
 
   it('소수점 가격도 올바르게 계산', () => {

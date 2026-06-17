@@ -17,7 +17,6 @@ interface Props {
   isBelowMinSeed: boolean
   isInfinite: boolean
   privacyBase: number | null
-  basePrice: number | null
   balanceCheckEnabled?: boolean
 }
 
@@ -50,7 +49,7 @@ export function UsageRatioSection({
           value={seedUsdInput}
           onChange={setSeedUsdInput}
           deposit={usdDeposit}
-          minSeed={null}
+          minSeed={minSeed}
           disabled={loading}
         />
       ) : (
@@ -84,12 +83,6 @@ export function UsageRatioSection({
         </div>
       )}
 
-      {isOff && isBelowMinSeed && !loadingBase && minSeed !== null && (
-        <div className="inline-flex items-center gap-1.5 text-[11px] font-bold mt-3">
-          <AlertTriangle size={14} style={{ color: 'var(--warn)' }} />
-          <span style={{ color: 'var(--warn)' }}>최소 ${fmtUsd(minSeed)} 필요</span>
-        </div>
-      )}
     </div>
   )
 }
