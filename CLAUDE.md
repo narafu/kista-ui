@@ -92,7 +92,7 @@ NEXT_PUBLIC_API_BASE_URL=      # kista-api Fly.io URL (https://kista-api.fly.dev
 
 ## Git 규칙
 
-- **git push는 사용자가 직접 실행** — Claude는 commit까지만
+- **git push는 사용자가 명시적으로 요청할 때만 실행** — 요청 없이 자동 푸시 금지, 요청하면 즉시 실행
 - `git config user.name` 확인 필수 — 올바른 값: `narafu <narafu@kakao.com>`
 - 괄호 경로: `git add "app/(main)/layout.tsx"` (큰따옴표 필수)
 
