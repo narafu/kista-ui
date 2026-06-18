@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { getAccountProfit, getPortfolioSnapshots } from '../api'
+import { getAccountProfit, getAccountSnapshots } from '../api'
 import type { ProfitSummary, PortfolioSnapshot } from '../model/types'
 
 type Period = 7 | 30 | 90
@@ -27,7 +27,7 @@ export function useProfitStatsQuery(accountId: string, period: Period) {
   const { data: snapshots = [], isLoading: l2 } = useQuery<PortfolioSnapshot[]>({
     queryKey: ['snapshots', accountId, period],
     queryFn: () =>
-      getPortfolioSnapshots({ from: dateRange.from, to: dateRange.to }).catch(
+      getAccountSnapshots(accountId, { from: dateRange.from, to: dateRange.to }).catch(
         (): PortfolioSnapshot[] => [],
       ),
   })

@@ -16,6 +16,7 @@ export type {
 } from './model/types'
 export {
   getPortfolioSnapshots,
+  getAccountSnapshots,
   getAccountProfit,
   getAccountTrades,
   getAccountCycleHistory,

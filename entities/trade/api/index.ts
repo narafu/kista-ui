@@ -38,6 +38,14 @@ export async function getPortfolioSnapshots(
   return fetchEither<PortfolioSnapshot[]>(`/api/portfolio/snapshots${buildDateQuery(params)}`, { method: 'GET' }, token)
 }
 
+export async function getAccountSnapshots(
+  accountId: string,
+  params: { from?: string; to?: string },
+  token?: string
+): Promise<PortfolioSnapshot[]> {
+  return fetchEither<PortfolioSnapshot[]>(`/api/accounts/${accountId}/snapshots${buildDateQuery(params)}`, { method: 'GET' }, token)
+}
+
 export async function getAccountProfit(
   accountId: string,
   params: { from: string; to: string },
