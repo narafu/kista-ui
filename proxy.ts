@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server'
 const STATUS_COOKIE = 'kista-user-status'
 const ROLE_COOKIE = 'kista-user-role'
 const KISTA_TOKEN_COOKIE = 'kista-token'
+const RT_COOKIE = 'refresh_token'
 const VALID_STATUSES = new Set(['PENDING', 'REJECTED', 'ACTIVE'])
 // status/role 캐시: 1시간마다 만료 → /me 재호출로 JWT 유효성 재검증
 const COOKIE_OPTIONS = {
@@ -16,21 +17,102 @@ const COOKIE_OPTIONS = {
 const PROTECTED_PREFIXES = ['/dashboard', '/accounts', '/settings', '/statistics']
 const ADMIN_PREFIXES = ['/admin']
 
+// JWT exp 클레임만 확인 (서명 검증 없음) — bufferSecs 이내 만료도 갱신 대상
+function isJwtExpired(token: string, bufferSecs = 30): boolean {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return true
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
+    const payload = JSON.parse(atob(padded)) as { exp?: number }
+    return typeof payload.exp !== 'number' || payload.exp < Math.floor(Date.now() / 1000) + bufferSecs
+  } catch {
+    return true
+  }
+}
+
+// RT 쿠키로 kista-api /api/auth/refresh 호출 — 성공 시 새 AT + Set-Cookie 헤더 반환
+async function tryRefresh(
+  request: NextRequest
+): Promise<{ accessToken: string; setCookieHeaders: string[] } | null> {
+  const rt = request.cookies.get(RT_COOKIE)?.value
+  if (!rt) return null
+  const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
+  if (!apiUrl) return null
+  try {
+    const res = await fetch(`${apiUrl}/api/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Cookie': `${RT_COOKIE}=${rt}`,
+        'User-Agent': request.headers.get('user-agent') ?? 'unknown',
+      },
+      signal: AbortSignal.timeout(5000),
+    })
+    if (!res.ok) return null
+    const data = await res.json() as { accessToken?: string }
+    if (!data.accessToken) return null
+    // Set-Cookie 헤더 수집 (새 RT 브라우저 전달용)
+    const setCookieHeaders: string[] = []
+    res.headers.forEach((value, name) => {
+      if (name.toLowerCase() === 'set-cookie') setCookieHeaders.push(value)
+    })
+    return { accessToken: data.accessToken, setCookieHeaders }
+  } catch {
+    return null
+  }
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const response = NextResponse.next({ request: { headers: request.headers } })
 
   // API 라우트는 통과
-  if (pathname.startsWith('/api/')) return response
+  if (pathname.startsWith('/api/')) return NextResponse.next({ request: { headers: request.headers } })
 
-  const token = request.cookies.get(KISTA_TOKEN_COOKIE)?.value
+  const isProtected =
+    PROTECTED_PREFIXES.some((p) => pathname.startsWith(p)) ||
+    ADMIN_PREFIXES.some((p) => pathname.startsWith(p))
+
+  let token = request.cookies.get(KISTA_TOKEN_COOKIE)?.value
 
   if (!token) {
-    const isProtected =
-      PROTECTED_PREFIXES.some((p) => pathname.startsWith(p)) ||
-      ADMIN_PREFIXES.some((p) => pathname.startsWith(p))
     if (isProtected) return redirectTo('/', request)
-    return response
+    return NextResponse.next({ request: { headers: request.headers } })
+  }
+
+  // AT 갱신 시 브라우저에 전달할 Set-Cookie 목록
+  const extraSetCookies: string[] = []
+  // 요청 헤더 (AT 갱신 시 Server Component가 읽는 kista-token 쿠키를 교체)
+  let requestHeaders = new Headers(request.headers)
+
+  // AT 만료 감지 → RT로 자동 갱신
+  if (isJwtExpired(token)) {
+    const refreshed = await tryRefresh(request)
+    if (refreshed) {
+      token = refreshed.accessToken
+      // 요청 쿠키 헤더에 새 AT 반영 — Server Component의 getAuthToken()이 읽음
+      const rawCookie = requestHeaders.get('cookie') ?? ''
+      const updatedCookie = rawCookie
+        .split('; ')
+        .filter((c) => c.length > 0 && !c.trim().startsWith(`${KISTA_TOKEN_COOKIE}=`))
+        .concat(`${KISTA_TOKEN_COOKIE}=${token}`)
+        .join('; ')
+      requestHeaders.set('cookie', updatedCookie)
+      // 브라우저 AT 쿠키 업데이트
+      const isSecure = request.headers.get('x-forwarded-proto') === 'https'
+      extraSetCookies.push(
+        `${KISTA_TOKEN_COOKIE}=${token}; Path=/; Max-Age=604800; SameSite=Lax${isSecure ? '; Secure' : ''}`
+      )
+      // 새 RT 쿠키 전달 (kista-api Set-Cookie 헤더 그대로)
+      for (const sc of refreshed.setCookieHeaders) extraSetCookies.push(sc)
+    } else {
+      // RT 없거나 갱신 실패 → 상태 캐시 삭제 후 보호 경로면 로그인 이동
+      const dest = isProtected
+        ? redirectTo('/', request)
+        : NextResponse.next({ request: { headers: requestHeaders } })
+      dest.cookies.delete(STATUS_COOKIE)
+      dest.cookies.delete(ROLE_COOKIE)
+      return dest
+    }
   }
 
   // 인증됨: status + role 캐시 확인
@@ -39,6 +121,7 @@ export async function proxy(request: NextRequest) {
 
   let status: string
   let role: string
+  let needsCacheUpdate = false
 
   if (cachedStatus && VALID_STATUSES.has(cachedStatus) && cachedRole) {
     // 빠른 경로: 쿠키 캐시 사용
@@ -46,9 +129,7 @@ export async function proxy(request: NextRequest) {
     role = cachedRole
   } else {
     // 느린 경로: kista-api /me 호출
-    const isProtected =
-      PROTECTED_PREFIXES.some((p) => pathname.startsWith(p)) ||
-      ADMIN_PREFIXES.some((p) => pathname.startsWith(p))
+    needsCacheUpdate = true
     try {
       const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
       const meRes = await fetch(`${apiUrl}/api/auth/me`, {
@@ -57,28 +138,39 @@ export async function proxy(request: NextRequest) {
       })
 
       if (!meRes.ok) {
-        const dest = isProtected ? redirectTo('/', request) : response
+        const dest = isProtected
+          ? redirectTo('/', request)
+          : NextResponse.next({ request: { headers: requestHeaders } })
         // JWT 만료/무효 → 캐시 쿠키 초기화하여 다음 방문 시 재검증 강제
         dest.cookies.delete(STATUS_COOKIE)
         dest.cookies.delete(ROLE_COOKIE)
         return dest
       }
 
-      const userData = await meRes.json()
+      const userData = await meRes.json() as { status: string; role?: string }
       status = userData.status
       role = userData.role ?? 'USER'
-
-      // PENDING은 캐싱 금지 — 승인 후 캐시 히트 버그 방지
-      if (status !== 'PENDING') {
-        response.cookies.set(STATUS_COOKIE, status, COOKIE_OPTIONS)
-        response.cookies.set(ROLE_COOKIE, role, COOKIE_OPTIONS)
-      }
     } catch {
-      return isProtected ? redirectTo('/', request) : response
+      return isProtected
+        ? redirectTo('/', request)
+        : NextResponse.next({ request: { headers: requestHeaders } })
     }
   }
 
-  return routeByStatusAndRole(status, role, pathname, request, response)
+  const response = NextResponse.next({ request: { headers: requestHeaders } })
+
+  // PENDING은 캐싱 금지 — 승인 후 캐시 히트 버그 방지
+  if (needsCacheUpdate && status !== 'PENDING') {
+    response.cookies.set(STATUS_COOKIE, status, COOKIE_OPTIONS)
+    response.cookies.set(ROLE_COOKIE, role, COOKIE_OPTIONS)
+  }
+
+  const finalResponse = routeByStatusAndRole(status, role, pathname, request, response)
+
+  // AT 갱신 쿠키를 최종 응답(리다이렉트 포함)에 항상 적용
+  for (const sc of extraSetCookies) finalResponse.headers.append('Set-Cookie', sc)
+
+  return finalResponse
 }
 
 function redirectTo(pathname: string, request: NextRequest): NextResponse {
