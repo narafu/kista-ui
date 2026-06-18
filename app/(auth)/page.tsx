@@ -20,14 +20,17 @@ function LoginPageContent() {
       ? (ERROR_MESSAGES[urlError] ?? "알 수 없는 오류가 발생했습니다.")
       : null,
   );
+  const [isLoading, setIsLoading] = useState(false);
 
   function handleKakaoLogin() {
+    if (isLoading) return;
     setErrorMessage(null);
     const clientId = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID;
     if (!clientId) {
       setErrorMessage("카카오 로그인 설정이 올바르지 않습니다.");
       return;
     }
+    setIsLoading(true);
     const redirectUri = encodeURIComponent(
       `${window.location.origin}/auth/callback`,
     );
@@ -93,12 +96,25 @@ function LoginPageContent() {
       <button
         type="button"
         onClick={handleKakaoLogin}
-        className="flex items-center justify-center gap-2.5 w-full h-[52px] rounded-[10px] font-bold text-[15.5px] transition-opacity hover:opacity-90 select-none cursor-pointer border-0 bg-[#FEE500] text-[#3C1E1E]"
+        disabled={isLoading}
+        className="flex items-center justify-center gap-2.5 w-full h-[52px] rounded-[10px] font-bold text-[15.5px] transition-opacity hover:opacity-90 select-none cursor-pointer border-0 bg-[#FEE500] text-[#3C1E1E] disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="#3C1E1E" aria-hidden="true">
-          <path d="M12 3C6.5 3 2 6.4 2 10.6c0 2.7 1.9 5 4.7 6.4l-1 3.7c-.1.4.3.7.7.5l4.4-2.9c.4 0 .8.1 1.2.1 5.5 0 10-3.4 10-7.6C22 6.4 17.5 3 12 3z" />
-        </svg>
-        카카오로 시작하기
+        {isLoading ? (
+          <>
+            <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="#3C1E1E" strokeWidth="4" />
+              <path className="opacity-75" fill="#3C1E1E" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            카카오 연결 중...
+          </>
+        ) : (
+          <>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#3C1E1E" aria-hidden="true">
+              <path d="M12 3C6.5 3 2 6.4 2 10.6c0 2.7 1.9 5 4.7 6.4l-1 3.7c-.1.4.3.7.7.5l4.4-2.9c.4 0 .8.1 1.2.1 5.5 0 10-3.4 10-7.6C22 6.4 17.5 3 12 3z" />
+            </svg>
+            카카오로 시작하기
+          </>
+        )}
       </button>
 
       <div className="mt-4 text-center text-[11.5px] text-muted-foreground">
