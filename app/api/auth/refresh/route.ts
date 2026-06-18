@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ ok: true })
 
     response.cookies.set(KISTA_TOKEN_COOKIE, data.accessToken, {
-      httpOnly: false,
+      httpOnly: true,
       secure: isSecure,
       sameSite: 'lax',
       maxAge: 604800,

@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   const host = request.headers.get('host') ?? 'localhost:3000'
   const proto = request.headers.get('x-forwarded-proto') ?? 'http'
   const TOKEN_COOKIE_OPTIONS = {
-    httpOnly: false,   // 클라이언트 컴포넌트가 document.cookie로 읽어야 하므로 false
+    httpOnly: true,
     secure: proto === 'https',  // 실제 프로토콜 기반 — HTTP(로컬)에서도 Safari가 쿠키 수락
     sameSite: 'lax' as const,
     maxAge: 604800,    // 7일 — JWT TTL과 동일
@@ -59,7 +59,6 @@ export async function GET(request: NextRequest) {
       new URL(getRedirectPath(status), origin)
     )
 
-    // kista-token: httpOnly: false (클라이언트 JS 접근 필요)
     response.cookies.set(KISTA_TOKEN_COOKIE, accessToken, TOKEN_COOKIE_OPTIONS)
 
     // RT Set-Cookie를 브라우저에 전달 — server-side fetch는 Set-Cookie를 자동 전파하지 않음
