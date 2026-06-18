@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, LogOut, Wallet, ArrowLeftRight, ScrollText, AlertTriangle, ArrowLeft, Table2 } from 'lucide-react'
+import { LayoutDashboard, Users, LogOut, Wallet, ArrowLeftRight, ScrollText, AlertTriangle, ArrowLeft, Table2, Bug } from 'lucide-react'
 import { LogoutButton } from '@features/auth/logout/LogoutButton'
 
 const NAV_ITEMS = [
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: '/admin/trades',      label: '거래 내역', icon: ArrowLeftRight },
   { href: '/admin/privacy-trades', label: '기준 매매표', icon: Table2 },
   { href: '/admin/audit',       label: '감사 로그', icon: ScrollText },
+  { href: '/admin/error-logs',  label: '오류 로그', icon: Bug },
   { href: '/admin/anomalies',   label: '이상 징후', icon: AlertTriangle },
 ]
 
