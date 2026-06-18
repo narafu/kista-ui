@@ -37,7 +37,10 @@ export async function GET(request: NextRequest) {
   try {
     const res = await fetch(`${apiUrl}/api/auth/kakao/callback`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': request.headers.get('user-agent') ?? 'unknown',
+      },
       body: JSON.stringify({ code, redirectUri }),
       cache: 'no-store',
     })
