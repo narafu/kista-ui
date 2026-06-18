@@ -6,7 +6,7 @@ import { ErrorLogItem } from '@features/admin/error-logs'
 export default async function AdminErrorLogsPage() {
   const token = await getAuthToken()
   const logs: AppErrorLog[] = token
-    ? await listAdminErrorLogs(token, 100).catch(() => [])
+    ? await listAdminErrorLogs(token).catch(() => [])
     : []
 
   return (
