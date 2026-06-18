@@ -1,18 +1,16 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, Wallet, ArrowLeftRight, ScrollText, AlertTriangle, ArrowLeft, Table2, Bug } from 'lucide-react'
+import { LayoutDashboard, Users, Wallet, ArrowLeftRight, ClipboardList, ArrowLeft, Table2 } from 'lucide-react'
 import Link from 'next/link'
 
 const NAV_ITEMS = [
-  { href: '/admin',             label: 'Overview',  icon: LayoutDashboard, exact: true },
-  { href: '/admin/users',       label: '사용자',    icon: Users },
-  { href: '/admin/accounts',    label: '계좌',      icon: Wallet },
-  { href: '/admin/trades',      label: '거래',      icon: ArrowLeftRight },
-  { href: '/admin/privacy-trades', label: '매매표', icon: Table2 },
-  { href: '/admin/audit',       label: '감사',      icon: ScrollText },
-  { href: '/admin/error-logs',  label: '오류',      icon: Bug },
-  { href: '/admin/anomalies',   label: '이상',      icon: AlertTriangle },
+  { href: '/admin',                label: 'Overview', icon: LayoutDashboard, exact: true },
+  { href: '/admin/users',          label: '사용자',   icon: Users },
+  { href: '/admin/accounts',       label: '계좌',     icon: Wallet },
+  { href: '/admin/trades',         label: '거래',     icon: ArrowLeftRight },
+  { href: '/admin/privacy-trades', label: '매매표',   icon: Table2 },
+  { href: '/admin/logs',           label: '로그',     icon: ClipboardList },
 ]
 
 export function AdminTopBar() {

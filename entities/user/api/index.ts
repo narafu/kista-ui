@@ -99,13 +99,13 @@ export async function listAdminTrades(token: string): Promise<AdminTrade[]> {
 }
 
 export async function listAdminAuditLogs(token: string): Promise<AdminAuditLog[]> {
-  return apiFetch<AdminAuditLog[]>('/api/admin/audit-logs', { method: 'GET' }, token)
+  return apiFetch<AdminAuditLog[]>('/api/admin/logs/audit', { method: 'GET' }, token)
 }
 
 export async function getAdminAnomalies(token: string): Promise<AdminAnomalies> {
-  return apiFetch<AdminAnomalies>('/api/admin/anomalies', { method: 'GET' }, token)
+  return apiFetch<AdminAnomalies>('/api/admin/logs/anomalies', { method: 'GET' }, token)
 }
 
 export async function listAdminErrorLogs(token: string, limit = 100): Promise<AppErrorLog[]> {
-  return apiFetch<AppErrorLog[]>(`/api/admin/error-logs?limit=${limit}`, { method: 'GET' }, token)
+  return apiFetch<AppErrorLog[]>(`/api/admin/logs/errors?limit=${limit}`, { method: 'GET' }, token)
 }

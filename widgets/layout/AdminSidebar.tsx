@@ -2,18 +2,16 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, LogOut, Wallet, ArrowLeftRight, ScrollText, AlertTriangle, ArrowLeft, Table2, Bug } from 'lucide-react'
+import { LayoutDashboard, Users, LogOut, Wallet, ArrowLeftRight, ClipboardList, ArrowLeft, Table2 } from 'lucide-react'
 import { LogoutButton } from '@features/auth/logout/LogoutButton'
 
 const NAV_ITEMS = [
-  { href: '/admin',             label: 'Overview',  icon: LayoutDashboard, exact: true },
-  { href: '/admin/users',       label: '사용자',    icon: Users },
-  { href: '/admin/accounts',    label: '계좌 현황', icon: Wallet },
-  { href: '/admin/trades',      label: '거래 내역', icon: ArrowLeftRight },
+  { href: '/admin',                label: 'Overview',    icon: LayoutDashboard, exact: true },
+  { href: '/admin/users',          label: '사용자',      icon: Users },
+  { href: '/admin/accounts',       label: '계좌 현황',   icon: Wallet },
+  { href: '/admin/trades',         label: '거래 내역',   icon: ArrowLeftRight },
   { href: '/admin/privacy-trades', label: '기준 매매표', icon: Table2 },
-  { href: '/admin/audit',       label: '감사 로그', icon: ScrollText },
-  { href: '/admin/error-logs',  label: '오류 로그', icon: Bug },
-  { href: '/admin/anomalies',   label: '이상 징후', icon: AlertTriangle },
+  { href: '/admin/logs',           label: '운영 로그',   icon: ClipboardList },
 ]
 
 export function AdminSidebar() {
