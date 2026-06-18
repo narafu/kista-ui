@@ -118,11 +118,7 @@ function LoginPageContent() {
       </button>
 
       <div className="mt-4 text-center text-[11.5px] text-muted-foreground">
-        가입 시{" "}
-        <button type="button" className="bg-transparent border-0 p-0 cursor-pointer underline" style={{ color: "var(--rose-600)" }}>서비스 약관</button>
-        {" "}및{" "}
-        <button type="button" className="bg-transparent border-0 p-0 cursor-pointer underline" style={{ color: "var(--rose-600)" }}>개인정보 처리방침</button>
-        에 동의합니다.
+        가입 시 서비스 약관 및 개인정보 처리방침에 동의합니다.
       </div>
     </GlassCard>
   );

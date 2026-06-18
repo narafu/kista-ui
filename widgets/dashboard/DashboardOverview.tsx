@@ -81,6 +81,17 @@ export function DashboardOverview({
         <div className="mb-4">
           <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
         </div>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-[15px] font-bold">계좌 목록</h2>
+          <Link href="/accounts" className="text-xs font-semibold text-rose-500 hover:text-rose-600 transition-colors">
+            전체 보기 →
+          </Link>
+        </div>
+        <div className="flex flex-col gap-2">
+          {accounts.map((account, i) => (
+            <AccountCard key={account.id} account={account} strategies={strategiesByAccount[i]} />
+          ))}
+        </div>
       </div>
     </>
   )

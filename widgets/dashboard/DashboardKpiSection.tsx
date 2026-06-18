@@ -32,12 +32,14 @@ export function DashboardKpiSection({
 
   const toggle = (
     <div className="flex justify-end mb-3">
-      <div className="inline-flex rounded-md border border-border overflow-hidden text-xs font-semibold">
+      <div role="group" aria-label="통화 단위" className="inline-flex rounded-md border border-border overflow-hidden text-xs font-semibold">
         {(['USD', 'KRW'] as const).map((c) => (
           <button
             key={c}
+            type="button"
             onClick={() => setCurrency(c)}
             disabled={c === 'KRW' && !hasRate}
+            aria-pressed={currency === c}
             className={
               currency === c
                 ? 'px-3 py-1 bg-rose-600 text-white'

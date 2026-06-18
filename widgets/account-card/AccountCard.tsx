@@ -12,12 +12,28 @@ interface Props {
   strategies?: Strategy[]
 }
 
+/** 전략 목록에서 대표 상태를 집계. 모두 ACTIVE면 ACTIVE, 혼재면 PAUSED, 없으면 null. */
+function aggregateStatus(strategies: Strategy[]): 'ACTIVE' | 'PAUSED' | null {
+  if (strategies.length === 0) return null
+  const hasActive = strategies.some((s) => s.status === 'ACTIVE')
+  const allActive = strategies.every((s) => s.status === 'ACTIVE')
+  if (allActive) return 'ACTIVE'
+  if (hasActive) return 'PAUSED'
+  return 'PAUSED'
+}
+
 export function AccountCard({ account, strategies = [] }: Props) {
   const { findBroker } = useMeta()
-  const primary = strategies[0]
   const broker = findBroker(account.broker)
   const brokerLabel = broker?.label ?? account.broker
   const brokerShort = broker?.description ?? account.broker
+  const aggregated = aggregateStatus(strategies)
+
+  // 집계 상태 라벨 (혼재 시 운영중 N개 표시)
+  const activeCount = strategies.filter((s) => s.status === 'ACTIVE').length
+  const mixedLabel = strategies.length > 1 && activeCount > 0 && activeCount < strategies.length
+    ? `운영중 ${activeCount}개`
+    : undefined
 
   return (
     <Link
@@ -44,7 +60,13 @@ export function AccountCard({ account, strategies = [] }: Props) {
             미등록
           </span>
         )}
-        {primary && <StatusDot status={primary.status as 'ACTIVE' | 'PAUSED'} hideLabel className="shrink-0" />}
+        {aggregated && (
+          mixedLabel ? (
+            <span className="text-[11px] font-semibold text-warn shrink-0">{mixedLabel}</span>
+          ) : (
+            <StatusDot status={aggregated} hideLabel className="shrink-0" />
+          )
+        )}
         <ChevronRight className="size-4 text-muted-foreground group-hover:text-rose-500 transition-colors shrink-0" />
       </div>
 
@@ -72,11 +94,15 @@ export function AccountCard({ account, strategies = [] }: Props) {
               {account.accountNoMasked}
             </p>
           </div>
-          {primary && (
-            <StatusDot
-              status={primary.status as 'ACTIVE' | 'PAUSED'}
-              className="mt-0.5 shrink-0"
-            />
+          {aggregated && (
+            mixedLabel ? (
+              <span className="mt-0.5 text-[11px] font-semibold text-warn shrink-0">{mixedLabel}</span>
+            ) : (
+              <StatusDot
+                status={aggregated}
+                className="mt-0.5 shrink-0"
+              />
+            )
           )}
         </div>
 

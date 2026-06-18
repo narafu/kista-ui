@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { Plus } from 'lucide-react'
+import Link from 'next/link'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { getCachedAccounts } from '@shared/lib/cache/cached-api'
 import { ProfitStatsCard } from '@widgets/profit-stats-card'
@@ -21,8 +23,15 @@ export default async function StatisticsPage() {
 
       {/* 계좌별 손익 통계 */}
       {accounts.length === 0 ? (
-        <div className="flex items-center justify-center py-16 text-muted-foreground">
+        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-4">
           <p className="text-[13px]">등록된 계좌가 없습니다.</p>
+          <Link
+            href="/accounts/new"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted transition-colors text-foreground"
+          >
+            <Plus className="size-4" />
+            첫 계좌 등록하기
+          </Link>
         </div>
       ) : (
         <div>

@@ -11,6 +11,20 @@ import { PageHeader } from '@widgets/page-header'
 import { ThemeToggle } from '@widgets/theme-toggle'
 import type { User } from '@entities/user'
 
+// 상태별 표시 설정
+const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
+  ACTIVE:   { label: '활성',  color: 'var(--status-ok)' },
+  PENDING:  { label: '대기',  color: 'var(--warn)' },
+  REJECTED: { label: '반려',  color: 'var(--status-error)' },
+}
+
+// 알림 종류: 매매 알림은 구현됨, 나머지는 준비 중
+const NOTIFICATION_TYPES = [
+  { label: '매매 알림',       desc: '매매 체결 결과 알림',         ready: true  },
+  { label: '시스템 점검 알림', desc: 'KIS API 점검 시간 안내',      ready: false },
+  { label: '주간 리포트',     desc: '매주 월요일 아침 9시 발송',    ready: false },
+]
+
 export default async function SettingsPage() {
   const token = await getAuthToken()
 
@@ -19,6 +33,8 @@ export default async function SettingsPage() {
   if (token) {
     user = await getCachedUser(token).catch(() => null)
   }
+
+  const statusCfg = user?.status ? STATUS_CONFIG[user.status] : null
 
   return (
     <div>
@@ -33,20 +49,20 @@ export default async function SettingsPage() {
 
             <div className="flex items-center gap-4 mb-[18px]">
               <span className="size-[60px] rounded-full bg-[#FEE500] grid place-items-center shrink-0">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="#3C1E1E">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="#3C1E1E" aria-hidden="true">
                   <path d="M12 3C6.5 3 2 6.4 2 10.6c0 2.7 1.9 5 4.7 6.4l-1 3.7c-.1.4.3.7.7.5l4.4-2.9c.4 0 .8.1 1.2.1 5.5 0 10-3.4 10-7.6C22 6.4 17.5 3 12 3z"/>
                 </svg>
               </span>
               <div>
                 <div className="text-base font-bold">{user?.nickname ?? '-'}</div>
-                <div className="text-[12.5px] text-muted-foreground mt-0.5">
-                  {user?.status === 'ACTIVE' && (
-                    <span className="text-status-ok font-semibold">● ACTIVE</span>
-                  )}
-                  {user?.status === 'PENDING' && (
-                    <span className="text-warn font-semibold">● PENDING</span>
-                  )}
-                </div>
+                {statusCfg && (
+                  <div
+                    className="text-[12.5px] font-semibold mt-0.5"
+                    style={{ color: statusCfg.color }}
+                  >
+                    {statusCfg.label}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -60,9 +76,9 @@ export default async function SettingsPage() {
                   <div className="text-[11.5px] text-muted-foreground mb-1">상태</div>
                   <div
                     className="text-[13.5px] font-semibold"
-                    style={{ color: user?.status === 'ACTIVE' ? 'var(--status-ok)' : 'var(--foreground)' }}
+                    style={{ color: statusCfg?.color ?? 'var(--foreground)' }}
                   >
-                    {user?.status ?? '-'}
+                    {statusCfg?.label ?? (user?.status ?? '-')}
                   </div>
                 </div>
               </div>
@@ -83,19 +99,22 @@ export default async function SettingsPage() {
               hasTelegram={user?.hasTelegram ?? false}
             />
 
-            <div className="text-[12.5px] font-semibold text-muted-foreground mt-5 mb-2">알림 종류</div>
+            <div className="text-[12.5px] font-semibold text-muted-foreground mt-5 mb-2">KISTA가 보내는 알림</div>
             <div className="divide-y divide-border">
-              {[
-                { label: '매매 알림',       desc: '매매 체결 결과 알림' },
-                { label: '시스템 점검 알림', desc: 'KIS API 점검 시간 안내' },
-                { label: '주간 리포트',     desc: '매주 월요일 아침 9시 발송' },
-              ].map((row) => (
+              {NOTIFICATION_TYPES.map((row) => (
                 <div
                   key={row.label}
                   className="flex items-center gap-[14px] py-3"
                 >
                   <div className="flex-1">
-                    <div className="text-[13px] font-bold">{row.label}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[13px] font-bold">{row.label}</span>
+                      {!row.ready && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-warn-bg text-warn leading-none">
+                          준비 중
+                        </span>
+                      )}
+                    </div>
                     <div className="text-[11.5px] text-muted-foreground mt-0.5">{row.desc}</div>
                   </div>
                 </div>

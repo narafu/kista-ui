@@ -18,13 +18,14 @@ export function MobileBottomNav() {
   const pathname = usePathname()
   return (
     <nav
+      aria-label="주요 메뉴"
       className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border flex"
       style={{ background: 'var(--sidebar-bg)' }}
     >
       {TABS.map(({ href, label, icon: Icon }) => {
         const active = isNavItemActive(pathname, href)
         return (
-          <Link key={href} href={href} className="flex-1 flex flex-col items-center gap-1 py-2.5 relative">
+          <Link key={href} href={href} aria-current={active ? 'page' : undefined} className="flex-1 flex flex-col items-center gap-1 py-2.5 relative">
             {active && (
               <span className="absolute top-1.5 left-1/2 -translate-x-1/2 size-1.5 rounded-full bg-rose-500" />
             )}

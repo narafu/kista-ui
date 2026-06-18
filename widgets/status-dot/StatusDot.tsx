@@ -24,8 +24,11 @@ export function StatusDot({ status, className, hideLabel }: Props) {
   const cfg = STATUS_STYLE[status] ?? STATUS_STYLE.UNKNOWN
   const label = meta.strategyStatuses.find(s => s.code === status)?.label ?? cfg.fallbackLabel
   return (
-    <span className={cn('inline-flex items-center gap-1.5', className)}>
-      <span className={cn('size-2 rounded-full shrink-0', cfg.dot)} />
+    <span
+      className={cn('inline-flex items-center gap-1.5', className)}
+      {...(hideLabel ? { role: 'img', 'aria-label': label } : {})}
+    >
+      <span className={cn('size-2 rounded-full shrink-0', cfg.dot)} title={hideLabel ? label : undefined} />
       {!hideLabel && <span className={cn('text-xs font-medium', cfg.text)}>{label}</span>}
     </span>
   )

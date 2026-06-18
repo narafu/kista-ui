@@ -49,6 +49,7 @@ export function DesktopSidebar({ isAdmin }: Props) {
             <Link
               key={href}
               href={href}
+              aria-current={active ? 'page' : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium transition-colors ${
                 active
                   ? 'bg-rose-50 text-rose-600'
@@ -65,6 +66,7 @@ export function DesktopSidebar({ isAdmin }: Props) {
             <hr className="my-1 border-border" />
             <Link
               href="/admin"
+              aria-current={pathname.startsWith('/admin') ? 'page' : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium transition-colors ${
                 pathname.startsWith('/admin')
                   ? 'bg-violet-50 text-violet-600'

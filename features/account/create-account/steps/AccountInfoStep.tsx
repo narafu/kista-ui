@@ -44,10 +44,18 @@ const ACCOUNT_CONFIG = {
 export function AccountInfoStep({ data, onNext, onBack }: Props) {
   const [nickname, setNickname] = useState(data.nickname)
   const [accountNo, setAccountNo] = useState(data.accountNo)
+  const [touchedNickname, setTouchedNickname] = useState(false)
+  const [touchedAccountNo, setTouchedAccountNo] = useState(false)
 
   const broker = (data.broker || 'KIS') as BrokerCode
   const config = ACCOUNT_CONFIG[broker]
-  const valid = nickname.trim().length >= 1 && config.pattern.test(accountNo)
+
+  const nicknameValid = nickname.trim().length >= 1
+  const accountNoValid = config.pattern.test(accountNo)
+  const valid = nicknameValid && accountNoValid
+
+  const showNicknameError = touchedNickname && !nicknameValid
+  const showAccountNoError = touchedAccountNo && accountNo.length > 0 && !accountNoValid
 
   return (
     <div className="flex flex-col gap-6">
@@ -60,29 +68,44 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
       <div className="flex flex-col gap-4">
         <div>
           <label htmlFor="account-nickname" className="text-sm font-semibold mb-1.5 block">
-            계좌 별칭
+            계좌 별칭 <span className="text-destructive">*</span>
           </label>
           <input
             id="account-nickname"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
+            onBlur={() => setTouchedNickname(true)}
             placeholder="예: 메인 계좌"
-            className="w-full px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-rose-400"
+            aria-describedby={showNicknameError ? 'nickname-error' : undefined}
+            aria-invalid={showNicknameError}
+            className="w-full px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
+          {showNicknameError && (
+            <p id="nickname-error" className="text-xs text-destructive mt-1">별칭을 입력해주세요.</p>
+          )}
         </div>
         <div>
           <label htmlFor="account-no" className="text-sm font-semibold mb-1.5 block">
-            {config.label}
+            {config.label} <span className="text-destructive">*</span>
           </label>
           <input
             id="account-no"
             value={accountNo}
             onChange={(e) => setAccountNo(config.format(e.target.value))}
+            onBlur={() => setTouchedAccountNo(true)}
             placeholder={config.placeholder}
             maxLength={config.maxLen}
-            className="w-full px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-rose-400"
+            aria-describedby={showAccountNoError ? 'accountno-error' : 'accountno-hint'}
+            aria-invalid={showAccountNoError}
+            className="w-full px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm font-mono focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
-          <p className="text-[11px] text-muted-foreground mt-1">{config.hint}</p>
+          {showAccountNoError ? (
+            <p id="accountno-error" className="text-xs text-destructive mt-1">
+              올바른 계좌번호 형식으로 입력해주세요. (예: {config.placeholder})
+            </p>
+          ) : (
+            <p id="accountno-hint" className="text-[11px] text-muted-foreground mt-1">{config.hint}</p>
+          )}
         </div>
       </div>
       <div className="flex gap-3">
