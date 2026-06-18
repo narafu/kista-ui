@@ -62,6 +62,14 @@ export async function GET(request: NextRequest) {
     // kista-token: httpOnly: false (클라이언트 JS 접근 필요)
     response.cookies.set(KISTA_TOKEN_COOKIE, accessToken, TOKEN_COOKIE_OPTIONS)
 
+    // RT Set-Cookie를 브라우저에 전달 — server-side fetch는 Set-Cookie를 자동 전파하지 않음
+    // proxy.ts의 tryRefresh가 request.cookies.get('refresh_token')으로 RT를 읽으므로 필수
+    res.headers.forEach((value, name) => {
+      if (name.toLowerCase() === 'set-cookie') {
+        response.headers.append('Set-Cookie', value)
+      }
+    })
+
     // kista-user-status: PENDING 제외하고 캐싱
     if (status !== 'PENDING') {
       response.cookies.set(STATUS_COOKIE, status, {
