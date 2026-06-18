@@ -10,6 +10,7 @@ export type {
   AdminAuditLog,
   AdminAnomalyAccount,
   AdminAnomalies,
+  AppErrorLog,
 } from './model/types'
 export {
   getMe,
@@ -31,6 +32,7 @@ export {
   listAdminTrades,
   listAdminAuditLogs,
   getAdminAnomalies,
+  listAdminErrorLogs,
 } from './api'
 export {
   useMeQuery,

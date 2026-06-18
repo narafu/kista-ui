@@ -1,5 +1,5 @@
 import { apiFetch, clientFetch, fetchEither } from '@shared/lib/api-client'
-import type { User, UserRole, UserStatus, AdminUser, AdminStats, AdminAccount, AdminTrade, AdminAuditLog, AdminAnomalies } from '../model/types'
+import type { User, UserRole, UserStatus, AdminUser, AdminStats, AdminAccount, AdminTrade, AdminAuditLog, AdminAnomalies, AppErrorLog } from '../model/types'
 
 export async function getMe(token: string): Promise<User> {
   return apiFetch<User>('/api/auth/me', { method: 'GET' }, token)
@@ -104,4 +104,8 @@ export async function listAdminAuditLogs(token: string): Promise<AdminAuditLog[]
 
 export async function getAdminAnomalies(token: string): Promise<AdminAnomalies> {
   return apiFetch<AdminAnomalies>('/api/admin/anomalies', { method: 'GET' }, token)
+}
+
+export async function listAdminErrorLogs(token: string, limit = 100): Promise<AppErrorLog[]> {
+  return apiFetch<AppErrorLog[]>(`/api/admin/error-logs?limit=${limit}`, { method: 'GET' }, token)
 }

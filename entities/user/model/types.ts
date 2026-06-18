@@ -69,3 +69,12 @@ export interface AdminAnomalies {
   pausedAccounts: AdminAnomalyAccount[]
   inactiveAccounts: AdminAnomalyAccount[]
 }
+
+export interface AppErrorLog {
+  id: string
+  errorType: string
+  message: string
+  stackTrace: string
+  context: Record<string, string>
+  createdAt: string
+}
