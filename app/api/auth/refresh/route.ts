@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     if (!res.ok) return NextResponse.json({ error: 'Refresh failed' }, { status: 401 })
 
-    const data = await res.json() as { accessToken?: string }
+    const data = await res.json() as { accessToken?: string; rawRefreshToken?: string }
     if (!data.accessToken) return NextResponse.json({ error: 'No access token' }, { status: 401 })
 
     const isSecure = request.headers.get('x-forwarded-proto') === 'https'
@@ -39,10 +39,20 @@ export async function POST(request: NextRequest) {
       path: '/',
     })
 
-    // 새 RT 쿠키 브라우저에 전달
-    res.headers.forEach((value, name) => {
-      if (name.toLowerCase() === 'set-cookie') response.headers.append('Set-Cookie', value)
-    })
+    // 새 RT 쿠키 브라우저에 전달 — JSON body rawRefreshToken 우선, 폴백은 Set-Cookie 헤더(Node.js에서는 forEach 동작)
+    if (data.rawRefreshToken) {
+      response.cookies.set(RT_COOKIE, data.rawRefreshToken, {
+        httpOnly: true,
+        secure: isSecure,
+        sameSite: 'lax',
+        maxAge: 432000,
+        path: '/',
+      })
+    } else {
+      res.headers.forEach((value, name) => {
+        if (name.toLowerCase() === 'set-cookie') response.headers.append('Set-Cookie', value)
+      })
+    }
 
     return response
   } catch {

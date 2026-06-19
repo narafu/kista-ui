@@ -49,19 +49,25 @@ async function tryRefresh(
       signal: AbortSignal.timeout(5000),
     })
     if (!res.ok) return null
-    const data = await res.json() as { accessToken?: string }
+    const data = await res.json() as { accessToken?: string; rawRefreshToken?: string }
     if (!data.accessToken) return null
-    // Set-Cookie 헤더 수집 (새 RT 브라우저 전달용)
-    // Edge Runtime에서 Headers.forEach()는 WHATWG spec의 forbidden response-header 필터링으로
-    // set-cookie를 건너뜀 — WinterCG 확장인 getSetCookie()로 읽어야 함
-    const setCookieHeaders: string[] =
-      typeof (res.headers as Headers & { getSetCookie?: () => string[] }).getSetCookie === 'function'
-        ? (res.headers as Headers & { getSetCookie: () => string[] }).getSetCookie()
-        : (() => {
-            const result: string[] = []
-            res.headers.forEach((v, n) => { if (n.toLowerCase() === 'set-cookie') result.push(v) })
-            return result
-          })()
+    // Edge Runtime에서 Set-Cookie 헤더는 WHATWG fetch spec 레벨에서 필터링됨 (getSetCookie()도 동작 안 함)
+    // → rawRefreshToken을 JSON body에서 직접 읽어 RT 쿠키 직접 구성
+    const isSecure = request.headers.get('x-forwarded-proto') === 'https'
+    const setCookieHeaders: string[] = []
+    if (data.rawRefreshToken) {
+      setCookieHeaders.push(
+        `${RT_COOKIE}=${data.rawRefreshToken}; Path=/; Max-Age=432000; HttpOnly; SameSite=Lax${isSecure ? '; Secure' : ''}`
+      )
+    } else {
+      // 폴백: getSetCookie() 또는 forEach() 시도 (rawRefreshToken 미지원 백엔드 호환)
+      const h = res.headers as Headers & { getSetCookie?: () => string[] }
+      if (typeof h.getSetCookie === 'function') {
+        setCookieHeaders.push(...h.getSetCookie())
+      } else {
+        res.headers.forEach((v, n) => { if (n.toLowerCase() === 'set-cookie') setCookieHeaders.push(v) })
+      }
+    }
     return { accessToken: data.accessToken, setCookieHeaders }
   } catch {
     return null
