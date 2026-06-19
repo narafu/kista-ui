@@ -78,21 +78,21 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
 
       {/* 연결됨 — muted 패널 */}
       {hasTelegram && (
-        <div className="flex items-center justify-between bg-muted rounded-[10px] px-[14px] py-[12px]">
-          <div>
-            <div className="text-[11.5px] text-muted-foreground mb-0.5">연결된 채팅</div>
-            <div className="text-sm font-bold font-mono">
+        <div className="bg-muted rounded-[10px] px-[14px] py-[12px]">
+          <div className="text-[11.5px] text-muted-foreground mb-1">연결된 채팅</div>
+          <div className="flex items-center justify-between gap-3 min-w-0">
+            <div className="text-sm font-bold font-mono truncate min-w-0">
               {telegramBotUsername ? `@${telegramBotUsername}` : '불러오는 중...'}
             </div>
+            <button
+              type="button"
+              onClick={() => deleteMutation.mutate(undefined, { onSuccess: () => router.refresh() })}
+              disabled={isDeleteLoading}
+              className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'text-destructive hover:text-destructive shrink-0')}
+            >
+              {isDeleteLoading ? '해제 중...' : '연결 해제'}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => deleteMutation.mutate(undefined, { onSuccess: () => router.refresh() })}
-            disabled={isDeleteLoading}
-            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'text-destructive hover:text-destructive')}
-          >
-            {isDeleteLoading ? '해제 중...' : '연결 해제'}
-          </button>
         </div>
       )}
 
