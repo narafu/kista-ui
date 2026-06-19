@@ -52,10 +52,16 @@ async function tryRefresh(
     const data = await res.json() as { accessToken?: string }
     if (!data.accessToken) return null
     // Set-Cookie 헤더 수집 (새 RT 브라우저 전달용)
-    const setCookieHeaders: string[] = []
-    res.headers.forEach((value, name) => {
-      if (name.toLowerCase() === 'set-cookie') setCookieHeaders.push(value)
-    })
+    // Edge Runtime에서 Headers.forEach()는 WHATWG spec의 forbidden response-header 필터링으로
+    // set-cookie를 건너뜀 — WinterCG 확장인 getSetCookie()로 읽어야 함
+    const setCookieHeaders: string[] =
+      typeof (res.headers as Headers & { getSetCookie?: () => string[] }).getSetCookie === 'function'
+        ? (res.headers as Headers & { getSetCookie: () => string[] }).getSetCookie()
+        : (() => {
+            const result: string[] = []
+            res.headers.forEach((v, n) => { if (n.toLowerCase() === 'set-cookie') result.push(v) })
+            return result
+          })()
     return { accessToken: data.accessToken, setCookieHeaders }
   } catch {
     return null
@@ -151,6 +157,9 @@ export async function proxy(request: NextRequest) {
         // JWT 만료/무효 → 캐시 쿠키 초기화하여 다음 방문 시 재검증 강제
         dest.cookies.delete(STATUS_COOKIE)
         dest.cookies.delete(ROLE_COOKIE)
+        // AT 갱신이 선행된 경우 새 AT·RT 쿠키를 반드시 적용 (미적용 시 RT rotation 후
+        // 브라우저가 구 RT를 유지 → 다음 갱신에서 RTR reuse attack 탐지 → 전체 세션 폐기)
+        for (const sc of extraSetCookies) dest.headers.append('Set-Cookie', sc)
         return dest
       }
 
@@ -158,9 +167,11 @@ export async function proxy(request: NextRequest) {
       status = userData.status
       role = userData.role ?? 'USER'
     } catch {
-      return isProtected
+      const dest = isProtected
         ? redirectTo('/', request)
         : NextResponse.next({ request: { headers: requestHeaders } })
+      for (const sc of extraSetCookies) dest.headers.append('Set-Cookie', sc)
+      return dest
     }
   }
 
