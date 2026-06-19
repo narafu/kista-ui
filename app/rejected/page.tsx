@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import { XCircle } from 'lucide-react'
 import { GlassCard } from '@widgets/glass-card'
-import { LogoutButton } from '@features/auth/logout/LogoutButton'
+import { LogoutButton } from '@features/auth/logout'
 import { RejectedReapplyButton } from '@features/auth/reapply/RejectedReapplyButton'
 
 export default function RejectedPage() {

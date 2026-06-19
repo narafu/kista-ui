@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Users, LogOut, Wallet, ArrowLeftRight, ClipboardList, ArrowLeft, Table2 } from 'lucide-react'
-import { LogoutButton } from '@features/auth/logout/LogoutButton'
+import { LogoutButton } from '@features/auth/logout'
 
 const NAV_ITEMS = [
   { href: '/admin',                label: 'Overview',    icon: LayoutDashboard, exact: true },
