@@ -56,6 +56,8 @@ async function tryRefresh(
     const isSecure = request.headers.get('x-forwarded-proto') === 'https'
     const setCookieHeaders: string[] = []
     if (data.rawRefreshToken) {
+      // URL-safe Base64만 허용 — cookie 속성 injection 방어
+      if (!/^[A-Za-z0-9_-]+$/.test(data.rawRefreshToken)) return null
       setCookieHeaders.push(
         `${RT_COOKIE}=${data.rawRefreshToken}; Path=/; Max-Age=432000; HttpOnly; SameSite=Lax${isSecure ? '; Secure' : ''}`
       )
