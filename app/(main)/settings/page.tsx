@@ -1,7 +1,6 @@
-import { AlertTriangle, LogOut } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { DeleteAccountButton } from '@features/settings/delete-user-account'
-import { LogoutButton } from '@features/auth/logout'
 import { getCachedUser } from '@shared/lib/cache/cached-api'
 import { TelegramSection } from '@features/settings/telegram-connect'
 import { NotificationSettings } from '@features/settings/notification-channel'
@@ -85,12 +84,6 @@ export default async function SettingsPage() {
               </div>
             </div>
 
-            <div className="lg:hidden border-t border-border mt-4 pt-4">
-              <LogoutButton className="flex items-center gap-2.5 w-full px-1 py-2 text-[13.5px] font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer bg-transparent border-none">
-                <LogOut className="size-4 shrink-0" />
-                로그아웃
-              </LogoutButton>
-            </div>
           </section>
 
           {/* 알림 */}

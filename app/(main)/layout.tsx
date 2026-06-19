@@ -9,7 +9,8 @@ import { getMetaBundle } from '@entities/meta'
 import { getMe } from '@entities/user'
 import { getAuthToken } from '@shared/lib/auth/token'
 import Link from 'next/link'
-import { ShieldCheck } from 'lucide-react'
+import { ShieldCheck, LogOut } from 'lucide-react'
+import { LogoutButton } from '@features/auth/logout'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const token = await getAuthToken()
@@ -27,14 +28,19 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         <div className="flex flex-col flex-1 min-w-0">
           <MobileHeader
             trailing={
-              isAdmin ? (
-                <Link
-                  href="/admin"
-                  className="flex items-center justify-center size-8 rounded-lg bg-violet-600 text-white"
-                >
-                  <ShieldCheck className="size-4" />
-                </Link>
-              ) : undefined
+              <div className="flex items-center gap-1.5">
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    className="flex items-center justify-center size-8 rounded-lg bg-violet-600 text-white"
+                  >
+                    <ShieldCheck className="size-4" />
+                  </Link>
+                )}
+                <LogoutButton className="flex items-center justify-center size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer bg-transparent border-none">
+                  <LogOut className="size-4" />
+                </LogoutButton>
+              </div>
             }
           />
           <PullToRefresh />
