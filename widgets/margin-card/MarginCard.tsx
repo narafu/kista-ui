@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAccountMarginQuery } from '@entities/account'
+import { fmtUsd, fmtKrw } from '@shared/lib/format'
 
 interface Props {
   accountId: string
@@ -33,7 +34,11 @@ export function MarginCard({ accountId }: Props) {
                 </div>
                 <div className="text-sm">
                   <p className="text-muted-foreground text-xs">주문가능금액</p>
-                  <p className="font-medium">${item.purchasableAmount.toLocaleString()}</p>
+                  <p className="font-medium">
+                    {item.currency === 'KRW'
+                      ? `₩${fmtKrw(item.purchasableAmount)}`
+                      : `$${fmtUsd(item.purchasableAmount)}`}
+                  </p>
                 </div>
               </div>
             ))}
