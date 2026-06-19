@@ -84,6 +84,13 @@ export async function proxy(request: NextRequest) {
   // 요청 헤더 (AT 갱신 시 Server Component가 읽는 kista-token 쿠키를 교체)
   let requestHeaders = new Headers(request.headers)
 
+  // prefetch 요청은 인증 상태를 변형하지 않음 — AT 갱신 스킵
+  // Next.js <Link> prefetch가 동시에 여러 refresh를 유발해 RTR 경쟁을 일으키는 것을 방지
+  const isPrefetch =
+    request.headers.get('next-router-prefetch') === '1' ||
+    request.headers.get('purpose') === 'prefetch'
+  if (isPrefetch) return NextResponse.next({ request: { headers: requestHeaders } })
+
   // AT 만료 감지 → RT로 자동 갱신
   if (isJwtExpired(token)) {
     const refreshed = await tryRefresh(request)
@@ -97,10 +104,10 @@ export async function proxy(request: NextRequest) {
         .concat(`${KISTA_TOKEN_COOKIE}=${token}`)
         .join('; ')
       requestHeaders.set('cookie', updatedCookie)
-      // 브라우저 AT 쿠키 업데이트
+      // 브라우저 AT 쿠키 업데이트 — HttpOnly로 XSS 방어 (app/api/auth/refresh/route.ts와 일치)
       const isSecure = request.headers.get('x-forwarded-proto') === 'https'
       extraSetCookies.push(
-        `${KISTA_TOKEN_COOKIE}=${token}; Path=/; Max-Age=604800; SameSite=Lax${isSecure ? '; Secure' : ''}`
+        `${KISTA_TOKEN_COOKIE}=${token}; Path=/; Max-Age=604800; SameSite=Lax; HttpOnly${isSecure ? '; Secure' : ''}`
       )
       // 새 RT 쿠키 전달 (kista-api Set-Cookie 헤더 그대로)
       for (const sc of refreshed.setCookieHeaders) extraSetCookies.push(sc)
