@@ -85,7 +85,7 @@ function FragmentRow({ base: b, open, onToggle }: { base: AdminPrivacyBase; open
                   <th className="text-left py-1 font-medium">방향</th>
                   <th className="text-left py-1 font-medium">유형</th>
                   <th className="text-right py-1 font-medium">가격</th>
-                  <th className="hidden sm:table-cell text-right py-1 font-medium">수량</th>
+                  <th className="text-right py-1 font-medium">수량</th>
                 </tr>
               </thead>
               <tbody>
@@ -96,7 +96,7 @@ function FragmentRow({ base: b, open, onToggle }: { base: AdminPrivacyBase; open
                     </td>
                     <td className="py-1 text-muted-foreground">{o.orderType}</td>
                     <td className="py-1 text-right font-mono">${fmtUsd(o.price)}</td>
-                    <td className="hidden sm:table-cell py-1 text-right">{o.quantity ?? '-'}</td>
+                    <td className="py-1 text-right">{o.quantity ?? '-'}</td>
                   </tr>
                 ))}
               </tbody>
