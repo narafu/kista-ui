@@ -6,7 +6,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: 'KISTA',
-  description: '한국투자증권 KIS API 기반 해외주식 자동 분할매매 SaaS',
+  description: 'Key Investment Strategy & Trading Automation — 핵심 투자 전략 및 매매 자동화',
   manifest: '/manifest.webmanifest',
   icons: {
     apple: '/apple-touch-icon.png',

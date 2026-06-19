@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'KISTA',
     short_name: 'KISTA',
-    description: '한국투자증권 KIS API 기반 해외주식 자동 분할매매',
+    description: 'Key Investment Strategy & Trading Automation',
     start_url: '/dashboard',
     display: 'standalone',
     background_color: '#FCEFE8',

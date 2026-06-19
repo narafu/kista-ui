@@ -62,14 +62,14 @@ function LoginPageContent() {
             KISTA
           </h1>
           <div
-            className="mt-1 text-[11px] font-bold tracking-[3.2px] uppercase"
+            className="mt-1 text-[10px] font-bold tracking-[1.6px] uppercase"
             style={{ color: 'var(--rose-500)' }}
           >
-            K Investment · Smart · Trading · Auto
+            Key Investment Strategy &amp; Trading Automation
           </div>
         </div>
         <p className="text-sm text-muted-foreground text-center leading-snug mt-1">
-          한국투자증권 KIS API 기반<br />해외주식 자동 분할매매 서비스
+          정밀한 투자 전략을 기반으로<br />다중 증권사 통합 자동매매 인프라
         </p>
       </div>
 
