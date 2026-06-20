@@ -37,6 +37,7 @@ export function PullToRefresh() {
     e.preventDefault()
   }, [])
 
+  const handleTouchEndRef = useRef<() => void>(() => {})
   const handleTouchEnd = useCallback(() => {
     if (!isPullingRef.current) return
     isPullingRef.current = false
@@ -49,17 +50,19 @@ export function PullToRefresh() {
       return 0
     })
   }, [router])
+  handleTouchEndRef.current = handleTouchEnd
 
   useEffect(() => {
+    const stableEnd = () => handleTouchEndRef.current()
     document.addEventListener('touchstart', handleTouchStart, { passive: true })
     document.addEventListener('touchmove', handleTouchMove, { passive: false })
-    document.addEventListener('touchend', handleTouchEnd)
+    document.addEventListener('touchend', stableEnd, { passive: true })
     return () => {
       document.removeEventListener('touchstart', handleTouchStart)
       document.removeEventListener('touchmove', handleTouchMove)
-      document.removeEventListener('touchend', handleTouchEnd)
+      document.removeEventListener('touchend', stableEnd)
     }
-  }, [handleTouchStart, handleTouchMove, handleTouchEnd])
+  }, [handleTouchStart, handleTouchMove])
 
   const progress = Math.min(pullDistance / THRESHOLD, 1)
   const triggered = pullDistance >= THRESHOLD

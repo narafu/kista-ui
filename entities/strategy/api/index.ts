@@ -75,5 +75,9 @@ export async function executeStrategy(id: string): Promise<PlacedOrder[]> {
     `/api/trading-cycles/${id}/execute`,
     { method: 'POST' }
   )
-  return (raw?.orders ?? []).map(normalizePlacedOrder).filter((o) => o.id && o.id !== 'null')
+  return (raw?.orders ?? []).reduce<PlacedOrder[]>((acc, o) => {
+    const n = normalizePlacedOrder(o)
+    if (n.id && n.id !== 'null') acc.push(n)
+    return acc
+  }, [])
 }

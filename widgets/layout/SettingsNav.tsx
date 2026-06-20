@@ -11,6 +11,13 @@ const SECTIONS = [
   { id: 'danger',        label: '계정' },
 ]
 
+function scrollTo(id: string) {
+  const el = document.getElementById(id)
+  if (!el) return
+  const top = el.getBoundingClientRect().top + window.scrollY - 80
+  window.scrollTo({ top, behavior: 'smooth' })
+}
+
 export function SettingsNav() {
   const [active, setActive] = useState('profile')
 
@@ -30,31 +37,24 @@ export function SettingsNav() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  function go(id: string) {
-    const el = document.getElementById(id)
-    if (!el) return
-    const top = el.getBoundingClientRect().top + window.scrollY - 80
-    window.scrollTo({ top, behavior: 'smooth' })
-  }
-
   return (
     <nav className="sticky top-24 flex flex-col gap-1">
       {SECTIONS.map((it) => {
         const on = active === it.id
         return (
-          <a
+          <button
             key={it.id}
-            href={`#${it.id}`}
-            onClick={(e) => { e.preventDefault(); go(it.id) }}
+            type="button"
+            onClick={() => scrollTo(it.id)}
             className={cn(
-              'px-3 py-2 rounded-[var(--r-md)] text-[13.5px] font-semibold no-underline transition-colors duration-150',
+              'px-3 py-2 rounded-[var(--r-md)] text-[13.5px] font-semibold transition-colors duration-150 text-left w-full',
               on
                 ? 'text-rose-600 bg-rose-50 dark:bg-rose-950/40 dark:text-rose-400'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
             )}
           >
             {it.label}
-          </a>
+          </button>
         )
       })}
     </nav>

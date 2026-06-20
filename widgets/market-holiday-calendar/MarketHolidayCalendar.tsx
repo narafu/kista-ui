@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
 import { useMonthlyHolidaysQuery } from '@entities/market'
@@ -28,8 +28,7 @@ export function MarketHolidayCalendar({ holidays, year, month }: Props) {
     isInitialMonth ? holidays : undefined,
   )
 
-  const [today, setToday] = useState<Date | null>(null)
-  useEffect(() => { setToday(new Date()) }, [])
+  const today = useSyncExternalStore(() => () => {}, () => new Date(), () => null)
 
   function prevMonth() {
     if (displayMonth === 1) { setDisplayYear(y => y - 1); setDisplayMonth(12) }
@@ -62,6 +61,7 @@ export function MarketHolidayCalendar({ holidays, year, month }: Props) {
       </span>
       <div className="flex items-center justify-between mb-1">
         <button
+          type="button"
           onClick={prevMonth}
           className="p-0.5 rounded hover:bg-muted transition-colors"
           aria-label="이전 달"
@@ -72,6 +72,7 @@ export function MarketHolidayCalendar({ holidays, year, month }: Props) {
           {displayYear}년 {displayMonth}월
         </span>
         <button
+          type="button"
           onClick={nextMonth}
           className="p-0.5 rounded hover:bg-muted transition-colors"
           aria-label="다음 달"

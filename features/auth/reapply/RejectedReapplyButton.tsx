@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { reapply } from '@entities/user'
 
@@ -19,16 +19,13 @@ function formatCooldown(minutes: number): string {
 export function RejectedReapplyButton() {
   const router = useRouter()
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [cooldownMinutes, setCooldownMinutes] = useState(0)
-
-  useEffect(() => {
+  const [cooldownMinutes, setCooldownMinutes] = useState(() => {
+    if (typeof window === 'undefined') return 0
     const last = localStorage.getItem(STORAGE_KEY)
-    if (last) {
-      const elapsed = Date.now() - Number(last)
-      const remaining = Math.ceil((COOLDOWN_MS - elapsed) / 60000)
-      if (remaining > 0) setCooldownMinutes(remaining)
-    }
-  }, [])
+    if (!last) return 0
+    const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - Number(last))) / 60000)
+    return remaining > 0 ? remaining : 0
+  })
 
   async function handleReapply() {
     if (cooldownMinutes > 0) return

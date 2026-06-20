@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -55,12 +55,12 @@ interface ErrorDisplayProps {
 export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const [timeStr, setTimeStr] = useState('')
   const cfg = (code !== undefined && CFGS[code]) || DEFAULT_CFG
-
-  useEffect(() => {
-    setTimeStr(new Date().toLocaleTimeString('ko-KR', { hour12: false }))
-  }, [])
+  const timeStr = useSyncExternalStore(
+    () => () => {},
+    () => new Date().toLocaleTimeString('ko-KR', { hour12: false }),
+    () => '',
+  )
 
   const content = (
     <div className="text-center max-w-[440px] w-full px-6">

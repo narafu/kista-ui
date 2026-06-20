@@ -10,16 +10,17 @@ interface Props {
   className?: string
 }
 
+const SIZE_MAP = { sm: 'text-sm', md: 'text-base', lg: 'text-xl font-bold' } as const
+
 export function ProfitDisplay({ amount, rate, size = 'md', full, currency = 'USD', className }: Props) {
   const isPos = (rate ?? amount ?? 0) >= 0
   const color = isPos ? 'text-pos' : 'text-neg'
-  const sizeMap = { sm: 'text-sm', md: 'text-base', lg: 'text-xl font-bold' }
   const sign = isPos ? '+' : '-'
   const sym = currency === 'KRW' ? '₩' : '$'
   const fmt = (n: number) => currency === 'KRW' ? fmtKrw(n) : fmtUsd(n)
 
   return (
-    <span className={cn('inline-flex items-baseline gap-1.5 flex-wrap', sizeMap[size], color, className)}>
+    <span className={cn('inline-flex items-baseline gap-1.5 flex-wrap', SIZE_MAP[size], color, className)}>
       {full && amount !== undefined && (
         <span>{sign}{sym}{fmt(Math.abs(amount))}</span>
       )}

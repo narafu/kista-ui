@@ -15,8 +15,7 @@ interface Props {
 }
 
 export default async function AccountEditPage({ params }: Props) {
-  const { id } = await params
-  const token = await getAuthToken()
+  const [{ id }, token] = await Promise.all([params, getAuthToken()])
 
   if (!token) {
     return notFound()

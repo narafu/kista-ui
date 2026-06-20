@@ -43,8 +43,7 @@ export const metadata: Metadata = {
 }
 
 export default async function AccountDetailPage({ params }: Props) {
-  const { id } = await params
-  const token = await getAuthToken()
+  const [{ id }, token] = await Promise.all([params, getAuthToken()])
 
   if (!token) {
     return notFound()

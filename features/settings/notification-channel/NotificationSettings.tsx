@@ -7,6 +7,13 @@ import { useUpdateNotificationChannelMutation } from '@entities/user'
 import { useFcmToken, registerTokenToServer } from '@entities/fcm'
 import type { NotificationChannel } from '@entities/user'
 
+const NOTIFICATION_CHANNELS: { value: NotificationChannel; label: string; desc: string }[] = [
+  { value: 'NONE', label: '끄기', desc: '알림을 받지 않습니다' },
+  { value: 'FCM', label: '푸시 알림', desc: '브라우저 / 모바일 푸시' },
+  { value: 'TELEGRAM', label: '텔레그램', desc: '텔레그램 봇 알림' },
+  { value: 'ALL', label: '모두', desc: '텔레그램 + 푸시 동시 수신' },
+]
+
 interface Props {
   currentChannel: NotificationChannel
   hasTelegram: boolean
@@ -77,20 +84,13 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
     })
   }
 
-  const channels: { value: NotificationChannel; label: string; desc: string }[] = [
-    { value: 'NONE', label: '끄기', desc: '알림을 받지 않습니다' },
-    { value: 'FCM', label: '푸시 알림', desc: '브라우저 / 모바일 푸시' },
-    { value: 'TELEGRAM', label: '텔레그램', desc: '텔레그램 봇 알림' },
-    { value: 'ALL', label: '모두', desc: '텔레그램 + 푸시 동시 수신' },
-  ]
-
   const needsTelegram = !hasTelegram && (currentChannel === 'TELEGRAM' || currentChannel === 'ALL')
 
   return (
     <div className="mt-4 pt-4 border-t border-border">
       <div className="text-[12.5px] font-semibold text-muted-foreground mb-2">알림 수단</div>
       <div className="flex gap-2 flex-wrap">
-        {channels.map((c) => (
+        {NOTIFICATION_CHANNELS.map((c) => (
           <button
             key={c.value}
             type="button"

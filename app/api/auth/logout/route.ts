@@ -5,6 +5,7 @@ const KISTA_TOKEN_COOKIE = 'kista-token'
 const STATUS_COOKIE = 'kista-user-status'
 const ROLE_COOKIE = 'kista-user-role'
 const RT_COOKIE = 'refresh_token'
+const CLEAR_COOKIE = { maxAge: 0, path: '/' }
 
 export async function POST(request: NextRequest) {
   const cookieStore = await cookies()
@@ -24,10 +25,9 @@ export async function POST(request: NextRequest) {
   }
 
   const response = NextResponse.json({ success: true })
-  const clear = { maxAge: 0, path: '/' }
-  response.cookies.set(KISTA_TOKEN_COOKIE, '', clear)
-  response.cookies.set(STATUS_COOKIE, '', clear)
-  response.cookies.set(ROLE_COOKIE, '', clear)
-  response.cookies.set(RT_COOKIE, '', clear)
+  response.cookies.set(KISTA_TOKEN_COOKIE, '', CLEAR_COOKIE)
+  response.cookies.set(STATUS_COOKIE, '', CLEAR_COOKIE)
+  response.cookies.set(ROLE_COOKIE, '', CLEAR_COOKIE)
+  response.cookies.set(RT_COOKIE, '', CLEAR_COOKIE)
   return response
 }

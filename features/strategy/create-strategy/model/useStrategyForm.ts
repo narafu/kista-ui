@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -109,10 +109,9 @@ export function useStrategyForm({
   const loadingBase = marginLoading || pricesLoading || privacyLoading
 
   // 초기 로딩 완료 후엔 true로 고정 — 타입 전환 시 재스켈레톤 방지
-  const [initialized, setInitialized] = useState(false)
-  useEffect(() => {
-    if (!loadingBase) setInitialized(true)
-  }, [loadingBase])
+  const initRef = useRef(false)
+  if (!loadingBase) initRef.current = true
+  const initialized = initRef.current
 
   useEffect(() => {
     if (loadingBase) return

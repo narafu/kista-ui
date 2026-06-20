@@ -30,6 +30,7 @@ export function ErrorLogItem({ log }: { log: AppErrorLog }) {
 
           {/* stackTrace 접기/펼치기 */}
           <button
+            type="button"
             onClick={() => setOpen(v => !v)}
             className="mt-1.5 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
           >

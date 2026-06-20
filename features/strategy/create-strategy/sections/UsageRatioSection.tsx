@@ -5,6 +5,15 @@ import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import { PercentGauge, SeedAmountInput } from '@widgets/percent-gauge'
 import { fmtUsd } from '@shared/lib/format'
 
+const BALANCE_OFF_BADGE = (
+  <span
+    className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
+    style={{ background: 'var(--rose-50, rgba(251,207,232,.15))', color: 'var(--rose-500)', borderColor: 'var(--rose-300)' }}
+  >
+    잔고검증 OFF
+  </span>
+)
+
 interface Props {
   pct: number
   setPct: (pct: number) => void
@@ -31,15 +40,7 @@ export function UsageRatioSection({
   return (
     <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel
-        hint={isOff
-          ? <span
-              className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
-              style={{ background: 'var(--rose-50, rgba(251,207,232,.15))', color: 'var(--rose-500)', borderColor: 'var(--rose-300)' }}
-            >
-              잔고검증 OFF
-            </span>
-          : 'USD 예수금 기준 · 드래그하거나 입력'
-        }
+        hint={isOff ? BALANCE_OFF_BADGE : 'USD 예수금 기준 · 드래그하거나 입력'}
       >
         {isOff ? '시드 금액' : '사용 비율'}
       </StrategyFieldLabel>

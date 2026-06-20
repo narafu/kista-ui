@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore, useState } from 'react'
 import { cn } from '@shared/lib/utils'
 import { buttonVariants } from '@/components/ui/button-variants'
 import {
@@ -38,15 +38,15 @@ export function StrategyFormDialog({
   disabled = false,
 }: Props) {
   const [open, setOpen] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 1023px)')
-    setIsMobile(mq.matches)
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
+  const isMobile = useSyncExternalStore(
+    (cb) => {
+      const mq = window.matchMedia('(max-width: 1023px)')
+      mq.addEventListener('change', cb)
+      return () => mq.removeEventListener('change', cb)
+    },
+    () => window.matchMedia('(max-width: 1023px)').matches,
+    () => false,
+  )
 
   const triggerClass = cn(
     buttonVariants({ variant: triggerVariant, size: 'sm' }),

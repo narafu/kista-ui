@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useSyncExternalStore } from 'react'
 import { useTheme } from 'next-themes'
 
 const THEMES = [
@@ -32,26 +32,18 @@ const THEMES = [
 
 export function ThemeCards() {
   const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false)
 
   return (
     <div className="grid grid-cols-3 gap-3">
       {THEMES.map((o) => {
         const on = mounted && (theme ?? 'system') === o.key
         return (
-          <div
+          <button
             key={o.key}
-            role="button"
-            tabIndex={0}
+            type="button"
             onClick={() => setTheme(o.key)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                setTheme(o.key)
-              }
-            }}
-            className="p-3 rounded-xl bg-card cursor-pointer transition-[border-color] duration-150"
+            className="p-3 rounded-xl bg-card cursor-pointer transition-[border-color] duration-150 text-left w-full"
             style={{ border: `2px solid ${on ? 'var(--rose-400)' : 'var(--border)'}` }}
           >
             <div
@@ -71,7 +63,7 @@ export function ThemeCards() {
                 <span className="size-4 rounded-full bg-rose-500 text-white grid place-items-center text-[10px]">✓</span>
               )}
             </div>
-          </div>
+          </button>
         )
       })}
     </div>

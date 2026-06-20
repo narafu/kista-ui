@@ -7,6 +7,8 @@ import { useMeta } from '@entities/meta'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 
+const EMPTY_STRATEGIES: Strategy[] = []
+
 interface Props {
   account: Account
   strategies?: Strategy[]
@@ -22,7 +24,7 @@ function aggregateStatus(strategies: Strategy[]): 'ACTIVE' | 'PAUSED' | null {
   return 'PAUSED'
 }
 
-export function AccountCard({ account, strategies = [] }: Props) {
+export function AccountCard({ account, strategies = EMPTY_STRATEGIES }: Props) {
   const { findBroker } = useMeta()
   const broker = findBroker(account.broker)
   const brokerLabel = broker?.label ?? account.broker

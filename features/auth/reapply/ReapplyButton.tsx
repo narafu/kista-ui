@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { reapply } from '@entities/user'
@@ -11,16 +11,13 @@ const COOLDOWN_MS = 60 * 60 * 1000
 
 export function ReapplyButton() {
   const [isLoading, setIsLoading] = useState(false)
-  const [cooldownMinutes, setCooldownMinutes] = useState(0)
-
-  useEffect(() => {
+  const [cooldownMinutes, setCooldownMinutes] = useState(() => {
+    if (typeof window === 'undefined') return 0
     const last = localStorage.getItem(STORAGE_KEY)
-    if (last) {
-      const elapsed = Date.now() - Number(last)
-      const remaining = Math.ceil((COOLDOWN_MS - elapsed) / 60000)
-      if (remaining > 0) setCooldownMinutes(remaining)
-    }
-  }, [])
+    if (!last) return 0
+    const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - Number(last))) / 60000)
+    return remaining > 0 ? remaining : 0
+  })
 
   async function handleReapply() {
     if (cooldownMinutes > 0) {

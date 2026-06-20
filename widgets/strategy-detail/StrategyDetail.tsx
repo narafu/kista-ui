@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -64,10 +64,17 @@ interface Props {
 export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy }: Props) {
   const { push } = useRouter()
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const [mode, setMode] = useState<'preview' | 'executed'>('preview')
-  const [placedOrders, setPlacedOrders] = useState<PlacedOrder[]>([])
+  const [manualOrders, setManualOrders] = useState<PlacedOrder[] | null>(null)
 
   const { data: preview, isLoading: isLoadingPreview, isError: isPreviewError, error: previewError } = useStrategyOrderPreviewQuery(strategy.id)
+
+  const serverOrders = preview?.todayOrders ?? []
+  const hasServerOrders = serverOrders.length > 0
+  const placedOrders = manualOrders ?? (hasServerOrders ? serverOrders : [])
+  const mode: 'preview' | 'executed' = manualOrders !== null || hasServerOrders ? 'executed' : 'preview'
+  function setMode(m: 'preview' | 'executed') {
+    if (m === 'preview') setManualOrders(null)
+  }
   const position = preview?.position ?? null
   const orders = preview?.orders ?? []
 
@@ -86,14 +93,6 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
     return Math.max(0, totalBuy - purchasable)
   })()
   const hasDeficit = previewDeficit > 0
-
-  // 새로고침 후 복원: 오늘 PLANNED 주문이 있으면 자동으로 executed 모드로 진입
-  useEffect(() => {
-    if (!preview?.todayOrders?.length) return
-    if (mode === 'executed') return
-    setMode('executed')
-    setPlacedOrders(preview.todayOrders)
-  }, [preview?.todayOrders]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: marketSession } = useMarketSessionQuery()
   const today = new Date()
@@ -222,7 +221,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                   }
                   if (hasDeficit) { toast.info('예수금이 부족합니다'); return }
                   executeMutation.mutate(undefined, {
-                    onSuccess: (placed) => { setMode('executed'); setPlacedOrders(placed) },
+                    onSuccess: (placed) => { setManualOrders(placed) },
                   })
                 }}
                 disabled={executeMutation.isPending || orders.length === 0 || isMarginLoading}
@@ -250,8 +249,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                       onSuccess: (r) => {
                         if (r.failedCount === 0) {
                           toast.success(`${r.cancelledCount}건 모두 취소됐습니다.`)
-                          setMode('preview')
-                          setPlacedOrders([])
+                          setManualOrders(null)
                         } else {
                           toast.warning(`${r.cancelledCount}건 취소, ${r.failedCount}건 실패 — KIS에서 직접 확인하세요.`)
                         }
@@ -280,8 +278,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                         cancelOneMutation.mutate(o.id, {
                           onSuccess: () => {
                             const remaining = placedOrders.filter((x) => x.id !== o.id)
-                            setPlacedOrders(remaining)
-                            if (remaining.length === 0) setMode('preview')
+                            setManualOrders(remaining.length === 0 ? null : remaining)
                           },
                         })
                       }
@@ -322,8 +319,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                             cancelOneMutation.mutate(o.id, {
                               onSuccess: () => {
                                 const remaining = placedOrders.filter((x) => x.id !== o.id)
-                                setPlacedOrders(remaining)
-                                if (remaining.length === 0) setMode('preview')
+                                setManualOrders(remaining.length === 0 ? null : remaining)
                               },
                             })
                           }
