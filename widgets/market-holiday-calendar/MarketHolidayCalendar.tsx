@@ -28,7 +28,11 @@ export function MarketHolidayCalendar({ holidays, year, month }: Props) {
     isInitialMonth ? holidays : undefined,
   )
 
-  const today = useSyncExternalStore(() => () => {}, () => new Date(), () => null)
+  const todayStr = useSyncExternalStore(
+    () => () => {},
+    () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}` },
+    () => null,
+  )
 
   function prevMonth() {
     if (displayMonth === 1) { setDisplayYear(y => y - 1); setDisplayMonth(12) }
@@ -49,10 +53,7 @@ export function MarketHolidayCalendar({ holidays, year, month }: Props) {
 
   const isHoliday = (day: number) => holidaySet.has(`${displayYear}-${pad(displayMonth)}-${pad(day)}`)
   const isToday = (day: number) =>
-    today !== null &&
-    today.getFullYear() === displayYear &&
-    today.getMonth() + 1 === displayMonth &&
-    today.getDate() === day
+    todayStr === `${displayYear}-${displayMonth}-${day}`
 
   return (
     <div className="rounded-[var(--r-lg)] p-5 flex flex-col gap-1 bg-card border border-border shadow-[var(--sh-card)]">
