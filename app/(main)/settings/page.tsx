@@ -6,6 +6,7 @@ import { TelegramSection } from '@features/settings/telegram-connect'
 import { NotificationSettings } from '@features/settings/notification-channel'
 import { ThemeCards } from '@features/settings/theme-select'
 import { BalanceCheckSetting } from '@features/settings/balance-check-setting'
+import { TradingAlertToggle } from '@features/settings/notification-prefs'
 import { NicknameEditor } from '@features/settings/edit-nickname'
 import { PageHeader } from '@widgets/page-header'
 import { ThemeToggle } from '@widgets/theme-toggle'
@@ -20,9 +21,9 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
 
 // 알림 종류: 매매 알림은 구현됨, 나머지는 준비 중
 const NOTIFICATION_TYPES = [
-  { label: '매매 알림',       desc: '매매 체결 결과 알림',         ready: true  },
-  { label: '시스템 점검 알림', desc: 'KIS API 점검 시간 안내',      ready: false },
-  { label: '주간 리포트',     desc: '매주 월요일 아침 9시 발송',    ready: false },
+  { label: '매매 알림',       desc: '매매 체결 결과 알림',         type: 'TRADING_ALERT' as const },
+  { label: '시스템 점검 알림', desc: 'KIS API 점검 시간 안내',      type: null },
+  { label: '주간 리포트',     desc: '매주 월요일 아침 9시 발송',    type: null },
 ]
 
 export default async function SettingsPage() {
@@ -110,7 +111,7 @@ export default async function SettingsPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="text-[13px] font-bold">{row.label}</span>
-                      {!row.ready && (
+                      {!row.type && (
                         <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-warn-bg text-warn leading-none">
                           준비 중
                         </span>
@@ -118,6 +119,11 @@ export default async function SettingsPage() {
                     </div>
                     <div className="text-[11.5px] text-muted-foreground mt-0.5">{row.desc}</div>
                   </div>
+                  {row.type === 'TRADING_ALERT' && (
+                    <TradingAlertToggle
+                      initialEnabled={user?.notificationPrefs?.['TRADING_ALERT'] ?? true}
+                    />
+                  )}
                 </div>
               ))}
             </div>

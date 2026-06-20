@@ -10,6 +10,7 @@ export interface User {
   telegramBotUsername?: string | null
   notificationChannel?: NotificationChannel
   balanceCheckEnabled: boolean
+  notificationPrefs?: Record<string, boolean>
 }
 
 export interface AdminUser {

@@ -9,6 +9,14 @@ export async function getMeClient(): Promise<User> {
   return clientFetch<User>('/api/auth/me', { method: 'GET' })
 }
 
+export async function updateNotificationPref(type: string, enabled: boolean): Promise<void> {
+  await clientFetch<void>(`/api/settings/notifications/${type}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ enabled }),
+  })
+}
+
 export async function updateBalanceCheckEnabled(enabled: boolean): Promise<void> {
   await clientFetch<void>('/api/settings/balance-check', {
     method: 'PATCH',

@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { listAdminUsers, reapply, deleteMe, updateNotificationChannel, updateTelegram, deleteTelegram, approveAdminUser, rejectAdminUser, changeAdminUserRole, deleteAdminUser, getMeClient, updateBalanceCheckEnabled, updateNickname } from '../api'
+import { listAdminUsers, reapply, deleteMe, updateNotificationChannel, updateTelegram, deleteTelegram, approveAdminUser, rejectAdminUser, changeAdminUserRole, deleteAdminUser, getMeClient, updateBalanceCheckEnabled, updateNickname, updateNotificationPref } from '../api'
 import type { AdminUser, User, UserRole, UserStatus } from '../model/types'
 
 export function useMeQuery(initialData?: User) {
@@ -12,6 +12,18 @@ export function useMeQuery(initialData?: User) {
     queryFn: getMeClient,
     initialData,
     staleTime: 60_000,
+  })
+}
+
+export function useUpdateNotificationPrefMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ type, enabled }: { type: string; enabled: boolean }) =>
+      updateNotificationPref(type, enabled),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['me'] })
+    },
+    onError: () => toast.error('알림 설정 변경에 실패했습니다.'),
   })
 }
 
