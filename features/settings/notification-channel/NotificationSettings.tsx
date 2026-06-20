@@ -48,7 +48,7 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
         if (Notification.permission === 'denied') {
           toast.error('알림이 차단되어 있습니다. 브라우저 설정 > 알림에서 허용 후 다시 시도해주세요')
         } else {
-          toast.error('이 브라우저에서는 푸시 알림을 사용할 수 없습니다. Chrome 또는 Edge를 이용해주세요')
+          toast.error('푸시 알림 토큰 발급에 실패했습니다. 잠시 후 다시 시도해주세요')
         }
         return
       }
@@ -121,7 +121,9 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
       )}
       {fcmStatus === 'error' && (
         <p className="text-[11.5px] mt-2" style={{ color: 'var(--warn)' }}>
-          이 브라우저에서는 푸시 알림이 지원되지 않습니다. Chrome 또는 Edge를 이용해주세요.
+          {'Notification' in window && 'PushManager' in window
+            ? '푸시 알림 설정에 실패했습니다. 새로고침 후 다시 시도해주세요.'
+            : '이 브라우저에서는 푸시 알림이 지원되지 않습니다. Chrome 또는 Edge를 이용해주세요.'}
         </p>
       )}
     </div>
