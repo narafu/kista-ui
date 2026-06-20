@@ -52,10 +52,9 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await res.json()
-    const { accessToken, user, rawRefreshToken } = data as {
+    const { accessToken, user } = data as {
       accessToken: string
       user: { status: string }
-      rawRefreshToken?: string
     }
     const status: string = user.status
 
@@ -65,20 +64,10 @@ export async function GET(request: NextRequest) {
 
     response.cookies.set(KISTA_TOKEN_COOKIE, accessToken, TOKEN_COOKIE_OPTIONS)
 
-    // RT 쿠키: JSON body의 rawRefreshToken 우선(Set-Cookie 헤더 래핑 우회) → 없으면 getSetCookie 폴백
-    if (rawRefreshToken) {
-      response.cookies.set('refresh_token', rawRefreshToken, {
-        httpOnly: true,
-        secure: proto === 'https',
-        sameSite: 'lax',
-        maxAge: 432000,
-        path: '/',
-      })
-    } else {
-      const h = res.headers as Headers & { getSetCookie?: () => string[] }
-      for (const sc of (typeof h.getSetCookie === 'function' ? h.getSetCookie() : [])) {
-        response.headers.append('Set-Cookie', sc)
-      }
+    // RT 쿠키: kista-api Set-Cookie 헤더를 그대로 relay (Node.js 런타임에서 getSetCookie() 동작)
+    const h = res.headers as Headers & { getSetCookie?: () => string[] }
+    for (const sc of (typeof h.getSetCookie === 'function' ? h.getSetCookie() : [])) {
+      response.headers.append('Set-Cookie', sc)
     }
 
     // kista-user-status: PENDING 제외하고 캐싱

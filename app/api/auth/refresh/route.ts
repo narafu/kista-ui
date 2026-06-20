@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     if (!res.ok) return NextResponse.json({ error: 'Refresh failed' }, { status: 401 })
 
-    const data = await res.json() as { accessToken?: string; rawRefreshToken?: string }
+    const data = await res.json() as { accessToken?: string }
     if (!data.accessToken) return NextResponse.json({ error: 'No access token' }, { status: 401 })
 
     const isSecure = request.headers.get('x-forwarded-proto') === 'https'
@@ -39,20 +39,10 @@ export async function POST(request: NextRequest) {
       path: '/',
     })
 
-    // 새 RT 쿠키 브라우저에 전달 — JSON body rawRefreshToken 우선, 폴백은 Set-Cookie 헤더(Node.js에서는 forEach 동작)
-    if (data.rawRefreshToken) {
-      response.cookies.set(RT_COOKIE, data.rawRefreshToken, {
-        httpOnly: true,
-        secure: isSecure,
-        sameSite: 'lax',
-        maxAge: 432000,
-        path: '/',
-      })
-    } else {
-      const h = res.headers as Headers & { getSetCookie?: () => string[] }
-      for (const sc of (typeof h.getSetCookie === 'function' ? h.getSetCookie() : [])) {
-        response.headers.append('Set-Cookie', sc)
-      }
+    // RT 쿠키: kista-api Set-Cookie 헤더를 그대로 relay (Node.js 런타임에서 getSetCookie() 동작)
+    const h = res.headers as Headers & { getSetCookie?: () => string[] }
+    for (const sc of (typeof h.getSetCookie === 'function' ? h.getSetCookie() : [])) {
+      response.headers.append('Set-Cookie', sc)
     }
 
     return response

@@ -31,10 +31,10 @@ function isJwtExpired(token: string, bufferSecs = 30): boolean {
   }
 }
 
-// RT 쿠키로 kista-api /api/auth/refresh 호출 — 성공 시 새 AT + Set-Cookie 헤더 반환
-async function tryRefresh(
-  request: NextRequest
-): Promise<{ accessToken: string; setCookieHeaders: string[] } | null> {
+// RT 쿠키로 kista-api /api/auth/refresh 호출 — 성공 시 새 AT 반환
+// Edge Runtime은 WHATWG fetch spec 상 Set-Cookie 헤더를 읽을 수 없어 RT 로테이션 불가
+// RT 로테이션은 클라이언트가 /api/auth/refresh(Node.js Route Handler)를 호출할 때 처리됨
+async function tryRefresh(request: NextRequest): Promise<string | null> {
   const rt = request.cookies.get(RT_COOKIE)?.value
   if (!rt) return null
   const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
@@ -49,28 +49,8 @@ async function tryRefresh(
       signal: AbortSignal.timeout(5000),
     })
     if (!res.ok) return null
-    const data = await res.json() as { accessToken?: string; rawRefreshToken?: string }
-    if (!data.accessToken) return null
-    // Edge Runtime에서 Set-Cookie 헤더는 WHATWG fetch spec 레벨에서 필터링됨 (getSetCookie()도 동작 안 함)
-    // → rawRefreshToken을 JSON body에서 직접 읽어 RT 쿠키 직접 구성
-    const isSecure = request.headers.get('x-forwarded-proto') === 'https'
-    const setCookieHeaders: string[] = []
-    if (data.rawRefreshToken) {
-      // URL-safe Base64만 허용 — cookie 속성 injection 방어
-      if (!/^[A-Za-z0-9_-]+$/.test(data.rawRefreshToken)) return null
-      setCookieHeaders.push(
-        `${RT_COOKIE}=${data.rawRefreshToken}; Path=/; Max-Age=432000; HttpOnly; SameSite=Lax${isSecure ? '; Secure' : ''}`
-      )
-    } else {
-      // 폴백: getSetCookie() 또는 forEach() 시도 (rawRefreshToken 미지원 백엔드 호환)
-      const h = res.headers as Headers & { getSetCookie?: () => string[] }
-      if (typeof h.getSetCookie === 'function') {
-        setCookieHeaders.push(...h.getSetCookie())
-      } else {
-        res.headers.forEach((v, n) => { if (n.toLowerCase() === 'set-cookie') setCookieHeaders.push(v) })
-      }
-    }
-    return { accessToken: data.accessToken, setCookieHeaders }
+    const data = await res.json() as { accessToken?: string }
+    return data.accessToken ?? null
   } catch {
     return null
   }
@@ -105,11 +85,11 @@ export async function proxy(request: NextRequest) {
     request.headers.get('purpose') === 'prefetch'
   if (isPrefetch) return NextResponse.next({ request: { headers: requestHeaders } })
 
-  // AT 만료 감지 → RT로 자동 갱신
+  // AT 만료 감지 → RT로 자동 갱신 (RT 로테이션은 Node.js /api/auth/refresh에서 처리)
   if (isJwtExpired(token)) {
-    const refreshed = await tryRefresh(request)
-    if (refreshed) {
-      token = refreshed.accessToken
+    const newAccessToken = await tryRefresh(request)
+    if (newAccessToken) {
+      token = newAccessToken
       // 요청 쿠키 헤더에 새 AT 반영 — Server Component의 getAuthToken()이 읽음
       const rawCookie = requestHeaders.get('cookie') ?? ''
       const updatedCookie = rawCookie
@@ -123,8 +103,6 @@ export async function proxy(request: NextRequest) {
       extraSetCookies.push(
         `${KISTA_TOKEN_COOKIE}=${token}; Path=/; Max-Age=604800; SameSite=Lax; HttpOnly${isSecure ? '; Secure' : ''}`
       )
-      // 새 RT 쿠키 전달 (kista-api Set-Cookie 헤더 그대로)
-      for (const sc of refreshed.setCookieHeaders) extraSetCookies.push(sc)
     } else {
       // RT 없거나 갱신 실패 → 상태 캐시 삭제 후 보호 경로면 로그인 이동
       const dest = isProtected
