@@ -19,12 +19,6 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   REJECTED: { label: '반려',  color: 'var(--status-error)' },
 }
 
-// 알림 종류: 매매 알림은 구현됨, 나머지는 준비 중
-const NOTIFICATION_TYPES = [
-  { label: '매매 알림',       desc: '매매 체결 결과 알림',         type: 'TRADING_ALERT' as const },
-  { label: '시스템 점검 알림', desc: 'KIS API 점검 시간 안내',      type: null },
-  { label: '주간 리포트',     desc: '매주 월요일 아침 9시 발송',    type: null },
-]
 
 export default async function SettingsPage() {
   const token = await getAuthToken()
@@ -89,30 +83,14 @@ export default async function SettingsPage() {
             />
 
             <div className="text-[12.5px] font-semibold text-muted-foreground mt-5 mb-2">KISTA가 보내는 알림</div>
-            <div className="divide-y divide-border">
-              {NOTIFICATION_TYPES.map((row) => (
-                <div
-                  key={row.label}
-                  className="flex items-center gap-[14px] py-3"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[13px] font-bold">{row.label}</span>
-                      {!row.type && (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-warn-bg text-warn leading-none">
-                          준비 중
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-[11.5px] text-muted-foreground mt-0.5">{row.desc}</div>
-                  </div>
-                  {row.type === 'TRADING_ALERT' && (
-                    <TradingAlertToggle
-                      initialEnabled={user?.notificationPrefs?.['TRADING_ALERT'] ?? true}
-                    />
-                  )}
-                </div>
-              ))}
+            <div className="flex items-center gap-[14px] py-3">
+              <div className="flex-1">
+                <div className="text-[13px] font-bold">매매 알림</div>
+                <div className="text-[11.5px] text-muted-foreground mt-0.5">매매 체결 결과 알림</div>
+              </div>
+              <TradingAlertToggle
+                initialEnabled={user?.notificationPrefs?.['TRADING_ALERT'] ?? true}
+              />
             </div>
           </section>
 
