@@ -64,20 +64,20 @@ export async function GET(request: NextRequest) {
 
     response.cookies.set(KISTA_TOKEN_COOKIE, accessToken, TOKEN_COOKIE_OPTIONS)
 
-    // RT 쿠키: kista-api Set-Cookie 헤더를 그대로 relay (Node.js 런타임에서 getSetCookie() 동작)
-    const h = res.headers as Headers & { getSetCookie?: () => string[] }
-    const rtCookies = typeof h.getSetCookie === 'function' ? h.getSetCookie() : []
-    console.info(`[kista:callback] relaying Set-Cookie count=${rtCookies.length}`)
-    for (const sc of rtCookies) {
-      response.headers.append('Set-Cookie', sc)
-    }
-
     // kista-user-status: PENDING 제외하고 캐싱
     if (status !== 'PENDING') {
       response.cookies.set(STATUS_COOKIE, status, {
         ...TOKEN_COOKIE_OPTIONS,
         httpOnly: true,  // status 쿠키는 서버 전용으로 보호
       })
+    }
+
+    // RT 쿠키: kista-api Set-Cookie 헤더를 그대로 relay — 반드시 마지막에 수행
+    // Next.js ResponseCookies.set()은 호출 시마다 set-cookie 헤더를 재직렬화하면서
+    // 이전에 raw append된 헤더를 덮어쓴다. RT relay를 마지막에 두어야 생존한다.
+    const h = res.headers as Headers & { getSetCookie?: () => string[] }
+    for (const sc of (typeof h.getSetCookie === 'function' ? h.getSetCookie() : [])) {
+      response.headers.append('Set-Cookie', sc)
     }
 
     return response

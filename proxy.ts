@@ -38,10 +38,7 @@ async function tryRefresh(
   request: NextRequest
 ): Promise<{ accessToken: string; setCookieHeaders: string[] } | null> {
   const rt = request.cookies.get(RT_COOKIE)?.value
-  if (!rt) {
-    console.warn('[kista:proxy:tryRefresh] RT cookie absent — skip')
-    return null
-  }
+  if (!rt) return null
   const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
   if (!apiUrl) return null
   try {
@@ -53,20 +50,12 @@ async function tryRefresh(
       },
       signal: AbortSignal.timeout(5000),
     })
-    if (!res.ok) {
-      console.warn(`[kista:proxy:tryRefresh] kista-api returned ${res.status}`)
-      return null
-    }
+    if (!res.ok) return null
     const data = await res.json() as { accessToken?: string }
-    if (!data.accessToken) {
-      console.warn('[kista:proxy:tryRefresh] no accessToken field in response')
-      return null
-    }
+    if (!data.accessToken) return null
     const setCookieHeaders = res.headers.getSetCookie()
-    console.info(`[kista:proxy:tryRefresh] OK setCookieCount=${setCookieHeaders.length}`)
     return { accessToken: data.accessToken, setCookieHeaders }
-  } catch (e) {
-    console.warn('[kista:proxy:tryRefresh] fetch error:', e)
+  } catch {
     return null
   }
 }
@@ -122,7 +111,6 @@ export async function proxy(request: NextRequest) {
       for (const sc of refreshed.setCookieHeaders) extraSetCookies.push(sc)
     } else {
       // RT 없거나 갱신 실패 → 상태 캐시 삭제 후 보호 경로면 로그인 이동
-      console.warn(`[kista:proxy:refresh-fail] isProtected=${isProtected} path=${pathname}`)
       const dest = isProtected
         ? redirectTo('/', request)
         : NextResponse.next({ request: { headers: requestHeaders } })
