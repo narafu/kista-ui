@@ -48,7 +48,7 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
         if (Notification.permission === 'denied') {
           toast.error('알림이 차단되어 있습니다. 브라우저 설정 > 알림에서 허용 후 다시 시도해주세요')
         } else {
-          toast.error('브라우저 알림 권한을 허용해주세요')
+          toast.error('이 브라우저에서는 푸시 알림을 사용할 수 없습니다. Chrome 또는 Edge를 이용해주세요')
         }
         return
       }
@@ -117,6 +117,11 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
       {fcmStatus === 'denied' && (
         <p className="text-[11.5px] mt-2" style={{ color: 'var(--neg)' }}>
           알림이 차단되어 있습니다. 브라우저 설정 &gt; 알림에서 이 사이트를 허용해주세요.
+        </p>
+      )}
+      {fcmStatus === 'error' && (
+        <p className="text-[11.5px] mt-2" style={{ color: 'var(--warn)' }}>
+          이 브라우저에서는 푸시 알림이 지원되지 않습니다. Chrome 또는 Edge를 이용해주세요.
         </p>
       )}
     </div>

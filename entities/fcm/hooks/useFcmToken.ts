@@ -29,10 +29,13 @@ export function useFcmToken() {
     setStatus('requesting')
     const token = await requestFcmToken()
     if (!token) {
-      setStatus('denied')
+      // permission 거부 vs FCM 토큰 발급 자체 실패(브라우저 미지원 등) 구분
+      const isDenied = typeof Notification !== 'undefined' && Notification.permission === 'denied'
+      setStatus(isDenied ? 'denied' : 'error')
       return null
     }
     tokenRef.current = token
+    setStatus('ready')
     return token
   }, [])
 
