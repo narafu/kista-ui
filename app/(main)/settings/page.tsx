@@ -68,21 +68,8 @@ export default async function SettingsPage() {
             </div>
 
             <div className="border-t border-border pt-4">
-              <div className="profile-meta-grid gap-4">
-                <div>
-                  <div className="text-[11.5px] text-muted-foreground mb-1">닉네임</div>
-                  <NicknameEditor initialNickname={user?.nickname ?? ''} />
-                </div>
-                <div>
-                  <div className="text-[11.5px] text-muted-foreground mb-1">상태</div>
-                  <div
-                    className="text-[13.5px] font-semibold"
-                    style={{ color: statusCfg?.color ?? 'var(--foreground)' }}
-                  >
-                    {statusCfg?.label ?? (user?.status ?? '-')}
-                  </div>
-                </div>
-              </div>
+              <div className="text-[11.5px] text-muted-foreground mb-1">닉네임</div>
+              <NicknameEditor initialNickname={user?.nickname ?? ''} />
             </div>
 
           </section>

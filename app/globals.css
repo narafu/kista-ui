@@ -284,7 +284,6 @@
 .md\:profit-grid    { display: grid; grid-template-columns: 1fr; }
 .lg\:form-grid      { display: grid; grid-template-columns: 1fr; }
 .lg\:settings-grid  { display: grid; grid-template-columns: 1fr; }
-.profile-meta-grid  { display: grid; grid-template-columns: 1fr 1fr; }
 
 @media (min-width: 640px) {
   .sm\:kpi-grid       { grid-template-columns: 1fr 1fr 1.4fr; }
