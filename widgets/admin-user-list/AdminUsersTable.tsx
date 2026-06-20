@@ -14,9 +14,10 @@ const STATUS_LABEL: Record<UserStatus, string> = {
 
 interface Props {
   initialUsers: AdminUser[]
+  currentUserId: string | null
 }
 
-export function AdminUsersTable({ initialUsers }: Props) {
+export function AdminUsersTable({ initialUsers, currentUserId }: Props) {
   const { data: users = initialUsers } = useAdminUsersQuery(undefined, initialUsers)
 
   if (users.length === 0) {
@@ -54,7 +55,11 @@ export function AdminUsersTable({ initialUsers }: Props) {
                 {fmtDate(user.createdAt)}
               </td>
               <td className="px-4 py-3 whitespace-nowrap">
-                <ChangeRoleButton userId={user.id} currentRole={user.role} />
+                <ChangeRoleButton
+                  userId={user.id}
+                  currentRole={user.role}
+                  isSelf={currentUserId === user.id}
+                />
               </td>
               <td className="px-4 py-3 whitespace-nowrap">
                 <WithdrawUserButton userId={user.id} nickname={user.nickname} />
