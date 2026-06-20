@@ -31,10 +31,11 @@ function isJwtExpired(token: string, bufferSecs = 30): boolean {
   }
 }
 
-// RT 쿠키로 kista-api /api/auth/refresh 호출 — 성공 시 새 AT 반환
-// Edge Runtime은 WHATWG fetch spec 상 Set-Cookie 헤더를 읽을 수 없어 RT 로테이션 불가
-// RT 로테이션은 클라이언트가 /api/auth/refresh(Node.js Route Handler)를 호출할 때 처리됨
-async function tryRefresh(request: NextRequest): Promise<string | null> {
+// RT 쿠키로 kista-api /api/auth/refresh 호출 — 성공 시 새 AT + Set-Cookie 헤더(새 RT 포함) 반환
+// proxy.ts는 Next.js 16부터 "Proxy" 파일로 항상 Node.js runtime에서 실행됨(Edge 아님) — getSetCookie() 정상 동작
+async function tryRefresh(
+  request: NextRequest
+): Promise<{ accessToken: string; setCookieHeaders: string[] } | null> {
   const rt = request.cookies.get(RT_COOKIE)?.value
   if (!rt) return null
   const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
@@ -50,7 +51,9 @@ async function tryRefresh(request: NextRequest): Promise<string | null> {
     })
     if (!res.ok) return null
     const data = await res.json() as { accessToken?: string }
-    return data.accessToken ?? null
+    if (!data.accessToken) return null
+    const setCookieHeaders = res.headers.getSetCookie()
+    return { accessToken: data.accessToken, setCookieHeaders }
   } catch {
     return null
   }
@@ -85,11 +88,11 @@ export async function proxy(request: NextRequest) {
     request.headers.get('purpose') === 'prefetch'
   if (isPrefetch) return NextResponse.next({ request: { headers: requestHeaders } })
 
-  // AT 만료 감지 → RT로 자동 갱신 (RT 로테이션은 Node.js /api/auth/refresh에서 처리)
+  // AT 만료 감지 → RT로 자동 갱신 (Set-Cookie relay로 새 RT까지 함께 반영 — RT 드리프트로 인한 재사용 탐지·세션 폐기 방지)
   if (isJwtExpired(token)) {
-    const newAccessToken = await tryRefresh(request)
-    if (newAccessToken) {
-      token = newAccessToken
+    const refreshed = await tryRefresh(request)
+    if (refreshed) {
+      token = refreshed.accessToken
       // 요청 쿠키 헤더에 새 AT 반영 — Server Component의 getAuthToken()이 읽음
       const rawCookie = requestHeaders.get('cookie') ?? ''
       const updatedCookie = rawCookie
@@ -103,6 +106,8 @@ export async function proxy(request: NextRequest) {
       extraSetCookies.push(
         `${KISTA_TOKEN_COOKIE}=${token}; Path=/; Max-Age=604800; SameSite=Lax; HttpOnly${isSecure ? '; Secure' : ''}`
       )
+      // 새 RT 쿠키 전달 (kista-api Set-Cookie 헤더 그대로) — 미반영 시 다음 갱신에서 RTR reuse attack 탐지
+      for (const sc of refreshed.setCookieHeaders) extraSetCookies.push(sc)
     } else {
       // RT 없거나 갱신 실패 → 상태 캐시 삭제 후 보호 경로면 로그인 이동
       const dest = isProtected
