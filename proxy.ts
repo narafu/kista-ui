@@ -31,7 +31,8 @@ function isJwtExpired(token: string, bufferSecs = 30): boolean {
   }
 }
 
-// RT 쿠키로 kista-api /api/auth/refresh 호출 — 성공 시 새 AT + Set-Cookie 헤더(새 RT 포함) 반환
+// RT 쿠키로 kista-api /api/auth/refresh 호출 — 성공 시 새 AT + Set-Cookie 헤더(동일 RT, 갱신된 maxAge) 반환
+// kista-api는 안정 RT + 슬라이딩 갱신 방식: RT 회전 없음 → 드리프트 원천 불가
 // proxy.ts는 Next.js 16부터 "Proxy" 파일로 항상 Node.js runtime에서 실행됨(Edge 아님) — getSetCookie() 정상 동작
 async function tryRefresh(
   request: NextRequest
@@ -88,7 +89,7 @@ export async function proxy(request: NextRequest) {
     request.headers.get('purpose') === 'prefetch'
   if (isPrefetch) return NextResponse.next({ request: { headers: requestHeaders } })
 
-  // AT 만료 감지 → RT로 자동 갱신 (Set-Cookie relay로 새 RT까지 함께 반영 — RT 드리프트로 인한 재사용 탐지·세션 폐기 방지)
+  // AT 만료 감지 → RT로 자동 갱신 (안정 RT 방식: kista-api가 동일 RT를 갱신된 maxAge로 돌려줌 — 드리프트 없음)
   if (isJwtExpired(token)) {
     const refreshed = await tryRefresh(request)
     if (refreshed) {
@@ -106,7 +107,7 @@ export async function proxy(request: NextRequest) {
       extraSetCookies.push(
         `${KISTA_TOKEN_COOKIE}=${token}; Path=/; Max-Age=604800; SameSite=Lax; HttpOnly${isSecure ? '; Secure' : ''}`
       )
-      // 새 RT 쿠키 전달 (kista-api Set-Cookie 헤더 그대로) — 미반영 시 다음 갱신에서 RTR reuse attack 탐지
+      // RT Set-Cookie relay: 동일 RT + 갱신된 maxAge(슬라이딩) — 브라우저 쿠키 수명 연장
       for (const sc of refreshed.setCookieHeaders) extraSetCookies.push(sc)
     } else {
       // RT 없거나 갱신 실패 → 상태 캐시 삭제 후 보호 경로면 로그인 이동
@@ -148,8 +149,7 @@ export async function proxy(request: NextRequest) {
         // JWT 만료/무효 → 캐시 쿠키 초기화하여 다음 방문 시 재검증 강제
         dest.cookies.delete(STATUS_COOKIE)
         dest.cookies.delete(ROLE_COOKIE)
-        // AT 갱신이 선행된 경우 새 AT·RT 쿠키를 반드시 적용 (미적용 시 RT rotation 후
-        // 브라우저가 구 RT를 유지 → 다음 갱신에서 RTR reuse attack 탐지 → 전체 세션 폐기)
+        // AT 갱신이 선행된 경우 새 AT 쿠키를 반드시 적용 (RT는 안정 RT이므로 drift 없음)
         for (const sc of extraSetCookies) dest.headers.append('Set-Cookie', sc)
         return dest
       }
