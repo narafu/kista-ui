@@ -49,9 +49,10 @@ export async function POST(request: NextRequest) {
         path: '/',
       })
     } else {
-      res.headers.forEach((value, name) => {
-        if (name.toLowerCase() === 'set-cookie') response.headers.append('Set-Cookie', value)
-      })
+      const h = res.headers as Headers & { getSetCookie?: () => string[] }
+      for (const sc of (typeof h.getSetCookie === 'function' ? h.getSetCookie() : [])) {
+        response.headers.append('Set-Cookie', sc)
+      }
     }
 
     return response

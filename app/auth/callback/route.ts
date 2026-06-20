@@ -61,13 +61,12 @@ export async function GET(request: NextRequest) {
 
     response.cookies.set(KISTA_TOKEN_COOKIE, accessToken, TOKEN_COOKIE_OPTIONS)
 
-    // RT Set-Cookie를 브라우저에 전달 — server-side fetch는 Set-Cookie를 자동 전파하지 않음
-    // proxy.ts의 tryRefresh가 request.cookies.get('refresh_token')으로 RT를 읽으므로 필수
-    res.headers.forEach((value, name) => {
-      if (name.toLowerCase() === 'set-cookie') {
-        response.headers.append('Set-Cookie', value)
-      }
-    })
+    // RT Set-Cookie를 브라우저에 전달 — forEach()는 WHATWG 스펙상 "response" guard에서 set-cookie를 필터링하므로
+    // getSetCookie()를 사용해야 한다 (Node.js Route Handler 전용 — Edge Runtime에서는 미작동)
+    const h = res.headers as Headers & { getSetCookie?: () => string[] }
+    for (const sc of (typeof h.getSetCookie === 'function' ? h.getSetCookie() : [])) {
+      response.headers.append('Set-Cookie', sc)
+    }
 
     // kista-user-status: PENDING 제외하고 캐싱
     if (status !== 'PENDING') {
