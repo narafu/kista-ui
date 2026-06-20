@@ -66,7 +66,9 @@ export async function GET(request: NextRequest) {
 
     // RT 쿠키: kista-api Set-Cookie 헤더를 그대로 relay (Node.js 런타임에서 getSetCookie() 동작)
     const h = res.headers as Headers & { getSetCookie?: () => string[] }
-    for (const sc of (typeof h.getSetCookie === 'function' ? h.getSetCookie() : [])) {
+    const rtCookies = typeof h.getSetCookie === 'function' ? h.getSetCookie() : []
+    console.info(`[kista:callback] relaying Set-Cookie count=${rtCookies.length}`)
+    for (const sc of rtCookies) {
       response.headers.append('Set-Cookie', sc)
     }
 
