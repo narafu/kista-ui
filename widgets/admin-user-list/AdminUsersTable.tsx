@@ -2,6 +2,7 @@
 
 import { useAdminUsersQuery } from '@entities/user'
 import { ChangeRoleButton } from '@features/admin/change-role'
+import { WithdrawUserButton } from '@features/admin/withdraw-user'
 import { fmtDate } from '@shared/lib/format'
 import type { AdminUser, UserStatus } from '@entities/user'
 
@@ -36,6 +37,7 @@ export function AdminUsersTable({ initialUsers }: Props) {
             <th className="text-left px-4 py-3 whitespace-nowrap">역할</th>
             <th className="text-left px-4 py-3 whitespace-nowrap">가입일</th>
             <th className="text-left px-4 py-3 whitespace-nowrap">역할 변경</th>
+            <th className="text-left px-4 py-3 whitespace-nowrap">탈퇴</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
@@ -53,6 +55,9 @@ export function AdminUsersTable({ initialUsers }: Props) {
               </td>
               <td className="px-4 py-3 whitespace-nowrap">
                 <ChangeRoleButton userId={user.id} currentRole={user.role} />
+              </td>
+              <td className="px-4 py-3 whitespace-nowrap">
+                <WithdrawUserButton userId={user.id} nickname={user.nickname} />
               </td>
             </tr>
           ))}
