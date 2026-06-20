@@ -23,7 +23,7 @@ export function ChangeRoleButton({ userId, currentRole, isSelf = false }: Props)
 
   if (isSelf) {
     return (
-      <div className="relative group inline-block">
+      <div className="inline-block" title="자신의 역할은 변경할 수 없습니다">
         <button
           type="button"
           disabled
@@ -31,9 +31,6 @@ export function ChangeRoleButton({ userId, currentRole, isSelf = false }: Props)
         >
           → {newRole}
         </button>
-        <span className="absolute left-0 top-full mt-1 px-2 py-1 text-xs bg-popover border border-border rounded shadow-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-          자신의 역할은 변경할 수 없습니다
-        </span>
       </div>
     )
   }
