@@ -32,7 +32,7 @@ export function WithdrawUserButton({ userId, nickname }: Props) {
       {open && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-card border border-border rounded-[var(--r-lg)] p-6 w-[320px] shadow-lg">
-            <h3 className="text-base font-bold mb-2" style={{ color: 'var(--status-error)' }}>
+            <h3 className="text-base font-bold mb-2 text-[var(--status-error)]">
               회원 강제 탈퇴
             </h3>
             <p className="text-sm text-muted-foreground mb-1">
@@ -54,8 +54,7 @@ export function WithdrawUserButton({ userId, nickname }: Props) {
                 type="button"
                 onClick={handleConfirm}
                 disabled={mutation.isPending}
-                className="flex-1 py-2 rounded-[var(--r-md)] text-white text-sm font-semibold disabled:opacity-60 transition-colors"
-                style={{ background: 'var(--status-error)' }}
+                className="flex-1 py-2 rounded-[var(--r-md)] bg-[var(--status-error)] text-white text-sm font-semibold disabled:opacity-60 transition-colors"
               >
                 {mutation.isPending ? '처리 중...' : '탈퇴 처리'}
               </button>
