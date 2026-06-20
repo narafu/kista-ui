@@ -12,6 +12,7 @@
 
 ## 쿠키
 
+- **ResponseCookies.set() + raw headers.append() 혼용 금지**: `response.cookies.set()`은 호출할 때마다 set-cookie 헤더 전체를 재직렬화하면서 이전에 `response.headers.append('Set-Cookie', ...)` 한 값을 덮어쓴다. kista-api RT 쿠키처럼 raw relay가 필요하면 `cookies.set()` 호출을 모두 끝낸 후 마지막에 `headers.append()` 해야 생존한다 (`app/auth/callback/route.ts` 참고)
 - **Safari `Secure` 쿠키 + HTTP 차단**: Safari는 HTTP 연결의 `Secure` 쿠키 무시. `secure` 플래그는 `NODE_ENV`가 아닌 `x-forwarded-proto === 'https'`로 결정 (`app/auth/callback/route.ts` 참고)
 - **HTTP-only 쿠키 삭제**: Client JS 불가 → Route Handler에서 `response.cookies.set(name, '', { maxAge: 0 })`
 - **쿠키 수정 후 검증**: 재빌드만으로 기존 세션 미적용 — 브라우저 쿠키 삭제 후 카카오 재로그인. kista-api 로그에 `/api/auth/me` 없으면 `kista-token` 없다는 증거
