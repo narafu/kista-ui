@@ -90,6 +90,7 @@ export default async function SettingsPage() {
               </div>
               <TradingAlertToggle
                 initialEnabled={user?.notificationPrefs?.['TRADING_ALERT'] ?? true}
+                channel={user?.notificationChannel ?? (user?.hasTelegram ? 'TELEGRAM' : 'NONE')}
               />
             </div>
           </section>
