@@ -79,7 +79,7 @@ export async function proxy(request: NextRequest) {
   // AT 갱신 시 브라우저에 전달할 Set-Cookie 목록
   const extraSetCookies: string[] = []
   // 요청 헤더 (AT 갱신 시 Server Component가 읽는 kista-token 쿠키를 교체)
-  let requestHeaders = new Headers(request.headers)
+  const requestHeaders = new Headers(request.headers)
 
   // prefetch 요청은 인증 상태를 변형하지 않음 — AT 갱신 스킵
   // Next.js <Link> prefetch가 동시에 여러 refresh를 유발해 RTR 경쟁을 일으키는 것을 방지

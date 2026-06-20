@@ -1,7 +1,6 @@
 import { apiFetch, fetchEither } from '@shared/lib/api-client'
 import type {
   Execution,
-  CycleHistoryItem,
   CycleHistoryPage,
   DailyTransactionResult,
   PortfolioSnapshot,

@@ -14,7 +14,6 @@ declare const EventSource: { instances: Array<{ emit: (type: string, data: strin
 describe('PendingStatusWatcher', () => {
   beforeEach(() => {
     mockPush.mockClear()
-    // @ts-ignore — setup.ts에서 정의한 MockEventSource 초기화
     EventSource.instances = []
   })
 
@@ -26,7 +25,6 @@ describe('PendingStatusWatcher', () => {
   it('status 이벤트에서 ACTIVE 수신 시 /dashboard로 이동', () => {
     render(<PendingStatusWatcher />)
 
-    // @ts-ignore
     const source = EventSource.instances[0]
     source.emit('status', 'ACTIVE')
 
@@ -36,7 +34,6 @@ describe('PendingStatusWatcher', () => {
   it('status 이벤트에서 REJECTED 수신 시 /rejected로 이동', () => {
     render(<PendingStatusWatcher />)
 
-    // @ts-ignore
     const source = EventSource.instances[0]
     source.emit('status', 'REJECTED')
 
@@ -46,7 +43,6 @@ describe('PendingStatusWatcher', () => {
   it('PENDING 이벤트에는 navigate 미호출', () => {
     render(<PendingStatusWatcher />)
 
-    // @ts-ignore
     const source = EventSource.instances[0]
     source.emit('status', 'PENDING')
 
