@@ -35,7 +35,7 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 |---|---|---|
 | `layout` | `DesktopSidebar`, `MobileBottomNav`, `MobileHeader`, `AdminSidebar`, `AdminTopBar`, `SettingsNav` | 전역 레이아웃 내비게이션 |
 | `account-card` | `AccountCard` | 계좌 카드 (순수 뷰). 모바일 2행 레이아웃: 1행=브로커 배지+계좌번호, 2행=닉네임+전략 수+상태. PC: 브로커 배지 우측에 계좌번호 배치, 닉네임 `text-xl`. 배지 active: `style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}` |
-| `strategy-card` | `StrategyCard` | 전략 카드 (순수 뷰, 클릭 시 전략 상세로 이동). 모바일 2행 레이아웃: 1행=배지+계좌번호, 2행=상태+티커+금액. PC: 배지 우측에 계좌번호 배치 |
+| `strategy-card` | `StrategyCard` | 전략 카드 (순수 뷰, 클릭 시 전략 상세로 이동). 모바일 2행 레이아웃: 1행=배지+계좌번호, 2행=상태+티커+시드종류+금액. PC: 배지 우측에 계좌번호, 시드 정보 별도 행(border-t), 시작금액 푸터 행(border-t bg-muted/30) |
 | `strategy-list` | `StrategyList` | 전략 목록 (컴팩트 행 + 전략 추가) |
 | `kpi-card` | `KpiCard` | KPI 지표 카드 |
 | `profit-stats-card` | `ProfitStatsCard`, `PortfolioChart`, `PortfolioChartInner` | 수익 통계 + 차트 |
