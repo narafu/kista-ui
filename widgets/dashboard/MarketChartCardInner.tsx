@@ -26,13 +26,25 @@ export default function MarketChartCardInner({ category }: Props) {
     const container = containerRef.current
     if (!container) return
 
-    // lightweight-charts는 캔버스 렌더링이라 CSS 변수를 직접 못 읽음 — 런타임에 실제 색상값 조회
-    const style = getComputedStyle(document.documentElement)
-    const background = style.getPropertyValue('--background').trim()
-    const foreground = style.getPropertyValue('--foreground').trim()
-    const border = style.getPropertyValue('--border').trim()
-    const pos = style.getPropertyValue('--pos').trim() // 상승 — 빨강 (국내 관행)
-    const neg = style.getPropertyValue('--neg').trim() // 하락 — 파랑 (국내 관행)
+    // CSS 변수 raw 값(oklch 등 modern syntax)을 lightweight-charts가 파싱하지 못함.
+    // 임시 element에 변수를 적용해 브라우저가 rgb()/rgba()로 계산한 값을 읽어옴.
+    const el = document.createElement('div')
+    el.style.display = 'none'
+    document.body.appendChild(el)
+    const readColor = (varName: string): string => {
+      el.style.color = `var(${varName})`
+      return getComputedStyle(el).color
+    }
+    const readBg = (varName: string): string => {
+      el.style.backgroundColor = `var(${varName})`
+      return getComputedStyle(el).backgroundColor
+    }
+    const background = readBg('--background')
+    const foreground = readColor('--foreground')
+    const border = readColor('--border')
+    const pos = readColor('--pos') // 상승 — 빨강 (국내 관행)
+    const neg = readColor('--neg') // 하락 — 파랑 (국내 관행)
+    el.remove()
 
     const chart = createChart(container, {
       width: container.clientWidth,
