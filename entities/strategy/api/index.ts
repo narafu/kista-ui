@@ -1,4 +1,4 @@
-import { clientFetch, fetchEither } from '@shared/lib/api-client'
+import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
 import type { CycleSeedType, Strategy, StrategyRequest } from '../model/types'
 import type { PlacedOrder } from '@entities/order/model/types'
@@ -29,20 +29,12 @@ export async function listStrategies(accountId: string, token?: string): Promise
 }
 
 export async function createStrategy(accountId: string, data: StrategyRequest, token?: string): Promise<Strategy> {
-  const raw = await fetchEither<unknown>(`/api/accounts/${accountId}/trading-cycles`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  }, token)
+  const raw = await fetchEither<unknown>(`/api/accounts/${accountId}/trading-cycles`, jsonBody('POST', data), token)
   return normalizeStrategy(raw)
 }
 
 export async function updateStrategy(id: string, data: Partial<StrategyRequest>, token?: string): Promise<Strategy> {
-  const raw = await fetchEither<unknown>(`/api/trading-cycles/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  }, token)
+  const raw = await fetchEither<unknown>(`/api/trading-cycles/${id}`, jsonBody('PUT', data), token)
   return normalizeStrategy(raw)
 }
 

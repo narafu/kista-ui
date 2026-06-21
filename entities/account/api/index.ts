@@ -1,4 +1,4 @@
-import { apiFetch, clientFetch, fetchEither } from '@shared/lib/api-client'
+import { apiFetch, clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
 import type { Account, AccountRequest } from '../model/types'
 
@@ -16,19 +16,11 @@ export async function listAccounts(token: string): Promise<Account[]> {
 }
 
 export async function createAccount(data: AccountRequest, token?: string): Promise<Account> {
-  return fetchEither<Account>('/api/accounts', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  }, token)
+  return fetchEither<Account>('/api/accounts', jsonBody('POST', data), token)
 }
 
 export async function updateAccount(id: string, data: AccountRequest, token?: string): Promise<Account> {
-  return fetchEither<Account>(`/api/accounts/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  }, token)
+  return fetchEither<Account>(`/api/accounts/${id}`, jsonBody('PUT', data), token)
 }
 
 export async function deleteAccount(id: string, token?: string): Promise<void> {
@@ -50,9 +42,5 @@ export async function getPrices(accountId: string, tickers: string[]): Promise<P
 }
 
 export async function testKisConnection(appKey: string, appSecret: string): Promise<void> {
-  await clientFetch<void>('/api/accounts/connection-tests', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ appKey, appSecret }),
-  })
+  await clientFetch<void>('/api/accounts/connection-tests', jsonBody('POST', { appKey, appSecret }))
 }

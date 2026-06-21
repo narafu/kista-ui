@@ -56,6 +56,14 @@ export async function clientFetch<T>(path: string, options?: RequestInit): Promi
   return res.json()
 }
 
+export function jsonBody(method: string, body: unknown): RequestInit {
+  return {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }
+}
+
 // Server Component(token 있음)와 Client Component(token 없음)를 한 번에 처리.
 export function fetchEither<T>(path: string, options: RequestInit | undefined, token?: string): Promise<T> {
   return token ? apiFetch<T>(path, options ?? {}, token) : clientFetch<T>(path, options)

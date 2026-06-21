@@ -1,6 +1,6 @@
 import { getToken } from 'firebase/messaging'
 import { getFirebaseMessaging } from '@shared/lib/firebase'
-import { clientFetch } from '@shared/lib/api-client'
+import { clientFetch, jsonBody } from '@shared/lib/api-client'
 
 const VAPID_KEY = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY ?? ''
 
@@ -26,11 +26,7 @@ export async function requestFcmToken(): Promise<string | null> {
 }
 
 export async function registerTokenToServer(token: string): Promise<void> {
-  await clientFetch<void>('/api/fcm/tokens', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token, platform: 'WEB' }),
-  })
+  await clientFetch<void>('/api/fcm/tokens', jsonBody('POST', { token, platform: 'WEB' }))
 }
 
 export async function unregisterTokenFromServer(token: string): Promise<void> {

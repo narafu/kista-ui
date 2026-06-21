@@ -1,4 +1,4 @@
-import { apiFetch, clientFetch, fetchEither } from '@shared/lib/api-client'
+import { apiFetch, clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import type { User, UserRole, UserStatus, AdminUser, AdminStats, AdminAccount, AdminTrade, AdminAuditLog, AdminAnomalies, AppErrorLog } from '../model/types'
 
 export async function getMe(token: string): Promise<User> {
@@ -10,27 +10,15 @@ export async function getMeClient(): Promise<User> {
 }
 
 export async function updateNotificationPref(type: string, enabled: boolean): Promise<void> {
-  await clientFetch<void>(`/api/settings/notifications/${type}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ enabled }),
-  })
+  await clientFetch<void>(`/api/settings/notifications/${type}`, jsonBody('PATCH', { enabled }))
 }
 
 export async function updateBalanceCheckEnabled(enabled: boolean): Promise<void> {
-  await clientFetch<void>('/api/settings/balance-check', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ enabled }),
-  })
+  await clientFetch<void>('/api/settings/balance-check', jsonBody('PATCH', { enabled }))
 }
 
 export async function updateNickname(nickname: string): Promise<void> {
-  await clientFetch<void>('/api/settings/nickname', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nickname }),
-  })
+  await clientFetch<void>('/api/settings/nickname', jsonBody('PATCH', { nickname }))
 }
 
 export async function reapply(): Promise<void> {
@@ -42,19 +30,11 @@ export async function deleteMe(): Promise<void> {
 }
 
 export async function updateNotificationChannel(channel: string): Promise<void> {
-  await clientFetch<void>('/api/settings/notification-channel', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ channel }),
-  })
+  await clientFetch<void>('/api/settings/notification-channel', jsonBody('PATCH', { channel }))
 }
 
 export async function updateTelegram(data: { botToken: string; chatId: string }): Promise<void> {
-  await clientFetch<void>('/api/settings/telegram', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
+  await clientFetch<void>('/api/settings/telegram', jsonBody('PUT', data))
 }
 
 export async function deleteTelegram(): Promise<void> {
@@ -67,27 +47,15 @@ export async function listAdminUsers(token?: string, status?: UserStatus): Promi
 }
 
 export async function approveAdminUser(userId: string): Promise<void> {
-  await clientFetch<void>(`/api/admin/users/${userId}/status`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status: 'ACTIVE' }),
-  })
+  await clientFetch<void>(`/api/admin/users/${userId}/status`, jsonBody('PATCH', { status: 'ACTIVE' }))
 }
 
 export async function rejectAdminUser(userId: string): Promise<void> {
-  await clientFetch<void>(`/api/admin/users/${userId}/status`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status: 'REJECTED' }),
-  })
+  await clientFetch<void>(`/api/admin/users/${userId}/status`, jsonBody('PATCH', { status: 'REJECTED' }))
 }
 
 export async function changeAdminUserRole(userId: string, role: UserRole): Promise<void> {
-  await clientFetch<void>(`/api/admin/users/${userId}/role`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ role }),
-  })
+  await clientFetch<void>(`/api/admin/users/${userId}/role`, jsonBody('PATCH', { role }))
 }
 
 export async function deleteAdminUser(userId: string): Promise<void> {
