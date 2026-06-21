@@ -22,11 +22,21 @@ function tryRefreshToken(): Promise<boolean> {
   return refreshInFlight
 }
 
-async function doLogout(): Promise<never> {
+async function doLogout(reason?: string): Promise<never> {
   await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
-  window.location.href = '/'
+  window.location.href = reason ? `/?error=${reason}` : '/'
   await new Promise(() => {}) // 리다이렉트 완료 전까지 중단
   throw new Error('unreachable')
+}
+
+// 401 body에서 error 코드 추출 (body 소비)
+async function readErrorCode(res: Response): Promise<string | null> {
+  try {
+    const body = await res.json() as { error?: string }
+    return body.error ?? null
+  } catch {
+    return null
+  }
 }
 
 // Client Component 전용 — Route Handler 경유 fetch.
@@ -34,8 +44,10 @@ async function doLogout(): Promise<never> {
 export async function clientFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, options)
   if (res.status === 401) {
+    // body 먼저 읽어서 이유 캡처 — tryRefreshToken 이후엔 body 접근 불가
+    const errorCode = await readErrorCode(res)
     const refreshed = await tryRefreshToken()
-    if (!refreshed) return doLogout()
+    if (!refreshed) return doLogout(errorCode === 'TOKEN_BLACKLISTED' ? 'token_blacklisted' : undefined)
     // 갱신 성공 → 브라우저 쿠키가 이미 교체됐으므로 원래 요청 재시도
     const retry = await fetch(path, options)
     if (retry.status === 401) return doLogout()
