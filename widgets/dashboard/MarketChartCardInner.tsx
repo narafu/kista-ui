@@ -13,6 +13,41 @@ interface Props {
   category: MarketChartCategory
 }
 
+// Chrome 111+에서 getComputedStyle이 oklch를 lab() 형태로 반환하며 lightweight-charts가 파싱하지 못함.
+// Canvas 픽셀 readback으로 항상 rgba()로 변환.
+function toRgba(cssColor: string): string {
+  if (cssColor.startsWith('rgb')) return cssColor
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = 1
+  const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = cssColor
+  ctx.fillRect(0, 0, 1, 1)
+  const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data
+  return `rgba(${r},${g},${b},${+(a / 255).toFixed(3)})`
+}
+
+function readVar(varName: string, prop: 'color' | 'background-color' = 'color'): string {
+  const el = document.createElement('div')
+  el.style.setProperty(prop, `var(${varName})`)
+  document.body.appendChild(el)
+  const raw = prop === 'color' ? getComputedStyle(el).color : getComputedStyle(el).backgroundColor
+  el.remove()
+  return toRgba(raw)
+}
+
+function readChartColors() {
+  return {
+    background: readVar('--background', 'background-color'),
+    foreground: readVar('--foreground'),
+    border: readVar('--border'),
+    pos: readVar('--pos'),
+    neg: readVar('--neg'),
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnySeries = any
+
 export default function MarketChartCardInner({ category }: Props) {
   const [symbol, setSymbol] = useState(category.options[0].symbol)
   const selected = category.options.find((o) => o.symbol === symbol) ?? category.options[0]
@@ -21,37 +56,14 @@ export default function MarketChartCardInner({ category }: Props) {
   const mounted = useSyncExternalStore(() => () => {}, () => true, () => false)
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
+  const seriesRef = useRef<AnySeries>(null)
 
+  // 차트 생성 + 데이터 설정 — candles/mounted 변경 시 재생성
   useEffect(() => {
     const container = containerRef.current
-    if (!container) return
+    if (!container || !mounted) return
 
-    // Chrome 111+에서 getComputedStyle이 oklch를 lab() 형태로 반환하며,
-    // lightweight-charts는 lab/oklch를 파싱하지 못함.
-    // Canvas 2D context로 픽셀을 읽어 항상 rgba() 형태로 변환함.
-    const toRgba = (cssColor: string): string => {
-      if (cssColor.startsWith('rgb')) return cssColor
-      const canvas = document.createElement('canvas')
-      canvas.width = canvas.height = 1
-      const ctx = canvas.getContext('2d')!
-      ctx.fillStyle = cssColor
-      ctx.fillRect(0, 0, 1, 1)
-      const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data
-      return `rgba(${r},${g},${b},${+(a / 255).toFixed(3)})`
-    }
-    const readVar = (varName: string, prop: 'color' | 'background-color' = 'color'): string => {
-      const el = document.createElement('div')
-      el.style.setProperty(prop, `var(${varName})`)
-      document.body.appendChild(el)
-      const raw = prop === 'color' ? getComputedStyle(el).color : getComputedStyle(el).backgroundColor
-      el.remove()
-      return toRgba(raw)
-    }
-    const background = readVar('--background', 'background-color')
-    const foreground = readVar('--foreground')
-    const border = readVar('--border')
-    const pos = readVar('--pos') // 상승 — 빨강 (국내 관행)
-    const neg = readVar('--neg') // 하락 — 파랑 (국내 관행)
+    const { background, foreground, border, pos, neg } = readChartColors()
 
     const chart = createChart(container, {
       width: container.clientWidth,
@@ -76,19 +88,13 @@ export default function MarketChartCardInner({ category }: Props) {
       wickUpColor: pos,
       wickDownColor: neg,
     })
+    seriesRef.current = series
 
     series.setData(
       [...candles]
         .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
-        .map((c) => ({
-          time: c.date,
-          open: c.open,
-          high: c.high,
-          low: c.low,
-          close: c.close,
-        })),
+        .map((c) => ({ time: c.date, open: c.open, high: c.high, low: c.low, close: c.close })),
     )
-
     chart.timeScale().fitContent()
 
     const resizeObserver = new ResizeObserver(() => {
@@ -100,8 +106,37 @@ export default function MarketChartCardInner({ category }: Props) {
       resizeObserver.disconnect()
       chart.remove()
       chartRef.current = null
+      seriesRef.current = null
     }
-  }, [candles, mounted, resolvedTheme])
+  }, [candles, mounted])
+
+  // 테마 변경 시 기존 차트에 색상만 업데이트 — 차트 재생성 없이 applyOptions
+  useEffect(() => {
+    const chart = chartRef.current
+    const series = seriesRef.current
+    if (!chart || !series) return
+
+    const { background, foreground, border, pos, neg } = readChartColors()
+
+    chart.applyOptions({
+      layout: {
+        background: { type: ColorType.Solid, color: background },
+        textColor: foreground,
+      },
+      grid: {
+        vertLines: { color: border },
+        horzLines: { color: border },
+      },
+      timeScale: { borderColor: border },
+      rightPriceScale: { borderColor: border },
+    })
+    series.applyOptions({
+      upColor: pos,
+      downColor: neg,
+      wickUpColor: pos,
+      wickDownColor: neg,
+    })
+  }, [resolvedTheme])
 
   return (
     <>
