@@ -3,7 +3,8 @@ import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { PageHeader } from '@widgets/page-header'
 import { MarketHolidayCalendar } from '@widgets/market-holiday-calendar'
-import { QqqCandleChart } from '@widgets/dashboard/QqqCandleChart'
+import { MarketChartCard } from '@widgets/dashboard/MarketChartCard'
+import { MARKET_CHART_CATEGORIES } from '@widgets/dashboard/marketChartCategories'
 
 interface Props {
   holidays: string[]
@@ -55,8 +56,10 @@ export function DashboardEmpty({ holidays, calendarYear, calendarMonth }: Props)
             </Link>
           </div>
         </div>
-        <div className="mt-4">
-          <QqqCandleChart />
+        <div className="grid grid-cols-3 gap-4 mt-4">
+          {MARKET_CHART_CATEGORIES.map((category) => (
+            <MarketChartCard key={category.title} category={category} />
+          ))}
         </div>
       </div>
 
@@ -89,8 +92,10 @@ export function DashboardEmpty({ holidays, calendarYear, calendarMonth }: Props)
           </Link>
         </div>
         <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
-        <div className="mt-4">
-          <QqqCandleChart />
+        <div className="flex flex-col gap-4 mt-4">
+          {MARKET_CHART_CATEGORIES.map((category) => (
+            <MarketChartCard key={category.title} category={category} />
+          ))}
         </div>
       </div>
     </>
