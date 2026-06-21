@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
+import { RevealableValue } from '@widgets/revealable-value'
 import { StatusDot } from '@widgets/status-dot'
 import { useMeta } from '@entities/meta'
 import { useStrategiesQuery } from '@entities/strategy'
@@ -54,7 +55,10 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
             {brokerShort}
           </span>
           <span className="ml-auto text-xs font-mono font-semibold text-foreground/60 tracking-wider shrink-0">
-            {account.accountNoMasked}
+            <RevealableValue
+              value={account.accountNo ?? account.accountNoMasked}
+              hiddenDisplay={account.accountNoMasked}
+            />
           </span>
         </div>
         {/* 2행: 닉네임 + 전략 수 + 상태 + 화살표 */}
@@ -104,7 +108,10 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
               {brokerLabel}
             </span>
             <span className="text-xs font-mono font-semibold text-foreground/60 tracking-wider">
-              {account.accountNoMasked}
+              <RevealableValue
+                value={account.accountNo ?? account.accountNoMasked}
+                hiddenDisplay={account.accountNoMasked}
+              />
             </span>
           </div>
           {/* 닉네임 + 집계 상태 */}
