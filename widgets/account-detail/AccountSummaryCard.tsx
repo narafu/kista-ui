@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { KpiCard } from '@widgets/kpi-card'
+import { RevealableValue } from '@widgets/revealable-value'
 import { fmtUsd, fmtPercent } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import type { Account } from '@entities/account'
@@ -27,7 +28,15 @@ export function AccountSummaryCard({ account, portfolio, usdDeposit }: Props) {
       </CardHeader>
       <CardContent className="px-6 pb-6">
         <div className="grid grid-cols-2 gap-3">
-          <KpiCard label="계좌번호" value={<span className="font-mono tracking-wider">{account.accountNoMasked}</span>} />
+          <KpiCard
+            label="계좌번호"
+            value={
+              <RevealableValue
+                value={account.accountNo ?? account.accountNoMasked}
+                hiddenDisplay={account.accountNoMasked}
+              />
+            }
+          />
           <KpiCard label="증권사" value={<span className="text-base font-semibold leading-snug">{brokerLabel}</span>} />
           <KpiCard label="예수금" value={`$${fmtUsd(usdDeposit ?? 0)}`} />
           <KpiCard
