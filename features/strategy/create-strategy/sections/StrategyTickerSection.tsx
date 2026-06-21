@@ -37,8 +37,7 @@ export function StrategyTickerSection({
           )}
         </div>
       ) : availableTickers.length > 1 ? (
-        <div className="overflow-x-auto px-1 py-0.5 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border/60">
-          <div className="flex gap-2 w-max">
+        <div className="flex gap-2 py-0.5">
           {availableTickers.map((code) => {
             const sel = ticker === code
             const price = prices?.[code]
@@ -49,7 +48,7 @@ export function StrategyTickerSection({
                 onClick={() => onTickerChange(code)}
                 disabled={loading}
                 className={cn(
-                  'shrink-0 min-w-[78px] px-3 py-2 rounded-[var(--r-sm)] text-center transition-[border-color,background] duration-150',
+                  'flex-1 min-w-0 px-3 py-2 rounded-[var(--r-sm)] text-center transition-[border-color,background] duration-150',
                   loading ? 'cursor-not-allowed' : 'cursor-pointer',
                 )}
                 style={{
@@ -71,7 +70,6 @@ export function StrategyTickerSection({
               </button>
             )
           })}
-          </div>
         </div>
       ) : availableTickers.length === 1 ? (
         <div className="flex items-center justify-between px-[14px] py-3 rounded-[var(--r-sm)] border border-border bg-muted">

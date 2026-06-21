@@ -13,8 +13,8 @@ interface Props {
 
 const DIVISION_OPTIONS = [
   { value: 20, label: '20분할' },
-  { value: 30, label: '30분할' },
-  { value: 40, label: '40분할' },
+  // { value: 30, label: '30분할' },
+  // { value: 40, label: '40분할' },
 ] as const
 
 export function DivisionCountSection({ isInfinite, divisionCount, setDivisionCount, loading, isEdit }: Props) {
