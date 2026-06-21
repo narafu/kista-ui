@@ -1,6 +1,7 @@
 import { getAuthToken } from '@shared/lib/auth/token'
 import { listAdminAccounts } from '@entities/user'
 import type { AdminAccount } from '@entities/user'
+import { RevealableValue } from '@widgets/revealable-value'
 
 export default async function AdminAccountsPage() {
   const token = await getAuthToken()
@@ -32,7 +33,12 @@ export default async function AdminAccountsPage() {
               {accounts.map((acc) => (
                 <tr key={acc.id} className="hover:bg-muted/20 transition-colors">
                   <td className="px-4 py-3 font-medium">{acc.ownerNickname}</td>
-                  <td className="px-4 py-3 text-muted-foreground font-mono text-xs">{acc.accountNoMasked}</td>
+                  <td className="px-4 py-3 text-muted-foreground font-mono text-xs">
+                    <RevealableValue
+                      value={acc.accountNoMasked ?? ''}
+                      hiddenDisplay={acc.accountNoMasked ?? ''}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>

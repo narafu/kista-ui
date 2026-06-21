@@ -4,6 +4,7 @@ import { listAdminAuditLogs, listAdminErrorLogs, getAdminAnomalies } from '@enti
 import type { AdminAuditLog, AppErrorLog, AdminAnomalies, AdminAnomalyAccount } from '@entities/user'
 import { ErrorLogItem } from '@features/admin/error-logs'
 import { LogsFilterChips } from '@features/admin/logs'
+import { RevealableValue } from '@widgets/revealable-value'
 
 type LogType = 'all' | 'audit' | 'error' | 'anomaly'
 
@@ -194,7 +195,12 @@ function AccountTable({ accounts }: { accounts: AdminAnomalyAccount[] }) {
           {accounts.map((a) => (
             <tr key={a.id} className="hover:bg-muted/20">
               <td className="px-4 py-2.5 font-medium">{a.ownerNickname}</td>
-              <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground">{a.accountNoMasked}</td>
+              <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground">
+                <RevealableValue
+                  value={a.accountNoMasked ?? ''}
+                  hiddenDisplay={a.accountNoMasked ?? ''}
+                />
+              </td>
             </tr>
           ))}
         </tbody>
