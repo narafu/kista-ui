@@ -5,7 +5,7 @@ import { createChart, CandlestickSeries, ColorType, type IChartApi } from 'light
 import { Info } from 'lucide-react'
 import { useCandlesQuery } from '@entities/market'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { MarketChartCategory } from './marketChartCategories'
 
 interface Props {
@@ -106,14 +106,12 @@ export default function MarketChartCardInner({ category }: Props) {
     <>
       <div className="flex items-center justify-between gap-2">
         <span className="text-[11px] font-semibold tracking-widest uppercase text-rose-500">{category.title}</span>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger className="text-muted-foreground hover:text-foreground transition-colors">
-              <Info className="size-3.5" />
-            </TooltipTrigger>
-            <TooltipContent>{selected.description}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Popover>
+          <PopoverTrigger className="text-muted-foreground hover:text-foreground transition-colors">
+            <Info className="size-3.5" />
+          </PopoverTrigger>
+          <PopoverContent className="w-60 text-xs">{selected.description}</PopoverContent>
+        </Popover>
       </div>
       <Select value={symbol} onValueChange={(value) => value && setSymbol(value)}>
         <SelectTrigger size="sm" className="w-full">
