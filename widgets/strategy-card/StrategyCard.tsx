@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import type { ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { StatusDot } from '@widgets/status-dot'
 import { fmtUsd } from '@shared/lib/format'
@@ -10,7 +11,7 @@ import type { Strategy } from '@entities/strategy'
 interface Props {
   accountId: string
   strategy: Strategy
-  accountLabel?: string
+  accountLabel?: string | ReactNode
 }
 
 const STATUS_ACCENT: Record<string, string> = {
