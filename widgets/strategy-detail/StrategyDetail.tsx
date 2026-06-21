@@ -99,7 +99,9 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
   const { holidays } = useMonthlyHolidaysQuery(today.getFullYear(), today.getMonth() + 1)
   const todayStr = today.toISOString().slice(0, 10)
   const isBlocked = marketSession?.session === 'BLOCKED'
-  const isHoliday = holidays.includes(todayStr)
+  const dayOfWeek = today.getDay()
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
+  const isHoliday = isWeekend || holidays.includes(todayStr)
   const canExecute = strategy.status === 'ACTIVE'
 
   const deleteMutation = useDeleteStrategyMutation(() => push(`/accounts/${accountId}`))
