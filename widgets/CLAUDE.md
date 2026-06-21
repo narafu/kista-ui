@@ -61,6 +61,7 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 ## CSS 토큰 · 스타일링
 
 - **`--warn`/`--warn-bg`**: `globals.css` 정의 (`.text-warn`, `.bg-warn-bg` 유틸 클래스 존재)
+- **`--status-ok`/`--status-ok-bg`**: 운영중(ACTIVE) 색상 (라이트 `#2F8A57`, 다크 `#6FCD8E`). `.text-status-ok`, `.bg-status-ok-bg` 유틸 클래스 존재. 상태 액센트에는 `style={{ background: 'var(--status-ok)' }}` 인라인 style 사용
 - **`--status-error`**: 반려/거절 색상 (라이트 `#C8443A`, 다크 `#F87171`). `--status-error-bg`/`--status-error-border`도 정의. `.rejected-reason-card` 유틸 사용 가능. 하드코딩 `#C8443A` 금지
 - **로즈골드 CSS 토큰**: Tailwind 내장(`bg-rose-50`, `text-green-600`) → `.dark` 미대응. 손익: `style={{ color: v >= 0 ? 'var(--pos)' : 'var(--neg)' }}`. 배지 active: `style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}`
 - **다크 모드 gradient**: `--rose-300~700` 팔레트는 `.dark` 재정의 없음. `globals.css`에 `.dark .class-name { background: gradient(lighter); -webkit-background-clip: text; }` 오버라이드 필요
