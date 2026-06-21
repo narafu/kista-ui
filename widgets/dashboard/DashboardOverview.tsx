@@ -1,18 +1,13 @@
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { PageHeader } from '@widgets/page-header'
-import { AccountCard } from '@widgets/account-card'
 import { MarketHolidayCalendar } from '@widgets/market-holiday-calendar'
 import { DashboardKpiSection } from '@widgets/dashboard/DashboardKpiSection'
 import { MarketChartCard } from '@widgets/dashboard/MarketChartCard'
 import { MARKET_CHART_CATEGORIES } from '@widgets/dashboard/marketChartCategories'
-import type { Account } from '@entities/account'
-import type { Strategy } from '@entities/strategy'
 import type { PortfolioAccountEntry } from '@widgets/dashboard/aggregatePortfolios'
 
 interface Props {
-  accounts: Account[]
-  strategiesByAccount: Strategy[][]
   totalDepositUsd: number
   totalPosEvalUsd: number
   totalAssetUsd: number
@@ -24,8 +19,6 @@ interface Props {
 }
 
 export function DashboardOverview({
-  accounts,
-  strategiesByAccount,
   totalDepositUsd,
   totalPosEvalUsd,
   totalAssetUsd,
@@ -69,17 +62,6 @@ export function DashboardOverview({
             <MarketChartCard key={category.title} category={category} />
           ))}
         </div>
-        <div className="flex items-end justify-between mb-3">
-          <h2 className="text-[17px] font-bold">계좌 목록</h2>
-          <Link href="/accounts" className="text-xs font-semibold text-rose-500 hover:text-rose-600 transition-colors">
-            전체 보기 →
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {accounts.map((account, i) => (
-            <AccountCard key={account.id} account={account} strategies={strategiesByAccount[i]} />
-          ))}
-        </div>
       </div>
 
       {/* Mobile */}
@@ -91,17 +73,6 @@ export function DashboardOverview({
         <div className="flex flex-col gap-4 mb-4">
           {MARKET_CHART_CATEGORIES.map((category) => (
             <MarketChartCard key={category.title} category={category} />
-          ))}
-        </div>
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-[15px] font-bold">계좌 목록</h2>
-          <Link href="/accounts" className="text-xs font-semibold text-rose-500 hover:text-rose-600 transition-colors">
-            전체 보기 →
-          </Link>
-        </div>
-        <div className="flex flex-col gap-2">
-          {accounts.map((account, i) => (
-            <AccountCard key={account.id} account={account} strategies={strategiesByAccount[i]} />
           ))}
         </div>
       </div>

@@ -1,13 +1,12 @@
 import { getAuthToken } from '@shared/lib/auth/token'
 import { getAccountPortfolio } from '@entities/trade'
 import { getMonthlyHolidays } from '@entities/market'
-import { getCachedAccounts, getCachedStrategies } from '@shared/lib/cache/cached-api'
+import { getCachedAccounts } from '@shared/lib/cache/cached-api'
 import { DashboardEmpty } from '@widgets/dashboard/DashboardEmpty'
 import { DashboardOverview } from '@widgets/dashboard/DashboardOverview'
 import { aggregatePortfolios } from '@widgets/dashboard/aggregatePortfolios'
 import type { Account } from '@entities/account'
 import type { PortfolioSummary } from '@entities/trade'
-import type { Strategy } from '@entities/strategy'
 
 export default async function DashboardPage() {
   const token = await getAuthToken()
@@ -29,14 +28,10 @@ export default async function DashboardPage() {
   }
 
   let portfolioRaws: (PortfolioSummary | null)[] = accounts.map(() => null)
-  let strategiesByAccount: Strategy[][] = accounts.map(() => [])
 
   if (token) {
     try {
-      [portfolioRaws, strategiesByAccount] = await Promise.all([
-        Promise.all(accounts.map(a => getAccountPortfolio(a.id, token).catch(() => null))),
-        Promise.all(accounts.map(a => getCachedStrategies(a.id, token).catch((): Strategy[] => []))),
-      ])
+      portfolioRaws = await Promise.all(accounts.map(a => getAccountPortfolio(a.id, token).catch(() => null)))
     } catch {}
   }
 
@@ -45,8 +40,6 @@ export default async function DashboardPage() {
 
   return (
     <DashboardOverview
-      accounts={accounts}
-      strategiesByAccount={strategiesByAccount}
       totalDepositUsd={totalDepositUsd}
       totalPosEvalUsd={totalPosEvalUsd}
       totalAssetUsd={totalAssetUsd}
