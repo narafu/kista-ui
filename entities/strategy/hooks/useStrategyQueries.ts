@@ -50,7 +50,7 @@ export function useCreateStrategyMutation(accountId: string, onSuccess?: () => v
     mutationFn: (data: StrategyRequest) => createStrategy(accountId, data),
     onSuccess: () => {
       toast.success('전략이 등록되었습니다')
-      queryClient.invalidateQueries({ queryKey: ['strategies', accountId] })
+      queryClient.invalidateQueries({ queryKey: ['strategies'] })
       router.refresh()
       onSuccess?.()
     },
