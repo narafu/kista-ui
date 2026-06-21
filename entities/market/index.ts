@@ -1,3 +1,3 @@
-export type { MarketSession } from './model/types'
-export { getMonthlyHolidays, getMonthlyHolidaysClient, getMarketSession } from './api'
-export { useMonthlyHolidaysQuery, useMarketSessionQuery } from './hooks/useMarketQueries'
+export type { MarketSession, Candle } from './model/types'
+export { getMonthlyHolidays, getMonthlyHolidaysClient, getMarketSession, getCandlesClient } from './api'
+export { useMonthlyHolidaysQuery, useMarketSessionQuery, useCandlesQuery } from './hooks/useMarketQueries'

@@ -1,7 +1,8 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { getMonthlyHolidaysClient, getMarketSession } from '../api'
+import { getMonthlyHolidaysClient, getMarketSession, getCandlesClient } from '../api'
+import type { Candle } from '../model/types'
 
 export function useMonthlyHolidaysQuery(year: number, month: number, initialData?: string[]) {
   const { data: holidays = [], isFetching } = useQuery<string[]>({
@@ -19,5 +20,13 @@ export function useMarketSessionQuery() {
     queryKey: ['marketSession'],
     queryFn: () => getMarketSession().catch(() => null),
     staleTime: 1000 * 60,
+  })
+}
+
+export function useCandlesQuery(ticker: string, count = 200) {
+  return useQuery<Candle[]>({
+    queryKey: ['candles', ticker, count],
+    queryFn: () => getCandlesClient(ticker, count).catch((): Candle[] => []),
+    staleTime: 1000 * 60 * 10,
   })
 }

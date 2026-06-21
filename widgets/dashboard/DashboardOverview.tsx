@@ -4,6 +4,7 @@ import { PageHeader } from '@widgets/page-header'
 import { AccountCard } from '@widgets/account-card'
 import { MarketHolidayCalendar } from '@widgets/market-holiday-calendar'
 import { DashboardKpiSection } from '@widgets/dashboard/DashboardKpiSection'
+import { QqqCandleChart } from '@widgets/dashboard/QqqCandleChart'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 import type { PortfolioAccountEntry } from '@widgets/dashboard/aggregatePortfolios'
@@ -62,6 +63,9 @@ export function DashboardOverview({
           <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
           <DashboardKpiSection {...kpiProps} variant="desktop" />
         </div>
+        <div className="mb-6">
+          <QqqCandleChart />
+        </div>
         <div className="flex items-end justify-between mb-3">
           <h2 className="text-[17px] font-bold">계좌 목록</h2>
           <Link href="/accounts" className="text-xs font-semibold text-rose-500 hover:text-rose-600 transition-colors">
@@ -80,6 +84,9 @@ export function DashboardOverview({
         <DashboardKpiSection {...kpiProps} variant="mobile" />
         <div className="mb-4">
           <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
+        </div>
+        <div className="mb-4">
+          <QqqCandleChart />
         </div>
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-[15px] font-bold">계좌 목록</h2>

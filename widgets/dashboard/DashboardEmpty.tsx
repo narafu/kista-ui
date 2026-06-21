@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { PageHeader } from '@widgets/page-header'
 import { MarketHolidayCalendar } from '@widgets/market-holiday-calendar'
+import { QqqCandleChart } from '@widgets/dashboard/QqqCandleChart'
 
 interface Props {
   holidays: string[]
@@ -54,6 +55,9 @@ export function DashboardEmpty({ holidays, calendarYear, calendarMonth }: Props)
             </Link>
           </div>
         </div>
+        <div className="mt-4">
+          <QqqCandleChart />
+        </div>
       </div>
 
       {/* Mobile */}
@@ -85,6 +89,9 @@ export function DashboardEmpty({ holidays, calendarYear, calendarMonth }: Props)
           </Link>
         </div>
         <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
+        <div className="mt-4">
+          <QqqCandleChart />
+        </div>
       </div>
     </>
   )
