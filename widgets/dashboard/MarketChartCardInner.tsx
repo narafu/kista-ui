@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import { useTheme } from 'next-themes'
+import { useEffect, useRef, useState } from 'react'
 import { createChart, CandlestickSeries, ColorType, type IChartApi } from 'lightweight-charts'
 import { Info } from 'lucide-react'
 import { useCandlesQuery } from '@entities/market'
@@ -45,23 +44,18 @@ function readChartColors() {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnySeries = any
-
 export default function MarketChartCardInner({ category }: Props) {
   const [symbol, setSymbol] = useState(category.options[0].symbol)
   const selected = category.options.find((o) => o.symbol === symbol) ?? category.options[0]
   const { data: candles = [] } = useCandlesQuery(symbol, 200)
-  const { resolvedTheme } = useTheme()
-  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false)
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
-  const seriesRef = useRef<AnySeries>(null)
 
-  // 차트 생성 + 데이터 설정 — candles/mounted 변경 시 재생성
+  // 부모(MarketChartCard)가 key={resolvedTheme}으로 테마 변경 시 이 컴포넌트를 완전 재마운트함.
+  // 여기서는 candles 변경(종목 전환)만 처리하면 됨.
   useEffect(() => {
     const container = containerRef.current
-    if (!container || !mounted) return
+    if (!container) return
 
     const { background, foreground, border, pos, neg } = readChartColors()
 
@@ -88,7 +82,6 @@ export default function MarketChartCardInner({ category }: Props) {
       wickUpColor: pos,
       wickDownColor: neg,
     })
-    seriesRef.current = series
 
     series.setData(
       [...candles]
@@ -106,37 +99,8 @@ export default function MarketChartCardInner({ category }: Props) {
       resizeObserver.disconnect()
       chart.remove()
       chartRef.current = null
-      seriesRef.current = null
     }
-  }, [candles, mounted])
-
-  // 테마 변경 시 기존 차트에 색상만 업데이트 — 차트 재생성 없이 applyOptions
-  useEffect(() => {
-    const chart = chartRef.current
-    const series = seriesRef.current
-    if (!chart || !series) return
-
-    const { background, foreground, border, pos, neg } = readChartColors()
-
-    chart.applyOptions({
-      layout: {
-        background: { type: ColorType.Solid, color: background },
-        textColor: foreground,
-      },
-      grid: {
-        vertLines: { color: border },
-        horzLines: { color: border },
-      },
-      timeScale: { borderColor: border },
-      rightPriceScale: { borderColor: border },
-    })
-    series.applyOptions({
-      upColor: pos,
-      downColor: neg,
-      wickUpColor: pos,
-      wickDownColor: neg,
-    })
-  }, [resolvedTheme])
+  }, [candles])
 
   return (
     <>
