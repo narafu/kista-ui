@@ -110,7 +110,7 @@ export default function MarketChartCardInner({ category }: Props) {
           <PopoverTrigger className="text-muted-foreground hover:text-foreground transition-colors">
             <Info className="size-3.5" />
           </PopoverTrigger>
-          <PopoverContent className="w-60 text-xs">{selected.description}</PopoverContent>
+          <PopoverContent className="w-auto text-xs whitespace-nowrap">{selected.description}</PopoverContent>
         </Popover>
       </div>
       <Select value={symbol} onValueChange={(value) => value && setSymbol(value)}>
