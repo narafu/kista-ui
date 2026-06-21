@@ -31,7 +31,6 @@ export function AccountCard({ account, strategies = EMPTY_STRATEGIES }: Props) {
   const brokerShort = broker?.description ?? account.broker
   const aggregated = aggregateStatus(strategies)
 
-  // 집계 상태 라벨 (혼재 시 운영중 N개 표시)
   const activeCount = strategies.filter((s) => s.status === 'ACTIVE').length
   const mixedLabel = strategies.length > 1 && activeCount > 0 && activeCount < strategies.length
     ? `운영중 ${activeCount}개`
@@ -42,34 +41,46 @@ export function AccountCard({ account, strategies = EMPTY_STRATEGIES }: Props) {
       href={`/accounts/${account.id}`}
       className="group block rounded-[var(--r-lg)] border border-border bg-card shadow-[var(--sh-card)] hover:border-rose-200 hover:shadow-[var(--sh-rose)] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
     >
-      {/* 모바일: 컴팩트 행 */}
-      <div className="flex items-center gap-2.5 px-4 py-3 lg:hidden">
-        <span
-          className="inline-flex items-center px-2 h-[19px] rounded-sm text-[11px] font-semibold shrink-0"
-          style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}
-        >
-          {brokerShort}
-        </span>
-        <span className="font-semibold text-sm text-foreground truncate flex-1 min-w-0">
-          {account.nickname}
-        </span>
-        {strategies.length > 0 ? (
-          <span className="inline-flex items-center px-2 h-[20px] rounded-full text-[11px] font-semibold shrink-0 bg-rose-50 text-rose-600 whitespace-nowrap">
-            전략 {strategies.length}개
+      {/* 모바일: 2행 레이아웃 */}
+      <div className="flex flex-col gap-1.5 px-4 py-3 lg:hidden">
+        {/* 1행: 브로커 배지 + 계좌번호 */}
+        <div className="flex items-center gap-2">
+          <span
+            className="inline-flex items-center px-2 h-[19px] rounded-sm text-[11px] font-semibold shrink-0"
+            style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}
+          >
+            {brokerShort}
           </span>
-        ) : (
-          <span className="inline-flex items-center px-2 h-[20px] rounded-full text-[11px] font-semibold shrink-0 bg-muted text-muted-foreground whitespace-nowrap">
-            미등록
+          <span className="ml-auto text-[11px] font-mono text-muted-foreground tracking-wider shrink-0">
+            {account.accountNoMasked}
           </span>
-        )}
-        {aggregated && (
-          mixedLabel ? (
-            <span className="text-[11px] font-semibold text-warn shrink-0">{mixedLabel}</span>
+        </div>
+        {/* 2행: 닉네임 + 전략 수 + 상태 + 화살표 */}
+        <div className="flex items-center gap-2">
+          <span className="font-bold text-sm text-foreground truncate flex-1 min-w-0">
+            {account.nickname}
+          </span>
+          {strategies.length > 0 ? (
+            <span
+              className="inline-flex items-center px-2 h-[20px] rounded-full text-[11px] font-semibold shrink-0 whitespace-nowrap"
+              style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
+            >
+              전략 {strategies.length}개
+            </span>
           ) : (
-            <StatusDot status={aggregated} hideLabel className="shrink-0" />
-          )
-        )}
-        <ChevronRight className="size-4 text-muted-foreground group-hover:text-rose-500 transition-colors shrink-0" />
+            <span className="inline-flex items-center px-2 h-[20px] rounded-full text-[11px] font-semibold shrink-0 bg-muted text-muted-foreground whitespace-nowrap">
+              미등록
+            </span>
+          )}
+          {aggregated && (
+            mixedLabel ? (
+              <span className="text-[11px] font-semibold text-warn shrink-0">{mixedLabel}</span>
+            ) : (
+              <StatusDot status={aggregated} hideLabel className="shrink-0" />
+            )
+          )}
+          <ChevronRight className="size-4 text-muted-foreground group-hover:text-rose-500 transition-colors shrink-0" />
+        </div>
       </div>
 
       {/* PC: 카드 형태 */}
@@ -81,31 +92,32 @@ export function AccountCard({ account, strategies = EMPTY_STRATEGIES }: Props) {
         />
 
         {/* 헤더 */}
-        <div className="flex items-start justify-between gap-3 px-5 pt-4 pb-3">
-          <div className="min-w-0">
+        <div className="px-5 pt-4 pb-3">
+          {/* 브로커 배지 + 계좌번호 우측 */}
+          <div className="flex items-center justify-between mb-2.5">
             <span
-              className="inline-flex items-center px-2 h-[19px] rounded-sm text-[11px] font-semibold mb-2"
+              className="inline-flex items-center px-2 h-[19px] rounded-sm text-[11px] font-semibold"
               style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}
             >
               {brokerLabel}
             </span>
-            <p className="font-bold text-[15px] text-foreground leading-tight truncate">
+            <span className="text-[11px] font-mono text-muted-foreground tracking-wider">
+              {account.accountNoMasked}
+            </span>
+          </div>
+          {/* 닉네임 + 집계 상태 */}
+          <div className="flex items-center justify-between gap-2">
+            <p className="font-bold text-xl text-foreground leading-tight tracking-tight truncate">
               {account.nickname}
             </p>
-            <p className="text-xs font-mono text-muted-foreground tracking-wider mt-0.5">
-              {account.accountNoMasked}
-            </p>
+            {aggregated && (
+              mixedLabel ? (
+                <span className="text-[11px] font-semibold text-warn shrink-0">{mixedLabel}</span>
+              ) : (
+                <StatusDot status={aggregated} className="shrink-0" />
+              )
+            )}
           </div>
-          {aggregated && (
-            mixedLabel ? (
-              <span className="mt-0.5 text-[11px] font-semibold text-warn shrink-0">{mixedLabel}</span>
-            ) : (
-              <StatusDot
-                status={aggregated}
-                className="mt-0.5 shrink-0"
-              />
-            )
-          )}
         </div>
 
         {/* 구분선 */}
@@ -117,10 +129,13 @@ export function AccountCard({ account, strategies = EMPTY_STRATEGIES }: Props) {
             <ul>
               {strategies.map((s) => (
                 <li key={s.id} className="flex items-center gap-2 min-w-0 py-2 border-b border-border last:border-b-0">
-                  <span className="inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-bold uppercase shrink-0 bg-rose-50 text-rose-600">
+                  <span
+                    className="inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-bold uppercase shrink-0"
+                    style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
+                  >
                     {s.type}
                   </span>
-                  <span className="text-xs font-mono font-medium text-foreground/70 tracking-wider">
+                  <span className="text-xs font-mono font-semibold text-foreground tracking-wider">
                     {s.ticker}
                   </span>
                   {s.initialUsdDeposit != null && (
@@ -137,7 +152,7 @@ export function AccountCard({ account, strategies = EMPTY_STRATEGIES }: Props) {
         </div>
 
         {/* 푸터 */}
-        <div className="flex items-center justify-end gap-1 px-5 py-3 border-t border-border text-xs text-muted-foreground">
+        <div className="flex items-center justify-end gap-1 px-5 py-3 border-t border-border bg-muted/30 text-xs text-muted-foreground">
           계좌 상세 보기
           <ChevronRight className="size-3.5 group-hover:text-rose-500 transition-colors" />
         </div>
