@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Plus } from 'lucide-react'
+import { Plus, Landmark } from 'lucide-react'
 import Link from 'next/link'
 import { PageHeader } from '@widgets/page-header'
 import { AccountCard } from '@widgets/account-card'
@@ -42,14 +42,23 @@ export default async function AccountsPage() {
         }
       />
       {accounts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-4">
-          <p className="text-[13px]">등록된 계좌가 없습니다.</p>
+        <div className="flex flex-col items-center gap-5 py-16 text-center">
+          <div className="rounded-full bg-muted p-4">
+            <Landmark className="size-7 text-muted-foreground" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <p className="text-sm font-semibold text-foreground">등록된 계좌가 없습니다</p>
+            <p className="text-sm text-muted-foreground">
+              한국투자증권 계좌를 연결해 자동 분할매매를 시작하세요.
+            </p>
+          </div>
           <Link
             href="/accounts/new"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted transition-colors text-foreground"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] text-sm font-medium transition-colors"
+            style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
           >
             <Plus className="size-4" />
-            첫 계좌 등록하기
+            계좌 등록하기
           </Link>
         </div>
       ) : (
