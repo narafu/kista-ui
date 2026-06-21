@@ -33,59 +33,72 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
         style={{ background: STATUS_ACCENT[strategy.status] ?? 'var(--border)' }}
       />
 
-      {/* 모바일: 컴팩트 행 */}
-      <div className="flex items-center gap-3 pl-5 pr-4 py-3 lg:hidden">
-        <span
-          className="inline-flex items-center px-2.5 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap"
-          style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
-        >
-          {strategy.type}
-        </span>
-        <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} hideLabel />
-        <span className="font-bold text-sm text-foreground">{strategy.ticker}</span>
-        {accountLabel && (
-          <span className="text-[11px] text-muted-foreground">{accountLabel}</span>
-        )}
-        <span className="ml-auto text-sm font-semibold text-foreground">
-          {strategy.initialUsdDeposit != null ? (
-            `$${fmtUsd(strategy.initialUsdDeposit)}`
-          ) : (
-            <span className="text-muted-foreground font-normal">미설정</span>
+      {/* 모바일: 2행 레이아웃 */}
+      <div className="flex flex-col gap-1.5 pl-5 pr-4 py-3 lg:hidden">
+        {/* 1행: 배지 + 계좌번호 */}
+        <div className="flex items-center gap-1.5">
+          <span
+            className="inline-flex items-center px-2.5 h-[20px] rounded-full text-[11px] font-semibold whitespace-nowrap"
+            style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
+          >
+            {strategy.type}
+          </span>
+          {isInfinite && (
+            <span className="inline-flex items-center px-2 h-[20px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-muted text-foreground">
+              {strategy.divisionCount}분할
+            </span>
           )}
-        </span>
-        <ChevronRight className="size-4 text-muted-foreground group-hover:text-rose-500 transition-colors shrink-0" />
+          {accountLabel && (
+            <span className="ml-auto text-[11px] font-medium text-muted-foreground shrink-0">{accountLabel}</span>
+          )}
+        </div>
+        {/* 2행: 상태 + 티커 + 금액 */}
+        <div className="flex items-center gap-2">
+          <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} hideLabel />
+          <span className="font-bold text-[15px] text-foreground">{strategy.ticker}</span>
+          <span className="ml-auto text-sm font-semibold text-foreground">
+            {strategy.initialUsdDeposit != null ? (
+              `$${fmtUsd(strategy.initialUsdDeposit)}`
+            ) : (
+              <span className="text-muted-foreground font-normal">미설정</span>
+            )}
+          </span>
+          <ChevronRight className="size-4 text-muted-foreground group-hover:text-rose-500 transition-colors shrink-0" />
+        </div>
       </div>
 
       {/* PC: 카드 형태 */}
       <div className="hidden lg:flex flex-col">
         <div className="pl-5 pr-4 pt-4 pb-3">
-          <div className="flex flex-wrap items-center gap-1.5 mb-3">
-            <span
-              className="inline-flex items-center px-2.5 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap"
-              style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
-            >
-              {strategy.type}
-            </span>
-            {isInfinite && (
-              <span className="inline-flex items-center px-2 h-[22px] rounded-full text-[11px] font-medium whitespace-nowrap bg-muted text-muted-foreground">
-                {strategy.divisionCount}분할
+          {/* 배지 row + 계좌번호 우측 */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span
+                className="inline-flex items-center px-2.5 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap"
+                style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
+              >
+                {strategy.type}
               </span>
-            )}
-            {strategy.isReverseMode && (
-              <span className="inline-flex items-center px-2 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-amber-50 text-amber-600">
-                리버스
-              </span>
-            )}
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-end gap-2">
-              <span className="font-bold text-xl tracking-tight text-foreground leading-none">
-                {strategy.ticker}
-              </span>
-              {accountLabel && (
-                <span className="text-[11px] text-muted-foreground pb-0.5">{accountLabel}</span>
+              {isInfinite && (
+                <span className="inline-flex items-center px-2 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-muted text-foreground">
+                  {strategy.divisionCount}분할
+                </span>
+              )}
+              {strategy.isReverseMode && (
+                <span className="inline-flex items-center px-2 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-amber-50 text-amber-600">
+                  리버스
+                </span>
               )}
             </div>
+            {accountLabel && (
+              <span className="text-xs font-medium text-muted-foreground shrink-0 ml-3">{accountLabel}</span>
+            )}
+          </div>
+          {/* 티커 + 상태 */}
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-xl tracking-tight text-foreground leading-none">
+              {strategy.ticker}
+            </span>
             <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
           </div>
         </div>
