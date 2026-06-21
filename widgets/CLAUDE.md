@@ -34,7 +34,7 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 | 슬라이스 | 컴포넌트 | 설명 |
 |---|---|---|
 | `layout` | `DesktopSidebar`, `MobileBottomNav`, `MobileHeader`, `AdminSidebar`, `AdminTopBar`, `SettingsNav` | 전역 레이아웃 내비게이션 |
-| `account-card` | `AccountCard` | 계좌 카드 (순수 뷰). 모바일 2행 레이아웃: 1행=브로커 배지+계좌번호, 2행=닉네임+전략 수+상태. PC: 브로커 배지 우측에 계좌번호 배치, 닉네임 `text-xl`. 배지 active: `style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}` |
+| `account-card` | `AccountCard` | 계좌 카드. `useStrategiesQuery(account.id, initialStrategies)` 내장 — 뮤테이션 후 즉시 리프레시. 모바일 2행 레이아웃: 1행=브로커 배지+계좌번호, 2행=닉네임+전략 수+상태. PC: 브로커 배지 우측에 계좌번호 배치, 닉네임 `text-xl`. 배지 active: `style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}` |
 | `strategy-card` | `StrategyCard` | 전략 카드 (순수 뷰, 클릭 시 전략 상세로 이동). 모바일 2행 레이아웃: 1행=배지+계좌번호, 2행=상태+티커+시드종류+금액. PC: 배지 우측에 계좌번호, 시드 정보 별도 행(border-t), 시작금액 푸터 행(border-t bg-muted/30) |
 | `strategy-list` | `StrategyList` | 전략 목록 (컴팩트 행 + 전략 추가) |
 | `kpi-card` | `KpiCard` | KPI 지표 카드 |
@@ -85,7 +85,7 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 
 ## 주요 슬라이스 quirk
 
-- **`dashboard/aggregatePortfolios`**: 포트폴리오 집계 순수 함수. Server Component에서 호출. `AccountCard`에는 `strategies={strategiesByAccount[i]}` 전달 필수 — 미전달 시 "알 수 없음"/"전략 미등록" 표시.
+- **`dashboard/aggregatePortfolios`**: 포트폴리오 집계 순수 함수. Server Component에서 호출. `AccountCard`에는 `strategies={strategiesByAccount[i]}`를 `initialData`로 전달 — `AccountCard` 내부 `useStrategiesQuery`가 SSR 값을 초기 데이터로 사용하고 뮤테이션 invalidate 시 즉시 리프레시. 미전달 시 "알 수 없음"/"전략 미등록" 표시.
 - **`account-detail`**: `TradesTab`은 range 상태를 `useReducer`로 관리하고 `@widgets/cycle-history`의 `CycleHistoryTable`/`buildParams`를 사용. 계좌 요약: 종목=`portfolio.ticker`(전략 ticker 포지션 우선 → positions[0] 폴백), 평가손익=`평가금액-(평균단가×보유수량)` 직접 계산(KIS `evlu_pfls` 미사용).
 - **`cycle-history`**: `StrategyTradesTab`은 range 상태를 `useReducer`로 관리하고 `CycleHistoryTable`에 위임. `account-detail`의 전략 탭과 `strategy-detail` 양쪽에서 사용.
 - **`strategy-detail`**: `useStrategyOrderPreviewQuery(strategyId)`로 전략별 KPI/다음 주문을 조회. `position=null`이면 `skipReason` 안내 문구 표시. 헤더 배지: `{divisionCount}분할`(INFINITE 전략, `bg-muted text-foreground`) + `리버스모드`(isReverseMode=true, amber-50/amber-600)
