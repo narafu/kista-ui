@@ -37,7 +37,8 @@ export function StrategyTickerSection({
           )}
         </div>
       ) : availableTickers.length > 1 ? (
-        <div className="flex gap-2 overflow-x-auto min-w-0 px-1 py-0.5">
+        <div className="overflow-x-auto px-1 py-0.5">
+          <div className="flex gap-2 w-max">
           {availableTickers.map((code) => {
             const sel = ticker === code
             const price = prices?.[code]
@@ -70,6 +71,7 @@ export function StrategyTickerSection({
               </button>
             )
           })}
+          </div>
         </div>
       ) : availableTickers.length === 1 ? (
         <div className="flex items-center justify-between px-[14px] py-3 rounded-[var(--r-sm)] border border-border bg-muted">
