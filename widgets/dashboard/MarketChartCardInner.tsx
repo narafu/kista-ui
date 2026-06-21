@@ -26,25 +26,32 @@ export default function MarketChartCardInner({ category }: Props) {
     const container = containerRef.current
     if (!container) return
 
-    // CSS 변수 raw 값(oklch 등 modern syntax)을 lightweight-charts가 파싱하지 못함.
-    // 임시 element에 변수를 적용해 브라우저가 rgb()/rgba()로 계산한 값을 읽어옴.
-    const el = document.createElement('div')
-    el.style.display = 'none'
-    document.body.appendChild(el)
-    const readColor = (varName: string): string => {
-      el.style.color = `var(${varName})`
-      return getComputedStyle(el).color
+    // Chrome 111+에서 getComputedStyle이 oklch를 lab() 형태로 반환하며,
+    // lightweight-charts는 lab/oklch를 파싱하지 못함.
+    // Canvas 2D context로 픽셀을 읽어 항상 rgba() 형태로 변환함.
+    const toRgba = (cssColor: string): string => {
+      if (cssColor.startsWith('rgb')) return cssColor
+      const canvas = document.createElement('canvas')
+      canvas.width = canvas.height = 1
+      const ctx = canvas.getContext('2d')!
+      ctx.fillStyle = cssColor
+      ctx.fillRect(0, 0, 1, 1)
+      const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data
+      return `rgba(${r},${g},${b},${+(a / 255).toFixed(3)})`
     }
-    const readBg = (varName: string): string => {
-      el.style.backgroundColor = `var(${varName})`
-      return getComputedStyle(el).backgroundColor
+    const readVar = (varName: string, prop: 'color' | 'background-color' = 'color'): string => {
+      const el = document.createElement('div')
+      el.style.setProperty(prop, `var(${varName})`)
+      document.body.appendChild(el)
+      const raw = prop === 'color' ? getComputedStyle(el).color : getComputedStyle(el).backgroundColor
+      el.remove()
+      return toRgba(raw)
     }
-    const background = readBg('--background')
-    const foreground = readColor('--foreground')
-    const border = readColor('--border')
-    const pos = readColor('--pos') // 상승 — 빨강 (국내 관행)
-    const neg = readColor('--neg') // 하락 — 파랑 (국내 관행)
-    el.remove()
+    const background = readVar('--background', 'background-color')
+    const foreground = readVar('--foreground')
+    const border = readVar('--border')
+    const pos = readVar('--pos') // 상승 — 빨강 (국내 관행)
+    const neg = readVar('--neg') // 하락 — 파랑 (국내 관행)
 
     const chart = createChart(container, {
       width: container.clientWidth,
