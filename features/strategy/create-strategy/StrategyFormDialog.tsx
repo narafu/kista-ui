@@ -94,12 +94,12 @@ export function StrategyFormDialog({
       >
         {triggerLabel}
       </DialogTrigger>
-      <DialogContent className="overflow-hidden sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <div className="min-w-0 w-full max-h-[70vh] overflow-y-auto overscroll-contain">
+        <div className="min-w-0 w-full max-h-[70vh] overflow-x-hidden overflow-y-auto overscroll-contain">
           {form}
         </div>
       </DialogContent>
