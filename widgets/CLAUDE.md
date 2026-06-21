@@ -94,6 +94,7 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 - **`profit-display`**: `currency='USD'`(기본) 또는 `'KRW'`. KIS portfolio summary(`totalEvalProfit` 등)는 KRW → `currency="KRW"` 필수.
 - **`kpi-card`**: 포트폴리오/KPI는 Card row-list 대신 `<KpiCard label="..." value="..." />` + `grid grid-cols-2 gap-3`. `variant="accent"`, 손익은 `variant="default"`.
 - **`revealable-value`**: `****0614` 마스킹 → 눈 아이콘으로 공개. `KpiCard`의 `value={<RevealableValue value={account.accountNoMasked} />}` 패턴.
+- **`all-strategies`**: `AllStrategiesList`가 `strategies.length === 0`이면 내부 `EmptyState` 컴포넌트 렌더링. 계좌 유무(`accounts.length > 0`)에 따라 분기 — 계좌 있음: 계좌 상세 링크 최대 3개 + 더보기, 계좌 없음: `/accounts` 등록 링크.
 - **`admin-user-list`**: 이상감지 카드는 `AdminAnomalies { pausedAccounts, inactiveAccounts }` 사용 — `failedTrades` 필드 없음.
 - **`glass-card`**: `maxWidth` prop + CSS 토큰(`var(--background)`)은 인라인 style 유지.
 - **`pull-to-refresh`**: `paddingTop` 동적 계산, `transform: rotate(${progress * 270}deg)` — 인라인 style 유지.
