@@ -81,6 +81,7 @@ export function NicknameEditor({ initialNickname }: Props) {
           onKeyDown={handleKeyDown}
           maxLength={10}
           placeholder="1~10자"
+          aria-label="닉네임"
           disabled={mutation.isPending}
           className="w-32 h-7 px-2 text-[13px] rounded border border-border bg-background focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
         />

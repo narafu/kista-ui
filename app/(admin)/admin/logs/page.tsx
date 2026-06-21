@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { listAdminAuditLogs, listAdminErrorLogs, getAdminAnomalies } from '@entities/user'
 import type { AdminAuditLog, AppErrorLog, AdminAnomalies, AdminAnomalyAccount } from '@entities/user'
@@ -40,7 +41,7 @@ export default async function AdminLogsPage({
         <p className="text-sm text-muted-foreground mt-1">감사 · 오류 · 이상 징후 통합 뷰</p>
       </div>
 
-      <LogsFilterChips />
+      <Suspense fallback={null}><LogsFilterChips /></Suspense>
 
       <div className="mt-6 space-y-8">
         {showAnomaly && <AnomaliesSection anomalies={anomalies} />}

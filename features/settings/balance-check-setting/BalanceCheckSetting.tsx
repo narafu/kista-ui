@@ -30,6 +30,7 @@ export function BalanceCheckSetting({ initialEnabled }: Props) {
         type="button"
         role="switch"
         aria-checked={enabled}
+        aria-label="잔고 검증"
         disabled={mutation.isPending}
         onClick={handleToggle}
         className={[

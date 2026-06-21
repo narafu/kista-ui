@@ -39,7 +39,7 @@ export function AdminPrivacyBaseTable({ bases }: Props) {
       <table className="w-full text-sm">
         <thead className="bg-muted/40 border-b border-border">
           <tr>
-            <th className="w-8 px-2 py-3"></th>
+            <th className="w-8 px-2 py-3" aria-label="확장"></th>
             <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">날짜</th>
             <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">종목</th>
             <th className="text-right px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">사이클 시작금액</th>

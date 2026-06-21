@@ -31,6 +31,7 @@ export function TradingAlertToggle({ initialEnabled, channel }: Props) {
         type="button"
         role="switch"
         aria-checked={enabled}
+        aria-label="매매 알림"
         disabled={mutation.isPending}
         onClick={handleToggle}
         className={[
