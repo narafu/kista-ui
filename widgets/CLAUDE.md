@@ -35,7 +35,7 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 |---|---|---|
 | `layout` | `DesktopSidebar`, `MobileBottomNav`, `MobileHeader`, `AdminSidebar`, `AdminTopBar`, `SettingsNav` | 전역 레이아웃 내비게이션 |
 | `account-card` | `AccountCard` | 계좌 카드 (순수 뷰) |
-| `strategy-card` | `StrategyCard` | 전략 컴팩트 행 (순수 뷰, 클릭 시 전략 상세로 이동) |
+| `strategy-card` | `StrategyCard` | 전략 카드 (순수 뷰, 클릭 시 전략 상세로 이동). 모바일 2행 레이아웃: 1행=배지+계좌번호, 2행=상태+티커+금액. PC: 배지 우측에 계좌번호 배치 |
 | `strategy-list` | `StrategyList` | 전략 목록 (컴팩트 행 + 전략 추가) |
 | `kpi-card` | `KpiCard` | KPI 지표 카드 |
 | `profit-stats-card` | `ProfitStatsCard`, `PortfolioChart`, `PortfolioChartInner` | 수익 통계 + 차트 |
@@ -88,7 +88,7 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 - **`dashboard/aggregatePortfolios`**: 포트폴리오 집계 순수 함수. Server Component에서 호출. `AccountCard`에는 `strategies={strategiesByAccount[i]}` 전달 필수 — 미전달 시 "알 수 없음"/"전략 미등록" 표시.
 - **`account-detail`**: `TradesTab`은 range 상태를 `useReducer`로 관리하고 `@widgets/cycle-history`의 `CycleHistoryTable`/`buildParams`를 사용. 계좌 요약: 종목=`portfolio.ticker`(전략 ticker 포지션 우선 → positions[0] 폴백), 평가손익=`평가금액-(평균단가×보유수량)` 직접 계산(KIS `evlu_pfls` 미사용).
 - **`cycle-history`**: `StrategyTradesTab`은 range 상태를 `useReducer`로 관리하고 `CycleHistoryTable`에 위임. `account-detail`의 전략 탭과 `strategy-detail` 양쪽에서 사용.
-- **`strategy-detail`**: `useStrategyOrderPreviewQuery(strategyId)`로 전략별 KPI/다음 주문을 조회. `position=null`이면 `skipReason` 안내 문구 표시. 헤더 배지: `{divisionCount}분할`(INFINITE 전략, 배경 amber-50/green-700 계열) + `리버스모드`(isReverseMode=true, amber-50/amber-600)
+- **`strategy-detail`**: `useStrategyOrderPreviewQuery(strategyId)`로 전략별 KPI/다음 주문을 조회. `position=null`이면 `skipReason` 안내 문구 표시. 헤더 배지: `{divisionCount}분할`(INFINITE 전략, `bg-muted text-foreground`) + `리버스모드`(isReverseMode=true, amber-50/amber-600)
 - **`percent-gauge`**: 슬라이더 handle 위치(`left`, `width`, `height`)는 픽셀 계산이라 인라인 style 유지. 그 외는 Tailwind. pct 초기화: 타입/종목 변경 시 100% → `deposit < newMinSeed`이면 0%로.
 - **`profit-stats-card`**: `PortfolioChart`/`PortfolioChartInner`는 이 슬라이스 내부 파일 — 외부 export 없음. `getPortfolioSnapshots()`는 DB 스냅샷 기반(실시간 KIS 아님) → 차트 공백 가능.
 - **`profit-display`**: `currency='USD'`(기본) 또는 `'KRW'`. KIS portfolio summary(`totalEvalProfit` 등)는 KRW → `currency="KRW"` 필수.
