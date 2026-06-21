@@ -105,8 +105,9 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
           </div>
         </div>
         {/* 시드 정보 행 */}
-        <div className="flex items-center pl-5 pr-4 py-2 border-t border-border">
-          <span className="text-[11px] text-muted-foreground">{seedLabel}</span>
+        <div className="flex items-center justify-between pl-5 pr-4 py-2 border-t border-border">
+          <span className="text-[11px] text-muted-foreground">다음 사이클</span>
+          <span className="text-[11px] font-medium text-foreground">{seedLabel}</span>
         </div>
         {/* 시작금액 푸터 */}
         <div className="flex items-center justify-between pl-5 pr-4 py-2.5 border-t border-border bg-muted/30">
