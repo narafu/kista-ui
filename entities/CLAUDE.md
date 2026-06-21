@@ -48,7 +48,7 @@ entities/{domain}/
 
 ### queryKey 목록
 
-`['accounts']`, `['accountMargin', accountId]`, `['accountPrices', accountId, tickers]`, `['strategies', accountId]`, `['nextOrderPreview', accountId]`, `['previewMargin', accountId]`(widgets 내부), `['holidays', year, month]`(공유 캐시), `['marketSession']`, `['accountCycleHistory', accountId, params]`, `['strategyCycleHistory', strategyId, params]`, `['profit', accountId, period]`, `['snapshots', accountId, period]`, `['privacyCurrentBase']`, `['me']`, `['adminUsers', filter]`
+`['accounts']`, `['accountMargin', accountId]`, `['accountPrices', accountId, tickers]`, `['strategies', accountId]`, `['strategies', 'all']`(전체 전략 목록, `useAllStrategiesQuery`), `['nextOrderPreview', accountId]`, `['previewMargin', accountId]`(widgets 내부), `['holidays', year, month]`(공유 캐시), `['marketSession']`, `['accountCycleHistory', accountId, params]`, `['strategyCycleHistory', strategyId, params]`, `['profit', accountId, period]`, `['snapshots', accountId, period]`, `['privacyCurrentBase']`, `['me']`, `['adminUsers', filter]`
 
 ## index.ts 규칙
 
