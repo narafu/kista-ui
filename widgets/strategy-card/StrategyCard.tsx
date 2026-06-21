@@ -19,8 +19,9 @@ const STATUS_ACCENT: Record<string, string> = {
 }
 
 export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
-  const { findStrategyType } = useMeta()
+  const { findStrategyType, labelOf } = useMeta()
   const isInfinite = (findStrategyType(strategy.type)?.availableTickers?.length ?? 0) > 1
+  const seedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
 
   return (
     <Link
@@ -49,13 +50,14 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
             </span>
           )}
           {accountLabel && (
-            <span className="ml-auto text-[11px] font-medium text-muted-foreground shrink-0">{accountLabel}</span>
+            <span className="ml-auto text-xs font-semibold text-foreground/60 shrink-0 font-mono tracking-wider">{accountLabel}</span>
           )}
         </div>
-        {/* 2행: 상태 + 티커 + 금액 */}
+        {/* 2행: 상태 + 티커 + 시드 + 금액 */}
         <div className="flex items-center gap-2">
           <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} hideLabel />
           <span className="font-bold text-[15px] text-foreground">{strategy.ticker}</span>
+          <span className="text-[11px] text-muted-foreground">{seedLabel}</span>
           <span className="ml-auto text-sm font-semibold text-foreground">
             {strategy.initialUsdDeposit != null ? (
               `$${fmtUsd(strategy.initialUsdDeposit)}`
@@ -91,7 +93,7 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
               )}
             </div>
             {accountLabel && (
-              <span className="text-xs font-medium text-muted-foreground shrink-0 ml-3">{accountLabel}</span>
+              <span className="text-xs font-semibold text-foreground/60 shrink-0 ml-3 font-mono tracking-wider">{accountLabel}</span>
             )}
           </div>
           {/* 티커 + 상태 */}
@@ -102,6 +104,11 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
             <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
           </div>
         </div>
+        {/* 시드 정보 행 */}
+        <div className="flex items-center pl-5 pr-4 py-2 border-t border-border">
+          <span className="text-[11px] text-muted-foreground">{seedLabel}</span>
+        </div>
+        {/* 시작금액 푸터 */}
         <div className="flex items-center justify-between pl-5 pr-4 py-2.5 border-t border-border bg-muted/30">
           <span className="text-[11px] text-muted-foreground">시작금액</span>
           <div className="flex items-center gap-1.5">

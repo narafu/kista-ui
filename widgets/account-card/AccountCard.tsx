@@ -51,7 +51,7 @@ export function AccountCard({ account, strategies = EMPTY_STRATEGIES }: Props) {
           >
             {brokerShort}
           </span>
-          <span className="ml-auto text-[11px] font-mono text-muted-foreground tracking-wider shrink-0">
+          <span className="ml-auto text-xs font-mono font-semibold text-foreground/60 tracking-wider shrink-0">
             {account.accountNoMasked}
           </span>
         </div>
@@ -101,7 +101,7 @@ export function AccountCard({ account, strategies = EMPTY_STRATEGIES }: Props) {
             >
               {brokerLabel}
             </span>
-            <span className="text-[11px] font-mono text-muted-foreground tracking-wider">
+            <span className="text-xs font-mono font-semibold text-foreground/60 tracking-wider">
               {account.accountNoMasked}
             </span>
           </div>

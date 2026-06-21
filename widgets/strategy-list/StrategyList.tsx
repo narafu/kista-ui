@@ -31,7 +31,7 @@ export function StrategyList({ accountId, strategies }: Props) {
             <StrategyFormDialog accountId={accountId} disabled={false} />
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 lg:gap-3">
+          <div className="grid grid-cols-1 gap-2 lg:grid-cols-3 lg:gap-3">
             {strategies.map((s) => (
               <StrategyCard key={s.id} accountId={accountId} strategy={s} />
             ))}
