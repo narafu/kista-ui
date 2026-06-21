@@ -5,6 +5,7 @@ import { getAuthToken } from '@shared/lib/auth/token'
 import { getCachedAccounts } from '@shared/lib/cache/cached-api'
 import { ProfitStatsCard } from '@widgets/profit-stats-card'
 import { PageHeader } from '@widgets/page-header'
+import { RevealableValue } from '@widgets/revealable-value'
 import type { Account } from '@entities/account'
 
 export const metadata: Metadata = {
@@ -41,7 +42,12 @@ export default async function StatisticsPage() {
               <div key={account.id} className="rounded-[var(--r-lg)] p-5 shadow-[var(--sh-card)] border border-border" style={{ background: 'var(--card)' }}>
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-[14px] font-bold">{account.nickname}</span>
-                  <span className="text-[11.5px] text-muted-foreground">{account.accountNoMasked}</span>
+                  <span className="text-[11.5px] text-muted-foreground">
+                    <RevealableValue
+                      value={account.accountNo ?? account.accountNoMasked}
+                      hiddenDisplay={account.accountNoMasked}
+                    />
+                  </span>
                 </div>
                 <ProfitStatsCard accountId={account.id} />
               </div>
