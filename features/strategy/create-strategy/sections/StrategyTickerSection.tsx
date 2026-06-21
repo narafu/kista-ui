@@ -37,7 +37,7 @@ export function StrategyTickerSection({
           )}
         </div>
       ) : availableTickers.length > 1 ? (
-        <div className="overflow-x-auto px-1 py-0.5">
+        <div className="overflow-x-auto px-1 py-0.5 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border/60">
           <div className="flex gap-2 w-max">
           {availableTickers.map((code) => {
             const sel = ticker === code
