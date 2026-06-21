@@ -18,6 +18,8 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 | 슬라이스 | 주요 컴포넌트 | 사용 위치 |
 |---|---|---|
 | `admin-user-list` | `AdminPendingList`, `AdminUsersTable` | `app/(admin)/admin/` 페이지들 |
+| `admin-privacy-trade-list` | `AdminPrivacyBaseTable` | `app/(admin)/admin/privacy-trade/` |
+| `all-strategies` | `AllStrategiesList` | `app/(main)/` 전략 전체 목록 페이지 |
 | `dashboard` | `DashboardEmpty`, `DashboardOverview`, `aggregatePortfolios` | `app/(main)/dashboard/page.tsx` |
 | `account-detail` | `AccountDetailTabs`, `AccountSummaryCard`, `TradesTab` | `app/(main)/accounts/[id]/page.tsx` |
 | `strategy-detail` | `StrategyDetail` | `app/(main)/accounts/[id]/strategies/[sid]/page.tsx` |
@@ -31,6 +33,7 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 
 | 슬라이스 | 컴포넌트 | 설명 |
 |---|---|---|
+| `layout` | `DesktopSidebar`, `MobileBottomNav`, `MobileHeader`, `AdminSidebar`, `AdminTopBar`, `SettingsNav` | 전역 레이아웃 내비게이션 |
 | `account-card` | `AccountCard` | 계좌 카드 (순수 뷰) |
 | `strategy-card` | `StrategyCard` | 전략 컴팩트 행 (순수 뷰, 클릭 시 전략 상세로 이동) |
 | `strategy-list` | `StrategyList` | 전략 목록 (컴팩트 행 + 전략 추가) |

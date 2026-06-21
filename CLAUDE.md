@@ -38,7 +38,7 @@ npx shadcn@latest add <component> --yes
 
 ```
 app/           → Next.js 라우팅만 (Server Component 데이터 페칭 + 레이아웃)
-widgets/       → 페이지 합성 단위 (dashboard, account-detail, next-order-preview, ...)
+widgets/       → 페이지 합성 단위 (dashboard, account-detail, strategy-detail, ...)
 features/      → 사용자 시나리오 (auth, settings, strategy, account, admin, ...)
 entities/      → 도메인 모델 + API 함수 + React Query 훅 (account, strategy, order, ...)
 shared/        → 도메인 무관 공용 (ui/, lib/api-client, lib/format, lib/utils, providers/)
