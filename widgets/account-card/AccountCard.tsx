@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { StatusDot } from '@widgets/status-dot'
 import { useMeta } from '@entities/meta'
+import { useStrategiesQuery } from '@entities/strategy'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 
@@ -24,7 +25,8 @@ function aggregateStatus(strategies: Strategy[]): 'ACTIVE' | 'PAUSED' | null {
   return 'PAUSED'
 }
 
-export function AccountCard({ account, strategies = EMPTY_STRATEGIES }: Props) {
+export function AccountCard({ account, strategies: initialStrategies = EMPTY_STRATEGIES }: Props) {
+  const { data: strategies = EMPTY_STRATEGIES } = useStrategiesQuery(account.id, initialStrategies)
   const { findBroker } = useMeta()
   const broker = findBroker(account.broker)
   const brokerLabel = broker?.label ?? account.broker
