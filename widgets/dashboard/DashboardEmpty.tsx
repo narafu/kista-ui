@@ -50,7 +50,7 @@ export function DashboardEmpty({ holidays, calendarYear, calendarMonth }: Props)
             <p className="text-xs text-muted-foreground leading-relaxed mb-4 flex-1">{NOTIFICATION_CARD.desc}</p>
             <Link
               href={NOTIFICATION_CARD.href}
-              className="text-xs font-bold text-[var(--brand-fg-soft)] hover:text-rose-600 transition-colors"
+              className="text-xs font-bold text-[var(--brand-fg-soft)] hover:opacity-75 transition-opacity"
             >
               {NOTIFICATION_CARD.cta}
             </Link>
@@ -87,7 +87,7 @@ export function DashboardEmpty({ holidays, calendarYear, calendarMonth }: Props)
         <div className="rounded-[var(--r-lg)] border border-border bg-card p-3.5 mb-4">
           <p className="text-sm font-bold mb-0.5">{NOTIFICATION_CARD.title}</p>
           <p className="text-xs text-muted-foreground leading-relaxed mb-3">{NOTIFICATION_CARD.desc}</p>
-          <Link href={NOTIFICATION_CARD.href} className="text-xs font-bold text-[var(--brand-fg-soft)] hover:text-rose-600 transition-colors">
+          <Link href={NOTIFICATION_CARD.href} className="text-xs font-bold text-[var(--brand-fg-soft)] hover:opacity-75 transition-opacity">
             {NOTIFICATION_CARD.cta}
           </Link>
         </div>
