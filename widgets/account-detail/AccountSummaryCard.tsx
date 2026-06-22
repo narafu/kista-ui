@@ -4,24 +4,20 @@ import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { KpiCard } from '@widgets/kpi-card'
-import { fmtUsd, fmtPercent } from '@shared/lib/format'
+import { fmtUsd } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import type { Account } from '@entities/account'
-import type { PortfolioSnapshot } from '@entities/trade'
 
 interface Props {
   account: Account
-  portfolio: PortfolioSnapshot | null
-  usdDeposit: number
+  kisUsdDeposit: number
+  kisPosEvalUsd: number
 }
 
-export function AccountSummaryCard({ account, portfolio, usdDeposit }: Props) {
+export function AccountSummaryCard({ account, kisUsdDeposit, kisPosEvalUsd }: Props) {
   const [revealed, setRevealed] = useState(false)
   const { labelOf } = useMeta()
   const brokerLabel = labelOf('brokers', account.broker)
-  const cost = portfolio ? (portfolio.avgPrice ?? 0) * (portfolio.holdings ?? 0) : 0
-  const unrealized = portfolio ? (portfolio.marketValueUsd ?? 0) - cost : 0
-  const rate = cost > 0 ? (unrealized / cost) * 100 : 0
 
   return (
     <Card>
@@ -49,19 +45,8 @@ export function AccountSummaryCard({ account, portfolio, usdDeposit }: Props) {
             }
           />
           <KpiCard label="증권사" value={<span className="text-base font-semibold leading-snug">{brokerLabel}</span>} />
-          <KpiCard label="예수금" value={`$${fmtUsd(usdDeposit ?? 0)}`} />
-          <KpiCard
-            label="평가손익"
-            value={
-              portfolio ? (
-                <span style={{ color: unrealized >= 0 ? 'var(--pos)' : 'var(--neg)' }}>
-                  {unrealized >= 0 ? '+' : ''}${fmtUsd(unrealized)} ({fmtPercent(rate)})
-                </span>
-              ) : (
-                <span className="text-muted-foreground">—</span>
-              )
-            }
-          />
+          <KpiCard label="예수금(실계좌기준)" value={`$${fmtUsd(kisUsdDeposit)}`} />
+          <KpiCard label="평가금(실계좌기준)" value={`$${fmtUsd(kisPosEvalUsd)}`} />
         </div>
       </CardContent>
     </Card>

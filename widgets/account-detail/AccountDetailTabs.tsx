@@ -6,7 +6,6 @@ import { useStrategiesQuery } from '@entities/strategy'
 import { AccountSummaryCard } from './AccountSummaryCard'
 import { TradesTab } from './TradesTab'
 import type { Account } from '@entities/account'
-import type { PortfolioSnapshot } from '@entities/trade'
 import type { Strategy } from '@entities/strategy'
 
 type Tab = 'summary' | 'strategy'
@@ -18,12 +17,12 @@ const TAB_LABELS: Record<Tab, string> = {
 
 interface Props {
   account: Account
-  portfolio: PortfolioSnapshot | null
   strategies: Strategy[]
-  usdDeposit: number
+  kisUsdDeposit: number
+  kisPosEvalUsd: number
 }
 
-export function AccountDetailTabs({ account, portfolio, strategies: initialStrategies, usdDeposit }: Props) {
+export function AccountDetailTabs({ account, strategies: initialStrategies, kisUsdDeposit, kisPosEvalUsd }: Props) {
   const { data: strategies = initialStrategies } = useStrategiesQuery(account.id, initialStrategies)
   const [activeTab, setActiveTab] = useState<Tab>('summary')
 
@@ -47,7 +46,7 @@ export function AccountDetailTabs({ account, portfolio, strategies: initialStrat
       <div className="lg:hidden">
         {activeTab === 'summary' && (
           <div className="space-y-4">
-            <AccountSummaryCard account={account} portfolio={portfolio} usdDeposit={usdDeposit} />
+            <AccountSummaryCard account={account} kisUsdDeposit={kisUsdDeposit} kisPosEvalUsd={kisPosEvalUsd} />
             <TradesTab accountId={account.id} />
           </div>
         )}
@@ -59,7 +58,7 @@ export function AccountDetailTabs({ account, portfolio, strategies: initialStrat
       {/* 데스크탑: 전체 레이아웃 */}
       <div className="hidden lg:block space-y-6">
         <div className="grid grid-cols-2 gap-6">
-          <AccountSummaryCard account={account} portfolio={portfolio} usdDeposit={usdDeposit} />
+          <AccountSummaryCard account={account} kisUsdDeposit={kisUsdDeposit} kisPosEvalUsd={kisPosEvalUsd} />
           <TradesTab accountId={account.id} />
         </div>
         <StrategyList accountId={account.id} strategies={strategies} />

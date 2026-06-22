@@ -8,34 +8,15 @@ import { PageHeader } from '@widgets/page-header'
 import { cn, toNum } from '@shared/lib/utils'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { listAccounts } from '@entities/account'
-import { getAccountPortfolio, getAccountMargin } from '@entities/trade'
+import { getAccountPortfolio } from '@entities/trade'
 import { listStrategies } from '@entities/strategy'
-import type { PortfolioSnapshot, PortfolioSummary, MarginItem } from '@entities/trade'
+import type { PortfolioSummary } from '@entities/trade'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 
 interface Props {
   params: Promise<{ id: string }>
 }
-
-// PortfolioSummary → PortfolioSnapshot 변환
-// strategyTicker: 전략 종목 코드 — positions에서 해당 종목 포지션을 우선 선택
-function normalizePortfolio(raw: PortfolioSummary | null, strategyTicker?: string): PortfolioSnapshot | null {
-  if (!raw || !Array.isArray(raw.positions)) return null
-  const top = strategyTicker
-    ? raw.positions.find(p => String(p.ticker) === strategyTicker)
-    : raw.positions[0]
-  if (!top) return null // 보유 종목 없음
-  return {
-    id: '',
-    ticker: String(top.ticker ?? ''), holdings: Number(top.holdings ?? 0),
-    avgPrice: toNum(top.avgPrice), closingPrice: toNum(top.currentPrice),
-    marketValueUsd: toNum(top.evalAmountUsd), usdDeposit: 0,
-    totalAssetUsd: toNum(raw.summary?.totalAssetUsd),
-    createdAt: new Date().toISOString(),
-  }
-}
-
 
 export const metadata: Metadata = {
   title: '계좌 상세 | KISTA',
@@ -49,18 +30,17 @@ export default async function AccountDetailPage({ params }: Props) {
     return notFound()
   }
 
-  const [accounts, portfolioRaw, strategies, margins] = await Promise.all([
+  const [accounts, portfolioRaw, strategies] = await Promise.all([
     listAccounts(token).catch((): Account[] => []),
     getAccountPortfolio(id, token).catch((): PortfolioSummary | null => null),
     listStrategies(id, token).catch((e): Strategy[] => {
       console.error('[AccountDetailPage] listStrategies 실패:', e)
       return []
     }),
-    getAccountMargin(id, token).catch((): MarginItem[] => []),
   ])
-  const primaryStrategy = strategies.find(s => s.status === 'ACTIVE') ?? strategies[0]
-  const portfolio = normalizePortfolio(portfolioRaw, primaryStrategy?.ticker)
-  const usdDeposit = margins.find(m => m.currency === 'USD')?.purchasableAmount ?? 0
+
+  const kisUsdDeposit = toNum(portfolioRaw?.summary?.usdDeposit)
+  const kisPosEvalUsd = toNum(portfolioRaw?.summary?.posEvalUsd)
 
   const account = accounts.find((a) => a.id === id)
   if (!account) {
@@ -81,9 +61,9 @@ export default async function AccountDetailPage({ params }: Props) {
 
       <AccountDetailTabs
         account={account}
-        portfolio={portfolio}
         strategies={strategies}
-        usdDeposit={usdDeposit}
+        kisUsdDeposit={kisUsdDeposit}
+        kisPosEvalUsd={kisPosEvalUsd}
       />
     </div>
   )
