@@ -100,12 +100,12 @@ export function DashboardEmpty({ holidays, calendarYear, calendarMonth }: Props)
         </div>
         <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
         <div className="flex flex-col gap-4 mt-4">
+          <FearGreedSection />
+        </div>
+        <div className="flex flex-col gap-4 mt-4">
           {MARKET_CHART_CATEGORIES.map((category) => (
             <MarketChartCard key={category.title} category={category} />
           ))}
-        </div>
-        <div className="flex flex-col gap-4 mt-4">
-          <FearGreedSection />
         </div>
       </div>
     </>
