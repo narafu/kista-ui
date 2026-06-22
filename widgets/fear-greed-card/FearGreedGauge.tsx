@@ -30,27 +30,36 @@ export function FearGreedGauge({ value }: Props) {
 
   return (
     <div className="relative flex flex-col items-center">
-      <PieChart width={width} height={height}>
-        <Pie
-          data={segments}
-          dataKey="span"
-          cx={cx}
-          cy={cy}
-          startAngle={180}
-          endAngle={0}
-          innerRadius={innerRadius}
-          outerRadius={radius}
-          stroke="none"
-          isAnimationActive={false}
+      {/* recharts PieChart + 바늘 SVG 오버레이를 relative 컨테이너로 묶음 */}
+      <div style={{ position: 'relative', width, height }}>
+        <PieChart width={width} height={height}>
+          <Pie
+            data={segments}
+            dataKey="span"
+            cx={cx}
+            cy={cy}
+            startAngle={180}
+            endAngle={0}
+            innerRadius={innerRadius}
+            outerRadius={radius}
+            stroke="none"
+            isAnimationActive={false}
+          >
+            {segments.map((s) => (
+              <Cell key={s.label} fill={s.color} />
+            ))}
+          </Pie>
+        </PieChart>
+        {/* 바늘 + 중심 원 — recharts 외부 SVG로 오버레이 (recharts는 raw SVG 자식 미지원) */}
+        <svg
+          style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
+          width={width}
+          height={height}
         >
-          {segments.map((s) => (
-            <Cell key={s.label} fill={s.color} />
-          ))}
-        </Pie>
-        {/* 바늘 + 중심 원 */}
-        <line x1={cx} y1={cy} x2={nx} y2={ny} stroke="var(--foreground)" strokeWidth={2.5} strokeLinecap="round" />
-        <circle cx={cx} cy={cy} r={5} fill="var(--foreground)" />
-      </PieChart>
+          <line x1={cx} y1={cy} x2={nx} y2={ny} stroke="var(--foreground)" strokeWidth={2.5} strokeLinecap="round" />
+          <circle cx={cx} cy={cy} r={5} fill="var(--foreground)" />
+        </svg>
+      </div>
       {/* 현재값 + 등급 라벨 */}
       <div className="-mt-4 flex flex-col items-center">
         <span className="text-3xl font-bold" style={{ color: zone.color }}>{value}</span>
