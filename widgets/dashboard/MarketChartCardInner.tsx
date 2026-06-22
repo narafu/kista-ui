@@ -105,7 +105,7 @@ export default function MarketChartCardInner({ category }: Props) {
   return (
     <>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold tracking-widest uppercase text-rose-500">{category.title}</span>
+        <span className="text-[11px] font-semibold tracking-widest uppercase text-[var(--brand-fg-soft)]">{category.title}</span>
         <Popover>
           <PopoverTrigger className="text-muted-foreground hover:text-foreground transition-colors">
             <Info className="size-3.5" />

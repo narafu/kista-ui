@@ -45,9 +45,9 @@ export const MARKET_CHART_CATEGORIES: MarketChartCategory[] = [
     ],
   },
   {
-    title: '가상자산 · 보조지표',
+    title: '크립토 · 보조지표',
     options: [
-      { symbol: 'IBIT', label: 'IBIT · 비트코인 현물', description: '디지털 금으로 불리는 가상자산 대장주' },
+      { symbol: 'IBIT', label: 'IBIT · 비트코인 현물', description: '디지털 금으로 불리는 크립토 대장주' },
       { symbol: 'ETHA', label: 'ETHA · 이더리움 현물', description: '스마트 컨트랙트 및 블록체인 생태계 대표 플랫폼' },
       {
         symbol: 'UUP',

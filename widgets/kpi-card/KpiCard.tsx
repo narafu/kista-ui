@@ -29,7 +29,7 @@ export function KpiCard({ label, value, sub, variant = 'default', className, ske
       <span
         className={cn(
           'text-[11px] font-semibold tracking-widest uppercase',
-          variant === 'default' && 'text-rose-500',
+          variant === 'default' && 'text-[var(--brand-fg-soft)]',
           variant === 'accent' && 'text-white/80',
           variant === 'soft' && 'text-[var(--brand-fg-soft)]',
         )}

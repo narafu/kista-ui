@@ -13,7 +13,7 @@ export function PageHeader({ eyebrow, title, actions, className }: Props) {
     <div className={cn('flex items-end justify-between gap-4 mb-8', className)}>
       <div>
         {eyebrow && (
-          <p className="text-[11.5px] font-semibold tracking-[0.12em] uppercase text-rose-500 mb-1">
+          <p className="text-[11.5px] font-semibold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] mb-1">
             {eyebrow}
           </p>
         )}

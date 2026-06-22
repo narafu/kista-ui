@@ -144,7 +144,7 @@ export function CycleHistoryTable({
                 <thead className="bg-muted/50 sticky top-0 z-10">
                   <tr>
                     {['종목', '보유수량', '평균단가', '예수금'].map((h) => (
-                      <th key={h} className="px-4 py-3 text-left text-[11px] uppercase tracking-widest text-rose-500">
+                      <th key={h} className="px-4 py-3 text-left text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)]">
                         {h}
                       </th>
                     ))}

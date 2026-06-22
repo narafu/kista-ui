@@ -77,7 +77,7 @@ export function PullToRefresh() {
         <div
           className={cn(
             'size-9 rounded-full bg-card border shadow-md flex items-center justify-center transition-colors',
-            triggered ? 'border-rose-300 text-rose-500' : 'border-border text-muted-foreground',
+            triggered ? 'border-[var(--brand-fg-soft)] text-[var(--brand-fg-soft)]' : 'border-border text-muted-foreground',
           )}
         >
           <RefreshCw

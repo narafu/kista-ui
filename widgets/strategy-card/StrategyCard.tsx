@@ -66,7 +66,7 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
               <span className="text-muted-foreground font-normal">미설정</span>
             )}
           </span>
-          <ChevronRight className="size-4 text-muted-foreground group-hover:text-rose-500 transition-colors shrink-0" />
+          <ChevronRight className="size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
         </div>
       </div>
 
@@ -121,7 +121,7 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
                 <span className="text-muted-foreground font-normal">미설정</span>
               )}
             </span>
-            <ChevronRight className="size-4 text-muted-foreground group-hover:text-rose-500 transition-colors shrink-0" />
+            <ChevronRight className="size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
           </div>
         </div>
       </div>

@@ -85,7 +85,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
               <StatusDot status={aggregated} hideLabel className="shrink-0" />
             )
           )}
-          <ChevronRight className="size-4 text-muted-foreground group-hover:text-rose-500 transition-colors shrink-0" />
+          <ChevronRight className="size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
         </div>
       </div>
 
@@ -163,7 +163,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
         {/* 푸터 */}
         <div className="flex items-center justify-end gap-1 px-5 py-3 border-t border-border bg-muted/30 text-xs text-muted-foreground">
           계좌 상세 보기
-          <ChevronRight className="size-3.5 group-hover:text-rose-500 transition-colors" />
+          <ChevronRight className="size-3.5 group-hover:text-[var(--brand-fg-soft)] transition-colors" />
         </div>
       </div>
     </Link>
