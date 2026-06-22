@@ -42,7 +42,6 @@
 ## 캐싱 (Server Component)
 
 - **`unstable_cache` + `revalidateTag`**: `shared/lib/cache/`. 5분 TTL. 대상: listAccounts·listStrategies·getMe. 제외: KIS 실시간(portfolio·trades). 에러 핸들링·`revalidateTag` 사용법은 `shared/CLAUDE.md` 참고
-- **탭 전환 딜레이**: 각 페이지 SSR Server Component → 탭마다 kista-api 호출 → 1-2초 지연. 레이아웃 캐시됨
 
 ## Toaster · UI 전역
 

@@ -34,7 +34,7 @@ npx shadcn@latest add <component> --yes
 - `app/(main)/` — ACTIVE 전용, DesktopSidebar(lg↑) + MobileBottomNav(lg↓)
 - `app/(admin)/` — ADMIN role 전용
 
-### FSD 계층 구조 (신규)
+### FSD 계층 구조
 
 ```
 app/           → Next.js 라우팅만 (Server Component 데이터 페칭 + 레이아웃)
@@ -98,6 +98,7 @@ NEXT_PUBLIC_API_BASE_URL=      # kista-api Fly.io URL (https://kista-api.fly.dev
 - **보일러플레이트 즉시 수정**: 반복 객체 생성, 불필요한 중간 변수, 유틸 함수로 추출 가능한 중복 코드를 발견하면 제안 없이 즉시 수정
 - **작업 완료 후 자동 커밋**: 요청된 작업이 완전히 완료되면 스스로 커밋을 생성할 것 — 사용자가 별도로 "커밋해줘"라고 요청하지 않아도 됨
 - **kista-api 연계 작업 감지 시**: API 응답 형식 변경, 인증/토큰 흐름 등 kista-api와 결합된 작업이면 즉시 `../kista-api/CLAUDE.md`를 Read로 확인할 것 — 세션 시작 디렉토리가 아닌 저장소의 CLAUDE.md는 자동 로드되지 않음
+- **기회적 리팩토링**: 다른 작업 중 가이드라인 위반 코드(FSD 계층 위반·코드 중복·불필요한 복잡도)를 발견하면 작업 완료 후 별도로 제안할 것 — 즉시 수정 금지
 
 ## Git 규칙
 
@@ -131,6 +132,3 @@ NEXT_PUBLIC_API_BASE_URL=      # kista-api Fly.io URL (https://kista-api.fly.dev
 - **인라인 style 금지**: `style={{ ... }}` 엄격 금지 — Tailwind 유틸리티 클래스만 (반응형 무효화 방지). 예외: CSS 토큰 값(`var(--pos)`)은 `style={{ color: ... }}`로 사용
 - **동적 스타일**: `cn()` · 복잡한 변형은 `cva`
 
-## 기회적 리팩토링 원칙
-
-다른 작업 중 가이드라인 위반 코드를 발견하면 **작업 완료 후 별도로 제안**할 것. 즉시 수정 금지.
