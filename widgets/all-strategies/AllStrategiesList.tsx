@@ -112,7 +112,7 @@ export function AllStrategiesList({ strategies: initialStrategies, accounts }: P
   )
 
   return (
-    <div className="grid grid-cols-1 gap-2 lg:grid-cols-3 lg:gap-3">
+    <div className="grid grid-cols-1 gap-2 lg:grid-cols-4 lg:gap-3">
       {strategies.map((s) => (
         <StrategyCard
           key={s.id}

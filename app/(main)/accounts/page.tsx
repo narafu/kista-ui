@@ -56,7 +56,7 @@ export default async function AccountsPage() {
           </NewAccountButton>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {accounts.map((account, i) => (
             <AccountCard key={account.id} account={account} strategies={strategiesByAccount[i]} />
           ))}
