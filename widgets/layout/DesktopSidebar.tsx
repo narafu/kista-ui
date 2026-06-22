@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
-import { LayoutDashboard, CreditCard, ListChecks, BarChart2, Settings, LogOut, ShieldCheck } from 'lucide-react'
+import { LayoutDashboard, CreditCard, ListChecks, Settings, LogOut, ShieldCheck } from 'lucide-react'
 import { ThemeToggle } from '@widgets/theme-toggle'
 import { LogoutButton } from '@features/auth/logout'
 import { isNavItemActive } from './nav-utils'
@@ -12,7 +12,6 @@ const NAV_ITEMS = [
   { href: '/dashboard',  label: '대시보드', icon: LayoutDashboard },
   { href: '/accounts',   label: '계좌 관리', icon: CreditCard },
   { href: '/strategies', label: '전략',     icon: ListChecks },
-  { href: '/statistics', label: '통계',     icon: BarChart2 },
   { href: '/settings',   label: '설정',     icon: Settings },
 ]
 

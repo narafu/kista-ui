@@ -5,7 +5,6 @@ import type {
   DailyTransactionResult,
   PortfolioSnapshot,
   PortfolioSummary,
-  ProfitSummary,
   MarginItem,
 } from '../model/types'
 
@@ -43,15 +42,6 @@ export async function getAccountSnapshots(
   token?: string
 ): Promise<PortfolioSnapshot[]> {
   return fetchEither<PortfolioSnapshot[]>(`/api/accounts/${accountId}/snapshots${buildDateQuery(params)}`, { method: 'GET' }, token)
-}
-
-export async function getAccountProfit(
-  accountId: string,
-  params: { from: string; to: string },
-  token?: string
-): Promise<ProfitSummary> {
-  const q = new URLSearchParams({ from: params.from, to: params.to })
-  return fetchEither<ProfitSummary>(`/api/accounts/${accountId}/profit?${q}`, { method: 'GET' }, token)
 }
 
 export async function getAccountTrades(

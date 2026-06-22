@@ -82,23 +82,6 @@ export interface PortfolioSummary {
   }
 }
 
-export interface DailyProfit {
-  date: string
-  profitLoss: number
-  profitLossRate: number
-}
-
-export interface ProfitSummary {
-  accountId: string
-  startDate: string
-  endDate: string
-  totalProfitLoss?: number
-  totalProfitLossRate?: number
-  dailyProfits: DailyProfit[]
-  totalRealizedProfit?: number
-  totalReturnRate?: number
-}
-
 export interface MarginItem {
   currency: string
   integratedOrderableAmount: number
