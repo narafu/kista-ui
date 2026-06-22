@@ -44,7 +44,7 @@ export function AccountSummaryCard({ account, kisUsdDeposit, kisPosEvalUsd }: Pr
               </span>
             }
           />
-          <KpiCard label="증권사" value={<span className="text-base font-semibold leading-snug">{brokerLabel}</span>} />
+          <KpiCard label="증권사" value={<span className="text-xl font-semibold leading-snug">{brokerLabel}</span>} />
           <KpiCard label="예수금(실계좌기준)" value={`$${fmtUsd(kisUsdDeposit)}`} />
           <KpiCard label="평가금(실계좌기준)" value={`$${fmtUsd(kisPosEvalUsd)}`} />
         </div>
