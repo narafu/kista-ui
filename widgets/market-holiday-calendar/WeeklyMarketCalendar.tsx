@@ -100,14 +100,14 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
       } else if (isHoliday) {
         badge = <span className="text-[9px] font-semibold px-1.5 py-[1px] rounded bg-neg-bg text-neg">휴장</span>
       } else if (isToday && !summary) {
-        badge = <span className="text-[9px] font-semibold px-1.5 py-[1px] rounded bg-orange-50 text-orange-500">대기중</span>
+        badge = <span className="text-[9px] font-semibold px-1.5 py-[1px] rounded bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400">대기중</span>
         sub = <span className="text-[9px] text-muted-foreground">오늘</span>
       } else if (summary) {
         const pos = summary.netAmountUsd >= 0
         badge = (
           <span className={cn(
             'text-[9px] font-semibold px-1.5 py-[1px] rounded',
-            pos ? 'bg-green-50 text-green-700' : 'bg-neg-bg text-neg',
+            pos ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400' : 'bg-neg-bg text-neg',
           )}>
             {pos ? '+' : ''}${Math.abs(summary.netAmountUsd).toFixed(0)}
           </span>
@@ -122,13 +122,13 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
           key={ds}
           className={cn(
             'flex flex-col items-center gap-[3px] py-1.5 rounded-[10px]',
-            isToday && 'bg-rose-50',
+            isToday && 'bg-rose-50 dark:bg-rose-500/10',
             isHoliday && !isToday && 'bg-neg-bg',
           )}
         >
           <div className={cn(
             'w-[26px] h-[26px] flex items-center justify-center text-xs font-medium rounded-full',
-            isToday ? 'text-neg font-bold' :
+            isToday ? 'bg-rose-500 text-white font-bold' :
             isHoliday ? 'text-neg' :
             isSun ? 'text-pos' :
             isSat ? 'text-neg' :
