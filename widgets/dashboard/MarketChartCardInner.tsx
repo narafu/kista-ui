@@ -51,8 +51,6 @@ export default function MarketChartCardInner({ category }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
 
-  // 부모(MarketChartCard)가 key={resolvedTheme}으로 테마 변경 시 이 컴포넌트를 완전 재마운트함.
-  // 여기서는 candles 변경(종목 전환)만 처리하면 됨.
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
@@ -95,8 +93,25 @@ export default function MarketChartCardInner({ category }: Props) {
     })
     resizeObserver.observe(container)
 
+    // html class 변경(테마 전환)을 감지해 차트 색상 갱신.
+    // React effects는 자식→부모 순으로 실행되므로 ThemeProvider의 classList 업데이트보다
+    // 이 effect가 먼저 실행됨. MutationObserver는 DOM 변경 직후 마이크로태스크로 실행되어
+    // 타이밍 문제 없이 올바른 테마 색상을 읽음.
+    const themeObserver = new MutationObserver(() => {
+      const colors = readChartColors()
+      chart.applyOptions({
+        layout: { background: { type: ColorType.Solid, color: colors.background }, textColor: colors.foreground },
+        grid: { vertLines: { color: colors.border }, horzLines: { color: colors.border } },
+        timeScale: { borderColor: colors.border },
+        rightPriceScale: { borderColor: colors.border },
+      })
+      series.applyOptions({ upColor: colors.pos, downColor: colors.neg, borderVisible: false, wickUpColor: colors.pos, wickDownColor: colors.neg })
+    })
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+
     return () => {
       resizeObserver.disconnect()
+      themeObserver.disconnect()
       chart.remove()
       chartRef.current = null
     }
