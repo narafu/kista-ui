@@ -31,7 +31,7 @@ export function useCandlesQuery(ticker: string, count = 200) {
   })
 }
 
-export function useFearGreedQuery(days = 90) {
+export function useFearGreedQuery(days = 200) {
   return useQuery<FearGreed | null>({
     queryKey: ['fearGreed', days],
     queryFn: () => getFearGreedClient(days).catch((): FearGreed | null => null),

@@ -4,7 +4,7 @@ import { useFearGreedQuery } from '@entities/market'
 import { FearGreedCard } from './FearGreedCard'
 
 export function FearGreedSection() {
-  const { data } = useFearGreedQuery(90)
+  const { data } = useFearGreedQuery(200)
   return (
     <>
       <FearGreedCard title="CNN 공포탐욕지수" data={data?.cnn} />

@@ -17,6 +17,6 @@ export function getCandlesClient(ticker: string, count = 200): Promise<Candle[]>
   return clientFetch<Candle[]>(`/api/market/candles?ticker=${ticker}&count=${count}`)
 }
 
-export function getFearGreedClient(days = 90): Promise<FearGreed> {
+export function getFearGreedClient(days = 200): Promise<FearGreed> {
   return clientFetch<FearGreed>(`/api/market/fear-greed?days=${days}`)
 }

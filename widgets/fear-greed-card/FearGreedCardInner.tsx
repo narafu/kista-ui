@@ -16,7 +16,14 @@ export default function FearGreedCardInner({ title, data }: Props) {
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-sm font-semibold text-foreground">{title}</span>
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-semibold text-foreground">{title}</span>
+        {current && (
+          <span className="text-[10px] text-muted-foreground">
+            {current.date.replace(/-/g, '.')} KST
+          </span>
+        )}
+      </div>
       {current ? (
         <>
           <FearGreedGauge value={current.value} />
