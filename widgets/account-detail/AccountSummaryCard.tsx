@@ -1,8 +1,9 @@
 'use client'
 
+import { useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { KpiCard } from '@widgets/kpi-card'
-import { RevealableValue } from '@widgets/revealable-value'
 import { fmtUsd, fmtPercent } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import type { Account } from '@entities/account'
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export function AccountSummaryCard({ account, portfolio, usdDeposit }: Props) {
+  const [revealed, setRevealed] = useState(false)
   const { labelOf } = useMeta()
   const brokerLabel = labelOf('brokers', account.broker)
   const cost = portfolio ? (portfolio.avgPrice ?? 0) * (portfolio.holdings ?? 0) : 0
@@ -30,11 +32,20 @@ export function AccountSummaryCard({ account, portfolio, usdDeposit }: Props) {
         <div className="grid grid-cols-2 gap-3">
           <KpiCard
             label="계좌번호"
+            labelAction={
+              <button
+                type="button"
+                onClick={() => setRevealed((v) => !v)}
+                className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                aria-label={revealed ? '숨기기' : '보기'}
+              >
+                {revealed ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            }
             value={
-              <RevealableValue
-                value={account.accountNo ?? account.accountNoMasked}
-                hiddenDisplay={account.accountNoMasked}
-              />
+              <span className="font-mono tracking-wider">
+                {revealed ? (account.accountNo ?? account.accountNoMasked) : account.accountNoMasked}
+              </span>
             }
           />
           <KpiCard label="증권사" value={<span className="text-base font-semibold leading-snug">{brokerLabel}</span>} />
