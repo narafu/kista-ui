@@ -34,23 +34,30 @@ export function ApproveRejectButtons({ userId, nickname }: Props) {
 
   const loading = approveMutation.isPending || rejectMutation.isPending
 
+  const spinner = (
+    <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+    </svg>
+  )
+
   return (
     <div className="flex gap-2">
       <button
         type="button"
         onClick={handleApprove}
         disabled={loading}
-        className="px-3 py-1.5 text-xs font-semibold rounded-md bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50 transition-colors"
+        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50 transition-colors"
       >
-        {action === 'approve' ? '...' : '승인'}
+        {action === 'approve' ? <>{spinner}승인 중...</> : '승인'}
       </button>
       <button
         type="button"
         onClick={handleReject}
         disabled={loading}
-        className="px-3 py-1.5 text-xs font-semibold rounded-md border border-border text-muted-foreground hover:bg-muted disabled:opacity-50 transition-colors"
+        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md border border-border text-muted-foreground hover:bg-muted disabled:opacity-50 transition-colors"
       >
-        {action === 'reject' ? '...' : '거절'}
+        {action === 'reject' ? <>{spinner}거절 중...</> : '거절'}
       </button>
     </div>
   )

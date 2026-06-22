@@ -81,8 +81,16 @@ export function EditAccountForm({ account }: Props) {
             <Link href={`/accounts/${account.id}`} className={cn(buttonVariants({ variant: 'outline' }), 'flex-1 h-12')}>
               취소
             </Link>
-            <Button type="submit" className="flex-1 h-12" disabled={updateMutation.isPending}>
-              {updateMutation.isPending ? '저장 중...' : '저장'}
+            <Button type="submit" className="flex-1 h-12 gap-2" disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? (
+                <>
+                  <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  저장 중...
+                </>
+              ) : '저장'}
             </Button>
           </div>
         </div>
@@ -125,8 +133,17 @@ export function EditAccountForm({ account }: Props) {
                   variant="destructive"
                   onClick={handleDelete}
                   disabled={deleteMutation.isPending || deleteConfirm !== account.nickname}
+                  className="gap-2"
                 >
-                  {deleteMutation.isPending ? '삭제 중...' : '영구 삭제'}
+                  {deleteMutation.isPending ? (
+                    <>
+                      <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      삭제 중...
+                    </>
+                  ) : '영구 삭제'}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -135,8 +152,16 @@ export function EditAccountForm({ account }: Props) {
       </div>
 
       <div className="sm:hidden fixed bottom-14 left-0 right-0 p-4 bg-background border-t z-40">
-        <Button type="submit" className="w-full h-14 text-base font-semibold" disabled={updateMutation.isPending}>
-          {updateMutation.isPending ? '저장 중...' : '저장'}
+        <Button type="submit" className="w-full h-14 text-base font-semibold gap-2" disabled={updateMutation.isPending}>
+          {updateMutation.isPending ? (
+            <>
+              <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              저장 중...
+            </>
+          ) : '저장'}
         </Button>
       </div>
     </form>
