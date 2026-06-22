@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createChart, CandlestickSeries, ColorType, type IChartApi } from 'lightweight-charts'
 import { Info } from 'lucide-react'
-import { useCandlesQuery } from '@entities/market'
+import { useCandlesQuery, CHART_CANDLE_COUNT } from '@entities/market'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { MarketChartCategory } from './marketChartCategories'
@@ -47,7 +47,7 @@ function readChartColors() {
 export default function MarketChartCardInner({ category }: Props) {
   const [symbol, setSymbol] = useState(category.options[0].symbol)
   const selected = category.options.find((o) => o.symbol === symbol) ?? category.options[0]
-  const { data: candles = [] } = useCandlesQuery(symbol, 200)
+  const { data: candles = [] } = useCandlesQuery(symbol, CHART_CANDLE_COUNT)
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
 
@@ -106,12 +106,15 @@ export default function MarketChartCardInner({ category }: Props) {
     <>
       <div className="flex items-center justify-between gap-2">
         <span className="text-[11px] font-semibold tracking-widest uppercase text-[var(--brand-fg-soft)]">{category.title}</span>
-        <Popover>
-          <PopoverTrigger className="text-muted-foreground hover:text-foreground transition-colors">
-            <Info className="size-3.5" />
-          </PopoverTrigger>
-          <PopoverContent className="w-auto text-xs whitespace-nowrap">{selected.description}</PopoverContent>
-        </Popover>
+        <div className="flex items-center gap-1.5 ml-auto">
+          <span className="text-[10px] text-muted-foreground">일봉 · {CHART_CANDLE_COUNT}</span>
+          <Popover>
+            <PopoverTrigger className="text-muted-foreground hover:text-foreground transition-colors">
+              <Info className="size-3.5" />
+            </PopoverTrigger>
+            <PopoverContent className="w-auto text-xs whitespace-nowrap">{selected.description}</PopoverContent>
+          </Popover>
+        </div>
       </div>
       <Select value={symbol} onValueChange={(value) => value && setSymbol(value)}>
         <SelectTrigger size="sm" className="w-full">

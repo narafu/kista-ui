@@ -1,10 +1,10 @@
 'use client'
 
-import { useFearGreedQuery } from '@entities/market'
+import { useFearGreedQuery, CHART_CANDLE_COUNT } from '@entities/market'
 import { FearGreedCard } from './FearGreedCard'
 
 export function FearGreedSection() {
-  const { data } = useFearGreedQuery(200)
+  const { data } = useFearGreedQuery(CHART_CANDLE_COUNT)
   return (
     <>
       <FearGreedCard title="CNN 공포탐욕지수" data={data?.cnn} />

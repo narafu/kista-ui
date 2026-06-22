@@ -1,6 +1,7 @@
 'use client'
 
 import type { FearGreedSourceView } from '@entities/market'
+import { CHART_CANDLE_COUNT } from '@entities/market'
 import { FearGreedGauge } from './FearGreedGauge'
 import { FearGreedTrend } from './FearGreedTrend'
 import { zoneOf } from './fearGreedZones'
@@ -17,7 +18,10 @@ export default function FearGreedCardInner({ title, data }: Props) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-foreground">{title}</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm font-semibold text-foreground">{title}</span>
+          <span className="text-[10px] text-muted-foreground">일봉 · {CHART_CANDLE_COUNT}</span>
+        </div>
         {current && (
           <span className="text-[10px] text-muted-foreground">
             {current.date.replace(/-/g, '.')} KST

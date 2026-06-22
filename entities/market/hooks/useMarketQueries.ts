@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { getMonthlyHolidaysClient, getMarketSession, getCandlesClient, getFearGreedClient } from '../api'
 import type { Candle, FearGreed } from '../model/types'
+import { CHART_CANDLE_COUNT } from '../model/constants'
 
 export function useMonthlyHolidaysQuery(year: number, month: number, initialData?: string[]) {
   const { data: holidays = [], isFetching } = useQuery<string[]>({
@@ -23,7 +24,7 @@ export function useMarketSessionQuery() {
   })
 }
 
-export function useCandlesQuery(ticker: string, count = 200) {
+export function useCandlesQuery(ticker: string, count = CHART_CANDLE_COUNT) {
   return useQuery<Candle[]>({
     queryKey: ['candles', ticker, count],
     queryFn: () => getCandlesClient(ticker, count).catch((): Candle[] => []),
@@ -31,7 +32,7 @@ export function useCandlesQuery(ticker: string, count = 200) {
   })
 }
 
-export function useFearGreedQuery(days = 200) {
+export function useFearGreedQuery(days = CHART_CANDLE_COUNT) {
   return useQuery<FearGreed | null>({
     queryKey: ['fearGreed', days],
     queryFn: () => getFearGreedClient(days).catch((): FearGreed | null => null),
