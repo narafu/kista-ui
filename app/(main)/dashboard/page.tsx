@@ -10,7 +10,7 @@ function pad(n: number) { return String(n).padStart(2, '0') }
 function getWeekStartDate(): string {
   const now = new Date()
   now.setHours(0, 0, 0, 0)
-  now.setDate(now.getDate() - now.getDay()) // 이번 주 일요일
+  now.setDate(now.getDate() - now.getDay())
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
 }
 
