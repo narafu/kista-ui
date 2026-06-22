@@ -108,15 +108,12 @@ export interface MarginItem {
 
 export interface DailyTransaction {
   tradeDate: string
-  settlementDate: string
   direction: OrderDirection
   ticker: string
   symbolName: string
   quantity: number
   price: number
   tradeAmountUsd: number
-  settlementAmountKrw: number
-  exchangeRate: number
   currency: string
 }
 
