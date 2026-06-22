@@ -23,4 +23,6 @@ export {
   getDailyTransactions,
 } from './api'
 export { useAccountCycleHistoryQuery, useStrategyCycleHistoryQuery } from './hooks/useCycleHistory'
+export { useWeeklyTradeSummaryQuery } from './hooks/useWeeklyTradeSummaryQuery'
+export type { DayTradeSummary } from './hooks/useWeeklyTradeSummaryQuery'
 export { TradeNotificationProvider } from './providers/TradeNotificationProvider'
