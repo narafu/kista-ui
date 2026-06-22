@@ -34,16 +34,16 @@ export function DashboardOverview({
             </Link>
           }
         />
-        <div className="mb-6">
+        {/* Row 1: 달력 | CNN 공탐 | 크립토 공탐 */}
+        <div className="grid grid-cols-3 gap-4 mb-4">
           <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
+          <FearGreedSection />
         </div>
+        {/* Row 2: 트레이딩뷰 차트 3개 */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           {MARKET_CHART_CATEGORIES.map((category) => (
             <MarketChartCard key={category.title} category={category} />
           ))}
-        </div>
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <FearGreedSection />
         </div>
       </div>
 
@@ -53,12 +53,12 @@ export function DashboardOverview({
           <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
         </div>
         <div className="flex flex-col gap-4 mb-4">
+          <FearGreedSection />
+        </div>
+        <div className="flex flex-col gap-4 mb-4">
           {MARKET_CHART_CATEGORIES.map((category) => (
             <MarketChartCard key={category.title} category={category} />
           ))}
-        </div>
-        <div className="flex flex-col gap-4 mb-4">
-          <FearGreedSection />
         </div>
       </div>
     </>
