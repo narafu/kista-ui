@@ -1,5 +1,5 @@
 import { apiFetch, clientFetch } from '@shared/lib/api-client'
-import type { Candle, MarketSession } from '../model/types'
+import type { Candle, FearGreed, MarketSession } from '../model/types'
 
 export function getMonthlyHolidays(year: number, month: number, token: string): Promise<string[]> {
   return apiFetch<string[]>(`/api/market/holidays?year=${year}&month=${month}`, { method: 'GET' }, token)
@@ -15,4 +15,8 @@ export function getMarketSession(): Promise<MarketSession> {
 
 export function getCandlesClient(ticker: string, count = 200): Promise<Candle[]> {
   return clientFetch<Candle[]>(`/api/market/candles?ticker=${ticker}&count=${count}`)
+}
+
+export function getFearGreedClient(days = 90): Promise<FearGreed> {
+  return clientFetch<FearGreed>(`/api/market/fear-greed?days=${days}`)
 }
