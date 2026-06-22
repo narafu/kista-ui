@@ -26,8 +26,8 @@ export function DashboardEmpty({ holidays, calendarYear, calendarMonth }: Props)
       {/* Desktop */}
       <div className="hidden lg:block">
         <PageHeader eyebrow="Dashboard" title="대시보드" />
-        <div className="grid grid-cols-3 gap-4">
-          <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
+        {/* Row 1: 안내 카드 2개 */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
           <div
             className="rounded-[var(--r-lg)] border border-rose-200 p-5 flex flex-col"
             style={{ background: 'var(--brand-soft-bg)' }}
@@ -57,13 +57,16 @@ export function DashboardEmpty({ holidays, calendarYear, calendarMonth }: Props)
             </Link>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-4 mt-4">
+        {/* Row 2: 달력 + 공포탐욕 2개 (3칸) */}
+        <div className="grid grid-cols-3 gap-4 mb-4">
+          <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
+          <FearGreedSection />
+        </div>
+        {/* Row 3: 트레이딩뷰 차트 3개 */}
+        <div className="grid grid-cols-3 gap-4">
           {MARKET_CHART_CATEGORIES.map((category) => (
             <MarketChartCard key={category.title} category={category} />
           ))}
-        </div>
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <FearGreedSection />
         </div>
       </div>
 
