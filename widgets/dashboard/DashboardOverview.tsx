@@ -1,5 +1,5 @@
 import { PageHeader } from '@widgets/page-header'
-import { MarketHolidayCalendar } from '@widgets/market-holiday-calendar'
+import { WeeklyMarketCalendar } from '@widgets/market-holiday-calendar'
 import { NewAccountButton } from '@features/account/create-account'
 import { MarketChartCard } from '@widgets/dashboard/MarketChartCard'
 import { MARKET_CHART_CATEGORIES } from '@widgets/dashboard/marketChartCategories'
@@ -7,15 +7,11 @@ import { FearGreedSection } from '@widgets/fear-greed-card'
 
 interface Props {
   holidays: string[]
-  calendarYear: number
-  calendarMonth: number
+  initialWeekStartDate: string
+  accountIds: string[]
 }
 
-export function DashboardOverview({
-  holidays,
-  calendarYear,
-  calendarMonth,
-}: Props) {
+export function DashboardOverview({ holidays, initialWeekStartDate, accountIds }: Props) {
   return (
     <>
       {/* Desktop */}
@@ -31,7 +27,11 @@ export function DashboardOverview({
         />
         {/* Row 1: 달력 | CNN 공탐 | 크립토 공탐 */}
         <div className="grid grid-cols-3 gap-4 mb-4">
-          <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
+          <WeeklyMarketCalendar
+            holidays={holidays}
+            initialWeekStartDate={initialWeekStartDate}
+            accountIds={accountIds}
+          />
           <FearGreedSection />
         </div>
         {/* Row 2: 트레이딩뷰 차트 3개 */}
@@ -45,7 +45,11 @@ export function DashboardOverview({
       {/* Mobile */}
       <div className="lg:hidden">
         <div className="mb-4">
-          <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
+          <WeeklyMarketCalendar
+            holidays={holidays}
+            initialWeekStartDate={initialWeekStartDate}
+            accountIds={accountIds}
+          />
         </div>
         <div className="flex flex-col gap-4 mb-4">
           <FearGreedSection />

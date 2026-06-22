@@ -2,15 +2,14 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { PageHeader } from '@widgets/page-header'
 import { NewAccountButton } from '@features/account/create-account'
-import { MarketHolidayCalendar } from '@widgets/market-holiday-calendar'
+import { WeeklyMarketCalendar } from '@widgets/market-holiday-calendar'
 import { MarketChartCard } from '@widgets/dashboard/MarketChartCard'
 import { MARKET_CHART_CATEGORIES } from '@widgets/dashboard/marketChartCategories'
 import { FearGreedSection } from '@widgets/fear-greed-card'
 
 interface Props {
   holidays: string[]
-  calendarYear: number
-  calendarMonth: number
+  initialWeekStartDate: string
 }
 
 const NOTIFICATION_CARD = {
@@ -20,7 +19,7 @@ const NOTIFICATION_CARD = {
   href: '/settings',
 }
 
-export function DashboardEmpty({ holidays, calendarYear, calendarMonth }: Props) {
+export function DashboardEmpty({ holidays, initialWeekStartDate }: Props) {
   return (
     <>
       {/* Desktop */}
@@ -55,7 +54,11 @@ export function DashboardEmpty({ holidays, calendarYear, calendarMonth }: Props)
         </div>
         {/* Row 2: 달력 + 공포탐욕 2개 (3칸) */}
         <div className="grid grid-cols-3 gap-4 mb-4">
-          <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
+          <WeeklyMarketCalendar
+            holidays={holidays}
+            initialWeekStartDate={initialWeekStartDate}
+            accountIds={[]}
+          />
           <FearGreedSection />
         </div>
         {/* Row 3: 트레이딩뷰 차트 3개 */}
@@ -90,7 +93,11 @@ export function DashboardEmpty({ holidays, calendarYear, calendarMonth }: Props)
             {NOTIFICATION_CARD.cta}
           </Link>
         </div>
-        <MarketHolidayCalendar holidays={holidays} year={calendarYear} month={calendarMonth} />
+        <WeeklyMarketCalendar
+          holidays={holidays}
+          initialWeekStartDate={initialWeekStartDate}
+          accountIds={[]}
+        />
         <div className="flex flex-col gap-4 mt-4">
           <FearGreedSection />
         </div>
