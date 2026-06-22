@@ -5,6 +5,7 @@ import { PageHeader } from '@widgets/page-header'
 import { MarketHolidayCalendar } from '@widgets/market-holiday-calendar'
 import { MarketChartCard } from '@widgets/dashboard/MarketChartCard'
 import { MARKET_CHART_CATEGORIES } from '@widgets/dashboard/marketChartCategories'
+import { FearGreedSection } from '@widgets/fear-greed-card'
 
 interface Props {
   holidays: string[]
@@ -61,6 +62,9 @@ export function DashboardEmpty({ holidays, calendarYear, calendarMonth }: Props)
             <MarketChartCard key={category.title} category={category} />
           ))}
         </div>
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          <FearGreedSection />
+        </div>
       </div>
 
       {/* Mobile */}
@@ -96,6 +100,9 @@ export function DashboardEmpty({ holidays, calendarYear, calendarMonth }: Props)
           {MARKET_CHART_CATEGORIES.map((category) => (
             <MarketChartCard key={category.title} category={category} />
           ))}
+        </div>
+        <div className="flex flex-col gap-4 mt-4">
+          <FearGreedSection />
         </div>
       </div>
     </>
