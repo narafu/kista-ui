@@ -12,7 +12,7 @@ export function FearGreedGauge({ value }: Props) {
   const width = 220
   const height = 130
   const cx = width / 2
-  const cy = height - 10
+  const cy = height - 20 // pivot을 위로 올려 아래 텍스트와 간격 확보
   const radius = 92
   const innerRadius = 62
 
@@ -61,7 +61,7 @@ export function FearGreedGauge({ value }: Props) {
         </svg>
       </div>
       {/* 현재값 + 등급 라벨 */}
-      <div className="-mt-4 flex flex-col items-center">
+      <div className="flex flex-col items-center">
         <span className="text-3xl font-bold" style={{ color: zone.color }}>{value}</span>
         <span className="text-sm font-medium" style={{ color: zone.color }}>{zone.label}</span>
       </div>
