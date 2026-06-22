@@ -33,7 +33,7 @@ import {
   useCancelOneOrderMutation,
 } from '@entities/order'
 import { useAccountMarginQuery } from '@entities/account'
-import { useMarketSessionQuery, useMonthlyHolidaysQuery } from '@entities/market'
+import { useMonthlyHolidaysQuery } from '@entities/market'
 import { useMeta } from '@entities/meta'
 import { cn, toNum } from '@shared/lib/utils'
 import { fmtUsd } from '@shared/lib/format'
@@ -94,11 +94,9 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
   })()
   const hasDeficit = previewDeficit > 0
 
-  const { data: marketSession } = useMarketSessionQuery()
   const today = new Date()
   const { holidays } = useMonthlyHolidaysQuery(today.getFullYear(), today.getMonth() + 1)
   const todayStr = today.toISOString().slice(0, 10)
-  const isBlocked = marketSession?.session === 'BLOCKED'
   const dayOfWeek = today.getDay()
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
   const isHoliday = isWeekend || holidays.includes(todayStr)
@@ -216,11 +214,6 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                 type="button"
                 onClick={() => {
                   if (isHoliday) { toast.info('오늘은 미국 증시 휴장일입니다'); return }
-                  if (isBlocked) {
-                    const hours = marketSession?.isDst ? '17:00 ~ 05:00 KST' : '18:00 ~ 06:00 KST'
-                    toast.info(`직접 주문은 ${hours}에만 가능합니다`)
-                    return
-                  }
                   if (hasDeficit) { toast.info('예수금이 부족합니다'); return }
                   executeMutation.mutate(undefined, {
                     onSuccess: (placed) => { setManualOrders(placed) },
@@ -229,7 +222,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                 disabled={executeMutation.isPending || orders.length === 0 || isMarginLoading}
                 className={cn(
                   'text-xs px-3 py-1.5 rounded-md bg-rose-600 text-white hover:bg-rose-700 transition-colors disabled:opacity-50',
-                  (isBlocked || isHoliday || hasDeficit) && 'opacity-50 cursor-not-allowed',
+                  (isHoliday || hasDeficit) && 'opacity-50 cursor-not-allowed',
                 )}
               >
                 {executeMutation.isPending ? '실행 중...' : '지금 실행'}
