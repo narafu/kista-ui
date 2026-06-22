@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { TrendingUp, ChevronRight } from 'lucide-react'
 import { StrategyCard } from '@widgets/strategy-card'
@@ -15,6 +17,14 @@ interface Props {
 
 function EmptyState({ accounts }: { accounts: Account[] }) {
   const hasAccounts = accounts.length > 0
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+
+  function handleNavigateToAccounts() {
+    if (isLoading) return
+    setIsLoading(true)
+    router.push('/accounts')
+  }
 
   return (
     <div className="flex flex-col items-center gap-5 py-16 text-center">
@@ -57,14 +67,28 @@ function EmptyState({ accounts }: { accounts: Account[] }) {
           )}
         </div>
       ) : (
-        <Link
-          href="/accounts"
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] text-sm font-medium transition-colors"
+        <button
+          type="button"
+          onClick={handleNavigateToAccounts}
+          disabled={isLoading}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] text-sm font-medium transition-colors disabled:opacity-60"
           style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
         >
-          계좌 등록하러 가기
-          <ChevronRight className="size-4" />
-        </Link>
+          {isLoading ? (
+            <>
+              <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              이동 중...
+            </>
+          ) : (
+            <>
+              계좌 등록하러 가기
+              <ChevronRight className="size-4" />
+            </>
+          )}
+        </button>
       )}
     </div>
   )

@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
-import { Plus, Landmark } from 'lucide-react'
-import Link from 'next/link'
+import { Landmark } from 'lucide-react'
 import { PageHeader } from '@widgets/page-header'
 import { AccountCard } from '@widgets/account-card'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { getCachedAccounts, getCachedStrategies } from '@shared/lib/cache/cached-api'
+import { NewAccountButton } from '@features/account/create-account'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 
@@ -32,13 +32,9 @@ export default async function AccountsPage() {
         eyebrow="계좌 관리"
         title="내 계좌"
         actions={
-          <Link
-            href="/accounts/new"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] bg-rose-600 text-white text-sm font-semibold hover:bg-rose-700 transition-colors"
-          >
-            <Plus className="size-4" />
+          <NewAccountButton className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] bg-rose-600 text-white text-sm font-semibold hover:bg-rose-700 transition-colors disabled:opacity-60">
             계좌 등록
-          </Link>
+          </NewAccountButton>
         }
       />
       {accounts.length === 0 ? (
@@ -52,14 +48,12 @@ export default async function AccountsPage() {
               한국투자증권 계좌를 연결해 자동 분할매매를 시작하세요.
             </p>
           </div>
-          <Link
-            href="/accounts/new"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] text-sm font-medium transition-colors"
+          <NewAccountButton
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] text-sm font-medium transition-colors disabled:opacity-60"
             style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
           >
-            <Plus className="size-4" />
             계좌 등록하기
-          </Link>
+          </NewAccountButton>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

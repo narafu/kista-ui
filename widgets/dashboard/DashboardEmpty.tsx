@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
 import { PageHeader } from '@widgets/page-header'
+import { NewAccountButton } from '@features/account/create-account'
 import { MarketHolidayCalendar } from '@widgets/market-holiday-calendar'
 import { MarketChartCard } from '@widgets/dashboard/MarketChartCard'
 import { MARKET_CHART_CATEGORIES } from '@widgets/dashboard/marketChartCategories'
@@ -37,13 +37,9 @@ export function DashboardEmpty({ holidays, calendarYear, calendarMonth }: Props)
             <p className="text-xs text-muted-foreground leading-relaxed mb-4 flex-1">
               KIS API 키와 계좌번호를 입력하면 분할매매 자동화가 시작됩니다.
             </p>
-            <Link
-              href="/accounts/new"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] bg-rose-600 text-white text-sm font-semibold hover:bg-rose-700 transition-colors self-start"
-            >
-              <Plus className="size-4" />
+            <NewAccountButton className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] bg-rose-600 text-white text-sm font-semibold hover:bg-rose-700 transition-colors self-start disabled:opacity-60">
               계좌 등록하기
-            </Link>
+            </NewAccountButton>
           </div>
           <div className="rounded-[var(--r-lg)] border border-border bg-card p-5 shadow-[var(--sh-card)] flex flex-col">
             <p className="text-[11.5px] font-bold tracking-[0.12em] uppercase text-muted-foreground mb-2">다음 단계</p>
@@ -83,13 +79,9 @@ export function DashboardEmpty({ holidays, calendarYear, calendarMonth }: Props)
           <p className="text-xs text-muted-foreground leading-relaxed mb-4">
             한국투자증권 KIS API 키만 입력하면<br />분할매매 자동화가 시작됩니다.
           </p>
-          <Link
-            href="/accounts/new"
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-[var(--r-md)] bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 transition-colors"
-          >
-            <Plus className="size-4" />
+          <NewAccountButton className="flex items-center justify-center gap-2 w-full py-3 rounded-[var(--r-md)] bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 transition-colors disabled:opacity-60">
             첫 계좌 등록하기
-          </Link>
+          </NewAccountButton>
         </div>
         <div className="rounded-[var(--r-lg)] border border-border bg-card p-3.5 mb-4">
           <p className="text-sm font-bold mb-0.5">{NOTIFICATION_CARD.title}</p>

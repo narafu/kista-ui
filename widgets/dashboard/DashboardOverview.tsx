@@ -1,7 +1,6 @@
-import Link from 'next/link'
-import { Plus } from 'lucide-react'
 import { PageHeader } from '@widgets/page-header'
 import { MarketHolidayCalendar } from '@widgets/market-holiday-calendar'
+import { NewAccountButton } from '@features/account/create-account'
 import { MarketChartCard } from '@widgets/dashboard/MarketChartCard'
 import { MARKET_CHART_CATEGORIES } from '@widgets/dashboard/marketChartCategories'
 import { FearGreedSection } from '@widgets/fear-greed-card'
@@ -25,13 +24,9 @@ export function DashboardOverview({
           eyebrow="Dashboard"
           title="대시보드"
           actions={
-            <Link
-              href="/accounts/new"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] bg-rose-600 text-white text-sm font-semibold hover:bg-rose-700 transition-colors"
-            >
-              <Plus className="size-4" />
+            <NewAccountButton className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] bg-rose-600 text-white text-sm font-semibold hover:bg-rose-700 transition-colors disabled:opacity-60">
               계좌 등록
-            </Link>
+            </NewAccountButton>
           }
         />
         {/* Row 1: 달력 | CNN 공탐 | 크립토 공탐 */}
