@@ -6,6 +6,7 @@ import { DashboardKpiSection } from '@widgets/dashboard/DashboardKpiSection'
 import { MarketChartCard } from '@widgets/dashboard/MarketChartCard'
 import { MARKET_CHART_CATEGORIES } from '@widgets/dashboard/marketChartCategories'
 import type { PortfolioAccountEntry } from '@widgets/dashboard/aggregatePortfolios'
+import { FearGreedSection } from '@widgets/fear-greed-card'
 
 interface Props {
   totalDepositUsd: number
@@ -62,6 +63,9 @@ export function DashboardOverview({
             <MarketChartCard key={category.title} category={category} />
           ))}
         </div>
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <FearGreedSection />
+        </div>
       </div>
 
       {/* Mobile */}
@@ -74,6 +78,9 @@ export function DashboardOverview({
           {MARKET_CHART_CATEGORIES.map((category) => (
             <MarketChartCard key={category.title} category={category} />
           ))}
+        </div>
+        <div className="flex flex-col gap-4 mb-4">
+          <FearGreedSection />
         </div>
       </div>
     </>
