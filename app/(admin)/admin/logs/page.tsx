@@ -3,15 +3,21 @@ import { getAuthToken } from '@shared/lib/auth/token'
 import { listAdminAuditLogs, listAdminErrorLogs, getAdminAnomalies } from '@entities/user'
 import type { AdminAuditLog, AppErrorLog, AdminAnomalies, AdminAnomalyAccount } from '@entities/user'
 import { ErrorLogItem } from '@features/admin/error-logs'
-import { LogsFilterChips } from '@features/admin/logs'
+import { LogsFilterChips, InactiveDaysSelect } from '@features/admin/logs'
 import { RevealableValue } from '@widgets/revealable-value'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
+import { RangeFilterBar, type RangePreset } from '@shared/ui/RangeFilterBar'
 
 type LogType = 'all' | 'audit' | 'error' | 'anomaly'
 
 const VALID_SIZES = ['10', '30', '50', '100'] as const
 const EMPTY_ANOMALIES: AdminAnomalies = { pausedAccounts: [], inactiveAccounts: [] }
+
+function parseRangePreset(raw: string | undefined): RangePreset {
+  if (raw === '30d' || raw === 'all' || raw === 'custom') return raw
+  return '7d'
+}
 
 function parseSize(raw: string | undefined): number {
   return VALID_SIZES.includes(raw as (typeof VALID_SIZES)[number]) ? Number(raw) : 10
@@ -22,29 +28,52 @@ function parsePage(raw: string | undefined): number {
   return Number.isInteger(n) && n >= 1 ? n : 1
 }
 
+function parseInactiveDays(raw: string | undefined): number {
+  const n = Number(raw)
+  return [7, 14, 30].includes(n) ? n : 7
+}
+
+function resolveFromTo(range: RangePreset, from?: string, to?: string): { from?: string; to?: string } {
+  if (range === 'all') return {}
+  if (range === 'custom') return { from, to }
+  const days = range === '7d' ? 7 : 30
+  const toDate = new Date()
+  const fromDate = new Date()
+  fromDate.setDate(fromDate.getDate() - days)
+  return {
+    from: fromDate.toISOString().split('T')[0],
+    to: toDate.toISOString().split('T')[0],
+  }
+}
+
 export default async function AdminLogsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; size?: string; ap?: string; ep?: string }>
+  searchParams: Promise<{ type?: string; range?: string; size?: string; ap?: string; ep?: string; from?: string; to?: string; inactiveDays?: string }>
 }) {
-  const { type = 'all', size: rawSize, ap, ep } = await searchParams
+  const { type = 'all', range: rawRange, size: rawSize, ap, ep, from, to, inactiveDays: rawInactiveDays } = await searchParams
   const logType = type as LogType
+  const range = parseRangePreset(rawRange)
   const size = parseSize(rawSize)
+  const inactiveDays = parseInactiveDays(rawInactiveDays)
   const token = await getAuthToken()
 
   const showAudit   = logType === 'all' || logType === 'audit'
   const showError   = logType === 'all' || logType === 'error'
   const showAnomaly = logType === 'all' || logType === 'anomaly'
+  const showRange   = showAudit || showError
+
+  const { from: resolvedFrom, to: resolvedTo } = resolveFromTo(range, from, to)
 
   const [allAuditLogs, allErrorLogs, anomalies] = await Promise.all([
     showAudit && token
-      ? listAdminAuditLogs(token).catch(() => [] as AdminAuditLog[])
+      ? listAdminAuditLogs(token, resolvedFrom, resolvedTo).catch(() => [] as AdminAuditLog[])
       : ([] as AdminAuditLog[]),
     showError && token
-      ? listAdminErrorLogs(token).catch(() => [] as AppErrorLog[])
+      ? listAdminErrorLogs(token, 500, resolvedFrom, resolvedTo).catch(() => [] as AppErrorLog[])
       : ([] as AppErrorLog[]),
     showAnomaly && token
-      ? getAdminAnomalies(token).catch(() => EMPTY_ANOMALIES)
+      ? getAdminAnomalies(token, inactiveDays).catch(() => EMPTY_ANOMALIES)
       : EMPTY_ANOMALIES,
   ])
 
@@ -63,13 +92,24 @@ export default async function AdminLogsPage({
         <p className="text-sm text-muted-foreground mt-1">감사 · 오류 · 이상 징후 통합 뷰</p>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <Suspense fallback={null}><LogsFilterChips /></Suspense>
         {(showAudit || showError) && <PageSizeSelector value={String(size)} />}
       </div>
 
-      <div className="mt-6 space-y-8">
-        {showAnomaly && <AnomaliesSection anomalies={anomalies} />}
+      {showRange && (
+        <div className="mb-6">
+          <RangeFilterBar current={range} from={from} to={to} />
+        </div>
+      )}
+
+      <div className="space-y-8">
+        {showAnomaly && (
+          <AnomaliesSection
+            anomalies={anomalies}
+            inactiveDays={inactiveDays}
+          />
+        )}
         {showError && (
           <ErrorLogsSection
             logs={errorLogs}
@@ -92,18 +132,23 @@ export default async function AdminLogsPage({
 }
 
 // ── 이상 징후 섹션 ──────────────────────────────────────────────────────────
-function AnomaliesSection({ anomalies }: { anomalies: AdminAnomalies }) {
+function AnomaliesSection({ anomalies, inactiveDays }: { anomalies: AdminAnomalies; inactiveDays: number }) {
   const total = anomalies.pausedAccounts.length + anomalies.inactiveAccounts.length
   return (
     <section>
-      <h2 className="text-base font-bold mb-3">
-        이상 징후
-        {total > 0 && (
-          <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-            {total}
-          </span>
-        )}
-      </h2>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-base font-bold">
+          이상 징후
+          {total > 0 && (
+            <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+              {total}
+            </span>
+          )}
+        </h2>
+        <Suspense fallback={null}>
+          <InactiveDaysSelect current={inactiveDays} />
+        </Suspense>
+      </div>
       <div className="space-y-4">
         <div>
           <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
@@ -123,7 +168,7 @@ function AnomaliesSection({ anomalies }: { anomalies: AdminAnomalies }) {
         <div>
           <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             비활성 계좌{' '}
-            <span className="normal-case font-normal">(7일 거래 없음)</span>
+            <span className="normal-case font-normal">({inactiveDays}일 거래 없음)</span>
             {anomalies.inactiveAccounts.length > 0 && (
               <span className="ml-2 font-medium text-slate-600">
                 {anomalies.inactiveAccounts.length}

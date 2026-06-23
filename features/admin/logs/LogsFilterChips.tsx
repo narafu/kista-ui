@@ -14,12 +14,24 @@ export function LogsFilterChips() {
   const searchParams = useSearchParams()
   const active = searchParams.get('type') ?? 'all'
 
+  function buildHref(type: string) {
+    const params = new URLSearchParams()
+    if (type !== 'all') params.set('type', type)
+    // range 관련 파라미터 보존
+    for (const key of ['range', 'from', 'to', 'inactiveDays']) {
+      const v = searchParams.get(key)
+      if (v) params.set(key, v)
+    }
+    const qs = params.toString()
+    return qs ? `/admin/logs?${qs}` : '/admin/logs'
+  }
+
   return (
     <div className="flex gap-2 flex-wrap">
       {FILTERS.map(({ type, label }) => (
         <Link
           key={type}
-          href={type === 'all' ? '/admin/logs' : `/admin/logs?type=${type}`}
+          href={buildHref(type)}
           className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
             active === type
               ? 'bg-rose-100 text-rose-700'
