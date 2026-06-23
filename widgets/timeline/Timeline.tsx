@@ -45,7 +45,7 @@ export function Timeline({ steps }: TimelineProps) {
               {step.label}
             </p>
             {step.description && (
-              <p className="text-xs text-muted-foreground mt-0.5">{step.description}</p>
+              <p className="text-sm text-muted-foreground mt-0.5">{step.description}</p>
             )}
           </div>
         </div>

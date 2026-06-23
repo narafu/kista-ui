@@ -121,14 +121,14 @@ export default function MarketChartCardInner({ category }: Props) {
     <>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
-          <span className="text-[11px] font-semibold tracking-widest uppercase text-[var(--brand-fg-soft)]">{category.title}</span>
-          <span className="text-[10px] text-muted-foreground">일봉 · {CHART_CANDLE_COUNT}</span>
+          <span className="text-sm font-semibold tracking-widest uppercase text-[var(--brand-fg-soft)]">{category.title}</span>
+          <span className="text-sm text-muted-foreground">일봉 · {CHART_CANDLE_COUNT}</span>
         </div>
         <Popover>
           <PopoverTrigger className="text-muted-foreground hover:text-foreground transition-colors">
             <Info className="size-3.5" />
           </PopoverTrigger>
-          <PopoverContent className="w-auto text-xs whitespace-nowrap">{selected.description}</PopoverContent>
+          <PopoverContent className="w-auto text-sm whitespace-nowrap">{selected.description}</PopoverContent>
         </Popover>
       </div>
       <Select value={symbol} onValueChange={(value) => value && setSymbol(value)}>

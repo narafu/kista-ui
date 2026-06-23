@@ -41,6 +41,12 @@ import { ApiError } from '@shared/lib/api-client'
 import type { Strategy } from '@entities/strategy'
 import type { SkipReason, PlacedOrder } from '@entities/order'
 
+const CYCLE_SEED_BADGE_CLS: Record<string, string> = {
+  NONE:     'bg-muted text-muted-foreground',
+  MAX:      'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400',
+  MAINTAIN: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400',
+}
+
 const SKIP_REASON_LABELS: Record<SkipReason, string> = {
   NO_CYCLE_HISTORY: '첫 매매 전입니다. 사이클 정보가 아직 없습니다.',
   NO_PRIVACY_BASE: '기준 매매표가 없습니다.',
@@ -124,41 +130,42 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
   const { labelOf, findStrategyType } = useMeta()
   const cycleSeedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
   const isInfinite = (findStrategyType(strategy.type)?.availableTickers?.length ?? 0) > 1
+  const seedBadgeCls = CYCLE_SEED_BADGE_CLS[strategy.cycleSeedType] ?? 'bg-muted text-muted-foreground'
 
   return (
     <div className="space-y-4">
       <Card>
         <div className="flex flex-wrap items-center gap-2 px-5 pt-4 pb-3">
-          <span className="inline-flex items-center px-2.5 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400">
+          <span className="inline-flex items-center px-2.5 h-[22px] rounded-full text-xs font-semibold whitespace-nowrap bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400">
             {strategy.type}
           </span>
           {isInfinite && (
-            <span className="inline-flex items-center px-2 h-[22px] rounded-full text-[11px] font-medium whitespace-nowrap bg-muted text-muted-foreground">
+            <span className="inline-flex items-center px-2 h-[22px] rounded-full text-xs font-medium whitespace-nowrap bg-muted text-muted-foreground">
               {strategy.divisionCount}분할
             </span>
           )}
           {strategy.isReverseMode && (
-            <span className="inline-flex items-center px-2 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-amber-50 text-amber-600">
+            <span className="inline-flex items-center px-2 h-[22px] rounded-full text-xs font-semibold whitespace-nowrap bg-amber-50 text-amber-600">
               리버스모드
             </span>
           )}
           <RevealableValue
             value={accountNo ?? accountNoMasked}
             hiddenDisplay={accountNoMasked}
-            className="ml-auto text-[11px] text-muted-foreground"
+            className="ml-auto text-sm text-muted-foreground"
           />
         </div>
         <div className="grid grid-cols-3 border-t border-border">
-          <div className="px-5 py-3 border-r border-border">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">상태</p>
+          <div className="flex flex-col items-center px-5 py-3 border-r border-border">
+            <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1.5">상태</p>
             <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
           </div>
-          <div className="px-5 py-3 border-r border-border">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">다음 사이클</p>
-            <p className="text-sm font-semibold text-foreground">{cycleSeedLabel}</p>
+          <div className="flex flex-col items-center px-5 py-3 border-r border-border">
+            <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1.5">다음 사이클</p>
+            <span className={`inline-flex items-center px-2.5 h-[22px] rounded-full text-xs font-semibold whitespace-nowrap ${seedBadgeCls}`}>{cycleSeedLabel}</span>
           </div>
-          <div className="px-5 py-3">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">시작금액</p>
+          <div className="flex flex-col items-center px-5 py-3">
+            <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1.5">시작금액</p>
             <p className="text-sm font-semibold text-foreground">
               {strategy.initialUsdDeposit != null ? (
                 `$${fmtUsd(strategy.initialUsdDeposit)}`
@@ -205,9 +212,9 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-base">다음 주문 미리보기</CardTitle>
-              <span className="text-[11px] text-muted-foreground">매 거래일 04:00 자동 실행</span>
+            <div>
+              <CardTitle className="text-base">다음 주문</CardTitle>
+              <p className="text-sm text-muted-foreground mt-0.5">매 거래일 개장 시 자동실행</p>
             </div>
             {canExecute && mode === 'preview' && (
               <button
@@ -221,11 +228,13 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                 }}
                 disabled={executeMutation.isPending || orders.length === 0 || isMarginLoading}
                 className={cn(
-                  'text-xs px-3 py-1.5 rounded-md bg-rose-600 text-white hover:bg-rose-700 transition-colors disabled:opacity-50',
+                  'inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md',
+                  'bg-gradient-to-br from-rose-500 to-rose-700 text-white font-semibold',
+                  'shadow-[0_1px_4px_rgba(225,29,72,0.30)] hover:opacity-90 transition-opacity disabled:opacity-50',
                   (isHoliday || hasDeficit) && 'opacity-50 cursor-not-allowed',
                 )}
               >
-                {executeMutation.isPending ? '실행 중...' : '지금 실행'}
+                {executeMutation.isPending ? '주문 중...' : '바로 주문'}
               </button>
             )}
           </div>
@@ -234,7 +243,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
           {mode === 'executed' ? (
             <div>
               <div className="flex items-center justify-between px-6 py-3 border-b border-border">
-                <p className="text-[11px] uppercase tracking-widest font-semibold text-amber-600">
+                <p className="text-sm uppercase tracking-widest font-semibold text-amber-600">
                   {placedOrders.length > 0 ? `${placedOrders.length}건 접수됨` : '접수됨'}
                 </p>
                 <button
@@ -252,7 +261,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                     })
                   }
                   disabled={cancelAllMutation.isPending}
-                  className="text-xs px-2.5 py-1 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 disabled:opacity-50"
+                  className="text-sm px-2.5 py-1 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 disabled:opacity-50"
                 >
                   {cancelAllMutation.isPending ? '취소 중...' : '전체 취소'}
                 </button>
@@ -261,7 +270,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
               <ul className="lg:hidden">
                 {placedOrders.map((o) => (
                   <li key={o.id} className="flex items-center gap-3 text-sm px-6 py-3 border-b border-border last:border-b-0">
-                    <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold', o.direction === 'BUY' ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400' : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400')}>
+                    <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold', o.direction === 'BUY' ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400' : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400')}>
                       {o.direction === 'BUY' ? '매수' : '매도'}
                     </span>
                     <span className="font-medium">{o.ticker}</span>
@@ -278,7 +287,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                         })
                       }
                       disabled={cancelOneMutation.isPending}
-                      className="text-[11px] px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
+                      className="text-sm px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
                     >
                       취소
                     </button>
@@ -289,18 +298,18 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
               <table className="hidden lg:table w-full">
                 <thead>
                   <tr>
-                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">구분</th>
-                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">종목</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">수량</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">주문가</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">취소</th>
+                    <th className="px-5 py-2.5 text-left text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">구분</th>
+                    <th className="px-5 py-2.5 text-left text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">종목</th>
+                    <th className="px-5 py-2.5 text-right text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">수량</th>
+                    <th className="px-5 py-2.5 text-right text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">주문가</th>
+                    <th className="px-5 py-2.5 text-right text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">취소</th>
                   </tr>
                 </thead>
                 <tbody>
                   {placedOrders.map((o) => (
                     <tr key={o.id} className="border-b border-border last:border-b-0">
                       <td className="px-5 py-3">
-                        <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold', o.direction === 'BUY' ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400' : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400')}>
+                        <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold', o.direction === 'BUY' ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400' : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400')}>
                           {o.direction === 'BUY' ? '매수' : '매도'}
                         </span>
                       </td>
@@ -319,7 +328,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                             })
                           }
                           disabled={cancelOneMutation.isPending}
-                          className="text-[11px] px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
+                          className="text-sm px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
                         >
                           취소
                         </button>
@@ -346,8 +355,8 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                 </div>
               )}
               {hasBuyOrders && !isMarginLoading && hasDeficit && (
-                <div className="px-6 py-2.5 border-b border-border flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400">
+                <div className="px-6 py-2.5 border-b border-border flex items-center gap-2 text-sm text-muted-foreground">
+                  <span className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400">
                     예수금 부족
                   </span>
                   {`$${fmtUsd(previewDeficit)} 부족`}
@@ -360,7 +369,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                     key={`${o.ticker}-${o.direction}-${i}`}
                     className="flex items-center gap-3 text-sm px-6 py-3 border-b border-border last:border-b-0"
                   >
-                    <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold', o.direction === 'BUY' ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400' : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400')}>
+                    <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold', o.direction === 'BUY' ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400' : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400')}>
                       {o.direction === 'BUY' ? '매수' : '매도'}
                     </span>
                     <span className="font-medium">{o.ticker}</span>
@@ -373,17 +382,17 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
               <table className="hidden lg:table w-full">
                 <thead>
                   <tr>
-                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">구분</th>
-                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">종목</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">수량</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">주문가</th>
+                    <th className="px-5 py-2.5 text-left text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">구분</th>
+                    <th className="px-5 py-2.5 text-left text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">종목</th>
+                    <th className="px-5 py-2.5 text-right text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">수량</th>
+                    <th className="px-5 py-2.5 text-right text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">주문가</th>
                   </tr>
                 </thead>
                 <tbody>
                   {orders.map((o, i) => (
                     <tr key={`${o.ticker}-${o.direction}-${i}`} className="border-b border-border last:border-b-0">
                       <td className="px-5 py-3">
-                        <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-semibold', o.direction === 'BUY' ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400' : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400')}>
+                        <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold', o.direction === 'BUY' ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400' : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400')}>
                           {o.direction === 'BUY' ? '매수' : '매도'}
                         </span>
                       </td>

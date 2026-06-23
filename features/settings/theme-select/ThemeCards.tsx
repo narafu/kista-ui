@@ -56,11 +56,11 @@ export function ThemeCards() {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-[12.5px] font-bold">{o.label}</div>
-                <div className="text-[10.5px] text-muted-foreground">{o.desc}</div>
+                <div className="text-sm font-bold">{o.label}</div>
+                <div className="text-sm text-muted-foreground">{o.desc}</div>
               </div>
               {on && (
-                <span className="size-4 rounded-full bg-rose-500 text-white grid place-items-center text-[10px]">✓</span>
+                <span className="size-4 rounded-full bg-rose-500 text-white grid place-items-center text-xs">✓</span>
               )}
             </div>
           </button>

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { PageHeader } from '@widgets/page-header'
 import { StrategyDetail } from '@widgets/strategy-detail'
@@ -39,8 +40,15 @@ export default async function StrategyDetailPage({ params }: Props) {
   return (
     <div className="space-y-4">
       <PageHeader
-        eyebrow={account.nickname}
         title={strategy.ticker}
+        titleSuffix={
+          <Link
+            href={`/accounts/${id}`}
+            className="text-sm font-semibold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] hover:text-foreground transition-colors"
+          >
+            ← {account.nickname}
+          </Link>
+        }
         actions={
           <StrategyFormDialog accountId={id} initial={strategy} triggerLabel="수정" triggerVariant="ghost" />
         }

@@ -66,10 +66,10 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-sm font-bold leading-tight">텔레그램 알림</div>
-          <div className="text-[12px] text-muted-foreground mt-0.5">매매 체결 및 시스템 이벤트 실시간 알림</div>
+          <div className="text-sm text-muted-foreground mt-0.5">매매 체결 및 시스템 이벤트 실시간 알림</div>
         </div>
         {hasTelegram && (
-          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--status-ok-bg,#dcfce7)] text-[var(--status-ok,#16a34a)] text-[11.5px] font-semibold shrink-0">
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--status-ok-bg,#dcfce7)] text-[var(--status-ok,#16a34a)] text-xs font-semibold shrink-0">
             <Check size={10} />
             <span>연결됨</span>
           </div>
@@ -79,7 +79,7 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
       {/* 연결됨 — muted 패널 */}
       {hasTelegram && (
         <div className="bg-muted rounded-[10px] px-[14px] py-[12px]">
-          <div className="text-[11.5px] text-muted-foreground mb-1">연결된 채팅</div>
+          <div className="text-sm text-muted-foreground mb-1">연결된 채팅</div>
           <div className="flex items-center justify-between gap-3 min-w-0">
             <div className="text-sm font-bold font-mono truncate min-w-0">
               {telegramBotUsername ? `@${telegramBotUsername}` : '불러오는 중...'}
@@ -100,20 +100,20 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
       {!hasTelegram && (
         <div className="flex flex-col gap-3">
           <div>
-            <div className="text-[11.5px] text-muted-foreground mb-1">Bot Token</div>
+            <div className="text-sm text-muted-foreground mb-1">Bot Token</div>
             <Input
               placeholder="123456:ABC-DEF..."
-              className="h-10 text-[13px]"
+              className="h-10 text-sm"
               value={botToken}
               onChange={(e) => setBotToken(e.target.value)}
               disabled={isLoading}
             />
           </div>
           <div>
-            <div className="text-[11.5px] text-muted-foreground mb-1">Chat ID</div>
+            <div className="text-sm text-muted-foreground mb-1">Chat ID</div>
             <Input
               placeholder="-100123456789"
-              className="h-10 text-[13px]"
+              className="h-10 text-sm"
               value={chatId}
               onChange={(e) => setChatId(e.target.value)}
               disabled={isLoading}

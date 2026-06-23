@@ -70,10 +70,10 @@ export function EditAccountForm({ account }: Props) {
               className="h-12"
               disabled
             />
-            <p className="text-xs text-muted-foreground">계좌번호는 변경할 수 없습니다</p>
+            <p className="text-sm text-muted-foreground">계좌번호는 변경할 수 없습니다</p>
           </div>
 
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             전략은 계좌 상세 화면에서 등록·수정할 수 있습니다.
           </p>
 
@@ -100,7 +100,7 @@ export function EditAccountForm({ account }: Props) {
             <AlertTriangle className="size-4 text-[var(--status-error)]" />
             <h2 className="text-sm font-semibold text-[var(--status-error)]">위험 구역</h2>
           </div>
-          <p className="text-[13px] text-muted-foreground mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             계좌를 삭제하면 모든 거래 기록과 설정이 영구적으로 제거됩니다.
           </p>
 

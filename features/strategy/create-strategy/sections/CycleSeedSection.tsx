@@ -24,10 +24,10 @@ export function CycleSeedSection({ autoStart, setAutoStart, seedMode, setSeedMod
       {/* 자동 시작 토글 */}
       <div className="flex items-center justify-between px-[14px] py-3 rounded-[var(--r-sm)] border border-border bg-card mb-[14px]">
         <div>
-          <div className="text-[13px] font-bold text-foreground">
+          <div className="text-sm font-bold text-foreground">
             다음 사이클 자동 시작
           </div>
-          <div className="text-[10.5px] text-muted-foreground mt-0.5">
+          <div className="text-sm text-muted-foreground mt-0.5">
             익절 종료 후 새 사이클을 자동 개시합니다.
           </div>
         </div>
@@ -53,7 +53,7 @@ export function CycleSeedSection({ autoStart, setAutoStart, seedMode, setSeedMod
       {/* 시드 모드 세그먼트 */}
       {autoStart && (
         <>
-          <div className="text-[11px] font-bold text-muted-foreground mb-1.5 tracking-[0.04em]">
+          <div className="text-sm font-bold text-muted-foreground mb-1.5 tracking-[0.04em]">
             시드 모드
           </div>
           <div className="flex gap-1 p-[3px] bg-muted rounded-[10px]">
@@ -75,12 +75,12 @@ export function CycleSeedSection({ autoStart, setAutoStart, seedMode, setSeedMod
                   }}
                 >
                   <div
-                    className="text-[12.5px] font-bold"
+                    className="text-sm font-bold"
                     style={{ color: active ? 'var(--rose-600)' : 'var(--muted-foreground)' }}
                   >
                     {m.label}
                   </div>
-                  <div className="text-[10px] text-muted-foreground mt-0.5">
+                  <div className="text-sm text-muted-foreground mt-0.5">
                     {m.sub}
                   </div>
                 </button>

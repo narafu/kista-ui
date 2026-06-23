@@ -5,25 +5,38 @@ import type { AdminAuditLog, AppErrorLog, AdminAnomalies, AdminAnomalyAccount } 
 import { ErrorLogItem } from '@features/admin/error-logs'
 import { LogsFilterChips } from '@features/admin/logs'
 import { RevealableValue } from '@widgets/revealable-value'
+import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
+import { PaginationBar } from '@shared/ui/PaginationBar'
 
 type LogType = 'all' | 'audit' | 'error' | 'anomaly'
 
+const VALID_SIZES = ['10', '30', '50', '100'] as const
 const EMPTY_ANOMALIES: AdminAnomalies = { pausedAccounts: [], inactiveAccounts: [] }
+
+function parseSize(raw: string | undefined): number {
+  return VALID_SIZES.includes(raw as (typeof VALID_SIZES)[number]) ? Number(raw) : 10
+}
+
+function parsePage(raw: string | undefined): number {
+  const n = Number(raw)
+  return Number.isInteger(n) && n >= 1 ? n : 1
+}
 
 export default async function AdminLogsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string }>
+  searchParams: Promise<{ type?: string; size?: string; ap?: string; ep?: string }>
 }) {
-  const { type = 'all' } = await searchParams
+  const { type = 'all', size: rawSize, ap, ep } = await searchParams
   const logType = type as LogType
+  const size = parseSize(rawSize)
   const token = await getAuthToken()
 
   const showAudit   = logType === 'all' || logType === 'audit'
   const showError   = logType === 'all' || logType === 'error'
   const showAnomaly = logType === 'all' || logType === 'anomaly'
 
-  const [auditLogs, errorLogs, anomalies] = await Promise.all([
+  const [allAuditLogs, allErrorLogs, anomalies] = await Promise.all([
     showAudit && token
       ? listAdminAuditLogs(token).catch(() => [] as AdminAuditLog[])
       : ([] as AdminAuditLog[]),
@@ -35,6 +48,14 @@ export default async function AdminLogsPage({
       : EMPTY_ANOMALIES,
   ])
 
+  const auditTotalPages = Math.max(1, Math.ceil(allAuditLogs.length / size))
+  const errorTotalPages = Math.max(1, Math.ceil(allErrorLogs.length / size))
+  const auditPage = Math.min(parsePage(ap), auditTotalPages)
+  const errorPage = Math.min(parsePage(ep), errorTotalPages)
+
+  const auditLogs = allAuditLogs.slice((auditPage - 1) * size, auditPage * size)
+  const errorLogs = allErrorLogs.slice((errorPage - 1) * size, errorPage * size)
+
   return (
     <div>
       <div className="mb-6">
@@ -42,12 +63,29 @@ export default async function AdminLogsPage({
         <p className="text-sm text-muted-foreground mt-1">감사 · 오류 · 이상 징후 통합 뷰</p>
       </div>
 
-      <Suspense fallback={null}><LogsFilterChips /></Suspense>
+      <div className="flex items-center justify-between">
+        <Suspense fallback={null}><LogsFilterChips /></Suspense>
+        {(showAudit || showError) && <PageSizeSelector value={String(size)} />}
+      </div>
 
       <div className="mt-6 space-y-8">
         {showAnomaly && <AnomaliesSection anomalies={anomalies} />}
-        {showError   && <ErrorLogsSection logs={errorLogs} />}
-        {showAudit   && <AuditLogsSection logs={auditLogs} />}
+        {showError && (
+          <ErrorLogsSection
+            logs={errorLogs}
+            total={allErrorLogs.length}
+            page={errorPage}
+            totalPages={errorTotalPages}
+          />
+        )}
+        {showAudit && (
+          <AuditLogsSection
+            logs={auditLogs}
+            total={allAuditLogs.length}
+            page={auditPage}
+            totalPages={auditTotalPages}
+          />
+        )}
       </div>
     </div>
   )
@@ -68,7 +106,7 @@ function AnomaliesSection({ anomalies }: { anomalies: AdminAnomalies }) {
       </h2>
       <div className="space-y-4">
         <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             일시정지 계좌
             {anomalies.pausedAccounts.length > 0 && (
               <span className="ml-2 normal-case font-medium text-amber-600">
@@ -83,7 +121,7 @@ function AnomaliesSection({ anomalies }: { anomalies: AdminAnomalies }) {
           )}
         </div>
         <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             비활성 계좌{' '}
             <span className="normal-case font-normal">(7일 거래 없음)</span>
             {anomalies.inactiveAccounts.length > 0 && (
@@ -104,12 +142,12 @@ function AnomaliesSection({ anomalies }: { anomalies: AdminAnomalies }) {
 }
 
 // ── 오류 로그 섹션 ──────────────────────────────────────────────────────────
-function ErrorLogsSection({ logs }: { logs: AppErrorLog[] }) {
+function ErrorLogsSection({ logs, total, page, totalPages }: { logs: AppErrorLog[]; total: number; page: number; totalPages: number }) {
   return (
     <section>
       <h2 className="text-base font-bold mb-3">
         오류 로그
-        <span className="ml-2 text-xs font-normal text-muted-foreground">최근 {logs.length}건</span>
+        <span className="ml-2 text-sm font-normal text-muted-foreground">총 {total}건</span>
       </h2>
       {logs.length === 0 ? (
         <EmptyState text="기록된 오류가 없습니다" />
@@ -120,17 +158,18 @@ function ErrorLogsSection({ logs }: { logs: AppErrorLog[] }) {
           ))}
         </div>
       )}
+      <PaginationBar page={page} totalPages={totalPages} pageParam="ep" />
     </section>
   )
 }
 
 // ── 감사 로그 섹션 ──────────────────────────────────────────────────────────
-function AuditLogsSection({ logs }: { logs: AdminAuditLog[] }) {
+function AuditLogsSection({ logs, total, page, totalPages }: { logs: AdminAuditLog[]; total: number; page: number; totalPages: number }) {
   return (
     <section>
       <h2 className="text-base font-bold mb-3">
         감사 로그
-        <span className="ml-2 text-xs font-normal text-muted-foreground">최근 {logs.length}건</span>
+        <span className="ml-2 text-sm font-normal text-muted-foreground">총 {total}건</span>
       </h2>
       {logs.length === 0 ? (
         <EmptyState text="감사 로그가 없습니다" />
@@ -145,22 +184,22 @@ function AuditLogsSection({ logs }: { logs: AdminAuditLog[] }) {
                       {log.action}
                     </span>
                     {log.targetType && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-sm text-muted-foreground">
                         {log.targetType}
                         {log.targetId ? ` · ${log.targetId.slice(0, 8)}…` : ''}
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1 font-mono">
+                  <p className="text-sm text-muted-foreground mt-1 font-mono">
                     admin: {log.adminId.slice(0, 8)}…
                   </p>
                   {log.payload && Object.keys(log.payload).length > 0 && (
-                    <pre className="mt-1 text-xs text-muted-foreground bg-muted/40 rounded p-1 overflow-x-auto">
+                    <pre className="mt-1 text-sm text-muted-foreground bg-muted/40 rounded p-1 overflow-x-auto">
                       {JSON.stringify(log.payload, null, 2)}
                     </pre>
                   )}
                 </div>
-                <time className="text-xs text-muted-foreground shrink-0">
+                <time className="text-sm text-muted-foreground shrink-0">
                   {new Date(log.createdAt).toLocaleString('ko-KR')}
                 </time>
               </div>
@@ -168,6 +207,7 @@ function AuditLogsSection({ logs }: { logs: AdminAuditLog[] }) {
           ))}
         </div>
       )}
+      <PaginationBar page={page} totalPages={totalPages} pageParam="ap" />
     </section>
   )
 }
@@ -195,7 +235,7 @@ function AccountTable({ accounts }: { accounts: AdminAnomalyAccount[] }) {
           {accounts.map((a) => (
             <tr key={a.id} className="hover:bg-muted/20">
               <td className="px-4 py-2.5 font-medium">{a.ownerNickname}</td>
-              <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground">
+              <td className="px-4 py-2.5 font-mono text-sm text-muted-foreground">
                 <RevealableValue
                   value={a.accountNoMasked ?? ''}
                   hiddenDisplay={a.accountNoMasked ?? ''}

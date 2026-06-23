@@ -20,10 +20,10 @@ export function StrategyTypeSection({ initial, type, setType, loading, strategyT
       <StrategyFieldLabel hint="종목당 1개">매매 전략</StrategyFieldLabel>
       {initial ? (
         <div className="flex items-center gap-2 px-[14px] py-3 rounded-[var(--r-sm)] border border-border bg-muted">
-          <span className="text-[13px] font-[800] text-rose-600">
+          <span className="text-sm font-[800] text-rose-600">
             {initial.type}
           </span>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted-foreground text-card tracking-[0.06em]">
+          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-muted-foreground text-card tracking-[0.06em]">
             고정
           </span>
         </div>

@@ -91,7 +91,7 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
 
   return (
     <div className="mt-4 pt-4 border-t border-border">
-      <div className="text-[12.5px] font-semibold text-muted-foreground mb-2">알림 수단</div>
+      <div className="text-sm font-semibold text-muted-foreground mb-2">알림 수단</div>
       <div className="flex gap-2 flex-wrap">
         {NOTIFICATION_CHANNELS.map((c) => (
           <button
@@ -112,12 +112,12 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                <div className="font-medium text-[13px]">적용 중...</div>
+                <div className="font-medium text-sm">적용 중...</div>
               </div>
             ) : (
               <>
-                <div className="font-medium text-[13px]">{c.label}</div>
-                <div className="text-[11.5px] text-muted-foreground">{c.desc}</div>
+                <div className="font-medium text-sm">{c.label}</div>
+                <div className="text-sm text-muted-foreground">{c.desc}</div>
               </>
             )}
           </button>
@@ -125,17 +125,17 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
       </div>
 
       {needsTelegram && (
-        <p className="text-[11.5px] mt-2" style={{ color: 'var(--warn)' }}>
+        <p className="text-sm mt-2" style={{ color: 'var(--warn)' }}>
           텔레그램 알림을 받으려면 위에서 텔레그램 봇을 먼저 연결해주세요.
         </p>
       )}
       {fcmStatus === 'denied' && (
-        <p className="text-[11.5px] mt-2" style={{ color: 'var(--neg)' }}>
+        <p className="text-sm mt-2" style={{ color: 'var(--neg)' }}>
           알림이 차단되어 있습니다. 브라우저 설정 &gt; 알림에서 이 사이트를 허용해주세요.
         </p>
       )}
       {fcmStatus === 'error' && (
-        <p className="text-[11.5px] mt-2" style={{ color: 'var(--warn)' }}>
+        <p className="text-sm mt-2" style={{ color: 'var(--warn)' }}>
           {'Notification' in window && 'PushManager' in window
             ? '푸시 알림 설정에 실패했습니다. 새로고침 후 다시 시도해주세요.'
             : '이 브라우저에서는 푸시 알림이 지원되지 않습니다. Chrome 또는 Edge를 이용해주세요.'}

@@ -21,7 +21,7 @@ export function MobileHeader({ trailing }: Props) {
           className="rounded-[6px] shadow-[0_2px_6px_rgba(143,68,48,.22)]"
           style={{ height: 28, width: 28 }}
         />
-        <span className="font-[800] text-[17px] tracking-wide text-brand-fg">KISTA</span>
+        <span className="font-[800] text-lg tracking-wide text-brand-fg">KISTA</span>
       </Link>
       {trailing && <div>{trailing}</div>}
     </header>

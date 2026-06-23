@@ -28,7 +28,7 @@ export function Stepper({ steps, current }: StepperProps) {
               </div>
               <span
                 className={cn(
-                  'text-[11px] font-medium text-center leading-none whitespace-nowrap',
+                  'text-sm font-medium text-center leading-none whitespace-nowrap',
                   active ? 'text-rose-600' : done ? 'text-foreground' : 'text-muted-foreground',
                 )}
               >

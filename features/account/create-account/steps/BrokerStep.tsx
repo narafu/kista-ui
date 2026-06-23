@@ -41,7 +41,7 @@ export function BrokerStep({ onNext }: Props) {
               </div>
               <div>
                 <p className="font-semibold text-sm">{label}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+                <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
               </div>
             </button>
           )

@@ -2,16 +2,16 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus } from 'lucide-react'
+import { Plus, Loader2 } from 'lucide-react'
+import { cn } from '@shared/lib/utils'
 
 interface Props {
   href?: string
   className?: string
-  style?: React.CSSProperties
   children?: React.ReactNode
 }
 
-export function NewAccountButton({ href = '/accounts/new', className, style, children = '계좌 등록' }: Props) {
+export function NewAccountButton({ href = '/accounts/new', className, children = '계좌 등록' }: Props) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -26,15 +26,16 @@ export function NewAccountButton({ href = '/accounts/new', className, style, chi
       type="button"
       onClick={handleClick}
       disabled={isLoading}
-      className={className}
-      style={style}
+      className={cn(
+        'inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)]',
+        'bg-gradient-to-br from-rose-500 to-rose-700 text-white text-sm font-semibold',
+        'shadow-[0_2px_8px_rgba(225,29,72,0.30)] hover:opacity-90 transition-opacity disabled:opacity-60',
+        className,
+      )}
     >
       {isLoading ? (
         <>
-          <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
+          <Loader2 className="size-4 animate-spin" />
           등록 중...
         </>
       ) : (

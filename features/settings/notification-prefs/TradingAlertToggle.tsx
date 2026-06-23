@@ -6,11 +6,12 @@ import { useUpdateNotificationPrefMutation } from '@entities/user'
 import type { NotificationChannel } from '@entities/user'
 
 interface Props {
+  type: string
   initialEnabled: boolean
   channel: NotificationChannel
 }
 
-export function TradingAlertToggle({ initialEnabled, channel }: Props) {
+export function TradingAlertToggle({ type, initialEnabled, channel }: Props) {
   const [enabled, setEnabled] = useState(initialEnabled)
   const mutation = useUpdateNotificationPrefMutation()
   const isChannelOff = channel === 'NONE'
@@ -22,7 +23,7 @@ export function TradingAlertToggle({ initialEnabled, channel }: Props) {
     }
     const next = !enabled
     setEnabled(next)
-    mutation.mutate({ type: 'TRADING_ALERT', enabled: next })
+    mutation.mutate({ type, enabled: next })
   }
 
   return (
@@ -50,7 +51,7 @@ export function TradingAlertToggle({ initialEnabled, channel }: Props) {
         />
       </button>
       {isChannelOff && (
-        <span className="text-[10.5px] text-muted-foreground">알림 수단을 먼저 선택하세요</span>
+        <span className="text-sm text-muted-foreground">알림 수단을 먼저 선택하세요</span>
       )}
     </div>
   )

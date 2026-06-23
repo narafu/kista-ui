@@ -62,17 +62,17 @@ export function CycleHistoryTable({
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div>
               <CardTitle className="text-base">{title}</CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-sm text-muted-foreground mt-0.5">
                 {rangeLabel} · 총 {isLoading ? '…' : cycleHistory.length}건
               </p>
             </div>
             <div className="flex gap-0.5 rounded-lg bg-muted p-1 shrink-0">
-              {(['all', '7d', '30d', 'custom'] as RangeType[]).map((r) => (
+              {(['7d', '30d', 'all', 'custom'] as RangeType[]).map((r) => (
                 <button
                   key={r}
                   type="button"
                   onClick={() => setRangeType(r)}
-                  className={`flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
+                  className={`flex-1 rounded-md px-3 py-1.5 text-sm font-semibold transition-all whitespace-nowrap ${
                     rangeType === r ? 'bg-background text-rose-600 shadow-sm' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
@@ -88,16 +88,16 @@ export function CycleHistoryTable({
                 aria-label="시작 날짜"
                 value={customFrom}
                 onChange={(e) => setCustomFrom(e.target.value)}
-                className="rounded-md border border-input bg-background px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
+                className="rounded-md border border-input bg-background px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring"
               />
-              <span className="text-xs text-muted-foreground">~</span>
+              <span className="text-sm text-muted-foreground">~</span>
               <input
                 type="date"
                 aria-label="종료 날짜"
                 value={customTo}
                 min={customFrom || undefined}
                 onChange={(e) => setCustomTo(e.target.value)}
-                className="rounded-md border border-input bg-background px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
+                className="rounded-md border border-input bg-background px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
           )}
@@ -115,23 +115,22 @@ export function CycleHistoryTable({
             <div className="space-y-2 p-4 lg:hidden">
               {groups.map((g) => (
                 <div key={g.date} className="space-y-1.5">
-                  <div className="px-1 pt-2 text-[11px] uppercase tracking-widest text-muted-foreground">{g.date}</div>
+                  <div className="px-1 pt-2 text-sm uppercase tracking-widest text-muted-foreground">{g.date}</div>
                   {g.items.map((entry) => (
-                    <div key={entry.createdAt} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="inline-flex items-center px-2.5 h-5 rounded-full text-[10px] font-bold whitespace-nowrap bg-rose-50 text-rose-600">
-                            {entry.ticker ?? '-'}
-                          </span>
-                          <span className="text-sm font-semibold">{entry.holdings}주</span>
-                          {entry.avgPrice != null && entry.holdings > 0 && (
-                            <span className="text-xs text-muted-foreground truncate">${fmtUsd(entry.avgPrice)}</span>
-                          )}
-                        </div>
-                        <div className="text-right shrink-0">
-                          <p className="text-sm font-semibold">${fmtUsd(entry.usdDeposit ?? 0)}</p>
-                          <p className="text-[10px] text-muted-foreground">예수금</p>
-                        </div>
+                    <div key={entry.createdAt} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="inline-flex items-center px-2.5 h-5 rounded-full text-xs font-bold whitespace-nowrap bg-rose-50 text-rose-600">
+                          {entry.ticker ?? '-'}
+                        </span>
+                        <span className="text-sm font-semibold">{entry.holdings}주</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          평단 <span className="font-semibold text-foreground">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</span>
+                        </span>
+                        <span className="text-muted-foreground">
+                          예수금 <span className="font-semibold text-foreground">${fmtUsd(entry.usdDeposit ?? 0)}</span>
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -143,27 +142,33 @@ export function CycleHistoryTable({
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 sticky top-0 z-10">
                   <tr>
-                    {['종목', '보유수량', '평균단가', '예수금'].map((h) => (
-                      <th key={h} className="px-4 py-3 text-left text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)]">
-                        {h}
-                      </th>
-                    ))}
+                    <th className="px-4 py-3 text-left text-sm uppercase tracking-widest text-[var(--brand-fg-soft)]">티커</th>
+                    <th className="px-4 py-3 text-right text-sm uppercase tracking-widest text-[var(--brand-fg-soft)]">수량</th>
+                    <th className="px-4 py-3 text-right text-sm uppercase tracking-widest text-[var(--brand-fg-soft)]">평단가</th>
+                    <th className="px-4 py-3 text-right text-sm uppercase tracking-widest text-[var(--brand-fg-soft)]">예수금</th>
+                    <th className="px-4 py-3 text-right text-sm uppercase tracking-widest text-[var(--brand-fg-soft)]">평가금액</th>
                   </tr>
                 </thead>
                 <tbody>
                   {groups.map((g) => (
                     <Fragment key={g.date}>
                       <tr>
-                        <td colSpan={4} className="bg-muted/30 px-4 py-2 text-[11px] uppercase tracking-widest text-muted-foreground">{g.date}</td>
+                        <td colSpan={5} className="bg-muted/30 px-4 py-2 text-sm uppercase tracking-widest text-muted-foreground">{g.date}</td>
                       </tr>
-                      {g.items.map((entry) => (
-                        <tr key={entry.createdAt} className="border-t hover:bg-muted/30 transition-colors">
-                          <td className="px-4 py-3 font-medium">{entry.ticker ?? '-'}</td>
-                          <td className="px-4 py-3">{entry.holdings}주</td>
-                          <td className="px-4 py-3">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</td>
-                          <td className="px-4 py-3 font-medium">${fmtUsd(entry.usdDeposit ?? 0)}</td>
-                        </tr>
-                      ))}
+                      {g.items.map((entry) => {
+                        const evalAmount = entry.avgPrice != null && entry.holdings > 0
+                          ? entry.avgPrice * entry.holdings
+                          : null
+                        return (
+                          <tr key={entry.createdAt} className="border-t hover:bg-muted/30 transition-colors">
+                            <td className="px-4 py-3 font-medium">{entry.ticker ?? '-'}</td>
+                            <td className="px-4 py-3 text-right tabular-nums">{entry.holdings}주</td>
+                            <td className="px-4 py-3 text-right tabular-nums">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</td>
+                            <td className="px-4 py-3 text-right tabular-nums font-medium">${fmtUsd(entry.usdDeposit ?? 0)}</td>
+                            <td className="px-4 py-3 text-right tabular-nums font-medium">{evalAmount != null ? `$${fmtUsd(evalAmount)}` : '-'}</td>
+                          </tr>
+                        )
+                      })}
                     </Fragment>
                   ))}
                 </tbody>

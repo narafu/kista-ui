@@ -66,7 +66,7 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
     <div className="text-center max-w-[440px] w-full px-6">
       {/* 상태 표시줄 */}
       <div
-        className="inline-flex items-center gap-4 px-[18px] py-[7px] rounded-full bg-muted border border-border mb-11 text-[10.5px] text-muted-foreground tracking-[0.1em]"
+        className="inline-flex items-center gap-4 px-[18px] py-[7px] rounded-full bg-muted border border-border mb-11 text-sm text-muted-foreground tracking-[0.1em]"
         style={{ fontFamily: 'var(--font-mono)' }}
       >
         <span className="flex items-center gap-[7px]">
@@ -88,16 +88,16 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
 
       {/* 에러 타입 배지 */}
       <div
-        className="inline-flex items-center px-[13px] py-1 rounded-full text-[10px] font-bold tracking-[0.14em] border border-border mb-4"
+        className="inline-flex items-center px-[13px] py-1 rounded-full text-sm font-bold tracking-[0.14em] border border-border mb-4"
         style={{ background: cfg.bgVar, color: cfg.colorVar, fontFamily: 'var(--font-mono)' }}
       >
         {cfg.badge}
       </div>
 
-      <h1 className="text-[19px] font-bold tracking-[-0.02em] text-foreground mb-2">
+      <h1 className="text-xl font-bold tracking-[-0.02em] text-foreground mb-2">
         {cfg.title}
       </h1>
-      <p className="text-[13.5px] text-muted-foreground leading-[1.65] mb-8">
+      <p className="text-sm text-muted-foreground leading-[1.65] mb-8">
         {cfg.desc}
       </p>
 
@@ -105,14 +105,14 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
       <div className="flex gap-2 justify-center flex-wrap mb-9">
         <Link
           href="/dashboard"
-          className="inline-flex items-center px-[22px] py-[9px] rounded-[var(--radius)] bg-primary text-primary-foreground text-[13px] font-semibold no-underline shadow-[var(--sh-rose)] tracking-[-0.01em]"
+          className="inline-flex items-center px-[22px] py-[9px] rounded-[var(--radius)] bg-primary text-primary-foreground text-sm font-semibold no-underline shadow-[var(--sh-rose)] tracking-[-0.01em]"
         >
           대시보드
         </Link>
         <button
           type="button"
           onClick={() => router.back()}
-          className="inline-flex items-center px-[22px] py-[9px] rounded-[var(--radius)] bg-secondary text-secondary-foreground text-[13px] font-semibold border border-border cursor-pointer tracking-[-0.01em]"
+          className="inline-flex items-center px-[22px] py-[9px] rounded-[var(--radius)] bg-secondary text-secondary-foreground text-sm font-semibold border border-border cursor-pointer tracking-[-0.01em]"
         >
           이전 페이지
         </button>
@@ -120,7 +120,7 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
           <button
             type="button"
             onClick={reset}
-            className="inline-flex items-center px-[22px] py-[9px] rounded-[var(--radius)] bg-transparent text-muted-foreground text-[13px] font-semibold border border-border cursor-pointer tracking-[-0.01em]"
+            className="inline-flex items-center px-[22px] py-[9px] rounded-[var(--radius)] bg-transparent text-muted-foreground text-sm font-semibold border border-border cursor-pointer tracking-[-0.01em]"
           >
             다시 시도
           </button>
@@ -129,7 +129,7 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
 
       {/* 하단 경로 정보 */}
       <div
-        className="text-[10.5px] text-muted-foreground opacity-50 tracking-[0.08em] overflow-hidden text-ellipsis whitespace-nowrap"
+        className="text-sm text-muted-foreground opacity-50 tracking-[0.08em] overflow-hidden text-ellipsis whitespace-nowrap"
         style={{ fontFamily: 'var(--font-mono)' }}
       >
         KISTA · {code ?? 'ERR'} · {pathname ?? '/'}
@@ -150,7 +150,7 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
       <div className="absolute top-6 left-8 flex items-center gap-2">
         <Image src="/logo.png" alt="KISTA" width={22} height={22} style={{ borderRadius: 5, height: 22, width: 22 }} />
         <span
-          className="text-[12.5px] font-extrabold text-[var(--rose-700)] tracking-[2px]"
+          className="text-sm font-extrabold text-[var(--rose-700)] tracking-[2px]"
         >
           KISTA
         </span>

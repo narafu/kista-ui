@@ -39,7 +39,7 @@ export default async function PendingPage() {
       <div className="absolute top-7 left-9 flex items-center gap-2">
         <Image src="/logo.png" alt="KISTA" width={26} height={26} className="rounded" style={{ height: 26, width: 26 }} />
         <span
-          className="text-[15px] font-extrabold tracking-wide"
+          className="text-base font-extrabold tracking-wide"
           style={{ color: 'var(--rose-700)' }}
         >
           KISTA

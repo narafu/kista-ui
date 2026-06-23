@@ -57,7 +57,7 @@ export function MarketHolidayCalendar({ holidays, year, month }: Props) {
 
   return (
     <div className="rounded-[var(--r-lg)] p-5 flex flex-col gap-1 bg-card border border-border shadow-[var(--sh-card)]">
-      <span className="text-[11px] font-semibold tracking-widest uppercase text-[var(--brand-fg-soft)]">
+      <span className="text-sm font-semibold tracking-widest uppercase text-[var(--brand-fg-soft)]">
         미국 휴장일
       </span>
       <div className="flex items-center justify-between mb-1">
@@ -69,7 +69,7 @@ export function MarketHolidayCalendar({ holidays, year, month }: Props) {
         >
           <ChevronLeft className="size-3.5 text-muted-foreground" />
         </button>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-sm text-muted-foreground">
           {displayYear}년 {displayMonth}월
         </span>
         <button
@@ -86,7 +86,7 @@ export function MarketHolidayCalendar({ holidays, year, month }: Props) {
           <div
             key={d}
             className={cn(
-              'text-[10px] font-medium py-0.5',
+              'text-xs font-medium py-0.5',
               i === 0 ? 'text-pos' : i === 6 ? 'text-neg' : 'text-muted-foreground',
             )}
           >
@@ -124,7 +124,7 @@ export function MarketHolidayCalendar({ holidays, year, month }: Props) {
           )
         })}
       </div>
-      <div className="mt-2 flex items-center gap-1.5 text-[10.5px] text-muted-foreground">
+      <div className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
         <span className="size-[7px] rounded-full bg-neg shrink-0" />
         미국 증시 휴장
       </div>

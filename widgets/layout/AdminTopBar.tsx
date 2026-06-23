@@ -24,7 +24,7 @@ export function AdminTopBar() {
         <div className="flex items-center gap-2">
           <Link
             href="/dashboard"
-            className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="size-3" />
             앱으로
@@ -40,7 +40,7 @@ export function AdminTopBar() {
             <Link
               key={href}
               href={href}
-              className={`flex-1 flex flex-col items-center gap-1 py-2 text-xs font-medium transition-colors ${
+              className={`flex-1 flex flex-col items-center gap-1 py-2 text-sm font-medium transition-colors ${
                 active ? 'text-rose-600' : 'text-muted-foreground'
               }`}
             >

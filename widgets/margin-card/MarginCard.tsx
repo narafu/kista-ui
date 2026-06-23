@@ -28,12 +28,12 @@ export function MarginCard({ accountId }: Props) {
             {items.map((item) => (
               <div key={item.currency} className="rounded-lg border p-3.5 bg-muted mb-3 last:mb-0">
                 <div className="mb-2.5">
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-rose-50 text-rose-600 tracking-wide">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded bg-rose-50 text-rose-600 tracking-wide">
                     {item.currency}
                   </span>
                 </div>
                 <div className="text-sm">
-                  <p className="text-muted-foreground text-xs">주문가능금액</p>
+                  <p className="text-muted-foreground text-sm">주문가능금액</p>
                   <p className="font-medium">
                     {item.currency === 'KRW'
                       ? `₩${fmtKrw(item.purchasableAmount)}`

@@ -31,22 +31,20 @@ export function DashboardEmpty({ holidays, initialWeekStartDate }: Props) {
             className="rounded-[var(--r-lg)] border border-rose-200 p-5 flex flex-col"
             style={{ background: 'var(--brand-soft-bg)' }}
           >
-            <p className="text-[11.5px] font-bold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] mb-2">시작하기</p>
-            <p className="text-[14.5px] font-bold mb-1.5">첫 계좌 등록</p>
-            <p className="text-xs text-muted-foreground leading-relaxed mb-4 flex-1">
+            <p className="text-sm font-bold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] mb-2">시작하기</p>
+            <p className="text-sm font-bold mb-1.5">첫 계좌 등록</p>
+            <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-1">
               KIS API 키와 계좌번호를 입력하면 분할매매 자동화가 시작됩니다.
             </p>
-            <NewAccountButton className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] bg-rose-600 text-white text-sm font-semibold hover:bg-rose-700 transition-colors self-start disabled:opacity-60">
-              계좌 등록하기
-            </NewAccountButton>
+            <NewAccountButton className="self-start">계좌 등록하기</NewAccountButton>
           </div>
           <div className="rounded-[var(--r-lg)] border border-border bg-card p-5 shadow-[var(--sh-card)] flex flex-col">
-            <p className="text-[11.5px] font-bold tracking-[0.12em] uppercase text-muted-foreground mb-2">다음 단계</p>
-            <p className="text-[14.5px] font-bold mb-1.5">{NOTIFICATION_CARD.title}</p>
-            <p className="text-xs text-muted-foreground leading-relaxed mb-4 flex-1">{NOTIFICATION_CARD.desc}</p>
+            <p className="text-sm font-bold tracking-[0.12em] uppercase text-muted-foreground mb-2">다음 단계</p>
+            <p className="text-sm font-bold mb-1.5">{NOTIFICATION_CARD.title}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-1">{NOTIFICATION_CARD.desc}</p>
             <Link
               href={NOTIFICATION_CARD.href}
-              className="text-xs font-bold text-[var(--brand-fg-soft)] hover:opacity-75 transition-opacity"
+              className="text-sm font-bold text-[var(--brand-fg-soft)] hover:opacity-75 transition-opacity"
             >
               {NOTIFICATION_CARD.cta}
             </Link>
@@ -78,18 +76,16 @@ export function DashboardEmpty({ holidays, initialWeekStartDate }: Props) {
           <div className="size-16 rounded-2xl bg-card flex items-center justify-center mx-auto mb-3 shadow-[0_4px_12px_rgba(143,68,48,0.18)]">
             <Image src="/logo.png" alt="KISTA" width={52} height={52} className="rounded-xl" style={{ height: 52, width: 52 }} />
           </div>
-          <p className="text-[11px] font-bold tracking-[0.15em] uppercase text-[var(--brand-fg-soft)] mb-1.5">Welcome to KISTA</p>
-          <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+          <p className="text-sm font-bold tracking-[0.15em] uppercase text-[var(--brand-fg-soft)] mb-1.5">Welcome to KISTA</p>
+          <p className="text-sm text-muted-foreground leading-relaxed mb-4">
             한국투자증권 KIS API 키만 입력하면<br />분할매매 자동화가 시작됩니다.
           </p>
-          <NewAccountButton className="flex items-center justify-center gap-2 w-full py-3 rounded-[var(--r-md)] bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 transition-colors disabled:opacity-60">
-            첫 계좌 등록하기
-          </NewAccountButton>
+          <NewAccountButton className="w-full justify-center py-3">첫 계좌 등록하기</NewAccountButton>
         </div>
         <div className="rounded-[var(--r-lg)] border border-border bg-card p-3.5 mb-4">
           <p className="text-sm font-bold mb-0.5">{NOTIFICATION_CARD.title}</p>
-          <p className="text-xs text-muted-foreground leading-relaxed mb-3">{NOTIFICATION_CARD.desc}</p>
-          <Link href={NOTIFICATION_CARD.href} className="text-xs font-bold text-[var(--brand-fg-soft)] hover:opacity-75 transition-opacity">
+          <p className="text-sm text-muted-foreground leading-relaxed mb-3">{NOTIFICATION_CARD.desc}</p>
+          <Link href={NOTIFICATION_CARD.href} className="text-sm font-bold text-[var(--brand-fg-soft)] hover:opacity-75 transition-opacity">
             {NOTIFICATION_CARD.cta}
           </Link>
         </div>

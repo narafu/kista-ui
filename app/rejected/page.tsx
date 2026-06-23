@@ -10,7 +10,7 @@ export default function RejectedPage() {
       {/* 상단 헤더 */}
       <div className="absolute top-7 left-9 flex items-center gap-2 z-10">
         <Image src="/logo.png" alt="KISTA" width={26} height={26} className="rounded" style={{ height: 26, width: 26 }} />
-        <span className="text-[15px] font-extrabold tracking-wide" style={{ color: 'var(--rose-700)' }}>
+        <span className="text-base font-extrabold tracking-wide" style={{ color: 'var(--rose-700)' }}>
           KISTA
         </span>
       </div>
@@ -35,12 +35,12 @@ export default function RejectedPage() {
         {/* 반려 사유 카드 */}
         <div className="rejected-reason-card rounded-[10px] p-4 mb-6">
           <div className="flex items-start gap-2">
-            <span className="mt-0.5 text-[15px]" style={{ color: 'var(--status-error)' }}>⚠</span>
+            <span className="mt-0.5 text-base" style={{ color: 'var(--status-error)' }}>⚠</span>
             <div>
-              <div className="text-xs font-bold mb-1" style={{ color: 'var(--status-error)' }}>
+              <div className="text-sm font-bold mb-1" style={{ color: 'var(--status-error)' }}>
                 반려 사유
               </div>
-              <div className="text-[13px] leading-relaxed text-foreground">
+              <div className="text-sm leading-relaxed text-foreground">
                 관리자가 가입 신청을 거절했습니다. 재신청하거나 관리자에게 문의해 주세요.
               </div>
             </div>

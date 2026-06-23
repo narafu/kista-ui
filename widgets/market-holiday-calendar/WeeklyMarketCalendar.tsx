@@ -78,7 +78,7 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
         return (
           <div key={ds} className="flex justify-center py-1">
             <span className={cn(
-              'text-[11px]',
+              'text-xs',
               isSun ? 'text-pos/40' : isSat ? 'text-neg/40' : 'text-muted-foreground/30',
             )}>
               {day.getDate()}
@@ -96,25 +96,25 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
       let sub: React.ReactNode = null
 
       if (isWeekend) {
-        badge = <span className="text-[9px] px-1.5 py-[1px] rounded bg-muted text-muted-foreground/50">휴</span>
+        badge = <span className="text-xs px-1.5 py-[1px] rounded bg-muted text-muted-foreground/50">휴</span>
       } else if (isHoliday) {
-        badge = <span className="text-[9px] font-semibold px-1.5 py-[1px] rounded bg-neg-bg text-neg">휴장</span>
+        badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-neg-bg text-neg">휴장</span>
       } else if (isToday && !summary) {
-        badge = <span className="text-[9px] font-semibold px-1.5 py-[1px] rounded bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400">대기중</span>
-        sub = <span className="text-[9px] text-muted-foreground">오늘</span>
+        badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400">대기중</span>
+        sub = <span className="text-xs text-muted-foreground">오늘</span>
       } else if (summary) {
         const pos = summary.netAmountUsd >= 0
         badge = (
           <span className={cn(
-            'text-[9px] font-semibold px-1.5 py-[1px] rounded',
+            'text-xs font-semibold px-1.5 py-[1px] rounded',
             pos ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400' : 'bg-neg-bg text-neg',
           )}>
             {pos ? '+' : ''}${Math.abs(summary.netAmountUsd).toFixed(0)}
           </span>
         )
-        sub = <span className="text-[9px] text-muted-foreground">{summary.tradeCount}체결</span>
+        sub = <span className="text-xs text-muted-foreground">{summary.tradeCount}체결</span>
       } else {
-        badge = <span className="text-[9px] text-muted-foreground/30">—</span>
+        badge = <span className="text-xs text-muted-foreground/30">—</span>
       }
 
       return (
@@ -145,7 +145,7 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
 
   return (
     <div className="rounded-[var(--r-lg)] p-5 flex flex-col gap-1 bg-card border border-border shadow-[var(--sh-card)]">
-      <span className="text-[11px] font-semibold tracking-widest uppercase text-rose-500">
+      <span className="text-sm font-semibold tracking-widest uppercase text-rose-500">
         미국 휴장일 · 주간 거래
       </span>
       <div className="flex items-center justify-between mb-1">
@@ -157,7 +157,7 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
         >
           <ChevronLeft className="size-3.5 text-muted-foreground" />
         </button>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-sm text-muted-foreground">
           {weekLabel(displayWeekStart)}
         </span>
         <button
@@ -175,7 +175,7 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
           <div
             key={d}
             className={cn(
-              'text-[10px] font-medium py-0.5',
+              'text-xs font-medium py-0.5',
               i === 0 ? 'text-pos' : i === 6 ? 'text-neg' : 'text-muted-foreground',
             )}
           >
@@ -187,7 +187,7 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
         {renderRow(addDays(displayWeekStart, 7), false)}
       </div>
 
-      <div className="mt-2 flex items-center gap-3 text-[10.5px] text-muted-foreground flex-wrap">
+      <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
         <span className="flex items-center gap-1.5">
           <span className="size-[7px] rounded-full bg-neg shrink-0" />
           미국 휴장

@@ -23,7 +23,7 @@ export function ErrorLogItem({ log }: { log: AppErrorLog }) {
 
           {/* context */}
           {hasContext && (
-            <pre className="mt-1 text-xs text-muted-foreground bg-muted/40 rounded p-1 overflow-x-auto">
+            <pre className="mt-1 text-sm text-muted-foreground bg-muted/40 rounded p-1 overflow-x-auto">
               {JSON.stringify(log.context, null, 2)}
             </pre>
           )}
@@ -32,19 +32,19 @@ export function ErrorLogItem({ log }: { log: AppErrorLog }) {
           <button
             type="button"
             onClick={() => setOpen(v => !v)}
-            className="mt-1.5 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+            className="mt-1.5 text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
           >
             {open ? '스택트레이스 접기' : '스택트레이스 보기'}
           </button>
           {open && (
-            <pre className="mt-1 text-xs bg-muted/40 rounded p-2 overflow-x-auto whitespace-pre-wrap break-all">
+            <pre className="mt-1 text-sm bg-muted/40 rounded p-2 overflow-x-auto whitespace-pre-wrap break-all">
               {log.stackTrace}
             </pre>
           )}
         </div>
 
         {/* 발생 시각 */}
-        <time className="text-xs text-muted-foreground shrink-0">
+        <time className="text-sm text-muted-foreground shrink-0">
           {new Date(log.createdAt).toLocaleString('ko-KR')}
         </time>
       </div>

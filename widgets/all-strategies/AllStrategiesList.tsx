@@ -10,6 +10,8 @@ import { useAllStrategiesQuery } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import type { Account } from '@entities/account'
 
+const PAGE_SIZE = 12
+
 interface Props {
   strategies: Strategy[]
   accounts: Account[]
@@ -48,7 +50,7 @@ function EmptyState({ accounts }: { accounts: Account[] }) {
               className="flex items-center justify-between px-4 py-2.5 rounded-[var(--r-md)] border border-border bg-card hover:border-rose-300 hover:shadow-[var(--sh-rose)] transition-all text-sm"
             >
               <span className="font-medium text-foreground">{account.nickname}</span>
-              <span className="flex items-center gap-1 text-muted-foreground text-[12px]">
+              <span className="flex items-center gap-1 text-muted-foreground text-sm">
                 <RevealableValue
                   value={account.accountNo ?? account.accountNoMasked}
                   hiddenDisplay={account.accountNoMasked}
@@ -60,7 +62,7 @@ function EmptyState({ accounts }: { accounts: Account[] }) {
           {accounts.length > 3 && (
             <Link
               href="/accounts"
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               계좌 {accounts.length - 3}개 더 보기
             </Link>
@@ -96,6 +98,7 @@ function EmptyState({ accounts }: { accounts: Account[] }) {
 
 export function AllStrategiesList({ strategies: initialStrategies, accounts }: Props) {
   const { data: strategies = initialStrategies } = useAllStrategiesQuery(initialStrategies)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   if (strategies.length === 0)
     return <EmptyState accounts={accounts} />
@@ -111,16 +114,32 @@ export function AllStrategiesList({ strategies: initialStrategies, accounts }: P
     ])
   )
 
+  const visible = strategies.slice(0, visibleCount)
+  const hasMore = visibleCount < strategies.length
+
   return (
-    <div className="grid grid-cols-1 gap-2 lg:grid-cols-4 lg:gap-3">
-      {strategies.map((s) => (
-        <StrategyCard
-          key={s.id}
-          accountId={s.accountId}
-          strategy={s}
-          accountLabel={accountMap.get(s.accountId)}
-        />
-      ))}
+    <div>
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-4 lg:gap-3">
+        {visible.map((s) => (
+          <StrategyCard
+            key={s.id}
+            accountId={s.accountId}
+            strategy={s}
+            accountLabel={accountMap.get(s.accountId)}
+          />
+        ))}
+      </div>
+      {hasMore && (
+        <div className="flex justify-center mt-6">
+          <button
+            type="button"
+            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+            className="px-5 py-2 rounded-[var(--r-md)] text-sm font-medium text-muted-foreground border border-border hover:bg-muted transition-colors"
+          >
+            더 보기 ({strategies.length - visibleCount}개 남음)
+          </button>
+        </div>
+      )}
     </div>
   )
 }

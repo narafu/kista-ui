@@ -10,11 +10,11 @@ import type { Account } from '@entities/account'
 
 interface Props {
   account: Account
-  kisUsdDeposit: number
-  kisPosEvalUsd: number
+  usdDeposit: number
+  posEvalUsd: number
 }
 
-export function AccountSummaryCard({ account, kisUsdDeposit, kisPosEvalUsd }: Props) {
+export function AccountSummaryCard({ account, usdDeposit, posEvalUsd }: Props) {
   const [revealed, setRevealed] = useState(false)
   const { labelOf } = useMeta()
   const brokerLabel = labelOf('brokers', account.broker)
@@ -45,8 +45,8 @@ export function AccountSummaryCard({ account, kisUsdDeposit, kisPosEvalUsd }: Pr
             }
           />
           <KpiCard label="증권사" value={<span className="text-xl font-semibold leading-snug">{brokerLabel}</span>} />
-          <KpiCard label="예수금(실계좌기준)" value={`$${fmtUsd(kisUsdDeposit)}`} />
-          <KpiCard label="평가금(실계좌기준)" value={`$${fmtUsd(kisPosEvalUsd)}`} />
+          <KpiCard label="예수금(실계좌기준)" value={`$${fmtUsd(usdDeposit)}`} />
+          <KpiCard label="평가금(실계좌기준)" value={`$${fmtUsd(posEvalUsd)}`} />
         </div>
       </CardContent>
     </Card>

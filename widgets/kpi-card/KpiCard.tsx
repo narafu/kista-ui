@@ -30,7 +30,7 @@ export function KpiCard({ label, labelAction, value, sub, variant = 'default', c
       <div className="flex items-center justify-between">
         <span
           className={cn(
-            'text-[11px] font-semibold tracking-widest uppercase',
+            'text-sm font-semibold tracking-widest uppercase',
             variant === 'default' && 'text-[var(--brand-fg-soft)]',
             variant === 'accent' && 'text-white/80',
             variant === 'soft' && 'text-[var(--brand-fg-soft)]',
@@ -55,7 +55,7 @@ export function KpiCard({ label, labelAction, value, sub, variant = 'default', c
       {sub && (
         <div
           className={cn(
-            'text-xs',
+            'text-sm',
             variant === 'default' && 'text-muted-foreground',
             variant === 'accent' && 'text-white/70',
             variant === 'soft' && 'text-[var(--brand-fg-soft)]',

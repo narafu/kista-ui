@@ -20,9 +20,7 @@ export function DashboardOverview({ holidays, initialWeekStartDate, accountIds }
           eyebrow="Dashboard"
           title="대시보드"
           actions={
-            <NewAccountButton className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] bg-rose-600 text-white text-sm font-semibold hover:bg-rose-700 transition-colors disabled:opacity-60">
-              계좌 등록
-            </NewAccountButton>
+            <NewAccountButton>계좌 등록</NewAccountButton>
           }
         />
         {/* Row 1: 달력 | CNN 공탐 | 크립토 공탐 */}

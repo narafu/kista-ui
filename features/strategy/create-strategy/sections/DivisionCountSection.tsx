@@ -39,14 +39,14 @@ export function DivisionCountSection({ isInfinite, divisionCount, setDivisionCou
                 boxShadow: active ? 'var(--sh-card)' : 'none',
               }}
             >
-              <div className="text-[12.5px] font-bold" style={{ color: active ? 'var(--rose-600)' : 'var(--muted-foreground)' }}>
+              <div className="text-sm font-bold" style={{ color: active ? 'var(--rose-600)' : 'var(--muted-foreground)' }}>
                 {opt.label}
               </div>
             </button>
           )
         })}
       </div>
-      {isEdit && <p className="text-[11px] text-muted-foreground mt-1.5 px-1">분할 수는 등록 후 변경할 수 없습니다.</p>}
+      {isEdit && <p className="text-sm text-muted-foreground mt-1.5 px-1">분할 수는 등록 후 변경할 수 없습니다.</p>}
     </div>
   )
 }

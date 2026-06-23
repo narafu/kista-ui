@@ -39,8 +39,8 @@ export default async function AccountDetailPage({ params }: Props) {
     }),
   ])
 
-  const kisUsdDeposit = toNum(portfolioRaw?.summary?.usdDeposit)
-  const kisPosEvalUsd = toNum(portfolioRaw?.summary?.posEvalUsd)
+  const usdDeposit = toNum(portfolioRaw?.summary?.usdDeposit)
+  const posEvalUsd = toNum(portfolioRaw?.summary?.posEvalUsd)
 
   const account = accounts.find((a) => a.id === id)
   if (!account) {
@@ -62,8 +62,8 @@ export default async function AccountDetailPage({ params }: Props) {
       <AccountDetailTabs
         account={account}
         strategies={strategies}
-        kisUsdDeposit={kisUsdDeposit}
-        kisPosEvalUsd={kisPosEvalUsd}
+        usdDeposit={usdDeposit}
+        posEvalUsd={posEvalUsd}
       />
     </div>
   )

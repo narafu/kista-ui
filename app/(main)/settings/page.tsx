@@ -9,7 +9,6 @@ import { BalanceCheckSetting } from '@features/settings/balance-check-setting'
 import { TradingAlertToggle } from '@features/settings/notification-prefs'
 import { NicknameEditor } from '@features/settings/edit-nickname'
 import { PageHeader } from '@widgets/page-header'
-import { ThemeToggle } from '@widgets/theme-toggle'
 import type { User } from '@entities/user'
 
 // 상태별 표시 설정
@@ -38,7 +37,7 @@ export default async function SettingsPage() {
         {/* 프로필 */}
         <section id="profile" className="rounded-[var(--r-lg)] bg-card border border-border shadow-[var(--sh-card)] p-6">
           <div className="text-sm font-bold mb-0.5">프로필</div>
-          <div className="text-[12.5px] text-muted-foreground mb-[18px]">카카오 계정 정보</div>
+          <div className="text-sm text-muted-foreground mb-[18px]">카카오 계정 정보</div>
 
           <div className="flex items-center gap-4 mb-[18px]">
             <span className="size-[60px] rounded-full bg-[#FEE500] grid place-items-center shrink-0">
@@ -49,7 +48,7 @@ export default async function SettingsPage() {
             <div>
               <div className="text-base font-bold">{user?.nickname ?? '-'}</div>
               {statusCfg && (
-                <div className="text-[12.5px] font-semibold mt-0.5" style={{ color: statusCfg.color }}>
+                <div className="text-sm font-semibold mt-0.5" style={{ color: statusCfg.color }}>
                   {statusCfg.label}
                 </div>
               )}
@@ -57,7 +56,7 @@ export default async function SettingsPage() {
           </div>
 
           <div className="border-t border-border pt-4">
-            <div className="text-[11.5px] text-muted-foreground mb-1">닉네임</div>
+            <div className="text-sm text-muted-foreground mb-1">닉네임</div>
             <NicknameEditor initialNickname={user?.nickname ?? ''} />
           </div>
         </section>
@@ -65,7 +64,7 @@ export default async function SettingsPage() {
         {/* 알림 */}
         <section id="notifications" className="rounded-[var(--r-lg)] bg-card border border-border shadow-[var(--sh-card)] p-6">
           <div className="text-sm font-bold mb-0.5">알림</div>
-          <div className="text-[12.5px] text-muted-foreground mb-[18px]">알림 채널과 텔레그램 연동을 설정합니다.</div>
+          <div className="text-sm text-muted-foreground mb-[18px]">알림 채널과 텔레그램 연동을 설정합니다.</div>
           <TelegramSection
             hasTelegram={user?.hasTelegram ?? false}
             telegramBotUsername={user?.telegramBotUsername}
@@ -75,28 +74,28 @@ export default async function SettingsPage() {
 
           <div className="flex items-center gap-[14px] py-3">
             <div className="flex-1">
-              <div className="text-[13px] font-bold">매매 알림</div>
-              <div className="text-[11.5px] text-muted-foreground mt-0.5">매매 체결 결과 알림</div>
+              <div className="text-sm font-bold">매매 알림</div>
+              <div className="text-sm text-muted-foreground mt-0.5">매매 체결 결과 알림</div>
             </div>
-            <TradingAlertToggle initialEnabled={user?.notificationPrefs?.['TRADING_ALERT'] ?? true} channel={user?.notificationChannel ?? (user?.hasTelegram ? 'TELEGRAM' : 'NONE')} />
+            <TradingAlertToggle type="TRADING_ALERT" initialEnabled={user?.notificationPrefs?.['TRADING_ALERT'] ?? true} channel={user?.notificationChannel ?? (user?.hasTelegram ? 'TELEGRAM' : 'NONE')} />
+          </div>
+
+          <div className="flex items-center gap-[14px] py-3 border-t border-border">
+            <div className="flex-1">
+              <div className="text-sm font-bold">장 시작/마감 알림</div>
+              <div className="text-sm text-muted-foreground mt-0.5">미국 장 개시 및 마감 시 알림</div>
+            </div>
+            <TradingAlertToggle type="MARKET_ALERT" initialEnabled={user?.notificationPrefs?.['MARKET_ALERT'] ?? true} channel={user?.notificationChannel ?? (user?.hasTelegram ? 'TELEGRAM' : 'NONE')} />
           </div>
         </section>
 
         {/* 환경설정 */}
         <section id="preferences" className="rounded-[var(--r-lg)] bg-card border border-border shadow-[var(--sh-card)] p-6">
           <div className="text-sm font-bold mb-0.5">환경설정</div>
-          <div className="text-[12.5px] text-muted-foreground mb-[18px]">테마와 알림 환경을 조정합니다.</div>
+          <div className="text-sm text-muted-foreground mb-[18px]">테마와 알림 환경을 조정합니다.</div>
 
-          <div className="text-[12.5px] font-semibold text-muted-foreground mb-2">테마</div>
+          <div className="text-sm font-semibold text-muted-foreground mb-2">테마</div>
           <ThemeCards />
-
-          <div className="flex items-center justify-between mt-5 pt-4 border-t border-border">
-            <div>
-              <div className="text-[13px] font-bold">다크 모드</div>
-              <div className="text-[11.5px] text-muted-foreground mt-0.5">시스템 테마 대신 직접 전환</div>
-            </div>
-            <ThemeToggle />
-          </div>
 
           <div className="mt-5 pt-4 border-t border-border">
             <BalanceCheckSetting initialEnabled={user?.balanceCheckEnabled ?? true} />
@@ -109,7 +108,7 @@ export default async function SettingsPage() {
             <AlertTriangle className="size-4 text-[var(--status-error)]" />
             <h2 className="text-sm font-semibold text-[var(--status-error)]">위험 구역</h2>
           </div>
-          <p className="text-[13px] text-muted-foreground mb-4">되돌릴 수 없는 작업입니다.</p>
+          <p className="text-sm text-muted-foreground mb-4">되돌릴 수 없는 작업입니다.</p>
           <DeleteAccountButton />
         </section>
       </div>

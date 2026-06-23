@@ -49,7 +49,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
         {/* 1행: 브로커 배지 + 계좌번호 */}
         <div className="flex items-center gap-2">
           <span
-            className="inline-flex items-center px-2 h-[19px] rounded-sm text-[11px] font-semibold shrink-0"
+            className="-ml-2 inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold shrink-0"
             style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}
           >
             {brokerShort}
@@ -68,19 +68,19 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
           </span>
           {strategies.length > 0 ? (
             <span
-              className="inline-flex items-center px-2 h-[20px] rounded-full text-[11px] font-semibold shrink-0 whitespace-nowrap"
+              className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold shrink-0 whitespace-nowrap"
               style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
             >
               전략 {strategies.length}개
             </span>
           ) : (
-            <span className="inline-flex items-center px-2 h-[20px] rounded-full text-[11px] font-semibold shrink-0 bg-muted text-muted-foreground whitespace-nowrap">
+            <span className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold shrink-0 bg-muted text-muted-foreground whitespace-nowrap">
               미등록
             </span>
           )}
           {aggregated && (
             mixedLabel ? (
-              <span className="text-[11px] font-semibold text-warn shrink-0">{mixedLabel}</span>
+              <span className="text-sm font-semibold text-warn shrink-0">{mixedLabel}</span>
             ) : (
               <StatusDot status={aggregated} hideLabel className="shrink-0" />
             )
@@ -102,7 +102,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
           {/* 브로커 배지 + 계좌번호 우측 */}
           <div className="flex items-center justify-between mb-2.5">
             <span
-              className="inline-flex items-center px-2 h-[19px] rounded-sm text-[11px] font-semibold"
+              className="-ml-2 inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold"
               style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}
             >
               {brokerLabel}
@@ -121,7 +121,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
             </p>
             {aggregated && (
               mixedLabel ? (
-                <span className="text-[11px] font-semibold text-warn shrink-0">{mixedLabel}</span>
+                <span className="text-sm font-semibold text-warn shrink-0">{mixedLabel}</span>
               ) : (
                 <StatusDot status={aggregated} className="shrink-0" />
               )
@@ -139,7 +139,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
               {strategies.map((s) => (
                 <li key={s.id} className="flex items-center gap-2 min-w-0 py-2 border-b border-border last:border-b-0">
                   <span
-                    className="inline-flex items-center px-2 h-[20px] rounded-full text-[10px] font-bold uppercase shrink-0"
+                    className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-bold uppercase shrink-0"
                     style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
                   >
                     {s.type}
@@ -161,7 +161,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
         </div>
 
         {/* 푸터 */}
-        <div className="flex items-center justify-end gap-1 px-5 py-3 border-t border-border bg-muted/30 text-xs text-muted-foreground">
+        <div className="flex items-center justify-end gap-1 px-5 py-3 border-t border-border bg-muted/30 text-sm text-muted-foreground">
           계좌 상세 보기
           <ChevronRight className="size-3.5 group-hover:text-[var(--brand-fg-soft)] transition-colors" />
         </div>
