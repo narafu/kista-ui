@@ -77,7 +77,15 @@ export default async function SettingsPage() {
               <div className="text-[13px] font-bold">매매 알림</div>
               <div className="text-[11.5px] text-muted-foreground mt-0.5">매매 체결 결과 알림</div>
             </div>
-            <TradingAlertToggle initialEnabled={user?.notificationPrefs?.['TRADING_ALERT'] ?? true} channel={user?.notificationChannel ?? (user?.hasTelegram ? 'TELEGRAM' : 'NONE')} />
+            <TradingAlertToggle type="TRADING_ALERT" initialEnabled={user?.notificationPrefs?.['TRADING_ALERT'] ?? true} channel={user?.notificationChannel ?? (user?.hasTelegram ? 'TELEGRAM' : 'NONE')} />
+          </div>
+
+          <div className="flex items-center gap-[14px] py-3 border-t border-border">
+            <div className="flex-1">
+              <div className="text-[13px] font-bold">장 시작/마감 알림</div>
+              <div className="text-[11.5px] text-muted-foreground mt-0.5">미국 장 개시 및 마감 시 알림</div>
+            </div>
+            <TradingAlertToggle type="MARKET_ALERT" initialEnabled={user?.notificationPrefs?.['MARKET_ALERT'] ?? true} channel={user?.notificationChannel ?? (user?.hasTelegram ? 'TELEGRAM' : 'NONE')} />
           </div>
         </section>
 
