@@ -121,8 +121,8 @@ export default function MarketChartCardInner({ category }: Props) {
     <>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
-          <span className="text-[11px] font-semibold tracking-widest uppercase text-[var(--brand-fg-soft)]">{category.title}</span>
-          <span className="text-[10px] text-muted-foreground">일봉 · {CHART_CANDLE_COUNT}</span>
+          <span className="text-xs font-semibold tracking-widest uppercase text-[var(--brand-fg-soft)]">{category.title}</span>
+          <span className="text-xs text-muted-foreground">일봉 · {CHART_CANDLE_COUNT}</span>
         </div>
         <Popover>
           <PopoverTrigger className="text-muted-foreground hover:text-foreground transition-colors">

@@ -58,7 +58,7 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
         <div className="flex items-center gap-2">
           <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} hideLabel />
           <span className="font-bold text-[15px] text-foreground">{strategy.ticker}</span>
-          <span className="text-[11px] text-muted-foreground">{seedLabel}</span>
+          <span className="text-xs text-muted-foreground">{seedLabel}</span>
           <span className="ml-auto text-sm font-semibold text-foreground">
             {strategy.initialUsdDeposit != null ? (
               `$${fmtUsd(strategy.initialUsdDeposit)}`
@@ -107,12 +107,12 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
         </div>
         {/* 시드 정보 행 */}
         <div className="flex items-center justify-between pl-5 pr-4 py-2 border-t border-border">
-          <span className="text-[11px] text-muted-foreground">다음 사이클</span>
-          <span className="text-[11px] font-medium text-foreground">{seedLabel}</span>
+          <span className="text-xs text-muted-foreground">다음 사이클</span>
+          <span className="text-xs font-medium text-foreground">{seedLabel}</span>
         </div>
         {/* 시작금액 푸터 */}
         <div className="flex items-center justify-between pl-5 pr-4 py-2.5 border-t border-border bg-muted/30">
-          <span className="text-[11px] text-muted-foreground">시작금액</span>
+          <span className="text-xs text-muted-foreground">시작금액</span>
           <div className="flex items-center gap-1.5">
             <span className="text-sm font-semibold text-foreground">
               {strategy.initialUsdDeposit != null ? (

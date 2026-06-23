@@ -94,36 +94,36 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled }:
       {/* 정보 박스 */}
       {deposit === null ? (
         <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-muted border border-border">
-          <span className="text-[11px] text-muted-foreground font-bold">예수금 조회 불가</span>
-          <span className="text-[10.5px] text-muted-foreground">KIS 연결 확인 필요</span>
+          <span className="text-xs text-muted-foreground font-bold">예수금 조회 불가</span>
+          <span className="text-xs text-muted-foreground">KIS 연결 확인 필요</span>
         </div>
       ) : minSeed !== null && value !== null && value > 0 && value < minSeed ? (
         <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--warn-bg)] border border-[var(--warn)]">
-          <span className="text-[11px] text-[var(--warn)] font-bold">최소 시드 미달</span>
+          <span className="text-xs text-[var(--warn)] font-bold">최소 시드 미달</span>
           <span className="text-[13px] font-extrabold text-[var(--warn)] tabular-nums">
             최소 ${fmtUsd(minSeed)}
           </span>
         </div>
       ) : shortage !== null ? (
         <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-muted border border-border">
-          <span className="text-[11px] text-muted-foreground font-medium">추가 입금 필요</span>
+          <span className="text-xs text-muted-foreground font-medium">추가 입금 필요</span>
           <span className="text-[13px] font-semibold text-foreground tabular-nums">
             ${fmtUsd(shortage)}
-            <span className="text-[10.5px] font-normal opacity-60 ml-1.5">
+            <span className="text-xs font-normal opacity-60 ml-1.5">
               보유 ${fmtUsd(deposit)}
             </span>
           </span>
         </div>
       ) : sufficient ? (
         <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--brand-soft-bg)] border border-[var(--rose-200)]">
-          <span className="text-[11px] text-[var(--brand-fg-soft)] font-bold">예수금으로 즉시 시작 가능</span>
+          <span className="text-xs text-[var(--brand-fg-soft)] font-bold">예수금으로 즉시 시작 가능</span>
           <span className="text-[13px] font-extrabold text-[var(--brand-fg)] tabular-nums">✓</span>
         </div>
       ) : (
         <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-muted border border-border">
-          <span className="text-[11px] text-muted-foreground font-bold">시드 금액 입력</span>
+          <span className="text-xs text-muted-foreground font-bold">시드 금액 입력</span>
           {minSeed !== null && (
-            <span className="text-[10.5px] text-muted-foreground">최소 ${fmtUsd(minSeed)}</span>
+            <span className="text-xs text-muted-foreground">최소 ${fmtUsd(minSeed)}</span>
           )}
         </div>
       )}

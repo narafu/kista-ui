@@ -145,20 +145,20 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
           <RevealableValue
             value={accountNo ?? accountNoMasked}
             hiddenDisplay={accountNoMasked}
-            className="ml-auto text-[11px] text-muted-foreground"
+            className="ml-auto text-xs text-muted-foreground"
           />
         </div>
         <div className="grid grid-cols-3 border-t border-border">
           <div className="px-5 py-3 border-r border-border">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">상태</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1.5">상태</p>
             <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
           </div>
           <div className="px-5 py-3 border-r border-border">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">다음 사이클</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1.5">다음 사이클</p>
             <p className="text-sm font-semibold text-foreground">{cycleSeedLabel}</p>
           </div>
           <div className="px-5 py-3">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">시작금액</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1.5">시작금액</p>
             <p className="text-sm font-semibold text-foreground">
               {strategy.initialUsdDeposit != null ? (
                 `$${fmtUsd(strategy.initialUsdDeposit)}`
@@ -207,7 +207,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <CardTitle className="text-base">다음 주문 미리보기</CardTitle>
-              <span className="text-[11px] text-muted-foreground">매 거래일 04:00 자동 실행</span>
+              <span className="text-xs text-muted-foreground">매 거래일 04:00 자동 실행</span>
             </div>
             {canExecute && mode === 'preview' && (
               <button
@@ -234,7 +234,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
           {mode === 'executed' ? (
             <div>
               <div className="flex items-center justify-between px-6 py-3 border-b border-border">
-                <p className="text-[11px] uppercase tracking-widest font-semibold text-amber-600">
+                <p className="text-xs uppercase tracking-widest font-semibold text-amber-600">
                   {placedOrders.length > 0 ? `${placedOrders.length}건 접수됨` : '접수됨'}
                 </p>
                 <button
@@ -278,7 +278,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                         })
                       }
                       disabled={cancelOneMutation.isPending}
-                      className="text-[11px] px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
+                      className="text-xs px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
                     >
                       취소
                     </button>
@@ -289,11 +289,11 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
               <table className="hidden lg:table w-full">
                 <thead>
                   <tr>
-                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">구분</th>
-                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">종목</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">수량</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">주문가</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">취소</th>
+                    <th className="px-5 py-2.5 text-left text-xs uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">구분</th>
+                    <th className="px-5 py-2.5 text-left text-xs uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">종목</th>
+                    <th className="px-5 py-2.5 text-right text-xs uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">수량</th>
+                    <th className="px-5 py-2.5 text-right text-xs uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">주문가</th>
+                    <th className="px-5 py-2.5 text-right text-xs uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">취소</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -319,7 +319,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                             })
                           }
                           disabled={cancelOneMutation.isPending}
-                          className="text-[11px] px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
+                          className="text-xs px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
                         >
                           취소
                         </button>
@@ -373,10 +373,10 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
               <table className="hidden lg:table w-full">
                 <thead>
                   <tr>
-                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">구분</th>
-                    <th className="px-5 py-2.5 text-left text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">종목</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">수량</th>
-                    <th className="px-5 py-2.5 text-right text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">주문가</th>
+                    <th className="px-5 py-2.5 text-left text-xs uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">구분</th>
+                    <th className="px-5 py-2.5 text-left text-xs uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">종목</th>
+                    <th className="px-5 py-2.5 text-right text-xs uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">수량</th>
+                    <th className="px-5 py-2.5 text-right text-xs uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">주문가</th>
                   </tr>
                 </thead>
                 <tbody>

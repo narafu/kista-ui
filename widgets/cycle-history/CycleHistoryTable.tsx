@@ -115,7 +115,7 @@ export function CycleHistoryTable({
             <div className="space-y-2 p-4 lg:hidden">
               {groups.map((g) => (
                 <div key={g.date} className="space-y-1.5">
-                  <div className="px-1 pt-2 text-[11px] uppercase tracking-widest text-muted-foreground">{g.date}</div>
+                  <div className="px-1 pt-2 text-xs uppercase tracking-widest text-muted-foreground">{g.date}</div>
                   {g.items.map((entry) => (
                     <div key={entry.createdAt} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5">
                       <div className="flex items-center justify-between gap-2">
@@ -129,7 +129,7 @@ export function CycleHistoryTable({
                           )}
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="text-[10px] text-muted-foreground">예수금</span>
+                          <span className="text-xs text-muted-foreground">예수금</span>
                           <span className="text-sm font-semibold">${fmtUsd(entry.usdDeposit ?? 0)}</span>
                         </div>
                       </div>
@@ -144,7 +144,7 @@ export function CycleHistoryTable({
                 <thead className="bg-muted/50 sticky top-0 z-10">
                   <tr>
                     {['종목', '보유수량', '평균단가', '예수금'].map((h) => (
-                      <th key={h} className="px-4 py-3 text-left text-[11px] uppercase tracking-widest text-[var(--brand-fg-soft)]">
+                      <th key={h} className="px-4 py-3 text-left text-xs uppercase tracking-widest text-[var(--brand-fg-soft)]">
                         {h}
                       </th>
                     ))}
@@ -154,7 +154,7 @@ export function CycleHistoryTable({
                   {groups.map((g) => (
                     <Fragment key={g.date}>
                       <tr>
-                        <td colSpan={4} className="bg-muted/30 px-4 py-2 text-[11px] uppercase tracking-widest text-muted-foreground">{g.date}</td>
+                        <td colSpan={4} className="bg-muted/30 px-4 py-2 text-xs uppercase tracking-widest text-muted-foreground">{g.date}</td>
                       </tr>
                       {g.items.map((entry) => (
                         <tr key={entry.createdAt} className="border-t hover:bg-muted/30 transition-colors">

@@ -104,7 +104,7 @@ export function NicknameEditor({ initialNickname }: Props) {
           <X className="size-4" />
         </button>
       </div>
-      {error && <p className="text-[11px] text-[var(--status-error)]">{error}</p>}
+      {error && <p className="text-xs text-[var(--status-error)]">{error}</p>}
     </div>
   )
 }

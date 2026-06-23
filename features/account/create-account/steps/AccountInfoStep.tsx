@@ -104,7 +104,7 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
               올바른 계좌번호 형식으로 입력해주세요. (예: {config.placeholder})
             </p>
           ) : (
-            <p id="accountno-hint" className="text-[11px] text-muted-foreground mt-1">{config.hint}</p>
+            <p id="accountno-hint" className="text-xs text-muted-foreground mt-1">{config.hint}</p>
           )}
         </div>
       </div>

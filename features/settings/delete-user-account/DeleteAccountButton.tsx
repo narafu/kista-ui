@@ -25,7 +25,7 @@ export function DeleteAccountButton() {
       >
         회원 탈퇴
       </button>
-      <p className="text-[11px] text-muted-foreground mt-2">
+      <p className="text-xs text-muted-foreground mt-2">
         탈퇴 시 모든 계좌·거래 데이터가 즉시 삭제됩니다
       </p>
 

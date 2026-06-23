@@ -221,7 +221,7 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
       {deposit !== null &&
         (depositInsufficient && minSeed !== null ? (
           <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--warn-bg)] border border-[var(--warn)]">
-            <span className="text-[11px] text-[var(--warn)] font-bold">예수금 부족</span>
+            <span className="text-xs text-[var(--warn)] font-bold">예수금 부족</span>
             <span
               className={cn('font-extrabold text-[var(--warn)] tabular-nums', compact ? 'text-[12px]' : 'text-[13px]')}
             >
@@ -233,7 +233,7 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
           </div>
         ) : (
           <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--brand-soft-bg)] border border-[var(--rose-200)]">
-            <span className="text-[11px] text-[var(--brand-fg-soft)] font-bold">사용 금액 예상</span>
+            <span className="text-xs text-[var(--brand-fg-soft)] font-bold">사용 금액 예상</span>
             <span
               className="font-extrabold text-[var(--brand-fg)] tabular-nums"
               style={{ fontSize: compact ? 12.5 : 13.5 }}

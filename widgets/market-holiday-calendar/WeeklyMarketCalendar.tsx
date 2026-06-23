@@ -145,7 +145,7 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
 
   return (
     <div className="rounded-[var(--r-lg)] p-5 flex flex-col gap-1 bg-card border border-border shadow-[var(--sh-card)]">
-      <span className="text-[11px] font-semibold tracking-widest uppercase text-rose-500">
+      <span className="text-xs font-semibold tracking-widest uppercase text-rose-500">
         미국 휴장일 · 주간 거래
       </span>
       <div className="flex items-center justify-between mb-1">
