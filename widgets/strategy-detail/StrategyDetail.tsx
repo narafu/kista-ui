@@ -228,11 +228,13 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                 }}
                 disabled={executeMutation.isPending || orders.length === 0 || isMarginLoading}
                 className={cn(
-                  'text-sm px-3 py-1.5 rounded-md bg-rose-600 text-white hover:bg-rose-700 transition-colors disabled:opacity-50',
+                  'inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md',
+                  'bg-gradient-to-br from-rose-500 to-rose-700 text-white font-semibold',
+                  'shadow-[0_1px_4px_rgba(225,29,72,0.30)] hover:opacity-90 transition-opacity disabled:opacity-50',
                   (isHoliday || hasDeficit) && 'opacity-50 cursor-not-allowed',
                 )}
               >
-                {executeMutation.isPending ? '실행 중...' : '지금 실행'}
+                {executeMutation.isPending ? '주문 중...' : '바로 주문'}
               </button>
             )}
           </div>
