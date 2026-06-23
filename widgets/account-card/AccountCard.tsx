@@ -80,7 +80,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
           )}
           {aggregated && (
             mixedLabel ? (
-              <span className="text-[11px] font-semibold text-warn shrink-0">{mixedLabel}</span>
+              <span className="text-xs font-semibold text-warn shrink-0">{mixedLabel}</span>
             ) : (
               <StatusDot status={aggregated} hideLabel className="shrink-0" />
             )
@@ -121,7 +121,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
             </p>
             {aggregated && (
               mixedLabel ? (
-                <span className="text-[11px] font-semibold text-warn shrink-0">{mixedLabel}</span>
+                <span className="text-xs font-semibold text-warn shrink-0">{mixedLabel}</span>
               ) : (
                 <StatusDot status={aggregated} className="shrink-0" />
               )

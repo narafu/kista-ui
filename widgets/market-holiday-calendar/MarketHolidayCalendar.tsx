@@ -124,7 +124,7 @@ export function MarketHolidayCalendar({ holidays, year, month }: Props) {
           )
         })}
       </div>
-      <div className="mt-2 flex items-center gap-1.5 text-[10.5px] text-muted-foreground">
+      <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
         <span className="size-[7px] rounded-full bg-neg shrink-0" />
         미국 증시 휴장
       </div>

@@ -187,7 +187,7 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
         {renderRow(addDays(displayWeekStart, 7), false)}
       </div>
 
-      <div className="mt-2 flex items-center gap-3 text-[10.5px] text-muted-foreground flex-wrap">
+      <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
         <span className="flex items-center gap-1.5">
           <span className="size-[7px] rounded-full bg-neg shrink-0" />
           미국 휴장

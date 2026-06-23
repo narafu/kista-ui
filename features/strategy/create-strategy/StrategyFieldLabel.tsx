@@ -11,7 +11,7 @@ export function StrategyFieldLabel({
         {children}
       </span>
       {hint && (
-        <span className="text-[10.5px] text-muted-foreground">
+        <span className="text-xs text-muted-foreground">
           {hint}
         </span>
       )}

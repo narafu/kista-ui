@@ -51,7 +51,7 @@ export function TradingAlertToggle({ type, initialEnabled, channel }: Props) {
         />
       </button>
       {isChannelOff && (
-        <span className="text-[10.5px] text-muted-foreground">알림 수단을 먼저 선택하세요</span>
+        <span className="text-xs text-muted-foreground">알림 수단을 먼저 선택하세요</span>
       )}
     </div>
   )

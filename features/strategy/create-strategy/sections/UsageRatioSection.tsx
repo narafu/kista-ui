@@ -64,7 +64,7 @@ export function UsageRatioSection({
       )}
 
       {!isOff && (isBelowMinSeed || (!isInfinite && privacyBase === null)) && (
-        <div className="inline-flex items-center gap-1.5 text-[11px] font-bold mt-3">
+        <div className="inline-flex items-center gap-1.5 text-xs font-bold mt-3">
           {loadingBase ? (
             <>
               <Loader2 size={14} className="animate-spin text-muted-foreground" />

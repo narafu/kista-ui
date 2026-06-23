@@ -129,7 +129,7 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
 
       {/* 하단 경로 정보 */}
       <div
-        className="text-[10.5px] text-muted-foreground opacity-50 tracking-[0.08em] overflow-hidden text-ellipsis whitespace-nowrap"
+        className="text-xs text-muted-foreground opacity-50 tracking-[0.08em] overflow-hidden text-ellipsis whitespace-nowrap"
         style={{ fontFamily: 'var(--font-mono)' }}
       >
         KISTA · {code ?? 'ERR'} · {pathname ?? '/'}

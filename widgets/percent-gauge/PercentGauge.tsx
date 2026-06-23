@@ -226,7 +226,7 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
               className={cn('font-extrabold text-[var(--warn)] tabular-nums', compact ? 'text-[12px]' : 'text-[13px]')}
             >
               필요: ${fmtUsd(minSeed)}
-              <span className="text-[10.5px] font-semibold text-[var(--warn)] ml-1.5 opacity-80">
+              <span className="text-xs font-semibold text-[var(--warn)] ml-1.5 opacity-80">
                 / 보유: ${fmtUsd(deposit)}
               </span>
             </span>
@@ -239,7 +239,7 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
               style={{ fontSize: compact ? 12.5 : 13.5 }}
             >
               ${allocated !== null ? fmtUsd(allocated) : '--'}
-              <span className="text-[10.5px] font-semibold text-muted-foreground ml-1.5">
+              <span className="text-xs font-semibold text-muted-foreground ml-1.5">
                 / ${fmtUsd(deposit)}
               </span>
             </span>

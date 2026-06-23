@@ -63,7 +63,7 @@ export function StrategyTickerSection({
                   {code}
                 </div>
                 {price !== undefined && (
-                  <div className="text-[10.5px] text-muted-foreground mt-0.5 tabular-nums">
+                  <div className="text-xs text-muted-foreground mt-0.5 tabular-nums">
                     ${fmtUsd(price)}
                   </div>
                 )}

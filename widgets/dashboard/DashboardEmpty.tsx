@@ -78,7 +78,7 @@ export function DashboardEmpty({ holidays, initialWeekStartDate }: Props) {
           <div className="size-16 rounded-2xl bg-card flex items-center justify-center mx-auto mb-3 shadow-[0_4px_12px_rgba(143,68,48,0.18)]">
             <Image src="/logo.png" alt="KISTA" width={52} height={52} className="rounded-xl" style={{ height: 52, width: 52 }} />
           </div>
-          <p className="text-[11px] font-bold tracking-[0.15em] uppercase text-[var(--brand-fg-soft)] mb-1.5">Welcome to KISTA</p>
+          <p className="text-xs font-bold tracking-[0.15em] uppercase text-[var(--brand-fg-soft)] mb-1.5">Welcome to KISTA</p>
           <p className="text-xs text-muted-foreground leading-relaxed mb-4">
             한국투자증권 KIS API 키만 입력하면<br />분할매매 자동화가 시작됩니다.
           </p>
