@@ -56,7 +56,7 @@ export default async function AdminPrivacyTradesPage({
 
   const token = await getAuthToken()
   const all: AdminPrivacyBase[] = token
-    ? await listAdminPrivacyBases(token, 'ALL').catch(() => [])
+    ? await listAdminPrivacyBases(token).catch(() => [])
     : []
 
   const filtered = filterByRange(all, range, from, to)

@@ -4,8 +4,6 @@ export interface PrivacyCurrentBase {
   tradeDate: string
 }
 
-export type PrivacyRange = 'ALL' | '30' | '90'
-
 export interface AdminPrivacyOrder {
   id: string
   direction: 'BUY' | 'SELL'
