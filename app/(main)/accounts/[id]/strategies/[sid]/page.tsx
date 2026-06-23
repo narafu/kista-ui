@@ -40,6 +40,7 @@ export default async function StrategyDetailPage({ params }: Props) {
     <div className="space-y-4">
       <PageHeader
         eyebrow={account.nickname}
+        eyebrowHref={`/accounts/${id}`}
         title={strategy.ticker}
         actions={
           <StrategyFormDialog accountId={id} initial={strategy} triggerLabel="수정" triggerVariant="ghost" />

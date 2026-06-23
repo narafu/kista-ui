@@ -403,9 +403,6 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
 
       <Card>
         <CardContent className="p-5 flex gap-2">
-          <Button variant="outline" size="sm" className="flex-1" onClick={() => push(`/accounts/${accountId}`)}>
-            계좌 상세
-          </Button>
           <Button variant="outline" size="sm" className="flex-1" onClick={handleToggle} disabled={loading}>
             {toggleLabel}
           </Button>
