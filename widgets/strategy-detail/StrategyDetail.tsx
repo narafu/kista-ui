@@ -156,15 +156,15 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
           />
         </div>
         <div className="grid grid-cols-3 border-t border-border">
-          <div className="px-5 py-3 border-r border-border">
+          <div className="flex flex-col items-center px-5 py-3 border-r border-border">
             <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1.5">상태</p>
             <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
           </div>
-          <div className="px-5 py-3 border-r border-border">
+          <div className="flex flex-col items-center px-5 py-3 border-r border-border">
             <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1.5">다음 사이클</p>
             <span className={`inline-flex items-center px-2.5 h-[22px] rounded-full text-xs font-semibold whitespace-nowrap ${seedBadgeCls}`}>{cycleSeedLabel}</span>
           </div>
-          <div className="px-5 py-3">
+          <div className="flex flex-col items-center px-5 py-3">
             <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1.5">시작금액</p>
             <p className="text-sm font-semibold text-foreground">
               {strategy.initialUsdDeposit != null ? (
@@ -212,9 +212,9 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-base">다음 주문 미리보기</CardTitle>
-              <span className="text-sm text-muted-foreground">매 거래일 04:00 자동 실행</span>
+            <div>
+              <CardTitle className="text-base">다음 주문</CardTitle>
+              <p className="text-sm text-muted-foreground mt-0.5">매 거래일 개장 시 자동실행</p>
             </div>
             {canExecute && mode === 'preview' && (
               <button

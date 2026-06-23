@@ -49,7 +49,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
         {/* 1행: 브로커 배지 + 계좌번호 */}
         <div className="flex items-center gap-2">
           <span
-            className="inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold shrink-0"
+            className="-ml-2 inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold shrink-0"
             style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}
           >
             {brokerShort}
@@ -102,7 +102,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
           {/* 브로커 배지 + 계좌번호 우측 */}
           <div className="flex items-center justify-between mb-2.5">
             <span
-              className="inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold"
+              className="-ml-2 inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold"
               style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}
             >
               {brokerLabel}
