@@ -6,11 +6,12 @@ interface Props {
   eyebrow?: string
   eyebrowHref?: string
   title: string
+  titleSuffix?: ReactNode
   actions?: ReactNode
   className?: string
 }
 
-export function PageHeader({ eyebrow, eyebrowHref, title, actions, className }: Props) {
+export function PageHeader({ eyebrow, eyebrowHref, title, titleSuffix, actions, className }: Props) {
   return (
     <div className={cn('flex items-end justify-between gap-4 mb-8', className)}>
       <div>
@@ -28,7 +29,10 @@ export function PageHeader({ eyebrow, eyebrowHref, title, actions, className }: 
             </p>
           )
         )}
-        <h1 className="text-[26px] font-[800] leading-tight text-foreground">{title}</h1>
+        <div className="flex items-baseline gap-3">
+          <h1 className="text-[26px] font-[800] leading-tight text-foreground">{title}</h1>
+          {titleSuffix}
+        </div>
       </div>
       {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
     </div>

@@ -41,16 +41,16 @@ export default async function StrategyDetailPage({ params }: Props) {
     <div className="space-y-4">
       <PageHeader
         title={strategy.ticker}
+        titleSuffix={
+          <Link
+            href={`/accounts/${id}`}
+            className="text-[11.5px] font-semibold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] hover:text-foreground transition-colors"
+          >
+            ← {account.nickname}
+          </Link>
+        }
         actions={
-          <>
-            <Link
-              href={`/accounts/${id}`}
-              className="text-[11.5px] font-semibold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] hover:text-foreground transition-colors"
-            >
-              ← {account.nickname}
-            </Link>
-            <StrategyFormDialog accountId={id} initial={strategy} triggerLabel="수정" triggerVariant="ghost" />
-          </>
+          <StrategyFormDialog accountId={id} initial={strategy} triggerLabel="수정" triggerVariant="ghost" />
         }
       />
 
