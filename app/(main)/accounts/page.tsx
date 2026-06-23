@@ -1,12 +1,10 @@
 import type { Metadata } from 'next'
 import { Landmark } from 'lucide-react'
 import { PageHeader } from '@widgets/page-header'
-import { AccountCard } from '@widgets/account-card'
+import { AccountsGrid } from '@widgets/accounts-grid/AccountsGrid'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { getCachedAccounts, getCachedStrategies } from '@shared/lib/cache/cached-api'
 import { NewAccountButton } from '@features/account/create-account'
-import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
-import { PaginationBar } from '@shared/ui/PaginationBar'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 
@@ -15,30 +13,9 @@ export const metadata: Metadata = {
   description: '연결된 한국투자증권 계좌 목록',
 }
 
-const VALID_SIZES = ['10', '30', '50', '100'] as const
-
-function parseSize(raw: string | undefined): number {
-  return VALID_SIZES.includes(raw as (typeof VALID_SIZES)[number]) ? Number(raw) : 10
-}
-
-function parsePage(raw: string | undefined): number {
-  const n = Number(raw)
-  return Number.isInteger(n) && n >= 1 ? n : 1
-}
-
-export default async function AccountsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ size?: string; page?: string }>
-}) {
-  const { size: rawSize, page: rawPage } = await searchParams
-  const size = parseSize(rawSize)
+export default async function AccountsPage() {
   const token = await getAuthToken()
-  const all: Account[] = token ? await getCachedAccounts(token).catch((): Account[] => []) : []
-
-  const totalPages = Math.max(1, Math.ceil(all.length / size))
-  const page = Math.min(parsePage(rawPage), totalPages)
-  const accounts = all.slice((page - 1) * size, page * size)
+  const accounts: Account[] = token ? await getCachedAccounts(token).catch((): Account[] => []) : []
 
   const strategiesByAccount: Strategy[][] = token
     ? await Promise.all(
@@ -57,7 +34,7 @@ export default async function AccountsPage({
           </NewAccountButton>
         }
       />
-      {all.length === 0 ? (
+      {accounts.length === 0 ? (
         <div className="flex flex-col items-center gap-5 py-16 text-center">
           <div className="rounded-full bg-muted p-4">
             <Landmark className="size-7 text-muted-foreground" />
@@ -76,17 +53,7 @@ export default async function AccountsPage({
           </NewAccountButton>
         </div>
       ) : (
-        <>
-          <div className="flex justify-end mb-4">
-            <PageSizeSelector value={String(size)} />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {accounts.map((account, i) => (
-              <AccountCard key={account.id} account={account} strategies={strategiesByAccount[i]} />
-            ))}
-          </div>
-          <PaginationBar page={page} totalPages={totalPages} />
-        </>
+        <AccountsGrid accounts={accounts} strategiesByAccount={strategiesByAccount} />
       )}
     </div>
   )
