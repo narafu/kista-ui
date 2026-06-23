@@ -4,8 +4,14 @@ import type { AdminAccount } from '@entities/user'
 import { RevealableValue } from '@widgets/revealable-value'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
+import { RangeFilterBar, type RangePreset } from '@shared/ui/RangeFilterBar'
 
 const VALID_SIZES = ['10', '30', '50', '100'] as const
+
+function parseRangePreset(raw: string | undefined): RangePreset {
+  if (raw === '30d' || raw === 'all' || raw === 'custom') return raw
+  return '7d'
+}
 
 function parseSize(raw: string | undefined): number {
   return VALID_SIZES.includes(raw as (typeof VALID_SIZES)[number]) ? Number(raw) : 10
@@ -16,15 +22,31 @@ function parsePage(raw: string | undefined): number {
   return Number.isInteger(n) && n >= 1 ? n : 1
 }
 
+function resolveFromTo(range: RangePreset, from?: string, to?: string): { from?: string; to?: string } {
+  if (range === 'all') return {}
+  if (range === 'custom') return { from, to }
+  const days = range === '7d' ? 7 : 30
+  const toDate = new Date()
+  const fromDate = new Date()
+  fromDate.setDate(fromDate.getDate() - days)
+  return {
+    from: fromDate.toISOString().split('T')[0],
+    to: toDate.toISOString().split('T')[0],
+  }
+}
+
 export default async function AdminAccountsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ size?: string; page?: string }>
+  searchParams: Promise<{ range?: string; size?: string; page?: string; from?: string; to?: string }>
 }) {
-  const { size: rawSize, page: rawPage } = await searchParams
+  const { range: rawRange, size: rawSize, page: rawPage, from, to } = await searchParams
+  const range = parseRangePreset(rawRange)
   const size = parseSize(rawSize)
+  const { from: resolvedFrom, to: resolvedTo } = resolveFromTo(range, from, to)
+
   const token = await getAuthToken()
-  const all: AdminAccount[] = token ? await listAdminAccounts(token).catch(() => []) : []
+  const all: AdminAccount[] = token ? await listAdminAccounts(token, resolvedFrom, resolvedTo).catch(() => []) : []
 
   const totalPages = Math.max(1, Math.ceil(all.length / size))
   const page = Math.min(parsePage(rawPage), totalPages)
@@ -37,7 +59,8 @@ export default async function AdminAccountsPage({
         <p className="text-sm text-muted-foreground mt-1">전체 사용자 계좌 목록 (총 {all.length}개)</p>
       </div>
 
-      <div className="flex justify-end mb-4">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+        <RangeFilterBar current={range} from={from} to={to} />
         <PageSizeSelector value={String(size)} />
       </div>
 
