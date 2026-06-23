@@ -19,10 +19,17 @@ const STATUS_ACCENT: Record<string, string> = {
   PAUSED: 'var(--warn)',
 }
 
+const CYCLE_SEED_BADGE_CLS: Record<string, string> = {
+  NONE:     'bg-muted text-muted-foreground',
+  MAX:      'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400',
+  MAINTAIN: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400',
+}
+
 export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
   const { findStrategyType, labelOf } = useMeta()
   const isInfinite = (findStrategyType(strategy.type)?.availableTickers?.length ?? 0) > 1
   const seedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
+  const seedBadgeCls = CYCLE_SEED_BADGE_CLS[strategy.cycleSeedType] ?? 'bg-muted text-muted-foreground'
 
   return (
     <Link
@@ -58,7 +65,7 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
         <div className="flex items-center gap-2">
           <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} hideLabel />
           <span className="font-bold text-base text-foreground">{strategy.ticker}</span>
-          <span className="text-sm text-muted-foreground">{seedLabel}</span>
+          <span className={`inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold whitespace-nowrap ${seedBadgeCls}`}>{seedLabel}</span>
           <span className="ml-auto text-sm font-semibold text-foreground">
             {strategy.initialUsdDeposit != null ? (
               `$${fmtUsd(strategy.initialUsdDeposit)}`
@@ -108,7 +115,7 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
         {/* 시드 정보 행 */}
         <div className="flex items-center justify-between pl-5 pr-4 py-2 border-t border-border">
           <span className="text-sm text-muted-foreground">다음 사이클</span>
-          <span className="text-sm font-medium text-foreground">{seedLabel}</span>
+          <span className={`inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold whitespace-nowrap ${seedBadgeCls}`}>{seedLabel}</span>
         </div>
         {/* 시작금액 푸터 */}
         <div className="flex items-center justify-between pl-5 pr-4 py-2.5 border-t border-border bg-muted/30">

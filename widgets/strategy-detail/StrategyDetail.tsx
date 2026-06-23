@@ -41,6 +41,12 @@ import { ApiError } from '@shared/lib/api-client'
 import type { Strategy } from '@entities/strategy'
 import type { SkipReason, PlacedOrder } from '@entities/order'
 
+const CYCLE_SEED_BADGE_CLS: Record<string, string> = {
+  NONE:     'bg-muted text-muted-foreground',
+  MAX:      'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400',
+  MAINTAIN: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400',
+}
+
 const SKIP_REASON_LABELS: Record<SkipReason, string> = {
   NO_CYCLE_HISTORY: '첫 매매 전입니다. 사이클 정보가 아직 없습니다.',
   NO_PRIVACY_BASE: '기준 매매표가 없습니다.',
@@ -124,6 +130,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
   const { labelOf, findStrategyType } = useMeta()
   const cycleSeedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
   const isInfinite = (findStrategyType(strategy.type)?.availableTickers?.length ?? 0) > 1
+  const seedBadgeCls = CYCLE_SEED_BADGE_CLS[strategy.cycleSeedType] ?? 'bg-muted text-muted-foreground'
 
   return (
     <div className="space-y-4">
@@ -155,7 +162,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
           </div>
           <div className="px-5 py-3 border-r border-border">
             <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1.5">다음 사이클</p>
-            <p className="text-sm font-semibold text-foreground">{cycleSeedLabel}</p>
+            <span className={`inline-flex items-center px-2.5 h-[22px] rounded-full text-xs font-semibold whitespace-nowrap ${seedBadgeCls}`}>{cycleSeedLabel}</span>
           </div>
           <div className="px-5 py-3">
             <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1.5">시작금액</p>
