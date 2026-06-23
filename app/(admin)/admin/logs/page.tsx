@@ -92,14 +92,14 @@ export default async function AdminLogsPage({
         <p className="text-sm text-muted-foreground mt-1">감사 · 오류 · 이상 징후 통합 뷰</p>
       </div>
 
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+      <div className="mb-4">
         <Suspense fallback={null}><LogsFilterChips /></Suspense>
-        {(showAudit || showError) && <PageSizeSelector value={String(size)} />}
       </div>
 
       {showRange && (
-        <div className="mb-6">
-          <RangeFilterBar current={range} from={from} to={to} />
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <RangeFilterBar current={range} from={from} to={to} pageParamKeys={['ap', 'ep']} />
+          <PageSizeSelector value={String(size)} pageParamKeys={['ap', 'ep']} />
         </div>
       )}
 

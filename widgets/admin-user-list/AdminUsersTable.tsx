@@ -18,9 +18,10 @@ const STATUS_LABEL: Record<UserStatus, string> = {
 interface Props {
   initialUsers: AdminUser[]
   currentUserId: string | null
+  filterBar?: React.ReactNode
 }
 
-export function AdminUsersTable({ initialUsers, currentUserId }: Props) {
+export function AdminUsersTable({ initialUsers, currentUserId, filterBar }: Props) {
   const { data: users = initialUsers } = useAdminUsersQuery(undefined, initialUsers)
   const [page, setPage] = useState(1)
   const [size, setSize] = useState(10)
@@ -44,7 +45,8 @@ export function AdminUsersTable({ initialUsers, currentUserId }: Props) {
 
   return (
     <div>
-      <div className="flex justify-end mb-4">
+      <div className="flex items-center justify-between mb-4">
+        <div>{filterBar}</div>
         <PageSizeSelector value={String(size)} onChange={handleSizeChange} />
       </div>
 

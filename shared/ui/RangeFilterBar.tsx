@@ -16,9 +16,10 @@ interface Props {
   current: RangePreset
   from?: string
   to?: string
+  pageParamKeys?: string[]
 }
 
-export function RangeFilterBar({ current, from, to }: Props) {
+export function RangeFilterBar({ current, from, to, pageParamKeys = ['page'] }: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -28,7 +29,7 @@ export function RangeFilterBar({ current, from, to }: Props) {
   function navigate(range: RangePreset, f?: string, t?: string) {
     const params = new URLSearchParams(searchParams.toString())
     params.set('range', range)
-    params.set('page', '1')
+    pageParamKeys.forEach((key) => params.set(key, '1'))
     if (range === 'custom' && f && t) {
       params.set('from', f)
       params.set('to', t)
