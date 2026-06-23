@@ -1,6 +1,7 @@
 'use client'
 
 import { useSyncExternalStore, useState } from 'react'
+import { Plus } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
 import { buttonVariants } from '@/components/ui/button-variants'
 import {
@@ -48,10 +49,17 @@ export function StrategyFormDialog({
     () => false,
   )
 
-  const triggerClass = cn(
-    buttonVariants({ variant: triggerVariant, size: 'sm' }),
-    disabled && 'opacity-40 pointer-events-none',
-  )
+  const triggerClass = triggerVariant === 'default'
+    ? cn(
+        'inline-flex items-center gap-1.5 h-8 px-3 rounded-md',
+        'bg-gradient-to-br from-rose-500 to-rose-700 text-white text-xs font-semibold',
+        'shadow-[0_1px_4px_rgba(225,29,72,0.30)] hover:opacity-90 transition-opacity',
+        disabled && 'opacity-40 pointer-events-none',
+      )
+    : cn(
+        buttonVariants({ variant: triggerVariant, size: 'sm' }),
+        disabled && 'opacity-40 pointer-events-none',
+      )
 
   const title = initial ? '전략 수정' : '전략 등록'
   const description = initial
@@ -71,6 +79,7 @@ export function StrategyFormDialog({
     return (
       <Drawer open={open} onOpenChange={setOpen} direction="bottom">
         <DrawerTrigger className={triggerClass} disabled={disabled}>
+          {triggerVariant === 'default' && <Plus className="size-3.5" />}
           {triggerLabel}
         </DrawerTrigger>
         <DrawerContent>
@@ -92,6 +101,7 @@ export function StrategyFormDialog({
         className={triggerClass}
         disabled={disabled}
       >
+        {triggerVariant === 'default' && <Plus className="size-3.5" />}
         {triggerLabel}
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">

@@ -29,9 +29,7 @@ export default async function AccountsPage() {
         eyebrow="계좌 관리"
         title="내 계좌"
         actions={
-          <NewAccountButton className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] bg-rose-600 text-white text-sm font-semibold hover:bg-rose-700 transition-colors disabled:opacity-60">
-            계좌 등록
-          </NewAccountButton>
+          <NewAccountButton>계좌 등록</NewAccountButton>
         }
       />
       {accounts.length === 0 ? (
@@ -45,12 +43,7 @@ export default async function AccountsPage() {
               한국투자증권 계좌를 연결해 자동 분할매매를 시작하세요.
             </p>
           </div>
-          <NewAccountButton
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] text-sm font-medium transition-colors disabled:opacity-60"
-            style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
-          >
-            계좌 등록하기
-          </NewAccountButton>
+          <NewAccountButton>계좌 등록하기</NewAccountButton>
         </div>
       ) : (
         <AccountsGrid accounts={accounts} strategiesByAccount={strategiesByAccount} />
