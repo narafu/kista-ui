@@ -113,7 +113,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
   const resumeMutation = useResumeStrategyMutation()
   const executeMutation = useExecuteStrategyMutation(strategy.id)
   const cancelAllMutation = useCancelAllOrdersMutation(strategy.id)
-  const cancelOneMutation = useCancelOneOrderMutation()
+  const cancelOneMutation = useCancelOneOrderMutation(strategy.id)
   const toggleLoading = pauseMutation.isPending || resumeMutation.isPending
   const loading = toggleLoading || deleteMutation.isPending
 
@@ -289,7 +289,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                       disabled={cancelOneMutation.isPending}
                       className="text-sm px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
                     >
-                      취소
+                      {cancelOneMutation.isPending && cancelOneMutation.variables === o.id ? '취소 중...' : '취소'}
                     </button>
                   </li>
                 ))}
@@ -330,7 +330,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                           disabled={cancelOneMutation.isPending}
                           className="text-sm px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
                         >
-                          취소
+                          {cancelOneMutation.isPending && cancelOneMutation.variables === o.id ? '취소 중...' : '취소'}
                         </button>
                       </td>
                     </tr>
