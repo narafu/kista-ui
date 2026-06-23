@@ -47,7 +47,7 @@ export function SettingsNav() {
             type="button"
             onClick={() => scrollTo(it.id)}
             className={cn(
-              'px-3 py-2 rounded-[var(--r-md)] text-[13.5px] font-semibold transition-colors duration-150 text-left w-full',
+              'px-3 py-2 rounded-[var(--r-md)] text-sm font-semibold transition-colors duration-150 text-left w-full',
               on
                 ? 'text-[var(--brand-fg-soft)] bg-[var(--brand-soft-bg)]'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',

@@ -53,7 +53,7 @@ export function RejectedReapplyButton() {
         type="button"
         onClick={handleReapply}
         disabled={cooldownMinutes > 0 || isLoading}
-        className="w-full h-[52px] rounded-xl text-[15px] font-bold border-0 cursor-pointer disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground bg-primary text-white inline-flex items-center justify-center gap-2"
+        className="w-full h-[52px] rounded-xl text-base font-bold border-0 cursor-pointer disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground bg-primary text-white inline-flex items-center justify-center gap-2"
       >
         {isLoading ? (
           <>
@@ -65,7 +65,7 @@ export function RejectedReapplyButton() {
           </>
         ) : (cooldownMinutes > 0 ? formatCooldown(cooldownMinutes) : '승인 재신청')}
       </button>
-      <div className="text-xs text-muted-foreground mt-2.5 text-center">
+      <div className="text-sm text-muted-foreground mt-2.5 text-center">
         재신청은 24시간에 한 번만 가능합니다.
       </div>
     </>

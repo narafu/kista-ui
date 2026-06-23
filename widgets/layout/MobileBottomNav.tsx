@@ -29,7 +29,7 @@ export function MobileBottomNav() {
               <span className="absolute top-1.5 left-1/2 -translate-x-1/2 size-1.5 rounded-full bg-rose-500" />
             )}
             <Icon className={cn('size-5', active ? 'text-rose-600' : 'text-muted-foreground')} />
-            <span className={cn('text-[10px] font-medium', active ? 'text-rose-600' : 'text-muted-foreground')}>
+            <span className={cn('text-xs font-medium', active ? 'text-rose-600' : 'text-muted-foreground')}>
               {label}
             </span>
           </Link>

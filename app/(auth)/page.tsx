@@ -63,7 +63,7 @@ function LoginPageContent() {
             KISTA
           </h1>
           <div
-            className="mt-1 text-[10px] font-bold tracking-[1.6px] uppercase"
+            className="mt-1 text-xs font-bold tracking-[1.6px] uppercase"
             style={{ color: 'var(--rose-500)' }}
           >
             Key Investment Strategy &amp; Trading Automation
@@ -98,7 +98,7 @@ function LoginPageContent() {
         type="button"
         onClick={handleKakaoLogin}
         disabled={isLoading}
-        className="flex items-center justify-center gap-2.5 w-full h-[52px] rounded-[10px] font-bold text-[15.5px] transition-opacity hover:opacity-90 select-none cursor-pointer border-0 bg-[#FEE500] text-[#3C1E1E] disabled:opacity-60 disabled:cursor-not-allowed"
+        className="flex items-center justify-center gap-2.5 w-full h-[52px] rounded-[10px] font-bold text-base transition-opacity hover:opacity-90 select-none cursor-pointer border-0 bg-[#FEE500] text-[#3C1E1E] disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {isLoading ? (
           <>
@@ -118,7 +118,7 @@ function LoginPageContent() {
         )}
       </button>
 
-      <div className="mt-4 text-center text-xs text-muted-foreground">
+      <div className="mt-4 text-center text-sm text-muted-foreground">
         가입 시 서비스 약관 및 개인정보 처리방침에 동의합니다.
       </div>
     </GlassCard>

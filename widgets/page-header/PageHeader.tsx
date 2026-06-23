@@ -19,18 +19,18 @@ export function PageHeader({ eyebrow, eyebrowHref, title, titleSuffix, actions, 
           eyebrowHref ? (
             <Link
               href={eyebrowHref}
-              className="text-xs font-semibold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] mb-1 hover:text-foreground transition-colors flex items-center gap-1"
+              className="text-sm font-semibold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] mb-1 hover:text-foreground transition-colors flex items-center gap-1"
             >
               ← {eyebrow}
             </Link>
           ) : (
-            <p className="text-xs font-semibold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] mb-1">
+            <p className="text-sm font-semibold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] mb-1">
               {eyebrow}
             </p>
           )
         )}
         <div className="flex items-baseline gap-3">
-          <h1 className="text-[26px] font-[800] leading-tight text-foreground">{title}</h1>
+          <h1 className="text-2xl font-[800] leading-tight text-foreground">{title}</h1>
           {titleSuffix}
         </div>
       </div>

@@ -7,7 +7,7 @@ import { fmtUsd } from '@shared/lib/format'
 
 const BALANCE_OFF_BADGE = (
   <span
-    className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
+    className="text-xs font-bold px-2 py-0.5 rounded-full border"
     style={{ background: 'var(--rose-50, rgba(251,207,232,.15))', color: 'var(--rose-500)', borderColor: 'var(--rose-300)' }}
   >
     잔고검증 OFF
@@ -64,7 +64,7 @@ export function UsageRatioSection({
       )}
 
       {!isOff && (isBelowMinSeed || (!isInfinite && privacyBase === null)) && (
-        <div className="inline-flex items-center gap-1.5 text-xs font-bold mt-3">
+        <div className="inline-flex items-center gap-1.5 text-sm font-bold mt-3">
           {loadingBase ? (
             <>
               <Loader2 size={14} className="animate-spin text-muted-foreground" />

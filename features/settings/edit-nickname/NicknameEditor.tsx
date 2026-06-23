@@ -57,7 +57,7 @@ export function NicknameEditor({ initialNickname }: Props) {
   if (!editing) {
     return (
       <div className="flex items-center gap-2">
-        <span className="text-[13.5px] font-semibold">{initialNickname || '-'}</span>
+        <span className="text-sm font-semibold">{initialNickname || '-'}</span>
         <button
           type="button"
           onClick={startEdit}
@@ -83,7 +83,7 @@ export function NicknameEditor({ initialNickname }: Props) {
           placeholder="1~10자"
           aria-label="닉네임"
           disabled={mutation.isPending}
-          className="w-32 h-7 px-2 text-[13px] rounded border border-border bg-background focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+          className="w-32 h-7 px-2 text-sm rounded border border-border bg-background focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
         />
         <button
           type="button"
@@ -104,7 +104,7 @@ export function NicknameEditor({ initialNickname }: Props) {
           <X className="size-4" />
         </button>
       </div>
-      {error && <p className="text-xs text-[var(--status-error)]">{error}</p>}
+      {error && <p className="text-sm text-[var(--status-error)]">{error}</p>}
     </div>
   )
 }

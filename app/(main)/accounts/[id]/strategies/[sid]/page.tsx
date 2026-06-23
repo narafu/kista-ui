@@ -44,7 +44,7 @@ export default async function StrategyDetailPage({ params }: Props) {
         titleSuffix={
           <Link
             href={`/accounts/${id}`}
-            className="text-xs font-semibold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] hover:text-foreground transition-colors"
+            className="text-sm font-semibold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] hover:text-foreground transition-colors"
           >
             ← {account.nickname}
           </Link>

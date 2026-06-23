@@ -25,7 +25,7 @@ export function StrategyList({ accountId, strategies }: Props) {
             <p className="text-sm text-muted-foreground text-center">
               등록된 전략이 없습니다.
             </p>
-            <p className="text-xs text-muted-foreground text-center">
+            <p className="text-sm text-muted-foreground text-center">
               종목당 1개씩, 여러 전략을 추가할 수 있습니다.
             </p>
             <StrategyFormDialog accountId={accountId} disabled={false} />

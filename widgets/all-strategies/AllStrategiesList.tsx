@@ -62,7 +62,7 @@ function EmptyState({ accounts }: { accounts: Account[] }) {
           {accounts.length > 3 && (
             <Link
               href="/accounts"
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               계좌 {accounts.length - 3}개 더 보기
             </Link>

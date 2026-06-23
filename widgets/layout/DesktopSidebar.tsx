@@ -74,7 +74,7 @@ export function DesktopSidebar({ isAdmin }: Props) {
             >
               <ShieldCheck className="size-[18px] shrink-0" />
               관리자
-              <span className="ml-auto text-[10px] font-bold bg-violet-600 text-white rounded-full px-1.5 py-0.5 leading-none">
+              <span className="ml-auto text-xs font-bold bg-violet-600 text-white rounded-full px-1.5 py-0.5 leading-none">
                 ADMIN
               </span>
             </Link>

@@ -56,7 +56,7 @@ export default async function SettingsPage() {
           </div>
 
           <div className="border-t border-border pt-4">
-            <div className="text-xs text-muted-foreground mb-1">닉네임</div>
+            <div className="text-sm text-muted-foreground mb-1">닉네임</div>
             <NicknameEditor initialNickname={user?.nickname ?? ''} />
           </div>
         </section>
@@ -75,7 +75,7 @@ export default async function SettingsPage() {
           <div className="flex items-center gap-[14px] py-3">
             <div className="flex-1">
               <div className="text-sm font-bold">매매 알림</div>
-              <div className="text-xs text-muted-foreground mt-0.5">매매 체결 결과 알림</div>
+              <div className="text-sm text-muted-foreground mt-0.5">매매 체결 결과 알림</div>
             </div>
             <TradingAlertToggle type="TRADING_ALERT" initialEnabled={user?.notificationPrefs?.['TRADING_ALERT'] ?? true} channel={user?.notificationChannel ?? (user?.hasTelegram ? 'TELEGRAM' : 'NONE')} />
           </div>
@@ -83,7 +83,7 @@ export default async function SettingsPage() {
           <div className="flex items-center gap-[14px] py-3 border-t border-border">
             <div className="flex-1">
               <div className="text-sm font-bold">장 시작/마감 알림</div>
-              <div className="text-xs text-muted-foreground mt-0.5">미국 장 개시 및 마감 시 알림</div>
+              <div className="text-sm text-muted-foreground mt-0.5">미국 장 개시 및 마감 시 알림</div>
             </div>
             <TradingAlertToggle type="MARKET_ALERT" initialEnabled={user?.notificationPrefs?.['MARKET_ALERT'] ?? true} channel={user?.notificationChannel ?? (user?.hasTelegram ? 'TELEGRAM' : 'NONE')} />
           </div>

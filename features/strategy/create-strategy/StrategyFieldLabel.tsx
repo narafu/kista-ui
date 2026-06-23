@@ -7,11 +7,11 @@ export function StrategyFieldLabel({
 }) {
   return (
     <div className="flex items-center justify-between mb-2">
-      <span className="text-xs font-bold text-foreground">
+      <span className="text-sm font-bold text-foreground">
         {children}
       </span>
       {hint && (
-        <span className="text-xs text-muted-foreground">
+        <span className="text-sm text-muted-foreground">
           {hint}
         </span>
       )}

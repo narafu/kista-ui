@@ -62,7 +62,7 @@ export function CycleHistoryTable({
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div>
               <CardTitle className="text-base">{title}</CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-sm text-muted-foreground mt-0.5">
                 {rangeLabel} · 총 {isLoading ? '…' : cycleHistory.length}건
               </p>
             </div>
@@ -72,7 +72,7 @@ export function CycleHistoryTable({
                   key={r}
                   type="button"
                   onClick={() => setRangeType(r)}
-                  className={`flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
+                  className={`flex-1 rounded-md px-3 py-1.5 text-sm font-semibold transition-all whitespace-nowrap ${
                     rangeType === r ? 'bg-background text-rose-600 shadow-sm' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
@@ -88,16 +88,16 @@ export function CycleHistoryTable({
                 aria-label="시작 날짜"
                 value={customFrom}
                 onChange={(e) => setCustomFrom(e.target.value)}
-                className="rounded-md border border-input bg-background px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
+                className="rounded-md border border-input bg-background px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring"
               />
-              <span className="text-xs text-muted-foreground">~</span>
+              <span className="text-sm text-muted-foreground">~</span>
               <input
                 type="date"
                 aria-label="종료 날짜"
                 value={customTo}
                 min={customFrom || undefined}
                 onChange={(e) => setCustomTo(e.target.value)}
-                className="rounded-md border border-input bg-background px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
+                className="rounded-md border border-input bg-background px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
           )}
@@ -115,21 +115,21 @@ export function CycleHistoryTable({
             <div className="space-y-2 p-4 lg:hidden">
               {groups.map((g) => (
                 <div key={g.date} className="space-y-1.5">
-                  <div className="px-1 pt-2 text-xs uppercase tracking-widest text-muted-foreground">{g.date}</div>
+                  <div className="px-1 pt-2 text-sm uppercase tracking-widest text-muted-foreground">{g.date}</div>
                   {g.items.map((entry) => (
                     <div key={entry.createdAt} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className="inline-flex items-center px-2.5 h-5 rounded-full text-[10px] font-bold whitespace-nowrap bg-rose-50 text-rose-600">
+                          <span className="inline-flex items-center px-2.5 h-5 rounded-full text-xs font-bold whitespace-nowrap bg-rose-50 text-rose-600">
                             {entry.ticker ?? '-'}
                           </span>
                           <span className="text-sm font-semibold">{entry.holdings}주</span>
                           {entry.avgPrice != null && entry.holdings > 0 && (
-                            <span className="text-xs text-muted-foreground truncate">${fmtUsd(entry.avgPrice)}</span>
+                            <span className="text-sm text-muted-foreground truncate">${fmtUsd(entry.avgPrice)}</span>
                           )}
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="text-xs text-muted-foreground">예수금</span>
+                          <span className="text-sm text-muted-foreground">예수금</span>
                           <span className="text-sm font-semibold">${fmtUsd(entry.usdDeposit ?? 0)}</span>
                         </div>
                       </div>
@@ -144,7 +144,7 @@ export function CycleHistoryTable({
                 <thead className="bg-muted/50 sticky top-0 z-10">
                   <tr>
                     {['종목', '보유수량', '평균단가', '예수금'].map((h) => (
-                      <th key={h} className="px-4 py-3 text-left text-xs uppercase tracking-widest text-[var(--brand-fg-soft)]">
+                      <th key={h} className="px-4 py-3 text-left text-sm uppercase tracking-widest text-[var(--brand-fg-soft)]">
                         {h}
                       </th>
                     ))}
@@ -154,7 +154,7 @@ export function CycleHistoryTable({
                   {groups.map((g) => (
                     <Fragment key={g.date}>
                       <tr>
-                        <td colSpan={4} className="bg-muted/30 px-4 py-2 text-xs uppercase tracking-widest text-muted-foreground">{g.date}</td>
+                        <td colSpan={4} className="bg-muted/30 px-4 py-2 text-sm uppercase tracking-widest text-muted-foreground">{g.date}</td>
                       </tr>
                       {g.items.map((entry) => (
                         <tr key={entry.createdAt} className="border-t hover:bg-muted/30 transition-colors">

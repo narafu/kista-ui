@@ -60,7 +60,7 @@ export function ThemeCards() {
                 <div className="text-xs text-muted-foreground">{o.desc}</div>
               </div>
               {on && (
-                <span className="size-4 rounded-full bg-rose-500 text-white grid place-items-center text-[10px]">✓</span>
+                <span className="size-4 rounded-full bg-rose-500 text-white grid place-items-center text-xs">✓</span>
               )}
             </div>
           </button>

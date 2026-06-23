@@ -40,13 +40,13 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
         {/* 1행: 배지 + 계좌번호 */}
         <div className="flex items-center gap-1.5">
           <span
-            className="inline-flex items-center px-2.5 h-[20px] rounded-full text-[11px] font-semibold whitespace-nowrap"
+            className="inline-flex items-center px-2.5 h-[20px] rounded-full text-xs font-semibold whitespace-nowrap"
             style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
           >
             {strategy.type}
           </span>
           {isInfinite && (
-            <span className="inline-flex items-center px-2 h-[20px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-muted text-foreground">
+            <span className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold whitespace-nowrap bg-muted text-foreground">
               {strategy.divisionCount}분할
             </span>
           )}
@@ -57,8 +57,8 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
         {/* 2행: 상태 + 티커 + 시드 + 금액 */}
         <div className="flex items-center gap-2">
           <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} hideLabel />
-          <span className="font-bold text-[15px] text-foreground">{strategy.ticker}</span>
-          <span className="text-xs text-muted-foreground">{seedLabel}</span>
+          <span className="font-bold text-base text-foreground">{strategy.ticker}</span>
+          <span className="text-sm text-muted-foreground">{seedLabel}</span>
           <span className="ml-auto text-sm font-semibold text-foreground">
             {strategy.initialUsdDeposit != null ? (
               `$${fmtUsd(strategy.initialUsdDeposit)}`
@@ -77,18 +77,18 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
           <div className="flex items-center justify-between mb-3">
             <div className="flex flex-wrap items-center gap-1.5">
               <span
-                className="inline-flex items-center px-2.5 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap"
+                className="inline-flex items-center px-2.5 h-[22px] rounded-full text-xs font-semibold whitespace-nowrap"
                 style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
               >
                 {strategy.type}
               </span>
               {isInfinite && (
-                <span className="inline-flex items-center px-2 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-muted text-foreground">
+                <span className="inline-flex items-center px-2 h-[22px] rounded-full text-xs font-semibold whitespace-nowrap bg-muted text-foreground">
                   {strategy.divisionCount}분할
                 </span>
               )}
               {strategy.isReverseMode && (
-                <span className="inline-flex items-center px-2 h-[22px] rounded-full text-[11px] font-semibold whitespace-nowrap bg-amber-50 text-amber-600">
+                <span className="inline-flex items-center px-2 h-[22px] rounded-full text-xs font-semibold whitespace-nowrap bg-amber-50 text-amber-600">
                   리버스
                 </span>
               )}
@@ -107,12 +107,12 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
         </div>
         {/* 시드 정보 행 */}
         <div className="flex items-center justify-between pl-5 pr-4 py-2 border-t border-border">
-          <span className="text-xs text-muted-foreground">다음 사이클</span>
-          <span className="text-xs font-medium text-foreground">{seedLabel}</span>
+          <span className="text-sm text-muted-foreground">다음 사이클</span>
+          <span className="text-sm font-medium text-foreground">{seedLabel}</span>
         </div>
         {/* 시작금액 푸터 */}
         <div className="flex items-center justify-between pl-5 pr-4 py-2.5 border-t border-border bg-muted/30">
-          <span className="text-xs text-muted-foreground">시작금액</span>
+          <span className="text-sm text-muted-foreground">시작금액</span>
           <div className="flex items-center gap-1.5">
             <span className="text-sm font-semibold text-foreground">
               {strategy.initialUsdDeposit != null ? (
