@@ -49,41 +49,53 @@ function resolveFromTo(range: RangePreset, from?: string, to?: string): { from?:
 export default async function AdminLogsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; range?: string; size?: string; ap?: string; ep?: string; from?: string; to?: string; inactiveDays?: string }>
+  searchParams: Promise<{
+    type?: string
+    anoRange?: string; anoFrom?: string; anoTo?: string
+    errRange?: string; errFrom?: string; errTo?: string; errSize?: string
+    audRange?: string; audFrom?: string; audTo?: string; audSize?: string
+    ap?: string; ep?: string
+    inactiveDays?: string
+  }>
 }) {
-  const { type = 'all', range: rawRange, size: rawSize, ap, ep, from, to, inactiveDays: rawInactiveDays } = await searchParams
-  const logType = type as LogType
-  const range = parseRangePreset(rawRange)
-  const size = parseSize(rawSize)
-  const inactiveDays = parseInactiveDays(rawInactiveDays)
+  const params = await searchParams
+  const logType = (params.type ?? 'all') as LogType
+
+  const anoRange = parseRangePreset(params.anoRange)
+  const errRange = parseRangePreset(params.errRange)
+  const audRange = parseRangePreset(params.audRange)
+  const errSize  = parseSize(params.errSize)
+  const audSize  = parseSize(params.audSize)
+  const inactiveDays = parseInactiveDays(params.inactiveDays)
   const token = await getAuthToken()
 
   const showAudit   = logType === 'all' || logType === 'audit'
   const showError   = logType === 'all' || logType === 'error'
   const showAnomaly = logType === 'all' || logType === 'anomaly'
-  const showRange   = showAudit || showError
 
-  const { from: resolvedFrom, to: resolvedTo } = resolveFromTo(range, from, to)
+  const { from: anoFrom, to: anoTo } = resolveFromTo(anoRange, params.anoFrom, params.anoTo)
+  const { from: errFrom, to: errTo } = resolveFromTo(errRange, params.errFrom, params.errTo)
+  const { from: audFrom, to: audTo } = resolveFromTo(audRange, params.audFrom, params.audTo)
 
   const [allAuditLogs, allErrorLogs, anomalies] = await Promise.all([
     showAudit && token
-      ? listAdminAuditLogs(token, resolvedFrom, resolvedTo).catch(() => [] as AdminAuditLog[])
+      ? listAdminAuditLogs(token, audFrom, audTo).catch(() => [] as AdminAuditLog[])
       : ([] as AdminAuditLog[]),
     showError && token
-      ? listAdminErrorLogs(token, 500, resolvedFrom, resolvedTo).catch(() => [] as AppErrorLog[])
+      ? listAdminErrorLogs(token, 500, errFrom, errTo).catch(() => [] as AppErrorLog[])
       : ([] as AppErrorLog[]),
     showAnomaly && token
-      ? getAdminAnomalies(token, inactiveDays).catch(() => EMPTY_ANOMALIES)
+      ? getAdminAnomalies(token, inactiveDays, anoFrom, anoTo).catch(() => EMPTY_ANOMALIES)
       : EMPTY_ANOMALIES,
   ])
 
-  const auditTotalPages = Math.max(1, Math.ceil(allAuditLogs.length / size))
-  const errorTotalPages = Math.max(1, Math.ceil(allErrorLogs.length / size))
-  const auditPage = Math.min(parsePage(ap), auditTotalPages)
-  const errorPage = Math.min(parsePage(ep), errorTotalPages)
+  const auditTotalPages = Math.max(1, Math.ceil(allAuditLogs.length / audSize))
+  const errorTotalPages = Math.max(1, Math.ceil(allErrorLogs.length / errSize))
+  const auditPage = Math.min(parsePage(params.ap), auditTotalPages)
+  const errorPage = Math.min(parsePage(params.ep), errorTotalPages)
 
-  const auditLogs = allAuditLogs.slice((auditPage - 1) * size, auditPage * size)
-  const errorLogs = allErrorLogs.slice((errorPage - 1) * size, errorPage * size)
+  const auditLogs = allAuditLogs.slice((auditPage - 1) * audSize, auditPage * audSize)
+  const errorLogs = allErrorLogs.slice((errorPage - 1) * errSize, errorPage * errSize)
 
   return (
     <div>
@@ -92,22 +104,18 @@ export default async function AdminLogsPage({
         <p className="text-sm text-muted-foreground mt-1">감사 · 오류 · 이상 징후 통합 뷰</p>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-6">
         <Suspense fallback={null}><LogsFilterChips /></Suspense>
       </div>
-
-      {showRange && (
-        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-          <RangeFilterBar current={range} from={from} to={to} pageParamKeys={['ap', 'ep']} />
-          <PageSizeSelector value={String(size)} pageParamKeys={['ap', 'ep']} />
-        </div>
-      )}
 
       <div className="space-y-8">
         {showAnomaly && (
           <AnomaliesSection
             anomalies={anomalies}
             inactiveDays={inactiveDays}
+            range={anoRange}
+            from={params.anoFrom}
+            to={params.anoTo}
           />
         )}
         {showError && (
@@ -116,6 +124,10 @@ export default async function AdminLogsPage({
             total={allErrorLogs.length}
             page={errorPage}
             totalPages={errorTotalPages}
+            size={errSize}
+            range={errRange}
+            from={params.errFrom}
+            to={params.errTo}
           />
         )}
         {showAudit && (
@@ -124,6 +136,10 @@ export default async function AdminLogsPage({
             total={allAuditLogs.length}
             page={auditPage}
             totalPages={auditTotalPages}
+            size={audSize}
+            range={audRange}
+            from={params.audFrom}
+            to={params.audTo}
           />
         )}
       </div>
@@ -132,11 +148,19 @@ export default async function AdminLogsPage({
 }
 
 // ── 이상 징후 섹션 ──────────────────────────────────────────────────────────
-function AnomaliesSection({ anomalies, inactiveDays }: { anomalies: AdminAnomalies; inactiveDays: number }) {
+function AnomaliesSection({
+  anomalies, inactiveDays, range, from, to,
+}: {
+  anomalies: AdminAnomalies
+  inactiveDays: number
+  range: RangePreset
+  from?: string
+  to?: string
+}) {
   const total = anomalies.pausedAccounts.length + anomalies.inactiveAccounts.length
   return (
     <section>
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
         <h2 className="text-base font-bold">
           이상 징후
           {total > 0 && (
@@ -147,6 +171,11 @@ function AnomaliesSection({ anomalies, inactiveDays }: { anomalies: AdminAnomali
         </h2>
         <Suspense fallback={null}>
           <InactiveDaysSelect current={inactiveDays} />
+        </Suspense>
+      </div>
+      <div className="mb-4">
+        <Suspense fallback={null}>
+          <RangeFilterBar current={range} from={from} to={to} paramPrefix="ano" pageParamKeys={[]} />
         </Suspense>
       </div>
       <div className="space-y-4">
@@ -187,13 +216,34 @@ function AnomaliesSection({ anomalies, inactiveDays }: { anomalies: AdminAnomali
 }
 
 // ── 오류 로그 섹션 ──────────────────────────────────────────────────────────
-function ErrorLogsSection({ logs, total, page, totalPages }: { logs: AppErrorLog[]; total: number; page: number; totalPages: number }) {
+function ErrorLogsSection({
+  logs, total, page, totalPages, size, range, from, to,
+}: {
+  logs: AppErrorLog[]
+  total: number
+  page: number
+  totalPages: number
+  size: number
+  range: RangePreset
+  from?: string
+  to?: string
+}) {
   return (
     <section>
-      <h2 className="text-base font-bold mb-3">
-        오류 로그
-        <span className="ml-2 text-sm font-normal text-muted-foreground">총 {total}건</span>
-      </h2>
+      <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+        <h2 className="text-base font-bold">
+          오류 로그
+          <span className="ml-2 text-sm font-normal text-muted-foreground">총 {total}건</span>
+        </h2>
+        <Suspense fallback={null}>
+          <PageSizeSelector value={String(size)} pageParamKeys={['ep']} sizeParamKey="errSize" />
+        </Suspense>
+      </div>
+      <div className="mb-4">
+        <Suspense fallback={null}>
+          <RangeFilterBar current={range} from={from} to={to} paramPrefix="err" pageParamKeys={['ep']} />
+        </Suspense>
+      </div>
       {logs.length === 0 ? (
         <EmptyState text="기록된 오류가 없습니다" />
       ) : (
@@ -209,13 +259,34 @@ function ErrorLogsSection({ logs, total, page, totalPages }: { logs: AppErrorLog
 }
 
 // ── 감사 로그 섹션 ──────────────────────────────────────────────────────────
-function AuditLogsSection({ logs, total, page, totalPages }: { logs: AdminAuditLog[]; total: number; page: number; totalPages: number }) {
+function AuditLogsSection({
+  logs, total, page, totalPages, size, range, from, to,
+}: {
+  logs: AdminAuditLog[]
+  total: number
+  page: number
+  totalPages: number
+  size: number
+  range: RangePreset
+  from?: string
+  to?: string
+}) {
   return (
     <section>
-      <h2 className="text-base font-bold mb-3">
-        감사 로그
-        <span className="ml-2 text-sm font-normal text-muted-foreground">총 {total}건</span>
-      </h2>
+      <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+        <h2 className="text-base font-bold">
+          감사 로그
+          <span className="ml-2 text-sm font-normal text-muted-foreground">총 {total}건</span>
+        </h2>
+        <Suspense fallback={null}>
+          <PageSizeSelector value={String(size)} pageParamKeys={['ap']} sizeParamKey="audSize" />
+        </Suspense>
+      </div>
+      <div className="mb-4">
+        <Suspense fallback={null}>
+          <RangeFilterBar current={range} from={from} to={to} paramPrefix="aud" pageParamKeys={['ap']} />
+        </Suspense>
+      </div>
       {logs.length === 0 ? (
         <EmptyState text="감사 로그가 없습니다" />
       ) : (

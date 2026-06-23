@@ -7,12 +7,13 @@ const SIZES = ['10', '30', '50', '100']
 
 interface Props {
   value: string
-  /** 제공 시 직접 호출 (클라이언트 사이드). 미제공 시 URL ?size= 업데이트 후 pageParamKeys 리셋. */
+  /** 제공 시 직접 호출 (클라이언트 사이드). 미제공 시 URL 업데이트 후 pageParamKeys 리셋. */
   onChange?: (size: string) => void
   pageParamKeys?: string[]
+  sizeParamKey?: string
 }
 
-export function PageSizeSelector({ value, onChange, pageParamKeys = ['page'] }: Props) {
+export function PageSizeSelector({ value, onChange, pageParamKeys = ['page'], sizeParamKey = 'size' }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -23,7 +24,7 @@ export function PageSizeSelector({ value, onChange, pageParamKeys = ['page'] }: 
       return
     }
     const params = new URLSearchParams(searchParams.toString())
-    params.set('size', size)
+    params.set(sizeParamKey, size)
     pageParamKeys.forEach((key) => params.set(key, '1'))
     router.push(`?${params.toString()}`)
   }

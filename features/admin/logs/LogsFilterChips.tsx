@@ -10,6 +10,13 @@ const FILTERS = [
   { type: 'audit',   label: '감사 로그' },
 ] as const
 
+const PRESERVE_KEYS = [
+  'anoRange', 'anoFrom', 'anoTo',
+  'errRange', 'errFrom', 'errTo', 'errSize',
+  'audRange', 'audFrom', 'audTo', 'audSize',
+  'inactiveDays',
+]
+
 export function LogsFilterChips() {
   const searchParams = useSearchParams()
   const active = searchParams.get('type') ?? 'all'
@@ -17,8 +24,7 @@ export function LogsFilterChips() {
   function buildHref(type: string) {
     const params = new URLSearchParams()
     if (type !== 'all') params.set('type', type)
-    // range 관련 파라미터 보존
-    for (const key of ['range', 'from', 'to', 'inactiveDays']) {
+    for (const key of PRESERVE_KEYS) {
       const v = searchParams.get(key)
       if (v) params.set(key, v)
     }
