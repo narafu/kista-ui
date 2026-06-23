@@ -9,7 +9,6 @@ import { BalanceCheckSetting } from '@features/settings/balance-check-setting'
 import { TradingAlertToggle } from '@features/settings/notification-prefs'
 import { NicknameEditor } from '@features/settings/edit-nickname'
 import { PageHeader } from '@widgets/page-header'
-import { ThemeToggle } from '@widgets/theme-toggle'
 import type { User } from '@entities/user'
 
 // 상태별 표시 설정
@@ -89,14 +88,6 @@ export default async function SettingsPage() {
 
           <div className="text-[12.5px] font-semibold text-muted-foreground mb-2">테마</div>
           <ThemeCards />
-
-          <div className="flex items-center justify-between mt-5 pt-4 border-t border-border">
-            <div>
-              <div className="text-[13px] font-bold">다크 모드</div>
-              <div className="text-[11.5px] text-muted-foreground mt-0.5">시스템 테마 대신 직접 전환</div>
-            </div>
-            <ThemeToggle />
-          </div>
 
           <div className="mt-5 pt-4 border-t border-border">
             <BalanceCheckSetting initialEnabled={user?.balanceCheckEnabled ?? true} />
