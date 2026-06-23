@@ -3,7 +3,7 @@ import { listAdminPrivacyBases } from '@entities/privacy'
 import { AdminPrivacyBaseTable } from '@widgets/admin-privacy-trade-list/AdminPrivacyBaseTable'
 import { PageSizeSelector } from '@widgets/admin-privacy-trade-list/PageSizeSelector'
 import { PaginationBar } from '@widgets/admin-privacy-trade-list/PaginationBar'
-import { RangeFilterBar, type RangePreset } from '@widgets/admin-privacy-trade-list/RangeFilterBar'
+import { RangeFilterBar, type RangePreset } from '@shared/ui/RangeFilterBar'
 import type { AdminPrivacyBase } from '@entities/privacy'
 
 const VALID_SIZES = ['10', '30', '50', '100'] as const
