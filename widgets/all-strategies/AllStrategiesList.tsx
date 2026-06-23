@@ -50,7 +50,7 @@ function EmptyState({ accounts }: { accounts: Account[] }) {
               className="flex items-center justify-between px-4 py-2.5 rounded-[var(--r-md)] border border-border bg-card hover:border-rose-300 hover:shadow-[var(--sh-rose)] transition-all text-sm"
             >
               <span className="font-medium text-foreground">{account.nickname}</span>
-              <span className="flex items-center gap-1 text-muted-foreground text-xs">
+              <span className="flex items-center gap-1 text-muted-foreground text-sm">
                 <RevealableValue
                   value={account.accountNo ?? account.accountNoMasked}
                   hiddenDisplay={account.accountNoMasked}

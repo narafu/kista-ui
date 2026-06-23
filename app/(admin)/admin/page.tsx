@@ -57,7 +57,7 @@ function StatCard({
     <div className="rounded-xl border border-border p-4 bg-muted/40">
       <div className="flex items-center gap-2 mb-3">
         {icon}
-        <span className="text-xs text-muted-foreground font-medium">{label}</span>
+        <span className="text-sm text-muted-foreground font-medium">{label}</span>
       </div>
       <p className="text-3xl font-extrabold">{value}</p>
     </div>

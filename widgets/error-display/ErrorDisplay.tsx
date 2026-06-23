@@ -66,7 +66,7 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
     <div className="text-center max-w-[440px] w-full px-6">
       {/* 상태 표시줄 */}
       <div
-        className="inline-flex items-center gap-4 px-[18px] py-[7px] rounded-full bg-muted border border-border mb-11 text-xs text-muted-foreground tracking-[0.1em]"
+        className="inline-flex items-center gap-4 px-[18px] py-[7px] rounded-full bg-muted border border-border mb-11 text-sm text-muted-foreground tracking-[0.1em]"
         style={{ fontFamily: 'var(--font-mono)' }}
       >
         <span className="flex items-center gap-[7px]">
@@ -88,7 +88,7 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
 
       {/* 에러 타입 배지 */}
       <div
-        className="inline-flex items-center px-[13px] py-1 rounded-full text-xs font-bold tracking-[0.14em] border border-border mb-4"
+        className="inline-flex items-center px-[13px] py-1 rounded-full text-sm font-bold tracking-[0.14em] border border-border mb-4"
         style={{ background: cfg.bgVar, color: cfg.colorVar, fontFamily: 'var(--font-mono)' }}
       >
         {cfg.badge}
@@ -129,7 +129,7 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
 
       {/* 하단 경로 정보 */}
       <div
-        className="text-xs text-muted-foreground opacity-50 tracking-[0.08em] overflow-hidden text-ellipsis whitespace-nowrap"
+        className="text-sm text-muted-foreground opacity-50 tracking-[0.08em] overflow-hidden text-ellipsis whitespace-nowrap"
         style={{ fontFamily: 'var(--font-mono)' }}
       >
         KISTA · {code ?? 'ERR'} · {pathname ?? '/'}

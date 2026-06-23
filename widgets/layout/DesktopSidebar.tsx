@@ -85,7 +85,7 @@ export function DesktopSidebar({ isAdmin }: Props) {
       {/* Footer: ThemeToggle + Logout */}
       <div className="flex flex-col gap-1 pt-4 border-t border-border">
         <div className="flex items-center justify-between px-3 py-2">
-          <span className="text-xs text-muted-foreground">테마</span>
+          <span className="text-sm text-muted-foreground">테마</span>
           <ThemeToggle />
         </div>
         <LogoutButton className="flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium text-muted-foreground hover:bg-rose-50/60 hover:text-foreground transition-colors w-full text-left">

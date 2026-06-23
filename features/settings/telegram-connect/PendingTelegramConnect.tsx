@@ -111,7 +111,7 @@ export function PendingTelegramConnect({ hasTelegram, currentChannel }: Props) {
       <Button variant="outline" size="lg" className="w-full h-12" onClick={() => setShowForm(true)}>
         텔레그램 봇 연동하기
       </Button>
-      <p className="text-xs text-muted-foreground">
+      <p className="text-sm text-muted-foreground">
         텔레그램 봇을 연동하면 승인 결과를 알림으로 받을 수 있습니다.
       </p>
     </div>

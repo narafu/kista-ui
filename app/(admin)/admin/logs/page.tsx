@@ -106,7 +106,7 @@ function AnomaliesSection({ anomalies }: { anomalies: AdminAnomalies }) {
       </h2>
       <div className="space-y-4">
         <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             일시정지 계좌
             {anomalies.pausedAccounts.length > 0 && (
               <span className="ml-2 normal-case font-medium text-amber-600">
@@ -121,7 +121,7 @@ function AnomaliesSection({ anomalies }: { anomalies: AdminAnomalies }) {
           )}
         </div>
         <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             비활성 계좌{' '}
             <span className="normal-case font-normal">(7일 거래 없음)</span>
             {anomalies.inactiveAccounts.length > 0 && (
@@ -147,7 +147,7 @@ function ErrorLogsSection({ logs, total, page, totalPages }: { logs: AppErrorLog
     <section>
       <h2 className="text-base font-bold mb-3">
         오류 로그
-        <span className="ml-2 text-xs font-normal text-muted-foreground">총 {total}건</span>
+        <span className="ml-2 text-sm font-normal text-muted-foreground">총 {total}건</span>
       </h2>
       {logs.length === 0 ? (
         <EmptyState text="기록된 오류가 없습니다" />
@@ -169,7 +169,7 @@ function AuditLogsSection({ logs, total, page, totalPages }: { logs: AdminAuditL
     <section>
       <h2 className="text-base font-bold mb-3">
         감사 로그
-        <span className="ml-2 text-xs font-normal text-muted-foreground">총 {total}건</span>
+        <span className="ml-2 text-sm font-normal text-muted-foreground">총 {total}건</span>
       </h2>
       {logs.length === 0 ? (
         <EmptyState text="감사 로그가 없습니다" />
@@ -184,22 +184,22 @@ function AuditLogsSection({ logs, total, page, totalPages }: { logs: AdminAuditL
                       {log.action}
                     </span>
                     {log.targetType && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-sm text-muted-foreground">
                         {log.targetType}
                         {log.targetId ? ` · ${log.targetId.slice(0, 8)}…` : ''}
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1 font-mono">
+                  <p className="text-sm text-muted-foreground mt-1 font-mono">
                     admin: {log.adminId.slice(0, 8)}…
                   </p>
                   {log.payload && Object.keys(log.payload).length > 0 && (
-                    <pre className="mt-1 text-xs text-muted-foreground bg-muted/40 rounded p-1 overflow-x-auto">
+                    <pre className="mt-1 text-sm text-muted-foreground bg-muted/40 rounded p-1 overflow-x-auto">
                       {JSON.stringify(log.payload, null, 2)}
                     </pre>
                   )}
                 </div>
-                <time className="text-xs text-muted-foreground shrink-0">
+                <time className="text-sm text-muted-foreground shrink-0">
                   {new Date(log.createdAt).toLocaleString('ko-KR')}
                 </time>
               </div>
@@ -235,7 +235,7 @@ function AccountTable({ accounts }: { accounts: AdminAnomalyAccount[] }) {
           {accounts.map((a) => (
             <tr key={a.id} className="hover:bg-muted/20">
               <td className="px-4 py-2.5 font-medium">{a.ownerNickname}</td>
-              <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground">
+              <td className="px-4 py-2.5 font-mono text-sm text-muted-foreground">
                 <RevealableValue
                   value={a.accountNoMasked ?? ''}
                   hiddenDisplay={a.accountNoMasked ?? ''}

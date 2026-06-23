@@ -63,7 +63,7 @@ function LoginPageContent() {
             KISTA
           </h1>
           <div
-            className="mt-1 text-xs font-bold tracking-[1.6px] uppercase"
+            className="mt-1 text-sm font-bold tracking-[1.6px] uppercase"
             style={{ color: 'var(--rose-500)' }}
           >
             Key Investment Strategy &amp; Trading Automation

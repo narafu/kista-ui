@@ -52,7 +52,7 @@ export function AdminPendingList({ initialUsers, max }: Props) {
           >
             <div className="min-w-0">
               <p className="font-semibold truncate">{user.nickname}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-sm text-muted-foreground mt-0.5">
                 가입일 {fmtDate(user.createdAt)}
               </p>
             </div>
