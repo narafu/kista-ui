@@ -17,6 +17,7 @@ export function PageSizeSelector({ value }: Props) {
     if (!size) return
     const params = new URLSearchParams(searchParams.toString())
     params.set('size', size)
+    params.set('page', '1')
     router.push(`?${params.toString()}`)
   }
 

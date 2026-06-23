@@ -3,6 +3,7 @@ import { getAuthToken } from '@shared/lib/auth/token'
 import { listAdminPrivacyBases } from '@entities/privacy'
 import { AdminPrivacyBaseTable } from '@widgets/admin-privacy-trade-list/AdminPrivacyBaseTable'
 import { PageSizeSelector } from '@widgets/admin-privacy-trade-list/PageSizeSelector'
+import { PaginationBar } from '@widgets/admin-privacy-trade-list/PaginationBar'
 import type { AdminPrivacyBase, PrivacyRange } from '@entities/privacy'
 
 const RANGES: { value: PrivacyRange; label: string }[] = [
@@ -21,28 +22,37 @@ function parseSize(raw: string | undefined): number {
   return VALID_SIZES.includes(raw as (typeof VALID_SIZES)[number]) ? Number(raw) : 10
 }
 
+function parsePage(raw: string | undefined): number {
+  const n = Number(raw)
+  return Number.isInteger(n) && n >= 1 ? n : 1
+}
+
 export default async function AdminPrivacyTradesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ range?: string; size?: string }>
+  searchParams: Promise<{ range?: string; size?: string; page?: string }>
 }) {
-  const { range: rawRange, size: rawSize } = await searchParams
+  const { range: rawRange, size: rawSize, page: rawPage } = await searchParams
   const range = parseRange(rawRange)
   const size = parseSize(rawSize)
+  const page = parsePage(rawPage)
   const sizeStr = String(size)
 
   const token = await getAuthToken()
   const all: AdminPrivacyBase[] = token
     ? await listAdminPrivacyBases(token, range).catch(() => [])
     : []
-  const bases = all.slice(0, size)
+
+  const totalPages = Math.max(1, Math.ceil(all.length / size))
+  const currentPage = Math.min(page, totalPages)
+  const bases = all.slice((currentPage - 1) * size, currentPage * size)
 
   return (
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-extrabold">기준 매매표</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          PRIVACY 전략 기준 매매표 및 주문 명세 ({bases.length}/{all.length}건)
+          PRIVACY 전략 기준 매매표 및 주문 명세 (총 {all.length}건)
         </p>
       </div>
 
@@ -52,7 +62,7 @@ export default async function AdminPrivacyTradesPage({
           {RANGES.map((r) => (
             <Link
               key={r.value}
-              href={`/admin/privacy-trades?range=${r.value}&size=${sizeStr}`}
+              href={`/admin/privacy-trades?range=${r.value}&size=${sizeStr}&page=1`}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 range === r.value
                   ? 'bg-rose-50 text-rose-600'
@@ -68,6 +78,7 @@ export default async function AdminPrivacyTradesPage({
       </div>
 
       <AdminPrivacyBaseTable bases={bases} />
+      <PaginationBar page={currentPage} totalPages={totalPages} />
     </div>
   )
 }
