@@ -128,9 +128,9 @@ export function CycleHistoryTable({
                             <span className="text-xs text-muted-foreground truncate">${fmtUsd(entry.avgPrice)}</span>
                           )}
                         </div>
-                        <div className="text-right shrink-0">
-                          <p className="text-sm font-semibold">${fmtUsd(entry.usdDeposit ?? 0)}</p>
-                          <p className="text-[10px] text-muted-foreground">예수금</p>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="text-[10px] text-muted-foreground">예수금</span>
+                          <span className="text-sm font-semibold">${fmtUsd(entry.usdDeposit ?? 0)}</span>
                         </div>
                       </div>
                     </div>
