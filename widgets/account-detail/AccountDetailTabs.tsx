@@ -18,11 +18,11 @@ const TAB_LABELS: Record<Tab, string> = {
 interface Props {
   account: Account
   strategies: Strategy[]
-  kisUsdDeposit: number
-  kisPosEvalUsd: number
+  usdDeposit: number
+  posEvalUsd: number
 }
 
-export function AccountDetailTabs({ account, strategies: initialStrategies, kisUsdDeposit, kisPosEvalUsd }: Props) {
+export function AccountDetailTabs({ account, strategies: initialStrategies, usdDeposit, posEvalUsd }: Props) {
   const { data: strategies = initialStrategies } = useStrategiesQuery(account.id, initialStrategies)
   const [activeTab, setActiveTab] = useState<Tab>('summary')
 
@@ -46,7 +46,7 @@ export function AccountDetailTabs({ account, strategies: initialStrategies, kisU
       <div className="lg:hidden">
         {activeTab === 'summary' && (
           <div className="space-y-4">
-            <AccountSummaryCard account={account} kisUsdDeposit={kisUsdDeposit} kisPosEvalUsd={kisPosEvalUsd} />
+            <AccountSummaryCard account={account} usdDeposit={usdDeposit} posEvalUsd={posEvalUsd} />
             <TradesTab accountId={account.id} />
           </div>
         )}
@@ -58,7 +58,7 @@ export function AccountDetailTabs({ account, strategies: initialStrategies, kisU
       {/* 데스크탑: 전체 레이아웃 */}
       <div className="hidden lg:block space-y-6">
         <div className="grid grid-cols-2 gap-6">
-          <AccountSummaryCard account={account} kisUsdDeposit={kisUsdDeposit} kisPosEvalUsd={kisPosEvalUsd} />
+          <AccountSummaryCard account={account} usdDeposit={usdDeposit} posEvalUsd={posEvalUsd} />
           <TradesTab accountId={account.id} />
         </div>
         <StrategyList accountId={account.id} strategies={strategies} />
