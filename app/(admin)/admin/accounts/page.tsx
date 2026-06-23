@@ -2,18 +2,43 @@ import { getAuthToken } from '@shared/lib/auth/token'
 import { listAdminAccounts } from '@entities/user'
 import type { AdminAccount } from '@entities/user'
 import { RevealableValue } from '@widgets/revealable-value'
+import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
+import { PaginationBar } from '@shared/ui/PaginationBar'
 
-export default async function AdminAccountsPage() {
+const VALID_SIZES = ['10', '30', '50', '100'] as const
+
+function parseSize(raw: string | undefined): number {
+  return VALID_SIZES.includes(raw as (typeof VALID_SIZES)[number]) ? Number(raw) : 10
+}
+
+function parsePage(raw: string | undefined): number {
+  const n = Number(raw)
+  return Number.isInteger(n) && n >= 1 ? n : 1
+}
+
+export default async function AdminAccountsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ size?: string; page?: string }>
+}) {
+  const { size: rawSize, page: rawPage } = await searchParams
+  const size = parseSize(rawSize)
   const token = await getAuthToken()
-  const accounts: AdminAccount[] = token
-    ? await listAdminAccounts(token).catch(() => [])
-    : []
+  const all: AdminAccount[] = token ? await listAdminAccounts(token).catch(() => []) : []
+
+  const totalPages = Math.max(1, Math.ceil(all.length / size))
+  const page = Math.min(parsePage(rawPage), totalPages)
+  const accounts = all.slice((page - 1) * size, page * size)
 
   return (
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-extrabold">계좌 현황</h1>
-        <p className="text-sm text-muted-foreground mt-1">전체 사용자 계좌 목록 ({accounts.length}개)</p>
+        <p className="text-sm text-muted-foreground mt-1">전체 사용자 계좌 목록 (총 {all.length}개)</p>
+      </div>
+
+      <div className="flex justify-end mb-4">
+        <PageSizeSelector value={String(size)} />
       </div>
 
       {accounts.length === 0 ? (
@@ -45,6 +70,8 @@ export default async function AdminAccountsPage() {
           </table>
         </div>
       )}
+
+      <PaginationBar page={page} totalPages={totalPages} />
     </div>
   )
 }

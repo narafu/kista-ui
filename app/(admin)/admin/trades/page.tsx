@@ -2,6 +2,8 @@ import { getAuthToken } from '@shared/lib/auth/token'
 import { listAdminTrades } from '@entities/user'
 import { fmtUsd } from '@shared/lib/format'
 import type { AdminTrade } from '@entities/user'
+import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
+import { PaginationBar } from '@shared/ui/PaginationBar'
 
 const DIRECTION_LABEL: Record<string, string> = { BUY: '매수', SELL: '매도' }
 const STATUS_STYLE: Record<string, string> = {
@@ -10,17 +12,40 @@ const STATUS_STYLE: Record<string, string> = {
   FAILED:  'bg-red-100 text-red-700',
 }
 
-export default async function AdminTradesPage() {
+const VALID_SIZES = ['10', '30', '50', '100'] as const
+
+function parseSize(raw: string | undefined): number {
+  return VALID_SIZES.includes(raw as (typeof VALID_SIZES)[number]) ? Number(raw) : 10
+}
+
+function parsePage(raw: string | undefined): number {
+  const n = Number(raw)
+  return Number.isInteger(n) && n >= 1 ? n : 1
+}
+
+export default async function AdminTradesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ size?: string; page?: string }>
+}) {
+  const { size: rawSize, page: rawPage } = await searchParams
+  const size = parseSize(rawSize)
   const token = await getAuthToken()
-  const trades: AdminTrade[] = token
-    ? await listAdminTrades(token).catch(() => [])
-    : []
+  const all: AdminTrade[] = token ? await listAdminTrades(token).catch(() => []) : []
+
+  const totalPages = Math.max(1, Math.ceil(all.length / size))
+  const page = Math.min(parsePage(rawPage), totalPages)
+  const trades = all.slice((page - 1) * size, page * size)
 
   return (
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-extrabold">거래 내역</h1>
-        <p className="text-sm text-muted-foreground mt-1">최근 30일 전체 거래 ({trades.length}건)</p>
+        <p className="text-sm text-muted-foreground mt-1">최근 30일 전체 거래 (총 {all.length}건)</p>
+      </div>
+
+      <div className="flex justify-end mb-4">
+        <PageSizeSelector value={String(size)} />
       </div>
 
       {trades.length === 0 ? (
@@ -65,6 +90,8 @@ export default async function AdminTradesPage() {
           </table>
         </div>
       )}
+
+      <PaginationBar page={page} totalPages={totalPages} />
     </div>
   )
 }
