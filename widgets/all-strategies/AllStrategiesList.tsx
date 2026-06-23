@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
+import { PaginationBar } from '@shared/ui/PaginationBar'
 import Link from 'next/link'
 import { TrendingUp, ChevronRight } from 'lucide-react'
 import { StrategyCard } from '@widgets/strategy-card'
@@ -96,6 +98,8 @@ function EmptyState({ accounts }: { accounts: Account[] }) {
 
 export function AllStrategiesList({ strategies: initialStrategies, accounts }: Props) {
   const { data: strategies = initialStrategies } = useAllStrategiesQuery(initialStrategies)
+  const [page, setPage] = useState(1)
+  const [size, setSize] = useState(10)
 
   if (strategies.length === 0)
     return <EmptyState accounts={accounts} />
@@ -111,16 +115,31 @@ export function AllStrategiesList({ strategies: initialStrategies, accounts }: P
     ])
   )
 
+  const totalPages = Math.max(1, Math.ceil(strategies.length / size))
+  const currentPage = Math.min(page, totalPages)
+  const paged = strategies.slice((currentPage - 1) * size, currentPage * size)
+
+  const handleSizeChange = (s: string) => {
+    setSize(Number(s))
+    setPage(1)
+  }
+
   return (
-    <div className="grid grid-cols-1 gap-2 lg:grid-cols-4 lg:gap-3">
-      {strategies.map((s) => (
-        <StrategyCard
-          key={s.id}
-          accountId={s.accountId}
-          strategy={s}
-          accountLabel={accountMap.get(s.accountId)}
-        />
-      ))}
+    <div>
+      <div className="flex justify-end mb-4">
+        <PageSizeSelector value={String(size)} onChange={handleSizeChange} />
+      </div>
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-4 lg:gap-3">
+        {paged.map((s) => (
+          <StrategyCard
+            key={s.id}
+            accountId={s.accountId}
+            strategy={s}
+            accountLabel={accountMap.get(s.accountId)}
+          />
+        ))}
+      </div>
+      <PaginationBar page={currentPage} totalPages={totalPages} onPageChange={setPage} />
     </div>
   )
 }
