@@ -99,8 +99,12 @@ export async function listAdminAuditLogs(token: string, from?: string, to?: stri
   return apiFetch<AdminAuditLog[]>(`/api/admin/logs/audit${query}`, { method: 'GET' }, token)
 }
 
-export async function getAdminAnomalies(token: string, inactiveDays?: number): Promise<AdminAnomalies> {
-  const query = inactiveDays != null ? `?inactiveDays=${inactiveDays}` : ''
+export async function getAdminAnomalies(token: string, inactiveDays?: number, from?: string, to?: string): Promise<AdminAnomalies> {
+  const params = new URLSearchParams()
+  if (inactiveDays != null) params.set('inactiveDays', String(inactiveDays))
+  if (from) params.set('from', from)
+  if (to) params.set('to', to)
+  const query = params.size ? `?${params}` : ''
   return apiFetch<AdminAnomalies>(`/api/admin/logs/anomalies${query}`, { method: 'GET' }, token)
 }
 
