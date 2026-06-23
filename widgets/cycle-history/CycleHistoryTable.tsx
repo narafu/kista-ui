@@ -67,7 +67,7 @@ export function CycleHistoryTable({
               </p>
             </div>
             <div className="flex gap-0.5 rounded-lg bg-muted p-1 shrink-0">
-              {(['all', '7d', '30d', 'custom'] as RangeType[]).map((r) => (
+              {(['7d', '30d', 'all', 'custom'] as RangeType[]).map((r) => (
                 <button
                   key={r}
                   type="button"

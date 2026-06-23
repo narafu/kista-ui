@@ -20,7 +20,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-const INITIAL: State = { rangeType: '30d', customFrom: '', customTo: '' }
+const INITIAL: State = { rangeType: '7d', customFrom: '', customTo: '' }
 
 interface Props {
   strategyId: string | undefined
