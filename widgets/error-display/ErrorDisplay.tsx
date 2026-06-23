@@ -105,14 +105,14 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
       <div className="flex gap-2 justify-center flex-wrap mb-9">
         <Link
           href="/dashboard"
-          className="inline-flex items-center px-[22px] py-[9px] rounded-[var(--radius)] bg-primary text-primary-foreground text-[13px] font-semibold no-underline shadow-[var(--sh-rose)] tracking-[-0.01em]"
+          className="inline-flex items-center px-[22px] py-[9px] rounded-[var(--radius)] bg-primary text-primary-foreground text-sm font-semibold no-underline shadow-[var(--sh-rose)] tracking-[-0.01em]"
         >
           대시보드
         </Link>
         <button
           type="button"
           onClick={() => router.back()}
-          className="inline-flex items-center px-[22px] py-[9px] rounded-[var(--radius)] bg-secondary text-secondary-foreground text-[13px] font-semibold border border-border cursor-pointer tracking-[-0.01em]"
+          className="inline-flex items-center px-[22px] py-[9px] rounded-[var(--radius)] bg-secondary text-secondary-foreground text-sm font-semibold border border-border cursor-pointer tracking-[-0.01em]"
         >
           이전 페이지
         </button>
@@ -120,7 +120,7 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
           <button
             type="button"
             onClick={reset}
-            className="inline-flex items-center px-[22px] py-[9px] rounded-[var(--radius)] bg-transparent text-muted-foreground text-[13px] font-semibold border border-border cursor-pointer tracking-[-0.01em]"
+            className="inline-flex items-center px-[22px] py-[9px] rounded-[var(--radius)] bg-transparent text-muted-foreground text-sm font-semibold border border-border cursor-pointer tracking-[-0.01em]"
           >
             다시 시도
           </button>
@@ -150,7 +150,7 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
       <div className="absolute top-6 left-8 flex items-center gap-2">
         <Image src="/logo.png" alt="KISTA" width={22} height={22} style={{ borderRadius: 5, height: 22, width: 22 }} />
         <span
-          className="text-[12.5px] font-extrabold text-[var(--rose-700)] tracking-[2px]"
+          className="text-sm font-extrabold text-[var(--rose-700)] tracking-[2px]"
         >
           KISTA
         </span>

@@ -40,7 +40,7 @@ export default function RejectedPage() {
               <div className="text-xs font-bold mb-1" style={{ color: 'var(--status-error)' }}>
                 반려 사유
               </div>
-              <div className="text-[13px] leading-relaxed text-foreground">
+              <div className="text-sm leading-relaxed text-foreground">
                 관리자가 가입 신청을 거절했습니다. 재신청하거나 관리자에게 문의해 주세요.
               </div>
             </div>

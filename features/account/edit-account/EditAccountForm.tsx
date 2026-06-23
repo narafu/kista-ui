@@ -100,7 +100,7 @@ export function EditAccountForm({ account }: Props) {
             <AlertTriangle className="size-4 text-[var(--status-error)]" />
             <h2 className="text-sm font-semibold text-[var(--status-error)]">위험 구역</h2>
           </div>
-          <p className="text-[13px] text-muted-foreground mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             계좌를 삭제하면 모든 거래 기록과 설정이 영구적으로 제거됩니다.
           </p>
 

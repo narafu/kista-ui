@@ -45,7 +45,7 @@ export function RejectedReapplyButton() {
   return (
     <>
       {errorMessage && (
-        <p className="text-[13px] text-destructive text-center mb-3">
+        <p className="text-sm text-destructive text-center mb-3">
           {errorMessage}
         </p>
       )}
@@ -65,7 +65,7 @@ export function RejectedReapplyButton() {
           </>
         ) : (cooldownMinutes > 0 ? formatCooldown(cooldownMinutes) : '승인 재신청')}
       </button>
-      <div className="text-[11.5px] text-muted-foreground mt-2.5 text-center">
+      <div className="text-xs text-muted-foreground mt-2.5 text-center">
         재신청은 24시간에 한 번만 가능합니다.
       </div>
     </>

@@ -39,7 +39,7 @@ export function DivisionCountSection({ isInfinite, divisionCount, setDivisionCou
                 boxShadow: active ? 'var(--sh-card)' : 'none',
               }}
             >
-              <div className="text-[12.5px] font-bold" style={{ color: active ? 'var(--rose-600)' : 'var(--muted-foreground)' }}>
+              <div className="text-sm font-bold" style={{ color: active ? 'var(--rose-600)' : 'var(--muted-foreground)' }}>
                 {opt.label}
               </div>
             </button>

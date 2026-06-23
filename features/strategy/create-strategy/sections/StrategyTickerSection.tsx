@@ -57,7 +57,7 @@ export function StrategyTickerSection({
                 }}
               >
                 <div
-                  className="text-[13px] font-[800]"
+                  className="text-sm font-[800]"
                   style={{ color: sel ? 'var(--rose-600)' : 'var(--foreground)' }}
                 >
                   {code}

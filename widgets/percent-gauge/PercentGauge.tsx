@@ -223,7 +223,7 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
           <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--warn-bg)] border border-[var(--warn)]">
             <span className="text-xs text-[var(--warn)] font-bold">예수금 부족</span>
             <span
-              className={cn('font-extrabold text-[var(--warn)] tabular-nums', compact ? 'text-[12px]' : 'text-[13px]')}
+              className={cn('font-extrabold text-[var(--warn)] tabular-nums', compact ? 'text-xs' : 'text-sm')}
             >
               필요: ${fmtUsd(minSeed)}
               <span className="text-xs font-semibold text-[var(--warn)] ml-1.5 opacity-80">
@@ -235,8 +235,7 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
           <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--brand-soft-bg)] border border-[var(--rose-200)]">
             <span className="text-xs text-[var(--brand-fg-soft)] font-bold">사용 금액 예상</span>
             <span
-              className="font-extrabold text-[var(--brand-fg)] tabular-nums"
-              style={{ fontSize: compact ? 12.5 : 13.5 }}
+              className={cn('font-extrabold text-[var(--brand-fg)] tabular-nums', compact ? 'text-xs' : 'text-sm')}
             >
               ${allocated !== null ? fmtUsd(allocated) : '--'}
               <span className="text-xs font-semibold text-muted-foreground ml-1.5">

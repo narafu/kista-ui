@@ -76,7 +76,7 @@ function LoginPageContent() {
 
       {/* 초대제 안내 */}
       <div
-        className="mb-5 px-3.5 py-2.5 rounded-[10px] text-center text-[12.5px] font-medium"
+        className="mb-5 px-3.5 py-2.5 rounded-[10px] text-center text-sm font-medium"
         style={{
           background: "var(--rose-50)",
           border: "1px solid var(--rose-100)",
@@ -88,7 +88,7 @@ function LoginPageContent() {
 
       {/* 에러 메시지 */}
       {errorMessage && (
-        <p className="text-[13px] text-destructive text-center mb-3">
+        <p className="text-sm text-destructive text-center mb-3">
           {errorMessage}
         </p>
       )}
@@ -118,7 +118,7 @@ function LoginPageContent() {
         )}
       </button>
 
-      <div className="mt-4 text-center text-[11.5px] text-muted-foreground">
+      <div className="mt-4 text-center text-xs text-muted-foreground">
         가입 시 서비스 약관 및 개인정보 처리방침에 동의합니다.
       </div>
     </GlassCard>

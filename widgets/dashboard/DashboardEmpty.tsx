@@ -31,7 +31,7 @@ export function DashboardEmpty({ holidays, initialWeekStartDate }: Props) {
             className="rounded-[var(--r-lg)] border border-rose-200 p-5 flex flex-col"
             style={{ background: 'var(--brand-soft-bg)' }}
           >
-            <p className="text-[11.5px] font-bold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] mb-2">시작하기</p>
+            <p className="text-xs font-bold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] mb-2">시작하기</p>
             <p className="text-[14.5px] font-bold mb-1.5">첫 계좌 등록</p>
             <p className="text-xs text-muted-foreground leading-relaxed mb-4 flex-1">
               KIS API 키와 계좌번호를 입력하면 분할매매 자동화가 시작됩니다.
@@ -41,7 +41,7 @@ export function DashboardEmpty({ holidays, initialWeekStartDate }: Props) {
             </NewAccountButton>
           </div>
           <div className="rounded-[var(--r-lg)] border border-border bg-card p-5 shadow-[var(--sh-card)] flex flex-col">
-            <p className="text-[11.5px] font-bold tracking-[0.12em] uppercase text-muted-foreground mb-2">다음 단계</p>
+            <p className="text-xs font-bold tracking-[0.12em] uppercase text-muted-foreground mb-2">다음 단계</p>
             <p className="text-[14.5px] font-bold mb-1.5">{NOTIFICATION_CARD.title}</p>
             <p className="text-xs text-muted-foreground leading-relaxed mb-4 flex-1">{NOTIFICATION_CARD.desc}</p>
             <Link

@@ -67,7 +67,7 @@ export default function GlobalError({
           <button
             type="button"
             onClick={reset}
-            className="inline-flex items-center px-[22px] py-[9px] rounded-[10px] bg-primary text-primary-foreground text-[13px] font-bold tracking-[-0.01em] border-none"
+            className="inline-flex items-center px-[22px] py-[9px] rounded-[10px] bg-primary text-primary-foreground text-sm font-bold tracking-[-0.01em] border-none"
           >
             다시 시도
           </button>

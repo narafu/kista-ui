@@ -24,7 +24,7 @@ export function CycleSeedSection({ autoStart, setAutoStart, seedMode, setSeedMod
       {/* 자동 시작 토글 */}
       <div className="flex items-center justify-between px-[14px] py-3 rounded-[var(--r-sm)] border border-border bg-card mb-[14px]">
         <div>
-          <div className="text-[13px] font-bold text-foreground">
+          <div className="text-sm font-bold text-foreground">
             다음 사이클 자동 시작
           </div>
           <div className="text-xs text-muted-foreground mt-0.5">
@@ -75,7 +75,7 @@ export function CycleSeedSection({ autoStart, setAutoStart, seedMode, setSeedMod
                   }}
                 >
                   <div
-                    className="text-[12.5px] font-bold"
+                    className="text-sm font-bold"
                     style={{ color: active ? 'var(--rose-600)' : 'var(--muted-foreground)' }}
                   >
                     {m.label}

@@ -19,12 +19,12 @@ export function PageHeader({ eyebrow, eyebrowHref, title, titleSuffix, actions, 
           eyebrowHref ? (
             <Link
               href={eyebrowHref}
-              className="text-[11.5px] font-semibold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] mb-1 hover:text-foreground transition-colors flex items-center gap-1"
+              className="text-xs font-semibold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] mb-1 hover:text-foreground transition-colors flex items-center gap-1"
             >
               ← {eyebrow}
             </Link>
           ) : (
-            <p className="text-[11.5px] font-semibold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] mb-1">
+            <p className="text-xs font-semibold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] mb-1">
               {eyebrow}
             </p>
           )

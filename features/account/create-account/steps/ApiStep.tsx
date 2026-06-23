@@ -146,12 +146,12 @@ export function ApiStep({ data, onNext, onBack }: Props) {
             )}
           </button>
           {testMutation.isSuccess && (
-            <div className="flex items-center gap-1.5 text-[12.5px] text-emerald-600">
+            <div className="flex items-center gap-1.5 text-sm text-emerald-600">
               <CheckCircle2 className="size-4" /> 연결 성공
             </div>
           )}
           {testMutation.isError && (
-            <div className="flex items-center gap-1.5 text-[12.5px] text-neg">
+            <div className="flex items-center gap-1.5 text-sm text-neg">
               <XCircle className="size-4" />
               KIS API 인증에 실패했습니다. App Key 또는 App Secret을 확인하세요.
             </div>

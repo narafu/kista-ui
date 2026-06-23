@@ -25,7 +25,7 @@ export function LogoutButton({ className, children }: Props) {
       type="button"
       onClick={handleLogout}
       disabled={isLoading}
-      className={className ?? 'inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[13px] font-semibold bg-transparent border border-border text-muted-foreground cursor-pointer hover:bg-accent transition-colors disabled:opacity-60'}
+      className={className ?? 'inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-transparent border border-border text-muted-foreground cursor-pointer hover:bg-accent transition-colors disabled:opacity-60'}
     >
       {children ?? (isLoading ? '로그아웃 중...' : '로그아웃')}
     </button>

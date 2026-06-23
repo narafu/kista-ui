@@ -56,7 +56,7 @@ export function ThemeCards() {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-[12.5px] font-bold">{o.label}</div>
+                <div className="text-sm font-bold">{o.label}</div>
                 <div className="text-xs text-muted-foreground">{o.desc}</div>
               </div>
               {on && (
