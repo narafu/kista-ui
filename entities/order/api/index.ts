@@ -45,7 +45,8 @@ function normalizePreview(raw: unknown): NextOrderPreview {
       price: String(item.price),
     }
   })
-  return { tradeDate: String(r.tradeDate), position, orders, skipReason, todayOrders }
+  const otherStrategiesPlannedBuyUsd = String(r.otherStrategiesPlannedBuyUsd ?? '0')
+  return { tradeDate: String(r.tradeDate), position, orders, skipReason, todayOrders, otherStrategiesPlannedBuyUsd }
 }
 
 export async function getStrategyOrdersPreview(strategyId: string): Promise<NextOrderPreview> {

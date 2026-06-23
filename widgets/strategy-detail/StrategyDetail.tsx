@@ -96,7 +96,8 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
       .reduce((sum, o) => sum + toNum(o.price) * o.quantity, 0)
     const usdItem = marginItems.find(i => i.currency === 'USD')
     const purchasable = usdItem?.purchasableAmount ?? 0
-    return Math.max(0, totalBuy - purchasable)
+    const otherPlanned = toNum(preview?.otherStrategiesPlannedBuyUsd ?? '0')
+    return Math.max(0, totalBuy + otherPlanned - purchasable)
   })()
   const hasDeficit = previewDeficit > 0
 

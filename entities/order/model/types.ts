@@ -27,7 +27,8 @@ export interface NextOrderPreview {
   position: NextOrderPositionSnapshot | null
   orders: NextOrderItem[]
   skipReason: SkipReason | null
-  todayOrders: PlacedOrder[]  // 오늘 이미 등록된 PLANNED 주문 (없으면 빈 배열)
+  todayOrders: PlacedOrder[]               // 오늘 이미 등록된 PLANNED 주문 (없으면 빈 배열)
+  otherStrategiesPlannedBuyUsd: string     // 계좌 내 타 전략 당일 PLANNED BUY 합계
 }
 
 export interface PlacedOrder {
