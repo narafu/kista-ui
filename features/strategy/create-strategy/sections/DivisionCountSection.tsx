@@ -46,7 +46,7 @@ export function DivisionCountSection({ isInfinite, divisionCount, setDivisionCou
           )
         })}
       </div>
-      {isEdit && <p className="text-xs text-muted-foreground mt-1.5 px-1">분할 수는 등록 후 변경할 수 없습니다.</p>}
+      {isEdit && <p className="text-sm text-muted-foreground mt-1.5 px-1">분할 수는 등록 후 변경할 수 없습니다.</p>}
     </div>
   )
 }

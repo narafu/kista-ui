@@ -117,7 +117,7 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
             ) : (
               <>
                 <div className="font-medium text-sm">{c.label}</div>
-                <div className="text-xs text-muted-foreground">{c.desc}</div>
+                <div className="text-sm text-muted-foreground">{c.desc}</div>
               </>
             )}
           </button>
@@ -125,17 +125,17 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
       </div>
 
       {needsTelegram && (
-        <p className="text-xs mt-2" style={{ color: 'var(--warn)' }}>
+        <p className="text-sm mt-2" style={{ color: 'var(--warn)' }}>
           텔레그램 알림을 받으려면 위에서 텔레그램 봇을 먼저 연결해주세요.
         </p>
       )}
       {fcmStatus === 'denied' && (
-        <p className="text-xs mt-2" style={{ color: 'var(--neg)' }}>
+        <p className="text-sm mt-2" style={{ color: 'var(--neg)' }}>
           알림이 차단되어 있습니다. 브라우저 설정 &gt; 알림에서 이 사이트를 허용해주세요.
         </p>
       )}
       {fcmStatus === 'error' && (
-        <p className="text-xs mt-2" style={{ color: 'var(--warn)' }}>
+        <p className="text-sm mt-2" style={{ color: 'var(--warn)' }}>
           {'Notification' in window && 'PushManager' in window
             ? '푸시 알림 설정에 실패했습니다. 새로고침 후 다시 시도해주세요.'
             : '이 브라우저에서는 푸시 알림이 지원되지 않습니다. Chrome 또는 Edge를 이용해주세요.'}

@@ -20,10 +20,10 @@ export default function FearGreedCardInner({ title, data }: Props) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <span className="text-sm font-semibold text-foreground">{title}</span>
-          <span className="text-xs text-muted-foreground">일봉 · {CHART_CANDLE_COUNT}</span>
+          <span className="text-sm text-muted-foreground">일봉 · {CHART_CANDLE_COUNT}</span>
         </div>
         {current && (
-          <span className="text-xs text-muted-foreground">
+          <span className="text-sm text-muted-foreground">
             {current.date.replace(/-/g, '.')} KST
           </span>
         )}

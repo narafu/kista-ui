@@ -69,10 +69,10 @@ export function ApiStep({ data, onNext, onBack }: Props) {
       <div>
         <h2 className="text-lg font-bold mb-1">{config.title}</h2>
         <p className="text-sm text-muted-foreground">{config.desc}</p>
-        <a href={config.linkHref} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[var(--brand-fg-soft)] hover:opacity-75 transition-opacity">
+        <a href={config.linkHref} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[var(--brand-fg-soft)] hover:opacity-75 transition-opacity">
           {config.linkLabel} <ExternalLink className="size-3" />
         </a>
-        <p className="text-xs text-muted-foreground mt-2">{config.hint}</p>
+        <p className="text-sm text-muted-foreground mt-2">{config.hint}</p>
       </div>
 
       <div className="flex flex-col gap-4">
@@ -91,7 +91,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
             className="w-full px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
           {showKeyError && (
-            <p id="api-key-error" className="text-xs text-destructive mt-1">
+            <p id="api-key-error" className="text-sm text-destructive mt-1">
               유효한 {config.keyLabel}를 입력해주세요.
             </p>
           )}
@@ -122,7 +122,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
             </button>
           </div>
           {showSecretError && (
-            <p id="api-secret-error" className="text-xs text-destructive mt-1">
+            <p id="api-secret-error" className="text-sm text-destructive mt-1">
               유효한 {config.secretLabel}를 입력해주세요.
             </p>
           )}
