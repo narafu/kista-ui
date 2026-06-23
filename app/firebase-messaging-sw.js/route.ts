@@ -14,8 +14,7 @@ export async function GET() {
 importScripts('https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-messaging-compat.js');
 firebase.initializeApp(${JSON.stringify(FIREBASE_CONFIG)});
-const messaging = firebase.messaging();
-messaging.onBackgroundMessage(() => {});
+firebase.messaging();
 `.trim();
 
   return new Response(body, {
