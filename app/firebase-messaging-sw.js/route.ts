@@ -15,10 +15,7 @@ importScripts('https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-a
 importScripts('https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-messaging-compat.js');
 firebase.initializeApp(${JSON.stringify(FIREBASE_CONFIG)});
 const messaging = firebase.messaging();
-messaging.onBackgroundMessage((payload) => {
-  const { title, body } = payload.notification ?? {};
-  self.registration.showNotification(title ?? 'KISTA', { body: body ?? '', icon: '/icon-192.png' });
-});
+messaging.onBackgroundMessage(() => {});
 `.trim();
 
   return new Response(body, {
