@@ -101,7 +101,7 @@ export default async function AdminLogsPage({
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold">운영 로그</h1>
-        <p className="text-sm text-muted-foreground mt-1">감사 · 오류 · 이상 징후 통합 뷰</p>
+        <p className="text-sm text-muted-foreground mt-1">관리자 · 오류 · 이상 징후 통합 뷰</p>
       </div>
 
       <div className="mb-6">
@@ -160,8 +160,8 @@ function AnomaliesSection({
   const total = anomalies.pausedAccounts.length + anomalies.inactiveAccounts.length
   return (
     <section>
-      <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-        <h2 className="text-base font-bold">
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
+        <h2 className="text-base font-bold shrink-0">
           이상 징후
           {total > 0 && (
             <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
@@ -172,8 +172,6 @@ function AnomaliesSection({
         <Suspense fallback={null}>
           <InactiveDaysSelect current={inactiveDays} />
         </Suspense>
-      </div>
-      <div className="mb-4">
         <Suspense fallback={null}>
           <RangeFilterBar current={range} from={from} to={to} paramPrefix="ano" pageParamKeys={[]} />
         </Suspense>
@@ -230,16 +228,14 @@ function ErrorLogsSection({
 }) {
   return (
     <section>
-      <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-        <h2 className="text-base font-bold">
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
+        <h2 className="text-base font-bold shrink-0">
           오류 로그
           <span className="ml-2 text-sm font-normal text-muted-foreground">총 {total}건</span>
         </h2>
         <Suspense fallback={null}>
           <PageSizeSelector value={String(size)} pageParamKeys={['ep']} sizeParamKey="errSize" />
         </Suspense>
-      </div>
-      <div className="mb-4">
         <Suspense fallback={null}>
           <RangeFilterBar current={range} from={from} to={to} paramPrefix="err" pageParamKeys={['ep']} />
         </Suspense>
@@ -258,7 +254,7 @@ function ErrorLogsSection({
   )
 }
 
-// ── 감사 로그 섹션 ──────────────────────────────────────────────────────────
+// ── 관리자 로그 섹션 ─────────────────────────────────────────────────────────
 function AuditLogsSection({
   logs, total, page, totalPages, size, range, from, to,
 }: {
@@ -273,22 +269,20 @@ function AuditLogsSection({
 }) {
   return (
     <section>
-      <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-        <h2 className="text-base font-bold">
-          감사 로그
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
+        <h2 className="text-base font-bold shrink-0">
+          관리자 로그
           <span className="ml-2 text-sm font-normal text-muted-foreground">총 {total}건</span>
         </h2>
         <Suspense fallback={null}>
           <PageSizeSelector value={String(size)} pageParamKeys={['ap']} sizeParamKey="audSize" />
         </Suspense>
-      </div>
-      <div className="mb-4">
         <Suspense fallback={null}>
           <RangeFilterBar current={range} from={from} to={to} paramPrefix="aud" pageParamKeys={['ap']} />
         </Suspense>
       </div>
       {logs.length === 0 ? (
-        <EmptyState text="감사 로그가 없습니다" />
+        <EmptyState text="관리자 로그가 없습니다" />
       ) : (
         <div className="rounded-xl border border-border divide-y divide-border">
           {logs.map((log) => (

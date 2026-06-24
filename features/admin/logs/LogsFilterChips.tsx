@@ -7,7 +7,7 @@ const FILTERS = [
   { type: 'all',     label: '전체' },
   { type: 'anomaly', label: '이상 징후' },
   { type: 'error',   label: '오류 로그' },
-  { type: 'audit',   label: '감사 로그' },
+  { type: 'audit',   label: '관리자 로그' },
 ] as const
 
 const PRESERVE_KEYS = [
