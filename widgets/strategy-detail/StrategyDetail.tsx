@@ -157,17 +157,17 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
           />
         </div>
         <div className="grid grid-cols-3 border-t border-border">
-          <div className="flex flex-col items-center px-5 py-3 border-r border-border">
-            <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1.5">상태</p>
-            <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
+          <div className="flex flex-col items-center px-5 py-3 lg:py-5 border-r border-border">
+            <p className="text-xs lg:text-xs text-muted-foreground uppercase tracking-wider mb-1.5">상태</p>
+            <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} labelClassName="lg:text-sm" />
           </div>
-          <div className="flex flex-col items-center px-5 py-3 border-r border-border">
-            <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1.5">다음 사이클</p>
-            <span className={`inline-flex items-center px-2.5 h-[22px] rounded-full text-xs font-semibold whitespace-nowrap ${seedBadgeCls}`}>{cycleSeedLabel}</span>
+          <div className="flex flex-col items-center px-5 py-3 lg:py-5 border-r border-border">
+            <p className="text-xs lg:text-xs text-muted-foreground uppercase tracking-wider mb-1.5">다음 사이클</p>
+            <span className={`inline-flex items-center px-2.5 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap ${seedBadgeCls}`}>{cycleSeedLabel}</span>
           </div>
-          <div className="flex flex-col items-center px-5 py-3">
-            <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1.5">시작금액</p>
-            <p className="text-sm font-semibold text-foreground">
+          <div className="flex flex-col items-center px-5 py-3 lg:py-5">
+            <p className="text-xs lg:text-xs text-muted-foreground uppercase tracking-wider mb-1.5">시작금액</p>
+            <p className="text-sm lg:text-base font-semibold text-foreground">
               {strategy.initialUsdDeposit != null ? (
                 `$${fmtUsd(strategy.initialUsdDeposit)}`
               ) : (
@@ -216,6 +216,14 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
             <div>
               <CardTitle className="text-base">다음 주문</CardTitle>
               <p className="text-sm text-muted-foreground mt-0.5">매 거래일 개장 시 자동실행</p>
+              {hasBuyOrders && !isMarginLoading && hasDeficit && (
+                <p className="hidden lg:flex items-center gap-1.5 mt-1.5 text-sm text-amber-600 dark:text-amber-400">
+                  <span className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400">
+                    예수금 부족
+                  </span>
+                  ${fmtUsd(previewDeficit)} 부족
+                </p>
+              )}
             </div>
             {canExecute && mode === 'preview' && (
               <button
@@ -356,7 +364,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
                 </div>
               )}
               {hasBuyOrders && !isMarginLoading && hasDeficit && (
-                <div className="px-6 py-2.5 border-b border-border flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="lg:hidden px-6 py-2.5 border-b border-border flex items-center gap-2 text-sm text-muted-foreground">
                   <span className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400">
                     예수금 부족
                   </span>

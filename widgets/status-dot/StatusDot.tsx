@@ -17,9 +17,10 @@ interface Props {
   status: Status
   className?: string
   hideLabel?: boolean
+  labelClassName?: string
 }
 
-export function StatusDot({ status, className, hideLabel }: Props) {
+export function StatusDot({ status, className, hideLabel, labelClassName }: Props) {
   const { meta } = useMeta()
   const cfg = STATUS_STYLE[status] ?? STATUS_STYLE.UNKNOWN
   const label = meta.strategyStatuses.find(s => s.code === status)?.label ?? cfg.fallbackLabel
@@ -29,7 +30,7 @@ export function StatusDot({ status, className, hideLabel }: Props) {
       {...(hideLabel ? { role: 'img', 'aria-label': label } : {})}
     >
       <span className={cn('size-2 rounded-full shrink-0', cfg.dot)} title={hideLabel ? label : undefined} />
-      {!hideLabel && <span className={cn('text-xs font-medium', cfg.text)}>{label}</span>}
+      {!hideLabel && <span className={cn('text-xs font-medium', cfg.text, labelClassName)}>{label}</span>}
     </span>
   )
 }
