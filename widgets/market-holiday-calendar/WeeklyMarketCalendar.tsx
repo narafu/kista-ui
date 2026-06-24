@@ -109,7 +109,7 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
             'text-xs font-semibold px-1.5 py-[1px] rounded',
             pos ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400' : 'bg-neg-bg text-neg',
           )}>
-            {pos ? '+' : ''}${Math.abs(summary.netAmountUsd).toFixed(0)}
+            {pos ? '매도 +' : '매수 '}${Math.abs(summary.netAmountUsd).toFixed(0)}
           </span>
         )
         sub = <span className="text-xs text-muted-foreground">{summary.tradeCount}체결</span>

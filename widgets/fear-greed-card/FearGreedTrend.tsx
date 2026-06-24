@@ -29,7 +29,13 @@ export function FearGreedTrend({ history, color }: Props) {
         <Tooltip
           formatter={(v) => [String(v), '지수']}
           labelStyle={{ fontSize: 12 }}
-          contentStyle={{ fontSize: 12 }}
+          contentStyle={{
+            fontSize: 12,
+            backgroundColor: 'var(--card)',
+            border: '1px solid var(--border)',
+            color: 'var(--foreground)',
+            borderRadius: 6,
+          }}
         />
         <Area type="monotone" dataKey="value" stroke={color} strokeWidth={2} fill={`url(#fg-${color.replace('#', '')})`} dot={false} activeDot={{ r: 4, fill: color }} />
       </AreaChart>
