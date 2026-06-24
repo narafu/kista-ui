@@ -19,13 +19,13 @@ export function ErrorLogItem({ log }: { log: AppErrorLog }) {
           </div>
 
           {/* message */}
-          <p className="text-sm mt-1 font-medium break-all">{log.message}</p>
+          <p className="text-sm mt-1 font-medium truncate" title={log.message}>{log.message}</p>
 
           {/* context */}
           {hasContext && (
-            <pre className="mt-1 text-sm text-muted-foreground bg-muted/40 rounded p-1 overflow-x-auto">
-              {JSON.stringify(log.context, null, 2)}
-            </pre>
+            <p className="mt-1 text-xs text-muted-foreground bg-muted/40 rounded px-2 py-1 font-mono truncate" title={JSON.stringify(log.context)}>
+              {JSON.stringify(log.context)}
+            </p>
           )}
 
           {/* stackTrace 접기/펼치기 */}
