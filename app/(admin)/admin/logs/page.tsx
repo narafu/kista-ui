@@ -3,7 +3,7 @@ import { getAuthToken } from '@shared/lib/auth/token'
 import { listAdminAuditLogs, listAdminErrorLogs, getAdminAnomalies } from '@entities/user'
 import type { AdminAuditLog, AppErrorLog, AdminAnomalies, AdminAnomalyAccount } from '@entities/user'
 import { ErrorLogItem } from '@features/admin/error-logs'
-import { LogsFilterChips, InactiveDaysSelect } from '@features/admin/logs'
+import { LogsFilterChips } from '@features/admin/logs'
 import { RevealableValue } from '@widgets/revealable-value'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
@@ -28,10 +28,6 @@ function parsePage(raw: string | undefined): number {
   return Number.isInteger(n) && n >= 1 ? n : 1
 }
 
-function parseInactiveDays(raw: string | undefined): number {
-  const n = Number(raw)
-  return [7, 14, 30].includes(n) ? n : 7
-}
 
 function resolveFromTo(range: RangePreset, from?: string, to?: string): { from?: string; to?: string } {
   if (range === 'all') return {}
@@ -55,7 +51,6 @@ export default async function AdminLogsPage({
     errRange?: string; errFrom?: string; errTo?: string; errSize?: string
     audRange?: string; audFrom?: string; audTo?: string; audSize?: string
     ap?: string; ep?: string
-    inactiveDays?: string
   }>
 }) {
   const params = await searchParams
@@ -66,7 +61,6 @@ export default async function AdminLogsPage({
   const audRange = parseRangePreset(params.audRange)
   const errSize  = parseSize(params.errSize)
   const audSize  = parseSize(params.audSize)
-  const inactiveDays = parseInactiveDays(params.inactiveDays)
   const token = await getAuthToken()
 
   const showAudit   = logType === 'all' || logType === 'audit'
@@ -85,7 +79,7 @@ export default async function AdminLogsPage({
       ? listAdminErrorLogs(token, 500, errFrom, errTo).catch(() => [] as AppErrorLog[])
       : ([] as AppErrorLog[]),
     showAnomaly && token
-      ? getAdminAnomalies(token, inactiveDays, anoFrom, anoTo).catch(() => EMPTY_ANOMALIES)
+      ? getAdminAnomalies(token, 7, anoFrom, anoTo).catch(() => EMPTY_ANOMALIES)
       : EMPTY_ANOMALIES,
   ])
 
@@ -112,7 +106,6 @@ export default async function AdminLogsPage({
         {showAnomaly && (
           <AnomaliesSection
             anomalies={anomalies}
-            inactiveDays={inactiveDays}
             range={anoRange}
             from={params.anoFrom}
             to={params.anoTo}
@@ -149,10 +142,9 @@ export default async function AdminLogsPage({
 
 // ── 이상 징후 섹션 ──────────────────────────────────────────────────────────
 function AnomaliesSection({
-  anomalies, inactiveDays, range, from, to,
+  anomalies, range, from, to,
 }: {
   anomalies: AdminAnomalies
-  inactiveDays: number
   range: RangePreset
   from?: string
   to?: string
@@ -160,21 +152,20 @@ function AnomaliesSection({
   const total = anomalies.pausedAccounts.length + anomalies.inactiveAccounts.length
   return (
     <section>
-      <div className="flex items-center gap-2 mb-4 flex-wrap">
-        <h2 className="text-base font-bold shrink-0">
-          이상 징후
+      <div className="mb-4 lg:flex lg:items-center lg:gap-3">
+        <h2 className="text-base font-bold shrink-0 mb-2 lg:mb-0">
+          이상징후(7일)
           {total > 0 && (
             <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
               {total}
             </span>
           )}
         </h2>
-        <Suspense fallback={null}>
-          <InactiveDaysSelect current={inactiveDays} />
-        </Suspense>
-        <Suspense fallback={null}>
-          <RangeFilterBar current={range} from={from} to={to} paramPrefix="ano" pageParamKeys={[]} />
-        </Suspense>
+        <div className="flex items-center gap-2">
+          <Suspense fallback={null}>
+            <RangeFilterBar current={range} from={from} to={to} paramPrefix="ano" pageParamKeys={[]} />
+          </Suspense>
+        </div>
       </div>
       <div className="space-y-4">
         <div>
@@ -195,7 +186,7 @@ function AnomaliesSection({
         <div>
           <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             비활성 계좌{' '}
-            <span className="normal-case font-normal">({inactiveDays}일 거래 없음)</span>
+            <span className="normal-case font-normal">(7일 거래 없음)</span>
             {anomalies.inactiveAccounts.length > 0 && (
               <span className="ml-2 font-medium text-slate-600">
                 {anomalies.inactiveAccounts.length}
@@ -228,17 +219,21 @@ function ErrorLogsSection({
 }) {
   return (
     <section>
-      <div className="flex items-center gap-2 mb-4 flex-wrap">
-        <h2 className="text-base font-bold shrink-0">
+      <div className="mb-4 lg:flex lg:items-center lg:gap-3">
+        <h2 className="text-base font-bold shrink-0 mb-2 lg:mb-0">
           오류 로그
           <span className="ml-2 text-sm font-normal text-muted-foreground">총 {total}건</span>
         </h2>
-        <Suspense fallback={null}>
-          <PageSizeSelector value={String(size)} pageParamKeys={['ep']} sizeParamKey="errSize" />
-        </Suspense>
-        <Suspense fallback={null}>
-          <RangeFilterBar current={range} from={from} to={to} paramPrefix="err" pageParamKeys={['ep']} />
-        </Suspense>
+        <div className="flex items-center gap-2 lg:flex-1">
+          <Suspense fallback={null}>
+            <RangeFilterBar current={range} from={from} to={to} paramPrefix="err" pageParamKeys={['ep']} />
+          </Suspense>
+          <div className="ml-auto">
+            <Suspense fallback={null}>
+              <PageSizeSelector value={String(size)} pageParamKeys={['ep']} sizeParamKey="errSize" />
+            </Suspense>
+          </div>
+        </div>
       </div>
       {logs.length === 0 ? (
         <EmptyState text="기록된 오류가 없습니다" />
@@ -269,17 +264,21 @@ function AuditLogsSection({
 }) {
   return (
     <section>
-      <div className="flex items-center gap-2 mb-4 flex-wrap">
-        <h2 className="text-base font-bold shrink-0">
+      <div className="mb-4 lg:flex lg:items-center lg:gap-3">
+        <h2 className="text-base font-bold shrink-0 mb-2 lg:mb-0">
           관리자 로그
           <span className="ml-2 text-sm font-normal text-muted-foreground">총 {total}건</span>
         </h2>
-        <Suspense fallback={null}>
-          <PageSizeSelector value={String(size)} pageParamKeys={['ap']} sizeParamKey="audSize" />
-        </Suspense>
-        <Suspense fallback={null}>
-          <RangeFilterBar current={range} from={from} to={to} paramPrefix="aud" pageParamKeys={['ap']} />
-        </Suspense>
+        <div className="flex items-center gap-2 lg:flex-1">
+          <Suspense fallback={null}>
+            <RangeFilterBar current={range} from={from} to={to} paramPrefix="aud" pageParamKeys={['ap']} />
+          </Suspense>
+          <div className="ml-auto">
+            <Suspense fallback={null}>
+              <PageSizeSelector value={String(size)} pageParamKeys={['ap']} sizeParamKey="audSize" />
+            </Suspense>
+          </div>
+        </div>
       </div>
       {logs.length === 0 ? (
         <EmptyState text="관리자 로그가 없습니다" />
