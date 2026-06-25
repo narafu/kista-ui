@@ -61,8 +61,8 @@ export function CycleHistoryTable({
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div>
-              <CardTitle className="text-base">{title}</CardTitle>
-              <p className="text-sm text-muted-foreground mt-0.5">
+              <CardTitle className="text-base lg:text-lg">{title}</CardTitle>
+              <p className="text-sm lg:text-base text-muted-foreground mt-0.5">
                 {rangeLabel} · 총 {isLoading ? '…' : cycleHistory.length}건
               </p>
             </div>
@@ -72,7 +72,7 @@ export function CycleHistoryTable({
                   key={r}
                   type="button"
                   onClick={() => setRangeType(r)}
-                  className={`flex-1 rounded-md px-3 py-1.5 text-sm font-semibold transition-all whitespace-nowrap ${
+                  className={`flex-1 rounded-md px-3 py-1.5 text-sm lg:text-base font-semibold transition-all whitespace-nowrap ${
                     rangeType === r ? 'bg-background text-rose-600 shadow-sm' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
@@ -139,21 +139,21 @@ export function CycleHistoryTable({
             </div>
             {/* 데스크탑: 테이블 */}
             <div className="hidden lg:block">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm lg:text-base">
                 <thead className="bg-muted/50 sticky top-0 z-10">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm uppercase tracking-widest text-[var(--brand-fg-soft)]">티커</th>
-                    <th className="px-4 py-3 text-right text-sm uppercase tracking-widest text-[var(--brand-fg-soft)]">수량</th>
-                    <th className="px-4 py-3 text-right text-sm uppercase tracking-widest text-[var(--brand-fg-soft)]">평단가</th>
-                    <th className="px-4 py-3 text-right text-sm uppercase tracking-widest text-[var(--brand-fg-soft)]">예수금</th>
-                    <th className="px-4 py-3 text-right text-sm uppercase tracking-widest text-[var(--brand-fg-soft)]">평가금액</th>
+                    <th className="px-4 py-3 text-left text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">티커</th>
+                    <th className="px-4 py-3 text-right text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">수량</th>
+                    <th className="px-4 py-3 text-right text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">평단가</th>
+                    <th className="px-4 py-3 text-right text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">예수금</th>
+                    <th className="px-4 py-3 text-right text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">평가금액</th>
                   </tr>
                 </thead>
                 <tbody>
                   {groups.map((g) => (
                     <Fragment key={g.date}>
                       <tr>
-                        <td colSpan={5} className="bg-muted/30 px-4 py-2 text-sm uppercase tracking-widest text-muted-foreground">{g.date}</td>
+                        <td colSpan={5} className="bg-muted/30 px-4 py-2 text-sm lg:text-base uppercase tracking-widest text-muted-foreground">{g.date}</td>
                       </tr>
                       {g.items.map((entry) => {
                         const evalAmount = entry.avgPrice != null && entry.holdings > 0
