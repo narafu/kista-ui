@@ -18,9 +18,10 @@ interface Props {
   to?: string
   pageParamKeys?: string[]
   paramPrefix?: string
+  presets?: RangePreset[]
 }
 
-export function RangeFilterBar({ current, from, to, pageParamKeys = ['page'], paramPrefix }: Props) {
+export function RangeFilterBar({ current, from, to, pageParamKeys = ['page'], paramPrefix, presets = ['7d', '30d', 'all', 'custom'] }: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -48,7 +49,7 @@ export function RangeFilterBar({ current, from, to, pageParamKeys = ['page'], pa
   return (
     <div className="space-y-2">
       <div className="flex gap-2">
-        {(['7d', '30d', 'all', 'custom'] as RangePreset[]).map((r) => (
+        {presets.map((r) => (
           <button
             key={r}
             type="button"

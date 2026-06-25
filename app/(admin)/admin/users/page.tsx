@@ -4,21 +4,13 @@ import { AdminUsersTable } from '@widgets/admin-user-list'
 import { RangeFilterBar, type RangePreset } from '@shared/ui/RangeFilterBar'
 
 function parseRangePreset(raw: string | undefined): RangePreset {
-  if (raw === '30d' || raw === 'all' || raw === 'custom') return raw
-  return '7d'
+  if (raw === 'custom') return raw
+  return 'all'
 }
 
 function resolveFromTo(range: RangePreset, from?: string, to?: string): { from?: string; to?: string } {
-  if (range === 'all') return {}
   if (range === 'custom') return { from, to }
-  const days = range === '7d' ? 7 : 30
-  const toDate = new Date()
-  const fromDate = new Date()
-  fromDate.setDate(fromDate.getDate() - days)
-  return {
-    from: fromDate.toISOString().split('T')[0],
-    to: toDate.toISOString().split('T')[0],
-  }
+  return {}
 }
 
 export default async function AdminUsersPage({
@@ -47,7 +39,7 @@ export default async function AdminUsersPage({
       <AdminUsersTable
         initialUsers={users}
         currentUserId={me?.id ?? null}
-        filterBar={<RangeFilterBar current={range} from={from} to={to} />}
+        filterBar={<RangeFilterBar current={range} from={from} to={to} presets={['all', 'custom']} />}
       />
     </div>
   )
