@@ -22,7 +22,7 @@ shared/
     Providers.tsx       # QueryProvider + ThemeProvider 조합
   hooks/          # 도메인 무관 범용 훅 (현재 미사용)
   config/         # 환경 상수 (현재 미사용)
-  ui/             # shadcn 컴포넌트 (수정 금지 — 자동생성)
+  ui/             # 커스텀 공용 UI 컴포넌트 (RangeFilterBar, PageSizeSelector, PaginationBar)
   index.ts        # public re-export
 ```
 
@@ -83,9 +83,15 @@ import { createProxyRoute } from '@shared/lib/proxy'
 catch-all Route Handler에서 kista-api 요청 프록시 + 인증 토큰 포함 + `revalidateTag` 자동 처리.  
 Route Handler URL 변경 시 `entities/{domain}/api/` 호출부만 수정 — `createProxyRoute` 내부 수정 불필요.
 
-## ui (shadcn)
+## ui (커스텀 공용 컴포넌트)
 
-`shared/ui/` 파일 직접 수정 금지. `npx shadcn@latest add <component> --yes`로만 추가.  
+`shared/ui/`는 도메인 무관 커스텀 UI 컴포넌트 디렉토리. 현재 구성:
+
+- `RangeFilterBar` — 기간 필터 버튼 바. `presets` prop으로 표시할 프리셋 목록 커스터마이즈 가능 (기본값 `['7d','30d','all','custom']`). admin 페이지는 `['all','custom']`만 전달.
+- `PageSizeSelector` — 페이지 크기 선택 드롭다운
+- `PaginationBar` — 페이지네이션 바
+
+shadcn 자동생성 컴포넌트는 `components/ui/`에 위치 — `npx shadcn@latest add <component> --yes`로만 추가, 직접 수정 금지.  
 shadcn 파일 내부에서 `@/components/ui/*`, `@/lib/utils` alias 사용 — 이 alias 직접 사용 금지.
 
 ## providers
