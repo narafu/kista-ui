@@ -9,7 +9,7 @@ import { RangeFilterBar, type RangePreset } from '@shared/ui/RangeFilterBar'
 const VALID_SIZES = ['10', '30', '50', '100'] as const
 
 function parseRangePreset(raw: string | undefined): RangePreset {
-  if (raw === 'custom') return raw
+  if (raw === '7d' || raw === '30d' || raw === 'custom') return raw
   return 'all'
 }
 
@@ -23,8 +23,16 @@ function parsePage(raw: string | undefined): number {
 }
 
 function resolveFromTo(range: RangePreset, from?: string, to?: string): { from?: string; to?: string } {
+  if (range === 'all') return {}
   if (range === 'custom') return { from, to }
-  return {}
+  const days = range === '7d' ? 7 : 30
+  const toDate = new Date()
+  const fromDate = new Date()
+  fromDate.setDate(fromDate.getDate() - days)
+  return {
+    from: fromDate.toISOString().split('T')[0],
+    to: toDate.toISOString().split('T')[0],
+  }
 }
 
 export default async function AdminAccountsPage({
@@ -52,7 +60,7 @@ export default async function AdminAccountsPage({
       </div>
 
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-        <RangeFilterBar current={range} from={from} to={to} presets={['all', 'custom']} />
+        <RangeFilterBar current={range} from={from} to={to} />
         <PageSizeSelector value={String(size)} />
       </div>
 
