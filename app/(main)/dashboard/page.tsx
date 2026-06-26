@@ -1,5 +1,5 @@
 import { getAuthToken } from '@shared/lib/auth/token'
-import { getMonthlyHolidays } from '@entities/market'
+import { getMonthlyHolidays, getMonthlyHolidaysPublic } from '@entities/market'
 import { getCachedAccounts } from '@shared/lib/cache/cached-api'
 import { DashboardEmpty } from '@widgets/dashboard/DashboardEmpty'
 import { DashboardOverview } from '@widgets/dashboard/DashboardOverview'
@@ -23,11 +23,13 @@ export default async function DashboardPage() {
   const initialWeekStartDate = getWeekStartDate()
 
   let accounts: Account[] = []
-  let holidays: string[] = []
+  // 비인증: 체결내역 없는 달력만 표시 (휴장일은 public 엔드포인트로 로드)
+  let holidays: string[] = token
+    ? await getMonthlyHolidays(calendarYear, calendarMonth, token).catch(() => [])
+    : await getMonthlyHolidaysPublic(calendarYear, calendarMonth)
 
   if (token) {
     try { accounts = await getCachedAccounts(token) } catch {}
-    try { holidays = await getMonthlyHolidays(calendarYear, calendarMonth, token) } catch {}
   }
 
   if (accounts.length === 0) {

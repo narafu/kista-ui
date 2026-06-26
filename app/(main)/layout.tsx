@@ -20,34 +20,37 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   ])
 
   const isAdmin = user?.role === 'ADMIN'
+  const isAuthenticated = !!token
 
   return (
     <MetaProvider meta={meta}>
       <div className="flex min-h-screen bg-background">
-        <DesktopSidebar isAdmin={isAdmin} />
+        <DesktopSidebar isAdmin={isAdmin} isAuthenticated={isAuthenticated} />
         <div className="flex flex-col flex-1 min-w-0">
           <MobileHeader
             trailing={
-              <div className="flex items-center gap-1.5">
-                {isAdmin && (
-                  <Link
-                    href="/admin"
-                    className="flex items-center justify-center size-8 rounded-lg bg-violet-600 text-white"
-                  >
-                    <ShieldCheck className="size-4" />
-                  </Link>
-                )}
-                <LogoutButton className="flex items-center justify-center size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer bg-transparent border-none">
-                  <LogOut className="size-4" />
-                </LogoutButton>
-              </div>
+              isAuthenticated ? (
+                <div className="flex items-center gap-1.5">
+                  {isAdmin && (
+                    <Link
+                      href="/admin"
+                      className="flex items-center justify-center size-8 rounded-lg bg-violet-600 text-white"
+                    >
+                      <ShieldCheck className="size-4" />
+                    </Link>
+                  )}
+                  <LogoutButton className="flex items-center justify-center size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer bg-transparent border-none">
+                    <LogOut className="size-4" />
+                  </LogoutButton>
+                </div>
+              ) : null
             }
           />
           <PullToRefresh />
           <main className="flex-1 p-4 lg:p-9 pb-24 lg:pb-9">{children}</main>
           <MobileBottomNav />
         </div>
-        <FcmAutoRegister notificationChannel={user?.notificationChannel ?? 'TELEGRAM'} />
+        {isAuthenticated && <FcmAutoRegister notificationChannel={user?.notificationChannel ?? 'TELEGRAM'} />}
         <TradeNotificationProvider />
       </div>
     </MetaProvider>

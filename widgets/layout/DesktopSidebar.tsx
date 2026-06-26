@@ -17,9 +17,10 @@ const NAV_ITEMS = [
 
 interface Props {
   isAdmin?: boolean
+  isAuthenticated?: boolean
 }
 
-export function DesktopSidebar({ isAdmin }: Props) {
+export function DesktopSidebar({ isAdmin, isAuthenticated }: Props) {
   const pathname = usePathname()
 
   return (
@@ -88,10 +89,12 @@ export function DesktopSidebar({ isAdmin }: Props) {
           <span className="text-sm text-muted-foreground">테마</span>
           <ThemeToggle />
         </div>
-        <LogoutButton className="flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium text-muted-foreground hover:bg-rose-50/60 hover:text-foreground transition-colors w-full text-left">
-          <LogOut className="size-[18px] shrink-0" />
-          로그아웃
-        </LogoutButton>
+        {isAuthenticated && (
+          <LogoutButton className="flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium text-muted-foreground hover:bg-rose-50/60 hover:text-foreground transition-colors w-full text-left">
+            <LogOut className="size-[18px] shrink-0" />
+            로그아웃
+          </LogoutButton>
+        )}
       </div>
     </aside>
   )
