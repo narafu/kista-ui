@@ -193,15 +193,15 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
           미국 휴장
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="size-[7px] rounded bg-green-100 dark:bg-green-500/10 shrink-0" />
+          <span className="size-[7px] rounded bg-green-500 dark:bg-green-400 shrink-0" />
           매도
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="size-[7px] rounded bg-neg-bg shrink-0" />
+          <span className="size-[7px] rounded bg-neg shrink-0" />
           매수
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="size-[7px] rounded bg-orange-100 dark:bg-orange-500/10 shrink-0" />
+          <span className="size-[7px] rounded bg-orange-400 dark:bg-orange-400 shrink-0" />
           대기중
         </span>
       </div>
