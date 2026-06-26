@@ -17,7 +17,7 @@ export function LogoutButton({ className, children }: Props) {
     if (isLoading) return
     setIsLoading(true)
     await clientFetch<void>('/api/auth/logout', { method: 'POST' }).catch(() => {})
-    router.push('/login')
+    router.push('/dashboard')
   }
 
   return (
