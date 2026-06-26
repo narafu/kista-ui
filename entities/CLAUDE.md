@@ -77,9 +77,12 @@ import { deleteAccount } from '@entities/account'
 
 - **account**: `accountNo`는 8자리만(표시 형식 `74420614-01`). `kisAccountType`은 항상 `"01"`. `AccountRequest` 필드명: `appKey`(≠apiKey), `secretKey`(≠apiSecret). `AccountResponse`에 strategyType 없음.
 - **strategy**: 백엔드 이름은 `TradingCycle`. 목록 `/api/accounts/{id}/trading-cycles`, 개별 `/api/trading-cycles/{id}`. pause/resume은 **strategyId 기준**(구 accountId 아님). `normalizeStrategy()`로 DTO → Strategy 변환. `cycleSeedType`: `NONE`(자동실행 off)/`MAX`(시드 MAX)/`MAINTAIN`(시드 유지) — `?? 'NONE'` 기본값.
-  - **최소 시드**: INFINITE = `basePrice * divisionCount * 2`, PRIVACY = `currentCycleStart`. 미달 시 등록 버튼 비활성화 (`StrategyForm`).
-  - **INFINITE vs PRIVACY 판별**: 리터럴 직접 사용 금지. `typeMeta?.availableTickers?.length > 1` = INFINITE. API 인자도 `meta.tickers.map(t => t.code)` 사용 (하드코딩 금지).
-- **meta**: `MetaProvider`는 `(main)/layout.tsx`에서만 제공 → `(main)` 밖 `useMeta()` 호출 불가. `useMeta()` → `findStrategyType(code)`, `findTicker(code)`, `labelOf(category, code)`. `TickerMeta.targetProfitRate`는 `string` 타입 — 사용 시 `parseFloat()` 변환 필요. `StrategyTypeMeta`에 `availableTickers` 포함(`defaultTicker`/`defaultMultiple` 없음) — UI 초기화는 `availableTickers[0]` + 상수 `"1"`.
+  - **전략 타입 capability (SSOT = 백엔드 메타)**: `availableTickers.length > 1` 휴리스틱 금지. 대신 `StrategyTypeMeta` capability 필드를 직접 소비: `requiresPrivacyBase`(basePrice 소스 분기), `divisionCounts`(분할 수 옵션 — 빈 배열이면 분할 개념 없음), `supportsReverseMode`(리버스모드 배지), `tickerFixed`(티커 고정).
+  - **usesDivisionCount 파생**: `(typeMeta?.divisionCounts?.length ?? 0) > 0` — DivisionCountSection 렌더 + divisionCount payload 전송 여부 결정. 위젯(StrategyDetail/StrategyCard) 분할 배지 가드도 동일.
+  - **최소 시드**: 백엔드 SSOT — `GET /api/accounts/{id}/strategy-seed-preview?type=&ticker=&divisionCount=` → `{ basePrice, minSeed, skipReason }`. 프론트 하드코딩 공식 금지. `useStrategySeedPreviewQuery(accountId, params)` 사용.
+  - **seedBadgeClass**: `entities/strategy/model/seed-badge.ts` → `seedBadgeClass(cycleSeedType)`. `CYCLE_SEED_BADGE_CLS` 로컬 정의 금지.
+  - API 인자도 `meta.tickers.map(t => t.code)` 사용 (하드코딩 금지).
+- **meta**: `MetaProvider`는 `(main)/layout.tsx`에서만 제공 → `(main)` 밖 `useMeta()` 호출 불가. `useMeta()` → `findStrategyType(code)`, `findTicker(code)`, `labelOf(category, code)`. `TickerMeta.targetProfitRate`는 `string` 타입 — 사용 시 `parseFloat()` 변환 필요. `StrategyTypeMeta` 필드: `code`, `description?`, `availableTickers`, `requiresPrivacyBase`, `tickerFixed`, `supportsReverseMode`, `divisionCounts` — UI 초기화는 `availableTickers[0]`. 구버전 백엔드 대비 capability 필드 옵셔널 접근(`?? false`/`?? []`) 권장.
 - **trade/providers**: `TradeNotificationProvider` — SSE `/api/trades/stream` 구독, 체결 toast 표시. `(main)/layout.tsx`에 마운트. `auth-error` 이벤트 수신 시 재연결 중단(무한 401 루프 방지) — Route Handler가 보내는 `event: auth-error`를 `es.addEventListener`로 처리.
 - **privacy**: `getPrivacyCurrentBase()` 응답 `{ ticker, currentCycleStart, tradeDate }`, Route Handler `app/api/privacy-trades/[[...path]]/route.ts`. 기준 매매표 없으면 404.
 - **fcm**: `registerTokenToServer`/`unregisterTokenFromServer` → `clientFetch<void>` 사용(raw fetch 금지 — 401 자동 로그아웃 누락). `fcm_device_tokens`은 사용자당 여러 토큰 허용, `save()` 중복 토큰 자동 skip. 발송 시점: 매매 결산·가입 승인·가입 거절(신규 가입·전략 변경은 텔레그램만).

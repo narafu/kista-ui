@@ -54,6 +54,6 @@ features/{domain}/{slice}/
 - **`create-account/steps/ConfirmStep`**: `useCreateAccountMutation` 사용. `AccountRequest`에 `broker` 필드 포함
 - **`auth/reapply`**: `ReapplyButton`(pending, 1시간) / `RejectedReapplyButton`(rejected, 24시간) — localStorage 쿨다운 키: pending → `reapply_last_requested_at`, rejected → `reapply_rejected_last_at`. `/api/auth/reapply-done` Route Handler 경유 (직접 kista-api 호출 금지)
 - **`strategy/create-strategy/StrategyFormDialog`**: `initial?: Strategy` prop 유무로 create/edit 분기. create → `useCreateStrategyMutation`, edit → `useUpdateStrategyMutation`
-- **`strategy/create-strategy/sections/DivisionCountSection`**: INFINITE 전략에서만 렌더링 (`!isInfinite`이면 `return null`). 옵션: 20분할(기본·안정), 30분할(적극), 40분할(고위험). edit 시 기존값 유지
+- **`strategy/create-strategy/sections/DivisionCountSection`**: `visible={usesDivisionCount}` + `options={typeMeta.divisionCounts}` prop 기반 렌더 — `visible=false` 또는 `options=[]`이면 `return null`. 옵션 목록은 백엔드 메타 `divisionCounts`에서 동적 결정 (하드코딩 금지). edit 시 기존값 유지
 - **`settings/telegram-connect`**: pending 페이지와 settings 페이지 양쪽에서 동일 컴포넌트 공유 (`TelegramSection` / `PendingTelegramConnect`). `updateTelegram`/`deleteTelegram` → `/api/settings/telegram` Route Handler 경유
 - **`strategy/create-strategy/sections`**: CSS 토큰 기반 인라인 style 다수 — `globals.css` 커스텀 토큰(`--rose-500`, `--warn` 등) 사용
