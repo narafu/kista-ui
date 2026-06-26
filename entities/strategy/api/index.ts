@@ -1,6 +1,6 @@
 import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
-import type { CycleSeedType, Strategy, StrategyRequest } from '../model/types'
+import type { CycleSeedType, Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
 import type { PlacedOrder } from '@entities/order/model/types'
 
 function normalizeStrategy(raw: unknown): Strategy {
@@ -59,6 +59,29 @@ function normalizePlacedOrder(raw: unknown): PlacedOrder {
     orderType: String(o.orderType),
     quantity: Number(o.quantity),
     price: String(o.price),
+  }
+}
+
+export async function getStrategySeedPreview(
+  accountId: string,
+  params: { type: string; ticker: string; divisionCount: number },
+  token?: string,
+): Promise<StrategySeedPreview> {
+  const qs = new URLSearchParams({
+    type: params.type,
+    ticker: params.ticker,
+    divisionCount: String(params.divisionCount),
+  }).toString()
+  const raw = await fetchEither<Record<string, unknown>>(
+    `/api/accounts/${accountId}/strategy-seed-preview?${qs}`,
+    undefined,
+    token,
+  )
+  return {
+    ticker: String(raw.ticker),
+    basePrice: raw.basePrice != null ? toNum(raw.basePrice) : null,
+    minSeed: raw.minSeed != null ? toNum(raw.minSeed) : null,
+    skipReason: raw.skipReason != null ? String(raw.skipReason) : null,
   }
 }
 

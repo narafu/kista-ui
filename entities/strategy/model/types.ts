@@ -22,3 +22,10 @@ export interface StrategyRequest {
   initialUsdDeposit?: number  // 등록 시 또는 시드 수정 시 전송
   divisionCount?: number      // 분할 수 (20/30/40, 미전송 시 백엔드 기본값 20)
 }
+
+export interface StrategySeedPreview {
+  ticker: string
+  basePrice: number | null
+  minSeed: number | null
+  skipReason: string | null
+}

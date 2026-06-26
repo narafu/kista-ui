@@ -13,8 +13,9 @@ import {
   pauseStrategy,
   resumeStrategy,
   executeStrategy,
+  getStrategySeedPreview,
 } from '../api'
-import type { Strategy, StrategyRequest } from '../model/types'
+import type { Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
 
 function apiMsg(err: unknown, fallback: string): string {
   if (err instanceof ApiError) {
@@ -23,6 +24,19 @@ function apiMsg(err: unknown, fallback: string): string {
     if (typeof msg === 'string' && msg) return msg
   }
   return fallback
+}
+
+export function useStrategySeedPreviewQuery(
+  accountId: string,
+  params: { type: string; ticker: string; divisionCount: number },
+  options?: { enabled?: boolean },
+) {
+  return useQuery<StrategySeedPreview>({
+    queryKey: ['strategySeedPreview', accountId, params.type, params.ticker, params.divisionCount],
+    queryFn: () => getStrategySeedPreview(accountId, params),
+    enabled: options?.enabled ?? true,
+    staleTime: 30_000,
+  })
 }
 
 export function useAllStrategiesQuery(initialData?: Strategy[]) {
