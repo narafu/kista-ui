@@ -14,7 +14,10 @@ export function TradeNotificationProvider() {
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
+    let stopped = false
+
     function connect() {
+      if (stopped) return
       esRef.current?.close()
       const es = new EventSource('/api/trades/stream')
       esRef.current = es
@@ -30,6 +33,12 @@ export function TradeNotificationProvider() {
         } catch {
           // parse 오류 무시
         }
+      })
+
+      // 인증 실패 시 재연결 중단 (무한 401 루프 방지)
+      es.addEventListener('auth-error', () => {
+        es.close()
+        stopped = true
       })
 
       es.onerror = () => {

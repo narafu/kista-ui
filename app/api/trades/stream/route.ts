@@ -10,7 +10,15 @@ const sseAgent = new Agent({ bodyTimeout: 0, headersTimeout: 0 })
 export async function GET(request: NextRequest) {
   const token = await getAuthToken()
   if (!token) {
-    return new Response('Unauthorized', { status: 401 })
+    // EventSource는 4xx를 onerror로만 받아 상태 코드를 알 수 없음
+    // → 200 SSE 스트림으로 auth-error 이벤트를 보내 클라이언트가 재연결을 중단하게 함
+    const body = new TextEncoder().encode('event: auth-error\ndata: unauthorized\n\n')
+    return new Response(body, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+      },
+    })
   }
 
   const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL

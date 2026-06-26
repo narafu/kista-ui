@@ -178,7 +178,6 @@ const position = preview?.position ?? null
             ? `$${fmtUsd(strategy.initialUsdDeposit)}`
             : <span className="text-base lg:text-lg text-muted-foreground font-normal">미설정</span>
           }
-          valueClassName="text-lg lg:text-3xl"
         />
       </div>
 
