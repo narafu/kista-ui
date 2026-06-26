@@ -40,6 +40,7 @@ export interface AdminTrade {
   id: string
   userId: string
   ownerNickname: string
+  strategyType?: string
   tradeDate: string
   ticker: string
   direction: OrderDirection

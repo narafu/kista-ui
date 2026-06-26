@@ -312,11 +312,11 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
               <table className="hidden lg:table w-full">
                 <thead>
                   <tr>
-                    <th className="px-5 py-2.5 text-left text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">구분</th>
-                    <th className="px-5 py-2.5 text-left text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">종목</th>
-                    <th className="px-5 py-2.5 text-right text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">수량</th>
-                    <th className="px-5 py-2.5 text-right text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">주문가</th>
-                    <th className="px-5 py-2.5 text-right text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">취소</th>
+                    <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">구분</th>
+                    <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">종목</th>
+                    <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">수량</th>
+                    <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">주문가</th>
+                    <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">취소</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -396,10 +396,10 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
               <table className="hidden lg:table w-full">
                 <thead>
                   <tr>
-                    <th className="px-5 py-2.5 text-left text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">구분</th>
-                    <th className="px-5 py-2.5 text-left text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">종목</th>
-                    <th className="px-5 py-2.5 text-right text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">수량</th>
-                    <th className="px-5 py-2.5 text-right text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">주문가</th>
+                    <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">구분</th>
+                    <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">종목</th>
+                    <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">수량</th>
+                    <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">주문가</th>
                   </tr>
                 </thead>
                 <tbody>

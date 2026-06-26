@@ -40,13 +40,13 @@ export function AdminPrivacyBaseTable({ bases }: Props) {
         <thead className="bg-muted/40 border-b border-border">
           <tr>
             <th className="w-8 px-2 py-3" aria-label="확장"></th>
-            <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">날짜</th>
-            <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">종목</th>
-            <th className="text-right px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">사이클 시작금액</th>
-            <th className="hidden sm:table-cell text-right px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">평단가</th>
-            <th className="text-right px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">보유</th>
-            <th className="hidden sm:table-cell text-right px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">실현손익</th>
-            <th className="hidden sm:table-cell text-right px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">주문</th>
+            <th className="text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">날짜</th>
+            <th className="text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">종목</th>
+            <th className="text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">사이클 시작금액</th>
+            <th className="hidden sm:table-cell text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">평단가</th>
+            <th className="text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">보유</th>
+            <th className="hidden sm:table-cell text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">실현손익</th>
+            <th className="hidden sm:table-cell text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">주문</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
@@ -86,10 +86,10 @@ function FragmentRow({ base: b, open, onToggle }: { base: AdminPrivacyBase; open
             <table className="w-full text-xs">
               <thead className="text-muted-foreground">
                 <tr>
-                  <th className="text-left py-1 font-medium">방향</th>
-                  <th className="text-left py-1 font-medium">유형</th>
-                  <th className="text-right py-1 font-medium">가격</th>
-                  <th className="text-right py-1 font-medium">수량</th>
+                  <th className="text-center py-1 font-medium">방향</th>
+                  <th className="text-center py-1 font-medium">유형</th>
+                  <th className="text-center py-1 font-medium">가격</th>
+                  <th className="text-center py-1 font-medium">수량</th>
                 </tr>
               </thead>
               <tbody>
