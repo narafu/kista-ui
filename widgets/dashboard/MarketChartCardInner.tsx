@@ -136,7 +136,7 @@ export default function MarketChartCardInner({ category }: Props) {
               onClick={() => setCandleCount(n)}
               className={`text-xs px-1.5 py-0.5 rounded font-medium transition-colors ${
                 candleCount === n
-                  ? 'bg-[var(--brand-fg-soft)] text-white'
+                  ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]'
                   : 'text-muted-foreground hover:text-foreground hover:bg-accent'
               }`}
             >
