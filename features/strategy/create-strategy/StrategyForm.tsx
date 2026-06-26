@@ -20,7 +20,7 @@ interface Props {
 }
 
 export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props) {
-  const { meta } = useMeta()
+  const { meta, findStrategyType } = useMeta()
   const form = useStrategyForm({ accountId, initial, onSuccess })
 
   if (form.initializing) {
@@ -38,7 +38,8 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
       />
 
       <DivisionCountSection
-        isInfinite={form.isInfinite}
+        visible={form.usesDivisionCount}
+        options={findStrategyType(form.type)?.divisionCounts ?? []}
         divisionCount={form.divisionCount}
         setDivisionCount={form.setDivisionCount}
         loading={form.loading}
@@ -65,8 +66,7 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
         loading={form.loading}
         loadingBase={form.loadingBase}
         isBelowMinSeed={form.isBelowMinSeed}
-        isInfinite={form.isInfinite}
-        privacyBase={form.privacyBase}
+        seedUnavailableReason={form.seedUnavailableReason}
         balanceCheckEnabled={form.balanceCheckEnabled}
       />
 

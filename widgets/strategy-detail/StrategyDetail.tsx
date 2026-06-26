@@ -126,7 +126,7 @@ const position = preview?.position ?? null
 
   const { labelOf, findStrategyType } = useMeta()
   const cycleSeedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
-  const isInfinite = (findStrategyType(strategy.type)?.availableTickers?.length ?? 0) > 1
+  const usesDivisionCount = (findStrategyType(strategy.type)?.divisionCounts?.length ?? 0) > 0
   const seedBadgeCls = CYCLE_SEED_BADGE_CLS[strategy.cycleSeedType] ?? 'bg-muted text-muted-foreground'
 
   return (
@@ -136,7 +136,7 @@ const position = preview?.position ?? null
           <span className="inline-flex items-center px-2.5 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400">
             {strategy.type}
           </span>
-          {isInfinite && (
+          {usesDivisionCount && (
             <span className="inline-flex items-center px-2 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-medium whitespace-nowrap bg-muted text-muted-foreground">
               {strategy.divisionCount}분할
             </span>
@@ -181,7 +181,7 @@ const position = preview?.position ?? null
         />
       </div>
 
-      {isInfinite && (
+      {usesDivisionCount && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {isLoadingPreview ? (
             <>

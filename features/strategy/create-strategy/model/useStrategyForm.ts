@@ -6,8 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { useMeta } from '@entities/meta'
 import { useAccountMarginQuery, useAccountPricesQuery } from '@entities/account'
-import { usePrivacyCurrentBaseQuery } from '@entities/privacy'
-import { useCreateStrategyMutation, useUpdateStrategyMutation, calcMinSeed } from '@entities/strategy'
+import { useCreateStrategyMutation, useUpdateStrategyMutation, useStrategySeedPreviewQuery } from '@entities/strategy'
 import type { CycleSeedType, Strategy, StrategyRequest } from '@entities/strategy'
 import type { PriceMap } from '@entities/account'
 import { useMeQuery } from '@entities/user'
@@ -23,7 +22,9 @@ interface UseStrategyFormOptions {
 export interface UseStrategyFormReturn {
   type: string
   setType: (t: string) => void
-  isInfinite: boolean
+  usesDivisionCount: boolean
+  requiresPrivacyBase: boolean
+  seedUnavailableReason: string | null
 
   ticker: string
   availableTickers: string[]
@@ -39,7 +40,6 @@ export interface UseStrategyFormReturn {
   minSeed: number | null
   isBelowMinSeed: boolean
   loadingBase: boolean
-  privacyBase: number | null
   balanceCheckEnabled: boolean
 
   autoStart: boolean
@@ -84,10 +84,11 @@ export function useStrategyForm({
   const seedMode = form.watch('seedMode')
   const divisionCount = form.watch('divisionCount')
 
-  // typeMeta/isInfinite를 쿼리보다 먼저 계산해 enabled 최적화에 사용
+  // capability 파생 — isInfinite 휴리스틱 대신 백엔드 SSOT 사용
   const typeMeta = useMemo(() => findStrategyType(type), [findStrategyType, type])
   const availableTickers = typeMeta?.availableTickers ?? []
-  const isInfinite = (typeMeta?.availableTickers?.length ?? 0) > 1
+  const usesDivisionCount = (typeMeta?.divisionCounts?.length ?? 0) > 0
+  const requiresPrivacyBase = typeMeta?.requiresPrivacyBase ?? false
 
   const { data: meData } = useMeQuery()
   const balanceCheckEnabled = meData?.balanceCheckEnabled ?? true
@@ -96,17 +97,24 @@ export function useStrategyForm({
   const { items: marginItems, isLoading: marginLoading } = useAccountMarginQuery(accountId, {
     enabled: balanceCheckEnabled,
   })
-  const allTickerCodes = useMemo(() => meta.tickers.map((t) => t.code), [meta.tickers])
-  const { data: pricesData, isLoading: pricesLoading } = useAccountPricesQuery(accountId, allTickerCodes)
-  // INFINITE 타입 선택 중엔 privacyBase 불필요 → 비활성, PRIVACY 클릭 시 쿼리 시작
-  const { data: privacyData, isLoading: privacyLoading } = usePrivacyCurrentBaseQuery({
-    enabled: !isInfinite,
-  })
 
+  // 티커 선택 버튼의 가격 표시용 — 여러 ticker 동시 (basePrice 계산엔 미사용)
+  const allTickerCodes = useMemo(() => meta.tickers.map((t) => t.code), [meta.tickers])
+  const { data: pricesData } = useAccountPricesQuery(accountId, allTickerCodes)
   const prices = pricesData ?? null
+
+  // basePrice/minSeed는 백엔드 계산 — type/ticker/divisionCount 확정 시 조회
+  const seedPreview = useStrategySeedPreviewQuery(
+    accountId,
+    { type, ticker, divisionCount },
+    { enabled: !!type && !!ticker },
+  )
+  const basePrice = seedPreview.data?.basePrice ?? null
+  const minSeed = seedPreview.data?.minSeed ?? null
+  const seedUnavailableReason = seedPreview.data?.skipReason ?? null
+  const loadingBase = seedPreview.isLoading || marginLoading
+
   const usdDeposit = marginItems.find((m) => m.currency === 'USD')?.purchasableAmount ?? null
-  const privacyBase = privacyData?.currentCycleStart ?? null
-  const loadingBase = marginLoading || pricesLoading || privacyLoading
 
   // 초기 로딩 완료 후엔 true로 고정 — 타입 전환 시 재스켈레톤 방지
   const initRef = useRef(false)
@@ -115,21 +123,10 @@ export function useStrategyForm({
 
   useEffect(() => {
     if (loadingBase) return
-    if (usdDeposit === null && prices === null && privacyBase === null) {
+    if (usdDeposit === null && prices === null) {
       toast.error('예수금 / 현재가 조회에 실패했습니다')
     }
   }, [loadingBase]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const basePrice = useMemo(() => {
-    if (!type || !ticker) return null
-    if (isInfinite) return prices?.[ticker] ?? null
-    return privacyBase
-  }, [type, ticker, isInfinite, prices, privacyBase])
-
-  const minSeed = useMemo(
-    () => calcMinSeed(basePrice, isInfinite, divisionCount),
-    [isInfinite, basePrice, divisionCount],
-  )
 
   const {
     pct, setPct,
@@ -139,27 +136,26 @@ export function useStrategyForm({
     isBelowMinSeed, isInvalidSeed,
   } = useSeedModel({ balanceCheckEnabled, initial, usdDeposit, minSeed })
 
-  // type 변경 시 ticker 기본값 + 시드 초기화
+  // type 변경 시 ticker 기본값 설정 — 시드는 minSeed effect에서 처리
   useEffect(() => {
     if (initial) return
     if (!typeMeta) return
-    const newTicker =
-      !ticker || !availableTickers.includes(ticker)
-        ? (typeMeta.availableTickers[0] ?? '')
-        : ticker
     if (!ticker || !availableTickers.includes(ticker)) {
-      form.setValue('ticker', newTicker)
+      form.setValue('ticker', typeMeta.availableTickers[0] ?? '')
     }
-    const newIsInfinite = (typeMeta.availableTickers?.length ?? 0) > 1
-    const newBasePrice = newIsInfinite ? (prices?.[newTicker] ?? null) : privacyBase
-    const newMinSeed = calcMinSeed(newBasePrice, newIsInfinite, divisionCount)
-    resetSeed({
-      pct: usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
-      seedUsdInput: newMinSeed !== null ? Math.ceil(newMinSeed) : null,
-    })
   }, [type]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const cannotSubmit = isBelowMinSeed || isInvalidSeed || basePrice === null
+  // 엔드포인트 minSeed 도착/변경 시 시드 게이지 재초기화 (신규 등록 한정)
+  useEffect(() => {
+    if (initial) return
+    if (minSeed === null) return
+    resetSeed({
+      pct: usdDeposit !== null && usdDeposit < minSeed ? 0 : 100,
+      seedUsdInput: Math.ceil(minSeed),
+    })
+  }, [minSeed]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const cannotSubmit = isBelowMinSeed || isInvalidSeed || (basePrice === null && seedUnavailableReason === null)
 
   const cycleSeedType: CycleSeedType = !autoStart
     ? 'NONE'
@@ -169,12 +165,6 @@ export function useStrategyForm({
 
   function handleTickerChange(code: string) {
     form.setValue('ticker', code)
-    const newBasePrice = prices?.[code] ?? null
-    const newMinSeed = calcMinSeed(newBasePrice, true, divisionCount)
-    resetSeed({
-      pct: usdDeposit !== null && newMinSeed !== null && usdDeposit < newMinSeed ? 0 : 100,
-      seedUsdInput: newMinSeed !== null ? Math.ceil(newMinSeed) : null,
-    })
   }
 
   function setType(t: string) {
@@ -208,7 +198,7 @@ export function useStrategyForm({
             ticker,
             cycleSeedType,
             initialUsdDeposit: seedUsd ?? undefined,
-            ...(isInfinite ? { divisionCount } : {}),
+            ...(usesDivisionCount ? { divisionCount } : {}),
           }
 
       if (initial) {
@@ -220,9 +210,9 @@ export function useStrategyForm({
   }
 
   return {
-    type, setType, isInfinite,
+    type, setType, usesDivisionCount, requiresPrivacyBase, seedUnavailableReason,
     ticker, availableTickers, handleTickerChange, basePrice, prices,
-    pct, setPct, seedUsdInput, setSeedUsdInput, usdDeposit, minSeed, isBelowMinSeed, loadingBase, privacyBase,
+    pct, setPct, seedUsdInput, setSeedUsdInput, usdDeposit, minSeed, isBelowMinSeed, loadingBase,
     balanceCheckEnabled,
     autoStart, setAutoStart, seedMode, setSeedMode,
     divisionCount, setDivisionCount,

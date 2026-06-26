@@ -1,5 +1,4 @@
 export type { CycleSeedType, Strategy, StrategyRequest, StrategySeedPreview } from './model/types'
-export { calcMinSeed, MIN_SEED_DIVISIONS, MIN_SEED_MULTIPLIER } from './model/min-seed'
 export {
   listAllStrategies,
   listStrategies,

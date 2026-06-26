@@ -24,18 +24,18 @@ interface Props {
   loading: boolean
   loadingBase: boolean
   isBelowMinSeed: boolean
-  isInfinite: boolean
-  privacyBase: number | null
+  seedUnavailableReason: string | null
   balanceCheckEnabled?: boolean
 }
 
 export function UsageRatioSection({
   pct, setPct, seedUsdInput, setSeedUsdInput,
   usdDeposit, minSeed, loading, loadingBase,
-  isBelowMinSeed, isInfinite, privacyBase,
+  isBelowMinSeed, seedUnavailableReason,
   balanceCheckEnabled = true,
 }: Props) {
   const isOff = !balanceCheckEnabled
+  const showWarning = !isOff && (isBelowMinSeed || seedUnavailableReason !== null)
 
   return (
     <div className="py-[18px] border-b border-border">
@@ -63,7 +63,7 @@ export function UsageRatioSection({
         />
       )}
 
-      {!isOff && (isBelowMinSeed || (!isInfinite && privacyBase === null)) && (
+      {showWarning && (
         <div className="inline-flex items-center gap-1.5 text-sm font-bold mt-3">
           {loadingBase ? (
             <>
@@ -75,7 +75,7 @@ export function UsageRatioSection({
               <AlertTriangle size={14} style={{ color: 'var(--warn)' }} />
               <span style={{ color: 'var(--warn)' }}>최소 ${fmtUsd(minSeed)} 필요</span>
             </>
-          ) : !isInfinite && privacyBase === null ? (
+          ) : seedUnavailableReason === 'NO_PRIVACY_BASE' ? (
             <>
               <AlertTriangle size={14} style={{ color: 'var(--warn)' }} />
               <span style={{ color: 'var(--warn)' }}>기준 매매표가 없습니다</span>

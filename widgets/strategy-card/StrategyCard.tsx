@@ -27,7 +27,7 @@ const CYCLE_SEED_BADGE_CLS: Record<string, string> = {
 
 export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
   const { findStrategyType, labelOf } = useMeta()
-  const isInfinite = (findStrategyType(strategy.type)?.availableTickers?.length ?? 0) > 1
+  const usesDivisionCount = (findStrategyType(strategy.type)?.divisionCounts?.length ?? 0) > 0
   const seedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
   const seedBadgeCls = CYCLE_SEED_BADGE_CLS[strategy.cycleSeedType] ?? 'bg-muted text-muted-foreground'
 
@@ -52,7 +52,7 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
           >
             {strategy.type}
           </span>
-          {isInfinite && (
+          {usesDivisionCount && (
             <span className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold whitespace-nowrap bg-muted text-foreground">
               {strategy.divisionCount}분할
             </span>
@@ -89,7 +89,7 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
               >
                 {strategy.type}
               </span>
-              {isInfinite && (
+              {usesDivisionCount && (
                 <span className="inline-flex items-center px-2 h-[22px] rounded-full text-xs font-semibold whitespace-nowrap bg-muted text-foreground">
                   {strategy.divisionCount}분할
                 </span>
