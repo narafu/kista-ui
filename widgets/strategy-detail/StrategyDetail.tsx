@@ -40,6 +40,7 @@ import { fmtUsd } from '@shared/lib/format'
 import { ApiError } from '@shared/lib/api-client'
 import type { Strategy } from '@entities/strategy'
 import type { SkipReason, PlacedOrder } from '@entities/order'
+import { OrderRows } from './OrderRows'
 
 const SKIP_REASON_LABELS: Record<SkipReason, string> = {
   NO_CYCLE_HISTORY: '첫 매매 전입니다. 사이클 정보가 아직 없습니다.',
@@ -72,7 +73,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
   const hasServerOrders = serverOrders.length > 0
   const placedOrders = manualOrders ?? (hasServerOrders ? serverOrders : [])
   const mode: 'preview' | 'executed' = manualOrders !== null || hasServerOrders ? 'executed' : 'preview'
-const position = preview?.position ?? null
+  const position = preview?.position ?? null
   const orders = preview?.orders ?? []
 
   // 매수 주문이 있을 때만 브로커 실잔고 조회 — 부족분은 프론트에서 계산
@@ -80,16 +81,14 @@ const position = preview?.position ?? null
   const { items: marginItems, isLoading: isMarginLoading } = useAccountMarginQuery(accountId, {
     enabled: !isLoadingPreview && hasBuyOrders,
   })
-  const previewDeficit = (() => {
-    if (!hasBuyOrders || isMarginLoading) return 0
-    const totalBuy = orders
-      .filter(o => o.direction === 'BUY')
-      .reduce((sum, o) => sum + toNum(o.price) * o.quantity, 0)
-    const usdItem = marginItems.find(i => i.currency === 'USD')
-    const purchasable = usdItem?.purchasableAmount ?? 0
-    const otherPlanned = toNum(preview?.otherStrategiesPlannedBuyUsd ?? '0')
-    return Math.max(0, totalBuy + otherPlanned - purchasable)
-  })()
+  const totalBuyUsd = hasBuyOrders && !isMarginLoading
+    ? orders.filter(o => o.direction === 'BUY').reduce((sum, o) => sum + toNum(o.price) * o.quantity, 0)
+    : 0
+  const purchasableUsd = marginItems.find(i => i.currency === 'USD')?.purchasableAmount ?? 0
+  const otherPlannedUsd = toNum(preview?.otherStrategiesPlannedBuyUsd ?? '0')
+  const previewDeficit = hasBuyOrders && !isMarginLoading
+    ? Math.max(0, totalBuyUsd + otherPlannedUsd - purchasableUsd)
+    : 0
   const hasDeficit = previewDeficit > 0
 
   const today = new Date()
@@ -115,6 +114,15 @@ const position = preview?.position ?? null
     } else {
       resumeMutation.mutate(strategy.id)
     }
+  }
+
+  function handleCancelOne(id: string) {
+    cancelOneMutation.mutate(id, {
+      onSuccess: () => {
+        const remaining = placedOrders.filter((x) => x.id !== id)
+        setManualOrders(remaining.length === 0 ? null : remaining)
+      },
+    })
   }
 
   const toggleLabel = toggleLoading ? '처리 중...' : strategy.status === 'ACTIVE' ? '중지' : '재개'
@@ -273,78 +281,12 @@ const position = preview?.position ?? null
                   {cancelAllMutation.isPending ? '취소 중...' : '전체 취소'}
                 </button>
               </div>
-              {/* 모바일 리스트 */}
-              <ul className="lg:hidden">
-                {placedOrders.map((o) => (
-                  <li key={o.id} className="flex items-center gap-3 text-sm px-6 py-3 border-b border-border last:border-b-0">
-                    <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold', o.direction === 'BUY' ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400' : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400')}>
-                      {o.direction === 'BUY' ? '매수' : '매도'}
-                    </span>
-                    <span className="font-medium">{o.ticker}</span>
-                    <span className="text-muted-foreground">{o.quantity}주</span>
-                    <span className="ml-auto font-semibold">${fmtUsd(toNum(o.price))}</span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        cancelOneMutation.mutate(o.id, {
-                          onSuccess: () => {
-                            const remaining = placedOrders.filter((x) => x.id !== o.id)
-                            setManualOrders(remaining.length === 0 ? null : remaining)
-                          },
-                        })
-                      }
-                      disabled={cancelOneMutation.isPending}
-                      className="text-sm px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
-                    >
-                      {cancelOneMutation.isPending && cancelOneMutation.variables === o.id ? '취소 중...' : '취소'}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-              {/* PC 테이블 */}
-              <table className="hidden lg:table w-full">
-                <thead>
-                  <tr>
-                    <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">구분</th>
-                    <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">종목</th>
-                    <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">수량</th>
-                    <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">주문가</th>
-                    <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">취소</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {placedOrders.map((o) => (
-                    <tr key={o.id} className="border-b border-border last:border-b-0">
-                      <td className="px-5 py-3">
-                        <span className={cn('inline-flex items-center px-2 h-[20px] lg:h-[24px] rounded-full text-xs lg:text-sm font-semibold', o.direction === 'BUY' ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400' : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400')}>
-                          {o.direction === 'BUY' ? '매수' : '매도'}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 text-sm lg:text-base font-semibold">{o.ticker}</td>
-                      <td className="px-5 py-3 text-sm lg:text-base text-muted-foreground text-right">{o.quantity}주</td>
-                      <td className="px-5 py-3 text-sm lg:text-base font-semibold text-right">${fmtUsd(toNum(o.price))}</td>
-                      <td className="px-5 py-3 text-right">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            cancelOneMutation.mutate(o.id, {
-                              onSuccess: () => {
-                                const remaining = placedOrders.filter((x) => x.id !== o.id)
-                                setManualOrders(remaining.length === 0 ? null : remaining)
-                              },
-                            })
-                          }
-                          disabled={cancelOneMutation.isPending}
-                          className="text-sm lg:text-base px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
-                        >
-                          {cancelOneMutation.isPending && cancelOneMutation.variables === o.id ? '취소 중...' : '취소'}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
+              <OrderRows
+                orders={placedOrders}
+                onCancelOne={handleCancelOne}
+                cancellingId={cancelOneMutation.isPending ? cancelOneMutation.variables : null}
+                cancelPending={cancelOneMutation.isPending}
+              />
             </div>
           ) : isLoadingPreview ? (
             <p className="text-sm lg:text-base text-muted-foreground text-center px-6 py-4">로딩 중...</p>
@@ -369,47 +311,7 @@ const position = preview?.position ?? null
                   {`$${fmtUsd(previewDeficit)} 부족`}
                 </div>
               )}
-              {/* 모바일 리스트 */}
-              <ul className="lg:hidden">
-                {orders.map((o, i) => (
-                  <li
-                    key={`${o.ticker}-${o.direction}-${i}`}
-                    className="flex items-center gap-3 text-sm px-6 py-3 border-b border-border last:border-b-0"
-                  >
-                    <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold', o.direction === 'BUY' ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400' : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400')}>
-                      {o.direction === 'BUY' ? '매수' : '매도'}
-                    </span>
-                    <span className="font-medium">{o.ticker}</span>
-                    <span className="text-muted-foreground">{o.quantity}주</span>
-                    <span className="ml-auto font-semibold">${fmtUsd(toNum(o.price))}</span>
-                  </li>
-                ))}
-              </ul>
-              {/* PC 테이블 */}
-              <table className="hidden lg:table w-full">
-                <thead>
-                  <tr>
-                    <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">구분</th>
-                    <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">종목</th>
-                    <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">수량</th>
-                    <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">주문가</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map((o, i) => (
-                    <tr key={`${o.ticker}-${o.direction}-${i}`} className="border-b border-border last:border-b-0">
-                      <td className="px-5 py-3">
-                        <span className={cn('inline-flex items-center px-2 h-[20px] lg:h-[24px] rounded-full text-xs lg:text-sm font-semibold', o.direction === 'BUY' ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400' : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400')}>
-                          {o.direction === 'BUY' ? '매수' : '매도'}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 text-sm lg:text-base font-semibold">{o.ticker}</td>
-                      <td className="px-5 py-3 text-sm lg:text-base text-muted-foreground text-right">{o.quantity}주</td>
-                      <td className="px-5 py-3 text-sm lg:text-base font-semibold text-right">${fmtUsd(toNum(o.price))}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <OrderRows orders={orders} />
             </div>
           )}
         </CardContent>
