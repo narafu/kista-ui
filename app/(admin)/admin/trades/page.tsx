@@ -96,7 +96,7 @@ export default async function AdminTradesPage({
                 <tr key={t.id} className="hover:bg-muted/20 transition-colors">
                   <td className="px-4 py-3 text-center text-muted-foreground text-xs whitespace-nowrap">{t.tradeDate}</td>
                   <td className="px-4 py-3 text-center font-medium whitespace-nowrap">{t.ownerNickname}</td>
-                  <td className="px-4 py-3 text-center text-xs text-muted-foreground whitespace-nowrap">{t.strategyName ?? '-'}</td>
+                  <td className="px-4 py-3 text-center text-xs text-muted-foreground whitespace-nowrap">{t.strategyType ?? '-'}</td>
                   <td className="px-4 py-3 text-center whitespace-nowrap">{t.ticker}</td>
                   <td className={`px-4 py-3 text-center font-semibold whitespace-nowrap ${t.direction === 'BUY' ? 'text-pos' : 'text-neg'}`}>
                     {DIRECTION_LABEL[t.direction] ?? t.direction}
