@@ -143,7 +143,7 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
         badge = <span className="text-xs px-1.5 py-[1px] rounded bg-muted text-muted-foreground/50">휴</span>
       } else if (isHoliday) {
         badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-neg-bg text-neg">휴장</span>
-      } else if (isToday && !summary) {
+      } else if (isToday && !summary && accountIds.length > 0) {
         badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400">대기중</span>
         sub = <span className="text-xs text-muted-foreground">오늘</span>
       } else if (summary) {
@@ -236,18 +236,22 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
           <span className="size-[7px] rounded-full bg-neg shrink-0" />
           미국 휴장
         </span>
-        <span className="flex items-center gap-1.5">
-          <span className="size-[7px] rounded bg-green-500 dark:bg-green-400 shrink-0" />
-          매도
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="size-[7px] rounded bg-neg shrink-0" />
-          매수
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="size-[7px] rounded bg-orange-400 dark:bg-orange-400 shrink-0" />
-          대기중
-        </span>
+        {accountIds.length > 0 && (
+          <>
+            <span className="flex items-center gap-1.5">
+              <span className="size-[7px] rounded bg-green-500 dark:bg-green-400 shrink-0" />
+              매도
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="size-[7px] rounded bg-neg shrink-0" />
+              매수
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="size-[7px] rounded bg-orange-400 dark:bg-orange-400 shrink-0" />
+              대기중
+            </span>
+          </>
+        )}
       </div>
     </div>
   )
