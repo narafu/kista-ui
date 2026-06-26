@@ -64,7 +64,7 @@ export function createProxyRoute(opts: CreateProxyRouteOptions): {
       }
     }
 
-    if (request.method !== 'GET' && opts.revalidateTags) {
+    if (request.method !== 'GET' && opts.revalidateTags && token) {
       for (const tag of opts.revalidateTags(token)) revalidateTag(tag, 'max')
     }
 
