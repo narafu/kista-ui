@@ -1,3 +1,5 @@
 export type { EnumMeta, StrategyTypeMeta, TickerMeta, MetaBundle } from './model/types'
+export type { SeedSource } from './model/strategy-capability'
+export { deriveSeedSource } from './model/strategy-capability'
 export { getMetaBundle } from './api'
 export { MetaProvider, useMeta } from './providers/MetaProvider'
