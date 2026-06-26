@@ -136,7 +136,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
   return (
     <div className="space-y-4">
       <Card>
-        <div className="flex flex-wrap items-center gap-2 px-5 pt-4 pb-3">
+        <div className="flex flex-wrap items-center gap-2 px-5 pt-4 pb-5">
           <span className="inline-flex items-center px-2.5 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400">
             {strategy.type}
           </span>
@@ -156,27 +156,25 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
             className="ml-auto text-sm lg:text-base text-muted-foreground"
           />
         </div>
-        <div className="grid grid-cols-3 border-t border-border">
-          <div className="flex flex-col items-center px-5 py-3 lg:py-5 border-r border-border">
-            <p className="text-xs lg:text-xs text-muted-foreground uppercase tracking-wider mb-1.5">상태</p>
-            <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} labelClassName="lg:text-sm" />
-          </div>
-          <div className="flex flex-col items-center px-5 py-3 lg:py-5 border-r border-border">
-            <p className="text-xs lg:text-xs text-muted-foreground uppercase tracking-wider mb-1.5">다음 사이클</p>
-            <span className={`inline-flex items-center px-2.5 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap ${seedBadgeCls}`}>{cycleSeedLabel}</span>
-          </div>
-          <div className="flex flex-col items-center px-5 py-3 lg:py-5">
-            <p className="text-xs lg:text-xs text-muted-foreground uppercase tracking-wider mb-1.5">시작금액</p>
-            <p className="text-sm lg:text-base font-semibold text-foreground">
-              {strategy.initialUsdDeposit != null ? (
-                `$${fmtUsd(strategy.initialUsdDeposit)}`
-              ) : (
-                <span className="text-muted-foreground font-normal">미설정</span>
-              )}
-            </p>
-          </div>
-        </div>
       </Card>
+
+      <div className="grid grid-cols-3 gap-3">
+        <KpiCard
+          label="상태"
+          value={<StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} labelClassName="lg:text-sm" />}
+        />
+        <KpiCard
+          label="다음 사이클"
+          value={<span className={cn('inline-flex items-center px-2.5 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap', seedBadgeCls)}>{cycleSeedLabel}</span>}
+        />
+        <KpiCard
+          label="시작금액"
+          value={strategy.initialUsdDeposit != null
+            ? `$${fmtUsd(strategy.initialUsdDeposit)}`
+            : <span className="text-base lg:text-lg text-muted-foreground font-normal">미설정</span>
+          }
+        />
+      </div>
 
       {isInfinite && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
