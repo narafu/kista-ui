@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { clientFetch } from '@shared/lib/api-client'
 
 interface Props {
@@ -10,14 +9,13 @@ interface Props {
 }
 
 export function LogoutButton({ className, children }: Props) {
-  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
   async function handleLogout() {
     if (isLoading) return
     setIsLoading(true)
     await clientFetch<void>('/api/auth/logout', { method: 'POST' }).catch(() => {})
-    router.push('/dashboard')
+    window.location.href = '/dashboard'
   }
 
   return (
