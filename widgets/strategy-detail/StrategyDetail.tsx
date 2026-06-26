@@ -17,7 +17,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { StatusDot } from '@widgets/status-dot'
 import { KpiCard } from '@widgets/kpi-card'
 import { RevealableValue } from '@widgets/revealable-value'
 import { StrategyTradesTab } from '@widgets/cycle-history'
@@ -161,7 +160,15 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
       <div className="grid grid-cols-3 gap-3">
         <KpiCard
           label="상태"
-          value={<StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} labelClassName="lg:text-sm" />}
+          value={
+            <span className={cn(
+              'inline-flex items-center gap-1.5 text-xs lg:text-sm font-medium',
+              strategy.status === 'ACTIVE' ? 'text-status-ok' : 'text-warn',
+            )}>
+              <span className={cn('size-2 rounded-full shrink-0', strategy.status === 'ACTIVE' ? 'bg-status-ok' : 'bg-warn')} />
+              {strategy.status}
+            </span>
+          }
         />
         <KpiCard
           label="다음 사이클"
