@@ -80,7 +80,7 @@ import { deleteAccount } from '@entities/account'
   - **최소 시드**: INFINITE = `basePrice * divisionCount * 2`, PRIVACY = `currentCycleStart`. 미달 시 등록 버튼 비활성화 (`StrategyForm`).
   - **INFINITE vs PRIVACY 판별**: 리터럴 직접 사용 금지. `typeMeta?.availableTickers?.length > 1` = INFINITE. API 인자도 `meta.tickers.map(t => t.code)` 사용 (하드코딩 금지).
 - **meta**: `MetaProvider`는 `(main)/layout.tsx`에서만 제공 → `(main)` 밖 `useMeta()` 호출 불가. `useMeta()` → `findStrategyType(code)`, `findTicker(code)`, `labelOf(category, code)`. `TickerMeta.targetProfitRate`는 `string` 타입 — 사용 시 `parseFloat()` 변환 필요. `StrategyTypeMeta`에 `availableTickers` 포함(`defaultTicker`/`defaultMultiple` 없음) — UI 초기화는 `availableTickers[0]` + 상수 `"1"`.
-- **trade/providers**: `TradeNotificationProvider` — SSE `/api/trades/stream` 구독, 체결 toast 표시. `(main)/layout.tsx`에 마운트.
+- **trade/providers**: `TradeNotificationProvider` — SSE `/api/trades/stream` 구독, 체결 toast 표시. `(main)/layout.tsx`에 마운트. `auth-error` 이벤트 수신 시 재연결 중단(무한 401 루프 방지) — Route Handler가 보내는 `event: auth-error`를 `es.addEventListener`로 처리.
 - **privacy**: `getPrivacyCurrentBase()` 응답 `{ ticker, currentCycleStart, tradeDate }`, Route Handler `app/api/privacy-trades/[[...path]]/route.ts`. 기준 매매표 없으면 404.
 - **fcm**: `registerTokenToServer`/`unregisterTokenFromServer` → `clientFetch<void>` 사용(raw fetch 금지 — 401 자동 로그아웃 누락). `fcm_device_tokens`은 사용자당 여러 토큰 허용, `save()` 중복 토큰 자동 skip. 발송 시점: 매매 결산·가입 승인·가입 거절(신규 가입·전략 변경은 텔레그램만).
 

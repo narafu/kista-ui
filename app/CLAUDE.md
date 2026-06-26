@@ -25,6 +25,7 @@
 - **Docker standalone**: Route Handler(Node.js runtime)에서 origin → `request.headers.get('host')` + `request.headers.get('x-forwarded-proto')` 직접 구성. `request.url` 사용 금지
 - **API URL**: 모든 Route Handler에서 `process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL` 패턴 필수 (`NEXT_PUBLIC_*` 단독 → Docker에서 ECONNREFUSED)
 - **SSE 인증**: 브라우저 `EventSource`는 커스텀 헤더 미지원 → Route Handler가 Bearer 토큰 포함 후 kista-api로 중계 (`app/api/auth/status-stream/route.ts` 참고)
+- **SSE 인증 실패 → 401 응답 금지**: `EventSource`는 4xx를 `onerror`로만 받아 상태 코드를 알 수 없음 → 클라이언트가 무한 재연결 루프에 빠짐. 토큰 없을 때 200 SSE 스트림으로 `event: auth-error` 보내고 클라이언트가 이를 받아 재연결 중단 (`app/api/trades/stream/route.ts` 참고)
 - **SSE `request.signal` 필수**: 미전달 시 클라이언트가 EventSource 닫아도 스트림 파이핑 계속 → `UND_ERR_SOCKET` 에러. `GET(request: NextRequest)` + `fetch(url, { signal: request.signal })`
 - **SSE `UND_ERR_BODY_TIMEOUT`**: undici 기본 timeout(300s)으로 5분마다 500. `import { Agent } from 'undici'` + `new Agent({ bodyTimeout: 0, headersTimeout: 0 })` + fetch에 `// @ts-ignore` + `dispatcher: sseAgent`. `undici`는 별도 설치 필요
 
