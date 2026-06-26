@@ -142,11 +142,11 @@ export function CycleHistoryTable({
               <table className="w-full text-sm lg:text-base">
                 <thead className="bg-muted/50 sticky top-0 z-10">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">티커</th>
-                    <th className="px-4 py-3 text-right text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">수량</th>
-                    <th className="px-4 py-3 text-right text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">평단가</th>
-                    <th className="px-4 py-3 text-right text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">예수금</th>
-                    <th className="px-4 py-3 text-right text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">평가금액</th>
+                    <th className="px-4 py-3 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">티커</th>
+                    <th className="px-4 py-3 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">수량</th>
+                    <th className="px-4 py-3 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">평단가</th>
+                    <th className="px-4 py-3 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">예수금</th>
+                    <th className="px-4 py-3 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">평가금액</th>
                   </tr>
                 </thead>
                 <tbody>
