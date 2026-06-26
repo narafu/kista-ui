@@ -30,11 +30,7 @@ export function useWeeklyTradeSummaryQuery(accountIds: string[], weekStart: Date
       for (const r of results) {
         if (r.status !== 'fulfilled') continue
         for (const item of r.value.items) {
-          // KIS trad_dt는 'YYYYMMDD' 형식 → 달력 키('YYYY-MM-DD')로 변환
-          const raw = item.tradeDate
-          const dateKey = raw.length === 8 && !raw.includes('-')
-            ? `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`
-            : raw
+          const dateKey = item.tradeDate // API가 항상 ISO YYYY-MM-DD 반환
           const prev = map.get(dateKey) ?? { tradeCount: 0, netAmountUsd: 0 }
           const sign = item.direction === 'SELL' ? 1 : -1
           map.set(dateKey, {
