@@ -25,7 +25,7 @@ export function DesktopSidebar({ isAdmin, isAuthenticated }: Props) {
 
   return (
     <aside
-      className="hidden lg:flex flex-col w-[232px] min-h-screen shrink-0 border-r border-border px-4 py-6"
+      className="hidden lg:flex flex-col w-[232px] h-screen sticky top-0 shrink-0 border-r border-border px-4 py-6 overflow-y-auto"
       style={{ background: 'var(--sidebar-bg)' }}
     >
       {/* Logo */}
