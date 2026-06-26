@@ -77,10 +77,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
   const hasServerOrders = serverOrders.length > 0
   const placedOrders = manualOrders ?? (hasServerOrders ? serverOrders : [])
   const mode: 'preview' | 'executed' = manualOrders !== null || hasServerOrders ? 'executed' : 'preview'
-  function setMode(m: 'preview' | 'executed') {
-    if (m === 'preview') setManualOrders(null)
-  }
-  const position = preview?.position ?? null
+const position = preview?.position ?? null
   const orders = preview?.orders ?? []
 
   // 매수 주문이 있을 때만 브로커 실잔고 조회 — 부족분은 프론트에서 계산

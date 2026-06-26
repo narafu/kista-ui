@@ -24,7 +24,7 @@ export default async function DashboardPage() {
 
   let accounts: Account[] = []
   // 비인증: 체결내역 없는 달력만 표시 (휴장일은 public 엔드포인트로 로드)
-  let holidays: string[] = token
+  const holidays: string[] = token
     ? await getMonthlyHolidays(calendarYear, calendarMonth, token).catch(() => [])
     : await getMonthlyHolidaysPublic(calendarYear, calendarMonth)
 

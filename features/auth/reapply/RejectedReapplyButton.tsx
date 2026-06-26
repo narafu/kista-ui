@@ -20,7 +20,7 @@ export function RejectedReapplyButton() {
   const router = useRouter()
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [cooldownMinutes, setCooldownMinutes] = useState(() => {
+  const [cooldownMinutes] = useState(() => {
     if (typeof window === 'undefined') return 0
     const last = localStorage.getItem(STORAGE_KEY)
     if (!last) return 0
