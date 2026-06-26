@@ -4,7 +4,7 @@ import { useState, useSyncExternalStore } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
 import { useMonthlyHolidaysQuery } from '@entities/market'
-import { useWeeklyTradeSummaryQuery } from '@entities/trade'
+import { useWeeklyTradeSummaryQuery, type DayTradeSummary } from '@entities/trade'
 
 interface Props {
   holidays: string[]
@@ -39,6 +39,9 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
     () => new Date(initialWeekStartDate + 'T00:00:00'),
   )
   const weekEnd = addDays(displayWeekStart, 6)
+  const prevWeekStart = addDays(displayWeekStart, -7)
+  const nextWeekStart = addDays(displayWeekStart, 7)
+  const nextWeekEnd = addDays(nextWeekStart, 6)
 
   const todayStr = useSyncExternalStore(
     () => () => {},
@@ -60,32 +63,73 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
     weekEnd.getFullYear(),
     weekEnd.getMonth() + 1,
   )
-  const holidaySet = new Set([...h1, ...h2])
+  // 전주 시작 달 / 다음주 끝 달 (달 경계 커버, 동일 month는 캐시 재사용)
+  const { holidays: hPrev } = useMonthlyHolidaysQuery(
+    prevWeekStart.getFullYear(),
+    prevWeekStart.getMonth() + 1,
+  )
+  const { holidays: hNext } = useMonthlyHolidaysQuery(
+    nextWeekEnd.getFullYear(),
+    nextWeekEnd.getMonth() + 1,
+  )
+  const holidaySet = new Set([...h1, ...h2, ...hPrev, ...hNext])
 
   const { data: tradeSummary = new Map(), isFetching } = useWeeklyTradeSummaryQuery(
     accountIds,
     displayWeekStart,
   )
+  const { data: prevTradeSummary = new Map(), isFetching: isPrevFetching } = useWeeklyTradeSummaryQuery(
+    accountIds,
+    prevWeekStart,
+  )
+  const { data: nextTradeSummary = new Map(), isFetching: isNextFetching } = useWeeklyTradeSummaryQuery(
+    accountIds,
+    nextWeekStart,
+  )
+  const anyFetching = isFetching || isPrevFetching || isNextFetching
 
-  function renderRow(rowStart: Date, isCurrent: boolean) {
+  function renderCompactRow(rowStart: Date, summary: Map<string, DayTradeSummary>) {
     return Array.from({ length: 7 }, (_, i) => {
       const day = addDays(rowStart, i)
       const ds = toDateStr(day)
       const isSun = i === 0
       const isSat = i === 6
+      const isWeekend = isSun || isSat
+      const isHoliday = holidaySet.has(ds)
+      const daySummary = !isWeekend ? summary.get(ds) : undefined
 
-      if (!isCurrent) {
-        return (
-          <div key={ds} className="flex justify-center py-1">
+      return (
+        <div key={ds} className="flex flex-col items-center gap-0.5 py-1">
+          <span className={cn(
+            'text-xs',
+            isSun ? 'text-pos/40' : isSat ? 'text-neg/40' : 'text-muted-foreground/30',
+          )}>
+            {day.getDate()}
+          </span>
+          {isHoliday && !isWeekend && (
+            <span className="text-[10px] leading-none text-neg/60">휴장</span>
+          )}
+          {!isWeekend && !isHoliday && daySummary && (
             <span className={cn(
-              'text-xs',
-              isSun ? 'text-pos/40' : isSat ? 'text-neg/40' : 'text-muted-foreground/30',
+              'text-[10px] leading-none',
+              daySummary.netAmountUsd >= 0
+                ? 'text-green-600/60 dark:text-green-400/60'
+                : 'text-neg/60',
             )}>
-              {day.getDate()}
+              {daySummary.netAmountUsd >= 0 ? '+' : '-'}${Math.abs(daySummary.netAmountUsd).toFixed(0)}
             </span>
-          </div>
-        )
-      }
+          )}
+        </div>
+      )
+    })
+  }
+
+  function renderCurrentRow() {
+    return Array.from({ length: 7 }, (_, i) => {
+      const day = addDays(displayWeekStart, i)
+      const ds = toDateStr(day)
+      const isSun = i === 0
+      const isSat = i === 6
 
       const isToday = ds === todayStr
       const isHoliday = holidaySet.has(ds)
@@ -170,7 +214,7 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
         </button>
       </div>
 
-      <div className={cn('grid grid-cols-7 text-center gap-0.5', isFetching && 'opacity-50')}>
+      <div className={cn('grid grid-cols-7 text-center gap-0.5', anyFetching && 'opacity-50')}>
         {WEEKDAYS.map((d, i) => (
           <div
             key={d}
@@ -182,9 +226,9 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
             {d}
           </div>
         ))}
-        {renderRow(addDays(displayWeekStart, -7), false)}
-        {renderRow(displayWeekStart, true)}
-        {renderRow(addDays(displayWeekStart, 7), false)}
+        {renderCompactRow(prevWeekStart, prevTradeSummary)}
+        {renderCurrentRow()}
+        {renderCompactRow(nextWeekStart, nextTradeSummary)}
       </div>
 
       <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground flex-wrap">

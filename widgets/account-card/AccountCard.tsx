@@ -36,7 +36,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
 
   const activeCount = strategies.filter((s) => s.status === 'ACTIVE').length
   const mixedLabel = strategies.length > 1 && activeCount > 0 && activeCount < strategies.length
-    ? `운영중 ${activeCount}개`
+    ? `ACTIVE ${activeCount}개`
     : undefined
 
   return (

@@ -56,12 +56,12 @@ export function AccountDetailTabs({ account, strategies: initialStrategies, usdD
       </div>
 
       {/* 데스크탑: 전체 레이아웃 */}
-      <div className="hidden lg:block space-y-6">
-        <div className="grid grid-cols-2 gap-6">
+      <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6">
+        <div className="space-y-6">
           <AccountSummaryCard account={account} usdDeposit={usdDeposit} posEvalUsd={posEvalUsd} />
-          <TradesTab accountId={account.id} />
+          <StrategyList accountId={account.id} strategies={strategies} />
         </div>
-        <StrategyList accountId={account.id} strategies={strategies} />
+        <TradesTab accountId={account.id} />
       </div>
     </div>
   )
