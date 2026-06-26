@@ -3,10 +3,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { createChart, CandlestickSeries, ColorType, type IChartApi } from 'lightweight-charts'
 import { Info } from 'lucide-react'
-import { useCandlesQuery, CHART_CANDLE_COUNT } from '@entities/market'
+import { useCandlesQuery } from '@entities/market'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { MarketChartCategory } from './marketChartCategories'
+
+const CANDLE_OPTIONS = [200, 120, 50, 20] as const
+type CandleCount = (typeof CANDLE_OPTIONS)[number]
 
 interface Props {
   category: MarketChartCategory
@@ -46,8 +49,9 @@ function readChartColors() {
 
 export default function MarketChartCardInner({ category }: Props) {
   const [symbol, setSymbol] = useState(category.options[0].symbol)
+  const [candleCount, setCandleCount] = useState<CandleCount>(200)
   const selected = category.options.find((o) => o.symbol === symbol) ?? category.options[0]
-  const { data: candles = [] } = useCandlesQuery(symbol, CHART_CANDLE_COUNT)
+  const { data: candles = [] } = useCandlesQuery(symbol, candleCount)
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
 
@@ -122,14 +126,30 @@ export default function MarketChartCardInner({ category }: Props) {
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
           <span className="text-sm font-semibold tracking-widest uppercase text-[var(--brand-fg-soft)]">{category.title}</span>
-          <span className="text-sm text-muted-foreground">일봉 · {CHART_CANDLE_COUNT}</span>
+          <span className="text-xs text-muted-foreground">일봉</span>
         </div>
-        <Popover>
-          <PopoverTrigger className="text-muted-foreground hover:text-foreground transition-colors">
-            <Info className="size-3.5" />
-          </PopoverTrigger>
-          <PopoverContent className="w-auto text-sm whitespace-nowrap">{selected.description}</PopoverContent>
-        </Popover>
+        <div className="flex items-center gap-1">
+          {CANDLE_OPTIONS.map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => setCandleCount(n)}
+              className={`text-xs px-1.5 py-0.5 rounded font-medium transition-colors ${
+                candleCount === n
+                  ? 'bg-[var(--brand-fg-soft)] text-white'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+              }`}
+            >
+              {n}
+            </button>
+          ))}
+          <Popover>
+            <PopoverTrigger className="ml-1 text-muted-foreground hover:text-foreground transition-colors">
+              <Info className="size-3.5" />
+            </PopoverTrigger>
+            <PopoverContent className="w-auto text-sm whitespace-nowrap">{selected.description}</PopoverContent>
+          </Popover>
+        </div>
       </div>
       <Select value={symbol} onValueChange={(value) => value && setSymbol(value)}>
         <SelectTrigger size="sm" className="w-full">
