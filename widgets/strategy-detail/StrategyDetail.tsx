@@ -173,6 +173,7 @@ const position = preview?.position ?? null
         />
         <KpiCard
           label="시작금액"
+          valueClassName="text-xl lg:text-2xl"
           value={strategy.initialUsdDeposit != null
             ? `$${fmtUsd(strategy.initialUsdDeposit)}`
             : <span className="text-base lg:text-lg text-muted-foreground font-normal">미설정</span>

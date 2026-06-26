@@ -8,10 +8,11 @@ interface Props {
   sub?: ReactNode
   variant?: 'default' | 'accent' | 'soft'
   className?: string
+  valueClassName?: string
   skeleton?: boolean
 }
 
-export function KpiCard({ label, labelAction, value, sub, variant = 'default', className, skeleton = false }: Props) {
+export function KpiCard({ label, labelAction, value, sub, variant = 'default', className, valueClassName, skeleton = false }: Props) {
   return (
     <div
       className={cn(
@@ -46,6 +47,7 @@ export function KpiCard({ label, labelAction, value, sub, variant = 'default', c
           variant === 'default' && 'text-foreground',
           variant === 'accent' && 'text-white',
           variant === 'soft' && 'text-[var(--brand-fg)]',
+          valueClassName,
         )}
       >
         {skeleton ? (
