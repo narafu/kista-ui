@@ -41,7 +41,7 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 | `profit-stats-card` | `ProfitStatsCard`, `PortfolioChart`, `PortfolioChartInner` | 수익 통계 + 차트 |
 | `profit-display` | `ProfitDisplay` | 손익 표시 (USD/KRW) |
 | `margin-card` | `MarginCard` | 증거금 카드 (`useAccountMarginQuery` 내장) |
-| `market-holiday-calendar` | `MarketHolidayCalendar` | 시장 휴일 달력 |
+| `market-holiday-calendar` | `MarketHolidayCalendar`, `WeeklyMarketCalendar` | 시장 휴일 달력(월간) / 주간 휴일+거래 요약 달력 |
 | `revealable-value` | `RevealableValue` | 마스킹 토글 값 |
 | `glass-card` | `GlassCard` | 유리 효과 카드 래퍼 |
 | `page-header` | `PageHeader` | 페이지 헤더 |
@@ -96,6 +96,7 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 - **`revealable-value`**: `****0614` 마스킹 → 눈 아이콘으로 공개. `KpiCard`의 `value={<RevealableValue value={account.accountNoMasked} />}` 패턴.
 - **`all-strategies`**: `AllStrategiesList`는 Server prop(`initialStrategies`)을 `useAllStrategiesQuery(initialStrategies)`에 초기 데이터로 전달해 뮤테이션 즉시 반영. `strategies.length === 0`이면 내부 `EmptyState` 컴포넌트 렌더링. 계좌 유무(`accounts.length > 0`)에 따라 분기 — 계좌 있음: 계좌 상세 링크 최대 3개 + 더보기, 계좌 없음: `/accounts` 등록 링크.
 - **`admin-user-list`**: 이상감지 카드는 `AdminAnomalies { pausedAccounts, inactiveAccounts }` 사용 — `failedTrades` 필드 없음.
+- **`market-holiday-calendar/WeeklyMarketCalendar`**: 현재 주 행은 `renderCurrentRow()`(휴장/거래 배지 포함), 전주·다음주 행은 `renderCompactRow()`(날짜 + 휴장/순매매 금액만 컴팩트 표시)로 분리 렌더링. `useWeeklyTradeSummaryQuery`를 현재/전주/다음주 3회 호출, `useMonthlyHolidaysQuery`를 4회 호출(현재 주 시작/끝 달 + 전주 시작 달 + 다음주 끝 달)해 달 경계를 모두 커버.
 - **`glass-card`**: `maxWidth` prop + CSS 토큰(`var(--background)`)은 인라인 style 유지.
 - **`pull-to-refresh`**: `paddingTop` 동적 계산, `transform: rotate(${progress * 270}deg)` — 인라인 style 유지.
 - **`layout/DesktopSidebar`**: `background: var(--sidebar-bg)` 인라인 style 유지 (CSS 토큰).
