@@ -11,6 +11,8 @@ type Handler = (req: NextRequest, ctx: Params) => Promise<NextResponse>
 export type CreateProxyRouteOptions = {
   basePath: string
   revalidateTags?: (token: string) => string[]
+  // true(기본)이면 토큰 없을 때 401. false면 비인증 상태로 kista-api 직접 전달 (GET /api/market/** 등 공개 엔드포인트용)
+  requireAuth?: boolean
 }
 
 export function createProxyRoute(opts: CreateProxyRouteOptions): {
@@ -24,11 +26,11 @@ export function createProxyRoute(opts: CreateProxyRouteOptions): {
 
   async function proxy(request: NextRequest, pathSegments: string[]) {
     const token = await getAuthToken()
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!token && opts.requireAuth !== false) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const subPath = pathSegments.length > 0 ? `/${pathSegments.join('/')}` : ''
     const url = `${API_BASE_URL}${opts.basePath}${subPath}${request.nextUrl.search}`
-    const headers: HeadersInit = { Authorization: `Bearer ${token}` }
+    const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {}
     let body: BodyInit | undefined
 
     if (request.method !== 'GET' && request.method !== 'DELETE') {
