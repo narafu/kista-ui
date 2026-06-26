@@ -9,7 +9,7 @@ import { getMetaBundle } from '@entities/meta'
 import { getMe } from '@entities/user'
 import { getAuthToken } from '@shared/lib/auth/token'
 import Link from 'next/link'
-import { ShieldCheck, LogOut } from 'lucide-react'
+import { ShieldCheck, LogOut, LogIn } from 'lucide-react'
 import { LogoutButton } from '@features/auth/logout'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
@@ -43,7 +43,14 @@ export default async function MainLayout({ children }: { children: React.ReactNo
                     <LogOut className="size-4" />
                   </LogoutButton>
                 </div>
-              ) : null
+              ) : (
+                <Link
+                  href="/login"
+                  className="flex items-center justify-center size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                >
+                  <LogIn className="size-4" />
+                </Link>
+              )
             }
           />
           <PullToRefresh />

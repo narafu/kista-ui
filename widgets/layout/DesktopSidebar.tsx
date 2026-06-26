@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
-import { LayoutDashboard, CreditCard, ListChecks, Settings, LogOut, ShieldCheck } from 'lucide-react'
+import { LayoutDashboard, CreditCard, ListChecks, Settings, LogOut, LogIn, ShieldCheck } from 'lucide-react'
 import { ThemeToggle } from '@widgets/theme-toggle'
 import { LogoutButton } from '@features/auth/logout'
 import { isNavItemActive } from './nav-utils'
@@ -89,11 +89,19 @@ export function DesktopSidebar({ isAdmin, isAuthenticated }: Props) {
           <span className="text-sm text-muted-foreground">테마</span>
           <ThemeToggle />
         </div>
-        {isAuthenticated && (
+        {isAuthenticated ? (
           <LogoutButton className="flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium text-muted-foreground hover:bg-rose-50/60 hover:text-foreground transition-colors w-full text-left">
             <LogOut className="size-[18px] shrink-0" />
             로그아웃
           </LogoutButton>
+        ) : (
+          <Link
+            href="/login"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium text-muted-foreground hover:bg-rose-50/60 hover:text-foreground transition-colors"
+          >
+            <LogIn className="size-[18px] shrink-0" />
+            로그인
+          </Link>
         )}
       </div>
     </aside>

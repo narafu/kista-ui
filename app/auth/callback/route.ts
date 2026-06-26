@@ -22,14 +22,14 @@ export async function GET(request: NextRequest) {
     const error = searchParams.get('error') ?? 'none'
     console.error(`[auth/callback] no code. error=${error}`)
     return NextResponse.redirect(
-      new URL(`/?error=no_code&detail=${encodeURIComponent(error)}`, origin)
+      new URL(`/login?error=no_code&detail=${encodeURIComponent(error)}`, origin)
     )
   }
 
   const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
   if (!apiUrl) {
     console.error('[auth/callback] NEXT_PUBLIC_API_BASE_URL 미설정')
-    return NextResponse.redirect(new URL('/?error=server_error', origin))
+    return NextResponse.redirect(new URL('/login?error=server_error', origin))
   }
 
   const redirectUri = `${origin}/auth/callback`
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     if (!res.ok) {
       const body = await res.text().catch(() => '')
       console.error(`[auth/callback] kista-api 실패: HTTP ${res.status}`, body)
-      return NextResponse.redirect(new URL('/?error=auth_failed', origin))
+      return NextResponse.redirect(new URL('/login?error=auth_failed', origin))
     }
 
     const data = await res.json()
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
     return response
   } catch (e) {
     console.error('[auth/callback] 예외:', e)
-    return NextResponse.redirect(new URL('/?error=server_error', origin))
+    return NextResponse.redirect(new URL('/login?error=server_error', origin))
   }
 }
 
@@ -92,6 +92,6 @@ function getRedirectPath(status: string): string {
     case 'ACTIVE': return '/dashboard'
     case 'PENDING': return '/pending'
     case 'REJECTED': return '/rejected'
-    default: return '/'
+    default: return '/login'
   }
 }

@@ -73,7 +73,8 @@ export async function proxy(request: NextRequest) {
   let token = request.cookies.get(KISTA_TOKEN_COOKIE)?.value
 
   if (!token) {
-    if (isProtected) return redirectTo('/', request)
+    if (isProtected) return redirectTo('/login', request)
+    if (pathname === '/') return redirectTo('/dashboard', request)
     return NextResponse.next({ request: { headers: request.headers } })
   }
 
@@ -112,7 +113,7 @@ export async function proxy(request: NextRequest) {
     } else {
       // RT 없거나 갱신 실패 → 상태 캐시 삭제 후 보호 경로면 로그인 이동
       const dest = isProtected
-        ? redirectTo('/', request)
+        ? redirectTo('/login', request)
         : NextResponse.next({ request: { headers: requestHeaders } })
       dest.cookies.delete(STATUS_COOKIE)
       dest.cookies.delete(ROLE_COOKIE)
@@ -144,7 +145,7 @@ export async function proxy(request: NextRequest) {
 
       if (!meRes.ok) {
         const dest = isProtected
-          ? redirectTo('/', request)
+          ? redirectTo('/login', request)
           : NextResponse.next({ request: { headers: requestHeaders } })
         // JWT 만료/무효 → 캐시 쿠키 초기화하여 다음 방문 시 재검증 강제
         dest.cookies.delete(STATUS_COOKIE)
@@ -159,7 +160,7 @@ export async function proxy(request: NextRequest) {
       role = userData.role ?? 'USER'
     } catch {
       const dest = isProtected
-        ? redirectTo('/', request)
+        ? redirectTo('/login', request)
         : NextResponse.next({ request: { headers: requestHeaders } })
       for (const sc of extraSetCookies) dest.headers.append('Set-Cookie', sc)
       return dest
@@ -209,7 +210,7 @@ function routeByStatusAndRole(
     return response
   }
   if (status === 'ACTIVE') {
-    if (pathname === '/' || pathname === '/pending' || pathname === '/rejected') {
+    if (pathname === '/' || pathname === '/login' || pathname === '/pending' || pathname === '/rejected') {
       return redirectTo('/dashboard', request)
     }
     return response
