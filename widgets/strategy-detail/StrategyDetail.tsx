@@ -25,6 +25,7 @@ import {
   useExecuteStrategyMutation,
   usePauseStrategyMutation,
   useResumeStrategyMutation,
+  seedBadgeClass,
 } from '@entities/strategy'
 import {
   useStrategyOrderPreviewQuery,
@@ -39,12 +40,6 @@ import { fmtUsd } from '@shared/lib/format'
 import { ApiError } from '@shared/lib/api-client'
 import type { Strategy } from '@entities/strategy'
 import type { SkipReason, PlacedOrder } from '@entities/order'
-
-const CYCLE_SEED_BADGE_CLS: Record<string, string> = {
-  NONE:     'bg-muted text-muted-foreground',
-  MAX:      'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400',
-  MAINTAIN: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400',
-}
 
 const SKIP_REASON_LABELS: Record<SkipReason, string> = {
   NO_CYCLE_HISTORY: '첫 매매 전입니다. 사이클 정보가 아직 없습니다.',
@@ -127,7 +122,7 @@ const position = preview?.position ?? null
   const { labelOf, findStrategyType } = useMeta()
   const cycleSeedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
   const usesDivisionCount = (findStrategyType(strategy.type)?.divisionCounts?.length ?? 0) > 0
-  const seedBadgeCls = CYCLE_SEED_BADGE_CLS[strategy.cycleSeedType] ?? 'bg-muted text-muted-foreground'
+  const seedBadgeCls = seedBadgeClass(strategy.cycleSeedType)
 
   return (
     <div className="space-y-4">

@@ -6,6 +6,7 @@ import { ChevronRight } from 'lucide-react'
 import { StatusDot } from '@widgets/status-dot'
 import { fmtUsd } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
+import { seedBadgeClass } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 
 interface Props {
@@ -19,17 +20,11 @@ const STATUS_ACCENT: Record<string, string> = {
   PAUSED: 'var(--warn)',
 }
 
-const CYCLE_SEED_BADGE_CLS: Record<string, string> = {
-  NONE:     'bg-muted text-muted-foreground',
-  MAX:      'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400',
-  MAINTAIN: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400',
-}
-
 export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
   const { findStrategyType, labelOf } = useMeta()
   const usesDivisionCount = (findStrategyType(strategy.type)?.divisionCounts?.length ?? 0) > 0
   const seedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
-  const seedBadgeCls = CYCLE_SEED_BADGE_CLS[strategy.cycleSeedType] ?? 'bg-muted text-muted-foreground'
+  const seedBadgeCls = seedBadgeClass(strategy.cycleSeedType)
 
   return (
     <Link
