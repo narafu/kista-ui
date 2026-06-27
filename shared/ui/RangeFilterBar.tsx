@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 
 export type RangePreset = '7d' | '30d' | 'all' | 'custom'
@@ -21,7 +21,7 @@ interface Props {
   presets?: RangePreset[]
 }
 
-export function RangeFilterBar({ current, from, to, pageParamKeys = ['page'], paramPrefix, presets = ['7d', '30d', 'all', 'custom'] }: Props) {
+function RangeFilterBarContent({ current, from, to, pageParamKeys = ['page'], paramPrefix, presets = ['7d', '30d', 'all', 'custom'] }: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -93,5 +93,13 @@ export function RangeFilterBar({ current, from, to, pageParamKeys = ['page'], pa
         </div>
       )}
     </div>
+  )
+}
+
+export function RangeFilterBar(props: Props) {
+  return (
+    <Suspense>
+      <RangeFilterBarContent {...props} />
+    </Suspense>
   )
 }
