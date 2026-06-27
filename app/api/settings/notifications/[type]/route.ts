@@ -10,8 +10,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const token = await getAuthToken()
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { type } = await params
-  const body = await request.json()
+  const [{ type }, body] = await Promise.all([params, request.json()])
   const res = await fetch(`${API_BASE_URL}/api/settings/notifications/${type}`, {
     method: 'PATCH',
     headers: {

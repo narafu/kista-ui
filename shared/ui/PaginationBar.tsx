@@ -48,12 +48,12 @@ export function PaginationBar({ page, totalPages, onPageChange, pageParam = 'pag
               className={prevDisabled ? 'pointer-events-none opacity-40' : ''}
             />
           </PaginationItem>
-          {pages.map((p, i) =>
+          {pagesWithKeys(pages).map(({ key, p }) =>
             p === '...' ? (
-              <PaginationItem key={`e${i}`}><PaginationEllipsis /></PaginationItem>
+              <PaginationItem key={key}><PaginationEllipsis /></PaginationItem>
             ) : (
-              <PaginationItem key={p}>
-                <PaginationLink href="#" isActive={p === page} onClick={(e) => { e.preventDefault(); onPageChange(p) }}>
+              <PaginationItem key={key}>
+                <PaginationLink href="#" isActive={p === page} onClick={(e) => { e.preventDefault(); onPageChange(p as number) }}>
                   {p}
                 </PaginationLink>
               </PaginationItem>
@@ -83,12 +83,12 @@ export function PaginationBar({ page, totalPages, onPageChange, pageParam = 'pag
             className={prevDisabled ? 'pointer-events-none opacity-40' : ''}
           />
         </PaginationItem>
-        {pages.map((p, i) =>
+        {pagesWithKeys(pages).map(({ key, p }) =>
           p === '...' ? (
-            <PaginationItem key={`e${i}`}><PaginationEllipsis /></PaginationItem>
+            <PaginationItem key={key}><PaginationEllipsis /></PaginationItem>
           ) : (
-            <PaginationItem key={p}>
-              <PaginationLink href={href(p)} isActive={p === page}>{p}</PaginationLink>
+            <PaginationItem key={key}>
+              <PaginationLink href={href(p as number)} isActive={p === page}>{p}</PaginationLink>
             </PaginationItem>
           )
         )}
@@ -103,6 +103,15 @@ export function PaginationBar({ page, totalPages, onPageChange, pageParam = 'pag
       </PaginationContent>
     </Pagination>
   )
+}
+
+function pagesWithKeys(pages: (number | '...')[]): { key: string; p: number | '...' }[] {
+  const result: { key: string; p: number | '...' }[] = []
+  let ellipsisCount = 0
+  for (const p of pages) {
+    result.push({ key: p === '...' ? `ellipsis-${++ellipsisCount}` : String(p), p })
+  }
+  return result
 }
 
 function buildPageNumbers(current: number, total: number): (number | '...')[] {
