@@ -74,7 +74,7 @@ export function useSeedModel({
     if (initial) return
     if (isDirty) return
     if (minSeed !== null) setSeedUsdInputInternal(Math.ceil(minSeed))
-  }, [balanceCheckEnabled, minSeed, isDirty]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [balanceCheckEnabled, minSeed, isDirty]) // eslint-disable-line react-doctor/exhaustive-deps
 
   // 100%일 때는 내림(예수금 초과 방지), 그 외는 올림(시드 부족 방지)
   const seedUsd = !balanceCheckEnabled

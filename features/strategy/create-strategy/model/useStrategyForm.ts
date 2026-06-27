@@ -126,7 +126,7 @@ export function useStrategyForm({
     if (usdDeposit === null && prices === null) {
       toast.error('예수금 / 현재가 조회에 실패했습니다')
     }
-  }, [loadingBase]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [loadingBase]) // eslint-disable-line react-doctor/exhaustive-deps
 
   const {
     pct, setPct,
@@ -143,7 +143,7 @@ export function useStrategyForm({
     if (!ticker || !availableTickers.includes(ticker)) {
       form.setValue('ticker', typeMeta.availableTickers[0] ?? '')
     }
-  }, [type]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [type]) // eslint-disable-line react-doctor/exhaustive-deps
 
   // 엔드포인트 minSeed 도착/변경 시 시드 게이지 재초기화 (신규 등록 한정)
   useEffect(() => {
@@ -153,7 +153,7 @@ export function useStrategyForm({
       pct: usdDeposit !== null && usdDeposit < minSeed ? 0 : 100,
       seedUsdInput: Math.ceil(minSeed),
     })
-  }, [minSeed]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [minSeed]) // eslint-disable-line react-doctor/exhaustive-deps
 
   const cannotSubmit = isBelowMinSeed || isInvalidSeed || (basePrice === null && seedUnavailableReason === null)
 

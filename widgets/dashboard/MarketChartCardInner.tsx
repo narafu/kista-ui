@@ -86,8 +86,8 @@ export default function MarketChartCardInner({ category }: Props) {
     })
 
     series.setData(
-      [...candles]
-        .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
+      candles
+        .toSorted((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
         .map((c) => ({ time: c.date, open: c.open, high: c.high, low: c.low, close: c.close })),
     )
     chart.timeScale().fitContent()
