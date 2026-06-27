@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const SIZES = ['10', '30', '50', '100']
@@ -16,7 +16,6 @@ interface Props {
 
 function PageSizeSelectorContent({ value, onChange, pageParamKeys = ['page'], sizeParamKey = 'size' }: Props) {
   const router = useRouter()
-  const searchParams = useSearchParams()
 
   const handleChange = (size: string | null) => {
     if (!size) return
@@ -24,7 +23,7 @@ function PageSizeSelectorContent({ value, onChange, pageParamKeys = ['page'], si
       onChange(size)
       return
     }
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(window.location.search)
     params.set(sizeParamKey, size)
     pageParamKeys.forEach((key) => params.set(key, '1'))
     router.push(`?${params.toString()}`)

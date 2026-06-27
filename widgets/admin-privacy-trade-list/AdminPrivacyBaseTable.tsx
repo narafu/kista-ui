@@ -65,7 +65,11 @@ export function AdminPrivacyBaseTable({ bases }: Props) {
 function FragmentRow({ base: b, open, onToggle }: { base: AdminPrivacyBase; open: boolean; onToggle: () => void }) {
   return (
     <>
-      <tr className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={onToggle}>
+      <tr
+        className="hover:bg-muted/20 transition-colors cursor-pointer"
+        onClick={onToggle}
+        aria-label={`${b.tradeDate} ${b.ticker} 행 ${open ? '접기' : '펼치기'}`}
+      >
         <td className="px-2 py-3 text-muted-foreground">
           {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
         </td>

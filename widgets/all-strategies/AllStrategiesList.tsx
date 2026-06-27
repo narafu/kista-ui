@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { TrendingUp, ChevronRight } from 'lucide-react'
@@ -21,12 +21,10 @@ interface Props {
 function EmptyState({ accounts }: { accounts: Account[] }) {
   const hasAccounts = accounts.length > 0
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
   function handleNavigateToAccounts() {
-    if (isLoading) return
-    setIsLoading(true)
-    router.push('/accounts')
+    startTransition(() => router.push('/accounts'))
   }
 
   return (
@@ -73,11 +71,11 @@ function EmptyState({ accounts }: { accounts: Account[] }) {
         <button
           type="button"
           onClick={handleNavigateToAccounts}
-          disabled={isLoading}
+          disabled={isPending}
           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] text-sm font-medium transition-colors disabled:opacity-60"
           style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
         >
-          {isLoading ? (
+          {isPending ? (
             <>
               <Spinner size={16} />
               이동 중...

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Loader2 } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
+import { Spinner } from '@shared/ui/Spinner'
 
 interface Props {
   href?: string
@@ -13,19 +14,17 @@ interface Props {
 
 export function NewAccountButton({ href = '/accounts/new', className, children = '계좌 등록' }: Props) {
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
   function handleClick() {
-    if (isLoading) return
-    setIsLoading(true)
-    router.push(href)
+    startTransition(() => router.push(href))
   }
 
   return (
     <button
       type="button"
       onClick={handleClick}
-      disabled={isLoading}
+      disabled={isPending}
       className={cn(
         'inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)]',
         'bg-gradient-to-br from-rose-500 to-rose-700 text-white text-sm font-semibold',
@@ -33,9 +32,9 @@ export function NewAccountButton({ href = '/accounts/new', className, children =
         className,
       )}
     >
-      {isLoading ? (
+      {isPending ? (
         <>
-          <Loader2 className="size-4 animate-spin" />
+          <Spinner size={16} />
           등록 중...
         </>
       ) : (
