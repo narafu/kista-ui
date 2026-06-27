@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   Pagination,
@@ -20,7 +21,7 @@ interface Props {
   pageParam?: string
 }
 
-export function PaginationBar({ page, totalPages, onPageChange, pageParam = 'page' }: Props) {
+function PaginationBarContent({ page, totalPages, onPageChange, pageParam = 'page' }: Props) {
   const searchParams = useSearchParams()
 
   if (totalPages <= 1) return null
@@ -102,6 +103,14 @@ export function PaginationBar({ page, totalPages, onPageChange, pageParam = 'pag
         </PaginationItem>
       </PaginationContent>
     </Pagination>
+  )
+}
+
+export function PaginationBar(props: Props) {
+  return (
+    <Suspense>
+      <PaginationBarContent {...props} />
+    </Suspense>
   )
 }
 
