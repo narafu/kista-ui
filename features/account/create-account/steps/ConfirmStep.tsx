@@ -3,6 +3,7 @@
 import { useCreateAccountMutation } from '@entities/account'
 import { useMeta } from '@entities/meta'
 import { ApiError } from '@shared/lib/api-client'
+import { Spinner } from '@shared/ui/Spinner'
 import type { BrokerCode, AccountRequest } from '@entities/account'
 import type { StepData } from '../CreateAccountStepper'
 
@@ -95,10 +96,7 @@ export function ConfirmStep({ data, onBack }: Props) {
         >
           {isPending ? (
             <>
-              <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
+              <Spinner size={16} />
               연결 중...
             </>
           ) : '계좌 연결'}

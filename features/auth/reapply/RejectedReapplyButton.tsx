@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { reapply } from '@entities/user'
+import { Spinner } from '@shared/ui/Spinner'
 
 const STORAGE_KEY = 'reapply_rejected_last_at'
 const COOLDOWN_MS = 24 * 60 * 60 * 1000
@@ -56,13 +57,7 @@ export function RejectedReapplyButton() {
         className="w-full h-[52px] rounded-xl text-base font-bold border-0 cursor-pointer disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground bg-primary text-white inline-flex items-center justify-center gap-2"
       >
         {isLoading ? (
-          <>
-            <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
-            재신청 중...
-          </>
+          <><Spinner size={18} />재신청 중...</>
         ) : (cooldownMinutes > 0 ? formatCooldown(cooldownMinutes) : '승인 재신청')}
       </button>
       <div className="text-sm text-muted-foreground mt-2.5 text-center">

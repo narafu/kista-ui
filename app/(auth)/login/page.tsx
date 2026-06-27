@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { GlassCard } from '@widgets/glass-card'
+import { Spinner } from '@shared/ui/Spinner'
 
 const ERROR_MESSAGES: Record<string, string> = {
   no_code: "로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.",
@@ -102,10 +103,7 @@ function LoginPageContent() {
       >
         {isLoading ? (
           <>
-            <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="#3C1E1E" strokeWidth="4" />
-              <path className="opacity-75" fill="#3C1E1E" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
+            <Spinner size={20} />
             카카오 연결 중...
           </>
         ) : (

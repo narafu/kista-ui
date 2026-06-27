@@ -3,6 +3,7 @@
 import { toast } from 'sonner'
 import { useChangeUserRoleMutation } from '@entities/user'
 import type { UserRole } from '@entities/user'
+import { Spinner } from '@shared/ui/Spinner'
 
 interface Props {
   userId: string
@@ -43,13 +44,7 @@ export function ChangeRoleButton({ userId, currentRole, isSelf = false }: Props)
       className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md border border-border text-muted-foreground hover:bg-muted disabled:opacity-50 transition-colors"
     >
       {mutation.isPending ? (
-        <>
-          <svg className="animate-spin" width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
-          변경 중...
-        </>
+        <><Spinner size={11} />변경 중...</>
       ) : `→ ${newRole}`}
     </button>
   )

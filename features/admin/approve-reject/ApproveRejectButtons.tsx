@@ -3,13 +3,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { useApproveUserMutation, useRejectUserMutation } from '@entities/user'
-
-const SPINNER = (
-  <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-  </svg>
-)
+import { Spinner } from '@shared/ui/Spinner'
 
 interface Props {
   userId: string
@@ -49,7 +43,7 @@ export function ApproveRejectButtons({ userId, nickname }: Props) {
         disabled={loading}
         className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50 transition-colors"
       >
-        {action === 'approve' ? <>{SPINNER}승인 중...</> : '승인'}
+        {action === 'approve' ? <><Spinner size={12} />승인 중...</> : '승인'}
       </button>
       <button
         type="button"
@@ -57,7 +51,7 @@ export function ApproveRejectButtons({ userId, nickname }: Props) {
         disabled={loading}
         className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md border border-border text-muted-foreground hover:bg-muted disabled:opacity-50 transition-colors"
       >
-        {action === 'reject' ? <>{SPINNER}거절 중...</> : '거절'}
+        {action === 'reject' ? <><Spinner size={12} />거절 중...</> : '거절'}
       </button>
     </div>
   )
