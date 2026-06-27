@@ -34,6 +34,119 @@ function weekLabel(weekStart: Date): string {
   return `${y}년 ${m}월 ${wn}주`
 }
 
+interface CompactRowProps {
+  rowStart: Date
+  summary: Map<string, DayTradeSummary>
+  holidaySet: Set<string>
+}
+
+function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
+  return Array.from({ length: 7 }, (_, i) => {
+    const day = addDays(rowStart, i)
+    const ds = toDateStr(day)
+    const isSun = i === 0
+    const isSat = i === 6
+    const isWeekend = isSun || isSat
+    const isHoliday = holidaySet.has(ds)
+    const daySummary = !isWeekend ? summary.get(ds) : undefined
+
+    return (
+      <div key={ds} className="flex flex-col items-center gap-0.5 py-1">
+        <span className={cn(
+          'text-xs',
+          isSun ? 'text-pos/40' : isSat ? 'text-neg/40' : 'text-muted-foreground/30',
+        )}>
+          {day.getDate()}
+        </span>
+        {isHoliday && !isWeekend && (
+          <span className="text-[10px] leading-none text-neg/60">휴장</span>
+        )}
+        {!isWeekend && !isHoliday && daySummary && (
+          <span className={cn(
+            'text-[10px] leading-none',
+            daySummary.netAmountUsd >= 0
+              ? 'text-green-600/60 dark:text-green-400/60'
+              : 'text-neg/60',
+          )}>
+            {daySummary.netAmountUsd >= 0 ? '+' : '-'}${Math.abs(daySummary.netAmountUsd).toFixed(0)}
+          </span>
+        )}
+      </div>
+    )
+  })
+}
+
+interface CurrentRowProps {
+  weekStart: Date
+  tradeSummary: Map<string, DayTradeSummary>
+  holidaySet: Set<string>
+  todayStr: string | null
+  accountIds: string[]
+}
+
+function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds }: CurrentRowProps) {
+  return Array.from({ length: 7 }, (_, i) => {
+    const day = addDays(weekStart, i)
+    const ds = toDateStr(day)
+    const isSun = i === 0
+    const isSat = i === 6
+
+    const isToday = ds === todayStr
+    const isHoliday = holidaySet.has(ds)
+    const isWeekend = isSun || isSat
+    const summary = !isWeekend ? tradeSummary.get(ds) : undefined
+
+    let badge: React.ReactNode
+    let sub: React.ReactNode = null
+
+    if (isWeekend) {
+      badge = <span className="text-xs px-1.5 py-[1px] rounded bg-muted text-muted-foreground/50">휴</span>
+    } else if (isHoliday) {
+      badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-neg-bg text-neg">휴장</span>
+    } else if (isToday && !summary && accountIds.length > 0) {
+      badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400">대기중</span>
+      sub = <span className="text-xs text-muted-foreground">오늘</span>
+    } else if (summary) {
+      const pos = summary.netAmountUsd >= 0
+      badge = (
+        <span className={cn(
+          'text-xs font-semibold px-1.5 py-[1px] rounded',
+          pos ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400' : 'bg-neg-bg text-neg',
+        )}>
+          {pos ? '매도 +' : '매수 '}${Math.abs(summary.netAmountUsd).toFixed(0)}
+        </span>
+      )
+      sub = <span className="text-xs text-muted-foreground">{summary.tradeCount}체결</span>
+    } else {
+      badge = <span className="text-xs text-muted-foreground/30">—</span>
+    }
+
+    return (
+      <div
+        key={ds}
+        className={cn(
+          'flex flex-col items-center gap-[3px] py-1.5 rounded-[10px]',
+          isToday && 'bg-rose-50 dark:bg-rose-500/10',
+          isHoliday && !isToday && 'bg-neg-bg',
+        )}
+      >
+        <div className={cn(
+          'w-[26px] h-[26px] flex items-center justify-center text-xs font-medium rounded-full',
+          isToday ? 'bg-rose-500 text-white font-bold' :
+          isHoliday ? 'text-neg' :
+          isSun ? 'text-pos' :
+          isSat ? 'text-neg' :
+          'text-foreground',
+        )}>
+          {day.getDate()}
+        </div>
+        {badge}
+        {sub}
+      </div>
+    )
+  })
+}
+
 export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountIds }: Props) {
   const [displayWeekStart, setDisplayWeekStart] = useState(
     () => new Date(initialWeekStartDate + 'T00:00:00'),
@@ -88,105 +201,6 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
   )
   const anyFetching = isFetching || isPrevFetching || isNextFetching
 
-  function renderCompactRow(rowStart: Date, summary: Map<string, DayTradeSummary>) {
-    return Array.from({ length: 7 }, (_, i) => {
-      const day = addDays(rowStart, i)
-      const ds = toDateStr(day)
-      const isSun = i === 0
-      const isSat = i === 6
-      const isWeekend = isSun || isSat
-      const isHoliday = holidaySet.has(ds)
-      const daySummary = !isWeekend ? summary.get(ds) : undefined
-
-      return (
-        <div key={ds} className="flex flex-col items-center gap-0.5 py-1">
-          <span className={cn(
-            'text-xs',
-            isSun ? 'text-pos/40' : isSat ? 'text-neg/40' : 'text-muted-foreground/30',
-          )}>
-            {day.getDate()}
-          </span>
-          {isHoliday && !isWeekend && (
-            <span className="text-[10px] leading-none text-neg/60">휴장</span>
-          )}
-          {!isWeekend && !isHoliday && daySummary && (
-            <span className={cn(
-              'text-[10px] leading-none',
-              daySummary.netAmountUsd >= 0
-                ? 'text-green-600/60 dark:text-green-400/60'
-                : 'text-neg/60',
-            )}>
-              {daySummary.netAmountUsd >= 0 ? '+' : '-'}${Math.abs(daySummary.netAmountUsd).toFixed(0)}
-            </span>
-          )}
-        </div>
-      )
-    })
-  }
-
-  function renderCurrentRow() {
-    return Array.from({ length: 7 }, (_, i) => {
-      const day = addDays(displayWeekStart, i)
-      const ds = toDateStr(day)
-      const isSun = i === 0
-      const isSat = i === 6
-
-      const isToday = ds === todayStr
-      const isHoliday = holidaySet.has(ds)
-      const isWeekend = isSun || isSat
-      const summary = !isWeekend ? tradeSummary.get(ds) : undefined
-
-      let badge: React.ReactNode
-      let sub: React.ReactNode = null
-
-      if (isWeekend) {
-        badge = <span className="text-xs px-1.5 py-[1px] rounded bg-muted text-muted-foreground/50">휴</span>
-      } else if (isHoliday) {
-        badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-neg-bg text-neg">휴장</span>
-      } else if (isToday && !summary && accountIds.length > 0) {
-        badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400">대기중</span>
-        sub = <span className="text-xs text-muted-foreground">오늘</span>
-      } else if (summary) {
-        const pos = summary.netAmountUsd >= 0
-        badge = (
-          <span className={cn(
-            'text-xs font-semibold px-1.5 py-[1px] rounded',
-            pos ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400' : 'bg-neg-bg text-neg',
-          )}>
-            {pos ? '매도 +' : '매수 '}${Math.abs(summary.netAmountUsd).toFixed(0)}
-          </span>
-        )
-        sub = <span className="text-xs text-muted-foreground">{summary.tradeCount}체결</span>
-      } else {
-        badge = <span className="text-xs text-muted-foreground/30">—</span>
-      }
-
-      return (
-        <div
-          key={ds}
-          className={cn(
-            'flex flex-col items-center gap-[3px] py-1.5 rounded-[10px]',
-            isToday && 'bg-rose-50 dark:bg-rose-500/10',
-            isHoliday && !isToday && 'bg-neg-bg',
-          )}
-        >
-          <div className={cn(
-            'w-[26px] h-[26px] flex items-center justify-center text-xs font-medium rounded-full',
-            isToday ? 'bg-rose-500 text-white font-bold' :
-            isHoliday ? 'text-neg' :
-            isSun ? 'text-pos' :
-            isSat ? 'text-neg' :
-            'text-foreground',
-          )}>
-            {day.getDate()}
-          </div>
-          {badge}
-          {sub}
-        </div>
-      )
-    })
-  }
-
   return (
     <div className="rounded-[var(--r-lg)] p-5 flex flex-col gap-1 bg-card border border-border shadow-[var(--sh-card)]">
       <span className="text-sm font-semibold tracking-widest uppercase text-rose-500">
@@ -226,9 +240,9 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
             {d}
           </div>
         ))}
-        {renderCompactRow(prevWeekStart, prevTradeSummary)}
-        {renderCurrentRow()}
-        {renderCompactRow(nextWeekStart, nextTradeSummary)}
+        <CompactRow rowStart={prevWeekStart} summary={prevTradeSummary} holidaySet={holidaySet} />
+        <CurrentRow weekStart={displayWeekStart} tradeSummary={tradeSummary} holidaySet={holidaySet} todayStr={todayStr} accountIds={accountIds} />
+        <CompactRow rowStart={nextWeekStart} summary={nextTradeSummary} holidaySet={holidaySet} />
       </div>
 
       <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
