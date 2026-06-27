@@ -1,0 +1,15 @@
+{
+  "ignore": {
+    "overrides": [
+      {
+        "files": ["components/ui/**"],
+        "rules": [
+          "react-doctor/label-has-associated-control",
+          "react-doctor/anchor-has-content",
+          "react-doctor/no-redundant-roles",
+          "react-doctor/only-export-components"
+        ]
+      }
+    ]
+  }
+}
