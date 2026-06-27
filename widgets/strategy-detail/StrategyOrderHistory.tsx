@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useReducer } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useStrategyOrdersQuery } from '@entities/order'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
@@ -60,16 +60,34 @@ function resolveRange(rangeType: RangeType, customFrom: string, customTo: string
   return { from: customFrom, to: customTo }
 }
 
+type FilterState = { rangeType: RangeType; customFrom: string; customTo: string; pageSize: string; page: number }
+type FilterAction =
+  | { type: 'range'; rangeType: RangeType }
+  | { type: 'custom'; from: string; to: string }
+  | { type: 'pageSize'; size: string }
+  | { type: 'page'; page: number }
+
+function filterReducer(state: FilterState, action: FilterAction): FilterState {
+  switch (action.type) {
+    case 'range': return { ...state, rangeType: action.rangeType, page: 1 }
+    case 'custom': return { ...state, rangeType: 'custom', customFrom: action.from, customTo: action.to, page: 1 }
+    case 'pageSize': return { ...state, pageSize: action.size, page: 1 }
+    case 'page': return { ...state, page: action.page }
+  }
+}
+
 interface Props {
   strategyId: string
 }
 
 export function StrategyOrderHistory({ strategyId }: Props) {
-  const [rangeType, setRangeType] = useState<RangeType>('7d')
-  const [customFrom, setCustomFrom] = useState('')
-  const [customTo, setCustomTo] = useState('')
-  const [pageSize, setPageSize] = useState('10')
-  const [page, setPage] = useState(1)
+  const [{ rangeType, customFrom, customTo, pageSize, page }, dispatch] = useReducer(filterReducer, {
+    rangeType: '7d',
+    customFrom: '',
+    customTo: '',
+    pageSize: '10',
+    page: 1,
+  })
 
   const range = resolveRange(rangeType, customFrom, customTo)
   const { data: orders = [], isLoading, isError, error } = useStrategyOrdersQuery(strategyId, range?.from, range?.to, { enabled: range !== null })
@@ -77,16 +95,6 @@ export function StrategyOrderHistory({ strategyId }: Props) {
   const size = Number(pageSize)
   const totalPages = Math.ceil(orders.length / size)
   const pageOrders = orders.slice((page - 1) * size, page * size)
-
-  function changeRange(r: RangeType) {
-    setRangeType(r)
-    setPage(1)
-  }
-
-  function changePageSize(s: string) {
-    setPageSize(s)
-    setPage(1)
-  }
 
   return (
     <Card className="overflow-hidden">
@@ -99,7 +107,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                 <button
                   key={r}
                   type="button"
-                  onClick={() => changeRange(r)}
+                  onClick={() => dispatch({ type: 'range', rangeType: r })}
                   className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-all whitespace-nowrap ${
                     rangeType === r ? 'bg-background text-rose-600 shadow-sm' : 'text-muted-foreground hover:text-foreground'
                   }`}
@@ -108,7 +116,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                 </button>
               ))}
             </div>
-            <PageSizeSelector value={pageSize} onChange={changePageSize} />
+            <PageSizeSelector value={pageSize} onChange={(s) => dispatch({ type: 'pageSize', size: s })} />
           </div>
           {rangeType === 'custom' && (
             <div className="flex items-center gap-2 flex-wrap">
@@ -116,7 +124,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                 type="date"
                 aria-label="시작 날짜"
                 value={customFrom}
-                onChange={(e) => { setCustomFrom(e.target.value); setPage(1) }}
+                onChange={(e) => dispatch({ type: 'custom', from: e.target.value, to: customTo })}
                 className="rounded-md border border-input bg-background px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring"
               />
               <span className="text-sm text-muted-foreground">~</span>
@@ -125,7 +133,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                 aria-label="종료 날짜"
                 value={customTo}
                 min={customFrom || undefined}
-                onChange={(e) => { setCustomTo(e.target.value); setPage(1) }}
+                onChange={(e) => dispatch({ type: 'custom', from: customFrom, to: e.target.value })}
                 className="rounded-md border border-input bg-background px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
@@ -190,7 +198,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
             </div>
             {totalPages > 1 && (
               <div className="px-4 pb-4">
-                <PaginationBar page={page} totalPages={totalPages} onPageChange={setPage} />
+                <PaginationBar page={page} totalPages={totalPages} onPageChange={(p) => dispatch({ type: 'page', page: p })} />
               </div>
             )}
           </div>

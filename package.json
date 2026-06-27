@@ -54,7 +54,6 @@
     "eslint-config-next": "16.2.6",
     "jsdom": "^29.1.1",
     "openapi-typescript": "^7.13.0",
-    "react-doctor": "^0.2.8",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.9"
