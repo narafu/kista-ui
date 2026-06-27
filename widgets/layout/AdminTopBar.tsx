@@ -5,12 +5,12 @@ import { LayoutDashboard, Users, Wallet, ArrowLeftRight, ClipboardList, ArrowLef
 import Link from 'next/link'
 
 const NAV_ITEMS = [
-  { href: '/admin',                label: 'Overview', icon: LayoutDashboard, exact: true },
-  { href: '/admin/users',          label: '사용자',   icon: Users },
-  { href: '/admin/accounts',       label: '계좌',     icon: Wallet },
-  { href: '/admin/trades',         label: '주문내역', icon: ArrowLeftRight },
-  { href: '/admin/privacy-trades', label: '매매표',   icon: Table2 },
-  { href: '/admin/logs',           label: '로그',     icon: ClipboardList },
+  { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
+  { href: '/admin/users', label: '사용자', icon: Users },
+  { href: '/admin/accounts', label: '계좌', icon: Wallet },
+  { href: '/admin/trades', label: '주문 내역', icon: ArrowLeftRight },
+  { href: '/admin/privacy-trades', label: '매매표', icon: Table2 },
+  { href: '/admin/logs', label: '로그', icon: ClipboardList },
 ]
 
 export function AdminTopBar() {
@@ -22,10 +22,7 @@ export function AdminTopBar() {
       <div className="flex items-center justify-between px-4 py-3">
         <span className="font-extrabold text-base text-rose-600">KISTA</span>
         <div className="flex items-center gap-2">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
+          <Link href="/dashboard" className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="size-3" />
             앱으로
           </Link>
@@ -37,13 +34,7 @@ export function AdminTopBar() {
         {NAV_ITEMS.map(({ href, label, icon: Icon, exact }) => {
           const active = exact ? pathname === href : pathname.startsWith(href)
           return (
-            <Link
-              key={href}
-              href={href}
-              className={`flex-1 flex flex-col items-center gap-1 py-2 text-sm font-medium transition-colors ${
-                active ? 'text-rose-600' : 'text-muted-foreground'
-              }`}
-            >
+            <Link key={href} href={href} className={`flex-1 flex flex-col items-center gap-1 py-2 text-sm font-medium transition-colors ${active ? 'text-rose-600' : 'text-muted-foreground'}`}>
               <Icon className="size-4" />
               {label}
             </Link>

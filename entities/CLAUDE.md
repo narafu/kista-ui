@@ -16,7 +16,7 @@ entities끼리 직접 참조 금지. 두 도메인을 조합해야 하면 `featu
 |---|---|
 | `account` | 계좌 CRUD, KIS 연결 테스트, 증거금 조회 |
 | `strategy` | 전략(TradingCycle) CRUD, 일시정지/재개 |
-| `order` | 다음 주문 미리보기, 주문 취소 |
+| `order` | 다음 주문 미리보기, 주문 취소, 전략별 주문 내역 조회 |
 | `trade` | 거래 내역, 사이클 히스토리, 수익 통계, SSE 거래 알림 |
 | `user` | 현재 사용자 조회, 로그아웃, 재신청, 회원 탈퇴, 설정 변경 |
 | `market` | 시장 휴일, 마켓 세션 |
@@ -48,7 +48,7 @@ entities/{domain}/
 
 ### queryKey 목록
 
-`['accounts']`, `['accountMargin', accountId]`, `['accountPrices', accountId, tickers]`, `['strategies', accountId]`, `['strategies', 'all']`(전체 전략 목록, `useAllStrategiesQuery`), `['nextOrderPreview', accountId]`, `['previewMargin', accountId]`(widgets 내부), `['holidays', year, month]`(공유 캐시), `['marketSession']`, `['accountCycleHistory', accountId, params]`, `['strategyCycleHistory', strategyId, params]`, `['profit', accountId, period]`, `['snapshots', accountId, period]`, `['privacyCurrentBase']`, `['me']`, `['adminUsers', filter]`
+`['accounts']`, `['accountMargin', accountId]`, `['accountPrices', accountId, tickers]`, `['strategies', accountId]`, `['strategies', 'all']`(전체 전략 목록, `useAllStrategiesQuery`), `['nextOrderPreview', accountId]`, `['previewMargin', accountId]`(widgets 내부), `['holidays', year, month]`(공유 캐시), `['marketSession']`, `['accountCycleHistory', accountId, params]`, `['strategyCycleHistory', strategyId, params]`, `['profit', accountId, period]`, `['snapshots', accountId, period]`, `['privacyCurrentBase']`, `['me']`, `['adminUsers', filter]`, `['strategy-orders', strategyId, from, to]`
 
 ## index.ts 규칙
 
@@ -99,7 +99,7 @@ import { deleteAccount } from '@entities/account'
 
 ## OpenAPI 타입 생성
 
-`shared/lib/api-types.ts`는 `openapi.json`에서 자동 생성된 타입 파일 — 직접 수정 금지.  
+`shared/lib/api-types.ts`는 `openapi.json`에서 자동 생성된 타입 파일 — 직접 수정 금지.
 `shared/lib/api-schema.ts`는 api-types에서 필요한 타입만 export하는 facade — enum 타입 직접 정의 금지.
 
 ```bash
@@ -107,7 +107,7 @@ import { deleteAccount } from '@entities/account'
 npm run gen:types
 ```
 
-현재 export 목록: `BrokerCode`, `UserStatus`, `UserRole`, `NotificationChannel`, `CycleSeedType`, `StrategyType`, `StrategyTicker`, `OrderType`, `OrderDirection`, `OrderStatus`, `SkipReason`, `MarketSessionStatus`.  
+현재 export 목록: `BrokerCode`, `UserStatus`, `UserRole`, `NotificationChannel`, `CycleSeedType`, `StrategyType`, `StrategyTicker`, `OrderType`, `OrderDirection`, `OrderStatus`, `SkipReason`, `MarketSessionStatus`.
 새 enum 타입이 필요하면 `openapi.json` → `api-types.ts` → `api-schema.ts` 순으로 추가.
 
 ## API 날짜 파라미터

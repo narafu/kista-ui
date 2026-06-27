@@ -37,11 +37,13 @@ export function useCancelOneOrderMutation(strategyId: string) {
 
 export function useStrategyOrdersQuery(
   strategyId: string,
-  from: string,
-  to: string,
+  from: string | undefined,
+  to: string | undefined,
+  options?: { enabled?: boolean },
 ) {
   return useQuery<StrategyOrder[]>({
-    queryKey: ['strategy-orders', strategyId, from, to],
+    queryKey: ['strategy-orders', strategyId, from ?? '', to ?? ''],
     queryFn: () => listStrategyOrders(strategyId, from, to),
+    enabled: options?.enabled !== false,
   })
 }

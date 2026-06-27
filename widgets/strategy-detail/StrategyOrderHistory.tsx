@@ -6,44 +6,50 @@ import { useStrategyOrdersQuery } from '@entities/order'
 import { fmtUsd } from '@shared/lib/format'
 import { toNum } from '@shared/lib/utils'
 
-type RangePreset = '7d' | '30d' | 'all'
+type RangeType = 'all' | '7d' | '30d' | 'custom'
 
-const RANGE_OPTIONS: { label: string; value: RangePreset }[] = [
-  { label: '7일', value: '7d' },
-  { label: '30일', value: '30d' },
-  { label: '전체', value: 'all' },
-]
+const RANGE_LABELS: Record<RangeType, string> = {
+  all: '전체',
+  '7d': '7일',
+  '30d': '30일',
+  custom: '직접입력',
+}
 
 const DIRECTION_LABEL: Record<string, string> = { BUY: '매수', SELL: '매도' }
 
 const STATUS_STYLE: Record<string, string> = {
-  PLACED:           'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400',
-  FILLED:           'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
+  PLACED: 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400',
+  FILLED: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
   PARTIALLY_FILLED: 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400',
-  FAILED:           'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400',
-  CANCELLED:        'bg-muted text-muted-foreground',
-  PLANNED:          'bg-muted text-muted-foreground',
+  FAILED: 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400',
+  CANCELLED: 'bg-muted text-muted-foreground',
+  PLANNED: 'bg-muted text-muted-foreground',
 }
 
 const STATUS_LABEL: Record<string, string> = {
-  PLACED:           '접수',
-  FILLED:           '체결',
+  PLACED: '접수',
+  FILLED: '체결',
   PARTIALLY_FILLED: '부분체결',
-  FAILED:           '실패',
-  CANCELLED:        '취소',
-  PLANNED:          '예정',
+  FAILED: '실패',
+  CANCELLED: '취소',
+  PLANNED: '예정',
 }
 
-function resolveRange(preset: RangePreset): { from: string; to: string } {
-  const to = new Date()
-  const from = new Date()
-  if (preset === '7d') from.setDate(from.getDate() - 7)
-  else if (preset === '30d') from.setDate(from.getDate() - 30)
-  else from.setFullYear(2020, 0, 1)
-  return {
-    from: from.toISOString().split('T')[0],
-    to: to.toISOString().split('T')[0],
+function resolveRange(rangeType: RangeType, customFrom: string, customTo: string): { from?: string; to?: string } | null {
+  const today = new Date().toISOString().split('T')[0]
+  if (rangeType === 'all') return {}
+  if (rangeType === '7d') {
+    const from = new Date()
+    from.setDate(from.getDate() - 7)
+    return { from: from.toISOString().split('T')[0], to: today }
   }
+  if (rangeType === '30d') {
+    const from = new Date()
+    from.setDate(from.getDate() - 30)
+    return { from: from.toISOString().split('T')[0], to: today }
+  }
+  if (!customFrom || !customTo) return null
+  return { from: customFrom, to: customTo }
 }
 
 interface Props {
@@ -51,68 +57,93 @@ interface Props {
 }
 
 export function StrategyOrderHistory({ strategyId }: Props) {
-  const [range, setRange] = useState<RangePreset>('30d')
-  const { from, to } = resolveRange(range)
+  const [rangeType, setRangeType] = useState<RangeType>('7d')
+  const [customFrom, setCustomFrom] = useState('')
+  const [customTo, setCustomTo] = useState('')
 
-  const { data: orders = [], isLoading } = useStrategyOrdersQuery(strategyId, from, to)
+  const range = resolveRange(rangeType, customFrom, customTo)
+  const { data: orders = [], isLoading } = useStrategyOrdersQuery(strategyId, range?.from, range?.to, { enabled: range !== null })
+
+  const rangeLabel = rangeType === 'all' ? '전체' : rangeType === '7d' ? '최근 7일' : rangeType === '30d' ? '최근 30일' : customFrom && customTo ? `${customFrom} ~ ${customTo}` : '기간 선택 중'
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between gap-2">
-          <CardTitle className="text-base lg:text-lg">주문내역</CardTitle>
-          <div className="flex items-center gap-1 rounded-lg border border-border p-0.5">
-            {RANGE_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setRange(opt.value)}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                  range === opt.value
-                    ? 'bg-foreground text-background'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div>
+              <CardTitle className="text-base lg:text-lg">주문 내역</CardTitle>
+              <p className="text-sm lg:text-base text-muted-foreground mt-0.5">
+                {rangeLabel} · 총 {isLoading ? '…' : orders.length}건
+              </p>
+            </div>
+            <div className="flex gap-0.5 rounded-lg bg-muted p-1 shrink-0">
+              {(['7d', '30d', 'all', 'custom'] as RangeType[]).map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRangeType(r)}
+                  className={`flex-1 rounded-md px-3 py-1.5 text-sm lg:text-base font-semibold transition-all whitespace-nowrap ${
+                    rangeType === r ? 'bg-background text-rose-600 shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {RANGE_LABELS[r]}
+                </button>
+              ))}
+            </div>
           </div>
+          {rangeType === 'custom' && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <input
+                type="date"
+                aria-label="시작 날짜"
+                value={customFrom}
+                onChange={(e) => setCustomFrom(e.target.value)}
+                className="rounded-md border border-input bg-background px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+              />
+              <span className="text-sm text-muted-foreground">~</span>
+              <input
+                type="date"
+                aria-label="종료 날짜"
+                value={customTo}
+                min={customFrom || undefined}
+                onChange={(e) => setCustomTo(e.target.value)}
+                className="rounded-md border border-input bg-background px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+          )}
         </div>
       </CardHeader>
       <CardContent className="p-0">
         {isLoading ? (
-          <p className="text-sm text-muted-foreground text-center px-6 py-4">로딩 중...</p>
+          <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">로딩 중...</div>
         ) : orders.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center px-6 py-4">주문 내역이 없습니다</p>
+          <p className="text-sm text-muted-foreground text-center py-8 px-6">주문 내역이 없습니다.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-muted/40 border-y border-border">
+              <thead className="bg-muted/50">
                 <tr>
-                  <th className="px-4 py-2.5 text-center text-xs font-semibold text-muted-foreground whitespace-nowrap">날짜</th>
-                  <th className="px-4 py-2.5 text-center text-xs font-semibold text-muted-foreground whitespace-nowrap">방향</th>
-                  <th className="px-4 py-2.5 text-center text-xs font-semibold text-muted-foreground whitespace-nowrap">유형</th>
-                  <th className="px-4 py-2.5 text-center text-xs font-semibold text-muted-foreground whitespace-nowrap">수량</th>
-                  <th className="px-4 py-2.5 text-center text-xs font-semibold text-muted-foreground whitespace-nowrap">주문가</th>
-                  <th className="px-4 py-2.5 text-center text-xs font-semibold text-muted-foreground whitespace-nowrap">체결가</th>
-                  <th className="px-4 py-2.5 text-center text-xs font-semibold text-muted-foreground whitespace-nowrap">상태</th>
+                  <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">날짜</th>
+                  <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">방향</th>
+                  <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">유형</th>
+                  <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">수량</th>
+                  <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">주문가</th>
+                  <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">체결가</th>
+                  <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">상태</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody>
                 {orders.map((o) => (
-                  <tr key={o.id} className="hover:bg-muted/20 transition-colors">
+                  <tr key={o.id} className="border-t hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3 text-center text-muted-foreground text-xs whitespace-nowrap">{o.tradeDate}</td>
-                    <td className={`px-4 py-3 text-center font-semibold whitespace-nowrap ${o.direction === 'BUY' ? 'text-pos' : 'text-neg'}`}>
-                      {DIRECTION_LABEL[o.direction] ?? o.direction}
-                    </td>
+                    <td className={`px-4 py-3 text-center font-semibold whitespace-nowrap ${o.direction === 'BUY' ? 'text-pos' : 'text-neg'}`}>{DIRECTION_LABEL[o.direction] ?? o.direction}</td>
                     <td className="px-4 py-3 text-center text-xs text-muted-foreground whitespace-nowrap">{o.orderType}</td>
                     <td className="px-4 py-3 text-center whitespace-nowrap">
                       {o.filledQuantity != null ? (
                         <span>
                           <span className="font-medium">{o.filledQuantity}</span>
-                          {o.filledQuantity !== o.quantity && (
-                            <span className="text-muted-foreground text-xs">/{o.quantity}</span>
-                          )}
+                          {o.filledQuantity !== o.quantity && <span className="text-muted-foreground text-xs">/{o.quantity}</span>}
                         </span>
                       ) : (
                         o.quantity
