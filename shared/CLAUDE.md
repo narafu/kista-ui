@@ -13,7 +13,7 @@ shared/
     api-schema.ts # api-types에서 필요한 enum 타입만 re-export하는 facade
     auth/         # getAuthToken (Server Component 전용)
     cache/        # getCachedAccounts, getCachedStrategies, getMe (unstable_cache 래퍼)
-    format/       # fmtUsd, fmtKrw, fmtPercent, fmtDate, fmtTime
+    format/       # fmtUsd, fmtDate
     proxy/        # createProxyRoute — catch-all Route Handler 공통 로직 (인증·revalidateTag 내장)
     firebase.ts   # Firebase 앱 초기화
     utils.ts      # cn(), toNum()
@@ -39,14 +39,11 @@ import { apiFetch, clientFetch, ApiError } from '@shared/lib/api-client'
 ## format
 
 ```ts
-import { fmtUsd, fmtKrw, fmtPercent, fmtDate, fmtTime } from '@shared/lib/format'
+import { fmtUsd, fmtDate } from '@shared/lib/format'
 ```
 
 - `fmtUsd(n)` — `$1,234.56`
-- `fmtKrw(n)` — `₩1,234,567`
-- `fmtPercent(n)` — `+12.34%`
 - `fmtDate(s)` — `2025-06-05`
-- `fmtTime(s)` — `14:32`
 
 ## cache (Server Component 전용)
 

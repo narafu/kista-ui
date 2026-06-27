@@ -39,7 +39,7 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 | `strategy-list` | `StrategyList` | 전략 목록 (컴팩트 행 + 전략 추가) |
 | `kpi-card` | `KpiCard` | KPI 지표 카드 |
 | `profit-stats-card` | `ProfitStatsCard`, `PortfolioChart`, `PortfolioChartInner` | 수익 통계 + 차트 |
-| `market-holiday-calendar` | `MarketHolidayCalendar`, `WeeklyMarketCalendar` | 시장 휴일 달력(월간) / 주간 휴일+거래 요약 달력 |
+| `market-holiday-calendar` | `WeeklyMarketCalendar` | 주간 휴일+거래 요약 달력 |
 | `revealable-value` | `RevealableValue` | 마스킹 토글 값 |
 | `glass-card` | `GlassCard` | 유리 효과 카드 래퍼 |
 | `page-header` | `PageHeader` | 페이지 헤더 |
