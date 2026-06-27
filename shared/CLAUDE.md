@@ -90,6 +90,7 @@ Route Handler URL 변경 시 `entities/{domain}/api/` 호출부만 수정 — `c
 - `RangeFilterBar` — 기간 필터 버튼 바. `presets` prop으로 표시할 프리셋 목록 커스터마이즈 가능 (기본값 `['7d','30d','all','custom']`). admin 페이지는 `['all','custom']`만 전달.
 - `PageSizeSelector` — 페이지 크기 선택 드롭다운
 - `PaginationBar` — 페이지네이션 바
+- `Spinner` — 로딩 스피너. `size`(기본 16) · `className` prop. 인라인 spinner SVG 직접 작성 금지 — 항상 이 컴포넌트 사용
 
 shadcn 자동생성 컴포넌트는 `components/ui/`에 위치 — `npx shadcn@latest add <component> --yes`로만 추가, 직접 수정 금지.  
 shadcn 파일 내부에서 `@/components/ui/*`, `@/lib/utils` alias 사용 — 이 alias 직접 사용 금지.
