@@ -41,6 +41,7 @@ import { ApiError } from '@shared/lib/api-client'
 import type { Strategy } from '@entities/strategy'
 import type { SkipReason, PlacedOrder } from '@entities/order'
 import { OrderRows } from './OrderRows'
+import { StrategyOrderHistory } from './StrategyOrderHistory'
 
 const SKIP_REASON_LABELS: Record<SkipReason, string> = {
   NO_CYCLE_HISTORY: '첫 매매 전입니다. 사이클 정보가 아직 없습니다.',
@@ -316,6 +317,8 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
           )}
         </CardContent>
       </Card>
+
+      <StrategyOrderHistory strategyId={strategy.id} />
 
       <StrategyTradesTab strategyId={strategy.id} />
 

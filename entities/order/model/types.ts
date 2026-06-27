@@ -39,3 +39,15 @@ export interface PlacedOrder {
   quantity: number
   price: string
 }
+
+export interface StrategyOrder {
+  id: string
+  tradeDate: string
+  direction: 'BUY' | 'SELL'
+  orderType: string
+  quantity: number
+  price: string
+  status: string
+  filledQuantity: number | null
+  filledPrice: string | null
+}
