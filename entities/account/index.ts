@@ -10,7 +10,6 @@ export {
   getPrices,
 } from './api'
 export {
-  useAccountsQuery,
   useAccountMarginQuery,
   useAccountPricesQuery,
   useUpdateAccountMutation,

@@ -16,7 +16,7 @@ export function useMonthlyHolidaysQuery(year: number, month: number, initialData
   return { holidays, loading: isFetching }
 }
 
-export function useMarketSessionQuery() {
+function useMarketSessionQuery() {
   return useQuery({
     queryKey: ['marketSession'],
     queryFn: () => getMarketSession().catch(() => null),

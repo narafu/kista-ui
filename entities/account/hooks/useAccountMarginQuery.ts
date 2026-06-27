@@ -5,7 +5,6 @@ import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { ApiError } from '@shared/lib/api-client'
 import {
-  listAccounts,
   createAccount,
   updateAccount,
   deleteAccount,
@@ -16,14 +15,6 @@ import {
   type PriceMap,
 } from '../api'
 import type { Account, AccountRequest } from '../model/types'
-
-export function useAccountsQuery(token?: string) {
-  return useQuery<Account[]>({
-    queryKey: ['accounts'],
-    queryFn: () => listAccounts(token!),
-    enabled: !!token,
-  })
-}
 
 export function useAccountMarginQuery(accountId: string, options?: { enabled?: boolean }) {
   const { data: items = [], isLoading } = useQuery<MarginItem[]>({

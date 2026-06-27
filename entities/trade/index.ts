@@ -12,16 +12,7 @@ export type {
   DailyTransactionSummary,
   DailyTransactionResult,
 } from './model/types'
-export {
-  getPortfolioSnapshots,
-  getAccountSnapshots,
-  getAccountTrades,
-  getAccountCycleHistory,
-  getStrategyCycleHistory,
-  getAccountPortfolio,
-  getAccountMargin,
-  getDailyTransactions,
-} from './api'
+export { getAccountPortfolio } from './api'
 export { useAccountCycleHistoryQuery, useStrategyCycleHistoryQuery } from './hooks/useCycleHistory'
 export { useWeeklyTradeSummaryQuery } from './hooks/useWeeklyTradeSummaryQuery'
 export type { DayTradeSummary } from './hooks/useWeeklyTradeSummaryQuery'

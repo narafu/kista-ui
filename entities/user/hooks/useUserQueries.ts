@@ -59,7 +59,7 @@ export function useAdminUsersQuery(filter?: UserStatus, initialData?: AdminUser[
   })
 }
 
-export function useReapplyMutation() {
+function useReapplyMutation() {
   return useMutation({
     mutationFn: reapply,
     onError: () => toast.error('재신청 중 오류가 발생했습니다.'),

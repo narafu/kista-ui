@@ -38,7 +38,6 @@ export {
 export {
   useMeQuery,
   useAdminUsersQuery,
-  useReapplyMutation,
   useDeleteMeMutation,
   useUpdateNotificationChannelMutation,
   useUpdateTelegramMutation,
