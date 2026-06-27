@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useReducer } from 'react'
 import { Eye, EyeOff, CheckCircle2, XCircle, Loader2, ExternalLink } from 'lucide-react'
 import { useTestKisConnectionMutation } from '@entities/account'
 import type { BrokerCode } from '@entities/account'
@@ -37,12 +37,32 @@ const BROKER_CONFIG = {
   },
 } as const
 
+type State = { apiKey: string; apiSecret: string; showSecret: boolean; touchedKey: boolean; touchedSecret: boolean }
+type Action =
+  | { type: 'key'; value: string }
+  | { type: 'secret'; value: string }
+  | { type: 'toggleSecret' }
+  | { type: 'touchKey' }
+  | { type: 'touchSecret' }
+
+function stepReducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'key': return { ...state, apiKey: action.value }
+    case 'secret': return { ...state, apiSecret: action.value }
+    case 'toggleSecret': return { ...state, showSecret: !state.showSecret }
+    case 'touchKey': return { ...state, touchedKey: true }
+    case 'touchSecret': return { ...state, touchedSecret: true }
+  }
+}
+
 export function ApiStep({ data, onNext, onBack }: Props) {
-  const [apiKey, setApiKey] = useState(data.apiKey)
-  const [apiSecret, setApiSecret] = useState(data.apiSecret)
-  const [showSecret, setShowSecret] = useState(false)
-  const [touchedKey, setTouchedKey] = useState(false)
-  const [touchedSecret, setTouchedSecret] = useState(false)
+  const [{ apiKey, apiSecret, showSecret, touchedKey, touchedSecret }, dispatch] = useReducer(stepReducer, {
+    apiKey: data.apiKey,
+    apiSecret: data.apiSecret,
+    showSecret: false,
+    touchedKey: false,
+    touchedSecret: false,
+  })
   // KIS/TOSS 모두 훅을 호출해야 함 (조건부 훅 호출 금지)
   const testMutation = useTestKisConnectionMutation()
 
@@ -57,9 +77,9 @@ export function ApiStep({ data, onNext, onBack }: Props) {
   const showKeyError = touchedKey && apiKey.length > 0 && !keyValid
   const showSecretError = touchedSecret && apiSecret.length > 0 && !secretValid
 
-  function handleKeyChange(setter: (v: string) => void) {
+  function handleFieldChange(type: 'key' | 'secret') {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
-      setter(e.target.value)
+      dispatch({ type, value: e.target.value })
       if (config.needsTest) testMutation.reset()
     }
   }
@@ -83,8 +103,8 @@ export function ApiStep({ data, onNext, onBack }: Props) {
           <input
             id="api-key"
             value={apiKey}
-            onChange={handleKeyChange(setApiKey)}
-            onBlur={() => setTouchedKey(true)}
+            onChange={handleFieldChange('key')}
+            onBlur={() => dispatch({ type: 'touchKey' })}
             placeholder={`발급받은 ${config.keyLabel}`}
             aria-describedby={showKeyError ? 'api-key-error' : undefined}
             aria-invalid={showKeyError}
@@ -105,8 +125,8 @@ export function ApiStep({ data, onNext, onBack }: Props) {
               id="api-secret"
               type={showSecret ? 'text' : 'password'}
               value={apiSecret}
-              onChange={handleKeyChange(setApiSecret)}
-              onBlur={() => setTouchedSecret(true)}
+              onChange={handleFieldChange('secret')}
+              onBlur={() => dispatch({ type: 'touchSecret' })}
               placeholder={`발급받은 ${config.secretLabel}`}
               aria-describedby={showSecretError ? 'api-secret-error' : undefined}
               aria-invalid={showSecretError}
@@ -114,7 +134,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
             />
             <button
               type="button"
-              onClick={() => setShowSecret((s) => !s)}
+              onClick={() => dispatch({ type: 'toggleSecret' })}
               aria-label={showSecret ? '숨기기' : '보기'}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
             >
