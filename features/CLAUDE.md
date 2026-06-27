@@ -17,8 +17,7 @@ feature 슬라이스끼리 cross-import 금지. 두 feature를 조합해야 하�
 | `auth` | `logout` | `LogoutButton` |
 | `auth` | `reapply` | `ReapplyButton`, `RejectedReapplyButton` (1시간/24시간 쿨다운 localStorage) |
 | `account` | `create-account` | `CreateAccountStepper` + steps (4단계: Broker → API → AccountInfo → Confirm) |
-| `account` | `edit-account` | `EditAccountForm` |
-| `account` | `delete-account` | `DeleteAccountDialog`, `AccountEditDeleteButton` |
+| `account` | `edit-account` | `EditAccountForm` (계좌 삭제 인라인 포함) |
 | `strategy` | `create-strategy` | `StrategyFormDialog`, `StrategyForm`, sections: `StrategyTypeSection`, `StrategyTickerSection`, `DivisionCountSection`(INFINITE 전용), `CycleSeedSection`, `UsageRatioSection` |
 | `settings` | `telegram-connect` | `TelegramSection`, `PendingTelegramConnect` |
 | `settings` | `notification-channel` | `NotificationSettings` |

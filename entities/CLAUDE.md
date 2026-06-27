@@ -22,9 +22,7 @@ entities끼리 직접 참조 금지. 두 도메인을 조합해야 하면 `featu
 | `market` | 시장 휴일, 마켓 세션 |
 | `meta` | 전략 타입/종목 메타데이터 (MetaProvider 포함) |
 | `fcm` | FCM 토큰 등록/해제 (FcmAutoRegister 포함) |
-| `portfolio` | 포트폴리오 스냅샷, 손익 |
 | `privacy` | PRIVACY 전략 기준 매매표 |
-| `admin-stats` | 어드민 통계/관리자로그/이상감지 |
 
 ## 슬라이스 내부 구조
 

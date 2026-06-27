@@ -33,14 +33,12 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 
 | 슬라이스 | 컴포넌트 | 설명 |
 |---|---|---|
-| `layout` | `DesktopSidebar`, `MobileBottomNav`, `MobileHeader`, `AdminSidebar`, `AdminTopBar`, `SettingsNav` | 전역 레이아웃 내비게이션 |
+| `layout` | `DesktopSidebar`, `MobileBottomNav`, `MobileHeader`, `AdminSidebar`, `AdminTopBar` | 전역 레이아웃 내비게이션 |
 | `account-card` | `AccountCard` | 계좌 카드. `useStrategiesQuery(account.id, initialStrategies)` 내장 — 뮤테이션 후 즉시 리프레시. 모바일 2행 레이아웃: 1행=브로커 배지+계좌번호, 2행=닉네임+전략 수+상태. PC: 브로커 배지 우측에 계좌번호 배치, 닉네임 `text-xl`. 배지 active: `style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}` |
 | `strategy-card` | `StrategyCard` | 전략 카드 (순수 뷰, 클릭 시 전략 상세로 이동). 모바일 2행 레이아웃: 1행=배지+계좌번호, 2행=상태+티커+시드종류+금액. PC: 배지 우측에 계좌번호, 시드 정보 별도 행(border-t), 시작금액 푸터 행(border-t bg-muted/30) |
 | `strategy-list` | `StrategyList` | 전략 목록 (컴팩트 행 + 전략 추가) |
 | `kpi-card` | `KpiCard` | KPI 지표 카드 |
 | `profit-stats-card` | `ProfitStatsCard`, `PortfolioChart`, `PortfolioChartInner` | 수익 통계 + 차트 |
-| `profit-display` | `ProfitDisplay` | 손익 표시 (USD/KRW) |
-| `margin-card` | `MarginCard` | 증거금 카드 (`useAccountMarginQuery` 내장) |
 | `market-holiday-calendar` | `MarketHolidayCalendar`, `WeeklyMarketCalendar` | 시장 휴일 달력(월간) / 주간 휴일+거래 요약 달력 |
 | `revealable-value` | `RevealableValue` | 마스킹 토글 값 |
 | `glass-card` | `GlassCard` | 유리 효과 카드 래퍼 |
@@ -91,7 +89,6 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 - **`strategy-detail`**: `useStrategyOrderPreviewQuery(strategyId)`로 전략별 KPI/다음 주문을 조회. `position=null`이면 `skipReason` 안내 문구 표시. 헤더 배지: `{divisionCount}분할`(`usesDivisionCount` 가드 — `divisionCounts.length > 0`, `bg-muted text-muted-foreground`) + `리버스모드`(isReverseMode=true, amber-50/amber-600). 예수금 부족 배너: PC(`lg:flex`)는 CardHeader 하단 인라인에, 모바일(`lg:hidden`)은 주문 목록 상단 border-b 행에 배치. 주문 목록(executed/preview)은 `OrderRows` 컴포넌트로 통합 — onCancelOne 유무로 취소 버튼 조건 렌더. `seedBadgeClass(cycleSeedType)` 사용 (`entities/strategy` 공유). 주문 내역: `StrategyOrderHistory`가 `useStrategyOrdersQuery(strategyId, from, to)`로 7일/30일/전체 기간 필터 + 테이블 표시 — `GET /api/trading-cycles/{id}/orders` 소비.
 - **`percent-gauge`**: 슬라이더 handle 위치(`left`, `width`, `height`)는 픽셀 계산이라 인라인 style 유지. 그 외는 Tailwind. pct 초기화: 타입/종목 변경 시 100% → `deposit < newMinSeed`이면 0%로.
 - **`profit-stats-card`**: `PortfolioChart`/`PortfolioChartInner`는 이 슬라이스 내부 파일 — 외부 export 없음. `getPortfolioSnapshots()`는 DB 스냅샷 기반(실시간 KIS 아님) → 차트 공백 가능.
-- **`profit-display`**: `currency='USD'`(기본) 또는 `'KRW'`. KIS portfolio summary(`totalEvalProfit` 등)는 KRW → `currency="KRW"` 필수.
 - **`kpi-card`**: 포트폴리오/KPI는 Card row-list 대신 `<KpiCard label="..." value="..." />` + `grid grid-cols-2 gap-3`. `variant="accent"`, 손익은 `variant="default"`.
 - **`revealable-value`**: `****0614` 마스킹 → 눈 아이콘으로 공개. `KpiCard`의 `value={<RevealableValue value={account.accountNoMasked} />}` 패턴.
 - **`all-strategies`**: `AllStrategiesList`는 Server prop(`initialStrategies`)을 `useAllStrategiesQuery(initialStrategies)`에 초기 데이터로 전달해 뮤테이션 즉시 반영. `strategies.length === 0`이면 내부 `EmptyState` 컴포넌트 렌더링. 계좌 유무(`accounts.length > 0`)에 따라 분기 — 계좌 있음: 계좌 상세 링크 최대 3개 + 더보기, 계좌 없음: `/accounts` 등록 링크.
