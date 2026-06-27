@@ -1,9 +1,5 @@
-import { apiFetch, clientFetch } from '@shared/lib/api-client'
-import type { PrivacyCurrentBase, AdminPrivacyBase } from '../model/types'
-
-export async function getPrivacyCurrentBase(): Promise<PrivacyCurrentBase> {
-  return clientFetch<PrivacyCurrentBase>('/api/privacy-trades/base/latest')
-}
+import { apiFetch } from '@shared/lib/api-client'
+import type { AdminPrivacyBase } from '../model/types'
 
 // 관리자 — PRIVACY 기준 매매표 목록 (Server Component 전용, token 필요)
 // days 미전달 시 전체 기간 조회
