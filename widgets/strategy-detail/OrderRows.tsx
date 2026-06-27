@@ -39,7 +39,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
               {directionLabel(o.direction)}
             </span>
             <span className="font-medium">{o.ticker}</span>
-            <span className="text-muted-foreground">{o.quantity}주</span>
+            <span className="text-muted-foreground">{o.quantity}</span>
             <span className="ml-auto font-semibold">${fmtUsd(toNum(o.price))}</span>
             {hasCancel && o.id && (
               <button
@@ -59,12 +59,12 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
       <table className="hidden lg:table w-full">
         <thead>
           <tr>
-            <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">구분</th>
-            <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">종목</th>
-            <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">수량</th>
-            <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">주문가</th>
+            <th className="px-5 py-2.5 text-left text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">구분</th>
+            <th className="px-5 py-2.5 text-left text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">종목</th>
+            <th className="px-5 py-2.5 text-right text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">수량</th>
+            <th className="px-5 py-2.5 text-right text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">주문가</th>
             {hasCancel && (
-              <th className="px-5 py-2.5 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">취소</th>
+              <th className="px-5 py-2.5 text-right text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">취소</th>
             )}
           </tr>
         </thead>
@@ -77,7 +77,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
                 </span>
               </td>
               <td className="px-5 py-3 text-sm lg:text-base font-semibold">{o.ticker}</td>
-              <td className="px-5 py-3 text-sm lg:text-base text-muted-foreground text-right">{o.quantity}주</td>
+              <td className="px-5 py-3 text-sm lg:text-base text-muted-foreground text-right">{o.quantity}</td>
               <td className="px-5 py-3 text-sm lg:text-base font-semibold text-right">${fmtUsd(toNum(o.price))}</td>
               {hasCancel && (
                 <td className="px-5 py-3 text-right">
