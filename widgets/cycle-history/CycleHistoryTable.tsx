@@ -4,6 +4,7 @@ import { Fragment } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { fmtUsd, fmtDate } from '@shared/lib/format'
 import type { CycleHistoryItem } from '@entities/trade'
+import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { RANGE_LABELS, type RangeType } from './lib/buildParams'
 
 interface Props {
@@ -16,6 +17,8 @@ interface Props {
   setCustomFrom: (v: string) => void
   customTo: string
   setCustomTo: (v: string) => void
+  pageSize: string
+  setPageSize: (s: string) => void
   hasNextPage?: boolean
   isFetchingNextPage?: boolean
   fetchNextPage?: () => void
@@ -31,6 +34,8 @@ export function CycleHistoryTable({
   setCustomFrom,
   customTo,
   setCustomTo,
+  pageSize,
+  setPageSize,
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
@@ -44,35 +49,19 @@ export function CycleHistoryTable({
     return acc
   }, [])
 
-  const rangeLabel =
-    rangeType === 'all'
-      ? '전체'
-      : rangeType === '7d'
-        ? '최근 7일'
-        : rangeType === '30d'
-          ? '최근 30일'
-          : customFrom && customTo
-            ? `${customFrom} ~ ${customTo}`
-            : '기간 선택 중'
-
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
         <div className="space-y-2">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div>
-              <CardTitle className="text-base lg:text-lg">{title}</CardTitle>
-              <p className="text-sm lg:text-base text-muted-foreground mt-0.5">
-                {rangeLabel} · 총 {isLoading ? '…' : cycleHistory.length}건
-              </p>
-            </div>
-            <div className="flex gap-0.5 rounded-lg bg-muted p-1 shrink-0">
+          <CardTitle className="text-base lg:text-lg">{title}</CardTitle>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex gap-0.5 rounded-lg bg-muted p-1">
               {(['7d', '30d', 'all', 'custom'] as RangeType[]).map((r) => (
                 <button
                   key={r}
                   type="button"
                   onClick={() => setRangeType(r)}
-                  className={`flex-1 rounded-md px-3 py-1.5 text-sm lg:text-base font-semibold transition-all whitespace-nowrap ${
+                  className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-all whitespace-nowrap ${
                     rangeType === r ? 'bg-background text-rose-600 shadow-sm' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
@@ -80,6 +69,7 @@ export function CycleHistoryTable({
                 </button>
               ))}
             </div>
+            <PageSizeSelector value={pageSize} onChange={setPageSize} />
           </div>
           {rangeType === 'custom' && (
             <div className="flex items-center gap-2 flex-wrap">

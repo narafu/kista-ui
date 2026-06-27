@@ -4,7 +4,7 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 import { getAccountCycleHistory, getStrategyCycleHistory } from '../api'
 import type { CycleHistoryItem, CycleHistoryPage } from '../model/types'
 
-type DateParams = { from?: string; to?: string } | null
+type DateParams = { from?: string; to?: string; size?: number } | null
 
 const EMPTY_PAGE: CycleHistoryPage = { items: [], nextCursor: null, hasMore: false }
 
