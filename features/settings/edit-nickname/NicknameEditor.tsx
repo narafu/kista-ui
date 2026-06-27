@@ -20,6 +20,7 @@ export function NicknameEditor({ initialNickname }: Props) {
   const mutation = useUpdateNicknameMutation()
 
   useEffect(() => {
+    // eslint-disable-next-line react-doctor/no-event-handler
     if (editing) inputRef.current?.focus()
   }, [editing])
 

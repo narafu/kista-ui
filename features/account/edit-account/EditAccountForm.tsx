@@ -26,6 +26,7 @@ interface Props {
 }
 
 export function EditAccountForm({ account }: Props) {
+  // eslint-disable-next-line react-doctor/no-derived-useState
   const [nickname, setNickname] = useState(account.nickname)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')

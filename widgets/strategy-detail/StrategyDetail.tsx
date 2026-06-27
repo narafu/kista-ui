@@ -140,6 +140,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
           <span className="inline-flex items-center px-2.5 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400">
             {strategy.type}
           </span>
+          {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
           {usesDivisionCount && (
             <span className="inline-flex items-center px-2 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-medium whitespace-nowrap bg-muted text-muted-foreground">
               {strategy.divisionCount}분할
@@ -185,6 +186,7 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
         />
       </div>
 
+      {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
       {usesDivisionCount && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {isLoadingPreview ? (

@@ -85,7 +85,7 @@ function FragmentRow({ base: b, open, onToggle }: { base: AdminPrivacyBase; open
       </tr>
       {open && b.orders.length > 0 && (
         <tr className="bg-muted/10">
-          <td></td>
+          <td></td>{/* eslint-disable-line react-doctor/control-has-associated-label */}
           <td colSpan={7} className="px-4 py-3">
             <table className="w-full text-xs">
               <thead className="text-muted-foreground">

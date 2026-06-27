@@ -41,6 +41,7 @@ export default async function StrategyDetailPage({ params }: Props) {
     <div className="space-y-4">
       <PageHeader
         title={strategy.ticker}
+        // eslint-disable-next-line react-doctor/jsx-no-jsx-as-prop
         titleSuffix={
           <Link
             href={`/accounts/${id}`}

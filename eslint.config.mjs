@@ -13,6 +13,7 @@ export default tseslint.config(
   },
   ...tseslint.configs.recommended,
   {
-    ignores: ['node_modules/**', '.next/**', 'out/**', 'build/**', 'next-env.d.ts'],
+    // shadcn 자동생성 파일 — 직접 수정 금지, false positive 스캔 제외
+    ignores: ['node_modules/**', '.next/**', 'out/**', 'build/**', 'next-env.d.ts', 'components/ui/**'],
   },
 )

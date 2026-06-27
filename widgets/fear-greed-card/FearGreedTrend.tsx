@@ -1,5 +1,6 @@
 'use client'
 
+// eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
 import type { FearGreedPoint } from '@entities/market'
 

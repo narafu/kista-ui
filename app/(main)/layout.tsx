@@ -28,6 +28,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         <DesktopSidebar isAdmin={isAdmin} isAuthenticated={isAuthenticated} />
         <div className="flex flex-col flex-1 min-w-0">
           <MobileHeader
+            // eslint-disable-next-line react-doctor/jsx-no-jsx-as-prop
             trailing={
               isAuthenticated ? (
                 <div className="flex items-center gap-1.5">

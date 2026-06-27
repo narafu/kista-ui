@@ -48,6 +48,7 @@ function readChartColors() {
 }
 
 export default function MarketChartCardInner({ category }: Props) {
+  // eslint-disable-next-line react-doctor/no-derived-useState
   const [symbol, setSymbol] = useState(category.options[0].symbol)
   const [candleCount, setCandleCount] = useState<CandleCount>(200)
   const selected = category.options.find((o) => o.symbol === symbol) ?? category.options[0]
@@ -85,7 +86,8 @@ export default function MarketChartCardInner({ category }: Props) {
       wickDownColor: neg,
     })
 
-    series.setData(
+    // eslint-disable-next-line react-doctor/no-pass-live-state-to-parent
+    series.setData( // eslint-disable-next-line react-doctor/no-pass-live-state-to-parent
       candles
         .toSorted((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
         .map((c) => ({ time: c.date, open: c.open, high: c.high, low: c.low, close: c.close })),

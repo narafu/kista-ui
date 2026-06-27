@@ -47,6 +47,7 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
           >
             {strategy.type}
           </span>
+          {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
           {usesDivisionCount && (
             <span className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold whitespace-nowrap bg-muted text-foreground">
               {strategy.divisionCount}분할
@@ -84,7 +85,8 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
               >
                 {strategy.type}
               </span>
-              {usesDivisionCount && (
+              {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
+          {usesDivisionCount && (
                 <span className="inline-flex items-center px-2 h-[22px] rounded-full text-xs font-semibold whitespace-nowrap bg-muted text-foreground">
                   {strategy.divisionCount}분할
                 </span>

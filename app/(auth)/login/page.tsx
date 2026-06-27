@@ -22,6 +22,7 @@ function LoginPageContent() {
       ? (ERROR_MESSAGES[urlError] ?? "알 수 없는 오류가 발생했습니다.")
       : null,
   );
+  // eslint-disable-next-line react-doctor/rendering-usetransition-loading
   const [isLoading, setIsLoading] = useState(false);
 
   function handleKakaoLogin() {

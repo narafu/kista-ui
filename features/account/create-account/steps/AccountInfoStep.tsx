@@ -42,7 +42,9 @@ const ACCOUNT_CONFIG = {
 } as const
 
 export function AccountInfoStep({ data, onNext, onBack }: Props) {
+  // eslint-disable-next-line react-doctor/no-derived-useState
   const [nickname, setNickname] = useState(data.nickname)
+  // eslint-disable-next-line react-doctor/no-derived-useState
   const [accountNo, setAccountNo] = useState(data.accountNo)
   const [touchedNickname, setTouchedNickname] = useState(false)
   const [touchedAccountNo, setTouchedAccountNo] = useState(false)

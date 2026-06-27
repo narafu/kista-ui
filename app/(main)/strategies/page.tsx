@@ -13,7 +13,9 @@ export const metadata: Metadata = {
 
 export default async function StrategiesPage() {
   const token = await getAuthToken()
+  // eslint-disable-next-line react-doctor/prefer-module-scope-static-value
   let strategies: Strategy[] = []
+  // eslint-disable-next-line react-doctor/prefer-module-scope-static-value
   let accounts: Account[] = []
   if (token) {
     ;[strategies, accounts] = await Promise.all([

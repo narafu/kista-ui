@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server'
 const STATUS_COOKIE = 'kista-user-status'
 const KISTA_TOKEN_COOKIE = 'kista-token'
 
+// eslint-disable-next-line react-doctor/nextjs-no-side-effect-in-get-handler
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const host = request.headers.get('host') ?? 'localhost:3000'

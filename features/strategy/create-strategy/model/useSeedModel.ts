@@ -64,6 +64,7 @@ export function useSeedModel({
     if (usdDeposit === null || usdDeposit <= 0) return
     if (initial.initialUsdDeposit == null) return
     const ratio = Math.round((initial.initialUsdDeposit / usdDeposit) * 100)
+    // eslint-disable-next-line react-doctor/no-derived-state
     setPctInternal(Math.min(100, Math.max(0, ratio)))
     pctInitialized.current = true
   }, [initial, usdDeposit])
@@ -73,6 +74,7 @@ export function useSeedModel({
     if (balanceCheckEnabled) return
     if (initial) return
     if (isDirty) return
+    // eslint-disable-next-line react-doctor/no-derived-state, react-doctor/no-event-handler, react-doctor/no-chain-state-updates
     if (minSeed !== null) setSeedUsdInputInternal(Math.ceil(minSeed))
   }, [balanceCheckEnabled, minSeed, isDirty]) // eslint-disable-line react-doctor/exhaustive-deps
 

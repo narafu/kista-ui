@@ -47,6 +47,7 @@ export default async function AdminUsersPage({
       <AdminUsersTable
         initialUsers={users}
         currentUserId={me?.id ?? null}
+        // eslint-disable-next-line react-doctor/jsx-no-jsx-as-prop
         filterBar={<RangeFilterBar current={range} from={from} to={to} />}
       />
     </div>

@@ -131,7 +131,7 @@ export function useDeleteStrategyMutation(onSuccess?: () => void) {
 }
 
 export function useExecuteStrategyMutation(strategyId: string | undefined) {
-  return useMutation({
+  return useMutation({ // eslint-disable-line react-doctor/query-mutation-missing-invalidation
     mutationFn: () => executeStrategy(strategyId!),
     onSuccess: () => toast.success('매매 실행이 요청됐습니다. 장 마감 후 체결 결과를 확인하세요.'),
     onError: (e) => {

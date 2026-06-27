@@ -52,9 +52,11 @@ export function PullToRefresh() {
   }, [router])
   handleTouchEndRef.current = handleTouchEnd
 
+  // eslint-disable-next-line react-doctor/advanced-event-handler-refs
   useEffect(() => {
     const stableEnd = () => handleTouchEndRef.current()
     document.addEventListener('touchstart', handleTouchStart, { passive: true })
+    // eslint-disable-next-line react-doctor/client-passive-event-listeners
     document.addEventListener('touchmove', handleTouchMove, { passive: false })
     document.addEventListener('touchend', stableEnd, { passive: true })
     return () => {

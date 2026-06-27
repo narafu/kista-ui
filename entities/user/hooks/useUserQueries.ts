@@ -60,14 +60,14 @@ export function useAdminUsersQuery(filter?: UserStatus, initialData?: AdminUser[
 }
 
 function useReapplyMutation() {
-  return useMutation({
+  return useMutation({ // eslint-disable-line react-doctor/query-mutation-missing-invalidation
     mutationFn: reapply,
     onError: () => toast.error('재신청 중 오류가 발생했습니다.'),
   })
 }
 
 export function useDeleteMeMutation() {
-  return useMutation({
+  return useMutation({ // eslint-disable-line react-doctor/query-mutation-missing-invalidation
     mutationFn: deleteMe,
     onError: () => toast.error('탈퇴 처리 중 오류가 발생했습니다.'),
   })

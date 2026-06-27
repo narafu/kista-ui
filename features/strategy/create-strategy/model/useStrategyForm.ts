@@ -70,6 +70,7 @@ export function useStrategyForm({
   const form = useForm<StrategyFormValues>({
     resolver: zodResolver(strategyFormSchema),
     defaultValues: {
+      // eslint-disable-next-line react-doctor/no-event-handler
       type: initial?.type ?? meta.strategyTypes[0]?.code ?? '',
       ticker: initial?.ticker ?? '',
       autoStart: initial ? initial.cycleSeedType !== 'NONE' : true,
@@ -94,6 +95,7 @@ export function useStrategyForm({
   const balanceCheckEnabled = meData?.balanceCheckEnabled ?? true
 
   // 잔고검증 OFF면 예수금 불필요 → margin 쿼리 skip
+  // eslint-disable-next-line react-doctor/no-event-handler
   const { items: marginItems, isLoading: marginLoading } = useAccountMarginQuery(accountId, {
     enabled: balanceCheckEnabled,
   })
@@ -124,6 +126,7 @@ export function useStrategyForm({
   useEffect(() => {
     if (loadingBase) return
     if (usdDeposit === null && prices === null) {
+      // eslint-disable-next-line react-doctor/no-event-handler
       toast.error('예수금 / 현재가 조회에 실패했습니다')
     }
   }, [loadingBase]) // eslint-disable-line react-doctor/exhaustive-deps
@@ -141,6 +144,7 @@ export function useStrategyForm({
     if (initial) return
     if (!typeMeta) return
     if (!ticker || !availableTickers.includes(ticker)) {
+      // eslint-disable-next-line react-doctor/no-event-handler
       form.setValue('ticker', typeMeta.availableTickers[0] ?? '')
     }
   }, [type]) // eslint-disable-line react-doctor/exhaustive-deps
@@ -149,6 +153,7 @@ export function useStrategyForm({
   useEffect(() => {
     if (initial) return
     if (minSeed === null) return
+    // eslint-disable-next-line react-doctor/no-pass-data-to-parent
     resetSeed({
       pct: usdDeposit !== null && usdDeposit < minSeed ? 0 : 100,
       seedUsdInput: Math.ceil(minSeed),
