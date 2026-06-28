@@ -178,10 +178,9 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
         />
         <KpiCard
           label="시작금액"
-          valueClassName="text-xl lg:text-2xl"
           value={strategy.initialUsdDeposit != null
-            ? `$${fmtUsd(strategy.initialUsdDeposit)}`
-            : <span className="text-base lg:text-lg text-muted-foreground font-normal">미설정</span>
+            ? <span className="inline-flex items-center text-xs lg:text-2xl font-bold">{`$${fmtUsd(strategy.initialUsdDeposit)}`}</span>
+            : <span className="inline-flex items-center text-xs lg:text-sm text-muted-foreground font-normal">미설정</span>
           }
         />
       </div>

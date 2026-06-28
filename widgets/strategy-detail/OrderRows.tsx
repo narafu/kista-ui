@@ -33,23 +33,42 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
     <>
       {/* 모바일 리스트 */}
       <ul className="lg:hidden">
+        <li className={cn(
+          'grid items-center px-6 py-2 border-b border-border bg-muted/50 text-xs text-muted-foreground text-center',
+          hasCancel ? 'grid-cols-5' : 'grid-cols-4',
+        )}>
+          <span>구분</span>
+          <span>종목</span>
+          <span>수량</span>
+          <span>주문가</span>
+          {hasCancel && <span>취소</span>}
+        </li>
         {orders.map((o, i) => (
-          <li key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className="flex items-center gap-3 text-sm px-6 py-3 border-b border-border last:border-b-0">
-            <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold', directionBadgeCls(o.direction))}>
-              {directionLabel(o.direction)}
-            </span>
+          <li key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className={cn(
+            'grid items-center text-sm px-6 py-3 border-b border-border last:border-b-0 text-center',
+            hasCancel ? 'grid-cols-5' : 'grid-cols-4',
+          )}>
+            <div className="flex justify-center">
+              <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold', directionBadgeCls(o.direction))}>
+                {directionLabel(o.direction)}
+              </span>
+            </div>
             <span className="font-medium">{o.ticker}</span>
             <span className="text-muted-foreground">{o.quantity}</span>
-            <span className="ml-auto font-semibold">${fmtUsd(toNum(o.price))}</span>
-            {hasCancel && o.id && (
-              <button
-                type="button"
-                onClick={() => onCancelOne(o.id!)}
-                disabled={cancelPending}
-                className="text-sm px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
-              >
-                {cancelPending && cancellingId === o.id ? '취소 중...' : '취소'}
-              </button>
+            <span className="font-semibold">${fmtUsd(toNum(o.price))}</span>
+            {hasCancel && (
+              <div className="flex justify-center">
+                {o.id ? (
+                  <button
+                    type="button"
+                    onClick={() => onCancelOne(o.id!)}
+                    disabled={cancelPending}
+                    className="text-xs px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
+                  >
+                    {cancelPending && cancellingId === o.id ? '취소 중...' : '취소'}
+                  </button>
+                ) : <span />}
+              </div>
             )}
           </li>
         ))}
