@@ -57,11 +57,15 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
             <span className="ml-auto text-xs font-semibold text-foreground/60 shrink-0 font-mono tracking-wider">{accountLabel}</span>
           )}
         </div>
-        {/* 2행: 상태 + 티커 + 시드 + 금액 */}
+        {/* 2행: 상태 + 티커 + 시드 + 회차 + 금액 */}
         <div className="flex items-center gap-2">
           <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} hideLabel />
           <span className="font-bold text-base text-foreground">{strategy.ticker}</span>
           <span className={`inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold whitespace-nowrap ${seedBadgeCls}`}>{seedLabel}</span>
+          {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
+          {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
+            <span className="text-xs font-semibold text-rose-500 dark:text-rose-400">{strategy.currentRound!.toFixed(1)}회차</span>
+          )}
           <span className="ml-auto text-sm font-semibold text-foreground">
             {strategy.initialUsdDeposit != null ? (
               `$${fmtUsd(strategy.initialUsdDeposit)}`
@@ -101,12 +105,15 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
               <span className="text-xs font-semibold text-foreground/60 shrink-0 ml-3 font-mono tracking-wider">{accountLabel}</span>
             )}
           </div>
-          {/* 티커 + 상태 */}
+          {/* 티커 + 회차 */}
           <div className="flex items-center justify-between">
             <span className="font-bold text-xl tracking-tight text-foreground leading-none">
               {strategy.ticker}
             </span>
-            <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} />
+            {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
+            {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
+              <span className="text-sm font-semibold text-rose-500 dark:text-rose-400">{strategy.currentRound!.toFixed(1)}회차</span>
+            )}
           </div>
         </div>
         {/* 시드 정보 행 */}

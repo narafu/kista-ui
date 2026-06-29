@@ -15,6 +15,7 @@ function normalizeStrategy(raw: unknown): Strategy {
     initialUsdDeposit: s.initialUsdDeposit != null ? toNum(s.initialUsdDeposit) : undefined,
     divisionCount: s.divisionCount != null ? Number(s.divisionCount) : 20,
     isReverseMode: Boolean(s.isReverseMode),
+    currentRound: s.currentRound != null ? Number(s.currentRound) : undefined,
   }
 }
 

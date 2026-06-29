@@ -13,6 +13,7 @@ export interface Strategy {
   initialUsdDeposit?: number
   divisionCount: number   // 분할 수 (20/30/40)
   isReverseMode: boolean  // 리버스모드 활성 여부 (소진 후 모드)
+  currentRound?: number   // 현재 회차 (INFINITE 전략만, 이력 없으면 0)
 }
 
 export interface StrategyRequest {
