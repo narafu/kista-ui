@@ -136,33 +136,36 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
   return (
     <div className="space-y-4">
       <Card>
-        <div className="flex flex-wrap items-center gap-2 px-5 pt-4 pb-5">
-          <span className="inline-flex items-center px-2.5 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400">
-            {strategy.type}
-          </span>
-          {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
-          {usesDivisionCount && (
-            <span className="inline-flex items-center px-2 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-medium whitespace-nowrap bg-muted text-muted-foreground">
-              {strategy.divisionCount}분할
-            </span>
-          )}
-          {strategy.isReverseMode && (
-            <span className="inline-flex items-center px-2 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap bg-amber-50 text-amber-600">
-              리버스모드
-            </span>
-          )}
-          <span className={cn(
-            'inline-flex items-center gap-1.5 px-2.5 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap',
-            strategy.status === 'ACTIVE' ? 'bg-status-ok-bg text-status-ok' : 'bg-warn-bg text-warn',
-          )}>
-            <span className={cn('size-1.5 rounded-full shrink-0', strategy.status === 'ACTIVE' ? 'bg-status-ok' : 'bg-warn')} />
-            {strategy.status}
-          </span>
+        <div className="flex items-center justify-between gap-2 px-5 pt-4 pb-5">
           <RevealableValue
             value={accountNo ?? accountNoMasked}
             hiddenDisplay={accountNoMasked}
-            className="ml-auto text-sm lg:text-base text-muted-foreground"
+            className="shrink-0 text-sm lg:text-base text-muted-foreground"
           />
+          <div className="flex flex-wrap justify-end items-center gap-2">
+            <span className="inline-flex items-center px-2.5 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400">
+              {strategy.type}
+            </span>
+            {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
+            {usesDivisionCount && (
+              <span className="inline-flex items-center px-2.5 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap bg-muted text-muted-foreground">
+                {strategy.divisionCount}분할
+              </span>
+            )}
+            {strategy.isReverseMode && (
+              <span className="inline-flex items-center px-2 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap bg-amber-50 text-amber-600">
+                리버스모드
+              </span>
+            )}
+            <span className="basis-full lg:basis-auto flex justify-end">
+              <span className={cn(
+                'inline-flex items-center px-2.5 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap bg-muted',
+                strategy.status === 'ACTIVE' ? 'text-status-ok' : 'text-warn',
+              )}>
+                {strategy.status}
+              </span>
+            </span>
+          </div>
         </div>
       </Card>
 
