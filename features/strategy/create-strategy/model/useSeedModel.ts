@@ -25,8 +25,8 @@ export interface UseSeedModelReturn {
 /**
  * 시드 결정 모델 훅
  *
- * - ON 모드: pct(슬라이더) → seedUsd = round(usdDeposit * pct / 100)
- * - OFF 모드: seedUsdInput(USD 직접 입력) → seedUsd = seedUsdInput
+ * - 신규 ON 모드: pct(슬라이더) → seedUsd = round(usdDeposit * pct / 100)
+ * - 수정 또는 OFF 모드: seedUsdInput(USD 직접 입력) → seedUsd = seedUsdInput
  * - isDirty: 사용자가 직접 조작한 경우에만 true (수정 시 미조작이면 시드 미전송)
  * - resetSeed: 타입/종목 변경 등 시스템 초기화 — isDirty 변경 없음
  */
@@ -36,6 +36,7 @@ export function useSeedModel({
   usdDeposit,
   minSeed,
 }: UseSeedModelOptions): UseSeedModelReturn {
+  const isEdit = !!initial
   const [pct, setPctInternal] = useState(100)
   const [isDirty, setDirty] = useState(false)
   const pctInitialized = useRef(false)
@@ -79,16 +80,20 @@ export function useSeedModel({
   }, [balanceCheckEnabled, minSeed, isDirty]) // eslint-disable-line react-doctor/exhaustive-deps
 
   // 100%일 때는 내림(예수금 초과 방지), 그 외는 올림(시드 부족 방지)
-  const seedUsd = !balanceCheckEnabled
+  const seedUsd = isEdit
     ? seedUsdInput
-    : (usdDeposit !== null
-        ? (pct === 100 ? Math.floor(usdDeposit) : Math.ceil((usdDeposit * pct) / 100))
-        : null)
+    : !balanceCheckEnabled
+      ? seedUsdInput
+      : (usdDeposit !== null
+          ? (pct === 100 ? Math.floor(usdDeposit) : Math.ceil((usdDeposit * pct) / 100))
+          : null)
 
   const isBelowMinSeed = seedUsd !== null && minSeed !== null && seedUsd < minSeed
 
   // seedUsd가 0 이하이면 제출 불가 (예수금 0 or OFF 모드 빈칸)
-  const isInvalidSeed = !balanceCheckEnabled
+  const isInvalidSeed = isEdit
+    ? (seedUsdInput ?? 0) <= 0
+    : !balanceCheckEnabled
     ? (seedUsdInput ?? 0) <= 0
     : seedUsd !== null && seedUsd <= 0
 

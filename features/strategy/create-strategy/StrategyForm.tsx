@@ -58,6 +58,7 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
       />
 
       <UsageRatioSection
+        isEdit={!!initial}
         pct={form.pct}
         setPct={form.setPct}
         seedUsdInput={form.seedUsdInput}
