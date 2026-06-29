@@ -135,7 +135,7 @@ export function useStrategyForm({
     pct, setPct,
     seedUsdInput, setSeedUsdInput,
     resetSeed,
-    seedUsd, isDirty,
+    seedUsd,
     isBelowMinSeed, isInvalidSeed,
   } = useSeedModel({ balanceCheckEnabled, initial, usdDeposit, minSeed })
 
@@ -160,7 +160,9 @@ export function useStrategyForm({
     })
   }, [minSeed]) // eslint-disable-line react-doctor/exhaustive-deps
 
-  const cannotSubmit = isBelowMinSeed || isInvalidSeed || (basePrice === null && seedUnavailableReason === null)
+  const cannotSubmit = initial
+    ? false
+    : isBelowMinSeed || isInvalidSeed || (basePrice === null && seedUnavailableReason === null)
 
   const cycleSeedType: CycleSeedType = !autoStart
     ? 'NONE'
@@ -196,7 +198,6 @@ export function useStrategyForm({
             type: initial.type,
             ticker: initial.ticker,
             cycleSeedType,
-            ...(isDirty && seedUsd != null ? { initialUsdDeposit: seedUsd } : {}),
           }
         : {
             type,
