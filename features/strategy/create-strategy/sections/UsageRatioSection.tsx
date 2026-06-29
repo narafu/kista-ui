@@ -15,7 +15,6 @@ const BALANCE_OFF_BADGE = (
 )
 
 interface Props {
-  isEdit?: boolean
   pct: number
   setPct: (pct: number) => void
   seedUsdInput: number | null
@@ -30,20 +29,19 @@ interface Props {
 }
 
 export function UsageRatioSection({
-  isEdit = false,
   pct, setPct, seedUsdInput, setSeedUsdInput,
   usdDeposit, minSeed, loading, loadingBase,
   isBelowMinSeed, seedUnavailableReason,
   balanceCheckEnabled = true,
 }: Props) {
-  const useSeedInput = isEdit || !balanceCheckEnabled
+  const useSeedInput = !balanceCheckEnabled
   const isOff = !balanceCheckEnabled
   const showWarning = !isOff && (isBelowMinSeed || seedUnavailableReason !== null)
 
   return (
     <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel
-        hint={isEdit ? '전략 총 시드 기준으로 수정' : isOff ? BALANCE_OFF_BADGE : 'USD 예수금 기준 · 드래그하거나 입력'}
+        hint={isOff ? BALANCE_OFF_BADGE : 'USD 예수금 기준 · 드래그하거나 입력'}
       >
         {useSeedInput ? '시드 금액' : '사용 비율'}
       </StrategyFieldLabel>
@@ -86,7 +84,6 @@ export function UsageRatioSection({
           ) : null}
         </div>
       )}
-
     </div>
   )
 }

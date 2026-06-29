@@ -8,6 +8,7 @@ import { useStrategyForm } from './model/useStrategyForm'
 import { StrategyTypeSection } from './sections/StrategyTypeSection'
 import { StrategyTickerSection } from './sections/StrategyTickerSection'
 import { UsageRatioSection } from './sections/UsageRatioSection'
+import { ReadOnlySeedSection } from './sections/ReadOnlySeedSection'
 import { CycleSeedSection } from './sections/CycleSeedSection'
 import { DivisionCountSection } from './sections/DivisionCountSection'
 import { StrategyFormSkeleton } from './StrategyFormSkeleton'
@@ -57,20 +58,23 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
         onTickerChange={form.handleTickerChange}
       />
 
-      <UsageRatioSection
-        isEdit={!!initial}
-        pct={form.pct}
-        setPct={form.setPct}
-        seedUsdInput={form.seedUsdInput}
-        setSeedUsdInput={form.setSeedUsdInput}
-        usdDeposit={form.usdDeposit}
-        minSeed={form.minSeed}
-        loading={form.loading}
-        loadingBase={form.loadingBase}
-        isBelowMinSeed={form.isBelowMinSeed}
-        seedUnavailableReason={form.seedUnavailableReason}
-        balanceCheckEnabled={form.balanceCheckEnabled}
-      />
+      {initial ? (
+        <ReadOnlySeedSection initialUsdDeposit={initial.initialUsdDeposit} />
+      ) : (
+        <UsageRatioSection
+          pct={form.pct}
+          setPct={form.setPct}
+          seedUsdInput={form.seedUsdInput}
+          setSeedUsdInput={form.setSeedUsdInput}
+          usdDeposit={form.usdDeposit}
+          minSeed={form.minSeed}
+          loading={form.loading}
+          loadingBase={form.loadingBase}
+          isBelowMinSeed={form.isBelowMinSeed}
+          seedUnavailableReason={form.seedUnavailableReason}
+          balanceCheckEnabled={form.balanceCheckEnabled}
+        />
+      )}
 
       <CycleSeedSection
         autoStart={form.autoStart}
