@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+이 파일은 Claude Code 진입점이다. Codex 진입점은 `AGENTS.md`이며, 실제 프로젝트 공통 지식은 `docs/agents/`에 둔다.
+
 세부 quirk는 각 디렉토리 CLAUDE.md 참고:
 - `app/CLAUDE.md` — proxy·쿠키·Next.js·SSE·PWA quirk
 - `entities/CLAUDE.md` — 도메인 모델·kista-api DTO·KIS quirk·queryKey
@@ -22,6 +24,17 @@ npm run typecheck  # TypeScript 타입 검사 (tsc --noEmit)
 
 npx shadcn@latest add <component> --yes
 ```
+
+@AGENTS.md
+@docs/agents/commands.md
+@docs/agents/architecture.md
+@docs/agents/constraints.md
+@docs/agents/deployment.md
+@docs/agents/app.md
+@docs/agents/entities.md
+@docs/agents/features.md
+@docs/agents/widgets.md
+@docs/agents/shared.md
 
 ## 아키텍처
 
