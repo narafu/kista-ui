@@ -13,6 +13,7 @@ NEXT_PUBLIC_API_BASE_URL=
 - Server Component fetch도 서버 간 호출이므로 CORS 영향이 있다.
 - Fly.io 로그에 요청이 없는데 403이면 CORS 필터 차단 가능성을 먼저 본다.
 - `kista-api` 연동 변경이 있으면 `../kista-api/CLAUDE.md`와 함께 확인한다.
+- `kista-api`의 추가 운영/구현 규칙이 필요하면 `../kista-api/AGENTS.md`도 함께 확인한다.
 
 ## Docker
 
