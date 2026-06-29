@@ -52,6 +52,7 @@ features/{domain}/{slice}/
 - **`create-account/steps/ConfirmStep`**: `useCreateAccountMutation` 사용
 - **`auth/reapply`**: `/api/auth/reapply-done` Route Handler 경유
 - **`strategy/create-strategy/StrategyFormDialog`**: `initial` prop 유무로 create/edit 분기
+- **`strategy/create-strategy`**: 수정 모드에서는 시작금액(`initialUsdDeposit`)을 읽기 전용으로만 표시하고 저장 payload에 포함하지 않음
 - **`strategy/create-strategy/sections/DivisionCountSection`**: `usesDivisionCount`와 `typeMeta.divisionCounts` 기반 렌더
 - **`settings/telegram-connect`**: pending/settings 페이지에서 컴포넌트 공유
 - **`strategy/create-strategy/sections`**: CSS 토큰 기반 인라인 style 다수 사용

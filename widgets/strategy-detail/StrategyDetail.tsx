@@ -151,6 +151,13 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
               리버스모드
             </span>
           )}
+          <span className={cn(
+            'inline-flex items-center gap-1.5 px-2.5 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap',
+            strategy.status === 'ACTIVE' ? 'bg-status-ok-bg text-status-ok' : 'bg-warn-bg text-warn',
+          )}>
+            <span className={cn('size-1.5 rounded-full shrink-0', strategy.status === 'ACTIVE' ? 'bg-status-ok' : 'bg-warn')} />
+            {strategy.status}
+          </span>
           <RevealableValue
             value={accountNo ?? accountNoMasked}
             hiddenDisplay={accountNoMasked}
@@ -159,28 +166,16 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
         </div>
       </Card>
 
-      <div className="grid grid-cols-3 gap-3">
-        <KpiCard
-          label="상태"
-          value={
-            <span className={cn(
-              'inline-flex items-center gap-1.5 text-xs lg:text-sm font-medium',
-              strategy.status === 'ACTIVE' ? 'text-status-ok' : 'text-warn',
-            )}>
-              <span className={cn('size-2 rounded-full shrink-0', strategy.status === 'ACTIVE' ? 'bg-status-ok' : 'bg-warn')} />
-              {strategy.status}
-            </span>
-          }
-        />
+      <div className="grid grid-cols-2 gap-3">
         <KpiCard
           label="다음 사이클"
-          value={<span className={cn('inline-flex items-center px-2.5 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap', seedBadgeCls)}>{cycleSeedLabel}</span>}
+          value={<span className={cn('inline-flex items-center px-2.5 h-[28px] lg:h-[36px] rounded-full text-sm lg:text-base font-semibold whitespace-nowrap', seedBadgeCls)}>{cycleSeedLabel}</span>}
         />
         <KpiCard
           label="시작금액"
           value={strategy.initialUsdDeposit != null
-            ? <span className="inline-flex items-center text-xs lg:text-2xl font-bold">{`$${fmtUsd(strategy.initialUsdDeposit)}`}</span>
-            : <span className="inline-flex items-center text-xs lg:text-sm text-muted-foreground font-normal">미설정</span>
+            ? <span className="inline-flex items-center text-xl lg:text-3xl font-bold">{`$${fmtUsd(strategy.initialUsdDeposit)}`}</span>
+            : <span className="inline-flex items-center text-sm lg:text-base text-muted-foreground font-normal">미설정</span>
           }
         />
       </div>

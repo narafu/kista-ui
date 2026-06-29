@@ -29,14 +29,10 @@ export function StrategyFormSkeleton({ hasCancel = true }: { hasCancel?: boolean
         </div>
       </div>
 
-      {/* 시드 금액 */}
+      {/* 시작금액 / 시드 영역 공용 스켈레톤 */}
       <div className="py-[18px] border-b border-border">
-        <div className="flex items-center justify-between mb-3">
-          <PulseBox className="h-3.5 w-16" />
-          <PulseBox className="h-3 w-28" />
-        </div>
-        <PulseBox className="h-14" />
-        <PulseBox className="h-[46px] mt-2" />
+        <div className="h-4 w-24 rounded bg-muted mb-3" />
+        <div className="h-12 w-full rounded-[var(--r-sm)] bg-muted" />
       </div>
 
       {/* 사이클 연속여부 */}
