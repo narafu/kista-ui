@@ -24,6 +24,7 @@ export interface UseStrategyFormReturn {
   setType: (t: string) => void
   usesDivisionCount: boolean
   requiresPrivacyBase: boolean
+  canEditSeed: boolean
   seedUnavailableReason: string | null
 
   ticker: string
@@ -84,6 +85,7 @@ export function useStrategyForm({
   const autoStart = form.watch('autoStart')
   const seedMode = form.watch('seedMode')
   const divisionCount = form.watch('divisionCount')
+  const canEditSeed = !!initial && (initial.currentHoldings ?? 0) === 0
 
   // capability 파생 — isInfinite 휴리스틱 대신 백엔드 SSOT 사용
   const typeMeta = useMemo(() => findStrategyType(type), [findStrategyType, type])
@@ -137,7 +139,7 @@ export function useStrategyForm({
     resetSeed,
     seedUsd,
     isBelowMinSeed, isInvalidSeed,
-  } = useSeedModel({ balanceCheckEnabled, initial, usdDeposit, minSeed })
+  } = useSeedModel({ balanceCheckEnabled, initial, editableEdit: canEditSeed, usdDeposit, minSeed })
 
   // type 변경 시 ticker 기본값 설정 — 시드는 minSeed effect에서 처리
   useEffect(() => {
@@ -151,16 +153,16 @@ export function useStrategyForm({
 
   // 엔드포인트 minSeed 도착/변경 시 시드 게이지 재초기화 (신규 등록 한정)
   useEffect(() => {
-    if (initial) return
+    if (initial && !canEditSeed) return
     if (minSeed === null) return
     // eslint-disable-next-line react-doctor/no-pass-data-to-parent
     resetSeed({
       pct: usdDeposit !== null && usdDeposit < minSeed ? 0 : 100,
       seedUsdInput: Math.ceil(minSeed),
     })
-  }, [minSeed]) // eslint-disable-line react-doctor/exhaustive-deps
+  }, [canEditSeed, minSeed]) // eslint-disable-line react-doctor/exhaustive-deps
 
-  const cannotSubmit = initial
+  const cannotSubmit = initial && !canEditSeed
     ? false
     : isBelowMinSeed || isInvalidSeed || (basePrice === null && seedUnavailableReason === null)
 
@@ -198,6 +200,7 @@ export function useStrategyForm({
             type: initial.type,
             ticker: initial.ticker,
             cycleSeedType,
+            ...(canEditSeed ? { initialUsdDeposit: seedUsd ?? undefined } : {}),
           }
         : {
             type,
@@ -216,7 +219,7 @@ export function useStrategyForm({
   }
 
   return {
-    type, setType, usesDivisionCount, requiresPrivacyBase, seedUnavailableReason,
+    type, setType, usesDivisionCount, requiresPrivacyBase, canEditSeed, seedUnavailableReason,
     ticker, availableTickers, handleTickerChange, basePrice, prices,
     pct, setPct, seedUsdInput, setSeedUsdInput, usdDeposit, minSeed, isBelowMinSeed, loadingBase,
     balanceCheckEnabled,

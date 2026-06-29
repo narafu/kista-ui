@@ -57,6 +57,7 @@ const baseFormState = {
   minSeed: 500,
   isBelowMinSeed: false,
   loadingBase: false,
+  canEditSeed: false,
   seedUnavailableReason: null,
   balanceCheckEnabled: true,
   autoStart: true,
@@ -81,6 +82,7 @@ const initialStrategy: Strategy = {
   initialUsdDeposit: 1200,
   divisionCount: 20,
   isReverseMode: false,
+  currentHoldings: 3,
 }
 
 describe('StrategyForm seed section', () => {
@@ -93,6 +95,17 @@ describe('StrategyForm seed section', () => {
     expect(screen.getByText('시작금액')).toBeInTheDocument()
     expect(screen.getByText('시드는 전략 등록 후 수정할 수 없습니다')).toBeInTheDocument()
     expect(screen.getByText('$1,200.00')).toBeInTheDocument()
+  })
+
+  it('shows the editable seed section in edit mode when currentHoldings is zero', () => {
+    useStrategyFormMock.mockReturnValue({
+      ...baseFormState,
+      canEditSeed: true,
+    })
+
+    render(<StrategyForm accountId="account-1" initial={{ ...initialStrategy, currentHoldings: 0 }} />)
+
+    expect(screen.getByTestId('usage-ratio-section')).toBeInTheDocument()
   })
 
   it('keeps the editable usage ratio section in create mode', () => {

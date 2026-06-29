@@ -6,6 +6,7 @@ import type { Strategy } from '@entities/strategy'
 interface UseSeedModelOptions {
   balanceCheckEnabled: boolean
   initial?: Strategy
+  editableEdit?: boolean
   usdDeposit: number | null
   minSeed: number | null
 }
@@ -31,11 +32,13 @@ export interface UseSeedModelReturn {
 export function useSeedModel({
   balanceCheckEnabled,
   initial,
+  editableEdit = false,
   usdDeposit,
   minSeed,
 }: UseSeedModelOptions): UseSeedModelReturn {
   const [pct, setPctInternal] = useState(100)
   const inputDirtyRef = useRef(false)
+  const pctInitialized = useRef(false)
   const [seedUsdInput, setSeedUsdInputInternal] = useState<number | null>(
     initial?.initialUsdDeposit ?? null,
   )
@@ -53,6 +56,17 @@ export function useSeedModel({
     if (newPct !== undefined) setPctInternal(newPct)
     if (newSeedUsd !== undefined) setSeedUsdInputInternal(newSeedUsd)
   }
+
+  // holdings=0 수정 모드 + 잔고검증 ON이면 기존 시작금액 비율로 게이지를 1회 초기화
+  useEffect(() => {
+    if (!editableEdit || !balanceCheckEnabled) return
+    if (!initial || pctInitialized.current) return
+    if (usdDeposit === null || usdDeposit <= 0) return
+    if (initial.initialUsdDeposit == null) return
+    const ratio = Math.round((initial.initialUsdDeposit / usdDeposit) * 100)
+    setPctInternal(Math.min(100, Math.max(0, ratio)))
+    pctInitialized.current = true
+  }, [balanceCheckEnabled, editableEdit, initial, usdDeposit])
 
   // 잔고검증 OFF + 신규 등록 시 minSeed로 자동 동기화 (사용자가 직접 조작하기 전까지)
   useEffect(() => {

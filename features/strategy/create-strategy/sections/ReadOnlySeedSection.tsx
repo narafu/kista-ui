@@ -5,12 +5,13 @@ import { StrategyFieldLabel } from '../StrategyFieldLabel'
 
 interface Props {
   initialUsdDeposit?: number
+  hint?: string
 }
 
-export function ReadOnlySeedSection({ initialUsdDeposit }: Props) {
+export function ReadOnlySeedSection({ initialUsdDeposit, hint = '시드는 전략 등록 후 수정할 수 없습니다' }: Props) {
   return (
     <div className="py-[18px] border-b border-border">
-      <StrategyFieldLabel hint="시드는 전략 등록 후 수정할 수 없습니다">
+      <StrategyFieldLabel hint={hint}>
         시작금액
       </StrategyFieldLabel>
 

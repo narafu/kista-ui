@@ -12,7 +12,6 @@ const seedModelState = {
   setSeedUsdInput: vi.fn(),
   resetSeed: vi.fn(),
   seedUsd: 1200,
-  isDirty: false,
   isBelowMinSeed: false,
   isInvalidSeed: false,
 }
@@ -82,7 +81,6 @@ describe('useStrategyForm submit policy', () => {
     seedModelState.pct = 100
     seedModelState.seedUsdInput = 1200
     seedModelState.seedUsd = 1200
-    seedModelState.isDirty = false
     seedModelState.isBelowMinSeed = false
     seedModelState.isInvalidSeed = false
     seedPreviewState.data.basePrice = 100
@@ -92,7 +90,6 @@ describe('useStrategyForm submit policy', () => {
   })
 
   it('edit payload does not include initialUsdDeposit', async () => {
-    seedModelState.isDirty = true
     seedModelState.seedUsdInput = 777
     seedModelState.seedUsd = 777
 
@@ -109,6 +106,7 @@ describe('useStrategyForm submit policy', () => {
           initialUsdDeposit: 1200,
           divisionCount: 20,
           isReverseMode: false,
+          currentHoldings: 3,
         },
       }),
     )
@@ -143,6 +141,7 @@ describe('useStrategyForm submit policy', () => {
           initialUsdDeposit: 1200,
           divisionCount: 20,
           isReverseMode: false,
+          currentHoldings: 3,
         },
       }),
     )
@@ -163,6 +162,43 @@ describe('useStrategyForm submit policy', () => {
       type: 'INFINITE',
       ticker: 'TSLA',
       cycleSeedType: 'MAINTAIN',
+    })
+  })
+
+  it('edit payload includes initialUsdDeposit when currentHoldings is zero', async () => {
+    seedModelState.seedUsd = 1800
+
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+        initial: {
+          id: 'strategy-1',
+          accountId: 'account-1',
+          type: 'INFINITE',
+          status: 'ACTIVE',
+          ticker: 'TSLA',
+          cycleSeedType: 'MAX',
+          initialUsdDeposit: 1200,
+          divisionCount: 20,
+          isReverseMode: false,
+          currentHoldings: 0,
+        },
+      }),
+    )
+
+    await act(async () => {
+      result.current.handleSubmit({ preventDefault() {} } as React.FormEvent)
+    })
+
+    await waitFor(() => {
+      expect(mockUpdateMutate).toHaveBeenCalled()
+    })
+
+    expect(mockUpdateMutate).toHaveBeenCalledWith({
+      type: 'INFINITE',
+      ticker: 'TSLA',
+      cycleSeedType: 'MAX',
+      initialUsdDeposit: 1800,
     })
   })
 
@@ -208,6 +244,7 @@ describe('useStrategyForm submit policy', () => {
           initialUsdDeposit: 1200,
           divisionCount: 20,
           isReverseMode: false,
+          currentHoldings: 3,
         },
       }),
     )
@@ -221,6 +258,30 @@ describe('useStrategyForm submit policy', () => {
     const { result } = renderHook(() =>
       useStrategyForm({
         accountId: 'account-1',
+      }),
+    )
+
+    expect(result.current.cannotSubmit).toBe(true)
+  })
+
+  it('edit mode with currentHoldings zero uses create-style validation', () => {
+    seedModelState.isInvalidSeed = true
+
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+        initial: {
+          id: 'strategy-1',
+          accountId: 'account-1',
+          type: 'INFINITE',
+          status: 'ACTIVE',
+          ticker: 'TSLA',
+          cycleSeedType: 'MAX',
+          initialUsdDeposit: 1200,
+          divisionCount: 20,
+          isReverseMode: false,
+          currentHoldings: 0,
+        },
       }),
     )
 

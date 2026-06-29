@@ -16,6 +16,7 @@ function normalizeStrategy(raw: unknown): Strategy {
     divisionCount: s.divisionCount != null ? Number(s.divisionCount) : 20,
     isReverseMode: Boolean(s.isReverseMode),
     currentRound: s.currentRound != null ? Number(s.currentRound) : undefined,
+    currentHoldings: s.currentHoldings != null ? Number(s.currentHoldings) : undefined,
   }
 }
 

@@ -15,6 +15,7 @@ const BALANCE_OFF_BADGE = (
 )
 
 interface Props {
+  hint?: React.ReactNode
   pct: number
   setPct: (pct: number) => void
   seedUsdInput: number | null
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export function UsageRatioSection({
+  hint,
   pct, setPct, seedUsdInput, setSeedUsdInput,
   usdDeposit, minSeed, loading, loadingBase,
   isBelowMinSeed, seedUnavailableReason,
@@ -41,7 +43,7 @@ export function UsageRatioSection({
   return (
     <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel
-        hint={isOff ? BALANCE_OFF_BADGE : 'USD 예수금 기준 · 드래그하거나 입력'}
+        hint={hint ?? (isOff ? BALANCE_OFF_BADGE : 'USD 예수금 기준 · 드래그하거나 입력')}
       >
         {useSeedInput ? '시드 금액' : '사용 비율'}
       </StrategyFieldLabel>

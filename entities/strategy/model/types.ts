@@ -14,13 +14,14 @@ export interface Strategy {
   divisionCount: number   // 분할 수 (20/30/40)
   isReverseMode: boolean  // 리버스모드 활성 여부 (소진 후 모드)
   currentRound?: number   // 현재 회차 (INFINITE 전략만, 이력 없으면 0)
+  currentHoldings?: number
 }
 
 export interface StrategyRequest {
   type: string
   ticker?: string
   cycleSeedType: CycleSeedType
-  initialUsdDeposit?: number  // 등록 시에만 전송
+  initialUsdDeposit?: number  // 등록 시 또는 holdings=0 수정 시 전송
   divisionCount?: number      // 분할 수 (20/30/40, 미전송 시 백엔드 기본값 20)
 }
 

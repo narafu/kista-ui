@@ -58,10 +58,11 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
         onTickerChange={form.handleTickerChange}
       />
 
-      {initial ? (
+      {initial && !form.canEditSeed ? (
         <ReadOnlySeedSection initialUsdDeposit={initial.initialUsdDeposit} />
       ) : (
         <UsageRatioSection
+          hint={initial ? '첫 매매 전이라 시드 수정이 가능합니다' : undefined}
           pct={form.pct}
           setPct={form.setPct}
           seedUsdInput={form.seedUsdInput}
