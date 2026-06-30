@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
-import { StatusDot } from '@widgets/status-dot'
 import { fmtUsd } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import { seedBadgeClass } from '@entities/strategy'
@@ -40,31 +39,30 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
       {/* 모바일: 2행 레이아웃 */}
       <div className="flex flex-col gap-1.5 pl-5 pr-4 py-3 lg:hidden">
         {/* 1행: 배지 + 계좌번호 */}
-        <div className="flex items-center gap-1.5">
+        <div data-testid="strategy-card-mobile-top-row" className="flex items-center gap-1.5">
           <span
             className="inline-flex items-center px-2.5 h-[20px] rounded-full text-xs font-semibold whitespace-nowrap"
             style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
           >
             {strategy.type}
           </span>
-          {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
-          {usesDivisionCount && (
-            <span className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold whitespace-nowrap bg-muted text-foreground">
-              {strategy.divisionCount}분할
-            </span>
-          )}
+          <span className={`inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold whitespace-nowrap ${seedBadgeCls}`}>{seedLabel}</span>
           {accountLabel && (
             <span className="ml-auto text-xs font-semibold text-foreground/60 shrink-0 font-mono tracking-wider">{accountLabel}</span>
           )}
         </div>
-        {/* 2행: 상태 + 티커 + 시드 + 회차 + 금액 */}
-        <div className="flex items-center gap-2">
-          <StatusDot status={(strategy.status as 'ACTIVE' | 'PAUSED') ?? 'UNKNOWN'} hideLabel />
+        {/* 2행: 티커 + 분할 + 회차 + 금액 */}
+        <div data-testid="strategy-card-mobile-main-row" className="flex items-center gap-2">
           <span className="font-bold text-base text-foreground">{strategy.ticker}</span>
-          <span className={`inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold whitespace-nowrap ${seedBadgeCls}`}>{seedLabel}</span>
+          {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
+          {usesDivisionCount && (
+            <span className="inline-flex shrink-0 items-center px-2 h-[20px] rounded-full text-xs font-semibold whitespace-nowrap bg-muted text-foreground">
+              {strategy.divisionCount}분할
+            </span>
+          )}
           {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
           {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
-            <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">{strategy.currentRound!.toFixed(1)}회차</span>
+            <span className="shrink-0 whitespace-nowrap text-xs font-semibold text-amber-600 dark:text-amber-400">{strategy.currentRound!.toFixed(1)}회차</span>
           )}
           <span className="ml-auto text-sm font-semibold text-foreground">
             {strategy.initialUsdDeposit != null ? (
@@ -112,7 +110,7 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
             </span>
             {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
             {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
-              <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">{strategy.currentRound!.toFixed(1)}회차</span>
+              <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-amber-600 dark:text-amber-400">{strategy.currentRound!.toFixed(1)}회차</span>
             )}
           </div>
         </div>
