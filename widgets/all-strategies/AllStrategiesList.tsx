@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { TrendingUp, ChevronRight } from 'lucide-react'
 import { StrategyCard } from '@widgets/strategy-card'
-import { RevealableValue } from '@widgets/revealable-value'
 import { useAllStrategiesQuery } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import { Spinner } from '@shared/ui/Spinner'
@@ -50,10 +49,6 @@ function EmptyState({ accounts }: { accounts: Account[] }) {
             >
               <span className="font-medium text-foreground">{account.nickname}</span>
               <span className="flex items-center gap-1 text-muted-foreground text-sm">
-                <RevealableValue
-                  value={account.accountNo ?? account.accountNoMasked}
-                  hiddenDisplay={account.accountNoMasked}
-                />
                 <ChevronRight className="size-3.5" />
               </span>
             </Link>
@@ -102,11 +97,7 @@ export function AllStrategiesList({ strategies: initialStrategies, accounts }: P
   const accountMap = new Map(
     accounts.map((a) => [
       a.id,
-      <RevealableValue
-        key={a.id}
-        value={a.accountNo ?? a.accountNoMasked}
-        hiddenDisplay={a.accountNoMasked}
-      />,
+      a.nickname,
     ])
   )
 
