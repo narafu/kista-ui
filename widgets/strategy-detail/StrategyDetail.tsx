@@ -18,7 +18,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { KpiCard } from '@widgets/kpi-card'
-import { RevealableValue } from '@widgets/revealable-value'
 import { StrategyTradesTab } from '@widgets/cycle-history'
 import {
   useDeleteStrategyMutation,
@@ -68,7 +67,7 @@ interface Props {
   strategy: Strategy
 }
 
-export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy }: Props) {
+export function StrategyDetail({ accountId, strategy }: Props) {
   const { push } = useRouter()
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [manualOrders, setManualOrders] = useState<PlacedOrder[] | null>(null)
@@ -135,7 +134,8 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
 
   const { labelOf, findStrategyType } = useMeta()
   const cycleSeedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
-  const usesDivisionCount = (findStrategyType(strategy.type)?.divisionCounts?.length ?? 0) > 0
+  const strategyTypeMeta = findStrategyType(strategy.type)
+  const usesDivisionCount = (strategyTypeMeta?.divisionCounts?.length ?? 0) > 0
   const seedBadgeCls = seedBadgeClass(strategy.cycleSeedType)
 
   return (
@@ -147,48 +147,47 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
           style={{ background: STATUS_ACCENT[(strategy.status as 'ACTIVE' | 'PAUSED')] ?? 'var(--border)' }}
         />
         <div className="pl-6 pr-5 py-4 lg:pl-7 lg:pr-6 lg:py-5">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 space-y-2">
-              <div
-                data-testid="strategy-hero-group"
-                className="flex flex-wrap items-center gap-2"
-              >
-                <span className="inline-flex items-center px-2.5 h-[24px] rounded-full text-xs font-semibold whitespace-nowrap bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400">
-                  {strategy.type}
-                </span>
-                {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
-                {usesDivisionCount && (
-                  <span className="inline-flex items-center px-2.5 h-[24px] rounded-full text-xs font-semibold whitespace-nowrap bg-muted text-muted-foreground">
-                    {strategy.divisionCount}분할
-                  </span>
-                )}
+          <div className="space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--brand-fg-soft)]">
+                  전략 정보
+                </p>
               </div>
-              <div
-                data-testid="strategy-meta-row"
-                className="flex flex-wrap items-start sm:items-center gap-x-3 gap-y-2 text-sm"
-              >
-                <span className="inline-flex max-w-full items-center gap-1.5 text-muted-foreground">
-                  <RevealableValue
-                    value={accountNo ?? accountNoMasked}
-                    hiddenDisplay={accountNoMasked}
-                    className="max-w-full text-foreground/75"
-                  />
-                </span>
+              <div data-testid="strategy-status-group" className="flex flex-wrap items-center justify-end gap-2">
                 {strategy.isReverseMode && (
                   <span className="inline-flex items-center px-2.5 h-[24px] rounded-full text-xs font-semibold whitespace-nowrap bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400">
                     리버스모드
                   </span>
                 )}
+                {strategy.status !== 'ACTIVE' && (
+                  <span className={cn(
+                    'inline-flex shrink-0 items-center px-3 h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap border',
+                    'border-warn/20 bg-warn-bg text-warn',
+                  )}>
+                    {strategy.status}
+                  </span>
+                )}
               </div>
             </div>
-            {strategy.status !== 'ACTIVE' && (
-              <span className={cn(
-                'inline-flex shrink-0 items-center px-3 h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap border',
-                'border-warn/20 bg-warn-bg text-warn',
-              )}>
-                {strategy.status}
-              </span>
-            )}
+            <div data-testid="strategy-meta-grid" className="grid grid-cols-2 gap-3">
+              <KpiCard
+                label="전략타입"
+                value={<span className="inline-flex items-center text-xl lg:text-2xl font-bold">{strategy.type}</span>}
+                className="p-4 lg:p-5"
+                valueClassName="text-xl lg:text-2xl"
+              />
+              <KpiCard
+                label={usesDivisionCount ? '분할' : '운용 방식'}
+                value={
+                  <span className="inline-flex items-center text-xl lg:text-2xl font-bold">
+                    {usesDivisionCount ? `${strategy.divisionCount}분할` : '단일'}
+                  </span>
+                }
+                className="p-4 lg:p-5"
+                valueClassName="text-xl lg:text-2xl"
+              />
+            </div>
           </div>
         </div>
       </Card>

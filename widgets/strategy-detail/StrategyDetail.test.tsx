@@ -80,7 +80,11 @@ vi.mock('@entities/market', () => ({
 vi.mock('@entities/meta', () => ({
   useMeta: () => ({
     labelOf: (_group: string, value: string) => value,
-    findStrategyType: () => ({ divisionCounts: [20, 30, 40] }),
+    findStrategyType: (code: string) => (
+      code === 'PRIVACY'
+        ? { divisionCounts: [] }
+        : { divisionCounts: [20, 30, 40] }
+    ),
   }),
 }))
 
@@ -106,7 +110,7 @@ const baseStrategy: Strategy = {
 }
 
 describe('StrategyDetail header card', () => {
-  it('shows strategy metadata without duplicating the ticker in the card header', () => {
+  it('shows strategy metadata cards without the account number', () => {
     const { container } = render(
       <StrategyDetail
         accountId="account-1"
@@ -119,14 +123,15 @@ describe('StrategyDetail header card', () => {
 
     expect(accent).toBeInTheDocument()
     expect(accent).toHaveStyle({ background: 'var(--status-ok)' })
-    expect(screen.getByText('INFINITE')).toBeInTheDocument()
-    expect(screen.queryByText('계좌')).not.toBeInTheDocument()
-    expect(screen.getByText('123-45')).toBeInTheDocument()
-    expect(screen.getByTestId('strategy-meta-row')).toHaveClass('items-start', 'sm:items-center')
+    expect(screen.queryByText('123-45')).not.toBeInTheDocument()
+    expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('전략타입')
+    expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('INFINITE')
+    expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('분할')
+    expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('20분할')
     expect(screen.queryByText('ACTIVE')).not.toBeInTheDocument()
   })
 
-  it('shows paused styling and secondary meta chips for division and reverse mode', () => {
+  it('shows paused styling and keeps reverse mode as a badge near status', () => {
     const { container } = render(
       <StrategyDetail
         accountId="account-1"
@@ -139,8 +144,21 @@ describe('StrategyDetail header card', () => {
 
     expect(accent).toHaveStyle({ background: 'var(--warn)' })
     expect(screen.getByText('PAUSED')).toBeInTheDocument()
-    expect(screen.getByTestId('strategy-hero-group')).toHaveTextContent('20분할')
-    expect(screen.getByTestId('strategy-meta-row')).not.toHaveTextContent('20분할')
+    expect(screen.getByTestId('strategy-status-group')).toHaveTextContent('리버스모드')
     expect(screen.getByText('리버스모드')).toBeInTheDocument()
+  })
+
+  it('shows an alternate operating mode label when the strategy type has no division count', () => {
+    render(
+      <StrategyDetail
+        accountId="account-1"
+        accountNoMasked="123-45"
+        strategy={{ ...baseStrategy, type: 'PRIVACY', divisionCount: 0 }}
+      />,
+    )
+
+    expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('운용 방식')
+    expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('단일')
+    expect(screen.getByTestId('strategy-meta-grid')).not.toHaveTextContent('분할')
   })
 })
