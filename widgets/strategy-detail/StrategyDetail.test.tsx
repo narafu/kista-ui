@@ -110,7 +110,7 @@ const baseStrategy: Strategy = {
 }
 
 describe('StrategyDetail header card', () => {
-  it('shows strategy metadata cards without the account number', () => {
+  it('shows strategy type and next cycle in the header metadata cards', () => {
     const { container } = render(
       <StrategyDetail
         accountId="account-1"
@@ -126,8 +126,10 @@ describe('StrategyDetail header card', () => {
     expect(screen.queryByText('123-45')).not.toBeInTheDocument()
     expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('전략타입')
     expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('INFINITE')
-    expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('분할')
-    expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('20분할')
+    expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('다음 사이클')
+    expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('MAX')
+    expect(screen.getByTestId('strategy-summary-grid')).toHaveTextContent('분할')
+    expect(screen.getByTestId('strategy-summary-grid')).toHaveTextContent('20분할')
     expect(screen.queryByText('ACTIVE')).not.toBeInTheDocument()
   })
 
@@ -157,8 +159,8 @@ describe('StrategyDetail header card', () => {
       />,
     )
 
-    expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('운용 방식')
-    expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('단일')
-    expect(screen.getByTestId('strategy-meta-grid')).not.toHaveTextContent('분할')
+    expect(screen.getByTestId('strategy-summary-grid')).toHaveTextContent('운용 방식')
+    expect(screen.getByTestId('strategy-summary-grid')).toHaveTextContent('단일')
+    expect(screen.getByTestId('strategy-summary-grid')).not.toHaveTextContent('분할')
   })
 })

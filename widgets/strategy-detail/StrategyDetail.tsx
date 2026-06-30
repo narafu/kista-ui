@@ -178,24 +178,25 @@ export function StrategyDetail({ accountId, strategy }: Props) {
                 valueClassName="text-xl lg:text-2xl"
               />
               <KpiCard
-                label={usesDivisionCount ? '분할' : '운용 방식'}
-                value={
-                  <span className="inline-flex items-center text-xl lg:text-2xl font-bold">
-                    {usesDivisionCount ? `${strategy.divisionCount}분할` : '단일'}
-                  </span>
-                }
+                label="다음 사이클"
+                value={<span className={cn('inline-flex items-center px-2.5 h-[28px] lg:h-[36px] rounded-full text-sm lg:text-base font-semibold whitespace-nowrap', seedBadgeCls)}>{cycleSeedLabel}</span>}
                 className="p-4 lg:p-5"
-                valueClassName="text-xl lg:text-2xl"
               />
             </div>
           </div>
         </div>
       </Card>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div data-testid="strategy-summary-grid" className="grid grid-cols-2 gap-3">
         <KpiCard
-          label="다음 사이클"
-          value={<span className={cn('inline-flex items-center px-2.5 h-[28px] lg:h-[36px] rounded-full text-sm lg:text-base font-semibold whitespace-nowrap', seedBadgeCls)}>{cycleSeedLabel}</span>}
+          label={usesDivisionCount ? '분할' : '운용 방식'}
+          value={
+            <span className="inline-flex items-center text-xl lg:text-2xl font-bold">
+              {usesDivisionCount ? `${strategy.divisionCount}분할` : '단일'}
+            </span>
+          }
+          className="p-4 lg:p-5"
+          valueClassName="text-xl lg:text-2xl"
         />
         <KpiCard
           label="시작금액"
