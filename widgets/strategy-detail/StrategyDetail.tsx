@@ -48,6 +48,11 @@ const SKIP_REASON_LABELS: Record<SkipReason, string> = {
   NO_PRIVACY_BASE: '기준 매매표가 없습니다.',
 }
 
+const STATUS_ACCENT: Record<'ACTIVE' | 'PAUSED', string> = {
+  ACTIVE: 'var(--status-ok)',
+  PAUSED: 'var(--warn)',
+}
+
 function previewErrorMsg(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.status === 404) return '전략 사이클 정보를 찾을 수 없습니다.'
@@ -135,36 +140,55 @@ export function StrategyDetail({ accountId, accountNoMasked, accountNo, strategy
 
   return (
     <div className="space-y-4">
-      <Card>
-        <div className="flex items-center justify-between gap-2 px-5 pt-4 pb-5">
-          <RevealableValue
-            value={accountNo ?? accountNoMasked}
-            hiddenDisplay={accountNoMasked}
-            className="shrink-0 text-sm lg:text-base text-muted-foreground"
-          />
-          <div className="flex flex-wrap justify-end items-center gap-2">
-            <span className="inline-flex items-center px-2.5 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400">
-              {strategy.type}
-            </span>
-            {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
-            {usesDivisionCount && (
-              <span className="inline-flex items-center px-2.5 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap bg-muted text-muted-foreground">
-                {strategy.divisionCount}분할
-              </span>
-            )}
-            {strategy.isReverseMode && (
-              <span className="inline-flex items-center px-2 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap bg-amber-50 text-amber-600">
-                리버스모드
-              </span>
-            )}
-            <span className="basis-full lg:basis-auto flex justify-end">
+      <Card className="relative overflow-hidden border-border bg-card shadow-[var(--sh-card)]">
+        <span
+          data-testid="strategy-status-accent"
+          className="absolute left-0 top-0 bottom-0 w-[3px]"
+          style={{ background: STATUS_ACCENT[(strategy.status as 'ACTIVE' | 'PAUSED')] ?? 'var(--border)' }}
+        />
+        <div className="pl-6 pr-5 py-4 lg:pl-7 lg:pr-6 lg:py-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 space-y-2">
+              <div
+                data-testid="strategy-hero-group"
+                className="flex flex-wrap items-center gap-2"
+              >
+                <span className="inline-flex items-center px-2.5 h-[24px] rounded-full text-xs font-semibold whitespace-nowrap bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400">
+                  {strategy.type}
+                </span>
+                {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
+                {usesDivisionCount && (
+                  <span className="inline-flex items-center px-2.5 h-[24px] rounded-full text-xs font-semibold whitespace-nowrap bg-muted text-muted-foreground">
+                    {strategy.divisionCount}분할
+                  </span>
+                )}
+              </div>
+              <div
+                data-testid="strategy-meta-row"
+                className="flex flex-wrap items-start sm:items-center gap-x-3 gap-y-2 text-sm"
+              >
+                <span className="inline-flex max-w-full items-center gap-1.5 text-muted-foreground">
+                  <RevealableValue
+                    value={accountNo ?? accountNoMasked}
+                    hiddenDisplay={accountNoMasked}
+                    className="max-w-full text-foreground/75"
+                  />
+                </span>
+                {strategy.isReverseMode && (
+                  <span className="inline-flex items-center px-2.5 h-[24px] rounded-full text-xs font-semibold whitespace-nowrap bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400">
+                    리버스모드
+                  </span>
+                )}
+              </div>
+            </div>
+            {strategy.status !== 'ACTIVE' && (
               <span className={cn(
-                'inline-flex items-center px-2.5 h-[22px] lg:h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap bg-muted',
-                strategy.status === 'ACTIVE' ? 'text-status-ok' : 'text-warn',
+                'inline-flex shrink-0 items-center px-3 h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap border',
+                'border-warn/20 bg-warn-bg text-warn',
               )}>
                 {strategy.status}
               </span>
-            </span>
+            )}
           </div>
         </div>
       </Card>
