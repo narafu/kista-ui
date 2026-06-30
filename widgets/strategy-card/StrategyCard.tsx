@@ -64,7 +64,7 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
           <span className={`inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold whitespace-nowrap ${seedBadgeCls}`}>{seedLabel}</span>
           {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
           {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
-            <span className="text-xs font-semibold text-rose-500 dark:text-rose-400">{strategy.currentRound!.toFixed(1)}회차</span>
+            <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">{strategy.currentRound!.toFixed(1)}회차</span>
           )}
           <span className="ml-auto text-sm font-semibold text-foreground">
             {strategy.initialUsdDeposit != null ? (
@@ -112,7 +112,7 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
             </span>
             {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
             {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
-              <span className="text-sm font-semibold text-rose-500 dark:text-rose-400">{strategy.currentRound!.toFixed(1)}회차</span>
+              <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">{strategy.currentRound!.toFixed(1)}회차</span>
             )}
           </div>
         </div>
