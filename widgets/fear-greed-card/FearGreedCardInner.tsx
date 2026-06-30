@@ -15,7 +15,6 @@ interface Props {
 
 export default function FearGreedCardInner({ title, data, days, onDaysChange, daysOptions }: Props) {
   const current = data?.current
-  const color = current ? zoneOf(current.value).color : '#9CA3AF'
 
   return (
     <div className="flex flex-col gap-2">
@@ -49,7 +48,7 @@ export default function FearGreedCardInner({ title, data, days, onDaysChange, da
       {current ? (
         <>
           <FearGreedGauge value={current.value} />
-          <FearGreedTrend history={data?.history ?? []} color={color} />
+          <FearGreedTrend history={data?.history ?? []} />
         </>
       ) : (
         <div className="flex items-center justify-center h-[250px] text-sm text-muted-foreground">
