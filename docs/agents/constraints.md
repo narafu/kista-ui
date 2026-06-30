@@ -11,6 +11,7 @@
 
 - `git push`는 사용자가 명시적으로 요청할 때만 실행한다.
 - author 확인: `narafu <narafu@kakao.com>`
+- 커밋 메시지는 한글로 작성한다.
 - 괄호가 포함된 경로는 `git add "app/(main)/layout.tsx"`처럼 큰따옴표로 감싼다.
 
 ## 프론트엔드 코딩 가이드라인
