@@ -104,7 +104,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
   const isHoliday = isWeekend || holidays.includes(todayStr)
   const canExecute = strategy.status === 'ACTIVE'
 
-  const deleteMutation = useDeleteStrategyMutation(() => push(`/accounts/${accountId}`))
+  const deleteMutation = useDeleteStrategyMutation(() => push(`/accounts/${accountId}/strategies`))
   const pauseMutation = usePauseStrategyMutation()
   const resumeMutation = useResumeStrategyMutation()
   const executeMutation = useExecuteStrategyMutation(strategy.id)

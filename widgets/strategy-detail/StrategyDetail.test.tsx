@@ -3,8 +3,12 @@ import { describe, expect, it, vi } from 'vitest'
 import type { Strategy } from '@entities/strategy'
 import { StrategyDetail } from './StrategyDetail'
 
+const mockPush = vi.fn()
+const deleteMutate = vi.fn()
+let deleteSuccessHandler: (() => void) | undefined
+
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: mockPush }),
 }))
 
 vi.mock('sonner', () => ({
@@ -51,7 +55,10 @@ vi.mock('@widgets/cycle-history', () => ({
 }))
 
 vi.mock('@entities/strategy', () => ({
-  useDeleteStrategyMutation: () => ({ mutate: vi.fn(), isPending: false }),
+  useDeleteStrategyMutation: (onSuccess?: () => void) => {
+    deleteSuccessHandler = onSuccess
+    return { mutate: deleteMutate, isPending: false }
+  },
   useExecuteStrategyMutation: () => ({ mutate: vi.fn(), isPending: false }),
   usePauseStrategyMutation: () => ({ mutate: vi.fn(), isPending: false }),
   useResumeStrategyMutation: () => ({ mutate: vi.fn(), isPending: false }),
@@ -162,5 +169,19 @@ describe('StrategyDetail header card', () => {
     expect(screen.getByTestId('strategy-summary-grid')).toHaveTextContent('운용 방식')
     expect(screen.getByTestId('strategy-summary-grid')).toHaveTextContent('단일')
     expect(screen.getByTestId('strategy-summary-grid')).not.toHaveTextContent('분할')
+  })
+
+  it('redirects to the strategies list after deleting a strategy', () => {
+    render(
+      <StrategyDetail
+        accountId="account-1"
+        accountNoMasked="123-45"
+        strategy={baseStrategy}
+      />,
+    )
+
+    deleteSuccessHandler?.()
+
+    expect(mockPush).toHaveBeenCalledWith('/accounts/account-1/strategies')
   })
 })

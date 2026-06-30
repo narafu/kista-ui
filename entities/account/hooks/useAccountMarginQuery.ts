@@ -56,7 +56,7 @@ export function useDeleteAccountMutation(accountId: string) {
     onSuccess: () => {
       toast.success('계좌가 삭제되었습니다')
       queryClient.removeQueries({ queryKey: ['accounts'] })
-      router.push('/dashboard')
+      router.push('/accounts')
       router.refresh()
     },
     onError: () => toast.error('삭제에 실패했습니다'),
