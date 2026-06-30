@@ -3,13 +3,16 @@
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { RevealableValue } from '@widgets/revealable-value'
-import { StatusDot } from '@widgets/status-dot'
 import { useMeta } from '@entities/meta'
 import { useStrategiesQuery } from '@entities/strategy'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 
 const EMPTY_STRATEGIES: Strategy[] = []
+const STATUS_ACCENT: Record<'ACTIVE' | 'PAUSED', string> = {
+  ACTIVE: 'var(--status-ok)',
+  PAUSED: 'var(--warn)',
+}
 
 interface Props {
   account: Account
@@ -42,10 +45,18 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
   return (
     <Link
       href={`/accounts/${account.id}`}
-      className="group block rounded-[var(--r-lg)] border border-border bg-card shadow-[var(--sh-card)] hover:border-rose-200 hover:shadow-[var(--sh-rose)] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+      className="group relative block rounded-[var(--r-lg)] border border-border bg-card shadow-[var(--sh-card)] hover:border-rose-200 hover:shadow-[var(--sh-rose)] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
     >
+      {aggregated && (
+        <span
+          data-testid="account-status-accent"
+          className="absolute left-0 top-0 bottom-0 w-[3px]"
+          style={{ background: STATUS_ACCENT[aggregated] }}
+        />
+      )}
+
       {/* 모바일: 2행 레이아웃 */}
-      <div className="flex flex-col gap-1.5 px-4 py-3 lg:hidden">
+      <div className="flex flex-col gap-1.5 pl-5 pr-4 py-3 lg:hidden">
         {/* 1행: 브로커 배지 + 계좌번호 */}
         <div className="flex items-center gap-2">
           <span
@@ -82,7 +93,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
             mixedLabel ? (
               <span className="text-sm font-semibold text-warn shrink-0">{mixedLabel}</span>
             ) : (
-              <StatusDot status={aggregated} hideLabel className="shrink-0" />
+              null
             )
           )}
           <ChevronRight className="size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
@@ -91,14 +102,8 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
 
       {/* PC: 카드 형태 */}
       <div className="hidden lg:flex flex-col">
-        {/* 로즈골드 그라디언트 액센트 바 */}
-        <div
-          className="h-[3px] w-full opacity-60 group-hover:opacity-100 transition-opacity duration-200"
-          style={{ background: 'var(--primary-grad)' }}
-        />
-
         {/* 헤더 */}
-        <div className="px-5 pt-4 pb-3">
+        <div className="pl-6 pr-5 pt-4 pb-3">
           {/* 브로커 배지 + 계좌번호 우측 */}
           <div className="flex items-center justify-between mb-2.5">
             <span
@@ -123,7 +128,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
               mixedLabel ? (
                 <span className="text-sm font-semibold text-warn shrink-0">{mixedLabel}</span>
               ) : (
-                <StatusDot status={aggregated} className="shrink-0" />
+                null
               )
             )}
           </div>
@@ -133,7 +138,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
         <div className="h-px bg-border" />
 
         {/* 전략 목록 */}
-        <div className="px-5 pt-3 pb-3 flex-1">
+        <div className="pl-6 pr-5 pt-3 pb-3 flex-1">
           {strategies.length > 0 ? (
             <ul>
               {strategies.map((s) => (
@@ -161,7 +166,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
         </div>
 
         {/* 푸터 */}
-        <div className="flex items-center justify-end gap-1 px-5 py-3 border-t border-border bg-muted/30 text-sm text-muted-foreground">
+        <div className="flex items-center justify-end gap-1 pl-6 pr-5 py-3 border-t border-border bg-muted/30 text-sm text-muted-foreground">
           계좌 상세 보기
           <ChevronRight className="size-3.5 group-hover:text-[var(--brand-fg-soft)] transition-colors" />
         </div>
