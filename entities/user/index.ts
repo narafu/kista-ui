@@ -6,6 +6,7 @@ export type {
   AdminUser,
   AdminStats,
   AdminAccount,
+  AdminAccountStrategy,
   AdminTrade,
   AdminAuditLog,
   AdminAnomalyAccount,

@@ -29,11 +29,20 @@ export interface AdminStats {
   totalAccounts: number
 }
 
+export interface AdminAccountStrategy {
+  id: string
+  type: string
+  status: string
+  ticker: string
+}
+
 export interface AdminAccount {
   id: string
   userId: string
   ownerNickname: string
   accountNoMasked: string
+  broker: string | null
+  strategies: AdminAccountStrategy[]
 }
 
 export interface AdminTrade {
