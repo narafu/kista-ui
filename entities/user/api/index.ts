@@ -90,12 +90,12 @@ export async function getAdminStats(token: string): Promise<AdminStats> {
   return apiFetch<AdminStats>('/api/admin/dashboard/stats', { method: 'GET' }, token)
 }
 
-export async function listAdminAccounts(token: string, from?: string, to?: string): Promise<AdminAccount[]> {
+export async function listAdminAccounts(token?: string, from?: string, to?: string): Promise<AdminAccount[]> {
   const params = new URLSearchParams()
   if (from) params.set('from', from)
   if (to) params.set('to', to)
   const query = params.size ? `?${params}` : ''
-  return apiFetch<AdminAccount[]>(`/api/admin/accounts${query}`, { method: 'GET' }, token)
+  return fetchEither<AdminAccount[]>(`/api/admin/accounts${query}`, { method: 'GET' }, token)
 }
 
 export async function listAdminStrategies(accountId: string, token?: string): Promise<AdminStrategy[]> {

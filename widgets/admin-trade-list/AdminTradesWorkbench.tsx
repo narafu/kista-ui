@@ -279,7 +279,7 @@ export function AdminTradesWorkbench({
 
       {actionError ? (
         <section
-          className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-950"
+          className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-950 dark:border-rose-950/70 dark:bg-rose-950/20 dark:text-rose-200"
           aria-label="주문 보정 오류"
         >
           <p className="text-sm font-medium">{actionError}</p>
@@ -288,7 +288,7 @@ export function AdminTradesWorkbench({
 
       {correctionResult ? (
         <section
-          className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950"
+          className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950 dark:border-emerald-950/70 dark:bg-emerald-950/20 dark:text-emerald-200"
           aria-label="주문 보정 결과"
         >
           <h2 className="text-base font-semibold">주문 보정이 완료되었습니다</h2>

@@ -375,7 +375,7 @@ describe('AdminTradesWorkbench', () => {
 
     await waitFor(() => expect(loadAccounts).toHaveBeenCalledWith('user-1'))
     await waitFor(() => expect(accountSelect).not.toBeDisabled())
-    expect(within(accountSelect).getByRole('option', { name: '홍길동 · 123-45****' })).toBeInTheDocument()
+    expect(within(accountSelect).getByRole('option', { name: '123-45****' })).toBeInTheDocument()
 
     await user.selectOptions(accountSelect, 'account-1')
 
@@ -392,7 +392,7 @@ describe('AdminTradesWorkbench', () => {
 
     await waitFor(() => expect(loadOrders).toHaveBeenCalledWith('account-1', 'strategy-1', '2026-07-01'))
     await waitFor(() => expect(orderSelect).not.toBeDisabled())
-    expect(within(orderSelect).getByRole('option', { name: 'TSLA · BUY · 3주 · PLACED' })).toBeInTheDocument()
+    expect(within(orderSelect).getByRole('option', { name: 'BUY · 3주 · PLACED' })).toBeInTheDocument()
 
     await user.selectOptions(orderSelect, 'order-1')
     expect(orderSelect).toHaveValue('order-1')

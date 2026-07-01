@@ -89,14 +89,14 @@ export function AdminTradeCorrectionPanel({
         <p className="mt-1 text-sm text-muted-foreground">사용자부터 주문까지 순서대로 선택합니다</p>
       </div>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-5">
-        <label className="grid gap-2 text-sm">
+      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+        <label className="grid min-w-0 gap-2 text-sm">
           <span className="font-medium">사용자</span>
           <select
             aria-label="사용자 선택"
             value={selectedUserId}
             onChange={(event) => onUserChange(event.target.value)}
-            className="h-10 rounded-lg border border-border bg-background px-3"
+            className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3"
           >
             <option value="">사용자 선택</option>
             {users.map((user) => (
@@ -107,32 +107,32 @@ export function AdminTradeCorrectionPanel({
           </select>
         </label>
 
-        <label className="grid gap-2 text-sm">
+        <label className="grid min-w-0 gap-2 text-sm">
           <span className="font-medium">계좌</span>
           <select
             aria-label="계좌 선택"
             value={selectedAccountId}
             onChange={(event) => onAccountChange(event.target.value)}
             disabled={!selectedUserId}
-            className="h-10 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">계좌 선택</option>
             {accounts.map((account) => (
               <option key={account.id} value={account.id}>
-                {account.ownerNickname} · {account.accountNoMasked}
+                {account.accountNoMasked}
               </option>
             ))}
           </select>
         </label>
 
-        <label className="grid gap-2 text-sm">
+        <label className="grid min-w-0 gap-2 text-sm">
           <span className="font-medium">전략</span>
           <select
             aria-label="전략 선택"
             value={selectedStrategyId}
             onChange={(event) => onStrategyChange(event.target.value)}
             disabled={!selectedAccountId}
-            className="h-10 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">전략 선택</option>
             {strategies.map((strategy) => (
@@ -143,14 +143,14 @@ export function AdminTradeCorrectionPanel({
           </select>
         </label>
 
-        <label className="grid gap-2 text-sm">
+        <label className="grid min-w-0 gap-2 text-sm">
           <span className="font-medium">거래일</span>
           <select
             aria-label="거래일 선택"
             value={selectedTradeDate}
             onChange={(event) => onTradeDateChange(event.target.value)}
             disabled={!selectedStrategyId}
-            className="h-10 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">거래일 선택</option>
             {tradeDates.map((tradeDate) => (
@@ -161,19 +161,19 @@ export function AdminTradeCorrectionPanel({
           </select>
         </label>
 
-        <label className="grid gap-2 text-sm">
+        <label className="grid min-w-0 gap-2 text-sm">
           <span className="font-medium">주문</span>
           <select
             aria-label="주문 선택"
             value={selectedOrderId}
             onChange={(event) => onOrderChange(event.target.value)}
             disabled={!selectedTradeDate}
-            className="h-10 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">주문 선택</option>
             {orders.map((order) => (
               <option key={order.id} value={order.id}>
-                {order.ticker} · {order.direction} · {order.quantity}주 · {order.status}
+                {order.direction} · {order.quantity}주 · {order.status}
               </option>
             ))}
           </select>

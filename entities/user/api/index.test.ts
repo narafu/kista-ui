@@ -1,11 +1,13 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import {
   correctAdminOrder,
+  listAdminAccounts,
   listAdminStrategies,
   listAdminStrategyOrders,
   updateAdminStrategyStatus,
 } from './index'
 import type {
+  AdminAccount,
   AdminOrderCorrectionRequest,
   AdminOrderCorrectionResponse,
   AdminStrategy,
@@ -38,6 +40,29 @@ describe('entities/user/api admin trade correction APIs', () => {
     clientFetchMock.mockReset()
     jsonBodyMock.mockReset()
     jsonBodyMock.mockImplementation((method: string, body: unknown) => ({ method, body }))
+  })
+
+  it('lists admin accounts without requiring a bearer token', async () => {
+    const accounts: AdminAccount[] = [
+      {
+        id: 'account-1',
+        userId: 'user-1',
+        ownerNickname: '홍길동',
+        accountNoMasked: '123-45****',
+        broker: 'KIS',
+        strategies: [],
+      },
+    ]
+    fetchEitherMock.mockResolvedValue(accounts)
+
+    const result = await listAdminAccounts()
+
+    expect(result).toEqual(accounts)
+    expect(fetchEitherMock).toHaveBeenCalledWith(
+      '/api/admin/accounts',
+      { method: 'GET' },
+      undefined,
+    )
   })
 
   it('lists admin strategies for an account with bearer token auth', async () => {
