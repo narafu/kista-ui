@@ -11,7 +11,6 @@ import {
 import type {
   AdminAccount,
   AdminOrderCorrectionRequest,
-  AdminOrderCorrectionResponse,
   AdminStrategy,
   AdminStrategyOrder,
   AdminTrade,
@@ -29,6 +28,16 @@ interface Props {
   loadStrategies?: (accountId: string) => Promise<AdminStrategy[]>
   loadOrders?: (accountId: string, strategyId: string, tradeDate: string) => Promise<AdminStrategyOrder[]>
   toggleStrategyStatus?: (accountId: string, strategyId: string, status: AdminStrategy['status']) => Promise<void>
+}
+
+interface BatchCorrectionSummary {
+  processed: number
+  skipped: number
+  results: Array<{
+    orderId: string
+    originalStatus: string
+    resultingStatus: string
+  }>
 }
 
 function uniqBy<T>(items: T[], getKey: (item: T) => string): T[] {
@@ -56,25 +65,22 @@ export function AdminTradesWorkbench({
 }: Props) {
   const [page, setPage] = useState(initialPage)
   const [size, setSize] = useState(initialSize)
-  const [selectedTradeIds, setSelectedTradeIds] = useState<string[]>([])
   const [selectedUserId, setSelectedUserId] = useState('')
   const [selectedBroker, setSelectedBroker] = useState('')
   const [selectedAccountId, setSelectedAccountId] = useState('')
   const [selectedStrategyId, setSelectedStrategyId] = useState('')
   const [selectedTradeDate, setSelectedTradeDate] = useState('')
-  const [selectedOrderId, setSelectedOrderId] = useState('')
   const [accounts, setAccounts] = useState<AdminAccount[]>([])
   const [strategies, setStrategies] = useState<AdminStrategy[]>([])
   const [orders, setOrders] = useState<AdminStrategyOrder[]>([])
   const [strategyStatusPending, setStrategyStatusPending] = useState(false)
   const [correctionPending, setCorrectionPending] = useState(false)
-  const [correctionResult, setCorrectionResult] = useState<AdminOrderCorrectionResponse | null>(null)
+  const [correctionResult, setCorrectionResult] = useState<BatchCorrectionSummary | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
 
   const totalPages = Math.max(1, Math.ceil(initialTrades.length / size))
   const currentPage = Math.min(page, totalPages)
   const pagedTrades = initialTrades.slice((currentPage - 1) * size, currentPage * size)
-  const selectedTrades = initialTrades.filter((trade) => selectedTradeIds.includes(trade.id))
   const userOptions = uniqBy(initialTrades, (trade) => trade.userId).map((trade) => ({
     id: trade.userId,
     label: trade.ownerNickname,
@@ -93,19 +99,10 @@ export function AdminTradesWorkbench({
     (trade) => trade.tradeDate,
   ).map((trade) => trade.tradeDate)
   const selectedStrategy = strategies.find((strategy) => strategy.id === selectedStrategyId) ?? null
-  const selectedOrder = orders.find((order) => order.id === selectedOrderId) ?? null
 
   const handleSizeChange = (nextSize: string) => {
     setSize(Number(nextSize))
     setPage(1)
-  }
-
-  const handleToggleTrade = (tradeId: string) => {
-    setSelectedTradeIds((current) =>
-      current.includes(tradeId)
-        ? current.filter((id) => id !== tradeId)
-        : [...current, tradeId],
-    )
   }
 
   const resetFeedback = () => {
@@ -120,7 +117,6 @@ export function AdminTradesWorkbench({
     setSelectedAccountId('')
     setSelectedStrategyId('')
     setSelectedTradeDate('')
-    setSelectedOrderId('')
     setStrategies([])
     setOrders([])
 
@@ -143,7 +139,6 @@ export function AdminTradesWorkbench({
     setSelectedAccountId('')
     setSelectedStrategyId('')
     setSelectedTradeDate('')
-    setSelectedOrderId('')
     setStrategies([])
     setOrders([])
   }
@@ -153,7 +148,6 @@ export function AdminTradesWorkbench({
     setSelectedAccountId(accountId)
     setSelectedStrategyId('')
     setSelectedTradeDate('')
-    setSelectedOrderId('')
     setOrders([])
 
     if (!accountId) {
@@ -173,14 +167,12 @@ export function AdminTradesWorkbench({
     resetFeedback()
     setSelectedStrategyId(strategyId)
     setSelectedTradeDate('')
-    setSelectedOrderId('')
     setOrders([])
   }
 
   const handleTradeDateChange = async (tradeDate: string) => {
     resetFeedback()
     setSelectedTradeDate(tradeDate)
-    setSelectedOrderId('')
 
     if (!selectedAccountId || !selectedStrategyId || !tradeDate) {
       setOrders([])
@@ -193,11 +185,6 @@ export function AdminTradesWorkbench({
       setOrders([])
       setActionError('주문 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.')
     }
-  }
-
-  const handleOrderChange = (orderId: string) => {
-    resetFeedback()
-    setSelectedOrderId(orderId)
   }
 
   const handleStrategyStatusToggle = async () => {
@@ -219,24 +206,37 @@ export function AdminTradesWorkbench({
   }
 
   const handleOrderCorrectionSubmit = async (
-    request: Pick<AdminOrderCorrectionRequest, 'mode' | 'direction' | 'quantity' | 'price' | 'memo'>,
+    requests: Array<Pick<AdminOrderCorrectionRequest, 'orderId' | 'mode' | 'direction' | 'quantity' | 'price' | 'memo'>>,
   ) => {
-    if (!selectedOrder || !selectedUserId || !selectedAccountId || !selectedStrategyId || !selectedTradeDate) return
+    if (!selectedUserId || !selectedAccountId || !selectedStrategyId || !selectedTradeDate || requests.length === 0) return
 
     setCorrectionPending(true)
     resetFeedback()
 
     try {
-      const result = await correctAdminOrder({
-        userId: selectedUserId,
-        accountId: selectedAccountId,
-        strategyId: selectedStrategyId,
-        orderId: selectedOrder.id,
-        tradeDateKst: selectedTradeDate,
-        ...request,
-      })
+      const results: BatchCorrectionSummary['results'] = []
+
+      for (const request of requests) {
+        const result = await correctAdminOrder({
+          userId: selectedUserId,
+          accountId: selectedAccountId,
+          strategyId: selectedStrategyId,
+          tradeDateKst: selectedTradeDate,
+          ...request,
+        })
+        results.push({
+          orderId: result.orderId,
+          originalStatus: result.originalStatus,
+          resultingStatus: result.resultingStatus,
+        })
+      }
+
       setOrders(await loadOrders(selectedAccountId, selectedStrategyId, selectedTradeDate))
-      setCorrectionResult(result)
+      setCorrectionResult({
+        processed: results.length,
+        skipped: Math.max(0, orders.length - results.length),
+        results,
+      })
     } catch {
       setActionError('주문 보정에 실패했습니다. 입력값과 주문 상태를 다시 확인하세요.')
     } finally {
@@ -246,33 +246,16 @@ export function AdminTradesWorkbench({
 
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-border bg-muted/20 p-4" aria-label="선택된 보정 대상">
+      <section className="rounded-xl border border-border bg-muted/20 p-4" aria-label="거래일 보정 대상">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
-            <h2 className="text-base font-semibold">선택된 보정 대상</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{selectedTrades.length}건 선택됨</p>
+            <h2 className="text-base font-semibold">거래일 보정 대상</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              전략과 거래일을 고르면 해당 날짜 주문 전체를 한 번에 보정합니다.
+            </p>
           </div>
           <PageSizeSelector value={String(size)} onChange={handleSizeChange} />
         </div>
-
-        {selectedTrades.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">선택한 거래가 없습니다</p>
-        ) : (
-          <ul className="mt-3 grid gap-2">
-            {selectedTrades.map((trade) => (
-              <li
-                key={trade.id}
-                className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
-              >
-                <span className="font-medium">{trade.ownerNickname}</span>
-                <span className="mx-2 text-muted-foreground">·</span>
-                <span>{trade.ticker}</span>
-                <span className="mx-2 text-muted-foreground">·</span>
-                <span className="text-muted-foreground">{trade.tradeDate}</span>
-              </li>
-            ))}
-          </ul>
-        )}
       </section>
 
       <AdminTradeCorrectionPanel
@@ -283,13 +266,11 @@ export function AdminTradesWorkbench({
         tradeDates={tradeDates}
         orders={orders}
         selectedStrategy={selectedStrategy}
-        selectedOrder={selectedOrder}
         selectedUserId={selectedUserId}
         selectedBroker={selectedBroker}
         selectedAccountId={selectedAccountId}
         selectedStrategyId={selectedStrategyId}
         selectedTradeDate={selectedTradeDate}
-        selectedOrderId={selectedOrderId}
         strategyStatusPending={strategyStatusPending}
         correctionPending={correctionPending}
         onUserChange={handleUserChange}
@@ -297,7 +278,6 @@ export function AdminTradesWorkbench({
         onAccountChange={handleAccountChange}
         onStrategyChange={handleStrategyChange}
         onTradeDateChange={handleTradeDateChange}
-        onOrderChange={handleOrderChange}
         onStrategyStatusToggle={handleStrategyStatusToggle}
         onOrderCorrectionSubmit={handleOrderCorrectionSubmit}
       />
@@ -316,21 +296,15 @@ export function AdminTradesWorkbench({
           className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950 dark:border-emerald-950/70 dark:bg-emerald-950/20 dark:text-emerald-200"
           aria-label="주문 보정 결과"
         >
-          <h2 className="text-base font-semibold">주문 보정이 완료되었습니다</h2>
-          <p className="mt-1 text-sm">
-            상태: {correctionResult.originalStatus} -&gt; {correctionResult.resultingStatus}
-          </p>
+          <h2 className="text-base font-semibold">거래일 주문 보정이 완료되었습니다</h2>
+          <p className="mt-1 text-sm">처리 {correctionResult.processed}건 · 제외 {correctionResult.skipped}건</p>
           <p className="mt-2 text-sm">
-            최종 보유 수량 {correctionResult.finalHoldings}주 · 평균가 {correctionResult.finalAvgPrice ?? '-'} · 예수금 {correctionResult.finalUsdDeposit}
+            {correctionResult.results.map((result) => `${result.orderId}: ${result.originalStatus} -> ${result.resultingStatus}`).join(' / ')}
           </p>
         </section>
       ) : null}
 
-      <AdminTradesTable
-        trades={pagedTrades}
-        selectedTradeIds={selectedTradeIds}
-        onToggleTrade={handleToggleTrade}
-      />
+      <AdminTradesTable trades={pagedTrades} />
 
       <PaginationBar page={currentPage} totalPages={totalPages} onPageChange={setPage} />
     </div>

@@ -10,11 +10,9 @@ const STATUS_STYLE: Record<string, string> = {
 
 interface Props {
   trades: AdminTrade[]
-  selectedTradeIds: string[]
-  onToggleTrade: (tradeId: string) => void
 }
 
-export function AdminTradesTable({ trades, selectedTradeIds, onToggleTrade }: Props) {
+export function AdminTradesTable({ trades }: Props) {
   if (trades.length === 0) {
     return (
       <div className="rounded-xl border border-border p-10 text-center text-sm text-muted-foreground">
@@ -28,7 +26,6 @@ export function AdminTradesTable({ trades, selectedTradeIds, onToggleTrade }: Pr
       <table className="min-w-[960px] w-full text-sm">
         <thead className="bg-muted/40 border-b border-border">
           <tr>
-            <th className="text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">선택</th>
             <th className="text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">날짜</th>
             <th className="text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">소유자</th>
             <th className="text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">전략</th>
@@ -42,22 +39,11 @@ export function AdminTradesTable({ trades, selectedTradeIds, onToggleTrade }: Pr
         </thead>
         <tbody className="divide-y divide-border">
           {trades.map((trade) => {
-            const isSelected = selectedTradeIds.includes(trade.id)
-
             return (
               <tr
                 key={trade.id}
-                className={isSelected ? 'bg-muted/30 transition-colors' : 'hover:bg-muted/20 transition-colors'}
+                className="hover:bg-muted/20 transition-colors"
               >
-                <td className="px-4 py-3 text-center whitespace-nowrap">
-                  <input
-                    type="checkbox"
-                    aria-label={`${trade.ticker} 거래 선택`}
-                    checked={isSelected}
-                    onChange={() => onToggleTrade(trade.id)}
-                    className="size-4 rounded border-border accent-foreground"
-                  />
-                </td>
                 <td className="px-4 py-3 text-center text-muted-foreground text-xs whitespace-nowrap">{trade.tradeDate}</td>
                 <td className="px-4 py-3 text-center font-medium whitespace-nowrap">{trade.ownerNickname}</td>
                 <td className="px-4 py-3 text-center text-xs text-muted-foreground whitespace-nowrap">{trade.strategyType ?? '-'}</td>
