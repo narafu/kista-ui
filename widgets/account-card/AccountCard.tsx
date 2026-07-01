@@ -145,16 +145,16 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
           {strategies.length > 0 ? (
             <ul>
               {strategies.map((s) => (
-                <li key={s.id} className="flex items-center gap-2 min-w-0 py-2 border-b border-border last:border-b-0">
+                <li key={s.id} className="flex items-center gap-2 min-w-0 py-3 border-b border-border last:border-b-0">
                   <span
                     data-testid={`strategy-badge-${s.id}-desktop`}
-                    className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-bold uppercase shrink-0 border bg-muted/40"
+                    className="inline-flex h-[20px] items-center px-2 rounded-full border bg-muted/40 text-xs font-bold leading-none uppercase shrink-0"
                     style={{ borderColor: strategyStatusColor(s.status), color: strategyStatusColor(s.status) }}
                   >
                     {formatStrategyBadge(s)}
                   </span>
                   {s.initialUsdDeposit != null && (
-                    <span className="ml-auto text-sm font-semibold text-foreground tabular-nums shrink-0">
+                    <span className="ml-auto shrink-0 text-sm font-semibold leading-none text-foreground tabular-nums">
                       ${s.initialUsdDeposit.toLocaleString('en-US')}
                     </span>
                   )}
