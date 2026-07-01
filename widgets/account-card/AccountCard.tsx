@@ -74,7 +74,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
             className="-ml-2 inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold shrink-0"
             style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}
           >
-            {brokerShort}
+            {brokerLabel}
           </span>
           <span className="ml-auto text-xs font-mono font-semibold text-foreground/60 tracking-wider shrink-0">
             <RevealableValue
@@ -130,8 +130,8 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
             </span>
           </div>
           {/* 닉네임 + 집계 상태 */}
-          <div className="flex items-center justify-between gap-2">
-            <p className="font-bold text-xl text-foreground leading-tight tracking-tight truncate">
+          <div className="h-[30px] flex items-center gap-2 overflow-hidden">
+            <p className="font-bold text-xl text-foreground leading-none tracking-tight truncate">
               {account.nickname}
             </p>
           </div>
