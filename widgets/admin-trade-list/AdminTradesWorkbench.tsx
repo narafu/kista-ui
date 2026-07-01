@@ -1,26 +1,80 @@
 'use client'
 
 import { useState } from 'react'
-import type { AdminTrade } from '@entities/user'
+import type { AdminAccount, AdminStrategy, AdminStrategyOrder, AdminTrade } from '@entities/user'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
+import { AdminTradeCorrectionPanel } from './AdminTradeCorrectionPanel'
 import { AdminTradesTable } from './AdminTradesTable'
 
 interface Props {
   initialTrades: AdminTrade[]
   initialPage: number
   initialSize: number
+  loadAccounts?: (userId: string) => Promise<AdminAccount[]>
+  loadStrategies?: (accountId: string) => Promise<AdminStrategy[]>
+  loadOrders?: (accountId: string, strategyId: string, tradeDate: string) => Promise<AdminStrategyOrder[]>
 }
 
-export function AdminTradesWorkbench({ initialTrades, initialPage, initialSize }: Props) {
+function uniqBy<T>(items: T[], getKey: (item: T) => string): T[] {
+  const seen = new Set<string>()
+
+  return items.filter((item) => {
+    const key = getKey(item)
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
+async function fetchAdminJson<T>(path: string): Promise<T> {
+  const response = await fetch(path)
+
+  if (!response.ok) {
+    throw new Error(`Failed to load ${path}`)
+  }
+
+  return response.json() as Promise<T>
+}
+
+export function AdminTradesWorkbench({
+  initialTrades,
+  initialPage,
+  initialSize,
+  loadAccounts = async (userId) => {
+    const accounts = await fetchAdminJson<AdminAccount[]>('/api/admin/accounts')
+    return accounts.filter((account) => account.userId === userId)
+  },
+  loadStrategies = async (accountId) => fetchAdminJson<AdminStrategy[]>(`/api/admin/accounts/${accountId}/strategies`),
+  loadOrders = async (accountId, strategyId, tradeDate) =>
+    fetchAdminJson<AdminStrategyOrder[]>(
+      `/api/admin/accounts/${accountId}/strategies/${strategyId}/orders?tradeDate=${encodeURIComponent(tradeDate)}`,
+    ),
+}: Props) {
   const [page, setPage] = useState(initialPage)
   const [size, setSize] = useState(initialSize)
   const [selectedTradeIds, setSelectedTradeIds] = useState<string[]>([])
+  const [selectedUserId, setSelectedUserId] = useState('')
+  const [selectedAccountId, setSelectedAccountId] = useState('')
+  const [selectedStrategyId, setSelectedStrategyId] = useState('')
+  const [selectedTradeDate, setSelectedTradeDate] = useState('')
+  const [selectedOrderId, setSelectedOrderId] = useState('')
+  const [accounts, setAccounts] = useState<AdminAccount[]>([])
+  const [strategies, setStrategies] = useState<AdminStrategy[]>([])
+  const [orders, setOrders] = useState<AdminStrategyOrder[]>([])
 
   const totalPages = Math.max(1, Math.ceil(initialTrades.length / size))
   const currentPage = Math.min(page, totalPages)
   const pagedTrades = initialTrades.slice((currentPage - 1) * size, currentPage * size)
   const selectedTrades = initialTrades.filter((trade) => selectedTradeIds.includes(trade.id))
+  const userOptions = uniqBy(initialTrades, (trade) => trade.userId).map((trade) => ({
+    id: trade.userId,
+    label: trade.ownerNickname,
+  }))
+  const tradeDates = uniqBy(
+    initialTrades.filter((trade) => trade.userId === selectedUserId),
+    (trade) => trade.tradeDate,
+  ).map((trade) => trade.tradeDate)
 
   const handleSizeChange = (nextSize: string) => {
     setSize(Number(nextSize))
@@ -33,6 +87,57 @@ export function AdminTradesWorkbench({ initialTrades, initialPage, initialSize }
         ? current.filter((id) => id !== tradeId)
         : [...current, tradeId],
     )
+  }
+
+  const handleUserChange = async (userId: string) => {
+    setSelectedUserId(userId)
+    setSelectedAccountId('')
+    setSelectedStrategyId('')
+    setSelectedTradeDate('')
+    setSelectedOrderId('')
+    setStrategies([])
+    setOrders([])
+
+    if (!userId) {
+      setAccounts([])
+      return
+    }
+
+    setAccounts(await loadAccounts(userId))
+  }
+
+  const handleAccountChange = async (accountId: string) => {
+    setSelectedAccountId(accountId)
+    setSelectedStrategyId('')
+    setSelectedTradeDate('')
+    setSelectedOrderId('')
+    setOrders([])
+
+    if (!accountId) {
+      setStrategies([])
+      return
+    }
+
+    setStrategies(await loadStrategies(accountId))
+  }
+
+  const handleStrategyChange = (strategyId: string) => {
+    setSelectedStrategyId(strategyId)
+    setSelectedTradeDate('')
+    setSelectedOrderId('')
+    setOrders([])
+  }
+
+  const handleTradeDateChange = async (tradeDate: string) => {
+    setSelectedTradeDate(tradeDate)
+    setSelectedOrderId('')
+
+    if (!selectedAccountId || !selectedStrategyId || !tradeDate) {
+      setOrders([])
+      return
+    }
+
+    setOrders(await loadOrders(selectedAccountId, selectedStrategyId, tradeDate))
   }
 
   return (
@@ -65,6 +170,24 @@ export function AdminTradesWorkbench({ initialTrades, initialPage, initialSize }
           </ul>
         )}
       </section>
+
+      <AdminTradeCorrectionPanel
+        users={userOptions}
+        accounts={accounts}
+        strategies={strategies}
+        tradeDates={tradeDates}
+        orders={orders}
+        selectedUserId={selectedUserId}
+        selectedAccountId={selectedAccountId}
+        selectedStrategyId={selectedStrategyId}
+        selectedTradeDate={selectedTradeDate}
+        selectedOrderId={selectedOrderId}
+        onUserChange={handleUserChange}
+        onAccountChange={handleAccountChange}
+        onStrategyChange={handleStrategyChange}
+        onTradeDateChange={handleTradeDateChange}
+        onOrderChange={setSelectedOrderId}
+      />
 
       <AdminTradesTable
         trades={pagedTrades}
