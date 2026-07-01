@@ -115,4 +115,25 @@ describe('AccountCard', () => {
     expect(strategyBadgeGroup).toHaveClass('items-start')
     expect(strategyBadgeGroup).toHaveClass('content-start')
   })
+
+  it('uses fixed-height desktop strategy rows so badges stay vertically centered between dividers', () => {
+    render(
+      <AccountCard
+        account={baseAccount}
+        strategies={[
+          { ...baseStrategy, id: 'strategy-1', type: 'INFINITE', ticker: 'MAGX', initialUsdDeposit: 2103 },
+          { ...baseStrategy, id: 'strategy-2', type: 'PRIVACY', ticker: 'SOXL', initialUsdDeposit: 6989 },
+        ]}
+      />,
+    )
+
+    const desktopBadge = screen.getByTestId('strategy-badge-strategy-1-desktop')
+    const desktopRow = desktopBadge.closest('li')
+    const desktopAmount = screen.getByText('$2,103')
+
+    expect(desktopRow).toHaveClass('min-h-[50px]')
+    expect(desktopRow).toHaveClass('py-0')
+    expect(desktopBadge).toHaveClass('leading-none')
+    expect(desktopAmount).toHaveClass('leading-none')
+  })
 })
