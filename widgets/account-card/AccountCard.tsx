@@ -141,7 +141,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
         <div className="h-px bg-border" />
 
         {/* 전략 목록 */}
-        <div className="pl-6 pr-5 pt-3 pb-3 flex-1 flex flex-col justify-center">
+        <div className="pl-6 pr-5 pt-3 pb-3 mt-auto">
           {strategies.length > 0 ? (
             <ul>
               {strategies.map((s) => (
