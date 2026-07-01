@@ -38,6 +38,7 @@ export interface PlacedOrder {
   orderType: string
   quantity: number
   price: string
+  status: 'PLANNED' | 'PLACED'
 }
 
 export interface StrategyOrder {

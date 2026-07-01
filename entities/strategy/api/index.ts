@@ -61,6 +61,7 @@ function normalizePlacedOrder(raw: unknown): PlacedOrder {
     orderType: String(o.orderType),
     quantity: Number(o.quantity),
     price: String(o.price),
+    status: String(o.status ?? 'PLACED') as 'PLANNED' | 'PLACED',
   }
 }
 

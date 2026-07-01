@@ -43,6 +43,7 @@ function normalizePreview(raw: unknown): NextOrderPreview {
       orderType: String(item.orderType),
       quantity: Number(item.quantity),
       price: String(item.price),
+      status: String(item.status) as 'PLANNED' | 'PLACED',
     }
   })
   const otherStrategiesPlannedBuyUsd = String(r.otherStrategiesPlannedBuyUsd ?? '0')

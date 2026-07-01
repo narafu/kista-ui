@@ -10,6 +10,7 @@ export interface OrderRowData {
   direction: string
   quantity: number
   price: string
+  status?: string  // PLACED이면 취소 버튼 미표시 (선접수 완료)
 }
 
 interface Props {
@@ -58,7 +59,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
             <span className="font-semibold">${fmtUsd(toNum(o.price))}</span>
             {hasCancel && (
               <div className="flex justify-center">
-                {o.id ? (
+                {o.id && o.status !== 'PLACED' ? (
                   <button
                     type="button"
                     onClick={() => onCancelOne(o.id!)}
@@ -100,7 +101,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
               <td className="px-5 py-3 text-sm lg:text-base font-semibold text-right">${fmtUsd(toNum(o.price))}</td>
               {hasCancel && (
                 <td className="px-5 py-3 text-right">
-                  {o.id && (
+                  {o.id && o.status !== 'PLACED' && (
                     <button
                       type="button"
                       onClick={() => onCancelOne(o.id!)}
