@@ -68,6 +68,7 @@ export function AdminTradesWorkbench({
   const [strategyStatusPending, setStrategyStatusPending] = useState(false)
   const [correctionPending, setCorrectionPending] = useState(false)
   const [correctionResult, setCorrectionResult] = useState<AdminOrderCorrectionResponse | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const totalPages = Math.max(1, Math.ceil(initialTrades.length / size))
   const currentPage = Math.min(page, totalPages)
@@ -97,8 +98,13 @@ export function AdminTradesWorkbench({
     )
   }
 
-  const handleUserChange = async (userId: string) => {
+  const resetFeedback = () => {
     setCorrectionResult(null)
+    setActionError(null)
+  }
+
+  const handleUserChange = async (userId: string) => {
+    resetFeedback()
     setSelectedUserId(userId)
     setSelectedAccountId('')
     setSelectedStrategyId('')
@@ -112,11 +118,16 @@ export function AdminTradesWorkbench({
       return
     }
 
-    setAccounts(await loadAccounts(userId))
+    try {
+      setAccounts(await loadAccounts(userId))
+    } catch {
+      setAccounts([])
+      setActionError('계좌 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.')
+    }
   }
 
   const handleAccountChange = async (accountId: string) => {
-    setCorrectionResult(null)
+    resetFeedback()
     setSelectedAccountId(accountId)
     setSelectedStrategyId('')
     setSelectedTradeDate('')
@@ -128,11 +139,16 @@ export function AdminTradesWorkbench({
       return
     }
 
-    setStrategies(await loadStrategies(accountId))
+    try {
+      setStrategies(await loadStrategies(accountId))
+    } catch {
+      setStrategies([])
+      setActionError('전략 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.')
+    }
   }
 
   const handleStrategyChange = (strategyId: string) => {
-    setCorrectionResult(null)
+    resetFeedback()
     setSelectedStrategyId(strategyId)
     setSelectedTradeDate('')
     setSelectedOrderId('')
@@ -140,7 +156,7 @@ export function AdminTradesWorkbench({
   }
 
   const handleTradeDateChange = async (tradeDate: string) => {
-    setCorrectionResult(null)
+    resetFeedback()
     setSelectedTradeDate(tradeDate)
     setSelectedOrderId('')
 
@@ -149,7 +165,17 @@ export function AdminTradesWorkbench({
       return
     }
 
-    setOrders(await loadOrders(selectedAccountId, selectedStrategyId, tradeDate))
+    try {
+      setOrders(await loadOrders(selectedAccountId, selectedStrategyId, tradeDate))
+    } catch {
+      setOrders([])
+      setActionError('주문 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.')
+    }
+  }
+
+  const handleOrderChange = (orderId: string) => {
+    resetFeedback()
+    setSelectedOrderId(orderId)
   }
 
   const handleStrategyStatusToggle = async () => {
@@ -158,10 +184,13 @@ export function AdminTradesWorkbench({
     const nextStatus = selectedStrategy.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE'
 
     setStrategyStatusPending(true)
+    setActionError(null)
 
     try {
       await toggleStrategyStatus(selectedAccountId, selectedStrategy.id, nextStatus)
       setStrategies(await loadStrategies(selectedAccountId))
+    } catch {
+      setActionError('전략 상태 변경에 실패했습니다. 잠시 후 다시 시도하세요.')
     } finally {
       setStrategyStatusPending(false)
     }
@@ -173,7 +202,7 @@ export function AdminTradesWorkbench({
     if (!selectedOrder || !selectedUserId || !selectedAccountId || !selectedStrategyId || !selectedTradeDate) return
 
     setCorrectionPending(true)
-    setCorrectionResult(null)
+    resetFeedback()
 
     try {
       const result = await correctAdminOrder({
@@ -186,6 +215,8 @@ export function AdminTradesWorkbench({
       })
       setOrders(await loadOrders(selectedAccountId, selectedStrategyId, selectedTradeDate))
       setCorrectionResult(result)
+    } catch {
+      setActionError('주문 보정에 실패했습니다. 입력값과 주문 상태를 다시 확인하세요.')
     } finally {
       setCorrectionPending(false)
     }
@@ -241,10 +272,19 @@ export function AdminTradesWorkbench({
         onAccountChange={handleAccountChange}
         onStrategyChange={handleStrategyChange}
         onTradeDateChange={handleTradeDateChange}
-        onOrderChange={setSelectedOrderId}
+        onOrderChange={handleOrderChange}
         onStrategyStatusToggle={handleStrategyStatusToggle}
         onOrderCorrectionSubmit={handleOrderCorrectionSubmit}
       />
+
+      {actionError ? (
+        <section
+          className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-950"
+          aria-label="주문 보정 오류"
+        >
+          <p className="text-sm font-medium">{actionError}</p>
+        </section>
+      ) : null}
 
       {correctionResult ? (
         <section

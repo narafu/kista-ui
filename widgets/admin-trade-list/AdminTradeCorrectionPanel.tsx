@@ -62,6 +62,25 @@ export function AdminTradeCorrectionPanel({
 }: Props) {
   const nextStrategyActionLabel = selectedStrategy?.status === 'ACTIVE' ? '전략 중지' : '전략 재개'
   const readOnlyMessage = selectedOrder ? READ_ONLY_ORDER_MESSAGE[selectedOrder.status] : null
+  const helperMessage = !selectedUserId
+    ? '보정할 사용자를 먼저 선택하세요.'
+    : !selectedAccountId
+      ? accounts.length === 0
+        ? '선택한 사용자에 연결된 계좌가 없습니다.'
+        : '보정할 계좌를 선택하세요.'
+      : !selectedStrategyId
+        ? strategies.length === 0
+          ? '선택한 계좌에 연결된 전략이 없습니다.'
+          : '보정할 전략을 선택하세요.'
+        : !selectedTradeDate
+          ? tradeDates.length === 0
+            ? '선택한 사용자 기준으로 조회된 거래일이 없습니다.'
+            : '보정할 거래일을 선택하세요.'
+          : !selectedOrderId
+            ? orders.length === 0
+              ? '선택한 조건에 해당하는 주문이 없습니다.'
+              : '보정할 주문을 선택하세요.'
+            : null
 
   return (
     <section className="rounded-xl border border-border bg-background p-4" aria-label="주문 보정 선택">
@@ -160,6 +179,12 @@ export function AdminTradeCorrectionPanel({
           </select>
         </label>
       </div>
+
+      {helperMessage ? (
+        <p className="mt-4 rounded-lg border border-dashed border-border px-3 py-2 text-sm text-muted-foreground">
+          {helperMessage}
+        </p>
+      ) : null}
 
       {selectedStrategy ? (
         <div className="mt-4 rounded-lg border border-border bg-muted/20 p-3">

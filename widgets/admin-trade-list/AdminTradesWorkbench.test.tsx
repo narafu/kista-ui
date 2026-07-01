@@ -262,6 +262,59 @@ describe('AdminTradesWorkbench', () => {
     expect(screen.getByText('최종 보유 수량 5주 · 평균가 320.5 · 예수금 850')).toBeInTheDocument()
   })
 
+  it('clears the previous success summary when another order is selected', async () => {
+    const user = userEvent.setup()
+    const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
+    const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
+    const loadOrders = vi
+      .fn<() => Promise<AdminStrategyOrder[]>>()
+      .mockResolvedValueOnce(orders)
+      .mockResolvedValueOnce([
+        { ...orders[0], status: 'FILLED', filledQuantity: 5, filledPrice: 320.5 },
+      ])
+
+    correctAdminOrderMock.mockResolvedValue({
+      userId: 'user-1',
+      accountId: 'account-1',
+      strategyId: 'strategy-1',
+      orderId: 'order-1',
+      mode: 'PLACED_REPLACE',
+      originalStatus: 'PLACED',
+      resultingStatus: 'FILLED',
+      replacementExternalOrderId: 'ext-2',
+      finalHoldings: 5,
+      finalAvgPrice: 320.5,
+      finalUsdDeposit: 850,
+      strategyStatus: 'ACTIVE',
+      cycleEnded: false,
+      cycleEndDate: null,
+    })
+
+    render(
+      <AdminTradesWorkbench
+        initialTrades={trades}
+        initialPage={1}
+        initialSize={10}
+        loadAccounts={loadAccounts}
+        loadStrategies={loadStrategies}
+        loadOrders={loadOrders}
+      />,
+    )
+
+    await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '계좌 선택' }), 'account-1')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '거래일 선택' }), '2026-07-01')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '주문 선택' }), 'order-1')
+    await user.click(screen.getByRole('button', { name: '취소 후 재주문' }))
+
+    await waitFor(() => expect(screen.getByText('주문 보정이 완료되었습니다')).toBeInTheDocument())
+
+    await user.selectOptions(screen.getByRole('combobox', { name: '주문 선택' }), '')
+
+    expect(screen.queryByText('주문 보정이 완료되었습니다')).not.toBeInTheDocument()
+  })
+
   it('shows selected correction targets summary when rows are selected', async () => {
     const user = userEvent.setup()
 
@@ -391,6 +444,35 @@ describe('AdminTradesWorkbench', () => {
     expect(screen.getByRole('button', { name: '전략 재개' })).toBeInTheDocument()
   })
 
+  it('shows a visible error message when strategy status toggle fails', async () => {
+    const user = userEvent.setup()
+    const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
+    const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
+    const toggleStrategyStatus = vi.fn(async () => {
+      throw new Error('toggle failed')
+    })
+
+    render(
+      <AdminTradesWorkbench
+        initialTrades={trades}
+        initialPage={1}
+        initialSize={10}
+        loadAccounts={loadAccounts}
+        loadStrategies={loadStrategies}
+        toggleStrategyStatus={toggleStrategyStatus}
+      />,
+    )
+
+    await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '계좌 선택' }), 'account-1')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
+    await user.click(screen.getByRole('button', { name: '전략 중지' }))
+
+    await waitFor(() =>
+      expect(screen.getByText('전략 상태 변경에 실패했습니다. 잠시 후 다시 시도하세요.')).toBeInTheDocument(),
+    )
+  })
+
   it.each([
     ['FAILED', failedOrder, 'FAILED 주문은 읽기 전용입니다. 상태 확인만 가능하며 보정은 진행할 수 없습니다.'],
     ['CANCELLED', cancelledOrder, 'CANCELLED 주문은 읽기 전용입니다. 취소 이력을 유지해야 하므로 보정은 진행할 수 없습니다.'],
@@ -445,5 +527,36 @@ describe('AdminTradesWorkbench', () => {
     await user.selectOptions(await screen.findByRole('combobox', { name: '주문 선택' }), partiallyFilledOrder.id)
 
     expect(screen.getByRole('button', { name: '체결 내역 보정' })).toBeInTheDocument()
+  })
+
+  it('shows a visible error message when order correction fails', async () => {
+    const user = userEvent.setup()
+    const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
+    const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
+    const loadOrders = vi.fn(async () => orders)
+
+    correctAdminOrderMock.mockRejectedValue(new Error('correction failed'))
+
+    render(
+      <AdminTradesWorkbench
+        initialTrades={trades}
+        initialPage={1}
+        initialSize={10}
+        loadAccounts={loadAccounts}
+        loadStrategies={loadStrategies}
+        loadOrders={loadOrders}
+      />,
+    )
+
+    await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '계좌 선택' }), 'account-1')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '거래일 선택' }), '2026-07-01')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '주문 선택' }), 'order-1')
+    await user.click(screen.getByRole('button', { name: '취소 후 재주문' }))
+
+    await waitFor(() =>
+      expect(screen.getByText('주문 보정에 실패했습니다. 입력값과 주문 상태를 다시 확인하세요.')).toBeInTheDocument(),
+    )
   })
 })
