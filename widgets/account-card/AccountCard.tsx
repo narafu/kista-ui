@@ -53,11 +53,6 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
   const brokerShort = broker?.description ?? account.broker
   const aggregated = aggregateStatus(strategies)
 
-  const activeCount = strategies.filter((s) => s.status === 'ACTIVE').length
-  const mixedLabel = strategies.length > 1 && activeCount > 0 && activeCount < strategies.length
-    ? `ACTIVE ${activeCount}개`
-    : undefined
-
   return (
     <Link
       href={`/accounts/${account.id}`}
@@ -111,13 +106,6 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
               미등록
             </span>
           )}
-          {aggregated && (
-            mixedLabel ? (
-              <span className="text-sm font-semibold text-warn shrink-0">{mixedLabel}</span>
-            ) : (
-              null
-            )
-          )}
           <ChevronRight className="size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
         </div>
       </div>
@@ -146,13 +134,6 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
             <p className="font-bold text-xl text-foreground leading-tight tracking-tight truncate">
               {account.nickname}
             </p>
-            {aggregated && (
-              mixedLabel ? (
-                <span className="text-sm font-semibold text-warn shrink-0">{mixedLabel}</span>
-              ) : (
-                null
-              )
-            )}
           </div>
         </div>
 

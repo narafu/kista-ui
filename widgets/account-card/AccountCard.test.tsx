@@ -72,7 +72,7 @@ describe('AccountCard', () => {
     const accent = container.querySelector('[data-testid="account-status-accent"]')
 
     expect(accent).toHaveStyle({ background: 'var(--warn)' })
-    expect(screen.getAllByText('ACTIVE 1개')).toHaveLength(2)
+    expect(screen.queryByText('ACTIVE 1개')).not.toBeInTheDocument()
   })
 
   it('renders compact strategy badges with status-colored border and text', () => {
