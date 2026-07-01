@@ -83,7 +83,11 @@ export function AdminUsersTable({ initialUsers, currentUserId, filterBar }: Prop
                   />
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-center">
-                  <WithdrawUserButton userId={user.id} nickname={user.nickname} />
+                  <WithdrawUserButton
+                    userId={user.id}
+                    nickname={user.nickname}
+                    isSelf={currentUserId === user.id}
+                  />
                 </td>
               </tr>
             ))}

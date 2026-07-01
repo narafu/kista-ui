@@ -6,9 +6,10 @@ import { useDeleteAdminUserMutation } from '@entities/user'
 interface Props {
   userId: string
   nickname: string
+  isSelf?: boolean
 }
 
-export function WithdrawUserButton({ userId, nickname }: Props) {
+export function WithdrawUserButton({ userId, nickname, isSelf = false }: Props) {
   const [open, setOpen] = useState(false)
   const mutation = useDeleteAdminUserMutation()
 
@@ -24,6 +25,8 @@ export function WithdrawUserButton({ userId, nickname }: Props) {
       <button
         type="button"
         onClick={() => setOpen(true)}
+        disabled={isSelf || mutation.isPending}
+        title={isSelf ? '본인 계정은 관리자 목록에서 탈퇴 처리할 수 없습니다.' : undefined}
         className="px-2.5 py-1 text-xs font-semibold rounded-md border border-[var(--status-error)]/50 text-[var(--status-error)] hover:bg-[var(--status-error-bg)] disabled:opacity-50 transition-colors"
       >
         탈퇴
