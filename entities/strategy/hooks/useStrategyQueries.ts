@@ -44,6 +44,7 @@ export function useAllStrategiesQuery(initialData?: Strategy[]) {
     queryKey: ['strategies', 'all'],
     queryFn: () => listAllStrategies(),
     initialData,
+    initialDataUpdatedAt: initialData ? 0 : undefined,
     staleTime: 30_000,
   })
 }
