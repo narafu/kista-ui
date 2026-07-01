@@ -51,7 +51,7 @@ export function AdminUsersTable({ initialUsers, currentUserId, filterBar }: Prop
       </div>
 
       <div className="rounded-xl border border-border overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="min-w-[720px] w-full text-sm">
           <thead className="bg-muted/40 text-xs text-muted-foreground font-semibold">
             <tr>
               <th className="text-left px-4 py-3 whitespace-nowrap">닉네임</th>

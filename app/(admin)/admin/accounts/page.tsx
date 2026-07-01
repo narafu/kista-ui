@@ -97,8 +97,8 @@ export default async function AdminAccountsPage({
           등록된 계좌가 없습니다
         </div>
       ) : (
-        <div className="rounded-xl border border-border overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="rounded-xl border border-border overflow-x-auto">
+          <table className="min-w-[720px] w-full text-sm">
             <thead className="bg-muted/40 border-b border-border">
               <tr>
                 <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">소유자</th>

@@ -332,12 +332,12 @@ function EmptyState({ text }: { text: string }) {
 
 function AccountTable({ accounts }: { accounts: AdminAnomalyAccount[] }) {
   return (
-    <div className="rounded-xl border border-border overflow-hidden">
-      <table className="w-full text-sm">
+    <div className="rounded-xl border border-border overflow-x-auto">
+      <table className="min-w-[320px] w-full text-sm">
         <thead className="bg-muted/40 border-b border-border">
           <tr>
-            <th className="text-center px-4 py-2.5 font-semibold text-muted-foreground">소유자</th>
-            <th className="text-center px-4 py-2.5 font-semibold text-muted-foreground">계좌번호</th>
+            <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">소유자</th>
+            <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">계좌번호</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">

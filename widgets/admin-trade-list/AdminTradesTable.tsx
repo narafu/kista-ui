@@ -25,7 +25,7 @@ export function AdminTradesTable({ trades, selectedTradeIds, onToggleTrade }: Pr
 
   return (
     <div className="rounded-xl border border-border overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="min-w-[960px] w-full text-sm">
         <thead className="bg-muted/40 border-b border-border">
           <tr>
             <th className="text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">선택</th>
