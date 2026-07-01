@@ -13,16 +13,25 @@ interface Props {
   strategies: AdminStrategy[]
   tradeDates: string[]
   orders: AdminStrategyOrder[]
+  selectedStrategy: AdminStrategy | null
+  selectedOrder: AdminStrategyOrder | null
   selectedUserId: string
   selectedAccountId: string
   selectedStrategyId: string
   selectedTradeDate: string
   selectedOrderId: string
+  strategyStatusPending: boolean
   onUserChange: (userId: string) => void
   onAccountChange: (accountId: string) => void
   onStrategyChange: (strategyId: string) => void
   onTradeDateChange: (tradeDate: string) => void
   onOrderChange: (orderId: string) => void
+  onStrategyStatusToggle: () => void
+}
+
+const READ_ONLY_ORDER_MESSAGE: Partial<Record<AdminStrategyOrder['status'], string>> = {
+  FAILED: 'FAILED 주문은 읽기 전용입니다. 상태 확인만 가능하며 보정은 진행할 수 없습니다.',
+  CANCELLED: 'CANCELLED 주문은 읽기 전용입니다. 취소 이력을 유지해야 하므로 보정은 진행할 수 없습니다.',
 }
 
 export function AdminTradeCorrectionPanel({
@@ -31,17 +40,24 @@ export function AdminTradeCorrectionPanel({
   strategies,
   tradeDates,
   orders,
+  selectedStrategy,
+  selectedOrder,
   selectedUserId,
   selectedAccountId,
   selectedStrategyId,
   selectedTradeDate,
   selectedOrderId,
+  strategyStatusPending,
   onUserChange,
   onAccountChange,
   onStrategyChange,
   onTradeDateChange,
   onOrderChange,
+  onStrategyStatusToggle,
 }: Props) {
+  const nextStrategyActionLabel = selectedStrategy?.status === 'ACTIVE' ? '전략 중지' : '전략 재개'
+  const readOnlyMessage = selectedOrder ? READ_ONLY_ORDER_MESSAGE[selectedOrder.status] : null
+
   return (
     <section className="rounded-xl border border-border bg-background p-4" aria-label="주문 보정 선택">
       <div>
@@ -139,6 +155,32 @@ export function AdminTradeCorrectionPanel({
           </select>
         </label>
       </div>
+
+      {selectedStrategy ? (
+        <div className="mt-4 rounded-lg border border-border bg-muted/20 p-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm font-medium">현재 전략 상태: {selectedStrategy.status}</p>
+            <button
+              type="button"
+              onClick={onStrategyStatusToggle}
+              disabled={strategyStatusPending}
+              aria-label={nextStrategyActionLabel}
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {strategyStatusPending ? '처리 중...' : nextStrategyActionLabel}
+            </button>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            전략 상태 변경 후 목록을 다시 불러와 최신 상태를 반영합니다.
+          </p>
+        </div>
+      ) : null}
+
+      {readOnlyMessage ? (
+        <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          {readOnlyMessage}
+        </p>
+      ) : null}
     </section>
   )
 }

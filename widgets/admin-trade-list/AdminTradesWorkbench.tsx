@@ -1,6 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import {
+  listAdminAccounts,
+  listAdminStrategies,
+  listAdminStrategyOrders,
+  updateAdminStrategyStatus,
+} from '@entities/user'
 import type { AdminAccount, AdminStrategy, AdminStrategyOrder, AdminTrade } from '@entities/user'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
@@ -14,6 +20,7 @@ interface Props {
   loadAccounts?: (userId: string) => Promise<AdminAccount[]>
   loadStrategies?: (accountId: string) => Promise<AdminStrategy[]>
   loadOrders?: (accountId: string, strategyId: string, tradeDate: string) => Promise<AdminStrategyOrder[]>
+  toggleStrategyStatus?: (accountId: string, strategyId: string, status: AdminStrategy['status']) => Promise<void>
 }
 
 function uniqBy<T>(items: T[], getKey: (item: T) => string): T[] {
@@ -27,29 +34,17 @@ function uniqBy<T>(items: T[], getKey: (item: T) => string): T[] {
   })
 }
 
-async function fetchAdminJson<T>(path: string): Promise<T> {
-  const response = await fetch(path)
-
-  if (!response.ok) {
-    throw new Error(`Failed to load ${path}`)
-  }
-
-  return response.json() as Promise<T>
-}
-
 export function AdminTradesWorkbench({
   initialTrades,
   initialPage,
   initialSize,
   loadAccounts = async (userId) => {
-    const accounts = await fetchAdminJson<AdminAccount[]>('/api/admin/accounts')
+    const accounts = await listAdminAccounts('')
     return accounts.filter((account) => account.userId === userId)
   },
-  loadStrategies = async (accountId) => fetchAdminJson<AdminStrategy[]>(`/api/admin/accounts/${accountId}/strategies`),
-  loadOrders = async (accountId, strategyId, tradeDate) =>
-    fetchAdminJson<AdminStrategyOrder[]>(
-      `/api/admin/accounts/${accountId}/strategies/${strategyId}/orders?tradeDate=${encodeURIComponent(tradeDate)}`,
-    ),
+  loadStrategies = async (accountId) => listAdminStrategies(accountId),
+  loadOrders = async (accountId, strategyId, tradeDate) => listAdminStrategyOrders(accountId, strategyId, tradeDate),
+  toggleStrategyStatus = async (accountId, strategyId, status) => updateAdminStrategyStatus(accountId, strategyId, status),
 }: Props) {
   const [page, setPage] = useState(initialPage)
   const [size, setSize] = useState(initialSize)
@@ -62,6 +57,7 @@ export function AdminTradesWorkbench({
   const [accounts, setAccounts] = useState<AdminAccount[]>([])
   const [strategies, setStrategies] = useState<AdminStrategy[]>([])
   const [orders, setOrders] = useState<AdminStrategyOrder[]>([])
+  const [strategyStatusPending, setStrategyStatusPending] = useState(false)
 
   const totalPages = Math.max(1, Math.ceil(initialTrades.length / size))
   const currentPage = Math.min(page, totalPages)
@@ -75,6 +71,8 @@ export function AdminTradesWorkbench({
     initialTrades.filter((trade) => trade.userId === selectedUserId),
     (trade) => trade.tradeDate,
   ).map((trade) => trade.tradeDate)
+  const selectedStrategy = strategies.find((strategy) => strategy.id === selectedStrategyId) ?? null
+  const selectedOrder = orders.find((order) => order.id === selectedOrderId) ?? null
 
   const handleSizeChange = (nextSize: string) => {
     setSize(Number(nextSize))
@@ -140,6 +138,21 @@ export function AdminTradesWorkbench({
     setOrders(await loadOrders(selectedAccountId, selectedStrategyId, tradeDate))
   }
 
+  const handleStrategyStatusToggle = async () => {
+    if (!selectedAccountId || !selectedStrategy) return
+
+    const nextStatus = selectedStrategy.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE'
+
+    setStrategyStatusPending(true)
+
+    try {
+      await toggleStrategyStatus(selectedAccountId, selectedStrategy.id, nextStatus)
+      setStrategies(await loadStrategies(selectedAccountId))
+    } finally {
+      setStrategyStatusPending(false)
+    }
+  }
+
   return (
     <div className="space-y-4">
       <section className="rounded-xl border border-border bg-muted/20 p-4" aria-label="선택된 보정 대상">
@@ -177,16 +190,20 @@ export function AdminTradesWorkbench({
         strategies={strategies}
         tradeDates={tradeDates}
         orders={orders}
+        selectedStrategy={selectedStrategy}
+        selectedOrder={selectedOrder}
         selectedUserId={selectedUserId}
         selectedAccountId={selectedAccountId}
         selectedStrategyId={selectedStrategyId}
         selectedTradeDate={selectedTradeDate}
         selectedOrderId={selectedOrderId}
+        strategyStatusPending={strategyStatusPending}
         onUserChange={handleUserChange}
         onAccountChange={handleAccountChange}
         onStrategyChange={handleStrategyChange}
         onTradeDateChange={handleTradeDateChange}
         onOrderChange={setSelectedOrderId}
+        onStrategyStatusToggle={handleStrategyStatusToggle}
       />
 
       <AdminTradesTable

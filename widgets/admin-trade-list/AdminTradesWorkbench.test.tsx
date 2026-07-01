@@ -88,6 +88,18 @@ const orders: AdminStrategyOrder[] = [
   },
 ]
 
+const failedOrder: AdminStrategyOrder = {
+  ...orders[0],
+  id: 'order-failed',
+  status: 'FAILED',
+}
+
+const cancelledOrder: AdminStrategyOrder = {
+  ...orders[0],
+  id: 'order-cancelled',
+  status: 'CANCELLED',
+}
+
 describe('AdminTradesWorkbench', () => {
   it('shows selected correction targets summary when rows are selected', async () => {
     const user = userEvent.setup()
@@ -181,5 +193,69 @@ describe('AdminTradesWorkbench', () => {
     expect(strategySelect).toBeDisabled()
     expect(tradeDateSelect).toBeDisabled()
     expect(orderSelect).toBeDisabled()
+  })
+
+  it('toggles selected strategy status and refreshes the strategy list', async () => {
+    const user = userEvent.setup()
+    const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
+    const loadStrategies = vi
+      .fn<() => Promise<AdminStrategy[]>>()
+      .mockResolvedValueOnce(strategies.slice(0, 1))
+      .mockResolvedValueOnce([{ ...strategies[0], status: 'PAUSED' }])
+    const toggleStrategyStatus = vi.fn(async () => undefined)
+
+    render(
+      <AdminTradesWorkbench
+        initialTrades={trades}
+        initialPage={1}
+        initialSize={10}
+        loadAccounts={loadAccounts}
+        loadStrategies={loadStrategies}
+        toggleStrategyStatus={toggleStrategyStatus}
+      />,
+    )
+
+    await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '계좌 선택' }), 'account-1')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
+
+    expect(screen.getByText('현재 전략 상태: ACTIVE')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '전략 중지' }))
+
+    await waitFor(() => expect(toggleStrategyStatus).toHaveBeenCalledWith('account-1', 'strategy-1', 'PAUSED'))
+    await waitFor(() => expect(loadStrategies).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(screen.getByText('현재 전략 상태: PAUSED')).toBeInTheDocument())
+    expect(screen.getByRole('combobox', { name: '전략 선택' })).toHaveValue('strategy-1')
+    expect(screen.getByRole('button', { name: '전략 재개' })).toBeInTheDocument()
+  })
+
+  it.each([
+    ['FAILED', failedOrder, 'FAILED 주문은 읽기 전용입니다. 상태 확인만 가능하며 보정은 진행할 수 없습니다.'],
+    ['CANCELLED', cancelledOrder, 'CANCELLED 주문은 읽기 전용입니다. 취소 이력을 유지해야 하므로 보정은 진행할 수 없습니다.'],
+  ])('shows read-only guidance for %s orders', async (_status, readOnlyOrder, message) => {
+    const user = userEvent.setup()
+    const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
+    const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
+    const loadOrders = vi.fn(async () => [readOnlyOrder])
+
+    render(
+      <AdminTradesWorkbench
+        initialTrades={trades}
+        initialPage={1}
+        initialSize={10}
+        loadAccounts={loadAccounts}
+        loadStrategies={loadStrategies}
+        loadOrders={loadOrders}
+      />,
+    )
+
+    await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '계좌 선택' }), 'account-1')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '거래일 선택' }), '2026-07-01')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '주문 선택' }), readOnlyOrder.id)
+
+    expect(screen.getByText(message)).toBeInTheDocument()
   })
 })
