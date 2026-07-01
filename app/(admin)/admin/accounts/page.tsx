@@ -1,12 +1,40 @@
 import { getAuthToken } from '@shared/lib/auth/token'
 import { listAdminAccounts } from '@entities/user'
-import type { AdminAccount } from '@entities/user'
+import type { AdminAccount, AdminAccountStrategy } from '@entities/user'
 import { RevealableValue } from '@widgets/revealable-value'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { RangeFilterBar, type RangePreset } from '@shared/ui/RangeFilterBar'
 
 const VALID_SIZES = ['10', '30', '50', '100'] as const
+
+const BROKER_LABEL: Record<string, string> = {
+  KIS: '한국투자증권',
+  TOSS: '토스증권',
+}
+
+const STRATEGY_STATUS_COLOR: Record<string, string> = {
+  ACTIVE: 'var(--status-ok)',
+  PAUSED: 'var(--warn)',
+}
+
+function strategyTypeShort(type: string): string {
+  if (type === 'PRIVACY') return 'P'
+  if (type === 'INFINITE') return 'I'
+  return type
+}
+
+function StrategyBadge({ strategy }: { strategy: AdminAccountStrategy }) {
+  const color = STRATEGY_STATUS_COLOR[strategy.status] ?? 'var(--muted-foreground)'
+  return (
+    <span
+      className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-bold border bg-muted/40 whitespace-nowrap"
+      style={{ borderColor: color, color }}
+    >
+      {strategyTypeShort(strategy.type)}-{strategy.ticker}
+    </span>
+  )
+}
 
 function parseRangePreset(raw: string | undefined): RangePreset {
   if (raw === '7d' || raw === '30d' || raw === 'custom') return raw
@@ -73,19 +101,35 @@ export default async function AdminAccountsPage({
           <table className="w-full text-sm">
             <thead className="bg-muted/40 border-b border-border">
               <tr>
-                <th className="text-center px-4 py-3 font-semibold text-muted-foreground">소유자</th>
-                <th className="text-center px-4 py-3 font-semibold text-muted-foreground">계좌번호</th>
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">소유자</th>
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">증권사</th>
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">계좌번호</th>
+                <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">전략</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {accounts.map((acc) => (
                 <tr key={acc.id} className="hover:bg-muted/20 transition-colors">
                   <td className="px-4 py-3 font-medium">{acc.ownerNickname}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {acc.broker ? (BROKER_LABEL[acc.broker] ?? acc.broker) : '-'}
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground font-mono text-xs">
                     <RevealableValue
                       value={acc.accountNoMasked ?? ''}
                       hiddenDisplay={acc.accountNoMasked ?? ''}
                     />
+                  </td>
+                  <td className="px-4 py-3">
+                    {acc.strategies.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {acc.strategies.map((s) => (
+                          <StrategyBadge key={s.id} strategy={s} />
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
                   </td>
                 </tr>
               ))}
