@@ -10,6 +10,7 @@ interface UserOption {
 
 interface Props {
   users: UserOption[]
+  brokers: string[]
   accounts: AdminAccount[]
   strategies: AdminStrategy[]
   tradeDates: string[]
@@ -17,6 +18,7 @@ interface Props {
   selectedStrategy: AdminStrategy | null
   selectedOrder: AdminStrategyOrder | null
   selectedUserId: string
+  selectedBroker: string
   selectedAccountId: string
   selectedStrategyId: string
   selectedTradeDate: string
@@ -24,6 +26,7 @@ interface Props {
   strategyStatusPending: boolean
   correctionPending: boolean
   onUserChange: (userId: string) => void
+  onBrokerChange: (broker: string) => void
   onAccountChange: (accountId: string) => void
   onStrategyChange: (strategyId: string) => void
   onTradeDateChange: (tradeDate: string) => void
@@ -37,8 +40,18 @@ const READ_ONLY_ORDER_MESSAGE: Partial<Record<AdminStrategyOrder['status'], stri
   CANCELLED: 'CANCELLED 주문은 읽기 전용입니다. 취소 이력을 유지해야 하므로 보정은 진행할 수 없습니다.',
 }
 
+const BROKER_LABEL: Record<string, string> = {
+  KIS: '한국투자증권',
+  TOSS: '토스증권',
+}
+
+function getBrokerLabel(broker: string) {
+  return BROKER_LABEL[broker] ?? broker
+}
+
 export function AdminTradeCorrectionPanel({
   users,
+  brokers,
   accounts,
   strategies,
   tradeDates,
@@ -46,6 +59,7 @@ export function AdminTradeCorrectionPanel({
   selectedStrategy,
   selectedOrder,
   selectedUserId,
+  selectedBroker,
   selectedAccountId,
   selectedStrategyId,
   selectedTradeDate,
@@ -53,6 +67,7 @@ export function AdminTradeCorrectionPanel({
   strategyStatusPending,
   correctionPending,
   onUserChange,
+  onBrokerChange,
   onAccountChange,
   onStrategyChange,
   onTradeDateChange,
@@ -64,9 +79,13 @@ export function AdminTradeCorrectionPanel({
   const readOnlyMessage = selectedOrder ? READ_ONLY_ORDER_MESSAGE[selectedOrder.status] : null
   const helperMessage = !selectedUserId
     ? '보정할 사용자를 먼저 선택하세요.'
+    : !selectedBroker
+      ? brokers.length === 0
+        ? '선택한 사용자에 연결된 증권사 계좌가 없습니다.'
+        : '보정할 증권사를 선택하세요.'
     : !selectedAccountId
       ? accounts.length === 0
-        ? '선택한 사용자에 연결된 계좌가 없습니다.'
+        ? '선택한 증권사에 연결된 계좌가 없습니다.'
         : '보정할 계좌를 선택하세요.'
       : !selectedStrategyId
         ? strategies.length === 0
@@ -89,7 +108,7 @@ export function AdminTradeCorrectionPanel({
         <p className="mt-1 text-sm text-muted-foreground">사용자부터 주문까지 순서대로 선택합니다</p>
       </div>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
         <label className="grid min-w-0 gap-2 text-sm">
           <span className="font-medium">사용자</span>
           <select
@@ -108,12 +127,30 @@ export function AdminTradeCorrectionPanel({
         </label>
 
         <label className="grid min-w-0 gap-2 text-sm">
+          <span className="font-medium">증권사</span>
+          <select
+            aria-label="증권사 선택"
+            value={selectedBroker}
+            onChange={(event) => onBrokerChange(event.target.value)}
+            disabled={!selectedUserId}
+            className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <option value="">증권사 선택</option>
+            {brokers.map((broker) => (
+              <option key={broker} value={broker}>
+                {getBrokerLabel(broker)}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="grid min-w-0 gap-2 text-sm">
           <span className="font-medium">계좌</span>
           <select
             aria-label="계좌 선택"
             value={selectedAccountId}
             onChange={(event) => onAccountChange(event.target.value)}
-            disabled={!selectedUserId}
+            disabled={!selectedBroker}
             className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">계좌 선택</option>
@@ -207,7 +244,7 @@ export function AdminTradeCorrectionPanel({
       ) : null}
 
       {readOnlyMessage ? (
-        <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-950/70 dark:bg-amber-950/20 dark:text-amber-200">
           {readOnlyMessage}
         </p>
       ) : null}

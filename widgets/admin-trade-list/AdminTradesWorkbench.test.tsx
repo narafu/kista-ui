@@ -124,6 +124,12 @@ const partiallyFilledOrder: AdminStrategyOrder = {
 
 const correctAdminOrderMock = vi.mocked(correctAdminOrder)
 
+async function selectBrokeredOrderTarget(user: ReturnType<typeof userEvent.setup>) {
+  await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
+  await user.selectOptions(await screen.findByRole('combobox', { name: '증권사 선택' }), 'KIS')
+  await user.selectOptions(await screen.findByRole('combobox', { name: '계좌 선택' }), 'account-1')
+}
+
 describe('AdminTradesWorkbench', () => {
   beforeEach(() => {
     correctAdminOrderMock.mockReset()
@@ -163,8 +169,7 @@ describe('AdminTradesWorkbench', () => {
       />,
     )
 
-    await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
-    await user.selectOptions(await screen.findByRole('combobox', { name: '계좌 선택' }), 'account-1')
+    await selectBrokeredOrderTarget(user)
     await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
     await user.selectOptions(await screen.findByRole('combobox', { name: '거래일 선택' }), '2026-07-01')
     await user.selectOptions(await screen.findByRole('combobox', { name: '주문 선택' }), 'order-1')
@@ -238,8 +243,7 @@ describe('AdminTradesWorkbench', () => {
       />,
     )
 
-    await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
-    await user.selectOptions(await screen.findByRole('combobox', { name: '계좌 선택' }), 'account-1')
+    await selectBrokeredOrderTarget(user)
     await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
     await user.selectOptions(await screen.findByRole('combobox', { name: '거래일 선택' }), '2026-07-01')
     await user.selectOptions(await screen.findByRole('combobox', { name: '주문 선택' }), 'order-1')
@@ -301,8 +305,7 @@ describe('AdminTradesWorkbench', () => {
       />,
     )
 
-    await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
-    await user.selectOptions(await screen.findByRole('combobox', { name: '계좌 선택' }), 'account-1')
+    await selectBrokeredOrderTarget(user)
     await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
     await user.selectOptions(await screen.findByRole('combobox', { name: '거래일 선택' }), '2026-07-01')
     await user.selectOptions(await screen.findByRole('combobox', { name: '주문 선택' }), 'order-1')
@@ -341,7 +344,7 @@ describe('AdminTradesWorkbench', () => {
     expect(within(summary!).getByText('2026-07-01')).toBeInTheDocument()
   })
 
-  it('supports user-account-strategy-tradeDate-order selection and resets lower steps', async () => {
+  it('supports user-broker-account-strategy-tradeDate-order selection and resets lower steps', async () => {
     const user = userEvent.setup()
     const loadAccounts = vi.fn(async (userId: string) => accounts.filter((account) => account.userId === userId))
     const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
@@ -360,12 +363,14 @@ describe('AdminTradesWorkbench', () => {
 
     await user.click(screen.getByRole('checkbox', { name: 'TSLA 거래 선택' }))
 
+    const brokerSelect = screen.getByRole('combobox', { name: '증권사 선택' })
     const accountSelect = screen.getByRole('combobox', { name: '계좌 선택' })
     const strategySelect = screen.getByRole('combobox', { name: '전략 선택' })
     const tradeDateSelect = screen.getByRole('combobox', { name: '거래일 선택' })
     const orderSelect = screen.getByRole('combobox', { name: '주문 선택' })
 
     expect(screen.getByRole('heading', { name: '선택된 보정 대상' })).toBeInTheDocument()
+    expect(brokerSelect).toBeDisabled()
     expect(accountSelect).toBeDisabled()
     expect(strategySelect).toBeDisabled()
     expect(tradeDateSelect).toBeDisabled()
@@ -374,6 +379,11 @@ describe('AdminTradesWorkbench', () => {
     await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
 
     await waitFor(() => expect(loadAccounts).toHaveBeenCalledWith('user-1'))
+    await waitFor(() => expect(brokerSelect).not.toBeDisabled())
+    expect(within(brokerSelect).getByRole('option', { name: '한국투자증권' })).toBeInTheDocument()
+
+    await user.selectOptions(brokerSelect, 'KIS')
+
     await waitFor(() => expect(accountSelect).not.toBeDisabled())
     expect(within(accountSelect).getByRole('option', { name: '123-45****' })).toBeInTheDocument()
 
@@ -400,10 +410,12 @@ describe('AdminTradesWorkbench', () => {
     await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-2')
 
     await waitFor(() => expect(loadAccounts).toHaveBeenLastCalledWith('user-2'))
+    expect(brokerSelect).toHaveValue('')
     expect(accountSelect).toHaveValue('')
     expect(strategySelect).toHaveValue('')
     expect(tradeDateSelect).toHaveValue('')
     expect(orderSelect).toHaveValue('')
+    expect(brokerSelect).not.toBeDisabled()
     expect(strategySelect).toBeDisabled()
     expect(tradeDateSelect).toBeDisabled()
     expect(orderSelect).toBeDisabled()
@@ -429,8 +441,7 @@ describe('AdminTradesWorkbench', () => {
       />,
     )
 
-    await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
-    await user.selectOptions(await screen.findByRole('combobox', { name: '계좌 선택' }), 'account-1')
+    await selectBrokeredOrderTarget(user)
     await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
 
     expect(screen.getByText('현재 전략 상태: ACTIVE')).toBeInTheDocument()
@@ -463,8 +474,7 @@ describe('AdminTradesWorkbench', () => {
       />,
     )
 
-    await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
-    await user.selectOptions(await screen.findByRole('combobox', { name: '계좌 선택' }), 'account-1')
+    await selectBrokeredOrderTarget(user)
     await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
     await user.click(screen.getByRole('button', { name: '전략 중지' }))
 
@@ -493,13 +503,14 @@ describe('AdminTradesWorkbench', () => {
       />,
     )
 
-    await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
-    await user.selectOptions(await screen.findByRole('combobox', { name: '계좌 선택' }), 'account-1')
+    await selectBrokeredOrderTarget(user)
     await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
     await user.selectOptions(await screen.findByRole('combobox', { name: '거래일 선택' }), '2026-07-01')
     await user.selectOptions(await screen.findByRole('combobox', { name: '주문 선택' }), readOnlyOrder.id)
 
-    expect(screen.getByText(message)).toBeInTheDocument()
+    const readOnlyNotice = screen.getByText(message)
+    expect(readOnlyNotice).toBeInTheDocument()
+    expect(readOnlyNotice).toHaveClass('dark:bg-amber-950/20')
     expect(screen.queryByRole('button', { name: /보정|재주문|적용/ })).not.toBeInTheDocument()
   })
 
@@ -520,8 +531,7 @@ describe('AdminTradesWorkbench', () => {
       />,
     )
 
-    await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
-    await user.selectOptions(await screen.findByRole('combobox', { name: '계좌 선택' }), 'account-1')
+    await selectBrokeredOrderTarget(user)
     await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
     await user.selectOptions(await screen.findByRole('combobox', { name: '거래일 선택' }), '2026-07-01')
     await user.selectOptions(await screen.findByRole('combobox', { name: '주문 선택' }), partiallyFilledOrder.id)
@@ -548,8 +558,7 @@ describe('AdminTradesWorkbench', () => {
       />,
     )
 
-    await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
-    await user.selectOptions(await screen.findByRole('combobox', { name: '계좌 선택' }), 'account-1')
+    await selectBrokeredOrderTarget(user)
     await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
     await user.selectOptions(await screen.findByRole('combobox', { name: '거래일 선택' }), '2026-07-01')
     await user.selectOptions(await screen.findByRole('combobox', { name: '주문 선택' }), 'order-1')

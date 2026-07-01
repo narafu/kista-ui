@@ -58,6 +58,7 @@ export function AdminTradesWorkbench({
   const [size, setSize] = useState(initialSize)
   const [selectedTradeIds, setSelectedTradeIds] = useState<string[]>([])
   const [selectedUserId, setSelectedUserId] = useState('')
+  const [selectedBroker, setSelectedBroker] = useState('')
   const [selectedAccountId, setSelectedAccountId] = useState('')
   const [selectedStrategyId, setSelectedStrategyId] = useState('')
   const [selectedTradeDate, setSelectedTradeDate] = useState('')
@@ -78,6 +79,15 @@ export function AdminTradesWorkbench({
     id: trade.userId,
     label: trade.ownerNickname,
   }))
+  const brokerOptions = uniqBy(
+    accounts
+      .map((account) => account.broker)
+      .filter((broker): broker is string => Boolean(broker)),
+    (broker) => broker,
+  )
+  const filteredAccounts = selectedBroker
+    ? accounts.filter((account) => account.broker === selectedBroker)
+    : []
   const tradeDates = uniqBy(
     initialTrades.filter((trade) => trade.userId === selectedUserId),
     (trade) => trade.tradeDate,
@@ -106,6 +116,7 @@ export function AdminTradesWorkbench({
   const handleUserChange = async (userId: string) => {
     resetFeedback()
     setSelectedUserId(userId)
+    setSelectedBroker('')
     setSelectedAccountId('')
     setSelectedStrategyId('')
     setSelectedTradeDate('')
@@ -124,6 +135,17 @@ export function AdminTradesWorkbench({
       setAccounts([])
       setActionError('계좌 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.')
     }
+  }
+
+  const handleBrokerChange = (broker: string) => {
+    resetFeedback()
+    setSelectedBroker(broker)
+    setSelectedAccountId('')
+    setSelectedStrategyId('')
+    setSelectedTradeDate('')
+    setSelectedOrderId('')
+    setStrategies([])
+    setOrders([])
   }
 
   const handleAccountChange = async (accountId: string) => {
@@ -255,13 +277,15 @@ export function AdminTradesWorkbench({
 
       <AdminTradeCorrectionPanel
         users={userOptions}
-        accounts={accounts}
+        brokers={brokerOptions}
+        accounts={filteredAccounts}
         strategies={strategies}
         tradeDates={tradeDates}
         orders={orders}
         selectedStrategy={selectedStrategy}
         selectedOrder={selectedOrder}
         selectedUserId={selectedUserId}
+        selectedBroker={selectedBroker}
         selectedAccountId={selectedAccountId}
         selectedStrategyId={selectedStrategyId}
         selectedTradeDate={selectedTradeDate}
@@ -269,6 +293,7 @@ export function AdminTradesWorkbench({
         strategyStatusPending={strategyStatusPending}
         correctionPending={correctionPending}
         onUserChange={handleUserChange}
+        onBrokerChange={handleBrokerChange}
         onAccountChange={handleAccountChange}
         onStrategyChange={handleStrategyChange}
         onTradeDateChange={handleTradeDateChange}
