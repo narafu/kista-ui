@@ -1,6 +1,7 @@
 'use client'
 
-import type { AdminAccount, AdminStrategy, AdminStrategyOrder } from '@entities/user'
+import type { AdminAccount, AdminOrderCorrectionRequest, AdminStrategy, AdminStrategyOrder } from '@entities/user'
+import { AdminOrderCorrectionForm } from './AdminOrderCorrectionForm'
 
 interface UserOption {
   id: string
@@ -21,12 +22,14 @@ interface Props {
   selectedTradeDate: string
   selectedOrderId: string
   strategyStatusPending: boolean
+  correctionPending: boolean
   onUserChange: (userId: string) => void
   onAccountChange: (accountId: string) => void
   onStrategyChange: (strategyId: string) => void
   onTradeDateChange: (tradeDate: string) => void
   onOrderChange: (orderId: string) => void
   onStrategyStatusToggle: () => void
+  onOrderCorrectionSubmit: (request: Pick<AdminOrderCorrectionRequest, 'mode' | 'direction' | 'quantity' | 'price' | 'memo'>) => Promise<void>
 }
 
 const READ_ONLY_ORDER_MESSAGE: Partial<Record<AdminStrategyOrder['status'], string>> = {
@@ -48,12 +51,14 @@ export function AdminTradeCorrectionPanel({
   selectedTradeDate,
   selectedOrderId,
   strategyStatusPending,
+  correctionPending,
   onUserChange,
   onAccountChange,
   onStrategyChange,
   onTradeDateChange,
   onOrderChange,
   onStrategyStatusToggle,
+  onOrderCorrectionSubmit,
 }: Props) {
   const nextStrategyActionLabel = selectedStrategy?.status === 'ACTIVE' ? '전략 중지' : '전략 재개'
   const readOnlyMessage = selectedOrder ? READ_ONLY_ORDER_MESSAGE[selectedOrder.status] : null
@@ -180,6 +185,14 @@ export function AdminTradeCorrectionPanel({
         <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
           {readOnlyMessage}
         </p>
+      ) : null}
+
+      {selectedOrder && !readOnlyMessage ? (
+        <AdminOrderCorrectionForm
+          order={selectedOrder}
+          disabled={correctionPending}
+          onSubmit={onOrderCorrectionSubmit}
+        />
       ) : null}
     </section>
   )

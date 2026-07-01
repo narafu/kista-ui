@@ -2,12 +2,13 @@
 
 import { useState } from 'react'
 import {
+  correctAdminOrder,
   listAdminAccounts,
   listAdminStrategies,
   listAdminStrategyOrders,
   updateAdminStrategyStatus,
 } from '@entities/user'
-import type { AdminAccount, AdminStrategy, AdminStrategyOrder, AdminTrade } from '@entities/user'
+import type { AdminAccount, AdminOrderCorrectionRequest, AdminStrategy, AdminStrategyOrder, AdminTrade } from '@entities/user'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { AdminTradeCorrectionPanel } from './AdminTradeCorrectionPanel'
@@ -58,6 +59,7 @@ export function AdminTradesWorkbench({
   const [strategies, setStrategies] = useState<AdminStrategy[]>([])
   const [orders, setOrders] = useState<AdminStrategyOrder[]>([])
   const [strategyStatusPending, setStrategyStatusPending] = useState(false)
+  const [correctionPending, setCorrectionPending] = useState(false)
 
   const totalPages = Math.max(1, Math.ceil(initialTrades.length / size))
   const currentPage = Math.min(page, totalPages)
@@ -153,6 +155,27 @@ export function AdminTradesWorkbench({
     }
   }
 
+  const handleOrderCorrectionSubmit = async (
+    request: Pick<AdminOrderCorrectionRequest, 'mode' | 'direction' | 'quantity' | 'price' | 'memo'>,
+  ) => {
+    if (!selectedOrder || !selectedUserId || !selectedAccountId || !selectedStrategyId || !selectedTradeDate) return
+
+    setCorrectionPending(true)
+
+    try {
+      await correctAdminOrder({
+        userId: selectedUserId,
+        accountId: selectedAccountId,
+        strategyId: selectedStrategyId,
+        orderId: selectedOrder.id,
+        tradeDateKst: selectedTradeDate,
+        ...request,
+      })
+    } finally {
+      setCorrectionPending(false)
+    }
+  }
+
   return (
     <div className="space-y-4">
       <section className="rounded-xl border border-border bg-muted/20 p-4" aria-label="선택된 보정 대상">
@@ -198,12 +221,14 @@ export function AdminTradesWorkbench({
         selectedTradeDate={selectedTradeDate}
         selectedOrderId={selectedOrderId}
         strategyStatusPending={strategyStatusPending}
+        correctionPending={correctionPending}
         onUserChange={handleUserChange}
         onAccountChange={handleAccountChange}
         onStrategyChange={handleStrategyChange}
         onTradeDateChange={handleTradeDateChange}
         onOrderChange={setSelectedOrderId}
         onStrategyStatusToggle={handleStrategyStatusToggle}
+        onOrderCorrectionSubmit={handleOrderCorrectionSubmit}
       />
 
       <AdminTradesTable
