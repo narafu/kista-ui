@@ -11,6 +11,7 @@ export function useMeQuery(initialData?: User) {
     queryKey: ['me'],
     queryFn: getMeClient,
     initialData,
+    initialDataUpdatedAt: initialData ? 0 : undefined,
     staleTime: 60_000,
   })
 }
@@ -55,6 +56,7 @@ export function useAdminUsersQuery(filter?: UserStatus, initialData?: AdminUser[
     queryKey: ['adminUsers', filter],
     queryFn: () => listAdminUsers(undefined, filter),
     initialData,
+    initialDataUpdatedAt: initialData ? 0 : undefined,
     staleTime: 30_000,
   })
 }

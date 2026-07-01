@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { Strategy } from '../model/types'
-import { useAllStrategiesQuery } from './useStrategyQueries'
+import { useAllStrategiesQuery, useStrategiesQuery } from './useStrategyQueries'
 
 const { useQueryMock } = vi.hoisted(() => ({
   useQueryMock: vi.fn(),
@@ -56,8 +56,22 @@ describe('useAllStrategiesQuery', () => {
 
     renderHook(() => useAllStrategiesQuery([baseStrategy]))
 
-    expect(useQueryMock).toHaveBeenCalledWith(expect.objectContaining({
+    expect(useQueryMock.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({
       queryKey: ['strategies', 'all'],
+      initialData: [baseStrategy],
+      initialDataUpdatedAt: 0,
+    }))
+  })
+})
+
+describe('useStrategiesQuery', () => {
+  it('marks account strategy initial data stale so detail pages refetch immediately on mount', () => {
+    useQueryMock.mockReturnValue({ data: [baseStrategy] })
+
+    renderHook(() => useStrategiesQuery('account-1', [baseStrategy]))
+
+    expect(useQueryMock.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({
+      queryKey: ['strategies', 'account-1'],
       initialData: [baseStrategy],
       initialDataUpdatedAt: 0,
     }))

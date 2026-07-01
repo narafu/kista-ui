@@ -54,6 +54,7 @@ export function useStrategiesQuery(accountId: string, initialData?: Strategy[]) 
     queryKey: ['strategies', accountId],
     queryFn: () => listStrategies(accountId),
     initialData,
+    initialDataUpdatedAt: initialData ? 0 : undefined,
     staleTime: 30_000,
   })
 }
