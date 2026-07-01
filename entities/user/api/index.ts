@@ -98,18 +98,18 @@ export async function listAdminAccounts(token: string, from?: string, to?: strin
   return apiFetch<AdminAccount[]>(`/api/admin/accounts${query}`, { method: 'GET' }, token)
 }
 
-export async function listAdminStrategies(token: string, accountId: string): Promise<AdminStrategy[]> {
-  return apiFetch<AdminStrategy[]>(`/api/admin/accounts/${accountId}/strategies`, { method: 'GET' }, token)
+export async function listAdminStrategies(accountId: string, token?: string): Promise<AdminStrategy[]> {
+  return fetchEither<AdminStrategy[]>(`/api/admin/accounts/${accountId}/strategies`, { method: 'GET' }, token)
 }
 
 export async function listAdminStrategyOrders(
-  token: string,
   accountId: string,
   strategyId: string,
   tradeDate: string,
+  token?: string,
 ): Promise<AdminStrategyOrder[]> {
   const params = new URLSearchParams({ tradeDate })
-  return apiFetch<AdminStrategyOrder[]>(
+  return fetchEither<AdminStrategyOrder[]>(
     `/api/admin/accounts/${accountId}/strategies/${strategyId}/orders?${params.toString()}`,
     { method: 'GET' },
     token,

@@ -14,10 +14,12 @@ import type {
 
 const {
   apiFetchMock,
+  fetchEitherMock,
   clientFetchMock,
   jsonBodyMock,
 } = vi.hoisted(() => ({
   apiFetchMock: vi.fn(),
+  fetchEitherMock: vi.fn(),
   clientFetchMock: vi.fn(),
   jsonBodyMock: vi.fn(),
 }))
@@ -25,13 +27,14 @@ const {
 vi.mock('@shared/lib/api-client', () => ({
   apiFetch: apiFetchMock,
   clientFetch: clientFetchMock,
-  fetchEither: vi.fn(),
+  fetchEither: fetchEitherMock,
   jsonBody: jsonBodyMock,
 }))
 
 describe('entities/user/api admin trade correction APIs', () => {
   beforeEach(() => {
     apiFetchMock.mockReset()
+    fetchEitherMock.mockReset()
     clientFetchMock.mockReset()
     jsonBodyMock.mockReset()
     jsonBodyMock.mockImplementation((method: string, body: unknown) => ({ method, body }))
@@ -47,12 +50,12 @@ describe('entities/user/api admin trade correction APIs', () => {
         cycleSeedType: 'MAX',
       },
     ]
-    apiFetchMock.mockResolvedValue(strategies)
+    fetchEitherMock.mockResolvedValue(strategies)
 
-    const result = await listAdminStrategies('admin-token', 'account-1')
+    const result = await listAdminStrategies('account-1', 'admin-token')
 
     expect(result).toEqual(strategies)
-    expect(apiFetchMock).toHaveBeenCalledWith(
+    expect(fetchEitherMock).toHaveBeenCalledWith(
       '/api/admin/accounts/account-1/strategies',
       { method: 'GET' },
       'admin-token',
@@ -79,12 +82,12 @@ describe('entities/user/api admin trade correction APIs', () => {
         filledPrice: null,
       },
     ]
-    apiFetchMock.mockResolvedValue(orders)
+    fetchEitherMock.mockResolvedValue(orders)
 
-    const result = await listAdminStrategyOrders('admin-token', 'account-1', 'strategy-1', '2026-07-01')
+    const result = await listAdminStrategyOrders('account-1', 'strategy-1', '2026-07-01', 'admin-token')
 
     expect(result).toEqual(orders)
-    expect(apiFetchMock).toHaveBeenCalledWith(
+    expect(fetchEitherMock).toHaveBeenCalledWith(
       '/api/admin/accounts/account-1/strategies/strategy-1/orders?tradeDate=2026-07-01',
       { method: 'GET' },
       'admin-token',
