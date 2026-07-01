@@ -14,6 +14,22 @@ const STATUS_ACCENT: Record<'ACTIVE' | 'PAUSED', string> = {
   PAUSED: 'var(--warn)',
 }
 
+function strategyTypeShort(type: Strategy['type']): string {
+  if (type === 'PRIVACY') return 'P'
+  if (type === 'INFINITE') return 'I'
+  return type
+}
+
+function formatStrategyBadge(strategy: Strategy): string {
+  return `${strategyTypeShort(strategy.type)}-${strategy.ticker}`
+}
+
+function strategyStatusColor(status: Strategy['status']): string {
+  return status === 'ACTIVE' || status === 'PAUSED'
+    ? STATUS_ACCENT[status]
+    : 'var(--muted-foreground)'
+}
+
 interface Props {
   account: Account
   strategies?: Strategy[]
@@ -78,12 +94,18 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
             {account.nickname}
           </span>
           {strategies.length > 0 ? (
-            <span
-              className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold shrink-0 whitespace-nowrap"
-              style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
-            >
-              전략 {strategies.length}개
-            </span>
+            <div className="flex items-center justify-end gap-1.5 shrink-0 flex-wrap">
+              {strategies.map((s) => (
+                <span
+                  key={s.id}
+                  data-testid={`strategy-badge-${s.id}-mobile`}
+                  className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold shrink-0 whitespace-nowrap border bg-muted/40"
+                  style={{ borderColor: strategyStatusColor(s.status), color: strategyStatusColor(s.status) }}
+                >
+                  {formatStrategyBadge(s)}
+                </span>
+              ))}
+            </div>
           ) : (
             <span className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold shrink-0 bg-muted text-muted-foreground whitespace-nowrap">
               미등록
@@ -144,13 +166,11 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
               {strategies.map((s) => (
                 <li key={s.id} className="flex items-center gap-2 min-w-0 py-2 border-b border-border last:border-b-0">
                   <span
-                    className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-bold uppercase shrink-0"
-                    style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
+                    data-testid={`strategy-badge-${s.id}-desktop`}
+                    className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-bold uppercase shrink-0 border bg-muted/40"
+                    style={{ borderColor: strategyStatusColor(s.status), color: strategyStatusColor(s.status) }}
                   >
-                    {s.type}
-                  </span>
-                  <span className="text-xs font-mono font-semibold text-foreground tracking-wider">
-                    {s.ticker}
+                    {formatStrategyBadge(s)}
                   </span>
                   {s.initialUsdDeposit != null && (
                     <span className="ml-auto text-sm font-semibold text-foreground tabular-nums shrink-0">

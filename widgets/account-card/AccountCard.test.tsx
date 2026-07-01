@@ -74,4 +74,25 @@ describe('AccountCard', () => {
     expect(accent).toHaveStyle({ background: 'var(--warn)' })
     expect(screen.getAllByText('ACTIVE 1개')).toHaveLength(2)
   })
+
+  it('renders compact strategy badges with status-colored border and text', () => {
+    const { container } = render(
+      <AccountCard
+        account={baseAccount}
+        strategies={[
+          { ...baseStrategy, id: 'strategy-1', type: 'PRIVACY', ticker: 'SOXL', status: 'PAUSED' },
+          { ...baseStrategy, id: 'strategy-2', type: 'INFINITE', ticker: 'MAGX', status: 'ACTIVE' },
+        ]}
+      />,
+    )
+
+    expect(screen.getAllByText('P-SOXL')).toHaveLength(2)
+    expect(screen.getAllByText('I-MAGX')).toHaveLength(2)
+    expect(screen.queryByText('전략 2개')).not.toBeInTheDocument()
+
+    const pausedBadge = container.querySelector('[data-testid="strategy-badge-strategy-1-mobile"]')
+
+    expect(pausedBadge).toHaveAttribute('style', expect.stringContaining('border-color: var(--warn);'))
+    expect(pausedBadge).toHaveAttribute('style', expect.stringContaining('color: var(--warn);'))
+  })
 })
