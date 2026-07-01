@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { correctAdminOrder } from '@entities/user'
 import type { AdminAccount, AdminStrategy, AdminStrategyOrder, AdminTrade } from '@entities/user'
 import { AdminTradesWorkbench } from './AdminTradesWorkbench'
@@ -125,6 +125,10 @@ const partiallyFilledOrder: AdminStrategyOrder = {
 const correctAdminOrderMock = vi.mocked(correctAdminOrder)
 
 describe('AdminTradesWorkbench', () => {
+  beforeEach(() => {
+    correctAdminOrderMock.mockReset()
+  })
+
   it('submits placed order correction with replace mode and stronger warning copy', async () => {
     const user = userEvent.setup()
     const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
@@ -192,6 +196,70 @@ describe('AdminTradesWorkbench', () => {
         memo: '관리자 보정',
       }),
     )
+  })
+
+  it('refreshes strategy orders and shows a visible success summary after correction', async () => {
+    const user = userEvent.setup()
+    const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
+    const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
+    const refreshedOrders: AdminStrategyOrder[] = [
+      { ...orders[0], status: 'FILLED', filledQuantity: 5, filledPrice: 320.5 },
+    ]
+    const loadOrders = vi
+      .fn<() => Promise<AdminStrategyOrder[]>>()
+      .mockResolvedValueOnce(orders)
+      .mockResolvedValueOnce(refreshedOrders)
+
+    correctAdminOrderMock.mockResolvedValue({
+      userId: 'user-1',
+      accountId: 'account-1',
+      strategyId: 'strategy-1',
+      orderId: 'order-1',
+      mode: 'PLACED_REPLACE',
+      originalStatus: 'PLACED',
+      resultingStatus: 'FILLED',
+      replacementExternalOrderId: 'ext-2',
+      finalHoldings: 5,
+      finalAvgPrice: 320.5,
+      finalUsdDeposit: 850,
+      strategyStatus: 'ACTIVE',
+      cycleEnded: false,
+      cycleEndDate: null,
+    })
+
+    render(
+      <AdminTradesWorkbench
+        initialTrades={trades}
+        initialPage={1}
+        initialSize={10}
+        loadAccounts={loadAccounts}
+        loadStrategies={loadStrategies}
+        loadOrders={loadOrders}
+      />,
+    )
+
+    await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '계좌 선택' }), 'account-1')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '거래일 선택' }), '2026-07-01')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '주문 선택' }), 'order-1')
+
+    await user.clear(screen.getByLabelText('보정 수량'))
+    await user.type(screen.getByLabelText('보정 수량'), '5')
+    await user.clear(screen.getByLabelText('보정 가격'))
+    await user.type(screen.getByLabelText('보정 가격'), '320.5')
+    await user.type(screen.getByLabelText('보정 메모'), '재체결 반영')
+    await user.click(screen.getByRole('button', { name: '취소 후 재주문' }))
+
+    await waitFor(() => expect(correctAdminOrderMock).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(loadOrders).toHaveBeenCalledTimes(2))
+    await waitFor(() =>
+      expect(loadOrders).toHaveBeenLastCalledWith('account-1', 'strategy-1', '2026-07-01'),
+    )
+
+    expect(screen.getByText('주문 보정이 완료되었습니다')).toBeInTheDocument()
+    expect(screen.getByText('상태: PLACED -> FILLED')).toBeInTheDocument()
+    expect(screen.getByText('최종 보유 수량 5주 · 평균가 320.5 · 예수금 850')).toBeInTheDocument()
   })
 
   it('shows selected correction targets summary when rows are selected', async () => {

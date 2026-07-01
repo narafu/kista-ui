@@ -8,7 +8,14 @@ import {
   listAdminStrategyOrders,
   updateAdminStrategyStatus,
 } from '@entities/user'
-import type { AdminAccount, AdminOrderCorrectionRequest, AdminStrategy, AdminStrategyOrder, AdminTrade } from '@entities/user'
+import type {
+  AdminAccount,
+  AdminOrderCorrectionRequest,
+  AdminOrderCorrectionResponse,
+  AdminStrategy,
+  AdminStrategyOrder,
+  AdminTrade,
+} from '@entities/user'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { AdminTradeCorrectionPanel } from './AdminTradeCorrectionPanel'
@@ -60,6 +67,7 @@ export function AdminTradesWorkbench({
   const [orders, setOrders] = useState<AdminStrategyOrder[]>([])
   const [strategyStatusPending, setStrategyStatusPending] = useState(false)
   const [correctionPending, setCorrectionPending] = useState(false)
+  const [correctionResult, setCorrectionResult] = useState<AdminOrderCorrectionResponse | null>(null)
 
   const totalPages = Math.max(1, Math.ceil(initialTrades.length / size))
   const currentPage = Math.min(page, totalPages)
@@ -90,6 +98,7 @@ export function AdminTradesWorkbench({
   }
 
   const handleUserChange = async (userId: string) => {
+    setCorrectionResult(null)
     setSelectedUserId(userId)
     setSelectedAccountId('')
     setSelectedStrategyId('')
@@ -107,6 +116,7 @@ export function AdminTradesWorkbench({
   }
 
   const handleAccountChange = async (accountId: string) => {
+    setCorrectionResult(null)
     setSelectedAccountId(accountId)
     setSelectedStrategyId('')
     setSelectedTradeDate('')
@@ -122,6 +132,7 @@ export function AdminTradesWorkbench({
   }
 
   const handleStrategyChange = (strategyId: string) => {
+    setCorrectionResult(null)
     setSelectedStrategyId(strategyId)
     setSelectedTradeDate('')
     setSelectedOrderId('')
@@ -129,6 +140,7 @@ export function AdminTradesWorkbench({
   }
 
   const handleTradeDateChange = async (tradeDate: string) => {
+    setCorrectionResult(null)
     setSelectedTradeDate(tradeDate)
     setSelectedOrderId('')
 
@@ -161,9 +173,10 @@ export function AdminTradesWorkbench({
     if (!selectedOrder || !selectedUserId || !selectedAccountId || !selectedStrategyId || !selectedTradeDate) return
 
     setCorrectionPending(true)
+    setCorrectionResult(null)
 
     try {
-      await correctAdminOrder({
+      const result = await correctAdminOrder({
         userId: selectedUserId,
         accountId: selectedAccountId,
         strategyId: selectedStrategyId,
@@ -171,6 +184,8 @@ export function AdminTradesWorkbench({
         tradeDateKst: selectedTradeDate,
         ...request,
       })
+      setOrders(await loadOrders(selectedAccountId, selectedStrategyId, selectedTradeDate))
+      setCorrectionResult(result)
     } finally {
       setCorrectionPending(false)
     }
@@ -230,6 +245,21 @@ export function AdminTradesWorkbench({
         onStrategyStatusToggle={handleStrategyStatusToggle}
         onOrderCorrectionSubmit={handleOrderCorrectionSubmit}
       />
+
+      {correctionResult ? (
+        <section
+          className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950"
+          aria-label="주문 보정 결과"
+        >
+          <h2 className="text-base font-semibold">주문 보정이 완료되었습니다</h2>
+          <p className="mt-1 text-sm">
+            상태: {correctionResult.originalStatus} -&gt; {correctionResult.resultingStatus}
+          </p>
+          <p className="mt-2 text-sm">
+            최종 보유 수량 {correctionResult.finalHoldings}주 · 평균가 {correctionResult.finalAvgPrice ?? '-'} · 예수금 {correctionResult.finalUsdDeposit}
+          </p>
+        </section>
+      ) : null}
 
       <AdminTradesTable
         trades={pagedTrades}
