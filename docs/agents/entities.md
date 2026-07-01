@@ -80,7 +80,7 @@ import { deleteAccount } from '@entities/account'
 ## KIS live API quirk
 
 - **OVRS_EXCG_CD**: 거래소 코드는 `ticker.exchangeCode()` 사용
-- **TTTC2101R 외화증거금**: `frcr_gnrl_ord_psbl_amt`가 항상 유효
+- **TTTC2101R 외화증거금**: `itgr_ord_psbl_amt`(통합주문가능금액) 사용 — 원화 자동 환전 포함. `frcr_dncl_amt_2`(환전 외화만) 사용 금지
 - **`getPrices` 쿼리 직렬화**: 반복 파라미터만 허용
 - **MultiPriceResponse**: 응답 `{ prices: [{ticker, price}] }`를 `PriceMap`으로 정규화해야 함
 - **통화 주의**: `positions[].evalAmountUsd`는 USD, `summary.totalAssetUsd`/`totalEvalProfit`은 KRW
