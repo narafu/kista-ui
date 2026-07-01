@@ -84,12 +84,12 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
           </span>
         </div>
         {/* 2행: 닉네임 + 전략 수 + 상태 + 화살표 */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-start gap-2">
           <span className="font-bold text-sm text-foreground truncate flex-1 min-w-0">
             {account.nickname}
           </span>
           {strategies.length > 0 ? (
-            <div className="flex items-center justify-end gap-1.5 shrink-0 flex-wrap">
+            <div className="flex items-start content-start justify-end gap-1.5 shrink-0 flex-wrap">
               {strategies.map((s) => (
                 <span
                   key={s.id}
@@ -106,7 +106,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
               미등록
             </span>
           )}
-          <ChevronRight className="size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
+          <ChevronRight className="mt-0.5 size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
         </div>
       </div>
 

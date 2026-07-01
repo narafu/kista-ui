@@ -95,4 +95,24 @@ describe('AccountCard', () => {
     expect(pausedBadge).toHaveAttribute('style', expect.stringContaining('border-color: var(--warn);'))
     expect(pausedBadge).toHaveAttribute('style', expect.stringContaining('color: var(--warn);'))
   })
+
+  it('top-aligns wrapped mobile strategy badges so multiple rows do not collapse toward the center', () => {
+    render(
+      <AccountCard
+        account={baseAccount}
+        strategies={[
+          { ...baseStrategy, id: 'strategy-1', type: 'PRIVACY', ticker: 'SOXL' },
+          { ...baseStrategy, id: 'strategy-2', type: 'INFINITE', ticker: 'MAGX' },
+          { ...baseStrategy, id: 'strategy-3', type: 'PRIVACY', ticker: 'TSLL' },
+        ]}
+      />,
+    )
+
+    const mobileMainRow = screen.getAllByText('메인 계좌')[0]?.parentElement
+    const strategyBadgeGroup = mobileMainRow?.children[1]
+
+    expect(mobileMainRow).toHaveClass('items-start')
+    expect(strategyBadgeGroup).toHaveClass('items-start')
+    expect(strategyBadgeGroup).toHaveClass('content-start')
+  })
 })
