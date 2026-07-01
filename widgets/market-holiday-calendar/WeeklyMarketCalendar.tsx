@@ -102,7 +102,7 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
     if (isWeekend) {
       badge = <span className="text-xs px-1.5 py-[1px] rounded bg-muted text-muted-foreground/50">휴</span>
     } else if (isHoliday) {
-      badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-neg-bg text-neg">휴장</span>
+      badge = <span className="text-xs font-semibold text-neg">휴장</span>
     } else if (isToday && !summary && accountIds.length > 0) {
       badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400">대기중</span>
       sub = <span className="text-xs text-muted-foreground">오늘</span>
@@ -126,7 +126,7 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
         key={ds}
         className={cn(
           'flex flex-col items-center gap-[3px] py-1.5 rounded-[10px]',
-          isToday && 'bg-rose-50 dark:bg-rose-500/10',
+          isToday && 'border border-rose-200/70 bg-rose-50 dark:border-rose-400/35 dark:bg-rose-500/15',
           isHoliday && !isToday && 'bg-neg-bg',
         )}
       >
