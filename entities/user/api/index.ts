@@ -1,5 +1,20 @@
 import { apiFetch, clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
-import type { User, UserRole, UserStatus, AdminUser, AdminStats, AdminAccount, AdminTrade, AdminAuditLog, AdminAnomalies, AppErrorLog } from '../model/types'
+import type {
+  User,
+  UserRole,
+  UserStatus,
+  AdminUser,
+  AdminStats,
+  AdminAccount,
+  AdminTrade,
+  AdminAuditLog,
+  AdminAnomalies,
+  AppErrorLog,
+  AdminStrategy,
+  AdminStrategyOrder,
+  AdminOrderCorrectionRequest,
+  AdminOrderCorrectionResponse,
+} from '../model/types'
 
 export async function getMe(token: string): Promise<User> {
   return apiFetch<User>('/api/auth/me', { method: 'GET' }, token)
@@ -83,12 +98,41 @@ export async function listAdminAccounts(token: string, from?: string, to?: strin
   return apiFetch<AdminAccount[]>(`/api/admin/accounts${query}`, { method: 'GET' }, token)
 }
 
+export async function listAdminStrategies(token: string, accountId: string): Promise<AdminStrategy[]> {
+  return apiFetch<AdminStrategy[]>(`/api/admin/accounts/${accountId}/strategies`, { method: 'GET' }, token)
+}
+
+export async function listAdminStrategyOrders(
+  token: string,
+  accountId: string,
+  strategyId: string,
+  tradeDate: string,
+): Promise<AdminStrategyOrder[]> {
+  const params = new URLSearchParams({ tradeDate })
+  return apiFetch<AdminStrategyOrder[]>(
+    `/api/admin/accounts/${accountId}/strategies/${strategyId}/orders?${params.toString()}`,
+    { method: 'GET' },
+    token,
+  )
+}
+
+export async function updateAdminStrategyStatus(accountId: string, strategyId: string, status: AdminStrategy['status']): Promise<void> {
+  await clientFetch<void>(
+    `/api/admin/accounts/${accountId}/strategies/${strategyId}/status`,
+    jsonBody('PATCH', { status }),
+  )
+}
+
 export async function listAdminTrades(token: string, from?: string, to?: string): Promise<AdminTrade[]> {
   const params = new URLSearchParams()
   if (from) params.set('from', from)
   if (to) params.set('to', to)
   const query = params.size ? `?${params}` : ''
   return apiFetch<AdminTrade[]>(`/api/admin/trades${query}`, { method: 'GET' }, token)
+}
+
+export async function correctAdminOrder(request: AdminOrderCorrectionRequest): Promise<AdminOrderCorrectionResponse> {
+  return clientFetch<AdminOrderCorrectionResponse>('/api/admin/trades/order-corrections', jsonBody('POST', request))
 }
 
 export async function listAdminAuditLogs(token: string, from?: string, to?: string): Promise<AdminAuditLog[]> {

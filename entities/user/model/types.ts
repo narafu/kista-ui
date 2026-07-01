@@ -1,5 +1,5 @@
 export type { UserStatus, UserRole, NotificationChannel } from '@shared/lib/api-schema'
-import type { UserStatus, UserRole, NotificationChannel, OrderDirection, OrderType } from '@shared/lib/api-schema'
+import type { UserStatus, UserRole, NotificationChannel, OrderDirection, OrderStatus, OrderType } from '@shared/lib/api-schema'
 
 export interface User {
   id: string
@@ -48,6 +48,62 @@ export interface AdminTrade {
   quantity: number
   price: number
   status: 'PLACED' | 'FILLED' | 'FAILED'
+}
+
+export interface AdminStrategy {
+  id: string
+  type: string
+  status: 'ACTIVE' | 'PAUSED'
+  ticker: string
+  cycleSeedType: string
+}
+
+export interface AdminStrategyOrder {
+  id: string
+  userId: string
+  ownerNickname: string
+  strategyType?: string | null
+  tradeDate: string
+  ticker: string
+  direction: OrderDirection
+  orderType: OrderType
+  timing: 'AT_OPEN' | 'AT_CLOSE'
+  quantity: number
+  price: number
+  status: OrderStatus
+  externalOrderId?: string | null
+  filledQuantity?: number | null
+  filledPrice?: number | null
+}
+
+export interface AdminOrderCorrectionRequest {
+  userId: string
+  accountId: string
+  strategyId: string
+  orderId: string
+  mode: 'PLANNED_EDIT' | 'PLACED_REPLACE' | 'FILLED_CORRECTION'
+  tradeDateKst: string
+  direction?: OrderDirection
+  quantity?: number
+  price?: number
+  memo?: string
+}
+
+export interface AdminOrderCorrectionResponse {
+  userId: string
+  accountId: string
+  strategyId: string
+  orderId: string
+  mode: AdminOrderCorrectionRequest['mode']
+  originalStatus: OrderStatus
+  resultingStatus: OrderStatus
+  replacementExternalOrderId?: string | null
+  finalHoldings: number
+  finalAvgPrice?: number | null
+  finalUsdDeposit: number
+  strategyStatus: 'ACTIVE' | 'PAUSED'
+  cycleEnded: boolean
+  cycleEndDate?: string | null
 }
 
 export interface AdminAuditLog {
