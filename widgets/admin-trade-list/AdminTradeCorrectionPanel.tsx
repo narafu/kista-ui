@@ -1,6 +1,7 @@
 'use client'
 
 import type { AdminAccount, AdminOrderCorrectionRequest, AdminStrategy, AdminStrategyOrder } from '@entities/user'
+import { formatBrokerLabel } from '@shared/lib/api-schema'
 import { AdminBatchOrderCorrectionForm } from './AdminBatchOrderCorrectionForm'
 
 interface UserOption {
@@ -32,15 +33,6 @@ interface Props {
   onOrderCorrectionSubmit: (
     requests: Array<Pick<AdminOrderCorrectionRequest, 'orderId' | 'mode' | 'direction' | 'quantity' | 'price' | 'memo'>>,
   ) => Promise<void>
-}
-
-const BROKER_LABEL: Record<string, string> = {
-  KIS: '한국투자증권',
-  TOSS: '토스증권',
-}
-
-function getBrokerLabel(broker: string) {
-  return BROKER_LABEL[broker] ?? broker
 }
 
 export function AdminTradeCorrectionPanel({
@@ -103,7 +95,8 @@ export function AdminTradeCorrectionPanel({
             aria-label="사용자 선택"
             value={selectedUserId}
             onChange={(event) => onUserChange(event.target.value)}
-            className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3"
+            disabled={correctionPending}
+            className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">사용자 선택</option>
             {users.map((user) => (
@@ -120,13 +113,13 @@ export function AdminTradeCorrectionPanel({
             aria-label="증권사 선택"
             value={selectedBroker}
             onChange={(event) => onBrokerChange(event.target.value)}
-            disabled={!selectedUserId}
+            disabled={!selectedUserId || correctionPending}
             className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">증권사 선택</option>
             {brokers.map((broker) => (
               <option key={broker} value={broker}>
-                {getBrokerLabel(broker)}
+                {formatBrokerLabel(broker)}
               </option>
             ))}
           </select>
@@ -138,7 +131,7 @@ export function AdminTradeCorrectionPanel({
             aria-label="계좌 선택"
             value={selectedAccountId}
             onChange={(event) => onAccountChange(event.target.value)}
-            disabled={!selectedBroker}
+            disabled={!selectedBroker || correctionPending}
             className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">계좌 선택</option>
@@ -156,7 +149,7 @@ export function AdminTradeCorrectionPanel({
             aria-label="전략 선택"
             value={selectedStrategyId}
             onChange={(event) => onStrategyChange(event.target.value)}
-            disabled={!selectedAccountId}
+            disabled={!selectedAccountId || correctionPending}
             className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">전략 선택</option>
@@ -174,7 +167,7 @@ export function AdminTradeCorrectionPanel({
             aria-label="거래일 선택"
             value={selectedTradeDate}
             onChange={(event) => onTradeDateChange(event.target.value)}
-            disabled={!selectedStrategyId}
+            disabled={!selectedStrategyId || correctionPending}
             className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">거래일 선택</option>

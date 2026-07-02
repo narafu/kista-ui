@@ -1,4 +1,5 @@
 import { getAuthToken } from '@shared/lib/auth/token'
+import { formatBrokerLabel } from '@shared/lib/api-schema'
 import { listAdminAccounts } from '@entities/user'
 import type { AdminAccount, AdminAccountStrategy } from '@entities/user'
 import { RevealableValue } from '@widgets/revealable-value'
@@ -7,11 +8,6 @@ import { PaginationBar } from '@shared/ui/PaginationBar'
 import { RangeFilterBar, type RangePreset } from '@shared/ui/RangeFilterBar'
 
 const VALID_SIZES = ['10', '30', '50', '100'] as const
-
-const BROKER_LABEL: Record<string, string> = {
-  KIS: '한국투자증권',
-  TOSS: '토스증권',
-}
 
 const STRATEGY_STATUS_COLOR: Record<string, string> = {
   ACTIVE: 'var(--status-ok)',
@@ -112,7 +108,7 @@ export default async function AdminAccountsPage({
                 <tr key={acc.id} className="hover:bg-muted/20 transition-colors">
                   <td className="px-4 py-3 font-medium">{acc.ownerNickname}</td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {acc.broker ? (BROKER_LABEL[acc.broker] ?? acc.broker) : '-'}
+                    {acc.broker ? formatBrokerLabel(acc.broker) : '-'}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground font-mono text-xs">
                     <RevealableValue
