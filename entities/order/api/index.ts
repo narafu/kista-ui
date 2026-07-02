@@ -55,7 +55,7 @@ export async function getStrategyOrdersPreview(strategyId: string): Promise<Next
   return normalizePreview(raw)
 }
 
-// 오늘 PLACED된 주문 전체 취소 — DELETE /api/trading-cycles/{id}/execute
+// 오늘 등록된 PLANNED + PLACED 주문 전체 취소 — DELETE /api/trading-cycles/{id}/execute
 export async function cancelAllOrders(strategyId: string): Promise<CancelOrdersResult> {
   return clientFetch<CancelOrdersResult>(`/api/trading-cycles/${strategyId}/execute`, {
     method: 'DELETE',
