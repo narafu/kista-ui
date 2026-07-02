@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import type { AdminOrderCorrectionRequest, AdminStrategyOrder } from '@entities/user'
+import { cn } from '@shared/lib/utils'
 
 type EditableOrderStatus = Extract<AdminStrategyOrder['status'], 'PLANNED' | 'PLACED' | 'FILLED' | 'PARTIALLY_FILLED'>
 
@@ -161,7 +162,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, onSubmit }: Pr
                 </span>
               </div>
 
-              <div className={`mt-3 rounded-lg px-3 py-2 text-sm ${config?.toneClassName ?? 'border border-border bg-muted/20 text-muted-foreground'}`}>
+              <div className={cn('mt-3 rounded-lg px-3 py-2 text-sm', config?.toneClassName ?? 'border border-border bg-muted/20 text-muted-foreground')}>
                 <p className="font-medium">
                   {config ? `보정 모드: ${config.mode}` : `${READ_ONLY_ORDER_MESSAGE[order.status] ?? '보정 불가'} 주문`}
                 </p>
@@ -176,7 +177,8 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, onSubmit }: Pr
                   <input
                     aria-label={`${order.id} 보정 수량`}
                     type="number"
-                    min="0"
+                    required
+                    min="1"
                     step="1"
                     value={draft.quantity}
                     onChange={(event) => handleDraftChange(order.id, 'quantity', event.target.value)}
@@ -190,7 +192,8 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, onSubmit }: Pr
                   <input
                     aria-label={`${order.id} 보정 가격`}
                     type="number"
-                    min="0"
+                    required
+                    min="0.01"
                     step="0.01"
                     value={draft.price}
                     onChange={(event) => handleDraftChange(order.id, 'price', event.target.value)}
