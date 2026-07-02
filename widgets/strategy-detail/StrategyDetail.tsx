@@ -19,18 +19,8 @@ import {
 } from '@/components/ui/alert-dialog'
 import { KpiCard } from '@widgets/kpi-card'
 import { StrategyTradesTab } from '@widgets/cycle-history'
-import {
-  useDeleteStrategyMutation,
-  useExecuteStrategyMutation,
-  usePauseStrategyMutation,
-  useResumeStrategyMutation,
-  seedBadgeClass,
-} from '@entities/strategy'
-import {
-  useStrategyOrderPreviewQuery,
-  useCancelAllOrdersMutation,
-  useCancelOneOrderMutation,
-} from '@entities/order'
+import { useDeleteStrategyMutation, useExecuteStrategyMutation, usePauseStrategyMutation, useResumeStrategyMutation, seedBadgeClass } from '@entities/strategy'
+import { useStrategyOrderPreviewQuery, useCancelAllOrdersMutation, useCancelOneOrderMutation } from '@entities/order'
 import { useAccountMarginQuery } from '@entities/account'
 import { useMonthlyHolidaysQuery } from '@entities/market'
 import { useMeta } from '@entities/meta'
@@ -82,18 +72,14 @@ export function StrategyDetail({ accountId, strategy }: Props) {
   const orders = preview?.orders ?? []
 
   // 매수 주문이 있을 때만 브로커 실잔고 조회 — 부족분은 프론트에서 계산
-  const hasBuyOrders = orders.some(o => o.direction === 'BUY')
+  const hasBuyOrders = orders.some((o) => o.direction === 'BUY')
   const { items: marginItems, isLoading: isMarginLoading } = useAccountMarginQuery(accountId, {
     enabled: !isLoadingPreview && hasBuyOrders,
   })
-  const totalBuyUsd = hasBuyOrders && !isMarginLoading
-    ? orders.filter(o => o.direction === 'BUY').reduce((sum, o) => sum + toNum(o.price) * o.quantity, 0)
-    : 0
-  const purchasableUsd = marginItems.find(i => i.currency === 'USD')?.purchasableAmount ?? 0
+  const totalBuyUsd = hasBuyOrders && !isMarginLoading ? orders.filter((o) => o.direction === 'BUY').reduce((sum, o) => sum + toNum(o.price) * o.quantity, 0) : 0
+  const purchasableUsd = marginItems.find((i) => i.currency === 'USD')?.purchasableAmount ?? 0
   const otherPlannedUsd = toNum(preview?.otherStrategiesPlannedBuyUsd ?? '0')
-  const previewDeficit = hasBuyOrders && !isMarginLoading
-    ? Math.max(0, totalBuyUsd + otherPlannedUsd - purchasableUsd)
-    : 0
+  const previewDeficit = hasBuyOrders && !isMarginLoading ? Math.max(0, totalBuyUsd + otherPlannedUsd - purchasableUsd) : 0
   const hasDeficit = previewDeficit > 0
 
   const today = new Date()
@@ -144,15 +130,13 @@ export function StrategyDetail({ accountId, strategy }: Props) {
         <span
           data-testid="strategy-status-accent"
           className="absolute left-0 top-0 bottom-0 w-[3px]"
-          style={{ background: STATUS_ACCENT[(strategy.status as 'ACTIVE' | 'PAUSED')] ?? 'var(--border)' }}
+          style={{ background: STATUS_ACCENT[strategy.status as 'ACTIVE' | 'PAUSED'] ?? 'var(--border)' }}
         />
         <div className="pl-6 pr-5 py-4 lg:pl-7 lg:pr-6 lg:py-5">
           <div className="space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--brand-fg-soft)]">
-                  전략 정보
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--brand-fg-soft)]">전략 정보</p>
               </div>
               <div data-testid="strategy-status-group" className="flex flex-wrap items-center justify-end gap-2">
                 {strategy.isReverseMode && (
@@ -161,10 +145,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
                   </span>
                 )}
                 {strategy.status !== 'ACTIVE' && (
-                  <span className={cn(
-                    'inline-flex shrink-0 items-center px-3 h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap border',
-                    'border-warn/20 bg-warn-bg text-warn',
-                  )}>
+                  <span className={cn('inline-flex shrink-0 items-center px-3 h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap border', 'border-warn/20 bg-warn-bg text-warn')}>
                     {strategy.status}
                   </span>
                 )}
@@ -179,7 +160,9 @@ export function StrategyDetail({ accountId, strategy }: Props) {
               />
               <KpiCard
                 label="다음 사이클"
-                value={<span className={cn('inline-flex items-center px-2.5 h-[28px] lg:h-[36px] rounded-full text-sm lg:text-base font-semibold whitespace-nowrap', seedBadgeCls)}>{cycleSeedLabel}</span>}
+                value={
+                  <span className={cn('inline-flex items-center px-2.5 h-[28px] lg:h-[36px] rounded-full text-sm lg:text-base font-semibold whitespace-nowrap', seedBadgeCls)}>{cycleSeedLabel}</span>
+                }
                 className="p-4 lg:p-5"
               />
             </div>
@@ -190,19 +173,18 @@ export function StrategyDetail({ accountId, strategy }: Props) {
       <div data-testid="strategy-summary-grid" className="grid grid-cols-2 gap-3">
         <KpiCard
           label={usesDivisionCount ? '분할' : '운용 방식'}
-          value={
-            <span className="inline-flex items-center text-xl lg:text-2xl font-bold">
-              {usesDivisionCount ? `${strategy.divisionCount}분할` : '단일'}
-            </span>
-          }
+          value={<span className="inline-flex items-center text-xl lg:text-2xl font-bold">{usesDivisionCount ? `${strategy.divisionCount}분할` : '매매표'}</span>}
           className="p-4 lg:p-5"
           valueClassName="text-xl lg:text-2xl"
         />
         <KpiCard
           label="시작금액"
-          value={strategy.initialUsdDeposit != null
-            ? <span className="inline-flex items-center text-xl lg:text-3xl font-bold">{`$${fmtUsd(strategy.initialUsdDeposit)}`}</span>
-            : <span className="inline-flex items-center text-sm lg:text-base text-muted-foreground font-normal">미설정</span>
+          value={
+            strategy.initialUsdDeposit != null ? (
+              <span className="inline-flex items-center text-xl lg:text-3xl font-bold">{`$${fmtUsd(strategy.initialUsdDeposit)}`}</span>
+            ) : (
+              <span className="inline-flex items-center text-sm lg:text-base text-muted-foreground font-normal">미설정</span>
+            )
           }
         />
       </div>
@@ -219,9 +201,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
             </>
           ) : isPreviewError ? (
             <Card className="col-span-2 lg:col-span-4">
-              <CardContent className="p-5 text-sm text-muted-foreground text-center">
-                {previewErrorMsg(previewError)}
-              </CardContent>
+              <CardContent className="p-5 text-sm text-muted-foreground text-center">{previewErrorMsg(previewError)}</CardContent>
             </Card>
           ) : position ? (
             <>
@@ -259,10 +239,18 @@ export function StrategyDetail({ accountId, strategy }: Props) {
               <button
                 type="button"
                 onClick={() => {
-                  if (isHoliday) { toast.info('오늘은 미국 증시 휴장일입니다'); return }
-                  if (hasDeficit) { toast.info('예수금이 부족합니다'); return }
+                  if (isHoliday) {
+                    toast.info('오늘은 미국 증시 휴장일입니다')
+                    return
+                  }
+                  if (hasDeficit) {
+                    toast.info('예수금이 부족합니다')
+                    return
+                  }
                   executeMutation.mutate(undefined, {
-                    onSuccess: (placed) => { setManualOrders(placed) },
+                    onSuccess: (placed) => {
+                      setManualOrders(placed)
+                    },
                   })
                 }}
                 disabled={executeMutation.isPending || orders.length === 0 || isMarginLoading}
@@ -282,9 +270,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
           {mode === 'executed' ? (
             <div>
               <div className="flex items-center justify-between px-6 py-3 border-b border-border">
-                <p className="text-sm lg:text-base uppercase tracking-widest font-semibold text-amber-600">
-                  {placedOrders.length > 0 ? `${placedOrders.length}건 접수됨` : '접수됨'}
-                </p>
+                <p className="text-sm lg:text-base uppercase tracking-widest font-semibold text-amber-600">{placedOrders.length > 0 ? `${placedOrders.length}건 접수됨` : '접수됨'}</p>
                 <button
                   type="button"
                   onClick={() =>
@@ -317,9 +303,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
           ) : isPreviewError ? (
             <p className="text-sm lg:text-base text-muted-foreground text-center px-6 py-4">{previewErrorMsg(previewError)}</p>
           ) : orders.length === 0 ? (
-            <p className="text-sm lg:text-base text-muted-foreground text-center px-6 py-4">
-              {preview?.skipReason ? SKIP_REASON_LABELS[preview.skipReason] : '예정된 주문이 없습니다.'}
-            </p>
+            <p className="text-sm lg:text-base text-muted-foreground text-center px-6 py-4">{preview?.skipReason ? SKIP_REASON_LABELS[preview.skipReason] : '예정된 주문이 없습니다.'}</p>
           ) : (
             <div>
               {hasBuyOrders && isMarginLoading && (
@@ -329,9 +313,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
               )}
               {hasBuyOrders && !isMarginLoading && hasDeficit && (
                 <div className="lg:hidden px-6 py-2.5 border-b border-border flex items-center gap-2 text-sm text-muted-foreground">
-                  <span className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400">
-                    예수금 부족
-                  </span>
+                  <span className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400">예수금 부족</span>
                   {`$${fmtUsd(previewDeficit)} 부족`}
                 </div>
               )}
@@ -352,26 +334,17 @@ export function StrategyDetail({ accountId, strategy }: Props) {
           </Button>
 
           <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-            <AlertDialogTrigger
-              className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'flex-1 text-destructive hover:text-destructive')}
-              disabled={loading}
-            >
+            <AlertDialogTrigger className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'flex-1 text-destructive hover:text-destructive')} disabled={loading}>
               삭제
             </AlertDialogTrigger>
             <AlertDialogContent size="sm">
               <AlertDialogHeader>
                 <AlertDialogTitle>전략 삭제</AlertDialogTitle>
-                <AlertDialogDescription>
-                  {strategy.ticker} 전략을 삭제하시겠습니까? 진행 중인 사이클이 종료됩니다.
-                </AlertDialogDescription>
+                <AlertDialogDescription>{strategy.ticker} 전략을 삭제하시겠습니까? 진행 중인 사이클이 종료됩니다.</AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel disabled={loading}>취소</AlertDialogCancel>
-                <AlertDialogAction
-                  variant="destructive"
-                  onClick={() => deleteMutation.mutate(strategy.id)}
-                  disabled={loading}
-                >
+                <AlertDialogAction variant="destructive" onClick={() => deleteMutation.mutate(strategy.id)} disabled={loading}>
                   {deleteMutation.isPending ? '삭제 중...' : '삭제'}
                 </AlertDialogAction>
               </AlertDialogFooter>

@@ -47,7 +47,12 @@ vi.mock('@/components/ui/alert-dialog', () => ({
 }))
 
 vi.mock('@widgets/kpi-card', () => ({
-  KpiCard: ({ label, value }: { label: string; value?: React.ReactNode }) => <div>{label}{value}</div>,
+  KpiCard: ({ label, value }: { label: string; value?: React.ReactNode }) => (
+    <div>
+      {label}
+      {value}
+    </div>
+  ),
 }))
 
 vi.mock('@widgets/cycle-history', () => ({
@@ -87,11 +92,7 @@ vi.mock('@entities/market', () => ({
 vi.mock('@entities/meta', () => ({
   useMeta: () => ({
     labelOf: (_group: string, value: string) => value,
-    findStrategyType: (code: string) => (
-      code === 'PRIVACY'
-        ? { divisionCounts: [] }
-        : { divisionCounts: [20, 30, 40] }
-    ),
+    findStrategyType: (code: string) => (code === 'PRIVACY' ? { divisionCounts: [] } : { divisionCounts: [20, 30, 40] }),
   }),
 }))
 
@@ -118,13 +119,7 @@ const baseStrategy: Strategy = {
 
 describe('StrategyDetail header card', () => {
   it('shows strategy type and next cycle in the header metadata cards', () => {
-    const { container } = render(
-      <StrategyDetail
-        accountId="account-1"
-        accountNoMasked="123-45"
-        strategy={baseStrategy}
-      />,
-    )
+    const { container } = render(<StrategyDetail accountId="account-1" accountNoMasked="123-45" strategy={baseStrategy} />)
 
     const accent = container.querySelector('[data-testid="strategy-status-accent"]')
 
@@ -141,13 +136,7 @@ describe('StrategyDetail header card', () => {
   })
 
   it('shows paused styling and keeps reverse mode as a badge near status', () => {
-    const { container } = render(
-      <StrategyDetail
-        accountId="account-1"
-        accountNoMasked="123-45"
-        strategy={{ ...baseStrategy, status: 'PAUSED', isReverseMode: true }}
-      />,
-    )
+    const { container } = render(<StrategyDetail accountId="account-1" accountNoMasked="123-45" strategy={{ ...baseStrategy, status: 'PAUSED', isReverseMode: true }} />)
 
     const accent = container.querySelector('[data-testid="strategy-status-accent"]')
 
@@ -158,27 +147,15 @@ describe('StrategyDetail header card', () => {
   })
 
   it('shows an alternate operating mode label when the strategy type has no division count', () => {
-    render(
-      <StrategyDetail
-        accountId="account-1"
-        accountNoMasked="123-45"
-        strategy={{ ...baseStrategy, type: 'PRIVACY', divisionCount: 0 }}
-      />,
-    )
+    render(<StrategyDetail accountId="account-1" accountNoMasked="123-45" strategy={{ ...baseStrategy, type: 'PRIVACY', divisionCount: 0 }} />)
 
     expect(screen.getByTestId('strategy-summary-grid')).toHaveTextContent('운용 방식')
-    expect(screen.getByTestId('strategy-summary-grid')).toHaveTextContent('단일')
+    expect(screen.getByTestId('strategy-summary-grid')).toHaveTextContent('매매표')
     expect(screen.getByTestId('strategy-summary-grid')).not.toHaveTextContent('분할')
   })
 
   it('redirects to the strategies list after deleting a strategy', () => {
-    render(
-      <StrategyDetail
-        accountId="account-1"
-        accountNoMasked="123-45"
-        strategy={baseStrategy}
-      />,
-    )
+    render(<StrategyDetail accountId="account-1" accountNoMasked="123-45" strategy={baseStrategy} />)
 
     deleteSuccessHandler?.()
 
