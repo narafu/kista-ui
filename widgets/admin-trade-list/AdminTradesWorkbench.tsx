@@ -53,17 +53,6 @@ function uniqBy<T>(items: T[], getKey: (item: T) => string): T[] {
   })
 }
 
-function matchesStrategyTrade(trade: AdminTrade, strategy: AdminStrategy | null): boolean {
-  if (!strategy) return true
-  return trade.strategyType === strategy.type && trade.ticker === strategy.ticker
-}
-
-function matchesAccountTrade(trade: AdminTrade, account: AdminAccount | null): boolean {
-  if (!account) return true
-  if (account.strategies.length === 0) return true
-  return account.strategies.some((strategy) => trade.strategyType === strategy.type && trade.ticker === strategy.ticker)
-}
-
 export function AdminTradesWorkbench({
   initialTrades,
   initialPage,
@@ -108,8 +97,8 @@ export function AdminTradesWorkbench({
   const selectedStrategy = strategies.find((strategy) => strategy.id === selectedStrategyId) ?? null
   const filteredTrades = initialTrades.filter((trade) => {
     if (selectedUserId && trade.userId !== selectedUserId) return false
-    if (!matchesAccountTrade(trade, selectedAccount)) return false
-    if (!matchesStrategyTrade(trade, selectedStrategy)) return false
+    if (selectedAccount && trade.accountId !== selectedAccount.id) return false
+    if (selectedStrategy && trade.strategyId !== selectedStrategy.id) return false
     if (selectedTradeDate && trade.tradeDate !== selectedTradeDate) return false
     return true
   })
@@ -121,8 +110,8 @@ export function AdminTradesWorkbench({
     uniqBy(
       initialTrades.filter((trade) => {
         if (selectedUserId && trade.userId !== selectedUserId) return false
-        if (!matchesAccountTrade(trade, selectedAccount)) return false
-        if (!matchesStrategyTrade(trade, strategy)) return false
+        if (selectedAccount && trade.accountId !== selectedAccount.id) return false
+        if (strategy && trade.strategyId !== strategy.id) return false
         return true
       }),
       (trade) => trade.tradeDate,

@@ -48,6 +48,8 @@ export interface AdminAccount {
 export interface AdminTrade {
   id: string
   userId: string
+  accountId: string
+  strategyId: string | null
   ownerNickname: string
   strategyType?: string
   tradeDate: string

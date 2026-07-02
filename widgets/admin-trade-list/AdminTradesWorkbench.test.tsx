@@ -23,6 +23,8 @@ const trades: AdminTrade[] = [
   {
     id: 'trade-1',
     userId: 'user-1',
+    accountId: 'account-1',
+    strategyId: 'strategy-1',
     ownerNickname: '홍길동',
     strategyType: 'INFINITE',
     tradeDate: '2026-07-01',
@@ -36,6 +38,8 @@ const trades: AdminTrade[] = [
   {
     id: 'trade-2',
     userId: 'user-2',
+    accountId: 'account-2',
+    strategyId: 'strategy-2',
     ownerNickname: '김영희',
     strategyType: 'SINGLE',
     tradeDate: '2026-06-30',
