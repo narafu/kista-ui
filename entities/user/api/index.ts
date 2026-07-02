@@ -116,6 +116,18 @@ export async function listAdminStrategyOrders(
   )
 }
 
+export async function listAdminStrategyTradeDates(
+  accountId: string,
+  strategyId: string,
+  token?: string,
+): Promise<string[]> {
+  return fetchEither<string[]>(
+    `/api/admin/accounts/${accountId}/strategies/${strategyId}/trade-dates`,
+    { method: 'GET' },
+    token,
+  )
+}
+
 export async function updateAdminStrategyStatus(accountId: string, strategyId: string, status: AdminStrategy['status']): Promise<void> {
   await clientFetch<void>(
     `/api/admin/accounts/${accountId}/strategies/${strategyId}/status`,
