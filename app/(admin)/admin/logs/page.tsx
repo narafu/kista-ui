@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { listAdminAuditLogs, listAdminErrorLogs, getAdminAnomalies } from '@entities/user'
 import type { AdminAuditLog, AppErrorLog, AdminAnomalies, AdminAnomalyAccount } from '@entities/user'
-import { ErrorLogItem } from '@features/admin/error-logs'
+import { ErrorLogsSectionClient } from '@features/admin/error-logs'
 import { LogsFilterChips } from '@features/admin/logs'
 import { RevealableValue } from '@widgets/revealable-value'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
@@ -238,11 +238,7 @@ function ErrorLogsSection({
       {logs.length === 0 ? (
         <EmptyState text="기록된 오류가 없습니다" />
       ) : (
-        <div className="rounded-xl border border-border divide-y divide-border">
-          {logs.map((log) => (
-            <ErrorLogItem key={log.id} log={log} />
-          ))}
-        </div>
+        <ErrorLogsSectionClient logs={logs} />
       )}
       <PaginationBar page={page} totalPages={totalPages} pageParam="ep" />
     </section>

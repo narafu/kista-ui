@@ -158,3 +158,7 @@ export async function listAdminErrorLogs(token: string, limit = 100, from?: stri
   if (to) params.set('to', to)
   return apiFetch<AppErrorLog[]>(`/api/admin/logs/errors?${params}`, { method: 'GET' }, token)
 }
+
+export async function softDeleteAdminErrorLog(id: string): Promise<void> {
+  await clientFetch<void>(`/api/admin/logs/errors/${id}`, { method: 'DELETE' })
+}

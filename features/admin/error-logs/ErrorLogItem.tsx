@@ -3,13 +3,30 @@
 import { useState } from 'react'
 import type { AppErrorLog } from '@entities/user'
 
-export function ErrorLogItem({ log }: { log: AppErrorLog }) {
+interface Props {
+  log: AppErrorLog
+  checked?: boolean
+  onCheckedChange?: (checked: boolean) => void
+  disabled?: boolean
+}
+
+export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled = false }: Props) {
   const [open, setOpen] = useState(false)
   const hasContext = Object.keys(log.context).length > 0
 
   return (
     <div className="px-4 py-3 hover:bg-muted/20 transition-colors">
       <div className="flex items-start justify-between gap-4">
+        <label className="mt-0.5 flex items-center">
+          <input
+            type="checkbox"
+            aria-label={`오류 로그 선택 ${log.id}`}
+            checked={checked}
+            disabled={disabled}
+            onChange={(event) => onCheckedChange?.(event.target.checked)}
+            className="size-4 rounded border-border accent-rose-600"
+          />
+        </label>
         <div className="flex-1 min-w-0">
           {/* errorType 뱃지 */}
           <div className="flex items-center gap-2 flex-wrap">

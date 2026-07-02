@@ -2,8 +2,10 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import {
   correctAdminOrder,
   listAdminAccounts,
+  listAdminErrorLogs,
   listAdminStrategies,
   listAdminStrategyOrders,
+  softDeleteAdminErrorLog,
   updateAdminStrategyStatus,
 } from './index'
 import type {
@@ -169,6 +171,29 @@ describe('entities/user/api admin trade correction APIs', () => {
     expect(clientFetchMock).toHaveBeenCalledWith(
       '/api/admin/trades/order-corrections',
       { method: 'POST', body: request },
+    )
+  })
+
+  it('lists admin error logs with the date range query', async () => {
+    fetchEitherMock.mockResolvedValue([])
+
+    await listAdminErrorLogs('admin-token', 500, '2026-07-01', '2026-07-02')
+
+    expect(apiFetchMock).toHaveBeenCalledWith(
+      '/api/admin/logs/errors?limit=500&from=2026-07-01&to=2026-07-02',
+      { method: 'GET' },
+      'admin-token',
+    )
+  })
+
+  it('soft deletes an admin error log through the client route handler', async () => {
+    clientFetchMock.mockResolvedValue(undefined)
+
+    await softDeleteAdminErrorLog('log-1')
+
+    expect(clientFetchMock).toHaveBeenCalledWith(
+      '/api/admin/logs/errors/log-1',
+      { method: 'DELETE' },
     )
   })
 })

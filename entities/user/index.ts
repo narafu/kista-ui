@@ -43,6 +43,7 @@ export {
   listAdminAuditLogs,
   getAdminAnomalies,
   listAdminErrorLogs,
+  softDeleteAdminErrorLog,
 } from './api'
 export {
   useMeQuery,
