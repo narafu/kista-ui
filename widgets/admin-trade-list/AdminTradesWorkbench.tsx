@@ -6,6 +6,7 @@ import {
   listAdminAccounts,
   listAdminStrategies,
   listAdminStrategyOrders,
+  listAdminStrategyTradeDates,
   updateAdminStrategyStatus,
 } from '@entities/user'
 import type {
@@ -26,6 +27,7 @@ interface Props {
   initialSize: number
   loadAccounts?: (userId: string) => Promise<AdminAccount[]>
   loadStrategies?: (accountId: string) => Promise<AdminStrategy[]>
+  loadTradeDates?: (accountId: string, strategyId: string) => Promise<string[]>
   loadOrders?: (accountId: string, strategyId: string, tradeDate: string) => Promise<AdminStrategyOrder[]>
   toggleStrategyStatus?: (accountId: string, strategyId: string, status: AdminStrategy['status']) => Promise<void>
 }
@@ -60,6 +62,7 @@ export function AdminTradesWorkbench({
     return accounts.filter((account) => account.userId === userId)
   },
   loadStrategies = async (accountId) => listAdminStrategies(accountId),
+  loadTradeDates = async (accountId, strategyId) => listAdminStrategyTradeDates(accountId, strategyId),
   loadOrders = async (accountId, strategyId, tradeDate) => listAdminStrategyOrders(accountId, strategyId, tradeDate),
   toggleStrategyStatus = async (accountId, strategyId, status) => updateAdminStrategyStatus(accountId, strategyId, status),
 }: Props) {
@@ -72,6 +75,7 @@ export function AdminTradesWorkbench({
   const [selectedTradeDate, setSelectedTradeDate] = useState('')
   const [accounts, setAccounts] = useState<AdminAccount[]>([])
   const [strategies, setStrategies] = useState<AdminStrategy[]>([])
+  const [tradeDates, setTradeDates] = useState<string[]>([])
   const [orders, setOrders] = useState<AdminStrategyOrder[]>([])
   const [strategyStatusPending, setStrategyStatusPending] = useState(false)
   const [correctionPending, setCorrectionPending] = useState(false)
@@ -86,18 +90,12 @@ export function AdminTradesWorkbench({
     label: trade.ownerNickname,
   }))
   const brokerOptions = uniqBy(
-    accounts
-      .map((account) => account.broker)
-      .filter((broker): broker is string => Boolean(broker)),
+    accounts.map((account) => account.broker),
     (broker) => broker,
   )
   const filteredAccounts = selectedBroker
     ? accounts.filter((account) => account.broker === selectedBroker)
     : []
-  const tradeDates = uniqBy(
-    initialTrades.filter((trade) => trade.userId === selectedUserId),
-    (trade) => trade.tradeDate,
-  ).map((trade) => trade.tradeDate)
   const selectedStrategy = strategies.find((strategy) => strategy.id === selectedStrategyId) ?? null
 
   const handleSizeChange = (nextSize: string) => {
@@ -118,6 +116,7 @@ export function AdminTradesWorkbench({
     setSelectedStrategyId('')
     setSelectedTradeDate('')
     setStrategies([])
+    setTradeDates([])
     setOrders([])
 
     if (!userId) {
@@ -141,6 +140,7 @@ export function AdminTradesWorkbench({
     setSelectedStrategyId('')
     setSelectedTradeDate('')
     setStrategies([])
+    setTradeDates([])
     setOrders([])
   }
 
@@ -149,6 +149,7 @@ export function AdminTradesWorkbench({
     setSelectedAccountId(accountId)
     setSelectedStrategyId('')
     setSelectedTradeDate('')
+    setTradeDates([])
     setOrders([])
 
     if (!accountId) {
@@ -164,11 +165,21 @@ export function AdminTradesWorkbench({
     }
   }
 
-  const handleStrategyChange = (strategyId: string) => {
+  const handleStrategyChange = async (strategyId: string) => {
     resetFeedback()
     setSelectedStrategyId(strategyId)
     setSelectedTradeDate('')
+    setTradeDates([])
     setOrders([])
+
+    if (!selectedAccountId || !strategyId) return
+
+    try {
+      setTradeDates(await loadTradeDates(selectedAccountId, strategyId))
+    } catch {
+      setTradeDates([])
+      setActionError('거래일 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.')
+    }
   }
 
   const handleTradeDateChange = async (tradeDate: string) => {

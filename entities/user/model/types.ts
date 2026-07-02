@@ -41,7 +41,7 @@ export interface AdminAccount {
   userId: string
   ownerNickname: string
   accountNoMasked: string
-  broker: string | null
+  broker: string
   strategies: AdminAccountStrategy[]
 }
 
