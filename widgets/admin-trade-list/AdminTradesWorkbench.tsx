@@ -53,6 +53,17 @@ function uniqBy<T>(items: T[], getKey: (item: T) => string): T[] {
   })
 }
 
+function matchesStrategyTrade(trade: AdminTrade, strategy: AdminStrategy | null): boolean {
+  if (!strategy) return true
+  return trade.strategyType === strategy.type && trade.ticker === strategy.ticker
+}
+
+function matchesAccountTrade(trade: AdminTrade, account: AdminAccount | null): boolean {
+  if (!account) return true
+  if (account.strategies.length === 0) return true
+  return account.strategies.some((strategy) => trade.strategyType === strategy.type && trade.ticker === strategy.ticker)
+}
+
 export function AdminTradesWorkbench({
   initialTrades,
   initialPage,
@@ -82,9 +93,6 @@ export function AdminTradesWorkbench({
   const [correctionResult, setCorrectionResult] = useState<BatchCorrectionSummary | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
 
-  const totalPages = Math.max(1, Math.ceil(initialTrades.length / size))
-  const currentPage = Math.min(page, totalPages)
-  const pagedTrades = initialTrades.slice((currentPage - 1) * size, currentPage * size)
   const userOptions = uniqBy(initialTrades, (trade) => trade.userId).map((trade) => ({
     id: trade.userId,
     label: trade.ownerNickname,
@@ -96,7 +104,29 @@ export function AdminTradesWorkbench({
   const filteredAccounts = selectedBroker
     ? accounts.filter((account) => account.broker === selectedBroker)
     : []
+  const selectedAccount = filteredAccounts.find((account) => account.id === selectedAccountId) ?? null
   const selectedStrategy = strategies.find((strategy) => strategy.id === selectedStrategyId) ?? null
+  const filteredTrades = initialTrades.filter((trade) => {
+    if (selectedUserId && trade.userId !== selectedUserId) return false
+    if (!matchesAccountTrade(trade, selectedAccount)) return false
+    if (!matchesStrategyTrade(trade, selectedStrategy)) return false
+    if (selectedTradeDate && trade.tradeDate !== selectedTradeDate) return false
+    return true
+  })
+  const totalPages = Math.max(1, Math.ceil(filteredTrades.length / size))
+  const currentPage = Math.min(page, totalPages)
+  const pagedTrades = filteredTrades.slice((currentPage - 1) * size, currentPage * size)
+
+  const deriveTradeDates = (strategy: AdminStrategy | null) =>
+    uniqBy(
+      initialTrades.filter((trade) => {
+        if (selectedUserId && trade.userId !== selectedUserId) return false
+        if (!matchesAccountTrade(trade, selectedAccount)) return false
+        if (!matchesStrategyTrade(trade, strategy)) return false
+        return true
+      }),
+      (trade) => trade.tradeDate,
+    ).map((trade) => trade.tradeDate)
 
   const handleSizeChange = (nextSize: string) => {
     setSize(Number(nextSize))
@@ -118,6 +148,7 @@ export function AdminTradesWorkbench({
     setStrategies([])
     setTradeDates([])
     setOrders([])
+    setPage(1)
 
     if (!userId) {
       setAccounts([])
@@ -142,6 +173,7 @@ export function AdminTradesWorkbench({
     setStrategies([])
     setTradeDates([])
     setOrders([])
+    setPage(1)
   }
 
   const handleAccountChange = async (accountId: string) => {
@@ -151,6 +183,7 @@ export function AdminTradesWorkbench({
     setSelectedTradeDate('')
     setTradeDates([])
     setOrders([])
+    setPage(1)
 
     if (!accountId) {
       setStrategies([])
@@ -171,20 +204,27 @@ export function AdminTradesWorkbench({
     setSelectedTradeDate('')
     setTradeDates([])
     setOrders([])
+    setPage(1)
 
     if (!selectedAccountId || !strategyId) return
 
     try {
-      setTradeDates(await loadTradeDates(selectedAccountId, strategyId))
+      const nextTradeDates = await loadTradeDates(selectedAccountId, strategyId)
+      setTradeDates(nextTradeDates)
     } catch {
-      setTradeDates([])
-      setActionError('거래일 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.')
+      const fallbackStrategy = strategies.find((strategy) => strategy.id === strategyId) ?? null
+      const fallbackTradeDates = deriveTradeDates(fallbackStrategy)
+      setTradeDates(fallbackTradeDates)
+      if (fallbackTradeDates.length === 0) {
+        setActionError('거래일 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.')
+      }
     }
   }
 
   const handleTradeDateChange = async (tradeDate: string) => {
     resetFeedback()
     setSelectedTradeDate(tradeDate)
+    setPage(1)
 
     if (!selectedAccountId || !selectedStrategyId || !tradeDate) {
       setOrders([])
@@ -313,7 +353,7 @@ export function AdminTradesWorkbench({
 
       {actionError ? (
         <section
-          className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-950 dark:border-rose-950/70 dark:bg-rose-950/20 dark:text-rose-200"
+          className="rounded-xl border border-rose-300 bg-rose-50 p-4 text-rose-950 dark:border-rose-800/80 dark:bg-rose-900/40 dark:text-rose-100"
           aria-label="주문 보정 오류"
         >
           <p className="text-sm font-medium">{actionError}</p>

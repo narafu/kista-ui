@@ -505,6 +505,98 @@ describe('AdminTradesWorkbench', () => {
     )
   })
 
+  it('falls back to locally known trade dates when the trade-date request fails', async () => {
+    const user = userEvent.setup()
+    const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
+    const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
+    const loadTradeDates = vi.fn(async () => {
+      throw new Error('trade-dates failed')
+    })
+
+    render(
+      <AdminTradesWorkbench
+        initialTrades={trades}
+        initialPage={1}
+        initialSize={10}
+        loadAccounts={loadAccounts}
+        loadStrategies={loadStrategies}
+        loadTradeDates={loadTradeDates}
+      />,
+    )
+
+    await selectBrokeredOrderTarget(user)
+    await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
+
+    await waitFor(() => expect(loadTradeDates).toHaveBeenCalledWith('account-1', 'strategy-1'))
+
+    const tradeDateSelect = screen.getByRole('combobox', { name: '거래일 선택' })
+    expect(within(tradeDateSelect).getByRole('option', { name: '2026-07-01' })).toBeInTheDocument()
+    expect(screen.queryByText('거래일 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.')).not.toBeInTheDocument()
+  })
+
+  it('filters the table rows as the selection changes', async () => {
+    const user = userEvent.setup()
+    const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
+    const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
+    const loadTradeDates = vi.fn(async () => ['2026-07-01'])
+
+    render(
+      <AdminTradesWorkbench
+        initialTrades={trades}
+        initialPage={1}
+        initialSize={10}
+        loadAccounts={loadAccounts}
+        loadStrategies={loadStrategies}
+        loadTradeDates={loadTradeDates}
+      />,
+    )
+
+    const table = screen.getByRole('table')
+
+    expect(within(table).getByText('홍길동')).toBeInTheDocument()
+    expect(within(table).getByText('김영희')).toBeInTheDocument()
+
+    await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
+
+    await waitFor(() => expect(within(table).queryByText('김영희')).not.toBeInTheDocument())
+    expect(within(table).getAllByText('홍길동').length).toBeGreaterThan(0)
+
+    await user.selectOptions(await screen.findByRole('combobox', { name: '증권사 선택' }), 'KIS')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '계좌 선택' }), 'account-1')
+    await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
+
+    await waitFor(() => expect(within(table).queryByText('김영희')).not.toBeInTheDocument())
+    expect(within(table).getByText('TSLA')).toBeInTheDocument()
+    expect(within(table).queryByText('NVDA')).not.toBeInTheDocument()
+
+    await user.selectOptions(screen.getByRole('combobox', { name: '거래일 선택' }), '2026-07-01')
+
+    await waitFor(() => expect(within(table).getByText('2026-07-01')).toBeInTheDocument())
+    expect(within(table).queryByText('2026-06-30')).not.toBeInTheDocument()
+  })
+
+  it('renders the action error with readable dark-mode contrast classes', async () => {
+    const user = userEvent.setup()
+    const loadAccounts = vi.fn(async () => {
+      throw new Error('accounts failed')
+    })
+
+    render(
+      <AdminTradesWorkbench
+        initialTrades={trades}
+        initialPage={1}
+        initialSize={10}
+        loadAccounts={loadAccounts}
+      />,
+    )
+
+    await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
+
+    const errorSection = screen.getByLabelText('주문 보정 오류')
+    expect(errorSection).toHaveClass('dark:bg-rose-900/40')
+    expect(errorSection).toHaveClass('dark:text-rose-100')
+  })
+
   it.each([
     ['FAILED', failedOrder],
     ['CANCELLED', cancelledOrder],
