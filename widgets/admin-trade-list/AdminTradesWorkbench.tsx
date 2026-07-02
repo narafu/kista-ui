@@ -125,10 +125,11 @@ export function AdminTradesWorkbench({
       return
     }
 
+    setAccounts([])
+
     try {
       setAccounts(await loadAccounts(userId))
     } catch {
-      setAccounts([])
       setActionError('계좌 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.')
     }
   }
@@ -215,30 +216,47 @@ export function AdminTradesWorkbench({
 
     try {
       const results: BatchCorrectionSummary['results'] = []
+      let failedCount = 0
 
       for (const request of requests) {
-        const result = await correctAdminOrder({
-          userId: selectedUserId,
-          accountId: selectedAccountId,
-          strategyId: selectedStrategyId,
-          tradeDateKst: selectedTradeDate,
-          ...request,
-        })
-        results.push({
-          orderId: result.orderId,
-          originalStatus: result.originalStatus,
-          resultingStatus: result.resultingStatus,
+        try {
+          const result = await correctAdminOrder({
+            userId: selectedUserId,
+            accountId: selectedAccountId,
+            strategyId: selectedStrategyId,
+            tradeDateKst: selectedTradeDate,
+            ...request,
+          })
+          results.push({
+            orderId: result.orderId,
+            originalStatus: result.originalStatus,
+            resultingStatus: result.resultingStatus,
+          })
+        } catch {
+          failedCount++
+        }
+      }
+
+      if (results.length > 0) {
+        try {
+          setOrders(await loadOrders(selectedAccountId, selectedStrategyId, selectedTradeDate))
+        } catch {
+          // 보정은 적용됐으므로 목록 갱신 실패는 무시
+        }
+        setCorrectionResult({
+          processed: results.length,
+          skipped: Math.max(0, orders.length - requests.length),
+          results,
         })
       }
 
-      setOrders(await loadOrders(selectedAccountId, selectedStrategyId, selectedTradeDate))
-      setCorrectionResult({
-        processed: results.length,
-        skipped: Math.max(0, orders.length - results.length),
-        results,
-      })
-    } catch {
-      setActionError('주문 보정에 실패했습니다. 입력값과 주문 상태를 다시 확인하세요.')
+      if (failedCount > 0) {
+        setActionError(
+          results.length > 0
+            ? `${results.length}건 보정 완료, ${failedCount}건 실패. 실패한 주문을 다시 확인하세요.`
+            : '주문 보정에 실패했습니다. 입력값과 주문 상태를 다시 확인하세요.',
+        )
+      }
     } finally {
       setCorrectionPending(false)
     }
