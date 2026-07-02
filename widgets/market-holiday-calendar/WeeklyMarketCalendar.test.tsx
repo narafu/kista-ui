@@ -25,7 +25,7 @@ describe('WeeklyMarketCalendar', () => {
     vi.useRealTimers()
   })
 
-  it('renders holiday status as text only without the blue/filled badge styling', () => {
+  it('keeps only the holiday badge under the date without highlighting the whole cell', () => {
     render(
       <WeeklyMarketCalendar
         holidays={[]}
@@ -35,10 +35,12 @@ describe('WeeklyMarketCalendar', () => {
     )
 
     const holidayText = screen.getAllByText('휴장').find((node) => node.className.includes('text-xs'))
+    const holidayCell = holidayText?.parentElement
 
     expect(holidayText).toHaveClass('text-neg')
-    expect(holidayText).not.toHaveClass('bg-neg-bg')
-    expect(holidayText).not.toHaveClass('rounded')
+    expect(holidayText).toHaveClass('bg-neg-bg')
+    expect(holidayText).toHaveClass('rounded')
+    expect(holidayCell).not.toHaveClass('bg-neg-bg')
   })
 
   it('uses a more visible today container style for dark theme contrast', () => {
