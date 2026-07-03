@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { ChevronRight, ChevronDown } from 'lucide-react'
 import { fmtUsd, pnlTextClass } from '@shared/lib/format'
 import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
+import { EmptyState } from '@shared/ui/EmptyState'
 import type { AdminPrivacyBase } from '@entities/privacy'
 
 interface Props {
@@ -27,14 +28,12 @@ export function AdminPrivacyBaseTable({ bases }: Props) {
 
   if (bases.length === 0) {
     return (
-      <div className="rounded-xl border border-border p-10 text-center text-sm text-muted-foreground">
-        기준 매매표가 없습니다
-      </div>
+      <EmptyState message="기준 매매표가 없습니다." />
     )
   }
 
   return (
-    <div className="rounded-xl border border-border overflow-x-auto">
+    <div className="rounded-[var(--r-lg)] border border-border overflow-x-auto">
       <table className="min-w-[560px] w-full text-sm sm:min-w-[760px]">
         <thead className="bg-muted/40 border-b border-border">
           <tr>

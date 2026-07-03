@@ -1,8 +1,8 @@
 import { getAuthToken } from '@shared/lib/auth/token'
 import { listAdminPrivacyBases } from '@entities/privacy'
 import { AdminPrivacyBaseTable } from '@widgets/admin-privacy-trade-list/AdminPrivacyBaseTable'
-import { PageSizeSelector } from '@widgets/admin-privacy-trade-list/PageSizeSelector'
-import { PaginationBar } from '@widgets/admin-privacy-trade-list/PaginationBar'
+import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
+import { PaginationBar } from '@shared/ui/PaginationBar'
 import { RangeFilterBar, type RangePreset } from '@shared/ui/RangeFilterBar'
 import type { AdminPrivacyBase } from '@entities/privacy'
 

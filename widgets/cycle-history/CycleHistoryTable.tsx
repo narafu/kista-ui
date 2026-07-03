@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { fmtUsd, fmtDate } from '@shared/lib/format'
 import type { CycleHistoryItem } from '@entities/trade'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
+import { EmptyState } from '@shared/ui/EmptyState'
 import { RANGE_LABELS, type RangeType } from './lib/buildParams'
 
 interface Props {
@@ -96,9 +97,9 @@ export function CycleHistoryTable({
 
       <CardContent className="p-0">
         {isLoading ? (
-          <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">로딩 중...</div>
+          <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">불러오는 중…</div>
         ) : cycleHistory.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8 px-6">잔고 이력이 없습니다.</p>
+          <EmptyState variant="text" message="잔고 이력이 없습니다." />
         ) : (
           <>
             {/* 모바일: 카드 리스트 */}

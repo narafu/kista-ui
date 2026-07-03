@@ -295,7 +295,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
               />
             </div>
           ) : isLoadingPreview ? (
-            <p className="text-sm lg:text-base text-muted-foreground text-center px-6 py-4">로딩 중...</p>
+            <p className="text-sm lg:text-base text-muted-foreground text-center px-6 py-4">불러오는 중…</p>
           ) : isPreviewError ? (
             <p className="text-sm lg:text-base text-muted-foreground text-center px-6 py-4">{previewErrorMsg(previewError)}</p>
           ) : orders.length === 0 ? (

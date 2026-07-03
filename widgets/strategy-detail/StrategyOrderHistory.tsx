@@ -6,6 +6,7 @@ import { useStrategyOrdersQuery, orderStatusBadgeClass, ORDER_STATUS_LABEL } fro
 import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
+import { EmptyState } from '@shared/ui/EmptyState'
 import { fmtUsd } from '@shared/lib/format'
 import { toNum } from '@shared/lib/utils'
 
@@ -123,11 +124,11 @@ export function StrategyOrderHistory({ strategyId }: Props) {
       </CardHeader>
       <CardContent className="p-0">
         {isLoading ? (
-          <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">로딩 중...</div>
+          <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">불러오는 중…</div>
         ) : isError ? (
           <p className="text-sm text-destructive text-center py-8 px-6">주문 내역 조회 실패: {error instanceof Error ? error.message : String(error)}</p>
         ) : orders.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8 px-6">주문 내역이 없습니다.</p>
+          <EmptyState variant="text" message="주문 내역이 없습니다." />
         ) : (
           <div>
             <div className="overflow-x-auto">

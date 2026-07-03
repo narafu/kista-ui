@@ -1,6 +1,7 @@
 import { fmtUsd } from '@shared/lib/format'
 import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
 import { orderStatusBadgeClass } from '@entities/order'
+import { EmptyState } from '@shared/ui/EmptyState'
 import type { AdminTrade } from '@entities/user'
 
 interface Props {
@@ -10,26 +11,24 @@ interface Props {
 export function AdminTradesTable({ trades }: Props) {
   if (trades.length === 0) {
     return (
-      <div className="rounded-xl border border-border p-10 text-center text-sm text-muted-foreground">
-        거래 내역이 없습니다
-      </div>
+      <EmptyState message="거래 내역이 없습니다." />
     )
   }
 
   return (
-    <div className="rounded-xl border border-border overflow-x-auto">
+    <div className="rounded-[var(--r-lg)] border border-border overflow-x-auto">
       <table className="min-w-[960px] w-full text-sm">
         <thead className="bg-muted/40 border-b border-border">
           <tr>
-            <th className="text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">날짜</th>
-            <th className="text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">소유자</th>
-            <th className="text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">전략</th>
-            <th className="text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">종목</th>
-            <th className="text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">방향</th>
-            <th className="text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">유형</th>
-            <th className="text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">수량</th>
-            <th className="text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">가격</th>
-            <th className="text-center px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">상태</th>
+            <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">날짜</th>
+            <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">소유자</th>
+            <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">전략</th>
+            <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">종목</th>
+            <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">방향</th>
+            <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">유형</th>
+            <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">수량</th>
+            <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">가격</th>
+            <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">상태</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
