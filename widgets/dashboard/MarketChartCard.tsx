@@ -7,7 +7,7 @@ const MarketChartCardInner = dynamic(() => import('./MarketChartCardInner'), {
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center h-[280px] text-sm text-muted-foreground">
-      차트 불러오는 중...
+      차트 불러오는 중…
     </div>
   ),
 })

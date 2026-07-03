@@ -87,7 +87,7 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
           <div className="text-sm text-muted-foreground mb-1">연결된 채팅</div>
           <div className="flex items-center justify-between gap-3 min-w-0">
             <div className="text-sm font-bold font-mono truncate min-w-0">
-              {telegramBotUsername ? `@${telegramBotUsername}` : '불러오는 중...'}
+              {telegramBotUsername ? `@${telegramBotUsername}` : '불러오는 중…'}
             </div>
             <button
               type="button"

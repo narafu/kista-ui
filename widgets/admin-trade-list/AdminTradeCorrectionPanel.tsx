@@ -83,7 +83,7 @@ export function AdminTradeCorrectionPanel({
             : null
 
   return (
-    <section className="rounded-xl border border-border bg-background p-4" aria-label="재주문 대상 선택">
+    <section className="rounded-[var(--r-lg)] border border-border bg-background p-4" aria-label="재주문 대상 선택">
       <div>
         <h2 className="text-base font-semibold">재주문 대상 선택</h2>
         <p className="mt-1 text-sm text-muted-foreground">사용자부터 주문까지 순서대로 선택합니다</p>

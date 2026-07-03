@@ -48,7 +48,7 @@ export function AdminPendingList({ initialUsers, max }: Props) {
         {displayed.map((user) => (
           <div
             key={user.id}
-            className="rounded-xl border border-border bg-background px-5 py-4 flex items-center justify-between gap-4"
+            className="rounded-[var(--r-lg)] border border-border bg-background px-5 py-4 flex items-center justify-between gap-4"
           >
             <div className="min-w-0">
               <p className="font-semibold truncate">{user.nickname}</p>

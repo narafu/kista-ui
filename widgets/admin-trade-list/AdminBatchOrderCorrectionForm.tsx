@@ -110,7 +110,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
   if (orders.length === 0) return null
 
   return (
-    <form className="mt-4 rounded-xl border border-border bg-muted/10 p-4" onSubmit={handleSubmit}>
+    <form className="mt-4 rounded-[var(--r-lg)] border border-border bg-muted/10 p-4" onSubmit={handleSubmit}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold">거래일 주문 일괄 재주문</h3>

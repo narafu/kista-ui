@@ -252,7 +252,7 @@ export function AdminTradesWorkbench({
 
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-border bg-muted/20 p-4" aria-label="거래일 재주문 대상">
+      <section className="rounded-[var(--r-lg)] border border-border bg-muted/20 p-4" aria-label="거래일 재주문 대상">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
             <h2 className="text-base font-semibold">거래일 재주문 대상</h2>

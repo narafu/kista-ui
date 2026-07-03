@@ -54,7 +54,7 @@ export function RejectedReapplyButton() {
         type="button"
         onClick={handleReapply}
         disabled={cooldownMinutes > 0 || isLoading}
-        className="w-full h-[52px] rounded-xl text-base font-bold border-0 cursor-pointer disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground bg-primary text-white inline-flex items-center justify-center gap-2"
+        className="w-full h-[52px] rounded-[var(--r-lg)] text-base font-bold border-0 cursor-pointer disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground bg-primary text-white inline-flex items-center justify-center gap-2"
       >
         {isLoading ? (
           <><Spinner size={18} />재신청 중...</>

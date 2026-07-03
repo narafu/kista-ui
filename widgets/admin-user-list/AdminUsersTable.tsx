@@ -49,7 +49,7 @@ export function AdminUsersTable({ initialUsers, currentUserId, filterBar }: Prop
         <PageSizeSelector value={String(size)} onChange={handleSizeChange} />
       </div>
 
-      <div className="rounded-xl border border-border overflow-x-auto">
+      <div className="rounded-[var(--r-lg)] border border-border overflow-x-auto">
         <table className="min-w-[720px] w-full text-sm">
           <thead className="bg-muted/40 text-xs text-muted-foreground font-semibold">
             <tr>

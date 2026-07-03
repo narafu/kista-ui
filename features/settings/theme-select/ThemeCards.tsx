@@ -43,7 +43,7 @@ export function ThemeCards() {
             key={o.key}
             type="button"
             onClick={() => setTheme(o.key)}
-            className="p-3 rounded-xl bg-card cursor-pointer transition-[border-color] duration-150 text-left w-full"
+            className="p-3 rounded-[var(--r-md)] bg-card cursor-pointer transition-[border-color] duration-150 text-left w-full"
             style={{ border: `2px solid ${on ? 'var(--rose-400)' : 'var(--border)'}` }}
           >
             <div

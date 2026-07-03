@@ -12,7 +12,7 @@ export function AdminTradesFeedback({ actionError, reorderResult }: Props) {
     <>
       {actionError ? (
         <section
-          className="rounded-xl border border-rose-300 bg-rose-50 p-4 text-rose-950 dark:border-rose-800/80 dark:bg-rose-900/40 dark:text-rose-100"
+          className="rounded-[var(--r-lg)] border border-rose-300 bg-rose-50 p-4 text-rose-950 dark:border-rose-800/80 dark:bg-rose-900/40 dark:text-rose-100"
           aria-label="재주문 오류"
         >
           <p className="text-sm font-medium">{actionError}</p>
@@ -21,7 +21,7 @@ export function AdminTradesFeedback({ actionError, reorderResult }: Props) {
 
       {reorderResult ? (
         <section
-          className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950 dark:border-emerald-950/70 dark:bg-emerald-950/20 dark:text-emerald-200"
+          className="rounded-[var(--r-lg)] border border-emerald-200 bg-emerald-50 p-4 text-emerald-950 dark:border-emerald-950/70 dark:bg-emerald-950/20 dark:text-emerald-200"
           aria-label="재주문 결과"
         >
           <h2 className="text-base font-semibold">거래일 재주문이 완료되었습니다</h2>

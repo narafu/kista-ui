@@ -7,7 +7,7 @@ const FearGreedCardInner = dynamic(() => import('./FearGreedCardInner'), {
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center h-[250px] text-sm text-muted-foreground">
-      차트 불러오는 중...
+      차트 불러오는 중…
     </div>
   ),
 })
