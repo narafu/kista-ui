@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { fmtUsd } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
-import { seedBadgeClass } from '@entities/strategy'
+import { seedBadgeClass, strategyStatusAccent } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 
 interface Props {
@@ -14,10 +14,6 @@ interface Props {
   accountLabel?: string | ReactNode
 }
 
-const STATUS_ACCENT: Record<string, string> = {
-  ACTIVE: 'var(--status-ok)',
-  PAUSED: 'var(--warn)',
-}
 
 export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
   const { findStrategyType, labelOf } = useMeta()
@@ -33,7 +29,7 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
       {/* 상태 액센트 스트립 */}
       <span
         className="absolute left-0 top-0 bottom-0 w-[3px]"
-        style={{ background: STATUS_ACCENT[strategy.status] ?? 'var(--border)' }}
+        style={{ background: strategyStatusAccent(strategy.status) }}
       />
 
       {/* 모바일: 2행 레이아웃 */}

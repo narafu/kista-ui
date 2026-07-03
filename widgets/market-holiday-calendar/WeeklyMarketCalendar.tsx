@@ -4,7 +4,7 @@ import { useState, useSyncExternalStore } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
 import { useMonthlyHolidaysQuery } from '@entities/market'
-import { useWeeklyTradeSummaryQuery, type DayTradeSummary } from '@entities/trade'
+import { useWeeklyTradeSummaryQuery, directionTextClass, type DayTradeSummary } from '@entities/trade'
 
 interface Props {
   holidays: string[]
@@ -63,10 +63,8 @@ function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
         )}
         {!isWeekend && !isHoliday && daySummary && (
           <span className={cn(
-            'text-[10px] leading-none',
-            daySummary.netAmountUsd >= 0
-              ? 'text-green-600/60 dark:text-green-400/60'
-              : 'text-neg/60',
+            'text-[10px] leading-none opacity-60',
+            directionTextClass(daySummary.netAmountUsd >= 0 ? 'SELL' : 'BUY'),
           )}>
             {daySummary.netAmountUsd >= 0 ? '+' : '-'}${Math.abs(daySummary.netAmountUsd).toFixed(0)}
           </span>
@@ -107,13 +105,13 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
       badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400">대기중</span>
       sub = <span className="text-xs text-muted-foreground">오늘</span>
     } else if (summary) {
-      const pos = summary.netAmountUsd >= 0
+      const isSell = summary.netAmountUsd >= 0
       badge = (
         <span className={cn(
           'text-xs font-semibold px-1.5 py-[1px] rounded',
-          pos ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400' : 'bg-neg-bg text-neg',
+          isSell ? 'bg-neg-bg text-neg' : 'bg-pos-bg text-pos',
         )}>
-          {pos ? '매도 +' : '매수 '}${Math.abs(summary.netAmountUsd).toFixed(0)}
+          {isSell ? '매도 +' : '매수 '}${Math.abs(summary.netAmountUsd).toFixed(0)}
         </span>
       )
       sub = <span className="text-xs text-muted-foreground">{summary.tradeCount}체결</span>

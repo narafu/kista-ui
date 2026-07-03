@@ -4,15 +4,11 @@ import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { RevealableValue } from '@widgets/revealable-value'
 import { useMeta } from '@entities/meta'
-import { useStrategiesQuery } from '@entities/strategy'
+import { useStrategiesQuery, strategyStatusAccent } from '@entities/strategy'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 
 const EMPTY_STRATEGIES: Strategy[] = []
-const STATUS_ACCENT: Record<'ACTIVE' | 'PAUSED', string> = {
-  ACTIVE: 'var(--status-ok)',
-  PAUSED: 'var(--warn)',
-}
 
 function strategyTypeShort(type: Strategy['type']): string {
   if (type === 'PRIVACY') return 'P'
@@ -24,11 +20,6 @@ function formatStrategyBadge(strategy: Strategy): string {
   return `${strategyTypeShort(strategy.type)}-${strategy.ticker}`
 }
 
-function strategyStatusColor(status: Strategy['status']): string {
-  return status === 'ACTIVE' || status === 'PAUSED'
-    ? STATUS_ACCENT[status]
-    : 'var(--muted-foreground)'
-}
 
 interface Props {
   account: Account
@@ -62,7 +53,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
         <span
           data-testid="account-status-accent"
           className="absolute left-0 top-0 bottom-0 w-[3px]"
-          style={{ background: STATUS_ACCENT[aggregated] }}
+          style={{ background: strategyStatusAccent(aggregated) }}
         />
       )}
 
@@ -95,7 +86,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
                   key={s.id}
                   data-testid={`strategy-badge-${s.id}-mobile`}
                   className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold shrink-0 whitespace-nowrap border bg-muted/40"
-                  style={{ borderColor: strategyStatusColor(s.status), color: strategyStatusColor(s.status) }}
+                  style={{ borderColor: strategyStatusAccent(s.status), color: strategyStatusAccent(s.status) }}
                 >
                   {formatStrategyBadge(s)}
                 </span>
@@ -149,7 +140,7 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
                   <span
                     data-testid={`strategy-badge-${s.id}-desktop`}
                     className="inline-flex h-[20px] items-center px-2 rounded-full border bg-muted/40 text-xs font-bold leading-none uppercase shrink-0"
-                    style={{ borderColor: strategyStatusColor(s.status), color: strategyStatusColor(s.status) }}
+                    style={{ borderColor: strategyStatusAccent(s.status), color: strategyStatusAccent(s.status) }}
                   >
                     {formatStrategyBadge(s)}
                   </span>

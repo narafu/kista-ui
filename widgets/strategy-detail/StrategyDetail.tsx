@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { KpiCard } from '@widgets/kpi-card'
 import { StrategyTradesTab } from '@widgets/cycle-history'
-import { useDeleteStrategyMutation, useExecuteStrategyMutation, usePauseStrategyMutation, useResumeStrategyMutation, seedBadgeClass } from '@entities/strategy'
+import { useDeleteStrategyMutation, useExecuteStrategyMutation, usePauseStrategyMutation, useResumeStrategyMutation, seedBadgeClass, strategyStatusAccent } from '@entities/strategy'
 import { useStrategyOrderPreviewQuery, useCancelAllOrdersMutation, useCancelOneOrderMutation } from '@entities/order'
 import { useAccountMarginQuery } from '@entities/account'
 import { useMonthlyHolidaysQuery } from '@entities/market'
@@ -37,10 +37,6 @@ const SKIP_REASON_LABELS: Record<SkipReason, string> = {
   NO_PRIVACY_BASE: '기준 매매표가 없습니다.',
 }
 
-const STATUS_ACCENT: Record<'ACTIVE' | 'PAUSED', string> = {
-  ACTIVE: 'var(--status-ok)',
-  PAUSED: 'var(--warn)',
-}
 
 function previewErrorMsg(error: unknown): string {
   if (error instanceof ApiError) {
@@ -130,7 +126,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
         <span
           data-testid="strategy-status-accent"
           className="absolute left-0 top-0 bottom-0 w-[3px]"
-          style={{ background: STATUS_ACCENT[strategy.status as 'ACTIVE' | 'PAUSED'] ?? 'var(--border)' }}
+          style={{ background: strategyStatusAccent(strategy.status) }}
         />
         <div className="pl-6 pr-5 py-4 lg:pl-7 lg:pr-6 lg:py-5">
           <div className="space-y-3">

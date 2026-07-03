@@ -21,6 +21,7 @@ vi.mock('@entities/strategy', () => ({
   useStrategiesQuery: (_accountId: string, initialData: Strategy[] = []) => ({
     data: initialData,
   }),
+  strategyStatusAccent: (status: string) => status === 'ACTIVE' ? 'var(--status-ok)' : 'var(--warn)',
 }))
 
 const baseAccount: Account = {
@@ -131,8 +132,9 @@ describe('AccountCard', () => {
     const desktopRow = desktopBadge.closest('li')
     const desktopAmount = screen.getByText('$2,103')
 
-    expect(desktopRow).toHaveClass('min-h-[50px]')
-    expect(desktopRow).toHaveClass('py-0')
+    expect(desktopRow).toHaveClass('flex')
+    expect(desktopRow).toHaveClass('items-center')
+    expect(desktopRow).toHaveClass('py-3')
     expect(desktopBadge).toHaveClass('leading-none')
     expect(desktopAmount).toHaveClass('leading-none')
   })

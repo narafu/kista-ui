@@ -68,6 +68,7 @@ vi.mock('@entities/strategy', () => ({
   usePauseStrategyMutation: () => ({ mutate: vi.fn(), isPending: false }),
   useResumeStrategyMutation: () => ({ mutate: vi.fn(), isPending: false }),
   seedBadgeClass: () => 'seed-badge',
+  strategyStatusAccent: (status: string) => status === 'ACTIVE' ? 'var(--status-ok)' : 'var(--warn)',
 }))
 
 vi.mock('@entities/order', () => ({

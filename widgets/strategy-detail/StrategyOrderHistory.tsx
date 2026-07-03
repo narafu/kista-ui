@@ -2,7 +2,8 @@
 
 import { useReducer } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useStrategyOrdersQuery } from '@entities/order'
+import { useStrategyOrdersQuery, orderStatusBadgeClass, ORDER_STATUS_LABEL } from '@entities/order'
+import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { fmtUsd } from '@shared/lib/format'
@@ -17,30 +18,10 @@ const RANGE_LABELS: Record<RangeType, string> = {
   custom: '직접입력',
 }
 
-const DIRECTION_LABEL: Record<string, string> = { BUY: '매수', SELL: '매도' }
-
 const ORDER_TYPE_STYLE: Record<string, string> = {
   LIMIT: 'bg-muted text-muted-foreground',
   LOC: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400',
   MOC: 'bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400',
-}
-
-const STATUS_STYLE: Record<string, string> = {
-  PLACED: 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400',
-  FILLED: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
-  PARTIALLY_FILLED: 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400',
-  FAILED: 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400',
-  CANCELLED: 'bg-muted text-muted-foreground',
-  PLANNED: 'bg-muted text-muted-foreground',
-}
-
-const STATUS_LABEL: Record<string, string> = {
-  PLACED: '접수',
-  FILLED: '체결',
-  PARTIALLY_FILLED: '부분체결',
-  FAILED: '실패',
-  CANCELLED: '취소',
-  PLANNED: '예정',
 }
 
 function resolveRange(rangeType: RangeType, customFrom: string, customTo: string): { from?: string; to?: string } | null {
@@ -166,7 +147,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                   {pageOrders.map((o) => (
                     <tr key={o.id} className="border-t hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3 text-center text-muted-foreground text-xs whitespace-nowrap">{o.tradeDate}</td>
-                      <td className={`px-4 py-3 text-center font-semibold whitespace-nowrap ${o.direction === 'BUY' ? 'text-pos' : 'text-neg'}`}>{DIRECTION_LABEL[o.direction] ?? o.direction}</td>
+                      <td className={`px-4 py-3 text-center font-semibold whitespace-nowrap ${directionTextClass(o.direction)}`}>{DIRECTION_LABEL[o.direction] ?? o.direction}</td>
                       <td className="px-4 py-3 text-center whitespace-nowrap">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${ORDER_TYPE_STYLE[o.orderType] ?? 'bg-muted text-muted-foreground'}`}>
                           {o.orderType}
@@ -187,8 +168,8 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                         {o.filledPrice != null ? `$${fmtUsd(toNum(o.filledPrice))}` : <span className="text-muted-foreground">-</span>}
                       </td>
                       <td className="px-4 py-3 text-center whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLE[o.status] ?? 'bg-muted text-muted-foreground'}`}>
-                          {STATUS_LABEL[o.status] ?? o.status}
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${orderStatusBadgeClass(o.status)}`}>
+                          {ORDER_STATUS_LABEL[o.status] ?? o.status}
                         </span>
                       </td>
                     </tr>

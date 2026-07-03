@@ -1,12 +1,7 @@
 import { fmtUsd } from '@shared/lib/format'
+import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
+import { orderStatusBadgeClass } from '@entities/order'
 import type { AdminTrade } from '@entities/user'
-
-const DIRECTION_LABEL: Record<string, string> = { BUY: '매수', SELL: '매도' }
-const STATUS_STYLE: Record<string, string> = {
-  PLACED: 'bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-200',
-  FILLED: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-200',
-  FAILED: 'bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-200',
-}
 
 interface Props {
   trades: AdminTrade[]
@@ -48,14 +43,14 @@ export function AdminTradesTable({ trades }: Props) {
                 <td className="px-4 py-3 text-center font-medium whitespace-nowrap">{trade.ownerNickname}</td>
                 <td className="px-4 py-3 text-center text-xs text-muted-foreground whitespace-nowrap">{trade.strategyType ?? '-'}</td>
                 <td className="px-4 py-3 text-center whitespace-nowrap">{trade.ticker}</td>
-                <td className={`px-4 py-3 text-center font-semibold whitespace-nowrap ${trade.direction === 'BUY' ? 'text-pos' : 'text-neg'}`}>
+                <td className={`px-4 py-3 text-center font-semibold whitespace-nowrap ${directionTextClass(trade.direction)}`}>
                   {DIRECTION_LABEL[trade.direction] ?? trade.direction}
                 </td>
                 <td className="px-4 py-3 text-center text-xs text-muted-foreground whitespace-nowrap">{trade.orderType}</td>
                 <td className="px-4 py-3 text-center whitespace-nowrap">{trade.quantity}</td>
                 <td className="px-4 py-3 text-center font-mono text-xs whitespace-nowrap">${fmtUsd(trade.price)}</td>
                 <td className="px-4 py-3 text-center whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLE[trade.status] ?? 'bg-muted text-muted-foreground'}`}>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${orderStatusBadgeClass(trade.status)}`}>
                     {trade.status}
                   </span>
                 </td>

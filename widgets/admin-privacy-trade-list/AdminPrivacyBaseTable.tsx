@@ -2,10 +2,9 @@
 
 import { useState } from 'react'
 import { ChevronRight, ChevronDown } from 'lucide-react'
-import { fmtUsd } from '@shared/lib/format'
+import { fmtUsd, pnlTextClass } from '@shared/lib/format'
+import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
 import type { AdminPrivacyBase } from '@entities/privacy'
-
-const DIRECTION_LABEL: Record<string, string> = { BUY: '매수', SELL: '매도' }
 
 interface Props {
   bases: AdminPrivacyBase[]
@@ -81,7 +80,7 @@ function FragmentRow({ base: b, open, onToggle }: { base: AdminPrivacyBase; open
         <td className="px-2.5 py-3 text-center font-mono text-xs whitespace-nowrap sm:px-4">${fmtUsd(b.currentCycleStart)}</td>
         <td className="hidden px-2.5 py-3 text-center font-mono text-xs whitespace-nowrap sm:table-cell sm:px-4">{b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`}</td>
         <td className="px-2.5 py-3 text-center whitespace-nowrap sm:px-4">{b.holdings}</td>
-        <td className={`hidden px-2.5 py-3 text-center font-mono text-xs whitespace-nowrap sm:table-cell sm:px-4 ${b.currentCycleRealizedPnl >= 0 ? 'text-pos' : 'text-neg'}`}>
+        <td className={`hidden px-2.5 py-3 text-center font-mono text-xs whitespace-nowrap sm:table-cell sm:px-4 ${pnlTextClass(b.currentCycleRealizedPnl)}`}>
           {b.currentCycleRealizedPnl >= 0 ? '+' : ''}{fmtUsd(b.currentCycleRealizedPnl)}
         </td>
         <td className="hidden px-2.5 py-3 text-center text-muted-foreground whitespace-nowrap sm:table-cell sm:px-4">{b.orders.length}건</td>
@@ -102,7 +101,7 @@ function FragmentRow({ base: b, open, onToggle }: { base: AdminPrivacyBase; open
               <tbody>
                 {b.orders.map((o) => (
                   <tr key={o.id}>
-                    <td className={`py-1 font-semibold ${o.direction === 'BUY' ? 'text-pos' : 'text-neg'}`}>
+                    <td className={`py-1 font-semibold ${directionTextClass(o.direction)}`}>
                       {DIRECTION_LABEL[o.direction] ?? o.direction}
                     </td>
                     <td className="py-1 text-muted-foreground">{o.orderType}</td>
@@ -126,7 +125,7 @@ function FragmentRow({ base: b, open, onToggle }: { base: AdminPrivacyBase; open
               <tbody>
                 {b.orders.map((o) => (
                   <tr key={o.id}>
-                    <td className={`py-1 font-semibold ${o.direction === 'BUY' ? 'text-pos' : 'text-neg'}`}>
+                    <td className={`py-1 font-semibold ${directionTextClass(o.direction)}`}>
                       {DIRECTION_LABEL[o.direction] ?? o.direction}
                     </td>
                     <td className="py-1 text-muted-foreground">{o.orderType}</td>
