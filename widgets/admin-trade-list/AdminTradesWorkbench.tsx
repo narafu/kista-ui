@@ -198,6 +198,7 @@ export function AdminTradesWorkbench({
 
       for (const item of items) {
         try {
+          // eslint-disable-next-line react-doctor/async-await-in-loop
           const result = await reorderAdminOrder({
             userId: selectedUserId,
             accountId: selectedAccountId,

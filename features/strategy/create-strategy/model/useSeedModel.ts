@@ -64,6 +64,7 @@ export function useSeedModel({
     if (usdDeposit === null || usdDeposit <= 0) return
     if (initial.initialUsdDeposit == null) return
     const ratio = Math.round((initial.initialUsdDeposit / usdDeposit) * 100)
+    // eslint-disable-next-line react-doctor/no-derived-state
     setPctInternal(Math.min(100, Math.max(0, ratio)))
     pctInitialized.current = true
   }, [balanceCheckEnabled, editableEdit, initial, usdDeposit])
