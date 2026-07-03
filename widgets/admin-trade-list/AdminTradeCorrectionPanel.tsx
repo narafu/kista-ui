@@ -15,14 +15,12 @@ interface Props {
   brokers: string[]
   accounts: AdminAccount[]
   strategies: AdminStrategy[]
-  tradeDates: string[]
   orders: AdminStrategyOrder[]
   selectedStrategy: AdminStrategy | null
   selectedUserId: string
   selectedBroker: string
   selectedAccountId: string
   selectedStrategyId: string
-  selectedTradeDate: string
   strategyStatusPending: boolean
   reorderPending: boolean
   timingAvailability: AdminReorderTimingAvailability
@@ -30,7 +28,6 @@ interface Props {
   onBrokerChange: (broker: string) => void
   onAccountChange: (accountId: string) => void
   onStrategyChange: (strategyId: string) => void
-  onTradeDateChange: (tradeDate: string) => void
   onStrategyStatusToggle: () => void
   onReorderSubmit: (items: ReorderBatchItem[]) => Promise<void>
 }
@@ -40,14 +37,12 @@ export function AdminTradeCorrectionPanel({
   brokers,
   accounts,
   strategies,
-  tradeDates,
   orders,
   selectedStrategy,
   selectedUserId,
   selectedBroker,
   selectedAccountId,
   selectedStrategyId,
-  selectedTradeDate,
   strategyStatusPending,
   reorderPending,
   timingAvailability,
@@ -55,7 +50,6 @@ export function AdminTradeCorrectionPanel({
   onBrokerChange,
   onAccountChange,
   onStrategyChange,
-  onTradeDateChange,
   onStrategyStatusToggle,
   onReorderSubmit,
 }: Props) {
@@ -74,13 +68,9 @@ export function AdminTradeCorrectionPanel({
         ? strategies.length === 0
           ? '선택한 계좌에 연결된 전략이 없습니다.'
           : '재주문할 전략을 선택하세요.'
-        : !selectedTradeDate
-          ? tradeDates.length === 0
-            ? '선택한 사용자 기준으로 조회된 거래일이 없습니다.'
-            : '재주문할 거래일을 선택하세요.'
-          : orders.length === 0
-            ? '선택한 조건에 해당하는 주문이 없습니다.'
-            : null
+        : orders.length === 0
+          ? '선택한 전략의 오늘 주문이 없습니다.'
+          : null
 
   return (
     <section className="rounded-[var(--r-lg)] border border-border bg-background p-4" aria-label="재주문 대상 선택">
@@ -89,7 +79,7 @@ export function AdminTradeCorrectionPanel({
         <p className="mt-1 text-sm text-muted-foreground">사용자부터 주문까지 순서대로 선택합니다</p>
       </div>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <label className="grid min-w-0 gap-2 text-sm">
           <span className="font-medium">사용자</span>
           <select
@@ -162,23 +152,6 @@ export function AdminTradeCorrectionPanel({
           </select>
         </label>
 
-        <label className="grid min-w-0 gap-2 text-sm">
-          <span className="font-medium">거래일</span>
-          <select
-            aria-label="거래일 선택"
-            value={selectedTradeDate}
-            onChange={(event) => onTradeDateChange(event.target.value)}
-            disabled={!selectedStrategyId || reorderPending}
-            className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <option value="">거래일 선택</option>
-            {tradeDates.map((tradeDate) => (
-              <option key={tradeDate} value={tradeDate}>
-                {tradeDate}
-              </option>
-            ))}
-          </select>
-        </label>
 
       </div>
 

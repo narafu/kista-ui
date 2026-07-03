@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, type FormEvent } from 'react'
+import { useMemo, useRef, useState, type FormEvent } from 'react'
 import type { AdminReorderTimingAvailability, AdminStrategyOrder } from '@entities/user'
 import type { OrderDirection } from '@shared/lib/api-schema'
 
@@ -59,14 +59,31 @@ function buildInitialDrafts(orders: AdminStrategyOrder[], avail: AdminReorderTim
   ) as Record<string, OrderDraft>
 }
 
-export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailability, onSubmit }: Props) {
-  const [drafts, setDrafts] = useState<Record<string, OrderDraft>>(() =>
-    buildInitialDrafts(orders, timingAvailability),
+function isDraftChanged(current: OrderDraft, initial: OrderDraft): boolean {
+  return (
+    current.timing !== initial.timing ||
+    current.quantity !== initial.quantity ||
+    current.price !== initial.price ||
+    current.memo !== initial.memo
   )
+}
+
+export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailability, onSubmit }: Props) {
+  const initialDraftsRef = useRef<Record<string, OrderDraft>>(buildInitialDrafts(orders, timingAvailability))
+  const [drafts, setDrafts] = useState<Record<string, OrderDraft>>(() => initialDraftsRef.current)
 
   const isBlocked = useMemo(
     () => !timingAvailability.atOpen && !timingAvailability.atClose && !timingAvailability.immediate,
     [timingAvailability],
+  )
+
+  const changedOrderIds = useMemo(
+    () => orders.filter((order) => {
+      const current = drafts[order.id]
+      const initial = initialDraftsRef.current[order.id]
+      return current != null && initial != null && isDraftChanged(current, initial)
+    }).map((order) => order.id),
+    [orders, drafts],
   )
 
   const handleDraftChange = (orderId: string, key: keyof OrderDraft, value: string) => {
@@ -87,23 +104,22 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    const items: ReorderBatchItem[] = orders.map((order) => {
-      const draft = drafts[order.id] ?? {
-        timing: getDefaultTiming(timingAvailability),
-        quantity: String(order.quantity),
-        price: String(order.price),
-        memo: '',
-      }
-      return {
-        orderId: order.id,
-        timing: draft.timing,
-        direction: order.direction,
-        quantity: Number(draft.quantity),
-        price: Number(draft.price),
-        memo: draft.memo.trim() || undefined,
-      }
-    })
+    const changedSet = new Set(changedOrderIds)
+    const items: ReorderBatchItem[] = orders
+      .filter((order) => changedSet.has(order.id))
+      .map((order) => {
+        const draft = drafts[order.id]!
+        return {
+          orderId: order.id,
+          timing: draft.timing,
+          direction: order.direction,
+          quantity: Number(draft.quantity),
+          price: Number(draft.price),
+          memo: draft.memo.trim() || undefined,
+        }
+      })
 
+    if (items.length === 0) return
     await onSubmit(items)
   }
 
@@ -134,12 +150,18 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
             memo: '',
           }
 
+          const isChanged = changedOrderIds.includes(order.id)
           return (
-            <section key={order.id} className="rounded-lg border border-border bg-background p-3">
+            <section key={order.id} className={`rounded-lg border bg-background p-3 ${isChanged ? 'border-primary' : 'border-border'}`}>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-medium">{order.direction} · {order.orderType}</span>
                 <span className="text-muted-foreground">· {order.quantity}주</span>
                 <span className="text-muted-foreground">· {order.ticker}</span>
+                {isChanged && (
+                  <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                    변경됨
+                  </span>
+                )}
                 <span className="ml-auto inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
                   {order.status}
                 </span>
@@ -211,13 +233,16 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
         })}
       </div>
 
-      <div className="mt-4 flex justify-end">
+      <div className="mt-4 flex items-center justify-end gap-3">
+        {!isBlocked && changedOrderIds.length === 0 && orders.length > 0 && (
+          <p className="text-sm text-muted-foreground">변경된 주문이 없습니다.</p>
+        )}
         <button
           type="submit"
-          disabled={disabled || orders.length === 0 || isBlocked}
+          disabled={disabled || changedOrderIds.length === 0 || isBlocked}
           className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {disabled ? '처리 중...' : `거래일 주문 ${orders.length}건 일괄 재주문`}
+          {disabled ? '처리 중...' : `변경한 주문 ${changedOrderIds.length}건 재주문`}
         </button>
       </div>
     </form>

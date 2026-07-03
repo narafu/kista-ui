@@ -6,4 +6,8 @@ export function fmtDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('ko-KR')
 }
 
+export function todayKst(): string {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' })
+}
+
 export { pnlTextClass } from './pnl'

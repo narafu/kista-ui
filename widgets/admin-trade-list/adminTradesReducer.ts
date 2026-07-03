@@ -22,10 +22,8 @@ export interface AdminTradesState {
   selectedBroker: string
   selectedAccountId: string
   selectedStrategyId: string
-  selectedTradeDate: string
   accounts: AdminAccount[]
   strategies: AdminStrategy[]
-  tradeDates: string[]
   orders: AdminStrategyOrder[]
   strategyStatusPending: boolean
   reorderPending: boolean
@@ -48,10 +46,8 @@ export function createInitialState({ initialPage, initialSize }: { initialPage: 
     selectedBroker: '',
     selectedAccountId: '',
     selectedStrategyId: '',
-    selectedTradeDate: '',
     accounts: [],
     strategies: [],
-    tradeDates: [],
     orders: [],
     strategyStatusPending: false,
     reorderPending: false,
@@ -68,10 +64,8 @@ export type AdminTradesAction =
   | { type: 'SELECT_BROKER'; broker: string }
   | { type: 'SELECT_ACCOUNT'; accountId: string }
   | { type: 'SELECT_STRATEGY'; strategyId: string }
-  | { type: 'SELECT_TRADE_DATE'; tradeDate: string }
   | { type: 'LOADED_ACCOUNTS'; accounts: AdminAccount[] }
   | { type: 'LOADED_STRATEGIES'; strategies: AdminStrategy[] }
-  | { type: 'LOADED_TRADE_DATES'; tradeDates: string[] }
   | { type: 'LOADED_ORDERS'; orders: AdminStrategyOrder[] }
   | { type: 'STRATEGIES_FAILED'; message: string }
   | { type: 'ORDERS_FAILED'; message: string }
@@ -89,14 +83,12 @@ export function adminTradesReducer(state: AdminTradesState, action: AdminTradesA
   switch (action.type) {
     case 'SET_SIZE': return { ...state, size: action.size, page: 1 }
     case 'SET_PAGE': return { ...state, page: action.page }
-    case 'SELECT_USER': return { ...state, ...FEEDBACK_CLEAR, selectedUserId: action.userId, selectedBroker: '', selectedAccountId: '', selectedStrategyId: '', selectedTradeDate: '', accounts: [], strategies: [], tradeDates: [], orders: [], page: 1 }
-    case 'SELECT_BROKER': return { ...state, ...FEEDBACK_CLEAR, selectedBroker: action.broker, selectedAccountId: '', selectedStrategyId: '', selectedTradeDate: '', strategies: [], tradeDates: [], orders: [], page: 1 }
-    case 'SELECT_ACCOUNT': return { ...state, ...FEEDBACK_CLEAR, selectedAccountId: action.accountId, selectedStrategyId: '', selectedTradeDate: '', tradeDates: [], orders: [], page: 1 }
-    case 'SELECT_STRATEGY': return { ...state, ...FEEDBACK_CLEAR, selectedStrategyId: action.strategyId, selectedTradeDate: '', tradeDates: [], orders: [], page: 1 }
-    case 'SELECT_TRADE_DATE': return { ...state, ...FEEDBACK_CLEAR, selectedTradeDate: action.tradeDate, page: 1 }
+    case 'SELECT_USER': return { ...state, ...FEEDBACK_CLEAR, selectedUserId: action.userId, selectedBroker: '', selectedAccountId: '', selectedStrategyId: '', accounts: [], strategies: [], orders: [], page: 1 }
+    case 'SELECT_BROKER': return { ...state, ...FEEDBACK_CLEAR, selectedBroker: action.broker, selectedAccountId: '', selectedStrategyId: '', strategies: [], orders: [], page: 1 }
+    case 'SELECT_ACCOUNT': return { ...state, ...FEEDBACK_CLEAR, selectedAccountId: action.accountId, selectedStrategyId: '', orders: [], page: 1 }
+    case 'SELECT_STRATEGY': return { ...state, ...FEEDBACK_CLEAR, selectedStrategyId: action.strategyId, orders: [], page: 1 }
     case 'LOADED_ACCOUNTS': return { ...state, accounts: action.accounts }
     case 'LOADED_STRATEGIES': return { ...state, strategies: action.strategies }
-    case 'LOADED_TRADE_DATES': return { ...state, tradeDates: action.tradeDates }
     case 'LOADED_ORDERS': return { ...state, orders: action.orders }
     case 'STRATEGIES_FAILED': return { ...state, strategies: [], actionError: action.message }
     case 'ORDERS_FAILED': return { ...state, orders: [], actionError: action.message }
