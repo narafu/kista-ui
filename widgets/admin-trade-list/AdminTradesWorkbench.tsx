@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useReducer } from 'react'
 import {
   reorderAdminOrder,
   getReorderTimingAvailability,
@@ -12,7 +12,6 @@ import {
 } from '@entities/user'
 import type {
   AdminAccount,
-  AdminReorderTimingAvailability,
   AdminStrategy,
   AdminStrategyOrder,
   AdminTrade,
@@ -20,7 +19,9 @@ import type {
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { AdminTradeCorrectionPanel } from './AdminTradeCorrectionPanel'
+import { AdminTradesFeedback } from './AdminTradesFeedback'
 import { AdminTradesTable } from './AdminTradesTable'
+import { adminTradesReducer, createInitialState } from './adminTradesReducer'
 import type { ReorderBatchItem } from './AdminBatchOrderCorrectionForm'
 
 interface Props {
@@ -34,25 +35,8 @@ interface Props {
   toggleStrategyStatus?: (accountId: string, strategyId: string, status: AdminStrategy['status']) => Promise<void>
 }
 
-interface ReorderSummary {
-  processed: number
-  skipped: number
-  results: Array<{
-    sourceOrderId: string
-    originalStatus: string
-    resultingStatus: string
-  }>
-}
-
-const DEFAULT_TIMING_AVAILABILITY: AdminReorderTimingAvailability = {
-  atOpen: false,
-  atClose: true,
-  immediate: false,
-}
-
 function uniqBy<T>(items: T[], getKey: (item: T) => string): T[] {
   const seen = new Set<string>()
-
   return items.filter((item) => {
     const key = getKey(item)
     if (seen.has(key)) return false
@@ -74,27 +58,18 @@ export function AdminTradesWorkbench({
   loadOrders = async (accountId, strategyId, tradeDate) => listAdminStrategyOrders(accountId, strategyId, tradeDate),
   toggleStrategyStatus = async (accountId, strategyId, status) => updateAdminStrategyStatus(accountId, strategyId, status),
 }: Props) {
-  const [page, setPage] = useState(initialPage)
-  const [size, setSize] = useState(initialSize)
-  const [selectedUserId, setSelectedUserId] = useState('')
-  const [selectedBroker, setSelectedBroker] = useState('')
-  const [selectedAccountId, setSelectedAccountId] = useState('')
-  const [selectedStrategyId, setSelectedStrategyId] = useState('')
-  const [selectedTradeDate, setSelectedTradeDate] = useState('')
-  const [accounts, setAccounts] = useState<AdminAccount[]>([])
-  const [strategies, setStrategies] = useState<AdminStrategy[]>([])
-  const [tradeDates, setTradeDates] = useState<string[]>([])
-  const [orders, setOrders] = useState<AdminStrategyOrder[]>([])
-  const [strategyStatusPending, setStrategyStatusPending] = useState(false)
-  const [reorderPending, setReorderPending] = useState(false)
-  const [reorderResult, setReorderResult] = useState<ReorderSummary | null>(null)
-  const [actionError, setActionError] = useState<string | null>(null)
-  const [timingAvailability, setTimingAvailability] = useState<AdminReorderTimingAvailability>(DEFAULT_TIMING_AVAILABILITY)
+  const [state, dispatch] = useReducer(adminTradesReducer, { initialPage, initialSize }, createInitialState)
+  const {
+    page, size,
+    selectedUserId, selectedBroker, selectedAccountId, selectedStrategyId, selectedTradeDate,
+    accounts, strategies, tradeDates, orders,
+    strategyStatusPending, reorderPending, reorderResult, actionError, timingAvailability,
+  } = state
 
   // 마운트 시 재주문 시점 가용성 조회
   useEffect(() => {
     getReorderTimingAvailability()
-      .then(setTimingAvailability)
+      .then((t) => dispatch({ type: 'SET_TIMING_AVAILABILITY', timingAvailability: t }))
       .catch(() => {}) // 실패 시 기본값 유지
   }, [])
 
@@ -133,150 +108,92 @@ export function AdminTradesWorkbench({
       (trade) => trade.tradeDate,
     ).map((trade) => trade.tradeDate)
 
-  const handleSizeChange = (nextSize: string) => {
-    setSize(Number(nextSize))
-    setPage(1)
-  }
-
-  const resetFeedback = () => {
-    setReorderResult(null)
-    setActionError(null)
-  }
-
   const handleUserChange = async (userId: string) => {
-    resetFeedback()
-    setSelectedUserId(userId)
-    setSelectedBroker('')
-    setSelectedAccountId('')
-    setSelectedStrategyId('')
-    setSelectedTradeDate('')
-    setStrategies([])
-    setTradeDates([])
-    setOrders([])
-    setPage(1)
-
-    if (!userId) {
-      setAccounts([])
-      return
-    }
-
-    setAccounts([])
-
+    dispatch({ type: 'SELECT_USER', userId })
+    if (!userId) return
     try {
-      setAccounts(await loadAccounts(userId))
+      dispatch({ type: 'LOADED_ACCOUNTS', accounts: await loadAccounts(userId) })
     } catch {
-      setActionError('계좌 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.')
+      dispatch({ type: 'SET_ERROR', message: '계좌 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.' })
     }
   }
 
   const handleBrokerChange = (broker: string) => {
-    resetFeedback()
-    setSelectedBroker(broker)
-    setSelectedAccountId('')
-    setSelectedStrategyId('')
-    setSelectedTradeDate('')
-    setStrategies([])
-    setTradeDates([])
-    setOrders([])
-    setPage(1)
+    dispatch({ type: 'SELECT_BROKER', broker })
   }
 
   const handleAccountChange = async (accountId: string) => {
-    resetFeedback()
-    setSelectedAccountId(accountId)
-    setSelectedStrategyId('')
-    setSelectedTradeDate('')
-    setTradeDates([])
-    setOrders([])
-    setPage(1)
-
+    dispatch({ type: 'SELECT_ACCOUNT', accountId })
     if (!accountId) {
-      setStrategies([])
+      dispatch({ type: 'LOADED_STRATEGIES', strategies: [] })
       return
     }
-
     try {
-      setStrategies(await loadStrategies(accountId))
+      dispatch({ type: 'LOADED_STRATEGIES', strategies: await loadStrategies(accountId) })
     } catch {
-      setStrategies([])
-      setActionError('전략 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.')
+      dispatch({ type: 'STRATEGIES_FAILED', message: '전략 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.' })
     }
   }
 
   const handleStrategyChange = async (strategyId: string) => {
-    resetFeedback()
-    setSelectedStrategyId(strategyId)
-    setSelectedTradeDate('')
-    setTradeDates([])
-    setOrders([])
-    setPage(1)
-
+    dispatch({ type: 'SELECT_STRATEGY', strategyId })
     if (!selectedAccountId || !strategyId) return
-
     try {
-      const nextTradeDates = await loadTradeDates(selectedAccountId, strategyId)
-      setTradeDates(nextTradeDates)
+      dispatch({ type: 'LOADED_TRADE_DATES', tradeDates: await loadTradeDates(selectedAccountId, strategyId) })
     } catch {
       const fallbackStrategy = strategies.find((strategy) => strategy.id === strategyId) ?? null
       const fallbackTradeDates = deriveTradeDates(fallbackStrategy)
-      setTradeDates(fallbackTradeDates)
+      dispatch({ type: 'LOADED_TRADE_DATES', tradeDates: fallbackTradeDates })
       if (fallbackTradeDates.length === 0) {
-        setActionError('거래일 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.')
+        dispatch({ type: 'SET_ERROR', message: '거래일 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.' })
       }
     }
   }
 
   const handleTradeDateChange = async (tradeDate: string) => {
-    resetFeedback()
-    setSelectedTradeDate(tradeDate)
-    setPage(1)
-
+    dispatch({ type: 'SELECT_TRADE_DATE', tradeDate })
     if (!selectedAccountId || !selectedStrategyId || !tradeDate) {
-      setOrders([])
+      dispatch({ type: 'LOADED_ORDERS', orders: [] })
       return
     }
-
     try {
-      setOrders(await loadOrders(selectedAccountId, selectedStrategyId, tradeDate))
+      dispatch({ type: 'LOADED_ORDERS', orders: await loadOrders(selectedAccountId, selectedStrategyId, tradeDate) })
     } catch {
-      setOrders([])
-      setActionError('주문 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.')
+      dispatch({ type: 'ORDERS_FAILED', message: '주문 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.' })
     }
   }
 
   const handleStrategyStatusToggle = async () => {
     if (!selectedAccountId || !selectedStrategy) return
-
     const nextStatus = selectedStrategy.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE'
-
-    setStrategyStatusPending(true)
-    setActionError(null)
-
+    dispatch({ type: 'STRATEGY_STATUS_START' })
     try {
       await toggleStrategyStatus(selectedAccountId, selectedStrategy.id, nextStatus)
-      setStrategies(await loadStrategies(selectedAccountId))
+      dispatch({ type: 'LOADED_STRATEGIES', strategies: await loadStrategies(selectedAccountId) })
     } catch {
-      setActionError('전략 상태 변경에 실패했습니다. 잠시 후 다시 시도하세요.')
+      dispatch({ type: 'SET_ERROR', message: '전략 상태 변경에 실패했습니다. 잠시 후 다시 시도하세요.' })
     } finally {
-      setStrategyStatusPending(false)
+      dispatch({ type: 'STRATEGY_STATUS_END' })
     }
   }
 
   const handleReorderSubmit = async (items: ReorderBatchItem[]) => {
     if (!selectedUserId || !selectedAccountId || !selectedStrategyId || !selectedTradeDate || items.length === 0) return
 
-    setReorderPending(true)
-    resetFeedback()
+    // skipped 계산은 리로드 前 클로저 orders.length 기준 — dispatch 후 state가 바뀌기 전 값 캡처
+    const ordersCountBeforeReload = orders.length
+
+    dispatch({ type: 'REORDER_START' })
 
     // 재주문 시점 가용성 재조회 (제출 시점에 시장 단계가 바뀔 수 있음)
     try {
-      setTimingAvailability(await getReorderTimingAvailability())
+      dispatch({ type: 'SET_TIMING_AVAILABILITY', timingAvailability: await getReorderTimingAvailability() })
     } catch {
       // 실패 시 기존 값 유지
     }
 
     try {
-      const results: ReorderSummary['results'] = []
+      const results: Array<{ sourceOrderId: string; originalStatus: string; resultingStatus: string }> = []
       let failedCount = 0
 
       for (const item of items) {
@@ -305,26 +222,30 @@ export function AdminTradesWorkbench({
 
       if (results.length > 0) {
         try {
-          setOrders(await loadOrders(selectedAccountId, selectedStrategyId, selectedTradeDate))
+          dispatch({ type: 'LOADED_ORDERS', orders: await loadOrders(selectedAccountId, selectedStrategyId, selectedTradeDate) })
         } catch {
           // 재주문은 적용됐으므로 목록 갱신 실패는 무시
         }
-        setReorderResult({
-          processed: results.length,
-          skipped: Math.max(0, orders.length - items.length),
-          results,
+        dispatch({
+          type: 'REORDER_SUCCESS',
+          summary: {
+            processed: results.length,
+            skipped: Math.max(0, ordersCountBeforeReload - items.length),
+            results,
+          },
         })
       }
 
       if (failedCount > 0) {
-        setActionError(
-          results.length > 0
+        dispatch({
+          type: 'SET_ERROR',
+          message: results.length > 0
             ? `${results.length}건 재주문 완료, ${failedCount}건 실패. 실패한 주문을 다시 확인하세요.`
             : '재주문에 실패했습니다. 입력값과 주문 상태를 다시 확인하세요.',
-        )
+        })
       }
     } finally {
-      setReorderPending(false)
+      dispatch({ type: 'REORDER_END' })
     }
   }
 
@@ -338,7 +259,7 @@ export function AdminTradesWorkbench({
               전략과 거래일을 고르면 해당 날짜 주문 전체를 한 번에 재주문합니다.
             </p>
           </div>
-          <PageSizeSelector value={String(size)} onChange={handleSizeChange} />
+          <PageSizeSelector value={String(size)} onChange={(nextSize) => dispatch({ type: 'SET_SIZE', size: Number(nextSize) })} />
         </div>
       </section>
 
@@ -367,33 +288,11 @@ export function AdminTradesWorkbench({
         onReorderSubmit={handleReorderSubmit}
       />
 
-      {actionError ? (
-        <section
-          className="rounded-xl border border-rose-300 bg-rose-50 p-4 text-rose-950 dark:border-rose-800/80 dark:bg-rose-900/40 dark:text-rose-100"
-          aria-label="재주문 오류"
-        >
-          <p className="text-sm font-medium">{actionError}</p>
-        </section>
-      ) : null}
-
-      {reorderResult ? (
-        <section
-          className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950 dark:border-emerald-950/70 dark:bg-emerald-950/20 dark:text-emerald-200"
-          aria-label="재주문 결과"
-        >
-          <h2 className="text-base font-semibold">거래일 재주문이 완료되었습니다</h2>
-          <p className="mt-1 text-sm">처리 {reorderResult.processed}건 · 제외 {reorderResult.skipped}건</p>
-          <p className="mt-2 text-sm">
-            {reorderResult.results
-              .map((r) => `${r.sourceOrderId.slice(-8)}: ${r.originalStatus} → ${r.resultingStatus}`)
-              .join(' / ')}
-          </p>
-        </section>
-      ) : null}
+      <AdminTradesFeedback actionError={actionError} reorderResult={reorderResult} />
 
       <AdminTradesTable trades={pagedTrades} />
 
-      <PaginationBar page={currentPage} totalPages={totalPages} onPageChange={setPage} />
+      <PaginationBar page={currentPage} totalPages={totalPages} onPageChange={(p) => dispatch({ type: 'SET_PAGE', page: p })} />
     </div>
   )
 }
