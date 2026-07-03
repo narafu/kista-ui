@@ -1,7 +1,8 @@
 'use client'
 
 import { useReducer } from 'react'
-import { Eye, EyeOff, CheckCircle2, XCircle, Loader2, ExternalLink } from 'lucide-react'
+import { Eye, EyeOff, CheckCircle2, XCircle, ExternalLink } from 'lucide-react'
+import { Spinner } from '@shared/ui/Spinner'
 import { useTestKisConnectionMutation } from '@entities/account'
 import type { BrokerCode } from '@entities/account'
 import type { StepData } from '../CreateAccountStepper'
@@ -159,7 +160,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
           >
             {testMutation.isPending ? (
               <>
-                <Loader2 className="size-4 animate-spin" /> 연결 확인 중...
+                <Spinner size={16} /> 연결 확인 중...
               </>
             ) : (
               '연결 테스트'

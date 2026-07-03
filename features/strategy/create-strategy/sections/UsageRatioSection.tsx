@@ -1,6 +1,7 @@
 'use client'
 
-import { AlertTriangle, Loader2 } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
+import { Spinner } from '@shared/ui/Spinner'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import { PercentGauge, SeedAmountInput } from '@widgets/percent-gauge'
 import { fmtUsd } from '@shared/lib/format'
@@ -70,7 +71,7 @@ export function UsageRatioSection({
         <div className="inline-flex items-center gap-1.5 text-sm font-bold mt-3">
           {loadingBase ? (
             <>
-              <Loader2 size={14} className="animate-spin text-muted-foreground" />
+              <Spinner size={14} className="text-muted-foreground" />
               <span className="text-muted-foreground">예수금 조회 중...</span>
             </>
           ) : isBelowMinSeed && minSeed !== null ? (

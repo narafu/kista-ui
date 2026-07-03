@@ -18,14 +18,19 @@ export function PendingTelegramConnect({ hasTelegram, currentChannel }: Props) {
   const [showForm, setShowForm] = useState(false)
   const [botToken, setBotToken] = useState('')
   const [chatId, setChatId] = useState('')
+  const [botTokenError, setBotTokenError] = useState('')
+  const [chatIdError, setChatIdError] = useState('')
 
   const updateMutation = useUpdateTelegramMutation()
   const deleteMutation = useDeleteTelegramMutation()
   const updateChannelMutation = useUpdateNotificationChannelMutation()
 
   function handleSave() {
-    if (!botToken.trim()) { toast.error('Bot Token을 입력해주세요'); return }
-    if (!chatId.trim()) { toast.error('Chat ID를 입력해주세요'); return }
+    const nextBotTokenError = botToken.trim() ? '' : 'Bot Token을 입력해주세요'
+    const nextChatIdError = chatId.trim() ? '' : 'Chat ID를 입력해주세요'
+    setBotTokenError(nextBotTokenError)
+    setChatIdError(nextChatIdError)
+    if (nextBotTokenError || nextChatIdError) return
 
     updateMutation.mutate(
       { botToken: botToken.trim(), chatId: chatId.trim() },
@@ -79,9 +84,12 @@ export function PendingTelegramConnect({ hasTelegram, currentChannel }: Props) {
             placeholder="123456:ABC-DEF..."
             className="h-12"
             value={botToken}
-            onChange={(e) => setBotToken(e.target.value)}
+            onChange={(e) => { setBotToken(e.target.value); if (botTokenError) setBotTokenError('') }}
             disabled={isLoading}
+            aria-invalid={!!botTokenError}
+            aria-describedby={botTokenError ? 'pending-bot-token-error' : undefined}
           />
+          {botTokenError && <p id="pending-bot-token-error" className="text-xs text-neg">{botTokenError}</p>}
         </div>
         <div className="space-y-2 text-left">
           <Label htmlFor="pending-chatId">Chat ID</Label>
@@ -90,9 +98,12 @@ export function PendingTelegramConnect({ hasTelegram, currentChannel }: Props) {
             placeholder="-100123456789"
             className="h-12"
             value={chatId}
-            onChange={(e) => setChatId(e.target.value)}
+            onChange={(e) => { setChatId(e.target.value); if (chatIdError) setChatIdError('') }}
             disabled={isLoading}
+            aria-invalid={!!chatIdError}
+            aria-describedby={chatIdError ? 'pending-chat-id-error' : undefined}
           />
+          {chatIdError && <p id="pending-chat-id-error" className="text-xs text-neg">{chatIdError}</p>}
         </div>
         <div className="flex gap-2">
           <Button className="flex-1 h-11" onClick={handleSave} disabled={isLoading}>

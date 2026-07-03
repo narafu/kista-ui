@@ -21,7 +21,7 @@ export function ReapplyButton() {
 
   async function handleReapply() {
     if (cooldownMinutes > 0) {
-      alert(`${cooldownMinutes}분 후 다시 요청할 수 있습니다`)
+      toast.error(`${cooldownMinutes}분 후 다시 요청할 수 있습니다`)
       return
     }
     setIsLoading(true)

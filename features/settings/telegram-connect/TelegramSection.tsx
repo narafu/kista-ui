@@ -22,14 +22,19 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
   const router = useRouter()
   const [botToken, setBotToken] = useState('')
   const [chatId, setChatId] = useState('')
+  const [botTokenError, setBotTokenError] = useState('')
+  const [chatIdError, setChatIdError] = useState('')
 
   const updateChannelMutation = useUpdateNotificationChannelMutation()
   const updateMutation = useUpdateTelegramMutation()
   const deleteMutation = useDeleteTelegramMutation()
 
   function handleSave() {
-    if (!botToken.trim()) { toast.error('Bot Token을 입력해주세요'); return }
-    if (!chatId.trim()) { toast.error('Chat ID를 입력해주세요'); return }
+    const nextBotTokenError = botToken.trim() ? '' : 'Bot Token을 입력해주세요'
+    const nextChatIdError = chatId.trim() ? '' : 'Chat ID를 입력해주세요'
+    setBotTokenError(nextBotTokenError)
+    setChatIdError(nextChatIdError)
+    if (nextBotTokenError || nextChatIdError) return
 
     updateMutation.mutate(
       { botToken: botToken.trim(), chatId: chatId.trim() },
@@ -105,9 +110,12 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
               placeholder="123456:ABC-DEF..."
               className="h-10 text-sm"
               value={botToken}
-              onChange={(e) => setBotToken(e.target.value)}
+              onChange={(e) => { setBotToken(e.target.value); if (botTokenError) setBotTokenError('') }}
               disabled={isLoading}
+              aria-invalid={!!botTokenError}
+              aria-describedby={botTokenError ? 'bot-token-error' : undefined}
             />
+            {botTokenError && <p id="bot-token-error" className="mt-1 text-xs text-neg">{botTokenError}</p>}
           </div>
           <div>
             <div className="text-sm text-muted-foreground mb-1">Chat ID</div>
@@ -115,9 +123,12 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
               placeholder="-100123456789"
               className="h-10 text-sm"
               value={chatId}
-              onChange={(e) => setChatId(e.target.value)}
+              onChange={(e) => { setChatId(e.target.value); if (chatIdError) setChatIdError('') }}
               disabled={isLoading}
+              aria-invalid={!!chatIdError}
+              aria-describedby={chatIdError ? 'chat-id-error' : undefined}
             />
+            {chatIdError && <p id="chat-id-error" className="mt-1 text-xs text-neg">{chatIdError}</p>}
           </div>
           <Button className="h-10 px-5 w-fit" onClick={handleSave} disabled={isLoading}>
             {isLoading ? '연결 중...' : '연결하기'}
