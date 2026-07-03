@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import {
-  correctAdminOrder,
+  reorderAdminOrder,
   listAdminAccounts,
   listAdminErrorLogs,
   listAdminStrategies,
@@ -10,8 +10,8 @@ import {
 } from './index'
 import type {
   AdminAccount,
-  AdminOrderCorrectionRequest,
-  AdminOrderCorrectionResponse,
+  AdminReorderRequest,
+  AdminReorderResponse,
   AdminStrategy,
   AdminStrategyOrder,
 } from '../model/types'
@@ -133,43 +133,36 @@ describe('entities/user/api admin trade correction APIs', () => {
     )
   })
 
-  it('posts admin order corrections through the client route handler', async () => {
-    const request: AdminOrderCorrectionRequest = {
+  it('posts admin reorder through the client route handler', async () => {
+    const request: AdminReorderRequest = {
       userId: 'user-1',
       accountId: 'account-1',
       strategyId: 'strategy-1',
       orderId: 'order-1',
-      mode: 'PLANNED_EDIT',
+      timing: 'AT_CLOSE',
       tradeDateKst: '2026-07-01',
       quantity: 3,
       price: 250,
       memo: 'price fix',
     }
-    const response: AdminOrderCorrectionResponse = {
+    const response: AdminReorderResponse = {
       userId: 'user-1',
       accountId: 'account-1',
       strategyId: 'strategy-1',
-      orderId: 'order-1',
-      mode: 'PLANNED_EDIT',
+      sourceOrderId: 'order-1',
       originalStatus: 'PLANNED',
       resultingStatus: 'PLANNED',
-      replacementExternalOrderId: null,
-      finalHoldings: 0,
-      finalAvgPrice: null,
-      finalUsdDeposit: 6989,
-      strategyStatus: 'ACTIVE',
-      cycleEnded: false,
-      cycleEndDate: null,
+      newOrderExternalId: null,
     }
     jsonBodyMock.mockReturnValue({ method: 'POST', body: request })
     clientFetchMock.mockResolvedValue(response)
 
-    const result = await correctAdminOrder(request)
+    const result = await reorderAdminOrder(request)
 
     expect(result).toEqual(response)
     expect(jsonBodyMock).toHaveBeenCalledWith('POST', request)
     expect(clientFetchMock).toHaveBeenCalledWith(
-      '/api/admin/trades/order-corrections',
+      '/api/admin/trades/reorders',
       { method: 'POST', body: request },
     )
   })

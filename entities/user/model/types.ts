@@ -78,7 +78,7 @@ export interface AdminStrategyOrder {
   ticker: string
   direction: OrderDirection
   orderType: OrderType
-  timing: 'AT_OPEN' | 'AT_CLOSE'
+  timing: 'AT_OPEN' | 'AT_CLOSE' | 'IMMEDIATE'
   quantity: number
   price: number
   status: OrderStatus
@@ -87,12 +87,18 @@ export interface AdminStrategyOrder {
   filledPrice?: number | null
 }
 
-export interface AdminOrderCorrectionRequest {
+export interface AdminReorderTimingAvailability {
+  atOpen: boolean
+  atClose: boolean
+  immediate: boolean
+}
+
+export interface AdminReorderRequest {
   userId: string
   accountId: string
   strategyId: string
   orderId: string
-  mode: 'PLANNED_EDIT' | 'PLACED_REPLACE' | 'FILLED_CORRECTION'
+  timing: 'AT_OPEN' | 'AT_CLOSE' | 'IMMEDIATE'
   tradeDateKst: string
   direction?: OrderDirection
   quantity?: number
@@ -100,21 +106,14 @@ export interface AdminOrderCorrectionRequest {
   memo?: string
 }
 
-export interface AdminOrderCorrectionResponse {
+export interface AdminReorderResponse {
   userId: string
   accountId: string
   strategyId: string
-  orderId: string
-  mode: AdminOrderCorrectionRequest['mode']
+  sourceOrderId: string
   originalStatus: OrderStatus
   resultingStatus: OrderStatus
-  replacementExternalOrderId?: string | null
-  finalHoldings: number
-  finalAvgPrice?: number | null
-  finalUsdDeposit: number
-  strategyStatus: 'ACTIVE' | 'PAUSED'
-  cycleEnded: boolean
-  cycleEndDate?: string | null
+  newOrderExternalId?: string | null
 }
 
 export interface AdminAuditLog {

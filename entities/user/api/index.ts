@@ -12,8 +12,9 @@ import type {
   AppErrorLog,
   AdminStrategy,
   AdminStrategyOrder,
-  AdminOrderCorrectionRequest,
-  AdminOrderCorrectionResponse,
+  AdminReorderRequest,
+  AdminReorderResponse,
+  AdminReorderTimingAvailability,
 } from '../model/types'
 
 export async function getMe(token: string): Promise<User> {
@@ -143,8 +144,12 @@ export async function listAdminTrades(token: string, from?: string, to?: string)
   return apiFetch<AdminTrade[]>(`/api/admin/trades${query}`, { method: 'GET' }, token)
 }
 
-export async function correctAdminOrder(request: AdminOrderCorrectionRequest): Promise<AdminOrderCorrectionResponse> {
-  return clientFetch<AdminOrderCorrectionResponse>('/api/admin/trades/order-corrections', jsonBody('POST', request))
+export async function reorderAdminOrder(request: AdminReorderRequest): Promise<AdminReorderResponse> {
+  return clientFetch<AdminReorderResponse>('/api/admin/trades/reorders', jsonBody('POST', request))
+}
+
+export async function getReorderTimingAvailability(): Promise<AdminReorderTimingAvailability> {
+  return clientFetch<AdminReorderTimingAvailability>('/api/admin/trades/reorder-timing', { method: 'GET' })
 }
 
 export async function listAdminAuditLogs(token: string, from?: string, to?: string): Promise<AdminAuditLog[]> {

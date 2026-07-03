@@ -52,7 +52,7 @@ export default async function AdminTradesPage({
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-extrabold">거래 내역</h1>
+        <h1 className="text-2xl font-extrabold">주문 관리</h1>
         <p className="text-sm text-muted-foreground mt-1">전체 {all.length}건</p>
       </div>
 

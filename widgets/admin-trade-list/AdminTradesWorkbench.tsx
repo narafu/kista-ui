@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
-  correctAdminOrder,
+  reorderAdminOrder,
+  getReorderTimingAvailability,
   listAdminAccounts,
   listAdminStrategies,
   listAdminStrategyOrders,
@@ -11,7 +12,7 @@ import {
 } from '@entities/user'
 import type {
   AdminAccount,
-  AdminOrderCorrectionRequest,
+  AdminReorderTimingAvailability,
   AdminStrategy,
   AdminStrategyOrder,
   AdminTrade,
@@ -20,6 +21,7 @@ import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { AdminTradeCorrectionPanel } from './AdminTradeCorrectionPanel'
 import { AdminTradesTable } from './AdminTradesTable'
+import type { ReorderBatchItem } from './AdminBatchOrderCorrectionForm'
 
 interface Props {
   initialTrades: AdminTrade[]
@@ -32,14 +34,20 @@ interface Props {
   toggleStrategyStatus?: (accountId: string, strategyId: string, status: AdminStrategy['status']) => Promise<void>
 }
 
-interface BatchCorrectionSummary {
+interface ReorderSummary {
   processed: number
   skipped: number
   results: Array<{
-    orderId: string
+    sourceOrderId: string
     originalStatus: string
     resultingStatus: string
   }>
+}
+
+const DEFAULT_TIMING_AVAILABILITY: AdminReorderTimingAvailability = {
+  atOpen: false,
+  atClose: true,
+  immediate: false,
 }
 
 function uniqBy<T>(items: T[], getKey: (item: T) => string): T[] {
@@ -78,9 +86,17 @@ export function AdminTradesWorkbench({
   const [tradeDates, setTradeDates] = useState<string[]>([])
   const [orders, setOrders] = useState<AdminStrategyOrder[]>([])
   const [strategyStatusPending, setStrategyStatusPending] = useState(false)
-  const [correctionPending, setCorrectionPending] = useState(false)
-  const [correctionResult, setCorrectionResult] = useState<BatchCorrectionSummary | null>(null)
+  const [reorderPending, setReorderPending] = useState(false)
+  const [reorderResult, setReorderResult] = useState<ReorderSummary | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [timingAvailability, setTimingAvailability] = useState<AdminReorderTimingAvailability>(DEFAULT_TIMING_AVAILABILITY)
+
+  // 마운트 시 재주문 시점 가용성 조회
+  useEffect(() => {
+    getReorderTimingAvailability()
+      .then(setTimingAvailability)
+      .catch(() => {}) // 실패 시 기본값 유지
+  }, [])
 
   const userOptions = uniqBy(initialTrades, (trade) => trade.userId).map((trade) => ({
     id: trade.userId,
@@ -123,7 +139,7 @@ export function AdminTradesWorkbench({
   }
 
   const resetFeedback = () => {
-    setCorrectionResult(null)
+    setReorderResult(null)
     setActionError(null)
   }
 
@@ -246,29 +262,39 @@ export function AdminTradesWorkbench({
     }
   }
 
-  const handleOrderCorrectionSubmit = async (
-    requests: Array<Pick<AdminOrderCorrectionRequest, 'orderId' | 'mode' | 'direction' | 'quantity' | 'price' | 'memo'>>,
-  ) => {
-    if (!selectedUserId || !selectedAccountId || !selectedStrategyId || !selectedTradeDate || requests.length === 0) return
+  const handleReorderSubmit = async (items: ReorderBatchItem[]) => {
+    if (!selectedUserId || !selectedAccountId || !selectedStrategyId || !selectedTradeDate || items.length === 0) return
 
-    setCorrectionPending(true)
+    setReorderPending(true)
     resetFeedback()
 
+    // 재주문 시점 가용성 재조회 (제출 시점에 시장 단계가 바뀔 수 있음)
     try {
-      const results: BatchCorrectionSummary['results'] = []
+      setTimingAvailability(await getReorderTimingAvailability())
+    } catch {
+      // 실패 시 기존 값 유지
+    }
+
+    try {
+      const results: ReorderSummary['results'] = []
       let failedCount = 0
 
-      for (const request of requests) {
+      for (const item of items) {
         try {
-          const result = await correctAdminOrder({
+          const result = await reorderAdminOrder({
             userId: selectedUserId,
             accountId: selectedAccountId,
             strategyId: selectedStrategyId,
             tradeDateKst: selectedTradeDate,
-            ...request,
+            orderId: item.orderId,
+            timing: item.timing,
+            direction: item.direction,
+            quantity: item.quantity,
+            price: item.price,
+            memo: item.memo,
           })
           results.push({
-            orderId: result.orderId,
+            sourceOrderId: result.sourceOrderId,
             originalStatus: result.originalStatus,
             resultingStatus: result.resultingStatus,
           })
@@ -281,11 +307,11 @@ export function AdminTradesWorkbench({
         try {
           setOrders(await loadOrders(selectedAccountId, selectedStrategyId, selectedTradeDate))
         } catch {
-          // 보정은 적용됐으므로 목록 갱신 실패는 무시
+          // 재주문은 적용됐으므로 목록 갱신 실패는 무시
         }
-        setCorrectionResult({
+        setReorderResult({
           processed: results.length,
-          skipped: Math.max(0, orders.length - requests.length),
+          skipped: Math.max(0, orders.length - items.length),
           results,
         })
       }
@@ -293,23 +319,23 @@ export function AdminTradesWorkbench({
       if (failedCount > 0) {
         setActionError(
           results.length > 0
-            ? `${results.length}건 보정 완료, ${failedCount}건 실패. 실패한 주문을 다시 확인하세요.`
-            : '주문 보정에 실패했습니다. 입력값과 주문 상태를 다시 확인하세요.',
+            ? `${results.length}건 재주문 완료, ${failedCount}건 실패. 실패한 주문을 다시 확인하세요.`
+            : '재주문에 실패했습니다. 입력값과 주문 상태를 다시 확인하세요.',
         )
       }
     } finally {
-      setCorrectionPending(false)
+      setReorderPending(false)
     }
   }
 
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-border bg-muted/20 p-4" aria-label="거래일 보정 대상">
+      <section className="rounded-xl border border-border bg-muted/20 p-4" aria-label="거래일 재주문 대상">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
-            <h2 className="text-base font-semibold">거래일 보정 대상</h2>
+            <h2 className="text-base font-semibold">거래일 재주문 대상</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              전략과 거래일을 고르면 해당 날짜 주문 전체를 한 번에 보정합니다.
+              전략과 거래일을 고르면 해당 날짜 주문 전체를 한 번에 재주문합니다.
             </p>
           </div>
           <PageSizeSelector value={String(size)} onChange={handleSizeChange} />
@@ -330,34 +356,37 @@ export function AdminTradesWorkbench({
         selectedStrategyId={selectedStrategyId}
         selectedTradeDate={selectedTradeDate}
         strategyStatusPending={strategyStatusPending}
-        correctionPending={correctionPending}
+        reorderPending={reorderPending}
+        timingAvailability={timingAvailability}
         onUserChange={handleUserChange}
         onBrokerChange={handleBrokerChange}
         onAccountChange={handleAccountChange}
         onStrategyChange={handleStrategyChange}
         onTradeDateChange={handleTradeDateChange}
         onStrategyStatusToggle={handleStrategyStatusToggle}
-        onOrderCorrectionSubmit={handleOrderCorrectionSubmit}
+        onReorderSubmit={handleReorderSubmit}
       />
 
       {actionError ? (
         <section
           className="rounded-xl border border-rose-300 bg-rose-50 p-4 text-rose-950 dark:border-rose-800/80 dark:bg-rose-900/40 dark:text-rose-100"
-          aria-label="주문 보정 오류"
+          aria-label="재주문 오류"
         >
           <p className="text-sm font-medium">{actionError}</p>
         </section>
       ) : null}
 
-      {correctionResult ? (
+      {reorderResult ? (
         <section
           className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950 dark:border-emerald-950/70 dark:bg-emerald-950/20 dark:text-emerald-200"
-          aria-label="주문 보정 결과"
+          aria-label="재주문 결과"
         >
-          <h2 className="text-base font-semibold">거래일 주문 보정이 완료되었습니다</h2>
-          <p className="mt-1 text-sm">처리 {correctionResult.processed}건 · 제외 {correctionResult.skipped}건</p>
+          <h2 className="text-base font-semibold">거래일 재주문이 완료되었습니다</h2>
+          <p className="mt-1 text-sm">처리 {reorderResult.processed}건 · 제외 {reorderResult.skipped}건</p>
           <p className="mt-2 text-sm">
-            {correctionResult.results.map((result) => `${result.orderId}: ${result.originalStatus} -> ${result.resultingStatus}`).join(' / ')}
+            {reorderResult.results
+              .map((r) => `${r.sourceOrderId.slice(-8)}: ${r.originalStatus} → ${r.resultingStatus}`)
+              .join(' / ')}
           </p>
         </section>
       ) : null}

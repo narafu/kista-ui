@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { correctAdminOrder } from '@entities/user'
+import { reorderAdminOrder, getReorderTimingAvailability } from '@entities/user'
 import type { AdminAccount, AdminStrategy, AdminStrategyOrder, AdminTrade } from '@entities/user'
 import { AdminTradesWorkbench } from './AdminTradesWorkbench'
 
@@ -15,7 +15,12 @@ vi.mock('@entities/user', async () => {
 
   return {
     ...actual,
-    correctAdminOrder: vi.fn(),
+    reorderAdminOrder: vi.fn(),
+    getReorderTimingAvailability: vi.fn().mockResolvedValue({
+      atOpen: false,
+      atClose: true,
+      immediate: false,
+    }),
   }
 })
 
@@ -141,7 +146,8 @@ const partiallyFilledOrder: AdminStrategyOrder = {
   filledPrice: 311.1,
 }
 
-const correctAdminOrderMock = vi.mocked(correctAdminOrder)
+const reorderAdminOrderMock = vi.mocked(reorderAdminOrder)
+const getReorderTimingAvailabilityMock = vi.mocked(getReorderTimingAvailability)
 
 async function selectBrokeredOrderTarget(user: ReturnType<typeof userEvent.setup>) {
   await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
@@ -157,30 +163,28 @@ async function selectStrategyDayTarget(user: ReturnType<typeof userEvent.setup>)
 
 describe('AdminTradesWorkbench', () => {
   beforeEach(() => {
-    correctAdminOrderMock.mockReset()
+    reorderAdminOrderMock.mockReset()
+    getReorderTimingAvailabilityMock.mockResolvedValue({
+      atOpen: false,
+      atClose: true,
+      immediate: false,
+    })
   })
 
-  it('submits same-day strategy orders together with per-order modes', async () => {
+  it('submits same-day strategy orders together with per-order timing', async () => {
     const user = userEvent.setup()
     const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
     const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
     const loadOrders = vi.fn(async () => orders)
 
-    correctAdminOrderMock.mockResolvedValue({
+    reorderAdminOrderMock.mockResolvedValue({
       userId: 'user-1',
       accountId: 'account-1',
       strategyId: 'strategy-1',
-      orderId: 'order-1',
-      mode: 'PLACED_REPLACE',
+      sourceOrderId: 'order-1',
       originalStatus: 'PLACED',
-      resultingStatus: 'PLACED',
-      replacementExternalOrderId: 'ext-2',
-      finalHoldings: 3,
-      finalAvgPrice: 312.45,
-      finalUsdDeposit: 1000,
-      strategyStatus: 'ACTIVE',
-      cycleEnded: false,
-      cycleEndDate: null,
+      resultingStatus: 'PLANNED',
+      newOrderExternalId: null,
     })
 
     render(
@@ -196,36 +200,37 @@ describe('AdminTradesWorkbench', () => {
 
     await selectStrategyDayTarget(user)
 
-    expect(screen.getByText('기존 주문을 취소한 뒤 같은 날 주문 세트를 다시 제출합니다.')).toBeInTheDocument()
+    // 주문시점 셀렉터 표시 확인
+    expect(screen.getAllByLabelText(/주문시점/)).toHaveLength(2)
 
-    await user.clear(screen.getByLabelText('order-1 보정 수량'))
-    await user.type(screen.getByLabelText('order-1 보정 수량'), '5')
-    await user.clear(screen.getByLabelText('order-1 보정 가격'))
-    await user.type(screen.getByLabelText('order-1 보정 가격'), '320.5')
-    await user.type(screen.getByLabelText('order-1 보정 메모'), '관리자 보정')
-    await user.clear(screen.getByLabelText('order-2 보정 가격'))
-    await user.type(screen.getByLabelText('order-2 보정 가격'), '321')
-    await user.click(screen.getByRole('button', { name: '거래일 주문 2건 일괄 보정' }))
+    await user.clear(screen.getByLabelText('order-1 재주문 수량'))
+    await user.type(screen.getByLabelText('order-1 재주문 수량'), '5')
+    await user.clear(screen.getByLabelText('order-1 재주문 가격'))
+    await user.type(screen.getByLabelText('order-1 재주문 가격'), '320.5')
+    await user.type(screen.getByLabelText('order-1 메모'), '관리자 재주문')
+    await user.clear(screen.getByLabelText('order-2 재주문 가격'))
+    await user.type(screen.getByLabelText('order-2 재주문 가격'), '321')
+    await user.click(screen.getByRole('button', { name: '거래일 주문 2건 일괄 재주문' }))
 
-    await waitFor(() => expect(correctAdminOrderMock).toHaveBeenCalledTimes(2))
-    expect(correctAdminOrderMock).toHaveBeenNthCalledWith(1, {
-        userId: 'user-1',
-        accountId: 'account-1',
-        strategyId: 'strategy-1',
-        orderId: 'order-1',
-        mode: 'PLACED_REPLACE',
-        tradeDateKst: '2026-07-01',
-        direction: 'BUY',
-        quantity: 5,
-        price: 320.5,
-        memo: '관리자 보정',
-      })
-    expect(correctAdminOrderMock).toHaveBeenNthCalledWith(2, {
+    await waitFor(() => expect(reorderAdminOrderMock).toHaveBeenCalledTimes(2))
+    expect(reorderAdminOrderMock).toHaveBeenNthCalledWith(1, {
+      userId: 'user-1',
+      accountId: 'account-1',
+      strategyId: 'strategy-1',
+      orderId: 'order-1',
+      timing: 'AT_CLOSE',
+      tradeDateKst: '2026-07-01',
+      direction: 'BUY',
+      quantity: 5,
+      price: 320.5,
+      memo: '관리자 재주문',
+    })
+    expect(reorderAdminOrderMock).toHaveBeenNthCalledWith(2, {
       userId: 'user-1',
       accountId: 'account-1',
       strategyId: 'strategy-1',
       orderId: 'order-2',
-      mode: 'FILLED_CORRECTION',
+      timing: 'AT_CLOSE',
       tradeDateKst: '2026-07-01',
       direction: 'SELL',
       quantity: 1,
@@ -234,51 +239,37 @@ describe('AdminTradesWorkbench', () => {
     })
   })
 
-  it('refreshes strategy day orders and shows a batch success summary after correction', async () => {
+  it('refreshes strategy day orders and shows a batch success summary after reorder', async () => {
     const user = userEvent.setup()
     const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
     const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
     const refreshedOrders: AdminStrategyOrder[] = [
-      { ...orders[0], status: 'FILLED', filledQuantity: 5, filledPrice: 320.5 },
-      { ...orders[1], filledPrice: 321 },
+      { ...orders[0], status: 'PLANNED' },
+      { ...orders[1], status: 'PLANNED' },
     ]
     const loadOrders = vi
       .fn<() => Promise<AdminStrategyOrder[]>>()
       .mockResolvedValueOnce(orders)
       .mockResolvedValueOnce(refreshedOrders)
 
-    correctAdminOrderMock
+    reorderAdminOrderMock
       .mockResolvedValueOnce({
         userId: 'user-1',
         accountId: 'account-1',
         strategyId: 'strategy-1',
-        orderId: 'order-1',
-        mode: 'PLACED_REPLACE',
+        sourceOrderId: 'order-1',
         originalStatus: 'PLACED',
-        resultingStatus: 'FILLED',
-        replacementExternalOrderId: 'ext-2',
-        finalHoldings: 5,
-        finalAvgPrice: 320.5,
-        finalUsdDeposit: 850,
-        strategyStatus: 'ACTIVE',
-        cycleEnded: false,
-        cycleEndDate: null,
+        resultingStatus: 'PLANNED',
+        newOrderExternalId: null,
       })
       .mockResolvedValueOnce({
         userId: 'user-1',
         accountId: 'account-1',
         strategyId: 'strategy-1',
-        orderId: 'order-2',
-        mode: 'FILLED_CORRECTION',
+        sourceOrderId: 'order-2',
         originalStatus: 'FILLED',
-        resultingStatus: 'FILLED',
-        replacementExternalOrderId: null,
-        finalHoldings: 5,
-        finalAvgPrice: 320.5,
-        finalUsdDeposit: 850,
-        strategyStatus: 'ACTIVE',
-        cycleEnded: false,
-        cycleEndDate: null,
+        resultingStatus: 'PLANNED',
+        newOrderExternalId: null,
       })
 
     render(
@@ -293,22 +284,21 @@ describe('AdminTradesWorkbench', () => {
     )
 
     await selectStrategyDayTarget(user)
-    await user.clear(screen.getByLabelText('order-1 보정 수량'))
-    await user.type(screen.getByLabelText('order-1 보정 수량'), '5')
-    await user.clear(screen.getByLabelText('order-1 보정 가격'))
-    await user.type(screen.getByLabelText('order-1 보정 가격'), '320.5')
-    await user.type(screen.getByLabelText('order-1 보정 메모'), '재체결 반영')
-    await user.click(screen.getByRole('button', { name: '거래일 주문 2건 일괄 보정' }))
+    await user.clear(screen.getByLabelText('order-1 재주문 수량'))
+    await user.type(screen.getByLabelText('order-1 재주문 수량'), '5')
+    await user.clear(screen.getByLabelText('order-1 재주문 가격'))
+    await user.type(screen.getByLabelText('order-1 재주문 가격'), '320.5')
+    await user.type(screen.getByLabelText('order-1 메모'), '재주문 반영')
+    await user.click(screen.getByRole('button', { name: '거래일 주문 2건 일괄 재주문' }))
 
-    await waitFor(() => expect(correctAdminOrderMock).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(reorderAdminOrderMock).toHaveBeenCalledTimes(2))
     await waitFor(() => expect(loadOrders).toHaveBeenCalledTimes(2))
     await waitFor(() =>
       expect(loadOrders).toHaveBeenLastCalledWith('account-1', 'strategy-1', '2026-07-01'),
     )
 
-    expect(screen.getByText('거래일 주문 보정이 완료되었습니다')).toBeInTheDocument()
+    expect(screen.getByText('거래일 재주문이 완료되었습니다')).toBeInTheDocument()
     expect(screen.getByText('처리 2건 · 제외 0건')).toBeInTheDocument()
-    expect(screen.getByText('order-1: PLACED -> FILLED / order-2: FILLED -> FILLED')).toBeInTheDocument()
   })
 
   it('clears the previous success summary when another trade date is selected', async () => {
@@ -319,42 +309,28 @@ describe('AdminTradesWorkbench', () => {
       .fn<() => Promise<AdminStrategyOrder[]>>()
       .mockResolvedValueOnce(orders)
       .mockResolvedValueOnce([
-        { ...orders[0], status: 'FILLED', filledQuantity: 5, filledPrice: 320.5 },
+        { ...orders[0], status: 'PLANNED' },
         orders[1],
       ])
 
-    correctAdminOrderMock
+    reorderAdminOrderMock
       .mockResolvedValueOnce({
         userId: 'user-1',
         accountId: 'account-1',
         strategyId: 'strategy-1',
-        orderId: 'order-1',
-        mode: 'PLACED_REPLACE',
+        sourceOrderId: 'order-1',
         originalStatus: 'PLACED',
-        resultingStatus: 'FILLED',
-        replacementExternalOrderId: 'ext-2',
-        finalHoldings: 5,
-        finalAvgPrice: 320.5,
-        finalUsdDeposit: 850,
-        strategyStatus: 'ACTIVE',
-        cycleEnded: false,
-        cycleEndDate: null,
+        resultingStatus: 'PLANNED',
+        newOrderExternalId: null,
       })
       .mockResolvedValueOnce({
         userId: 'user-1',
         accountId: 'account-1',
         strategyId: 'strategy-1',
-        orderId: 'order-2',
-        mode: 'FILLED_CORRECTION',
+        sourceOrderId: 'order-2',
         originalStatus: 'FILLED',
-        resultingStatus: 'FILLED',
-        replacementExternalOrderId: null,
-        finalHoldings: 5,
-        finalAvgPrice: 320.5,
-        finalUsdDeposit: 850,
-        strategyStatus: 'ACTIVE',
-        cycleEnded: false,
-        cycleEndDate: null,
+        resultingStatus: 'PLANNED',
+        newOrderExternalId: null,
       })
 
     render(
@@ -369,13 +345,13 @@ describe('AdminTradesWorkbench', () => {
     )
 
     await selectStrategyDayTarget(user)
-    await user.click(screen.getByRole('button', { name: '거래일 주문 2건 일괄 보정' }))
+    await user.click(screen.getByRole('button', { name: '거래일 주문 2건 일괄 재주문' }))
 
-    await waitFor(() => expect(screen.getByText('거래일 주문 보정이 완료되었습니다')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('거래일 재주문이 완료되었습니다')).toBeInTheDocument())
 
     await user.selectOptions(screen.getByRole('combobox', { name: '거래일 선택' }), '')
 
-    expect(screen.queryByText('거래일 주문 보정이 완료되었습니다')).not.toBeInTheDocument()
+    expect(screen.queryByText('거래일 재주문이 완료되었습니다')).not.toBeInTheDocument()
   })
 
   it('supports user-broker-account-strategy-tradeDate selection and resets lower steps', async () => {
@@ -400,7 +376,7 @@ describe('AdminTradesWorkbench', () => {
     const strategySelect = screen.getByRole('combobox', { name: '전략 선택' })
     const tradeDateSelect = screen.getByRole('combobox', { name: '거래일 선택' })
 
-    expect(screen.getByRole('heading', { name: '거래일 보정 대상' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '거래일 재주문 대상' })).toBeInTheDocument()
     expect(brokerSelect).toBeDisabled()
     expect(accountSelect).toBeDisabled()
     expect(strategySelect).toBeDisabled()
@@ -431,9 +407,9 @@ describe('AdminTradesWorkbench', () => {
     await user.selectOptions(tradeDateSelect, '2026-07-01')
 
     await waitFor(() => expect(loadOrders).toHaveBeenCalledWith('account-1', 'strategy-1', '2026-07-01'))
-    await waitFor(() => expect(screen.getByRole('button', { name: '거래일 주문 2건 일괄 보정' })).toBeInTheDocument())
-    expect(screen.getByLabelText('order-1 보정 수량')).toBeInTheDocument()
-    expect(screen.getByLabelText('order-2 보정 수량')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('button', { name: '거래일 주문 2건 일괄 재주문' })).toBeInTheDocument())
+    expect(screen.getByLabelText('order-1 재주문 수량')).toBeInTheDocument()
+    expect(screen.getByLabelText('order-2 재주문 수량')).toBeInTheDocument()
 
     await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-2')
 
@@ -596,7 +572,7 @@ describe('AdminTradesWorkbench', () => {
 
     await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
 
-    const errorSection = screen.getByLabelText('주문 보정 오류')
+    const errorSection = screen.getByLabelText('재주문 오류')
     expect(errorSection).toHaveClass('dark:bg-rose-900/40')
     expect(errorSection).toHaveClass('dark:text-rose-100')
   })
@@ -604,11 +580,11 @@ describe('AdminTradesWorkbench', () => {
   it.each([
     ['FAILED', failedOrder],
     ['CANCELLED', cancelledOrder],
-  ])('shows read-only guidance for %s orders inside the batch form', async (_status, readOnlyOrder) => {
+  ])('shows reorder form controls for %s orders (all statuses reorderable)', async (_status, order) => {
     const user = userEvent.setup()
     const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
     const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
-    const loadOrders = vi.fn(async () => [orders[0], readOnlyOrder])
+    const loadOrders = vi.fn(async () => [order])
 
     render(
       <AdminTradesWorkbench
@@ -623,13 +599,12 @@ describe('AdminTradesWorkbench', () => {
 
     await selectStrategyDayTarget(user)
 
-    const readOnlyNotice = screen.getAllByText('취소/실패 상태 주문은 현재 일괄 보정 대상에서 제외됩니다.')[0]
-    expect(readOnlyNotice).toBeInTheDocument()
-    expect(screen.getByLabelText(`${readOnlyOrder.id} 보정 수량`)).toBeDisabled()
-    expect(screen.getByRole('button', { name: '거래일 주문 1건 일괄 보정' })).toBeInTheDocument()
+    // FAILED/CANCELLED 주문도 재주문 가능 — 수량 입력 활성화
+    expect(screen.getByLabelText(`${order.id} 재주문 수량`)).not.toBeDisabled()
+    expect(screen.getByRole('button', { name: '거래일 주문 1건 일괄 재주문' })).toBeInTheDocument()
   })
 
-  it('shows batch correction submit controls for partially filled orders', async () => {
+  it('shows batch reorder submit controls for partially filled orders', async () => {
     const user = userEvent.setup()
     const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
     const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
@@ -648,16 +623,16 @@ describe('AdminTradesWorkbench', () => {
 
     await selectStrategyDayTarget(user)
 
-    expect(screen.getByRole('button', { name: '거래일 주문 1건 일괄 보정' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '거래일 주문 1건 일괄 재주문' })).toBeInTheDocument()
   })
 
-  it('shows a visible error message when any batch correction request fails', async () => {
+  it('shows a visible error message when any batch reorder request fails', async () => {
     const user = userEvent.setup()
     const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
     const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
     const loadOrders = vi.fn(async () => orders)
 
-    correctAdminOrderMock.mockRejectedValue(new Error('correction failed'))
+    reorderAdminOrderMock.mockRejectedValue(new Error('reorder failed'))
 
     render(
       <AdminTradesWorkbench
@@ -671,10 +646,10 @@ describe('AdminTradesWorkbench', () => {
     )
 
     await selectStrategyDayTarget(user)
-    await user.click(screen.getByRole('button', { name: '거래일 주문 2건 일괄 보정' }))
+    await user.click(screen.getByRole('button', { name: '거래일 주문 2건 일괄 재주문' }))
 
     await waitFor(() =>
-      expect(screen.getByText('주문 보정에 실패했습니다. 입력값과 주문 상태를 다시 확인하세요.')).toBeInTheDocument(),
+      expect(screen.getByText('재주문에 실패했습니다. 입력값과 주문 상태를 다시 확인하세요.')).toBeInTheDocument(),
     )
   })
 })

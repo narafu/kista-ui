@@ -1,8 +1,9 @@
 'use client'
 
-import type { AdminAccount, AdminOrderCorrectionRequest, AdminStrategy, AdminStrategyOrder } from '@entities/user'
+import type { AdminAccount, AdminReorderTimingAvailability, AdminStrategy, AdminStrategyOrder } from '@entities/user'
 import { formatBrokerLabel } from '@shared/lib/api-schema'
 import { AdminBatchOrderCorrectionForm } from './AdminBatchOrderCorrectionForm'
+import type { ReorderBatchItem } from './AdminBatchOrderCorrectionForm'
 
 interface UserOption {
   id: string
@@ -23,16 +24,15 @@ interface Props {
   selectedStrategyId: string
   selectedTradeDate: string
   strategyStatusPending: boolean
-  correctionPending: boolean
+  reorderPending: boolean
+  timingAvailability: AdminReorderTimingAvailability
   onUserChange: (userId: string) => void
   onBrokerChange: (broker: string) => void
   onAccountChange: (accountId: string) => void
   onStrategyChange: (strategyId: string) => void
   onTradeDateChange: (tradeDate: string) => void
   onStrategyStatusToggle: () => void
-  onOrderCorrectionSubmit: (
-    requests: Array<Pick<AdminOrderCorrectionRequest, 'orderId' | 'mode' | 'direction' | 'quantity' | 'price' | 'memo'>>,
-  ) => Promise<void>
+  onReorderSubmit: (items: ReorderBatchItem[]) => Promise<void>
 }
 
 export function AdminTradeCorrectionPanel({
@@ -49,42 +49,43 @@ export function AdminTradeCorrectionPanel({
   selectedStrategyId,
   selectedTradeDate,
   strategyStatusPending,
-  correctionPending,
+  reorderPending,
+  timingAvailability,
   onUserChange,
   onBrokerChange,
   onAccountChange,
   onStrategyChange,
   onTradeDateChange,
   onStrategyStatusToggle,
-  onOrderCorrectionSubmit,
+  onReorderSubmit,
 }: Props) {
   const nextStrategyActionLabel = selectedStrategy?.status === 'ACTIVE' ? '전략 중지' : '전략 재개'
   const helperMessage = !selectedUserId
-    ? '보정할 사용자를 먼저 선택하세요.'
+    ? '재주문할 사용자를 먼저 선택하세요.'
     : !selectedBroker
       ? brokers.length === 0
         ? '선택한 사용자에 연결된 증권사 계좌가 없습니다.'
-        : '보정할 증권사를 선택하세요.'
+        : '재주문할 증권사를 선택하세요.'
     : !selectedAccountId
       ? accounts.length === 0
         ? '선택한 증권사에 연결된 계좌가 없습니다.'
-        : '보정할 계좌를 선택하세요.'
+        : '재주문할 계좌를 선택하세요.'
       : !selectedStrategyId
         ? strategies.length === 0
           ? '선택한 계좌에 연결된 전략이 없습니다.'
-          : '보정할 전략을 선택하세요.'
+          : '재주문할 전략을 선택하세요.'
         : !selectedTradeDate
           ? tradeDates.length === 0
             ? '선택한 사용자 기준으로 조회된 거래일이 없습니다.'
-            : '보정할 거래일을 선택하세요.'
+            : '재주문할 거래일을 선택하세요.'
           : orders.length === 0
             ? '선택한 조건에 해당하는 주문이 없습니다.'
             : null
 
   return (
-    <section className="rounded-xl border border-border bg-background p-4" aria-label="주문 보정 선택">
+    <section className="rounded-xl border border-border bg-background p-4" aria-label="재주문 대상 선택">
       <div>
-        <h2 className="text-base font-semibold">주문 보정 선택</h2>
+        <h2 className="text-base font-semibold">재주문 대상 선택</h2>
         <p className="mt-1 text-sm text-muted-foreground">사용자부터 주문까지 순서대로 선택합니다</p>
       </div>
 
@@ -95,7 +96,7 @@ export function AdminTradeCorrectionPanel({
             aria-label="사용자 선택"
             value={selectedUserId}
             onChange={(event) => onUserChange(event.target.value)}
-            disabled={correctionPending}
+            disabled={reorderPending}
             className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">사용자 선택</option>
@@ -113,7 +114,7 @@ export function AdminTradeCorrectionPanel({
             aria-label="증권사 선택"
             value={selectedBroker}
             onChange={(event) => onBrokerChange(event.target.value)}
-            disabled={!selectedUserId || correctionPending}
+            disabled={!selectedUserId || reorderPending}
             className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">증권사 선택</option>
@@ -131,7 +132,7 @@ export function AdminTradeCorrectionPanel({
             aria-label="계좌 선택"
             value={selectedAccountId}
             onChange={(event) => onAccountChange(event.target.value)}
-            disabled={!selectedBroker || correctionPending}
+            disabled={!selectedBroker || reorderPending}
             className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">계좌 선택</option>
@@ -149,7 +150,7 @@ export function AdminTradeCorrectionPanel({
             aria-label="전략 선택"
             value={selectedStrategyId}
             onChange={(event) => onStrategyChange(event.target.value)}
-            disabled={!selectedAccountId || correctionPending}
+            disabled={!selectedAccountId || reorderPending}
             className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">전략 선택</option>
@@ -167,7 +168,7 @@ export function AdminTradeCorrectionPanel({
             aria-label="거래일 선택"
             value={selectedTradeDate}
             onChange={(event) => onTradeDateChange(event.target.value)}
-            disabled={!selectedStrategyId || correctionPending}
+            disabled={!selectedStrategyId || reorderPending}
             className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">거래일 선택</option>
@@ -210,8 +211,9 @@ export function AdminTradeCorrectionPanel({
       {orders.length > 0 ? (
         <AdminBatchOrderCorrectionForm
           orders={orders}
-          disabled={correctionPending}
-          onSubmit={onOrderCorrectionSubmit}
+          disabled={reorderPending}
+          timingAvailability={timingAvailability}
+          onSubmit={onReorderSubmit}
         />
       ) : null}
     </section>
