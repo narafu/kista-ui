@@ -210,6 +210,7 @@ export function AdminTradeCorrectionPanel({
 
       {orders.length > 0 ? (
         <AdminBatchOrderCorrectionForm
+          key={`${orders.map((o) => o.id).join(',')}-${Number(timingAvailability.atOpen)}${Number(timingAvailability.atClose)}${Number(timingAvailability.immediate)}`}
           orders={orders}
           disabled={reorderPending}
           timingAvailability={timingAvailability}

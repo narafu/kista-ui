@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import type { AdminReorderTimingAvailability, AdminStrategyOrder } from '@entities/user'
 import type { OrderDirection } from '@shared/lib/api-schema'
 
@@ -63,10 +63,6 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
   const [drafts, setDrafts] = useState<Record<string, OrderDraft>>(() =>
     buildInitialDrafts(orders, timingAvailability),
   )
-
-  useEffect(() => {
-    setDrafts(buildInitialDrafts(orders, timingAvailability))
-  }, [orders, timingAvailability])
 
   const isBlocked = useMemo(
     () => !timingAvailability.atOpen && !timingAvailability.atClose && !timingAvailability.immediate,
