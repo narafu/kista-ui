@@ -156,7 +156,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
             type="button"
             disabled={!canTest || testMutation.isPending}
             onClick={() => testMutation.mutate({ appKey: apiKey, appSecret: apiSecret })}
-            className="w-full h-10 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            className="w-full h-10 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
           >
             {testMutation.isPending ? (
               <>
@@ -188,7 +188,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
           type="button"
           disabled={!canProceed}
           onClick={() => onNext({ apiKey, apiSecret })}
-          className="flex-1 h-11 rounded-[var(--r-md)] bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="flex-1 h-11 rounded-[var(--r-md)] bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           다음
         </button>

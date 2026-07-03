@@ -7,6 +7,7 @@ import { ApproveRejectButtons } from '@features/admin/approve-reject'
 import { fmtDate } from '@shared/lib/format'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
+import { EmptyState } from '@shared/ui/EmptyState'
 import type { AdminUser } from '@entities/user'
 
 interface Props {
@@ -31,10 +32,9 @@ export function AdminPendingList({ initialUsers, max }: Props) {
 
   if (source.length === 0) {
     return (
-      <div className="rounded-xl border border-border p-16 text-center">
+      <EmptyState message="새로운 가입 신청이 없습니다.">
         <Clock className="size-10 text-muted-foreground mx-auto mb-4" />
-        <p className="text-sm text-muted-foreground">새로운 가입 신청이 없습니다</p>
-      </div>
+      </EmptyState>
     )
   }
 

@@ -17,7 +17,7 @@ interface Props {
   accounts: Account[]
 }
 
-function EmptyState({ accounts }: { accounts: Account[] }) {
+function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
   const hasAccounts = accounts.length > 0
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -92,7 +92,7 @@ export function AllStrategiesList({ strategies: initialStrategies, accounts }: P
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   if (strategies.length === 0)
-    return <EmptyState accounts={accounts} />
+    return <StrategiesEmptyState accounts={accounts} />
 
   const accountMap = new Map(
     accounts.map((a) => [

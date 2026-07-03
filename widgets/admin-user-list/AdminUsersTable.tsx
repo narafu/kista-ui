@@ -7,6 +7,7 @@ import { WithdrawUserButton } from '@features/admin/withdraw-user'
 import { fmtDate } from '@shared/lib/format'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
+import { EmptyState } from '@shared/ui/EmptyState'
 import type { AdminUser, UserStatus } from '@entities/user'
 
 const STATUS_LABEL: Record<UserStatus, string> = {
@@ -37,9 +38,7 @@ export function AdminUsersTable({ initialUsers, currentUserId, filterBar }: Prop
 
   if (users.length === 0) {
     return (
-      <div className="rounded-xl border border-border p-12 text-center text-sm text-muted-foreground">
-        등록된 사용자가 없습니다
-      </div>
+      <EmptyState message="등록된 사용자가 없습니다." />
     )
   }
 

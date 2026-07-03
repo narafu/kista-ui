@@ -122,7 +122,7 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
           type="button"
           disabled={!valid}
           onClick={() => onNext({ nickname: nickname.trim(), accountNo })}
-          className="flex-1 h-11 rounded-[var(--r-md)] bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="flex-1 h-11 rounded-[var(--r-md)] bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           다음
         </button>

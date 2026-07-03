@@ -84,7 +84,7 @@ export function ConfirmStep({ data, onBack }: Props) {
           type="button"
           onClick={onBack}
           disabled={isPending}
-          className="flex-1 h-11 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted transition-colors disabled:opacity-40"
+          className="flex-1 h-11 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted transition-colors disabled:opacity-50"
         >
           이전
         </button>
@@ -92,7 +92,7 @@ export function ConfirmStep({ data, onBack }: Props) {
           type="button"
           onClick={handleSubmit}
           disabled={isPending}
-          className="flex-1 h-11 rounded-[var(--r-md)] bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 disabled:opacity-60 transition-colors inline-flex items-center justify-center gap-2"
+          className="flex-1 h-11 rounded-[var(--r-md)] bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 disabled:opacity-50 transition-colors inline-flex items-center justify-center gap-2"
         >
           {isPending ? (
             <>
