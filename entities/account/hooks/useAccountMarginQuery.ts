@@ -85,7 +85,7 @@ export function useCreateAccountMutation() {
 
 // side effect 없음 — UI에서 isSuccess/isError로 인라인 표시
 export function useTestKisConnectionMutation() {
-  return useMutation<void, Error, { appKey: string; appSecret: string }>({ // eslint-disable-line react-doctor/query-mutation-missing-invalidation
-    mutationFn: ({ appKey, appSecret }) => testKisConnection(appKey, appSecret),
+  return useMutation<void, Error, { appKey: string; appSecret: string; broker?: string }>({ // eslint-disable-line react-doctor/query-mutation-missing-invalidation
+    mutationFn: ({ appKey, appSecret, broker }) => testKisConnection(appKey, appSecret, broker),
   })
 }

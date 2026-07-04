@@ -1628,6 +1628,7 @@ export interface components {
             expiresIn?: number;
         };
         TestConnectionRequest: {
+            broker?: "KIS" | "TOSS";
             appKey?: string;
             appSecret?: string;
             /** Format: uuid */

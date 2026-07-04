@@ -155,7 +155,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
           <button
             type="button"
             disabled={!canTest || testMutation.isPending}
-            onClick={() => testMutation.mutate({ appKey: apiKey, appSecret: apiSecret })}
+            onClick={() => testMutation.mutate({ appKey: apiKey, appSecret: apiSecret, broker })}
             className="w-full h-10 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
           >
             {testMutation.isPending ? (
@@ -174,7 +174,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
           {testMutation.isError && (
             <div className="flex items-center gap-1.5 text-sm text-neg">
               <XCircle className="size-4" />
-              KIS API 인증에 실패했습니다. App Key 또는 App Secret을 확인하세요.
+              증권사 API 인증에 실패했습니다. {config.keyLabel} 또는 {config.secretLabel}을 확인하세요.
             </div>
           )}
         </div>
