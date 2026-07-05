@@ -3,6 +3,8 @@ import { formatBrokerLabel } from '@shared/lib/api-schema'
 import { listAdminAccounts } from '@entities/user'
 import type { AdminAccount, AdminAccountStrategy } from '@entities/user'
 import { RevealableValue } from '@widgets/revealable-value'
+import { Badge } from '@shared/ui/Badge'
+import { EmptyState } from '@shared/ui/EmptyState'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { RangeFilterBar, type RangePreset } from '@shared/ui/RangeFilterBar'
@@ -23,12 +25,9 @@ function strategyTypeShort(type: string): string {
 function StrategyBadge({ strategy }: { strategy: AdminAccountStrategy }) {
   const color = STRATEGY_STATUS_COLOR[strategy.status] ?? 'var(--muted-foreground)'
   return (
-    <span
-      className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-bold border bg-muted/40 whitespace-nowrap"
-      style={{ borderColor: color, color }}
-    >
+    <Badge tone='none' size='sm' className="border bg-muted/40 font-bold" style={{ borderColor: color, color }}>
       {strategyTypeShort(strategy.type)}-{strategy.ticker}
-    </span>
+    </Badge>
   )
 }
 
@@ -89,9 +88,7 @@ export default async function AdminAccountsPage({
       </div>
 
       {accounts.length === 0 ? (
-        <div className="rounded-xl border border-border p-10 text-center text-sm text-muted-foreground">
-          등록된 계좌가 없습니다
-        </div>
+        <EmptyState message="등록된 계좌가 없습니다." />
       ) : (
         <div className="rounded-xl border border-border overflow-x-auto">
           <table className="min-w-[720px] w-full text-sm">

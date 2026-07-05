@@ -22,7 +22,7 @@ export default async function AdminOverviewPage() {
       {/* Hero 통계 카드 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         <StatCard icon={<Users className="size-5 text-[var(--brand-fg-soft)]" />} label="전체" value={stats?.totalUsers ?? '-'} />
-        <StatCard icon={<Clock className="size-5 text-amber-500" />} label="승인 대기" value={stats?.pendingCount ?? '-'} />
+        <StatCard icon={<Clock className="size-5 text-warn" />} label="승인 대기" value={stats?.pendingCount ?? '-'} />
         <StatCard icon={<CheckCircle className="size-5 text-emerald-500" />} label="승인됨" value={stats?.activeCount ?? '-'} />
         <StatCard icon={<XCircle className="size-5 text-slate-400" />} label="거절됨" value={stats?.rejectedCount ?? '-'} />
       </div>
@@ -32,7 +32,7 @@ export default async function AdminOverviewPage() {
         <h2 className="text-base font-bold mb-4">
           승인 대기
           {stats?.pendingCount ? (
-            <span className="ml-2 text-xs font-semibold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+            <span className="ml-2 text-xs font-semibold bg-warn-bg text-warn px-2 py-0.5 rounded-full">
               {stats.pendingCount}명
             </span>
           ) : null}

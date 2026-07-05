@@ -1,16 +1,19 @@
+import { Skeleton } from '@/components/ui/skeleton'
+import { CardSkeleton } from '@shared/ui/CardSkeleton'
+
 export default function AccountDetailLoading() {
   return (
     <div className="animate-pulse space-y-6">
-      <div className="h-8 w-48 rounded bg-muted" />
+      <Skeleton className="h-8 w-48" />
       <div className="grid grid-cols-2 gap-6">
-        <div className="h-48 rounded-[var(--r-lg)] bg-card border border-border" />
-        <div className="h-48 rounded-[var(--r-lg)] bg-card border border-border" />
+        <CardSkeleton className="h-48" />
+        <CardSkeleton className="h-48" />
       </div>
       <div className="grid grid-cols-2 gap-6">
-        <div className="h-64 rounded-[var(--r-lg)] bg-card border border-border" />
-        <div className="h-64 rounded-[var(--r-lg)] bg-card border border-border" />
+        <CardSkeleton className="h-64" />
+        <CardSkeleton className="h-64" />
       </div>
-      <div className="h-40 rounded-[var(--r-lg)] bg-card border border-border" />
+      <CardSkeleton className="h-40" />
     </div>
   )
 }

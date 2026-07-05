@@ -8,6 +8,7 @@ import { RevealableValue } from '@widgets/revealable-value'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { RangeFilterBar, type RangePreset } from '@shared/ui/RangeFilterBar'
+import { fmtDateTime } from '@shared/lib/format'
 
 type LogType = 'all' | 'audit' | 'error' | 'anomaly'
 
@@ -156,7 +157,7 @@ function AnomaliesSection({
         <h2 className="text-base font-bold shrink-0 mb-2 lg:mb-0">
           이상징후(7일)
           {total > 0 && (
-            <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+            <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-warn-bg text-warn">
               {total}
             </span>
           )}
@@ -172,7 +173,7 @@ function AnomaliesSection({
           <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             일시정지 계좌
             {anomalies.pausedAccounts.length > 0 && (
-              <span className="ml-2 normal-case font-medium text-amber-600">
+              <span className="ml-2 normal-case font-medium text-warn">
                 {anomalies.pausedAccounts.length}
               </span>
             )}
@@ -305,7 +306,7 @@ function AuditLogsSection({
                   )}
                 </div>
                 <time className="text-sm text-muted-foreground shrink-0">
-                  {new Date(log.createdAt).toLocaleString('ko-KR')}
+                  {fmtDateTime(log.createdAt)}
                 </time>
               </div>
             </div>
