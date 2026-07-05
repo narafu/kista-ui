@@ -43,7 +43,7 @@ export function ThemeCards() {
             key={o.key}
             type="button"
             onClick={() => setTheme(o.key)}
-            className="p-3 rounded-[var(--r-md)] bg-card cursor-pointer transition-[border-color] duration-150 text-left w-full"
+            className="relative p-3 rounded-[var(--r-md)] bg-card cursor-pointer transition-[border-color] duration-150 text-left w-full"
             style={{ border: `2px solid ${on ? 'var(--rose-400)' : 'var(--border)'}` }}
           >
             <div
@@ -54,15 +54,13 @@ export function ThemeCards() {
               <div className="h-4 rounded" style={{ background: o.card }} />
               <div className="h-1 rounded-sm w-[40%] mt-auto" style={{ background: o.accent }} />
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-sm font-bold">{o.label}</div>
-                <div className="text-sm text-muted-foreground">{o.desc}</div>
-              </div>
-              {on && (
-                <span className="size-4 rounded-full bg-rose-500 text-white grid place-items-center text-xs">✓</span>
-              )}
+            <div>
+              <div className="text-sm font-bold">{o.label}</div>
+              <div className="text-sm text-muted-foreground">{o.desc}</div>
             </div>
+            {on && (
+              <span className="absolute right-3 bottom-3 size-4 rounded-full bg-rose-500 text-white grid place-items-center text-xs">✓</span>
+            )}
           </button>
         )
       })}
