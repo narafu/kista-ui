@@ -4,6 +4,7 @@ import { useReducer } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useStrategyCycleHistoryQuery } from '@entities/trade'
 import { CycleHistoryTable } from './CycleHistoryTable'
+import { EmptyState } from '@shared/ui/EmptyState'
 import { buildParams, type RangeType } from './lib/buildParams'
 
 type State = { rangeType: RangeType; customFrom: string; customTo: string; pageSize: string }
@@ -43,7 +44,7 @@ export function StrategyTradesTab({ strategyId }: Props) {
           <CardTitle className="text-base">잔고 이력</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-8">전략이 없습니다.</p>
+          <EmptyState variant="text" message="전략이 없습니다." />
         </CardContent>
       </Card>
     )

@@ -7,6 +7,8 @@ import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { Badge } from '@shared/ui/Badge'
+import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { fmtUsd } from '@shared/lib/format'
 import { toNum } from '@shared/lib/utils'
 
@@ -22,7 +24,7 @@ const RANGE_LABELS: Record<RangeType, string> = {
 const ORDER_TYPE_STYLE: Record<string, string> = {
   LIMIT: 'bg-muted text-muted-foreground',
   LOC: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400',
-  MOC: 'bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400',
+  MOC: 'bg-warn-bg text-warn',
 }
 
 function resolveRange(rangeType: RangeType, customFrom: string, customTo: string): { from?: string; to?: string } | null {
@@ -135,13 +137,13 @@ export function StrategyOrderHistory({ strategyId }: Props) {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>
-                    <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">날짜</th>
-                    <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">방향</th>
-                    <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">유형</th>
-                    <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">수량</th>
-                    <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">주문가</th>
-                    <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">체결가</th>
-                    <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">상태</th>
+                    <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">날짜</TableHeadCell>
+                    <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">방향</TableHeadCell>
+                    <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">유형</TableHeadCell>
+                    <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">수량</TableHeadCell>
+                    <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">주문가</TableHeadCell>
+                    <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">체결가</TableHeadCell>
+                    <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">상태</TableHeadCell>
                   </tr>
                 </thead>
                 <tbody>
@@ -150,9 +152,9 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                       <td className="px-4 py-3 text-center text-muted-foreground text-xs whitespace-nowrap">{o.tradeDate}</td>
                       <td className={`px-4 py-3 text-center font-semibold whitespace-nowrap ${directionTextClass(o.direction)}`}>{DIRECTION_LABEL[o.direction] ?? o.direction}</td>
                       <td className="px-4 py-3 text-center whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${ORDER_TYPE_STYLE[o.orderType] ?? 'bg-muted text-muted-foreground'}`}>
+                        <Badge tone="none" size="sm" className={ORDER_TYPE_STYLE[o.orderType] ?? 'bg-muted text-muted-foreground'}>
                           {o.orderType}
-                        </span>
+                        </Badge>
                       </td>
                       <td className="px-4 py-3 text-center whitespace-nowrap">
                         {o.filledQuantity != null ? (
@@ -169,9 +171,9 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                         {o.filledPrice != null ? `$${fmtUsd(toNum(o.filledPrice))}` : <span className="text-muted-foreground">-</span>}
                       </td>
                       <td className="px-4 py-3 text-center whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${orderStatusBadgeClass(o.status)}`}>
+                        <Badge tone="none" size="sm" className={orderStatusBadgeClass(o.status)}>
                           {ORDER_STATUS_LABEL[o.status] ?? o.status}
-                        </span>
+                        </Badge>
                       </td>
                     </tr>
                   ))}

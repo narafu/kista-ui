@@ -7,6 +7,7 @@ import { fmtUsd } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import { seedBadgeClass, strategyStatusAccent } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
+import { Badge } from '@shared/ui/Badge'
 
 interface Props {
   accountId: string
@@ -36,13 +37,8 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
       <div className="flex flex-col gap-1.5 pl-5 pr-4 py-3 lg:hidden">
         {/* 1행: 배지 + 계좌번호 */}
         <div data-testid="strategy-card-mobile-top-row" className="flex items-center gap-1.5">
-          <span
-            className="inline-flex items-center px-2.5 h-[20px] rounded-full text-xs font-semibold whitespace-nowrap"
-            style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
-          >
-            {strategy.type}
-          </span>
-          <span className={`inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold whitespace-nowrap ${seedBadgeCls}`}>{seedLabel}</span>
+          <Badge tone="brand" size="sm" className="px-2.5">{strategy.type}</Badge>
+          <Badge tone="none" size="sm" className={seedBadgeCls}>{seedLabel}</Badge>
           {accountLabel && (
             <span className="ml-auto text-xs font-semibold text-foreground/60 shrink-0 font-mono tracking-wider">{accountLabel}</span>
           )}
@@ -52,13 +48,13 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
           <span className="font-bold text-base text-foreground">{strategy.ticker}</span>
           {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
           {usesDivisionCount && (
-            <span className="inline-flex shrink-0 items-center px-2 h-[20px] rounded-full text-xs font-semibold whitespace-nowrap bg-muted text-foreground">
+            <Badge tone="neutral" size="sm" className="text-foreground">
               {strategy.divisionCount}분할
-            </span>
+            </Badge>
           )}
           {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
           {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
-            <span className="shrink-0 whitespace-nowrap text-xs font-semibold text-amber-600 dark:text-amber-400">{strategy.currentRound!.toFixed(1)}회차</span>
+            <span className="shrink-0 whitespace-nowrap text-xs font-semibold text-warn">{strategy.currentRound!.toFixed(1)}회차</span>
           )}
           <span className="ml-auto text-sm font-semibold text-foreground">
             {strategy.initialUsdDeposit != null ? (
@@ -77,22 +73,15 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
           {/* 배지 row + 계좌번호 우측 */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span
-                className="inline-flex items-center px-2.5 h-[22px] rounded-full text-xs font-semibold whitespace-nowrap"
-                style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
-              >
-                {strategy.type}
-              </span>
+              <Badge tone="brand" size="md" className="h-[22px]">{strategy.type}</Badge>
               {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
-          {usesDivisionCount && (
-                <span className="inline-flex items-center px-2 h-[22px] rounded-full text-xs font-semibold whitespace-nowrap bg-muted text-foreground">
+              {usesDivisionCount && (
+                <Badge tone="neutral" size="sm" className="h-[22px] text-foreground">
                   {strategy.divisionCount}분할
-                </span>
+                </Badge>
               )}
               {strategy.isReverseMode && (
-                <span className="inline-flex items-center px-2 h-[22px] rounded-full text-xs font-semibold whitespace-nowrap bg-amber-50 text-amber-600">
-                  리버스
-                </span>
+                <Badge tone="warn" size="sm" className="h-[22px]">리버스</Badge>
               )}
             </div>
             {accountLabel && (
@@ -106,14 +95,14 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
             </span>
             {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
             {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
-              <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-amber-600 dark:text-amber-400">{strategy.currentRound!.toFixed(1)}회차</span>
+              <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-warn">{strategy.currentRound!.toFixed(1)}회차</span>
             )}
           </div>
         </div>
         {/* 시드 정보 행 */}
         <div className="flex items-center justify-between pl-5 pr-4 py-2 border-t border-border">
           <span className="text-sm text-muted-foreground">다음 사이클</span>
-          <span className={`inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold whitespace-nowrap ${seedBadgeCls}`}>{seedLabel}</span>
+          <Badge tone="none" size="sm" className={seedBadgeCls}>{seedLabel}</Badge>
         </div>
         {/* 시작금액 푸터 */}
         <div className="flex items-center justify-between pl-5 pr-4 py-2.5 border-t border-border bg-muted/30">

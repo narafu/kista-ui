@@ -6,6 +6,8 @@ import { fmtUsd, fmtDate } from '@shared/lib/format'
 import type { CycleHistoryItem } from '@entities/trade'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { Badge } from '@shared/ui/Badge'
+import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { RANGE_LABELS, type RangeType } from './lib/buildParams'
 
 interface Props {
@@ -110,9 +112,9 @@ export function CycleHistoryTable({
                   {g.items.map((entry) => (
                     <div key={entry.createdAt} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5 space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <span className="inline-flex items-center px-2.5 h-5 rounded-full text-xs font-bold whitespace-nowrap bg-rose-50 text-rose-600">
+                        <Badge tone="brand" size="sm" className="px-2.5 font-bold">
                           {entry.ticker ?? '-'}
-                        </span>
+                        </Badge>
                         <span className="text-sm font-semibold">{entry.holdings}주</span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
@@ -133,11 +135,11 @@ export function CycleHistoryTable({
               <table className="w-full text-sm lg:text-base">
                 <thead className="bg-muted/50 sticky top-0 z-10">
                   <tr>
-                    <th className="px-4 py-3 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">티커</th>
-                    <th className="px-4 py-3 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">수량</th>
-                    <th className="px-4 py-3 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">평단가</th>
-                    <th className="px-4 py-3 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">예수금</th>
-                    <th className="px-4 py-3 text-center text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)]">평가금액</th>
+                    <TableHeadCell>티커</TableHeadCell>
+                    <TableHeadCell>수량</TableHeadCell>
+                    <TableHeadCell>평단가</TableHeadCell>
+                    <TableHeadCell>예수금</TableHeadCell>
+                    <TableHeadCell>평가금액</TableHeadCell>
                   </tr>
                 </thead>
                 <tbody>

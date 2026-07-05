@@ -27,6 +27,9 @@ import { useMeta } from '@entities/meta'
 import { cn, toNum } from '@shared/lib/utils'
 import { fmtUsd } from '@shared/lib/format'
 import { ApiError } from '@shared/lib/api-client'
+import { Badge } from '@shared/ui/Badge'
+import { EmptyState } from '@shared/ui/EmptyState'
+import { Skeleton } from '@/components/ui/skeleton'
 import type { Strategy } from '@entities/strategy'
 import type { SkipReason, PlacedOrder } from '@entities/order'
 import { OrderRows } from './OrderRows'
@@ -136,14 +139,12 @@ export function StrategyDetail({ accountId, strategy }: Props) {
               </div>
               <div data-testid="strategy-status-group" className="flex flex-wrap items-center justify-end gap-2">
                 {strategy.isReverseMode && (
-                  <span className="inline-flex items-center px-2.5 h-[24px] rounded-full text-xs font-semibold whitespace-nowrap bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400">
-                    리버스모드
-                  </span>
+                  <Badge tone="warn" size="md">리버스모드</Badge>
                 )}
                 {strategy.status !== 'ACTIVE' && (
-                  <span className={cn('inline-flex shrink-0 items-center px-3 h-[28px] rounded-full text-xs lg:text-sm font-semibold whitespace-nowrap border', 'border-warn/20 bg-warn-bg text-warn')}>
+                  <Badge tone="warn" size="lg" className="border border-warn/20">
                     {strategy.status}
-                  </span>
+                  </Badge>
                 )}
               </div>
             </div>
@@ -157,7 +158,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
               <KpiCard
                 label="다음 사이클"
                 value={
-                  <span className={cn('inline-flex items-center px-2.5 h-[28px] lg:h-[36px] rounded-full text-sm lg:text-base font-semibold whitespace-nowrap', seedBadgeCls)}>{cycleSeedLabel}</span>
+                  <Badge tone="none" size="md" className={cn('h-[28px] lg:h-[36px] text-sm lg:text-base', seedBadgeCls)}>{cycleSeedLabel}</Badge>
                 }
                 className="p-4 lg:p-5"
               />
@@ -223,10 +224,8 @@ export function StrategyDetail({ accountId, strategy }: Props) {
               <CardTitle className="text-base lg:text-lg">다음 주문</CardTitle>
               <p className="text-sm lg:text-base text-muted-foreground mt-0.5">매 거래일 개장 시 자동실행</p>
               {hasBuyOrders && !isMarginLoading && hasDeficit && (
-                <p className="hidden lg:flex items-center gap-1.5 mt-1.5 text-sm lg:text-base text-amber-600 dark:text-amber-400">
-                  <span className="inline-flex items-center px-2 h-[20px] lg:h-[24px] rounded-full text-xs lg:text-sm font-semibold bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400">
-                    예수금 부족
-                  </span>
+                <p className="hidden lg:flex items-center gap-1.5 mt-1.5 text-sm lg:text-base text-warn">
+                  <Badge tone="warn" size="sm" className="lg:h-[24px] lg:text-sm">예수금 부족</Badge>
                   ${fmtUsd(previewDeficit)} 부족
                 </p>
               )}
@@ -266,7 +265,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
           {mode === 'executed' ? (
             <div>
               <div className="flex items-center justify-between px-6 py-3 border-b border-border">
-                <p className="text-sm lg:text-base uppercase tracking-widest font-semibold text-amber-600">{placedOrders.length > 0 ? `${placedOrders.length}건 접수됨` : '접수됨'}</p>
+                <p className="text-sm lg:text-base uppercase tracking-widest font-semibold text-warn">{placedOrders.length > 0 ? `${placedOrders.length}건 접수됨` : '접수됨'}</p>
                 <button
                   type="button"
                   onClick={() =>
@@ -299,17 +298,17 @@ export function StrategyDetail({ accountId, strategy }: Props) {
           ) : isPreviewError ? (
             <p className="text-sm lg:text-base text-muted-foreground text-center px-6 py-4">{previewErrorMsg(previewError)}</p>
           ) : orders.length === 0 ? (
-            <p className="text-sm lg:text-base text-muted-foreground text-center px-6 py-4">{preview?.skipReason ? SKIP_REASON_LABELS[preview.skipReason] : '예정된 주문이 없습니다.'}</p>
+            <EmptyState variant="text" message={preview?.skipReason ? SKIP_REASON_LABELS[preview.skipReason] : '예정된 주문이 없습니다.'} />
           ) : (
             <div>
               {hasBuyOrders && isMarginLoading && (
                 <div className="px-6 py-3 border-b border-border">
-                  <div className="h-4 w-64 bg-muted animate-pulse rounded" />
+                  <Skeleton className="h-4 w-64" />
                 </div>
               )}
               {hasBuyOrders && !isMarginLoading && hasDeficit && (
                 <div className="lg:hidden px-6 py-2.5 border-b border-border flex items-center gap-2 text-sm text-muted-foreground">
-                  <span className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400">예수금 부족</span>
+                  <Badge tone="warn" size="sm">예수금 부족</Badge>
                   {`$${fmtUsd(previewDeficit)} 부족`}
                 </div>
               )}
@@ -335,7 +334,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
             </AlertDialogTrigger>
             <AlertDialogContent size="sm">
               <AlertDialogHeader>
-                <AlertDialogTitle>전략 삭제</AlertDialogTitle>
+                <AlertDialogTitle>전략을 삭제하시겠습니까?</AlertDialogTitle>
                 <AlertDialogDescription>{strategy.ticker} 전략을 삭제하시겠습니까? 진행 중인 사이클이 종료됩니다.</AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

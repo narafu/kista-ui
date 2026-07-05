@@ -3,6 +3,8 @@
 import { cn } from '@shared/lib/utils'
 import { fmtUsd } from '@shared/lib/format'
 import { toNum } from '@shared/lib/utils'
+import { Badge } from '@shared/ui/Badge'
+import { TableHeadCell } from '@shared/ui/TableHeadCell'
 
 export interface OrderRowData {
   id?: string
@@ -23,7 +25,7 @@ interface Props {
 const directionBadgeCls = (direction: string) =>
   direction === 'BUY'
     ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400'
-    : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400'
+    : 'bg-neg-bg text-neg'
 
 const directionLabel = (direction: string) => direction === 'BUY' ? '매수' : '매도'
 
@@ -50,9 +52,9 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
             hasCancel ? 'grid-cols-5' : 'grid-cols-4',
           )}>
             <div className="flex justify-center">
-              <span className={cn('inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold', directionBadgeCls(o.direction))}>
+              <Badge tone="none" size="sm" className={directionBadgeCls(o.direction)}>
                 {directionLabel(o.direction)}
-              </span>
+              </Badge>
             </div>
             <span className="font-medium">{o.ticker}</span>
             <span className="text-muted-foreground">{o.quantity}</span>
@@ -79,12 +81,12 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
       <table className="hidden lg:table w-full">
         <thead>
           <tr>
-            <th className="px-5 py-2.5 text-left text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">구분</th>
-            <th className="px-5 py-2.5 text-left text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">종목</th>
-            <th className="px-5 py-2.5 text-right text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">수량</th>
-            <th className="px-5 py-2.5 text-right text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">주문가</th>
+            <TableHeadCell className="px-5 py-2.5 text-left bg-muted/50 border-b border-border">구분</TableHeadCell>
+            <TableHeadCell className="px-5 py-2.5 text-left bg-muted/50 border-b border-border">종목</TableHeadCell>
+            <TableHeadCell className="px-5 py-2.5 text-right bg-muted/50 border-b border-border">수량</TableHeadCell>
+            <TableHeadCell className="px-5 py-2.5 text-right bg-muted/50 border-b border-border">주문가</TableHeadCell>
             {hasCancel && (
-              <th className="px-5 py-2.5 text-right text-sm lg:text-base uppercase tracking-widest text-[var(--brand-fg-soft)] bg-muted/50 border-b border-border font-semibold">취소</th>
+              <TableHeadCell className="px-5 py-2.5 text-right bg-muted/50 border-b border-border">취소</TableHeadCell>
             )}
           </tr>
         </thead>
@@ -92,9 +94,9 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
           {orders.map((o, i) => (
             <tr key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className="border-b border-border last:border-b-0">
               <td className="px-5 py-3">
-                <span className={cn('inline-flex items-center px-2 h-[20px] lg:h-[24px] rounded-full text-xs lg:text-sm font-semibold', directionBadgeCls(o.direction))}>
+                <Badge tone="none" size="sm" className={cn('lg:h-[24px] lg:text-sm', directionBadgeCls(o.direction))}>
                   {directionLabel(o.direction)}
-                </span>
+                </Badge>
               </td>
               <td className="px-5 py-3 text-sm lg:text-base font-semibold">{o.ticker}</td>
               <td className="px-5 py-3 text-sm lg:text-base text-muted-foreground text-right">{o.quantity}</td>
