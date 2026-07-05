@@ -3,7 +3,7 @@
 import { useState, useSyncExternalStore } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
-import { fmtSignedUsd } from '@shared/lib/format'
+import { fmtUsd } from '@shared/lib/format'
 import { useMonthlyHolidaysQuery } from '@entities/market'
 import { useWeeklyTradeSummaryQuery, directionTextClass, type DayTradeSummary } from '@entities/trade'
 
@@ -67,7 +67,7 @@ function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
             'text-[10px] leading-none opacity-60',
             directionTextClass(daySummary.netAmountUsd >= 0 ? 'SELL' : 'BUY'),
           )}>
-            {fmtSignedUsd(daySummary.netAmountUsd, 0)}
+            {`${daySummary.netAmountUsd >= 0 ? '+' : '-'}$${fmtUsd(Math.abs(daySummary.netAmountUsd), 0)}`}
           </span>
         )}
       </div>
@@ -112,7 +112,7 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
           'text-xs font-semibold px-1.5 py-[1px] rounded',
           isSell ? 'bg-neg-bg text-neg' : 'bg-pos-bg text-pos',
         )}>
-          {`${isSell ? '매도' : '매수'} ${fmtSignedUsd(summary.netAmountUsd, 0)}`}
+          {`${isSell ? '매도 +' : '매수 '}$${fmtUsd(Math.abs(summary.netAmountUsd), 0)}`}
         </span>
       )
       sub = <span className="text-xs text-muted-foreground">{summary.tradeCount}체결</span>
