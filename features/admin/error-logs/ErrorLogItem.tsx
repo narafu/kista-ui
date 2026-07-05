@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { AppErrorLog } from '@entities/user'
+import { fmtDateTime } from '@shared/lib/format'
 
 interface Props {
   log: AppErrorLog
@@ -62,7 +63,7 @@ export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled =
 
         {/* 발생 시각 */}
         <time className="text-sm text-muted-foreground shrink-0">
-          {new Date(log.createdAt).toLocaleString('ko-KR')}
+          {fmtDateTime(log.createdAt)}
         </time>
       </div>
     </div>

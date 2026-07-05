@@ -60,7 +60,7 @@ export function PendingTelegramConnect({ hasTelegram, currentChannel }: Props) {
   if (hasTelegram) {
     return (
       <div className="flex flex-col gap-3">
-        <p className="text-sm text-green-600 font-medium">✓ 텔레그램 봇이 연동되었습니다</p>
+        <p className="text-sm text-status-ok font-medium">✓ 텔레그램 봇이 연동되었습니다</p>
         <Button
           variant="outline"
           size="lg"

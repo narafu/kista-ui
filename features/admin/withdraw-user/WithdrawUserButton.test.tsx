@@ -20,7 +20,7 @@ describe('WithdrawUserButton', () => {
 
     await user.click(screen.getByRole('button', { name: '탈퇴' }))
 
-    expect(screen.getByText('회원 강제 탈퇴')).toBeInTheDocument()
+    expect(screen.getByText('회원을 강제 탈퇴시키겠습니까?')).toBeInTheDocument()
     expect(screen.getByText(/홍길동/)).toBeInTheDocument()
   })
 

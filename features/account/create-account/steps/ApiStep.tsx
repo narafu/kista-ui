@@ -167,7 +167,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
             )}
           </button>
           {testMutation.isSuccess && (
-            <div className="flex items-center gap-1.5 text-sm text-emerald-600">
+            <div className="flex items-center gap-1.5 text-sm text-status-ok">
               <CheckCircle2 className="size-4" /> 연결 성공
             </div>
           )}

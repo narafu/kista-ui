@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useUpdateBalanceCheckEnabledMutation } from '@entities/user'
+import { Switch } from '@/components/ui/switch'
 
 interface Props {
   initialEnabled: boolean
@@ -11,8 +12,7 @@ export function BalanceCheckSetting({ initialEnabled }: Props) {
   const [enabled, setEnabled] = useState(initialEnabled)
   const mutation = useUpdateBalanceCheckEnabledMutation()
 
-  function handleToggle() {
-    const next = !enabled
+  function handleToggle(next: boolean) {
     setEnabled(next)
     mutation.mutate(next)
   }
@@ -26,27 +26,12 @@ export function BalanceCheckSetting({ initialEnabled }: Props) {
           미리보기로 주문금액을 확인 후 필요한 금액만 이체해 운용할 수 있습니다.
         </div>
       </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={enabled}
-        aria-label="잔고 검증"
+      <Switch
+        checked={enabled}
+        onCheckedChange={handleToggle}
         disabled={mutation.isPending}
-        onClick={handleToggle}
-        className={[
-          'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-          'disabled:cursor-not-allowed disabled:opacity-50',
-          enabled ? 'bg-[var(--rose-600,theme(colors.rose.600))]' : 'bg-input',
-        ].join(' ')}
-      >
-        <span
-          className={[
-            'pointer-events-none inline-block size-5 rounded-full bg-white shadow-lg ring-0 transition-transform',
-            enabled ? 'translate-x-5' : 'translate-x-0',
-          ].join(' ')}
-        />
-      </button>
+        aria-label="잔고 검증"
+      />
     </div>
   )
 }

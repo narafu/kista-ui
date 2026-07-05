@@ -128,7 +128,7 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
         </p>
       )}
       {fcmStatus === 'denied' && (
-        <p className="text-sm mt-2" style={{ color: 'var(--neg)' }}>
+        <p className="text-sm mt-2 text-destructive">
           알림이 차단되어 있습니다. 브라우저 설정 &gt; 알림에서 이 사이트를 허용해주세요.
         </p>
       )}

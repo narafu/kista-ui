@@ -34,7 +34,7 @@ export function DeleteAccountButton() {
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-neg">정말 탈퇴하시겠습니까?</AlertDialogTitle>
+            <AlertDialogTitle className="text-destructive">정말 탈퇴하시겠습니까?</AlertDialogTitle>
             <AlertDialogDescription>
               모든 계좌, 거래 내역, 설정이 즉시 삭제되며 복구할 수 없습니다.
             </AlertDialogDescription>

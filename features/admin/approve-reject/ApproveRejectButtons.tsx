@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { useApproveUserMutation, useRejectUserMutation } from '@entities/user'
 import { Spinner } from '@shared/ui/Spinner'
+import { buttonVariants } from '@/components/ui/button-variants'
+import { cn } from '@shared/lib/utils'
 
 interface Props {
   userId: string
@@ -19,7 +21,6 @@ export function ApproveRejectButtons({ userId, nickname }: Props) {
     setAction('approve')
     approveMutation.mutate(userId, {
       onSuccess: () => toast.success(`${nickname} 승인 완료`),
-      onError: () => toast.error('승인 실패'),
       onSettled: () => setAction(null),
     })
   }
@@ -28,7 +29,6 @@ export function ApproveRejectButtons({ userId, nickname }: Props) {
     setAction('reject')
     rejectMutation.mutate(userId, {
       onSuccess: () => toast.success(`${nickname} 거절 완료`),
-      onError: () => toast.error('거절 실패'),
       onSettled: () => setAction(null),
     })
   }
@@ -41,7 +41,7 @@ export function ApproveRejectButtons({ userId, nickname }: Props) {
         type="button"
         onClick={handleApprove}
         disabled={loading}
-        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50 transition-colors"
+        className={cn(buttonVariants({ variant: 'default', size: 'sm' }), 'gap-1')}
       >
         {action === 'approve' ? <><Spinner size={12} />승인 중...</> : '승인'}
       </button>
@@ -49,7 +49,7 @@ export function ApproveRejectButtons({ userId, nickname }: Props) {
         type="button"
         onClick={handleReject}
         disabled={loading}
-        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md border border-border text-muted-foreground hover:bg-muted disabled:opacity-50 transition-colors"
+        className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1')}
       >
         {action === 'reject' ? <><Spinner size={12} />거절 중...</> : '거절'}
       </button>

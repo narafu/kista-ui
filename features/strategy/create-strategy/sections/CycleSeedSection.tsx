@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@shared/lib/utils'
+import { Switch } from '@/components/ui/switch'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 
 interface Props {
@@ -31,23 +32,12 @@ export function CycleSeedSection({ autoStart, setAutoStart, seedMode, setSeedMod
             익절 종료 후 새 사이클을 자동 개시합니다.
           </div>
         </div>
-        <button
-          type="button"
+        <Switch
+          checked={autoStart}
+          onCheckedChange={setAutoStart}
           disabled={loading}
-          onClick={() => setAutoStart(!autoStart)}
-          className={cn(
-            'relative shrink-0 w-[38px] h-[22px] rounded-full border-none transition-[background] duration-200 shadow-[inset_0_1px_2px_rgba(0,0,0,0.08)]',
-            loading ? 'cursor-not-allowed' : 'cursor-pointer',
-          )}
-          style={{ background: autoStart ? 'var(--rose-500)' : 'var(--muted)' }}
-          aria-pressed={autoStart}
           aria-label="다음 사이클 자동 시작"
-        >
-          <div
-            className="absolute top-[3px] size-4 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.18)] transition-[left] duration-200"
-            style={{ left: autoStart ? 18 : 4 }}
-          />
-        </button>
+        />
       </div>
 
       {/* 시드 모드 세그먼트 */}
