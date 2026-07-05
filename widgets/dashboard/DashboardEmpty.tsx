@@ -6,6 +6,7 @@ import { WeeklyMarketCalendar } from '@widgets/market-holiday-calendar'
 import { MarketChartCard } from '@widgets/dashboard/MarketChartCard'
 import { MARKET_CHART_CATEGORIES } from '@widgets/dashboard/marketChartCategories'
 import { FearGreedSection } from '@widgets/fear-greed-card'
+import { Surface } from '@shared/ui/Surface'
 
 interface Props {
   holidays: string[]
@@ -38,7 +39,7 @@ export function DashboardEmpty({ holidays, initialWeekStartDate }: Props) {
             </p>
             <NewAccountButton className="self-start">계좌 등록하기</NewAccountButton>
           </div>
-          <div className="rounded-[var(--r-lg)] border border-border bg-card p-5 shadow-[var(--sh-card)] flex flex-col">
+          <Surface className="p-5 flex flex-col">
             <p className="text-sm font-bold tracking-[0.12em] uppercase text-muted-foreground mb-2">다음 단계</p>
             <p className="text-sm font-bold mb-1.5">{NOTIFICATION_CARD.title}</p>
             <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-1">{NOTIFICATION_CARD.desc}</p>
@@ -48,7 +49,7 @@ export function DashboardEmpty({ holidays, initialWeekStartDate }: Props) {
             >
               {NOTIFICATION_CARD.cta}
             </Link>
-          </div>
+          </Surface>
         </div>
         {/* Row 2: 달력 + 공포탐욕 2개 (3칸) */}
         <div className="grid grid-cols-3 gap-4 mb-4">

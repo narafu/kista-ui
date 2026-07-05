@@ -9,6 +9,7 @@ import { BalanceCheckSetting } from '@features/settings/balance-check-setting'
 import { TradingAlertToggle } from '@features/settings/notification-prefs'
 import { NicknameEditor } from '@features/settings/edit-nickname'
 import { PageHeader } from '@widgets/page-header'
+import { Surface } from '@shared/ui/Surface'
 import type { User } from '@entities/user'
 
 // 상태별 표시 설정
@@ -35,7 +36,7 @@ export default async function SettingsPage() {
 
       <div className="flex flex-col gap-[18px]">
         {/* 프로필 */}
-        <section id="profile" className="rounded-[var(--r-lg)] bg-card border border-border shadow-[var(--sh-card)] p-6">
+        <Surface as="section" id="profile" className="p-6">
           <div className="text-sm font-bold mb-0.5">프로필</div>
           <div className="text-sm text-muted-foreground mb-[18px]">카카오 계정 정보</div>
 
@@ -59,10 +60,10 @@ export default async function SettingsPage() {
             <div className="text-sm text-muted-foreground mb-1">닉네임</div>
             <NicknameEditor initialNickname={user?.nickname ?? ''} />
           </div>
-        </section>
+        </Surface>
 
         {/* 알림 */}
-        <section id="notifications" className="rounded-[var(--r-lg)] bg-card border border-border shadow-[var(--sh-card)] p-6">
+        <Surface as="section" id="notifications" className="p-6">
           <div className="text-sm font-bold mb-0.5">알림</div>
           <div className="text-sm text-muted-foreground mb-[18px]">알림 채널과 텔레그램 연동을 설정합니다.</div>
           <TelegramSection
@@ -87,10 +88,10 @@ export default async function SettingsPage() {
             </div>
             <TradingAlertToggle type="MARKET_ALERT" initialEnabled={user?.notificationPrefs?.['MARKET_ALERT'] ?? true} channel={user?.notificationChannel ?? (user?.hasTelegram ? 'TELEGRAM' : 'NONE')} />
           </div>
-        </section>
+        </Surface>
 
         {/* 환경설정 */}
-        <section id="preferences" className="rounded-[var(--r-lg)] bg-card border border-border shadow-[var(--sh-card)] p-6">
+        <Surface as="section" id="preferences" className="p-6">
           <div className="text-sm font-bold mb-0.5">환경설정</div>
           <div className="text-sm text-muted-foreground mb-[18px]">테마와 알림 환경을 조정합니다.</div>
 
@@ -100,7 +101,7 @@ export default async function SettingsPage() {
           <div className="mt-5 pt-4 border-t border-border">
             <BalanceCheckSetting initialEnabled={user?.balanceCheckEnabled ?? true} />
           </div>
-        </section>
+        </Surface>
 
         {/* 위험 구역 */}
         <section id="danger" className="rounded-[var(--r-lg)] border border-[var(--status-error-border)] bg-[var(--status-error-bg)] p-6">

@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { Surface } from '@shared/ui/Surface'
 import type { FearGreedSourceView } from '@entities/market'
 
 const FearGreedCardInner = dynamic(() => import('./FearGreedCardInner'), {
@@ -22,8 +23,8 @@ interface Props {
 
 export function FearGreedCard({ title, data, days, onDaysChange, daysOptions }: Props) {
   return (
-    <div className="rounded-[var(--r-lg)] p-5 flex flex-col gap-2 bg-card border border-border shadow-[var(--sh-card)]">
+    <Surface className="p-5 flex flex-col gap-2">
       <FearGreedCardInner title={title} data={data} days={days} onDaysChange={onDaysChange} daysOptions={daysOptions} />
-    </div>
+    </Surface>
   )
 }

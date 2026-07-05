@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { Surface } from '@shared/ui/Surface'
 import type { MarketChartCategory } from './marketChartCategories'
 
 const MarketChartCardInner = dynamic(() => import('./MarketChartCardInner'), {
@@ -18,8 +19,8 @@ interface Props {
 
 export function MarketChartCard({ category }: Props) {
   return (
-    <div className="rounded-[var(--r-lg)] p-5 flex flex-col gap-2 bg-card border border-border shadow-[var(--sh-card)]">
+    <Surface className="p-5 flex flex-col gap-2">
       <MarketChartCardInner category={category} />
-    </div>
+    </Surface>
   )
 }

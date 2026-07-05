@@ -4,6 +4,7 @@ import { useState, useSyncExternalStore } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
 import { fmtUsd } from '@shared/lib/format'
+import { Surface } from '@shared/ui/Surface'
 import { useMonthlyHolidaysQuery } from '@entities/market'
 import { useWeeklyTradeSummaryQuery, directionTextClass, type DayTradeSummary } from '@entities/trade'
 
@@ -200,7 +201,7 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
   const anyFetching = isFetching || isPrevFetching || isNextFetching
 
   return (
-    <div className="rounded-[var(--r-lg)] p-5 flex flex-col gap-1 bg-card border border-border shadow-[var(--sh-card)]">
+    <Surface className="p-5 flex flex-col gap-1">
       <span className="text-sm font-semibold tracking-widest uppercase text-rose-500">
         미국 휴장일 · 주간 거래
       </span>
@@ -251,11 +252,11 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
         {accountIds.length > 0 && (
           <>
             <span className="flex items-center gap-1.5">
-              <span className="size-[7px] rounded bg-status-ok shrink-0" />
+              <span className="size-[7px] rounded bg-neg shrink-0" />
               매도
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="size-[7px] rounded bg-neg shrink-0" />
+              <span className="size-[7px] rounded bg-pos shrink-0" />
               매수
             </span>
             <span className="flex items-center gap-1.5">
@@ -265,6 +266,6 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
           </>
         )}
       </div>
-    </div>
+    </Surface>
   )
 }
