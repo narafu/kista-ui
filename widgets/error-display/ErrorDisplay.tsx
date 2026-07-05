@@ -4,6 +4,7 @@ import { useSyncExternalStore } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { fmtTime } from '@shared/lib/format'
 
 type ErrCfg = { badge: string; title: string; desc: string; colorVar: string; bgVar: string }
 
@@ -58,7 +59,7 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
   const cfg = (code !== undefined && CFGS[code]) || DEFAULT_CFG
   const timeStr = useSyncExternalStore(
     () => () => {},
-    () => new Date().toLocaleTimeString('ko-KR', { hour12: false }),
+    () => fmtTime(new Date()),
     () => '',
   )
 
@@ -148,7 +149,7 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
   return (
     <div className="error-page-bg min-h-screen grid place-items-center relative overflow-hidden">
       <div className="absolute top-6 left-8 flex items-center gap-2">
-        <Image src="/logo.png" alt="KISTA" width={22} height={22} style={{ borderRadius: 5, height: 22, width: 22 }} />
+        <Image src="/logo.png" alt="KISTA" width={22} height={22} className="size-[22px] rounded-[5px]" />
         <span
           className="text-sm font-extrabold text-[var(--rose-700)] tracking-[2px]"
         >

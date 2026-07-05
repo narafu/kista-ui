@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { ChevronRight, ChevronDown } from 'lucide-react'
-import { fmtUsd, pnlTextClass } from '@shared/lib/format'
+import { fmtUsd, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
 import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import type { AdminPrivacyBase } from '@entities/privacy'
 
 interface Props {
@@ -37,17 +38,17 @@ export function AdminPrivacyBaseTable({ bases }: Props) {
       <table className="min-w-[560px] w-full text-sm sm:min-w-[760px]">
         <thead className="bg-muted/40 border-b border-border">
           <tr>
-            <th className="w-8 px-2 py-3" aria-label="확장"></th>
-            <th className="px-2.5 py-3 text-center font-semibold text-muted-foreground whitespace-nowrap sm:px-4">날짜</th>
-            <th className="px-2.5 py-3 text-center font-semibold text-muted-foreground whitespace-nowrap sm:px-4">종목</th>
-            <th className="px-2.5 py-3 text-center font-semibold text-muted-foreground whitespace-nowrap sm:px-4">
+            <TableHeadCell className="w-8 px-2" aria-label="확장" />
+            <TableHeadCell className="px-2.5 sm:px-4 whitespace-nowrap">날짜</TableHeadCell>
+            <TableHeadCell className="px-2.5 sm:px-4 whitespace-nowrap">종목</TableHeadCell>
+            <TableHeadCell className="px-2.5 sm:px-4 whitespace-nowrap">
               <span className="sm:hidden">시작금액</span>
               <span className="hidden sm:inline">사이클 시작금액</span>
-            </th>
-            <th className="hidden text-center px-2.5 py-3 font-semibold text-muted-foreground whitespace-nowrap sm:table-cell sm:px-4">평단가</th>
-            <th className="px-2.5 py-3 text-center font-semibold text-muted-foreground whitespace-nowrap sm:px-4">보유</th>
-            <th className="hidden text-center px-2.5 py-3 font-semibold text-muted-foreground whitespace-nowrap sm:table-cell sm:px-4">실현손익</th>
-            <th className="hidden text-center px-2.5 py-3 font-semibold text-muted-foreground whitespace-nowrap sm:table-cell sm:px-4">주문</th>
+            </TableHeadCell>
+            <TableHeadCell className="hidden sm:table-cell px-2.5 sm:px-4 whitespace-nowrap">평단가</TableHeadCell>
+            <TableHeadCell className="px-2.5 sm:px-4 whitespace-nowrap">보유</TableHeadCell>
+            <TableHeadCell className="hidden sm:table-cell px-2.5 sm:px-4 whitespace-nowrap">실현손익</TableHeadCell>
+            <TableHeadCell className="hidden sm:table-cell px-2.5 sm:px-4 whitespace-nowrap">주문</TableHeadCell>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
@@ -80,7 +81,7 @@ function FragmentRow({ base: b, open, onToggle }: { base: AdminPrivacyBase; open
         <td className="hidden px-2.5 py-3 text-center font-mono text-xs whitespace-nowrap sm:table-cell sm:px-4">{b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`}</td>
         <td className="px-2.5 py-3 text-center whitespace-nowrap sm:px-4">{b.holdings}</td>
         <td className={`hidden px-2.5 py-3 text-center font-mono text-xs whitespace-nowrap sm:table-cell sm:px-4 ${pnlTextClass(b.currentCycleRealizedPnl)}`}>
-          {b.currentCycleRealizedPnl >= 0 ? '+' : ''}{fmtUsd(b.currentCycleRealizedPnl)}
+          {fmtSignedUsd(b.currentCycleRealizedPnl)}
         </td>
         <td className="hidden px-2.5 py-3 text-center text-muted-foreground whitespace-nowrap sm:table-cell sm:px-4">{b.orders.length}건</td>
       </tr>

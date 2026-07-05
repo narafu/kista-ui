@@ -5,6 +5,7 @@ import { useId } from 'react'
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
 import type { FearGreedPoint } from '@entities/market'
 import { zoneOf } from './fearGreedZones'
+import { fmtMonthDay } from '@shared/lib/format'
 
 interface Props {
   history: FearGreedPoint[]
@@ -36,7 +37,7 @@ function buildLineStops(values: number[]) {
 export function FearGreedTrend({ history }: Props) {
   const gradientId = useId().replace(/:/g, '')
   const data = history.map((p) => ({
-    date: new Date(p.date).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' }),
+    date: fmtMonthDay(p.date),
     value: p.value,
   }))
   const lineStops = buildLineStops(history.map((point) => point.value))

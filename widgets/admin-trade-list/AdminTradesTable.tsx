@@ -2,6 +2,8 @@ import { fmtUsd } from '@shared/lib/format'
 import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
 import { orderStatusBadgeClass } from '@entities/order'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { Badge } from '@shared/ui/Badge'
+import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import type { AdminTrade } from '@entities/user'
 
 interface Props {
@@ -20,15 +22,15 @@ export function AdminTradesTable({ trades }: Props) {
       <table className="min-w-[960px] w-full text-sm">
         <thead className="bg-muted/40 border-b border-border">
           <tr>
-            <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">날짜</th>
-            <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">소유자</th>
-            <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">전략</th>
-            <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">종목</th>
-            <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">방향</th>
-            <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">유형</th>
-            <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">수량</th>
-            <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">가격</th>
-            <th className="px-4 py-3 text-center text-xs lg:text-sm uppercase tracking-widest text-[var(--brand-fg-soft)] whitespace-nowrap">상태</th>
+            <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">날짜</TableHeadCell>
+            <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">소유자</TableHeadCell>
+            <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">전략</TableHeadCell>
+            <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">종목</TableHeadCell>
+            <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">방향</TableHeadCell>
+            <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">유형</TableHeadCell>
+            <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">수량</TableHeadCell>
+            <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">가격</TableHeadCell>
+            <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">상태</TableHeadCell>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
@@ -49,9 +51,9 @@ export function AdminTradesTable({ trades }: Props) {
                 <td className="px-4 py-3 text-center whitespace-nowrap">{trade.quantity}</td>
                 <td className="px-4 py-3 text-center font-mono text-xs whitespace-nowrap">${fmtUsd(trade.price)}</td>
                 <td className="px-4 py-3 text-center whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${orderStatusBadgeClass(trade.status)}`}>
+                  <Badge tone="none" className={orderStatusBadgeClass(trade.status)}>
                     {trade.status}
-                  </span>
+                  </Badge>
                 </td>
               </tr>
             )

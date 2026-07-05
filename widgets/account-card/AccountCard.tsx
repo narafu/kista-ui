@@ -7,6 +7,8 @@ import { useMeta } from '@entities/meta'
 import { useStrategiesQuery, strategyStatusAccent } from '@entities/strategy'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
+import { Badge } from '@shared/ui/Badge'
+import { fmtUsd } from '@shared/lib/format'
 
 const EMPTY_STRATEGIES: Strategy[] = []
 
@@ -82,20 +84,19 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
           {strategies.length > 0 ? (
             <div className="flex items-start content-start justify-end gap-1.5 shrink-0 flex-wrap">
               {strategies.map((s) => (
-                <span
+                <Badge
                   key={s.id}
+                  tone="none"
                   data-testid={`strategy-badge-${s.id}-mobile`}
-                  className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold shrink-0 whitespace-nowrap border bg-muted/40"
+                  className="border bg-muted/40"
                   style={{ borderColor: strategyStatusAccent(s.status), color: strategyStatusAccent(s.status) }}
                 >
                   {formatStrategyBadge(s)}
-                </span>
+                </Badge>
               ))}
             </div>
           ) : (
-            <span className="inline-flex items-center px-2 h-[20px] rounded-full text-xs font-semibold shrink-0 bg-muted text-muted-foreground whitespace-nowrap">
-              미등록
-            </span>
+            <Badge tone="neutral">미등록</Badge>
           )}
           <ChevronRight className="mt-0.5 size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
         </div>
@@ -137,16 +138,17 @@ export function AccountCard({ account, strategies: initialStrategies = EMPTY_STR
             <ul>
               {strategies.map((s) => (
                 <li key={s.id} className="flex items-center gap-2 min-w-0 py-3 border-b border-border last:border-b-0">
-                  <span
+                  <Badge
+                    tone="none"
                     data-testid={`strategy-badge-${s.id}-desktop`}
-                    className="inline-flex h-[20px] items-center px-2 rounded-full border bg-muted/40 text-xs font-bold leading-none uppercase shrink-0"
+                    className="border bg-muted/40 font-bold leading-none uppercase"
                     style={{ borderColor: strategyStatusAccent(s.status), color: strategyStatusAccent(s.status) }}
                   >
                     {formatStrategyBadge(s)}
-                  </span>
+                  </Badge>
                   {s.initialUsdDeposit != null && (
                     <span className="ml-auto shrink-0 text-sm font-semibold leading-none text-foreground tabular-nums">
-                      ${s.initialUsdDeposit.toLocaleString('en-US')}
+                      ${fmtUsd(s.initialUsdDeposit, 0)}
                     </span>
                   )}
                 </li>

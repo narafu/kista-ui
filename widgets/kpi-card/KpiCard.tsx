@@ -1,5 +1,6 @@
 import { cn } from '@shared/lib/utils'
 import type { ReactNode } from 'react'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface Props {
   label: string
@@ -51,7 +52,7 @@ export function KpiCard({ label, labelAction, value, sub, variant = 'default', c
         )}
       >
         {skeleton ? (
-          <div className="h-7 w-20 rounded bg-muted animate-pulse" />
+          <Skeleton className="h-7 w-20" />
         ) : value}
       </div>
       {sub && (

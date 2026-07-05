@@ -21,7 +21,7 @@ export function AdminTradesFeedback({ actionError, reorderResult }: Props) {
 
       {reorderResult ? (
         <section
-          className="rounded-[var(--r-lg)] border border-emerald-200 bg-emerald-50 p-4 text-emerald-950 dark:border-emerald-950/70 dark:bg-emerald-950/20 dark:text-emerald-200"
+          className="rounded-[var(--r-lg)] border border-status-ok/20 bg-status-ok-bg p-4 text-status-ok"
           aria-label="재주문 결과"
         >
           <h2 className="text-base font-semibold">거래일 재주문이 완료되었습니다</h2>

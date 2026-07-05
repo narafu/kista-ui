@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { RefreshCw } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
+import { Spinner } from '@shared/ui/Spinner'
 
 const THRESHOLD = 70
 const MAX_PULL = 110
@@ -82,10 +83,14 @@ export function PullToRefresh() {
             triggered ? 'border-[var(--brand-fg-soft)] text-[var(--brand-fg-soft)]' : 'border-border text-muted-foreground',
           )}
         >
-          <RefreshCw
-            className={cn('size-4', refreshing && 'animate-spin')}
-            style={refreshing ? undefined : { transform: `rotate(${progress * 270}deg)` }}
-          />
+          {refreshing ? (
+            <Spinner size={16} />
+          ) : (
+            <RefreshCw
+              className="size-4"
+              style={{ transform: `rotate(${progress * 270}deg)` }}
+            />
+          )}
         </div>
       )}
     </div>

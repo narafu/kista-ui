@@ -3,6 +3,7 @@
 import { useState, useSyncExternalStore } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
+import { fmtSignedUsd } from '@shared/lib/format'
 import { useMonthlyHolidaysQuery } from '@entities/market'
 import { useWeeklyTradeSummaryQuery, directionTextClass, type DayTradeSummary } from '@entities/trade'
 
@@ -66,7 +67,7 @@ function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
             'text-[10px] leading-none opacity-60',
             directionTextClass(daySummary.netAmountUsd >= 0 ? 'SELL' : 'BUY'),
           )}>
-            {daySummary.netAmountUsd >= 0 ? '+' : '-'}${Math.abs(daySummary.netAmountUsd).toFixed(0)}
+            {fmtSignedUsd(daySummary.netAmountUsd, 0)}
           </span>
         )}
       </div>
@@ -102,7 +103,7 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
     } else if (isHoliday) {
       badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-neg-bg text-neg">휴장</span>
     } else if (isToday && !summary && accountIds.length > 0) {
-      badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400">대기중</span>
+      badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-warn-bg text-warn">대기중</span>
       sub = <span className="text-xs text-muted-foreground">오늘</span>
     } else if (summary) {
       const isSell = summary.netAmountUsd >= 0
@@ -111,7 +112,7 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
           'text-xs font-semibold px-1.5 py-[1px] rounded',
           isSell ? 'bg-neg-bg text-neg' : 'bg-pos-bg text-pos',
         )}>
-          {isSell ? '매도 +' : '매수 '}${Math.abs(summary.netAmountUsd).toFixed(0)}
+          {`${isSell ? '매도' : '매수'} ${fmtSignedUsd(summary.netAmountUsd, 0)}`}
         </span>
       )
       sub = <span className="text-xs text-muted-foreground">{summary.tradeCount}체결</span>
@@ -250,7 +251,7 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
         {accountIds.length > 0 && (
           <>
             <span className="flex items-center gap-1.5">
-              <span className="size-[7px] rounded bg-green-500 dark:bg-green-400 shrink-0" />
+              <span className="size-[7px] rounded bg-status-ok shrink-0" />
               매도
             </span>
             <span className="flex items-center gap-1.5">
@@ -258,7 +259,7 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
               매수
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="size-[7px] rounded bg-orange-400 dark:bg-orange-400 shrink-0" />
+              <span className="size-[7px] rounded bg-warn shrink-0" />
               대기중
             </span>
           </>

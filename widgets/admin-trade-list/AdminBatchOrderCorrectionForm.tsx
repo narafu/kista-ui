@@ -135,7 +135,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
           </p>
         </div>
         {isBlocked && (
-          <div className="rounded-lg border border-dashed border-amber-400 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+          <div className="rounded-lg border border-dashed border-warn bg-warn-bg px-3 py-2 text-xs text-warn">
             현재 시장 단계(장마감~프리마켓 전)에서는 접수 가능한 주문시점이 없습니다.
           </div>
         )}
