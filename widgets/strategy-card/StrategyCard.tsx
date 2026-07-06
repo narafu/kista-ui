@@ -19,6 +19,7 @@ interface Props {
 export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
   const { findStrategyType, labelOf } = useMeta()
   const usesDivisionCount = (findStrategyType(strategy.type)?.divisionCounts?.length ?? 0) > 0
+  const isVr = strategy.vr != null // VR 전략 여부 — vr 필드 존재 여부로 판정
   const seedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
   const seedBadgeCls = seedBadgeClass(strategy.cycleSeedType)
 
@@ -52,6 +53,13 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
               {strategy.divisionCount}분할
             </Badge>
           )}
+          {/* VR 전략 compact V값 배지 */}
+          {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
+          {isVr && strategy.vr && (
+            <Badge tone="neutral" size="sm" className="text-foreground">
+              V ${fmtUsd(strategy.vr.value)}
+            </Badge>
+          )}
           {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
           {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
             <span className="shrink-0 whitespace-nowrap text-xs font-semibold text-warn">{strategy.currentRound!.toFixed(1)}회차</span>
@@ -78,6 +86,13 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
               {usesDivisionCount && (
                 <Badge tone="neutral" size="sm" className="h-[22px] text-foreground">
                   {strategy.divisionCount}분할
+                </Badge>
+              )}
+              {/* VR 전략 compact V값 배지 */}
+              {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
+              {isVr && strategy.vr && (
+                <Badge tone="neutral" size="sm" className="h-[22px] text-foreground">
+                  V ${fmtUsd(strategy.vr.value)}
                 </Badge>
               )}
               {strategy.isReverseMode && (

@@ -9,7 +9,10 @@ vi.mock('next/link', () => ({
 
 vi.mock('@entities/meta', () => ({
   useMeta: () => ({
-    findStrategyType: () => ({ divisionCounts: [20, 30, 40] }),
+    findStrategyType: (code: string) => {
+      if (code === 'INFINITE') return { divisionCounts: [20, 30, 40] }
+      return { divisionCounts: [] }
+    },
     labelOf: (_group: string, value: string) => value,
   }),
 }))
@@ -58,5 +61,30 @@ describe('StrategyCard mobile row', () => {
     expect(mainRow).toHaveTextContent('MAGX')
     expect(mainRow).toHaveTextContent('10.3회차')
     expect(screen.queryByRole('img', { name: 'ACTIVE' })).not.toBeInTheDocument()
+  })
+
+  it('shows VR marker without rendering division count', () => {
+    render(<StrategyCard
+      accountId="account-1"
+      strategy={{
+        ...strategy,
+        type: 'VR',
+        ticker: 'TQQQ',
+        divisionCount: undefined,
+        currentRound: undefined,
+        vr: {
+          value: 3000,
+          bandWidth: 15,
+          intervalWeeks: 4,
+          recurringAmount: 0,
+          poolLimit: 1000,
+          gradient: 10,
+        },
+      }}
+    />)
+
+    expect(screen.getAllByText('VR')[0]).toBeInTheDocument()
+    expect(screen.getAllByText('V $3,000.00')[0]).toBeInTheDocument()
+    expect(screen.queryByText('undefined분할')).not.toBeInTheDocument()
   })
 })

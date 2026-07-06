@@ -121,6 +121,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
   const cycleSeedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
   const strategyTypeMeta = findStrategyType(strategy.type)
   const usesDivisionCount = (strategyTypeMeta?.divisionCounts?.length ?? 0) > 0
+  const isVr = strategy.vr != null // VR 전략 여부 — type 리터럴 비교 대신 vr 필드 존재 여부 사용
   const seedBadgeCls = seedBadgeClass(strategy.cycleSeedType)
 
   return (
@@ -170,7 +171,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
       <div data-testid="strategy-summary-grid" className="grid grid-cols-2 gap-3">
         <KpiCard
           label={usesDivisionCount ? '분할' : '운용 방식'}
-          value={<span className="inline-flex items-center text-xl lg:text-2xl font-bold">{usesDivisionCount ? `${strategy.divisionCount}분할` : '매매표'}</span>}
+          value={<span className="inline-flex items-center text-xl lg:text-2xl font-bold">{usesDivisionCount ? `${strategy.divisionCount}분할` : isVr ? 'VR' : '매매표'}</span>}
           className="p-4 lg:p-5"
           valueClassName="text-xl lg:text-2xl"
         />
@@ -185,6 +186,17 @@ export function StrategyDetail({ accountId, strategy }: Props) {
           }
         />
       </div>
+
+      {/* VR 전용 KPI 그리드 — strategy.vr 존재 시에만 렌더 */}
+      {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
+      {strategy.vr && (
+        <div data-testid="strategy-vr-grid" className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <KpiCard label="V값" value={`$${fmtUsd(strategy.vr.value)}`} />
+          <KpiCard label="밴드 폭" value={`${strategy.vr.bandWidth}%`} />
+          <KpiCard label="pool 상한" value={`$${fmtUsd(strategy.vr.poolLimit)}`} />
+          <KpiCard label="G" value={`${strategy.vr.gradient}`} />
+        </div>
+      )}
 
       {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
       {usesDivisionCount && (

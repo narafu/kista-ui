@@ -93,7 +93,10 @@ vi.mock('@entities/market', () => ({
 vi.mock('@entities/meta', () => ({
   useMeta: () => ({
     labelOf: (_group: string, value: string) => value,
-    findStrategyType: (code: string) => (code === 'PRIVACY' ? { divisionCounts: [] } : { divisionCounts: [20, 30, 40] }),
+    findStrategyType: (code: string) => {
+      if (code === 'INFINITE') return { divisionCounts: [20, 30, 40] }
+      return { divisionCounts: [] }
+    },
   }),
 }))
 
@@ -161,5 +164,34 @@ describe('StrategyDetail header card', () => {
     deleteSuccessHandler?.()
 
     expect(mockPush).toHaveBeenCalledWith('/accounts/account-1/strategies')
+  })
+
+  it('shows VR summary instead of privacy operating mode copy', () => {
+    render(<StrategyDetail
+      accountId="account-1"
+      accountNoMasked="123-45"
+      strategy={{
+        ...baseStrategy,
+        type: 'VR',
+        ticker: 'TQQQ',
+        divisionCount: undefined,
+        initialUsdDeposit: 2000,
+        vr: {
+          value: 3000,
+          bandWidth: 15,
+          intervalWeeks: 4,
+          recurringAmount: -100,
+          poolLimit: 500,
+          gradient: 20,
+        },
+      }}
+    />)
+
+    expect(screen.getByTestId('strategy-summary-grid')).toHaveTextContent('VR')
+    expect(screen.getByTestId('strategy-vr-grid')).toHaveTextContent('V값')
+    expect(screen.getByTestId('strategy-vr-grid')).toHaveTextContent('$3,000.00')
+    expect(screen.getByTestId('strategy-vr-grid')).toHaveTextContent('밴드 폭')
+    expect(screen.getByTestId('strategy-vr-grid')).toHaveTextContent('15%')
+    expect(screen.queryByText('매매표')).not.toBeInTheDocument()
   })
 })
