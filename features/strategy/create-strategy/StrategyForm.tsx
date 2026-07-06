@@ -23,7 +23,7 @@ interface Props {
 }
 
 export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props) {
-  const { meta, findStrategyType } = useMeta()
+  const { meta } = useMeta()
   const form = useStrategyForm({ accountId, initial, onSuccess })
 
   if (form.initializing) {
@@ -42,7 +42,6 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
 
       <DivisionCountSection
         visible={form.usesDivisionCount}
-        options={findStrategyType(form.type)?.divisionCounts ?? []}
         divisionCount={form.divisionCount}
         setDivisionCount={form.setDivisionCount}
         loading={form.loading}

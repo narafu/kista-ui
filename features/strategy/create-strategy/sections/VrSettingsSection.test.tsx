@@ -7,10 +7,10 @@ import { VrSettingsSection } from './VrSettingsSection'
 function getInputByLabelText(labelText: string) {
   const labels = screen.getAllByText(labelText)
   const labelElement = labels.find((el) => el.closest('label'))?.closest('label')
-  if (!labelElement) {
-    throw new Error(`Label with text "${labelText}" not found`)
+  if (labelElement) {
+    return within(labelElement).getByRole('textbox') as HTMLInputElement
   }
-  return within(labelElement).getByRole('spinbutton') as HTMLInputElement
+  return screen.getByLabelText(labelText) as HTMLInputElement
 }
 
 describe('VrSettingsSection', () => {
@@ -62,7 +62,7 @@ describe('VrSettingsSection', () => {
       expect(mockSetField).toHaveBeenCalledWith('initialValue', null)
     })
 
-    it('preserves decimal input for interval weeks so form validation can reject it', () => {
+    it('normalizes leading zero numeric input for initial value', () => {
       render(
         <VrSettingsSection
           fields={baseFields}
@@ -70,14 +70,27 @@ describe('VrSettingsSection', () => {
         />,
       )
 
-      const intervalInput = getInputByLabelText('리밸런싱 주기')
-      fireEvent.change(intervalInput, { target: { value: '3.7' } })
+      const initialValueInput = getInputByLabelText('초기 V값')
+      fireEvent.focus(initialValueInput)
+      fireEvent.change(initialValueInput, { target: { value: '0100' } })
 
-      expect(mockSetField).toHaveBeenCalledWith('intervalWeeks', 3.7)
+      expect(mockSetField).toHaveBeenCalledWith('initialValue', 100)
     })
 
-    it('allows negative numbers for recurring amount (적립금(+)/인출금(-))', () => {
+    it('uses mobile-safe input font size to prevent focus zoom', () => {
       render(
+        <VrSettingsSection
+          fields={baseFields}
+          {...baseProps}
+        />,
+      )
+
+      expect(getInputByLabelText('초기 V값')).toHaveClass('text-base')
+      expect(getInputByLabelText('적립금(+)/인출금(-)')).toHaveClass('text-base')
+    })
+
+    it('sets recurring amount sign with deposit and withdrawal toggles', () => {
+      const { rerender } = render(
         <VrSettingsSection
           fields={baseFields}
           {...baseProps}
@@ -85,7 +98,63 @@ describe('VrSettingsSection', () => {
       )
 
       const recurringInput = getInputByLabelText('적립금(+)/인출금(-)')
-      fireEvent.change(recurringInput, { target: { value: '-100' } })
+      fireEvent.change(recurringInput, { target: { value: '100' } })
+
+      expect(mockSetField).toHaveBeenCalledWith('recurringAmount', 100)
+
+      rerender(
+        <VrSettingsSection
+          fields={{ ...baseFields, recurringAmount: 100 }}
+          {...baseProps}
+        />,
+      )
+
+      fireEvent.click(screen.getByRole('button', { name: '- 인출' }))
+
+      expect(mockSetField).toHaveBeenCalledWith('recurringAmount', -100)
+
+      rerender(
+        <VrSettingsSection
+          fields={{ ...baseFields, recurringAmount: -100 }}
+          {...baseProps}
+        />,
+      )
+
+      fireEvent.click(screen.getByRole('button', { name: '+ 적립' }))
+
+      expect(mockSetField).toHaveBeenCalledWith('recurringAmount', 100)
+    })
+
+    it('sets recurring amount to zero and disables input when hold is selected', () => {
+      render(
+        <VrSettingsSection
+          fields={{ ...baseFields, recurringAmount: 100 }}
+          {...baseProps}
+        />,
+      )
+
+      const recurringInput = getInputByLabelText('적립금(+)/인출금(-)')
+      fireEvent.click(screen.getByRole('button', { name: '거치' }))
+
+      expect(mockSetField).toHaveBeenCalledWith('recurringAmount', 0)
+      expect(screen.getByRole('button', { name: '거치' })).toHaveAttribute('aria-pressed', 'true')
+      expect(recurringInput).toBeDisabled()
+    })
+
+    it('keeps withdrawal selected before an amount is entered', () => {
+      render(
+        <VrSettingsSection
+          fields={baseFields}
+          {...baseProps}
+        />,
+      )
+
+      fireEvent.click(screen.getByRole('button', { name: '- 인출' }))
+
+      expect(screen.getByRole('button', { name: '- 인출' })).toHaveAttribute('aria-pressed', 'true')
+
+      const recurringInput = getInputByLabelText('적립금(+)/인출금(-)')
+      fireEvent.change(recurringInput, { target: { value: '100' } })
 
       expect(mockSetField).toHaveBeenCalledWith('recurringAmount', -100)
     })
@@ -116,14 +185,20 @@ describe('VrSettingsSection', () => {
       )
 
       const initialValueInput = getInputByLabelText('초기 V값') as HTMLInputElement
-      const intervalInput = getInputByLabelText('리밸런싱 주기') as HTMLInputElement
-      const bandWidthInput = getInputByLabelText('밴드 폭') as HTMLInputElement
+      const intervalButton = screen.getByRole('button', { name: '2주' }) as HTMLButtonElement
+      const bandWidthButton = screen.getByRole('button', { name: '15%' }) as HTMLButtonElement
       const recurringInput = getInputByLabelText('적립금(+)/인출금(-)') as HTMLInputElement
+      const depositButton = screen.getByRole('button', { name: '+ 적립' }) as HTMLButtonElement
+      const holdButton = screen.getByRole('button', { name: '거치' }) as HTMLButtonElement
+      const withdrawalButton = screen.getByRole('button', { name: '- 인출' }) as HTMLButtonElement
 
       expect(initialValueInput.disabled).toBe(true)
-      expect(intervalInput.disabled).toBe(true)
-      expect(bandWidthInput.disabled).toBe(true)
+      expect(intervalButton.disabled).toBe(true)
+      expect(bandWidthButton.disabled).toBe(true)
       expect(recurringInput.disabled).toBe(true)
+      expect(depositButton.disabled).toBe(true)
+      expect(holdButton.disabled).toBe(true)
+      expect(withdrawalButton.disabled).toBe(true)
 
       expect(screen.getByText('VR 상세 설정은 등록 후 변경할 수 없습니다.')).toBeInTheDocument()
     })
@@ -138,14 +213,20 @@ describe('VrSettingsSection', () => {
       )
 
       const initialValueInput = getInputByLabelText('초기 V값') as HTMLInputElement
-      const intervalInput = getInputByLabelText('리밸런싱 주기') as HTMLInputElement
-      const bandWidthInput = getInputByLabelText('밴드 폭') as HTMLInputElement
+      const intervalButton = screen.getByRole('button', { name: '2주' }) as HTMLButtonElement
+      const bandWidthButton = screen.getByRole('button', { name: '15%' }) as HTMLButtonElement
       const recurringInput = getInputByLabelText('적립금(+)/인출금(-)') as HTMLInputElement
+      const depositButton = screen.getByRole('button', { name: '+ 적립' }) as HTMLButtonElement
+      const holdButton = screen.getByRole('button', { name: '거치' }) as HTMLButtonElement
+      const withdrawalButton = screen.getByRole('button', { name: '- 인출' }) as HTMLButtonElement
 
       expect(initialValueInput.disabled).toBe(true)
-      expect(intervalInput.disabled).toBe(true)
-      expect(bandWidthInput.disabled).toBe(true)
+      expect(intervalButton.disabled).toBe(true)
+      expect(bandWidthButton.disabled).toBe(true)
       expect(recurringInput.disabled).toBe(true)
+      expect(depositButton.disabled).toBe(true)
+      expect(holdButton.disabled).toBe(true)
+      expect(withdrawalButton.disabled).toBe(true)
     })
   })
 
@@ -186,11 +267,31 @@ describe('VrSettingsSection', () => {
       )
 
       const initialValueInput = getInputByLabelText('초기 V값')
-      const intervalInput = getInputByLabelText('리밸런싱 주기')
+      const intervalButton = screen.getByRole('button', { name: '2주' })
 
-      expect(initialValueInput).toHaveValue(0)
+      expect(initialValueInput).toHaveValue('0')
       expect(initialValueInput).not.toHaveAttribute('placeholder')
-      expect(intervalInput).toHaveValue(2)
+      expect(intervalButton).toHaveAttribute('aria-pressed', 'true')
+      expect(screen.getByRole('button', { name: '15%' })).toHaveAttribute('aria-pressed', 'true')
+    })
+
+    it('uses fixed choices for band width and interval weeks', () => {
+      render(
+        <VrSettingsSection
+          fields={baseFields}
+          {...baseProps}
+        />,
+      )
+
+      expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument()
+      expect(screen.getAllByRole('button', { name: /%$/ })).toHaveLength(3)
+      expect(screen.getAllByRole('button', { name: /주$/ })).toHaveLength(3)
+
+      fireEvent.click(screen.getByRole('button', { name: '20%' }))
+      fireEvent.click(screen.getByRole('button', { name: '4주' }))
+
+      expect(mockSetField).toHaveBeenCalledWith('bandWidth', 20)
+      expect(mockSetField).toHaveBeenCalledWith('intervalWeeks', 4)
     })
 
     it('places recurring amount before band width and interval', () => {
@@ -209,7 +310,7 @@ describe('VrSettingsSection', () => {
       expect(bandWidthLabel.compareDocumentPosition(intervalLabel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     })
 
-    it('renders unit suffixes inside inputs and removes helper copy', () => {
+    it('renders units in controls and removes helper copy', () => {
       render(
         <VrSettingsSection
           fields={baseFields}
@@ -218,8 +319,11 @@ describe('VrSettingsSection', () => {
       )
 
       expect(screen.getAllByText('USD')).toHaveLength(2)
-      expect(screen.getByText('%')).toBeInTheDocument()
-      expect(screen.getByText('주')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: '+ 적립' })).toHaveAttribute('aria-pressed', 'false')
+      expect(screen.getByRole('button', { name: '거치' })).toHaveAttribute('aria-pressed', 'true')
+      expect(screen.getByRole('button', { name: '- 인출' })).toHaveAttribute('aria-pressed', 'false')
+      expect(screen.getByRole('button', { name: '15%' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: '2주' })).toBeInTheDocument()
       expect(screen.queryByText(/양수=향후 입금/)).not.toBeInTheDocument()
       expect(screen.queryByText('VR 전략 전용')).not.toBeInTheDocument()
     })

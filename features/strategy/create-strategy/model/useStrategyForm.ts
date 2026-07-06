@@ -12,7 +12,7 @@ import type { CycleSeedType, Strategy, StrategyRequest } from '@entities/strateg
 import type { PriceMap } from '@entities/account'
 import { useMeQuery } from '@entities/user'
 import { useSeedModel } from './useSeedModel'
-import { strategyFormSchema, type StrategyFormValues } from './strategyFormSchema'
+import { strategyFormSchema, type DivisionCount, type StrategyFormValues } from './strategyFormSchema'
 
 interface UseStrategyFormOptions {
   accountId: string
@@ -57,8 +57,8 @@ export interface UseStrategyFormReturn {
   seedMode: 'KEEP' | 'MAX'
   setSeedMode: (m: 'KEEP' | 'MAX') => void
 
-  divisionCount: number
-  setDivisionCount: (n: number) => void
+  divisionCount: DivisionCount
+  setDivisionCount: (n: DivisionCount) => void
 
   // VR 전략 전용
   isVr: boolean
@@ -81,6 +81,8 @@ export function useStrategyForm({
 
   const createMutation = useCreateStrategyMutation(accountId, onSuccess)
   const updateMutation = useUpdateStrategyMutation(initial?.id ?? '', onSuccess)
+  const initialDivisionCount: DivisionCount =
+    initial?.divisionCount === 30 || initial?.divisionCount === 40 ? initial.divisionCount : 20
 
   // react-hook-form — type/ticker/autoStart/seedMode/divisionCount + VR 필드 관리
   const form = useForm<StrategyFormValues>({
@@ -91,7 +93,7 @@ export function useStrategyForm({
       ticker: initial?.ticker ?? '',
       autoStart: initial ? initial.cycleSeedType !== 'NONE' : true,
       seedMode: initial?.cycleSeedType === 'MAINTAIN' ? 'KEEP' : 'MAX',
-      divisionCount: initial?.divisionCount ?? 20,
+      divisionCount: initialDivisionCount,
       // VR 초기값 — 기존 전략이면 vr 요약에서 복원
       initialValue: initial?.vr?.value ?? 0,
       intervalWeeks: initial?.vr?.intervalWeeks ?? 2,
@@ -277,7 +279,7 @@ export function useStrategyForm({
     form.setValue('seedMode', m)
   }
 
-  function setDivisionCount(n: number) {
+  function setDivisionCount(n: DivisionCount) {
     form.setValue('divisionCount', n)
   }
 

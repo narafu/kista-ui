@@ -45,6 +45,13 @@ describe('strategyFormSchema', () => {
     expect(result.success).toBe(false)
   })
 
+  it('divisionCount는 20, 30, 40만 허용한다', () => {
+    expect(strategyFormSchema.safeParse({ ...valid, divisionCount: 20 }).success).toBe(true)
+    expect(strategyFormSchema.safeParse({ ...valid, divisionCount: 30 }).success).toBe(true)
+    expect(strategyFormSchema.safeParse({ ...valid, divisionCount: 40 }).success).toBe(true)
+    expect(strategyFormSchema.safeParse({ ...valid, divisionCount: 25 }).success).toBe(false)
+  })
+
   it('VR 필수 필드가 유효하면 파싱 성공', () => {
     const result = strategyFormSchema.safeParse({
       type: 'VR',

@@ -86,5 +86,29 @@ describe('StrategyCard mobile row', () => {
     expect(screen.getAllByText('VR')[0]).toBeInTheDocument()
     expect(screen.getAllByText('V $3,000.00')[0]).toBeInTheDocument()
     expect(screen.queryByText('undefined분할')).not.toBeInTheDocument()
+    expect(screen.getByTestId('strategy-card-mobile-top-row')).not.toHaveTextContent('MAX')
+  })
+
+  it('hides next cycle row for VR cards', () => {
+    render(<StrategyCard
+      accountId="account-1"
+      strategy={{
+        ...strategy,
+        type: 'VR',
+        ticker: 'TQQQ',
+        divisionCount: undefined,
+        currentRound: undefined,
+        vr: {
+          value: 3000,
+          bandWidth: 15,
+          intervalWeeks: 4,
+          recurringAmount: 0,
+          poolLimit: 1000,
+          gradient: 10,
+        },
+      }}
+    />)
+
+    expect(screen.queryByText('다음 사이클')).not.toBeInTheDocument()
   })
 })
