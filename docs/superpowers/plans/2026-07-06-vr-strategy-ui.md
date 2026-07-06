@@ -106,10 +106,16 @@ value, bandWidth, intervalWeeks, recurringAmount, poolLimit, gradient
 
 - [ ] **Step 2: Refresh OpenAPI from local API**
 
-If the API is not running, start it in another terminal:
+Start PostgreSQL (postgres must be running for bootRun):
+```bash
+cd /Users/phs/workspace/kista/kista-api && docker compose up -d postgres
+```
+
+Start the API in the background and fetch the spec (서버는 백그라운드 기동, fetch 완료 후 종료):
 ```bash
 cd /Users/phs/workspace/kista/kista-api
-./gradlew bootRun --args='--spring.profiles.active=local'
+./gradlew bootRun --args='--spring.profiles.active=local' &
+sleep 10
 ```
 
 Then fetch the spec:
@@ -354,12 +360,27 @@ Expected:
 PASS
 ```
 
+- [ ] **Step 5.5: Regression audit for divisionCount normalization**
+
+divisionCount 20→undefined 정규화 변경의 회귀 감사 — `npm run test:run` **전체** 실행, PRIVACY fixture가 divisionCount=20을 단언하는 기존 테스트를 새 계약(undefined)에 맞게 정리.
+
+Run:
+```bash
+cd /Users/phs/workspace/kista/kista-ui
+npm run test:run
+```
+
+Expected:
+```text
+All tests pass. No PRIVACY fixtures asserting divisionCount=20.
+```
+
 - [ ] **Step 6: Commit model/API normalization**
 
 Run:
 ```bash
 cd /Users/phs/workspace/kista/kista-ui
-git add entities/strategy/model/types.ts entities/strategy/api/index.ts entities/strategy/api/index.test.ts
+git add entities/strategy/model/types.ts entities/strategy/api/index.ts entities/strategy/api/index.test.ts [회귀 정리된 테스트 파일들]
 git commit -m "feat: VR 전략 응답 정규화 추가"
 ```
 
@@ -819,6 +840,12 @@ export function VrSettingsSection({ fields, setField, loading, isEdit }: Props) 
     <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel hint="VR 전략 전용">밸류 리밸런싱 설정</StrategyFieldLabel>
 
+      {!isEdit && (
+        <p className="text-sm text-muted-foreground mb-4">
+          TQQQ 보유가 없어도 등록 가능 — 초기 V값 기준으로 자동 분할 매수가 진행됩니다
+        </p>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <label className="space-y-1.5">
           <span className="text-sm font-bold text-muted-foreground">초기 V값</span>
@@ -873,6 +900,7 @@ export function VrSettingsSection({ fields, setField, loading, isEdit }: Props) 
             className="w-full h-11 rounded-[var(--r-sm)] border border-border bg-card px-3 text-sm font-semibold outline-none focus:border-rose-400 disabled:bg-muted disabled:text-muted-foreground"
             placeholder="0"
           />
+          <p className="text-xs text-muted-foreground">양수=적립식 · 0=거치식 · 음수=인출식 (모드가 매수 한도를 결정)</p>
         </label>
       </div>
 
@@ -1163,36 +1191,19 @@ In `docs/agents/widgets.md`, update strategy-detail/card notes:
 - **`strategy-card`**: VR은 분할 배지 대신 compact `V $3,000.00` 형식의 배지를 표시한다.
 ```
 
-- [ ] **Step 4: Run focused tests**
+- [ ] **Step 4: Run full verification suite**
 
 Run:
 ```bash
 cd /Users/phs/workspace/kista/kista-ui
-npm run test:run -- \
-  entities/strategy/api/index.test.ts \
-  features/strategy/create-strategy/model/strategyFormSchema.test.ts \
-  features/strategy/create-strategy/model/useStrategyForm.test.ts \
-  features/strategy/create-strategy/StrategyForm.test.tsx \
-  widgets/strategy-detail/StrategyDetail.test.tsx \
-  widgets/strategy-card/StrategyCard.test.tsx
-```
-
-Expected:
-```text
-PASS
-```
-
-- [ ] **Step 5: Run typecheck**
-
-Run:
-```bash
-cd /Users/phs/workspace/kista/kista-ui
+npm run test:run
 npm run typecheck
+npm run lint
 ```
 
 Expected:
 ```text
-No TypeScript errors
+All tests pass, no TypeScript errors, no lint errors
 ```
 
 - [ ] **Step 6: Check branch and diff**
