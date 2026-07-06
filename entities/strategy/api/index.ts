@@ -1,7 +1,21 @@
 import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
-import type { CycleSeedType, Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
+import type { CycleSeedType, Strategy, StrategyRequest, StrategySeedPreview, StrategyVrSummary } from '../model/types'
 import type { PlacedOrder } from '@entities/order/model/types'
+
+// VR 요약 숫자 문자열 → number 변환
+function normalizeVrSummary(raw: unknown): StrategyVrSummary | undefined {
+  if (raw == null) return undefined
+  const v = raw as Record<string, unknown>
+  return {
+    value: toNum(v.value),
+    bandWidth: toNum(v.bandWidth),
+    intervalWeeks: Number(v.intervalWeeks),
+    recurringAmount: Number(v.recurringAmount ?? 0),
+    poolLimit: toNum(v.poolLimit),
+    gradient: Number(v.gradient),
+  }
+}
 
 function normalizeStrategy(raw: unknown): Strategy {
   const s = raw as Record<string, unknown>
@@ -13,10 +27,11 @@ function normalizeStrategy(raw: unknown): Strategy {
     ticker: String(s.ticker),
     cycleSeedType: (s.cycleSeedType as CycleSeedType) ?? 'NONE',
     initialUsdDeposit: s.initialUsdDeposit != null ? toNum(s.initialUsdDeposit) : undefined,
-    divisionCount: s.divisionCount != null ? Number(s.divisionCount) : 20,
+    divisionCount: s.divisionCount != null ? Number(s.divisionCount) : undefined,
     isReverseMode: Boolean(s.isReverseMode),
     currentRound: s.currentRound != null ? Number(s.currentRound) : undefined,
     currentHoldings: s.currentHoldings != null ? Number(s.currentHoldings) : undefined,
+    vr: normalizeVrSummary(s.vr),
   }
 }
 

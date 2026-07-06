@@ -3,6 +3,16 @@
 export type { CycleSeedType } from '@shared/lib/api-schema'
 import type { CycleSeedType } from '@shared/lib/api-schema'
 
+// VR(밸류리밸런싱) 전략 요약 — 사이클 시작 시 스냅샷 + 설정값
+export interface StrategyVrSummary {
+  value: number          // 기준 V값
+  bandWidth: number      // 밴드 폭 (%)
+  intervalWeeks: number  // 롤오버 주기 (주)
+  recurringAmount: number // 정기 입출금 (USD, 양수=입금 / 0=거치 / 음수=인출)
+  poolLimit: number      // pool 한도
+  gradient: number       // 조정 계수 G
+}
+
 export interface Strategy {
   id: string
   accountId: string
@@ -11,10 +21,11 @@ export interface Strategy {
   ticker: string      // 메타의 TickerMeta.code
   cycleSeedType: CycleSeedType
   initialUsdDeposit?: number
-  divisionCount: number   // 분할 수 (20/30/40)
+  divisionCount?: number  // 분할 수 (INFINITE: 20/30/40, VR/PRIVACY: undefined)
   isReverseMode: boolean  // 리버스모드 활성 여부 (소진 후 모드)
   currentRound?: number   // 현재 회차 (INFINITE 전략만, 이력 없으면 0)
   currentHoldings?: number
+  vr?: StrategyVrSummary  // VR 전략 전용 요약 (타 전략 undefined)
 }
 
 export interface StrategyRequest {
@@ -23,6 +34,10 @@ export interface StrategyRequest {
   cycleSeedType: CycleSeedType
   initialUsdDeposit?: number  // 등록 시 또는 holdings=0 수정 시 전송
   divisionCount?: number      // 분할 수 (20/30/40, 미전송 시 백엔드 기본값 20)
+  initialValue?: number       // VR 전용: 최초 V값 (USD)
+  intervalWeeks?: number      // VR 전용: 롤오버 주기 (주)
+  bandWidth?: number          // VR 전용: 밴드 폭 (%)
+  recurringAmount?: number    // VR 전용: 정기 입출금 (USD)
 }
 
 export interface StrategySeedPreview {
