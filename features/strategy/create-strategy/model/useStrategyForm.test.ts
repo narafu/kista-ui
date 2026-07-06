@@ -31,14 +31,23 @@ vi.mock('@entities/meta', () => ({
       strategyTypes: [{ code: 'INFINITE' }],
       tickers: [{ code: 'TSLA' }],
     },
-    findStrategyType: () => ({
-      code: 'INFINITE',
-      availableTickers: ['TSLA'],
-      requiresPrivacyBase: false,
-      tickerFixed: false,
-      supportsReverseMode: false,
-      divisionCounts: [20, 30, 40],
-    }),
+    findStrategyType: (code: string) => code === 'VR'
+      ? {
+          code: 'VR',
+          availableTickers: ['TQQQ'],
+          requiresPrivacyBase: false,
+          tickerFixed: true,
+          supportsReverseMode: false,
+          divisionCounts: [],
+        }
+      : {
+          code: 'INFINITE',
+          availableTickers: ['TSLA'],
+          requiresPrivacyBase: false,
+          tickerFixed: false,
+          supportsReverseMode: false,
+          divisionCounts: [20, 30, 40],
+        },
   }),
 }))
 
@@ -284,6 +293,60 @@ describe('useStrategyForm submit policy', () => {
         },
       }),
     )
+
+    expect(result.current.cannotSubmit).toBe(true)
+  })
+
+  it('VR create payload includes VR fields and forces cycleSeedType NONE', async () => {
+    seedModelState.seedUsd = 2000
+
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('initialValue', 3000)
+      result.current.setVrField('intervalWeeks', 4)
+      result.current.setVrField('bandWidth', 15)
+      result.current.setVrField('recurringAmount', null)
+    })
+
+    await act(async () => {
+      result.current.handleSubmit({ preventDefault() {} } as React.FormEvent)
+    })
+
+    await waitFor(() => {
+      expect(mockCreateMutate).toHaveBeenCalled()
+    })
+
+    expect(mockCreateMutate).toHaveBeenCalledWith({
+      type: 'VR',
+      ticker: 'TQQQ',
+      cycleSeedType: 'NONE',
+      initialUsdDeposit: 2000,
+      initialValue: 3000,
+      intervalWeeks: 4,
+      bandWidth: 15,
+      recurringAmount: 0,
+    })
+  })
+
+  it('VR create is blocked until initialValue intervalWeeks and bandWidth are valid', () => {
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('initialValue', null)
+      result.current.setVrField('intervalWeeks', 4)
+      result.current.setVrField('bandWidth', 15)
+    })
 
     expect(result.current.cannotSubmit).toBe(true)
   })

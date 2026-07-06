@@ -6,6 +6,10 @@ export const strategyFormSchema = z.object({
   autoStart: z.boolean(),
   seedMode: z.enum(['KEEP', 'MAX']),
   divisionCount: z.number().int().min(10).max(50),
+  initialValue: z.number().positive().nullable().optional(),
+  intervalWeeks: z.number().int().min(1).nullable().optional(),
+  bandWidth: z.number().positive().nullable().optional(),
+  recurringAmount: z.number().int().nullable().optional(),
 })
 
 export type StrategyFormValues = z.infer<typeof strategyFormSchema>

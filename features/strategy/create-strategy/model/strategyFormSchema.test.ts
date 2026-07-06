@@ -44,4 +44,52 @@ describe('strategyFormSchema', () => {
     const result = strategyFormSchema.safeParse({ ...valid, divisionCount: 20.5 })
     expect(result.success).toBe(false)
   })
+
+  it('VR 필수 필드가 유효하면 파싱 성공', () => {
+    const result = strategyFormSchema.safeParse({
+      type: 'VR',
+      ticker: 'TQQQ',
+      autoStart: false,
+      seedMode: 'KEEP',
+      divisionCount: 20,
+      initialValue: 3000,
+      intervalWeeks: 4,
+      bandWidth: 15,
+      recurringAmount: 0,
+    })
+
+    expect(result.success).toBe(true)
+  })
+
+  it('VR recurringAmount는 음수를 허용한다', () => {
+    const result = strategyFormSchema.safeParse({
+      type: 'VR',
+      ticker: 'TQQQ',
+      autoStart: false,
+      seedMode: 'KEEP',
+      divisionCount: 20,
+      initialValue: 3000,
+      intervalWeeks: 4,
+      bandWidth: 15,
+      recurringAmount: -100,
+    })
+
+    expect(result.success).toBe(true)
+  })
+
+  it('VR intervalWeeks는 1 이상 정수여야 한다', () => {
+    const result = strategyFormSchema.safeParse({
+      type: 'VR',
+      ticker: 'TQQQ',
+      autoStart: false,
+      seedMode: 'KEEP',
+      divisionCount: 20,
+      initialValue: 3000,
+      intervalWeeks: 0,
+      bandWidth: 15,
+      recurringAmount: 0,
+    })
+
+    expect(result.success).toBe(false)
+  })
 })
