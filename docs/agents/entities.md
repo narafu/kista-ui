@@ -60,10 +60,12 @@ import { deleteAccount } from '@entities/account'
 
 - `UserResponse`: `{ id, nickname, status, hasTelegram, role, telegramBotUsername }`
 - `AccountResponse`: `{ id, nickname, accountNoMasked, broker }`
-- `TradingCycleResponse`: `{ id, accountId, type, status, ticker, cycleSeedType, initialUsdDeposit, divisionCount, isReverseMode }`
+- `TradingCycleResponse`: `{ id, accountId, type, status, ticker, cycleSeedType, initialUsdDeposit, divisionCount, isReverseMode, currentRound, currentHoldings, vr }`
 - **TradingCycleResponse 필드 추가 시**: `entities/strategy/model/types.ts` + `entities/strategy/api/index.ts`의 `normalizeStrategy()`를 함께 수정
-- **`divisionCount`**: 분할 수 (20/30/40). INFINITE 전략 전용
+- **`divisionCount`**: INFINITE 전략 전용 분할 수 (20/30/40). VR/PRIVACY는 `undefined`로 정규화된다
+- **`vr`**: VR 전략 전용 요약 `{ value, bandWidth, intervalWeeks, recurringAmount, poolLimit, gradient }`. 비VR은 없음
 - **`isReverseMode`**: 리버스모드 활성 여부. `StrategyRequest`에는 없음
+- **`StrategyRequest`**: VR 등록 시 `initialValue`, `intervalWeeks`, `bandWidth`, `recurringAmount`를 포함한다
 - `PortfolioSnapshot`: `snapshotDate` 필드 제거됨 — 날짜는 `createdAt` 사용
 - `AdminAnomalies`: 현재 필드 `pausedAccounts`, `inactiveAccounts`
 - API 함수명은 `listAccounts(token?)`

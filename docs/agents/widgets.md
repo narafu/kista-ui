@@ -50,7 +50,8 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 - **`dashboard/aggregatePortfolios`**: Server Component에서 호출하는 순수 함수
 - **`account-detail`**: `TradesTab`은 `useReducer` + `CycleHistoryTable` 조합
 - **`cycle-history`**: 계좌/전략 양쪽에서 공유
-- **`strategy-detail`**: `useStrategyOrderPreviewQuery(strategyId)` 사용, 분할/리버스모드 배지 규칙 고정
+- **`strategy-detail`**: `useStrategyOrderPreviewQuery(strategyId)` 사용, 분할/리버스모드 배지 규칙 고정. VR은 `strategy.vr` 존재 여부로 V값, 밴드 폭, pool 상한, G를 표시한다. `divisionCounts.length === 0`을 PRIVACY로 단정하지 않는다
+- **`strategy-card`**: VR은 분할 배지 대신 compact `V $3,000.00` 형식의 배지를 표시한다
 - **`percent-gauge`**: 슬라이더 위치 계산은 인라인 style 유지
 - **`profit-stats-card`**: 차트는 DB 스냅샷 기반
 - **`kpi-card`**: `<KpiCard />` 그리드 패턴 유지
