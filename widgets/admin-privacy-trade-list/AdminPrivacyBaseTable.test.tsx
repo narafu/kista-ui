@@ -38,9 +38,13 @@ describe('AdminPrivacyBaseTable mobile UX', () => {
     render(<AdminPrivacyBaseTable bases={[base]} />)
 
     const mobileList = screen.getByTestId('admin-privacy-mobile-list')
+    const metrics = within(mobileList)
+      .getAllByText(/^(시작금액|실현손익|평단가|보유)$/)
+      .map((node) => node.textContent)
 
     expect(within(mobileList).getByText('2026-07-02')).toBeInTheDocument()
     expect(within(mobileList).getByRole('heading', { name: 'NVDA' })).toBeInTheDocument()
+    expect(metrics).toEqual(['시작금액', '실현손익', '평단가', '보유'])
     expect(within(mobileList).getByText('시작금액')).toBeInTheDocument()
     expect(within(mobileList).getByText('$1,234.56')).toBeInTheDocument()
     expect(within(mobileList).getByText('보유')).toBeInTheDocument()

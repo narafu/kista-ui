@@ -20,7 +20,8 @@ KISTA V2 — 한국투자증권 KIS API 기반 해외주식 자동 분할매매 
 npm run dev        # 개발 서버 (Turbopack)
 npm run build      # 프로덕션 빌드 (Turbopack)
 npm run typecheck  # TypeScript 타입 검사 (tsc --noEmit)
-# lint는 현재 실행 불가 (eslintrc circular JSON 오류) — typecheck만 사용
+npm run doctor     # React Doctor 점검
+# lint는 react-doctor 규칙 미정의 오류 발생으로 신뢰 불가 — typecheck만 사용
 
 npx shadcn@latest add <component> --yes
 ```
@@ -86,8 +87,17 @@ shared/        → 도메인 무관 공용 (ui/, lib/api-client, lib/format, lib
 ```
 NEXT_PUBLIC_KAKAO_CLIENT_ID=   # 카카오 REST API 키
 NEXT_PUBLIC_API_BASE_URL=      # kista-api Fly.io URL (https://kista-api.fly.dev)
+
+# Firebase FCM
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+NEXT_PUBLIC_FIREBASE_VAPID_KEY=     # 웹 푸시 VAPID 인증서 키
 ```
-- 새 `NEXT_PUBLIC_*` 추가 시 `.env.local.example` 동기화 필수
+- 새 `NEXT_PUBLIC_*` 추가 시 `.env.example` 동기화 필수
 - Docker: `.env.local` 미전달 → `docker-compose.yml` `build.args`에 명시 필요
 
 ## CORS

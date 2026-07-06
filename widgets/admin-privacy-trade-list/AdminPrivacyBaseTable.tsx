@@ -98,13 +98,13 @@ function MobileBaseCard({ base: b, open, onToggle }: { base: AdminPrivacyBase; o
 
         <dl className="mt-4 grid grid-cols-2 gap-2">
           <Metric label="시작금액" value={`$${fmtUsd(b.currentCycleStart)}`} valueClassName="font-mono" />
-          <Metric label="보유" value={String(b.holdings)} />
-          <Metric label="평단가" value={b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`} valueClassName="font-mono" />
           <Metric
             label="실현손익"
             value={fmtSignedUsd(b.currentCycleRealizedPnl)}
             valueClassName={`font-mono ${pnlTextClass(b.currentCycleRealizedPnl)}`}
           />
+          <Metric label="평단가" value={b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`} valueClassName="font-mono" />
+          <Metric label="보유" value={String(b.holdings)} />
         </dl>
       </button>
 
