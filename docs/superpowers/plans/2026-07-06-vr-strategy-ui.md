@@ -8,6 +8,23 @@
 
 **Tech Stack:** Next.js 16, React 19, TypeScript, React Hook Form, Zod, React Query, Vitest, OpenAPI generated types, Spring Boot kista-api contract
 
+## Implementation Review Addendum
+
+- 2026-07-06 review: Claude implementation covered the planned OpenAPI sync, VR strategy normalization, VR create form fields, VR summary display, and docs updates.
+- Follow-up supplement applied after review:
+  - `useSeedModel` now treats `seedUsd === null` as invalid when balance check is enabled, so VR create cannot submit without a positive initial pool.
+  - `VrSettingsSection` no longer truncates decimal values for integer-only fields. Decimal `intervalWeeks` / `recurringAmount` values stay visible in form state and are rejected by validation instead of being silently changed.
+- Verified after supplement:
+  - `npm test -- --run`
+  - `npm run typecheck`
+- Known verification gap:
+  - `npm run lint` still fails because the current repo has pre-existing missing `react-doctor/*` ESLint rule definitions and unrelated unused symbols outside this VR change. Fix lint configuration or remove stale rule-disable comments in a separate cleanup.
+- 2026-07-06 API policy follow-up:
+  - VR accumulation (`recurringAmount > 0`) now allows `initialValue=0` and `initialUsdDeposit=0` in UI validation and submit payload.
+  - VR hold/withdraw (`recurringAmount <= 0`) blocks submit when initial value plus initial pool is zero.
+  - VR withdraw (`recurringAmount < 0`) mirrors the API minimum asset rule: `initialValue + initialUsdDeposit >= abs(recurringAmount) * 100 * (4 / intervalWeeks)`.
+  - UI copy now distinguishes initial V as existing TQQQ evaluation, initial pool as current USD cash, and recurring amount as future deposit/withdrawal.
+
 ## Global Constraints
 
 - Work in `kista-ui` branch `feat/vr-strategy-ui-plan` or a follow-up branch derived from it.

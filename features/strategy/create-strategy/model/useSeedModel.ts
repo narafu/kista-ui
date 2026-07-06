@@ -90,7 +90,7 @@ export function useSeedModel({
   // seedUsd가 0 이하이면 제출 불가 (예수금 0 or OFF 모드 빈칸)
   const isInvalidSeed = !balanceCheckEnabled
     ? (seedUsdInput ?? 0) <= 0
-    : seedUsd !== null && seedUsd <= 0
+    : seedUsd === null || seedUsd <= 0
 
   return {
     pct,

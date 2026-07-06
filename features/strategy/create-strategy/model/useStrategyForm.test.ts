@@ -334,7 +334,10 @@ describe('useStrategyForm submit policy', () => {
     })
   })
 
-  it('VR create is blocked until initialValue intervalWeeks and bandWidth are valid', () => {
+  it('VR accumulation create allows zero initial value and zero seed', async () => {
+    seedModelState.seedUsd = 0
+    seedModelState.isInvalidSeed = true
+
     const { result } = renderHook(() =>
       useStrategyForm({
         accountId: 'account-1',
@@ -343,9 +346,119 @@ describe('useStrategyForm submit policy', () => {
 
     act(() => {
       result.current.setType('VR')
-      result.current.setVrField('initialValue', null)
-      result.current.setVrField('intervalWeeks', 4)
+      result.current.setVrField('initialValue', 0)
+      result.current.setVrField('intervalWeeks', 2)
       result.current.setVrField('bandWidth', 15)
+      result.current.setVrField('recurringAmount', 200)
+    })
+
+    expect(result.current.cannotSubmit).toBe(false)
+
+    await act(async () => {
+      result.current.handleSubmit({ preventDefault() {} } as React.FormEvent)
+    })
+
+    await waitFor(() => {
+      expect(mockCreateMutate).toHaveBeenCalled()
+    })
+
+    expect(mockCreateMutate).toHaveBeenCalledWith({
+      type: 'VR',
+      ticker: 'TQQQ',
+      cycleSeedType: 'NONE',
+      initialUsdDeposit: 0,
+      initialValue: 0,
+      intervalWeeks: 2,
+      bandWidth: 15,
+      recurringAmount: 200,
+    })
+  })
+
+  it('VR hold and withdrawal create are blocked when initial value and seed are both zero', () => {
+    seedModelState.seedUsd = 0
+    seedModelState.isInvalidSeed = true
+
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('initialValue', 0)
+      result.current.setVrField('intervalWeeks', 2)
+      result.current.setVrField('bandWidth', 15)
+      result.current.setVrField('recurringAmount', 0)
+    })
+
+    expect(result.current.cannotSubmit).toBe(true)
+
+    act(() => {
+      result.current.setVrField('recurringAmount', -100)
+    })
+
+    expect(result.current.cannotSubmit).toBe(true)
+  })
+
+  it('VR withdrawal create requires initial assets to be at least 100 months of withdrawals', () => {
+    seedModelState.seedUsd = 1000
+    seedModelState.isInvalidSeed = false
+
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('initialValue', 1000)
+      result.current.setVrField('intervalWeeks', 2)
+      result.current.setVrField('bandWidth', 15)
+      result.current.setVrField('recurringAmount', -100)
+    })
+
+    expect(result.current.cannotSubmit).toBe(true)
+
+    act(() => {
+      result.current.setVrField('initialValue', 19000)
+    })
+
+    expect(result.current.cannotSubmit).toBe(false)
+  })
+
+  it('VR create is blocked until intervalWeeks and bandWidth are valid', () => {
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('initialValue', 0)
+      result.current.setVrField('intervalWeeks', 4)
+      result.current.setVrField('bandWidth', null)
+      result.current.setVrField('recurringAmount', 200)
+    })
+
+    expect(result.current.cannotSubmit).toBe(true)
+  })
+
+  it('VR create is blocked when integer-only fields contain decimals', () => {
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('initialValue', 3000)
+      result.current.setVrField('intervalWeeks', 4.5)
+      result.current.setVrField('bandWidth', 15)
+      result.current.setVrField('recurringAmount', 10.5)
     })
 
     expect(result.current.cannotSubmit).toBe(true)

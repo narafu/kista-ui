@@ -188,21 +188,30 @@ export function useStrategyForm({
     })
   }, [canEditSeed, minSeed]) // eslint-disable-line react-doctor/exhaustive-deps
 
-  // VR 필수 필드 유효성 검사 — initialValue/intervalWeeks/bandWidth 미입력 시 제출 차단
+  const normalizedInitialValue = initialValue ?? 0
+  const normalizedInitialSeed = seedUsd ?? 0
+  const normalizedRecurringAmount = recurringAmount ?? 0
+  const initialAssets = normalizedInitialValue + normalizedInitialSeed
+  const requiredWithdrawalAssets = intervalWeeks !== null && intervalWeeks > 0
+    ? Math.abs(normalizedRecurringAmount) * 100 * (4 / intervalWeeks)
+    : 0
+
+  // VR 필수 필드 유효성 검사 — API 등록 정책과 동일하게 초기 V/시드는 0을 허용하되 모드별 자산 조건을 적용
   const isInvalidVr = isVr && (
-    initialValue === null ||
-    initialValue <= 0 ||
+    normalizedInitialValue < 0 ||
     intervalWeeks === null ||
     intervalWeeks < 1 ||
     !Number.isInteger(intervalWeeks) ||
     bandWidth === null ||
     bandWidth <= 0 ||
-    (recurringAmount !== null && !Number.isInteger(recurringAmount))
+    (recurringAmount !== null && !Number.isInteger(recurringAmount)) ||
+    (normalizedRecurringAmount <= 0 && initialAssets <= 0) ||
+    (normalizedRecurringAmount < 0 && initialAssets < requiredWithdrawalAssets)
   )
 
   const cannotSubmit = initial && !canEditSeed
     ? false
-    : isInvalidVr || isBelowMinSeed || isInvalidSeed || (!isVr && basePrice === null && seedUnavailableReason === null)
+    : isInvalidVr || isBelowMinSeed || (!isVr && isInvalidSeed) || (!isVr && basePrice === null && seedUnavailableReason === null)
 
   // VR은 cycleSeedType 항상 NONE — 롤오버가 자체 사이클 교체 담당
   const cycleSeedType: CycleSeedType = isVr
@@ -252,14 +261,14 @@ export function useStrategyForm({
             type,
             ticker,
             cycleSeedType,
-            initialUsdDeposit: seedUsd ?? undefined,
+            initialUsdDeposit: isVr ? normalizedInitialSeed : seedUsd ?? undefined,
             ...(usesDivisionCount ? { divisionCount } : {}),
-            // VR 전용 필드 — null이면 0으로 기본값 처리 (recurringAmount)
+            // VR 전용 필드 — null이면 0으로 기본값 처리
             ...(isVr ? {
-              initialValue: initialValue ?? undefined,
+              initialValue: normalizedInitialValue,
               intervalWeeks: intervalWeeks ?? undefined,
               bandWidth: bandWidth ?? undefined,
-              recurringAmount: recurringAmount ?? 0,
+              recurringAmount: normalizedRecurringAmount,
             } : {}),
           }
 

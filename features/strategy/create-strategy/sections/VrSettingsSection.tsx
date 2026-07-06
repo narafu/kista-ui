@@ -16,11 +16,6 @@ function parseNumber(value: string): number | null {
   return Number.isFinite(n) ? n : null
 }
 
-function parseInteger(value: string): number | null {
-  const n = parseNumber(value)
-  return n === null ? null : Math.trunc(n)
-}
-
 export function VrSettingsSection({ fields, setField, loading, isEdit }: Props) {
   return (
     <div className="py-[18px] border-b border-border">
@@ -28,7 +23,7 @@ export function VrSettingsSection({ fields, setField, loading, isEdit }: Props) 
 
       {!isEdit && (
         <p className="text-sm text-muted-foreground mb-4">
-          TQQQ 보유가 없어도 등록 가능 — 초기 V값 기준으로 자동 분할 매수가 진행됩니다
+          초기 V는 보유 중인 TQQQ 평가금, 초기 pool은 현재 USD 예수금입니다. 적립식은 둘 다 0이어도 등록할 수 있습니다.
         </p>
       )}
 
@@ -54,7 +49,7 @@ export function VrSettingsSection({ fields, setField, loading, isEdit }: Props) 
             min={1}
             step={1}
             value={fields.intervalWeeks ?? ''}
-            onChange={(event) => setField('intervalWeeks', parseInteger(event.target.value))}
+            onChange={(event) => setField('intervalWeeks', parseNumber(event.target.value))}
             disabled={loading || isEdit}
             className="w-full h-11 rounded-[var(--r-sm)] border border-border bg-card px-3 text-sm font-semibold outline-none focus:border-rose-400 disabled:bg-muted disabled:text-muted-foreground"
             placeholder="4"
@@ -76,17 +71,17 @@ export function VrSettingsSection({ fields, setField, loading, isEdit }: Props) 
         </label>
 
         <label className="space-y-1.5">
-          <span className="text-sm font-bold text-muted-foreground">주기당 추가 예수금</span>
+          <span className="text-sm font-bold text-muted-foreground">주기당 입출금</span>
           <input
             type="number"
             step={1}
             value={fields.recurringAmount ?? ''}
-            onChange={(event) => setField('recurringAmount', parseInteger(event.target.value))}
+            onChange={(event) => setField('recurringAmount', parseNumber(event.target.value))}
             disabled={loading || isEdit}
             className="w-full h-11 rounded-[var(--r-sm)] border border-border bg-card px-3 text-sm font-semibold outline-none focus:border-rose-400 disabled:bg-muted disabled:text-muted-foreground"
             placeholder="0"
           />
-          <p className="text-xs text-muted-foreground">양수=적립식 · 0=거치식 · 음수=인출식 (모드가 매수 한도를 결정)</p>
+          <p className="text-xs text-muted-foreground">양수=향후 입금 · 0=거치 · 음수=향후 인출</p>
         </label>
       </div>
 

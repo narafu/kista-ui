@@ -77,6 +77,22 @@ describe('strategyFormSchema', () => {
     expect(result.success).toBe(true)
   })
 
+  it('VR initialValue는 0을 허용한다', () => {
+    const result = strategyFormSchema.safeParse({
+      type: 'VR',
+      ticker: 'TQQQ',
+      autoStart: false,
+      seedMode: 'KEEP',
+      divisionCount: 20,
+      initialValue: 0,
+      intervalWeeks: 4,
+      bandWidth: 15,
+      recurringAmount: 200,
+    })
+
+    expect(result.success).toBe(true)
+  })
+
   it('VR intervalWeeks는 1 이상 정수여야 한다', () => {
     const result = strategyFormSchema.safeParse({
       type: 'VR',
