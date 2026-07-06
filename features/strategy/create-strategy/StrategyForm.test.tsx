@@ -40,6 +40,10 @@ vi.mock('./sections/DivisionCountSection', () => ({
   DivisionCountSection: () => <div>division-count-section</div>,
 }))
 
+vi.mock('./sections/VrSettingsSection', () => ({
+  VrSettingsSection: () => <div data-testid="vr-settings-section">vr-settings-section</div>,
+}))
+
 const baseFormState = {
   type: 'INFINITE',
   setType: vi.fn(),
@@ -66,6 +70,14 @@ const baseFormState = {
   setSeedMode: vi.fn(),
   divisionCount: 20,
   setDivisionCount: vi.fn(),
+  isVr: false,
+  vrFields: {
+    initialValue: null,
+    intervalWeeks: 4,
+    bandWidth: 15,
+    recurringAmount: 0,
+  },
+  setVrField: vi.fn(),
   loading: false,
   initializing: false,
   cannotSubmit: false,
@@ -114,5 +126,46 @@ describe('StrategyForm seed section', () => {
     render(<StrategyForm accountId="account-1" />)
 
     expect(screen.getByTestId('usage-ratio-section')).toBeInTheDocument()
+  })
+})
+
+describe('StrategyForm VR settings section', () => {
+  it('shows VR settings and hides cycle seed options for VR create mode', () => {
+    useStrategyFormMock.mockReturnValue({
+      ...baseFormState,
+      type: 'VR',
+      isVr: true,
+      usesDivisionCount: false,
+      vrFields: {
+        initialValue: 3000,
+        intervalWeeks: 4,
+        bandWidth: 15,
+        recurringAmount: 0,
+      },
+      setVrField: vi.fn(),
+    })
+
+    render(<StrategyForm accountId="account-1" />)
+
+    expect(screen.getByTestId('vr-settings-section')).toBeInTheDocument()
+    expect(screen.queryByText('cycle-seed-section')).not.toBeInTheDocument()
+  })
+
+  it('does not show VR settings for INFINITE create mode', () => {
+    useStrategyFormMock.mockReturnValue({
+      ...baseFormState,
+      isVr: false,
+      vrFields: {
+        initialValue: null,
+        intervalWeeks: 4,
+        bandWidth: 15,
+        recurringAmount: 0,
+      },
+      setVrField: vi.fn(),
+    })
+
+    render(<StrategyForm accountId="account-1" />)
+
+    expect(screen.queryByTestId('vr-settings-section')).not.toBeInTheDocument()
   })
 })

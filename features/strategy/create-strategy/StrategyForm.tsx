@@ -11,6 +11,7 @@ import { UsageRatioSection } from './sections/UsageRatioSection'
 import { ReadOnlySeedSection } from './sections/ReadOnlySeedSection'
 import { CycleSeedSection } from './sections/CycleSeedSection'
 import { DivisionCountSection } from './sections/DivisionCountSection'
+import { VrSettingsSection } from './sections/VrSettingsSection'
 import { StrategyFormSkeleton } from './StrategyFormSkeleton'
 import type { Strategy } from '@entities/strategy'
 
@@ -58,11 +59,20 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
         onTickerChange={form.handleTickerChange}
       />
 
+      {form.isVr && (
+        <VrSettingsSection
+          fields={form.vrFields}
+          setField={form.setVrField}
+          loading={form.loading}
+          isEdit={!!initial}
+        />
+      )}
+
       {initial && !form.canEditSeed ? (
         <ReadOnlySeedSection initialUsdDeposit={initial.initialUsdDeposit} />
       ) : (
         <UsageRatioSection
-          hint={initial ? '첫 매매 전이라 시드 수정이 가능합니다' : undefined}
+          hint={form.isVr ? 'VR 초기 pool로 사용할 USD 예수금' : initial ? '첫 매매 전이라 시드 수정이 가능합니다' : undefined}
           pct={form.pct}
           setPct={form.setPct}
           seedUsdInput={form.seedUsdInput}
@@ -77,13 +87,15 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
         />
       )}
 
-      <CycleSeedSection
-        autoStart={form.autoStart}
-        setAutoStart={form.setAutoStart}
-        seedMode={form.seedMode}
-        setSeedMode={form.setSeedMode}
-        loading={form.loading}
-      />
+      {!form.isVr && (
+        <CycleSeedSection
+          autoStart={form.autoStart}
+          setAutoStart={form.setAutoStart}
+          seedMode={form.seedMode}
+          setSeedMode={form.setSeedMode}
+          loading={form.loading}
+        />
+      )}
 
       <div className="flex gap-2.5 py-6">
         {onCancel && (
