@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
+import { fmtUsd } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import { useAccountMarginQuery, useAccountPricesQuery } from '@entities/account'
 import { useCreateStrategyMutation, useUpdateStrategyMutation, useStrategySeedPreviewQuery } from '@entities/strategy'
@@ -67,6 +68,7 @@ export interface UseStrategyFormReturn {
   loading: boolean
   initializing: boolean
   cannotSubmit: boolean
+  submitDisabledReason: string | null
   handleSubmit: (e: React.FormEvent) => void
 }
 
@@ -91,8 +93,8 @@ export function useStrategyForm({
       seedMode: initial?.cycleSeedType === 'MAINTAIN' ? 'KEEP' : 'MAX',
       divisionCount: initial?.divisionCount ?? 20,
       // VR 초기값 — 기존 전략이면 vr 요약에서 복원
-      initialValue: initial?.vr?.value ?? null,
-      intervalWeeks: initial?.vr?.intervalWeeks ?? 4,
+      initialValue: initial?.vr?.value ?? 0,
+      intervalWeeks: initial?.vr?.intervalWeeks ?? 2,
       bandWidth: initial?.vr?.bandWidth ?? 15,
       recurringAmount: initial?.vr?.recurringAmount ?? 0,
     },
@@ -188,6 +190,15 @@ export function useStrategyForm({
     })
   }, [canEditSeed, minSeed]) // eslint-disable-line react-doctor/exhaustive-deps
 
+  // 잔고검증 OFF + VR 신규 등록은 초기 시드를 0으로 시작
+  useEffect(() => {
+    if (initial) return
+    if (balanceCheckEnabled) return
+    if (!isVr) return
+    // eslint-disable-next-line react-doctor/no-pass-data-to-parent
+    resetSeed({ seedUsdInput: 0 })
+  }, [balanceCheckEnabled, initial, isVr]) // eslint-disable-line react-doctor/exhaustive-deps
+
   const normalizedInitialValue = initialValue ?? 0
   const normalizedInitialSeed = seedUsd ?? 0
   const normalizedRecurringAmount = recurringAmount ?? 0
@@ -212,6 +223,34 @@ export function useStrategyForm({
   const cannotSubmit = initial && !canEditSeed
     ? false
     : isInvalidVr || isBelowMinSeed || (!isVr && isInvalidSeed) || (!isVr && basePrice === null && seedUnavailableReason === null)
+
+  const submitDisabledReason = initial && !canEditSeed
+    ? null
+    : isVr
+      ? (() => {
+          if (normalizedInitialValue < 0) return '초기 V값은 0 이상이어야 합니다.'
+          if (intervalWeeks === null || intervalWeeks < 1 || !Number.isInteger(intervalWeeks)) {
+            return '리밸런싱 주기는 1 이상 정수여야 합니다.'
+          }
+          if (bandWidth === null || bandWidth <= 0) return '밴드 폭은 0보다 커야 합니다.'
+          if (recurringAmount !== null && !Number.isInteger(recurringAmount)) {
+            return '적립금(+)/인출금(-)은 정수여야 합니다.'
+          }
+          if (normalizedRecurringAmount <= 0 && initialAssets <= 0) {
+            return '거치식/인출식은 초기 V값 또는 초기 시드가 0보다 커야 합니다.'
+          }
+          if (normalizedRecurringAmount < 0 && initialAssets < requiredWithdrawalAssets) {
+            return `인출식은 초기 자산이 $${fmtUsd(requiredWithdrawalAssets)} 이상이어야 합니다.`
+          }
+          return null
+        })()
+      : (() => {
+          if (seedUnavailableReason === 'NO_PRIVACY_BASE') return '기준 매매표가 없어 등록할 수 없습니다.'
+          if (isBelowMinSeed && minSeed !== null) return `최소 시드 $${fmtUsd(minSeed)} 이상이 필요합니다.`
+          if (isInvalidSeed) return '시드 금액은 0보다 커야 합니다.'
+          if (basePrice === null && seedUnavailableReason === null) return '기준 가격을 불러오는 중입니다.'
+          return null
+        })()
 
   // VR은 cycleSeedType 항상 NONE — 롤오버가 자체 사이클 교체 담당
   const cycleSeedType: CycleSeedType = isVr
@@ -291,6 +330,7 @@ export function useStrategyForm({
     loading: createMutation.isPending || updateMutation.isPending,
     initializing: !initialized && loadingBase,
     cannotSubmit,
+    submitDisabledReason,
     handleSubmit,
   }
 }

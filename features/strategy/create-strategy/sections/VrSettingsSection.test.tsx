@@ -23,8 +23,8 @@ describe('VrSettingsSection', () => {
   }
 
   const baseFields: VrFields = {
-    initialValue: null,
-    intervalWeeks: 4,
+    initialValue: 0,
+    intervalWeeks: 2,
     bandWidth: 15,
     recurringAmount: 0,
   }
@@ -70,13 +70,13 @@ describe('VrSettingsSection', () => {
         />,
       )
 
-      const intervalInput = getInputByLabelText('리밸런싱 주기(주)')
+      const intervalInput = getInputByLabelText('리밸런싱 주기')
       fireEvent.change(intervalInput, { target: { value: '3.7' } })
 
       expect(mockSetField).toHaveBeenCalledWith('intervalWeeks', 3.7)
     })
 
-    it('allows negative numbers for recurring amount (주기당 입출금)', () => {
+    it('allows negative numbers for recurring amount (적립금(+)/인출금(-))', () => {
       render(
         <VrSettingsSection
           fields={baseFields}
@@ -84,7 +84,7 @@ describe('VrSettingsSection', () => {
         />,
       )
 
-      const recurringInput = getInputByLabelText('주기당 입출금')
+      const recurringInput = getInputByLabelText('적립금(+)/인출금(-)')
       fireEvent.change(recurringInput, { target: { value: '-100' } })
 
       expect(mockSetField).toHaveBeenCalledWith('recurringAmount', -100)
@@ -98,7 +98,7 @@ describe('VrSettingsSection', () => {
         />,
       )
 
-      const recurringInput = getInputByLabelText('주기당 입출금')
+      const recurringInput = getInputByLabelText('적립금(+)/인출금(-)')
       fireEvent.change(recurringInput, { target: { value: '10.5' } })
 
       expect(mockSetField).toHaveBeenCalledWith('recurringAmount', 10.5)
@@ -116,9 +116,9 @@ describe('VrSettingsSection', () => {
       )
 
       const initialValueInput = getInputByLabelText('초기 V값') as HTMLInputElement
-      const intervalInput = getInputByLabelText('리밸런싱 주기(주)') as HTMLInputElement
-      const bandWidthInput = getInputByLabelText('밴드 폭(%)') as HTMLInputElement
-      const recurringInput = getInputByLabelText('주기당 입출금') as HTMLInputElement
+      const intervalInput = getInputByLabelText('리밸런싱 주기') as HTMLInputElement
+      const bandWidthInput = getInputByLabelText('밴드 폭') as HTMLInputElement
+      const recurringInput = getInputByLabelText('적립금(+)/인출금(-)') as HTMLInputElement
 
       expect(initialValueInput.disabled).toBe(true)
       expect(intervalInput.disabled).toBe(true)
@@ -138,9 +138,9 @@ describe('VrSettingsSection', () => {
       )
 
       const initialValueInput = getInputByLabelText('초기 V값') as HTMLInputElement
-      const intervalInput = getInputByLabelText('리밸런싱 주기(주)') as HTMLInputElement
-      const bandWidthInput = getInputByLabelText('밴드 폭(%)') as HTMLInputElement
-      const recurringInput = getInputByLabelText('주기당 입출금') as HTMLInputElement
+      const intervalInput = getInputByLabelText('리밸런싱 주기') as HTMLInputElement
+      const bandWidthInput = getInputByLabelText('밴드 폭') as HTMLInputElement
+      const recurringInput = getInputByLabelText('적립금(+)/인출금(-)') as HTMLInputElement
 
       expect(initialValueInput.disabled).toBe(true)
       expect(intervalInput.disabled).toBe(true)
@@ -150,7 +150,7 @@ describe('VrSettingsSection', () => {
   })
 
   describe('guidance messages', () => {
-    it('shows initial value and pool guidance message when isEdit is false (create mode)', () => {
+    it('does not show the removed create guidance message', () => {
       render(
         <VrSettingsSection
           fields={baseFields}
@@ -159,7 +159,8 @@ describe('VrSettingsSection', () => {
         />,
       )
 
-      expect(screen.getByText('초기 V는 보유 중인 TQQQ 평가금, 초기 pool은 현재 USD 예수금입니다. 적립식은 둘 다 0이어도 등록할 수 있습니다.')).toBeInTheDocument()
+      expect(screen.queryByText(/초기 V는 보유 중인 TQQQ 평가금/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/적립식은 둘 다 0이어도 등록할 수 있습니다/)).not.toBeInTheDocument()
     })
 
     it('hides TQQQ guidance message when isEdit is true (edit mode)', () => {
@@ -171,7 +172,56 @@ describe('VrSettingsSection', () => {
         />,
       )
 
-      expect(screen.queryByText(/TQQQ 보유가 없어도/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/초기 V는 보유 중인 TQQQ 평가금/)).not.toBeInTheDocument()
+    })
+  })
+
+  describe('defaults and ordering', () => {
+    it('renders default values and no placeholder for initial value', () => {
+      render(
+        <VrSettingsSection
+          fields={baseFields}
+          {...baseProps}
+        />,
+      )
+
+      const initialValueInput = getInputByLabelText('초기 V값')
+      const intervalInput = getInputByLabelText('리밸런싱 주기')
+
+      expect(initialValueInput).toHaveValue(0)
+      expect(initialValueInput).not.toHaveAttribute('placeholder')
+      expect(intervalInput).toHaveValue(2)
+    })
+
+    it('places recurring amount before band width and interval', () => {
+      render(
+        <VrSettingsSection
+          fields={baseFields}
+          {...baseProps}
+        />,
+      )
+
+      const recurringLabel = screen.getByText('적립금(+)/인출금(-)')
+      const bandWidthLabel = screen.getByText('밴드 폭')
+      const intervalLabel = screen.getByText('리밸런싱 주기')
+
+      expect(recurringLabel.compareDocumentPosition(bandWidthLabel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+      expect(bandWidthLabel.compareDocumentPosition(intervalLabel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    })
+
+    it('renders unit suffixes inside inputs and removes helper copy', () => {
+      render(
+        <VrSettingsSection
+          fields={baseFields}
+          {...baseProps}
+        />,
+      )
+
+      expect(screen.getAllByText('USD')).toHaveLength(2)
+      expect(screen.getByText('%')).toBeInTheDocument()
+      expect(screen.getByText('주')).toBeInTheDocument()
+      expect(screen.queryByText(/양수=향후 입금/)).not.toBeInTheDocument()
+      expect(screen.queryByText('VR 전략 전용')).not.toBeInTheDocument()
     })
   })
 })

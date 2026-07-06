@@ -56,6 +56,7 @@ export function UsageRatioSection({
           deposit={usdDeposit}
           minSeed={minSeed}
           disabled={loading}
+          showStatus={balanceCheckEnabled}
         />
       ) : (
         <PercentGauge

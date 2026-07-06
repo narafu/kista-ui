@@ -4,6 +4,7 @@ import type { Strategy } from '@entities/strategy'
 import { StrategyForm } from './StrategyForm'
 
 const useStrategyFormMock = vi.fn()
+const usageRatioSectionMock = vi.fn()
 
 vi.mock('@entities/meta', () => ({
   useMeta: () => ({
@@ -29,7 +30,10 @@ vi.mock('./sections/StrategyTickerSection', () => ({
 }))
 
 vi.mock('./sections/UsageRatioSection', () => ({
-  UsageRatioSection: () => <div data-testid="usage-ratio-section">usage-ratio-section</div>,
+  UsageRatioSection: (props: unknown) => {
+    usageRatioSectionMock(props)
+    return <div data-testid="usage-ratio-section">usage-ratio-section</div>
+  },
 }))
 
 vi.mock('./sections/CycleSeedSection', () => ({
@@ -81,6 +85,7 @@ const baseFormState = {
   loading: false,
   initializing: false,
   cannotSubmit: false,
+  submitDisabledReason: null,
   handleSubmit: vi.fn((e: React.FormEvent) => e.preventDefault()),
 }
 
@@ -131,6 +136,7 @@ describe('StrategyForm seed section', () => {
 
 describe('StrategyForm VR settings section', () => {
   it('shows VR settings and hides cycle seed options for VR create mode', () => {
+    usageRatioSectionMock.mockClear()
     useStrategyFormMock.mockReturnValue({
       ...baseFormState,
       type: 'VR',
@@ -149,6 +155,9 @@ describe('StrategyForm VR settings section', () => {
 
     expect(screen.getByTestId('vr-settings-section')).toBeInTheDocument()
     expect(screen.queryByText('cycle-seed-section')).not.toBeInTheDocument()
+    expect(usageRatioSectionMock).toHaveBeenCalledWith(expect.objectContaining({
+      hint: undefined,
+    }))
   })
 
   it('does not show VR settings for INFINITE create mode', () => {
@@ -167,5 +176,18 @@ describe('StrategyForm VR settings section', () => {
     render(<StrategyForm accountId="account-1" />)
 
     expect(screen.queryByTestId('vr-settings-section')).not.toBeInTheDocument()
+  })
+
+  it('shows a visible submit disabled reason when submit is blocked', () => {
+    useStrategyFormMock.mockReturnValue({
+      ...baseFormState,
+      cannotSubmit: true,
+      submitDisabledReason: '리밸런싱 주기는 1 이상 정수여야 합니다.',
+    })
+
+    render(<StrategyForm accountId="account-1" />)
+
+    expect(screen.getByText('리밸런싱 주기는 1 이상 정수여야 합니다.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '등록' })).toBeDisabled()
   })
 })

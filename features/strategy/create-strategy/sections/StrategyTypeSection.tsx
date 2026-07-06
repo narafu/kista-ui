@@ -17,7 +17,7 @@ interface Props {
 export function StrategyTypeSection({ initial, type, setType, loading, strategyTypes }: Props) {
   return (
     <div className="py-[18px] border-b border-border">
-      <StrategyFieldLabel hint="종목당 1개">매매 전략</StrategyFieldLabel>
+      <StrategyFieldLabel>매매 전략</StrategyFieldLabel>
       {initial ? (
         <div className="flex items-center gap-2 px-[14px] py-3 rounded-[var(--r-sm)] border border-border bg-muted">
           <span className="text-sm font-[800] text-rose-600">

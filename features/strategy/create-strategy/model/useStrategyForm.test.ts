@@ -4,6 +4,9 @@ import { useStrategyForm } from './useStrategyForm'
 
 const mockCreateMutate = vi.fn()
 const mockUpdateMutate = vi.fn()
+const meQueryState = {
+  data: { balanceCheckEnabled: true },
+}
 
 const seedModelState = {
   pct: 100,
@@ -74,9 +77,7 @@ vi.mock('@entities/strategy', () => ({
 }))
 
 vi.mock('@entities/user', () => ({
-  useMeQuery: () => ({
-    data: { balanceCheckEnabled: true },
-  }),
+  useMeQuery: () => meQueryState,
 }))
 
 vi.mock('./useSeedModel', () => ({
@@ -87,9 +88,11 @@ describe('useStrategyForm submit policy', () => {
   beforeEach(() => {
     mockCreateMutate.mockClear()
     mockUpdateMutate.mockClear()
+    meQueryState.data.balanceCheckEnabled = true
     seedModelState.pct = 100
     seedModelState.seedUsdInput = 1200
     seedModelState.seedUsd = 1200
+    seedModelState.resetSeed.mockClear()
     seedModelState.isBelowMinSeed = false
     seedModelState.isInvalidSeed = false
     seedPreviewState.data.basePrice = 100
@@ -371,6 +374,45 @@ describe('useStrategyForm submit policy', () => {
       intervalWeeks: 2,
       bandWidth: 15,
       recurringAmount: 200,
+    })
+  })
+
+  it('VR create defaults initial value to 0 and interval weeks to 2', () => {
+    seedModelState.seedUsd = 0
+    seedModelState.isInvalidSeed = true
+
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+    })
+
+    expect(result.current.vrFields.initialValue).toBe(0)
+    expect(result.current.vrFields.intervalWeeks).toBe(2)
+    expect(result.current.vrFields.recurringAmount).toBe(0)
+  })
+
+  it('VR create with balance check off resets initial seed input to 0', async () => {
+    meQueryState.data.balanceCheckEnabled = false
+
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+    })
+
+    await waitFor(() => {
+      expect(seedModelState.resetSeed).toHaveBeenCalledWith(expect.objectContaining({
+        seedUsdInput: 0,
+      }))
     })
   })
 

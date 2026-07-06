@@ -72,7 +72,7 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
         <ReadOnlySeedSection initialUsdDeposit={initial.initialUsdDeposit} />
       ) : (
         <UsageRatioSection
-          hint={form.isVr ? 'VR 초기 pool로 사용할 USD 예수금' : initial ? '첫 매매 전이라 시드 수정이 가능합니다' : undefined}
+          hint={form.isVr ? undefined : initial ? '첫 매매 전이라 시드 수정이 가능합니다' : undefined}
           pct={form.pct}
           setPct={form.setPct}
           seedUsdInput={form.seedUsdInput}
@@ -95,6 +95,12 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
           setSeedMode={form.setSeedMode}
           loading={form.loading}
         />
+      )}
+
+      {form.cannotSubmit && form.submitDisabledReason && (
+        <p className="text-sm font-semibold text-[var(--warn)] py-3">
+          {form.submitDisabledReason}
+        </p>
       )}
 
       <div className="flex gap-2.5 py-6">
