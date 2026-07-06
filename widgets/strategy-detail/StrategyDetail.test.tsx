@@ -163,7 +163,7 @@ describe('StrategyDetail header card', () => {
 
     deleteSuccessHandler?.()
 
-    expect(mockPush).toHaveBeenCalledWith('/accounts/account-1/strategies')
+    expect(mockPush).toHaveBeenCalledWith('/accounts/account-1')
   })
 
   it('shows VR summary instead of privacy operating mode copy', () => {
@@ -188,6 +188,7 @@ describe('StrategyDetail header card', () => {
     />)
 
     expect(screen.getByTestId('strategy-summary-grid')).toHaveTextContent('VR')
+    expect(screen.getByTestId('strategy-meta-grid')).not.toHaveTextContent('다음 사이클')
     expect(screen.getByTestId('strategy-vr-grid')).toHaveTextContent('V값')
     expect(screen.getByTestId('strategy-vr-grid')).toHaveTextContent('$3,000.00')
     expect(screen.getByTestId('strategy-vr-grid')).toHaveTextContent('밴드 폭')

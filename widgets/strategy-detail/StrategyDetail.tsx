@@ -89,7 +89,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
   const isHoliday = isWeekend || holidays.includes(todayStr)
   const canExecute = strategy.status === 'ACTIVE'
 
-  const deleteMutation = useDeleteStrategyMutation(() => push(`/accounts/${accountId}/strategies`))
+  const deleteMutation = useDeleteStrategyMutation(() => push(`/accounts/${accountId}`))
   const pauseMutation = usePauseStrategyMutation()
   const resumeMutation = useResumeStrategyMutation()
   const executeMutation = useExecuteStrategyMutation(strategy.id)
@@ -149,20 +149,22 @@ export function StrategyDetail({ accountId, strategy }: Props) {
                 )}
               </div>
             </div>
-            <div data-testid="strategy-meta-grid" className="grid grid-cols-2 gap-3">
+            <div data-testid="strategy-meta-grid" className={cn('grid gap-3', isVr ? 'grid-cols-1' : 'grid-cols-2')}>
               <KpiCard
                 label="전략타입"
                 value={<span className="inline-flex items-center text-xl lg:text-2xl font-bold">{strategy.type}</span>}
                 className="p-4 lg:p-5"
                 valueClassName="text-xl lg:text-2xl"
               />
-              <KpiCard
-                label="다음 사이클"
-                value={
-                  <Badge tone="none" size="md" className={cn('h-[28px] lg:h-[36px] text-sm lg:text-base', seedBadgeCls)}>{cycleSeedLabel}</Badge>
-                }
-                className="p-4 lg:p-5"
-              />
+              {!isVr && (
+                <KpiCard
+                  label="다음 사이클"
+                  value={
+                    <Badge tone="none" size="md" className={cn('h-[28px] lg:h-[36px] text-sm lg:text-base', seedBadgeCls)}>{cycleSeedLabel}</Badge>
+                  }
+                  className="p-4 lg:p-5"
+                />
+              )}
             </div>
           </div>
         </div>
