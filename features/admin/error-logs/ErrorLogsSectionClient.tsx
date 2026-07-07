@@ -39,11 +39,7 @@ export function ErrorLogsSectionClient({ logs }: Props) {
   }
 
   const toggleOne = (id: string, checked: boolean) => {
-    setSelectedIds((current) => (
-      checked
-        ? [...current, id]
-        : current.filter((value) => value !== id)
-    ))
+    setSelectedIds((current) => (checked ? [...current, id] : current.filter((value) => value !== id)))
   }
 
   const handleDelete = async () => {
@@ -51,9 +47,7 @@ export function ErrorLogsSectionClient({ logs }: Props) {
 
     setIsDeleting(true)
 
-    const results = await Promise.allSettled(
-      selectedIds.map((id) => softDeleteAdminErrorLog(id)),
-    )
+    const results = await Promise.allSettled(selectedIds.map((id) => softDeleteAdminErrorLog(id)))
 
     const successCount = results.filter((result) => result.status === 'fulfilled').length
     const failedCount = results.length - successCount
@@ -96,23 +90,15 @@ export function ErrorLogsSectionClient({ logs }: Props) {
           />
           전체 선택
         </label>
-        <span className="text-sm text-muted-foreground">
-          {selectedCount > 0 ? `${selectedCount}건 선택됨` : '현재 페이지 기준 선택'}
-        </span>
+        <span className="text-sm text-muted-foreground">{selectedCount > 0 ? `${selectedCount}건 선택됨` : '현재 페이지 기준 선택'}</span>
         <AlertDialog open={open} onOpenChange={setOpen}>
-          <AlertDialogTrigger
-            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'ml-auto')}
-            disabled={selectedCount === 0 || isDeleting}
-          >
+          <AlertDialogTrigger className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'ml-auto')} disabled={selectedCount === 0 || isDeleting}>
             {isDeleting ? '삭제 중...' : selectedLabel}
           </AlertDialogTrigger>
           <AlertDialogContent size="sm">
             <AlertDialogHeader>
               <AlertDialogTitle>오류 로그를 모두 삭제하시겠습니까?</AlertDialogTitle>
-              <AlertDialogDescription>
-                현재 페이지에서 선택한 오류 로그 {selectedCount}건을 소프트삭제합니다.
-                삭제된 로그는 운영 목록에서 숨겨집니다.
-              </AlertDialogDescription>
+              <AlertDialogDescription>현재 페이지에서 선택한 오류 로그 {selectedCount}건을 삭제합니다.</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel disabled={isDeleting}>취소</AlertDialogCancel>
@@ -125,13 +111,7 @@ export function ErrorLogsSectionClient({ logs }: Props) {
       </div>
 
       {logs.map((log) => (
-        <ErrorLogItem
-          key={log.id}
-          log={log}
-          checked={selectedIds.includes(log.id)}
-          disabled={isDeleting}
-          onCheckedChange={(checked) => toggleOne(log.id, checked)}
-        />
+        <ErrorLogItem key={log.id} log={log} checked={selectedIds.includes(log.id)} disabled={isDeleting} onCheckedChange={(checked) => toggleOne(log.id, checked)} />
       ))}
     </div>
   )
