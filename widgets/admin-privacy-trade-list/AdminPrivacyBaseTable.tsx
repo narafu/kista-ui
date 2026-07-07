@@ -29,7 +29,7 @@ export function AdminPrivacyBaseTable({ bases }: Props) {
 
   if (bases.length === 0) {
     return (
-      <EmptyState message="기준 매매표가 없습니다." />
+      <EmptyState message="P 매매표가 없습니다." />
     )
   }
 

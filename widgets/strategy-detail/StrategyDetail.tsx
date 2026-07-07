@@ -37,7 +37,7 @@ import { StrategyOrderHistory } from './StrategyOrderHistory'
 
 const SKIP_REASON_LABELS: Record<SkipReason, string> = {
   NO_CYCLE_HISTORY: '첫 매매 전입니다. 사이클 정보가 아직 없습니다.',
-  NO_PRIVACY_BASE: '기준 매매표가 없습니다.',
+  NO_PRIVACY_BASE: 'P 매매표가 없습니다.',
 }
 
 

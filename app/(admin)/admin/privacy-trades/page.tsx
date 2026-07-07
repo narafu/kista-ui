@@ -67,9 +67,9 @@ export default async function AdminPrivacyTradesPage({
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-extrabold">기준 매매표</h1>
+        <h1 className="text-2xl font-extrabold">P 매매표</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          PRIVACY 전략 기준 매매표 및 주문 명세 (총 {filtered.length}건)
+          PRIVACY 전략 P 매매표 및 주문 명세 (총 {filtered.length}건)
         </p>
       </div>
 

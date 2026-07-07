@@ -83,7 +83,7 @@ export function UsageRatioSection({
           ) : seedUnavailableReason === 'NO_PRIVACY_BASE' ? (
             <>
               <AlertTriangle size={14} style={{ color: 'var(--warn)' }} />
-              <span style={{ color: 'var(--warn)' }}>기준 매매표가 없습니다</span>
+              <span style={{ color: 'var(--warn)' }}>P 매매표가 없습니다</span>
             </>
           ) : null}
         </div>
