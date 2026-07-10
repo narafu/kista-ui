@@ -14,10 +14,6 @@ vi.mock('@widgets/pull-to-refresh', () => ({
   PullToRefresh: () => <div data-testid='pull-to-refresh' />,
 }))
 
-vi.mock('sonner', () => ({
-  Toaster: () => <div data-testid='toaster' />,
-}))
-
 describe('AdminLayout', () => {
   it('renders pull-to-refresh for admin pages', () => {
     render(

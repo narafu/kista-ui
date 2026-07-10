@@ -1,7 +1,6 @@
 import { AdminSidebar } from '@widgets/layout/AdminSidebar'
 import { AdminTopBar } from '@widgets/layout/AdminTopBar'
 import { PullToRefresh } from '@widgets/pull-to-refresh'
-import { Toaster } from 'sonner'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -14,7 +13,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {children}
         </main>
       </div>
-      <Toaster richColors position="top-right" />
     </div>
   )
 }
