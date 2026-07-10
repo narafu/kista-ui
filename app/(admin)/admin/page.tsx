@@ -44,7 +44,7 @@ export default async function AdminOverviewPage() {
           </Link>
         </div>
 
-        <AdminPendingList initialUsers={recentPending} />
+        <AdminPendingList initialUsers={recentPending} max={5} />
       </section>
     </div>
   )
