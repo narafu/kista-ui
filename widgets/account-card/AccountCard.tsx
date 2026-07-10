@@ -4,19 +4,13 @@ import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { RevealableValue } from '@widgets/revealable-value'
 import { useMeta } from '@entities/meta'
-import { useStrategiesQuery, strategyStatusAccent } from '@entities/strategy'
+import { useStrategiesQuery, strategyStatusAccent, strategyTypeShort } from '@entities/strategy'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 import { Badge } from '@shared/ui/Badge'
 import { fmtUsd } from '@shared/lib/format'
 
 const EMPTY_STRATEGIES: Strategy[] = []
-
-function strategyTypeShort(type: Strategy['type']): string {
-  if (type === 'PRIVACY') return 'P'
-  if (type === 'INFINITE') return 'I'
-  return type
-}
 
 function formatStrategyBadge(strategy: Strategy): string {
   return `${strategyTypeShort(strategy.type)}-${strategy.ticker}`

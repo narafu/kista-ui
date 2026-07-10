@@ -2,6 +2,7 @@ import { getAuthToken } from '@shared/lib/auth/token'
 import { formatBrokerLabel } from '@shared/lib/api-schema'
 import { listAdminAccounts } from '@entities/user'
 import type { AdminAccount, AdminAccountStrategy } from '@entities/user'
+import { strategyTypeShort } from '@entities/strategy'
 import { RevealableValue } from '@widgets/revealable-value'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -13,12 +14,6 @@ import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/li
 const STRATEGY_STATUS_COLOR: Record<string, string> = {
   ACTIVE: 'var(--status-ok)',
   PAUSED: 'var(--warn)',
-}
-
-function strategyTypeShort(type: string): string {
-  if (type === 'PRIVACY') return 'P'
-  if (type === 'INFINITE') return 'I'
-  return type
 }
 
 function StrategyBadge({ strategy }: { strategy: AdminAccountStrategy }) {

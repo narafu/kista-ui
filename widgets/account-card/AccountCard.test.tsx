@@ -22,6 +22,11 @@ vi.mock('@entities/strategy', () => ({
     data: initialData,
   }),
   strategyStatusAccent: (status: string) => status === 'ACTIVE' ? 'var(--status-ok)' : 'var(--warn)',
+  strategyTypeShort: (type: string) => {
+    if (type === 'PRIVACY') return 'P'
+    if (type === 'INFINITE') return 'I'
+    return type
+  },
 }))
 
 const baseAccount: Account = {
