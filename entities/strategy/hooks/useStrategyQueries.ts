@@ -83,7 +83,7 @@ export function useUpdateStrategyMutation(strategyId: string, onSuccess?: () => 
       toast.success('전략이 수정되었습니다')
       queryClient.invalidateQueries({ queryKey: ['strategies'] })
       // 전략 수정 후 다음 주문/기준가 표시를 최신 상태로 갱신
-      queryClient.invalidateQueries({ queryKey: ['nextOrderPreview'] })
+      queryClient.invalidateQueries({ queryKey: ['order-preview'] })
       router.refresh()
       onSuccess?.()
     },
