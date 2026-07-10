@@ -1,6 +1,6 @@
 # KISTA UI 전체 프로젝트 정리 실행 계획
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** 동작을 보존하면서 발견된 버그 3건을 수정하고, 중복·데드코드를 제거해 코드를 축소하며, 문서를 코드와 일치시킨다.
 
@@ -31,21 +31,21 @@
 
 **배경:** `npm run typecheck`가 현재 실패하는데, 원인은 코드가 아니라 삭제된 라우트(`app/api/portfolio/**`, `app/api/privacy-trades/**`, `app/api/strategies/**`, `app/api/settings/*` 개별 라우트)를 참조하는 스테일 산출물 `.next/dev/types/validator.ts` 때문이다.
 
-- [ ] **Step 1: dev 서버가 떠 있으면 종료한다** (포트 3000/3001 점유 프로세스 확인)
+- [x] **Step 1: dev 서버가 떠 있으면 종료한다** (포트 3000/3001 점유 프로세스 확인)
 
-- [ ] **Step 2: 스테일 산출물 삭제**
+- [x] **Step 2: 스테일 산출물 삭제**
 
 PowerShell 기준:
 ```powershell
 Remove-Item -Recurse -Force .next -Confirm:$false
 ```
 
-- [ ] **Step 3: typecheck 기준선 확인**
+- [x] **Step 3: typecheck 기준선 확인**
 
 Run: `npm run typecheck`
 Expected: 오류 0건으로 통과 (실패하면 실제 코드 오류이므로 진행 전 사용자에게 보고)
 
-- [ ] **Step 4: 테스트 기준선 확인**
+- [x] **Step 4: 테스트 기준선 확인**
 
 Run: `npm run test:run`
 Expected: `Test Files 27 passed / Tests 117 passed` (2026-07-09 기준선)
@@ -62,7 +62,7 @@ Expected: `Test Files 27 passed / Tests 117 passed` (2026-07-09 기준선)
 - Modify: `entities/strategy/hooks/useStrategyQueries.ts:86`
 - Test: `entities/strategy/hooks/useStrategyQueries.test.tsx`
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `entities/strategy/hooks/useStrategyQueries.test.tsx`에 아래를 추가한다. 파일 상단 import에 `useMutation`, `useQueryClient`, `useUpdateStrategyMutation`을 추가해야 한다:
 
@@ -90,12 +90,12 @@ describe('useUpdateStrategyMutation', () => {
 })
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 Run: `npx vitest run entities/strategy/hooks/useStrategyQueries.test.tsx`
 Expected: FAIL — `['order-preview']`로 호출되지 않음 (`['nextOrderPreview']`로 호출됨)
 
-- [ ] **Step 3: 수정**
+- [x] **Step 3: 수정**
 
 `entities/strategy/hooks/useStrategyQueries.ts` 86행:
 
@@ -108,12 +108,12 @@ Expected: FAIL — `['order-preview']`로 호출되지 않음 (`['nextOrderPrevi
 
 (prefix 매칭이므로 `['order-preview']`가 `['order-preview', 'strategy', id]`를 모두 무효화한다)
 
-- [ ] **Step 4: 테스트 통과 확인**
+- [x] **Step 4: 테스트 통과 확인**
 
 Run: `npx vitest run entities/strategy/hooks/useStrategyQueries.test.tsx`
 Expected: PASS
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add entities/strategy/hooks/useStrategyQueries.ts entities/strategy/hooks/useStrategyQueries.test.tsx
@@ -129,7 +129,7 @@ git commit -m "fix(strategy): 전략 수정 후 주문 미리보기 무효화 �
 **Files:**
 - Modify: `app/(admin)/admin/page.tsx:47`
 
-- [ ] **Step 1: 수정**
+- [x] **Step 1: 수정**
 
 ```tsx
 // 변경 전
@@ -138,12 +138,12 @@ git commit -m "fix(strategy): 전략 수정 후 주문 미리보기 무효화 �
         <AdminPendingList initialUsers={recentPending} max={5} />
 ```
 
-- [ ] **Step 2: 검증**
+- [x] **Step 2: 검증**
 
 Run: `npm run typecheck`
 Expected: PASS
 
-- [ ] **Step 3: 커밋**
+- [x] **Step 3: 커밋**
 
 ```bash
 git add "app/(admin)/admin/page.tsx"
@@ -160,7 +160,7 @@ git commit -m "fix(admin): Overview 승인 대기 목록 5명 제한이 리페�
 - Modify: `app/(admin)/layout.tsx`
 - Modify: `app/(admin)/layout.test.tsx`
 
-- [ ] **Step 1: 레이아웃에서 Toaster 제거**
+- [x] **Step 1: 레이아웃에서 Toaster 제거**
 
 `app/(admin)/layout.tsx`에서 `import { Toaster } from 'sonner'` 라인과 `<Toaster richColors position="top-right" />` 라인을 삭제한다. 결과:
 
@@ -185,7 +185,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 }
 ```
 
-- [ ] **Step 2: 테스트의 불필요한 sonner mock 제거**
+- [x] **Step 2: 테스트의 불필요한 sonner mock 제거**
 
 `app/(admin)/layout.test.tsx`에서 아래 블록을 삭제한다:
 
@@ -195,12 +195,12 @@ vi.mock('sonner', () => ({
 }))
 ```
 
-- [ ] **Step 3: 검증**
+- [x] **Step 3: 검증**
 
 Run: `npx vitest run "app/(admin)/layout.test.tsx"` 후 `npm run typecheck`
 Expected: 둘 다 PASS
 
-- [ ] **Step 4: 커밋**
+- [x] **Step 4: 커밋**
 
 ```bash
 git add "app/(admin)/layout.tsx" "app/(admin)/layout.test.tsx"
@@ -216,7 +216,7 @@ git commit -m "fix(admin): 루트 레이아웃과 중복되는 admin Toaster 제
 **Files:**
 - Modify: `proxy.ts:9-16, 173-176`
 
-- [ ] **Step 1: COOKIE_OPTIONS 상수를 요청 기반 함수로 변경**
+- [x] **Step 1: COOKIE_OPTIONS 상수를 요청 기반 함수로 변경**
 
 `proxy.ts` 9-16행:
 
@@ -243,7 +243,7 @@ const cacheCookieOptions = (request: NextRequest) => ({
 })
 ```
 
-- [ ] **Step 2: 사용처 변경**
+- [x] **Step 2: 사용처 변경**
 
 `proxy.ts` 173-176행:
 
@@ -262,12 +262,12 @@ const cacheCookieOptions = (request: NextRequest) => ({
   }
 ```
 
-- [ ] **Step 3: 검증**
+- [x] **Step 3: 검증**
 
 Run: `npm run typecheck && npm run test:run`
 Expected: PASS
 
-- [ ] **Step 4: 커밋**
+- [x] **Step 4: 커밋**
 
 ```bash
 git add proxy.ts
@@ -289,7 +289,7 @@ git commit -m "fix(proxy): status/role 캐시 쿠키 secure 플래그를 x-forwa
 - Create: `shared/lib/date-range.ts`
 - Test: `shared/lib/date-range.test.ts`
 
-- [ ] **Step 1: 실패하는 테스트 작성** — `shared/lib/date-range.test.ts` 생성:
+- [x] **Step 1: 실패하는 테스트 작성** — `shared/lib/date-range.test.ts` 생성:
 
 ```ts
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -375,12 +375,12 @@ describe('parsePage', () => {
 })
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 Run: `npx vitest run shared/lib/date-range.test.ts`
 Expected: FAIL — 모듈 없음
 
-- [ ] **Step 3: 구현** — `shared/lib/date-range.ts` 생성:
+- [x] **Step 3: 구현** — `shared/lib/date-range.ts` 생성:
 
 ```ts
 // KST(Asia/Seoul) 기준 날짜 범위 계산 + searchParams 파서.
@@ -447,12 +447,12 @@ export function parsePage(raw: string | undefined): number {
 }
 ```
 
-- [ ] **Step 4: 테스트 통과 확인**
+- [x] **Step 4: 테스트 통과 확인**
 
 Run: `npx vitest run shared/lib/date-range.test.ts`
 Expected: PASS (전체)
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add shared/lib/date-range.ts shared/lib/date-range.test.ts
@@ -476,26 +476,26 @@ git commit -m "feat(shared): KST 기준 날짜 범위·searchParams 파서 유�
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
 ```
 
-- [ ] **Step 1: `admin/logs/page.tsx` 전환**
+- [x] **Step 1: `admin/logs/page.tsx` 전환**
 
 로컬 `VALID_SIZES`, `parseRangePreset`, `parseSize`, `parsePage`, `resolveFromTo` 삭제. 호출부 변경:
 - `parseRangePreset(params.anoRange)` → `parseRangePreset(params.anoRange, '7d')` (err/aud도 동일하게 `'7d'`)
 - `resolveFromTo(anoRange, params.anoFrom, params.anoTo)` → `resolveRange(anoRange, params.anoFrom, params.anoTo)` (err/aud 동일)
 - `parseSize`/`parsePage` 호출은 시그니처 동일 — import만 바뀜
 
-- [ ] **Step 2: `admin/accounts/page.tsx` 전환**
+- [x] **Step 2: `admin/accounts/page.tsx` 전환**
 
 동일 삭제. 기존 fallback이 `'all'`이므로: `parseRangePreset(rawRange)` → `parseRangePreset(rawRange, 'all')`. `resolveFromTo(...)` → `resolveRange(...)`.
 
-- [ ] **Step 3: `admin/trades/page.tsx` 전환**
+- [x] **Step 3: `admin/trades/page.tsx` 전환**
 
 동일 삭제. 기존 fallback `'7d'`: `parseRangePreset(rawRange, '7d')`. `resolveFromTo` → `resolveRange`.
 
-- [ ] **Step 4: `admin/users/page.tsx` 전환**
+- [x] **Step 4: `admin/users/page.tsx` 전환**
 
 이 페이지는 `parseRangePreset`(fallback `'all'`)과 `resolveFromTo`만 있다. 삭제 후 `parseRangePreset(rawRange, 'all')` + `resolveRange(...)`로 대체. (`parseSize`/`parsePage` import 불필요)
 
-- [ ] **Step 5: `admin/privacy-trades/page.tsx` 전환**
+- [x] **Step 5: `admin/privacy-trades/page.tsx` 전환**
 
 로컬 파서 삭제(fallback `'7d'`). 추가로 `filterByRange`를 UTC cutoff 대신 `resolveRange` 기반으로 교체:
 
@@ -511,12 +511,12 @@ function filterByRange(bases: AdminPrivacyBase[], range: RangePreset, from?: str
 
 주의: 기존 코드의 `import { RangeFilterBar, type RangePreset } from '@shared/ui/RangeFilterBar'`에서 타입은 어느 쪽에서 가져와도 동일하다(Task 7에서 단일화). 이 시점에는 위처럼 `@shared/lib/date-range`에서 가져온다.
 
-- [ ] **Step 6: 검증**
+- [x] **Step 6: 검증**
 
 Run: `npm run typecheck && npm run test:run`
 Expected: PASS. 추가로 `grep -rn "resolveFromTo" app/` 결과가 비어야 한다.
 
-- [ ] **Step 7: 커밋**
+- [x] **Step 7: 커밋**
 
 ```bash
 git add "app/(admin)/admin/logs/page.tsx" "app/(admin)/admin/accounts/page.tsx" "app/(admin)/admin/trades/page.tsx" "app/(admin)/admin/users/page.tsx" "app/(admin)/admin/privacy-trades/page.tsx"
@@ -536,7 +536,7 @@ git commit -m "refactor(admin): 5개 페이지의 날짜 범위·파서 중복�
 - Modify: `widgets/account-detail/TradesTab.tsx`
 - Modify: `widgets/strategy-detail/StrategyOrderHistory.tsx`
 
-- [ ] **Step 1: RangeFilterBar가 공용 타입·라벨을 쓰도록 변경**
+- [x] **Step 1: RangeFilterBar가 공용 타입·라벨을 쓰도록 변경**
 
 `shared/ui/RangeFilterBar.tsx`에서 로컬 `RangePreset` 타입과 `LABELS` 상수를 삭제하고:
 
@@ -548,7 +548,7 @@ export type { RangePreset }
 
 본문의 `LABELS[r]` → `RANGE_LABELS[r]`. (`export type { RangePreset }` 재수출은 기존 `@shared/ui/RangeFilterBar`에서 타입을 import하는 admin 페이지들의 호환용 — Task 6 이후에도 남아있는 곳이 있으면 유지된다)
 
-- [ ] **Step 2: cycle-history의 buildParams 삭제 및 호출부 전환**
+- [x] **Step 2: cycle-history의 buildParams 삭제 및 호출부 전환**
 
 1. `widgets/cycle-history/lib/buildParams.ts` 파일 삭제 (lib 디렉토리가 비면 디렉토리도 삭제)
 2. `widgets/cycle-history/index.ts`에서 `export { buildParams, type RangeType } from './lib/buildParams'` 라인 삭제
@@ -567,7 +567,7 @@ export type { RangePreset }
      ```
    - `RangeType` → `RangePreset` 치환, `buildParams(...)` → `resolveRangeStrict(...)`
 
-- [ ] **Step 3: StrategyOrderHistory 전환**
+- [x] **Step 3: StrategyOrderHistory 전환**
 
 `widgets/strategy-detail/StrategyOrderHistory.tsx`에서 로컬 `RangeType` 타입, `RANGE_LABELS` 상수, `resolveRange` 함수(15~45행)를 삭제하고:
 
@@ -578,12 +578,12 @@ import { RANGE_LABELS, resolveRangeStrict, type RangePreset } from '@shared/lib/
 - 파일 내 `RangeType` → `RangePreset` 치환
 - `const range = resolveRange(rangeType, customFrom, customTo)` → `const range = resolveRangeStrict(rangeType, customFrom, customTo)`
 
-- [ ] **Step 4: 검증**
+- [x] **Step 4: 검증**
 
 Run: `npm run typecheck && npm run test:run`
 Expected: PASS. 추가 확인: `grep -rn "buildParams" app widgets features entities shared` 결과 없음.
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add shared/ui/RangeFilterBar.tsx widgets/cycle-history widgets/account-detail/TradesTab.tsx widgets/strategy-detail/StrategyOrderHistory.tsx
@@ -599,7 +599,7 @@ git commit -m "refactor: 날짜 범위 로직 3중 중복 제거 — RangeFilter
 **Files:**
 - Modify: `widgets/strategy-detail/StrategyDetail.tsx:84-89`
 
-- [ ] **Step 1: 수정**
+- [x] **Step 1: 수정**
 
 `import { fmtUsd } from '@shared/lib/format'` → `import { fmtUsd, todayKst } from '@shared/lib/format'`
 
@@ -619,12 +619,12 @@ git commit -m "refactor: 날짜 범위 로직 3중 중복 제거 — RangeFilter
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
 ```
 
-- [ ] **Step 2: 검증**
+- [x] **Step 2: 검증**
 
 Run: `npx vitest run widgets/strategy-detail/StrategyDetail.test.tsx` 후 `npm run typecheck`
 Expected: PASS (기존 테스트가 날짜를 고정한다면 실패 시 테스트의 mock 날짜를 확인해 조정)
 
-- [ ] **Step 3: 커밋**
+- [x] **Step 3: 커밋**
 
 ```bash
 git add widgets/strategy-detail/StrategyDetail.tsx
@@ -653,9 +653,9 @@ git commit -m "fix(strategy-detail): 휴장일·요일 판정을 KST 날짜 기�
 - Modify: `shared/lib/api-schema.ts` — `MarketSessionStatus` 타입 export 삭제 (소비처가 entities/market뿐이었음)
 - Delete: `public/next.svg`, `public/vercel.svg`, `public/file.svg`, `public/globe.svg`, `public/window.svg` — 템플릿 잔재, 참조 없음
 
-- [ ] **Step 1: 위 목록대로 삭제/수정한다** (파일별로 위 명세 이외의 것은 건드리지 않는다)
+- [x] **Step 1: 위 목록대로 삭제/수정한다** (파일별로 위 명세 이외의 것은 건드리지 않는다)
 
-- [ ] **Step 2: 잔존 참조 확인**
+- [x] **Step 2: 잔존 참조 확인**
 
 Run (Git Bash):
 ```bash
@@ -663,12 +663,12 @@ grep -rn "useReapplyMutation\|listAdminStrategyTradeDates\|TradeHistory\|Portfol
 ```
 Expected: 출력 없음. (`Execution`은 일반 단어라 grep에서 제외 — typecheck가 잡는다)
 
-- [ ] **Step 3: 검증**
+- [x] **Step 3: 검증**
 
 Run: `npm run typecheck && npm run test:run`
 Expected: PASS (테스트 파일 1개가 줄어 26 files)
 
-- [ ] **Step 4: 커밋**
+- [x] **Step 4: 커밋**
 
 ```bash
 git add -A entities shared/lib/api-schema.ts public
@@ -686,7 +686,7 @@ git commit -m "chore: 미사용 API 함수·타입·훅·템플릿 svg 일괄 �
 - Modify: `app/(main)/accounts/[id]/strategies/[sid]/page.tsx:58`
 - Modify: `widgets/strategy-detail/StrategyDetail.test.tsx` (해당 props를 넘기고 있으면 제거)
 
-- [ ] **Step 1: Props 인터페이스에서 제거**
+- [x] **Step 1: Props 인터페이스에서 제거**
 
 ```tsx
 // 변경 전
@@ -704,7 +704,7 @@ interface Props {
 }
 ```
 
-- [ ] **Step 2: 호출부 정리**
+- [x] **Step 2: 호출부 정리**
 
 `app/(main)/accounts/[id]/strategies/[sid]/page.tsx`:
 
@@ -717,12 +717,12 @@ interface Props {
 
 `widgets/strategy-detail/StrategyDetail.test.tsx`에서 `accountNoMasked`/`accountNo`를 전달하는 render 호출이 있으면 해당 props만 제거한다.
 
-- [ ] **Step 3: 검증**
+- [x] **Step 3: 검증**
 
 Run: `npm run typecheck && npx vitest run widgets/strategy-detail/StrategyDetail.test.tsx`
 Expected: PASS
 
-- [ ] **Step 4: 커밋**
+- [x] **Step 4: 커밋**
 
 ```bash
 git add widgets/strategy-detail/StrategyDetail.tsx widgets/strategy-detail/StrategyDetail.test.tsx "app/(main)/accounts/[id]/strategies/[sid]/page.tsx"
@@ -741,14 +741,14 @@ git commit -m "chore(strategy-detail): 미사용 props(accountNoMasked·accountN
 - Modify: `app/pending/page.tsx`
 - Modify: `app/rejected/page.tsx`
 
-- [ ] **Step 1: index.ts 생성** — `features/auth/reapply/index.ts`:
+- [x] **Step 1: index.ts 생성** — `features/auth/reapply/index.ts`:
 
 ```ts
 export { ReapplyButton } from './ReapplyButton'
 export { RejectedReapplyButton } from './RejectedReapplyButton'
 ```
 
-- [ ] **Step 2: app/pending/page.tsx의 import 교체**
+- [x] **Step 2: app/pending/page.tsx의 import 교체**
 
 ```tsx
 // 변경 전
@@ -763,7 +763,7 @@ import { LogoutButton } from '@features/auth/logout'
 
 JSX의 `<TelegramConnect hasTelegram={...} currentChannel={...} />` → `<PendingTelegramConnect hasTelegram={...} currentChannel={...} />`로 이름 변경. (`PendingStatusWatcher` import는 그대로 둔다 — pending 전용 로컬 컴포넌트)
 
-- [ ] **Step 3: app/rejected/page.tsx의 딥 임포트 교체**
+- [x] **Step 3: app/rejected/page.tsx의 딥 임포트 교체**
 
 ```tsx
 // 변경 전
@@ -772,16 +772,16 @@ import { RejectedReapplyButton } from '@features/auth/reapply/RejectedReapplyBut
 import { RejectedReapplyButton } from '@features/auth/reapply'
 ```
 
-- [ ] **Step 4: 재수출 파일 3개 삭제**
+- [x] **Step 4: 재수출 파일 3개 삭제**
 
 `app/pending/LogoutButton.tsx`, `app/pending/ReapplyButton.tsx`, `app/pending/TelegramConnect.tsx` 삭제.
 
-- [ ] **Step 5: 검증**
+- [x] **Step 5: 검증**
 
 Run: `npm run typecheck && npm run test:run`
 Expected: PASS
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add -A app/pending app/rejected features/auth/reapply
@@ -800,7 +800,7 @@ git commit -m "refactor(pending): app 레이어의 1줄 재수출 제거, reappl
 - Modify: `app/(admin)/admin/accounts/page.tsx`
 - Modify: `widgets/account-card/AccountCard.tsx`
 
-- [ ] **Step 1: 공용 함수 생성** — `entities/strategy/model/type-short.ts`:
+- [x] **Step 1: 공용 함수 생성** — `entities/strategy/model/type-short.ts`:
 
 ```ts
 /** 전략 타입 축약 표기 — 배지용 (PRIVACY→P, INFINITE→I, 그 외 원문) */
@@ -811,22 +811,22 @@ export function strategyTypeShort(type: string): string {
 }
 ```
 
-- [ ] **Step 2: public API에 추가** — `entities/strategy/index.ts`에 한 줄 추가:
+- [x] **Step 2: public API에 추가** — `entities/strategy/index.ts`에 한 줄 추가:
 
 ```ts
 export { strategyTypeShort } from './model/type-short'
 ```
 
-- [ ] **Step 3: 두 사용처의 로컬 정의 삭제 후 import**
+- [x] **Step 3: 두 사용처의 로컬 정의 삭제 후 import**
 
 `app/(admin)/admin/accounts/page.tsx`와 `widgets/account-card/AccountCard.tsx` 각각에서 로컬 `strategyTypeShort` 함수를 삭제하고 기존 `@entities/strategy` import에 `strategyTypeShort`를 추가한다. (admin accounts 페이지는 `@entities/strategy` import가 없으므로 새로 추가: `import { strategyTypeShort } from '@entities/strategy'`)
 
-- [ ] **Step 4: 검증**
+- [x] **Step 4: 검증**
 
 Run: `npm run typecheck && npx vitest run widgets/account-card/AccountCard.test.tsx`
 Expected: PASS
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add entities/strategy "app/(admin)/admin/accounts/page.tsx" widgets/account-card/AccountCard.tsx
@@ -851,7 +851,7 @@ git commit -m "refactor(strategy): strategyTypeShort 중복 정의를 entities/s
 - Modify: `CLAUDE.md`
 - Delete: `shrimp-rules.md`
 
-- [ ] **Step 1: widgets.md 대표 슬라이스 목록 교체**
+- [x] **Step 1: widgets.md 대표 슬라이스 목록 교체**
 
 "대표 슬라이스" 섹션을 실제 디렉토리 기준으로 교체:
 
@@ -864,7 +864,7 @@ git commit -m "refactor(strategy): strategyTypeShort 중복 정의를 entities/s
 
 "주요 슬라이스 quirk" 섹션에서 `dashboard/aggregatePortfolios`, `profit-stats-card` 항목을 삭제한다.
 
-- [ ] **Step 2: entities.md 교정**
+- [x] **Step 2: entities.md 교정**
 
 1. queryKey 목록을 실제 코드 기준으로 교체:
 
@@ -880,21 +880,21 @@ git commit -m "refactor(strategy): strategyTypeShort 중복 정의를 entities/s
 5. "API 날짜 파라미터" 섹션에서 `getAccountProfit 등: { from, to }` 줄과 `GET /api/accounts/{id}/profit` 줄 삭제
 6. `GET /api/accounts/{id}/trades: Execution[] ...` 줄 삭제 (Execution 타입은 Task 9에서 제거됨)
 
-- [ ] **Step 3: app.md 교정**
+- [x] **Step 3: app.md 교정**
 
 `**loading.tsx**: app/(main)/dashboard|accounts|statistics|settings/loading.tsx` → `**loading.tsx**: app/(main)/dashboard|accounts|strategies|settings/loading.tsx`
 
-- [ ] **Step 4: 루트 CLAUDE.md '개발 도구' 섹션에 typecheck 주의사항 추가**
+- [x] **Step 4: 루트 CLAUDE.md '개발 도구' 섹션에 typecheck 주의사항 추가**
 
 ```markdown
 - `npm run typecheck`가 `.next/dev/types` 스테일 참조(삭제된 라우트)로 실패하면 `.next` 삭제 후 재실행 — 라우트 삭제·이동 뒤에 발생하는 산출물 문제이며 코드 오류가 아님
 ```
 
-- [ ] **Step 5: shrimp-rules.md 삭제**
+- [x] **Step 5: shrimp-rules.md 삭제**
 
 루트의 `shrimp-rules.md`는 Supabase Auth·Next.js 15·Render 등 초기 기획 시점 내용으로 전면 스테일이다. 삭제한다.
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add docs/agents/widgets.md docs/agents/entities.md docs/agents/app.md CLAUDE.md
@@ -912,11 +912,11 @@ git commit -m "docs: agents 문서를 실제 코드와 동기화, 스테일 문�
 - Modify: `proxy.ts:21`
 - Test: `proxy.test.ts` (신규, 루트)
 
-- [ ] **Step 1: isJwtExpired export**
+- [x] **Step 1: isJwtExpired export**
 
 `proxy.ts` 21행: `function isJwtExpired(` → `export function isJwtExpired(` (Next.js proxy 파일은 `proxy`와 `config` 외의 export를 무시하므로 안전하다)
 
-- [ ] **Step 2: 실패하는 테스트 작성** — 루트에 `proxy.test.ts` 생성:
+- [x] **Step 2: 실패하는 테스트 작성** — 루트에 `proxy.test.ts` 생성:
 
 ```ts
 import { describe, expect, it } from 'vitest'
@@ -952,17 +952,17 @@ describe('isJwtExpired', () => {
 })
 ```
 
-- [ ] **Step 3: 테스트 실행**
+- [x] **Step 3: 테스트 실행**
 
 Run: `npx vitest run proxy.test.ts`
 Expected: Step 1을 먼저 했다면 PASS. (`next/server` import 오류가 나면 vitest가 proxy.ts의 NextResponse import를 해석하지 못하는 것 — 이 경우 `isJwtExpired`를 `shared/lib/auth/jwt.ts`로 추출하고 proxy.ts에서 import하는 방식으로 전환한 뒤 테스트 파일도 `shared/lib/auth/jwt.test.ts`로 옮긴다. 추출 시 함수 본문은 그대로 복사한다)
 
-- [ ] **Step 4: 전체 검증**
+- [x] **Step 4: 전체 검증**
 
 Run: `npm run typecheck && npm run test:run`
 Expected: PASS
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add proxy.ts proxy.test.ts
@@ -973,17 +973,17 @@ git commit -m "test(proxy): isJwtExpired 단위 테스트 추가"
 
 ## 최종 검증 (Task 15)
 
-- [ ] **Step 1: 전체 회귀 확인**
+- [x] **Step 1: 전체 회귀 확인**
 
 Run: `npm run typecheck && npm run test:run`
 Expected: typecheck 0 오류, 테스트 전체 통과 (기준선 117개 + Task 1·5·14에서 추가된 테스트 − Task 9에서 삭제된 strategy-capability 테스트 2개)
 
-- [ ] **Step 2: 프로덕션 빌드 확인**
+- [x] **Step 2: 프로덕션 빌드 확인**
 
 Run: `npm run build`
 Expected: 빌드 성공 (경고는 기존과 동일한지 확인)
 
-- [ ] **Step 3: 잔존 중복 확인**
+- [x] **Step 3: 잔존 중복 확인**
 
 Run (Git Bash):
 ```bash
@@ -991,7 +991,7 @@ grep -rn "parseRangePreset\|resolveFromTo\|RANGE_LABELS" app widgets --include='
 ```
 Expected: 로컬 재정의 없음 (`@shared/lib/date-range` import만 존재)
 
-- [ ] **Step 4: 이 계획 파일의 체크박스를 모두 갱신하고 완료 보고**
+- [x] **Step 4: 이 계획 파일의 체크박스를 모두 갱신하고 완료 보고**
 
 ---
 
