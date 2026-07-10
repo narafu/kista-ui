@@ -19,7 +19,7 @@ const PROTECTED_PREFIXES = ['/accounts', '/strategies', '/settings']
 const ADMIN_PREFIXES = ['/admin']
 
 // JWT exp 클레임만 확인 (서명 검증 없음) — bufferSecs 이내 만료도 갱신 대상
-function isJwtExpired(token: string, bufferSecs = 30): boolean {
+export function isJwtExpired(token: string, bufferSecs = 30): boolean {
   try {
     const parts = token.split('.')
     if (parts.length !== 3) return true
