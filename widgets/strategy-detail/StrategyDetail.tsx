@@ -51,8 +51,6 @@ function previewErrorMsg(error: unknown): string {
 
 interface Props {
   accountId: string
-  accountNoMasked: string
-  accountNo?: string
   strategy: Strategy
 }
 
