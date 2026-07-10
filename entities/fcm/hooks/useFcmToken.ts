@@ -52,5 +52,8 @@ export function useFcmToken() {
     }
   }, [acquireToken])
 
-  return { status, prewarm, acquireToken, requestAndRegister }
+  // 이미 취득된 토큰만 반환 — 권한 요청/새 토큰 발급 없음 (알림 끄기 등 부수효과 없는 조회용)
+  const getCachedToken = useCallback((): string | null => tokenRef.current, [])
+
+  return { status, prewarm, acquireToken, requestAndRegister, getCachedToken }
 }
