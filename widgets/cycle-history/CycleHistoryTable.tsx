@@ -8,14 +8,14 @@ import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
-import { RANGE_LABELS, type RangeType } from './lib/buildParams'
+import { RANGE_LABELS, type RangePreset } from '@shared/lib/date-range'
 
 interface Props {
   title: string
   cycleHistory: CycleHistoryItem[]
   isLoading: boolean
-  rangeType: RangeType
-  setRangeType: (r: RangeType) => void
+  rangeType: RangePreset
+  setRangeType: (r: RangePreset) => void
   customFrom: string
   setCustomFrom: (v: string) => void
   customTo: string
@@ -59,7 +59,7 @@ export function CycleHistoryTable({
           <CardTitle className="text-base lg:text-lg">{title}</CardTitle>
           <div className="flex items-center justify-between gap-2">
             <div className="flex gap-0.5 rounded-lg bg-muted p-1">
-              {(['7d', '30d', 'all', 'custom'] as RangeType[]).map((r) => (
+              {(['7d', '30d', 'all', 'custom'] as RangePreset[]).map((r) => (
                 <button
                   key={r}
                   type="button"

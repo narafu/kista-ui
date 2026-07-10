@@ -11,15 +11,7 @@ import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { fmtUsd } from '@shared/lib/format'
 import { toNum } from '@shared/lib/utils'
-
-type RangeType = 'all' | '7d' | '30d' | 'custom'
-
-const RANGE_LABELS: Record<RangeType, string> = {
-  all: '전체',
-  '7d': '7일',
-  '30d': '30일',
-  custom: '직접입력',
-}
+import { RANGE_LABELS, resolveRangeStrict, type RangePreset } from '@shared/lib/date-range'
 
 const ORDER_TYPE_STYLE: Record<string, string> = {
   LIMIT: 'bg-muted text-muted-foreground',
@@ -27,26 +19,9 @@ const ORDER_TYPE_STYLE: Record<string, string> = {
   MOC: 'bg-warn-bg text-warn',
 }
 
-function resolveRange(rangeType: RangeType, customFrom: string, customTo: string): { from?: string; to?: string } | null {
-  const today = new Date().toISOString().split('T')[0]
-  if (rangeType === 'all') return {}
-  if (rangeType === '7d') {
-    const from = new Date()
-    from.setDate(from.getDate() - 7)
-    return { from: from.toISOString().split('T')[0], to: today }
-  }
-  if (rangeType === '30d') {
-    const from = new Date()
-    from.setDate(from.getDate() - 30)
-    return { from: from.toISOString().split('T')[0], to: today }
-  }
-  if (!customFrom || !customTo) return null
-  return { from: customFrom, to: customTo }
-}
-
-type FilterState = { rangeType: RangeType; customFrom: string; customTo: string; pageSize: string; page: number }
+type FilterState = { rangeType: RangePreset; customFrom: string; customTo: string; pageSize: string; page: number }
 type FilterAction =
-  | { type: 'range'; rangeType: RangeType }
+  | { type: 'range'; rangeType: RangePreset }
   | { type: 'custom'; from: string; to: string }
   | { type: 'pageSize'; size: string }
   | { type: 'page'; page: number }
@@ -73,7 +48,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
     page: 1,
   })
 
-  const range = resolveRange(rangeType, customFrom, customTo)
+  const range = resolveRangeStrict(rangeType, customFrom, customTo)
   const { data: orders = [], isLoading, isError, error } = useStrategyOrdersQuery(strategyId, range?.from, range?.to, { enabled: range !== null })
 
   const size = Number(pageSize)
@@ -87,7 +62,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
           <CardTitle className="text-base lg:text-lg">주문 내역</CardTitle>
           <div className="flex items-center justify-between gap-2">
             <div className="flex gap-0.5 rounded-lg bg-muted p-1">
-              {(['7d', '30d', 'all', 'custom'] as RangeType[]).map((r) => (
+              {(['7d', '30d', 'all', 'custom'] as RangePreset[]).map((r) => (
                 <button
                   key={r}
                   type="button"

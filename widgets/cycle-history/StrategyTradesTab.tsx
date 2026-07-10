@@ -5,11 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useStrategyCycleHistoryQuery } from '@entities/trade'
 import { CycleHistoryTable } from './CycleHistoryTable'
 import { EmptyState } from '@shared/ui/EmptyState'
-import { buildParams, type RangeType } from './lib/buildParams'
+import { resolveRangeStrict, type RangePreset } from '@shared/lib/date-range'
 
-type State = { rangeType: RangeType; customFrom: string; customTo: string; pageSize: string }
+type State = { rangeType: RangePreset; customFrom: string; customTo: string; pageSize: string }
 type Action =
-  | { type: 'SET_RANGE'; rangeType: RangeType }
+  | { type: 'SET_RANGE'; rangeType: RangePreset }
   | { type: 'SET_CUSTOM_FROM'; value: string }
   | { type: 'SET_CUSTOM_TO'; value: string }
   | { type: 'SET_PAGE_SIZE'; value: string }
@@ -32,7 +32,7 @@ interface Props {
 export function StrategyTradesTab({ strategyId }: Props) {
   const [state, dispatch] = useReducer(reducer, INITIAL)
   const { rangeType, customFrom, customTo, pageSize } = state
-  const baseParams = buildParams(rangeType, customFrom, customTo)
+  const baseParams = resolveRangeStrict(rangeType, customFrom, customTo)
   const params = baseParams !== null ? { ...baseParams, size: Number(pageSize) } : null
   const { cycleHistory, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useStrategyCycleHistoryQuery(strategyId, params)

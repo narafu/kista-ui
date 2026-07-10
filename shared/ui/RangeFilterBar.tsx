@@ -2,15 +2,9 @@
 
 import { Suspense, useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { RANGE_LABELS, type RangePreset } from '@shared/lib/date-range'
 
-export type RangePreset = '7d' | '30d' | 'all' | 'custom'
-
-const LABELS: Record<RangePreset, string> = {
-  '7d': '7일',
-  '30d': '30일',
-  all: '전체',
-  custom: '직접입력',
-}
+export type { RangePreset }
 
 interface Props {
   current: RangePreset
@@ -60,7 +54,7 @@ function RangeFilterBarContent({ current, from, to, pageParamKeys = ['page'], pa
                 : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             }`}
           >
-            {LABELS[r]}
+            {RANGE_LABELS[r]}
           </button>
         ))}
       </div>

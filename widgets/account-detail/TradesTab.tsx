@@ -2,11 +2,12 @@
 
 import { useReducer } from 'react'
 import { useAccountCycleHistoryQuery } from '@entities/trade'
-import { CycleHistoryTable, buildParams, type RangeType } from '@widgets/cycle-history'
+import { CycleHistoryTable } from '@widgets/cycle-history'
+import { resolveRangeStrict, type RangePreset } from '@shared/lib/date-range'
 
-type State = { rangeType: RangeType; customFrom: string; customTo: string; pageSize: string }
+type State = { rangeType: RangePreset; customFrom: string; customTo: string; pageSize: string }
 type Action =
-  | { type: 'SET_RANGE'; rangeType: RangeType }
+  | { type: 'SET_RANGE'; rangeType: RangePreset }
   | { type: 'SET_CUSTOM_FROM'; value: string }
   | { type: 'SET_CUSTOM_TO'; value: string }
   | { type: 'SET_PAGE_SIZE'; value: string }
@@ -29,7 +30,7 @@ interface Props {
 export function TradesTab({ accountId }: Props) {
   const [state, dispatch] = useReducer(reducer, INITIAL)
   const { rangeType, customFrom, customTo, pageSize } = state
-  const baseParams = buildParams(rangeType, customFrom, customTo)
+  const baseParams = resolveRangeStrict(rangeType, customFrom, customTo)
   const params = baseParams !== null ? { ...baseParams, size: Number(pageSize) } : null
   const { cycleHistory, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useAccountCycleHistoryQuery(accountId, params)
