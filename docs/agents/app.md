@@ -38,7 +38,7 @@
 - **`new Date()` hydration 불일치**: `useState('')` + `useEffect(() => { setState(new Date()...) }, [])` 패턴
 - **next-themes hydration**: `useTheme()`의 `resolvedTheme`은 SSR에서 `undefined`. `const [mounted, setMounted] = useState(false)` + `useEffect(() => setMounted(true), [])` → `mounted && resolvedTheme === 'dark'`
 - **Next.js Image + Tailwind preflight**: `img { height: auto }` preflight + 비정사각형 이미지를 정사각형으로 지정 시 경고. 해결: `<Image>` 컴포넌트 `style` prop에 `height: N, width: N` 직접 명시
-- **`loading.tsx`**: `app/(main)/dashboard|accounts|statistics|settings/loading.tsx` — `animate-pulse` + 실제 레이아웃을 모방한 skeleton
+- **`loading.tsx`**: `app/(main)/dashboard|accounts|strategies|settings/loading.tsx` — `animate-pulse` + 실제 레이아웃을 모방한 skeleton
 
 ## 캐싱 (Server Component)
 

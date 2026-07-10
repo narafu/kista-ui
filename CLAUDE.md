@@ -144,6 +144,7 @@ NEXT_PUBLIC_FIREBASE_VAPID_KEY=     # 웹 푸시 VAPID 인증서 키
 - 개발 서버 요청/에러 로그: `.next/dev/logs/next-development.log` (JSON 형식, `tail -f`로 실시간 확인)
 - Playwright: `npx playwright screenshot --browser chromium --viewport-size "1440,900" http://localhost:PORT/path /tmp/out.png` (첫 실행 시 `npx playwright install chromium`)
 - kista-api 위치: `../kista-api/` — 빌드: `cd ../kista-api && ./gradlew compileJava`
+- `npm run typecheck`가 `.next/dev/types` 스테일 참조(삭제된 라우트)로 실패하면 `.next` 삭제 후 재실행 — 라우트 삭제·이동 뒤에 발생하는 산출물 문제이며 코드 오류가 아님
 
 ## FE 코딩 가이드라인
 

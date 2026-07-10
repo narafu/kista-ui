@@ -46,7 +46,7 @@ entities/{domain}/
 
 ### queryKey 목록
 
-`['accounts']`, `['accountMargin', accountId]`, `['accountPrices', accountId, tickers]`, `['strategies', accountId]`, `['strategies', 'all']`, `['nextOrderPreview', accountId]`, `['previewMargin', accountId]`, `['holidays', year, month]`, `['marketSession']`, `['accountCycleHistory', accountId, params]`, `['strategyCycleHistory', strategyId, params]`, `['profit', accountId, period]`, `['me']`, `['adminUsers', filter]`, `['strategy-orders', strategyId, from, to]`
+`['accountMargin', accountId]`, `['accountPrices', accountId, tickers]`, `['strategies', accountId]`, `['strategies', 'all']`, `['strategySeedPreview', accountId, type, ticker, divisionCount]`, `['order-preview', 'strategy', strategyId]`, `['strategy-orders', strategyId, from, to]`, `['holidays', year, month]`, `['candles', ticker, count]`, `['fearGreed', days]`, `['accountCycleHistory', accountId, params]`, `['strategyCycleHistory', strategyId, params]`, `['weeklyTrades', accountIds, weekStart]`, `['me']`, `['adminUsers', filter]`
 
 ## index.ts 규칙
 
@@ -66,7 +66,6 @@ import { deleteAccount } from '@entities/account'
 - **`vr`**: VR 전략 전용 요약 `{ value, bandWidth, intervalWeeks, recurringAmount, poolLimit, gradient }`. 비VR은 없음
 - **`isReverseMode`**: 리버스모드 활성 여부. `StrategyRequest`에는 없음
 - **`StrategyRequest`**: VR 등록 시 `initialUsdDeposit`, `initialValue`, `intervalWeeks`, `bandWidth`, `recurringAmount`를 포함한다. 적립식 VR은 `initialUsdDeposit=0`, `initialValue=0` payload를 허용한다
-- `PortfolioSnapshot`: `snapshotDate` 필드 제거됨 — 날짜는 `createdAt` 사용
 - `AdminAnomalies`: 현재 필드 `pausedAccounts`, `inactiveAccounts`
 - API 함수명은 `listAccounts(token?)`
 
@@ -76,8 +75,8 @@ import { deleteAccount } from '@entities/account'
 - **strategy**: 백엔드 이름은 `TradingCycle`. pause/resume은 strategyId 기준. capability는 `StrategyTypeMeta` 필드를 직접 소비하고, 최소 시드는 `useStrategySeedPreviewQuery`를 사용한다. `seedBadgeClass()`를 재사용한다
 - **meta**: `MetaProvider`는 `(main)/layout.tsx`에서만 제공. `TickerMeta.targetProfitRate`는 `string` 타입
 - **trade/providers**: `TradeNotificationProvider`는 SSE `/api/trades/stream` 구독용
-- **privacy**: Route Handler는 `app/api/privacy-trades/[[...path]]/route.ts`
-- **fcm**: `registerTokenToServer`/`unregisterTokenFromServer`는 `clientFetch<void>` 사용
+- **privacy**: 관리자 전용 — Server Component에서 apiFetch로 `/api/admin/privacy-trade-bases` 직접 호출 (Route Handler 없음)
+- **fcm**: `registerTokenToServer`는 `clientFetch<void>` 사용 (토큰 해제 API는 클라이언트 미구현 — `app/api/fcm/tokens/[token]` DELETE 라우트만 존재)
 
 ## KIS live API quirk
 
@@ -87,7 +86,6 @@ import { deleteAccount } from '@entities/account'
 - **MultiPriceResponse**: 응답 `{ prices: [{ticker, price}] }`를 `PriceMap`으로 정규화해야 함
 - **통화 주의**: `positions[].evalAmountUsd`는 USD, `summary.totalAssetUsd`/`totalEvalProfit`은 KRW
 - **StatisticsController 응답 형식**: 신규 엔드포인트 추가 시 필드명 대조 필수
-- **`GET /api/accounts/{id}/profit`**: 일부 필드는 서버 미전송이므로 `?? 0` 가드 필요
 
 ## OpenAPI 타입 생성
 
@@ -101,9 +99,7 @@ npm run gen:types
 
 ## API 날짜 파라미터
 
-- `getAccountProfit` 등: `{ from, to }`
 - `getAccountCycleHistory`: `{ from?, to? }`
 - `getStrategyCycleHistory`: `{}` 전달 시 서버 기본값 `30d`
 - `getDailyTransactions(accountId, {from, to}, token?)`
 - `GET /api/trades`: `id, tradeDate, ticker, orderType, direction, quantity, price, status, kisOrderId`
-- `GET /api/accounts/{id}/trades`: `Execution[] { tradeDate, ticker, direction, quantity, price, kisOrderId }`
