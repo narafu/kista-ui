@@ -25,7 +25,7 @@ import { useAccountMarginQuery } from '@entities/account'
 import { useMonthlyHolidaysQuery } from '@entities/market'
 import { useMeta } from '@entities/meta'
 import { cn, toNum } from '@shared/lib/utils'
-import { fmtUsd } from '@shared/lib/format'
+import { fmtUsd, todayKst } from '@shared/lib/format'
 import { ApiError } from '@shared/lib/api-client'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -81,10 +81,10 @@ export function StrategyDetail({ accountId, strategy }: Props) {
   const previewDeficit = hasBuyOrders && !isMarginLoading ? Math.max(0, totalBuyUsd + otherPlannedUsd - purchasableUsd) : 0
   const hasDeficit = previewDeficit > 0
 
-  const today = new Date()
-  const { holidays } = useMonthlyHolidaysQuery(today.getFullYear(), today.getMonth() + 1)
-  const todayStr = today.toISOString().slice(0, 10)
-  const dayOfWeek = today.getDay()
+  const todayStr = todayKst()
+  const [kstYear, kstMonth] = todayStr.split('-').map(Number)
+  const { holidays } = useMonthlyHolidaysQuery(kstYear, kstMonth)
+  const dayOfWeek = new Date(todayStr + 'T00:00:00').getDay()
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
   const isHoliday = isWeekend || holidays.includes(todayStr)
   const canExecute = strategy.status === 'ACTIVE'
