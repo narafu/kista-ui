@@ -1,9 +1,3 @@
-export interface PrivacyCurrentBase {
-  ticker: string
-  currentCycleStart: number
-  tradeDate: string
-}
-
 export interface AdminPrivacyOrder {
   id: string
   direction: 'BUY' | 'SELL'

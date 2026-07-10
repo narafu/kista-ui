@@ -12,18 +12,6 @@ export interface TradeEvent {
 export type { OrderDirection, OrderType, OrderStatus } from '@shared/lib/api-schema'
 import type { OrderDirection, OrderType, OrderStatus } from '@shared/lib/api-schema'
 
-export interface TradeHistory {
-  id: string
-  tradeDate: string
-  ticker: string
-  orderType: OrderType
-  direction: OrderDirection
-  quantity: number
-  price: number
-  status: OrderStatus
-  kisOrderId: string | null
-}
-
 export interface CycleHistoryItem {
   createdAt: string
   ticker: string | null
@@ -36,27 +24,6 @@ export interface CycleHistoryPage {
   items: CycleHistoryItem[]
   nextCursor: string | null
   hasMore: boolean
-}
-
-export interface Execution {
-  tradeDate: string
-  ticker: string
-  direction: OrderDirection
-  quantity: number
-  price: number
-  kisOrderId: string | null
-}
-
-export interface PortfolioSnapshot {
-  id: string
-  ticker: string
-  holdings: number
-  avgPrice: number | null
-  closingPrice: number | null
-  marketValueUsd: number
-  usdDeposit: number
-  totalAssetUsd: number
-  createdAt: string
 }
 
 export interface PortfolioSummary {
@@ -80,13 +47,6 @@ export interface PortfolioSummary {
     posEvalUsd?: number | string | null
     exchangeRateKrwPerUsd?: number | string | null
   }
-}
-
-export interface MarginItem {
-  currency: string
-  integratedOrderableAmount: number
-  foreignOrderableAmount: number
-  purchasableAmount: number
 }
 
 export interface DailyTransaction {

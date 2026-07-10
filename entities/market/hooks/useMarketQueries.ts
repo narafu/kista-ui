@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { getMonthlyHolidaysClient, getMarketSession, getCandlesClient, getFearGreedClient } from '../api'
+import { getMonthlyHolidaysClient, getCandlesClient, getFearGreedClient } from '../api'
 import type { Candle, FearGreed } from '../model/types'
 import { CHART_CANDLE_COUNT } from '../model/constants'
 
@@ -14,14 +14,6 @@ export function useMonthlyHolidaysQuery(year: number, month: number, initialData
     staleTime: initialData ? 1000 * 60 * 60 : 0,
   })
   return { holidays, loading: isFetching }
-}
-
-function useMarketSessionQuery() {
-  return useQuery({
-    queryKey: ['marketSession'],
-    queryFn: () => getMarketSession().catch(() => null),
-    staleTime: 1000 * 60,
-  })
 }
 
 export function useCandlesQuery(ticker: string, count = CHART_CANDLE_COUNT) {

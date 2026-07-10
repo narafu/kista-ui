@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { listAdminUsers, reapply, deleteMe, updateNotificationChannel, updateTelegram, deleteTelegram, approveAdminUser, rejectAdminUser, changeAdminUserRole, deleteAdminUser, getMeClient, updateBalanceCheckEnabled, updateNickname, updateNotificationPref } from '../api'
+import { listAdminUsers, deleteMe, updateNotificationChannel, updateTelegram, deleteTelegram, approveAdminUser, rejectAdminUser, changeAdminUserRole, deleteAdminUser, getMeClient, updateBalanceCheckEnabled, updateNickname, updateNotificationPref } from '../api'
 import type { AdminUser, User, UserRole, UserStatus } from '../model/types'
 
 export function useMeQuery(initialData?: User) {
@@ -58,13 +58,6 @@ export function useAdminUsersQuery(filter?: UserStatus, initialData?: AdminUser[
     initialData,
     initialDataUpdatedAt: initialData ? 0 : undefined,
     staleTime: 30_000,
-  })
-}
-
-function useReapplyMutation() {
-  return useMutation({ // eslint-disable-line react-doctor/query-mutation-missing-invalidation
-    mutationFn: reapply,
-    onError: () => toast.error('재신청 중 오류가 발생했습니다.'),
   })
 }
 

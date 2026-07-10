@@ -18,8 +18,6 @@ export type OrderStatus = NonNullable<components['schemas']['Order']['status']>
 
 export type SkipReason = NonNullable<components['schemas']['NextOrdersResponse']['skipReason']>
 
-export type MarketSessionStatus = NonNullable<components['schemas']['MarketSessionResponse']['session']>
-
 const BROKER_LABEL: Record<string, string> = {
   KIS: '한국투자증권',
   TOSS: '토스증권',

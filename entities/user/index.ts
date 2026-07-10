@@ -38,7 +38,6 @@ export {
   listAdminAccounts,
   listAdminStrategies,
   listAdminStrategyOrders,
-  listAdminStrategyTradeDates,
   updateAdminStrategyStatus,
   listAdminTrades,
   reorderAdminOrder,

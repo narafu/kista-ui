@@ -1,5 +1,5 @@
 import { apiFetch, clientFetch } from '@shared/lib/api-client'
-import type { Candle, FearGreed, MarketSession } from '../model/types'
+import type { Candle, FearGreed } from '../model/types'
 import { CHART_CANDLE_COUNT } from '../model/constants'
 
 const API_BASE_URL = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
@@ -17,10 +17,6 @@ export function getMonthlyHolidaysPublic(year: number, month: number): Promise<s
 
 export function getMonthlyHolidaysClient(year: number, month: number): Promise<string[]> {
   return clientFetch<string[]>(`/api/market/holidays?year=${year}&month=${month}`)
-}
-
-export function getMarketSession(): Promise<MarketSession> {
-  return clientFetch<MarketSession>('/api/market/session')
 }
 
 export function getCandlesClient(ticker: string, count = CHART_CANDLE_COUNT): Promise<Candle[]> {
