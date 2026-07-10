@@ -1,37 +1,9 @@
 import { getAuthToken } from '@shared/lib/auth/token'
 import { listAdminTrades } from '@entities/user'
 import type { AdminTrade } from '@entities/user'
-import { RangeFilterBar, type RangePreset } from '@shared/ui/RangeFilterBar'
+import { RangeFilterBar } from '@shared/ui/RangeFilterBar'
 import { AdminTradesWorkbench } from '@widgets/admin-trade-list'
-
-const VALID_SIZES = ['10', '30', '50', '100'] as const
-
-function parseRangePreset(raw: string | undefined): RangePreset {
-  if (raw === '30d' || raw === 'all' || raw === 'custom') return raw
-  return '7d'
-}
-
-function parseSize(raw: string | undefined): number {
-  return VALID_SIZES.includes(raw as (typeof VALID_SIZES)[number]) ? Number(raw) : 10
-}
-
-function parsePage(raw: string | undefined): number {
-  const n = Number(raw)
-  return Number.isInteger(n) && n >= 1 ? n : 1
-}
-
-function resolveFromTo(range: RangePreset, from?: string, to?: string): { from?: string; to?: string } {
-  if (range === 'all') return {}
-  if (range === 'custom') return { from, to }
-  const days = range === '7d' ? 7 : 30
-  const toDate = new Date()
-  const fromDate = new Date()
-  fromDate.setDate(fromDate.getDate() - days)
-  return {
-    from: fromDate.toISOString().split('T')[0],
-    to: toDate.toISOString().split('T')[0],
-  }
-}
+import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
 
 export default async function AdminTradesPage({
   searchParams,
@@ -39,9 +11,9 @@ export default async function AdminTradesPage({
   searchParams: Promise<{ range?: string; size?: string; page?: string; from?: string; to?: string }>
 }) {
   const { range: rawRange, size: rawSize, page: rawPage, from, to } = await searchParams
-  const range = parseRangePreset(rawRange)
+  const range = parseRangePreset(rawRange, '7d')
   const size = parseSize(rawSize)
-  const { from: resolvedFrom, to: resolvedTo } = resolveFromTo(range, from, to)
+  const { from: resolvedFrom, to: resolvedTo } = resolveRange(range, from, to)
 
   const token = await getAuthToken()
   const all: AdminTrade[] = token ? await listAdminTrades(token, resolvedFrom, resolvedTo).catch(() => []) : []

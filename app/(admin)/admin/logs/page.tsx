@@ -9,39 +9,11 @@ import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { RangeFilterBar, type RangePreset } from '@shared/ui/RangeFilterBar'
 import { fmtDateTime } from '@shared/lib/format'
+import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
 
 type LogType = 'all' | 'audit' | 'error' | 'anomaly'
 
-const VALID_SIZES = ['10', '30', '50', '100'] as const
 const EMPTY_ANOMALIES: AdminAnomalies = { pausedAccounts: [], inactiveAccounts: [] }
-
-function parseRangePreset(raw: string | undefined): RangePreset {
-  if (raw === '30d' || raw === 'all' || raw === 'custom') return raw
-  return '7d'
-}
-
-function parseSize(raw: string | undefined): number {
-  return VALID_SIZES.includes(raw as (typeof VALID_SIZES)[number]) ? Number(raw) : 10
-}
-
-function parsePage(raw: string | undefined): number {
-  const n = Number(raw)
-  return Number.isInteger(n) && n >= 1 ? n : 1
-}
-
-
-function resolveFromTo(range: RangePreset, from?: string, to?: string): { from?: string; to?: string } {
-  if (range === 'all') return {}
-  if (range === 'custom') return { from, to }
-  const days = range === '7d' ? 7 : 30
-  const toDate = new Date()
-  const fromDate = new Date()
-  fromDate.setDate(fromDate.getDate() - days)
-  return {
-    from: fromDate.toISOString().split('T')[0],
-    to: toDate.toISOString().split('T')[0],
-  }
-}
 
 export default async function AdminLogsPage({
   searchParams,
@@ -57,9 +29,9 @@ export default async function AdminLogsPage({
   const params = await searchParams
   const logType = (params.type ?? 'all') as LogType
 
-  const anoRange = parseRangePreset(params.anoRange)
-  const errRange = parseRangePreset(params.errRange)
-  const audRange = parseRangePreset(params.audRange)
+  const anoRange = parseRangePreset(params.anoRange, '7d')
+  const errRange = parseRangePreset(params.errRange, '7d')
+  const audRange = parseRangePreset(params.audRange, '7d')
   const errSize  = parseSize(params.errSize)
   const audSize  = parseSize(params.audSize)
   const token = await getAuthToken()
@@ -68,9 +40,9 @@ export default async function AdminLogsPage({
   const showError   = logType === 'all' || logType === 'error'
   const showAnomaly = logType === 'all' || logType === 'anomaly'
 
-  const { from: anoFrom, to: anoTo } = resolveFromTo(anoRange, params.anoFrom, params.anoTo)
-  const { from: errFrom, to: errTo } = resolveFromTo(errRange, params.errFrom, params.errTo)
-  const { from: audFrom, to: audTo } = resolveFromTo(audRange, params.audFrom, params.audTo)
+  const { from: anoFrom, to: anoTo } = resolveRange(anoRange, params.anoFrom, params.anoTo)
+  const { from: errFrom, to: errTo } = resolveRange(errRange, params.errFrom, params.errTo)
+  const { from: audFrom, to: audTo } = resolveRange(audRange, params.audFrom, params.audTo)
 
   const [allAuditLogs, allErrorLogs, anomalies] = await Promise.all([
     showAudit && token

@@ -3,44 +3,14 @@ import { listAdminPrivacyBases } from '@entities/privacy'
 import { AdminPrivacyBaseTable } from '@widgets/admin-privacy-trade-list/AdminPrivacyBaseTable'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
-import { RangeFilterBar, type RangePreset } from '@shared/ui/RangeFilterBar'
+import { RangeFilterBar } from '@shared/ui/RangeFilterBar'
 import type { AdminPrivacyBase } from '@entities/privacy'
-
-const VALID_SIZES = ['10', '30', '50', '100'] as const
-
-function parseRangePreset(raw: string | undefined): RangePreset {
-  if (raw === '30d' || raw === 'all' || raw === 'custom') return raw
-  return '7d'
-}
-
-function parseSize(raw: string | undefined): number {
-  return VALID_SIZES.includes(raw as (typeof VALID_SIZES)[number]) ? Number(raw) : 10
-}
-
-function parsePage(raw: string | undefined): number {
-  const n = Number(raw)
-  return Number.isInteger(n) && n >= 1 ? n : 1
-}
+import { parsePage, parseRangePreset, parseSize, resolveRange, type RangePreset } from '@shared/lib/date-range'
 
 function filterByRange(bases: AdminPrivacyBase[], range: RangePreset, from?: string, to?: string): AdminPrivacyBase[] {
-  if (range === 'all') return bases
-
-  if (range === '7d') {
-    const cutoff = new Date()
-    cutoff.setDate(cutoff.getDate() - 7)
-    const cutoffStr = cutoff.toISOString().split('T')[0]
-    return bases.filter((b) => b.tradeDate >= cutoffStr)
-  }
-  if (range === '30d') {
-    const cutoff = new Date()
-    cutoff.setDate(cutoff.getDate() - 30)
-    const cutoffStr = cutoff.toISOString().split('T')[0]
-    return bases.filter((b) => b.tradeDate >= cutoffStr)
-  }
-  if (range === 'custom' && from && to) {
-    return bases.filter((b) => b.tradeDate >= from && b.tradeDate <= to)
-  }
-  return bases
+  const { from: f, to: t } = resolveRange(range, from, to)
+  if (!f && !t) return bases
+  return bases.filter((b) => (!f || b.tradeDate >= f) && (!t || b.tradeDate <= t))
 }
 
 export default async function AdminPrivacyTradesPage({
@@ -49,7 +19,7 @@ export default async function AdminPrivacyTradesPage({
   searchParams: Promise<{ range?: string; size?: string; page?: string; from?: string; to?: string }>
 }) {
   const { range: rawRange, size: rawSize, page: rawPage, from, to } = await searchParams
-  const range = parseRangePreset(rawRange)
+  const range = parseRangePreset(rawRange, '7d')
   const size = parseSize(rawSize)
   const page = parsePage(rawPage)
   const sizeStr = String(size)

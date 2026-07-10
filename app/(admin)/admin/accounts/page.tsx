@@ -7,9 +7,8 @@ import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
-import { RangeFilterBar, type RangePreset } from '@shared/ui/RangeFilterBar'
-
-const VALID_SIZES = ['10', '30', '50', '100'] as const
+import { RangeFilterBar } from '@shared/ui/RangeFilterBar'
+import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
 
 const STRATEGY_STATUS_COLOR: Record<string, string> = {
   ACTIVE: 'var(--status-ok)',
@@ -31,42 +30,15 @@ function StrategyBadge({ strategy }: { strategy: AdminAccountStrategy }) {
   )
 }
 
-function parseRangePreset(raw: string | undefined): RangePreset {
-  if (raw === '7d' || raw === '30d' || raw === 'custom') return raw
-  return 'all'
-}
-
-function parseSize(raw: string | undefined): number {
-  return VALID_SIZES.includes(raw as (typeof VALID_SIZES)[number]) ? Number(raw) : 10
-}
-
-function parsePage(raw: string | undefined): number {
-  const n = Number(raw)
-  return Number.isInteger(n) && n >= 1 ? n : 1
-}
-
-function resolveFromTo(range: RangePreset, from?: string, to?: string): { from?: string; to?: string } {
-  if (range === 'all') return {}
-  if (range === 'custom') return { from, to }
-  const days = range === '7d' ? 7 : 30
-  const toDate = new Date()
-  const fromDate = new Date()
-  fromDate.setDate(fromDate.getDate() - days)
-  return {
-    from: fromDate.toISOString().split('T')[0],
-    to: toDate.toISOString().split('T')[0],
-  }
-}
-
 export default async function AdminAccountsPage({
   searchParams,
 }: {
   searchParams: Promise<{ range?: string; size?: string; page?: string; from?: string; to?: string }>
 }) {
   const { range: rawRange, size: rawSize, page: rawPage, from, to } = await searchParams
-  const range = parseRangePreset(rawRange)
+  const range = parseRangePreset(rawRange, 'all')
   const size = parseSize(rawSize)
-  const { from: resolvedFrom, to: resolvedTo } = resolveFromTo(range, from, to)
+  const { from: resolvedFrom, to: resolvedTo } = resolveRange(range, from, to)
 
   const token = await getAuthToken()
   const all: AdminAccount[] = token ? await listAdminAccounts(token, resolvedFrom, resolvedTo).catch(() => []) : []
