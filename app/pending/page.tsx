@@ -5,10 +5,10 @@ import { getAuthToken } from '@shared/lib/auth/token'
 import { getMe } from '@entities/user'
 import { GlassCard } from '@widgets/glass-card'
 import { Timeline } from '@widgets/timeline'
-import { TelegramConnect } from './TelegramConnect'
+import { PendingTelegramConnect } from '@features/settings/telegram-connect'
 import { PendingStatusWatcher } from './PendingStatusWatcher'
-import { ReapplyButton } from './ReapplyButton'
-import { LogoutButton } from './LogoutButton'
+import { ReapplyButton } from '@features/auth/reapply'
+import { LogoutButton } from '@features/auth/logout'
 
 const STEPS = [
   { label: '신청 완료', description: '카카오 로그인 및 회원가입 완료', done: true },
@@ -73,7 +73,7 @@ export default async function PendingPage() {
         <div className="mt-6 pt-6 border-t border-border flex flex-col gap-2.5">
           <PendingStatusWatcher />
           <ReapplyButton />
-          <TelegramConnect hasTelegram={hasTelegram} currentChannel={currentChannel} />
+          <PendingTelegramConnect hasTelegram={hasTelegram} currentChannel={currentChannel} />
         </div>
       </GlassCard>
     </div>
