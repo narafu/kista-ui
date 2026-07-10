@@ -480,7 +480,7 @@ git commit -m "feat(fcm): 토큰 해제 API·getCachedToken 추가 (알림 채�
 ```tsx
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { NotificationSettings } from './NotificationSettings'
 
 const {
@@ -530,6 +530,13 @@ describe('NotificationSettings — FCM 해제', () => {
     acquireTokenMock.mockClear()
     unregisterTokenFromServerMock.mockClear().mockResolvedValue(undefined)
     registerTokenToServerMock.mockClear()
+    // jsdom에는 Notification/PushManager가 없음 — FCM 등록 분기의 브라우저 지원 가드를 통과시키기 위해 스텁
+    vi.stubGlobal('Notification', {})
+    vi.stubGlobal('PushManager', {})
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
   })
 
   it('FCM에서 NONE으로 전환하고 캐시된 토큰이 있으면 서버에서 해제한다', async () => {
@@ -549,7 +556,9 @@ describe('NotificationSettings — FCM 해제', () => {
     const user = userEvent.setup()
     render(<NotificationSettings currentChannel="ALL" hasTelegram={true} />)
 
-    await user.click(screen.getByRole('button', { name: /텔레그램/ }))
+    // 버튼 접근성 이름은 label+desc 텍스트가 이어붙어 계산된다 — "모두" 버튼의 desc("텔레그램 + 푸시 동시 수신")도
+    // "텔레그램"을 포함하므로 /텔레그램/만으로는 두 버튼과 모두 매칭된다. label이 "텔레그램"으로 시작하는 버튼만 선택하도록 앵커 처리.
+    await user.click(screen.getByRole('button', { name: /^텔레그램/ }))
 
     expect(mutateAsyncMock).toHaveBeenCalledWith('TELEGRAM')
     expect(unregisterTokenFromServerMock).not.toHaveBeenCalled()
