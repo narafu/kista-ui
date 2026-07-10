@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useUpdateNotificationChannelMutation } from '@entities/user'
-import { useFcmToken, registerTokenToServer } from '@entities/fcm'
+import { useFcmToken, registerTokenToServer, unregisterTokenFromServer } from '@entities/fcm'
 import type { NotificationChannel } from '@entities/user'
 import { Spinner } from '@shared/ui/Spinner'
 
@@ -22,7 +22,7 @@ interface Props {
 
 export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
   const router = useRouter()
-  const { status: fcmStatus, prewarm, acquireToken } = useFcmToken()
+  const { status: fcmStatus, prewarm, acquireToken, getCachedToken } = useFcmToken()
   const mutation = useUpdateNotificationChannelMutation()
   const [pendingChannel, setPendingChannel] = useState<NotificationChannel | null>(null)
 
@@ -41,6 +41,18 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
     setPendingChannel(next)
 
     try {
+      const wasFcm = currentChannel === 'FCM' || currentChannel === 'ALL'
+      const willBeFcm = next === 'FCM' || next === 'ALL'
+
+      if (wasFcm && !willBeFcm) {
+        // 알림 끄는 상황에서 새 권한 요청을 하면 안 되므로 캐시된 토큰만 사용 (best-effort)
+        const cachedToken = getCachedToken()
+        await mutation.mutateAsync(next)
+        if (cachedToken) unregisterTokenFromServer(cachedToken).catch(() => {})
+        router.refresh()
+        return
+      }
+
       if ((next === 'FCM' || next === 'ALL') && fcmStatus !== 'registered') {
         if (!('Notification' in window) || !('PushManager' in window)) {
           toast.error('이 기기/브라우저에서는 푸시 알림이 지원되지 않습니다. 데스크탑 브라우저를 이용해주세요')
