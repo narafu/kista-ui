@@ -7,13 +7,14 @@ const KISTA_TOKEN_COOKIE = 'kista-token'
 const RT_COOKIE = 'refresh_token'
 const VALID_STATUSES = new Set(['PENDING', 'REJECTED', 'ACTIVE'])
 // status/role 캐시: 1시간마다 만료 → /me 재호출로 JWT 유효성 재검증
-const COOKIE_OPTIONS = {
+// secure는 NODE_ENV가 아닌 실제 프로토콜 기준 (docs/agents/app.md — Safari HTTP Secure 쿠키 무시)
+const cacheCookieOptions = (request: NextRequest) => ({
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
+  secure: request.headers.get('x-forwarded-proto') === 'https',
   sameSite: 'lax' as const,
   maxAge: 3600,
   path: '/',
-}
+})
 const PROTECTED_PREFIXES = ['/accounts', '/strategies', '/settings']
 const ADMIN_PREFIXES = ['/admin']
 
@@ -171,8 +172,9 @@ export async function proxy(request: NextRequest) {
 
   // PENDING은 캐싱 금지 — 승인 후 캐시 히트 버그 방지
   if (needsCacheUpdate && status !== 'PENDING') {
-    response.cookies.set(STATUS_COOKIE, status, COOKIE_OPTIONS)
-    response.cookies.set(ROLE_COOKIE, role, COOKIE_OPTIONS)
+    const opts = cacheCookieOptions(request)
+    response.cookies.set(STATUS_COOKIE, status, opts)
+    response.cookies.set(ROLE_COOKIE, role, opts)
   }
 
   const finalResponse = routeByStatusAndRole(status, role, pathname, request, response)
