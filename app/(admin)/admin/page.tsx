@@ -1,5 +1,5 @@
 import { getAuthToken } from '@shared/lib/auth/token'
-import { getAdminStats, listAdminUsers } from '@entities/user'
+import { getAdminStats, listAdminUsers } from '@entities/admin'
 import { AdminPendingList } from '@widgets/admin-user-list'
 import { Users, Clock, CheckCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'

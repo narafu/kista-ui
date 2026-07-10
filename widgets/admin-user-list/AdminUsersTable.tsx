@@ -1,14 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { useAdminUsersQuery } from '@entities/user'
+import { useAdminUsersQuery } from '@entities/admin'
 import { ChangeRoleButton } from '@features/admin/change-role'
 import { WithdrawUserButton } from '@features/admin/withdraw-user'
 import { fmtDate } from '@shared/lib/format'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
-import type { AdminUser, UserStatus } from '@entities/user'
+import type { AdminUser } from '@entities/admin'
+import type { UserStatus } from '@entities/user'
 
 const STATUS_LABEL: Record<UserStatus, string> = {
   PENDING: '대기',

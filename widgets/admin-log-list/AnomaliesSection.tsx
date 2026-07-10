@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { RangeFilterBar, type RangePreset } from '@shared/ui/RangeFilterBar'
 import { EmptyState } from '@shared/ui/EmptyState'
-import type { AdminAnomalies } from '@entities/user'
+import type { AdminAnomalies } from '@entities/admin'
 import { AccountTable } from './AccountTable'
 
 export function AnomaliesSection({

@@ -2,13 +2,13 @@
 
 import { useState } from 'react'
 import { Clock } from 'lucide-react'
-import { useAdminUsersQuery } from '@entities/user'
+import { useAdminUsersQuery } from '@entities/admin'
 import { ApproveRejectButtons } from '@features/admin/approve-reject'
 import { fmtDate } from '@shared/lib/format'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
-import type { AdminUser } from '@entities/user'
+import type { AdminUser } from '@entities/admin'
 
 interface Props {
   initialUsers: AdminUser[]

@@ -4,7 +4,7 @@ import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { fmtDateTime } from '@shared/lib/format'
-import type { AdminAuditLog } from '@entities/user'
+import type { AdminAuditLog } from '@entities/admin'
 
 export function AuditLogsSection({
   logs, total, page, totalPages, size, range, from, to,

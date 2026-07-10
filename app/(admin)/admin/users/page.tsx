@@ -1,5 +1,6 @@
 import { getAuthToken } from '@shared/lib/auth/token'
-import { listAdminUsers, getMe } from '@entities/user'
+import { listAdminUsers } from '@entities/admin'
+import { getMe } from '@entities/user'
 import { AdminUsersTable } from '@widgets/admin-user-list'
 import { RangeFilterBar } from '@shared/ui/RangeFilterBar'
 import { parseRangePreset, resolveRange } from '@shared/lib/date-range'

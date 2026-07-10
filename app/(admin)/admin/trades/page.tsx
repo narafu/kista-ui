@@ -1,6 +1,6 @@
 import { getAuthToken } from '@shared/lib/auth/token'
-import { listAdminTrades } from '@entities/user'
-import type { AdminTrade } from '@entities/user'
+import { listAdminTrades } from '@entities/admin'
+import type { AdminTrade } from '@entities/admin'
 import { RangeFilterBar } from '@shared/ui/RangeFilterBar'
 import { AdminTradesWorkbench } from '@widgets/admin-trade-list'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'

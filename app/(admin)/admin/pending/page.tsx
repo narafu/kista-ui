@@ -1,5 +1,5 @@
 import { getAuthToken } from '@shared/lib/auth/token'
-import { listAdminUsers } from '@entities/user'
+import { listAdminUsers } from '@entities/admin'
 import { AdminPendingList } from '@widgets/admin-user-list'
 
 export default async function AdminPendingPage() {

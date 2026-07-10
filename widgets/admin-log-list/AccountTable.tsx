@@ -1,5 +1,5 @@
 import { RevealableValue } from '@widgets/revealable-value'
-import type { AdminAnomalyAccount } from '@entities/user'
+import type { AdminAnomalyAccount } from '@entities/admin'
 
 export function AccountTable({ accounts }: { accounts: AdminAnomalyAccount[] }) {
   return (

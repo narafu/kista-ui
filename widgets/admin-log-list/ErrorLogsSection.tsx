@@ -4,7 +4,7 @@ import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { ErrorLogsSectionClient } from '@features/admin/error-logs'
-import type { AppErrorLog } from '@entities/user'
+import type { AppErrorLog } from '@entities/admin'
 
 export function ErrorLogsSection({
   logs, total, page, totalPages, size, range, from, to,
