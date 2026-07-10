@@ -11,7 +11,6 @@ const ERROR_MESSAGES: Record<string, string> = {
   auth_failed: "카카오 인증에 실패했습니다. 다시 시도해주세요.",
   registration_failed: "서버 등록에 실패했습니다. 잠시 후 다시 시도해주세요.",
   server_error: "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
-  token_blacklisted: "로그아웃된 토큰입니다. 다시 로그인해 주세요.",
 };
 
 function LoginPageContent() {

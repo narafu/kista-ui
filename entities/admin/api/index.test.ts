@@ -35,7 +35,7 @@ vi.mock('@shared/lib/api-client', () => ({
   jsonBody: jsonBodyMock,
 }))
 
-describe('entities/user/api admin trade correction APIs', () => {
+describe('entities/admin/api admin trade correction APIs', () => {
   beforeEach(() => {
     apiFetchMock.mockReset()
     fetchEitherMock.mockReset()
