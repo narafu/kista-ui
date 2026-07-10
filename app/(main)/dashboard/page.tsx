@@ -3,6 +3,7 @@ import { getMonthlyHolidays, getMonthlyHolidaysPublic } from '@entities/market'
 import { getCachedAccounts } from '@shared/lib/cache/cached-api'
 import { DashboardEmpty } from '@widgets/dashboard/DashboardEmpty'
 import { DashboardOverview } from '@widgets/dashboard/DashboardOverview'
+import { DashboardLogoutErrorToast } from '@features/auth/logout'
 import type { Account } from '@entities/account'
 
 function pad(n: number) { return String(n).padStart(2, '0') }
@@ -34,18 +35,24 @@ export default async function DashboardPage() {
 
   if (accounts.length === 0) {
     return (
-      <DashboardEmpty
-        holidays={holidays}
-        initialWeekStartDate={initialWeekStartDate}
-      />
+      <>
+        <DashboardLogoutErrorToast />
+        <DashboardEmpty
+          holidays={holidays}
+          initialWeekStartDate={initialWeekStartDate}
+        />
+      </>
     )
   }
 
   return (
-    <DashboardOverview
-      holidays={holidays}
-      initialWeekStartDate={initialWeekStartDate}
-      accountIds={accounts.map(a => a.id)}
-    />
+    <>
+      <DashboardLogoutErrorToast />
+      <DashboardOverview
+        holidays={holidays}
+        initialWeekStartDate={initialWeekStartDate}
+        accountIds={accounts.map(a => a.id)}
+      />
+    </>
   )
 }
