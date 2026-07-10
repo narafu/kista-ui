@@ -24,7 +24,7 @@ function tryRefreshToken(): Promise<boolean> {
 
 async function doLogout(reason?: string): Promise<never> {
   await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
-  window.location.href = reason ? `/login?error=${reason}` : '/login'
+  window.location.href = reason ? `/dashboard?error=${reason}` : '/dashboard'
   await new Promise(() => {}) // 리다이렉트 완료 전까지 중단
   throw new Error('unreachable')
 }
