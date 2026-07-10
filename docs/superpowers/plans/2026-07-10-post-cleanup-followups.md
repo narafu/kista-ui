@@ -1,6 +1,6 @@
 # 전체 정리 계획 후속 작업 실행 계획
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** `docs/superpowers/plans/2026-07-09-full-project-cleanup.md`의 열린 질문 중 진행 결정된 4건(로그아웃 리다이렉트 통일, FCM 토큰 해제, admin/logs 위젯 분리, entities/admin 분리)을 구현한다.
 
@@ -30,7 +30,7 @@
 **Interfaces:**
 - Produces: `doLogout(reason?: string)`가 이제 `/dashboard` (또는 `/dashboard?error=${reason}`)로 리다이렉트 — Task 2가 이 쿼리를 소비한다.
 
-- [ ] **Step 1: 수정**
+- [x] **Step 1: 수정**
 
 `shared/lib/api-client/index.ts` 25-30행:
 
@@ -54,12 +54,12 @@ async function doLogout(reason?: string): Promise<never> {
 
 (`app/auth/callback/route.ts`의 `/login?error=...`는 OAuth 콜백 실패 전용이므로 건드리지 않는다 — 로그인 자체가 안 된 상태라 `/login`에 남아야 한다)
 
-- [ ] **Step 2: 검증**
+- [x] **Step 2: 검증**
 
 Run: `npm run typecheck`
 Expected: PASS
 
-- [ ] **Step 3: 커밋**
+- [x] **Step 3: 커밋**
 
 ```bash
 git add shared/lib/api-client/index.ts
@@ -80,7 +80,7 @@ git commit -m "fix(auth): 자동 로그아웃 리다이렉트를 /login에서 /d
 - Consumes: Task 1의 `doLogout()`이 `/dashboard?error=token_blacklisted` 형태로 리다이렉트
 - Produces: `DashboardLogoutErrorToast` 컴포넌트 (props 없음, `@features/auth/logout`에서 export)
 
-- [ ] **Step 1: 실패하는 테스트 작성** — `features/auth/logout/DashboardLogoutErrorToast.test.tsx` 생성:
+- [x] **Step 1: 실패하는 테스트 작성** — `features/auth/logout/DashboardLogoutErrorToast.test.tsx` 생성:
 
 ```tsx
 import { render } from '@testing-library/react'
@@ -133,12 +133,12 @@ describe('DashboardLogoutErrorToast', () => {
 })
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 Run: `npx vitest run features/auth/logout/DashboardLogoutErrorToast.test.tsx`
 Expected: FAIL — 모듈 없음
 
-- [ ] **Step 3: 구현** — `features/auth/logout/DashboardLogoutErrorToast.tsx` 생성:
+- [x] **Step 3: 구현** — `features/auth/logout/DashboardLogoutErrorToast.tsx` 생성:
 
 ```tsx
 'use client'
@@ -174,12 +174,12 @@ export function DashboardLogoutErrorToast() {
 }
 ```
 
-- [ ] **Step 4: 테스트 통과 확인**
+- [x] **Step 4: 테스트 통과 확인**
 
 Run: `npx vitest run features/auth/logout/DashboardLogoutErrorToast.test.tsx`
 Expected: PASS (3/3)
 
-- [ ] **Step 5: index.ts export 추가**
+- [x] **Step 5: index.ts export 추가**
 
 `features/auth/logout/index.ts`:
 
@@ -192,7 +192,7 @@ export { LogoutButton } from './LogoutButton'
 export { DashboardLogoutErrorToast } from './DashboardLogoutErrorToast'
 ```
 
-- [ ] **Step 6: 대시보드 페이지에 마운트**
+- [x] **Step 6: 대시보드 페이지에 마운트**
 
 `app/(main)/dashboard/page.tsx` 전체를 아래로 교체:
 
@@ -257,12 +257,12 @@ export default async function DashboardPage() {
 }
 ```
 
-- [ ] **Step 7: 전체 검증**
+- [x] **Step 7: 전체 검증**
 
 Run: `npm run typecheck && npm run test:run`
 Expected: PASS
 
-- [ ] **Step 8: 커밋**
+- [x] **Step 8: 커밋**
 
 ```bash
 git add "app/(main)/dashboard/page.tsx" features/auth/logout/DashboardLogoutErrorToast.tsx features/auth/logout/DashboardLogoutErrorToast.test.tsx features/auth/logout/index.ts
@@ -283,7 +283,7 @@ git commit -m "feat(auth): 자동 로그아웃 사유를 대시보드에서 toas
 **Interfaces:**
 - Produces: `unregisterTokenFromServer(token: string): Promise<void>` (`@entities/fcm`에서 export), `useFcmToken()`이 반환하는 객체에 `getCachedToken(): string | null` 추가 — Task 4가 둘 다 사용한다.
 
-- [ ] **Step 1: 실패하는 테스트 작성** — `entities/fcm/api/index.test.ts` 생성:
+- [x] **Step 1: 실패하는 테스트 작성** — `entities/fcm/api/index.test.ts` 생성:
 
 ```ts
 import { describe, expect, it, vi, beforeEach } from 'vitest'
@@ -316,12 +316,12 @@ describe('unregisterTokenFromServer', () => {
 })
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 Run: `npx vitest run entities/fcm/api/index.test.ts`
 Expected: FAIL — `unregisterTokenFromServer`가 export되지 않음
 
-- [ ] **Step 3: 구현** — `entities/fcm/api/index.ts` 끝에 추가:
+- [x] **Step 3: 구현** — `entities/fcm/api/index.ts` 끝에 추가:
 
 ```ts
 // 변경 전 (파일 끝)
@@ -339,12 +339,12 @@ export async function unregisterTokenFromServer(token: string): Promise<void> {
 }
 ```
 
-- [ ] **Step 4: 테스트 통과 확인**
+- [x] **Step 4: 테스트 통과 확인**
 
 Run: `npx vitest run entities/fcm/api/index.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: getCachedToken 실패하는 테스트 작성** — `entities/fcm/hooks/useFcmToken.test.ts` 생성:
+- [x] **Step 5: getCachedToken 실패하는 테스트 작성** — `entities/fcm/hooks/useFcmToken.test.ts` 생성:
 
 ```ts
 import { renderHook, act } from '@testing-library/react'
@@ -385,12 +385,12 @@ describe('useFcmToken.getCachedToken', () => {
 })
 ```
 
-- [ ] **Step 6: 테스트가 실패하는지 확인**
+- [x] **Step 6: 테스트가 실패하는지 확인**
 
 Run: `npx vitest run entities/fcm/hooks/useFcmToken.test.ts`
 Expected: FAIL — `getCachedToken`이 반환 객체에 없음
 
-- [ ] **Step 7: 구현** — `entities/fcm/hooks/useFcmToken.ts`:
+- [x] **Step 7: 구현** — `entities/fcm/hooks/useFcmToken.ts`:
 
 ```ts
 // 변경 전 (파일 끝부분)
@@ -431,12 +431,12 @@ Expected: FAIL — `getCachedToken`이 반환 객체에 없음
 }
 ```
 
-- [ ] **Step 8: 테스트 통과 확인**
+- [x] **Step 8: 테스트 통과 확인**
 
 Run: `npx vitest run entities/fcm/hooks/useFcmToken.test.ts`
 Expected: PASS (2/2)
 
-- [ ] **Step 9: index.ts export 추가**
+- [x] **Step 9: index.ts export 추가**
 
 `entities/fcm/index.ts`:
 
@@ -452,12 +452,12 @@ export { useFcmToken } from './hooks/useFcmToken'
 export { FcmAutoRegister } from './providers/FcmAutoRegister'
 ```
 
-- [ ] **Step 10: 전체 검증**
+- [x] **Step 10: 전체 검증**
 
 Run: `npm run typecheck && npm run test:run`
 Expected: PASS
 
-- [ ] **Step 11: 커밋**
+- [x] **Step 11: 커밋**
 
 ```bash
 git add entities/fcm
@@ -475,7 +475,7 @@ git commit -m "feat(fcm): 토큰 해제 API·getCachedToken 추가 (알림 채�
 **Interfaces:**
 - Consumes: Task 3의 `unregisterTokenFromServer(token)`, `useFcmToken().getCachedToken()`
 
-- [ ] **Step 1: 실패하는 테스트 작성** — `features/settings/notification-channel/NotificationSettings.test.tsx` 생성:
+- [x] **Step 1: 실패하는 테스트 작성** — `features/settings/notification-channel/NotificationSettings.test.tsx` 생성:
 
 ```tsx
 import { render, screen } from '@testing-library/react'
@@ -578,12 +578,12 @@ describe('NotificationSettings — FCM 해제', () => {
 })
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 Run: `npx vitest run features/settings/notification-channel/NotificationSettings.test.tsx`
 Expected: FAIL — `unregisterTokenFromServer` 미사용, 첫 번째 테스트 실패
 
-- [ ] **Step 3: 구현** — `features/settings/notification-channel/NotificationSettings.tsx`:
+- [x] **Step 3: 구현** — `features/settings/notification-channel/NotificationSettings.tsx`:
 
 ```tsx
 // 변경 전 (상단 import)
@@ -655,17 +655,17 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
       if ((next === 'FCM' || next === 'ALL') && fcmStatus !== 'registered') {
 ```
 
-- [ ] **Step 4: 테스트 통과 확인**
+- [x] **Step 4: 테스트 통과 확인**
 
 Run: `npx vitest run features/settings/notification-channel/NotificationSettings.test.tsx`
 Expected: PASS (3/3)
 
-- [ ] **Step 5: 전체 검증**
+- [x] **Step 5: 전체 검증**
 
 Run: `npm run typecheck && npm run test:run`
 Expected: PASS
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add features/settings/notification-channel
@@ -687,7 +687,7 @@ git commit -m "feat(settings): 알림 채널을 FCM에서 전환 시 서버 FCM 
 **Interfaces:**
 - Produces: `AnomaliesSection`, `ErrorLogsSection`, `AuditLogsSection` (widgets/admin-log-list의 index.ts에서 export — `AccountTable`은 `AnomaliesSection` 내부 전용이라 미노출)
 
-- [ ] **Step 1: `AccountTable.tsx` 생성**
+- [x] **Step 1: `AccountTable.tsx` 생성**
 
 ```tsx
 import { RevealableValue } from '@widgets/revealable-value'
@@ -722,7 +722,7 @@ export function AccountTable({ accounts }: { accounts: AdminAnomalyAccount[] }) 
 }
 ```
 
-- [ ] **Step 2: `AnomaliesSection.tsx` 생성** (로컬 `EmptyState`는 `@shared/ui/EmptyState`로 대체 — `text` prop → `message` prop)
+- [x] **Step 2: `AnomaliesSection.tsx` 생성** (로컬 `EmptyState`는 `@shared/ui/EmptyState`로 대체 — `text` prop → `message` prop)
 
 ```tsx
 import { Suspense } from 'react'
@@ -795,7 +795,7 @@ export function AnomaliesSection({
 }
 ```
 
-- [ ] **Step 3: `ErrorLogsSection.tsx` 생성**
+- [x] **Step 3: `ErrorLogsSection.tsx` 생성**
 
 ```tsx
 import { Suspense } from 'react'
@@ -847,7 +847,7 @@ export function ErrorLogsSection({
 }
 ```
 
-- [ ] **Step 4: `AuditLogsSection.tsx` 생성**
+- [x] **Step 4: `AuditLogsSection.tsx` 생성**
 
 ```tsx
 import { Suspense } from 'react'
@@ -930,7 +930,7 @@ export function AuditLogsSection({
 }
 ```
 
-- [ ] **Step 5: `index.ts` 생성**
+- [x] **Step 5: `index.ts` 생성**
 
 ```ts
 export { AnomaliesSection } from './AnomaliesSection'
@@ -938,7 +938,7 @@ export { ErrorLogsSection } from './ErrorLogsSection'
 export { AuditLogsSection } from './AuditLogsSection'
 ```
 
-- [ ] **Step 6: `app/(admin)/admin/logs/page.tsx`에서 인라인 서브컴포넌트 5개 삭제 + import 추가**
+- [x] **Step 6: `app/(admin)/admin/logs/page.tsx`에서 인라인 서브컴포넌트 5개 삭제 + import 추가**
 
 ```tsx
 // 변경 전 (상단 import)
@@ -967,12 +967,12 @@ import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/li
 
 파일 끝의 `AnomaliesSection`, `ErrorLogsSection`, `AuditLogsSection`, `EmptyState`, `AccountTable` 함수 정의(117~328행) 전부 삭제 — `export default async function AdminLogsPage` 함수 본문(JSX에서 각 Section을 호출하는 부분)은 그대로 둔다.
 
-- [ ] **Step 7: 검증**
+- [x] **Step 7: 검증**
 
 Run: `npm run typecheck && npm run test:run`
 Expected: PASS
 
-- [ ] **Step 8: 커밋**
+- [x] **Step 8: 커밋**
 
 ```bash
 git add "app/(admin)/admin/logs/page.tsx" widgets/admin-log-list
@@ -996,7 +996,7 @@ git commit -m "refactor(admin): admin/logs 페이지의 인라인 서브컴포�
 
 이 태스크에서는 **entities/user는 아직 수정하지 않는다** — 새 슬라이스만 만든다 (양쪽에 동일 export가 잠시 존재해도 무방, 아직 아무도 `@entities/admin`을 import하지 않으므로 빌드는 안 깨진다). entities/user 정리는 Task 8에서 한다.
 
-- [ ] **Step 1: `entities/admin/model/types.ts` 생성**
+- [x] **Step 1: `entities/admin/model/types.ts` 생성**
 
 ```ts
 import type { OrderDirection, OrderStatus, OrderType, UserRole, UserStatus } from '@shared/lib/api-schema'
@@ -1136,7 +1136,7 @@ export interface AppErrorLog {
 }
 ```
 
-- [ ] **Step 2: `entities/admin/api/index.ts` 생성**
+- [x] **Step 2: `entities/admin/api/index.ts` 생성**
 
 ```ts
 import { apiFetch, clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
@@ -1268,14 +1268,14 @@ export async function softDeleteAdminErrorLog(id: string): Promise<void> {
 }
 ```
 
-- [ ] **Step 3: `entities/admin/api/index.test.ts` 생성** — `entities/user/api/index.test.ts`의 전체 내용을 그대로 복사한다 (상대 경로 `./index`, `../model/types`가 새 위치에서도 그대로 유효하므로 내용 변경 없음). 원본 파일은 이 태스크에서 아직 지우지 않는다(Task 8에서 삭제).
+- [x] **Step 3: `entities/admin/api/index.test.ts` 생성** — `entities/user/api/index.test.ts`의 전체 내용을 그대로 복사한다 (상대 경로 `./index`, `../model/types`가 새 위치에서도 그대로 유효하므로 내용 변경 없음). 원본 파일은 이 태스크에서 아직 지우지 않는다(Task 8에서 삭제).
 
-- [ ] **Step 4: 테스트 실행 확인**
+- [x] **Step 4: 테스트 실행 확인**
 
 Run: `npx vitest run entities/admin/api/index.test.ts`
 Expected: PASS (7/7 — 원본과 동일한 테스트 수)
 
-- [ ] **Step 5: `entities/admin/hooks/useAdminQueries.ts` 생성**
+- [x] **Step 5: `entities/admin/hooks/useAdminQueries.ts` 생성**
 
 ```ts
 'use client'
@@ -1351,7 +1351,7 @@ export function useDeleteAdminUserMutation() {
 }
 ```
 
-- [ ] **Step 6: `entities/admin/hooks/useAdminQueries.test.tsx` 생성**
+- [x] **Step 6: `entities/admin/hooks/useAdminQueries.test.tsx` 생성**
 
 ```tsx
 import { renderHook } from '@testing-library/react'
@@ -1413,12 +1413,12 @@ describe('useAdminUsersQuery', () => {
 })
 ```
 
-- [ ] **Step 7: 테스트 통과 확인**
+- [x] **Step 7: 테스트 통과 확인**
 
 Run: `npx vitest run entities/admin/hooks/useAdminQueries.test.tsx`
 Expected: PASS (1/1)
 
-- [ ] **Step 8: `entities/admin/index.ts` 생성**
+- [x] **Step 8: `entities/admin/index.ts` 생성**
 
 ```ts
 export type {
@@ -1465,12 +1465,12 @@ export {
 } from './hooks/useAdminQueries'
 ```
 
-- [ ] **Step 9: 전체 검증**
+- [x] **Step 9: 전체 검증**
 
 Run: `npm run typecheck && npm run test:run`
 Expected: PASS (아직 아무도 `@entities/admin`을 소비하지 않으므로 기존 테스트 수 그대로 + 신규 2개 파일 추가)
 
-- [ ] **Step 10: 커밋**
+- [x] **Step 10: 커밋**
 
 ```bash
 git add entities/admin
@@ -1497,7 +1497,7 @@ git commit -m "feat(entities): entities/admin 슬라이스 신설 (entities/user
 
 **공통 규칙:** 각 파일에서 admin 전용 심볼(타입·함수·훅)의 import만 `@entities/user` → `@entities/admin`으로 바꾼다. `UserStatus`/`UserRole`/`NotificationChannel`/`User`/`getMe` 등 일반 심볼은 `@entities/user`에 그대로 둔다.
 
-- [ ] **Step 1: `app/(admin)/admin/page.tsx`**
+- [x] **Step 1: `app/(admin)/admin/page.tsx`**
 
 ```ts
 // 변경 전
@@ -1506,7 +1506,7 @@ import { getAdminStats, listAdminUsers } from '@entities/user'
 import { getAdminStats, listAdminUsers } from '@entities/admin'
 ```
 
-- [ ] **Step 2: `app/(admin)/admin/trades/page.tsx`**
+- [x] **Step 2: `app/(admin)/admin/trades/page.tsx`**
 
 ```ts
 // 변경 전
@@ -1517,7 +1517,7 @@ import { listAdminTrades } from '@entities/admin'
 import type { AdminTrade } from '@entities/admin'
 ```
 
-- [ ] **Step 3: `app/(admin)/admin/accounts/page.tsx`**
+- [x] **Step 3: `app/(admin)/admin/accounts/page.tsx`**
 
 ```ts
 // 변경 전
@@ -1528,7 +1528,7 @@ import { listAdminAccounts } from '@entities/admin'
 import type { AdminAccount, AdminAccountStrategy } from '@entities/admin'
 ```
 
-- [ ] **Step 4: `app/(admin)/admin/users/page.tsx`** (`getMe`는 일반 심볼이므로 `@entities/user`에 유지)
+- [x] **Step 4: `app/(admin)/admin/users/page.tsx`** (`getMe`는 일반 심볼이므로 `@entities/user`에 유지)
 
 ```ts
 // 변경 전
@@ -1538,7 +1538,7 @@ import { listAdminUsers } from '@entities/admin'
 import { getMe } from '@entities/user'
 ```
 
-- [ ] **Step 5: `app/(admin)/admin/pending/page.tsx`**
+- [x] **Step 5: `app/(admin)/admin/pending/page.tsx`**
 
 ```ts
 // 변경 전
@@ -1547,7 +1547,7 @@ import { listAdminUsers } from '@entities/user'
 import { listAdminUsers } from '@entities/admin'
 ```
 
-- [ ] **Step 6: `app/(admin)/admin/logs/page.tsx`** (Task 5 이후 상태 기준)
+- [x] **Step 6: `app/(admin)/admin/logs/page.tsx`** (Task 5 이후 상태 기준)
 
 ```ts
 // 변경 전
@@ -1558,7 +1558,7 @@ import { listAdminAuditLogs, listAdminErrorLogs, getAdminAnomalies } from '@enti
 import type { AdminAuditLog, AppErrorLog, AdminAnomalies } from '@entities/admin'
 ```
 
-- [ ] **Step 7: `widgets/admin-log-list/AnomaliesSection.tsx`**
+- [x] **Step 7: `widgets/admin-log-list/AnomaliesSection.tsx`**
 
 ```ts
 // 변경 전
@@ -1567,7 +1567,7 @@ import type { AdminAnomalies } from '@entities/user'
 import type { AdminAnomalies } from '@entities/admin'
 ```
 
-- [ ] **Step 8: `widgets/admin-log-list/ErrorLogsSection.tsx`**
+- [x] **Step 8: `widgets/admin-log-list/ErrorLogsSection.tsx`**
 
 ```ts
 // 변경 전
@@ -1576,7 +1576,7 @@ import type { AppErrorLog } from '@entities/user'
 import type { AppErrorLog } from '@entities/admin'
 ```
 
-- [ ] **Step 9: `widgets/admin-log-list/AuditLogsSection.tsx`**
+- [x] **Step 9: `widgets/admin-log-list/AuditLogsSection.tsx`**
 
 ```ts
 // 변경 전
@@ -1585,7 +1585,7 @@ import type { AdminAuditLog } from '@entities/user'
 import type { AdminAuditLog } from '@entities/admin'
 ```
 
-- [ ] **Step 10: `widgets/admin-log-list/AccountTable.tsx`**
+- [x] **Step 10: `widgets/admin-log-list/AccountTable.tsx`**
 
 ```ts
 // 변경 전
@@ -1594,7 +1594,7 @@ import type { AdminAnomalyAccount } from '@entities/user'
 import type { AdminAnomalyAccount } from '@entities/admin'
 ```
 
-- [ ] **Step 11: `widgets/admin-user-list/AdminUsersTable.tsx`** (`UserStatus`는 일반 심볼이므로 유지)
+- [x] **Step 11: `widgets/admin-user-list/AdminUsersTable.tsx`** (`UserStatus`는 일반 심볼이므로 유지)
 
 ```ts
 // 변경 전
@@ -1608,7 +1608,7 @@ import type { AdminUser } from '@entities/admin'
 import type { UserStatus } from '@entities/user'
 ```
 
-- [ ] **Step 12: `widgets/admin-user-list/AdminPendingList.tsx`**
+- [x] **Step 12: `widgets/admin-user-list/AdminPendingList.tsx`**
 
 ```ts
 // 변경 전
@@ -1621,12 +1621,12 @@ import { useAdminUsersQuery } from '@entities/admin'
 import type { AdminUser } from '@entities/admin'
 ```
 
-- [ ] **Step 13: 검증**
+- [x] **Step 13: 검증**
 
 Run: `npm run typecheck && npm run test:run`
 Expected: PASS
 
-- [ ] **Step 14: 커밋**
+- [x] **Step 14: 커밋**
 
 ```bash
 git add "app/(admin)" widgets/admin-log-list widgets/admin-user-list
@@ -1658,7 +1658,7 @@ git commit -m "refactor(admin): app·admin-log-list·admin-user-list의 admin �
 - Modify: `entities/user/hooks/useUserQueries.test.tsx`
 - Modify: `entities/user/index.ts`
 
-- [ ] **Step 1: `widgets/admin-trade-list/AdminTradesTable.tsx`**
+- [x] **Step 1: `widgets/admin-trade-list/AdminTradesTable.tsx`**
 
 ```ts
 // 변경 전
@@ -1667,7 +1667,7 @@ import type { AdminTrade } from '@entities/user'
 import type { AdminTrade } from '@entities/admin'
 ```
 
-- [ ] **Step 2: `widgets/admin-trade-list/AdminTradesWorkbench.tsx`**
+- [x] **Step 2: `widgets/admin-trade-list/AdminTradesWorkbench.tsx`**
 
 ```ts
 // 변경 전
@@ -1702,7 +1702,7 @@ import type {
 } from '@entities/admin'
 ```
 
-- [ ] **Step 3: `widgets/admin-trade-list/AdminTradeCorrectionPanel.tsx`**
+- [x] **Step 3: `widgets/admin-trade-list/AdminTradeCorrectionPanel.tsx`**
 
 ```ts
 // 변경 전
@@ -1711,7 +1711,7 @@ import type { AdminAccount, AdminReorderTimingAvailability, AdminStrategy, Admin
 import type { AdminAccount, AdminReorderTimingAvailability, AdminStrategy, AdminStrategyOrder } from '@entities/admin'
 ```
 
-- [ ] **Step 4: `widgets/admin-trade-list/AdminBatchOrderCorrectionForm.tsx`**
+- [x] **Step 4: `widgets/admin-trade-list/AdminBatchOrderCorrectionForm.tsx`**
 
 ```ts
 // 변경 전
@@ -1720,7 +1720,7 @@ import type { AdminReorderTimingAvailability, AdminStrategyOrder } from '@entiti
 import type { AdminReorderTimingAvailability, AdminStrategyOrder } from '@entities/admin'
 ```
 
-- [ ] **Step 5: `widgets/admin-trade-list/adminTradesReducer.ts`**
+- [x] **Step 5: `widgets/admin-trade-list/adminTradesReducer.ts`**
 
 ```ts
 // 변경 전
@@ -1739,7 +1739,7 @@ import type {
 } from '@entities/admin'
 ```
 
-- [ ] **Step 6: `widgets/admin-trade-list/AdminTradesWorkbench.test.tsx`**
+- [x] **Step 6: `widgets/admin-trade-list/AdminTradesWorkbench.test.tsx`**
 
 ```ts
 // 변경 전
@@ -1781,7 +1781,7 @@ vi.mock('@entities/admin', async () => {
 })
 ```
 
-- [ ] **Step 7: `features/admin/error-logs/ErrorLogsSectionClient.tsx`**
+- [x] **Step 7: `features/admin/error-logs/ErrorLogsSectionClient.tsx`**
 
 ```ts
 // 변경 전
@@ -1790,7 +1790,7 @@ import { softDeleteAdminErrorLog, type AppErrorLog } from '@entities/user'
 import { softDeleteAdminErrorLog, type AppErrorLog } from '@entities/admin'
 ```
 
-- [ ] **Step 8: `features/admin/error-logs/ErrorLogsSectionClient.test.tsx`**
+- [x] **Step 8: `features/admin/error-logs/ErrorLogsSectionClient.test.tsx`**
 
 ```ts
 // 변경 전
@@ -1810,7 +1810,7 @@ vi.mock('@entities/admin', () => ({
 }))
 ```
 
-- [ ] **Step 9: `features/admin/error-logs/ErrorLogItem.tsx`**
+- [x] **Step 9: `features/admin/error-logs/ErrorLogItem.tsx`**
 
 ```ts
 // 변경 전
@@ -1819,7 +1819,7 @@ import type { AppErrorLog } from '@entities/user'
 import type { AppErrorLog } from '@entities/admin'
 ```
 
-- [ ] **Step 10: `features/admin/withdraw-user/WithdrawUserButton.tsx`**
+- [x] **Step 10: `features/admin/withdraw-user/WithdrawUserButton.tsx`**
 
 ```ts
 // 변경 전
@@ -1828,7 +1828,7 @@ import { useDeleteAdminUserMutation } from '@entities/user'
 import { useDeleteAdminUserMutation } from '@entities/admin'
 ```
 
-- [ ] **Step 11: `features/admin/withdraw-user/WithdrawUserButton.test.tsx`**
+- [x] **Step 11: `features/admin/withdraw-user/WithdrawUserButton.test.tsx`**
 
 ```ts
 // 변경 전
@@ -1847,7 +1847,7 @@ vi.mock('@entities/admin', () => ({
 }))
 ```
 
-- [ ] **Step 12: `features/admin/approve-reject/ApproveRejectButtons.tsx`**
+- [x] **Step 12: `features/admin/approve-reject/ApproveRejectButtons.tsx`**
 
 ```ts
 // 변경 전
@@ -1856,7 +1856,7 @@ import { useApproveUserMutation, useRejectUserMutation } from '@entities/user'
 import { useApproveUserMutation, useRejectUserMutation } from '@entities/admin'
 ```
 
-- [ ] **Step 13: `features/admin/change-role/ChangeRoleButton.tsx`** (`UserRole`은 일반 심볼이므로 `@entities/user` 유지)
+- [x] **Step 13: `features/admin/change-role/ChangeRoleButton.tsx`** (`UserRole`은 일반 심볼이므로 `@entities/user` 유지)
 
 ```ts
 // 변경 전
@@ -1867,7 +1867,7 @@ import { useChangeUserRoleMutation } from '@entities/admin'
 import type { UserRole } from '@entities/user'
 ```
 
-- [ ] **Step 14: 중간 검증** (entities/user 정리 전 — 소비처 전환이 전부 끝났는지 확인)
+- [x] **Step 14: 중간 검증** (entities/user 정리 전 — 소비처 전환이 전부 끝났는지 확인)
 
 Run: `npm run typecheck && npm run test:run`
 Expected: PASS.
@@ -1882,7 +1882,7 @@ done
 ```
 Expected: `app/(admin)/admin/users/page.tsx`, `widgets/admin-user-list/AdminUsersTable.tsx`, `features/admin/change-role/ChangeRoleButton.tsx` 3개만 출력되면 정상 — 이 3개는 Step 4·11·13에서 이미 `@entities/admin`(admin 심볼)과 `@entities/user`(`getMe`/`UserStatus`/`UserRole`)로 의도적으로 분리해뒀다. 이 3개 외의 파일이 출력되면 아직 `@entities/user`에서 admin 심볼을 import하는 실제 누락이므로 열어서 고친다.
 
-- [ ] **Step 15: `entities/user/model/types.ts`에서 Admin* 인터페이스 전부 삭제**
+- [x] **Step 15: `entities/user/model/types.ts`에서 Admin* 인터페이스 전부 삭제**
 
 ```ts
 // 변경 전 (파일 전체)
@@ -1924,7 +1924,7 @@ export interface User {
 
 (`OrderDirection`, `OrderStatus`, `OrderType` import 제거 — `User` 인터페이스는 이 타입들을 쓰지 않으므로 Admin* 삭제 후 미사용이 된다)
 
-- [ ] **Step 16: `entities/user/api/index.ts`에서 admin 함수 전부 삭제**
+- [x] **Step 16: `entities/user/api/index.ts`에서 admin 함수 전부 삭제**
 
 ```ts
 // 변경 전 (파일 전체)
@@ -2005,13 +2005,13 @@ export async function deleteTelegram(): Promise<void> {
 }
 ```
 
-- [ ] **Step 17: `entities/user/api/index.test.ts` 삭제** (내용은 Task 6에서 `entities/admin/api/index.test.ts`로 이미 복제됨)
+- [x] **Step 17: `entities/user/api/index.test.ts` 삭제** (내용은 Task 6에서 `entities/admin/api/index.test.ts`로 이미 복제됨)
 
 ```bash
 git rm entities/user/api/index.test.ts
 ```
 
-- [ ] **Step 18: `entities/user/hooks/useUserQueries.ts`에서 admin 훅 전부 삭제**
+- [x] **Step 18: `entities/user/hooks/useUserQueries.ts`에서 admin 훅 전부 삭제**
 
 ```ts
 // 변경 전 (파일 전체)
@@ -2133,7 +2133,7 @@ export function useDeleteTelegramMutation() {
 }
 ```
 
-- [ ] **Step 19: `entities/user/hooks/useUserQueries.test.tsx`에서 admin 관련 테스트 삭제**
+- [x] **Step 19: `entities/user/hooks/useUserQueries.test.tsx`에서 admin 관련 테스트 삭제**
 
 ```tsx
 // 변경 전 (파일 전체)
@@ -2259,7 +2259,7 @@ describe('useMeQuery', () => {
 
 (`vi.mock('next/navigation', ...)` 블록 전체 삭제 — `useMeQuery`는 `useRouter`를 쓰지 않는다)
 
-- [ ] **Step 20: `entities/user/index.ts`에서 admin export 전부 삭제**
+- [x] **Step 20: `entities/user/index.ts`에서 admin export 전부 삭제**
 
 ```ts
 // 변경 전 (파일 전체)
@@ -2359,7 +2359,7 @@ export {
 } from './hooks/useUserQueries'
 ```
 
-- [ ] **Step 21: 최종 검증**
+- [x] **Step 21: 최종 검증**
 
 Run: `npm run typecheck && npm run test:run`
 Expected: PASS (전체 테스트 그린, 파일 수는 `entities/user/api/index.test.ts` 삭제분만큼 감소)
@@ -2376,7 +2376,7 @@ Expected: `app/(admin)/admin/users/page.tsx`, `widgets/admin-user-list/AdminUser
 Run: `npm run build`
 Expected: 빌드 성공, 경고는 기존과 동일
 
-- [ ] **Step 22: 커밋**
+- [x] **Step 22: 커밋**
 
 ```bash
 git add widgets/admin-trade-list features/admin entities/user entities/admin
@@ -2387,19 +2387,19 @@ git commit -m "refactor(admin): 나머지 admin 소비 파일 entities/admin 전
 
 ## 최종 검증 (Task 9)
 
-- [ ] **Step 1: 전체 회귀 확인**
+- [x] **Step 1: 전체 회귀 확인**
 
 Run: `npm run typecheck && npm run test:run`
 Expected: typecheck 0 오류, 테스트 전체 통과
 
-- [ ] **Step 2: 프로덕션 빌드 확인**
+- [x] **Step 2: 프로덕션 빌드 확인**
 
 Run: `npm run build`
 Expected: 빌드 성공
 
-- [ ] **Step 3: 수동 시나리오 확인 (가능한 경우)**
+- [x] **Step 3: 수동 시나리오 확인 (가능한 경우)**
 
 - 알림 채널을 FCM→NONE으로 전환했을 때 새 권한 팝업이 뜨지 않는지 (코드 리뷰로 확인 가능 — `getCachedToken()`은 `Notification.requestPermission()`을 호출하지 않는다)
 - `/dashboard?error=token_blacklisted`로 직접 접속 시 toast가 뜨고 URL이 `/dashboard`로 정리되는지
 
-- [ ] **Step 4: 이 계획 파일의 체크박스를 모두 갱신하고 완료 보고**
+- [x] **Step 4: 이 계획 파일의 체크박스를 모두 갱신하고 완료 보고**
