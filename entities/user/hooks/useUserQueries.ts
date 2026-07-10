@@ -2,9 +2,8 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
-import { listAdminUsers, deleteMe, updateNotificationChannel, updateTelegram, deleteTelegram, approveAdminUser, rejectAdminUser, changeAdminUserRole, deleteAdminUser, getMeClient, updateBalanceCheckEnabled, updateNickname, updateNotificationPref } from '../api'
-import type { AdminUser, User, UserRole, UserStatus } from '../model/types'
+import { getMeClient, deleteMe, updateNotificationChannel, updateTelegram, deleteTelegram, updateBalanceCheckEnabled, updateNickname, updateNotificationPref } from '../api'
+import type { User } from '../model/types'
 
 export function useMeQuery(initialData?: User) {
   return useQuery<User>({
@@ -51,16 +50,6 @@ export function useUpdateNicknameMutation() {
   })
 }
 
-export function useAdminUsersQuery(filter?: UserStatus, initialData?: AdminUser[]) {
-  return useQuery<AdminUser[]>({
-    queryKey: ['adminUsers', filter],
-    queryFn: () => listAdminUsers(undefined, filter),
-    initialData,
-    initialDataUpdatedAt: initialData ? 0 : undefined,
-    staleTime: 30_000,
-  })
-}
-
 export function useDeleteMeMutation() {
   return useMutation({ // eslint-disable-line react-doctor/query-mutation-missing-invalidation
     mutationFn: deleteMe,
@@ -100,58 +89,5 @@ export function useDeleteTelegramMutation() {
       queryClient.invalidateQueries({ queryKey: ['me'] })
     },
     onError: () => toast.error('텔레그램 해제에 실패했습니다.'),
-  })
-}
-
-export function useApproveUserMutation() {
-  const queryClient = useQueryClient()
-  const router = useRouter()
-  return useMutation({
-    mutationFn: (userId: string) => approveAdminUser(userId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
-      router.refresh()
-    },
-    onError: () => toast.error('승인 처리에 실패했습니다.'),
-  })
-}
-
-export function useRejectUserMutation() {
-  const queryClient = useQueryClient()
-  const router = useRouter()
-  return useMutation({
-    mutationFn: (userId: string) => rejectAdminUser(userId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
-      router.refresh()
-    },
-    onError: () => toast.error('거절 처리에 실패했습니다.'),
-  })
-}
-
-export function useChangeUserRoleMutation() {
-  const queryClient = useQueryClient()
-  const router = useRouter()
-  return useMutation({
-    mutationFn: ({ userId, role }: { userId: string; role: UserRole }) =>
-      changeAdminUserRole(userId, role),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
-      router.refresh()
-    },
-    onError: () => toast.error('역할 변경에 실패했습니다.'),
-  })
-}
-
-export function useDeleteAdminUserMutation() {
-  const queryClient = useQueryClient()
-  const router = useRouter()
-  return useMutation({
-    mutationFn: (userId: string) => deleteAdminUser(userId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
-      router.refresh()
-    },
-    onError: () => toast.error('사용자 삭제에 실패했습니다.'),
   })
 }

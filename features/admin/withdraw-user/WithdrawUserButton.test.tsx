@@ -5,7 +5,7 @@ import { WithdrawUserButton } from './WithdrawUserButton'
 
 const mutateMock = vi.fn()
 
-vi.mock('@entities/user', () => ({
+vi.mock('@entities/admin', () => ({
   useDeleteAdminUserMutation: () => ({
     mutate: mutateMock,
     isPending: false,

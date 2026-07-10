@@ -1,8 +1,8 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { reorderAdminOrder, getReorderTimingAvailability } from '@entities/user'
-import type { AdminAccount, AdminStrategy, AdminStrategyOrder, AdminTrade } from '@entities/user'
+import { reorderAdminOrder, getReorderTimingAvailability } from '@entities/admin'
+import type { AdminAccount, AdminStrategy, AdminStrategyOrder, AdminTrade } from '@entities/admin'
 import { AdminTradesWorkbench } from './AdminTradesWorkbench'
 
 vi.mock('next/navigation', () => ({
@@ -10,8 +10,8 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }))
 
-vi.mock('@entities/user', async () => {
-  const actual = await vi.importActual<typeof import('@entities/user')>('@entities/user')
+vi.mock('@entities/admin', async () => {
+  const actual = await vi.importActual<typeof import('@entities/admin')>('@entities/admin')
 
   return {
     ...actual,

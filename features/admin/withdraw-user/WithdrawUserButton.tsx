@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { cn } from '@shared/lib/utils'
-import { useDeleteAdminUserMutation } from '@entities/user'
+import { useDeleteAdminUserMutation } from '@entities/admin'
 
 interface Props {
   userId: string

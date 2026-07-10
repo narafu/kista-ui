@@ -3,7 +3,7 @@ import type {
   AdminReorderTimingAvailability,
   AdminStrategy,
   AdminStrategyOrder,
-} from '@entities/user'
+} from '@entities/admin'
 
 export interface ReorderSummary {
   processed: number

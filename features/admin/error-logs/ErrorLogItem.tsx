@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { AppErrorLog } from '@entities/user'
+import type { AppErrorLog } from '@entities/admin'
 import { fmtDateTime } from '@shared/lib/format'
 
 interface Props {

@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import type { AppErrorLog } from '@entities/user'
+import type { AppErrorLog } from '@entities/admin'
 import { ErrorLogsSectionClient } from './ErrorLogsSectionClient'
 
 const {
@@ -46,7 +46,7 @@ vi.mock('@/components/ui/alert-dialog', () => ({
   AlertDialogAction: ({ children, ...props }: React.ComponentProps<'button'>) => <button {...props}>{children}</button>,
 }))
 
-vi.mock('@entities/user', () => ({
+vi.mock('@entities/admin', () => ({
   softDeleteAdminErrorLog: softDeleteAdminErrorLogMock,
 }))
 

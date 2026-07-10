@@ -4,7 +4,7 @@ import { orderStatusBadgeClass } from '@entities/order'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
-import type { AdminTrade } from '@entities/user'
+import type { AdminTrade } from '@entities/admin'
 
 interface Props {
   trades: AdminTrade[]

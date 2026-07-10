@@ -15,7 +15,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { softDeleteAdminErrorLog, type AppErrorLog } from '@entities/user'
+import { softDeleteAdminErrorLog, type AppErrorLog } from '@entities/admin'
 import { cn } from '@shared/lib/utils'
 import { ErrorLogItem } from './ErrorLogItem'
 

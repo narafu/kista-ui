@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useRef, useState, type FormEvent } from 'react'
-import type { AdminReorderTimingAvailability, AdminStrategyOrder } from '@entities/user'
+import type { AdminReorderTimingAvailability, AdminStrategyOrder } from '@entities/admin'
 import type { OrderDirection } from '@shared/lib/api-schema'
 
 export interface ReorderBatchItem {

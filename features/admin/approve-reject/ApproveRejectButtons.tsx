@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { useApproveUserMutation, useRejectUserMutation } from '@entities/user'
+import { useApproveUserMutation, useRejectUserMutation } from '@entities/admin'
 import { Spinner } from '@shared/ui/Spinner'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { cn } from '@shared/lib/utils'

@@ -1,7 +1,7 @@
 'use client'
 
 import { toast } from 'sonner'
-import { useChangeUserRoleMutation } from '@entities/user'
+import { useChangeUserRoleMutation } from '@entities/admin'
 import type { UserRole } from '@entities/user'
 import { Spinner } from '@shared/ui/Spinner'
 

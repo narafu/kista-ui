@@ -8,13 +8,13 @@ import {
   listAdminStrategies,
   listAdminStrategyOrders,
   updateAdminStrategyStatus,
-} from '@entities/user'
+} from '@entities/admin'
 import type {
   AdminAccount,
   AdminStrategy,
   AdminStrategyOrder,
   AdminTrade,
-} from '@entities/user'
+} from '@entities/admin'
 import { todayKst } from '@shared/lib/format'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
