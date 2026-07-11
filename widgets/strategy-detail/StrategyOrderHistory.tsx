@@ -4,14 +4,14 @@ import { useReducer } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useStrategyOrdersQuery, orderStatusBadgeClass, ORDER_STATUS_LABEL } from '@entities/order'
 import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
-import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { RangeFilterControls } from '@shared/ui/range-filter/RangeFilterControls'
 import { fmtUsd } from '@shared/lib/format'
 import { toNum } from '@shared/lib/utils'
-import { RANGE_LABELS, resolveRangeStrict, type RangePreset } from '@shared/lib/date-range'
+import { resolveRangeStrict, type RangePreset } from '@shared/lib/date-range'
 
 const ORDER_TYPE_STYLE: Record<string, string> = {
   LIMIT: 'bg-muted text-muted-foreground',
@@ -60,43 +60,16 @@ export function StrategyOrderHistory({ strategyId }: Props) {
       <CardHeader className="pb-3">
         <div className="space-y-2">
           <CardTitle className="text-base lg:text-lg">주문 내역</CardTitle>
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex gap-0.5 rounded-lg bg-muted p-1">
-              {(['7d', '30d', 'all', 'custom'] as RangePreset[]).map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => dispatch({ type: 'range', rangeType: r })}
-                  className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-all whitespace-nowrap ${
-                    rangeType === r ? 'bg-background text-rose-600 shadow-sm' : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {RANGE_LABELS[r]}
-                </button>
-              ))}
-            </div>
-            <PageSizeSelector value={pageSize} onChange={(s) => dispatch({ type: 'pageSize', size: s })} />
-          </div>
-          {rangeType === 'custom' && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <input
-                type="date"
-                aria-label="시작 날짜"
-                value={customFrom}
-                onChange={(e) => dispatch({ type: 'custom', from: e.target.value, to: customTo })}
-                className="rounded-md border border-input bg-background px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
-              <span className="text-sm text-muted-foreground">~</span>
-              <input
-                type="date"
-                aria-label="종료 날짜"
-                value={customTo}
-                min={customFrom || undefined}
-                onChange={(e) => dispatch({ type: 'custom', from: customFrom, to: e.target.value })}
-                className="rounded-md border border-input bg-background px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-          )}
+          <RangeFilterControls
+            rangeType={rangeType}
+            onRangeChange={(r) => dispatch({ type: 'range', rangeType: r })}
+            pageSize={pageSize}
+            onPageSizeChange={(s) => dispatch({ type: 'pageSize', size: s })}
+            customFrom={customFrom}
+            customTo={customTo}
+            onCustomFromChange={(v) => dispatch({ type: 'custom', from: v, to: customTo })}
+            onCustomToChange={(v) => dispatch({ type: 'custom', from: customFrom, to: v })}
+          />
         </div>
       </CardHeader>
       <CardContent className="p-0">

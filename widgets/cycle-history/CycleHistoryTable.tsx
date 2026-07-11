@@ -4,11 +4,11 @@ import { Fragment } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { fmtUsd, fmtDate } from '@shared/lib/format'
 import type { CycleHistoryItem } from '@entities/trade'
-import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
-import { RANGE_LABELS, type RangePreset } from '@shared/lib/date-range'
+import { RangeFilterControls } from '@shared/ui/range-filter/RangeFilterControls'
+import type { RangePreset } from '@shared/lib/date-range'
 
 interface Props {
   title: string
@@ -57,43 +57,16 @@ export function CycleHistoryTable({
       <CardHeader className="pb-3">
         <div className="space-y-2">
           <CardTitle className="text-base lg:text-lg">{title}</CardTitle>
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex gap-0.5 rounded-lg bg-muted p-1">
-              {(['7d', '30d', 'all', 'custom'] as RangePreset[]).map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setRangeType(r)}
-                  className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-all whitespace-nowrap ${
-                    rangeType === r ? 'bg-background text-rose-600 shadow-sm' : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {RANGE_LABELS[r]}
-                </button>
-              ))}
-            </div>
-            <PageSizeSelector value={pageSize} onChange={setPageSize} />
-          </div>
-          {rangeType === 'custom' && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <input
-                type="date"
-                aria-label="시작 날짜"
-                value={customFrom}
-                onChange={(e) => setCustomFrom(e.target.value)}
-                className="rounded-md border border-input bg-background px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
-              <span className="text-sm text-muted-foreground">~</span>
-              <input
-                type="date"
-                aria-label="종료 날짜"
-                value={customTo}
-                min={customFrom || undefined}
-                onChange={(e) => setCustomTo(e.target.value)}
-                className="rounded-md border border-input bg-background px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-          )}
+          <RangeFilterControls
+            rangeType={rangeType}
+            onRangeChange={setRangeType}
+            pageSize={pageSize}
+            onPageSizeChange={setPageSize}
+            customFrom={customFrom}
+            customTo={customTo}
+            onCustomFromChange={setCustomFrom}
+            onCustomToChange={setCustomTo}
+          />
         </div>
       </CardHeader>
 

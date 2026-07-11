@@ -1,37 +1,19 @@
 'use client'
 
-import { useReducer } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useStrategyCycleHistoryQuery } from '@entities/trade'
 import { CycleHistoryTable } from './CycleHistoryTable'
 import { EmptyState } from '@shared/ui/EmptyState'
-import { resolveRangeStrict, type RangePreset } from '@shared/lib/date-range'
-
-type State = { rangeType: RangePreset; customFrom: string; customTo: string; pageSize: string }
-type Action =
-  | { type: 'SET_RANGE'; rangeType: RangePreset }
-  | { type: 'SET_CUSTOM_FROM'; value: string }
-  | { type: 'SET_CUSTOM_TO'; value: string }
-  | { type: 'SET_PAGE_SIZE'; value: string }
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'SET_RANGE': return { ...state, rangeType: action.rangeType }
-    case 'SET_CUSTOM_FROM': return { ...state, customFrom: action.value }
-    case 'SET_CUSTOM_TO': return { ...state, customTo: action.value }
-    case 'SET_PAGE_SIZE': return { ...state, pageSize: action.value }
-  }
-}
-
-const INITIAL: State = { rangeType: '7d', customFrom: '', customTo: '', pageSize: '10' }
+import { useRangeFilterState } from '@shared/lib/hooks/use-range-filter-state'
+import { resolveRangeStrict } from '@shared/lib/date-range'
 
 interface Props {
   strategyId: string | undefined
 }
 
 export function StrategyTradesTab({ strategyId }: Props) {
-  const [state, dispatch] = useReducer(reducer, INITIAL)
-  const { rangeType, customFrom, customTo, pageSize } = state
+  const { rangeType, customFrom, customTo, pageSize, setRangeType, setCustomFrom, setCustomTo, setPageSize } =
+    useRangeFilterState()
   const baseParams = resolveRangeStrict(rangeType, customFrom, customTo)
   const params = baseParams !== null ? { ...baseParams, size: Number(pageSize) } : null
   const { cycleHistory, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -56,13 +38,13 @@ export function StrategyTradesTab({ strategyId }: Props) {
       cycleHistory={cycleHistory}
       isLoading={isLoading}
       rangeType={rangeType}
-      setRangeType={(r) => dispatch({ type: 'SET_RANGE', rangeType: r })}
+      setRangeType={setRangeType}
       customFrom={customFrom}
-      setCustomFrom={(v) => dispatch({ type: 'SET_CUSTOM_FROM', value: v })}
+      setCustomFrom={setCustomFrom}
       customTo={customTo}
-      setCustomTo={(v) => dispatch({ type: 'SET_CUSTOM_TO', value: v })}
+      setCustomTo={setCustomTo}
       pageSize={pageSize}
-      setPageSize={(v) => dispatch({ type: 'SET_PAGE_SIZE', value: v })}
+      setPageSize={setPageSize}
       fetchNextPage={fetchNextPage}
       hasNextPage={hasNextPage}
       isFetchingNextPage={isFetchingNextPage}
