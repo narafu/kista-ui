@@ -22,6 +22,6 @@
 
 ## 환경변수
 - `NEXT_PUBLIC_KAKAO_CLIENT_ID` — 카카오 REST API 키
-- `NEXT_PUBLIC_API_BASE_URL` — kista-api Render URL (빌드 타임 인라인)
+- `NEXT_PUBLIC_API_BASE_URL` — kista-api Fly.io URL (https://kista-api.fly.dev, 빌드 타임 인라인)
 - Docker Route Handler: `API_BASE_URL=http://host.docker.internal:8080` (빌드 타임 `NEXT_PUBLIC_*`와 별개)
 - `NEXT_PUBLIC_DEV_BYPASS_MIN_SEED=true` — 최소 시드 제한 우회 (로컬 전용)

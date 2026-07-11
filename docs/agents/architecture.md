@@ -49,12 +49,11 @@ shared/        -> 도메인 무관 공용
 
 ## API 계층
 
-- `shared/lib/api-client/`: `apiFetch`, `clientFetch`, `ApiError`
+- `shared/lib/api-client/`: `apiFetch` (Server Component 전용, token 필요) / `clientFetch` (Client Component, Route Handler 경유) / `ApiError`
 - `entities/{domain}/api/`: 도메인별 API 함수
-- Server Component: `getAuthToken()`으로 토큰 취득 후 `apiFetch`
-- Client Component: 도메인 API 함수 호출 후 Route Handler 경유
-
-Client Component에서 직접 `kista-api`를 호출하면 안 된다. 인증 쿠키와 CORS 처리는 Route Handler 경유를 전제로 한다.
+- **Server Component**: `getAuthToken()` → token 취득 후 `apiFetch` 호출
+- **Client Component**: token 없이 `entities/{domain}/api` 함수 → Route Handler 자동 경유
+- **Client Component에서 직접 kista-api 호출 전면 금지** (CORS + 쿠키 문제)
 
 ## 보조 문서
 

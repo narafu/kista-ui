@@ -39,48 +39,7 @@ npx shadcn@latest add <component> --yes
 
 ## 아키텍처
 
-### 인증 상태 라우팅
-`proxy.ts`가 `UserStatus`에 따라 강제 분기: 비인증 → `/` | PENDING → `/pending` | REJECTED → `/rejected` | ACTIVE → `/dashboard`
-
-### 레이아웃 그룹
-- `app/(auth)/` — 비인증 전용
-- `app/pending/`, `app/rejected/` — (main) 밖, Sidebar 미적용
-- `app/(main)/` — ACTIVE 전용, DesktopSidebar(lg↑) + MobileBottomNav(lg↓)
-- `app/(admin)/` — ADMIN role 전용
-
-### FSD 계층 구조
-
-```
-app/           → Next.js 라우팅만 (Server Component 데이터 페칭 + 레이아웃)
-widgets/       → 페이지 합성 단위 (dashboard, account-detail, strategy-detail, ...)
-features/      → 사용자 시나리오 (auth, settings, strategy, account, admin, ...)
-entities/      → 도메인 모델 + API 함수 + React Query 훅 (account, strategy, order, ...)
-shared/        → 도메인 무관 공용 (ui/, lib/api-client, lib/format, lib/utils, providers/)
-```
-
-의존성: `app → widgets → features → entities → shared` (단방향, 동일 계층 cross-import 금지)
-
-### tsconfig 경로 alias
-
-```
-@app/*          → ./app/*
-@widgets/*      → ./widgets/*
-@features/*     → ./features/*
-@entities/*     → ./entities/*
-@shared/*       → ./shared/*
-@/lib/*         → ./lib/*             (shadcn ui 호환 — 수정 금지)
-@/components/*  → ./components/*      (shadcn ui 호환 — 수정 금지)
-```
-
-새 코드는 반드시 FSD alias(`@entities/*`, `@features/*`, `@widgets/*`, `@shared/*`) 사용.  
-`@/lib/*`, `@/components/*`는 shadcn 자동생성 파일 전용 — 직접 사용 금지.
-
-### API 계층
-- `shared/lib/api-client/`: `apiFetch` (Server Component 전용, token 필요) / `clientFetch` (Client Component, Route Handler 경유) / `ApiError`
-- `entities/{도메인}/api/`: 도메인별 API 함수
-- Server Component: `getAuthToken()` → token 취득 후 `apiFetch` 호출
-- Client Component: token 없이 `entities/{도메인}/api` 함수 → Route Handler 자동 경유
-- **Client Component에서 직접 kista-api 호출 전면 금지** (CORS + 쿠키 문제)
+구조 상세(인증 라우팅·레이아웃 그룹·FSD 계층·경로 alias·API 계층)는 `docs/agents/architecture.md`가 SSOT다 — 여기 중복 기재하지 않는다.
 
 ## 환경변수
 
@@ -100,18 +59,9 @@ NEXT_PUBLIC_FIREBASE_VAPID_KEY=     # 웹 푸시 VAPID 인증서 키
 - 새 `NEXT_PUBLIC_*` 추가 시 `.env.example` 동기화 필수
 - Docker: `.env.local` 미전달 → `docker-compose.yml` `build.args`에 명시 필요
 
-## CORS
+## 배포·CORS·Docker
 
-- Server Component fetch → Vercel 서버 → Fly.io — CORS 영향 있음
-- `kista-api CORS_ALLOWED_ORIGINS`: `https://kista-ui.vercel.app,https://kista-ui-narafus-projects.vercel.app`
-- Fly.io 로그에 없는 403 → CORS 필터 차단
-
-## Docker
-
-- `docker compose up -d --build` / `docker compose down` / `docker compose logs`
-- `NEXT_PUBLIC_*` 빌드 타임 인라인 → Dockerfile `ARG`/`ENV` 필수
-- API URL: `API_BASE_URL=http://host.docker.internal:8080` + `extra_hosts: host-gateway` (자세한 내용 → `app/CLAUDE.md`)
-- Dockerfile Node.js 22 고정 필수 (`undici` v8 호환, 20으로 다운그레이드 금지)
+배포(Vercel)·CORS 주의사항·Docker 실행은 `docs/agents/deployment.md`가 SSOT다. 핵심 1줄: Server Component fetch는 CORS 미적용, 클라이언트 fetch만 `CORS_ALLOWED_ORIGINS` 영향.
 
 ## 작업 방식
 
