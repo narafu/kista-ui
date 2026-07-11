@@ -27,7 +27,7 @@ user-invocable: false
 
 ## strategy 엔티티 특이사항
 
-`lib/AGENTS.md` 기준:
+`lib/CLAUDE.md` 기준:
 - `TradingCycleResponse` 필드: `id, accountId, type, status, ticker, cycleSeedType, initialUsdDeposit`
 - `multiple` 필드는 제거됨(커밋 e63cdfb2) — normalizer에 남아있으면 제거 필요
 - BigDecimal 계열 필드는 `toNum()` 래핑 필수 → normalizer에서 raw string 그대로 사용 중인지도 체크

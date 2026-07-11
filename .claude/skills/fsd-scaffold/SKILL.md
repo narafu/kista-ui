@@ -5,8 +5,6 @@ description: FSD 계층에 새 슬라이스를 생성. 사용법: /fsd-scaffold 
 
 인자를 파싱하세요: 첫 번째는 레이어(entities|features|widgets), 두 번째는 슬라이스명.
 
-프로젝트 루트: `/d/src/study/kista/kista-ui`
-
 ## entities 생성
 
 다음 4개 파일을 생성하세요:

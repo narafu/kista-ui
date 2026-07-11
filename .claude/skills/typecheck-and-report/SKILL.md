@@ -7,7 +7,7 @@ description: TypeScript 타입 검사 실행 후 오류를 파일별로 분류�
 
 1. TypeScript 타입 검사 실행:
    ```bash
-   bash -c 'cd /d/src/study/kista/kista-ui && npm run typecheck 2>&1'
+   npm run typecheck 2>&1
    ```
 
 2. 오류가 없으면 "타입 검사 통과" 출력 후 종료.
