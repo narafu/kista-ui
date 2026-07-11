@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { ApiError } from '@shared/lib/api-client'
+import { ApiError, apiMsg } from '@shared/lib/api-client'
 import {
   createAccount,
   updateAccount,
@@ -44,7 +44,7 @@ export function useUpdateAccountMutation(accountId: string) {
       router.push(`/accounts/${accountId}`)
       router.refresh()
     },
-    onError: () => toast.error('수정에 실패했습니다'),
+    onError: (err) => toast.error(apiMsg(err, '수정에 실패했습니다')),
   })
 }
 
@@ -59,7 +59,7 @@ export function useDeleteAccountMutation(accountId: string) {
       router.push('/accounts')
       router.refresh()
     },
-    onError: () => toast.error('삭제에 실패했습니다'),
+    onError: (err) => toast.error(apiMsg(err, '삭제에 실패했습니다')),
   })
 }
 

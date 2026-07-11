@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { listAdminUsers, approveAdminUser, rejectAdminUser, changeAdminUserRole, deleteAdminUser } from '../api'
 import type { AdminUser } from '../model/types'
 import type { UserRole, UserStatus } from '@shared/lib/api-schema'
+import { apiMsg } from '@shared/lib/api-client'
 
 export function useAdminUsersQuery(filter?: UserStatus, initialData?: AdminUser[]) {
   return useQuery<AdminUser[]>({
@@ -26,7 +27,7 @@ export function useApproveUserMutation() {
       queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
       router.refresh()
     },
-    onError: () => toast.error('승인 처리에 실패했습니다.'),
+    onError: (err) => toast.error(apiMsg(err, '승인 처리에 실패했습니다.')),
   })
 }
 
@@ -39,7 +40,7 @@ export function useRejectUserMutation() {
       queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
       router.refresh()
     },
-    onError: () => toast.error('거절 처리에 실패했습니다.'),
+    onError: (err) => toast.error(apiMsg(err, '거절 처리에 실패했습니다.')),
   })
 }
 
@@ -53,7 +54,7 @@ export function useChangeUserRoleMutation() {
       queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
       router.refresh()
     },
-    onError: () => toast.error('역할 변경에 실패했습니다.'),
+    onError: (err) => toast.error(apiMsg(err, '역할 변경에 실패했습니다.')),
   })
 }
 
@@ -66,6 +67,6 @@ export function useDeleteAdminUserMutation() {
       queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
       router.refresh()
     },
-    onError: () => toast.error('사용자 삭제에 실패했습니다.'),
+    onError: (err) => toast.error(apiMsg(err, '사용자 삭제에 실패했습니다.')),
   })
 }

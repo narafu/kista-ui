@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { getMeClient, deleteMe, updateNotificationChannel, updateTelegram, deleteTelegram, updateBalanceCheckEnabled, updateNickname, updateNotificationPref } from '../api'
 import type { User } from '../model/types'
+import { apiMsg } from '@shared/lib/api-client'
 
 export function useMeQuery(initialData?: User) {
   return useQuery<User>({
@@ -23,7 +24,7 @@ export function useUpdateNotificationPrefMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['me'] })
     },
-    onError: () => toast.error('알림 설정 변경에 실패했습니다.'),
+    onError: (err) => toast.error(apiMsg(err, '알림 설정 변경에 실패했습니다.')),
   })
 }
 
@@ -34,7 +35,7 @@ export function useUpdateBalanceCheckEnabledMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['me'] })
     },
-    onError: () => toast.error('잔고 검증 설정 변경에 실패했습니다.'),
+    onError: (err) => toast.error(apiMsg(err, '잔고 검증 설정 변경에 실패했습니다.')),
   })
 }
 
@@ -46,14 +47,14 @@ export function useUpdateNicknameMutation() {
       toast.success('닉네임이 변경됐습니다.')
       queryClient.invalidateQueries({ queryKey: ['me'] })
     },
-    onError: () => toast.error('닉네임 변경에 실패했습니다.'),
+    onError: (err) => toast.error(apiMsg(err, '닉네임 변경에 실패했습니다.')),
   })
 }
 
 export function useDeleteMeMutation() {
   return useMutation({ // eslint-disable-line react-doctor/query-mutation-missing-invalidation
     mutationFn: deleteMe,
-    onError: () => toast.error('탈퇴 처리 중 오류가 발생했습니다.'),
+    onError: (err) => toast.error(apiMsg(err, '탈퇴 처리 중 오류가 발생했습니다.')),
   })
 }
 
@@ -64,7 +65,7 @@ export function useUpdateNotificationChannelMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['me'] })
     },
-    onError: () => toast.error('알림 채널 변경에 실패했습니다.'),
+    onError: (err) => toast.error(apiMsg(err, '알림 채널 변경에 실패했습니다.')),
   })
 }
 
@@ -76,7 +77,7 @@ export function useUpdateTelegramMutation() {
       toast.success('텔레그램이 연결됐습니다.')
       queryClient.invalidateQueries({ queryKey: ['me'] })
     },
-    onError: () => toast.error('텔레그램 연결에 실패했습니다.'),
+    onError: (err) => toast.error(apiMsg(err, '텔레그램 연결에 실패했습니다.')),
   })
 }
 
@@ -88,6 +89,6 @@ export function useDeleteTelegramMutation() {
       toast.success('텔레그램 연결이 해제됐습니다.')
       queryClient.invalidateQueries({ queryKey: ['me'] })
     },
-    onError: () => toast.error('텔레그램 해제에 실패했습니다.'),
+    onError: (err) => toast.error(apiMsg(err, '텔레그램 해제에 실패했습니다.')),
   })
 }

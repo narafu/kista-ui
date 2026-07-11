@@ -9,6 +9,16 @@ export class ApiError extends Error {
   }
 }
 
+// 서버 에러 응답의 detail/message 필드를 추출, 없으면 fallback 문구 사용
+export function apiMsg(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) {
+    const b = err.body as Record<string, unknown> | null
+    const msg = b?.detail ?? b?.message
+    if (typeof msg === 'string' && msg) return msg
+  }
+  return fallback
+}
+
 // 동시 다발 401 시 RT를 한 번만 사용하도록 in-flight refresh 단일화
 let refreshInFlight: Promise<boolean> | null = null
 

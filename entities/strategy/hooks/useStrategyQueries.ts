@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { ApiError } from '@shared/lib/api-client'
+import { ApiError, apiMsg } from '@shared/lib/api-client'
 import {
   listAllStrategies,
   listStrategies,
@@ -16,15 +16,6 @@ import {
   getStrategySeedPreview,
 } from '../api'
 import type { Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
-
-function apiMsg(err: unknown, fallback: string): string {
-  if (err instanceof ApiError) {
-    const b = err.body as Record<string, unknown> | null
-    const msg = b?.detail ?? b?.message
-    if (typeof msg === 'string' && msg) return msg
-  }
-  return fallback
-}
 
 export function useStrategySeedPreviewQuery(
   accountId: string,
