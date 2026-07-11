@@ -3,7 +3,7 @@
 import { AlertTriangle } from 'lucide-react'
 import { Spinner } from '@shared/ui/Spinner'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
-import { PercentGauge, SeedAmountInput } from '@widgets/percent-gauge'
+import { PercentGauge, SeedAmountInput } from '@shared/ui/percent-gauge'
 import { fmtUsd } from '@shared/lib/format'
 
 const BALANCE_OFF_BADGE = (

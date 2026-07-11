@@ -21,6 +21,8 @@ export interface NextOrderItem {
 
 export type { SkipReason } from '@shared/lib/api-schema'
 import type { SkipReason } from '@shared/lib/api-schema'
+export type { PlacedOrder } from '@shared/model/placed-order'
+import type { PlacedOrder } from '@shared/model/placed-order'
 
 export interface NextOrderPreview {
   tradeDate: string
@@ -29,16 +31,6 @@ export interface NextOrderPreview {
   skipReason: SkipReason | null
   todayOrders: PlacedOrder[]               // 오늘 이미 등록된 PLANNED + PLACED 주문 (없으면 빈 배열)
   otherStrategiesPlannedBuyUsd: string     // 계좌 내 타 전략 당일 PLANNED BUY 합계
-}
-
-export interface PlacedOrder {
-  id: string
-  ticker: string
-  direction: 'BUY' | 'SELL'
-  orderType: string
-  quantity: number
-  price: string
-  status: 'PLANNED' | 'PLACED'
 }
 
 export interface StrategyOrder {

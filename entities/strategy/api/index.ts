@@ -1,7 +1,7 @@
 import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
 import type { CycleSeedType, Strategy, StrategyRequest, StrategySeedPreview, StrategyVrSummary } from '../model/types'
-import type { PlacedOrder } from '@entities/order/model/types'
+import type { PlacedOrder } from '@shared/model/placed-order'
 
 // VR 요약 숫자 문자열 → number 변환
 function normalizeVrSummary(raw: unknown): StrategyVrSummary | undefined {

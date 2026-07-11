@@ -1,7 +1,7 @@
 import { AlertTriangle } from 'lucide-react'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { DeleteAccountButton } from '@features/settings/delete-user-account'
-import { getCachedUser } from '@shared/lib/cache/cached-api'
+import { getCachedUser } from '@entities/user'
 import { TelegramSection } from '@features/settings/telegram-connect'
 import { NotificationSettings } from '@features/settings/notification-channel'
 import { ThemeCards } from '@features/settings/theme-select'

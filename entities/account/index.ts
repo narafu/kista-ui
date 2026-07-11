@@ -9,6 +9,7 @@ export {
   getMargin,
   getPrices,
 } from './api'
+export { getCachedAccounts } from './api/cached'
 export {
   useAccountMarginQuery,
   useAccountPricesQuery,

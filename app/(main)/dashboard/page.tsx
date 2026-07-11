@@ -1,6 +1,6 @@
 import { getAuthToken } from '@shared/lib/auth/token'
 import { getMonthlyHolidays, getMonthlyHolidaysPublic } from '@entities/market'
-import { getCachedAccounts } from '@shared/lib/cache/cached-api'
+import { getCachedAccounts } from '@entities/account'
 import { DashboardEmpty } from '@widgets/dashboard/DashboardEmpty'
 import { DashboardOverview } from '@widgets/dashboard/DashboardOverview'
 import { DashboardLogoutErrorToast } from '@features/auth/logout'

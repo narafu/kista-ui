@@ -1,7 +1,7 @@
 'use client'
 
 import { useReducer } from 'react'
-import { Stepper } from '@widgets/stepper'
+import { Stepper } from '@shared/ui/stepper'
 import type { BrokerCode } from '@entities/account'
 import { BrokerStep } from './steps/BrokerStep'
 import { ApiStep } from './steps/ApiStep'

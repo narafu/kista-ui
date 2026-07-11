@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { getAuthToken } from '@shared/lib/auth/token'
-import { getCachedAccounts } from '@shared/lib/cache/cached-api'
+import { getCachedAccounts } from '@entities/account'
 import { listAllStrategies } from '@entities/strategy'
 import { AllStrategiesList } from '@widgets/all-strategies'
 import { PageHeader } from '@widgets/page-header'
