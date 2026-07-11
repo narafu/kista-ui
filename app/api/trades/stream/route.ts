@@ -34,6 +34,16 @@ export async function GET(request: NextRequest) {
   })
 
   if (!upstream.ok) {
+    // 업스트림 401/403(토큰 만료·권한 상실) → no-token 분기와 동일하게 auth-error 이벤트로 재연결 중단 유도
+    if (upstream.status === 401 || upstream.status === 403) {
+      const body = new TextEncoder().encode('event: auth-error\ndata: unauthorized\n\n')
+      return new Response(body, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+        },
+      })
+    }
     return new Response('Upstream error', { status: upstream.status })
   }
 
