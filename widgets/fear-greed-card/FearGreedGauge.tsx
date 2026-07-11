@@ -1,5 +1,3 @@
-'use client'
-
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { PieChart, Pie, Cell } from 'recharts'
 import { FEAR_GREED_ZONES, zoneOf } from './fearGreedZones'

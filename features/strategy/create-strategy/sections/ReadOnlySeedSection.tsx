@@ -1,5 +1,3 @@
-'use client'
-
 import { fmtUsd } from '@shared/lib/format'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 
