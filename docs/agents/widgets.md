@@ -8,12 +8,13 @@
 widgets/{slice}  ->  features/  ->  entities/  ->  shared/
 ```
 
-widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면 `app/` 페이지에서 처리.
+widget 슬라이스끼리 cross-import 금지. **단, "공용 UI 위젯" 목록(kpi-card, revealable-value, theme-toggle, page-header 등)은 다른 widget에서 import 허용** (조합 위젯의 구성 요소로 사용). 이외 페이지 위젯을 조합해야 하면 `app/` 페이지에서 처리.
 
 ## 대표 슬라이스
 
 - 페이지 위젯: `admin-user-list`, `admin-trade-list`, `admin-privacy-trade-list`, `all-strategies`, `dashboard`, `account-detail`, `accounts-grid`, `strategy-detail`, `strategy-list`, `cycle-history`, `fear-greed-card`, `market-holiday-calendar`, `error-display`
-- 공용 UI 위젯: `layout`, `account-card`, `strategy-card`, `kpi-card`, `percent-gauge`, `revealable-value`, `glass-card`, `page-header`, `theme-toggle`, `stepper`, `timeline`, `pull-to-refresh`
+- 공용 UI 위젯: `layout`, `account-card`, `strategy-card`, `kpi-card`, `revealable-value`, `glass-card`, `page-header`, `theme-toggle`, `timeline`, `pull-to-refresh`
+- shared/ui로 이동됨: `stepper`, `percent-gauge` (도메인 무관 UI 컴포넌트로 분류)
 
 ## shadcn / UI 컴포넌트
 
@@ -51,7 +52,6 @@ widget 슬라이스끼리 cross-import 금지. 두 위젯을 조합해야 하면
 - **`cycle-history`**: 계좌/전략 양쪽에서 공유
 - **`strategy-detail`**: `useStrategyOrderPreviewQuery(strategyId)` 사용, 분할/리버스모드 배지 규칙 고정. VR은 `strategy.vr` 존재 여부로 V값, 밴드 폭, pool 상한, G를 표시한다. `divisionCounts.length === 0`을 PRIVACY로 단정하지 않는다
 - **`strategy-card`**: VR은 분할 배지 대신 compact `V $3,000.00` 형식의 배지를 표시한다
-- **`percent-gauge`**: 슬라이더 위치 계산은 인라인 style 유지
 - **`kpi-card`**: `<KpiCard />` 그리드 패턴 유지
 - **`revealable-value`**: 마스킹 값 공개 토글
 - **`all-strategies`**: `useAllStrategiesQuery(initialStrategies)` 초기 데이터 패턴

@@ -16,11 +16,20 @@ shared/
     proxy/
     firebase.ts
     utils.ts
+  model/
+    placed-order.ts
   providers/
-  hooks/
-  config/
   ui/
-  index.ts
+    stepper/
+    percent-gauge/
+    RangeFilterBar.tsx
+    PageSizeSelector.tsx
+    PaginationBar.tsx
+    Spinner.tsx
+    CardSkeleton.tsx
+    Badge.tsx
+    EmptyState.tsx
+    Surface.tsx
 ```
 
 ## api-client
@@ -47,6 +56,12 @@ import { apiFetch, clientFetch, ApiError } from '@shared/lib/api-client'
 - `cn`: `clsx` + `tailwind-merge`
 - `toNum`: BigDecimal string → number
 
+## model
+
+도메인 무관 공용 도메인 모델 및 타입:
+
+- `placed-order.ts` — 주문 상태 타입 (entities/order에서 재export)
+
 ## api-schema
 
 `openapi.json`이 SSOT다. enum 타입을 직접 정의하지 말고 `api-schema.ts`에서 가져온다. 타입 재생성은 `npm run gen:types`.
@@ -59,10 +74,16 @@ import { apiFetch, clientFetch, ApiError } from '@shared/lib/api-client'
 
 `shared/ui/`는 도메인 무관 커스텀 UI 컴포넌트 디렉토리다.
 
-- `RangeFilterBar`
-- `PageSizeSelector`
-- `PaginationBar`
-- `Spinner`
+- `RangeFilterBar` — 날짜 범위 필터링
+- `PageSizeSelector` — 페이지당 항목 수 선택
+- `PaginationBar` — 페이지 네이션
+- `Spinner` — 로딩 표시기
+- `CardSkeleton` — 로딩 스켈레톤
+- `Badge` — 라벨 배지
+- `EmptyState` — 빈 상태 표시
+- `Surface` — 배경 서페이스
+- `stepper/` — 다단계 폼 스테퍼
+- `percent-gauge/` — 백분율 게이지 및 입력 컴포넌트
 
 shadcn 자동생성 컴포넌트는 `components/ui/`에 두고 `npx shadcn@latest add <component> --yes`로만 추가한다.
 
