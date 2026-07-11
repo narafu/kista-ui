@@ -3,7 +3,7 @@
 import { useState, useSyncExternalStore } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
-import { fmtSignedUsd, fmtUsd } from '@shared/lib/format'
+import { fmtUsd } from '@shared/lib/format'
 import { Surface } from '@shared/ui/Surface'
 import { useMonthlyHolidaysQuery } from '@entities/market'
 import { useWeeklyTradeSummaryQuery, directionTextClass, type DayTradeSummary } from '@entities/trade'
@@ -68,7 +68,7 @@ function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
             'text-[10px] leading-none opacity-60',
             directionTextClass(daySummary.netAmountUsd >= 0 ? 'SELL' : 'BUY'),
           )}>
-            {`$${fmtSignedUsd(daySummary.netAmountUsd, 0)}`}
+            {`${daySummary.netAmountUsd >= 0 ? '+' : '-'}$${fmtUsd(Math.abs(daySummary.netAmountUsd), 0)}`}
           </span>
         )}
       </div>
