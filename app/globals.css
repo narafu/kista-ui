@@ -69,11 +69,18 @@
   --color-brand-fg: var(--brand-fg);
   --color-brand-fg-soft: var(--brand-fg-soft);
   --color-sidebar-bg: var(--sidebar-bg);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-admin-fg: var(--admin-fg);
+  --color-admin-bg: var(--admin-bg);
+  --color-sidebar-active: var(--sidebar-active-bg);
+  --color-sidebar-active-fg: var(--sidebar-active-fg);
 }
 
 /* ── KISTA Light Mode ───────────────────────────────────────── */
 :root {
   /* Rose-gold palette */
+  /* 주의: rose-300~700은 다크 오버라이드 없음 — 다크 화면 배경/텍스트에 직접 사용 금지 */
   --rose-50:  #FCEFE8;
   --rose-100: #F7DCCD;
   --rose-200: #EFC2AB;
@@ -134,6 +141,11 @@
   --neg:        #1F6FE5;   --neg-bg: #DEE9FA;   /* 하락/매도/손실 — 파랑 */
   --warn:       #B07A1F;   --warn-bg:#F6E5C2;
   --status-ok:  #2F8A57;   --status-ok-bg: #DCEFE0;   /* 운영중 — 초록 */
+
+  /* Info (정보성 상태 — 사이클 시드 MAX, 주문 PLACED/LOC 등) */
+  --info:    #4A6FA5;   --info-bg: #E3EBF5;
+  /* Admin 액센트 (골드 계열 — 보라 대체) */
+  --admin-fg: #8A6420;  --admin-bg: #F3E7CC;
 
   /* Brand semantic tokens */
   --brand-fg:      #6E3A2A;
@@ -212,6 +224,9 @@
   --warn:       #DCB36A;   --warn-bg:rgba(220,179,106,0.13);
   --status-ok:  #6FCD8E;   --status-ok-bg: rgba(111,205,142,0.13);
 
+  --info:    #8FB4E3;   --info-bg: rgba(143,180,227,0.13);
+  --admin-fg: #D9B375;  --admin-bg: rgba(217,179,117,0.16);
+
   --brand-fg:      #EAC3AC;
   --brand-fg-soft: #D6A98E;
   --brand-soft-bg: linear-gradient(135deg, rgba(214,169,142,0.16) 0%, var(--card) 70%);
@@ -224,6 +239,7 @@
 
   /* Dark mode border & alpha rose */
   --border-strong: rgba(232, 230, 227, 0.14);
+  --rose-50: rgba(214, 169, 142, 0.08);
   --rose-100: rgba(214, 169, 142, 0.10);
   --rose-200: rgba(214, 169, 142, 0.18);
 
