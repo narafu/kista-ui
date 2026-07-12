@@ -52,7 +52,7 @@ export function DesktopSidebar({ isAdmin, isAuthenticated }: Props) {
               aria-current={active ? 'page' : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium transition-colors ${
                 active
-                  ? 'bg-rose-50 text-rose-600'
+                  ? 'bg-sidebar-active text-sidebar-active-fg'
                   : 'text-muted-foreground hover:bg-rose-50/60 hover:text-foreground'
               }`}
             >
@@ -69,13 +69,13 @@ export function DesktopSidebar({ isAdmin, isAuthenticated }: Props) {
               aria-current={pathname.startsWith('/admin') ? 'page' : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium transition-colors ${
                 pathname.startsWith('/admin')
-                  ? 'bg-violet-50 text-violet-600'
-                  : 'text-violet-600 hover:bg-violet-50/60'
+                  ? 'bg-admin-bg text-admin-fg'
+                  : 'text-admin-fg hover:bg-admin-bg/60'
               }`}
             >
               <ShieldCheck className="size-[18px] shrink-0" />
               관리자
-              <span className="ml-auto text-xs font-bold bg-violet-600 text-white rounded-full px-1.5 py-0.5 leading-none">
+              <span className="ml-auto text-xs font-bold bg-admin-bg text-admin-fg rounded-full px-1.5 py-0.5 leading-none">
                 ADMIN
               </span>
             </Link>

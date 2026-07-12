@@ -61,7 +61,7 @@ function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
           {day.getDate()}
         </span>
         {isHoliday && !isWeekend && (
-          <span className="text-[10px] leading-none text-neg/60">휴장</span>
+          <span className="text-[10px] leading-none text-[var(--gold)]/60">휴장</span>
         )}
         {!isWeekend && !isHoliday && daySummary && (
           <span className={cn(
@@ -102,7 +102,7 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
     if (isWeekend) {
       badge = <span className="text-xs px-1.5 py-[1px] rounded bg-muted text-muted-foreground/50">휴</span>
     } else if (isHoliday) {
-      badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-neg-bg text-neg">휴장</span>
+      badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-[var(--gold)]/15 text-[var(--gold)]">휴장</span>
     } else if (isToday && !summary && accountIds.length > 0) {
       badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-warn-bg text-warn">대기중</span>
       sub = <span className="text-xs text-muted-foreground">오늘</span>
@@ -132,7 +132,7 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
         <div className={cn(
           'w-[26px] h-[26px] flex items-center justify-center text-xs font-medium rounded-full',
           isToday ? 'bg-rose-500 text-white font-bold' :
-          isHoliday ? 'text-neg' :
+          isHoliday ? 'text-[var(--gold)]' :
           isSun ? 'text-pos' :
           isSat ? 'text-neg' :
           'text-foreground',
@@ -246,7 +246,7 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
 
       <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
         <span className="flex items-center gap-1.5">
-          <span className="size-[7px] rounded-full bg-neg shrink-0" />
+          <span className="size-[7px] rounded-full bg-[var(--gold)] shrink-0" />
           미국 휴장
         </span>
         {accountIds.length > 0 && (

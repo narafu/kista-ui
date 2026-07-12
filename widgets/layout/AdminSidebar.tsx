@@ -38,7 +38,7 @@ export function AdminSidebar() {
               key={href}
               href={href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                active ? 'bg-rose-50 text-rose-600' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                active ? 'bg-sidebar-active text-sidebar-active-fg' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >
               <Icon className="size-[18px] shrink-0" />

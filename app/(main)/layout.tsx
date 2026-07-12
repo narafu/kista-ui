@@ -35,7 +35,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
                   {isAdmin && (
                     <Link
                       href="/admin"
-                      className="flex items-center justify-center size-8 rounded-lg bg-violet-600 text-white"
+                      className="flex items-center justify-center size-8 rounded-lg bg-admin-bg text-admin-fg"
                     >
                       <ShieldCheck className="size-4" />
                     </Link>
