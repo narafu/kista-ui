@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function NewAccountPage() {
   return (
-    <div>
+    <div className="max-w-lg mx-auto">
       <PageHeader eyebrow="계좌 관리" title="새 계좌 연결" />
       <CreateAccountStepper />
     </div>

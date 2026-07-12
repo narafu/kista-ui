@@ -28,6 +28,12 @@ function addDays(d: Date, n: number): Date {
   return r
 }
 
+/** 'YYYY-MM-DD' → 'M월 D일' */
+function monthDayLabel(ds: string): string {
+  const [, m, d] = ds.split('-').map(Number)
+  return `${m}월 ${d}일`
+}
+
 function weekLabel(weekStart: Date): string {
   const y = weekStart.getFullYear()
   const m = weekStart.getMonth() + 1
@@ -200,6 +206,14 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
   )
   const anyFetching = isFetching || isPrevFetching || isNextFetching
 
+  // 다음 휴장일 D-day — 조회된 휴일(전주~다음주 달 범위) 중 오늘 이후 첫 날짜 (감사 A-05)
+  const nextHoliday = todayStr
+    ? ([...holidaySet].filter((d) => d >= todayStr).sort()[0] ?? null)
+    : null
+  const ddayCount = nextHoliday && todayStr
+    ? Math.round((new Date(nextHoliday + 'T00:00:00').getTime() - new Date(todayStr + 'T00:00:00').getTime()) / 86400000)
+    : null
+
   return (
     <Surface className="p-5 flex flex-col gap-1">
       <span className="text-sm font-semibold tracking-widest uppercase text-rose-500">
@@ -266,6 +280,14 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
           </>
         )}
       </div>
+
+      {nextHoliday && ddayCount !== null && (
+        <p className="mt-auto pt-2 text-sm text-muted-foreground">
+          다음 휴장일{' '}
+          <span className="font-medium" style={{ color: 'var(--gold)' }}>{monthDayLabel(nextHoliday)}</span>
+          <span className="num">{ddayCount === 0 ? ' · 오늘' : ` · D-${ddayCount}`}</span>
+        </p>
+      )}
     </Surface>
   )
 }

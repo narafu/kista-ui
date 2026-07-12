@@ -39,7 +39,7 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd }: Props) {
               </button>
             }
             value={
-              <span className="font-mono tracking-wider">
+              <span className="font-mono tracking-wide text-lg lg:text-xl whitespace-nowrap">
                 {revealed ? (account.accountNo ?? account.accountNoMasked) : account.accountNoMasked}
               </span>
             }

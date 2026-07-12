@@ -124,49 +124,44 @@ export function StrategyDetail({ accountId, strategy }: Props) {
 
   return (
     <div className="space-y-4">
-      <Card className="relative overflow-hidden border-border bg-card shadow-[var(--sh-card)]">
-        <span
-          data-testid="strategy-status-accent"
-          className="absolute left-0 top-0 bottom-0 w-[3px]"
-          style={{ background: strategyStatusAccent(strategy.status) }}
-        />
-        <div className="pl-6 pr-5 py-4 lg:pl-7 lg:pr-6 lg:py-5">
-          <div className="space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--brand-fg-soft)]">전략 정보</p>
-              </div>
-              <div data-testid="strategy-status-group" className="flex flex-wrap items-center justify-end gap-2">
-                {strategy.isReverseMode && (
-                  <Badge tone="warn" size="md">리버스모드</Badge>
-                )}
-                {strategy.status !== 'ACTIVE' && (
-                  <Badge tone="warn" size="lg" className="border border-warn/20">
-                    {strategy.status}
-                  </Badge>
-                )}
-              </div>
-            </div>
-            <div data-testid="strategy-meta-grid" className={cn('grid gap-3', isVr ? 'grid-cols-1' : 'grid-cols-2')}>
-              <KpiCard
-                label="전략타입"
-                value={<span className="inline-flex items-center text-xl lg:text-2xl font-bold">{strategy.type}</span>}
-                className="p-4 lg:p-5"
-                valueClassName="text-xl lg:text-2xl"
-              />
-              {!isVr && (
-                <KpiCard
-                  label="다음 사이클"
-                  value={
-                    <Badge tone="none" size="md" className={cn('h-[28px] lg:h-[36px] text-sm lg:text-base', seedBadgeCls)}>{cycleSeedLabel}</Badge>
-                  }
-                  className="p-4 lg:p-5"
-                />
-              )}
-            </div>
-          </div>
+      {/* 전략 정보 헤더 스트립 — 카드 중첩 대신 얇은 라벨 행 + 균일 타일 그리드 (감사 A-20) */}
+      <div className="flex items-center justify-between gap-3">
+        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--brand-fg-soft)]">
+          <span
+            data-testid="strategy-status-accent"
+            className="size-2 rounded-full shrink-0"
+            style={{ background: strategyStatusAccent(strategy.status) }}
+          />
+          전략 정보
+        </p>
+        <div data-testid="strategy-status-group" className="flex flex-wrap items-center justify-end gap-2">
+          {strategy.isReverseMode && (
+            <Badge tone="warn" size="md">리버스모드</Badge>
+          )}
+          {strategy.status !== 'ACTIVE' && (
+            <Badge tone="warn" size="lg" className="border border-warn/20">
+              {strategy.status}
+            </Badge>
+          )}
         </div>
-      </Card>
+      </div>
+      <div data-testid="strategy-meta-grid" className={cn('grid gap-3', isVr ? 'grid-cols-1' : 'grid-cols-2')}>
+        <KpiCard
+          label="전략타입"
+          value={<span className="inline-flex items-center text-xl lg:text-2xl font-bold">{strategy.type}</span>}
+          className="p-4 lg:p-5"
+          valueClassName="text-xl lg:text-2xl"
+        />
+        {!isVr && (
+          <KpiCard
+            label="다음 사이클"
+            value={
+              <Badge tone="none" size="md" className={cn('h-[28px] lg:h-[36px] text-sm lg:text-base', seedBadgeCls)}>{cycleSeedLabel}</Badge>
+            }
+            className="p-4 lg:p-5"
+          />
+        )}
+      </div>
 
       <div data-testid="strategy-summary-grid" className="grid grid-cols-2 gap-3">
         <KpiCard

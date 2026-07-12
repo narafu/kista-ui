@@ -31,10 +31,10 @@ export default async function SettingsPage() {
   const statusCfg = user?.status ? STATUS_CONFIG[user.status] : null
 
   return (
-    <div>
+    <div className="max-w-[880px]">
       <PageHeader eyebrow="설정" title="계정 설정" />
 
-      <div className="flex flex-col gap-[18px]">
+      <div className="flex flex-col gap-[18px] reveal-stagger">
         {/* 프로필 */}
         <Surface as="section" id="profile" className="p-6">
           <div className="text-sm font-bold mb-0.5">프로필</div>
