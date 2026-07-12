@@ -11,7 +11,7 @@ export function useMonthlyHolidaysQuery(year: number, month: number, initialData
     queryFn: () => getMonthlyHolidaysClient(year, month).catch((): string[] => []),
     initialData,
     initialDataUpdatedAt: initialData ? Date.now() : undefined,
-    staleTime: initialData ? 1000 * 60 * 60 : 0,
+    staleTime: initialData ? 1000 * 60 * 60 * 24 : 0, // 24시간 — 서버는 월 1회만 갱신
   })
   return { holidays, loading: isFetching }
 }
@@ -28,6 +28,6 @@ export function useFearGreedQuery(days = CHART_CANDLE_COUNT) {
   return useQuery<FearGreed | null>({
     queryKey: ['fearGreed', days],
     queryFn: () => getFearGreedClient(days).catch((): FearGreed | null => null),
-    staleTime: 1000 * 60 * 30, // 30분 — 하루 1회 갱신 데이터
+    staleTime: 1000 * 60 * 60 * 6, // 6시간 — 서버 갱신 주기(KST 00:00/12:00, 12시간)의 절반
   })
 }

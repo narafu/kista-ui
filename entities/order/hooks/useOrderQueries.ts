@@ -45,5 +45,6 @@ export function useStrategyOrdersQuery(
     queryKey: ['strategy-orders', strategyId, from ?? '', to ?? ''],
     queryFn: () => listStrategyOrders(strategyId, from, to),
     enabled: options?.enabled !== false,
+    staleTime: 1000 * 60, // 1분 — 과거 체결 이력, 매 마운트마다 재요청할 필요 없음
   })
 }
