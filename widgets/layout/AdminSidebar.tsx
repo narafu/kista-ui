@@ -6,7 +6,7 @@ import { LayoutDashboard, Users, LogOut, Wallet, ArrowLeftRight, ClipboardList, 
 import { LogoutButton } from '@features/auth/logout'
 
 const NAV_ITEMS = [
-  { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
+  { href: '/admin', label: '개요', icon: LayoutDashboard, exact: true },
   { href: '/admin/users', label: '사용자', icon: Users },
   { href: '/admin/accounts', label: '계좌 현황', icon: Wallet },
   { href: '/admin/trades', label: '주문 관리', icon: ArrowLeftRight },

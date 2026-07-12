@@ -14,9 +14,9 @@ export default async function AdminOverviewPage() {
   const recentPending = pendingUsers.slice(0, 5) // 최대 5명만 표시
 
   return (
-    <div>
+    <div className="reveal-stagger">
       <div className="mb-8">
-        <h1 className="text-2xl font-extrabold">Overview</h1>
+        <h1 className="text-2xl font-extrabold">개요</h1>
         <p className="text-sm text-muted-foreground mt-1">사용자 현황 및 최근 대기 목록</p>
       </div>
 

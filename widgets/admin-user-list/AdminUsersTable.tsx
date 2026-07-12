@@ -8,6 +8,7 @@ import { fmtDate } from '@shared/lib/format'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { Badge } from '@shared/ui/Badge'
 import type { AdminUser } from '@entities/admin'
 import type { UserStatus } from '@entities/user'
 
@@ -15,6 +16,12 @@ const STATUS_LABEL: Record<UserStatus, string> = {
   PENDING: '대기',
   ACTIVE: '승인',
   REJECTED: '거절',
+}
+
+const STATUS_TONE: Record<UserStatus, 'ok' | 'warn' | 'error'> = {
+  PENDING: 'warn',
+  ACTIVE: 'ok',
+  REJECTED: 'error',
 }
 
 interface Props {
@@ -66,8 +73,8 @@ export function AdminUsersTable({ initialUsers, currentUserId, filterBar }: Prop
             {paged.map((user) => (
               <tr key={user.id} className="hover:bg-muted/20 transition-colors">
                 <td className="px-4 py-3 font-medium whitespace-nowrap">{user.nickname}</td>
-                <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">
-                  {STATUS_LABEL[user.status]}
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <Badge tone={STATUS_TONE[user.status]}>{STATUS_LABEL[user.status]}</Badge>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">
                   {user.role}
