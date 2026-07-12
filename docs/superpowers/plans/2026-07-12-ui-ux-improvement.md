@@ -299,18 +299,62 @@ git commit -m "docs: 감사 결과 기반 Phase 1~4 작업 항목 확정"
 
 ---
 
-## 부록 A — Phase 1 작업 항목 (Task 0.6에서 확정)
+## 부록 A — Phase 1 작업 항목 (확정: 2026-07-12 감사 기반)
 
-> Task 0.6 완료 전까지 비어 있음. 확정 형식: `| 감사 ID | 파일 | 변경 내용 | Sonnet 그룹 |`
+근거: `docs/superpowers/audit/2026-07-12-ui-audit.md` (A-nn·S-nn)
 
-## 부록 B — Phase 2 작업 항목 (Task 0.6에서 확정)
+| 감사 ID | 파일 | 변경 내용 | Sonnet 그룹 |
+|---|---|---|---|
+| A-01·S-01 (**P1**) | `proxy.ts:76-79`, `app/(auth)/page.tsx` | 비인증 `/` → `/dashboard` 리다이렉트 제거: proxy는 비인증을 `/`에 유지, `(auth)/page.tsx`는 인증 분기 후 리다이렉트(비인증 시 랜딩/로그인 노출). 수정 후 쿠키 0 상태에서 `/` 접근 시 로그인 화면 확인 필수 | **그룹 1** (라우팅) |
+| S-02·S-03·A-13 | `app/globals.css`, `entities/strategy/model/seed-badge.ts`, `entities/order/model/status-badge.ts` | `--info`/`--info-bg` 토큰 신설(라이트·다크), 배지 유틸 2파일의 indigo/blue/emerald/amber 하드코딩을 `--info`·`--status-ok`·`--warn` 토큰 클래스로 교체. 두 유틸의 공통 패턴 통합 검토 | **그룹 2** (토큰·배지) |
+| S-05 | `app/globals.css` | `--rose-50`·`--rose-300~700` 다크 오버라이드 추가 또는 "다크 미대응 단계 사용 금지" 주석 규칙 명문화 (그룹 2가 globals.css 소유) | **그룹 2** |
+| A-03 | `widgets/layout/DesktopSidebar.tsx:72-78`, `app/(main)/layout.tsx:38` | violet 하드코딩 → 골드 계열 admin 액센트로 교체. 그룹 2가 `--admin-fg`/`--admin-bg` 토큰(기존 `--gold` 기반, 라이트·다크)을 globals.css에 정의하고, 그룹 3은 그 토큰만 소비 | **그룹 3** (사이드바) |
+| S-04·A-16·A-29 | `widgets/layout/DesktopSidebar.tsx:53-57`, `widgets/layout/AdminSidebar.tsx:40-42` | 활성 상태 `bg-rose-50 text-rose-600` → 기정의 `--sidebar-active-bg`/`--sidebar-active-fg` 토큰 사용으로 교체 (다크 밝은 필 해소). 두 사이드바 동시 수정 | **그룹 3** |
+| A-06 | `widgets/market-holiday-calendar/` (범례 부분) | '미국 휴장' 범례 도트를 매도 파랑과 구분되는 중립(회색/골드)으로 변경 | **그룹 3** |
 
-> Task 0.6 완료 전까지 비어 있음.
+그룹 간 파일 중복 없음. 그룹 2 → 그룹 3 순서 실행(토큰 정의 선행). 그룹 1은 독립 병렬 가능.
 
-## 부록 C — Phase 3 작업 항목 (Task 0.6에서 확정)
+**백엔드 이슈로 별도 트래킹 (이 플랜 범위 밖):** A-31(계좌번호 마스킹 포맷 — kista-api), S-06(반려 사유 필드 부재 — kista-api DTO)
 
-> Task 0.6 완료 전까지 비어 있음.
+## 부록 B — Phase 2 작업 항목 (확정)
 
-## 부록 D — Phase 4 작업 항목 (Task 0.6에서 확정)
+Task 2.1 설계서가 각 항목의 구체 명세를 확정한다. 대상:
 
-> Task 0.6 완료 전까지 비어 있음.
+| 감사 ID | 화면/파일 영역 | 개선 방향 |
+|---|---|---|
+| A-04 (P2) | `widgets/dashboard/` | 대시보드 상단 개인 KPI 행(총자산·주간 수익 등) 추가 — kpi-card 재사용, 기존 시장 위젯은 하단 유지 |
+| A-18 (P2) | `app/(main)/layout.tsx` 또는 콘텐츠 래퍼 | 모바일 콘텐츠 하단 padding(바텀내비 높이+safe-area) 보강 |
+| A-07·A-12·A-17·A-25 | 전역 아이콘 버튼 | 공용 IconButton 패턴(44px 히트영역+aria-label) 도입, 마스킹 토글·연필 수정·모바일 상단 아이콘 일괄 적용 |
+| A-19 | `widgets/strategy-detail/` | 뒤로가기 링크를 제목 앞/위 breadcrumb 위치로 이동 |
+| A-21 | `widgets/strategy-detail/` | '바로 주문' 활성/비활성 스타일 명확화 |
+| A-22 | `widgets/all-strategies/` | 전략 목록 계좌별 그룹 헤더 또는 계좌 필터 칩 |
+| A-15 | `widgets/account-detail/` | 잔고 이력 소량 데이터 시 빈 공간 처리(EmptyState/min-height) |
+
+## 부록 C — Phase 3 작업 항목 (확정)
+
+Fable 단독. 로즈골드 refined 톤 심화 프로그램 + 감사 개별 항목:
+
+| 감사 ID | 화면/파일 영역 | 개선 방향 |
+|---|---|---|
+| (전역) | `app/globals.css` + 주요 위젯 | 페이지 로드 스태거 리빌 모션(`animation-delay`, `prefers-reduced-motion` 대응), Cormorant display를 페이지 타이틀·핵심 수치에 확대 |
+| A-26·S-14 | `app/(auth)/login`, `app/pending`, `app/rejected` | `error-page-bg` 계열 radial/mesh 브랜드 배경 확장 — 인증군 톤 통일 |
+| A-05 | `widgets/dashboard/` | 캘린더 카드 하단 여백에 보조 정보(다음 휴장일 D-day) 추가 또는 행 재배치 |
+| A-11 | `features/account/create-account/` | 스테퍼·헤더 정렬 축 통일 |
+| A-14 | `widgets/account-detail/` | 계좌번호 타일 1줄 유지(폭/폰트 조정) |
+| A-20 | `widgets/strategy-detail/` | 정보 그룹핑 규칙 일원화(KPI 타일 그리드 통일) |
+| A-23 | `widgets/strategy-card/` | 카드 min-height 통일 |
+| A-24 | `app/(main)/settings/` | 설정 콘텐츠 max-width 720~880px |
+| S-13 | `app/pending`, `app/rejected`, `widgets/glass-card/` | GlassCard header slot 또는 공용 AuthShellHeader로 중복 래퍼 제거 |
+
+## 부록 D — Phase 4 작업 항목 (확정)
+
+admin 7개 라우트에 Phase 1~3 패턴 적용 + admin 고유 항목. Sonnet 병렬(슬라이스 단위 분할):
+
+| 감사 ID | 파일 영역 | 개선 방향 |
+|---|---|---|
+| A-28 | `app/(admin)/admin/page.tsx` 계열 | 'Overview' → 한글 제목 통일 |
+| A-30 | `widgets/admin-user-list/` | 상태 컬럼 '승인' 플레인 텍스트 → status-ok Badge |
+| A-32 | `app/(admin)/admin/pending/` | 부제·EmptyState 문구 중복 해소 |
+| A-33 | `widgets/admin-trade-list/` | 페이지 크기 셀렉트를 거래 내역 섹션 헤더로 이동 |
+| A-34 | `widgets/admin-log-list/` | 필터 3계층 → 섹션 카드 구획 정리 |
+| (전역) | `widgets/admin-*`, `app/(admin)/` | Phase 1 토큰(배지·사이드바)·Phase 2 IconButton·Phase 3 모션/타이포 패턴 이식 |
