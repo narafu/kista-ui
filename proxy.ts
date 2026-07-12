@@ -75,7 +75,7 @@ export async function proxy(request: NextRequest) {
 
   if (!token) {
     if (isProtected) return redirectTo('/login', request)
-    if (pathname === '/') return redirectTo('/dashboard', request)
+    // '/'는 비보호 경로로 유지 — (auth)/page.tsx가 인증 분기 후 리다이렉트 (감사 A-01·S-01)
     return NextResponse.next({ request: { headers: request.headers } })
   }
 

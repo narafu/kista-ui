@@ -1,6 +1,11 @@
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
-// "/"는 대시보드로 리다이렉트 (proxy.ts가 먼저 처리하지만 폴백으로 유지)
-export default function RootPage() {
-  redirect('/dashboard')
+const KISTA_TOKEN_COOKIE = 'kista-token'
+
+// "/"는 인증 분기 후 리다이렉트 — 인증 시 대시보드, 비인증 시 로그인 (감사 A-01·S-01)
+export default async function RootPage() {
+  const cookieStore = await cookies()
+  const token = cookieStore.get(KISTA_TOKEN_COOKIE)?.value
+  redirect(token ? '/dashboard' : '/login')
 }
