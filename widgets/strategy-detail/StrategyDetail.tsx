@@ -264,7 +264,6 @@ export function StrategyDetail({ accountId, strategy }: Props) {
                     'inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md',
                     'bg-gradient-to-br from-rose-500 to-rose-700 text-white font-semibold',
                     'shadow-[0_1px_4px_rgba(225,29,72,0.30)] hover:opacity-90 transition-opacity disabled:opacity-50',
-                    (isHoliday || hasDeficit) && 'opacity-50 cursor-not-allowed',
                   )}
                 >
                   {executeMutation.isPending ? '주문 중...' : '바로 주문'}
