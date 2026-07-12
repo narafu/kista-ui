@@ -30,6 +30,7 @@ shared/
     Badge.tsx
     EmptyState.tsx
     Surface.tsx
+    IconButton.tsx
 ```
 
 ## api-client
@@ -82,6 +83,7 @@ import { apiFetch, clientFetch, ApiError } from '@shared/lib/api-client'
 - `Badge` — 라벨 배지
 - `EmptyState` — 빈 상태 표시
 - `Surface` — 배경 서페이스
+- `IconButton` — 44px 히트영역 아이콘 전용 버튼(`<button>`), `aria-label` 필수 prop. `<Link>` 아이콘 버튼엔 미사용(패턴만 수동 복제)
 - `stepper/` — 다단계 폼 스테퍼
 - `percent-gauge/` — 백분율 게이지 및 입력 컴포넌트
 

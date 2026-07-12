@@ -25,10 +25,13 @@ widget 슬라이스끼리 cross-import 금지. **단, "공용 UI 위젯" 목록(
 
 ## CSS 토큰 · 스타일링
 
-- `--warn`, `--warn-bg`, `--status-ok`, `--status-ok-bg`, `--status-error` 계열 토큰 사용
+- `--warn`, `--warn-bg`, `--status-ok`, `--status-ok-bg`, `--status-error`/`--status-error-bg` 계열 토큰 사용
+- **시맨틱 토큰 용도**: `--info`/`--info-bg`(대기·일반 정보성 상태 — 사이클 시드 MAX, 주문 PLACED/LOC 등) · `--admin-fg`/`--admin-bg`(관리자 전용 액센트, 골드 계열 — violet/indigo 하드코딩 대체) · `--status-error`/`--status-error-bg`(실패·에러, FAILED 배지 등). 셋 다 라이트·다크 값 `globals.css`에 정의됨
+- `--gold`는 다크 오버라이드 존재(`.dark { --gold: ... }`) — 휴장 표시 등 라이트 전용 골드값을 다크에서 그대로 쓰지 않는다
 - 손익/상태 액센트는 CSS 토큰 기반 인라인 style 사용 가능
 - 거래내역 테이블 헤더는 전용 클래스 패턴 유지
 - 로즈골드/다크모드 gradient는 `globals.css` 오버라이드 기준으로 맞춘다
+- **`.reveal-stagger`**: 컨테이너에 부여 시 직계 자식이 `revealUp` 키프레임으로 순차 페이드업(`nth-child(1~5)` 개별 delay, `n+6`은 동일 delay로 묶임 — 직계 자식 5개 이하 컨테이너에서 가장 효과적). `prefers-reduced-motion: reduce`에서 애니메이션 비활성화 자동 처리. 페이지 최초 진입(첫 페인트) 같은 고임팩트 순간에만 사용 — 남용 금지
 
 ## 반응형 · 레이아웃
 
@@ -45,6 +48,7 @@ widget 슬라이스끼리 cross-import 금지. **단, "공용 UI 위젯" 목록(
 - "방금 동작 결과"는 toast, "현재 상태 경고"는 고정 텍스트로 남긴다
 - 독립 API 호출은 try/catch를 분리한다
 - JSX 내 IIFE 금지
+- **아이콘 전용 버튼 44px 히트영역**: `shared/ui/IconButton.tsx` 사용 (`<button>` 전용, `aria-label` 필수 prop). `<Link>`로 아이콘 버튼을 구현해야 하는 경우 IconButton 미사용 — 동일한 `size-11 rounded-lg` 클래스 패턴을 직접 replicate
 
 ## 주요 슬라이스 quirk
 
@@ -58,3 +62,5 @@ widget 슬라이스끼리 cross-import 금지. **단, "공용 UI 위젯" 목록(
 - **`admin-user-list`**: 이상감지 카드는 `AdminAnomalies { pausedAccounts, inactiveAccounts }`
 - **`market-holiday-calendar/WeeklyMarketCalendar`**: 주간/월간 데이터를 여러 쿼리로 조합
 - **`glass-card`**, **`pull-to-refresh`**, **`layout/DesktopSidebar`**: 일부 CSS 토큰/동적 계산 인라인 style 유지
+- **`glass-card/GlassCard`**: `topBar` prop(ReactNode) — 로그인/pending/rejected 등 인증 흐름 페이지 좌상단 로고+우상단 액션(로그아웃 등)을 `justify-between` 오버레이 행으로 배치. 컴패니언 `BrandWordmark`(로고+워드마크)와 함께 사용 (`app/pending/page.tsx`, `app/rejected/page.tsx` 참고). 배경은 `brand-radial-bg` 클래스(`globals.css`) 고정 적용
+- **`dashboard/DashboardKpiRow`**: Server Component(`DashboardOverview`)에 조합되는 Client Component KPI 행. `WeeklyMarketCalendar`와 동일한 `accountIds`/`weekStart` 파라미터로 `useWeeklyTradeSummaryQuery`를 호출해 React Query 캐시(`['weeklyTrades', ...]`)를 공유 — 두 위젯이 같은 데이터를 각자 fetch하지 않는다. 새 위젯이 동일 서버 데이터를 소비할 때 이 패턴(파라미터 일치로 queryKey 맞추기) 재사용
