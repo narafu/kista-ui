@@ -8,7 +8,7 @@ import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
-import { RangeFilterBar } from '@shared/ui/RangeFilterBar'
+import { UrlRangeFilterBar } from '@shared/ui/UrlRangeFilterBar'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
 
 const STRATEGY_STATUS_COLOR: Record<string, string> = {
@@ -50,7 +50,7 @@ export default async function AdminAccountsPage({
       </div>
 
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-        <RangeFilterBar current={range} from={from} to={to} />
+        <UrlRangeFilterBar current={range} from={from} to={to} />
         <PageSizeSelector value={String(size)} />
       </div>
 

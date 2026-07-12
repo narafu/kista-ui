@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { RangeFilterBar, type RangePreset } from '@shared/ui/RangeFilterBar'
+import { UrlRangeFilterBar, type RangePreset } from '@shared/ui/UrlRangeFilterBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import type { AdminAnomalies } from '@entities/admin'
 import { AccountTable } from './AccountTable'
@@ -26,7 +26,7 @@ export function AnomaliesSection({
         </h2>
         <div className="flex items-center gap-2">
           <Suspense fallback={null}>
-            <RangeFilterBar current={range} from={from} to={to} paramPrefix="ano" pageParamKeys={[]} />
+            <UrlRangeFilterBar current={range} from={from} to={to} paramPrefix="ano" pageParamKeys={[]} />
           </Suspense>
         </div>
       </div>

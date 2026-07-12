@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { RangeFilterBar, type RangePreset } from '@shared/ui/RangeFilterBar'
+import { UrlRangeFilterBar, type RangePreset } from '@shared/ui/UrlRangeFilterBar'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -27,7 +27,7 @@ export function AuditLogsSection({
         </h2>
         <div className="flex items-center gap-2 lg:flex-1">
           <Suspense fallback={null}>
-            <RangeFilterBar current={range} from={from} to={to} paramPrefix="aud" pageParamKeys={['ap']} />
+            <UrlRangeFilterBar current={range} from={from} to={to} paramPrefix="aud" pageParamKeys={['ap']} />
           </Suspense>
           <div className="ml-auto">
             <Suspense fallback={null}>

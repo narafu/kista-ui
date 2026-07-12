@@ -90,7 +90,7 @@ function RangeFilterBarContent({ current, from, to, pageParamKeys = ['page'], pa
   )
 }
 
-export function RangeFilterBar(props: Props) {
+export function UrlRangeFilterBar(props: Props) {
   return (
     <Suspense>
       <RangeFilterBarContent {...props} />

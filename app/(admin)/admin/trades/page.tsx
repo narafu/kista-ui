@@ -1,7 +1,7 @@
 import { getAuthToken } from '@shared/lib/auth/token'
 import { listAdminTrades } from '@entities/admin'
 import type { AdminTrade } from '@entities/admin'
-import { RangeFilterBar } from '@shared/ui/RangeFilterBar'
+import { UrlRangeFilterBar } from '@shared/ui/UrlRangeFilterBar'
 import { AdminTradesWorkbench } from '@widgets/admin-trade-list'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
 
@@ -29,7 +29,7 @@ export default async function AdminTradesPage({
       </div>
 
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-        <RangeFilterBar current={range} from={from} to={to} />
+        <UrlRangeFilterBar current={range} from={from} to={to} />
       </div>
 
       <AdminTradesWorkbench

@@ -3,7 +3,7 @@ import { listAdminPrivacyBases } from '@entities/privacy'
 import { AdminPrivacyBaseTable } from '@widgets/admin-privacy-trade-list/AdminPrivacyBaseTable'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
-import { RangeFilterBar } from '@shared/ui/RangeFilterBar'
+import { UrlRangeFilterBar } from '@shared/ui/UrlRangeFilterBar'
 import type { AdminPrivacyBase } from '@entities/privacy'
 import { parsePage, parseRangePreset, parseSize, resolveRange, type RangePreset } from '@shared/lib/date-range'
 
@@ -44,7 +44,7 @@ export default async function AdminPrivacyTradesPage({
       </div>
 
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-        <RangeFilterBar current={range} from={from} to={to} />
+        <UrlRangeFilterBar current={range} from={from} to={to} />
         <PageSizeSelector value={sizeStr} />
       </div>
 

@@ -2,7 +2,7 @@ import { getAuthToken } from '@shared/lib/auth/token'
 import { listAdminUsers } from '@entities/admin'
 import { getMe } from '@entities/user'
 import { AdminUsersTable } from '@widgets/admin-user-list'
-import { RangeFilterBar } from '@shared/ui/RangeFilterBar'
+import { UrlRangeFilterBar } from '@shared/ui/UrlRangeFilterBar'
 import { parseRangePreset, resolveRange } from '@shared/lib/date-range'
 
 export default async function AdminUsersPage({
@@ -32,7 +32,7 @@ export default async function AdminUsersPage({
         initialUsers={users}
         currentUserId={me?.id ?? null}
         // eslint-disable-next-line react-doctor/jsx-no-jsx-as-prop
-        filterBar={<RangeFilterBar current={range} from={from} to={to} />}
+        filterBar={<UrlRangeFilterBar current={range} from={from} to={to} />}
       />
     </div>
   )
