@@ -41,7 +41,7 @@ export function FearGreedTrend({ history }: Props) {
     value: p.value,
   }))
   const lineStops = buildLineStops(history.map((point) => point.value))
-  const currentColor = history.length > 0 ? zoneOf(history[history.length - 1].value).color : '#9CA3AF'
+  const currentColor = history.length > 0 ? zoneOf(history[history.length - 1].value).color : 'var(--muted-foreground)'
 
   return (
     <ResponsiveContainer width="100%" height={120}>

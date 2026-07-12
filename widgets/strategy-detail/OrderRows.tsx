@@ -23,9 +23,7 @@ interface Props {
 }
 
 const directionBadgeCls = (direction: string) =>
-  direction === 'BUY'
-    ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400'
-    : 'bg-neg-bg text-neg'
+  direction === 'BUY' ? 'bg-pos-bg text-pos' : 'bg-neg-bg text-neg'
 
 const directionLabel = (direction: string) => direction === 'BUY' ? '매수' : '매도'
 
