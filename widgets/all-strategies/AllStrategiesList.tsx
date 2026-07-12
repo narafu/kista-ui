@@ -106,8 +106,7 @@ export function AllStrategiesList({ strategies: initialStrategies, accounts }: P
           {groupByAccount && (
             <div className="flex items-center gap-2 mb-2.5">
               <span
-                className="inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold shrink-0"
-                style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}
+                className="inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold shrink-0 bg-accent text-accent-foreground"
               >
                 {findBroker(account.broker)?.label ?? account.broker}
               </span>
