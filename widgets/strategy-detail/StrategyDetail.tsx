@@ -243,33 +243,38 @@ export function StrategyDetail({ accountId, strategy }: Props) {
               )}
             </div>
             {canExecute && mode === 'preview' && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (isHoliday) {
-                    toast.info('오늘은 미국 증시 휴장일입니다')
-                    return
-                  }
-                  if (hasDeficit) {
-                    toast.info('예수금이 부족합니다')
-                    return
-                  }
-                  executeMutation.mutate(undefined, {
-                    onSuccess: (placed) => {
-                      setManualOrders(placed)
-                    },
-                  })
-                }}
-                disabled={executeMutation.isPending || orders.length === 0 || isMarginLoading}
-                className={cn(
-                  'inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md',
-                  'bg-gradient-to-br from-rose-500 to-rose-700 text-white font-semibold',
-                  'shadow-[0_1px_4px_rgba(225,29,72,0.30)] hover:opacity-90 transition-opacity disabled:opacity-50',
-                  (isHoliday || hasDeficit) && 'opacity-50 cursor-not-allowed',
+              <div className="flex items-center gap-2">
+                {(isHoliday || hasDeficit) && (
+                  <Badge tone="warn" size="sm">{isHoliday ? '휴장일' : '예수금 부족'}</Badge>
                 )}
-              >
-                {executeMutation.isPending ? '주문 중...' : '바로 주문'}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isHoliday) {
+                      toast.info('오늘은 미국 증시 휴장일입니다')
+                      return
+                    }
+                    if (hasDeficit) {
+                      toast.info('예수금이 부족합니다')
+                      return
+                    }
+                    executeMutation.mutate(undefined, {
+                      onSuccess: (placed) => {
+                        setManualOrders(placed)
+                      },
+                    })
+                  }}
+                  disabled={executeMutation.isPending || orders.length === 0 || isMarginLoading}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md',
+                    'bg-gradient-to-br from-rose-500 to-rose-700 text-white font-semibold',
+                    'shadow-[0_1px_4px_rgba(225,29,72,0.30)] hover:opacity-90 transition-opacity disabled:opacity-50',
+                    (isHoliday || hasDeficit) && 'opacity-50 cursor-not-allowed',
+                  )}
+                >
+                  {executeMutation.isPending ? '주문 중...' : '바로 주문'}
+                </button>
+              </div>
             )}
           </div>
         </CardHeader>

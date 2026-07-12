@@ -1,17 +1,16 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { TrendingUp, ChevronRight } from 'lucide-react'
 import { StrategyCard } from '@widgets/strategy-card'
 import { useAllStrategiesQuery } from '@entities/strategy'
+import { useMeta } from '@entities/meta'
 import type { Strategy } from '@entities/strategy'
 import { Spinner } from '@shared/ui/Spinner'
 import { EmptyState } from '@shared/ui/EmptyState'
 import type { Account } from '@entities/account'
-
-const PAGE_SIZE = 12
 
 interface Props {
   strategies: Strategy[]
@@ -84,44 +83,49 @@ function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
 
 export function AllStrategiesList({ strategies: initialStrategies, accounts }: Props) {
   const { data: strategies = initialStrategies } = useAllStrategiesQuery(initialStrategies)
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const { findBroker } = useMeta()
 
   if (strategies.length === 0)
     return <StrategiesEmptyState accounts={accounts} />
 
-  const accountMap = new Map(
-    accounts.map((a) => [
-      a.id,
-      a.nickname,
-    ])
-  )
+  const groupByAccount = accounts.length > 1
 
-  const visible = strategies.slice(0, visibleCount)
-  const hasMore = visibleCount < strategies.length
+  // 계좌 등록 순서를 유지한 채 계좌별 전략을 그룹핑 — 전략이 없는 계좌는 섹션 생략
+  const groups = accounts
+    .map((account) => ({
+      account,
+      strategies: strategies.filter((s) => s.accountId === account.id),
+    }))
+    .filter((g) => g.strategies.length > 0)
 
+  // NOTE: 초대제 SaaS 규모상 전략 5개 수준 — 100+ 전략 시 페이지네이션 재검토
   return (
-    <div>
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-4 lg:gap-3">
-        {visible.map((s) => (
-          <StrategyCard
-            key={s.id}
-            accountId={s.accountId}
-            strategy={s}
-            accountLabel={accountMap.get(s.accountId)}
-          />
-        ))}
-      </div>
-      {hasMore && (
-        <div className="flex justify-center mt-6">
-          <button
-            type="button"
-            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-            className="px-5 py-2 rounded-[var(--r-md)] text-sm font-medium text-muted-foreground border border-border hover:bg-muted transition-colors"
-          >
-            더 보기 ({strategies.length - visibleCount}개 남음)
-          </button>
+    <div className="space-y-6">
+      {groups.map(({ account, strategies: accountStrategies }) => (
+        <div key={account.id}>
+          {groupByAccount && (
+            <div className="flex items-center gap-2 mb-2.5">
+              <span
+                className="inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold shrink-0"
+                style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}
+              >
+                {findBroker(account.broker)?.label ?? account.broker}
+              </span>
+              <h2 className="text-sm font-semibold text-foreground">{account.nickname}</h2>
+            </div>
+          )}
+          <div className="grid grid-cols-1 gap-2 lg:grid-cols-4 lg:gap-3">
+            {accountStrategies.map((s) => (
+              <StrategyCard
+                key={s.id}
+                accountId={s.accountId}
+                strategy={s}
+                accountLabel={groupByAccount ? undefined : account.nickname}
+              />
+            ))}
+          </div>
         </div>
-      )}
+      ))}
     </div>
   )
 }
