@@ -3,6 +3,7 @@ import { UrlRangeFilterBar, type RangePreset } from '@shared/ui/UrlRangeFilterBa
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { Surface } from '@shared/ui/Surface'
 import { ErrorLogsSectionClient } from '@features/admin/error-logs'
 import type { AppErrorLog } from '@entities/admin'
 
@@ -19,7 +20,7 @@ export function ErrorLogsSection({
   to?: string
 }) {
   return (
-    <section>
+    <Surface as="section" className="p-4 lg:p-5">
       <div className="mb-4 lg:flex lg:items-center lg:gap-3">
         <h2 className="text-base font-bold shrink-0 mb-2 lg:mb-0">
           오류 로그
@@ -42,6 +43,6 @@ export function ErrorLogsSection({
         <ErrorLogsSectionClient logs={logs} />
       )}
       <PaginationBar page={page} totalPages={totalPages} pageParam="ep" />
-    </section>
+    </Surface>
   )
 }

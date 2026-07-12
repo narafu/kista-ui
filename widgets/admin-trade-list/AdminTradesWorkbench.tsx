@@ -221,14 +221,11 @@ export function AdminTradesWorkbench({
   return (
     <div className="space-y-4">
       <section className="rounded-[var(--r-lg)] border border-border bg-muted/20 p-4" aria-label="거래일 재주문 대상">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <h2 className="text-base font-semibold">거래일 재주문 대상</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              전략을 고르면 오늘 주문 전체를 한 번에 재주문합니다.
-            </p>
-          </div>
-          <PageSizeSelector value={String(size)} onChange={(nextSize) => dispatch({ type: 'SET_SIZE', size: Number(nextSize) })} />
+        <div>
+          <h2 className="text-base font-semibold">거래일 재주문 대상</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            전략을 고르면 오늘 주문 전체를 한 번에 재주문합니다.
+          </p>
         </div>
       </section>
 
@@ -255,6 +252,11 @@ export function AdminTradesWorkbench({
       />
 
       <AdminTradesFeedback actionError={actionError} reorderResult={reorderResult} />
+
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <h2 className="text-base font-semibold">거래 내역</h2>
+        <PageSizeSelector value={String(size)} onChange={(nextSize) => dispatch({ type: 'SET_SIZE', size: Number(nextSize) })} />
+      </div>
 
       <AdminTradesTable trades={pagedTrades} />
 

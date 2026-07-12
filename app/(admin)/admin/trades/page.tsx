@@ -22,7 +22,7 @@ export default async function AdminTradesPage({
   const page = Math.min(parsePage(rawPage), totalPages)
 
   return (
-    <div>
+    <div className="reveal-stagger">
       <div className="mb-8">
         <h1 className="text-2xl font-extrabold">주문 관리</h1>
         <p className="text-sm text-muted-foreground mt-1">전체 {all.length}건</p>

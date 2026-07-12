@@ -70,7 +70,7 @@ export default async function AdminLogsPage({
         <Suspense fallback={null}><LogsFilterChips /></Suspense>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-8 reveal-stagger">
         {showAnomaly && (
           <AnomaliesSection
             anomalies={anomalies}
