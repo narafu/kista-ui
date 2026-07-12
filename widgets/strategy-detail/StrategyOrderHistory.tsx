@@ -1,8 +1,8 @@
 'use client'
 
-import { useReducer } from 'react'
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useStrategyOrdersQuery, orderStatusBadgeClass, ORDER_STATUS_LABEL } from '@entities/order'
+import { useStrategyOrdersQuery, orderStatusBadgeClass, orderTypeBadgeClass, ORDER_STATUS_LABEL } from '@entities/order'
 import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -11,42 +11,18 @@ import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { RangeFilterControls } from '@shared/ui/range-filter/RangeFilterControls'
 import { fmtUsd } from '@shared/lib/format'
 import { toNum } from '@shared/lib/utils'
-import { resolveRangeStrict, type RangePreset } from '@shared/lib/date-range'
-
-const ORDER_TYPE_STYLE: Record<string, string> = {
-  LIMIT: 'bg-muted text-muted-foreground',
-  LOC: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400',
-  MOC: 'bg-warn-bg text-warn',
-}
-
-type FilterState = { rangeType: RangePreset; customFrom: string; customTo: string; pageSize: string; page: number }
-type FilterAction =
-  | { type: 'range'; rangeType: RangePreset }
-  | { type: 'custom'; from: string; to: string }
-  | { type: 'pageSize'; size: string }
-  | { type: 'page'; page: number }
-
-function filterReducer(state: FilterState, action: FilterAction): FilterState {
-  switch (action.type) {
-    case 'range': return { ...state, rangeType: action.rangeType, page: 1 }
-    case 'custom': return { ...state, rangeType: 'custom', customFrom: action.from, customTo: action.to, page: 1 }
-    case 'pageSize': return { ...state, pageSize: action.size, page: 1 }
-    case 'page': return { ...state, page: action.page }
-  }
-}
+import { resolveRangeStrict } from '@shared/lib/date-range'
+import { useRangeFilterState } from '@shared/lib/hooks/use-range-filter-state'
 
 interface Props {
   strategyId: string
 }
 
 export function StrategyOrderHistory({ strategyId }: Props) {
-  const [{ rangeType, customFrom, customTo, pageSize, page }, dispatch] = useReducer(filterReducer, {
-    rangeType: '7d',
-    customFrom: '',
-    customTo: '',
-    pageSize: '10',
-    page: 1,
-  })
+  const { rangeType, customFrom, customTo, pageSize, setRangeType, setCustomFrom, setCustomTo, setPageSize } = useRangeFilterState()
+  const [page, setPage] = useState(1)
+  // 기간/커스텀 날짜/페이지 크기 변경 시 페이지를 1로 리셋 (기존 로컬 reducer 동작 재현)
+  useEffect(() => setPage(1), [rangeType, customFrom, customTo, pageSize])
 
   const range = resolveRangeStrict(rangeType, customFrom, customTo)
   const { data: orders = [], isLoading, isError, error } = useStrategyOrdersQuery(strategyId, range?.from, range?.to, { enabled: range !== null })
@@ -62,13 +38,13 @@ export function StrategyOrderHistory({ strategyId }: Props) {
           <CardTitle className="text-base lg:text-lg">주문 내역</CardTitle>
           <RangeFilterControls
             rangeType={rangeType}
-            onRangeChange={(r) => dispatch({ type: 'range', rangeType: r })}
+            onRangeChange={setRangeType}
             pageSize={pageSize}
-            onPageSizeChange={(s) => dispatch({ type: 'pageSize', size: s })}
+            onPageSizeChange={setPageSize}
             customFrom={customFrom}
             customTo={customTo}
-            onCustomFromChange={(v) => dispatch({ type: 'custom', from: v, to: customTo })}
-            onCustomToChange={(v) => dispatch({ type: 'custom', from: customFrom, to: v })}
+            onCustomFromChange={setCustomFrom}
+            onCustomToChange={setCustomTo}
           />
         </div>
       </CardHeader>
@@ -100,7 +76,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                       <td className="px-4 py-3 text-center text-muted-foreground text-xs whitespace-nowrap">{o.tradeDate}</td>
                       <td className={`px-4 py-3 text-center font-semibold whitespace-nowrap ${directionTextClass(o.direction)}`}>{DIRECTION_LABEL[o.direction] ?? o.direction}</td>
                       <td className="px-4 py-3 text-center whitespace-nowrap">
-                        <Badge tone="none" size="sm" className={ORDER_TYPE_STYLE[o.orderType] ?? 'bg-muted text-muted-foreground'}>
+                        <Badge tone="none" size="sm" className={orderTypeBadgeClass(o.orderType)}>
                           {o.orderType}
                         </Badge>
                       </td>
@@ -130,7 +106,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
             </div>
             {totalPages > 1 && (
               <div className="px-4 pb-4">
-                <PaginationBar page={page} totalPages={totalPages} onPageChange={(p) => dispatch({ type: 'page', page: p })} />
+                <PaginationBar page={page} totalPages={totalPages} onPageChange={setPage} />
               </div>
             )}
           </div>

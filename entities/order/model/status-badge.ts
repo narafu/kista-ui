@@ -23,3 +23,16 @@ export const ORDER_STATUS_LABEL: Record<string, string> = {
   CANCELLED:        '취소',
   PLANNED:          '예정',
 }
+
+/**
+ * 주문 유형 배지 클래스를 반환한다.
+ * dark shade는 /40·텍스트 -400 계열로 통일 (canonical).
+ */
+export function orderTypeBadgeClass(orderType: string): string {
+  switch (orderType) {
+    case 'LIMIT': return 'bg-muted text-muted-foreground'
+    case 'LOC':   return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400'
+    case 'MOC':   return 'bg-warn-bg text-warn'
+    default:      return 'bg-muted text-muted-foreground'
+  }
+}
