@@ -7,7 +7,7 @@ export function orderStatusBadgeClass(status: string): string {
     case 'PLACED':           return 'bg-info-bg text-info'
     case 'FILLED':           return 'bg-status-ok-bg text-status-ok'
     case 'PARTIALLY_FILLED': return 'bg-warn-bg text-warn'
-    case 'FAILED':           return 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400'
+    case 'FAILED':           return 'bg-status-error-bg text-status-error'
     case 'CANCELLED':        return 'bg-muted text-muted-foreground'
     case 'PLANNED':          return 'bg-muted text-muted-foreground'
     default:                 return 'bg-muted text-muted-foreground'

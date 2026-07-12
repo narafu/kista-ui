@@ -64,6 +64,8 @@
   --color-neg-bg: var(--neg-bg);
   --color-status-ok: var(--status-ok);
   --color-status-ok-bg: var(--status-ok-bg);
+  --color-status-error: var(--status-error);
+  --color-status-error-bg: var(--status-error-bg);
   --color-warn: var(--warn);
   --color-warn-bg: var(--warn-bg);
   --color-brand-fg: var(--brand-fg);
