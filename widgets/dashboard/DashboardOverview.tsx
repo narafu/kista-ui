@@ -4,14 +4,16 @@ import { NewAccountButton } from '@features/account/create-account'
 import { MarketChartCard } from '@widgets/dashboard/MarketChartCard'
 import { MARKET_CHART_CATEGORIES } from '@widgets/dashboard/marketChartCategories'
 import { FearGreedSection } from '@widgets/fear-greed-card'
+import { DashboardKpiRow } from '@widgets/dashboard/DashboardKpiRow'
 
 interface Props {
   holidays: string[]
   initialWeekStartDate: string
   accountIds: string[]
+  brokerCount: number
 }
 
-export function DashboardOverview({ holidays, initialWeekStartDate, accountIds }: Props) {
+export function DashboardOverview({ holidays, initialWeekStartDate, accountIds, brokerCount }: Props) {
   return (
     <>
       {/* Desktop */}
@@ -22,6 +24,11 @@ export function DashboardOverview({ holidays, initialWeekStartDate, accountIds }
           actions={
             <NewAccountButton>계좌 등록</NewAccountButton>
           }
+        />
+        <DashboardKpiRow
+          accountIds={accountIds}
+          brokerCount={brokerCount}
+          weekStartDate={initialWeekStartDate}
         />
         {/* Row 1: 달력 | CNN 공탐 | 크립토 공탐 */}
         <div className="grid grid-cols-3 gap-4 mb-4">
@@ -42,6 +49,11 @@ export function DashboardOverview({ holidays, initialWeekStartDate, accountIds }
 
       {/* Mobile */}
       <div className="lg:hidden">
+        <DashboardKpiRow
+          accountIds={accountIds}
+          brokerCount={brokerCount}
+          weekStartDate={initialWeekStartDate}
+        />
         <div className="mb-4">
           <WeeklyMarketCalendar
             holidays={holidays}

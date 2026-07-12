@@ -6,6 +6,8 @@ import { getDailyTransactions } from '../api'
 export interface DayTradeSummary {
   tradeCount: number
   netAmountUsd: number // SELL 합산 − BUY 합산 (실현 손익 아님, 순거래 금액)
+  buyCount: number
+  sellCount: number
 }
 
 function pad(n: number) { return String(n).padStart(2, '0') }
@@ -31,11 +33,14 @@ export function useWeeklyTradeSummaryQuery(accountIds: string[], weekStart: Date
         if (r.status !== 'fulfilled') continue
         for (const item of r.value.items) {
           const dateKey = item.tradeDate // API가 항상 ISO YYYY-MM-DD 반환
-          const prev = map.get(dateKey) ?? { tradeCount: 0, netAmountUsd: 0 }
-          const sign = item.direction === 'SELL' ? 1 : -1
+          const prev = map.get(dateKey) ?? { tradeCount: 0, netAmountUsd: 0, buyCount: 0, sellCount: 0 }
+          const isSell = item.direction === 'SELL'
+          const sign = isSell ? 1 : -1
           map.set(dateKey, {
             tradeCount: prev.tradeCount + 1,
             netAmountUsd: prev.netAmountUsd + sign * item.tradeAmountUsd,
+            buyCount: prev.buyCount + (isSell ? 0 : 1),
+            sellCount: prev.sellCount + (isSell ? 1 : 0),
           })
         }
       }
