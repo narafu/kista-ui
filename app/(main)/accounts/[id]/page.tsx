@@ -2,10 +2,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Pencil } from 'lucide-react'
 import { notFound } from 'next/navigation'
-import { buttonVariants } from '@/components/ui/button-variants'
 import { AccountDetailTabs } from '@widgets/account-detail'
 import { PageHeader } from '@widgets/page-header'
-import { cn, toNum } from '@shared/lib/utils'
+import { toNum } from '@shared/lib/utils'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { listAccounts } from '@entities/account'
 import { getAccountPortfolio } from '@entities/trade'
@@ -53,7 +52,11 @@ export default async function AccountDetailPage({ params }: Props) {
         eyebrow="계좌 관리"
         title={account.nickname}
         actions={
-          <Link href={`/accounts/${id}/edit`} className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}>
+          <Link
+            href={`/accounts/${id}/edit`}
+            aria-label="계좌 수정"
+            className="relative inline-flex items-center justify-center size-11 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          >
             <Pencil className="size-4" />
           </Link>
         }

@@ -18,7 +18,7 @@ export function RevealableValue({ value, hiddenDisplay = '•••••••�
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); setRevealed((v) => !v) }}
-        className="text-muted-foreground hover:text-foreground transition-colors shrink-0 cursor-pointer"
+        className="-m-3.5 p-3.5 text-muted-foreground hover:text-foreground transition-colors shrink-0 cursor-pointer"
         aria-label={revealed ? '숨기기' : '보기'}
       >
         {revealed

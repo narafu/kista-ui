@@ -35,19 +35,19 @@ export default async function MainLayout({ children }: { children: React.ReactNo
                   {isAdmin && (
                     <Link
                       href="/admin"
-                      className="flex items-center justify-center size-8 rounded-lg bg-admin-bg text-admin-fg"
+                      className="flex items-center justify-center size-10 rounded-lg bg-admin-bg text-admin-fg"
                     >
                       <ShieldCheck className="size-4" />
                     </Link>
                   )}
-                  <LogoutButton className="flex items-center justify-center size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer bg-transparent border-none">
+                  <LogoutButton className="flex items-center justify-center size-10 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer bg-transparent border-none">
                     <LogOut className="size-4" />
                   </LogoutButton>
                 </div>
               ) : (
                 <Link
                   href="/login"
-                  className="flex items-center justify-center size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                  className="flex items-center justify-center size-10 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
                 >
                   <LogIn className="size-4" />
                 </Link>

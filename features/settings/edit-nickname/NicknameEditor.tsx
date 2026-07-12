@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Pencil, Check, X } from 'lucide-react'
 import { useUpdateNicknameMutation } from '@entities/user'
+import { IconButton } from '@shared/ui/IconButton'
 
 const NICKNAME_REGEX = /^[\p{L}\d ]{1,10}$/u
 
@@ -59,14 +60,9 @@ export function NicknameEditor({ initialNickname }: Props) {
     return (
       <div className="flex items-center gap-2">
         <span className="text-sm font-semibold">{initialNickname || '-'}</span>
-        <button
-          type="button"
-          onClick={startEdit}
-          className="text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="닉네임 편집"
-        >
+        <IconButton onClick={startEdit} aria-label="닉네임 수정">
           <Pencil className="size-3.5" />
-        </button>
+        </IconButton>
       </div>
     )
   }
