@@ -4,45 +4,49 @@ import { Fragment } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { fmtUsd, fmtDate } from '@shared/lib/format'
 import type { CycleHistoryItem } from '@entities/trade'
+import type { DateParams } from '@entities/trade/hooks/useCycleHistory'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { RangeFilterControls } from '@shared/ui/range-filter/RangeFilterControls'
-import type { RangePreset } from '@shared/lib/date-range'
+import { useRangeFilterState } from '@shared/lib/hooks/use-range-filter-state'
+import { resolveRangeStrict } from '@shared/lib/date-range'
+
+interface HistoryQueryResult {
+  cycleHistory: CycleHistoryItem[]
+  isLoading: boolean
+  fetchNextPage: () => void
+  hasNextPage?: boolean
+  isFetchingNextPage?: boolean
+}
 
 interface Props {
   title: string
-  cycleHistory: CycleHistoryItem[]
-  isLoading: boolean
-  rangeType: RangePreset
-  setRangeType: (r: RangePreset) => void
-  customFrom: string
-  setCustomFrom: (v: string) => void
-  customTo: string
-  setCustomTo: (v: string) => void
-  pageSize: string
-  setPageSize: (s: string) => void
-  hasNextPage?: boolean
-  isFetchingNextPage?: boolean
-  fetchNextPage?: () => void
+  id: string | undefined
+  useHistoryQuery: (id: string | undefined, params: DateParams) => HistoryQueryResult
+  emptyIdMessage?: string
 }
 
-export function CycleHistoryTable({
-  title,
-  cycleHistory,
-  isLoading,
-  rangeType,
-  setRangeType,
-  customFrom,
-  setCustomFrom,
-  customTo,
-  setCustomTo,
-  pageSize,
-  setPageSize,
-  hasNextPage,
-  isFetchingNextPage,
-  fetchNextPage,
-}: Props) {
+export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }: Props) {
+  const { rangeType, customFrom, customTo, pageSize, setRangeType, setCustomFrom, setCustomTo, setPageSize } =
+    useRangeFilterState()
+  const baseParams = resolveRangeStrict(rangeType, customFrom, customTo)
+  const params = baseParams !== null ? { ...baseParams, size: Number(pageSize) } : null
+  const { cycleHistory, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useHistoryQuery(id, params)
+
+  if (!id && emptyIdMessage) {
+    return (
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <EmptyState variant="text" message={emptyIdMessage} />
+        </CardContent>
+      </Card>
+    )
+  }
+
   // 날짜(fmtDate 결과)별 그룹 — 입력 순서(최신순) 유지
   const groups = cycleHistory.reduce<{ date: string; items: CycleHistoryItem[] }[]>((acc, item) => {
     const date = fmtDate(item.createdAt)
