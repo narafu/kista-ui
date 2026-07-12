@@ -397,7 +397,8 @@
   border: 1px solid var(--status-error-border);
 }
 
-/* ── Error page background ──────────────────────────────────── */
+/* ── Brand radial background (에러·인증 화면군 공용) ─────────── */
+.brand-radial-bg,
 .error-page-bg {
   background:
     radial-gradient(700px 500px at 80% 15%, rgba(224,163,140,0.13), transparent 60%),

@@ -1,24 +1,12 @@
 import Image from 'next/image'
 import { XCircle } from 'lucide-react'
-import { GlassCard } from '@widgets/glass-card'
+import { GlassCard, BrandWordmark } from '@widgets/glass-card'
 import { LogoutButton } from '@features/auth/logout'
 import { RejectedReapplyButton } from '@features/auth/reapply'
 
 export default function RejectedPage() {
   return (
-    <div className="relative min-h-screen">
-      {/* 상단 헤더 */}
-      <div className="absolute top-7 left-9 flex items-center gap-2 z-10">
-        <Image src="/logo.png" alt="KISTA" width={26} height={26} className="rounded" style={{ height: 26, width: 26 }} />
-        <span className="text-base font-extrabold tracking-wide" style={{ color: 'var(--rose-700)' }}>
-          KISTA
-        </span>
-      </div>
-      <div className="absolute top-7 right-9 z-10">
-        <LogoutButton />
-      </div>
-
-      <GlassCard maxWidth="480px">
+    <GlassCard maxWidth="480px" topBar={<><BrandWordmark /><LogoutButton /></>}>
         {/* 헤더 섹션 */}
         <div className="flex flex-col items-center gap-2 mb-8">
           <Image src="/logo.png" alt="KISTA" width={44} height={44} className="rounded-[10px] mb-2 opacity-70" style={{ height: 44, width: 44 }} />
@@ -48,7 +36,6 @@ export default function RejectedPage() {
         </div>
 
         <RejectedReapplyButton />
-      </GlassCard>
-    </div>
+    </GlassCard>
   )
 }
