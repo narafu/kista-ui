@@ -35,6 +35,7 @@ export function DashboardKpiRow({ accountIds, brokerCount, weekStartDate }: Prop
         value={accountIds.length}
         sub={`연결 증권사 ${brokerCount}곳`}
         variant="default"
+        valueClassName="display text-3xl lg:text-4xl"
       />
       <KpiCard
         label="운영 전략"
@@ -42,6 +43,7 @@ export function DashboardKpiRow({ accountIds, brokerCount, weekStartDate }: Prop
         sub={`전체 ${strategies.length}개 중`}
         variant="soft"
         skeleton={strategiesLoading}
+        valueClassName="display text-3xl lg:text-4xl"
       />
       <KpiCard
         label="이번 주 체결"
@@ -50,6 +52,7 @@ export function DashboardKpiRow({ accountIds, brokerCount, weekStartDate }: Prop
         variant="default"
         className="col-span-2 lg:col-span-1"
         skeleton={tradesLoading}
+        valueClassName="display text-3xl lg:text-4xl"
       />
     </div>
   )

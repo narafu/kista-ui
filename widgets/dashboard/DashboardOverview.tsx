@@ -17,7 +17,7 @@ export function DashboardOverview({ holidays, initialWeekStartDate, accountIds, 
   return (
     <>
       {/* Desktop */}
-      <div className="hidden lg:block">
+      <div className="hidden lg:block reveal-stagger">
         <PageHeader
           eyebrow="Dashboard"
           title="대시보드"
@@ -48,7 +48,7 @@ export function DashboardOverview({ holidays, initialWeekStartDate, accountIds, 
       </div>
 
       {/* Mobile */}
-      <div className="lg:hidden">
+      <div className="lg:hidden reveal-stagger">
         <DashboardKpiRow
           accountIds={accountIds}
           brokerCount={brokerCount}

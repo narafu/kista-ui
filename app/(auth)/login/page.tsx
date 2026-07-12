@@ -53,7 +53,7 @@ function LoginPageContent() {
         />
         <div className="text-center">
           <h1
-            className="text-4xl font-[800] tracking-[2px] select-none"
+            className="display text-5xl tracking-[1px] select-none"
             style={{
               background: "linear-gradient(135deg, var(--rose-700) 0%, var(--rose-500) 100%)",
               WebkitBackgroundClip: "text",

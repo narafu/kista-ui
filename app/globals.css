@@ -286,6 +286,26 @@
   font-weight: 600;
 }
 
+/* ── 페이지 로드 스태거 리빌 (Phase 3) ─────────────────────────
+   컨테이너에 .reveal-stagger 부여 시 직계 자식이 순차 페이드업.
+   에러 페이지 errorFadeUp 패턴 계승 — 고임팩트 순간(첫 페인트)에만 사용 */
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.reveal-stagger > * {
+  animation: revealUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.reveal-stagger > *:nth-child(1) { animation-delay: 0.03s; }
+.reveal-stagger > *:nth-child(2) { animation-delay: 0.09s; }
+.reveal-stagger > *:nth-child(3) { animation-delay: 0.15s; }
+.reveal-stagger > *:nth-child(4) { animation-delay: 0.21s; }
+.reveal-stagger > *:nth-child(5) { animation-delay: 0.27s; }
+.reveal-stagger > *:nth-child(n+6) { animation-delay: 0.33s; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal-stagger > * { animation: none; }
+}
+
 .text-pos  { color: var(--pos); }
 .text-neg  { color: var(--neg); }
 .text-pos-bg { background-color: var(--pos-bg); }

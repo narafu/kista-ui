@@ -100,7 +100,7 @@ export function AllStrategiesList({ strategies: initialStrategies, accounts }: P
 
   // NOTE: 초대제 SaaS 규모상 전략 5개 수준 — 100+ 전략 시 페이지네이션 재검토
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 reveal-stagger">
       {groups.map(({ account, strategies: accountStrategies }) => (
         <div key={account.id}>
           {groupByAccount && (
