@@ -8,12 +8,17 @@ interface Props {
   accountId: string
 }
 
+// accountId가 항상 정의된 이 위젯 전용 래퍼 — useHistoryQuery 타입(id: string | undefined)과 맞추기 위함
+function useAccountCycleHistory(id: string | undefined, params: DateParams) {
+  return useAccountCycleHistoryQuery(id!, params)
+}
+
 export function TradesTab({ accountId }: Props) {
   return (
     <CycleHistoryTable
       title="잔고 이력"
       id={accountId}
-      useHistoryQuery={(id: string | undefined, params: DateParams) => useAccountCycleHistoryQuery(id!, params)}
+      useHistoryQuery={useAccountCycleHistory}
     />
   )
 }
