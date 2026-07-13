@@ -16,7 +16,7 @@ function toDateStr(d: Date) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
-export function useWeeklyTradeSummaryQuery(accountIds: string[], weekStart: Date) {
+export function useWeeklyTradeSummaryQuery(accountIds: string[], weekStart: Date, enabled = true) {
   const from = toDateStr(weekStart)
   const weekEnd = new Date(weekStart)
   weekEnd.setDate(weekEnd.getDate() + 6)
@@ -47,6 +47,6 @@ export function useWeeklyTradeSummaryQuery(accountIds: string[], weekStart: Date
       return map
     },
     staleTime: 1000 * 60 * 5,
-    enabled: accountIds.length > 0,
+    enabled: accountIds.length > 0 && enabled,
   })
 }

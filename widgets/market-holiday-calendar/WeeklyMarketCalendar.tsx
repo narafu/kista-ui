@@ -12,6 +12,7 @@ interface Props {
   holidays: string[]
   initialWeekStartDate: string // 'YYYY-MM-DD', 이번 주 일요일
   accountIds: string[]
+  extended?: boolean // PC 전용: 다음 주 뒤로 1주 더 표시
 }
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -152,14 +153,15 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
   })
 }
 
-export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountIds }: Props) {
+export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountIds, extended = false }: Props) {
   const [displayWeekStart, setDisplayWeekStart] = useState(
     () => new Date(initialWeekStartDate + 'T00:00:00'),
   )
   const weekEnd = addDays(displayWeekStart, 6)
   const prevWeekStart = addDays(displayWeekStart, -7)
   const nextWeekStart = addDays(displayWeekStart, 7)
-  const nextWeekEnd = addDays(nextWeekStart, 6)
+  const nextNextWeekStart = addDays(displayWeekStart, 14)
+  const farthestWeekEnd = addDays(extended ? nextNextWeekStart : nextWeekStart, 6)
 
   const todayStr = useSyncExternalStore(
     () => () => {},
@@ -187,8 +189,8 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
     prevWeekStart.getMonth() + 1,
   )
   const { holidays: hNext } = useMonthlyHolidaysQuery(
-    nextWeekEnd.getFullYear(),
-    nextWeekEnd.getMonth() + 1,
+    farthestWeekEnd.getFullYear(),
+    farthestWeekEnd.getMonth() + 1,
   )
   const holidaySet = new Set([...h1, ...h2, ...hPrev, ...hNext])
 
@@ -204,7 +206,12 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
     accountIds,
     nextWeekStart,
   )
-  const anyFetching = isFetching || isPrevFetching || isNextFetching
+  const { data: nextNextTradeSummary = new Map(), isFetching: isNextNextFetching } = useWeeklyTradeSummaryQuery(
+    accountIds,
+    nextNextWeekStart,
+    extended,
+  )
+  const anyFetching = isFetching || isPrevFetching || isNextFetching || (extended && isNextNextFetching)
 
   // 다음 휴장일 D-day — 조회된 휴일(전주~다음주 달 범위) 중 오늘 이후 첫 날짜 (감사 A-05)
   const nextHoliday = todayStr
@@ -256,6 +263,9 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
         <CompactRow rowStart={prevWeekStart} summary={prevTradeSummary} holidaySet={holidaySet} />
         <CurrentRow weekStart={displayWeekStart} tradeSummary={tradeSummary} holidaySet={holidaySet} todayStr={todayStr} accountIds={accountIds} />
         <CompactRow rowStart={nextWeekStart} summary={nextTradeSummary} holidaySet={holidaySet} />
+        {extended && (
+          <CompactRow rowStart={nextNextWeekStart} summary={nextNextTradeSummary} holidaySet={holidaySet} />
+        )}
       </div>
 
       <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground flex-wrap">

@@ -57,6 +57,7 @@ export function DashboardEmpty({ holidays, initialWeekStartDate }: Props) {
             holidays={holidays}
             initialWeekStartDate={initialWeekStartDate}
             accountIds={[]}
+            extended
           />
           <FearGreedSection />
         </div>

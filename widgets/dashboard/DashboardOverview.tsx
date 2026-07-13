@@ -36,6 +36,7 @@ export function DashboardOverview({ holidays, initialWeekStartDate, accountIds, 
             holidays={holidays}
             initialWeekStartDate={initialWeekStartDate}
             accountIds={accountIds}
+            extended
           />
           <FearGreedSection />
         </div>
