@@ -23,7 +23,7 @@ export function kstDateMinusDays(days: number): string {
  * 프리셋 → { from, to } 변환.
  * - all: {} (전체 기간)
  * - custom: 입력 그대로 통과 (서버 페이지는 미완성 custom을 전체 조회로 처리)
- * - 7d/30d: KST 오늘 기준 N일 전 ~ 오늘
+ * - 7d/30d: KST 오늘 기준 N일 전 ~ 상한 없음 (미래 선접수 데이터 노출 위해 to 미지정)
  */
 export function resolveRange(
   preset: RangePreset,
@@ -33,7 +33,7 @@ export function resolveRange(
   if (preset === 'all') return {}
   if (preset === 'custom') return { from, to }
   const days = preset === '7d' ? 7 : 30
-  return { from: kstDateMinusDays(days), to: todayKst() }
+  return { from: kstDateMinusDays(days) }
 }
 
 /** custom인데 from/to가 미완성이면 null — 클라이언트 테이블의 조회 보류용 */

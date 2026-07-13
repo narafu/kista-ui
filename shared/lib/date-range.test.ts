@@ -27,13 +27,13 @@ describe('kstDateMinusDays', () => {
 })
 
 describe('resolveRange', () => {
-  it('7d는 KST 오늘 기준 7일 전 ~ 오늘', () => {
+  it('7d는 KST 오늘 기준 7일 전부터 상한 없음', () => {
     freezeAtKstMorning()
-    expect(resolveRange('7d')).toEqual({ from: '2026-07-02', to: '2026-07-09' })
+    expect(resolveRange('7d')).toEqual({ from: '2026-07-02' })
   })
-  it('30d는 KST 오늘 기준 30일 전 ~ 오늘', () => {
+  it('30d는 KST 오늘 기준 30일 전부터 상한 없음', () => {
     freezeAtKstMorning()
-    expect(resolveRange('30d')).toEqual({ from: '2026-06-09', to: '2026-07-09' })
+    expect(resolveRange('30d')).toEqual({ from: '2026-06-09' })
   })
   it('all은 빈 객체(전체 기간)', () => {
     expect(resolveRange('all')).toEqual({})
