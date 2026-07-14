@@ -83,11 +83,11 @@ function MobileBaseCard({ base: b, open, onToggle }: { base: AdminPrivacyBase; o
         className="w-full text-left"
         onClick={onToggle}
         aria-expanded={open}
-        aria-label={`${b.tradeDate} ${b.ticker} 매매표 ${open ? '접기' : '펼치기'}`}
+        aria-label={`${b.releaseDate} ${b.ticker} 매매표 ${open ? '접기' : '펼치기'}`}
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-medium text-muted-foreground">{b.tradeDate}</p>
+            <p className="text-xs font-medium text-muted-foreground">{b.releaseDate}</p>
             <h3 className="mt-1 text-lg font-extrabold tracking-tight">{b.ticker}</h3>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -159,12 +159,12 @@ function FragmentRow({ base: b, open, onToggle }: { base: AdminPrivacyBase; open
       <tr
         className="hover:bg-muted/20 transition-colors cursor-pointer"
         onClick={onToggle}
-        aria-label={`${b.tradeDate} ${b.ticker} 행 ${open ? '접기' : '펼치기'}`}
+        aria-label={`${b.releaseDate} ${b.ticker} 행 ${open ? '접기' : '펼치기'}`}
       >
         <td className="px-2 py-3 text-muted-foreground">
           {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
         </td>
-        <td className="px-2.5 py-3 text-center text-muted-foreground text-xs whitespace-nowrap sm:px-4">{b.tradeDate}</td>
+        <td className="px-2.5 py-3 text-center text-muted-foreground text-xs whitespace-nowrap sm:px-4">{b.releaseDate}</td>
         <td className="px-2.5 py-3 text-center whitespace-nowrap sm:px-4">{b.ticker}</td>
         <td className="px-2.5 py-3 text-center font-mono text-xs whitespace-nowrap sm:px-4">${fmtUsd(b.currentCycleStart)}</td>
         <td className="hidden px-2.5 py-3 text-center font-mono text-xs whitespace-nowrap sm:table-cell sm:px-4">{b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`}</td>

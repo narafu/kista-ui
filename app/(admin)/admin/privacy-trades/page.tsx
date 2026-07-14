@@ -10,7 +10,7 @@ import { parsePage, parseRangePreset, parseSize, resolveRange, type RangePreset 
 function filterByRange(bases: AdminPrivacyBase[], range: RangePreset, from?: string, to?: string): AdminPrivacyBase[] {
   const { from: f, to: t } = resolveRange(range, from, to)
   if (!f && !t) return bases
-  return bases.filter((b) => (!f || b.tradeDate >= f) && (!t || b.tradeDate <= t))
+  return bases.filter((b) => (!f || b.releaseDate >= f) && (!t || b.releaseDate <= t))
 }
 
 export default async function AdminPrivacyTradesPage({

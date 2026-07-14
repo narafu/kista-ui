@@ -8,7 +8,7 @@ export interface AdminPrivacyOrder {
 
 export interface AdminPrivacyBase {
   id: string
-  tradeDate: string
+  releaseDate: string
   ticker: string
   currentCycleStart: number
   currentCycleRealizedPnl: number

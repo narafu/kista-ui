@@ -5,7 +5,7 @@ import { AdminPrivacyBaseTable } from './AdminPrivacyBaseTable'
 
 const base: AdminPrivacyBase = {
   id: 'base-1',
-  tradeDate: '2026-07-02',
+  releaseDate: '2026-07-02',
   ticker: 'NVDA',
   currentCycleStart: 1234.56,
   currentCycleRealizedPnl: 12.34,
