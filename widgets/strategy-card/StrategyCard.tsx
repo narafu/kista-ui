@@ -4,7 +4,11 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { fmtUsd } from '@shared/lib/format'
+import { toNum } from '@shared/lib/utils'
+import { useAccountMarginQuery } from '@entities/account'
 import { useMeta } from '@entities/meta'
+import { useMarketSessionQuery } from '@entities/market'
+import { useStrategyOrderPreviewQuery } from '@entities/order'
 import { seedBadgeClass, strategyStatusAccent } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import { Badge } from '@shared/ui/Badge'
@@ -18,10 +22,31 @@ interface Props {
 
 export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
   const { findStrategyType, labelOf } = useMeta()
+  const { data: preview, isLoading: isLoadingPreview } = useStrategyOrderPreviewQuery(strategy.id)
+  const previewOrders = preview?.orders ?? []
+  const hasBuyOrders = previewOrders.some((o) => o.direction === 'BUY')
+  const { items: marginItems, isLoading: isMarginLoading } = useAccountMarginQuery(accountId, {
+    enabled: !isLoadingPreview && hasBuyOrders,
+  })
+  const { data: marketSession } = useMarketSessionQuery()
   const usesDivisionCount = (findStrategyType(strategy.type)?.divisionCounts?.length ?? 0) > 0
   const isVr = strategy.vr != null // VR 전략 여부 — vr 필드 존재 여부로 판정
   const seedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
   const seedBadgeCls = seedBadgeClass(strategy.cycleSeedType)
+  const hasPlannedOrder = (preview?.todayOrders ?? []).some((o) => o.status === 'PLANNED')
+  const totalBuyUsd = hasBuyOrders && !isMarginLoading
+    ? previewOrders
+      .filter((o) => o.direction === 'BUY')
+      .reduce((sum, o) => sum + toNum(o.price) * o.quantity, 0)
+    : 0
+  const purchasableUsd = marginItems.find((i) => i.currency === 'USD')?.purchasableAmount ?? 0
+  const otherPlannedUsd = toNum(preview?.otherStrategiesPlannedBuyUsd ?? '0')
+  const hasDeficit = hasBuyOrders && !isLoadingPreview && !isMarginLoading && totalBuyUsd + otherPlannedUsd > purchasableUsd
+  const orderBorderColor = hasPlannedOrder
+    ? 'var(--status-ok)'
+    : hasDeficit
+      ? marketSession?.session === 'DIRECT' ? 'var(--status-error)' : 'var(--warn)'
+      : null
 
   return (
     <Link
@@ -33,6 +58,13 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
         className="absolute left-0 top-0 bottom-0 w-[3px]"
         style={{ background: strategyStatusAccent(strategy.status) }}
       />
+      {orderBorderColor && (
+        <span
+          data-testid="strategy-order-border-accent"
+          className="pointer-events-none absolute inset-0 rounded-[var(--r-lg)] border-t-[3px] border-r-[3px] border-b-[3px] border-l-0"
+          style={{ borderColor: orderBorderColor }}
+        />
+      )}
 
       {/* 모바일: 2행 레이아웃 */}
       <div className="flex flex-col gap-1.5 pl-5 pr-4 py-3 lg:hidden">
