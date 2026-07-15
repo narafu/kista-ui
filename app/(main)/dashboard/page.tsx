@@ -52,7 +52,6 @@ export default async function DashboardPage() {
         holidays={holidays}
         initialWeekStartDate={initialWeekStartDate}
         accountIds={accounts.map(a => a.id)}
-        brokerCount={new Set(accounts.map(a => a.broker)).size}
       />
     </>
   )

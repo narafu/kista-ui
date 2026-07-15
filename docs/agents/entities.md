@@ -48,7 +48,7 @@ entities/{domain}/
 
 `['accountMargin', accountId]`, `['accountPrices', accountId, tickers]`, `['strategies', accountId]`, `['strategies', 'all']`, `['strategySeedPreview', accountId, type, ticker, divisionCount]`, `['order-preview', 'strategy', strategyId]`, `['strategy-orders', strategyId, from, to]`, `['holidays', year, month]`, `['candles', ticker, count]`, `['fearGreed', days]`, `['marketSession']`, `['accountCycleHistory', accountId, params]`, `['strategyCycleHistory', strategyId, params]`, `['weeklyTrades', accountIds.join(','), from]`, `['me']`, `['adminUsers', filter]`
 
-**캐시 공유 패턴**: 서로 다른 위젯이 동일 서버 데이터를 소비할 때, 훅 호출 파라미터를 일치시켜 queryKey를 맞추면 React Query 캐시를 공유해 중복 fetch를 피한다 (`useWeeklyTradeSummaryQuery(accountIds, weekStart)` — `widgets/dashboard/DashboardKpiRow`와 `widgets/market-holiday-calendar/WeeklyMarketCalendar`가 동일 파라미터로 호출해 캐시 공유)
+**캐시 공유 패턴**: 서로 다른 위젯이 동일 서버 데이터를 소비할 때, 훅 호출 파라미터를 일치시켜 queryKey를 맞추면 React Query 캐시를 공유해 중복 fetch를 피한다.
 
 ## index.ts 규칙
 

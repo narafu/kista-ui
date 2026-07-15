@@ -63,4 +63,3 @@ widget 슬라이스끼리 cross-import 금지. **단, "공용 UI 위젯" 목록(
 - **`market-holiday-calendar/WeeklyMarketCalendar`**: 주간/월간 데이터를 여러 쿼리로 조합
 - **`glass-card`**, **`pull-to-refresh`**, **`layout/DesktopSidebar`**: 일부 CSS 토큰/동적 계산 인라인 style 유지
 - **`glass-card/GlassCard`**: `topBar` prop(ReactNode) — 로그인/pending/rejected 등 인증 흐름 페이지 좌상단 로고+우상단 액션(로그아웃 등)을 `justify-between` 오버레이 행으로 배치. 컴패니언 `BrandWordmark`(로고+워드마크)와 함께 사용 (`app/pending/page.tsx`, `app/rejected/page.tsx` 참고). 배경은 `brand-radial-bg` 클래스(`globals.css`) 고정 적용
-- **`dashboard/DashboardKpiRow`**: Server Component(`DashboardOverview`)에 조합되는 Client Component KPI 행. `WeeklyMarketCalendar`와 동일한 `accountIds`/`weekStart` 파라미터로 `useWeeklyTradeSummaryQuery`를 호출해 React Query 캐시(`['weeklyTrades', ...]`)를 공유 — 두 위젯이 같은 데이터를 각자 fetch하지 않는다. 새 위젯이 동일 서버 데이터를 소비할 때 이 패턴(파라미터 일치로 queryKey 맞추기) 재사용
