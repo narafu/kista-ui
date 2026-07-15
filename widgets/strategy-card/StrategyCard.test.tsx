@@ -1,10 +1,40 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Strategy } from '@entities/strategy'
 import { StrategyCard } from './StrategyCard'
 
+let previewState = {
+  data: {
+    orders: [] as Array<{ direction: string; price: string; quantity: number }>,
+    todayOrders: [] as Array<{ status: 'PLANNED' | 'PLACED' }>,
+    otherStrategiesPlannedBuyUsd: '0',
+  },
+  isLoading: false,
+}
+
+let marginState = {
+  items: [{ currency: 'USD', purchasableAmount: 1000 }],
+  isLoading: false,
+}
+
+let marketSessionState = {
+  data: { session: 'BLOCKED' as 'DIRECT' | 'BLOCKED' },
+}
+
 vi.mock('next/link', () => ({
   default: ({ children, href, ...props }: React.ComponentProps<'a'>) => <a href={href} {...props}>{children}</a>,
+}))
+
+vi.mock('@entities/order', () => ({
+  useStrategyOrderPreviewQuery: () => previewState,
+}))
+
+vi.mock('@entities/account', () => ({
+  useAccountMarginQuery: () => marginState,
+}))
+
+vi.mock('@entities/market', () => ({
+  useMarketSessionQuery: () => marketSessionState,
 }))
 
 vi.mock('@entities/meta', () => ({
@@ -39,6 +69,24 @@ const strategy: Strategy = {
 }
 
 describe('StrategyCard mobile row', () => {
+  beforeEach(() => {
+    previewState = {
+      data: {
+        orders: [],
+        todayOrders: [],
+        otherStrategiesPlannedBuyUsd: '0',
+      },
+      isLoading: false,
+    }
+    marginState = {
+      items: [{ currency: 'USD', purchasableAmount: 1000 }],
+      isLoading: false,
+    }
+    marketSessionState = {
+      data: { session: 'BLOCKED' },
+    }
+  })
+
   it('keeps the round label on a single line in the mobile row', () => {
     render(<StrategyCard accountId="account-1" strategy={strategy} />)
 
@@ -110,5 +158,50 @@ describe('StrategyCard mobile row', () => {
     />)
 
     expect(screen.queryByText('다음 사이클')).not.toBeInTheDocument()
+  })
+
+  it('marks top, right, and bottom borders green when an order is planned', () => {
+    previewState = {
+      ...previewState,
+      data: {
+        ...previewState.data,
+        todayOrders: [{ status: 'PLANNED' }],
+      },
+    }
+
+    render(<StrategyCard accountId="account-1" strategy={strategy} />)
+
+    expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-ok);'))
+  })
+
+  it('marks top, right, and bottom borders orange before market open when cash is insufficient', () => {
+    previewState = {
+      ...previewState,
+      data: {
+        ...previewState.data,
+        orders: [{ direction: 'BUY', price: '1200', quantity: 1 }],
+      },
+    }
+
+    render(<StrategyCard accountId="account-1" strategy={strategy} />)
+
+    expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--warn);'))
+  })
+
+  it('marks top, right, and bottom borders red after market open when cash is insufficient', () => {
+    previewState = {
+      ...previewState,
+      data: {
+        ...previewState.data,
+        orders: [{ direction: 'BUY', price: '1200', quantity: 1 }],
+      },
+    }
+    marketSessionState = {
+      data: { session: 'DIRECT' },
+    }
+
+    render(<StrategyCard accountId="account-1" strategy={strategy} />)
+
+    expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
   })
 })
