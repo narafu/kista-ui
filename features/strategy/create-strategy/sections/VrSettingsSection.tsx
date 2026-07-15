@@ -1,16 +1,23 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import type { FocusEvent, ReactNode } from 'react'
 import { cn } from '@shared/lib/utils'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import type { VrFields } from '../model/useStrategyForm'
+import type { RuntimeFieldSettings } from '@entities/runtime-config'
 
 interface Props {
   fields: VrFields
   setField: (field: keyof VrFields, value: number | null) => void
+  recurringMode: 'DEPOSIT' | 'HOLD' | 'WITHDRAW'
+  setRecurringMode: (mode: 'DEPOSIT' | 'HOLD' | 'WITHDRAW') => void
   loading: boolean
   isEdit: boolean
+  settings: {
+    recurringMode?: RuntimeFieldSettings<string>
+    bandWidth?: RuntimeFieldSettings<number>
+    intervalWeeks?: RuntimeFieldSettings<number>
+  }
 }
 
 function parseNumber(value: string): number | null {
@@ -19,19 +26,6 @@ function parseNumber(value: string): number | null {
   return Number.isFinite(n) ? n : null
 }
 
-function signedAmount(value: number | null, sign: 1 | -1): number | null {
-  if (value === null) return null
-  if (value === 0) return 0
-  return Math.abs(value) * sign
-}
-
-function recurringModeOf(value: number | null): 'deposit' | 'hold' | 'withdraw' {
-  if (value === null || value === 0) return 'hold'
-  return value < 0 ? 'withdraw' : 'deposit'
-}
-
-const BAND_WIDTH_OPTIONS = [10, 15, 20] as const
-const INTERVAL_WEEK_OPTIONS = [1, 2, 4] as const
 const FIELD_LABEL_CLASS = 'block mb-2.5 text-sm font-bold text-muted-foreground'
 
 function handleFocus(event: FocusEvent<HTMLInputElement>) {
@@ -67,21 +61,13 @@ function ChoiceButton({
   )
 }
 
-export function VrSettingsSection({ fields, setField, loading, isEdit }: Props) {
+export function VrSettingsSection({ fields, setField, recurringMode, setRecurringMode, loading, isEdit, settings }: Props) {
   const disabled = loading || isEdit
-  const [recurringMode, setRecurringMode] = useState<'deposit' | 'hold' | 'withdraw'>(recurringModeOf(fields.recurringAmount))
-
-  useEffect(() => {
-    setRecurringMode(recurringModeOf(fields.recurringAmount))
-  }, [fields.recurringAmount])
-
-  function handleRecurringModeChange(mode: 'deposit' | 'hold' | 'withdraw') {
+  function handleRecurringModeChange(mode: 'DEPOSIT' | 'HOLD' | 'WITHDRAW') {
     setRecurringMode(mode)
-    if (mode === 'hold') {
+    if (mode === 'HOLD') {
       setField('recurringAmount', 0)
-      return
     }
-    setField('recurringAmount', signedAmount(fields.recurringAmount, mode === 'withdraw' ? -1 : 1))
   }
 
   return (
@@ -109,23 +95,23 @@ export function VrSettingsSection({ fields, setField, loading, isEdit }: Props) 
           <span className={FIELD_LABEL_CLASS}>적립금(+)/인출금(-)</span>
           <div className="grid grid-cols-3 gap-2">
             <ChoiceButton
-              selected={recurringMode === 'deposit'}
-              disabled={disabled}
-              onClick={() => handleRecurringModeChange('deposit')}
+              selected={recurringMode === 'DEPOSIT'}
+              disabled={disabled || settings.recurringMode?.customizable === false || !settings.recurringMode?.allowedValues.includes('DEPOSIT')}
+              onClick={() => handleRecurringModeChange('DEPOSIT')}
             >
               + 적립
             </ChoiceButton>
             <ChoiceButton
-              selected={recurringMode === 'hold'}
-              disabled={disabled}
-              onClick={() => handleRecurringModeChange('hold')}
+              selected={recurringMode === 'HOLD'}
+              disabled={disabled || settings.recurringMode?.customizable === false || !settings.recurringMode?.allowedValues.includes('HOLD')}
+              onClick={() => handleRecurringModeChange('HOLD')}
             >
               거치
             </ChoiceButton>
             <ChoiceButton
-              selected={recurringMode === 'withdraw'}
-              disabled={disabled}
-              onClick={() => handleRecurringModeChange('withdraw')}
+              selected={recurringMode === 'WITHDRAW'}
+              disabled={disabled || settings.recurringMode?.customizable === false || !settings.recurringMode?.allowedValues.includes('WITHDRAW')}
+              onClick={() => handleRecurringModeChange('WITHDRAW')}
             >
               - 인출
             </ChoiceButton>
@@ -138,10 +124,10 @@ export function VrSettingsSection({ fields, setField, loading, isEdit }: Props) 
               value={fields.recurringAmount !== null ? String(Math.abs(fields.recurringAmount)) : ''}
               onChange={(event) => setField(
                 'recurringAmount',
-                signedAmount(parseNumber(event.target.value), recurringMode === 'withdraw' ? -1 : 1),
+                parseNumber(event.target.value),
               )}
               onFocus={handleFocus}
-              disabled={disabled || recurringMode === 'hold'}
+              disabled={disabled || recurringMode === 'HOLD'}
               className="flex-1 border-0 bg-transparent text-right text-base font-semibold outline-none disabled:text-muted-foreground"
               placeholder="0"
             />
@@ -152,11 +138,11 @@ export function VrSettingsSection({ fields, setField, loading, isEdit }: Props) 
         <div>
           <span className={FIELD_LABEL_CLASS}>밴드 폭</span>
           <div className="grid grid-cols-3 gap-2">
-            {BAND_WIDTH_OPTIONS.map((option) => (
+            {(settings.bandWidth?.allowedValues ?? []).map((option) => (
               <ChoiceButton
                 key={option}
                 selected={fields.bandWidth === option}
-                disabled={disabled}
+                disabled={disabled || settings.bandWidth?.customizable === false}
                 onClick={() => setField('bandWidth', option)}
               >
                 {option}%
@@ -168,11 +154,11 @@ export function VrSettingsSection({ fields, setField, loading, isEdit }: Props) 
         <div>
           <span className={FIELD_LABEL_CLASS}>리밸런싱 주기</span>
           <div className="grid grid-cols-3 gap-2">
-            {INTERVAL_WEEK_OPTIONS.map((option) => (
+            {(settings.intervalWeeks?.allowedValues ?? []).map((option) => (
               <ChoiceButton
                 key={option}
                 selected={fields.intervalWeeks === option}
-                disabled={disabled}
+                disabled={disabled || settings.intervalWeeks?.customizable === false}
                 onClick={() => setField('intervalWeeks', option)}
               >
                 {option}주

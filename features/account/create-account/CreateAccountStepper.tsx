@@ -1,8 +1,9 @@
 'use client'
 
-import { useReducer } from 'react'
+import { useEffect, useReducer } from 'react'
 import { Stepper } from '@shared/ui/stepper'
 import type { BrokerCode } from '@entities/account'
+import { useRuntimeConfigQuery } from '@entities/runtime-config'
 import { BrokerStep } from './steps/BrokerStep'
 import { ApiStep } from './steps/ApiStep'
 import { AccountInfoStep } from './steps/AccountInfoStep'
@@ -20,6 +21,7 @@ type State = { step: 1 | 2 | 3 | 4; data: StepData }
 type Action =
   | { type: 'NEXT'; payload: Partial<StepData> }
   | { type: 'BACK' }
+  | { type: 'RESET' }
 
 const initialState: State = {
   step: 1,
@@ -33,6 +35,7 @@ const initialState: State = {
 }
 
 function reducer(state: State, action: Action): State {
+  if (action.type === 'RESET') return initialState
   if (action.type === 'BACK') {
     return { ...state, step: (Math.max(1, state.step - 1) as 1 | 2 | 3 | 4) }
   }
@@ -44,6 +47,12 @@ const STEPS = ['증권사', 'API 키', '계좌 정보', '확인']
 
 export function CreateAccountStepper() {
   const [{ step, data }, dispatch] = useReducer(reducer, initialState)
+  const { data: runtimeConfig } = useRuntimeConfigQuery()
+
+  useEffect(() => {
+    if (!data.broker || !runtimeConfig) return
+    if (runtimeConfig.brokers[data.broker]?.enabled !== true) dispatch({ type: 'RESET' })
+  }, [data.broker, runtimeConfig])
   const next = (payload: Partial<StepData>) => dispatch({ type: 'NEXT', payload })
   const back = () => dispatch({ type: 'BACK' })
 

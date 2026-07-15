@@ -25,6 +25,7 @@ feature 슬라이스끼리 cross-import 금지. 두 feature를 조합해야 하�
 | `settings` | `theme-select` | `ThemeCards` |
 | `admin` | `approve-reject` | `ApproveRejectButtons` |
 | `admin` | `change-role` | `ChangeRoleButton` |
+| `admin` | `settings` | `AdminSettingsForm` |
 
 ## 슬라이스 내부 구조
 
@@ -56,4 +57,5 @@ features/{domain}/{slice}/
 - **`strategy/create-strategy` VR 전략**: VR 등록은 기존 seed 입력을 초기 pool(`initialUsdDeposit`)로 사용하고, `VrSettingsSection`에서 `initialValue`, `intervalWeeks`, `bandWidth`, `recurringAmount`를 입력한다. 적립식(`recurringAmount > 0`)은 초기 V/초기 pool 0을 허용하고, 거치/인출식은 초기 자산 0을 차단한다. 인출식은 `initialValue + initialUsdDeposit >= abs(recurringAmount) * 100 * (4 / intervalWeeks)` 조건을 UI에서 먼저 검증한다. 정수 전용 필드의 소수 입력은 보존한 뒤 검증에서 차단한다. VR은 백엔드가 `cycleSeedType=NONE`, `ticker=TQQQ`로 강제하므로 사이클 연속 UI를 숨긴다
 - **`strategy/create-strategy/sections/DivisionCountSection`**: `usesDivisionCount`와 `typeMeta.divisionCounts` 기반 렌더
 - **`settings/telegram-connect`**: pending/settings 페이지에서 컴포넌트 공유
+- **`admin/settings`**: 전체 런타임 설정 초안을 편집한다. 빈 허용값, 기본값 포함 여부, 고정 필드 단일값과 VR 고정 `HOLD` 정책을 저장 전에 검증하며 변경 취소는 마지막 서버 상태로 복원한다
 - **`strategy/create-strategy/sections`**: CSS 토큰 기반 인라인 style 다수 사용

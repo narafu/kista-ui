@@ -14,10 +14,11 @@ interface Props {
   basePrice: number | null
   loading: boolean
   onTickerChange: (code: string) => void
+  customizable: boolean
 }
 
 export function StrategyTickerSection({
-  initial, ticker, availableTickers, prices, basePrice, loading, onTickerChange,
+  initial, ticker, availableTickers, prices, basePrice, loading, onTickerChange, customizable,
 }: Props) {
   return (
     <div className="py-[18px] border-b border-border">
@@ -36,7 +37,7 @@ export function StrategyTickerSection({
             </span>
           )}
         </div>
-      ) : availableTickers.length > 1 ? (
+      ) : customizable && availableTickers.length > 1 ? (
         <div className="flex gap-2 py-0.5">
           {availableTickers.map((code) => {
             const sel = ticker === code

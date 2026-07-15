@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, LogOut, Wallet, ArrowLeftRight, ClipboardList, ArrowLeft, Table2 } from 'lucide-react'
+import { LayoutDashboard, Users, LogOut, Wallet, ArrowLeftRight, ClipboardList, ArrowLeft, Table2, Settings } from 'lucide-react'
 import { LogoutButton } from '@features/auth/logout'
 
 const NAV_ITEMS = [
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: '/admin/trades', label: '주문 관리', icon: ArrowLeftRight },
   { href: '/admin/privacy-trades', label: 'P 매매표', icon: Table2 },
   { href: '/admin/logs', label: '운영 로그', icon: ClipboardList },
+  { href: '/admin/settings', label: '운영 설정', icon: Settings },
 ]
 
 export function AdminSidebar() {

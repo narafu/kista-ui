@@ -18,8 +18,15 @@ describe('VrSettingsSection', () => {
 
   const baseProps = {
     setField: mockSetField,
+    recurringMode: 'HOLD' as const,
+    setRecurringMode: vi.fn(),
     loading: false,
     isEdit: false,
+    settings: {
+      recurringMode: { customizable: true, allowedValues: ['DEPOSIT', 'HOLD', 'WITHDRAW'], defaultValue: 'HOLD' },
+      bandWidth: { customizable: true, allowedValues: [10, 15, 20], defaultValue: 15 },
+      intervalWeeks: { customizable: true, allowedValues: [1, 2, 4], defaultValue: 2 },
+    },
   }
 
   const baseFields: VrFields = {
@@ -111,7 +118,7 @@ describe('VrSettingsSection', () => {
 
       fireEvent.click(screen.getByRole('button', { name: '- 인출' }))
 
-      expect(mockSetField).toHaveBeenCalledWith('recurringAmount', -100)
+      expect(baseProps.setRecurringMode).toHaveBeenCalledWith('WITHDRAW')
 
       rerender(
         <VrSettingsSection
@@ -122,7 +129,7 @@ describe('VrSettingsSection', () => {
 
       fireEvent.click(screen.getByRole('button', { name: '+ 적립' }))
 
-      expect(mockSetField).toHaveBeenCalledWith('recurringAmount', 100)
+      expect(baseProps.setRecurringMode).toHaveBeenCalledWith('DEPOSIT')
     })
 
     it('sets recurring amount to zero and disables input when hold is selected', () => {
@@ -137,7 +144,7 @@ describe('VrSettingsSection', () => {
       fireEvent.click(screen.getByRole('button', { name: '거치' }))
 
       expect(mockSetField).toHaveBeenCalledWith('recurringAmount', 0)
-      expect(screen.getByRole('button', { name: '거치' })).toHaveAttribute('aria-pressed', 'true')
+      expect(baseProps.setRecurringMode).toHaveBeenCalledWith('HOLD')
       expect(recurringInput).toBeDisabled()
     })
 
@@ -151,12 +158,12 @@ describe('VrSettingsSection', () => {
 
       fireEvent.click(screen.getByRole('button', { name: '- 인출' }))
 
-      expect(screen.getByRole('button', { name: '- 인출' })).toHaveAttribute('aria-pressed', 'true')
+      expect(baseProps.setRecurringMode).toHaveBeenCalledWith('WITHDRAW')
 
       const recurringInput = getInputByLabelText('적립금(+)/인출금(-)')
       fireEvent.change(recurringInput, { target: { value: '100' } })
 
-      expect(mockSetField).toHaveBeenCalledWith('recurringAmount', -100)
+      expect(mockSetField).toHaveBeenCalledWith('recurringAmount', 100)
     })
 
     it('preserves decimal recurring amount so form validation can reject it', () => {
@@ -175,6 +182,33 @@ describe('VrSettingsSection', () => {
   })
 
   describe('disabled state', () => {
+    it.each([
+      [['HOLD'], [true, false, true]],
+      [['DEPOSIT', 'HOLD'], [false, false, true]],
+      [['HOLD', 'WITHDRAW'], [true, false, false]],
+    ])('maps asymmetric allowed modes %j to matching buttons', (allowedValues, disabledStates) => {
+      render(<VrSettingsSection fields={baseFields} {...baseProps} settings={{
+        ...baseProps.settings,
+        recurringMode: { customizable: true, allowedValues, defaultValue: 'HOLD' },
+      }} />)
+
+      expect(screen.getByRole('button', { name: '+ 적립' })).toHaveProperty('disabled', disabledStates[0])
+      expect(screen.getByRole('button', { name: '거치' })).toHaveProperty('disabled', disabledStates[1])
+      expect(screen.getByRole('button', { name: '- 인출' })).toHaveProperty('disabled', disabledStates[2])
+      expect(getInputByLabelText('초기 V값')).toBeEnabled()
+    })
+
+    it('locks HOLD-only recurring controls without locking initial V', () => {
+      render(<VrSettingsSection fields={baseFields} {...baseProps} settings={{
+        ...baseProps.settings,
+        recurringMode: { customizable: false, allowedValues: ['HOLD'], defaultValue: 'HOLD' },
+      }} />)
+
+      expect(screen.getByRole('button', { name: '+ 적립' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: '거치' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: '- 인출' })).toBeDisabled()
+      expect(getInputByLabelText('초기 V값')).toBeEnabled()
+    })
     it('disables all inputs when isEdit is true and shows edit restriction message', () => {
       render(
         <VrSettingsSection
@@ -258,6 +292,24 @@ describe('VrSettingsSection', () => {
   })
 
   describe('defaults and ordering', () => {
+    it('renders only runtime band width and interval choices', () => {
+      render(
+        <VrSettingsSection
+          fields={{ ...baseFields, bandWidth: 25, intervalWeeks: 3 }}
+          {...baseProps}
+          settings={{
+            ...baseProps.settings,
+            bandWidth: { customizable: true, allowedValues: [25], defaultValue: 25 },
+            intervalWeeks: { customizable: true, allowedValues: [3], defaultValue: 3 },
+          }}
+        />,
+      )
+
+      expect(screen.getByRole('button', { name: '25%' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: '3주' })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: '15%' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: '2주' })).not.toBeInTheDocument()
+    })
     it('renders default values and no placeholder for initial value', () => {
       render(
         <VrSettingsSection

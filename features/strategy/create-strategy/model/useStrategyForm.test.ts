@@ -2,6 +2,21 @@ import { act, renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useStrategyForm } from './useStrategyForm'
 
+const runtimeRecurringMode = vi.hoisted(() => ({ defaultValue: 'HOLD' }))
+
+vi.mock('@entities/runtime-config', () => ({
+  useRuntimeConfigQuery: () => ({
+    data: {
+      strategies: {
+        INFINITE: { enabled: true, fields: { ticker: { customizable: true, allowedValues: ['TSLA'], defaultValue: 'TSLA' }, divisionCount: { customizable: true, allowedValues: [20, 30, 40], defaultValue: 20 } } },
+        PRIVACY: { enabled: true, fields: { ticker: { customizable: false, allowedValues: ['SOXL'], defaultValue: 'SOXL' } } },
+        VR: { enabled: true, fields: { ticker: { customizable: false, allowedValues: ['TQQQ'], defaultValue: 'TQQQ' }, recurringMode: { customizable: true, allowedValues: ['DEPOSIT', 'HOLD', 'WITHDRAW'], defaultValue: runtimeRecurringMode.defaultValue }, bandWidth: { customizable: true, allowedValues: [10, 15, 20], defaultValue: 15 }, intervalWeeks: { customizable: true, allowedValues: [1, 2, 4], defaultValue: 2 } } },
+      },
+    },
+    isLoading: false,
+  }),
+}))
+
 const mockCreateMutate = vi.fn()
 const mockUpdateMutate = vi.fn()
 const meQueryState = {
@@ -31,7 +46,7 @@ const seedPreviewState = {
 vi.mock('@entities/meta', () => ({
   useMeta: () => ({
     meta: {
-      strategyTypes: [{ code: 'INFINITE' }],
+      strategyTypes: [{ code: 'INFINITE' }, { code: 'PRIVACY' }, { code: 'VR' }],
       tickers: [{ code: 'TSLA' }],
     },
     findStrategyType: (code: string) => code === 'VR'
@@ -86,6 +101,7 @@ vi.mock('./useSeedModel', () => ({
 
 describe('useStrategyForm submit policy', () => {
   beforeEach(() => {
+    runtimeRecurringMode.defaultValue = 'HOLD'
     mockCreateMutate.mockClear()
     mockUpdateMutate.mockClear()
     meQueryState.data.balanceCheckEnabled = true
@@ -99,6 +115,27 @@ describe('useStrategyForm submit policy', () => {
     seedPreviewState.data.minSeed = 500
     seedPreviewState.data.skipReason = null
     seedPreviewState.isLoading = false
+  })
+
+  it.each([
+    ['DEPOSIT', 250],
+    ['WITHDRAW', -250],
+  ] as const)('VR runtime default %s requires magnitude and serializes its sign', async (mode, serializedAmount) => {
+    runtimeRecurringMode.defaultValue = mode
+    seedModelState.seedUsd = 100000
+    const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+
+    act(() => result.current.setType('VR'))
+    expect(result.current.recurringMode).toBe(mode)
+    expect(result.current.cannotSubmit).toBe(true)
+    expect(result.current.submitDisabledReason).toContain('금액을 0보다 크게 입력하세요')
+
+    act(() => result.current.setVrField('recurringAmount', 250))
+    expect(result.current.cannotSubmit).toBe(false)
+
+    await act(async () => result.current.handleSubmit({ preventDefault() {} } as React.FormEvent))
+    await waitFor(() => expect(mockCreateMutate).toHaveBeenCalled())
+    expect(mockCreateMutate).toHaveBeenCalledWith(expect.objectContaining({ recurringAmount: serializedAmount }))
   })
 
   it('edit payload does not include initialUsdDeposit', async () => {
@@ -353,6 +390,7 @@ describe('useStrategyForm submit policy', () => {
       result.current.setVrField('intervalWeeks', 2)
       result.current.setVrField('bandWidth', 15)
       result.current.setVrField('recurringAmount', 200)
+      result.current.setRecurringMode('DEPOSIT')
     })
 
     expect(result.current.cannotSubmit).toBe(false)
@@ -438,6 +476,7 @@ describe('useStrategyForm submit policy', () => {
 
     act(() => {
       result.current.setVrField('recurringAmount', -100)
+      result.current.setRecurringMode('WITHDRAW')
     })
 
     expect(result.current.cannotSubmit).toBe(true)
@@ -459,6 +498,7 @@ describe('useStrategyForm submit policy', () => {
       result.current.setVrField('intervalWeeks', 2)
       result.current.setVrField('bandWidth', 15)
       result.current.setVrField('recurringAmount', -100)
+      result.current.setRecurringMode('WITHDRAW')
     })
 
     expect(result.current.cannotSubmit).toBe(true)
@@ -483,6 +523,7 @@ describe('useStrategyForm submit policy', () => {
       result.current.setVrField('intervalWeeks', 4)
       result.current.setVrField('bandWidth', null)
       result.current.setVrField('recurringAmount', 200)
+      result.current.setRecurringMode('DEPOSIT')
     })
 
     expect(result.current.cannotSubmit).toBe(true)
@@ -501,6 +542,7 @@ describe('useStrategyForm submit policy', () => {
       result.current.setVrField('intervalWeeks', 4.5)
       result.current.setVrField('bandWidth', 15)
       result.current.setVrField('recurringAmount', 10.5)
+      result.current.setRecurringMode('DEPOSIT')
     })
 
     expect(result.current.cannotSubmit).toBe(true)

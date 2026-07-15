@@ -8,6 +8,7 @@ describe('strategyFormSchema', () => {
     autoStart: false,
     seedMode: 'KEEP' as const,
     divisionCount: 20,
+    recurringMode: 'HOLD' as const,
   }
 
   it('유효한 값은 파싱 성공', () => {
@@ -30,14 +31,14 @@ describe('strategyFormSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('divisionCount 10 미만이면 실패', () => {
-    const result = strategyFormSchema.safeParse({ ...valid, divisionCount: 9 })
-    expect(result.success).toBe(false)
+  it('divisionCount는 양의 정수면 런타임 허용 목록 검증 전 스키마를 통과한다', () => {
+    expect(strategyFormSchema.safeParse({ ...valid, divisionCount: 5 }).success).toBe(true)
+    expect(strategyFormSchema.safeParse({ ...valid, divisionCount: 60 }).success).toBe(true)
   })
 
-  it('divisionCount 50 초과이면 실패', () => {
-    const result = strategyFormSchema.safeParse({ ...valid, divisionCount: 51 })
-    expect(result.success).toBe(false)
+  it('divisionCount가 0 이하면 실패한다', () => {
+    expect(strategyFormSchema.safeParse({ ...valid, divisionCount: 0 }).success).toBe(false)
+    expect(strategyFormSchema.safeParse({ ...valid, divisionCount: -1 }).success).toBe(false)
   })
 
   it('divisionCount 소수이면 실패 (int 제약)', () => {
@@ -45,11 +46,13 @@ describe('strategyFormSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('divisionCount는 20, 30, 40만 허용한다', () => {
+  it('runtime options are validated by the form while the schema accepts configured values', () => {
+    expect(strategyFormSchema.safeParse({ ...valid, divisionCount: 5 }).success).toBe(true)
     expect(strategyFormSchema.safeParse({ ...valid, divisionCount: 20 }).success).toBe(true)
     expect(strategyFormSchema.safeParse({ ...valid, divisionCount: 30 }).success).toBe(true)
     expect(strategyFormSchema.safeParse({ ...valid, divisionCount: 40 }).success).toBe(true)
-    expect(strategyFormSchema.safeParse({ ...valid, divisionCount: 25 }).success).toBe(false)
+    expect(strategyFormSchema.safeParse({ ...valid, divisionCount: 25 }).success).toBe(true)
+    expect(strategyFormSchema.safeParse({ ...valid, divisionCount: 60 }).success).toBe(true)
   })
 
   it('VR 필수 필드가 유효하면 파싱 성공', () => {
@@ -63,12 +66,13 @@ describe('strategyFormSchema', () => {
       intervalWeeks: 4,
       bandWidth: 15,
       recurringAmount: 0,
+      recurringMode: 'HOLD' as const,
     })
 
     expect(result.success).toBe(true)
   })
 
-  it('VR recurringAmount는 음수를 허용한다', () => {
+  it('VR recurringAmount magnitude는 음수를 허용하지 않는다', () => {
     const result = strategyFormSchema.safeParse({
       type: 'VR',
       ticker: 'TQQQ',
@@ -79,9 +83,10 @@ describe('strategyFormSchema', () => {
       intervalWeeks: 4,
       bandWidth: 15,
       recurringAmount: -100,
+      recurringMode: 'WITHDRAW',
     })
 
-    expect(result.success).toBe(true)
+    expect(result.success).toBe(false)
   })
 
   it('VR initialValue는 0을 허용한다', () => {
@@ -95,6 +100,7 @@ describe('strategyFormSchema', () => {
       intervalWeeks: 4,
       bandWidth: 15,
       recurringAmount: 200,
+      recurringMode: 'DEPOSIT',
     })
 
     expect(result.success).toBe(true)

@@ -25,9 +25,23 @@ interface Props {
 export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props) {
   const { meta } = useMeta()
   const form = useStrategyForm({ accountId, initial, onSuccess })
+  const strategyTypes = initial
+    ? meta.strategyTypes
+    : meta.strategyTypes.filter(({ code }) => form.enabledStrategyTypes.includes(code))
 
   if (form.initializing) {
     return <StrategyFormSkeleton hasCancel={!!onCancel} />
+  }
+
+  if (!initial && form.runtimeConfigError) {
+    return (
+      <div className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-4 text-sm text-muted-foreground">
+        <p>전략 설정을 불러오지 못했습니다.</p>
+        <Button type="button" variant="outline" onClick={form.retryRuntimeConfig} className="mt-3 h-9">
+          다시 시도
+        </Button>
+      </div>
+    )
   }
 
   return (
@@ -37,7 +51,7 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
         type={form.type}
         setType={form.setType}
         loading={form.loading}
-        strategyTypes={meta.strategyTypes}
+        strategyTypes={strategyTypes}
       />
 
       <DivisionCountSection
@@ -46,6 +60,8 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
         setDivisionCount={form.setDivisionCount}
         loading={form.loading}
         isEdit={!!initial}
+        options={form.divisionCountSettings?.allowedValues ?? (initial?.divisionCount ? [initial.divisionCount] : [])}
+        customizable={form.divisionCountSettings?.customizable ?? false}
       />
 
       <StrategyTickerSection
@@ -56,14 +72,18 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
         basePrice={form.basePrice}
         loading={form.loading}
         onTickerChange={form.handleTickerChange}
+        customizable={form.tickerCustomizable}
       />
 
       {form.isVr && (
         <VrSettingsSection
           fields={form.vrFields}
           setField={form.setVrField}
+          recurringMode={form.recurringMode}
+          setRecurringMode={form.setRecurringMode}
           loading={form.loading}
           isEdit={!!initial}
+          settings={form.vrSettings}
         />
       )}
 
