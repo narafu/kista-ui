@@ -9,7 +9,7 @@ vi.mock('@entities/market', () => ({
 }))
 
 vi.mock('@entities/trade', () => ({
-  useWeeklyTradeSummaryQuery: () => ({
+  useDailyTradesRangeQuery: () => ({
     data: new Map(),
     isFetching: false,
   }),

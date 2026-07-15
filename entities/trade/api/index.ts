@@ -48,11 +48,11 @@ export async function getAccountPortfolio(accountId: string, token: string): Pro
   return apiFetch<PortfolioSummary>(`/api/accounts/${accountId}/portfolio`, { method: 'GET' }, token)
 }
 
-export async function getDailyTransactions(
-  accountId: string,
+// 유저 스코프 배치 조회 — 보유 계좌 전체를 계좌 구분 없이 합쳐 1회 요청으로 반환
+export async function getDailyTransactionsBatch(
   params: { from: string; to: string },
   token?: string
 ): Promise<DailyTransactionResult> {
   const q = new URLSearchParams({ from: params.from, to: params.to })
-  return fetchEither<DailyTransactionResult>(`/api/accounts/${accountId}/daily-trades?${q}`, { method: 'GET' }, token)
+  return fetchEither<DailyTransactionResult>(`/api/daily-trades?${q}`, { method: 'GET' }, token)
 }

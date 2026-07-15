@@ -12,6 +12,6 @@ export type {
 export { DIRECTION_LABEL, directionTextClass } from './model/direction'
 export { getAccountPortfolio } from './api'
 export { useAccountCycleHistoryQuery, useStrategyCycleHistoryQuery } from './hooks/useCycleHistory'
-export { useWeeklyTradeSummaryQuery } from './hooks/useWeeklyTradeSummaryQuery'
-export type { DayTradeSummary } from './hooks/useWeeklyTradeSummaryQuery'
+export { useDailyTradesRangeQuery } from './hooks/useDailyTradesRangeQuery'
+export type { DayTradeSummary } from './hooks/useDailyTradesRangeQuery'
 export { TradeNotificationProvider } from './providers/TradeNotificationProvider'

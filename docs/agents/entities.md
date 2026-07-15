@@ -46,7 +46,7 @@ entities/{domain}/
 
 ### queryKey 목록
 
-`['accountMargin', accountId]`, `['accountPrices', accountId, tickers]`, `['strategies', accountId]`, `['strategies', 'all']`, `['strategySeedPreview', accountId, type, ticker, divisionCount]`, `['order-preview', 'strategy', strategyId]`, `['strategy-orders', strategyId, from, to]`, `['holidays', year, month]`, `['candles', ticker, count]`, `['fearGreed', days]`, `['marketSession']`, `['accountCycleHistory', accountId, params]`, `['strategyCycleHistory', strategyId, params]`, `['weeklyTrades', accountIds.join(','), from]`, `['me']`, `['adminUsers', filter]`
+`['accountMargin', accountId]`, `['accountPrices', accountId, tickers]`, `['strategies', accountId]`, `['strategies', 'all']`, `['strategySeedPreview', accountId, type, ticker, divisionCount]`, `['order-preview', 'strategy', strategyId]`, `['strategy-orders', strategyId, from, to]`, `['holidays', year, month]`, `['candles', ticker, count]`, `['fearGreed', days]`, `['marketSession']`, `['accountCycleHistory', accountId, params]`, `['strategyCycleHistory', strategyId, params]`, `['dailyTradesRange', accountIds.join(','), from, to]`, `['me']`, `['adminUsers', filter]`
 
 **캐시 공유 패턴**: 서로 다른 위젯이 동일 서버 데이터를 소비할 때, 훅 호출 파라미터를 일치시켜 queryKey를 맞추면 React Query 캐시를 공유해 중복 fetch를 피한다.
 
@@ -103,5 +103,5 @@ npm run gen:types
 
 - `getAccountCycleHistory`: `{ from?, to? }`
 - `getStrategyCycleHistory`: `{}` 전달 시 서버 기본값 `30d`
-- `getDailyTransactions(accountId, {from, to}, token?)`
+- `getDailyTransactionsBatch({from, to}, token?)` — 유저 스코프 배치 조회, 보유 계좌 전체를 계좌 구분 없이 합쳐 1회 요청으로 반환 (`GET /api/daily-trades`)
 - `GET /api/trades`: `id, tradeDate, ticker, orderType, direction, quantity, price, status, kisOrderId`

@@ -6,7 +6,7 @@ import { cn } from '@shared/lib/utils'
 import { fmtUsd } from '@shared/lib/format'
 import { Surface } from '@shared/ui/Surface'
 import { useMonthlyHolidaysQuery } from '@entities/market'
-import { useWeeklyTradeSummaryQuery, directionTextClass, type DayTradeSummary } from '@entities/trade'
+import { useDailyTradesRangeQuery, directionTextClass, type DayTradeSummary } from '@entities/trade'
 
 interface Props {
   holidays: string[]
@@ -191,19 +191,12 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
   )
   const holidaySet = new Set([...h1, ...h2, ...hPrev, ...hNext])
 
-  const { data: tradeSummary = new Map(), isFetching } = useWeeklyTradeSummaryQuery(
-    accountIds,
-    displayWeekStart,
-  )
-  const { data: prevTradeSummary = new Map(), isFetching: isPrevFetching } = useWeeklyTradeSummaryQuery(
+  // 전주 시작~다음주 끝(3주)을 1회 요청으로 조회 — 계좌별/주별 개별 요청 대신 배치 API 사용
+  const { data: tradeSummary = new Map(), isFetching: anyFetching } = useDailyTradesRangeQuery(
     accountIds,
     prevWeekStart,
+    addDays(nextWeekStart, 6),
   )
-  const { data: nextTradeSummary = new Map(), isFetching: isNextFetching } = useWeeklyTradeSummaryQuery(
-    accountIds,
-    nextWeekStart,
-  )
-  const anyFetching = isFetching || isPrevFetching || isNextFetching
 
   // 다음 휴장일 D-day — 조회된 휴일(표시 범위 달 범위) 중 오늘 이후 첫 날짜 (감사 A-05)
   const nextHoliday = todayStr
@@ -252,9 +245,9 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
             {d}
           </div>
         ))}
-        <CompactRow rowStart={prevWeekStart} summary={prevTradeSummary} holidaySet={holidaySet} />
+        <CompactRow rowStart={prevWeekStart} summary={tradeSummary} holidaySet={holidaySet} />
         <CurrentRow weekStart={displayWeekStart} tradeSummary={tradeSummary} holidaySet={holidaySet} todayStr={todayStr} accountIds={accountIds} />
-        <CompactRow rowStart={nextWeekStart} summary={nextTradeSummary} holidaySet={holidaySet} />
+        <CompactRow rowStart={nextWeekStart} summary={tradeSummary} holidaySet={holidaySet} />
       </div>
 
       <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
