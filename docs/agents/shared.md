@@ -69,7 +69,7 @@ import { apiFetch, clientFetch, ApiError } from '@shared/lib/api-client'
 
 ## proxy
 
-`createProxyRoute`는 catch-all Route Handler에서 kista-api 요청 프록시, 인증 토큰 포함, `revalidateTag` 처리를 공통화한다.
+`createProxyRoute`는 catch-all 및 정적 Route Handler에서 kista-api 요청 프록시, 인증 토큰 포함, `revalidateTag` 처리를 공통화한다. 정적 Route Handler처럼 route context가 없는 호출은 `basePath`를 그대로 사용한다.
 
 ## ui
 

@@ -6,7 +6,7 @@ import { getAuthToken } from '@shared/lib/auth/token'
 const API_BASE_URL = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
 
 type Params = { params: Promise<{ path?: string[] }> }
-type Handler = (req: NextRequest, ctx: Params) => Promise<NextResponse>
+type Handler = (req: NextRequest, ctx?: Params) => Promise<NextResponse>
 
 export type CreateProxyRouteOptions = {
   basePath: string
@@ -72,8 +72,8 @@ export function createProxyRoute(opts: CreateProxyRouteOptions): {
     return NextResponse.json(await res.json(), { status: res.status })
   }
 
-  const handler: Handler = async (req, { params }) =>
-    proxy(req, (await params).path ?? [])
+  const handler: Handler = async (req, ctx) =>
+    proxy(req, ctx ? (await ctx.params).path ?? [] : [])
 
   return { GET: handler, POST: handler, PUT: handler, PATCH: handler, DELETE: handler }
 }
