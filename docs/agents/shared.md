@@ -25,6 +25,7 @@ shared/
     stepper/
     percent-gauge/
     range-filter/
+    selection-card/
     UrlRangeFilterBar.tsx
     PageSizeSelector.tsx
     PaginationBar.tsx
@@ -95,6 +96,7 @@ import { apiFetch, clientFetch, ApiError } from '@shared/lib/api-client'
 - `Surface` — 배경 서페이스
 - `IconButton` — 44px 히트영역 아이콘 전용 버튼(`<button>`), `aria-label` 필수 prop. `<Link>` 아이콘 버튼엔 미사용(패턴만 수동 복제)
 - `TableHeadCell` — 테이블 헤더 셀 공통 스타일 (`<th>` 래퍼)
+- `SelectionCard` — `selected`를 `aria-pressed`와 테마 대응 외곽선·틴트로 표현하는 선택 버튼. 큰 카드는 `showIndicator`를 명시해 체크 표시
 - `stepper/` — 다단계 폼 스테퍼
 - `percent-gauge/` — 백분율 게이지 및 입력 컴포넌트
 

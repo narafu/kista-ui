@@ -154,6 +154,15 @@
   --brand-fg-soft: #B66951;
   --brand-soft-bg: linear-gradient(135deg, #FCEFE8 0%, #FFFFFF 70%);
 
+  /* Selection cards */
+  --selection-border: #B66951;
+  --selection-hover-border: #CB836A;
+  --selection-bg: #FCEFE8;
+  --selection-fg: #6E3A2A;
+  --selection-halo: rgba(182, 105, 81, 0.14);
+  --selection-indicator-bg: #B66951;
+  --selection-indicator-fg: #FFFFFF;
+
   /* Primary gradient & glow */
   --primary-grad: linear-gradient(135deg, #D89881 0%, #B66951 55%, #8E4530 100%);
   --primary-glow: 0 1px 0 rgba(255,255,255,.35) inset, 0 6px 16px rgba(143,68,48,.28);
@@ -232,6 +241,15 @@
   --brand-fg:      #EAC3AC;
   --brand-fg-soft: #D6A98E;
   --brand-soft-bg: linear-gradient(135deg, rgba(214,169,142,0.16) 0%, var(--card) 70%);
+
+  /* Selection cards */
+  --selection-border: #D6A98E;
+  --selection-hover-border: #C99780;
+  --selection-bg: rgba(214, 169, 142, 0.14);
+  --selection-fg: #F1CFBB;
+  --selection-halo: rgba(214, 169, 142, 0.13);
+  --selection-indicator-bg: #D6A98E;
+  --selection-indicator-fg: #1A1108;
 
   --primary-grad: linear-gradient(135deg, #D6A98E 0%, #B5826A 55%, #8A5740 100%);
   --primary-glow: 0 1px 0 rgba(255,235,222,.12) inset, 0 8px 20px rgba(180,118,95,.32);

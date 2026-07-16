@@ -7,6 +7,7 @@ import { useUpdateNotificationChannelMutation } from '@entities/user'
 import { useFcmToken, registerTokenToServer, unregisterTokenFromServer } from '@entities/fcm'
 import type { NotificationChannel } from '@entities/user'
 import { Spinner } from '@shared/ui/Spinner'
+import { SelectionCard } from '@shared/ui/selection-card'
 
 const NOTIFICATION_CHANNELS: { value: NotificationChannel; label: string; desc: string }[] = [
   { value: 'NONE', label: '끄기', desc: '알림을 받지 않습니다' },
@@ -105,19 +106,15 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
   return (
     <div className="mt-4 pt-4 border-t border-border">
       <div className="text-sm font-semibold text-muted-foreground mb-2">알림 수단</div>
-      <div className="flex gap-2 flex-wrap">
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         {NOTIFICATION_CHANNELS.map((c) => (
-          <button
+          <SelectionCard
             key={c.value}
-            type="button"
+            selected={currentChannel === c.value}
+            showIndicator
             onClick={() => handleChannelSelect(c.value)}
             disabled={pendingChannel !== null}
-            className="rounded-lg border px-3 py-2 text-sm transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
-            style={
-              currentChannel === c.value
-                ? { borderColor: 'var(--rose-400)', background: 'var(--rose-50)', color: 'var(--rose-700)' }
-                : { borderColor: 'var(--border)' }
-            }
+            className="min-w-0 px-3 py-3 pr-8 text-sm"
           >
             {pendingChannel === c.value ? (
               <div className="flex items-center gap-1.5">
@@ -130,7 +127,7 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
                 <div className="text-sm text-muted-foreground">{c.desc}</div>
               </>
             )}
-          </button>
+          </SelectionCard>
         ))}
       </div>
 

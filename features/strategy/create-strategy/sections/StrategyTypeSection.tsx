@@ -1,7 +1,7 @@
 'use client'
 
 import { Zap, Activity } from 'lucide-react'
-import { cn } from '@shared/lib/utils'
+import { SelectionCard } from '@shared/ui/selection-card'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import type { Strategy } from '@entities/strategy'
 import type { StrategyTypeMeta } from '@entities/meta'
@@ -38,35 +38,21 @@ export function StrategyTypeSection({ initial, type, setType, loading, strategyT
             const selected = type === t.code
             const singleTicker = (t.availableTickers?.length ?? 0) <= 1
             return (
-              <button
+              <SelectionCard
                 key={t.code}
-                type="button"
-                aria-pressed={selected}
+                selected={selected}
+                showIndicator
                 onClick={() => setType(t.code)}
                 disabled={loading}
-                className={cn(
-                  'flex items-center gap-2 px-[14px] py-4 rounded-[var(--r-md)] text-left transition-[border-color,background] duration-150',
-                  loading ? 'cursor-not-allowed' : 'cursor-pointer',
-                )}
-                style={{
-                  border: selected ? '1.5px solid var(--rose-500)' : '1px solid var(--border)',
-                  background: selected ? 'var(--rose-50)' : 'var(--card)',
-                  boxShadow: selected ? 'var(--sh-card)' : 'none',
-                }}
+                className="flex items-center gap-2 rounded-[var(--r-md)] px-[14px] py-4 pr-10"
               >
-                <span
-                  className="size-4 shrink-0"
-                  style={{ color: selected ? 'var(--rose-600)' : 'var(--muted-foreground)' }}
-                >
+                <span className={selected ? 'size-4 shrink-0 text-[var(--selection-fg)]' : 'size-4 shrink-0 text-muted-foreground'}>
                   {singleTicker ? <Activity size={16} /> : <Zap size={16} />}
                 </span>
-                <span
-                  className="text-sm font-[800]"
-                  style={{ color: selected ? 'var(--rose-600)' : 'var(--foreground)' }}
-                >
+                <span className="text-sm font-[800]">
                   {t.code}
                 </span>
-              </button>
+              </SelectionCard>
             )
           })}
         </div>

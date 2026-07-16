@@ -14,8 +14,9 @@ describe('ThemeCards', () => {
     render(<ThemeCards />)
 
     const systemCard = screen.getByRole('button', { name: /시스템 자동/ })
-    const checkmark = screen.getByText('✓')
+    const checkmark = screen.getByTestId('selection-indicator')
 
+    expect(systemCard).toHaveAttribute('aria-pressed', 'true')
     expect(systemCard).toHaveClass('relative')
     expect(checkmark).toHaveClass('absolute')
     expect(checkmark).toHaveClass('right-3')

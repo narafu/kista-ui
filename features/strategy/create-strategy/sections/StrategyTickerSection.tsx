@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '@shared/lib/utils'
+import { SelectionCard } from '@shared/ui/selection-card'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import { fmtUsd } from '@shared/lib/format'
 import type { Strategy } from '@entities/strategy'
@@ -43,24 +43,14 @@ export function StrategyTickerSection({
             const sel = ticker === code
             const price = prices?.[code]
             return (
-              <button
+              <SelectionCard
                 key={code}
-                type="button"
+                selected={sel}
                 onClick={() => onTickerChange(code)}
                 disabled={loading}
-                className={cn(
-                  'flex-1 min-w-0 px-3 py-2 rounded-[var(--r-sm)] text-center transition-[border-color,background] duration-150',
-                  loading ? 'cursor-not-allowed' : 'cursor-pointer',
-                )}
-                style={{
-                  border: sel ? '1.5px solid var(--rose-500)' : '1px solid var(--border)',
-                  background: sel ? 'var(--rose-50)' : 'var(--card)',
-                }}
+                className="min-w-0 flex-1 px-3 py-2 text-center"
               >
-                <div
-                  className="text-sm font-[800]"
-                  style={{ color: sel ? 'var(--rose-600)' : 'var(--foreground)' }}
-                >
+                <div className="text-sm font-[800]">
                   {code}
                 </div>
                 {price !== undefined && (
@@ -68,7 +58,7 @@ export function StrategyTickerSection({
                     ${fmtUsd(price)}
                   </div>
                 )}
-              </button>
+              </SelectionCard>
             )
           })}
         </div>

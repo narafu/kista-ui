@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '@shared/lib/utils'
+import { SelectionCard } from '@shared/ui/selection-card'
 import { Switch } from '@/components/ui/switch'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 
@@ -50,30 +50,21 @@ export function CycleSeedSection({ autoStart, setAutoStart, seedMode, setSeedMod
             {SEED_MODES.map((m) => {
               const active = seedMode === m.code
               return (
-                <button
+                <SelectionCard
                   key={m.code}
-                  type="button"
+                  selected={active}
+                  showIndicator
                   disabled={loading}
                   onClick={() => setSeedMode(m.code)}
-                  className={cn(
-                    'flex-1 px-3 py-2.5 border-none rounded-[7px] text-center transition-[background,box-shadow] duration-150',
-                    loading ? 'cursor-not-allowed' : 'cursor-pointer',
-                  )}
-                  style={{
-                    background: active ? 'var(--card)' : 'transparent',
-                    boxShadow: active ? 'var(--sh-card)' : 'none',
-                  }}
+                  className="flex-1 rounded-[7px] px-3 py-2.5 pr-9 text-center"
                 >
-                  <div
-                    className="text-sm font-bold"
-                    style={{ color: active ? 'var(--rose-600)' : 'var(--muted-foreground)' }}
-                  >
+                  <div className={active ? 'text-sm font-bold' : 'text-sm font-bold text-muted-foreground'}>
                     {m.label}
                   </div>
                   <div className="text-sm text-muted-foreground mt-0.5">
                     {m.sub}
                   </div>
-                </button>
+                </SelectionCard>
               )
             })}
           </div>

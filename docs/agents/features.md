@@ -65,3 +65,4 @@ features/{domain}/{slice}/
 - **`settings/telegram-connect`**: pending/settings 페이지에서 컴포넌트 공유
 - **`admin/settings`**: 전체 런타임 설정 초안을 편집한다. 빈 허용값, 기본값 포함 여부, 고정 필드 단일값과 VR 고정 `HOLD` 정책을 저장 전에 검증하며 변경 취소는 마지막 서버 상태로 복원한다
 - **`strategy/create-strategy/sections`**: CSS 토큰 기반 인라인 style 다수 사용
+- **선택형 카드**: 전략 등록·수정 섹션, 알림 수단, 테마 선택은 `@shared/ui/selection-card`의 `SelectionCard`를 사용한다. 전략 유형·시드 모드·알림 수단·테마처럼 큰 카드는 `showIndicator`, 수치·종목 등 작은 옵션은 외곽선만 사용한다

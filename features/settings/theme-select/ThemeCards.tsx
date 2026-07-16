@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from 'react'
 import { useTheme } from 'next-themes'
+import { SelectionCard } from '@shared/ui/selection-card'
 
 const THEMES = [
   {
@@ -39,12 +40,12 @@ export function ThemeCards() {
       {THEMES.map((o) => {
         const on = mounted && (theme ?? 'system') === o.key
         return (
-          <button
+          <SelectionCard
             key={o.key}
-            type="button"
+            selected={on}
+            showIndicator
             onClick={() => setTheme(o.key)}
-            className="relative p-3 rounded-[var(--r-md)] bg-card cursor-pointer transition-[border-color] duration-150 text-left w-full"
-            style={{ border: `2px solid ${on ? 'var(--rose-400)' : 'var(--border)'}` }}
+            className="w-full rounded-[var(--r-md)] p-3 pb-8"
           >
             <div
               className="h-16 rounded-lg p-2 flex flex-col gap-1 mb-2.5 border border-border"
@@ -58,10 +59,7 @@ export function ThemeCards() {
               <div className="text-sm font-bold">{o.label}</div>
               <div className="text-sm text-muted-foreground">{o.desc}</div>
             </div>
-            {on && (
-              <span className="absolute right-3 bottom-3 size-4 rounded-full bg-rose-500 text-white grid place-items-center text-xs">✓</span>
-            )}
-          </button>
+          </SelectionCard>
         )
       })}
     </div>

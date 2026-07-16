@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '@shared/lib/utils'
+import { SelectionCard } from '@shared/ui/selection-card'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import type { DivisionCount } from '../model/strategyFormSchema'
 
@@ -27,22 +27,17 @@ export function DivisionCountSection({
           const active = divisionCount === value
           const disabled = loading || isEdit || !customizable
           return (
-            <button
+            <SelectionCard
               key={value}
-              type="button"
-              aria-pressed={active}
+              selected={active}
               disabled={disabled}
               onClick={() => !disabled && setDivisionCount(value)}
-              className={cn('flex-1 px-3 py-2.5 border-none rounded-[7px] text-center transition-[background,box-shadow] duration-150', disabled ? 'cursor-not-allowed' : 'cursor-pointer')}
-              style={{
-                background: active ? 'var(--card)' : 'transparent',
-                boxShadow: active ? 'var(--sh-card)' : 'none',
-              }}
+              className="flex-1 rounded-[7px] px-3 py-2.5 text-center"
             >
-              <div className="text-sm font-bold" style={{ color: active ? 'var(--rose-600)' : 'var(--muted-foreground)' }}>
+              <div className={active ? 'text-sm font-bold' : 'text-sm font-bold text-muted-foreground'}>
                 {value}분할
               </div>
-            </button>
+            </SelectionCard>
           )
         })}
       </div>

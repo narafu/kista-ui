@@ -28,5 +28,6 @@ describe('StrategyTypeSection', () => {
     expect(screen.queryByText('종목당 1개')).not.toBeInTheDocument()
     expect(screen.getByText('매매 전략')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'VR' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByTestId('selection-indicator')).toBeInTheDocument()
   })
 })

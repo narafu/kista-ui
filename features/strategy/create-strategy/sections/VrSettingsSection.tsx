@@ -1,7 +1,7 @@
 'use client'
 
 import type { FocusEvent, ReactNode } from 'react'
-import { cn } from '@shared/lib/utils'
+import { SelectionCard } from '@shared/ui/selection-card'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import type { VrFields } from '../model/useStrategyForm'
 import type { RuntimeFieldSettings } from '@entities/runtime-config'
@@ -44,20 +44,14 @@ function ChoiceButton({
   onClick: () => void
 }) {
   return (
-    <button
-      type="button"
-      aria-pressed={selected}
+    <SelectionCard
+      selected={selected}
       disabled={disabled}
       onClick={onClick}
-      className={cn(
-        'h-10 rounded-[var(--r-sm)] border px-3 text-sm font-extrabold transition-colors disabled:cursor-not-allowed disabled:opacity-50',
-        selected
-          ? 'border-[var(--rose-400)] bg-[var(--brand-soft-bg)] text-[var(--brand-fg)] shadow-[0_0_0_3px_rgba(203,131,106,0.16)]'
-          : 'border-border bg-card text-muted-foreground hover:border-[var(--rose-300)] hover:text-foreground',
-      )}
+      className={selected ? 'h-11 px-3 text-center text-sm font-extrabold' : 'h-11 px-3 text-center text-sm font-extrabold text-muted-foreground'}
     >
       {children}
-    </button>
+    </SelectionCard>
   )
 }
 
