@@ -44,5 +44,7 @@ cd ../kista-api && ./gradlew compileJava
 
 참고:
 
-- `lint`는 현재 신뢰 가능한 기본 검증 명령이 아니다. 루트 `CLAUDE.md` 기준으로 우선 `npm run typecheck`를 사용한다.
+- `lint`는 현재 신뢰 가능한 기본 검증 명령이 아니다 (react-doctor 규칙 미정의 오류). 기본 검증은 `npm run typecheck`.
 - Playwright 첫 실행 시 브라우저 설치가 필요하면 `npx playwright install chromium`.
+- 포트 충돌: Docker가 3000 점유 시 `npm run dev`는 3001 등으로 fallback — 실제 포트는 `cat /tmp/kista_dev.log | grep "Local:"`로 확인.
+- `npm run typecheck`가 `.next/dev/types` 스테일 참조(삭제된 라우트)로 실패하면 `.next` 삭제 후 재실행 — 라우트 삭제·이동 뒤 발생하는 산출물 문제이며 코드 오류가 아님.

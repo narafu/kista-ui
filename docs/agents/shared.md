@@ -13,7 +13,9 @@ shared/
     auth/
     cache/
     format/
+    hooks/
     proxy/
+    date-range.ts
     firebase.ts
     utils.ts
   model/
@@ -22,7 +24,8 @@ shared/
   ui/
     stepper/
     percent-gauge/
-    RangeFilterBar.tsx
+    range-filter/
+    UrlRangeFilterBar.tsx
     PageSizeSelector.tsx
     PaginationBar.tsx
     Spinner.tsx
@@ -31,6 +34,7 @@ shared/
     EmptyState.tsx
     Surface.tsx
     IconButton.tsx
+    TableHeadCell.tsx
 ```
 
 ## api-client
@@ -45,8 +49,14 @@ import { apiFetch, clientFetch, ApiError } from '@shared/lib/api-client'
 
 ## format
 
-- `fmtUsd(n)`
-- `fmtDate(s)`
+- `fmtUsd(n)` / `fmtSignedUsd(n)` — USD 금액
+- `fmtDate(s)` / `fmtDateTime(s)` / `fmtMonthDay(s)` / `fmtTime(s)` — 날짜·시각
+- `todayKst()` — KST 기준 오늘 (ISO date string)
+- `pnlTextClass(n)` — 손익 부호별 텍스트 클래스
+
+## date-range
+
+`lib/date-range.ts` — `RangePreset('7d'|'30d'|'all'|'custom')`, `resolveRange`/`resolveRangeStrict`, URL 쿼리 파서(`parseRangePreset`/`parseSize`/`parsePage`). `UrlRangeFilterBar`와 함께 사용.
 
 ## cache
 
@@ -75,7 +85,7 @@ import { apiFetch, clientFetch, ApiError } from '@shared/lib/api-client'
 
 `shared/ui/`는 도메인 무관 커스텀 UI 컴포넌트 디렉토리다.
 
-- `RangeFilterBar` — 날짜 범위 필터링
+- `UrlRangeFilterBar` — URL 쿼리 동기화 날짜 범위 필터 (`range-filter/RangeFilterControls` + `lib/hooks/use-range-filter-state` 조합)
 - `PageSizeSelector` — 페이지당 항목 수 선택
 - `PaginationBar` — 페이지 네이션
 - `Spinner` — 로딩 표시기
@@ -84,6 +94,7 @@ import { apiFetch, clientFetch, ApiError } from '@shared/lib/api-client'
 - `EmptyState` — 빈 상태 표시
 - `Surface` — 배경 서페이스
 - `IconButton` — 44px 히트영역 아이콘 전용 버튼(`<button>`), `aria-label` 필수 prop. `<Link>` 아이콘 버튼엔 미사용(패턴만 수동 복제)
+- `TableHeadCell` — 테이블 헤더 셀 공통 스타일 (`<th>` 래퍼)
 - `stepper/` — 다단계 폼 스테퍼
 - `percent-gauge/` — 백분율 게이지 및 입력 컴포넌트
 

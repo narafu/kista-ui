@@ -21,6 +21,7 @@ entities끼리 직접 참조 금지. 두 도메인을 조합해야 하면 `featu
 | `user` | 현재 사용자 조회, 로그아웃, 재신청, 회원 탈퇴, 설정 변경 |
 | `market` | 시장 휴일, 마켓 세션 |
 | `meta` | 전략 타입/종목 메타데이터 (MetaProvider 포함) |
+| `admin` | 관리자 사용자 목록 조회, 승인/반려, 역할 변경, 강제 탈퇴 |
 | `runtime-config` | 가입 승인, 증권사, 전략 등록 필드의 런타임 허용값/기본값 조회 |
 | `admin-settings` | 관리자 런타임 설정 전체 조회·갱신 및 저장 후 관련 캐시 무효화 |
 | `fcm` | FCM 토큰 등록/해제 (FcmAutoRegister 포함) |
@@ -77,7 +78,7 @@ import { deleteAccount } from '@entities/account'
 
 - **account**: `accountNo`는 8자리만. `kisAccountType`은 항상 `"01"`. `AccountRequest` 필드명은 `appKey`, `secretKey`
 - **strategy**: 백엔드 이름은 `TradingCycle`. pause/resume은 strategyId 기준. capability는 `StrategyTypeMeta` 필드를 직접 소비하고, 최소 시드는 `useStrategySeedPreviewQuery`를 사용한다. `seedBadgeClass()`를 재사용한다
-- **meta**: `MetaProvider`는 `(main)/layout.tsx`에서만 제공. `TickerMeta.targetProfitRate`는 `string` 타입
+- **meta**: `MetaProvider`는 `(main)/layout.tsx`에서만 제공 — `(main)` 밖에서 `useMeta()` 호출 불가. Client는 `useMeta()`의 `findStrategyType(code)`/`findTicker(code)`/`labelOf(category, code)` 사용. `TickerMeta.targetProfitRate`는 `string` 타입
 - **runtime-config**: `useRuntimeConfigQuery()`는 `cache: 'no-store'`, `staleTime: 0`, window focus refetch로 서버 설정을 최신화한다. 신규 계좌는 활성 증권사만, 신규 전략은 활성 타입과 각 필드의 `allowedValues`/`defaultValue`/`customizable`을 사용한다. 수정 화면의 기존 값은 런타임 허용 목록으로 덮어쓰지 않는다
 - **admin-settings**: `GET/PUT /api/admin/settings`는 관리자 프록시를 사용한다. 저장은 optimistic update 없이 처리하고 성공 후 `admin-settings`와 `runtime-config`를 모두 무효화한다
 - **trade/providers**: `TradeNotificationProvider`는 SSE `/api/trades/stream` 구독용

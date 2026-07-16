@@ -1,7 +1,5 @@
 # shared/ — 도메인 무관 공용 자산
 
-Claude Code에서 `shared/` 작업 전 읽을 공용 문서:
+`shared/` 작업 시 필수 quirk 문서 (아래 import로 자동 로드):
 
-- `docs/agents/shared.md`
-- `docs/agents/architecture.md`
-- `docs/agents/constraints.md`
+@../docs/agents/shared.md

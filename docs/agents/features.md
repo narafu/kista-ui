@@ -21,10 +21,16 @@ feature 슬라이스끼리 cross-import 금지. 두 feature를 조합해야 하�
 | `strategy` | `create-strategy` | `StrategyFormDialog`, `StrategyForm` |
 | `settings` | `telegram-connect` | `TelegramSection`, `PendingTelegramConnect` |
 | `settings` | `notification-channel` | `NotificationSettings` |
+| `settings` | `notification-prefs` | `TradingAlertToggle` |
+| `settings` | `balance-check-setting` | `BalanceCheckSetting` |
+| `settings` | `edit-nickname` | `NicknameEditor` |
 | `settings` | `delete-user-account` | `DeleteAccountButton` |
 | `settings` | `theme-select` | `ThemeCards` |
 | `admin` | `approve-reject` | `ApproveRejectButtons` |
 | `admin` | `change-role` | `ChangeRoleButton` |
+| `admin` | `withdraw-user` | `WithdrawUserButton` |
+| `admin` | `logs` | `LogsFilterChips` |
+| `admin` | `error-logs` | `ErrorLogsSectionClient`, `ErrorLogItem` |
 | `admin` | `settings` | `AdminSettingsForm` |
 
 ## 슬라이스 내부 구조

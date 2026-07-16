@@ -12,14 +12,14 @@ widget 슬라이스끼리 cross-import 금지. **단, "공용 UI 위젯" 목록(
 
 ## 대표 슬라이스
 
-- 페이지 위젯: `admin-user-list`, `admin-trade-list`, `admin-privacy-trade-list`, `all-strategies`, `dashboard`, `account-detail`, `accounts-grid`, `strategy-detail`, `strategy-list`, `cycle-history`, `fear-greed-card`, `market-holiday-calendar`, `error-display`
+- 페이지 위젯: `admin-user-list`, `admin-trade-list`, `admin-log-list`, `admin-privacy-trade-list`, `all-strategies`, `dashboard`, `account-detail`, `accounts-grid`, `strategy-detail`, `strategy-list`, `cycle-history`, `fear-greed-card`, `market-holiday-calendar`, `error-display`
 - 공용 UI 위젯: `layout`, `account-card`, `strategy-card`, `kpi-card`, `revealable-value`, `glass-card`, `page-header`, `theme-toggle`, `timeline`, `pull-to-refresh`
 - shared/ui로 이동됨: `stepper`, `percent-gauge` (도메인 무관 UI 컴포넌트로 분류)
 
 ## shadcn / UI 컴포넌트
 
 - **shadcn v4**: `asChild` 대신 `cn(buttonVariants({ variant, size }))` 패턴 사용
-- **AlertDialog**: `open`/`onOpenChange` 직접 제어 필요
+- **AlertDialog**: `open`/`onOpenChange` 직접 제어 필요. `AlertDialogTrigger`에 `disabled` prop 없음 → `className`에 `opacity-40 pointer-events-none`
 - **disabled 버튼 툴팁**: wrapper `div` + `group-hover` 패턴 사용
 - **vaul Drawer**: `direction="bottom"`, 내부 스크롤 래퍼 필요
 

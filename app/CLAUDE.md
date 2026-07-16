@@ -1,7 +1,5 @@
 # app/ — Next.js · proxy · 쿠키 · SSE · PWA
 
-Claude Code에서 `app/` 작업 전 읽을 공용 문서:
+`app/` 작업 시 필수 quirk 문서 (아래 import로 자동 로드):
 
-- `docs/agents/app.md`
-- `docs/agents/architecture.md`
-- `docs/agents/constraints.md`
+@../docs/agents/app.md

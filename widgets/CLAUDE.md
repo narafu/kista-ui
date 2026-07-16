@@ -1,7 +1,5 @@
 # widgets/ — 페이지 합성 단위
 
-Claude Code에서 `widgets/` 작업 전 읽을 공용 문서:
+`widgets/` 작업 시 필수 quirk 문서 (아래 import로 자동 로드):
 
-- `docs/agents/widgets.md`
-- `docs/agents/architecture.md`
-- `docs/agents/constraints.md`
+@../docs/agents/widgets.md
