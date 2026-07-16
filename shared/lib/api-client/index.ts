@@ -49,6 +49,17 @@ async function readErrorCode(res: Response): Promise<string | null> {
   }
 }
 
+// !ok면 body를 방어적으로 json 파싱해 ApiError throw, 204/content-length 0이면 undefined, 그 외 json 반환
+async function parseApiResponse<T>(res: Response): Promise<T> {
+  if (!res.ok) {
+    let body: unknown = null
+    try { body = await res.json() } catch {}
+    throw new ApiError(res.status, body)
+  }
+  if (res.status === 204 || res.headers.get('content-length') === '0') return undefined as T
+  return res.json()
+}
+
 // Client Component 전용 — Route Handler 경유 fetch.
 // 401 수신 시 RT로 AT 갱신 후 재시도. 갱신 실패 시 로그아웃.
 export async function clientFetch<T>(path: string, options?: RequestInit): Promise<T> {
@@ -61,21 +72,9 @@ export async function clientFetch<T>(path: string, options?: RequestInit): Promi
     // 갱신 성공 → 브라우저 쿠키가 이미 교체됐으므로 원래 요청 재시도
     const retry = await fetch(path, options)
     if (retry.status === 401) return doLogout()
-    if (!retry.ok) {
-      let body: unknown = null
-      try { body = await retry.json() } catch {}
-      throw new ApiError(retry.status, body)
-    }
-    if (retry.status === 204 || retry.headers.get('content-length') === '0') return undefined as T
-    return retry.json()
+    return parseApiResponse<T>(retry)
   }
-  if (!res.ok) {
-    let body: unknown = null
-    try { body = await res.json() } catch {}
-    throw new ApiError(res.status, body)
-  }
-  if (res.status === 204 || res.headers.get('content-length') === '0') return undefined as T
-  return res.json()
+  return parseApiResponse<T>(res)
 }
 
 export function jsonBody(method: string, body: unknown): RequestInit {
@@ -111,15 +110,5 @@ export async function apiFetch<T>(
     },
   })
 
-  if (!response.ok) {
-    let body: unknown
-    try { body = await response.json() } catch { body = null }
-    throw new ApiError(response.status, body)
-  }
-
-  if (response.status === 204 || response.headers.get('content-length') === '0') {
-    return undefined as T
-  }
-
-  return response.json() as Promise<T>
+  return parseApiResponse<T>(response)
 }
