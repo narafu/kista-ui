@@ -51,13 +51,12 @@ describe('trade api', () => {
 
   it('getAccountPortfolio uses apiFetch (Server Component, requires token)', async () => {
     const { getAccountPortfolio } = await import('./index')
-    const summary = { positions: [], summary: {} }
-    apiFetchMock.mockResolvedValueOnce(summary)
+    apiFetchMock.mockResolvedValueOnce({ positions: [], summary: {} })
 
     const result = await getAccountPortfolio('account-1', 'token-1')
 
     expect(apiFetchMock).toHaveBeenCalledWith('/api/accounts/account-1/portfolio', { method: 'GET' }, 'token-1')
-    expect(result).toBe(summary)
+    expect(result.positions).toEqual([])
   })
 
   it('getDailyTransactionsBatch builds date-range query for the user-scoped batch endpoint', async () => {
@@ -75,13 +74,57 @@ describe('trade api', () => {
     expect(result).toBe(batch)
   })
 
-  it('does not normalize response payloads — raw BigDecimal strings pass through untouched', async () => {
+  it('getAccountPortfolio normalizes KIS BigDecimal strings to numbers', async () => {
     const { getAccountPortfolio } = await import('./index')
-    const raw = { summary: { totalAssetUsd: '1234.56', totalEvalProfit: '12.30' } }
-    apiFetchMock.mockResolvedValueOnce(raw)
+    apiFetchMock.mockResolvedValueOnce({
+      positions: [
+        {
+          ticker: 'TQQQ',
+          holdings: 4,
+          exchangeCode: 'NASD',
+          avgPrice: '312.45',
+          currentPrice: 320.1,
+          evalAmountUsd: '1280.40',
+          profitLossUsd: null,
+          profitRate: '2.45',
+        },
+      ],
+      summary: {
+        totalAssetUsd: '1234.56',
+        totalEvalProfit: 12.3,
+        totalReturnRate: null,
+        usdDeposit: '500.00',
+        posEvalUsd: '734.56',
+      },
+    })
 
     const result = await getAccountPortfolio('account-1', 'token-1')
 
-    expect(result.summary?.totalAssetUsd).toBe('1234.56')
+    expect(result.positions?.[0]).toEqual(expect.objectContaining({
+      ticker: 'TQQQ',
+      holdings: 4,
+      avgPrice: 312.45,
+      currentPrice: 320.1,
+      evalAmountUsd: 1280.4,
+      profitLossUsd: null,
+      profitRate: 2.45,
+    }))
+    expect(result.summary).toEqual(expect.objectContaining({
+      totalAssetUsd: 1234.56,
+      totalEvalProfit: 12.3,
+      totalReturnRate: null,
+      usdDeposit: 500,
+      posEvalUsd: 734.56,
+    }))
+  })
+
+  it('getAccountPortfolio preserves null fields and tolerates an empty response', async () => {
+    const { getAccountPortfolio } = await import('./index')
+    apiFetchMock.mockResolvedValueOnce({})
+
+    const result = await getAccountPortfolio('account-1', 'token-1')
+
+    expect(result.positions).toBeUndefined()
+    expect(result.summary).toBeUndefined()
   })
 })

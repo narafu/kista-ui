@@ -30,22 +30,22 @@ export interface PortfolioSummary {
   positions?: Array<{
     ticker?: string | null
     holdings?: number | null
-    avgPrice?: number | string | null
-    currentPrice?: number | string | null
-    evalAmountUsd?: number | string | null
-    profitLossUsd?: number | string | null
-    profitRate?: number | string | null
+    avgPrice?: number | null
+    currentPrice?: number | null
+    evalAmountUsd?: number | null
+    profitLossUsd?: number | null
+    profitRate?: number | null
     exchangeCode?: string | null
   }>
   summary?: {
-    totalAssetUsd?: number | string | null
-    totalEvalProfit?: number | string | null
-    totalReturnRate?: number | string | null
-    totalAssetUsdActual?: number | string | null
-    evalProfitUsdSum?: number | string | null
-    usdDeposit?: number | string | null
-    posEvalUsd?: number | string | null
-    exchangeRateKrwPerUsd?: number | string | null
+    totalAssetUsd?: number | null
+    totalEvalProfit?: number | null
+    totalReturnRate?: number | null
+    totalAssetUsdActual?: number | null
+    evalProfitUsdSum?: number | null
+    usdDeposit?: number | null
+    posEvalUsd?: number | null
+    exchangeRateKrwPerUsd?: number | null
   }
 }
 

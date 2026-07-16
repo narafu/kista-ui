@@ -4,7 +4,6 @@ import { Pencil } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { AccountDetailTabs } from '@widgets/account-detail'
 import { PageHeader } from '@widgets/page-header'
-import { toNum } from '@shared/lib/utils'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { listAccounts } from '@entities/account'
 import { getAccountPortfolio } from '@entities/trade'
@@ -38,8 +37,8 @@ export default async function AccountDetailPage({ params }: Props) {
     }),
   ])
 
-  const usdDeposit = toNum(portfolioRaw?.summary?.usdDeposit)
-  const posEvalUsd = toNum(portfolioRaw?.summary?.posEvalUsd)
+  const usdDeposit = portfolioRaw?.summary?.usdDeposit ?? 0
+  const posEvalUsd = portfolioRaw?.summary?.posEvalUsd ?? 0
 
   const account = accounts.find((a) => a.id === id)
   if (!account) {

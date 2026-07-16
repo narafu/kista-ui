@@ -1,9 +1,43 @@
 import { apiFetch, fetchEither } from '@shared/lib/api-client'
+import { toNum } from '@shared/lib/utils'
 import type {
   CycleHistoryPage,
   DailyTransactionResult,
   PortfolioSummary,
 } from '../model/types'
+
+// KIS live 응답은 숫자 필드를 BigDecimal string으로 내려보내는 경우가 있어 entities 계층에서 정규화한다
+function normalizePortfolio(raw: unknown): PortfolioSummary {
+  const p = raw as {
+    positions?: Array<Record<string, unknown>>
+    summary?: Record<string, unknown>
+  }
+  const num = (v: unknown): number | null => (v != null ? toNum(v) : null)
+  return {
+    positions: p.positions?.map((pos) => ({
+      ticker: pos.ticker as string | null | undefined,
+      holdings: pos.holdings as number | null | undefined,
+      exchangeCode: pos.exchangeCode as string | null | undefined,
+      avgPrice: num(pos.avgPrice),
+      currentPrice: num(pos.currentPrice),
+      evalAmountUsd: num(pos.evalAmountUsd),
+      profitLossUsd: num(pos.profitLossUsd),
+      profitRate: num(pos.profitRate),
+    })),
+    summary: p.summary
+      ? {
+          totalAssetUsd: num(p.summary.totalAssetUsd),
+          totalEvalProfit: num(p.summary.totalEvalProfit),
+          totalReturnRate: num(p.summary.totalReturnRate),
+          totalAssetUsdActual: num(p.summary.totalAssetUsdActual),
+          evalProfitUsdSum: num(p.summary.evalProfitUsdSum),
+          usdDeposit: num(p.summary.usdDeposit),
+          posEvalUsd: num(p.summary.posEvalUsd),
+          exchangeRateKrwPerUsd: num(p.summary.exchangeRateKrwPerUsd),
+        }
+      : undefined,
+  }
+}
 
 function buildDateQuery(params: { from?: string; to?: string }): string {
   const q = new URLSearchParams()
@@ -45,7 +79,8 @@ export async function getStrategyCycleHistory(
 }
 
 export async function getAccountPortfolio(accountId: string, token: string): Promise<PortfolioSummary> {
-  return apiFetch<PortfolioSummary>(`/api/accounts/${accountId}/portfolio`, { method: 'GET' }, token)
+  const raw = await apiFetch<unknown>(`/api/accounts/${accountId}/portfolio`, { method: 'GET' }, token)
+  return normalizePortfolio(raw)
 }
 
 // 유저 스코프 배치 조회 — 보유 계좌 전체를 계좌 구분 없이 합쳐 1회 요청으로 반환
