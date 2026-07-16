@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, Wallet, ArrowLeftRight, ClipboardList, ArrowLeft, Table2 } from 'lucide-react'
+import { LayoutDashboard, Users, Wallet, ArrowLeftRight, ClipboardList, ArrowLeft, Table2, Settings } from 'lucide-react'
 import Link from 'next/link'
 
 const NAV_ITEMS = [
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: '/admin/trades', label: '주문', icon: ArrowLeftRight },
   { href: '/admin/privacy-trades', label: '매매표', icon: Table2 },
   { href: '/admin/logs', label: '로그', icon: ClipboardList },
+  { href: '/admin/settings', label: '설정', icon: Settings },
 ]
 
 export function AdminTopBar() {
@@ -30,11 +31,11 @@ export function AdminTopBar() {
         </div>
       </div>
       {/* 탭 네비게이션 */}
-      <nav className="flex border-t border-border">
+      <nav className="flex overflow-x-auto border-t border-border">
         {NAV_ITEMS.map(({ href, label, icon: Icon, exact }) => {
           const active = exact ? pathname === href : pathname.startsWith(href)
           return (
-            <Link key={href} href={href} className={`flex-1 flex flex-col items-center gap-1 py-2 text-sm font-medium transition-colors ${active ? 'text-rose-600' : 'text-muted-foreground'}`}>
+            <Link key={href} href={href} className={`min-w-16 flex-1 flex flex-col items-center gap-1 py-2 text-xs font-medium transition-colors ${active ? 'text-rose-600' : 'text-muted-foreground'}`}>
               <Icon className="size-4" />
               {label}
             </Link>

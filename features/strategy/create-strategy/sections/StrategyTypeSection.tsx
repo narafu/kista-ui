@@ -29,6 +29,11 @@ export function StrategyTypeSection({ initial, type, setType, loading, strategyT
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-2.5">
+          {strategyTypes.length === 0 && (
+            <p className="col-span-2 rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+              현재 등록 가능한 전략이 없습니다.
+            </p>
+          )}
           {strategyTypes.map((t) => {
             const selected = type === t.code
             const singleTicker = (t.availableTickers?.length ?? 0) <= 1
@@ -36,6 +41,7 @@ export function StrategyTypeSection({ initial, type, setType, loading, strategyT
               <button
                 key={t.code}
                 type="button"
+                aria-pressed={selected}
                 onClick={() => setType(t.code)}
                 disabled={loading}
                 className={cn(

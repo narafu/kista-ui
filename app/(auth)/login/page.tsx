@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { GlassCard } from '@widgets/glass-card'
 import { Spinner } from '@shared/ui/Spinner'
+import { ApprovalNotice } from './ApprovalNotice'
 
 const ERROR_MESSAGES: Record<string, string> = {
   no_code: "로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.",
@@ -75,17 +76,7 @@ function LoginPageContent() {
         </p>
       </div>
 
-      {/* 초대제 안내 */}
-      <div
-        className="mb-5 px-3.5 py-2.5 rounded-[10px] text-center text-sm font-medium"
-        style={{
-          background: "var(--rose-50)",
-          border: "1px solid var(--rose-100)",
-          color: "var(--rose-700)",
-        }}
-      >
-        가입 후 관리자 승인이 필요합니다.
-      </div>
+      <ApprovalNotice />
 
       {/* 에러 메시지 */}
       {errorMessage && (

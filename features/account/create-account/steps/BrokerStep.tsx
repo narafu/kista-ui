@@ -3,6 +3,7 @@
 import { Building2, TrendingUp } from 'lucide-react'
 import { useMeta } from '@entities/meta'
 import type { BrokerCode } from '@entities/account'
+import { useRuntimeConfigQuery } from '@entities/runtime-config'
 import type { StepData } from '../CreateAccountStepper'
 
 interface Props {
@@ -17,6 +18,9 @@ const BROKER_UI: Record<string, { description: string; Icon: React.ComponentType
 
 export function BrokerStep({ onNext }: Props) {
   const { meta } = useMeta()
+  const { data: runtimeConfig, isLoading, isError, refetch } = useRuntimeConfigQuery()
+  const enabledBrokers = meta.brokers.filter(({ code }) =>
+    runtimeConfig?.brokers[code as keyof typeof runtimeConfig.brokers]?.enabled === true)
 
   return (
     <div className="flex flex-col gap-6">
@@ -25,7 +29,25 @@ export function BrokerStep({ onNext }: Props) {
         <p className="text-sm text-muted-foreground">연결할 증권사를 선택하세요.</p>
       </div>
       <div className="flex flex-col gap-3">
-        {meta.brokers.map(({ code, label }) => {
+        {isLoading && (
+          <p className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+            등록 가능한 증권사를 확인하고 있습니다.
+          </p>
+        )}
+        {isError && (
+          <div className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+            <p>증권사 설정을 불러오지 못했습니다.</p>
+            <button type="button" onClick={() => refetch()} className="mt-2 font-bold text-foreground underline underline-offset-4">
+              다시 시도
+            </button>
+          </div>
+        )}
+        {runtimeConfig && enabledBrokers.length === 0 && (
+          <p className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+            현재 등록 가능한 증권사가 없습니다.
+          </p>
+        )}
+        {enabledBrokers.map(({ code, label }) => {
           const ui = BROKER_UI[code]
           if (!ui) return null
           const { description, Icon } = ui

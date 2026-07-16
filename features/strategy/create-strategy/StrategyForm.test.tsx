@@ -74,6 +74,12 @@ const baseFormState = {
   setSeedMode: vi.fn(),
   divisionCount: 20,
   setDivisionCount: vi.fn(),
+  divisionCountSettings: { customizable: true, allowedValues: [20, 30, 40], defaultValue: 20 },
+  tickerCustomizable: true,
+  enabledStrategyTypes: ['INFINITE', 'VR'],
+  runtimeConfigUnavailable: false,
+  runtimeConfigError: false,
+  retryRuntimeConfig: vi.fn(),
   isVr: false,
   vrFields: {
     initialValue: null,
@@ -82,6 +88,13 @@ const baseFormState = {
     recurringAmount: 0,
   },
   setVrField: vi.fn(),
+  recurringMode: 'HOLD' as const,
+  setRecurringMode: vi.fn(),
+  vrSettings: {
+    recurringMode: { customizable: true, allowedValues: ['DEPOSIT', 'HOLD', 'WITHDRAW'], defaultValue: 'HOLD' },
+    bandWidth: { customizable: true, allowedValues: [10, 15, 20], defaultValue: 15 },
+    intervalWeeks: { customizable: true, allowedValues: [1, 2, 4], defaultValue: 2 },
+  },
   loading: false,
   initializing: false,
   cannotSubmit: false,
@@ -103,6 +116,14 @@ const initialStrategy: Strategy = {
 }
 
 describe('StrategyForm seed section', () => {
+  it('shows a retry action when runtime config fails in create mode', () => {
+    const retryRuntimeConfig = vi.fn()
+    useStrategyFormMock.mockReturnValue({ ...baseFormState, runtimeConfigError: true, retryRuntimeConfig })
+    render(<StrategyForm accountId="account-1" />)
+    screen.getByRole('button', { name: '다시 시도' }).click()
+    expect(retryRuntimeConfig).toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: '등록' })).not.toBeInTheDocument()
+  })
   it('shows read-only starting amount instead of the editable seed section in edit mode', () => {
     useStrategyFormMock.mockReturnValue(baseFormState)
 

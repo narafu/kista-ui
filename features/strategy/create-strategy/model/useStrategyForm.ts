@@ -11,6 +11,8 @@ import { useCreateStrategyMutation, useUpdateStrategyMutation, useStrategySeedPr
 import type { CycleSeedType, Strategy, StrategyRequest } from '@entities/strategy'
 import type { PriceMap } from '@entities/account'
 import { useMeQuery } from '@entities/user'
+import { useRuntimeConfigQuery } from '@entities/runtime-config'
+import type { RuntimeFieldSettings, RuntimeStrategyType } from '@entities/runtime-config'
 import { useSeedModel } from './useSeedModel'
 import { strategyFormSchema, type DivisionCount, type StrategyFormValues } from './strategyFormSchema'
 
@@ -27,6 +29,7 @@ export interface VrFields {
   bandWidth: number | null
   recurringAmount: number | null
 }
+type VrRecurringMode = 'DEPOSIT' | 'HOLD' | 'WITHDRAW'
 
 export interface UseStrategyFormReturn {
   type: string
@@ -59,11 +62,24 @@ export interface UseStrategyFormReturn {
 
   divisionCount: DivisionCount
   setDivisionCount: (n: DivisionCount) => void
+  divisionCountSettings?: RuntimeFieldSettings<number>
+  tickerCustomizable: boolean
+  enabledStrategyTypes: string[]
+  runtimeConfigUnavailable: boolean
+  runtimeConfigError: boolean
+  retryRuntimeConfig: () => void
 
   // VR 전략 전용
   isVr: boolean
   vrFields: VrFields
   setVrField: (field: keyof VrFields, value: number | null) => void
+  recurringMode: VrRecurringMode
+  setRecurringMode: (mode: VrRecurringMode) => void
+  vrSettings: {
+    recurringMode?: RuntimeFieldSettings<string>
+    bandWidth?: RuntimeFieldSettings<number>
+    intervalWeeks?: RuntimeFieldSettings<number>
+  }
 
   loading: boolean
   initializing: boolean
@@ -78,11 +94,15 @@ export function useStrategyForm({
   onSuccess,
 }: UseStrategyFormOptions): UseStrategyFormReturn {
   const { meta, findStrategyType } = useMeta()
+  const runtimeQuery = useRuntimeConfigQuery()
+  const runtimeConfig = runtimeQuery.data
+  const enabledStrategyTypes = meta.strategyTypes
+    .filter(({ code }) => runtimeConfig?.strategies[code as RuntimeStrategyType]?.enabled === true)
+    .map(({ code }) => code)
 
   const createMutation = useCreateStrategyMutation(accountId, onSuccess)
   const updateMutation = useUpdateStrategyMutation(initial?.id ?? '', onSuccess)
-  const initialDivisionCount: DivisionCount =
-    initial?.divisionCount === 30 || initial?.divisionCount === 40 ? initial.divisionCount : 20
+  const initialDivisionCount: DivisionCount = initial?.divisionCount ?? 1
 
   // react-hook-form — type/ticker/autoStart/seedMode/divisionCount + VR 필드 관리
   const form = useForm<StrategyFormValues>({
@@ -98,7 +118,10 @@ export function useStrategyForm({
       initialValue: initial?.vr?.value ?? 0,
       intervalWeeks: initial?.vr?.intervalWeeks ?? 2,
       bandWidth: initial?.vr?.bandWidth ?? 15,
-      recurringAmount: initial?.vr?.recurringAmount ?? 0,
+      recurringAmount: Math.abs(initial?.vr?.recurringAmount ?? 0),
+      recurringMode: initial?.vr?.recurringAmount
+        ? initial.vr.recurringAmount < 0 ? 'WITHDRAW' : 'DEPOSIT'
+        : 'HOLD',
     },
   })
 
@@ -114,14 +137,23 @@ export function useStrategyForm({
   const intervalWeeks = form.watch('intervalWeeks') ?? null
   const bandWidth = form.watch('bandWidth') ?? null
   const recurringAmount = form.watch('recurringAmount') ?? null
+  const recurringMode = form.watch('recurringMode')
   const isVr = type === 'VR'
   const vrFields: VrFields = { initialValue, intervalWeeks, bandWidth, recurringAmount }
 
   // capability 파생 — isInfinite 휴리스틱 대신 백엔드 SSOT 사용
   const typeMeta = useMemo(() => findStrategyType(type), [findStrategyType, type])
-  const availableTickers = typeMeta?.availableTickers ?? []
-  const usesDivisionCount = (typeMeta?.divisionCounts?.length ?? 0) > 0
+  const runtimeStrategy = runtimeConfig?.strategies[type as RuntimeStrategyType]
+  const availableTickers = initial ? [initial.ticker] : runtimeStrategy?.fields.ticker.allowedValues ?? []
+  const divisionCountSettings = runtimeStrategy?.fields.divisionCount
+  const usesDivisionCount = initial ? initial.divisionCount !== undefined : !!divisionCountSettings
   const requiresPrivacyBase = typeMeta?.requiresPrivacyBase ?? false
+  const tickerCustomizable = initial ? false : runtimeStrategy?.fields.ticker.customizable ?? false
+  const vrSettings = {
+    recurringMode: runtimeStrategy?.fields.recurringMode as RuntimeFieldSettings<string> | undefined,
+    bandWidth: runtimeStrategy?.fields.bandWidth,
+    intervalWeeks: runtimeStrategy?.fields.intervalWeeks,
+  }
 
   const { data: meData } = useMeQuery()
   const balanceCheckEnabled = meData?.balanceCheckEnabled ?? true
@@ -152,6 +184,7 @@ export function useStrategyForm({
 
   // 초기 로딩 완료 후엔 true로 고정 — 타입 전환 시 재스켈레톤 방지
   const initRef = useRef(false)
+  const defaultsAppliedForTypeRef = useRef<string | null>(null)
   if (!loadingBase) initRef.current = true
   const initialized = initRef.current
 
@@ -174,12 +207,24 @@ export function useStrategyForm({
   // type 변경 시 ticker 기본값 설정 — 시드는 minSeed effect에서 처리
   useEffect(() => {
     if (initial) return
-    if (!typeMeta) return
-    if (!ticker || !availableTickers.includes(ticker)) {
-      // eslint-disable-next-line react-doctor/no-event-handler
-      form.setValue('ticker', typeMeta.availableTickers[0] ?? '')
+    if (!runtimeConfig) return
+    if (!enabledStrategyTypes.includes(type)) {
+      form.setValue('type', enabledStrategyTypes[0] ?? '')
+      return
     }
-  }, [type]) // eslint-disable-line react-doctor/exhaustive-deps
+    if (defaultsAppliedForTypeRef.current === type) return
+    defaultsAppliedForTypeRef.current = type
+    if (!ticker || !availableTickers.includes(ticker)) {
+      form.setValue('ticker', runtimeStrategy?.fields.ticker.defaultValue ?? '')
+    }
+    if (divisionCountSettings) form.setValue('divisionCount', divisionCountSettings.defaultValue)
+    if (runtimeStrategy?.fields.bandWidth) form.setValue('bandWidth', runtimeStrategy.fields.bandWidth.defaultValue)
+    if (runtimeStrategy?.fields.intervalWeeks) form.setValue('intervalWeeks', runtimeStrategy.fields.intervalWeeks.defaultValue)
+    if (runtimeStrategy?.fields.recurringMode) {
+      form.setValue('recurringMode', runtimeStrategy.fields.recurringMode.defaultValue)
+      form.setValue('recurringAmount', 0)
+    }
+  }, [type, runtimeConfig]) // eslint-disable-line react-doctor/exhaustive-deps
 
   // 엔드포인트 minSeed 도착/변경 시 시드 게이지 재초기화 (신규 등록 한정)
   useEffect(() => {
@@ -203,7 +248,13 @@ export function useStrategyForm({
 
   const normalizedInitialValue = initialValue ?? 0
   const normalizedInitialSeed = seedUsd ?? 0
-  const normalizedRecurringAmount = recurringAmount ?? 0
+  const recurringMagnitude = Math.abs(recurringAmount ?? 0)
+  const normalizedRecurringAmount = recurringMode === 'HOLD'
+    ? 0
+    : recurringMode === 'WITHDRAW'
+      ? -recurringMagnitude
+      : recurringMagnitude
+  const selectedRecurringMode = recurringMode
   const initialAssets = normalizedInitialValue + normalizedInitialSeed
   const requiredWithdrawalAssets = intervalWeeks !== null && intervalWeeks > 0
     ? Math.abs(normalizedRecurringAmount) * 100 * (4 / intervalWeeks)
@@ -218,17 +269,35 @@ export function useStrategyForm({
     bandWidth === null ||
     bandWidth <= 0 ||
     (recurringAmount !== null && !Number.isInteger(recurringAmount)) ||
+    (recurringMode !== 'HOLD' && recurringMagnitude <= 0) ||
     (normalizedRecurringAmount <= 0 && initialAssets <= 0) ||
     (normalizedRecurringAmount < 0 && initialAssets < requiredWithdrawalAssets)
   )
 
+  const isRuntimeValueInvalid = !initial && !!runtimeStrategy && (
+    !runtimeStrategy.fields.ticker.allowedValues.includes(ticker) ||
+    (!!divisionCountSettings && !divisionCountSettings.allowedValues.includes(divisionCount)) ||
+    (isVr && !!runtimeStrategy.fields.bandWidth && bandWidth !== null &&
+      !runtimeStrategy.fields.bandWidth.allowedValues.includes(bandWidth)) ||
+    (isVr && !!runtimeStrategy.fields.intervalWeeks && intervalWeeks !== null &&
+      !runtimeStrategy.fields.intervalWeeks.allowedValues.includes(intervalWeeks)) ||
+    (isVr && !!runtimeStrategy.fields.recurringMode && (
+      !runtimeStrategy.fields.recurringMode.allowedValues.includes(selectedRecurringMode) ||
+      (!runtimeStrategy.fields.recurringMode.customizable &&
+        runtimeStrategy.fields.recurringMode.defaultValue !== selectedRecurringMode)
+    ))
+  )
+
+  const runtimeConfigUnavailable = !initial && (!runtimeConfig || enabledStrategyTypes.length === 0)
   const cannotSubmit = initial && !canEditSeed
     ? false
-    : isInvalidVr || isBelowMinSeed || (!isVr && isInvalidSeed) || (!isVr && basePrice === null && seedUnavailableReason === null)
+    : runtimeConfigUnavailable || isRuntimeValueInvalid || isInvalidVr || isBelowMinSeed || (!isVr && isInvalidSeed) || (!isVr && basePrice === null && seedUnavailableReason === null)
 
   const submitDisabledReason = initial && !canEditSeed
     ? null
-    : isVr
+    : runtimeConfigUnavailable
+      ? '현재 등록 가능한 전략이 없습니다.'
+      : isVr
       ? (() => {
           if (normalizedInitialValue < 0) return '초기 V값은 0 이상이어야 합니다.'
           if (intervalWeeks === null || intervalWeeks < 1 || !Number.isInteger(intervalWeeks)) {
@@ -238,12 +307,18 @@ export function useStrategyForm({
           if (recurringAmount !== null && !Number.isInteger(recurringAmount)) {
             return '적립금(+)/인출금(-)은 정수여야 합니다.'
           }
+          if (recurringMode !== 'HOLD' && recurringMagnitude <= 0) {
+            return recurringMode === 'DEPOSIT'
+              ? '적립 금액을 0보다 크게 입력하세요.'
+              : '인출 금액을 0보다 크게 입력하세요.'
+          }
           if (normalizedRecurringAmount <= 0 && initialAssets <= 0) {
             return '거치식/인출식은 초기 V값 또는 초기 시드가 0보다 커야 합니다.'
           }
           if (normalizedRecurringAmount < 0 && initialAssets < requiredWithdrawalAssets) {
             return `인출식은 초기 자산이 $${fmtUsd(requiredWithdrawalAssets)} 이상이어야 합니다.`
           }
+          if (isRuntimeValueInvalid) return '현재 허용되지 않는 설정이 선택되었습니다.'
           return null
         })()
       : (() => {
@@ -269,6 +344,17 @@ export function useStrategyForm({
 
   function setType(t: string) {
     form.setValue('type', t)
+    const settings = runtimeConfig?.strategies[t as RuntimeStrategyType]
+    if (!settings) return
+    defaultsAppliedForTypeRef.current = t
+    form.setValue('ticker', settings.fields.ticker.defaultValue)
+    if (settings.fields.divisionCount) form.setValue('divisionCount', settings.fields.divisionCount.defaultValue)
+    if (settings.fields.bandWidth) form.setValue('bandWidth', settings.fields.bandWidth.defaultValue)
+    if (settings.fields.intervalWeeks) form.setValue('intervalWeeks', settings.fields.intervalWeeks.defaultValue)
+    if (settings.fields.recurringMode) {
+      form.setValue('recurringMode', settings.fields.recurringMode.defaultValue)
+      form.setValue('recurringAmount', 0)
+    }
   }
 
   function setAutoStart(v: boolean) {
@@ -285,7 +371,12 @@ export function useStrategyForm({
 
   // VR 필드 개별 setter
   function setVrField(field: keyof VrFields, value: number | null) {
-    form.setValue(field, value)
+    form.setValue(field, field === 'recurringAmount' && value !== null ? Math.abs(value) : value)
+  }
+
+  function setRecurringMode(mode: VrRecurringMode) {
+    form.setValue('recurringMode', mode)
+    if (mode === 'HOLD') form.setValue('recurringAmount', 0)
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -300,15 +391,25 @@ export function useStrategyForm({
           }
         : {
             type,
-            ticker,
+            ticker: runtimeStrategy?.fields.ticker.customizable === false
+              ? runtimeStrategy.fields.ticker.defaultValue
+              : ticker,
             cycleSeedType,
             initialUsdDeposit: isVr ? normalizedInitialSeed : seedUsd ?? undefined,
-            ...(usesDivisionCount ? { divisionCount } : {}),
+            ...(usesDivisionCount ? {
+              divisionCount: divisionCountSettings?.customizable === false
+                ? divisionCountSettings.defaultValue
+                : divisionCount,
+            } : {}),
             // VR 전용 필드 — null이면 0으로 기본값 처리
             ...(isVr ? {
               initialValue: normalizedInitialValue,
-              intervalWeeks: intervalWeeks ?? undefined,
-              bandWidth: bandWidth ?? undefined,
+              intervalWeeks: runtimeStrategy?.fields.intervalWeeks?.customizable === false
+                ? runtimeStrategy.fields.intervalWeeks.defaultValue
+                : intervalWeeks ?? undefined,
+              bandWidth: runtimeStrategy?.fields.bandWidth?.customizable === false
+                ? runtimeStrategy.fields.bandWidth.defaultValue
+                : bandWidth ?? undefined,
               recurringAmount: normalizedRecurringAmount,
             } : {}),
           }
@@ -327,10 +428,13 @@ export function useStrategyForm({
     pct, setPct, seedUsdInput, setSeedUsdInput, usdDeposit, minSeed, isBelowMinSeed, loadingBase,
     balanceCheckEnabled,
     autoStart, setAutoStart, seedMode, setSeedMode,
-    divisionCount, setDivisionCount,
-    isVr, vrFields, setVrField,
+    divisionCount, setDivisionCount, divisionCountSettings, tickerCustomizable,
+    enabledStrategyTypes, runtimeConfigUnavailable,
+    runtimeConfigError: runtimeQuery.isError,
+    retryRuntimeConfig: () => { void runtimeQuery.refetch() },
+    isVr, vrFields, setVrField, recurringMode, setRecurringMode, vrSettings,
     loading: createMutation.isPending || updateMutation.isPending,
-    initializing: !initialized && loadingBase,
+    initializing: (!initialized && loadingBase) || (!initial && runtimeQuery.isLoading),
     cannotSubmit,
     submitDisabledReason,
     handleSubmit,

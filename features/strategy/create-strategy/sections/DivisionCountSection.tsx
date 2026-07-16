@@ -10,27 +10,29 @@ interface Props {
   setDivisionCount: (n: DivisionCount) => void
   loading: boolean
   isEdit: boolean
+  options: number[]
+  customizable: boolean
 }
 
-const DIVISION_COUNT_OPTIONS = [20, 30, 40] as const
-
-export function DivisionCountSection({ visible, divisionCount, setDivisionCount, loading, isEdit }: Props) {
+export function DivisionCountSection({
+  visible, divisionCount, setDivisionCount, loading, isEdit, options, customizable,
+}: Props) {
   if (!visible) return null
 
   return (
     <div className="pt-[18px]">
       <StrategyFieldLabel hint="">분할 수</StrategyFieldLabel>
       <div className="flex gap-1 p-[3px] bg-muted rounded-[10px]">
-        {DIVISION_COUNT_OPTIONS.map((value) => {
+        {options.map((value) => {
           const active = divisionCount === value
-          const disabled = loading || isEdit
+          const disabled = loading || isEdit || !customizable
           return (
             <button
               key={value}
               type="button"
               aria-pressed={active}
               disabled={disabled}
-              onClick={() => !isEdit && setDivisionCount(value)}
+              onClick={() => !disabled && setDivisionCount(value)}
               className={cn('flex-1 px-3 py-2.5 border-none rounded-[7px] text-center transition-[background,box-shadow] duration-150', disabled ? 'cursor-not-allowed' : 'cursor-pointer')}
               style={{
                 background: active ? 'var(--card)' : 'transparent',
