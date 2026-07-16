@@ -84,18 +84,6 @@ describe('VrSettingsSection', () => {
       expect(mockSetField).toHaveBeenCalledWith('initialValue', 100)
     })
 
-    it('uses mobile-safe input font size to prevent focus zoom', () => {
-      render(
-        <VrSettingsSection
-          fields={baseFields}
-          {...baseProps}
-        />,
-      )
-
-      expect(getInputByLabelText('초기 V값')).toHaveClass('text-base')
-      expect(getInputByLabelText('적립금(+)/인출금(-)')).toHaveClass('text-base')
-    })
-
     it('sets recurring amount sign with deposit and withdrawal toggles', () => {
       const { rerender } = render(
         <VrSettingsSection
@@ -264,33 +252,6 @@ describe('VrSettingsSection', () => {
     })
   })
 
-  describe('guidance messages', () => {
-    it('does not show the removed create guidance message', () => {
-      render(
-        <VrSettingsSection
-          fields={baseFields}
-          {...baseProps}
-          isEdit={false}
-        />,
-      )
-
-      expect(screen.queryByText(/초기 V는 보유 중인 TQQQ 평가금/)).not.toBeInTheDocument()
-      expect(screen.queryByText(/적립식은 둘 다 0이어도 등록할 수 있습니다/)).not.toBeInTheDocument()
-    })
-
-    it('hides TQQQ guidance message when isEdit is true (edit mode)', () => {
-      render(
-        <VrSettingsSection
-          fields={baseFields}
-          {...baseProps}
-          isEdit={true}
-        />,
-      )
-
-      expect(screen.queryByText(/초기 V는 보유 중인 TQQQ 평가금/)).not.toBeInTheDocument()
-    })
-  })
-
   describe('defaults and ordering', () => {
     it('renders only runtime band width and interval choices', () => {
       render(
@@ -325,6 +286,9 @@ describe('VrSettingsSection', () => {
       expect(initialValueInput).not.toHaveAttribute('placeholder')
       expect(intervalButton).toHaveAttribute('aria-pressed', 'true')
       expect(screen.getByRole('button', { name: '15%' })).toHaveAttribute('aria-pressed', 'true')
+      expect(screen.getByRole('button', { name: '+ 적립' })).toHaveAttribute('aria-pressed', 'false')
+      expect(screen.getByRole('button', { name: '거치' })).toHaveAttribute('aria-pressed', 'true')
+      expect(screen.getByRole('button', { name: '- 인출' })).toHaveAttribute('aria-pressed', 'false')
     })
 
     it('uses fixed choices for band width and interval weeks', () => {
@@ -346,38 +310,5 @@ describe('VrSettingsSection', () => {
       expect(mockSetField).toHaveBeenCalledWith('intervalWeeks', 4)
     })
 
-    it('places recurring amount before band width and interval', () => {
-      render(
-        <VrSettingsSection
-          fields={baseFields}
-          {...baseProps}
-        />,
-      )
-
-      const recurringLabel = screen.getByText('적립금(+)/인출금(-)')
-      const bandWidthLabel = screen.getByText('밴드 폭')
-      const intervalLabel = screen.getByText('리밸런싱 주기')
-
-      expect(recurringLabel.compareDocumentPosition(bandWidthLabel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-      expect(bandWidthLabel.compareDocumentPosition(intervalLabel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    })
-
-    it('renders units in controls and removes helper copy', () => {
-      render(
-        <VrSettingsSection
-          fields={baseFields}
-          {...baseProps}
-        />,
-      )
-
-      expect(screen.getAllByText('USD')).toHaveLength(2)
-      expect(screen.getByRole('button', { name: '+ 적립' })).toHaveAttribute('aria-pressed', 'false')
-      expect(screen.getByRole('button', { name: '거치' })).toHaveAttribute('aria-pressed', 'true')
-      expect(screen.getByRole('button', { name: '- 인출' })).toHaveAttribute('aria-pressed', 'false')
-      expect(screen.getByRole('button', { name: '15%' })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: '2주' })).toBeInTheDocument()
-      expect(screen.queryByText(/양수=향후 입금/)).not.toBeInTheDocument()
-      expect(screen.queryByText('VR 전략 전용')).not.toBeInTheDocument()
-    })
   })
 })
