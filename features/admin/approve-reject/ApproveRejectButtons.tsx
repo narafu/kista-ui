@@ -48,14 +48,28 @@ export function ApproveRejectButtons({ userId, nickname }: Props) {
 
   return (
     <div className="flex gap-2">
-      <button
-        type="button"
-        onClick={handleApprove}
-        disabled={loading}
-        className={cn(buttonVariants({ variant: 'default', size: 'sm' }), 'gap-1')}
-      >
-        {action === 'approve' ? <><Spinner size={12} />승인 중...</> : '승인'}
-      </button>
+      <AlertDialog>
+        <AlertDialogTrigger
+          disabled={loading}
+          className={cn(buttonVariants({ variant: 'default', size: 'sm' }), 'gap-1')}
+        >
+          {action === 'approve' ? <><Spinner size={12} />승인 중...</> : '승인'}
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>가입을 승인하시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {`${nickname} 님을 승인합니다. 승인 즉시 서비스 이용이 시작됩니다.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loading}>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleApprove} disabled={loading}>
+              승인
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <AlertDialog>
         <AlertDialogTrigger
           disabled={loading}

@@ -31,25 +31,40 @@ describe('ApproveRejectButtons', () => {
     rejectPending = false
   })
 
-  it('calls the approve mutation with the userId on approve click', async () => {
+  it('opens a confirmation dialog without triggering the approve mutation on click', async () => {
     const user = userEvent.setup()
 
     render(<ApproveRejectButtons userId="user-1" nickname="홍길동" />)
 
     await user.click(screen.getByRole('button', { name: '승인' }))
 
+    expect(screen.getByText('가입을 승인하시겠습니까?')).toBeInTheDocument()
+    expect(screen.getByText(/홍길동/)).toBeInTheDocument()
+    expect(approveMutateMock).not.toHaveBeenCalled()
+    expect(rejectMutateMock).not.toHaveBeenCalled()
+  })
+
+  it('calls the approve mutation with the userId on confirm', async () => {
+    const user = userEvent.setup()
+
+    render(<ApproveRejectButtons userId="user-1" nickname="홍길동" />)
+
+    await user.click(screen.getByRole('button', { name: '승인' }))
+    await user.click(screen.getByRole('button', { name: '승인' }))
+
     expect(approveMutateMock).toHaveBeenCalledWith('user-1', expect.anything())
     expect(rejectMutateMock).not.toHaveBeenCalled()
   })
 
-  it('has no confirmation step before triggering the approve mutation', async () => {
+  it('does not trigger the approve mutation when the dialog is cancelled', async () => {
     const user = userEvent.setup()
 
     render(<ApproveRejectButtons userId="user-3" nickname="이영희" />)
 
     await user.click(screen.getByRole('button', { name: '승인' }))
+    await user.click(screen.getByRole('button', { name: '취소' }))
 
-    expect(approveMutateMock).toHaveBeenCalledTimes(1)
+    expect(approveMutateMock).not.toHaveBeenCalled()
   })
 
   it('opens a confirmation dialog without triggering the reject mutation on click', async () => {
