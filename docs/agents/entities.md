@@ -17,7 +17,7 @@ entities끼리 직접 참조 금지. 두 도메인을 조합해야 하면 `featu
 | `account` | 계좌 CRUD, KIS 연결 테스트, 증거금 조회 |
 | `strategy` | 전략(TradingCycle) CRUD, 일시정지/재개 |
 | `order` | 다음 주문 미리보기, 주문 취소, 전략별 주문 내역 조회 |
-| `trade` | 거래 내역, 사이클 히스토리, 수익 통계, SSE 거래 알림 |
+| `trade` | 거래 내역, 사이클 히스토리, KIS live 포트폴리오, SSE 거래 알림 |
 | `user` | 현재 사용자 조회, 로그아웃, 재신청, 회원 탈퇴, 설정 변경 |
 | `market` | 시장 휴일, 마켓 세션 |
 | `meta` | 전략 타입/종목 메타데이터 (MetaProvider 포함) |

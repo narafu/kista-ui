@@ -51,6 +51,6 @@ export interface CyclePerformance {
 
 export interface CyclePerformancePage {
   items: CyclePerformance[]
-  nextCursor: string | null
+  nextCursor?: string | null
   hasMore: boolean
 }
