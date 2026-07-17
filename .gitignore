@@ -53,3 +53,8 @@ next-env.d.ts
 
 *.log
 .claude/settings.local.json
+
+# playwright e2e
+/e2e/.auth/
+/test-results/
+/playwright-report/
