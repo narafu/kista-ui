@@ -32,6 +32,11 @@ describe('fmtSignedUsd', () => {
   it('음수는 - 부호를 그대로 유지한다', () => {
     expect(fmtSignedUsd(-1234.5)).toBe('-1,234.50')
   })
+
+  it('symbol을 주면 부호와 숫자 사이에 삽입한다', () => {
+    expect(fmtSignedUsd(150.5, 2, '$')).toBe('+$150.50')
+    expect(fmtSignedUsd(-20, 2, '$')).toBe('-$20.00')
+  })
 })
 
 describe('todayKst', () => {

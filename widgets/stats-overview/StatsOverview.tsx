@@ -6,13 +6,13 @@ import {
   useEquityCurveQuery,
 } from '@entities/stats'
 import type { BenchmarkSymbol, EquityCurve, StatsSummary } from '@entities/stats'
-import { ErrorDisplay } from '@widgets/error-display'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { normalizeEquityCurve } from './lib/normalizeEquityCurve'
 import { StatsKpiRow } from './StatsKpiRow'
 import { EquityCurveChart } from './EquityCurveChart'
 import { StrategyTypeComparison } from './StrategyTypeComparison'
 import { CyclePerformanceList } from './CyclePerformanceList'
+import { SectionError } from './SectionError'
 
 export type RangeKey = '1M' | '3M' | '6M' | '1Y' | 'ALL'
 
@@ -72,13 +72,13 @@ export function StatsOverview({ initialSummary, initialCurve, defaultFrom, defau
   return (
     <div className="flex flex-col gap-4">
       {summaryFailed ? (
-        <ErrorDisplay standalone={false} />
+        <SectionError />
       ) : summary ? (
         <StatsKpiRow summary={summary} rows={rows} range={range} benchmark={benchmark} />
       ) : null}
 
       {curveFailed ? (
-        <ErrorDisplay standalone={false} />
+        <SectionError />
       ) : (
         <EquityCurveChart
           rows={rows}
@@ -89,11 +89,7 @@ export function StatsOverview({ initialSummary, initialCurve, defaultFrom, defau
         />
       )}
 
-      {summaryFailed ? (
-        <ErrorDisplay standalone={false} />
-      ) : (
-        <StrategyTypeComparison byType={byType} />
-      )}
+      {summaryFailed ? null : <StrategyTypeComparison byType={byType} />}
 
       <CyclePerformanceList byType={byType} />
     </div>

@@ -5,17 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { cn } from '@shared/lib/utils'
-import { fmtDate, fmtUsd, pnlTextClass } from '@shared/lib/format'
+import { fmtDate, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
 import { useStatsCyclesQuery } from '@entities/stats'
 import type { StrategyTypeStats } from '@entities/stats'
 import { strategyTypeShort } from '@entities/strategy'
 
 interface Props {
   byType: StrategyTypeStats[]
-}
-
-function fmtSignedDollar(n: number): string {
-  return n < 0 ? `-$${fmtUsd(Math.abs(n))}` : `+$${fmtUsd(n)}`
 }
 
 export function CyclePerformanceList({ byType }: Props) {
@@ -82,7 +78,7 @@ export function CyclePerformanceList({ byType }: Props) {
                     cycle.pnl != null ? pnlTextClass(cycle.pnl) : 'text-muted-foreground',
                   )}
                 >
-                  {cycle.pnl != null ? fmtSignedDollar(cycle.pnl) : '—'}
+                  {cycle.pnl != null ? fmtSignedUsd(cycle.pnl, 2, '$') : '—'}
                 </span>
                 <span
                   className={cn(

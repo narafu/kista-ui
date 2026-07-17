@@ -1,5 +1,5 @@
 import { KpiCard } from '@widgets/kpi-card'
-import { fmtUsd, pnlTextClass } from '@shared/lib/format'
+import { fmtUsd, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
 import { excessReturnPp } from './lib/normalizeEquityCurve'
 import type { NormalizedRow } from './lib/normalizeEquityCurve'
 import type { BenchmarkSymbol, StatsSummary } from '@entities/stats'
@@ -20,10 +20,6 @@ const RANGE_LABEL: Record<RangeKey, string> = {
   ALL: '전체 기간',
 }
 
-function fmtSignedDollar(n: number): string {
-  return n < 0 ? `-$${fmtUsd(Math.abs(n))}` : `+$${fmtUsd(n)}`
-}
-
 export function StatsKpiRow({ summary, rows, range, benchmark }: Props) {
   const closedCount = summary.byType.reduce((sum, t) => sum + t.closedCycleCount, 0)
   const activeCount = summary.byType.reduce((sum, t) => sum + t.activeCycleCount, 0)
@@ -34,12 +30,12 @@ export function StatsKpiRow({ summary, rows, range, benchmark }: Props) {
       <KpiCard
         variant="accent"
         label="총 실현손익"
-        value={fmtSignedDollar(summary.totalRealizedPnl)}
+        value={fmtSignedUsd(summary.totalRealizedPnl, 2, '$')}
         sub={`종료 사이클 ${closedCount}개 누적`}
       />
       <KpiCard
         label="미실현 평가손익"
-        value={fmtSignedDollar(summary.totalUnrealizedPnl)}
+        value={fmtSignedUsd(summary.totalUnrealizedPnl, 2, '$')}
         valueClassName={pnlTextClass(summary.totalUnrealizedPnl)}
         sub={`진행 중 사이클 ${activeCount}개`}
       />

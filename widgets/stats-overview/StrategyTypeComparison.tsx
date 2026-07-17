@@ -2,15 +2,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
-import { fmtUsd, pnlTextClass } from '@shared/lib/format'
+import { fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
 import type { StrategyTypeStats } from '@entities/stats'
 
 interface Props {
   byType: StrategyTypeStats[]
-}
-
-function fmtSignedDollar(n: number): string {
-  return n < 0 ? `-$${fmtUsd(Math.abs(n))}` : `+$${fmtUsd(n)}`
 }
 
 export function StrategyTypeComparison({ byType }: Props) {
@@ -55,10 +51,10 @@ export function StrategyTypeComparison({ byType }: Props) {
                       {t.avgDurationDays != null ? `${t.avgDurationDays.toFixed(1)}일` : '—'}
                     </td>
                     <td className={`px-4 py-3 text-right tabular-nums font-medium ${pnlTextClass(t.realizedPnl)}`}>
-                      {fmtSignedDollar(t.realizedPnl)}
+                      {fmtSignedUsd(t.realizedPnl, 2, '$')}
                     </td>
                     <td className={`px-4 py-3 text-right tabular-nums font-medium ${pnlTextClass(t.unrealizedPnl)}`}>
-                      {fmtSignedDollar(t.unrealizedPnl)}
+                      {fmtSignedUsd(t.unrealizedPnl, 2, '$')}
                     </td>
                   </tr>
                 ))}

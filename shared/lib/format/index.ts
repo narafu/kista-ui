@@ -2,9 +2,9 @@ export function fmtUsd(n: number, digits = 2): string {
   return n.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits })
 }
 
-/** 부호 포함 금액 — 양수는 +, 음수는 toLocaleString의 - 그대로 */
-export function fmtSignedUsd(n: number, digits = 2): string {
-  return n >= 0 ? `+${fmtUsd(n, digits)}` : fmtUsd(n, digits)
+/** 부호 포함 금액 — 양수는 +, 음수는 toLocaleString의 - 그대로. symbol을 주면 부호와 숫자 사이에 통화 기호를 삽입한다(예: "+$1,234.50"). */
+export function fmtSignedUsd(n: number, digits = 2, symbol = ''): string {
+  return n >= 0 ? `+${symbol}${fmtUsd(n, digits)}` : `-${symbol}${fmtUsd(Math.abs(n), digits)}`
 }
 
 export function fmtDate(dateStr: string): string {
