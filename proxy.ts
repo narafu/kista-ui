@@ -15,7 +15,7 @@ const cacheCookieOptions = (request: NextRequest) => ({
   maxAge: 3600,
   path: '/',
 })
-const PROTECTED_PREFIXES = ['/dashboard', '/accounts', '/strategies', '/settings']
+const PROTECTED_PREFIXES = ['/dashboard', '/accounts', '/strategies', '/stats', '/settings']
 const ADMIN_PREFIXES = ['/admin']
 
 // JWT exp 클레임만 확인 (서명 검증 없음) — bufferSecs 이내 만료도 갱신 대상

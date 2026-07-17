@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, CreditCard, ListChecks, Settings } from 'lucide-react'
+import { LayoutDashboard, CreditCard, ListChecks, TrendingUp, Settings } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
 import { isNavItemActive } from './nav-utils'
 
@@ -10,6 +10,7 @@ const TABS = [
   { href: '/dashboard',  label: '대시보드', icon: LayoutDashboard },
   { href: '/accounts',   label: '계좌',     icon: CreditCard },
   { href: '/strategies', label: '전략',     icon: ListChecks },
+  { href: '/stats',      label: '통계',     icon: TrendingUp },
   { href: '/settings',   label: '설정',     icon: Settings },
 ]
 
