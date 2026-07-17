@@ -1,0 +1,53 @@
+'use client'
+
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import { getEquityCurve, getStatsCycles, getStatsSummary } from '../api'
+import type {
+  BenchmarkSymbol,
+  CyclePerformance,
+  CyclePerformancePage,
+  EquityCurve,
+  StatsSummary,
+} from '../model/types'
+
+const EMPTY_CYCLE_PAGE: CyclePerformancePage = { items: [], nextCursor: null, hasMore: false }
+
+export function useStatsSummaryQuery(initialData?: StatsSummary) {
+  return useQuery<StatsSummary>({
+    queryKey: ['statsSummary'],
+    queryFn: () => getStatsSummary(),
+    initialData,
+  })
+}
+
+export interface EquityCurveParams {
+  from?: string
+  to?: string
+  benchmark: BenchmarkSymbol
+}
+
+export function useEquityCurveQuery(params: EquityCurveParams, initialData?: EquityCurve) {
+  return useQuery<EquityCurve>({
+    queryKey: ['equityCurve', params.from, params.to, params.benchmark],
+    queryFn: () => getEquityCurve(params),
+    initialData,
+    placeholderData: (prev) => prev,
+  })
+}
+
+export function useStatsCyclesQuery(type?: string) {
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery<CyclePerformancePage>({
+      queryKey: ['statsCycles', type ?? 'ALL'],
+      queryFn: ({ pageParam }) =>
+        getStatsCycles({ type, cursor: pageParam as string | undefined }).catch(
+          () => EMPTY_CYCLE_PAGE
+        ),
+      initialPageParam: undefined,
+      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+      placeholderData: (prev) => prev,
+    })
+
+  const cycles: CyclePerformance[] = data?.pages.flatMap((p) => p.items) ?? []
+  return { cycles, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage }
+}
