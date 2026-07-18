@@ -8,12 +8,8 @@ let previewState = {
     orders: [] as Array<{ direction: string; price: string; quantity: number }>,
     todayOrders: [] as Array<{ status: 'PLANNED' | 'PLACED' }>,
     otherStrategiesPlannedBuyUsd: '0',
+    competition: null as { sufficientBudget: boolean } | null,
   },
-  isLoading: false,
-}
-
-let marginState = {
-  items: [{ currency: 'USD', purchasableAmount: 1000 }],
   isLoading: false,
 }
 
@@ -27,10 +23,6 @@ vi.mock('next/link', () => ({
 
 vi.mock('@entities/order', () => ({
   useStrategyOrderPreviewQuery: () => previewState,
-}))
-
-vi.mock('@entities/account', () => ({
-  useAccountMarginQuery: () => marginState,
 }))
 
 vi.mock('@entities/market', () => ({
@@ -75,11 +67,8 @@ describe('StrategyCard mobile row', () => {
         orders: [],
         todayOrders: [],
         otherStrategiesPlannedBuyUsd: '0',
+        competition: null,
       },
-      isLoading: false,
-    }
-    marginState = {
-      items: [{ currency: 'USD', purchasableAmount: 1000 }],
       isLoading: false,
     }
     marketSessionState = {
@@ -180,6 +169,7 @@ describe('StrategyCard mobile row', () => {
       data: {
         ...previewState.data,
         orders: [{ direction: 'BUY', price: '1200', quantity: 1 }],
+        competition: { sufficientBudget: false },
       },
     }
 
@@ -194,6 +184,7 @@ describe('StrategyCard mobile row', () => {
       data: {
         ...previewState.data,
         orders: [{ direction: 'BUY', price: '1200', quantity: 1 }],
+        competition: { sufficientBudget: false },
       },
     }
     marketSessionState = {
@@ -203,5 +194,23 @@ describe('StrategyCard mobile row', () => {
     render(<StrategyCard accountId="account-1" strategy={strategy} />)
 
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
+  })
+
+  it('shows a deficit color instead of green when a sell order is planned but the buy is still short on budget', () => {
+    previewState = {
+      ...previewState,
+      data: {
+        ...previewState.data,
+        todayOrders: [{ status: 'PLANNED' }],
+        orders: [{ direction: 'BUY', price: '1200', quantity: 1 }],
+        competition: { sufficientBudget: false },
+      },
+    }
+
+    render(<StrategyCard accountId="account-1" strategy={strategy} />)
+
+    const borderAccent = screen.getByTestId('strategy-order-border-accent')
+    expect(borderAccent).not.toHaveAttribute('style', expect.stringContaining('border-color: var(--status-ok);'))
+    expect(borderAccent).toHaveAttribute('style', expect.stringContaining('border-color: var(--warn);'))
   })
 })

@@ -4,8 +4,6 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { fmtUsd } from '@shared/lib/format'
-import { toNum } from '@shared/lib/utils'
-import { useAccountMarginQuery } from '@entities/account'
 import { useMeta } from '@entities/meta'
 import { useMarketSessionQuery } from '@entities/market'
 import { useStrategyOrderPreviewQuery } from '@entities/order'
@@ -22,30 +20,23 @@ interface Props {
 
 export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
   const { findStrategyType, labelOf } = useMeta()
-  const { data: preview, isLoading: isLoadingPreview } = useStrategyOrderPreviewQuery(strategy.id)
+  const { data: preview } = useStrategyOrderPreviewQuery(strategy.id)
   const previewOrders = preview?.orders ?? []
   const hasBuyOrders = previewOrders.some((o) => o.direction === 'BUY')
-  const { items: marginItems, isLoading: isMarginLoading } = useAccountMarginQuery(accountId, {
-    enabled: !isLoadingPreview && hasBuyOrders,
-  })
   const { data: marketSession } = useMarketSessionQuery()
   const usesDivisionCount = (findStrategyType(strategy.type)?.divisionCounts?.length ?? 0) > 0
   const isVr = strategy.vr != null // VR 전략 여부 — vr 필드 존재 여부로 판정
   const seedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
   const seedBadgeCls = seedBadgeClass(strategy.cycleSeedType)
   const hasPlannedOrder = (preview?.todayOrders ?? []).some((o) => o.status === 'PLANNED')
-  const totalBuyUsd = hasBuyOrders && !isMarginLoading
-    ? previewOrders
-      .filter((o) => o.direction === 'BUY')
-      .reduce((sum, o) => sum + toNum(o.price) * o.quantity, 0)
-    : 0
-  const purchasableUsd = marginItems.find((i) => i.currency === 'USD')?.purchasableAmount ?? 0
-  const otherPlannedUsd = toNum(preview?.otherStrategiesPlannedBuyUsd ?? '0')
-  const hasDeficit = hasBuyOrders && !isLoadingPreview && !isMarginLoading && totalBuyUsd + otherPlannedUsd > purchasableUsd
-  const orderBorderColor = hasPlannedOrder
-    ? 'var(--status-ok)'
-    : hasDeficit
-      ? marketSession?.session === 'DIRECT' ? 'var(--status-error)' : 'var(--warn)'
+  // 서버가 계좌 전체 우선순위 경쟁까지 반영해 계산한 예산 충분 여부 — 라이브 잔고 별도 조회 불필요
+  const competition = preview?.competition ?? null
+  const hasDeficit = hasBuyOrders && competition ? !competition.sufficientBudget : false
+  // 부족 상태가 최우선 — SELL만 PLANNED로 성공해도 BUY가 부족하면 부족색을 표시한다
+  const orderBorderColor = hasDeficit
+    ? (marketSession?.session === 'DIRECT' ? 'var(--status-error)' : 'var(--warn)')
+    : hasPlannedOrder
+      ? 'var(--status-ok)'
       : null
 
   return (
