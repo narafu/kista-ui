@@ -27,7 +27,6 @@ export function StrategyTypeComparison({ byType }: Props) {
                   <tr>
                     <TableHeadCell className="text-left">전략</TableHeadCell>
                     <TableHeadCell className="text-right">사이클</TableHeadCell>
-                    <TableHeadCell className="text-right">승률</TableHeadCell>
                     <TableHeadCell className="text-right">평균 수익률</TableHeadCell>
                     <TableHeadCell className="text-right">평균 소요일</TableHeadCell>
                     <TableHeadCell className="text-right">실현손익</TableHeadCell>
@@ -45,7 +44,6 @@ export function StrategyTypeComparison({ byType }: Props) {
                       <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
                         종료 {t.closedCycleCount} · 진행 {t.activeCycleCount}
                       </td>
-                      <td className="px-4 py-3 text-right tabular-nums">{t.winRate != null ? `${Math.round(t.winRate * 100)}%` : '—'}</td>
                       <td className={cn('px-4 py-3 text-right tabular-nums', t.avgReturnRate != null && pnlTextClass(t.avgReturnRate))}>
                         {t.avgReturnRate != null ? `${t.avgReturnRate >= 0 ? '+' : ''}${(t.avgReturnRate * 100).toFixed(1)}%` : '—'}
                       </td>
@@ -69,10 +67,6 @@ export function StrategyTypeComparison({ byType }: Props) {
                       <dd className="mt-0.5 tabular-nums">
                         종료 {item.closedCycleCount} · 진행 {item.activeCycleCount}
                       </dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs text-muted-foreground">승률</dt>
-                      <dd className="mt-0.5 tabular-nums">{item.winRate != null ? `${Math.round(item.winRate * 100)}%` : '—'}</dd>
                     </div>
                     <div>
                       <dt className="text-xs text-muted-foreground">평균 수익률</dt>

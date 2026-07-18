@@ -9,7 +9,6 @@ import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
 import { useStatsCyclesQuery } from '@entities/stats'
 import type { StrategyTypeStats } from '@entities/stats'
-import { strategyTypeShort } from '@entities/strategy'
 
 interface Props {
   byType: StrategyTypeStats[]
@@ -48,7 +47,7 @@ export function CyclePerformanceList({ byType }: Props) {
                   typeFilter === t.type ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]' : 'text-muted-foreground hover:text-foreground hover:bg-accent',
                 )}
               >
-                {strategyTypeShort(t.type)}
+                {t.type}
               </button>
             ))}
           </div>
@@ -70,7 +69,6 @@ export function CyclePerformanceList({ byType }: Props) {
                     <TableHeadCell className="text-left">기간</TableHeadCell>
                     <TableHeadCell className="text-right">손익</TableHeadCell>
                     <TableHeadCell className="text-right">수익률</TableHeadCell>
-                    <TableHeadCell className="text-right">소요일</TableHeadCell>
                   </tr>
                 </thead>
                 <tbody>
@@ -83,12 +81,7 @@ export function CyclePerformanceList({ byType }: Props) {
                       </td>
                       <td className="px-4 py-3 font-medium tabular-nums">{cycle.ticker ?? '—'}</td>
                       <td className="px-4 py-3 text-muted-foreground">
-                        {fmtDate(cycle.startDate)} ~ {cycle.endDate ? fmtDate(cycle.endDate) : '진행 중'}{' '}
-                        {!cycle.closed && (
-                          <Badge tone="neutral" size="sm">
-                            진행 중
-                          </Badge>
-                        )}
+                        {fmtDate(cycle.startDate)} ~ {cycle.endDate ? fmtDate(cycle.endDate) : '진행 중'}
                       </td>
                       <td className={cn('px-4 py-3 text-right tabular-nums', cycle.pnl != null ? pnlTextClass(cycle.pnl) : 'text-muted-foreground')}>
                         {cycle.pnl != null ? fmtSignedUsd(cycle.pnl, 2, '$') : '—'}
@@ -96,7 +89,6 @@ export function CyclePerformanceList({ byType }: Props) {
                       <td className={cn('px-4 py-3 text-right tabular-nums', cycle.returnRate != null ? pnlTextClass(cycle.returnRate) : 'text-muted-foreground')}>
                         {cycle.returnRate != null ? `${cycle.returnRate >= 0 ? '+' : ''}${(cycle.returnRate * 100).toFixed(1)}%` : '—'}
                       </td>
-                      <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{cycle.durationDays != null ? `${cycle.durationDays}일` : '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -114,14 +106,9 @@ export function CyclePerformanceList({ byType }: Props) {
                     </span>
                   </div>
                   <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                    {fmtDate(cycle.startDate)} ~ {cycle.endDate ? fmtDate(cycle.endDate) : '진행 중'}{' '}
-                    {!cycle.closed && (
-                      <Badge tone="neutral" size="sm">
-                        진행 중
-                      </Badge>
-                    )}
+                    {fmtDate(cycle.startDate)} ~ {cycle.endDate ? fmtDate(cycle.endDate) : '진행 중'}
                   </div>
-                  <dl className="mt-3 grid grid-cols-3 gap-2 border-t pt-3 text-right">
+                  <dl className="mt-3 grid grid-cols-2 gap-2 border-t pt-3 text-right">
                     <div>
                       <dt className="text-xs text-muted-foreground">손익</dt>
                       <dd className={cn('mt-1 text-sm tabular-nums', cycle.pnl != null ? pnlTextClass(cycle.pnl) : 'text-muted-foreground')}>
@@ -133,10 +120,6 @@ export function CyclePerformanceList({ byType }: Props) {
                       <dd className={cn('mt-1 text-sm tabular-nums', cycle.returnRate != null ? pnlTextClass(cycle.returnRate) : 'text-muted-foreground')}>
                         {cycle.returnRate != null ? `${cycle.returnRate >= 0 ? '+' : ''}${(cycle.returnRate * 100).toFixed(1)}%` : '—'}
                       </dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs text-muted-foreground">소요일</dt>
-                      <dd className="mt-1 text-sm tabular-nums text-muted-foreground">{cycle.durationDays != null ? `${cycle.durationDays}일` : '—'}</dd>
                     </div>
                   </dl>
                 </section>

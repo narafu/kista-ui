@@ -59,7 +59,7 @@ widget 슬라이스끼리 cross-import 금지. **단, "공용 UI 위젯" 목록(
 - **`kpi-card`**: `<KpiCard />` 그리드 패턴 유지
 - **`revealable-value`**: 마스킹 값 공개 토글
 - **`all-strategies`**: `useAllStrategiesQuery(initialStrategies)` 초기 데이터 패턴
-- **`stats-overview`**: 전략 유형 비교와 사이클 성과는 `sm` 이상에서 열 헤더가 있는 실제 `table` 마크업, `sm` 미만에서 명시적인 라벨-값 요약 행으로 표시한다. 두 표현은 같은 조회·페이지네이션 상태를 공유한다
+- **`stats-overview`**: 전략 유형 비교와 사이클 성과는 `sm` 이상에서 열 헤더가 있는 실제 `table` 마크업, `sm` 미만에서 명시적인 라벨-값 요약 행으로 표시한다. 두 표현은 같은 조회·페이지네이션 상태를 공유한다. 사이클 성과는 전략/종목/기간/손익/수익률만 표시하고, 미종료 상태는 기간 값의 `진행 중` 텍스트로만 노출한다
 - **`admin-user-list`**: 이상감지 카드는 `AdminAnomalies { pausedAccounts, inactiveAccounts }`
 - **`market-holiday-calendar/WeeklyMarketCalendar`**: 주간/월간 데이터를 여러 쿼리로 조합
 - **`glass-card`**, **`pull-to-refresh`**, **`layout/DesktopSidebar`**: 일부 CSS 토큰/동적 계산 인라인 style 유지

@@ -64,13 +64,13 @@ describe('StatsOverview', () => {
             strategyType: 'INFINITE',
             ticker: 'SOXL',
             startDate: '2026-06-01',
-            endDate: '2026-06-10',
+            endDate: null,
             startAmount: 1000,
             endAmount: 1120,
             pnl: 120,
             returnRate: 0.12,
             durationDays: 9,
-            closed: true,
+            closed: false,
           }],
           nextCursor: null,
           hasMore: false,
@@ -91,10 +91,13 @@ describe('StatsOverview', () => {
     expect(await screen.findAllByText('SOXL')).toHaveLength(2)
     const cycleTable = screen.getByRole('table', { name: '사이클 성과' })
     expect(cycleTable.parentElement).toHaveClass('hidden', 'sm:block')
-    for (const header of ['전략', '종목', '기간', '손익', '수익률', '소요일']) {
+    for (const header of ['전략', '종목', '기간', '손익', '수익률']) {
       expect(within(cycleTable).getByRole('columnheader', { name: header })).toBeInTheDocument()
     }
+    expect(within(cycleTable).queryByRole('columnheader', { name: '소요일' })).not.toBeInTheDocument()
     expect(within(cycleTable).getByText('INFINITE')).toBeInTheDocument()
+    const activeCycleRow = within(cycleTable).getByRole('row', { name: /INFINITE SOXL/ })
+    expect(activeCycleRow.textContent?.match(/진행 중/g)).toHaveLength(1)
 
     const strategyTable = screen.getByRole('columnheader', { name: '사이클' }).closest('table')
     expect(strategyTable).not.toBeNull()
@@ -104,16 +107,21 @@ describe('StatsOverview', () => {
 
     const cycleMobile = screen.getByRole('list', { name: '사이클 성과 모바일' })
     expect(cycleMobile).toHaveClass('sm:hidden')
-    for (const label of ['손익', '수익률', '소요일']) {
+    for (const label of ['손익', '수익률']) {
       expect(within(cycleMobile).getByText(label)).toBeInTheDocument()
     }
+    expect(within(cycleMobile).queryByText('소요일')).not.toBeInTheDocument()
     expect(within(cycleMobile).getByText('INFINITE')).toBeInTheDocument()
+    const activeCycleCard = within(cycleMobile).getByRole('listitem')
+    expect(activeCycleCard.textContent?.match(/진행 중/g)).toHaveLength(1)
 
     const strategyMobile = screen.getByRole('list', { name: '전략 유형 비교 모바일' })
     expect(strategyMobile).toHaveClass('sm:hidden')
-    for (const label of ['사이클', '승률', '평균 수익률', '평균 소요일', '실현손익', '미실현']) {
+    for (const label of ['사이클', '평균 수익률', '평균 소요일', '실현손익', '미실현']) {
       expect(within(strategyMobile).getByText(label)).toBeInTheDocument()
     }
+    expect(within(strategyTable).queryByRole('columnheader', { name: '승률' })).not.toBeInTheDocument()
+    expect(within(strategyMobile).queryByText('승률')).not.toBeInTheDocument()
     expect(within(strategyMobile).getByText('INFINITE')).toBeInTheDocument()
     expect(screen.queryByText('무한매수법')).not.toBeInTheDocument()
 
@@ -125,7 +133,7 @@ describe('StatsOverview', () => {
     expect(threeMonths).toHaveAttribute('aria-pressed', 'false')
     expect(oneMonth).toHaveAttribute('aria-pressed', 'true')
 
-    const infiniteStrategy = screen.getByRole('button', { name: 'I' })
+    const infiniteStrategy = screen.getByRole('button', { name: 'INFINITE' })
     const strategyFilters = infiniteStrategy.parentElement
     expect(strategyFilters).not.toBeNull()
     if (!strategyFilters) throw new Error('전략 필터 컨테이너를 찾을 수 없습니다')
