@@ -1,9 +1,33 @@
 import { clientFetch } from '@shared/lib/api-client'
-import type { NextOrderPreview, SkipReason, StrategyOrder } from '../model/types'
+import type { BuyCompetitionSummary, CompetingStrategy, NextOrderPreview, SkipReason, StrategyOrder } from '../model/types'
 
 export interface CancelOrdersResult {
   cancelledCount: number
   failedCount: number
+}
+
+function normalizeCompetingStrategy(raw: unknown): CompetingStrategy {
+  const item = raw as Record<string, unknown>
+  return {
+    strategyId: String(item.strategyId),
+    type: String(item.type),
+    ticker: String(item.ticker),
+    requiredBuyUsd: String(item.requiredBuyUsd),
+    priority: Number(item.priority),
+  }
+}
+
+function normalizeCompetition(raw: unknown): BuyCompetitionSummary | null {
+  if (raw == null) return null
+  const r = raw as Record<string, unknown>
+  return {
+    sufficientBudget: Boolean(r.sufficientBudget),
+    availableDeposit: String(r.availableDeposit ?? '0'),
+    requiredForThisStrategy: String(r.requiredForThisStrategy ?? '0'),
+    consumedByHigherPriority: String(r.consumedByHigherPriority ?? '0'),
+    blockedByHigherPriority: ((r.blockedByHigherPriority as unknown[]) ?? []).map(normalizeCompetingStrategy),
+    uncertainStrategyIds: ((r.uncertainStrategyIds as unknown[]) ?? []).map(String),
+  }
 }
 
 function normalizePreview(raw: unknown): NextOrderPreview {
@@ -47,7 +71,8 @@ function normalizePreview(raw: unknown): NextOrderPreview {
     }
   })
   const otherStrategiesPlannedBuyUsd = String(r.otherStrategiesPlannedBuyUsd ?? '0')
-  return { tradeDate: String(r.tradeDate), position, orders, skipReason, todayOrders, otherStrategiesPlannedBuyUsd }
+  const competition = normalizeCompetition(r.competition)
+  return { tradeDate: String(r.tradeDate), position, orders, skipReason, todayOrders, otherStrategiesPlannedBuyUsd, competition }
 }
 
 export async function getStrategyOrdersPreview(strategyId: string): Promise<NextOrderPreview> {

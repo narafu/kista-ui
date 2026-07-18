@@ -5,6 +5,8 @@ export type {
   NextOrderPreview,
   PlacedOrder,
   StrategyOrder,
+  BuyCompetitionSummary,
+  CompetingStrategy,
 } from './model/types'
 export { orderStatusBadgeClass, orderTypeBadgeClass, ORDER_STATUS_LABEL } from './model/status-badge'
 export type { CancelOrdersResult } from './api'

@@ -116,4 +116,56 @@ describe('order api', () => {
 
     expect(clientFetchMock).toHaveBeenCalledWith('/api/trading-cycles/strategy-1/orders')
   })
+
+  it('normalizes a null competition field to null', async () => {
+    const { getStrategyOrdersPreview } = await import('./index')
+    clientFetchMock.mockResolvedValueOnce({
+      tradeDate: '2026-07-18',
+      position: null,
+      orders: [],
+      skipReason: 'NO_CYCLE_HISTORY',
+      todayOrders: [],
+      otherStrategiesPlannedBuyUsd: '0',
+      competition: null,
+    })
+
+    const result = await getStrategyOrdersPreview('strategy-1')
+
+    expect(result.competition).toBeNull()
+  })
+
+  it('normalizes a populated competition field including nested competing strategies', async () => {
+    const { getStrategyOrdersPreview } = await import('./index')
+    clientFetchMock.mockResolvedValueOnce({
+      tradeDate: '2026-07-18',
+      position: null,
+      orders: [],
+      skipReason: null,
+      todayOrders: [],
+      otherStrategiesPlannedBuyUsd: '0',
+      competition: {
+        sufficientBudget: false,
+        availableDeposit: 1000,
+        requiredForThisStrategy: 200,
+        consumedByHigherPriority: 900,
+        blockedByHigherPriority: [
+          { strategyId: 'vr-1', type: 'VR', ticker: 'TQQQ', requiredBuyUsd: 900, priority: 0 },
+        ],
+        uncertainStrategyIds: ['privacy-1'],
+      },
+    })
+
+    const result = await getStrategyOrdersPreview('strategy-1')
+
+    expect(result.competition).toEqual({
+      sufficientBudget: false,
+      availableDeposit: '1000',
+      requiredForThisStrategy: '200',
+      consumedByHigherPriority: '900',
+      blockedByHigherPriority: [
+        { strategyId: 'vr-1', type: 'VR', ticker: 'TQQQ', requiredBuyUsd: '900', priority: 0 },
+      ],
+      uncertainStrategyIds: ['privacy-1'],
+    })
+  })
 })
