@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { StatsOverview } from './StatsOverview'
 import type { EquityCurve, StatsSummary } from '@entities/stats'
@@ -52,6 +53,7 @@ describe('StatsOverview', () => {
   })
 
   it('KPI와 전략 비교 및 사이클 성과에서 전략 type name을 렌더링한다', async () => {
+    const user = userEvent.setup()
     fetchEitherMock.mockImplementation((url: string) => {
       if (url.startsWith('/api/stats/summary')) return Promise.resolve(SUMMARY)
       if (url.startsWith('/api/stats/equity-curve')) return Promise.resolve(CURVE)
@@ -89,8 +91,9 @@ describe('StatsOverview', () => {
     expect(await screen.findAllByText('SOXL')).toHaveLength(2)
     const cycleTable = screen.getByRole('table', { name: '사이클 성과' })
     expect(cycleTable.parentElement).toHaveClass('hidden', 'sm:block')
-    expect(within(cycleTable).getByRole('columnheader', { name: '종목' })).toBeInTheDocument()
-    expect(within(cycleTable).getByRole('columnheader', { name: '기간' })).toBeInTheDocument()
+    for (const header of ['전략', '종목', '기간', '손익', '수익률', '소요일']) {
+      expect(within(cycleTable).getByRole('columnheader', { name: header })).toBeInTheDocument()
+    }
     expect(within(cycleTable).getByText('INFINITE')).toBeInTheDocument()
 
     const strategyTable = screen.getByRole('columnheader', { name: '사이클' }).closest('table')
@@ -101,16 +104,37 @@ describe('StatsOverview', () => {
 
     const cycleMobile = screen.getByRole('list', { name: '사이클 성과 모바일' })
     expect(cycleMobile).toHaveClass('sm:hidden')
-    expect(within(cycleMobile).getByText('손익')).toBeInTheDocument()
-    expect(within(cycleMobile).getByText('수익률')).toBeInTheDocument()
-    expect(within(cycleMobile).getByText('소요일')).toBeInTheDocument()
+    for (const label of ['손익', '수익률', '소요일']) {
+      expect(within(cycleMobile).getByText(label)).toBeInTheDocument()
+    }
     expect(within(cycleMobile).getByText('INFINITE')).toBeInTheDocument()
 
     const strategyMobile = screen.getByRole('list', { name: '전략 유형 비교 모바일' })
     expect(strategyMobile).toHaveClass('sm:hidden')
-    expect(within(strategyMobile).getByText('승률')).toBeInTheDocument()
+    for (const label of ['사이클', '승률', '평균 수익률', '평균 소요일', '실현손익', '미실현']) {
+      expect(within(strategyMobile).getByText(label)).toBeInTheDocument()
+    }
     expect(within(strategyMobile).getByText('INFINITE')).toBeInTheDocument()
     expect(screen.queryByText('무한매수법')).not.toBeInTheDocument()
+
+    const threeMonths = screen.getByRole('button', { name: '3M' })
+    const oneMonth = screen.getByRole('button', { name: '1M' })
+    expect(threeMonths).toHaveAttribute('aria-pressed', 'true')
+    expect(oneMonth).toHaveAttribute('aria-pressed', 'false')
+    await user.click(oneMonth)
+    expect(threeMonths).toHaveAttribute('aria-pressed', 'false')
+    expect(oneMonth).toHaveAttribute('aria-pressed', 'true')
+
+    const infiniteStrategy = screen.getByRole('button', { name: 'I' })
+    const strategyFilters = infiniteStrategy.parentElement
+    expect(strategyFilters).not.toBeNull()
+    if (!strategyFilters) throw new Error('전략 필터 컨테이너를 찾을 수 없습니다')
+    const allStrategies = within(strategyFilters).getByRole('button', { name: '전체' })
+    expect(allStrategies).toHaveAttribute('aria-pressed', 'true')
+    expect(infiniteStrategy).toHaveAttribute('aria-pressed', 'false')
+    await user.click(infiniteStrategy)
+    expect(allStrategies).toHaveAttribute('aria-pressed', 'false')
+    expect(infiniteStrategy).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('데이터가 없으면 empty state를 보여준다', () => {

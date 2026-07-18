@@ -27,6 +27,7 @@ function ToggleButton({ active, onClick, children }: { active: boolean; onClick:
   return (
     <button
       type="button"
+      aria-pressed={active}
       onClick={onClick}
       className={cn(
         'min-h-9 w-full rounded px-2 py-1 text-xs font-medium transition-colors',

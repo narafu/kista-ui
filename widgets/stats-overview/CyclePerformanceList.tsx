@@ -27,6 +27,7 @@ export function CyclePerformanceList({ byType }: Props) {
           <div className="-mx-1 flex max-w-full items-center gap-0.5 overflow-x-auto rounded-md border border-border p-0.5">
             <button
               type="button"
+              aria-pressed={typeFilter === undefined}
               onClick={() => setTypeFilter(undefined)}
               className={cn(
                 'min-h-9 shrink-0 rounded px-2 text-xs font-medium transition-colors',
@@ -39,6 +40,7 @@ export function CyclePerformanceList({ byType }: Props) {
               <button
                 key={t.type}
                 type="button"
+                aria-pressed={typeFilter === t.type}
                 title={t.type}
                 onClick={() => setTypeFilter(t.type)}
                 className={cn(
