@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { StatsOverview } from './StatsOverview'
 import type { EquityCurve, StatsSummary } from '@entities/stats'
@@ -87,7 +87,29 @@ describe('StatsOverview', () => {
     expect(screen.queryByRole('button', { name: 'QQQ' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'QLD' })).not.toBeInTheDocument()
     await screen.findByText('SOXL')
-    expect(screen.getAllByText('INFINITE')).toHaveLength(2)
+    const cycleTable = screen.getByRole('table', { name: '사이클 성과' })
+    expect(cycleTable.parentElement).toHaveClass('hidden', 'sm:block')
+    expect(within(cycleTable).getByRole('columnheader', { name: '종목' })).toBeInTheDocument()
+    expect(within(cycleTable).getByRole('columnheader', { name: '기간' })).toBeInTheDocument()
+    expect(within(cycleTable).getByText('INFINITE')).toBeInTheDocument()
+
+    const strategyTable = screen.getByRole('columnheader', { name: '사이클' }).closest('table')
+    expect(strategyTable).not.toBeNull()
+    if (!strategyTable) throw new Error('전략 유형 비교 table을 찾을 수 없습니다')
+    expect(strategyTable.parentElement).toHaveClass('hidden', 'sm:block')
+    expect(within(strategyTable).getByText('INFINITE')).toBeInTheDocument()
+
+    const cycleMobile = screen.getByRole('list', { name: '사이클 성과 모바일' })
+    expect(cycleMobile).toHaveClass('sm:hidden')
+    expect(within(cycleMobile).getByText('손익')).toBeInTheDocument()
+    expect(within(cycleMobile).getByText('수익률')).toBeInTheDocument()
+    expect(within(cycleMobile).getByText('소요일')).toBeInTheDocument()
+    expect(within(cycleMobile).getByText('INFINITE')).toBeInTheDocument()
+
+    const strategyMobile = screen.getByRole('list', { name: '전략 유형 비교 모바일' })
+    expect(strategyMobile).toHaveClass('sm:hidden')
+    expect(within(strategyMobile).getByText('승률')).toBeInTheDocument()
+    expect(within(strategyMobile).getByText('INFINITE')).toBeInTheDocument()
     expect(screen.queryByText('무한매수법')).not.toBeInTheDocument()
   })
 
