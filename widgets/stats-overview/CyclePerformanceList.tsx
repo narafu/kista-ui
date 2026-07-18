@@ -18,8 +18,6 @@ export function CyclePerformanceList({ byType }: Props) {
   const [typeFilter, setTypeFilter] = useState<string | undefined>(undefined)
   const { cycles, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useStatsCyclesQuery(typeFilter)
 
-  const typeLabel = (type: string) => byType.find((t) => t.type === type)?.typeDescription ?? type
-
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
@@ -42,7 +40,7 @@ export function CyclePerformanceList({ byType }: Props) {
               <button
                 key={t.type}
                 type="button"
-                title={t.typeDescription}
+                title={t.type}
                 onClick={() => setTypeFilter(t.type)}
                 className={cn(
                   'text-xs px-2 py-1 rounded font-medium transition-colors',
@@ -66,7 +64,7 @@ export function CyclePerformanceList({ byType }: Props) {
           <div>
             {cycles.map((cycle) => (
               <div key={cycle.cycleId} className="flex items-center gap-3 px-4 py-3 border-t first:border-t-0 flex-wrap">
-                <Badge tone="brand" size="sm" className="shrink-0">{typeLabel(cycle.strategyType)}</Badge>
+                <Badge tone="brand" size="sm" className="shrink-0">{cycle.strategyType}</Badge>
                 <span className="text-sm font-medium tabular-nums w-16 shrink-0">{cycle.ticker ?? '—'}</span>
                 <span className="text-xs text-muted-foreground flex-1 min-w-[160px] flex items-center gap-1.5">
                   {fmtDate(cycle.startDate)} ~ {cycle.endDate ? fmtDate(cycle.endDate) : '진행 중'}

@@ -36,7 +36,7 @@ export function StrategyTypeComparison({ byType }: Props) {
                 {byType.map((t) => (
                   <tr key={t.type} className="border-t hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3">
-                      <Badge tone="brand" size="md">{t.typeDescription}</Badge>
+                      <Badge tone="brand" size="md">{t.type}</Badge>
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
                       종료 {t.closedCycleCount} · 진행 {t.activeCycleCount}

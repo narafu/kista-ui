@@ -52,13 +52,40 @@ describe('StatsOverview', () => {
     fetchEitherMock.mockReset()
   })
 
-  it('KPI와 전략 비교 테이블을 렌더링한다', () => {
+  it('KPI와 전략 비교 및 사이클 성과에서 전략 type name을 렌더링한다', async () => {
+    fetchEitherMock.mockImplementation((url: string) => {
+      if (url.startsWith('/api/stats/summary')) return Promise.resolve(SUMMARY)
+      if (url.startsWith('/api/stats/equity-curve')) return Promise.resolve(CURVE)
+      if (url.startsWith('/api/stats/cycles')) {
+        return Promise.resolve({
+          items: [{
+            cycleId: 'cycle-1',
+            strategyType: 'INFINITE',
+            ticker: 'SOXL',
+            startDate: '2026-06-01',
+            endDate: '2026-06-10',
+            startAmount: 1000,
+            endAmount: 1120,
+            pnl: 120,
+            returnRate: 0.12,
+            durationDays: 9,
+            closed: true,
+          }],
+          nextCursor: null,
+          hasMore: false,
+        })
+      }
+      return Promise.reject(new Error(`unexpected url: ${url}`))
+    })
+
     renderWithClient(
       <StatsOverview initialSummary={SUMMARY} initialCurve={CURVE}
         defaultFrom="2026-04-17" defaultTo="2026-07-17" />
     )
     expect(screen.getByText('총 실현손익')).toBeInTheDocument()
-    expect(screen.getByText('무한매수법')).toBeInTheDocument()
+    await screen.findByText('SOXL')
+    expect(screen.getAllByText('INFINITE')).toHaveLength(2)
+    expect(screen.queryByText('무한매수법')).not.toBeInTheDocument()
   })
 
   it('데이터가 없으면 empty state를 보여준다', () => {

@@ -30,6 +30,7 @@ export function StatsKpiRow({ summary, rows, range, benchmark }: Props) {
       <KpiCard
         label="총 실현손익"
         value={fmtSignedUsd(summary.totalRealizedPnl, 2, '$')}
+        valueClassName={pnlTextClass(summary.totalRealizedPnl)}
         sub={`종료 사이클 ${closedCount}개 누적`}
       />
       <KpiCard
