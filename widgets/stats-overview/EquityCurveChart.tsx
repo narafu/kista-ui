@@ -26,7 +26,7 @@ const RANGE_OPTIONS: { value: RangeKey; label: string }[] = [
   { value: 'ALL', label: '전체' },
 ]
 
-const BENCHMARK_OPTIONS: BenchmarkSymbol[] = ['SPY', 'QQQ']
+const BENCHMARK_OPTIONS: BenchmarkSymbol[] = ['SPY', 'QQQ', 'QLD']
 
 function ToggleButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
   return (

@@ -29,10 +29,10 @@ describe('stats api', () => {
     const { getEquityCurve } = await import('./index')
     fetchEitherMock.mockResolvedValueOnce({ points: [], benchmark: [] })
 
-    await getEquityCurve({ from: '2026-04-01', to: '2026-07-01', benchmark: 'QQQ' })
+    await getEquityCurve({ from: '2026-04-01', to: '2026-07-01', benchmark: 'QLD' })
 
     expect(fetchEitherMock).toHaveBeenCalledWith(
-      '/api/stats/equity-curve?from=2026-04-01&to=2026-07-01&benchmark=QQQ',
+      '/api/stats/equity-curve?from=2026-04-01&to=2026-07-01&benchmark=QLD',
       { method: 'GET' },
       undefined
     )

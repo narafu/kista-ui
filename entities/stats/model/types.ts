@@ -33,7 +33,7 @@ export interface EquityCurve {
   benchmark: BenchmarkPoint[]
 }
 
-export type BenchmarkSymbol = 'SPY' | 'QQQ'
+export type BenchmarkSymbol = 'SPY' | 'QQQ' | 'QLD'
 
 export interface CyclePerformance {
   cycleId: string
