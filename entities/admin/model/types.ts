@@ -86,7 +86,7 @@ export interface AdminReorderRequest {
   strategyId: string
   orderId: string
   timing: 'AT_OPEN' | 'AT_CLOSE' | 'IMMEDIATE'
-  tradeDateKst: string
+  tradeDate: string
   direction?: OrderDirection
   quantity?: number
   price?: number

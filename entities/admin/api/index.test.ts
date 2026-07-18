@@ -140,7 +140,7 @@ describe('entities/admin/api admin trade correction APIs', () => {
       strategyId: 'strategy-1',
       orderId: 'order-1',
       timing: 'AT_CLOSE',
-      tradeDateKst: '2026-07-01',
+      tradeDate: '2026-07-01',
       quantity: 3,
       price: 250,
       memo: 'price fix',

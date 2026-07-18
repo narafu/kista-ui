@@ -1867,7 +1867,7 @@ export interface components {
         };
         FidaOrderCommand: {
             /** Format: date */
-            tradeDate: string;
+            releaseDate: string;
             /** @enum {string} */
             ticker: "MAGX" | "USD" | "TQQQ" | "SOXL";
             currentCycleStart: number;
@@ -1914,9 +1914,9 @@ export interface components {
             id?: string;
             /**
              * Format: date
-             * @description 거래일 (요청받은 FIDA 원본 값 그대로 echo, UTC — 저장 시에는 KST로 변환됨)
+             * @description 발행일 (요청받은 FIDA 원본 값 그대로 echo, KST — 거래일 아님)
              */
-            tradeDate?: string;
+            releaseDate?: string;
             /**
              * @description 거래 종목
              * @example SOXL
@@ -2112,7 +2112,7 @@ export interface components {
              * Format: date
              * @description 거래일 (KST)
              */
-            tradeDateKst: string;
+            tradeDate: string;
             /**
              * @description 매매 방향 (생략 시 원본 주문 값 사용)
              * @example BUY
@@ -2186,7 +2186,7 @@ export interface components {
              * Format: date
              * @description 체결 거래일 (KST)
              */
-            tradeDateKst: string;
+            tradeDate: string;
             /**
              * @description 매매 방향
              * @example BUY

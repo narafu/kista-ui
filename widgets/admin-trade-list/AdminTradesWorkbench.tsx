@@ -171,7 +171,7 @@ export function AdminTradesWorkbench({
             userId: selectedUserId,
             accountId: selectedAccountId,
             strategyId: selectedStrategyId,
-            tradeDateKst: todayKst(),
+            tradeDate: todayKst(),
             orderId: item.orderId,
             timing: item.timing,
             direction: item.direction,
