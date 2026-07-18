@@ -21,7 +21,6 @@ import { KpiCard } from '@widgets/kpi-card'
 import { StrategyTradesTab } from '@widgets/cycle-history'
 import { useDeleteStrategyMutation, useExecuteStrategyMutation, usePauseStrategyMutation, useResumeStrategyMutation, seedBadgeClass, strategyStatusAccent } from '@entities/strategy'
 import { useStrategyOrderPreviewQuery, useCancelAllOrdersMutation, useCancelOneOrderMutation } from '@entities/order'
-import { useAccountMarginQuery } from '@entities/account'
 import { useMonthlyHolidaysQuery } from '@entities/market'
 import { useMeta } from '@entities/meta'
 import { cn, toNum } from '@shared/lib/utils'
@@ -29,10 +28,10 @@ import { fmtUsd, todayKst } from '@shared/lib/format'
 import { ApiError } from '@shared/lib/api-client'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
-import { Skeleton } from '@/components/ui/skeleton'
 import type { Strategy } from '@entities/strategy'
 import type { SkipReason, PlacedOrder } from '@entities/order'
 import { OrderRows } from './OrderRows'
+import { BuyCompetitionNotice } from './BuyCompetitionNotice'
 import { StrategyOrderHistory } from './StrategyOrderHistory'
 
 const SKIP_REASON_LABELS: Record<SkipReason, string> = {
@@ -68,16 +67,13 @@ export function StrategyDetail({ accountId, strategy }: Props) {
   const position = preview?.position ?? null
   const orders = preview?.orders ?? []
 
-  // 매수 주문이 있을 때만 브로커 실잔고 조회 — 부족분은 프론트에서 계산
+  // 매수 주문이 있으면 서버 예산 경쟁 시뮬레이션 결과(competition)로 부족 여부·부족액 판정
   const hasBuyOrders = orders.some((o) => o.direction === 'BUY')
-  const { items: marginItems, isLoading: isMarginLoading } = useAccountMarginQuery(accountId, {
-    enabled: !isLoadingPreview && hasBuyOrders,
-  })
-  const totalBuyUsd = hasBuyOrders && !isMarginLoading ? orders.filter((o) => o.direction === 'BUY').reduce((sum, o) => sum + toNum(o.price) * o.quantity, 0) : 0
-  const purchasableUsd = marginItems.find((i) => i.currency === 'USD')?.purchasableAmount ?? 0
-  const otherPlannedUsd = toNum(preview?.otherStrategiesPlannedBuyUsd ?? '0')
-  const previewDeficit = hasBuyOrders && !isMarginLoading ? Math.max(0, totalBuyUsd + otherPlannedUsd - purchasableUsd) : 0
-  const hasDeficit = previewDeficit > 0
+  const competition = preview?.competition ?? null
+  const hasDeficit = hasBuyOrders && competition ? !competition.sufficientBudget : false
+  const deficitUsd = competition
+    ? Math.max(0, toNum(competition.consumedByHigherPriority) + toNum(competition.requiredForThisStrategy) - toNum(competition.availableDeposit))
+    : 0
 
   const todayStr = todayKst()
   const [kstYear, kstMonth] = todayStr.split('-').map(Number)
@@ -230,11 +226,8 @@ export function StrategyDetail({ accountId, strategy }: Props) {
             <div>
               <CardTitle className="text-base lg:text-lg">다음 주문</CardTitle>
               <p className="text-sm lg:text-base text-muted-foreground mt-0.5">매 거래일 개장 시 자동실행</p>
-              {hasBuyOrders && !isMarginLoading && hasDeficit && (
-                <p className="hidden lg:flex items-center gap-1.5 mt-1.5 text-sm lg:text-base text-warn">
-                  <Badge tone="warn" size="sm" className="lg:h-[24px] lg:text-sm">예수금 부족</Badge>
-                  ${fmtUsd(previewDeficit)} 부족
-                </p>
+              {hasDeficit && competition && (
+                <BuyCompetitionNotice competition={competition} deficitUsd={deficitUsd} variant="inline" />
               )}
             </div>
             {canExecute && mode === 'preview' && (
@@ -259,7 +252,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
                       },
                     })
                   }}
-                  disabled={executeMutation.isPending || orders.length === 0 || isMarginLoading}
+                  disabled={executeMutation.isPending || orders.length === 0}
                   className={cn(
                     'inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md',
                     'bg-gradient-to-br from-rose-500 to-rose-700 text-white font-semibold',
@@ -312,16 +305,8 @@ export function StrategyDetail({ accountId, strategy }: Props) {
             <EmptyState variant="text" message={preview?.skipReason ? SKIP_REASON_LABELS[preview.skipReason] : '예정된 주문이 없습니다.'} />
           ) : (
             <div>
-              {hasBuyOrders && isMarginLoading && (
-                <div className="px-6 py-3 border-b border-border">
-                  <Skeleton className="h-4 w-64" />
-                </div>
-              )}
-              {hasBuyOrders && !isMarginLoading && hasDeficit && (
-                <div className="lg:hidden px-6 py-2.5 border-b border-border flex items-center gap-2 text-sm text-muted-foreground">
-                  <Badge tone="warn" size="sm">예수금 부족</Badge>
-                  {`$${fmtUsd(previewDeficit)} 부족`}
-                </div>
+              {hasDeficit && competition && (
+                <BuyCompetitionNotice competition={competition} deficitUsd={deficitUsd} variant="row" />
               )}
               <OrderRows orders={orders} />
             </div>

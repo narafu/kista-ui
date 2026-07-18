@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { Strategy } from '@entities/strategy'
+import type { NextOrderPreview } from '@entities/order'
 import { StrategyDetail } from './StrategyDetail'
 
 const mockPush = vi.fn()
@@ -71,19 +72,17 @@ vi.mock('@entities/strategy', () => ({
   strategyStatusAccent: (status: string) => status === 'ACTIVE' ? 'var(--status-ok)' : 'var(--warn)',
 }))
 
-vi.mock('@entities/order', () => ({
-  useStrategyOrderPreviewQuery: () => ({
-    data: { todayOrders: [], position: null, orders: [], skipReason: 'NO_CYCLE_HISTORY', otherStrategiesPlannedBuyUsd: '0' },
-    isLoading: false,
-    isError: false,
-    error: null,
-  }),
-  useCancelAllOrdersMutation: () => ({ mutate: vi.fn(), isPending: false }),
-  useCancelOneOrderMutation: () => ({ mutate: vi.fn(), isPending: false, variables: null }),
+const mockPreviewQuery = vi.fn(() => ({
+  data: { todayOrders: [], position: null, orders: [], skipReason: 'NO_CYCLE_HISTORY', otherStrategiesPlannedBuyUsd: '0', competition: null } as Partial<NextOrderPreview>,
+  isLoading: false,
+  isError: false,
+  error: null as unknown,
 }))
 
-vi.mock('@entities/account', () => ({
-  useAccountMarginQuery: () => ({ items: [], isLoading: false }),
+vi.mock('@entities/order', () => ({
+  useStrategyOrderPreviewQuery: () => mockPreviewQuery(),
+  useCancelAllOrdersMutation: () => ({ mutate: vi.fn(), isPending: false }),
+  useCancelOneOrderMutation: () => ({ mutate: vi.fn(), isPending: false, variables: null }),
 }))
 
 vi.mock('@entities/market', () => ({
@@ -193,5 +192,63 @@ describe('StrategyDetail header card', () => {
     expect(screen.getByTestId('strategy-vr-grid')).toHaveTextContent('밴드 폭')
     expect(screen.getByTestId('strategy-vr-grid')).toHaveTextContent('15%')
     expect(screen.queryByText('매매표')).not.toBeInTheDocument()
+  })
+})
+
+describe('StrategyDetail buy competition notice', () => {
+  it('shows the deficit badge and amount when competition reports insufficient budget', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [],
+        position: null,
+        orders: [{ ticker: 'TSLA', orderType: 'LOC', direction: 'BUY', quantity: 5, price: '20.00' }],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: {
+          sufficientBudget: false,
+          availableDeposit: '1000',
+          requiredForThisStrategy: '200',
+          consumedByHigherPriority: '900',
+          blockedByHigherPriority: [
+            { strategyId: 'vr-1', type: 'VR', ticker: 'TQQQ', requiredBuyUsd: '900', priority: 0 },
+          ],
+          uncertainStrategyIds: [],
+        },
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    expect(screen.getAllByText('예수금 부족').length).toBeGreaterThan(0)
+  })
+
+  it('does not show the deficit badge when competition reports sufficient budget', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [],
+        position: null,
+        orders: [{ ticker: 'TSLA', orderType: 'LOC', direction: 'BUY', quantity: 5, price: '20.00' }],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: {
+          sufficientBudget: true,
+          availableDeposit: '1000',
+          requiredForThisStrategy: '200',
+          consumedByHigherPriority: '0',
+          blockedByHigherPriority: [],
+          uncertainStrategyIds: [],
+        },
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    expect(screen.queryByText('예수금 부족')).not.toBeInTheDocument()
   })
 })
