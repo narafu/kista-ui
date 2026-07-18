@@ -26,7 +26,7 @@ entities끼리 직접 참조 금지. 두 도메인을 조합해야 하면 `featu
 | `admin-settings` | 관리자 런타임 설정 전체 조회·갱신 및 저장 후 관련 캐시 무효화 |
 | `fcm` | FCM 토큰 등록/해제 (FcmAutoRegister 포함) |
 | `privacy` | PRIVACY 전략 P 매매표 |
-| `stats` | 전략 수익 통계 요약, 자산 곡선(벤치마크 포함), 사이클 성과 페이지 조회 |
+| `stats` | 전략 수익 통계 요약, 자산 곡선, 사이클 성과 페이지 조회 |
 
 ## 슬라이스 내부 구조
 
@@ -50,7 +50,7 @@ entities/{domain}/
 
 ### queryKey 목록
 
-`['accountMargin', accountId]`, `['accountPrices', accountId, tickers]`, `['strategies', accountId]`, `['strategies', 'all']`, `['strategySeedPreview', accountId, type, ticker, divisionCount]`, `['order-preview', 'strategy', strategyId]`, `['strategy-orders', strategyId, from, to]`, `['holidays', year, month]`, `['candles', ticker, count]`, `['fearGreed', days]`, `['marketSession']`, `['accountCycleHistory', accountId, params]`, `['strategyCycleHistory', strategyId, params]`, `['dailyTradesRange', accountIds.join(','), from, to]`, `['runtime-config']`, `['admin-settings']`, `['me']`, `['adminUsers', filter]`, `['statsSummary']`, `['equityCurve', from, to, benchmark]`, `['statsCycles', type ?? 'ALL']`
+`['accountMargin', accountId]`, `['accountPrices', accountId, tickers]`, `['strategies', accountId]`, `['strategies', 'all']`, `['strategySeedPreview', accountId, type, ticker, divisionCount]`, `['order-preview', 'strategy', strategyId]`, `['strategy-orders', strategyId, from, to]`, `['holidays', year, month]`, `['candles', ticker, count]`, `['fearGreed', days]`, `['marketSession']`, `['accountCycleHistory', accountId, params]`, `['strategyCycleHistory', strategyId, params]`, `['dailyTradesRange', accountIds.join(','), from, to]`, `['runtime-config']`, `['admin-settings']`, `['me']`, `['adminUsers', filter]`, `['statsSummary']`, `['equityCurve', from, to]`, `['statsCycles', type ?? 'ALL']`
 
 **캐시 공유 패턴**: 서로 다른 위젯이 동일 서버 데이터를 소비할 때, 훅 호출 파라미터를 일치시켜 queryKey를 맞추면 React Query 캐시를 공유해 중복 fetch를 피한다.
 
