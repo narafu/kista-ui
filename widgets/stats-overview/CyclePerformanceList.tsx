@@ -108,7 +108,7 @@ export function CyclePerformanceList({ byType }: Props) {
                       {cycle.strategyType}
                     </Badge>
                     <span className="text-sm font-semibold tabular-nums">
-                      {cycle.ticker ? Array.from(cycle.ticker).map((character, index) => <span key={`${character}-${index}`}>{character}</span>) : '—'}
+                      {cycle.ticker ?? '—'}
                     </span>
                   </div>
                   <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">

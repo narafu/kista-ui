@@ -86,7 +86,7 @@ describe('StatsOverview', () => {
     expect(screen.queryByRole('button', { name: 'SPY' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'QQQ' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'QLD' })).not.toBeInTheDocument()
-    await screen.findByText('SOXL')
+    expect(await screen.findAllByText('SOXL')).toHaveLength(2)
     const cycleTable = screen.getByRole('table', { name: '사이클 성과' })
     expect(cycleTable.parentElement).toHaveClass('hidden', 'sm:block')
     expect(within(cycleTable).getByRole('columnheader', { name: '종목' })).toBeInTheDocument()
