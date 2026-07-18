@@ -25,14 +25,14 @@ describe('stats api', () => {
     expect(fetchEitherMock).toHaveBeenCalledWith('/api/stats/summary', { method: 'GET' }, 'token-1')
   })
 
-  it('getEquityCurve builds full query string with from/to/benchmark', async () => {
+  it('getEquityCurve builds query string with from/to only', async () => {
     const { getEquityCurve } = await import('./index')
-    fetchEitherMock.mockResolvedValueOnce({ points: [], benchmark: [] })
+    fetchEitherMock.mockResolvedValueOnce({ points: [] })
 
-    await getEquityCurve({ from: '2026-04-01', to: '2026-07-01', benchmark: 'QLD' })
+    await getEquityCurve({ from: '2026-04-01', to: '2026-07-01' })
 
     expect(fetchEitherMock).toHaveBeenCalledWith(
-      '/api/stats/equity-curve?from=2026-04-01&to=2026-07-01&benchmark=QLD',
+      '/api/stats/equity-curve?from=2026-04-01&to=2026-07-01',
       { method: 'GET' },
       undefined
     )
@@ -40,15 +40,11 @@ describe('stats api', () => {
 
   it('getEquityCurve omits from/to when not given', async () => {
     const { getEquityCurve } = await import('./index')
-    fetchEitherMock.mockResolvedValueOnce({ points: [], benchmark: [] })
+    fetchEitherMock.mockResolvedValueOnce({ points: [] })
 
-    await getEquityCurve({ benchmark: 'SPY' })
+    await getEquityCurve({})
 
-    expect(fetchEitherMock).toHaveBeenCalledWith(
-      '/api/stats/equity-curve?benchmark=SPY',
-      { method: 'GET' },
-      undefined
-    )
+    expect(fetchEitherMock).toHaveBeenCalledWith('/api/stats/equity-curve', { method: 'GET' }, undefined)
   })
 
   it('getStatsCycles builds type/cursor/size query string', async () => {

@@ -736,7 +736,7 @@ export interface paths {
         };
         /**
          * 누적 자산 곡선
-         * @description 일별 전략 운용 자산·원금 + 벤치마크 지수 종가 (KST 거래일).
+         * @description 일별 전략 운용 자산·원금.
          */
         get: operations["getEquityCurve"];
         put?: never;
@@ -2541,14 +2541,8 @@ export interface components {
             realizedPnl?: number;
             unrealizedPnl?: number;
         };
-        BenchmarkPoint: {
-            /** Format: date */
-            date?: string;
-            close?: number;
-        };
         EquityCurveResponse: {
             points?: components["schemas"]["Point"][];
-            benchmark?: components["schemas"]["BenchmarkPoint"][];
         };
         Point: {
             /** Format: date */
@@ -4317,7 +4311,6 @@ export interface operations {
             query?: {
                 from?: string;
                 to?: string;
-                benchmark?: string;
             };
             header?: never;
             path?: never;

@@ -5,7 +5,7 @@ import {
   useStatsSummaryQuery,
   useEquityCurveQuery,
 } from '@entities/stats'
-import type { BenchmarkSymbol, EquityCurve, StatsSummary } from '@entities/stats'
+import type { EquityCurve, StatsSummary } from '@entities/stats'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { normalizeEquityCurve } from './lib/normalizeEquityCurve'
 import { StatsKpiRow } from './StatsKpiRow'
@@ -40,16 +40,15 @@ interface Props {
 
 export function StatsOverview({ initialSummary, initialCurve, defaultFrom, defaultTo }: Props) {
   const [range, setRange] = useState<RangeKey>('3M')
-  const [benchmark, setBenchmark] = useState<BenchmarkSymbol>('SPY')
 
   const summaryQuery = useStatsSummaryQuery(initialSummary)
 
-  // 초기 상태(range=3M, benchmark=SPY)일 때만 서버가 내려준 초기 curve를 그대로 사용한다.
+  // 초기 상태(range=3M)일 때만 서버가 내려준 초기 curve를 그대로 사용한다.
   // 그 외에는 defaultFrom 대신 range에서 근사 계산한 from을 사용한다.
-  const isInitialParams = range === '3M' && benchmark === 'SPY'
+  const isInitialParams = range === '3M'
   const from = isInitialParams ? defaultFrom : rangeToFrom(range, defaultTo)
   const curveQuery = useEquityCurveQuery(
-    { from, to: defaultTo, benchmark },
+    { from, to: defaultTo },
     isInitialParams ? initialCurve : undefined,
   )
 
@@ -58,7 +57,7 @@ export function StatsOverview({ initialSummary, initialCurve, defaultFrom, defau
   const summaryFailed = summaryQuery.isError && !summary
   const curveFailed = curveQuery.isError && !curve
 
-  const rows = curve ? normalizeEquityCurve(curve.points, curve.benchmark) : []
+  const rows = curve ? normalizeEquityCurve(curve.points) : []
   const byType = summary?.byType ?? []
 
   const isEmpty = !summaryFailed && !curveFailed && byType.length === 0 && rows.length === 0
@@ -74,7 +73,7 @@ export function StatsOverview({ initialSummary, initialCurve, defaultFrom, defau
       {summaryFailed ? (
         <SectionError />
       ) : summary ? (
-        <StatsKpiRow summary={summary} rows={rows} range={range} benchmark={benchmark} />
+        <StatsKpiRow summary={summary} />
       ) : null}
 
       {curveFailed ? (
@@ -84,8 +83,6 @@ export function StatsOverview({ initialSummary, initialCurve, defaultFrom, defau
           rows={rows}
           range={range}
           onRangeChange={setRange}
-          benchmark={benchmark}
-          onBenchmarkChange={setBenchmark}
         />
       )}
 

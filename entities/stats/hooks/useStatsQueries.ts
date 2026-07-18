@@ -3,7 +3,6 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { getEquityCurve, getStatsCycles, getStatsSummary } from '../api'
 import type {
-  BenchmarkSymbol,
   CyclePerformance,
   CyclePerformancePage,
   EquityCurve,
@@ -23,12 +22,11 @@ export function useStatsSummaryQuery(initialData?: StatsSummary) {
 export interface EquityCurveParams {
   from?: string
   to?: string
-  benchmark: BenchmarkSymbol
 }
 
 export function useEquityCurveQuery(params: EquityCurveParams, initialData?: EquityCurve) {
   return useQuery<EquityCurve>({
-    queryKey: ['equityCurve', params.from, params.to, params.benchmark],
+    queryKey: ['equityCurve', params.from, params.to],
     queryFn: () => getEquityCurve(params),
     initialData,
     placeholderData: (prev) => prev,

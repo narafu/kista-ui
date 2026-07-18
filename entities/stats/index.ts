@@ -2,9 +2,7 @@ export type {
   StrategyTypeStats,
   StatsSummary,
   EquityPoint,
-  BenchmarkPoint,
   EquityCurve,
-  BenchmarkSymbol,
   CyclePerformance,
   CyclePerformancePage,
 } from './model/types'

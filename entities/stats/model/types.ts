@@ -23,17 +23,9 @@ export interface EquityPoint {
   principal: number
 }
 
-export interface BenchmarkPoint {
-  date: string
-  close: number
-}
-
 export interface EquityCurve {
   points: EquityPoint[]
-  benchmark: BenchmarkPoint[]
 }
-
-export type BenchmarkSymbol = 'SPY' | 'QQQ' | 'QLD'
 
 export interface CyclePerformance {
   cycleId: string

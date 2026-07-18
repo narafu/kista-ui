@@ -39,7 +39,6 @@ const CURVE: EquityCurve = {
     { date: '2026-06-01', totalAsset: 1000, principal: 1000 },
     { date: '2026-06-02', totalAsset: 1100, principal: 1000 },
   ],
-  benchmark: [{ date: '2026-06-01', close: 500 }],
 }
 
 function renderWithClient(ui: React.ReactElement) {
@@ -83,6 +82,10 @@ describe('StatsOverview', () => {
         defaultFrom="2026-04-17" defaultTo="2026-07-17" />
     )
     expect(screen.getByText('총 실현손익')).toBeInTheDocument()
+    expect(screen.queryByText('지수 대비 초과수익')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'SPY' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'QQQ' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'QLD' })).not.toBeInTheDocument()
     await screen.findByText('SOXL')
     expect(screen.getAllByText('INFINITE')).toHaveLength(2)
     expect(screen.queryByText('무한매수법')).not.toBeInTheDocument()
@@ -92,7 +95,7 @@ describe('StatsOverview', () => {
     renderWithClient(
       <StatsOverview
         initialSummary={{ totalRealizedPnl: 0, totalUnrealizedPnl: 0, activePrincipal: 0, byType: [] }}
-        initialCurve={{ points: [], benchmark: [] }}
+        initialCurve={{ points: [] }}
         defaultFrom="2026-04-17" defaultTo="2026-07-17" />
     )
     expect(screen.getByText(/아직 기록된 사이클이 없습니다/)).toBeInTheDocument()
@@ -101,7 +104,7 @@ describe('StatsOverview', () => {
   it('summary 조회 실패 시 KPI 슬롯에만 SectionError를 보여주고 전략비교 테이블은 생략한다', async () => {
     fetchEitherMock.mockImplementation((url: string) => {
       if (url.startsWith('/api/stats/summary')) return Promise.reject(new Error('summary failed'))
-      if (url.startsWith('/api/stats/equity-curve')) return Promise.resolve({ points: [], benchmark: [] })
+      if (url.startsWith('/api/stats/equity-curve')) return Promise.resolve({ points: [] })
       if (url.startsWith('/api/stats/cycles')) return Promise.resolve({ items: [], nextCursor: null, hasMore: false })
       return Promise.reject(new Error(`unexpected url: ${url}`))
     })

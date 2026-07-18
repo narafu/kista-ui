@@ -28,7 +28,7 @@ export default async function StatsPage() {
   const [summary, curve] = token
     ? await Promise.all([
         getStatsSummary(token).catch(() => undefined),
-        getEquityCurve({ from: defaultFrom, to: defaultTo, benchmark: 'SPY' }, token).catch(
+        getEquityCurve({ from: defaultFrom, to: defaultTo }, token).catch(
           () => undefined
         ),
       ])
