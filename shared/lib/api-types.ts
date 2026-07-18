@@ -46,6 +46,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 런타임 설정 조회
+         * @description auth/brokers/strategies 전체 런타임 설정을 조회합니다.
+         */
+        get: operations["getSettings"];
+        /**
+         * 런타임 설정 갱신
+         * @description 요청 전체(auth/brokers/strategies)를 검증한 뒤 한 번에 교체합니다. 부분 갱신은 지원하지 않습니다.
+         */
+        put: operations["updateSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/accounts/{id}": {
         parameters: {
             query?: never;
@@ -294,6 +318,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** 관리자 재주문 */
         post: operations["reorder"];
         delete?: never;
         options?: never;
@@ -310,6 +335,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * 수동 체결 보정
+         * @description fills 배열 순서대로 여러 건을 원자적으로 반영합니다.
+         */
         post: operations["correctManualFills"];
         delete?: never;
         options?: never;
@@ -326,6 +355,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * 개장 스케쥴러 수동 트리거
+         * @description 개장 대기 없이 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
+         */
         post: operations["triggerOpen"];
         delete?: never;
         options?: never;
@@ -342,6 +375,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * 마감 스케쥴러 수동 트리거
+         * @description 주문 대기 없이 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
+         */
         post: operations["triggerClose"];
         delete?: never;
         options?: never;
@@ -575,6 +612,10 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
+        /**
+         * 전략 상태 변경
+         * @description status: ACTIVE(재개), PAUSED(일시정지)
+         */
         patch: operations["updateStrategyStatus"];
         trace?: never;
     };
@@ -653,7 +694,91 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 실시간 매매 알림 스트림 연결
+         * @description 인증된 사용자의 SSE 연결을 등록해 주문 접수·체결 등 매매 이벤트를 실시간 수신합니다.
+         */
         get: operations["stream"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/stats/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 수익 통계 요약
+         * @description 실현·미실현 손익과 전략 타입별 사이클 성과 집계.
+         */
+        get: operations["getSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/stats/equity-curve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 누적 자산 곡선
+         * @description 일별 전략 운용 자산·원금 + 벤치마크 지수 종가 (KST 거래일).
+         */
+        get: operations["getEquityCurve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/stats/cycles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 사이클 성과 목록
+         * @description 종료·진행 중 사이클의 손익/수익률/소요일 (커서 페이지네이션).
+         */
+        get: operations["getCycles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runtime-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 공개 런타임 설정 조회
+         * @description 가입 승인 필요 여부·증권사별 활성화·전략 생성 정책을 반환합니다. 로그인 없이 호출 가능하며 동적 설정이므로 캐시하지 않습니다.
+         */
+        get: operations["getRuntimeConfig"];
         put?: never;
         post?: never;
         delete?: never;
@@ -752,6 +877,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/daily-trades": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 유저 스코프 일별 거래내역 조회
+         * @description 지정 기간 동안 요청자가 보유한 전체 계좌의 체결 내역을 계좌 구분 없이 합쳐 반환.
+         */
+        get: operations["getDailyTransactions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/status-stream": {
         parameters: {
             query?: never;
@@ -820,6 +965,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 전체 거래 내역 조회
+         * @description 일괄 조회로 N+1을 방지합니다. from/to로 기간 필터링 가능합니다.
+         */
         get: operations["listTrades"];
         put?: never;
         post?: never;
@@ -836,6 +985,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 재주문 시점 가용성 조회
+         * @description UI 주문시점 셀렉터의 disable 여부 판단에 사용합니다.
+         */
         get: operations["getReorderTiming"];
         put?: never;
         post?: never;
@@ -852,6 +1005,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * PRIVACY 기준 매매표 목록 조회
+         * @description 기준 매매표(master)와 주문 명세(detail) 목록을 반환합니다. range 미전달 시 전체 조회, 전달 시 최소 30 이상이어야 합니다.
+         */
         get: operations["listBases"];
         put?: never;
         post?: never;
@@ -868,6 +1025,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 오류 로그 조회
+         * @description 서버 예외 기록을 조회합니다. limit/기간 필터링이 가능합니다.
+         */
         get: operations["listErrorLogs"];
         put?: never;
         post?: never;
@@ -884,6 +1045,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 감사 로그 조회
+         * @description 관리자 액션 기록을 기간별로 조회합니다.
+         */
         get: operations["listAuditLogs"];
         put?: never;
         post?: never;
@@ -900,6 +1065,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 이상 징후 조회
+         * @description 일시정지·비활성 계좌 목록을 반환합니다.
+         */
         get: operations["getAnomalies"];
         put?: never;
         post?: never;
@@ -933,6 +1102,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 계좌 목록 조회
+         * @description 소유자 닉네임과 전략 목록을 포함해 계좌 목록을 반환합니다. from/to로 기간 필터링 가능합니다.
+         */
         get: operations["listAccounts"];
         put?: never;
         post?: never;
@@ -949,6 +1122,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 계좌 전략 목록 조회
+         * @description 계좌 선택 이후 전략 선택 드롭다운용 목록을 반환합니다.
+         */
         get: operations["listStrategies"];
         put?: never;
         post?: never;
@@ -965,6 +1142,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** 전략별 거래일 목록 조회 */
         get: operations["listStrategyTradeDates"];
         put?: never;
         post?: never;
@@ -981,6 +1159,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 전략별 주문 목록 조회
+         * @description 지정한 거래일(tradeDate)의 주문 목록을 반환합니다.
+         */
         get: operations["listStrategyOrders"];
         put?: never;
         post?: never;
@@ -997,6 +1179,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * ADMIN 권한 확인용 핑
+         * @description hasRole("ADMIN") 가드 동작 확인용 최소 엔드포인트입니다.
+         */
         get: operations["ping"];
         put?: never;
         post?: never;
@@ -1051,8 +1237,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 복수 종목 현재가 조회
-         * @description KIS API HHDFS76410000 — 최대 10개 종목의 현재가를 단일 호출로 조회. tickers는 TQQQ/SOXL/USD 중 1~10개.
+         * 복수 종목 전일종가 조회
+         * @description 최대 10개 종목의 전일종가를 단일 호출로 조회 (전략 생성 시 최소 시드 산정 기준). tickers는 TQQQ/SOXL/USD 중 1~10개.
          */
         get: operations["getPrices"];
         put?: never;
@@ -1154,7 +1340,7 @@ export interface paths {
          * 일별 거래내역 조회
          * @description KIS API CTOS4001R — 지정 기간 동안의 일별 거래내역 조회.
          */
-        get: operations["getDailyTransactions"];
+        get: operations["getDailyTransactions_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1287,6 +1473,10 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
+        /**
+         * 오류 로그 소프트 삭제
+         * @description 조치 완료 처리를 위해 오류 로그를 소프트 삭제합니다.
+         */
         delete: operations["softDeleteErrorLog"];
         options?: never;
         head?: never;
@@ -1305,7 +1495,7 @@ export interface components {
              */
             type: "INFINITE" | "PRIVACY" | "VR";
             /**
-             * @description 거래 종목 (PRIVACY는 SOXL 자동 고정, VR은 TQQQ 자동 고정, INFINITE 기본=TQQQ)
+             * @description 거래 종목 (null이면 런타임 기본값, PRIVACY=SOXL/VR=TQQQ 외 명시값은 400)
              * @example TQQQ
              * @enum {string}
              */
@@ -1323,7 +1513,7 @@ export interface components {
             cycleSeedType?: "NONE" | "MAINTAIN" | "MAX";
             /**
              * Format: int32
-             * @description 분할 수 (20/30/40, null이면 20)
+             * @description 분할 수 (null이면 런타임 기본값)
              * @example 20
              */
             divisionCount?: number;
@@ -1442,8 +1632,132 @@ export interface components {
             gradient?: number;
         };
         TelegramUpdateRequest: {
+            /** @description 사용자 텔레그램 봇 토큰 */
             botToken: string;
+            /** @description 텔레그램 채팅 ID */
             chatId: string;
+        };
+        AdminSettingsRequest: {
+            /** @description 가입 승인 정책 설정 */
+            auth: components["schemas"]["AuthRequest"];
+            /** @description 증권사별 신규 등록/연결 테스트 활성화 설정 (key=Broker) */
+            brokers: {
+                [key: string]: components["schemas"]["BrokerRequest"];
+            };
+            /** @description 전략별 신규 생성 정책 설정 (key=Type) */
+            strategies: {
+                [key: string]: components["schemas"]["StrategyRequest"];
+            };
+        };
+        AuthRequest: {
+            /** @description 신규 가입 승인 필요 여부 */
+            approvalRequired: boolean;
+        };
+        BrokerRequest: {
+            /** @description 증권사 신규 계좌 등록/연결 테스트 허용 여부 */
+            enabled: boolean;
+        };
+        FieldRequestBigDecimal: {
+            /** @description 사용자 입력 허용 여부 */
+            customizable: boolean;
+            /** @description 허용 값 목록 */
+            allowedValues: number[];
+            /** @description 신규 생성 기본값 */
+            defaultValue: number;
+        };
+        FieldRequestInteger: {
+            /** @description 사용자 입력 허용 여부 */
+            customizable: boolean;
+            /** @description 허용 값 목록 */
+            allowedValues: number[];
+            /**
+             * Format: int32
+             * @description 신규 생성 기본값
+             */
+            defaultValue: number;
+        };
+        FieldRequestRecurringMode: {
+            /** @description 사용자 입력 허용 여부 */
+            customizable: boolean;
+            /** @description 허용 값 목록 */
+            allowedValues: ("DEPOSIT" | "HOLD" | "WITHDRAW")[];
+            /**
+             * @description 신규 생성 기본값
+             * @enum {string}
+             */
+            defaultValue: "DEPOSIT" | "HOLD" | "WITHDRAW";
+        };
+        FieldRequestTicker: {
+            /** @description 사용자 입력 허용 여부 */
+            customizable: boolean;
+            /** @description 허용 값 목록 */
+            allowedValues: ("MAGX" | "USD" | "TQQQ" | "SOXL")[];
+            /**
+             * @description 신규 생성 기본값
+             * @enum {string}
+             */
+            defaultValue: "MAGX" | "USD" | "TQQQ" | "SOXL";
+        };
+        FieldRequests: {
+            /** @description 종목 생성 필드 설정 */
+            ticker?: components["schemas"]["FieldRequestTicker"];
+            /** @description 무한매수 분할 수 필드 설정 (INFINITE 전용) */
+            divisionCount?: components["schemas"]["FieldRequestInteger"];
+            /** @description VR 정기 입출금 방향 필드 설정 (VR 전용) */
+            recurringMode?: components["schemas"]["FieldRequestRecurringMode"];
+            /** @description VR 밴드 폭 필드 설정 (%, VR 전용) */
+            bandWidth?: components["schemas"]["FieldRequestBigDecimal"];
+            /** @description VR 롤오버 주기 필드 설정 (주 단위, VR 전용) */
+            intervalWeeks?: components["schemas"]["FieldRequestInteger"];
+        };
+        StrategyRequest: {
+            /** @description 신규 전략 생성 허용 여부 */
+            enabled: boolean;
+            /** @description 전략별 생성 필드 설정 */
+            fields: components["schemas"]["FieldRequests"];
+        };
+        AuthResponse: {
+            /** @description 가입 승인 필수 여부 */
+            approvalRequired?: boolean;
+        };
+        BrokerResponse: {
+            /** @description 증권사 신규 계좌 등록 허용 여부 */
+            enabled?: boolean;
+        };
+        FieldResponses: {
+            /** @description 종목 생성 설정 (customizable/allowedValues/defaultValue) */
+            ticker?: components["schemas"]["StrategyFieldSettingsObject"];
+            /** @description 무한매수 분할 수 생성 설정 */
+            divisionCount?: components["schemas"]["StrategyFieldSettingsObject"];
+            /** @description VR 정기 입출금 방향 생성 설정 */
+            recurringMode?: components["schemas"]["StrategyFieldSettingsObject"];
+            /** @description VR 밴드 폭 생성 설정 (%) */
+            bandWidth?: components["schemas"]["StrategyFieldSettingsObject"];
+            /** @description VR 롤오버 주기 생성 설정 (주 단위) */
+            intervalWeeks?: components["schemas"]["StrategyFieldSettingsObject"];
+        };
+        RuntimeSettingsResponse: {
+            /** @description 가입·인증 공개 설정 */
+            auth?: components["schemas"]["AuthResponse"];
+            /** @description 증권사별 공개 설정 */
+            brokers?: {
+                [key: string]: components["schemas"]["BrokerResponse"];
+            };
+            /** @description 전략 타입별 생성 정책 설정 */
+            strategies?: {
+                [key: string]: components["schemas"]["StrategyResponse"];
+            };
+        };
+        StrategyFieldSettingsObject: {
+            customizable?: boolean;
+            allowedValues?: Record<string, never>[];
+            defaultValue?: Record<string, never>;
+        };
+        StrategyResponse: {
+            /** @description 신규 전략 생성 허용 여부 */
+            enabled?: boolean;
+            /** @description 전략 타입별 생성 필드 정책 (적용 안 되는 필드는 생략) */
+            fields?: components["schemas"]["FieldResponses"];
         };
         AccountRequest: {
             /**
@@ -1483,7 +1797,7 @@ export interface components {
             nickname?: string;
             /**
              * @description 마스킹된 계좌번호
-             * @example ****4614
+             * @example ****0614
              */
             accountNoMasked?: string;
             /**
@@ -1519,16 +1833,36 @@ export interface components {
             callback_query?: components["schemas"]["CallbackQuery"];
         };
         ExecuteOrdersResponse: {
+            /** @description 증권사에 접수된 주문 목록 */
             orders?: components["schemas"]["PlacedOrderItem"][];
         };
         PlacedOrderItem: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 주문 고유 ID
+             */
             id?: string;
+            /**
+             * @description 거래 종목
+             * @example TQQQ
+             */
             ticker?: string;
+            /**
+             * @description 매수/매도 방향
+             * @example BUY
+             */
             direction?: string;
+            /**
+             * @description 주문 유형
+             * @example LOC
+             */
             orderType?: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 주문 수량
+             */
             quantity?: number;
+            /** @description 주문 가격 */
             price?: number;
         };
         FidaOrderCommand: {
@@ -1561,6 +1895,7 @@ export interface components {
             timing?: "AT_CLOSE" | "AT_OPEN" | "IMMEDIATE";
             /** @enum {string} */
             direction?: "BUY" | "SELL";
+            orderLeg?: string;
             /** Format: int32 */
             quantity?: number;
             price?: number;
@@ -1572,21 +1907,62 @@ export interface components {
             filledPrice?: number;
         };
         FidaOrderResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 생성된 기준 매매표 마스터 레코드 ID
+             */
             id?: string;
-            /** Format: date */
+            /**
+             * Format: date
+             * @description 거래일 (요청받은 FIDA 원본 값 그대로 echo, UTC — 저장 시에는 KST로 변환됨)
+             */
             tradeDate?: string;
-            /** @enum {string} */
+            /**
+             * @description 거래 종목
+             * @example SOXL
+             * @enum {string}
+             */
             ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL";
+            /** @description 기준가 */
             currentCycleStart?: number;
+            /** @description 사이클 실현 손익 (USD) */
             currentCycleRealizedPnl?: number;
+            /** @description 평단가 (nullable) */
             avgPrice?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 보유 수량
+             */
             holdings?: number;
-            orders?: components["schemas"]["Order"][];
+            /** @description 저장된 계획 주문 목록 */
+            orders?: components["schemas"]["OrderItem"][];
+        };
+        OrderItem: {
+            /**
+             * @description 매매 방향
+             * @example BUY
+             */
+            direction?: string;
+            /**
+             * @description 주문 유형
+             * @example LOC
+             */
+            orderType?: string;
+            /**
+             * Format: int32
+             * @description 주문 수량 (nullable, SELL 방향은 null 허용 — 남은 전부 매도)
+             */
+            quantity?: number;
+            /** @description 주문 가격 */
+            price?: number;
         };
         FcmTokenRequest: {
+            /** @description FCM 디바이스 토큰 */
             token: string;
+            /**
+             * @description 디바이스 플랫폼
+             * @example android
+             */
             platform: string;
         };
         RefreshResponse: {
@@ -1685,6 +2061,8 @@ export interface components {
             notificationPrefs?: {
                 [key: string]: boolean;
             };
+            /** @description 반려 사유 (REJECTED 상태에서만 의미, null 가능) */
+            rejectReason?: string;
         };
         TokenResponse: {
             /**
@@ -1705,213 +2083,535 @@ export interface components {
             expiresIn?: number;
         };
         AdminReorderRequest: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 대상 사용자 ID
+             */
             userId: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 대상 계좌 ID
+             */
             accountId: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 대상 전략 ID
+             */
             strategyId: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 재주문 대상 원본 주문 ID
+             */
             orderId: string;
+            /**
+             * @description 재주문 접수 시점
+             * @example AT_OPEN
+             */
             timing: string;
-            /** Format: date */
+            /**
+             * Format: date
+             * @description 거래일 (KST)
+             */
             tradeDateKst: string;
+            /**
+             * @description 매매 방향 (생략 시 원본 주문 값 사용)
+             * @example BUY
+             */
             direction?: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 주문 수량
+             */
             quantity: number;
+            /** @description 주문 가격 */
             price: number;
+            /** @description 메모 (선택) */
             memo?: string;
         };
         AdminReorderResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 대상 사용자 ID
+             */
             userId?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 대상 계좌 ID
+             */
             accountId?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 대상 전략 ID
+             */
             strategyId?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 원본 주문 ID
+             */
             sourceOrderId?: string;
+            /**
+             * @description 원본 주문 상태
+             * @example PLANNED
+             */
             originalStatus?: string;
+            /**
+             * @description 재주문 처리 결과 상태
+             * @example PLACED
+             */
             resultingStatus?: string;
+            /** @description 신규 접수 주문의 브로커 측 ID (IMMEDIATE 즉시 접수 성공 시만 non-null) */
             newOrderExternalId?: string;
         };
         AdminManualTradeCorrectionRequest: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 대상 사용자 ID
+             */
             userId: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 대상 계좌 ID
+             */
             accountId: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 대상 전략 ID
+             */
             strategyId: string;
+            /** @description 반영할 체결 명세 목록 (배열 순서대로 반영) */
             fills: components["schemas"]["FillRequest"][];
         };
         FillRequest: {
-            /** Format: date */
+            /**
+             * Format: date
+             * @description 체결 거래일 (KST)
+             */
             tradeDateKst: string;
+            /**
+             * @description 매매 방향
+             * @example BUY
+             */
             direction: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 체결 수량
+             */
             quantity: number;
+            /** @description 체결 가격 */
             price: number;
+            /** @description 브로커 측 원본 주문 ID (선택) */
             externalOrderId?: string;
+            /** @description 메모 (선택) */
             memo?: string;
         };
         AdminTradeCorrectionResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 대상 사용자 ID
+             */
             userId?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 대상 계좌 ID
+             */
             accountId?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 대상 전략 ID
+             */
             strategyId?: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 처리된 체결 건수
+             */
             processedCount?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 보정 후 최종 보유 수량
+             */
             finalHoldings?: number;
+            /** @description 보정 후 최종 평단가 */
             finalAvgPrice?: number;
+            /** @description 보정 후 최종 예수금 (USD) */
             finalUsdDeposit?: number;
+            /**
+             * @description 보정 후 전략 상태
+             * @example ACTIVE
+             */
             strategyStatus?: string;
+            /** @description 보정으로 사이클이 종료됐는지 여부 */
             cycleEnded?: boolean;
-            /** Format: date */
+            /**
+             * Format: date
+             * @description 사이클 종료일 (cycleEnded=false면 null)
+             */
             cycleEndDate?: string;
         };
         TestConnectionRequest: {
-            /** @enum {string} */
+            /**
+             * @description 증권사
+             * @example KIS
+             * @enum {string}
+             */
             broker?: "TOSS" | "KIS";
+            /** @description 증권사 앱 키 (신규 자격증명 테스트 시) */
             appKey?: string;
+            /** @description 증권사 앱 시크릿 (신규 자격증명 테스트 시) */
             appSecret?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 기존 계좌 ID (등록된 계좌로 테스트 시, 자격증명 생략 가능)
+             */
             accountId?: string;
         };
         NotificationPrefRequest: {
+            /**
+             * @description 해당 알림 타입 수신 여부
+             * @example true
+             */
             enabled?: boolean;
         };
         NotificationChannelRequest: {
+            /**
+             * @description 알림 채널 (NONE/TELEGRAM/FCM/ALL)
+             * @example TELEGRAM
+             */
             channel: string;
         };
         NicknameRequest: {
+            /**
+             * @description 변경할 닉네임 — 한글·영문·숫자·공백 1~10자
+             * @example 나라부
+             */
             nickname: string;
         };
         BalanceCheckRequest: {
+            /**
+             * @description 잔고 검증 활성화 여부 — true면 시드 등록/수정 시 가용금액 한도 검증
+             * @example true
+             */
             enabled?: boolean;
         };
         AdminStatusRequest: {
-            /** @enum {string} */
+            /**
+             * @description 변경할 계정 상태
+             * @example ACTIVE
+             * @enum {string}
+             */
             status?: "PENDING" | "ACTIVE" | "REJECTED";
+            /** @description 반려 사유 (status=REJECTED일 때만 사용, ACTIVE면 무시) */
+            reason?: string;
         };
         AdminRoleRequest: {
-            /** @enum {string} */
+            /**
+             * @description 부여할 역할
+             * @enum {string}
+             */
             role?: "USER" | "ADMIN";
         };
         StrategyStatusRequest: {
-            /** @enum {string} */
+            /**
+             * @description 변경할 전략 상태 — ACTIVE(재개) / PAUSED(일시정지)
+             * @example PAUSED
+             * @enum {string}
+             */
             status?: "ACTIVE" | "PAUSED";
         };
         Item: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 주문 고유 ID
+             */
             id?: string;
-            /** Format: date */
+            /**
+             * Format: date
+             * @description 매매일 (KST 기준)
+             */
             tradeDate?: string;
+            /**
+             * @description 매수/매도 방향
+             * @example BUY
+             */
             direction?: string;
+            /**
+             * @description 주문 유형
+             * @example LOC
+             */
             orderType?: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 주문 수량
+             */
             quantity?: number;
+            /** @description 주문 가격 */
             price?: number;
+            /**
+             * @description 주문 상태
+             * @example PLACED
+             */
             status?: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 체결 수량 (미체결이면 null)
+             */
             filledQuantity?: number;
+            /** @description 체결 가격 (미체결이면 null) */
             filledPrice?: number;
         };
         StrategyOrdersResponse: {
+            /** @description 전략의 주문 목록 */
             orders?: components["schemas"]["Item"][];
         };
         CycleHistoryPageResponse: {
+            /** @description 거래내역 항목 목록 */
             items?: components["schemas"]["CycleHistoryResponse"][];
+            /** @description 다음 페이지 조회용 커서 (마지막 페이지면 null) */
             nextCursor?: string;
+            /** @description 다음 페이지 존재 여부 */
             hasMore?: boolean;
         };
         CycleHistoryResponse: {
+            /** @description 기록 시각 (ISO-8601) */
             createdAt?: string;
+            /**
+             * @description 종목 코드
+             * @example TQQQ
+             */
             ticker?: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 보유 수량
+             */
             holdings?: number;
+            /** @description 종가 (null 가능) */
             closingPrice?: number;
+            /** @description 평균 매입 단가 (보유수량 0이면 null) */
             avgPrice?: number;
+            /** @description 통합주문가능금액 */
             usdDeposit?: number;
+        };
+        BuyCompetitionSummary: {
+            /** @description 대상 전략 BUY가 실제 배치에서 승인될지 근사 판정 */
+            sufficientBudget?: boolean;
+            /** @description 라이브 예수금 - 타 전략 당일 PLANNED BUY 합계 */
+            availableDeposit?: number;
+            /** @description 대상 전략 오늘자 BUY 합계 */
+            requiredForThisStrategy?: number;
+            /** @description 대상 전략보다 우선순위 앞선 경쟁 전략 필요금액 합 */
+            consumedByHigherPriority?: number;
+            /** @description 우선순위가 앞선 경쟁 전략 목록 (우선순위 높은 순 정렬) */
+            blockedByHigherPriority?: components["schemas"]["CompetingStrategy"][];
+            /** @description 계산 실패/skip돼 0으로 처리된 전략 id 목록 */
+            uncertainStrategyIds?: string[];
+        };
+        CompetingStrategy: {
+            /**
+             * Format: uuid
+             * @description 경쟁 전략 ID
+             */
+            strategyId?: string;
+            /**
+             * @description 경쟁 전략 타입
+             * @enum {string}
+             */
+            type?: "INFINITE" | "PRIVACY" | "VR";
+            /**
+             * @description 경쟁 전략 거래 종목
+             * @enum {string}
+             */
+            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL";
+            /** @description 경쟁 전략 필요 매수금액 */
+            requiredBuyUsd?: number;
+            /**
+             * Format: int32
+             * @description 예산 배정 우선순위 (작을수록 먼저 승인)
+             */
+            priority?: number;
         };
         NextOrdersResponse: {
-            /** Format: date */
+            /**
+             * Format: date
+             * @description 다음 매매 예정일 (KST 기준)
+             */
             tradeDate?: string;
+            /** @description INFINITE 전략 포지션 스냅샷 (PRIVACY 전략 또는 skip 시 null) */
             position?: components["schemas"]["PositionSnapshot"];
+            /** @description 생성 예정 주문 목록 */
             orders?: components["schemas"]["OrderItem"][];
-            /** @enum {string} */
+            /**
+             * @description 주문 생성 skip 사유 (정상이면 null)
+             * @example NO_PRIVACY_BASE
+             * @enum {string}
+             */
             skipReason?: "NO_CYCLE_HISTORY" | "NO_PRIVACY_BASE";
+            /** @description 오늘 이미 등록된 PLANNED·PLACED 주문 목록 */
             todayOrders?: components["schemas"]["TodayOrderItem"][];
+            /** @description 계좌 내 타 전략의 당일 PLANNED BUY 합계 (USD) */
             otherStrategiesPlannedBuyUsd?: number;
-        };
-        OrderItem: {
-            /** @enum {string} */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL";
-            /** @enum {string} */
-            orderType?: "LOC" | "MOC" | "LIMIT";
-            /** @enum {string} */
-            direction?: "BUY" | "SELL";
-            /** Format: int32 */
-            quantity?: number;
-            price?: number;
+            /** @description 계좌 내 BUY 예산 경쟁 시뮬레이션 결과 (대상 전략에 BUY 주문이 없으면 null, 근사치) */
+            competition?: components["schemas"]["BuyCompetitionSummary"];
         };
         PositionSnapshot: {
-            /** @enum {string} */
+            /**
+             * @description 거래 종목
+             * @enum {string}
+             */
             ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL";
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 보유 수량
+             */
             holdings?: number;
+            /** @description 평균 매입가 (0회차: 전일종가) */
             averagePrice?: number;
+            /** @description 통합주문가능금액 */
             usdDeposit?: number;
+            /** @description 가격 보정률 (전반: 양수, 후반: 0 이하) */
             priceOffsetRate?: number;
-            /** Format: double */
+            /**
+             * Format: double
+             * @description 현재 회차 (소수점 허용)
+             * @example 3.5
+             */
             currentRound?: number;
+            /** @description 1회 매수 단위금액 (총자산 / 분할 수) */
             unitAmount?: number;
+            /** @description 기준가 (LOC 주문 가격 기준) */
             referencePrice?: number;
+            /** @description 목표가 (지정가 매도 기준) */
             targetPrice?: number;
+            /** @description 총 자산 (예수금 + 매입금액) */
             totalAssets?: number;
         };
         TodayOrderItem: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 주문 고유 ID
+             */
             id?: string;
+            /**
+             * @description 거래 종목
+             * @example TQQQ
+             */
             ticker?: string;
+            /**
+             * @description 매수/매도 방향
+             * @example BUY
+             */
             direction?: string;
+            /**
+             * @description 주문 유형
+             * @example LOC
+             */
             orderType?: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 주문 수량
+             */
             quantity?: number;
+            /** @description 주문 가격 */
             price?: number;
-            /** @enum {string} */
+            /**
+             * @description 주문 상태 (취소 가능 여부 판단용)
+             * @example PLANNED
+             * @enum {string}
+             */
             status?: "PLANNED" | "PLACED" | "FILLED" | "PARTIALLY_FILLED" | "FAILED" | "CANCELLED";
         };
         SseEmitter: {
             /** Format: int64 */
             timeout?: number;
         };
+        StatsSummaryResponse: {
+            totalRealizedPnl?: number;
+            totalUnrealizedPnl?: number;
+            activePrincipal?: number;
+            byType?: components["schemas"]["TypeStats"][];
+        };
+        TypeStats: {
+            type?: string;
+            typeDescription?: string;
+            /** Format: int32 */
+            closedCycleCount?: number;
+            /** Format: int32 */
+            activeCycleCount?: number;
+            winRate?: number;
+            avgReturnRate?: number;
+            avgDurationDays?: number;
+            realizedPnl?: number;
+            unrealizedPnl?: number;
+        };
+        BenchmarkPoint: {
+            /** Format: date */
+            date?: string;
+            close?: number;
+        };
+        EquityCurveResponse: {
+            points?: components["schemas"]["Point"][];
+            benchmark?: components["schemas"]["BenchmarkPoint"][];
+        };
+        Point: {
+            /** Format: date */
+            date?: string;
+            totalAsset?: number;
+            principal?: number;
+        };
+        CyclePerformancePageResponse: {
+            items?: components["schemas"]["Item"][];
+            nextCursor?: string;
+            hasMore?: boolean;
+        };
         EnumMeta: {
+            /**
+             * @description enum name() 값
+             * @example KIS
+             */
             code?: string;
+            /** @description 한국어 표시 이름 */
             label?: string;
+            /** @description 설명 (null 가능) */
             description?: string;
         };
         MetaBundle: {
+            /** @description 전략 타입 목록 */
             strategyTypes?: components["schemas"]["StrategyTypeMeta"][];
+            /** @description 티커 목록 */
             tickers?: components["schemas"]["TickerMeta"][];
+            /** @description 증권사 목록 */
             brokers?: components["schemas"]["EnumMeta"][];
+            /** @description 전략 상태 목록 */
             strategyStatuses?: components["schemas"]["EnumMeta"][];
+            /** @description 연속 사이클 정책 목록 */
             cycleSeedTypes?: components["schemas"]["EnumMeta"][];
         };
         StrategyTypeMeta: {
+            /**
+             * @description enum name() 값
+             * @example INFINITE
+             */
             code?: string;
+            /** @description 전략 설명 */
             description?: string;
+            /** @description 사용 가능한 티커 name() 목록 (정렬됨) */
             availableTickers?: string[];
+            /** @description basePrice 소스가 기준매매표인지 (UI basePrice 분기 SSOT) */
             requiresPrivacyBase?: boolean;
+            /** @description 티커 고정 여부 (선택 불가, 단일 티커) */
             tickerFixed?: boolean;
+            /** @description 리버스모드 배지 표시 가드 */
             supportsReverseMode?: boolean;
+            /** @description 분할 수 옵션 (빈 목록이면 분할 개념 없음) */
             divisionCounts?: number[];
         };
         TickerMeta: {
+            /**
+             * @description enum name() 값
+             * @example SOXL
+             */
             code?: string;
+            /** @description 종목 설명 */
             description?: string;
+            /** @description 익절 목표 수익률 */
             targetProfitRate?: number;
         };
         MarketSessionResponse: {
@@ -1920,28 +2620,83 @@ export interface components {
             isDst?: boolean;
         };
         FearGreedResponse: {
+            /** @description CNN 공포탐욕지수 현재값 + 추이 이력 */
             cnn?: components["schemas"]["SourceView"];
+            /** @description 크립토 공포탐욕지수 현재값 + 추이 이력 */
             crypto?: components["schemas"]["SourceView"];
         };
-        Point: {
-            date?: string;
-            /** Format: int32 */
-            value?: number;
-            rating?: string;
-        };
         SourceView: {
+            /** @description 최신 시점 값 (이력이 없으면 null) */
             current?: components["schemas"]["Point"];
+            /** @description 추이 이력 (오름차순 정렬) */
             history?: components["schemas"]["Point"][];
         };
         TossCandleResponse: {
-            /** Format: date */
+            /**
+             * Format: date
+             * @description 기준일
+             */
             date?: string;
+            /** @description 시가 */
             open?: number;
+            /** @description 고가 */
             high?: number;
+            /** @description 저가 */
             low?: number;
+            /** @description 종가 */
             close?: number;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 거래량
+             */
             volume?: number;
+        };
+        DailyTransactionResponse: {
+            /** @description 일별 체결 내역 목록 */
+            items?: components["schemas"]["ItemDto"][];
+            /** @description 기간 합계 요약 */
+            summary?: components["schemas"]["SummaryDto"];
+        };
+        ItemDto: {
+            /** @description 매매일 (KST 기준) */
+            tradeDate?: string;
+            /**
+             * @description 매수/매도 방향
+             * @example BUY
+             * @enum {string}
+             */
+            direction?: "BUY" | "SELL";
+            /**
+             * @description 종목코드
+             * @enum {string}
+             */
+            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL";
+            /** @description 종목명 */
+            symbolName?: string;
+            /**
+             * Format: int32
+             * @description 체결수량
+             */
+            quantity?: number;
+            /** @description 해외주식체결단가 */
+            price?: number;
+            /** @description 거래외화금액 */
+            tradeAmountUsd?: number;
+            /**
+             * @description 통화코드
+             * @example USD
+             */
+            currency?: string;
+        };
+        SummaryDto: {
+            /** @description 외화매수금액합계 */
+            buyAmountFcr?: number;
+            /** @description 외화매도금액합계 */
+            sellAmountFcr?: number;
+            /** @description 국내수수료합계 */
+            domesticFee?: number;
+            /** @description 해외수수료합계 */
+            overseasFee?: number;
         };
         AdminUserResponse: {
             /**
@@ -1968,96 +2723,225 @@ export interface components {
             createdAt?: string;
         };
         AdminTradeResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 주문 고유 ID
+             */
             id?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 계좌 소유자 사용자 ID
+             */
             userId?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 소속 계좌 ID
+             */
             accountId?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 소속 전략 ID (조회 실패 시 null)
+             */
             strategyId?: string;
+            /** @description 계좌 소유자 닉네임 */
             ownerNickname?: string;
+            /**
+             * @description 전략 종류 (조회 실패 시 null)
+             * @example INFINITE
+             */
             strategyType?: string;
-            /** Format: date */
+            /**
+             * Format: date
+             * @description 거래일 (KST)
+             */
             tradeDate?: string;
+            /**
+             * @description 거래 종목
+             * @example SOXL
+             */
             ticker?: string;
+            /**
+             * @description 매매 방향
+             * @example BUY
+             */
             direction?: string;
+            /**
+             * @description 주문 유형
+             * @example LOC
+             */
             orderType?: string;
+            /**
+             * @description 접수 시점
+             * @example AT_OPEN
+             */
             timing?: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 주문 수량
+             */
             quantity?: number;
+            /** @description 주문 가격 */
             price?: number;
+            /**
+             * @description 주문 상태
+             * @example FILLED
+             */
             status?: string;
+            /** @description 브로커 측 주문 ID */
             externalOrderId?: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 체결 수량 (미체결 시 null)
+             */
             filledQuantity?: number;
+            /** @description 체결 가격 (미체결 시 null) */
             filledPrice?: number;
         };
         ReorderTimingAvailabilityResponse: {
+            /** @description AT_OPEN 접수 가능 여부 (개장 전에만 true) */
             atOpen?: boolean;
+            /** @description AT_CLOSE 접수 가능 여부 (마감 전에만 true) */
             atClose?: boolean;
+            /** @description 즉시 접수 가능 여부 (정규장 중에만 true) */
             immediate?: boolean;
         };
         AdminPrivacyBaseResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 기준 매매표 마스터 ID
+             */
             id?: string;
-            /** Format: date */
-            tradeDate?: string;
+            /**
+             * Format: date
+             * @description 발행일 원본 (DB release_date 그대로, KST 변환 없음)
+             */
+            releaseDate?: string;
+            /**
+             * @description 거래 종목
+             * @example SOXL
+             */
             ticker?: string;
+            /** @description 기준가 */
             currentCycleStart?: number;
+            /** @description 사이클 실현 손익 (USD) */
             currentCycleRealizedPnl?: number;
+            /** @description 평단가 (nullable) */
             avgPrice?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 보유 수량
+             */
             holdings?: number;
+            /** @description 계획 주문 명세 목록 */
             orders?: components["schemas"]["OrderLine"][];
         };
         OrderLine: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 주문 명세 ID
+             */
             id?: string;
+            /**
+             * @description 매매 방향
+             * @example BUY
+             */
             direction?: string;
+            /**
+             * @description 주문 유형
+             * @example LOC
+             */
             orderType?: string;
+            /** @description 주문 가격 */
             price?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 주문 수량 (nullable)
+             */
             quantity?: number;
         };
         ErrorLogResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 오류 로그 고유 ID
+             */
             id?: string;
+            /** @description 예외 클래스 단순명 */
             errorType?: string;
+            /** @description 예외 메시지 */
             message?: string;
+            /** @description 전체 스택트레이스 */
             stackTrace?: string;
+            /** @description 발생 위치 메타데이터 */
             context?: {
                 [key: string]: string;
             };
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 기록 일시
+             */
             createdAt?: string;
         };
         AuditLogResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 감사 로그 고유 ID
+             */
             id?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 액션을 수행한 관리자 사용자 ID
+             */
             adminId?: string;
+            /**
+             * @description 액션 유형
+             * @example RUNTIME_SETTINGS_UPDATE
+             */
             action?: string;
+            /** @description 액션 대상 리소스 종류 */
             targetType?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 액션 대상 리소스 ID
+             */
             targetId?: string;
+            /** @description 액션 상세 데이터 */
             payload?: {
                 [key: string]: Record<string, never>;
             };
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 기록 일시
+             */
             createdAt?: string;
         };
         AdminAccountItem: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 계좌 고유 ID
+             */
             id?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 소유자 사용자 ID
+             */
             userId?: string;
+            /** @description 소유자 닉네임 (사용자 조회 실패 시 "(알 수 없음)") */
             ownerNickname?: string;
+            /**
+             * @description 마스킹된 계좌번호
+             * @example ****1234
+             */
             accountNoMasked?: string;
+            /**
+             * @description 브로커 코드
+             * @example KIS
+             */
             broker?: string;
         };
         AnomaliesResponse: {
+            /** @description 전략이 PAUSED 상태인 계좌 목록 */
             pausedAccounts?: components["schemas"]["AdminAccountItem"][];
+            /** @description 최근 N일(기본 7일) 거래 없는 ACTIVE 전략 계좌 목록 */
             inactiveAccounts?: components["schemas"]["AdminAccountItem"][];
         };
         AdminDashboardResponse: {
@@ -2088,21 +2972,56 @@ export interface components {
             totalAccounts?: number;
         };
         AdminAccountResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 계좌 고유 ID
+             */
             id?: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 소유자 사용자 ID
+             */
             userId?: string;
+            /** @description 소유자 닉네임 */
             ownerNickname?: string;
+            /**
+             * @description 마스킹된 계좌번호
+             * @example ****1234
+             */
             accountNoMasked?: string;
+            /**
+             * @description 브로커 코드
+             * @example KIS
+             */
             broker?: string;
+            /** @description 계좌에 등록된 전략 목록 */
             strategies?: components["schemas"]["AdminStrategyResponse"][];
         };
         AdminStrategyResponse: {
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description 전략 고유 ID
+             */
             id?: string;
+            /**
+             * @description 전략 종류
+             * @example INFINITE
+             */
             type?: string;
+            /**
+             * @description 전략 상태
+             * @example ACTIVE
+             */
             status?: string;
+            /**
+             * @description 거래 종목
+             * @example SOXL
+             */
             ticker?: string;
+            /**
+             * @description 사이클 종료 후 재등록 정책
+             * @example NONE
+             */
             cycleSeedType?: string;
         };
         PingResponse: {
@@ -2110,17 +3029,45 @@ export interface components {
             adminId?: string;
         };
         StrategySeedPreviewResponse: {
+            /**
+             * @description 거래 종목
+             * @example SOXL
+             */
             ticker?: string;
+            /** @description 기준가 (계산 불가 시 null) */
             basePrice?: number;
+            /** @description 최소 필요 시드 (계산 불가 시 null) */
             minSeed?: number;
+            /**
+             * @description 계산 불가 사유 (정상이면 null)
+             * @example NO_PRIVACY_BASE
+             */
             skipReason?: string;
         };
         TossStockInfoResponse: {
+            /**
+             * @description 종목 코드
+             * @example SOXL
+             */
             symbol?: string;
+            /** @description 한글 종목명 */
             name?: string;
+            /** @description 영문 종목명 */
             englishName?: string;
+            /**
+             * @description 거래소/시장
+             * @example NYSE ARCA
+             */
             market?: string;
+            /**
+             * @description 통화
+             * @example USD
+             */
             currency?: string;
+            /**
+             * @description 종목 상태
+             * @example NORMAL
+             */
             status?: string;
         };
         /** @description 복수 종목 현재가 조회 응답 */
@@ -2142,83 +3089,106 @@ export interface components {
             price?: number;
         };
         PortfolioSummaryResponse: {
+            /** @description 종목별 잔고 목록 */
             positions?: components["schemas"]["PositionDto"][];
+            /** @description 계좌 전체 요약 */
             summary?: components["schemas"]["SummaryDto"];
         };
         PositionDto: {
-            /** @enum {string} */
+            /**
+             * @description 종목코드
+             * @enum {string}
+             */
             ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL";
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 잔고수량
+             */
             holdings?: number;
+            /** @description 평균단가 (USD) */
             avgPrice?: number;
+            /** @description 현재가 (USD) */
             currentPrice?: number;
+            /** @description 외화평가금액 */
             evalAmountUsd?: number;
+            /** @description 평가손익 (USD) */
             profitLossUsd?: number;
+            /** @description 평가손익률 (%) */
             profitRate?: number;
+            /**
+             * @description 해외거래소코드
+             * @example AMEX
+             */
             exchangeCode?: string;
         };
-        SummaryDto: {
-            totalAssetUsd?: number;
-            totalEvalProfit?: number;
-            totalReturnRate?: number;
-            totalAssetUsdActual?: number;
-            evalProfitUsdSum?: number;
-            usdDeposit?: number;
-            posEvalUsd?: number;
-            exchangeRateKrwPerUsd?: number;
-        };
         SessionResponse: {
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 세션 시작 시각 (ISO-8601 UTC)
+             */
             startTime?: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description 세션 종료 시각 (ISO-8601 UTC)
+             */
             endTime?: string;
         };
         TossMarketSessionResponse: {
-            /** Format: date */
+            /**
+             * Format: date
+             * @description 날짜 (US 현지 기준)
+             */
             date?: string;
+            /** @description 정규장 개장일 여부 (regularMarket != null) */
             isOpen?: boolean;
+            /** @description 프리마켓 세션 (휴장일이면 null) */
             preMarket?: components["schemas"]["SessionResponse"];
+            /** @description 정규장 세션 (휴장일·주말이면 null) */
             regularMarket?: components["schemas"]["SessionResponse"];
+            /** @description 애프터마켓 세션 (휴장일이면 null) */
             afterMarket?: components["schemas"]["SessionResponse"];
         };
         MarginResponse: {
-            /** @enum {string} */
+            /**
+             * @description 통화코드
+             * @example USD
+             * @enum {string}
+             */
             currency?: "KRW" | "USD" | "JPY";
+            /** @description 통합주문가능금액 (통합증거금 ON일 때만 양수) */
             integratedOrderableAmount?: number;
+            /** @description 외화일반주문가능금액 (통합증거금 무관, 항상 유효) */
             foreignOrderableAmount?: number;
+            /** @description 실제 매수 가능 USD (통합·외화주문가능금액 중 큰 값) */
             purchasableAmount?: number;
+            /** @description 기준환율 (1 USD = ? KRW) */
             usdToKrwRate?: number;
         };
         TossExchangeRateResponse: {
+            /** @description 매수 환율 (1 USD 기준 KRW) */
             rate?: number;
+            /** @description 매매기준율 */
             midRate?: number;
         };
-        DailyTransactionResponse: {
-            items?: components["schemas"]["ItemDto"][];
-            summary?: components["schemas"]["SummaryDto"];
-        };
-        ItemDto: {
-            tradeDate?: string;
-            /** @enum {string} */
-            direction?: "BUY" | "SELL";
-            /** @enum {string} */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL";
-            symbolName?: string;
-            /** Format: int32 */
-            quantity?: number;
-            price?: number;
-            tradeAmountUsd?: number;
-            currency?: string;
-        };
         TossAccountInfoResponse: {
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 계좌 일련번호 (brokerAccountCode에 저장되는 값)
+             */
             accountSeq?: number;
+            /** @description 계좌번호 (마스킹 포함 가능) */
             accountNo?: string;
         };
         CancelOrdersResponse: {
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 취소 접수 성공 건수
+             */
             cancelledCount?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description 취소 실패 건수 (이미 체결되었거나 증권사 오류)
+             */
             failedCount?: number;
         };
     };
@@ -2320,6 +3290,50 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    getSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RuntimeSettingsResponse"];
+                };
+            };
+        };
+    };
+    updateSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminSettingsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RuntimeSettingsResponse"];
+                };
             };
         };
     };
@@ -3278,6 +4292,94 @@ export interface operations {
             };
         };
     };
+    getSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StatsSummaryResponse"];
+                };
+            };
+        };
+    };
+    getEquityCurve: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                benchmark?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EquityCurveResponse"];
+                };
+            };
+        };
+    };
+    getCycles: {
+        parameters: {
+            query?: {
+                type?: "INFINITE" | "PRIVACY" | "VR";
+                cursor?: string;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CyclePerformancePageResponse"];
+                };
+            };
+        };
+    };
+    getRuntimeConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RuntimeSettingsResponse"];
+                };
+            };
+        };
+    };
     getBundle: {
         parameters: {
             query?: never;
@@ -3402,6 +4504,37 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["TossCandleResponse"][];
+                };
+            };
+        };
+    };
+    getDailyTransactions: {
+        parameters: {
+            query: {
+                /**
+                 * @description 조회 시작일
+                 * @example 2025-01-01
+                 */
+                from: string;
+                /**
+                 * @description 조회 종료일
+                 * @example 2025-01-31
+                 */
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DailyTransactionResponse"];
                 };
             };
         };
@@ -4148,7 +5281,7 @@ export interface operations {
             };
         };
     };
-    getDailyTransactions: {
+    getDailyTransactions_1: {
         parameters: {
             query: {
                 /**
