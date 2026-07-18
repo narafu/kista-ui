@@ -12,7 +12,7 @@ widget 슬라이스끼리 cross-import 금지. **단, "공용 UI 위젯" 목록(
 
 ## 대표 슬라이스
 
-- 페이지 위젯: `admin-user-list`, `admin-trade-list`, `admin-log-list`, `admin-privacy-trade-list`, `all-strategies`, `dashboard`, `account-detail`, `accounts-grid`, `strategy-detail`, `strategy-list`, `cycle-history`, `fear-greed-card`, `market-holiday-calendar`, `error-display`
+- 페이지 위젯: `admin-user-list`, `admin-trade-list`, `admin-log-list`, `admin-privacy-trade-list`, `all-strategies`, `dashboard`, `account-detail`, `accounts-grid`, `strategy-detail`, `strategy-list`, `cycle-history`, `fear-greed-card`, `market-holiday-calendar`, `stats-overview`, `error-display`
 - 공용 UI 위젯: `layout`, `account-card`, `strategy-card`, `kpi-card`, `revealable-value`, `glass-card`, `page-header`, `theme-toggle`, `timeline`, `pull-to-refresh`
 - shared/ui로 이동됨: `stepper`, `percent-gauge` (도메인 무관 UI 컴포넌트로 분류)
 
@@ -59,6 +59,7 @@ widget 슬라이스끼리 cross-import 금지. **단, "공용 UI 위젯" 목록(
 - **`kpi-card`**: `<KpiCard />` 그리드 패턴 유지
 - **`revealable-value`**: 마스킹 값 공개 토글
 - **`all-strategies`**: `useAllStrategiesQuery(initialStrategies)` 초기 데이터 패턴
+- **`stats-overview`**: 전략 유형 비교와 사이클 성과는 `sm` 이상에서 열 헤더가 있는 실제 `table` 마크업, `sm` 미만에서 명시적인 라벨-값 요약 행으로 표시한다. 두 표현은 같은 조회·페이지네이션 상태를 공유한다
 - **`admin-user-list`**: 이상감지 카드는 `AdminAnomalies { pausedAccounts, inactiveAccounts }`
 - **`market-holiday-calendar/WeeklyMarketCalendar`**: 주간/월간 데이터를 여러 쿼리로 조합
 - **`glass-card`**, **`pull-to-refresh`**, **`layout/DesktopSidebar`**: 일부 CSS 토큰/동적 계산 인라인 style 유지
