@@ -106,7 +106,7 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark }: Pr
         </figure>
         <p className="mt-2 text-xs text-muted-foreground">
           월별 지수와 수익률은 서버 계산값이며, 표시된 현재 환율로 환산하지 않습니다.
-          {points[0]?.baseMonth ? ` 비교 시작 ${fmtDate(points[0].baseMonth)}.` : ''}
+          {points[0]?.baseMonth ? ` 비교 시작 ${fmtDate(points[0].baseMonth)}` : ''}
         </p>
       </CardContent>
     </Card>

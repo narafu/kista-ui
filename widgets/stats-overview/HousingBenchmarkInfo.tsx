@@ -50,9 +50,9 @@ export function HousingBenchmarkInfo({ quintile, benchmark, currentExchangeRate 
 
         <div className="border-t border-border pt-4 text-xs leading-5 text-muted-foreground lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
           <p className="font-medium text-foreground">통화 및 데이터 기준</p>
-          <p className="text-foreground">{LOCAL_CURRENCY_NOTICE}</p>
+          <p className="mt-2 text-foreground">{LOCAL_CURRENCY_NOTICE}</p>
           <p className="mt-1">
-            데이터 출처: KB 서울 아파트 분위 가격
+            데이터 출처: KB부동산 서울 아파트 5분위 매매평균가격
             {benchmark?.sourceUpdatedDate ? ` · 업데이트 ` : ''}
             {benchmark?.sourceUpdatedDate ? <time dateTime={benchmark.sourceUpdatedDate}>{benchmark.sourceUpdatedDate}</time> : null}
           </p>
