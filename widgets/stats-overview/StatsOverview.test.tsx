@@ -228,7 +228,9 @@ describe('StatsOverview', () => {
           summary: null,
           points: [],
           currentExchangeRate: null,
-          quality: { notice: '전략 운용 기록 기반 근사치' },
+          quality: {
+            notice: '전략 운용 기록 기반 근사치입니다. 투자 성과는 USD, 서울 아파트는 KRW 현지 통화 기준이며 현재 환율은 성과 계산에 반영하지 않습니다.',
+          },
           emptyReason: 'NO_INVESTMENT_DATA',
         })
       }

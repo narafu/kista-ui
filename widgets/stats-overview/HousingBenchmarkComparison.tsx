@@ -84,19 +84,6 @@ function BenchmarkLoading() {
   )
 }
 
-function BenchmarkUpdating() {
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      aria-label="새 조건의 벤치마크 비교를 불러오는 중"
-      className="flex min-h-[240px] items-center justify-center border-y border-border text-sm text-muted-foreground"
-    >
-      새 조건의 벤치마크 비교를 불러오는 중
-    </div>
-  )
-}
-
 function StrategyListLoading() {
   return (
     <div
@@ -132,12 +119,13 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   const strategies = strategiesQuery.data ?? []
   const effectiveStrategyId = selectedStrategyId || strategies[0]?.id
   const isStrategyScope = scope === 'STRATEGY'
-  const strategyListFailed = isStrategyScope && strategiesQuery.isError
+  const hasStrategyList = strategiesQuery.data != null
+  const strategyListFailed = isStrategyScope && !hasStrategyList && strategiesQuery.isError
   const strategyListLoading = isStrategyScope
-    && (strategiesQuery.isLoading || (!strategiesQuery.isError && strategiesQuery.data == null))
+    && !hasStrategyList
+    && !strategiesQuery.isError
   const strategyListEmpty = isStrategyScope
-    && !strategyListLoading
-    && !strategyListFailed
+    && hasStrategyList
     && strategiesQuery.data?.length === 0
   const selectedPeriod = PERIODS.find((item) => item.value === period)
   const from = selectedPeriod?.years ? subtractYears(defaultTo, selectedPeriod.years) : undefined
@@ -233,6 +221,16 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
             </div>
           </fieldset>
         </div>
+        {query.isFetching && query.isPlaceholderData ? (
+          <p
+            role="status"
+            aria-live="polite"
+            aria-label="갱신 중"
+            className="mt-3 text-right text-xs text-muted-foreground"
+          >
+            갱신 중
+          </p>
+        ) : null}
       </section>
 
       {strategyListLoading ? (
@@ -245,9 +243,7 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
         <div role="status" aria-live="polite">
           <EmptyState message="비교할 개별 전략이 없습니다." />
         </div>
-      ) : !canQuery ? null : query.isPlaceholderData ? (
-        <BenchmarkUpdating />
-      ) : query.isLoading ? (
+      ) : !canQuery ? null : query.isLoading ? (
         <BenchmarkLoading />
       ) : query.isError && !data ? (
         <div role="alert" aria-live="assertive">

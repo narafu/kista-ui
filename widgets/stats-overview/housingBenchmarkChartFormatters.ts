@@ -3,7 +3,7 @@ import type { HousingBenchmarkPoint } from '@entities/stats'
 export type HousingBenchmarkSeriesKey = 'investmentIndexUsd' | 'benchmarkIndex'
 
 export const HOUSING_BENCHMARK_CHART_NOTICE =
-  '월별 지수와 수익률은 서버 계산값이며, 표시된 현재 환율로 환산하지 않습니다.'
+  '월별 지수와 수익률은 서버 계산값입니다.'
 
 export function formatHousingBenchmarkSeriesLabel(label: string, currency: 'USD' | 'KRW') {
   return `${label} (${currency})`

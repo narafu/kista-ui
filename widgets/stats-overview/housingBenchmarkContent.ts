@@ -57,9 +57,6 @@ export const HOUSING_QUINTILES: HousingQuintileContent[] = [
 export const HOUSING_QUINTILE_DISCLAIMER =
   '지역과 단지는 가격 구간을 이해하기 위한 예시입니다. KB 5분위 통계는 개별 아파트 가격을 기준으로 구분되며, 특정 지역이나 단지가 하나의 분위에 고정적으로 포함되는 것은 아닙니다.'
 
-export const LOCAL_CURRENCY_NOTICE =
-  '투자 성과는 USD, 서울 아파트는 KRW 현지 통화 기준이며 현재 환율은 성과 계산에 반영하지 않습니다.'
-
 export function getHousingQuintileContent(quintile: HousingQuintile) {
   return HOUSING_QUINTILES.find((item) => item.quintile === quintile) ?? HOUSING_QUINTILES[2]
 }

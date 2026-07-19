@@ -29,11 +29,12 @@ describe('housing benchmark chart formatters', () => {
       .toBe('151.7 · -0.4% 월간')
   })
 
-  it('USD/KRW 현지 통화 단위를 사용하고 현재 FX를 성과에 적용하지 않는다', () => {
+  it('USD/KRW 현지 통화 단위를 사용하고 API 품질 고지와 중복되는 환율 문구를 만들지 않는다', () => {
     expect(formatHousingBenchmarkSeriesLabel('전체 포트폴리오', 'USD'))
       .toBe('전체 포트폴리오 (USD)')
     expect(formatHousingBenchmarkSeriesLabel('서울 아파트 3분위', 'KRW'))
       .toBe('서울 아파트 3분위 (KRW)')
-    expect(HOUSING_BENCHMARK_CHART_NOTICE).toContain('현재 환율로 환산하지 않습니다')
+    expect(HOUSING_BENCHMARK_CHART_NOTICE).toBe('월별 지수와 수익률은 서버 계산값입니다.')
+    expect(HOUSING_BENCHMARK_CHART_NOTICE).not.toContain('환율')
   })
 })
