@@ -1,8 +1,9 @@
-import { fmtDateTime, fmtUsd } from '@shared/lib/format'
+import { fmtDateTime, fmtUsd as fmtNumber } from '@shared/lib/format'
 import type { CurrentExchangeRate, HousingBenchmark } from '@entities/stats'
 import {
   getHousingQuintileContent,
   HOUSING_QUINTILE_DISCLAIMER,
+  HOUSING_BENCHMARK_CURRENCY_NOTICE_FALLBACK,
   type HousingQuintile,
 } from './housingBenchmarkContent'
 
@@ -50,7 +51,7 @@ export function HousingBenchmarkInfo({ quintile, benchmark, currentExchangeRate,
 
         <div className="border-t border-border pt-4 text-xs leading-5 text-muted-foreground lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
           <p className="font-medium text-foreground">통화 및 데이터 기준</p>
-          {notice ? <p className="mt-2 text-foreground">{notice}</p> : null}
+          <p className="mt-2 text-foreground">{notice ?? HOUSING_BENCHMARK_CURRENCY_NOTICE_FALLBACK}</p>
           <p className="mt-1">
             데이터 출처: KB부동산 서울 아파트 5분위 매매평균가격
             {benchmark?.sourceUpdatedDate ? ` · 업데이트 ` : ''}
@@ -58,7 +59,7 @@ export function HousingBenchmarkInfo({ quintile, benchmark, currentExchangeRate,
           </p>
           {currentExchangeRate?.midRate != null ? (
             <p className="mt-1 tabular-nums">
-              현재 환율 참고: <span>1 USD = {fmtUsd(currentExchangeRate.midRate)} KRW</span>
+              현재 환율 참고: <span>1 USD = {fmtNumber(currentExchangeRate.midRate)} KRW</span>
               {currentExchangeRate.fetchedAt ? ` · ${fmtDateTime(currentExchangeRate.fetchedAt)}` : ''}
               {currentExchangeRate.source ? ` · ${currentExchangeRate.source}` : ''}
             </p>

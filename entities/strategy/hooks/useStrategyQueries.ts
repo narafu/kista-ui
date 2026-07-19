@@ -30,12 +30,13 @@ export function useStrategySeedPreviewQuery(
   })
 }
 
-export function useAllStrategiesQuery(initialData?: Strategy[]) {
+export function useAllStrategiesQuery(initialData?: Strategy[], options?: { enabled?: boolean }) {
   return useQuery<Strategy[]>({
     queryKey: ['strategies', 'all'],
     queryFn: () => listAllStrategies(),
     initialData,
     initialDataUpdatedAt: initialData ? 0 : undefined,
+    enabled: options?.enabled ?? true,
     staleTime: 30_000,
   })
 }

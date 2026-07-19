@@ -115,10 +115,11 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   const [quintile, setQuintile] = useState<HousingQuintile>(3)
   const [period, setPeriod] = useState<Period>('5Y')
 
-  const strategiesQuery = useAllStrategiesQuery()
+  const isStrategyScope = scope === 'STRATEGY'
+  // 개별 전략으로 전환했을 때만 전략 목록을 조회 — 전체 포트폴리오 범위에서는 불필요한 요청을 만들지 않는다
+  const strategiesQuery = useAllStrategiesQuery(undefined, { enabled: enabled && isStrategyScope })
   const strategies = strategiesQuery.data ?? []
   const effectiveStrategyId = selectedStrategyId || strategies[0]?.id
-  const isStrategyScope = scope === 'STRATEGY'
   const hasStrategyList = strategiesQuery.data != null
   const strategyListFailed = isStrategyScope && !hasStrategyList && strategiesQuery.isError
   const strategyListLoading = isStrategyScope
