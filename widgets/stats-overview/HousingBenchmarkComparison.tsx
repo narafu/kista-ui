@@ -29,8 +29,8 @@ const PERIODS: { value: Period; label: string; years?: number }[] = [
 ]
 
 function subtractYears(date: string, years: number) {
-  const [year, month, day] = date.split('-').map(Number)
-  const result = new Date(Date.UTC(year - years, month - 1, day))
+  const [year, month] = date.split('-').map(Number)
+  const result = new Date(Date.UTC(year - years, month - 1, 1))
   return result.toISOString().slice(0, 10)
 }
 
@@ -73,12 +73,27 @@ function BenchmarkLoading() {
   )
 }
 
+function StrategyListLoading() {
+  return (
+    <div
+      aria-label="전략 목록 불러오는 중"
+      className="rounded-[var(--r-lg)] border border-border bg-card p-5"
+    >
+      <Skeleton className="h-20 w-full" />
+    </div>
+  )
+}
+
 function emptyMessage(reason: string | null | undefined) {
   if (reason === 'INSUFFICIENT_OVERLAP' || reason === 'INSUFFICIENT_COMMON_MONTHS') {
     return '투자 기록과 서울 아파트 데이터가 겹치는 기간이 부족합니다.'
   }
   if (reason === 'NO_INVESTMENT_DATA') return '선택한 기간에 전략 운용 기록이 없습니다.'
   return '비교할 수 있는 데이터가 충분하지 않습니다.'
+}
+
+function isHousingQuintile(value: number | undefined): value is HousingQuintile {
+  return value === 1 || value === 2 || value === 3 || value === 4 || value === 5
 }
 
 export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
@@ -90,6 +105,14 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   const strategiesQuery = useAllStrategiesQuery()
   const strategies = strategiesQuery.data ?? []
   const effectiveStrategyId = selectedStrategyId || strategies[0]?.id
+  const isStrategyScope = scope === 'STRATEGY'
+  const strategyListFailed = isStrategyScope && strategiesQuery.isError
+  const strategyListLoading = isStrategyScope
+    && (strategiesQuery.isLoading || (!strategiesQuery.isError && strategiesQuery.data == null))
+  const strategyListEmpty = isStrategyScope
+    && !strategyListLoading
+    && !strategyListFailed
+    && strategiesQuery.data?.length === 0
   const selectedPeriod = PERIODS.find((item) => item.value === period)
   const from = selectedPeriod?.years ? subtractYears(defaultTo, selectedPeriod.years) : undefined
   const canQuery = scope === 'PORTFOLIO' || Boolean(effectiveStrategyId)
@@ -102,6 +125,8 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   }
   const query = useHousingBenchmarkQuery(params, enabled && canQuery)
   const data = query.data
+  const responseQuintile = data?.benchmark?.quintile
+  const displayedQuintile = isHousingQuintile(responseQuintile) ? responseQuintile : quintile
   const benchmarkLabel = data?.benchmark?.label ?? `서울 아파트 ${quintile}분위`
   const selectedStrategy = strategies.find((strategy) => strategy.id === effectiveStrategyId)
   const investmentLabel = scope === 'PORTFOLIO'
@@ -141,7 +166,15 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
                 disabled={strategies.length === 0}
                 className="min-h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                {strategies.length === 0 ? <option value="">선택할 전략이 없습니다</option> : null}
+                {strategies.length === 0 ? (
+                  <option value="">
+                    {strategiesQuery.isLoading
+                      ? '전략 목록 불러오는 중'
+                      : strategiesQuery.isError
+                        ? '전략 목록 조회 실패'
+                        : '선택할 전략이 없습니다'}
+                  </option>
+                ) : null}
                 {strategies.map((strategy) => (
                   <option key={strategy.id} value={strategy.id}>
                     {strategy.type} · {strategy.ticker}
@@ -181,12 +214,20 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
         ) : null}
       </section>
 
-      {!canQuery ? (
+      {strategyListLoading ? (
+        <StrategyListLoading />
+      ) : strategyListFailed ? (
+        <div role="alert" aria-live="assertive">
+          <SectionError message="전략 목록을 불러오지 못했습니다" />
+        </div>
+      ) : strategyListEmpty ? (
         <EmptyState message="비교할 개별 전략이 없습니다." />
-      ) : query.isLoading ? (
+      ) : !canQuery ? null : query.isLoading ? (
         <BenchmarkLoading />
       ) : query.isError && !data ? (
-        <SectionError message="벤치마크 비교를 불러오지 못했습니다" />
+        <div role="alert" aria-live="assertive">
+          <SectionError message="벤치마크 비교를 불러오지 못했습니다" />
+        </div>
       ) : data && data.summary && (data.points?.length ?? 0) > 0 ? (
         <>
           <HousingBenchmarkSummary
@@ -200,18 +241,20 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
             benchmark={data.benchmark ?? { label: benchmarkLabel }}
           />
           <HousingBenchmarkInfo
-            quintile={quintile}
+            quintile={displayedQuintile}
             benchmark={data.benchmark}
             currentExchangeRate={data.currentExchangeRate}
+            notice={data.quality?.notice}
           />
         </>
       ) : data ? (
         <>
           <EmptyState message={emptyMessage(data.emptyReason)} />
           <HousingBenchmarkInfo
-            quintile={quintile}
+            quintile={displayedQuintile}
             benchmark={data.benchmark}
             currentExchangeRate={data.currentExchangeRate}
+            notice={data.quality?.notice}
           />
         </>
       ) : null}

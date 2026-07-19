@@ -11,9 +11,10 @@ interface Props {
   quintile: HousingQuintile
   benchmark?: HousingBenchmark
   currentExchangeRate?: CurrentExchangeRate | null
+  notice?: string
 }
 
-export function HousingBenchmarkInfo({ quintile, benchmark, currentExchangeRate }: Props) {
+export function HousingBenchmarkInfo({ quintile, benchmark, currentExchangeRate, notice }: Props) {
   const content = getHousingQuintileContent(quintile)
 
   return (
@@ -51,6 +52,7 @@ export function HousingBenchmarkInfo({ quintile, benchmark, currentExchangeRate 
         <div className="border-t border-border pt-4 text-xs leading-5 text-muted-foreground lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
           <p className="font-medium text-foreground">통화 및 데이터 기준</p>
           <p className="mt-2 text-foreground">{LOCAL_CURRENCY_NOTICE}</p>
+          {notice ? <p className="mt-1">{notice}</p> : null}
           <p className="mt-1">
             데이터 출처: KB부동산 서울 아파트 5분위 매매평균가격
             {benchmark?.sourceUpdatedDate ? ` · 업데이트 ` : ''}

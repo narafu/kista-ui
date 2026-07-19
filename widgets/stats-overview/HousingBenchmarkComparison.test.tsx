@@ -88,6 +88,15 @@ const COMPARISON: HousingBenchmarkComparisonData = {
   emptyReason: null,
 }
 
+const FIFTH_QUINTILE_COMPARISON: HousingBenchmarkComparisonData = {
+  ...COMPARISON,
+  benchmark: {
+    ...COMPARISON.benchmark,
+    quintile: 5,
+    label: '서울 아파트 5분위',
+  },
+}
+
 const STRATEGIES = [
   {
     id: 'strategy-1', accountId: 'account-1', type: 'INFINITE', status: 'ACTIVE',
@@ -122,7 +131,7 @@ describe('HousingBenchmarkComparison', () => {
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'PORTFOLIO',
       quintile: 3,
-      from: '2021-07-17',
+      from: '2021-07-01',
       to: '2026-07-17',
     }, true)
     expect(screen.getByRole('button', { name: '전체 포트폴리오' })).toHaveAttribute('aria-pressed', 'true')
@@ -162,7 +171,7 @@ describe('HousingBenchmarkComparison', () => {
       scope: 'STRATEGY',
       strategyId: 'strategy-2',
       quintile: 5,
-      from: '2025-07-17',
+      from: '2025-07-01',
       to: '2026-07-17',
     }, true)
 
@@ -177,7 +186,15 @@ describe('HousingBenchmarkComparison', () => {
 
   it('다섯 분위의 대표 지역·특징·예시와 비고정 구성 면책을 제공한다', async () => {
     const user = userEvent.setup()
-    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+    let queryData = COMPARISON
+    useHousingBenchmarkQueryMock.mockImplementation(() => ({
+      data: queryData,
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      isPlaceholderData: false,
+    }))
+    const { rerender } = render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
     const select = screen.getByLabelText('서울 아파트 분위')
 
     const expected = [
@@ -218,8 +235,22 @@ describe('HousingBenchmarkComparison', () => {
       },
     ]
 
-    for (const item of expected) {
+    for (const [index, item] of expected.entries()) {
       await user.selectOptions(select, item.value)
+      queryData = {
+        ...COMPARISON,
+        benchmark: {
+          ...COMPARISON.benchmark,
+          quintile: Number(item.value),
+          label: `서울 아파트 ${item.value}분위`,
+        },
+      }
+      rerender(
+        <HousingBenchmarkComparison
+          enabled
+          defaultTo={`2026-07-${String(18 + index).padStart(2, '0')}`}
+        />
+      )
       expect(screen.getAllByText(item.range).length).toBeGreaterThan(0)
       expect(screen.getByText(item.areas)).toBeInTheDocument()
       expect(screen.getByText(item.characteristic)).toBeInTheDocument()
@@ -234,9 +265,88 @@ describe('HousingBenchmarkComparison', () => {
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
     expect(screen.getByText('투자 성과는 USD, 서울 아파트는 KRW 현지 통화 기준이며 현재 환율은 성과 계산에 반영하지 않습니다.')).toBeInTheDocument()
+    expect(screen.getByText('전략 운용 기록 기반 근사치')).toBeInTheDocument()
     expect(screen.getByText('2026-07-01')).toBeInTheDocument()
     expect(screen.getByText('1 USD = 1,365.20 KRW')).toBeInTheDocument()
     expect(screen.getByText(/TOSS_INVEST/)).toBeInTheDocument()
+  })
+
+  it('분위 변경 중에는 이전 응답 설명을 유지하고 새 응답 뒤에 선택 분위 설명으로 바꾼다', async () => {
+    const user = userEvent.setup()
+    let queryResult = {
+      data: COMPARISON,
+      isLoading: false,
+      isFetching: true,
+      isError: false,
+      isPlaceholderData: true,
+    }
+    useHousingBenchmarkQueryMock.mockImplementation(() => queryResult)
+    const { rerender } = render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    await user.selectOptions(screen.getByLabelText('서울 아파트 분위'), '5')
+
+    expect(screen.getByLabelText('서울 아파트 분위')).toHaveValue('5')
+    expect(screen.getByText('서울 3분위 안내')).toBeInTheDocument()
+    expect(screen.queryByText('서울 5분위 안내')).not.toBeInTheDocument()
+
+    queryResult = {
+      data: FIFTH_QUINTILE_COMPARISON,
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      isPlaceholderData: false,
+    }
+    rerender(<HousingBenchmarkComparison enabled defaultTo="2026-07-18" />)
+
+    expect(screen.getByText('서울 5분위 안내')).toBeInTheDocument()
+    expect(screen.queryByText('서울 3분위 안내')).not.toBeInTheDocument()
+  })
+
+  it('개별 전략 범위에서 전략 목록 로딩을 Skeleton으로 표시한다', async () => {
+    const user = userEvent.setup()
+    useAllStrategiesQueryMock.mockReturnValue({ data: undefined, isLoading: true, isError: false })
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    await user.click(screen.getByRole('button', { name: '개별 전략' }))
+
+    expect(screen.getByLabelText('전략 목록 불러오는 중')).toBeInTheDocument()
+    expect(screen.queryByText('비교할 개별 전략이 없습니다.')).not.toBeInTheDocument()
+  })
+
+  it('개별 전략 범위에서 전략 목록 오류를 alert로 표시한다', async () => {
+    const user = userEvent.setup()
+    useAllStrategiesQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: true })
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    await user.click(screen.getByRole('button', { name: '개별 전략' }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent('전략 목록을 불러오지 못했습니다')
+    expect(screen.queryByText('비교할 개별 전략이 없습니다.')).not.toBeInTheDocument()
+  })
+
+  it('개별 전략 범위에서 실제 빈 전략 목록을 EmptyState로 표시한다', async () => {
+    const user = userEvent.setup()
+    useAllStrategiesQueryMock.mockReturnValue({ data: [], isLoading: false, isError: false })
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    await user.click(screen.getByRole('button', { name: '개별 전략' }))
+
+    expect(screen.getByText('비교할 개별 전략이 없습니다.')).toBeInTheDocument()
+    expect(screen.queryByLabelText('전략 목록 불러오는 중')).not.toBeInTheDocument()
+  })
+
+  it('윤년 2월 29일의 기간 시작을 비윤년 2월 1일로 정규화한다', async () => {
+    const user = userEvent.setup()
+    render(<HousingBenchmarkComparison enabled defaultTo="2024-02-29" />)
+
+    await user.click(screen.getByRole('button', { name: '1년' }))
+
+    expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
+      scope: 'PORTFOLIO',
+      quintile: 3,
+      from: '2023-02-01',
+      to: '2024-02-29',
+    }, true)
   })
 
   it('현재 환율이 null이어도 차트·요약·비교표를 유지한다', () => {
@@ -263,7 +373,7 @@ describe('HousingBenchmarkComparison', () => {
       isError: true,
     })
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
-    expect(screen.getByText('벤치마크 비교를 불러오지 못했습니다')).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent('벤치마크 비교를 불러오지 못했습니다')
     expect(screen.queryByText('총 실현손익')).not.toBeInTheDocument()
   })
 
