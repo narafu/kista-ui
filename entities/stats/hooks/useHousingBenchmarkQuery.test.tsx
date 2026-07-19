@@ -1,17 +1,63 @@
-import { renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { HousingBenchmarkComparison } from '../model/types'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { renderHook, waitFor } from '@testing-library/react'
+import type { PropsWithChildren } from 'react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { components } from '@shared/lib/api-types'
+import type {
+  CurrentExchangeRate,
+  HousingBenchmark,
+  HousingBenchmarkComparison,
+  HousingBenchmarkParams,
+  HousingBenchmarkPeriod,
+  HousingBenchmarkPoint,
+  HousingBenchmarkQuality,
+  HousingBenchmarkStrategy,
+  HousingBenchmarkSummary,
+} from '../model/types'
 import { useHousingBenchmarkQuery } from './useStatsQueries'
 
-const { getHousingBenchmarkComparisonMock, useQueryMock } = vi.hoisted(() => ({
+const { getHousingBenchmarkComparisonMock } = vi.hoisted(() => ({
   getHousingBenchmarkComparisonMock: vi.fn(),
-  useQueryMock: vi.fn(),
 }))
 
-vi.mock('@tanstack/react-query', () => ({
-  useInfiniteQuery: vi.fn(),
-  useQuery: useQueryMock,
-}))
+type Equal<Left, Right> = (
+  <Value>() => Value extends Left ? 1 : 2
+) extends <Value>() => Value extends Right ? 1 : 2 ? true : false
+type Assert<Condition extends true> = Condition
+type HousingBenchmarkSchemas = components['schemas']
+
+type _CurrentExchangeRateMatchesSchema = Assert<Equal<
+  CurrentExchangeRate,
+  HousingBenchmarkSchemas['HousingBenchmarkCurrentExchangeRate']
+>>
+type _StrategyMatchesSchema = Assert<Equal<
+  HousingBenchmarkStrategy,
+  HousingBenchmarkSchemas['HousingBenchmarkStrategyInfo']
+>>
+type _BenchmarkMatchesSchema = Assert<Equal<
+  HousingBenchmark,
+  HousingBenchmarkSchemas['HousingBenchmarkDefinition']
+>>
+type _PeriodMatchesSchema = Assert<Equal<
+  HousingBenchmarkPeriod,
+  HousingBenchmarkSchemas['HousingBenchmarkPeriod']
+>>
+type _SummaryMatchesSchema = Assert<Equal<
+  HousingBenchmarkSummary,
+  HousingBenchmarkSchemas['HousingBenchmarkSummary']
+>>
+type _PointMatchesSchema = Assert<Equal<
+  HousingBenchmarkPoint,
+  HousingBenchmarkSchemas['HousingBenchmarkPoint']
+>>
+type _QualityMatchesSchema = Assert<Equal<
+  HousingBenchmarkQuality,
+  HousingBenchmarkSchemas['HousingBenchmarkQuality']
+>>
+type _ComparisonMatchesSchema = Assert<Equal<
+  HousingBenchmarkComparison,
+  HousingBenchmarkSchemas['HousingBenchmarkComparisonResponse']
+>>
 
 vi.mock('../api', () => ({
   getEquityCurve: vi.fn(),
@@ -20,81 +66,112 @@ vi.mock('../api', () => ({
   getStatsSummary: vi.fn(),
 }))
 
-const params = {
-  scope: 'PORTFOLIO' as const,
-  quintile: 3 as const,
+const params: HousingBenchmarkParams = {
+  scope: 'PORTFOLIO',
+  quintile: 3,
   from: '2021-07-01',
   to: '2026-07-01',
 }
 
+const response: HousingBenchmarkComparison = {
+  scope: 'PORTFOLIO',
+  strategy: null,
+  benchmark: {
+    regionCode: '11680',
+    regionName: '강남구',
+    quintile: 3,
+    label: '강남구 3분위',
+    sourceUpdatedDate: '2026-07-01',
+  },
+  period: { fromMonth: '2021-07-01', toMonth: '2026-07-01', monthCount: 61 },
+  summary: null,
+  points: [{
+    baseMonth: '2026-07-01',
+    investmentIndexUsd: 103.2,
+    benchmarkIndex: 101.4,
+    investmentMonthlyReturn: 3.2,
+    benchmarkMonthlyReturn: 1.4,
+  }],
+  currentExchangeRate: null,
+  quality: {
+    method: 'MONTHLY',
+    investmentCurrency: 'USD',
+    benchmarkCurrency: 'KRW',
+    notice: 'test',
+  },
+  emptyReason: null,
+}
+
+function createTestQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+    },
+  })
+}
+
+function createWrapper(queryClient: QueryClient) {
+  return function QueryClientWrapper({ children }: PropsWithChildren) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  }
+}
+
 describe('useHousingBenchmarkQuery', () => {
+  let queryClient: QueryClient
+
   beforeEach(() => {
     vi.clearAllMocks()
-    useQueryMock.mockImplementation((options: { enabled?: boolean; queryFn: () => unknown }) => {
-      if (options.enabled !== false) options.queryFn()
-      return {}
-    })
+    queryClient = createTestQueryClient()
   })
 
-  it('uses every filter in the query key and request', () => {
-    renderHook(() => useHousingBenchmarkQuery(params, true))
+  afterEach(() => {
+    queryClient.clear()
+  })
 
-    const options = useQueryMock.mock.calls.at(-1)?.[0] as {
-      queryKey: unknown[]
-    }
-    expect(options.queryKey).toEqual([
-      'housingBenchmark', 'PORTFOLIO', null, 3, '2021-07-01', '2026-07-01',
-    ])
+  it('uses every filter in the query key and request', async () => {
+    getHousingBenchmarkComparisonMock.mockResolvedValue(response)
+    const { result } = renderHook(() => useHousingBenchmarkQuery(params, true), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    await waitFor(() => expect(result.current.data).toBe(response))
 
     expect(getHousingBenchmarkComparisonMock).toHaveBeenCalledWith(params)
+    expect(queryClient.getQueryData([
+      'housingBenchmark', 'PORTFOLIO', null, 3, '2021-07-01', '2026-07-01',
+    ])).toBe(response)
   })
 
-  it('does not request data while disabled', () => {
-    renderHook(() => useHousingBenchmarkQuery(params, false))
+  it('does not request data while disabled', async () => {
+    const { result } = renderHook(() => useHousingBenchmarkQuery(params, false), {
+      wrapper: createWrapper(queryClient),
+    })
 
-    const options = useQueryMock.mock.calls.at(-1)?.[0] as {
-      enabled: boolean
-      queryFn: () => Promise<unknown>
-    }
-    expect(options.enabled).toBe(false)
+    await waitFor(() => expect(result.current.fetchStatus).toBe('idle'))
+
     expect(getHousingBenchmarkComparisonMock).not.toHaveBeenCalled()
   })
 
-  it('keeps previous chart data while filters change', () => {
-    renderHook(() => useHousingBenchmarkQuery(params, true))
+  it('keeps previous chart data while a changed filter is loading', async () => {
+    const pendingResponse = new Promise<HousingBenchmarkComparison>(() => {})
+    getHousingBenchmarkComparisonMock
+      .mockResolvedValueOnce(response)
+      .mockReturnValueOnce(pendingResponse)
+    const { result, rerender } = renderHook(
+      ({ queryParams }) => useHousingBenchmarkQuery(queryParams, true),
+      {
+        initialProps: { queryParams: params },
+        wrapper: createWrapper(queryClient),
+      }
+    )
 
-    const previous: HousingBenchmarkComparison = {
-      scope: 'PORTFOLIO',
-      strategy: null,
-      benchmark: {
-        regionCode: '11680',
-        regionName: '강남구',
-        quintile: 3,
-        label: '강남구 3분위',
-        sourceUpdatedDate: '2026-07-01',
-      },
-      period: { fromMonth: '2021-07-01', toMonth: '2026-07-01', monthCount: 61 },
-      summary: null,
-      points: [{
-        baseMonth: '2026-07-01',
-        investmentIndexUsd: 103.2,
-        benchmarkIndex: 101.4,
-        investmentMonthlyReturn: 3.2,
-        benchmarkMonthlyReturn: 1.4,
-      }],
-      currentExchangeRate: null,
-      quality: {
-        method: 'MONTHLY',
-        investmentCurrency: 'USD',
-        benchmarkCurrency: 'KRW',
-        notice: 'test',
-      },
-      emptyReason: null,
-    }
-    const options = useQueryMock.mock.calls.at(-1)?.[0] as {
-      placeholderData: (data: HousingBenchmarkComparison) => HousingBenchmarkComparison
-    }
+    await waitFor(() => expect(result.current.data).toBe(response))
 
-    expect(options.placeholderData(previous)).toBe(previous)
+    rerender({ queryParams: { ...params, quintile: 4 } })
+
+    await waitFor(() => expect(getHousingBenchmarkComparisonMock).toHaveBeenCalledTimes(2))
+
+    expect(result.current.data).toBe(response)
+    expect(result.current.isPlaceholderData).toBe(true)
   })
 })

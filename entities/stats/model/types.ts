@@ -1,3 +1,5 @@
+import type { components } from '@shared/lib/api-types'
+
 export interface StrategyTypeStats {
   type: string
   typeDescription: string
@@ -55,65 +57,13 @@ export interface HousingBenchmarkParams {
   to?: string
 }
 
-export interface CurrentExchangeRate {
-  midRate: number
-  fetchedAt: string
-  source: 'TOSS_INVEST'
-}
+type HousingBenchmarkSchemas = components['schemas']
 
-export interface HousingBenchmarkStrategy {
-  id: string
-  type: string
-  ticker: string
-}
-
-export interface HousingBenchmark {
-  regionCode: string
-  regionName: string
-  quintile: number
-  label: string
-  sourceUpdatedDate: string | null
-}
-
-export interface HousingBenchmarkPeriod {
-  fromMonth: string | null
-  toMonth: string | null
-  monthCount: number
-}
-
-export interface HousingBenchmarkSummary {
-  investmentCumulativeReturn: number
-  benchmarkCumulativeReturn: number
-  excessReturn: number
-  investmentAnnualizedReturn: number
-  benchmarkAnnualizedReturn: number
-  investmentMaxDrawdown: number
-  benchmarkMaxDrawdown: number
-}
-
-export interface HousingBenchmarkPoint {
-  baseMonth: string
-  investmentIndexUsd: number
-  benchmarkIndex: number
-  investmentMonthlyReturn: number | null
-  benchmarkMonthlyReturn: number | null
-}
-
-export interface HousingBenchmarkQuality {
-  method: string
-  investmentCurrency: string
-  benchmarkCurrency: string
-  notice: string
-}
-
-export interface HousingBenchmarkComparison {
-  scope: 'PORTFOLIO' | 'STRATEGY'
-  strategy: HousingBenchmarkStrategy | null
-  benchmark: HousingBenchmark
-  period: HousingBenchmarkPeriod
-  summary: HousingBenchmarkSummary | null
-  points: HousingBenchmarkPoint[]
-  currentExchangeRate: CurrentExchangeRate | null
-  quality: HousingBenchmarkQuality
-  emptyReason: string | null
-}
+export type CurrentExchangeRate = HousingBenchmarkSchemas['HousingBenchmarkCurrentExchangeRate']
+export type HousingBenchmarkStrategy = HousingBenchmarkSchemas['HousingBenchmarkStrategyInfo']
+export type HousingBenchmark = HousingBenchmarkSchemas['HousingBenchmarkDefinition']
+export type HousingBenchmarkPeriod = HousingBenchmarkSchemas['HousingBenchmarkPeriod']
+export type HousingBenchmarkSummary = HousingBenchmarkSchemas['HousingBenchmarkSummary']
+export type HousingBenchmarkPoint = HousingBenchmarkSchemas['HousingBenchmarkPoint']
+export type HousingBenchmarkQuality = HousingBenchmarkSchemas['HousingBenchmarkQuality']
+export type HousingBenchmarkComparison = HousingBenchmarkSchemas['HousingBenchmarkComparisonResponse']

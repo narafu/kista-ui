@@ -2561,7 +2561,25 @@ export interface components {
             realizedPnl?: number;
             unrealizedPnl?: number;
         };
-        Benchmark: {
+        HousingBenchmarkComparisonResponse: {
+            scope?: string;
+            strategy?: components["schemas"]["HousingBenchmarkStrategyInfo"] | null;
+            benchmark?: components["schemas"]["HousingBenchmarkDefinition"];
+            period?: components["schemas"]["HousingBenchmarkPeriod"];
+            summary?: components["schemas"]["HousingBenchmarkSummary"] | null;
+            points?: components["schemas"]["HousingBenchmarkPoint"][];
+            currentExchangeRate: components["schemas"]["HousingBenchmarkCurrentExchangeRate"] | null;
+            quality?: components["schemas"]["HousingBenchmarkQuality"];
+            emptyReason?: string | null;
+        };
+        HousingBenchmarkCurrentExchangeRate: {
+            midRate?: number;
+            /** Format: date-time */
+            fetchedAt?: string;
+            /** @enum {string} */
+            source?: "TOSS_INVEST";
+        };
+        HousingBenchmarkDefinition: {
             regionCode?: string;
             regionName?: string;
             /** Format: int32 */
@@ -2570,24 +2588,7 @@ export interface components {
             /** Format: date */
             sourceUpdatedDate?: string | null;
         };
-        CurrentExchangeRate: {
-            midRate?: number;
-            /** Format: date-time */
-            fetchedAt?: string;
-            source?: string;
-        };
-        HousingBenchmarkComparisonResponse: {
-            scope?: string;
-            strategy?: components["schemas"]["StrategyInfo"] | null;
-            benchmark?: components["schemas"]["Benchmark"];
-            period?: components["schemas"]["Period"];
-            summary?: components["schemas"]["Summary"] | null;
-            points?: components["schemas"]["Point"][];
-            currentExchangeRate?: components["schemas"]["CurrentExchangeRate"] | null;
-            quality?: components["schemas"]["Quality"];
-            emptyReason?: string | null;
-        };
-        Period: {
+        HousingBenchmarkPeriod: {
             /** Format: date */
             fromMonth?: string | null;
             /** Format: date */
@@ -2595,7 +2596,7 @@ export interface components {
             /** Format: int32 */
             monthCount?: number;
         };
-        Point: {
+        HousingBenchmarkPoint: {
             /** Format: date */
             baseMonth?: string;
             investmentIndexUsd?: number;
@@ -2603,19 +2604,19 @@ export interface components {
             investmentMonthlyReturn?: number | null;
             benchmarkMonthlyReturn?: number | null;
         };
-        Quality: {
+        HousingBenchmarkQuality: {
             method?: string;
             investmentCurrency?: string;
             benchmarkCurrency?: string;
             notice?: string;
         };
-        StrategyInfo: {
+        HousingBenchmarkStrategyInfo: {
             /** Format: uuid */
             id?: string;
             type?: string;
             ticker?: string;
         };
-        Summary: {
+        HousingBenchmarkSummary: {
             investmentCumulativeReturn?: number;
             benchmarkCumulativeReturn?: number;
             excessReturn?: number;
@@ -2624,8 +2625,14 @@ export interface components {
             investmentMaxDrawdown?: number;
             benchmarkMaxDrawdown?: number;
         };
+        EquityCurvePoint: {
+            /** Format: date */
+            date?: string;
+            totalAsset?: number;
+            principal?: number;
+        };
         EquityCurveResponse: {
-            points?: components["schemas"]["Point"][];
+            points?: components["schemas"]["EquityCurvePoint"][];
         };
         CyclePerformancePageResponse: {
             items?: components["schemas"]["Item"][];
@@ -2695,6 +2702,21 @@ export interface components {
             cnn?: components["schemas"]["SourceView"];
             /** @description 크립토 공포탐욕지수 현재값 + 추이 이력 */
             crypto?: components["schemas"]["SourceView"];
+        };
+        Point: {
+            /** @description 기록 시각 (ISO-8601) */
+            date?: string;
+            /**
+             * Format: int32
+             * @description 지수 값 (0~100)
+             * @example 50
+             */
+            value?: number;
+            /**
+             * @description 등급
+             * @example NEUTRAL
+             */
+            rating?: string;
         };
         SourceView: {
             /** @description 최신 시점 값 (이력이 없으면 null) */

@@ -1,35 +1,53 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { NextRequest } from 'next/server'
 
-const { createProxyRouteMock, getMock } = vi.hoisted(() => ({
-  createProxyRouteMock: vi.fn(() => ({ GET: vi.fn(async () => Response.json({ ok: true })) })),
-  getMock: vi.fn(),
+const { getAuthTokenMock } = vi.hoisted(() => ({
+  getAuthTokenMock: vi.fn(),
 }))
 
-vi.mock('@shared/lib/proxy/createProxyRoute', () => ({
-  createProxyRoute: createProxyRouteMock,
+vi.mock('@shared/lib/auth/token', () => ({
+  getAuthToken: getAuthTokenMock,
 }))
+
+const originalApiBaseUrl = process.env.API_BASE_URL
 
 describe('/api/stats proxy route', () => {
-  it('proxies stats requests to kista-api under /api/stats', async () => {
-    createProxyRouteMock.mockReturnValueOnce({ GET: getMock })
-
-    const { GET } = await import('./route')
-
-    expect(createProxyRouteMock).toHaveBeenCalledWith({ basePath: '/api/stats' })
-    expect(GET).toBe(getMock)
+  beforeEach(() => {
+    vi.resetModules()
+    process.env.API_BASE_URL = 'http://kista-api.test'
+    getAuthTokenMock.mockResolvedValue('test-token')
   })
 
-  it('exposes the housing benchmark subpath and its query parameters to the proxy handler', async () => {
-    createProxyRouteMock.mockReturnValueOnce({ GET: getMock })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    if (originalApiBaseUrl === undefined) delete process.env.API_BASE_URL
+    else process.env.API_BASE_URL = originalApiBaseUrl
+  })
 
-    const { GET } = await import('./route')
-    const request = new Request(
-      'https://kista.test/api/stats/housing-benchmark?scope=PORTFOLIO&quintile=3&from=2021-07-01&to=2026-07-01'
+  it('forwards the housing benchmark path and every query parameter to kista-api', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ points: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
     )
-    const context = { params: Promise.resolve({ path: ['housing-benchmark'] }) }
+    vi.stubGlobal('fetch', fetchMock)
+    const { GET } = await import('./route')
+    const request = new NextRequest(
+      'https://kista.test/api/stats/housing-benchmark?scope=STRATEGY&strategyId=strategy-1&quintile=3&from=2021-07-01&to=2026-07-01'
+    )
 
-    await GET(request as never, context)
+    const response = await GET(request, {
+      params: Promise.resolve({ path: ['housing-benchmark'] }),
+    })
 
-    expect(getMock).toHaveBeenCalledWith(request, context)
+    expect(response.status).toBe(200)
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://kista-api.test/api/stats/housing-benchmark?scope=STRATEGY&strategyId=strategy-1&quintile=3&from=2021-07-01&to=2026-07-01',
+      expect.objectContaining({
+        method: 'GET',
+        headers: { Authorization: 'Bearer test-token' },
+      })
+    )
   })
 })
