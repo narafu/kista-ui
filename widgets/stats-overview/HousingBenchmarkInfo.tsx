@@ -2,7 +2,6 @@ import { fmtDateTime, fmtUsd as fmtNumber } from '@shared/lib/format'
 import type { CurrentExchangeRate, HousingBenchmark } from '@entities/stats'
 import {
   getHousingQuintileContent,
-  HOUSING_QUINTILE_DISCLAIMER,
   HOUSING_BENCHMARK_CURRENCY_NOTICE_FALLBACK,
   type HousingQuintile,
 } from './housingBenchmarkContent'
@@ -39,14 +38,6 @@ export function HousingBenchmarkInfo({ quintile, benchmark, currentExchangeRate,
             <dd className="mt-1 leading-5">{content.characteristics}</dd>
           </div>
           </dl>
-
-          <div className="mt-4 border-t border-border pt-4 text-xs leading-5 text-muted-foreground">
-            <p>
-              <span className="font-medium text-foreground">해당 가격대에서 자주 언급되는 지역·단지 예시</span>
-              {' '}{content.examples}
-            </p>
-            <p className="mt-2">{HOUSING_QUINTILE_DISCLAIMER}</p>
-          </div>
         </div>
 
         <div className="border-t border-border pt-4 text-xs leading-5 text-muted-foreground lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
