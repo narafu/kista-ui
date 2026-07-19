@@ -165,22 +165,19 @@ describe('HousingBenchmarkComparison', () => {
     mockQuery()
   })
 
-  it('기본 포트폴리오·3분위·5년 비교와 서버 지수 및 장기 요약을 표시한다', () => {
+  it('기본 포트폴리오·3분위·1년 비교와 서버 지수 및 장기 요약을 표시한다', () => {
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'PORTFOLIO',
       benchmarkType: 'HOUSING',
       quintile: 3,
-      from: '2021-07-17',
+      from: '2025-07-17',
       to: '2026-07-17',
     }, true)
     expect(screen.getByRole('button', { name: '전체 포트폴리오' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: '5년' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: '1년' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('apt:3')
-    expect(screen.queryByText('2배 레버리지')).not.toBeInTheDocument()
-    expect(screen.queryByText('암호자산')).not.toBeInTheDocument()
-    expect(screen.queryByText('지수추종')).not.toBeInTheDocument()
 
     expect(screen.getByText('+32.5%p')).toBeInTheDocument()
     expect(screen.getByText('+84.2%')).toBeInTheDocument()
@@ -240,28 +237,9 @@ describe('HousingBenchmarkComparison', () => {
       scope: 'PORTFOLIO',
       benchmarkType: 'ETF',
       symbol: 'QLD',
-      from: '2021-07-17',
+      from: '2025-07-17',
       to: '2026-07-17',
     }, true)
-  })
-
-  it('레버리지·암호자산 ETF 선택 시 경고 리스크 칩을, 지수추종 ETF 선택 시 정보 리스크 칩을 표시한다', async () => {
-    const user = userEvent.setup()
-    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
-
-    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'etf:QLD')
-    expect(screen.getByText('2배 레버리지')).toHaveClass('bg-warn-bg', 'text-warn')
-
-    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'etf:IBIT')
-    expect(screen.getByText('암호자산')).toHaveClass('bg-warn-bg', 'text-warn')
-
-    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'etf:SPY')
-    expect(screen.getByText('지수추종')).toHaveClass('bg-info-bg', 'text-info')
-
-    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'apt:3')
-    expect(screen.queryByText('지수추종')).not.toBeInTheDocument()
-    expect(screen.queryByText('2배 레버리지')).not.toBeInTheDocument()
-    expect(screen.queryByText('암호자산')).not.toBeInTheDocument()
   })
 
   it('다섯 분위의 대표 지역·특징을 제공한다', async () => {

@@ -105,6 +105,15 @@ export const ETF_BENCHMARKS: EtfBenchmarkContent[] = [
     description: '비트코인 현물 가격을 추종하는 ETF입니다.',
     notice: '비트코인 가격에 직접 연동되어 변동성이 매우 크며, 전통 자산과 상관관계·위험 특성이 다릅니다.',
   },
+  {
+    symbol: 'ETHA',
+    label: 'ETHA',
+    fullName: 'iShares Ethereum Trust',
+    riskTier: 'LEVERAGED_OR_CRYPTO',
+    riskChipLabel: '암호자산',
+    description: '이더리움 현물 가격을 추종하는 ETF입니다.',
+    notice: '이더리움 가격에 직접 연동되어 변동성이 매우 크며, 전통 자산과 상관관계·위험 특성이 다릅니다.',
+  },
 ]
 
 export function getEtfBenchmarkContent(symbol: EtfBenchmarkSymbol) {

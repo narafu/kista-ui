@@ -202,7 +202,7 @@ describe('StatsOverview', () => {
 
     expect(await screen.findByText('선택한 기간에 전략 운용 기록이 없습니다.')).toBeInTheDocument()
     expect(fetchEitherMock).toHaveBeenCalledWith(
-      '/api/stats/housing-benchmark?scope=PORTFOLIO&benchmarkType=HOUSING&quintile=3&from=2021-07-17&to=2026-07-17',
+      '/api/stats/housing-benchmark?scope=PORTFOLIO&benchmarkType=HOUSING&quintile=3&from=2025-07-17&to=2026-07-17',
       { method: 'GET' },
       undefined,
     )

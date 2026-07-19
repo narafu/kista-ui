@@ -13,14 +13,13 @@ import { HousingBenchmarkInfo } from './HousingBenchmarkInfo'
 import { HousingBenchmarkQuintileTrendChart } from './HousingBenchmarkQuintileTrendChart'
 import {
   ETF_BENCHMARKS,
-  getEtfBenchmarkContent,
   HOUSING_QUINTILES,
   type HousingQuintile,
 } from './housingBenchmarkContent'
 import { SectionError } from './SectionError'
 
 type Scope = HousingBenchmarkParams['scope']
-type Period = '1Y' | '3Y' | '5Y' | 'ALL'
+type Period = '1Y' | '3Y' | '5Y' | 'ALL' | 'CUSTOM'
 
 type BenchmarkSelection =
   | { type: 'HOUSING'; quintile: HousingQuintile }
@@ -36,7 +35,16 @@ const PERIODS: { value: Period; label: string; years?: number }[] = [
   { value: '3Y', label: '3년', years: 3 },
   { value: '5Y', label: '5년', years: 5 },
   { value: 'ALL', label: '전체' },
+  { value: 'CUSTOM', label: '직접' },
 ]
+
+function toMonthInput(date: string) {
+  return date.slice(0, 7)
+}
+
+function fromMonthInput(month: string) {
+  return `${month}-01`
+}
 
 function subtractYears(date: string, years: number) {
   const [year, month, day] = date.split('-').map(Number)
@@ -131,7 +139,9 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   const [scope, setScope] = useState<Scope>('PORTFOLIO')
   const [selectedStrategyId, setSelectedStrategyId] = useState('')
   const [selection, setSelection] = useState<BenchmarkSelection>({ type: 'HOUSING', quintile: 3 })
-  const [period, setPeriod] = useState<Period>('5Y')
+  const [period, setPeriod] = useState<Period>('1Y')
+  const [customFromMonth, setCustomFromMonth] = useState(() => toMonthInput(subtractYears(defaultTo, 1)))
+  const [customToMonth, setCustomToMonth] = useState(() => toMonthInput(defaultTo))
 
   const isStrategyScope = scope === 'STRATEGY'
   // 개별 전략으로 전환했을 때만 전략 목록을 조회 — 전체 포트폴리오 범위에서는 불필요한 요청을 만들지 않는다
@@ -147,7 +157,11 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
     && hasStrategyList
     && strategiesQuery.data?.length === 0
   const selectedPeriod = PERIODS.find((item) => item.value === period)
-  const from = selectedPeriod?.years ? subtractYears(defaultTo, selectedPeriod.years) : undefined
+  const isCustomPeriod = period === 'CUSTOM'
+  const from = isCustomPeriod
+    ? (customFromMonth ? fromMonthInput(customFromMonth) : undefined)
+    : selectedPeriod?.years ? subtractYears(defaultTo, selectedPeriod.years) : undefined
+  const to = isCustomPeriod ? (customToMonth ? fromMonthInput(customToMonth) : defaultTo) : defaultTo
   const canQuery = scope === 'PORTFOLIO' || Boolean(effectiveStrategyId)
   const strategyIdParam = scope === 'STRATEGY' && effectiveStrategyId ? { strategyId: effectiveStrategyId } : {}
   const params: HousingBenchmarkParams = selection.type === 'HOUSING'
@@ -157,7 +171,7 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
         benchmarkType: 'HOUSING',
         quintile: selection.quintile,
         ...(from ? { from } : {}),
-        to: defaultTo,
+        to,
       }
     : {
         scope,
@@ -165,7 +179,7 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
         benchmarkType: 'ETF',
         symbol: selection.symbol,
         ...(from ? { from } : {}),
-        to: defaultTo,
+        to,
       }
   const query = useHousingBenchmarkQuery(params, enabled && canQuery)
   const data = query.data
@@ -251,46 +265,60 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
 
           <label className="grid gap-1 text-xs font-medium text-muted-foreground">
             벤치마크 자산
-            <div className="flex items-center gap-2">
-              <select
-                aria-label="벤치마크 자산"
-                value={selection.type === 'HOUSING' ? `apt:${selection.quintile}` : `etf:${selection.symbol}`}
-                onChange={(event) => setSelection(parseBenchmarkSelectionValue(event.target.value))}
-                className="min-h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <optgroup label="부동산">
-                  {HOUSING_QUINTILES.map((item) => (
-                    <option key={item.quintile} value={`apt:${item.quintile}`}>{item.label}</option>
-                  ))}
-                </optgroup>
-                <optgroup label="ETF">
-                  {ETF_BENCHMARKS.map((item) => (
-                    <option key={item.symbol} value={`etf:${item.symbol}`}>{item.label}</option>
-                  ))}
-                </optgroup>
-              </select>
-              {selection.type === 'ETF' ? (
-                <span className={cn(
-                  'shrink-0 rounded px-2 py-1 text-xs font-medium',
-                  getEtfBenchmarkContent(selection.symbol).riskTier === 'LEVERAGED_OR_CRYPTO'
-                    ? 'bg-warn-bg text-warn'
-                    : 'bg-info-bg text-info',
-                )}>
-                  {getEtfBenchmarkContent(selection.symbol).riskChipLabel}
-                </span>
-              ) : null}
-            </div>
+            <select
+              aria-label="벤치마크 자산"
+              value={selection.type === 'HOUSING' ? `apt:${selection.quintile}` : `etf:${selection.symbol}`}
+              onChange={(event) => setSelection(parseBenchmarkSelectionValue(event.target.value))}
+              className="min-h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <optgroup label="부동산">
+                {HOUSING_QUINTILES.map((item) => (
+                  <option key={item.quintile} value={`apt:${item.quintile}`}>
+                    {item.label} ({item.rangeLabel})
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="ETF">
+                {ETF_BENCHMARKS.map((item) => (
+                  <option key={item.symbol} value={`etf:${item.symbol}`}>
+                    {item.label} ({item.fullName})
+                  </option>
+                ))}
+              </optgroup>
+            </select>
           </label>
 
           <fieldset>
             <legend className="text-xs font-medium text-muted-foreground">비교 기간</legend>
-            <div className="mt-1 grid grid-cols-4 rounded-md border border-border p-0.5">
+            <div className="mt-1 grid grid-cols-5 rounded-md border border-border p-0.5">
               {PERIODS.map((item) => (
                 <ToggleButton key={item.value} active={period === item.value} onClick={() => setPeriod(item.value)}>
                   {item.label}
                 </ToggleButton>
               ))}
             </div>
+            {isCustomPeriod ? (
+              <div className="mt-2 flex items-center gap-2">
+                <input
+                  type="month"
+                  aria-label="시작월"
+                  value={customFromMonth}
+                  max={customToMonth}
+                  onChange={(event) => setCustomFromMonth(event.target.value)}
+                  className="min-h-10 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+                <span className="shrink-0 text-xs text-muted-foreground">~</span>
+                <input
+                  type="month"
+                  aria-label="종료월"
+                  value={customToMonth}
+                  min={customFromMonth}
+                  max={toMonthInput(defaultTo)}
+                  onChange={(event) => setCustomToMonth(event.target.value)}
+                  className="min-h-10 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </div>
+            ) : null}
           </fieldset>
         </div>
         {query.isFetching && query.isPlaceholderData ? (
@@ -353,7 +381,7 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
       ) : null}
 
       {/* 사용자 투자 데이터와 무관하게 항상 표시되는 아파트 5분위 원본 시계열 — 위 비교 결과와 독립적, 상단 "비교 기간" 토글과 동일한 from/to 사용 */}
-      <HousingBenchmarkQuintileTrendChart enabled={enabled} from={from} to={defaultTo} />
+      <HousingBenchmarkQuintileTrendChart enabled={enabled} from={from} to={to} />
     </div>
   )
 }
