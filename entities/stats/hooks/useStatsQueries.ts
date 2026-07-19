@@ -1,11 +1,18 @@
 'use client'
 
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
-import { getEquityCurve, getStatsCycles, getStatsSummary } from '../api'
+import {
+  getEquityCurve,
+  getHousingBenchmarkComparison,
+  getStatsCycles,
+  getStatsSummary,
+} from '../api'
 import type {
   CyclePerformance,
   CyclePerformancePage,
   EquityCurve,
+  HousingBenchmarkComparison,
+  HousingBenchmarkParams,
   StatsSummary,
 } from '../model/types'
 
@@ -30,6 +37,22 @@ export function useEquityCurveQuery(params: EquityCurveParams, initialData?: Equ
     queryFn: () => getEquityCurve(params),
     initialData,
     placeholderData: (prev) => prev,
+  })
+}
+
+export function useHousingBenchmarkQuery(params: HousingBenchmarkParams, enabled: boolean) {
+  return useQuery<HousingBenchmarkComparison>({
+    queryKey: [
+      'housingBenchmark',
+      params.scope,
+      params.strategyId ?? null,
+      params.quintile,
+      params.from ?? null,
+      params.to ?? null,
+    ],
+    queryFn: () => getHousingBenchmarkComparison(params),
+    enabled,
+    placeholderData: (previous) => previous,
   })
 }
 

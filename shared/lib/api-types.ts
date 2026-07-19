@@ -727,6 +727,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/stats/housing-benchmark": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 서울 아파트 벤치마크 비교
+         * @description USD 투자 성과와 KRW 서울 아파트 분위 가격을 현지 통화 기준으로 비교합니다.
+         */
+        get: operations["getHousingBenchmarkComparison"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stats/equity-curve": {
         parameters: {
             query?: never;
@@ -2541,14 +2561,71 @@ export interface components {
             realizedPnl?: number;
             unrealizedPnl?: number;
         };
-        EquityCurveResponse: {
+        Benchmark: {
+            regionCode?: string;
+            regionName?: string;
+            /** Format: int32 */
+            quintile?: number;
+            label?: string;
+            /** Format: date */
+            sourceUpdatedDate?: string | null;
+        };
+        CurrentExchangeRate: {
+            midRate?: number;
+            /** Format: date-time */
+            fetchedAt?: string;
+            source?: string;
+        };
+        HousingBenchmarkComparisonResponse: {
+            scope?: string;
+            strategy?: components["schemas"]["StrategyInfo"] | null;
+            benchmark?: components["schemas"]["Benchmark"];
+            period?: components["schemas"]["Period"];
+            summary?: components["schemas"]["Summary"] | null;
             points?: components["schemas"]["Point"][];
+            currentExchangeRate?: components["schemas"]["CurrentExchangeRate"] | null;
+            quality?: components["schemas"]["Quality"];
+            emptyReason?: string | null;
+        };
+        Period: {
+            /** Format: date */
+            fromMonth?: string | null;
+            /** Format: date */
+            toMonth?: string | null;
+            /** Format: int32 */
+            monthCount?: number;
         };
         Point: {
             /** Format: date */
-            date?: string;
-            totalAsset?: number;
-            principal?: number;
+            baseMonth?: string;
+            investmentIndexUsd?: number;
+            benchmarkIndex?: number;
+            investmentMonthlyReturn?: number | null;
+            benchmarkMonthlyReturn?: number | null;
+        };
+        Quality: {
+            method?: string;
+            investmentCurrency?: string;
+            benchmarkCurrency?: string;
+            notice?: string;
+        };
+        StrategyInfo: {
+            /** Format: uuid */
+            id?: string;
+            type?: string;
+            ticker?: string;
+        };
+        Summary: {
+            investmentCumulativeReturn?: number;
+            benchmarkCumulativeReturn?: number;
+            excessReturn?: number;
+            investmentAnnualizedReturn?: number;
+            benchmarkAnnualizedReturn?: number;
+            investmentMaxDrawdown?: number;
+            benchmarkMaxDrawdown?: number;
+        };
+        EquityCurveResponse: {
+            points?: components["schemas"]["Point"][];
         };
         CyclePerformancePageResponse: {
             items?: components["schemas"]["Item"][];
@@ -4302,6 +4379,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["StatsSummaryResponse"];
+                };
+            };
+        };
+    };
+    getHousingBenchmarkComparison: {
+        parameters: {
+            query?: {
+                scope?: "PORTFOLIO" | "STRATEGY";
+                strategyId?: string;
+                quintile?: number;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["HousingBenchmarkComparisonResponse"];
                 };
             };
         };

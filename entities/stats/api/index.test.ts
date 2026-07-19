@@ -68,4 +68,53 @@ describe('stats api', () => {
 
     expect(fetchEitherMock).toHaveBeenCalledWith('/api/stats/cycles', { method: 'GET' }, undefined)
   })
+
+  it('getHousingBenchmarkComparison forwards every filter and token', async () => {
+    const { getHousingBenchmarkComparison } = await import('./index')
+    const response = {
+      scope: 'PORTFOLIO',
+      points: [{
+        baseMonth: '2026-07-01',
+        investmentIndexUsd: 103.2,
+        benchmarkIndex: 101.4,
+        investmentMonthlyReturn: 3.2,
+        benchmarkMonthlyReturn: 1.4,
+      }],
+      currentExchangeRate: {
+        midRate: 1365.2,
+        fetchedAt: '2026-07-19T01:30:00Z',
+        source: 'TOSS_INVEST',
+      },
+    }
+    fetchEitherMock.mockResolvedValueOnce(response)
+
+    await expect(getHousingBenchmarkComparison({
+      scope: 'PORTFOLIO',
+      strategyId: 'strategy-1',
+      quintile: 3,
+      from: '2021-07-01',
+      to: '2026-07-01',
+    }, 'token-1')).resolves.toEqual(response)
+
+    expect(fetchEitherMock).toHaveBeenCalledWith(
+      '/api/stats/housing-benchmark?scope=PORTFOLIO&strategyId=strategy-1&quintile=3&from=2021-07-01&to=2026-07-01',
+      { method: 'GET' },
+      'token-1'
+    )
+  })
+
+  it('getHousingBenchmarkComparison preserves a null current exchange rate', async () => {
+    const { getHousingBenchmarkComparison } = await import('./index')
+    const response = {
+      scope: 'PORTFOLIO',
+      points: [],
+      currentExchangeRate: null,
+    }
+    fetchEitherMock.mockResolvedValueOnce(response)
+
+    await expect(getHousingBenchmarkComparison({
+      scope: 'PORTFOLIO',
+      quintile: 3,
+    })).resolves.toEqual(response)
+  })
 })
