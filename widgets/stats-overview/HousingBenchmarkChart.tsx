@@ -3,26 +3,20 @@
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { fmtDate } from '@shared/lib/format'
 import type { HousingBenchmark, HousingBenchmarkPoint } from '@entities/stats'
+import {
+  HOUSING_BENCHMARK_CHART_NOTICE,
+  formatHousingBenchmarkAxisMonth,
+  formatHousingBenchmarkMonth,
+  formatHousingBenchmarkSeriesLabel,
+  formatHousingBenchmarkTooltipValue,
+  type HousingBenchmarkSeriesKey,
+} from './housingBenchmarkChartFormatters'
 
 interface Props {
   points: HousingBenchmarkPoint[]
   investmentLabel: string
   benchmark: HousingBenchmark
-}
-
-function formatIndex(value: unknown) {
-  return typeof value === 'number' ? value.toFixed(1) : '—'
-}
-
-function formatMonthlyReturn(value: number | null | undefined) {
-  if (value == null) return '기준월'
-  return `${value >= 0 ? '+' : ''}${(value * 100).toFixed(1)}% 월간`
-}
-
-function formatMonth(value: string) {
-  return new Date(value).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
 }
 
 export function HousingBenchmarkChart({ points, investmentLabel, benchmark }: Props) {
@@ -39,11 +33,11 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark }: Pr
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5">
               <span className="inline-block h-0.5 w-3.5 rounded-full bg-[var(--chart-1)]" />
-              {investmentLabel} (USD)
+              {formatHousingBenchmarkSeriesLabel(investmentLabel, 'USD')}
             </span>
             <span className="flex items-center gap-1.5">
               <span className="inline-block h-0.5 w-3.5 rounded-full bg-[var(--chart-3)]" />
-              {benchmarkLabel} (KRW)
+              {formatHousingBenchmarkSeriesLabel(benchmarkLabel, 'KRW')}
             </span>
           </div>
         </div>
@@ -55,7 +49,7 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark }: Pr
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis
                 dataKey="baseMonth"
-                tickFormatter={(value: string) => formatMonth(value).replace('년 ', '.').replace('월', '')}
+                tickFormatter={formatHousingBenchmarkAxisMonth}
                 tick={{ fontSize: 10 }}
                 tickLine={false}
                 axisLine={false}
@@ -69,13 +63,17 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark }: Pr
                 domain={['auto', 'auto']}
               />
               <Tooltip
-                labelFormatter={(label) => formatMonth(String(label))}
+                labelFormatter={(label) => formatHousingBenchmarkMonth(String(label))}
                 formatter={(value, name, item) => {
                   const point = item.payload as HousingBenchmarkPoint
-                  const monthlyReturn = item.dataKey === 'investmentIndexUsd'
-                    ? point.investmentMonthlyReturn
-                    : point.benchmarkMonthlyReturn
-                  return [`${formatIndex(value)} · ${formatMonthlyReturn(monthlyReturn)}`, String(name)]
+                  return [
+                    formatHousingBenchmarkTooltipValue(
+                      value,
+                      item.dataKey as HousingBenchmarkSeriesKey,
+                      point,
+                    ),
+                    String(name),
+                  ]
                 }}
                 contentStyle={{
                   fontSize: 12,
@@ -88,7 +86,7 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark }: Pr
               <Line
                 type="monotone"
                 dataKey="investmentIndexUsd"
-                name={`${investmentLabel} (USD)`}
+                name={formatHousingBenchmarkSeriesLabel(investmentLabel, 'USD')}
                 stroke="var(--chart-1)"
                 strokeWidth={2.5}
                 dot={false}
@@ -96,7 +94,7 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark }: Pr
               <Line
                 type="monotone"
                 dataKey="benchmarkIndex"
-                name={`${benchmarkLabel} (KRW)`}
+                name={formatHousingBenchmarkSeriesLabel(benchmarkLabel, 'KRW')}
                 stroke="var(--chart-3)"
                 strokeWidth={2.5}
                 dot={false}
@@ -105,8 +103,8 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark }: Pr
           </ResponsiveContainer>
         </figure>
         <p className="mt-2 text-xs text-muted-foreground">
-          월별 지수와 수익률은 서버 계산값이며, 표시된 현재 환율로 환산하지 않습니다.
-          {points[0]?.baseMonth ? ` 비교 시작 ${fmtDate(points[0].baseMonth)}` : ''}
+          {HOUSING_BENCHMARK_CHART_NOTICE}
+          {points[0]?.baseMonth ? ` 비교 시작 ${formatHousingBenchmarkMonth(points[0].baseMonth)}` : ''}
         </p>
       </CardContent>
     </Card>

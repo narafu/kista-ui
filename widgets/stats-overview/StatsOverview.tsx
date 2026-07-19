@@ -42,6 +42,7 @@ interface Props {
 export function StatsOverview({ initialSummary, initialCurve, defaultFrom, defaultTo }: Props) {
   const [range, setRange] = useState<RangeKey>('3M')
   const [activeTab, setActiveTab] = useState<'OPERATIONS' | 'BENCHMARK'>('OPERATIONS')
+  const [hasOpenedBenchmark, setHasOpenedBenchmark] = useState(false)
 
   const summaryQuery = useStatsSummaryQuery(initialSummary)
 
@@ -84,7 +85,10 @@ export function StatsOverview({ initialSummary, initialCurve, defaultFrom, defau
         <button
           type="button"
           aria-pressed={activeTab === 'BENCHMARK'}
-          onClick={() => setActiveTab('BENCHMARK')}
+          onClick={() => {
+            setHasOpenedBenchmark(true)
+            setActiveTab('BENCHMARK')
+          }}
           className={activeTab === 'BENCHMARK'
             ? 'min-h-10 rounded bg-card px-3 text-sm font-medium text-foreground shadow-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50'
             : 'min-h-10 rounded px-3 text-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50'}
@@ -93,33 +97,39 @@ export function StatsOverview({ initialSummary, initialCurve, defaultFrom, defau
         </button>
       </div>
 
-      {activeTab === 'BENCHMARK' ? (
-        <HousingBenchmarkComparison enabled defaultTo={defaultTo} />
-      ) : isEmpty ? (
-        <EmptyState message="아직 기록된 사이클이 없습니다 — 전략이 매매를 시작하면 통계가 쌓입니다." />
-      ) : (
-        <>
-          {summaryFailed ? (
-            <SectionError />
-          ) : summary ? (
-            <StatsKpiRow summary={summary} />
-          ) : null}
+      <div hidden={activeTab !== 'OPERATIONS'} className="flex flex-col gap-4">
+        {isEmpty ? (
+          <EmptyState message="아직 기록된 사이클이 없습니다 — 전략이 매매를 시작하면 통계가 쌓입니다." />
+        ) : (
+          <>
+            {summaryFailed ? (
+              <SectionError />
+            ) : summary ? (
+              <StatsKpiRow summary={summary} />
+            ) : null}
 
-          {curveFailed ? (
-            <SectionError />
-          ) : (
-            <EquityCurveChart
-              rows={rows}
-              range={range}
-              onRangeChange={setRange}
-            />
-          )}
+            {curveFailed ? (
+              <SectionError />
+            ) : (
+              <EquityCurveChart
+                rows={rows}
+                range={range}
+                onRangeChange={setRange}
+              />
+            )}
 
-          {summaryFailed ? null : <StrategyTypeComparison byType={byType} />}
+            {summaryFailed ? null : <StrategyTypeComparison byType={byType} />}
 
-          <CyclePerformanceList byType={byType} />
-        </>
-      )}
+            <CyclePerformanceList byType={byType} />
+          </>
+        )}
+      </div>
+
+      {hasOpenedBenchmark ? (
+        <div hidden={activeTab !== 'BENCHMARK'}>
+          <HousingBenchmarkComparison enabled={activeTab === 'BENCHMARK'} defaultTo={defaultTo} />
+        </div>
+      ) : null}
     </div>
   )
 }

@@ -202,13 +202,53 @@ describe('StatsOverview', () => {
 
     expect(await screen.findByText('선택한 기간에 전략 운용 기록이 없습니다.')).toBeInTheDocument()
     expect(fetchEitherMock).toHaveBeenCalledWith(
-      '/api/stats/housing-benchmark?scope=PORTFOLIO&quintile=3&from=2021-07-01&to=2026-07-17',
+      '/api/stats/housing-benchmark?scope=PORTFOLIO&quintile=3&from=2021-07-17&to=2026-07-17',
       { method: 'GET' },
       undefined,
     )
     expect(operationsTab).toHaveAttribute('aria-pressed', 'false')
     expect(benchmarkTab).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.queryByText('총 실현손익')).not.toBeInTheDocument()
+    expect(screen.getByText('총 실현손익')).not.toBeVisible()
+  })
+
+  it('운용 통계와 벤치마크 탭을 왕복해도 각 탭의 필터 상태를 보존한다', async () => {
+    const user = userEvent.setup()
+    fetchEitherMock.mockImplementation((url: string) => {
+      if (url === '/api/trading-cycles') return Promise.resolve([])
+      if (url.startsWith('/api/stats/equity-curve')) return Promise.resolve(CURVE)
+      if (url.startsWith('/api/stats/cycles')) {
+        return Promise.resolve({ items: [], nextCursor: null, hasMore: false })
+      }
+      if (url.startsWith('/api/stats/housing-benchmark')) {
+        return Promise.resolve({
+          scope: 'PORTFOLIO',
+          strategy: null,
+          benchmark: { quintile: 5, label: '서울 아파트 5분위' },
+          period: { fromMonth: null, toMonth: null, monthCount: 0 },
+          summary: null,
+          points: [],
+          currentExchangeRate: null,
+          quality: { notice: '전략 운용 기록 기반 근사치' },
+          emptyReason: 'NO_INVESTMENT_DATA',
+        })
+      }
+      return Promise.reject(new Error(`unexpected url: ${url}`))
+    })
+
+    renderWithClient(
+      <StatsOverview initialSummary={SUMMARY} initialCurve={CURVE}
+        defaultFrom="2026-04-17" defaultTo="2026-07-17" />
+    )
+
+    await user.click(screen.getByRole('button', { name: '1M' }))
+    await user.click(screen.getByRole('button', { name: '벤치마크 비교' }))
+    await user.selectOptions(screen.getByLabelText('서울 아파트 분위'), '5')
+    await user.click(screen.getByRole('button', { name: '운용 통계' }))
+
+    expect(screen.getByRole('button', { name: '1M' })).toHaveAttribute('aria-pressed', 'true')
+
+    await user.click(screen.getByRole('button', { name: '벤치마크 비교' }))
+    expect(screen.getByLabelText('서울 아파트 분위')).toHaveValue('5')
   })
 
   it('summary 조회 실패 시 KPI 슬롯에만 SectionError를 보여주고 전략비교 테이블은 생략한다', async () => {

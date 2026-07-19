@@ -29,9 +29,15 @@ const PERIODS: { value: Period; label: string; years?: number }[] = [
 ]
 
 function subtractYears(date: string, years: number) {
-  const [year, month] = date.split('-').map(Number)
-  const result = new Date(Date.UTC(year - years, month - 1, 1))
-  return result.toISOString().slice(0, 10)
+  const [year, month, day] = date.split('-').map(Number)
+  const targetYear = year - years
+  const isLeapYear = targetYear % 4 === 0 && (targetYear % 100 !== 0 || targetYear % 400 === 0)
+  const daysInMonth = month === 2
+    ? (isLeapYear ? 29 : 28)
+    : [4, 6, 9, 11].includes(month) ? 30 : 31
+  const targetDay = Math.min(day, daysInMonth)
+
+  return `${targetYear}-${String(month).padStart(2, '0')}-${String(targetDay).padStart(2, '0')}`
 }
 
 function ToggleButton({
@@ -62,7 +68,12 @@ function ToggleButton({
 
 function BenchmarkLoading() {
   return (
-    <div className="flex flex-col gap-4" aria-label="벤치마크 비교 불러오는 중">
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex flex-col gap-4"
+      aria-label="벤치마크 비교 불러오는 중"
+    >
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         <Skeleton className="col-span-2 h-28 sm:col-span-1" />
         <Skeleton className="h-28" />
@@ -73,9 +84,24 @@ function BenchmarkLoading() {
   )
 }
 
+function BenchmarkUpdating() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      aria-label="새 조건의 벤치마크 비교를 불러오는 중"
+      className="flex min-h-[240px] items-center justify-center border-y border-border text-sm text-muted-foreground"
+    >
+      새 조건의 벤치마크 비교를 불러오는 중
+    </div>
+  )
+}
+
 function StrategyListLoading() {
   return (
     <div
+      role="status"
+      aria-live="polite"
       aria-label="전략 목록 불러오는 중"
       className="rounded-[var(--r-lg)] border border-border bg-card p-5"
     >
@@ -127,15 +153,13 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   const data = query.data
   const responseQuintile = data?.benchmark?.quintile
   const displayedQuintile = isHousingQuintile(responseQuintile) ? responseQuintile : quintile
-  const benchmarkLabel = data?.benchmark?.label ?? `서울 아파트 ${quintile}분위`
-  const selectedStrategy = strategies.find((strategy) => strategy.id === effectiveStrategyId)
-  const investmentLabel = scope === 'PORTFOLIO'
+  const benchmarkLabel = data?.benchmark?.label ?? `서울 아파트 ${displayedQuintile}분위`
+  const responseScope = data?.scope === 'STRATEGY' ? 'STRATEGY' : 'PORTFOLIO'
+  const investmentLabel = responseScope === 'PORTFOLIO'
     ? '전체 포트폴리오'
     : data?.strategy?.type && data.strategy.ticker
       ? `${data.strategy.type} · ${data.strategy.ticker}`
-      : selectedStrategy
-        ? `${selectedStrategy.type} · ${selectedStrategy.ticker}`
-        : '개별 전략'
+      : '개별 전략'
 
   return (
     <div className="flex flex-col gap-4">
@@ -209,9 +233,6 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
             </div>
           </fieldset>
         </div>
-        {query.isFetching && query.isPlaceholderData ? (
-          <p className="mt-3 text-right text-xs text-muted-foreground" aria-live="polite">업데이트 중</p>
-        ) : null}
       </section>
 
       {strategyListLoading ? (
@@ -221,8 +242,12 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
           <SectionError message="전략 목록을 불러오지 못했습니다" />
         </div>
       ) : strategyListEmpty ? (
-        <EmptyState message="비교할 개별 전략이 없습니다." />
-      ) : !canQuery ? null : query.isLoading ? (
+        <div role="status" aria-live="polite">
+          <EmptyState message="비교할 개별 전략이 없습니다." />
+        </div>
+      ) : !canQuery ? null : query.isPlaceholderData ? (
+        <BenchmarkUpdating />
+      ) : query.isLoading ? (
         <BenchmarkLoading />
       ) : query.isError && !data ? (
         <div role="alert" aria-live="assertive">
