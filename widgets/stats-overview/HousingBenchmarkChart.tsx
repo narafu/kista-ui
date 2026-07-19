@@ -17,10 +17,11 @@ interface Props {
   points: HousingBenchmarkPoint[]
   investmentLabel: string
   benchmark: HousingBenchmark
+  benchmarkCurrency: 'USD' | 'KRW'
 }
 
-export function HousingBenchmarkChart({ points, investmentLabel, benchmark }: Props) {
-  const benchmarkLabel = benchmark.label ?? '서울 아파트'
+export function HousingBenchmarkChart({ points, investmentLabel, benchmark, benchmarkCurrency }: Props) {
+  const benchmarkLabel = benchmark.label ?? '벤치마크'
 
   return (
     <Card>

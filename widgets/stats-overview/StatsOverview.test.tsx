@@ -202,7 +202,7 @@ describe('StatsOverview', () => {
 
     expect(await screen.findByText('선택한 기간에 전략 운용 기록이 없습니다.')).toBeInTheDocument()
     expect(fetchEitherMock).toHaveBeenCalledWith(
-      '/api/stats/housing-benchmark?scope=PORTFOLIO&quintile=3&from=2021-07-17&to=2026-07-17',
+      '/api/stats/housing-benchmark?scope=PORTFOLIO&benchmarkType=HOUSING&quintile=3&from=2021-07-17&to=2026-07-17',
       { method: 'GET' },
       undefined,
     )
@@ -244,13 +244,13 @@ describe('StatsOverview', () => {
 
     await user.click(screen.getByRole('button', { name: '1M' }))
     await user.click(screen.getByRole('button', { name: '벤치마크 비교' }))
-    await user.selectOptions(screen.getByLabelText('서울 아파트 분위'), '5')
+    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'apt:5')
     await user.click(screen.getByRole('button', { name: '운용 통계' }))
 
     expect(screen.getByRole('button', { name: '1M' })).toHaveAttribute('aria-pressed', 'true')
 
     await user.click(screen.getByRole('button', { name: '벤치마크 비교' }))
-    expect(screen.getByLabelText('서울 아파트 분위')).toHaveValue('5')
+    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('apt:5')
   })
 
   it('summary 조회 실패 시 KPI 슬롯에만 SectionError를 보여주고 전략비교 테이블은 생략한다', async () => {

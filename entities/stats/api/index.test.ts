@@ -69,7 +69,7 @@ describe('stats api', () => {
     expect(fetchEitherMock).toHaveBeenCalledWith('/api/stats/cycles', { method: 'GET' }, undefined)
   })
 
-  it('getHousingBenchmarkComparison forwards every filter and token', async () => {
+  it('getHousingBenchmarkComparison forwards every HOUSING filter and token without symbol', async () => {
     const { getHousingBenchmarkComparison } = await import('./index')
     const response = {
       scope: 'PORTFOLIO',
@@ -91,16 +91,44 @@ describe('stats api', () => {
     await expect(getHousingBenchmarkComparison({
       scope: 'PORTFOLIO',
       strategyId: 'strategy-1',
+      benchmarkType: 'HOUSING',
       quintile: 3,
       from: '2021-07-01',
       to: '2026-07-01',
     }, 'token-1')).resolves.toEqual(response)
 
-    expect(fetchEitherMock).toHaveBeenCalledWith(
-      '/api/stats/housing-benchmark?scope=PORTFOLIO&strategyId=strategy-1&quintile=3&from=2021-07-01&to=2026-07-01',
-      { method: 'GET' },
-      'token-1'
+    const [calledUrl] = fetchEitherMock.mock.calls[0]
+    expect(calledUrl).toBe(
+      '/api/stats/housing-benchmark?scope=PORTFOLIO&benchmarkType=HOUSING&strategyId=strategy-1&quintile=3&from=2021-07-01&to=2026-07-01'
     )
+    expect(calledUrl).not.toContain('symbol=')
+    expect(fetchEitherMock).toHaveBeenCalledWith(calledUrl, { method: 'GET' }, 'token-1')
+  })
+
+  it('getHousingBenchmarkComparison forwards every ETF filter and token without quintile', async () => {
+    const { getHousingBenchmarkComparison } = await import('./index')
+    const response = {
+      scope: 'PORTFOLIO',
+      points: [],
+      currentExchangeRate: null,
+    }
+    fetchEitherMock.mockResolvedValueOnce(response)
+
+    await expect(getHousingBenchmarkComparison({
+      scope: 'PORTFOLIO',
+      strategyId: 'strategy-1',
+      benchmarkType: 'ETF',
+      symbol: 'QLD',
+      from: '2021-07-01',
+      to: '2026-07-01',
+    }, 'token-1')).resolves.toEqual(response)
+
+    const [calledUrl] = fetchEitherMock.mock.calls[0]
+    expect(calledUrl).toBe(
+      '/api/stats/housing-benchmark?scope=PORTFOLIO&benchmarkType=ETF&strategyId=strategy-1&symbol=QLD&from=2021-07-01&to=2026-07-01'
+    )
+    expect(calledUrl).not.toContain('quintile=')
+    expect(fetchEitherMock).toHaveBeenCalledWith(calledUrl, { method: 'GET' }, 'token-1')
   })
 
   it('getHousingBenchmarkComparison preserves a null current exchange rate', async () => {
@@ -114,6 +142,7 @@ describe('stats api', () => {
 
     await expect(getHousingBenchmarkComparison({
       scope: 'PORTFOLIO',
+      benchmarkType: 'HOUSING',
       quintile: 3,
     })).resolves.toEqual(response)
   })

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { HousingBenchmarkComparison as HousingBenchmarkComparisonData } from '@entities/stats'
+import type { HousingBenchmark, HousingBenchmarkComparison as HousingBenchmarkComparisonData } from '@entities/stats'
 import { HousingBenchmarkComparison } from './HousingBenchmarkComparison'
 
 const { useHousingBenchmarkQueryMock, useAllStrategiesQueryMock } = vi.hoisted(() => ({
@@ -41,16 +41,20 @@ vi.mock('recharts', () => ({
   CartesianGrid: () => null,
 }))
 
+const HOUSING_BENCHMARK: HousingBenchmark = {
+  assetType: 'HOUSING',
+  regionCode: '1100000000',
+  regionName: '서울',
+  quintile: 3,
+  symbol: null,
+  label: '서울 아파트 3분위',
+  sourceUpdatedDate: '2026-07-01',
+}
+
 const COMPARISON: HousingBenchmarkComparisonData = {
   scope: 'PORTFOLIO',
   strategy: null,
-  benchmark: {
-    regionCode: '1100000000',
-    regionName: '서울',
-    quintile: 3,
-    label: '서울 아파트 3분위',
-    sourceUpdatedDate: '2026-07-01',
-  },
+  benchmark: HOUSING_BENCHMARK,
   period: {
     fromMonth: '2021-07-01',
     toMonth: '2026-07-01',
@@ -108,9 +112,28 @@ const STRATEGY_COMPARISON: HousingBenchmarkComparisonData = {
 const FIFTH_QUINTILE_STRATEGY_COMPARISON: HousingBenchmarkComparisonData = {
   ...STRATEGY_COMPARISON,
   benchmark: {
-    ...COMPARISON.benchmark,
+    ...HOUSING_BENCHMARK,
     quintile: 5,
     label: '서울 아파트 5분위',
+  },
+}
+
+const QLD_STRATEGY_COMPARISON: HousingBenchmarkComparisonData = {
+  ...STRATEGY_COMPARISON,
+  benchmark: {
+    assetType: 'ETF',
+    regionCode: null,
+    regionName: null,
+    quintile: null,
+    symbol: 'QLD',
+    label: 'QLD (ProShares Ultra QQQ (2x 레버리지))',
+    sourceUpdatedDate: '2026-07-01',
+  },
+  quality: {
+    method: 'ESTIMATED_TIME_WEIGHTED_RETURN',
+    investmentCurrency: 'USD',
+    benchmarkCurrency: 'USD',
+    notice: '전략 운용 기록 기반 근사치입니다. 투자와 ETF 벤치마크 모두 USD 기준이며 환율 변수가 없습니다.',
   },
 }
 
@@ -147,13 +170,17 @@ describe('HousingBenchmarkComparison', () => {
 
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'PORTFOLIO',
+      benchmarkType: 'HOUSING',
       quintile: 3,
       from: '2021-07-17',
       to: '2026-07-17',
     }, true)
     expect(screen.getByRole('button', { name: '전체 포트폴리오' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: '5년' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByLabelText('서울 아파트 분위')).toHaveValue('3')
+    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('apt:3')
+    expect(screen.queryByText('2배 레버리지')).not.toBeInTheDocument()
+    expect(screen.queryByText('암호자산')).not.toBeInTheDocument()
+    expect(screen.queryByText('지수추종')).not.toBeInTheDocument()
 
     expect(screen.getByText('+32.5%p')).toBeInTheDocument()
     expect(screen.getByText('+84.2%')).toBeInTheDocument()
@@ -181,12 +208,13 @@ describe('HousingBenchmarkComparison', () => {
     }), true)
 
     await user.selectOptions(strategySelect, 'strategy-2')
-    await user.selectOptions(screen.getByLabelText('서울 아파트 분위'), '5')
+    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'apt:5')
     await user.click(screen.getByRole('button', { name: '1년' }))
 
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'STRATEGY',
       strategyId: 'strategy-2',
+      benchmarkType: 'HOUSING',
       quintile: 5,
       from: '2025-07-17',
       to: '2026-07-17',
@@ -196,9 +224,44 @@ describe('HousingBenchmarkComparison', () => {
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'STRATEGY',
       strategyId: 'strategy-2',
+      benchmarkType: 'HOUSING',
       quintile: 5,
       to: '2026-07-17',
     }, true)
+  })
+
+  it('ETF 옵션을 선택하면 훅에 benchmarkType·symbol을 반영해 요청한다', async () => {
+    const user = userEvent.setup()
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'etf:QLD')
+
+    expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
+      scope: 'PORTFOLIO',
+      benchmarkType: 'ETF',
+      symbol: 'QLD',
+      from: '2021-07-17',
+      to: '2026-07-17',
+    }, true)
+  })
+
+  it('레버리지·암호자산 ETF 선택 시 경고 리스크 칩을, 지수추종 ETF 선택 시 정보 리스크 칩을 표시한다', async () => {
+    const user = userEvent.setup()
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'etf:QLD')
+    expect(screen.getByText('2배 레버리지')).toHaveClass('bg-warn-bg', 'text-warn')
+
+    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'etf:IBIT')
+    expect(screen.getByText('암호자산')).toHaveClass('bg-warn-bg', 'text-warn')
+
+    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'etf:SPY')
+    expect(screen.getByText('지수추종')).toHaveClass('bg-info-bg', 'text-info')
+
+    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'apt:3')
+    expect(screen.queryByText('지수추종')).not.toBeInTheDocument()
+    expect(screen.queryByText('2배 레버리지')).not.toBeInTheDocument()
+    expect(screen.queryByText('암호자산')).not.toBeInTheDocument()
   })
 
   it('다섯 분위의 대표 지역·특징을 제공한다', async () => {
@@ -212,7 +275,7 @@ describe('HousingBenchmarkComparison', () => {
       isPlaceholderData: false,
     }))
     const { rerender } = render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
-    const select = screen.getByLabelText('서울 아파트 분위')
+    const select = screen.getByLabelText('벤치마크 자산')
 
     const expected = [
       {
@@ -248,11 +311,11 @@ describe('HousingBenchmarkComparison', () => {
     ]
 
     for (const [index, item] of expected.entries()) {
-      await user.selectOptions(select, item.value)
+      await user.selectOptions(select, `apt:${item.value}`)
       queryData = {
         ...COMPARISON,
         benchmark: {
-          ...COMPARISON.benchmark,
+          ...HOUSING_BENCHMARK,
           quintile: Number(item.value),
           label: `서울 아파트 ${item.value}분위`,
         },
@@ -303,10 +366,10 @@ describe('HousingBenchmarkComparison', () => {
     const { rerender } = render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
     await user.click(screen.getByRole('button', { name: '개별 전략' }))
-    await user.selectOptions(screen.getByLabelText('서울 아파트 분위'), '5')
+    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'apt:5')
 
     expect(screen.getByRole('button', { name: '개별 전략' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByLabelText('서울 아파트 분위')).toHaveValue('5')
+    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('apt:5')
     expect(screen.getByRole('status', { name: '갱신 중' })).toBeInTheDocument()
     expect(screen.getByText('+32.5%p')).toBeInTheDocument()
     expect(screen.getByText('전체 포트폴리오 · USD')).toBeInTheDocument()
@@ -332,6 +395,17 @@ describe('HousingBenchmarkComparison', () => {
     expect(screen.getByText('서울 5분위 안내')).toBeInTheDocument()
     expect(screen.queryByText('전체 포트폴리오 · USD')).not.toBeInTheDocument()
     expect(screen.queryByText('서울 3분위 안내')).not.toBeInTheDocument()
+  })
+
+  it('ETF 벤치마크 응답은 USD 통화 표기와 ETF 안내 문구를 표시한다', () => {
+    mockQuery(QLD_STRATEGY_COMPARISON)
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    expect(screen.getByText('QLD (ProShares Ultra QQQ (2x 레버리지)) · USD')).toBeInTheDocument()
+    expect(screen.getByText('QLD 안내')).toBeInTheDocument()
+    expect(screen.getByText('나스닥100 일일 수익률의 2배를 추종하는 레버리지 ETF입니다.')).toBeInTheDocument()
+    expect(screen.getByText(/Alpaca Market Data/)).toBeInTheDocument()
+    expect(screen.queryByText(/1 USD =/)).not.toBeInTheDocument()
   })
 
   it('개별 전략 범위에서 전략 목록 로딩을 Skeleton으로 표시한다', async () => {
@@ -388,6 +462,7 @@ describe('HousingBenchmarkComparison', () => {
 
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'PORTFOLIO',
+      benchmarkType: 'HOUSING',
       quintile: 3,
       from: '2023-02-28',
       to: '2024-02-29',
