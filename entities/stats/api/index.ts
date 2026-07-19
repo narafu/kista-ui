@@ -4,6 +4,7 @@ import type {
   EquityCurve,
   HousingBenchmarkComparison,
   HousingBenchmarkParams,
+  HousingBenchmarkSeries,
   StatsSummary,
 } from '../model/types'
 
@@ -45,6 +46,21 @@ export async function getHousingBenchmarkComparison(
   if (params.to) q.set('to', params.to)
   return fetchEither<HousingBenchmarkComparison>(
     `/api/stats/housing-benchmark?${q}`,
+    { method: 'GET' },
+    token
+  )
+}
+
+export async function getHousingBenchmarkSeries(
+  params: { from?: string; to?: string },
+  token?: string
+): Promise<HousingBenchmarkSeries> {
+  const q = new URLSearchParams()
+  if (params.from) q.set('from', params.from)
+  if (params.to) q.set('to', params.to)
+  const qs = q.size ? `?${q}` : ''
+  return fetchEither<HousingBenchmarkSeries>(
+    `/api/stats/housing-benchmark/series${qs}`,
     { method: 'GET' },
     token
   )

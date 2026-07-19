@@ -4,6 +4,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import {
   getEquityCurve,
   getHousingBenchmarkComparison,
+  getHousingBenchmarkSeries,
   getStatsCycles,
   getStatsSummary,
 } from '../api'
@@ -13,6 +14,7 @@ import type {
   EquityCurve,
   HousingBenchmarkComparison,
   HousingBenchmarkParams,
+  HousingBenchmarkSeries,
   StatsSummary,
 } from '../model/types'
 
@@ -53,6 +55,20 @@ export function useHousingBenchmarkQuery(params: HousingBenchmarkParams, enabled
     queryFn: () => getHousingBenchmarkComparison(params),
     enabled,
     placeholderData: (previous) => previous,
+  })
+}
+
+export interface HousingBenchmarkSeriesParams {
+  from?: string
+  to?: string
+}
+
+export function useHousingBenchmarkSeriesQuery(params: HousingBenchmarkSeriesParams, enabled: boolean) {
+  return useQuery<HousingBenchmarkSeries>({
+    queryKey: ['housingBenchmarkSeries', params.from ?? null, params.to ?? null],
+    queryFn: () => getHousingBenchmarkSeries(params),
+    enabled,
+    placeholderData: (prev) => prev,
   })
 }
 

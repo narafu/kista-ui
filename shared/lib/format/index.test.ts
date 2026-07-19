@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fmtSignedUsd, fmtUsd, pnlTextClass, todayKst } from './index'
+import { fmtKrwEok, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst } from './index'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -50,6 +50,21 @@ describe('todayKst', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-07-16T14:00:00Z'))
     expect(todayKst()).toBe('2026-07-16')
+  })
+})
+
+describe('fmtKrwEok', () => {
+  it('만원 단위 값을 억원 단위로 반올림한다', () => {
+    expect(fmtKrwEok(344468.13)).toBe('34.4억')
+  })
+
+  it('digits 파라미터로 소수 자릿수를 지정할 수 있다', () => {
+    expect(fmtKrwEok(344468.13, 0)).toBe('34억')
+    expect(fmtKrwEok(344468.13, 2)).toBe('34.45억')
+  })
+
+  it('0은 0억을 반환한다', () => {
+    expect(fmtKrwEok(0)).toBe('0.0억')
   })
 })
 

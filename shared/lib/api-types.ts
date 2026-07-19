@@ -747,6 +747,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/stats/housing-benchmark/series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 서울 아파트 5분위 가격 시계열
+         * @description KB 5분위 매매평균가격 원본 시계열 (서울 전체 기준, 투자 성과와 무관).
+         */
+        get: operations["getHousingBenchmarkSeries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stats/equity-curve": {
         parameters: {
             query?: never;
@@ -2625,6 +2645,20 @@ export interface components {
             investmentMaxDrawdown?: number;
             benchmarkMaxDrawdown?: number;
         };
+        HousingBenchmarkSeriesPoint: {
+            /** Format: date */
+            baseMonth?: string;
+            firstQuintilePrice?: number;
+            secondQuintilePrice?: number;
+            thirdQuintilePrice?: number;
+            fourthQuintilePrice?: number;
+            fifthQuintilePrice?: number;
+        };
+        HousingBenchmarkSeriesResponse: {
+            points?: components["schemas"]["HousingBenchmarkSeriesPoint"][];
+            /** Format: date */
+            sourceUpdatedDate?: string;
+        };
         EquityCurvePoint: {
             /** Format: date */
             date?: string;
@@ -4427,6 +4461,29 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["HousingBenchmarkComparisonResponse"];
+                };
+            };
+        };
+    };
+    getHousingBenchmarkSeries: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["HousingBenchmarkSeriesResponse"];
                 };
             };
         };

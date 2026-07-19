@@ -10,6 +10,7 @@ import { cn } from '@shared/lib/utils'
 import { HousingBenchmarkChart } from './HousingBenchmarkChart'
 import { HousingBenchmarkSummary } from './HousingBenchmarkSummary'
 import { HousingBenchmarkInfo } from './HousingBenchmarkInfo'
+import { HousingBenchmarkQuintileTrendChart } from './HousingBenchmarkQuintileTrendChart'
 import { HOUSING_QUINTILES, type HousingQuintile } from './housingBenchmarkContent'
 import { SectionError } from './SectionError'
 
@@ -280,6 +281,9 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
           />
         </>
       ) : null}
+
+      {/* 사용자 투자 데이터와 무관하게 항상 표시되는 서울 아파트 5분위 원본 시계열 — 위 비교 결과와 독립적 */}
+      <HousingBenchmarkQuintileTrendChart enabled={enabled} />
     </div>
   )
 }

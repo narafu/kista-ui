@@ -26,6 +26,11 @@ export function fmtTime(dateStr: string | Date): string {
   return new Date(dateStr).toLocaleTimeString('ko-KR', { hour12: false })
 }
 
+/** 만원 단위 입력값을 억원 단위 문자열로 변환 (예: 344468.13 → "34.4억") */
+export function fmtKrwEok(manwon: number, digits = 1): string {
+  return `${(manwon / 10000).toFixed(digits)}억`
+}
+
 export function todayKst(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' })
 }

@@ -67,3 +67,5 @@ export type HousingBenchmarkSummary = HousingBenchmarkSchemas['HousingBenchmarkS
 export type HousingBenchmarkPoint = HousingBenchmarkSchemas['HousingBenchmarkPoint']
 export type HousingBenchmarkQuality = HousingBenchmarkSchemas['HousingBenchmarkQuality']
 export type HousingBenchmarkComparison = HousingBenchmarkSchemas['HousingBenchmarkComparisonResponse']
+export type HousingBenchmarkSeriesPoint = HousingBenchmarkSchemas['HousingBenchmarkSeriesPoint']
+export type HousingBenchmarkSeries = HousingBenchmarkSchemas['HousingBenchmarkSeriesResponse']

@@ -23,6 +23,10 @@ vi.mock('@entities/strategy', async (importOriginal) => {
   return { ...actual, useAllStrategiesQuery: useAllStrategiesQueryMock }
 })
 
+vi.mock('./HousingBenchmarkQuintileTrendChart', () => ({
+  HousingBenchmarkQuintileTrendChart: () => <div data-testid="housing-benchmark-quintile-trend-chart-stub" />,
+}))
+
 vi.mock('recharts', () => ({
   ResponsiveContainer: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   LineChart: ({ children, data }: { children: ReactNode; data: unknown[] }) => (
