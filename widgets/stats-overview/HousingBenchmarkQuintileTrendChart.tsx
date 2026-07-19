@@ -1,14 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useHousingBenchmarkRegionsQuery, useHousingBenchmarkSeriesQuery } from '@entities/stats'
 import { EmptyState } from '@shared/ui/EmptyState'
-import { fmtDate, fmtKrwEok } from '@shared/lib/format'
-import { formatHousingBenchmarkAxisMonth, formatHousingBenchmarkMonth } from './housingBenchmarkChartFormatters'
+import { fmtDate, fmtKrwEok, pnlTextClass } from '@shared/lib/format'
+import { cn } from '@shared/lib/utils'
+import {
+  calculateQuintileCagr,
+  formatHousingBenchmarkAxisMonth,
+  formatHousingBenchmarkMonth,
+  formatQuintileCagr,
+} from './housingBenchmarkChartFormatters'
 import { SectionError } from './SectionError'
 
 interface Props {
@@ -56,6 +62,12 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to }: Props)
   const data = query.data
   const points = data?.points ?? []
 
+  // 현재 조회 기간(상단 "비교 기간" 토글) 첫·마지막 시점 기준 연평균 상승률(CAGR) — 범례 배지용
+  const quintileCagrs = useMemo(
+    () => new Map(QUINTILE_SERIES.map((series) => [series.dataKey, calculateQuintileCagr(points, series.dataKey)])),
+    [points],
+  )
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -63,7 +75,7 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to }: Props)
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <CardTitle className="text-base lg:text-lg">{regionLabel} 아파트 5분위 가격 추이</CardTitle>
-              <p className="mt-1 text-xs text-muted-foreground">월별 매매평균가격 (억원)</p>
+              <p className="mt-1 text-xs text-muted-foreground">월별 매매평균가격 (억원) · 배지는 조회 기간 연평균 상승률</p>
             </div>
             <label className="grid gap-1 text-xs font-medium text-muted-foreground sm:w-48">
               비교 지역
@@ -80,15 +92,21 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to }: Props)
             </label>
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            {QUINTILE_SERIES.map((series) => (
-              <span key={series.dataKey} className="flex items-center gap-1.5">
-                <span
-                  className="inline-block h-0.5 w-3.5 rounded-full"
-                  style={{ backgroundColor: series.color }}
-                />
-                {series.label}
-              </span>
-            ))}
+            {QUINTILE_SERIES.map((series) => {
+              const cagr = quintileCagrs.get(series.dataKey) ?? null
+              return (
+                <span key={series.dataKey} className="flex items-center gap-1.5">
+                  <span
+                    className="inline-block h-0.5 w-3.5 rounded-full"
+                    style={{ backgroundColor: series.color }}
+                  />
+                  {series.label}
+                  <span className={cn('text-[10px]', cagr == null ? 'text-muted-foreground' : pnlTextClass(cagr))}>
+                    {formatQuintileCagr(cagr)}
+                  </span>
+                </span>
+              )
+            })}
           </div>
         </div>
       </CardHeader>

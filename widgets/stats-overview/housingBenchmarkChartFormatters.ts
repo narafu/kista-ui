@@ -1,4 +1,4 @@
-import type { HousingBenchmarkPoint } from '@entities/stats'
+import type { HousingBenchmarkPoint, HousingBenchmarkSeriesPoint } from '@entities/stats'
 
 export type HousingBenchmarkSeriesKey = 'investmentIndexUsd' | 'benchmarkIndex'
 
@@ -27,6 +27,41 @@ export function formatHousingBenchmarkMonth(value: string) {
 export function formatHousingBenchmarkAxisMonth(value: string) {
   const parsed = parseYearMonth(value)
   return parsed ? `${parsed.year}.${String(parsed.month).padStart(2, '0')}` : value
+}
+
+function monthIndex(value: string) {
+  const parsed = parseYearMonth(value)
+  return parsed ? Number(parsed.year) * 12 + parsed.month : null
+}
+
+/** 기간 첫·마지막 유효 시점의 값으로 연평균 상승률(CAGR)을 계산한다. 유효 구간이 1개월 이하면 null */
+export function calculateQuintileCagr(
+  points: HousingBenchmarkSeriesPoint[],
+  quintileKey: keyof HousingBenchmarkSeriesPoint,
+): number | null {
+  const valid = points
+    .map((point) => ({ month: point.baseMonth, value: point[quintileKey] }))
+    .filter((point): point is { month: string; value: number } =>
+      typeof point.month === 'string' && typeof point.value === 'number' && point.value > 0)
+
+  if (valid.length < 2) return null
+
+  const first = valid[0]
+  const last = valid[valid.length - 1]
+  const firstIdx = monthIndex(first.month)
+  const lastIdx = monthIndex(last.month)
+  if (firstIdx == null || lastIdx == null) return null
+
+  const monthSpan = lastIdx - firstIdx
+  if (monthSpan <= 0) return null
+
+  return (last.value / first.value) ** (12 / monthSpan) - 1
+}
+
+export function formatQuintileCagr(value: number | null) {
+  if (value == null) return '—'
+  const pct = value * 100
+  return `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%/년`
 }
 
 function formatIndex(value: unknown) {
