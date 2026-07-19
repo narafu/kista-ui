@@ -40,9 +40,13 @@ export async function getHousingBenchmarkComparison(
   params: HousingBenchmarkParams,
   token?: string
 ): Promise<HousingBenchmarkComparison> {
-  const q = new URLSearchParams({ scope: params.scope })
+  const q = new URLSearchParams({ scope: params.scope, benchmarkType: params.benchmarkType })
   if (params.strategyId) q.set('strategyId', params.strategyId)
-  q.set('quintile', String(params.quintile))
+  if (params.benchmarkType === 'HOUSING') {
+    q.set('quintile', String(params.quintile))
+  } else {
+    q.set('symbol', params.symbol)
+  }
   if (params.from) q.set('from', params.from)
   if (params.to) q.set('to', params.to)
   return fetchEither<HousingBenchmarkComparison>(

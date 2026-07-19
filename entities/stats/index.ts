@@ -5,6 +5,8 @@ export type {
   EquityCurve,
   CyclePerformance,
   CyclePerformancePage,
+  BenchmarkAssetType,
+  EtfBenchmarkSymbol,
   HousingBenchmarkParams,
   CurrentExchangeRate,
   HousingBenchmarkStrategy,

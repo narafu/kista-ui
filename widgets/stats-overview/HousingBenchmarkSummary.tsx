@@ -7,6 +7,7 @@ interface Props {
   summary: HousingBenchmarkSummaryData
   investmentLabel: string
   benchmarkLabel: string
+  benchmarkCurrency: 'USD' | 'KRW'
 }
 
 function formatPercent(value: number | undefined) {
@@ -46,7 +47,7 @@ const METRICS: {
   },
 ]
 
-export function HousingBenchmarkSummary({ summary, investmentLabel, benchmarkLabel }: Props) {
+export function HousingBenchmarkSummary({ summary, investmentLabel, benchmarkLabel, benchmarkCurrency }: Props) {
   return (
     <Card className="gap-0 overflow-hidden py-0" aria-label="장기 초과 성과 요약">
       <div className="grid grid-cols-2 sm:grid-cols-3">
@@ -58,7 +59,7 @@ export function HousingBenchmarkSummary({ summary, investmentLabel, benchmarkLab
           )}>
             {formatPercentagePoint(summary.excessReturn)}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">투자 누적 - 아파트 누적</p>
+          <p className="mt-1 text-xs text-muted-foreground">투자 누적 - 벤치마크 누적</p>
         </div>
         <div className="min-w-0 border-r border-border p-4 sm:p-5">
           <p className="text-xs font-medium text-muted-foreground">투자 누적 수익률</p>
@@ -73,15 +74,15 @@ export function HousingBenchmarkSummary({ summary, investmentLabel, benchmarkLab
           </p>
         </div>
         <div className="min-w-0 p-4 sm:p-5">
-          <p className="text-xs font-medium text-muted-foreground">아파트 누적 상승률</p>
+          <p className="text-xs font-medium text-muted-foreground">벤치마크 누적 상승률</p>
           <p className={cn(
             'mt-1 break-words text-xl font-bold tabular-nums sm:text-2xl',
             summary.benchmarkCumulativeReturn != null && pnlTextClass(summary.benchmarkCumulativeReturn),
           )}>
             {formatPercent(summary.benchmarkCumulativeReturn)}
           </p>
-          <p className="mt-1 truncate text-xs text-muted-foreground" title={`${benchmarkLabel} · KRW`}>
-            {benchmarkLabel} · KRW
+          <p className="mt-1 truncate text-xs text-muted-foreground" title={`${benchmarkLabel} · ${benchmarkCurrency}`}>
+            {benchmarkLabel} · {benchmarkCurrency}
           </p>
         </div>
       </div>
@@ -95,7 +96,7 @@ export function HousingBenchmarkSummary({ summary, investmentLabel, benchmarkLab
             <tr>
               <th className="w-[34%] px-2 py-3 text-left font-medium sm:px-4">지표</th>
               <th className="w-[33%] px-2 py-3 text-right font-medium sm:px-4">투자</th>
-              <th className="w-[33%] px-2 py-3 text-right font-medium sm:px-4">아파트</th>
+              <th className="w-[33%] px-2 py-3 text-right font-medium sm:px-4">벤치마크</th>
             </tr>
           </thead>
           <tbody>

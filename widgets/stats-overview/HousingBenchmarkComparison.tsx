@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useHousingBenchmarkQuery } from '@entities/stats'
-import type { HousingBenchmarkParams } from '@entities/stats'
+import type { EtfBenchmarkSymbol, HousingBenchmark, HousingBenchmarkParams } from '@entities/stats'
 import { useAllStrategiesQuery } from '@entities/strategy'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { cn } from '@shared/lib/utils'
@@ -11,11 +11,20 @@ import { HousingBenchmarkChart } from './HousingBenchmarkChart'
 import { HousingBenchmarkSummary } from './HousingBenchmarkSummary'
 import { HousingBenchmarkInfo } from './HousingBenchmarkInfo'
 import { HousingBenchmarkQuintileTrendChart } from './HousingBenchmarkQuintileTrendChart'
-import { HOUSING_QUINTILES, type HousingQuintile } from './housingBenchmarkContent'
+import {
+  ETF_BENCHMARKS,
+  getEtfBenchmarkContent,
+  HOUSING_QUINTILES,
+  type HousingQuintile,
+} from './housingBenchmarkContent'
 import { SectionError } from './SectionError'
 
 type Scope = HousingBenchmarkParams['scope']
 type Period = '1Y' | '3Y' | '5Y' | 'ALL'
+
+type BenchmarkSelection =
+  | { type: 'HOUSING'; quintile: HousingQuintile }
+  | { type: 'ETF'; symbol: EtfBenchmarkSymbol }
 
 interface Props {
   enabled: boolean
@@ -100,20 +109,28 @@ function StrategyListLoading() {
 
 function emptyMessage(reason: string | null | undefined) {
   if (reason === 'INSUFFICIENT_OVERLAP' || reason === 'INSUFFICIENT_COMMON_MONTHS') {
-    return '투자 기록과 서울 아파트 데이터가 겹치는 기간이 부족합니다. (최소 2개월치 데이터 필요)'
+    return '투자 기록과 벤치마크 데이터가 겹치는 기간이 부족합니다. (최소 2개월치 데이터 필요)'
   }
   if (reason === 'NO_INVESTMENT_DATA') return '선택한 기간에 전략 운용 기록이 없습니다.'
   return '비교할 수 있는 데이터가 충분하지 않습니다.'
 }
 
-function isHousingQuintile(value: number | undefined): value is HousingQuintile {
+function isHousingQuintile(value: number | null | undefined): value is HousingQuintile {
   return value === 1 || value === 2 || value === 3 || value === 4 || value === 5
+}
+
+function parseBenchmarkSelectionValue(value: string): BenchmarkSelection {
+  const [prefix, rest] = value.split(':')
+  if (prefix === 'etf') {
+    return { type: 'ETF', symbol: rest as EtfBenchmarkSymbol }
+  }
+  return { type: 'HOUSING', quintile: Number(rest) as HousingQuintile }
 }
 
 export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   const [scope, setScope] = useState<Scope>('PORTFOLIO')
   const [selectedStrategyId, setSelectedStrategyId] = useState('')
-  const [quintile, setQuintile] = useState<HousingQuintile>(3)
+  const [selection, setSelection] = useState<BenchmarkSelection>({ type: 'HOUSING', quintile: 3 })
   const [period, setPeriod] = useState<Period>('5Y')
 
   const isStrategyScope = scope === 'STRATEGY'
@@ -132,18 +149,52 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   const selectedPeriod = PERIODS.find((item) => item.value === period)
   const from = selectedPeriod?.years ? subtractYears(defaultTo, selectedPeriod.years) : undefined
   const canQuery = scope === 'PORTFOLIO' || Boolean(effectiveStrategyId)
-  const params: HousingBenchmarkParams = {
-    scope,
-    ...(scope === 'STRATEGY' && effectiveStrategyId ? { strategyId: effectiveStrategyId } : {}),
-    quintile,
-    ...(from ? { from } : {}),
-    to: defaultTo,
-  }
+  const strategyIdParam = scope === 'STRATEGY' && effectiveStrategyId ? { strategyId: effectiveStrategyId } : {}
+  const params: HousingBenchmarkParams = selection.type === 'HOUSING'
+    ? {
+        scope,
+        ...strategyIdParam,
+        benchmarkType: 'HOUSING',
+        quintile: selection.quintile,
+        ...(from ? { from } : {}),
+        to: defaultTo,
+      }
+    : {
+        scope,
+        ...strategyIdParam,
+        benchmarkType: 'ETF',
+        symbol: selection.symbol,
+        ...(from ? { from } : {}),
+        to: defaultTo,
+      }
   const query = useHousingBenchmarkQuery(params, enabled && canQuery)
   const data = query.data
+  const fallbackQuintile = selection.type === 'HOUSING' ? selection.quintile : 3
   const responseQuintile = data?.benchmark?.quintile
-  const displayedQuintile = isHousingQuintile(responseQuintile) ? responseQuintile : quintile
-  const benchmarkLabel = data?.benchmark?.label ?? `서울 아파트 ${displayedQuintile}분위`
+  const displayedQuintile = isHousingQuintile(responseQuintile) ? responseQuintile : fallbackQuintile
+  const benchmarkLabel = selection.type === 'ETF'
+    ? (data?.benchmark?.label ?? selection.symbol)
+    : (data?.benchmark?.label ?? `서울 아파트 ${displayedQuintile}분위`)
+  const benchmarkCurrency = data?.quality?.benchmarkCurrency ?? 'KRW'
+  const fallbackBenchmark: HousingBenchmark = selection.type === 'HOUSING'
+    ? {
+        assetType: 'HOUSING',
+        regionCode: null,
+        regionName: null,
+        quintile: selection.quintile,
+        symbol: null,
+        label: benchmarkLabel,
+        sourceUpdatedDate: null,
+      }
+    : {
+        assetType: 'ETF',
+        regionCode: null,
+        regionName: null,
+        quintile: null,
+        symbol: selection.symbol,
+        label: benchmarkLabel,
+        sourceUpdatedDate: null,
+      }
   const responseScope = data?.scope === 'STRATEGY' ? 'STRATEGY' : 'PORTFOLIO'
   const investmentLabel = responseScope === 'PORTFOLIO'
     ? '전체 포트폴리오'
@@ -199,17 +250,36 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
           ) : null}
 
           <label className="grid gap-1 text-xs font-medium text-muted-foreground">
-            서울 아파트 분위
-            <select
-              aria-label="서울 아파트 분위"
-              value={quintile}
-              onChange={(event) => setQuintile(Number(event.target.value) as HousingQuintile)}
-              className="min-h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              {HOUSING_QUINTILES.map((item) => (
-                <option key={item.quintile} value={item.quintile}>{item.label}</option>
-              ))}
-            </select>
+            벤치마크 자산
+            <div className="flex items-center gap-2">
+              <select
+                aria-label="벤치마크 자산"
+                value={selection.type === 'HOUSING' ? `apt:${selection.quintile}` : `etf:${selection.symbol}`}
+                onChange={(event) => setSelection(parseBenchmarkSelectionValue(event.target.value))}
+                className="min-h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <optgroup label="부동산">
+                  {HOUSING_QUINTILES.map((item) => (
+                    <option key={item.quintile} value={`apt:${item.quintile}`}>{item.label}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="ETF">
+                  {ETF_BENCHMARKS.map((item) => (
+                    <option key={item.symbol} value={`etf:${item.symbol}`}>{item.label}</option>
+                  ))}
+                </optgroup>
+              </select>
+              {selection.type === 'ETF' ? (
+                <span className={cn(
+                  'shrink-0 rounded px-2 py-1 text-xs font-medium',
+                  getEtfBenchmarkContent(selection.symbol).riskTier === 'LEVERAGED_OR_CRYPTO'
+                    ? 'bg-warn-bg text-warn'
+                    : 'bg-info-bg text-info',
+                )}>
+                  {getEtfBenchmarkContent(selection.symbol).riskChipLabel}
+                </span>
+              ) : null}
+            </div>
           </label>
 
           <fieldset>
@@ -257,14 +327,15 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
             summary={data.summary}
             investmentLabel={investmentLabel}
             benchmarkLabel={benchmarkLabel}
+            benchmarkCurrency={benchmarkCurrency}
           />
           <HousingBenchmarkChart
             points={data.points ?? []}
             investmentLabel={investmentLabel}
-            benchmark={data.benchmark ?? { label: benchmarkLabel }}
+            benchmark={data.benchmark ?? fallbackBenchmark}
+            benchmarkCurrency={benchmarkCurrency}
           />
           <HousingBenchmarkInfo
-            quintile={displayedQuintile}
             benchmark={data.benchmark}
             currentExchangeRate={data.currentExchangeRate}
             notice={data.quality?.notice}
@@ -274,7 +345,6 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
         <>
           <EmptyState message={emptyMessage(data.emptyReason)} />
           <HousingBenchmarkInfo
-            quintile={displayedQuintile}
             benchmark={data.benchmark}
             currentExchangeRate={data.currentExchangeRate}
             notice={data.quality?.notice}
