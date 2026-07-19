@@ -384,6 +384,8 @@ describe('HousingBenchmarkComparison', () => {
     expect(screen.getByText('나스닥100 일일 수익률의 2배를 추종하는 레버리지 ETF입니다.')).toBeInTheDocument()
     expect(screen.getByText(/Alpaca Market Data/)).toBeInTheDocument()
     expect(screen.queryByText(/1 USD =/)).not.toBeInTheDocument()
+    expect(screen.getByText('QLD (ProShares Ultra QQQ (2x 레버리지)) (USD)')).toBeInTheDocument()
+    expect(screen.queryByText('QLD (ProShares Ultra QQQ (2x 레버리지)) (KRW)')).not.toBeInTheDocument()
   })
 
   it('개별 전략 범위에서 전략 목록 로딩을 Skeleton으로 표시한다', async () => {

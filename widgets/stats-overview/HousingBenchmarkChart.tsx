@@ -38,7 +38,7 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark, benc
             </span>
             <span className="flex items-center gap-1.5">
               <span className="inline-block h-0 w-3.5 border-t-2 border-dashed border-[var(--chart-2)]" />
-              {formatHousingBenchmarkSeriesLabel(benchmarkLabel, 'KRW')}
+              {formatHousingBenchmarkSeriesLabel(benchmarkLabel, benchmarkCurrency)}
             </span>
           </div>
         </div>
@@ -95,7 +95,7 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark, benc
               <Line
                 type="monotone"
                 dataKey="benchmarkIndex"
-                name={formatHousingBenchmarkSeriesLabel(benchmarkLabel, 'KRW')}
+                name={formatHousingBenchmarkSeriesLabel(benchmarkLabel, benchmarkCurrency)}
                 stroke="var(--chart-2)"
                 strokeWidth={2.5}
                 strokeDasharray="6 4"
