@@ -126,6 +126,7 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to }: Props)
                   <Tooltip
                     labelFormatter={(label) => formatHousingBenchmarkMonth(String(label))}
                     formatter={(value) => fmtKrwEok(Number(value))}
+                    itemSorter={(item) => -Number(item.value)}
                     contentStyle={{
                       fontSize: 12,
                       backgroundColor: 'var(--card)',
