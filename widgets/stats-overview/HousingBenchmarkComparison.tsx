@@ -100,7 +100,7 @@ function StrategyListLoading() {
 
 function emptyMessage(reason: string | null | undefined) {
   if (reason === 'INSUFFICIENT_OVERLAP' || reason === 'INSUFFICIENT_COMMON_MONTHS') {
-    return '투자 기록과 서울 아파트 데이터가 겹치는 기간이 부족합니다.'
+    return '투자 기록과 서울 아파트 데이터가 겹치는 기간이 부족합니다. (최소 2개월치 데이터 필요)'
   }
   if (reason === 'NO_INVESTMENT_DATA') return '선택한 기간에 전략 운용 기록이 없습니다.'
   return '비교할 수 있는 데이터가 충분하지 않습니다.'
@@ -282,8 +282,8 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
         </>
       ) : null}
 
-      {/* 사용자 투자 데이터와 무관하게 항상 표시되는 서울 아파트 5분위 원본 시계열 — 위 비교 결과와 독립적 */}
-      <HousingBenchmarkQuintileTrendChart enabled={enabled} />
+      {/* 사용자 투자 데이터와 무관하게 항상 표시되는 아파트 5분위 원본 시계열 — 위 비교 결과와 독립적, 상단 "비교 기간" 토글과 동일한 from/to 사용 */}
+      <HousingBenchmarkQuintileTrendChart enabled={enabled} from={from} to={defaultTo} />
     </div>
   )
 }

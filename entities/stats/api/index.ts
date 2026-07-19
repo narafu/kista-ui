@@ -4,6 +4,7 @@ import type {
   EquityCurve,
   HousingBenchmarkComparison,
   HousingBenchmarkParams,
+  HousingBenchmarkRegionsList,
   HousingBenchmarkSeries,
   StatsSummary,
 } from '../model/types'
@@ -52,15 +53,25 @@ export async function getHousingBenchmarkComparison(
 }
 
 export async function getHousingBenchmarkSeries(
-  params: { from?: string; to?: string },
+  params: { from?: string; to?: string; regionCode?: string },
   token?: string
 ): Promise<HousingBenchmarkSeries> {
   const q = new URLSearchParams()
   if (params.from) q.set('from', params.from)
   if (params.to) q.set('to', params.to)
+  if (params.regionCode) q.set('regionCode', params.regionCode)
   const qs = q.size ? `?${q}` : ''
   return fetchEither<HousingBenchmarkSeries>(
     `/api/stats/housing-benchmark/series${qs}`,
+    { method: 'GET' },
+    token
+  )
+}
+
+// KB Land가 실제 제공하는 지역 목록 — 하드코딩 금지, DB 동적 조회
+export async function getHousingBenchmarkRegions(token?: string): Promise<HousingBenchmarkRegionsList> {
+  return fetchEither<HousingBenchmarkRegionsList>(
+    '/api/stats/housing-benchmark/regions',
     { method: 'GET' },
     token
   )

@@ -4,6 +4,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import {
   getEquityCurve,
   getHousingBenchmarkComparison,
+  getHousingBenchmarkRegions,
   getHousingBenchmarkSeries,
   getStatsCycles,
   getStatsSummary,
@@ -14,6 +15,7 @@ import type {
   EquityCurve,
   HousingBenchmarkComparison,
   HousingBenchmarkParams,
+  HousingBenchmarkRegionsList,
   HousingBenchmarkSeries,
   StatsSummary,
 } from '../model/types'
@@ -61,14 +63,25 @@ export function useHousingBenchmarkQuery(params: HousingBenchmarkParams, enabled
 export interface HousingBenchmarkSeriesParams {
   from?: string
   to?: string
+  regionCode?: string
 }
 
 export function useHousingBenchmarkSeriesQuery(params: HousingBenchmarkSeriesParams, enabled: boolean) {
   return useQuery<HousingBenchmarkSeries>({
-    queryKey: ['housingBenchmarkSeries', params.from ?? null, params.to ?? null],
+    queryKey: ['housingBenchmarkSeries', params.from ?? null, params.to ?? null, params.regionCode ?? null],
     queryFn: () => getHousingBenchmarkSeries(params),
     enabled,
     placeholderData: (prev) => prev,
+  })
+}
+
+// 지역 목록은 KB Land 원본이 자주 바뀌지 않으므로 staleTime을 넉넉히 둔다
+export function useHousingBenchmarkRegionsQuery(enabled: boolean) {
+  return useQuery<HousingBenchmarkRegionsList>({
+    queryKey: ['housingBenchmarkRegions'],
+    queryFn: () => getHousingBenchmarkRegions(),
+    enabled,
+    staleTime: 60 * 60 * 1000,
   })
 }
 

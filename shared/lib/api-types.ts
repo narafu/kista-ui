@@ -755,10 +755,30 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 서울 아파트 5분위 가격 시계열
-         * @description KB 5분위 매매평균가격 원본 시계열 (서울 전체 기준, 투자 성과와 무관).
+         * KB 지역 5분위 가격 시계열
+         * @description KB 5분위 매매평균가격 원본 시계열 (regionCode 미지정 시 서울 기본값, 투자 성과와 무관).
          */
         get: operations["getHousingBenchmarkSeries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/stats/housing-benchmark/regions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 서울 아파트 등 KB 지역 카탈로그
+         * @description 5분위 시계열 조회에 사용 가능한 지역 코드·명 목록.
+         */
+        get: operations["getHousingBenchmarkRegions"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2659,6 +2679,13 @@ export interface components {
             /** Format: date */
             sourceUpdatedDate?: string;
         };
+        HousingBenchmarkRegionItem: {
+            code?: string;
+            name?: string;
+        };
+        HousingBenchmarkRegionsResponse: {
+            regions?: components["schemas"]["HousingBenchmarkRegionItem"][];
+        };
         EquityCurvePoint: {
             /** Format: date */
             date?: string;
@@ -4470,6 +4497,7 @@ export interface operations {
             query?: {
                 from?: string;
                 to?: string;
+                regionCode?: string;
             };
             header?: never;
             path?: never;
@@ -4484,6 +4512,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["HousingBenchmarkSeriesResponse"];
+                };
+            };
+        };
+    };
+    getHousingBenchmarkRegions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["HousingBenchmarkRegionsResponse"];
                 };
             };
         };
