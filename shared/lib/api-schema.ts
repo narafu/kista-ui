@@ -1,6 +1,6 @@
 // API 스펙에서 파생된 enum 타입 — 직접 정의 금지, openapi.json이 SSOT
 // 갱신: npm run gen:types (openapi.json 교체 후 실행)
-import type { components } from './api-types'
+import type { components, operations } from './api-types'
 
 export type BrokerCode = NonNullable<components['schemas']['AccountRequest']['broker']>
 
@@ -17,6 +17,12 @@ export type OrderDirection = NonNullable<components['schemas']['Order']['directi
 export type OrderStatus = NonNullable<components['schemas']['Order']['status']>
 
 export type SkipReason = NonNullable<components['schemas']['NextOrdersResponse']['skipReason']>
+
+// HousingBenchmarkDefinition.assetType/symbol 응답 필드는 String으로 직렬화되어 스펙에 enum이 없다 —
+// 같은 값의 enum 제약은 쿼리 파라미터(benchmarkType/symbol)에만 있어 그쪽에서 파생한다.
+type HousingBenchmarkQuery = NonNullable<operations['getHousingBenchmarkComparison']['parameters']['query']>
+export type BenchmarkAssetType = NonNullable<HousingBenchmarkQuery['benchmarkType']>
+export type EtfBenchmarkSymbol = NonNullable<HousingBenchmarkQuery['symbol']>
 
 const BROKER_LABEL: Record<string, string> = {
   KIS: '한국투자증권',

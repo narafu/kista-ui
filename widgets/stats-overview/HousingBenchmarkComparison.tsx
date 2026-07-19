@@ -175,7 +175,7 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   const benchmarkLabel = selection.type === 'ETF'
     ? (data?.benchmark?.label ?? selection.symbol)
     : (data?.benchmark?.label ?? `서울 아파트 ${displayedQuintile}분위`)
-  const benchmarkCurrency = data?.quality?.benchmarkCurrency ?? 'KRW'
+  const benchmarkCurrency: 'USD' | 'KRW' = data?.quality?.benchmarkCurrency === 'USD' ? 'USD' : 'KRW'
   const fallbackBenchmark: HousingBenchmark = selection.type === 'HOUSING'
     ? {
         assetType: 'HOUSING',

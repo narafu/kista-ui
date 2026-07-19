@@ -34,14 +34,10 @@ type _StrategyMatchesSchema = Assert<Equal<
   HousingBenchmarkStrategy,
   HousingBenchmarkSchemas['HousingBenchmarkStrategyInfo']
 >>
-// TODO(백엔드 완료 후): 벤치마크 확장(HOUSING/ETF) 계약이 openapi.json에 반영되면
-// HousingBenchmark/HousingBenchmarkQuality/HousingBenchmarkComparison을 다시 생성 타입 재export로
-// 되돌리고 아래 세 단언을 복원한다. 현재는 entities/stats/model/types.ts에서 신규 필드(assetType,
-// symbol, benchmarkCurrency 'USD' 등)를 직접 정의한 임시 타입이라 생성 스키마와 구조적으로 다르다.
-// type _BenchmarkMatchesSchema = Assert<Equal<
-//   HousingBenchmark,
-//   HousingBenchmarkSchemas['HousingBenchmarkDefinition']
-// >>
+type _BenchmarkMatchesSchema = Assert<Equal<
+  HousingBenchmark,
+  HousingBenchmarkSchemas['HousingBenchmarkDefinition']
+>>
 type _PeriodMatchesSchema = Assert<Equal<
   HousingBenchmarkPeriod,
   HousingBenchmarkSchemas['HousingBenchmarkPeriod']
@@ -54,14 +50,14 @@ type _PointMatchesSchema = Assert<Equal<
   HousingBenchmarkPoint,
   HousingBenchmarkSchemas['HousingBenchmarkPoint']
 >>
-// type _QualityMatchesSchema = Assert<Equal<
-//   HousingBenchmarkQuality,
-//   HousingBenchmarkSchemas['HousingBenchmarkQuality']
-// >>
-// type _ComparisonMatchesSchema = Assert<Equal<
-//   HousingBenchmarkComparison,
-//   HousingBenchmarkSchemas['HousingBenchmarkComparisonResponse']
-// >>
+type _QualityMatchesSchema = Assert<Equal<
+  HousingBenchmarkQuality,
+  HousingBenchmarkSchemas['HousingBenchmarkQuality']
+>>
+type _ComparisonMatchesSchema = Assert<Equal<
+  HousingBenchmarkComparison,
+  HousingBenchmarkSchemas['HousingBenchmarkComparisonResponse']
+>>
 
 vi.mock('../api', () => ({
   getEquityCurve: vi.fn(),

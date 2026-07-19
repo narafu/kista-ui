@@ -735,8 +735,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 서울 아파트 벤치마크 비교
-         * @description USD 투자 성과와 KRW 서울 아파트 분위 가격을 현지 통화 기준으로 비교합니다.
+         * 벤치마크 비교 (서울 아파트 · ETF)
+         * @description USD 투자 성과와 벤치마크(서울 아파트 분위 가격 또는 SPY/QQQ/QLD/IBIT ETF)를 비교합니다. benchmarkType=ETF면 symbol이 필수이며 quintile은 무시됩니다.
          */
         get: operations["getHousingBenchmarkComparison"];
         put?: never;
@@ -2620,10 +2620,12 @@ export interface components {
             source?: "TOSS_INVEST";
         };
         HousingBenchmarkDefinition: {
-            regionCode?: string;
-            regionName?: string;
+            assetType?: string;
+            regionCode?: string | null;
+            regionName?: string | null;
             /** Format: int32 */
-            quintile?: number;
+            quintile?: number | null;
+            symbol?: string | null;
             label?: string;
             /** Format: date */
             sourceUpdatedDate?: string | null;
@@ -4471,7 +4473,9 @@ export interface operations {
             query?: {
                 scope?: "PORTFOLIO" | "STRATEGY";
                 strategyId?: string;
+                benchmarkType?: "HOUSING" | "ETF";
                 quintile?: number;
+                symbol?: "SPY" | "QQQ" | "QLD" | "IBIT";
                 from?: string;
                 to?: string;
             };
