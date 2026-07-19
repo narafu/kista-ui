@@ -21,14 +21,15 @@ interface Props {
 const SEOUL_REGION_CODE = '1100000000'
 const SEOUL_FALLBACK_REGION = { code: SEOUL_REGION_CODE, name: '서울' }
 
-// 5분위 각각의 데이터 키·범례 라벨·색상 — 앱 브랜드 톤(--chart-1~5)은 갈색·베이지 계열이라
-// 5개 라인을 구분하기 어려워 범주형 구분이 뚜렷한 고정 팔레트를 사용한다
+// 5분위는 가격 순위상 항상 5>4>3>2>1 순서로 그려져 세로 위치만으로도 순서가 구분되므로,
+// 색상은 순서 표현보다 인접한 5개 선을 서로 뚜렷이 구분하는 역할에 집중한다.
+// 웜톤 그러데이션(--quintile-1~5, globals.css)이되 인접 색상 CVD 대비(ΔE)를 검증해 선정했다
 const QUINTILE_SERIES = [
-  { dataKey: 'firstQuintilePrice', color: '#2563eb', label: '1분위' },
-  { dataKey: 'secondQuintilePrice', color: '#16a34a', label: '2분위' },
-  { dataKey: 'thirdQuintilePrice', color: '#f59e0b', label: '3분위' },
-  { dataKey: 'fourthQuintilePrice', color: '#dc2626', label: '4분위' },
-  { dataKey: 'fifthQuintilePrice', color: '#9333ea', label: '5분위' },
+  { dataKey: 'firstQuintilePrice', color: 'var(--quintile-1)', label: '1분위' },
+  { dataKey: 'secondQuintilePrice', color: 'var(--quintile-2)', label: '2분위' },
+  { dataKey: 'thirdQuintilePrice', color: 'var(--quintile-3)', label: '3분위' },
+  { dataKey: 'fourthQuintilePrice', color: 'var(--quintile-4)', label: '4분위' },
+  { dataKey: 'fifthQuintilePrice', color: 'var(--quintile-5)', label: '5분위' },
 ] as const
 
 function TrendLoading() {

@@ -122,6 +122,15 @@
   --chart-4: #7A4F3F;
   --chart-5: #C2A079;
 
+  /* 5분위 선 그래프 색상 — 단일 색조 램프는 얇은 선 5개가 실제로는 잘 구분되지 않아
+     주황→코랄→로즈→마젠타→블루바이올렛으로 이어지는 하나의 웜톤 그러데이션을 사용한다.
+     인접 색상 CVD 대비(ΔE)를 검증해 색맹에서도 서로 구분되도록 선정했다 */
+  --quintile-1: #cf630d;
+  --quintile-2: #d5565d;
+  --quintile-3: #cd568b;
+  --quintile-4: #b55fba;
+  --quintile-5: #7e74e1;
+
   /* shadcn sidebar tokens */
   --sidebar:                  #FBF6F1;
   --sidebar-foreground:       oklch(0.32 0.018 40);
@@ -215,6 +224,12 @@
   --chart-3: #E0A38C;
   --chart-4: #7A4F3F;
   --chart-5: #C2A079;
+
+  --quintile-1: #dd6f23;
+  --quintile-2: #e36368;
+  --quintile-3: #db6397;
+  --quintile-4: #c26cc7;
+  --quintile-5: #8a81ef;
 
   --sidebar:                  #0E0F11;
   --sidebar-foreground:       #9B9892;
