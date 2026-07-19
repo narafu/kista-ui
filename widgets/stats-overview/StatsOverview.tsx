@@ -13,6 +13,7 @@ import { EquityCurveChart } from './EquityCurveChart'
 import { StrategyTypeComparison } from './StrategyTypeComparison'
 import { CyclePerformanceList } from './CyclePerformanceList'
 import { SectionError } from './SectionError'
+import { HousingBenchmarkComparison } from './HousingBenchmarkComparison'
 
 export type RangeKey = '1M' | '3M' | '6M' | '1Y' | 'ALL'
 
@@ -40,6 +41,7 @@ interface Props {
 
 export function StatsOverview({ initialSummary, initialCurve, defaultFrom, defaultTo }: Props) {
   const [range, setRange] = useState<RangeKey>('3M')
+  const [activeTab, setActiveTab] = useState<'OPERATIONS' | 'BENCHMARK'>('OPERATIONS')
 
   const summaryQuery = useStatsSummaryQuery(initialSummary)
 
@@ -62,33 +64,62 @@ export function StatsOverview({ initialSummary, initialCurve, defaultFrom, defau
 
   const isEmpty = !summaryFailed && !curveFailed && byType.length === 0 && rows.length === 0
 
-  if (isEmpty) {
-    return (
-      <EmptyState message="아직 기록된 사이클이 없습니다 — 전략이 매매를 시작하면 통계가 쌓입니다." />
-    )
-  }
-
   return (
     <div className="flex flex-col gap-4">
-      {summaryFailed ? (
-        <SectionError />
-      ) : summary ? (
-        <StatsKpiRow summary={summary} />
-      ) : null}
+      <div
+        role="group"
+        aria-label="통계 보기"
+        className="grid w-full grid-cols-2 rounded-md border border-border bg-muted/30 p-0.5 sm:w-[320px]"
+      >
+        <button
+          type="button"
+          aria-pressed={activeTab === 'OPERATIONS'}
+          onClick={() => setActiveTab('OPERATIONS')}
+          className={activeTab === 'OPERATIONS'
+            ? 'min-h-10 rounded bg-card px-3 text-sm font-medium text-foreground shadow-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50'
+            : 'min-h-10 rounded px-3 text-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50'}
+        >
+          운용 통계
+        </button>
+        <button
+          type="button"
+          aria-pressed={activeTab === 'BENCHMARK'}
+          onClick={() => setActiveTab('BENCHMARK')}
+          className={activeTab === 'BENCHMARK'
+            ? 'min-h-10 rounded bg-card px-3 text-sm font-medium text-foreground shadow-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50'
+            : 'min-h-10 rounded px-3 text-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50'}
+        >
+          벤치마크 비교
+        </button>
+      </div>
 
-      {curveFailed ? (
-        <SectionError />
+      {activeTab === 'BENCHMARK' ? (
+        <HousingBenchmarkComparison enabled defaultTo={defaultTo} />
+      ) : isEmpty ? (
+        <EmptyState message="아직 기록된 사이클이 없습니다 — 전략이 매매를 시작하면 통계가 쌓입니다." />
       ) : (
-        <EquityCurveChart
-          rows={rows}
-          range={range}
-          onRangeChange={setRange}
-        />
+        <>
+          {summaryFailed ? (
+            <SectionError />
+          ) : summary ? (
+            <StatsKpiRow summary={summary} />
+          ) : null}
+
+          {curveFailed ? (
+            <SectionError />
+          ) : (
+            <EquityCurveChart
+              rows={rows}
+              range={range}
+              onRangeChange={setRange}
+            />
+          )}
+
+          {summaryFailed ? null : <StrategyTypeComparison byType={byType} />}
+
+          <CyclePerformanceList byType={byType} />
+        </>
       )}
-
-      {summaryFailed ? null : <StrategyTypeComparison byType={byType} />}
-
-      <CyclePerformanceList byType={byType} />
     </div>
   )
 }

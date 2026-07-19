@@ -153,6 +153,62 @@ describe('StatsOverview', () => {
         defaultFrom="2026-04-17" defaultTo="2026-07-17" />
     )
     expect(screen.getByText(/아직 기록된 사이클이 없습니다/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '운용 통계' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: '벤치마크 비교' })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('벤치마크 탭을 열기 전에는 비교 쿼리를 실행하지 않고 연 뒤 기본 조건으로 조회한다', async () => {
+    const user = userEvent.setup()
+    fetchEitherMock.mockImplementation((url: string) => {
+      if (url === '/api/trading-cycles') return Promise.resolve([])
+      if (url.startsWith('/api/stats/cycles')) {
+        return Promise.resolve({ items: [], nextCursor: null, hasMore: false })
+      }
+      if (url.startsWith('/api/stats/housing-benchmark')) {
+        return Promise.resolve({
+          scope: 'PORTFOLIO',
+          strategy: null,
+          benchmark: {
+            regionCode: '1100000000', regionName: '서울', quintile: 3,
+            label: '서울 아파트 3분위', sourceUpdatedDate: '2026-06-15',
+          },
+          period: { fromMonth: null, toMonth: null, monthCount: 0 },
+          summary: null,
+          points: [],
+          currentExchangeRate: null,
+          quality: {
+            method: 'ESTIMATED_TIME_WEIGHTED_RETURN', investmentCurrency: 'USD',
+            benchmarkCurrency: 'KRW',
+            notice: '투자 성과는 USD, 서울 아파트는 KRW 현지 통화 기준이며 현재 환율은 성과 계산에 반영하지 않습니다.',
+          },
+          emptyReason: 'NO_INVESTMENT_DATA',
+        })
+      }
+      return Promise.reject(new Error(`unexpected url: ${url}`))
+    })
+
+    renderWithClient(
+      <StatsOverview initialSummary={SUMMARY} initialCurve={CURVE}
+        defaultFrom="2026-04-17" defaultTo="2026-07-17" />
+    )
+
+    expect(fetchEitherMock.mock.calls.some(([url]) => String(url).startsWith('/api/stats/housing-benchmark'))).toBe(false)
+    const operationsTab = screen.getByRole('button', { name: '운용 통계' })
+    const benchmarkTab = screen.getByRole('button', { name: '벤치마크 비교' })
+    expect(operationsTab).toHaveAttribute('aria-pressed', 'true')
+    expect(benchmarkTab).toHaveAttribute('aria-pressed', 'false')
+
+    await user.click(benchmarkTab)
+
+    expect(await screen.findByText('선택한 기간에 전략 운용 기록이 없습니다.')).toBeInTheDocument()
+    expect(fetchEitherMock).toHaveBeenCalledWith(
+      '/api/stats/housing-benchmark?scope=PORTFOLIO&quintile=3&from=2021-07-17&to=2026-07-17',
+      { method: 'GET' },
+      undefined,
+    )
+    expect(operationsTab).toHaveAttribute('aria-pressed', 'false')
+    expect(benchmarkTab).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByText('총 실현손익')).not.toBeInTheDocument()
   })
 
   it('summary 조회 실패 시 KPI 슬롯에만 SectionError를 보여주고 전략비교 테이블은 생략한다', async () => {
@@ -171,4 +227,5 @@ describe('StatsOverview', () => {
     expect(screen.getAllByText('통계를 불러오지 못했습니다')).toHaveLength(1)
     expect(screen.queryByText('전략 유형 비교')).not.toBeInTheDocument()
   })
+
 })

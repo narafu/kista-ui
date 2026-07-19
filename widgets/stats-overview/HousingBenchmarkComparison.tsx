@@ -1,0 +1,220 @@
+'use client'
+
+import { useState } from 'react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useHousingBenchmarkQuery } from '@entities/stats'
+import type { HousingBenchmarkParams } from '@entities/stats'
+import { useAllStrategiesQuery } from '@entities/strategy'
+import { EmptyState } from '@shared/ui/EmptyState'
+import { cn } from '@shared/lib/utils'
+import { HousingBenchmarkChart } from './HousingBenchmarkChart'
+import { HousingBenchmarkSummary } from './HousingBenchmarkSummary'
+import { HousingBenchmarkInfo } from './HousingBenchmarkInfo'
+import { HOUSING_QUINTILES, type HousingQuintile } from './housingBenchmarkContent'
+import { SectionError } from './SectionError'
+
+type Scope = HousingBenchmarkParams['scope']
+type Period = '1Y' | '3Y' | '5Y' | 'ALL'
+
+interface Props {
+  enabled: boolean
+  defaultTo: string
+}
+
+const PERIODS: { value: Period; label: string; years?: number }[] = [
+  { value: '1Y', label: '1년', years: 1 },
+  { value: '3Y', label: '3년', years: 3 },
+  { value: '5Y', label: '5년', years: 5 },
+  { value: 'ALL', label: '전체' },
+]
+
+function subtractYears(date: string, years: number) {
+  const [year, month, day] = date.split('-').map(Number)
+  const result = new Date(Date.UTC(year - years, month - 1, day))
+  return result.toISOString().slice(0, 10)
+}
+
+function ToggleButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={cn(
+        'min-h-10 rounded px-3 py-1 text-xs font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+        active
+          ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]'
+          : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+      )}
+    >
+      {children}
+    </button>
+  )
+}
+
+function BenchmarkLoading() {
+  return (
+    <div className="flex flex-col gap-4" aria-label="벤치마크 비교 불러오는 중">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+        <Skeleton className="col-span-2 h-28 sm:col-span-1" />
+        <Skeleton className="h-28" />
+        <Skeleton className="h-28" />
+      </div>
+      <Skeleton data-testid="housing-benchmark-chart-skeleton" className="min-h-[240px] sm:min-h-[300px]" />
+    </div>
+  )
+}
+
+function emptyMessage(reason: string | null | undefined) {
+  if (reason === 'INSUFFICIENT_OVERLAP' || reason === 'INSUFFICIENT_COMMON_MONTHS') {
+    return '투자 기록과 서울 아파트 데이터가 겹치는 기간이 부족합니다.'
+  }
+  if (reason === 'NO_INVESTMENT_DATA') return '선택한 기간에 전략 운용 기록이 없습니다.'
+  return '비교할 수 있는 데이터가 충분하지 않습니다.'
+}
+
+export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
+  const [scope, setScope] = useState<Scope>('PORTFOLIO')
+  const [selectedStrategyId, setSelectedStrategyId] = useState('')
+  const [quintile, setQuintile] = useState<HousingQuintile>(3)
+  const [period, setPeriod] = useState<Period>('5Y')
+
+  const strategiesQuery = useAllStrategiesQuery()
+  const strategies = strategiesQuery.data ?? []
+  const effectiveStrategyId = selectedStrategyId || strategies[0]?.id
+  const selectedPeriod = PERIODS.find((item) => item.value === period)
+  const from = selectedPeriod?.years ? subtractYears(defaultTo, selectedPeriod.years) : undefined
+  const canQuery = scope === 'PORTFOLIO' || Boolean(effectiveStrategyId)
+  const params: HousingBenchmarkParams = {
+    scope,
+    ...(scope === 'STRATEGY' && effectiveStrategyId ? { strategyId: effectiveStrategyId } : {}),
+    quintile,
+    ...(from ? { from } : {}),
+    to: defaultTo,
+  }
+  const query = useHousingBenchmarkQuery(params, enabled && canQuery)
+  const data = query.data
+  const benchmarkLabel = data?.benchmark?.label ?? `서울 아파트 ${quintile}분위`
+  const selectedStrategy = strategies.find((strategy) => strategy.id === effectiveStrategyId)
+  const investmentLabel = scope === 'PORTFOLIO'
+    ? '전체 포트폴리오'
+    : data?.strategy?.type && data.strategy.ticker
+      ? `${data.strategy.type} · ${data.strategy.ticker}`
+      : selectedStrategy
+        ? `${selectedStrategy.type} · ${selectedStrategy.ticker}`
+        : '개별 전략'
+
+  return (
+    <div className="flex flex-col gap-4">
+      <section aria-label="벤치마크 비교 필터" className="border-b border-border pb-4">
+        <div className={cn(
+          'grid gap-4 sm:grid-cols-2 xl:items-end',
+          scope === 'STRATEGY' ? 'xl:grid-cols-4' : 'xl:grid-cols-3',
+        )}>
+          <fieldset>
+            <legend className="text-xs font-medium text-muted-foreground">투자 범위</legend>
+            <div className="mt-1 grid grid-cols-2 rounded-md border border-border p-0.5">
+              <ToggleButton active={scope === 'PORTFOLIO'} onClick={() => setScope('PORTFOLIO')}>
+                전체 포트폴리오
+              </ToggleButton>
+              <ToggleButton active={scope === 'STRATEGY'} onClick={() => setScope('STRATEGY')}>
+                개별 전략
+              </ToggleButton>
+            </div>
+          </fieldset>
+
+          {scope === 'STRATEGY' ? (
+            <label className="grid gap-1 text-xs font-medium text-muted-foreground">
+              전략
+              <select
+                aria-label="전략"
+                value={effectiveStrategyId ?? ''}
+                onChange={(event) => setSelectedStrategyId(event.target.value)}
+                disabled={strategies.length === 0}
+                className="min-h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {strategies.length === 0 ? <option value="">선택할 전략이 없습니다</option> : null}
+                {strategies.map((strategy) => (
+                  <option key={strategy.id} value={strategy.id}>
+                    {strategy.type} · {strategy.ticker}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
+          <label className="grid gap-1 text-xs font-medium text-muted-foreground">
+            서울 아파트 분위
+            <select
+              aria-label="서울 아파트 분위"
+              value={quintile}
+              onChange={(event) => setQuintile(Number(event.target.value) as HousingQuintile)}
+              className="min-h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {HOUSING_QUINTILES.map((item) => (
+                <option key={item.quintile} value={item.quintile}>{item.label}</option>
+              ))}
+            </select>
+          </label>
+
+          <fieldset>
+            <legend className="text-xs font-medium text-muted-foreground">비교 기간</legend>
+            <div className="mt-1 grid grid-cols-4 rounded-md border border-border p-0.5">
+              {PERIODS.map((item) => (
+                <ToggleButton key={item.value} active={period === item.value} onClick={() => setPeriod(item.value)}>
+                  {item.label}
+                </ToggleButton>
+              ))}
+            </div>
+          </fieldset>
+        </div>
+        {query.isFetching && query.isPlaceholderData ? (
+          <p className="mt-3 text-right text-xs text-muted-foreground" aria-live="polite">업데이트 중</p>
+        ) : null}
+      </section>
+
+      {!canQuery ? (
+        <EmptyState message="비교할 개별 전략이 없습니다." />
+      ) : query.isLoading ? (
+        <BenchmarkLoading />
+      ) : query.isError && !data ? (
+        <SectionError message="벤치마크 비교를 불러오지 못했습니다" />
+      ) : data && data.summary && (data.points?.length ?? 0) > 0 ? (
+        <>
+          <HousingBenchmarkSummary
+            summary={data.summary}
+            investmentLabel={investmentLabel}
+            benchmarkLabel={benchmarkLabel}
+          />
+          <HousingBenchmarkChart
+            points={data.points ?? []}
+            investmentLabel={investmentLabel}
+            benchmark={data.benchmark ?? { label: benchmarkLabel }}
+          />
+          <HousingBenchmarkInfo
+            quintile={quintile}
+            benchmark={data.benchmark}
+            currentExchangeRate={data.currentExchangeRate}
+          />
+        </>
+      ) : data ? (
+        <>
+          <EmptyState message={emptyMessage(data.emptyReason)} />
+          <HousingBenchmarkInfo
+            quintile={quintile}
+            benchmark={data.benchmark}
+            currentExchangeRate={data.currentExchangeRate}
+          />
+        </>
+      ) : null}
+    </div>
+  )
+}
