@@ -2632,19 +2632,19 @@ export interface components {
         };
         HousingBenchmarkPeriod: {
             /** Format: date */
-            fromMonth?: string | null;
+            fromDate?: string | null;
             /** Format: date */
-            toMonth?: string | null;
+            toDate?: string | null;
             /** Format: int32 */
-            monthCount?: number;
+            pointCount?: number;
         };
         HousingBenchmarkPoint: {
             /** Format: date */
-            baseMonth?: string;
+            baseDate?: string;
             investmentIndexUsd?: number;
             benchmarkIndex?: number;
-            investmentMonthlyReturn?: number | null;
-            benchmarkMonthlyReturn?: number | null;
+            investmentPeriodReturn?: number | null;
+            benchmarkPeriodReturn?: number | null;
         };
         HousingBenchmarkQuality: {
             method?: string;

@@ -74,11 +74,11 @@ describe('stats api', () => {
     const response = {
       scope: 'PORTFOLIO',
       points: [{
-        baseMonth: '2026-07-01',
+        baseDate: '2026-07-01',
         investmentIndexUsd: 103.2,
         benchmarkIndex: 101.4,
-        investmentMonthlyReturn: 3.2,
-        benchmarkMonthlyReturn: 1.4,
+        investmentPeriodReturn: 3.2,
+        benchmarkPeriodReturn: 1.4,
       }],
       currentExchangeRate: {
         midRate: 1365.2,

@@ -86,14 +86,14 @@ const response: HousingBenchmarkComparison = {
     label: '강남구 3분위',
     sourceUpdatedDate: '2026-07-01',
   },
-  period: { fromMonth: '2021-07-01', toMonth: '2026-07-01', monthCount: 61 },
+  period: { fromDate: '2021-07-01', toDate: '2026-07-01', pointCount: 61 },
   summary: null,
   points: [{
-    baseMonth: '2026-07-01',
+    baseDate: '2026-07-01',
     investmentIndexUsd: 103.2,
     benchmarkIndex: 101.4,
-    investmentMonthlyReturn: 3.2,
-    benchmarkMonthlyReturn: 1.4,
+    investmentPeriodReturn: 3.2,
+    benchmarkPeriodReturn: 1.4,
   }],
   currentExchangeRate: null,
   quality: {

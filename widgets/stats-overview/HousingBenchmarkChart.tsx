@@ -5,11 +5,13 @@ import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YA
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { HousingBenchmark, HousingBenchmarkPoint } from '@entities/stats'
 import {
-  HOUSING_BENCHMARK_CHART_NOTICE,
+  formatHousingBenchmarkAxisDate,
   formatHousingBenchmarkAxisMonth,
+  formatHousingBenchmarkDate,
   formatHousingBenchmarkMonth,
   formatHousingBenchmarkSeriesLabel,
   formatHousingBenchmarkTooltipValue,
+  housingBenchmarkChartNotice,
   type HousingBenchmarkSeriesKey,
 } from './housingBenchmarkChartFormatters'
 
@@ -22,14 +24,19 @@ interface Props {
 
 export function HousingBenchmarkChart({ points, investmentLabel, benchmark, benchmarkCurrency }: Props) {
   const benchmarkLabel = benchmark.label ?? '벤치마크'
+  const isDaily = benchmark.assetType === 'ETF'
+  const formatAxisLabel = isDaily ? formatHousingBenchmarkAxisDate : formatHousingBenchmarkAxisMonth
+  const formatTooltipLabel = isDaily ? formatHousingBenchmarkDate : formatHousingBenchmarkMonth
 
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <CardTitle className="text-base lg:text-lg">월별 누적지수</CardTitle>
-            <p className="mt-1 text-xs text-muted-foreground">첫 공통 월 100 기준</p>
+            <CardTitle className="text-base lg:text-lg">{isDaily ? '일별 누적지수' : '월별 누적지수'}</CardTitle>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {isDaily ? '첫 공통 거래일 100 기준' : '첫 공통 월 100 기준'}
+            </p>
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5">
@@ -44,13 +51,16 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark, benc
         </div>
       </CardHeader>
       <CardContent className="px-2 pb-4 sm:px-6 sm:pb-6">
-        <figure className="h-[240px] min-h-[240px] w-full sm:h-[320px]" aria-label="투자와 서울 아파트 월별 누적 성과 선 차트">
+        <figure
+          className="h-[240px] min-h-[240px] w-full sm:h-[320px]"
+          aria-label={`투자와 ${benchmarkLabel} ${isDaily ? '일별' : '월별'} 누적 성과 선 차트`}
+        >
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} accessibilityLayer>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis
-                dataKey="baseMonth"
-                tickFormatter={formatHousingBenchmarkAxisMonth}
+                dataKey="baseDate"
+                tickFormatter={formatAxisLabel}
                 tick={{ fontSize: 10 }}
                 tickLine={false}
                 axisLine={false}
@@ -64,7 +74,7 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark, benc
                 domain={['auto', 'auto']}
               />
               <Tooltip
-                labelFormatter={(label) => formatHousingBenchmarkMonth(String(label))}
+                labelFormatter={(label) => formatTooltipLabel(String(label))}
                 formatter={(value, name, item) => {
                   const point = item.payload as HousingBenchmarkPoint
                   return [
@@ -72,6 +82,7 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark, benc
                       value,
                       item.dataKey as HousingBenchmarkSeriesKey,
                       point,
+                      isDaily,
                     ),
                     String(name),
                   ]
@@ -105,8 +116,8 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark, benc
           </ResponsiveContainer>
         </figure>
         <p className="mt-2 text-xs text-muted-foreground">
-          {HOUSING_BENCHMARK_CHART_NOTICE}
-          {points[0]?.baseMonth ? ` 비교 시작 ${formatHousingBenchmarkMonth(points[0].baseMonth)}` : ''}
+          {housingBenchmarkChartNotice(isDaily)}
+          {points[0]?.baseDate ? ` 비교 시작 ${formatTooltipLabel(points[0].baseDate)}` : ''}
         </p>
       </CardContent>
     </Card>

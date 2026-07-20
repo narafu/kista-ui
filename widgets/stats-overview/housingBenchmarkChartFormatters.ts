@@ -2,8 +2,11 @@ import type { HousingBenchmarkPoint, HousingBenchmarkSeriesPoint } from '@entiti
 
 export type HousingBenchmarkSeriesKey = 'investmentIndexUsd' | 'benchmarkIndex'
 
-export const HOUSING_BENCHMARK_CHART_NOTICE =
-  '월별 지수와 수익률은 서버 계산값입니다.'
+export function housingBenchmarkChartNotice(isDaily: boolean) {
+  return isDaily
+    ? '일별 지수와 수익률은 서버 계산값입니다.'
+    : '월별 지수와 수익률은 서버 계산값입니다.'
+}
 
 export function formatHousingBenchmarkSeriesLabel(label: string, currency: 'USD' | 'KRW') {
   return `${label} (${currency})`
@@ -19,6 +22,17 @@ function parseYearMonth(value: string) {
   return { year: match[1], month }
 }
 
+function parseDate(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!match) return null
+
+  const month = Number(match[2])
+  const day = Number(match[3])
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null
+
+  return { year: match[1], month, day }
+}
+
 export function formatHousingBenchmarkMonth(value: string) {
   const parsed = parseYearMonth(value)
   return parsed ? `${parsed.year}년 ${parsed.month}월` : value
@@ -27,6 +41,18 @@ export function formatHousingBenchmarkMonth(value: string) {
 export function formatHousingBenchmarkAxisMonth(value: string) {
   const parsed = parseYearMonth(value)
   return parsed ? `${parsed.year}.${String(parsed.month).padStart(2, '0')}` : value
+}
+
+export function formatHousingBenchmarkDate(value: string) {
+  const parsed = parseDate(value)
+  return parsed ? `${parsed.year}년 ${parsed.month}월 ${parsed.day}일` : formatHousingBenchmarkMonth(value)
+}
+
+export function formatHousingBenchmarkAxisDate(value: string) {
+  const parsed = parseDate(value)
+  return parsed
+    ? `${String(parsed.month).padStart(2, '0')}.${String(parsed.day).padStart(2, '0')}`
+    : formatHousingBenchmarkAxisMonth(value)
 }
 
 function monthIndex(value: string) {
@@ -68,19 +94,20 @@ function formatIndex(value: unknown) {
   return typeof value === 'number' ? value.toFixed(1) : '—'
 }
 
-function formatMonthlyReturn(value: number | null | undefined) {
-  if (value == null) return '기준월'
-  return `${value >= 0 ? '+' : ''}${(value * 100).toFixed(1)}% 월간`
+function formatPeriodReturn(value: number | null | undefined, isDaily: boolean) {
+  if (value == null) return isDaily ? '기준일' : '기준월'
+  return `${value >= 0 ? '+' : ''}${(value * 100).toFixed(1)}% ${isDaily ? '일간' : '월간'}`
 }
 
 export function formatHousingBenchmarkTooltipValue(
   value: unknown,
   seriesKey: HousingBenchmarkSeriesKey,
   point: HousingBenchmarkPoint,
+  isDaily: boolean,
 ) {
-  const monthlyReturn = seriesKey === 'investmentIndexUsd'
-    ? point.investmentMonthlyReturn
-    : point.benchmarkMonthlyReturn
+  const periodReturn = seriesKey === 'investmentIndexUsd'
+    ? point.investmentPeriodReturn
+    : point.benchmarkPeriodReturn
 
-  return `${formatIndex(value)} · ${formatMonthlyReturn(monthlyReturn)}`
+  return `${formatIndex(value)} · ${formatPeriodReturn(periodReturn, isDaily)}`
 }

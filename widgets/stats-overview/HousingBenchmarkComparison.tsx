@@ -21,7 +21,7 @@ import {
 import { SectionError } from './SectionError'
 
 type Scope = HousingBenchmarkParams['scope']
-type Period = '1Y' | '3Y' | '5Y' | 'ALL' | 'CUSTOM'
+type Period = '3M' | '6M' | '1Y' | '3Y' | '5Y' | 'ALL' | 'CUSTOM'
 
 type BenchmarkSelection =
   | { type: 'HOUSING'; quintile: HousingQuintile }
@@ -32,10 +32,19 @@ interface Props {
   defaultTo: string
 }
 
-const PERIODS: { value: Period; label: string; years?: number }[] = [
-  { value: '1Y', label: '1년', years: 1 },
-  { value: '3Y', label: '3년', years: 3 },
-  { value: '5Y', label: '5년', years: 5 },
+// 아파트는 월별 데이터라 연 단위, ETF는 일별 데이터라 개월 단위 기간이 자연스럽다 — 자산 탭별로 목록을 분리한다
+const HOUSING_PERIODS: { value: Period; label: string; months?: number }[] = [
+  { value: '1Y', label: '1년', months: 12 },
+  { value: '3Y', label: '3년', months: 36 },
+  { value: '5Y', label: '5년', months: 60 },
+  { value: 'ALL', label: '전체' },
+  { value: 'CUSTOM', label: '직접' },
+]
+
+const ETF_PERIODS: { value: Period; label: string; months?: number }[] = [
+  { value: '3M', label: '3개월', months: 3 },
+  { value: '6M', label: '6개월', months: 6 },
+  { value: '1Y', label: '1년', months: 12 },
   { value: 'ALL', label: '전체' },
   { value: 'CUSTOM', label: '직접' },
 ]
@@ -48,16 +57,18 @@ function fromMonthInput(month: string) {
   return `${month}-01`
 }
 
-function subtractYears(date: string, years: number) {
+function subtractMonths(date: string, months: number) {
   const [year, month, day] = date.split('-').map(Number)
-  const targetYear = year - years
+  const totalMonths = year * 12 + (month - 1) - months
+  const targetYear = Math.floor(totalMonths / 12)
+  const targetMonth = (totalMonths % 12) + 1
   const isLeapYear = targetYear % 4 === 0 && (targetYear % 100 !== 0 || targetYear % 400 === 0)
-  const daysInMonth = month === 2
+  const daysInMonth = targetMonth === 2
     ? (isLeapYear ? 29 : 28)
-    : [4, 6, 9, 11].includes(month) ? 30 : 31
+    : [4, 6, 9, 11].includes(targetMonth) ? 30 : 31
   const targetDay = Math.min(day, daysInMonth)
 
-  return `${targetYear}-${String(month).padStart(2, '0')}-${String(targetDay).padStart(2, '0')}`
+  return `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(targetDay).padStart(2, '0')}`
 }
 
 function ToggleButton({
@@ -161,9 +172,15 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   const [quintile, setQuintile] = useState<HousingQuintile>(3)
   const [etfSymbol, setEtfSymbol] = useState<EtfBenchmarkSymbol>(ETF_BENCHMARKS[0].symbol)
   const selection: BenchmarkSelection = activeAsset === 'ETF' ? { type: 'ETF', symbol: etfSymbol } : { type: 'HOUSING', quintile }
-  const [period, setPeriod] = useState<Period>('1Y')
-  const [customFromMonth, setCustomFromMonth] = useState(() => toMonthInput(subtractYears(defaultTo, 1)))
+  const [housingPeriod, setHousingPeriod] = useState<Period>('1Y')
+  const [etfPeriod, setEtfPeriod] = useState<Period>('1Y')
+  const period = activeAsset === 'ETF' ? etfPeriod : housingPeriod
+  const setPeriod = activeAsset === 'ETF' ? setEtfPeriod : setHousingPeriod
+  const periods = activeAsset === 'ETF' ? ETF_PERIODS : HOUSING_PERIODS
+  const [customFromMonth, setCustomFromMonth] = useState(() => toMonthInput(subtractMonths(defaultTo, 12)))
   const [customToMonth, setCustomToMonth] = useState(() => toMonthInput(defaultTo))
+  const [customFromDate, setCustomFromDate] = useState(() => subtractMonths(defaultTo, 3))
+  const [customToDate, setCustomToDate] = useState(() => defaultTo)
   const [trendRegionName, setTrendRegionName] = useState<string>(DEFAULT_HOUSING_REGION_NAME)
   const handleTrendRegionChange = useCallback(
     (region: HousingBenchmarkRegion) => setTrendRegionName(region.name ?? DEFAULT_HOUSING_REGION_NAME),
@@ -183,12 +200,16 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   const strategyListEmpty = isStrategyScope
     && hasStrategyList
     && strategiesQuery.data?.length === 0
-  const selectedPeriod = PERIODS.find((item) => item.value === period)
+  const selectedPeriod = periods.find((item) => item.value === period)
   const isCustomPeriod = period === 'CUSTOM'
   const from = isCustomPeriod
-    ? (customFromMonth ? fromMonthInput(customFromMonth) : undefined)
-    : selectedPeriod?.years ? subtractYears(defaultTo, selectedPeriod.years) : undefined
-  const to = isCustomPeriod ? (customToMonth ? fromMonthInput(customToMonth) : defaultTo) : defaultTo
+    ? (activeAsset === 'ETF'
+        ? (customFromDate || undefined)
+        : (customFromMonth ? fromMonthInput(customFromMonth) : undefined))
+    : selectedPeriod?.months ? subtractMonths(defaultTo, selectedPeriod.months) : undefined
+  const to = isCustomPeriod
+    ? (activeAsset === 'ETF' ? (customToDate || defaultTo) : (customToMonth ? fromMonthInput(customToMonth) : defaultTo))
+    : defaultTo
   const canQuery = scope === 'PORTFOLIO' || Boolean(effectiveStrategyId)
   const strategyIdParam = scope === 'STRATEGY' && effectiveStrategyId ? { strategyId: effectiveStrategyId } : {}
   const params: HousingBenchmarkParams = selection.type === 'HOUSING'
@@ -337,13 +358,34 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
           <fieldset>
             <legend className="text-xs font-medium text-muted-foreground">비교 기간</legend>
             <div className="mt-1 grid grid-cols-5 rounded-md border border-border p-0.5">
-              {PERIODS.map((item) => (
+              {periods.map((item) => (
                 <ToggleButton key={item.value} active={period === item.value} onClick={() => setPeriod(item.value)}>
                   {item.label}
                 </ToggleButton>
               ))}
             </div>
-            {isCustomPeriod ? (
+            {isCustomPeriod && activeAsset === 'ETF' ? (
+              <div className="mt-2 flex items-center gap-2">
+                <input
+                  type="date"
+                  aria-label="시작일"
+                  value={customFromDate}
+                  max={customToDate}
+                  onChange={(event) => setCustomFromDate(event.target.value)}
+                  className="min-h-10 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+                <span className="shrink-0 text-xs text-muted-foreground">~</span>
+                <input
+                  type="date"
+                  aria-label="종료일"
+                  value={customToDate}
+                  min={customFromDate}
+                  max={defaultTo}
+                  onChange={(event) => setCustomToDate(event.target.value)}
+                  className="min-h-10 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </div>
+            ) : isCustomPeriod ? (
               <div className="mt-2 flex items-center gap-2">
                 <input
                   type="month"

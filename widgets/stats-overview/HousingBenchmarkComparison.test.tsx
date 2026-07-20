@@ -56,9 +56,9 @@ const COMPARISON: HousingBenchmarkComparisonData = {
   strategy: null,
   benchmark: HOUSING_BENCHMARK,
   period: {
-    fromMonth: '2021-07-01',
-    toMonth: '2026-07-01',
-    monthCount: 61,
+    fromDate: '2021-07-01',
+    toDate: '2026-07-01',
+    pointCount: 61,
   },
   summary: {
     investmentCumulativeReturn: 0.842,
@@ -71,18 +71,18 @@ const COMPARISON: HousingBenchmarkComparisonData = {
   },
   points: [
     {
-      baseMonth: '2021-07-01',
+      baseDate: '2021-07-01',
       investmentIndexUsd: 100,
       benchmarkIndex: 100,
-      investmentMonthlyReturn: null,
-      benchmarkMonthlyReturn: null,
+      investmentPeriodReturn: null,
+      benchmarkPeriodReturn: null,
     },
     {
-      baseMonth: '2026-07-01',
+      baseDate: '2026-07-01',
       investmentIndexUsd: 184.2,
       benchmarkIndex: 151.7,
-      investmentMonthlyReturn: 0.031,
-      benchmarkMonthlyReturn: -0.004,
+      investmentPeriodReturn: 0.031,
+      benchmarkPeriodReturn: -0.004,
     },
   ],
   currentExchangeRate: {
