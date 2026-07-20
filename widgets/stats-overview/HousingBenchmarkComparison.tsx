@@ -128,9 +128,11 @@ function StrategyListLoading() {
   )
 }
 
-function emptyMessage(reason: string | null | undefined) {
+function emptyMessage(reason: string | null | undefined, isDaily: boolean) {
   if (reason === 'INSUFFICIENT_OVERLAP' || reason === 'INSUFFICIENT_COMMON_MONTHS') {
-    return '투자 기록과 벤치마크 데이터가 겹치는 기간이 부족합니다. (최소 2개월치 데이터 필요)'
+    return isDaily
+      ? '투자 기록과 벤치마크 데이터가 겹치는 기간이 부족합니다. (최소 2개 거래일 데이터 필요)'
+      : '투자 기록과 벤치마크 데이터가 겹치는 기간이 부족합니다. (최소 2개월치 데이터 필요)'
   }
   if (reason === 'NO_INVESTMENT_DATA') return '선택한 기간에 전략 운용 기록이 없습니다.'
   return '비교할 수 있는 데이터가 충분하지 않습니다.'
@@ -453,7 +455,7 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
           />
         </>
       ) : data ? (
-        <EmptyState message={emptyMessage(data.emptyReason)} />
+        <EmptyState message={emptyMessage(data.emptyReason, activeAsset === 'ETF')} />
       ) : null}
 
       {/* ETF 탭에서만 표시되는 위험 안내 — 부동산(서울 분위) 안내는 아래 아파트 탭의 "가격 추이" 비교지역 선택과 연동된 안내로 이동 */}

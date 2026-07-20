@@ -416,6 +416,17 @@ describe('HousingBenchmarkComparison', () => {
     expect(screen.queryByText(/환율.*불러오지 못/)).not.toBeInTheDocument()
   })
 
+  it('데이터 부족 사유는 자산별로 다른 단위(거래일/개월)로 안내한다', async () => {
+    const user = userEvent.setup()
+    mockQuery({ ...COMPARISON, summary: null, points: [], emptyReason: 'INSUFFICIENT_COMMON_MONTHS' })
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    expect(screen.getByText(/최소 2개 거래일 데이터 필요/)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '아파트' }))
+    expect(screen.getByText(/최소 2개월치 데이터 필요/)).toBeInTheDocument()
+  })
+
   it('빈 사유와 비교 섹션 오류를 각각 처리한다', () => {
     mockQuery({ ...COMPARISON, summary: null, points: [], emptyReason: 'NO_INVESTMENT_DATA' })
     const { unmount } = render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
