@@ -195,8 +195,80 @@ describe('StrategyDetail header card', () => {
   })
 })
 
-describe('StrategyDetail buy competition notice', () => {
-  it('shows the deficit badge and amount when competition reports insufficient budget', () => {
+describe('StrategyDetail unplaced order banner', () => {
+  it('shows a buy-unplaced banner when today plan has BUY but no BUY was placed', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [
+          { id: 'o1', ticker: 'TSLA', direction: 'SELL', orderType: 'LIMIT', quantity: 1, price: '25.00', status: 'PLACED' },
+        ],
+        position: null,
+        orders: [
+          { ticker: 'TSLA', orderType: 'LOC', direction: 'BUY', quantity: 5, price: '20.00' },
+          { ticker: 'TSLA', orderType: 'LIMIT', direction: 'SELL', quantity: 1, price: '25.00' },
+        ],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: null,
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    expect(screen.getByText('예수금 부족으로 매수 미접수')).toBeInTheDocument()
+  })
+
+  it('does not show a banner when every planned direction was placed', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [
+          { id: 'o1', ticker: 'TSLA', direction: 'BUY', orderType: 'LOC', quantity: 5, price: '20.00', status: 'PLACED' },
+          { id: 'o2', ticker: 'TSLA', direction: 'SELL', orderType: 'LIMIT', quantity: 1, price: '25.00', status: 'PLACED' },
+        ],
+        position: null,
+        orders: [
+          { ticker: 'TSLA', orderType: 'LOC', direction: 'BUY', quantity: 5, price: '20.00' },
+          { ticker: 'TSLA', orderType: 'LIMIT', direction: 'SELL', quantity: 1, price: '25.00' },
+        ],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: null,
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    expect(screen.queryByText(/미접수/)).not.toBeInTheDocument()
+  })
+
+  it('does not show a banner in preview mode even if the plan has a BUY order', () => {
+    // 오늘 아무것도 접수되지 않은 상태(preview) — "아직 시도 안 함"과 "전량 거절"을 구분 못하므로 숨긴다
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [],
+        position: null,
+        orders: [{ ticker: 'TSLA', orderType: 'LOC', direction: 'BUY', quantity: 5, price: '20.00' }],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: null,
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    expect(screen.queryByText(/미접수/)).not.toBeInTheDocument()
+  })
+
+  it('never renders the removed BuyCompetitionNotice component', () => {
     mockPreviewQuery.mockReturnValueOnce({
       data: {
         todayOrders: [],
@@ -222,33 +294,8 @@ describe('StrategyDetail buy competition notice', () => {
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
-    expect(screen.getAllByText('예수금 부족').length).toBeGreaterThan(0)
-  })
-
-  it('does not show the deficit badge when competition reports sufficient budget', () => {
-    mockPreviewQuery.mockReturnValueOnce({
-      data: {
-        todayOrders: [],
-        position: null,
-        orders: [{ ticker: 'TSLA', orderType: 'LOC', direction: 'BUY', quantity: 5, price: '20.00' }],
-        skipReason: null,
-        otherStrategiesPlannedBuyUsd: '0',
-        competition: {
-          sufficientBudget: true,
-          availableDeposit: '1000',
-          requiredForThisStrategy: '200',
-          consumedByHigherPriority: '0',
-          blockedByHigherPriority: [],
-          uncertainStrategyIds: [],
-        },
-      },
-      isLoading: false,
-      isError: false,
-      error: null,
-    })
-
-    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
-
-    expect(screen.queryByText('예수금 부족')).not.toBeInTheDocument()
+    // 자세히 보기 토글·부족액 상세 문구는 BuyCompetitionNotice 전용 UI였다 — 더 이상 존재하지 않아야 한다
+    expect(screen.queryByText('자세히 ▾')).not.toBeInTheDocument()
+    expect(screen.queryByText(/부족 \(우선순위 전략/)).not.toBeInTheDocument()
   })
 })

@@ -31,7 +31,6 @@ import { EmptyState } from '@shared/ui/EmptyState'
 import type { Strategy } from '@entities/strategy'
 import type { SkipReason, PlacedOrder } from '@entities/order'
 import { OrderRows } from './OrderRows'
-import { BuyCompetitionNotice } from './BuyCompetitionNotice'
 import { StrategyOrderHistory } from './StrategyOrderHistory'
 
 const SKIP_REASON_LABELS: Record<SkipReason, string> = {
@@ -67,13 +66,18 @@ export function StrategyDetail({ accountId, strategy }: Props) {
   const position = preview?.position ?? null
   const orders = preview?.orders ?? []
 
-  // 매수 주문이 있으면 서버 예산 경쟁 시뮬레이션 결과(competition)로 부족 여부·부족액 판정
+  // 매수 주문이 있으면 서버 예산 경쟁 시뮬레이션 결과(competition)로 부족 여부 판정 — "바로 주문" 버튼 가드용
   const hasBuyOrders = orders.some((o) => o.direction === 'BUY')
   const competition = preview?.competition ?? null
   const hasDeficit = hasBuyOrders && competition ? !competition.sufficientBudget : false
-  const deficitUsd = competition
-    ? Math.max(0, toNum(competition.consumedByHigherPriority) + toNum(competition.requiredForThisStrategy) - toNum(competition.availableDeposit))
-    : 0
+
+  // 계획(orders)엔 있는데 실제 접수(placedOrders)엔 없는 방향 — 예산 부족으로 거절된 방향
+  // executed 모드에서만 의미 있음: preview 모드는 "아직 시도 안 함"과 "전량 거절"을 구분할 수 없다
+  const plannedDirections = new Set(orders.map((o) => o.direction as 'BUY' | 'SELL'))
+  const placedDirections = new Set(placedOrders.map((o) => o.direction))
+  const unplacedDirections = mode === 'executed'
+    ? [...plannedDirections].filter((d) => !placedDirections.has(d))
+    : []
 
   const todayStr = todayKst()
   const [kstYear, kstMonth] = todayStr.split('-').map(Number)
@@ -226,8 +230,14 @@ export function StrategyDetail({ accountId, strategy }: Props) {
             <div>
               <CardTitle className="text-base lg:text-lg">다음 주문</CardTitle>
               <p className="text-sm lg:text-base text-muted-foreground mt-0.5">매 거래일 개장 시 자동실행</p>
-              {hasDeficit && competition && (
-                <BuyCompetitionNotice competition={competition} deficitUsd={deficitUsd} variant="inline" />
+              {unplacedDirections.length > 0 && (
+                <div className="flex flex-col gap-0.5 mt-1.5">
+                  {unplacedDirections.map((d) => (
+                    <p key={d} className="text-sm lg:text-base text-warn">
+                      {d === 'BUY' ? '예수금 부족으로 매수 미접수' : '판매가능수량 부족으로 매도 미접수'}
+                    </p>
+                  ))}
+                </div>
               )}
             </div>
             {canExecute && mode === 'preview' && (
@@ -304,12 +314,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
           ) : orders.length === 0 ? (
             <EmptyState variant="text" message={preview?.skipReason ? SKIP_REASON_LABELS[preview.skipReason] : '예정된 주문이 없습니다.'} />
           ) : (
-            <div>
-              {hasDeficit && competition && (
-                <BuyCompetitionNotice competition={competition} deficitUsd={deficitUsd} variant="row" />
-              )}
-              <OrderRows orders={orders} />
-            </div>
+            <OrderRows orders={orders} />
           )}
         </CardContent>
       </Card>
