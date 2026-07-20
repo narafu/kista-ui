@@ -244,13 +244,13 @@ describe('StatsOverview', () => {
 
     await user.click(screen.getByRole('button', { name: '1M' }))
     await user.click(screen.getByRole('button', { name: '벤치마크 비교' }))
-    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'apt:5')
+    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), '5')
     await user.click(screen.getByRole('button', { name: '운용 통계' }))
 
     expect(screen.getByRole('button', { name: '1M' })).toHaveAttribute('aria-pressed', 'true')
 
     await user.click(screen.getByRole('button', { name: '벤치마크 비교' }))
-    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('apt:5')
+    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('5')
   })
 
   it('summary 조회 실패 시 KPI 슬롯에만 SectionError를 보여주고 전략비교 테이블은 생략한다', async () => {

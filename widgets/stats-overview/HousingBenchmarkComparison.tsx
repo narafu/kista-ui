@@ -129,18 +129,38 @@ function isHousingQuintile(value: number | null | undefined): value is HousingQu
   return value === 1 || value === 2 || value === 3 || value === 4 || value === 5
 }
 
-function parseBenchmarkSelectionValue(value: string): BenchmarkSelection {
-  const [prefix, rest] = value.split(':')
-  if (prefix === 'etf') {
-    return { type: 'ETF', symbol: rest as EtfBenchmarkSymbol }
-  }
-  return { type: 'HOUSING', quintile: Number(rest) as HousingQuintile }
+const ASSET_SELECT_CLASS = 'min-h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring'
+
+function AssetTabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={active
+        ? 'min-h-10 rounded bg-card px-4 text-sm font-medium text-foreground shadow-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50'
+        : 'min-h-10 rounded px-4 text-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50'}
+    >
+      {children}
+    </button>
+  )
 }
 
 export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   const [scope, setScope] = useState<Scope>('PORTFOLIO')
   const [selectedStrategyId, setSelectedStrategyId] = useState('')
-  const [selection, setSelection] = useState<BenchmarkSelection>({ type: 'HOUSING', quintile: 3 })
+  const [activeAsset, setActiveAsset] = useState<'ETF' | 'HOUSING'>('HOUSING')
+  const [quintile, setQuintile] = useState<HousingQuintile>(3)
+  const [etfSymbol, setEtfSymbol] = useState<EtfBenchmarkSymbol>(ETF_BENCHMARKS[0].symbol)
+  const selection: BenchmarkSelection = activeAsset === 'ETF' ? { type: 'ETF', symbol: etfSymbol } : { type: 'HOUSING', quintile }
   const [period, setPeriod] = useState<Period>('1Y')
   const [customFromMonth, setCustomFromMonth] = useState(() => toMonthInput(subtractYears(defaultTo, 1)))
   const [customToMonth, setCustomToMonth] = useState(() => toMonthInput(defaultTo))
@@ -225,6 +245,19 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
+      <div
+        role="group"
+        aria-label="벤치마크 자산 유형"
+        className="grid w-full grid-cols-2 rounded-md border border-border bg-muted/30 p-0.5 sm:w-[240px]"
+      >
+        <AssetTabButton active={activeAsset === 'ETF'} onClick={() => setActiveAsset('ETF')}>
+          ETF
+        </AssetTabButton>
+        <AssetTabButton active={activeAsset === 'HOUSING'} onClick={() => setActiveAsset('HOUSING')}>
+          아파트
+        </AssetTabButton>
+      </div>
+
       <section aria-label="벤치마크 비교 필터" className="border-b border-border pb-4">
         <div className={cn(
           'grid gap-4 sm:grid-cols-2 xl:items-end',
@@ -272,27 +305,33 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
 
           <label className="grid gap-1 text-xs font-medium text-muted-foreground">
             벤치마크 자산
-            <select
-              aria-label="벤치마크 자산"
-              value={selection.type === 'HOUSING' ? `apt:${selection.quintile}` : `etf:${selection.symbol}`}
-              onChange={(event) => setSelection(parseBenchmarkSelectionValue(event.target.value))}
-              className="min-h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <optgroup label="부동산">
-                {HOUSING_QUINTILES.map((item) => (
-                  <option key={item.quintile} value={`apt:${item.quintile}`}>
-                    {item.label} ({item.rangeLabel})
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label="ETF">
+            {activeAsset === 'ETF' ? (
+              <select
+                aria-label="벤치마크 자산"
+                value={etfSymbol}
+                onChange={(event) => setEtfSymbol(event.target.value as EtfBenchmarkSymbol)}
+                className={ASSET_SELECT_CLASS}
+              >
                 {ETF_BENCHMARKS.map((item) => (
-                  <option key={item.symbol} value={`etf:${item.symbol}`}>
+                  <option key={item.symbol} value={item.symbol}>
                     {item.label} ({item.fullName})
                   </option>
                 ))}
-              </optgroup>
-            </select>
+              </select>
+            ) : (
+              <select
+                aria-label="벤치마크 자산"
+                value={quintile}
+                onChange={(event) => setQuintile(Number(event.target.value) as HousingQuintile)}
+                className={ASSET_SELECT_CLASS}
+              >
+                {HOUSING_QUINTILES.map((item) => (
+                  <option key={item.quintile} value={item.quintile}>
+                    {item.label} ({item.rangeLabel})
+                  </option>
+                ))}
+              </select>
+            )}
           </label>
 
           <fieldset>
@@ -375,19 +414,21 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
         <EmptyState message={emptyMessage(data.emptyReason)} />
       ) : null}
 
-      {/* ETF 벤치마크에만 남아있는 위험 안내 — 부동산(서울 분위) 안내는 아래 "가격 추이" 비교지역 선택과 연동된 안내로 이동 */}
-      {data?.benchmark?.assetType === 'ETF' ? (
-        <HousingBenchmarkInfo benchmark={data.benchmark} notice={data.quality?.notice} />
+      {/* ETF 탭에서만 표시되는 위험 안내 — 부동산(서울 분위) 안내는 아래 아파트 탭의 "가격 추이" 비교지역 선택과 연동된 안내로 이동 */}
+      {activeAsset === 'ETF' ? (
+        <HousingBenchmarkInfo benchmark={data?.benchmark ?? fallbackBenchmark} notice={data?.quality?.notice} />
       ) : null}
 
-      {/* 사용자 투자 데이터와 무관하게 항상 표시되는 아파트 5분위 원본 시계열 — 위 비교 결과와 독립적, 상단 "비교 기간" 토글과 동일한 from/to 사용 */}
-      <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">참고 · 아파트 시세 원본 데이터</p>
-        <div className="flex flex-col gap-4">
-          <HousingBenchmarkQuintileTrendChart enabled={enabled} from={from} to={to} onRegionChange={handleTrendRegionChange} />
-          <HousingBenchmarkRegionQuintileInfo regionName={trendRegionName} />
+      {/* 아파트 탭에서만 표시 — 사용자 투자 데이터와 무관하게 항상 나오는 5분위 원본 시계열, 위 비교 결과와 독립적, 상단 "비교 기간" 토글과 동일한 from/to 사용 */}
+      {activeAsset === 'HOUSING' ? (
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">참고 · 아파트 시세 원본 데이터</p>
+          <div className="flex flex-col gap-4">
+            <HousingBenchmarkQuintileTrendChart enabled={enabled} from={from} to={to} onRegionChange={handleTrendRegionChange} />
+            <HousingBenchmarkRegionQuintileInfo regionName={trendRegionName} />
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   )
 }

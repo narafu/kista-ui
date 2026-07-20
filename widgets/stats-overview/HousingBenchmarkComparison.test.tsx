@@ -177,7 +177,7 @@ describe('HousingBenchmarkComparison', () => {
     }, true)
     expect(screen.getByRole('button', { name: '전체 포트폴리오' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: '1년' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('apt:3')
+    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('3')
 
     expect(screen.getByText('+32.5%p')).toBeInTheDocument()
     expect(screen.getByText('+84.2%')).toBeInTheDocument()
@@ -205,7 +205,7 @@ describe('HousingBenchmarkComparison', () => {
     }), true)
 
     await user.selectOptions(strategySelect, 'strategy-2')
-    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'apt:5')
+    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), '5')
     await user.click(screen.getByRole('button', { name: '1년' }))
 
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
@@ -227,11 +227,12 @@ describe('HousingBenchmarkComparison', () => {
     }, true)
   })
 
-  it('ETF 옵션을 선택하면 훅에 benchmarkType·symbol을 반영해 요청한다', async () => {
+  it('ETF 탭에서 ETF 옵션을 선택하면 훅에 benchmarkType·symbol을 반영해 요청한다', async () => {
     const user = userEvent.setup()
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
-    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'etf:QLD')
+    await user.click(screen.getByRole('button', { name: 'ETF' }))
+    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'QLD')
 
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'PORTFOLIO',
@@ -280,10 +281,10 @@ describe('HousingBenchmarkComparison', () => {
     const { rerender } = render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
     await user.click(screen.getByRole('button', { name: '개별 전략' }))
-    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'apt:5')
+    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), '5')
 
     expect(screen.getByRole('button', { name: '개별 전략' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('apt:5')
+    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('5')
     expect(screen.getByRole('status', { name: '갱신 중' })).toBeInTheDocument()
     expect(screen.getByText('+32.5%p')).toBeInTheDocument()
     expect(screen.getByText('전체 포트폴리오 · USD')).toBeInTheDocument()
@@ -305,9 +306,11 @@ describe('HousingBenchmarkComparison', () => {
     expect(screen.queryByText('전체 포트폴리오 · USD')).not.toBeInTheDocument()
   })
 
-  it('ETF 벤치마크 응답은 USD 통화 표기와 ETF 안내 문구를 표시한다', () => {
+  it('ETF 벤치마크 응답은 USD 통화 표기와 ETF 안내 문구를 표시한다', async () => {
+    const user = userEvent.setup()
     mockQuery(QLD_STRATEGY_COMPARISON)
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+    await user.click(screen.getByRole('button', { name: 'ETF' }))
 
     expect(screen.getByText('QLD (ProShares Ultra QQQ (2x 레버리지)) · USD')).toBeInTheDocument()
     expect(screen.getByText('QLD 안내')).toBeInTheDocument()
