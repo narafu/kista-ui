@@ -172,7 +172,7 @@ describe('StatsOverview', () => {
             regionCode: '1100000000', regionName: '서울', quintile: 3,
             label: '서울 아파트 3분위', sourceUpdatedDate: '2026-06-15',
           },
-          period: { fromMonth: null, toMonth: null, monthCount: 0 },
+          period: { fromDate: null, toDate: null, pointCount: 0 },
           summary: null,
           points: [],
           currentExchangeRate: null,
@@ -199,6 +199,7 @@ describe('StatsOverview', () => {
     expect(benchmarkTab).toHaveAttribute('aria-pressed', 'false')
 
     await user.click(benchmarkTab)
+    await user.click(screen.getByRole('button', { name: '아파트' }))
 
     expect(await screen.findByText('선택한 기간에 전략 운용 기록이 없습니다.')).toBeInTheDocument()
     expect(fetchEitherMock).toHaveBeenCalledWith(
@@ -224,7 +225,7 @@ describe('StatsOverview', () => {
           scope: 'PORTFOLIO',
           strategy: null,
           benchmark: { quintile: 5, label: '서울 아파트 5분위' },
-          period: { fromMonth: null, toMonth: null, monthCount: 0 },
+          period: { fromDate: null, toDate: null, pointCount: 0 },
           summary: null,
           points: [],
           currentExchangeRate: null,
@@ -244,6 +245,7 @@ describe('StatsOverview', () => {
 
     await user.click(screen.getByRole('button', { name: '1M' }))
     await user.click(screen.getByRole('button', { name: '벤치마크 비교' }))
+    await user.click(screen.getByRole('button', { name: '아파트' }))
     await user.selectOptions(screen.getByLabelText('벤치마크 자산'), '5')
     await user.click(screen.getByRole('button', { name: '운용 통계' }))
 

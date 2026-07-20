@@ -168,12 +168,12 @@ function AssetTabButton({
 export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   const [scope, setScope] = useState<Scope>('PORTFOLIO')
   const [selectedStrategyId, setSelectedStrategyId] = useState('')
-  const [activeAsset, setActiveAsset] = useState<'ETF' | 'HOUSING'>('HOUSING')
+  const [activeAsset, setActiveAsset] = useState<'ETF' | 'HOUSING'>('ETF')
   const [quintile, setQuintile] = useState<HousingQuintile>(3)
   const [etfSymbol, setEtfSymbol] = useState<EtfBenchmarkSymbol>(ETF_BENCHMARKS[0].symbol)
   const selection: BenchmarkSelection = activeAsset === 'ETF' ? { type: 'ETF', symbol: etfSymbol } : { type: 'HOUSING', quintile }
   const [housingPeriod, setHousingPeriod] = useState<Period>('1Y')
-  const [etfPeriod, setEtfPeriod] = useState<Period>('1Y')
+  const [etfPeriod, setEtfPeriod] = useState<Period>('3M')
   const period = activeAsset === 'ETF' ? etfPeriod : housingPeriod
   const setPeriod = activeAsset === 'ETF' ? setEtfPeriod : setHousingPeriod
   const periods = activeAsset === 'ETF' ? ETF_PERIODS : HOUSING_PERIODS

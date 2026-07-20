@@ -165,8 +165,25 @@ describe('HousingBenchmarkComparison', () => {
     mockQuery()
   })
 
-  it('기본 포트폴리오·3분위·1년 비교와 서버 지수 및 장기 요약을 표시한다', () => {
+  it('기본 렌더링은 ETF 탭·3개월 기간이 활성화된다', () => {
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
+      scope: 'PORTFOLIO',
+      benchmarkType: 'ETF',
+      symbol: 'SPY',
+      from: '2026-04-17',
+      to: '2026-07-17',
+    }, true)
+    expect(screen.getByRole('button', { name: 'ETF' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: '3개월' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('아파트 탭에서 포트폴리오·3분위·1년 비교와 서버 지수 및 장기 요약을 표시한다', async () => {
+    const user = userEvent.setup()
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    await user.click(screen.getByRole('button', { name: '아파트' }))
 
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'PORTFOLIO',
@@ -194,6 +211,7 @@ describe('HousingBenchmarkComparison', () => {
   it('전략 범위와 전략·분위·기간 필터를 요청에 반영한다', async () => {
     const user = userEvent.setup()
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+    await user.click(screen.getByRole('button', { name: '아파트' }))
 
     expect(screen.queryByLabelText('전략')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: '개별 전략' }))
@@ -231,27 +249,30 @@ describe('HousingBenchmarkComparison', () => {
     const user = userEvent.setup()
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
-    await user.click(screen.getByRole('button', { name: 'ETF' }))
     await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'QLD')
 
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'PORTFOLIO',
       benchmarkType: 'ETF',
       symbol: 'QLD',
-      from: '2025-07-17',
+      from: '2026-04-17',
       to: '2026-07-17',
     }, true)
   })
 
-  it('부동산(서울 분위) 선택 시에는 안내 박스를 표시하지 않는다 — 가격 추이 아래 지역별 안내로 이동', () => {
+  it('부동산(서울 분위) 선택 시에는 안내 박스를 표시하지 않는다 — 가격 추이 아래 지역별 안내로 이동', async () => {
+    const user = userEvent.setup()
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+    await user.click(screen.getByRole('button', { name: '아파트' }))
 
     expect(screen.queryByText('서울 3분위 안내')).not.toBeInTheDocument()
     expect(screen.queryByText(API_QUALITY_NOTICE)).not.toBeInTheDocument()
   })
 
-  it('가격 추이 아래에 기본 지역(서울) 1~5분위 안내를 표시한다', () => {
+  it('가격 추이 아래에 기본 지역(서울) 1~5분위 안내를 표시한다', async () => {
+    const user = userEvent.setup()
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+    await user.click(screen.getByRole('button', { name: '아파트' }))
 
     expect(screen.getByText('서울 아파트 5분위 안내')).toBeInTheDocument()
     expect(screen.getByText(/노원구, 도봉구, 강북구/)).toBeInTheDocument()
@@ -279,6 +300,7 @@ describe('HousingBenchmarkComparison', () => {
           }
     ))
     const { rerender } = render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+    await user.click(screen.getByRole('button', { name: '아파트' }))
 
     await user.click(screen.getByRole('button', { name: '개별 전략' }))
     await user.selectOptions(screen.getByLabelText('벤치마크 자산'), '5')
@@ -370,6 +392,7 @@ describe('HousingBenchmarkComparison', () => {
   it('윤년 2월 29일에서 연도를 빼도 2월을 유지하고 유효한 말일로 보정한다', async () => {
     const user = userEvent.setup()
     render(<HousingBenchmarkComparison enabled defaultTo="2024-02-29" />)
+    await user.click(screen.getByRole('button', { name: '아파트' }))
 
     await user.click(screen.getByRole('button', { name: '1년' }))
 
