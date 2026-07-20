@@ -48,11 +48,7 @@ entities/{domain}/
 - 호출부에서 추가 동작이 필요하면 `mutation.mutate(data, { onSuccess: () => callback() })` 패턴 사용
 - **SSR initialData 패턴**: `useMonthlyHolidaysQuery(year, month, holidays)` — `initialData` + `staleTime: 1h`로 마운트 시 재요청 방지
 
-### queryKey 목록
-
-`['accountMargin', accountId]`, `['accountPrices', accountId, tickers]`, `['strategies', accountId]`, `['strategies', 'all']`, `['strategySeedPreview', accountId, type, ticker, divisionCount]`, `['order-preview', 'strategy', strategyId]`, `['strategy-orders', strategyId, from, to]`, `['holidays', year, month]`, `['candles', ticker, count]`, `['fearGreed', days]`, `['marketSession']`, `['accountCycleHistory', accountId, params]`, `['strategyCycleHistory', strategyId, params]`, `['dailyTradesRange', accountIds.join(','), from, to]`, `['runtime-config']`, `['admin-settings']`, `['me']`, `['adminUsers', filter]`, `['statsSummary']`, `['equityCurve', from, to]`, `['statsCycles', type ?? 'ALL']`
-
-**캐시 공유 패턴**: 서로 다른 위젯이 동일 서버 데이터를 소비할 때, 훅 호출 파라미터를 일치시켜 queryKey를 맞추면 React Query 캐시를 공유해 중복 fetch를 피한다.
+**queryKey**: 각 훅에 정의(코드가 SSOT). **캐시 공유 패턴** — 서로 다른 위젯이 동일 서버 데이터를 소비하면, 훅 호출 파라미터를 일치시켜 queryKey를 맞춰 React Query 캐시를 공유(중복 fetch 방지).
 
 ## index.ts 규칙
 

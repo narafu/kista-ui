@@ -35,14 +35,6 @@
 - 서버 상태를 `useState`에 복사하지 않는다 — React Query가 서버 상태의 SSOT
 - `Promise.all`의 독립 호출은 fail-fast 방지를 위해 각 항목에 `.catch(() => null)`을 붙인다
 
-### 계층 규칙
-
-- `app/`는 라우팅과 서버 데이터 조합만 담당한다
-- `widgets/`는 페이지 합성
-- `features/`는 사용자 액션
-- `entities/`는 도메인 모델, API, React Query
-- `shared/`는 범용 유틸리티
-
 ## 구현 quirk
 
 - Client Component에서 직접 `kista-api` 호출 금지
@@ -50,11 +42,3 @@
 - 새 `NEXT_PUBLIC_*` 환경변수를 추가하면 예제 env 파일도 같이 맞춘다
 - `openapi.json`이 SSOT이며, 타입은 `npm run gen:types`로 재생성한다
 - 기본 검증은 `npm run typecheck`를 우선 사용한다. 현재 `lint`는 신뢰 가능한 기본 검증 명령이 아니다.
-
-아래 세부 문서는 작업 영역별 quirk의 실제 기준 문서다.
-
-- `app/CLAUDE.md`
-- `entities/CLAUDE.md`
-- `features/CLAUDE.md`
-- `widgets/CLAUDE.md`
-- `shared/CLAUDE.md`

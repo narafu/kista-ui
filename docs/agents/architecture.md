@@ -1,10 +1,3 @@
-## 프로젝트 개요
-
-KISTA V2 프론트엔드. 한국투자증권 KIS API 기반 해외주식 자동 분할매매 SaaS의 Next.js 앱이다.
-
-- 주요 스택: Next.js 16, TypeScript, Tailwind CSS, shadcn/ui, React Query, Firebase FCM
-- 백엔드 연동: `../kista-api`
-
 ## 인증 상태 라우팅
 
 `proxy.ts`가 `UserStatus`에 따라 강제 분기한다.
@@ -55,12 +48,4 @@ shared/        -> 도메인 무관 공용
 - **Client Component**: token 없이 `entities/{domain}/api` 함수 → Route Handler 자동 경유
 - **Client Component에서 직접 kista-api 호출 전면 금지** (CORS + 쿠키 문제)
 
-## 보조 문서
-
-세부 구현 quirk는 아래 문서를 추가로 본다.
-
-- `app/CLAUDE.md`
-- `entities/CLAUDE.md`
-- `features/CLAUDE.md`
-- `widgets/CLAUDE.md`
-- `shared/CLAUDE.md`
+레이어별 세부 quirk는 각 FSD 디렉토리의 `CLAUDE.md` 참고 (CLAUDE.md 진입점에 목록).

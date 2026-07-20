@@ -1,42 +1,6 @@
 # shared/ — 도메인 무관 공용 자산
 
-도메인 지식 없이 어디서나 사용 가능한 유틸리티. 모든 계층에서 import 가능하며, `shared/` 내부에서 `entities/`·`features/`·`widgets/` import는 금지한다.
-
-## 디렉토리 구조
-
-```text
-shared/
-  lib/
-    api-client/
-    api-types.ts
-    api-schema.ts
-    auth/
-    cache/
-    format/
-    hooks/
-    proxy/
-    date-range.ts
-    firebase.ts
-    utils.ts
-  model/
-    placed-order.ts
-  providers/
-  ui/
-    stepper/
-    percent-gauge/
-    range-filter/
-    selection-card/
-    UrlRangeFilterBar.tsx
-    PageSizeSelector.tsx
-    PaginationBar.tsx
-    Spinner.tsx
-    CardSkeleton.tsx
-    Badge.tsx
-    EmptyState.tsx
-    Surface.tsx
-    IconButton.tsx
-    TableHeadCell.tsx
-```
+도메인 지식 없이 어디서나 사용 가능한 유틸리티. 모든 계층에서 import 가능하며, `shared/` 내부에서 `entities/`·`features/`·`widgets/` import는 금지한다. 구성: `lib/`(api-client·api-schema·auth·cache·format·hooks·proxy·date-range·firebase·utils), `model/`, `providers/`, `ui/`.
 
 ## api-client
 
@@ -84,21 +48,11 @@ import { apiFetch, clientFetch, ApiError } from '@shared/lib/api-client'
 
 ## ui
 
-`shared/ui/`는 도메인 무관 커스텀 UI 컴포넌트 디렉토리다.
+`shared/ui/`는 도메인 무관 커스텀 UI 컴포넌트 디렉토리다. 이름으로 역할이 자명한 것들(`Spinner`·`CardSkeleton`·`Badge`·`EmptyState`·`Surface`·`PageSizeSelector`·`PaginationBar`·`UrlRangeFilterBar`·`stepper/`·`percent-gauge/`) 외 비자명 규칙만 기록:
 
-- `UrlRangeFilterBar` — URL 쿼리 동기화 날짜 범위 필터 (`range-filter/RangeFilterControls` + `lib/hooks/use-range-filter-state` 조합)
-- `PageSizeSelector` — 페이지당 항목 수 선택
-- `PaginationBar` — 페이지 네이션
-- `Spinner` — 로딩 표시기
-- `CardSkeleton` — 로딩 스켈레톤
-- `Badge` — 라벨 배지
-- `EmptyState` — 빈 상태 표시
-- `Surface` — 배경 서페이스
 - `IconButton` — 44px 히트영역 아이콘 전용 버튼(`<button>`), `aria-label` 필수 prop. `<Link>` 아이콘 버튼엔 미사용(패턴만 수동 복제)
 - `TableHeadCell` — 테이블 헤더 셀 공통 스타일 (`<th>` 래퍼)
 - `SelectionCard` — `selected`를 `aria-pressed`와 테마 대응 외곽선·틴트로 표현하는 선택 버튼. 큰 카드는 `showIndicator`를 명시해 체크 표시
-- `stepper/` — 다단계 폼 스테퍼
-- `percent-gauge/` — 백분율 게이지 및 입력 컴포넌트
 
 shadcn 자동생성 컴포넌트는 `components/ui/`에 두고 `npx shadcn@latest add <component> --yes`로만 추가한다.
 

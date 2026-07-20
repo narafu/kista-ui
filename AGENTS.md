@@ -17,15 +17,6 @@ Read the relevant shared documents before changing related code:
 - `docs/agents/widgets.md`: page composition, responsive UI quirks, and widget patterns.
 - `docs/agents/shared.md`: api-client, cache, proxy helpers, shared utilities, and providers.
 
-Project-specific execution rules also live in:
-
-- `docs/agents/constraints.md`: commit policy, verification defaults, coding rules, and implementation quirks.
-
-Directory-specific deep-dive notes still live in:
-- `app/CLAUDE.md`
-- `entities/CLAUDE.md`
-- `features/CLAUDE.md`
-- `widgets/CLAUDE.md`
-- `shared/CLAUDE.md`
+Directory-specific deep-dive notes live in each FSD directory's `CLAUDE.md` (`app/`, `entities/`, `features/`, `widgets/`, `shared/`).
 
 Claude-specific agents, hooks, commands, and skills remain under `.claude/`. Codex does not execute those automatically, so run the relevant verification commands explicitly when practical.
