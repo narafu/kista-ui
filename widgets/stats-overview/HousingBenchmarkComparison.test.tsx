@@ -242,83 +242,19 @@ describe('HousingBenchmarkComparison', () => {
     }, true)
   })
 
-  it('다섯 분위의 대표 지역·특징을 제공한다', async () => {
-    const user = userEvent.setup()
-    let queryData = COMPARISON
-    useHousingBenchmarkQueryMock.mockImplementation(() => ({
-      data: queryData,
-      isLoading: false,
-      isFetching: false,
-      isError: false,
-      isPlaceholderData: false,
-    }))
-    const { rerender } = render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
-    const select = screen.getByLabelText('벤치마크 자산')
-
-    const expected = [
-      {
-        value: '1',
-        range: '서울 아파트 가격 하위 20%',
-        areas: '노원구, 도봉구, 강북구, 구로구, 금천구, 중랑구',
-        characteristic: '서울 외곽 지역에 위치한 구축(20~30년 차 이상) 및 소형 평수 아파트가 주를 이룹니다. 자금 여력이 상대적으로 적은 사회초년생이나 1인 가구의 첫 내 집 마련 수요가 집중되는 구간입니다.',
-      },
-      {
-        value: '2',
-        range: '서울 아파트 가격 하위 20% ~ 40%',
-        areas: '관악구, 은평구, 성북구, 강서구, 동대문구',
-        characteristic: '서울 중심부로의 대중교통 접근성이 양호한 외곽 지역이나, 1분위 지역 내의 신축·준신축 아파트들이 혼재되어 있는 구간입니다.',
-      },
-      {
-        value: '3',
-        range: '서울 아파트 가격 중간 40% ~ 60%',
-        areas: '광진구, 서대문구, 영등포구, 종로구, 중구',
-        characteristic: "서울 아파트의 '중간 허리'를 담당하는 구간입니다. 도심(CBD)이나 강남(GBD) 접근성이 좋은 직주근접 지역들이 주를 이룹니다. 광진구 구의동이나 자양동 일대의 기축 아파트(전용 84㎡) 혹은 입지 좋은 곳의 신축 소형(59㎡) 평수들이 이 구간에 포진해 있습니다.",
-      },
-      {
-        value: '4',
-        range: '서울 아파트 가격 상위 20% ~ 40%',
-        areas: '마포구, 성동구, 양천구, 동작구, 강동구',
-        characteristic: "이른바 '마용성(마포·용산·성동)' 중 용산을 제외한 지역들과 학군지(목동) 등이 포함됩니다. 5분위 진입을 노리는 갈아타기 수요나 '똘똘한 한 채' 수요가 집중되는 상급지입니다.",
-      },
-      {
-        value: '5',
-        range: '서울 아파트 가격 상위 20%',
-        areas: '서초구, 강남구, 송파구, 용산구',
-        characteristic: '대한민국 부동산 최상급지입니다. 초고가 하이엔드 주거지나 재건축 기대감이 높은 한강변 대단지 아파트들이 속하며, 최근 서울 아파트 평균 가격 상승을 강하게 주도하고 있는 구간입니다.',
-      },
-    ]
-
-    for (const [index, item] of expected.entries()) {
-      await user.selectOptions(select, `apt:${item.value}`)
-      queryData = {
-        ...COMPARISON,
-        benchmark: {
-          ...HOUSING_BENCHMARK,
-          quintile: Number(item.value),
-          label: `서울 아파트 ${item.value}분위`,
-        },
-      }
-      rerender(
-        <HousingBenchmarkComparison
-          enabled
-          defaultTo={`2026-07-${String(18 + index).padStart(2, '0')}`}
-        />
-      )
-      expect(screen.getAllByText(item.range).length).toBeGreaterThan(0)
-      expect(screen.getByText(item.areas)).toBeInTheDocument()
-      expect(screen.getByText(item.characteristic)).toBeInTheDocument()
-    }
-  })
-
-  it('현지 통화 기준과 데이터 업데이트일 및 현재 환율 참고값을 표시한다', () => {
+  it('부동산(서울 분위) 선택 시에는 안내 박스를 표시하지 않는다 — 가격 추이 아래 지역별 안내로 이동', () => {
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
-    expect(screen.getAllByText(API_QUALITY_NOTICE)).toHaveLength(1)
-    expect(screen.queryByText('투자 성과는 USD, 서울 아파트는 KRW 현지 통화 기준이며 현재 환율은 성과 계산에 반영하지 않습니다.')).not.toBeInTheDocument()
-    expect(screen.queryByText(/표시된 현재 환율로 환산하지 않습니다/)).not.toBeInTheDocument()
-    expect(screen.getByText('2026-07-01')).toBeInTheDocument()
-    expect(screen.getByText('1 USD = 1,365.20 KRW')).toBeInTheDocument()
-    expect(screen.getByText(/TOSS_INVEST/)).toBeInTheDocument()
+    expect(screen.queryByText('서울 3분위 안내')).not.toBeInTheDocument()
+    expect(screen.queryByText(API_QUALITY_NOTICE)).not.toBeInTheDocument()
+  })
+
+  it('가격 추이 아래에 기본 지역(서울) 1~5분위 안내를 표시한다', () => {
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    expect(screen.getByText('서울 아파트 5분위 안내')).toBeInTheDocument()
+    expect(screen.getByText(/노원구, 도봉구, 강북구/)).toBeInTheDocument()
+    expect(screen.getByText(/서초구, 강남구, 송파구, 용산구/)).toBeInTheDocument()
   })
 
   it('scope 변경 중에는 필터만 즉시 바꾸고 응답 라벨은 이전 스냅샷을 유지한 뒤 함께 갱신한다', async () => {
@@ -353,10 +289,6 @@ describe('HousingBenchmarkComparison', () => {
     expect(screen.getByText('전체 포트폴리오 · USD')).toBeInTheDocument()
     expect(screen.getByText('전체 포트폴리오 (USD): investmentIndexUsd')).toBeInTheDocument()
     expect(screen.getByText('서울 아파트 3분위 (KRW): benchmarkIndex')).toBeInTheDocument()
-    expect(screen.getByText('서울 3분위 안내')).toBeInTheDocument()
-    expect(screen.getAllByText(API_QUALITY_NOTICE)).toHaveLength(1)
-    expect(screen.getByText('2026-07-01')).toBeInTheDocument()
-    expect(screen.queryByText('서울 5분위 안내')).not.toBeInTheDocument()
 
     strategyResult = {
       data: FIFTH_QUINTILE_STRATEGY_COMPARISON,
@@ -370,9 +302,7 @@ describe('HousingBenchmarkComparison', () => {
     expect(screen.getByText('INFINITE · SOXL · USD')).toBeInTheDocument()
     expect(screen.getByText('INFINITE · SOXL (USD): investmentIndexUsd')).toBeInTheDocument()
     expect(screen.getByText('서울 아파트 5분위 (KRW): benchmarkIndex')).toBeInTheDocument()
-    expect(screen.getByText('서울 5분위 안내')).toBeInTheDocument()
     expect(screen.queryByText('전체 포트폴리오 · USD')).not.toBeInTheDocument()
-    expect(screen.queryByText('서울 3분위 안내')).not.toBeInTheDocument()
   })
 
   it('ETF 벤치마크 응답은 USD 통화 표기와 ETF 안내 문구를 표시한다', () => {

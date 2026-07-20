@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useHousingBenchmarkQuery } from '@entities/stats'
-import type { EtfBenchmarkSymbol, HousingBenchmark, HousingBenchmarkParams } from '@entities/stats'
+import type { EtfBenchmarkSymbol, HousingBenchmark, HousingBenchmarkParams, HousingBenchmarkRegion } from '@entities/stats'
 import { useAllStrategiesQuery } from '@entities/strategy'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { cn } from '@shared/lib/utils'
@@ -11,7 +11,9 @@ import { HousingBenchmarkChart } from './HousingBenchmarkChart'
 import { HousingBenchmarkSummary } from './HousingBenchmarkSummary'
 import { HousingBenchmarkInfo } from './HousingBenchmarkInfo'
 import { HousingBenchmarkQuintileTrendChart } from './HousingBenchmarkQuintileTrendChart'
+import { HousingBenchmarkRegionQuintileInfo } from './HousingBenchmarkRegionQuintileInfo'
 import {
+  DEFAULT_HOUSING_REGION_NAME,
   ETF_BENCHMARKS,
   HOUSING_QUINTILES,
   type HousingQuintile,
@@ -142,6 +144,11 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   const [period, setPeriod] = useState<Period>('1Y')
   const [customFromMonth, setCustomFromMonth] = useState(() => toMonthInput(subtractYears(defaultTo, 1)))
   const [customToMonth, setCustomToMonth] = useState(() => toMonthInput(defaultTo))
+  const [trendRegionName, setTrendRegionName] = useState<string>(DEFAULT_HOUSING_REGION_NAME)
+  const handleTrendRegionChange = useCallback(
+    (region: HousingBenchmarkRegion) => setTrendRegionName(region.name ?? DEFAULT_HOUSING_REGION_NAME),
+    [],
+  )
 
   const isStrategyScope = scope === 'STRATEGY'
   // 개별 전략으로 전환했을 때만 전략 목록을 조회 — 전체 포트폴리오 범위에서는 불필요한 요청을 만들지 않는다
@@ -363,25 +370,24 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
             benchmark={data.benchmark ?? fallbackBenchmark}
             benchmarkCurrency={benchmarkCurrency}
           />
-          <HousingBenchmarkInfo
-            benchmark={data.benchmark}
-            currentExchangeRate={data.currentExchangeRate}
-            notice={data.quality?.notice}
-          />
         </>
       ) : data ? (
-        <>
-          <EmptyState message={emptyMessage(data.emptyReason)} />
-          <HousingBenchmarkInfo
-            benchmark={data.benchmark}
-            currentExchangeRate={data.currentExchangeRate}
-            notice={data.quality?.notice}
-          />
-        </>
+        <EmptyState message={emptyMessage(data.emptyReason)} />
+      ) : null}
+
+      {/* ETF 벤치마크에만 남아있는 위험 안내 — 부동산(서울 분위) 안내는 아래 "가격 추이" 비교지역 선택과 연동된 안내로 이동 */}
+      {data?.benchmark?.assetType === 'ETF' ? (
+        <HousingBenchmarkInfo benchmark={data.benchmark} notice={data.quality?.notice} />
       ) : null}
 
       {/* 사용자 투자 데이터와 무관하게 항상 표시되는 아파트 5분위 원본 시계열 — 위 비교 결과와 독립적, 상단 "비교 기간" 토글과 동일한 from/to 사용 */}
-      <HousingBenchmarkQuintileTrendChart enabled={enabled} from={from} to={to} />
+      <div>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">참고 · 아파트 시세 원본 데이터</p>
+        <div className="flex flex-col gap-4">
+          <HousingBenchmarkQuintileTrendChart enabled={enabled} from={from} to={to} onRegionChange={handleTrendRegionChange} />
+          <HousingBenchmarkRegionQuintileInfo regionName={trendRegionName} />
+        </div>
+      </div>
     </div>
   )
 }

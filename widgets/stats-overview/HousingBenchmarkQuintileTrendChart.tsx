@@ -1,11 +1,12 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useHousingBenchmarkRegionsQuery, useHousingBenchmarkSeriesQuery } from '@entities/stats'
+import type { HousingBenchmarkRegion } from '@entities/stats'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { fmtDate, fmtKrwEok, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
@@ -21,11 +22,15 @@ interface Props {
   enabled: boolean
   from?: string
   to?: string
+  onRegionChange?: (region: HousingBenchmarkRegion) => void
 }
 
 // KB Land 지역 목록 조회가 실패했을 때만 사용하는 최소 fallback — 하드코딩 목록 아님
 const SEOUL_REGION_CODE = '1100000000'
 const SEOUL_FALLBACK_REGION = { code: SEOUL_REGION_CODE, name: '서울' }
+
+// "가격 추이" 비교지역은 서울/수도권/전국 3개로만 제한 — KB Land가 내려주는 전체 지역 목록 중 일부만 노출
+const ALLOWED_REGION_NAMES = ['서울', '수도권', '전국'] as const
 
 // 5분위는 가격 순위상 항상 5>4>3>2>1 순서로 그려져 세로 위치만으로도 순서가 구분되므로,
 // 색상은 순서 표현보다 인접한 5개 선을 서로 뚜렷이 구분하는 역할에 집중한다.
@@ -50,12 +55,23 @@ function TrendLoading() {
   )
 }
 
-export function HousingBenchmarkQuintileTrendChart({ enabled, from, to }: Props) {
+export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegionChange }: Props) {
   const [regionCode, setRegionCode] = useState(SEOUL_REGION_CODE)
   const regionsQuery = useHousingBenchmarkRegionsQuery(enabled)
-  const regions = regionsQuery.data?.regions?.length ? regionsQuery.data.regions : [SEOUL_FALLBACK_REGION]
-  const selectedRegionName = regions.find((region) => region.code === regionCode)?.name
-  const regionLabel = selectedRegionName ?? '서울'
+  const fetchedRegions = regionsQuery.data?.regions ?? []
+  const regions = useMemo(() => {
+    const allowed = ALLOWED_REGION_NAMES
+      .map((name) => fetchedRegions.find((region) => region.name === name))
+      .filter((region): region is HousingBenchmarkRegion => region != null)
+    return allowed.length > 0 ? allowed : [SEOUL_FALLBACK_REGION]
+  }, [fetchedRegions])
+  const selectedRegion = regions.find((region) => region.code === regionCode) ?? regions[0]
+  const regionLabel = selectedRegion.name
+
+  useEffect(() => {
+    onRegionChange?.(selectedRegion)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRegion.code, selectedRegion.name])
 
   // 상단 "비교 기간" 토글과 동일한 from/to로 조회 — 추이 차트만 별도 기간을 쓰지 않는다
   const query = useHousingBenchmarkSeriesQuery({ from, to, regionCode }, enabled)
@@ -72,27 +88,24 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to }: Props)
     <Card>
       <CardHeader className="pb-3">
         <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <CardTitle className="text-base lg:text-lg">{regionLabel} 아파트 5분위 가격 추이</CardTitle>
-              <p className="mt-1 text-xs text-muted-foreground">월별 매매평균가격 (억원) · 배지는 조회 기간 연평균 상승률</p>
-            </div>
-            <label className="grid gap-1 text-xs font-medium text-muted-foreground sm:w-48">
-              비교 지역
+          <div>
+            <CardTitle className="flex flex-wrap items-center gap-1.5 text-base lg:text-lg">
               <select
                 aria-label="비교 지역"
                 value={regionCode}
                 onChange={(event) => setRegionCode(event.target.value)}
-                className="min-h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="min-h-8 rounded-md border border-input bg-background px-2 text-base font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring lg:text-lg"
               >
                 {regions.map((region) => (
                   <option key={region.code} value={region.code}>{region.name}</option>
                 ))}
               </select>
-            </label>
+              아파트 5분위 가격 추이
+            </CardTitle>
+            <p className="mt-1 text-xs text-muted-foreground">월별 매매평균가격 (억원) · 배지는 조회 기간 연평균 상승률</p>
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            {QUINTILE_SERIES.map((series) => {
+            {[...QUINTILE_SERIES].reverse().map((series) => {
               const cagr = quintileCagrs.get(series.dataKey) ?? null
               return (
                 <span key={series.dataKey} className="flex items-center gap-1.5">

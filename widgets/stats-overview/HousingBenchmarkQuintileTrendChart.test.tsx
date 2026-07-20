@@ -59,6 +59,7 @@ const REGIONS: HousingBenchmarkRegionsList = {
   regions: [
     { code: '1100000000', name: '서울' },
     { code: '2600000000', name: '부산' },
+    { code: '4100000000', name: '수도권' },
     { code: '0000000000', name: '전국' },
   ],
 }
@@ -142,13 +143,34 @@ describe('HousingBenchmarkQuintileTrendChart', () => {
     const user = userEvent.setup()
     render(<HousingBenchmarkQuintileTrendChart enabled from="2021-07-19" to="2026-07-19" />)
 
-    await user.selectOptions(screen.getByLabelText('비교 지역'), '2600000000')
+    await user.selectOptions(screen.getByLabelText('비교 지역'), '0000000000')
 
     expect(useHousingBenchmarkSeriesQueryMock).toHaveBeenLastCalledWith(
-      { from: '2021-07-19', to: '2026-07-19', regionCode: '2600000000' },
+      { from: '2021-07-19', to: '2026-07-19', regionCode: '0000000000' },
       true,
     )
-    expect(screen.getByText('부산 아파트 5분위 가격 추이')).toBeInTheDocument()
+    expect(screen.getByLabelText('비교 지역')).toHaveValue('0000000000')
+    expect(screen.getByLabelText(/전국 아파트 5분위 월별 매매평균가격 선 차트/)).toBeInTheDocument()
+  })
+
+  it('비교 지역 옵션을 서울/수도권/전국 순서로만 표시하고, 그 외 지역(부산 등)은 제외한다', () => {
+    render(<HousingBenchmarkQuintileTrendChart enabled />)
+
+    const select = screen.getByLabelText('비교 지역') as HTMLSelectElement
+    expect(Array.from(select.options).map((option) => option.textContent)).toEqual(['서울', '수도권', '전국'])
+    expect(screen.queryByRole('option', { name: '부산' })).not.toBeInTheDocument()
+  })
+
+  it('지역이 선택되면 상위로 onRegionChange 콜백을 호출한다', async () => {
+    const user = userEvent.setup()
+    const onRegionChange = vi.fn()
+    render(<HousingBenchmarkQuintileTrendChart enabled onRegionChange={onRegionChange} />)
+
+    expect(onRegionChange).toHaveBeenLastCalledWith({ code: '1100000000', name: '서울' })
+
+    await user.selectOptions(screen.getByLabelText('비교 지역'), '4100000000')
+
+    expect(onRegionChange).toHaveBeenLastCalledWith({ code: '4100000000', name: '수도권' })
   })
 
   it('지역 목록 조회 실패 시 서울 하나만 fallback으로 표시한다', () => {
