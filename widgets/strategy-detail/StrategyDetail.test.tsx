@@ -385,7 +385,7 @@ describe('StrategyDetail budget deficit badge', () => {
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
     // previewDeficit = max(0, 900 + 200 - 1000) = 100
-    expect(screen.getByText('예수금 부족 ($100.00 부족)')).toBeInTheDocument()
+    expect(screen.getByText('예수금 $100.00 부족(장 마감 시 재시도)')).toBeInTheDocument()
   })
 })
 
@@ -421,7 +421,7 @@ describe('StrategyDetail executed-mode deficit badge', () => {
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
     // deficitUsd = max(0, 900 + 200 - 1000) = 100
-    expect(screen.getByText('예수금 부족 ($100.00 부족)')).toBeInTheDocument()
+    expect(screen.getByText('예수금 $100.00 부족')).toBeInTheDocument()
     expect(screen.getByText('예수금 부족으로 매수 미접수')).toBeInTheDocument()
   })
 
@@ -455,7 +455,7 @@ describe('StrategyDetail executed-mode deficit badge', () => {
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
-    expect(screen.queryByText(/예수금 부족 \(/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/예수금 \$[\d,.]+ 부족/)).not.toBeInTheDocument()
     expect(screen.getByText('예수금 충족됨 — 마감 시 매수 재시도 예정')).toBeInTheDocument()
   })
 
@@ -489,7 +489,7 @@ describe('StrategyDetail executed-mode deficit badge', () => {
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
-    expect(screen.queryByText(/예수금 부족 \(/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/예수금 \$[\d,.]+ 부족/)).not.toBeInTheDocument()
     expect(screen.getByText('예수금 확인 실패로 매수 미접수 — 잠시 후 다시 확인해주세요')).toBeInTheDocument()
   })
 })

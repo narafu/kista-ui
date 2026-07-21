@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { AlertTriangle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button-variants'
@@ -43,6 +44,23 @@ function buyUnplacedMessage(readiness: ReturnType<typeof computeBuyReadiness>): 
   if (readiness.liveBalanceUncertain) return '예수금 확인 실패로 매수 미접수 — 잠시 후 다시 확인해주세요'
   if (readiness.hasDeficit) return '예수금 부족으로 매수 미접수'
   return '예수금 충족됨 — 마감 시 매수 재시도 예정'
+}
+
+// 카드 상단 배너 문구 — 휴장일/예수금 부족을 "바로 주문" 가능 여부와 함께 안내
+function nextOrderBannerText(
+  canExecute: boolean,
+  mode: 'preview' | 'executed',
+  isHoliday: boolean,
+  hasDeficit: boolean,
+  deficitUsd: number,
+): string | null {
+  if (!canExecute) return null
+  if (mode === 'preview') {
+    if (isHoliday) return '오늘은 휴장일입니다'
+    if (hasDeficit) return `예수금 $${fmtUsd(deficitUsd)} 부족(장 마감 시 재시도)`
+    return null
+  }
+  return hasDeficit ? `예수금 $${fmtUsd(deficitUsd)} 부족` : null
 }
 
 function previewErrorMsg(error: unknown): string {
@@ -86,6 +104,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
   const isHoliday = isWeekend || holidays.includes(todayStr)
   const canExecute = strategy.status === 'ACTIVE'
+  const bannerText = nextOrderBannerText(canExecute, mode, isHoliday, hasDeficit, previewDeficit)
 
   const deleteMutation = useDeleteStrategyMutation(() => push(`/accounts/${accountId}`))
   const pauseMutation = usePauseStrategyMutation()
@@ -219,29 +238,30 @@ export function StrategyDetail({ accountId, strategy }: Props) {
         </div>
       )}
 
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-base lg:text-lg">다음 주문</CardTitle>
-              <p className="text-sm lg:text-base text-muted-foreground mt-0.5">매 거래일 개장 시 자동실행</p>
-              {unplacedDirections.length > 0 && (
-                <div className="flex flex-col gap-0.5 mt-1.5">
-                  {unplacedDirections.map((d) => (
-                    <p key={d} className="text-sm lg:text-base text-warn">
-                      {d === 'BUY' ? buyUnplacedMessage(readiness) : '판매가능수량 부족으로 매도 미접수'}
-                    </p>
-                  ))}
-                </div>
-              )}
-            </div>
-            {canExecute && mode === 'preview' && (
-              <div className="flex items-center gap-2">
-                {(isHoliday || hasDeficit) && (
-                  <Badge tone="warn" size="sm">
-                    {isHoliday ? '휴장일' : `예수금 부족 ($${fmtUsd(previewDeficit)} 부족)`}
-                  </Badge>
+      <div className="space-y-2">
+        {bannerText && (
+          <div className="flex items-center gap-2 rounded-[var(--r-md)] bg-warn-bg px-3.5 py-2.5 text-sm lg:text-base font-semibold text-warn">
+            <AlertTriangle className="size-4 shrink-0" />
+            <span>{bannerText}</span>
+          </div>
+        )}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <CardTitle className="text-base lg:text-lg">다음 주문</CardTitle>
+                <p className="text-sm lg:text-base text-muted-foreground mt-0.5">매 거래일 개장 시 자동실행</p>
+                {unplacedDirections.length > 0 && (
+                  <div className="flex flex-col gap-0.5 mt-1.5">
+                    {unplacedDirections.map((d) => (
+                      <p key={d} className="text-sm lg:text-base text-warn">
+                        {d === 'BUY' ? buyUnplacedMessage(readiness) : '판매가능수량 부족으로 매도 미접수'}
+                      </p>
+                    ))}
+                  </div>
                 )}
+              </div>
+              {canExecute && mode === 'preview' && (
                 <button
                   type="button"
                   onClick={() => {
@@ -257,62 +277,59 @@ export function StrategyDetail({ accountId, strategy }: Props) {
                   }}
                   disabled={executeMutation.isPending || orders.length === 0}
                   className={cn(
-                    'inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md',
+                    'inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md whitespace-nowrap shrink-0',
                     'bg-gradient-to-br from-rose-500 to-rose-700 text-white font-semibold',
                     'shadow-[0_1px_4px_rgba(225,29,72,0.30)] hover:opacity-90 transition-opacity disabled:opacity-50',
                   )}
                 >
                   {executeMutation.isPending ? '주문 중...' : '바로 주문'}
                 </button>
-              </div>
-            )}
-            {canExecute && mode === 'executed' && hasDeficit && (
-              <Badge tone="warn" size="sm">{`예수금 부족 ($${fmtUsd(previewDeficit)} 부족)`}</Badge>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          {mode === 'executed' ? (
-            <div>
-              <div className="flex items-center justify-between px-6 py-3 border-b border-border">
-                <p className="text-sm lg:text-base uppercase tracking-widest font-semibold text-warn">{placedOrders.length > 0 ? `${placedOrders.length}건 접수됨` : '접수됨'}</p>
-                <button
-                  type="button"
-                  onClick={() =>
-                    cancelAllMutation.mutate(undefined, {
-                      onSuccess: (r) => {
-                        if (r.failedCount === 0) {
-                          toast.success(`${r.cancelledCount}건 모두 취소됐습니다.`)
-                        } else {
-                          toast.warning(`${r.cancelledCount}건 취소, ${r.failedCount}건 실패 — KIS에서 직접 확인하세요.`)
-                        }
-                      },
-                    })
-                  }
-                  disabled={cancelAllMutation.isPending}
-                  className="text-sm lg:text-base px-2.5 py-1 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 disabled:opacity-50"
-                >
-                  {cancelAllMutation.isPending ? '취소 중...' : '전체 취소'}
-                </button>
-              </div>
-              <OrderRows
-                orders={placedOrders}
-                onCancelOne={handleCancelOne}
-                cancellingId={cancelOneMutation.isPending ? cancelOneMutation.variables : null}
-                cancelPending={cancelOneMutation.isPending}
-              />
+              )}
             </div>
-          ) : isLoadingPreview ? (
-            <p className="text-sm lg:text-base text-muted-foreground text-center px-6 py-4">불러오는 중…</p>
-          ) : isPreviewError ? (
-            <p className="text-sm lg:text-base text-muted-foreground text-center px-6 py-4">{previewErrorMsg(previewError)}</p>
-          ) : orders.length === 0 ? (
-            <EmptyState variant="text" message={preview?.skipReason ? SKIP_REASON_LABELS[preview.skipReason] : '예정된 주문이 없습니다.'} />
-          ) : (
-            <OrderRows orders={orders} />
-          )}
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent className="p-0">
+            {mode === 'executed' ? (
+              <div>
+                <div className="flex items-center justify-between px-6 py-3 border-b border-border">
+                  <p className="text-sm lg:text-base uppercase tracking-widest font-semibold text-warn">{placedOrders.length > 0 ? `${placedOrders.length}건 접수됨` : '접수됨'}</p>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      cancelAllMutation.mutate(undefined, {
+                        onSuccess: (r) => {
+                          if (r.failedCount === 0) {
+                            toast.success(`${r.cancelledCount}건 모두 취소됐습니다.`)
+                          } else {
+                            toast.warning(`${r.cancelledCount}건 취소, ${r.failedCount}건 실패 — KIS에서 직접 확인하세요.`)
+                          }
+                        },
+                      })
+                    }
+                    disabled={cancelAllMutation.isPending}
+                    className="text-sm lg:text-base px-2.5 py-1 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 disabled:opacity-50"
+                  >
+                    {cancelAllMutation.isPending ? '취소 중...' : '전체 취소'}
+                  </button>
+                </div>
+                <OrderRows
+                  orders={placedOrders}
+                  onCancelOne={handleCancelOne}
+                  cancellingId={cancelOneMutation.isPending ? cancelOneMutation.variables : null}
+                  cancelPending={cancelOneMutation.isPending}
+                />
+              </div>
+            ) : isLoadingPreview ? (
+              <p className="text-sm lg:text-base text-muted-foreground text-center px-6 py-4">불러오는 중…</p>
+            ) : isPreviewError ? (
+              <p className="text-sm lg:text-base text-muted-foreground text-center px-6 py-4">{previewErrorMsg(previewError)}</p>
+            ) : orders.length === 0 ? (
+              <EmptyState variant="text" message={preview?.skipReason ? SKIP_REASON_LABELS[preview.skipReason] : '예정된 주문이 없습니다.'} />
+            ) : (
+              <OrderRows orders={orders} />
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       <StrategyOrderHistory strategyId={strategy.id} />
 
