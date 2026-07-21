@@ -29,7 +29,7 @@ import { ApiError } from '@shared/lib/api-client'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import type { Strategy } from '@entities/strategy'
-import type { SkipReason, PlacedOrder } from '@entities/order'
+import type { SkipReason } from '@entities/order'
 import { OrderRows } from './OrderRows'
 import { StrategyOrderHistory } from './StrategyOrderHistory'
 
@@ -55,14 +55,11 @@ interface Props {
 export function StrategyDetail({ accountId, strategy }: Props) {
   const { push } = useRouter()
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const [manualOrders, setManualOrders] = useState<PlacedOrder[] | null>(null)
 
   const { data: preview, isLoading: isLoadingPreview, isError: isPreviewError, error: previewError } = useStrategyOrderPreviewQuery(strategy.id)
 
-  const serverOrders = preview?.todayOrders ?? []
-  const hasServerOrders = serverOrders.length > 0
-  const placedOrders = manualOrders ?? (hasServerOrders ? serverOrders : [])
-  const mode: 'preview' | 'executed' = manualOrders !== null || hasServerOrders ? 'executed' : 'preview'
+  const placedOrders = preview?.todayOrders ?? []
+  const mode: 'preview' | 'executed' = placedOrders.length > 0 ? 'executed' : 'preview'
   const position = preview?.position ?? null
   const orders = preview?.orders ?? []
 
@@ -105,12 +102,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
   }
 
   function handleCancelOne(id: string) {
-    cancelOneMutation.mutate(id, {
-      onSuccess: () => {
-        const remaining = placedOrders.filter((x) => x.id !== id)
-        setManualOrders(remaining.length === 0 ? null : remaining)
-      },
-    })
+    cancelOneMutation.mutate(id)
   }
 
   const toggleLabel = toggleLoading ? '처리 중...' : strategy.status === 'ACTIVE' ? '중지' : '재개'
@@ -256,11 +248,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
                       toast.info('예수금이 부족합니다')
                       return
                     }
-                    executeMutation.mutate(undefined, {
-                      onSuccess: (placed) => {
-                        setManualOrders(placed)
-                      },
-                    })
+                    executeMutation.mutate()
                   }}
                   disabled={executeMutation.isPending || orders.length === 0}
                   className={cn(
@@ -287,7 +275,6 @@ export function StrategyDetail({ accountId, strategy }: Props) {
                       onSuccess: (r) => {
                         if (r.failedCount === 0) {
                           toast.success(`${r.cancelledCount}건 모두 취소됐습니다.`)
-                          setManualOrders(null)
                         } else {
                           toast.warning(`${r.cancelledCount}건 취소, ${r.failedCount}건 실패 — KIS에서 직접 확인하세요.`)
                         }

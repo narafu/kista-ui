@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import { toast } from 'sonner'
 import type { Strategy } from '@entities/strategy'
 import type { NextOrderPreview } from '@entities/order'
 import { StrategyDetail } from './StrategyDetail'
@@ -79,9 +80,16 @@ const mockPreviewQuery = vi.fn(() => ({
   error: null as unknown,
 }))
 
+let cancelAllSuccessHandler: ((r: { cancelledCount: number; failedCount: number }) => void) | undefined
+
 vi.mock('@entities/order', () => ({
   useStrategyOrderPreviewQuery: () => mockPreviewQuery(),
-  useCancelAllOrdersMutation: () => ({ mutate: vi.fn(), isPending: false }),
+  useCancelAllOrdersMutation: () => ({
+    mutate: (_: undefined, opts?: { onSuccess?: (r: { cancelledCount: number; failedCount: number }) => void }) => {
+      cancelAllSuccessHandler = opts?.onSuccess
+    },
+    isPending: false,
+  }),
   useCancelOneOrderMutation: () => ({ mutate: vi.fn(), isPending: false, variables: null }),
 }))
 
@@ -297,5 +305,31 @@ describe('StrategyDetail unplaced order banner', () => {
     // 자세히 보기 토글·부족액 상세 문구는 BuyCompetitionNotice 전용 UI였다 — 더 이상 존재하지 않아야 한다
     expect(screen.queryByText('자세히 ▾')).not.toBeInTheDocument()
     expect(screen.queryByText(/부족 \(우선순위 전략/)).not.toBeInTheDocument()
+  })
+})
+
+describe('StrategyDetail cancel-all toast', () => {
+  it('전체 취소 성공 시 로컬 상태 없이도 성공 토스트를 보여준다', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [
+          { id: 'o1', ticker: 'TSLA', direction: 'BUY', orderType: 'LOC', quantity: 5, price: '20.00', status: 'PLANNED' },
+        ],
+        position: null,
+        orders: [],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: null,
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+    fireEvent.click(screen.getByText('전체 취소'))
+    cancelAllSuccessHandler?.({ cancelledCount: 1, failedCount: 0 })
+
+    expect(vi.mocked(toast.success)).toHaveBeenCalledWith('1건 모두 취소됐습니다.')
   })
 })
