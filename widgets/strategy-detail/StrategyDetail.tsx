@@ -67,6 +67,10 @@ export function StrategyDetail({ accountId, strategy }: Props) {
   const hasBuyOrders = orders.some((o) => o.direction === 'BUY')
   const competition = preview?.competition ?? null
   const hasDeficit = hasBuyOrders && competition ? !competition.sufficientBudget : false
+  // 우선순위 앞선 경쟁 전략 소요액 + 이 전략 필요액 - 가용예수금 = 부족액
+  const previewDeficit = competition
+    ? Math.max(0, toNum(competition.consumedByHigherPriority) + toNum(competition.requiredForThisStrategy) - toNum(competition.availableDeposit))
+    : 0
 
   // 계획(orders)엔 있는데 실제 접수(placedOrders)엔 없는 방향 — 예산 부족으로 거절된 방향
   // executed 모드에서만 의미 있음: preview 모드는 "아직 시도 안 함"과 "전량 거절"을 구분할 수 없다
@@ -235,7 +239,9 @@ export function StrategyDetail({ accountId, strategy }: Props) {
             {canExecute && mode === 'preview' && (
               <div className="flex items-center gap-2">
                 {(isHoliday || hasDeficit) && (
-                  <Badge tone="warn" size="sm">{isHoliday ? '휴장일' : '예수금 부족'}</Badge>
+                  <Badge tone="warn" size="sm">
+                    {isHoliday ? '휴장일' : `예수금 부족 ($${fmtUsd(previewDeficit)} 부족)`}
+                  </Badge>
                 )}
                 <button
                   type="button"

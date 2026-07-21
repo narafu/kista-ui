@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'sonner'
 import type { Strategy } from '@entities/strategy'
 import type { NextOrderPreview } from '@entities/order'
@@ -331,5 +331,44 @@ describe('StrategyDetail cancel-all toast', () => {
     cancelAllSuccessHandler?.({ cancelledCount: 1, failedCount: 0 })
 
     expect(vi.mocked(toast.success)).toHaveBeenCalledWith('1건 모두 취소됐습니다.')
+  })
+})
+
+describe('StrategyDetail budget deficit badge', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-07-21T10:00:00+09:00')) // 화요일 — 휴장일 배지에 가려지지 않도록 평일 고정
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('예수금 부족 배지에 부족 금액을 함께 보여준다', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [],
+        position: null,
+        orders: [{ ticker: 'TSLA', orderType: 'LOC', direction: 'BUY', quantity: 5, price: '20.00' }],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: {
+          sufficientBudget: false,
+          availableDeposit: '1000',
+          requiredForThisStrategy: '200',
+          consumedByHigherPriority: '900',
+          blockedByHigherPriority: [],
+          uncertainStrategyIds: [],
+        },
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    // previewDeficit = max(0, 900 + 200 - 1000) = 100
+    expect(screen.getByText('예수금 부족 ($100.00 부족)')).toBeInTheDocument()
   })
 })
