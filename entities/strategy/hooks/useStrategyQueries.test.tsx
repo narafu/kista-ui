@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Strategy } from '../model/types'
-import { useAllStrategiesQuery, useStrategiesQuery, useUpdateStrategyMutation } from './useStrategyQueries'
+import { useAllStrategiesQuery, useStrategiesQuery, useUpdateStrategyMutation, useExecuteStrategyMutation } from './useStrategyQueries'
 
 const { useQueryMock } = vi.hoisted(() => ({
   useQueryMock: vi.fn(),
@@ -91,5 +91,20 @@ describe('useUpdateStrategyMutation', () => {
     options.onSuccess()
 
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['order-preview'] })
+  })
+})
+
+describe('useExecuteStrategyMutation', () => {
+  it('실행 성공 시 실제 주문 미리보기 쿼리(order-preview)를 무효화한다', () => {
+    const invalidateQueries = vi.fn()
+    vi.mocked(useQueryClient).mockReturnValue({ invalidateQueries } as never)
+    vi.mocked(useMutation).mockReturnValue({} as never)
+
+    renderHook(() => useExecuteStrategyMutation('strategy-1'))
+
+    const options = vi.mocked(useMutation).mock.calls.at(-1)?.[0] as unknown as { onSuccess: () => void }
+    options.onSuccess()
+
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['order-preview', 'strategy', 'strategy-1'] })
   })
 })

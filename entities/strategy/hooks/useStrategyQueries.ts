@@ -125,9 +125,13 @@ export function useDeleteStrategyMutation(onSuccess?: () => void) {
 }
 
 export function useExecuteStrategyMutation(strategyId: string | undefined) {
-  return useMutation({ // eslint-disable-line react-doctor/query-mutation-missing-invalidation
+  const queryClient = useQueryClient()
+  return useMutation({
     mutationFn: () => executeStrategy(strategyId!),
-    onSuccess: () => toast.success('매매 실행이 요청됐습니다. 장 마감 후 체결 결과를 확인하세요.'),
+    onSuccess: () => {
+      toast.success('매매 실행이 요청됐습니다. 장 마감 후 체결 결과를 확인하세요.')
+      queryClient.invalidateQueries({ queryKey: ['order-preview', 'strategy', strategyId] })
+    },
     onError: (e) => {
       if (e instanceof ApiError) {
         if (e.status === 409) toast.error(apiMsg(e, '오늘 이미 실행됐습니다.'))
