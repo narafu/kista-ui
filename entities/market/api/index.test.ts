@@ -72,16 +72,12 @@ describe('market api', () => {
     expect(clientFetchMock).toHaveBeenCalledWith('/api/market/candles?ticker=TQQQ&count=200')
   })
 
-  it('getFearGreedClient and getMarketSessionClient hit their respective endpoints', async () => {
-    const { getFearGreedClient, getMarketSessionClient } = await import('./index')
+  it('getFearGreedClient hits the fear-greed endpoint', async () => {
+    const { getFearGreedClient } = await import('./index')
     clientFetchMock.mockResolvedValueOnce({ value: 50 })
-    clientFetchMock.mockResolvedValueOnce({ session: 'DIRECT', isDst: true })
 
     await getFearGreedClient(30)
-    const session = await getMarketSessionClient()
 
     expect(clientFetchMock).toHaveBeenCalledWith('/api/market/fear-greed?days=30')
-    expect(clientFetchMock).toHaveBeenCalledWith('/api/market/session')
-    expect(session).toEqual({ session: 'DIRECT', isDst: true })
   })
 })

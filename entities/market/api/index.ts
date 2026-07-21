@@ -4,13 +4,6 @@ import { CHART_CANDLE_COUNT } from '../model/constants'
 
 const API_BASE_URL = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
 
-export type MarketSession = 'DIRECT' | 'BLOCKED'
-
-export interface MarketSessionResponse {
-  session: MarketSession
-  isDst: boolean
-}
-
 export function getMonthlyHolidays(year: number, month: number, token: string): Promise<string[]> {
   return apiFetch<string[]>(`/api/market/holidays?year=${year}&month=${month}`, { method: 'GET' }, token)
 }
@@ -32,8 +25,4 @@ export function getCandlesClient(ticker: string, count = CHART_CANDLE_COUNT): Pr
 
 export function getFearGreedClient(days = CHART_CANDLE_COUNT): Promise<FearGreed> {
   return clientFetch<FearGreed>(`/api/market/fear-greed?days=${days}`)
-}
-
-export function getMarketSessionClient(): Promise<MarketSessionResponse> {
-  return clientFetch<MarketSessionResponse>('/api/market/session')
 }

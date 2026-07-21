@@ -1,9 +1,8 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { getMonthlyHolidaysClient, getCandlesClient, getFearGreedClient, getMarketSessionClient } from '../api'
+import { getMonthlyHolidaysClient, getCandlesClient, getFearGreedClient } from '../api'
 import type { Candle, FearGreed } from '../model/types'
-import type { MarketSessionResponse } from '../api'
 import { CHART_CANDLE_COUNT } from '../model/constants'
 
 export function useMonthlyHolidaysQuery(year: number, month: number, initialData?: string[]) {
@@ -30,13 +29,5 @@ export function useFearGreedQuery(days = CHART_CANDLE_COUNT) {
     queryKey: ['fearGreed', days],
     queryFn: () => getFearGreedClient(days).catch((): FearGreed | null => null),
     staleTime: 1000 * 60 * 60 * 6, // 6시간 — 서버 갱신 주기(KST 00:00/12:00, 12시간)의 절반
-  })
-}
-
-export function useMarketSessionQuery() {
-  return useQuery<MarketSessionResponse | null>({
-    queryKey: ['marketSession'],
-    queryFn: () => getMarketSessionClient().catch((): MarketSessionResponse | null => null),
-    staleTime: 1000 * 60,
   })
 }
