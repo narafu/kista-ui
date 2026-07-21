@@ -82,16 +82,20 @@ const mockPreviewQuery = vi.fn(() => ({
 
 let cancelAllSuccessHandler: ((r: { cancelledCount: number; failedCount: number }) => void) | undefined
 
-vi.mock('@entities/order', () => ({
-  useStrategyOrderPreviewQuery: () => mockPreviewQuery(),
-  useCancelAllOrdersMutation: () => ({
-    mutate: (_: undefined, opts?: { onSuccess?: (r: { cancelledCount: number; failedCount: number }) => void }) => {
-      cancelAllSuccessHandler = opts?.onSuccess
-    },
-    isPending: false,
-  }),
-  useCancelOneOrderMutation: () => ({ mutate: vi.fn(), isPending: false, variables: null }),
-}))
+vi.mock('@entities/order', async () => {
+  const actual = await vi.importActual<typeof import('@entities/order')>('@entities/order')
+  return {
+    ...actual,
+    useStrategyOrderPreviewQuery: () => mockPreviewQuery(),
+    useCancelAllOrdersMutation: () => ({
+      mutate: (_: undefined, opts?: { onSuccess?: (r: { cancelledCount: number; failedCount: number }) => void }) => {
+        cancelAllSuccessHandler = opts?.onSuccess
+      },
+      isPending: false,
+    }),
+    useCancelOneOrderMutation: () => ({ mutate: vi.fn(), isPending: false, variables: null }),
+  }
+})
 
 vi.mock('@entities/market', () => ({
   useMonthlyHolidaysQuery: () => ({ holidays: [] }),
@@ -217,7 +221,17 @@ describe('StrategyDetail unplaced order banner', () => {
         ],
         skipReason: null,
         otherStrategiesPlannedBuyUsd: '0',
-        competition: null,
+        // BUY가 계획에 있으면 실제 API는 competition을 절대 null로 보내지 않는다(TradingPreviewService:
+        // buyOrders.isEmpty() ? null : simulate(...)) — 부족 상태를 명시한 현실적인 fixture로 교체
+        competition: {
+          sufficientBudget: false,
+          availableDeposit: '1000',
+          requiredForThisStrategy: '200',
+          consumedByHigherPriority: '900',
+          blockedByHigherPriority: [],
+          uncertainStrategyIds: [],
+          liveBalanceUnavailable: false,
+        },
       },
       isLoading: false,
       isError: false,
@@ -372,5 +386,110 @@ describe('StrategyDetail budget deficit badge', () => {
 
     // previewDeficit = max(0, 900 + 200 - 1000) = 100
     expect(screen.getByText('예수금 부족 ($100.00 부족)')).toBeInTheDocument()
+  })
+})
+
+describe('StrategyDetail executed-mode deficit badge', () => {
+  it('shows the deficit badge with the exact amount once the strategy is in executed mode', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [
+          { id: 'o1', ticker: 'TSLA', direction: 'SELL', orderType: 'LIMIT', quantity: 1, price: '25.00', status: 'PLACED' },
+        ],
+        position: null,
+        orders: [
+          { ticker: 'TSLA', orderType: 'LOC', direction: 'BUY', quantity: 5, price: '20.00' },
+          { ticker: 'TSLA', orderType: 'LIMIT', direction: 'SELL', quantity: 1, price: '25.00' },
+        ],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: {
+          sufficientBudget: false,
+          availableDeposit: '1000',
+          requiredForThisStrategy: '200',
+          consumedByHigherPriority: '900',
+          blockedByHigherPriority: [],
+          uncertainStrategyIds: [],
+          liveBalanceUnavailable: false,
+        },
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    // deficitUsd = max(0, 900 + 200 - 1000) = 100
+    expect(screen.getByText('예수금 부족 ($100.00 부족)')).toBeInTheDocument()
+    expect(screen.getByText('예수금 부족으로 매수 미접수')).toBeInTheDocument()
+  })
+
+  it('hides the deficit badge and rewords the notice once the deposit becomes sufficient', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [
+          { id: 'o1', ticker: 'TSLA', direction: 'SELL', orderType: 'LIMIT', quantity: 1, price: '25.00', status: 'PLACED' },
+        ],
+        position: null,
+        orders: [
+          { ticker: 'TSLA', orderType: 'LOC', direction: 'BUY', quantity: 5, price: '20.00' },
+          { ticker: 'TSLA', orderType: 'LIMIT', direction: 'SELL', quantity: 1, price: '25.00' },
+        ],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: {
+          sufficientBudget: true,
+          availableDeposit: '1000',
+          requiredForThisStrategy: '100',
+          consumedByHigherPriority: '0',
+          blockedByHigherPriority: [],
+          uncertainStrategyIds: [],
+          liveBalanceUnavailable: false,
+        },
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    expect(screen.queryByText(/예수금 부족 \(/)).not.toBeInTheDocument()
+    expect(screen.getByText('예수금 충족됨 — 마감 시 매수 재시도 예정')).toBeInTheDocument()
+  })
+
+  it('shows an uncertain notice instead of claiming the deficit is resolved when live balance lookup failed', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [
+          { id: 'o1', ticker: 'TSLA', direction: 'SELL', orderType: 'LIMIT', quantity: 1, price: '25.00', status: 'PLACED' },
+        ],
+        position: null,
+        orders: [
+          { ticker: 'TSLA', orderType: 'LOC', direction: 'BUY', quantity: 5, price: '20.00' },
+          { ticker: 'TSLA', orderType: 'LIMIT', direction: 'SELL', quantity: 1, price: '25.00' },
+        ],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: {
+          sufficientBudget: true,
+          availableDeposit: '0',
+          requiredForThisStrategy: '100',
+          consumedByHigherPriority: '0',
+          blockedByHigherPriority: [],
+          uncertainStrategyIds: [],
+          liveBalanceUnavailable: true,
+        },
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    expect(screen.queryByText(/예수금 부족 \(/)).not.toBeInTheDocument()
+    expect(screen.getByText('예수금 확인 실패로 매수 미접수 — 잠시 후 다시 확인해주세요')).toBeInTheDocument()
   })
 })

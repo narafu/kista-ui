@@ -20,7 +20,7 @@ import {
 import { KpiCard } from '@widgets/kpi-card'
 import { StrategyTradesTab } from '@widgets/cycle-history'
 import { useDeleteStrategyMutation, useExecuteStrategyMutation, usePauseStrategyMutation, useResumeStrategyMutation, seedBadgeClass, strategyStatusAccent } from '@entities/strategy'
-import { useStrategyOrderPreviewQuery, useCancelAllOrdersMutation, useCancelOneOrderMutation } from '@entities/order'
+import { useStrategyOrderPreviewQuery, useCancelAllOrdersMutation, useCancelOneOrderMutation, computeBuyReadiness } from '@entities/order'
 import { useMonthlyHolidaysQuery } from '@entities/market'
 import { useMeta } from '@entities/meta'
 import { cn, toNum } from '@shared/lib/utils'
@@ -38,6 +38,12 @@ const SKIP_REASON_LABELS: Record<SkipReason, string> = {
   NO_PRIVACY_BASE: 'P 매매표가 없습니다.',
 }
 
+
+function buyUnplacedMessage(readiness: ReturnType<typeof computeBuyReadiness>): string {
+  if (readiness.liveBalanceUncertain) return '예수금 확인 실패로 매수 미접수 — 잠시 후 다시 확인해주세요'
+  if (readiness.hasDeficit) return '예수금 부족으로 매수 미접수'
+  return '예수금 충족됨 — 마감 시 매수 재시도 예정'
+}
 
 function previewErrorMsg(error: unknown): string {
   if (error instanceof ApiError) {
@@ -63,21 +69,14 @@ export function StrategyDetail({ accountId, strategy }: Props) {
   const position = preview?.position ?? null
   const orders = preview?.orders ?? []
 
-  // 매수 주문이 있으면 서버 예산 경쟁 시뮬레이션 결과(competition)로 부족 여부 판정 — "바로 주문" 버튼 가드용
-  const hasBuyOrders = orders.some((o) => o.direction === 'BUY')
-  const competition = preview?.competition ?? null
-  const hasDeficit = hasBuyOrders && competition ? !competition.sufficientBudget : false
-  // 우선순위 앞선 경쟁 전략 소요액 + 이 전략 필요액 - 가용예수금 = 부족액
-  const previewDeficit = competition
-    ? Math.max(0, toNum(competition.consumedByHigherPriority) + toNum(competition.requiredForThisStrategy) - toNum(competition.availableDeposit))
-    : 0
+  // 카드와 동일한 공용 판정 — "오늘 계획된 주문 중 실제 미접수 방향이 있는가" 기준
+  const readiness = computeBuyReadiness(preview)
+  const hasDeficit = readiness.hasDeficit
+  const previewDeficit = readiness.deficitUsd
 
-  // 계획(orders)엔 있는데 실제 접수(placedOrders)엔 없는 방향 — 예산 부족으로 거절된 방향
   // executed 모드에서만 의미 있음: preview 모드는 "아직 시도 안 함"과 "전량 거절"을 구분할 수 없다
-  const plannedDirections = new Set(orders.map((o) => o.direction as 'BUY' | 'SELL'))
-  const placedDirections = new Set(placedOrders.map((o) => o.direction))
-  const unplacedDirections = mode === 'executed'
-    ? [...plannedDirections].filter((d) => !placedDirections.has(d))
+  const unplacedDirections: Array<'BUY' | 'SELL'> = mode === 'executed'
+    ? [...(readiness.buyUnplaced ? (['BUY'] as const) : []), ...(readiness.sellUnplaced ? (['SELL'] as const) : [])]
     : []
 
   const todayStr = todayKst()
@@ -230,7 +229,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
                 <div className="flex flex-col gap-0.5 mt-1.5">
                   {unplacedDirections.map((d) => (
                     <p key={d} className="text-sm lg:text-base text-warn">
-                      {d === 'BUY' ? '예수금 부족으로 매수 미접수' : '판매가능수량 부족으로 매도 미접수'}
+                      {d === 'BUY' ? buyUnplacedMessage(readiness) : '판매가능수량 부족으로 매도 미접수'}
                     </p>
                   ))}
                 </div>
@@ -266,6 +265,9 @@ export function StrategyDetail({ accountId, strategy }: Props) {
                   {executeMutation.isPending ? '주문 중...' : '바로 주문'}
                 </button>
               </div>
+            )}
+            {canExecute && mode === 'executed' && hasDeficit && (
+              <Badge tone="warn" size="sm">{`예수금 부족 ($${fmtUsd(previewDeficit)} 부족)`}</Badge>
             )}
           </div>
         </CardHeader>
