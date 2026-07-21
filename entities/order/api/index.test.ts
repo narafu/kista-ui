@@ -152,6 +152,7 @@ describe('order api', () => {
           { strategyId: 'vr-1', type: 'VR', ticker: 'TQQQ', requiredBuyUsd: 900, priority: 0 },
         ],
         uncertainStrategyIds: ['privacy-1'],
+        liveBalanceUnavailable: true,
       },
     })
 
@@ -166,6 +167,7 @@ describe('order api', () => {
         { strategyId: 'vr-1', type: 'VR', ticker: 'TQQQ', requiredBuyUsd: '900', priority: 0 },
       ],
       uncertainStrategyIds: ['privacy-1'],
+      liveBalanceUnavailable: true,
     })
   })
 })

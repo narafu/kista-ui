@@ -27,6 +27,7 @@ function normalizeCompetition(raw: unknown): BuyCompetitionSummary | null {
     consumedByHigherPriority: String(r.consumedByHigherPriority ?? '0'),
     blockedByHigherPriority: ((r.blockedByHigherPriority as unknown[]) ?? []).map(normalizeCompetingStrategy),
     uncertainStrategyIds: ((r.uncertainStrategyIds as unknown[]) ?? []).map(String),
+    liveBalanceUnavailable: Boolean(r.liveBalanceUnavailable),
   }
 }
 

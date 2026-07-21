@@ -39,6 +39,7 @@ export interface BuyCompetitionSummary {
   consumedByHigherPriority: string
   blockedByHigherPriority: CompetingStrategy[]
   uncertainStrategyIds: string[]
+  liveBalanceUnavailable: boolean   // 라이브 예수금 조회 자체 실패 시 true — sufficientBudget/availableDeposit 신뢰 불가
 }
 
 export interface NextOrderPreview {
