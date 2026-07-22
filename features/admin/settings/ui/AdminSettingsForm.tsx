@@ -6,7 +6,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { useAdminSettingsQuery, useUpdateAdminSettingsMutation } from '@entities/admin-settings'
-import type { RuntimeConfig, RuntimeFieldSettings, RuntimeStrategyType } from '@entities/runtime-config'
+import {
+  DEFAULT_RUNTIME_BENCHMARKS,
+  type RuntimeBenchmarkFieldSettings,
+  type RuntimeConfig,
+  type RuntimeFieldSettings,
+  type RuntimeStrategyType,
+} from '@entities/runtime-config'
 import { validateAdminSettings } from '../model/validateAdminSettings'
 
 const STRATEGY_LABELS: Record<RuntimeStrategyType, string> = {
@@ -14,7 +20,10 @@ const STRATEGY_LABELS: Record<RuntimeStrategyType, string> = {
 }
 
 function clone(value: RuntimeConfig): RuntimeConfig {
-  return structuredClone(value)
+  const next = structuredClone(value)
+  next.benchmarks ??= structuredClone(DEFAULT_RUNTIME_BENCHMARKS)
+  next.benchmarks.etf ??= structuredClone(DEFAULT_RUNTIME_BENCHMARKS.etf)
+  return next
 }
 
 function ToggleRow({ id, label, description, checked, onChange }: {
@@ -120,6 +129,68 @@ function FieldEditor<T extends string | number>({ id, label, field, error, fixed
   )
 }
 
+function BenchmarkFieldEditor({ id, label, field, error, onChange, onRawError }: {
+  id: string
+  label: string
+  field: RuntimeBenchmarkFieldSettings<string>
+  error?: string
+  onChange: (field: RuntimeBenchmarkFieldSettings<string>) => void
+  onRawError?: (error?: string) => void
+}) {
+  const [rawValues, setRawValues] = useState(() => field.allowedValues.join(', '))
+
+  useEffect(() => {
+    const tokens = rawValues.split(',').map((value) => value.trim())
+    const valid = !tokens.some((value) => value === '')
+    if (!valid || JSON.stringify(tokens) !== JSON.stringify(field.allowedValues)) {
+      setRawValues(field.allowedValues.join(', '))
+    }
+    // field.allowedValues is the synchronization boundary; rawValues intentionally remains locally formatted.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [field.allowedValues])
+
+  const parseRaw = (raw: string): string[] | null => {
+    const tokens = raw.split(',').map((value) => value.trim().toUpperCase())
+    if (tokens.some((value) => value === '')) {
+      onRawError?.('빈 허용값 없이 쉼표로 구분해 입력하세요.')
+      return null
+    }
+    onRawError?.()
+    return tokens
+  }
+  const updateRawValues = (raw: string) => {
+    setRawValues(raw)
+    const allowedValues = parseRaw(raw)
+    if (allowedValues) onChange({ ...field, allowedValues })
+  }
+
+  return (
+    <div className="grid gap-2 py-3 sm:grid-cols-[minmax(140px,1fr)_minmax(220px,1.5fr)] sm:items-start">
+      <div className="flex min-h-8 items-center sm:pr-4">
+        <label htmlFor={`${id}-values`} className="text-sm font-medium">{label}</label>
+      </div>
+      <div className="space-y-2">
+        <div className="grid grid-cols-[1fr_minmax(88px,0.55fr)] gap-2">
+          <div>
+            <span className="mb-1 block text-xs text-muted-foreground">자산 목록 (쉼표 구분)</span>
+            <Input id={`${id}-values`} value={rawValues} onChange={(event) => updateRawValues(event.target.value)} aria-invalid={Boolean(error)} />
+          </div>
+          <div>
+            <label htmlFor={`${id}-default`} className="mb-1 block text-xs text-muted-foreground">기본값</label>
+            <Input
+              id={`${id}-default`}
+              value={field.defaultValue}
+              onChange={(event) => onChange({ ...field, defaultValue: event.target.value.trim().toUpperCase() })}
+              aria-invalid={Boolean(error)}
+            />
+          </div>
+        </div>
+        {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
+      </div>
+    </div>
+  )
+}
+
 export function AdminSettingsForm({ initialSettings }: { initialSettings: RuntimeConfig }) {
   const { data } = useAdminSettingsQuery(initialSettings)
   const mutation = useUpdateAdminSettingsMutation()
@@ -159,6 +230,13 @@ export function AdminSettingsForm({ initialSettings }: { initialSettings: Runtim
     next.strategies[strategy].enabled = enabled
     return next
   })
+  const setBenchmarkEtf = (value: RuntimeBenchmarkFieldSettings<string>) => {
+    setDraft((current) => {
+      const next = clone(current)
+      next.benchmarks = { ...(next.benchmarks ?? DEFAULT_RUNTIME_BENCHMARKS), etf: value }
+      return next
+    })
+  }
   const submit = (event: React.FormEvent) => {
     event.preventDefault()
     setAttempted(true)
@@ -211,6 +289,18 @@ export function AdminSettingsForm({ initialSettings }: { initialSettings: Runtim
             <ToggleRow key={strategy} id={`strategy-${strategy}`} label={STRATEGY_LABELS[strategy]}
               checked={draft.strategies[strategy].enabled} onChange={(enabled) => setStrategyEnabled(strategy, enabled)} />
           ))}
+        </section>
+
+        <section className="border-b border-border px-4 py-4 sm:px-5">
+          <h2 className="text-base font-bold">벤치마크 비교</h2>
+          <BenchmarkFieldEditor
+            id="benchmark-etf"
+            label="ETF 벤치마크 자산"
+            field={draft.benchmarks?.etf ?? DEFAULT_RUNTIME_BENCHMARKS.etf}
+            error={attempted ? errors['benchmarks.etf'] : undefined}
+            onRawError={(error) => setRawError('benchmarks.etf', error)}
+            onChange={setBenchmarkEtf}
+          />
         </section>
 
         <section className="border-b border-border px-4 py-4 sm:px-5">

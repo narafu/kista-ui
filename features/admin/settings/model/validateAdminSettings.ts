@@ -16,6 +16,16 @@ function validateField<T>(key: string, field: RuntimeFieldSettings<T>, errors: A
   }
 }
 
+function validateValueSet<T>(key: string, allowedValues: T[], defaultValue: T, errors: AdminSettingsErrors) {
+  if (allowedValues.length === 0) {
+    errors[key] = '허용값을 하나 이상 입력하세요.'
+    return
+  }
+  if (!allowedValues.includes(defaultValue)) {
+    errors[key] = '기본값은 허용값에 포함되어야 합니다.'
+  }
+}
+
 export function validateAdminSettings(settings: RuntimeConfig): AdminSettingsErrors {
   const errors: AdminSettingsErrors = {}
   for (const [strategy, config] of Object.entries(settings.strategies)) {
@@ -27,6 +37,9 @@ export function validateAdminSettings(settings: RuntimeConfig): AdminSettingsErr
   if (recurring && !recurring.customizable
       && (recurring.defaultValue !== 'HOLD' || recurring.allowedValues.length !== 1 || recurring.allowedValues[0] !== 'HOLD')) {
     errors['VR.recurringMode'] = '고정 정기 입출금 방식은 HOLD만 허용할 수 있습니다.'
+  }
+  if (settings.benchmarks?.etf) {
+    validateValueSet('benchmarks.etf', settings.benchmarks.etf.allowedValues, settings.benchmarks.etf.defaultValue, errors)
   }
   return errors
 }

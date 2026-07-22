@@ -8,6 +8,15 @@ export interface AdminFieldSettings<T> {
   defaultValue: T
 }
 
+export interface AdminBenchmarkFieldSettings<T> {
+  allowedValues: T[]
+  defaultValue: T
+}
+
+export interface AdminBenchmarkSettings {
+  etf: AdminBenchmarkFieldSettings<string>
+}
+
 export interface AdminStrategyFields {
   ticker: AdminFieldSettings<string>
   divisionCount?: AdminFieldSettings<number>
@@ -20,4 +29,5 @@ export interface AdminSettings {
   auth: { approvalRequired: boolean }
   brokers: Record<AdminBrokerCode, { enabled: boolean }>
   strategies: Record<AdminStrategyType, { enabled: boolean; fields: AdminStrategyFields }>
+  benchmarks?: AdminBenchmarkSettings
 }

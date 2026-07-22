@@ -8,6 +8,15 @@ export interface RuntimeFieldSettings<T> {
   defaultValue: T
 }
 
+export interface RuntimeBenchmarkFieldSettings<T> {
+  allowedValues: T[]
+  defaultValue: T
+}
+
+export interface RuntimeBenchmarkSettings {
+  etf: RuntimeBenchmarkFieldSettings<string>
+}
+
 export interface RuntimeStrategyFields {
   ticker: RuntimeFieldSettings<string>
   divisionCount?: RuntimeFieldSettings<number>
@@ -20,4 +29,9 @@ export interface RuntimeConfig {
   auth: { approvalRequired: boolean }
   brokers: Record<RuntimeBrokerCode, { enabled: boolean }>
   strategies: Record<RuntimeStrategyType, { enabled: boolean; fields: RuntimeStrategyFields }>
+  benchmarks?: RuntimeBenchmarkSettings
+}
+
+export const DEFAULT_RUNTIME_BENCHMARKS: RuntimeBenchmarkSettings = {
+  etf: { allowedValues: ['SPY', 'QQQ', 'QLD', 'IBIT', 'ETHA'], defaultValue: 'SPY' },
 }

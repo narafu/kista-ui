@@ -1,10 +1,11 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useHousingBenchmarkQuery } from '@entities/stats'
 import type { EtfBenchmarkSymbol, HousingBenchmark, HousingBenchmarkParams, HousingBenchmarkRegion } from '@entities/stats'
 import { useAllStrategiesQuery } from '@entities/strategy'
+import { DEFAULT_RUNTIME_BENCHMARKS, useRuntimeConfigQuery } from '@entities/runtime-config'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { cn } from '@shared/lib/utils'
 import { HousingBenchmarkChart } from './HousingBenchmarkChart'
@@ -14,7 +15,7 @@ import { HousingBenchmarkQuintileTrendChart } from './HousingBenchmarkQuintileTr
 import { HousingBenchmarkRegionQuintileInfo } from './HousingBenchmarkRegionQuintileInfo'
 import {
   DEFAULT_HOUSING_REGION_NAME,
-  ETF_BENCHMARKS,
+  getEtfBenchmarkContent,
   HOUSING_QUINTILES,
   type HousingQuintile,
 } from './housingBenchmarkContent'
@@ -144,6 +145,10 @@ function isHousingQuintile(value: number | null | undefined): value is HousingQu
 
 const ASSET_SELECT_CLASS = 'min-h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
+function uniqueSymbols(symbols: string[]) {
+  return Array.from(new Set(symbols.map((symbol) => symbol.trim().toUpperCase()).filter(Boolean)))
+}
+
 function AssetTabButton({
   active,
   onClick,
@@ -168,11 +173,24 @@ function AssetTabButton({
 }
 
 export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
+  const runtimeConfigQuery = useRuntimeConfigQuery()
+  const runtimeEtfSettings = runtimeConfigQuery.data?.benchmarks?.etf ?? DEFAULT_RUNTIME_BENCHMARKS.etf
+  const etfSymbols = useMemo(() => {
+    const allowedValues = uniqueSymbols(runtimeEtfSettings.allowedValues)
+    return allowedValues.length > 0 ? allowedValues : DEFAULT_RUNTIME_BENCHMARKS.etf.allowedValues
+  }, [runtimeEtfSettings.allowedValues])
+  const defaultEtfSymbol = etfSymbols.includes(runtimeEtfSettings.defaultValue)
+    ? runtimeEtfSettings.defaultValue
+    : etfSymbols[0]
+  const etfBenchmarks = useMemo(() => etfSymbols.map((symbol) => ({
+    ...getEtfBenchmarkContent(symbol),
+    symbol,
+  })), [etfSymbols])
   const [scope, setScope] = useState<Scope>('PORTFOLIO')
   const [selectedStrategyId, setSelectedStrategyId] = useState('')
   const [activeAsset, setActiveAsset] = useState<'ETF' | 'HOUSING'>('ETF')
   const [quintile, setQuintile] = useState<HousingQuintile>(3)
-  const [etfSymbol, setEtfSymbol] = useState<EtfBenchmarkSymbol>(ETF_BENCHMARKS[0].symbol)
+  const [etfSymbol, setEtfSymbol] = useState<EtfBenchmarkSymbol>(defaultEtfSymbol)
   const selection: BenchmarkSelection = activeAsset === 'ETF' ? { type: 'ETF', symbol: etfSymbol } : { type: 'HOUSING', quintile }
   const [housingPeriod, setHousingPeriod] = useState<Period>('1Y')
   const [etfPeriod, setEtfPeriod] = useState<Period>('3M')
@@ -188,6 +206,10 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
     (region: HousingBenchmarkRegion) => setTrendRegionName(region.name ?? DEFAULT_HOUSING_REGION_NAME),
     [],
   )
+
+  useEffect(() => {
+    if (!etfSymbols.includes(etfSymbol)) setEtfSymbol(defaultEtfSymbol)
+  }, [defaultEtfSymbol, etfSymbol, etfSymbols])
 
   const isStrategyScope = scope === 'STRATEGY'
   // 개별 전략으로 전환했을 때만 전략 목록을 조회 — 전체 포트폴리오 범위에서는 불필요한 요청을 만들지 않는다
@@ -335,7 +357,7 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
                 onChange={(event) => setEtfSymbol(event.target.value as EtfBenchmarkSymbol)}
                 className={ASSET_SELECT_CLASS}
               >
-                {ETF_BENCHMARKS.map((item) => (
+                {etfBenchmarks.map((item) => (
                   <option key={item.symbol} value={item.symbol}>
                     {item.label} ({item.fullName})
                   </option>

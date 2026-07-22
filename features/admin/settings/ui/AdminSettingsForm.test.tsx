@@ -16,6 +16,9 @@ vi.mock('@entities/admin-settings', () => ({
 const settings: RuntimeConfig = {
   auth: { approvalRequired: true },
   brokers: { KIS: { enabled: true }, TOSS: { enabled: true } },
+  benchmarks: {
+    etf: { allowedValues: ['SPY', 'QQQ'], defaultValue: 'SPY' },
+  },
   strategies: {
     INFINITE: { enabled: true, fields: {
       ticker: { customizable: true, allowedValues: ['SOXL', 'TQQQ'], defaultValue: 'SOXL' },
@@ -121,5 +124,25 @@ describe('AdminSettingsForm', () => {
     alreadyDisabled.auth.approvalRequired = false
     render(<AdminSettingsForm initialSettings={alreadyDisabled} />)
     expect(screen.queryByText(/가입 승인 대기 상태가 해제/)).not.toBeInTheDocument()
+  })
+
+  it('submits benchmark ETF allowed values and default', async () => {
+    const user = userEvent.setup()
+    render(<AdminSettingsForm initialSettings={settings} />)
+
+    const values = screen.getByLabelText('ETF 벤치마크 자산', { selector: '#benchmark-etf-values' })
+    const defaultValue = screen.getByLabelText('기본값', { selector: '#benchmark-etf-default' })
+
+    await user.clear(values)
+    await user.type(values, 'SPY,QLD,IBIT')
+    await user.clear(defaultValue)
+    await user.type(defaultValue, 'QLD')
+    await user.click(screen.getByRole('button', { name: /변경 저장/ }))
+
+    expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({
+      benchmarks: {
+        etf: { allowedValues: ['SPY', 'QLD', 'IBIT'], defaultValue: 'QLD' },
+      },
+    }), expect.any(Object))
   })
 })

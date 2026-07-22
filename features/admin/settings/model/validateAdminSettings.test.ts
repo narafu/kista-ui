@@ -5,6 +5,9 @@ import { validateAdminSettings } from './validateAdminSettings'
 const valid: RuntimeConfig = {
   auth: { approvalRequired: true },
   brokers: { KIS: { enabled: true }, TOSS: { enabled: true } },
+  benchmarks: {
+    etf: { allowedValues: ['SPY', 'QQQ'], defaultValue: 'SPY' },
+  },
   strategies: {
     INFINITE: { enabled: true, fields: {
       ticker: { customizable: true, allowedValues: ['SOXL'], defaultValue: 'SOXL' },
@@ -43,5 +46,10 @@ describe('validateAdminSettings', () => {
     const value = structuredClone(valid)
     value.strategies.VR.fields.recurringMode = { customizable: false, allowedValues: ['DEPOSIT'], defaultValue: 'DEPOSIT' }
     expect(validateAdminSettings(value)).toMatchObject({ 'VR.recurringMode': expect.any(String) })
+  })
+  it('requires the ETF benchmark default in allowed values', () => {
+    const value = structuredClone(valid)
+    value.benchmarks!.etf.defaultValue = 'QLD'
+    expect(validateAdminSettings(value)).toMatchObject({ 'benchmarks.etf': expect.any(String) })
   })
 })

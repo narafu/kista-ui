@@ -1,13 +1,14 @@
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { HousingBenchmark, HousingBenchmarkComparison as HousingBenchmarkComparisonData } from '@entities/stats'
 import { HousingBenchmarkComparison } from './HousingBenchmarkComparison'
 
-const { useHousingBenchmarkQueryMock, useAllStrategiesQueryMock } = vi.hoisted(() => ({
+const { useHousingBenchmarkQueryMock, useAllStrategiesQueryMock, useRuntimeConfigQueryMock } = vi.hoisted(() => ({
   useHousingBenchmarkQueryMock: vi.fn(),
   useAllStrategiesQueryMock: vi.fn(),
+  useRuntimeConfigQueryMock: vi.fn(),
 }))
 
 const API_QUALITY_NOTICE =
@@ -21,6 +22,11 @@ vi.mock('@entities/stats', async (importOriginal) => {
 vi.mock('@entities/strategy', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@entities/strategy')>()
   return { ...actual, useAllStrategiesQuery: useAllStrategiesQueryMock }
+})
+
+vi.mock('@entities/runtime-config', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@entities/runtime-config')>()
+  return { ...actual, useRuntimeConfigQuery: useRuntimeConfigQueryMock }
 })
 
 vi.mock('./HousingBenchmarkQuintileTrendChart', () => ({
@@ -162,6 +168,7 @@ describe('HousingBenchmarkComparison', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useAllStrategiesQueryMock.mockReturnValue({ data: STRATEGIES, isLoading: false })
+    useRuntimeConfigQueryMock.mockReturnValue({ data: undefined })
     mockQuery()
   })
 
@@ -258,6 +265,49 @@ describe('HousingBenchmarkComparison', () => {
       from: '2026-04-17',
       to: '2026-07-17',
     }, true)
+  })
+
+  it('runtime config의 ETF 기본값과 목록으로 벤치마크 자산을 렌더링한다', async () => {
+    const user = userEvent.setup()
+    useRuntimeConfigQueryMock.mockReturnValue({
+      data: {
+        benchmarks: { etf: { allowedValues: ['QQQ', 'IBIT'], defaultValue: 'IBIT' } },
+      },
+    })
+
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
+      scope: 'PORTFOLIO',
+      benchmarkType: 'ETF',
+      symbol: 'IBIT',
+      from: '2026-04-17',
+      to: '2026-07-17',
+    }, true)
+    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('IBIT')
+    expect(screen.queryByRole('option', { name: /SPY/ })).not.toBeInTheDocument()
+
+    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'QQQ')
+    expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(expect.objectContaining({
+      benchmarkType: 'ETF',
+      symbol: 'QQQ',
+    }), true)
+  })
+
+  it('runtime config에만 있는 ETF 심볼도 일반 ETF 옵션으로 표시한다', () => {
+    useRuntimeConfigQueryMock.mockReturnValue({
+      data: {
+        benchmarks: { etf: { allowedValues: ['VOO'], defaultValue: 'VOO' } },
+      },
+    })
+
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    expect(screen.getByRole('option', { name: 'VOO (사용자 설정 ETF)' })).toBeInTheDocument()
+    expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(expect.objectContaining({
+      benchmarkType: 'ETF',
+      symbol: 'VOO',
+    }), true)
   })
 
   it('부동산(서울 분위) 선택 시에는 안내 박스를 표시하지 않는다 — 가격 추이 아래 지역별 안내로 이동', async () => {

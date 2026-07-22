@@ -203,6 +203,15 @@ export const ETF_BENCHMARKS: EtfBenchmarkContent[] = [
   },
 ]
 
-export function getEtfBenchmarkContent(symbol: EtfBenchmarkSymbol) {
-  return ETF_BENCHMARKS.find((item) => item.symbol === symbol) ?? ETF_BENCHMARKS[0]
+export function getEtfBenchmarkContent(symbol: string): EtfBenchmarkContent {
+  const normalizedSymbol = symbol.trim().toUpperCase() as EtfBenchmarkSymbol
+  return ETF_BENCHMARKS.find((item) => item.symbol === normalizedSymbol) ?? {
+    symbol: normalizedSymbol,
+    label: normalizedSymbol,
+    fullName: '사용자 설정 ETF',
+    riskTier: 'NEUTRAL',
+    riskChipLabel: '사용자 설정',
+    description: '관리자 설정에 등록된 ETF 벤치마크 자산입니다.',
+    notice: ETF_BENCHMARK_CURRENCY_NOTICE_FALLBACK,
+  }
 }

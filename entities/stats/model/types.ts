@@ -1,7 +1,8 @@
 import type { components } from '@shared/lib/api-types'
-import type { BenchmarkAssetType, EtfBenchmarkSymbol } from '@shared/lib/api-schema'
+import type { BenchmarkAssetType } from '@shared/lib/api-schema'
 
-export type { BenchmarkAssetType, EtfBenchmarkSymbol }
+export type { BenchmarkAssetType }
+export type EtfBenchmarkSymbol = string
 
 export interface StrategyTypeStats {
   type: string
