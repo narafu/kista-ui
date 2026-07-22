@@ -31,10 +31,11 @@ export function StrategyCard({ accountId, strategy, accountLabel, initialPreview
   const readiness = computeBuyReadiness(preview)
   const hasTodayOrders = (preview?.todayOrders ?? []).length > 0
   // 부족 최우선. 미접수인데 라이브 잔고 확인 자체가 실패했으면(liveBalanceUncertain) 충족으로
-  // 오인시키지 않도록 부족과 동일하게 취급한다
+  // 오인시키지 않도록 부족과 동일하게 취급한다. 오늘 시도 전(preview)에도 BUY 계획이 있는데
+  // 조회가 실패한 상태는 "정상"과 구분되게 표시해야 하므로 buyUnplaced 여부와 무관하게 경고로 취급한다
   const orderBorderColor = readiness.hasDeficit || (readiness.buyUnplaced && readiness.liveBalanceUncertain)
     ? 'var(--status-error)'
-    : readiness.buyUnplaced
+    : readiness.buyUnplaced || (readiness.hasBuyOrders && readiness.liveBalanceUncertain)
       ? 'var(--warn)'
       : hasTodayOrders
         ? 'var(--status-ok)'

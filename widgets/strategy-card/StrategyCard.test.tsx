@@ -226,4 +226,22 @@ describe('StrategyCard mobile row', () => {
 
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
   })
+
+  it('marks borders yellow (not blank) when a buy is planned but live balance could not be confirmed before any attempt today', () => {
+    previewState = {
+      ...previewState,
+      data: {
+        ...previewState.data,
+        orders: [{ direction: 'BUY', price: '1200', quantity: 1 }],
+        todayOrders: [],
+        competition: { sufficientBudget: true, liveBalanceUnavailable: true },
+      },
+    }
+
+    render(<StrategyCard accountId="account-1" strategy={strategy} />)
+
+    const borderAccent = screen.getByTestId('strategy-order-border-accent')
+    expect(borderAccent).not.toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
+    expect(borderAccent).toHaveAttribute('style', expect.stringContaining('border-color: var(--warn);'))
+  })
 })

@@ -47,16 +47,20 @@ function buyUnplacedMessage(readiness: ReturnType<typeof computeBuyReadiness>): 
 }
 
 // 카드 상단 배너 문구 — 휴장일/예수금 부족을 "바로 주문" 가능 여부와 함께 안내
+// liveBalanceUncertain: 라이브 예수금 조회 자체가 실패해 부족 여부를 판정할 수 없는 상태 —
+// preview 모드에서도 이 경우를 무시하면 실제로는 부족한데 배너가 아예 안 뜨는 사각지대가 생긴다
 function nextOrderBannerText(
   canExecute: boolean,
   mode: 'preview' | 'executed',
   isHoliday: boolean,
   hasDeficit: boolean,
   deficitUsd: number,
+  liveBalanceUncertain: boolean,
 ): string | null {
   if (!canExecute) return null
   if (mode === 'preview') {
     if (isHoliday) return '오늘은 휴장일입니다'
+    if (liveBalanceUncertain) return '예수금 확인 실패 — 잠시 후 다시 확인해주세요'
     if (hasDeficit) return `예수금 $${fmtUsd(deficitUsd)} 부족(장 마감 시 재시도)`
     return null
   }
@@ -105,7 +109,7 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
   const isHoliday = isWeekend || holidays.includes(todayStr)
   const canExecute = strategy.status === 'ACTIVE'
-  const bannerText = nextOrderBannerText(canExecute, mode, isHoliday, hasDeficit, previewDeficit)
+  const bannerText = nextOrderBannerText(canExecute, mode, isHoliday, hasDeficit, previewDeficit, readiness.liveBalanceUncertain)
 
   const deleteMutation = useDeleteStrategyMutation(() => push(`/accounts/${accountId}`))
   const pauseMutation = usePauseStrategyMutation()

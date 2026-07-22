@@ -14,6 +14,9 @@ export function useStrategyOrderPreviewQuery(strategyId: string, initialData?: N
     initialData,
     // 서버에서 prefetch한 시점 기준으로 신선도를 매겨야 staleTime 동안 클라이언트 재요청을 건너뜀
     initialDataUpdatedAt: initialData ? Date.now() : undefined,
+    // 라이브 예수금 조회 실패로 판정 불가 상태면 짧은 주기로 자동 재시도 — 그렇지 않으면
+    // staleTime 60초 동안 판정 불가 스냅샷이 그대로 고정돼 재조회 없이는 스스로 회복되지 않는다
+    refetchInterval: (query) => (query.state.data?.competition?.liveBalanceUnavailable ? 5_000 : false),
   })
 }
 

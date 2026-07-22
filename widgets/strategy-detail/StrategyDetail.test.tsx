@@ -387,6 +387,35 @@ describe('StrategyDetail budget deficit badge', () => {
     // previewDeficit = max(0, 900 + 200 - 1000) = 100
     expect(screen.getByText('예수금 $100.00 부족(장 마감 시 재시도)')).toBeInTheDocument()
   })
+
+  it('shows an uncertain banner in preview mode instead of hiding the state when live balance lookup failed', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [],
+        position: null,
+        orders: [{ ticker: 'TSLA', orderType: 'LOC', direction: 'BUY', quantity: 5, price: '20.00' }],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: {
+          sufficientBudget: true,
+          availableDeposit: '0',
+          requiredForThisStrategy: '200',
+          consumedByHigherPriority: '0',
+          blockedByHigherPriority: [],
+          uncertainStrategyIds: [],
+          liveBalanceUnavailable: true,
+        },
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    expect(screen.queryByText(/예수금 \$[\d,.]+ 부족/)).not.toBeInTheDocument()
+    expect(screen.getByText('예수금 확인 실패 — 잠시 후 다시 확인해주세요')).toBeInTheDocument()
+  })
 })
 
 describe('StrategyDetail executed-mode deficit badge', () => {
