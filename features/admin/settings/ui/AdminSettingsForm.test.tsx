@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RuntimeConfig } from '@entities/runtime-config'
@@ -11,6 +11,19 @@ const { mutateMock, queryState } = vi.hoisted(() => ({
 vi.mock('@entities/admin-settings', () => ({
   useAdminSettingsQuery: (initial: RuntimeConfig) => ({ data: queryState.data ?? initial }),
   useUpdateAdminSettingsMutation: () => ({ mutate: mutateMock, isPending: false }),
+}))
+
+vi.mock('@entities/meta', () => ({
+  useMeta: () => ({
+    meta: {
+      tickers: [
+        { code: 'SOXL', name: 'Direxion Daily Semiconductor Bull 3X Shares' },
+        { code: 'TQQQ', name: 'ProShares UltraPro QQQ' },
+        { code: 'QLD', name: 'ProShares Ultra QQQ' },
+        { code: 'IBIT', name: 'iShares Bitcoin Trust' },
+      ],
+    },
+  }),
 }))
 
 const settings: RuntimeConfig = {
@@ -56,52 +69,96 @@ describe('AdminSettingsForm', () => {
     expect(toggle).toBeChecked()
   })
 
-  it('blocks an empty allowed-value list and exposes the validation error', async () => {
+  it('adds string and numeric allowed values through structured rows', async () => {
     const user = userEvent.setup()
     render(<AdminSettingsForm initialSettings={settings} />)
-    const input = screen.getByLabelText('종목', { selector: '#infinite-ticker-values' })
-    fireEvent.change(input, { target: { value: '' } })
-    await user.click(screen.getByRole('button', { name: /변경 저장/ }))
-    expect(screen.getByRole('alert')).toHaveTextContent('빈 허용값 없이')
-    expect(mutateMock).not.toHaveBeenCalled()
-  })
 
-  it('keeps comma-separated numeric text editable and submits incrementally added values', async () => {
-    const user = userEvent.setup()
-    render(<AdminSettingsForm initialSettings={settings} />)
-    const input = screen.getByLabelText('분할 수', { selector: '#infinite-division-values' })
-    await user.clear(input)
-    await user.type(input, '20,30,40')
-    expect(input).toHaveValue('20,30,40')
+    await user.type(screen.getByRole('combobox', { name: '종목 추가' }), 'qld')
+    await user.click(screen.getByRole('button', { name: '종목 추가 확정' }))
+    await user.type(screen.getByRole('textbox', { name: '분할 수 추가' }), '40')
+    await user.click(screen.getByRole('button', { name: '분할 수 추가 확정' }))
     await user.click(screen.getByRole('button', { name: /변경 저장/ }))
+
     expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({
       strategies: expect.objectContaining({ INFINITE: expect.objectContaining({
-        fields: expect.objectContaining({ divisionCount: expect.objectContaining({ allowedValues: [20, 30, 40] }) }),
+        fields: expect.objectContaining({
+          ticker: expect.objectContaining({ allowedValues: ['SOXL', 'TQQQ', 'QLD'] }),
+          divisionCount: expect.objectContaining({ allowedValues: [20, 30, 40] }),
+        }),
       }) }),
     }), expect.any(Object))
   })
 
-  it('reports malformed and empty numeric tokens without dropping them', async () => {
+  it('rejects empty duplicate and malformed added values before save', async () => {
     const user = userEvent.setup()
     render(<AdminSettingsForm initialSettings={settings} />)
-    const input = screen.getByLabelText('분할 수', { selector: '#infinite-division-values' })
-    await user.clear(input)
-    await user.type(input, '20,,abc,40')
-    await user.tab()
+
+    await user.click(screen.getByRole('button', { name: '종목 추가 확정' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('값을 입력하세요.')
+    await user.type(screen.getByRole('combobox', { name: '종목 추가' }), 'soxl')
+    await user.click(screen.getByRole('button', { name: '종목 추가 확정' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('이미 추가된 값입니다.')
+
+    await user.type(screen.getByRole('textbox', { name: '분할 수 추가' }), 'abc')
+    await user.click(screen.getByRole('button', { name: '분할 수 추가 확정' }))
+    expect(screen.getAllByRole('alert').at(-1)).toHaveTextContent('올바른 숫자를 입력하세요.')
+
     await user.click(screen.getByRole('button', { name: /변경 저장/ }))
-    expect(screen.getByRole('alert')).toHaveTextContent('올바른 숫자를 쉼표로 구분')
-    expect(input).toHaveValue('20,,abc,40')
     expect(mutateMock).not.toHaveBeenCalled()
   })
 
-  it('discards malformed raw text back to the server value', async () => {
+  it('changes the default through row radios and blocks deleting the default row', async () => {
     const user = userEvent.setup()
     render(<AdminSettingsForm initialSettings={settings} />)
-    const input = screen.getByLabelText('분할 수', { selector: '#infinite-division-values' })
-    await user.clear(input)
-    await user.type(input, '20,abc')
-    await user.click(screen.getByRole('button', { name: /변경 취소/ }))
-    expect(input).toHaveValue('20, 30')
+
+    await user.click(screen.getByRole('radio', { name: 'TQQQ 기본값' }))
+    await user.click(screen.getByRole('button', { name: 'TQQQ 삭제' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('기본값은 삭제할 수 없습니다.')
+
+    await user.click(screen.getByRole('button', { name: 'SOXL 삭제' }))
+    await user.click(screen.getByRole('button', { name: /변경 저장/ }))
+
+    expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({
+      strategies: expect.objectContaining({ INFINITE: expect.objectContaining({
+        fields: expect.objectContaining({
+          ticker: expect.objectContaining({ allowedValues: ['TQQQ'], defaultValue: 'TQQQ' }),
+        }),
+      }) }),
+    }), expect.any(Object))
+  })
+
+  it('collapses customizable values to the current default when user changes are disabled', async () => {
+    const user = userEvent.setup()
+    render(<AdminSettingsForm initialSettings={settings} />)
+
+    await user.click(screen.getByRole('switch', { name: '분할 수 사용자 변경 허용' }))
+    await user.click(screen.getByRole('button', { name: /변경 저장/ }))
+
+    expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({
+      strategies: expect.objectContaining({ INFINITE: expect.objectContaining({
+        fields: expect.objectContaining({
+          divisionCount: { customizable: false, allowedValues: [20], defaultValue: 20 },
+        }),
+      }) }),
+    }), expect.any(Object))
+  })
+
+  it('edits recurring mode using fixed candidates and forces HOLD when fixed', async () => {
+    const user = userEvent.setup()
+    render(<AdminSettingsForm initialSettings={settings} />)
+
+    await user.click(screen.getByRole('radio', { name: 'DEPOSIT 기본값' }))
+    await user.click(screen.getByRole('checkbox', { name: 'WITHDRAW 허용' }))
+    await user.click(screen.getByRole('switch', { name: '정기 입출금 방식 사용자 변경 허용' }))
+    await user.click(screen.getByRole('button', { name: /변경 저장/ }))
+
+    expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({
+      strategies: expect.objectContaining({ VR: expect.objectContaining({
+        fields: expect.objectContaining({
+          recurringMode: { customizable: false, allowedValues: ['HOLD'], defaultValue: 'HOLD' },
+        }),
+      }) }),
+    }), expect.any(Object))
   })
 
   it('preserves dirty edits across incoming server data and resets to the latest snapshot', async () => {
@@ -130,18 +187,14 @@ describe('AdminSettingsForm', () => {
     const user = userEvent.setup()
     render(<AdminSettingsForm initialSettings={settings} />)
 
-    const values = screen.getByLabelText('ETF 벤치마크 자산', { selector: '#benchmark-etf-values' })
-    const defaultValue = screen.getByLabelText('기본값', { selector: '#benchmark-etf-default' })
-
-    await user.clear(values)
-    await user.type(values, 'SPY,QLD,IBIT')
-    await user.clear(defaultValue)
-    await user.type(defaultValue, 'QLD')
+    await user.type(screen.getByRole('combobox', { name: 'ETF 벤치마크 자산 추가' }), 'qld')
+    await user.click(screen.getByRole('button', { name: 'ETF 벤치마크 자산 추가 확정' }))
+    await user.click(screen.getByRole('radio', { name: 'QLD 기본값' }))
     await user.click(screen.getByRole('button', { name: /변경 저장/ }))
 
     expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({
       benchmarks: {
-        etf: { allowedValues: ['SPY', 'QLD', 'IBIT'], defaultValue: 'QLD' },
+        etf: { allowedValues: ['SPY', 'QQQ', 'QLD'], defaultValue: 'QLD' },
       },
     }), expect.any(Object))
   })
