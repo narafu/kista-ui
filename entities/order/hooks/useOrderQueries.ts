@@ -5,12 +5,15 @@ import { toast } from 'sonner'
 import { getStrategyOrdersPreview, cancelAllOrders, cancelOneOrder, listStrategyOrders } from '../api'
 import type { NextOrderPreview, StrategyOrder } from '../model/types'
 
-export function useStrategyOrderPreviewQuery(strategyId: string) {
+export function useStrategyOrderPreviewQuery(strategyId: string, initialData?: NextOrderPreview) {
   return useQuery<NextOrderPreview>({
     queryKey: ['order-preview', 'strategy', strategyId],
     queryFn: () => getStrategyOrdersPreview(strategyId),
     retry: false,
     staleTime: 60_000, // 카드 목록 재진입 시 캐시 재사용 — "바로 주문"/취소는 invalidateQueries로 별도 강제 갱신되므로 신선도에 영향 없음
+    initialData,
+    // 서버에서 prefetch한 시점 기준으로 신선도를 매겨야 staleTime 동안 클라이언트 재요청을 건너뜀
+    initialDataUpdatedAt: initialData ? Date.now() : undefined,
   })
 }
 

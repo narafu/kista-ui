@@ -6,8 +6,10 @@ import { StrategyFormDialog } from '@features/strategy/create-strategy'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { listAccounts } from '@entities/account'
 import { listStrategies } from '@entities/strategy'
+import { getStrategyOrdersPreview } from '@entities/order'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
+import type { NextOrderPreview } from '@entities/order'
 
 interface Props {
   params: Promise<{ id: string; sid: string }>
@@ -36,6 +38,9 @@ export default async function StrategyDetailPage({ params }: Props) {
     return notFound()
   }
 
+  // "다음 주문" 배너·데이터가 하이드레이션 이후 재요청 없이 첫 페인트부터 보이도록 서버에서 미리 조회
+  const initialPreview: NextOrderPreview | undefined = await getStrategyOrdersPreview(strategy.id, token).catch(() => undefined)
+
   return (
     <div className="space-y-4">
       <PageHeader
@@ -47,7 +52,7 @@ export default async function StrategyDetailPage({ params }: Props) {
         }
       />
 
-      <StrategyDetail accountId={id} strategy={strategy} />
+      <StrategyDetail accountId={id} strategy={strategy} initialPreview={initialPreview} />
     </div>
   )
 }

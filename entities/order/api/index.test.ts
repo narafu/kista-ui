@@ -1,14 +1,19 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 const clientFetchMock = vi.fn()
+const apiFetchMock = vi.fn()
 
 vi.mock('@shared/lib/api-client', () => ({
   clientFetch: (...args: unknown[]) => clientFetchMock(...args),
+  apiFetch: (...args: unknown[]) => apiFetchMock(...args),
+  fetchEither: (path: string, options: unknown, token?: string) =>
+    token ? apiFetchMock(path, options, token) : clientFetchMock(path, options),
 }))
 
 describe('order api', () => {
   beforeEach(() => {
     clientFetchMock.mockReset()
+    apiFetchMock.mockReset()
   })
 
   it('getStrategyOrdersPreview normalizes orders/position and defaults optional fields', async () => {
@@ -34,7 +39,7 @@ describe('order api', () => {
 
     const result = await getStrategyOrdersPreview('strategy-1')
 
-    expect(clientFetchMock).toHaveBeenCalledWith('/api/trading-cycles/strategy-1/preview')
+    expect(clientFetchMock).toHaveBeenCalledWith('/api/trading-cycles/strategy-1/preview', { method: 'GET' })
     expect(result.orders[0]).toEqual({
       ticker: 'TQQQ',
       orderType: 'LOC',
@@ -69,6 +74,24 @@ describe('order api', () => {
       { id: 'order-1', ticker: 'TQQQ', direction: 'BUY', orderType: 'LOC', quantity: 3, price: '20.00', status: 'PLACED' },
     ])
     expect(result.otherStrategiesPlannedBuyUsd).toBe('150.00')
+  })
+
+  it('getStrategyOrdersPreview calls kista-api directly with the token when provided (Server Component prefetch)', async () => {
+    const { getStrategyOrdersPreview } = await import('./index')
+    apiFetchMock.mockResolvedValueOnce({
+      tradeDate: '2026-01-01',
+      position: null,
+      orders: [],
+      skipReason: null,
+      todayOrders: [],
+      otherStrategiesPlannedBuyUsd: '0',
+    })
+
+    const result = await getStrategyOrdersPreview('strategy-1', 'token-abc')
+
+    expect(apiFetchMock).toHaveBeenCalledWith('/api/trading-cycles/strategy-1/preview', { method: 'GET' }, 'token-abc')
+    expect(clientFetchMock).not.toHaveBeenCalled()
+    expect(result.tradeDate).toBe('2026-01-01')
   })
 
   it('cancelAllOrders issues DELETE to the trading-cycles execute endpoint', async () => {

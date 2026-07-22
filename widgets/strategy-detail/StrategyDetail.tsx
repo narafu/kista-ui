@@ -30,7 +30,7 @@ import { ApiError } from '@shared/lib/api-client'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import type { Strategy } from '@entities/strategy'
-import type { SkipReason } from '@entities/order'
+import type { SkipReason, NextOrderPreview } from '@entities/order'
 import { OrderRows } from './OrderRows'
 import { StrategyOrderHistory } from './StrategyOrderHistory'
 
@@ -74,13 +74,14 @@ function previewErrorMsg(error: unknown): string {
 interface Props {
   accountId: string
   strategy: Strategy
+  initialPreview?: NextOrderPreview
 }
 
-export function StrategyDetail({ accountId, strategy }: Props) {
+export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
   const { push } = useRouter()
   const [deleteOpen, setDeleteOpen] = useState(false)
 
-  const { data: preview, isLoading: isLoadingPreview, isError: isPreviewError, error: previewError } = useStrategyOrderPreviewQuery(strategy.id)
+  const { data: preview, isLoading: isLoadingPreview, isError: isPreviewError, error: previewError } = useStrategyOrderPreviewQuery(strategy.id, initialPreview)
 
   const placedOrders = preview?.todayOrders ?? []
   const mode: 'preview' | 'executed' = placedOrders.length > 0 ? 'executed' : 'preview'

@@ -1,4 +1,4 @@
-import { clientFetch } from '@shared/lib/api-client'
+import { clientFetch, fetchEither } from '@shared/lib/api-client'
 import type { BuyCompetitionSummary, CompetingStrategy, NextOrderPreview, SkipReason, StrategyOrder } from '../model/types'
 
 export interface CancelOrdersResult {
@@ -76,9 +76,25 @@ function normalizePreview(raw: unknown): NextOrderPreview {
   return { tradeDate: String(r.tradeDate), position, orders, skipReason, todayOrders, otherStrategiesPlannedBuyUsd, competition }
 }
 
-export async function getStrategyOrdersPreview(strategyId: string): Promise<NextOrderPreview> {
-  const raw = await clientFetch<unknown>(`/api/trading-cycles/${strategyId}/preview`)
+// token 있으면 Server Component에서 kista-api 직접 호출, 없으면 Client Component에서 Route Handler 경유
+export async function getStrategyOrdersPreview(strategyId: string, token?: string): Promise<NextOrderPreview> {
+  const raw = await fetchEither<unknown>(`/api/trading-cycles/${strategyId}/preview`, { method: 'GET' }, token)
   return normalizePreview(raw)
+}
+
+// 리스트 화면 Server Component 프리페치 전용 — 전략별 preview를 병렬 조회해 strategyId 맵으로 반환.
+// 실패한 전략은 맵에서 생략 — 해당 카드는 initialData 없이 클라이언트에서 개별 재조회한다
+export async function getStrategyOrderPreviewsById(strategyIds: string[], token: string): Promise<Record<string, NextOrderPreview>> {
+  const entries = await Promise.all(
+    strategyIds.map(async (id): Promise<readonly [string, NextOrderPreview] | null> => {
+      try {
+        return [id, await getStrategyOrdersPreview(id, token)] as const
+      } catch {
+        return null
+      }
+    }),
+  )
+  return Object.fromEntries(entries.filter((e) => e !== null))
 }
 
 // 오늘 등록된 PLANNED + PLACED 주문 전체 취소 — DELETE /api/trading-cycles/{id}/execute

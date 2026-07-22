@@ -8,18 +8,20 @@ import { useMeta } from '@entities/meta'
 import { computeBuyReadiness, useStrategyOrderPreviewQuery } from '@entities/order'
 import { seedBadgeClass, strategyStatusAccent } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
+import type { NextOrderPreview } from '@entities/order'
 import { Badge } from '@shared/ui/Badge'
 
 interface Props {
   accountId: string
   strategy: Strategy
   accountLabel?: string | ReactNode
+  initialPreview?: NextOrderPreview
 }
 
 
-export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
+export function StrategyCard({ accountId, strategy, accountLabel, initialPreview }: Props) {
   const { findStrategyType, labelOf } = useMeta()
-  const { data: preview } = useStrategyOrderPreviewQuery(strategy.id)
+  const { data: preview } = useStrategyOrderPreviewQuery(strategy.id, initialPreview)
   const usesDivisionCount = (findStrategyType(strategy.type)?.divisionCounts?.length ?? 0) > 0
   const isVr = strategy.vr != null // VR 전략 여부 — vr 필드 존재 여부로 판정
   const seedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)

@@ -8,6 +8,7 @@ import { StrategyCard } from '@widgets/strategy-card'
 import { useAllStrategiesQuery } from '@entities/strategy'
 import { useMeta } from '@entities/meta'
 import type { Strategy } from '@entities/strategy'
+import type { NextOrderPreview } from '@entities/order'
 import { Spinner } from '@shared/ui/Spinner'
 import { EmptyState } from '@shared/ui/EmptyState'
 import type { Account } from '@entities/account'
@@ -15,6 +16,7 @@ import type { Account } from '@entities/account'
 interface Props {
   strategies: Strategy[]
   accounts: Account[]
+  previewsByStrategyId?: Record<string, NextOrderPreview>
 }
 
 function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
@@ -81,7 +83,7 @@ function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
   )
 }
 
-export function AllStrategiesList({ strategies: initialStrategies, accounts }: Props) {
+export function AllStrategiesList({ strategies: initialStrategies, accounts, previewsByStrategyId }: Props) {
   const { data: strategies = initialStrategies } = useAllStrategiesQuery(initialStrategies)
   const { findBroker } = useMeta()
 
@@ -120,6 +122,7 @@ export function AllStrategiesList({ strategies: initialStrategies, accounts }: P
                 accountId={s.accountId}
                 strategy={s}
                 accountLabel={groupByAccount ? undefined : account.nickname}
+                initialPreview={previewsByStrategyId?.[s.id]}
               />
             ))}
           </div>
