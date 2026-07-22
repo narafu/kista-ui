@@ -94,6 +94,90 @@ describe('order api', () => {
     expect(result.tradeDate).toBe('2026-01-01')
   })
 
+  it('getAccountOrderPreviews normalizes each entry of the batch response map', async () => {
+    const { getAccountOrderPreviews } = await import('./index')
+    apiFetchMock.mockResolvedValueOnce({
+      'strategy-1': {
+        tradeDate: '2026-01-01',
+        position: null,
+        orders: [],
+        skipReason: null,
+        todayOrders: [],
+        otherStrategiesPlannedBuyUsd: '0',
+      },
+      'strategy-2': {
+        tradeDate: '2026-01-01',
+        position: null,
+        orders: [],
+        skipReason: 'NO_CYCLE_HISTORY',
+        todayOrders: [],
+        otherStrategiesPlannedBuyUsd: '0',
+      },
+    })
+
+    const result = await getAccountOrderPreviews('account-1', 'token-abc')
+
+    expect(apiFetchMock).toHaveBeenCalledWith(
+      '/api/accounts/account-1/trading-cycles/previews',
+      { method: 'GET' },
+      'token-abc',
+    )
+    expect(Object.keys(result)).toEqual(['strategy-1', 'strategy-2'])
+    expect(result['strategy-2'].skipReason).toBe('NO_CYCLE_HISTORY')
+  })
+
+  it('getStrategyOrderPreviewsById groups strategies by accountId and calls the batch endpoint once per account', async () => {
+    const { getStrategyOrderPreviewsById } = await import('./index')
+    apiFetchMock.mockImplementation((path: string) => {
+      if (path === '/api/accounts/account-1/trading-cycles/previews') {
+        return Promise.resolve({
+          'strategy-1': { tradeDate: '2026-01-01', position: null, orders: [], skipReason: null, todayOrders: [], otherStrategiesPlannedBuyUsd: '0' },
+        })
+      }
+      return Promise.resolve({
+        'strategy-2': { tradeDate: '2026-01-01', position: null, orders: [], skipReason: null, todayOrders: [], otherStrategiesPlannedBuyUsd: '0' },
+      })
+    })
+
+    const result = await getStrategyOrderPreviewsById(
+      [
+        { id: 'strategy-1', accountId: 'account-1' },
+        { id: 'strategy-2', accountId: 'account-2' },
+      ],
+      'token-abc',
+    )
+
+    expect(apiFetchMock).toHaveBeenCalledTimes(2)
+    expect(Object.keys(result).sort()).toEqual(['strategy-1', 'strategy-2'])
+  })
+
+  it('getStrategyOrderPreviewsById calls the batch endpoint once for strategies sharing an account', async () => {
+    const { getStrategyOrderPreviewsById } = await import('./index')
+    apiFetchMock.mockResolvedValueOnce({
+      'strategy-1': { tradeDate: '2026-01-01', position: null, orders: [], skipReason: null, todayOrders: [], otherStrategiesPlannedBuyUsd: '0' },
+      'strategy-2': { tradeDate: '2026-01-01', position: null, orders: [], skipReason: null, todayOrders: [], otherStrategiesPlannedBuyUsd: '0' },
+    })
+
+    await getStrategyOrderPreviewsById(
+      [
+        { id: 'strategy-1', accountId: 'account-1' },
+        { id: 'strategy-2', accountId: 'account-1' },
+      ],
+      'token-abc',
+    )
+
+    expect(apiFetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('getStrategyOrderPreviewsById omits an account whose batch call fails', async () => {
+    const { getStrategyOrderPreviewsById } = await import('./index')
+    apiFetchMock.mockRejectedValueOnce(new Error('network error'))
+
+    const result = await getStrategyOrderPreviewsById([{ id: 'strategy-1', accountId: 'account-1' }], 'token-abc')
+
+    expect(result).toEqual({})
+  })
+
   it('cancelAllOrders issues DELETE to the trading-cycles execute endpoint', async () => {
     const { cancelAllOrders } = await import('./index')
     const summary = { cancelledCount: 2, failedCount: 0 }

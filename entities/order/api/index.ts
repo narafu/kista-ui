@@ -82,19 +82,24 @@ export async function getStrategyOrdersPreview(strategyId: string, token?: strin
   return normalizePreview(raw)
 }
 
-// 리스트 화면 Server Component 프리페치 전용 — 전략별 preview를 병렬 조회해 strategyId 맵으로 반환.
-// 실패한 전략은 맵에서 생략 — 해당 카드는 initialData 없이 클라이언트에서 개별 재조회한다
-export async function getStrategyOrderPreviewsById(strategyIds: string[], token: string): Promise<Record<string, NextOrderPreview>> {
-  const entries = await Promise.all(
-    strategyIds.map(async (id): Promise<readonly [string, NextOrderPreview] | null> => {
-      try {
-        return [id, await getStrategyOrdersPreview(id, token)] as const
-      } catch {
-        return null
-      }
-    }),
+// 계좌 단위 다음 주문 미리보기 일괄 조회 — GET /api/accounts/{accountId}/trading-cycles/previews
+// 계좌 내 전략 N개를 개별 호출하는 대신 1회 요청으로 묶어 kista-api 쪽 라이브 예수금 중복 조회도 함께 줄인다
+export async function getAccountOrderPreviews(accountId: string, token: string): Promise<Record<string, NextOrderPreview>> {
+  const raw = await fetchEither<Record<string, unknown>>(`/api/accounts/${accountId}/trading-cycles/previews`, { method: 'GET' }, token)
+  return Object.fromEntries(Object.entries(raw).map(([id, v]) => [id, normalizePreview(v)]))
+}
+
+// 리스트 화면 Server Component 프리페치 전용 — 전략들을 계좌 단위로 묶어 배치 preview를 병렬 조회해 strategyId 맵으로 반환.
+// 실패한 계좌는 생략 — 해당 계좌의 카드는 initialData 없이 클라이언트에서 개별 재조회한다
+export async function getStrategyOrderPreviewsById(
+  strategies: { id: string; accountId: string }[],
+  token: string,
+): Promise<Record<string, NextOrderPreview>> {
+  const accountIds = [...new Set(strategies.map((s) => s.accountId))]
+  const results = await Promise.all(
+    accountIds.map((accountId) => getAccountOrderPreviews(accountId, token).catch((): Record<string, NextOrderPreview> => ({}))),
   )
-  return Object.fromEntries(entries.filter((e) => e !== null))
+  return Object.assign({}, ...results)
 }
 
 // 오늘 등록된 PLANNED + PLACED 주문 전체 취소 — DELETE /api/trading-cycles/{id}/execute

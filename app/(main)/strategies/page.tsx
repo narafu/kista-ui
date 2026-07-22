@@ -26,8 +26,8 @@ export default async function StrategiesPage() {
       listAllStrategies(token).catch(() => []),
       getCachedAccounts(token).catch((): Account[] => []),
     ])
-    // 전략별 다음 주문 미리보기 — 서버에서 미리 채워 카드 목록의 배지·배너가 첫 페인트부터 보이게 함
-    previewsByStrategyId = await getStrategyOrderPreviewsById(strategies.map((s) => s.id), token)
+    // 전략별 다음 주문 미리보기 — 서버에서 미리 채워 카드 목록의 배지·배너가 첫 페인트부터 보이게 함 (계좌 단위 배치 조회)
+    previewsByStrategyId = await getStrategyOrderPreviewsById(strategies, token)
   }
   return (
     <>

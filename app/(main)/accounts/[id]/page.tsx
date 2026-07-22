@@ -8,7 +8,7 @@ import { getAuthToken } from '@shared/lib/auth/token'
 import { listAccounts } from '@entities/account'
 import { getAccountPortfolio } from '@entities/trade'
 import { listStrategies } from '@entities/strategy'
-import { getStrategyOrderPreviewsById } from '@entities/order'
+import { getAccountOrderPreviews } from '@entities/order'
 import type { PortfolioSummary } from '@entities/trade'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
@@ -29,13 +29,15 @@ export default async function AccountDetailPage({ params }: Props) {
     return notFound()
   }
 
-  const [accounts, portfolioRaw, strategies] = await Promise.all([
+  const [accounts, portfolioRaw, strategies, previewsByStrategyId] = await Promise.all([
     listAccounts(token).catch((): Account[] => []),
     getAccountPortfolio(id, token).catch((): PortfolioSummary | null => null),
     listStrategies(id, token).catch((e): Strategy[] => {
       console.error('[AccountDetailPage] listStrategies 실패:', e)
       return []
     }),
+    // 전략별 다음 주문 미리보기 — 서버에서 미리 채워 카드 목록의 배지·배너가 첫 페인트부터 보이게 함 (계좌 단위 배치 조회 1회)
+    getAccountOrderPreviews(id, token).catch(() => ({})),
   ])
 
   const usdDeposit = portfolioRaw?.summary?.usdDeposit ?? 0
@@ -45,9 +47,6 @@ export default async function AccountDetailPage({ params }: Props) {
   if (!account) {
     return notFound()
   }
-
-  // 전략별 다음 주문 미리보기 — 서버에서 미리 채워 카드 목록의 배지·배너가 첫 페인트부터 보이게 함
-  const previewsByStrategyId = await getStrategyOrderPreviewsById(strategies.map((s) => s.id), token)
 
   return (
     <div className="space-y-4">
