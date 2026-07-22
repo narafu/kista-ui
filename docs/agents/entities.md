@@ -81,7 +81,7 @@ import { deleteAccount } from '@entities/account'
 - **trade/providers**: `TradeNotificationProvider`는 SSE `/api/trades/stream` 구독용
 - **privacy**: 관리자 전용 — Server Component에서 apiFetch로 `/api/admin/privacy-trade-bases` 직접 호출 (Route Handler 없음)
 - **fcm**: `registerTokenToServer`는 `clientFetch<void>` 사용 (토큰 해제 API는 클라이언트 미구현 — `app/api/fcm/tokens/[token]` DELETE 라우트만 존재)
-- **stats**: `GET /api/stats/summary|equity-curve|cycles` 소비. `byType[].winRate`/`avgReturnRate`/`avgDurationDays`와 `CyclePerformance`의 `pnl`/`returnRate`/`durationDays`/`endDate`/`endAmount`는 미종료 사이클에서 `null` 가능 — 렌더링 시 null 가드 필수. `getStatsCycles`의 `nextCursor`는 없으면 응답에서 필드 자체가 생략되므로 옵셔널 처리
+- **stats**: `GET /api/stats/summary|equity-curve|cycles` 소비. `equity-curve`와 `cycles`는 선택 전략 타입 필터(`type=INFINITE|PRIVACY|VR`)를 공유하고, `summary`는 전략 유형 비교 목적상 항상 전체 집계를 사용한다. `byType[].winRate`/`avgReturnRate`/`avgDurationDays`와 `CyclePerformance`의 `pnl`/`returnRate`/`durationDays`/`endDate`/`endAmount`는 미종료 사이클에서 `null` 가능 — 렌더링 시 null 가드 필수. `getStatsCycles`의 `nextCursor`는 없으면 응답에서 필드 자체가 생략되므로 옵셔널 처리
 
 ## KIS live API quirk
 

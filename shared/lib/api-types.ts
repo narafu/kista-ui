@@ -4543,6 +4543,7 @@ export interface operations {
     getEquityCurve: {
         parameters: {
             query?: {
+                type?: "INFINITE" | "PRIVACY" | "VR";
                 from?: string;
                 to?: string;
             };

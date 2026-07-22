@@ -41,6 +41,7 @@ interface Props {
 
 export function StatsOverview({ initialSummary, initialCurve, defaultFrom, defaultTo }: Props) {
   const [range, setRange] = useState<RangeKey>('3M')
+  const [strategyTypeFilter, setStrategyTypeFilter] = useState<string | undefined>(undefined)
   const [activeTab, setActiveTab] = useState<'OPERATIONS' | 'BENCHMARK'>('OPERATIONS')
   const [hasOpenedBenchmark, setHasOpenedBenchmark] = useState(false)
 
@@ -51,8 +52,8 @@ export function StatsOverview({ initialSummary, initialCurve, defaultFrom, defau
   const isInitialParams = range === '3M'
   const from = isInitialParams ? defaultFrom : rangeToFrom(range, defaultTo)
   const curveQuery = useEquityCurveQuery(
-    { from, to: defaultTo },
-    isInitialParams ? initialCurve : undefined,
+    { from, to: defaultTo, type: strategyTypeFilter },
+    isInitialParams && strategyTypeFilter === undefined ? initialCurve : undefined,
   )
 
   const summary = summaryQuery.data
@@ -115,12 +116,15 @@ export function StatsOverview({ initialSummary, initialCurve, defaultFrom, defau
                 rows={rows}
                 range={range}
                 onRangeChange={setRange}
+                strategyTypes={byType}
+                strategyTypeFilter={strategyTypeFilter}
+                onStrategyTypeFilterChange={setStrategyTypeFilter}
               />
             )}
 
-            {summaryFailed ? null : <StrategyTypeComparison byType={byType} />}
+            <CyclePerformanceList typeFilter={strategyTypeFilter} />
 
-            <CyclePerformanceList byType={byType} />
+            {summaryFailed ? null : <StrategyTypeComparison byType={byType} />}
           </>
         )}
       </div>

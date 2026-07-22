@@ -38,6 +38,19 @@ describe('stats api', () => {
     )
   })
 
+  it('getEquityCurve includes type when given', async () => {
+    const { getEquityCurve } = await import('./index')
+    fetchEitherMock.mockResolvedValueOnce({ points: [] })
+
+    await getEquityCurve({ from: '2026-04-01', to: '2026-07-01', type: 'INFINITE' })
+
+    expect(fetchEitherMock).toHaveBeenCalledWith(
+      '/api/stats/equity-curve?from=2026-04-01&to=2026-07-01&type=INFINITE',
+      { method: 'GET' },
+      undefined
+    )
+  })
+
   it('getEquityCurve omits from/to when not given', async () => {
     const { getEquityCurve } = await import('./index')
     fetchEitherMock.mockResolvedValueOnce({ points: [] })

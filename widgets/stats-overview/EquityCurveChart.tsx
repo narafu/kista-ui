@@ -6,6 +6,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianG
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@shared/lib/utils'
 import { fmtMonthDay, fmtDate } from '@shared/lib/format'
+import type { StrategyTypeStats } from '@entities/stats'
 import type { NormalizedRow } from './lib/normalizeEquityCurve'
 import type { RangeKey } from './StatsOverview'
 
@@ -13,6 +14,9 @@ interface Props {
   rows: NormalizedRow[]
   range: RangeKey
   onRangeChange: (range: RangeKey) => void
+  strategyTypes: StrategyTypeStats[]
+  strategyTypeFilter?: string
+  onStrategyTypeFilterChange: (type: string | undefined) => void
 }
 
 const RANGE_OPTIONS: { value: RangeKey; label: string }[] = [
@@ -41,19 +45,57 @@ function ToggleButton({ active, onClick, children }: { active: boolean; onClick:
   )
 }
 
-export function EquityCurveChart({ rows, range, onRangeChange }: Props) {
+export function EquityCurveChart({
+  rows,
+  range,
+  onRangeChange,
+  strategyTypes,
+  strategyTypeFilter,
+  onStrategyTypeFilterChange,
+}: Props) {
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="text-base lg:text-lg">누적 자산 추이</CardTitle>
-          <div className="grid w-full grid-cols-5 rounded-md border border-border p-0.5 sm:w-auto">
-            {RANGE_OPTIONS.map((option) => (
-              <ToggleButton key={option.value} active={range === option.value} onClick={() => onRangeChange(option.value)}>
-                {option.label}
-              </ToggleButton>
+          <div className="-mx-1 flex max-w-full items-center gap-0.5 overflow-x-auto rounded-md border border-border p-0.5">
+            <button
+              type="button"
+              aria-pressed={strategyTypeFilter === undefined}
+              onClick={() => onStrategyTypeFilterChange(undefined)}
+              className={cn(
+                'min-h-9 shrink-0 rounded px-2 text-xs font-medium transition-colors',
+                strategyTypeFilter === undefined
+                  ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent',
+              )}
+            >
+              전체
+            </button>
+            {strategyTypes.map((typeStats) => (
+              <button
+                key={typeStats.type}
+                type="button"
+                aria-pressed={strategyTypeFilter === typeStats.type}
+                onClick={() => onStrategyTypeFilterChange(typeStats.type)}
+                className={cn(
+                  'min-h-9 shrink-0 rounded px-2 text-xs font-medium transition-colors',
+                  strategyTypeFilter === typeStats.type
+                    ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent',
+                )}
+              >
+                {typeStats.type}
+              </button>
             ))}
           </div>
+        </div>
+        <div className="grid w-full grid-cols-5 rounded-md border border-border p-0.5 sm:w-auto sm:max-w-sm">
+          {RANGE_OPTIONS.map((option) => (
+            <ToggleButton key={option.value} active={range === option.value} onClick={() => onRangeChange(option.value)}>
+              {option.label}
+            </ToggleButton>
+          ))}
         </div>
         <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap pt-1">
           <span className="flex items-center gap-1.5">

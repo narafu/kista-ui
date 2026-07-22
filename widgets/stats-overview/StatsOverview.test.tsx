@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { StatsOverview } from './StatsOverview'
@@ -31,6 +31,12 @@ const SUMMARY: StatsSummary = {
       closedCycleCount: 3, activeCycleCount: 1,
       winRate: 0.6667, avgReturnRate: 0.05, avgDurationDays: 21.5,
       realizedPnl: 150.5, unrealizedPnl: -20,
+    },
+    {
+      type: 'PRIVACY', typeDescription: 'Fanding P전략',
+      closedCycleCount: 2, activeCycleCount: 0,
+      winRate: 1, avgReturnRate: 0.08, avgDurationDays: 14,
+      realizedPnl: 80, unrealizedPnl: 0,
     },
   ],
 }
@@ -104,6 +110,7 @@ describe('StatsOverview', () => {
     if (!strategyTable) throw new Error('전략 유형 비교 table을 찾을 수 없습니다')
     expect(strategyTable.parentElement).toHaveClass('hidden', 'sm:block')
     expect(within(strategyTable).getByText('INFINITE')).toBeInTheDocument()
+    expect(within(strategyTable).getByText('PRIVACY')).toBeInTheDocument()
 
     const cycleMobile = screen.getByRole('list', { name: '사이클 성과 모바일' })
     expect(cycleMobile).toHaveClass('sm:hidden')
@@ -118,7 +125,7 @@ describe('StatsOverview', () => {
     const strategyMobile = screen.getByRole('list', { name: '전략 유형 비교 모바일' })
     expect(strategyMobile).toHaveClass('sm:hidden')
     for (const label of ['사이클', '평균 수익률', '평균 소요일', '실현손익', '미실현']) {
-      expect(within(strategyMobile).getByText(label)).toBeInTheDocument()
+      expect(within(strategyMobile).getAllByText(label).length).toBeGreaterThan(0)
     }
     expect(within(strategyTable).queryByRole('columnheader', { name: '승률' })).not.toBeInTheDocument()
     expect(within(strategyMobile).queryByText('승률')).not.toBeInTheDocument()
@@ -143,6 +150,20 @@ describe('StatsOverview', () => {
     await user.click(infiniteStrategy)
     expect(allStrategies).toHaveAttribute('aria-pressed', 'false')
     expect(infiniteStrategy).toHaveAttribute('aria-pressed', 'true')
+    await waitFor(() => {
+      expect(fetchEitherMock).toHaveBeenCalledWith(
+        '/api/stats/equity-curve?from=2026-06-17&to=2026-07-17&type=INFINITE',
+        { method: 'GET' },
+        undefined,
+      )
+      expect(fetchEitherMock).toHaveBeenCalledWith(
+        '/api/stats/cycles?type=INFINITE',
+        { method: 'GET' },
+        undefined,
+      )
+    })
+    expect(within(strategyTable).getByText('PRIVACY')).toBeInTheDocument()
+    expect(cycleTable.compareDocumentPosition(strategyTable) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
   it('데이터가 없으면 empty state를 보여준다', () => {

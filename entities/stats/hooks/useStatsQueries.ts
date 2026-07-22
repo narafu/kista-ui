@@ -33,11 +33,12 @@ export function useStatsSummaryQuery(initialData?: StatsSummary) {
 export interface EquityCurveParams {
   from?: string
   to?: string
+  type?: string
 }
 
 export function useEquityCurveQuery(params: EquityCurveParams, initialData?: EquityCurve) {
   return useQuery<EquityCurve>({
-    queryKey: ['equityCurve', params.from, params.to],
+    queryKey: ['equityCurve', params.from, params.to, params.type ?? 'ALL'],
     queryFn: () => getEquityCurve(params),
     initialData,
     placeholderData: (prev) => prev,

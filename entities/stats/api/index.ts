@@ -14,12 +14,13 @@ export async function getStatsSummary(token?: string): Promise<StatsSummary> {
 }
 
 export async function getEquityCurve(
-  params: { from?: string; to?: string },
+  params: { from?: string; to?: string; type?: string },
   token?: string
 ): Promise<EquityCurve> {
   const q = new URLSearchParams()
   if (params.from) q.set('from', params.from)
   if (params.to) q.set('to', params.to)
+  if (params.type) q.set('type', params.type)
   const qs = q.size ? `?${q}` : ''
   return fetchEither<EquityCurve>(`/api/stats/equity-curve${qs}`, { method: 'GET' }, token)
 }

@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -8,50 +7,18 @@ import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
 import { useStatsCyclesQuery } from '@entities/stats'
-import type { StrategyTypeStats } from '@entities/stats'
 
 interface Props {
-  byType: StrategyTypeStats[]
+  typeFilter?: string
 }
 
-export function CyclePerformanceList({ byType }: Props) {
-  const [typeFilter, setTypeFilter] = useState<string | undefined>(undefined)
+export function CyclePerformanceList({ typeFilter }: Props) {
   const { cycles, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useStatsCyclesQuery(typeFilter)
 
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle className="text-base lg:text-lg">사이클 성과</CardTitle>
-          <div className="-mx-1 flex max-w-full items-center gap-0.5 overflow-x-auto rounded-md border border-border p-0.5">
-            <button
-              type="button"
-              aria-pressed={typeFilter === undefined}
-              onClick={() => setTypeFilter(undefined)}
-              className={cn(
-                'min-h-9 shrink-0 rounded px-2 text-xs font-medium transition-colors',
-                typeFilter === undefined ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]' : 'text-muted-foreground hover:text-foreground hover:bg-accent',
-              )}
-            >
-              전체
-            </button>
-            {byType.map((t) => (
-              <button
-                key={t.type}
-                type="button"
-                aria-pressed={typeFilter === t.type}
-                title={t.type}
-                onClick={() => setTypeFilter(t.type)}
-                className={cn(
-                  'min-h-9 shrink-0 rounded px-2 text-xs font-medium transition-colors',
-                  typeFilter === t.type ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]' : 'text-muted-foreground hover:text-foreground hover:bg-accent',
-                )}
-              >
-                {t.type}
-              </button>
-            ))}
-          </div>
-        </div>
+        <CardTitle className="text-base lg:text-lg">사이클 성과</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         {isLoading ? (
