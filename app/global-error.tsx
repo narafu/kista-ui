@@ -20,17 +20,9 @@ export default function GlobalError({
         minHeight: '100vh',
       }}>
         <div style={{ textAlign: 'center', padding: '0 24px', maxWidth: 440, width: '100%' }}>
-          {/* 상태 표시줄 */}
-          <div
-            className="inline-flex items-center gap-[14px] px-[18px] py-[7px] rounded-full border border-border mb-11 text-sm text-muted-foreground tracking-[0.1em]"
-            style={{ background: 'rgba(255,255,255,0.06)', fontFamily: 'monospace' }}
-          >
-            <span className="flex items-center gap-[7px]">
-              <span className="error-pulse-dot" />
-              거래 정지
-            </span>
-            <span className="opacity-35">·</span>
-            <span>KISTA</span>
+          {/* 브랜드 */}
+          <div className="text-sm font-extrabold tracking-[2px] mb-6" style={{ color: 'var(--primary)' }}>
+            KISTA
           </div>
 
           {/* 에러 코드 */}
@@ -43,11 +35,12 @@ export default function GlobalError({
             500
           </div>
 
-          {/* 배지 */}
+          {/* 상태 + 감지 시각 */}
           <div
-            className="inline-flex items-center px-[13px] py-1 rounded-full text-sm font-bold tracking-[0.14em] border border-border mb-4"
-            style={{ background: 'var(--pos-bg)', color: 'var(--pos)', fontFamily: 'monospace' }}
+            className="inline-flex items-center gap-[9px] px-[16px] py-[7px] rounded-full border mb-4 text-sm font-bold tracking-[0.12em]"
+            style={{ background: 'var(--pos-bg)', color: 'var(--pos)', borderColor: 'var(--pos)', fontFamily: 'monospace' }}
           >
+            <span className="error-pulse-dot" />
             CIRCUIT BREAKER
           </div>
 

@@ -65,34 +65,22 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
 
   const content = (
     <div className="text-center max-w-[440px] w-full px-6">
-      {/* 상태 표시줄 */}
-      <div
-        className="inline-flex items-center gap-4 px-[18px] py-[7px] rounded-full bg-muted border border-border mb-11 text-sm text-muted-foreground tracking-[0.1em]"
-        style={{ fontFamily: 'var(--font-mono)' }}
-      >
-        <span className="flex items-center gap-[7px]">
-          <span className="error-pulse-dot" />
-          거래 정지
-        </span>
-        <span className="opacity-35">·</span>
-        <span>KISTA</span>
-        {timeStr && (
-          <>
-            <span className="opacity-35">·</span>
-            <span>{timeStr}</span>
-          </>
-        )}
-      </div>
-
       {/* 에러 코드 */}
       <div className="error-code-num">{code ?? '—'}</div>
 
-      {/* 에러 타입 배지 */}
+      {/* 에러 상태 + 감지 시각 */}
       <div
-        className="inline-flex items-center px-[13px] py-1 rounded-full text-sm font-bold tracking-[0.14em] border border-border mb-4"
-        style={{ background: cfg.bgVar, color: cfg.colorVar, fontFamily: 'var(--font-mono)' }}
+        className="error-status-line"
+        style={{ background: cfg.bgVar, borderColor: cfg.colorVar }}
       >
-        {cfg.badge}
+        <span className="error-pulse-dot" style={{ background: cfg.colorVar }} />
+        <span style={{ color: cfg.colorVar }}>{cfg.badge}</span>
+        {timeStr && (
+          <>
+            <span className="error-status-line-sep" />
+            <span className="error-status-line-time">{timeStr}</span>
+          </>
+        )}
       </div>
 
       <h1 className="text-xl font-bold tracking-[-0.02em] text-foreground mb-2">
@@ -129,11 +117,8 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
       </div>
 
       {/* 하단 경로 정보 */}
-      <div
-        className="text-sm text-muted-foreground opacity-50 tracking-[0.08em] overflow-hidden text-ellipsis whitespace-nowrap"
-        style={{ fontFamily: 'var(--font-mono)' }}
-      >
-        KISTA · {code ?? 'ERR'} · {pathname ?? '/'}
+      <div className="error-path-trace">
+        {pathname ?? '/'}
       </div>
     </div>
   )

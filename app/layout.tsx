@@ -1,8 +1,17 @@
 import type { Metadata } from "next";
 import { GeistMono } from 'geist/font/mono'
+import { Cormorant_Garamond } from 'next/font/google'
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from '@shared/providers/Providers'
 import "./globals.css";
+
+const cormorantGaramond = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-cormorant',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'KISTA',
@@ -24,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" suppressHydrationWarning className={GeistMono.variable}>
+    <html lang="ko" suppressHydrationWarning className={`${GeistMono.variable} ${cormorantGaramond.variable}`}>
       <body className="antialiased">
         <Providers>
           {children}
