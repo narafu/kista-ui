@@ -294,6 +294,21 @@ describe('HousingBenchmarkComparison', () => {
     }), true)
   })
 
+  it('runtime config가 로딩 후 새 ETF 기본값으로 응답하면 아직 직접 선택하지 않은 선택값을 갱신한다', () => {
+    useRuntimeConfigQueryMock.mockReturnValue({ data: undefined })
+    const { rerender } = render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('SPY')
+
+    useRuntimeConfigQueryMock.mockReturnValue({
+      data: {
+        benchmarks: { etf: { allowedValues: ['SPY', 'QQQ', 'QLD', 'IBIT', 'ETHA'], defaultValue: 'QQQ' } },
+      },
+    })
+    rerender(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('QQQ')
+  })
+
   it('runtime config에만 있는 ETF 심볼도 일반 ETF 옵션으로 표시한다', () => {
     useRuntimeConfigQueryMock.mockReturnValue({
       data: {

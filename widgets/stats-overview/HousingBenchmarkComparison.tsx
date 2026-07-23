@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useHousingBenchmarkQuery } from '@entities/stats'
 import type { EtfBenchmarkSymbol, HousingBenchmark, HousingBenchmarkParams, HousingBenchmarkRegion } from '@entities/stats'
@@ -191,6 +191,11 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   const [activeAsset, setActiveAsset] = useState<'ETF' | 'HOUSING'>('ETF')
   const [quintile, setQuintile] = useState<HousingQuintile>(3)
   const [etfSymbol, setEtfSymbol] = useState<EtfBenchmarkSymbol>(defaultEtfSymbol)
+  const hasUserSelectedEtfRef = useRef(false)
+  const handleEtfSymbolChange = useCallback((symbol: EtfBenchmarkSymbol) => {
+    hasUserSelectedEtfRef.current = true
+    setEtfSymbol(symbol)
+  }, [])
   const selection: BenchmarkSelection = activeAsset === 'ETF' ? { type: 'ETF', symbol: etfSymbol } : { type: 'HOUSING', quintile }
   const [housingPeriod, setHousingPeriod] = useState<Period>('1Y')
   const [etfPeriod, setEtfPeriod] = useState<Period>('3M')
@@ -208,7 +213,8 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   )
 
   useEffect(() => {
-    if (!etfSymbols.includes(etfSymbol)) setEtfSymbol(defaultEtfSymbol)
+    if (hasUserSelectedEtfRef.current && etfSymbols.includes(etfSymbol)) return
+    setEtfSymbol(defaultEtfSymbol)
   }, [defaultEtfSymbol, etfSymbol, etfSymbols])
 
   const isStrategyScope = scope === 'STRATEGY'
@@ -354,7 +360,7 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
               <select
                 aria-label="벤치마크 자산"
                 value={etfSymbol}
-                onChange={(event) => setEtfSymbol(event.target.value as EtfBenchmarkSymbol)}
+                onChange={(event) => handleEtfSymbolChange(event.target.value as EtfBenchmarkSymbol)}
                 className={ASSET_SELECT_CLASS}
               >
                 {etfBenchmarks.map((item) => (
