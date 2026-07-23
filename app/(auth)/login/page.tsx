@@ -42,15 +42,6 @@ function LoginPageContent() {
 
   return (
     <GlassCard texture>
-      {/* 초대제 안내 */}
-      <div
-        className="flex items-center justify-center gap-2 mb-6 text-xs font-bold tracking-[0.16em] uppercase"
-        style={{ color: 'var(--rose-500)', fontFamily: 'var(--font-mono)' }}
-      >
-        <span className="error-pulse-dot" style={{ background: 'var(--rose-500)' }} />
-        초대제 · 승인 기반 가입
-      </div>
-
       {/* Logo + Wordmark */}
       <div className="flex flex-col items-center gap-3 mb-10">
         <Image

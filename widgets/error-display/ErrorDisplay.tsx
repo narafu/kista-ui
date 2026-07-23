@@ -1,10 +1,11 @@
 'use client'
 
-import { useSyncExternalStore } from 'react'
+import { useEffect, useSyncExternalStore } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { fmtTime } from '@shared/lib/format'
+import { reportClientError } from '@entities/error-log'
 
 type ErrCfg = { badge: string; title: string; desc: string; colorVar: string; bgVar: string }
 
@@ -49,11 +50,12 @@ const DEFAULT_CFG: ErrCfg = {
 
 interface ErrorDisplayProps {
   code?: number
+  error?: Error & { digest?: string }
   reset?: () => void
   standalone?: boolean
 }
 
-export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayProps) {
+export function ErrorDisplay({ code, error, reset, standalone = true }: ErrorDisplayProps) {
   const router = useRouter()
   const pathname = usePathname()
   const cfg = (code !== undefined && CFGS[code]) || DEFAULT_CFG
@@ -62,6 +64,16 @@ export function ErrorDisplay({ code, reset, standalone = true }: ErrorDisplayPro
     () => fmtTime(new Date()),
     () => '',
   )
+
+  useEffect(() => {
+    if (!error) return
+    reportClientError({
+      errorType: error.name || 'Error',
+      message: error.message,
+      stackTrace: error.stack,
+      context: { pathname: pathname ?? '', ...(error.digest ? { digest: error.digest } : {}) },
+    })
+  }, [error, pathname])
 
   const content = (
     <div className="text-center max-w-[440px] w-full px-6">
