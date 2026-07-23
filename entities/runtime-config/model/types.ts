@@ -8,10 +8,7 @@ export interface RuntimeFieldSettings<T> {
   defaultValue: T
 }
 
-export interface RuntimeBenchmarkFieldSettings<T> {
-  allowedValues: T[]
-  defaultValue: T
-}
+export type RuntimeBenchmarkFieldSettings<T> = Omit<RuntimeFieldSettings<T>, 'customizable'>
 
 export interface RuntimeBenchmarkSettings {
   etf: RuntimeBenchmarkFieldSettings<string>

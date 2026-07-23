@@ -22,7 +22,6 @@ export type SkipReason = NonNullable<components['schemas']['NextOrdersResponse']
 // 같은 값의 enum 제약은 쿼리 파라미터(benchmarkType/symbol)에만 있어 그쪽에서 파생한다.
 type HousingBenchmarkQuery = NonNullable<operations['getHousingBenchmarkComparison']['parameters']['query']>
 export type BenchmarkAssetType = NonNullable<HousingBenchmarkQuery['benchmarkType']>
-export type EtfBenchmarkSymbol = NonNullable<HousingBenchmarkQuery['symbol']>
 
 const BROKER_LABEL: Record<string, string> = {
   KIS: '한국투자증권',

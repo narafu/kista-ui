@@ -440,7 +440,7 @@ export function AdminSettingsForm({ initialSettings }: { initialSettings: Runtim
               label="ETF 벤치마크 자산"
               field={draft.benchmarks?.etf ?? DEFAULT_RUNTIME_BENCHMARKS.etf}
               error={attempted ? errors['benchmarks.etf'] : undefined}
-              suggestions={[...(draft.benchmarks?.etf.allowedValues ?? DEFAULT_RUNTIME_BENCHMARKS.etf.allowedValues), ...tickerSuggestions]}
+              suggestions={DEFAULT_RUNTIME_BENCHMARKS.etf.allowedValues}
               normalize={normalizeSymbol}
               onChange={(value) => setBenchmarkEtf(value as RuntimeBenchmarkFieldSettings<string>)}
             />

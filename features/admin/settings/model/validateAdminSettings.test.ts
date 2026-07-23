@@ -52,4 +52,9 @@ describe('validateAdminSettings', () => {
     value.benchmarks!.etf.defaultValue = 'QLD'
     expect(validateAdminSettings(value)).toMatchObject({ 'benchmarks.etf': expect.any(String) })
   })
+  it('rejects ETF benchmark symbols the server does not support', () => {
+    const value = structuredClone(valid)
+    value.benchmarks!.etf.allowedValues.push('VOO')
+    expect(validateAdminSettings(value)).toMatchObject({ 'benchmarks.etf': expect.stringContaining('VOO') })
+  })
 })

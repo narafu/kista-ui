@@ -9,6 +9,7 @@ import { fmtMonthDay, fmtDate } from '@shared/lib/format'
 import type { StrategyTypeStats } from '@entities/stats'
 import type { NormalizedRow } from './lib/normalizeEquityCurve'
 import type { RangeKey } from './StatsOverview'
+import { StrategyTypeFilterToggle } from './StrategyTypeFilterToggle'
 
 interface Props {
   rows: NormalizedRow[]
@@ -58,37 +59,11 @@ export function EquityCurveChart({
       <CardHeader className="pb-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="text-base lg:text-lg">누적 자산 추이</CardTitle>
-          <div className="-mx-1 flex max-w-full items-center gap-0.5 overflow-x-auto rounded-md border border-border p-0.5">
-            <button
-              type="button"
-              aria-pressed={strategyTypeFilter === undefined}
-              onClick={() => onStrategyTypeFilterChange(undefined)}
-              className={cn(
-                'min-h-9 shrink-0 rounded px-2 text-xs font-medium transition-colors',
-                strategyTypeFilter === undefined
-                  ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-accent',
-              )}
-            >
-              전체
-            </button>
-            {strategyTypes.map((typeStats) => (
-              <button
-                key={typeStats.type}
-                type="button"
-                aria-pressed={strategyTypeFilter === typeStats.type}
-                onClick={() => onStrategyTypeFilterChange(typeStats.type)}
-                className={cn(
-                  'min-h-9 shrink-0 rounded px-2 text-xs font-medium transition-colors',
-                  strategyTypeFilter === typeStats.type
-                    ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-accent',
-                )}
-              >
-                {typeStats.type}
-              </button>
-            ))}
-          </div>
+          <StrategyTypeFilterToggle
+            strategyTypes={strategyTypes}
+            strategyTypeFilter={strategyTypeFilter}
+            onStrategyTypeFilterChange={onStrategyTypeFilterChange}
+          />
         </div>
         <div className="grid w-full grid-cols-5 rounded-md border border-border p-0.5 sm:w-auto sm:max-w-sm">
           {RANGE_OPTIONS.map((option) => (

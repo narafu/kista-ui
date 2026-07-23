@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import { reportClientError } from '@entities/error-log'
+import { useReportClientError } from '@entities/error-log'
 import './globals.css'
 
 export default function GlobalError({
@@ -14,14 +13,7 @@ export default function GlobalError({
 }) {
   const pathname = usePathname()
 
-  useEffect(() => {
-    reportClientError({
-      errorType: error.name || 'Error',
-      message: error.message,
-      stackTrace: error.stack,
-      context: { pathname: pathname ?? '', ...(error.digest ? { digest: error.digest } : {}) },
-    })
-  }, [error, pathname])
+  useReportClientError(error, pathname)
 
   return (
     <html lang="ko" className="dark">

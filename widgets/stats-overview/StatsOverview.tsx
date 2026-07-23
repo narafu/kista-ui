@@ -12,6 +12,7 @@ import { StatsKpiRow } from './StatsKpiRow'
 import { EquityCurveChart } from './EquityCurveChart'
 import { StrategyTypeComparison } from './StrategyTypeComparison'
 import { CyclePerformanceList } from './CyclePerformanceList'
+import { StrategyTypeFilterToggle } from './StrategyTypeFilterToggle'
 import { SectionError } from './SectionError'
 import { HousingBenchmarkComparison } from './HousingBenchmarkComparison'
 
@@ -110,7 +111,16 @@ export function StatsOverview({ initialSummary, initialCurve, defaultFrom, defau
             ) : null}
 
             {curveFailed ? (
-              <SectionError />
+              <div className="flex flex-col gap-3">
+                <SectionError />
+                <div className="flex justify-end">
+                  <StrategyTypeFilterToggle
+                    strategyTypes={byType}
+                    strategyTypeFilter={strategyTypeFilter}
+                    onStrategyTypeFilterChange={setStrategyTypeFilter}
+                  />
+                </div>
+              </div>
             ) : (
               <EquityCurveChart
                 rows={rows}
