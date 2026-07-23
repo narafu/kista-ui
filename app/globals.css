@@ -182,7 +182,7 @@
 
   /* Typography */
   --font-sans:    'Pretendard Variable', 'Pretendard', system-ui, -apple-system, sans-serif;
-  --font-display: var(--font-cormorant), serif;
+  --font-display: var(--font-bricolage), sans-serif;
 
   /* Border & radius tokens */
   --border-strong: oklch(0.86 0.018 50);
@@ -314,8 +314,8 @@
 
 .display {
   font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 /* ── 페이지 로드 스태거 리빌 (Phase 3) ─────────────────────────
@@ -389,7 +389,6 @@
 
 .error-code-num {
   font-family: var(--font-display);
-  font-style: italic;
   font-weight: 700;
   font-size: clamp(82px, 16vw, 136px);
   line-height: 0.88;
@@ -492,6 +491,23 @@
     radial-gradient(700px 500px at 80% 15%, rgba(224,163,140,0.13), transparent 60%),
     radial-gradient(500px 400px at 15% 85%, rgba(182,105,81,0.08), transparent 55%),
     var(--background);
+}
+
+.brand-radial-texture::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    to right, transparent 0 47px, rgba(182,105,81,0.05) 47px 48px
+  );
+  mask-image: radial-gradient(650px 500px at 50% 35%, black, transparent 75%);
+  pointer-events: none;
+}
+
+.dark .brand-radial-texture::before {
+  background-image: repeating-linear-gradient(
+    to right, transparent 0 47px, rgba(232,196,172,0.06) 47px 48px
+  );
 }
 
 /* ── Next.js Image + Tailwind preflight 충돌 방지 ────────────── */

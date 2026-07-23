@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import { GeistMono } from 'geist/font/mono'
-import { Cormorant_Garamond } from 'next/font/google'
+import { Bricolage_Grotesque } from 'next/font/google'
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from '@shared/providers/Providers'
 import "./globals.css";
 
-const cormorantGaramond = Cormorant_Garamond({
+const bricolageGrotesque = Bricolage_Grotesque({
   subsets: ['latin'],
-  weight: ['500', '600', '700'],
-  style: ['normal', 'italic'],
-  variable: '--font-cormorant',
+  weight: ['600', '700'],
+  variable: '--font-bricolage',
   display: 'swap',
 })
 
@@ -33,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" suppressHydrationWarning className={`${GeistMono.variable} ${cormorantGaramond.variable}`}>
+    <html lang="ko" suppressHydrationWarning className={`${GeistMono.variable} ${bricolageGrotesque.variable}`}>
       <body className="antialiased">
         <Providers>
           {children}
