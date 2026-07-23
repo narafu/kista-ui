@@ -1,6 +1,6 @@
 'use client'
 
-import { useTransition } from 'react'
+import { Suspense, use, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { TrendingUp, ChevronRight } from 'lucide-react'
@@ -11,12 +11,34 @@ import type { Strategy } from '@entities/strategy'
 import type { NextOrderPreview } from '@entities/order'
 import { Spinner } from '@shared/ui/Spinner'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { CardSkeleton } from '@shared/ui/CardSkeleton'
 import type { Account } from '@entities/account'
 
 interface Props {
   strategies: Strategy[]
   accounts: Account[]
-  previewsByStrategyId?: Record<string, NextOrderPreview>
+  previewsPromise: Promise<Record<string, NextOrderPreview>>
+}
+
+interface StrategyCardSlotProps {
+  accountId: string
+  strategy: Strategy
+  accountLabel?: string
+  previewsPromise: Promise<Record<string, NextOrderPreview>>
+}
+
+// previewsPromise를 use()로 unwrap하는 부분만 카드 단위 Suspense로 격리해, 배치 프리뷰 조회가
+// 아직 끝나지 않아도 전략 카드 그리드 자체는 즉시 렌더링되게 한다 (첫 페인트를 블로킹하지 않음)
+function StrategyCardSlot({ accountId, strategy, accountLabel, previewsPromise }: StrategyCardSlotProps) {
+  const previews = use(previewsPromise)
+  return (
+    <StrategyCard
+      accountId={accountId}
+      strategy={strategy}
+      accountLabel={accountLabel}
+      initialPreview={previews[strategy.id]}
+    />
+  )
 }
 
 function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
@@ -83,7 +105,7 @@ function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
   )
 }
 
-export function AllStrategiesList({ strategies: initialStrategies, accounts, previewsByStrategyId }: Props) {
+export function AllStrategiesList({ strategies: initialStrategies, accounts, previewsPromise }: Props) {
   const { data: strategies = initialStrategies } = useAllStrategiesQuery(initialStrategies)
   const { findBroker } = useMeta()
 
@@ -117,13 +139,19 @@ export function AllStrategiesList({ strategies: initialStrategies, accounts, pre
           )}
           <div className="grid grid-cols-1 gap-2 lg:grid-cols-4 lg:gap-3">
             {accountStrategies.map((s) => (
-              <StrategyCard
+              <Suspense
                 key={s.id}
-                accountId={s.accountId}
-                strategy={s}
-                accountLabel={groupByAccount ? undefined : account.nickname}
-                initialPreview={previewsByStrategyId?.[s.id]}
-              />
+                // 카드 컴포넌트를 fallback으로 재사용하면 useStrategyOrderPreviewQuery가 배치 조회와
+                // 별도로 카드마다 개별 요청을 쏴 배치 조회 취지가 무색해진다 — 순수 스켈레톤만 사용
+                fallback={<CardSkeleton className="h-16 lg:h-40" />}
+              >
+                <StrategyCardSlot
+                  accountId={s.accountId}
+                  strategy={s}
+                  accountLabel={groupByAccount ? undefined : account.nickname}
+                  previewsPromise={previewsPromise}
+                />
+              </Suspense>
             ))}
           </div>
         </div>

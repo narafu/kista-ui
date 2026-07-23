@@ -19,20 +19,21 @@ export default async function StrategiesPage() {
   let strategies: Strategy[] = []
   // eslint-disable-next-line react-doctor/prefer-module-scope-static-value
   let accounts: Account[] = []
-  // eslint-disable-next-line react-doctor/prefer-module-scope-static-value
-  let previewsByStrategyId: Record<string, NextOrderPreview> = {}
   if (token) {
     ;[strategies, accounts] = await Promise.all([
       listAllStrategies(token).catch(() => []),
       getCachedAccounts(token).catch((): Account[] => []),
     ])
-    // 전략별 다음 주문 미리보기 — 서버에서 미리 채워 카드 목록의 배지·배너가 첫 페인트부터 보이게 함 (계좌 단위 배치 조회)
-    previewsByStrategyId = await getStrategyOrderPreviewsById(strategies, token)
   }
+  // 전략별 다음 주문 미리보기(계좌 단위 배치 조회)는 await하지 않고 Promise 그대로 클라이언트에 전달한다 —
+  // 전략 카드 그리드의 첫 페인트를 블로킹하지 않고, 배지·배너는 도착하는 대로 카드별 Suspense로 스트리밍된다
+  const previewsPromise: Promise<Record<string, NextOrderPreview>> = token
+    ? getStrategyOrderPreviewsById(strategies, token)
+    : Promise.resolve({})
   return (
     <>
       <PageHeader eyebrow="Strategies" title="전략" />
-      <AllStrategiesList strategies={strategies} accounts={accounts} previewsByStrategyId={previewsByStrategyId} />
+      <AllStrategiesList strategies={strategies} accounts={accounts} previewsPromise={previewsPromise} />
     </>
   )
 }
