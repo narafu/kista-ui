@@ -123,8 +123,8 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
               </div>
             ) : (
               <>
-                <div className="font-medium text-sm">{c.label}</div>
-                <div className="text-sm text-muted-foreground">{c.desc}</div>
+                <div className="font-medium text-sm break-keep">{c.label}</div>
+                <div className="text-sm text-muted-foreground break-keep">{c.desc}</div>
               </>
             )}
           </SelectionCard>
