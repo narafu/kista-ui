@@ -5,6 +5,7 @@ import { fmtUsd } from '@shared/lib/format'
 import { toNum } from '@shared/lib/utils'
 import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { TableDataCell } from '@shared/ui/TableDataCell'
 
 export interface OrderRowData {
   id?: string
@@ -91,16 +92,16 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
         <tbody>
           {orders.map((o, i) => (
             <tr key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className="border-b border-border last:border-b-0">
-              <td className="px-5 py-3 text-center">
+              <TableDataCell className="px-5 py-3">
                 <Badge tone="none" size="sm" className={cn('lg:h-[24px] lg:text-sm', directionBadgeCls(o.direction))}>
                   {directionLabel(o.direction)}
                 </Badge>
-              </td>
-              <td className="px-5 py-3 text-sm lg:text-base font-semibold text-center">{o.ticker}</td>
-              <td className="px-5 py-3 text-sm lg:text-base text-muted-foreground text-center">{o.quantity}</td>
-              <td className="px-5 py-3 text-sm lg:text-base font-semibold text-center">${fmtUsd(toNum(o.price))}</td>
+              </TableDataCell>
+              <TableDataCell className="px-5 py-3 text-sm lg:text-base font-semibold">{o.ticker}</TableDataCell>
+              <TableDataCell className="px-5 py-3 text-sm lg:text-base text-muted-foreground">{o.quantity}</TableDataCell>
+              <TableDataCell className="px-5 py-3 text-sm lg:text-base font-semibold">${fmtUsd(toNum(o.price))}</TableDataCell>
               {hasCancel && (
-                <td className="px-5 py-3 text-center">
+                <TableDataCell className="px-5 py-3">
                   {o.id && (
                     <button
                       type="button"
@@ -111,7 +112,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
                       {cancelPending && cancellingId === o.id ? '취소 중...' : '취소'}
                     </button>
                   )}
-                </td>
+                </TableDataCell>
               )}
             </tr>
           ))}

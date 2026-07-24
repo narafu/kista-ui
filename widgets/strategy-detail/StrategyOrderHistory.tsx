@@ -8,6 +8,7 @@ import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { TableDataCell } from '@shared/ui/TableDataCell'
 import { RangeFilterControls } from '@shared/ui/range-filter/RangeFilterControls'
 import { fmtUsd } from '@shared/lib/format'
 import { toNum } from '@shared/lib/utils'
@@ -73,14 +74,14 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                 <tbody>
                   {pageOrders.map((o) => (
                     <tr key={o.id} className="border-t hover:bg-muted/30 transition-colors">
-                      <td className="px-4 py-3 text-center text-muted-foreground text-xs whitespace-nowrap">{o.tradeDate}</td>
-                      <td className={`px-4 py-3 text-center font-semibold whitespace-nowrap ${directionTextClass(o.direction)}`}>{DIRECTION_LABEL[o.direction] ?? o.direction}</td>
-                      <td className="px-4 py-3 text-center whitespace-nowrap">
+                      <TableDataCell className="text-muted-foreground text-xs whitespace-nowrap">{o.tradeDate}</TableDataCell>
+                      <TableDataCell className={`font-semibold whitespace-nowrap ${directionTextClass(o.direction)}`}>{DIRECTION_LABEL[o.direction] ?? o.direction}</TableDataCell>
+                      <TableDataCell className="whitespace-nowrap">
                         <Badge tone="none" size="sm" className={orderTypeBadgeClass(o.orderType)}>
                           {o.orderType}
                         </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-center whitespace-nowrap">
+                      </TableDataCell>
+                      <TableDataCell className="whitespace-nowrap">
                         {o.filledQuantity != null ? (
                           <span>
                             <span className="font-medium">{o.filledQuantity}</span>
@@ -89,16 +90,16 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                         ) : (
                           o.quantity
                         )}
-                      </td>
-                      <td className="px-4 py-3 text-center font-mono text-xs whitespace-nowrap">${fmtUsd(toNum(o.price))}</td>
-                      <td className="px-4 py-3 text-center font-mono text-xs whitespace-nowrap">
+                      </TableDataCell>
+                      <TableDataCell className="font-mono text-xs whitespace-nowrap">${fmtUsd(toNum(o.price))}</TableDataCell>
+                      <TableDataCell className="font-mono text-xs whitespace-nowrap">
                         {o.filledPrice != null ? `$${fmtUsd(toNum(o.filledPrice))}` : <span className="text-muted-foreground">-</span>}
-                      </td>
-                      <td className="px-4 py-3 text-center whitespace-nowrap">
+                      </TableDataCell>
+                      <TableDataCell className="whitespace-nowrap">
                         <Badge tone="none" size="sm" className={orderStatusBadgeClass(o.status)}>
                           {ORDER_STATUS_LABEL[o.status] ?? o.status}
                         </Badge>
-                      </td>
+                      </TableDataCell>
                     </tr>
                   ))}
                 </tbody>
