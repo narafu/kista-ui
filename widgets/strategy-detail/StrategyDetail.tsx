@@ -46,6 +46,12 @@ function buyUnplacedMessage(readiness: ReturnType<typeof computeBuyReadiness>): 
   return '예수금 충족됨 — 마감 시 매수 재시도 예정'
 }
 
+function sellUnplacedMessage(readiness: ReturnType<typeof computeBuyReadiness>): string {
+  if (readiness.sellQuantityUncertain) return '판매가능수량 확인 실패로 매도 미접수 — 잠시 후 다시 확인해주세요'
+  if (readiness.hasSellQuantityDeficit) return `판매가능수량 ${readiness.deficitQty}주 부족으로 매도 미접수`
+  return '판매가능수량 부족으로 매도 미접수'
+}
+
 // 카드 상단 배너 문구 — 휴장일/예수금 부족을 "바로 주문" 가능 여부와 함께 안내
 // liveBalanceUncertain: 라이브 예수금 조회 자체가 실패해 부족 여부를 판정할 수 없는 상태 —
 // preview 모드에서도 이 경우를 무시하면 실제로는 부족한데 배너가 아예 안 뜨는 사각지대가 생긴다
@@ -260,7 +266,7 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
                   <div className="flex flex-col gap-0.5 mt-1.5">
                     {unplacedDirections.map((d) => (
                       <p key={d} className="text-sm lg:text-base text-warn">
-                        {d === 'BUY' ? buyUnplacedMessage(readiness) : '판매가능수량 부족으로 매도 미접수'}
+                        {d === 'BUY' ? buyUnplacedMessage(readiness) : sellUnplacedMessage(readiness)}
                       </p>
                     ))}
                   </div>

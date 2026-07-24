@@ -7,6 +7,7 @@ export type {
   StrategyOrder,
   BuyCompetitionSummary,
   CompetingStrategy,
+  SellSufficiencySummary,
 } from './model/types'
 export type { BuyReadiness } from './model/buy-readiness'
 export { computeBuyReadiness } from './model/buy-readiness'

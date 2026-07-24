@@ -277,4 +277,50 @@ describe('order api', () => {
       liveBalanceUnavailable: true,
     })
   })
+
+  it('normalizes a null sellSufficiency field to null', async () => {
+    const { getStrategyOrdersPreview } = await import('./index')
+    clientFetchMock.mockResolvedValueOnce({
+      tradeDate: '2026-07-18',
+      position: null,
+      orders: [],
+      skipReason: 'NO_CYCLE_HISTORY',
+      todayOrders: [],
+      otherStrategiesPlannedBuyUsd: '0',
+      sellSufficiency: null,
+    })
+
+    const result = await getStrategyOrdersPreview('strategy-1')
+
+    expect(result.sellSufficiency).toBeNull()
+  })
+
+  it('normalizes a populated sellSufficiency field', async () => {
+    const { getStrategyOrdersPreview } = await import('./index')
+    clientFetchMock.mockResolvedValueOnce({
+      tradeDate: '2026-07-18',
+      position: null,
+      orders: [],
+      skipReason: null,
+      todayOrders: [],
+      otherStrategiesPlannedBuyUsd: '0',
+      sellSufficiency: {
+        sufficientQuantity: false,
+        sellableQuantity: 6,
+        reservedQuantity: 0,
+        requiredQuantity: 9,
+        liveQuantityUnavailable: false,
+      },
+    })
+
+    const result = await getStrategyOrdersPreview('strategy-1')
+
+    expect(result.sellSufficiency).toEqual({
+      sufficientQuantity: false,
+      sellableQuantity: 6,
+      reservedQuantity: 0,
+      requiredQuantity: 9,
+      liveQuantityUnavailable: false,
+    })
+  })
 })

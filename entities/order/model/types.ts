@@ -42,6 +42,14 @@ export interface BuyCompetitionSummary {
   liveBalanceUnavailable: boolean   // 라이브 예수금 조회 자체 실패 시 true — sufficientBudget/availableDeposit 신뢰 불가
 }
 
+export interface SellSufficiencySummary {
+  sufficientQuantity: boolean
+  sellableQuantity: number
+  reservedQuantity: number
+  requiredQuantity: number
+  liveQuantityUnavailable: boolean  // 라이브 판매가능수량 조회 자체 실패 시 true — sufficientQuantity 신뢰 불가
+}
+
 export interface NextOrderPreview {
   tradeDate: string
   position: NextOrderPositionSnapshot | null
@@ -50,6 +58,7 @@ export interface NextOrderPreview {
   todayOrders: PlacedOrder[]               // 오늘 이미 등록된 PLANNED + PLACED 주문 (없으면 빈 배열)
   otherStrategiesPlannedBuyUsd: string     // 계좌 내 타 전략 당일 PLANNED BUY 합계
   competition: BuyCompetitionSummary | null // 계좌 내 BUY 예산 경쟁 시뮬레이션 결과 (BUY 없으면 null)
+  sellSufficiency: SellSufficiencySummary | null // SELL 판매가능수량 충족 시뮬레이션 결과 (SELL 없으면 null)
 }
 
 export interface StrategyOrder {

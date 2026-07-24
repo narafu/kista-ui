@@ -11,12 +11,21 @@ interface CompetitionMock {
   liveBalanceUnavailable?: boolean
 }
 
+interface SellSufficiencyMock {
+  sufficientQuantity: boolean
+  sellableQuantity?: number
+  reservedQuantity?: number
+  requiredQuantity?: number
+  liveQuantityUnavailable?: boolean
+}
+
 let previewState = {
   data: {
     orders: [] as Array<{ direction: string; price: string; quantity: number }>,
     todayOrders: [] as Array<{ status: 'PLANNED' | 'PLACED'; direction: 'BUY' | 'SELL' }>,
     otherStrategiesPlannedBuyUsd: '0',
     competition: null as CompetitionMock | null,
+    sellSufficiency: null as SellSufficiencyMock | null,
   },
   isLoading: false,
 }
@@ -72,6 +81,7 @@ describe('StrategyCard mobile row', () => {
         todayOrders: [],
         otherStrategiesPlannedBuyUsd: '0',
         competition: null,
+        sellSufficiency: null,
       },
       isLoading: false,
     }
@@ -243,5 +253,61 @@ describe('StrategyCard mobile row', () => {
     const borderAccent = screen.getByTestId('strategy-order-border-accent')
     expect(borderAccent).not.toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
     expect(borderAccent).toHaveAttribute('style', expect.stringContaining('border-color: var(--warn);'))
+  })
+
+  it('marks borders red when sell is unplaced due to insufficient sellable quantity even though buy was placed', () => {
+    previewState = {
+      ...previewState,
+      data: {
+        ...previewState.data,
+        orders: [
+          { direction: 'BUY', price: '155', quantity: 21 },
+          { direction: 'SELL', price: '160', quantity: 9 },
+        ],
+        todayOrders: [{ status: 'PLACED', direction: 'BUY' }],
+        sellSufficiency: { sufficientQuantity: false, sellableQuantity: 6, reservedQuantity: 0, requiredQuantity: 9 },
+      },
+    }
+
+    render(<StrategyCard accountId="account-1" strategy={strategy} />)
+
+    expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
+  })
+
+  it('marks borders yellow (not green) when sell is unplaced even though the sellable quantity looks sufficient', () => {
+    previewState = {
+      ...previewState,
+      data: {
+        ...previewState.data,
+        orders: [
+          { direction: 'BUY', price: '155', quantity: 21 },
+          { direction: 'SELL', price: '160', quantity: 9 },
+        ],
+        todayOrders: [{ status: 'PLACED', direction: 'BUY' }],
+        sellSufficiency: { sufficientQuantity: true, sellableQuantity: 20, reservedQuantity: 0, requiredQuantity: 9 },
+      },
+    }
+
+    render(<StrategyCard accountId="account-1" strategy={strategy} />)
+
+    const borderAccent = screen.getByTestId('strategy-order-border-accent')
+    expect(borderAccent).not.toHaveAttribute('style', expect.stringContaining('border-color: var(--status-ok);'))
+    expect(borderAccent).toHaveAttribute('style', expect.stringContaining('border-color: var(--warn);'))
+  })
+
+  it('marks borders yellow when a sell is planned and sellable quantity could not be confirmed before any attempt today', () => {
+    previewState = {
+      ...previewState,
+      data: {
+        ...previewState.data,
+        orders: [{ direction: 'SELL', price: '160', quantity: 9 }],
+        todayOrders: [],
+        sellSufficiency: { sufficientQuantity: true, liveQuantityUnavailable: true },
+      },
+    }
+
+    render(<StrategyCard accountId="account-1" strategy={strategy} />)
+
+    expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--warn);'))
   })
 })

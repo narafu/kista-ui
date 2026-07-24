@@ -172,6 +172,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/client-errors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 클라이언트 오류 리포트
+         * @description 브라우저에서 발생한 미처리 오류를 app_error_logs에 저장합니다.
+         */
+        post: operations["log"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/refresh": {
         parameters: {
             query?: never;
@@ -1252,6 +1272,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/accounts/{accountId}/trading-cycles/previews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 계좌 내 전략 전체 다음 주문 미리보기 일괄 조회 */
+        get: operations["previewBatch"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/accounts/{accountId}/strategy-seed-preview": {
         parameters: {
             query?: never;
@@ -1708,10 +1745,22 @@ export interface components {
             strategies: {
                 [key: string]: components["schemas"]["StrategyRequest"];
             };
+            /** @description ETF 벤치마크 비교 자산 설정 (생략 시 기존 값 유지) */
+            benchmarks?: components["schemas"]["BenchmarkRequest"];
         };
         AuthRequest: {
             /** @description 신규 가입 승인 필요 여부 */
             approvalRequired: boolean;
+        };
+        BenchmarkFieldRequestString: {
+            /** @description 허용 값 목록 */
+            allowedValues: string[];
+            /** @description 비교 기본값 */
+            defaultValue: string;
+        };
+        BenchmarkRequest: {
+            /** @description ETF 벤치마크 비교 자산 설정 */
+            etf: components["schemas"]["BenchmarkFieldRequestString"];
         };
         BrokerRequest: {
             /** @description 증권사 신규 계좌 등록/연결 테스트 허용 여부 */
@@ -1780,6 +1829,16 @@ export interface components {
             /** @description 가입 승인 필수 여부 */
             approvalRequired?: boolean;
         };
+        BenchmarkFieldResponseString: {
+            /** @description 허용 값 목록 */
+            allowedValues?: string[];
+            /** @description 비교 기본값 */
+            defaultValue?: string;
+        };
+        BenchmarkResponse: {
+            /** @description ETF 벤치마크 비교 자산 설정 */
+            etf?: components["schemas"]["BenchmarkFieldResponseString"];
+        };
         BrokerResponse: {
             /** @description 증권사 신규 계좌 등록 허용 여부 */
             enabled?: boolean;
@@ -1807,6 +1866,8 @@ export interface components {
             strategies?: {
                 [key: string]: components["schemas"]["StrategyResponse"];
             };
+            /** @description ETF 벤치마크 비교 자산 설정 */
+            benchmarks?: components["schemas"]["BenchmarkResponse"];
         };
         StrategyFieldSettingsObject: {
             customizable?: boolean;
@@ -2024,6 +2085,18 @@ export interface components {
              * @example android
              */
             platform: string;
+        };
+        ClientErrorLogRequest: {
+            /** @description 오류 유형 (error.name) */
+            errorType: string;
+            /** @description 오류 메시지 */
+            message?: string;
+            /** @description 스택트레이스 */
+            stackTrace?: string;
+            /** @description 발생 위치 메타 (pathname, digest 등) */
+            context?: {
+                [key: string]: string;
+            };
         };
         RefreshResponse: {
             /** @description 새로 발급된 JWT 액세스 토큰 */
@@ -2451,9 +2524,9 @@ export interface components {
             usdDeposit?: number;
         };
         BuyCompetitionSummary: {
-            /** @description 대상 전략 BUY가 실제 배치에서 승인될지 근사 판정 */
+            /** @description 대상 전략 BUY가 실제 배치에서 승인될지 근사 판정 (liveBalanceUnavailable=true면 신뢰 불가) */
             sufficientBudget?: boolean;
-            /** @description 라이브 예수금 - 타 전략 당일 PLANNED BUY 합계 */
+            /** @description 라이브 예수금 - 타 전략 당일 PLANNED BUY 합계 (liveBalanceUnavailable=true면 null) */
             availableDeposit?: number;
             /** @description 대상 전략 오늘자 BUY 합계 */
             requiredForThisStrategy?: number;
@@ -2463,6 +2536,8 @@ export interface components {
             blockedByHigherPriority?: components["schemas"]["CompetingStrategy"][];
             /** @description 계산 실패/skip돼 0으로 처리된 전략 id 목록 */
             uncertainStrategyIds?: string[];
+            /** @description true면 라이브 예수금 조회 자체가 실패해 경쟁 시뮬레이션을 생략함 — 이 경우 sufficientBudget/availableDeposit은 신뢰할 수 없음 */
+            liveBalanceUnavailable?: boolean;
         };
         CompetingStrategy: {
             /**
@@ -2510,6 +2585,8 @@ export interface components {
             otherStrategiesPlannedBuyUsd?: number;
             /** @description 계좌 내 BUY 예산 경쟁 시뮬레이션 결과 (대상 전략에 BUY 주문이 없으면 null, 근사치) */
             competition?: components["schemas"]["BuyCompetitionSummary"];
+            /** @description SELL 판매가능수량 충족 시뮬레이션 결과 (대상 전략에 SELL 주문이 없으면 null, 근사치) */
+            sellSufficiency?: components["schemas"]["SellSufficiencySummary"];
         };
         PositionSnapshot: {
             /**
@@ -2542,6 +2619,27 @@ export interface components {
             targetPrice?: number;
             /** @description 총 자산 (예수금 + 매입금액) */
             totalAssets?: number;
+        };
+        SellSufficiencySummary: {
+            /** @description 대상 전략 SELL이 실제 배치에서 승인될지 근사 판정 (liveQuantityUnavailable=true면 신뢰 불가) */
+            sufficientQuantity?: boolean;
+            /**
+             * Format: int32
+             * @description 브로커 판매가능수량 (liveQuantityUnavailable=true면 0)
+             */
+            sellableQuantity?: number;
+            /**
+             * Format: int32
+             * @description 동일 계좌·종목·거래일 기준 기존 PLANNED/PLACED SELL 예약 수량 합
+             */
+            reservedQuantity?: number;
+            /**
+             * Format: int32
+             * @description 대상 전략 오늘자 SELL 합계 수량
+             */
+            requiredQuantity?: number;
+            /** @description true면 브로커 판매가능수량 조회 자체가 실패해 충족 시뮬레이션을 생략함 — 이 경우 sufficientQuantity는 신뢰할 수 없음 */
+            liveQuantityUnavailable?: boolean;
         };
         TodayOrderItem: {
             /**
@@ -3719,6 +3817,28 @@ export interface operations {
         };
         responses: {
             /** @description 등록 성공 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    log: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientErrorLogRequest"];
+            };
+        };
+        responses: {
+            /** @description 저장 성공(실패해도 항상 204 — 리포트 실패가 사용자 경험에 영향을 주지 않도록 격리) */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -5114,6 +5234,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PingResponse"];
+                };
+            };
+        };
+    };
+    previewBatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accountId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: components["schemas"]["NextOrdersResponse"];
+                    };
                 };
             };
         };

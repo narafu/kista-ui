@@ -1,5 +1,5 @@
 import { clientFetch, fetchEither } from '@shared/lib/api-client'
-import type { BuyCompetitionSummary, CompetingStrategy, NextOrderPreview, SkipReason, StrategyOrder } from '../model/types'
+import type { BuyCompetitionSummary, CompetingStrategy, NextOrderPreview, SellSufficiencySummary, SkipReason, StrategyOrder } from '../model/types'
 
 export interface CancelOrdersResult {
   cancelledCount: number
@@ -28,6 +28,18 @@ function normalizeCompetition(raw: unknown): BuyCompetitionSummary | null {
     blockedByHigherPriority: ((r.blockedByHigherPriority as unknown[]) ?? []).map(normalizeCompetingStrategy),
     uncertainStrategyIds: ((r.uncertainStrategyIds as unknown[]) ?? []).map(String),
     liveBalanceUnavailable: Boolean(r.liveBalanceUnavailable),
+  }
+}
+
+function normalizeSellSufficiency(raw: unknown): SellSufficiencySummary | null {
+  if (raw == null) return null
+  const r = raw as Record<string, unknown>
+  return {
+    sufficientQuantity: Boolean(r.sufficientQuantity),
+    sellableQuantity: Number(r.sellableQuantity ?? 0),
+    reservedQuantity: Number(r.reservedQuantity ?? 0),
+    requiredQuantity: Number(r.requiredQuantity ?? 0),
+    liveQuantityUnavailable: Boolean(r.liveQuantityUnavailable),
   }
 }
 
@@ -73,7 +85,8 @@ function normalizePreview(raw: unknown): NextOrderPreview {
   })
   const otherStrategiesPlannedBuyUsd = String(r.otherStrategiesPlannedBuyUsd ?? '0')
   const competition = normalizeCompetition(r.competition)
-  return { tradeDate: String(r.tradeDate), position, orders, skipReason, todayOrders, otherStrategiesPlannedBuyUsd, competition }
+  const sellSufficiency = normalizeSellSufficiency(r.sellSufficiency)
+  return { tradeDate: String(r.tradeDate), position, orders, skipReason, todayOrders, otherStrategiesPlannedBuyUsd, competition, sellSufficiency }
 }
 
 // token 있으면 Server Component에서 kista-api 직접 호출, 없으면 Client Component에서 Route Handler 경유

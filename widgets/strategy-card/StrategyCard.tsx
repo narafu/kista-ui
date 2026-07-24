@@ -30,12 +30,18 @@ export function StrategyCard({ accountId, strategy, accountLabel, initialPreview
   // 이 전략의 실제 주문 시도 결과로 판정한다 (SELL만 성공하고 BUY만 미접수인 상태를 구분하기 위함)
   const readiness = computeBuyReadiness(preview)
   const hasTodayOrders = (preview?.todayOrders ?? []).length > 0
-  // 부족 최우선. 미접수인데 라이브 잔고 확인 자체가 실패했으면(liveBalanceUncertain) 충족으로
-  // 오인시키지 않도록 부족과 동일하게 취급한다. 오늘 시도 전(preview)에도 BUY 계획이 있는데
-  // 조회가 실패한 상태는 "정상"과 구분되게 표시해야 하므로 buyUnplaced 여부와 무관하게 경고로 취급한다
-  const orderBorderColor = readiness.hasDeficit || (readiness.buyUnplaced && readiness.liveBalanceUncertain)
+  // 부족 최우선. 미접수인데 라이브 잔고/판매가능수량 확인 자체가 실패했으면(liveBalanceUncertain/
+  // sellQuantityUncertain) 충족으로 오인시키지 않도록 부족과 동일하게 취급한다. 오늘 시도 전(preview)에도
+  // BUY/SELL 계획이 있는데 조회가 실패한 상태는 "정상"과 구분되게 표시해야 하므로 unplaced 여부와 무관하게
+  // 경고로 취급한다. SELL 미접수는 판매가능수량 부족이 확인되지 않아도(sellUnplaced만으로도) 최소 경고 처리해
+  // "타 방향은 접수됨" 하나만 보고 초록으로 오인시키지 않는다
+  const orderBorderColor = readiness.hasDeficit || readiness.hasSellQuantityDeficit
+    || (readiness.buyUnplaced && readiness.liveBalanceUncertain)
+    || (readiness.sellUnplaced && readiness.sellQuantityUncertain)
     ? 'var(--status-error)'
-    : readiness.buyUnplaced || (readiness.hasBuyOrders && readiness.liveBalanceUncertain)
+    : readiness.buyUnplaced || readiness.sellUnplaced
+      || (readiness.hasBuyOrders && readiness.liveBalanceUncertain)
+      || (readiness.hasSellOrders && readiness.sellQuantityUncertain)
       ? 'var(--warn)'
       : hasTodayOrders
         ? 'var(--status-ok)'

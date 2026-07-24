@@ -11,6 +11,7 @@ function basePreview(overrides: Partial<NextOrderPreview>): NextOrderPreview {
     todayOrders: [],
     otherStrategiesPlannedBuyUsd: '0',
     competition: null,
+    sellSufficiency: null,
     ...overrides,
   }
 }
@@ -21,11 +22,15 @@ describe('computeBuyReadiness', () => {
 
     expect(result).toEqual({
       hasBuyOrders: false,
+      hasSellOrders: false,
       hasDeficit: false,
       buyUnplaced: false,
       sellUnplaced: false,
       liveBalanceUncertain: false,
       deficitUsd: 0,
+      hasSellQuantityDeficit: false,
+      sellQuantityUncertain: false,
+      deficitQty: 0,
     })
   })
 
@@ -158,5 +163,54 @@ describe('computeBuyReadiness', () => {
 
     expect(result.buyUnplaced).toBe(false)
     expect(result.sellUnplaced).toBe(true)
+  })
+
+  it('reports the sell quantity deficit when sellable quantity is insufficient', () => {
+    const preview = basePreview({
+      orders: [{ ticker: 'SOXL', orderType: 'LIMIT', direction: 'SELL', quantity: 9, price: '160' }],
+      todayOrders: [],
+      sellSufficiency: {
+        sufficientQuantity: false, sellableQuantity: 6, reservedQuantity: 0,
+        requiredQuantity: 9, liveQuantityUnavailable: false,
+      },
+    })
+
+    const result = computeBuyReadiness(preview)
+
+    expect(result.hasSellQuantityDeficit).toBe(true)
+    expect(result.deficitQty).toBe(3)
+    expect(result.sellQuantityUncertain).toBe(false)
+  })
+
+  it('does not report a sell quantity deficit once sellable quantity is sufficient', () => {
+    const preview = basePreview({
+      orders: [{ ticker: 'SOXL', orderType: 'LIMIT', direction: 'SELL', quantity: 9, price: '160' }],
+      todayOrders: [],
+      sellSufficiency: {
+        sufficientQuantity: true, sellableQuantity: 20, reservedQuantity: 0,
+        requiredQuantity: 9, liveQuantityUnavailable: false,
+      },
+    })
+
+    const result = computeBuyReadiness(preview)
+
+    expect(result.hasSellQuantityDeficit).toBe(false)
+    expect(result.deficitQty).toBe(0)
+  })
+
+  it('flags sell quantity as uncertain instead of claiming the deficit is resolved', () => {
+    const preview = basePreview({
+      orders: [{ ticker: 'SOXL', orderType: 'LIMIT', direction: 'SELL', quantity: 9, price: '160' }],
+      todayOrders: [],
+      sellSufficiency: {
+        sufficientQuantity: true, sellableQuantity: 0, reservedQuantity: 0,
+        requiredQuantity: 9, liveQuantityUnavailable: true,
+      },
+    })
+
+    const result = computeBuyReadiness(preview)
+
+    expect(result.hasSellQuantityDeficit).toBe(false)
+    expect(result.sellQuantityUncertain).toBe(true)
   })
 })

@@ -243,6 +243,120 @@ describe('StrategyDetail unplaced order banner', () => {
     expect(screen.getByText('예수금 부족으로 매수 미접수')).toBeInTheDocument()
   })
 
+  it('shows the sell quantity deficit when today plan has SELL but no SELL was placed', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [
+          { id: 'o1', ticker: 'SOXL', direction: 'BUY', orderType: 'LIMIT', quantity: 21, price: '154.00', status: 'PLANNED' },
+        ],
+        position: null,
+        orders: [
+          { ticker: 'SOXL', orderType: 'LIMIT', direction: 'BUY', quantity: 21, price: '154.00' },
+          { ticker: 'SOXL', orderType: 'LIMIT', direction: 'SELL', quantity: 9, price: '160.00' },
+        ],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: {
+          sufficientBudget: true,
+          availableDeposit: '5000',
+          requiredForThisStrategy: '3234',
+          consumedByHigherPriority: '0',
+          blockedByHigherPriority: [],
+          uncertainStrategyIds: [],
+          liveBalanceUnavailable: false,
+        },
+        sellSufficiency: {
+          sufficientQuantity: false,
+          sellableQuantity: 6,
+          reservedQuantity: 0,
+          requiredQuantity: 9,
+          liveQuantityUnavailable: false,
+        },
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    expect(screen.getByText('판매가능수량 3주 부족으로 매도 미접수')).toBeInTheDocument()
+  })
+
+  it('falls back to the generic sell-unplaced message when sell sufficiency data is unavailable', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [
+          { id: 'o1', ticker: 'SOXL', direction: 'BUY', orderType: 'LIMIT', quantity: 21, price: '154.00', status: 'PLANNED' },
+        ],
+        position: null,
+        orders: [
+          { ticker: 'SOXL', orderType: 'LIMIT', direction: 'BUY', quantity: 21, price: '154.00' },
+          { ticker: 'SOXL', orderType: 'LIMIT', direction: 'SELL', quantity: 9, price: '160.00' },
+        ],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: {
+          sufficientBudget: true,
+          availableDeposit: '5000',
+          requiredForThisStrategy: '3234',
+          consumedByHigherPriority: '0',
+          blockedByHigherPriority: [],
+          uncertainStrategyIds: [],
+          liveBalanceUnavailable: false,
+        },
+        sellSufficiency: null,
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    expect(screen.getByText('판매가능수량 부족으로 매도 미접수')).toBeInTheDocument()
+  })
+
+  it('shows a sell quantity check-failed banner when the broker lookup itself failed', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [
+          { id: 'o1', ticker: 'SOXL', direction: 'BUY', orderType: 'LIMIT', quantity: 21, price: '154.00', status: 'PLANNED' },
+        ],
+        position: null,
+        orders: [
+          { ticker: 'SOXL', orderType: 'LIMIT', direction: 'BUY', quantity: 21, price: '154.00' },
+          { ticker: 'SOXL', orderType: 'LIMIT', direction: 'SELL', quantity: 9, price: '160.00' },
+        ],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: {
+          sufficientBudget: true,
+          availableDeposit: '5000',
+          requiredForThisStrategy: '3234',
+          consumedByHigherPriority: '0',
+          blockedByHigherPriority: [],
+          uncertainStrategyIds: [],
+          liveBalanceUnavailable: false,
+        },
+        sellSufficiency: {
+          sufficientQuantity: true,
+          sellableQuantity: 0,
+          reservedQuantity: 0,
+          requiredQuantity: 9,
+          liveQuantityUnavailable: true,
+        },
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    expect(screen.getByText('판매가능수량 확인 실패로 매도 미접수 — 잠시 후 다시 확인해주세요')).toBeInTheDocument()
+  })
+
   it('does not show a banner when every planned direction was placed', () => {
     mockPreviewQuery.mockReturnValueOnce({
       data: {
