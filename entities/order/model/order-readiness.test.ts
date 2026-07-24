@@ -21,16 +21,8 @@ describe('computeOrderReadiness', () => {
     const result = computeOrderReadiness(undefined)
 
     expect(result).toEqual({
-      hasBuyOrders: false,
-      hasSellOrders: false,
-      hasDeficit: false,
-      buyUnplaced: false,
-      sellUnplaced: false,
-      liveBalanceUncertain: false,
-      deficitUsd: 0,
-      hasSellQuantityDeficit: false,
-      sellQuantityUncertain: false,
-      deficitQty: 0,
+      buy: { hasOrders: false, unplaced: false, hasDeficit: false, uncertain: false, deficitAmount: 0 },
+      sell: { hasOrders: false, unplaced: false, hasDeficit: false, uncertain: false, deficitAmount: 0 },
     })
   })
 
@@ -47,10 +39,10 @@ describe('computeOrderReadiness', () => {
 
     const result = computeOrderReadiness(preview)
 
-    expect(result.hasBuyOrders).toBe(true)
-    expect(result.hasDeficit).toBe(true)
-    expect(result.buyUnplaced).toBe(false)
-    expect(result.deficitUsd).toBe(100)
+    expect(result.buy.hasOrders).toBe(true)
+    expect(result.buy.hasDeficit).toBe(true)
+    expect(result.buy.unplaced).toBe(false)
+    expect(result.buy.deficitAmount).toBe(100)
   })
 
   it('marks buy as unplaced when sell was placed but buy is still short on budget', () => {
@@ -71,10 +63,10 @@ describe('computeOrderReadiness', () => {
 
     const result = computeOrderReadiness(preview)
 
-    expect(result.buyUnplaced).toBe(true)
-    expect(result.sellUnplaced).toBe(false)
-    expect(result.hasDeficit).toBe(true)
-    expect(result.deficitUsd).toBe(50)
+    expect(result.buy.unplaced).toBe(true)
+    expect(result.sell.unplaced).toBe(false)
+    expect(result.buy.hasDeficit).toBe(true)
+    expect(result.buy.deficitAmount).toBe(50)
   })
 
   it('clears the deficit once live budget becomes sufficient while buy is still unplaced', () => {
@@ -95,9 +87,9 @@ describe('computeOrderReadiness', () => {
 
     const result = computeOrderReadiness(preview)
 
-    expect(result.buyUnplaced).toBe(true)
-    expect(result.hasDeficit).toBe(false)
-    expect(result.liveBalanceUncertain).toBe(false)
+    expect(result.buy.unplaced).toBe(true)
+    expect(result.buy.hasDeficit).toBe(false)
+    expect(result.buy.uncertain).toBe(false)
   })
 
   it('flags live balance as uncertain instead of claiming the deficit is resolved', () => {
@@ -115,9 +107,9 @@ describe('computeOrderReadiness', () => {
 
     const result = computeOrderReadiness(preview)
 
-    expect(result.hasDeficit).toBe(false)
-    expect(result.liveBalanceUncertain).toBe(true)
-    expect(result.buyUnplaced).toBe(true)
+    expect(result.buy.hasDeficit).toBe(false)
+    expect(result.buy.uncertain).toBe(true)
+    expect(result.buy.unplaced).toBe(true)
   })
 
   it('marks both directions as not unplaced once both are placed', () => {
@@ -139,8 +131,8 @@ describe('computeOrderReadiness', () => {
 
     const result = computeOrderReadiness(preview)
 
-    expect(result.buyUnplaced).toBe(false)
-    expect(result.sellUnplaced).toBe(false)
+    expect(result.buy.unplaced).toBe(false)
+    expect(result.sell.unplaced).toBe(false)
   })
 
   it('treats sell-unplaced independently of buy state', () => {
@@ -161,8 +153,8 @@ describe('computeOrderReadiness', () => {
 
     const result = computeOrderReadiness(preview)
 
-    expect(result.buyUnplaced).toBe(false)
-    expect(result.sellUnplaced).toBe(true)
+    expect(result.buy.unplaced).toBe(false)
+    expect(result.sell.unplaced).toBe(true)
   })
 
   it('reports the sell quantity deficit when sellable quantity is insufficient', () => {
@@ -177,9 +169,9 @@ describe('computeOrderReadiness', () => {
 
     const result = computeOrderReadiness(preview)
 
-    expect(result.hasSellQuantityDeficit).toBe(true)
-    expect(result.deficitQty).toBe(3)
-    expect(result.sellQuantityUncertain).toBe(false)
+    expect(result.sell.hasDeficit).toBe(true)
+    expect(result.sell.deficitAmount).toBe(3)
+    expect(result.sell.uncertain).toBe(false)
   })
 
   it('does not report a sell quantity deficit once sellable quantity is sufficient', () => {
@@ -194,8 +186,8 @@ describe('computeOrderReadiness', () => {
 
     const result = computeOrderReadiness(preview)
 
-    expect(result.hasSellQuantityDeficit).toBe(false)
-    expect(result.deficitQty).toBe(0)
+    expect(result.sell.hasDeficit).toBe(false)
+    expect(result.sell.deficitAmount).toBe(0)
   })
 
   it('flags sell quantity as uncertain instead of claiming the deficit is resolved', () => {
@@ -210,7 +202,7 @@ describe('computeOrderReadiness', () => {
 
     const result = computeOrderReadiness(preview)
 
-    expect(result.hasSellQuantityDeficit).toBe(false)
-    expect(result.sellQuantityUncertain).toBe(true)
+    expect(result.sell.hasDeficit).toBe(false)
+    expect(result.sell.uncertain).toBe(true)
   })
 })

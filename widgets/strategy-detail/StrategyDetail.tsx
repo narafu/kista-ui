@@ -30,7 +30,7 @@ import { ApiError } from '@shared/lib/api-client'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import type { Strategy } from '@entities/strategy'
-import type { SkipReason, NextOrderPreview, OrderReadiness } from '@entities/order'
+import type { SkipReason, NextOrderPreview, OrderReadiness, DirectionReadiness } from '@entities/order'
 import { OrderRows } from './OrderRows'
 import { StrategyOrderHistory } from './StrategyOrderHistory'
 
@@ -40,67 +40,55 @@ const SKIP_REASON_LABELS: Record<SkipReason, string> = {
 }
 
 
-// BUY/SELL 공용 "미접수" 사유 메시지 템플릿 — 확인 실패 > 부족 > 충족 우선순위로 문구 선택
-function directionUnplacedMessage(params: {
-  uncertain: boolean
+// 방향별 문구 재료 — 라벨/부족 서식은 BUY·SELL 각각 다르므로 방향마다 한 벌씩 정의하고,
+// 우선순위 판정(확인 실패 > 부족 > 충족)은 아래 두 함수가 공유한다
+interface DirectionCopy {
   uncertainMessage: string
-  hasDeficit: boolean
-  deficitMessage: string
+  formatDeficitMessage: (deficitAmount: number) => string
   sufficientMessage: string
-}): string {
-  if (params.uncertain) return params.uncertainMessage
-  if (params.hasDeficit) return params.deficitMessage
-  return params.sufficientMessage
 }
 
-function buyUnplacedMessage(readiness: ReturnType<typeof computeOrderReadiness>): string {
-  return directionUnplacedMessage({
-    uncertain: readiness.liveBalanceUncertain,
-    uncertainMessage: '예수금 확인 실패로 매수 미접수 — 잠시 후 다시 확인해주세요',
-    hasDeficit: readiness.hasDeficit,
-    deficitMessage: '예수금 부족으로 매수 미접수',
-    sufficientMessage: '예수금 충족됨 — 마감 시 매수 재시도 예정',
-  })
+const BUY_COPY: DirectionCopy = {
+  uncertainMessage: '예수금 확인 실패로 매수 미접수 — 잠시 후 다시 확인해주세요',
+  formatDeficitMessage: () => '예수금 부족으로 매수 미접수',
+  sufficientMessage: '예수금 충족됨 — 마감 시 매수 재시도 예정',
 }
 
-function sellUnplacedMessage(readiness: ReturnType<typeof computeOrderReadiness>): string {
-  return directionUnplacedMessage({
-    uncertain: readiness.sellQuantityUncertain,
-    uncertainMessage: '판매가능수량 확인 실패로 매도 미접수 — 잠시 후 다시 확인해주세요',
-    hasDeficit: readiness.hasSellQuantityDeficit,
-    deficitMessage: `판매가능수량 ${readiness.deficitQty}주 부족으로 매도 미접수`,
-    sufficientMessage: '판매가능수량 충족됨 — 마감 시 매도 재시도 예정',
-  })
+const SELL_COPY: DirectionCopy = {
+  uncertainMessage: '판매가능수량 확인 실패로 매도 미접수 — 잠시 후 다시 확인해주세요',
+  formatDeficitMessage: (qty) => `판매가능수량 ${qty}주 부족으로 매도 미접수`,
+  sufficientMessage: '판매가능수량 충족됨 — 마감 시 매도 재시도 예정',
 }
 
-// BUY/SELL 각각의 배너 문구 — 확인 실패 > 부족 우선순위, 둘 다 해당하면 nextOrderBannerText에서 합쳐 보여준다.
-// 확인 실패 문구는 preview 모드에서만 노출한다 — executed 모드에서는 아래 "미접수" 목록이 방향별로
-// 확인 실패 사유까지 이미 안내하므로, 배너에서 또 보여주면 중복이다
-function buySideBannerText(mode: 'preview' | 'executed', readiness: OrderReadiness): string | null {
-  if (mode === 'preview' && readiness.liveBalanceUncertain) return '예수금 확인 실패 — 잠시 후 다시 확인해주세요'
-  if (!readiness.hasDeficit) return null
-  return mode === 'preview'
-    ? `예수금 $${fmtUsd(readiness.deficitUsd)} 부족(장 마감 시 재시도)`
-    : `예수금 $${fmtUsd(readiness.deficitUsd)} 부족`
+// "미접수" 목록 문구 — 확인 실패 > 부족 > 충족 우선순위로 선택
+function directionUnplacedMessage(direction: DirectionReadiness, copy: DirectionCopy): string {
+  if (direction.uncertain) return copy.uncertainMessage
+  if (direction.hasDeficit) return copy.formatDeficitMessage(direction.deficitAmount)
+  return copy.sufficientMessage
 }
 
-function sellSideBannerText(mode: 'preview' | 'executed', readiness: OrderReadiness): string | null {
-  if (mode === 'preview' && readiness.sellQuantityUncertain) return '판매가능수량 확인 실패 — 잠시 후 다시 확인해주세요'
-  if (!readiness.hasSellQuantityDeficit) return null
-  return mode === 'preview'
-    ? `판매가능수량 ${readiness.deficitQty}주 부족(장 마감 시 재시도)`
-    : `판매가능수량 ${readiness.deficitQty}주 부족`
+// 카드 상단 배너 문구(방향 1개분) — 확인 실패 > 부족 우선순위. 확인 실패 문구는 preview 모드에서만
+// 노출한다 — executed 모드에서는 아래 "미접수" 목록이 방향별로 확인 실패 사유까지 이미 안내하므로,
+// 배너에서 또 보여주면 중복이다
+function directionBannerText(mode: 'preview' | 'executed', direction: DirectionReadiness, uncertainBannerMessage: string, formatDeficitBanner: (deficitAmount: number) => string): string | null {
+  if (mode === 'preview' && direction.uncertain) return uncertainBannerMessage
+  if (!direction.hasDeficit) return null
+  return formatDeficitBanner(direction.deficitAmount)
 }
 
 // 카드 상단 배너 문구 — 휴장일/예수금·판매가능수량 부족을 "바로 주문" 가능 여부와 함께 안내한다.
 // BUY/SELL 부족이 동시에 발생할 수 있어(같은 전략에 두 방향 모두 계획된 경우) 한쪽만 보여주고 끝내지
-// 않도록 둘 다 문구를 만든 뒤 합친다 — readiness 객체를 그대로 받아 개별 필드 위치인자 스왑 위험을 없앤다
+// 않도록 둘 다 문구를 만든 뒤 합친다
 function nextOrderBannerText(canExecute: boolean, mode: 'preview' | 'executed', isHoliday: boolean, readiness: OrderReadiness): string | null {
   if (!canExecute) return null
   if (mode === 'preview' && isHoliday) return '오늘은 휴장일입니다'
 
-  const parts = [buySideBannerText(mode, readiness), sellSideBannerText(mode, readiness)]
-    .filter((part): part is string => part != null)
+  const parts = [
+    directionBannerText(mode, readiness.buy, '예수금 확인 실패 — 잠시 후 다시 확인해주세요', (amount) =>
+      mode === 'preview' ? `예수금 $${fmtUsd(amount)} 부족(장 마감 시 재시도)` : `예수금 $${fmtUsd(amount)} 부족`),
+    directionBannerText(mode, readiness.sell, '판매가능수량 확인 실패 — 잠시 후 다시 확인해주세요', (amount) =>
+      mode === 'preview' ? `판매가능수량 ${amount}주 부족(장 마감 시 재시도)` : `판매가능수량 ${amount}주 부족`),
+  ].filter((part): part is string => part != null)
   return parts.length > 0 ? parts.join(' · ') : null
 }
 
@@ -134,7 +122,7 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
 
   // executed 모드에서만 의미 있음: preview 모드는 "아직 시도 안 함"과 "전량 거절"을 구분할 수 없다
   const unplacedDirections: Array<'BUY' | 'SELL'> = mode === 'executed'
-    ? [...(readiness.buyUnplaced ? (['BUY'] as const) : []), ...(readiness.sellUnplaced ? (['SELL'] as const) : [])]
+    ? [...(readiness.buy.unplaced ? (['BUY'] as const) : []), ...(readiness.sell.unplaced ? (['SELL'] as const) : [])]
     : []
 
   const todayStr = todayKst()
@@ -295,7 +283,7 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
                   <div className="flex flex-col gap-0.5 mt-1.5">
                     {unplacedDirections.map((d) => (
                       <p key={d} className="text-sm lg:text-base text-warn">
-                        {d === 'BUY' ? buyUnplacedMessage(readiness) : sellUnplacedMessage(readiness)}
+                        {d === 'BUY' ? directionUnplacedMessage(readiness.buy, BUY_COPY) : directionUnplacedMessage(readiness.sell, SELL_COPY)}
                       </p>
                     ))}
                   </div>
@@ -312,8 +300,8 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
                     // BUY/SELL 부족이 동시에 있을 수 있어 둘 다 확인해 각각 토스트로 안내한다 —
                     // 한쪽만 안내하면 사용자가 나머지 사유를 모른 채 재시도하게 된다
                     const blockers = [
-                      readiness.hasDeficit && '예수금이 부족합니다',
-                      readiness.hasSellQuantityDeficit && '판매가능수량이 부족합니다',
+                      readiness.buy.hasDeficit && '예수금이 부족합니다',
+                      readiness.sell.hasDeficit && '판매가능수량이 부족합니다',
                     ].filter((msg): msg is string => Boolean(msg))
                     if (blockers.length > 0) {
                       blockers.forEach((message) => toast.info(message))

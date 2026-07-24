@@ -9,7 +9,7 @@ export type {
   CompetingStrategy,
   SellSufficiencySummary,
 } from './model/types'
-export type { OrderReadiness } from './model/order-readiness'
+export type { OrderReadiness, DirectionReadiness } from './model/order-readiness'
 export { computeOrderReadiness } from './model/order-readiness'
 export { orderStatusBadgeClass, orderTypeBadgeClass, ORDER_STATUS_LABEL } from './model/status-badge'
 export type { CancelOrdersResult } from './api'
