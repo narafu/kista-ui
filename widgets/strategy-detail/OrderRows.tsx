@@ -79,28 +79,28 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
       <table className="hidden lg:table w-full">
         <thead>
           <tr>
-            <TableHeadCell className="px-5 py-2.5 text-left bg-muted/50 border-b border-border">구분</TableHeadCell>
-            <TableHeadCell className="px-5 py-2.5 text-left bg-muted/50 border-b border-border">종목</TableHeadCell>
-            <TableHeadCell className="px-5 py-2.5 text-right bg-muted/50 border-b border-border">수량</TableHeadCell>
-            <TableHeadCell className="px-5 py-2.5 text-right bg-muted/50 border-b border-border">주문가</TableHeadCell>
+            <TableHeadCell className="px-5 py-2.5 bg-muted/50 border-b border-border">구분</TableHeadCell>
+            <TableHeadCell className="px-5 py-2.5 bg-muted/50 border-b border-border">종목</TableHeadCell>
+            <TableHeadCell className="px-5 py-2.5 bg-muted/50 border-b border-border">수량</TableHeadCell>
+            <TableHeadCell className="px-5 py-2.5 bg-muted/50 border-b border-border">주문가</TableHeadCell>
             {hasCancel && (
-              <TableHeadCell className="px-5 py-2.5 text-right bg-muted/50 border-b border-border">취소</TableHeadCell>
+              <TableHeadCell className="px-5 py-2.5 bg-muted/50 border-b border-border">취소</TableHeadCell>
             )}
           </tr>
         </thead>
         <tbody>
           {orders.map((o, i) => (
             <tr key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className="border-b border-border last:border-b-0">
-              <td className="px-5 py-3">
+              <td className="px-5 py-3 text-center">
                 <Badge tone="none" size="sm" className={cn('lg:h-[24px] lg:text-sm', directionBadgeCls(o.direction))}>
                   {directionLabel(o.direction)}
                 </Badge>
               </td>
-              <td className="px-5 py-3 text-sm lg:text-base font-semibold">{o.ticker}</td>
-              <td className="px-5 py-3 text-sm lg:text-base text-muted-foreground text-right">{o.quantity}</td>
-              <td className="px-5 py-3 text-sm lg:text-base font-semibold text-right">${fmtUsd(toNum(o.price))}</td>
+              <td className="px-5 py-3 text-sm lg:text-base font-semibold text-center">{o.ticker}</td>
+              <td className="px-5 py-3 text-sm lg:text-base text-muted-foreground text-center">{o.quantity}</td>
+              <td className="px-5 py-3 text-sm lg:text-base font-semibold text-center">${fmtUsd(toNum(o.price))}</td>
               {hasCancel && (
-                <td className="px-5 py-3 text-right">
+                <td className="px-5 py-3 text-center">
                   {o.id && (
                     <button
                       type="button"

@@ -112,11 +112,11 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
               <table className="w-full text-sm lg:text-base">
                 <thead className="bg-muted/50 sticky top-0 z-10">
                   <tr>
-                    <TableHeadCell className="text-left">티커</TableHeadCell>
-                    <TableHeadCell className="text-right">수량</TableHeadCell>
-                    <TableHeadCell className="text-right">평단가</TableHeadCell>
-                    <TableHeadCell className="text-right">예수금</TableHeadCell>
-                    <TableHeadCell className="text-right">평가금액</TableHeadCell>
+                    <TableHeadCell>티커</TableHeadCell>
+                    <TableHeadCell>수량</TableHeadCell>
+                    <TableHeadCell>평단가</TableHeadCell>
+                    <TableHeadCell>예수금</TableHeadCell>
+                    <TableHeadCell>평가금액</TableHeadCell>
                   </tr>
                 </thead>
                 <tbody>
@@ -131,11 +131,11 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
                           : null
                         return (
                           <tr key={entry.createdAt} className="border-t hover:bg-muted/30 transition-colors">
-                            <td className="px-4 py-3 font-medium">{entry.ticker ?? '-'}</td>
-                            <td className="px-4 py-3 text-right tabular-nums">{entry.holdings}주</td>
-                            <td className="px-4 py-3 text-right tabular-nums">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</td>
-                            <td className="px-4 py-3 text-right tabular-nums font-medium">${fmtUsd(entry.usdDeposit ?? 0)}</td>
-                            <td className="px-4 py-3 text-right tabular-nums font-medium">{evalAmount != null ? `$${fmtUsd(evalAmount)}` : '-'}</td>
+                            <td className="px-4 py-3 text-center font-medium">{entry.ticker ?? '-'}</td>
+                            <td className="px-4 py-3 text-center tabular-nums">{entry.holdings}주</td>
+                            <td className="px-4 py-3 text-center tabular-nums">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</td>
+                            <td className="px-4 py-3 text-center tabular-nums font-medium">${fmtUsd(entry.usdDeposit ?? 0)}</td>
+                            <td className="px-4 py-3 text-center tabular-nums font-medium">{evalAmount != null ? `$${fmtUsd(evalAmount)}` : '-'}</td>
                           </tr>
                         )
                       })}

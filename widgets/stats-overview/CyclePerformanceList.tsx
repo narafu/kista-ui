@@ -31,29 +31,29 @@ export function CyclePerformanceList({ typeFilter }: Props) {
               <table className="w-full min-w-[720px] text-sm" aria-label="사이클 성과">
                 <thead className="bg-muted/50">
                   <tr>
-                    <TableHeadCell className="text-left">전략</TableHeadCell>
-                    <TableHeadCell className="text-left">종목</TableHeadCell>
-                    <TableHeadCell className="text-left">기간</TableHeadCell>
-                    <TableHeadCell className="text-right">손익</TableHeadCell>
-                    <TableHeadCell className="text-right">수익률</TableHeadCell>
+                    <TableHeadCell>전략</TableHeadCell>
+                    <TableHeadCell>종목</TableHeadCell>
+                    <TableHeadCell>기간</TableHeadCell>
+                    <TableHeadCell>손익</TableHeadCell>
+                    <TableHeadCell>수익률</TableHeadCell>
                   </tr>
                 </thead>
                 <tbody>
                   {cycles.map((cycle) => (
                     <tr key={cycle.cycleId} className="border-t transition-colors hover:bg-muted/30">
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 text-center">
                         <Badge tone="brand" size="sm">
                           {cycle.strategyType}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3 font-medium tabular-nums">{cycle.ticker ?? '—'}</td>
-                      <td className="px-4 py-3 text-muted-foreground">
+                      <td className="px-4 py-3 text-center font-medium tabular-nums">{cycle.ticker ?? '—'}</td>
+                      <td className="px-4 py-3 text-center text-muted-foreground">
                         {fmtDate(cycle.startDate)} ~ {cycle.endDate ? fmtDate(cycle.endDate) : '진행 중'}
                       </td>
-                      <td className={cn('px-4 py-3 text-right tabular-nums', cycle.pnl != null ? pnlTextClass(cycle.pnl) : 'text-muted-foreground')}>
+                      <td className={cn('px-4 py-3 text-center tabular-nums', cycle.pnl != null ? pnlTextClass(cycle.pnl) : 'text-muted-foreground')}>
                         {cycle.pnl != null ? fmtSignedUsd(cycle.pnl, 2, '$') : '—'}
                       </td>
-                      <td className={cn('px-4 py-3 text-right tabular-nums', cycle.returnRate != null ? pnlTextClass(cycle.returnRate) : 'text-muted-foreground')}>
+                      <td className={cn('px-4 py-3 text-center tabular-nums', cycle.returnRate != null ? pnlTextClass(cycle.returnRate) : 'text-muted-foreground')}>
                         {cycle.returnRate != null ? `${cycle.returnRate >= 0 ? '+' : ''}${(cycle.returnRate * 100).toFixed(1)}%` : '—'}
                       </td>
                     </tr>
