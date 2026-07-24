@@ -1,23 +1,12 @@
 import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Strategy } from '@entities/strategy'
+import type { BuyCompetitionSummary, SellSufficiencySummary } from '@entities/order'
 import { StrategyCard } from './StrategyCard'
 
-interface CompetitionMock {
-  sufficientBudget: boolean
-  availableDeposit?: string
-  requiredForThisStrategy?: string
-  consumedByHigherPriority?: string
-  liveBalanceUnavailable?: boolean
-}
-
-interface SellSufficiencyMock {
-  sufficientQuantity: boolean
-  sellableQuantity?: number
-  reservedQuantity?: number
-  requiredQuantity?: number
-  liveQuantityUnavailable?: boolean
-}
+// 실제 DTO에서 파생 — 목 리터럴에서 필요한 필드만 채우고 나머지는 Partial로 생략
+type CompetitionMock = Partial<BuyCompetitionSummary> & Pick<BuyCompetitionSummary, 'sufficientBudget'>
+type SellSufficiencyMock = Partial<SellSufficiencySummary> & Pick<SellSufficiencySummary, 'sufficientQuantity'>
 
 let previewState = {
   data: {

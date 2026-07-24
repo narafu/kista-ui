@@ -21,7 +21,7 @@ import {
 import { KpiCard } from '@widgets/kpi-card'
 import { StrategyTradesTab } from '@widgets/cycle-history'
 import { useDeleteStrategyMutation, useExecuteStrategyMutation, usePauseStrategyMutation, useResumeStrategyMutation, seedBadgeClass, strategyStatusAccent } from '@entities/strategy'
-import { useStrategyOrderPreviewQuery, useCancelAllOrdersMutation, useCancelOneOrderMutation, computeBuyReadiness } from '@entities/order'
+import { useStrategyOrderPreviewQuery, useCancelAllOrdersMutation, useCancelOneOrderMutation, computeOrderReadiness } from '@entities/order'
 import { useMonthlyHolidaysQuery } from '@entities/market'
 import { useMeta } from '@entities/meta'
 import { cn, toNum } from '@shared/lib/utils'
@@ -40,21 +40,42 @@ const SKIP_REASON_LABELS: Record<SkipReason, string> = {
 }
 
 
-function buyUnplacedMessage(readiness: ReturnType<typeof computeBuyReadiness>): string {
-  if (readiness.liveBalanceUncertain) return '예수금 확인 실패로 매수 미접수 — 잠시 후 다시 확인해주세요'
-  if (readiness.hasDeficit) return '예수금 부족으로 매수 미접수'
-  return '예수금 충족됨 — 마감 시 매수 재시도 예정'
+// BUY/SELL 공용 "미접수" 사유 메시지 템플릿 — 확인 실패 > 부족 > 충족 우선순위로 문구 선택
+function directionUnplacedMessage(params: {
+  uncertain: boolean
+  uncertainMessage: string
+  hasDeficit: boolean
+  deficitMessage: string
+  sufficientMessage: string
+}): string {
+  if (params.uncertain) return params.uncertainMessage
+  if (params.hasDeficit) return params.deficitMessage
+  return params.sufficientMessage
 }
 
-function sellUnplacedMessage(readiness: ReturnType<typeof computeBuyReadiness>): string {
-  if (readiness.sellQuantityUncertain) return '판매가능수량 확인 실패로 매도 미접수 — 잠시 후 다시 확인해주세요'
-  if (readiness.hasSellQuantityDeficit) return `판매가능수량 ${readiness.deficitQty}주 부족으로 매도 미접수`
-  return '판매가능수량 충족됨 — 마감 시 매도 재시도 예정'
+function buyUnplacedMessage(readiness: ReturnType<typeof computeOrderReadiness>): string {
+  return directionUnplacedMessage({
+    uncertain: readiness.liveBalanceUncertain,
+    uncertainMessage: '예수금 확인 실패로 매수 미접수 — 잠시 후 다시 확인해주세요',
+    hasDeficit: readiness.hasDeficit,
+    deficitMessage: '예수금 부족으로 매수 미접수',
+    sufficientMessage: '예수금 충족됨 — 마감 시 매수 재시도 예정',
+  })
 }
 
-// 카드 상단 배너 문구 — 휴장일/예수금 부족을 "바로 주문" 가능 여부와 함께 안내
-// liveBalanceUncertain: 라이브 예수금 조회 자체가 실패해 부족 여부를 판정할 수 없는 상태 —
-// preview 모드에서도 이 경우를 무시하면 실제로는 부족한데 배너가 아예 안 뜨는 사각지대가 생긴다
+function sellUnplacedMessage(readiness: ReturnType<typeof computeOrderReadiness>): string {
+  return directionUnplacedMessage({
+    uncertain: readiness.sellQuantityUncertain,
+    uncertainMessage: '판매가능수량 확인 실패로 매도 미접수 — 잠시 후 다시 확인해주세요',
+    hasDeficit: readiness.hasSellQuantityDeficit,
+    deficitMessage: `판매가능수량 ${readiness.deficitQty}주 부족으로 매도 미접수`,
+    sufficientMessage: '판매가능수량 충족됨 — 마감 시 매도 재시도 예정',
+  })
+}
+
+// 카드 상단 배너 문구 — 휴장일/예수금·판매가능수량 부족을 "바로 주문" 가능 여부와 함께 안내
+// liveBalanceUncertain/sellQuantityUncertain: 라이브 예수금·판매가능수량 조회 자체가 실패해 부족 여부를
+// 판정할 수 없는 상태 — preview 모드에서도 이 경우를 무시하면 실제로는 부족한데 배너가 아예 안 뜨는 사각지대가 생긴다
 function nextOrderBannerText(
   canExecute: boolean,
   mode: 'preview' | 'executed',
@@ -62,15 +83,22 @@ function nextOrderBannerText(
   hasDeficit: boolean,
   deficitUsd: number,
   liveBalanceUncertain: boolean,
+  hasSellQuantityDeficit: boolean,
+  deficitQty: number,
+  sellQuantityUncertain: boolean,
 ): string | null {
   if (!canExecute) return null
   if (mode === 'preview') {
     if (isHoliday) return '오늘은 휴장일입니다'
     if (liveBalanceUncertain) return '예수금 확인 실패 — 잠시 후 다시 확인해주세요'
+    if (sellQuantityUncertain) return '판매가능수량 확인 실패 — 잠시 후 다시 확인해주세요'
     if (hasDeficit) return `예수금 $${fmtUsd(deficitUsd)} 부족(장 마감 시 재시도)`
+    if (hasSellQuantityDeficit) return `판매가능수량 ${deficitQty}주 부족(장 마감 시 재시도)`
     return null
   }
-  return hasDeficit ? `예수금 $${fmtUsd(deficitUsd)} 부족` : null
+  if (hasDeficit) return `예수금 $${fmtUsd(deficitUsd)} 부족`
+  if (hasSellQuantityDeficit) return `판매가능수량 ${deficitQty}주 부족`
+  return null
 }
 
 function previewErrorMsg(error: unknown): string {
@@ -99,7 +127,7 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
   const orders = preview?.orders ?? []
 
   // 카드와 동일한 공용 판정 — "오늘 계획된 주문 중 실제 미접수 방향이 있는가" 기준
-  const readiness = computeBuyReadiness(preview)
+  const readiness = computeOrderReadiness(preview)
   const hasDeficit = readiness.hasDeficit
   const previewDeficit = readiness.deficitUsd
 
@@ -115,7 +143,10 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
   const isHoliday = isWeekend || holidays.includes(todayStr)
   const canExecute = strategy.status === 'ACTIVE'
-  const bannerText = nextOrderBannerText(canExecute, mode, isHoliday, hasDeficit, previewDeficit, readiness.liveBalanceUncertain)
+  const bannerText = nextOrderBannerText(
+    canExecute, mode, isHoliday, hasDeficit, previewDeficit, readiness.liveBalanceUncertain,
+    readiness.hasSellQuantityDeficit, readiness.deficitQty, readiness.sellQuantityUncertain,
+  )
 
   const deleteMutation = useDeleteStrategyMutation(() => push(`/accounts/${accountId}`))
   const pauseMutation = usePauseStrategyMutation()
@@ -282,6 +313,10 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
                     }
                     if (hasDeficit) {
                       toast.info('예수금이 부족합니다')
+                      return
+                    }
+                    if (readiness.hasSellQuantityDeficit) {
+                      toast.info('판매가능수량이 부족합니다')
                       return
                     }
                     executeMutation.mutate()

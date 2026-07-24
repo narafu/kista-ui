@@ -1,7 +1,7 @@
 import { toNum } from '@shared/lib/utils'
 import type { NextOrderPreview } from './types'
 
-export interface BuyReadiness {
+export interface OrderReadiness {
   hasBuyOrders: boolean
   hasSellOrders: boolean
   hasDeficit: boolean           // 라이브 예산 부족 (신뢰 가능한 경우만 true — liveBalanceUncertain이면 항상 false)
@@ -14,9 +14,10 @@ export interface BuyReadiness {
   deficitQty: number               // hasSellQuantityDeficit일 때만 의미 있음, 그 외 0
 }
 
-// 카드/상세 두 위젯이 공유하는 순수 판정 로직 — "오늘 계획된 주문 중 실제 미접수 방향이 있는가"를
-// plannedDirections(orders) vs placedDirections(todayOrders)로 판정한다
-export function computeBuyReadiness(preview: NextOrderPreview | undefined): BuyReadiness {
+// 카드/상세 두 위젯이 공유하는 순수 판정 로직 — BUY/SELL 양방향에 대해 "오늘 계획된 주문 중
+// 실제 미접수 방향이 있는가"를 plannedDirections(orders) vs placedDirections(todayOrders)로 판정하고,
+// 각 방향의 라이브 잔고/판매가능수량 부족 여부를 함께 계산한다
+export function computeOrderReadiness(preview: NextOrderPreview | undefined): OrderReadiness {
   const orders = preview?.orders ?? []
   const todayOrders = preview?.todayOrders ?? []
   const competition = preview?.competition ?? null

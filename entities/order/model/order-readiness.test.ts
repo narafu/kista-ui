@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeBuyReadiness } from './buy-readiness'
+import { computeOrderReadiness } from './order-readiness'
 import type { NextOrderPreview } from './types'
 
 function basePreview(overrides: Partial<NextOrderPreview>): NextOrderPreview {
@@ -16,9 +16,9 @@ function basePreview(overrides: Partial<NextOrderPreview>): NextOrderPreview {
   }
 }
 
-describe('computeBuyReadiness', () => {
+describe('computeOrderReadiness', () => {
   it('returns all-false defaults when preview is undefined', () => {
-    const result = computeBuyReadiness(undefined)
+    const result = computeOrderReadiness(undefined)
 
     expect(result).toEqual({
       hasBuyOrders: false,
@@ -45,7 +45,7 @@ describe('computeBuyReadiness', () => {
       },
     })
 
-    const result = computeBuyReadiness(preview)
+    const result = computeOrderReadiness(preview)
 
     expect(result.hasBuyOrders).toBe(true)
     expect(result.hasDeficit).toBe(true)
@@ -69,7 +69,7 @@ describe('computeBuyReadiness', () => {
       },
     })
 
-    const result = computeBuyReadiness(preview)
+    const result = computeOrderReadiness(preview)
 
     expect(result.buyUnplaced).toBe(true)
     expect(result.sellUnplaced).toBe(false)
@@ -93,7 +93,7 @@ describe('computeBuyReadiness', () => {
       },
     })
 
-    const result = computeBuyReadiness(preview)
+    const result = computeOrderReadiness(preview)
 
     expect(result.buyUnplaced).toBe(true)
     expect(result.hasDeficit).toBe(false)
@@ -113,7 +113,7 @@ describe('computeBuyReadiness', () => {
       },
     })
 
-    const result = computeBuyReadiness(preview)
+    const result = computeOrderReadiness(preview)
 
     expect(result.hasDeficit).toBe(false)
     expect(result.liveBalanceUncertain).toBe(true)
@@ -137,7 +137,7 @@ describe('computeBuyReadiness', () => {
       },
     })
 
-    const result = computeBuyReadiness(preview)
+    const result = computeOrderReadiness(preview)
 
     expect(result.buyUnplaced).toBe(false)
     expect(result.sellUnplaced).toBe(false)
@@ -159,7 +159,7 @@ describe('computeBuyReadiness', () => {
       },
     })
 
-    const result = computeBuyReadiness(preview)
+    const result = computeOrderReadiness(preview)
 
     expect(result.buyUnplaced).toBe(false)
     expect(result.sellUnplaced).toBe(true)
@@ -175,7 +175,7 @@ describe('computeBuyReadiness', () => {
       },
     })
 
-    const result = computeBuyReadiness(preview)
+    const result = computeOrderReadiness(preview)
 
     expect(result.hasSellQuantityDeficit).toBe(true)
     expect(result.deficitQty).toBe(3)
@@ -192,7 +192,7 @@ describe('computeBuyReadiness', () => {
       },
     })
 
-    const result = computeBuyReadiness(preview)
+    const result = computeOrderReadiness(preview)
 
     expect(result.hasSellQuantityDeficit).toBe(false)
     expect(result.deficitQty).toBe(0)
@@ -208,7 +208,7 @@ describe('computeBuyReadiness', () => {
       },
     })
 
-    const result = computeBuyReadiness(preview)
+    const result = computeOrderReadiness(preview)
 
     expect(result.hasSellQuantityDeficit).toBe(false)
     expect(result.sellQuantityUncertain).toBe(true)

@@ -34,4 +34,30 @@ describe('useStrategyOrderPreviewQuery', () => {
       staleTime: 60_000,
     }))
   })
+
+  function refetchIntervalOf(data: unknown): number | false {
+    useQueryMock.mockReturnValue({ data: undefined })
+    renderHook(() => useStrategyOrderPreviewQuery('strategy-1'))
+    const refetchInterval = useQueryMock.mock.calls.at(-1)?.[0].refetchInterval
+    return refetchInterval({ state: { data } })
+  }
+
+  it('예수금 조회 실패(BUY) 상태면 5초 간격으로 자동 재시도한다', () => {
+    expect(refetchIntervalOf({ competition: { liveBalanceUnavailable: true } })).toBe(5_000)
+  })
+
+  it('판매가능수량 조회 실패(SELL) 상태면 5초 간격으로 자동 재시도한다', () => {
+    expect(refetchIntervalOf({ competition: null, sellSufficiency: { liveQuantityUnavailable: true } })).toBe(5_000)
+  })
+
+  it('둘 다 확인 실패가 아니면 자동 재시도를 걸지 않는다', () => {
+    expect(refetchIntervalOf({
+      competition: { liveBalanceUnavailable: false },
+      sellSufficiency: { liveQuantityUnavailable: false },
+    })).toBe(false)
+  })
+
+  it('데이터가 없으면 자동 재시도를 걸지 않는다', () => {
+    expect(refetchIntervalOf(undefined)).toBe(false)
+  })
 })

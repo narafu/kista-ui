@@ -17,10 +17,15 @@ function normalizeCompetingStrategy(raw: unknown): CompetingStrategy {
   }
 }
 
-function normalizeCompetition(raw: unknown): BuyCompetitionSummary | null {
+// null 응답을 그대로 통과시키고, 있으면 Record로 캐스팅해 mapper에 위임하는 공용 null-check 래퍼 —
+// BuyCompetitionSummary/SellSufficiencySummary처럼 "필드 없으면 null" 응답 정규화에 공통 사용
+function normalizeNullable<T>(raw: unknown, mapper: (r: Record<string, unknown>) => T): T | null {
   if (raw == null) return null
-  const r = raw as Record<string, unknown>
-  return {
+  return mapper(raw as Record<string, unknown>)
+}
+
+function normalizeCompetition(raw: unknown): BuyCompetitionSummary | null {
+  return normalizeNullable(raw, (r) => ({
     sufficientBudget: Boolean(r.sufficientBudget),
     availableDeposit: String(r.availableDeposit ?? '0'),
     requiredForThisStrategy: String(r.requiredForThisStrategy ?? '0'),
@@ -28,19 +33,17 @@ function normalizeCompetition(raw: unknown): BuyCompetitionSummary | null {
     blockedByHigherPriority: ((r.blockedByHigherPriority as unknown[]) ?? []).map(normalizeCompetingStrategy),
     uncertainStrategyIds: ((r.uncertainStrategyIds as unknown[]) ?? []).map(String),
     liveBalanceUnavailable: Boolean(r.liveBalanceUnavailable),
-  }
+  }))
 }
 
 function normalizeSellSufficiency(raw: unknown): SellSufficiencySummary | null {
-  if (raw == null) return null
-  const r = raw as Record<string, unknown>
-  return {
+  return normalizeNullable(raw, (r) => ({
     sufficientQuantity: Boolean(r.sufficientQuantity),
     sellableQuantity: Number(r.sellableQuantity ?? 0),
     reservedQuantity: Number(r.reservedQuantity ?? 0),
     requiredQuantity: Number(r.requiredQuantity ?? 0),
     liveQuantityUnavailable: Boolean(r.liveQuantityUnavailable),
-  }
+  }))
 }
 
 function normalizePreview(raw: unknown): NextOrderPreview {
