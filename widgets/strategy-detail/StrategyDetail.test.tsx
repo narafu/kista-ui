@@ -314,7 +314,50 @@ describe('StrategyDetail unplaced order banner', () => {
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
-    expect(screen.getByText('판매가능수량 부족으로 매도 미접수')).toBeInTheDocument()
+    expect(screen.getByText('판매가능수량 충족됨 — 마감 시 매도 재시도 예정')).toBeInTheDocument()
+  })
+
+  it('does not claim a deficit when the sell was unplaced but a live recheck now shows sufficient quantity', () => {
+    // preview는 매 호출마다 재계산되는 근사치라, 야간 배치가 거절한 시점 이후 보유/판매가능수량이
+    // 바뀌면 재조회 시 sufficientQuantity=true로 보일 수 있다 — 이 경우 "부족"이라고 단정하면 안 된다
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [
+          { id: 'o1', ticker: 'SOXL', direction: 'BUY', orderType: 'LIMIT', quantity: 21, price: '154.00', status: 'PLANNED' },
+        ],
+        position: null,
+        orders: [
+          { ticker: 'SOXL', orderType: 'LIMIT', direction: 'BUY', quantity: 21, price: '154.00' },
+          { ticker: 'SOXL', orderType: 'LIMIT', direction: 'SELL', quantity: 9, price: '160.00' },
+        ],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: {
+          sufficientBudget: true,
+          availableDeposit: '5000',
+          requiredForThisStrategy: '3234',
+          consumedByHigherPriority: '0',
+          blockedByHigherPriority: [],
+          uncertainStrategyIds: [],
+          liveBalanceUnavailable: false,
+        },
+        sellSufficiency: {
+          sufficientQuantity: true,
+          sellableQuantity: 20,
+          reservedQuantity: 0,
+          requiredQuantity: 9,
+          liveQuantityUnavailable: false,
+        },
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    expect(screen.getByText('판매가능수량 충족됨 — 마감 시 매도 재시도 예정')).toBeInTheDocument()
+    expect(screen.queryByText(/부족/)).not.toBeInTheDocument()
   })
 
   it('shows a sell quantity check-failed banner when the broker lookup itself failed', () => {

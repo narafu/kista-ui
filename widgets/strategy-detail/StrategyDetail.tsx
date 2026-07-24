@@ -49,7 +49,7 @@ function buyUnplacedMessage(readiness: ReturnType<typeof computeBuyReadiness>): 
 function sellUnplacedMessage(readiness: ReturnType<typeof computeBuyReadiness>): string {
   if (readiness.sellQuantityUncertain) return '판매가능수량 확인 실패로 매도 미접수 — 잠시 후 다시 확인해주세요'
   if (readiness.hasSellQuantityDeficit) return `판매가능수량 ${readiness.deficitQty}주 부족으로 매도 미접수`
-  return '판매가능수량 부족으로 매도 미접수'
+  return '판매가능수량 충족됨 — 마감 시 매도 재시도 예정'
 }
 
 // 카드 상단 배너 문구 — 휴장일/예수금 부족을 "바로 주문" 가능 여부와 함께 안내
