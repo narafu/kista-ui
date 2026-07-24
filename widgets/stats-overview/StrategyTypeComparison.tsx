@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { TableDataCell } from '@shared/ui/TableDataCell'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
@@ -36,20 +37,20 @@ export function StrategyTypeComparison({ byType }: Props) {
                 <tbody>
                   {byType.map((t) => (
                     <tr key={t.type} className="border-t hover:bg-muted/30 transition-colors">
-                      <td className="px-4 py-3 text-center">
+                      <TableDataCell>
                         <Badge tone="brand" size="md">
                           {t.type}
                         </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-center tabular-nums text-muted-foreground">
+                      </TableDataCell>
+                      <TableDataCell className="tabular-nums text-muted-foreground">
                         종료 {t.closedCycleCount} · 진행 {t.activeCycleCount}
-                      </td>
-                      <td className={cn('px-4 py-3 text-center tabular-nums', t.avgReturnRate != null && pnlTextClass(t.avgReturnRate))}>
+                      </TableDataCell>
+                      <TableDataCell className={cn('tabular-nums', t.avgReturnRate != null && pnlTextClass(t.avgReturnRate))}>
                         {t.avgReturnRate != null ? `${t.avgReturnRate >= 0 ? '+' : ''}${(t.avgReturnRate * 100).toFixed(1)}%` : '—'}
-                      </td>
-                      <td className="px-4 py-3 text-center tabular-nums">{t.avgDurationDays != null ? `${t.avgDurationDays.toFixed(1)}일` : '—'}</td>
-                      <td className={cn('px-4 py-3 text-center tabular-nums font-medium', pnlTextClass(t.realizedPnl))}>{fmtSignedUsd(t.realizedPnl, 2, '$')}</td>
-                      <td className={cn('px-4 py-3 text-center tabular-nums font-medium', pnlTextClass(t.unrealizedPnl))}>{fmtSignedUsd(t.unrealizedPnl, 2, '$')}</td>
+                      </TableDataCell>
+                      <TableDataCell className="tabular-nums">{t.avgDurationDays != null ? `${t.avgDurationDays.toFixed(1)}일` : '—'}</TableDataCell>
+                      <TableDataCell className={cn('tabular-nums font-medium', pnlTextClass(t.realizedPnl))}>{fmtSignedUsd(t.realizedPnl, 2, '$')}</TableDataCell>
+                      <TableDataCell className={cn('tabular-nums font-medium', pnlTextClass(t.unrealizedPnl))}>{fmtSignedUsd(t.unrealizedPnl, 2, '$')}</TableDataCell>
                     </tr>
                   ))}
                 </tbody>

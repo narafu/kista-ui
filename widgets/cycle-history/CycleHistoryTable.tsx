@@ -8,6 +8,7 @@ import type { DateParams } from '@entities/trade/hooks/useCycleHistory'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { TableDataCell } from '@shared/ui/TableDataCell'
 import { RangeFilterControls } from '@shared/ui/range-filter/RangeFilterControls'
 import { useRangeFilterState } from '@shared/lib/hooks/use-range-filter-state'
 import { resolveRangeStrict } from '@shared/lib/date-range'
@@ -131,11 +132,11 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
                           : null
                         return (
                           <tr key={entry.createdAt} className="border-t hover:bg-muted/30 transition-colors">
-                            <td className="px-4 py-3 text-center font-medium">{entry.ticker ?? '-'}</td>
-                            <td className="px-4 py-3 text-center tabular-nums">{entry.holdings}주</td>
-                            <td className="px-4 py-3 text-center tabular-nums">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</td>
-                            <td className="px-4 py-3 text-center tabular-nums font-medium">${fmtUsd(entry.usdDeposit ?? 0)}</td>
-                            <td className="px-4 py-3 text-center tabular-nums font-medium">{evalAmount != null ? `$${fmtUsd(evalAmount)}` : '-'}</td>
+                            <TableDataCell className="font-medium">{entry.ticker ?? '-'}</TableDataCell>
+                            <TableDataCell className="tabular-nums">{entry.holdings}주</TableDataCell>
+                            <TableDataCell className="tabular-nums">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</TableDataCell>
+                            <TableDataCell className="tabular-nums font-medium">${fmtUsd(entry.usdDeposit ?? 0)}</TableDataCell>
+                            <TableDataCell className="tabular-nums font-medium">{evalAmount != null ? `$${fmtUsd(evalAmount)}` : '-'}</TableDataCell>
                           </tr>
                         )
                       })}

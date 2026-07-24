@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { TableDataCell } from '@shared/ui/TableDataCell'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
 import { useStatsCyclesQuery } from '@entities/stats'
@@ -41,21 +42,21 @@ export function CyclePerformanceList({ typeFilter }: Props) {
                 <tbody>
                   {cycles.map((cycle) => (
                     <tr key={cycle.cycleId} className="border-t transition-colors hover:bg-muted/30">
-                      <td className="px-4 py-3 text-center">
+                      <TableDataCell>
                         <Badge tone="brand" size="sm">
                           {cycle.strategyType}
                         </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-center font-medium tabular-nums">{cycle.ticker ?? '—'}</td>
-                      <td className="px-4 py-3 text-center text-muted-foreground">
+                      </TableDataCell>
+                      <TableDataCell className="font-medium tabular-nums">{cycle.ticker ?? '—'}</TableDataCell>
+                      <TableDataCell className="text-muted-foreground">
                         {fmtDate(cycle.startDate)} ~ {cycle.endDate ? fmtDate(cycle.endDate) : '진행 중'}
-                      </td>
-                      <td className={cn('px-4 py-3 text-center tabular-nums', cycle.pnl != null ? pnlTextClass(cycle.pnl) : 'text-muted-foreground')}>
+                      </TableDataCell>
+                      <TableDataCell className={cn('tabular-nums', cycle.pnl != null ? pnlTextClass(cycle.pnl) : 'text-muted-foreground')}>
                         {cycle.pnl != null ? fmtSignedUsd(cycle.pnl, 2, '$') : '—'}
-                      </td>
-                      <td className={cn('px-4 py-3 text-center tabular-nums', cycle.returnRate != null ? pnlTextClass(cycle.returnRate) : 'text-muted-foreground')}>
+                      </TableDataCell>
+                      <TableDataCell className={cn('tabular-nums', cycle.returnRate != null ? pnlTextClass(cycle.returnRate) : 'text-muted-foreground')}>
                         {cycle.returnRate != null ? `${cycle.returnRate >= 0 ? '+' : ''}${(cycle.returnRate * 100).toFixed(1)}%` : '—'}
-                      </td>
+                      </TableDataCell>
                     </tr>
                   ))}
                 </tbody>

@@ -6,6 +6,7 @@ import { fmtUsd, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
 import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { TableDataCell } from '@shared/ui/TableDataCell'
 import type { AdminPrivacyBase } from '@entities/privacy'
 
 interface Props {
@@ -161,18 +162,18 @@ function FragmentRow({ base: b, open, onToggle }: { base: AdminPrivacyBase; open
         onClick={onToggle}
         aria-label={`${b.releaseDate} ${b.ticker} 행 ${open ? '접기' : '펼치기'}`}
       >
-        <td className="px-2 py-3 text-muted-foreground">
+        <TableDataCell className="px-2 py-3 text-muted-foreground">
           {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-        </td>
-        <td className="px-2.5 py-3 text-center text-muted-foreground text-xs whitespace-nowrap sm:px-4">{b.releaseDate}</td>
-        <td className="px-2.5 py-3 text-center whitespace-nowrap sm:px-4">{b.ticker}</td>
-        <td className="px-2.5 py-3 text-center font-mono text-xs whitespace-nowrap sm:px-4">${fmtUsd(b.currentCycleStart)}</td>
-        <td className="hidden px-2.5 py-3 text-center font-mono text-xs whitespace-nowrap sm:table-cell sm:px-4">{b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`}</td>
-        <td className="px-2.5 py-3 text-center whitespace-nowrap sm:px-4">{b.holdings}</td>
-        <td className={`hidden px-2.5 py-3 text-center font-mono text-xs whitespace-nowrap sm:table-cell sm:px-4 ${pnlTextClass(b.currentCycleRealizedPnl)}`}>
+        </TableDataCell>
+        <TableDataCell className="px-2.5 py-3 text-muted-foreground text-xs whitespace-nowrap sm:px-4">{b.releaseDate}</TableDataCell>
+        <TableDataCell className="px-2.5 py-3 whitespace-nowrap sm:px-4">{b.ticker}</TableDataCell>
+        <TableDataCell className="px-2.5 py-3 font-mono text-xs whitespace-nowrap sm:px-4">${fmtUsd(b.currentCycleStart)}</TableDataCell>
+        <TableDataCell className="hidden px-2.5 py-3 font-mono text-xs whitespace-nowrap sm:table-cell sm:px-4">{b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`}</TableDataCell>
+        <TableDataCell className="px-2.5 py-3 whitespace-nowrap sm:px-4">{b.holdings}</TableDataCell>
+        <TableDataCell className={`hidden px-2.5 py-3 font-mono text-xs whitespace-nowrap sm:table-cell sm:px-4 ${pnlTextClass(b.currentCycleRealizedPnl)}`}>
           {fmtSignedUsd(b.currentCycleRealizedPnl)}
-        </td>
-        <td className="hidden px-2.5 py-3 text-center text-muted-foreground whitespace-nowrap sm:table-cell sm:px-4">{b.orders.length}건</td>
+        </TableDataCell>
+        <TableDataCell className="hidden px-2.5 py-3 text-muted-foreground whitespace-nowrap sm:table-cell sm:px-4">{b.orders.length}건</TableDataCell>
       </tr>
       {open && b.orders.length > 0 && (
         <tr className="bg-muted/10">

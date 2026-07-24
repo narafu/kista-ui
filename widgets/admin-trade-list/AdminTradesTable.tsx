@@ -4,6 +4,7 @@ import { orderStatusBadgeClass } from '@entities/order'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { TableDataCell } from '@shared/ui/TableDataCell'
 import type { AdminTrade } from '@entities/admin'
 
 interface Props {
@@ -40,21 +41,21 @@ export function AdminTradesTable({ trades }: Props) {
                 key={trade.id}
                 className="hover:bg-muted/20 transition-colors"
               >
-                <td className="px-4 py-3 text-center text-muted-foreground text-xs whitespace-nowrap">{trade.tradeDate}</td>
-                <td className="px-4 py-3 text-center font-medium whitespace-nowrap">{trade.ownerNickname}</td>
-                <td className="px-4 py-3 text-center text-xs text-muted-foreground whitespace-nowrap">{trade.strategyType ?? '-'}</td>
-                <td className="px-4 py-3 text-center whitespace-nowrap">{trade.ticker}</td>
-                <td className={`px-4 py-3 text-center font-semibold whitespace-nowrap ${directionTextClass(trade.direction)}`}>
+                <TableDataCell className="text-muted-foreground text-xs whitespace-nowrap">{trade.tradeDate}</TableDataCell>
+                <TableDataCell className="font-medium whitespace-nowrap">{trade.ownerNickname}</TableDataCell>
+                <TableDataCell className="text-xs text-muted-foreground whitespace-nowrap">{trade.strategyType ?? '-'}</TableDataCell>
+                <TableDataCell className="whitespace-nowrap">{trade.ticker}</TableDataCell>
+                <TableDataCell className={`font-semibold whitespace-nowrap ${directionTextClass(trade.direction)}`}>
                   {DIRECTION_LABEL[trade.direction] ?? trade.direction}
-                </td>
-                <td className="px-4 py-3 text-center text-xs text-muted-foreground whitespace-nowrap">{trade.orderType}</td>
-                <td className="px-4 py-3 text-center whitespace-nowrap">{trade.quantity}</td>
-                <td className="px-4 py-3 text-center font-mono text-xs whitespace-nowrap">${fmtUsd(trade.price)}</td>
-                <td className="px-4 py-3 text-center whitespace-nowrap">
+                </TableDataCell>
+                <TableDataCell className="text-xs text-muted-foreground whitespace-nowrap">{trade.orderType}</TableDataCell>
+                <TableDataCell className="whitespace-nowrap">{trade.quantity}</TableDataCell>
+                <TableDataCell className="font-mono text-xs whitespace-nowrap">${fmtUsd(trade.price)}</TableDataCell>
+                <TableDataCell className="whitespace-nowrap">
                   <Badge tone="none" className={orderStatusBadgeClass(trade.status)}>
                     {trade.status}
                   </Badge>
-                </td>
+                </TableDataCell>
               </tr>
             )
           })}
