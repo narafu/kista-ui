@@ -673,6 +673,106 @@ describe('StrategyDetail sell quantity deficit banner', () => {
   })
 })
 
+describe('StrategyDetail concurrent BUY/SELL deficit', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-07-21T10:00:00+09:00')) // 화요일 — 휴장일 배지에 가려지지 않도록 평일 고정
+    executeMutate.mockClear()
+    vi.mocked(toast.info).mockClear()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  function bothDeficitPreview() {
+    return {
+      data: {
+        todayOrders: [],
+        position: null,
+        orders: [
+          { ticker: 'SOXL', orderType: 'LIMIT', direction: 'BUY', quantity: 21, price: '154.00' },
+          { ticker: 'SOXL', orderType: 'LIMIT', direction: 'SELL', quantity: 9, price: '160.00' },
+        ],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: {
+          sufficientBudget: false,
+          availableDeposit: '1000',
+          requiredForThisStrategy: '200',
+          consumedByHigherPriority: '900',
+          blockedByHigherPriority: [],
+          uncertainStrategyIds: [],
+          liveBalanceUnavailable: false,
+        },
+        sellSufficiency: {
+          sufficientQuantity: false,
+          sellableQuantity: 6,
+          reservedQuantity: 0,
+          requiredQuantity: 9,
+          liveQuantityUnavailable: false,
+        },
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    }
+  }
+
+  it('BUY 예수금 부족과 SELL 판매가능수량 부족이 동시에 있으면 배너에 둘 다 표시한다', () => {
+    mockPreviewQuery.mockReturnValueOnce(bothDeficitPreview())
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    // previewDeficit = max(0, 900 + 200 - 1000) = 100
+    expect(screen.getByText('예수금 $100.00 부족(장 마감 시 재시도) · 판매가능수량 3주 부족(장 마감 시 재시도)')).toBeInTheDocument()
+  })
+
+  it('BUY/SELL 부족이 동시에 있으면 "바로 주문" 클릭 시 두 토스트를 모두 보여주고 주문을 실행하지 않는다', () => {
+    mockPreviewQuery.mockReturnValueOnce(bothDeficitPreview())
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    fireEvent.click(screen.getByText('바로 주문'))
+
+    expect(toast.info).toHaveBeenCalledWith('예수금이 부족합니다')
+    expect(toast.info).toHaveBeenCalledWith('판매가능수량이 부족합니다')
+    expect(executeMutate).not.toHaveBeenCalled()
+  })
+
+  it('BUY 예수금만 부족하면 "바로 주문" 클릭 시 예수금 토스트만 보여준다', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [],
+        position: null,
+        orders: [{ ticker: 'TSLA', orderType: 'LOC', direction: 'BUY', quantity: 5, price: '20.00' }],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: {
+          sufficientBudget: false,
+          availableDeposit: '1000',
+          requiredForThisStrategy: '200',
+          consumedByHigherPriority: '900',
+          blockedByHigherPriority: [],
+          uncertainStrategyIds: [],
+          liveBalanceUnavailable: false,
+        },
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    fireEvent.click(screen.getByText('바로 주문'))
+
+    expect(toast.info).toHaveBeenCalledWith('예수금이 부족합니다')
+    expect(toast.info).not.toHaveBeenCalledWith('판매가능수량이 부족합니다')
+    expect(executeMutate).not.toHaveBeenCalled()
+  })
+})
+
 describe('StrategyDetail executed-mode deficit badge', () => {
   it('shows the deficit badge with the exact amount once the strategy is in executed mode', () => {
     mockPreviewQuery.mockReturnValueOnce({
@@ -775,6 +875,8 @@ describe('StrategyDetail executed-mode deficit badge', () => {
 
     expect(screen.queryByText(/예수금 \$[\d,.]+ 부족/)).not.toBeInTheDocument()
     expect(screen.getByText('예수금 확인 실패로 매수 미접수 — 잠시 후 다시 확인해주세요')).toBeInTheDocument()
+    // executed 모드에서는 상단 배너에 "확인 실패" 문구를 중복 노출하지 않는다 — 방향별 미접수 목록이 이미 안내한다
+    expect(screen.queryByText('예수금 확인 실패 — 잠시 후 다시 확인해주세요')).not.toBeInTheDocument()
   })
 
   it('executed 모드에서도 판매가능수량 부족 배너를 정확한 수량과 함께 보여준다', () => {
@@ -816,5 +918,46 @@ describe('StrategyDetail executed-mode deficit badge', () => {
 
     expect(screen.getByText('판매가능수량 3주 부족')).toBeInTheDocument()
     expect(screen.getByText('판매가능수량 3주 부족으로 매도 미접수')).toBeInTheDocument()
+  })
+
+  it('executed 모드에서는 판매가능수량 확인 실패 배너를 중복 노출하지 않는다', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [
+          { id: 'o1', ticker: 'SOXL', direction: 'BUY', orderType: 'LIMIT', quantity: 21, price: '154.00', status: 'PLANNED' },
+        ],
+        position: null,
+        orders: [
+          { ticker: 'SOXL', orderType: 'LIMIT', direction: 'BUY', quantity: 21, price: '154.00' },
+          { ticker: 'SOXL', orderType: 'LIMIT', direction: 'SELL', quantity: 9, price: '160.00' },
+        ],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: {
+          sufficientBudget: true,
+          availableDeposit: '5000',
+          requiredForThisStrategy: '3234',
+          consumedByHigherPriority: '0',
+          blockedByHigherPriority: [],
+          uncertainStrategyIds: [],
+          liveBalanceUnavailable: false,
+        },
+        sellSufficiency: {
+          sufficientQuantity: true,
+          sellableQuantity: 0,
+          reservedQuantity: 0,
+          requiredQuantity: 9,
+          liveQuantityUnavailable: true,
+        },
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    expect(screen.getByText('판매가능수량 확인 실패로 매도 미접수 — 잠시 후 다시 확인해주세요')).toBeInTheDocument()
+    expect(screen.queryByText('판매가능수량 확인 실패 — 잠시 후 다시 확인해주세요')).not.toBeInTheDocument()
   })
 })
