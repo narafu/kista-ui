@@ -23,9 +23,6 @@ export function StrategyTypeSection({ initial, type, setType, loading, strategyT
           <span className="text-sm font-[800] text-rose-600">
             {initial.type}
           </span>
-          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-muted-foreground text-card tracking-[0.06em]">
-            고정
-          </span>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-2.5">

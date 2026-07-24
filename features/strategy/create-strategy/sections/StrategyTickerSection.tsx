@@ -27,9 +27,6 @@ export function StrategyTickerSection({
         <div className="flex items-center justify-between px-[14px] py-3 rounded-[var(--r-sm)] border border-border bg-muted">
           <div className="flex items-center gap-2.5">
             <span className="text-sm font-[800]">{initial.ticker}</span>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-muted-foreground text-card tracking-[0.06em]">
-              고정
-            </span>
           </div>
           {basePrice !== null && (
             <span className="text-sm text-muted-foreground tabular-nums">
@@ -66,9 +63,6 @@ export function StrategyTickerSection({
         <div className="flex items-center justify-between px-[14px] py-3 rounded-[var(--r-sm)] border border-border bg-muted">
           <div className="flex items-center gap-2.5">
             <span className="text-sm font-[800]">{availableTickers[0]}</span>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-muted-foreground text-card tracking-[0.06em]">
-              고정
-            </span>
           </div>
           {prices?.[availableTickers[0]] !== undefined && (
             <span className="text-sm text-muted-foreground tabular-nums">
