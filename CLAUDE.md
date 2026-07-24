@@ -7,6 +7,10 @@
 KISTA V2 — 한국투자증권 KIS API 기반 해외주식 자동 분할매매 **초대제 멀티 사용자 SaaS** 프론트엔드.
 기술 스택: **Next.js 16** · TypeScript · Tailwind CSS · shadcn/ui · React Query · Firebase (FCM)
 
+## 작업 방식
+
+- **서브에이전트 실행 기본 원칙**: 독립적으로 병렬 처리 가능한 작업(파일이 겹치지 않는 작업)은 서브에이전트로 병렬 진행을 기본값으로 함. 구현은 효율적인(저렴한) 모델로 실행하고, 완료 후에는 반드시 별도 검토자(리뷰어) 서브에이전트로 검수까지 거칠 것
+
 ## 공통 지식 (매 세션 로드)
 
 @docs/agents/commands.md
@@ -23,3 +27,7 @@ KISTA V2 — 한국투자증권 KIS API 기반 해외주식 자동 분할매매 
 - `docs/agents/features.md` — 사용자 시나리오·뮤테이션 훅 규칙
 - `docs/agents/widgets.md` — 페이지 합성·shadcn·CSS 토큰·UI 패턴
 - `docs/agents/shared.md` — api-client·format·cache·providers
+
+## 운영 도구
+
+- **API 운영 로그**: vercel-cli — `vercel logs`
