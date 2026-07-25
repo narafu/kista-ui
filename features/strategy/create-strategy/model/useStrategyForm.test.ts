@@ -348,7 +348,8 @@ describe('useStrategyForm submit policy', () => {
 
     act(() => {
       result.current.setType('VR')
-      result.current.setVrField('initialValue', 3000)
+      result.current.setVrField('avgPrice', 300)
+      result.current.setVrField('quantity', 10)
       result.current.setVrField('intervalWeeks', 4)
       result.current.setVrField('bandWidth', 15)
       result.current.setVrField('recurringAmount', null)
@@ -494,7 +495,8 @@ describe('useStrategyForm submit policy', () => {
 
     act(() => {
       result.current.setType('VR')
-      result.current.setVrField('initialValue', 1000)
+      result.current.setVrField('avgPrice', 100)
+      result.current.setVrField('quantity', 10)
       result.current.setVrField('intervalWeeks', 2)
       result.current.setVrField('bandWidth', 15)
       result.current.setVrField('recurringAmount', -100)
@@ -504,7 +506,7 @@ describe('useStrategyForm submit policy', () => {
     expect(result.current.cannotSubmit).toBe(true)
 
     act(() => {
-      result.current.setVrField('initialValue', 19000)
+      result.current.setVrField('quantity', 190)
     })
 
     expect(result.current.cannotSubmit).toBe(false)

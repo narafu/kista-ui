@@ -10,6 +10,8 @@ export const strategyFormSchema = z.object({
   seedMode: z.enum(['KEEP', 'MAX']),
   divisionCount: divisionCountSchema,
   initialValue: z.number().min(0).nullable().optional(),
+  avgPrice: z.number().min(0).nullable().optional(),
+  quantity: z.number().min(0).nullable().optional(),
   intervalWeeks: z.number().int().min(1).nullable().optional(),
   bandWidth: z.number().positive().nullable().optional(),
   recurringAmount: z.number().int().nonnegative().nullable().optional(),

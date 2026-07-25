@@ -46,7 +46,7 @@ export function UsageRatioSection({
       <StrategyFieldLabel
         hint={hint ?? (isOff ? BALANCE_OFF_BADGE : 'USD 예수금 기준 · 드래그하거나 입력')}
       >
-        {useSeedInput ? '시드 금액' : '사용 비율'}
+        {useSeedInput ? '예수금' : '사용 비율'}
       </StrategyFieldLabel>
 
       {useSeedInput ? (

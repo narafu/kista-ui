@@ -32,7 +32,7 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled, s
           type="text"
           inputMode="numeric"
           pattern="[0-9]*"
-          aria-label="시드 금액 (USD)"
+          aria-label="예수금 (USD)"
           value={value !== null ? String(value) : ''}
           disabled={disabled}
           placeholder="0"
@@ -75,7 +75,7 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled, s
         </div>
       ) : (
         <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-muted border border-border">
-          <span className="text-sm text-muted-foreground font-bold">시드 금액 입력</span>
+          <span className="text-sm text-muted-foreground font-bold">예수금 입력</span>
           {minSeed !== null && (
             <span className="text-sm text-muted-foreground">최소 ${fmtUsd(minSeed)}</span>
           )}

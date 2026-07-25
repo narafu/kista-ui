@@ -69,21 +69,59 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
       <StrategyFieldLabel>밸류 리밸런싱 설정</StrategyFieldLabel>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <label>
-          <span className={FIELD_LABEL_CLASS}>초기 V값</span>
-          <div className="flex items-center h-11 rounded-[var(--r-sm)] border border-border bg-card px-3">
-            <input
-              type="text"
-              inputMode="decimal"
-              value={fields.initialValue ?? ''}
-              onChange={(event) => setField('initialValue', parseNumber(event.target.value))}
-              onFocus={handleFocus}
-              disabled={disabled}
-              className="flex-1 border-0 bg-transparent text-right text-base font-semibold outline-none disabled:text-muted-foreground"
-            />
-            <span className="ml-2 text-xs font-semibold text-muted-foreground">USD</span>
+        {isEdit ? (
+          <label>
+            <span className={FIELD_LABEL_CLASS}>초기 V값</span>
+            <div className="flex items-center h-11 rounded-[var(--r-sm)] border border-border bg-card px-3">
+              <input
+                type="text"
+                inputMode="decimal"
+                value={fields.initialValue ?? ''}
+                onChange={(event) => setField('initialValue', parseNumber(event.target.value))}
+                onFocus={handleFocus}
+                disabled={disabled}
+                className="flex-1 border-0 bg-transparent text-right text-base font-semibold outline-none disabled:text-muted-foreground"
+              />
+              <span className="ml-2 text-xs font-semibold text-muted-foreground">USD</span>
+            </div>
+          </label>
+        ) : (
+          <div>
+            <span className={FIELD_LABEL_CLASS}>초기 V값 (평단가 × 수량)</span>
+            <div className="grid grid-cols-2 gap-2">
+              <label>
+                <span className="block mb-1 text-xs font-semibold text-muted-foreground">평단가</span>
+                <div className="flex items-center h-11 rounded-[var(--r-sm)] border border-border bg-card px-3">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={fields.avgPrice ?? ''}
+                    onChange={(event) => setField('avgPrice', parseNumber(event.target.value))}
+                    onFocus={handleFocus}
+                    disabled={disabled}
+                    className="flex-1 min-w-0 border-0 bg-transparent text-right text-base font-semibold outline-none disabled:text-muted-foreground"
+                  />
+                  <span className="ml-1.5 text-xs font-semibold text-muted-foreground">USD</span>
+                </div>
+              </label>
+              <label>
+                <span className="block mb-1 text-xs font-semibold text-muted-foreground">수량</span>
+                <div className="flex items-center h-11 rounded-[var(--r-sm)] border border-border bg-card px-3">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={fields.quantity ?? ''}
+                    onChange={(event) => setField('quantity', parseNumber(event.target.value))}
+                    onFocus={handleFocus}
+                    disabled={disabled}
+                    className="flex-1 min-w-0 border-0 bg-transparent text-right text-base font-semibold outline-none disabled:text-muted-foreground"
+                  />
+                  <span className="ml-1.5 text-xs font-semibold text-muted-foreground">주</span>
+                </div>
+              </label>
+            </div>
           </div>
-        </label>
+        )}
 
         <div>
           <span className={FIELD_LABEL_CLASS}>적립금(+)/인출금(-)</span>

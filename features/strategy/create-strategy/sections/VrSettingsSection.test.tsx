@@ -31,6 +31,8 @@ describe('VrSettingsSection', () => {
 
   const baseFields: VrFields = {
     initialValue: 0,
+    avgPrice: null,
+    quantity: null,
     intervalWeeks: 2,
     bandWidth: 15,
     recurringAmount: 0,
@@ -41,7 +43,7 @@ describe('VrSettingsSection', () => {
   })
 
   describe('number parsing', () => {
-    it('parses decimal input for initial value (V값) and calls setField', () => {
+    it('parses decimal input for avg price and calls setField', () => {
       render(
         <VrSettingsSection
           fields={baseFields}
@@ -49,27 +51,13 @@ describe('VrSettingsSection', () => {
         />,
       )
 
-      const initialValueInput = getInputByLabelText('초기 V값')
-      fireEvent.change(initialValueInput, { target: { value: '3000.5' } })
+      const avgPriceInput = getInputByLabelText('평단가')
+      fireEvent.change(avgPriceInput, { target: { value: '3000.5' } })
 
-      expect(mockSetField).toHaveBeenCalledWith('initialValue', 3000.5)
+      expect(mockSetField).toHaveBeenCalledWith('avgPrice', 3000.5)
     })
 
-    it('clears initial value when input is emptied', () => {
-      render(
-        <VrSettingsSection
-          fields={{ ...baseFields, initialValue: 1000 }}
-          {...baseProps}
-        />,
-      )
-
-      const initialValueInput = getInputByLabelText('초기 V값')
-      fireEvent.change(initialValueInput, { target: { value: '' } })
-
-      expect(mockSetField).toHaveBeenCalledWith('initialValue', null)
-    })
-
-    it('normalizes leading zero numeric input for initial value', () => {
+    it('parses decimal input for quantity and calls setField', () => {
       render(
         <VrSettingsSection
           fields={baseFields}
@@ -77,11 +65,39 @@ describe('VrSettingsSection', () => {
         />,
       )
 
-      const initialValueInput = getInputByLabelText('초기 V값')
-      fireEvent.focus(initialValueInput)
-      fireEvent.change(initialValueInput, { target: { value: '0100' } })
+      const quantityInput = getInputByLabelText('수량')
+      fireEvent.change(quantityInput, { target: { value: '10' } })
 
-      expect(mockSetField).toHaveBeenCalledWith('initialValue', 100)
+      expect(mockSetField).toHaveBeenCalledWith('quantity', 10)
+    })
+
+    it('clears avg price when input is emptied', () => {
+      render(
+        <VrSettingsSection
+          fields={{ ...baseFields, avgPrice: 1000 }}
+          {...baseProps}
+        />,
+      )
+
+      const avgPriceInput = getInputByLabelText('평단가')
+      fireEvent.change(avgPriceInput, { target: { value: '' } })
+
+      expect(mockSetField).toHaveBeenCalledWith('avgPrice', null)
+    })
+
+    it('normalizes leading zero numeric input for quantity', () => {
+      render(
+        <VrSettingsSection
+          fields={baseFields}
+          {...baseProps}
+        />,
+      )
+
+      const quantityInput = getInputByLabelText('수량')
+      fireEvent.focus(quantityInput)
+      fireEvent.change(quantityInput, { target: { value: '0100' } })
+
+      expect(mockSetField).toHaveBeenCalledWith('quantity', 100)
     })
 
     it('sets recurring amount sign with deposit and withdrawal toggles', () => {
@@ -183,10 +199,11 @@ describe('VrSettingsSection', () => {
       expect(screen.getByRole('button', { name: '+ 적립' })).toHaveProperty('disabled', disabledStates[0])
       expect(screen.getByRole('button', { name: '거치' })).toHaveProperty('disabled', disabledStates[1])
       expect(screen.getByRole('button', { name: '- 인출' })).toHaveProperty('disabled', disabledStates[2])
-      expect(getInputByLabelText('초기 V값')).toBeEnabled()
+      expect(getInputByLabelText('평단가')).toBeEnabled()
+      expect(getInputByLabelText('수량')).toBeEnabled()
     })
 
-    it('locks HOLD-only recurring controls without locking initial V', () => {
+    it('locks HOLD-only recurring controls without locking avg price/quantity', () => {
       render(<VrSettingsSection fields={baseFields} {...baseProps} settings={{
         ...baseProps.settings,
         recurringMode: { customizable: false, allowedValues: ['HOLD'], defaultValue: 'HOLD' },
@@ -195,8 +212,10 @@ describe('VrSettingsSection', () => {
       expect(screen.getByRole('button', { name: '+ 적립' })).toBeDisabled()
       expect(screen.getByRole('button', { name: '거치' })).toBeDisabled()
       expect(screen.getByRole('button', { name: '- 인출' })).toBeDisabled()
-      expect(getInputByLabelText('초기 V값')).toBeEnabled()
+      expect(getInputByLabelText('평단가')).toBeEnabled()
+      expect(getInputByLabelText('수량')).toBeEnabled()
     })
+
     it('disables all inputs when isEdit is true and shows edit restriction message', () => {
       render(
         <VrSettingsSection
@@ -234,7 +253,8 @@ describe('VrSettingsSection', () => {
         />,
       )
 
-      const initialValueInput = getInputByLabelText('초기 V값') as HTMLInputElement
+      const avgPriceInput = getInputByLabelText('평단가') as HTMLInputElement
+      const quantityInput = getInputByLabelText('수량') as HTMLInputElement
       const intervalButton = screen.getByRole('button', { name: '2주' }) as HTMLButtonElement
       const bandWidthButton = screen.getByRole('button', { name: '15%' }) as HTMLButtonElement
       const recurringInput = getInputByLabelText('적립금(+)/인출금(-)') as HTMLInputElement
@@ -242,7 +262,8 @@ describe('VrSettingsSection', () => {
       const holdButton = screen.getByRole('button', { name: '거치' }) as HTMLButtonElement
       const withdrawalButton = screen.getByRole('button', { name: '- 인출' }) as HTMLButtonElement
 
-      expect(initialValueInput.disabled).toBe(true)
+      expect(avgPriceInput.disabled).toBe(true)
+      expect(quantityInput.disabled).toBe(true)
       expect(intervalButton.disabled).toBe(true)
       expect(bandWidthButton.disabled).toBe(true)
       expect(recurringInput.disabled).toBe(true)
@@ -271,7 +292,7 @@ describe('VrSettingsSection', () => {
       expect(screen.queryByRole('button', { name: '15%' })).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: '2주' })).not.toBeInTheDocument()
     })
-    it('renders default values and no placeholder for initial value', () => {
+    it('renders empty avg price and quantity by default', () => {
       render(
         <VrSettingsSection
           fields={baseFields}
@@ -279,11 +300,12 @@ describe('VrSettingsSection', () => {
         />,
       )
 
-      const initialValueInput = getInputByLabelText('초기 V값')
+      const avgPriceInput = getInputByLabelText('평단가')
+      const quantityInput = getInputByLabelText('수량')
       const intervalButton = screen.getByRole('button', { name: '2주' })
 
-      expect(initialValueInput).toHaveValue('0')
-      expect(initialValueInput).not.toHaveAttribute('placeholder')
+      expect(avgPriceInput).toHaveValue('')
+      expect(quantityInput).toHaveValue('')
       expect(intervalButton).toHaveAttribute('aria-pressed', 'true')
       expect(screen.getByRole('button', { name: '15%' })).toHaveAttribute('aria-pressed', 'true')
       expect(screen.getByRole('button', { name: '+ 적립' })).toHaveAttribute('aria-pressed', 'false')

@@ -25,6 +25,8 @@ interface UseStrategyFormOptions {
 // VR 전략 전용 폼 필드
 export interface VrFields {
   initialValue: number | null
+  avgPrice: number | null
+  quantity: number | null
   intervalWeeks: number | null
   bandWidth: number | null
   recurringAmount: number | null
@@ -114,8 +116,10 @@ export function useStrategyForm({
       autoStart: initial ? initial.cycleSeedType !== 'NONE' : true,
       seedMode: initial?.cycleSeedType === 'MAINTAIN' ? 'KEEP' : 'MAX',
       divisionCount: initialDivisionCount,
-      // VR 초기값 — 기존 전략이면 vr 요약에서 복원
+      // VR 초기값 — 기존 전략이면 vr 요약에서 복원 (평단가·수량은 역산 불가 — 신규 등록에서만 사용)
       initialValue: initial?.vr?.value ?? 0,
+      avgPrice: null,
+      quantity: null,
       intervalWeeks: initial?.vr?.intervalWeeks ?? 2,
       bandWidth: initial?.vr?.bandWidth ?? 15,
       recurringAmount: Math.abs(initial?.vr?.recurringAmount ?? 0),
@@ -134,12 +138,14 @@ export function useStrategyForm({
 
   // VR 필드 watch
   const initialValue = form.watch('initialValue') ?? null
+  const avgPrice = form.watch('avgPrice') ?? null
+  const quantity = form.watch('quantity') ?? null
   const intervalWeeks = form.watch('intervalWeeks') ?? null
   const bandWidth = form.watch('bandWidth') ?? null
   const recurringAmount = form.watch('recurringAmount') ?? null
   const recurringMode = form.watch('recurringMode')
   const isVr = type === 'VR'
-  const vrFields: VrFields = { initialValue, intervalWeeks, bandWidth, recurringAmount }
+  const vrFields: VrFields = { initialValue, avgPrice, quantity, intervalWeeks, bandWidth, recurringAmount }
 
   // capability 파생 — isInfinite 휴리스틱 대신 백엔드 SSOT 사용
   const typeMeta = useMemo(() => findStrategyType(type), [findStrategyType, type])
@@ -246,7 +252,10 @@ export function useStrategyForm({
     resetSeed({ seedUsdInput: 0 })
   }, [balanceCheckEnabled, initial, isVr]) // eslint-disable-line react-doctor/exhaustive-deps
 
-  const normalizedInitialValue = initialValue ?? 0
+  // 신규 등록: 평단가 × 수량 = 초기 V값(마지막 평가금). 수정: 평단가·수량 역산 불가 — 저장된 V값 그대로 유지
+  const normalizedInitialValue = initial
+    ? initial.vr?.value ?? 0
+    : (avgPrice ?? 0) * (quantity ?? 0)
   const normalizedInitialSeed = seedUsd ?? 0
   const recurringMagnitude = Math.abs(recurringAmount ?? 0)
   const normalizedRecurringAmount = recurringMode === 'HOLD'
@@ -324,7 +333,7 @@ export function useStrategyForm({
       : (() => {
           if (seedUnavailableReason === 'NO_PRIVACY_BASE') return 'P 매매표가 없어 등록할 수 없습니다.'
           if (isBelowMinSeed && minSeed !== null) return `최소 시드 $${fmtUsd(minSeed)} 이상이 필요합니다.`
-          if (isInvalidSeed) return '시드 금액은 0보다 커야 합니다.'
+          if (isInvalidSeed) return '예수금은 0보다 커야 합니다.'
           if (basePrice === null && seedUnavailableReason === null) return '기준 가격을 불러오는 중입니다.'
           return null
         })()

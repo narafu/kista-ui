@@ -13,7 +13,7 @@ describe('SeedAmountInput', () => {
       />,
     )
 
-    expect(screen.getByLabelText('시드 금액 (USD)')).toBeInTheDocument()
+    expect(screen.getByLabelText('예수금 (USD)')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '최소시드 단위 감소' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '최소시드 단위 증가' })).not.toBeInTheDocument()
   })
