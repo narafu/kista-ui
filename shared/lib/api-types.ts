@@ -1615,10 +1615,16 @@ export interface components {
              */
             divisionCount?: number;
             /**
-             * @description VR: 주식 평가금 (초기 V값)
-             * @example 3000
+             * Format: int32
+             * @description 중간부터 시작 — 등록 시점 기존 보유 수량 (null/0이면 빈 포지션에서 시작)
+             * @example 10
              */
-            initialValue?: number;
+            initialHoldings?: number;
+            /**
+             * @description 중간부터 시작 — 등록 시점 기존 평단가 (initialHoldings>0이면 필수)
+             * @example 45.5
+             */
+            initialAvgPrice?: number;
             /**
              * Format: int32
              * @description VR: 리밸런싱 주기 (주 단위, 1 이상)

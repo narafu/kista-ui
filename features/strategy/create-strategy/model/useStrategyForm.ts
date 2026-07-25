@@ -22,9 +22,8 @@ interface UseStrategyFormOptions {
   onSuccess?: () => void
 }
 
-// VR 전략 전용 폼 필드
+// VR 전략 전용 폼 필드 (avgPrice·quantity는 "중간부터 시작" 공통 필드 — VR 외 전략도 사용)
 export interface VrFields {
-  initialValue: number | null
   avgPrice: number | null
   quantity: number | null
   intervalWeeks: number | null
@@ -116,8 +115,7 @@ export function useStrategyForm({
       autoStart: initial ? initial.cycleSeedType !== 'NONE' : true,
       seedMode: initial?.cycleSeedType === 'MAINTAIN' ? 'KEEP' : 'MAX',
       divisionCount: initialDivisionCount,
-      // VR 초기값 — 기존 전략이면 vr 요약에서 복원 (평단가·수량은 역산 불가 — 신규 등록에서만 사용)
-      initialValue: initial?.vr?.value ?? 0,
+      // 중간부터 시작(평단가·수량)은 등록 전용 — 수정 모드에서는 역산 불가하므로 항상 빈 값
       avgPrice: null,
       quantity: null,
       intervalWeeks: initial?.vr?.intervalWeeks ?? 2,
@@ -136,8 +134,7 @@ export function useStrategyForm({
   const divisionCount = form.watch('divisionCount')
   const canEditSeed = !!initial && (initial.currentHoldings ?? 0) === 0
 
-  // VR 필드 watch
-  const initialValue = form.watch('initialValue') ?? null
+  // VR 필드 watch (avgPrice·quantity는 중간부터 시작 공통 필드)
   const avgPrice = form.watch('avgPrice') ?? null
   const quantity = form.watch('quantity') ?? null
   const intervalWeeks = form.watch('intervalWeeks') ?? null
@@ -145,7 +142,7 @@ export function useStrategyForm({
   const recurringAmount = form.watch('recurringAmount') ?? null
   const recurringMode = form.watch('recurringMode')
   const isVr = type === 'VR'
-  const vrFields: VrFields = { initialValue, avgPrice, quantity, intervalWeeks, bandWidth, recurringAmount }
+  const vrFields: VrFields = { avgPrice, quantity, intervalWeeks, bandWidth, recurringAmount }
 
   // capability 파생 — isInfinite 휴리스틱 대신 백엔드 SSOT 사용
   const typeMeta = useMemo(() => findStrategyType(type), [findStrategyType, type])
@@ -252,7 +249,8 @@ export function useStrategyForm({
     resetSeed({ seedUsdInput: 0 })
   }, [balanceCheckEnabled, initial, isVr]) // eslint-disable-line react-doctor/exhaustive-deps
 
-  // 신규 등록: 평단가 × 수량 = 초기 V값(마지막 평가금). 수정: 평단가·수량 역산 불가 — 저장된 V값 그대로 유지
+  // VR 인출식 사전검증용 추정 V값 — 서버는 등록 시점 전일종가×보유수량으로 V를 재계산하므로 이 값은 근사치다
+  // (평단가 기준 추정. 실제 등록가는 시장가 기준이라 서버 계산과 다를 수 있음 — 최종 검증은 서버가 수행)
   const normalizedInitialValue = initial
     ? initial.vr?.value ?? 0
     : (avgPrice ?? 0) * (quantity ?? 0)
@@ -269,12 +267,17 @@ export function useStrategyForm({
     ? Math.abs(normalizedRecurringAmount) * 100 * (4 / intervalWeeks)
     : 0
 
+  // 중간부터 시작 공통 검증 (세 전략 공통, 등록 전용) — 서버 validateBootstrapPosition과 동일 규칙:
+  // 평단가·수량 음수 거부, 보유 수량>0이면 평단가>0 필수. 수량은 서버 initialHoldings가 Integer라 정수만 허용
+  const isInvalidBootstrap = !initial && (
+    (avgPrice !== null && avgPrice < 0) ||
+    (quantity !== null && quantity < 0) ||
+    (quantity !== null && !Number.isInteger(quantity)) ||
+    (quantity !== null && quantity > 0 && (avgPrice === null || avgPrice <= 0))
+  )
+
   // VR 필수 필드 유효성 검사 — API 등록 정책과 동일하게 초기 V/시드는 0을 허용하되 모드별 자산 조건을 적용
-  // 평단가·수량은 곱(normalizedInitialValue)만으로는 음수×음수=양수 등으로 개별 음수를 가릴 수 있어 별도 검사한다
   const isInvalidVr = isVr && (
-    (!initial && avgPrice !== null && avgPrice < 0) ||
-    (!initial && quantity !== null && quantity < 0) ||
-    normalizedInitialValue < 0 ||
     intervalWeeks === null ||
     intervalWeeks < 1 ||
     !Number.isInteger(intervalWeeks) ||
@@ -303,17 +306,22 @@ export function useStrategyForm({
   const runtimeConfigUnavailable = !initial && (!runtimeConfig || enabledStrategyTypes.length === 0)
   const cannotSubmit = initial && !canEditSeed
     ? false
-    : runtimeConfigUnavailable || isRuntimeValueInvalid || isInvalidVr || isBelowMinSeed || (!isVr && isInvalidSeed) || (!isVr && basePrice === null && seedUnavailableReason === null)
+    : runtimeConfigUnavailable || isRuntimeValueInvalid || isInvalidBootstrap || isInvalidVr || isBelowMinSeed || (!isVr && isInvalidSeed) || (!isVr && basePrice === null && seedUnavailableReason === null)
 
   const submitDisabledReason = initial && !canEditSeed
     ? null
     : runtimeConfigUnavailable
       ? '현재 등록 가능한 전략이 없습니다.'
+      : avgPrice !== null && avgPrice < 0
+      ? '평단가는 0 이상이어야 합니다.'
+      : quantity !== null && quantity < 0
+      ? '수량은 0 이상이어야 합니다.'
+      : quantity !== null && !Number.isInteger(quantity)
+      ? '수량은 정수여야 합니다.'
+      : quantity !== null && quantity > 0 && (avgPrice === null || avgPrice <= 0)
+      ? '보유 수량을 입력하면 평단가는 0보다 커야 합니다.'
       : isVr
       ? (() => {
-          if (!initial && avgPrice !== null && avgPrice < 0) return '평단가는 0 이상이어야 합니다.'
-          if (!initial && quantity !== null && quantity < 0) return '수량은 0 이상이어야 합니다.'
-          if (normalizedInitialValue < 0) return '초기 V값은 0 이상이어야 합니다.'
           if (intervalWeeks === null || intervalWeeks < 1 || !Number.isInteger(intervalWeeks)) {
             return '리밸런싱 주기는 1 이상 정수여야 합니다.'
           }
@@ -415,9 +423,13 @@ export function useStrategyForm({
                 ? divisionCountSettings.defaultValue
                 : divisionCount,
             } : {}),
+            // 중간부터 시작 — 세 전략 공통, 보유 수량>0일 때만 전송 (미입력/0이면 빈 포지션에서 시작)
+            ...(quantity !== null && quantity > 0 ? {
+              initialHoldings: quantity,
+              initialAvgPrice: avgPrice ?? undefined,
+            } : {}),
             // VR 전용 필드 — null이면 0으로 기본값 처리
             ...(isVr ? {
-              initialValue: normalizedInitialValue,
               intervalWeeks: runtimeStrategy?.fields.intervalWeeks?.customizable === false
                 ? runtimeStrategy.fields.intervalWeeks.defaultValue
                 : intervalWeeks ?? undefined,

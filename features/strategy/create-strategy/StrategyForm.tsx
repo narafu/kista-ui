@@ -12,6 +12,7 @@ import { ReadOnlySeedSection } from './sections/ReadOnlySeedSection'
 import { CycleSeedSection } from './sections/CycleSeedSection'
 import { DivisionCountSection } from './sections/DivisionCountSection'
 import { VrSettingsSection } from './sections/VrSettingsSection'
+import { InitialHoldingsSection } from './sections/InitialHoldingsSection'
 import { StrategyFormSkeleton } from './StrategyFormSkeleton'
 import type { Strategy } from '@entities/strategy'
 
@@ -75,6 +76,16 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
         customizable={form.tickerCustomizable}
       />
 
+      {!initial && (
+        <InitialHoldingsSection
+          avgPrice={form.vrFields.avgPrice}
+          quantity={form.vrFields.quantity}
+          setField={form.setVrField}
+          loading={form.loading}
+          isVr={form.isVr}
+        />
+      )}
+
       {form.isVr && (
         <VrSettingsSection
           fields={form.vrFields}
@@ -83,6 +94,7 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
           setRecurringMode={form.setRecurringMode}
           loading={form.loading}
           isEdit={!!initial}
+          initialVrValue={initial?.vr?.value ?? 0}
           settings={form.vrSettings}
         />
       )}

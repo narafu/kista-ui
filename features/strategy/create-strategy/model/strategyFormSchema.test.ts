@@ -62,7 +62,8 @@ describe('strategyFormSchema', () => {
       autoStart: false,
       seedMode: 'KEEP',
       divisionCount: 20,
-      initialValue: 3000,
+      avgPrice: 150,
+      quantity: 20,
       intervalWeeks: 4,
       bandWidth: 15,
       recurringAmount: 0,
@@ -79,7 +80,8 @@ describe('strategyFormSchema', () => {
       autoStart: false,
       seedMode: 'KEEP',
       divisionCount: 20,
-      initialValue: 3000,
+      avgPrice: 150,
+      quantity: 20,
       intervalWeeks: 4,
       bandWidth: 15,
       recurringAmount: -100,
@@ -89,14 +91,15 @@ describe('strategyFormSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('VR initialValue는 0을 허용한다', () => {
+  it('VR avgPrice·quantity는 0을 허용한다 (빈 포지션에서 시작)', () => {
     const result = strategyFormSchema.safeParse({
       type: 'VR',
       ticker: 'TQQQ',
       autoStart: false,
       seedMode: 'KEEP',
       divisionCount: 20,
-      initialValue: 0,
+      avgPrice: 0,
+      quantity: 0,
       intervalWeeks: 4,
       bandWidth: 15,
       recurringAmount: 200,
@@ -113,7 +116,8 @@ describe('strategyFormSchema', () => {
       autoStart: false,
       seedMode: 'KEEP',
       divisionCount: 20,
-      initialValue: 3000,
+      avgPrice: 150,
+      quantity: 20,
       intervalWeeks: 0,
       bandWidth: 15,
       recurringAmount: 0,

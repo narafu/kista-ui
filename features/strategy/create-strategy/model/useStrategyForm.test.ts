@@ -368,7 +368,8 @@ describe('useStrategyForm submit policy', () => {
       ticker: 'TQQQ',
       cycleSeedType: 'NONE',
       initialUsdDeposit: 2000,
-      initialValue: 3000,
+      initialHoldings: 10,
+      initialAvgPrice: 300,
       intervalWeeks: 4,
       bandWidth: 15,
       recurringAmount: 0,
@@ -387,7 +388,6 @@ describe('useStrategyForm submit policy', () => {
 
     act(() => {
       result.current.setType('VR')
-      result.current.setVrField('initialValue', 0)
       result.current.setVrField('intervalWeeks', 2)
       result.current.setVrField('bandWidth', 15)
       result.current.setVrField('recurringAmount', 200)
@@ -409,14 +409,13 @@ describe('useStrategyForm submit policy', () => {
       ticker: 'TQQQ',
       cycleSeedType: 'NONE',
       initialUsdDeposit: 0,
-      initialValue: 0,
       intervalWeeks: 2,
       bandWidth: 15,
       recurringAmount: 200,
     })
   })
 
-  it('VR create defaults initial value to 0 and interval weeks to 2', () => {
+  it('VR create defaults avg price/quantity to empty and interval weeks to 2', () => {
     seedModelState.seedUsd = 0
     seedModelState.isInvalidSeed = true
 
@@ -430,7 +429,8 @@ describe('useStrategyForm submit policy', () => {
       result.current.setType('VR')
     })
 
-    expect(result.current.vrFields.initialValue).toBe(0)
+    expect(result.current.vrFields.avgPrice).toBeNull()
+    expect(result.current.vrFields.quantity).toBeNull()
     expect(result.current.vrFields.intervalWeeks).toBe(2)
     expect(result.current.vrFields.recurringAmount).toBe(0)
   })
@@ -467,7 +467,6 @@ describe('useStrategyForm submit policy', () => {
 
     act(() => {
       result.current.setType('VR')
-      result.current.setVrField('initialValue', 0)
       result.current.setVrField('intervalWeeks', 2)
       result.current.setVrField('bandWidth', 15)
       result.current.setVrField('recurringAmount', 0)
@@ -521,7 +520,6 @@ describe('useStrategyForm submit policy', () => {
 
     act(() => {
       result.current.setType('VR')
-      result.current.setVrField('initialValue', 0)
       result.current.setVrField('intervalWeeks', 4)
       result.current.setVrField('bandWidth', null)
       result.current.setVrField('recurringAmount', 200)
@@ -561,7 +559,8 @@ describe('useStrategyForm submit policy', () => {
 
     act(() => {
       result.current.setType('VR')
-      result.current.setVrField('initialValue', 3000)
+      result.current.setVrField('avgPrice', 300)
+      result.current.setVrField('quantity', 10)
       result.current.setVrField('intervalWeeks', 4.5)
       result.current.setVrField('bandWidth', 15)
       result.current.setVrField('recurringAmount', 10.5)
@@ -569,5 +568,81 @@ describe('useStrategyForm submit policy', () => {
     })
 
     expect(result.current.cannotSubmit).toBe(true)
+  })
+
+  it('non-VR create sends initialHoldings/initialAvgPrice when quantity is entered', async () => {
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setVrField('avgPrice', 45.5)
+      result.current.setVrField('quantity', 10)
+    })
+
+    await act(async () => {
+      result.current.handleSubmit({ preventDefault() {} } as React.FormEvent)
+    })
+
+    await waitFor(() => {
+      expect(mockCreateMutate).toHaveBeenCalled()
+    })
+
+    expect(mockCreateMutate).toHaveBeenCalledWith(expect.objectContaining({
+      initialHoldings: 10,
+      initialAvgPrice: 45.5,
+    }))
+  })
+
+  it('non-VR create is blocked when quantity is entered without an avg price', () => {
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setVrField('quantity', 10)
+    })
+
+    expect(result.current.cannotSubmit).toBe(true)
+    expect(result.current.submitDisabledReason).toContain('보유 수량을 입력하면 평단가는 0보다 커야 합니다')
+  })
+
+  it('non-VR create is blocked when quantity is a decimal (server initialHoldings is Integer)', () => {
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setVrField('avgPrice', 45.5)
+      result.current.setVrField('quantity', 10.5)
+    })
+
+    expect(result.current.cannotSubmit).toBe(true)
+    expect(result.current.submitDisabledReason).toContain('수량은 정수여야 합니다')
+  })
+
+  it('non-VR create omits initialHoldings/initialAvgPrice when quantity is left empty', async () => {
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    await act(async () => {
+      result.current.handleSubmit({ preventDefault() {} } as React.FormEvent)
+    })
+
+    await waitFor(() => {
+      expect(mockCreateMutate).toHaveBeenCalled()
+    })
+
+    expect(mockCreateMutate.mock.calls[0][0]).not.toHaveProperty('initialHoldings')
+    expect(mockCreateMutate.mock.calls[0][0]).not.toHaveProperty('initialAvgPrice')
   })
 })

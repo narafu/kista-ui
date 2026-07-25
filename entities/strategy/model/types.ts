@@ -34,7 +34,8 @@ export interface StrategyRequest {
   cycleSeedType: CycleSeedType
   initialUsdDeposit?: number  // 등록 시 또는 holdings=0 수정 시 전송
   divisionCount?: number      // 분할 수 (20/30/40, 미전송 시 백엔드 기본값 20)
-  initialValue?: number       // VR 전용: 최초 V값 (USD)
+  initialHoldings?: number    // 중간부터 시작 — 등록 시점 기존 보유 수량 (세 전략 공통, 등록 전용, null/0이면 빈 포지션)
+  initialAvgPrice?: number    // 중간부터 시작 — 등록 시점 기존 평단가 (initialHoldings>0이면 필수)
   intervalWeeks?: number      // VR 전용: 롤오버 주기 (주)
   bandWidth?: number          // VR 전용: 밴드 폭 (%)
   recurringAmount?: number    // VR 전용: 정기 입출금 (USD)

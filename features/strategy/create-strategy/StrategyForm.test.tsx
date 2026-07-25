@@ -5,6 +5,7 @@ import { StrategyForm } from './StrategyForm'
 
 const useStrategyFormMock = vi.fn()
 const usageRatioSectionMock = vi.fn()
+const initialHoldingsSectionMock = vi.fn()
 
 vi.mock('@entities/meta', () => ({
   useMeta: () => ({
@@ -48,6 +49,13 @@ vi.mock('./sections/VrSettingsSection', () => ({
   VrSettingsSection: () => <div data-testid="vr-settings-section">vr-settings-section</div>,
 }))
 
+vi.mock('./sections/InitialHoldingsSection', () => ({
+  InitialHoldingsSection: (props: unknown) => {
+    initialHoldingsSectionMock(props)
+    return <div data-testid="initial-holdings-section">initial-holdings-section</div>
+  },
+}))
+
 const baseFormState = {
   type: 'INFINITE',
   setType: vi.fn(),
@@ -82,7 +90,8 @@ const baseFormState = {
   retryRuntimeConfig: vi.fn(),
   isVr: false,
   vrFields: {
-    initialValue: null,
+    avgPrice: null,
+    quantity: null,
     intervalWeeks: 4,
     bandWidth: 15,
     recurringAmount: 0,
@@ -114,6 +123,36 @@ const initialStrategy: Strategy = {
   isReverseMode: false,
   currentHoldings: 3,
 }
+
+describe('StrategyForm initial holdings section', () => {
+  it('shows the initial holdings section for INFINITE create mode', () => {
+    initialHoldingsSectionMock.mockClear()
+    useStrategyFormMock.mockReturnValue(baseFormState)
+
+    render(<StrategyForm accountId="account-1" />)
+
+    expect(screen.getByTestId('initial-holdings-section')).toBeInTheDocument()
+    expect(initialHoldingsSectionMock).toHaveBeenCalledWith(expect.objectContaining({ isVr: false }))
+  })
+
+  it('shows the initial holdings section for VR create mode with VR framing', () => {
+    initialHoldingsSectionMock.mockClear()
+    useStrategyFormMock.mockReturnValue({ ...baseFormState, type: 'VR', isVr: true })
+
+    render(<StrategyForm accountId="account-1" />)
+
+    expect(screen.getByTestId('initial-holdings-section')).toBeInTheDocument()
+    expect(initialHoldingsSectionMock).toHaveBeenCalledWith(expect.objectContaining({ isVr: true }))
+  })
+
+  it('hides the initial holdings section in edit mode', () => {
+    useStrategyFormMock.mockReturnValue(baseFormState)
+
+    render(<StrategyForm accountId="account-1" initial={initialStrategy} />)
+
+    expect(screen.queryByTestId('initial-holdings-section')).not.toBeInTheDocument()
+  })
+})
 
 describe('StrategyForm seed section', () => {
   it('shows a retry action when runtime config fails in create mode', () => {
@@ -164,7 +203,8 @@ describe('StrategyForm VR settings section', () => {
       isVr: true,
       usesDivisionCount: false,
       vrFields: {
-        initialValue: 3000,
+        avgPrice: 300,
+        quantity: 10,
         intervalWeeks: 4,
         bandWidth: 15,
         recurringAmount: 0,
@@ -186,7 +226,8 @@ describe('StrategyForm VR settings section', () => {
       ...baseFormState,
       isVr: false,
       vrFields: {
-        initialValue: null,
+        avgPrice: null,
+        quantity: null,
         intervalWeeks: 4,
         bandWidth: 15,
         recurringAmount: 0,
