@@ -16,17 +16,19 @@ import { InitialHoldingsSection } from './sections/InitialHoldingsSection'
 import { ScheduledStartSection } from './sections/ScheduledStartSection'
 import { StrategyFormSkeleton } from './StrategyFormSkeleton'
 import type { Strategy } from '@entities/strategy'
+import type { BrokerCode } from '@entities/account'
 
 interface Props {
   accountId: string
+  broker?: BrokerCode
   initial?: Strategy
   onSuccess?: () => void
   onCancel?: () => void
 }
 
-export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props) {
+export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }: Props) {
   const { meta } = useMeta()
-  const form = useStrategyForm({ accountId, initial, onSuccess })
+  const form = useStrategyForm({ accountId, broker, initial, onSuccess })
   const strategyTypes = initial
     ? meta.strategyTypes
     : meta.strategyTypes.filter(({ code }) => form.enabledStrategyTypes.includes(code))
@@ -124,6 +126,7 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
           isBelowMinSeed={form.isBelowMinSeed}
           seedUnavailableReason={form.seedUnavailableReason}
           balanceCheckEnabled={form.balanceCheckEnabled}
+          offBadgeLabel={form.isMock ? '모의계좌 — 예수금 직접 입력' : undefined}
         />
       )}
 

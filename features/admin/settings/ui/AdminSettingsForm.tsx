@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { useAdminSettingsQuery, useUpdateAdminSettingsMutation } from '@entities/admin-settings'
 import { useMeta } from '@entities/meta'
+import { formatBrokerLabel, type BrokerCode } from '@shared/lib/api-schema'
 import {
   DEFAULT_RUNTIME_BENCHMARKS,
   type RecurringMode,
@@ -415,8 +416,8 @@ export function AdminSettingsForm({ initialSettings }: { initialSettings: Runtim
 
         <section className="border-b border-border px-4 py-4 sm:px-5">
           <h2 className="text-base font-bold">증권사 등록</h2>
-          {(['KIS', 'TOSS'] as const).map((broker) => (
-            <ToggleRow key={broker} id={`broker-${broker}`} label={broker} checked={draft.brokers[broker].enabled}
+          {(Object.keys(draft.brokers) as BrokerCode[]).map((broker) => (
+            <ToggleRow key={broker} id={`broker-${broker}`} label={formatBrokerLabel(broker)} checked={draft.brokers[broker].enabled}
               onChange={(enabled) => setDraft((current) => ({ ...current, brokers: { ...current.brokers, [broker]: { enabled } } }))} />
           ))}
         </section>

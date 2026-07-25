@@ -28,7 +28,7 @@ vi.mock('@entities/meta', () => ({
 
 const settings: RuntimeConfig = {
   auth: { approvalRequired: true },
-  brokers: { KIS: { enabled: true }, TOSS: { enabled: true } },
+  brokers: { KIS: { enabled: true }, TOSS: { enabled: true }, MOCK: { enabled: true } },
   benchmarks: {
     etf: { allowedValues: ['SPY', 'QQQ'], defaultValue: 'SPY' },
   },
@@ -59,10 +59,15 @@ describe('AdminSettingsForm', () => {
     expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({ auth: { approvalRequired: false } }), expect.any(Object))
   })
 
+  it('renders a toggle for the MOCK broker', () => {
+    render(<AdminSettingsForm initialSettings={settings} />)
+    expect(screen.getByRole('switch', { name: '모의계좌' })).toBeInTheDocument()
+  })
+
   it('restores the last server state when changes are discarded', async () => {
     const user = userEvent.setup()
     render(<AdminSettingsForm initialSettings={settings} />)
-    const toggle = screen.getByRole('switch', { name: 'KIS' })
+    const toggle = screen.getByRole('switch', { name: '한국투자증권' })
     await user.click(toggle)
     expect(toggle).not.toBeChecked()
     await user.click(screen.getByRole('button', { name: /변경 취소/ }))
@@ -164,7 +169,7 @@ describe('AdminSettingsForm', () => {
   it('preserves dirty edits across incoming server data and resets to the latest snapshot', async () => {
     const user = userEvent.setup()
     const { rerender } = render(<AdminSettingsForm initialSettings={settings} />)
-    const kis = screen.getByRole('switch', { name: 'KIS' })
+    const kis = screen.getByRole('switch', { name: '한국투자증권' })
     await user.click(kis)
     const latest = structuredClone(settings)
     latest.brokers.TOSS.enabled = false
@@ -172,8 +177,8 @@ describe('AdminSettingsForm', () => {
     rerender(<AdminSettingsForm initialSettings={settings} />)
     expect(kis).not.toBeChecked()
     await user.click(screen.getByRole('button', { name: /변경 취소/ }))
-    expect(screen.getByRole('switch', { name: 'KIS' })).toBeChecked()
-    expect(screen.getByRole('switch', { name: 'TOSS' })).not.toBeChecked()
+    expect(screen.getByRole('switch', { name: '한국투자증권' })).toBeChecked()
+    expect(screen.getByRole('switch', { name: '토스증권' })).not.toBeChecked()
   })
 
   it('does not warn when approval was already disabled on the server', async () => {

@@ -45,4 +45,18 @@ describe('AccountInfoStep', () => {
     expect(screen.getByRole('button', { name: '다음' })).toBeDisabled()
     expect(onNext).not.toHaveBeenCalled()
   })
+
+  it('MOCK broker: skips the account number field and proceeds with nickname only', async () => {
+    const onNext = vi.fn()
+    const user = userEvent.setup()
+    render(<AccountInfoStep data={{ ...baseData, broker: 'MOCK' }} onNext={onNext} onBack={vi.fn()} />)
+
+    expect(screen.queryByLabelText(/계좌번호/)).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '다음' })).toBeDisabled()
+
+    await user.type(screen.getByLabelText(/계좌 별칭/), '모의 계좌')
+    await user.click(screen.getByRole('button', { name: '다음' }))
+
+    expect(onNext).toHaveBeenCalledWith({ nickname: '모의 계좌', accountNo: '' })
+  })
 })

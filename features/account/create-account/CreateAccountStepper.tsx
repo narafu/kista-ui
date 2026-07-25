@@ -44,10 +44,12 @@ function reducer(state: State, action: Action): State {
 }
 
 const STEPS = ['증권사', 'API 키', '계좌 정보', '확인']
+const MOCK_STEPS = ['증권사', '계좌 별칭', '확인']
 
 export function CreateAccountStepper() {
   const [{ step, data }, dispatch] = useReducer(reducer, initialState)
   const { data: runtimeConfig } = useRuntimeConfigQuery()
+  const isMock = data.broker === 'MOCK'
 
   useEffect(() => {
     if (!data.broker || !runtimeConfig) return
@@ -59,12 +61,20 @@ export function CreateAccountStepper() {
   return (
     <div className="max-w-lg mx-auto">
       <div className="mb-8">
-        <Stepper steps={STEPS} current={step} />
+        <Stepper steps={isMock ? MOCK_STEPS : STEPS} current={step} />
       </div>
       {step === 1 && <BrokerStep onNext={next} />}
-      {step === 2 && <ApiStep data={data} onNext={next} onBack={back} />}
-      {step === 3 && <AccountInfoStep data={data} onNext={next} onBack={back} />}
-      {step === 4 && <ConfirmStep data={data} onBack={back} />}
+      {step === 2 && (
+        isMock
+          ? <AccountInfoStep data={data} onNext={next} onBack={back} />
+          : <ApiStep data={data} onNext={next} onBack={back} />
+      )}
+      {step === 3 && (
+        isMock
+          ? <ConfirmStep data={data} onBack={back} />
+          : <AccountInfoStep data={data} onNext={next} onBack={back} />
+      )}
+      {step === 4 && !isMock && <ConfirmStep data={data} onBack={back} />}
     </div>
   )
 }

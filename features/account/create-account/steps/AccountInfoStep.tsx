@@ -50,9 +50,62 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
   const [touchedAccountNo, setTouchedAccountNo] = useState(false)
 
   const broker = (data.broker || 'KIS') as BrokerCode
-  const config = ACCOUNT_CONFIG[broker]
+  const isMock = broker === 'MOCK'
 
   const nicknameValid = nickname.trim().length >= 1
+
+  if (isMock) {
+    const showNicknameError = touchedNickname && !nicknameValid
+    return (
+      <div className="flex flex-col gap-6">
+        <div>
+          <h2 className="text-lg font-bold mb-1">계좌 별칭</h2>
+          <p className="text-sm text-muted-foreground">모의계좌의 별칭을 입력하세요.</p>
+        </div>
+        <p className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+          모의계좌 — 실제 자금 없이 매매를 체험합니다.
+        </p>
+        <div>
+          <label htmlFor="account-nickname" className="text-sm font-semibold mb-1.5 block">
+            계좌 별칭 <span className="text-destructive">*</span>
+          </label>
+          <input
+            id="account-nickname"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            onBlur={() => setTouchedNickname(true)}
+            placeholder="예: 모의 계좌"
+            aria-describedby={showNicknameError ? 'nickname-error' : undefined}
+            aria-invalid={showNicknameError}
+            className="w-full px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+          {showNicknameError && (
+            <p id="nickname-error" className="text-sm text-destructive mt-1">별칭을 입력해주세요.</p>
+          )}
+        </div>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex-1 h-11 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted transition-colors"
+          >
+            이전
+          </button>
+          <button
+            type="button"
+            disabled={!nicknameValid}
+            onClick={() => onNext({ nickname: nickname.trim(), accountNo: '' })}
+            className="flex-1 h-11 rounded-[var(--r-md)] bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            다음
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // isMock 분기에서 이미 return했으므로 여기서는 KIS/TOSS만 도달
+  const config = ACCOUNT_CONFIG[broker as Exclude<BrokerCode, 'MOCK'>]
   const accountNoValid = config.pattern.test(accountNo)
   const valid = nicknameValid && accountNoValid
 

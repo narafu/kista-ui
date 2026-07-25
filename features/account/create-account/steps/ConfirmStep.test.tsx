@@ -62,4 +62,18 @@ describe('ConfirmStep', () => {
 
     expect(screen.getByText(/App Key, App Secret 또는 계좌번호를 다시 확인하세요/)).toBeInTheDocument()
   })
+
+  it('MOCK broker: omits accountNo/appKey/secretKey and hides those rows', async () => {
+    mockState = { isPending: false, isError: false, error: null }
+    const user = userEvent.setup()
+    const mockData: StepData = { broker: 'MOCK', apiKey: '', apiSecret: '', accountNo: '', nickname: '모의 계좌' }
+    render(<ConfirmStep data={mockData} onBack={vi.fn()} />)
+
+    expect(screen.queryByText('계좌번호')).not.toBeInTheDocument()
+    expect(screen.queryByText('API Key')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '계좌 연결' }))
+
+    expect(mutateMock).toHaveBeenCalledWith({ nickname: '모의 계좌', broker: 'MOCK' })
+  })
 })

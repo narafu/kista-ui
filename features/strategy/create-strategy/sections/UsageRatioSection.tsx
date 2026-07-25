@@ -6,14 +6,16 @@ import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import { PercentGauge, SeedAmountInput } from '@shared/ui/percent-gauge'
 import { fmtUsd } from '@shared/lib/format'
 
-const BALANCE_OFF_BADGE = (
-  <span
-    className="text-xs font-bold px-2 py-0.5 rounded-full border"
-    style={{ background: 'var(--rose-50)', color: 'var(--rose-500)', borderColor: 'var(--rose-300)' }}
-  >
-    잔고검증 OFF
-  </span>
-)
+function offBadge(label: string) {
+  return (
+    <span
+      className="text-xs font-bold px-2 py-0.5 rounded-full border"
+      style={{ background: 'var(--rose-50)', color: 'var(--rose-500)', borderColor: 'var(--rose-300)' }}
+    >
+      {label}
+    </span>
+  )
+}
 
 interface Props {
   hint?: React.ReactNode
@@ -28,6 +30,7 @@ interface Props {
   isBelowMinSeed: boolean
   seedUnavailableReason: string | null
   balanceCheckEnabled?: boolean
+  offBadgeLabel?: string
 }
 
 export function UsageRatioSection({
@@ -36,6 +39,7 @@ export function UsageRatioSection({
   usdDeposit, minSeed, loading, loadingBase,
   isBelowMinSeed, seedUnavailableReason,
   balanceCheckEnabled = true,
+  offBadgeLabel,
 }: Props) {
   const useSeedInput = !balanceCheckEnabled
   const isOff = !balanceCheckEnabled
@@ -44,7 +48,7 @@ export function UsageRatioSection({
   return (
     <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel
-        hint={hint ?? (isOff ? BALANCE_OFF_BADGE : 'USD 예수금 기준 · 드래그하거나 입력')}
+        hint={hint ?? (isOff ? offBadge(offBadgeLabel ?? '잔고검증 OFF') : 'USD 예수금 기준 · 드래그하거나 입력')}
       >
         {useSeedInput ? '예수금' : '사용 비율'}
       </StrategyFieldLabel>

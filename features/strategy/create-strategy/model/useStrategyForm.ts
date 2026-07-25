@@ -9,7 +9,7 @@ import { useMeta } from '@entities/meta'
 import { useAccountMarginQuery, useAccountPricesQuery } from '@entities/account'
 import { useCreateStrategyMutation, useUpdateStrategyMutation, useStrategySeedPreviewQuery } from '@entities/strategy'
 import type { CycleSeedType, Strategy, StrategyRequest } from '@entities/strategy'
-import type { PriceMap } from '@entities/account'
+import type { BrokerCode, PriceMap } from '@entities/account'
 import { useMeQuery } from '@entities/user'
 import { useRuntimeConfigQuery } from '@entities/runtime-config'
 import type { RuntimeFieldSettings, RuntimeStrategyType } from '@entities/runtime-config'
@@ -18,6 +18,7 @@ import { strategyFormSchema, type DivisionCount, type StrategyFormValues } from 
 
 interface UseStrategyFormOptions {
   accountId: string
+  broker?: BrokerCode
   initial?: Strategy
   onSuccess?: () => void
 }
@@ -55,6 +56,7 @@ export interface UseStrategyFormReturn {
   isBelowMinSeed: boolean
   loadingBase: boolean
   balanceCheckEnabled: boolean
+  isMock: boolean
 
   autoStart: boolean
   setAutoStart: (v: boolean) => void
@@ -95,9 +97,11 @@ export interface UseStrategyFormReturn {
 
 export function useStrategyForm({
   accountId,
+  broker,
   initial,
   onSuccess,
 }: UseStrategyFormOptions): UseStrategyFormReturn {
+  const isMock = broker === 'MOCK'
   const { meta, findStrategyType } = useMeta()
   const runtimeQuery = useRuntimeConfigQuery()
   const runtimeConfig = runtimeQuery.data
@@ -166,7 +170,8 @@ export function useStrategyForm({
   }
 
   const { data: meData } = useMeQuery()
-  const balanceCheckEnabled = meData?.balanceCheckEnabled ?? true
+  // 모의계좌는 실제 잔고가 없어 예수금 조회 자체가 무의미 — 항상 수동 입력
+  const balanceCheckEnabled = (meData?.balanceCheckEnabled ?? true) && !isMock
 
   // 잔고검증 OFF면 예수금 불필요 → margin 쿼리 skip
   // eslint-disable-next-line react-doctor/no-event-handler
@@ -200,6 +205,8 @@ export function useStrategyForm({
 
   useEffect(() => {
     if (loadingBase) return
+    // 모의계좌는 예수금 조회를 스킵하므로 usdDeposit이 항상 null — 현재가 조회 실패만으로 오탐 방지
+    if (isMock) return
     if (usdDeposit === null && prices === null) {
       // eslint-disable-next-line react-doctor/no-event-handler
       toast.error('예수금 / 현재가 조회에 실패했습니다')
@@ -471,6 +478,7 @@ export function useStrategyForm({
     ticker, availableTickers, handleTickerChange, basePrice, prices,
     pct, setPct, seedUsdInput, setSeedUsdInput, usdDeposit, minSeed, isBelowMinSeed, loadingBase,
     balanceCheckEnabled,
+    isMock,
     autoStart, setAutoStart, seedMode, setSeedMode,
     divisionCount, setDivisionCount, divisionCountSettings, tickerCustomizable,
     enabledStrategyTypes, runtimeConfigUnavailable,

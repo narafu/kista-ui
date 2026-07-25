@@ -67,7 +67,8 @@ export function ApiStep({ data, onNext, onBack }: Props) {
   // KIS/TOSS 모두 훅을 호출해야 함 (조건부 훅 호출 금지)
   const testMutation = useTestKisConnectionMutation()
 
-  const broker = (data.broker || 'KIS') as BrokerCode
+  // MOCK은 이 스텝을 렌더하지 않음(CreateAccountStepper에서 건너뜀) — KIS/TOSS만 도달
+  const broker = (data.broker === 'TOSS' ? 'TOSS' : 'KIS') as Exclude<BrokerCode, 'MOCK'>
   const config = BROKER_CONFIG[broker]
   const keyValid = apiKey.length >= config.minLen
   const secretValid = apiSecret.length >= config.minLen

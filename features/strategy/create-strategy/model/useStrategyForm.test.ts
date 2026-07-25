@@ -727,4 +727,12 @@ describe('useStrategyForm submit policy', () => {
 
     expect(result.current.cannotSubmit).toBe(false)
   })
+
+  it('MOCK broker forces balanceCheckEnabled off regardless of user setting', () => {
+    meQueryState.data.balanceCheckEnabled = true
+    const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1', broker: 'MOCK' }))
+
+    expect(result.current.isMock).toBe(true)
+    expect(result.current.balanceCheckEnabled).toBe(false)
+  })
 })

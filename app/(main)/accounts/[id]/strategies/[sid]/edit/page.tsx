@@ -24,12 +24,12 @@ export default async function EditStrategyPage({ params }: Props) {
   if (!context) {
     return notFound()
   }
-  const { strategy } = context
+  const { account, strategy } = context
 
   return (
     <div className="max-w-lg mx-auto">
       <PageHeader eyebrow={strategy.ticker} eyebrowHref={`/accounts/${id}/strategies/${sid}`} title="전략 수정" />
-      <StrategyFormPage accountId={id} initial={strategy} />
+      <StrategyFormPage accountId={id} initial={strategy} broker={account.broker} />
     </div>
   )
 }

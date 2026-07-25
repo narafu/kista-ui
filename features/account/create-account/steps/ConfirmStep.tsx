@@ -17,15 +17,18 @@ export function ConfirmStep({ data, onBack }: Props) {
   const { labelOf } = useMeta()
 
   const broker = (data.broker || 'KIS') as BrokerCode
+  const isMock = broker === 'MOCK'
 
   function handleSubmit() {
-    const req: AccountRequest = {
-      nickname: data.nickname,
-      appKey: data.apiKey,
-      secretKey: data.apiSecret,
-      accountNo: data.accountNo,
-      broker,
-    }
+    const req: AccountRequest = isMock
+      ? { nickname: data.nickname, broker }
+      : {
+        nickname: data.nickname,
+        appKey: data.apiKey,
+        secretKey: data.apiSecret,
+        accountNo: data.accountNo,
+        broker,
+      }
     mutate(req)
   }
 
@@ -63,16 +66,20 @@ export function ConfirmStep({ data, onBack }: Props) {
           <span className="text-sm text-muted-foreground">별칭</span>
           <span className="text-sm font-semibold">{data.nickname}</span>
         </div>
-        <div className="flex items-center justify-between px-4 py-3">
-          <span className="text-sm text-muted-foreground">계좌번호</span>
-          <span className="text-sm font-semibold font-mono">{data.accountNo}</span>
-        </div>
-        <div className="flex items-center justify-between px-4 py-3">
-          <span className="text-sm text-muted-foreground">API Key</span>
-          <span className="text-sm font-semibold">
-            {data.apiKey ? `${data.apiKey.slice(0, 6)}...` : '-'}
-          </span>
-        </div>
+        {!isMock && (
+          <>
+            <div className="flex items-center justify-between px-4 py-3">
+              <span className="text-sm text-muted-foreground">계좌번호</span>
+              <span className="text-sm font-semibold font-mono">{data.accountNo}</span>
+            </div>
+            <div className="flex items-center justify-between px-4 py-3">
+              <span className="text-sm text-muted-foreground">API Key</span>
+              <span className="text-sm font-semibold">
+                {data.apiKey ? `${data.apiKey.slice(0, 6)}...` : '-'}
+              </span>
+            </div>
+          </>
+        )}
       </div>
 
       {isError && (

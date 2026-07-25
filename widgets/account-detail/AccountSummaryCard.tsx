@@ -18,6 +18,7 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd }: Props) {
   const [revealed, setRevealed] = useState(false)
   const { labelOf } = useMeta()
   const brokerLabel = labelOf('brokers', account.broker)
+  const isMock = account.broker === 'MOCK'
 
   return (
     <Card>
@@ -45,8 +46,12 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd }: Props) {
             }
           />
           <KpiCard label="증권사" value={<span className="text-xl font-semibold leading-snug">{brokerLabel}</span>} />
-          <KpiCard label="예수금(실계좌기준)" value={`$${fmtUsd(usdDeposit)}`} />
-          <KpiCard label="평가금(실계좌기준)" value={`$${fmtUsd(posEvalUsd)}`} />
+          {!isMock && (
+            <>
+              <KpiCard label="예수금(실계좌기준)" value={`$${fmtUsd(usdDeposit)}`} />
+              <KpiCard label="평가금(실계좌기준)" value={`$${fmtUsd(posEvalUsd)}`} />
+            </>
+          )}
         </div>
       </CardContent>
     </Card>

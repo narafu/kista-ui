@@ -1,4 +1,6 @@
-export type RuntimeBrokerCode = 'KIS' | 'TOSS'
+import type { BrokerCode } from '@shared/lib/api-schema'
+
+export type RuntimeBrokerCode = BrokerCode
 export type RuntimeStrategyType = 'INFINITE' | 'PRIVACY' | 'VR'
 export type RecurringMode = 'DEPOSIT' | 'HOLD' | 'WITHDRAW'
 

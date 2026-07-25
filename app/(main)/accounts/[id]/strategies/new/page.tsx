@@ -28,7 +28,7 @@ export default async function NewStrategyPage({ params }: Props) {
   return (
     <div className="max-w-lg mx-auto">
       <PageHeader eyebrow={account.nickname} eyebrowHref={`/accounts/${id}`} title="전략 등록" />
-      <StrategyFormPage accountId={id} />
+      <StrategyFormPage accountId={id} broker={account.broker} />
     </div>
   )
 }

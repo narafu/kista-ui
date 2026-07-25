@@ -6,7 +6,7 @@ import { AccountSummaryCard } from './AccountSummaryCard'
 
 vi.mock('@entities/meta', () => ({
   useMeta: () => ({
-    labelOf: (_group: string, value: string) => (value === 'KIS' ? '한국투자증권' : value),
+    labelOf: (_group: string, value: string) => (value === 'KIS' ? '한국투자증권' : value === 'MOCK' ? '모의계좌' : value),
   }),
 }))
 
@@ -49,5 +49,19 @@ describe('AccountSummaryCard', () => {
     await user.click(screen.getByRole('button', { name: '보기' }))
 
     expect(screen.getByText('123-45****')).toBeInTheDocument()
+  })
+
+  it('hides deposit/eval KPIs for MOCK broker accounts', () => {
+    render(
+      <AccountSummaryCard
+        account={{ ...account, broker: 'MOCK' }}
+        usdDeposit={1000}
+        posEvalUsd={2000}
+      />,
+    )
+
+    expect(screen.queryByText('예수금(실계좌기준)')).not.toBeInTheDocument()
+    expect(screen.queryByText('평가금(실계좌기준)')).not.toBeInTheDocument()
+    expect(screen.getByText('모의계좌')).toBeInTheDocument()
   })
 })

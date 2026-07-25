@@ -23,7 +23,7 @@ export default async function NewStrategyModal({ params }: Props) {
   return (
     <RouteModal>
       <PageHeader eyebrow={account.nickname} eyebrowHref={`/accounts/${id}`} title="전략 등록" />
-      <StrategyFormPage accountId={id} dismiss="back" />
+      <StrategyFormPage accountId={id} broker={account.broker} dismiss="back" />
     </RouteModal>
   )
 }

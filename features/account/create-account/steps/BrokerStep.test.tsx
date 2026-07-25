@@ -3,7 +3,15 @@ import { describe, expect, it, vi } from 'vitest'
 import { BrokerStep } from './BrokerStep'
 
 vi.mock('@entities/meta', () => ({
-  useMeta: () => ({ meta: { brokers: [{ code: 'KIS', label: '한국투자증권' }, { code: 'TOSS', label: '토스증권' }] } }),
+  useMeta: () => ({
+    meta: {
+      brokers: [
+        { code: 'KIS', label: '한국투자증권' },
+        { code: 'TOSS', label: '토스증권' },
+        { code: 'MOCK', label: '모의계좌' },
+      ],
+    },
+  }),
 }))
 
 const useRuntimeConfigQueryMock = vi.fn()
@@ -17,6 +25,18 @@ describe('BrokerStep runtime availability', () => {
     render(<BrokerStep onNext={vi.fn()} />)
     expect(screen.getByRole('button', { name: /한국투자증권/ })).toBeInTheDocument()
     expect(screen.queryByText('토스증권')).not.toBeInTheDocument()
+  })
+
+  it('renders the MOCK broker card when enabled', () => {
+    useRuntimeConfigQueryMock.mockReturnValue({
+      data: { brokers: { KIS: { enabled: true }, TOSS: { enabled: true }, MOCK: { enabled: true } } },
+    })
+    const onNext = vi.fn()
+    render(<BrokerStep onNext={onNext} />)
+    const mockCard = screen.getByRole('button', { name: /모의계좌/ })
+    expect(mockCard).toBeInTheDocument()
+    mockCard.click()
+    expect(onNext).toHaveBeenCalledWith({ broker: 'MOCK' })
   })
 
   it('shows an unavailable state while no broker can be safely selected', () => {

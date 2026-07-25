@@ -26,6 +26,7 @@ export type BenchmarkAssetType = NonNullable<HousingBenchmarkQuery['benchmarkTyp
 const BROKER_LABEL: Record<string, string> = {
   KIS: '한국투자증권',
   TOSS: '토스증권',
+  MOCK: '모의계좌',
 }
 
 export function formatBrokerLabel(broker: string): string {

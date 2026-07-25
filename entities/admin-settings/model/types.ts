@@ -1,4 +1,6 @@
-export type AdminBrokerCode = 'KIS' | 'TOSS'
+import type { BrokerCode } from '@shared/lib/api-schema'
+
+export type AdminBrokerCode = BrokerCode
 export type AdminStrategyType = 'INFINITE' | 'PRIVACY' | 'VR'
 export type AdminRecurringMode = 'DEPOSIT' | 'HOLD' | 'WITHDRAW'
 

@@ -1905,10 +1905,10 @@ export interface components {
              */
             nickname: string;
             /**
-             * @description 계좌번호 — KIS: XXXXXXXX-XX (예: 74420614-01), Toss: XXX-XX-XXXXXX (예: 131-01-001931)
+             * @description 계좌번호 — KIS: XXXXXXXX-XX (예: 74420614-01), Toss: XXX-XX-XXXXXX (예: 131-01-001931), MOCK: 생략 가능(서버 자동 생성)
              * @example 74420614-01
              */
-            accountNo: string;
+            accountNo?: string;
             /**
              * @description API 앱 키 (KIS App Key / Toss Client ID)
              * @example PSxxxxxxxxxx
@@ -1921,7 +1921,7 @@ export interface components {
              * @example KIS
              * @enum {string}
              */
-            broker?: "KIS" | "TOSS";
+            broker?: "KIS" | "TOSS" | "MOCK";
         };
         AccountResponse: {
             /**
@@ -2404,7 +2404,7 @@ export interface components {
              * @example KIS
              * @enum {string}
              */
-            broker?: "TOSS" | "KIS";
+            broker?: "TOSS" | "KIS" | "MOCK";
             /** @description 증권사 앱 키 (신규 자격증명 테스트 시) */
             appKey?: string;
             /** @description 증권사 앱 시크릿 (신규 자격증명 테스트 시) */
