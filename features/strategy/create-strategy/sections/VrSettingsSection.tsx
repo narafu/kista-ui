@@ -78,7 +78,7 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
     <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel>밸류 리밸런싱 설정</StrategyFieldLabel>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
         {isEdit ? (
           <label>
             <span className={FIELD_LABEL_CLASS}>초기 V값</span>
@@ -90,7 +90,7 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
                 onChange={(event) => setField('initialValue', parseNumber(event.target.value))}
                 onFocus={handleFocus}
                 disabled={disabled}
-                className="flex-1 border-0 bg-transparent text-right text-base font-semibold outline-none disabled:text-muted-foreground"
+                className="flex-1 min-w-0 border-0 bg-transparent text-right text-base font-semibold outline-none disabled:text-muted-foreground"
               />
               <span className="ml-2 text-xs font-semibold text-muted-foreground">USD</span>
             </div>
@@ -170,7 +170,7 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
               )}
               onFocus={handleFocus}
               disabled={disabled || recurringMode === 'HOLD'}
-              className="flex-1 border-0 bg-transparent text-right text-base font-semibold outline-none disabled:text-muted-foreground"
+              className="flex-1 min-w-0 border-0 bg-transparent text-right text-base font-semibold outline-none disabled:text-muted-foreground"
               placeholder="0"
             />
             <span className="ml-2 text-xs font-semibold text-muted-foreground">USD</span>
