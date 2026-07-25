@@ -1,6 +1,7 @@
 'use client'
 
 import type { FocusEvent, ReactNode } from 'react'
+import { cn } from '@shared/lib/utils'
 import { SelectionCard } from '@shared/ui/selection-card'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import type { VrFields } from '../model/useStrategyForm'
@@ -27,6 +28,15 @@ function parseNumber(value: string): number | null {
 }
 
 const FIELD_LABEL_CLASS = 'block mb-2.5 text-sm font-bold text-muted-foreground'
+
+function inputBoxClass(disabled: boolean) {
+  return cn(
+    'flex items-center h-11 rounded-[var(--r-sm)] bg-card px-3',
+    disabled
+      ? 'opacity-50 border border-border'
+      : 'border border-[var(--rose-400)] shadow-[0_0_0_3px_rgba(203,131,106,0.18)]',
+  )
+}
 
 function handleFocus(event: FocusEvent<HTMLInputElement>) {
   event.currentTarget.select()
@@ -72,7 +82,7 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
         {isEdit ? (
           <label>
             <span className={FIELD_LABEL_CLASS}>초기 V값</span>
-            <div className="flex items-center h-11 rounded-[var(--r-sm)] border border-border bg-card px-3">
+            <div className={inputBoxClass(disabled)}>
               <input
                 type="text"
                 inputMode="decimal"
@@ -91,7 +101,7 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
             <div className="grid grid-cols-2 gap-2">
               <label>
                 <span className="block mb-1 text-xs font-semibold text-muted-foreground">평단가</span>
-                <div className="flex items-center h-11 rounded-[var(--r-sm)] border border-border bg-card px-3">
+                <div className={inputBoxClass(disabled)}>
                   <input
                     type="text"
                     inputMode="decimal"
@@ -106,7 +116,7 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
               </label>
               <label>
                 <span className="block mb-1 text-xs font-semibold text-muted-foreground">수량</span>
-                <div className="flex items-center h-11 rounded-[var(--r-sm)] border border-border bg-card px-3">
+                <div className={inputBoxClass(disabled)}>
                   <input
                     type="text"
                     inputMode="decimal"
@@ -148,7 +158,7 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
               - 인출
             </ChoiceButton>
           </div>
-          <div className="mt-2.5 flex items-center h-11 rounded-[var(--r-sm)] border border-border bg-card px-3">
+          <div className={cn('mt-2.5', inputBoxClass(disabled || recurringMode === 'HOLD'))}>
             <input
               type="text"
               inputMode="decimal"

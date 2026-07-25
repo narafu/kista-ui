@@ -109,7 +109,7 @@ export function StrategyFormDialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <div className="w-full max-h-[70vh] overflow-y-auto overscroll-contain">
+        <div className="w-full max-h-[70vh] overflow-y-auto overscroll-contain pr-3">
           {form}
         </div>
       </DialogContent>
