@@ -5,15 +5,77 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4-38bdf8)
 
-KISTA — 한국투자증권(KIS)·토스증권 API 기반 해외주식 자동 분할매매 SaaS의 프론트엔드.
-백엔드는 별도 저장소 [`kista-api`](../kista-api)(Java 21 + Spring Boot 3, Fly.io)와 연동한다.
-두 저장소를 아우르는 전체 시스템 구성·배포·계약 동기화는 [`../ARCHITECTURE.md`](../ARCHITECTURE.md) 참고.
+KISTA(Key Investment Strategy & Trading Automation) — 정밀한 투자 전략을 기반으로 작동하는 다중 증권사 통합 자동매매 SaaS의 프론트엔드.
+백엔드는 별도 저장소 [`kista-api`](https://github.com/narafu/kista-api)(Java 21 + Spring Boot 3, Fly.io)와 연동한다.
 
 ## 기술 스택
 
 Next.js 16 (App Router, Turbopack) · TypeScript · Tailwind CSS 4 · shadcn/ui · React Query 5 · Firebase FCM
 
 ## 아키텍처
+
+### 전체 시스템 구성
+
+```mermaid
+graph TB
+    subgraph Client["사용자"]
+        Browser["브라우저 / PWA"]
+    end
+
+    subgraph Vercel["Vercel — kista-ui (Next.js 16)"]
+        Proxy["proxy.ts (Edge)<br/>인증 상태 라우팅"]
+        RSC["Server Component<br/>apiFetch (token 필요)"]
+        RouteHandler["Route Handler<br/>(catch-all proxy)"]
+        ClientComp["Client Component<br/>clientFetch"]
+    end
+
+    subgraph Fly["Fly.io — kista-api (Spring Boot)"]
+        Web["adapter/in/web<br/>REST Controller"]
+        Security["JwtAuthFilter /<br/>InternalTokenAuthFilter"]
+        App["application/service<br/>UseCase 구현체"]
+        Domain["domain<br/>순수 도메인 모델"]
+        AdapterOut["adapter/out<br/>broker · notify · sse · persistence"]
+        Scheduler["adapter/in/schedule<br/>TradingOpen/CloseScheduler"]
+    end
+
+    subgraph Data["데이터 저장소"]
+        PG[("Supabase PostgreSQL")]
+        Redis[("Redis<br/>JWT 블랙리스트 · Toss 토큰")]
+    end
+
+    subgraph External["외부 서비스"]
+        Kakao["카카오 OAuth"]
+        KIS["한국투자증권 KIS API"]
+        Toss["토스증권 API"]
+        Telegram["Telegram Bot API"]
+        FCM["Firebase FCM"]
+        Alpaca["Alpaca Markets<br/>(휴장일)"]
+    end
+
+    Browser -->|"모든 요청"| Proxy
+    Proxy -->|"인증 상태별 강제 분기"| Browser
+    Browser -->|"Server-rendered page"| RSC
+    Browser -->|"CSR 상호작용"| ClientComp
+
+    RSC -->|"apiFetch + Bearer token"| Web
+    ClientComp -->|"clientFetch (same-origin)"| RouteHandler
+    RouteHandler -->|"Bearer token 첨부 후 프록시<br/>(CORS_ALLOWED_ORIGINS)"| Web
+
+    Web --> Security --> App --> Domain
+    App --> AdapterOut
+    Scheduler --> App
+
+    AdapterOut --> PG
+    AdapterOut --> Redis
+    AdapterOut --> Kakao
+    AdapterOut --> KIS
+    AdapterOut --> Toss
+    AdapterOut --> Telegram
+    AdapterOut --> FCM
+    AdapterOut --> Alpaca
+```
+
+**핵심 원칙**: Client Component는 kista-api를 절대 직접 호출하지 않는다. 쿠키(HttpOnly RT, 인증 상태 캐시) 처리와 CORS 회피를 위해 항상 Next.js Route Handler를 경유한다. Server Component는 서버 간 호출이므로 `apiFetch`로 직접 호출하지만 이 역시 CORS 대상이다(`CORS_ALLOWED_ORIGINS`에 Vercel 도메인 등록 필요).
 
 ### 계층 구조 (FSD)
 
