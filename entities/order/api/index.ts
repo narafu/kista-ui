@@ -17,10 +17,13 @@ function normalizeCompetingStrategy(raw: unknown): CompetingStrategy {
   }
 }
 
-function normalizeCompetition(raw: unknown): BuyCompetitionSummary | null {
+function normalizeNullable<T>(raw: unknown, mapper: (r: Record<string, unknown>) => T): T | null {
   if (raw == null) return null
-  const r = raw as Record<string, unknown>
-  return {
+  return mapper(raw as Record<string, unknown>)
+}
+
+function normalizeCompetition(raw: unknown): BuyCompetitionSummary | null {
+  return normalizeNullable(raw, (r) => ({
     sufficientBudget: Boolean(r.sufficientBudget),
     availableDeposit: String(r.availableDeposit ?? '0'),
     requiredForThisStrategy: String(r.requiredForThisStrategy ?? '0'),
@@ -28,19 +31,17 @@ function normalizeCompetition(raw: unknown): BuyCompetitionSummary | null {
     blockedByHigherPriority: ((r.blockedByHigherPriority as unknown[]) ?? []).map(normalizeCompetingStrategy),
     uncertainStrategyIds: ((r.uncertainStrategyIds as unknown[]) ?? []).map(String),
     liveBalanceUnavailable: Boolean(r.liveBalanceUnavailable),
-  }
+  }))
 }
 
 function normalizeSellSufficiency(raw: unknown): SellSufficiencySummary | null {
-  if (raw == null) return null
-  const r = raw as Record<string, unknown>
-  return {
+  return normalizeNullable(raw, (r) => ({
     sufficientQuantity: Boolean(r.sufficientQuantity),
     sellableQuantity: Number(r.sellableQuantity ?? 0),
     reservedQuantity: Number(r.reservedQuantity ?? 0),
     requiredQuantity: Number(r.requiredQuantity ?? 0),
     liveQuantityUnavailable: Boolean(r.liveQuantityUnavailable),
-  }
+  }))
 }
 
 function normalizePreview(raw: unknown): NextOrderPreview {

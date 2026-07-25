@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
 import { Spinner } from '@shared/ui/Spinner'
+import { BRAND_GRADIENT_BUTTON_CLASS } from '@shared/ui/brand-button-class'
 
 interface Props {
   accountId: string
@@ -25,9 +26,8 @@ export function NewStrategyButton({ accountId, className }: Props) {
       onClick={handleClick}
       disabled={isPending}
       className={cn(
-        'inline-flex items-center gap-1.5 h-8 px-3 rounded-md',
-        'bg-gradient-to-br from-rose-500 to-rose-700 text-white text-xs font-semibold',
-        'shadow-[0_1px_4px_rgba(225,29,72,0.30)] hover:opacity-90 transition-opacity disabled:opacity-50',
+        'inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-xs',
+        BRAND_GRADIENT_BUTTON_CLASS,
         className,
       )}
     >

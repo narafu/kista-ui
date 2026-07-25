@@ -29,6 +29,7 @@ import { fmtUsd, todayKst } from '@shared/lib/format'
 import { ApiError } from '@shared/lib/api-client'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { BRAND_GRADIENT_BUTTON_CLASS } from '@shared/ui/brand-button-class'
 import type { Strategy } from '@entities/strategy'
 import type { SkipReason, NextOrderPreview, OrderReadiness, DirectionReadiness } from '@entities/order'
 import { OrderRows } from './OrderRows'
@@ -66,6 +67,7 @@ function directionUnplacedMessage(direction: DirectionReadiness, copy: Direction
   if (direction.hasDeficit) return copy.formatDeficitMessage(direction.deficitAmount)
   return copy.sufficientMessage
 }
+
 
 // 카드 상단 배너 문구(방향 1개분) — 확인 실패 > 부족 우선순위. 확인 실패 문구는 preview 모드에서만
 // 노출한다 — executed 모드에서는 아래 "미접수" 목록이 방향별로 확인 실패 사유까지 이미 안내하므로,
@@ -297,11 +299,13 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
                       toast.info('오늘은 미국 증시 휴장일입니다')
                       return
                     }
-                    // BUY/SELL 부족이 동시에 있을 수 있어 둘 다 확인해 각각 토스트로 안내한다 —
+                    // BUY/SELL 부족·확인 실패가 동시에 있을 수 있어 둘 다 확인해 각각 토스트로 안내한다 —
                     // 한쪽만 안내하면 사용자가 나머지 사유를 모른 채 재시도하게 된다
                     const blockers = [
-                      readiness.buy.hasDeficit && '예수금이 부족합니다',
-                      readiness.sell.hasDeficit && '판매가능수량이 부족합니다',
+                      readiness.buy.uncertain && '예수금 확인에 실패했습니다 — 잠시 후 다시 확인해주세요',
+                      readiness.sell.uncertain && '판매가능수량 확인에 실패했습니다 — 잠시 후 다시 확인해주세요',
+                      !readiness.buy.uncertain && readiness.buy.hasDeficit && '예수금이 부족합니다',
+                      !readiness.sell.uncertain && readiness.sell.hasDeficit && '판매가능수량이 부족합니다',
                     ].filter((msg): msg is string => Boolean(msg))
                     if (blockers.length > 0) {
                       blockers.forEach((message) => toast.info(message))
@@ -312,8 +316,7 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
                   disabled={executeMutation.isPending || orders.length === 0}
                   className={cn(
                     'inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md whitespace-nowrap shrink-0',
-                    'bg-gradient-to-br from-rose-500 to-rose-700 text-white font-semibold',
-                    'shadow-[0_1px_4px_rgba(225,29,72,0.30)] hover:opacity-90 transition-opacity disabled:opacity-50',
+                    BRAND_GRADIENT_BUTTON_CLASS,
                   )}
                 >
                   {executeMutation.isPending ? '주문 중...' : '바로 주문'}

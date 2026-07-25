@@ -270,7 +270,10 @@ export function useStrategyForm({
     : 0
 
   // VR 필수 필드 유효성 검사 — API 등록 정책과 동일하게 초기 V/시드는 0을 허용하되 모드별 자산 조건을 적용
+  // 평단가·수량은 곱(normalizedInitialValue)만으로는 음수×음수=양수 등으로 개별 음수를 가릴 수 있어 별도 검사한다
   const isInvalidVr = isVr && (
+    (!initial && avgPrice !== null && avgPrice < 0) ||
+    (!initial && quantity !== null && quantity < 0) ||
     normalizedInitialValue < 0 ||
     intervalWeeks === null ||
     intervalWeeks < 1 ||
@@ -308,6 +311,8 @@ export function useStrategyForm({
       ? '현재 등록 가능한 전략이 없습니다.'
       : isVr
       ? (() => {
+          if (!initial && avgPrice !== null && avgPrice < 0) return '평단가는 0 이상이어야 합니다.'
+          if (!initial && quantity !== null && quantity < 0) return '수량은 0 이상이어야 합니다.'
           if (normalizedInitialValue < 0) return '초기 V값은 0 이상이어야 합니다.'
           if (intervalWeeks === null || intervalWeeks < 1 || !Number.isInteger(intervalWeeks)) {
             return '리밸런싱 주기는 1 이상 정수여야 합니다.'

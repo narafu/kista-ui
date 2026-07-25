@@ -42,6 +42,44 @@ function handleFocus(event: FocusEvent<HTMLInputElement>) {
   event.currentTarget.select()
 }
 
+// 우측 정렬 숫자 입력 + 단위 라벨 — 초기 V값/평단가/수량/적립금 4개 필드가 공유하는 마크업
+function UnitInput({
+  value,
+  onChange,
+  unit,
+  disabled,
+  ariaLabel,
+  placeholder,
+  wrapperClassName,
+  unitClassName,
+}: {
+  value: number | null
+  onChange: (value: number | null) => void
+  unit: string
+  disabled: boolean
+  ariaLabel?: string
+  placeholder?: string
+  wrapperClassName?: string
+  unitClassName?: string
+}) {
+  return (
+    <div className={cn(inputBoxClass(disabled), wrapperClassName)}>
+      <input
+        type="text"
+        inputMode="decimal"
+        aria-label={ariaLabel}
+        value={value ?? ''}
+        onChange={(event) => onChange(parseNumber(event.target.value))}
+        onFocus={handleFocus}
+        disabled={disabled}
+        placeholder={placeholder}
+        className="flex-1 min-w-0 border-0 bg-transparent text-right text-base font-semibold outline-none disabled:text-muted-foreground"
+      />
+      <span className={cn('text-xs font-semibold text-muted-foreground', unitClassName)}>{unit}</span>
+    </div>
+  )
+}
+
 function ChoiceButton({
   children,
   selected,
@@ -82,18 +120,13 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
         {isEdit ? (
           <label>
             <span className={FIELD_LABEL_CLASS}>초기 V값</span>
-            <div className={inputBoxClass(disabled)}>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={fields.initialValue ?? ''}
-                onChange={(event) => setField('initialValue', parseNumber(event.target.value))}
-                onFocus={handleFocus}
-                disabled={disabled}
-                className="flex-1 min-w-0 border-0 bg-transparent text-right text-base font-semibold outline-none disabled:text-muted-foreground"
-              />
-              <span className="ml-2 text-xs font-semibold text-muted-foreground">USD</span>
-            </div>
+            <UnitInput
+              value={fields.initialValue}
+              onChange={(value) => setField('initialValue', value)}
+              unit="USD"
+              disabled={disabled}
+              unitClassName="ml-2"
+            />
           </label>
         ) : (
           <div>
@@ -101,33 +134,23 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
             <div className="grid grid-cols-2 gap-2">
               <label>
                 <span className="block mb-1 text-xs font-semibold text-muted-foreground">평단가</span>
-                <div className={inputBoxClass(disabled)}>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={fields.avgPrice ?? ''}
-                    onChange={(event) => setField('avgPrice', parseNumber(event.target.value))}
-                    onFocus={handleFocus}
-                    disabled={disabled}
-                    className="flex-1 min-w-0 border-0 bg-transparent text-right text-base font-semibold outline-none disabled:text-muted-foreground"
-                  />
-                  <span className="ml-1.5 text-xs font-semibold text-muted-foreground">USD</span>
-                </div>
+                <UnitInput
+                  value={fields.avgPrice}
+                  onChange={(value) => setField('avgPrice', value)}
+                  unit="USD"
+                  disabled={disabled}
+                  unitClassName="ml-1.5"
+                />
               </label>
               <label>
                 <span className="block mb-1 text-xs font-semibold text-muted-foreground">수량</span>
-                <div className={inputBoxClass(disabled)}>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={fields.quantity ?? ''}
-                    onChange={(event) => setField('quantity', parseNumber(event.target.value))}
-                    onFocus={handleFocus}
-                    disabled={disabled}
-                    className="flex-1 min-w-0 border-0 bg-transparent text-right text-base font-semibold outline-none disabled:text-muted-foreground"
-                  />
-                  <span className="ml-1.5 text-xs font-semibold text-muted-foreground">주</span>
-                </div>
+                <UnitInput
+                  value={fields.quantity}
+                  onChange={(value) => setField('quantity', value)}
+                  unit="주"
+                  disabled={disabled}
+                  unitClassName="ml-1.5"
+                />
               </label>
             </div>
           </div>
@@ -158,23 +181,16 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
               - 인출
             </ChoiceButton>
           </div>
-          <div className={cn('mt-2.5', inputBoxClass(disabled || recurringMode === 'HOLD'))}>
-            <input
-              type="text"
-              inputMode="decimal"
-              aria-label="적립금(+)/인출금(-)"
-              value={fields.recurringAmount !== null ? String(Math.abs(fields.recurringAmount)) : ''}
-              onChange={(event) => setField(
-                'recurringAmount',
-                parseNumber(event.target.value),
-              )}
-              onFocus={handleFocus}
-              disabled={disabled || recurringMode === 'HOLD'}
-              className="flex-1 min-w-0 border-0 bg-transparent text-right text-base font-semibold outline-none disabled:text-muted-foreground"
-              placeholder="0"
-            />
-            <span className="ml-2 text-xs font-semibold text-muted-foreground">USD</span>
-          </div>
+          <UnitInput
+            value={fields.recurringAmount !== null ? Math.abs(fields.recurringAmount) : null}
+            onChange={(value) => setField('recurringAmount', value)}
+            unit="USD"
+            disabled={disabled || recurringMode === 'HOLD'}
+            ariaLabel="적립금(+)/인출금(-)"
+            placeholder="0"
+            wrapperClassName="mt-2.5"
+            unitClassName="ml-2"
+          />
         </div>
 
         <div>

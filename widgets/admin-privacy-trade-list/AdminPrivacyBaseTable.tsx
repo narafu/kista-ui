@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ChevronRight, ChevronDown } from 'lucide-react'
 import { fmtUsd, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
+import { cn } from '@shared/lib/utils'
 import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
@@ -127,26 +128,29 @@ function Metric({ label, value, valueClassName }: { label: string; value: string
   )
 }
 
+const ORDER_DETAILS_HEAD_CLASS = 'px-0 py-1 text-xs lg:text-xs font-medium normal-case tracking-normal text-muted-foreground'
+const ORDER_DETAILS_CELL_CLASS = 'px-0 py-1 text-xs'
+
 function OrderDetailsTable({ orders }: { orders: AdminPrivacyBase['orders'] }) {
   return (
     <table className="w-full text-xs">
-      <thead className="text-muted-foreground">
+      <thead>
         <tr>
-          <th className="text-left py-1 font-medium">방향</th>
-          <th className="text-left py-1 font-medium">유형</th>
-          <th className="text-right py-1 font-medium">가격</th>
-          <th className="text-right py-1 font-medium">수량</th>
+          <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'text-left')}>방향</TableHeadCell>
+          <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'text-left')}>유형</TableHeadCell>
+          <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'text-right')}>가격</TableHeadCell>
+          <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'text-right')}>수량</TableHeadCell>
         </tr>
       </thead>
       <tbody>
         {orders.map((o) => (
           <tr key={o.id}>
-            <td className={`py-1 font-semibold ${directionTextClass(o.direction)}`}>
+            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-left font-semibold', directionTextClass(o.direction))}>
               {DIRECTION_LABEL[o.direction] ?? o.direction}
-            </td>
-            <td className="py-1 text-muted-foreground">{o.orderType}</td>
-            <td className="py-1 text-right font-mono">${fmtUsd(o.price)}</td>
-            <td className="py-1 text-right">{o.quantity ?? '-'}</td>
+            </TableDataCell>
+            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-left text-muted-foreground')}>{o.orderType}</TableDataCell>
+            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right font-mono')}>${fmtUsd(o.price)}</TableDataCell>
+            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right')}>{o.quantity ?? '-'}</TableDataCell>
           </tr>
         ))}
       </tbody>

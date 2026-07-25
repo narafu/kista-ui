@@ -574,6 +574,38 @@ describe('StrategyDetail budget deficit badge', () => {
     expect(screen.queryByText(/예수금 \$[\d,.]+ 부족/)).not.toBeInTheDocument()
     expect(screen.getByText('예수금 확인 실패 — 잠시 후 다시 확인해주세요')).toBeInTheDocument()
   })
+
+  it('예수금 확인(라이브 조회)이 실패했으면 sufficientBudget이 true로 나와도 "바로 주문" 클릭 시 확인 실패 토스트를 보여주고 주문을 실행하지 않는다', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [],
+        position: null,
+        orders: [{ ticker: 'TSLA', orderType: 'LOC', direction: 'BUY', quantity: 5, price: '20.00' }],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: {
+          sufficientBudget: true,
+          availableDeposit: '0',
+          requiredForThisStrategy: '100',
+          consumedByHigherPriority: '0',
+          blockedByHigherPriority: [],
+          uncertainStrategyIds: [],
+          liveBalanceUnavailable: true,
+        },
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    fireEvent.click(screen.getByText('바로 주문'))
+
+    expect(toast.info).toHaveBeenCalledWith('예수금 확인에 실패했습니다 — 잠시 후 다시 확인해주세요')
+    expect(toast.info).not.toHaveBeenCalledWith('예수금이 부족합니다')
+    expect(executeMutate).not.toHaveBeenCalled()
+  })
 })
 
 describe('StrategyDetail sell quantity deficit banner', () => {

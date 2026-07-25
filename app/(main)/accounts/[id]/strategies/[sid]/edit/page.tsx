@@ -1,12 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { PageHeader } from '@widgets/page-header'
-import { StrategyFormPage } from '@features/strategy/create-strategy'
+import { StrategyFormPage, loadAccountAndStrategyForEdit } from '@features/strategy/create-strategy'
 import { getAuthToken } from '@shared/lib/auth/token'
-import { listAccounts } from '@entities/account'
-import { listStrategies } from '@entities/strategy'
-import type { Account } from '@entities/account'
-import type { Strategy } from '@entities/strategy'
 
 interface Props {
   params: Promise<{ id: string; sid: string }>
@@ -24,16 +20,11 @@ export default async function EditStrategyPage({ params }: Props) {
     return notFound()
   }
 
-  const [accounts, strategies] = await Promise.all([
-    listAccounts(token).catch((): Account[] => []),
-    listStrategies(id, token).catch((): Strategy[] => []),
-  ])
-
-  const account = accounts.find((a) => a.id === id)
-  const strategy = strategies.find((s) => s.id === sid)
-  if (!account || !strategy) {
+  const context = await loadAccountAndStrategyForEdit(id, sid, token)
+  if (!context) {
     return notFound()
   }
+  const { strategy } = context
 
   return (
     <div className="max-w-lg mx-auto">

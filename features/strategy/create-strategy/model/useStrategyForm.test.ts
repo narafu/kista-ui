@@ -531,6 +531,27 @@ describe('useStrategyForm submit policy', () => {
     expect(result.current.cannotSubmit).toBe(true)
   })
 
+  it('VR create is blocked when avgPrice or quantity is individually negative even though their product is non-negative', () => {
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('avgPrice', 0)
+      result.current.setVrField('quantity', -5)
+      result.current.setVrField('intervalWeeks', 2)
+      result.current.setVrField('bandWidth', 15)
+      result.current.setVrField('recurringAmount', 200)
+      result.current.setRecurringMode('DEPOSIT')
+    })
+
+    expect(result.current.cannotSubmit).toBe(true)
+    expect(result.current.submitDisabledReason).toContain('수량은 0 이상')
+  })
+
   it('VR create is blocked when integer-only fields contain decimals', () => {
     const { result } = renderHook(() =>
       useStrategyForm({

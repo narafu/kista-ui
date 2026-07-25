@@ -1,10 +1,8 @@
 import { notFound } from 'next/navigation'
 import { PageHeader } from '@widgets/page-header'
-import { StrategyFormPage } from '@features/strategy/create-strategy'
+import { StrategyFormPage, loadAccountForNewStrategy } from '@features/strategy/create-strategy'
 import { RouteModal } from '@shared/ui/RouteModal'
 import { getAuthToken } from '@shared/lib/auth/token'
-import { listAccounts } from '@entities/account'
-import type { Account } from '@entities/account'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -17,8 +15,7 @@ export default async function NewStrategyModal({ params }: Props) {
     return notFound()
   }
 
-  const accounts = await listAccounts(token).catch((): Account[] => [])
-  const account = accounts.find((a) => a.id === id)
+  const account = await loadAccountForNewStrategy(id, token)
   if (!account) {
     return notFound()
   }
