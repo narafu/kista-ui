@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, CreditCard, ListChecks, TrendingUp, Settings } from 'lucide-react'
+import { LayoutDashboard, CreditCard, ListChecks, TrendingUp, Scale, Settings } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
 import { isNavItemActive } from './nav-utils'
 
@@ -11,6 +11,7 @@ const TABS = [
   { href: '/accounts',   label: '계좌',     icon: CreditCard },
   { href: '/strategies', label: '전략',     icon: ListChecks },
   { href: '/stats',      label: '통계',     icon: TrendingUp },
+  { href: '/benchmark',  label: '벤치마크', icon: Scale },
   { href: '/settings',   label: '설정',     icon: Settings },
 ]
 
@@ -19,13 +20,13 @@ export function MobileBottomNav() {
   return (
     <nav
       aria-label="주요 메뉴"
-      className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border flex"
+      className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border flex overflow-x-auto"
       style={{ background: 'var(--sidebar-bg)' }}
     >
       {TABS.map(({ href, label, icon: Icon }) => {
         const active = isNavItemActive(pathname, href)
         return (
-          <Link key={href} href={href} aria-current={active ? 'page' : undefined} className="flex-1 flex flex-col items-center gap-1 py-2.5 relative">
+          <Link key={href} href={href} aria-current={active ? 'page' : undefined} className="min-w-16 flex-1 flex flex-col items-center gap-1 py-2.5 relative">
             {active && (
               <span className="absolute top-1.5 left-1/2 -translate-x-1/2 size-1.5 rounded-full bg-sidebar-active-fg" />
             )}

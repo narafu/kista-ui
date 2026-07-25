@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useHousingBenchmarkRegionsQuery, useHousingBenchmarkSeriesQuery } from '@entities/stats'
 import type { HousingBenchmarkRegion } from '@entities/stats'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { SectionError } from '@shared/ui/SectionError'
 import { fmtDate, fmtKrwEok, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import {
@@ -16,7 +17,6 @@ import {
   formatHousingBenchmarkMonth,
   formatQuintileCagr,
 } from './housingBenchmarkChartFormatters'
-import { SectionError } from './SectionError'
 
 interface Props {
   enabled: boolean

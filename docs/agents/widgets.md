@@ -12,9 +12,9 @@ widget 슬라이스끼리 cross-import 금지. **단, "공용 UI 위젯" 목록(
 
 ## 대표 슬라이스
 
-- 페이지 위젯: `admin-user-list`, `admin-trade-list`, `admin-log-list`, `admin-privacy-trade-list`, `all-strategies`, `dashboard`, `account-detail`, `accounts-grid`, `strategy-detail`, `strategy-list`, `cycle-history`, `fear-greed-card`, `market-holiday-calendar`, `stats-overview`, `error-display`
+- 페이지 위젯: `admin-user-list`, `admin-trade-list`, `admin-log-list`, `admin-privacy-trade-list`, `all-strategies`, `dashboard`, `account-detail`, `accounts-grid`, `strategy-detail`, `strategy-list`, `cycle-history`, `fear-greed-card`, `market-holiday-calendar`, `stats-overview`, `benchmark-comparison`, `error-display`
 - 공용 UI 위젯: `layout`, `account-card`, `strategy-card`, `kpi-card`, `revealable-value`, `glass-card`, `page-header`, `theme-toggle`, `timeline`, `pull-to-refresh`
-- shared/ui로 이동됨: `stepper`, `percent-gauge` (도메인 무관 UI 컴포넌트로 분류)
+- shared/ui로 이동됨: `stepper`, `percent-gauge`, `SectionError` (도메인 무관 UI 컴포넌트로 분류. `SectionError`는 `stats-overview`·`benchmark-comparison` 양쪽에서 쓰여 cross-widget import를 피하려 이동)
 
 ## shadcn / UI 컴포넌트
 
@@ -59,7 +59,8 @@ widget 슬라이스끼리 cross-import 금지. **단, "공용 UI 위젯" 목록(
 - **`kpi-card`**: `<KpiCard />` 그리드 패턴 유지
 - **`revealable-value`**: 마스킹 값 공개 토글
 - **`all-strategies`**: `useAllStrategiesQuery(initialStrategies)` 초기 데이터 패턴
-- **`stats-overview`**: 전략 유형 비교와 사이클 성과는 `sm` 이상에서 열 헤더가 있는 실제 `table` 마크업, `sm` 미만에서 명시적인 라벨-값 요약 행으로 표시한다. 각 섹션의 데스크탑/모바일 표현은 같은 조회·페이지네이션 상태를 공유한다. 누적 자산 추이 상단의 전략 타입 탭은 누적 자산 추이와 사이클 성과에만 적용하고, 전략 유형 비교는 비교 목적상 항상 전체 타입 집계를 표시하며 사이클 성과 아래에 배치한다. ETF 벤치마크 자산 선택지는 `runtime-config`의 `benchmarks.etf`를 우선 사용하고, 미등록 심볼은 사용자 설정 ETF로 표시한다. 사이클 성과는 전략/종목/기간/손익/수익률만 표시하고, 미종료 상태는 기간 값의 `진행 중` 텍스트로만 노출한다
+- **`stats-overview`**: `/stats` 페이지 전용, 탭 없이 운용 통계만 표시한다. 전략 유형 비교와 사이클 성과는 `sm` 이상에서 열 헤더가 있는 실제 `table` 마크업, `sm` 미만에서 명시적인 라벨-값 요약 행으로 표시한다. 각 섹션의 데스크탑/모바일 표현은 같은 조회·페이지네이션 상태를 공유한다. 누적 자산 추이 상단의 전략 타입 탭은 누적 자산 추이와 사이클 성과에만 적용하고, 전략 유형 비교는 비교 목적상 항상 전체 타입 집계를 표시하며 사이클 성과 아래에 배치한다. 사이클 성과는 전략/종목/기간/손익/수익률만 표시하고, 미종료 상태는 기간 값의 `진행 중` 텍스트로만 노출한다
+- **`benchmark-comparison`**: `/benchmark` 페이지 전용(별도 최상위 메뉴, `/stats`의 하위 탭 아님). 진입점은 `HousingBenchmarkComparison` — ETF/아파트(HOUSING) 두 자산 유형을 `benchmarkType` 판별 유니온으로 함께 처리하며, 파일명은 아파트 벤치마크가 먼저 추가된 이력 때문에 `Housing~` 접두사이지만 ETF도 포괄한다. ETF 벤치마크 자산 선택지는 `runtime-config`의 `benchmarks.etf`를 우선 사용하고, 미등록 심볼은 사용자 설정 ETF로 표시한다
 - **`admin-user-list`**: 이상감지 카드는 `AdminAnomalies { pausedAccounts, inactiveAccounts }`
 - **`market-holiday-calendar/WeeklyMarketCalendar`**: 주간/월간 데이터를 여러 쿼리로 조합
 - **`glass-card`**, **`pull-to-refresh`**, **`layout/DesktopSidebar`**: 일부 CSS 토큰/동적 계산 인라인 style 유지

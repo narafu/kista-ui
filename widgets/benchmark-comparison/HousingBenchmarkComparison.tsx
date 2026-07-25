@@ -7,6 +7,7 @@ import type { EtfBenchmarkSymbol, HousingBenchmark, HousingBenchmarkParams, Hous
 import { useAllStrategiesQuery } from '@entities/strategy'
 import { DEFAULT_RUNTIME_BENCHMARKS, useRuntimeConfigQuery } from '@entities/runtime-config'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { SectionError } from '@shared/ui/SectionError'
 import { cn } from '@shared/lib/utils'
 import { HousingBenchmarkChart } from './HousingBenchmarkChart'
 import { HousingBenchmarkSummary } from './HousingBenchmarkSummary'
@@ -19,7 +20,6 @@ import {
   HOUSING_QUINTILES,
   type HousingQuintile,
 } from './housingBenchmarkContent'
-import { SectionError } from './SectionError'
 
 type Scope = HousingBenchmarkParams['scope']
 type Period = '3M' | '6M' | '1Y' | '3Y' | '5Y' | 'ALL' | 'CUSTOM'
