@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StrategyCard } from '@widgets/strategy-card'
-import { StrategyFormDialog } from '@features/strategy/create-strategy'
+import { NewStrategyButton } from '@features/strategy/create-strategy'
 import { EmptyState } from '@shared/ui/EmptyState'
 import type { Strategy } from '@entities/strategy'
 import type { NextOrderPreview } from '@entities/order'
@@ -17,7 +17,7 @@ export function StrategyList({ accountId, strategies, previewsByStrategyId }: Pr
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">전략</CardTitle>
-          <StrategyFormDialog accountId={accountId} disabled={false} />
+          <NewStrategyButton accountId={accountId} />
         </div>
       </CardHeader>
       <CardContent className="px-6 pb-6">

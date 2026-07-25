@@ -78,7 +78,7 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
     <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel>밸류 리밸런싱 설정</StrategyFieldLabel>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
+      <div className="grid grid-cols-1 gap-y-5">
         {isEdit ? (
           <label>
             <span className={FIELD_LABEL_CLASS}>초기 V값</span>

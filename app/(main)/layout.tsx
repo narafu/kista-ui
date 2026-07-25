@@ -12,7 +12,12 @@ import Link from 'next/link'
 import { ShieldCheck, LogOut, LogIn } from 'lucide-react'
 import { LogoutButton } from '@features/auth/logout'
 
-export default async function MainLayout({ children }: { children: React.ReactNode }) {
+interface Props {
+  children: React.ReactNode
+  modal: React.ReactNode
+}
+
+export default async function MainLayout({ children, modal }: Props) {
   const token = await getAuthToken()
   const [meta, user] = await Promise.all([
     getMetaBundle(token),
@@ -60,6 +65,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         </div>
         {isAuthenticated && <FcmAutoRegister notificationChannel={user?.notificationChannel ?? 'TELEGRAM'} />}
         <TradeNotificationProvider />
+        {modal}
       </div>
     </MetaProvider>
   )

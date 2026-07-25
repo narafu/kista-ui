@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { PageHeader } from '@widgets/page-header'
 import { StrategyDetail } from '@widgets/strategy-detail'
-import { StrategyFormDialog } from '@features/strategy/create-strategy'
+import { cn } from '@shared/lib/utils'
+import { buttonVariants } from '@/components/ui/button-variants'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { listAccounts } from '@entities/account'
 import { listStrategies } from '@entities/strategy'
@@ -48,7 +50,9 @@ export default async function StrategyDetailPage({ params }: Props) {
         eyebrowHref={`/accounts/${id}`}
         title={strategy.ticker}
         actions={
-          <StrategyFormDialog accountId={id} initial={strategy} triggerLabel="수정" triggerVariant="ghost" />
+          <Link href={`/accounts/${id}/strategies/${sid}/edit`} className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}>
+            수정
+          </Link>
         }
       />
 

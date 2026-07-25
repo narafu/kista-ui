@@ -1,5 +1,6 @@
 export { StrategyFieldLabel } from './StrategyFieldLabel'
 export { StrategyForm } from './StrategyForm'
-export { StrategyFormDialog } from './StrategyFormDialog'
+export { StrategyFormPage } from './StrategyFormPage'
+export { NewStrategyButton } from './NewStrategyButton'
 export { useStrategyForm } from './model/useStrategyForm'
 export type { UseStrategyFormReturn } from './model/useStrategyForm'

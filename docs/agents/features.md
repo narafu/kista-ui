@@ -18,7 +18,7 @@ feature 슬라이스끼리 cross-import 금지. 두 feature를 조합해야 하�
 | `auth` | `reapply` | `ReapplyButton`, `RejectedReapplyButton` |
 | `account` | `create-account` | `CreateAccountStepper` + steps |
 | `account` | `edit-account` | `EditAccountForm` |
-| `strategy` | `create-strategy` | `StrategyFormDialog`, `StrategyForm` |
+| `strategy` | `create-strategy` | `StrategyFormPage`, `StrategyForm`, `NewStrategyButton` |
 | `settings` | `telegram-connect` | `TelegramSection`, `PendingTelegramConnect` |
 | `settings` | `notification-channel` | `NotificationSettings` |
 | `settings` | `notification-prefs` | `TradingAlertToggle` |
@@ -58,9 +58,9 @@ features/{domain}/{slice}/
 - **`create-account/steps/AccountInfoStep`**: KIS와 TOSS의 계좌번호 형식이 다름
 - **`create-account/steps/ConfirmStep`**: `useCreateAccountMutation` 사용
 - **`auth/reapply`**: `/api/auth/reapply-done` Route Handler 경유
-- **`strategy/create-strategy/StrategyFormDialog`**: `initial` prop 유무로 create/edit 분기
+- **`strategy/create-strategy`**: 다이얼로그/드로어 없이 전용 라우트로 등록·수정한다 — `app/(main)/accounts/[id]/strategies/new`(등록), `.../strategies/[sid]/edit`(수정). `StrategyFormPage`가 `initial` prop 유무로 create/edit을 분기한다. 폼 내부는 반응형 분기 없이 모바일·PC 동일한 1열 레이아웃을 사용한다(`VrSettingsSection` 등). PC에서는 `app/(main)/@modal` 인터셉팅 라우트로 같은 페이지를 모달처럼 띄운다 — `docs/agents/app.md`의 인터셉팅 라우트 quirk 참고. `StrategyFormPage`의 `dismiss` prop(`'push'`|`'back'`)으로 일반 페이지(`router.push`)/모달(`router.back`) 종료 방식을 구분한다
 - **`strategy/create-strategy`**: 수정 모드는 기본적으로 시작금액(`initialUsdDeposit`) 읽기 전용이며, `currentHoldings === 0`일 때만 등록과 같은 시드 입력 UI를 사용하고 저장 payload에 포함할 수 있음
-- **`strategy/create-strategy` VR 전략**: VR 등록은 기존 seed 입력을 초기 pool(`initialUsdDeposit`)로 사용하고, `VrSettingsSection`에서 `initialValue`, `intervalWeeks`, `bandWidth`, `recurringAmount`를 입력한다. 적립식(`recurringAmount > 0`)은 초기 V/초기 pool 0을 허용하고, 거치/인출식은 초기 자산 0을 차단한다. 인출식은 `initialValue + initialUsdDeposit >= abs(recurringAmount) * 100 * (4 / intervalWeeks)` 조건을 UI에서 먼저 검증한다. 정수 전용 필드의 소수 입력은 보존한 뒤 검증에서 차단한다. VR은 백엔드가 `cycleSeedType=NONE`, `ticker=TQQQ`로 강제하므로 사이클 연속 UI를 숨긴다
+- **`strategy/create-strategy` VR 전략**: VR 등록은 기존 seed 입력을 초기 pool(`initialUsdDeposit`)로 사용하고, `VrSettingsSection`에서 평단가·수량(곱해서 `initialValue`로 전송), `intervalWeeks`, `bandWidth`, `recurringAmount`를 입력한다. 적립식(`recurringAmount > 0`)은 초기 V/초기 pool 0을 허용하고, 거치/인출식은 초기 자산 0을 차단한다. 인출식은 `initialValue + initialUsdDeposit >= abs(recurringAmount) * 100 * (4 / intervalWeeks)` 조건을 UI에서 먼저 검증한다. 정수 전용 필드의 소수 입력은 보존한 뒤 검증에서 차단한다. VR은 백엔드가 `cycleSeedType=NONE`, `ticker=TQQQ`로 강제하므로 사이클 연속 UI를 숨긴다. 수정 모드는 평단가·수량을 저장값에서 역산할 수 없어 기존 V값을 읽기전용으로만 표시한다
 - **`strategy/create-strategy/sections/DivisionCountSection`**: `usesDivisionCount`와 `typeMeta.divisionCounts` 기반 렌더
 - **`settings/telegram-connect`**: pending/settings 페이지에서 컴포넌트 공유
 - **`admin/settings`**: 전체 런타임 설정 초안을 편집한다. 전략 필드와 ETF 벤치마크의 빈 허용값, 기본값 포함 여부, 고정 필드 단일값과 VR 고정 `HOLD` 정책을 저장 전에 검증하며 변경 취소는 마지막 서버 상태로 복원한다
