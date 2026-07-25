@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import { fmtUsd } from '@shared/lib/format'
+import { fmtUsd, todayKst } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import { useAccountMarginQuery, useAccountPricesQuery } from '@entities/account'
 import { useCreateStrategyMutation, useUpdateStrategyMutation, useStrategySeedPreviewQuery } from '@entities/strategy'
@@ -82,6 +82,10 @@ export interface UseStrategyFormReturn {
     intervalWeeks?: RuntimeFieldSettings<number>
   }
 
+  // 시작예정일 — 세 전략 공통, 등록 전용
+  scheduledStartDate: string | null
+  setScheduledStartDate: (date: string | null) => void
+
   loading: boolean
   initializing: boolean
   cannotSubmit: boolean
@@ -124,6 +128,8 @@ export function useStrategyForm({
       recurringMode: initial?.vr?.recurringAmount
         ? initial.vr.recurringAmount < 0 ? 'WITHDRAW' : 'DEPOSIT'
         : 'HOLD',
+      // 시작예정일도 등록 전용 — 수정 모드에서는 항상 빈 값
+      scheduledStartDate: null,
     },
   })
 
@@ -141,6 +147,7 @@ export function useStrategyForm({
   const bandWidth = form.watch('bandWidth') ?? null
   const recurringAmount = form.watch('recurringAmount') ?? null
   const recurringMode = form.watch('recurringMode')
+  const scheduledStartDate = form.watch('scheduledStartDate') ?? null
   const isVr = type === 'VR'
   const vrFields: VrFields = { avgPrice, quantity, intervalWeeks, bandWidth, recurringAmount }
 
@@ -276,6 +283,9 @@ export function useStrategyForm({
     (quantity !== null && quantity > 0 && (avgPrice === null || avgPrice <= 0))
   )
 
+  // 시작예정일 검증 (등록 전용) — 서버는 오늘 이전 날짜를 400으로 거부. 오늘 자신은 허용
+  const isInvalidScheduledStart = !initial && scheduledStartDate !== null && scheduledStartDate < todayKst()
+
   // VR 필수 필드 유효성 검사 — API 등록 정책과 동일하게 초기 V/시드는 0을 허용하되 모드별 자산 조건을 적용
   const isInvalidVr = isVr && (
     intervalWeeks === null ||
@@ -306,7 +316,7 @@ export function useStrategyForm({
   const runtimeConfigUnavailable = !initial && (!runtimeConfig || enabledStrategyTypes.length === 0)
   const cannotSubmit = initial && !canEditSeed
     ? false
-    : runtimeConfigUnavailable || isRuntimeValueInvalid || isInvalidBootstrap || isInvalidVr || isBelowMinSeed || (!isVr && isInvalidSeed) || (!isVr && basePrice === null && seedUnavailableReason === null)
+    : runtimeConfigUnavailable || isRuntimeValueInvalid || isInvalidBootstrap || isInvalidScheduledStart || isInvalidVr || isBelowMinSeed || (!isVr && isInvalidSeed) || (!isVr && basePrice === null && seedUnavailableReason === null)
 
   const submitDisabledReason = initial && !canEditSeed
     ? null
@@ -320,6 +330,8 @@ export function useStrategyForm({
       ? '수량은 정수여야 합니다.'
       : quantity !== null && quantity > 0 && (avgPrice === null || avgPrice <= 0)
       ? '보유 수량을 입력하면 평단가는 0보다 커야 합니다.'
+      : isInvalidScheduledStart
+      ? '시작예정일은 오늘 이후여야 합니다.'
       : isVr
       ? (() => {
           if (intervalWeeks === null || intervalWeeks < 1 || !Number.isInteger(intervalWeeks)) {
@@ -401,6 +413,10 @@ export function useStrategyForm({
     if (mode === 'HOLD') form.setValue('recurringAmount', 0)
   }
 
+  function setScheduledStartDate(date: string | null) {
+    form.setValue('scheduledStartDate', date)
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     form.handleSubmit(() => {
@@ -428,6 +444,8 @@ export function useStrategyForm({
               initialHoldings: quantity,
               initialAvgPrice: avgPrice ?? undefined,
             } : {}),
+            // 시작예정일 — 세 전략 공통, 등록 전용, 미입력 시 생략(서버가 오늘로 처리)
+            ...(scheduledStartDate ? { scheduledStartDate } : {}),
             // VR 전용 필드 — null이면 0으로 기본값 처리
             ...(isVr ? {
               intervalWeeks: runtimeStrategy?.fields.intervalWeeks?.customizable === false
@@ -459,6 +477,7 @@ export function useStrategyForm({
     runtimeConfigError: runtimeQuery.isError,
     retryRuntimeConfig: () => { void runtimeQuery.refetch() },
     isVr, vrFields, setVrField, recurringMode, setRecurringMode, vrSettings,
+    scheduledStartDate, setScheduledStartDate,
     loading: createMutation.isPending || updateMutation.isPending,
     initializing: (!initialized && loadingBase) || (!initial && runtimeQuery.isLoading),
     cannotSubmit,

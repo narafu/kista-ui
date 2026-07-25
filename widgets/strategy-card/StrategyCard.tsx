@@ -7,7 +7,7 @@ import { fmtUsd } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import { computeOrderReadiness, useStrategyOrderPreviewQuery } from '@entities/order'
 import type { DirectionReadiness, OrderReadiness } from '@entities/order'
-import { seedBadgeClass, strategyStatusAccent } from '@entities/strategy'
+import { seedBadgeClass, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import type { NextOrderPreview } from '@entities/order'
 import { Badge } from '@shared/ui/Badge'
@@ -43,6 +43,7 @@ export function StrategyCard({ accountId, strategy, accountLabel, initialPreview
   const { data: preview } = useStrategyOrderPreviewQuery(strategy.id, initialPreview)
   const usesDivisionCount = (findStrategyType(strategy.type)?.divisionCounts?.length ?? 0) > 0
   const isVr = strategy.vr != null // VR 전략 여부 — vr 필드 존재 여부로 판정
+  const scheduledStart = isScheduledStart(strategy) // startDate가 오늘 이후면 아직 매매 시작 전
   const seedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
   const seedBadgeCls = seedBadgeClass(strategy.cycleSeedType)
   // "오늘 계획된 주문 중 실제 미접수 방향이 있는가" 기준 — marketSession(장 시간대)이 아니라
@@ -75,6 +76,11 @@ export function StrategyCard({ accountId, strategy, accountLabel, initialPreview
         <div data-testid="strategy-card-mobile-top-row" className="flex items-center gap-1.5">
           <Badge tone="brand" size="sm" className="px-2.5">{strategy.type}</Badge>
           {!isVr && <Badge tone="none" size="sm" className={seedBadgeCls}>{seedLabel}</Badge>}
+          {scheduledStart && (
+            <Badge tone="none" size="sm" className="bg-info-bg text-info">
+              {scheduledStartBadgeLabel(strategy.startDate!)}
+            </Badge>
+          )}
           {accountLabel && (
             <span className="ml-auto text-xs font-semibold text-foreground/60 shrink-0 font-mono tracking-wider">{accountLabel}</span>
           )}
@@ -132,6 +138,11 @@ export function StrategyCard({ accountId, strategy, accountLabel, initialPreview
               )}
               {strategy.isReverseMode && (
                 <Badge tone="warn" size="sm" className="h-[22px]">리버스</Badge>
+              )}
+              {scheduledStart && (
+                <Badge tone="none" size="sm" className="h-[22px] bg-info-bg text-info">
+                  {scheduledStartBadgeLabel(strategy.startDate!)}
+                </Badge>
               )}
             </div>
             {accountLabel && (

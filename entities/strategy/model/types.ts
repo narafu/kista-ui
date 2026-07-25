@@ -26,6 +26,7 @@ export interface Strategy {
   currentRound?: number   // 현재 회차 (INFINITE 전략만, 이력 없으면 0)
   currentHoldings?: number
   vr?: StrategyVrSummary  // VR 전략 전용 요약 (타 전략 undefined)
+  startDate?: string      // 사이클 시작(예정)일 (yyyy-MM-dd) — 오늘 이후면 아직 매매 시작 전(시작예정)
 }
 
 export interface StrategyRequest {
@@ -39,6 +40,7 @@ export interface StrategyRequest {
   intervalWeeks?: number      // VR 전용: 롤오버 주기 (주)
   bandWidth?: number          // VR 전용: 밴드 폭 (%)
   recurringAmount?: number    // VR 전용: 정기 입출금 (USD)
+  scheduledStartDate?: string // 시작예정일 (yyyy-MM-dd) — 세 전략 공통, 등록 전용, 미전송 시 오늘 시작
 }
 
 export interface StrategySeedPreview {

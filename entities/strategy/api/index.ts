@@ -32,6 +32,7 @@ function normalizeStrategy(raw: unknown): Strategy {
     currentRound: s.currentRound != null ? Number(s.currentRound) : undefined,
     currentHoldings: s.currentHoldings != null ? Number(s.currentHoldings) : undefined,
     vr: normalizeVrSummary(s.vr),
+    startDate: s.startDate != null ? String(s.startDate) : undefined,
   }
 }
 

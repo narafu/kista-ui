@@ -62,12 +62,13 @@ import { deleteAccount } from '@entities/account'
 
 - `UserResponse`: `{ id, nickname, status, hasTelegram, role, telegramBotUsername }`
 - `AccountResponse`: `{ id, nickname, accountNoMasked, broker }`
-- `TradingCycleResponse`: `{ id, accountId, type, status, ticker, cycleSeedType, initialUsdDeposit, divisionCount, isReverseMode, currentRound, currentHoldings, vr }`
+- `TradingCycleResponse`: `{ id, accountId, type, status, ticker, cycleSeedType, initialUsdDeposit, startDate, divisionCount, isReverseMode, currentRound, currentHoldings, vr }`
 - **TradingCycleResponse 필드 추가 시**: `entities/strategy/model/types.ts` + `entities/strategy/api/index.ts`의 `normalizeStrategy()`를 함께 수정
 - **`divisionCount`**: INFINITE 전략 전용 분할 수 (20/30/40). VR/PRIVACY는 `undefined`로 정규화된다
 - **`vr`**: VR 전략 전용 요약 `{ value, bandWidth, intervalWeeks, recurringAmount, poolLimit, gradient }`. 비VR은 없음
 - **`isReverseMode`**: 리버스모드 활성 여부. `StrategyRequest`에는 없음
-- **`StrategyRequest`**: VR 등록 시 `initialUsdDeposit`, `intervalWeeks`, `bandWidth`, `recurringAmount`를 포함한다. 적립식 VR은 `initialUsdDeposit=0` payload를 허용한다. `initialHoldings`/`initialAvgPrice`(중간부터 시작)는 세 전략(INFINITE·PRIVACY·VR) 공통·등록 전용 필드로, 보유 수량>0일 때만 전송하고 서버가 등록 시점 전일종가×보유수량으로 V값을 계산한다(더 이상 `initialValue`를 프론트에서 곱해 보내지 않음)
+- **`StrategyRequest`**: VR 등록 시 `initialUsdDeposit`, `intervalWeeks`, `bandWidth`, `recurringAmount`를 포함한다. 적립식 VR은 `initialUsdDeposit=0` payload를 허용한다. `initialHoldings`/`initialAvgPrice`(중간부터 시작)는 세 전략(INFINITE·PRIVACY·VR) 공통·등록 전용 필드로, 보유 수량>0일 때만 전송하고 서버가 등록 시점 전일종가×보유수량으로 V값을 계산한다(더 이상 `initialValue`를 프론트에서 곱해 보내지 않음). `scheduledStartDate`(yyyy-MM-dd)도 세 전략 공통·등록 전용 필드로, 미전송 시 오늘(KST) 시작 — 지정한 날짜 자체가 아니라 그 이후 첫 거래일부터 매매가 시작된다(exclusive 경계)
+- **`Strategy.startDate`**: 응답의 사이클 시작(예정)일(yyyy-MM-dd). `startDate > todayKst()`면 아직 매매 시작 전 — `isScheduledStart(strategy)`로 판정하고 `scheduledStartBadgeLabel(startDate)`로 "N월 N일 시작예정" 배지 라벨을 만든다(둘 다 `entities/strategy` export, `fmtMonthDay`는 ko-KR에서 "8. 1." 형식이라 이 문구엔 쓰지 않음)
 - `AdminAnomalies`: 현재 필드 `pausedAccounts`, `inactiveAccounts`
 - API 함수명은 `listAccounts(token?)`
 

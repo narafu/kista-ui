@@ -15,6 +15,7 @@ export const strategyFormSchema = z.object({
   bandWidth: z.number().positive().nullable().optional(),
   recurringAmount: z.number().int().nonnegative().nullable().optional(),
   recurringMode: z.enum(['DEPOSIT', 'HOLD', 'WITHDRAW']),
+  scheduledStartDate: z.string().nullable().optional(),
 })
 
 export type StrategyFormValues = z.infer<typeof strategyFormSchema>

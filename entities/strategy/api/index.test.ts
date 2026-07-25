@@ -28,6 +28,7 @@ describe('strategy api normalization', () => {
         isReverseMode: false,
         currentRound: null,
         currentHoldings: 4,
+        startDate: '2026-08-01',
         vr: {
           value: '3000.00',
           bandWidth: '15.00',
@@ -46,6 +47,7 @@ describe('strategy api normalization', () => {
       ticker: 'TQQQ',
       divisionCount: undefined,
       currentHoldings: 4,
+      startDate: '2026-08-01',
       vr: {
         value: 3000,
         bandWidth: 15,

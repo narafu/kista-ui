@@ -62,17 +62,21 @@ vi.mock('@widgets/cycle-history', () => ({
   StrategyTradesTab: () => <div>strategy-trades-tab</div>,
 }))
 
-vi.mock('@entities/strategy', () => ({
-  useDeleteStrategyMutation: (onSuccess?: () => void) => {
-    deleteSuccessHandler = onSuccess
-    return { mutate: deleteMutate, isPending: false }
-  },
-  useExecuteStrategyMutation: () => ({ mutate: executeMutate, isPending: false }),
-  usePauseStrategyMutation: () => ({ mutate: vi.fn(), isPending: false }),
-  useResumeStrategyMutation: () => ({ mutate: vi.fn(), isPending: false }),
-  seedBadgeClass: () => 'seed-badge',
-  strategyStatusAccent: (status: string) => status === 'ACTIVE' ? 'var(--status-ok)' : 'var(--warn)',
-}))
+vi.mock('@entities/strategy', async () => {
+  const actual = await vi.importActual<typeof import('@entities/strategy')>('@entities/strategy')
+  return {
+    ...actual,
+    useDeleteStrategyMutation: (onSuccess?: () => void) => {
+      deleteSuccessHandler = onSuccess
+      return { mutate: deleteMutate, isPending: false }
+    },
+    useExecuteStrategyMutation: () => ({ mutate: executeMutate, isPending: false }),
+    usePauseStrategyMutation: () => ({ mutate: vi.fn(), isPending: false }),
+    useResumeStrategyMutation: () => ({ mutate: vi.fn(), isPending: false }),
+    seedBadgeClass: () => 'seed-badge',
+    strategyStatusAccent: (status: string) => status === 'ACTIVE' ? 'var(--status-ok)' : 'var(--warn)',
+  }
+})
 
 const mockPreviewQuery = vi.fn(() => ({
   data: { todayOrders: [], position: null, orders: [], skipReason: 'NO_CYCLE_HISTORY', otherStrategiesPlannedBuyUsd: '0', competition: null } as Partial<NextOrderPreview>,
@@ -149,6 +153,22 @@ describe('StrategyDetail header card', () => {
     expect(screen.getByTestId('strategy-summary-grid')).toHaveTextContent('분할')
     expect(screen.getByTestId('strategy-summary-grid')).toHaveTextContent('20분할')
     expect(screen.queryByText('ACTIVE')).not.toBeInTheDocument()
+  })
+
+  it('shows the "시작예정" badge when startDate is in the future', () => {
+    const future = new Date()
+    future.setDate(future.getDate() + 7)
+    const futureDate = future.toISOString().slice(0, 10)
+
+    render(<StrategyDetail accountId="account-1" strategy={{ ...baseStrategy, startDate: futureDate }} />)
+
+    expect(screen.getByTestId('strategy-status-group')).toHaveTextContent('시작예정')
+  })
+
+  it('hides the "시작예정" badge when startDate is today or absent', () => {
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    expect(screen.getByTestId('strategy-status-group')).not.toHaveTextContent('시작예정')
   })
 
   it('shows paused styling and keeps reverse mode as a badge near status', () => {

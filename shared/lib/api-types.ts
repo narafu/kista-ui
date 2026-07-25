@@ -1642,6 +1642,12 @@ export interface components {
              * @example 0
              */
             recurringAmount?: number;
+            /**
+             * Format: date
+             * @description 시작예정일, 기본값=오늘, 오늘 이후만 허용
+             * @example 2026-08-01
+             */
+            scheduledStartDate?: string;
         };
         TradingCycleResponse: {
             /**
@@ -1674,6 +1680,12 @@ export interface components {
              * @example 2000
              */
             initialUsdDeposit?: number;
+            /**
+             * Format: date
+             * @description 사이클 시작일 (미래면 시작예정일 — 이 날짜 이후 첫 거래일부터 매매 시작)
+             * @example 2026-08-01
+             */
+            startDate?: string;
             /**
              * @description 연속 사이클 정책
              * @example NONE

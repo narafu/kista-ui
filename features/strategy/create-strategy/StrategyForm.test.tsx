@@ -6,6 +6,7 @@ import { StrategyForm } from './StrategyForm'
 const useStrategyFormMock = vi.fn()
 const usageRatioSectionMock = vi.fn()
 const initialHoldingsSectionMock = vi.fn()
+const scheduledStartSectionMock = vi.fn()
 
 vi.mock('@entities/meta', () => ({
   useMeta: () => ({
@@ -56,6 +57,13 @@ vi.mock('./sections/InitialHoldingsSection', () => ({
   },
 }))
 
+vi.mock('./sections/ScheduledStartSection', () => ({
+  ScheduledStartSection: (props: unknown) => {
+    scheduledStartSectionMock(props)
+    return <div data-testid="scheduled-start-section">scheduled-start-section</div>
+  },
+}))
+
 const baseFormState = {
   type: 'INFINITE',
   setType: vi.fn(),
@@ -99,6 +107,8 @@ const baseFormState = {
   setVrField: vi.fn(),
   recurringMode: 'HOLD' as const,
   setRecurringMode: vi.fn(),
+  scheduledStartDate: null,
+  setScheduledStartDate: vi.fn(),
   vrSettings: {
     recurringMode: { customizable: true, allowedValues: ['DEPOSIT', 'HOLD', 'WITHDRAW'], defaultValue: 'HOLD' },
     bandWidth: { customizable: true, allowedValues: [10, 15, 20], defaultValue: 15 },
@@ -151,6 +161,26 @@ describe('StrategyForm initial holdings section', () => {
     render(<StrategyForm accountId="account-1" initial={initialStrategy} />)
 
     expect(screen.queryByTestId('initial-holdings-section')).not.toBeInTheDocument()
+  })
+})
+
+describe('StrategyForm scheduled start section', () => {
+  it('shows the scheduled start section in create mode', () => {
+    scheduledStartSectionMock.mockClear()
+    useStrategyFormMock.mockReturnValue(baseFormState)
+
+    render(<StrategyForm accountId="account-1" />)
+
+    expect(screen.getByTestId('scheduled-start-section')).toBeInTheDocument()
+    expect(scheduledStartSectionMock).toHaveBeenCalledWith(expect.objectContaining({ value: null }))
+  })
+
+  it('hides the scheduled start section in edit mode', () => {
+    useStrategyFormMock.mockReturnValue(baseFormState)
+
+    render(<StrategyForm accountId="account-1" initial={initialStrategy} />)
+
+    expect(screen.queryByTestId('scheduled-start-section')).not.toBeInTheDocument()
   })
 })
 

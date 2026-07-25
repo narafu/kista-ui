@@ -2,6 +2,7 @@ export type { CycleSeedType, Strategy, StrategyRequest, StrategySeedPreview } fr
 export { seedBadgeClass } from './model/seed-badge'
 export { strategyStatusAccent } from './model/status-accent'
 export { strategyTypeShort } from './model/type-short'
+export { isScheduledStart, scheduledStartBadgeLabel } from './model/scheduled-start'
 export {
   listAllStrategies,
   listStrategies,

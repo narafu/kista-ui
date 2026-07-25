@@ -1,6 +1,15 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { todayKst } from '@shared/lib/format'
 import { useStrategyForm } from './useStrategyForm'
+
+// todayKst() 기준 며칠 뒤/전 날짜를 yyyy-MM-dd로 계산 (달력일 산술만 필요 — UTC로 취급해도 안전)
+function addDaysToKstDate(days: number): string {
+  const [y, m, d] = todayKst().split('-').map(Number)
+  const date = new Date(Date.UTC(y, m - 1, d))
+  date.setUTCDate(date.getUTCDate() + days)
+  return date.toISOString().slice(0, 10)
+}
 
 const runtimeRecurringMode = vi.hoisted(() => ({ defaultValue: 'HOLD' }))
 
@@ -644,5 +653,78 @@ describe('useStrategyForm submit policy', () => {
 
     expect(mockCreateMutate.mock.calls[0][0]).not.toHaveProperty('initialHoldings')
     expect(mockCreateMutate.mock.calls[0][0]).not.toHaveProperty('initialAvgPrice')
+  })
+
+  it('create payload includes scheduledStartDate when set', async () => {
+    const futureDate = addDaysToKstDate(7)
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setScheduledStartDate(futureDate)
+    })
+
+    await act(async () => {
+      result.current.handleSubmit({ preventDefault() {} } as React.FormEvent)
+    })
+
+    await waitFor(() => {
+      expect(mockCreateMutate).toHaveBeenCalled()
+    })
+
+    expect(mockCreateMutate).toHaveBeenCalledWith(expect.objectContaining({
+      scheduledStartDate: futureDate,
+    }))
+  })
+
+  it('create payload omits scheduledStartDate when left empty', async () => {
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    await act(async () => {
+      result.current.handleSubmit({ preventDefault() {} } as React.FormEvent)
+    })
+
+    await waitFor(() => {
+      expect(mockCreateMutate).toHaveBeenCalled()
+    })
+
+    expect(mockCreateMutate.mock.calls[0][0]).not.toHaveProperty('scheduledStartDate')
+  })
+
+  it('create is blocked when scheduledStartDate is in the past', () => {
+    const pastDate = addDaysToKstDate(-1)
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setScheduledStartDate(pastDate)
+    })
+
+    expect(result.current.cannotSubmit).toBe(true)
+    expect(result.current.submitDisabledReason).toContain('시작예정일은 오늘 이후여야 합니다')
+  })
+
+  it('create is not blocked when scheduledStartDate is today', () => {
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setScheduledStartDate(todayKst())
+    })
+
+    expect(result.current.cannotSubmit).toBe(false)
   })
 })

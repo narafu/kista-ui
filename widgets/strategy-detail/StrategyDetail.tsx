@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { KpiCard } from '@widgets/kpi-card'
 import { StrategyTradesTab } from '@widgets/cycle-history'
-import { useDeleteStrategyMutation, useExecuteStrategyMutation, usePauseStrategyMutation, useResumeStrategyMutation, seedBadgeClass, strategyStatusAccent } from '@entities/strategy'
+import { useDeleteStrategyMutation, useExecuteStrategyMutation, usePauseStrategyMutation, useResumeStrategyMutation, seedBadgeClass, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
 import { useStrategyOrderPreviewQuery, useCancelAllOrdersMutation, useCancelOneOrderMutation, computeOrderReadiness } from '@entities/order'
 import { useMonthlyHolidaysQuery } from '@entities/market'
 import { useMeta } from '@entities/meta'
@@ -165,6 +165,7 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
   const usesDivisionCount = (strategyTypeMeta?.divisionCounts?.length ?? 0) > 0
   const isVr = strategy.vr != null // VR 전략 여부 — type 리터럴 비교 대신 vr 필드 존재 여부 사용
   const seedBadgeCls = seedBadgeClass(strategy.cycleSeedType)
+  const scheduledStart = isScheduledStart(strategy) // startDate가 오늘 이후면 아직 매매 시작 전
 
   return (
     <div className="space-y-4">
@@ -179,6 +180,11 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
           전략 정보
         </p>
         <div data-testid="strategy-status-group" className="flex flex-wrap items-center justify-end gap-2">
+          {scheduledStart && (
+            <Badge tone="none" size="md" className="bg-info-bg text-info">
+              {scheduledStartBadgeLabel(strategy.startDate!)}
+            </Badge>
+          )}
           {strategy.isReverseMode && (
             <Badge tone="warn" size="md">리버스모드</Badge>
           )}

@@ -13,6 +13,7 @@ import { CycleSeedSection } from './sections/CycleSeedSection'
 import { DivisionCountSection } from './sections/DivisionCountSection'
 import { VrSettingsSection } from './sections/VrSettingsSection'
 import { InitialHoldingsSection } from './sections/InitialHoldingsSection'
+import { ScheduledStartSection } from './sections/ScheduledStartSection'
 import { StrategyFormSkeleton } from './StrategyFormSkeleton'
 import type { Strategy } from '@entities/strategy'
 
@@ -83,6 +84,14 @@ export function StrategyForm({ accountId, initial, onSuccess, onCancel }: Props)
           setField={form.setVrField}
           loading={form.loading}
           isVr={form.isVr}
+        />
+      )}
+
+      {!initial && (
+        <ScheduledStartSection
+          value={form.scheduledStartDate}
+          onChange={form.setScheduledStartDate}
+          loading={form.loading}
         />
       )}
 

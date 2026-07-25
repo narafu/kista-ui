@@ -1,8 +1,17 @@
 import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { todayKst } from '@shared/lib/format'
 import type { Strategy } from '@entities/strategy'
 import type { BuyCompetitionSummary, SellSufficiencySummary } from '@entities/order'
 import { StrategyCard } from './StrategyCard'
+
+// todayKst() 기준 며칠 뒤/전 날짜를 yyyy-MM-dd로 계산 (달력일 산술만 필요 — UTC로 취급해도 안전)
+function addDaysToKstDate(days: number): string {
+  const [y, m, d] = todayKst().split('-').map(Number)
+  const date = new Date(Date.UTC(y, m - 1, d))
+  date.setUTCDate(date.getUTCDate() + days)
+  return date.toISOString().slice(0, 10)
+}
 
 // 실제 DTO에서 파생 — 목 리터럴에서 필요한 필드만 채우고 나머지는 Partial로 생략
 type CompetitionMock = Partial<BuyCompetitionSummary> & Pick<BuyCompetitionSummary, 'sufficientBudget'>
@@ -298,5 +307,46 @@ describe('StrategyCard mobile row', () => {
     render(<StrategyCard accountId="account-1" strategy={strategy} />)
 
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--warn);'))
+  })
+})
+
+describe('StrategyCard scheduled start badge', () => {
+  beforeEach(() => {
+    previewState = {
+      data: {
+        orders: [],
+        todayOrders: [],
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: null,
+        sellSufficiency: null,
+      },
+      isLoading: false,
+    }
+  })
+
+  it('shows the "시작예정" badge when startDate is in the future', () => {
+    const futureDate = addDaysToKstDate(7)
+    render(<StrategyCard accountId="account-1" strategy={{ ...strategy, startDate: futureDate }} />)
+
+    expect(screen.getAllByText(/시작예정$/)[0]).toBeInTheDocument()
+  })
+
+  it('hides the badge when startDate is today', () => {
+    render(<StrategyCard accountId="account-1" strategy={{ ...strategy, startDate: todayKst() }} />)
+
+    expect(screen.queryByText(/시작예정$/)).not.toBeInTheDocument()
+  })
+
+  it('hides the badge when startDate is in the past', () => {
+    const pastDate = addDaysToKstDate(-7)
+    render(<StrategyCard accountId="account-1" strategy={{ ...strategy, startDate: pastDate }} />)
+
+    expect(screen.queryByText(/시작예정$/)).not.toBeInTheDocument()
+  })
+
+  it('hides the badge when startDate is absent', () => {
+    render(<StrategyCard accountId="account-1" strategy={strategy} />)
+
+    expect(screen.queryByText(/시작예정$/)).not.toBeInTheDocument()
   })
 })
