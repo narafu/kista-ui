@@ -13,6 +13,7 @@ function normalizeVrSummary(raw: unknown): StrategyVrSummary | undefined {
     intervalWeeks: Number(v.intervalWeeks),
     recurringAmount: Number(v.recurringAmount ?? 0),
     poolLimit: toNum(v.poolLimit),
+    poolLimitRate: toNum(v.poolLimitRate),
     gradient: Number(v.gradient),
     initialGradient: Number(v.initialGradient),
     gGraceWeeks: Number(v.gGraceWeeks),

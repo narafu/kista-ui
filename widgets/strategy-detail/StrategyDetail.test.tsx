@@ -50,10 +50,11 @@ vi.mock('@/components/ui/alert-dialog', () => ({
 }))
 
 vi.mock('@widgets/kpi-card', () => ({
-  KpiCard: ({ label, value }: { label: string; value?: React.ReactNode }) => (
+  KpiCard: ({ label, value, sub }: { label: string; value?: React.ReactNode; sub?: React.ReactNode }) => (
     <div>
       {label}
       {value}
+      {sub}
     </div>
   ),
 }))
@@ -213,6 +214,7 @@ describe('StrategyDetail header card', () => {
           intervalWeeks: 4,
           recurringAmount: -100,
           poolLimit: 500,
+          poolLimitRate: 0.5,
           gradient: 20,
           initialGradient: 20,
           gGraceWeeks: 52,
@@ -246,6 +248,7 @@ describe('StrategyDetail header card', () => {
     expect(vrGrid).toHaveTextContent('$2,000.00')
     expect(vrGrid).toHaveTextContent('pool 상한')
     expect(vrGrid).toHaveTextContent('$500.00')
+    expect(vrGrid).toHaveTextContent('50%')
     expect(screen.queryByText('매매표')).not.toBeInTheDocument()
   })
 
@@ -264,6 +267,7 @@ describe('StrategyDetail header card', () => {
           intervalWeeks: 4,
           recurringAmount: 200,
           poolLimit: 1500,
+          poolLimitRate: 0.75,
           gradient: 10,
           initialGradient: 10,
           gGraceWeeks: 52,
@@ -295,6 +299,7 @@ describe('StrategyDetail header card', () => {
           intervalWeeks: 4,
           recurringAmount: 0,
           poolLimit: 1000,
+          poolLimitRate: 0.5,
           gradient: 10,
           initialGradient: 10,
           gGraceWeeks: 52,

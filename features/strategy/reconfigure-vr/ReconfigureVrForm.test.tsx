@@ -29,6 +29,7 @@ const strategy: Strategy = {
     intervalWeeks: 4,
     recurringAmount: -100,
     poolLimit: 1000,
+    poolLimitRate: 0.5,
     gradient: 18, // 현재 스냅샷 — initialGradient(10)와 의도적으로 다르게 둠
     initialGradient: 10,
     gGraceWeeks: 52,

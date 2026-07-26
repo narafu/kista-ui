@@ -269,7 +269,11 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
                 )
               }
             />
-            <KpiCard label="pool 상한" value={`$${fmtUsd(strategy.vr.poolLimit)}`} />
+            <KpiCard
+              label="pool 상한"
+              value={`$${fmtUsd(strategy.vr.poolLimit)}`}
+              sub={`${(strategy.vr.poolLimitRate * 100).toFixed(0)}%`}
+            />
           </div>
         </div>
       )}
