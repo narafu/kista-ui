@@ -52,11 +52,12 @@ export default function MarketChartCardInner({ category }: Props) {
   const [symbol, setSymbol] = useState(category.options[0].symbol)
   const [candleCount, setCandleCount] = useState<CandleCount>(200)
   const selected = category.options.find((o) => o.symbol === symbol) ?? category.options[0]
-  const { data: candles = [] } = useCandlesQuery(symbol, candleCount)
+  const { data: candles = [], isError } = useCandlesQuery(symbol, candleCount)
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
 
   useEffect(() => {
+    if (isError) return
     const container = containerRef.current
     if (!container) return
 
@@ -121,7 +122,7 @@ export default function MarketChartCardInner({ category }: Props) {
       chart.remove()
       chartRef.current = null
     }
-  }, [candles])
+  }, [candles, isError])
 
   return (
     <>
@@ -165,7 +166,11 @@ export default function MarketChartCardInner({ category }: Props) {
           ))}
         </SelectContent>
       </Select>
-      <div ref={containerRef} className="h-[280px] w-full" />
+      {isError ? (
+        <div className="flex h-[280px] items-center justify-center text-sm text-warn">시장 차트를 불러오지 못했습니다</div>
+      ) : (
+        <div ref={containerRef} className="h-[280px] w-full" />
+      )}
     </>
   )
 }

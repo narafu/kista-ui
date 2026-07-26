@@ -25,9 +25,15 @@ export default async function DashboardPage() {
   const initialWeekStartDate = getWeekStartDate()
 
   // 비인증: 체결내역 없는 달력만 표시 (휴장일은 public 엔드포인트로 로드)
-  const holidays: string[] = token
-    ? await getMonthlyHolidays(calendarYear, calendarMonth, token).catch(() => [])
-    : await getMonthlyHolidaysPublic(calendarYear, calendarMonth)
+  let holidays: string[] | undefined
+  try {
+    holidays = token
+      ? await getMonthlyHolidays(calendarYear, calendarMonth, token)
+      : await getMonthlyHolidaysPublic(calendarYear, calendarMonth)
+  } catch {
+    // A failed server fetch must not hydrate a successful empty month for 24 hours.
+    holidays = undefined
+  }
 
   const queryClient = createQueryClient()
   if (token) {

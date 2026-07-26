@@ -12,6 +12,7 @@ const pauseMutate = vi.fn()
 const resumeMutate = vi.fn()
 let deleteSuccessHandler: (() => void) | undefined
 let strategiesQueryData: Strategy[] | undefined
+let holidayQueryResult: { holidays: string[]; isError?: boolean } = { holidays: [] }
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
@@ -116,7 +117,7 @@ vi.mock('@entities/order', async () => {
 })
 
 vi.mock('@entities/market', () => ({
-  useMonthlyHolidaysQuery: () => ({ holidays: [] }),
+  useMonthlyHolidaysQuery: () => holidayQueryResult,
 }))
 
 vi.mock('@entities/meta', () => ({
@@ -153,6 +154,7 @@ const baseStrategy: Strategy = {
 describe('StrategyDetail header card', () => {
   beforeEach(() => {
     strategiesQueryData = undefined
+    holidayQueryResult = { holidays: [] }
     pauseMutate.mockReset()
     resumeMutate.mockReset()
   })
@@ -320,6 +322,45 @@ describe('StrategyDetail header card', () => {
     />)
 
     expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('거치식')
+  })
+})
+
+describe('StrategyDetail market-holiday failure', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-07-21T10:00:00+09:00'))
+    holidayQueryResult = { holidays: [], isError: true }
+    executeMutate.mockClear()
+    vi.mocked(toast.info).mockClear()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    holidayQueryResult = { holidays: [] }
+    executeMutate.mockClear()
+  })
+
+  it('does not classify an unknown weekday market status as a confirmed trading day', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [],
+        position: null,
+        orders: [{ ticker: 'TSLA', orderType: 'LOC', direction: 'BUY', quantity: 1, price: '20.00' }],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: null,
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+    fireEvent.click(screen.getByText('바로 주문'))
+
+    expect(screen.getByText('미국 증시 휴장 여부를 확인하지 못했습니다')).toBeInTheDocument()
+    expect(toast.info).toHaveBeenCalledWith('미국 증시 휴장 여부를 확인하지 못했습니다')
+    expect(executeMutate).not.toHaveBeenCalled()
   })
 })
 

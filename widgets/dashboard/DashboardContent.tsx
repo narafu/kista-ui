@@ -5,7 +5,7 @@ import { DashboardEmpty } from './DashboardEmpty'
 import { DashboardOverview } from './DashboardOverview'
 
 interface Props {
-  holidays: string[]
+  holidays?: string[]
   initialWeekStartDate: string
 }
 

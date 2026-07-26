@@ -28,12 +28,13 @@ function upsertAccount(accounts: Account[] | undefined, saved: Account) {
 }
 
 export function useAccountMarginQuery(accountId: string, options?: { enabled?: boolean }) {
-  const { data: items = [], isLoading } = useQuery<MarginItem[]>({
+  const { data: items = [], isLoading, isError } = useQuery<MarginItem[]>({
     queryKey: accountKeys.margin(accountId),
-    queryFn: () => getMargin(accountId).catch((): MarginItem[] => []),
+    queryFn: () => getMargin(accountId),
     enabled: options?.enabled !== false,
+    staleTime: 0,
   })
-  return { items, isLoading }
+  return { items, isLoading, isError }
 }
 
 export function useAccountPricesQuery(accountId: string, tickers: string[]) {
@@ -41,6 +42,7 @@ export function useAccountPricesQuery(accountId: string, tickers: string[]) {
     queryKey: accountKeys.prices(accountId, tickers),
     queryFn: () => getPrices(accountId, tickers),
     enabled: !!accountId && tickers.length > 0,
+    staleTime: 0,
   })
 }
 

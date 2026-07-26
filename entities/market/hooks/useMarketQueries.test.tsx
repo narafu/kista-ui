@@ -32,6 +32,18 @@ describe('market query freshness and error handling', () => {
     }))
   })
 
+  it('treats an explicitly hydrated empty month differently from missing initial data', () => {
+    useQueryMock.mockReturnValue({ data: [], isFetching: false })
+    renderHook(() => useMonthlyHolidaysQuery(2026, 7, []))
+    const hydratedEmptyOptions = useQueryMock.mock.calls.at(-1)?.[0]
+
+    renderHook(() => useMonthlyHolidaysQuery(2026, 7))
+    const unhydratedOptions = useQueryMock.mock.calls.at(-1)?.[0]
+
+    expect(hydratedEmptyOptions).toEqual(expect.objectContaining({ initialData: [], staleTime: 86_400_000 }))
+    expect(unhydratedOptions).toEqual(expect.objectContaining({ initialData: undefined, staleTime: 0 }))
+  })
+
   it('propagates monthly-holiday request failures', async () => {
     const failure = new Error('holiday request failed')
     getMonthlyHolidaysClientMock.mockRejectedValueOnce(failure)

@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { FearGreedSection } from './FearGreedSection'
 
-const useFearGreedQueryMock = vi.fn((_days: number) => ({ data: undefined }))
+const useFearGreedQueryMock = vi.fn((_days: number): { data: undefined; isError?: boolean } => ({ data: undefined }))
 
 vi.mock('@entities/market', () => ({
   useFearGreedQuery: (days: number) => useFearGreedQueryMock(days),
@@ -15,17 +15,20 @@ vi.mock('@entities/market', () => ({
 vi.mock('./FearGreedCard', () => ({
   FearGreedCard: ({
     title,
+    error,
     days,
     onDaysChange,
     daysOptions,
   }: {
     title: string
+    error?: boolean
     days: number
     onDaysChange: (days: number) => void
     daysOptions: readonly number[]
   }) => (
     <div>
       <span>{title}</span>
+      {error && <span>{title} 데이터를 불러오지 못했습니다</span>}
       {daysOptions.map((n) => (
         <button key={n} type="button" onClick={() => onDaysChange(n)}>
           {n}
@@ -65,5 +68,16 @@ describe('FearGreedSection', () => {
 
     expect(screen.getByText('CNN 공포탐욕지수')).toBeInTheDocument()
     expect(screen.getByText('크립토 공포탐욕지수')).toBeInTheDocument()
+  })
+
+  it('passes each failed source to its card error fallback', () => {
+    useFearGreedQueryMock
+      .mockReturnValueOnce({ data: undefined, isError: true })
+      .mockReturnValueOnce({ data: undefined, isError: false })
+
+    render(<FearGreedSection />)
+
+    expect(screen.getByText('CNN 공포탐욕지수 데이터를 불러오지 못했습니다')).toBeInTheDocument()
+    expect(screen.queryByText('크립토 공포탐욕지수 데이터를 불러오지 못했습니다')).not.toBeInTheDocument()
   })
 })
