@@ -61,6 +61,7 @@ export function EditAccountForm({ account }: Props) {
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
               disabled={updateMutation.isPending}
+              maxLength={100}
             />
           </div>
 

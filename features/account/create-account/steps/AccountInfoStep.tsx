@@ -75,6 +75,7 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
             onChange={(e) => setNickname(e.target.value)}
             onBlur={() => setTouchedNickname(true)}
             placeholder="예: 모의 계좌"
+            maxLength={100}
             aria-describedby={showNicknameError ? 'nickname-error' : undefined}
             aria-invalid={showNicknameError}
             className="w-full px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -131,6 +132,7 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
             onChange={(e) => setNickname(e.target.value)}
             onBlur={() => setTouchedNickname(true)}
             placeholder="예: 메인 계좌"
+            maxLength={100}
             aria-describedby={showNicknameError ? 'nickname-error' : undefined}
             aria-invalid={showNicknameError}
             className="w-full px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"

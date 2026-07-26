@@ -112,6 +112,7 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
               value={botToken}
               onChange={(e) => { setBotToken(e.target.value); if (botTokenError) setBotTokenError('') }}
               disabled={isLoading}
+              maxLength={512}
               aria-invalid={!!botTokenError}
               aria-describedby={botTokenError ? 'bot-token-error' : undefined}
             />
@@ -125,6 +126,7 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
               value={chatId}
               onChange={(e) => { setChatId(e.target.value); if (chatIdError) setChatIdError('') }}
               disabled={isLoading}
+              maxLength={50}
               aria-invalid={!!chatIdError}
               aria-describedby={chatIdError ? 'chat-id-error' : undefined}
             />

@@ -86,6 +86,7 @@ export function PendingTelegramConnect({ hasTelegram, currentChannel }: Props) {
             value={botToken}
             onChange={(e) => { setBotToken(e.target.value); if (botTokenError) setBotTokenError('') }}
             disabled={isLoading}
+            maxLength={512}
             aria-invalid={!!botTokenError}
             aria-describedby={botTokenError ? 'pending-bot-token-error' : undefined}
           />
@@ -100,6 +101,7 @@ export function PendingTelegramConnect({ hasTelegram, currentChannel }: Props) {
             value={chatId}
             onChange={(e) => { setChatId(e.target.value); if (chatIdError) setChatIdError('') }}
             disabled={isLoading}
+            maxLength={50}
             aria-invalid={!!chatIdError}
             aria-describedby={chatIdError ? 'pending-chat-id-error' : undefined}
           />
