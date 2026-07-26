@@ -1,4 +1,4 @@
-export type { CycleSeedType, Strategy, StrategyRequest, StrategySeedPreview } from './model/types'
+export type { CycleSeedType, Strategy, StrategyRequest, ReconfigureVrRequest, StrategySeedPreview } from './model/types'
 export { seedBadgeClass } from './model/seed-badge'
 export { strategyStatusAccent } from './model/status-accent'
 export { strategyTypeShort } from './model/type-short'
@@ -13,6 +13,7 @@ export {
   resumeStrategy,
   executeStrategy,
   getStrategySeedPreview,
+  reconfigureVr,
 } from './api'
 export { getCachedStrategies } from './api/cached'
 export {

@@ -13,7 +13,7 @@ vi.mock('@shared/lib/utils', () => ({
 }))
 
 describe('strategy api normalization', () => {
-  it('normalizes VR summary numbers and preserves null divisionCount as undefined-like UI data', async () => {
+  it('normalizes VR summary numbers including ramp fields, and preserves null divisionCount as undefined-like UI data', async () => {
     const { listStrategies } = await import('./index')
     fetchEitherMock.mockResolvedValueOnce([
       {
@@ -35,7 +35,15 @@ describe('strategy api normalization', () => {
           intervalWeeks: 4,
           recurringAmount: 0,
           poolLimit: '1000.00',
-          gradient: 10,
+          gradient: 18,
+          initialGradient: 10,
+          gGraceWeeks: 52,
+          gStepWeeks: 26,
+          gMax: 20,
+          initialPoolLimitRate: '0.75',
+          pGraceWeeks: 52,
+          pStepWeeks: 26,
+          poolLimitFloor: '0.50',
         },
       },
     ])
@@ -54,8 +62,58 @@ describe('strategy api normalization', () => {
         intervalWeeks: 4,
         recurringAmount: 0,
         poolLimit: 1000,
-        gradient: 10,
+        gradient: 18,
+        initialGradient: 10,
+        gGraceWeeks: 52,
+        gStepWeeks: 26,
+        gMax: 20,
+        initialPoolLimitRate: 0.75,
+        pGraceWeeks: 52,
+        pStepWeeks: 26,
+        poolLimitFloor: 0.5,
       },
     }))
+  })
+})
+
+describe('reconfigureVr', () => {
+  it('PUT /api/trading-cycles/{id}/vr-config 로 요청하고 응답을 정규화한다', async () => {
+    const { reconfigureVr } = await import('./index')
+    fetchEitherMock.mockResolvedValueOnce({
+      id: 'strategy-1',
+      accountId: 'account-1',
+      type: 'VR',
+      status: 'ACTIVE',
+      ticker: 'TQQQ',
+      cycleSeedType: 'NONE',
+      isReverseMode: false,
+      startDate: '2026-08-01',
+      vr: {
+        value: '3200.00',
+        bandWidth: '20.00',
+        intervalWeeks: 4,
+        recurringAmount: 0,
+        poolLimit: '1200.00',
+        gradient: 10,
+        initialGradient: 10,
+        gGraceWeeks: 52,
+        gStepWeeks: 26,
+        gMax: 20,
+        initialPoolLimitRate: '0.75',
+        pGraceWeeks: 52,
+        pStepWeeks: 26,
+        poolLimitFloor: '0.50',
+      },
+    })
+
+    const result = await reconfigureVr('strategy-1', { bandWidth: 20 })
+
+    expect(fetchEitherMock).toHaveBeenCalledWith(
+      '/api/trading-cycles/strategy-1/vr-config',
+      { method: 'PUT', body: JSON.stringify({ bandWidth: 20 }) },
+      undefined,
+    )
+    expect(result.vr?.bandWidth).toBe(20)
+    expect(result.startDate).toBe('2026-08-01')
   })
 })

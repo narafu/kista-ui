@@ -214,6 +214,14 @@ describe('StrategyDetail header card', () => {
           recurringAmount: -100,
           poolLimit: 500,
           gradient: 20,
+          initialGradient: 20,
+          gGraceWeeks: 52,
+          gStepWeeks: 26,
+          gMax: 20,
+          initialPoolLimitRate: 0.5,
+          pGraceWeeks: 52,
+          pStepWeeks: 26,
+          poolLimitFloor: 0.3,
         },
       }}
     />)
@@ -257,6 +265,14 @@ describe('StrategyDetail header card', () => {
           recurringAmount: 200,
           poolLimit: 1500,
           gradient: 10,
+          initialGradient: 10,
+          gGraceWeeks: 52,
+          gStepWeeks: 26,
+          gMax: 20,
+          initialPoolLimitRate: 0.5,
+          pGraceWeeks: 52,
+          pStepWeeks: 26,
+          poolLimitFloor: 0.3,
         },
       }}
     />)
@@ -280,6 +296,14 @@ describe('StrategyDetail header card', () => {
           recurringAmount: 0,
           poolLimit: 1000,
           gradient: 10,
+          initialGradient: 10,
+          gGraceWeeks: 52,
+          gStepWeeks: 26,
+          gMax: 20,
+          initialPoolLimitRate: 0.5,
+          pGraceWeeks: 52,
+          pStepWeeks: 26,
+          poolLimitFloor: 0.3,
         },
       }}
     />)
