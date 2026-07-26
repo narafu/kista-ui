@@ -14,6 +14,7 @@ export type {
   AdminAnomalies,
   AppErrorLog,
 } from './model/types'
+export { adminKeys } from './model/queryKeys'
 export {
   listAdminUsers,
   approveAdminUser,

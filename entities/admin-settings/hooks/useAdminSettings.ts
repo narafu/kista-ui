@@ -5,10 +5,11 @@ import { toast } from 'sonner'
 import { apiMsg } from '@shared/lib/api-client'
 import type { AdminSettings } from '../model/types'
 import { getAdminSettings, updateAdminSettings } from '../api'
+import { adminSettingsKeys } from '../model/queryKeys'
 
 export function useAdminSettingsQuery(initialData?: AdminSettings) {
   return useQuery({
-    queryKey: ['admin-settings'],
+    queryKey: adminSettingsKeys.all,
     queryFn: () => getAdminSettings(),
     initialData,
     initialDataUpdatedAt: initialData ? 0 : undefined,
@@ -22,7 +23,7 @@ export function useUpdateAdminSettingsMutation() {
     mutationFn: updateAdminSettings,
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['admin-settings'] }),
+        queryClient.invalidateQueries({ queryKey: adminSettingsKeys.all }),
         queryClient.invalidateQueries({ queryKey: ['runtime-config'], refetchType: 'all' }),
       ])
       toast.success('운영 설정을 저장했습니다.')

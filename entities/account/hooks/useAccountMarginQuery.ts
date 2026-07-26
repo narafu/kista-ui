@@ -15,10 +15,11 @@ import {
   type PriceMap,
 } from '../api'
 import type { Account, AccountRequest } from '../model/types'
+import { accountKeys } from '../model/queryKeys'
 
 export function useAccountMarginQuery(accountId: string, options?: { enabled?: boolean }) {
   const { data: items = [], isLoading } = useQuery<MarginItem[]>({
-    queryKey: ['accountMargin', accountId],
+    queryKey: accountKeys.margin(accountId),
     queryFn: () => getMargin(accountId).catch((): MarginItem[] => []),
     enabled: options?.enabled !== false,
   })
@@ -27,7 +28,7 @@ export function useAccountMarginQuery(accountId: string, options?: { enabled?: b
 
 export function useAccountPricesQuery(accountId: string, tickers: string[]) {
   return useQuery<PriceMap>({
-    queryKey: ['accountPrices', accountId, tickers],
+    queryKey: accountKeys.prices(accountId, tickers),
     queryFn: () => getPrices(accountId, tickers),
     enabled: !!accountId && tickers.length > 0,
   })
@@ -40,7 +41,7 @@ export function useUpdateAccountMutation(accountId: string) {
     mutationFn: (data) => updateAccount(accountId, data),
     onSuccess: () => {
       toast.success('계좌가 수정되었습니다')
-      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+      queryClient.invalidateQueries({ queryKey: accountKeys.all })
       router.push(`/accounts/${accountId}`)
       router.refresh()
     },
@@ -55,7 +56,7 @@ export function useDeleteAccountMutation(accountId: string) {
     mutationFn: () => deleteAccount(accountId),
     onSuccess: () => {
       toast.success('계좌가 삭제되었습니다')
-      queryClient.removeQueries({ queryKey: ['accounts'] })
+      queryClient.removeQueries({ queryKey: accountKeys.all })
       router.push('/accounts')
       router.refresh()
     },
@@ -69,7 +70,7 @@ export function useCreateAccountMutation() {
   return useMutation<Account, Error, AccountRequest>({
     mutationFn: (data) => createAccount(data),
     onSuccess: (saved) => {
-      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+      queryClient.invalidateQueries({ queryKey: accountKeys.all })
       router.push(`/accounts/${saved.id}`)
       router.refresh()
     },

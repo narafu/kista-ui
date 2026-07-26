@@ -3,15 +3,16 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { getAccountCycleHistory, getStrategyCycleHistory } from '../api'
 import type { CycleHistoryItem, CycleHistoryPage } from '../model/types'
+import { tradeKeys, type CycleHistoryKeyParams } from '../model/queryKeys'
 
-export type DateParams = { from?: string; to?: string; size?: number } | null
+export type DateParams = CycleHistoryKeyParams
 
 const EMPTY_PAGE: CycleHistoryPage = { items: [], nextCursor: null, hasMore: false }
 
 export function useAccountCycleHistoryQuery(accountId: string, params: DateParams) {
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery<CycleHistoryPage>({
-      queryKey: ['accountCycleHistory', accountId, params],
+      queryKey: tradeKeys.accountCycleHistory(accountId, params),
       queryFn: ({ pageParam }) =>
         getAccountCycleHistory(accountId, {
           ...(params ?? {}),
@@ -30,7 +31,7 @@ export function useAccountCycleHistoryQuery(accountId: string, params: DateParam
 export function useStrategyCycleHistoryQuery(strategyId: string | undefined, params: DateParams) {
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery<CycleHistoryPage>({
-      queryKey: ['strategyCycleHistory', strategyId, params],
+      queryKey: tradeKeys.strategyCycleHistory(strategyId!, params),
       queryFn: ({ pageParam }) =>
         getStrategyCycleHistory(strategyId!, {
           ...(params ?? {}),

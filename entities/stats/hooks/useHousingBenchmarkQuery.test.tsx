@@ -14,6 +14,7 @@ import type {
   HousingBenchmarkStrategy,
   HousingBenchmarkSummary,
 } from '../model/types'
+import { statsKeys } from '../model/queryKeys'
 import { useHousingBenchmarkQuery } from './useStatsQueries'
 
 const { getHousingBenchmarkComparisonMock } = vi.hoisted(() => ({
@@ -140,9 +141,7 @@ describe('useHousingBenchmarkQuery', () => {
     await waitFor(() => expect(result.current.data).toBe(response))
 
     expect(getHousingBenchmarkComparisonMock).toHaveBeenCalledWith(params)
-    expect(queryClient.getQueryData([
-      'housingBenchmark', 'PORTFOLIO', null, 'HOUSING', 3, null, '2021-07-01', '2026-07-01',
-    ])).toBe(response)
+    expect(queryClient.getQueryData(statsKeys.housingComparison(params))).toBe(response)
   })
 
   it('does not request data while disabled', async () => {

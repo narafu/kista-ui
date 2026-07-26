@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useStrategyOrderPreviewQuery } from './useOrderQueries'
+import { orderKeys } from '../model/queryKeys'
 
 const { useQueryMock } = vi.hoisted(() => ({
   useQueryMock: vi.fn(),
@@ -30,7 +31,7 @@ describe('useStrategyOrderPreviewQuery', () => {
     renderHook(() => useStrategyOrderPreviewQuery('strategy-1'))
 
     expect(useQueryMock.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({
-      queryKey: ['order-preview', 'strategy', 'strategy-1'],
+      queryKey: orderKeys.preview('strategy-1'),
       staleTime: 60_000,
     }))
   })

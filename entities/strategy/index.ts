@@ -1,4 +1,5 @@
 export type { CycleSeedType, Strategy, StrategyRequest, StrategySeedPreview } from './model/types'
+export { strategyKeys } from './model/queryKeys'
 export { seedBadgeClass } from './model/seed-badge'
 export { strategyStatusAccent } from './model/status-accent'
 export { strategyTypeShort } from './model/type-short'

@@ -4,6 +4,7 @@ export type {
   NotificationChannel,
   User,
 } from './model/types'
+export { userKeys } from './model/queryKeys'
 export {
   getMe,
   getMeClient,

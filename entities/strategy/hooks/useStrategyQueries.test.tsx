@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Strategy } from '../model/types'
 import { useAllStrategiesQuery, useStrategiesQuery, useUpdateStrategyMutation, useExecuteStrategyMutation } from './useStrategyQueries'
+import { strategyKeys } from '../model/queryKeys'
 
 const { useQueryMock } = vi.hoisted(() => ({
   useQueryMock: vi.fn(),
@@ -58,7 +59,7 @@ describe('useAllStrategiesQuery', () => {
     renderHook(() => useAllStrategiesQuery([baseStrategy]))
 
     expect(useQueryMock.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({
-      queryKey: ['strategies', 'all'],
+      queryKey: strategyKeys.listAll(),
       initialData: [baseStrategy],
       initialDataUpdatedAt: 0,
     }))
@@ -72,7 +73,7 @@ describe('useStrategiesQuery', () => {
     renderHook(() => useStrategiesQuery('account-1', [baseStrategy]))
 
     expect(useQueryMock.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({
-      queryKey: ['strategies', 'account-1'],
+      queryKey: strategyKeys.listByAccount('account-1'),
       initialData: [baseStrategy],
       initialDataUpdatedAt: 0,
     }))
@@ -90,7 +91,7 @@ describe('useUpdateStrategyMutation', () => {
     const options = vi.mocked(useMutation).mock.calls.at(-1)?.[0] as unknown as { onSuccess: () => void }
     options.onSuccess()
 
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['order-preview'] })
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['orders'] })
   })
 })
 
@@ -105,6 +106,6 @@ describe('useExecuteStrategyMutation', () => {
     const options = vi.mocked(useMutation).mock.calls.at(-1)?.[0] as unknown as { onSuccess: () => void }
     options.onSuccess()
 
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['order-preview', 'strategy', 'strategy-1'] })
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['orders', 'preview', 'strategy-1'] })
   })
 })

@@ -5,10 +5,11 @@ import { toast } from 'sonner'
 import { getMeClient, deleteMe, updateNotificationChannel, updateTelegram, deleteTelegram, updateBalanceCheckEnabled, updateNickname, updateNotificationPref } from '../api'
 import type { User } from '../model/types'
 import { apiMsg } from '@shared/lib/api-client'
+import { userKeys } from '../model/queryKeys'
 
 export function useMeQuery(initialData?: User) {
   return useQuery<User>({
-    queryKey: ['me'],
+    queryKey: userKeys.me(),
     queryFn: getMeClient,
     initialData,
     initialDataUpdatedAt: initialData ? 0 : undefined,
@@ -22,7 +23,7 @@ export function useUpdateNotificationPrefMutation() {
     mutationFn: ({ type, enabled }: { type: string; enabled: boolean }) =>
       updateNotificationPref(type, enabled),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['me'] })
+      queryClient.invalidateQueries({ queryKey: userKeys.me() })
     },
     onError: (err) => toast.error(apiMsg(err, '알림 설정 변경에 실패했습니다.')),
   })
@@ -33,7 +34,7 @@ export function useUpdateBalanceCheckEnabledMutation() {
   return useMutation({
     mutationFn: (enabled: boolean) => updateBalanceCheckEnabled(enabled),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['me'] })
+      queryClient.invalidateQueries({ queryKey: userKeys.me() })
     },
     onError: (err) => toast.error(apiMsg(err, '잔고 검증 설정 변경에 실패했습니다.')),
   })
@@ -45,7 +46,7 @@ export function useUpdateNicknameMutation() {
     mutationFn: (nickname: string) => updateNickname(nickname),
     onSuccess: () => {
       toast.success('닉네임이 변경됐습니다.')
-      queryClient.invalidateQueries({ queryKey: ['me'] })
+      queryClient.invalidateQueries({ queryKey: userKeys.me() })
     },
     onError: (err) => toast.error(apiMsg(err, '닉네임 변경에 실패했습니다.')),
   })
@@ -63,7 +64,7 @@ export function useUpdateNotificationChannelMutation() {
   return useMutation({
     mutationFn: (channel: string) => updateNotificationChannel(channel),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['me'] })
+      queryClient.invalidateQueries({ queryKey: userKeys.me() })
     },
     onError: (err) => toast.error(apiMsg(err, '알림 채널 변경에 실패했습니다.')),
   })
@@ -75,7 +76,7 @@ export function useUpdateTelegramMutation() {
     mutationFn: (data: { botToken: string; chatId: string }) => updateTelegram(data),
     onSuccess: () => {
       toast.success('텔레그램이 연결됐습니다.')
-      queryClient.invalidateQueries({ queryKey: ['me'] })
+      queryClient.invalidateQueries({ queryKey: userKeys.me() })
     },
     onError: (err) => toast.error(apiMsg(err, '텔레그램 연결에 실패했습니다.')),
   })
@@ -87,7 +88,7 @@ export function useDeleteTelegramMutation() {
     mutationFn: deleteTelegram,
     onSuccess: () => {
       toast.success('텔레그램 연결이 해제됐습니다.')
-      queryClient.invalidateQueries({ queryKey: ['me'] })
+      queryClient.invalidateQueries({ queryKey: userKeys.me() })
     },
     onError: (err) => toast.error(apiMsg(err, '텔레그램 해제에 실패했습니다.')),
   })

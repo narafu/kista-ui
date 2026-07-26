@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAdminSettingsQuery, useUpdateAdminSettingsMutation } from './useAdminSettings'
+import { adminSettingsKeys } from '../model/queryKeys'
 
 const { useQueryMock, useMutationMock, invalidateQueriesMock, successMock } = vi.hoisted(() => ({
   useQueryMock: vi.fn(() => ({})),
@@ -24,7 +25,7 @@ describe('admin settings hooks', () => {
     const settings = { auth: { approvalRequired: true } }
     renderHook(() => useAdminSettingsQuery(settings as never))
     expect(useQueryMock).toHaveBeenCalledWith(expect.objectContaining({
-      queryKey: ['admin-settings'], initialData: settings, initialDataUpdatedAt: 0,
+      queryKey: adminSettingsKeys.all, initialData: settings, initialDataUpdatedAt: 0,
     }))
   })
 
@@ -32,7 +33,7 @@ describe('admin settings hooks', () => {
     renderHook(() => useUpdateAdminSettingsMutation())
     const options = useMutationMock.mock.calls.at(-1)?.[0] as unknown as { onSuccess: () => Promise<void> }
     await options.onSuccess()
-    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: ['admin-settings'] })
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: adminSettingsKeys.all })
     expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: ['runtime-config'], refetchType: 'all' })
     expect(successMock).toHaveBeenCalled()
   })

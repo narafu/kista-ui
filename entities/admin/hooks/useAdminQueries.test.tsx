@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { AdminUser } from '../model/types'
 import { useAdminUsersQuery } from './useAdminQueries'
+import { adminKeys } from '../model/queryKeys'
 
 const { useQueryMock } = vi.hoisted(() => ({
   useQueryMock: vi.fn(),
@@ -49,7 +50,7 @@ describe('useAdminUsersQuery', () => {
     renderHook(() => useAdminUsersQuery('PENDING', [baseAdminUser]))
 
     expect(useQueryMock.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({
-      queryKey: ['adminUsers', 'PENDING'],
+      queryKey: adminKeys.users('PENDING'),
       initialData: [baseAdminUser],
       initialDataUpdatedAt: 0,
     }))

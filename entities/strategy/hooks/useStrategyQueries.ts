@@ -16,6 +16,7 @@ import {
   getStrategySeedPreview,
 } from '../api'
 import type { Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
+import { strategyKeys } from '../model/queryKeys'
 
 export function useStrategySeedPreviewQuery(
   accountId: string,
@@ -23,7 +24,7 @@ export function useStrategySeedPreviewQuery(
   options?: { enabled?: boolean },
 ) {
   return useQuery<StrategySeedPreview>({
-    queryKey: ['strategySeedPreview', accountId, params.type, params.ticker, params.divisionCount],
+    queryKey: strategyKeys.seedPreview(accountId, params.type, params.ticker, params.divisionCount),
     queryFn: () => getStrategySeedPreview(accountId, params),
     enabled: options?.enabled ?? true,
     staleTime: 30_000,
@@ -32,7 +33,7 @@ export function useStrategySeedPreviewQuery(
 
 export function useAllStrategiesQuery(initialData?: Strategy[], options?: { enabled?: boolean }) {
   return useQuery<Strategy[]>({
-    queryKey: ['strategies', 'all'],
+    queryKey: strategyKeys.listAll(),
     queryFn: () => listAllStrategies(),
     initialData,
     initialDataUpdatedAt: initialData ? 0 : undefined,
@@ -43,7 +44,7 @@ export function useAllStrategiesQuery(initialData?: Strategy[], options?: { enab
 
 export function useStrategiesQuery(accountId: string, initialData?: Strategy[]) {
   return useQuery<Strategy[]>({
-    queryKey: ['strategies', accountId],
+    queryKey: strategyKeys.listByAccount(accountId),
     queryFn: () => listStrategies(accountId),
     initialData,
     initialDataUpdatedAt: initialData ? 0 : undefined,
@@ -58,7 +59,7 @@ export function useCreateStrategyMutation(accountId: string, onSuccess?: () => v
     mutationFn: (data: StrategyRequest) => createStrategy(accountId, data),
     onSuccess: () => {
       toast.success('전략이 등록되었습니다')
-      queryClient.invalidateQueries({ queryKey: ['strategies'] })
+      queryClient.invalidateQueries({ queryKey: strategyKeys.all })
       router.refresh()
       onSuccess?.()
     },
@@ -73,9 +74,9 @@ export function useUpdateStrategyMutation(strategyId: string, onSuccess?: () => 
     mutationFn: (data: Partial<StrategyRequest>) => updateStrategy(strategyId, data),
     onSuccess: () => {
       toast.success('전략이 수정되었습니다')
-      queryClient.invalidateQueries({ queryKey: ['strategies'] })
+      queryClient.invalidateQueries({ queryKey: strategyKeys.all })
       // 전략 수정 후 다음 주문/기준가 표시를 최신 상태로 갱신
-      queryClient.invalidateQueries({ queryKey: ['order-preview'] })
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
       router.refresh()
       onSuccess?.()
     },
@@ -89,7 +90,7 @@ export function usePauseStrategyMutation() {
   return useMutation({
     mutationFn: (id: string) => pauseStrategy(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['strategies'] })
+      queryClient.invalidateQueries({ queryKey: strategyKeys.all })
       router.refresh()
     },
     onError: (err) => toast.error(apiMsg(err, '일시정지에 실패했습니다')),
@@ -102,7 +103,7 @@ export function useResumeStrategyMutation() {
   return useMutation({
     mutationFn: (id: string) => resumeStrategy(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['strategies'] })
+      queryClient.invalidateQueries({ queryKey: strategyKeys.all })
       router.refresh()
     },
     onError: (err) => toast.error(apiMsg(err, '재개에 실패했습니다')),
@@ -116,7 +117,7 @@ export function useDeleteStrategyMutation(onSuccess?: () => void) {
     mutationFn: (id: string) => deleteStrategy(id),
     onSuccess: () => {
       toast.success('전략이 삭제되었습니다')
-      queryClient.invalidateQueries({ queryKey: ['strategies'] })
+      queryClient.invalidateQueries({ queryKey: strategyKeys.all })
       router.refresh()
       onSuccess?.()
     },
@@ -130,7 +131,7 @@ export function useExecuteStrategyMutation(strategyId: string | undefined) {
     mutationFn: () => executeStrategy(strategyId!),
     onSuccess: () => {
       toast.success('매매 실행이 요청됐습니다. 장 마감 후 체결 결과를 확인하세요.')
-      queryClient.invalidateQueries({ queryKey: ['order-preview', 'strategy', strategyId] })
+      queryClient.invalidateQueries({ queryKey: ['orders', 'preview', strategyId] })
     },
     onError: (e) => {
       if (e instanceof ApiError) {

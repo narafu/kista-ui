@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { User } from '../model/types'
 import { useMeQuery } from './useUserQueries'
+import { userKeys } from '../model/queryKeys'
 
 const { useQueryMock } = vi.hoisted(() => ({
   useQueryMock: vi.fn(),
@@ -49,7 +50,7 @@ describe('useMeQuery', () => {
     renderHook(() => useMeQuery(baseUser))
 
     expect(useQueryMock.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({
-      queryKey: ['me'],
+      queryKey: userKeys.me(),
       initialData: baseUser,
       initialDataUpdatedAt: 0,
     }))

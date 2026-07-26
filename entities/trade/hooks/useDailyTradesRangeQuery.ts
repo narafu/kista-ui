@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { getDailyTransactionsBatch } from '../api'
+import { tradeKeys } from '../model/queryKeys'
 
 export interface DayTradeSummary {
   tradeCount: number
@@ -22,7 +23,7 @@ export function useDailyTradesRangeQuery(accountIds: string[], from: Date, to: D
   const toStr = toDateStr(to)
 
   return useQuery<Map<string, DayTradeSummary>>({
-    queryKey: ['dailyTradesRange', accountIds.join(','), fromStr, toStr],
+    queryKey: tradeKeys.dailyRange(accountIds, fromStr, toStr),
     queryFn: async () => {
       const result = await getDailyTransactionsBatch({ from: fromStr, to: toStr })
       const map = new Map<string, DayTradeSummary>()

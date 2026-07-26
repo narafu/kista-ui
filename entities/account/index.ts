@@ -1,5 +1,6 @@
 // entities/account public API
 export type { Account, AccountRequest, BrokerCode } from './model/types'
+export { accountKeys } from './model/queryKeys'
 export type { MarginItem, PriceMap } from './api'
 export {
   listAccounts,
