@@ -44,7 +44,7 @@ describe('NicknameEditor', () => {
 
     expect(mutateMock).toHaveBeenCalledWith('새 닉네임', expect.objectContaining({ onSuccess: expect.any(Function) }))
     expect(screen.queryByLabelText('닉네임')).not.toBeInTheDocument()
-    expect(routerRefreshMock).toHaveBeenCalled()
+    expect(routerRefreshMock).not.toHaveBeenCalled()
   })
 
   it('cancels editing with the escape key without saving', async () => {

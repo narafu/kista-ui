@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useUpdateNotificationChannelMutation } from '@entities/user'
 import { useFcmToken, registerTokenToServer, unregisterTokenFromServer } from '@entities/fcm'
@@ -22,7 +21,6 @@ interface Props {
 }
 
 export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
-  const router = useRouter()
   const { status: fcmStatus, prewarm, acquireToken, getCachedToken } = useFcmToken()
   const mutation = useUpdateNotificationChannelMutation()
   const [pendingChannel, setPendingChannel] = useState<NotificationChannel | null>(null)
@@ -50,7 +48,6 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
         const cachedToken = getCachedToken()
         await mutation.mutateAsync(next)
         if (cachedToken) unregisterTokenFromServer(cachedToken).catch(() => {})
-        router.refresh()
         return
       }
 
@@ -85,7 +82,6 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
           return
         }
         toast.success('푸시 알림이 등록되었습니다')
-        router.refresh()
         return
       }
 
@@ -93,7 +89,6 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
       if (next === 'FCM' || next === 'ALL') {
         toast.success('푸시 알림이 등록되었습니다')
       }
-      router.refresh()
     } catch {
       // mutation 에러는 React Query가 처리
     } finally {

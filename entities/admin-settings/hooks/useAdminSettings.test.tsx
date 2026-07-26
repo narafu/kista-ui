@@ -3,17 +3,19 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAdminSettingsQuery, useUpdateAdminSettingsMutation } from './useAdminSettings'
 import { adminSettingsKeys } from '../model/queryKeys'
 
-const { useQueryMock, useMutationMock, invalidateQueriesMock, successMock } = vi.hoisted(() => ({
+const { useQueryMock, useMutationMock, invalidateQueriesMock, setQueryDataMock, successMock } = vi.hoisted(() => ({
   useQueryMock: vi.fn(() => ({})),
   useMutationMock: vi.fn((_options: unknown) => ({})),
   invalidateQueriesMock: vi.fn(),
+  setQueryDataMock: vi.fn(),
   successMock: vi.fn(),
 }))
 
 vi.mock('@tanstack/react-query', () => ({
   useQuery: useQueryMock,
   useMutation: useMutationMock,
-  useQueryClient: () => ({ invalidateQueries: invalidateQueriesMock }),
+  useQueryClient: () => ({ invalidateQueries: invalidateQueriesMock, setQueryData: setQueryDataMock }),
+  queryOptions: (options: unknown) => options,
 }))
 vi.mock('sonner', () => ({ toast: { success: successMock, error: vi.fn() } }))
 vi.mock('../api', () => ({ getAdminSettings: vi.fn(), updateAdminSettings: vi.fn() }))
@@ -21,20 +23,23 @@ vi.mock('../api', () => ({ getAdminSettings: vi.fn(), updateAdminSettings: vi.fn
 describe('admin settings hooks', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('uses server data but refetches it on mount', () => {
-    const settings = { auth: { approvalRequired: true } }
-    renderHook(() => useAdminSettingsQuery(settings as never))
+  it('reads the hydrated canonical admin settings query without server initial data props', () => {
+    renderHook(() => useAdminSettingsQuery())
     expect(useQueryMock).toHaveBeenCalledWith(expect.objectContaining({
-      queryKey: adminSettingsKeys.all, initialData: settings, initialDataUpdatedAt: 0,
+      queryKey: adminSettingsKeys.all,
     }))
+    const queryOptions = (useQueryMock.mock.calls as unknown as Array<[Record<string, unknown>]>).at(-1)?.[0]
+    expect(queryOptions).not.toHaveProperty('initialData')
   })
 
-  it('refetches admin and runtime settings only after a successful update', async () => {
+  it('stores a successful update in the canonical admin settings cache', async () => {
     renderHook(() => useUpdateAdminSettingsMutation())
-    const options = useMutationMock.mock.calls.at(-1)?.[0] as unknown as { onSuccess: () => Promise<void> }
-    await options.onSuccess()
-    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: adminSettingsKeys.all })
-    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: ['runtime-config'], refetchType: 'all' })
-    expect(successMock).toHaveBeenCalled()
+    const settings = { auth: { approvalRequired: false } }
+    const options = (useMutationMock.mock.calls as unknown as Array<[{ onSuccess: (settings: unknown) => Promise<void> }]>).at(-1)?.[0]
+    if (!options) throw new Error('mutation options were not registered')
+    await options.onSuccess(settings)
+    expect(setQueryDataMock).toHaveBeenCalledWith(adminSettingsKeys.all, settings)
+    expect(invalidateQueriesMock).not.toHaveBeenCalled()
+    expect(successMock).not.toHaveBeenCalled()
   })
 })

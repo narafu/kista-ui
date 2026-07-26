@@ -8,15 +8,12 @@ import { fmtDate } from '@shared/lib/format'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
-import type { AdminUser } from '@entities/admin'
-
 interface Props {
-  initialUsers: AdminUser[]
   max?: number
 }
 
-export function AdminPendingList({ initialUsers, max }: Props) {
-  const { data: users = initialUsers } = useAdminUsersQuery('PENDING', initialUsers)
+export function AdminPendingList({ max }: Props) {
+  const { data: users = [] } = useAdminUsersQuery('PENDING')
   const [page, setPage] = useState(1)
   const [size, setSize] = useState(10)
 

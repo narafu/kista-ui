@@ -1,17 +1,16 @@
+import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
-import { getAdminStats, listAdminUsers } from '@entities/admin'
+import { adminUsersQueryOptions, getAdminStats } from '@entities/admin'
 import { AdminPendingList } from '@widgets/admin-user-list'
 import { Users, Clock, CheckCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
+import { createQueryClient } from '@shared/lib/query'
 
 export default async function AdminOverviewPage() {
   const token = await getAuthToken()
-  const [stats, pendingUsers] = await Promise.all([
-    token ? getAdminStats(token).catch(() => null) : null,
-    token ? listAdminUsers(token, 'PENDING').catch(() => []) : [],
-  ])
-
-  const recentPending = pendingUsers.slice(0, 5) // 최대 5명만 표시
+  const stats = token ? await getAdminStats(token).catch(() => null) : null
+  const queryClient = createQueryClient()
+  if (token) await queryClient.prefetchQuery(adminUsersQueryOptions('PENDING', token))
 
   return (
     <div className="reveal-stagger">
@@ -44,7 +43,7 @@ export default async function AdminOverviewPage() {
           </Link>
         </div>
 
-        <AdminPendingList initialUsers={recentPending} max={5} />
+        <HydrationBoundary state={dehydrate(queryClient)}><AdminPendingList max={5} /></HydrationBoundary>
       </section>
     </div>
   )

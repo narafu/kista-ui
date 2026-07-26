@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Send, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -19,7 +18,6 @@ interface Props {
 }
 
 export function TelegramSection({ hasTelegram, telegramBotUsername, currentChannel }: Props) {
-  const router = useRouter()
   const [botToken, setBotToken] = useState('')
   const [chatId, setChatId] = useState('')
   const [botTokenError, setBotTokenError] = useState('')
@@ -47,9 +45,7 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
             : currentChannel === 'FCM' ? 'ALL'
             : null
           if (nextChannel) {
-            updateChannelMutation.mutate(nextChannel, { onSuccess: () => router.refresh() })
-          } else {
-            router.refresh()
+            updateChannelMutation.mutate(nextChannel)
           }
         },
         onError: (err) => {
@@ -91,7 +87,7 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
             </div>
             <button
               type="button"
-              onClick={() => deleteMutation.mutate(undefined, { onSuccess: () => router.refresh() })}
+              onClick={() => deleteMutation.mutate()}
               disabled={isDeleteLoading}
               className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'text-destructive hover:text-destructive shrink-0')}
             >

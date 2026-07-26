@@ -14,13 +14,19 @@ vi.mock('@widgets/pull-to-refresh', () => ({
   PullToRefresh: () => <div data-testid='pull-to-refresh' />,
 }))
 
+vi.mock('@entities/meta', () => ({
+  MetaProvider: ({ children }: { children: React.ReactNode }) => children,
+  getMetaBundle: vi.fn().mockResolvedValue({}),
+}))
+
+vi.mock('@shared/lib/auth/token', () => ({
+  getAuthToken: vi.fn().mockResolvedValue('token'),
+}))
+
 describe('AdminLayout', () => {
-  it('renders pull-to-refresh for admin pages', () => {
-    render(
-      <AdminLayout>
-        <div>admin content</div>
-      </AdminLayout>,
-    )
+  it('renders pull-to-refresh for admin pages', async () => {
+    const layout = await AdminLayout({ children: <div>admin content</div> })
+    render(layout)
 
     expect(screen.getByTestId('pull-to-refresh')).toBeInTheDocument()
   })

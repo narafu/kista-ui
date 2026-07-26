@@ -1,7 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { buttonVariants } from '@/components/ui/button-variants'
 import {
@@ -24,18 +23,23 @@ interface Props {
 }
 
 export function ErrorLogsSectionClient({ logs }: Props) {
-  const router = useRouter()
+  const [visibleLogs, setVisibleLogs] = useState(logs)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [open, setOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
   const selectedCount = selectedIds.length
-  const allSelected = logs.length > 0 && selectedCount === logs.length
+  const allSelected = visibleLogs.length > 0 && selectedCount === visibleLogs.length
   const someSelected = selectedCount > 0 && !allSelected
   const selectedLabel = useMemo(() => `선택 ${selectedCount}건 삭제`, [selectedCount])
 
+  useEffect(() => {
+    setVisibleLogs(logs)
+    setSelectedIds([])
+  }, [logs])
+
   const toggleAll = (checked: boolean) => {
-    setSelectedIds(checked ? logs.map((log) => log.id) : [])
+    setSelectedIds(checked ? visibleLogs.map((log) => log.id) : [])
   }
 
   const toggleOne = (id: string, checked: boolean) => {
@@ -56,8 +60,9 @@ export function ErrorLogsSectionClient({ logs }: Props) {
     setOpen(false)
 
     if (successCount > 0) {
+      const deletedIds = new Set(selectedIds.filter((_, index) => results[index]?.status === 'fulfilled'))
+      setVisibleLogs((current) => current.filter((log) => !deletedIds.has(log.id)))
       setSelectedIds([])
-      router.refresh()
     }
 
     if (failedCount === 0) {
@@ -84,7 +89,7 @@ export function ErrorLogsSectionClient({ logs }: Props) {
             ref={(node) => {
               if (node) node.indeterminate = someSelected
             }}
-            disabled={isDeleting || logs.length === 0}
+            disabled={isDeleting || visibleLogs.length === 0}
             onChange={(event) => toggleAll(event.target.checked)}
             className="size-4 rounded border-border accent-rose-600"
           />
@@ -110,7 +115,7 @@ export function ErrorLogsSectionClient({ logs }: Props) {
         </AlertDialog>
       </div>
 
-      {logs.map((log) => (
+      {visibleLogs.map((log) => (
         <ErrorLogItem key={log.id} log={log} checked={selectedIds.includes(log.id)} disabled={isDeleting} onCheckedChange={(checked) => toggleOne(log.id, checked)} />
       ))}
     </div>

@@ -1,4 +1,5 @@
 export const adminKeys = {
   all: ['admin'] as const,
-  users: (filter?: string) => [...adminKeys.all, 'users', filter ?? 'ALL'] as const,
+  usersRoot: () => [...adminKeys.all, 'users'] as const,
+  users: (filter?: string) => [...adminKeys.usersRoot(), filter ?? 'ALL'] as const,
 }

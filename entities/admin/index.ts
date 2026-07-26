@@ -15,6 +15,7 @@ export type {
   AppErrorLog,
 } from './model/types'
 export { adminKeys } from './model/queryKeys'
+export { adminUsersQueryOptions } from './model/queryOptions'
 export {
   listAdminUsers,
   approveAdminUser,

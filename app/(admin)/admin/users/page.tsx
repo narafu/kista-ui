@@ -1,9 +1,10 @@
+import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
-import { listAdminUsers } from '@entities/admin'
+import { adminUsersQueryOptions } from '@entities/admin'
 import { getMe } from '@entities/user'
-import { AdminUsersTable } from '@widgets/admin-user-list'
-import { UrlRangeFilterBar } from '@shared/ui/UrlRangeFilterBar'
-import { parseRangePreset, resolveRange } from '@shared/lib/date-range'
+import { AdminUsersContent } from '@widgets/admin-user-list'
+import { parseRangePreset } from '@shared/lib/date-range'
+import { createQueryClient } from '@shared/lib/query'
 
 export default async function AdminUsersPage({
   searchParams,
@@ -12,28 +13,16 @@ export default async function AdminUsersPage({
 }) {
   const { range: rawRange, from, to } = await searchParams
   const range = parseRangePreset(rawRange, 'all')
-  const { from: resolvedFrom, to: resolvedTo } = resolveRange(range, from, to)
-
   const token = await getAuthToken()
-  const [users, me] = token
-    ? await Promise.all([
-        listAdminUsers(token, undefined, resolvedFrom, resolvedTo).catch(() => []),
-        getMe(token).catch(() => null),
-      ])
-    : [[], null]
+  const queryClient = createQueryClient()
+  const me = token ? await getMe(token).catch(() => null) : null
+  if (token) await queryClient.prefetchQuery(adminUsersQueryOptions(undefined, token))
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-extrabold">사용자 목록</h1>
-        <p className="text-sm text-muted-foreground mt-1">전체 {users.length}명</p>
-      </div>
-      <AdminUsersTable
-        initialUsers={users}
-        currentUserId={me?.id ?? null}
-        // eslint-disable-next-line react-doctor/jsx-no-jsx-as-prop
-        filterBar={<UrlRangeFilterBar current={range} from={from} to={to} />}
-      />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <AdminUsersContent currentUserId={me?.id ?? null} range={range} from={from} to={to} />
+      </HydrationBoundary>
     </div>
   )
 }

@@ -1,6 +1,8 @@
 'use client'
 
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { AlertTriangle, Plus, RotateCcw, Save, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,6 +12,7 @@ import { useMeta } from '@entities/meta'
 import type { BrokerCode } from '@shared/lib/api-schema'
 import {
   DEFAULT_RUNTIME_BENCHMARKS,
+  runtimeConfigKeys,
   type RecurringMode,
   type RuntimeBenchmarkFieldSettings,
   type RuntimeConfig,
@@ -328,14 +331,22 @@ function FieldEditor<T extends string | number>({ id, label, field, error, fixed
   )
 }
 
-export function AdminSettingsForm({ initialSettings }: { initialSettings: RuntimeConfig }) {
+export function AdminSettingsForm() {
+  const { data } = useAdminSettingsQuery()
+
+  if (!data) return null
+
+  return <AdminSettingsFormContent settings={data} />
+}
+
+function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
   const { meta, labelOf } = useMeta()
-  const { data } = useAdminSettingsQuery(initialSettings)
   const mutation = useUpdateAdminSettingsMutation()
-  const [draft, setDraft] = useState(() => clone(initialSettings))
-  const [serverSnapshot, setServerSnapshot] = useState(() => clone(initialSettings))
+  const queryClient = useQueryClient()
+  const [draft, setDraft] = useState(() => clone(settings))
+  const [serverSnapshot, setServerSnapshot] = useState(() => clone(settings))
   const latestServerRef = useRef<RuntimeConfig | null>(null)
-  if (latestServerRef.current === null) latestServerRef.current = clone(initialSettings)
+  if (latestServerRef.current === null) latestServerRef.current = clone(settings)
   const draftRef = useRef(draft)
   const [attempted, setAttempted] = useState(false)
   const tickerSuggestions = useMemo(() => meta.tickers.map((ticker) => ticker.code), [meta.tickers])
@@ -348,12 +359,11 @@ export function AdminSettingsForm({ initialSettings }: { initialSettings: Runtim
   })
 
   useEffect(() => {
-    if (!data) return
     const wasPristine = JSON.stringify(draftRef.current) === JSON.stringify(latestServerRef.current)
-    latestServerRef.current = clone(data)
-    setServerSnapshot(clone(data))
-    if (wasPristine) setDraft(clone(data))
-  }, [data])
+    latestServerRef.current = clone(settings)
+    setServerSnapshot(clone(settings))
+    if (wasPristine) setDraft(clone(settings))
+  }, [settings])
 
   const errors = useMemo(() => validateAdminSettings(draft), [draft])
   const dirty = JSON.stringify(draft) !== JSON.stringify(serverSnapshot)
@@ -388,7 +398,13 @@ export function AdminSettingsForm({ initialSettings }: { initialSettings: Runtim
     event.preventDefault()
     setAttempted(true)
     if (Object.keys(errors).length > 0 || mutation.isPending) return
-    mutation.mutate(draft, { onSuccess: () => setAttempted(false) })
+    mutation.mutate(draft, {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({ queryKey: runtimeConfigKeys.all, refetchType: 'all' })
+        toast.success('운영 설정을 저장했습니다.')
+        setAttempted(false)
+      },
+    })
   }
   const reset = () => {
     setDraft(clone(latestServerRef.current!))

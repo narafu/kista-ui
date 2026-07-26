@@ -5,6 +5,7 @@ export type {
   User,
 } from './model/types'
 export { userKeys } from './model/queryKeys'
+export { meQueryOptions } from './model/queryOptions'
 export {
   getMe,
   getMeClient,
