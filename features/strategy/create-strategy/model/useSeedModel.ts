@@ -95,9 +95,10 @@ export function useSeedModel({
   const existingHoldingsValue = !balanceCheckEnabled ? (avgPrice ?? 0) * (quantity ?? 0) : 0
   const isBelowMinSeed = seedUsd !== null && minSeed !== null && seedUsd + existingHoldingsValue < minSeed
 
-  // seedUsd가 0 이하이면 제출 불가 (예수금 0 or OFF 모드 빈칸)
+  // seedUsd가 0 이하이면 제출 불가 (예수금 0 or OFF 모드 빈칸) — 단, OFF 모드는 보유 평가금액만으로 충분하면 예수금 0도 허용
+  // (VR 거치식이 초기 V값만으로 시드 0을 허용하는 것과 동일한 규칙 — 둘 다 완전히 비어있을 때만 차단)
   const isInvalidSeed = !balanceCheckEnabled
-    ? (seedUsdInput ?? 0) <= 0
+    ? existingHoldingsValue <= 0 && (seedUsdInput ?? 0) <= 0
     : seedUsd === null || seedUsd <= 0
 
   return {

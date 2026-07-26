@@ -47,4 +47,37 @@ describe('useSeedModel', () => {
 
     expect(result.current.isBelowMinSeed).toBe(true)
   })
+
+  it('allows zero deposit when existing holdings value alone meets the minimum seed', () => {
+    const { result } = renderHook(() =>
+      useSeedModel({
+        balanceCheckEnabled: false,
+        usdDeposit: null,
+        minSeed: 3000,
+        avgPrice: 100,
+        quantity: 31,
+      }),
+    )
+
+    act(() => result.current.setSeedUsdInput(0))
+
+    expect(result.current.isBelowMinSeed).toBe(false)
+    expect(result.current.isInvalidSeed).toBe(false)
+  })
+
+  it('still rejects zero deposit when there are no existing holdings', () => {
+    const { result } = renderHook(() =>
+      useSeedModel({
+        balanceCheckEnabled: false,
+        usdDeposit: null,
+        minSeed: 3000,
+        avgPrice: null,
+        quantity: null,
+      }),
+    )
+
+    act(() => result.current.setSeedUsdInput(0))
+
+    expect(result.current.isInvalidSeed).toBe(true)
+  })
 })
