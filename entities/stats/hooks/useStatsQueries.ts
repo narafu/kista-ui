@@ -21,13 +21,12 @@ import type {
   StatsSummary,
 } from '../model/types'
 
-const EMPTY_CYCLE_PAGE: CyclePerformancePage = { items: [], nextCursor: null, hasMore: false }
-
 export function useStatsSummaryQuery(initialData?: StatsSummary) {
   return useQuery<StatsSummary>({
     queryKey: statsKeys.summary(),
     queryFn: () => getStatsSummary(),
     initialData,
+    staleTime: 60_000,
   })
 }
 
@@ -43,6 +42,7 @@ export function useEquityCurveQuery(params: EquityCurveParams, initialData?: Equ
     queryFn: () => getEquityCurve(params),
     initialData,
     placeholderData: (prev) => prev,
+    staleTime: 60_000,
   })
 }
 
@@ -52,6 +52,7 @@ export function useHousingBenchmarkQuery(params: HousingBenchmarkParams, enabled
     queryFn: () => getHousingBenchmarkComparison(params),
     enabled,
     placeholderData: (previous) => previous,
+    staleTime: 60_000,
   })
 }
 
@@ -67,6 +68,7 @@ export function useHousingBenchmarkSeriesQuery(params: HousingBenchmarkSeriesPar
     queryFn: () => getHousingBenchmarkSeries(params),
     enabled,
     placeholderData: (prev) => prev,
+    staleTime: 60_000,
   })
 }
 
@@ -81,18 +83,17 @@ export function useHousingBenchmarkRegionsQuery(enabled: boolean) {
 }
 
 export function useStatsCyclesQuery(type?: string) {
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery<CyclePerformancePage>({
       queryKey: statsKeys.cycles(type ?? 'ALL'),
       queryFn: ({ pageParam }) =>
-        getStatsCycles({ type, cursor: pageParam as string | undefined }).catch(
-          () => EMPTY_CYCLE_PAGE
-        ),
+        getStatsCycles({ type, cursor: pageParam as string | undefined }),
       initialPageParam: undefined,
       getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
       placeholderData: (prev) => prev,
+      staleTime: 60_000,
     })
 
   const cycles: CyclePerformance[] = data?.pages.flatMap((p) => p.items) ?? []
-  return { cycles, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage }
+  return { cycles, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage }
 }

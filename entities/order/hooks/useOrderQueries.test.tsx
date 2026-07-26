@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { useStrategyOrderPreviewQuery } from './useOrderQueries'
+import { useStrategyOrderPreviewQuery, useStrategyOrdersQuery } from './useOrderQueries'
 import { orderKeys } from '../model/queryKeys'
 
 const { useQueryMock } = vi.hoisted(() => ({
@@ -60,5 +60,18 @@ describe('useStrategyOrderPreviewQuery', () => {
 
   it('데이터가 없으면 자동 재시도를 걸지 않는다', () => {
     expect(refetchIntervalOf(undefined)).toBe(false)
+  })
+})
+
+describe('useStrategyOrdersQuery', () => {
+  it('historical order data stays fresh for one minute', () => {
+    useQueryMock.mockReturnValue({ data: undefined })
+
+    renderHook(() => useStrategyOrdersQuery('strategy-1', '2026-07-01', '2026-07-31'))
+
+    expect(useQueryMock.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({
+      queryKey: orderKeys.history('strategy-1', '2026-07-01', '2026-07-31'),
+      staleTime: 60_000,
+    }))
   })
 })

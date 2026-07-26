@@ -8,13 +8,14 @@ import { TableDataCell } from '@shared/ui/TableDataCell'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
 import { useStatsCyclesQuery } from '@entities/stats'
+import { SectionError } from '@shared/ui/SectionError'
 
 interface Props {
   typeFilter?: string
 }
 
 export function CyclePerformanceList({ typeFilter }: Props) {
-  const { cycles, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useStatsCyclesQuery(typeFilter)
+  const { cycles, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useStatsCyclesQuery(typeFilter)
 
   return (
     <Card className="overflow-hidden">
@@ -24,6 +25,8 @@ export function CyclePerformanceList({ typeFilter }: Props) {
       <CardContent className="p-0">
         {isLoading ? (
           <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">불러오는 중…</div>
+        ) : isError ? (
+          <SectionError message="사이클 성과를 불러오지 못했습니다" />
         ) : cycles.length === 0 ? (
           <EmptyState variant="text" message="사이클 내역이 없습니다." />
         ) : (

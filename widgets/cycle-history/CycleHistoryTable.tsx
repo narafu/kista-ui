@@ -12,10 +12,12 @@ import { TableDataCell } from '@shared/ui/TableDataCell'
 import { RangeFilterControls } from '@shared/ui/range-filter/RangeFilterControls'
 import { useRangeFilterState } from '@shared/lib/hooks/use-range-filter-state'
 import { resolveRangeStrict } from '@shared/lib/date-range'
+import { SectionError } from '@shared/ui/SectionError'
 
 interface HistoryQueryResult {
   cycleHistory: CycleHistoryItem[]
   isLoading: boolean
+  isError?: boolean
   fetchNextPage: () => void
   hasNextPage?: boolean
   isFetchingNextPage?: boolean
@@ -33,7 +35,7 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
     useRangeFilterState()
   const baseParams = resolveRangeStrict(rangeType, customFrom, customTo)
   const params = baseParams !== null ? { ...baseParams, size: Number(pageSize) } : null
-  const { cycleHistory, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useHistoryQuery(id, params)
+  const { cycleHistory, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useHistoryQuery(id, params)
 
   if (!id && emptyIdMessage) {
     return (
@@ -78,6 +80,8 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
       <CardContent className="p-0">
         {isLoading ? (
           <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">불러오는 중…</div>
+        ) : isError ? (
+          <SectionError message="잔고 이력을 불러오지 못했습니다" />
         ) : cycleHistory.length === 0 ? (
           <EmptyState variant="text" message="잔고 이력이 없습니다." />
         ) : (
