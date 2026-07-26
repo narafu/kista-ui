@@ -1,6 +1,7 @@
 # entities/ — 도메인 모델 · API 함수 · React Query 훅
 
 FSD 계층에서 가장 저수준 도메인 레이어. `shared/`만 import 가능. 동일 계층 cross-import 금지.
+캐시 소유권과 mutation 동기화의 규범은 `docs/agents/cache-policy.md`를 따른다.
 
 ## 의존성 규칙
 
@@ -41,15 +42,15 @@ entities/{domain}/
 
 ## 훅 작성 패턴
 
-- **Server Component prop → initialData**: 서버가 내려준 prop을 `useXxxQuery(id, initialData)`로 연결 — 뮤테이션 후 `invalidateQueries`로 즉시 리페치. `AccountDetailTabs`/`AdminPendingList` 등이 이 패턴 사용.
-- **삭제 후 캐시 정리**: `invalidateQueries` 대신 `removeQueries`/`setQueryData` 사용 — `invalidateQueries`는 캐시를 만료 표시만 해 이동 후 stale 데이터 잠깐 표시됨. `useDeleteAccountMutation`은 목록에서 제거하고 detail/margin/prices 쿼리를 삭제한다.
-- Query 훅: `useXxxQuery` — `queryKey`, `queryFn`, 필요 시 `initialData`/`staleTime`
-- Server/Client 공유 옵션: `xxxQueryOptions(token?)` — Server Component는 token으로 `prefetchQuery`, Client Component는 token 없이 `useQuery`에서 재사용
+- **가변 SSR 데이터**: 요청별 QueryClient에서 prefetch/dehydrate한다. Server Component prop을 query의 canonical `initialData`로 사용하거나 `initialDataUpdatedAt: 0`으로 즉시 stale 처리하지 않는다
+- **삭제 후 캐시 정리**: list는 `setQueryData`로 항목을 제거하고 삭제 identifier의 detail/live key만 `removeQueries`한다. `removeQueries({ queryKey: accountKeys.all })` 같은 broad root 삭제는 금지한다
+- Query 훅: `useXxxQuery` — key factory의 `queryKey`, `queryFn`, 데이터 성격에 맞는 `staleTime`
+- Server/Client 공유 옵션: server-safe `model/queryOptions.ts`의 `xxxQueryOptions(token?)` — Server Component는 token으로 `prefetchQuery`, Client Component는 token 없이 `useQuery`에서 재사용
 - Mutation 훅: `useXxxMutation` — 엔티티 훅은 API 호출과 도메인 캐시 동기화를 캡슐화하고 `onError`에 `toast.error`를 둔다. 성공 toast, 라우팅, 다른 도메인 무효화는 호출 feature의 `mutate(data, { onSuccess })`에서 처리한다
 - 호출부에서 추가 동작이 필요하면 `mutation.mutate(data, { onSuccess: () => callback() })` 패턴 사용
-- **SSR initialData 패턴**: `useMonthlyHolidaysQuery(year, month, holidays)` — `initialData` + `staleTime: 1h`로 마운트 시 재요청 방지
+- **참조 데이터 initialData 예외**: `useMonthlyHolidaysQuery(year, month, holidays)` — 성공적으로 받은 서버 데이터만 `initialData` + `staleTime: 24h`, 미주입/실패 상태는 `staleTime: 0`으로 즉시 조회
 
-**queryKey**: 각 훅에 정의(코드가 SSOT). **캐시 공유 패턴** — 서로 다른 위젯이 동일 서버 데이터를 소비하면, 훅 호출 파라미터를 일치시켜 queryKey를 맞춰 React Query 캐시를 공유(중복 fetch 방지).
+**queryKey**: 각 entity의 `model/queryKeys.ts` factory가 SSOT다. 서로 다른 위젯이 동일 서버 데이터를 소비하면 같은 factory와 파라미터를 사용해 React Query 캐시를 공유한다.
 
 ## index.ts 규칙
 

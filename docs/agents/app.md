@@ -1,5 +1,7 @@
 # app/ — Next.js · proxy · 쿠키 · SSE · PWA
 
+UI 캐시 소유권, hydration, mutation 동기화, `router.refresh()` 예외는 `docs/agents/cache-policy.md`를 SSOT로 따른다.
+
 ## proxy.ts (Edge runtime)
 
 - **admin role 가드**: `ROLE_COOKIE='kista-user-role'` + `ADMIN_PREFIXES=['/admin']` — 비ADMIN → `/dashboard`. role은 `/api/auth/me` 응답에서 캐시. admin 화면 추가 시 별도 설정 불필요
@@ -43,8 +45,9 @@
 
 ## 캐싱 (Server Component)
 
-- **`unstable_cache` + `revalidateTag`**: `shared/lib/cache/`. 5분 TTL. 대상: listAccounts·listStrategies·getMe. 제외: KIS 실시간(portfolio·trades). 에러 핸들링·`revalidateTag` 사용법은 `docs/agents/shared.md` 참고
-- **React Query hydration**: `/dashboard`, `/accounts`는 Server Component에서 `createQueryClient()`로 계좌 목록을 `prefetchQuery`하고 `<HydrationBoundary>`로 Client Content에 넘긴다. 삭제/생성 후 화면 전환은 서버 분기가 아니라 `accountKeys.list()` 캐시 변화가 담당한다
+- **가변 인증 데이터**: `accounts`·`strategies`·`me`는 Next.js persistent cache를 사용하지 않는다. 요청별 `createQueryClient()` + `prefetchQuery()` + `<HydrationBoundary>`로 넘기고 Client Content가 목록/빈 상태를 결정한다
+- **서버용 query options**: Server Component가 호출하는 factory는 `'use client'` hook 파일이 아니라 `entities/*/model/queryOptions.ts`에 둔다
+- **Next.js persistent cache**: 느리게 변하는 reference/public 데이터에만 TTL/tag를 명시해 허용한다. 세부 기준과 `router.refresh()` 예외는 `docs/agents/cache-policy.md` 참고
 
 ## Toaster · UI 전역
 

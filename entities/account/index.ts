@@ -1,6 +1,7 @@
 // entities/account public API
 export type { Account, AccountRequest, BrokerCode } from './model/types'
 export { accountKeys } from './model/queryKeys'
+export { accountListQueryOptions } from './model/queryOptions'
 export type { MarginItem, PriceMap } from './api'
 export {
   listAccounts,
@@ -11,7 +12,6 @@ export {
   getPrices,
 } from './api'
 export {
-  accountListQueryOptions,
   useAccountsQuery,
 } from './hooks/useAccountQueries'
 export {
