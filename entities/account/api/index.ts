@@ -11,8 +11,11 @@ export interface MarginItem {
 
 export type PriceMap = Record<string, number>
 
-export async function listAccounts(token: string): Promise<Account[]> {
-  return apiFetch<Account[]>('/api/accounts', { method: 'GET' }, token)
+export async function listAccounts(token?: string): Promise<Account[]> {
+  if (token) {
+    return apiFetch<Account[]>('/api/accounts', { method: 'GET' }, token)
+  }
+  return clientFetch<Account[]>('/api/accounts')
 }
 
 export async function createAccount(data: AccountRequest, token?: string): Promise<Account> {

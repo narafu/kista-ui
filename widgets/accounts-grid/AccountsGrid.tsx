@@ -9,10 +9,10 @@ const PAGE_SIZE = 12
 
 interface Props {
   accounts: Account[]
-  strategiesByAccount: Strategy[][]
+  strategiesByAccount?: Strategy[][]
 }
 
-export function AccountsGrid({ accounts, strategiesByAccount }: Props) {
+export function AccountsGrid({ accounts, strategiesByAccount = [] }: Props) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const visible = accounts.slice(0, visibleCount)
   const hasMore = visibleCount < accounts.length

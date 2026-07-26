@@ -1,14 +1,14 @@
 import type { Metadata } from 'next'
-import { Landmark } from 'lucide-react'
+import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
+
 import { PageHeader } from '@widgets/page-header'
-import { AccountsGrid } from '@widgets/accounts-grid/AccountsGrid'
+import { AccountsPageContent } from '@widgets/accounts-grid/AccountsPageContent'
 import { getAuthToken } from '@shared/lib/auth/token'
-import { getCachedAccounts } from '@entities/account'
-import { getCachedStrategies } from '@entities/strategy'
+import { accountKeys, accountListQueryOptions } from '@entities/account'
+import { listStrategies, strategyKeys } from '@entities/strategy'
 import { NewAccountButton } from '@features/account/create-account'
-import { EmptyState } from '@shared/ui/EmptyState'
 import type { Account } from '@entities/account'
-import type { Strategy } from '@entities/strategy'
+import { createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
   title: '내 계좌 | KISTA',
@@ -17,13 +17,20 @@ export const metadata: Metadata = {
 
 export default async function AccountsPage() {
   const token = await getAuthToken()
-  const accounts: Account[] = token ? await getCachedAccounts(token).catch((): Account[] => []) : []
+  const queryClient = createQueryClient()
 
-  const strategiesByAccount: Strategy[][] = token
-    ? await Promise.all(
-        accounts.map((a) => getCachedStrategies(a.id, token).catch((): Strategy[] => []))
-      )
-    : accounts.map(() => [])
+  if (token) {
+    await queryClient.prefetchQuery(accountListQueryOptions(token))
+    const accounts = queryClient.getQueryData<Account[]>(accountKeys.list()) ?? []
+    await Promise.all(
+      accounts.map((account) =>
+        queryClient.prefetchQuery({
+          queryKey: strategyKeys.listByAccount(account.id),
+          queryFn: () => listStrategies(account.id, token),
+        }).catch(() => undefined),
+      ),
+    )
+  }
 
   return (
     <div>
@@ -34,16 +41,9 @@ export default async function AccountsPage() {
           <NewAccountButton>계좌 등록</NewAccountButton>
         }
       />
-      {accounts.length === 0 ? (
-        <EmptyState
-          icon={<Landmark className="size-7 text-muted-foreground" />}
-          title="등록된 계좌가 없습니다"
-          message="한국투자증권 계좌를 연결해 자동 분할매매를 시작하세요."
-          action={<NewAccountButton>계좌 등록하기</NewAccountButton>}
-        />
-      ) : (
-        <AccountsGrid accounts={accounts} strategiesByAccount={strategiesByAccount} />
-      )}
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <AccountsPageContent />
+      </HydrationBoundary>
     </div>
   )
 }
