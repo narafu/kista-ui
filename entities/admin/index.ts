@@ -15,7 +15,8 @@ export type {
   AppErrorLog,
 } from './model/types'
 export { adminKeys } from './model/queryKeys'
-export { adminUsersQueryOptions } from './model/queryOptions'
+export type { AdminErrorLogsQueryParams, AdminUsersQueryParams } from './model/queryKeys'
+export { adminErrorLogsQueryOptions, adminStatsQueryOptions, adminUsersQueryOptions } from './model/queryOptions'
 export {
   listAdminUsers,
   approveAdminUser,
@@ -23,6 +24,7 @@ export {
   changeAdminUserRole,
   deleteAdminUser,
   getAdminStats,
+  getAdminStatsClient,
   listAdminAccounts,
   listAdminStrategies,
   listAdminStrategyOrders,
@@ -33,12 +35,18 @@ export {
   listAdminAuditLogs,
   getAdminAnomalies,
   listAdminErrorLogs,
+  listAdminErrorLogsClient,
   softDeleteAdminErrorLog,
 } from './api'
 export {
   useAdminUsersQuery,
+  useAdminStatsQuery,
   useApproveUserMutation,
   useRejectUserMutation,
   useChangeUserRoleMutation,
   useDeleteAdminUserMutation,
 } from './hooks/useAdminQueries'
+export {
+  useAdminErrorLogsQuery,
+  useDeleteAdminErrorLogsMutation,
+} from './hooks/useAdminErrorLogs'

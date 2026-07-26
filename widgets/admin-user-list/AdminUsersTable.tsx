@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useAdminUsersQuery } from '@entities/admin'
+import type { AdminUsersQueryParams } from '@entities/admin'
 import { ChangeRoleButton } from '@features/admin/change-role'
 import { WithdrawUserButton } from '@features/admin/withdraw-user'
 import { fmtDate } from '@shared/lib/format'
@@ -26,10 +27,11 @@ const STATUS_TONE: Record<UserStatus, 'ok' | 'warn' | 'error'> = {
 interface Props {
   currentUserId: string | null
   filterBar?: React.ReactNode
+  queryParams?: AdminUsersQueryParams
 }
 
-export function AdminUsersTable({ currentUserId, filterBar }: Props) {
-  const { data: users = [] } = useAdminUsersQuery()
+export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props) {
+  const { data: users = [] } = useAdminUsersQuery(undefined, queryParams)
   const [page, setPage] = useState(1)
   const [size, setSize] = useState(10)
 

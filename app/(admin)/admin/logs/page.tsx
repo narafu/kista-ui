@@ -1,10 +1,12 @@
 import { Suspense } from 'react'
+import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
-import { listAdminAuditLogs, listAdminErrorLogs, getAdminAnomalies } from '@entities/admin'
-import type { AdminAuditLog, AppErrorLog, AdminAnomalies } from '@entities/admin'
+import { adminErrorLogsQueryOptions, listAdminAuditLogs, getAdminAnomalies } from '@entities/admin'
+import type { AdminAuditLog, AdminAnomalies } from '@entities/admin'
 import { LogsFilterChips } from '@features/admin/logs'
 import { AnomaliesSection, ErrorLogsSection, AuditLogsSection } from '@widgets/admin-log-list'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
+import { createQueryClient } from '@shared/lib/query'
 
 type LogType = 'all' | 'audit' | 'error' | 'anomaly'
 
@@ -39,25 +41,24 @@ export default async function AdminLogsPage({
   const { from: errFrom, to: errTo } = resolveRange(errRange, params.errFrom, params.errTo)
   const { from: audFrom, to: audTo } = resolveRange(audRange, params.audFrom, params.audTo)
 
-  const [allAuditLogs, allErrorLogs, anomalies] = await Promise.all([
+  const queryClient = createQueryClient()
+  if (showError && token) {
+    await queryClient.prefetchQuery(adminErrorLogsQueryOptions({ limit: 500, from: errFrom, to: errTo }, token))
+  }
+
+  const [allAuditLogs, anomalies] = await Promise.all([
     showAudit && token
       ? listAdminAuditLogs(token, audFrom, audTo).catch(() => [] as AdminAuditLog[])
       : ([] as AdminAuditLog[]),
-    showError && token
-      ? listAdminErrorLogs(token, 500, errFrom, errTo).catch(() => [] as AppErrorLog[])
-      : ([] as AppErrorLog[]),
     showAnomaly && token
       ? getAdminAnomalies(token, 7, anoFrom, anoTo).catch(() => EMPTY_ANOMALIES)
       : EMPTY_ANOMALIES,
   ])
 
   const auditTotalPages = Math.max(1, Math.ceil(allAuditLogs.length / audSize))
-  const errorTotalPages = Math.max(1, Math.ceil(allErrorLogs.length / errSize))
   const auditPage = Math.min(parsePage(params.ap), auditTotalPages)
-  const errorPage = Math.min(parsePage(params.ep), errorTotalPages)
 
   const auditLogs = allAuditLogs.slice((auditPage - 1) * audSize, auditPage * audSize)
-  const errorLogs = allErrorLogs.slice((errorPage - 1) * errSize, errorPage * errSize)
 
   return (
     <div>
@@ -80,16 +81,9 @@ export default async function AdminLogsPage({
           />
         )}
         {showError && (
-          <ErrorLogsSection
-            logs={errorLogs}
-            total={allErrorLogs.length}
-            page={errorPage}
-            totalPages={errorTotalPages}
-            size={errSize}
-            range={errRange}
-            from={params.errFrom}
-            to={params.errTo}
-          />
+          <HydrationBoundary state={dehydrate(queryClient)}>
+            <ErrorLogsSection page={parsePage(params.ep)} size={errSize} range={errRange} from={errFrom} to={errTo} />
+          </HydrationBoundary>
         )}
         {showAudit && (
           <AuditLogsSection

@@ -3,7 +3,7 @@ import { getAuthToken } from '@shared/lib/auth/token'
 import { adminUsersQueryOptions } from '@entities/admin'
 import { getMe } from '@entities/user'
 import { AdminUsersContent } from '@widgets/admin-user-list'
-import { parseRangePreset } from '@shared/lib/date-range'
+import { parseRangePreset, resolveRange } from '@shared/lib/date-range'
 import { createQueryClient } from '@shared/lib/query'
 
 export default async function AdminUsersPage({
@@ -13,15 +13,16 @@ export default async function AdminUsersPage({
 }) {
   const { range: rawRange, from, to } = await searchParams
   const range = parseRangePreset(rawRange, 'all')
+  const queryParams = resolveRange(range, from, to)
   const token = await getAuthToken()
   const queryClient = createQueryClient()
   const me = token ? await getMe(token).catch(() => null) : null
-  if (token) await queryClient.prefetchQuery(adminUsersQueryOptions(undefined, token))
+  if (token) await queryClient.prefetchQuery(adminUsersQueryOptions(undefined, queryParams, token))
 
   return (
     <div>
       <HydrationBoundary state={dehydrate(queryClient)}>
-        <AdminUsersContent currentUserId={me?.id ?? null} range={range} from={from} to={to} />
+        <AdminUsersContent currentUserId={me?.id ?? null} range={range} from={from} to={to} queryParams={queryParams} />
       </HydrationBoundary>
     </div>
   )

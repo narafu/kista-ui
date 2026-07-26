@@ -7,7 +7,7 @@ import { createQueryClient } from '@shared/lib/query'
 export default async function AdminPendingPage() {
   const token = await getAuthToken()
   const queryClient = createQueryClient()
-  if (token) await queryClient.prefetchQuery(adminUsersQueryOptions('PENDING', token))
+  if (token) await queryClient.prefetchQuery(adminUsersQueryOptions('PENDING', undefined, token))
 
   return (
     <div className="reveal-stagger">

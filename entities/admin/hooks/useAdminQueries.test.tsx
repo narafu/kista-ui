@@ -3,7 +3,7 @@ import { renderHook } from '@testing-library/react'
 import type { PropsWithChildren } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { AdminUser } from '../model/types'
+import type { AdminStats, AdminUser } from '../model/types'
 import { adminKeys } from '../model/queryKeys'
 import {
   useApproveUserMutation,
@@ -56,6 +56,14 @@ const activeUser: AdminUser = {
   createdAt: '2026-07-02T00:00:00Z',
 }
 
+const stats: AdminStats = {
+  totalUsers: 2,
+  pendingCount: 1,
+  activeCount: 1,
+  rejectedCount: 0,
+  totalAccounts: 0,
+}
+
 function createWrapper(queryClient: QueryClient) {
   return function Wrapper({ children }: PropsWithChildren) {
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
@@ -79,9 +87,12 @@ describe('admin user mutation ownership', () => {
     deleteAdminUserMock.mockReset().mockResolvedValue(undefined)
   })
 
-  it('updates an approved user row without a route refresh', async () => {
+  it('removes an approved user from pending lists while updating all-user lists and stats', async () => {
     const queryClient = createTestQueryClient()
     queryClient.setQueryData(adminKeys.users(), [pendingUser, activeUser])
+    queryClient.setQueryData(adminKeys.users('PENDING', { from: '2026-07-01', to: '2026-07-31' }), [pendingUser])
+    queryClient.setQueryData(adminKeys.users('ACTIVE', { from: '2026-07-01', to: '2026-07-31' }), [{ ...pendingUser, status: 'PENDING' }])
+    queryClient.setQueryData(adminKeys.stats(), stats)
     const { result } = renderHook(() => useApproveUserMutation(), { wrapper: createWrapper(queryClient) })
 
     await result.current.mutateAsync(pendingUser.id)
@@ -90,11 +101,19 @@ describe('admin user mutation ownership', () => {
       { ...pendingUser, status: 'ACTIVE' },
       activeUser,
     ])
+    expect(queryClient.getQueryData<AdminUser[]>(adminKeys.users('PENDING', { from: '2026-07-01', to: '2026-07-31' }))).toEqual([])
+    expect(queryClient.getQueryData<AdminUser[]>(adminKeys.users('ACTIVE', { from: '2026-07-01', to: '2026-07-31' }))).toEqual([
+      { ...pendingUser, status: 'ACTIVE' },
+    ])
+    expect(queryClient.getQueryData<AdminStats>(adminKeys.stats())).toEqual({ ...stats, pendingCount: 0, activeCount: 2 })
   })
 
-  it('updates a rejected user row without a route refresh', async () => {
+  it('removes a rejected user from pending lists while updating all-user lists and stats', async () => {
     const queryClient = createTestQueryClient()
     queryClient.setQueryData(adminKeys.users(), [pendingUser, activeUser])
+    queryClient.setQueryData(adminKeys.users('PENDING'), [pendingUser])
+    queryClient.setQueryData(adminKeys.users('REJECTED'), [{ ...pendingUser, status: 'PENDING' }])
+    queryClient.setQueryData(adminKeys.stats(), stats)
     const { result } = renderHook(() => useRejectUserMutation(), { wrapper: createWrapper(queryClient) })
 
     await result.current.mutateAsync(pendingUser.id)
@@ -103,6 +122,11 @@ describe('admin user mutation ownership', () => {
       { ...pendingUser, status: 'REJECTED' },
       activeUser,
     ])
+    expect(queryClient.getQueryData<AdminUser[]>(adminKeys.users('PENDING'))).toEqual([])
+    expect(queryClient.getQueryData<AdminUser[]>(adminKeys.users('REJECTED'))).toEqual([
+      { ...pendingUser, status: 'REJECTED' },
+    ])
+    expect(queryClient.getQueryData<AdminStats>(adminKeys.stats())).toEqual({ ...stats, pendingCount: 0, rejectedCount: 1 })
   })
 
   it('updates a changed role in the affected user row without a route refresh', async () => {
@@ -117,13 +141,19 @@ describe('admin user mutation ownership', () => {
     ])
   })
 
-  it('removes a deleted user row without a route refresh', async () => {
+  it('removes a deleted user row and decrements its overview count without a route refresh', async () => {
     const queryClient = createTestQueryClient()
     queryClient.setQueryData(adminKeys.users(), [pendingUser, activeUser])
+    queryClient.setQueryData(adminKeys.stats(), stats)
     const { result } = renderHook(() => useDeleteAdminUserMutation(), { wrapper: createWrapper(queryClient) })
 
     await result.current.mutateAsync(pendingUser.id)
 
     expect(queryClient.getQueryData<AdminUser[]>(adminKeys.users())).toEqual([activeUser])
+    expect(queryClient.getQueryData<AdminStats>(adminKeys.stats())).toEqual({
+      ...stats,
+      totalUsers: 1,
+      pendingCount: 0,
+    })
   })
 })

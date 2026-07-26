@@ -1,6 +1,7 @@
 'use client'
 
 import { useAdminUsersQuery } from '@entities/admin'
+import type { AdminUsersQueryParams } from '@entities/admin'
 import { UrlRangeFilterBar } from '@shared/ui/UrlRangeFilterBar'
 import { AdminUsersTable } from './AdminUsersTable'
 
@@ -9,10 +10,11 @@ interface Props {
   range: Parameters<typeof UrlRangeFilterBar>[0]['current']
   from?: string
   to?: string
+  queryParams: AdminUsersQueryParams
 }
 
-export function AdminUsersContent({ currentUserId, range, from, to }: Props) {
-  const { data: users = [] } = useAdminUsersQuery()
+export function AdminUsersContent({ currentUserId, range, from, to, queryParams }: Props) {
+  const { data: users = [] } = useAdminUsersQuery(undefined, queryParams)
 
   return (
     <>
@@ -22,6 +24,7 @@ export function AdminUsersContent({ currentUserId, range, from, to }: Props) {
       </div>
       <AdminUsersTable
         currentUserId={currentUserId}
+        queryParams={queryParams}
         filterBar={<UrlRangeFilterBar current={range} from={from} to={to} />}
       />
     </>

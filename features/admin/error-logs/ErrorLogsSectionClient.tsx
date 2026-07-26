@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { softDeleteAdminErrorLog, type AppErrorLog } from '@entities/admin'
+import { useDeleteAdminErrorLogsMutation, type AppErrorLog } from '@entities/admin'
 import { cn } from '@shared/lib/utils'
 import { ErrorLogItem } from './ErrorLogItem'
 
@@ -23,23 +23,21 @@ interface Props {
 }
 
 export function ErrorLogsSectionClient({ logs }: Props) {
-  const [visibleLogs, setVisibleLogs] = useState(logs)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [open, setOpen] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const mutation = useDeleteAdminErrorLogsMutation()
 
   const selectedCount = selectedIds.length
-  const allSelected = visibleLogs.length > 0 && selectedCount === visibleLogs.length
+  const allSelected = logs.length > 0 && selectedCount === logs.length
   const someSelected = selectedCount > 0 && !allSelected
   const selectedLabel = useMemo(() => `선택 ${selectedCount}건 삭제`, [selectedCount])
 
   useEffect(() => {
-    setVisibleLogs(logs)
-    setSelectedIds([])
+    setSelectedIds((current) => current.filter((id) => logs.some((log) => log.id === id)))
   }, [logs])
 
   const toggleAll = (checked: boolean) => {
-    setSelectedIds(checked ? visibleLogs.map((log) => log.id) : [])
+    setSelectedIds(checked ? logs.map((log) => log.id) : [])
   }
 
   const toggleOne = (id: string, checked: boolean) => {
@@ -49,19 +47,14 @@ export function ErrorLogsSectionClient({ logs }: Props) {
   const handleDelete = async () => {
     if (selectedIds.length === 0) return
 
-    setIsDeleting(true)
-
-    const results = await Promise.allSettled(selectedIds.map((id) => softDeleteAdminErrorLog(id)))
+    const results = await mutation.mutateAsync(selectedIds)
 
     const successCount = results.filter((result) => result.status === 'fulfilled').length
     const failedCount = results.length - successCount
 
-    setIsDeleting(false)
     setOpen(false)
 
     if (successCount > 0) {
-      const deletedIds = new Set(selectedIds.filter((_, index) => results[index]?.status === 'fulfilled'))
-      setVisibleLogs((current) => current.filter((log) => !deletedIds.has(log.id)))
       setSelectedIds([])
     }
 
@@ -89,7 +82,7 @@ export function ErrorLogsSectionClient({ logs }: Props) {
             ref={(node) => {
               if (node) node.indeterminate = someSelected
             }}
-            disabled={isDeleting || visibleLogs.length === 0}
+            disabled={mutation.isPending || logs.length === 0}
             onChange={(event) => toggleAll(event.target.checked)}
             className="size-4 rounded border-border accent-rose-600"
           />
@@ -97,8 +90,8 @@ export function ErrorLogsSectionClient({ logs }: Props) {
         </label>
         <span className="text-sm text-muted-foreground">{selectedCount > 0 ? `${selectedCount}건 선택됨` : '현재 페이지 기준 선택'}</span>
         <AlertDialog open={open} onOpenChange={setOpen}>
-          <AlertDialogTrigger className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'ml-auto')} disabled={selectedCount === 0 || isDeleting}>
-            {isDeleting ? '삭제 중...' : selectedLabel}
+          <AlertDialogTrigger className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'ml-auto')} disabled={selectedCount === 0 || mutation.isPending}>
+            {mutation.isPending ? '삭제 중...' : selectedLabel}
           </AlertDialogTrigger>
           <AlertDialogContent size="sm">
             <AlertDialogHeader>
@@ -106,17 +99,17 @@ export function ErrorLogsSectionClient({ logs }: Props) {
               <AlertDialogDescription>현재 페이지에서 선택한 오류 로그 {selectedCount}건을 삭제합니다.</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={isDeleting}>취소</AlertDialogCancel>
-              <AlertDialogAction disabled={isDeleting} onClick={handleDelete}>
-                {isDeleting ? '삭제 중...' : '삭제'}
+              <AlertDialogCancel disabled={mutation.isPending}>취소</AlertDialogCancel>
+              <AlertDialogAction disabled={mutation.isPending} onClick={handleDelete}>
+                {mutation.isPending ? '삭제 중...' : '삭제'}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
       </div>
 
-      {visibleLogs.map((log) => (
-        <ErrorLogItem key={log.id} log={log} checked={selectedIds.includes(log.id)} disabled={isDeleting} onCheckedChange={(checked) => toggleOne(log.id, checked)} />
+      {logs.map((log) => (
+        <ErrorLogItem key={log.id} log={log} checked={selectedIds.includes(log.id)} disabled={mutation.isPending} onCheckedChange={(checked) => toggleOne(log.id, checked)} />
       ))}
     </div>
   )

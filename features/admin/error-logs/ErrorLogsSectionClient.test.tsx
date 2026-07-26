@@ -9,13 +9,13 @@ const {
   successMock,
   errorMock,
   warningMock,
-  softDeleteAdminErrorLogMock,
+  mutateAsyncMock,
 } = vi.hoisted(() => ({
   refreshMock: vi.fn(),
   successMock: vi.fn(),
   errorMock: vi.fn(),
   warningMock: vi.fn(),
-  softDeleteAdminErrorLogMock: vi.fn(),
+  mutateAsyncMock: vi.fn(),
 }))
 
 vi.mock('next/navigation', () => ({
@@ -47,7 +47,7 @@ vi.mock('@/components/ui/alert-dialog', () => ({
 }))
 
 vi.mock('@entities/admin', () => ({
-  softDeleteAdminErrorLog: softDeleteAdminErrorLogMock,
+  useDeleteAdminErrorLogsMutation: () => ({ mutateAsync: mutateAsyncMock, isPending: false }),
 }))
 
 const logs: AppErrorLog[] = [
@@ -75,7 +75,7 @@ describe('ErrorLogsSectionClient', () => {
     successMock.mockReset()
     errorMock.mockReset()
     warningMock.mockReset()
-    softDeleteAdminErrorLogMock.mockReset()
+    mutateAsyncMock.mockReset()
   })
 
   it('selects the current page logs with the master checkbox', async () => {
@@ -92,7 +92,7 @@ describe('ErrorLogsSectionClient', () => {
 
   it('soft deletes selected logs from the current page without refreshing the route', async () => {
     const user = userEvent.setup()
-    softDeleteAdminErrorLogMock.mockResolvedValue(undefined)
+    mutateAsyncMock.mockResolvedValue([{ status: 'fulfilled' }])
 
     render(<ErrorLogsSectionClient logs={logs} />)
 
@@ -101,7 +101,7 @@ describe('ErrorLogsSectionClient', () => {
     await user.click(screen.getByRole('button', { name: '삭제' }))
 
     await waitFor(() => {
-      expect(softDeleteAdminErrorLogMock).toHaveBeenCalledWith('log-1')
+      expect(mutateAsyncMock).toHaveBeenCalledWith(['log-1'])
       expect(refreshMock).not.toHaveBeenCalled()
       expect(successMock).toHaveBeenCalledWith('1건을 삭제했습니다')
     })
@@ -109,9 +109,7 @@ describe('ErrorLogsSectionClient', () => {
 
   it('reports partial failures without refreshing the route', async () => {
     const user = userEvent.setup()
-    softDeleteAdminErrorLogMock
-      .mockResolvedValueOnce(undefined)
-      .mockRejectedValueOnce(new Error('boom'))
+    mutateAsyncMock.mockResolvedValue([{ status: 'fulfilled' }, { status: 'rejected', reason: new Error('boom') }])
 
     render(<ErrorLogsSectionClient logs={logs} />)
 
