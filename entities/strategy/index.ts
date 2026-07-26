@@ -17,6 +17,8 @@ export {
 } from './api'
 export { getCachedStrategies } from './api/cached'
 export {
+  strategyListAllQueryOptions,
+  strategyListByAccountQueryOptions,
   useStrategySeedPreviewQuery,
   useAllStrategiesQuery,
   useStrategiesQuery,

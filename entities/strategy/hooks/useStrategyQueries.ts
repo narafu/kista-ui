@@ -1,8 +1,7 @@
 'use client'
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
 import { ApiError, apiMsg } from '@shared/lib/api-client'
 import {
   listAllStrategies,
@@ -18,6 +17,33 @@ import {
 import type { Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
 import { strategyKeys } from '../model/queryKeys'
 
+function upsertStrategy(strategies: Strategy[] | undefined, saved: Strategy) {
+  const current = strategies ?? []
+  const exists = current.some((strategy) => strategy.id === saved.id)
+
+  if (!exists) return [...current, saved]
+
+  return current.map((strategy) => strategy.id === saved.id ? saved : strategy)
+}
+
+function updateStrategyStatus(strategies: Strategy[] | undefined, id: string, status: string) {
+  return (strategies ?? []).map((strategy) => strategy.id === id ? { ...strategy, status } : strategy)
+}
+
+export function strategyListAllQueryOptions(token?: string) {
+  return queryOptions<Strategy[]>({
+    queryKey: strategyKeys.listAll(),
+    queryFn: () => listAllStrategies(token),
+  })
+}
+
+export function strategyListByAccountQueryOptions(accountId: string, token?: string) {
+  return queryOptions<Strategy[]>({
+    queryKey: strategyKeys.listByAccount(accountId),
+    queryFn: () => listStrategies(accountId, token),
+  })
+}
+
 export function useStrategySeedPreviewQuery(
   accountId: string,
   params: { type: string; ticker: string; divisionCount: number },
@@ -31,107 +57,94 @@ export function useStrategySeedPreviewQuery(
   })
 }
 
-export function useAllStrategiesQuery(initialData?: Strategy[], options?: { enabled?: boolean }) {
-  return useQuery<Strategy[]>({
-    queryKey: strategyKeys.listAll(),
-    queryFn: () => listAllStrategies(),
-    initialData,
-    initialDataUpdatedAt: initialData ? 0 : undefined,
+export function useAllStrategiesQuery(options?: { enabled?: boolean }) {
+  return useQuery({
+    ...strategyListAllQueryOptions(),
     enabled: options?.enabled ?? true,
-    staleTime: 30_000,
   })
 }
 
-export function useStrategiesQuery(accountId: string, initialData?: Strategy[]) {
-  return useQuery<Strategy[]>({
-    queryKey: strategyKeys.listByAccount(accountId),
-    queryFn: () => listStrategies(accountId),
-    initialData,
-    initialDataUpdatedAt: initialData ? 0 : undefined,
-    staleTime: 30_000,
-  })
+export function useStrategiesQuery(accountId: string) {
+  return useQuery(strategyListByAccountQueryOptions(accountId))
 }
 
-export function useCreateStrategyMutation(accountId: string, onSuccess?: () => void) {
-  const router = useRouter()
+export function useCreateStrategyMutation(accountId: string, onSuccess?: () => void | Promise<void>) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (data: StrategyRequest) => createStrategy(accountId, data),
-    onSuccess: () => {
-      toast.success('전략이 등록되었습니다')
-      queryClient.invalidateQueries({ queryKey: strategyKeys.all })
-      router.refresh()
-      onSuccess?.()
+    onSuccess: (saved) => {
+      queryClient.setQueryData<Strategy[]>(strategyKeys.listAll(), (strategies) => upsertStrategy(strategies, saved))
+      queryClient.setQueryData<Strategy[]>(strategyKeys.listByAccount(saved.accountId), (strategies) => upsertStrategy(strategies, saved))
+      return onSuccess?.()
     },
     onError: (err) => toast.error(apiMsg(err, '저장에 실패했습니다')),
   })
 }
 
-export function useUpdateStrategyMutation(strategyId: string, onSuccess?: () => void) {
-  const router = useRouter()
+export function useUpdateStrategyMutation(strategyId: string, onSuccess?: () => void | Promise<void>) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (data: Partial<StrategyRequest>) => updateStrategy(strategyId, data),
-    onSuccess: () => {
-      toast.success('전략이 수정되었습니다')
-      queryClient.invalidateQueries({ queryKey: strategyKeys.all })
-      // 전략 수정 후 다음 주문/기준가 표시를 최신 상태로 갱신
-      queryClient.invalidateQueries({ queryKey: ['orders'] })
-      router.refresh()
-      onSuccess?.()
+    onSuccess: (saved) => {
+      queryClient.setQueryData<Strategy[]>(strategyKeys.listAll(), (strategies) => upsertStrategy(strategies, saved))
+      queryClient.setQueryData<Strategy[]>(strategyKeys.listByAccount(saved.accountId), (strategies) => upsertStrategy(strategies, saved))
+      return onSuccess?.()
     },
     onError: (err) => toast.error(apiMsg(err, '저장에 실패했습니다')),
   })
 }
 
 export function usePauseStrategyMutation() {
-  const router = useRouter()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => pauseStrategy(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: strategyKeys.all })
-      router.refresh()
+    mutationFn: (strategy: Strategy) => pauseStrategy(strategy.id),
+    onSuccess: (_result, strategy) => {
+      queryClient.setQueryData<Strategy[]>(strategyKeys.listAll(), (strategies) =>
+        updateStrategyStatus(strategies, strategy.id, 'PAUSED'),
+      )
+      queryClient.setQueryData<Strategy[]>(strategyKeys.listByAccount(strategy.accountId), (strategies) =>
+        updateStrategyStatus(strategies, strategy.id, 'PAUSED'),
+      )
     },
-    onError: (err) => toast.error(apiMsg(err, '일시정지에 실패했습니다')),
   })
 }
 
 export function useResumeStrategyMutation() {
-  const router = useRouter()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => resumeStrategy(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: strategyKeys.all })
-      router.refresh()
+    mutationFn: (strategy: Strategy) => resumeStrategy(strategy.id),
+    onSuccess: (_result, strategy) => {
+      queryClient.setQueryData<Strategy[]>(strategyKeys.listAll(), (strategies) =>
+        updateStrategyStatus(strategies, strategy.id, 'ACTIVE'),
+      )
+      queryClient.setQueryData<Strategy[]>(strategyKeys.listByAccount(strategy.accountId), (strategies) =>
+        updateStrategyStatus(strategies, strategy.id, 'ACTIVE'),
+      )
     },
-    onError: (err) => toast.error(apiMsg(err, '재개에 실패했습니다')),
   })
 }
 
-export function useDeleteStrategyMutation(onSuccess?: () => void) {
-  const router = useRouter()
+export function useDeleteStrategyMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => deleteStrategy(id),
-    onSuccess: () => {
-      toast.success('전략이 삭제되었습니다')
-      queryClient.invalidateQueries({ queryKey: strategyKeys.all })
-      router.refresh()
-      onSuccess?.()
+    mutationFn: (strategy: Strategy) => deleteStrategy(strategy.id),
+    onSuccess: (_result, strategy) => {
+      queryClient.setQueryData<Strategy[]>(strategyKeys.listAll(), (strategies = []) =>
+        strategies.filter((item) => item.id !== strategy.id),
+      )
+      queryClient.setQueryData<Strategy[]>(strategyKeys.listByAccount(strategy.accountId), (strategies = []) =>
+        strategies.filter((item) => item.id !== strategy.id),
+      )
     },
-    onError: (err) => toast.error(apiMsg(err, '삭제에 실패했습니다')),
   })
 }
 
-export function useExecuteStrategyMutation(strategyId: string | undefined) {
-  const queryClient = useQueryClient()
+export function useExecuteStrategyMutation(strategyId: string | undefined, onSuccess?: () => void | Promise<void>) {
   return useMutation({
     mutationFn: () => executeStrategy(strategyId!),
     onSuccess: () => {
       toast.success('매매 실행이 요청됐습니다. 장 마감 후 체결 결과를 확인하세요.')
-      queryClient.invalidateQueries({ queryKey: ['orders', 'preview', strategyId] })
+      return onSuccess?.()
     },
     onError: (e) => {
       if (e instanceof ApiError) {

@@ -66,17 +66,26 @@ vi.mock('@entities/strategy', async () => {
   const actual = await vi.importActual<typeof import('@entities/strategy')>('@entities/strategy')
   return {
     ...actual,
-    useDeleteStrategyMutation: (onSuccess?: () => void) => {
-      deleteSuccessHandler = onSuccess
-      return { mutate: deleteMutate, isPending: false }
-    },
-    useExecuteStrategyMutation: () => ({ mutate: executeMutate, isPending: false }),
-    usePauseStrategyMutation: () => ({ mutate: vi.fn(), isPending: false }),
-    useResumeStrategyMutation: () => ({ mutate: vi.fn(), isPending: false }),
     seedBadgeClass: () => 'seed-badge',
     strategyStatusAccent: (status: string) => status === 'ACTIVE' ? 'var(--status-ok)' : 'var(--warn)',
   }
 })
+
+vi.mock('@features/strategy/manage-strategy', () => ({
+  useManageStrategyMutations: ({ onDeleted }: { onDeleted?: () => void }) => {
+    deleteSuccessHandler = onDeleted
+    return {
+      pause: vi.fn(),
+      resume: vi.fn(),
+      remove: deleteMutate,
+      execute: executeMutate,
+      isPausing: false,
+      isResuming: false,
+      isDeleting: false,
+      isExecuting: false,
+    }
+  },
+}))
 
 const mockPreviewQuery = vi.fn(() => ({
   data: { todayOrders: [], position: null, orders: [], skipReason: 'NO_CYCLE_HISTORY', otherStrategiesPlannedBuyUsd: '0', competition: null } as Partial<NextOrderPreview>,

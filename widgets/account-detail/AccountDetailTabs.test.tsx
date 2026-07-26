@@ -20,7 +20,7 @@ vi.mock('./TradesTab', () => ({
 }))
 
 vi.mock('@entities/strategy', () => ({
-  useStrategiesQuery: (accountId: string, initialData: Strategy[]) => useStrategiesQueryMock(accountId, initialData),
+  useStrategiesQuery: (accountId: string) => useStrategiesQueryMock(accountId),
 }))
 
 vi.mock('@entities/meta', () => ({
@@ -52,7 +52,7 @@ describe('AccountDetailTabs', () => {
   it('shows the summary tab (account summary + trades) by default on mobile', () => {
     useStrategiesQueryMock.mockReturnValue({ data: [strategy] })
     render(
-      <AccountDetailTabs account={account} strategies={[strategy]} usdDeposit={1000} posEvalUsd={2000} />,
+      <AccountDetailTabs account={account} usdDeposit={1000} posEvalUsd={2000} />,
     )
 
     // 모바일 영역과 데스크탑 영역 모두 항상 렌더링되므로 계좌 요약 카드가 두 번 나타난다
@@ -64,7 +64,7 @@ describe('AccountDetailTabs', () => {
     useStrategiesQueryMock.mockReturnValue({ data: [strategy] })
     const user = userEvent.setup()
     render(
-      <AccountDetailTabs account={account} strategies={[strategy]} usdDeposit={1000} posEvalUsd={2000} />,
+      <AccountDetailTabs account={account} usdDeposit={1000} posEvalUsd={2000} />,
     )
 
     await user.click(screen.getByRole('button', { name: '전략' }))
@@ -73,13 +73,13 @@ describe('AccountDetailTabs', () => {
     expect(screen.getAllByText('계좌 요약')).toHaveLength(1)
   })
 
-  it('passes the server-provided strategies to StrategyList when the query has no override', () => {
-    useStrategiesQueryMock.mockReturnValue({ data: undefined })
+  it('passes hydrated strategy-query data to StrategyList', () => {
+    useStrategiesQueryMock.mockReturnValue({ data: [strategy] })
     render(
-      <AccountDetailTabs account={account} strategies={[strategy]} usdDeposit={1000} posEvalUsd={2000} />,
+      <AccountDetailTabs account={account} usdDeposit={1000} posEvalUsd={2000} />,
     )
 
-    expect(useStrategiesQueryMock).toHaveBeenCalledWith('account-1', [strategy])
+    expect(useStrategiesQueryMock).toHaveBeenCalledWith('account-1')
     expect(strategyListMock).toHaveBeenCalledWith(
       expect.objectContaining({ accountId: 'account-1', strategies: [strategy] }),
     )

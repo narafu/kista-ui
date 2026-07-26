@@ -4,11 +4,15 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
 import { fmtUsd, todayKst } from '@shared/lib/format'
 import { isMockBroker } from '@shared/lib/api-schema'
 import { useMeta } from '@entities/meta'
 import { useAccountMarginQuery, useAccountPricesQuery } from '@entities/account'
 import { useCreateStrategyMutation, useUpdateStrategyMutation, useStrategySeedPreviewQuery } from '@entities/strategy'
+import { orderKeys } from '@entities/order'
+import { statsKeys } from '@entities/stats'
+import { tradeKeys } from '@entities/trade'
 import type { CycleSeedType, Strategy, StrategyRequest } from '@entities/strategy'
 import type { BrokerCode, PriceMap } from '@entities/account'
 import { useMeQuery } from '@entities/user'
@@ -102,6 +106,7 @@ export function useStrategyForm({
   initial,
   onSuccess,
 }: UseStrategyFormOptions): UseStrategyFormReturn {
+  const queryClient = useQueryClient()
   const isMock = isMockBroker(broker)
   const { meta, findStrategyType } = useMeta()
   const runtimeQuery = useRuntimeConfigQuery()
@@ -110,8 +115,17 @@ export function useStrategyForm({
     .filter(({ code }) => runtimeConfig?.strategies[code as RuntimeStrategyType]?.enabled === true)
     .map(({ code }) => code)
 
-  const createMutation = useCreateStrategyMutation(accountId, onSuccess)
-  const updateMutation = useUpdateStrategyMutation(initial?.id ?? '', onSuccess)
+  const handleMutationSuccess = async () => {
+    toast.success(initial ? '전략이 수정되었습니다' : '전략이 등록되었습니다')
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: orderKeys.all }),
+      queryClient.invalidateQueries({ queryKey: statsKeys.all }),
+      queryClient.invalidateQueries({ queryKey: tradeKeys.all }),
+    ])
+    onSuccess?.()
+  }
+  const createMutation = useCreateStrategyMutation(accountId, handleMutationSuccess)
+  const updateMutation = useUpdateStrategyMutation(initial?.id ?? '', handleMutationSuccess)
   const initialDivisionCount: DivisionCount = initial?.divisionCount ?? 1
 
   // react-hook-form — type/ticker/autoStart/seedMode/divisionCount + VR 필드 관리

@@ -20,7 +20,8 @@ import {
 } from '@/components/ui/alert-dialog'
 import { KpiCard } from '@widgets/kpi-card'
 import { StrategyTradesTab } from '@widgets/cycle-history'
-import { useDeleteStrategyMutation, useExecuteStrategyMutation, usePauseStrategyMutation, useResumeStrategyMutation, seedBadgeClass, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
+import { seedBadgeClass, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
+import { useManageStrategyMutations } from '@features/strategy/manage-strategy'
 import { useStrategyOrderPreviewQuery, useCancelAllOrdersMutation, useCancelOneOrderMutation, computeOrderReadiness } from '@entities/order'
 import { useMonthlyHolidaysQuery } from '@entities/market'
 import { useMeta } from '@entities/meta'
@@ -143,20 +144,20 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
   const canExecute = strategy.status === 'ACTIVE'
   const bannerText = nextOrderBannerText(canExecute, mode, isHoliday, readiness)
 
-  const deleteMutation = useDeleteStrategyMutation(() => push(`/accounts/${accountId}`))
-  const pauseMutation = usePauseStrategyMutation()
-  const resumeMutation = useResumeStrategyMutation()
-  const executeMutation = useExecuteStrategyMutation(strategy.id)
+  const { pause, resume, remove, execute, isPausing, isResuming, isDeleting, isExecuting } = useManageStrategyMutations({
+    onDeleted: () => push(`/accounts/${accountId}`),
+    strategyId: strategy.id,
+  })
   const cancelAllMutation = useCancelAllOrdersMutation(strategy.id)
   const cancelOneMutation = useCancelOneOrderMutation(strategy.id)
-  const toggleLoading = pauseMutation.isPending || resumeMutation.isPending
-  const loading = toggleLoading || deleteMutation.isPending
+  const toggleLoading = isPausing || isResuming
+  const loading = toggleLoading || isDeleting
 
   function handleToggle() {
     if (strategy.status === 'ACTIVE') {
-      pauseMutation.mutate(strategy.id)
+      pause(strategy)
     } else {
-      resumeMutation.mutate(strategy.id)
+      resume(strategy)
     }
   }
 
@@ -348,15 +349,15 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
                       blockers.forEach((message) => toast.info(message))
                       return
                     }
-                    executeMutation.mutate()
+                    execute()
                   }}
-                  disabled={executeMutation.isPending || orders.length === 0}
+                  disabled={isExecuting || orders.length === 0}
                   className={cn(
                     'inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md whitespace-nowrap shrink-0',
                     BRAND_GRADIENT_BUTTON_CLASS,
                   )}
                 >
-                  {executeMutation.isPending ? '주문 중...' : '바로 주문'}
+                  {isExecuting ? '주문 중...' : '바로 주문'}
                 </button>
               )}
             </div>
@@ -426,8 +427,8 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel disabled={loading}>취소</AlertDialogCancel>
-                <AlertDialogAction variant="destructive" onClick={() => deleteMutation.mutate(strategy.id)} disabled={loading}>
-                  {deleteMutation.isPending ? '삭제 중...' : '삭제'}
+                <AlertDialogAction variant="destructive" onClick={() => remove(strategy)} disabled={loading}>
+                  {isDeleting ? '삭제 중...' : '삭제'}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

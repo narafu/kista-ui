@@ -1,5 +1,5 @@
 import { act, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 import type { NextOrderPreview } from '@entities/order'
@@ -37,8 +37,14 @@ vi.mock('@widgets/strategy-card', () => ({
 }))
 
 vi.mock('@entities/strategy', () => ({
-  useAllStrategiesQuery: (initialData: Strategy[]) => ({
-    data: initialData,
+  useAllStrategiesQuery: () => ({
+    data: strategiesQueryData,
+  }),
+}))
+
+vi.mock('@entities/account', () => ({
+  useAccountsQuery: () => ({
+    data: accountsQueryData,
   }),
 }))
 
@@ -93,16 +99,25 @@ function strategyFor(accountId: string, id: string): Strategy {
   }
 }
 
+let strategiesQueryData: Strategy[] = []
+let accountsQueryData: Account[] = []
+
+function setQueries(strategies: Strategy[], accounts: Account[]) {
+  strategiesQueryData = strategies
+  accountsQueryData = accounts
+}
+
 describe('AllStrategiesList', () => {
-  it('passes account nickname to strategy cards when there is a single account', async () => {
+  beforeEach(() => {
     strategyCardMock.mockClear()
+    setQueries([], [])
+  })
+
+  it('passes account nickname to strategy cards when there is a single account', async () => {
+    setQueries([strategyFor('account-1', 'strategy-1')], singleAccount)
 
     await renderAndFlush(
-      <AllStrategiesList
-        strategies={[strategyFor('account-1', 'strategy-1')]}
-        accounts={singleAccount}
-        previewsPromise={resolvedPreviews()}
-      />,
+      <AllStrategiesList previewsPromise={resolvedPreviews()} />,
     )
 
     expect(strategyCardMock).toHaveBeenCalledWith(expect.objectContaining({
@@ -111,30 +126,28 @@ describe('AllStrategiesList', () => {
   })
 
   it('does not render an account section header when there is a single account', () => {
+    setQueries([strategyFor('account-1', 'strategy-1')], singleAccount)
     render(
-      <AllStrategiesList
-        strategies={[strategyFor('account-1', 'strategy-1')]}
-        accounts={singleAccount}
-        previewsPromise={resolvedPreviews()}
-      />,
+      <AllStrategiesList previewsPromise={resolvedPreviews()} />,
     )
 
     expect(screen.queryByRole('heading', { name: '토스 메인' })).not.toBeInTheDocument()
   })
 
   it('shows only account nicknames in the empty state account list', () => {
-    render(<AllStrategiesList strategies={[]} accounts={singleAccount} previewsPromise={resolvedPreviews()} />)
+    setQueries([], singleAccount)
+    render(<AllStrategiesList previewsPromise={resolvedPreviews()} />)
 
     expect(screen.getByText('토스 메인')).toBeInTheDocument()
     expect(screen.queryByText('123-45')).not.toBeInTheDocument()
   })
 
   it('groups strategies by account with a section header per account when there are multiple accounts', async () => {
-    strategyCardMock.mockClear()
     const strategies = [strategyFor('account-1', 'strategy-1'), strategyFor('account-2', 'strategy-2')]
+    setQueries(strategies, multiAccounts)
 
     await renderAndFlush(
-      <AllStrategiesList strategies={strategies} accounts={multiAccounts} previewsPromise={resolvedPreviews()} />,
+      <AllStrategiesList previewsPromise={resolvedPreviews()} />,
     )
 
     expect(screen.getByRole('heading', { name: '토스 메인' })).toBeInTheDocument()
@@ -150,12 +163,9 @@ describe('AllStrategiesList', () => {
   })
 
   it('omits an account section when that account has no strategies', () => {
+    setQueries([strategyFor('account-1', 'strategy-1')], multiAccounts)
     render(
-      <AllStrategiesList
-        strategies={[strategyFor('account-1', 'strategy-1')]}
-        accounts={multiAccounts}
-        previewsPromise={resolvedPreviews()}
-      />,
+      <AllStrategiesList previewsPromise={resolvedPreviews()} />,
     )
 
     expect(screen.getByRole('heading', { name: '토스 메인' })).toBeInTheDocument()

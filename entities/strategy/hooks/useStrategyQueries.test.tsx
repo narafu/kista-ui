@@ -1,47 +1,52 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { renderHook } from '@testing-library/react'
+import type { PropsWithChildren } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+
 import type { Strategy } from '../model/types'
-import { useAllStrategiesQuery, useStrategiesQuery, useUpdateStrategyMutation, useExecuteStrategyMutation } from './useStrategyQueries'
 import { strategyKeys } from '../model/queryKeys'
+import {
+  strategyListAllQueryOptions,
+  strategyListByAccountQueryOptions,
+  useCreateStrategyMutation,
+  useDeleteStrategyMutation,
+  usePauseStrategyMutation,
+  useResumeStrategyMutation,
+  useUpdateStrategyMutation,
+} from './useStrategyQueries'
 
-const { useQueryMock } = vi.hoisted(() => ({
-  useQueryMock: vi.fn(),
-}))
-
-vi.mock('@tanstack/react-query', () => ({
-  useQuery: useQueryMock,
-  useMutation: vi.fn(),
-  useQueryClient: vi.fn(),
-}))
-
-vi.mock('sonner', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-  },
-}))
-
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({
-    refresh: vi.fn(),
-  }),
+const {
+  createStrategyMock,
+  updateStrategyMock,
+  deleteStrategyMock,
+  pauseStrategyMock,
+  resumeStrategyMock,
+} = vi.hoisted(() => ({
+  createStrategyMock: vi.fn(),
+  updateStrategyMock: vi.fn(),
+  deleteStrategyMock: vi.fn(),
+  pauseStrategyMock: vi.fn(),
+  resumeStrategyMock: vi.fn(),
 }))
 
 vi.mock('../api', () => ({
   listAllStrategies: vi.fn(),
   listStrategies: vi.fn(),
-  createStrategy: vi.fn(),
-  updateStrategy: vi.fn(),
-  deleteStrategy: vi.fn(),
-  pauseStrategy: vi.fn(),
-  resumeStrategy: vi.fn(),
+  createStrategy: createStrategyMock,
+  updateStrategy: updateStrategyMock,
+  deleteStrategy: deleteStrategyMock,
+  pauseStrategy: pauseStrategyMock,
+  resumeStrategy: resumeStrategyMock,
   executeStrategy: vi.fn(),
   getStrategySeedPreview: vi.fn(),
 }))
 
-const baseStrategy: Strategy = {
-  id: 'strategy-1',
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ refresh: vi.fn() }),
+}))
+
+const strategyA: Strategy = {
+  id: 'strategy-a',
   accountId: 'account-1',
   type: 'INFINITE',
   status: 'ACTIVE',
@@ -52,60 +57,111 @@ const baseStrategy: Strategy = {
   isReverseMode: false,
 }
 
-describe('useAllStrategiesQuery', () => {
-  it('marks initial server data stale so the list refetches immediately on mount', () => {
-    useQueryMock.mockReturnValue({ data: [baseStrategy] })
+const strategyB: Strategy = {
+  ...strategyA,
+  id: 'strategy-b',
+  ticker: 'TQQQ',
+}
 
-    renderHook(() => useAllStrategiesQuery([baseStrategy]))
+function createWrapper(queryClient: QueryClient) {
+  return function Wrapper({ children }: PropsWithChildren) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  }
+}
 
-    expect(useQueryMock.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({
+function createTestQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  })
+}
+
+function seedStrategyLists(queryClient: QueryClient, strategies: Strategy[]) {
+  queryClient.setQueryData(strategyKeys.listAll(), strategies)
+  queryClient.setQueryData(strategyKeys.listByAccount('account-1'), strategies)
+}
+
+describe('strategy query options', () => {
+  it('uses canonical list keys without initialData APIs', () => {
+    expect(strategyListAllQueryOptions()).toEqual(expect.objectContaining({
       queryKey: strategyKeys.listAll(),
-      initialData: [baseStrategy],
-      initialDataUpdatedAt: 0,
     }))
-  })
-})
-
-describe('useStrategiesQuery', () => {
-  it('marks account strategy initial data stale so detail pages refetch immediately on mount', () => {
-    useQueryMock.mockReturnValue({ data: [baseStrategy] })
-
-    renderHook(() => useStrategiesQuery('account-1', [baseStrategy]))
-
-    expect(useQueryMock.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({
+    expect(strategyListByAccountQueryOptions('account-1')).toEqual(expect.objectContaining({
       queryKey: strategyKeys.listByAccount('account-1'),
-      initialData: [baseStrategy],
-      initialDataUpdatedAt: 0,
     }))
   })
 })
 
-describe('useUpdateStrategyMutation', () => {
-  it('수정 성공 시 실제 주문 미리보기 쿼리 키(order-preview)를 무효화한다', () => {
-    const invalidateQueries = vi.fn()
-    vi.mocked(useQueryClient).mockReturnValue({ invalidateQueries } as never)
-    vi.mocked(useMutation).mockReturnValue({} as never)
+describe('strategy mutations', () => {
+  it('adds a created strategy to all and account lists', async () => {
+    const queryClient = createTestQueryClient()
+    seedStrategyLists(queryClient, [strategyA])
+    createStrategyMock.mockResolvedValue(strategyB)
 
-    renderHook(() => useUpdateStrategyMutation('strategy-1'))
+    const { result } = renderHook(() => useCreateStrategyMutation('account-1'), {
+      wrapper: createWrapper(queryClient),
+    })
 
-    const options = vi.mocked(useMutation).mock.calls.at(-1)?.[0] as unknown as { onSuccess: () => void }
-    options.onSuccess()
+    await result.current.mutateAsync({ type: 'INFINITE', cycleSeedType: 'MAX' })
 
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['orders'] })
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([strategyA, strategyB])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([strategyA, strategyB])
   })
-})
 
-describe('useExecuteStrategyMutation', () => {
-  it('실행 성공 시 실제 주문 미리보기 쿼리(order-preview)를 무효화한다', () => {
-    const invalidateQueries = vi.fn()
-    vi.mocked(useQueryClient).mockReturnValue({ invalidateQueries } as never)
-    vi.mocked(useMutation).mockReturnValue({} as never)
+  it('replaces an updated strategy in all and account lists', async () => {
+    const queryClient = createTestQueryClient()
+    const saved = { ...strategyA, ticker: 'SOXL' }
+    seedStrategyLists(queryClient, [strategyA, strategyB])
+    updateStrategyMock.mockResolvedValue(saved)
 
-    renderHook(() => useExecuteStrategyMutation('strategy-1'))
+    const { result } = renderHook(() => useUpdateStrategyMutation(strategyA.id), {
+      wrapper: createWrapper(queryClient),
+    })
 
-    const options = vi.mocked(useMutation).mock.calls.at(-1)?.[0] as unknown as { onSuccess: () => void }
-    options.onSuccess()
+    await result.current.mutateAsync({ ticker: 'SOXL' })
 
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['orders', 'preview', 'strategy-1'] })
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([saved, strategyB])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([saved, strategyB])
+  })
+
+  it('changes pause and resume status in both lists', async () => {
+    const queryClient = createTestQueryClient()
+    seedStrategyLists(queryClient, [strategyA])
+    pauseStrategyMock.mockResolvedValue(undefined)
+    resumeStrategyMock.mockResolvedValue(undefined)
+
+    const pause = renderHook(() => usePauseStrategyMutation(), {
+      wrapper: createWrapper(queryClient),
+    })
+    await pause.result.current.mutateAsync(strategyA)
+
+    const paused = { ...strategyA, status: 'PAUSED' }
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([paused])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([paused])
+
+    const resume = renderHook(() => useResumeStrategyMutation(), {
+      wrapper: createWrapper(queryClient),
+    })
+    await resume.result.current.mutateAsync(paused)
+
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([strategyA])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([strategyA])
+  })
+
+  it('removes a deleted strategy from both lists', async () => {
+    const queryClient = createTestQueryClient()
+    seedStrategyLists(queryClient, [strategyA, strategyB])
+    deleteStrategyMock.mockResolvedValue(undefined)
+
+    const { result } = renderHook(() => useDeleteStrategyMutation(), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    await result.current.mutateAsync(strategyA)
+
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([strategyB])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([strategyB])
   })
 })
