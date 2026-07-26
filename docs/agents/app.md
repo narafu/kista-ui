@@ -44,6 +44,7 @@
 ## 캐싱 (Server Component)
 
 - **`unstable_cache` + `revalidateTag`**: `shared/lib/cache/`. 5분 TTL. 대상: listAccounts·listStrategies·getMe. 제외: KIS 실시간(portfolio·trades). 에러 핸들링·`revalidateTag` 사용법은 `docs/agents/shared.md` 참고
+- **React Query hydration**: `/dashboard`, `/accounts`는 Server Component에서 `createQueryClient()`로 계좌 목록을 `prefetchQuery`하고 `<HydrationBoundary>`로 Client Content에 넘긴다. 삭제/생성 후 화면 전환은 서버 분기가 아니라 `accountKeys.list()` 캐시 변화가 담당한다
 
 ## Toaster · UI 전역
 

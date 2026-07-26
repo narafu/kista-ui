@@ -17,7 +17,7 @@
 ## FSD 계층 구조
 
 ```text
-app/           -> Next.js 라우팅만 (Server Component 데이터 페칭 + 레이아웃)
+app/           -> Next.js 라우팅만 (Server Component 데이터 프리페치/하이드레이션 + 레이아웃)
 widgets/       -> 페이지 합성 단위
 features/      -> 사용자 시나리오
 entities/      -> 도메인 모델 + API 함수 + React Query 훅
@@ -45,6 +45,7 @@ shared/        -> 도메인 무관 공용
 - `shared/lib/api-client/`: `apiFetch` (Server Component 전용, token 필요) / `clientFetch` (Client Component, Route Handler 경유) / `ApiError`
 - `entities/{domain}/api/`: 도메인별 API 함수
 - **Server Component**: `getAuthToken()` → token 취득 후 `apiFetch` 호출
+- **Server Component → Client Component 캐시 이관**: 목록성 서버 상태는 `createQueryClient()` + `prefetchQuery()` + `<HydrationBoundary>`로 주입하고, 이후 빈 상태/목록 전환은 Client Component가 React Query 캐시를 SSOT로 소비한다
 - **Client Component**: token 없이 `entities/{domain}/api` 함수 → Route Handler 자동 경유
 - **Client Component에서 직접 kista-api 호출 전면 금지** (CORS + 쿠키 문제)
 
