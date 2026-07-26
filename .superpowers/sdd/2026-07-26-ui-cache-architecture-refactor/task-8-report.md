@@ -103,3 +103,35 @@ exit 0
 ```
 
 The build again emitted Node's non-blocking `DEP0205` warning for `module.register()`.
+
+## Fix Round 2: Static Property Keys And Documentation Files
+
+### RED Evidence
+
+Added controlled fixtures before changing the scanner, then ran:
+
+```text
+npm run test:run -- shared/lib/query/cacheArchitecture.test.ts
+2 tests failed, 2 passed
+```
+
+The scanner missed quoted and static-computed `initialDataUpdatedAt` keys with literal zero values. It also reported prohibited reader calls in `cache.docs.js`, `cache.docs.jsx`, `cache.docs.ts`, and `cache.docs.tsx` fixtures.
+
+### Implementation
+
+- Recognizes identifier and string-literal property keys.
+- Treats computed keys as static only when their AST key is a string literal, so dynamic `[initialDataUpdatedAt]` expressions remain unflagged.
+- Excludes conventional `*.docs.js`, `*.docs.jsx`, `*.docs.ts`, and `*.docs.tsx` files while continuing to scan ordinary runtime files containing documentation comments.
+
+### GREEN Evidence
+
+```text
+npm run test:run -- shared/lib/query/cacheArchitecture.test.ts
+1 test file passed, 4 tests passed
+
+npm run test:run
+118 test files passed, 573 tests passed
+
+npm run typecheck
+exit 0
+```

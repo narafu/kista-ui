@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 const projectRoot = process.cwd()
 const runtimeRoots = ['app', 'widgets', 'features', 'entities']
 const runtimeSourceFile = /\.(?:js|jsx|ts|tsx)$/
-const ignoredSourceFile = /\.(?:fixture|spec|test)\.(?:js|jsx|ts|tsx)$/
+const ignoredSourceFile = /\.(?:docs|fixture|spec|test)\.(?:js|jsx|ts|tsx)$/
 const ignoredDirectoryNames = new Set(['__fixtures__', '__tests__', 'docs', 'fixtures', 'test', 'tests'])
 const forbiddenCachedReaderNames = new Set(['getCachedAccounts', 'getCachedStrategies', 'getCachedUser'])
 const temporaryRoots: string[] = []
@@ -38,6 +38,19 @@ function isNode(value: unknown): value is AstNode {
 
 function identifierName(node: unknown): string | null {
   return isNode(node) && node.type === 'Identifier' && typeof node.name === 'string' ? node.name : null
+}
+
+function stringLiteralValue(node: unknown): string | null {
+  const expression = unwrapExpression(node)
+  return isNode(expression) && expression.type === 'Literal' && typeof expression.value === 'string'
+    ? expression.value
+    : null
+}
+
+function propertyKeyName(key: unknown, computed: unknown): string | null {
+  const literal = stringLiteralValue(key)
+  if (literal !== null) return literal
+  return computed === true ? null : identifierName(key)
 }
 
 function unwrapExpression(node: unknown): unknown {
@@ -77,7 +90,7 @@ function hasCacheArchitectureViolation(source: string, relativePath: string): st
     if (value.type === 'Identifier' && forbiddenCachedReaderNames.has(identifierName(value) ?? '')) {
       failures.add('mutable cache reader')
     }
-    if (value.type === 'Property' && identifierName(value.key) === 'initialDataUpdatedAt' && isLiteralZero(value.value)) {
+    if (value.type === 'Property' && propertyKeyName(value.key, value.computed) === 'initialDataUpdatedAt' && isLiteralZero(value.value)) {
       failures.add('forced stale hydration')
     }
     if (relativePath.startsWith('entities/') && relativePath.includes('/hooks/') && isRouterRefreshCall(value)) {
@@ -133,19 +146,26 @@ describe('query cache architecture', () => {
       'app/cache.js': 'getCachedAccounts()',
       'app/cache.ts': 'getCachedUser()',
       'entities/account/hooks/hydration.js': 'const query = { initialDataUpdatedAt: (0) }',
+      'entities/account/hooks/hydration-quoted.ts': "const query = { 'initialDataUpdatedAt': (0) }",
+      'entities/account/hooks/hydration-static-computed.tsx': "const query = { ['initialDataUpdatedAt']: (0) }",
       'entities/account/hooks/refresh.jsx': 'router /* refresh */ . refresh( /* now */ )',
       'entities/account/hooks/strategies.tsx': 'getCachedStrategies()',
       'features/.keep': '',
       'widgets/.keep': '',
     })
 
-    await expect(cacheArchitectureViolations(root)).resolves.toEqual([
+    const violations = await cacheArchitectureViolations(root)
+
+    expect(violations).toHaveLength(7)
+    expect(violations).toEqual(expect.arrayContaining([
       'app/cache.js: mutable cache reader',
       'app/cache.ts: mutable cache reader',
       'entities/account/hooks/hydration.js: forced stale hydration',
+      'entities/account/hooks/hydration-quoted.ts: forced stale hydration',
+      'entities/account/hooks/hydration-static-computed.tsx: forced stale hydration',
       'entities/account/hooks/refresh.jsx: hook router.refresh()',
       'entities/account/hooks/strategies.tsx: mutable cache reader',
-    ])
+    ]))
   })
 
   it('ignores prohibited syntax in test, documentation, and fixture paths', async () => {
@@ -155,10 +175,25 @@ describe('query cache architecture', () => {
       'app/test/cache.ts': 'getCachedAccounts()',
       'app/tests/cache.ts': 'getCachedAccounts()',
       'app/cache.test.ts': 'getCachedAccounts()',
+      'app/cache.docs.js': 'getCachedAccounts()',
+      'app/cache.docs.jsx': 'getCachedAccounts()',
+      'app/cache.docs.ts': 'getCachedAccounts()',
+      'app/cache.docs.tsx': 'getCachedAccounts()',
       'entities/account/hooks/cache.spec.tsx': 'router.refresh()',
       'entities/account/hooks/fixtures/cache.ts': 'router.refresh()',
       'entities/account/hooks/__fixtures__/cache.ts': 'router.refresh()',
       'entities/account/hooks/cache.fixture.ts': 'router.refresh()',
+      'features/.keep': '',
+      'widgets/.keep': '',
+    })
+
+    await expect(cacheArchitectureViolations(root)).resolves.toEqual([])
+  })
+
+  it('does not treat dynamically computed properties as static cache keys', async () => {
+    const root = await fixtureRoot({
+      'entities/account/hooks/dynamic-key.ts': "const initialDataUpdatedAt = 'other'; const query = { [initialDataUpdatedAt]: (0) }",
+      'app/.keep': '',
       'features/.keep': '',
       'widgets/.keep': '',
     })
