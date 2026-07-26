@@ -1,15 +1,14 @@
 'use client'
 
-import { Suspense, use, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, use } from 'react'
 import Link from 'next/link'
 import { TrendingUp, ChevronRight } from 'lucide-react'
 import { StrategyCard } from '@widgets/strategy-card'
+import { NewAccountButton } from '@features/account/create-account'
 import { useAllStrategiesQuery } from '@entities/strategy'
 import { useMeta } from '@entities/meta'
 import type { Strategy } from '@entities/strategy'
 import type { NextOrderPreview } from '@entities/order'
-import { Spinner } from '@shared/ui/Spinner'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { CardSkeleton } from '@shared/ui/CardSkeleton'
 import type { Account } from '@entities/account'
@@ -43,12 +42,6 @@ function StrategyCardSlot({ accountId, strategy, accountLabel, previewsPromise }
 
 function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
   const hasAccounts = accounts.length > 0
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-
-  function handleNavigateToAccounts() {
-    startTransition(() => router.push('/accounts'))
-  }
 
   return (
     <EmptyState
@@ -80,25 +73,7 @@ function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
             )}
           </div>
         ) : (
-          <button
-            type="button"
-            onClick={handleNavigateToAccounts}
-            disabled={isPending}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] text-sm font-medium transition-colors disabled:opacity-60"
-            style={{ background: 'var(--rose-50)', color: 'var(--rose-600)' }}
-          >
-            {isPending ? (
-              <>
-                <Spinner size={16} />
-                이동 중...
-              </>
-            ) : (
-              <>
-                계좌 등록하러 가기
-                <ChevronRight className="size-4" />
-              </>
-            )}
-          </button>
+          <NewAccountButton>계좌 등록하기</NewAccountButton>
         )
       }
     />
