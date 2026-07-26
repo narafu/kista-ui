@@ -82,9 +82,9 @@ function directionBannerText(mode: 'preview' | 'executed', direction: DirectionR
 // 카드 상단 배너 문구 — 휴장일/예수금·판매가능수량 부족을 "바로 주문" 가능 여부와 함께 안내한다.
 // BUY/SELL 부족이 동시에 발생할 수 있어(같은 전략에 두 방향 모두 계획된 경우) 한쪽만 보여주고 끝내지
 // 않도록 둘 다 문구를 만든 뒤 합친다
-function nextOrderBannerText(canExecute: boolean, mode: 'preview' | 'executed', isHoliday: boolean, marketStatusUnknown: boolean, readiness: OrderReadiness): string | null {
+function nextOrderBannerText(canExecute: boolean, mode: 'preview' | 'executed', isHoliday: boolean, marketStatusMessage: string | null, readiness: OrderReadiness): string | null {
   if (!canExecute) return null
-  if (mode === 'preview' && marketStatusUnknown) return '미국 증시 휴장 여부를 확인하지 못했습니다'
+  if (mode === 'preview' && marketStatusMessage) return marketStatusMessage
   if (mode === 'preview' && isHoliday) return '오늘은 휴장일입니다'
 
   const parts = [
@@ -140,13 +140,19 @@ export function StrategyDetail({ accountId, strategy: initialStrategy, initialPr
 
   const todayStr = todayKst()
   const [kstYear, kstMonth] = todayStr.split('-').map(Number)
-  const { holidays, isError: isHolidayError } = useMonthlyHolidaysQuery(kstYear, kstMonth)
+  const { holidays, isError: isHolidayError, loading: isHolidayLoading } = useMonthlyHolidaysQuery(kstYear, kstMonth)
   const dayOfWeek = new Date(todayStr + 'T00:00:00').getDay()
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
   const isHoliday = isWeekend || holidays.includes(todayStr)
-  const marketStatusUnknown = !isWeekend && isHolidayError
+  const marketStatusMessage = !isWeekend
+    ? isHolidayError
+      ? '미국 증시 휴장 여부를 확인하지 못했습니다'
+      : isHolidayLoading
+        ? '미국 증시 휴장 여부를 확인하는 중입니다'
+        : null
+    : null
   const canExecute = strategy.status === 'ACTIVE'
-  const bannerText = nextOrderBannerText(canExecute, mode, isHoliday, marketStatusUnknown, readiness)
+  const bannerText = nextOrderBannerText(canExecute, mode, isHoliday, marketStatusMessage, readiness)
 
   const { pause, resume, remove, execute, isPausing, isResuming, isDeleting, isExecuting } = useManageStrategyMutations({
     onDeleted: () => push(`/accounts/${accountId}`),
@@ -341,8 +347,8 @@ export function StrategyDetail({ accountId, strategy: initialStrategy, initialPr
                       toast.info('오늘은 미국 증시 휴장일입니다')
                       return
                     }
-                    if (marketStatusUnknown) {
-                      toast.info('미국 증시 휴장 여부를 확인하지 못했습니다')
+                    if (marketStatusMessage) {
+                      toast.info(marketStatusMessage)
                       return
                     }
                     // BUY/SELL 부족·확인 실패가 동시에 있을 수 있어 둘 다 확인해 각각 토스트로 안내한다 —

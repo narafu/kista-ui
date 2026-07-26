@@ -12,7 +12,7 @@ const pauseMutate = vi.fn()
 const resumeMutate = vi.fn()
 let deleteSuccessHandler: (() => void) | undefined
 let strategiesQueryData: Strategy[] | undefined
-let holidayQueryResult: { holidays: string[]; isError?: boolean } = { holidays: [] }
+let holidayQueryResult: { holidays: string[]; isError?: boolean; loading?: boolean } = { holidays: [] }
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
@@ -360,6 +360,30 @@ describe('StrategyDetail market-holiday failure', () => {
 
     expect(screen.getByText('미국 증시 휴장 여부를 확인하지 못했습니다')).toBeInTheDocument()
     expect(toast.info).toHaveBeenCalledWith('미국 증시 휴장 여부를 확인하지 못했습니다')
+    expect(executeMutate).not.toHaveBeenCalled()
+  })
+
+  it('blocks immediate execution while weekday holiday status is still loading', () => {
+    holidayQueryResult = { holidays: [], loading: true }
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [],
+        position: null,
+        orders: [{ ticker: 'TSLA', orderType: 'LOC', direction: 'BUY', quantity: 1, price: '20.00' }],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: null,
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+    fireEvent.click(screen.getByText('바로 주문'))
+
+    expect(screen.getByText('미국 증시 휴장 여부를 확인하는 중입니다')).toBeInTheDocument()
+    expect(toast.info).toHaveBeenCalledWith('미국 증시 휴장 여부를 확인하는 중입니다')
     expect(executeMutate).not.toHaveBeenCalled()
   })
 })
