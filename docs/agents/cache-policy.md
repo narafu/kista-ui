@@ -20,7 +20,9 @@
 | 이력 | orders, trades, cycle history | React Query | 1-5분 | 영향을 주는 mutation에서만 invalidate |
 | 라이브 | prices, portfolio, execution state | React Query/SSE | `staleTime: 0` 또는 stream-driven | targeted update/refetch |
 | 런타임 설정 | runtime-config, admin-settings | React Query | `staleTime: 0`, 필요 시 focus refetch | public/admin view 모두 invalidate |
-| 참조 데이터 | meta, market holidays | Next.js Data Cache 허용 | 1-24시간 | tag revalidation 또는 TTL |
+| market holidays | React Query(visible state) + 서버 initial snapshot | hydration 24시간, 미주입 0 | `marketKeys.holidays` refetch; persistent Data Cache 없음 |
+| public meta fallback | Next.js Data Cache + `MetaProvider` snapshot | 1시간 | TTL 만료 후 다음 요청에서 갱신 |
+| 기타 느린 public reference | 도입 시 Next.js Data Cache 허용 | 1-24시간 | 명시적 tag revalidation 또는 TTL |
 
 구현 위치:
 
@@ -29,6 +31,7 @@
 - 서버/클라이언트 공용 query options: `entities/*/model/queryOptions.ts`
 - 계좌 SSR hydration: `app/(main)/dashboard/page.tsx`, `app/(main)/accounts/page.tsx`
 - 계좌 query-owned 분기: `widgets/dashboard/DashboardContent.tsx`, `widgets/accounts-grid/AccountsPageContent.tsx`
+- 휴장일 visible query: `entities/market/hooks/useMarketQueries.ts`
 - 캐시 아키텍처 정적 가드: `shared/lib/query/cacheArchitecture.test.ts`
 
 ## Query Key Factory
@@ -121,6 +124,7 @@ router.push('/accounts')
 
 - mutable authenticated resource(`accounts`, `strategies`, `me`, admin data, orders, trades, stats)는 `unstable_cache`, `'use cache'`, `cacheTag` 대상이 아니다.
 - 허용 대상은 사용자별 즉시 일관성이 필요하지 않은 느리게 변하는 reference/public 데이터뿐이다. TTL(1-24시간), key 입력, tag, 오류 의미를 명시한다.
+- 현재 persistent Next Data Cache 적용은 비인증 `getMetaBundle()`의 public fallback(`revalidate: 3600`)뿐이다. market holidays는 persistent cache directive가 없고, 화면 상태는 `marketKeys.holidays(year, month)` React Query가 소유한다.
 - `unstable_cache`는 Next.js 16에서 `'use cache'`로 대체된 legacy API다. 기존 wrapper를 유지할 때만 사용하고 신규 코드는 Cache Components 도입 여부를 먼저 검토한다.
 - `cacheTag()`는 `cacheComponents: true`와 `'use cache'` scope가 모두 있을 때만 사용한다. 현재 설정에 Cache Components가 없다면 도입하지 않는다.
 - `revalidateTag(tag, 'max')`는 Next persistent cache만 stale 처리한다. React Query나 client Router Cache 동기화로 간주하지 않는다.
@@ -174,3 +178,12 @@ npm run test:e2e -- tests/e2e/account-cache-consistency.spec.ts
 ```
 
 계좌 E2E는 로컬 `kista-api`의 `local` profile, `POST /api/auth/dev-token`, MOCK broker를 사용한다. 실제 KIS 자격증명은 필요하지 않다. Playwright는 기본 `E2E_PORT=3100`, `E2E_API_BASE=http://localhost:8080`을 사용한다.
+
+`DevAuthController`가 별도 사용자 생성을 지원하지 않아 account-cache storage state도 고정 개발 USER UUID `00000000-0000-0000-0000-000000000001`을 사용한다. 소유권과 격리 계약은 다음과 같다.
+
+- setup은 account-cache 전용 토큰을 `e2e/.auth/account-cache.json`에 기록한다. 토큰 파일은 분리되지만 backend identity는 기존 USER storage state와 같다.
+- Playwright 프로젝트 의존성은 `setup -> account-cache -> chromium`이다. account-cache 스펙은 serial로 실행되며 기존 USER 스위트와 동시에 실행되지 않는다.
+- 테스트 계좌 nickname은 `e2e-account-cache-` 예약 prefix를 사용한다. cleanup은 현재 프로세스가 기록한 account ID와 이 prefix의 이전 실행 잔여물만 삭제하며, 사용자 계좌 전체를 삭제하지 않는다.
+- cleanup 전에 API origin이 loopback HTTP origin이고 `/api/auth/me` UUID가 고정 개발 USER인지 확인한다. 다른 origin/identity이면 삭제를 거부한다.
+- 시작 시 예약 prefix 외 계좌가 있으면 공유 identity가 오염된 것으로 보고 테스트를 중단한다. 외부 계좌를 자동 삭제하지 않는다.
+- 두 회귀는 initial `page.goto()` 뒤 main-frame document request를 기록하고 window sentinel 생존을 검사한다. 목적지 URL/heading/content도 함께 검증하므로 full document reload로 Router Cache 문제를 숨길 수 없다.

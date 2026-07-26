@@ -16,9 +16,16 @@ export default defineConfig({
   projects: [
     { name: 'setup', testMatch: 'e2e/global.setup.ts' },
     {
-      name: 'chromium',
+      name: 'account-cache',
       dependencies: ['setup'],
-      testMatch: ['e2e/**/*.spec.ts', 'tests/e2e/**/*.spec.ts'],
+      fullyParallel: false,
+      testMatch: 'tests/e2e/account-cache-consistency.spec.ts',
+    },
+    {
+      name: 'chromium',
+      dependencies: ['account-cache'],
+      testMatch: 'e2e/**/*.spec.ts',
+      testIgnore: 'tests/e2e/**/*.spec.ts',
     },
   ],
   webServer: {
