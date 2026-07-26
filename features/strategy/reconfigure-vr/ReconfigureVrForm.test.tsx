@@ -98,7 +98,10 @@ describe('ReconfigureVrForm', () => {
     fireEvent.change(screen.getByLabelText('gradient 상한'), { target: { value: '5' } }) // initialGradient=10보다 작음
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
 
-    await waitFor(() => expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument())
+    // form.trigger()가 실제로 끝났다는 확실한 신호 — 인라인 에러 메시지가 뜰 때까지 기다린다
+    await screen.findByText('gradient 상한은 초기값 이상이어야 합니다.')
+
+    expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument()
     expect(mutateMock).not.toHaveBeenCalled()
   })
 
@@ -107,7 +110,10 @@ describe('ReconfigureVrForm', () => {
     fireEvent.change(screen.getByLabelText('편입 주식 수'), { target: { value: '10' } })
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
 
-    await waitFor(() => expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument())
+    // form.trigger()가 실제로 끝났다는 확실한 신호 — 인라인 에러 메시지가 뜰 때까지 기다린다
+    await screen.findByText('주식을 편입하려면 매수단가를 입력하세요.')
+
+    expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument()
     expect(mutateMock).not.toHaveBeenCalled()
   })
 
