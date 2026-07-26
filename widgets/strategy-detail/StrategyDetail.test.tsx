@@ -198,7 +198,7 @@ describe('StrategyDetail header card', () => {
     expect(mockPush).toHaveBeenCalledWith('/accounts/account-1')
   })
 
-  it('shows VR summary instead of privacy operating mode copy', () => {
+  it('shows recurring withdrawal mode in the operating-mode card without duplicating the strategy type', () => {
     render(<StrategyDetail
       accountId="account-1"
       strategy={{
@@ -218,13 +218,73 @@ describe('StrategyDetail header card', () => {
       }}
     />)
 
-    expect(screen.getByTestId('strategy-summary-grid')).toHaveTextContent('VR')
+    expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('전략타입')
+    expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('VR')
+    expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('운용 방식')
+    expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('인출식($100.00)')
     expect(screen.getByTestId('strategy-meta-grid')).not.toHaveTextContent('다음 사이클')
-    expect(screen.getByTestId('strategy-vr-grid')).toHaveTextContent('V값')
-    expect(screen.getByTestId('strategy-vr-grid')).toHaveTextContent('$3,000.00')
-    expect(screen.getByTestId('strategy-vr-grid')).toHaveTextContent('밴드 폭')
-    expect(screen.getByTestId('strategy-vr-grid')).toHaveTextContent('15%')
+    expect(screen.queryByTestId('strategy-summary-grid')).not.toBeInTheDocument()
+
+    const vrGrid = screen.getByTestId('strategy-vr-grid')
+    expect(vrGrid).toHaveTextContent('밴드 폭')
+    expect(vrGrid).toHaveTextContent('15%')
+    expect(vrGrid).toHaveTextContent('주기')
+    expect(vrGrid).toHaveTextContent('4주')
+    expect(vrGrid).toHaveTextContent('G')
+    expect(vrGrid).toHaveTextContent('V')
+    expect(vrGrid).toHaveTextContent('$3,000.00')
+    expect(vrGrid).not.toHaveTextContent('V값')
+    expect(vrGrid).toHaveTextContent('pool')
+    expect(vrGrid).toHaveTextContent('$2,000.00')
+    expect(vrGrid).toHaveTextContent('pool 상한')
+    expect(vrGrid).toHaveTextContent('$500.00')
     expect(screen.queryByText('매매표')).not.toBeInTheDocument()
+  })
+
+  it('shows the saving mode amount when recurringAmount is positive', () => {
+    render(<StrategyDetail
+      accountId="account-1"
+      strategy={{
+        ...baseStrategy,
+        type: 'VR',
+        ticker: 'TQQQ',
+        divisionCount: undefined,
+        initialUsdDeposit: 2000,
+        vr: {
+          value: 3000,
+          bandWidth: 15,
+          intervalWeeks: 4,
+          recurringAmount: 200,
+          poolLimit: 1500,
+          gradient: 10,
+        },
+      }}
+    />)
+
+    expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('적립식($200.00)')
+  })
+
+  it('shows the hold mode label when recurringAmount is zero', () => {
+    render(<StrategyDetail
+      accountId="account-1"
+      strategy={{
+        ...baseStrategy,
+        type: 'VR',
+        ticker: 'TQQQ',
+        divisionCount: undefined,
+        initialUsdDeposit: 2000,
+        vr: {
+          value: 3000,
+          bandWidth: 15,
+          intervalWeeks: 4,
+          recurringAmount: 0,
+          poolLimit: 1000,
+          gradient: 10,
+        },
+      }}
+    />)
+
+    expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('거치식')
   })
 })
 

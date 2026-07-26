@@ -102,6 +102,13 @@ function previewErrorMsg(error: unknown): string {
   return '주문 미리보기를 불러오는 중 오류가 발생했습니다.'
 }
 
+// VR 정기 입출금 부호별 라벨 — 카드 자체가 "운용 방식"을 겸하므로 별도 recurringMode 필드 없이 amount 부호로만 판정한다
+function recurringModeLabel(recurringAmount: number): string {
+  if (recurringAmount > 0) return `적립식($${fmtUsd(recurringAmount)})`
+  if (recurringAmount === 0) return '거치식'
+  return `인출식($${fmtUsd(Math.abs(recurringAmount))})`
+}
+
 interface Props {
   accountId: string
   strategy: Strategy
@@ -195,14 +202,21 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
           )}
         </div>
       </div>
-      <div data-testid="strategy-meta-grid" className={cn('grid gap-3', isVr ? 'grid-cols-1' : 'grid-cols-2')}>
+      <div data-testid="strategy-meta-grid" className="grid grid-cols-2 gap-3">
         <KpiCard
           label="전략타입"
           value={<span className="inline-flex items-center text-xl lg:text-2xl font-bold">{strategy.type}</span>}
           className="p-4 lg:p-5"
           valueClassName="text-xl lg:text-2xl"
         />
-        {!isVr && (
+        {strategy.vr ? (
+          <KpiCard
+            label="운용 방식"
+            value={<span className="inline-flex items-center text-xl lg:text-2xl font-bold">{recurringModeLabel(strategy.vr.recurringAmount)}</span>}
+            className="p-4 lg:p-5"
+            valueClassName="text-xl lg:text-2xl"
+          />
+        ) : (
           <KpiCard
             label="다음 사이클"
             value={
@@ -213,33 +227,45 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
         )}
       </div>
 
-      <div data-testid="strategy-summary-grid" className="grid grid-cols-2 gap-3">
-        <KpiCard
-          label={usesDivisionCount ? '분할' : '운용 방식'}
-          value={<span className="inline-flex items-center text-xl lg:text-2xl font-bold">{usesDivisionCount ? `${strategy.divisionCount}분할` : isVr ? 'VR' : '매매표'}</span>}
-          className="p-4 lg:p-5"
-          valueClassName="text-xl lg:text-2xl"
-        />
-        <KpiCard
-          label="시작금액"
-          value={
-            strategy.initialUsdDeposit != null ? (
-              <span className="inline-flex items-center text-xl lg:text-3xl font-bold">{`$${fmtUsd(strategy.initialUsdDeposit)}`}</span>
-            ) : (
-              <span className="inline-flex items-center text-sm lg:text-base text-muted-foreground font-normal">미설정</span>
-            )
-          }
-        />
-      </div>
+      {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
+      {!strategy.vr && (
+        <div data-testid="strategy-summary-grid" className="grid grid-cols-2 gap-3">
+          <KpiCard
+            label={usesDivisionCount ? '분할' : '운용 방식'}
+            value={<span className="inline-flex items-center text-xl lg:text-2xl font-bold">{usesDivisionCount ? `${strategy.divisionCount}분할` : '매매표'}</span>}
+            className="p-4 lg:p-5"
+            valueClassName="text-xl lg:text-2xl"
+          />
+          <KpiCard
+            label="시작금액"
+            value={
+              strategy.initialUsdDeposit != null ? (
+                <span className="inline-flex items-center text-xl lg:text-3xl font-bold">{`$${fmtUsd(strategy.initialUsdDeposit)}`}</span>
+              ) : (
+                <span className="inline-flex items-center text-sm lg:text-base text-muted-foreground font-normal">미설정</span>
+              )
+            }
+          />
+        </div>
+      )}
 
       {/* VR 전용 KPI 그리드 — strategy.vr 존재 시에만 렌더 */}
       {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
       {strategy.vr && (
-        <div data-testid="strategy-vr-grid" className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <KpiCard label="V값" value={`$${fmtUsd(strategy.vr.value)}`} />
-          <KpiCard label="밴드 폭" value={`${strategy.vr.bandWidth}%`} />
-          <KpiCard label="pool 상한" value={`$${fmtUsd(strategy.vr.poolLimit)}`} />
-          <KpiCard label="G" value={`${strategy.vr.gradient}`} />
+        <div data-testid="strategy-vr-grid" className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <KpiCard label="주기" value={`${strategy.vr.intervalWeeks}주`} className="order-1 lg:order-2" />
+            <KpiCard label="밴드 폭" value={`${strategy.vr.bandWidth}%`} className="order-2 lg:order-1" />
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <KpiCard label="G" value={`${strategy.vr.gradient}`} />
+            <KpiCard label="V" value={`$${fmtUsd(strategy.vr.value)}`} />
+            <KpiCard
+              label="pool"
+              value={strategy.initialUsdDeposit != null ? `$${fmtUsd(strategy.initialUsdDeposit)}` : '미설정'}
+            />
+            <KpiCard label="pool 상한" value={`$${fmtUsd(strategy.vr.poolLimit)}`} />
+          </div>
         </div>
       )}
 
