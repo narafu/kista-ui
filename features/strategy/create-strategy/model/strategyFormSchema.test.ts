@@ -125,4 +125,55 @@ describe('strategyFormSchema', () => {
 
     expect(result.success).toBe(false)
   })
+
+  it('VR 램프 8필드가 유효한 범위면 파싱 성공', () => {
+    const result = strategyFormSchema.safeParse({
+      type: 'VR',
+      ticker: 'TQQQ',
+      autoStart: false,
+      seedMode: 'KEEP',
+      divisionCount: 20,
+      recurringMode: 'HOLD',
+      initialGradient: 10,
+      gGraceWeeks: 52,
+      gStepWeeks: 26,
+      gMax: 20,
+      initialPoolLimitRate: 0.75,
+      pGraceWeeks: 52,
+      pStepWeeks: 26,
+      poolLimitFloor: 0.5,
+    })
+
+    expect(result.success).toBe(true)
+  })
+
+  it('램프 8필드를 생략해도 파싱 성공 (전부 optional)', () => {
+    const result = strategyFormSchema.safeParse(valid)
+    expect(result.success).toBe(true)
+  })
+
+  it('initialGradient가 0 이하면 실패', () => {
+    const result = strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', initialGradient: 0 })
+    expect(result.success).toBe(false)
+  })
+
+  it('gGraceWeeks가 음수면 실패', () => {
+    const result = strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', gGraceWeeks: -1 })
+    expect(result.success).toBe(false)
+  })
+
+  it('initialPoolLimitRate가 1을 초과하면 실패', () => {
+    const result = strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', initialPoolLimitRate: 1.5 })
+    expect(result.success).toBe(false)
+  })
+
+  it('poolLimitFloor가 0이면 실패 (0 초과 필요)', () => {
+    const result = strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', poolLimitFloor: 0 })
+    expect(result.success).toBe(false)
+  })
+
+  it('gStepWeeks·pStepWeeks가 소수이면 실패 (정수 제약)', () => {
+    expect(strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', gStepWeeks: 26.5 }).success).toBe(false)
+    expect(strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', pStepWeeks: 26.5 }).success).toBe(false)
+  })
 })

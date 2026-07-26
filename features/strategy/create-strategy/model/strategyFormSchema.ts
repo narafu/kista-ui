@@ -16,6 +16,15 @@ export const strategyFormSchema = z.object({
   recurringAmount: z.number().int().nonnegative().nullable().optional(),
   recurringMode: z.enum(['DEPOSIT', 'HOLD', 'WITHDRAW']),
   scheduledStartDate: z.string().nullable().optional(),
+  // VR 램프 파라미터 — 전부 optional, 생략 시 백엔드 기본값 적용
+  initialGradient: z.number().int().positive().nullable().optional(),
+  gGraceWeeks: z.number().int().nonnegative().nullable().optional(),
+  gStepWeeks: z.number().int().positive().nullable().optional(),
+  gMax: z.number().int().positive().nullable().optional(),
+  initialPoolLimitRate: z.number().positive().max(1).nullable().optional(),
+  pGraceWeeks: z.number().int().nonnegative().nullable().optional(),
+  pStepWeeks: z.number().int().positive().nullable().optional(),
+  poolLimitFloor: z.number().positive().max(1).nullable().optional(),
 })
 
 export type StrategyFormValues = z.infer<typeof strategyFormSchema>
