@@ -23,6 +23,10 @@ export type SkipReason = NonNullable<components['schemas']['NextOrdersResponse']
 type HousingBenchmarkQuery = NonNullable<operations['getHousingBenchmarkComparison']['parameters']['query']>
 export type BenchmarkAssetType = NonNullable<HousingBenchmarkQuery['benchmarkType']>
 
+// recurringMode는 TradingCycleRequest에는 없다(VR은 recurringAmount의 부호로 방향 전달) —
+// 같은 값의 enum 제약은 admin-settings 필드 설정 스키마(FieldRequestRecurringMode)에 있어 그쪽에서 파생한다.
+export type RecurringMode = NonNullable<components['schemas']['FieldRequestRecurringMode']['defaultValue']>
+
 const BROKER_LABEL: Record<string, string> = {
   KIS: '한국투자증권',
   TOSS: '토스증권',

@@ -1,8 +1,8 @@
-import type { BrokerCode, StrategyType } from '@shared/lib/api-schema'
+import type { BrokerCode, RecurringMode as ApiRecurringMode, StrategyType } from '@shared/lib/api-schema'
 
 export type RuntimeBrokerCode = BrokerCode
 export type RuntimeStrategyType = StrategyType
-export type RecurringMode = 'DEPOSIT' | 'HOLD' | 'WITHDRAW'
+export type RecurringMode = ApiRecurringMode
 
 export interface RuntimeFieldSettings<T> {
   customizable: boolean

@@ -1,8 +1,8 @@
-import type { BrokerCode, StrategyType } from '@shared/lib/api-schema'
+import type { BrokerCode, RecurringMode, StrategyType } from '@shared/lib/api-schema'
 
 export type AdminBrokerCode = BrokerCode
 export type AdminStrategyType = StrategyType
-export type AdminRecurringMode = 'DEPOSIT' | 'HOLD' | 'WITHDRAW'
+export type AdminRecurringMode = RecurringMode
 
 export interface AdminFieldSettings<T> {
   customizable: boolean
