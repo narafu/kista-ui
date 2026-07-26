@@ -130,13 +130,15 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
     form.setValue('recurringAmount', recurringMode === 'WITHDRAW' ? -magnitude : magnitude, { shouldValidate: true })
   }
 
-  // zodResolver는 항상 Promise를 반환하므로 form.handleSubmit()을 거치면
-  // 확인 다이얼로그 오픈이 비동기가 된다. handleConfirm이 어차피 필드 검증을
-  // 우회하고 form.getValues()를 그대로 쓰므로(브리프 원안), 여기서도 검증 게이트 없이
-  // 폼 기본 제출만 막고 즉시 다이얼로그를 연다.
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  // zodResolver는 항상 Promise를 반환하므로 form.handleSubmit()을 거치는 이상
+  // 이 콜백은 비동기일 수밖에 없다. 대신 여기서 명시적으로 form.trigger()를 await해
+  // reconfigureVrFormSchema의 superRefine 교차 검증(gMax>=initialGradient,
+  // poolLimitFloor<=initialPoolLimitRate, injectShares>0이면 injectSharePrice 필수)을
+  // 통과했을 때만 확인 다이얼로그를 연다 — 검증 실패 시 다이얼로그 자체가 뜨지 않는다.
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setConfirmOpen(true)
+    const valid = await form.trigger()
+    if (valid) setConfirmOpen(true)
   }
 
   function handleConfirm() {

@@ -61,17 +61,17 @@ describe('ReconfigureVrForm', () => {
     expect(initialPoolLimitRateInput.value).toBe('0.75')
   })
 
-  it('제출 시 즉시 뮤테이션을 호출하지 않고 확인 다이얼로그를 먼저 띄운다', () => {
+  it('제출 시 즉시 뮤테이션을 호출하지 않고 확인 다이얼로그를 먼저 띄운다', async () => {
     render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
-    expect(screen.getByText('VR 전략을 재설정하시겠습니까?')).toBeInTheDocument()
+    expect(await screen.findByText('VR 전략을 재설정하시겠습니까?')).toBeInTheDocument()
     expect(mutateMock).not.toHaveBeenCalled()
   })
 
   it('확인 다이얼로그에서 확정하면 현재 폼 값으로 뮤테이션을 호출한다', async () => {
     render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
-    fireEvent.click(screen.getByRole('button', { name: '재설정 확정' }))
+    fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
 
     await waitFor(() => expect(mutateMock).toHaveBeenCalled())
     expect(mutateMock.mock.calls[0][0]).toEqual(expect.objectContaining({
@@ -87,10 +87,28 @@ describe('ReconfigureVrForm', () => {
     fireEvent.click(screen.getByRole('button', { name: '- 인출' }))
     fireEvent.change(screen.getByLabelText('적립금(+)/인출금(-)'), { target: { value: '200' } })
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
-    fireEvent.click(screen.getByRole('button', { name: '재설정 확정' }))
+    fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
 
     await waitFor(() => expect(mutateMock).toHaveBeenCalled())
     expect(mutateMock.mock.calls[0][0].recurringAmount).toBe(-200)
+  })
+
+  it('gMax가 initialGradient보다 작으면 확인 다이얼로그를 열지 않는다', async () => {
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    fireEvent.change(screen.getByLabelText('gradient 상한'), { target: { value: '5' } }) // initialGradient=10보다 작음
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+
+    await waitFor(() => expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument())
+    expect(mutateMock).not.toHaveBeenCalled()
+  })
+
+  it('injectShares>0인데 매수단가를 비우면 확인 다이얼로그를 열지 않는다', async () => {
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    fireEvent.change(screen.getByLabelText('편입 주식 수'), { target: { value: '10' } })
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+
+    await waitFor(() => expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument())
+    expect(mutateMock).not.toHaveBeenCalled()
   })
 
   it('injectShares가 0보다 클 때만 매수단가 필드를 노출한다', () => {
