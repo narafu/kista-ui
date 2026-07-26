@@ -31,6 +31,14 @@ export interface VrFields {
   intervalWeeks: number | null
   bandWidth: number | null
   recurringAmount: number | null
+  initialGradient: number | null
+  gGraceWeeks: number | null
+  gStepWeeks: number | null
+  gMax: number | null
+  initialPoolLimitRate: number | null
+  pGraceWeeks: number | null
+  pStepWeeks: number | null
+  poolLimitFloor: number | null
 }
 type VrRecurringMode = 'DEPOSIT' | 'HOLD' | 'WITHDRAW'
 
@@ -133,6 +141,14 @@ export function useStrategyForm({
       recurringMode: initial?.vr?.recurringAmount
         ? initial.vr.recurringAmount < 0 ? 'WITHDRAW' : 'DEPOSIT'
         : 'HOLD',
+      initialGradient: initial?.vr?.initialGradient ?? null,
+      gGraceWeeks: initial?.vr?.gGraceWeeks ?? null,
+      gStepWeeks: initial?.vr?.gStepWeeks ?? null,
+      gMax: initial?.vr?.gMax ?? null,
+      initialPoolLimitRate: initial?.vr?.initialPoolLimitRate ?? null,
+      pGraceWeeks: initial?.vr?.pGraceWeeks ?? null,
+      pStepWeeks: initial?.vr?.pStepWeeks ?? null,
+      poolLimitFloor: initial?.vr?.poolLimitFloor ?? null,
       // 시작예정일도 등록 전용 — 수정 모드에서는 항상 빈 값
       scheduledStartDate: null,
     },
@@ -153,8 +169,20 @@ export function useStrategyForm({
   const recurringAmount = form.watch('recurringAmount') ?? null
   const recurringMode = form.watch('recurringMode')
   const scheduledStartDate = form.watch('scheduledStartDate') ?? null
+  const initialGradient = form.watch('initialGradient') ?? null
+  const gGraceWeeks = form.watch('gGraceWeeks') ?? null
+  const gStepWeeks = form.watch('gStepWeeks') ?? null
+  const gMax = form.watch('gMax') ?? null
+  const initialPoolLimitRate = form.watch('initialPoolLimitRate') ?? null
+  const pGraceWeeks = form.watch('pGraceWeeks') ?? null
+  const pStepWeeks = form.watch('pStepWeeks') ?? null
+  const poolLimitFloor = form.watch('poolLimitFloor') ?? null
   const isVr = type === 'VR'
-  const vrFields: VrFields = { avgPrice, quantity, intervalWeeks, bandWidth, recurringAmount }
+  const vrFields: VrFields = {
+    avgPrice, quantity, intervalWeeks, bandWidth, recurringAmount,
+    initialGradient, gGraceWeeks, gStepWeeks, gMax,
+    initialPoolLimitRate, pGraceWeeks, pStepWeeks, poolLimitFloor,
+  }
 
   // capability 파생 — isInfinite 휴리스틱 대신 백엔드 SSOT 사용
   const typeMeta = useMemo(() => findStrategyType(type), [findStrategyType, type])
@@ -305,7 +333,9 @@ export function useStrategyForm({
     (recurringAmount !== null && !Number.isInteger(recurringAmount)) ||
     (recurringMode !== 'HOLD' && recurringMagnitude <= 0) ||
     (normalizedRecurringAmount <= 0 && initialAssets <= 0) ||
-    (normalizedRecurringAmount < 0 && initialAssets < requiredWithdrawalAssets)
+    (normalizedRecurringAmount < 0 && initialAssets < requiredWithdrawalAssets) ||
+    (gMax !== null && initialGradient !== null && gMax < initialGradient) ||
+    (poolLimitFloor !== null && initialPoolLimitRate !== null && poolLimitFloor > initialPoolLimitRate)
   )
 
   const isRuntimeValueInvalid = !initial && !!runtimeStrategy && (
@@ -365,6 +395,12 @@ export function useStrategyForm({
           }
           if (normalizedRecurringAmount < 0 && initialAssets < requiredWithdrawalAssets) {
             return `인출식은 초기 자산이 $${fmtUsd(requiredWithdrawalAssets)} 이상이어야 합니다.`
+          }
+          if (gMax !== null && initialGradient !== null && gMax < initialGradient) {
+            return 'gradient 상한은 초기값 이상이어야 합니다.'
+          }
+          if (poolLimitFloor !== null && initialPoolLimitRate !== null && poolLimitFloor > initialPoolLimitRate) {
+            return 'poolLimitRate 하한은 초기값 이하여야 합니다.'
           }
           if (isRuntimeValueInvalid) return '현재 허용되지 않는 설정이 선택되었습니다.'
           return null
@@ -469,6 +505,15 @@ export function useStrategyForm({
                 ? runtimeStrategy.fields.bandWidth.defaultValue
                 : bandWidth ?? undefined,
               recurringAmount: normalizedRecurringAmount,
+              // 램프 파라미터 — 값이 있을 때만 포함(생략 시 서버 기본값 적용)
+              ...(initialGradient !== null ? { initialGradient } : {}),
+              ...(gGraceWeeks !== null ? { gGraceWeeks } : {}),
+              ...(gStepWeeks !== null ? { gStepWeeks } : {}),
+              ...(gMax !== null ? { gMax } : {}),
+              ...(initialPoolLimitRate !== null ? { initialPoolLimitRate } : {}),
+              ...(pGraceWeeks !== null ? { pGraceWeeks } : {}),
+              ...(pStepWeeks !== null ? { pStepWeeks } : {}),
+              ...(poolLimitFloor !== null ? { poolLimitFloor } : {}),
             } : {}),
           }
 

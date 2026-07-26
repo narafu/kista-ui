@@ -36,6 +36,14 @@ describe('VrSettingsSection', () => {
     intervalWeeks: 2,
     bandWidth: 15,
     recurringAmount: 0,
+    initialGradient: null,
+    gGraceWeeks: null,
+    gStepWeeks: null,
+    gMax: null,
+    initialPoolLimitRate: null,
+    pGraceWeeks: null,
+    pStepWeeks: null,
+    poolLimitFloor: null,
   }
 
   beforeEach(() => {
