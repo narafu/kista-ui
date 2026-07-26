@@ -18,7 +18,6 @@ export {
   updateBalanceCheckEnabled,
   updateNickname,
 } from './api'
-export { getCachedUser } from './api/cached'
 export {
   useMeQuery,
   useDeleteMeMutation,

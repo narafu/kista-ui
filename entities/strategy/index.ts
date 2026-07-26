@@ -15,7 +15,6 @@ export {
   executeStrategy,
   getStrategySeedPreview,
 } from './api'
-export { getCachedStrategies } from './api/cached'
 export {
   useStrategySeedPreviewQuery,
   useAllStrategiesQuery,

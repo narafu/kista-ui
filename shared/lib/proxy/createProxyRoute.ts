@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { revalidateTag } from 'next/cache'
 import { getAuthToken } from '@shared/lib/auth/token'
 
 const API_BASE_URL = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
@@ -10,7 +9,6 @@ type Handler = (req: NextRequest, ctx?: Params) => Promise<NextResponse>
 
 export type CreateProxyRouteOptions = {
   basePath: string
-  revalidateTags?: (token: string) => string[]
   // true(기본)이면 토큰 없을 때 401. false면 비인증 상태로 kista-api 직접 전달 (GET /api/market/** 등 공개 엔드포인트용)
   requireAuth?: boolean
 }
@@ -62,10 +60,6 @@ export function createProxyRoute(opts: CreateProxyRouteOptions): {
       } catch {
         return NextResponse.json({ error: 'Failed' }, { status: res.status })
       }
-    }
-
-    if (request.method !== 'GET' && opts.revalidateTags && token) {
-      for (const tag of opts.revalidateTags(token)) revalidateTag(tag, 'max')
     }
 
     if (res.status === 204) return new NextResponse(null, { status: 204 })
