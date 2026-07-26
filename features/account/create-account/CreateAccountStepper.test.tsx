@@ -26,6 +26,10 @@ vi.mock('@entities/account', () => ({
   useTestKisConnectionMutation: () => ({ mutate: vi.fn(), reset: vi.fn(), isPending: false, isSuccess: false, isError: false }),
 }))
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}))
+
 describe('CreateAccountStepper MOCK broker', () => {
   it('collapses to a 3-step flow with no API key or account number steps', async () => {
     const user = userEvent.setup()

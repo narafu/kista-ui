@@ -2,7 +2,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
 import { ApiError, apiMsg } from '@shared/lib/api-client'
 import {
   createAccount,
@@ -16,6 +15,17 @@ import {
 } from '../api'
 import type { Account, AccountRequest } from '../model/types'
 import { accountKeys } from '../model/queryKeys'
+
+function upsertAccount(accounts: Account[] | undefined, saved: Account) {
+  const current = accounts ?? []
+  const exists = current.some((account) => account.id === saved.id)
+
+  if (!exists) {
+    return [...current, saved]
+  }
+
+  return current.map((account) => account.id === saved.id ? saved : account)
+}
 
 export function useAccountMarginQuery(accountId: string, options?: { enabled?: boolean }) {
   const { data: items = [], isLoading } = useQuery<MarginItem[]>({
@@ -35,44 +45,40 @@ export function useAccountPricesQuery(accountId: string, tickers: string[]) {
 }
 
 export function useUpdateAccountMutation(accountId: string) {
-  const router = useRouter()
   const queryClient = useQueryClient()
   return useMutation<Account, Error, AccountRequest>({
     mutationFn: (data) => updateAccount(accountId, data),
-    onSuccess: () => {
-      toast.success('계좌가 수정되었습니다')
-      queryClient.invalidateQueries({ queryKey: accountKeys.all })
-      router.push(`/accounts/${accountId}`)
-      router.refresh()
+    onSuccess: (saved) => {
+      queryClient.setQueryData<Account[]>(accountKeys.list(), (accounts) => upsertAccount(accounts, saved))
+      queryClient.setQueryData(accountKeys.detail(accountId), saved)
     },
     onError: (err) => toast.error(apiMsg(err, '수정에 실패했습니다')),
   })
 }
 
 export function useDeleteAccountMutation(accountId: string) {
-  const router = useRouter()
   const queryClient = useQueryClient()
   return useMutation<void, Error>({
     mutationFn: () => deleteAccount(accountId),
     onSuccess: () => {
-      toast.success('계좌가 삭제되었습니다')
-      queryClient.removeQueries({ queryKey: accountKeys.all })
-      router.push('/accounts')
-      router.refresh()
+      queryClient.setQueryData<Account[]>(accountKeys.list(), (accounts = []) =>
+        accounts.filter((account) => account.id !== accountId),
+      )
+      queryClient.removeQueries({ queryKey: accountKeys.detail(accountId) })
+      queryClient.removeQueries({ queryKey: accountKeys.margin(accountId) })
+      queryClient.removeQueries({ queryKey: accountKeys.pricesRoot(accountId) })
     },
     onError: (err) => toast.error(apiMsg(err, '삭제에 실패했습니다')),
   })
 }
 
 export function useCreateAccountMutation() {
-  const router = useRouter()
   const queryClient = useQueryClient()
   return useMutation<Account, Error, AccountRequest>({
     mutationFn: (data) => createAccount(data),
     onSuccess: (saved) => {
-      queryClient.invalidateQueries({ queryKey: accountKeys.all })
-      router.push(`/accounts/${saved.id}`)
-      router.refresh()
+      queryClient.setQueryData<Account[]>(accountKeys.list(), (accounts) => upsertAccount(accounts, saved))
+      queryClient.setQueryData(accountKeys.detail(saved.id), saved)
     },
     onError: (error) => {
       if (error instanceof ApiError && error.status === 422) {
