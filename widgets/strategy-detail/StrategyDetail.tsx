@@ -170,7 +170,6 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
   const cycleSeedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
   const strategyTypeMeta = findStrategyType(strategy.type)
   const usesDivisionCount = (strategyTypeMeta?.divisionCounts?.length ?? 0) > 0
-  const isVr = strategy.vr != null // VR 전략 여부 — type 리터럴 비교 대신 vr 필드 존재 여부 사용
   const seedBadgeCls = seedBadgeClass(strategy.cycleSeedType)
   const scheduledStart = isScheduledStart(strategy) // startDate가 오늘 이후면 아직 매매 시작 전
 
