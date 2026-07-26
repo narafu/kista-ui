@@ -33,6 +33,7 @@
 
 - `any` 금지 — 제네릭·`?.`·`??`로 대체한다
 - 서버 상태를 `useState`에 복사하지 않는다 — React Query가 서버 상태의 SSOT
+- 전역 QueryClient 기본값은 `@shared/lib/query/createQueryClient`에서만 변경한다 (`staleTime=30s`, `gcTime=10m`, `retry=0`, `refetchOnWindowFocus=false`)
 - `Promise.all`의 독립 호출은 fail-fast 방지를 위해 각 항목에 `.catch(() => null)`을 붙인다
 
 ## 구현 quirk

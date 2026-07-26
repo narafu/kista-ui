@@ -1,6 +1,6 @@
 # shared/ — 도메인 무관 공용 자산
 
-도메인 지식 없이 어디서나 사용 가능한 유틸리티. 모든 계층에서 import 가능하며, `shared/` 내부에서 `entities/`·`features/`·`widgets/` import는 금지한다. 구성: `lib/`(api-client·api-schema·auth·cache·format·hooks·proxy·date-range·firebase·utils), `model/`, `providers/`, `ui/`.
+도메인 지식 없이 어디서나 사용 가능한 유틸리티. 모든 계층에서 import 가능하며, `shared/` 내부에서 `entities/`·`features/`·`widgets/` import는 금지한다. 구성: `lib/`(api-client·api-schema·auth·cache·query·format·hooks·proxy·date-range·firebase·utils), `model/`, `providers/`, `ui/`.
 
 ## api-client
 
@@ -26,6 +26,10 @@ import { apiFetch, clientFetch, ApiError } from '@shared/lib/api-client'
 ## cache
 
 `unstable_cache` 래퍼. 5분 TTL. `revalidateTag(tag, 'max')` 호출로 무효화한다. 에러 처리는 `.catch()` 대신 `try/catch` 패턴 사용.
+
+## query
+
+`createQueryClient()`가 React Query 클라이언트 기본값을 중앙 관리한다. 기본 정책: `staleTime=30s`, `gcTime=10m`, `retry=0`, `refetchOnWindowFocus=false`.
 
 ## utils
 
@@ -58,4 +62,4 @@ shadcn 자동생성 컴포넌트는 `components/ui/`에 두고 `npx shadcn@lates
 
 ## providers
 
-`Providers` 컴포넌트는 루트 `app/layout.tsx`에서 마운트한다. Toaster 배치 규칙은 `docs/agents/app.md`를 기준으로 본다.
+`Providers` 컴포넌트는 루트 `app/layout.tsx`에서 마운트한다. `QueryProvider`는 `@shared/lib/query`의 `createQueryClient()`만 사용한다. Toaster 배치 규칙은 `docs/agents/app.md`를 기준으로 본다.
