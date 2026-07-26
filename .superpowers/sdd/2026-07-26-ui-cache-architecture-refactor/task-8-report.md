@@ -63,3 +63,43 @@ The build emitted Node's `DEP0205` deprecation warning for `module.register()`, 
 - `rg` found no runtime mutable-reader symbols, cache tags, revalidation callbacks, `unstable_cache`, or `initialDataUpdatedAt: 0`; the guard's matcher is the sole remaining symbol text.
 - `router.refresh()` remains in `widgets/pull-to-refresh` and `entities/trade/providers/TradeNotificationProvider`. The static guard prohibits it only in `entities/**/hooks`; the provider refresh remains intentional SSE live-stream behavior and was not broadened into this task.
 - No reference-data API behavior changed. Proxy authentication and backend `cache: 'no-store'` behavior are preserved.
+
+## Fix Round 1: Static Guard Hardening
+
+### RED Evidence
+
+Added temporary controlled-file fixtures before changing the scanner, then ran:
+
+```text
+npm run test:run -- shared/lib/query/cacheArchitecture.test.ts
+2 tests failed, 1 passed
+```
+
+The runtime-variant fixture returned no violations for `.js`/`.jsx` files containing `getCachedAccounts()`, `initialDataUpdatedAt: (0)`, and comment-separated `router.refresh( )`. The exclusion fixture incorrectly reported prohibited code from `app/docs/cache.ts` and `app/__tests__/cache.ts`.
+
+### Implementation
+
+- Replaced raw prohibited-syntax regex matching with `typescript-eslint` AST traversal.
+- Scans `.js`, `.jsx`, `.ts`, and `.tsx` runtime sources.
+- Detects reader identifiers, `initialDataUpdatedAt` properties whose expression resolves to literal `0`, and `router.refresh()` calls in `entities/**/hooks`, independent of whitespace or comments.
+- Prunes `docs`, `test`, `tests`, `__tests__`, `fixtures`, and `__fixtures__` directories before recursion; continues to exclude `.test.*`, `.spec.*`, and `.fixture.*` files.
+- Fixtures use temporary files and invoke the scanner behavior directly rather than asserting implementation text.
+
+### GREEN Evidence
+
+```text
+npm run test:run -- shared/lib/query/cacheArchitecture.test.ts
+1 test file passed, 3 tests passed
+
+npm run test:run
+118 test files passed, 572 tests passed
+
+npm run typecheck
+exit 0
+
+npm run build
+Next.js 16.2.6 production build succeeded; 33 static pages generated
+exit 0
+```
+
+The build again emitted Node's non-blocking `DEP0205` warning for `module.register()`.
