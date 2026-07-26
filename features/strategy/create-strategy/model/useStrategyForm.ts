@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { fmtUsd, todayKst } from '@shared/lib/format'
+import { isMockBroker } from '@shared/lib/api-schema'
 import { useMeta } from '@entities/meta'
 import { useAccountMarginQuery, useAccountPricesQuery } from '@entities/account'
 import { useCreateStrategyMutation, useUpdateStrategyMutation, useStrategySeedPreviewQuery } from '@entities/strategy'
@@ -101,7 +102,7 @@ export function useStrategyForm({
   initial,
   onSuccess,
 }: UseStrategyFormOptions): UseStrategyFormReturn {
-  const isMock = broker === 'MOCK'
+  const isMock = isMockBroker(broker)
   const { meta, findStrategyType } = useMeta()
   const runtimeQuery = useRuntimeConfigQuery()
   const runtimeConfig = runtimeQuery.data
@@ -281,13 +282,14 @@ export function useStrategyForm({
     ? Math.abs(normalizedRecurringAmount) * 100 * (4 / intervalWeeks)
     : 0
 
-  // 중간부터 시작 공통 검증 (세 전략 공통, 등록 전용) — 서버 validateBootstrapPosition과 동일 규칙:
-  // 평단가·수량 음수 거부, 보유 수량>0이면 평단가>0 필수. 수량은 서버 initialHoldings가 Integer라 정수만 허용
+  // 중간부터 시작 공통 검증 (세 전략 공통, 등록 전용) — 서버 validateBootstrapPosition과 동일 규칙(보유 수량>0이면 평단가>0 필수)에
+  // 반대 방향(평단가 입력했는데 수량 미입력)도 UI에서 선제 안내 — 서버는 quantity<=0이면 avgPrice를 payload에서 생략해 조용히 버리므로 사용자에게 알려야 함
   const isInvalidBootstrap = !initial && (
     (avgPrice !== null && avgPrice < 0) ||
     (quantity !== null && quantity < 0) ||
     (quantity !== null && !Number.isInteger(quantity)) ||
-    (quantity !== null && quantity > 0 && (avgPrice === null || avgPrice <= 0))
+    (quantity !== null && quantity > 0 && (avgPrice === null || avgPrice <= 0)) ||
+    (avgPrice !== null && avgPrice > 0 && (quantity === null || quantity <= 0))
   )
 
   // 시작예정일 검증 (등록 전용) — 서버는 오늘 이전 날짜를 400으로 거부. 오늘 자신은 허용
@@ -337,6 +339,8 @@ export function useStrategyForm({
       ? '수량은 정수여야 합니다.'
       : quantity !== null && quantity > 0 && (avgPrice === null || avgPrice <= 0)
       ? '보유 수량을 입력하면 평단가는 0보다 커야 합니다.'
+      : avgPrice !== null && avgPrice > 0 && (quantity === null || quantity <= 0)
+      ? '평단가를 입력하면 수량은 0보다 커야 합니다.'
       : isInvalidScheduledStart
       ? '시작예정일은 오늘 이후여야 합니다.'
       : isVr
@@ -354,7 +358,10 @@ export function useStrategyForm({
               : '인출 금액을 0보다 크게 입력하세요.'
           }
           if (normalizedRecurringAmount <= 0 && initialAssets <= 0) {
-            return '거치식/인출식은 초기 V값 또는 초기 시드가 0보다 커야 합니다.'
+            // 등록 모드는 평단가·수량 입력 필드가 있어 "수량"으로 안내, 수정 모드는 해당 입력이 없어 읽기전용 "초기 V값" 문구 유지
+            return initial
+              ? '거치식/인출식은 초기 V값 또는 초기 시드가 0보다 커야 합니다.'
+              : '거치식/인출식은 수량 또는 초기 시드가 0보다 커야 합니다.'
           }
           if (normalizedRecurringAmount < 0 && initialAssets < requiredWithdrawalAssets) {
             return `인출식은 초기 자산이 $${fmtUsd(requiredWithdrawalAssets)} 이상이어야 합니다.`

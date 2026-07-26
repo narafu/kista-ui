@@ -13,6 +13,8 @@ vi.mock('@entities/admin-settings', () => ({
   useUpdateAdminSettingsMutation: () => ({ mutate: mutateMock, isPending: false }),
 }))
 
+const BROKER_LABELS: Record<string, string> = { KIS: '한국투자증권', TOSS: '토스증권', MOCK: '모의계좌' }
+
 vi.mock('@entities/meta', () => ({
   useMeta: () => ({
     meta: {
@@ -23,6 +25,7 @@ vi.mock('@entities/meta', () => ({
         { code: 'IBIT', name: 'iShares Bitcoin Trust' },
       ],
     },
+    labelOf: (_category: string, code: string) => BROKER_LABELS[code] ?? code,
   }),
 }))
 

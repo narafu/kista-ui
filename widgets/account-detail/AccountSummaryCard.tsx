@@ -5,6 +5,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { KpiCard } from '@widgets/kpi-card'
 import { fmtUsd } from '@shared/lib/format'
+import { isMockBroker } from '@shared/lib/api-schema'
 import { useMeta } from '@entities/meta'
 import type { Account } from '@entities/account'
 
@@ -18,7 +19,7 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd }: Props) {
   const [revealed, setRevealed] = useState(false)
   const { labelOf } = useMeta()
   const brokerLabel = labelOf('brokers', account.broker)
-  const isMock = account.broker === 'MOCK'
+  const isMock = isMockBroker(account.broker)
 
   return (
     <Card>

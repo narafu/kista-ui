@@ -620,6 +620,28 @@ describe('useStrategyForm submit policy', () => {
     expect(result.current.submitDisabledReason).toContain('보유 수량을 입력하면 평단가는 0보다 커야 합니다')
   })
 
+  it('non-VR create is blocked when an avg price is entered without a quantity', () => {
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setVrField('avgPrice', 45.5)
+    })
+
+    expect(result.current.cannotSubmit).toBe(true)
+    expect(result.current.submitDisabledReason).toContain('평단가를 입력하면 수량은 0보다 커야 합니다')
+
+    act(() => {
+      result.current.setVrField('quantity', 0)
+    })
+
+    expect(result.current.cannotSubmit).toBe(true)
+    expect(result.current.submitDisabledReason).toContain('평단가를 입력하면 수량은 0보다 커야 합니다')
+  })
+
   it('non-VR create is blocked when quantity is a decimal (server initialHoldings is Integer)', () => {
     const { result } = renderHook(() =>
       useStrategyForm({

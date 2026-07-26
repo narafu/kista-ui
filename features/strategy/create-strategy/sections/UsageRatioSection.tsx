@@ -2,20 +2,10 @@
 
 import { AlertTriangle } from 'lucide-react'
 import { Spinner } from '@shared/ui/Spinner'
+import { Badge } from '@shared/ui/Badge'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import { PercentGauge, SeedAmountInput } from '@shared/ui/percent-gauge'
 import { fmtUsd } from '@shared/lib/format'
-
-function offBadge(label: string) {
-  return (
-    <span
-      className="text-xs font-bold px-2 py-0.5 rounded-full border"
-      style={{ background: 'var(--rose-50)', color: 'var(--rose-500)', borderColor: 'var(--rose-300)' }}
-    >
-      {label}
-    </span>
-  )
-}
 
 interface Props {
   hint?: React.ReactNode
@@ -48,7 +38,7 @@ export function UsageRatioSection({
   return (
     <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel
-        hint={hint ?? (isOff ? offBadge(offBadgeLabel ?? '잔고검증 OFF') : 'USD 예수금 기준 · 드래그하거나 입력')}
+        hint={hint ?? (isOff ? <Badge tone="brand" size="md">{offBadgeLabel ?? '잔고검증 OFF'}</Badge> : 'USD 예수금 기준 · 드래그하거나 입력')}
       >
         {useSeedInput ? '예수금' : '사용 비율'}
       </StrategyFieldLabel>

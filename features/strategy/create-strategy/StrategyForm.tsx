@@ -126,7 +126,7 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
           isBelowMinSeed={form.isBelowMinSeed}
           seedUnavailableReason={form.seedUnavailableReason}
           balanceCheckEnabled={form.balanceCheckEnabled}
-          offBadgeLabel={form.isMock ? '모의계좌 — 예수금 직접 입력' : undefined}
+          offBadgeLabel={form.isMock ? '모의계좌' : undefined}
         />
       )}
 

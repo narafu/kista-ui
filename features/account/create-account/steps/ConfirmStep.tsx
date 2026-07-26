@@ -4,6 +4,7 @@ import { useCreateAccountMutation } from '@entities/account'
 import { useMeta } from '@entities/meta'
 import { ApiError } from '@shared/lib/api-client'
 import { Spinner } from '@shared/ui/Spinner'
+import { isMockBroker } from '@shared/lib/api-schema'
 import type { BrokerCode, AccountRequest } from '@entities/account'
 import type { StepData } from '../CreateAccountStepper'
 
@@ -17,7 +18,7 @@ export function ConfirmStep({ data, onBack }: Props) {
   const { labelOf } = useMeta()
 
   const broker = (data.broker || 'KIS') as BrokerCode
-  const isMock = broker === 'MOCK'
+  const isMock = isMockBroker(broker)
 
   function handleSubmit() {
     const req: AccountRequest = isMock

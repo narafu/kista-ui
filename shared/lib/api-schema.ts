@@ -32,3 +32,8 @@ const BROKER_LABEL: Record<string, string> = {
 export function formatBrokerLabel(broker: string): string {
   return BROKER_LABEL[broker] ?? broker
 }
+
+// 모의계좌 — 실제 증권사 연동 없이 DB 기반으로 매매를 시뮬레이션. 계좌 등록·전략 폼·통계 화면 전반의 분기 기준
+export function isMockBroker(broker: string | null | undefined): boolean {
+  return broker === 'MOCK'
+}

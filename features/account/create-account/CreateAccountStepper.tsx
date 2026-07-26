@@ -3,6 +3,7 @@
 import { useEffect, useReducer } from 'react'
 import { Stepper } from '@shared/ui/stepper'
 import type { BrokerCode } from '@entities/account'
+import { isMockBroker } from '@shared/lib/api-schema'
 import { useRuntimeConfigQuery } from '@entities/runtime-config'
 import { BrokerStep } from './steps/BrokerStep'
 import { ApiStep } from './steps/ApiStep'
@@ -46,10 +47,26 @@ function reducer(state: State, action: Action): State {
 const STEPS = ['증권사', 'API 키', '계좌 정보', '확인']
 const MOCK_STEPS = ['증권사', '계좌 별칭', '확인']
 
+type StepContext = { data: StepData; next: (payload: Partial<StepData>) => void; back: () => void }
+type StepRenderer = (ctx: StepContext) => React.ReactNode
+
+// step 번호가 흐름마다 다른 컴포넌트를 의미하는 걸 막기 위해, 흐름별로 렌더러를 순서대로 나열한 배열 하나로 관리한다
+const DEFAULT_FLOW: StepRenderer[] = [
+  ({ next }) => <BrokerStep onNext={next} />,
+  ({ data, next, back }) => <ApiStep data={data} onNext={next} onBack={back} />,
+  ({ data, next, back }) => <AccountInfoStep data={data} onNext={next} onBack={back} />,
+  ({ data, back }) => <ConfirmStep data={data} onBack={back} />,
+]
+const MOCK_FLOW: StepRenderer[] = [
+  ({ next }) => <BrokerStep onNext={next} />,
+  ({ data, next, back }) => <AccountInfoStep data={data} onNext={next} onBack={back} />,
+  ({ data, back }) => <ConfirmStep data={data} onBack={back} />,
+]
+
 export function CreateAccountStepper() {
   const [{ step, data }, dispatch] = useReducer(reducer, initialState)
   const { data: runtimeConfig } = useRuntimeConfigQuery()
-  const isMock = data.broker === 'MOCK'
+  const isMock = isMockBroker(data.broker)
 
   useEffect(() => {
     if (!data.broker || !runtimeConfig) return
@@ -58,23 +75,14 @@ export function CreateAccountStepper() {
   const next = (payload: Partial<StepData>) => dispatch({ type: 'NEXT', payload })
   const back = () => dispatch({ type: 'BACK' })
 
+  const flow = isMock ? MOCK_FLOW : DEFAULT_FLOW
+
   return (
     <div className="max-w-lg mx-auto">
       <div className="mb-8">
         <Stepper steps={isMock ? MOCK_STEPS : STEPS} current={step} />
       </div>
-      {step === 1 && <BrokerStep onNext={next} />}
-      {step === 2 && (
-        isMock
-          ? <AccountInfoStep data={data} onNext={next} onBack={back} />
-          : <ApiStep data={data} onNext={next} onBack={back} />
-      )}
-      {step === 3 && (
-        isMock
-          ? <ConfirmStep data={data} onBack={back} />
-          : <AccountInfoStep data={data} onNext={next} onBack={back} />
-      )}
-      {step === 4 && !isMock && <ConfirmStep data={data} onBack={back} />}
+      {flow[step - 1]?.({ data, next, back })}
     </div>
   )
 }
