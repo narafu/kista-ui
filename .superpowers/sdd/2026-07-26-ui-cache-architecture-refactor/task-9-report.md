@@ -178,3 +178,76 @@ Its top diagnostics are in pre-existing files: SSE cleanup in `TradeNotification
 - Full Playwright still emits non-failing `ResponseAborted` messages when existing SSE connections close during test teardown; all eight tests pass.
 - The backend identity is fixed rather than truly dedicated. Isolation is therefore enforced by Playwright project dependencies and destructive-cleanup guardrails. Independently launched Playwright processes against the same local API are outside that project dependency graph and should not be run concurrently.
 - The unrelated untracked `docs/superpowers/plans/2026-07-26-ui-cache-architecture-refactor.md` remains untouched and excluded from the commit.
+
+---
+
+## Fix Round 2/5
+
+### Status
+
+The remaining destructive-cleanup safety finding is addressed. This section supersedes Fix Round 1's reserved-prefix cleanup and cross-process-isolation descriptions.
+
+### Ownership Safety
+
+- Nickname prefix is no longer ownership evidence. An `e2e-account-cache-` account left by any previous run is unrecorded and causes a non-destructive abort.
+- The first-account scenario requires the fixed local USER account list to be genuinely empty. Any existing account produces an error naming the accounts and instructing the operator to remove every account manually through the local UI/API before rerunning.
+- API and UI creation IDs are recorded from their actual POST response JSON. UI creation also waits for the exact `/accounts/{response.id}` destination.
+- Cleanup selects only IDs in the current process's `createdAccountIds`. Before API cleanup or the UI's permanent-delete click, the suite verifies lock ownership, loopback API origin, `/api/auth/me` fixed UUID, and that the complete account list contains no unrecorded ID.
+- If any unrecorded account appears, the full precondition fails before the first DELETE callback; no recorded or unrecorded account is deleted.
+
+### Cross-Process Lock
+
+- `beforeAll` atomically creates a mode `0600` lock with Node `openSync(..., 'wx')`; its key hashes the canonical loopback API origin and fixed USER UUID. `localhost`, `127.0.0.1`, and IPv6 loopback aliases normalize to the same host key.
+- The lock record contains PID, owner token, canonical API origin, USER UUID, and acquisition time. A live PID causes immediate refusal without account access.
+- A dead PID or unreadable record is not automatically replaced. The failure reports the lock path and requires manual removal after verifying no suite is running.
+- `afterAll` rechecks the owner token before unlinking. A killed process can leave a conservative stale lock, but cannot cause a later process to infer account ownership or auto-delete data.
+
+### TDD And Integrated Evidence
+
+```text
+npm run test:run -- tests/account-cache-fixture.test.ts
+RED: account-cache-lock module did not exist
+
+npm run test:run -- tests/account-cache-fixture.test.ts
+12 passed
+```
+
+The focused tests cover remote/wrong-identity guards, only-recorded-ID selection, stale-prefix and foreign-account zero-delete aborts, live second-process denial, dead-PID stale-lock refusal, and release/reacquire behavior.
+
+An independent Node process then held the real lock while a second Playwright process used another UI port against the same API identity:
+
+```text
+Account-cache E2E lock is held by live PID 23887 ...; no accounts were touched.
+1 failed at beforeAll (0ms), 1 did not run
+holder process: released
+```
+
+The first focused GREEN also exposed an existing loose URL assertion that accepted `/accounts/new`. It was corrected to wait for the exact response ID route, after which the integrated suite passed.
+
+### Final Verification
+
+```text
+npm run test:run -- tests/account-cache-fixture.test.ts
+1 file passed, 12 tests passed
+
+npm run test:e2e -- tests/e2e/account-cache-consistency.spec.ts
+3 passed (setup + 2 account-cache regressions)
+
+npm run test:e2e
+8 passed (setup + 2 account-cache + 5 existing)
+
+npm run test:run
+120 test files passed, 586 tests passed
+
+npm run typecheck
+exit 0
+
+git diff --check
+exit 0
+```
+
+### Concerns
+
+- A stale lock intentionally requires manual remediation; automatic PID-dead takeover would be less safe under PID reuse or an interrupted filesystem operation.
+- Full Playwright continues to emit non-failing `ResponseAborted` logs when existing trade SSE connections close during teardown.
+- The unrelated untracked plan remains untouched and is excluded from this round's commit.

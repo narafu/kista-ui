@@ -183,7 +183,9 @@ npm run test:e2e -- tests/e2e/account-cache-consistency.spec.ts
 
 - setup은 account-cache 전용 토큰을 `e2e/.auth/account-cache.json`에 기록한다. 토큰 파일은 분리되지만 backend identity는 기존 USER storage state와 같다.
 - Playwright 프로젝트 의존성은 `setup -> account-cache -> chromium`이다. account-cache 스펙은 serial로 실행되며 기존 USER 스위트와 동시에 실행되지 않는다.
-- 테스트 계좌 nickname은 `e2e-account-cache-` 예약 prefix를 사용한다. cleanup은 현재 프로세스가 기록한 account ID와 이 prefix의 이전 실행 잔여물만 삭제하며, 사용자 계좌 전체를 삭제하지 않는다.
-- cleanup 전에 API origin이 loopback HTTP origin이고 `/api/auth/me` UUID가 고정 개발 USER인지 확인한다. 다른 origin/identity이면 삭제를 거부한다.
-- 시작 시 예약 prefix 외 계좌가 있으면 공유 identity가 오염된 것으로 보고 테스트를 중단한다. 외부 계좌를 자동 삭제하지 않는다.
+- account-cache project의 `beforeAll`은 정규화된 loopback `E2E_API_BASE`와 고정 USER UUID를 key로 OS temp directory에 atomic-create cross-process lock을 획득하고 두 serial scenario가 끝날 때까지 유지한다. live PID lock이 있으면 계좌를 조회/변경하지 않고 실패한다.
+- dead PID나 읽을 수 없는 lock은 자동 탈취하지 않는다. 실행 중인 suite가 없음을 확인한 뒤 오류에 표시된 lock file을 수동 삭제해야 한다. 정상 teardown은 owner token을 재검증한 뒤 lock을 해제한다.
+- 테스트 계좌 nickname은 진단 편의를 위해 `e2e-account-cache-` prefix를 사용하지만 소유권 근거로 사용하지 않는다. 이전 실행의 같은 prefix 계좌도 unowned account다.
+- 첫 scenario 전에 account 목록이 하나라도 있으면 수동 정리 안내와 함께 무삭제 실패한다. 어떤 계좌도 이름이나 prefix로 채택하거나 삭제하지 않는다.
+- API/UI create 응답에서 현재 run이 기록한 account ID만 cleanup 대상이다. 모든 DELETE 직전에 lock 보유, loopback API origin, `/api/auth/me` 고정 UUID, 전체 account 목록에 unrecorded ID가 없는지를 순서대로 확인한다.
 - 두 회귀는 initial `page.goto()` 뒤 main-frame document request를 기록하고 window sentinel 생존을 검사한다. 목적지 URL/heading/content도 함께 검증하므로 full document reload로 Router Cache 문제를 숨길 수 없다.

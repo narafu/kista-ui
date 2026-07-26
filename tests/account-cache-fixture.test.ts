@@ -1,11 +1,15 @@
-import { describe, expect, it } from 'vitest'
+import { mkdtempSync, rmSync } from 'fs'
+import { tmpdir } from 'os'
+import { join } from 'path'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   ACCOUNT_CACHE_USER_ID,
   accountCleanupCandidates,
   assertAccountCacheOwnership,
-  assertNoForeignAccounts,
+  cleanupRecordedAccounts,
 } from './e2e/support/account-cache-fixture'
+import { acquireAccountCacheLock } from './e2e/support/account-cache-lock'
 
 const reserved = { id: 'reserved-1', nickname: 'e2e-account-cache-leftover' }
 const created = { id: 'created-1', nickname: 'created-by-this-spec-id' }
@@ -31,11 +35,79 @@ describe('account cache E2E ownership', () => {
     expect(() => assertAccountCacheOwnership('http://127.0.0.1:8080', ACCOUNT_CACHE_USER_ID)).not.toThrow()
   })
 
-  it('selects only reserved-prefix leftovers and IDs created by the spec for cleanup', () => {
-    expect(accountCleanupCandidates([reserved, created, foreign], new Set([created.id]))).toEqual([reserved, created])
+  it('selects only IDs explicitly recorded by the current run for cleanup', () => {
+    expect(accountCleanupCandidates([reserved, created, foreign], new Set([created.id]))).toEqual([created])
   })
 
-  it('refuses first-account setup when the shared dev identity owns a foreign account', () => {
-    expect(() => assertNoForeignAccounts([reserved, foreign])).toThrow(/manual-local-account/)
+  it.each([reserved, foreign])('aborts without deletes when an unrecorded account exists: $nickname', async (account) => {
+    const deleteAccount = vi.fn()
+
+    await expect(cleanupRecordedAccounts([account], new Set(), deleteAccount)).rejects.toThrow(
+      /remove every account manually/i,
+    )
+    expect(deleteAccount).not.toHaveBeenCalled()
+  })
+})
+
+describe('account cache E2E cross-process lock', () => {
+  const lockDirectories: string[] = []
+
+  function lockDirectory() {
+    const directory = mkdtempSync(join(tmpdir(), 'kista-account-cache-lock-'))
+    lockDirectories.push(directory)
+    return directory
+  }
+
+  afterEach(() => {
+    for (const directory of lockDirectories.splice(0)) {
+      rmSync(directory, { recursive: true, force: true })
+    }
+  })
+
+  it('denies a second process while the owner PID is alive', () => {
+    const directory = lockDirectory()
+    const first = acquireAccountCacheLock('http://localhost:8080', ACCOUNT_CACHE_USER_ID, {
+      lockDirectory: directory,
+      pid: 101,
+      isProcessAlive: () => true,
+    })
+
+    expect(() => acquireAccountCacheLock('http://127.0.0.1:8080', ACCOUNT_CACHE_USER_ID, {
+      lockDirectory: directory,
+      pid: 202,
+      isProcessAlive: () => true,
+    })).toThrow(/held by live PID 101/i)
+
+    first.release()
+  })
+
+  it('fails conservatively with manual remediation when the recorded PID is stale', () => {
+    const directory = lockDirectory()
+    acquireAccountCacheLock('http://localhost:8080', ACCOUNT_CACHE_USER_ID, {
+      lockDirectory: directory,
+      pid: 101,
+      isProcessAlive: () => false,
+    })
+
+    expect(() => acquireAccountCacheLock('http://localhost:8080', ACCOUNT_CACHE_USER_ID, {
+      lockDirectory: directory,
+      pid: 202,
+      isProcessAlive: () => false,
+    })).toThrow(/stale lock.*remove it manually/i)
+  })
+
+  it('releases only the lock owned by the current holder', () => {
+    const directory = lockDirectory()
+    const first = acquireAccountCacheLock('http://localhost:8080', ACCOUNT_CACHE_USER_ID, {
+      lockDirectory: directory,
+    })
+    first.assertHeld()
+    first.release()
+
+    const second = acquireAccountCacheLock('http://localhost:8080', ACCOUNT_CACHE_USER_ID, {
+      lockDirectory: directory,
+    })
+    second.assertHeld()
+    second.release()
   })
 })

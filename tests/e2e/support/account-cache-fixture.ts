@@ -6,7 +6,7 @@ export type AccountOwnershipRecord = {
   nickname: string
 }
 
-export function assertAccountCacheOwnership(apiBase: string, userId: string) {
+export function normalizeAccountCacheApiBase(apiBase: string) {
   let url: URL
   try {
     url = new URL(apiBase)
@@ -20,24 +20,48 @@ export function assertAccountCacheOwnership(apiBase: string, userId: string) {
     throw new Error(`Refusing account cleanup outside a loopback HTTP API origin: ${apiBase}`)
   }
 
+  return `http://localhost${url.port ? `:${url.port}` : ''}`
+}
+
+export function assertAccountCacheOwnership(apiBase: string, userId: string) {
+  const normalizedApiBase = normalizeAccountCacheApiBase(apiBase)
+
   if (userId !== ACCOUNT_CACHE_USER_ID) {
     throw new Error(`Unexpected E2E user identity ${userId}; refusing account cleanup`)
   }
+
+  return normalizedApiBase
 }
 
 export function accountCleanupCandidates(
   accounts: AccountOwnershipRecord[],
   createdAccountIds: ReadonlySet<string>,
 ) {
-  return accounts.filter((account) =>
-    createdAccountIds.has(account.id) || account.nickname.startsWith(ACCOUNT_CACHE_PREFIX),
+  return accounts.filter((account) => createdAccountIds.has(account.id))
+}
+
+export function assertOnlyRecordedAccounts(
+  accounts: AccountOwnershipRecord[],
+  createdAccountIds: ReadonlySet<string>,
+) {
+  const unrecordedAccounts = accounts.filter((account) => !createdAccountIds.has(account.id))
+  if (unrecordedAccounts.length === 0) return
+
+  const labels = unrecordedAccounts.map((account) => `${account.nickname} (${account.id})`).join(', ')
+  throw new Error(
+    `Account-cache E2E requires an empty test user but found unrecorded accounts: ${labels}. `
+      + 'Remove every account manually through the local UI or API, then rerun the suite; no accounts were deleted.',
   )
 }
 
-export function assertNoForeignAccounts(accounts: AccountOwnershipRecord[]) {
-  const foreignAccounts = accounts.filter((account) => !account.nickname.startsWith(ACCOUNT_CACHE_PREFIX))
-  if (foreignAccounts.length === 0) return
+export async function cleanupRecordedAccounts(
+  accounts: AccountOwnershipRecord[],
+  createdAccountIds: ReadonlySet<string>,
+  deleteAccount: (account: AccountOwnershipRecord) => Promise<void>,
+) {
+  assertOnlyRecordedAccounts(accounts, createdAccountIds)
 
-  const labels = foreignAccounts.map((account) => `${account.nickname} (${account.id})`).join(', ')
-  throw new Error(`Account-cache E2E shared dev identity contains non-owned accounts: ${labels}`)
+  for (const account of accountCleanupCandidates(accounts, createdAccountIds)) {
+    await deleteAccount(account)
+  }
 }
