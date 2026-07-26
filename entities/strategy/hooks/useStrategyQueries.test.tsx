@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Strategy } from '../model/types'
-import { useAllStrategiesQuery, useStrategiesQuery, useUpdateStrategyMutation, useExecuteStrategyMutation } from './useStrategyQueries'
+import { useAllStrategiesQuery, useStrategiesQuery, useUpdateStrategyMutation, useReconfigureVrMutation, useExecuteStrategyMutation } from './useStrategyQueries'
 
 const { useQueryMock } = vi.hoisted(() => ({
   useQueryMock: vi.fn(),
@@ -32,6 +32,7 @@ vi.mock('../api', () => ({
   listStrategies: vi.fn(),
   createStrategy: vi.fn(),
   updateStrategy: vi.fn(),
+  reconfigureVr: vi.fn(),
   deleteStrategy: vi.fn(),
   pauseStrategy: vi.fn(),
   resumeStrategy: vi.fn(),
@@ -90,6 +91,22 @@ describe('useUpdateStrategyMutation', () => {
     const options = vi.mocked(useMutation).mock.calls.at(-1)?.[0] as unknown as { onSuccess: () => void }
     options.onSuccess()
 
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['order-preview'] })
+  })
+})
+
+describe('useReconfigureVrMutation', () => {
+  it('재설정 성공 시 strategies와 order-preview 쿼리를 모두 무효화한다', () => {
+    const invalidateQueries = vi.fn()
+    vi.mocked(useQueryClient).mockReturnValue({ invalidateQueries } as never)
+    vi.mocked(useMutation).mockReturnValue({} as never)
+
+    renderHook(() => useReconfigureVrMutation('strategy-1'))
+
+    const options = vi.mocked(useMutation).mock.calls.at(-1)?.[0] as unknown as { onSuccess: () => void }
+    options.onSuccess()
+
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['strategies'] })
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['order-preview'] })
   })
 })

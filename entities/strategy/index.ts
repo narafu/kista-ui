@@ -22,6 +22,7 @@ export {
   useStrategiesQuery,
   useCreateStrategyMutation,
   useUpdateStrategyMutation,
+  useReconfigureVrMutation,
   useDeleteStrategyMutation,
   usePauseStrategyMutation,
   useResumeStrategyMutation,

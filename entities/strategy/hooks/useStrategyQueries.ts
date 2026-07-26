@@ -9,13 +9,14 @@ import {
   listStrategies,
   createStrategy,
   updateStrategy,
+  reconfigureVr,
   deleteStrategy,
   pauseStrategy,
   resumeStrategy,
   executeStrategy,
   getStrategySeedPreview,
 } from '../api'
-import type { Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
+import type { ReconfigureVrRequest, Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
 
 export function useStrategySeedPreviewQuery(
   accountId: string,
@@ -80,6 +81,23 @@ export function useUpdateStrategyMutation(strategyId: string, onSuccess?: () => 
       onSuccess?.()
     },
     onError: (err) => toast.error(apiMsg(err, '저장에 실패했습니다')),
+  })
+}
+
+export function useReconfigureVrMutation(strategyId: string, onSuccess?: () => void) {
+  const router = useRouter()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: ReconfigureVrRequest) => reconfigureVr(strategyId, data),
+    onSuccess: () => {
+      toast.success('VR 전략이 재설정되었습니다')
+      queryClient.invalidateQueries({ queryKey: ['strategies'] })
+      // 사이클이 통째로 교체되므로 다음 주문 미리보기도 반드시 무효화
+      queryClient.invalidateQueries({ queryKey: ['order-preview'] })
+      router.refresh()
+      onSuccess?.()
+    },
+    onError: (err) => toast.error(apiMsg(err, '재설정에 실패했습니다')),
   })
 }
 
