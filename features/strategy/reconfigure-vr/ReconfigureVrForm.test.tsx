@@ -1,0 +1,110 @@
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { Strategy } from '@entities/strategy'
+import { ReconfigureVrForm } from './ReconfigureVrForm'
+
+const mutateMock = vi.fn()
+const routerPushMock = vi.fn()
+const routerBackMock = vi.fn()
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: routerPushMock, back: routerBackMock }),
+}))
+
+vi.mock('@entities/strategy', () => ({
+  useReconfigureVrMutation: () => ({ mutate: mutateMock, isPending: false }),
+}))
+
+const strategy: Strategy = {
+  id: 'strategy-1',
+  accountId: 'account-1',
+  type: 'VR',
+  status: 'ACTIVE',
+  ticker: 'TQQQ',
+  cycleSeedType: 'NONE',
+  isReverseMode: false,
+  vr: {
+    value: 3000,
+    bandWidth: 15,
+    intervalWeeks: 4,
+    recurringAmount: -100,
+    poolLimit: 1000,
+    gradient: 18, // 현재 스냅샷 — initialGradient(10)와 의도적으로 다르게 둠
+    initialGradient: 10,
+    gGraceWeeks: 52,
+    gStepWeeks: 26,
+    gMax: 20,
+    initialPoolLimitRate: 0.75,
+    pGraceWeeks: 52,
+    pStepWeeks: 26,
+    poolLimitFloor: 0.5,
+  },
+}
+
+describe('ReconfigureVrForm', () => {
+  beforeEach(() => {
+    mutateMock.mockClear()
+    routerPushMock.mockClear()
+    routerBackMock.mockClear()
+  })
+
+  it('경고 배너를 상시 노출한다', () => {
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    expect(screen.getByText(/진행 중인 사이클이 즉시 종료되고 새 사이클이 시작되며/)).toBeInTheDocument()
+  })
+
+  it('램프 필드 초깃값을 gradient/poolLimit이 아닌 initialGradient/initialPoolLimitRate에서 채운다', () => {
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    const initialGradientInput = screen.getByLabelText('초기 gradient(G)') as HTMLInputElement
+    const initialPoolLimitRateInput = screen.getByLabelText('초기 poolLimitRate') as HTMLInputElement
+    expect(initialGradientInput.value).toBe('10')
+    expect(initialPoolLimitRateInput.value).toBe('0.75')
+  })
+
+  it('제출 시 즉시 뮤테이션을 호출하지 않고 확인 다이얼로그를 먼저 띄운다', () => {
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+    expect(screen.getByText('VR 전략을 재설정하시겠습니까?')).toBeInTheDocument()
+    expect(mutateMock).not.toHaveBeenCalled()
+  })
+
+  it('확인 다이얼로그에서 확정하면 현재 폼 값으로 뮤테이션을 호출한다', async () => {
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+    fireEvent.click(screen.getByRole('button', { name: '재설정 확정' }))
+
+    await waitFor(() => expect(mutateMock).toHaveBeenCalled())
+    expect(mutateMock.mock.calls[0][0]).toEqual(expect.objectContaining({
+      bandWidth: 15,
+      intervalWeeks: 4,
+      initialGradient: 10,
+      initialPoolLimitRate: 0.75,
+    }))
+  })
+
+  it('인출 모드로 전환 후 금액을 입력하면 음수로 제출된다', async () => {
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    fireEvent.click(screen.getByRole('button', { name: '- 인출' }))
+    fireEvent.change(screen.getByLabelText('적립금(+)/인출금(-)'), { target: { value: '200' } })
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+    fireEvent.click(screen.getByRole('button', { name: '재설정 확정' }))
+
+    await waitFor(() => expect(mutateMock).toHaveBeenCalled())
+    expect(mutateMock.mock.calls[0][0].recurringAmount).toBe(-200)
+  })
+
+  it('injectShares가 0보다 클 때만 매수단가 필드를 노출한다', () => {
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    expect(screen.queryByLabelText('매수단가 (USD)')).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('편입 주식 수'), { target: { value: '10' } })
+
+    expect(screen.getByLabelText('매수단가 (USD)')).toBeInTheDocument()
+  })
+
+  it('dismiss가 back이면 취소 클릭 시 router.back을 호출한다', () => {
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} dismiss="back" />)
+    fireEvent.click(screen.getByRole('button', { name: '취소' }))
+    expect(routerBackMock).toHaveBeenCalled()
+  })
+})
