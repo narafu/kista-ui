@@ -17,6 +17,7 @@ export {
 } from './api'
 export {
   useStrategySeedPreviewQuery,
+  useStrategyDetailQuery,
   useAllStrategiesQuery,
   useStrategiesQuery,
   useCreateStrategyMutation,
@@ -26,4 +27,8 @@ export {
   useResumeStrategyMutation,
   useExecuteStrategyMutation,
 } from './hooks/useStrategyQueries'
-export { strategyListAllQueryOptions, strategyListByAccountQueryOptions } from './model/queryOptions'
+export {
+  strategyDetailQueryOptions,
+  strategyListAllQueryOptions,
+  strategyListByAccountQueryOptions,
+} from './model/queryOptions'

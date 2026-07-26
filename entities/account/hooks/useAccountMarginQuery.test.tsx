@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { renderHook } from '@testing-library/react'
+import { renderHook, waitFor } from '@testing-library/react'
 import type { PropsWithChildren } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -29,16 +29,19 @@ vi.mock('next/navigation', () => ({
 }))
 
 const {
+  listAccountsMock,
   createAccountMock,
   updateAccountMock,
   deleteAccountMock,
 } = vi.hoisted(() => ({
+  listAccountsMock: vi.fn(),
   createAccountMock: vi.fn(),
   updateAccountMock: vi.fn(),
   deleteAccountMock: vi.fn(),
 }))
 
 vi.mock('../api', () => ({
+  listAccounts: listAccountsMock,
   createAccount: createAccountMock,
   updateAccount: updateAccountMock,
   deleteAccount: deleteAccountMock,
@@ -58,6 +61,13 @@ const accountB: Account = {
   id: 'account-b',
   nickname: 'B',
   accountNoMasked: '222-***',
+  broker: 'MOCK',
+}
+
+const accountC: Account = {
+  id: 'account-c',
+  nickname: 'C',
+  accountNoMasked: '333-***',
   broker: 'MOCK',
 }
 
@@ -106,6 +116,73 @@ describe('account mutations', () => {
 
     expect(queryClient.getQueryData(accountKeys.list())).toEqual([updated, accountB])
     expect(queryClient.getQueryData(accountKeys.detail(accountA.id))).toEqual(updated)
+  })
+
+  it('materializes the complete cold list before the create success callback runs', async () => {
+    const queryClient = createTestQueryClient()
+    let resolveList!: (accounts: Account[]) => void
+    const listPromise = new Promise<Account[]>((resolve) => {
+      resolveList = resolve
+    })
+    const callback = vi.fn()
+    listAccountsMock.mockReturnValue(listPromise)
+    createAccountMock.mockResolvedValue(accountC)
+
+    const { result } = renderHook(() => useCreateAccountMutation(), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    const mutationPromise = result.current.mutateAsync(
+      { nickname: 'C', broker: 'MOCK' },
+      { onSuccess: callback },
+    )
+
+    await waitFor(() => expect(createAccountMock).toHaveBeenCalled())
+    expect(callback).not.toHaveBeenCalled()
+    expect(queryClient.getQueryData(accountKeys.list())).toBeUndefined()
+
+    resolveList([accountA, accountB, accountC])
+    await mutationPromise
+
+    expect(queryClient.getQueryData(accountKeys.list())).toEqual([accountA, accountB, accountC])
+    expect(callback).toHaveBeenCalledOnce()
+  })
+
+  it('materializes every account on a cold update instead of caching only the saved account', async () => {
+    const queryClient = createTestQueryClient()
+    const updated = { ...accountA, nickname: 'A edited' }
+    let listAtCallback: Account[] | undefined
+    listAccountsMock.mockResolvedValue([updated, accountB, accountC])
+    updateAccountMock.mockResolvedValue(updated)
+
+    const { result } = renderHook(() => useUpdateAccountMutation(accountA.id), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    await result.current.mutateAsync(
+      { nickname: 'A edited' },
+      { onSuccess: () => {
+        listAtCallback = queryClient.getQueryData<Account[]>(accountKeys.list())
+      } },
+    )
+
+    expect(queryClient.getQueryData(accountKeys.list())).toEqual([updated, accountB, accountC])
+    expect(queryClient.getQueryData(accountKeys.detail(accountA.id))).toEqual(updated)
+    expect(listAtCallback).toEqual([updated, accountB, accountC])
+  })
+
+  it('materializes the remaining accounts on a cold delete instead of caching an empty list', async () => {
+    const queryClient = createTestQueryClient()
+    listAccountsMock.mockResolvedValue([accountB, accountC])
+    deleteAccountMock.mockResolvedValue(undefined)
+
+    const { result } = renderHook(() => useDeleteAccountMutation(accountA.id), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    await result.current.mutateAsync()
+
+    expect(queryClient.getQueryData(accountKeys.list())).toEqual([accountB, accountC])
   })
 
   it('removes a deleted account and its detail queries', async () => {

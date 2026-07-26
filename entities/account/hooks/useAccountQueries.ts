@@ -2,8 +2,12 @@
 
 import { useQuery } from '@tanstack/react-query'
 
-import { accountListQueryOptions } from '../model/queryOptions'
+import { accountDetailQueryOptions, accountListQueryOptions } from '../model/queryOptions'
 
 export function useAccountsQuery() {
   return useQuery(accountListQueryOptions())
+}
+
+export function useAccountDetailQuery(accountId: string) {
+  return useQuery(accountDetailQueryOptions(accountId))
 }

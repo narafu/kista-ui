@@ -5,8 +5,6 @@ import type { QueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ApiError, apiMsg } from '@shared/lib/api-client'
 import {
-  listAllStrategies,
-  listStrategies,
   createStrategy,
   updateStrategy,
   deleteStrategy,
@@ -17,22 +15,52 @@ import {
 } from '../api'
 import type { Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
 import { strategyKeys } from '../model/queryKeys'
-import { strategyListAllQueryOptions, strategyListByAccountQueryOptions } from '../model/queryOptions'
+import {
+  strategyDetailQueryOptions,
+  strategyListAllQueryOptions,
+  strategyListByAccountQueryOptions,
+} from '../model/queryOptions'
 
 type StrategyListKey = ReturnType<typeof strategyKeys.listAll> | ReturnType<typeof strategyKeys.listByAccount>
 
-function updateKnownStrategyList(
+async function synchronizeStrategyList(
   queryClient: QueryClient,
   queryKey: StrategyListKey,
+  fetchCompleteList: () => Promise<Strategy[]>,
   update: (strategies: Strategy[]) => Strategy[],
 ) {
   const strategies = queryClient.getQueryData<Strategy[]>(queryKey)
-  if (strategies === undefined) {
-    void queryClient.invalidateQueries({ queryKey })
+  if (strategies !== undefined) {
+    queryClient.setQueryData<Strategy[]>(queryKey, update(strategies))
     return
   }
 
-  queryClient.setQueryData<Strategy[]>(queryKey, update(strategies))
+  await fetchCompleteList()
+}
+
+async function synchronizeStrategyLists(
+  queryClient: QueryClient,
+  accountId: string,
+  update: (strategies: Strategy[]) => Strategy[],
+) {
+  const results = await Promise.allSettled([
+    synchronizeStrategyList(
+      queryClient,
+      strategyKeys.listAll(),
+      () => queryClient.fetchQuery(strategyListAllQueryOptions()),
+      update,
+    ),
+    synchronizeStrategyList(
+      queryClient,
+      strategyKeys.listByAccount(accountId),
+      () => queryClient.fetchQuery(strategyListByAccountQueryOptions(accountId)),
+      update,
+    ),
+  ])
+
+  for (const result of results) {
+    if (result.status === 'rejected') throw result.reason
+  }
 }
 
 function upsertStrategy(strategies: Strategy[], saved: Strategy) {
@@ -71,13 +99,17 @@ export function useStrategiesQuery(accountId: string) {
   return useQuery(strategyListByAccountQueryOptions(accountId))
 }
 
+export function useStrategyDetailQuery(accountId: string, strategyId: string) {
+  return useQuery(strategyDetailQueryOptions(accountId, strategyId))
+}
+
 export function useCreateStrategyMutation(accountId: string, onSuccess?: () => void | Promise<void>) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (data: StrategyRequest) => createStrategy(accountId, data),
-    onSuccess: (saved) => {
-      updateKnownStrategyList(queryClient, strategyKeys.listAll(), (strategies) => upsertStrategy(strategies, saved))
-      updateKnownStrategyList(queryClient, strategyKeys.listByAccount(saved.accountId), (strategies) => upsertStrategy(strategies, saved))
+    onSuccess: async (saved) => {
+      queryClient.setQueryData(strategyKeys.detail(saved.id), saved)
+      await synchronizeStrategyLists(queryClient, saved.accountId, (strategies) => upsertStrategy(strategies, saved))
       return onSuccess?.()
     },
     onError: (err) => toast.error(apiMsg(err, '저장에 실패했습니다')),
@@ -88,9 +120,9 @@ export function useUpdateStrategyMutation(strategyId: string, onSuccess?: () => 
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (data: Partial<StrategyRequest>) => updateStrategy(strategyId, data),
-    onSuccess: (saved) => {
-      updateKnownStrategyList(queryClient, strategyKeys.listAll(), (strategies) => upsertStrategy(strategies, saved))
-      updateKnownStrategyList(queryClient, strategyKeys.listByAccount(saved.accountId), (strategies) => upsertStrategy(strategies, saved))
+    onSuccess: async (saved) => {
+      queryClient.setQueryData(strategyKeys.detail(saved.id), saved)
+      await synchronizeStrategyLists(queryClient, saved.accountId, (strategies) => upsertStrategy(strategies, saved))
       return onSuccess?.()
     },
     onError: (err) => toast.error(apiMsg(err, '저장에 실패했습니다')),
@@ -101,10 +133,12 @@ export function usePauseStrategyMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (strategy: Strategy) => pauseStrategy(strategy.id),
-    onSuccess: (_result, strategy) => {
-      updateKnownStrategyList(queryClient, strategyKeys.listAll(), (strategies) =>
-        updateStrategyStatus(strategies, strategy.id, 'PAUSED'))
-      updateKnownStrategyList(queryClient, strategyKeys.listByAccount(strategy.accountId), (strategies) =>
+    onSuccess: async (_result, strategy) => {
+      queryClient.setQueryData<Strategy>(strategyKeys.detail(strategy.id), (detail) => ({
+        ...(detail ?? strategy),
+        status: 'PAUSED',
+      }))
+      await synchronizeStrategyLists(queryClient, strategy.accountId, (strategies) =>
         updateStrategyStatus(strategies, strategy.id, 'PAUSED'))
     },
   })
@@ -114,10 +148,12 @@ export function useResumeStrategyMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (strategy: Strategy) => resumeStrategy(strategy.id),
-    onSuccess: (_result, strategy) => {
-      updateKnownStrategyList(queryClient, strategyKeys.listAll(), (strategies) =>
-        updateStrategyStatus(strategies, strategy.id, 'ACTIVE'))
-      updateKnownStrategyList(queryClient, strategyKeys.listByAccount(strategy.accountId), (strategies) =>
+    onSuccess: async (_result, strategy) => {
+      queryClient.setQueryData<Strategy>(strategyKeys.detail(strategy.id), (detail) => ({
+        ...(detail ?? strategy),
+        status: 'ACTIVE',
+      }))
+      await synchronizeStrategyLists(queryClient, strategy.accountId, (strategies) =>
         updateStrategyStatus(strategies, strategy.id, 'ACTIVE'))
     },
   })
@@ -127,10 +163,9 @@ export function useDeleteStrategyMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (strategy: Strategy) => deleteStrategy(strategy.id),
-    onSuccess: (_result, strategy) => {
-      updateKnownStrategyList(queryClient, strategyKeys.listAll(), (strategies) =>
-        strategies.filter((item) => item.id !== strategy.id))
-      updateKnownStrategyList(queryClient, strategyKeys.listByAccount(strategy.accountId), (strategies) =>
+    onSuccess: async (_result, strategy) => {
+      queryClient.removeQueries({ queryKey: strategyKeys.detail(strategy.id) })
+      await synchronizeStrategyLists(queryClient, strategy.accountId, (strategies) =>
         strategies.filter((item) => item.id !== strategy.id))
     },
   })

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { useAdminSettingsQuery, useUpdateAdminSettingsMutation } from '@entities/admin-settings'
+import { adminKeys } from '@entities/admin'
 import { useMeta } from '@entities/meta'
 import type { BrokerCode } from '@shared/lib/api-schema'
 import {
@@ -398,9 +399,24 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
     event.preventDefault()
     setAttempted(true)
     if (Object.keys(errors).length > 0 || mutation.isPending) return
+    const activatesPendingUsers = serverSnapshot.auth.approvalRequired && !draft.auth.approvalRequired
     mutation.mutate(draft, {
       onSuccess: async () => {
-        await queryClient.invalidateQueries({ queryKey: runtimeConfigKeys.all, refetchType: 'all' })
+        const invalidations = [
+          queryClient.invalidateQueries({ queryKey: runtimeConfigKeys.all, refetchType: 'all' }),
+        ]
+        if (activatesPendingUsers) {
+          invalidations.push(
+            queryClient.invalidateQueries({ queryKey: adminKeys.usersRoot(), refetchType: 'all' }),
+            queryClient.invalidateQueries({ queryKey: adminKeys.stats(), refetchType: 'all' }),
+          )
+        }
+
+        const results = await Promise.allSettled(invalidations)
+        for (const result of results) {
+          if (result.status === 'rejected') throw result.reason
+        }
+
         toast.success('운영 설정을 저장했습니다.')
         setAttempted(false)
       },

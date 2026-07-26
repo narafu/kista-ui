@@ -116,20 +116,34 @@ describe('useManageStrategyMutations', () => {
 
   it('navigates only after delete invalidates every dependent cache and shows its success toast', async () => {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-    const events: string[] = []
-    vi.spyOn(queryClient, 'invalidateQueries').mockImplementation(async () => {
-      events.push('invalidate')
+    const resolvers: Array<() => void> = []
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries').mockImplementation(
+      () => new Promise<void>((resolve) => {
+        resolvers.push(resolve)
+      }),
+    )
+    deleteMutate.mockImplementation((_strategy, options) => {
+      void options.onSuccess()
     })
-    deleteMutate.mockImplementation(async (_strategy, options) => options.onSuccess())
-    const onDeleted = () => events.push('navigate')
+    const onDeleted = vi.fn()
 
     const { result } = renderHook(() => useManageStrategyMutations({ onDeleted }), {
       wrapper: createWrapper(queryClient),
     })
 
-    await act(async () => result.current.remove(strategy))
+    act(() => result.current.remove(strategy))
 
     expect(toastSuccessMock).toHaveBeenCalledWith('전략이 삭제되었습니다')
-    expect(events).toEqual(['invalidate', 'invalidate', 'invalidate', 'navigate'])
+    expect(invalidate.mock.calls.map(([options]) => options)).toEqual([
+      { queryKey: orderKeys.all },
+      { queryKey: statsKeys.all },
+      { queryKey: tradeKeys.all },
+    ])
+    expect(onDeleted).not.toHaveBeenCalled()
+
+    await act(async () => {
+      resolvers.forEach((resolve) => resolve())
+    })
+    await waitFor(() => expect(onDeleted).toHaveBeenCalledOnce())
   })
 })

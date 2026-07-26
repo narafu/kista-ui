@@ -10,3 +10,13 @@ export function accountListQueryOptions(token?: string) {
     queryFn: () => listAccounts(token),
   })
 }
+
+export function accountDetailQueryOptions(accountId: string, token?: string) {
+  return queryOptions<Account | null>({
+    queryKey: accountKeys.detail(accountId),
+    queryFn: async () => {
+      const accounts = await listAccounts(token)
+      return accounts.find((account) => account.id === accountId) ?? null
+    },
+  })
+}

@@ -11,7 +11,6 @@ const executeMutate = vi.fn()
 const pauseMutate = vi.fn()
 const resumeMutate = vi.fn()
 let deleteSuccessHandler: (() => void) | undefined
-let strategiesQueryData: Strategy[] | undefined
 let holidayQueryResult: { holidays: string[]; isError?: boolean; loading?: boolean } = { holidays: [] }
 
 vi.mock('next/navigation', () => ({
@@ -70,7 +69,6 @@ vi.mock('@entities/strategy', async () => {
   const actual = await vi.importActual<typeof import('@entities/strategy')>('@entities/strategy')
   return {
     ...actual,
-    useStrategiesQuery: () => ({ data: strategiesQueryData }),
     seedBadgeClass: () => 'seed-badge',
     strategyStatusAccent: (status: string) => status === 'ACTIVE' ? 'var(--status-ok)' : 'var(--warn)',
   }
@@ -153,7 +151,6 @@ const baseStrategy: Strategy = {
 
 describe('StrategyDetail header card', () => {
   beforeEach(() => {
-    strategiesQueryData = undefined
     holidayQueryResult = { holidays: [] }
     pauseMutate.mockReset()
     resumeMutate.mockReset()
@@ -203,16 +200,13 @@ describe('StrategyDetail header card', () => {
     expect(screen.getByText('리버스모드')).toBeInTheDocument()
   })
 
-  it('switches to the synchronized paused status and resume action after a pause succeeds', () => {
-    strategiesQueryData = [baseStrategy]
+  it('switches to the synchronized paused status and resume action from its query-owned parent', () => {
     const paused = { ...baseStrategy, status: 'PAUSED' }
-    pauseMutate.mockImplementation(() => {
-      strategiesQueryData = [paused]
-    })
     const { rerender } = render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
     fireEvent.click(screen.getByRole('button', { name: '중지' }))
-    rerender(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+    expect(pauseMutate).toHaveBeenCalledWith(baseStrategy)
+    rerender(<StrategyDetail accountId="account-1" strategy={paused} />)
 
     expect(screen.getByText('PAUSED')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '재개' }))

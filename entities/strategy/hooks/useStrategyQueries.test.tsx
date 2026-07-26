@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { renderHook } from '@testing-library/react'
+import { renderHook, waitFor } from '@testing-library/react'
 import type { PropsWithChildren } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -14,12 +14,16 @@ import {
 } from './useStrategyQueries'
 
 const {
+  listAllStrategiesMock,
+  listStrategiesMock,
   createStrategyMock,
   updateStrategyMock,
   deleteStrategyMock,
   pauseStrategyMock,
   resumeStrategyMock,
 } = vi.hoisted(() => ({
+  listAllStrategiesMock: vi.fn(),
+  listStrategiesMock: vi.fn(),
   createStrategyMock: vi.fn(),
   updateStrategyMock: vi.fn(),
   deleteStrategyMock: vi.fn(),
@@ -28,8 +32,8 @@ const {
 }))
 
 vi.mock('../api', () => ({
-  listAllStrategies: vi.fn(),
-  listStrategies: vi.fn(),
+  listAllStrategies: listAllStrategiesMock,
+  listStrategies: listStrategiesMock,
   createStrategy: createStrategyMock,
   updateStrategy: updateStrategyMock,
   deleteStrategy: deleteStrategyMock,
@@ -59,6 +63,13 @@ const strategyB: Strategy = {
   ...strategyA,
   id: 'strategy-b',
   ticker: 'TQQQ',
+}
+
+const strategyOtherAccount: Strategy = {
+  ...strategyA,
+  id: 'strategy-other',
+  accountId: 'account-2',
+  ticker: 'SOXL',
 }
 
 function createWrapper(queryClient: QueryClient) {
@@ -152,47 +163,92 @@ describe('strategy mutations', () => {
     expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([strategyB])
   })
 
-  it('does not fabricate unloaded list caches after strategy mutations', async () => {
-    const createClient = createTestQueryClient()
-    const createInvalidate = vi.spyOn(createClient, 'invalidateQueries')
+  it('materializes both complete cold lists before the create callback runs', async () => {
+    const queryClient = createTestQueryClient()
+    let resolveAll!: (strategies: Strategy[]) => void
+    let resolveByAccount!: (strategies: Strategy[]) => void
+    listAllStrategiesMock.mockReturnValue(new Promise<Strategy[]>((resolve) => {
+      resolveAll = resolve
+    }))
+    listStrategiesMock.mockReturnValue(new Promise<Strategy[]>((resolve) => {
+      resolveByAccount = resolve
+    }))
+    const callback = vi.fn()
     createStrategyMock.mockResolvedValue(strategyB)
-    const create = renderHook(() => useCreateStrategyMutation('account-1'), {
-      wrapper: createWrapper(createClient),
+    const create = renderHook(() => useCreateStrategyMutation('account-1', callback), {
+      wrapper: createWrapper(queryClient),
     })
 
-    await create.result.current.mutateAsync({ type: 'INFINITE', cycleSeedType: 'MAX' })
+    const mutationPromise = create.result.current.mutateAsync({ type: 'INFINITE', cycleSeedType: 'MAX' })
 
-    expect(createClient.getQueryData(strategyKeys.listAll())).toBeUndefined()
-    expect(createClient.getQueryData(strategyKeys.listByAccount('account-1'))).toBeUndefined()
-    expect(createInvalidate).toHaveBeenCalledWith({ queryKey: strategyKeys.listAll() })
-    expect(createInvalidate).toHaveBeenCalledWith({ queryKey: strategyKeys.listByAccount('account-1') })
+    await waitFor(() => expect(createStrategyMock).toHaveBeenCalled())
+    expect(callback).not.toHaveBeenCalled()
+    resolveAll([strategyA, strategyB, strategyOtherAccount])
+    await Promise.resolve()
+    expect(callback).not.toHaveBeenCalled()
+    resolveByAccount([strategyA, strategyB])
+    await mutationPromise
 
-    const pauseClient = createTestQueryClient()
-    const pauseInvalidate = vi.spyOn(pauseClient, 'invalidateQueries')
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([strategyA, strategyB, strategyOtherAccount])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([strategyA, strategyB])
+    expect(queryClient.getQueryData(strategyKeys.detail(strategyB.id))).toEqual(strategyB)
+    expect(callback).toHaveBeenCalledOnce()
+  })
+
+  it('materializes complete cold lists after an update', async () => {
+    const queryClient = createTestQueryClient()
+    const saved = { ...strategyA, ticker: 'SOXL' }
+    let allAtCallback: Strategy[] | undefined
+    let accountAtCallback: Strategy[] | undefined
+    listAllStrategiesMock.mockResolvedValue([saved, strategyB, strategyOtherAccount])
+    listStrategiesMock.mockResolvedValue([saved, strategyB])
+    updateStrategyMock.mockResolvedValue(saved)
+    const update = renderHook(() => useUpdateStrategyMutation(strategyA.id, () => {
+      allAtCallback = queryClient.getQueryData<Strategy[]>(strategyKeys.listAll())
+      accountAtCallback = queryClient.getQueryData<Strategy[]>(strategyKeys.listByAccount('account-1'))
+    }), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    await update.result.current.mutateAsync({ ticker: 'SOXL' })
+
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([saved, strategyB, strategyOtherAccount])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([saved, strategyB])
+    expect(queryClient.getQueryData(strategyKeys.detail(strategyA.id))).toEqual(saved)
+    expect(allAtCallback).toEqual([saved, strategyB, strategyOtherAccount])
+    expect(accountAtCallback).toEqual([saved, strategyB])
+  })
+
+  it('materializes complete cold lists after a status change', async () => {
+    const queryClient = createTestQueryClient()
+    const paused = { ...strategyA, status: 'PAUSED' }
+    listAllStrategiesMock.mockResolvedValue([paused, strategyB, strategyOtherAccount])
+    listStrategiesMock.mockResolvedValue([paused, strategyB])
     pauseStrategyMock.mockResolvedValue(undefined)
     const pause = renderHook(() => usePauseStrategyMutation(), {
-      wrapper: createWrapper(pauseClient),
+      wrapper: createWrapper(queryClient),
     })
 
     await pause.result.current.mutateAsync(strategyA)
 
-    expect(pauseClient.getQueryData(strategyKeys.listAll())).toBeUndefined()
-    expect(pauseClient.getQueryData(strategyKeys.listByAccount('account-1'))).toBeUndefined()
-    expect(pauseInvalidate).toHaveBeenCalledWith({ queryKey: strategyKeys.listAll() })
-    expect(pauseInvalidate).toHaveBeenCalledWith({ queryKey: strategyKeys.listByAccount('account-1') })
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([paused, strategyB, strategyOtherAccount])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([paused, strategyB])
+    expect(queryClient.getQueryData(strategyKeys.detail(strategyA.id))).toEqual(paused)
+  })
 
-    const deleteClient = createTestQueryClient()
-    const deleteInvalidate = vi.spyOn(deleteClient, 'invalidateQueries')
+  it('materializes every remaining strategy after a cold delete', async () => {
+    const queryClient = createTestQueryClient()
+    listAllStrategiesMock.mockResolvedValue([strategyB, strategyOtherAccount])
+    listStrategiesMock.mockResolvedValue([strategyB])
     deleteStrategyMock.mockResolvedValue(undefined)
     const remove = renderHook(() => useDeleteStrategyMutation(), {
-      wrapper: createWrapper(deleteClient),
+      wrapper: createWrapper(queryClient),
     })
 
     await remove.result.current.mutateAsync(strategyA)
 
-    expect(deleteClient.getQueryData(strategyKeys.listAll())).toBeUndefined()
-    expect(deleteClient.getQueryData(strategyKeys.listByAccount('account-1'))).toBeUndefined()
-    expect(deleteInvalidate).toHaveBeenCalledWith({ queryKey: strategyKeys.listAll() })
-    expect(deleteInvalidate).toHaveBeenCalledWith({ queryKey: strategyKeys.listByAccount('account-1') })
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([strategyB, strategyOtherAccount])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([strategyB])
+    expect(queryClient.getQueryData(strategyKeys.detail(strategyA.id))).toBeUndefined()
   })
 })

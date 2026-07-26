@@ -70,27 +70,38 @@ export default async function AccountsPage() {
 
 ## Mutation 동기화
 
-API 응답으로 확정되는 직접 데이터는 동기적으로 쓴다.
+API 응답으로 확정되는 직접 데이터는 이미 완전한 list cache가 있을 때 동기적으로 쓴다. list cache가 없으면 mutation 응답 한 건으로 list를 만들지 말고 canonical list query를 await해 전체 목록을 materialize한 뒤 feature callback을 실행한다.
 
 ```ts
-onSuccess: (saved) => {
-  queryClient.setQueryData<Account[]>(accountKeys.list(), (accounts) =>
-    upsertAccount(accounts, saved),
-  )
+onSuccess: async (saved) => {
   queryClient.setQueryData(accountKeys.detail(saved.id), saved)
+  const accounts = queryClient.getQueryData<Account[]>(accountKeys.list())
+  if (accounts !== undefined) {
+    queryClient.setQueryData(accountKeys.list(), upsertAccount(accounts, saved))
+  } else {
+    await queryClient.fetchQuery(accountListQueryOptions())
+  }
 }
 ```
 
-삭제는 root를 광범위하게 지우지 않고 list와 삭제 identifier의 key만 정리한다.
+삭제는 root를 광범위하게 지우지 않고 list와 삭제 identifier의 key만 정리한다. 삭제 시에도 absent list를 `[]`로 만들지 않는다.
 
 ```ts
-queryClient.setQueryData<Account[]>(accountKeys.list(), (accounts = []) =>
-  accounts.filter((account) => account.id !== accountId),
-)
 queryClient.removeQueries({ queryKey: accountKeys.detail(accountId) })
 queryClient.removeQueries({ queryKey: accountKeys.margin(accountId) })
 queryClient.removeQueries({ queryKey: accountKeys.pricesRoot(accountId) })
+const accounts = queryClient.getQueryData<Account[]>(accountKeys.list())
+if (accounts !== undefined) {
+  queryClient.setQueryData(
+    accountKeys.list(),
+    accounts.filter((account) => account.id !== accountId),
+  )
+} else {
+  await queryClient.fetchQuery(accountListQueryOptions())
+}
 ```
+
+`undefined -> [saved]`, `undefined -> []`, 존재하지 않는 query에 대한 invalidate만으로 성공 처리를 끝내는 패턴은 partial/empty authoritative cache를 만들거나 목적지에 durable state를 남기지 못하므로 금지한다.
 
 mutation 응답만으로 계산할 수 없는 파생 데이터는 factory root로 무효화한다. 이동 전에 완료되어야 하면 반드시 await한다.
 

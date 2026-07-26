@@ -5,7 +5,7 @@ import { PageHeader } from '@widgets/page-header'
 import { AccountsPageContent } from '@widgets/accounts-grid/AccountsPageContent'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { accountKeys, accountListQueryOptions } from '@entities/account'
-import { listStrategies, strategyKeys } from '@entities/strategy'
+import { strategyListByAccountQueryOptions } from '@entities/strategy'
 import { NewAccountButton } from '@features/account/create-account'
 import type { Account } from '@entities/account'
 import { createQueryClient } from '@shared/lib/query'
@@ -24,10 +24,9 @@ export default async function AccountsPage() {
     const accounts = queryClient.getQueryData<Account[]>(accountKeys.list()) ?? []
     await Promise.all(
       accounts.map((account) =>
-        queryClient.prefetchQuery({
-          queryKey: strategyKeys.listByAccount(account.id),
-          queryFn: () => listStrategies(account.id, token),
-        }).catch(() => undefined),
+        queryClient
+          .prefetchQuery(strategyListByAccountQueryOptions(account.id, token))
+          .catch(() => undefined),
       ),
     )
   }

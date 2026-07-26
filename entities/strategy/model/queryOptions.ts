@@ -17,3 +17,13 @@ export function strategyListByAccountQueryOptions(accountId: string, token?: str
     queryFn: () => listStrategies(accountId, token),
   })
 }
+
+export function strategyDetailQueryOptions(accountId: string, strategyId: string, token?: string) {
+  return queryOptions<Strategy | null>({
+    queryKey: strategyKeys.detail(strategyId),
+    queryFn: async () => {
+      const strategies = await listStrategies(accountId, token)
+      return strategies.find((strategy) => strategy.id === strategyId) ?? null
+    },
+  })
+}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import type { QueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ApiError, apiMsg } from '@shared/lib/api-client'
 import {
@@ -15,16 +16,29 @@ import {
 } from '../api'
 import type { Account, AccountRequest } from '../model/types'
 import { accountKeys } from '../model/queryKeys'
+import { accountListQueryOptions } from '../model/queryOptions'
 
-function upsertAccount(accounts: Account[] | undefined, saved: Account) {
-  const current = accounts ?? []
-  const exists = current.some((account) => account.id === saved.id)
+function upsertAccount(accounts: Account[], saved: Account) {
+  const exists = accounts.some((account) => account.id === saved.id)
 
   if (!exists) {
-    return [...current, saved]
+    return [...accounts, saved]
   }
 
-  return current.map((account) => account.id === saved.id ? saved : account)
+  return accounts.map((account) => account.id === saved.id ? saved : account)
+}
+
+async function synchronizeAccountList(
+  queryClient: QueryClient,
+  update: (accounts: Account[]) => Account[],
+) {
+  const accounts = queryClient.getQueryData<Account[]>(accountKeys.list())
+  if (accounts !== undefined) {
+    queryClient.setQueryData<Account[]>(accountKeys.list(), update(accounts))
+    return
+  }
+
+  await queryClient.fetchQuery(accountListQueryOptions())
 }
 
 export function useAccountMarginQuery(accountId: string, options?: { enabled?: boolean }) {
@@ -50,9 +64,9 @@ export function useUpdateAccountMutation(accountId: string) {
   const queryClient = useQueryClient()
   return useMutation<Account, Error, AccountRequest>({
     mutationFn: (data) => updateAccount(accountId, data),
-    onSuccess: (saved) => {
-      queryClient.setQueryData<Account[]>(accountKeys.list(), (accounts) => upsertAccount(accounts, saved))
+    onSuccess: async (saved) => {
       queryClient.setQueryData(accountKeys.detail(accountId), saved)
+      await synchronizeAccountList(queryClient, (accounts) => upsertAccount(accounts, saved))
     },
     onError: (err) => toast.error(apiMsg(err, '수정에 실패했습니다')),
   })
@@ -62,13 +76,12 @@ export function useDeleteAccountMutation(accountId: string) {
   const queryClient = useQueryClient()
   return useMutation<void, Error>({
     mutationFn: () => deleteAccount(accountId),
-    onSuccess: () => {
-      queryClient.setQueryData<Account[]>(accountKeys.list(), (accounts = []) =>
-        accounts.filter((account) => account.id !== accountId),
-      )
+    onSuccess: async () => {
       queryClient.removeQueries({ queryKey: accountKeys.detail(accountId) })
       queryClient.removeQueries({ queryKey: accountKeys.margin(accountId) })
       queryClient.removeQueries({ queryKey: accountKeys.pricesRoot(accountId) })
+      await synchronizeAccountList(queryClient, (accounts) =>
+        accounts.filter((account) => account.id !== accountId))
     },
     onError: (err) => toast.error(apiMsg(err, '삭제에 실패했습니다')),
   })
@@ -78,9 +91,9 @@ export function useCreateAccountMutation() {
   const queryClient = useQueryClient()
   return useMutation<Account, Error, AccountRequest>({
     mutationFn: (data) => createAccount(data),
-    onSuccess: (saved) => {
-      queryClient.setQueryData<Account[]>(accountKeys.list(), (accounts) => upsertAccount(accounts, saved))
+    onSuccess: async (saved) => {
       queryClient.setQueryData(accountKeys.detail(saved.id), saved)
+      await synchronizeAccountList(queryClient, (accounts) => upsertAccount(accounts, saved))
     },
     onError: (error) => {
       if (error instanceof ApiError && error.status === 422) {
