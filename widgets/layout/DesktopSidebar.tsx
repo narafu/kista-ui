@@ -10,7 +10,7 @@ import { isNavItemActive } from './nav-utils'
 
 const NAV_ITEMS = [
   { href: '/dashboard',  label: '대시보드', icon: LayoutDashboard },
-  { href: '/accounts',   label: '계좌 관리', icon: CreditCard },
+  { href: '/accounts',   label: '계좌',     icon: CreditCard },
   { href: '/strategies', label: '전략',     icon: ListChecks },
   { href: '/stats',      label: '통계',     icon: TrendingUp },
   { href: '/benchmark',  label: '벤치마크', icon: Scale },
