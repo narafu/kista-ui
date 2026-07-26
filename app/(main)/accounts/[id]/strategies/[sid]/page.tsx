@@ -50,9 +50,16 @@ export default async function StrategyDetailPage({ params }: Props) {
         eyebrowHref={`/accounts/${id}`}
         title={strategy.ticker}
         actions={
-          <Link href={`/accounts/${id}/strategies/${sid}/edit`} className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}>
-            수정
-          </Link>
+          <>
+            {strategy.vr && (
+              <Link href={`/accounts/${id}/strategies/${sid}/reconfigure-vr`} className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}>
+                VR 재설정
+              </Link>
+            )}
+            <Link href={`/accounts/${id}/strategies/${sid}/edit`} className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}>
+              수정
+            </Link>
+          </>
         }
       />
 
