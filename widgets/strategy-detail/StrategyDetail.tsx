@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { KpiCard } from '@widgets/kpi-card'
 import { StrategyTradesTab } from '@widgets/cycle-history'
-import { seedBadgeClass, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
+import { seedBadgeClass, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel, useStrategiesQuery } from '@entities/strategy'
 import { useManageStrategyMutations } from '@features/strategy/manage-strategy'
 import { useStrategyOrderPreviewQuery, useCancelAllOrdersMutation, useCancelOneOrderMutation, computeOrderReadiness } from '@entities/order'
 import { useMonthlyHolidaysQuery } from '@entities/market'
@@ -116,9 +116,11 @@ interface Props {
   initialPreview?: NextOrderPreview
 }
 
-export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
+export function StrategyDetail({ accountId, strategy: initialStrategy, initialPreview }: Props) {
   const { push } = useRouter()
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const { data: strategies } = useStrategiesQuery(accountId)
+  const strategy = strategies?.find((item) => item.id === initialStrategy.id) ?? initialStrategy
 
   const { data: preview, isLoading: isLoadingPreview, isError: isPreviewError, error: previewError } = useStrategyOrderPreviewQuery(strategy.id, initialPreview)
 

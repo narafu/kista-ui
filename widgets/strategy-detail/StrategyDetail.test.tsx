@@ -8,7 +8,10 @@ import { StrategyDetail } from './StrategyDetail'
 const mockPush = vi.fn()
 const deleteMutate = vi.fn()
 const executeMutate = vi.fn()
+const pauseMutate = vi.fn()
+const resumeMutate = vi.fn()
 let deleteSuccessHandler: (() => void) | undefined
+let strategiesQueryData: Strategy[] | undefined
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
@@ -66,6 +69,7 @@ vi.mock('@entities/strategy', async () => {
   const actual = await vi.importActual<typeof import('@entities/strategy')>('@entities/strategy')
   return {
     ...actual,
+    useStrategiesQuery: () => ({ data: strategiesQueryData }),
     seedBadgeClass: () => 'seed-badge',
     strategyStatusAccent: (status: string) => status === 'ACTIVE' ? 'var(--status-ok)' : 'var(--warn)',
   }
@@ -75,8 +79,8 @@ vi.mock('@features/strategy/manage-strategy', () => ({
   useManageStrategyMutations: ({ onDeleted }: { onDeleted?: () => void }) => {
     deleteSuccessHandler = onDeleted
     return {
-      pause: vi.fn(),
-      resume: vi.fn(),
+      pause: pauseMutate,
+      resume: resumeMutate,
       remove: deleteMutate,
       execute: executeMutate,
       isPausing: false,
@@ -147,6 +151,12 @@ const baseStrategy: Strategy = {
 }
 
 describe('StrategyDetail header card', () => {
+  beforeEach(() => {
+    strategiesQueryData = undefined
+    pauseMutate.mockReset()
+    resumeMutate.mockReset()
+  })
+
   it('shows strategy type and next cycle in the header metadata cards', () => {
     const { container } = render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
@@ -189,6 +199,22 @@ describe('StrategyDetail header card', () => {
     expect(screen.getByText('PAUSED')).toBeInTheDocument()
     expect(screen.getByTestId('strategy-status-group')).toHaveTextContent('리버스모드')
     expect(screen.getByText('리버스모드')).toBeInTheDocument()
+  })
+
+  it('switches to the synchronized paused status and resume action after a pause succeeds', () => {
+    strategiesQueryData = [baseStrategy]
+    const paused = { ...baseStrategy, status: 'PAUSED' }
+    pauseMutate.mockImplementation(() => {
+      strategiesQueryData = [paused]
+    })
+    const { rerender } = render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    fireEvent.click(screen.getByRole('button', { name: '중지' }))
+    rerender(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    expect(screen.getByText('PAUSED')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: '재개' }))
+    expect(resumeMutate).toHaveBeenCalledWith(paused)
   })
 
   it('shows an alternate operating mode label when the strategy type has no division count', () => {

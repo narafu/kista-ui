@@ -175,6 +175,7 @@ describe('HousingBenchmarkComparison', () => {
   it('기본 렌더링은 ETF 탭·3개월 기간이 활성화된다', () => {
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
+    expect(useAllStrategiesQueryMock).toHaveBeenLastCalledWith({ enabled: false })
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'PORTFOLIO',
       benchmarkType: 'ETF',

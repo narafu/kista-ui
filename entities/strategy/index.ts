@@ -17,8 +17,6 @@ export {
 } from './api'
 export { getCachedStrategies } from './api/cached'
 export {
-  strategyListAllQueryOptions,
-  strategyListByAccountQueryOptions,
   useStrategySeedPreviewQuery,
   useAllStrategiesQuery,
   useStrategiesQuery,
@@ -29,3 +27,4 @@ export {
   useResumeStrategyMutation,
   useExecuteStrategyMutation,
 } from './hooks/useStrategyQueries'
+export { strategyListAllQueryOptions, strategyListByAccountQueryOptions } from './model/queryOptions'
