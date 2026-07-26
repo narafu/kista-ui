@@ -1,12 +1,19 @@
 'use client'
 
-import type { FocusEvent } from 'react'
+import type { ChangeEvent, FocusEvent } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { cn } from '@shared/lib/utils'
 
 function parseNumber(value: string): number | null {
   if (value.trim() === '') return null
   const n = Number(value)
   return Number.isFinite(n) ? n : null
+}
+
+function exceedsMaxDecimals(raw: string, maxDecimals: number): boolean {
+  const dotIndex = raw.indexOf('.')
+  if (dotIndex === -1) return false
+  return raw.length - dotIndex - 1 > maxDecimals
 }
 
 function handleFocus(event: FocusEvent<HTMLInputElement>) {
@@ -32,6 +39,7 @@ export function UnitInput({
   placeholder,
   wrapperClassName,
   unitClassName,
+  maxDecimals,
 }: {
   value: number | null
   onChange: (value: number | null) => void
@@ -41,15 +49,36 @@ export function UnitInput({
   placeholder?: string
   wrapperClassName?: string
   unitClassName?: string
+  maxDecimals?: number
 }) {
+  // 소수점 입력 중(예: "87.", "87.50") 문자열을 보존 — 매 렌더마다 value(파싱된 숫자)로 되돌리면 트레일링 점/0이 사라짐
+  const [text, setText] = useState(value !== null ? String(value) : '')
+  const emittedValueRef = useRef(value)
+
+  useEffect(() => {
+    if (value !== emittedValueRef.current) {
+      emittedValueRef.current = value
+      setText(value !== null ? String(value) : '')
+    }
+  }, [value])
+
+  function handleChange(event: ChangeEvent<HTMLInputElement>) {
+    const raw = event.target.value
+    if (maxDecimals !== undefined && exceedsMaxDecimals(raw, maxDecimals)) return
+    setText(raw)
+    const parsed = parseNumber(raw)
+    emittedValueRef.current = parsed
+    onChange(parsed)
+  }
+
   return (
     <div className={cn(inputBoxClass(disabled), wrapperClassName)}>
       <input
         type="text"
         inputMode="decimal"
         aria-label={ariaLabel}
-        value={value ?? ''}
-        onChange={(event) => onChange(parseNumber(event.target.value))}
+        value={text}
+        onChange={handleChange}
         onFocus={handleFocus}
         disabled={disabled}
         placeholder={placeholder}

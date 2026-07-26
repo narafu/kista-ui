@@ -30,6 +30,7 @@ export function InitialHoldingsSection({ avgPrice, quantity, setField, loading, 
             unit="USD"
             disabled={loading}
             unitClassName="ml-1.5"
+            maxDecimals={2}
           />
         </label>
         <label>

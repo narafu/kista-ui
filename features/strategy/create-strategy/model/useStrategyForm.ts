@@ -220,7 +220,7 @@ export function useStrategyForm({
     resetSeed,
     seedUsd,
     isBelowMinSeed, isInvalidSeed,
-  } = useSeedModel({ balanceCheckEnabled, initial, editableEdit: canEditSeed, usdDeposit, minSeed })
+  } = useSeedModel({ balanceCheckEnabled, initial, editableEdit: canEditSeed, usdDeposit, minSeed, avgPrice, quantity })
 
   // type 변경 시 ticker 기본값 설정 — 시드는 minSeed effect에서 처리
   useEffect(() => {

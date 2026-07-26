@@ -9,6 +9,9 @@ interface UseSeedModelOptions {
   editableEdit?: boolean
   usdDeposit: number | null
   minSeed: number | null
+  // 중간부터 시작(보유 평단가·수량) — 최소 시드 판정 시 이미 보유한 평가금액도 합산
+  avgPrice?: number | null
+  quantity?: number | null
 }
 
 export interface UseSeedModelReturn {
@@ -35,6 +38,8 @@ export function useSeedModel({
   editableEdit = false,
   usdDeposit,
   minSeed,
+  avgPrice = null,
+  quantity = null,
 }: UseSeedModelOptions): UseSeedModelReturn {
   const [pct, setPctInternal] = useState(100)
   const inputDirtyRef = useRef(false)
@@ -85,7 +90,10 @@ export function useSeedModel({
         ? (pct === 100 ? Math.floor(usdDeposit) : Math.ceil((usdDeposit * pct) / 100))
         : null)
 
-  const isBelowMinSeed = seedUsd !== null && minSeed !== null && seedUsd < minSeed
+  // 최소 시드 판정 = 예수금 직접 입력(OFF 모드) + 이미 보유 중인 평가금액(평단가 × 수량)
+  // ON 모드는 실제 잔고 기준 슬라이더라 PercentGauge가 별도로 deposit vs minSeed를 비교·비활성화하므로 여기서 홀딩스를 더하면 그쪽과 어긋난다 — OFF 모드로 한정
+  const existingHoldingsValue = !balanceCheckEnabled ? (avgPrice ?? 0) * (quantity ?? 0) : 0
+  const isBelowMinSeed = seedUsd !== null && minSeed !== null && seedUsd + existingHoldingsValue < minSeed
 
   // seedUsd가 0 이하이면 제출 불가 (예수금 0 or OFF 모드 빈칸)
   const isInvalidSeed = !balanceCheckEnabled
