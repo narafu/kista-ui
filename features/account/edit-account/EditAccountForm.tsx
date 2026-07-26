@@ -122,6 +122,7 @@ export function EditAccountForm({ account }: Props) {
                   value={deleteConfirm}
                   onChange={(e) => setDeleteConfirm(e.target.value)}
                   disabled={deleteMutation.isPending}
+                  maxLength={100}
                   className="h-11"
                 />
               </div>

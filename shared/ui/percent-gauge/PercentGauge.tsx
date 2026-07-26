@@ -74,6 +74,7 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
             aria-label="사용 비율 (%)"
             value={String(value)}
             disabled={allDisabled}
+            maxLength={3}
             onChange={(e) => {
               const raw = e.target.value.replace(/[^\d]/g, '')
               if (raw === '') { onChange(0); return }

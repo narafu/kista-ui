@@ -108,6 +108,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
             onChange={handleFieldChange('key')}
             onBlur={() => dispatch({ type: 'touchKey' })}
             placeholder={`발급받은 ${config.keyLabel}`}
+            maxLength={256}
             aria-describedby={showKeyError ? 'api-key-error' : undefined}
             aria-invalid={showKeyError}
             className="w-full px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -130,6 +131,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
               onChange={handleFieldChange('secret')}
               onBlur={() => dispatch({ type: 'touchSecret' })}
               placeholder={`발급받은 ${config.secretLabel}`}
+              maxLength={512}
               aria-describedby={showSecretError ? 'api-secret-error' : undefined}
               aria-invalid={showSecretError}
               className="w-full px-3 py-2.5 pr-10 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"

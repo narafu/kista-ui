@@ -149,6 +149,7 @@ function ValueListEditor<T extends string | number>({ id, label, field, error, i
           type="text"
           list={datalistId}
           inputMode={inputType === 'number' ? 'decimal' : undefined}
+          maxLength={100}
           aria-label={`${label} 추가`}
           aria-invalid={Boolean(inputError || error)}
           onChange={(event) => {

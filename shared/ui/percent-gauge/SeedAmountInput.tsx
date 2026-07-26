@@ -36,6 +36,7 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled, s
           value={value !== null ? String(value) : ''}
           disabled={disabled}
           placeholder="0"
+          maxLength={15}
           onChange={(e) => {
             const raw = e.target.value.replace(/[^\d]/g, '')
             if (raw === '') { onChange(null); return }

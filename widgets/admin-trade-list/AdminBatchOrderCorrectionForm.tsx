@@ -224,6 +224,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                     value={draft.memo}
                     onChange={(e) => handleDraftChange(order.id, 'memo', e.target.value)}
                     disabled={disabled || isBlocked}
+                    maxLength={200}
                     className="h-10 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </label>
