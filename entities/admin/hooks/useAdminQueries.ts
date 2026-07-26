@@ -23,20 +23,50 @@ function transitionCachedAdminUser(
   userId: string,
   status: UserStatus,
 ) {
-  let previousStatus: UserStatus | undefined
-  for (const [queryKey, users] of queryClient.getQueriesData<AdminUser[]>({ queryKey: adminKeys.usersRoot() })) {
+  const cachedUserLists = queryClient.getQueriesData<AdminUser[]>({ queryKey: adminKeys.usersRoot() })
+  const previousUser = cachedUserLists
+    .flatMap(([, users]) => users ?? [])
+    .find((user) => user.id === userId)
+  if (!previousUser) return undefined
+
+  const nextUser = { ...previousUser, status }
+  for (const [queryKey, users] of cachedUserLists) {
     if (!users) continue
     const filter = queryKey[2] as UserStatus | 'ALL'
-    const nextUsers = users
-      .map((user) => {
-        if (user.id !== userId) return user
-        previousStatus ??= user.status
-        return { ...user, status }
-      })
-      .filter((user) => filter === 'ALL' || user.status === filter)
-    queryClient.setQueryData(queryKey, nextUsers)
+    const from = queryKey[3] as string
+    const to = queryKey[4] as string
+    const admitsUser = (filter === 'ALL' || filter === nextUser.status) && isInUserDateRange(nextUser, from, to)
+    const existingIndex = users.findIndex((user) => user.id === userId)
+    const usersWithoutTarget = users.filter((user) => user.id !== userId)
+
+    if (!admitsUser) {
+      queryClient.setQueryData(queryKey, usersWithoutTarget)
+      continue
+    }
+
+    if (existingIndex >= 0) {
+      usersWithoutTarget.splice(existingIndex, 0, nextUser)
+      queryClient.setQueryData(queryKey, usersWithoutTarget)
+      continue
+    }
+
+    queryClient.setQueryData(queryKey, insertByCreatedAtDesc(usersWithoutTarget, nextUser))
   }
-  return previousStatus
+  return previousUser.status
+}
+
+function isInUserDateRange(user: AdminUser, from: string, to: string) {
+  if (!from && !to) return true
+  const kstDate = new Date(user.createdAt).toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' })
+  return (!from || kstDate >= from) && (!to || kstDate <= to)
+}
+
+function insertByCreatedAtDesc(users: AdminUser[], user: AdminUser) {
+  const userCreatedAt = Date.parse(user.createdAt)
+  if (Number.isNaN(userCreatedAt)) return [...users, user]
+  const insertAt = users.findIndex((current) => Date.parse(current.createdAt) < userCreatedAt)
+  if (insertAt < 0) return [...users, user]
+  return [...users.slice(0, insertAt), user, ...users.slice(insertAt)]
 }
 
 function removeCachedAdminUser(queryClient: ReturnType<typeof useQueryClient>, userId: string) {
