@@ -145,9 +145,52 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
         </div>
       </div>
 
+      {!isEdit && (
+        <details className="mt-4 group">
+          <summary className="cursor-pointer select-none text-sm font-bold text-muted-foreground list-none flex items-center gap-1.5">
+            <span className="transition-transform group-open:rotate-90">▸</span>
+            고급 설정 (램프)
+          </summary>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-5 mt-4">
+            <label>
+              <span className={FIELD_LABEL_CLASS}>초기 gradient(G)</span>
+              <UnitInput value={fields.initialGradient} onChange={(v) => setField('initialGradient', v)} unit="" disabled={disabled} placeholder="자동" />
+            </label>
+            <label>
+              <span className={FIELD_LABEL_CLASS}>gradient 상한</span>
+              <UnitInput value={fields.gMax} onChange={(v) => setField('gMax', v)} unit="" disabled={disabled} placeholder="자동" />
+            </label>
+            <label>
+              <span className={FIELD_LABEL_CLASS}>gradient 유예(주)</span>
+              <UnitInput value={fields.gGraceWeeks} onChange={(v) => setField('gGraceWeeks', v)} unit="주" disabled={disabled} placeholder="52" />
+            </label>
+            <label>
+              <span className={FIELD_LABEL_CLASS}>gradient 단계주기(주)</span>
+              <UnitInput value={fields.gStepWeeks} onChange={(v) => setField('gStepWeeks', v)} unit="주" disabled={disabled} placeholder="26" />
+            </label>
+            <label>
+              <span className={FIELD_LABEL_CLASS}>초기 poolLimitRate</span>
+              <UnitInput value={fields.initialPoolLimitRate} onChange={(v) => setField('initialPoolLimitRate', v)} unit="" disabled={disabled} placeholder="자동" maxDecimals={2} />
+            </label>
+            <label>
+              <span className={FIELD_LABEL_CLASS}>poolLimitRate 하한</span>
+              <UnitInput value={fields.poolLimitFloor} onChange={(v) => setField('poolLimitFloor', v)} unit="" disabled={disabled} placeholder="자동" maxDecimals={2} />
+            </label>
+            <label>
+              <span className={FIELD_LABEL_CLASS}>poolLimitRate 유예(주)</span>
+              <UnitInput value={fields.pGraceWeeks} onChange={(v) => setField('pGraceWeeks', v)} unit="주" disabled={disabled} placeholder="52" />
+            </label>
+            <label>
+              <span className={FIELD_LABEL_CLASS}>poolLimitRate 단계주기(주)</span>
+              <UnitInput value={fields.pStepWeeks} onChange={(v) => setField('pStepWeeks', v)} unit="주" disabled={disabled} placeholder="26" />
+            </label>
+          </div>
+        </details>
+      )}
+
       {isEdit && (
         <p className="text-sm text-muted-foreground mt-2 px-1">
-          VR 상세 설정은 등록 후 변경할 수 없습니다.
+          여기서는 변경할 수 없습니다 — 전략 상세 화면의 &quot;VR 재설정&quot;을 이용하세요.
         </p>
       )}
     </div>

@@ -190,7 +190,7 @@ describe('VrSettingsSection', () => {
       expect(holdButton.disabled).toBe(true)
       expect(withdrawalButton.disabled).toBe(true)
 
-      expect(screen.getByText('VR 상세 설정은 등록 후 변경할 수 없습니다.')).toBeInTheDocument()
+      expect(screen.getByText('여기서는 변경할 수 없습니다 — 전략 상세 화면의 "VR 재설정"을 이용하세요.')).toBeInTheDocument()
     })
 
     it('does not render the read-only initial V value input in create mode', () => {
@@ -284,6 +284,25 @@ describe('VrSettingsSection', () => {
 
       expect(mockSetField).toHaveBeenCalledWith('bandWidth', 20)
       expect(mockSetField).toHaveBeenCalledWith('intervalWeeks', 4)
+    })
+  })
+
+  describe('advanced ramp settings (registration only)', () => {
+    it('renders the collapsible advanced section in create mode', () => {
+      render(<VrSettingsSection fields={baseFields} {...baseProps} isEdit={false} />)
+      expect(screen.getByText('고급 설정 (램프)')).toBeInTheDocument()
+    })
+
+    it('does not render the advanced section in edit mode', () => {
+      render(<VrSettingsSection fields={baseFields} {...baseProps} isEdit={true} initialVrValue={3000} />)
+      expect(screen.queryByText('고급 설정 (램프)')).not.toBeInTheDocument()
+    })
+
+    it('updates a ramp field through setField', () => {
+      render(<VrSettingsSection fields={baseFields} {...baseProps} isEdit={false} />)
+      const input = getInputByLabelText('초기 gradient(G)')
+      fireEvent.change(input, { target: { value: '10' } })
+      expect(mockSetField).toHaveBeenCalledWith('initialGradient', 10)
     })
   })
 })
