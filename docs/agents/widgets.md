@@ -54,7 +54,7 @@ widget 슬라이스끼리 cross-import 금지. **단, "공용 UI 위젯" 목록(
 
 - **`account-detail`**: `TradesTab`은 `useReducer` + `CycleHistoryTable` 조합
 - **`cycle-history`**: 계좌/전략 양쪽에서 공유
-- **`strategy-detail`**: `useStrategyOrderPreviewQuery(strategyId)` 사용, 분할/리버스모드 배지 규칙 고정. VR은 `strategy.vr` 존재 여부로 V값, 밴드 폭, pool 상한, G를 표시한다. `divisionCounts.length === 0`을 PRIVACY로 단정하지 않는다. `isScheduledStart(strategy)`가 true(시작예정일이 미래)면 상태 배지 그룹에 "N월 N일 시작예정" 배지(`--info`/`--info-bg` 토큰) 추가
+- **`strategy-detail`**: `useStrategyOrderPreviewQuery(strategyId)` 사용, 분할/리버스모드 배지 규칙 고정. VR은 `strategy.vr` 존재 여부로 운용 방식(적립식/거치식/인출식 + 금액), 밴드 폭, 주기, G, V, pool(현재 시작금액), pool 상한을 표시한다. `divisionCounts.length === 0`을 PRIVACY로 단정하지 않는다. `isScheduledStart(strategy)`가 true(시작예정일이 미래)면 상태 배지 그룹에 "N월 N일 시작예정" 배지(`--info`/`--info-bg` 토큰) 추가
 - **`strategy-card`**: VR은 분할 배지 대신 compact `V $3,000.00` 형식의 배지를 표시한다. 왼쪽 변은 전략 활성 상태 색상, 위/오른쪽/아래 변은 당일 PLANNED 주문(녹색) 또는 예수금 부족(장 개시 전 주황, `marketSession=DIRECT` 이후 빨강)을 표시한다. `isScheduledStart(strategy)`면 배지 행(모바일 1행·PC 배지 row)에 "N월 N일 시작예정" 배지 추가 — `AccountCard`의 compact 배지 행에는 넣지 않는다(혼잡 방지)
 - **`kpi-card`**: `<KpiCard />` 그리드 패턴 유지
 - **`revealable-value`**: 마스킹 값 공개 토글

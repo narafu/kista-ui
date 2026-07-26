@@ -261,7 +261,13 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
             <KpiCard label="V" value={`$${fmtUsd(strategy.vr.value)}`} />
             <KpiCard
               label="pool"
-              value={strategy.initialUsdDeposit != null ? `$${fmtUsd(strategy.initialUsdDeposit)}` : '미설정'}
+              value={
+                strategy.initialUsdDeposit != null ? (
+                  `$${fmtUsd(strategy.initialUsdDeposit)}`
+                ) : (
+                  <span className="inline-flex items-center text-sm lg:text-base text-muted-foreground font-normal">미설정</span>
+                )
+              }
             />
             <KpiCard label="pool 상한" value={`$${fmtUsd(strategy.vr.poolLimit)}`} />
           </div>
