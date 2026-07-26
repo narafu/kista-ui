@@ -93,6 +93,38 @@ describe('ReconfigureVrForm', () => {
     expect(mutateMock.mock.calls[0][0].recurringAmount).toBe(-200)
   })
 
+  it('금액 재입력 없이 인출→적립 모드만 전환해도 부호가 양수로 재계산된다', async () => {
+    // strategy fixture는 recurringAmount: -100 (인출식)으로 설정돼 있음 — 초기 recurringMode는 WITHDRAW
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    fireEvent.click(screen.getByRole('button', { name: '+ 적립' }))
+
+    const amountInput = screen.getByLabelText('적립금(+)/인출금(-)') as HTMLInputElement
+    expect(amountInput.value).toBe('100')
+
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+    fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
+
+    await waitFor(() => expect(mutateMock).toHaveBeenCalled())
+    expect(mutateMock.mock.calls[0][0].recurringAmount).toBe(100)
+  })
+
+  it('금액 재입력 없이 적립→인출 모드만 전환해도 부호가 음수로 재계산된다', async () => {
+    // recurringAmount가 양수(적립식)인 상태에서 시작해야 인출 전환 시 부호 재계산 여부가 갈린다 —
+    // strategy 원본 fixture(-100)로는 WITHDRAW로 전환해도 값이 그대로 -100이라 버그 유무를 구분하지 못한다.
+    const depositStrategy: Strategy = { ...strategy, vr: { ...strategy.vr!, recurringAmount: 100 } }
+    render(<ReconfigureVrForm accountId="account-1" strategy={depositStrategy} />)
+    fireEvent.click(screen.getByRole('button', { name: '- 인출' }))
+
+    const amountInput = screen.getByLabelText('적립금(+)/인출금(-)') as HTMLInputElement
+    expect(amountInput.value).toBe('100')
+
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+    fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
+
+    await waitFor(() => expect(mutateMock).toHaveBeenCalled())
+    expect(mutateMock.mock.calls[0][0].recurringAmount).toBe(-100)
+  })
+
   it('gMax가 initialGradient보다 작으면 확인 다이얼로그를 열지 않는다', async () => {
     render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
     fireEvent.change(screen.getByLabelText('gradient 상한'), { target: { value: '5' } }) // initialGradient=10보다 작음

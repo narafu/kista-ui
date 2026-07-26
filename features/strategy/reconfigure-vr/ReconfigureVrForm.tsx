@@ -122,7 +122,8 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
 
   function handleRecurringModeChange(mode: RecurringMode) {
     setRecurringMode(mode)
-    if (mode === 'HOLD') form.setValue('recurringAmount', 0)
+    const abs = Math.abs(form.getValues('recurringAmount') ?? 0)
+    form.setValue('recurringAmount', mode === 'WITHDRAW' ? -abs : mode === 'DEPOSIT' ? abs : 0, { shouldValidate: true })
   }
 
   function handleRecurringAmountChange(raw: string) {
@@ -186,6 +187,7 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
             <ModeButton selected={recurringMode === 'WITHDRAW'} disabled={disabled} onClick={() => handleRecurringModeChange('WITHDRAW')}>- 인출</ModeButton>
           </div>
           <Input
+            key={recurringMode}
             type="text"
             inputMode="decimal"
             aria-label="적립금(+)/인출금(-)"
