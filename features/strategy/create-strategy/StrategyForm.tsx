@@ -85,7 +85,6 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
           quantity={form.vrFields.quantity}
           setField={form.setVrField}
           loading={form.loading}
-          isVr={form.isVr}
         />
       )}
 

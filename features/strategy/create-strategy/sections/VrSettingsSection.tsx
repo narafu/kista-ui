@@ -188,12 +188,6 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
           </div>
         </details>
       )}
-
-      {isEdit && (
-        <p className="text-sm text-muted-foreground mt-2 px-1">
-          여기서는 변경할 수 없습니다 — 전략 상세 화면의 &quot;VR 재설정&quot;을 이용하세요.
-        </p>
-      )}
     </div>
   )
 }

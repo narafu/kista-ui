@@ -142,17 +142,15 @@ describe('StrategyForm initial holdings section', () => {
     render(<StrategyForm accountId="account-1" />)
 
     expect(screen.getByTestId('initial-holdings-section')).toBeInTheDocument()
-    expect(initialHoldingsSectionMock).toHaveBeenCalledWith(expect.objectContaining({ isVr: false }))
   })
 
-  it('shows the initial holdings section for VR create mode with VR framing', () => {
+  it('shows the initial holdings section for VR create mode', () => {
     initialHoldingsSectionMock.mockClear()
     useStrategyFormMock.mockReturnValue({ ...baseFormState, type: 'VR', isVr: true })
 
     render(<StrategyForm accountId="account-1" />)
 
     expect(screen.getByTestId('initial-holdings-section')).toBeInTheDocument()
-    expect(initialHoldingsSectionMock).toHaveBeenCalledWith(expect.objectContaining({ isVr: true }))
   })
 
   it('hides the initial holdings section in edit mode', () => {

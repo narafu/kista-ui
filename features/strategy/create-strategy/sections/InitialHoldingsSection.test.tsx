@@ -20,7 +20,6 @@ describe('InitialHoldingsSection', () => {
     quantity: null,
     setField: mockSetField,
     loading: false,
-    isVr: false,
   }
 
   beforeEach(() => {
@@ -76,17 +75,5 @@ describe('InitialHoldingsSection', () => {
 
     expect(getInputByLabelText('평단가')).toBeDisabled()
     expect(getInputByLabelText('수량')).toBeDisabled()
-  })
-
-  it('renders no hint text for VR', () => {
-    render(<InitialHoldingsSection {...baseProps} isVr={true} />)
-
-    expect(screen.queryByText(/비워두면 빈 포지션에서 시작합니다/)).not.toBeInTheDocument()
-  })
-
-  it('shows the optional bootstrap hint for non-VR strategies', () => {
-    render(<InitialHoldingsSection {...baseProps} isVr={false} />)
-
-    expect(screen.getByText(/비워두면 빈 포지션에서 시작합니다/)).toBeInTheDocument()
   })
 })

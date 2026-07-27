@@ -163,7 +163,7 @@ describe('VrSettingsSection', () => {
       expect(screen.getByRole('button', { name: '- 인출' })).toBeDisabled()
     })
 
-    it('shows read-only initial V value and disables all inputs when isEdit is true', () => {
+    it('shows read-only initial V value and disables recurring inputs when isEdit is true', () => {
       render(
         <VrSettingsSection
           fields={baseFields}
@@ -174,8 +174,6 @@ describe('VrSettingsSection', () => {
       )
 
       const initialValueInput = getInputByLabelText('초기 V값') as HTMLInputElement
-      const intervalButton = screen.getByRole('button', { name: '2주' }) as HTMLButtonElement
-      const bandWidthButton = screen.getByRole('button', { name: '15%' }) as HTMLButtonElement
       const recurringInput = getInputByLabelText('적립금(+)/인출금(-)') as HTMLInputElement
       const depositButton = screen.getByRole('button', { name: '+ 적립' }) as HTMLButtonElement
       const holdButton = screen.getByRole('button', { name: '거치' }) as HTMLButtonElement
@@ -183,14 +181,13 @@ describe('VrSettingsSection', () => {
 
       expect(initialValueInput.value).toBe('3000')
       expect(initialValueInput.disabled).toBe(true)
-      expect(intervalButton.disabled).toBe(true)
-      expect(bandWidthButton.disabled).toBe(true)
       expect(recurringInput.disabled).toBe(true)
       expect(depositButton.disabled).toBe(true)
       expect(holdButton.disabled).toBe(true)
       expect(withdrawalButton.disabled).toBe(true)
 
-      expect(screen.getByText('여기서는 변경할 수 없습니다 — 전략 상세 화면의 "VR 재설정"을 이용하세요.')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: '2주' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: '15%' })).not.toBeInTheDocument()
     })
 
     it('does not render the read-only initial V value input in create mode', () => {
@@ -290,12 +287,12 @@ describe('VrSettingsSection', () => {
   describe('advanced ramp settings (registration only)', () => {
     it('renders the collapsible advanced section in create mode', () => {
       render(<VrSettingsSection fields={baseFields} {...baseProps} isEdit={false} />)
-      expect(screen.getByText('고급 설정 (램프)')).toBeInTheDocument()
+      expect(screen.getByText('고급 설정')).toBeInTheDocument()
     })
 
     it('does not render the advanced section in edit mode', () => {
       render(<VrSettingsSection fields={baseFields} {...baseProps} isEdit={true} initialVrValue={3000} />)
-      expect(screen.queryByText('고급 설정 (램프)')).not.toBeInTheDocument()
+      expect(screen.queryByText('고급 설정')).not.toBeInTheDocument()
     })
 
     it('updates a ramp field through setField', () => {
