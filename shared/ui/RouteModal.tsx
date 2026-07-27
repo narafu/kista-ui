@@ -65,6 +65,7 @@ export function RouteModal({ children, className }: Props) {
         ref={containerRef}
         role="dialog"
         aria-modal="true"
+        data-slot="dialog-content"
         tabIndex={-1}
         className={cn(
           'relative min-h-full w-full bg-background outline-none',

@@ -111,47 +111,48 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
             unitClassName="ml-2"
           />
         </div>
-
-        <div>
-          <span className={FIELD_LABEL_CLASS}>밴드 폭</span>
-          <div className="grid grid-cols-3 gap-2">
-            {(settings.bandWidth?.allowedValues ?? []).map((option) => (
-              <ChoiceButton
-                key={option}
-                selected={fields.bandWidth === option}
-                disabled={disabled || settings.bandWidth?.customizable === false}
-                onClick={() => setField('bandWidth', option)}
-              >
-                {option}%
-              </ChoiceButton>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <span className={FIELD_LABEL_CLASS}>리밸런싱 주기</span>
-          <div className="grid grid-cols-3 gap-2">
-            {(settings.intervalWeeks?.allowedValues ?? []).map((option) => (
-              <ChoiceButton
-                key={option}
-                selected={fields.intervalWeeks === option}
-                disabled={disabled || settings.intervalWeeks?.customizable === false}
-                onClick={() => setField('intervalWeeks', option)}
-              >
-                {option}주
-              </ChoiceButton>
-            ))}
-          </div>
-        </div>
       </div>
 
       {!isEdit && (
         <details className="mt-4 group">
           <summary className="cursor-pointer select-none text-sm font-bold text-muted-foreground list-none flex items-center gap-1.5">
             <span className="transition-transform group-open:rotate-90">▸</span>
-            고급 설정 (램프)
+            고급 설정
           </summary>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-5 mt-4">
+          <div className="grid grid-cols-1 gap-y-5 mt-4">
+            <div>
+              <span className={FIELD_LABEL_CLASS}>밴드 폭</span>
+              <div className="grid grid-cols-3 gap-2">
+                {(settings.bandWidth?.allowedValues ?? []).map((option) => (
+                  <ChoiceButton
+                    key={option}
+                    selected={fields.bandWidth === option}
+                    disabled={disabled || settings.bandWidth?.customizable === false}
+                    onClick={() => setField('bandWidth', option)}
+                  >
+                    {option}%
+                  </ChoiceButton>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <span className={FIELD_LABEL_CLASS}>리밸런싱 주기</span>
+              <div className="grid grid-cols-3 gap-2">
+                {(settings.intervalWeeks?.allowedValues ?? []).map((option) => (
+                  <ChoiceButton
+                    key={option}
+                    selected={fields.intervalWeeks === option}
+                    disabled={disabled || settings.intervalWeeks?.customizable === false}
+                    onClick={() => setField('intervalWeeks', option)}
+                  >
+                    {option}주
+                  </ChoiceButton>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-5 mt-5">
             <label>
               <span className={FIELD_LABEL_CLASS}>초기 gradient(G)</span>
               <UnitInput value={fields.initialGradient} onChange={(v) => setField('initialGradient', v)} unit="" disabled={disabled} placeholder="자동" />
