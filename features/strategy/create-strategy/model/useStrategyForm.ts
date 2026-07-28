@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -153,6 +153,12 @@ export function useStrategyForm({
       scheduledStartDate: null,
     },
   })
+  const [resolverValidationReason, setResolverValidationReason] = useState<string | null>(null)
+
+  useEffect(() => {
+    const subscription = form.watch(() => setResolverValidationReason(null))
+    return () => subscription.unsubscribe()
+  }, [form])
 
   const type = form.watch('type')
   const ticker = form.watch('ticker')
@@ -360,7 +366,7 @@ export function useStrategyForm({
     ? false
     : runtimeConfigUnavailable || isRuntimeValueInvalid || isInvalidBootstrap || isInvalidScheduledStart || isInvalidVr || isBelowMinSeed || (!isVr && isInvalidSeed) || (!isVr && basePrice === null && seedUnavailableReason === null)
 
-  const submitDisabledReason = initial && !canEditSeed
+  const preSubmitDisabledReason = initial && !canEditSeed
     ? null
     : runtimeConfigUnavailable
       ? '현재 등록 가능한 전략이 없습니다.'
@@ -418,6 +424,8 @@ export function useStrategyForm({
           if (basePrice === null && seedUnavailableReason === null) return '기준 가격을 불러오는 중입니다.'
           return null
         })()
+
+  const submitDisabledReason = preSubmitDisabledReason ?? resolverValidationReason
 
   // VR은 cycleSeedType 항상 NONE — 롤오버가 자체 사이클 교체 담당
   const cycleSeedType: CycleSeedType = isVr
@@ -528,6 +536,8 @@ export function useStrategyForm({
       } else {
         createMutation.mutate(payload)
       }
+    }, () => {
+      setResolverValidationReason('입력값을 다시 확인해 주세요.')
     })(e)
   }
 

@@ -58,7 +58,7 @@ export function RouteModal({ children, className }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto sm:overflow-y-visible sm:flex sm:items-center sm:justify-center sm:bg-black/40 sm:p-4"
+      className="fixed inset-0 z-50 overflow-y-auto touch-pan-y sm:overflow-y-visible sm:flex sm:items-center sm:justify-center sm:bg-black/40 sm:p-4"
       onClick={(e) => { if (e.target === e.currentTarget) dismiss() }}
     >
       <div

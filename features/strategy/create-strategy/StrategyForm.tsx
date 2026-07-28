@@ -139,7 +139,7 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
         />
       )}
 
-      {form.cannotSubmit && form.submitDisabledReason && (
+      {form.submitDisabledReason && (
         <p className="text-sm font-semibold text-[var(--warn)] py-3">
           {form.submitDisabledReason}
         </p>

@@ -517,6 +517,34 @@ describe('useStrategyForm submit policy', () => {
     })
   })
 
+  it('shows a validation reason when the resolver rejects an otherwise unblocked submit', async () => {
+    seedModelState.seedUsd = 2000
+
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('intervalWeeks', 4)
+      result.current.setVrField('bandWidth', 15)
+      result.current.setVrField('gStepWeeks', 1.5)
+    })
+
+    expect(result.current.cannotSubmit).toBe(false)
+
+    await act(async () => {
+      result.current.handleSubmit({ preventDefault() {} } as React.FormEvent)
+    })
+
+    await waitFor(() => {
+      expect(result.current.submitDisabledReason).toBe('입력값을 다시 확인해 주세요.')
+    })
+    expect(mockCreateMutate).not.toHaveBeenCalled()
+  })
+
   it('VR accumulation create allows zero initial value and zero seed', async () => {
     seedModelState.seedUsd = 0
     seedModelState.isInvalidSeed = true
