@@ -176,6 +176,21 @@ describe('ReconfigureVrForm', () => {
     expect(mutateMock.mock.calls[0][0].injectDeposit).toBe(123.45)
   })
 
+  it('추가 예수금에 음수를 입력하면(부호가 조용히 사라지지 않고) 검증 에러가 표시되고 제출이 막힌다', async () => {
+    const user = userEvent.setup()
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    const input = screen.getByLabelText('추가 예수금 (USD)') as HTMLInputElement
+
+    await user.type(input, '-50')
+    expect(input.value).toBe('-50')
+
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+    await screen.findByText('Too small: expected number to be >=0')
+
+    expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument()
+    expect(mutateMock).not.toHaveBeenCalled()
+  })
+
   it('인출 주식 수·인출 예수금을 입력하면 제출값에 그대로 반영된다', async () => {
     render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
     fireEvent.change(screen.getByLabelText('인출 주식 수'), { target: { value: '4' } })

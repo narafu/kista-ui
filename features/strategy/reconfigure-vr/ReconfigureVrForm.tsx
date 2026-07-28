@@ -123,13 +123,17 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
 
   const mutation = useReconfigureVrMutation(strategy.id, handleDone)
   const injectShares = form.watch('injectShares')
+  // allowNegative: true — 이 필드는 음수를 입력 자체에서 막지 않고 zod nonnegative() 검증까지
+  // 그대로 넘겨 에러 메시지로 피드백한다(무피드백으로 조용히 '-'가 사라지는 것을 피하기 위함)
   const injectDeposit = useDecimalAmountText({
     value: form.watch('injectDeposit') ?? null,
     onChange: (v) => form.setValue('injectDeposit', v, { shouldValidate: true }),
+    allowNegative: true,
   })
   const withdrawDeposit = useDecimalAmountText({
     value: form.watch('withdrawDeposit') ?? null,
     onChange: (v) => form.setValue('withdrawDeposit', v, { shouldValidate: true }),
+    allowNegative: true,
   })
   const recurringAmountAbs = Math.abs(form.watch('recurringAmount') ?? 0)
   const pStepWeeks = form.watch('pStepWeeks')
@@ -319,6 +323,7 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
           <Input id="injectDeposit" type="text" inputMode="decimal" placeholder="0" disabled={disabled}
             value={injectDeposit.text}
             onChange={(e) => injectDeposit.handleChange(e.target.value)} />
+          {form.formState.errors.injectDeposit && <p className="text-sm text-destructive">{form.formState.errors.injectDeposit.message}</p>}
         </div>
       </section>
 
@@ -335,6 +340,7 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
           <Input id="withdrawDeposit" type="text" inputMode="decimal" placeholder="0" disabled={disabled}
             value={withdrawDeposit.text}
             onChange={(e) => withdrawDeposit.handleChange(e.target.value)} />
+          {form.formState.errors.withdrawDeposit && <p className="text-sm text-destructive">{form.formState.errors.withdrawDeposit.message}</p>}
         </div>
       </section>
 
