@@ -35,4 +35,14 @@ export function todayKst(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' })
 }
 
+/** 0~1 비율을 정수 % 값으로 변환 — 부동소수점 오차 제거(NUMERIC(6,2) 정밀도 기준) */
+export function ratioToPercent(ratio: number): number {
+  return Math.round(ratio * 10000) / 100
+}
+
+/** 정수 % 값을 0~1 비율로 변환 */
+export function percentToRatio(percent: number): number {
+  return percent / 100
+}
+
 export { pnlTextClass } from './pnl'

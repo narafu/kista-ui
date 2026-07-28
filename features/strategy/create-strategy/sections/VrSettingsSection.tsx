@@ -1,10 +1,12 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { ratioToPercent, percentToRatio } from '@shared/lib/format'
 import { SelectionCard } from '@shared/ui/selection-card'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import type { VrFields } from '../model/useStrategyForm'
 import type { RuntimeFieldSettings } from '@entities/runtime-config'
+import { applyPStepWeeksChange } from '@entities/strategy'
 import { UnitInput } from './UnitInput'
 
 interface Props {
@@ -58,17 +60,12 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
     }
   }
 
-  // poolLimitRate 단계주기=0은 램프 비활성화를 의미 — 하한/유예를 0으로 강제하고 비활성화, 0이 아니게 되돌리면 값을 비워 재입력받는다
   function handlePStepWeeksChange(value: number | null) {
-    const wasZero = fields.pStepWeeks === 0
-    setField('pStepWeeks', value)
-    if (value === 0) {
-      setField('poolLimitFloor', 0)
-      setField('pGraceWeeks', 0)
-    } else if (wasZero) {
-      setField('poolLimitFloor', null)
-      setField('pGraceWeeks', null)
-    }
+    applyPStepWeeksChange(value, fields.pStepWeeks === 0, {
+      setPStepWeeks: (v) => setField('pStepWeeks', v),
+      setPoolLimitFloor: (v) => setField('poolLimitFloor', v),
+      setPGraceWeeks: (v) => setField('pGraceWeeks', v),
+    })
   }
 
   return (
@@ -186,8 +183,8 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
             <label>
               <span className={FIELD_LABEL_CLASS}>초기 poolLimitRate</span>
               <UnitInput
-                value={fields.initialPoolLimitRate !== null ? Math.round(fields.initialPoolLimitRate * 10000) / 100 : null}
-                onChange={(v) => setField('initialPoolLimitRate', v !== null ? v / 100 : null)}
+                value={fields.initialPoolLimitRate !== null ? ratioToPercent(fields.initialPoolLimitRate) : null}
+                onChange={(v) => setField('initialPoolLimitRate', v !== null ? percentToRatio(v) : null)}
                 unit="%"
                 disabled={disabled}
                 placeholder="자동"
@@ -201,8 +198,8 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
             <label>
               <span className={FIELD_LABEL_CLASS}>poolLimitRate 하한</span>
               <UnitInput
-                value={fields.poolLimitFloor !== null ? Math.round(fields.poolLimitFloor * 10000) / 100 : null}
-                onChange={(v) => setField('poolLimitFloor', v !== null ? v / 100 : null)}
+                value={fields.poolLimitFloor !== null ? ratioToPercent(fields.poolLimitFloor) : null}
+                onChange={(v) => setField('poolLimitFloor', v !== null ? percentToRatio(v) : null)}
                 unit="%"
                 disabled={disabled || pStepWeeksIsZero}
                 placeholder="자동"

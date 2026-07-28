@@ -8,7 +8,7 @@ import { fmtUsd, todayKst } from '@shared/lib/format'
 import { isMockBroker } from '@shared/lib/api-schema'
 import { useMeta } from '@entities/meta'
 import { useAccountMarginQuery, useAccountPricesQuery } from '@entities/account'
-import { useCreateStrategyMutation, useUpdateStrategyMutation, useStrategySeedPreviewQuery } from '@entities/strategy'
+import { useCreateStrategyMutation, useUpdateStrategyMutation, useStrategySeedPreviewQuery, POOL_LIMIT_FLOOR_ZERO_MESSAGE } from '@entities/strategy'
 import type { CycleSeedType, Strategy, StrategyRequest } from '@entities/strategy'
 import type { BrokerCode, PriceMap } from '@entities/account'
 import { useMeQuery } from '@entities/user'
@@ -405,7 +405,7 @@ export function useStrategyForm({
             return 'poolLimitRate 하한은 초기값 이하여야 합니다.'
           }
           if (poolLimitFloor === 0 && pStepWeeks !== 0) {
-            return 'poolLimitRate 하한은 0보다 커야 합니다. (단계주기를 0으로 설정하면 하한도 자동으로 0이 됩니다.)'
+            return POOL_LIMIT_FLOOR_ZERO_MESSAGE
           }
           if (isRuntimeValueInvalid) return '현재 허용되지 않는 설정이 선택되었습니다.'
           return null

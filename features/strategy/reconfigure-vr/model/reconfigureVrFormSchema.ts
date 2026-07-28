@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { POOL_LIMIT_FLOOR_ZERO_MESSAGE } from '@entities/strategy'
 
 export const reconfigureVrFormSchema = z
   .object({
@@ -28,7 +29,7 @@ export const reconfigureVrFormSchema = z
       ctx.addIssue({ code: 'custom', path: ['poolLimitFloor'], message: 'poolLimitRate 하한은 초기값 이하여야 합니다.' })
     }
     if (data.poolLimitFloor === 0 && data.pStepWeeks !== 0) {
-      ctx.addIssue({ code: 'custom', path: ['poolLimitFloor'], message: 'poolLimitRate 하한은 0보다 커야 합니다. (단계주기를 0으로 설정하면 하한도 자동으로 0이 됩니다.)' })
+      ctx.addIssue({ code: 'custom', path: ['poolLimitFloor'], message: POOL_LIMIT_FLOOR_ZERO_MESSAGE })
     }
     if (data.injectShares != null && data.injectShares > 0 && (data.injectSharePrice == null || data.injectSharePrice <= 0)) {
       ctx.addIssue({ code: 'custom', path: ['injectSharePrice'], message: '주식을 편입하려면 매수단가를 입력하세요.' })

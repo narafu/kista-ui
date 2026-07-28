@@ -3,6 +3,7 @@ export { seedBadgeClass } from './model/seed-badge'
 export { strategyStatusAccent } from './model/status-accent'
 export { strategyTypeShort } from './model/type-short'
 export { isScheduledStart, scheduledStartBadgeLabel } from './model/scheduled-start'
+export { applyPStepWeeksChange, POOL_LIMIT_FLOOR_ZERO_MESSAGE } from './model/poolLimitRamp'
 export {
   listAllStrategies,
   listStrategies,

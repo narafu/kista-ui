@@ -20,8 +20,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SelectionCard } from '@shared/ui/selection-card'
 import { cn } from '@shared/lib/utils'
+import { ratioToPercent, percentToRatio } from '@shared/lib/format'
 import { useDecimalAmountText } from '@shared/lib/hooks/use-decimal-amount-text'
-import { useReconfigureVrMutation } from '@entities/strategy'
+import { useReconfigureVrMutation, applyPStepWeeksChange } from '@entities/strategy'
 import type { ReconfigureVrRequest } from '@entities/strategy'
 import { reconfigureVrFormSchema, type ReconfigureVrFormValues } from './model/reconfigureVrFormSchema'
 import type { ReconfigureVrStrategy } from './model/loadStrategyForReconfigure'
@@ -153,19 +154,15 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
     form.setValue('recurringAmount', recurringMode === 'WITHDRAW' ? -magnitude : magnitude, { shouldValidate: true })
   }
 
-  // poolLimitRate 단계주기=0은 램프 비활성화를 의미 — 하한/유예를 0으로 강제하고 비활성화, 0이 아니게 되돌리면 값을 비워 재입력받는다
   function handlePStepWeeksChange(raw: string) {
     const value = parseOptionalNumber(raw) ?? null
     const wasZero = form.getValues('pStepWeeks') === 0
-    form.setValue('pStepWeeks', value, { shouldValidate: true })
-    if (value === 0) {
-      form.setValue('poolLimitFloor', 0, { shouldValidate: true })
-      form.setValue('pGraceWeeks', 0, { shouldValidate: true })
-    } else if (wasZero) {
-      form.setValue('poolLimitFloor', null, { shouldValidate: true })
-      form.setValue('pGraceWeeks', null, { shouldValidate: true })
-      setPoolLimitFloorWasReset(true)
-    }
+    applyPStepWeeksChange(value, wasZero, {
+      setPStepWeeks: (v) => form.setValue('pStepWeeks', v, { shouldValidate: true }),
+      setPoolLimitFloor: (v) => form.setValue('poolLimitFloor', v, { shouldValidate: true }),
+      setPGraceWeeks: (v) => form.setValue('pGraceWeeks', v, { shouldValidate: true }),
+    })
+    if (value !== 0 && wasZero) setPoolLimitFloorWasReset(true)
   }
 
   // zodResolver는 항상 Promise를 반환하므로 form.handleSubmit()을 거치는 이상
@@ -263,12 +260,12 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
             <Label htmlFor="initialPoolLimitRate">초기 poolLimitRate (%)</Label>
             {/* poolLimitRate는 DB에 비율 소수 2자리(NUMERIC(6,2))로 저장 — %는 정수만 입력받아야 표시값과 저장값이 어긋나지 않는다 */}
             <Input id="initialPoolLimitRate" type="text" inputMode="numeric"
-              defaultValue={Math.round(vr.initialPoolLimitRate * 10000) / 100}
+              defaultValue={ratioToPercent(vr.initialPoolLimitRate)}
               disabled={disabled}
               onChange={(e) => {
                 if (!/^\d*$/.test(e.target.value)) return
                 const percent = parseOptionalNumber(e.target.value)
-                form.setValue('initialPoolLimitRate', percent !== undefined ? percent / 100 : undefined, { shouldValidate: true })
+                form.setValue('initialPoolLimitRate', percent !== undefined ? percentToRatio(percent) : undefined, { shouldValidate: true })
               }} />
           </div>
           <div className="space-y-2">
@@ -281,12 +278,12 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
             <Input
               key={pStepWeeksIsZero ? 'poolLimitFloor-zero' : `poolLimitFloor-active-${poolLimitFloorWasReset}`}
               id="poolLimitFloor" type="text" inputMode="numeric"
-              defaultValue={pStepWeeksIsZero ? 0 : (poolLimitFloorWasReset ? undefined : Math.round(vr.poolLimitFloor * 10000) / 100)}
+              defaultValue={pStepWeeksIsZero ? 0 : (poolLimitFloorWasReset ? undefined : ratioToPercent(vr.poolLimitFloor))}
               disabled={disabled || pStepWeeksIsZero}
               onChange={(e) => {
                 if (!/^\d*$/.test(e.target.value)) return
                 const percent = parseOptionalNumber(e.target.value)
-                form.setValue('poolLimitFloor', percent !== undefined ? percent / 100 : undefined, { shouldValidate: true })
+                form.setValue('poolLimitFloor', percent !== undefined ? percentToRatio(percent) : undefined, { shouldValidate: true })
               }} />
             {form.formState.errors.poolLimitFloor && <p className="text-sm text-destructive">{form.formState.errors.poolLimitFloor.message}</p>}
           </div>
