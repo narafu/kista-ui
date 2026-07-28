@@ -33,12 +33,26 @@ describe('admin settings hooks', () => {
   })
 
   it('stores a successful update in the canonical admin settings cache', async () => {
-    renderHook(() => useUpdateAdminSettingsMutation())
+    let resolveEffect!: () => void
+    const effectPromise = new Promise<void>((resolve) => {
+      resolveEffect = resolve
+    })
+    const onSuccess = vi.fn(() => effectPromise)
+    renderHook(() => useUpdateAdminSettingsMutation({ onSuccess }))
     const settings = { auth: { approvalRequired: false } }
     const options = (useMutationMock.mock.calls as unknown as Array<[{ onSuccess: (settings: unknown) => Promise<void> }]>).at(-1)?.[0]
     if (!options) throw new Error('mutation options were not registered')
-    await options.onSuccess(settings)
+    let settled = false
+    const mutationSuccess = options.onSuccess(settings).then(() => {
+      settled = true
+    })
+    await Promise.resolve()
     expect(setQueryDataMock).toHaveBeenCalledWith(adminSettingsKeys.all, settings)
+    expect(onSuccess).toHaveBeenCalledWith(settings)
+    expect(settled).toBe(false)
+    resolveEffect()
+    await mutationSuccess
+    expect(settled).toBe(true)
     expect(invalidateQueriesMock).not.toHaveBeenCalled()
     expect(successMock).not.toHaveBeenCalled()
   })

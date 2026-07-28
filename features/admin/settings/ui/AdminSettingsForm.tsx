@@ -342,7 +342,6 @@ export function AdminSettingsForm() {
 
 function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
   const { meta, labelOf } = useMeta()
-  const mutation = useUpdateAdminSettingsMutation()
   const queryClient = useQueryClient()
   const [draft, setDraft] = useState(() => clone(settings))
   const [serverSnapshot, setServerSnapshot] = useState(() => clone(settings))
@@ -350,6 +349,37 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
   if (latestServerRef.current === null) latestServerRef.current = clone(settings)
   const draftRef = useRef(draft)
   const [attempted, setAttempted] = useState(false)
+  const activatesPendingUsersRef = useRef(false)
+  const mutation = useUpdateAdminSettingsMutation({
+    onSuccess: async () => {
+      const invalidations = [
+        queryClient.invalidateQueries(
+          { queryKey: runtimeConfigKeys.all, refetchType: 'all' },
+          { throwOnError: true },
+        ),
+      ]
+      if (activatesPendingUsersRef.current) {
+        invalidations.push(
+          queryClient.invalidateQueries(
+            { queryKey: adminKeys.usersRoot(), refetchType: 'all' },
+            { throwOnError: true },
+          ),
+          queryClient.invalidateQueries(
+            { queryKey: adminKeys.stats(), refetchType: 'all' },
+            { throwOnError: true },
+          ),
+        )
+      }
+
+      const results = await Promise.allSettled(invalidations)
+      for (const result of results) {
+        if (result.status === 'rejected') throw result.reason
+      }
+
+      toast.success('운영 설정을 저장했습니다.')
+      setAttempted(false)
+    },
+  })
   const tickerSuggestions = useMemo(() => meta.tickers.map((ticker) => ticker.code), [meta.tickers])
 
   // "최신값 ref" 패턴 — 렌더 중 직접 대입하면 React Doctor가 "렌더 중 ref 변경"으로 표시하므로
@@ -399,28 +429,8 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
     event.preventDefault()
     setAttempted(true)
     if (Object.keys(errors).length > 0 || mutation.isPending) return
-    const activatesPendingUsers = serverSnapshot.auth.approvalRequired && !draft.auth.approvalRequired
-    mutation.mutate(draft, {
-      onSuccess: async () => {
-        const invalidations = [
-          queryClient.invalidateQueries({ queryKey: runtimeConfigKeys.all, refetchType: 'all' }),
-        ]
-        if (activatesPendingUsers) {
-          invalidations.push(
-            queryClient.invalidateQueries({ queryKey: adminKeys.usersRoot(), refetchType: 'all' }),
-            queryClient.invalidateQueries({ queryKey: adminKeys.stats(), refetchType: 'all' }),
-          )
-        }
-
-        const results = await Promise.allSettled(invalidations)
-        for (const result of results) {
-          if (result.status === 'rejected') throw result.reason
-        }
-
-        toast.success('운영 설정을 저장했습니다.')
-        setAttempted(false)
-      },
-    })
+    activatesPendingUsersRef.current = serverSnapshot.auth.approvalRequired && !draft.auth.approvalRequired
+    mutation.mutate(draft)
   }
   const reset = () => {
     setDraft(clone(latestServerRef.current!))

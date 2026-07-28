@@ -1,16 +1,13 @@
-import { act, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { adminKeys } from '@entities/admin'
-import { runtimeConfigKeys } from '@entities/runtime-config'
 import type { RuntimeConfig } from '@entities/runtime-config'
 import { AdminSettingsForm } from './AdminSettingsForm'
 
-const { invalidateQueriesMock, mutateMock, queryState, toastSuccessMock } = vi.hoisted(() => ({
+const { invalidateQueriesMock, mutateMock, queryState } = vi.hoisted(() => ({
   invalidateQueriesMock: vi.fn(),
   mutateMock: vi.fn(),
   queryState: { data: undefined as RuntimeConfig | undefined },
-  toastSuccessMock: vi.fn(),
 }))
 
 vi.mock('@entities/admin-settings', () => ({
@@ -21,7 +18,7 @@ vi.mock('@entities/admin-settings', () => ({
 vi.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ invalidateQueries: invalidateQueriesMock }),
 }))
-vi.mock('sonner', () => ({ toast: { success: toastSuccessMock } }))
+vi.mock('sonner', () => ({ toast: { success: vi.fn() } }))
 
 const BROKER_LABELS: Record<string, string> = { KIS: '한국투자증권', TOSS: '토스증권', MOCK: '모의계좌' }
 
@@ -65,7 +62,6 @@ describe('AdminSettingsForm', () => {
     invalidateQueriesMock.mockReset()
     invalidateQueriesMock.mockResolvedValue(undefined)
     mutateMock.mockReset()
-    toastSuccessMock.mockReset()
     queryState.data = settings
   })
 
@@ -75,50 +71,7 @@ describe('AdminSettingsForm', () => {
     await user.click(screen.getByRole('switch', { name: '관리자 승인 필요' }))
     expect(screen.getByText(/가입 승인 대기 상태가 해제/)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /변경 저장/ }))
-    expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({ auth: { approvalRequired: false } }), expect.any(Object))
-  })
-
-  it('awaits exact runtime user and stats refetches when disabling approval', async () => {
-    const resolvers: Array<() => void> = []
-    invalidateQueriesMock.mockImplementation(() => new Promise<void>((resolve) => {
-      resolvers.push(resolve)
-    }))
-    const user = userEvent.setup()
-    render(<AdminSettingsForm />)
-
-    await user.click(screen.getByRole('switch', { name: '관리자 승인 필요' }))
-    await user.click(screen.getByRole('button', { name: /변경 저장/ }))
-
-    const options = mutateMock.mock.calls.at(-1)?.[1] as { onSuccess: () => Promise<void> }
-    let successPromise!: Promise<void>
-    act(() => {
-      successPromise = options.onSuccess()
-    })
-
-    expect(invalidateQueriesMock.mock.calls.map(([options]) => options)).toEqual([
-      { queryKey: runtimeConfigKeys.all, refetchType: 'all' },
-      { queryKey: adminKeys.usersRoot(), refetchType: 'all' },
-      { queryKey: adminKeys.stats(), refetchType: 'all' },
-    ])
-    expect(toastSuccessMock).not.toHaveBeenCalled()
-
-    await act(async () => {
-      resolvers[0]()
-      await Promise.resolve()
-    })
-    expect(toastSuccessMock).not.toHaveBeenCalled()
-
-    await act(async () => {
-      resolvers[1]()
-      await Promise.resolve()
-    })
-    expect(toastSuccessMock).not.toHaveBeenCalled()
-
-    await act(async () => {
-      resolvers[2]()
-      await successPromise
-    })
-    expect(toastSuccessMock).toHaveBeenCalledWith('운영 설정을 저장했습니다.')
+    expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({ auth: { approvalRequired: false } }))
   })
 
   it('renders a toggle for the MOCK broker', () => {
@@ -153,7 +106,7 @@ describe('AdminSettingsForm', () => {
           divisionCount: expect.objectContaining({ allowedValues: [20, 30, 40] }),
         }),
       }) }),
-    }), expect.any(Object))
+    }))
   })
 
   it('rejects empty duplicate and malformed added values before save', async () => {
@@ -191,7 +144,7 @@ describe('AdminSettingsForm', () => {
           ticker: expect.objectContaining({ allowedValues: ['TQQQ'], defaultValue: 'TQQQ' }),
         }),
       }) }),
-    }), expect.any(Object))
+    }))
   })
 
   it('collapses customizable values to the current default when user changes are disabled', async () => {
@@ -207,7 +160,7 @@ describe('AdminSettingsForm', () => {
           divisionCount: { customizable: false, allowedValues: [20], defaultValue: 20 },
         }),
       }) }),
-    }), expect.any(Object))
+    }))
   })
 
   it('edits recurring mode using fixed candidates and forces HOLD when fixed', async () => {
@@ -225,7 +178,7 @@ describe('AdminSettingsForm', () => {
           recurringMode: { customizable: false, allowedValues: ['HOLD'], defaultValue: 'HOLD' },
         }),
       }) }),
-    }), expect.any(Object))
+    }))
   })
 
   it('preserves dirty edits across incoming server data and resets to the latest snapshot', async () => {
@@ -264,6 +217,6 @@ describe('AdminSettingsForm', () => {
       benchmarks: {
         etf: { allowedValues: ['SPY', 'QQQ', 'QLD'], defaultValue: 'QLD' },
       },
-    }), expect.any(Object))
+    }))
   })
 })

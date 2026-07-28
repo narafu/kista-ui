@@ -270,3 +270,120 @@ The warning is `no-giant-component` for `widgets/strategy-detail/StrategyDetail.
 - Base: `b060cc64`
 - Message: `수정: 콜드 캐시 동기화와 상세 쿼리 일관성 보완`
 - The final SHA is reported in the completion response because this report is included in that commit.
+
+# Second Final Fix Wave: Awaited Admin Settings Effects
+
+## Status
+
+Complete. The residual admin settings mutation lifecycle finding is fixed with a real `QueryClient` regression. Required feature-owned cache effects now define mutation pending/error settlement instead of running as detached per-call observer callbacks.
+
+## Root cause
+
+TanStack Query's mutation-level lifecycle callbacks are awaited by `Mutation.execute()`, but callbacks passed to `mutation.mutate(variables, { onSuccess })` are observer notifications invoked after success dispatch. Their return values are ignored. The prior form therefore let `isPending` become false before its async invalidations completed, and a rejected callback promise was detached from mutation error handling.
+
+The installed TanStack Query implementation also confirms that `invalidateQueries()` suppresses refetch failures by default. Required refetches now pass `{ throwOnError: true }` so a failed query reaches the mutation lifecycle.
+
+## Implementation
+
+- `useUpdateAdminSettingsMutation()` accepts a hook-level success effect, writes only its own canonical `adminSettingsKeys.all` cache, and awaits the feature callback from mutation-level `onSuccess`.
+- `AdminSettingsForm` owns the cross-domain runtime config, admin users, and admin stats effects and injects them when creating the entity mutation.
+- The submit handler calls `mutation.mutate(draft)` without per-call async callbacks.
+- Approval-disable intent is captured before submission in a single-in-flight ref, so later canonical settings renders cannot erase the required users/stats effects.
+- Required invalidations start in exact runtime config, users root, stats order; all use `refetchType: 'all'` plus `throwOnError: true`.
+- `Promise.allSettled` waits for every required effect before throwing the first failure. Success toast and `attempted` reset run only after all fulfill; a failure reaches mutation `onError` and cannot become a detached unhandled rejection.
+
+## Strict TDD
+
+### RED
+
+The regression uses the real entity mutation hook and a real `QueryClientProvider`. Only the API boundary, metadata, and toast sink are mocked. Actual inactive queries return deferred refetch promises.
+
+```text
+npm run test:run -- features/admin/settings/ui/AdminSettingsForm.lifecycle.test.tsx
+1 file failed, 2 tests failed
+
+success case:
+expected each invalidateQueries call to include { throwOnError: true };
+received filters only from the detached per-call callback
+
+rejection case:
+expected queryClient.isMutating() to be 1 while required refetches were unresolved;
+received 0 because observer success had already cleared pending
+```
+
+The test also changes the form to an invalid ETF draft during the pending window. This makes the local `attempted` state visible as a validation alert, proving that local reset does not occur before required effects settle.
+
+### GREEN
+
+```text
+npm run test:run -- features/admin/settings/ui/AdminSettingsForm.lifecycle.test.tsx
+1 file passed, 2 tests passed
+
+npm run test:run -- features/admin/settings entities/admin-settings
+5 files passed, 24 tests passed
+```
+
+The success regression resolves runtime config, users, and stats separately and observes `isPending` plus the validation alert until the last resolution. The error regression rejects stats while users remains pending, proves error handling waits for users, then observes the mutation error toast and zero `unhandledRejection` events.
+
+## Files
+
+- `entities/admin-settings/hooks/useAdminSettings.ts`
+- `entities/admin-settings/hooks/useAdminSettings.test.tsx`
+- `features/admin/settings/ui/AdminSettingsForm.tsx`
+- `features/admin/settings/ui/AdminSettingsForm.test.tsx`
+- `features/admin/settings/ui/AdminSettingsForm.lifecycle.test.tsx`
+- `docs/agents/entities.md`
+- `docs/agents/features.md`
+- `.superpowers/sdd/2026-07-26-ui-cache-architecture-refactor/final-fix-report.md`
+
+## Verification
+
+```text
+npm run test:run
+127 files passed, 609 tests passed
+
+npm run typecheck
+exit 0
+
+npm run build
+Next.js 16.2.6 production build succeeded; 33 static pages generated
+exit 0
+
+npm run test:e2e
+8 passed
+
+git diff --check
+exit 0
+```
+
+Playwright emitted the previously observed non-failing `ResponseAborted` SSE teardown logs. The build and E2E development server emitted the existing Node `module.register()` deprecation warning.
+
+## React Doctor
+
+```text
+npx react-doctor@latest . --verbose --scope changed --base 69b7501 --include-untracked --no-color
+100/100, no issues found, exit 0
+```
+
+New attributable diagnostics: 0.
+
+## Self-review
+
+- No entity imports another entity; the feature remains the only owner of cross-domain keys.
+- No required async effect remains in per-call mutate options.
+- Success and failure paths both keep one mutation pending until all required effects settle.
+- Actual refetch failures propagate because all required invalidations opt into `throwOnError`.
+- The prior manually invoked callback test was removed and replaced by the real mutation lifecycle regression.
+- `git diff --check` is clean.
+
+## Concerns
+
+- If the server update succeeds and a required refetch fails, the canonical admin settings cache already contains the saved response while the mutation intentionally ends in error. The failure toast is observable and success UI does not run, but a user retry may repeat an already-applied idempotent settings update.
+- The existing Node deprecation and Playwright SSE teardown logs are unrelated to this fix.
+- The unrelated implementation plan remains untracked and outside the commit.
+
+## Commit
+
+- Base: `69b7501e93a2cf8ca4404edb22de62f46e459343`
+- Message: `수정: 관리자 설정 캐시 동기화 완료 시점 보장`
+- The final SHA is reported in the completion response because this report is included in that commit.

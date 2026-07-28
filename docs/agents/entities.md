@@ -24,7 +24,7 @@ entities끼리 직접 참조 금지. 두 도메인을 조합해야 하면 `featu
 | `meta` | 전략 타입/종목 메타데이터 (MetaProvider 포함) |
 | `admin` | 관리자 사용자 목록 조회, 승인/반려, 역할 변경, 강제 탈퇴 |
 | `runtime-config` | 가입 승인, 증권사, 전략 등록 필드, ETF 벤치마크의 런타임 허용값/기본값 조회 |
-| `admin-settings` | 관리자 런타임 설정(가입 승인·증권사·전략 필드·ETF 벤치마크) 전체 조회·갱신 및 저장 후 관련 캐시 무효화 |
+| `admin-settings` | 관리자 런타임 설정(가입 승인·증권사·전략 필드·ETF 벤치마크) 전체 조회·갱신과 canonical 설정 캐시 동기화. cross-domain 저장 후 효과는 feature가 mutation-level callback으로 주입하며 entity lifecycle이 이를 await한다 |
 | `fcm` | FCM 토큰 등록/해제 (FcmAutoRegister 포함) |
 | `privacy` | PRIVACY 전략 P 매매표 |
 | `stats` | 전략 수익 통계 요약, 자산 곡선, 사이클 성과 페이지 조회 |
