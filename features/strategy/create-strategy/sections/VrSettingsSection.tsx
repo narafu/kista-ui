@@ -6,7 +6,7 @@ import { SelectionCard } from '@shared/ui/selection-card'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import type { VrFields } from '../model/useStrategyForm'
 import type { RuntimeFieldSettings } from '@entities/runtime-config'
-import { applyPStepWeeksChange } from '@entities/strategy'
+import { applyGStepWeeksChange, applyPStepWeeksChange } from '@entities/strategy'
 import { UnitInput } from './UnitInput'
 
 interface Props {
@@ -52,6 +52,7 @@ function ChoiceButton({
 
 export function VrSettingsSection({ fields, setField, recurringMode, setRecurringMode, loading, isEdit, initialVrValue, settings }: Props) {
   const disabled = loading || isEdit
+  const gStepWeeksIsZero = fields.gStepWeeks === 0
   const pStepWeeksIsZero = fields.pStepWeeks === 0
   function handleRecurringModeChange(mode: 'DEPOSIT' | 'HOLD' | 'WITHDRAW') {
     setRecurringMode(mode)
@@ -65,6 +66,14 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
       setPStepWeeks: (v) => setField('pStepWeeks', v),
       setPoolLimitFloor: (v) => setField('poolLimitFloor', v),
       setPGraceWeeks: (v) => setField('pGraceWeeks', v),
+    })
+  }
+
+  function handleGStepWeeksChange(value: number | null) {
+    applyGStepWeeksChange(value, fields.gStepWeeks === 0, {
+      setGStepWeeks: (v) => setField('gStepWeeks', v),
+      setGMax: (v) => setField('gMax', v),
+      setGGraceWeeks: (v) => setField('gGraceWeeks', v),
     })
   }
 
@@ -170,15 +179,15 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
             </label>
             <label>
               <span className={FIELD_LABEL_CLASS}>gradient 단계주기(주)</span>
-              <UnitInput value={fields.gStepWeeks} onChange={(v) => setField('gStepWeeks', v)} unit="주" disabled={disabled} placeholder="26" />
+              <UnitInput value={fields.gStepWeeks} onChange={handleGStepWeeksChange} unit="주" disabled={disabled} placeholder="26" />
             </label>
             <label>
               <span className={FIELD_LABEL_CLASS}>gradient 상한</span>
-              <UnitInput value={fields.gMax} onChange={(v) => setField('gMax', v)} unit="" disabled={disabled} placeholder="자동" />
+              <UnitInput value={fields.gMax} onChange={(v) => setField('gMax', v)} unit="" disabled={disabled || gStepWeeksIsZero} placeholder="자동" />
             </label>
             <label>
               <span className={FIELD_LABEL_CLASS}>gradient 유예(주)</span>
-              <UnitInput value={fields.gGraceWeeks} onChange={(v) => setField('gGraceWeeks', v)} unit="주" disabled={disabled} placeholder="52" />
+              <UnitInput value={fields.gGraceWeeks} onChange={(v) => setField('gGraceWeeks', v)} unit="주" disabled={disabled || gStepWeeksIsZero} placeholder="52" />
             </label>
             <label>
               <span className={FIELD_LABEL_CLASS}>초기 poolLimitRate</span>

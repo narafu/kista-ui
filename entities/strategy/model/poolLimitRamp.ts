@@ -4,6 +4,27 @@ interface PoolLimitRampSetters {
   setPGraceWeeks: (value: number | null) => void
 }
 
+interface GradientRampSetters {
+  setGStepWeeks: (value: number | null) => void
+  setGMax: (value: number | null) => void
+  setGGraceWeeks: (value: number | null) => void
+}
+
+/**
+ * gradient 단계주기(gStepWeeks)=0은 램프 비활성화를 의미한다.
+ * 0으로 바뀌면 상한/유예를 0으로 강제하고, 0에서 벗어나면 값을 비워 재입력을 받는다.
+ */
+export function applyGStepWeeksChange(value: number | null, wasZero: boolean, setters: GradientRampSetters) {
+  setters.setGStepWeeks(value)
+  if (value === 0) {
+    setters.setGMax(0)
+    setters.setGGraceWeeks(0)
+  } else if (wasZero) {
+    setters.setGMax(null)
+    setters.setGGraceWeeks(null)
+  }
+}
+
 /**
  * poolLimitRate 단계주기(pStepWeeks)=0은 램프 비활성화를 의미한다.
  * 0으로 바뀌면 하한/유예를 0으로 강제하고, 0에서 벗어나면 값을 비워 재입력을 받는다.

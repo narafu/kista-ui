@@ -304,6 +304,7 @@ export function useStrategyForm({
     : recurringMode === 'WITHDRAW'
       ? -recurringMagnitude
       : recurringMagnitude
+  const effectiveInitialGradient = initialGradient ?? (normalizedRecurringAmount < 0 ? 20 : 10)
   const selectedRecurringMode = recurringMode
   const initialAssets = normalizedInitialValue + normalizedInitialSeed
   const requiredWithdrawalAssets = intervalWeeks !== null && intervalWeeks > 0
@@ -334,7 +335,7 @@ export function useStrategyForm({
     (recurringMode !== 'HOLD' && recurringMagnitude <= 0) ||
     (normalizedRecurringAmount <= 0 && initialAssets <= 0) ||
     (normalizedRecurringAmount < 0 && initialAssets < requiredWithdrawalAssets) ||
-    (gMax !== null && initialGradient !== null && gMax < initialGradient) ||
+    (gStepWeeks !== 0 && gMax !== null && gMax < effectiveInitialGradient) ||
     (poolLimitFloor !== null && initialPoolLimitRate !== null && poolLimitFloor > initialPoolLimitRate) ||
     // poolLimitRate 단계주기가 0(램프 비활성화)이 아니면 하한은 0보다 커야 함 — 단계주기=0일 때만 하한 0이 허용(자동 강제)
     (poolLimitFloor === 0 && pStepWeeks !== 0)
@@ -398,7 +399,7 @@ export function useStrategyForm({
           if (normalizedRecurringAmount < 0 && initialAssets < requiredWithdrawalAssets) {
             return `인출식은 초기 자산이 $${fmtUsd(requiredWithdrawalAssets)} 이상이어야 합니다.`
           }
-          if (gMax !== null && initialGradient !== null && gMax < initialGradient) {
+          if (gStepWeeks !== 0 && gMax !== null && gMax < effectiveInitialGradient) {
             return 'gradient 상한은 초기값 이상이어야 합니다.'
           }
           if (poolLimitFloor !== null && initialPoolLimitRate !== null && poolLimitFloor > initialPoolLimitRate) {

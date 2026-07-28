@@ -301,5 +301,50 @@ describe('VrSettingsSection', () => {
       fireEvent.change(input, { target: { value: '10' } })
       expect(mockSetField).toHaveBeenCalledWith('initialGradient', 10)
     })
+
+    it('gradient 단계주기를 0으로 바꾸면 상한과 유예를 0으로 강제한다', () => {
+      render(
+        <VrSettingsSection
+          fields={{ ...baseFields, gStepWeeks: 26, gMax: 20, gGraceWeeks: 52 }}
+          {...baseProps}
+          isEdit={false}
+        />,
+      )
+
+      fireEvent.change(getInputByLabelText('gradient 단계주기(주)'), { target: { value: '0' } })
+
+      expect(mockSetField).toHaveBeenCalledWith('gStepWeeks', 0)
+      expect(mockSetField).toHaveBeenCalledWith('gMax', 0)
+      expect(mockSetField).toHaveBeenCalledWith('gGraceWeeks', 0)
+    })
+
+    it('gradient 단계주기가 0이면 상한과 유예를 비활성화한다', () => {
+      render(
+        <VrSettingsSection
+          fields={{ ...baseFields, gStepWeeks: 0, gMax: 0, gGraceWeeks: 0 }}
+          {...baseProps}
+          isEdit={false}
+        />,
+      )
+
+      expect(getInputByLabelText('gradient 상한')).toBeDisabled()
+      expect(getInputByLabelText('gradient 유예(주)')).toBeDisabled()
+    })
+
+    it('gradient 단계주기를 0에서 다시 활성화하면 상한과 유예를 비운다', () => {
+      render(
+        <VrSettingsSection
+          fields={{ ...baseFields, gStepWeeks: 0, gMax: 0, gGraceWeeks: 0 }}
+          {...baseProps}
+          isEdit={false}
+        />,
+      )
+
+      fireEvent.change(getInputByLabelText('gradient 단계주기(주)'), { target: { value: '26' } })
+
+      expect(mockSetField).toHaveBeenCalledWith('gStepWeeks', 26)
+      expect(mockSetField).toHaveBeenCalledWith('gMax', null)
+      expect(mockSetField).toHaveBeenCalledWith('gGraceWeeks', null)
+    })
   })
 })

@@ -461,6 +461,62 @@ describe('useStrategyForm submit policy', () => {
     expect(result.current.submitDisabledReason).toBe('gradient 상한은 초기값 이상이어야 합니다.')
   })
 
+  it('VR create is blocked when an active gradient ramp has gMax below the derived initial value', () => {
+    seedModelState.seedUsd = 2000
+
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('intervalWeeks', 4)
+      result.current.setVrField('bandWidth', 15)
+      result.current.setVrField('initialGradient', null)
+      result.current.setVrField('gStepWeeks', 26)
+      result.current.setVrField('gMax', 5)
+    })
+
+    expect(result.current.cannotSubmit).toBe(true)
+    expect(result.current.submitDisabledReason).toBe('gradient 상한은 초기값 이상이어야 합니다.')
+  })
+
+  it('VR create submits gradient ramp disabled values when gStepWeeks is zero', async () => {
+    seedModelState.seedUsd = 2000
+
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('intervalWeeks', 4)
+      result.current.setVrField('bandWidth', 15)
+      result.current.setVrField('initialGradient', 10)
+      result.current.setVrField('gStepWeeks', 0)
+      result.current.setVrField('gMax', 0)
+      result.current.setVrField('gGraceWeeks', 0)
+    })
+
+    expect(result.current.cannotSubmit).toBe(false)
+
+    await act(async () => {
+      result.current.handleSubmit({ preventDefault() {} } as React.FormEvent)
+    })
+
+    await waitFor(() => {
+      expect(mockCreateMutate).toHaveBeenCalledWith(expect.objectContaining({
+        gStepWeeks: 0,
+        gMax: 0,
+        gGraceWeeks: 0,
+      }))
+    })
+  })
+
   it('VR accumulation create allows zero initial value and zero seed', async () => {
     seedModelState.seedUsd = 0
     seedModelState.isInvalidSeed = true

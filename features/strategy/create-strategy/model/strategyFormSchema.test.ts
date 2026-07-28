@@ -182,6 +182,30 @@ describe('strategyFormSchema', () => {
     expect(result.success).toBe(true)
   })
 
+  it('gStepWeeks가 0이면 gradient 상한과 유예 0을 허용한다', () => {
+    const result = strategyFormSchema.safeParse({
+      ...valid,
+      type: 'VR',
+      ticker: 'TQQQ',
+      gStepWeeks: 0,
+      gMax: 0,
+      gGraceWeeks: 0,
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('gradient 램프가 활성화되어 있으면 gMax가 파생 초기값보다 작은 값을 거부한다', () => {
+    const result = strategyFormSchema.safeParse({
+      ...valid,
+      type: 'VR',
+      ticker: 'TQQQ',
+      initialGradient: null,
+      gStepWeeks: 26,
+      gMax: 5,
+    })
+    expect(result.success).toBe(false)
+  })
+
   it('pStepWeeks가 음수면 실패', () => {
     const result = strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', pStepWeeks: -1 })
     expect(result.success).toBe(false)
