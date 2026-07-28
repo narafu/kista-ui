@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Strategy } from '@entities/strategy'
 import { ReconfigureVrForm } from './ReconfigureVrForm'
@@ -157,6 +158,21 @@ describe('ReconfigureVrForm', () => {
     fireEvent.change(screen.getByLabelText('편입 주식 수'), { target: { value: '10' } })
 
     expect(screen.getByLabelText('매수단가 (USD)')).toBeInTheDocument()
+  })
+
+  it('추가 예수금은 소수점 둘째 자리까지만 입력되고 제출값에도 그대로 반영된다', async () => {
+    const user = userEvent.setup()
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    const input = screen.getByLabelText('추가 예수금 (USD)') as HTMLInputElement
+
+    await user.type(input, '123.456')
+    expect(input.value).toBe('123.45')
+
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+    fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
+
+    await waitFor(() => expect(mutateMock).toHaveBeenCalled())
+    expect(mutateMock.mock.calls[0][0].injectDeposit).toBe(123.45)
   })
 
   it('dismiss가 back이면 취소 클릭 시 router.back을 호출한다', () => {

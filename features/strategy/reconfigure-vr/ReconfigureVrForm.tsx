@@ -39,6 +39,9 @@ function parseOptionalNumber(raw: string): number | undefined {
   return Number.isFinite(n) ? n : undefined
 }
 
+// 정수부(선택) + 소수점(선택) + 소수부 0~2자리
+const AMOUNT_PATTERN = /^\d*\.?\d{0,2}$/
+
 // ReconfigureVrFormValues는 zod 스키마상 각 필드가 number|null|undefined이지만
 // ReconfigureVrRequest(API 요청 바디)는 number|undefined만 허용한다 — null을 undefined로 정규화한다.
 function toReconfigureVrRequest(values: ReconfigureVrFormValues): ReconfigureVrRequest {
@@ -95,6 +98,15 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
   const [recurringMode, setRecurringMode] = useState<RecurringMode>(
     vr.recurringAmount > 0 ? 'DEPOSIT' : vr.recurringAmount < 0 ? 'WITHDRAW' : 'HOLD',
   )
+  // "12." 같은 입력 중간 상태를 표현하기 위한 문자열 버퍼 — injectDeposit은 항상 null에서 시작하므로 외부 재동기화는 불필요
+  const [injectDepositText, setInjectDepositText] = useState('')
+
+  function handleInjectDepositChange(raw: string) {
+    const sanitized = raw.replace(/[^\d.]/g, '')
+    if (!AMOUNT_PATTERN.test(sanitized)) return
+    setInjectDepositText(sanitized)
+    form.setValue('injectDeposit', sanitized === '' || sanitized === '.' ? null : Number(sanitized), { shouldValidate: true })
+  }
 
   const form = useForm<ReconfigureVrFormValues>({
     resolver: zodResolver(reconfigureVrFormSchema),
@@ -265,7 +277,8 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
         <div className="space-y-2">
           <Label htmlFor="injectDeposit">추가 예수금 (USD)</Label>
           <Input id="injectDeposit" type="text" inputMode="decimal" placeholder="0" disabled={disabled}
-            onChange={(e) => form.setValue('injectDeposit', parseOptionalNumber(e.target.value), { shouldValidate: true })} />
+            value={injectDepositText}
+            onChange={(e) => handleInjectDepositChange(e.target.value)} />
         </div>
       </section>
 
