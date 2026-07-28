@@ -335,7 +335,9 @@ export function useStrategyForm({
     (normalizedRecurringAmount <= 0 && initialAssets <= 0) ||
     (normalizedRecurringAmount < 0 && initialAssets < requiredWithdrawalAssets) ||
     (gMax !== null && initialGradient !== null && gMax < initialGradient) ||
-    (poolLimitFloor !== null && initialPoolLimitRate !== null && poolLimitFloor > initialPoolLimitRate)
+    (poolLimitFloor !== null && initialPoolLimitRate !== null && poolLimitFloor > initialPoolLimitRate) ||
+    // poolLimitRate 단계주기가 0(램프 비활성화)이 아니면 하한은 0보다 커야 함 — 단계주기=0일 때만 하한 0이 허용(자동 강제)
+    (poolLimitFloor === 0 && pStepWeeks !== 0)
   )
 
   const isRuntimeValueInvalid = !initial && !!runtimeStrategy && (
@@ -401,6 +403,9 @@ export function useStrategyForm({
           }
           if (poolLimitFloor !== null && initialPoolLimitRate !== null && poolLimitFloor > initialPoolLimitRate) {
             return 'poolLimitRate 하한은 초기값 이하여야 합니다.'
+          }
+          if (poolLimitFloor === 0 && pStepWeeks !== 0) {
+            return 'poolLimitRate 하한은 0보다 커야 합니다. (단계주기를 0으로 설정하면 하한도 자동으로 0이 됩니다.)'
           }
           if (isRuntimeValueInvalid) return '현재 허용되지 않는 설정이 선택되었습니다.'
           return null

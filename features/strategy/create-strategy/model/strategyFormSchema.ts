@@ -23,8 +23,9 @@ export const strategyFormSchema = z.object({
   gMax: z.number().int().positive().nullable().optional(),
   initialPoolLimitRate: z.number().positive().max(1).nullable().optional(),
   pGraceWeeks: z.number().int().nonnegative().nullable().optional(),
-  pStepWeeks: z.number().int().positive().nullable().optional(),
-  poolLimitFloor: z.number().positive().max(1).nullable().optional(),
+  // pStepWeeks=0은 poolLimitRate 램프 비활성화(하한/유예 무관) — nonnegative로 0 허용, "0이 아니면 하한>0 필수" 규칙은 isInvalidVr에서 처리
+  pStepWeeks: z.number().int().nonnegative().nullable().optional(),
+  poolLimitFloor: z.number().nonnegative().max(1).nullable().optional(),
 })
 
 export type StrategyFormValues = z.infer<typeof strategyFormSchema>

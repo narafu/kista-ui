@@ -167,8 +167,23 @@ describe('strategyFormSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('poolLimitFloor가 0이면 실패 (0 초과 필요)', () => {
+  it('poolLimitFloor가 0이면 파싱 성공 (pStepWeeks=0 램프 비활성화 시 허용 — "0이 아니면 하한>0 필수" 업무 규칙은 useStrategyForm에서 검증)', () => {
     const result = strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', poolLimitFloor: 0 })
+    expect(result.success).toBe(true)
+  })
+
+  it('poolLimitFloor가 음수면 실패', () => {
+    const result = strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', poolLimitFloor: -0.1 })
+    expect(result.success).toBe(false)
+  })
+
+  it('pStepWeeks가 0이면 파싱 성공 (poolLimitRate 램프 비활성화)', () => {
+    const result = strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', pStepWeeks: 0 })
+    expect(result.success).toBe(true)
+  })
+
+  it('pStepWeeks가 음수면 실패', () => {
+    const result = strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', pStepWeeks: -1 })
     expect(result.success).toBe(false)
   })
 

@@ -58,9 +58,10 @@ describe('ReconfigureVrForm', () => {
   it('램프 필드 초깃값을 gradient/poolLimit이 아닌 initialGradient/initialPoolLimitRate에서 채운다', () => {
     render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
     const initialGradientInput = screen.getByLabelText('초기 gradient(G)') as HTMLInputElement
-    const initialPoolLimitRateInput = screen.getByLabelText('초기 poolLimitRate') as HTMLInputElement
+    const initialPoolLimitRateInput = screen.getByLabelText('초기 poolLimitRate (%)') as HTMLInputElement
     expect(initialGradientInput.value).toBe('10')
-    expect(initialPoolLimitRateInput.value).toBe('0.75')
+    // initialPoolLimitRate는 0~1 비율로 저장되지만 화면엔 %로 환산해 표시(0.75 → 75)
+    expect(initialPoolLimitRateInput.value).toBe('75')
   })
 
   it('제출 시 즉시 뮤테이션을 호출하지 않고 확인 다이얼로그를 먼저 띄운다', async () => {

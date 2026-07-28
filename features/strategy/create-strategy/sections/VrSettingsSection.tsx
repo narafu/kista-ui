@@ -50,10 +50,24 @@ function ChoiceButton({
 
 export function VrSettingsSection({ fields, setField, recurringMode, setRecurringMode, loading, isEdit, initialVrValue, settings }: Props) {
   const disabled = loading || isEdit
+  const pStepWeeksIsZero = fields.pStepWeeks === 0
   function handleRecurringModeChange(mode: 'DEPOSIT' | 'HOLD' | 'WITHDRAW') {
     setRecurringMode(mode)
     if (mode === 'HOLD') {
       setField('recurringAmount', 0)
+    }
+  }
+
+  // poolLimitRate 단계주기=0은 램프 비활성화를 의미 — 하한/유예를 0으로 강제하고 비활성화, 0이 아니게 되돌리면 값을 비워 재입력받는다
+  function handlePStepWeeksChange(value: number | null) {
+    const wasZero = fields.pStepWeeks === 0
+    setField('pStepWeeks', value)
+    if (value === 0) {
+      setField('poolLimitFloor', 0)
+      setField('pGraceWeeks', 0)
+    } else if (wasZero) {
+      setField('poolLimitFloor', null)
+      setField('pGraceWeeks', null)
     }
   }
 
@@ -158,6 +172,10 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
               <UnitInput value={fields.initialGradient} onChange={(v) => setField('initialGradient', v)} unit="" disabled={disabled} placeholder="자동" />
             </label>
             <label>
+              <span className={FIELD_LABEL_CLASS}>gradient 단계주기(주)</span>
+              <UnitInput value={fields.gStepWeeks} onChange={(v) => setField('gStepWeeks', v)} unit="주" disabled={disabled} placeholder="26" />
+            </label>
+            <label>
               <span className={FIELD_LABEL_CLASS}>gradient 상한</span>
               <UnitInput value={fields.gMax} onChange={(v) => setField('gMax', v)} unit="" disabled={disabled} placeholder="자동" />
             </label>
@@ -166,24 +184,34 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
               <UnitInput value={fields.gGraceWeeks} onChange={(v) => setField('gGraceWeeks', v)} unit="주" disabled={disabled} placeholder="52" />
             </label>
             <label>
-              <span className={FIELD_LABEL_CLASS}>gradient 단계주기(주)</span>
-              <UnitInput value={fields.gStepWeeks} onChange={(v) => setField('gStepWeeks', v)} unit="주" disabled={disabled} placeholder="26" />
-            </label>
-            <label>
               <span className={FIELD_LABEL_CLASS}>초기 poolLimitRate</span>
-              <UnitInput value={fields.initialPoolLimitRate} onChange={(v) => setField('initialPoolLimitRate', v)} unit="" disabled={disabled} placeholder="자동" maxDecimals={2} />
-            </label>
-            <label>
-              <span className={FIELD_LABEL_CLASS}>poolLimitRate 하한</span>
-              <UnitInput value={fields.poolLimitFloor} onChange={(v) => setField('poolLimitFloor', v)} unit="" disabled={disabled} placeholder="자동" maxDecimals={2} />
-            </label>
-            <label>
-              <span className={FIELD_LABEL_CLASS}>poolLimitRate 유예(주)</span>
-              <UnitInput value={fields.pGraceWeeks} onChange={(v) => setField('pGraceWeeks', v)} unit="주" disabled={disabled} placeholder="52" />
+              <UnitInput
+                value={fields.initialPoolLimitRate !== null ? Math.round(fields.initialPoolLimitRate * 10000) / 100 : null}
+                onChange={(v) => setField('initialPoolLimitRate', v !== null ? Math.round(v * 100) / 10000 : null)}
+                unit="%"
+                disabled={disabled}
+                placeholder="자동"
+                maxDecimals={2}
+              />
             </label>
             <label>
               <span className={FIELD_LABEL_CLASS}>poolLimitRate 단계주기(주)</span>
-              <UnitInput value={fields.pStepWeeks} onChange={(v) => setField('pStepWeeks', v)} unit="주" disabled={disabled} placeholder="26" />
+              <UnitInput value={fields.pStepWeeks} onChange={handlePStepWeeksChange} unit="주" disabled={disabled} placeholder="26" />
+            </label>
+            <label>
+              <span className={FIELD_LABEL_CLASS}>poolLimitRate 하한</span>
+              <UnitInput
+                value={fields.poolLimitFloor !== null ? Math.round(fields.poolLimitFloor * 10000) / 100 : null}
+                onChange={(v) => setField('poolLimitFloor', v !== null ? Math.round(v * 100) / 10000 : null)}
+                unit="%"
+                disabled={disabled || pStepWeeksIsZero}
+                placeholder="자동"
+                maxDecimals={2}
+              />
+            </label>
+            <label>
+              <span className={FIELD_LABEL_CLASS}>poolLimitRate 유예(주)</span>
+              <UnitInput value={fields.pGraceWeeks} onChange={(v) => setField('pGraceWeeks', v)} unit="주" disabled={disabled || pStepWeeksIsZero} placeholder="52" />
             </label>
           </div>
         </details>

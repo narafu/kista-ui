@@ -131,6 +131,11 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
   const mutation = useReconfigureVrMutation(strategy.id, handleDone)
   const injectShares = form.watch('injectShares')
   const recurringAmountAbs = Math.abs(form.watch('recurringAmount') ?? 0)
+  const pStepWeeks = form.watch('pStepWeeks')
+  const pStepWeeksIsZero = pStepWeeks === 0
+  // 단계주기 0→비영값 전환 시 하한/유예를 빈 값으로 리셋했음을 표시 — defaultValue를 매 렌더 watch 값에서 계산하면
+  // Base UI FieldControl이 "uncontrolled 컴포넌트의 defaultValue가 초기화 후 바뀜" 경고를 띄우므로, key와 함께 전환 시점에만 갱신되는 값을 사용한다
+  const [poolLimitFloorWasReset, setPoolLimitFloorWasReset] = useState(false)
 
   function handleRecurringModeChange(mode: RecurringMode) {
     setRecurringMode(mode)
@@ -141,6 +146,21 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
   function handleRecurringAmountChange(raw: string) {
     const magnitude = raw.trim() === '' ? 0 : Math.abs(Number(raw))
     form.setValue('recurringAmount', recurringMode === 'WITHDRAW' ? -magnitude : magnitude, { shouldValidate: true })
+  }
+
+  // poolLimitRate 단계주기=0은 램프 비활성화를 의미 — 하한/유예를 0으로 강제하고 비활성화, 0이 아니게 되돌리면 값을 비워 재입력받는다
+  function handlePStepWeeksChange(raw: string) {
+    const value = parseOptionalNumber(raw) ?? null
+    const wasZero = form.getValues('pStepWeeks') === 0
+    form.setValue('pStepWeeks', value, { shouldValidate: true })
+    if (value === 0) {
+      form.setValue('poolLimitFloor', 0, { shouldValidate: true })
+      form.setValue('pGraceWeeks', 0, { shouldValidate: true })
+    } else if (wasZero) {
+      form.setValue('poolLimitFloor', null, { shouldValidate: true })
+      form.setValue('pGraceWeeks', null, { shouldValidate: true })
+      setPoolLimitFloorWasReset(true)
+    }
   }
 
   // zodResolver는 항상 Promise를 반환하므로 form.handleSubmit()을 거치는 이상
@@ -219,6 +239,11 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
               onChange={(e) => form.setValue('initialGradient', parseOptionalNumber(e.target.value), { shouldValidate: true })} />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="gStepWeeks">gradient 단계주기(주)</Label>
+            <Input id="gStepWeeks" type="text" inputMode="numeric" defaultValue={vr.gStepWeeks} disabled={disabled}
+              onChange={(e) => form.setValue('gStepWeeks', parseOptionalNumber(e.target.value), { shouldValidate: true })} />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="gMax">gradient 상한</Label>
             <Input id="gMax" type="text" inputMode="numeric" defaultValue={vr.gMax} disabled={disabled}
               onChange={(e) => form.setValue('gMax', parseOptionalNumber(e.target.value), { shouldValidate: true })} />
@@ -230,30 +255,41 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
               onChange={(e) => form.setValue('gGraceWeeks', parseOptionalNumber(e.target.value), { shouldValidate: true })} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="gStepWeeks">gradient 단계주기(주)</Label>
-            <Input id="gStepWeeks" type="text" inputMode="numeric" defaultValue={vr.gStepWeeks} disabled={disabled}
-              onChange={(e) => form.setValue('gStepWeeks', parseOptionalNumber(e.target.value), { shouldValidate: true })} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="initialPoolLimitRate">초기 poolLimitRate</Label>
-            <Input id="initialPoolLimitRate" type="text" inputMode="decimal" defaultValue={vr.initialPoolLimitRate} disabled={disabled}
-              onChange={(e) => form.setValue('initialPoolLimitRate', parseOptionalNumber(e.target.value), { shouldValidate: true })} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="poolLimitFloor">poolLimitRate 하한</Label>
-            <Input id="poolLimitFloor" type="text" inputMode="decimal" defaultValue={vr.poolLimitFloor} disabled={disabled}
-              onChange={(e) => form.setValue('poolLimitFloor', parseOptionalNumber(e.target.value), { shouldValidate: true })} />
-            {form.formState.errors.poolLimitFloor && <p className="text-sm text-destructive">{form.formState.errors.poolLimitFloor.message}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="pGraceWeeks">poolLimitRate 유예(주)</Label>
-            <Input id="pGraceWeeks" type="text" inputMode="numeric" defaultValue={vr.pGraceWeeks} disabled={disabled}
-              onChange={(e) => form.setValue('pGraceWeeks', parseOptionalNumber(e.target.value), { shouldValidate: true })} />
+            <Label htmlFor="initialPoolLimitRate">초기 poolLimitRate (%)</Label>
+            <Input id="initialPoolLimitRate" type="text" inputMode="decimal"
+              defaultValue={Math.round(vr.initialPoolLimitRate * 10000) / 100}
+              disabled={disabled}
+              onChange={(e) => {
+                const percent = parseOptionalNumber(e.target.value)
+                form.setValue('initialPoolLimitRate', percent !== undefined ? Math.round(percent * 100) / 10000 : undefined, { shouldValidate: true })
+              }} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="pStepWeeks">poolLimitRate 단계주기(주)</Label>
             <Input id="pStepWeeks" type="text" inputMode="numeric" defaultValue={vr.pStepWeeks} disabled={disabled}
-              onChange={(e) => form.setValue('pStepWeeks', parseOptionalNumber(e.target.value), { shouldValidate: true })} />
+              onChange={(e) => handlePStepWeeksChange(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="poolLimitFloor">poolLimitRate 하한 (%)</Label>
+            <Input
+              key={pStepWeeksIsZero ? 'poolLimitFloor-zero' : `poolLimitFloor-active-${poolLimitFloorWasReset}`}
+              id="poolLimitFloor" type="text" inputMode="decimal"
+              defaultValue={pStepWeeksIsZero ? 0 : (poolLimitFloorWasReset ? undefined : Math.round(vr.poolLimitFloor * 10000) / 100)}
+              disabled={disabled || pStepWeeksIsZero}
+              onChange={(e) => {
+                const percent = parseOptionalNumber(e.target.value)
+                form.setValue('poolLimitFloor', percent !== undefined ? Math.round(percent * 100) / 10000 : undefined, { shouldValidate: true })
+              }} />
+            {form.formState.errors.poolLimitFloor && <p className="text-sm text-destructive">{form.formState.errors.poolLimitFloor.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="pGraceWeeks">poolLimitRate 유예(주)</Label>
+            <Input
+              key={pStepWeeksIsZero ? 'pGraceWeeks-zero' : `pGraceWeeks-active-${poolLimitFloorWasReset}`}
+              id="pGraceWeeks" type="text" inputMode="numeric"
+              defaultValue={pStepWeeksIsZero ? 0 : (poolLimitFloorWasReset ? undefined : vr.pGraceWeeks)}
+              disabled={disabled || pStepWeeksIsZero}
+              onChange={(e) => form.setValue('pGraceWeeks', parseOptionalNumber(e.target.value), { shouldValidate: true })} />
           </div>
         </div>
       </section>
