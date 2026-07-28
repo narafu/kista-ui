@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import { cn } from '@shared/lib/utils'
 import { fmtUsd } from '@shared/lib/format'
 
@@ -12,7 +13,31 @@ interface Props {
   showStatus?: boolean
 }
 
+// 정수부(선택) + 소수점(선택) + 소수부 0~2자리
+const AMOUNT_PATTERN = /^\d*\.?\d{0,2}$/
+
 export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled, showStatus = true }: Props) {
+  // 컨트롤드 인풋이지만 "12." 같은 입력 중간 상태(소수점만 입력된 상태)를 value(number)로는
+  // 표현할 수 없어 별도 문자열 버퍼로 표시값을 관리한다. 외부(최소 시드 자동 동기화 등)에서
+  // value가 바뀐 경우에만 버퍼를 되돌린다 — 이 컴포넌트 스스로 emit한 변경은 제외.
+  const [text, setText] = useState(value !== null ? String(value) : '')
+  const lastEmitted = useRef(value)
+
+  useEffect(() => {
+    if (value === lastEmitted.current) return
+    lastEmitted.current = value
+    setText(value !== null ? String(value) : '')
+  }, [value])
+
+  function handleChange(raw: string) {
+    const sanitized = raw.replace(/[^\d.]/g, '')
+    if (!AMOUNT_PATTERN.test(sanitized)) return
+    setText(sanitized)
+    const next = sanitized === '' || sanitized === '.' ? null : Number(sanitized)
+    lastEmitted.current = next
+    onChange(next)
+  }
+
   const shortage =
     deposit !== null && value !== null && value > 0 && deposit < value
       ? value - deposit
@@ -30,18 +55,13 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled, s
         <span className="text-sm font-extrabold text-[var(--rose-600)] mr-1.5">$</span>
         <input
           type="text"
-          inputMode="numeric"
-          pattern="[0-9]*"
+          inputMode="decimal"
           aria-label="예수금 (USD)"
-          value={value !== null ? String(value) : ''}
+          value={text}
           disabled={disabled}
           placeholder="0"
-          maxLength={15}
-          onChange={(e) => {
-            const raw = e.target.value.replace(/[^\d]/g, '')
-            if (raw === '') { onChange(null); return }
-            onChange(Number(raw))
-          }}
+          maxLength={18}
+          onChange={(e) => handleChange(e.target.value)}
           className="flex-1 border-0 outline-none bg-transparent font-extrabold text-foreground text-right min-w-0 text-lg"
         />
         <span className="text-xs font-semibold text-muted-foreground ml-1.5">USD</span>
