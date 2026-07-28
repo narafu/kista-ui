@@ -88,8 +88,9 @@ function ModeButton({
 
 export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Props) {
   const router = useRouter()
-  if (!strategy.vr) return null
-  const vr = strategy.vr
+  // loadAccountAndStrategyForReconfigure가 vr 없는 전략은 이미 걸러내 notFound() 처리하므로
+  // 여기서 다시 null 체크하면 hooks(useState/useForm) 앞에 조건부 return이 생겨 Rules of Hooks를 위반한다.
+  const vr = strategy.vr!
 
   const backHref = `/accounts/${accountId}/strategies/${strategy.id}`
   const handleDone = dismiss === 'back' ? () => router.back() : () => router.push(backHref)
