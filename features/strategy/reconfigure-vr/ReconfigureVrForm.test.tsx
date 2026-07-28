@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { Strategy } from '@entities/strategy'
 import { ReconfigureVrForm } from './ReconfigureVrForm'
+import type { ReconfigureVrStrategy } from './model/loadStrategyForReconfigure'
 
 const mutateMock = vi.fn()
 const routerPushMock = vi.fn()
@@ -16,7 +16,7 @@ vi.mock('@entities/strategy', () => ({
   useReconfigureVrMutation: () => ({ mutate: mutateMock, isPending: false }),
 }))
 
-const strategy: Strategy = {
+const strategy: ReconfigureVrStrategy = {
   id: 'strategy-1',
   accountId: 'account-1',
   type: 'VR',
@@ -114,7 +114,7 @@ describe('ReconfigureVrForm', () => {
   it('금액 재입력 없이 적립→인출 모드만 전환해도 부호가 음수로 재계산된다', async () => {
     // recurringAmount가 양수(적립식)인 상태에서 시작해야 인출 전환 시 부호 재계산 여부가 갈린다 —
     // strategy 원본 fixture(-100)로는 WITHDRAW로 전환해도 값이 그대로 -100이라 버그 유무를 구분하지 못한다.
-    const depositStrategy: Strategy = { ...strategy, vr: { ...strategy.vr!, recurringAmount: 100 } }
+    const depositStrategy: ReconfigureVrStrategy = { ...strategy, vr: { ...strategy.vr, recurringAmount: 100 } }
     render(<ReconfigureVrForm accountId="account-1" strategy={depositStrategy} />)
     fireEvent.click(screen.getByRole('button', { name: '- 인출' }))
 

@@ -20,13 +20,15 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SelectionCard } from '@shared/ui/selection-card'
 import { cn } from '@shared/lib/utils'
+import { useDecimalAmountText } from '@shared/lib/hooks/use-decimal-amount-text'
 import { useReconfigureVrMutation } from '@entities/strategy'
-import type { ReconfigureVrRequest, Strategy } from '@entities/strategy'
+import type { ReconfigureVrRequest } from '@entities/strategy'
 import { reconfigureVrFormSchema, type ReconfigureVrFormValues } from './model/reconfigureVrFormSchema'
+import type { ReconfigureVrStrategy } from './model/loadStrategyForReconfigure'
 
 interface Props {
   accountId: string
-  strategy: Strategy
+  strategy: ReconfigureVrStrategy
   // 'push': 일반 페이지 라우트. 'back': 인터셉팅 라우트(모달)
   dismiss?: 'push' | 'back'
 }
@@ -38,9 +40,6 @@ function parseOptionalNumber(raw: string): number | undefined {
   const n = Number(raw)
   return Number.isFinite(n) ? n : undefined
 }
-
-// 정수부(선택) + 소수점(선택) + 소수부 0~2자리
-const AMOUNT_PATTERN = /^\d*\.?\d{0,2}$/
 
 // ReconfigureVrFormValues는 zod 스키마상 각 필드가 number|null|undefined이지만
 // ReconfigureVrRequest(API 요청 바디)는 number|undefined만 허용한다 — null을 undefined로 정규화한다.
@@ -90,9 +89,7 @@ function ModeButton({
 
 export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Props) {
   const router = useRouter()
-  // loadAccountAndStrategyForReconfigure가 vr 없는 전략은 이미 걸러내 notFound() 처리하므로
-  // 여기서 다시 null 체크하면 hooks(useState/useForm) 앞에 조건부 return이 생겨 Rules of Hooks를 위반한다.
-  const vr = strategy.vr!
+  const vr = strategy.vr
 
   const backHref = `/accounts/${accountId}/strategies/${strategy.id}`
   const handleDone = dismiss === 'back' ? () => router.back() : () => router.push(backHref)
@@ -101,23 +98,6 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
   const [recurringMode, setRecurringMode] = useState<RecurringMode>(
     vr.recurringAmount > 0 ? 'DEPOSIT' : vr.recurringAmount < 0 ? 'WITHDRAW' : 'HOLD',
   )
-  // "12." 같은 입력 중간 상태를 표현하기 위한 문자열 버퍼 — injectDeposit/withdrawDeposit은 항상 null에서 시작하므로 외부 재동기화는 불필요
-  const [injectDepositText, setInjectDepositText] = useState('')
-  const [withdrawDepositText, setWithdrawDepositText] = useState('')
-
-  function handleInjectDepositChange(raw: string) {
-    const sanitized = raw.replace(/[^\d.]/g, '')
-    if (!AMOUNT_PATTERN.test(sanitized)) return
-    setInjectDepositText(sanitized)
-    form.setValue('injectDeposit', sanitized === '' || sanitized === '.' ? null : Number(sanitized), { shouldValidate: true })
-  }
-
-  function handleWithdrawDepositChange(raw: string) {
-    const sanitized = raw.replace(/[^\d.]/g, '')
-    if (!AMOUNT_PATTERN.test(sanitized)) return
-    setWithdrawDepositText(sanitized)
-    form.setValue('withdrawDeposit', sanitized === '' || sanitized === '.' ? null : Number(sanitized), { shouldValidate: true })
-  }
 
   const form = useForm<ReconfigureVrFormValues>({
     resolver: zodResolver(reconfigureVrFormSchema),
@@ -143,6 +123,14 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
 
   const mutation = useReconfigureVrMutation(strategy.id, handleDone)
   const injectShares = form.watch('injectShares')
+  const injectDeposit = useDecimalAmountText({
+    value: form.watch('injectDeposit') ?? null,
+    onChange: (v) => form.setValue('injectDeposit', v, { shouldValidate: true }),
+  })
+  const withdrawDeposit = useDecimalAmountText({
+    value: form.watch('withdrawDeposit') ?? null,
+    onChange: (v) => form.setValue('withdrawDeposit', v, { shouldValidate: true }),
+  })
   const recurringAmountAbs = Math.abs(form.watch('recurringAmount') ?? 0)
   const pStepWeeks = form.watch('pStepWeeks')
   const pStepWeeksIsZero = pStepWeeks === 0
@@ -329,8 +317,8 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
         <div className="space-y-2">
           <Label htmlFor="injectDeposit">추가 예수금 (USD)</Label>
           <Input id="injectDeposit" type="text" inputMode="decimal" placeholder="0" disabled={disabled}
-            value={injectDepositText}
-            onChange={(e) => handleInjectDepositChange(e.target.value)} />
+            value={injectDeposit.text}
+            onChange={(e) => injectDeposit.handleChange(e.target.value)} />
         </div>
       </section>
 
@@ -345,8 +333,8 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
         <div className="space-y-2">
           <Label htmlFor="withdrawDeposit">인출 예수금 (USD)</Label>
           <Input id="withdrawDeposit" type="text" inputMode="decimal" placeholder="0" disabled={disabled}
-            value={withdrawDepositText}
-            onChange={(e) => handleWithdrawDepositChange(e.target.value)} />
+            value={withdrawDeposit.text}
+            onChange={(e) => withdrawDeposit.handleChange(e.target.value)} />
         </div>
       </section>
 
