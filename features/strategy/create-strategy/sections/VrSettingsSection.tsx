@@ -187,11 +187,11 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
               <span className={FIELD_LABEL_CLASS}>초기 poolLimitRate</span>
               <UnitInput
                 value={fields.initialPoolLimitRate !== null ? Math.round(fields.initialPoolLimitRate * 10000) / 100 : null}
-                onChange={(v) => setField('initialPoolLimitRate', v !== null ? Math.round(v * 100) / 10000 : null)}
+                onChange={(v) => setField('initialPoolLimitRate', v !== null ? v / 100 : null)}
                 unit="%"
                 disabled={disabled}
                 placeholder="자동"
-                maxDecimals={2}
+                maxDecimals={0}
               />
             </label>
             <label>
@@ -202,11 +202,11 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
               <span className={FIELD_LABEL_CLASS}>poolLimitRate 하한</span>
               <UnitInput
                 value={fields.poolLimitFloor !== null ? Math.round(fields.poolLimitFloor * 10000) / 100 : null}
-                onChange={(v) => setField('poolLimitFloor', v !== null ? Math.round(v * 100) / 10000 : null)}
+                onChange={(v) => setField('poolLimitFloor', v !== null ? v / 100 : null)}
                 unit="%"
                 disabled={disabled || pStepWeeksIsZero}
                 placeholder="자동"
-                maxDecimals={2}
+                maxDecimals={0}
               />
             </label>
             <label>

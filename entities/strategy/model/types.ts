@@ -67,7 +67,7 @@ export interface StrategySeedPreview {
   skipReason: string | null
 }
 
-// VR 전략 운영 중 재설정 — PUT /api/trading-cycles/{id}/vr-config 요청 바디, 14필드 전부 optional
+// VR 전략 운영 중 재설정 — PUT /api/trading-cycles/{id}/vr-config 요청 바디, 16필드 전부 optional
 export interface ReconfigureVrRequest {
   bandWidth?: number
   intervalWeeks?: number
@@ -83,4 +83,6 @@ export interface ReconfigureVrRequest {
   injectShares?: number
   injectSharePrice?: number
   injectDeposit?: number
+  withdrawShares?: number
+  withdrawDeposit?: number
 }

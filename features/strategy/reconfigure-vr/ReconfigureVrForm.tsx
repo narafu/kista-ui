@@ -60,6 +60,8 @@ function toReconfigureVrRequest(values: ReconfigureVrFormValues): ReconfigureVrR
     injectShares: values.injectShares ?? undefined,
     injectSharePrice: values.injectSharePrice ?? undefined,
     injectDeposit: values.injectDeposit ?? undefined,
+    withdrawShares: values.withdrawShares ?? undefined,
+    withdrawDeposit: values.withdrawDeposit ?? undefined,
   }
 }
 
@@ -99,14 +101,22 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
   const [recurringMode, setRecurringMode] = useState<RecurringMode>(
     vr.recurringAmount > 0 ? 'DEPOSIT' : vr.recurringAmount < 0 ? 'WITHDRAW' : 'HOLD',
   )
-  // "12." 같은 입력 중간 상태를 표현하기 위한 문자열 버퍼 — injectDeposit은 항상 null에서 시작하므로 외부 재동기화는 불필요
+  // "12." 같은 입력 중간 상태를 표현하기 위한 문자열 버퍼 — injectDeposit/withdrawDeposit은 항상 null에서 시작하므로 외부 재동기화는 불필요
   const [injectDepositText, setInjectDepositText] = useState('')
+  const [withdrawDepositText, setWithdrawDepositText] = useState('')
 
   function handleInjectDepositChange(raw: string) {
     const sanitized = raw.replace(/[^\d.]/g, '')
     if (!AMOUNT_PATTERN.test(sanitized)) return
     setInjectDepositText(sanitized)
     form.setValue('injectDeposit', sanitized === '' || sanitized === '.' ? null : Number(sanitized), { shouldValidate: true })
+  }
+
+  function handleWithdrawDepositChange(raw: string) {
+    const sanitized = raw.replace(/[^\d.]/g, '')
+    if (!AMOUNT_PATTERN.test(sanitized)) return
+    setWithdrawDepositText(sanitized)
+    form.setValue('withdrawDeposit', sanitized === '' || sanitized === '.' ? null : Number(sanitized), { shouldValidate: true })
   }
 
   const form = useForm<ReconfigureVrFormValues>({
@@ -126,6 +136,8 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
       injectShares: null,
       injectSharePrice: null,
       injectDeposit: null,
+      withdrawShares: null,
+      withdrawDeposit: null,
     },
   })
 
@@ -257,12 +269,14 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
           </div>
           <div className="space-y-2">
             <Label htmlFor="initialPoolLimitRate">초기 poolLimitRate (%)</Label>
-            <Input id="initialPoolLimitRate" type="text" inputMode="decimal"
+            {/* poolLimitRate는 DB에 비율 소수 2자리(NUMERIC(6,2))로 저장 — %는 정수만 입력받아야 표시값과 저장값이 어긋나지 않는다 */}
+            <Input id="initialPoolLimitRate" type="text" inputMode="numeric"
               defaultValue={Math.round(vr.initialPoolLimitRate * 10000) / 100}
               disabled={disabled}
               onChange={(e) => {
+                if (!/^\d*$/.test(e.target.value)) return
                 const percent = parseOptionalNumber(e.target.value)
-                form.setValue('initialPoolLimitRate', percent !== undefined ? Math.round(percent * 100) / 10000 : undefined, { shouldValidate: true })
+                form.setValue('initialPoolLimitRate', percent !== undefined ? percent / 100 : undefined, { shouldValidate: true })
               }} />
           </div>
           <div className="space-y-2">
@@ -274,12 +288,13 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
             <Label htmlFor="poolLimitFloor">poolLimitRate 하한 (%)</Label>
             <Input
               key={pStepWeeksIsZero ? 'poolLimitFloor-zero' : `poolLimitFloor-active-${poolLimitFloorWasReset}`}
-              id="poolLimitFloor" type="text" inputMode="decimal"
+              id="poolLimitFloor" type="text" inputMode="numeric"
               defaultValue={pStepWeeksIsZero ? 0 : (poolLimitFloorWasReset ? undefined : Math.round(vr.poolLimitFloor * 10000) / 100)}
               disabled={disabled || pStepWeeksIsZero}
               onChange={(e) => {
+                if (!/^\d*$/.test(e.target.value)) return
                 const percent = parseOptionalNumber(e.target.value)
-                form.setValue('poolLimitFloor', percent !== undefined ? Math.round(percent * 100) / 10000 : undefined, { shouldValidate: true })
+                form.setValue('poolLimitFloor', percent !== undefined ? percent / 100 : undefined, { shouldValidate: true })
               }} />
             {form.formState.errors.poolLimitFloor && <p className="text-sm text-destructive">{form.formState.errors.poolLimitFloor.message}</p>}
           </div>
@@ -316,6 +331,22 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
           <Input id="injectDeposit" type="text" inputMode="decimal" placeholder="0" disabled={disabled}
             value={injectDepositText}
             onChange={(e) => handleInjectDepositChange(e.target.value)} />
+        </div>
+      </section>
+
+      <section className="space-y-4 rounded-[var(--r-sm)] border border-border p-4">
+        <h2 className="text-sm font-bold text-foreground">자본 인출 (선택)</h2>
+        <p className="text-xs text-muted-foreground">보유 주식·예수금 중 일부를 전략에서 빼냅니다. 비워두면 인출하지 않습니다.</p>
+        <div className="space-y-2">
+          <Label htmlFor="withdrawShares">인출 주식 수</Label>
+          <Input id="withdrawShares" type="text" inputMode="numeric" placeholder="0" disabled={disabled}
+            onChange={(e) => form.setValue('withdrawShares', parseOptionalNumber(e.target.value), { shouldValidate: true })} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="withdrawDeposit">인출 예수금 (USD)</Label>
+          <Input id="withdrawDeposit" type="text" inputMode="decimal" placeholder="0" disabled={disabled}
+            value={withdrawDepositText}
+            onChange={(e) => handleWithdrawDepositChange(e.target.value)} />
         </div>
       </section>
 

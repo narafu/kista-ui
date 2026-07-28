@@ -17,6 +17,8 @@ export const reconfigureVrFormSchema = z
     injectShares: z.number().int().nonnegative().nullable().optional(),
     injectSharePrice: z.number().positive().nullable().optional(),
     injectDeposit: z.number().nonnegative().nullable().optional(),
+    withdrawShares: z.number().int().nonnegative().nullable().optional(),
+    withdrawDeposit: z.number().nonnegative().nullable().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.gMax != null && data.initialGradient != null && data.gMax < data.initialGradient) {

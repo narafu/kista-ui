@@ -176,6 +176,44 @@ describe('ReconfigureVrForm', () => {
     expect(mutateMock.mock.calls[0][0].injectDeposit).toBe(123.45)
   })
 
+  it('인출 주식 수·인출 예수금을 입력하면 제출값에 그대로 반영된다', async () => {
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    fireEvent.change(screen.getByLabelText('인출 주식 수'), { target: { value: '4' } })
+    fireEvent.change(screen.getByLabelText('인출 예수금 (USD)'), { target: { value: '150' } })
+
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+    fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
+
+    await waitFor(() => expect(mutateMock).toHaveBeenCalled())
+    expect(mutateMock.mock.calls[0][0].withdrawShares).toBe(4)
+    expect(mutateMock.mock.calls[0][0].withdrawDeposit).toBe(150)
+  })
+
+  it('인출 예수금은 소수점 둘째 자리까지만 입력되고 제출값에도 그대로 반영된다', async () => {
+    const user = userEvent.setup()
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    const input = screen.getByLabelText('인출 예수금 (USD)') as HTMLInputElement
+
+    await user.type(input, '99.999')
+    expect(input.value).toBe('99.99')
+
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+    fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
+
+    await waitFor(() => expect(mutateMock).toHaveBeenCalled())
+    expect(mutateMock.mock.calls[0][0].withdrawDeposit).toBe(99.99)
+  })
+
+  it('인출 필드를 비워두면 제출값에 포함되지 않는다', async () => {
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+    fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
+
+    await waitFor(() => expect(mutateMock).toHaveBeenCalled())
+    expect(mutateMock.mock.calls[0][0].withdrawShares).toBeUndefined()
+    expect(mutateMock.mock.calls[0][0].withdrawDeposit).toBeUndefined()
+  })
+
   it('dismiss가 back이면 취소 클릭 시 router.back을 호출한다', () => {
     render(<ReconfigureVrForm accountId="account-1" strategy={strategy} dismiss="back" />)
     fireEvent.click(screen.getByRole('button', { name: '취소' }))
