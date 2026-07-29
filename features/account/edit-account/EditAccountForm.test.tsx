@@ -14,7 +14,7 @@ const {
   updateMutateMock: vi.fn(),
   deleteMutateMock: vi.fn(),
   pushMock: vi.fn(),
-  invalidateQueriesMock: vi.fn(),
+  invalidateQueriesMock: vi.fn(() => Promise.resolve()),
   toastSuccessMock: vi.fn(),
 }))
 
@@ -125,6 +125,22 @@ describe('EditAccountForm', () => {
     expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: ['stats'] })
     expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: ['orders'] })
     expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: ['trades'] })
+    expect(pushMock).toHaveBeenCalledWith('/accounts')
+  })
+
+  it('still navigates after delete succeeds even if one dependent invalidation rejects', async () => {
+    invalidateQueriesMock.mockRejectedValueOnce(new Error('stats refetch failed'))
+    const user = userEvent.setup()
+    render(<EditAccountForm account={account} />)
+
+    await user.click(screen.getByText('계좌 삭제'))
+    await user.type(screen.getByPlaceholderText(account.nickname), account.nickname)
+    await user.click(screen.getByRole('button', { name: '영구 삭제' }))
+
+    const options = deleteMutateMock.mock.calls.at(-1)?.[1] as { onSuccess: () => Promise<void> }
+    await options.onSuccess()
+
+    expect(toastSuccessMock).toHaveBeenCalledWith('계좌가 삭제되었습니다')
     expect(pushMock).toHaveBeenCalledWith('/accounts')
   })
 })

@@ -146,4 +146,22 @@ describe('useManageStrategyMutations', () => {
     })
     await waitFor(() => expect(onDeleted).toHaveBeenCalledOnce())
   })
+
+  it('still navigates away after delete even if one dependent invalidation rejects', async () => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    vi.spyOn(queryClient, 'invalidateQueries').mockRejectedValueOnce(new Error('stats refetch failed'))
+    deleteMutate.mockImplementation((_strategy, options) => {
+      void options.onSuccess()
+    })
+    const onDeleted = vi.fn()
+
+    const { result } = renderHook(() => useManageStrategyMutations({ onDeleted }), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    act(() => result.current.remove(strategy))
+
+    expect(toastSuccessMock).toHaveBeenCalledWith('전략이 삭제되었습니다')
+    await waitFor(() => expect(onDeleted).toHaveBeenCalledOnce())
+  })
 })

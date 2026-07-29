@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { QueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ApiError, apiMsg } from '@shared/lib/api-client'
+import { upsertById, synchronizeListQueries } from '@shared/lib/query'
 import {
   createStrategy,
   updateStrategy,
@@ -21,54 +22,25 @@ import {
   strategyListByAccountQueryOptions,
 } from '../model/queryOptions'
 
-type StrategyListKey = ReturnType<typeof strategyKeys.listAll> | ReturnType<typeof strategyKeys.listByAccount>
-
-async function synchronizeStrategyList(
-  queryClient: QueryClient,
-  queryKey: StrategyListKey,
-  fetchCompleteList: () => Promise<Strategy[]>,
-  update: (strategies: Strategy[]) => Strategy[],
-) {
-  const strategies = queryClient.getQueryData<Strategy[]>(queryKey)
-  if (strategies !== undefined) {
-    queryClient.setQueryData<Strategy[]>(queryKey, update(strategies))
-    return
-  }
-
-  await fetchCompleteList()
-}
-
 async function synchronizeStrategyLists(
   queryClient: QueryClient,
   accountId: string,
   update: (strategies: Strategy[]) => Strategy[],
 ) {
-  const results = await Promise.allSettled([
-    synchronizeStrategyList(
-      queryClient,
-      strategyKeys.listAll(),
-      () => queryClient.fetchQuery(strategyListAllQueryOptions()),
-      update,
-    ),
-    synchronizeStrategyList(
-      queryClient,
-      strategyKeys.listByAccount(accountId),
-      () => queryClient.fetchQuery(strategyListByAccountQueryOptions(accountId)),
-      update,
-    ),
-  ])
-
-  for (const result of results) {
-    if (result.status === 'rejected') throw result.reason
-  }
-}
-
-function upsertStrategy(strategies: Strategy[], saved: Strategy) {
-  const exists = strategies.some((strategy) => strategy.id === saved.id)
-
-  if (!exists) return [...strategies, saved]
-
-  return strategies.map((strategy) => strategy.id === saved.id ? saved : strategy)
+  await synchronizeListQueries(
+    queryClient,
+    [
+      {
+        queryKey: strategyKeys.listAll(),
+        fetchCompleteList: () => queryClient.fetchQuery(strategyListAllQueryOptions()),
+      },
+      {
+        queryKey: strategyKeys.listByAccount(accountId),
+        fetchCompleteList: () => queryClient.fetchQuery(strategyListByAccountQueryOptions(accountId)),
+      },
+    ],
+    update,
+  )
 }
 
 function updateStrategyStatus(strategies: Strategy[], id: string, status: string) {
@@ -109,7 +81,7 @@ export function useCreateStrategyMutation(accountId: string, onSuccess?: () => v
     mutationFn: (data: StrategyRequest) => createStrategy(accountId, data),
     onSuccess: async (saved) => {
       queryClient.setQueryData(strategyKeys.detail(saved.id), saved)
-      await synchronizeStrategyLists(queryClient, saved.accountId, (strategies) => upsertStrategy(strategies, saved))
+      await synchronizeStrategyLists(queryClient, saved.accountId, (strategies) => upsertById(strategies, saved))
       return onSuccess?.()
     },
     onError: (err) => toast.error(apiMsg(err, '저장에 실패했습니다')),
@@ -122,7 +94,7 @@ export function useUpdateStrategyMutation(strategyId: string, onSuccess?: () => 
     mutationFn: (data: Partial<StrategyRequest>) => updateStrategy(strategyId, data),
     onSuccess: async (saved) => {
       queryClient.setQueryData(strategyKeys.detail(saved.id), saved)
-      await synchronizeStrategyLists(queryClient, saved.accountId, (strategies) => upsertStrategy(strategies, saved))
+      await synchronizeStrategyLists(queryClient, saved.accountId, (strategies) => upsertById(strategies, saved))
       return onSuccess?.()
     },
     onError: (err) => toast.error(apiMsg(err, '저장에 실패했습니다')),

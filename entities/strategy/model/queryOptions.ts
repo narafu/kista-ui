@@ -1,5 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 
+import { detailFromListQueryOptions } from '@shared/lib/query'
 import { listAllStrategies, listStrategies } from '../api'
 import { strategyKeys } from './queryKeys'
 import type { Strategy } from './types'
@@ -19,11 +20,9 @@ export function strategyListByAccountQueryOptions(accountId: string, token?: str
 }
 
 export function strategyDetailQueryOptions(accountId: string, strategyId: string, token?: string) {
-  return queryOptions<Strategy | null>({
-    queryKey: strategyKeys.detail(strategyId),
-    queryFn: async () => {
-      const strategies = await listStrategies(accountId, token)
-      return strategies.find((strategy) => strategy.id === strategyId) ?? null
-    },
-  })
+  return detailFromListQueryOptions<Strategy>(
+    strategyKeys.detail(strategyId),
+    () => listStrategies(accountId, token),
+    strategyId,
+  )
 }

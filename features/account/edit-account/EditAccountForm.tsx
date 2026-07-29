@@ -63,10 +63,10 @@ export function EditAccountForm({ account }: Props) {
       onSuccess: async () => {
         toast.success('계좌가 삭제되었습니다')
         await Promise.all([
-          queryClient.invalidateQueries({ queryKey: strategyKeys.all }),
-          queryClient.invalidateQueries({ queryKey: statsKeys.all }),
-          queryClient.invalidateQueries({ queryKey: orderKeys.all }),
-          queryClient.invalidateQueries({ queryKey: tradeKeys.all }),
+          queryClient.invalidateQueries({ queryKey: strategyKeys.all }).catch(() => null),
+          queryClient.invalidateQueries({ queryKey: statsKeys.all }).catch(() => null),
+          queryClient.invalidateQueries({ queryKey: orderKeys.all }).catch(() => null),
+          queryClient.invalidateQueries({ queryKey: tradeKeys.all }).catch(() => null),
         ])
         router.push('/accounts')
       },

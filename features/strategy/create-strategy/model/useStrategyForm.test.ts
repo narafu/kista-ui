@@ -15,7 +15,7 @@ function addDaysToKstDate(days: number): string {
 }
 
 const runtimeRecurringMode = vi.hoisted(() => ({ defaultValue: 'HOLD' }))
-const invalidateQueriesMock = vi.hoisted(() => vi.fn())
+const invalidateQueriesMock = vi.hoisted(() => vi.fn(() => Promise.resolve()))
 let createSuccessHandler: (() => void) | undefined
 let updateSuccessHandler: (() => void) | undefined
 
@@ -174,6 +174,16 @@ describe('useStrategyForm submit policy', () => {
     expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: orderKeys.all })
     expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: statsKeys.all })
     expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: tradeKeys.all })
+  })
+
+  it('still calls the form onSuccess callback after save even if one dependent invalidation rejects', async () => {
+    const onSuccess = vi.fn()
+    invalidateQueriesMock.mockRejectedValueOnce(new Error('stats refetch failed'))
+    renderHook(() => useStrategyForm({ accountId: 'account-1', onSuccess }))
+
+    await createSuccessHandler?.()
+
+    expect(onSuccess).toHaveBeenCalledOnce()
   })
 
   it('edit payload does not include initialUsdDeposit', async () => {

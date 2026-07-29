@@ -10,6 +10,7 @@ const runtimeSourceFile = /\.(?:js|jsx|ts|tsx)$/
 const ignoredSourceFile = /\.(?:docs|fixture|spec|test)\.(?:js|jsx|ts|tsx)$/
 const ignoredDirectoryNames = new Set(['__fixtures__', '__tests__', 'docs', 'fixtures', 'test', 'tests'])
 const forbiddenCachedReaderNames = new Set(['getCachedAccounts', 'getCachedStrategies', 'getCachedUser'])
+const forbiddenNextCacheImports = new Set(['unstable_cache', 'cacheTag'])
 const temporaryRoots: string[] = []
 
 type AstNode = { type?: string; [key: string]: unknown }
@@ -75,6 +76,7 @@ function isRouterRefreshCall(node: AstNode): boolean {
 
 function hasCacheArchitectureViolation(source: string, relativePath: string): string[] {
   const failures = new Set<string>()
+  const nextCacheNamespaceLocals = new Set<string>()
   const ast = astParser.parseForESLint(source, {
     filePath: relativePath,
     jsx: relativePath.endsWith('.jsx') || relativePath.endsWith('.tsx'),
@@ -95,6 +97,35 @@ function hasCacheArchitectureViolation(source: string, relativePath: string): st
     }
     if (relativePath.startsWith('entities/') && relativePath.includes('/hooks/') && isRouterRefreshCall(value)) {
       failures.add('hook router.refresh()')
+    }
+    if (value.type === 'ImportDeclaration' && stringLiteralValue(value.source) === 'next/cache') {
+      const specifiers = Array.isArray(value.specifiers) ? value.specifiers : []
+      for (const specifier of specifiers) {
+        if (!isNode(specifier)) continue
+        if (specifier.type === 'ImportSpecifier') {
+          const importedName = identifierName(specifier.imported)
+          if (importedName !== null && forbiddenNextCacheImports.has(importedName)) {
+            failures.add(`next/cache import: ${importedName}`)
+          }
+        }
+        if (specifier.type === 'ImportNamespaceSpecifier') {
+          const localName = identifierName(specifier.local)
+          if (localName !== null) nextCacheNamespaceLocals.add(localName)
+        }
+      }
+    }
+    if (value.type === 'CallExpression') {
+      const callee = unwrapExpression(value.callee)
+      if (isNode(callee) && callee.type === 'MemberExpression') {
+        const objectName = identifierName(callee.object)
+        const propertyName = identifierName(callee.property)
+        if (
+          objectName !== null && nextCacheNamespaceLocals.has(objectName)
+          && propertyName !== null && forbiddenNextCacheImports.has(propertyName)
+        ) {
+          failures.add(`next/cache import: ${propertyName}`)
+        }
+      }
     }
 
     Object.values(value).forEach(visit)
@@ -150,13 +181,15 @@ describe('query cache architecture', () => {
       'entities/account/hooks/hydration-static-computed.tsx': "const query = { ['initialDataUpdatedAt']: (0) }",
       'entities/account/hooks/refresh.jsx': 'router /* refresh */ . refresh( /* now */ )',
       'entities/account/hooks/strategies.tsx': 'getCachedStrategies()',
+      'entities/order/api/cached.ts': "import { unstable_cache } from 'next/cache'\nexport const cached = unstable_cache(async () => [], ['orders'])",
+      'entities/stats/api/cached.ts': "import { cacheTag } from 'next/cache'\nexport async function tagStats() { cacheTag('stats') }",
       'features/.keep': '',
       'widgets/.keep': '',
     })
 
     const violations = await cacheArchitectureViolations(root)
 
-    expect(violations).toHaveLength(7)
+    expect(violations).toHaveLength(9)
     expect(violations).toEqual(expect.arrayContaining([
       'app/cache.js: mutable cache reader',
       'app/cache.ts: mutable cache reader',
@@ -165,7 +198,46 @@ describe('query cache architecture', () => {
       'entities/account/hooks/hydration-static-computed.tsx: forced stale hydration',
       'entities/account/hooks/refresh.jsx: hook router.refresh()',
       'entities/account/hooks/strategies.tsx: mutable cache reader',
+      'entities/order/api/cached.ts: next/cache import: unstable_cache',
+      'entities/stats/api/cached.ts: next/cache import: cacheTag',
     ]))
+  })
+
+  it('flags a namespace import of next/cache used to call a banned export', async () => {
+    const root = await fixtureRoot({
+      'entities/order/api/namespaced.ts': "import * as nc from 'next/cache'\nexport const cached = nc.unstable_cache(async () => [], ['orders'])",
+      'app/.keep': '',
+      'features/.keep': '',
+      'widgets/.keep': '',
+    })
+
+    await expect(cacheArchitectureViolations(root)).resolves.toEqual([
+      'entities/order/api/namespaced.ts: next/cache import: unstable_cache',
+    ])
+  })
+
+  it('flags a next/cache import under any local alias by its original export name', async () => {
+    const root = await fixtureRoot({
+      'entities/order/api/aliased.ts': "import { unstable_cache as cached } from 'next/cache'\nexport const x = cached",
+      'app/.keep': '',
+      'features/.keep': '',
+      'widgets/.keep': '',
+    })
+
+    await expect(cacheArchitectureViolations(root)).resolves.toEqual([
+      'entities/order/api/aliased.ts: next/cache import: unstable_cache',
+    ])
+  })
+
+  it('does not flag other next/cache exports such as revalidateTag', async () => {
+    const root = await fixtureRoot({
+      'entities/order/api/tag.ts': "import { revalidateTag } from 'next/cache'\nrevalidateTag('meta', 'max')",
+      'app/.keep': '',
+      'features/.keep': '',
+      'widgets/.keep': '',
+    })
+
+    await expect(cacheArchitectureViolations(root)).resolves.toEqual([])
   })
 
   it('ignores prohibited syntax in test, documentation, and fixture paths', async () => {
@@ -183,6 +255,8 @@ describe('query cache architecture', () => {
       'entities/account/hooks/fixtures/cache.ts': 'router.refresh()',
       'entities/account/hooks/__fixtures__/cache.ts': 'router.refresh()',
       'entities/account/hooks/cache.fixture.ts': 'router.refresh()',
+      'entities/order/api/cached.docs.ts': "import { unstable_cache } from 'next/cache'",
+      'entities/order/api/cached.test.ts': "import { cacheTag } from 'next/cache'",
       'features/.keep': '',
       'widgets/.keep': '',
     })

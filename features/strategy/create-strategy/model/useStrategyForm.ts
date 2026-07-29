@@ -118,9 +118,9 @@ export function useStrategyForm({
   const handleMutationSuccess = async () => {
     toast.success(initial ? '전략이 수정되었습니다' : '전략이 등록되었습니다')
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: orderKeys.all }),
-      queryClient.invalidateQueries({ queryKey: statsKeys.all }),
-      queryClient.invalidateQueries({ queryKey: tradeKeys.all }),
+      queryClient.invalidateQueries({ queryKey: orderKeys.all }).catch(() => null),
+      queryClient.invalidateQueries({ queryKey: statsKeys.all }).catch(() => null),
+      queryClient.invalidateQueries({ queryKey: tradeKeys.all }).catch(() => null),
     ])
     onSuccess?.()
   }

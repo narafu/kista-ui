@@ -107,10 +107,10 @@ mutation 응답만으로 계산할 수 없는 파생 데이터는 factory root�
 
 ```ts
 await Promise.all([
-  queryClient.invalidateQueries({ queryKey: strategyKeys.all }),
-  queryClient.invalidateQueries({ queryKey: statsKeys.all }),
-  queryClient.invalidateQueries({ queryKey: orderKeys.all }),
-  queryClient.invalidateQueries({ queryKey: tradeKeys.all }),
+  queryClient.invalidateQueries({ queryKey: strategyKeys.all }).catch(() => null),
+  queryClient.invalidateQueries({ queryKey: statsKeys.all }).catch(() => null),
+  queryClient.invalidateQueries({ queryKey: orderKeys.all }).catch(() => null),
+  queryClient.invalidateQueries({ queryKey: tradeKeys.all }).catch(() => null),
 ])
 router.push('/accounts')
 ```
