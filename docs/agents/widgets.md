@@ -19,6 +19,7 @@ widget 슬라이스끼리 cross-import 금지. **단, "공용 UI 위젯" 목록(
 ## shadcn / UI 컴포넌트
 
 - **shadcn v4**: `asChild` 대신 `cn(buttonVariants({ variant, size }))` 패턴 사용
+- **Base UI Select**: `items` prop을 사용할 때 각 항목에 `value`와 표시용 `label` 메타데이터를 함께 제공한다
 - **AlertDialog**: `open`/`onOpenChange` 직접 제어 필요. `AlertDialogTrigger`에 `disabled` prop 없음 → `className`에 `opacity-40 pointer-events-none`
 - **disabled 버튼 툴팁**: wrapper `div` + `group-hover` 패턴 사용
 - **vaul Drawer**: `direction="bottom"`, 내부 스크롤 래퍼 필요
