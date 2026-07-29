@@ -48,19 +48,19 @@ export function OrderHistoryFilters({
 }: Props) {
   return (
     <div className="grid grid-cols-3 gap-2 lg:flex lg:items-center">
-      <Select value={direction} onValueChange={(value) => { if (value) onDirectionChange(value) }}>
+      <Select items={DIRECTION_OPTIONS.map(([value, label]) => ({ value, label }))} value={direction} onValueChange={(value) => { if (value) onDirectionChange(value) }}>
         <SelectTrigger aria-label="방향" className="w-full lg:w-28"><SelectValue /></SelectTrigger>
         <SelectContent>
           {DIRECTION_OPTIONS.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
         </SelectContent>
       </Select>
-      <Select value={orderType} onValueChange={(value) => { if (value) onOrderTypeChange(value) }}>
+      <Select items={ORDER_TYPE_OPTIONS.map(([value, label]) => ({ value, label }))} value={orderType} onValueChange={(value) => { if (value) onOrderTypeChange(value) }}>
         <SelectTrigger aria-label="유형" className="w-full lg:w-28"><SelectValue /></SelectTrigger>
         <SelectContent>
           {ORDER_TYPE_OPTIONS.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
         </SelectContent>
       </Select>
-      <Select value={status} onValueChange={(value) => { if (value) onStatusChange(value) }}>
+      <Select items={STATUS_OPTIONS.map(([value, label]) => ({ value, label }))} value={status} onValueChange={(value) => { if (value) onStatusChange(value) }}>
         <SelectTrigger aria-label="상태" className="w-full lg:w-32"><SelectValue /></SelectTrigger>
         <SelectContent>
           {STATUS_OPTIONS.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
