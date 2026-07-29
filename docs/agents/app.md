@@ -55,4 +55,5 @@
 - **PWA 구성**: `app/manifest.ts` + `app/layout.tsx` metadata에 `manifest`/`icons.apple`/`appleWebApp`. 아이콘: `public/icon-192.png`, `icon-512.png`, `apple-touch-icon.png`
 - **`firebase-messaging-sw.js` git 추적 필수**: git에 없으면 Vercel 배포 후 404 → FCM 토큰 발급 불가. 로컬 크롬 캐시로 눈에 안 띔
 - **FCM 자동 토큰 등록**: `entities/fcm/providers/FcmAutoRegister.tsx` — `(main)/layout.tsx`에 마운트. 알림 채널이 FCM/ALL + 권한 granted인 기기에서 자동 등록. `getToken()` 멱등
+- **FCM foreground 알림**: `entities/fcm/providers/FcmForegroundListener.tsx` — `(main)/layout.tsx`에 마운트. 알림 채널이 FCM/ALL인 경우 `onMessage()`를 구독하고, 권한이 granted이면 서비스 워커의 `showNotification()`으로 표시
 - **PENDING 사용자 API 접근**: kista-api SettingsController는 UserStatus 미검증 → PENDING 상태도 `/api/settings/telegram` 호출 가능
