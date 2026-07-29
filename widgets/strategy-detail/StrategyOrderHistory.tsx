@@ -55,15 +55,27 @@ export function StrategyOrderHistory({ strategyId }: Props) {
             customTo={customTo}
             onCustomFromChange={setCustomFrom}
             onCustomToChange={setCustomTo}
+            extraFilters={
+              <OrderHistoryFilters
+                direction={directionFilter}
+                orderType={orderTypeFilter}
+                status={statusFilter}
+                onDirectionChange={setDirectionFilter}
+                onOrderTypeChange={setOrderTypeFilter}
+                onStatusChange={setStatusFilter}
+              />
+            }
           />
-          <OrderHistoryFilters
-            direction={directionFilter}
-            orderType={orderTypeFilter}
-            status={statusFilter}
-            onDirectionChange={setDirectionFilter}
-            onOrderTypeChange={setOrderTypeFilter}
-            onStatusChange={setStatusFilter}
-          />
+          <div className="lg:hidden">
+            <OrderHistoryFilters
+              direction={directionFilter}
+              orderType={orderTypeFilter}
+              status={statusFilter}
+              onDirectionChange={setDirectionFilter}
+              onOrderTypeChange={setOrderTypeFilter}
+              onStatusChange={setStatusFilter}
+            />
+          </div>
         </div>
       </CardHeader>
       <CardContent className="p-0">
