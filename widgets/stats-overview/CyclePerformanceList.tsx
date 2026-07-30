@@ -8,7 +8,9 @@ import { TableDataCell } from '@shared/ui/TableDataCell'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
 import { useStatsCyclesQuery } from '@entities/stats'
+import { useAccountsQuery } from '@entities/account'
 import { SectionError } from '@shared/ui/SectionError'
+import { useMemo } from 'react'
 
 interface Props {
   typeFilter?: string
@@ -16,6 +18,11 @@ interface Props {
 
 export function CyclePerformanceList({ typeFilter }: Props) {
   const { cycles, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useStatsCyclesQuery(typeFilter)
+  const accountsQuery = useAccountsQuery()
+  const accountsById = useMemo(
+    () => new Map(accountsQuery.data?.map((account) => [account.id, account]) ?? []),
+    [accountsQuery.data],
+  )
 
   return (
     <Card className="overflow-hidden">
@@ -46,9 +53,16 @@ export function CyclePerformanceList({ typeFilter }: Props) {
                   {cycles.map((cycle) => (
                     <tr key={cycle.cycleId} className="border-t transition-colors hover:bg-muted/30">
                       <TableDataCell>
-                        <Badge tone="brand" size="sm">
-                          {cycle.strategyType}
-                        </Badge>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {accountsById.get(cycle.accountId) && (
+                            <Badge tone="neutral" size="sm">
+                              {accountsById.get(cycle.accountId)?.nickname}
+                            </Badge>
+                          )}
+                          <Badge tone="brand" size="sm">
+                            {cycle.strategyType}
+                          </Badge>
+                        </div>
                       </TableDataCell>
                       <TableDataCell className="font-medium tabular-nums">{cycle.ticker ?? '—'}</TableDataCell>
                       <TableDataCell className="text-muted-foreground">
@@ -69,9 +83,16 @@ export function CyclePerformanceList({ typeFilter }: Props) {
               {cycles.map((cycle) => (
                 <section key={cycle.cycleId} className="px-4 py-4" role="listitem">
                   <div className="flex items-center justify-between gap-3">
-                    <Badge tone="brand" size="sm">
-                      {cycle.strategyType}
-                    </Badge>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {accountsById.get(cycle.accountId) && (
+                        <Badge tone="neutral" size="sm">
+                          {accountsById.get(cycle.accountId)?.nickname}
+                        </Badge>
+                      )}
+                      <Badge tone="brand" size="sm">
+                        {cycle.strategyType}
+                      </Badge>
+                    </div>
                     <span className="text-sm font-semibold tabular-nums">
                       {cycle.ticker ?? '—'}
                     </span>
