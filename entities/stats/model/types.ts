@@ -35,6 +35,7 @@ export interface EquityCurve {
 
 export interface CyclePerformance {
   cycleId: string
+  accountId: string
   strategyType: string
   ticker: string | null
   startDate: string
