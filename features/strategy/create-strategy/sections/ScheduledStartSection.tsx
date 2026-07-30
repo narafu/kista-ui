@@ -1,6 +1,7 @@
 'use client'
 
 import { todayKst } from '@shared/lib/format'
+import { cn } from '@shared/lib/utils'
 
 interface Props {
   value: string | null
@@ -20,7 +21,12 @@ export function ScheduledStartSection({ value, onChange, loading }: Props) {
           min={todayKst()}
           disabled={loading}
           onChange={(e) => onChange(e.target.value || null)}
-          className="rounded-md border border-input bg-background px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+          className={cn(
+            'flex items-center h-11 rounded-[var(--r-sm)] bg-card px-3 text-sm outline-none',
+            loading
+              ? 'opacity-50 border border-border'
+              : 'border border-[var(--rose-400)] shadow-[0_0_0_3px_rgba(203,131,106,0.18)]',
+          )}
         />
       </label>
       <p className="mt-2 text-sm text-muted-foreground">
