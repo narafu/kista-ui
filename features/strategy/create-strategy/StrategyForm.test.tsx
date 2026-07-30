@@ -142,17 +142,15 @@ describe('StrategyForm initial holdings section', () => {
     render(<StrategyForm accountId="account-1" />)
 
     expect(screen.getByTestId('initial-holdings-section')).toBeInTheDocument()
-    expect(initialHoldingsSectionMock).toHaveBeenCalledWith(expect.objectContaining({ isVr: false }))
   })
 
-  it('shows the initial holdings section for VR create mode with VR framing', () => {
+  it('shows the initial holdings section for VR create mode', () => {
     initialHoldingsSectionMock.mockClear()
     useStrategyFormMock.mockReturnValue({ ...baseFormState, type: 'VR', isVr: true })
 
     render(<StrategyForm accountId="account-1" />)
 
     expect(screen.getByTestId('initial-holdings-section')).toBeInTheDocument()
-    expect(initialHoldingsSectionMock).toHaveBeenCalledWith(expect.objectContaining({ isVr: true }))
   })
 
   it('hides the initial holdings section in edit mode', () => {
@@ -281,5 +279,18 @@ describe('StrategyForm VR settings section', () => {
 
     expect(screen.getByText('리밸런싱 주기는 1 이상 정수여야 합니다.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '등록' })).toBeDisabled()
+  })
+
+  it('shows a resolver validation reason even when the pre-submit guard did not block', () => {
+    useStrategyFormMock.mockReturnValue({
+      ...baseFormState,
+      cannotSubmit: false,
+      submitDisabledReason: '입력값을 다시 확인해 주세요.',
+    })
+
+    render(<StrategyForm accountId="account-1" />)
+
+    expect(screen.getByText('입력값을 다시 확인해 주세요.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '등록' })).toBeEnabled()
   })
 })

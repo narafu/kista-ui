@@ -1,9 +1,10 @@
-export type { CycleSeedType, Strategy, StrategyRequest, StrategySeedPreview } from './model/types'
+export type { CycleSeedType, Strategy, StrategyRequest, ReconfigureVrRequest, StrategySeedPreview, StrategyVrSummary } from './model/types'
 export { strategyKeys } from './model/queryKeys'
 export { seedBadgeClass } from './model/seed-badge'
 export { strategyStatusAccent } from './model/status-accent'
 export { strategyTypeShort } from './model/type-short'
 export { isScheduledStart, scheduledStartBadgeLabel } from './model/scheduled-start'
+export { applyGStepWeeksChange, applyPStepWeeksChange, POOL_LIMIT_FLOOR_ZERO_MESSAGE } from './model/poolLimitRamp'
 export {
   listAllStrategies,
   listStrategies,
@@ -14,6 +15,7 @@ export {
   resumeStrategy,
   executeStrategy,
   getStrategySeedPreview,
+  reconfigureVr,
 } from './api'
 export {
   useStrategySeedPreviewQuery,
@@ -22,6 +24,7 @@ export {
   useStrategiesQuery,
   useCreateStrategyMutation,
   useUpdateStrategyMutation,
+  useReconfigureVrMutation,
   useDeleteStrategyMutation,
   usePauseStrategyMutation,
   useResumeStrategyMutation,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -9,7 +9,7 @@ import { fmtUsd, todayKst } from '@shared/lib/format'
 import { isMockBroker } from '@shared/lib/api-schema'
 import { useMeta } from '@entities/meta'
 import { useAccountMarginQuery, useAccountPricesQuery } from '@entities/account'
-import { useCreateStrategyMutation, useUpdateStrategyMutation, useStrategySeedPreviewQuery } from '@entities/strategy'
+import { useCreateStrategyMutation, useUpdateStrategyMutation, useStrategySeedPreviewQuery, POOL_LIMIT_FLOOR_ZERO_MESSAGE } from '@entities/strategy'
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
 import { tradeKeys } from '@entities/trade'
@@ -35,6 +35,14 @@ export interface VrFields {
   intervalWeeks: number | null
   bandWidth: number | null
   recurringAmount: number | null
+  initialGradient: number | null
+  gGraceWeeks: number | null
+  gStepWeeks: number | null
+  gMax: number | null
+  initialPoolLimitRate: number | null
+  pGraceWeeks: number | null
+  pStepWeeks: number | null
+  poolLimitFloor: number | null
 }
 type VrRecurringMode = 'DEPOSIT' | 'HOLD' | 'WITHDRAW'
 
@@ -147,10 +155,24 @@ export function useStrategyForm({
       recurringMode: initial?.vr?.recurringAmount
         ? initial.vr.recurringAmount < 0 ? 'WITHDRAW' : 'DEPOSIT'
         : 'HOLD',
+      initialGradient: initial?.vr?.initialGradient ?? null,
+      gGraceWeeks: initial?.vr?.gGraceWeeks ?? null,
+      gStepWeeks: initial?.vr?.gStepWeeks ?? null,
+      gMax: initial?.vr?.gMax ?? null,
+      initialPoolLimitRate: initial?.vr?.initialPoolLimitRate ?? null,
+      pGraceWeeks: initial?.vr?.pGraceWeeks ?? null,
+      pStepWeeks: initial?.vr?.pStepWeeks ?? null,
+      poolLimitFloor: initial?.vr?.poolLimitFloor ?? null,
       // 시작예정일도 등록 전용 — 수정 모드에서는 항상 빈 값
       scheduledStartDate: null,
     },
   })
+  const [resolverValidationReason, setResolverValidationReason] = useState<string | null>(null)
+
+  useEffect(() => {
+    const subscription = form.watch(() => setResolverValidationReason(null))
+    return () => subscription.unsubscribe()
+  }, [form])
 
   const type = form.watch('type')
   const ticker = form.watch('ticker')
@@ -167,8 +189,20 @@ export function useStrategyForm({
   const recurringAmount = form.watch('recurringAmount') ?? null
   const recurringMode = form.watch('recurringMode')
   const scheduledStartDate = form.watch('scheduledStartDate') ?? null
+  const initialGradient = form.watch('initialGradient') ?? null
+  const gGraceWeeks = form.watch('gGraceWeeks') ?? null
+  const gStepWeeks = form.watch('gStepWeeks') ?? null
+  const gMax = form.watch('gMax') ?? null
+  const initialPoolLimitRate = form.watch('initialPoolLimitRate') ?? null
+  const pGraceWeeks = form.watch('pGraceWeeks') ?? null
+  const pStepWeeks = form.watch('pStepWeeks') ?? null
+  const poolLimitFloor = form.watch('poolLimitFloor') ?? null
   const isVr = type === 'VR'
-  const vrFields: VrFields = { avgPrice, quantity, intervalWeeks, bandWidth, recurringAmount }
+  const vrFields: VrFields = {
+    avgPrice, quantity, intervalWeeks, bandWidth, recurringAmount,
+    initialGradient, gGraceWeeks, gStepWeeks, gMax,
+    initialPoolLimitRate, pGraceWeeks, pStepWeeks, poolLimitFloor,
+  }
 
   // capability 파생 — isInfinite 휴리스틱 대신 백엔드 SSOT 사용
   const typeMeta = useMemo(() => findStrategyType(type), [findStrategyType, type])
@@ -290,6 +324,7 @@ export function useStrategyForm({
     : recurringMode === 'WITHDRAW'
       ? -recurringMagnitude
       : recurringMagnitude
+  const effectiveInitialGradient = initialGradient ?? (normalizedRecurringAmount < 0 ? 20 : 10)
   const selectedRecurringMode = recurringMode
   const initialAssets = normalizedInitialValue + normalizedInitialSeed
   const requiredWithdrawalAssets = intervalWeeks !== null && intervalWeeks > 0
@@ -319,7 +354,11 @@ export function useStrategyForm({
     (recurringAmount !== null && !Number.isInteger(recurringAmount)) ||
     (recurringMode !== 'HOLD' && recurringMagnitude <= 0) ||
     (normalizedRecurringAmount <= 0 && initialAssets <= 0) ||
-    (normalizedRecurringAmount < 0 && initialAssets < requiredWithdrawalAssets)
+    (normalizedRecurringAmount < 0 && initialAssets < requiredWithdrawalAssets) ||
+    (gStepWeeks !== 0 && gMax !== null && gMax < effectiveInitialGradient) ||
+    (poolLimitFloor !== null && initialPoolLimitRate !== null && poolLimitFloor > initialPoolLimitRate) ||
+    // poolLimitRate 단계주기가 0(램프 비활성화)이 아니면 하한은 0보다 커야 함 — 단계주기=0일 때만 하한 0이 허용(자동 강제)
+    (poolLimitFloor === 0 && pStepWeeks !== 0)
   )
 
   const isRuntimeValueInvalid = !initial && !!runtimeStrategy && (
@@ -341,7 +380,7 @@ export function useStrategyForm({
     ? false
     : runtimeConfigUnavailable || isRuntimeValueInvalid || isInvalidBootstrap || isInvalidScheduledStart || isInvalidVr || isBelowMinSeed || (!isVr && isInvalidSeed) || (!isVr && basePrice === null && seedUnavailableReason === null)
 
-  const submitDisabledReason = initial && !canEditSeed
+  const preSubmitDisabledReason = initial && !canEditSeed
     ? null
     : runtimeConfigUnavailable
       ? '현재 등록 가능한 전략이 없습니다.'
@@ -380,6 +419,15 @@ export function useStrategyForm({
           if (normalizedRecurringAmount < 0 && initialAssets < requiredWithdrawalAssets) {
             return `인출식은 초기 자산이 $${fmtUsd(requiredWithdrawalAssets)} 이상이어야 합니다.`
           }
+          if (gStepWeeks !== 0 && gMax !== null && gMax < effectiveInitialGradient) {
+            return 'gradient 상한은 초기값 이상이어야 합니다.'
+          }
+          if (poolLimitFloor !== null && initialPoolLimitRate !== null && poolLimitFloor > initialPoolLimitRate) {
+            return 'poolLimitRate 하한은 초기값 이하여야 합니다.'
+          }
+          if (poolLimitFloor === 0 && pStepWeeks !== 0) {
+            return POOL_LIMIT_FLOOR_ZERO_MESSAGE
+          }
           if (isRuntimeValueInvalid) return '현재 허용되지 않는 설정이 선택되었습니다.'
           return null
         })()
@@ -390,6 +438,8 @@ export function useStrategyForm({
           if (basePrice === null && seedUnavailableReason === null) return '기준 가격을 불러오는 중입니다.'
           return null
         })()
+
+  const submitDisabledReason = preSubmitDisabledReason ?? resolverValidationReason
 
   // VR은 cycleSeedType 항상 NONE — 롤오버가 자체 사이클 교체 담당
   const cycleSeedType: CycleSeedType = isVr
@@ -483,6 +533,15 @@ export function useStrategyForm({
                 ? runtimeStrategy.fields.bandWidth.defaultValue
                 : bandWidth ?? undefined,
               recurringAmount: normalizedRecurringAmount,
+              // 램프 파라미터 — 값이 있을 때만 포함(생략 시 서버 기본값 적용)
+              ...(initialGradient !== null ? { initialGradient } : {}),
+              ...(gGraceWeeks !== null ? { gGraceWeeks } : {}),
+              ...(gStepWeeks !== null ? { gStepWeeks } : {}),
+              ...(gMax !== null ? { gMax } : {}),
+              ...(initialPoolLimitRate !== null ? { initialPoolLimitRate } : {}),
+              ...(pGraceWeeks !== null ? { pGraceWeeks } : {}),
+              ...(pStepWeeks !== null ? { pStepWeeks } : {}),
+              ...(poolLimitFloor !== null ? { poolLimitFloor } : {}),
             } : {}),
           }
 
@@ -491,6 +550,8 @@ export function useStrategyForm({
       } else {
         createMutation.mutate(payload)
       }
+    }, () => {
+      setResolverValidationReason('입력값을 다시 확인해 주세요.')
     })(e)
   }
 

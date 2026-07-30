@@ -424,6 +424,166 @@ describe('useStrategyForm submit policy', () => {
     })
   })
 
+  it('VR create payload includes ramp fields when provided', async () => {
+    seedModelState.seedUsd = 2000
+
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('avgPrice', 300)
+      result.current.setVrField('quantity', 10)
+      result.current.setVrField('intervalWeeks', 4)
+      result.current.setVrField('bandWidth', 15)
+      result.current.setVrField('recurringAmount', null)
+      result.current.setVrField('initialGradient', 10)
+      result.current.setVrField('gGraceWeeks', 52)
+      result.current.setVrField('gStepWeeks', 26)
+      result.current.setVrField('gMax', 20)
+      result.current.setVrField('initialPoolLimitRate', 0.75)
+      result.current.setVrField('pGraceWeeks', 52)
+      result.current.setVrField('pStepWeeks', 26)
+      result.current.setVrField('poolLimitFloor', 0.5)
+    })
+
+    await act(async () => {
+      result.current.handleSubmit({ preventDefault() {} } as React.FormEvent)
+    })
+
+    await waitFor(() => {
+      expect(mockCreateMutate).toHaveBeenCalled()
+    })
+
+    expect(mockCreateMutate).toHaveBeenCalledWith({
+      type: 'VR',
+      ticker: 'TQQQ',
+      cycleSeedType: 'NONE',
+      initialUsdDeposit: 2000,
+      initialHoldings: 10,
+      initialAvgPrice: 300,
+      intervalWeeks: 4,
+      bandWidth: 15,
+      recurringAmount: 0,
+      initialGradient: 10,
+      gGraceWeeks: 52,
+      gStepWeeks: 26,
+      gMax: 20,
+      initialPoolLimitRate: 0.75,
+      pGraceWeeks: 52,
+      pStepWeeks: 26,
+      poolLimitFloor: 0.5,
+    })
+  })
+
+  it('VR create is blocked when gMax is below initialGradient', () => {
+    seedModelState.seedUsd = 2000
+
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('intervalWeeks', 4)
+      result.current.setVrField('bandWidth', 15)
+      result.current.setVrField('initialGradient', 10)
+      result.current.setVrField('gMax', 5)
+    })
+
+    expect(result.current.cannotSubmit).toBe(true)
+    expect(result.current.submitDisabledReason).toBe('gradient 상한은 초기값 이상이어야 합니다.')
+  })
+
+  it('VR create is blocked when an active gradient ramp has gMax below the derived initial value', () => {
+    seedModelState.seedUsd = 2000
+
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('intervalWeeks', 4)
+      result.current.setVrField('bandWidth', 15)
+      result.current.setVrField('initialGradient', null)
+      result.current.setVrField('gStepWeeks', 26)
+      result.current.setVrField('gMax', 5)
+    })
+
+    expect(result.current.cannotSubmit).toBe(true)
+    expect(result.current.submitDisabledReason).toBe('gradient 상한은 초기값 이상이어야 합니다.')
+  })
+
+  it('VR create submits gradient ramp disabled values when gStepWeeks is zero', async () => {
+    seedModelState.seedUsd = 2000
+
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('intervalWeeks', 4)
+      result.current.setVrField('bandWidth', 15)
+      result.current.setVrField('initialGradient', 10)
+      result.current.setVrField('gStepWeeks', 0)
+      result.current.setVrField('gMax', 0)
+      result.current.setVrField('gGraceWeeks', 0)
+    })
+
+    expect(result.current.cannotSubmit).toBe(false)
+
+    await act(async () => {
+      result.current.handleSubmit({ preventDefault() {} } as React.FormEvent)
+    })
+
+    await waitFor(() => {
+      expect(mockCreateMutate).toHaveBeenCalledWith(expect.objectContaining({
+        gStepWeeks: 0,
+        gMax: 0,
+        gGraceWeeks: 0,
+      }))
+    })
+  })
+
+  it('shows a validation reason when the resolver rejects an otherwise unblocked submit', async () => {
+    seedModelState.seedUsd = 2000
+
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('intervalWeeks', 4)
+      result.current.setVrField('bandWidth', 15)
+      result.current.setVrField('gStepWeeks', 1.5)
+    })
+
+    expect(result.current.cannotSubmit).toBe(false)
+
+    await act(async () => {
+      result.current.handleSubmit({ preventDefault() {} } as React.FormEvent)
+    })
+
+    await waitFor(() => {
+      expect(result.current.submitDisabledReason).toBe('입력값을 다시 확인해 주세요.')
+    })
+    expect(mockCreateMutate).not.toHaveBeenCalled()
+  })
+
   it('VR accumulation create allows zero initial value and zero seed', async () => {
     seedModelState.seedUsd = 0
     seedModelState.isInvalidSeed = true

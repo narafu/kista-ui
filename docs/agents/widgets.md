@@ -19,6 +19,7 @@ widget 슬라이스끼리 cross-import 금지. **단, "공용 UI 위젯" 목록(
 ## shadcn / UI 컴포넌트
 
 - **shadcn v4**: `asChild` 대신 `cn(buttonVariants({ variant, size }))` 패턴 사용
+- **Base UI Select**: `items` prop을 사용할 때 각 항목에 `value`와 표시용 `label` 메타데이터를 함께 제공한다
 - **AlertDialog**: `open`/`onOpenChange` 직접 제어 필요. `AlertDialogTrigger`에 `disabled` prop 없음 → `className`에 `opacity-40 pointer-events-none`
 - **disabled 버튼 툴팁**: wrapper `div` + `group-hover` 패턴 사용
 - **vaul Drawer**: `direction="bottom"`, 내부 스크롤 래퍼 필요
@@ -56,7 +57,7 @@ widget 슬라이스끼리 cross-import 금지. **단, "공용 UI 위젯" 목록(
 - **`accounts-grid`**: `/accounts` 페이지는 Server Component에서 계좌/계좌별 전략을 prefetch+hydrate하고, `AccountsPageContent`가 `useAccountsQuery()` 캐시 기준으로 EmptyState/`AccountsGrid`를 전환한다. `AccountsGrid`는 `accounts`만 받고 각 `AccountCard`가 canonical 계좌별 전략 query를 소비한다
 - **`dashboard`**: `/dashboard` 페이지는 계좌 목록을 prefetch+hydrate하고, `DashboardContent`가 `useAccountsQuery()` 캐시 기준으로 `DashboardEmpty`/`DashboardOverview`를 전환한다
 - **`cycle-history`**: 계좌/전략 양쪽에서 공유
-- **`strategy-detail`**: `useStrategyOrderPreviewQuery(strategyId)` 사용, 분할/리버스모드 배지 규칙 고정. VR은 `strategy.vr` 존재 여부로 운용 방식(적립식/거치식/인출식 + 금액), 밴드 폭, 주기, G, V, pool(현재 시작금액), pool 상한을 표시한다. `divisionCounts.length === 0`을 PRIVACY로 단정하지 않는다. `isScheduledStart(strategy)`가 true(시작예정일이 미래)면 상태 배지 그룹에 "N월 N일 시작예정" 배지(`--info`/`--info-bg` 토큰) 추가
+- **`strategy-detail`**: `useStrategyOrderPreviewQuery(strategyId)` 사용, 분할/리버스모드 배지 규칙 고정. VR은 `strategy.vr` 존재 여부로 운용 방식(적립식/거치식/인출식 + 금액), 밴드 폭, 주기, G, V, pool(현재 시작금액), pool 상한을 표시한다. `divisionCounts.length === 0`을 PRIVACY로 단정하지 않는다. `isScheduledStart(strategy)`가 true(시작예정일이 미래)면 상태 배지 그룹에 "N월 N일 시작예정" 배지(`--info`/`--info-bg` 토큰) 추가. 주문 내역의 방향·유형·상태 Select는 모바일에서 동일 너비 3열, PC에서 한 행으로 배치해 가로 넘침을 만들지 않는다. 필터는 기간 조회 결과에 AND 조건으로 적용한 뒤 페이지네이션하며, 필터 변경 시 1페이지로 초기화하고 원본 주문 없음과 필터 결과 없음을 서로 다른 빈 상태로 표시한다
 - **`strategy-card`**: VR은 분할 배지 대신 compact `V $3,000.00` 형식의 배지를 표시한다. 왼쪽 변은 전략 활성 상태 색상, 위/오른쪽/아래 변은 당일 PLANNED 주문(녹색) 또는 예수금 부족(장 개시 전 주황, `marketSession=DIRECT` 이후 빨강)을 표시한다. `isScheduledStart(strategy)`면 배지 행(모바일 1행·PC 배지 row)에 "N월 N일 시작예정" 배지 추가 — `AccountCard`의 compact 배지 행에는 넣지 않는다(혼잡 방지)
 - **`kpi-card`**: `<KpiCard />` 그리드 패턴 유지
 - **`revealable-value`**: 마스킹 값 공개 토글

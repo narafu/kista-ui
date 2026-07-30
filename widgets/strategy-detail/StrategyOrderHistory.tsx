@@ -14,6 +14,7 @@ import { fmtUsd } from '@shared/lib/format'
 import { toNum } from '@shared/lib/utils'
 import { resolveRangeStrict } from '@shared/lib/date-range'
 import { useRangeFilterState } from '@shared/lib/hooks/use-range-filter-state'
+import { ALL_FILTER_VALUE, OrderHistoryFilters, type OrderHistoryFilterValue } from './OrderHistoryFilters'
 
 interface Props {
   strategyId: string
@@ -22,15 +23,23 @@ interface Props {
 export function StrategyOrderHistory({ strategyId }: Props) {
   const { rangeType, customFrom, customTo, pageSize, setRangeType, setCustomFrom, setCustomTo, setPageSize } = useRangeFilterState()
   const [page, setPage] = useState(1)
+  const [directionFilter, setDirectionFilter] = useState<OrderHistoryFilterValue>(ALL_FILTER_VALUE)
+  const [orderTypeFilter, setOrderTypeFilter] = useState<OrderHistoryFilterValue>(ALL_FILTER_VALUE)
+  const [statusFilter, setStatusFilter] = useState<OrderHistoryFilterValue>(ALL_FILTER_VALUE)
   // 기간/커스텀 날짜/페이지 크기 변경 시 페이지를 1로 리셋 (기존 로컬 reducer 동작 재현)
-  useEffect(() => setPage(1), [rangeType, customFrom, customTo, pageSize])
+  useEffect(() => setPage(1), [rangeType, customFrom, customTo, pageSize, directionFilter, orderTypeFilter, statusFilter])
 
   const range = resolveRangeStrict(rangeType, customFrom, customTo)
   const { data: orders = [], isLoading, isError, error } = useStrategyOrdersQuery(strategyId, range?.from, range?.to, { enabled: range !== null })
 
   const size = Number(pageSize)
-  const totalPages = Math.ceil(orders.length / size)
-  const pageOrders = orders.slice((page - 1) * size, page * size)
+  const filteredOrders = orders.filter((order) =>
+    (directionFilter === ALL_FILTER_VALUE || order.direction === directionFilter) &&
+    (orderTypeFilter === ALL_FILTER_VALUE || order.orderType === orderTypeFilter) &&
+    (statusFilter === ALL_FILTER_VALUE || order.status === statusFilter)
+  )
+  const totalPages = Math.ceil(filteredOrders.length / size)
+  const pageOrders = filteredOrders.slice((page - 1) * size, page * size)
 
   return (
     <Card className="overflow-hidden">
@@ -46,7 +55,27 @@ export function StrategyOrderHistory({ strategyId }: Props) {
             customTo={customTo}
             onCustomFromChange={setCustomFrom}
             onCustomToChange={setCustomTo}
+            extraFilters={
+              <OrderHistoryFilters
+                direction={directionFilter}
+                orderType={orderTypeFilter}
+                status={statusFilter}
+                onDirectionChange={setDirectionFilter}
+                onOrderTypeChange={setOrderTypeFilter}
+                onStatusChange={setStatusFilter}
+              />
+            }
           />
+          <div className="lg:hidden">
+            <OrderHistoryFilters
+              direction={directionFilter}
+              orderType={orderTypeFilter}
+              status={statusFilter}
+              onDirectionChange={setDirectionFilter}
+              onOrderTypeChange={setOrderTypeFilter}
+              onStatusChange={setStatusFilter}
+            />
+          </div>
         </div>
       </CardHeader>
       <CardContent className="p-0">
@@ -56,6 +85,8 @@ export function StrategyOrderHistory({ strategyId }: Props) {
           <p className="text-sm text-destructive text-center py-8 px-6">주문 내역 조회 실패: {error instanceof Error ? error.message : String(error)}</p>
         ) : orders.length === 0 ? (
           <EmptyState variant="text" message="주문 내역이 없습니다." />
+        ) : filteredOrders.length === 0 ? (
+          <EmptyState variant="text" message="조건에 맞는 주문이 없습니다." />
         ) : (
           <div>
             <div className="overflow-x-auto">

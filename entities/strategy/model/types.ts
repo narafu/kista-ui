@@ -9,8 +9,17 @@ export interface StrategyVrSummary {
   bandWidth: number      // 밴드 폭 (%)
   intervalWeeks: number  // 롤오버 주기 (주)
   recurringAmount: number // 정기 입출금 (USD, 양수=입금 / 0=거치 / 음수=인출)
-  poolLimit: number      // pool 한도
-  gradient: number       // 조정 계수 G
+  poolLimit: number      // pool 한도 (현재 사이클 스냅샷 — 램프 0주차 값은 initialPoolLimitRate)
+  poolLimitRate: number  // pool 한도 비율(0~1, 현재 사이클 스냅샷 — 램프 0주차 값은 initialPoolLimitRate)
+  gradient: number       // 조정 계수 G (현재 사이클 스냅샷 — 램프 0주차 값은 initialGradient)
+  initialGradient: number       // 램프 시작(경과 0주) G값
+  gGraceWeeks: number            // G 램프 시작 전 유예 주수
+  gStepWeeks: number             // G가 1단계 오르는 주기(주)
+  gMax: number                    // G 상한
+  initialPoolLimitRate: number  // 램프 시작(경과 0주) poolLimitRate(0~1 비율)
+  pGraceWeeks: number             // poolLimitRate 램프 시작 전 유예 주수
+  pStepWeeks: number              // poolLimitRate가 5%p 내려가는 주기(주)
+  poolLimitFloor: number          // poolLimitRate 하한(0~1)
 }
 
 export interface Strategy {
@@ -40,6 +49,14 @@ export interface StrategyRequest {
   intervalWeeks?: number      // VR 전용: 롤오버 주기 (주)
   bandWidth?: number          // VR 전용: 밴드 폭 (%)
   recurringAmount?: number    // VR 전용: 정기 입출금 (USD)
+  initialGradient?: number       // VR 전용: 램프 시작(경과 0주) G값
+  gGraceWeeks?: number            // VR 전용: G 램프 시작 전 유예 주수
+  gStepWeeks?: number             // VR 전용: G가 1단계 오르는 주기(주)
+  gMax?: number                    // VR 전용: G 상한
+  initialPoolLimitRate?: number  // VR 전용: 램프 시작(경과 0주) poolLimitRate(0~1 비율)
+  pGraceWeeks?: number             // VR 전용: poolLimitRate 램프 시작 전 유예 주수
+  pStepWeeks?: number              // VR 전용: poolLimitRate가 5%p 내려가는 주기(주)
+  poolLimitFloor?: number          // VR 전용: poolLimitRate 하한(0~1)
   scheduledStartDate?: string // 시작예정일 (yyyy-MM-dd) — 세 전략 공통, 등록 전용, 미전송 시 오늘 시작
 }
 
@@ -48,4 +65,24 @@ export interface StrategySeedPreview {
   basePrice: number | null
   minSeed: number | null
   skipReason: string | null
+}
+
+// VR 전략 운영 중 재설정 — PUT /api/trading-cycles/{id}/vr-config 요청 바디, 16필드 전부 optional
+export interface ReconfigureVrRequest {
+  bandWidth?: number
+  intervalWeeks?: number
+  recurringAmount?: number
+  initialGradient?: number
+  gGraceWeeks?: number
+  gStepWeeks?: number
+  gMax?: number
+  initialPoolLimitRate?: number
+  pGraceWeeks?: number
+  pStepWeeks?: number
+  poolLimitFloor?: number
+  injectShares?: number
+  injectSharePrice?: number
+  injectDeposit?: number
+  withdrawShares?: number
+  withdrawDeposit?: number
 }

@@ -20,6 +20,12 @@ describe('RouteModal', () => {
     expect(dialog).toHaveAttribute('aria-modal', 'true')
   })
 
+  it('allows vertical touch panning on the mobile scroll container', () => {
+    render(<RouteModal><p>content</p></RouteModal>)
+
+    expect(screen.getByRole('dialog').parentElement).toHaveClass('touch-pan-y')
+  })
+
   it('closes on Escape keydown', () => {
     render(<RouteModal><p>content</p></RouteModal>)
 

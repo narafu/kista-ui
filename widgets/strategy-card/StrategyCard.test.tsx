@@ -118,7 +118,23 @@ describe('StrategyCard mobile row', () => {
         ticker: 'TQQQ',
         divisionCount: undefined,
         currentRound: undefined,
-        vr: { value: 3000, bandWidth: 15, intervalWeeks: 4, recurringAmount: 0, poolLimit: 1000, gradient: 10 },
+        vr: {
+          value: 3000,
+          bandWidth: 15,
+          intervalWeeks: 4,
+          recurringAmount: 0,
+          poolLimit: 1000,
+          poolLimitRate: 0.5,
+          gradient: 10,
+          initialGradient: 10,
+          gGraceWeeks: 52,
+          gStepWeeks: 26,
+          gMax: 20,
+          initialPoolLimitRate: 0.5,
+          pGraceWeeks: 52,
+          pStepWeeks: 26,
+          poolLimitFloor: 0.3,
+        },
       }}
     />)
 
@@ -137,7 +153,23 @@ describe('StrategyCard mobile row', () => {
         ticker: 'TQQQ',
         divisionCount: undefined,
         currentRound: undefined,
-        vr: { value: 3000, bandWidth: 15, intervalWeeks: 4, recurringAmount: 0, poolLimit: 1000, gradient: 10 },
+        vr: {
+          value: 3000,
+          bandWidth: 15,
+          intervalWeeks: 4,
+          recurringAmount: 0,
+          poolLimit: 1000,
+          poolLimitRate: 0.5,
+          gradient: 10,
+          initialGradient: 10,
+          gGraceWeeks: 52,
+          gStepWeeks: 26,
+          gMax: 20,
+          initialPoolLimitRate: 0.5,
+          pGraceWeeks: 52,
+          pStepWeeks: 26,
+          poolLimitFloor: 0.3,
+        },
       }}
     />)
 

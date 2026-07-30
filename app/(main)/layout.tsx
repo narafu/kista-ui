@@ -2,7 +2,7 @@ import { DesktopSidebar } from '@widgets/layout/DesktopSidebar'
 import { MobileBottomNav } from '@widgets/layout/MobileBottomNav'
 import { MobileHeader } from '@widgets/layout/MobileHeader'
 import { MetaProvider } from '@entities/meta'
-import { FcmAutoRegister } from '@entities/fcm'
+import { FcmAutoRegister, FcmForegroundListener } from '@entities/fcm'
 import { PullToRefresh } from '@widgets/pull-to-refresh'
 import { TradeNotificationProvider } from '@entities/trade'
 import { getMetaBundle } from '@entities/meta'
@@ -64,6 +64,9 @@ export default async function MainLayout({ children, modal }: Props) {
           <MobileBottomNav />
         </div>
         {isAuthenticated && <FcmAutoRegister notificationChannel={user?.notificationChannel ?? 'TELEGRAM'} />}
+        {isAuthenticated && (
+          <FcmForegroundListener enabled={user?.notificationChannel === 'FCM' || user?.notificationChannel === 'ALL'} />
+        )}
         <TradeNotificationProvider />
         {modal}
       </div>

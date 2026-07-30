@@ -8,13 +8,14 @@ import { upsertById, synchronizeListQueries } from '@shared/lib/query'
 import {
   createStrategy,
   updateStrategy,
+  reconfigureVr,
   deleteStrategy,
   pauseStrategy,
   resumeStrategy,
   executeStrategy,
   getStrategySeedPreview,
 } from '../api'
-import type { Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
+import type { ReconfigureVrRequest, Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
 import { strategyKeys } from '../model/queryKeys'
 import {
   strategyDetailQueryOptions,
@@ -98,6 +99,20 @@ export function useUpdateStrategyMutation(strategyId: string, onSuccess?: () => 
       return onSuccess?.()
     },
     onError: (err) => toast.error(apiMsg(err, '저장에 실패했습니다')),
+  })
+}
+
+export function useReconfigureVrMutation(strategyId: string, onSuccess?: () => void | Promise<void>) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: ReconfigureVrRequest) => reconfigureVr(strategyId, data),
+    onSuccess: async (saved) => {
+      toast.success('VR 전략이 재설정되었습니다')
+      queryClient.setQueryData(strategyKeys.detail(saved.id), saved)
+      await synchronizeStrategyLists(queryClient, saved.accountId, (strategies) => upsertById(strategies, saved))
+      return onSuccess?.()
+    },
+    onError: (err) => toast.error(apiMsg(err, '재설정에 실패했습니다')),
   })
 }
 

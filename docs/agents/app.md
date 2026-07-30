@@ -41,7 +41,7 @@ UI 캐시 소유권, hydration, mutation 동기화, `router.refresh()` 예외는
 - **next-themes hydration**: `useTheme()`의 `resolvedTheme`은 SSR에서 `undefined`. `const [mounted, setMounted] = useState(false)` + `useEffect(() => setMounted(true), [])` → `mounted && resolvedTheme === 'dark'`
 - **Next.js Image + Tailwind preflight**: `img { height: auto }` preflight + 비정사각형 이미지를 정사각형으로 지정 시 경고. 해결: `<Image>` 컴포넌트 `style` prop에 `height: N, width: N` 직접 명시
 - **`loading.tsx`**: `app/(main)/dashboard|accounts|strategies|settings/loading.tsx` — `animate-pulse` + 실제 레이아웃을 모방한 skeleton
-- **인터셉팅 라우트 모달**: `app/(main)/@modal`(parallel route) + `default.tsx`(`null` 반환)로 `(main)/layout.tsx`가 `modal` prop을 받아 렌더링한다. `(.)accounts/[id]/strategies/new`처럼 `@modal` 기준 상대 경로로 실제 라우트를 인터셉트 — 앱 내부 클라이언트 네비게이션(Link/router.push)에서만 가로채지고, 새로고침·직접 진입은 일반 `page.tsx`가 렌더링된다. `shared/ui/RouteModal.tsx`가 PC(`sm:`)는 배경 위 모달, 모바일은 일반 페이지와 동일한 전체화면으로 반응형 렌더링하며 닫기(X·배경 클릭)는 `router.back()`을 쓴다 — 일반 `page.tsx`와 인터셉트된 `@modal` 버전 양쪽에 동일 콘텐츠를 유지해야 하므로 폼 컴포넌트에 `dismiss`류 prop으로 종료 방식(`push`/`back`)을 분기한다. `strategy/create-strategy` 참고
+- **인터셉팅 라우트 모달**: `app/(main)/@modal`(parallel route) + `default.tsx`(`null` 반환)로 `(main)/layout.tsx`가 `modal` prop을 받아 렌더링한다. `(.)accounts/[id]/strategies/new`처럼 `@modal` 기준 상대 경로로 실제 라우트를 인터셉트 — 앱 내부 클라이언트 네비게이션(Link/router.push)에서만 가로채지고, 새로고침·직접 진입은 일반 `page.tsx`가 렌더링된다. `shared/ui/RouteModal.tsx`가 PC(`sm:`)는 배경 위 모달, 모바일은 일반 페이지와 동일한 전체화면으로 반응형 렌더링하며 모바일 스크롤 컨테이너에는 `touch-pan-y`를 유지한다. 닫기(X·배경 클릭)는 `router.back()`을 쓴다 — 일반 `page.tsx`와 인터셉트된 `@modal` 버전 양쪽에 동일 콘텐츠를 유지해야 하므로 폼 컴포넌트에 `dismiss`류 prop으로 종료 방식(`push`/`back`)을 분기한다. `strategy/create-strategy` 참고
 
 ## 캐싱 (Server Component)
 
@@ -59,4 +59,5 @@ UI 캐시 소유권, hydration, mutation 동기화, `router.refresh()` 예외는
 - **PWA 구성**: `app/manifest.ts` + `app/layout.tsx` metadata에 `manifest`/`icons.apple`/`appleWebApp`. 아이콘: `public/icon-192.png`, `icon-512.png`, `apple-touch-icon.png`
 - **`firebase-messaging-sw.js` git 추적 필수**: git에 없으면 Vercel 배포 후 404 → FCM 토큰 발급 불가. 로컬 크롬 캐시로 눈에 안 띔
 - **FCM 자동 토큰 등록**: `entities/fcm/providers/FcmAutoRegister.tsx` — `(main)/layout.tsx`에 마운트. 알림 채널이 FCM/ALL + 권한 granted인 기기에서 자동 등록. `getToken()` 멱등
+- **FCM foreground 알림**: `entities/fcm/providers/FcmForegroundListener.tsx` — `(main)/layout.tsx`에 마운트. 알림 채널이 FCM/ALL인 경우 `onMessage()`를 구독하고, 권한이 granted이면 서비스 워커의 `showNotification()`으로 표시
 - **PENDING 사용자 API 접근**: kista-api SettingsController는 UserStatus 미검증 → PENDING 상태도 `/api/settings/telegram` 호출 가능

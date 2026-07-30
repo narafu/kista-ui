@@ -9,6 +9,7 @@ import {
   useCreateStrategyMutation,
   useDeleteStrategyMutation,
   usePauseStrategyMutation,
+  useReconfigureVrMutation,
   useResumeStrategyMutation,
   useUpdateStrategyMutation,
 } from './useStrategyQueries'
@@ -18,6 +19,7 @@ const {
   listStrategiesMock,
   createStrategyMock,
   updateStrategyMock,
+  reconfigureVrMock,
   deleteStrategyMock,
   pauseStrategyMock,
   resumeStrategyMock,
@@ -26,6 +28,7 @@ const {
   listStrategiesMock: vi.fn(),
   createStrategyMock: vi.fn(),
   updateStrategyMock: vi.fn(),
+  reconfigureVrMock: vi.fn(),
   deleteStrategyMock: vi.fn(),
   pauseStrategyMock: vi.fn(),
   resumeStrategyMock: vi.fn(),
@@ -36,15 +39,12 @@ vi.mock('../api', () => ({
   listStrategies: listStrategiesMock,
   createStrategy: createStrategyMock,
   updateStrategy: updateStrategyMock,
+  reconfigureVr: reconfigureVrMock,
   deleteStrategy: deleteStrategyMock,
   pauseStrategy: pauseStrategyMock,
   resumeStrategy: resumeStrategyMock,
   executeStrategy: vi.fn(),
   getStrategySeedPreview: vi.fn(),
-}))
-
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ refresh: vi.fn() }),
 }))
 
 const strategyA: Strategy = {
@@ -234,6 +234,25 @@ describe('strategy mutations', () => {
     expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([paused, strategyB, strategyOtherAccount])
     expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([paused, strategyB])
     expect(queryClient.getQueryData(strategyKeys.detail(strategyA.id))).toEqual(paused)
+  })
+
+  it('replaces the reconfigured strategy in both lists and calls onSuccess', async () => {
+    const queryClient = createTestQueryClient()
+    const reconfigured = { ...strategyA, vr: { value: 5000 } } as unknown as Strategy
+    seedStrategyLists(queryClient, [strategyA, strategyB])
+    reconfigureVrMock.mockResolvedValue(reconfigured)
+    const callback = vi.fn()
+
+    const { result } = renderHook(() => useReconfigureVrMutation(strategyA.id, callback), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    await result.current.mutateAsync({})
+
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([reconfigured, strategyB])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([reconfigured, strategyB])
+    expect(queryClient.getQueryData(strategyKeys.detail(strategyA.id))).toEqual(reconfigured)
+    expect(callback).toHaveBeenCalledOnce()
   })
 
   it('materializes every remaining strategy after a cold delete', async () => {

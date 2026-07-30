@@ -36,6 +36,14 @@ describe('VrSettingsSection', () => {
     intervalWeeks: 2,
     bandWidth: 15,
     recurringAmount: 0,
+    initialGradient: null,
+    gGraceWeeks: null,
+    gStepWeeks: null,
+    gMax: null,
+    initialPoolLimitRate: null,
+    pGraceWeeks: null,
+    pStepWeeks: null,
+    poolLimitFloor: null,
   }
 
   beforeEach(() => {
@@ -155,7 +163,7 @@ describe('VrSettingsSection', () => {
       expect(screen.getByRole('button', { name: '- 인출' })).toBeDisabled()
     })
 
-    it('shows read-only initial V value and disables all inputs when isEdit is true', () => {
+    it('shows read-only initial V value and disables recurring inputs when isEdit is true', () => {
       render(
         <VrSettingsSection
           fields={baseFields}
@@ -166,8 +174,6 @@ describe('VrSettingsSection', () => {
       )
 
       const initialValueInput = getInputByLabelText('초기 V값') as HTMLInputElement
-      const intervalButton = screen.getByRole('button', { name: '2주' }) as HTMLButtonElement
-      const bandWidthButton = screen.getByRole('button', { name: '15%' }) as HTMLButtonElement
       const recurringInput = getInputByLabelText('적립금(+)/인출금(-)') as HTMLInputElement
       const depositButton = screen.getByRole('button', { name: '+ 적립' }) as HTMLButtonElement
       const holdButton = screen.getByRole('button', { name: '거치' }) as HTMLButtonElement
@@ -175,14 +181,13 @@ describe('VrSettingsSection', () => {
 
       expect(initialValueInput.value).toBe('3000')
       expect(initialValueInput.disabled).toBe(true)
-      expect(intervalButton.disabled).toBe(true)
-      expect(bandWidthButton.disabled).toBe(true)
       expect(recurringInput.disabled).toBe(true)
       expect(depositButton.disabled).toBe(true)
       expect(holdButton.disabled).toBe(true)
       expect(withdrawalButton.disabled).toBe(true)
 
-      expect(screen.getByText('VR 상세 설정은 등록 후 변경할 수 없습니다.')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: '2주' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: '15%' })).not.toBeInTheDocument()
     })
 
     it('does not render the read-only initial V value input in create mode', () => {
@@ -276,6 +281,70 @@ describe('VrSettingsSection', () => {
 
       expect(mockSetField).toHaveBeenCalledWith('bandWidth', 20)
       expect(mockSetField).toHaveBeenCalledWith('intervalWeeks', 4)
+    })
+  })
+
+  describe('advanced ramp settings (registration only)', () => {
+    it('renders the collapsible advanced section in create mode', () => {
+      render(<VrSettingsSection fields={baseFields} {...baseProps} isEdit={false} />)
+      expect(screen.getByText('고급 설정')).toBeInTheDocument()
+    })
+
+    it('does not render the advanced section in edit mode', () => {
+      render(<VrSettingsSection fields={baseFields} {...baseProps} isEdit={true} initialVrValue={3000} />)
+      expect(screen.queryByText('고급 설정')).not.toBeInTheDocument()
+    })
+
+    it('updates a ramp field through setField', () => {
+      render(<VrSettingsSection fields={baseFields} {...baseProps} isEdit={false} />)
+      const input = getInputByLabelText('초기 gradient(G)')
+      fireEvent.change(input, { target: { value: '10' } })
+      expect(mockSetField).toHaveBeenCalledWith('initialGradient', 10)
+    })
+
+    it('gradient 단계주기를 0으로 바꾸면 상한과 유예를 0으로 강제한다', () => {
+      render(
+        <VrSettingsSection
+          fields={{ ...baseFields, gStepWeeks: 26, gMax: 20, gGraceWeeks: 52 }}
+          {...baseProps}
+          isEdit={false}
+        />,
+      )
+
+      fireEvent.change(getInputByLabelText('gradient 단계주기(주)'), { target: { value: '0' } })
+
+      expect(mockSetField).toHaveBeenCalledWith('gStepWeeks', 0)
+      expect(mockSetField).toHaveBeenCalledWith('gMax', 0)
+      expect(mockSetField).toHaveBeenCalledWith('gGraceWeeks', 0)
+    })
+
+    it('gradient 단계주기가 0이면 상한과 유예를 비활성화한다', () => {
+      render(
+        <VrSettingsSection
+          fields={{ ...baseFields, gStepWeeks: 0, gMax: 0, gGraceWeeks: 0 }}
+          {...baseProps}
+          isEdit={false}
+        />,
+      )
+
+      expect(getInputByLabelText('gradient 상한')).toBeDisabled()
+      expect(getInputByLabelText('gradient 유예(주)')).toBeDisabled()
+    })
+
+    it('gradient 단계주기를 0에서 다시 활성화하면 상한과 유예를 비운다', () => {
+      render(
+        <VrSettingsSection
+          fields={{ ...baseFields, gStepWeeks: 0, gMax: 0, gGraceWeeks: 0 }}
+          {...baseProps}
+          isEdit={false}
+        />,
+      )
+
+      fireEvent.change(getInputByLabelText('gradient 단계주기(주)'), { target: { value: '26' } })
+
+      expect(mockSetField).toHaveBeenCalledWith('gStepWeeks', 26)
+      expect(mockSetField).toHaveBeenCalledWith('gMax', null)
+      expect(mockSetField).toHaveBeenCalledWith('gGraceWeeks', null)
     })
   })
 })

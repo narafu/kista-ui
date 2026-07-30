@@ -85,7 +85,6 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
           quantity={form.vrFields.quantity}
           setField={form.setVrField}
           loading={form.loading}
-          isVr={form.isVr}
         />
       )}
 
@@ -140,7 +139,7 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
         />
       )}
 
-      {form.cannotSubmit && form.submitDisabledReason && (
+      {form.submitDisabledReason && (
         <p className="text-sm font-semibold text-[var(--warn)] py-3">
           {form.submitDisabledReason}
         </p>

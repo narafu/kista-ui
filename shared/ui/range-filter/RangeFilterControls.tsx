@@ -15,6 +15,8 @@ interface Props {
   customTo: string
   onCustomFromChange: (v: string) => void
   onCustomToChange: (v: string) => void
+  /** lg 이상에서 기간 프리셋 버튼 옆(건수 앞)에 표시할 추가 필터 (예: 방향/유형/상태 Select) */
+  extraFilters?: React.ReactNode
 }
 
 export function RangeFilterControls({
@@ -26,23 +28,27 @@ export function RangeFilterControls({
   customTo,
   onCustomFromChange,
   onCustomToChange,
+  extraFilters,
 }: Props) {
   return (
     <>
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex gap-0.5 rounded-lg bg-muted p-1">
-          {(['7d', '30d', 'all', 'custom'] as RangePreset[]).map((r) => (
-            <button
-              key={r}
-              type="button"
-              onClick={() => onRangeChange(r)}
-              className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-all whitespace-nowrap ${
-                rangeType === r ? 'bg-background text-rose-600 shadow-sm' : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {RANGE_LABELS[r]}
-            </button>
-          ))}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex gap-0.5 rounded-lg bg-muted p-1">
+            {(['7d', '30d', 'all', 'custom'] as RangePreset[]).map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => onRangeChange(r)}
+                className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-all whitespace-nowrap ${
+                  rangeType === r ? 'bg-background text-rose-600 shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {RANGE_LABELS[r]}
+              </button>
+            ))}
+          </div>
+          {extraFilters && <div className="hidden lg:block">{extraFilters}</div>}
         </div>
         <PageSizeSelector value={pageSize} onChange={onPageSizeChange} />
       </div>

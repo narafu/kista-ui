@@ -83,7 +83,7 @@ export function UnitInput({
         disabled={disabled}
         placeholder={placeholder}
         maxLength={20}
-        className="flex-1 min-w-0 border-0 bg-transparent text-right text-base font-semibold outline-none disabled:text-muted-foreground"
+        className="flex-1 min-w-0 border-0 bg-transparent text-right text-base font-semibold outline-none disabled:pointer-events-none disabled:text-muted-foreground"
       />
       <span className={cn('text-xs font-semibold text-muted-foreground', unitClassName)}>{unit}</span>
     </div>

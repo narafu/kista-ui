@@ -1,6 +1,6 @@
 import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
-import type { CycleSeedType, Strategy, StrategyRequest, StrategySeedPreview, StrategyVrSummary } from '../model/types'
+import type { CycleSeedType, ReconfigureVrRequest, Strategy, StrategyRequest, StrategySeedPreview, StrategyVrSummary } from '../model/types'
 import type { PlacedOrder } from '@shared/model/placed-order'
 
 // VR 요약 숫자 문자열 → number 변환
@@ -13,7 +13,16 @@ function normalizeVrSummary(raw: unknown): StrategyVrSummary | undefined {
     intervalWeeks: Number(v.intervalWeeks),
     recurringAmount: Number(v.recurringAmount ?? 0),
     poolLimit: toNum(v.poolLimit),
+    poolLimitRate: toNum(v.poolLimitRate),
     gradient: Number(v.gradient),
+    initialGradient: Number(v.initialGradient),
+    gGraceWeeks: Number(v.gGraceWeeks),
+    gStepWeeks: Number(v.gStepWeeks),
+    gMax: Number(v.gMax),
+    initialPoolLimitRate: toNum(v.initialPoolLimitRate),
+    pGraceWeeks: Number(v.pGraceWeeks),
+    pStepWeeks: Number(v.pStepWeeks),
+    poolLimitFloor: toNum(v.poolLimitFloor),
   }
 }
 
@@ -53,6 +62,11 @@ export async function createStrategy(accountId: string, data: StrategyRequest, t
 
 export async function updateStrategy(id: string, data: Partial<StrategyRequest>, token?: string): Promise<Strategy> {
   const raw = await fetchEither<unknown>(`/api/trading-cycles/${id}`, jsonBody('PUT', data), token)
+  return normalizeStrategy(raw)
+}
+
+export async function reconfigureVr(id: string, data: ReconfigureVrRequest, token?: string): Promise<Strategy> {
+  const raw = await fetchEither<unknown>(`/api/trading-cycles/${id}/vr-config`, jsonBody('PUT', data), token)
   return normalizeStrategy(raw)
 }
 

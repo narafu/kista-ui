@@ -125,4 +125,94 @@ describe('strategyFormSchema', () => {
 
     expect(result.success).toBe(false)
   })
+
+  it('VR 램프 8필드가 유효한 범위면 파싱 성공', () => {
+    const result = strategyFormSchema.safeParse({
+      type: 'VR',
+      ticker: 'TQQQ',
+      autoStart: false,
+      seedMode: 'KEEP',
+      divisionCount: 20,
+      recurringMode: 'HOLD',
+      initialGradient: 10,
+      gGraceWeeks: 52,
+      gStepWeeks: 26,
+      gMax: 20,
+      initialPoolLimitRate: 0.75,
+      pGraceWeeks: 52,
+      pStepWeeks: 26,
+      poolLimitFloor: 0.5,
+    })
+
+    expect(result.success).toBe(true)
+  })
+
+  it('램프 8필드를 생략해도 파싱 성공 (전부 optional)', () => {
+    const result = strategyFormSchema.safeParse(valid)
+    expect(result.success).toBe(true)
+  })
+
+  it('initialGradient가 0 이하면 실패', () => {
+    const result = strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', initialGradient: 0 })
+    expect(result.success).toBe(false)
+  })
+
+  it('gGraceWeeks가 음수면 실패', () => {
+    const result = strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', gGraceWeeks: -1 })
+    expect(result.success).toBe(false)
+  })
+
+  it('initialPoolLimitRate가 1을 초과하면 실패', () => {
+    const result = strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', initialPoolLimitRate: 1.5 })
+    expect(result.success).toBe(false)
+  })
+
+  it('poolLimitFloor가 0이면 파싱 성공 (pStepWeeks=0 램프 비활성화 시 허용 — "0이 아니면 하한>0 필수" 업무 규칙은 useStrategyForm에서 검증)', () => {
+    const result = strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', poolLimitFloor: 0 })
+    expect(result.success).toBe(true)
+  })
+
+  it('poolLimitFloor가 음수면 실패', () => {
+    const result = strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', poolLimitFloor: -0.1 })
+    expect(result.success).toBe(false)
+  })
+
+  it('pStepWeeks가 0이면 파싱 성공 (poolLimitRate 램프 비활성화)', () => {
+    const result = strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', pStepWeeks: 0 })
+    expect(result.success).toBe(true)
+  })
+
+  it('gStepWeeks가 0이면 gradient 상한과 유예 0을 허용한다', () => {
+    const result = strategyFormSchema.safeParse({
+      ...valid,
+      type: 'VR',
+      ticker: 'TQQQ',
+      gStepWeeks: 0,
+      gMax: 0,
+      gGraceWeeks: 0,
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('gradient 램프가 활성화되어 있으면 gMax가 파생 초기값보다 작은 값을 거부한다', () => {
+    const result = strategyFormSchema.safeParse({
+      ...valid,
+      type: 'VR',
+      ticker: 'TQQQ',
+      initialGradient: null,
+      gStepWeeks: 26,
+      gMax: 5,
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('pStepWeeks가 음수면 실패', () => {
+    const result = strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', pStepWeeks: -1 })
+    expect(result.success).toBe(false)
+  })
+
+  it('gStepWeeks·pStepWeeks가 소수이면 실패 (정수 제약)', () => {
+    expect(strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', gStepWeeks: 26.5 }).success).toBe(false)
+    expect(strategyFormSchema.safeParse({ ...valid, type: 'VR', ticker: 'TQQQ', pStepWeeks: 26.5 }).success).toBe(false)
+  })
 })

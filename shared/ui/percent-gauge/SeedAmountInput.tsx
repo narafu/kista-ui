@@ -2,6 +2,7 @@
 
 import { cn } from '@shared/lib/utils'
 import { fmtUsd } from '@shared/lib/format'
+import { useDecimalAmountText } from '@shared/lib/hooks/use-decimal-amount-text'
 
 interface Props {
   value: number | null
@@ -13,6 +14,8 @@ interface Props {
 }
 
 export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled, showStatus = true }: Props) {
+  const { text, handleChange } = useDecimalAmountText({ value, onChange })
+
   const shortage =
     deposit !== null && value !== null && value > 0 && deposit < value
       ? value - deposit
@@ -30,18 +33,13 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled, s
         <span className="text-sm font-extrabold text-[var(--rose-600)] mr-1.5">$</span>
         <input
           type="text"
-          inputMode="numeric"
-          pattern="[0-9]*"
+          inputMode="decimal"
           aria-label="예수금 (USD)"
-          value={value !== null ? String(value) : ''}
+          value={text}
           disabled={disabled}
           placeholder="0"
-          maxLength={15}
-          onChange={(e) => {
-            const raw = e.target.value.replace(/[^\d]/g, '')
-            if (raw === '') { onChange(null); return }
-            onChange(Number(raw))
-          }}
+          maxLength={18}
+          onChange={(e) => handleChange(e.target.value)}
           className="flex-1 border-0 outline-none bg-transparent font-extrabold text-foreground text-right min-w-0 text-lg"
         />
         <span className="text-xs font-semibold text-muted-foreground ml-1.5">USD</span>

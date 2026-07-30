@@ -41,12 +41,22 @@ export function StrategyDetailContent({
         eyebrowHref={`/accounts/${accountId}`}
         title={strategy.ticker}
         actions={
-          <Link
-            href={`/accounts/${accountId}/strategies/${strategyId}/edit`}
-            className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}
-          >
-            수정
-          </Link>
+          <>
+            {strategy.vr && (
+              <Link
+                href={`/accounts/${accountId}/strategies/${strategyId}/reconfigure-vr`}
+                className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}
+              >
+                VR 재설정
+              </Link>
+            )}
+            <Link
+              href={`/accounts/${accountId}/strategies/${strategyId}/edit`}
+              className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}
+            >
+              수정
+            </Link>
+          </>
         }
       />
 

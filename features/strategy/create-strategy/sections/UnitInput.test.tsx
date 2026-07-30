@@ -49,4 +49,18 @@ describe('UnitInput', () => {
 
     expect(input.value).toBe('87.50')
   })
+
+  it('lets touch gestures pass through a disabled input to its scroll container', () => {
+    render(
+      <UnitInput
+        value={0}
+        onChange={() => {}}
+        unit="주"
+        disabled={true}
+        ariaLabel="비활성 입력"
+      />,
+    )
+
+    expect(screen.getByLabelText('비활성 입력')).toHaveClass('disabled:pointer-events-none')
+  })
 })
