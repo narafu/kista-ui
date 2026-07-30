@@ -1,6 +1,7 @@
 # entities/ — 도메인 모델 · API 함수 · React Query 훅
 
 FSD 계층에서 가장 저수준 도메인 레이어. `shared/`만 import 가능. 동일 계층 cross-import 금지.
+캐시 소유권과 mutation 동기화의 규범은 `docs/agents/cache-policy.md`를 따른다.
 
 ## 의존성 규칙
 
@@ -23,7 +24,7 @@ entities끼리 직접 참조 금지. 두 도메인을 조합해야 하면 `featu
 | `meta` | 전략 타입/종목 메타데이터 (MetaProvider 포함) |
 | `admin` | 관리자 사용자 목록 조회, 승인/반려, 역할 변경, 강제 탈퇴 |
 | `runtime-config` | 가입 승인, 증권사, 전략 등록 필드, ETF 벤치마크의 런타임 허용값/기본값 조회 |
-| `admin-settings` | 관리자 런타임 설정(가입 승인·증권사·전략 필드·ETF 벤치마크) 전체 조회·갱신 및 저장 후 관련 캐시 무효화 |
+| `admin-settings` | 관리자 런타임 설정(가입 승인·증권사·전략 필드·ETF 벤치마크) 전체 조회·갱신과 canonical 설정 캐시 동기화. cross-domain 저장 후 효과는 feature가 mutation-level callback으로 주입하며 entity lifecycle이 이를 await한다 |
 | `fcm` | FCM 토큰 등록/해제 및 foreground 알림 표시 (`FcmAutoRegister`, `FcmForegroundListener`) |
 | `privacy` | PRIVACY 전략 P 매매표 |
 | `stats` | 전략 수익 통계 요약, 자산 곡선, 사이클 성과 페이지 조회 |
@@ -41,14 +42,15 @@ entities/{domain}/
 
 ## 훅 작성 패턴
 
-- **Server Component prop → initialData**: 서버가 내려준 prop을 `useXxxQuery(id, initialData)`로 연결 — 뮤테이션 후 `invalidateQueries`로 즉시 리페치. `AccountDetailTabs`/`AdminPendingList` 등이 이 패턴 사용.
-- **삭제 후 페이지 이동**: `invalidateQueries` 대신 `removeQueries` 사용 — `invalidateQueries`는 캐시를 만료 표시만 해 이동 후 stale 데이터 잠깐 표시됨. `useDeleteAccountMutation` 참고.
-- Query 훅: `useXxxQuery` — `queryKey`, `queryFn`, 필요 시 `initialData`/`staleTime`
-- Mutation 훅: `useXxxMutation` — `onSuccess`에 `toast.success` + `queryClient.invalidateQueries`, `onError`에 `toast.error` 캡슐화 필수
+- **가변 SSR 데이터**: 요청별 QueryClient에서 prefetch/dehydrate한다. Server Component prop을 query의 canonical `initialData`로 사용하거나 `initialDataUpdatedAt: 0`으로 즉시 stale 처리하지 않는다
+- **삭제 후 캐시 정리**: list는 `setQueryData`로 항목을 제거하고 삭제 identifier의 detail/live key만 `removeQueries`한다. `removeQueries({ queryKey: accountKeys.all })` 같은 broad root 삭제는 금지한다
+- Query 훅: `useXxxQuery` — key factory의 `queryKey`, `queryFn`, 데이터 성격에 맞는 `staleTime`
+- Server/Client 공유 옵션: server-safe `model/queryOptions.ts`의 `xxxQueryOptions(token?)` — Server Component는 token으로 `prefetchQuery`, Client Component는 token 없이 `useQuery`에서 재사용
+- Mutation 훅: `useXxxMutation` — 엔티티 훅은 API 호출과 도메인 캐시 동기화를 캡슐화하고 `onError`에 `toast.error`를 둔다. 성공 toast, 라우팅, 다른 도메인 무효화는 호출 feature의 `mutate(data, { onSuccess })`에서 처리한다
 - 호출부에서 추가 동작이 필요하면 `mutation.mutate(data, { onSuccess: () => callback() })` 패턴 사용
-- **SSR initialData 패턴**: `useMonthlyHolidaysQuery(year, month, holidays)` — `initialData` + `staleTime: 1h`로 마운트 시 재요청 방지
+- **참조 데이터 initialData 예외**: `useMonthlyHolidaysQuery(year, month, holidays)` — 성공적으로 받은 서버 데이터만 `initialData` + `staleTime: 24h`, 미주입/실패 상태는 `staleTime: 0`으로 즉시 조회
 
-**queryKey**: 각 훅에 정의(코드가 SSOT). **캐시 공유 패턴** — 서로 다른 위젯이 동일 서버 데이터를 소비하면, 훅 호출 파라미터를 일치시켜 queryKey를 맞춰 React Query 캐시를 공유(중복 fetch 방지).
+**queryKey**: 각 entity의 `model/queryKeys.ts` factory가 SSOT다. 서로 다른 위젯이 동일 서버 데이터를 소비하면 같은 factory와 파라미터를 사용해 React Query 캐시를 공유한다.
 
 ## index.ts 규칙
 
@@ -74,7 +76,7 @@ import { deleteAccount } from '@entities/account'
 
 ## 주요 도메인별 quirk
 
-- **account**: `accountNo`는 8자리만. `kisAccountType`은 항상 `"01"`. `AccountRequest` 필드명은 `appKey`, `secretKey`
+- **account**: `accountNo`는 8자리만. `kisAccountType`은 항상 `"01"`. `AccountRequest` 필드명은 `appKey`, `secretKey`. 계좌 목록은 `accountListQueryOptions(token?)`/`useAccountsQuery()`와 `accountKeys.list()` 캐시를 SSOT로 사용한다. 생성/수정/삭제 mutation은 완전한 list cache가 있으면 직접 반영하고, list cache가 없으면 canonical list query 전체 조회를 await한다. detail은 생성/수정 시 직접 쓰고 삭제 시 detail/margin/prices를 제거한다
 - **strategy**: 백엔드 이름은 `TradingCycle`. pause/resume은 strategyId 기준. capability는 `StrategyTypeMeta` 필드를 직접 소비하고, 최소 시드는 `useStrategySeedPreviewQuery`를 사용한다. `seedBadgeClass()`를 재사용한다
 - **meta**: `MetaProvider`는 `(main)/layout.tsx`에서만 제공 — `(main)` 밖에서 `useMeta()` 호출 불가. Client는 `useMeta()`의 `findStrategyType(code)`/`findTicker(code)`/`labelOf(category, code)` 사용. `TickerMeta.targetProfitRate`는 `string` 타입
 - **runtime-config**: `useRuntimeConfigQuery()`는 `cache: 'no-store'`, `staleTime: 0`, window focus refetch로 서버 설정을 최신화한다. 신규 계좌는 활성 증권사만, 신규 전략은 활성 타입과 각 필드의 `allowedValues`/`defaultValue`/`customizable`을 사용한다. ETF 벤치마크는 `benchmarks.etf.allowedValues/defaultValue`를 사용하고 서버 값이 없으면 `DEFAULT_RUNTIME_BENCHMARKS`로 보정한다. 수정 화면의 기존 값은 런타임 허용 목록으로 덮어쓰지 않는다

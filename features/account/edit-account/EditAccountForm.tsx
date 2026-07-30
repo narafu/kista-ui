@@ -2,6 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { AlertTriangle } from 'lucide-react'
 import { Spinner } from '@shared/ui/Spinner'
 import { Button } from '@/components/ui/button'
@@ -19,6 +22,10 @@ import {
 } from '@/components/ui/dialog'
 import { cn } from '@shared/lib/utils'
 import { useUpdateAccountMutation, useDeleteAccountMutation } from '@entities/account'
+import { strategyKeys } from '@entities/strategy'
+import { statsKeys } from '@entities/stats'
+import { orderKeys } from '@entities/order'
+import { tradeKeys } from '@entities/trade'
 import type { Account } from '@entities/account'
 
 interface Props {
@@ -30,6 +37,8 @@ export function EditAccountForm({ account }: Props) {
   const [nickname, setNickname] = useState(account.nickname)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
+  const router = useRouter()
+  const queryClient = useQueryClient()
 
   const updateMutation = useUpdateAccountMutation(account.id)
   const deleteMutation = useDeleteAccountMutation(account.id)
@@ -37,12 +46,31 @@ export function EditAccountForm({ account }: Props) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!nickname.trim()) return
-    updateMutation.mutate({ nickname: nickname.trim() })
+    updateMutation.mutate(
+      { nickname: nickname.trim() },
+      {
+        onSuccess: () => {
+          toast.success('계좌가 수정되었습니다')
+          router.push(`/accounts/${account.id}`)
+        },
+      },
+    )
   }
 
   function handleDelete() {
     if (deleteConfirm !== account.nickname) return
-    deleteMutation.mutate()
+    deleteMutation.mutate(undefined, {
+      onSuccess: async () => {
+        toast.success('계좌가 삭제되었습니다')
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: strategyKeys.all }).catch(() => null),
+          queryClient.invalidateQueries({ queryKey: statsKeys.all }).catch(() => null),
+          queryClient.invalidateQueries({ queryKey: orderKeys.all }).catch(() => null),
+          queryClient.invalidateQueries({ queryKey: tradeKeys.all }).catch(() => null),
+        ])
+        router.push('/accounts')
+      },
+    })
   }
 
   const cardClass = 'bg-card rounded-[1.25rem] py-7 px-6 shadow-[var(--sh-card)] border border-border'

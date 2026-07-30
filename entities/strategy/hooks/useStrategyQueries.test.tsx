@@ -1,47 +1,54 @@
-import { renderHook } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { renderHook, waitFor } from '@testing-library/react'
+import type { PropsWithChildren } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+
 import type { Strategy } from '../model/types'
-import { useAllStrategiesQuery, useStrategiesQuery, useUpdateStrategyMutation, useReconfigureVrMutation, useExecuteStrategyMutation } from './useStrategyQueries'
+import { strategyKeys } from '../model/queryKeys'
+import {
+  useCreateStrategyMutation,
+  useDeleteStrategyMutation,
+  usePauseStrategyMutation,
+  useReconfigureVrMutation,
+  useResumeStrategyMutation,
+  useUpdateStrategyMutation,
+} from './useStrategyQueries'
 
-const { useQueryMock } = vi.hoisted(() => ({
-  useQueryMock: vi.fn(),
-}))
-
-vi.mock('@tanstack/react-query', () => ({
-  useQuery: useQueryMock,
-  useMutation: vi.fn(),
-  useQueryClient: vi.fn(),
-}))
-
-vi.mock('sonner', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-  },
-}))
-
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({
-    refresh: vi.fn(),
-  }),
+const {
+  listAllStrategiesMock,
+  listStrategiesMock,
+  createStrategyMock,
+  updateStrategyMock,
+  reconfigureVrMock,
+  deleteStrategyMock,
+  pauseStrategyMock,
+  resumeStrategyMock,
+} = vi.hoisted(() => ({
+  listAllStrategiesMock: vi.fn(),
+  listStrategiesMock: vi.fn(),
+  createStrategyMock: vi.fn(),
+  updateStrategyMock: vi.fn(),
+  reconfigureVrMock: vi.fn(),
+  deleteStrategyMock: vi.fn(),
+  pauseStrategyMock: vi.fn(),
+  resumeStrategyMock: vi.fn(),
 }))
 
 vi.mock('../api', () => ({
-  listAllStrategies: vi.fn(),
-  listStrategies: vi.fn(),
-  createStrategy: vi.fn(),
-  updateStrategy: vi.fn(),
-  reconfigureVr: vi.fn(),
-  deleteStrategy: vi.fn(),
-  pauseStrategy: vi.fn(),
-  resumeStrategy: vi.fn(),
+  listAllStrategies: listAllStrategiesMock,
+  listStrategies: listStrategiesMock,
+  createStrategy: createStrategyMock,
+  updateStrategy: updateStrategyMock,
+  reconfigureVr: reconfigureVrMock,
+  deleteStrategy: deleteStrategyMock,
+  pauseStrategy: pauseStrategyMock,
+  resumeStrategy: resumeStrategyMock,
   executeStrategy: vi.fn(),
   getStrategySeedPreview: vi.fn(),
 }))
 
-const baseStrategy: Strategy = {
-  id: 'strategy-1',
+const strategyA: Strategy = {
+  id: 'strategy-a',
   accountId: 'account-1',
   type: 'INFINITE',
   status: 'ACTIVE',
@@ -52,76 +59,215 @@ const baseStrategy: Strategy = {
   isReverseMode: false,
 }
 
-describe('useAllStrategiesQuery', () => {
-  it('marks initial server data stale so the list refetches immediately on mount', () => {
-    useQueryMock.mockReturnValue({ data: [baseStrategy] })
+const strategyB: Strategy = {
+  ...strategyA,
+  id: 'strategy-b',
+  ticker: 'TQQQ',
+}
 
-    renderHook(() => useAllStrategiesQuery([baseStrategy]))
+const strategyOtherAccount: Strategy = {
+  ...strategyA,
+  id: 'strategy-other',
+  accountId: 'account-2',
+  ticker: 'SOXL',
+}
 
-    expect(useQueryMock.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({
-      queryKey: ['strategies', 'all'],
-      initialData: [baseStrategy],
-      initialDataUpdatedAt: 0,
+function createWrapper(queryClient: QueryClient) {
+  return function Wrapper({ children }: PropsWithChildren) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  }
+}
+
+function createTestQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  })
+}
+
+function seedStrategyLists(queryClient: QueryClient, strategies: Strategy[]) {
+  queryClient.setQueryData(strategyKeys.listAll(), strategies)
+  queryClient.setQueryData(strategyKeys.listByAccount('account-1'), strategies)
+}
+
+describe('strategy mutations', () => {
+  it('adds a created strategy to all and account lists', async () => {
+    const queryClient = createTestQueryClient()
+    seedStrategyLists(queryClient, [strategyA])
+    createStrategyMock.mockResolvedValue(strategyB)
+
+    const { result } = renderHook(() => useCreateStrategyMutation('account-1'), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    await result.current.mutateAsync({ type: 'INFINITE', cycleSeedType: 'MAX' })
+
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([strategyA, strategyB])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([strategyA, strategyB])
+  })
+
+  it('replaces an updated strategy in all and account lists', async () => {
+    const queryClient = createTestQueryClient()
+    const saved = { ...strategyA, ticker: 'SOXL' }
+    seedStrategyLists(queryClient, [strategyA, strategyB])
+    updateStrategyMock.mockResolvedValue(saved)
+
+    const { result } = renderHook(() => useUpdateStrategyMutation(strategyA.id), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    await result.current.mutateAsync({ ticker: 'SOXL' })
+
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([saved, strategyB])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([saved, strategyB])
+  })
+
+  it('changes pause and resume status in both lists', async () => {
+    const queryClient = createTestQueryClient()
+    seedStrategyLists(queryClient, [strategyA])
+    pauseStrategyMock.mockResolvedValue(undefined)
+    resumeStrategyMock.mockResolvedValue(undefined)
+
+    const pause = renderHook(() => usePauseStrategyMutation(), {
+      wrapper: createWrapper(queryClient),
+    })
+    await pause.result.current.mutateAsync(strategyA)
+
+    const paused = { ...strategyA, status: 'PAUSED' }
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([paused])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([paused])
+
+    const resume = renderHook(() => useResumeStrategyMutation(), {
+      wrapper: createWrapper(queryClient),
+    })
+    await resume.result.current.mutateAsync(paused)
+
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([strategyA])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([strategyA])
+  })
+
+  it('removes a deleted strategy from both lists', async () => {
+    const queryClient = createTestQueryClient()
+    seedStrategyLists(queryClient, [strategyA, strategyB])
+    deleteStrategyMock.mockResolvedValue(undefined)
+
+    const { result } = renderHook(() => useDeleteStrategyMutation(), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    await result.current.mutateAsync(strategyA)
+
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([strategyB])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([strategyB])
+  })
+
+  it('materializes both complete cold lists before the create callback runs', async () => {
+    const queryClient = createTestQueryClient()
+    let resolveAll!: (strategies: Strategy[]) => void
+    let resolveByAccount!: (strategies: Strategy[]) => void
+    listAllStrategiesMock.mockReturnValue(new Promise<Strategy[]>((resolve) => {
+      resolveAll = resolve
     }))
-  })
-})
-
-describe('useStrategiesQuery', () => {
-  it('marks account strategy initial data stale so detail pages refetch immediately on mount', () => {
-    useQueryMock.mockReturnValue({ data: [baseStrategy] })
-
-    renderHook(() => useStrategiesQuery('account-1', [baseStrategy]))
-
-    expect(useQueryMock.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({
-      queryKey: ['strategies', 'account-1'],
-      initialData: [baseStrategy],
-      initialDataUpdatedAt: 0,
+    listStrategiesMock.mockReturnValue(new Promise<Strategy[]>((resolve) => {
+      resolveByAccount = resolve
     }))
+    const callback = vi.fn()
+    createStrategyMock.mockResolvedValue(strategyB)
+    const create = renderHook(() => useCreateStrategyMutation('account-1', callback), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    const mutationPromise = create.result.current.mutateAsync({ type: 'INFINITE', cycleSeedType: 'MAX' })
+
+    await waitFor(() => expect(createStrategyMock).toHaveBeenCalled())
+    expect(callback).not.toHaveBeenCalled()
+    resolveAll([strategyA, strategyB, strategyOtherAccount])
+    await Promise.resolve()
+    expect(callback).not.toHaveBeenCalled()
+    resolveByAccount([strategyA, strategyB])
+    await mutationPromise
+
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([strategyA, strategyB, strategyOtherAccount])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([strategyA, strategyB])
+    expect(queryClient.getQueryData(strategyKeys.detail(strategyB.id))).toEqual(strategyB)
+    expect(callback).toHaveBeenCalledOnce()
   })
-})
 
-describe('useUpdateStrategyMutation', () => {
-  it('수정 성공 시 실제 주문 미리보기 쿼리 키(order-preview)를 무효화한다', () => {
-    const invalidateQueries = vi.fn()
-    vi.mocked(useQueryClient).mockReturnValue({ invalidateQueries } as never)
-    vi.mocked(useMutation).mockReturnValue({} as never)
+  it('materializes complete cold lists after an update', async () => {
+    const queryClient = createTestQueryClient()
+    const saved = { ...strategyA, ticker: 'SOXL' }
+    let allAtCallback: Strategy[] | undefined
+    let accountAtCallback: Strategy[] | undefined
+    listAllStrategiesMock.mockResolvedValue([saved, strategyB, strategyOtherAccount])
+    listStrategiesMock.mockResolvedValue([saved, strategyB])
+    updateStrategyMock.mockResolvedValue(saved)
+    const update = renderHook(() => useUpdateStrategyMutation(strategyA.id, () => {
+      allAtCallback = queryClient.getQueryData<Strategy[]>(strategyKeys.listAll())
+      accountAtCallback = queryClient.getQueryData<Strategy[]>(strategyKeys.listByAccount('account-1'))
+    }), {
+      wrapper: createWrapper(queryClient),
+    })
 
-    renderHook(() => useUpdateStrategyMutation('strategy-1'))
+    await update.result.current.mutateAsync({ ticker: 'SOXL' })
 
-    const options = vi.mocked(useMutation).mock.calls.at(-1)?.[0] as unknown as { onSuccess: () => void }
-    options.onSuccess()
-
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['order-preview'] })
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([saved, strategyB, strategyOtherAccount])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([saved, strategyB])
+    expect(queryClient.getQueryData(strategyKeys.detail(strategyA.id))).toEqual(saved)
+    expect(allAtCallback).toEqual([saved, strategyB, strategyOtherAccount])
+    expect(accountAtCallback).toEqual([saved, strategyB])
   })
-})
 
-describe('useReconfigureVrMutation', () => {
-  it('재설정 성공 시 strategies와 order-preview 쿼리를 모두 무효화한다', () => {
-    const invalidateQueries = vi.fn()
-    vi.mocked(useQueryClient).mockReturnValue({ invalidateQueries } as never)
-    vi.mocked(useMutation).mockReturnValue({} as never)
+  it('materializes complete cold lists after a status change', async () => {
+    const queryClient = createTestQueryClient()
+    const paused = { ...strategyA, status: 'PAUSED' }
+    listAllStrategiesMock.mockResolvedValue([paused, strategyB, strategyOtherAccount])
+    listStrategiesMock.mockResolvedValue([paused, strategyB])
+    pauseStrategyMock.mockResolvedValue(undefined)
+    const pause = renderHook(() => usePauseStrategyMutation(), {
+      wrapper: createWrapper(queryClient),
+    })
 
-    renderHook(() => useReconfigureVrMutation('strategy-1'))
+    await pause.result.current.mutateAsync(strategyA)
 
-    const options = vi.mocked(useMutation).mock.calls.at(-1)?.[0] as unknown as { onSuccess: () => void }
-    options.onSuccess()
-
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['strategies'] })
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['order-preview'] })
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([paused, strategyB, strategyOtherAccount])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([paused, strategyB])
+    expect(queryClient.getQueryData(strategyKeys.detail(strategyA.id))).toEqual(paused)
   })
-})
 
-describe('useExecuteStrategyMutation', () => {
-  it('실행 성공 시 실제 주문 미리보기 쿼리(order-preview)를 무효화한다', () => {
-    const invalidateQueries = vi.fn()
-    vi.mocked(useQueryClient).mockReturnValue({ invalidateQueries } as never)
-    vi.mocked(useMutation).mockReturnValue({} as never)
+  it('replaces the reconfigured strategy in both lists and calls onSuccess', async () => {
+    const queryClient = createTestQueryClient()
+    const reconfigured = { ...strategyA, vr: { value: 5000 } } as unknown as Strategy
+    seedStrategyLists(queryClient, [strategyA, strategyB])
+    reconfigureVrMock.mockResolvedValue(reconfigured)
+    const callback = vi.fn()
 
-    renderHook(() => useExecuteStrategyMutation('strategy-1'))
+    const { result } = renderHook(() => useReconfigureVrMutation(strategyA.id, callback), {
+      wrapper: createWrapper(queryClient),
+    })
 
-    const options = vi.mocked(useMutation).mock.calls.at(-1)?.[0] as unknown as { onSuccess: () => void }
-    options.onSuccess()
+    await result.current.mutateAsync({})
 
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['order-preview', 'strategy', 'strategy-1'] })
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([reconfigured, strategyB])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([reconfigured, strategyB])
+    expect(queryClient.getQueryData(strategyKeys.detail(strategyA.id))).toEqual(reconfigured)
+    expect(callback).toHaveBeenCalledOnce()
+  })
+
+  it('materializes every remaining strategy after a cold delete', async () => {
+    const queryClient = createTestQueryClient()
+    listAllStrategiesMock.mockResolvedValue([strategyB, strategyOtherAccount])
+    listStrategiesMock.mockResolvedValue([strategyB])
+    deleteStrategyMock.mockResolvedValue(undefined)
+    const remove = renderHook(() => useDeleteStrategyMutation(), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    await remove.result.current.mutateAsync(strategyA)
+
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([strategyB, strategyOtherAccount])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([strategyB])
+    expect(queryClient.getQueryData(strategyKeys.detail(strategyA.id))).toBeUndefined()
   })
 })

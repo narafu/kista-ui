@@ -1,19 +1,29 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { orderKeys } from '@entities/order'
 import { ReconfigureVrForm } from './ReconfigureVrForm'
 import type { ReconfigureVrStrategy } from './model/loadStrategyForReconfigure'
 
 const mutateMock = vi.fn()
 const routerPushMock = vi.fn()
 const routerBackMock = vi.fn()
+const invalidateQueriesMock = vi.fn(() => Promise.resolve())
+let reconfigureSuccessHandler: (() => void | Promise<void>) | undefined
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: routerPushMock, back: routerBackMock }),
 }))
 
+vi.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => ({ invalidateQueries: invalidateQueriesMock }),
+}))
+
 vi.mock('@entities/strategy', () => ({
-  useReconfigureVrMutation: () => ({ mutate: mutateMock, isPending: false }),
+  useReconfigureVrMutation: (_strategyId: string, onSuccess?: () => void | Promise<void>) => {
+    reconfigureSuccessHandler = onSuccess
+    return { mutate: mutateMock, isPending: false }
+  },
 }))
 
 const strategy: ReconfigureVrStrategy = {
@@ -48,6 +58,8 @@ describe('ReconfigureVrForm', () => {
     mutateMock.mockClear()
     routerPushMock.mockClear()
     routerBackMock.mockClear()
+    invalidateQueriesMock.mockClear()
+    reconfigureSuccessHandler = undefined
   })
 
   it('경고 배너를 상시 노출한다', () => {
@@ -83,6 +95,15 @@ describe('ReconfigureVrForm', () => {
       initialGradient: 10,
       initialPoolLimitRate: 0.75,
     }))
+  })
+
+  it('재설정 성공 시 사이클이 교체되므로 해당 전략의 주문 미리보기를 무효화한 뒤 이동한다', async () => {
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+
+    await reconfigureSuccessHandler?.()
+
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: orderKeys.preview(strategy.id) })
+    expect(routerPushMock).toHaveBeenCalledWith(`/accounts/account-1/strategies/${strategy.id}`)
   })
 
   it('인출 모드로 전환 후 금액을 입력하면 음수로 제출된다', async () => {

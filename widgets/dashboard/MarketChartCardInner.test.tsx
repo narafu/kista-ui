@@ -19,7 +19,7 @@ beforeAll(() => {
   } as unknown as CanvasRenderingContext2D)
 })
 
-const useCandlesQueryMock = vi.fn((_ticker: string, _count: number) => ({ data: [] }))
+const useCandlesQueryMock = vi.fn((_ticker: string, _count: number): { data: unknown[] | undefined; isError?: boolean } => ({ data: [] }))
 
 vi.mock('@entities/market', () => ({
   useCandlesQuery: (ticker: string, count: number) => useCandlesQueryMock(ticker, count),
@@ -71,5 +71,13 @@ describe('MarketChartCardInner', () => {
     await user.click(await screen.findByRole('option', { name: 'QQQ · 나스닥 100' }))
 
     expect(useCandlesQueryMock).toHaveBeenLastCalledWith('QQQ', 200)
+  })
+
+  it('shows an explicit error fallback when candle data cannot be loaded', () => {
+    useCandlesQueryMock.mockReturnValueOnce({ data: undefined, isError: true })
+
+    render(<MarketChartCardInner category={category} />)
+
+    expect(screen.getByText('시장 차트를 불러오지 못했습니다')).toBeInTheDocument()
   })
 })

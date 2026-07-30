@@ -20,7 +20,8 @@ import {
 } from '@/components/ui/alert-dialog'
 import { KpiCard } from '@widgets/kpi-card'
 import { StrategyTradesTab } from '@widgets/cycle-history'
-import { useDeleteStrategyMutation, useExecuteStrategyMutation, usePauseStrategyMutation, useResumeStrategyMutation, seedBadgeClass, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
+import { seedBadgeClass, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
+import { useManageStrategyMutations } from '@features/strategy/manage-strategy'
 import { useStrategyOrderPreviewQuery, useCancelAllOrdersMutation, useCancelOneOrderMutation, computeOrderReadiness } from '@entities/order'
 import { useMonthlyHolidaysQuery } from '@entities/market'
 import { useMeta } from '@entities/meta'
@@ -81,8 +82,9 @@ function directionBannerText(mode: 'preview' | 'executed', direction: DirectionR
 // 카드 상단 배너 문구 — 휴장일/예수금·판매가능수량 부족을 "바로 주문" 가능 여부와 함께 안내한다.
 // BUY/SELL 부족이 동시에 발생할 수 있어(같은 전략에 두 방향 모두 계획된 경우) 한쪽만 보여주고 끝내지
 // 않도록 둘 다 문구를 만든 뒤 합친다
-function nextOrderBannerText(canExecute: boolean, mode: 'preview' | 'executed', isHoliday: boolean, readiness: OrderReadiness): string | null {
+function nextOrderBannerText(canExecute: boolean, mode: 'preview' | 'executed', isHoliday: boolean, marketStatusMessage: string | null, readiness: OrderReadiness): string | null {
   if (!canExecute) return null
+  if (mode === 'preview' && marketStatusMessage) return marketStatusMessage
   if (mode === 'preview' && isHoliday) return '오늘은 휴장일입니다'
 
   const parts = [
@@ -136,27 +138,34 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
 
   const todayStr = todayKst()
   const [kstYear, kstMonth] = todayStr.split('-').map(Number)
-  const { holidays } = useMonthlyHolidaysQuery(kstYear, kstMonth)
+  const { holidays, isError: isHolidayError, loading: isHolidayLoading } = useMonthlyHolidaysQuery(kstYear, kstMonth)
   const dayOfWeek = new Date(todayStr + 'T00:00:00').getDay()
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
-  const isHoliday = isWeekend || holidays.includes(todayStr)
+  const marketStatusMessage = !isWeekend
+    ? isHolidayError
+      ? '미국 증시 휴장 여부를 확인하지 못했습니다'
+      : isHolidayLoading
+        ? '미국 증시 휴장 여부를 확인하는 중입니다'
+        : null
+    : null
+  const isConfirmedHoliday = isWeekend || (!marketStatusMessage && holidays.includes(todayStr))
   const canExecute = strategy.status === 'ACTIVE'
-  const bannerText = nextOrderBannerText(canExecute, mode, isHoliday, readiness)
+  const bannerText = nextOrderBannerText(canExecute, mode, isConfirmedHoliday, marketStatusMessage, readiness)
 
-  const deleteMutation = useDeleteStrategyMutation(() => push(`/accounts/${accountId}`))
-  const pauseMutation = usePauseStrategyMutation()
-  const resumeMutation = useResumeStrategyMutation()
-  const executeMutation = useExecuteStrategyMutation(strategy.id)
+  const { pause, resume, remove, execute, isPausing, isResuming, isDeleting, isExecuting } = useManageStrategyMutations({
+    onDeleted: () => push(`/accounts/${accountId}`),
+    strategyId: strategy.id,
+  })
   const cancelAllMutation = useCancelAllOrdersMutation(strategy.id)
   const cancelOneMutation = useCancelOneOrderMutation(strategy.id)
-  const toggleLoading = pauseMutation.isPending || resumeMutation.isPending
-  const loading = toggleLoading || deleteMutation.isPending
+  const toggleLoading = isPausing || isResuming
+  const loading = toggleLoading || isDeleting
 
   function handleToggle() {
     if (strategy.status === 'ACTIVE') {
-      pauseMutation.mutate(strategy.id)
+      pause(strategy)
     } else {
-      resumeMutation.mutate(strategy.id)
+      resume(strategy)
     }
   }
 
@@ -336,7 +345,11 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
                 <button
                   type="button"
                   onClick={() => {
-                    if (isHoliday) {
+                    if (marketStatusMessage) {
+                      toast.info(marketStatusMessage)
+                      return
+                    }
+                    if (isConfirmedHoliday) {
                       toast.info('오늘은 미국 증시 휴장일입니다')
                       return
                     }
@@ -352,15 +365,15 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
                       blockers.forEach((message) => toast.info(message))
                       return
                     }
-                    executeMutation.mutate()
+                    execute()
                   }}
-                  disabled={executeMutation.isPending || orders.length === 0}
+                  disabled={isExecuting || orders.length === 0}
                   className={cn(
                     'inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md whitespace-nowrap shrink-0',
                     BRAND_GRADIENT_BUTTON_CLASS,
                   )}
                 >
-                  {executeMutation.isPending ? '주문 중...' : '바로 주문'}
+                  {isExecuting ? '주문 중...' : '바로 주문'}
                 </button>
               )}
             </div>
@@ -430,8 +443,8 @@ export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel disabled={loading}>취소</AlertDialogCancel>
-                <AlertDialogAction variant="destructive" onClick={() => deleteMutation.mutate(strategy.id)} disabled={loading}>
-                  {deleteMutation.isPending ? '삭제 중...' : '삭제'}
+                <AlertDialogAction variant="destructive" onClick={() => remove(strategy)} disabled={loading}>
+                  {isDeleting ? '삭제 중...' : '삭제'}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

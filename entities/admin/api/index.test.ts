@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import {
   reorderAdminOrder,
+  listAdminUsers,
   listAdminAccounts,
   listAdminErrorLogs,
   listAdminStrategies,
@@ -42,6 +43,18 @@ describe('entities/admin/api admin trade correction APIs', () => {
     clientFetchMock.mockReset()
     jsonBodyMock.mockReset()
     jsonBodyMock.mockImplementation((method: string, body: unknown) => ({ method, body }))
+  })
+
+  it('lists admin users with status and date range query parameters', async () => {
+    fetchEitherMock.mockResolvedValue([])
+
+    await listAdminUsers('admin-token', 'PENDING', '2026-07-01', '2026-07-31')
+
+    expect(fetchEitherMock).toHaveBeenCalledWith(
+      '/api/admin/users?status=PENDING&from=2026-07-01&to=2026-07-31',
+      { method: 'GET' },
+      'admin-token',
+    )
   })
 
   it('lists admin accounts without requiring a bearer token', async () => {

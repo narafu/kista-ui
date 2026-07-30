@@ -23,11 +23,12 @@ function storageState(accessToken: string) {
   }
 }
 
-setup('dev 토큰으로 USER/ADMIN storageState 생성', async ({ request }) => {
+setup('dev 토큰으로 격리된 E2E storageState 생성', async ({ request }) => {
   mkdirSync('e2e/.auth', { recursive: true })
 
   for (const [endpoint, file] of [
     ['dev-token', 'user.json'],
+    ['dev-token', 'account-cache.json'],
     ['dev-admin-token', 'admin.json'],
   ] as const) {
     const res = await request.post(`${API_BASE}/api/auth/${endpoint}`)

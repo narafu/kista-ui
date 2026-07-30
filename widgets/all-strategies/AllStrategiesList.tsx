@@ -6,16 +6,14 @@ import { TrendingUp, ChevronRight } from 'lucide-react'
 import { StrategyCard } from '@widgets/strategy-card'
 import { NewAccountButton } from '@features/account/create-account'
 import { useAllStrategiesQuery } from '@entities/strategy'
+import { useAccountsQuery } from '@entities/account'
 import { useMeta } from '@entities/meta'
 import type { Strategy } from '@entities/strategy'
+import type { Account } from '@entities/account'
 import type { NextOrderPreview } from '@entities/order'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { CardSkeleton } from '@shared/ui/CardSkeleton'
-import type { Account } from '@entities/account'
-
 interface Props {
-  strategies: Strategy[]
-  accounts: Account[]
   previewsPromise: Promise<Record<string, NextOrderPreview>>
 }
 
@@ -80,8 +78,9 @@ function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
   )
 }
 
-export function AllStrategiesList({ strategies: initialStrategies, accounts, previewsPromise }: Props) {
-  const { data: strategies = initialStrategies } = useAllStrategiesQuery(initialStrategies)
+export function AllStrategiesList({ previewsPromise }: Props) {
+  const { data: strategies = [] } = useAllStrategiesQuery()
+  const { data: accounts = [] } = useAccountsQuery()
   const { findBroker } = useMeta()
 
   if (strategies.length === 0)

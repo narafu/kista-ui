@@ -1,6 +1,7 @@
 # shared/ — 도메인 무관 공용 자산
 
-도메인 지식 없이 어디서나 사용 가능한 유틸리티. 모든 계층에서 import 가능하며, `shared/` 내부에서 `entities/`·`features/`·`widgets/` import는 금지한다. 구성: `lib/`(api-client·api-schema·auth·cache·format·hooks·proxy·date-range·firebase·utils), `model/`, `providers/`, `ui/`.
+도메인 지식 없이 어디서나 사용 가능한 유틸리티. 모든 계층에서 import 가능하며, `shared/` 내부에서 `entities/`·`features/`·`widgets/` import는 금지한다. 구성: `lib/`(api-client·api-schema·auth·cache·query·format·hooks·proxy·date-range·firebase·utils), `model/`, `providers/`, `ui/`.
+UI 캐시 소유권과 freshness 규범은 `docs/agents/cache-policy.md`를 따른다.
 
 ## api-client
 
@@ -25,7 +26,11 @@ import { apiFetch, clientFetch, ApiError } from '@shared/lib/api-client'
 
 ## cache
 
-`unstable_cache` 래퍼. 5분 TTL. `revalidateTag(tag, 'max')` 호출로 무효화한다. 에러 처리는 `.catch()` 대신 `try/catch` 패턴 사용.
+Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. 느리게 변하는 reference/public 데이터에만 명시적 TTL/tag로 허용하며, `unstable_cache`는 Next.js 16 legacy API다. 신규 `cacheTag`는 `cacheComponents`와 `'use cache'` 도입이 전제다.
+
+## query
+
+`createQueryClient()`가 React Query 클라이언트 기본값을 중앙 관리한다. 기본 정책: `staleTime=30s`, `gcTime=10m`, `retry=0`, `refetchOnWindowFocus=false`. resource별 override와 SSR hydration 규칙은 `docs/agents/cache-policy.md` 참고.
 
 ## utils
 
@@ -44,7 +49,7 @@ import { apiFetch, clientFetch, ApiError } from '@shared/lib/api-client'
 
 ## proxy
 
-`createProxyRoute`는 catch-all 및 정적 Route Handler에서 kista-api 요청 프록시, 인증 토큰 포함, `revalidateTag` 처리를 공통화한다. 정적 Route Handler처럼 route context가 없는 호출은 `basePath`를 그대로 사용한다.
+`createProxyRoute`는 catch-all 및 정적 Route Handler에서 kista-api 요청 프록시와 인증 토큰 포함을 공통화한다. 모든 upstream fetch는 `cache: 'no-store'`이며, 정적 Route Handler처럼 route context가 없는 호출은 `basePath`를 그대로 사용한다.
 
 ## ui
 
@@ -58,4 +63,4 @@ shadcn 자동생성 컴포넌트는 `components/ui/`에 두고 `npx shadcn@lates
 
 ## providers
 
-`Providers` 컴포넌트는 루트 `app/layout.tsx`에서 마운트한다. Toaster 배치 규칙은 `docs/agents/app.md`를 기준으로 본다.
+`Providers` 컴포넌트는 루트 `app/layout.tsx`에서 마운트한다. `QueryProvider`는 `@shared/lib/query`의 `createQueryClient()`만 사용한다. Toaster 배치 규칙은 `docs/agents/app.md`를 기준으로 본다.

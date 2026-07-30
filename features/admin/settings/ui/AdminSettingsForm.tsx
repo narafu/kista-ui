@@ -1,15 +1,19 @@
 'use client'
 
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { AlertTriangle, Plus, RotateCcw, Save, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { useAdminSettingsQuery, useUpdateAdminSettingsMutation } from '@entities/admin-settings'
+import { adminKeys } from '@entities/admin'
 import { useMeta } from '@entities/meta'
 import type { BrokerCode } from '@shared/lib/api-schema'
 import {
   DEFAULT_RUNTIME_BENCHMARKS,
+  runtimeConfigKeys,
   type RecurringMode,
   type RuntimeBenchmarkFieldSettings,
   type RuntimeConfig,
@@ -328,16 +332,54 @@ function FieldEditor<T extends string | number>({ id, label, field, error, fixed
   )
 }
 
-export function AdminSettingsForm({ initialSettings }: { initialSettings: RuntimeConfig }) {
+export function AdminSettingsForm() {
+  const { data } = useAdminSettingsQuery()
+
+  if (!data) return null
+
+  return <AdminSettingsFormContent settings={data} />
+}
+
+function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
   const { meta, labelOf } = useMeta()
-  const { data } = useAdminSettingsQuery(initialSettings)
-  const mutation = useUpdateAdminSettingsMutation()
-  const [draft, setDraft] = useState(() => clone(initialSettings))
-  const [serverSnapshot, setServerSnapshot] = useState(() => clone(initialSettings))
+  const queryClient = useQueryClient()
+  const [draft, setDraft] = useState(() => clone(settings))
+  const [serverSnapshot, setServerSnapshot] = useState(() => clone(settings))
   const latestServerRef = useRef<RuntimeConfig | null>(null)
-  if (latestServerRef.current === null) latestServerRef.current = clone(initialSettings)
+  if (latestServerRef.current === null) latestServerRef.current = clone(settings)
   const draftRef = useRef(draft)
   const [attempted, setAttempted] = useState(false)
+  const activatesPendingUsersRef = useRef(false)
+  const mutation = useUpdateAdminSettingsMutation({
+    onSuccess: async () => {
+      const invalidations = [
+        queryClient.invalidateQueries(
+          { queryKey: runtimeConfigKeys.all, refetchType: 'all' },
+          { throwOnError: true },
+        ),
+      ]
+      if (activatesPendingUsersRef.current) {
+        invalidations.push(
+          queryClient.invalidateQueries(
+            { queryKey: adminKeys.usersRoot(), refetchType: 'all' },
+            { throwOnError: true },
+          ),
+          queryClient.invalidateQueries(
+            { queryKey: adminKeys.stats(), refetchType: 'all' },
+            { throwOnError: true },
+          ),
+        )
+      }
+
+      const results = await Promise.allSettled(invalidations)
+      for (const result of results) {
+        if (result.status === 'rejected') throw result.reason
+      }
+
+      toast.success('운영 설정을 저장했습니다.')
+      setAttempted(false)
+    },
+  })
   const tickerSuggestions = useMemo(() => meta.tickers.map((ticker) => ticker.code), [meta.tickers])
 
   // "최신값 ref" 패턴 — 렌더 중 직접 대입하면 React Doctor가 "렌더 중 ref 변경"으로 표시하므로
@@ -348,12 +390,11 @@ export function AdminSettingsForm({ initialSettings }: { initialSettings: Runtim
   })
 
   useEffect(() => {
-    if (!data) return
     const wasPristine = JSON.stringify(draftRef.current) === JSON.stringify(latestServerRef.current)
-    latestServerRef.current = clone(data)
-    setServerSnapshot(clone(data))
-    if (wasPristine) setDraft(clone(data))
-  }, [data])
+    latestServerRef.current = clone(settings)
+    setServerSnapshot(clone(settings))
+    if (wasPristine) setDraft(clone(settings))
+  }, [settings])
 
   const errors = useMemo(() => validateAdminSettings(draft), [draft])
   const dirty = JSON.stringify(draft) !== JSON.stringify(serverSnapshot)
@@ -388,7 +429,8 @@ export function AdminSettingsForm({ initialSettings }: { initialSettings: Runtim
     event.preventDefault()
     setAttempted(true)
     if (Object.keys(errors).length > 0 || mutation.isPending) return
-    mutation.mutate(draft, { onSuccess: () => setAttempted(false) })
+    activatesPendingUsersRef.current = serverSnapshot.auth.approvalRequired && !draft.auth.approvalRequired
+    mutation.mutate(draft)
   }
   const reset = () => {
     setDraft(clone(latestServerRef.current!))

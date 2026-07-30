@@ -53,9 +53,10 @@ function makeElevenOrders(): StrategyOrder[] {
   }))
 }
 
+// 데스크탑(hidden lg:block)/모바일(lg:hidden) 필터가 동시에 DOM에 존재하므로 첫 번째 인스턴스를 사용한다
 async function selectOption(label: string, option: string) {
   const user = userEvent.setup()
-  await user.click(screen.getByLabelText(label))
+  await user.click(screen.getAllByLabelText(label)[0])
   await user.click(await screen.findByRole('option', { name: option }))
 }
 

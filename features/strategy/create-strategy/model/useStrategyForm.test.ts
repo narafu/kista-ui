@@ -1,6 +1,9 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { todayKst } from '@shared/lib/format'
+import { orderKeys } from '@entities/order'
+import { statsKeys } from '@entities/stats'
+import { tradeKeys } from '@entities/trade'
 import { useStrategyForm } from './useStrategyForm'
 
 // todayKst() 기준 며칠 뒤/전 날짜를 yyyy-MM-dd로 계산 (달력일 산술만 필요 — UTC로 취급해도 안전)
@@ -12,6 +15,13 @@ function addDaysToKstDate(days: number): string {
 }
 
 const runtimeRecurringMode = vi.hoisted(() => ({ defaultValue: 'HOLD' }))
+const invalidateQueriesMock = vi.hoisted(() => vi.fn(() => Promise.resolve()))
+let createSuccessHandler: (() => void) | undefined
+let updateSuccessHandler: (() => void) | undefined
+
+vi.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => ({ invalidateQueries: invalidateQueriesMock }),
+}))
 
 vi.mock('@entities/runtime-config', () => ({
   useRuntimeConfigQuery: () => ({
@@ -89,14 +99,20 @@ vi.mock('@entities/account', () => ({
 }))
 
 vi.mock('@entities/strategy', () => ({
-  useCreateStrategyMutation: () => ({
+  useCreateStrategyMutation: (_accountId: string, onSuccess?: () => void) => {
+    createSuccessHandler = onSuccess
+    return {
     mutate: mockCreateMutate,
     isPending: false,
-  }),
-  useUpdateStrategyMutation: () => ({
+    }
+  },
+  useUpdateStrategyMutation: (_strategyId: string, onSuccess?: () => void) => {
+    updateSuccessHandler = onSuccess
+    return {
     mutate: mockUpdateMutate,
     isPending: false,
-  }),
+    }
+  },
   useStrategySeedPreviewQuery: () => seedPreviewState,
 }))
 
@@ -113,6 +129,9 @@ describe('useStrategyForm submit policy', () => {
     runtimeRecurringMode.defaultValue = 'HOLD'
     mockCreateMutate.mockClear()
     mockUpdateMutate.mockClear()
+    invalidateQueriesMock.mockClear()
+    createSuccessHandler = undefined
+    updateSuccessHandler = undefined
     meQueryState.data.balanceCheckEnabled = true
     seedModelState.pct = 100
     seedModelState.seedUsdInput = 1200
@@ -145,6 +164,26 @@ describe('useStrategyForm submit policy', () => {
     await act(async () => result.current.handleSubmit({ preventDefault() {} } as React.FormEvent))
     await waitFor(() => expect(mockCreateMutate).toHaveBeenCalled())
     expect(mockCreateMutate).toHaveBeenCalledWith(expect.objectContaining({ recurringAmount: serializedAmount }))
+  })
+
+  it('invalidates order previews after strategy configuration changes', () => {
+    renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+
+    createSuccessHandler?.()
+
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: orderKeys.all })
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: statsKeys.all })
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: tradeKeys.all })
+  })
+
+  it('still calls the form onSuccess callback after save even if one dependent invalidation rejects', async () => {
+    const onSuccess = vi.fn()
+    invalidateQueriesMock.mockRejectedValueOnce(new Error('stats refetch failed'))
+    renderHook(() => useStrategyForm({ accountId: 'account-1', onSuccess }))
+
+    await createSuccessHandler?.()
+
+    expect(onSuccess).toHaveBeenCalledOnce()
   })
 
   it('edit payload does not include initialUsdDeposit', async () => {

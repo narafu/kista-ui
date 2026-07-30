@@ -4,14 +4,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RuntimeConfig } from '@entities/runtime-config'
 import { AdminSettingsForm } from './AdminSettingsForm'
 
-const { mutateMock, queryState } = vi.hoisted(() => ({
-  mutateMock: vi.fn(), queryState: { data: undefined as RuntimeConfig | undefined },
+const { invalidateQueriesMock, mutateMock, queryState } = vi.hoisted(() => ({
+  invalidateQueriesMock: vi.fn(),
+  mutateMock: vi.fn(),
+  queryState: { data: undefined as RuntimeConfig | undefined },
 }))
 
 vi.mock('@entities/admin-settings', () => ({
-  useAdminSettingsQuery: (initial: RuntimeConfig) => ({ data: queryState.data ?? initial }),
+  useAdminSettingsQuery: () => ({ data: queryState.data }),
   useUpdateAdminSettingsMutation: () => ({ mutate: mutateMock, isPending: false }),
 }))
+
+vi.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => ({ invalidateQueries: invalidateQueriesMock }),
+}))
+vi.mock('sonner', () => ({ toast: { success: vi.fn() } }))
 
 const BROKER_LABELS: Record<string, string> = { KIS: '한국투자증권', TOSS: '토스증권', MOCK: '모의계좌' }
 
@@ -51,25 +58,30 @@ const settings: RuntimeConfig = {
 }
 
 describe('AdminSettingsForm', () => {
-  beforeEach(() => { mutateMock.mockReset(); queryState.data = undefined })
+  beforeEach(() => {
+    invalidateQueriesMock.mockReset()
+    invalidateQueriesMock.mockResolvedValue(undefined)
+    mutateMock.mockReset()
+    queryState.data = settings
+  })
 
   it('warns about and submits the approval side effect without optimistic changes', async () => {
     const user = userEvent.setup()
-    render(<AdminSettingsForm initialSettings={settings} />)
+    render(<AdminSettingsForm />)
     await user.click(screen.getByRole('switch', { name: '관리자 승인 필요' }))
     expect(screen.getByText(/가입 승인 대기 상태가 해제/)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /변경 저장/ }))
-    expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({ auth: { approvalRequired: false } }), expect.any(Object))
+    expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({ auth: { approvalRequired: false } }))
   })
 
   it('renders a toggle for the MOCK broker', () => {
-    render(<AdminSettingsForm initialSettings={settings} />)
+    render(<AdminSettingsForm />)
     expect(screen.getByRole('switch', { name: '모의계좌' })).toBeInTheDocument()
   })
 
   it('restores the last server state when changes are discarded', async () => {
     const user = userEvent.setup()
-    render(<AdminSettingsForm initialSettings={settings} />)
+    render(<AdminSettingsForm />)
     const toggle = screen.getByRole('switch', { name: '한국투자증권' })
     await user.click(toggle)
     expect(toggle).not.toBeChecked()
@@ -79,7 +91,7 @@ describe('AdminSettingsForm', () => {
 
   it('adds string and numeric allowed values through structured rows', async () => {
     const user = userEvent.setup()
-    render(<AdminSettingsForm initialSettings={settings} />)
+    render(<AdminSettingsForm />)
 
     await user.type(screen.getByRole('combobox', { name: '종목 추가' }), 'qld')
     await user.click(screen.getByRole('button', { name: '종목 추가 확정' }))
@@ -94,12 +106,12 @@ describe('AdminSettingsForm', () => {
           divisionCount: expect.objectContaining({ allowedValues: [20, 30, 40] }),
         }),
       }) }),
-    }), expect.any(Object))
+    }))
   })
 
   it('rejects empty duplicate and malformed added values before save', async () => {
     const user = userEvent.setup()
-    render(<AdminSettingsForm initialSettings={settings} />)
+    render(<AdminSettingsForm />)
 
     await user.click(screen.getByRole('button', { name: '종목 추가 확정' }))
     expect(screen.getByRole('alert')).toHaveTextContent('값을 입력하세요.')
@@ -117,7 +129,7 @@ describe('AdminSettingsForm', () => {
 
   it('changes the default through row radios and blocks deleting the default row', async () => {
     const user = userEvent.setup()
-    render(<AdminSettingsForm initialSettings={settings} />)
+    render(<AdminSettingsForm />)
 
     await user.click(screen.getByRole('radio', { name: 'TQQQ 기본값' }))
     await user.click(screen.getByRole('button', { name: 'TQQQ 삭제' }))
@@ -132,12 +144,12 @@ describe('AdminSettingsForm', () => {
           ticker: expect.objectContaining({ allowedValues: ['TQQQ'], defaultValue: 'TQQQ' }),
         }),
       }) }),
-    }), expect.any(Object))
+    }))
   })
 
   it('collapses customizable values to the current default when user changes are disabled', async () => {
     const user = userEvent.setup()
-    render(<AdminSettingsForm initialSettings={settings} />)
+    render(<AdminSettingsForm />)
 
     await user.click(screen.getByRole('switch', { name: '분할 수 사용자 변경 허용' }))
     await user.click(screen.getByRole('button', { name: /변경 저장/ }))
@@ -148,12 +160,12 @@ describe('AdminSettingsForm', () => {
           divisionCount: { customizable: false, allowedValues: [20], defaultValue: 20 },
         }),
       }) }),
-    }), expect.any(Object))
+    }))
   })
 
   it('edits recurring mode using fixed candidates and forces HOLD when fixed', async () => {
     const user = userEvent.setup()
-    render(<AdminSettingsForm initialSettings={settings} />)
+    render(<AdminSettingsForm />)
 
     await user.click(screen.getByRole('radio', { name: 'DEPOSIT 기본값' }))
     await user.click(screen.getByRole('checkbox', { name: 'WITHDRAW 허용' }))
@@ -166,18 +178,18 @@ describe('AdminSettingsForm', () => {
           recurringMode: { customizable: false, allowedValues: ['HOLD'], defaultValue: 'HOLD' },
         }),
       }) }),
-    }), expect.any(Object))
+    }))
   })
 
   it('preserves dirty edits across incoming server data and resets to the latest snapshot', async () => {
     const user = userEvent.setup()
-    const { rerender } = render(<AdminSettingsForm initialSettings={settings} />)
+    const { rerender } = render(<AdminSettingsForm />)
     const kis = screen.getByRole('switch', { name: '한국투자증권' })
     await user.click(kis)
     const latest = structuredClone(settings)
     latest.brokers.TOSS.enabled = false
     queryState.data = latest
-    rerender(<AdminSettingsForm initialSettings={settings} />)
+    rerender(<AdminSettingsForm />)
     expect(kis).not.toBeChecked()
     await user.click(screen.getByRole('button', { name: /변경 취소/ }))
     expect(screen.getByRole('switch', { name: '한국투자증권' })).toBeChecked()
@@ -187,13 +199,14 @@ describe('AdminSettingsForm', () => {
   it('does not warn when approval was already disabled on the server', async () => {
     const alreadyDisabled = structuredClone(settings)
     alreadyDisabled.auth.approvalRequired = false
-    render(<AdminSettingsForm initialSettings={alreadyDisabled} />)
+    queryState.data = alreadyDisabled
+    render(<AdminSettingsForm />)
     expect(screen.queryByText(/가입 승인 대기 상태가 해제/)).not.toBeInTheDocument()
   })
 
   it('submits benchmark ETF allowed values and default', async () => {
     const user = userEvent.setup()
-    render(<AdminSettingsForm initialSettings={settings} />)
+    render(<AdminSettingsForm />)
 
     await user.type(screen.getByRole('combobox', { name: 'ETF 벤치마크 자산 추가' }), 'qld')
     await user.click(screen.getByRole('button', { name: 'ETF 벤치마크 자산 추가 확정' }))
@@ -204,6 +217,6 @@ describe('AdminSettingsForm', () => {
       benchmarks: {
         etf: { allowedValues: ['SPY', 'QQQ', 'QLD'], defaultValue: 'QLD' },
       },
-    }), expect.any(Object))
+    }))
   })
 })

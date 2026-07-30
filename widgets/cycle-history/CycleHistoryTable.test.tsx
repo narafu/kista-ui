@@ -11,6 +11,7 @@ vi.mock('next/navigation', () => ({
 function makeHook(result: {
   cycleHistory: CycleHistoryItem[]
   isLoading?: boolean
+  isError?: boolean
   fetchNextPage?: () => void
   hasNextPage?: boolean
   isFetchingNextPage?: boolean
@@ -18,6 +19,7 @@ function makeHook(result: {
   return () => ({
     cycleHistory: result.cycleHistory,
     isLoading: result.isLoading ?? false,
+    isError: result.isError ?? false,
     fetchNextPage: result.fetchNextPage ?? vi.fn(),
     hasNextPage: result.hasNextPage ?? false,
     isFetchingNextPage: result.isFetchingNextPage ?? false,
@@ -68,6 +70,14 @@ describe('CycleHistoryTable', () => {
     render(<CycleHistoryTable title="잔고 이력" id="account-1" useHistoryQuery={useHistoryQuery} />)
 
     expect(screen.getByText('잔고 이력이 없습니다.')).toBeInTheDocument()
+  })
+
+  it('shows an error fallback instead of treating a failed request as empty history', () => {
+    const useHistoryQuery = makeHook({ cycleHistory: [], isError: true })
+    render(<CycleHistoryTable title="잔고 이력" id="account-1" useHistoryQuery={useHistoryQuery} />)
+
+    expect(screen.getByText('잔고 이력을 불러오지 못했습니다')).toBeInTheDocument()
+    expect(screen.queryByText('잔고 이력이 없습니다.')).not.toBeInTheDocument()
   })
 
   it('computes the eval amount from avgPrice * holdings and falls back to - when avgPrice is missing', () => {

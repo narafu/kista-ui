@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useAdminUsersQuery } from '@entities/admin'
+import type { AdminUsersQueryParams } from '@entities/admin'
 import { ChangeRoleButton } from '@features/admin/change-role'
 import { WithdrawUserButton } from '@features/admin/withdraw-user'
 import { fmtDate } from '@shared/lib/format'
@@ -9,7 +10,6 @@ import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Badge } from '@shared/ui/Badge'
-import type { AdminUser } from '@entities/admin'
 import type { UserStatus } from '@entities/user'
 
 const STATUS_LABEL: Record<UserStatus, string> = {
@@ -25,13 +25,13 @@ const STATUS_TONE: Record<UserStatus, 'ok' | 'warn' | 'error'> = {
 }
 
 interface Props {
-  initialUsers: AdminUser[]
   currentUserId: string | null
   filterBar?: React.ReactNode
+  queryParams?: AdminUsersQueryParams
 }
 
-export function AdminUsersTable({ initialUsers, currentUserId, filterBar }: Props) {
-  const { data: users = initialUsers } = useAdminUsersQuery(undefined, initialUsers)
+export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props) {
+  const { data: users = [] } = useAdminUsersQuery(undefined, queryParams)
   const [page, setPage] = useState(1)
   const [size, setSize] = useState(10)
 

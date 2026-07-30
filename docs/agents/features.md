@@ -56,7 +56,8 @@ features/{domain}/{slice}/
 - **`create-account/steps/BrokerStep`**: KIS / TOSS / MOCK 선택. `BrokerCode`는 `@shared/lib/api-schema`. `BROKER_UI`에 없는 코드는 카드가 렌더되지 않으므로(`return null`) 신규 브로커 추가 시 반드시 항목 추가 필요
 - **`create-account/steps/ApiStep`**: KIS는 `useTestKisConnectionMutation`, TOSS는 UI만 구현. MOCK은 이 스텝 자체를 거치지 않음
 - **`create-account/steps/AccountInfoStep`**: KIS와 TOSS의 계좌번호 형식이 다름. MOCK은 계좌번호 입력 없이 별칭만 입력(early-return 분기)
-- **`create-account/steps/ConfirmStep`**: `useCreateAccountMutation` 사용. MOCK은 요청 바디에서 accountNo/appKey/secretKey를 생략(`{ nickname, broker }`)하고 요약 화면에서도 해당 행을 숨김
+- **`create-account/steps/ConfirmStep`**: `useCreateAccountMutation` 사용. 생성 성공 후 entity 캐시 동기화가 끝난 뒤 `mutate(..., { onSuccess })`에서 `/accounts/{id}`로 이동한다. MOCK은 요청 바디에서 accountNo/appKey/secretKey를 생략(`{ nickname, broker }`)하고 요약 화면에서도 해당 행을 숨김
+- **`edit-account`**: `EditAccountForm`이 수정/삭제 성공 toast와 라우팅을 담당한다. 삭제 성공 후 전략·통계·주문·거래 캐시를 무효화한 다음 `/accounts`로 이동한다
 - **`auth/reapply`**: `/api/auth/reapply-done` Route Handler 경유
 - **`strategy/create-strategy`**: 다이얼로그/드로어 없이 전용 라우트로 등록·수정한다 — `app/(main)/accounts/[id]/strategies/new`(등록), `.../strategies/[sid]/edit`(수정). `StrategyFormPage`가 `initial` prop 유무로 create/edit을 분기한다. 폼 내부는 반응형 분기 없이 모바일·PC 동일한 1열 레이아웃을 사용한다(`VrSettingsSection` 등). PC에서는 `app/(main)/@modal` 인터셉팅 라우트로 같은 페이지를 모달처럼 띄운다 — `docs/agents/app.md`의 인터셉팅 라우트 quirk 참고. `StrategyFormPage`의 `dismiss` prop(`'push'`|`'back'`)으로 일반 페이지(`router.push`)/모달(`router.back`) 종료 방식을 구분한다
 - **`strategy/create-strategy`**: 수정 모드는 기본적으로 시작금액(`initialUsdDeposit`) 읽기 전용이며, `currentHoldings === 0`일 때만 등록과 같은 시드 입력 UI를 사용하고 저장 payload에 포함할 수 있음
@@ -68,6 +69,6 @@ features/{domain}/{slice}/
 - **`strategy/create-strategy/sections/DivisionCountSection`**: `usesDivisionCount`와 `typeMeta.divisionCounts` 기반 렌더
 - **`strategy/create-strategy` MOCK 계좌**: `useStrategyForm`이 `broker === 'MOCK'`이면 `balanceCheckEnabled`를 강제로 `false`로 만든다 — 사용자가 설정에서 잔고검증을 끈 것과 완전히 동일한 코드 경로(`UsageRatioSection`의 예수금 직접 입력 UI, margin 쿼리 skip)를 강제로 태우는 것뿐이다. 배지 라벨만 `offBadgeLabel`로 "모의계좌"로 오버라이드
 - **`settings/telegram-connect`**: pending/settings 페이지에서 컴포넌트 공유
-- **`admin/settings`**: 전체 런타임 설정 초안을 편집한다. 전략 필드와 ETF 벤치마크의 빈 허용값, 기본값 포함 여부, 고정 필드 단일값과 VR 고정 `HOLD` 정책을 저장 전에 검증하며 변경 취소는 마지막 서버 상태로 복원한다
+- **`admin/settings`**: 전체 런타임 설정 초안을 편집한다. 전략 필드와 ETF 벤치마크의 빈 허용값, 기본값 포함 여부, 고정 필드 단일값과 VR 고정 `HOLD` 정책을 저장 전에 검증하며 변경 취소는 마지막 서버 상태로 복원한다. 저장 후 runtime config와, 승인 비활성화 시 admin users/stats refetch를 entity mutation의 hook-level success effect로 주입한다. 모든 effect를 await하므로 완료 전까지 pending을 유지하고, refetch 오류는 mutation error lifecycle로 전달한다. per-call `mutate(..., { onSuccess })`에는 async 필수 효과를 두지 않는다
 - **`strategy/create-strategy/sections`**: CSS 토큰 기반 인라인 style 다수 사용
 - **선택형 카드**: 전략 등록·수정 섹션, 알림 수단, 테마 선택은 `@shared/ui/selection-card`의 `SelectionCard`를 사용한다. 전략 유형·시드 모드·알림 수단·테마처럼 큰 카드는 `showIndicator`, 수치·종목 등 작은 옵션은 외곽선만 사용한다

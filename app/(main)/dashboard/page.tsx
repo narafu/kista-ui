@@ -1,10 +1,11 @@
+import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
+
 import { getAuthToken } from '@shared/lib/auth/token'
 import { getMonthlyHolidays, getMonthlyHolidaysPublic } from '@entities/market'
-import { getCachedAccounts } from '@entities/account'
-import { DashboardEmpty } from '@widgets/dashboard/DashboardEmpty'
-import { DashboardOverview } from '@widgets/dashboard/DashboardOverview'
+import { accountListQueryOptions } from '@entities/account'
+import { DashboardContent } from '@widgets/dashboard/DashboardContent'
 import { DashboardLogoutErrorToast } from '@features/auth/logout'
-import type { Account } from '@entities/account'
+import { createQueryClient } from '@shared/lib/query'
 
 function pad(n: number) { return String(n).padStart(2, '0') }
 
@@ -23,36 +24,31 @@ export default async function DashboardPage() {
   const calendarMonth = now.getMonth() + 1
   const initialWeekStartDate = getWeekStartDate()
 
-  let accounts: Account[] = []
   // 비인증: 체결내역 없는 달력만 표시 (휴장일은 public 엔드포인트로 로드)
-  const holidays: string[] = token
-    ? await getMonthlyHolidays(calendarYear, calendarMonth, token).catch(() => [])
-    : await getMonthlyHolidaysPublic(calendarYear, calendarMonth)
-
-  if (token) {
-    try { accounts = await getCachedAccounts(token) } catch {}
+  let holidays: string[] | undefined
+  try {
+    holidays = token
+      ? await getMonthlyHolidays(calendarYear, calendarMonth, token)
+      : await getMonthlyHolidaysPublic(calendarYear, calendarMonth)
+  } catch {
+    // A failed server fetch must not hydrate a successful empty month for 24 hours.
+    holidays = undefined
   }
 
-  if (accounts.length === 0) {
-    return (
-      <>
-        <DashboardLogoutErrorToast />
-        <DashboardEmpty
-          holidays={holidays}
-          initialWeekStartDate={initialWeekStartDate}
-        />
-      </>
-    )
+  const queryClient = createQueryClient()
+  if (token) {
+    await queryClient.prefetchQuery(accountListQueryOptions(token))
   }
 
   return (
     <>
       <DashboardLogoutErrorToast />
-      <DashboardOverview
-        holidays={holidays}
-        initialWeekStartDate={initialWeekStartDate}
-        accountIds={accounts.map(a => a.id)}
-      />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <DashboardContent
+          holidays={holidays}
+          initialWeekStartDate={initialWeekStartDate}
+        />
+      </HydrationBoundary>
     </>
   )
 }

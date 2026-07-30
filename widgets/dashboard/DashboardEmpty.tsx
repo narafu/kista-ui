@@ -9,7 +9,7 @@ import { FearGreedSection } from '@widgets/fear-greed-card'
 import { Surface } from '@shared/ui/Surface'
 
 interface Props {
-  holidays: string[]
+  holidays?: string[]
   initialWeekStartDate: string
 }
 

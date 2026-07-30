@@ -1,9 +1,10 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import type { QueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
 import { ApiError, apiMsg } from '@shared/lib/api-client'
+import { upsertById, synchronizeListQueries } from '@shared/lib/query'
 import {
   createAccount,
   updateAccount,
@@ -15,63 +16,76 @@ import {
   type PriceMap,
 } from '../api'
 import type { Account, AccountRequest } from '../model/types'
+import { accountKeys } from '../model/queryKeys'
+import { accountListQueryOptions } from '../model/queryOptions'
+
+async function synchronizeAccountList(
+  queryClient: QueryClient,
+  update: (accounts: Account[]) => Account[],
+) {
+  await synchronizeListQueries(
+    queryClient,
+    [{
+      queryKey: accountKeys.list(),
+      fetchCompleteList: () => queryClient.fetchQuery(accountListQueryOptions()),
+    }],
+    update,
+  )
+}
 
 export function useAccountMarginQuery(accountId: string, options?: { enabled?: boolean }) {
-  const { data: items = [], isLoading } = useQuery<MarginItem[]>({
-    queryKey: ['accountMargin', accountId],
-    queryFn: () => getMargin(accountId).catch((): MarginItem[] => []),
+  const { data: items = [], isLoading, isError } = useQuery<MarginItem[]>({
+    queryKey: accountKeys.margin(accountId),
+    queryFn: () => getMargin(accountId),
     enabled: options?.enabled !== false,
+    staleTime: 0,
   })
-  return { items, isLoading }
+  return { items, isLoading, isError }
 }
 
 export function useAccountPricesQuery(accountId: string, tickers: string[]) {
   return useQuery<PriceMap>({
-    queryKey: ['accountPrices', accountId, tickers],
+    queryKey: accountKeys.prices(accountId, tickers),
     queryFn: () => getPrices(accountId, tickers),
     enabled: !!accountId && tickers.length > 0,
+    staleTime: 0,
   })
 }
 
 export function useUpdateAccountMutation(accountId: string) {
-  const router = useRouter()
   const queryClient = useQueryClient()
   return useMutation<Account, Error, AccountRequest>({
     mutationFn: (data) => updateAccount(accountId, data),
-    onSuccess: () => {
-      toast.success('계좌가 수정되었습니다')
-      queryClient.invalidateQueries({ queryKey: ['accounts'] })
-      router.push(`/accounts/${accountId}`)
-      router.refresh()
+    onSuccess: async (saved) => {
+      queryClient.setQueryData(accountKeys.detail(accountId), saved)
+      await synchronizeAccountList(queryClient, (accounts) => upsertById(accounts, saved))
     },
     onError: (err) => toast.error(apiMsg(err, '수정에 실패했습니다')),
   })
 }
 
 export function useDeleteAccountMutation(accountId: string) {
-  const router = useRouter()
   const queryClient = useQueryClient()
   return useMutation<void, Error>({
     mutationFn: () => deleteAccount(accountId),
-    onSuccess: () => {
-      toast.success('계좌가 삭제되었습니다')
-      queryClient.removeQueries({ queryKey: ['accounts'] })
-      router.push('/accounts')
-      router.refresh()
+    onSuccess: async () => {
+      queryClient.removeQueries({ queryKey: accountKeys.detail(accountId) })
+      queryClient.removeQueries({ queryKey: accountKeys.margin(accountId) })
+      queryClient.removeQueries({ queryKey: accountKeys.pricesRoot(accountId) })
+      await synchronizeAccountList(queryClient, (accounts) =>
+        accounts.filter((account) => account.id !== accountId))
     },
     onError: (err) => toast.error(apiMsg(err, '삭제에 실패했습니다')),
   })
 }
 
 export function useCreateAccountMutation() {
-  const router = useRouter()
   const queryClient = useQueryClient()
   return useMutation<Account, Error, AccountRequest>({
     mutationFn: (data) => createAccount(data),
-    onSuccess: (saved) => {
-      queryClient.invalidateQueries({ queryKey: ['accounts'] })
-      router.push(`/accounts/${saved.id}`)
-      router.refresh()
+    onSuccess: async (saved) => {
+      queryClient.setQueryData(accountKeys.detail(saved.id), saved)
+      await synchronizeAccountList(queryClient, (accounts) => upsertById(accounts, saved))
     },
     onError: (error) => {
       if (error instanceof ApiError && error.status === 422) {

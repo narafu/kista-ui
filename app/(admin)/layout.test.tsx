@@ -20,7 +20,7 @@ vi.mock('@entities/meta', () => ({
 }))
 
 vi.mock('@shared/lib/auth/token', () => ({
-  getAuthToken: vi.fn().mockResolvedValue(null),
+  getAuthToken: vi.fn().mockResolvedValue('token'),
 }))
 
 describe('AdminLayout', () => {

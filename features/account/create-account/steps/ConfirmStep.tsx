@@ -1,5 +1,7 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
+
 import { useCreateAccountMutation } from '@entities/account'
 import { useMeta } from '@entities/meta'
 import { ApiError } from '@shared/lib/api-client'
@@ -16,6 +18,7 @@ interface Props {
 export function ConfirmStep({ data, onBack }: Props) {
   const { mutate, isPending, isError, error } = useCreateAccountMutation()
   const { labelOf } = useMeta()
+  const router = useRouter()
 
   const broker = (data.broker || 'KIS') as BrokerCode
   const isMock = isMockBroker(broker)
@@ -30,7 +33,11 @@ export function ConfirmStep({ data, onBack }: Props) {
         accountNo: data.accountNo,
         broker,
       }
-    mutate(req)
+    mutate(req, {
+      onSuccess: (saved) => {
+        router.push(`/accounts/${saved.id}`)
+      },
+    })
   }
 
   let errorMessage = '계좌 연결에 실패했습니다'

@@ -6,6 +6,7 @@ import { ApiError } from '@shared/lib/api-client'
 import type { StepData } from '../CreateAccountStepper'
 
 const mutateMock = vi.fn()
+const pushMock = vi.fn()
 let mockState: { isPending: boolean; isError: boolean; error: unknown } = {
   isPending: false,
   isError: false,
@@ -14,6 +15,10 @@ let mockState: { isPending: boolean; isError: boolean; error: unknown } = {
 
 vi.mock('@entities/account', () => ({
   useCreateAccountMutation: () => ({ mutate: mutateMock, ...mockState }),
+}))
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: pushMock }),
 }))
 
 vi.mock('@entities/meta', () => ({
@@ -36,13 +41,16 @@ describe('ConfirmStep', () => {
 
     await user.click(screen.getByRole('button', { name: '계좌 연결' }))
 
-    expect(mutateMock).toHaveBeenCalledWith({
-      nickname: '메인 계좌',
-      appKey: 'app-key-1234',
-      secretKey: 'app-secret-1234',
-      accountNo: '74420614-01',
-      broker: 'KIS',
-    })
+    expect(mutateMock).toHaveBeenCalledWith(
+      {
+        nickname: '메인 계좌',
+        appKey: 'app-key-1234',
+        secretKey: 'app-secret-1234',
+        accountNo: '74420614-01',
+        broker: 'KIS',
+      },
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    )
   })
 
   it('shows the server detail message when the account number is already registered (409)', () => {
@@ -74,6 +82,22 @@ describe('ConfirmStep', () => {
 
     await user.click(screen.getByRole('button', { name: '계좌 연결' }))
 
-    expect(mutateMock).toHaveBeenCalledWith({ nickname: '모의 계좌', broker: 'MOCK' })
+    expect(mutateMock).toHaveBeenCalledWith(
+      { nickname: '모의 계좌', broker: 'MOCK' },
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    )
+  })
+
+  it('navigates after the create mutation has synchronized the account cache', async () => {
+    mockState = { isPending: false, isError: false, error: null }
+    const user = userEvent.setup()
+    render(<ConfirmStep data={data} onBack={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: '계좌 연결' }))
+
+    const options = mutateMock.mock.calls.at(-1)?.[1] as { onSuccess: (saved: { id: string }) => void }
+    options.onSuccess({ id: 'account-1' })
+
+    expect(pushMock).toHaveBeenCalledWith('/accounts/account-1')
   })
 })

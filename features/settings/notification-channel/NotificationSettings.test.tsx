@@ -76,6 +76,7 @@ describe('NotificationSettings — FCM 해제', () => {
     expect(mutateAsyncMock).toHaveBeenCalledWith('NONE')
     expect(unregisterTokenFromServerMock).toHaveBeenCalledWith('cached-token')
     expect(acquireTokenMock).not.toHaveBeenCalled()
+    expect(refreshMock).not.toHaveBeenCalled()
   })
 
   it('ALL에서 TELEGRAM으로 전환하고 캐시된 토큰이 없으면 해제를 호출하지 않는다', async () => {
@@ -89,6 +90,7 @@ describe('NotificationSettings — FCM 해제', () => {
 
     expect(mutateAsyncMock).toHaveBeenCalledWith('TELEGRAM')
     expect(unregisterTokenFromServerMock).not.toHaveBeenCalled()
+    expect(refreshMock).not.toHaveBeenCalled()
   })
 
   it('TELEGRAM에서 FCM으로 전환(등록)할 때는 해제를 호출하지 않는다', async () => {

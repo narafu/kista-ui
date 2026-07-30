@@ -9,7 +9,7 @@ import { useMonthlyHolidaysQuery } from '@entities/market'
 import { useDailyTradesRangeQuery, directionTextClass, type DayTradeSummary } from '@entities/trade'
 
 interface Props {
-  holidays: string[]
+  holidays?: string[]
   initialWeekStartDate: string // 'YYYY-MM-DD', 이번 주 일요일
   accountIds: string[]
 }
@@ -168,7 +168,7 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
 
   // 달 경계 주: 시작 달·끝 달 각각 조회 (queryKey 동일하면 캐시 재사용)
   const initialDate = new Date(initialWeekStartDate + 'T00:00:00')
-  const { holidays: h1 } = useMonthlyHolidaysQuery(
+  const h1Query = useMonthlyHolidaysQuery(
     displayWeekStart.getFullYear(),
     displayWeekStart.getMonth() + 1,
     displayWeekStart.getFullYear() === initialDate.getFullYear() &&
@@ -176,20 +176,22 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
       ? holidays
       : undefined,
   )
-  const { holidays: h2 } = useMonthlyHolidaysQuery(
+  const h2Query = useMonthlyHolidaysQuery(
     weekEnd.getFullYear(),
     weekEnd.getMonth() + 1,
   )
   // 전주 시작 달 / 다음주 끝 달 (달 경계 커버, 동일 month는 캐시 재사용)
-  const { holidays: hPrev } = useMonthlyHolidaysQuery(
+  const hPrevQuery = useMonthlyHolidaysQuery(
     prevWeekStart.getFullYear(),
     prevWeekStart.getMonth() + 1,
   )
-  const { holidays: hNext } = useMonthlyHolidaysQuery(
+  const hNextQuery = useMonthlyHolidaysQuery(
     addDays(nextWeekStart, 6).getFullYear(),
     addDays(nextWeekStart, 6).getMonth() + 1,
   )
-  const holidaySet = new Set([...h1, ...h2, ...hPrev, ...hNext])
+  const holidayQueries = [h1Query, h2Query, hPrevQuery, hNextQuery]
+  const holidayFetchFailed = holidayQueries.some((query) => query.isError)
+  const holidaySet = new Set(holidayQueries.flatMap((query) => query.holidays))
 
   // 전주 시작~다음주 끝(3주)을 1회 요청으로 조회 — 계좌별/주별 개별 요청 대신 배치 API 사용
   const { data: tradeSummary = new Map(), isFetching: anyFetching } = useDailyTradesRangeQuery(
@@ -273,7 +275,9 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
         )}
       </div>
 
-      {nextHoliday && ddayCount !== null && (
+      {holidayFetchFailed ? (
+        <p className="mt-auto pt-2 text-sm text-warn">휴장일 정보를 불러오지 못했습니다</p>
+      ) : nextHoliday && ddayCount !== null && (
         <p className="mt-auto pt-2 text-sm text-muted-foreground">
           다음 휴장일{' '}
           <span className="font-medium" style={{ color: 'var(--gold)' }}>{monthDayLabel(nextHoliday)}</span>

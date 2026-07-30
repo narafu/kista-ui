@@ -4,6 +4,14 @@ const apiFetchMock = vi.fn()
 const clientFetchMock = vi.fn()
 
 vi.mock('@shared/lib/api-client', () => ({
+  ApiError: class ApiError extends Error {
+    constructor(
+      public readonly status: number,
+      public readonly body: unknown,
+    ) {
+      super(`API error ${status}`)
+    }
+  },
   apiFetch: (...args: unknown[]) => apiFetchMock(...args),
   clientFetch: (...args: unknown[]) => clientFetchMock(...args),
 }))
@@ -52,15 +60,14 @@ describe('market api', () => {
     expect(result).toEqual(['2026-03-01'])
   })
 
-  it('getMonthlyHolidaysPublic swallows non-ok responses and network errors into an empty array', async () => {
+  it('getMonthlyHolidaysPublic rejects a failed upstream response instead of returning empty holidays', async () => {
     vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://kista-api.fly.dev')
-    const fetchMock = vi.fn().mockResolvedValue({ ok: false })
+    const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 503, json: () => Promise.resolve({ detail: 'upstream unavailable' }) })
     vi.stubGlobal('fetch', fetchMock)
 
     const { getMonthlyHolidaysPublic } = await import('./index')
-    const result = await getMonthlyHolidaysPublic(2026, 4)
 
-    expect(result).toEqual([])
+    await expect(getMonthlyHolidaysPublic(2026, 4)).rejects.toMatchObject({ status: 503 })
   })
 
   it('getCandlesClient defaults count to CHART_CANDLE_COUNT (200) and builds ticker query', async () => {

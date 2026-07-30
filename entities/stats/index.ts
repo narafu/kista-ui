@@ -21,6 +21,7 @@ export type {
   HousingBenchmarkRegion,
   HousingBenchmarkRegionsList,
 } from './model/types'
+export { statsKeys } from './model/queryKeys'
 export {
   getStatsSummary,
   getEquityCurve,

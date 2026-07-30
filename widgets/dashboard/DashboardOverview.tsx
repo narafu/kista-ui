@@ -6,7 +6,7 @@ import { MARKET_CHART_CATEGORIES } from '@widgets/dashboard/marketChartCategorie
 import { FearGreedSection } from '@widgets/fear-greed-card'
 
 interface Props {
-  holidays: string[]
+  holidays?: string[]
   initialWeekStartDate: string
   accountIds: string[]
 }

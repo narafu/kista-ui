@@ -19,7 +19,6 @@ function formatStrategyBadge(strategy: Strategy): string {
 
 interface Props {
   account: Account
-  strategies?: Strategy[]
 }
 
 /** 전략 목록에서 대표 상태를 집계. 모두 ACTIVE면 ACTIVE, 혼재면 PAUSED, 없으면 null. */
@@ -32,8 +31,8 @@ function aggregateStatus(strategies: Strategy[]): 'ACTIVE' | 'PAUSED' | null {
   return 'PAUSED'
 }
 
-export function AccountCard({ account, strategies: initialStrategies = EMPTY_STRATEGIES }: Props) {
-  const { data: strategies = EMPTY_STRATEGIES } = useStrategiesQuery(account.id, initialStrategies)
+export function AccountCard({ account }: Props) {
+  const { data: strategies = EMPTY_STRATEGIES } = useStrategiesQuery(account.id)
   const { findBroker } = useMeta()
   const broker = findBroker(account.broker)
   const brokerLabel = broker?.label ?? account.broker

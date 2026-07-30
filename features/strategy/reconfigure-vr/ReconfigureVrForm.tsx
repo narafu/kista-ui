@@ -1,5 +1,6 @@
 'use client'
 
+import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -22,6 +23,7 @@ import { SelectionCard } from '@shared/ui/selection-card'
 import { cn } from '@shared/lib/utils'
 import { ratioToPercent, percentToRatio } from '@shared/lib/format'
 import { useDecimalAmountText } from '@shared/lib/hooks/use-decimal-amount-text'
+import { orderKeys } from '@entities/order'
 import { useReconfigureVrMutation, applyPStepWeeksChange } from '@entities/strategy'
 import type { ReconfigureVrRequest } from '@entities/strategy'
 import { reconfigureVrFormSchema, type ReconfigureVrFormValues } from './model/reconfigureVrFormSchema'
@@ -90,10 +92,16 @@ function ModeButton({
 
 export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Props) {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const vr = strategy.vr
 
   const backHref = `/accounts/${accountId}/strategies/${strategy.id}`
   const handleDone = dismiss === 'back' ? () => router.back() : () => router.push(backHref)
+  // 사이클이 통째로 교체되므로 다음 주문 미리보기도 반드시 무효화 — 다른 도메인(order) 무효화이므로 feature가 소유한다
+  const handleReconfigureSuccess = async () => {
+    await queryClient.invalidateQueries({ queryKey: orderKeys.preview(strategy.id) }).catch(() => null)
+    handleDone()
+  }
 
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [recurringMode, setRecurringMode] = useState<RecurringMode>(
@@ -122,7 +130,7 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
     },
   })
 
-  const mutation = useReconfigureVrMutation(strategy.id, handleDone)
+  const mutation = useReconfigureVrMutation(strategy.id, handleReconfigureSuccess)
   const injectShares = form.watch('injectShares')
   // allowNegative: true — 이 필드는 음수를 입력 자체에서 막지 않고 zod nonnegative() 검증까지
   // 그대로 넘겨 에러 메시지로 피드백한다(무피드백으로 조용히 '-'가 사라지는 것을 피하기 위함)

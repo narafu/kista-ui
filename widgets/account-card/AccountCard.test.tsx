@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 import { AccountCard } from './AccountCard'
@@ -18,8 +18,8 @@ vi.mock('@entities/meta', () => ({
 }))
 
 vi.mock('@entities/strategy', () => ({
-  useStrategiesQuery: (_accountId: string, initialData: Strategy[] = []) => ({
-    data: initialData,
+  useStrategiesQuery: () => ({
+    data: strategiesQueryData,
   }),
   strategyStatusAccent: (status: string) => status === 'ACTIVE' ? 'var(--status-ok)' : 'var(--warn)',
   strategyTypeShort: (type: string) => {
@@ -28,6 +28,8 @@ vi.mock('@entities/strategy', () => ({
     return type
   },
 }))
+
+let strategiesQueryData: Strategy[] = []
 
 const baseAccount: Account = {
   id: 'account-1',
@@ -49,12 +51,14 @@ const baseStrategy: Strategy = {
 }
 
 describe('AccountCard', () => {
+  beforeEach(() => {
+    strategiesQueryData = []
+  })
+
   it('shows an active left accent strip and no status dot label when all strategies are active', () => {
+    strategiesQueryData = [baseStrategy]
     const { container } = render(
-      <AccountCard
-        account={baseAccount}
-        strategies={[baseStrategy]}
-      />,
+      <AccountCard account={baseAccount} />,
     )
 
     const accent = container.querySelector('[data-testid="account-status-accent"]')
@@ -65,14 +69,9 @@ describe('AccountCard', () => {
   })
 
   it('uses the warn accent when strategy statuses are mixed', () => {
+    strategiesQueryData = [baseStrategy, { ...baseStrategy, id: 'strategy-2', status: 'PAUSED' }]
     const { container } = render(
-      <AccountCard
-        account={baseAccount}
-        strategies={[
-          baseStrategy,
-          { ...baseStrategy, id: 'strategy-2', status: 'PAUSED' },
-        ]}
-      />,
+      <AccountCard account={baseAccount} />,
     )
 
     const accent = container.querySelector('[data-testid="account-status-accent"]')
@@ -82,14 +81,12 @@ describe('AccountCard', () => {
   })
 
   it('renders compact strategy badges with status-colored border and text', () => {
+    strategiesQueryData = [
+      { ...baseStrategy, id: 'strategy-1', type: 'PRIVACY', ticker: 'SOXL', status: 'PAUSED' },
+      { ...baseStrategy, id: 'strategy-2', type: 'INFINITE', ticker: 'MAGX', status: 'ACTIVE' },
+    ]
     const { container } = render(
-      <AccountCard
-        account={baseAccount}
-        strategies={[
-          { ...baseStrategy, id: 'strategy-1', type: 'PRIVACY', ticker: 'SOXL', status: 'PAUSED' },
-          { ...baseStrategy, id: 'strategy-2', type: 'INFINITE', ticker: 'MAGX', status: 'ACTIVE' },
-        ]}
-      />,
+      <AccountCard account={baseAccount} />,
     )
 
     expect(screen.getAllByText('P-SOXL')).toHaveLength(2)
@@ -103,15 +100,13 @@ describe('AccountCard', () => {
   })
 
   it('top-aligns wrapped mobile strategy badges so multiple rows do not collapse toward the center', () => {
+    strategiesQueryData = [
+      { ...baseStrategy, id: 'strategy-1', type: 'PRIVACY', ticker: 'SOXL' },
+      { ...baseStrategy, id: 'strategy-2', type: 'INFINITE', ticker: 'MAGX' },
+      { ...baseStrategy, id: 'strategy-3', type: 'PRIVACY', ticker: 'TSLL' },
+    ]
     render(
-      <AccountCard
-        account={baseAccount}
-        strategies={[
-          { ...baseStrategy, id: 'strategy-1', type: 'PRIVACY', ticker: 'SOXL' },
-          { ...baseStrategy, id: 'strategy-2', type: 'INFINITE', ticker: 'MAGX' },
-          { ...baseStrategy, id: 'strategy-3', type: 'PRIVACY', ticker: 'TSLL' },
-        ]}
-      />,
+      <AccountCard account={baseAccount} />,
     )
 
     const mobileMainRow = screen.getAllByText('메인 계좌')[0]?.parentElement
@@ -123,14 +118,12 @@ describe('AccountCard', () => {
   })
 
   it('uses fixed-height desktop strategy rows so badges stay vertically centered between dividers', () => {
+    strategiesQueryData = [
+      { ...baseStrategy, id: 'strategy-1', type: 'INFINITE', ticker: 'MAGX', initialUsdDeposit: 2103 },
+      { ...baseStrategy, id: 'strategy-2', type: 'PRIVACY', ticker: 'SOXL', initialUsdDeposit: 6989 },
+    ]
     render(
-      <AccountCard
-        account={baseAccount}
-        strategies={[
-          { ...baseStrategy, id: 'strategy-1', type: 'INFINITE', ticker: 'MAGX', initialUsdDeposit: 2103 },
-          { ...baseStrategy, id: 'strategy-2', type: 'PRIVACY', ticker: 'SOXL', initialUsdDeposit: 6989 },
-        ]}
-      />,
+      <AccountCard account={baseAccount} />,
     )
 
     const desktopBadge = screen.getByTestId('strategy-badge-strategy-1-desktop')

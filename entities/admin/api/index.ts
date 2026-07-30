@@ -49,6 +49,10 @@ export async function getAdminStats(token: string): Promise<AdminStats> {
   return apiFetch<AdminStats>('/api/admin/dashboard/stats', { method: 'GET' }, token)
 }
 
+export async function getAdminStatsClient(): Promise<AdminStats> {
+  return clientFetch<AdminStats>('/api/admin/dashboard/stats', { method: 'GET' })
+}
+
 export async function listAdminAccounts(token?: string, from?: string, to?: string): Promise<AdminAccount[]> {
   const params = new URLSearchParams()
   if (from) params.set('from', from)
@@ -120,6 +124,13 @@ export async function listAdminErrorLogs(token: string, limit = 100, from?: stri
   if (from) params.set('from', from)
   if (to) params.set('to', to)
   return apiFetch<AppErrorLog[]>(`/api/admin/logs/errors?${params}`, { method: 'GET' }, token)
+}
+
+export async function listAdminErrorLogsClient(limit = 100, from?: string, to?: string): Promise<AppErrorLog[]> {
+  const params = new URLSearchParams({ limit: String(limit) })
+  if (from) params.set('from', from)
+  if (to) params.set('to', to)
+  return clientFetch<AppErrorLog[]>(`/api/admin/logs/errors?${params}`, { method: 'GET' })
 }
 
 export async function softDeleteAdminErrorLog(id: string): Promise<void> {

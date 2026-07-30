@@ -1,4 +1,4 @@
-import { apiFetch, clientFetch } from '@shared/lib/api-client'
+import { ApiError, apiFetch, clientFetch } from '@shared/lib/api-client'
 import type { Candle, FearGreed } from '../model/types'
 import { CHART_CANDLE_COUNT } from '../model/constants'
 
@@ -9,10 +9,14 @@ export function getMonthlyHolidays(year: number, month: number, token: string): 
 }
 
 // 비인증 Server Component용 — kista-api 직접 호출
-export function getMonthlyHolidaysPublic(year: number, month: number): Promise<string[]> {
-  return fetch(`${API_BASE_URL}/api/market/holidays?year=${year}&month=${month}`)
-    .then(res => res.ok ? res.json() as Promise<string[]> : [])
-    .catch(() => [])
+export async function getMonthlyHolidaysPublic(year: number, month: number): Promise<string[]> {
+  const response = await fetch(`${API_BASE_URL}/api/market/holidays?year=${year}&month=${month}`)
+  if (!response.ok) {
+    let body: unknown = null
+    try { body = await response.json() } catch {}
+    throw new ApiError(response.status, body)
+  }
+  return response.json() as Promise<string[]>
 }
 
 export function getMonthlyHolidaysClient(year: number, month: number): Promise<string[]> {

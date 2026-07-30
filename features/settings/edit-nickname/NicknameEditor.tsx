@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { Pencil, Check, X } from 'lucide-react'
 import { useUpdateNicknameMutation } from '@entities/user'
 import { IconButton } from '@shared/ui/IconButton'
@@ -17,7 +16,6 @@ export function NicknameEditor({ initialNickname }: Props) {
   const [value, setValue] = useState(initialNickname)
   const [error, setError] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
-  const router = useRouter()
   const mutation = useUpdateNicknameMutation()
 
   useEffect(() => {
@@ -46,9 +44,7 @@ export function NicknameEditor({ initialNickname }: Props) {
       setError('한글·영문·숫자·공백 1~10자로 입력해 주세요.')
       return
     }
-    mutation.mutate(trimmed, {
-      onSuccess: () => { setEditing(false); router.refresh() },
-    })
+    mutation.mutate(trimmed, { onSuccess: () => setEditing(false) })
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {

@@ -5,7 +5,7 @@ import type { Strategy } from '@entities/strategy'
 
 // 전략 등록 페이지(실제 라우트 + @modal 인터셉트 라우트)가 공유하는 계좌 조회
 export async function loadAccountForNewStrategy(accountId: string, token: string): Promise<Account | null> {
-  const accounts = await listAccounts(token).catch((): Account[] => [])
+  const accounts = await listAccounts(token)
   return accounts.find((a) => a.id === accountId) ?? null
 }
 
@@ -15,10 +15,14 @@ export async function loadAccountAndStrategyForEdit(
   strategyId: string,
   token: string,
 ): Promise<{ account: Account; strategy: Strategy } | null> {
-  const [accounts, strategies] = await Promise.all([
-    listAccounts(token).catch((): Account[] => []),
-    listStrategies(accountId, token).catch((): Strategy[] => []),
+  const [accountsResult, strategiesResult] = await Promise.allSettled([
+    listAccounts(token),
+    listStrategies(accountId, token),
   ])
+  if (accountsResult.status === 'rejected') throw accountsResult.reason
+  if (strategiesResult.status === 'rejected') throw strategiesResult.reason
+  const accounts = accountsResult.value
+  const strategies = strategiesResult.value
   const account = accounts.find((a) => a.id === accountId)
   const strategy = strategies.find((s) => s.id === strategyId)
   if (!account || !strategy) return null

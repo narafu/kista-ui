@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getAuthToken } from '@shared/lib/auth/token'
-import { listAccounts } from '@entities/account'
+import { accountDetailQueryOptions } from '@entities/account'
 import { EditAccountForm } from '@features/account/edit-account'
 import { PageHeader } from '@widgets/page-header'
+import { createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
   title: '계좌 수정 | KISTA',
@@ -21,8 +22,8 @@ export default async function AccountEditPage({ params }: Props) {
     return notFound()
   }
 
-  const accounts = await listAccounts(token).catch(() => [])
-  const account = accounts.find((a) => a.id === id)
+  const queryClient = createQueryClient()
+  const account = await queryClient.fetchQuery(accountDetailQueryOptions(id, token))
 
   if (!account) {
     return notFound()

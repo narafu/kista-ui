@@ -6,7 +6,6 @@ import { useStrategiesQuery } from '@entities/strategy'
 import { AccountSummaryCard } from './AccountSummaryCard'
 import { TradesTab } from './TradesTab'
 import type { Account } from '@entities/account'
-import type { Strategy } from '@entities/strategy'
 import type { NextOrderPreview } from '@entities/order'
 
 type Tab = 'summary' | 'strategy'
@@ -18,14 +17,13 @@ const TAB_LABELS: Record<Tab, string> = {
 
 interface Props {
   account: Account
-  strategies: Strategy[]
   usdDeposit: number
   posEvalUsd: number
   previewsByStrategyId?: Record<string, NextOrderPreview>
 }
 
-export function AccountDetailTabs({ account, strategies: initialStrategies, usdDeposit, posEvalUsd, previewsByStrategyId }: Props) {
-  const { data: strategies = initialStrategies } = useStrategiesQuery(account.id, initialStrategies)
+export function AccountDetailTabs({ account, usdDeposit, posEvalUsd, previewsByStrategyId }: Props) {
+  const { data: strategies = [] } = useStrategiesQuery(account.id)
   const [activeTab, setActiveTab] = useState<Tab>('summary')
 
   return (

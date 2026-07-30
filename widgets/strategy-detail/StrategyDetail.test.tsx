@@ -8,7 +8,10 @@ import { StrategyDetail } from './StrategyDetail'
 const mockPush = vi.fn()
 const deleteMutate = vi.fn()
 const executeMutate = vi.fn()
+const pauseMutate = vi.fn()
+const resumeMutate = vi.fn()
 let deleteSuccessHandler: (() => void) | undefined
+let holidayQueryResult: { holidays: string[]; isError?: boolean; loading?: boolean } = { holidays: [] }
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
@@ -67,17 +70,26 @@ vi.mock('@entities/strategy', async () => {
   const actual = await vi.importActual<typeof import('@entities/strategy')>('@entities/strategy')
   return {
     ...actual,
-    useDeleteStrategyMutation: (onSuccess?: () => void) => {
-      deleteSuccessHandler = onSuccess
-      return { mutate: deleteMutate, isPending: false }
-    },
-    useExecuteStrategyMutation: () => ({ mutate: executeMutate, isPending: false }),
-    usePauseStrategyMutation: () => ({ mutate: vi.fn(), isPending: false }),
-    useResumeStrategyMutation: () => ({ mutate: vi.fn(), isPending: false }),
     seedBadgeClass: () => 'seed-badge',
     strategyStatusAccent: (status: string) => status === 'ACTIVE' ? 'var(--status-ok)' : 'var(--warn)',
   }
 })
+
+vi.mock('@features/strategy/manage-strategy', () => ({
+  useManageStrategyMutations: ({ onDeleted }: { onDeleted?: () => void }) => {
+    deleteSuccessHandler = onDeleted
+    return {
+      pause: pauseMutate,
+      resume: resumeMutate,
+      remove: deleteMutate,
+      execute: executeMutate,
+      isPausing: false,
+      isResuming: false,
+      isDeleting: false,
+      isExecuting: false,
+    }
+  },
+}))
 
 const mockPreviewQuery = vi.fn(() => ({
   data: { todayOrders: [], position: null, orders: [], skipReason: 'NO_CYCLE_HISTORY', otherStrategiesPlannedBuyUsd: '0', competition: null } as Partial<NextOrderPreview>,
@@ -104,7 +116,7 @@ vi.mock('@entities/order', async () => {
 })
 
 vi.mock('@entities/market', () => ({
-  useMonthlyHolidaysQuery: () => ({ holidays: [] }),
+  useMonthlyHolidaysQuery: () => holidayQueryResult,
 }))
 
 vi.mock('@entities/meta', () => ({
@@ -139,6 +151,12 @@ const baseStrategy: Strategy = {
 }
 
 describe('StrategyDetail header card', () => {
+  beforeEach(() => {
+    holidayQueryResult = { holidays: [] }
+    pauseMutate.mockReset()
+    resumeMutate.mockReset()
+  })
+
   it('shows strategy type and next cycle in the header metadata cards', () => {
     const { container } = render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
@@ -181,6 +199,19 @@ describe('StrategyDetail header card', () => {
     expect(screen.getByText('PAUSED')).toBeInTheDocument()
     expect(screen.getByTestId('strategy-status-group')).toHaveTextContent('리버스모드')
     expect(screen.getByText('리버스모드')).toBeInTheDocument()
+  })
+
+  it('switches to the synchronized paused status and resume action from its query-owned parent', () => {
+    const paused = { ...baseStrategy, status: 'PAUSED' }
+    const { rerender } = render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    fireEvent.click(screen.getByRole('button', { name: '중지' }))
+    expect(pauseMutate).toHaveBeenCalledWith(baseStrategy)
+    rerender(<StrategyDetail accountId="account-1" strategy={paused} />)
+
+    expect(screen.getByText('PAUSED')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: '재개' }))
+    expect(resumeMutate).toHaveBeenCalledWith(paused)
   })
 
   it('shows an alternate operating mode label when the strategy type has no division count', () => {
@@ -314,6 +345,93 @@ describe('StrategyDetail header card', () => {
     />)
 
     expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('거치식')
+  })
+})
+
+describe('StrategyDetail market-holiday failure', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-07-21T10:00:00+09:00'))
+    holidayQueryResult = { holidays: [], isError: true }
+    executeMutate.mockClear()
+    vi.mocked(toast.info).mockClear()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    holidayQueryResult = { holidays: [] }
+    executeMutate.mockClear()
+  })
+
+  it('does not classify an unknown weekday market status as a confirmed trading day', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [],
+        position: null,
+        orders: [{ ticker: 'TSLA', orderType: 'LOC', direction: 'BUY', quantity: 1, price: '20.00' }],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: null,
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+    fireEvent.click(screen.getByText('바로 주문'))
+
+    expect(screen.getByText('미국 증시 휴장 여부를 확인하지 못했습니다')).toBeInTheDocument()
+    expect(toast.info).toHaveBeenCalledWith('미국 증시 휴장 여부를 확인하지 못했습니다')
+    expect(executeMutate).not.toHaveBeenCalled()
+  })
+
+  it('blocks immediate execution while weekday holiday status is still loading', () => {
+    holidayQueryResult = { holidays: [], loading: true }
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [],
+        position: null,
+        orders: [{ ticker: 'TSLA', orderType: 'LOC', direction: 'BUY', quantity: 1, price: '20.00' }],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: null,
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+    fireEvent.click(screen.getByText('바로 주문'))
+
+    expect(screen.getByText('미국 증시 휴장 여부를 확인하는 중입니다')).toBeInTheDocument()
+    expect(toast.info).toHaveBeenCalledWith('미국 증시 휴장 여부를 확인하는 중입니다')
+    expect(executeMutate).not.toHaveBeenCalled()
+  })
+
+  it('keeps the loading reason when a refetch retains today as a cached holiday', () => {
+    holidayQueryResult = { holidays: ['2026-07-21'], loading: true }
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [],
+        position: null,
+        orders: [{ ticker: 'TSLA', orderType: 'LOC', direction: 'BUY', quantity: 1, price: '20.00' }],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: null,
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+    fireEvent.click(screen.getByText('바로 주문'))
+
+    expect(screen.getByText('미국 증시 휴장 여부를 확인하는 중입니다')).toBeInTheDocument()
+    expect(toast.info).toHaveBeenCalledWith('미국 증시 휴장 여부를 확인하는 중입니다')
+    expect(executeMutate).not.toHaveBeenCalled()
   })
 })
 

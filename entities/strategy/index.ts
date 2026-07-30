@@ -1,4 +1,5 @@
 export type { CycleSeedType, Strategy, StrategyRequest, ReconfigureVrRequest, StrategySeedPreview, StrategyVrSummary } from './model/types'
+export { strategyKeys } from './model/queryKeys'
 export { seedBadgeClass } from './model/seed-badge'
 export { strategyStatusAccent } from './model/status-accent'
 export { strategyTypeShort } from './model/type-short'
@@ -16,9 +17,9 @@ export {
   getStrategySeedPreview,
   reconfigureVr,
 } from './api'
-export { getCachedStrategies } from './api/cached'
 export {
   useStrategySeedPreviewQuery,
+  useStrategyDetailQuery,
   useAllStrategiesQuery,
   useStrategiesQuery,
   useCreateStrategyMutation,
@@ -29,3 +30,8 @@ export {
   useResumeStrategyMutation,
   useExecuteStrategyMutation,
 } from './hooks/useStrategyQueries'
+export {
+  strategyDetailQueryOptions,
+  strategyListAllQueryOptions,
+  strategyListByAccountQueryOptions,
+} from './model/queryOptions'

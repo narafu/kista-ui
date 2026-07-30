@@ -4,6 +4,8 @@ export type {
   NotificationChannel,
   User,
 } from './model/types'
+export { userKeys } from './model/queryKeys'
+export { meQueryOptions } from './model/queryOptions'
 export {
   getMe,
   getMeClient,
@@ -16,7 +18,6 @@ export {
   updateBalanceCheckEnabled,
   updateNickname,
 } from './api'
-export { getCachedUser } from './api/cached'
 export {
   useMeQuery,
   useDeleteMeMutation,
