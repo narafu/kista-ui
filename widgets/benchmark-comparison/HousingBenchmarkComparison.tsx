@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useHousingBenchmarkQuery } from '@entities/stats'
 import type { EtfBenchmarkSymbol, HousingBenchmark, HousingBenchmarkParams, HousingBenchmarkRegion } from '@entities/stats'
 import { useAllStrategiesQuery } from '@entities/strategy'
+import { useAccountsQuery } from '@entities/account'
 import { DEFAULT_RUNTIME_BENCHMARKS, useRuntimeConfigQuery } from '@entities/runtime-config'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
@@ -220,16 +221,29 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   const isStrategyScope = scope === 'STRATEGY'
   // 개별 전략으로 전환했을 때만 전략 목록을 조회 — 전체 포트폴리오 범위에서는 불필요한 요청을 만들지 않는다
   const strategiesQuery = useAllStrategiesQuery({ enabled: enabled && isStrategyScope })
-  const strategies = strategiesQuery.data ?? []
+  const accountsQuery = useAccountsQuery({ enabled: enabled && isStrategyScope })
+  const accountsById = useMemo(
+    () => new Map(accountsQuery.data?.map((account) => [account.id, account]) ?? []),
+    [accountsQuery.data],
+  )
+  // 계좌 목록까지 로딩 완료되어야 모의계좌 필터링 결과가 확정된다 — 그 전에는 목록을 비워 둔다
+  // (그렇지 않으면 계좌 쿼리가 늦게 끝나는 동안 모의계좌 전략이 잠깐 노출·선택될 수 있다)
+  const hasStrategyList = strategiesQuery.data != null && accountsQuery.data != null
+  // 모의계좌는 벤치마크 비교 대상에서 제외 — 실제 투자 성과만 비교한다
+  const strategies = hasStrategyList
+    ? strategiesQuery.data.filter((strategy) => accountsById.get(strategy.accountId)?.broker !== 'MOCK')
+    : []
   const effectiveStrategyId = selectedStrategyId || strategies[0]?.id
-  const hasStrategyList = strategiesQuery.data != null
-  const strategyListFailed = isStrategyScope && !hasStrategyList && strategiesQuery.isError
+  const strategyListFailed = isStrategyScope
+    && !hasStrategyList
+    && (strategiesQuery.isError || accountsQuery.isError)
   const strategyListLoading = isStrategyScope
     && !hasStrategyList
     && !strategiesQuery.isError
+    && !accountsQuery.isError
   const strategyListEmpty = isStrategyScope
     && hasStrategyList
-    && strategiesQuery.data?.length === 0
+    && strategies.length === 0
   const selectedPeriod = periods.find((item) => item.value === period)
   const isCustomPeriod = period === 'CUSTOM'
   const from = isCustomPeriod
@@ -345,11 +359,14 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
                         : '선택할 전략이 없습니다'}
                   </option>
                 ) : null}
-                {strategies.map((strategy) => (
-                  <option key={strategy.id} value={strategy.id}>
-                    {strategy.type} · {strategy.ticker}
-                  </option>
-                ))}
+                {strategies.map((strategy) => {
+                  const nickname = accountsById.get(strategy.accountId)?.nickname
+                  return (
+                    <option key={strategy.id} value={strategy.id}>
+                      {nickname ? `[${nickname}] ` : ''}{strategy.type} · {strategy.ticker}
+                    </option>
+                  )
+                })}
               </select>
             </label>
           ) : null}

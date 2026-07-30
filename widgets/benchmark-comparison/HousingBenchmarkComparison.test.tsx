@@ -1,13 +1,14 @@
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { HousingBenchmark, HousingBenchmarkComparison as HousingBenchmarkComparisonData } from '@entities/stats'
 import { HousingBenchmarkComparison } from './HousingBenchmarkComparison'
 
-const { useHousingBenchmarkQueryMock, useAllStrategiesQueryMock, useRuntimeConfigQueryMock } = vi.hoisted(() => ({
+const { useHousingBenchmarkQueryMock, useAllStrategiesQueryMock, useAccountsQueryMock, useRuntimeConfigQueryMock } = vi.hoisted(() => ({
   useHousingBenchmarkQueryMock: vi.fn(),
   useAllStrategiesQueryMock: vi.fn(),
+  useAccountsQueryMock: vi.fn(),
   useRuntimeConfigQueryMock: vi.fn(),
 }))
 
@@ -22,6 +23,11 @@ vi.mock('@entities/stats', async (importOriginal) => {
 vi.mock('@entities/strategy', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@entities/strategy')>()
   return { ...actual, useAllStrategiesQuery: useAllStrategiesQueryMock }
+})
+
+vi.mock('@entities/account', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@entities/account')>()
+  return { ...actual, useAccountsQuery: useAccountsQueryMock }
 })
 
 vi.mock('@entities/runtime-config', async (importOriginal) => {
@@ -154,6 +160,10 @@ const STRATEGIES = [
   },
 ]
 
+const ACCOUNTS = [
+  { id: 'account-1', nickname: '메인계좌', accountNoMasked: '****0001', broker: 'KIS' as const },
+]
+
 function mockQuery(data: HousingBenchmarkComparisonData | undefined = COMPARISON, overrides = {}) {
   useHousingBenchmarkQueryMock.mockReturnValue({
     data,
@@ -168,6 +178,7 @@ describe('HousingBenchmarkComparison', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useAllStrategiesQueryMock.mockReturnValue({ data: STRATEGIES, isLoading: false })
+    useAccountsQueryMock.mockReturnValue({ data: ACCOUNTS, isLoading: false })
     useRuntimeConfigQueryMock.mockReturnValue({ data: undefined })
     mockQuery()
   })
@@ -453,6 +464,65 @@ describe('HousingBenchmarkComparison', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent('비교할 개별 전략이 없습니다.')
     expect(screen.queryByLabelText('전략 목록 불러오는 중')).not.toBeInTheDocument()
+  })
+
+  it('계좌 목록이 아직 로딩 중이면 모의계좌 필터링 전에는 전략 목록을 확정하지 않는다', async () => {
+    const user = userEvent.setup()
+    useAccountsQueryMock.mockReturnValue({ data: undefined, isLoading: true, isError: false })
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    await user.click(screen.getByRole('button', { name: '개별 전략' }))
+
+    expect(screen.getByRole('status')).toHaveAccessibleName('전략 목록 불러오는 중')
+    expect(screen.getByLabelText('전략')).toBeDisabled()
+    expect(screen.queryByRole('option', { name: /INFINITE|VR/ })).not.toBeInTheDocument()
+  })
+
+  it('계좌 목록 조회가 실패하면 전략 목록도 오류로 표시한다', async () => {
+    const user = userEvent.setup()
+    useAccountsQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: true })
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    await user.click(screen.getByRole('button', { name: '개별 전략' }))
+
+    expect(screen.getByRole('alert')).toHaveTextContent('전략 목록을 불러오지 못했습니다')
+  })
+
+  it('전략 선택 드롭다운 옵션 라벨 앞에 계좌 닉네임을 표시한다', async () => {
+    const user = userEvent.setup()
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    await user.click(screen.getByRole('button', { name: '개별 전략' }))
+
+    expect(screen.getByRole('option', { name: '[메인계좌] INFINITE · SOXL' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: '[메인계좌] VR · TQQQ' })).toBeInTheDocument()
+  })
+
+  it('모의계좌 소속 전략은 개별 전략 드롭다운에서 제외한다', async () => {
+    useAccountsQueryMock.mockReturnValue({
+      data: [
+        ...ACCOUNTS,
+        { id: 'account-2', nickname: '연습계좌', accountNoMasked: '****0002', broker: 'MOCK' as const },
+      ],
+      isLoading: false,
+    })
+    useAllStrategiesQueryMock.mockReturnValue({
+      data: [
+        ...STRATEGIES,
+        {
+          id: 'strategy-3', accountId: 'account-2', type: 'INFINITE', status: 'ACTIVE',
+          ticker: 'MAGX', cycleSeedType: 'NONE' as const, isReverseMode: false,
+        },
+      ],
+      isLoading: false,
+    })
+    const user = userEvent.setup()
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    await user.click(screen.getByRole('button', { name: '개별 전략' }))
+
+    expect(screen.queryByRole('option', { name: /MAGX/ })).not.toBeInTheDocument()
+    expect(within(screen.getByLabelText('전략')).getAllByRole('option')).toHaveLength(2)
   })
 
   it('윤년 2월 29일에서 연도를 빼도 2월을 유지하고 유효한 말일로 보정한다', async () => {
