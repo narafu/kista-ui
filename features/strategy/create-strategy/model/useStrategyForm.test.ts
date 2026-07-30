@@ -424,6 +424,70 @@ describe('useStrategyForm submit policy', () => {
     })
   })
 
+  it('VR create payload includes initialVrValue when explicit initial V is entered', async () => {
+    seedModelState.seedUsd = 2000
+
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('intervalWeeks', 4)
+      result.current.setVrField('bandWidth', 15)
+      result.current.setVrField('recurringAmount', null)
+      result.current.setVrField('initialValue', 5000)
+    })
+
+    await act(async () => {
+      result.current.handleSubmit({ preventDefault() {} } as React.FormEvent)
+    })
+
+    await waitFor(() => {
+      expect(mockCreateMutate).toHaveBeenCalled()
+    })
+
+    expect(mockCreateMutate).toHaveBeenCalledWith({
+      type: 'VR',
+      ticker: 'TQQQ',
+      cycleSeedType: 'NONE',
+      initialUsdDeposit: 2000,
+      intervalWeeks: 4,
+      bandWidth: 15,
+      recurringAmount: 0,
+      initialVrValue: 5000,
+    })
+  })
+
+  it('VR create omits initialVrValue when the explicit initial V is left empty', async () => {
+    seedModelState.seedUsd = 2000
+
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('intervalWeeks', 4)
+      result.current.setVrField('bandWidth', 15)
+      result.current.setVrField('recurringAmount', null)
+    })
+
+    await act(async () => {
+      result.current.handleSubmit({ preventDefault() {} } as React.FormEvent)
+    })
+
+    await waitFor(() => {
+      expect(mockCreateMutate).toHaveBeenCalled()
+    })
+
+    expect(mockCreateMutate.mock.calls[0][0]).not.toHaveProperty('initialVrValue')
+  })
+
   it('VR create payload includes ramp fields when provided', async () => {
     seedModelState.seedUsd = 2000
 
@@ -714,6 +778,25 @@ describe('useStrategyForm submit policy', () => {
 
     act(() => {
       result.current.setVrField('quantity', 190)
+    })
+
+    expect(result.current.cannotSubmit).toBe(false)
+  })
+
+  it('VR create HOLD mode is allowed when only the explicit initial V is entered (no holdings)', () => {
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('intervalWeeks', 2)
+      result.current.setVrField('bandWidth', 15)
+      result.current.setVrField('recurringAmount', 0)
+      result.current.setRecurringMode('HOLD')
+      result.current.setVrField('initialValue', 3000)
     })
 
     expect(result.current.cannotSubmit).toBe(false)

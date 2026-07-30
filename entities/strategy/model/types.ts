@@ -49,6 +49,7 @@ export interface StrategyRequest {
   intervalWeeks?: number      // VR 전용: 롤오버 주기 (주)
   bandWidth?: number          // VR 전용: 밴드 폭 (%)
   recurringAmount?: number    // VR 전용: 정기 입출금 (USD)
+  initialVrValue?: number     // VR 전용: 초기 V값 직접 지정 (등록 전용, 없으면 평가금 기준으로 서버가 계산)
   initialGradient?: number       // VR 전용: 램프 시작(경과 0주) G값
   gGraceWeeks?: number            // VR 전용: G 램프 시작 전 유예 주수
   gStepWeeks?: number             // VR 전용: G가 1단계 오르는 주기(주)

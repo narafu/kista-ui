@@ -36,6 +36,7 @@ describe('VrSettingsSection', () => {
     intervalWeeks: 2,
     bandWidth: 15,
     recurringAmount: 0,
+    initialValue: null,
     initialGradient: null,
     gGraceWeeks: null,
     gStepWeeks: null,
@@ -293,6 +294,18 @@ describe('VrSettingsSection', () => {
     it('does not render the advanced section in edit mode', () => {
       render(<VrSettingsSection fields={baseFields} {...baseProps} isEdit={true} initialVrValue={3000} />)
       expect(screen.queryByText('고급 설정')).not.toBeInTheDocument()
+    })
+
+    it('renders and updates the explicit initial V input', () => {
+      render(<VrSettingsSection fields={baseFields} {...baseProps} isEdit={false} />)
+      const input = getInputByLabelText('초기 V')
+      fireEvent.change(input, { target: { value: '5000' } })
+      expect(mockSetField).toHaveBeenCalledWith('initialValue', 5000)
+    })
+
+    it('does not render the explicit initial V input in edit mode', () => {
+      render(<VrSettingsSection fields={baseFields} {...baseProps} isEdit={true} initialVrValue={3000} />)
+      expect(screen.queryByText('초기 V')).not.toBeInTheDocument()
     })
 
     it('updates a ramp field through setField', () => {

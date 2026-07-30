@@ -35,6 +35,7 @@ export interface VrFields {
   intervalWeeks: number | null
   bandWidth: number | null
   recurringAmount: number | null
+  initialValue: number | null
   initialGradient: number | null
   gGraceWeeks: number | null
   gStepWeeks: number | null
@@ -155,6 +156,7 @@ export function useStrategyForm({
       recurringMode: initial?.vr?.recurringAmount
         ? initial.vr.recurringAmount < 0 ? 'WITHDRAW' : 'DEPOSIT'
         : 'HOLD',
+      initialValue: null,
       initialGradient: initial?.vr?.initialGradient ?? null,
       gGraceWeeks: initial?.vr?.gGraceWeeks ?? null,
       gStepWeeks: initial?.vr?.gStepWeeks ?? null,
@@ -188,6 +190,7 @@ export function useStrategyForm({
   const bandWidth = form.watch('bandWidth') ?? null
   const recurringAmount = form.watch('recurringAmount') ?? null
   const recurringMode = form.watch('recurringMode')
+  const initialValue = form.watch('initialValue') ?? null
   const scheduledStartDate = form.watch('scheduledStartDate') ?? null
   const initialGradient = form.watch('initialGradient') ?? null
   const gGraceWeeks = form.watch('gGraceWeeks') ?? null
@@ -199,7 +202,7 @@ export function useStrategyForm({
   const poolLimitFloor = form.watch('poolLimitFloor') ?? null
   const isVr = type === 'VR'
   const vrFields: VrFields = {
-    avgPrice, quantity, intervalWeeks, bandWidth, recurringAmount,
+    avgPrice, quantity, intervalWeeks, bandWidth, recurringAmount, initialValue,
     initialGradient, gGraceWeeks, gStepWeeks, gMax,
     initialPoolLimitRate, pGraceWeeks, pStepWeeks, poolLimitFloor,
   }
@@ -314,9 +317,11 @@ export function useStrategyForm({
 
   // VR 인출식 사전검증용 추정 V값 — 서버는 등록 시점 전일종가×보유수량으로 V를 재계산하므로 이 값은 근사치다
   // (평단가 기준 추정. 실제 등록가는 시장가 기준이라 서버 계산과 다를 수 있음 — 최종 검증은 서버가 수행)
+  // VR 게이트 판정용 추정 V값 — 초기 V 입력이 있으면 우선 사용, 없으면 기존처럼 평단가×수량 추정치
+  // (인출식 최소자산 검증은 서버가 항상 실제 평가금 기준으로만 계산하므로 override가 있어도 서버가 최종 거부할 수 있음)
   const normalizedInitialValue = initial
     ? initial.vr?.value ?? 0
-    : (avgPrice ?? 0) * (quantity ?? 0)
+    : (initialValue ?? (avgPrice ?? 0) * (quantity ?? 0))
   const normalizedInitialSeed = seedUsd ?? 0
   const recurringMagnitude = Math.abs(recurringAmount ?? 0)
   const normalizedRecurringAmount = recurringMode === 'HOLD'
@@ -533,6 +538,8 @@ export function useStrategyForm({
                 ? runtimeStrategy.fields.bandWidth.defaultValue
                 : bandWidth ?? undefined,
               recurringAmount: normalizedRecurringAmount,
+              // 초기 V 직접 입력 — 있으면 전송, 없으면 생략(서버가 평가금 기준으로 계산)
+              ...(initialValue !== null && initialValue > 0 ? { initialVrValue: initialValue } : {}),
               // 램프 파라미터 — 값이 있을 때만 포함(생략 시 서버 기본값 적용)
               ...(initialGradient !== null ? { initialGradient } : {}),
               ...(gGraceWeeks !== null ? { gGraceWeeks } : {}),

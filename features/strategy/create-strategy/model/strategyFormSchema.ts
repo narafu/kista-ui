@@ -15,6 +15,7 @@ export const strategyFormSchema = z.object({
   bandWidth: z.number().positive().nullable().optional(),
   recurringAmount: z.number().int().nonnegative().nullable().optional(),
   recurringMode: z.enum(['DEPOSIT', 'HOLD', 'WITHDRAW']),
+  initialValue: z.number().nonnegative().nullable().optional(),
   scheduledStartDate: z.string().nullable().optional(),
   // VR 램프 파라미터 — 전부 optional, 생략 시 백엔드 기본값 적용
   initialGradient: z.number().int().positive().nullable().optional(),

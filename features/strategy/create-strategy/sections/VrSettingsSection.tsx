@@ -140,6 +140,17 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
             고급 설정
           </summary>
           <div className="grid grid-cols-1 gap-y-5 mt-4">
+            <label>
+              <span className={FIELD_LABEL_CLASS}>초기 V</span>
+              <UnitInput
+                value={fields.initialValue}
+                onChange={(v) => setField('initialValue', v)}
+                unit="USD"
+                disabled={disabled}
+                placeholder="평가금 사용"
+                maxDecimals={2}
+              />
+            </label>
             <div>
               <span className={FIELD_LABEL_CLASS}>밴드 폭</span>
               <div className="grid grid-cols-3 gap-2">
