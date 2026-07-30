@@ -315,13 +315,15 @@ export function useStrategyForm({
     resetSeed({ seedUsdInput: 0 })
   }, [balanceCheckEnabled, initial, isVr]) // eslint-disable-line react-doctor/exhaustive-deps
 
-  // VR 인출식 사전검증용 추정 V값 — 서버는 등록 시점 전일종가×보유수량으로 V를 재계산하므로 이 값은 근사치다
+  // VR 인출식 사전검증용 추정 평가금 — 서버는 등록 시점 전일종가×보유수량으로 V를 재계산하므로 이 값은 근사치다
   // (평단가 기준 추정. 실제 등록가는 시장가 기준이라 서버 계산과 다를 수 있음 — 최종 검증은 서버가 수행)
-  // VR 게이트 판정용 추정 V값 — 초기 V 입력이 있으면 우선 사용, 없으면 기존처럼 평단가×수량 추정치
-  // (인출식 최소자산 검증은 서버가 항상 실제 평가금 기준으로만 계산하므로 override가 있어도 서버가 최종 거부할 수 있음)
+  const evaluatedStockValueEstimate = (avgPrice ?? 0) * (quantity ?? 0)
+  // VR 거치식/적립식 게이트("V값+예수금>0") 판정용 V값 — 초기 V 입력(>0)이 있으면 우선 사용, 없으면 위 평가금 추정치
+  // 인출식 최소자산 검증은 override를 절대 반영하지 않는다(서버 validateVrCommand와 동일 원칙 — evaluatedStockValueEstimate만 사용,
+  // 아래 requiredWithdrawalAssets 비교 참고). override로 인출 안전장치를 우회할 수 없게 하기 위함
   const normalizedInitialValue = initial
     ? initial.vr?.value ?? 0
-    : (initialValue ?? (avgPrice ?? 0) * (quantity ?? 0))
+    : (initialValue !== null && initialValue > 0 ? initialValue : evaluatedStockValueEstimate)
   const normalizedInitialSeed = seedUsd ?? 0
   const recurringMagnitude = Math.abs(recurringAmount ?? 0)
   const normalizedRecurringAmount = recurringMode === 'HOLD'
@@ -332,6 +334,7 @@ export function useStrategyForm({
   const effectiveInitialGradient = initialGradient ?? (normalizedRecurringAmount < 0 ? 20 : 10)
   const selectedRecurringMode = recurringMode
   const initialAssets = normalizedInitialValue + normalizedInitialSeed
+  const evaluatedAssets = (initial ? initial.vr?.value ?? 0 : evaluatedStockValueEstimate) + normalizedInitialSeed
   const requiredWithdrawalAssets = intervalWeeks !== null && intervalWeeks > 0
     ? Math.abs(normalizedRecurringAmount) * 100 * (4 / intervalWeeks)
     : 0
@@ -359,7 +362,7 @@ export function useStrategyForm({
     (recurringAmount !== null && !Number.isInteger(recurringAmount)) ||
     (recurringMode !== 'HOLD' && recurringMagnitude <= 0) ||
     (normalizedRecurringAmount <= 0 && initialAssets <= 0) ||
-    (normalizedRecurringAmount < 0 && initialAssets < requiredWithdrawalAssets) ||
+    (normalizedRecurringAmount < 0 && evaluatedAssets < requiredWithdrawalAssets) ||
     (gStepWeeks !== 0 && gMax !== null && gMax < effectiveInitialGradient) ||
     (poolLimitFloor !== null && initialPoolLimitRate !== null && poolLimitFloor > initialPoolLimitRate) ||
     // poolLimitRate 단계주기가 0(램프 비활성화)이 아니면 하한은 0보다 커야 함 — 단계주기=0일 때만 하한 0이 허용(자동 강제)
@@ -421,7 +424,7 @@ export function useStrategyForm({
               ? '거치식/인출식은 초기 V값 또는 초기 시드가 0보다 커야 합니다.'
               : '거치식/인출식은 수량 또는 초기 시드가 0보다 커야 합니다.'
           }
-          if (normalizedRecurringAmount < 0 && initialAssets < requiredWithdrawalAssets) {
+          if (normalizedRecurringAmount < 0 && evaluatedAssets < requiredWithdrawalAssets) {
             return `인출식은 초기 자산이 $${fmtUsd(requiredWithdrawalAssets)} 이상이어야 합니다.`
           }
           if (gStepWeeks !== 0 && gMax !== null && gMax < effectiveInitialGradient) {

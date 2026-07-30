@@ -783,6 +783,53 @@ describe('useStrategyForm submit policy', () => {
     expect(result.current.cannotSubmit).toBe(false)
   })
 
+  it('VR withdrawal create still requires real evaluated assets even when explicit initial V is large enough', () => {
+    seedModelState.seedUsd = 100
+    seedModelState.isInvalidSeed = false
+
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('intervalWeeks', 2)
+      result.current.setVrField('bandWidth', 15)
+      result.current.setVrField('recurringAmount', -100)
+      result.current.setRecurringMode('WITHDRAW')
+      // 게이트(V+예수금>0)는 통과시킬 만큼 크지만, 실제 보유 포지션이 없어 인출식 최소자산 검증은 여전히 실패해야 한다
+      result.current.setVrField('initialValue', 100000)
+    })
+
+    expect(result.current.cannotSubmit).toBe(true)
+  })
+
+  it('VR withdrawal create with an explicit initial V of 0 still uses avgPrice*quantity for the minimum-assets check', () => {
+    seedModelState.seedUsd = 1000
+    seedModelState.isInvalidSeed = false
+
+    const { result } = renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+      }),
+    )
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setVrField('avgPrice', 100)
+      result.current.setVrField('quantity', 190)
+      result.current.setVrField('intervalWeeks', 2)
+      result.current.setVrField('bandWidth', 15)
+      result.current.setVrField('recurringAmount', -100)
+      result.current.setRecurringMode('WITHDRAW')
+      result.current.setVrField('initialValue', 0)
+    })
+
+    expect(result.current.cannotSubmit).toBe(false)
+  })
+
   it('VR create HOLD mode is allowed when only the explicit initial V is entered (no holdings)', () => {
     const { result } = renderHook(() =>
       useStrategyForm({
