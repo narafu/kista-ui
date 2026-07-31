@@ -139,6 +139,11 @@ export function getHousingQuintilesByRegionName(regionName: string): HousingQuin
   return HOUSING_QUINTILES_BY_REGION[regionName as HousingRegionName] ?? HOUSING_QUINTILES_BY_REGION[DEFAULT_HOUSING_REGION_NAME]
 }
 
+export function getHousingQuintileContent(regionName: string, quintile: HousingQuintile): HousingQuintileContent {
+  const quintiles = getHousingQuintilesByRegionName(regionName)
+  return quintiles.find((item) => item.quintile === quintile) ?? quintiles[quintiles.length - 1]
+}
+
 // ETF 벤치마크 안내: 서버 quality.notice가 누락된 경우에도 통화 기준 안내가 사라지지 않도록 하는 클라이언트 폴백
 export const ETF_BENCHMARK_CURRENCY_NOTICE_FALLBACK =
   '전략 운용 기록 기반 근사치입니다. 투자와 ETF 벤치마크 모두 USD 기준이며 환율 변수가 없습니다.'

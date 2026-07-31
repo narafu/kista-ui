@@ -346,14 +346,24 @@ describe('HousingBenchmarkComparison', () => {
     expect(screen.queryByText(API_QUALITY_NOTICE)).not.toBeInTheDocument()
   })
 
-  it('가격 추이 아래에 기본 지역(서울) 1~5분위 안내를 표시한다', async () => {
+  it('가격 추이 아래에 기본 지역(서울)·기본 분위(3분위) 안내를 표시한다', async () => {
     const user = userEvent.setup()
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
     await user.click(screen.getByRole('button', { name: '아파트' }))
 
-    expect(screen.getByText('서울 아파트 5분위 안내')).toBeInTheDocument()
+    expect(screen.getByText('서울 아파트 3분위 안내')).toBeInTheDocument()
+    expect(screen.getByText(/광진구, 서대문구, 영등포구/)).toBeInTheDocument()
+  })
+
+  it('상단 벤치마크 자산 분위를 바꾸면 가격 추이 아래 분위 안내도 함께 바뀐다', async () => {
+    const user = userEvent.setup()
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+    await user.click(screen.getByRole('button', { name: '아파트' }))
+    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), '1')
+
+    expect(screen.getByText('서울 아파트 1분위 안내')).toBeInTheDocument()
     expect(screen.getByText(/노원구, 도봉구, 강북구/)).toBeInTheDocument()
-    expect(screen.getByText(/서초구, 강남구, 송파구, 용산구/)).toBeInTheDocument()
+    expect(screen.queryByText('서울 아파트 3분위 안내')).not.toBeInTheDocument()
   })
 
   it('scope 변경 중에는 필터만 즉시 바꾸고 응답 라벨은 이전 스냅샷을 유지한 뒤 함께 갱신한다', async () => {
