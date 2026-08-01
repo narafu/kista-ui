@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 import { RefreshCw } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
 import { Spinner } from '@shared/ui/Spinner'
@@ -11,8 +12,9 @@ const MAX_PULL = 110
 
 export function PullToRefresh() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [pullDistance, setPullDistance] = useState(0)
-  const [refreshing, setRefreshing] = useState(false)
+  const [isRefreshing, startTransition] = useTransition()
   const startYRef = useRef(0)
   const isPullingRef = useRef(false)
 
@@ -44,13 +46,15 @@ export function PullToRefresh() {
     isPullingRef.current = false
     setPullDistance((dist) => {
       if (dist >= THRESHOLD) {
-        setRefreshing(true)
-        router.refresh()
-        setTimeout(() => setRefreshing(false), 1200)
+        // 서버 렌더 갱신 + 클라이언트 전용 쿼리까지 전체 재동기화, 완료 시점까지 스피너 유지
+        startTransition(async () => {
+          router.refresh()
+          await queryClient.invalidateQueries()
+        })
       }
       return 0
     })
-  }, [router])
+  }, [router, queryClient])
   handleTouchEndRef.current = handleTouchEnd
 
   // eslint-disable-next-line react-doctor/advanced-event-handler-refs
@@ -69,12 +73,12 @@ export function PullToRefresh() {
 
   const progress = Math.min(pullDistance / THRESHOLD, 1)
   const triggered = pullDistance >= THRESHOLD
-  const visible = pullDistance > 4 || refreshing
+  const visible = pullDistance > 4 || isRefreshing
 
   return (
     <div
       className="fixed top-0 inset-x-0 z-40 flex justify-center pointer-events-none lg:hidden"
-      style={{ paddingTop: refreshing ? 14 : Math.max(pullDistance - 20, 0) }}
+      style={{ paddingTop: isRefreshing ? 14 : Math.max(pullDistance - 20, 0) }}
     >
       {visible && (
         <div
@@ -83,7 +87,7 @@ export function PullToRefresh() {
             triggered ? 'border-[var(--brand-fg-soft)] text-[var(--brand-fg-soft)]' : 'border-border text-muted-foreground',
           )}
         >
-          {refreshing ? (
+          {isRefreshing ? (
             <Spinner size={16} />
           ) : (
             <RefreshCw
