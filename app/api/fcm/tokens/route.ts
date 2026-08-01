@@ -1,11 +1,10 @@
-import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { getAuthToken } from '@shared/lib/auth/token'
 import { getApiBaseUrl } from '@shared/lib/env'
+import { noContent, relayUpstreamError, requireAuthToken, unauthorizedJson } from '@shared/lib/proxy/routeHelpers'
 
 export async function POST(request: NextRequest) {
-  const token = await getAuthToken()
-  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const token = await requireAuthToken()
+  if (!token) return unauthorizedJson()
 
   const body = await request.json()
   const res = await fetch(`${getApiBaseUrl()}/api/fcm/tokens`, {
@@ -18,9 +17,6 @@ export async function POST(request: NextRequest) {
     cache: 'no-store',
   })
 
-  if (!res.ok) {
-    if (res.status >= 500) console.error('[fcm/tokens POST] kista-api 실패:', res.status, await res.text().catch(() => ''))
-    return NextResponse.json({ error: 'Failed' }, { status: res.status })
-  }
-  return new NextResponse(null, { status: 204 })
+  if (!res.ok) return relayUpstreamError(res, 'fcm/tokens POST')
+  return noContent()
 }

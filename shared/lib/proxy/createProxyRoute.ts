@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { getApiBaseUrl } from '@shared/lib/env'
+import { noContent, relayUpstreamError, unauthorizedJson } from '@shared/lib/proxy/routeHelpers'
 
 type Params = { params?: Promise<{ path?: string[] }> }
 type Handler = (req: NextRequest, ctx?: Params) => Promise<NextResponse>
@@ -23,7 +24,7 @@ export function createProxyRoute(opts: CreateProxyRouteOptions): {
 
   async function proxy(request: NextRequest, pathSegments: string[]) {
     const token = await getAuthToken()
-    if (!token && opts.requireAuth !== false) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!token && opts.requireAuth !== false) return unauthorizedJson()
 
     const subPath = pathSegments.length > 0 ? `/${pathSegments.join('/')}` : ''
     const url = `${getApiBaseUrl()}${opts.basePath}${subPath}${request.nextUrl.search}`
@@ -45,23 +46,9 @@ export function createProxyRoute(opts: CreateProxyRouteOptions): {
       cache: 'no-store',
     })
 
-    if (!res.ok) {
-      if (res.status >= 500) {
-        console.error(
-          `[${label}${subPath} ${request.method}] ${res.status}`,
-          await res.text().catch(() => ''),
-        )
-        return NextResponse.json({ error: 'Failed' }, { status: res.status })
-      }
-      try {
-        const errBody = await res.json()
-        return NextResponse.json(errBody, { status: res.status })
-      } catch {
-        return NextResponse.json({ error: 'Failed' }, { status: res.status })
-      }
-    }
+    if (!res.ok) return relayUpstreamError(res, `${label}${subPath} ${request.method}`)
 
-    if (res.status === 204) return new NextResponse(null, { status: 204 })
+    if (res.status === 204) return noContent()
     return NextResponse.json(await res.json(), { status: res.status })
   }
 

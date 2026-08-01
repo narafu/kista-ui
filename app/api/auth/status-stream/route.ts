@@ -1,5 +1,5 @@
-import { getAuthToken } from '@shared/lib/auth/token'
 import { getApiBaseUrl } from '@shared/lib/env'
+import { requireAuthToken } from '@shared/lib/proxy/routeHelpers'
 import type { NextRequest } from 'next/server'
 import { Agent, fetch as undiciFetch } from 'undici'
 
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 const sseAgent = new Agent({ bodyTimeout: 0, headersTimeout: 0 })
 
 export async function GET(request: NextRequest) {
-  const token = await getAuthToken()
+  const token = await requireAuthToken()
 
   if (!token) {
     return new Response('Unauthorized', { status: 401 })

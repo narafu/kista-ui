@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { getAuthToken } from '@shared/lib/auth/token'
 import { getApiBaseUrl } from '@shared/lib/env'
 import {
   KISTA_TOKEN_COOKIE,
@@ -7,10 +6,11 @@ import {
   ROLE_COOKIE,
   CLEAR_COOKIE,
 } from '@shared/lib/auth/cookies'
+import { noContent, relayUpstreamError, requireAuthToken, unauthorizedJson } from '@shared/lib/proxy/routeHelpers'
 
 export async function GET() {
-  const token = await getAuthToken()
-  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const token = await requireAuthToken()
+  if (!token) return unauthorizedJson()
 
   const res = await fetch(`${getApiBaseUrl()}/api/auth/me`, {
     method: 'GET',
@@ -18,13 +18,13 @@ export async function GET() {
     cache: 'no-store',
   })
 
-  if (!res.ok) return NextResponse.json({ error: 'Failed' }, { status: res.status })
+  if (!res.ok) return relayUpstreamError(res, 'auth/me GET')
   return NextResponse.json(await res.json())
 }
 
 export async function DELETE() {
-  const token = await getAuthToken()
-  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const token = await requireAuthToken()
+  if (!token) return unauthorizedJson()
 
   const res = await fetch(`${getApiBaseUrl()}/api/auth/me`, {
     method: 'DELETE',
@@ -32,13 +32,10 @@ export async function DELETE() {
     cache: 'no-store',
   })
 
-  if (!res.ok) {
-    if (res.status >= 500) console.error(`[DELETE /api/auth/me] ${res.status}`)
-    return NextResponse.json({ error: 'Failed' }, { status: res.status })
-  }
+  if (!res.ok) return relayUpstreamError(res, 'auth/me DELETE')
 
   // 탈퇴 성공 — 3개 인증 쿠키 삭제
-  const response = new NextResponse(null, { status: 204 })
+  const response = noContent()
   response.cookies.set(KISTA_TOKEN_COOKIE, '', CLEAR_COOKIE)
   response.cookies.set(STATUS_COOKIE, '', { ...CLEAR_COOKIE, httpOnly: true })
   response.cookies.set(ROLE_COOKIE, '', { ...CLEAR_COOKIE, httpOnly: true })
