@@ -19,6 +19,14 @@ export function kstDateMinusDays(days: number): string {
   return dt.toISOString().slice(0, 10)
 }
 
+/** KST 오늘이 속한 주의 시작일(일요일, YYYY-MM-DD) */
+export function kstWeekStartDate(): string {
+  const [y, m, d] = todayKst().split('-').map(Number)
+  const dt = new Date(Date.UTC(y, m - 1, d))
+  dt.setUTCDate(dt.getUTCDate() - dt.getUTCDay())
+  return dt.toISOString().slice(0, 10)
+}
+
 /**
  * 프리셋 → { from, to } 변환.
  * - all: {} (전체 기간)

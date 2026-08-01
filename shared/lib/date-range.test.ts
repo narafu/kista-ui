@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   kstDateMinusDays,
+  kstWeekStartDate,
   parsePage,
   parseRangePreset,
   parseSize,
@@ -23,6 +24,29 @@ describe('kstDateMinusDays', () => {
     freezeAtKstMorning()
     expect(kstDateMinusDays(0)).toBe('2026-07-09')
     expect(kstDateMinusDays(7)).toBe('2026-07-02')
+  })
+
+  it('KST 자정 직후에도 KST 기준 날짜에서 차감한다', () => {
+    vi.useFakeTimers()
+    // UTC 2026-07-30(목) 20:00 = KST 2026-07-31(금) 05:00
+    vi.setSystemTime(new Date('2026-07-30T20:00:00Z'))
+    expect(kstDateMinusDays(90)).toBe('2026-05-02')
+  })
+})
+
+describe('kstWeekStartDate', () => {
+  it('KST 일요일 새벽(UTC 토요일)에는 그 일요일을 반환한다', () => {
+    vi.useFakeTimers()
+    // UTC 2026-07-25(토) 16:00 = KST 2026-07-26(일) 01:00
+    vi.setSystemTime(new Date('2026-07-25T16:00:00Z'))
+    expect(kstWeekStartDate()).toBe('2026-07-26')
+  })
+
+  it('KST 토요일 밤에는 지난 일요일을 반환한다', () => {
+    vi.useFakeTimers()
+    // UTC 2026-07-25(토) 14:00 = KST 2026-07-25(토) 23:00
+    vi.setSystemTime(new Date('2026-07-25T14:00:00Z'))
+    expect(kstWeekStartDate()).toBe('2026-07-19')
   })
 })
 

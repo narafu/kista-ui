@@ -8,6 +8,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     globals: true,
+    env: { TZ: 'UTC' },
     exclude: [...configDefaults.exclude, '**/.next/**', 'e2e/**', 'tests/e2e/**'],
   },
   resolve: {

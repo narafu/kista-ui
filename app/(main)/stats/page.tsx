@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { getAuthToken } from '@shared/lib/auth/token'
+import { todayKst } from '@shared/lib/format'
+import { kstDateMinusDays } from '@shared/lib/date-range'
 import { getEquityCurve, getStatsSummary } from '@entities/stats'
 import { StatsOverview } from '@widgets/stats-overview'
 import { PageHeader } from '@widgets/page-header'
@@ -12,18 +14,11 @@ export const metadata: Metadata = {
 // 위젯의 isInitialParams 판정이 initialCurve를 그대로 재사용한다.
 const DEFAULT_RANGE_DAYS = 90
 
-function isoDate(d: Date): string {
-  return d.toISOString().slice(0, 10)
-}
-
 export default async function StatsPage() {
   const token = await getAuthToken()
 
-  const to = new Date()
-  const from = new Date(to)
-  from.setDate(from.getDate() - DEFAULT_RANGE_DAYS)
-  const defaultFrom = isoDate(from)
-  const defaultTo = isoDate(to)
+  const defaultTo = todayKst()
+  const defaultFrom = kstDateMinusDays(DEFAULT_RANGE_DAYS)
 
   const [summary, curve] = token
     ? await Promise.all([
