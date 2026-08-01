@@ -1,4 +1,6 @@
 import { clientFetch, fetchEither } from '@shared/lib/api-client'
+import { normalizePlacedOrderBase } from '@shared/model/placed-order'
+import type { PlacedOrder } from '@shared/model/placed-order'
 import type { BuyCompetitionSummary, CompetingStrategy, NextOrderPreview, SellSufficiencySummary, SkipReason, StrategyOrder } from '../model/types'
 
 export interface CancelOrdersResult {
@@ -72,18 +74,9 @@ function normalizePreview(raw: unknown): NextOrderPreview {
       }
     : null
   const skipReason = (r.skipReason as SkipReason | null | undefined) ?? null
-  const todayOrders = ((r.todayOrders as unknown[]) ?? []).map((o) => {
-    const item = o as Record<string, unknown>
-    return {
-      id: String(item.id),
-      ticker: String(item.ticker),
-      direction: String(item.direction) as 'BUY' | 'SELL',
-      orderType: String(item.orderType),
-      quantity: Number(item.quantity),
-      price: String(item.price),
-      status: String(item.status) as 'PLANNED' | 'PLACED',
-    }
-  })
+  const todayOrders = ((r.todayOrders as unknown[]) ?? []).map(
+    (o): PlacedOrder => normalizePlacedOrderBase(o) as PlacedOrder,
+  )
   const otherStrategiesPlannedBuyUsd = String(r.otherStrategiesPlannedBuyUsd ?? '0')
   const competition = normalizeCompetition(r.competition)
   const sellSufficiency = normalizeSellSufficiency(r.sellSufficiency)
@@ -141,14 +134,11 @@ export async function listStrategyOrders(
   const raw = await clientFetch<{ orders: unknown[] }>(`/api/trading-cycles/${strategyId}/orders${query}`)
   return raw.orders.map((o) => {
     const item = o as Record<string, unknown>
+    // 전략 주문 내역 응답(Item)에는 ticker 필드가 없다 — base의 ticker는 버리고 나머지 공통 필드만 재사용한다
+    const { ticker: _ticker, ...base } = normalizePlacedOrderBase(item)
     return {
-      id: String(item.id),
+      ...base,
       tradeDate: String(item.tradeDate),
-      direction: String(item.direction) as 'BUY' | 'SELL',
-      orderType: String(item.orderType),
-      quantity: Number(item.quantity),
-      price: String(item.price),
-      status: String(item.status),
       filledQuantity: item.filledQuantity != null ? Number(item.filledQuantity) : null,
       filledPrice: item.filledPrice != null ? String(item.filledPrice) : null,
     }

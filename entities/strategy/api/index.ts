@@ -1,47 +1,49 @@
 import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
+import { dec, num, optDec, optNum, optStr, str } from '@shared/lib/normalize'
 import type { CycleSeedType, ReconfigureVrRequest, Strategy, StrategyRequest, StrategySeedPreview, StrategyVrSummary } from '../model/types'
 import type { PlacedOrder } from '@shared/model/placed-order'
+import { normalizePlacedOrderBase } from '@shared/model/placed-order'
 
 // VR 요약 숫자 문자열 → number 변환
 function normalizeVrSummary(raw: unknown): StrategyVrSummary | undefined {
   if (raw == null) return undefined
   const v = raw as Record<string, unknown>
   return {
-    value: toNum(v.value),
-    bandWidth: toNum(v.bandWidth),
-    intervalWeeks: Number(v.intervalWeeks),
-    recurringAmount: Number(v.recurringAmount ?? 0),
-    poolLimit: toNum(v.poolLimit),
-    poolLimitRate: toNum(v.poolLimitRate),
-    gradient: Number(v.gradient),
-    initialGradient: Number(v.initialGradient),
-    gGraceWeeks: Number(v.gGraceWeeks),
-    gStepWeeks: Number(v.gStepWeeks),
-    gMax: Number(v.gMax),
-    initialPoolLimitRate: toNum(v.initialPoolLimitRate),
-    pGraceWeeks: Number(v.pGraceWeeks),
-    pStepWeeks: Number(v.pStepWeeks),
-    poolLimitFloor: toNum(v.poolLimitFloor),
+    value: dec(v.value),
+    bandWidth: dec(v.bandWidth),
+    intervalWeeks: num(v.intervalWeeks),
+    recurringAmount: num(v.recurringAmount ?? 0),
+    poolLimit: dec(v.poolLimit),
+    poolLimitRate: dec(v.poolLimitRate),
+    gradient: num(v.gradient),
+    initialGradient: num(v.initialGradient),
+    gGraceWeeks: num(v.gGraceWeeks),
+    gStepWeeks: num(v.gStepWeeks),
+    gMax: num(v.gMax),
+    initialPoolLimitRate: dec(v.initialPoolLimitRate),
+    pGraceWeeks: num(v.pGraceWeeks),
+    pStepWeeks: num(v.pStepWeeks),
+    poolLimitFloor: dec(v.poolLimitFloor),
   }
 }
 
 function normalizeStrategy(raw: unknown): Strategy {
   const s = raw as Record<string, unknown>
   return {
-    id: String(s.id),
-    accountId: String(s.accountId),
-    type: String(s.type),
-    status: String(s.status),
-    ticker: String(s.ticker),
+    id: str(s.id),
+    accountId: str(s.accountId),
+    type: str(s.type),
+    status: str(s.status),
+    ticker: str(s.ticker),
     cycleSeedType: (s.cycleSeedType as CycleSeedType) ?? 'NONE',
-    initialUsdDeposit: s.initialUsdDeposit != null ? toNum(s.initialUsdDeposit) : undefined,
-    divisionCount: s.divisionCount != null ? Number(s.divisionCount) : undefined,
+    initialUsdDeposit: optDec(s.initialUsdDeposit),
+    divisionCount: optNum(s.divisionCount),
     isReverseMode: Boolean(s.isReverseMode),
-    currentRound: s.currentRound != null ? Number(s.currentRound) : undefined,
-    currentHoldings: s.currentHoldings != null ? Number(s.currentHoldings) : undefined,
+    currentRound: optNum(s.currentRound),
+    currentHoldings: optNum(s.currentHoldings),
     vr: normalizeVrSummary(s.vr),
-    startDate: s.startDate != null ? String(s.startDate) : undefined,
+    startDate: optStr(s.startDate),
   }
 }
 
@@ -85,13 +87,8 @@ export async function resumeStrategy(id: string, token?: string): Promise<void> 
 function normalizePlacedOrder(raw: unknown): PlacedOrder {
   const o = raw as Record<string, unknown>
   return {
-    id: String(o.id),
-    ticker: String(o.ticker),
-    direction: String(o.direction) as 'BUY' | 'SELL',
-    orderType: String(o.orderType),
-    quantity: Number(o.quantity),
-    price: String(o.price),
-    status: String(o.status ?? 'PLACED') as 'PLANNED' | 'PLACED',
+    ...normalizePlacedOrderBase(raw),
+    status: str(o.status ?? 'PLACED') as 'PLANNED' | 'PLACED',
   }
 }
 

@@ -1,4 +1,4 @@
-import { apiFetch, clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
+import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
 import type { Account, AccountRequest } from '../model/types'
 
@@ -12,10 +12,7 @@ export interface MarginItem {
 export type PriceMap = Record<string, number>
 
 export async function listAccounts(token?: string): Promise<Account[]> {
-  if (token) {
-    return apiFetch<Account[]>('/api/accounts', { method: 'GET' }, token)
-  }
-  return clientFetch<Account[]>('/api/accounts')
+  return fetchEither<Account[]>('/api/accounts', { method: 'GET' }, token)
 }
 
 export async function createAccount(data: AccountRequest, token?: string): Promise<Account> {
