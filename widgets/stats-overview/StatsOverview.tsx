@@ -5,9 +5,9 @@ import {
   useStatsSummaryQuery,
   useEquityCurveQuery,
 } from '@entities/stats'
-import type { EquityCurve, StatsSummary } from '@entities/stats'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
+import { CardSkeleton } from '@shared/ui/CardSkeleton'
 import { normalizeEquityCurve } from './lib/normalizeEquityCurve'
 import { StatsKpiRow } from './StatsKpiRow'
 import { EquityCurveChart } from './EquityCurveChart'
@@ -33,26 +33,28 @@ function rangeToFrom(range: RangeKey, to: string): string | undefined {
 }
 
 interface Props {
-  initialSummary?: StatsSummary
-  initialCurve?: EquityCurve
   defaultFrom: string
   defaultTo: string
 }
 
-export function StatsOverview({ initialSummary, initialCurve, defaultFrom, defaultTo }: Props) {
+export function StatsOverview({ defaultFrom, defaultTo }: Props) {
   const [range, setRange] = useState<RangeKey>('3M')
   const [strategyTypeFilter, setStrategyTypeFilter] = useState<string | undefined>(undefined)
 
-  const summaryQuery = useStatsSummaryQuery(initialSummary)
+  const summaryQuery = useStatsSummaryQuery()
 
-  // 초기 상태(range=3M)일 때만 서버가 내려준 초기 curve를 그대로 사용한다.
-  // 그 외에는 defaultFrom 대신 range에서 근사 계산한 from을 사용한다.
-  const isInitialParams = range === '3M'
-  const from = isInitialParams ? defaultFrom : rangeToFrom(range, defaultTo)
-  const curveQuery = useEquityCurveQuery(
-    { from, to: defaultTo, type: strategyTypeFilter },
-    isInitialParams && strategyTypeFilter === undefined ? initialCurve : undefined,
-  )
+  // range=3M 초기 상태는 서버 prefetch key(defaultFrom/defaultTo)와 일치해야 hydration이 적중한다.
+  const from = range === '3M' ? defaultFrom : rangeToFrom(range, defaultTo)
+  const curveQuery = useEquityCurveQuery({ from, to: defaultTo, type: strategyTypeFilter })
+
+  if (summaryQuery.isPending || curveQuery.isPending) {
+    return (
+      <div className="flex flex-col gap-4">
+        <CardSkeleton className="h-24" />
+        <CardSkeleton className="h-72" />
+      </div>
+    )
+  }
 
   const summary = summaryQuery.data
   const curve = curveQuery.data

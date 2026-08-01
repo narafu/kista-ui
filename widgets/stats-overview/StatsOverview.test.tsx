@@ -3,6 +3,7 @@ import { render, screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { StatsOverview } from './StatsOverview'
+import { statsKeys } from '@entities/stats'
 import type { EquityCurve, StatsSummary } from '@entities/stats'
 
 const fetchEitherMock = vi.fn()
@@ -48,8 +49,9 @@ const CURVE: EquityCurve = {
   ],
 }
 
-function renderWithClient(ui: React.ReactElement) {
+function renderWithClient(ui: React.ReactElement, seed?: (client: QueryClient) => void) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  seed?.(client)
   return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>)
 }
 
@@ -86,8 +88,11 @@ describe('StatsOverview', () => {
     })
 
     renderWithClient(
-      <StatsOverview initialSummary={SUMMARY} initialCurve={CURVE}
-        defaultFrom="2026-04-17" defaultTo="2026-07-17" />
+      <StatsOverview defaultFrom="2026-04-17" defaultTo="2026-07-17" />,
+      (client) => {
+        client.setQueryData(statsKeys.summary(), SUMMARY)
+        client.setQueryData(statsKeys.equityCurve('2026-04-17', '2026-07-17', 'ALL'), CURVE)
+      },
     )
     expect(screen.getByText('총 실현손익')).toBeInTheDocument()
     expect(screen.queryByText('지수 대비 초과수익')).not.toBeInTheDocument()
@@ -168,10 +173,13 @@ describe('StatsOverview', () => {
 
   it('데이터가 없으면 empty state를 보여준다', () => {
     renderWithClient(
-      <StatsOverview
-        initialSummary={{ totalRealizedPnl: 0, totalUnrealizedPnl: 0, activePrincipal: 0, byType: [] }}
-        initialCurve={{ points: [] }}
-        defaultFrom="2026-04-17" defaultTo="2026-07-17" />
+      <StatsOverview defaultFrom="2026-04-17" defaultTo="2026-07-17" />,
+      (client) => {
+        client.setQueryData(statsKeys.summary(), {
+          totalRealizedPnl: 0, totalUnrealizedPnl: 0, activePrincipal: 0, byType: [],
+        })
+        client.setQueryData(statsKeys.equityCurve('2026-04-17', '2026-07-17', 'ALL'), { points: [] })
+      },
     )
     expect(screen.getByText(/아직 기록된 사이클이 없습니다/)).toBeInTheDocument()
   })
@@ -185,7 +193,7 @@ describe('StatsOverview', () => {
     })
 
     renderWithClient(
-      <StatsOverview initialCurve={CURVE} defaultFrom="2026-04-17" defaultTo="2026-07-17" />
+      <StatsOverview defaultFrom="2026-04-17" defaultTo="2026-07-17" />
     )
 
     await screen.findByText('통계를 불러오지 못했습니다')

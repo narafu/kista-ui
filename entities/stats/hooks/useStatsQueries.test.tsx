@@ -12,6 +12,7 @@ const { useInfiniteQueryMock, useQueryMock, getStatsCyclesMock } = vi.hoisted(()
 vi.mock('@tanstack/react-query', () => ({
   useInfiniteQuery: useInfiniteQueryMock,
   useQuery: useQueryMock,
+  queryOptions: (options: unknown) => options,
 }))
 
 vi.mock('../api', () => ({

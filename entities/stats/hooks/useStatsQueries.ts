@@ -2,32 +2,24 @@
 
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import {
-  getEquityCurve,
   getHousingBenchmarkComparison,
   getHousingBenchmarkRegions,
   getHousingBenchmarkSeries,
   getStatsCycles,
-  getStatsSummary,
 } from '../api'
+import { equityCurveQueryOptions, statsSummaryQueryOptions } from '../model/queryOptions'
 import { statsKeys } from '../model/queryKeys'
 import type {
   CyclePerformance,
   CyclePerformancePage,
-  EquityCurve,
   HousingBenchmarkComparison,
   HousingBenchmarkParams,
   HousingBenchmarkRegionsList,
   HousingBenchmarkSeries,
-  StatsSummary,
 } from '../model/types'
 
-export function useStatsSummaryQuery(initialData?: StatsSummary) {
-  return useQuery<StatsSummary>({
-    queryKey: statsKeys.summary(),
-    queryFn: () => getStatsSummary(),
-    initialData,
-    staleTime: 60_000,
-  })
+export function useStatsSummaryQuery() {
+  return useQuery(statsSummaryQueryOptions())
 }
 
 export interface EquityCurveParams {
@@ -36,13 +28,10 @@ export interface EquityCurveParams {
   type?: string
 }
 
-export function useEquityCurveQuery(params: EquityCurveParams, initialData?: EquityCurve) {
-  return useQuery<EquityCurve>({
-    queryKey: statsKeys.equityCurve(params.from, params.to, params.type ?? 'ALL'),
-    queryFn: () => getEquityCurve(params),
-    initialData,
+export function useEquityCurveQuery(params: EquityCurveParams) {
+  return useQuery({
+    ...equityCurveQueryOptions(params),
     placeholderData: (prev) => prev,
-    staleTime: 60_000,
   })
 }
 
