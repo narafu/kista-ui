@@ -7,6 +7,7 @@ import {
   KISTA_TOKEN_COOKIE,
   RT_COOKIE,
 } from '@shared/lib/auth/cookies'
+import { buildAtSetCookie, refreshAccessToken } from '@shared/lib/auth/refresh'
 const VALID_STATUSES = new Set(['PENDING', 'REJECTED', 'ACTIVE'])
 // status/role 캐시: 1시간마다 만료 → /me 재호출로 JWT 유효성 재검증
 // secure는 NODE_ENV가 아닌 실제 프로토콜 기준 (docs/agents/app.md — Safari HTTP Secure 쿠키 무시)
@@ -34,32 +35,40 @@ export function isJwtExpired(token: string, bufferSecs = 30): boolean {
   }
 }
 
-// RT 쿠키로 kista-api /api/auth/refresh 호출 — 성공 시 새 AT + Set-Cookie 헤더(동일 RT, 갱신된 maxAge) 반환
-// kista-api는 안정 RT + 슬라이딩 갱신 방식: RT 회전 없음 → 드리프트 원천 불가
-// proxy.ts는 Next.js 16부터 "Proxy" 파일로 항상 Node.js runtime에서 실행됨(Edge 아님) — getSetCookie() 정상 동작
-async function tryRefresh(
-  request: NextRequest
-): Promise<{ accessToken: string; setCookieHeaders: string[] } | null> {
-  const rt = request.cookies.get(RT_COOKIE)?.value
-  if (!rt) return null
-  const apiUrl = getApiBaseUrlOrNull()
-  if (!apiUrl) return null
+// status/role 확정 결과: 성공(캐시 히트 or /me) 또는 실패(clearCache 여부만 전달)
+// clearCache 비대칭: /me 비정상(!ok) → 캐시 삭제, /me 예외 → 삭제 안 함 (기존 동작 그대로 보존)
+type ResolveResult =
+  | { ok: true; status: string; role: string; needsCacheUpdate: boolean }
+  | { ok: false; clearCache: boolean }
+
+// 인증된 토큰의 status/role 확정: 쿠키 캐시 히트(fast path) 우선, 없으면 kista-api /me 호출(slow path)
+async function resolveStatusRole(
+  request: NextRequest,
+  token: string,
+  apiUrl: string | null,
+): Promise<ResolveResult> {
+  const cachedStatus = request.cookies.get(STATUS_COOKIE)?.value
+  const cachedRole = request.cookies.get(ROLE_COOKIE)?.value
+
+  if (cachedStatus && VALID_STATUSES.has(cachedStatus) && cachedRole) {
+    // 빠른 경로: 쿠키 캐시 사용
+    return { ok: true, status: cachedStatus, role: cachedRole, needsCacheUpdate: false }
+  }
+
+  // 느린 경로: kista-api /me 호출
   try {
-    const res = await fetch(`${apiUrl}/api/auth/refresh`, {
-      method: 'POST',
-      headers: {
-        'Cookie': `${RT_COOKIE}=${rt}`,
-        'User-Agent': request.headers.get('user-agent') ?? 'unknown',
-      },
+    const meRes = await fetch(`${apiUrl}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
       signal: AbortSignal.timeout(5000),
     })
-    if (!res.ok) return null
-    const data = await res.json() as { accessToken?: string }
-    if (!data.accessToken) return null
-    const setCookieHeaders = res.headers.getSetCookie()
-    return { accessToken: data.accessToken, setCookieHeaders }
+    // JWT 만료/무효 → 캐시 쿠키 초기화하여 다음 방문 시 재검증 강제
+    if (!meRes.ok) return { ok: false, clearCache: true }
+    const userData = await meRes.json() as { status: string; role?: string }
+    return { ok: true, status: userData.status, role: userData.role ?? 'USER', needsCacheUpdate: true }
   } catch {
-    return null
+    // 일시적 네트워크 오류(timeout/연결 실패)로 보고 캐시를 보존하는 원본 선택 — 재방문 시 다시 검증.
+    // app.md가 요구하는 "JWT 무효 시 캐시 삭제"는 위 !ok(401) 경로(clearCache:true)가 담당한다.
+    return { ok: false, clearCache: false }
   }
 }
 
@@ -86,6 +95,20 @@ export async function proxy(request: NextRequest) {
   // 요청 헤더 (AT 갱신 시 Server Component가 읽는 kista-token 쿠키를 교체)
   const requestHeaders = new Headers(request.headers)
 
+  // 실패/통과 응답 공통 마무리: 리다이렉트/통과 응답에 캐시쿠키 삭제(옵션) + AT 갱신 Set-Cookie 적용
+  const finalize = (dest: NextResponse, opts: { clearCache?: boolean } = {}): NextResponse => {
+    if (opts.clearCache) {
+      dest.cookies.delete(STATUS_COOKIE)
+      dest.cookies.delete(ROLE_COOKIE)
+    }
+    for (const sc of extraSetCookies) dest.headers.append('Set-Cookie', sc)
+    return dest
+  }
+  const failDest = (): NextResponse =>
+    isProtected
+      ? redirectTo('/login', request)
+      : NextResponse.next({ request: { headers: requestHeaders } })
+
   // prefetch 요청은 인증 상태를 변형하지 않음 — AT 갱신 스킵
   // Next.js <Link> prefetch가 동시에 여러 refresh를 유발해 RTR 경쟁을 일으키는 것을 방지
   const isPrefetch =
@@ -95,7 +118,14 @@ export async function proxy(request: NextRequest) {
 
   // AT 만료 감지 → RT로 자동 갱신 (안정 RT 방식: kista-api가 동일 RT를 갱신된 maxAge로 돌려줌 — 드리프트 없음)
   if (isJwtExpired(token)) {
-    const refreshed = await tryRefresh(request)
+    const rt = request.cookies.get(RT_COOKIE)?.value
+    const refreshed = rt
+      ? await refreshAccessToken({
+          rt,
+          userAgent: request.headers.get('user-agent') ?? 'unknown',
+          timeoutMs: 5000,
+        })
+      : null
     if (refreshed) {
       token = refreshed.accessToken
       // 요청 쿠키 헤더에 새 AT 반영 — Server Component의 getAuthToken()이 읽음
@@ -106,70 +136,27 @@ export async function proxy(request: NextRequest) {
         .concat(`${KISTA_TOKEN_COOKIE}=${token}`)
         .join('; ')
       requestHeaders.set('cookie', updatedCookie)
-      // 브라우저 AT 쿠키 업데이트 — HttpOnly로 XSS 방어 (app/api/auth/refresh/route.ts와 일치)
+      // 브라우저 AT 쿠키 업데이트 — HttpOnly로 XSS 방어 (app/api/auth/refresh/route.ts와 동일 값)
       const isSecure = request.headers.get('x-forwarded-proto') === 'https'
-      extraSetCookies.push(
-        `${KISTA_TOKEN_COOKIE}=${token}; Path=/; Max-Age=604800; SameSite=Lax; HttpOnly${isSecure ? '; Secure' : ''}`
-      )
+      extraSetCookies.push(buildAtSetCookie(token, isSecure))
       // RT Set-Cookie relay: 동일 RT + 갱신된 maxAge(슬라이딩) — 브라우저 쿠키 수명 연장
       for (const sc of refreshed.setCookieHeaders) extraSetCookies.push(sc)
     } else {
       // RT 없거나 갱신 실패 → 상태 캐시 삭제 후 보호 경로면 로그인 이동
-      const dest = isProtected
-        ? redirectTo('/login', request)
-        : NextResponse.next({ request: { headers: requestHeaders } })
-      dest.cookies.delete(STATUS_COOKIE)
-      dest.cookies.delete(ROLE_COOKIE)
-      return dest
+      return finalize(failDest(), { clearCache: true })
     }
   }
 
-  // 인증됨: status + role 캐시 확인
-  const cachedStatus = request.cookies.get(STATUS_COOKIE)?.value
-  const cachedRole = request.cookies.get(ROLE_COOKIE)?.value
+  // 인증됨: status + role 확정 (캐시 fast path / /me slow path)
+  const apiUrl = getApiBaseUrlOrNull()
+  const resolved = await resolveStatusRole(request, token, apiUrl)
 
-  let status: string
-  let role: string
-  let needsCacheUpdate = false
-
-  if (cachedStatus && VALID_STATUSES.has(cachedStatus) && cachedRole) {
-    // 빠른 경로: 쿠키 캐시 사용
-    status = cachedStatus
-    role = cachedRole
-  } else {
-    // 느린 경로: kista-api /me 호출
-    needsCacheUpdate = true
-    try {
-      const apiUrl = getApiBaseUrlOrNull()
-      const meRes = await fetch(`${apiUrl}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-        signal: AbortSignal.timeout(5000),
-      })
-
-      if (!meRes.ok) {
-        const dest = isProtected
-          ? redirectTo('/login', request)
-          : NextResponse.next({ request: { headers: requestHeaders } })
-        // JWT 만료/무효 → 캐시 쿠키 초기화하여 다음 방문 시 재검증 강제
-        dest.cookies.delete(STATUS_COOKIE)
-        dest.cookies.delete(ROLE_COOKIE)
-        // AT 갱신이 선행된 경우 새 AT 쿠키를 반드시 적용 (RT는 안정 RT이므로 drift 없음)
-        for (const sc of extraSetCookies) dest.headers.append('Set-Cookie', sc)
-        return dest
-      }
-
-      const userData = await meRes.json() as { status: string; role?: string }
-      status = userData.status
-      role = userData.role ?? 'USER'
-    } catch {
-      const dest = isProtected
-        ? redirectTo('/login', request)
-        : NextResponse.next({ request: { headers: requestHeaders } })
-      for (const sc of extraSetCookies) dest.headers.append('Set-Cookie', sc)
-      return dest
-    }
+  if (!resolved.ok) {
+    // AT 갱신이 선행된 경우 새 AT 쿠키를 반드시 적용 (RT는 안정 RT이므로 drift 없음)
+    return finalize(failDest(), { clearCache: resolved.clearCache })
   }
 
+  const { status, role, needsCacheUpdate } = resolved
   const response = NextResponse.next({ request: { headers: requestHeaders } })
 
   // PENDING은 캐싱 금지 — 승인 후 캐시 히트 버그 방지
@@ -179,12 +166,9 @@ export async function proxy(request: NextRequest) {
     response.cookies.set(ROLE_COOKIE, role, opts)
   }
 
+  // 캐시쿠키 set은 리다이렉트 전 response에 적용해야 함 → finalize는 AT 갱신 쿠키만 최종 응답에 부착
   const finalResponse = routeByStatusAndRole(status, role, pathname, request, response)
-
-  // AT 갱신 쿠키를 최종 응답(리다이렉트 포함)에 항상 적용
-  for (const sc of extraSetCookies) finalResponse.headers.append('Set-Cookie', sc)
-
-  return finalResponse
+  return finalize(finalResponse)
 }
 
 function redirectTo(pathname: string, request: NextRequest): NextResponse {
