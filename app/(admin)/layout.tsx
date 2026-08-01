@@ -2,11 +2,9 @@ import { AdminSidebar } from '@widgets/layout/AdminSidebar'
 import { AdminTopBar } from '@widgets/layout/AdminTopBar'
 import { PullToRefresh } from '@widgets/pull-to-refresh'
 import { MetaProvider, getMetaBundle } from '@entities/meta'
-import { getAuthToken } from '@shared/lib/auth/token'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const token = await getAuthToken()
-  const meta = await getMetaBundle(token)
+  const meta = await getMetaBundle()
 
   return (
     <MetaProvider meta={meta}>

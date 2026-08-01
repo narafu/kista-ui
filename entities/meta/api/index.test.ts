@@ -13,7 +13,7 @@ describe('getMetaBundle', () => {
     }
   })
 
-  it('falls back to public meta when bearer token is expired', async () => {
+  it('fetches meta with 1-hour Data Cache', async () => {
     process.env.API_BASE_URL = 'https://api.example.test'
     const { getMetaBundle } = await import('./index')
     const meta = {
@@ -22,24 +22,30 @@ describe('getMetaBundle', () => {
       enums: {},
     }
     const fetchMock = vi.spyOn(globalThis, 'fetch')
-      .mockResolvedValueOnce(new Response(null, { status: 401 }))
       .mockResolvedValueOnce(Response.json(meta))
 
-    await expect(getMetaBundle('expired-token')).resolves.toEqual(meta)
+    await expect(getMetaBundle()).resolves.toEqual(meta)
 
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      1,
-      'https://api.example.test/api/meta',
-      expect.objectContaining({
-        headers: expect.objectContaining({
-          Authorization: 'Bearer expired-token',
-        }),
-      }),
-    )
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
+    expect(fetchMock).toHaveBeenCalledWith(
       'https://api.example.test/api/meta',
       { next: { revalidate: 3600 } },
     )
+  })
+
+  it('throws ApiError when fetch fails', async () => {
+    process.env.API_BASE_URL = 'https://api.example.test'
+    const { getMetaBundle } = await import('./index')
+    const { ApiError } = await import('@shared/lib/api-client')
+    vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response(null, { status: 500 }))
+
+    let caught: unknown
+    try {
+      await getMetaBundle()
+    } catch (err) {
+      caught = err
+    }
+    expect(caught).toBeInstanceOf(ApiError)
+    expect(caught).toMatchObject({ status: 500 })
   })
 })

@@ -24,7 +24,7 @@ export default async function MainLayout({ children, modal }: Props) {
   // proxy가 /me 응답으로 1시간 캐시하는 role 쿠키 — 로그인 직후 첫 요청만 미존재
   const cachedRole = cookieStore.get('kista-user-role')?.value
   const [meta, fallbackUser] = await Promise.all([
-    getMetaBundle(token),
+    getMetaBundle(),
     token && !cachedRole ? getMe(token).catch(() => null) : null,
   ])
 
