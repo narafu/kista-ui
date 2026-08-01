@@ -8,15 +8,13 @@ interface Props {
   notificationChannel: NotificationChannel
 }
 
-// 푸시 알림 채널 사용자: 로그인 시 FCM 토큰을 자동 등록한다.
-// - 이미 허용된 기기: 즉시 토큰 등록
-// - 미결정(새 기기/브라우저): requestPermission 팝업 후 허용 시 등록
-// - 거부된 기기: 아무것도 하지 않음
+// 푸시 알림 채널 사용자: 이미 허용된 기기에서만 FCM 토큰을 자동 등록한다.
+// 미결정(default) 기기는 설정 화면의 채널 변경(사용자 제스처)에서 권한을 요청한다 — 진입 즉시 권한 팝업 금지.
 export function FcmAutoRegister({ notificationChannel }: Props) {
   useEffect(() => {
     if (notificationChannel !== 'FCM' && notificationChannel !== 'ALL') return
     if (typeof Notification === 'undefined') return
-    if (Notification.permission === 'denied') return
+    if (Notification.permission !== 'granted') return
 
     requestFcmToken()
       .then((token) => { if (token) return registerTokenToServer(token) })
