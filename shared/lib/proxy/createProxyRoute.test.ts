@@ -9,9 +9,11 @@ vi.mock('@shared/lib/auth/token', () => ({
 describe('createProxyRoute', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
+    vi.unstubAllEnvs()
   })
 
   it('정적 Route Handler에서 context 없이 기본 경로를 프록시한다', async () => {
+    vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ items: [] }), {
         status: 200,
@@ -32,6 +34,7 @@ describe('createProxyRoute', () => {
   })
 
   it('정적 Route Handler에서 params 없는 context로 기본 경로를 프록시한다', async () => {
+    vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ items: [] }), {
         status: 200,

@@ -1,8 +1,7 @@
 import { ApiError, apiFetch, clientFetch } from '@shared/lib/api-client'
+import { getApiBaseUrl } from '@shared/lib/env'
 import type { Candle, FearGreed } from '../model/types'
 import { CHART_CANDLE_COUNT } from '../model/constants'
-
-const API_BASE_URL = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
 
 export function getMonthlyHolidays(year: number, month: number, token: string): Promise<string[]> {
   return apiFetch<string[]>(`/api/market/holidays?year=${year}&month=${month}`, { method: 'GET' }, token)
@@ -10,7 +9,7 @@ export function getMonthlyHolidays(year: number, month: number, token: string): 
 
 // 비인증 Server Component용 — kista-api 직접 호출
 export async function getMonthlyHolidaysPublic(year: number, month: number): Promise<string[]> {
-  const response = await fetch(`${API_BASE_URL}/api/market/holidays?year=${year}&month=${month}`)
+  const response = await fetch(`${getApiBaseUrl()}/api/market/holidays?year=${year}&month=${month}`)
   if (!response.ok) {
     let body: unknown = null
     try { body = await response.json() } catch {}

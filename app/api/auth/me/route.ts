@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getAuthToken } from '@shared/lib/auth/token'
+import { getApiBaseUrl } from '@shared/lib/env'
 
-const API_BASE_URL = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
 const TOKEN_COOKIE = 'kista-token'
 const STATUS_COOKIE = 'kista-user-status'
 const ROLE_COOKIE = 'kista-user-role'
@@ -10,7 +10,7 @@ export async function GET() {
   const token = await getAuthToken()
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+  const res = await fetch(`${getApiBaseUrl()}/api/auth/me`, {
     method: 'GET',
     headers: { Authorization: `Bearer ${token}` },
     cache: 'no-store',
@@ -24,7 +24,7 @@ export async function DELETE() {
   const token = await getAuthToken()
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+  const res = await fetch(`${getApiBaseUrl()}/api/auth/me`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
     cache: 'no-store',

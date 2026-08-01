@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { getApiBaseUrlOrNull } from '@shared/lib/env'
 
 const STATUS_COOKIE = 'kista-user-status'
 const ROLE_COOKIE = 'kista-user-role'
@@ -40,7 +41,7 @@ async function tryRefresh(
 ): Promise<{ accessToken: string; setCookieHeaders: string[] } | null> {
   const rt = request.cookies.get(RT_COOKIE)?.value
   if (!rt) return null
-  const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
+  const apiUrl = getApiBaseUrlOrNull()
   if (!apiUrl) return null
   try {
     const res = await fetch(`${apiUrl}/api/auth/refresh`, {
@@ -138,7 +139,7 @@ export async function proxy(request: NextRequest) {
     // 느린 경로: kista-api /me 호출
     needsCacheUpdate = true
     try {
-      const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
+      const apiUrl = getApiBaseUrlOrNull()
       const meRes = await fetch(`${apiUrl}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
         signal: AbortSignal.timeout(5000),

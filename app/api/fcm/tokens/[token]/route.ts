@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAuthToken } from '@shared/lib/auth/token'
-
-const API_BASE_URL = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
+import { getApiBaseUrl } from '@shared/lib/env'
 
 export async function DELETE(
   _request: Request,
@@ -12,7 +11,7 @@ export async function DELETE(
 
   const { token } = await params
 
-  const res = await fetch(`${API_BASE_URL}/api/fcm/tokens/${encodeURIComponent(token)}`, {
+  const res = await fetch(`${getApiBaseUrl()}/api/fcm/tokens/${encodeURIComponent(token)}`, {
     method: 'DELETE',
     headers: { 'Authorization': `Bearer ${authToken}` },
     cache: 'no-store',

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { getApiBaseUrlOrNull } from '@shared/lib/env'
 
 const STATUS_COOKIE = 'kista-user-status'
 const KISTA_TOKEN_COOKIE = 'kista-token'
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
+  const apiUrl = getApiBaseUrlOrNull()
   if (!apiUrl) {
     console.error('[auth/callback] NEXT_PUBLIC_API_BASE_URL 미설정')
     return NextResponse.redirect(new URL('/login?error=server_error', origin))

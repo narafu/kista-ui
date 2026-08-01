@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getAuthToken } from '@shared/lib/auth/token'
-
-const API_BASE_URL = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
+import { getApiBaseUrl } from '@shared/lib/env'
 
 type Params = { params?: Promise<{ path?: string[] }> }
 type Handler = (req: NextRequest, ctx?: Params) => Promise<NextResponse>
@@ -27,7 +26,7 @@ export function createProxyRoute(opts: CreateProxyRouteOptions): {
     if (!token && opts.requireAuth !== false) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const subPath = pathSegments.length > 0 ? `/${pathSegments.join('/')}` : ''
-    const url = `${API_BASE_URL}${opts.basePath}${subPath}${request.nextUrl.search}`
+    const url = `${getApiBaseUrl()}${opts.basePath}${subPath}${request.nextUrl.search}`
     const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {}
     let body: BodyInit | undefined
 

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAuthToken } from '@shared/lib/auth/token'
+import { getApiBaseUrl } from '@shared/lib/env'
 
 const STATUS_COOKIE = 'kista-user-status'
 
@@ -9,9 +10,8 @@ export async function POST() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
   try {
-    const res = await fetch(`${apiUrl}/api/auth/approval-requests`, {
+    const res = await fetch(`${getApiBaseUrl()}/api/auth/approval-requests`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
       cache: 'no-store',

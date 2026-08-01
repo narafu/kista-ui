@@ -1,4 +1,5 @@
 import { getAuthToken } from '@shared/lib/auth/token'
+import { getApiBaseUrl } from '@shared/lib/env'
 import type { NextRequest } from 'next/server'
 import { Agent, fetch as undiciFetch } from 'undici'
 
@@ -21,9 +22,8 @@ export async function GET(request: NextRequest) {
     })
   }
 
-  const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
   // undici fetch 사용 — dispatcher 옵션이 전역 fetch에서 지원되지 않아 TypeError 발생
-  const upstream = await undiciFetch(`${apiUrl}/api/trades/stream`, {
+  const upstream = await undiciFetch(`${getApiBaseUrl()}/api/trades/stream`, {
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: 'text/event-stream',

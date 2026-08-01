@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { getApiBaseUrlOrNull } from '@shared/lib/env'
 
 const RT_COOKIE = 'refresh_token'
 const KISTA_TOKEN_COOKIE = 'kista-token'
@@ -10,7 +11,7 @@ export async function POST(request: NextRequest) {
   const rt = cookieStore.get(RT_COOKIE)?.value
   if (!rt) return NextResponse.json({ error: 'No refresh token' }, { status: 401 })
 
-  const apiUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL
+  const apiUrl = getApiBaseUrlOrNull()
   if (!apiUrl) return NextResponse.json({ error: 'Server error' }, { status: 500 })
 
   try {
