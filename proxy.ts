@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getApiBaseUrlOrNull } from '@shared/lib/env'
-
-const STATUS_COOKIE = 'kista-user-status'
-const ROLE_COOKIE = 'kista-user-role'
-const KISTA_TOKEN_COOKIE = 'kista-token'
-const RT_COOKIE = 'refresh_token'
+import {
+  STATUS_COOKIE,
+  ROLE_COOKIE,
+  KISTA_TOKEN_COOKIE,
+  RT_COOKIE,
+} from '@shared/lib/auth/cookies'
 const VALID_STATUSES = new Set(['PENDING', 'REJECTED', 'ACTIVE'])
 // status/role 캐시: 1시간마다 만료 → /me 재호출로 JWT 유효성 재검증
 // secure는 NODE_ENV가 아닌 실제 프로토콜 기준 (docs/agents/app.md — Safari HTTP Secure 쿠키 무시)

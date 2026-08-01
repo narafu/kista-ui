@@ -1,7 +1,6 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-
-const KISTA_TOKEN_COOKIE = 'kista-token'
+import { KISTA_TOKEN_COOKIE } from '@shared/lib/auth/cookies'
 
 // "/"는 인증 분기 후 리다이렉트 — 인증 시 대시보드, 비인증 시 로그인 (감사 A-01·S-01)
 export default async function RootPage() {

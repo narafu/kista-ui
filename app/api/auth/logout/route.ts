@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getApiBaseUrlOrNull } from '@shared/lib/env'
-
-const KISTA_TOKEN_COOKIE = 'kista-token'
-const STATUS_COOKIE = 'kista-user-status'
-const ROLE_COOKIE = 'kista-user-role'
-const RT_COOKIE = 'refresh_token'
-const CLEAR_COOKIE = { maxAge: 0, path: '/' }
+import {
+  KISTA_TOKEN_COOKIE,
+  STATUS_COOKIE,
+  ROLE_COOKIE,
+  RT_COOKIE,
+  CLEAR_COOKIE,
+} from '@shared/lib/auth/cookies'
 
 export async function POST(request: NextRequest) {
   const cookieStore = await cookies()

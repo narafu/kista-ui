@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { getApiBaseUrl } from '@shared/lib/env'
-
-const TOKEN_COOKIE = 'kista-token'
-const STATUS_COOKIE = 'kista-user-status'
-const ROLE_COOKIE = 'kista-user-role'
+import {
+  KISTA_TOKEN_COOKIE,
+  STATUS_COOKIE,
+  ROLE_COOKIE,
+  CLEAR_COOKIE,
+} from '@shared/lib/auth/cookies'
 
 export async function GET() {
   const token = await getAuthToken()
@@ -37,8 +39,8 @@ export async function DELETE() {
 
   // 탈퇴 성공 — 3개 인증 쿠키 삭제
   const response = new NextResponse(null, { status: 204 })
-  response.cookies.set(TOKEN_COOKIE, '', { maxAge: 0, path: '/' })
-  response.cookies.set(STATUS_COOKIE, '', { maxAge: 0, path: '/', httpOnly: true })
-  response.cookies.set(ROLE_COOKIE, '', { maxAge: 0, path: '/', httpOnly: true })
+  response.cookies.set(KISTA_TOKEN_COOKIE, '', CLEAR_COOKIE)
+  response.cookies.set(STATUS_COOKIE, '', { ...CLEAR_COOKIE, httpOnly: true })
+  response.cookies.set(ROLE_COOKIE, '', { ...CLEAR_COOKIE, httpOnly: true })
   return response
 }

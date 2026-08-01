@@ -1,4 +1,4 @@
-const KISTA_TOKEN_COOKIE = 'kista-token'
+import { KISTA_TOKEN_COOKIE } from './cookies'
 
 // 서버 컴포넌트 / Route Handler 전용 (next/headers)
 export async function getAuthToken(): Promise<string | undefined> {

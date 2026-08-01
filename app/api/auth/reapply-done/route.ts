@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { getApiBaseUrl } from '@shared/lib/env'
-
-const STATUS_COOKIE = 'kista-user-status'
+import { STATUS_COOKIE, CLEAR_COOKIE } from '@shared/lib/auth/cookies'
 
 export async function POST() {
   const token = await getAuthToken()
@@ -23,7 +22,7 @@ export async function POST() {
     }
 
     const response = NextResponse.json({ success: true })
-    response.cookies.set(STATUS_COOKIE, '', { maxAge: 0, path: '/' })
+    response.cookies.set(STATUS_COOKIE, '', CLEAR_COOKIE)
     return response
   } catch {
     return NextResponse.json({ error: 'Server error' }, { status: 500 })

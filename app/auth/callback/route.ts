@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getApiBaseUrlOrNull } from '@shared/lib/env'
-
-const STATUS_COOKIE = 'kista-user-status'
-const KISTA_TOKEN_COOKIE = 'kista-token'
+import { STATUS_COOKIE, KISTA_TOKEN_COOKIE } from '@shared/lib/auth/cookies'
 
 // eslint-disable-next-line react-doctor/nextjs-no-side-effect-in-get-handler
 export async function GET(request: NextRequest) {

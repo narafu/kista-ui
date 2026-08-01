@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getApiBaseUrlOrNull } from '@shared/lib/env'
-
-const RT_COOKIE = 'refresh_token'
-const KISTA_TOKEN_COOKIE = 'kista-token'
+import { RT_COOKIE, KISTA_TOKEN_COOKIE } from '@shared/lib/auth/cookies'
 
 // 클라이언트 컴포넌트의 401 재시도용 — RT 쿠키로 AT 갱신 후 새 kista-token 쿠키 세팅
 export async function POST(request: NextRequest) {
