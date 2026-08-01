@@ -1,22 +1,34 @@
 import type { Metadata } from 'next'
+import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { HousingBenchmarkComparison } from '@widgets/benchmark-comparison'
 import { PageHeader } from '@widgets/page-header'
+import { getAuthToken } from '@shared/lib/auth/token'
+import { accountListQueryOptions } from '@entities/account'
+import { strategyListAllQueryOptions } from '@entities/strategy'
+import { createQueryClient } from '@shared/lib/query'
+import { todayKst } from '@shared/lib/format'
 
 export const metadata: Metadata = {
   title: '벤치마크 | KISTA',
 }
 
-function isoDate(d: Date): string {
-  return d.toISOString().slice(0, 10)
-}
+export default async function BenchmarkPage() {
+  const token = await getAuthToken()
 
-export default function BenchmarkPage() {
-  const defaultTo = isoDate(new Date())
+  const queryClient = createQueryClient()
+  if (token) {
+    await Promise.all([
+      queryClient.prefetchQuery(accountListQueryOptions(token)).catch(() => undefined),
+      queryClient.prefetchQuery(strategyListAllQueryOptions(token)).catch(() => undefined),
+    ])
+  }
 
   return (
     <>
       <PageHeader eyebrow="Benchmark" title="벤치마크" />
-      <HousingBenchmarkComparison enabled defaultTo={defaultTo} />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <HousingBenchmarkComparison enabled defaultTo={todayKst()} />
+      </HydrationBoundary>
     </>
   )
 }
