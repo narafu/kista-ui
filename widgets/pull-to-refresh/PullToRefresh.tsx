@@ -17,6 +17,7 @@ export function PullToRefresh() {
   const [isRefreshing, startTransition] = useTransition()
   const startYRef = useRef(0)
   const isPullingRef = useRef(false)
+  const pullDistanceRef = useRef(0)
 
   const handleTouchStart = useCallback((e: TouchEvent) => {
     const target = e.target as Element | null
@@ -32,10 +33,12 @@ export function PullToRefresh() {
     const delta = e.touches[0].clientY - startYRef.current
     if (delta <= 0) {
       isPullingRef.current = false
+      pullDistanceRef.current = 0
       setPullDistance(0)
       return
     }
     const clamped = Math.min(delta * 0.5, MAX_PULL)
+    pullDistanceRef.current = clamped
     setPullDistance(clamped)
     e.preventDefault()
   }, [])
@@ -44,16 +47,16 @@ export function PullToRefresh() {
   const handleTouchEnd = useCallback(() => {
     if (!isPullingRef.current) return
     isPullingRef.current = false
-    setPullDistance((dist) => {
-      if (dist >= THRESHOLD) {
-        // 서버 렌더 갱신 + 클라이언트 전용 쿼리까지 전체 재동기화, 완료 시점까지 스피너 유지
-        startTransition(async () => {
-          router.refresh()
-          await queryClient.invalidateQueries()
-        })
-      }
-      return 0
-    })
+    const dist = pullDistanceRef.current
+    pullDistanceRef.current = 0
+    setPullDistance(0)
+    if (dist >= THRESHOLD) {
+      // 서버 렌더 갱신 + 클라이언트 전용 쿼리까지 전체 재동기화, 완료 시점까지 스피너 유지
+      startTransition(async () => {
+        router.refresh()
+        await queryClient.invalidateQueries()
+      })
+    }
   }, [router, queryClient])
   handleTouchEndRef.current = handleTouchEnd
 
