@@ -1,13 +1,14 @@
 import { DesktopSidebar } from '@widgets/layout/DesktopSidebar'
 import { MobileBottomNav } from '@widgets/layout/MobileBottomNav'
 import { MobileHeader } from '@widgets/layout/MobileHeader'
+import { FcmBridge } from '@widgets/layout/FcmBridge'
 import { MetaProvider } from '@entities/meta'
-import { FcmAutoRegister, FcmForegroundListener } from '@entities/fcm'
 import { PullToRefresh } from '@widgets/pull-to-refresh'
 import { TradeNotificationProvider } from '@entities/trade'
 import { getMetaBundle } from '@entities/meta'
 import { getMe } from '@entities/user'
 import { getAuthToken } from '@shared/lib/auth/token'
+import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { ShieldCheck, LogOut, LogIn } from 'lucide-react'
 import { LogoutButton } from '@features/auth/logout'
@@ -19,12 +20,15 @@ interface Props {
 
 export default async function MainLayout({ children, modal }: Props) {
   const token = await getAuthToken()
-  const [meta, user] = await Promise.all([
+  const cookieStore = await cookies()
+  // proxy가 /me 응답으로 1시간 캐시하는 role 쿠키 — 로그인 직후 첫 요청만 미존재
+  const cachedRole = cookieStore.get('kista-user-role')?.value
+  const [meta, fallbackUser] = await Promise.all([
     getMetaBundle(token),
-    token ? getMe(token).catch(() => null) : null,
+    token && !cachedRole ? getMe(token).catch(() => null) : null,
   ])
 
-  const isAdmin = user?.role === 'ADMIN'
+  const isAdmin = cachedRole ? cachedRole === 'ADMIN' : fallbackUser?.role === 'ADMIN'
   const isAuthenticated = !!token
 
   return (
@@ -63,10 +67,7 @@ export default async function MainLayout({ children, modal }: Props) {
           <main className="flex-1 p-4 lg:p-9 pb-24 lg:pb-9">{children}</main>
           <MobileBottomNav />
         </div>
-        {isAuthenticated && <FcmAutoRegister notificationChannel={user?.notificationChannel ?? 'TELEGRAM'} />}
-        {isAuthenticated && (
-          <FcmForegroundListener enabled={user?.notificationChannel === 'FCM' || user?.notificationChannel === 'ALL'} />
-        )}
+        {isAuthenticated && <FcmBridge />}
         <TradeNotificationProvider />
         {modal}
       </div>
