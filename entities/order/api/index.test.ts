@@ -224,6 +224,30 @@ describe('order api', () => {
     expect(clientFetchMock).toHaveBeenCalledWith('/api/trading-cycles/strategy-1/orders')
   })
 
+  it('listStrategyOrders excludes ticker field from normalized result', async () => {
+    const { listStrategyOrders } = await import('./index')
+    clientFetchMock.mockResolvedValueOnce({
+      orders: [
+        { id: 'o1', ticker: 'TQQQ', tradeDate: '2026-01-01', direction: 'BUY', orderType: 'LOC', quantity: 5, price: '20.00', status: 'FILLED', filledQuantity: 5, filledPrice: '20.00' },
+      ],
+    })
+
+    const result = await listStrategyOrders('strategy-1')
+
+    expect(result[0]).toEqual({
+      id: 'o1',
+      tradeDate: '2026-01-01',
+      direction: 'BUY',
+      orderType: 'LOC',
+      quantity: 5,
+      price: '20.00',
+      status: 'FILLED',
+      filledQuantity: 5,
+      filledPrice: '20.00',
+    })
+    expect(Object.keys(result[0])).not.toContain('ticker')
+  })
+
   it('normalizes a null competition field to null', async () => {
     const { getStrategyOrdersPreview } = await import('./index')
     clientFetchMock.mockResolvedValueOnce({

@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
   const apiUrl = getApiBaseUrlOrNull()
   if (!apiUrl) {
-    console.error('[auth/callback] NEXT_PUBLIC_API_BASE_URL 미설정')
+    console.error('[auth/callback] API_BASE_URL/NEXT_PUBLIC_API_BASE_URL 미설정')
     return NextResponse.redirect(new URL('/login?error=server_error', origin))
   }
 

@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useRef } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
 import type { RuntimeConfig, RuntimeStrategyType } from '@entities/runtime-config'
