@@ -3,10 +3,8 @@
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { AlertTriangle, Plus, RotateCcw, Save, Trash2 } from 'lucide-react'
+import { AlertTriangle, RotateCcw, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Switch } from '@/components/ui/switch'
 import { useAdminSettingsQuery, useUpdateAdminSettingsMutation } from '@entities/admin-settings'
 import { adminKeys } from '@entities/admin'
 import { useMeta } from '@entities/meta'
@@ -14,13 +12,17 @@ import type { BrokerCode } from '@shared/lib/api-schema'
 import {
   DEFAULT_RUNTIME_BENCHMARKS,
   runtimeConfigKeys,
-  type RecurringMode,
   type RuntimeBenchmarkFieldSettings,
   type RuntimeConfig,
   type RuntimeFieldSettings,
   type RuntimeStrategyType,
 } from '@entities/runtime-config'
 import { validateAdminSettings } from '../model/validateAdminSettings'
+import { ToggleRow } from './ToggleRow'
+import { ValueListEditor } from './ValueListEditor'
+import { RecurringModeEditor } from './RecurringModeEditor'
+import { FieldEditor } from './FieldEditor'
+import { normalizeNumber, normalizeSymbol } from '../model/normalizers'
 
 const STRATEGY_LABELS: Record<RuntimeStrategyType, string> = {
   INFINITE: 'INFINITE', PRIVACY: 'PRIVACY', VR: 'VR',
@@ -31,305 +33,6 @@ function clone(value: RuntimeConfig): RuntimeConfig {
   next.benchmarks ??= structuredClone(DEFAULT_RUNTIME_BENCHMARKS)
   next.benchmarks.etf ??= structuredClone(DEFAULT_RUNTIME_BENCHMARKS.etf)
   return next
-}
-
-function ToggleRow({ id, label, description, checked, onChange }: {
-  id: string; label: string; description?: string; checked: boolean; onChange: (checked: boolean) => void
-}) {
-  return (
-    <div className="flex items-center justify-between gap-5 py-3">
-      <div>
-        <label htmlFor={id} className="text-sm font-semibold">{label}</label>
-        {description && <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>}
-      </div>
-      <Switch id={id} checked={checked} onCheckedChange={onChange} aria-label={label} />
-    </div>
-  )
-}
-
-type ValueSet<T extends string | number> = {
-  allowedValues: T[]
-  defaultValue: T
-}
-
-function normalizeSymbol(value: string) {
-  return value.trim().toUpperCase()
-}
-
-function normalizeText(value: string) {
-  return value.trim()
-}
-
-function normalizeNumber(value: string) {
-  const trimmed = value.trim()
-  if (trimmed === '') return null
-  const parsed = Number(trimmed)
-  return Number.isFinite(parsed) ? parsed : null
-}
-
-function ValueListEditor<T extends string | number>({ id, label, field, error, inputType = 'text', suggestions, normalize, onChange }: {
-  id: string
-  label: string
-  field: ValueSet<T>
-  error?: string
-  inputType?: 'text' | 'number'
-  suggestions?: string[]
-  normalize: (value: string) => T | null
-  onChange: (field: ValueSet<T>) => void
-}) {
-  const [raw, setRaw] = useState('')
-  const [inputError, setInputError] = useState<string>()
-  const datalistId = suggestions && suggestions.length > 0 ? `${id}-suggestions` : undefined
-
-  const setDefault = (value: T) => {
-    setInputError(undefined)
-    onChange({ ...field, defaultValue: value })
-  }
-
-  const addValue = () => {
-    const trimmed = raw.trim()
-    if (trimmed === '') {
-      setInputError('값을 입력하세요.')
-      return
-    }
-    const parsed = normalize(raw)
-    if (parsed === null) {
-      setInputError(inputType === 'number' ? '올바른 숫자를 입력하세요.' : '값을 입력하세요.')
-      return
-    }
-    if (field.allowedValues.includes(parsed)) {
-      setInputError('이미 추가된 값입니다.')
-      return
-    }
-    setInputError(undefined)
-    setRaw('')
-    onChange({ ...field, allowedValues: [...field.allowedValues, parsed] })
-  }
-
-  const deleteValue = (value: T) => {
-    if (Object.is(value, field.defaultValue)) {
-      setInputError('기본값은 삭제할 수 없습니다.')
-      return
-    }
-    if (field.allowedValues.length <= 1) {
-      setInputError('허용값은 하나 이상 필요합니다.')
-      return
-    }
-    setInputError(undefined)
-    onChange({ ...field, allowedValues: field.allowedValues.filter((item) => !Object.is(item, value)) })
-  }
-
-  return (
-    <div className="space-y-2">
-      <div role="radiogroup" aria-label={`${label} 기본값`} className="space-y-1.5">
-        {field.allowedValues.map((value) => (
-          <div key={String(value)} className="flex min-h-11 items-center gap-2 rounded-md border border-border bg-background px-2">
-            <input
-              type="radio"
-              name={`${id}-default`}
-              checked={Object.is(value, field.defaultValue)}
-              onChange={() => setDefault(value)}
-              aria-label={`${String(value)} 기본값`}
-              className="size-4 shrink-0 accent-primary"
-            />
-            <span className="min-w-0 flex-1 truncate font-mono text-sm">{String(value)}</span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="size-11 text-muted-foreground hover:text-foreground"
-              aria-label={`${String(value)} 삭제`}
-              onClick={() => deleteValue(value)}
-            >
-              <Trash2 />
-            </Button>
-          </div>
-        ))}
-      </div>
-      <div className="flex gap-2">
-        <Input
-          id={`${id}-add`}
-          value={raw}
-          type="text"
-          list={datalistId}
-          inputMode={inputType === 'number' ? 'decimal' : undefined}
-          maxLength={100}
-          aria-label={`${label} 추가`}
-          aria-invalid={Boolean(inputError || error)}
-          onChange={(event) => {
-            setRaw(event.target.value)
-            setInputError(undefined)
-          }}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault()
-              addValue()
-            }
-          }}
-        />
-        <Button type="button" variant="outline" size="icon" className="size-11" aria-label={`${label} 추가 확정`} onClick={addValue}>
-          <Plus />
-        </Button>
-      </div>
-      {datalistId && (
-        <datalist id={datalistId}>
-          {suggestions?.map((suggestion) => <option key={suggestion} value={suggestion} />)}
-        </datalist>
-      )}
-      {(inputError || error) && <p role="alert" className="text-xs text-destructive">{inputError || error}</p>}
-    </div>
-  )
-}
-
-const RECURRING_MODE_OPTIONS = [
-  { value: 'DEPOSIT', label: '입금' },
-  { value: 'HOLD', label: '거치' },
-  { value: 'WITHDRAW', label: '인출' },
-] as const satisfies readonly { value: RecurringMode; label: string }[]
-
-function RecurringModeEditor({ id, label, field, error, onChange }: {
-  id: string
-  label: string
-  field: RuntimeFieldSettings<RecurringMode>
-  error?: string
-  onChange: (field: RuntimeFieldSettings<RecurringMode>) => void
-}) {
-  const [inputError, setInputError] = useState<string>()
-  const setCustomizable = (customizable: boolean) => {
-    setInputError(undefined)
-    onChange(customizable ? { ...field, customizable: true } : { customizable: false, allowedValues: ['HOLD'], defaultValue: 'HOLD' })
-  }
-  const toggleAllowed = (value: RecurringMode, checked: boolean) => {
-    if (!checked && value === field.defaultValue) {
-      setInputError('기본값은 해제할 수 없습니다.')
-      return
-    }
-    const allowedValues = checked
-      ? [...field.allowedValues, value]
-      : field.allowedValues.filter((item) => item !== value)
-    setInputError(undefined)
-    onChange({ ...field, allowedValues })
-  }
-
-  return (
-    <div className="grid gap-2 py-3 sm:grid-cols-[minmax(140px,1fr)_minmax(220px,1.5fr)] sm:items-start">
-      <div className="flex min-h-8 items-center justify-between gap-3 sm:pr-4">
-        <span className="text-sm font-medium">{label}</span>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">사용자 변경</span>
-          <Switch
-            checked={field.customizable}
-            onCheckedChange={setCustomizable}
-            aria-label={`${label} 사용자 변경 허용`}
-            size="sm"
-          />
-        </div>
-      </div>
-      <div className="space-y-2">
-        {field.customizable ? (
-          <div className="space-y-1.5">
-            {RECURRING_MODE_OPTIONS.map((option) => {
-              const checked = field.allowedValues.includes(option.value)
-              return (
-                <div key={option.value} className="flex min-h-11 items-center gap-3 rounded-md border border-border bg-background px-3">
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={(event) => toggleAllowed(option.value, event.target.checked)}
-                    aria-label={`${option.value} 허용`}
-                    className="size-4 shrink-0 accent-primary"
-                  />
-                  <span className="min-w-0 flex-1 truncate font-mono text-sm">
-                    {option.value} <span className="font-sans text-xs text-muted-foreground">· {option.label}</span>
-                  </span>
-                  <input
-                    type="radio"
-                    name={`${id}-default`}
-                    checked={field.defaultValue === option.value}
-                    disabled={!checked}
-                    onChange={() => {
-                      setInputError(undefined)
-                      onChange({ ...field, defaultValue: option.value })
-                    }}
-                    aria-label={`${option.value} 기본값`}
-                    className="size-4 shrink-0 accent-primary disabled:opacity-40"
-                  />
-                </div>
-              )
-            })}
-          </div>
-        ) : (
-          <div className="flex h-8 items-center rounded-lg border border-border bg-muted/40 px-2.5 font-mono text-sm text-muted-foreground">
-            HOLD <span className="ml-auto text-xs font-sans">고정</span>
-          </div>
-        )}
-        {(inputError || error) && <p role="alert" className="text-xs text-destructive">{inputError || error}</p>}
-      </div>
-    </div>
-  )
-}
-
-function FieldEditor<T extends string | number>({ id, label, field, error, fixed, suggestions, inputType = 'text', normalize, onChange }: {
-  id: string
-  label: string
-  field: RuntimeFieldSettings<T>
-  error?: string
-  fixed?: boolean
-  suggestions?: string[]
-  inputType?: 'text' | 'number'
-  normalize?: (value: string) => T | null
-  onChange: (field: RuntimeFieldSettings<T>) => void
-}) {
-  const normalizeValue = normalize ?? ((value: string) => normalizeText(value) as T)
-
-  if (fixed) {
-    return (
-      <div className="grid gap-2 py-3 sm:grid-cols-[minmax(140px,1fr)_minmax(220px,1.5fr)] sm:items-center">
-        <span className="text-sm font-medium">{label}</span>
-        <div className="flex h-8 items-center rounded-lg border border-border bg-muted/40 px-2.5 font-mono text-sm text-muted-foreground">
-          {String(field.defaultValue)} <span className="ml-auto text-xs font-sans">고정</span>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="grid gap-2 py-3 sm:grid-cols-[minmax(140px,1fr)_minmax(220px,1.5fr)] sm:items-start">
-      <div className="flex min-h-8 items-center justify-between gap-3 sm:pr-4">
-        <span className="text-sm font-medium">{label}</span>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">사용자 변경</span>
-          <Switch
-            checked={field.customizable}
-            onCheckedChange={(customizable) => onChange(customizable
-              ? { ...field, customizable: true }
-              : { ...field, customizable: false, allowedValues: [field.defaultValue] })}
-            aria-label={`${label} 사용자 변경 허용`}
-            size="sm"
-          />
-        </div>
-      </div>
-      <div className="space-y-2">
-        {field.customizable ? (
-          <ValueListEditor
-            id={id}
-            label={label}
-            field={field}
-            error={error}
-            inputType={inputType}
-            suggestions={suggestions}
-            normalize={normalizeValue}
-            onChange={(value) => onChange({ ...field, ...value })}
-          />
-        ) : (
-          <div className="flex h-8 items-center rounded-lg border border-border bg-muted/40 px-2.5 font-mono text-sm text-muted-foreground">
-            {String(field.defaultValue)} <span className="ml-auto text-xs font-sans">고정</span>
-          </div>
-        )}
-        {!field.customizable && error && <p role="alert" className="text-xs text-destructive">{error}</p>}
-      </div>
-    </div>
-  )
 }
 
 export function AdminSettingsForm() {
