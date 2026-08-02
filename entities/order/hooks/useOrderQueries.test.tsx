@@ -11,6 +11,7 @@ vi.mock('@tanstack/react-query', () => ({
   useQuery: useQueryMock,
   useMutation: vi.fn(),
   useQueryClient: vi.fn(),
+  queryOptions: (options: unknown) => options,
 }))
 
 vi.mock('sonner', () => ({

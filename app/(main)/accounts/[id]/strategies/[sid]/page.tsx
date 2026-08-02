@@ -5,8 +5,7 @@ import { StrategyDetailContent } from '@widgets/strategy-detail'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { accountDetailQueryOptions } from '@entities/account'
 import { strategyDetailQueryOptions } from '@entities/strategy'
-import { getStrategyOrdersPreview } from '@entities/order'
-import type { NextOrderPreview } from '@entities/order'
+import { orderPreviewQueryOptions } from '@entities/order'
 import { createQueryClient } from '@shared/lib/query'
 
 interface Props {
@@ -40,7 +39,7 @@ export default async function StrategyDetailPage({ params }: Props) {
   }
 
   // "다음 주문" 배너·데이터가 하이드레이션 이후 재요청 없이 첫 페인트부터 보이도록 서버에서 미리 조회
-  const initialPreview: NextOrderPreview | undefined = await getStrategyOrdersPreview(strategy.id, token).catch(() => undefined)
+  await queryClient.prefetchQuery(orderPreviewQueryOptions(strategy.id, token)).catch(() => undefined)
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
@@ -49,7 +48,6 @@ export default async function StrategyDetailPage({ params }: Props) {
         strategyId={sid}
         initialAccount={account}
         initialStrategy={strategy}
-        initialPreview={initialPreview}
       />
     </HydrationBoundary>
   )

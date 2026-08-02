@@ -9,7 +9,6 @@ import { buttonVariants } from '@/components/ui/button-variants'
 import { cn } from '@shared/lib/utils'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
-import type { NextOrderPreview } from '@entities/order'
 import { StrategyDetail } from './StrategyDetail'
 
 interface Props {
@@ -17,7 +16,6 @@ interface Props {
   strategyId: string
   initialAccount: Account
   initialStrategy: Strategy
-  initialPreview?: NextOrderPreview
 }
 
 export function StrategyDetailContent({
@@ -25,7 +23,6 @@ export function StrategyDetailContent({
   strategyId,
   initialAccount,
   initialStrategy,
-  initialPreview,
 }: Props) {
   const accountQuery = useAccountDetailQuery(accountId)
   const strategyQuery = useStrategyDetailQuery(accountId, strategyId)
@@ -60,7 +57,7 @@ export function StrategyDetailContent({
         }
       />
 
-      <StrategyDetail accountId={accountId} strategy={strategy} initialPreview={initialPreview} />
+      <StrategyDetail accountId={accountId} strategy={strategy} />
     </div>
   )
 }

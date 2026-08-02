@@ -32,7 +32,7 @@ import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { BRAND_GRADIENT_BUTTON_CLASS } from '@shared/ui/brand-button-class'
 import type { Strategy } from '@entities/strategy'
-import type { SkipReason, NextOrderPreview, OrderReadiness, DirectionReadiness } from '@entities/order'
+import type { SkipReason, OrderReadiness, DirectionReadiness } from '@entities/order'
 import { OrderRows } from './OrderRows'
 import { StrategyOrderHistory } from './StrategyOrderHistory'
 
@@ -114,14 +114,13 @@ function recurringModeLabel(recurringAmount: number): string {
 interface Props {
   accountId: string
   strategy: Strategy
-  initialPreview?: NextOrderPreview
 }
 
-export function StrategyDetail({ accountId, strategy, initialPreview }: Props) {
+export function StrategyDetail({ accountId, strategy }: Props) {
   const { push } = useRouter()
   const [deleteOpen, setDeleteOpen] = useState(false)
 
-  const { data: preview, isLoading: isLoadingPreview, isError: isPreviewError, error: previewError } = useStrategyOrderPreviewQuery(strategy.id, initialPreview)
+  const { data: preview, isLoading: isLoadingPreview, isError: isPreviewError, error: previewError } = useStrategyOrderPreviewQuery(strategy.id)
 
   const placedOrders = preview?.todayOrders ?? []
   const mode: 'preview' | 'executed' = placedOrders.length > 0 ? 'executed' : 'preview'
