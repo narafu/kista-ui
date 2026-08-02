@@ -1,176 +1,29 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Skeleton } from '@/components/ui/skeleton'
+import { useCallback, useMemo, useState } from 'react'
 import { useHousingBenchmarkQuery } from '@entities/stats'
-import type { EtfBenchmarkSymbol, HousingBenchmark, HousingBenchmarkParams, HousingBenchmarkRegion } from '@entities/stats'
-import { useAllStrategiesQuery } from '@entities/strategy'
-import { useAccountsQuery } from '@entities/account'
+import type { HousingBenchmark, HousingBenchmarkRegion } from '@entities/stats'
 import { DEFAULT_RUNTIME_BENCHMARKS, useRuntimeConfigQuery } from '@entities/runtime-config'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
-import { cn } from '@shared/lib/utils'
+import { BenchmarkFilterBar } from './BenchmarkFilterBar'
+import { BenchmarkLoading, StrategyListLoading } from './BenchmarkStates'
 import { HousingBenchmarkChart } from './HousingBenchmarkChart'
 import { HousingBenchmarkSummary } from './HousingBenchmarkSummary'
 import { HousingBenchmarkInfo } from './HousingBenchmarkInfo'
 import { HousingBenchmarkQuintileTrendChart } from './HousingBenchmarkQuintileTrendChart'
 import { HousingBenchmarkRegionQuintileInfo } from './HousingBenchmarkRegionQuintileInfo'
+import { emptyMessage, isHousingQuintile, uniqueSymbols } from './model/benchmarkPeriods'
+import { useBenchmarkFilters } from './model/useBenchmarkFilters'
+import { useBenchmarkStrategyOptions } from './model/useBenchmarkStrategyOptions'
 import {
   DEFAULT_HOUSING_REGION_NAME,
   getEtfBenchmarkContent,
-  HOUSING_QUINTILES,
-  type HousingQuintile,
 } from './housingBenchmarkContent'
-
-type Scope = HousingBenchmarkParams['scope']
-type Period = '3M' | '6M' | '1Y' | '3Y' | '5Y' | 'ALL' | 'CUSTOM'
-
-type BenchmarkSelection =
-  | { type: 'HOUSING'; quintile: HousingQuintile }
-  | { type: 'ETF'; symbol: EtfBenchmarkSymbol }
 
 interface Props {
   enabled: boolean
   defaultTo: string
-}
-
-// 아파트는 월별 데이터라 연 단위, ETF는 일별 데이터라 개월 단위 기간이 자연스럽다 — 자산 탭별로 목록을 분리한다
-const HOUSING_PERIODS: { value: Period; label: string; months?: number }[] = [
-  { value: '1Y', label: '1년', months: 12 },
-  { value: '3Y', label: '3년', months: 36 },
-  { value: '5Y', label: '5년', months: 60 },
-  { value: 'ALL', label: '전체' },
-  { value: 'CUSTOM', label: '직접' },
-]
-
-const ETF_PERIODS: { value: Period; label: string; months?: number }[] = [
-  { value: '3M', label: '3개월', months: 3 },
-  { value: '6M', label: '6개월', months: 6 },
-  { value: '1Y', label: '1년', months: 12 },
-  { value: 'ALL', label: '전체' },
-  { value: 'CUSTOM', label: '직접' },
-]
-
-function toMonthInput(date: string) {
-  return date.slice(0, 7)
-}
-
-function fromMonthInput(month: string) {
-  return `${month}-01`
-}
-
-function subtractMonths(date: string, months: number) {
-  const [year, month, day] = date.split('-').map(Number)
-  const totalMonths = year * 12 + (month - 1) - months
-  const targetYear = Math.floor(totalMonths / 12)
-  const targetMonth = (totalMonths % 12) + 1
-  const isLeapYear = targetYear % 4 === 0 && (targetYear % 100 !== 0 || targetYear % 400 === 0)
-  const daysInMonth = targetMonth === 2
-    ? (isLeapYear ? 29 : 28)
-    : [4, 6, 9, 11].includes(targetMonth) ? 30 : 31
-  const targetDay = Math.min(day, daysInMonth)
-
-  return `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(targetDay).padStart(2, '0')}`
-}
-
-function ToggleButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={cn(
-        'min-h-10 rounded px-3 py-1 text-xs font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
-        active
-          ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]'
-          : 'text-muted-foreground hover:bg-accent hover:text-foreground',
-      )}
-    >
-      {children}
-    </button>
-  )
-}
-
-function BenchmarkLoading() {
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="flex flex-col gap-4"
-      aria-label="벤치마크 비교 불러오는 중"
-    >
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-        <Skeleton className="col-span-2 h-28 sm:col-span-1" />
-        <Skeleton className="h-28" />
-        <Skeleton className="h-28" />
-      </div>
-      <Skeleton data-testid="housing-benchmark-chart-skeleton" className="min-h-[240px] sm:min-h-[300px]" />
-    </div>
-  )
-}
-
-function StrategyListLoading() {
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      aria-label="전략 목록 불러오는 중"
-      className="rounded-[var(--r-lg)] border border-border bg-card p-5"
-    >
-      <Skeleton className="h-20 w-full" />
-    </div>
-  )
-}
-
-function emptyMessage(reason: string | null | undefined, isDaily: boolean) {
-  if (reason === 'INSUFFICIENT_OVERLAP' || reason === 'INSUFFICIENT_COMMON_MONTHS') {
-    return isDaily
-      ? '투자 기록과 벤치마크 데이터가 겹치는 기간이 부족합니다. (최소 2개 거래일 데이터 필요)'
-      : '투자 기록과 벤치마크 데이터가 겹치는 기간이 부족합니다. (최소 2개월치 데이터 필요)'
-  }
-  if (reason === 'NO_INVESTMENT_DATA') return '선택한 기간에 전략 운용 기록이 없습니다.'
-  return '비교할 수 있는 데이터가 충분하지 않습니다.'
-}
-
-function isHousingQuintile(value: number | null | undefined): value is HousingQuintile {
-  return value === 1 || value === 2 || value === 3 || value === 4 || value === 5
-}
-
-const ASSET_SELECT_CLASS = 'min-h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring'
-
-function uniqueSymbols(symbols: string[]) {
-  return Array.from(new Set(symbols.map((symbol) => symbol.trim().toUpperCase()).filter(Boolean)))
-}
-
-function AssetTabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={active
-        ? 'min-h-10 rounded bg-card px-4 text-sm font-medium text-foreground shadow-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50'
-        : 'min-h-10 rounded px-4 text-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50'}
-    >
-      {children}
-    </button>
-  )
 }
 
 export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
@@ -187,92 +40,30 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
     ...getEtfBenchmarkContent(symbol),
     symbol,
   })), [etfSymbols])
-  const [scope, setScope] = useState<Scope>('PORTFOLIO')
-  const [selectedStrategyId, setSelectedStrategyId] = useState('')
-  const [activeAsset, setActiveAsset] = useState<'ETF' | 'HOUSING'>('ETF')
-  const [quintile, setQuintile] = useState<HousingQuintile>(3)
-  const [etfSymbol, setEtfSymbol] = useState<EtfBenchmarkSymbol>(defaultEtfSymbol)
-  const hasUserSelectedEtfRef = useRef(false)
-  const handleEtfSymbolChange = useCallback((symbol: EtfBenchmarkSymbol) => {
-    hasUserSelectedEtfRef.current = true
-    setEtfSymbol(symbol)
-  }, [])
-  const selection: BenchmarkSelection = activeAsset === 'ETF' ? { type: 'ETF', symbol: etfSymbol } : { type: 'HOUSING', quintile }
-  const [housingPeriod, setHousingPeriod] = useState<Period>('1Y')
-  const [etfPeriod, setEtfPeriod] = useState<Period>('3M')
-  const period = activeAsset === 'ETF' ? etfPeriod : housingPeriod
-  const setPeriod = activeAsset === 'ETF' ? setEtfPeriod : setHousingPeriod
-  const periods = activeAsset === 'ETF' ? ETF_PERIODS : HOUSING_PERIODS
-  const [customFromMonth, setCustomFromMonth] = useState(() => toMonthInput(subtractMonths(defaultTo, 12)))
-  const [customToMonth, setCustomToMonth] = useState(() => toMonthInput(defaultTo))
-  const [customFromDate, setCustomFromDate] = useState(() => subtractMonths(defaultTo, 3))
-  const [customToDate, setCustomToDate] = useState(() => defaultTo)
+
+  const filters = useBenchmarkFilters(defaultTo, { symbols: etfSymbols, defaultSymbol: defaultEtfSymbol })
+  const { scope, activeAsset, quintile, selection, from, to } = filters
+
   const [trendRegionName, setTrendRegionName] = useState<string>(DEFAULT_HOUSING_REGION_NAME)
   const handleTrendRegionChange = useCallback(
     (region: HousingBenchmarkRegion) => setTrendRegionName(region.name ?? DEFAULT_HOUSING_REGION_NAME),
     [],
   )
 
-  useEffect(() => {
-    if (hasUserSelectedEtfRef.current && etfSymbols.includes(etfSymbol)) return
-    setEtfSymbol(defaultEtfSymbol)
-  }, [defaultEtfSymbol, etfSymbol, etfSymbols])
-
   const isStrategyScope = scope === 'STRATEGY'
-  // 개별 전략으로 전환했을 때만 전략 목록을 조회 — 전체 포트폴리오 범위에서는 불필요한 요청을 만들지 않는다
-  const strategiesQuery = useAllStrategiesQuery({ enabled: enabled && isStrategyScope })
-  const accountsQuery = useAccountsQuery({ enabled: enabled && isStrategyScope })
-  const accountsById = useMemo(
-    () => new Map(accountsQuery.data?.map((account) => [account.id, account]) ?? []),
-    [accountsQuery.data],
-  )
-  // 계좌 목록까지 로딩 완료되어야 모의계좌 필터링 결과가 확정된다 — 그 전에는 목록을 비워 둔다
-  // (그렇지 않으면 계좌 쿼리가 늦게 끝나는 동안 모의계좌 전략이 잠깐 노출·선택될 수 있다)
-  const hasStrategyList = strategiesQuery.data != null && accountsQuery.data != null
-  // 모의계좌는 벤치마크 비교 대상에서 제외 — 실제 투자 성과만 비교한다
-  const strategies = hasStrategyList
-    ? strategiesQuery.data.filter((strategy) => accountsById.get(strategy.accountId)?.broker !== 'MOCK')
-    : []
-  const effectiveStrategyId = selectedStrategyId || strategies[0]?.id
-  const strategyListFailed = isStrategyScope
-    && !hasStrategyList
-    && (strategiesQuery.isError || accountsQuery.isError)
-  const strategyListLoading = isStrategyScope
-    && !hasStrategyList
-    && !strategiesQuery.isError
-    && !accountsQuery.isError
-  const strategyListEmpty = isStrategyScope
-    && hasStrategyList
-    && strategies.length === 0
-  const selectedPeriod = periods.find((item) => item.value === period)
-  const isCustomPeriod = period === 'CUSTOM'
-  const from = isCustomPeriod
-    ? (activeAsset === 'ETF'
-        ? (customFromDate || undefined)
-        : (customFromMonth ? fromMonthInput(customFromMonth) : undefined))
-    : selectedPeriod?.months ? subtractMonths(defaultTo, selectedPeriod.months) : undefined
-  const to = isCustomPeriod
-    ? (activeAsset === 'ETF' ? (customToDate || defaultTo) : (customToMonth ? fromMonthInput(customToMonth) : defaultTo))
-    : defaultTo
+  const strategyOptions = useBenchmarkStrategyOptions(enabled, isStrategyScope, filters.selectedStrategyId)
+  const {
+    strategiesQuery,
+    accountsById,
+    strategies,
+    effectiveStrategyId,
+    strategyListFailed,
+    strategyListLoading,
+    strategyListEmpty,
+  } = strategyOptions
+
   const canQuery = scope === 'PORTFOLIO' || Boolean(effectiveStrategyId)
-  const strategyIdParam = scope === 'STRATEGY' && effectiveStrategyId ? { strategyId: effectiveStrategyId } : {}
-  const params: HousingBenchmarkParams = selection.type === 'HOUSING'
-    ? {
-        scope,
-        ...strategyIdParam,
-        benchmarkType: 'HOUSING',
-        quintile: selection.quintile,
-        ...(from ? { from } : {}),
-        to,
-      }
-    : {
-        scope,
-        ...strategyIdParam,
-        benchmarkType: 'ETF',
-        symbol: selection.symbol,
-        ...(from ? { from } : {}),
-        to,
-      }
+  const params = filters.buildParams(effectiveStrategyId)
   const query = useHousingBenchmarkQuery(params, enabled && canQuery)
   const data = query.data
   const fallbackQuintile = selection.type === 'HOUSING' ? selection.quintile : 3
@@ -310,163 +101,36 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div
-        role="group"
-        aria-label="벤치마크 자산 유형"
-        className="grid w-full grid-cols-2 rounded-md border border-border bg-muted/30 p-0.5 sm:w-[240px]"
-      >
-        <AssetTabButton active={activeAsset === 'ETF'} onClick={() => setActiveAsset('ETF')}>
-          ETF
-        </AssetTabButton>
-        <AssetTabButton active={activeAsset === 'HOUSING'} onClick={() => setActiveAsset('HOUSING')}>
-          아파트
-        </AssetTabButton>
-      </div>
-
-      <section aria-label="벤치마크 비교 필터" className="border-b border-border pb-4">
-        <div className={cn(
-          'grid gap-4 sm:grid-cols-2 xl:items-end',
-          scope === 'STRATEGY' ? 'xl:grid-cols-4' : 'xl:grid-cols-3',
-        )}>
-          <fieldset>
-            <legend className="text-xs font-medium text-muted-foreground">투자 범위</legend>
-            <div className="mt-1 grid grid-cols-2 rounded-md border border-border p-0.5">
-              <ToggleButton active={scope === 'PORTFOLIO'} onClick={() => setScope('PORTFOLIO')}>
-                전체 포트폴리오
-              </ToggleButton>
-              <ToggleButton active={scope === 'STRATEGY'} onClick={() => setScope('STRATEGY')}>
-                개별 전략
-              </ToggleButton>
-            </div>
-          </fieldset>
-
-          {scope === 'STRATEGY' ? (
-            <label className="grid gap-1 text-xs font-medium text-muted-foreground">
-              전략
-              <select
-                aria-label="전략"
-                value={effectiveStrategyId ?? ''}
-                onChange={(event) => setSelectedStrategyId(event.target.value)}
-                disabled={strategies.length === 0}
-                className="min-h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {strategies.length === 0 ? (
-                  <option value="">
-                    {strategiesQuery.isLoading
-                      ? '전략 목록 불러오는 중'
-                      : strategiesQuery.isError
-                        ? '전략 목록 조회 실패'
-                        : '선택할 전략이 없습니다'}
-                  </option>
-                ) : null}
-                {strategies.map((strategy) => {
-                  const nickname = accountsById.get(strategy.accountId)?.nickname
-                  return (
-                    <option key={strategy.id} value={strategy.id}>
-                      {nickname ? `[${nickname}] ` : ''}{strategy.type} · {strategy.ticker}
-                    </option>
-                  )
-                })}
-              </select>
-            </label>
-          ) : null}
-
-          <label className="grid gap-1 text-xs font-medium text-muted-foreground">
-            벤치마크 자산
-            {activeAsset === 'ETF' ? (
-              <select
-                aria-label="벤치마크 자산"
-                value={etfSymbol}
-                onChange={(event) => handleEtfSymbolChange(event.target.value as EtfBenchmarkSymbol)}
-                className={ASSET_SELECT_CLASS}
-              >
-                {etfBenchmarks.map((item) => (
-                  <option key={item.symbol} value={item.symbol}>
-                    {item.label} ({item.fullName})
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <select
-                aria-label="벤치마크 자산"
-                value={quintile}
-                onChange={(event) => setQuintile(Number(event.target.value) as HousingQuintile)}
-                className={ASSET_SELECT_CLASS}
-              >
-                {HOUSING_QUINTILES.map((item) => (
-                  <option key={item.quintile} value={item.quintile}>
-                    {item.label} ({item.rangeLabel})
-                  </option>
-                ))}
-              </select>
-            )}
-          </label>
-
-          <fieldset>
-            <legend className="text-xs font-medium text-muted-foreground">비교 기간</legend>
-            <div className="mt-1 grid grid-cols-5 rounded-md border border-border p-0.5">
-              {periods.map((item) => (
-                <ToggleButton key={item.value} active={period === item.value} onClick={() => setPeriod(item.value)}>
-                  {item.label}
-                </ToggleButton>
-              ))}
-            </div>
-            {isCustomPeriod && activeAsset === 'ETF' ? (
-              <div className="mt-2 flex items-center gap-2">
-                <input
-                  type="date"
-                  aria-label="시작일"
-                  value={customFromDate}
-                  max={customToDate}
-                  onChange={(event) => setCustomFromDate(event.target.value)}
-                  className="min-h-10 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                />
-                <span className="shrink-0 text-xs text-muted-foreground">~</span>
-                <input
-                  type="date"
-                  aria-label="종료일"
-                  value={customToDate}
-                  min={customFromDate}
-                  max={defaultTo}
-                  onChange={(event) => setCustomToDate(event.target.value)}
-                  className="min-h-10 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                />
-              </div>
-            ) : isCustomPeriod ? (
-              <div className="mt-2 flex items-center gap-2">
-                <input
-                  type="month"
-                  aria-label="시작월"
-                  value={customFromMonth}
-                  max={customToMonth}
-                  onChange={(event) => setCustomFromMonth(event.target.value)}
-                  className="min-h-10 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                />
-                <span className="shrink-0 text-xs text-muted-foreground">~</span>
-                <input
-                  type="month"
-                  aria-label="종료월"
-                  value={customToMonth}
-                  min={customFromMonth}
-                  max={toMonthInput(defaultTo)}
-                  onChange={(event) => setCustomToMonth(event.target.value)}
-                  className="min-h-10 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                />
-              </div>
-            ) : null}
-          </fieldset>
-        </div>
-        {query.isFetching && query.isPlaceholderData ? (
-          <p
-            role="status"
-            aria-live="polite"
-            aria-label="갱신 중"
-            className="mt-3 text-right text-xs text-muted-foreground"
-          >
-            갱신 중
-          </p>
-        ) : null}
-      </section>
+      <BenchmarkFilterBar
+        activeAsset={filters.activeAsset}
+        setActiveAsset={filters.setActiveAsset}
+        scope={filters.scope}
+        setScope={filters.setScope}
+        strategies={strategies}
+        strategiesQuery={strategiesQuery}
+        accountsById={accountsById}
+        effectiveStrategyId={effectiveStrategyId}
+        setSelectedStrategyId={filters.setSelectedStrategyId}
+        etfSymbol={filters.etfSymbol}
+        handleEtfSymbolChange={filters.handleEtfSymbolChange}
+        etfBenchmarks={etfBenchmarks}
+        quintile={filters.quintile}
+        setQuintile={filters.setQuintile}
+        period={filters.period}
+        setPeriod={filters.setPeriod}
+        periods={filters.periods}
+        isCustomPeriod={filters.isCustomPeriod}
+        defaultTo={defaultTo}
+        customFromMonth={filters.customFromMonth}
+        setCustomFromMonth={filters.setCustomFromMonth}
+        customToMonth={filters.customToMonth}
+        setCustomToMonth={filters.setCustomToMonth}
+        customFromDate={filters.customFromDate}
+        setCustomFromDate={filters.setCustomFromDate}
+        customToDate={filters.customToDate}
+        setCustomToDate={filters.setCustomToDate}
+        showRefetchingStatus={query.isFetching && query.isPlaceholderData}
+      />
 
       {strategyListLoading ? (
         <StrategyListLoading />
