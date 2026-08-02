@@ -10,19 +10,7 @@ import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Badge } from '@shared/ui/Badge'
-import type { UserStatus } from '@entities/user'
-
-const STATUS_LABEL: Record<UserStatus, string> = {
-  PENDING: '대기',
-  ACTIVE: '승인',
-  REJECTED: '거절',
-}
-
-const STATUS_TONE: Record<UserStatus, 'ok' | 'warn' | 'error'> = {
-  PENDING: 'warn',
-  ACTIVE: 'ok',
-  REJECTED: 'error',
-}
+import { ADMIN_USER_STATUS_LABEL, USER_STATUS_TONE } from '@entities/user'
 
 interface Props {
   currentUserId: string | null
@@ -74,7 +62,7 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
               <tr key={user.id} className="hover:bg-muted/20 transition-colors">
                 <td className="px-4 py-3 font-medium whitespace-nowrap">{user.nickname}</td>
                 <td className="px-4 py-3 whitespace-nowrap">
-                  <Badge tone={STATUS_TONE[user.status]}>{STATUS_LABEL[user.status]}</Badge>
+                  <Badge tone={USER_STATUS_TONE[user.status]}>{ADMIN_USER_STATUS_LABEL[user.status]}</Badge>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">
                   {user.role}

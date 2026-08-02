@@ -2,7 +2,7 @@
 
 import { AlertTriangle } from 'lucide-react'
 
-import { useMeQuery } from '@entities/user'
+import { useMeQuery, USER_STATUS_LABEL, userStatusColorVar } from '@entities/user'
 import { DeleteAccountButton } from '@features/settings/delete-user-account'
 import { TelegramSection } from '@features/settings/telegram-connect'
 import { NotificationSettings } from '@features/settings/notification-channel'
@@ -12,15 +12,8 @@ import { TradingAlertToggle } from '@features/settings/notification-prefs'
 import { NicknameEditor } from '@features/settings/edit-nickname'
 import { Surface } from '@shared/ui/Surface'
 
-const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  ACTIVE: { label: '활성', color: 'var(--status-ok)' },
-  PENDING: { label: '대기', color: 'var(--warn)' },
-  REJECTED: { label: '반려', color: 'var(--status-error)' },
-}
-
 export function SettingsPageContent() {
   const { data: user } = useMeQuery()
-  const statusCfg = user?.status ? STATUS_CONFIG[user.status] : null
   const notificationChannel = user?.notificationChannel ?? (user?.hasTelegram ? 'TELEGRAM' : 'NONE')
 
   return (
@@ -36,7 +29,7 @@ export function SettingsPageContent() {
           </span>
           <div>
             <div className="text-base font-bold">{user?.nickname ?? '-'}</div>
-            {statusCfg && <div className="text-sm font-semibold mt-0.5" style={{ color: statusCfg.color }}>{statusCfg.label}</div>}
+            {user?.status && <div className="text-sm font-semibold mt-0.5" style={{ color: userStatusColorVar(user.status) }}>{USER_STATUS_LABEL[user.status]}</div>}
           </div>
         </div>
         <div className="border-t border-border pt-4">
