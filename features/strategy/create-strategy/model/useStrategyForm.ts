@@ -5,20 +5,24 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
-import { fmtUsd, todayKst } from '@shared/lib/format'
 import { isMockBroker } from '@shared/lib/api-schema'
 import { useMeta } from '@entities/meta'
 import { useAccountMarginQuery, useAccountPricesQuery } from '@entities/account'
-import { useCreateStrategyMutation, useUpdateStrategyMutation, useStrategySeedPreviewQuery, POOL_LIMIT_FLOOR_ZERO_MESSAGE } from '@entities/strategy'
+import { useCreateStrategyMutation, useUpdateStrategyMutation, useStrategySeedPreviewQuery } from '@entities/strategy'
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
 import { tradeKeys } from '@entities/trade'
-import type { CycleSeedType, Strategy, StrategyRequest } from '@entities/strategy'
+import type { CycleSeedType, Strategy } from '@entities/strategy'
 import type { BrokerCode, PriceMap } from '@entities/account'
 import { useMeQuery } from '@entities/user'
 import { useRuntimeConfigQuery } from '@entities/runtime-config'
 import type { RuntimeFieldSettings, RuntimeStrategyType } from '@entities/runtime-config'
 import { useSeedModel } from './useSeedModel'
+import { computeVrDerived } from './vrDerived'
+import type { VrRecurringMode } from './vrDerived'
+import { isInvalidBootstrap, isInvalidScheduledStart, isInvalidVr, isRuntimeValueInvalid, computeCannotSubmit, computeSubmitDisabledReason } from './strategyFormGuards'
+import { buildStrategyPayload } from './buildStrategyPayload'
+import { useTypeDefaults } from './useTypeDefaults'
 import { strategyFormSchema, type DivisionCount, type StrategyFormValues } from './strategyFormSchema'
 
 interface UseStrategyFormOptions {
@@ -45,7 +49,6 @@ export interface VrFields {
   pStepWeeks: number | null
   poolLimitFloor: number | null
 }
-type VrRecurringMode = 'DEPOSIT' | 'HOLD' | 'WITHDRAW'
 
 export interface UseStrategyFormReturn {
   type: string
@@ -251,7 +254,6 @@ export function useStrategyForm({
 
   // 초기 로딩 완료 후엔 true로 고정 — 타입 전환 시 재스켈레톤 방지
   const initRef = useRef(false)
-  const defaultsAppliedForTypeRef = useRef<string | null>(null)
   if (!loadingBase) initRef.current = true
   const initialized = initRef.current
 
@@ -273,27 +275,8 @@ export function useStrategyForm({
     isBelowMinSeed, isInvalidSeed,
   } = useSeedModel({ balanceCheckEnabled, initial, editableEdit: canEditSeed, usdDeposit, minSeed, avgPrice, quantity })
 
-  // type 변경 시 ticker 기본값 설정 — 시드는 minSeed effect에서 처리
-  useEffect(() => {
-    if (initial) return
-    if (!runtimeConfig) return
-    if (!enabledStrategyTypes.includes(type)) {
-      form.setValue('type', enabledStrategyTypes[0] ?? '')
-      return
-    }
-    if (defaultsAppliedForTypeRef.current === type) return
-    defaultsAppliedForTypeRef.current = type
-    if (!ticker || !availableTickers.includes(ticker)) {
-      form.setValue('ticker', runtimeStrategy?.fields.ticker.defaultValue ?? '')
-    }
-    if (divisionCountSettings) form.setValue('divisionCount', divisionCountSettings.defaultValue)
-    if (runtimeStrategy?.fields.bandWidth) form.setValue('bandWidth', runtimeStrategy.fields.bandWidth.defaultValue)
-    if (runtimeStrategy?.fields.intervalWeeks) form.setValue('intervalWeeks', runtimeStrategy.fields.intervalWeeks.defaultValue)
-    if (runtimeStrategy?.fields.recurringMode) {
-      form.setValue('recurringMode', runtimeStrategy.fields.recurringMode.defaultValue)
-      form.setValue('recurringAmount', 0)
-    }
-  }, [type, runtimeConfig]) // eslint-disable-line react-doctor/exhaustive-deps
+  // type 변경 시 ticker·VR 기본값 설정 (effect + setType 공용) — 시드는 minSeed effect에서 처리
+  const { setType } = useTypeDefaults({ form, initial, runtimeConfig, enabledStrategyTypes, availableTickers })
 
   // 엔드포인트 minSeed 도착/변경 시 시드 게이지 재초기화 (신규 등록 한정)
   useEffect(() => {
@@ -315,137 +298,35 @@ export function useStrategyForm({
     resetSeed({ seedUsdInput: 0 })
   }, [balanceCheckEnabled, initial, isVr]) // eslint-disable-line react-doctor/exhaustive-deps
 
-  // VR 인출식 사전검증용 추정 평가금 — 서버는 등록 시점 전일종가×보유수량으로 V를 재계산하므로 이 값은 근사치다
-  // (평단가 기준 추정. 실제 등록가는 시장가 기준이라 서버 계산과 다를 수 있음 — 최종 검증은 서버가 수행)
-  const evaluatedStockValueEstimate = (avgPrice ?? 0) * (quantity ?? 0)
-  // VR 거치식/적립식 게이트("V값+예수금>0") 판정용 V값 — 초기 V 입력(>0)이 있으면 우선 사용, 없으면 위 평가금 추정치
-  // 인출식 최소자산 검증은 override를 절대 반영하지 않는다(서버 validateVrCommand와 동일 원칙 — evaluatedStockValueEstimate만 사용,
-  // 아래 requiredWithdrawalAssets 비교 참고). override로 인출 안전장치를 우회할 수 없게 하기 위함
-  const normalizedInitialValue = initial
-    ? initial.vr?.value ?? 0
-    : (initialValue !== null && initialValue > 0 ? initialValue : evaluatedStockValueEstimate)
-  const normalizedInitialSeed = seedUsd ?? 0
-  const recurringMagnitude = Math.abs(recurringAmount ?? 0)
-  const normalizedRecurringAmount = recurringMode === 'HOLD'
-    ? 0
-    : recurringMode === 'WITHDRAW'
-      ? -recurringMagnitude
-      : recurringMagnitude
-  const effectiveInitialGradient = initialGradient ?? (normalizedRecurringAmount < 0 ? 20 : 10)
-  const selectedRecurringMode = recurringMode
-  const initialAssets = normalizedInitialValue + normalizedInitialSeed
-  const evaluatedAssets = (initial ? initial.vr?.value ?? 0 : evaluatedStockValueEstimate) + normalizedInitialSeed
-  const requiredWithdrawalAssets = intervalWeeks !== null && intervalWeeks > 0
-    ? Math.abs(normalizedRecurringAmount) * 100 * (4 / intervalWeeks)
-    : 0
+  const vrDerived = computeVrDerived({
+    initial, avgPrice, quantity, initialValue, seedUsd,
+    recurringMode, recurringAmount, intervalWeeks, initialGradient,
+  })
 
-  // 중간부터 시작 공통 검증 (세 전략 공통, 등록 전용) — 서버 validateBootstrapPosition과 동일 규칙(보유 수량>0이면 평단가>0 필수)에
-  // 반대 방향(평단가 입력했는데 수량 미입력)도 UI에서 선제 안내 — 서버는 quantity<=0이면 avgPrice를 payload에서 생략해 조용히 버리므로 사용자에게 알려야 함
-  const isInvalidBootstrap = !initial && (
-    (avgPrice !== null && avgPrice < 0) ||
-    (quantity !== null && quantity < 0) ||
-    (quantity !== null && !Number.isInteger(quantity)) ||
-    (quantity !== null && quantity > 0 && (avgPrice === null || avgPrice <= 0)) ||
-    (avgPrice !== null && avgPrice > 0 && (quantity === null || quantity <= 0))
-  )
-
-  // 시작예정일 검증 (등록 전용) — 서버는 오늘 이전 날짜를 400으로 거부. 오늘 자신은 허용
-  const isInvalidScheduledStart = !initial && scheduledStartDate !== null && scheduledStartDate < todayKst()
-
-  // VR 필수 필드 유효성 검사 — API 등록 정책과 동일하게 초기 V/시드는 0을 허용하되 모드별 자산 조건을 적용
-  const isInvalidVr = isVr && (
-    intervalWeeks === null ||
-    intervalWeeks < 1 ||
-    !Number.isInteger(intervalWeeks) ||
-    bandWidth === null ||
-    bandWidth <= 0 ||
-    (recurringAmount !== null && !Number.isInteger(recurringAmount)) ||
-    (recurringMode !== 'HOLD' && recurringMagnitude <= 0) ||
-    (normalizedRecurringAmount <= 0 && initialAssets <= 0) ||
-    (normalizedRecurringAmount < 0 && evaluatedAssets < requiredWithdrawalAssets) ||
-    (gStepWeeks !== 0 && gMax !== null && gMax < effectiveInitialGradient) ||
-    (poolLimitFloor !== null && initialPoolLimitRate !== null && poolLimitFloor > initialPoolLimitRate) ||
-    // poolLimitRate 단계주기가 0(램프 비활성화)이 아니면 하한은 0보다 커야 함 — 단계주기=0일 때만 하한 0이 허용(자동 강제)
-    (poolLimitFloor === 0 && pStepWeeks !== 0)
-  )
-
-  const isRuntimeValueInvalid = !initial && !!runtimeStrategy && (
-    !runtimeStrategy.fields.ticker.allowedValues.includes(ticker) ||
-    (!!divisionCountSettings && !divisionCountSettings.allowedValues.includes(divisionCount)) ||
-    (isVr && !!runtimeStrategy.fields.bandWidth && bandWidth !== null &&
-      !runtimeStrategy.fields.bandWidth.allowedValues.includes(bandWidth)) ||
-    (isVr && !!runtimeStrategy.fields.intervalWeeks && intervalWeeks !== null &&
-      !runtimeStrategy.fields.intervalWeeks.allowedValues.includes(intervalWeeks)) ||
-    (isVr && !!runtimeStrategy.fields.recurringMode && (
-      !runtimeStrategy.fields.recurringMode.allowedValues.includes(selectedRecurringMode) ||
-      (!runtimeStrategy.fields.recurringMode.customizable &&
-        runtimeStrategy.fields.recurringMode.defaultValue !== selectedRecurringMode)
-    ))
-  )
+  const invalidBootstrap = isInvalidBootstrap({ initial, avgPrice, quantity })
+  const invalidScheduledStart = isInvalidScheduledStart({ initial, scheduledStartDate })
+  const invalidVr = isInvalidVr({ isVr, vrFields, recurringMode, vrDerived })
+  const runtimeValueInvalid = isRuntimeValueInvalid({
+    initial, runtimeStrategy, ticker, divisionCountSettings, divisionCount, isVr, bandWidth, intervalWeeks, recurringMode,
+  })
 
   const runtimeConfigUnavailable = !initial && (!runtimeConfig || enabledStrategyTypes.length === 0)
-  const cannotSubmit = initial && !canEditSeed
-    ? false
-    : runtimeConfigUnavailable || isRuntimeValueInvalid || isInvalidBootstrap || isInvalidScheduledStart || isInvalidVr || isBelowMinSeed || (!isVr && isInvalidSeed) || (!isVr && basePrice === null && seedUnavailableReason === null)
+  const cannotSubmit = computeCannotSubmit({
+    initial, canEditSeed, runtimeConfigUnavailable,
+    isRuntimeValueInvalid: runtimeValueInvalid,
+    isInvalidBootstrap: invalidBootstrap,
+    isInvalidScheduledStart: invalidScheduledStart,
+    isInvalidVr: invalidVr,
+    isBelowMinSeed, isVr, isInvalidSeed, basePrice, seedUnavailableReason,
+  })
 
-  const preSubmitDisabledReason = initial && !canEditSeed
-    ? null
-    : runtimeConfigUnavailable
-      ? '현재 등록 가능한 전략이 없습니다.'
-      : avgPrice !== null && avgPrice < 0
-      ? '평단가는 0 이상이어야 합니다.'
-      : quantity !== null && quantity < 0
-      ? '수량은 0 이상이어야 합니다.'
-      : quantity !== null && !Number.isInteger(quantity)
-      ? '수량은 정수여야 합니다.'
-      : quantity !== null && quantity > 0 && (avgPrice === null || avgPrice <= 0)
-      ? '보유 수량을 입력하면 평단가는 0보다 커야 합니다.'
-      : avgPrice !== null && avgPrice > 0 && (quantity === null || quantity <= 0)
-      ? '평단가를 입력하면 수량은 0보다 커야 합니다.'
-      : isInvalidScheduledStart
-      ? '시작예정일은 오늘 이후여야 합니다.'
-      : isVr
-      ? (() => {
-          if (intervalWeeks === null || intervalWeeks < 1 || !Number.isInteger(intervalWeeks)) {
-            return '리밸런싱 주기는 1 이상 정수여야 합니다.'
-          }
-          if (bandWidth === null || bandWidth <= 0) return '밴드 폭은 0보다 커야 합니다.'
-          if (recurringAmount !== null && !Number.isInteger(recurringAmount)) {
-            return '적립금(+)/인출금(-)은 정수여야 합니다.'
-          }
-          if (recurringMode !== 'HOLD' && recurringMagnitude <= 0) {
-            return recurringMode === 'DEPOSIT'
-              ? '적립 금액을 0보다 크게 입력하세요.'
-              : '인출 금액을 0보다 크게 입력하세요.'
-          }
-          if (normalizedRecurringAmount <= 0 && initialAssets <= 0) {
-            // 등록 모드는 평단가·수량 입력 필드가 있어 "수량"으로 안내, 수정 모드는 해당 입력이 없어 읽기전용 "초기 V값" 문구 유지
-            return initial
-              ? '거치식/인출식은 초기 V값 또는 초기 시드가 0보다 커야 합니다.'
-              : '거치식/인출식은 수량 또는 초기 시드가 0보다 커야 합니다.'
-          }
-          if (normalizedRecurringAmount < 0 && evaluatedAssets < requiredWithdrawalAssets) {
-            return `인출식은 초기 자산이 $${fmtUsd(requiredWithdrawalAssets)} 이상이어야 합니다.`
-          }
-          if (gStepWeeks !== 0 && gMax !== null && gMax < effectiveInitialGradient) {
-            return 'gradient 상한은 초기값 이상이어야 합니다.'
-          }
-          if (poolLimitFloor !== null && initialPoolLimitRate !== null && poolLimitFloor > initialPoolLimitRate) {
-            return 'poolLimitRate 하한은 초기값 이하여야 합니다.'
-          }
-          if (poolLimitFloor === 0 && pStepWeeks !== 0) {
-            return POOL_LIMIT_FLOOR_ZERO_MESSAGE
-          }
-          if (isRuntimeValueInvalid) return '현재 허용되지 않는 설정이 선택되었습니다.'
-          return null
-        })()
-      : (() => {
-          if (seedUnavailableReason === 'NO_PRIVACY_BASE') return 'P 매매표가 없어 등록할 수 없습니다.'
-          if (isBelowMinSeed && minSeed !== null) return `최소 시드 $${fmtUsd(minSeed)} 이상이 필요합니다.`
-          if (isInvalidSeed) return '예수금은 0보다 커야 합니다.'
-          if (basePrice === null && seedUnavailableReason === null) return '기준 가격을 불러오는 중입니다.'
-          return null
-        })()
+  const preSubmitDisabledReason = computeSubmitDisabledReason({
+    initial, canEditSeed, runtimeConfigUnavailable,
+    isInvalidScheduledStart: invalidScheduledStart,
+    isVr, vrFields, recurringMode, vrDerived,
+    isRuntimeValueInvalid: runtimeValueInvalid,
+    seedUnavailableReason, isBelowMinSeed, minSeed, isInvalidSeed, basePrice,
+  })
 
   const submitDisabledReason = preSubmitDisabledReason ?? resolverValidationReason
 
@@ -460,21 +341,6 @@ export function useStrategyForm({
 
   function handleTickerChange(code: string) {
     form.setValue('ticker', code)
-  }
-
-  function setType(t: string) {
-    form.setValue('type', t)
-    const settings = runtimeConfig?.strategies[t as RuntimeStrategyType]
-    if (!settings) return
-    defaultsAppliedForTypeRef.current = t
-    form.setValue('ticker', settings.fields.ticker.defaultValue)
-    if (settings.fields.divisionCount) form.setValue('divisionCount', settings.fields.divisionCount.defaultValue)
-    if (settings.fields.bandWidth) form.setValue('bandWidth', settings.fields.bandWidth.defaultValue)
-    if (settings.fields.intervalWeeks) form.setValue('intervalWeeks', settings.fields.intervalWeeks.defaultValue)
-    if (settings.fields.recurringMode) {
-      form.setValue('recurringMode', settings.fields.recurringMode.defaultValue)
-      form.setValue('recurringAmount', 0)
-    }
   }
 
   function setAutoStart(v: boolean) {
@@ -506,54 +372,11 @@ export function useStrategyForm({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     form.handleSubmit(() => {
-      const payload: StrategyRequest = initial
-        ? {
-            type: initial.type,
-            ticker: initial.ticker,
-            cycleSeedType,
-            ...(canEditSeed ? { initialUsdDeposit: seedUsd ?? undefined } : {}),
-          }
-        : {
-            type,
-            ticker: runtimeStrategy?.fields.ticker.customizable === false
-              ? runtimeStrategy.fields.ticker.defaultValue
-              : ticker,
-            cycleSeedType,
-            initialUsdDeposit: isVr ? normalizedInitialSeed : seedUsd ?? undefined,
-            ...(usesDivisionCount ? {
-              divisionCount: divisionCountSettings?.customizable === false
-                ? divisionCountSettings.defaultValue
-                : divisionCount,
-            } : {}),
-            // 중간부터 시작 — 세 전략 공통, 보유 수량>0일 때만 전송 (미입력/0이면 빈 포지션에서 시작)
-            ...(quantity !== null && quantity > 0 ? {
-              initialHoldings: quantity,
-              initialAvgPrice: avgPrice ?? undefined,
-            } : {}),
-            // 시작예정일 — 세 전략 공통, 등록 전용, 미입력 시 생략(서버가 오늘로 처리)
-            ...(scheduledStartDate ? { scheduledStartDate } : {}),
-            // VR 전용 필드 — null이면 0으로 기본값 처리
-            ...(isVr ? {
-              intervalWeeks: runtimeStrategy?.fields.intervalWeeks?.customizable === false
-                ? runtimeStrategy.fields.intervalWeeks.defaultValue
-                : intervalWeeks ?? undefined,
-              bandWidth: runtimeStrategy?.fields.bandWidth?.customizable === false
-                ? runtimeStrategy.fields.bandWidth.defaultValue
-                : bandWidth ?? undefined,
-              recurringAmount: normalizedRecurringAmount,
-              // 초기 V 직접 입력 — 있으면 전송, 없으면 생략(서버가 평가금 기준으로 계산)
-              ...(initialValue !== null && initialValue > 0 ? { initialVrValue: initialValue } : {}),
-              // 램프 파라미터 — 값이 있을 때만 포함(생략 시 서버 기본값 적용)
-              ...(initialGradient !== null ? { initialGradient } : {}),
-              ...(gGraceWeeks !== null ? { gGraceWeeks } : {}),
-              ...(gStepWeeks !== null ? { gStepWeeks } : {}),
-              ...(gMax !== null ? { gMax } : {}),
-              ...(initialPoolLimitRate !== null ? { initialPoolLimitRate } : {}),
-              ...(pGraceWeeks !== null ? { pGraceWeeks } : {}),
-              ...(pStepWeeks !== null ? { pStepWeeks } : {}),
-              ...(poolLimitFloor !== null ? { poolLimitFloor } : {}),
-            } : {}),
-          }
+      const payload = buildStrategyPayload({
+        initial, type, ticker, cycleSeedType, seedUsd, canEditSeed, isVr,
+        usesDivisionCount, divisionCount, divisionCountSettings, runtimeStrategy,
+        vrFields, vrDerived, scheduledStartDate,
+      })
 
       if (initial) {
         updateMutation.mutate(payload)
