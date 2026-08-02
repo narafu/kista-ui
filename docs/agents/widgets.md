@@ -8,12 +8,16 @@
 widgets/{slice}  ->  features/  ->  entities/  ->  shared/
 ```
 
-widget 슬라이스끼리 cross-import 금지. **단, "공용 UI 위젯" 목록(kpi-card, revealable-value, theme-toggle, page-header 등)은 다른 widget에서 import 허용** (조합 위젯의 구성 요소로 사용). 이외 페이지 위젯을 조합해야 하면 `app/` 페이지에서 처리.
+widget 슬라이스끼리 cross-import 금지. **단, 아래 "공용 UI 위젯" 화이트리스트에 명시된 슬라이스만 다른 widget에서 import 허용** (조합 위젯의 구성 요소·재사용 리스트로 사용). 화이트리스트는 아래 목록으로 **닫혀 있다** — "등"으로 임의 확장하지 않는다. 목록에 없는 페이지 위젯을 조합해야 하면 widget끼리 import하지 말고 `app/` 라우트 페이지에서 slot으로 합성한다(하위 위젯은 `ReactNode` prop으로 주입).
+
+화이트리스트에 리스트형 위젯(`account-card`, `strategy-card`, `cycle-history`, `strategy-list`)이 포함되는 근거: 이들은 특정 페이지 전용이 아니라 여러 상위 위젯(예: `account-detail` 탭이 `strategy-list`·`cycle-history`를, `accounts-grid`가 `account-card`를)에서 재사용되는 표시 단위다.
+
+미해소 예외(추적 중): `widgets/dashboard`(`DashboardEmpty`·`DashboardOverview`)가 `market-holiday-calendar`·`fear-greed-card`를 직접 import하는 2건은 화이트리스트 밖 위반이다 — `app/(main)/dashboard` 페이지에서 slot 합성으로 이관하여 해소한다.
 
 ## 대표 슬라이스
 
 - 페이지 위젯: `admin-user-list`, `admin-trade-list`, `admin-log-list`, `admin-privacy-trade-list`, `all-strategies`, `dashboard`, `account-detail`, `accounts-grid`, `strategy-detail`, `strategy-list`, `cycle-history`, `fear-greed-card`, `market-holiday-calendar`, `stats-overview`, `benchmark-comparison`, `error-display`
-- 공용 UI 위젯: `layout`, `account-card`, `strategy-card`, `kpi-card`, `revealable-value`, `glass-card`, `page-header`, `theme-toggle`, `timeline`, `pull-to-refresh`
+- 공용 UI 위젯 (cross-import 허용 화이트리스트, 닫힌 목록): `layout`, `page-header`, `kpi-card`, `revealable-value`, `glass-card`, `theme-toggle`, `timeline`, `pull-to-refresh`, `account-card`, `strategy-card`, `cycle-history`, `strategy-list`
 - shared/ui로 이동됨: `stepper`, `percent-gauge`, `SectionError` (도메인 무관 UI 컴포넌트로 분류. `SectionError`는 `stats-overview`·`benchmark-comparison` 양쪽에서 쓰여 cross-widget import를 피하려 이동)
 
 ## shadcn / UI 컴포넌트
