@@ -5,13 +5,12 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
 import { fmtUsd } from '@shared/lib/format'
 import { Surface } from '@shared/ui/Surface'
+import { useAccountsQuery } from '@entities/account'
 import { useMonthlyHolidaysQuery } from '@entities/market'
 import { useDailyTradesRangeQuery, directionTextClass, type DayTradeSummary } from '@entities/trade'
 
 interface Props {
-  holidays?: string[]
   initialWeekStartDate: string // 'YYYY-MM-DD', 이번 주 일요일
-  accountIds: string[]
 }
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -152,7 +151,10 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
   })
 }
 
-export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountIds }: Props) {
+export function WeeklyMarketCalendar({ initialWeekStartDate }: Props) {
+  const { data: accounts } = useAccountsQuery()
+  const accountIds = accounts?.map((account) => account.id) ?? []
+
   const [displayWeekStart, setDisplayWeekStart] = useState(
     () => new Date(initialWeekStartDate + 'T00:00:00'),
   )
@@ -167,14 +169,9 @@ export function WeeklyMarketCalendar({ holidays, initialWeekStartDate, accountId
   )
 
   // 달 경계 주: 시작 달·끝 달 각각 조회 (queryKey 동일하면 캐시 재사용)
-  const initialDate = new Date(initialWeekStartDate + 'T00:00:00')
   const h1Query = useMonthlyHolidaysQuery(
     displayWeekStart.getFullYear(),
     displayWeekStart.getMonth() + 1,
-    displayWeekStart.getFullYear() === initialDate.getFullYear() &&
-    displayWeekStart.getMonth() === initialDate.getMonth()
-      ? holidays
-      : undefined,
   )
   const h2Query = useMonthlyHolidaysQuery(
     weekEnd.getFullYear(),

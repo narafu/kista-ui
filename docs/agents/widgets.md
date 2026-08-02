@@ -12,7 +12,7 @@ widget 슬라이스끼리 cross-import 금지. **단, 아래 "공용 UI 위젯" 
 
 화이트리스트에 리스트형 위젯(`account-card`, `strategy-card`, `cycle-history`, `strategy-list`)이 포함되는 근거: 이들은 특정 페이지 전용이 아니라 여러 상위 위젯(예: `account-detail` 탭이 `strategy-list`·`cycle-history`를, `accounts-grid`가 `account-card`를)에서 재사용되는 표시 단위다.
 
-미해소 예외(추적 중): `widgets/dashboard`(`DashboardEmpty`·`DashboardOverview`)가 `market-holiday-calendar`·`fear-greed-card`를 직접 import하는 2건은 화이트리스트 밖 위반이다 — `app/(main)/dashboard` 페이지에서 slot 합성으로 이관하여 해소한다.
+화이트리스트 밖 조합이 필요했던 사례: `widgets/dashboard`가 과거 `market-holiday-calendar`·`fear-greed-card`를 직접 import하던 2건은 `app/(main)/dashboard` 페이지의 slot 합성(`marketPanels: ReactNode`)으로 이관해 해소했다 — 새 조합 위젯도 화이트리스트 밖 페이지 위젯이 필요하면 widget 간 import 대신 이 패턴(부모 위젯이 `ReactNode` slot prop을 받고 `app/` 라우트가 하위 위젯을 조립)을 따른다.
 
 ## 대표 슬라이스
 
@@ -59,7 +59,7 @@ widget 슬라이스끼리 cross-import 금지. **단, 아래 "공용 UI 위젯" 
 
 - **`account-detail`**: `TradesTab`은 `useReducer` + `CycleHistoryTable` 조합
 - **`accounts-grid`**: `/accounts` 페이지는 Server Component에서 계좌/계좌별 전략을 prefetch+hydrate하고, `AccountsPageContent`가 `useAccountsQuery()` 캐시 기준으로 EmptyState/`AccountsGrid`를 전환한다. `AccountsGrid`는 `accounts`만 받고 각 `AccountCard`가 canonical 계좌별 전략 query를 소비한다
-- **`dashboard`**: `/dashboard` 페이지는 계좌 목록을 prefetch+hydrate하고, `DashboardContent`가 `useAccountsQuery()` 캐시 기준으로 `DashboardEmpty`/`DashboardOverview`를 전환한다
+- **`dashboard`**: `/dashboard` 페이지는 계좌 목록과 휴장일(`monthlyHolidaysQueryOptions`)을 prefetch+hydrate하고, `DashboardContent`가 `useAccountsQuery()` 캐시 기준으로 `DashboardEmpty`/`DashboardOverview`를 전환한다. `WeeklyMarketCalendar`·`FearGreedSection`은 더 이상 `widgets/dashboard`가 직접 import하지 않는다 — 페이지가 `<WeeklyMarketCalendar/><FearGreedSection/>`를 `marketPanels`(ReactNode) slot으로 조립해 `DashboardContent → DashboardEmpty`/`DashboardOverview`로 그대로 흘려보낸다. `WeeklyMarketCalendar`는 `accountIds`를 prop이 아닌 `useAccountsQuery()` 캐시에서 직접 파생한다(위젯의 entities 훅 직접 소비는 적법)
 - **`cycle-history`**: 계좌/전략 양쪽에서 공유
 - **`strategy-detail`**: `useStrategyOrderPreviewQuery(strategyId)` 사용, 분할/리버스모드 배지 규칙 고정. VR은 `strategy.vr` 존재 여부로 운용 방식(적립식/거치식/인출식 + 금액), 밴드 폭, 주기, G, V, pool(현재 시작금액), pool 상한을 표시한다. `divisionCounts.length === 0`을 PRIVACY로 단정하지 않는다. `isScheduledStart(strategy)`가 true(시작예정일이 미래)면 상태 배지 그룹에 "N월 N일 시작예정" 배지(`--info`/`--info-bg` 토큰) 추가. 주문 내역의 방향·유형·상태 Select는 모바일에서 동일 너비 3열, PC에서 한 행으로 배치해 가로 넘침을 만들지 않는다. 필터는 기간 조회 결과에 AND 조건으로 적용한 뒤 페이지네이션하며, 필터 변경 시 1페이지로 초기화하고 원본 주문 없음과 필터 결과 없음을 서로 다른 빈 상태로 표시한다
 - **`strategy-card`**: VR은 분할 배지 대신 compact `V $3,000.00` 형식의 배지를 표시한다. 왼쪽 변은 전략 활성 상태 색상, 위/오른쪽/아래 변은 당일 PLANNED 주문(녹색) 또는 예수금 부족(장 개시 전 주황, `marketSession=DIRECT` 이후 빨강)을 표시한다. `isScheduledStart(strategy)`면 배지 행(모바일 1행·PC 배지 row)에 "N월 N일 시작예정" 배지 추가 — `AccountCard`의 compact 배지 행에는 넣지 않는다(혼잡 방지)

@@ -10,9 +10,13 @@ const { useQueryMock, getCandlesClientMock, getFearGreedClientMock, getMonthlyHo
   getMonthlyHolidaysClientMock: vi.fn(),
 }))
 
-vi.mock('@tanstack/react-query', () => ({
-  useQuery: useQueryMock,
-}))
+vi.mock('@tanstack/react-query', async () => {
+  const actual = await vi.importActual<typeof import('@tanstack/react-query')>('@tanstack/react-query')
+  return {
+    ...actual,
+    useQuery: useQueryMock,
+  }
+})
 
 vi.mock('../api', () => ({
   getCandlesClient: getCandlesClientMock,
@@ -21,27 +25,19 @@ vi.mock('../api', () => ({
 }))
 
 describe('market query freshness and error handling', () => {
-  it('keeps hydrated monthly holidays fresh for one day', () => {
+  // initialData/이중 staleTime 분기는 monthlyHolidaysQueryOptions(entities/market/model/queryOptions.ts)로
+  // 흡수됐다 — SSR prefetch가 채운 캐시를 이 훅이 그대로 소비하며, 항상 24h staleTime을 사용한다.
+  // 실패한 서버 prefetch는 dehydrate에 포함되지 않으므로 클라이언트가 즉시 재조회해
+  // "실패 조회를 빈 달로 24시간 hydrate 금지" 시맨틱을 보존한다 (entities/market/model/queryOptions.test.ts 참고).
+  it('delegates to monthlyHolidaysQueryOptions for the canonical key and 24h staleTime', () => {
     useQueryMock.mockReturnValue({ data: ['2026-07-04'], isFetching: false })
 
-    renderHook(() => useMonthlyHolidaysQuery(2026, 7, ['2026-07-04']))
+    renderHook(() => useMonthlyHolidaysQuery(2026, 7))
 
     expect(useQueryMock.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({
       queryKey: marketKeys.holidays(2026, 7),
       staleTime: 86_400_000,
     }))
-  })
-
-  it('treats an explicitly hydrated empty month differently from missing initial data', () => {
-    useQueryMock.mockReturnValue({ data: [], isFetching: false })
-    renderHook(() => useMonthlyHolidaysQuery(2026, 7, []))
-    const hydratedEmptyOptions = useQueryMock.mock.calls.at(-1)?.[0]
-
-    renderHook(() => useMonthlyHolidaysQuery(2026, 7))
-    const unhydratedOptions = useQueryMock.mock.calls.at(-1)?.[0]
-
-    expect(hydratedEmptyOptions).toEqual(expect.objectContaining({ initialData: [], staleTime: 86_400_000 }))
-    expect(unhydratedOptions).toEqual(expect.objectContaining({ initialData: undefined, staleTime: 0 }))
   })
 
   it('propagates monthly-holiday request failures', async () => {

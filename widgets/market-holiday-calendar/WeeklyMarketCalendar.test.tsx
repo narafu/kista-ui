@@ -2,12 +2,17 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { WeeklyMarketCalendar } from './WeeklyMarketCalendar'
 
-const { useMonthlyHolidaysQueryMock } = vi.hoisted(() => ({
+const { useMonthlyHolidaysQueryMock, useAccountsQueryMock } = vi.hoisted(() => ({
   useMonthlyHolidaysQueryMock: vi.fn(),
+  useAccountsQueryMock: vi.fn(),
 }))
 
 vi.mock('@entities/market', () => ({
   useMonthlyHolidaysQuery: (year: number, month: number) => useMonthlyHolidaysQueryMock(year, month),
+}))
+
+vi.mock('@entities/account', () => ({
+  useAccountsQuery: () => useAccountsQueryMock(),
 }))
 
 vi.mock('@entities/trade', () => ({
@@ -25,6 +30,8 @@ describe('WeeklyMarketCalendar', () => {
       holidays: year === 2026 && month === 7 ? ['2026-07-01'] : [],
       isError: false,
     }))
+    // 계좌 ID는 이제 WeeklyMarketCalendar가 useAccountsQuery() 캐시에서 직접 파생한다 (prop 아님)
+    useAccountsQueryMock.mockReturnValue({ data: [] })
   })
 
   afterEach(() => {
@@ -32,13 +39,7 @@ describe('WeeklyMarketCalendar', () => {
   })
 
   it('keeps only the holiday badge under the date without highlighting the whole cell', () => {
-    render(
-      <WeeklyMarketCalendar
-        holidays={[]}
-        initialWeekStartDate="2026-06-28"
-        accountIds={[]}
-      />,
-    )
+    render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" />)
 
     const holidayText = screen.getAllByText('휴장').find((node) => node.className.includes('text-xs'))
     const holidayCell = holidayText?.parentElement
@@ -50,13 +51,7 @@ describe('WeeklyMarketCalendar', () => {
   })
 
   it('uses a more visible today container style for dark theme contrast', () => {
-    render(
-      <WeeklyMarketCalendar
-        holidays={[]}
-        initialWeekStartDate="2026-06-28"
-        accountIds={[]}
-      />,
-    )
+    render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" />)
 
     const todayNumber = screen.getAllByText('2').find((node) => node.className.includes('bg-rose-500'))
     const todayContainer = todayNumber?.parentElement
@@ -70,15 +65,21 @@ describe('WeeklyMarketCalendar', () => {
   it('shows a holiday-data error instead of treating every weekday as open', () => {
     useMonthlyHolidaysQueryMock.mockReturnValue({ holidays: [], isError: true })
 
-    render(
-      <WeeklyMarketCalendar
-        holidays={[]}
-        initialWeekStartDate="2026-06-28"
-        accountIds={[]}
-      />,
-    )
+    render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" />)
 
     expect(screen.getByText('휴장일 정보를 불러오지 못했습니다')).toBeInTheDocument()
     expect(screen.queryByText('다음 휴장일')).not.toBeInTheDocument()
+  })
+
+  it('derives account ids from the accounts query cache instead of a prop', () => {
+    useAccountsQueryMock.mockReturnValue({ data: [{ id: 'account-1' }] })
+
+    render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" />)
+
+    // accountIds.length > 0일 때만 매도/매수/대기중 범례가 표시된다
+    // (오늘 셀도 대기중 배지를 표시할 수 있어 '대기중'은 getAllByText로 확인)
+    expect(screen.getByText('매도')).toBeInTheDocument()
+    expect(screen.getByText('매수')).toBeInTheDocument()
+    expect(screen.getAllByText('대기중').length).toBeGreaterThan(0)
   })
 })

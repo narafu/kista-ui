@@ -15,18 +15,8 @@ vi.mock('next/image', () => ({
   default: (props: React.ComponentProps<'img'>) => <img {...props} />,
 }))
 
-vi.mock('@widgets/market-holiday-calendar', () => ({
-  WeeklyMarketCalendar: ({ accountIds }: { accountIds: string[] }) => (
-    <div data-testid="calendar-account-ids">{accountIds.join(',')}</div>
-  ),
-}))
-
 vi.mock('@widgets/dashboard/MarketChartCard', () => ({
   MarketChartCard: () => <div>market chart</div>,
-}))
-
-vi.mock('@widgets/fear-greed-card', () => ({
-  FearGreedSection: () => <div>fear greed</div>,
 }))
 
 vi.mock('@features/account/create-account', () => ({
@@ -40,10 +30,14 @@ const account: Account = {
   broker: 'MOCK',
 }
 
+// marketPanels는 app/(main)/dashboard/page.tsx가 조립해 주입하는 slot이다 — DashboardContent는
+// 그 내용을 모른 채 그대로 전달만 하므로, 여기서는 식별 가능한 sentinel로 전달 여부만 검증한다.
+const marketPanelsSentinel = <div data-testid="market-panels-sentinel">market panels</div>
+
 function renderWithClient(client: QueryClient) {
   return render(
     <QueryClientProvider client={client}>
-      <DashboardContent holidays={[]} initialWeekStartDate="2026-07-26" />
+      <DashboardContent marketPanels={marketPanelsSentinel} />
     </QueryClientProvider>,
   )
 }
@@ -55,12 +49,13 @@ describe('DashboardContent', () => {
 
     renderWithClient(client)
     expect(screen.getByText('첫 계좌 등록')).toBeInTheDocument()
+    expect(screen.getAllByTestId('market-panels-sentinel').length).toBeGreaterThan(0)
 
     client.setQueryData(accountKeys.list(), [account])
 
     await waitFor(() => {
       expect(screen.queryByText('첫 계좌 등록')).not.toBeInTheDocument()
     })
-    expect(screen.getAllByTestId('calendar-account-ids')[0]).toHaveTextContent('account-1')
+    expect(screen.getAllByTestId('market-panels-sentinel').length).toBeGreaterThan(0)
   })
 })

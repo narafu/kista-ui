@@ -20,7 +20,7 @@
 | 이력 | orders, trades, cycle history | React Query | 1-5분 | 영향을 주는 mutation에서만 invalidate |
 | 라이브 | prices, portfolio, execution state | React Query/SSE | `staleTime: 0` 또는 stream-driven | targeted update/refetch |
 | 런타임 설정 | runtime-config, admin-settings | React Query | `staleTime: 0`, 필요 시 focus refetch | public/admin view 모두 invalidate |
-| market holidays | React Query(visible state) + 서버 initial snapshot | hydration 24시간, 미주입 0 | `marketKeys.holidays` refetch; persistent Data Cache 없음 |
+| market holidays | React Query, `monthlyHolidaysQueryOptions(year, month, token?)`로 SSR prefetch+hydrate | 24시간 | `marketKeys.holidays` refetch; persistent Data Cache 없음. 실패한 SSR prefetch는 `status:'success'`만 직렬화하는 기본 `shouldDehydrateQuery`에 의해 dehydrate되지 않으므로 클라이언트가 즉시 재조회 |
 | public meta fallback | Next.js Data Cache + `MetaProvider` snapshot | 1시간 | TTL 만료 후 다음 요청에서 갱신 |
 | 기타 느린 public reference | 도입 시 Next.js Data Cache 허용 | 1-24시간 | 명시적 tag revalidation 또는 TTL |
 
@@ -31,7 +31,7 @@
 - 서버/클라이언트 공용 query options: `entities/*/model/queryOptions.ts`
 - 계좌 SSR hydration: `app/(main)/dashboard/page.tsx`, `app/(main)/accounts/page.tsx`
 - 계좌 query-owned 분기: `widgets/dashboard/DashboardContent.tsx`, `widgets/accounts-grid/AccountsPageContent.tsx`
-- 휴장일 visible query: `entities/market/hooks/useMarketQueries.ts`
+- 휴장일 SSR hydration + query options: `app/(main)/dashboard/page.tsx`, `entities/market/model/queryOptions.ts`, `entities/market/hooks/useMarketQueries.ts`
 - 캐시 아키텍처 정적 가드: `shared/lib/query/cacheArchitecture.test.ts`
 
 ## Query Key Factory

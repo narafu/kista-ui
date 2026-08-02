@@ -1,19 +1,17 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { getMonthlyHolidaysClient, getCandlesClient, getFearGreedClient } from '../api'
+import { getCandlesClient, getFearGreedClient } from '../api'
 import type { Candle, FearGreed } from '../model/types'
 import { CHART_CANDLE_COUNT } from '../model/constants'
 import { marketKeys } from '../model/queryKeys'
+import { monthlyHolidaysQueryOptions } from '../model/queryOptions'
 
-export function useMonthlyHolidaysQuery(year: number, month: number, initialData?: string[]) {
-  const { data: holidays = [], isFetching, isError } = useQuery<string[]>({
-    queryKey: marketKeys.holidays(year, month),
-    queryFn: () => getMonthlyHolidaysClient(year, month),
-    initialData,
-    initialDataUpdatedAt: initialData ? Date.now() : undefined,
-    staleTime: initialData ? 1000 * 60 * 60 * 24 : 0, // 24시간 — 서버는 월 1회만 갱신
-  })
+// SSR prefetch(app/(main)/dashboard/page.tsx)가 monthlyHolidaysQueryOptions(...)로 채운 캐시를 그대로 소비한다.
+// 실패한 서버 prefetch는 dehydrate에 포함되지 않으므로(react-query 기본 shouldDehydrateQuery가
+// status:'success'만 직렬화) 여기서 바로 재조회된다 — "실패한 조회를 빈 달로 24시간 hydrate 금지" 시맨틱 보존.
+export function useMonthlyHolidaysQuery(year: number, month: number) {
+  const { data: holidays = [], isFetching, isError } = useQuery(monthlyHolidaysQueryOptions(year, month))
   return { holidays, loading: isFetching, isError }
 }
 

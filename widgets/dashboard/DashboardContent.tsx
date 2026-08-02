@@ -1,15 +1,15 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { useAccountsQuery } from '@entities/account'
 import { DashboardEmpty } from './DashboardEmpty'
 import { DashboardOverview } from './DashboardOverview'
 
 interface Props {
-  holidays?: string[]
-  initialWeekStartDate: string
+  marketPanels: ReactNode
 }
 
-export function DashboardContent({ holidays, initialWeekStartDate }: Props) {
+export function DashboardContent({ marketPanels }: Props) {
   const query = useAccountsQuery()
   const accounts = query.data
 
@@ -28,14 +28,8 @@ export function DashboardContent({ holidays, initialWeekStartDate }: Props) {
   }
 
   if (!accounts || accounts.length === 0) {
-    return <DashboardEmpty holidays={holidays} initialWeekStartDate={initialWeekStartDate} />
+    return <DashboardEmpty marketPanels={marketPanels} />
   }
 
-  return (
-    <DashboardOverview
-      holidays={holidays}
-      initialWeekStartDate={initialWeekStartDate}
-      accountIds={accounts.map((account) => account.id)}
-    />
-  )
+  return <DashboardOverview marketPanels={marketPanels} />
 }

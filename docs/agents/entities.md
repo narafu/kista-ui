@@ -48,7 +48,7 @@ entities/{domain}/
 - Server/Client 공유 옵션: server-safe `model/queryOptions.ts`의 `xxxQueryOptions(token?)` — Server Component는 token으로 `prefetchQuery`, Client Component는 token 없이 `useQuery`에서 재사용
 - Mutation 훅: `useXxxMutation` — 엔티티 훅은 API 호출과 도메인 캐시 동기화를 캡슐화하고 `onError`에 `toast.error`를 둔다. 성공 toast, 라우팅, 다른 도메인 무효화는 호출 feature의 `mutate(data, { onSuccess })`에서 처리한다
 - 호출부에서 추가 동작이 필요하면 `mutation.mutate(data, { onSuccess: () => callback() })` 패턴 사용
-- **참조 데이터 initialData 예외**: `useMonthlyHolidaysQuery(year, month, holidays)` — 성공적으로 받은 서버 데이터만 `initialData` + `staleTime: 24h`, 미주입/실패 상태는 `staleTime: 0`으로 즉시 조회
+- **참조 데이터 24h staleTime**: `market/model/queryOptions.ts`의 `monthlyHolidaysQueryOptions(year, month, token?)` — `staleTime: 24h`, queryFn이 `typeof window`로 서버/클라이언트를 분기해 서버+token → 인증 fetch, 서버+비인증 → public 엔드포인트, 브라우저 → Route Handler 경유 클라이언트 fetch를 고른다. `useMonthlyHolidaysQuery(year, month)`는 이 factory를 그대로 소비하며 더 이상 `initialData` 파라미터를 받지 않는다. `app/(main)/dashboard/page.tsx`가 `queryClient.prefetchQuery(monthlyHolidaysQueryOptions(...)).catch(() => undefined)`로 SSR prefetch하며, react-query 기본 `shouldDehydrateQuery`가 `status:'success'` 쿼리만 직렬화하므로 실패한 서버 조회는 dehydrate에 포함되지 않고 클라이언트가 즉시 재조회한다 — "실패한 조회를 빈 달로 24시간 hydrate 금지" 시맨틱은 이 방식으로 보존된다
 
 **queryKey**: 각 entity의 `model/queryKeys.ts` factory가 SSOT다. 서로 다른 위젯이 동일 서버 데이터를 소비하면 같은 factory와 파라미터를 사용해 React Query 캐시를 공유한다.
 
