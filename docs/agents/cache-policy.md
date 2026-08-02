@@ -24,6 +24,8 @@
 | public meta fallback | Next.js Data Cache + `MetaProvider` snapshot | 1시간 | TTL 만료 후 다음 요청에서 갱신 |
 | 기타 느린 public reference | 도입 시 Next.js Data Cache 허용 | 1-24시간 | 명시적 tag revalidation 또는 TTL |
 
+`stats`(summary/equity-curve/housing-benchmark)는 kista-api가 사용자 단위로 서버 사이드 5-10분 TTL 캐시(`StatsResultCache`)를 두며 mutation으로 busting되지 않는다. `statsKeys.all` invalidate 직후 refetch해도 서버가 그 TTL만큼 이전 값을 반환할 수 있다 — React Query 캐시 문제가 아니다.
+
 구현 위치:
 
 - 공통 QueryClient 기본값: `shared/lib/query/createQueryClient.ts`
