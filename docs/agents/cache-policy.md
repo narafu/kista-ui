@@ -32,6 +32,7 @@
 - 계좌 SSR hydration: `app/(main)/dashboard/page.tsx`, `app/(main)/accounts/page.tsx`
 - 계좌 query-owned 분기: `widgets/dashboard/DashboardContent.tsx`, `widgets/accounts-grid/AccountsPageContent.tsx`
 - 휴장일 SSR hydration + query options: `app/(main)/dashboard/page.tsx`, `entities/market/model/queryOptions.ts`, `entities/market/hooks/useMarketQueries.ts`
+- 동일 패턴이 적용된 그 외 목록/파생 hydration: `app/(main)/stats/page.tsx`, `app/(main)/benchmark/page.tsx`, `app/(main)/accounts/[id]/strategies/[sid]/page.tsx`(order preview)
 - 캐시 아키텍처 정적 가드: `shared/lib/query/cacheArchitecture.test.ts`
 
 ## Query Key Factory
