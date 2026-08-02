@@ -7,6 +7,20 @@ export function fmtSignedUsd(n: number, digits = 2, symbol = ''): string {
   return n >= 0 ? `+${symbol}${fmtUsd(n, digits)}` : `-${symbol}${fmtUsd(Math.abs(n), digits)}`
 }
 
+/** 0~1 비율을 부호 포함 %로. null/undefined는 '—' */
+export function fmtSignedPercent(ratio: number | null | undefined, digits = 1): string {
+  if (ratio == null) return '—'
+  const percent = (ratio * 100).toFixed(digits)
+  return ratio >= 0 ? `+${percent}%` : `-${Math.abs(ratio * 100).toFixed(digits)}%`
+}
+
+/** 0~1 비율을 부호 포함 %p로. null/undefined는 '—' */
+export function fmtSignedPercentPoint(ratio: number | null | undefined, digits = 1): string {
+  if (ratio == null) return '—'
+  const percent = (ratio * 100).toFixed(digits)
+  return ratio >= 0 ? `+${percent}%p` : `-${Math.abs(ratio * 100).toFixed(digits)}%p`
+}
+
 export function fmtDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('ko-KR')
 }

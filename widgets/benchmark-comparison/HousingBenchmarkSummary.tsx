@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@shared/lib/utils'
-import { pnlTextClass } from '@shared/lib/format'
+import { pnlTextClass, fmtSignedPercent, fmtSignedPercentPoint } from '@shared/lib/format'
 import type { HousingBenchmarkSummary as HousingBenchmarkSummaryData } from '@entities/stats'
 
 interface Props {
@@ -8,21 +8,6 @@ interface Props {
   investmentLabel: string
   benchmarkLabel: string
   benchmarkCurrency: 'USD' | 'KRW'
-}
-
-function formatPercent(value: number | undefined) {
-  if (value == null) return '—'
-  return `${value >= 0 ? '+' : ''}${(value * 100).toFixed(1)}%`
-}
-
-function formatPercentagePoint(value: number | undefined) {
-  if (value == null) return '—'
-  return `${value >= 0 ? '+' : ''}${(value * 100).toFixed(1)}%p`
-}
-
-function formatTablePercent(value: number | undefined) {
-  if (value == null) return '—'
-  return `${value >= 0 ? '+' : ''}${(value * 100).toFixed(2)}%`
 }
 
 const METRICS: {
@@ -57,7 +42,7 @@ export function HousingBenchmarkSummary({ summary, investmentLabel, benchmarkLab
             'mt-1 break-words text-3xl font-bold tabular-nums sm:text-4xl',
             summary.excessReturn != null && pnlTextClass(summary.excessReturn),
           )}>
-            {formatPercentagePoint(summary.excessReturn)}
+            {fmtSignedPercentPoint(summary.excessReturn)}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">투자 누적 - 벤치마크 누적</p>
         </div>
@@ -67,7 +52,7 @@ export function HousingBenchmarkSummary({ summary, investmentLabel, benchmarkLab
             'mt-1 break-words text-xl font-bold tabular-nums sm:text-2xl',
             summary.investmentCumulativeReturn != null && pnlTextClass(summary.investmentCumulativeReturn),
           )}>
-            {formatPercent(summary.investmentCumulativeReturn)}
+            {fmtSignedPercent(summary.investmentCumulativeReturn)}
           </p>
           <p className="mt-1 truncate text-xs text-muted-foreground" title={`${investmentLabel} · USD`}>
             {investmentLabel} · USD
@@ -79,7 +64,7 @@ export function HousingBenchmarkSummary({ summary, investmentLabel, benchmarkLab
             'mt-1 break-words text-xl font-bold tabular-nums sm:text-2xl',
             summary.benchmarkCumulativeReturn != null && pnlTextClass(summary.benchmarkCumulativeReturn),
           )}>
-            {formatPercent(summary.benchmarkCumulativeReturn)}
+            {fmtSignedPercent(summary.benchmarkCumulativeReturn)}
           </p>
           <p className="mt-1 truncate text-xs text-muted-foreground" title={`${benchmarkLabel} · ${benchmarkCurrency}`}>
             {benchmarkLabel} · {benchmarkCurrency}
@@ -112,13 +97,13 @@ export function HousingBenchmarkSummary({ summary, investmentLabel, benchmarkLab
                     'px-2 py-3 text-right tabular-nums sm:px-4',
                     investmentValue != null && pnlTextClass(investmentValue),
                   )}>
-                    {formatTablePercent(investmentValue)}
+                    {fmtSignedPercent(investmentValue, 2)}
                   </td>
                   <td className={cn(
                     'px-2 py-3 text-right tabular-nums sm:px-4',
                     benchmarkValue != null && pnlTextClass(benchmarkValue),
                   )}>
-                    {formatTablePercent(benchmarkValue)}
+                    {fmtSignedPercent(benchmarkValue, 2)}
                   </td>
                 </tr>
               )

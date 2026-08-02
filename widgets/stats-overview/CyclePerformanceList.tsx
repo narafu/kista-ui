@@ -6,7 +6,7 @@ import { EmptyState } from '@shared/ui/EmptyState'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { cn } from '@shared/lib/utils'
-import { fmtDate, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
+import { fmtDate, fmtSignedUsd, pnlTextClass, fmtSignedPercent } from '@shared/lib/format'
 import { useStatsCyclesQuery } from '@entities/stats'
 import { useAccountsQuery } from '@entities/account'
 import { SectionError } from '@shared/ui/SectionError'
@@ -72,7 +72,7 @@ export function CyclePerformanceList({ typeFilter }: Props) {
                         {cycle.pnl != null ? fmtSignedUsd(cycle.pnl, 2, '$') : '—'}
                       </TableDataCell>
                       <TableDataCell className={cn('tabular-nums', cycle.returnRate != null ? pnlTextClass(cycle.returnRate) : 'text-muted-foreground')}>
-                        {cycle.returnRate != null ? `${cycle.returnRate >= 0 ? '+' : ''}${(cycle.returnRate * 100).toFixed(1)}%` : '—'}
+                        {fmtSignedPercent(cycle.returnRate)}
                       </TableDataCell>
                     </tr>
                   ))}
@@ -110,7 +110,7 @@ export function CyclePerformanceList({ typeFilter }: Props) {
                     <div>
                       <dt className="text-xs text-muted-foreground">수익률</dt>
                       <dd className={cn('mt-1 text-sm tabular-nums', cycle.returnRate != null ? pnlTextClass(cycle.returnRate) : 'text-muted-foreground')}>
-                        {cycle.returnRate != null ? `${cycle.returnRate >= 0 ? '+' : ''}${(cycle.returnRate * 100).toFixed(1)}%` : '—'}
+                        {fmtSignedPercent(cycle.returnRate)}
                       </dd>
                     </div>
                   </dl>

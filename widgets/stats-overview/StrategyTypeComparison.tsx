@@ -3,7 +3,7 @@ import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
-import { fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
+import { fmtSignedUsd, pnlTextClass, fmtSignedPercent } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import type { StrategyTypeStats } from '@entities/stats'
 
@@ -46,7 +46,7 @@ export function StrategyTypeComparison({ byType }: Props) {
                         종료 {t.closedCycleCount} · 진행 {t.activeCycleCount}
                       </TableDataCell>
                       <TableDataCell className={cn('tabular-nums', t.avgReturnRate != null && pnlTextClass(t.avgReturnRate))}>
-                        {t.avgReturnRate != null ? `${t.avgReturnRate >= 0 ? '+' : ''}${(t.avgReturnRate * 100).toFixed(1)}%` : '—'}
+                        {fmtSignedPercent(t.avgReturnRate)}
                       </TableDataCell>
                       <TableDataCell className="tabular-nums">{t.avgDurationDays != null ? `${t.avgDurationDays.toFixed(1)}일` : '—'}</TableDataCell>
                       <TableDataCell className={cn('tabular-nums font-medium', pnlTextClass(t.realizedPnl))}>{fmtSignedUsd(t.realizedPnl, 2, '$')}</TableDataCell>
@@ -72,7 +72,7 @@ export function StrategyTypeComparison({ byType }: Props) {
                     <div>
                       <dt className="text-xs text-muted-foreground">평균 수익률</dt>
                       <dd className={cn('mt-0.5 tabular-nums', item.avgReturnRate != null && pnlTextClass(item.avgReturnRate))}>
-                        {item.avgReturnRate != null ? `${item.avgReturnRate >= 0 ? '+' : ''}${(item.avgReturnRate * 100).toFixed(1)}%` : '—'}
+                        {fmtSignedPercent(item.avgReturnRate)}
                       </dd>
                     </div>
                     <div>

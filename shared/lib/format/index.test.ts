@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fmtKrwEok, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst } from './index'
+import { fmtKrwEok, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, fmtSignedPercent, fmtSignedPercentPoint } from './index'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -79,5 +79,64 @@ describe('pnlTextClass', () => {
 
   it('음수는 text-neg를 반환한다', () => {
     expect(pnlTextClass(-10)).toBe('text-neg')
+  })
+})
+
+describe('fmtSignedPercent', () => {
+  it('0~1 비율을 부호 포함 %로 변환한다', () => {
+    expect(fmtSignedPercent(0.123)).toBe('+12.3%')
+  })
+
+  it('양수는 + 접두사를 붙인다', () => {
+    expect(fmtSignedPercent(0.456)).toBe('+45.6%')
+  })
+
+  it('음수는 - 부호를 유지한다', () => {
+    expect(fmtSignedPercent(-0.123)).toBe('-12.3%')
+  })
+
+  it('0은 +0.0%를 반환한다', () => {
+    expect(fmtSignedPercent(0)).toBe('+0.0%')
+  })
+
+  it('null/undefined는 —를 반환한다', () => {
+    expect(fmtSignedPercent(null)).toBe('—')
+    expect(fmtSignedPercent(undefined)).toBe('—')
+  })
+
+  it('digits 파라미터로 소수 자릿수를 지정할 수 있다', () => {
+    expect(fmtSignedPercent(0.12345, 2)).toBe('+12.35%')
+    expect(fmtSignedPercent(0.12345, 0)).toBe('+12%')
+  })
+
+  it('기본 소수 자릿수는 1자리다', () => {
+    expect(fmtSignedPercent(0.1234)).toBe('+12.3%')
+  })
+})
+
+describe('fmtSignedPercentPoint', () => {
+  it('0~1 비율을 부호 포함 %p로 변환한다', () => {
+    expect(fmtSignedPercentPoint(0.123)).toBe('+12.3%p')
+  })
+
+  it('양수는 + 접두사를 붙인다', () => {
+    expect(fmtSignedPercentPoint(0.456)).toBe('+45.6%p')
+  })
+
+  it('음수는 - 부호를 유지한다', () => {
+    expect(fmtSignedPercentPoint(-0.123)).toBe('-12.3%p')
+  })
+
+  it('0은 +0.0%p를 반환한다', () => {
+    expect(fmtSignedPercentPoint(0)).toBe('+0.0%p')
+  })
+
+  it('null/undefined는 —를 반환한다', () => {
+    expect(fmtSignedPercentPoint(null)).toBe('—')
+    expect(fmtSignedPercentPoint(undefined)).toBe('—')
+  })
+
+  it('digits 파라미터로 소수 자릿수를 지정할 수 있다', () => {
+    expect(fmtSignedPercentPoint(0.12345, 2)).toBe('+12.35%p')
   })
 })
