@@ -14,6 +14,7 @@ UI 캐시 소유권, hydration, mutation 동기화, `router.refresh()` 예외는
 
 ## 쿠키
 
+- **카카오 `redirect_uri`는 kista-ui 자신의 현재 도메인에서 동적 생성**(`app/(auth)/login/page.tsx`: `${window.location.origin}/auth/callback`) — 카카오 개발자 콘솔에 등록되는 값은 kista-api 도메인이 아니라 **kista-ui 도메인**이다. 따라서 kista-api 백엔드 도메인이 바뀌어도 카카오 콘솔 설정은 무관하고, **kista-ui 자신의 배포 도메인이 바뀔 때만** 카카오 콘솔 redirect URI를 갱신하면 된다
 - **ResponseCookies.set() + raw headers.append() 혼용 금지**: `response.cookies.set()`은 호출할 때마다 set-cookie 헤더 전체를 재직렬화하면서 이전에 `response.headers.append('Set-Cookie', ...)` 한 값을 덮어쓴다. kista-api RT 쿠키처럼 raw relay가 필요하면 `cookies.set()` 호출을 모두 끝낸 후 마지막에 `headers.append()` 해야 생존한다 (`app/auth/callback/route.ts` 참고)
 - **Safari `Secure` 쿠키 + HTTP 차단**: Safari는 HTTP 연결의 `Secure` 쿠키 무시. `secure` 플래그는 `NODE_ENV`가 아닌 `x-forwarded-proto === 'https'`로 결정 (`app/auth/callback/route.ts` 참고)
 - **HTTP-only 쿠키 삭제**: Client JS 불가 → Route Handler에서 `response.cookies.set(name, '', { maxAge: 0 })`
@@ -26,6 +27,7 @@ UI 캐시 소유권, hydration, mutation 동기화, `router.refresh()` 예외는
 
 - **Docker standalone**: Route Handler(Node.js runtime)에서 origin → `request.headers.get('host')` + `request.headers.get('x-forwarded-proto')` 직접 구성. `request.url` 사용 금지
 - **API URL**: 모든 Route Handler·서버 fetch는 `getApiBaseUrl()`(`@shared/lib/env`) 사용 — `API_BASE_URL` 우선, 없으면 `NEXT_PUBLIC_API_BASE_URL` 폴백, 둘 다 없으면 throw. 실패 허용 경로(예: `proxy.ts` 토큰 갱신)는 `getApiBaseUrlOrNull()`. `process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL` 패턴을 직접 쓰지 말 것 (SSOT). 근거: `NEXT_PUBLIC_*` 단독 → Docker에서 ECONNREFUSED
+- **프록시 라우트 인증 게이트**: `createProxyRoute`(`@shared/lib/proxy/createProxyRoute`)의 `requireAuth` 옵션은 **기본값 `true`**(토큰 없으면 kista-api 호출 전에 401) — 실제로 공개(비인증) 엔드포인트를 프록시하려면 반드시 `requireAuth: false`를 명시해야 한다. 현재 `requireAuth: false`로 선언된 라우트: `app/api/client-errors`, `app/api/runtime-config`, `app/api/market/[[...path]]`. 신규 프록시 라우트 추가 시 kista-api 쪽 엔드포인트가 공개인지 반드시 확인하고 이 플래그를 맞출 것 — 안 맞추면 공개 엔드포인트인데도 401이 나거나, 반대로 인증 필요한 엔드포인트를 실수로 열어둘 위험이 있다
 - **SSE 인증**: 브라우저 `EventSource`는 커스텀 헤더 미지원 → Route Handler가 Bearer 토큰 포함 후 kista-api로 중계 (`app/api/auth/status-stream/route.ts` 참고)
 - **SSE 인증 실패 → 401 응답 금지**: `EventSource`는 4xx를 `onerror`로만 받아 상태 코드를 알 수 없음 → 클라이언트가 무한 재연결 루프에 빠짐. 토큰 없을 때 200 SSE 스트림으로 `event: auth-error` 보내고 클라이언트가 이를 받아 재연결 중단 (`app/api/trades/stream/route.ts` 참고)
 - **SSE `request.signal` 필수**: 미전달 시 클라이언트가 EventSource 닫아도 스트림 파이핑 계속 → `UND_ERR_SOCKET` 에러. `GET(request: NextRequest)` + `fetch(url, { signal: request.signal })`
