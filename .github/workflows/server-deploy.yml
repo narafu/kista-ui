@@ -1,0 +1,191 @@
+name: Server Deploy
+
+# 자동 push 트리거는 아직 켜지 않았다 — 서버 초기 설정 + GitHub Secrets(9개 NEXT_PUBLIC_* + SSH 4종) 등록 후
+# workflow_dispatch로 최초 수동 배포가 성공하면 `push: branches: [main]`을 추가해 kista-api/fida와 동일하게 전환한다.
+# (deploy/server/README.md "배포 흐름" 참고 — 지금 push를 켜면 미준비 상태에서 배포 job이 실패하고
+#  build job은 빈 NEXT_PUBLIC_*로도 조용히 성공해 GHCR :latest가 오염된다)
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  DEPLOY_PATH: /opt/kista-ui
+
+jobs:
+  verify:
+    name: Typecheck & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript type check
+        run: npm run typecheck
+
+      - name: Run tests
+        run: npm run test:run
+
+  build:
+    name: Build & Push Image
+    runs-on: ubuntu-latest
+    needs: verify
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+      latest: ${{ steps.image.outputs.latest }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set image name
+        id: image
+        run: |
+          repo="ghcr.io/${GITHUB_REPOSITORY,,}"
+          echo "image=${repo}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "latest=${repo}:latest" >> "$GITHUB_OUTPUT"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/arm64
+          tags: |
+            ${{ steps.image.outputs.image }}
+            ${{ steps.image.outputs.latest }}
+          build-args: |
+            NEXT_PUBLIC_KAKAO_CLIENT_ID=${{ secrets.NEXT_PUBLIC_KAKAO_CLIENT_ID }}
+            NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+            NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+            NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+            NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+            NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+            NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+            NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+            NEXT_PUBLIC_FIREBASE_VAPID_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_VAPID_KEY }}
+
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+    needs: build
+    concurrency: server-production
+    environment:
+      name: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure SSH
+        env:
+          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_SSH_PORT: ${{ secrets.SERVER_SSH_PORT || '22' }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SERVER_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "$SERVER_SSH_PORT" "$SERVER_HOST" >> ~/.ssh/known_hosts
+
+      - name: Upload deployment files
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_SSH_PORT: ${{ secrets.SERVER_SSH_PORT || '22' }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "$SERVER_SSH_PORT" "$SERVER_USER@$SERVER_HOST" "mkdir -p '${DEPLOY_PATH}'"
+          scp -i ~/.ssh/deploy_key -P "$SERVER_SSH_PORT" \
+            deploy/server/docker-compose.yml \
+            deploy/server/Caddyfile \
+            "$SERVER_USER@$SERVER_HOST:${DEPLOY_PATH}/"
+
+      - name: Deploy application
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_SSH_PORT: ${{ secrets.SERVER_SSH_PORT || '22' }}
+          KISTA_UI_IMAGE: ${{ needs.build.outputs.image }}
+          GHCR_USERNAME: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "$SERVER_SSH_PORT" "$SERVER_USER@$SERVER_HOST" \
+            "DEPLOY_PATH='${DEPLOY_PATH}' KISTA_UI_IMAGE='${KISTA_UI_IMAGE}' GHCR_USERNAME='${GHCR_USERNAME}' GHCR_TOKEN='${GHCR_TOKEN}' bash -s" << 'ENDSSH'
+            set -e
+            cd "${DEPLOY_PATH}"
+
+            # 필수 환경변수 존재 검증 (.env 서버 직접 관리)
+            for key in UI_DOMAIN API_BASE_URL; do
+              grep -q "^${key}=" .env || { echo "::error::필수 환경변수 누락: ${key}"; exit 1; }
+            done
+
+            # 현재 이미지 저장 (롤백용)
+            PREV_IMAGE=$(docker compose ps kista-ui --format '{{.Image}}' 2>/dev/null || echo "")
+            echo "$PREV_IMAGE" > /tmp/kista-ui-prev-image
+
+            # GHCR 로그인 + kista-ui만 타겟 배포 (caddy 재생성 방지)
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+            export KISTA_UI_IMAGE
+            docker compose pull kista-ui
+            docker compose up -d --no-deps kista-ui
+            # caddy는 이미지 태그가 고정(caddy:2.9-alpine)이라 재생성되지 않고, 없으면 최초 생성됨 — 최초 배포 시 caddy가 영원히 안 뜨는 문제 방지
+            docker compose up -d caddy
+          ENDSSH
+
+      - name: Health gate & auto-rollback
+        if: always()
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_SSH_PORT: ${{ secrets.SERVER_SSH_PORT || '22' }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "$SERVER_SSH_PORT" "$SERVER_USER@$SERVER_HOST" \
+            "DEPLOY_PATH='${DEPLOY_PATH}' bash -s" << 'ENDSSH'
+            set -e
+            cd "${DEPLOY_PATH}"
+
+            echo "헬스 게이트 시작 (최대 5분)..."
+            for i in $(seq 1 30); do
+              STATUS=$(docker inspect --format '{{.State.Health.Status}}' kista-ui 2>/dev/null || echo "unknown")
+              if [ "$STATUS" = "healthy" ]; then
+                echo "✓ 헬스체크 통과 (${i}회 시도)"
+                docker image prune -f || true
+                exit 0
+              fi
+              if [ "$STATUS" = "unhealthy" ]; then
+                echo "✗ 헬스체크 실패 (unhealthy, ${i}회 시도)"
+                break
+              fi
+              echo "  대기 중... (${i}/30, 상태: ${STATUS})"
+              sleep 10
+            done
+
+            # 헬스체크 실패 → 이전 이미지로 자동 롤백
+            PREV_IMAGE=$(cat /tmp/kista-ui-prev-image 2>/dev/null || echo "")
+            if [ -n "$PREV_IMAGE" ]; then
+              echo "✗ 헬스체크 실패 — 이전 이미지로 롤백: $PREV_IMAGE"
+              export KISTA_UI_IMAGE="$PREV_IMAGE"
+              docker compose up -d --no-deps kista-ui
+            else
+              echo "✗ 헬스체크 실패 — 이전 이미지 정보 없음, 수동 복구 필요"
+            fi
+            exit 1
+          ENDSSH
