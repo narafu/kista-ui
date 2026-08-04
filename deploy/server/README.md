@@ -1,13 +1,12 @@
 # Server deployment (OCI)
 
-`kista-ui`를 단일 인스턴스(OCI `kista-ui-server`)에서 Docker Compose + Caddy로 운영한다. `kista-api`·`fida`와 동일 VCN/서브넷(`ap-chuncheon-1` AD-1)에 위치하되 **별도 인스턴스·별도 공인 IP**로 분리되어 있다.
+`kista-ui`를 단일 인스턴스(OCI `kista-ui-server`)에서 Docker Compose로 운영한다(Caddy는 kista-infra 레포가 전담). `kista-api`·`fida`와 동일 VCN/서브넷(`ap-chuncheon-1` AD-1)에 위치하되 **별도 인스턴스·별도 공인 IP**로 분리되어 있다.
 
 ## 서버 레이아웃
 
 ```text
 /opt/kista-ui/
 ├── .env                    ← 서버에서 직접 관리 (Actions에서 덮어쓰지 않음)
-├── Caddyfile               ← GitHub Actions 업로드
 └── docker-compose.yml      ← GitHub Actions 업로드
 ```
 
@@ -54,21 +53,12 @@
 | `SERVER_USER` | SSH 사용자명 |
 | `SERVER_SSH_KEY` | SSH 개인키 (PEM) — kista-api/fida와 동일 키페어 |
 | `SERVER_SSH_PORT` | SSH 포트 (기본값 22, 생략 가능) |
-| `NEXT_PUBLIC_KAKAO_CLIENT_ID` | 카카오 REST API 키 — **빌드 타임 인라인**, 이미지 빌드 스텝에서만 사용 |
-| `NEXT_PUBLIC_API_BASE_URL` | `https://api.kista-app.com` |
-| `NEXT_PUBLIC_FIREBASE_API_KEY` | Firebase 콘솔 값 |
-| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Firebase 콘솔 값 |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Firebase 콘솔 값 |
-| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | Firebase 콘솔 값 |
-| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase 콘솔 값 |
-| `NEXT_PUBLIC_FIREBASE_APP_ID` | Firebase 콘솔 값 |
-| `NEXT_PUBLIC_FIREBASE_VAPID_KEY` | Firebase 웹 푸시 VAPID 인증서 키 |
 
-`NEXT_PUBLIC_*` 9개는 Vercel 대시보드에만 등록돼 있던 값들 — GitHub Secrets에 동일 값으로 신규 등록 필요(`docs/agents/deployment.md` 참고). `.env`는 서버에서 직접 관리 — Actions에 시크릿으로 올리지 않음.
+`NEXT_PUBLIC_*` 9개는 레포 루트 `.env.production.public`(평문 커밋, 클라이언트 번들에 노출되는 설계상 공개값)에서 빌드 타임에 로드된다 — GitHub Secrets 미사용. 값 변경 시 이 파일을 직접 수정.
 
 ## .env 내용
 
-`NEXT_PUBLIC_*`는 빌드 타임에 이미지에 인라인되므로 서버 `.env`에 다시 넣을 필요 없다. 서버 `.env`에는 Caddyfile 치환용 도메인과 kista-ui 컨테이너가 런타임에 읽는 `API_BASE_URL`만 있으면 된다 — kista-api/fida와 동일하게 Actions가 덮어쓰지 않는 값이라 `.env`로 관리한다(코드 변경 없이 서버에서 바로 재지정 가능).
+`NEXT_PUBLIC_*`는 빌드 타임에 이미지에 인라인되므로 서버 `.env`에 다시 넣을 필요 없다. 서버 `.env`에는 kista-ui 컨테이너가 런타임에 읽는 `API_BASE_URL`만 있으면 된다 — kista-api/fida와 동일하게 Actions가 덮어쓰지 않는 값이라 `.env`로 관리한다(코드 변경 없이 서버에서 바로 재지정 가능).
 
 ```dotenv
 UI_DOMAIN=kista-app.com
@@ -80,18 +70,14 @@ API_BASE_URL=https://api.kista-app.com
 **`workflow_dispatch` 최초 수동 배포가 2026-08-04에 성공**해 `push: main` 자동 배포로 전환 완료 — kista-api/fida와 동일한 트리거 구조다. (전환 전에는 서버·Secrets 준비 없이 push가 켜져 있으면 배포 job이 빈 `SERVER_HOST`/`SERVER_SSH_KEY`로 실패하고 `build` job은 빈 `NEXT_PUBLIC_*`로도 조용히 성공해 GHCR `:latest`가 오염되는 위험이 있어 순서를 지켰다.)
 
 1. `main` push 또는 `workflow_dispatch` → `verify` job (`npm run typecheck`, `npm run test:run`)
-2. Docker 이미지 빌드(`build-args`로 9개 `NEXT_PUBLIC_*` 주입) → GHCR push
-3. SSH로 `docker-compose.yml`/`Caddyfile` 업로드
-4. `docker compose pull kista-ui && docker compose up -d --no-deps kista-ui` (caddy는 routine 배포에서 제외 — blast-radius 격리)
+2. Docker 이미지 빌드(`.env.production.public`에서 읽은 9개 `NEXT_PUBLIC_*`를 build-args로 주입) → GHCR push
+3. SSH로 `docker-compose.yml` 업로드
+4. `docker compose pull kista-ui && docker compose up -d --no-deps kista-ui` (caddy는 kista-infra 소관 — 이 워크플로 관여 없음)
 5. 헬스 게이트: 호스트에서 `docker inspect --format '{{.State.Health.Status}}' kista-ui`로 컨테이너 헬스 상태를 10초 간격 최대 5분(300초) 폴링
 6. 실패 시 이전 이미지로 자동 롤백
 7. Caddy `lb_try_duration 120s`가 컨테이너 재시작 공백을 클라이언트에 투명하게 처리
 
 kista-api와 달리 매매 시간대 배포 가드는 불필요하다 — kista-ui는 로그인·조회 UI일 뿐 트레이딩 로직을 직접 실행하지 않는다.
-
-## 최초 배포 시 주의
-
-**caddy 컨테이너가 최초 1회는 반드시 별도로 기동돼야 한다** — routine 배포가 `--no-deps kista-ui`로 caddy를 건드리지 않기 때문에, `docker-compose.yml`을 서버에 올린 뒤 최초 1회는 수동으로 `docker compose up -d caddy`를 실행해야 한다(fida 마이그레이션에서 이 단계를 빠뜨려 caddy가 영원히 안 뜨는 버그가 실제로 있었다). 워크플로의 배포 스텝은 매번 `docker compose up -d caddy`도 함께 실행하도록 작성돼 있어(이미지 태그 고정이라 기존 caddy는 무변경, 없을 때만 생성) 이 함정을 처음부터 피한다.
 
 ## 롤백 Runbook
 
