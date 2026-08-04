@@ -141,3 +141,5 @@ graph LR
 GitHub `main` push 시 GitHub Actions가 arm64 Docker 이미지를 빌드해 OCI 인스턴스(`kista-ui-server`)에 배포한다 — 상세: `deploy/server/README.md`. Docker 로컬 실행은 `docker compose up -d --build`.
 
 Vercel에서 운영하던 이전 배포(`narafus-projects/kista-ui`)는 2026-08-04 OCI 커트오버 검증 완료 후 프로젝트째 삭제했다.
+
+`kista-infra`(private) 레포로 Caddy가 이관되는 설정이 준비 완료되었다(아직 미적용). 전환 후 이 레포는 `kista-ui` 컨테이너 하나만 배포·운영한다.
