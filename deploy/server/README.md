@@ -124,4 +124,4 @@ docker compose up -d --no-deps kista-ui
 - [x] `../kista-api` 저장소 `.env`의 `CORS_ALLOWED_ORIGINS`에 새 도메인 추가 + 재배포 (별도 저장소 작업) — 2026-08-04, preflight `access-control-allow-origin` 응답으로 확인
 - [x] 로그인 리다이렉트 스모크 테스트(카카오 OAuth `client_id`/`redirect_uri` 수락 확인) — 2026-08-04. **실제 계정 인증까지 완료한 end-to-end 로그인 테스트는 아님** — 실사용자 카카오 계정 필요, 별도 확인 필요
 - [x] Reserved IP 전환 — 2026-08-04, `134.185.118.35`, DNS·GitHub Secret `SERVER_HOST` 동반 갱신
-- [ ] Vercel 프로젝트(`narafus-projects/kista-ui`) 정리 여부 재확인 — OCI 검증 완료 후 결정 (지금은 유지)
+- [x] Vercel 프로젝트(`narafus-projects/kista-ui`) 삭제 — 2026-08-04, `vercel project remove`. GitHub 연동 해제만으로는 옛 배포가 CORS·카카오 redirect 유효한 채로 계속 살아있어 실거래 가능한 프로덕션 표면으로 남는 문제가 있어 완전 삭제로 결정

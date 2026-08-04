@@ -140,4 +140,4 @@ graph LR
 
 GitHub `main` push 시 GitHub Actions가 arm64 Docker 이미지를 빌드해 OCI 인스턴스(`kista-ui-server`)에 배포한다 — 상세: `deploy/server/README.md`. Docker 로컬 실행은 `docker compose up -d --build`.
 
-Vercel(`narafus-projects/kista-ui`)은 2026-08-04 OCI 커트오버 이후 GitHub 연동을 해제했다 — 더 이상 자동 배포 대상이 아니며 프로젝트는 롤백 대비로만 유지 중이다.
+Vercel에서 운영하던 이전 배포(`narafus-projects/kista-ui`)는 2026-08-04 OCI 커트오버 검증 완료 후 프로젝트째 삭제했다.

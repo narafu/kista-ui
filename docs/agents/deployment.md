@@ -40,17 +40,13 @@ docker compose logs              # 로그 확인
 - Node.js 22 고정 필수 (undici v8 호환, 20으로 다운그레이드 금지)
 - 세부 쿠키, 프록시, Route Handler quirk는 `app/CLAUDE.md` 참고
 
-## Vercel 배포 (커트오버 완료 — GitHub 연동 해제됨, 프로젝트는 유지)
+## Vercel 배포 (종료됨, 2026-08-04)
 
-- 프로젝트: `narafus-projects/kista-ui` (ID: `prj_bSRl2Q8cUSpdMgeYwpUmptyoiMfi`)
-- **2026-08-04 OCI 커트오버 검증 완료 후 `vercel git disconnect`로 GitHub 연동 해제** — `main` push에도 더 이상 Vercel 재배포가 트리거되지 않는다. 프로젝트·배포 이력·env var는 롤백 대비 그대로 유지(완전 삭제는 보류).
-- 재연동이 필요하면: `vercel git connect --scope narafus-projects`
-- `NEXT_PUBLIC_*` 값 조회(참고용, 이제 런타임에 영향 없음): `vercel link --scope narafus-projects --project prj_...` 후 `vercel env ls production` — Firebase 관련 값은 Sensitive로 표시돼 CLI 재조회 불가(최초 등록 시에만 값 확인 가능)
-- 운영 로그: `vercel logs --scope narafus-projects --json` (연동 해제 후에는 과거 로그만 조회 가능)
+kista-ui는 더 이상 Vercel에서 운영되지 않는다. OCI 커트오버 검증(카카오 로그인 e2e 포함) 완료 후 `vercel git disconnect`로 GitHub 연동을 먼저 끊었으나, 옛 배포가 CORS·카카오 redirect 설정이 유효한 채로 계속 살아있어 실거래 가능한 프로덕션 표면으로 남는 문제가 있어 `vercel project remove kista-ui`로 프로젝트 자체를 완전히 삭제했다. `kista-ui.vercel.app`·`kista-ui-narafus-projects.vercel.app` 모두 404. 배포 이력·env var 복구 불가 — 재구축 필요 시 `vercel project add`부터 새로 시작해야 한다.
 
 ## OCI 배포 (커트오버 완료, 2026-08-04)
 
-kista-api·fida에 이어 kista-ui도 Vercel에서 OCI(Oracle Cloud, arm64) 단일 인스턴스로 완전히 이전했다. 실서비스는 이제 OCI 단독 운영이며, Vercel은 프로젝트만 롤백 대비로 남겨둔 상태다.
+kista-api·fida에 이어 kista-ui도 Vercel에서 OCI(Oracle Cloud, arm64) 단일 인스턴스로 완전히 이전했다. Vercel 프로젝트 자체가 삭제됐으므로 이제 OCI가 유일한 운영 환경이다.
 
 - 인스턴스: `kista-ui-server`, `VM.Standard.A1.Flex`(1 OCPU/6GB/부트 50GB), kista-api·fida와 동일 VCN이되 별도 인스턴스·별도 공인 IP(Reserved, `134.185.118.35`)
 - 배포 파일: `deploy/server/{docker-compose.yml,Caddyfile,README.md}`(초기 서버 설정·GitHub Secrets·롤백 runbook·커트오버 체크리스트 상세), `.github/workflows/server-deploy.yml`
