@@ -58,7 +58,7 @@
 
 ## .env 내용
 
-`NEXT_PUBLIC_*`는 빌드 타임에 이미지에 인라인되므로 서버 `.env`에 다시 넣을 필요 없다. 서버 `.env`에는 kista-ui 컨테이너가 런타임에 읽는 `API_BASE_URL`만 있으면 된다 — kista-api/fida와 동일하게 Actions가 덮어쓰지 않는 값이라 `.env`로 관리한다(코드 변경 없이 서버에서 바로 재지정 가능).
+`NEXT_PUBLIC_*`는 빌드 타임에 이미지에 인라인되므로 서버 `.env`에 다시 넣을 필요 없다. 서버 `.env`에는 `UI_DOMAIN`(kista-infra Caddy가 참조)과 `API_BASE_URL`(kista-ui 런타임) 2개가 필요하다 — kista-api/fida와 동일하게 Actions가 덮어쓰지 않는 값이라 `.env`로 관리한다(코드 변경 없이 서버에서 바로 재지정 가능).
 
 ```dotenv
 UI_DOMAIN=kista-app.com
