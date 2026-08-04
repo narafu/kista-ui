@@ -6,7 +6,7 @@
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4-38bdf8)
 
 KISTA(Key Investment Strategy & Trading Automation) — 정밀한 투자 전략을 기반으로 작동하는 다중 증권사 통합 자동매매 SaaS의 프론트엔드.
-백엔드는 별도 저장소 [`kista-api`](https://github.com/narafu/kista-api)(Java 21 + Spring Boot 3, Fly.io)와 연동한다.
+백엔드는 별도 저장소 [`kista-api`](https://github.com/narafu/kista-api)(Java 21 + Spring Boot 3, OCI)와 연동한다.
 
 ## 기술 스택
 
@@ -22,14 +22,14 @@ graph TB
         Browser["브라우저 / PWA"]
     end
 
-    subgraph Vercel["Vercel — kista-ui (Next.js 16)"]
+    subgraph OCIUI["OCI — kista-ui (Next.js 16, Docker + Caddy)"]
         Proxy["proxy.ts (Edge)<br/>인증 상태 라우팅"]
         RSC["Server Component<br/>apiFetch (token 필요)"]
         RouteHandler["Route Handler<br/>(catch-all proxy)"]
         ClientComp["Client Component<br/>clientFetch"]
     end
 
-    subgraph Fly["Fly.io — kista-api (Spring Boot)"]
+    subgraph OCIAPI["OCI — kista-api (Spring Boot)"]
         Web["adapter/in/web<br/>REST Controller"]
         Security["JwtAuthFilter /<br/>InternalTokenAuthFilter"]
         App["application/service<br/>UseCase 구현체"]
@@ -75,7 +75,7 @@ graph TB
     AdapterOut --> Alpaca
 ```
 
-**핵심 원칙**: Client Component는 kista-api를 절대 직접 호출하지 않는다. 쿠키(HttpOnly RT, 인증 상태 캐시) 처리와 CORS 회피를 위해 항상 Next.js Route Handler를 경유한다. Server Component는 서버 간 호출이므로 `apiFetch`로 직접 호출하지만 이 역시 CORS 대상이다(`CORS_ALLOWED_ORIGINS`에 Vercel 도메인 등록 필요).
+**핵심 원칙**: Client Component는 kista-api를 절대 직접 호출하지 않는다. 쿠키(HttpOnly RT, 인증 상태 캐시) 처리와 CORS 회피를 위해 항상 Next.js Route Handler를 경유한다. Server Component는 서버 간 호출이므로 `apiFetch`로 직접 호출하지만 이 역시 CORS 대상이다(`CORS_ALLOWED_ORIGINS`에 kista-ui 도메인 등록 필요 — kista-ui·kista-api가 서로 다른 OCI 인스턴스라 같은 VCN이어도 CORS 검증 대상).
 
 ### 계층 구조 (FSD)
 
@@ -138,4 +138,6 @@ graph LR
 
 ## 배포
 
-GitHub `main` push 시 Vercel 자동 배포. Docker 로컬 실행은 `docker compose up -d --build`.
+GitHub `main` push 시 GitHub Actions가 arm64 Docker 이미지를 빌드해 OCI 인스턴스(`kista-ui-server`)에 배포한다 — 상세: `deploy/server/README.md`. Docker 로컬 실행은 `docker compose up -d --build`.
+
+Vercel(`narafus-projects/kista-ui`)은 2026-08-04 OCI 커트오버 이후 GitHub 연동을 해제했다 — 더 이상 자동 배포 대상이 아니며 프로젝트는 롤백 대비로만 유지 중이다.
