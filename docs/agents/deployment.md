@@ -49,9 +49,9 @@ kista-ui는 더 이상 Vercel에서 운영되지 않는다. OCI 커트오버 검
 kista-api·fida에 이어 kista-ui도 Vercel에서 OCI(Oracle Cloud, arm64) 단일 인스턴스로 완전히 이전했다. Vercel 프로젝트 자체가 삭제됐으므로 이제 OCI가 유일한 운영 환경이다.
 
 - 인스턴스: `kista-ui-server`, `VM.Standard.A1.Flex`(1 OCPU/6GB/부트 50GB), kista-api·fida와 동일 VCN이되 별도 인스턴스·별도 공인 IP(Reserved, `134.185.118.35`)
-- 배포 파일: `deploy/server/{docker-compose.yml,Caddyfile,README.md}`(초기 서버 설정·GitHub Secrets·롤백 runbook·커트오버 체크리스트 상세), `.github/workflows/server-deploy.yml`
+- 배포 파일: `deploy/server/{docker-compose.yml,README.md}`(초기 서버 설정·롤백 runbook·커트오버 체크리스트 상세), `.github/workflows/server-deploy.yml`
 - 도메인: apex `kista-app.com` (kista-api `api.kista-app.com`, fida `fida.kista-app.com`와 구분)
 - 헬스체크 대상: `app/api/health/route.ts` — 인증 불필요, Caddy·Docker healthcheck 공용
-- `NEXT_PUBLIC_*` 9개는 이미지 빌드 타임에 인라인되므로 GitHub Secrets에 등록되어 있다(Vercel 대시보드와 별개 저장소)
+- `NEXT_PUBLIC_*` 9개는 이미지 빌드 타임에 인라인되며, 레포 루트 `.env.production.public`(평문 커밋)에서 로드된다(2026-08-04 GitHub Secrets 방식에서 전환 — 공개 클라이언트 번들 노출값이라 평문 커밋이 안전하다는 판단, kista-infra 자체 호스팅 인프라 전환 작업의 일부)
 - `server-deploy.yml` 트리거는 `push: main`(kista-api/fida와 동일)
 - 세부 절차는 `deploy/server/README.md`가 SSOT — 이 문서에는 요약만 유지
