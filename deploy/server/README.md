@@ -11,7 +11,7 @@
 
 ```text
 /opt/kista-ui/
-├── .env                    ← 서버에서 직접 관리 (Actions에서 덮어쓰지 않음)
+├── .env                    ← kista-infra 배포 워크플로가 매 배포마다 렌더링·덮어씀
 └── docker-compose.yml      ← GitHub Actions 업로드
 ```
 
@@ -63,7 +63,7 @@
 
 ## .env 내용
 
-`NEXT_PUBLIC_*`는 빌드 타임에 이미지에 인라인되므로 서버 `.env`에 다시 넣을 필요 없다. 서버 `.env`에는 `API_BASE_URL`(kista-ui 런타임이 실제로 소비 — `environment:`로 컨테이너에 주입됨)과 `UI_DOMAIN` 2개가 있다. **`UI_DOMAIN`은 이 레포의 스택에서는 더 이상 아무것도 소비하지 않는 사실상 흔적값이다** — kista-infra의 Caddy는 자신의 `/opt/kista-infra/.env`(`infra.env.gpg`에서 렌더링)에 담긴 자체 `UI_DOMAIN`을 참조하며, kista-ui의 `docker-compose.yml`도 더 이상 `UI_DOMAIN`을 읽지 않는다. `server-deploy.yml`의 필수 키 검증(`for key in UI_DOMAIN API_BASE_URL`)이 여전히 이 값의 존재를 요구하므로 `.env`에는 계속 채워둬야 한다. Actions가 덮어쓰지 않는 값이라 `.env`로 관리한다(코드 변경 없이 서버에서 바로 재지정 가능).
+`NEXT_PUBLIC_*`는 빌드 타임에 이미지에 인라인되므로 서버 `.env`에 다시 넣을 필요 없다. 서버 `.env`에는 `API_BASE_URL`(kista-ui 런타임이 실제로 소비 — `environment:`로 컨테이너에 주입됨)과 `UI_DOMAIN` 2개가 있다. **`UI_DOMAIN`은 이 레포의 스택에서는 더 이상 아무것도 소비하지 않는 사실상 흔적값이다** — kista-infra의 Caddy는 자신의 `/opt/kista-infra/.env`(`infra.env.gpg`에서 렌더링)에 담긴 자체 `UI_DOMAIN`을 참조하며, kista-ui의 `docker-compose.yml`도 더 이상 `UI_DOMAIN`을 읽지 않는다. `server-deploy.yml`의 필수 키 검증(`for key in UI_DOMAIN API_BASE_URL`)이 여전히 이 값의 존재를 요구하므로 `.env`에는 계속 채워둬야 한다. 이 `.env` 자체는 `kista-infra`의 배포 워크플로가 `secrets/kista-ui.env.gpg`에서 매 배포마다 렌더링·덮어쓴다 — 값을 바꾸려면 kista-infra의 `scripts/env.sh edit kista-ui`로 암호화 파일을 직접 수정해야 하며, 서버 `.env`를 직접 편집해도 다음 kista-infra 배포 때 덮어써진다.
 
 ```dotenv
 UI_DOMAIN=kista-app.com
