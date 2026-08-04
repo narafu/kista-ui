@@ -18,6 +18,7 @@ jobs:
   verify:
     name: Typecheck & Test
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -40,6 +41,10 @@ jobs:
     name: Build & Push Image
     runs-on: ubuntu-latest
     needs: verify
+    # 실측: 정상 8~9분. QEMU arm64 에뮬레이션이 간헐적으로 "Illegal instruction"으로
+    # 크래시한 뒤 job이 실패 처리되지 않고 무한 대기한 사례가 있어(2026-08-04, 취소 전까지 29분+
+    # 점유) 타임아웃을 명시한다 — 정상 소요 대비 2배 이상 여유
+    timeout-minutes: 20
     outputs:
       image: ${{ steps.image.outputs.image }}
       latest: ${{ steps.image.outputs.latest }}
@@ -92,6 +97,8 @@ jobs:
     concurrency: server-production
     environment:
       name: production
+    # 헬스 게이트 내부 폴링이 최대 5분 — SSH·업로드 오버헤드 포함 여유
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
 
