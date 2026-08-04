@@ -1,5 +1,10 @@
 # Server deployment (OCI)
 
+> ⚠️ **배포 전 필독 — 이 브랜치를 아직 `main`에 병합하지 말 것**
+> 이 문서와 `server-deploy.yml`은 `kista-infra` 레포(Caddy·Postgres·Redis 소유)가 실제로 서버에 배포된 **이후** 상태를 전제로 작성됐다.
+> `kista-infra`가 아직 배포되지 않은 시점에 이 브랜치를 `main`에 병합하면 `push: main` 트리거로 `server-deploy.yml`이 즉시 자동 실행되어 `shared_net`이 없는 상태로 배포가 시도되고, kista-api 쪽에서는 `--remove-orphans` 없는 재기동으로 구 caddy/redis 컨테이너가 orphan 처리되어 Caddy 라우팅이 끊기는 장애로 이어진다.
+> **병합 가능 조건**: kista-infra의 Phase 0(인스턴스 재편) + kista-infra 자체 최초 배포(`kista-infra/.github/workflows/server-deploy.yml` 성공 실행)가 완료된 뒤에만 이 브랜치를 `main`에 병합할 것.
+
 `kista-ui`를 단일 인스턴스(OCI `kista-ui-server`)에서 Docker Compose로 운영한다(Caddy는 kista-infra 레포가 전담). `kista-api`·`fida`와 동일 VCN/서브넷(`ap-chuncheon-1` AD-1)에 위치하되 **별도 인스턴스·별도 공인 IP**로 분리되어 있다.
 
 ## 서버 레이아웃
@@ -58,7 +63,7 @@
 
 ## .env 내용
 
-`NEXT_PUBLIC_*`는 빌드 타임에 이미지에 인라인되므로 서버 `.env`에 다시 넣을 필요 없다. 서버 `.env`에는 `UI_DOMAIN`(kista-infra Caddy가 참조)과 `API_BASE_URL`(kista-ui 런타임) 2개가 필요하다 — kista-api/fida와 동일하게 Actions가 덮어쓰지 않는 값이라 `.env`로 관리한다(코드 변경 없이 서버에서 바로 재지정 가능).
+`NEXT_PUBLIC_*`는 빌드 타임에 이미지에 인라인되므로 서버 `.env`에 다시 넣을 필요 없다. 서버 `.env`에는 `API_BASE_URL`(kista-ui 런타임이 실제로 소비 — `environment:`로 컨테이너에 주입됨)과 `UI_DOMAIN` 2개가 있다. **`UI_DOMAIN`은 이 레포의 스택에서는 더 이상 아무것도 소비하지 않는 사실상 흔적값이다** — kista-infra의 Caddy는 자신의 `/opt/kista-infra/.env`(`infra.env.gpg`에서 렌더링)에 담긴 자체 `UI_DOMAIN`을 참조하며, kista-ui의 `docker-compose.yml`도 더 이상 `UI_DOMAIN`을 읽지 않는다. `server-deploy.yml`의 필수 키 검증(`for key in UI_DOMAIN API_BASE_URL`)이 여전히 이 값의 존재를 요구하므로 `.env`에는 계속 채워둬야 한다. Actions가 덮어쓰지 않는 값이라 `.env`로 관리한다(코드 변경 없이 서버에서 바로 재지정 가능).
 
 ```dotenv
 UI_DOMAIN=kista-app.com
