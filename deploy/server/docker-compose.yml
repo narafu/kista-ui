@@ -13,7 +13,9 @@ services:
     mem_limit: 1536m   # Next.js standalone 서버 — 캐디(64m) 제외 6GB 중 넉넉한 상한, 유일한 앱 서비스라 여유 큼
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      # localhost는 컨테이너 내부에서 ::1(IPv6)로 먼저 풀리는데 Next.js는 HOSTNAME=0.0.0.0(IPv4)으로만 바인딩돼 connection refused —
+      # 127.0.0.1로 명시해 IPv6 루프백 해석을 우회한다 (실측: OCI 최초 배포에서 앱은 정상 응답했지만 헬스체크만 계속 unhealthy로 오판)
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
       interval: 30s
       timeout: 5s
       start_period: 30s
