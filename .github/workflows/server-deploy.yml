@@ -72,8 +72,16 @@ jobs:
 
       - name: Load public NEXT_PUBLIC_* build values
         # NEXT_PUBLIC_* 9개는 클라이언트 번들에 그대로 노출되는 공개값이라 평문 파일로 레포에 커밋되어 있음(.env.production.public) —
-        # 더 이상 GitHub Secrets를 참조하지 않고 파일에서 읽어 GITHUB_ENV로 로드한다
-        run: cat .env.production.public >> "$GITHUB_ENV"
+        # 더 이상 GitHub Secrets를 참조하지 않고 파일에서 읽어 GITHUB_ENV로 로드한다.
+        # 주석/빈 줄은 GITHUB_ENV 파서가 KEY=VALUE 형식이 아니면 거부하므로 반드시 걸러낸다.
+        # 값이 비어 있으면(레포 커밋 시점 플레이스홀더 그대로 방치된 경우) 클라이언트 번들에 빈 값이 조용히
+        # 인라인되는 사고를 막기 위해 빌드 자체를 실패시킨다 — 실제 값은 사용자가 .env.production.public을
+        # 직접 채워야 한다.
+        run: |
+          grep -vE '^[[:space:]]*(#|$)' .env.production.public >> "$GITHUB_ENV"
+          while IFS='=' read -r k v; do
+            [ -n "$v" ] || { echo "::error::.env.production.public 값 미기입: ${k}"; exit 1; }
+          done < <(grep -vE '^[[:space:]]*(#|$)' .env.production.public)
 
       - name: Build and push
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
