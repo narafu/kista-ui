@@ -20,10 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
           cache: 'npm'
@@ -49,7 +49,7 @@ jobs:
       image: ${{ steps.image.outputs.image }}
       latest: ${{ steps.image.outputs.latest }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Set image name
         id: image
@@ -59,19 +59,24 @@ jobs:
           echo "latest=${repo}:latest" >> "$GITHUB_OUTPUT"
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
       - name: Log in to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Load public NEXT_PUBLIC_* build values
+        # NEXT_PUBLIC_* 9개는 클라이언트 번들에 그대로 노출되는 공개값이라 평문 파일로 레포에 커밋되어 있음(.env.production.public) —
+        # 더 이상 GitHub Secrets를 참조하지 않고 파일에서 읽어 GITHUB_ENV로 로드한다
+        run: cat .env.production.public >> "$GITHUB_ENV"
+
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: .
           push: true
@@ -80,15 +85,15 @@ jobs:
             ${{ steps.image.outputs.image }}
             ${{ steps.image.outputs.latest }}
           build-args: |
-            NEXT_PUBLIC_KAKAO_CLIENT_ID=${{ secrets.NEXT_PUBLIC_KAKAO_CLIENT_ID }}
-            NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
-            NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
-            NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
-            NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
-            NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
-            NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
-            NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
-            NEXT_PUBLIC_FIREBASE_VAPID_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_VAPID_KEY }}
+            NEXT_PUBLIC_KAKAO_CLIENT_ID=${{ env.NEXT_PUBLIC_KAKAO_CLIENT_ID }}
+            NEXT_PUBLIC_API_BASE_URL=${{ env.NEXT_PUBLIC_API_BASE_URL }}
+            NEXT_PUBLIC_FIREBASE_API_KEY=${{ env.NEXT_PUBLIC_FIREBASE_API_KEY }}
+            NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+            NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ env.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+            NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+            NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+            NEXT_PUBLIC_FIREBASE_APP_ID=${{ env.NEXT_PUBLIC_FIREBASE_APP_ID }}
+            NEXT_PUBLIC_FIREBASE_VAPID_KEY=${{ env.NEXT_PUBLIC_FIREBASE_VAPID_KEY }}
 
   deploy:
     name: Deploy to Server
@@ -100,7 +105,7 @@ jobs:
     # 헬스 게이트 내부 폴링이 최대 5분 — SSH·업로드 오버헤드 포함 여유
     timeout-minutes: 12
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Configure SSH
         env:
@@ -122,7 +127,6 @@ jobs:
           ssh -i ~/.ssh/deploy_key -p "$SERVER_SSH_PORT" "$SERVER_USER@$SERVER_HOST" "mkdir -p '${DEPLOY_PATH}'"
           scp -i ~/.ssh/deploy_key -P "$SERVER_SSH_PORT" \
             deploy/server/docker-compose.yml \
-            deploy/server/Caddyfile \
             "$SERVER_USER@$SERVER_HOST:${DEPLOY_PATH}/"
 
       - name: Deploy application
@@ -148,13 +152,13 @@ jobs:
             PREV_IMAGE=$(docker compose ps kista-ui --format '{{.Image}}' 2>/dev/null || echo "")
             echo "$PREV_IMAGE" > /tmp/kista-ui-prev-image
 
-            # GHCR 로그인 + kista-ui만 타겟 배포 (caddy 재생성 방지)
+            # GHCR 로그인 + kista-ui 배포
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
             export KISTA_UI_IMAGE
             docker compose pull kista-ui
+            # shared_net은 kista-infra가 생성하는 external 네트워크 — kista-infra가 아직 안 뜬 최초 배포 순서 방어
+            docker network create shared_net 2>/dev/null || true
             docker compose up -d --no-deps kista-ui
-            # caddy는 이미지 태그가 고정(caddy:2.9-alpine)이라 재생성되지 않고, 없으면 최초 생성됨 — 최초 배포 시 caddy가 영원히 안 뜨는 문제 방지
-            docker compose up -d caddy
           ENDSSH
 
       - name: Health gate & auto-rollback

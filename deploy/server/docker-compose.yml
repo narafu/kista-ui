@@ -1,6 +1,8 @@
 # 단일 인스턴스 배포용 Docker Compose (OCI arm64, kista-ui-server 전용)
 # NEXT_PUBLIC_* 는 빌드 타임에 이미지에 이미 인라인되어 있음 — 여기서는 런타임 값(API_BASE_URL)만 주입한다.
 # UI_DOMAIN/API_BASE_URL은 .env(서버 직접 관리)에서 읽는다 — kista-api/fida 패턴과 동일하게 Actions가 덮어쓰지 않는 값은 .env로 유지
+# caddy는 더 이상 이 파일 소관이 아님 — kista-infra 레포의 Caddy(리버스 프록시)가 api/ui 도메인을 함께 처리하고,
+# 이 서비스는 shared_net으로만 붙어 caddy가 라우팅할 수 있게 한다 (postgres/redis가 있는 data_net은 미가입 — UI는 직접 접근 불필요)
 
 services:
   kista-ui:
@@ -10,7 +12,9 @@ services:
       API_BASE_URL: ${API_BASE_URL}   # 서버 전용, NEXT_PUBLIC_API_BASE_URL보다 우선 (shared/lib/env.ts) — .env(compose 자동 로드)에서 치환
     expose:
       - "3000"
-    mem_limit: 1536m   # Next.js standalone 서버 — 캐디(64m) 제외 6GB 중 넉넉한 상한, 유일한 앱 서비스라 여유 큼
+    networks:
+      - shared_net   # kista-infra의 caddy가 리버스 프록시하는 공용 네트워크 — data_net(postgres/redis)은 가입하지 않음
+    mem_limit: 1536m   # Next.js standalone 서버 — 유일한 앱 서비스라 여유 큼
     restart: unless-stopped
     healthcheck:
       # localhost는 컨테이너 내부에서 ::1(IPv6)로 먼저 풀리는데 Next.js는 HOSTNAME=0.0.0.0(IPv4)으로만 바인딩돼 connection refused —
@@ -26,27 +30,6 @@ services:
         max-size: "50m"
         max-file: "5"
 
-  caddy:
-    image: caddy:2.9-alpine   # 버전 핀 — 무빙 태그 방지
-    container_name: kista-ui-caddy
-    environment:
-      UI_DOMAIN: ${UI_DOMAIN}   # env_file(.env 전체 주입) 대신 필요한 값만 — fida 패턴과 동일하게 향후 .env에 다른 값이 추가돼도 리버스 프록시 컨테이너에 노출되지 않도록
-    # depends_on 제거 — lb_try_duration이 기동 순서 보장, 리부트 시 caddy 선기동 가능
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    mem_limit: 64m
-    restart: unless-stopped
-    logging:
-      driver: json-file
-      options:
-        max-size: "20m"
-        max-file: "3"
-
-volumes:
-  caddy_data:
-  caddy_config:
+networks:
+  shared_net:
+    external: true   # kista-infra의 docker-compose.yml이 생성 — 이 파일은 참여만 함
