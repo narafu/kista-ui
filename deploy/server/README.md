@@ -13,9 +13,10 @@
 
 ## 초기 서버 설정 (최초 1회)
 
-1. OCI 인스턴스(이미 생성됨): `kista-ui-server`, `VM.Standard.A1.Flex`(Ampere arm64), 1 OCPU, 6GB RAM, 부트 볼륨 50GB, Ubuntu 24.04 LTS — **arm64이므로 배포 워크플로가 `linux/arm64`로 이미지를 빌드한다**. 공인 IP `168.107.60.243`는 아직 **임시(ephemeral)** — Reserved 아님. 배포 검증 끝나기 전에 인스턴스를 재생성할 일이 생기면 이 IP가 바뀔 수 있다.
-2. 도메인 A 레코드: apex `kista-app.com` → 임시 IP `168.107.60.243` (검증 완료 후 Reserved IP로 전환하며 A 레코드 값도 함께 갱신). **DNS 제공자가 프록시 기능을 지원하면(예: Cloudflare) 반드시 "DNS only"(프록시 끔, 회색 구름)로 설정** — 켜져 있으면 Caddy의 Let's Encrypt 자동 인증서 발급(HTTP-01 challenge)이 실패한다.
-   - **예약(Reserved) 공인 IP로 무중단 호스트 교체**: 새 인스턴스를 임시 공인 IP로 완전히 기동·스모크 테스트한 뒤 예약 IP만 `oci network public-ip update --private-ip-id <새 인스턴스 private-ip-ocid>`로 재할당하면 된다 — 도메인·DNS·GitHub Secret(`SERVER_HOST`) 변경 없이 호스트를 교체할 수 있다.
+1. OCI 인스턴스(이미 생성됨): `kista-ui-server`, `VM.Standard.A1.Flex`(Ampere arm64), 1 OCPU, 6GB RAM, 부트 볼륨 50GB, Ubuntu 24.04 LTS — **arm64이므로 배포 워크플로가 `linux/arm64`로 이미지를 빌드한다**. 공인 IP는 `134.185.118.35`(Reserved, 2026-08-04 전환 완료).
+2. 도메인 A 레코드: apex `kista-app.com` → `134.185.118.35`. **DNS 제공자가 프록시 기능을 지원하면(예: Cloudflare) 반드시 "DNS only"(프록시 끔, 회색 구름)로 설정** — 켜져 있으면 Caddy의 Let's Encrypt 자동 인증서 발급(HTTP-01 challenge)이 실패한다.
+   - **임시(ephemeral) IP → Reserved IP 최초 전환은 같은 IP를 유지하며 승격하는 기능이 없다**: OCI가 ephemeral IP를 다른 private IP로 옮기는 것 자체를 지원하지 않아(`oci network public-ip update --help` 확인), 새 Reserved IP를 별도로 생성한 뒤 기존 ephemeral IP를 삭제하고 그 자리에 재할당해야 한다 — **IP 주소가 바뀐다.** 인스턴스 자체는 그대로라 SSH·Docker 컨테이너·Caddy의 기존 TLS 인증서(`caddy_data` 볼륨)는 영향 없지만, DNS A 레코드와 GitHub Secret `SERVER_HOST`는 반드시 새 IP로 갱신해야 한다.
+   - **예약(Reserved) 공인 IP로 무중단 호스트 교체**(향후 인스턴스 재생성 시나리오 — 위 최초 전환과는 다른 상황): 이미 Reserved IP가 있는 상태에서 새 인스턴스를 임시 공인 IP로 완전히 기동·스모크 테스트한 뒤 기존 예약 IP만 `oci network public-ip update --private-ip-id <새 인스턴스 private-ip-ocid>`로 재할당하면 된다 — 도메인·DNS·GitHub Secret(`SERVER_HOST`) 변경 없이 호스트를 교체할 수 있다.
 3. 인바운드 포트 개방 — 2단계:
    - OCI 콘솔: 인스턴스가 속한 VCN의 Security List(또는 연결된 NSG)에 Ingress Rule 확인 — TCP `80`, `443`, source `0.0.0.0/0` (`kista-api`/`fida`와 동일 서브넷이라 이미 상속돼 있을 가능성이 높음 — 실제 접속 테스트로 확인)
    - **주의**: OCI Ubuntu 이미지는 콘솔 레벨 방화벽 외에 OS 레벨에서도 `iptables`(netfilter-persistent)로 SSH 외 인바운드를 기본 차단해두는 경우가 있다. 콘솔에서 포트를 열었는데 접속이 안 되면 인스턴스에서 `sudo iptables -L INPUT -n --line-numbers`로 OS 방화벽 규칙을 먼저 확인할 것 — 막혀 있으면 80/443 허용 규칙 추가 후 `sudo netfilter-persistent save`로 저장한다
@@ -122,5 +123,5 @@ docker compose up -d --no-deps kista-ui
 - [x] 카카오 개발자 콘솔 redirect URI → `https://kista-app.com/auth/callback`으로 갱신 (`app/(auth)/login/page.tsx`가 `window.location.origin` 기반으로 동적 생성) — 2026-08-04
 - [x] `../kista-api` 저장소 `.env`의 `CORS_ALLOWED_ORIGINS`에 새 도메인 추가 + 재배포 (별도 저장소 작업) — 2026-08-04, preflight `access-control-allow-origin` 응답으로 확인
 - [x] 로그인 리다이렉트 스모크 테스트(카카오 OAuth `client_id`/`redirect_uri` 수락 확인) — 2026-08-04. **실제 계정 인증까지 완료한 end-to-end 로그인 테스트는 아님** — 실사용자 카카오 계정 필요, 별도 확인 필요
-- [ ] Reserved IP 전환: 검증 통과 후에만 `oci network public-ip update`로 임시 IP → Reserved IP 전환
+- [x] Reserved IP 전환 — 2026-08-04, `134.185.118.35`, DNS·GitHub Secret `SERVER_HOST` 동반 갱신
 - [ ] Vercel 프로젝트(`narafus-projects/kista-ui`) 정리 여부 재확인 — OCI 검증 완료 후 결정 (지금은 유지)
