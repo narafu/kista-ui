@@ -76,9 +76,9 @@ API_BASE_URL=https://api.kista-app.com
 
 ## 배포 흐름
 
-**현재 트리거는 `workflow_dispatch`(수동)만 활성화돼 있다** — `push: main` 자동 배포는 아직 켜지 않았다. 서버 초기 설정(위 섹션)과 GitHub Secrets 9+4종 등록이 끝나지 않은 상태로 `main`에 머지되면, `push` 트리거가 켜져 있을 경우 곧바로 배포 job이 빈 `SERVER_HOST`/`SERVER_SSH_KEY`로 실패하고 `build` job은 빈 `NEXT_PUBLIC_*`로도 조용히 성공해 GHCR `:latest`가 오염된다. 서버·Secrets 준비가 끝나고 `workflow_dispatch`로 최초 수동 배포가 성공한 뒤에만 `server-deploy.yml`의 `on:` 블록에 `push: branches: [main]`을 추가해 kista-api/fida와 동일한 자동 배포로 전환한다.
+**`workflow_dispatch` 최초 수동 배포가 2026-08-04에 성공**해 `push: main` 자동 배포로 전환 완료 — kista-api/fida와 동일한 트리거 구조다. (전환 전에는 서버·Secrets 준비 없이 push가 켜져 있으면 배포 job이 빈 `SERVER_HOST`/`SERVER_SSH_KEY`로 실패하고 `build` job은 빈 `NEXT_PUBLIC_*`로도 조용히 성공해 GHCR `:latest`가 오염되는 위험이 있어 순서를 지켰다.)
 
-1. `main` push(자동 배포 전환 후) 또는 `workflow_dispatch` → `verify` job (`npm run typecheck`, `npm run test:run`)
+1. `main` push 또는 `workflow_dispatch` → `verify` job (`npm run typecheck`, `npm run test:run`)
 2. Docker 이미지 빌드(`build-args`로 9개 `NEXT_PUBLIC_*` 주입) → GHCR push
 3. SSH로 `docker-compose.yml`/`Caddyfile` 업로드
 4. `docker compose pull kista-ui && docker compose up -d --no-deps kista-ui` (caddy는 routine 배포에서 제외 — blast-radius 격리)
@@ -114,13 +114,13 @@ docker compose up -d --no-deps kista-ui
 
 ## 커트오버 체크리스트
 
-- [ ] OCI 인스턴스 방화벽 확인(Security List/NSG + OS iptables) + 도메인 A 레코드(임시 IP)
-- [ ] `.env` 작성(`UI_DOMAIN`, `API_BASE_URL`)
-- [ ] GitHub Secrets 9개(`NEXT_PUBLIC_*`) + SSH 4종 등록 — 등록 전에는 `workflow_dispatch`를 실행하지 말 것(누락 시 값이 빈 문자열로 이미지에 인라인됨)
-- [ ] `docker compose up -d` 수동 실행 + 헬스체크 확인 (caddy 최초 수동 기동 포함)
-- [ ] `/api/health` 외부 접근 확인
-- [ ] 카카오 개발자 콘솔 redirect URI → `https://kista-app.com/auth/callback`으로 갱신 (`app/(auth)/login/page.tsx`가 `window.location.origin` 기반으로 동적 생성)
-- [ ] `../kista-api` 저장소 `.env`의 `CORS_ALLOWED_ORIGINS`에 새 도메인 추가 + 재배포 (별도 저장소 작업)
-- [ ] 실제 로그인·대시보드·거래 흐름 스모크 테스트
+- [x] OCI 인스턴스 방화벽 확인(Security List/NSG + OS iptables) + 도메인 A 레코드(임시 IP) — 2026-08-04
+- [x] `.env` 작성(`UI_DOMAIN`, `API_BASE_URL`) — 2026-08-04
+- [x] GitHub Secrets 9개(`NEXT_PUBLIC_*`) + SSH 3종(`SERVER_SSH_PORT`는 기본값 22라 생략) 등록 — 2026-08-04
+- [x] `docker compose up -d` 수동 실행 + 헬스체크 확인 (caddy 최초 수동 기동 포함) — 2026-08-04, Docker 헬스체크 `localhost`→`127.0.0.1` 수정 후 통과
+- [x] `/api/health` 외부 접근 확인 — 2026-08-04, Let's Encrypt 인증서 정상 발급 확인
+- [x] 카카오 개발자 콘솔 redirect URI → `https://kista-app.com/auth/callback`으로 갱신 (`app/(auth)/login/page.tsx`가 `window.location.origin` 기반으로 동적 생성) — 2026-08-04
+- [x] `../kista-api` 저장소 `.env`의 `CORS_ALLOWED_ORIGINS`에 새 도메인 추가 + 재배포 (별도 저장소 작업) — 2026-08-04, preflight `access-control-allow-origin` 응답으로 확인
+- [x] 로그인 리다이렉트 스모크 테스트(카카오 OAuth `client_id`/`redirect_uri` 수락 확인) — 2026-08-04. **실제 계정 인증까지 완료한 end-to-end 로그인 테스트는 아님** — 실사용자 카카오 계정 필요, 별도 확인 필요
 - [ ] Reserved IP 전환: 검증 통과 후에만 `oci network public-ip update`로 임시 IP → Reserved IP 전환
 - [ ] Vercel 프로젝트(`narafus-projects/kista-ui`) 정리 여부 재확인 — OCI 검증 완료 후 결정 (지금은 유지)

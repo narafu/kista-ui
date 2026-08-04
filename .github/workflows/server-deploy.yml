@@ -1,10 +1,10 @@
 name: Server Deploy
 
-# 자동 push 트리거는 아직 켜지 않았다 — 서버 초기 설정 + GitHub Secrets(9개 NEXT_PUBLIC_* + SSH 4종) 등록 후
-# workflow_dispatch로 최초 수동 배포가 성공하면 `push: branches: [main]`을 추가해 kista-api/fida와 동일하게 전환한다.
-# (deploy/server/README.md "배포 흐름" 참고 — 지금 push를 켜면 미준비 상태에서 배포 job이 실패하고
-#  build job은 빈 NEXT_PUBLIC_*로도 조용히 성공해 GHCR :latest가 오염된다)
+# workflow_dispatch 최초 수동 배포 성공(2026-08-04) 후 kista-api/fida와 동일하게 push:main 자동 배포로 전환.
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:

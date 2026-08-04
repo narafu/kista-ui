@@ -22,7 +22,7 @@ NEXT_PUBLIC_FIREBASE_VAPID_KEY=     # 웹 푸시 VAPID 인증서 키
 
 - Server Component fetch도 서버 간 호출이므로 CORS 영향이 있다. **주의: kista-ui 서버→kista-api 서버 간 통신은 물리적으로 다른 호스트(Vercel/OCI 무관)라 항상 CORS 검증 대상이다.**
 - kista-api 로그에 요청이 없는데 403이면 CORS 필터 차단 가능성을 먼저 본다
-- `CORS_ALLOWED_ORIGINS` 현재 값(Vercel 병행 운영 중): `https://kista-ui.vercel.app,https://kista-ui-narafus-projects.vercel.app` — OCI 도메인(`https://kista-app.com`) 커트오버 시 이 목록에 추가 필요(`../kista-api`의 서버 `.env`, 별도 저장소 작업)
+- `CORS_ALLOWED_ORIGINS` 현재 값(Vercel과 OCI 병행 운영 중): `https://kista-ui.vercel.app,https://kista-ui-narafus-projects.vercel.app,https://kista-app.com` (`../kista-api`의 서버 `.env`, 별도 저장소 작업, 2026-08-04 갱신)
 - `kista-api` 연동 변경이 있으면 `../kista-api/CLAUDE.md`와 함께 확인한다.
 - `kista-api`의 추가 운영/구현 규칙이 필요하면 `../kista-api/AGENTS.md`도 함께 확인한다.
 
@@ -58,5 +58,5 @@ kista-api·fida에 이어 kista-ui도 Vercel에서 OCI(Oracle Cloud, arm64) 단�
 - 도메인: apex `kista-app.com` (kista-api `api.kista-app.com`, fida `fida.kista-app.com`와 구분)
 - 헬스체크 대상: `app/api/health/route.ts` — 인증 불필요, Caddy·Docker healthcheck 공용
 - `NEXT_PUBLIC_*` 9개는 이미지 빌드 타임에 인라인되므로 GitHub Secrets에도 동일 값 등록 필요(Vercel 대시보드와 별개 저장소)
-- 현재 `server-deploy.yml` 트리거는 `workflow_dispatch`만 활성화 — 서버 초기 설정·Secrets 등록 후 최초 수동 배포 성공 시에만 `push: main` 자동 배포로 전환(상세: `deploy/server/README.md`)
+- `server-deploy.yml` 트리거는 `workflow_dispatch` 최초 수동 배포 성공(2026-08-04) 후 `push: main` 자동 배포로 전환 완료 — kista-api/fida와 동일
 - 세부 절차는 `deploy/server/README.md`가 SSOT — 이 문서에는 요약만 유지
