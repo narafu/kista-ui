@@ -7,11 +7,16 @@ import { DashboardOverview } from './DashboardOverview'
 
 interface Props {
   marketPanels: ReactNode
+  isAuthenticated: boolean
 }
 
-export function DashboardContent({ marketPanels }: Props) {
-  const query = useAccountsQuery()
+export function DashboardContent({ marketPanels, isAuthenticated }: Props) {
+  const query = useAccountsQuery({ enabled: isAuthenticated })
   const accounts = query.data
+
+  if (!isAuthenticated) {
+    return <DashboardEmpty marketPanels={marketPanels} />
+  }
 
   if (!accounts && query.isPending) {
     return (

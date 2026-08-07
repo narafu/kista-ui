@@ -115,7 +115,7 @@ sequenceDiagram
         API-->>P: UserStatus, UserRole
         P->>P: PENDING 상태는 캐시 저장 금지
     end
-    P-->>B: 비인증→/ · PENDING→/pending · REJECTED→/rejected · ACTIVE→/dashboard
+    P-->>B: PENDING→/pending · REJECTED→/rejected · ACTIVE→/dashboard · 비인증은 /dashboard 등 비보호 경로만 통과(그 외는 /login)
 ```
 
 ### 실시간 알림 (SSE) 경로

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { NextRequest } from 'next/server'
-import { isJwtExpired, proxy } from './proxy'
+import { proxy } from './proxy'
 
 function makeJwt(payload: object): string {
   const encoded = Buffer.from(JSON.stringify(payload)).toString('base64url')
@@ -8,28 +8,6 @@ function makeJwt(payload: object): string {
 }
 
 const nowSec = () => Math.floor(Date.now() / 1000)
-
-describe('isJwtExpired', () => {
-  it('만료까지 충분히 남은 토큰은 false', () => {
-    expect(isJwtExpired(makeJwt({ exp: nowSec() + 3600 }))).toBe(false)
-  })
-  it('이미 만료된 토큰은 true', () => {
-    expect(isJwtExpired(makeJwt({ exp: nowSec() - 10 }))).toBe(true)
-  })
-  it('버퍼(30초) 이내에 만료될 토큰은 true', () => {
-    expect(isJwtExpired(makeJwt({ exp: nowSec() + 10 }))).toBe(true)
-  })
-  it('세그먼트가 3개가 아니면 true', () => {
-    expect(isJwtExpired('not-a-jwt')).toBe(true)
-  })
-  it('exp 클레임이 없으면 true', () => {
-    expect(isJwtExpired(makeJwt({})))
-      .toBe(true)
-  })
-  it('payload가 JSON이 아니면 true', () => {
-    expect(isJwtExpired('h.%%%.s')).toBe(true)
-  })
-})
 
 // proxy() 시나리오 — 리팩토링 전 현재 동작을 잠근다(fetch mock 기반)
 describe('proxy', () => {
@@ -102,6 +80,26 @@ describe('proxy', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
+  // ①-b '/dashboard'는 비회원도 접근 가능 — 토큰 없이 통과, /login으로 보내지 않는다
+  it('/dashboard는 토큰 없이도 통과한다', async () => {
+    vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
+    const fetchMock = stubFetch({})
+    const res = await proxy(makeRequest('/dashboard'))
+    expect(res.status).toBe(200)
+    expect(res.headers.get('location')).toBeNull()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  // ①-c 여전히 보호 경로인 /accounts는 토큰 없으면 /login으로 리다이렉트
+  it('/accounts는 토큰 없으면 /login으로 리다이렉트한다', async () => {
+    vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
+    const fetchMock = stubFetch({})
+    const res = await proxy(makeRequest('/accounts'))
+    expect(res.status).toBe(307)
+    expect(new URL(res.headers.get('location')!).pathname).toBe('/login')
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
   // ② 만료 AT + 유효 RT → refresh 성공 시 새 AT/RT Set-Cookie 부착 후 통과
   it('만료 AT + 유효 RT는 refresh 성공 후 새 AT Set-Cookie를 붙여 통과한다', async () => {
     vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
@@ -165,13 +163,13 @@ describe('proxy', () => {
     expect(setCookies.some((c) => c.startsWith('kista-user-role='))).toBe(false)
   })
 
-  // 점1-a: /me 비정상 응답 → 캐시 쿠키 삭제 + 로그인 리다이렉트
+  // 점1-a: /me 비정상 응답 → 캐시 쿠키 삭제 + 로그인 리다이렉트 (보호 경로에서만 발생 — '/dashboard'는 비보호)
   it('/me 비정상 응답 시 status/role 캐시를 삭제하고 로그인으로 보낸다', async () => {
     vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
     stubFetch({
       me: () => new Response('nope', { status: 401 }),
     })
-    const req = makeRequest('/dashboard', { 'kista-token': VALID_AT })
+    const req = makeRequest('/settings', { 'kista-token': VALID_AT })
     const res = await proxy(req)
 
     expect(res.status).toBe(307)
@@ -187,7 +185,7 @@ describe('proxy', () => {
     expect(roleDel).toContain('Expires=Thu, 01 Jan 1970')
   })
 
-  // 점1-b: /me 예외(throw) → 캐시 쿠키 삭제하지 않음(현재 동작 잠금)
+  // 점1-b: /me 예외(throw) → 캐시 쿠키 삭제하지 않음(현재 동작 잠금, 보호 경로에서만 발생)
   it('/me 호출이 예외로 실패하면 캐시 쿠키를 삭제하지 않는다', async () => {
     vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
     stubFetch({
@@ -195,7 +193,7 @@ describe('proxy', () => {
         throw new Error('network down')
       },
     })
-    const req = makeRequest('/dashboard', { 'kista-token': VALID_AT })
+    const req = makeRequest('/settings', { 'kista-token': VALID_AT })
     const res = await proxy(req)
 
     expect(res.status).toBe(307)
@@ -207,14 +205,14 @@ describe('proxy', () => {
 
   // 조합 잠금: AT 갱신(새 AT/RT 부착)과 캐시 삭제가 동시에 일어나는 finalize 경로.
   // delete가 Set-Cookie를 재직렬화 → 그 뒤 raw append 순서가 뒤집히면 새 AT가 유실된다.
-  // 만료 AT + 유효 RT + 캐시 없음 + /me 401 → refresh 성공 후 /me 재검증 실패 조합.
+  // 만료 AT + 유효 RT + 캐시 없음 + /me 401 → refresh 성공 후 /me 재검증 실패 조합. (보호 경로에서만 /login 리다이렉트)
   it('만료 AT 갱신 후 /me 401이면 캐시 삭제와 새 AT/RT 부착이 동시에 이뤄진다', async () => {
     vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
     const fetchMock = stubFetch({
       refresh: () => refreshOk('fresh-access-token'),
       me: () => new Response('nope', { status: 401 }),
     })
-    const req = makeRequest('/dashboard', {
+    const req = makeRequest('/settings', {
       'kista-token': EXPIRED_AT,
       refresh_token: 'valid-rt',
     })

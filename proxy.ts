@@ -7,6 +7,7 @@ import {
   KISTA_TOKEN_COOKIE,
   RT_COOKIE,
 } from '@shared/lib/auth/cookies'
+import { isJwtExpired } from '@shared/lib/auth/jwt'
 import { buildAtSetCookie, refreshAccessToken } from '@shared/lib/auth/refresh'
 const VALID_STATUSES = new Set(['PENDING', 'REJECTED', 'ACTIVE'])
 // status/role 캐시: 1시간마다 만료 → /me 재호출로 JWT 유효성 재검증
@@ -18,22 +19,9 @@ const cacheCookieOptions = (request: NextRequest) => ({
   maxAge: 3600,
   path: '/',
 })
-const PROTECTED_PREFIXES = ['/dashboard', '/accounts', '/strategies', '/stats', '/settings']
+// '/dashboard'는 비회원도 접근 가능 — 보호 경로 아님 (감사 A-01·S-01 이후 정책 변경)
+const PROTECTED_PREFIXES = ['/accounts', '/strategies', '/stats', '/settings']
 const ADMIN_PREFIXES = ['/admin']
-
-// JWT exp 클레임만 확인 (서명 검증 없음) — bufferSecs 이내 만료도 갱신 대상
-export function isJwtExpired(token: string, bufferSecs = 30): boolean {
-  try {
-    const parts = token.split('.')
-    if (parts.length !== 3) return true
-    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
-    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
-    const payload = JSON.parse(atob(padded)) as { exp?: number }
-    return typeof payload.exp !== 'number' || payload.exp < Math.floor(Date.now() / 1000) + bufferSecs
-  } catch {
-    return true
-  }
-}
 
 // status/role 확정 결과: 성공(캐시 히트 or /me) 또는 실패(clearCache 여부만 전달)
 // clearCache 비대칭: /me 비정상(!ok) → 캐시 삭제, /me 예외 → 삭제 안 함 (기존 동작 그대로 보존)

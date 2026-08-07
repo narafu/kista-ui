@@ -11,6 +11,7 @@ import { useDailyTradesRangeQuery, directionTextClass, type DayTradeSummary } fr
 
 interface Props {
   initialWeekStartDate: string // 'YYYY-MM-DD', 이번 주 일요일
+  isAuthenticated: boolean
 }
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -151,8 +152,8 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
   })
 }
 
-export function WeeklyMarketCalendar({ initialWeekStartDate }: Props) {
-  const { data: accounts } = useAccountsQuery()
+export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: Props) {
+  const { data: accounts } = useAccountsQuery({ enabled: isAuthenticated })
   const accountIds = accounts?.map((account) => account.id) ?? []
 
   const [displayWeekStart, setDisplayWeekStart] = useState(

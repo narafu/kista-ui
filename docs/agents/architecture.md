@@ -1,17 +1,18 @@
 ## 인증 상태 라우팅
 
-`proxy.ts`가 `UserStatus`에 따라 강제 분기한다.
+`proxy.ts`가 토큰이 있는(인증된) 사용자의 `UserStatus`에 따라 강제 분기한다.
 
-- 비인증: `/`
 - `PENDING`: `/pending`
 - `REJECTED`: `/rejected`
-- `ACTIVE`: `/dashboard`
+- `ACTIVE`: `/`·`/login`·`/pending`·`/rejected` 방문 시 `/dashboard`로
+
+`PROTECTED_PREFIXES`(`/accounts`·`/strategies`·`/stats`·`/settings`)는 비인증 시 `/login`으로 강제 리다이렉트한다. `/dashboard`는 이 목록에 없다 — 비회원도 접근 가능한 비보호 경로다. `/`는 `app/(auth)/page.tsx`가 인증 여부와 무관하게 항상 `/dashboard`로 리다이렉트한다.
 
 ## 레이아웃 그룹
 
 - `app/(auth)/`: 비인증 전용
 - `app/pending/`, `app/rejected/`: `(main)` 밖, Sidebar 미적용
-- `app/(main)/`: ACTIVE 전용, `DesktopSidebar` + `MobileBottomNav`
+- `app/(main)/`: `DesktopSidebar` + `MobileBottomNav`. `/dashboard`만 비회원도 접근 가능(비보호 경로) — 그 외 경로는 ACTIVE 전용. 비회원 접근을 다루는 Client Component는 서버에서 계산한 `isAuthenticated` prop을 받아 계좌 등 인증 전용 쿼리를 `enabled: isAuthenticated`로 게이팅한다(`widgets/dashboard/DashboardContent`, `widgets/market-holiday-calendar/WeeklyMarketCalendar` 참고 — 게이팅 없이 게스트가 401을 맞으면 `clientFetch`의 전역 401 처리가 로그아웃 후 리로드를 반복하는 루프에 빠진다)
 - `app/(admin)/`: ADMIN role 전용
 
 ## FSD 계층 구조

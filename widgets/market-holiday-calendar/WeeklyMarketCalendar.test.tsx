@@ -12,7 +12,7 @@ vi.mock('@entities/market', () => ({
 }))
 
 vi.mock('@entities/account', () => ({
-  useAccountsQuery: () => useAccountsQueryMock(),
+  useAccountsQuery: (options?: { enabled?: boolean }) => useAccountsQueryMock(options),
 }))
 
 vi.mock('@entities/trade', () => ({
@@ -39,7 +39,7 @@ describe('WeeklyMarketCalendar', () => {
   })
 
   it('keeps only the holiday badge under the date without highlighting the whole cell', () => {
-    render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" />)
+    render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated />)
 
     const holidayText = screen.getAllByText('휴장').find((node) => node.className.includes('text-xs'))
     const holidayCell = holidayText?.parentElement
@@ -51,7 +51,7 @@ describe('WeeklyMarketCalendar', () => {
   })
 
   it('uses a more visible today container style for dark theme contrast', () => {
-    render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" />)
+    render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated />)
 
     const todayNumber = screen.getAllByText('2').find((node) => node.className.includes('bg-rose-500'))
     const todayContainer = todayNumber?.parentElement
@@ -65,7 +65,7 @@ describe('WeeklyMarketCalendar', () => {
   it('shows a holiday-data error instead of treating every weekday as open', () => {
     useMonthlyHolidaysQueryMock.mockReturnValue({ holidays: [], isError: true })
 
-    render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" />)
+    render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated />)
 
     expect(screen.getByText('휴장일 정보를 불러오지 못했습니다')).toBeInTheDocument()
     expect(screen.queryByText('다음 휴장일')).not.toBeInTheDocument()
@@ -74,12 +74,18 @@ describe('WeeklyMarketCalendar', () => {
   it('derives account ids from the accounts query cache instead of a prop', () => {
     useAccountsQueryMock.mockReturnValue({ data: [{ id: 'account-1' }] })
 
-    render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" />)
+    render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated />)
 
     // accountIds.length > 0일 때만 매도/매수/대기중 범례가 표시된다
     // (오늘 셀도 대기중 배지를 표시할 수 있어 '대기중'은 getAllByText로 확인)
     expect(screen.getByText('매도')).toBeInTheDocument()
     expect(screen.getByText('매수')).toBeInTheDocument()
     expect(screen.getAllByText('대기중').length).toBeGreaterThan(0)
+  })
+
+  it('disables the accounts query when unauthenticated (게스트 401 루프 방지)', () => {
+    render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated={false} />)
+
+    expect(useAccountsQueryMock).toHaveBeenCalledWith({ enabled: false })
   })
 })

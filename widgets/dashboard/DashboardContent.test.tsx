@@ -37,7 +37,7 @@ const marketPanelsSentinel = <div data-testid="market-panels-sentinel">market pa
 function renderWithClient(client: QueryClient) {
   return render(
     <QueryClientProvider client={client}>
-      <DashboardContent marketPanels={marketPanelsSentinel} />
+      <DashboardContent marketPanels={marketPanelsSentinel} isAuthenticated />
     </QueryClientProvider>,
   )
 }
@@ -57,5 +57,22 @@ describe('DashboardContent', () => {
       expect(screen.queryByText('첫 계좌 등록')).not.toBeInTheDocument()
     })
     expect(screen.getAllByTestId('market-panels-sentinel').length).toBeGreaterThan(0)
+  })
+
+  it('renders the empty state without fetching accounts when unauthenticated', () => {
+    const client = createQueryClient()
+
+    render(
+      <QueryClientProvider client={client}>
+        <DashboardContent marketPanels={marketPanelsSentinel} isAuthenticated={false} />
+      </QueryClientProvider>,
+    )
+
+    expect(screen.getByText('첫 계좌 등록')).toBeInTheDocument()
+    // enabled: false면 useQuery는 큐리를 절대 fetch하지 않는다 — 게스트가 401 → 자동로그아웃
+    // 리로드 루프에 빠지지 않는지를 이 fetchStatus/dataUpdateCount로 검증한다
+    const queryState = client.getQueryState(accountKeys.list())
+    expect(queryState?.fetchStatus ?? 'idle').toBe('idle')
+    expect(queryState?.dataUpdateCount ?? 0).toBe(0)
   })
 })

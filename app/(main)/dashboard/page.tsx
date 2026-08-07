@@ -1,6 +1,7 @@
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 
 import { getAuthToken } from '@shared/lib/auth/token'
+import { isJwtExpired } from '@shared/lib/auth/jwt'
 import { todayKst } from '@shared/lib/format'
 import { kstWeekStartDate } from '@shared/lib/date-range'
 import { monthlyHolidaysQueryOptions } from '@entities/market'
@@ -13,6 +14,7 @@ import { createQueryClient } from '@shared/lib/query'
 
 export default async function DashboardPage() {
   const token = await getAuthToken()
+  const isAuthenticated = !!token && !isJwtExpired(token)
 
   const [calendarYear, calendarMonth] = todayKst().split('-').map(Number)
   const initialWeekStartDate = kstWeekStartDate()
@@ -22,7 +24,7 @@ export default async function DashboardPage() {
   // 실패한 조회는 dehydrate에 포함되지 않으므로(react-query 기본 shouldDehydrateQuery가
   // status:'success'만 직렬화) 성공한 빈 달로 24시간 hydrate되지 않고 클라이언트가 재조회한다.
   await queryClient.prefetchQuery(monthlyHolidaysQueryOptions(calendarYear, calendarMonth, token)).catch(() => undefined)
-  if (token) {
+  if (isAuthenticated) {
     await queryClient.prefetchQuery(accountListQueryOptions(token))
   }
 
@@ -31,9 +33,10 @@ export default async function DashboardPage() {
       <DashboardLogoutErrorToast />
       <HydrationBoundary state={dehydrate(queryClient)}>
         <DashboardContent
+          isAuthenticated={isAuthenticated}
           marketPanels={
             <>
-              <WeeklyMarketCalendar initialWeekStartDate={initialWeekStartDate} />
+              <WeeklyMarketCalendar initialWeekStartDate={initialWeekStartDate} isAuthenticated={isAuthenticated} />
               <FearGreedSection />
             </>
           }
