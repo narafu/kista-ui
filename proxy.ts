@@ -20,7 +20,8 @@ const cacheCookieOptions = (request: NextRequest) => ({
   path: '/',
 })
 // '/dashboard'는 비회원도 접근 가능 — 보호 경로 아님 (감사 A-01·S-01 이후 정책 변경)
-const PROTECTED_PREFIXES = ['/accounts', '/strategies', '/stats', '/settings']
+// '/benchmark'는 본인 투자 성과 비교라 인증 필요 — 기존에 이 목록에서 누락되어 있었음
+const PROTECTED_PREFIXES = ['/accounts', '/strategies', '/stats', '/settings', '/benchmark']
 const ADMIN_PREFIXES = ['/admin']
 
 // status/role 확정 결과: 성공(캐시 히트 or /me) 또는 실패(clearCache 여부만 전달)
