@@ -52,6 +52,12 @@ describe('MarketChartCardInner', () => {
     expect(useCandlesQueryMock).toHaveBeenCalledWith('SPY', 200)
   })
 
+  it('shows the description label on the trigger for the initially selected option', () => {
+    render(<MarketChartCardInner category={category} />)
+
+    expect(screen.getByRole('combobox')).toHaveTextContent('SPY · S&P 500')
+  })
+
   it('switches the candle count query when a different count button is clicked', async () => {
     useCandlesQueryMock.mockClear()
     const user = userEvent.setup()
@@ -71,6 +77,17 @@ describe('MarketChartCardInner', () => {
     await user.click(await screen.findByRole('option', { name: 'QQQ · 나스닥 100' }))
 
     expect(useCandlesQueryMock).toHaveBeenLastCalledWith('QQQ', 200)
+  })
+
+  it('keeps the description label on the trigger after selecting an option', async () => {
+    useCandlesQueryMock.mockClear()
+    const user = userEvent.setup()
+    render(<MarketChartCardInner category={category} />)
+
+    await user.click(screen.getByRole('combobox'))
+    await user.click(await screen.findByRole('option', { name: 'QQQ · 나스닥 100' }))
+
+    expect(screen.getByRole('combobox')).toHaveTextContent('QQQ · 나스닥 100')
   })
 
   it('shows an explicit error fallback when candle data cannot be loaded', () => {

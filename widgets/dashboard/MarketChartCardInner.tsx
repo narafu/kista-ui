@@ -156,7 +156,7 @@ export default function MarketChartCardInner({ category }: Props) {
       </div>
       <Select value={symbol} onValueChange={(value) => value && setSymbol(value)}>
         <SelectTrigger size="sm" className="w-full">
-          <SelectValue />
+          <SelectValue>{selected.label}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           {category.options.map((option) => (
