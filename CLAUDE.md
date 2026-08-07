@@ -32,4 +32,4 @@ KISTA V2 — 한국투자증권 KIS API 기반 해외주식 자동 분할매매 
 
 ## 운영 도구
 
-- **API 운영 로그**: vercel-cli — `vercel logs`
+- **운영 로그**: 서버 SSH 후 `cd /opt/kista-ui && docker compose logs -f kista-ui` (Vercel 배포 종료됨 — vercel-cli 사용 불가)

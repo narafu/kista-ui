@@ -22,25 +22,20 @@ graph TB
         Browser["브라우저 / PWA"]
     end
 
-    subgraph OCIUI["OCI — kista-ui (Next.js 16, Docker + Caddy)"]
+    subgraph Instance["OCI 단일 인스턴스 kista-api-server (Docker)"]
+        Caddy["Caddy (kista-infra 소유)<br/>리버스 프록시·HTTPS"]
         Proxy["proxy.ts (Edge)<br/>인증 상태 라우팅"]
         RSC["Server Component<br/>apiFetch (token 필요)"]
         RouteHandler["Route Handler<br/>(catch-all proxy)"]
         ClientComp["Client Component<br/>clientFetch"]
-    end
-
-    subgraph OCIAPI["OCI — kista-api (Spring Boot)"]
-        Web["adapter/in/web<br/>REST Controller"]
+        Web["adapter/in/web<br/>REST Controller (kista-api)"]
         Security["JwtAuthFilter /<br/>InternalTokenAuthFilter"]
         App["application/service<br/>UseCase 구현체"]
         Domain["domain<br/>순수 도메인 모델"]
         AdapterOut["adapter/out<br/>broker · notify · sse · persistence"]
         Scheduler["adapter/in/schedule<br/>TradingOpen/CloseScheduler"]
-    end
-
-    subgraph Data["데이터 저장소"]
-        PG[("Supabase PostgreSQL")]
-        Redis[("Redis<br/>JWT 블랙리스트 · Toss 토큰")]
+        PG[("자체호스팅 PostgreSQL<br/>(kista-infra 소유)")]
+        Redis[("Redis<br/>(kista-infra 소유)<br/>JWT 블랙리스트 · Toss 토큰")]
     end
 
     subgraph External["외부 서비스"]
@@ -52,7 +47,8 @@ graph TB
         Alpaca["Alpaca Markets<br/>(휴장일)"]
     end
 
-    Browser -->|"모든 요청"| Proxy
+    Browser -->|"HTTPS"| Caddy
+    Caddy -->|"모든 요청"| Proxy
     Proxy -->|"인증 상태별 강제 분기"| Browser
     Browser -->|"Server-rendered page"| RSC
     Browser -->|"CSR 상호작용"| ClientComp
@@ -75,7 +71,7 @@ graph TB
     AdapterOut --> Alpaca
 ```
 
-**핵심 원칙**: Client Component는 kista-api를 절대 직접 호출하지 않는다. 쿠키(HttpOnly RT, 인증 상태 캐시) 처리와 CORS 회피를 위해 항상 Next.js Route Handler를 경유한다. Server Component는 서버 간 호출이므로 `apiFetch`로 직접 호출하지만 이 역시 CORS 대상이다(`CORS_ALLOWED_ORIGINS`에 kista-ui 도메인 등록 필요 — kista-ui·kista-api가 서로 다른 OCI 인스턴스라 같은 VCN이어도 CORS 검증 대상).
+**핵심 원칙**: Client Component는 kista-api를 절대 직접 호출하지 않는다. 쿠키(HttpOnly RT, 인증 상태 캐시) 처리와 CORS 회피를 위해 항상 Next.js Route Handler를 경유한다. Server Component는 서버 간 호출이므로 `apiFetch`로 직접 호출하지만 이 역시 CORS 대상이다(`CORS_ALLOWED_ORIGINS`에 kista-ui 도메인 등록 필요 — SSOT는 `kista-infra` secrets, 상세 → `docs/agents/deployment.md`).
 
 ### 계층 구조 (FSD)
 
@@ -138,8 +134,6 @@ graph LR
 
 ## 배포
 
-GitHub `main` push 시 GitHub Actions가 arm64 Docker 이미지를 빌드해 OCI 인스턴스(`kista-ui-server`)에 배포한다 — 상세: `deploy/server/README.md`. Docker 로컬 실행은 `docker compose up -d --build`.
+GitHub `main` push 시 GitHub Actions가 arm64 Docker 이미지를 빌드해 OCI 단일 인스턴스 `kista-api-server`에 배포한다 — kista-api·Caddy·PostgreSQL·Redis와 같은 인스턴스를 공유하며(Caddy·DB·Redis는 `kista-infra` 레포 소유), 이 레포는 `kista-ui` 컨테이너 하나만 배포·운영한다. 상세: `deploy/server/README.md`. Docker 로컬 실행은 `docker compose up -d --build`.
 
-Vercel에서 운영하던 이전 배포(`narafus-projects/kista-ui`)는 2026-08-04 OCI 커트오버 검증 완료 후 프로젝트째 삭제했다.
-
-`kista-infra`(private) 레포로 Caddy가 이관되는 설정이 준비 완료되었다(아직 미적용). 전환 후 이 레포는 `kista-ui` 컨테이너 하나만 배포·운영한다.
+Vercel에서 운영하던 이전 배포(`narafus-projects/kista-ui`)는 프로젝트째 삭제되어 더 이상 존재하지 않는다.

@@ -60,6 +60,6 @@ UI 캐시 소유권, hydration, mutation 동기화, `router.refresh()` 예외는
 
 - **iOS 푸시 알림**: iOS는 WebKit → `PushManager` 미지원. iOS 16.4+ Safari + 홈화면 추가 PWA만 가능. `'PushManager' in window` 사전 체크 필수
 - **PWA 구성**: `app/manifest.ts` + `app/layout.tsx` metadata에 `manifest`/`icons.apple`/`appleWebApp`. 아이콘: `public/icon-192.png`, `icon-512.png`, `apple-touch-icon.png`
-- **`firebase-messaging-sw.js` git 추적 필수**: git에 없으면 Vercel 배포 후 404 → FCM 토큰 발급 불가. 로컬 크롬 캐시로 눈에 안 띔
+- **`firebase-messaging-sw.js` git 추적 필수**: git에 없으면 배포 후 404 → FCM 토큰 발급 불가. 로컬 크롬 캐시로 눈에 안 띔
 - **FCM 마운트**: `widgets/layout/FcmBridge.tsx`(Client Component)가 `useMeQuery()`로 `notificationChannel`을 소비해 `entities/fcm/providers/FcmAutoRegister.tsx`/`FcmForegroundListener.tsx`를 렌더링하고, `(main)/layout.tsx`가 `FcmBridge`를 마운트한다. FCM/ALL + 권한 granted 기기에서 `getToken()` 자동 등록(멱등), FCM/ALL이면 `onMessage()` 구독 후 granted 시 서비스 워커 `showNotification()`으로 표시
 - **PENDING 사용자 API 접근**: kista-api SettingsController는 UserStatus 미검증 → PENDING 상태도 `/api/settings/telegram` 호출 가능

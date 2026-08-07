@@ -1,6 +1,6 @@
-# 단일 인스턴스 배포용 Docker Compose (OCI arm64, kista-ui-server 전용)
+# 단일 인스턴스 배포용 Docker Compose (OCI arm64, kista-api-server와 공유 — kista-ui 전용 인스턴스 아님)
 # NEXT_PUBLIC_* 는 빌드 타임에 이미지에 이미 인라인되어 있음 — 여기서는 런타임 값(API_BASE_URL)만 주입한다.
-# UI_DOMAIN/API_BASE_URL은 .env(서버 직접 관리)에서 읽는다 — kista-api/fida 패턴과 동일하게 Actions가 덮어쓰지 않는 값은 .env로 유지
+# UI_DOMAIN/API_BASE_URL은 .env에서 읽는다 — .env는 kista-infra 배포 워크플로가 매 배포마다 렌더링·덮어쓰므로 서버에서 직접 편집하지 말 것
 # caddy는 더 이상 이 파일 소관이 아님 — kista-infra 레포의 Caddy(리버스 프록시)가 api/ui 도메인을 함께 처리하고,
 # 이 서비스는 shared_net으로만 붙어 caddy가 라우팅할 수 있게 한다 (postgres/redis가 있는 data_net은 미가입 — UI는 직접 접근 불필요)
 
