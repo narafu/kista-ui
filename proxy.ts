@@ -74,7 +74,7 @@ export async function proxy(request: NextRequest) {
   let token = request.cookies.get(KISTA_TOKEN_COOKIE)?.value
 
   if (!token) {
-    if (isProtected) return redirectTo('/login', request)
+    if (isProtected) return redirectToLogin(request)
     // '/'는 비보호 경로로 유지 — (auth)/page.tsx가 인증 분기 후 리다이렉트 (감사 A-01·S-01)
     return NextResponse.next({ request: { headers: request.headers } })
   }
@@ -95,7 +95,7 @@ export async function proxy(request: NextRequest) {
   }
   const failDest = (): NextResponse =>
     isProtected
-      ? redirectTo('/login', request)
+      ? redirectToLogin(request)
       : NextResponse.next({ request: { headers: requestHeaders } })
 
   // prefetch 요청은 인증 상태를 변형하지 않음 — AT 갱신 스킵
@@ -163,6 +163,17 @@ export async function proxy(request: NextRequest) {
 function redirectTo(pathname: string, request: NextRequest): NextResponse {
   const url = request.nextUrl.clone()
   url.pathname = pathname
+  return NextResponse.redirect(url)
+}
+
+// 보호 경로에서 미인증/세션만료로 /login에 보낼 때, 로그인 후 원래 경로로 돌아갈 수 있도록 ?next=에 실어 보낸다
+function redirectToLogin(request: NextRequest): NextResponse {
+  const original = request.nextUrl
+  const next = `${original.pathname}${original.search}`
+  const url = original.clone()
+  url.pathname = '/login'
+  url.search = ''
+  url.searchParams.set('next', next)
   return NextResponse.redirect(url)
 }
 

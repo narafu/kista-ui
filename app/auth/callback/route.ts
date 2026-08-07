@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getApiBaseUrlOrNull } from '@shared/lib/env'
 import { STATUS_COOKIE, KISTA_TOKEN_COOKIE } from '@shared/lib/auth/cookies'
+import { safeRedirectPath } from '@shared/lib/auth/redirectPath'
 
 // eslint-disable-next-line react-doctor/nextjs-no-side-effect-in-get-handler
 export async function GET(request: NextRequest) {
@@ -17,19 +18,22 @@ export async function GET(request: NextRequest) {
   }
   const origin = `${proto}://${host}`
   const code = searchParams.get('code')
+  // 카카오가 그대로 돌려주는 state에 로그인 전 원래 가려던 경로를 실어 보냄 (오픈 리다이렉트 방지 검증 포함)
+  const next = safeRedirectPath(searchParams.get('state'))
+  const nextQuery = next ? `&next=${encodeURIComponent(next)}` : ''
 
   if (!code) {
     const error = searchParams.get('error') ?? 'none'
     console.error(`[auth/callback] no code. error=${error}`)
     return NextResponse.redirect(
-      new URL(`/login?error=no_code&detail=${encodeURIComponent(error)}`, origin)
+      new URL(`/login?error=no_code&detail=${encodeURIComponent(error)}${nextQuery}`, origin)
     )
   }
 
   const apiUrl = getApiBaseUrlOrNull()
   if (!apiUrl) {
     console.error('[auth/callback] API_BASE_URL/NEXT_PUBLIC_API_BASE_URL 미설정')
-    return NextResponse.redirect(new URL('/login?error=server_error', origin))
+    return NextResponse.redirect(new URL(`/login?error=server_error${nextQuery}`, origin))
   }
 
   const redirectUri = `${origin}/auth/callback`
@@ -48,7 +52,7 @@ export async function GET(request: NextRequest) {
     if (!res.ok) {
       const body = await res.text().catch(() => '')
       console.error(`[auth/callback] kista-api 실패: HTTP ${res.status}`, body)
-      return NextResponse.redirect(new URL('/login?error=auth_failed', origin))
+      return NextResponse.redirect(new URL(`/login?error=auth_failed${nextQuery}`, origin))
     }
 
     const data = await res.json()
@@ -59,7 +63,7 @@ export async function GET(request: NextRequest) {
     const status: string = user.status
 
     const response = NextResponse.redirect(
-      new URL(getRedirectPath(status), origin)
+      new URL(getRedirectPath(status, next), origin)
     )
 
     response.cookies.set(KISTA_TOKEN_COOKIE, accessToken, TOKEN_COOKIE_OPTIONS)
@@ -83,13 +87,15 @@ export async function GET(request: NextRequest) {
     return response
   } catch (e) {
     console.error('[auth/callback] 예외:', e)
-    return NextResponse.redirect(new URL('/login?error=server_error', origin))
+    return NextResponse.redirect(new URL(`/login?error=server_error${nextQuery}`, origin))
   }
 }
 
-function getRedirectPath(status: string): string {
+// PENDING/REJECTED는 next를 적용해도 무의미 — proxy.ts의 routeByStatusAndRole이 다음 요청에서
+// 어차피 /pending·/rejected로 강제 이동시킨다
+function getRedirectPath(status: string, next: string | null): string {
   switch (status) {
-    case 'ACTIVE': return '/dashboard'
+    case 'ACTIVE': return next ?? '/dashboard'
     case 'PENDING': return '/pending'
     case 'REJECTED': return '/rejected'
     default: return '/login'

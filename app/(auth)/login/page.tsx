@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { GlassCard } from '@widgets/glass-card'
 import { Spinner } from '@shared/ui/Spinner'
+import { safeRedirectPath } from '@shared/lib/auth/redirectPath'
 import { ApprovalNotice } from './ApprovalNotice'
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -17,6 +18,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 function LoginPageContent() {
   const searchParams = useSearchParams();
   const urlError = searchParams.get("error");
+  const next = safeRedirectPath(searchParams.get("next"));
   const [errorMessage, setErrorMessage] = useState<string | null>(
     urlError
       ? (ERROR_MESSAGES[urlError] ?? "알 수 없는 오류가 발생했습니다.")
@@ -37,7 +39,9 @@ function LoginPageContent() {
     const redirectUri = encodeURIComponent(
       `${window.location.origin}/auth/callback`,
     );
-    window.location.href = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}`;
+    // 카카오는 인증 완료 후 state를 그대로 콜백에 돌려준다 — 로그인 후 원래 가려던 경로 복원용
+    const stateParam = next ? `&state=${encodeURIComponent(next)}` : "";
+    window.location.href = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}${stateParam}`;
   }
 
   return (

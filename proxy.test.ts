@@ -90,23 +90,27 @@ describe('proxy', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  // ①-c 여전히 보호 경로인 /accounts는 토큰 없으면 /login으로 리다이렉트
-  it('/accounts는 토큰 없으면 /login으로 리다이렉트한다', async () => {
+  // ①-c 여전히 보호 경로인 /accounts는 토큰 없으면 /login으로 리다이렉트, 원래 경로를 next에 담는다
+  it('/accounts는 토큰 없으면 /login?next=/accounts로 리다이렉트한다', async () => {
     vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
     const fetchMock = stubFetch({})
     const res = await proxy(makeRequest('/accounts'))
     expect(res.status).toBe(307)
-    expect(new URL(res.headers.get('location')!).pathname).toBe('/login')
+    const location = new URL(res.headers.get('location')!)
+    expect(location.pathname).toBe('/login')
+    expect(location.searchParams.get('next')).toBe('/accounts')
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  // ①-d /benchmark는 본인 투자 성과 비교라 보호 경로 — 토큰 없으면 /login으로 리다이렉트
-  it('/benchmark는 토큰 없으면 /login으로 리다이렉트한다', async () => {
+  // ①-d /benchmark는 본인 투자 성과 비교라 보호 경로 — 토큰 없으면 /login으로 리다이렉트, 쿼리스트링까지 next에 보존
+  it('/benchmark는 토큰 없으면 쿼리스트링을 포함해 /login?next=...로 리다이렉트한다', async () => {
     vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
     const fetchMock = stubFetch({})
-    const res = await proxy(makeRequest('/benchmark'))
+    const res = await proxy(makeRequest('/benchmark?tab=housing'))
     expect(res.status).toBe(307)
-    expect(new URL(res.headers.get('location')!).pathname).toBe('/login')
+    const location = new URL(res.headers.get('location')!)
+    expect(location.pathname).toBe('/login')
+    expect(location.searchParams.get('next')).toBe('/benchmark?tab=housing')
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
@@ -183,7 +187,10 @@ describe('proxy', () => {
     const res = await proxy(req)
 
     expect(res.status).toBe(307)
-    expect(new URL(res.headers.get('location')!).pathname).toBe('/login')
+    const location = new URL(res.headers.get('location')!)
+    expect(location.pathname).toBe('/login')
+    // 세션 만료로 보호 경로에서 튕겨나가도 원래 경로를 next에 담아 로그인 후 복귀 가능하게 한다
+    expect(location.searchParams.get('next')).toBe('/settings')
     const setCookies = res.headers.getSetCookie()
     // 삭제(Max-Age=0)로 캐시 무효화
     const statusDel = setCookies.find((c) => c.startsWith('kista-user-status='))
