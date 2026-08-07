@@ -25,7 +25,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
   const [page, setPage] = useState(1)
   const [directionFilter, setDirectionFilter] = useState<OrderHistoryFilterValue>(ALL_FILTER_VALUE)
   const [orderTypeFilter, setOrderTypeFilter] = useState<OrderHistoryFilterValue>(ALL_FILTER_VALUE)
-  const [statusFilter, setStatusFilter] = useState<OrderHistoryFilterValue>(ALL_FILTER_VALUE)
+  const [statusFilter, setStatusFilter] = useState<OrderHistoryFilterValue>('FILLED')
   // 기간/커스텀 날짜/페이지 크기 변경 시 페이지를 1로 리셋 (기존 로컬 reducer 동작 재현)
   useEffect(() => setPage(1), [rangeType, customFrom, customTo, pageSize, directionFilter, orderTypeFilter, statusFilter])
 

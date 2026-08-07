@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
-import { RevealableValue } from '@widgets/revealable-value'
 import { useMeta } from '@entities/meta'
 import { useStrategiesQuery, strategyStatusAccent, strategyTypeShort } from '@entities/strategy'
 import type { Account } from '@entities/account'
@@ -54,19 +53,13 @@ export function AccountCard({ account }: Props) {
 
       {/* 모바일: 2행 레이아웃 */}
       <div className="flex flex-col gap-1.5 pl-5 pr-4 py-3 lg:hidden">
-        {/* 1행: 브로커 배지 + 계좌번호 */}
+        {/* 1행: 브로커 배지 */}
         <div className="flex items-center gap-2">
           <span
             className="-ml-2 inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold shrink-0"
             style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}
           >
             {brokerLabel}
-          </span>
-          <span className="ml-auto text-xs font-mono font-semibold text-foreground/60 tracking-wider shrink-0">
-            <RevealableValue
-              value={account.accountNo ?? account.accountNoMasked}
-              hiddenDisplay={account.accountNoMasked}
-            />
           </span>
         </div>
         {/* 2행: 닉네임 + 전략 수 + 상태 + 화살표 */}
@@ -99,19 +92,13 @@ export function AccountCard({ account }: Props) {
       <div className="hidden lg:flex flex-col">
         {/* 헤더 */}
         <div className="pl-6 pr-5 pt-4 pb-3">
-          {/* 브로커 배지 + 계좌번호 우측 */}
-          <div className="flex items-center justify-between mb-2.5">
+          {/* 브로커 배지 */}
+          <div className="flex items-center mb-2.5">
             <span
               className="-ml-2 inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold"
               style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}
             >
               {brokerLabel}
-            </span>
-            <span className="text-xs font-mono font-semibold text-foreground/60 tracking-wider">
-              <RevealableValue
-                value={account.accountNo ?? account.accountNoMasked}
-                hiddenDisplay={account.accountNoMasked}
-              />
             </span>
           </div>
           {/* 닉네임 + 집계 상태 */}

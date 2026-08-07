@@ -39,9 +39,10 @@ export function CyclePerformanceList({ typeFilter }: Props) {
         ) : (
           <div>
             <div className="hidden overflow-x-auto sm:block">
-              <table className="w-full min-w-[720px] text-sm" aria-label="사이클 성과">
+              <table className="w-full min-w-[800px] text-sm" aria-label="사이클 성과">
                 <thead className="bg-muted/50">
                   <tr>
+                    <TableHeadCell>계좌</TableHeadCell>
                     <TableHeadCell>전략</TableHeadCell>
                     <TableHeadCell>종목</TableHeadCell>
                     <TableHeadCell>기간</TableHeadCell>
@@ -53,16 +54,18 @@ export function CyclePerformanceList({ typeFilter }: Props) {
                   {cycles.map((cycle) => (
                     <tr key={cycle.cycleId} className="border-t transition-colors hover:bg-muted/30">
                       <TableDataCell>
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          {accountsById.get(cycle.accountId) && (
-                            <Badge tone="neutral" size="sm">
-                              {accountsById.get(cycle.accountId)?.nickname}
-                            </Badge>
-                          )}
-                          <Badge tone="brand" size="sm">
-                            {cycle.strategyType}
+                        {accountsById.get(cycle.accountId) ? (
+                          <Badge tone="neutral" size="sm">
+                            {accountsById.get(cycle.accountId)?.nickname}
                           </Badge>
-                        </div>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableDataCell>
+                      <TableDataCell>
+                        <Badge tone="brand" size="sm">
+                          {cycle.strategyType}
+                        </Badge>
                       </TableDataCell>
                       <TableDataCell className="font-medium tabular-nums">{cycle.ticker ?? '—'}</TableDataCell>
                       <TableDataCell className="text-muted-foreground">

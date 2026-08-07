@@ -61,8 +61,17 @@ async function selectOption(label: string, option: string) {
 }
 
 describe('StrategyOrderHistory filters', () => {
+  it('상태 필터 기본값은 체결이다', async () => {
+    render(<StrategyOrderHistory strategyId="strategy-1" />)
+
+    expect(screen.getByText('$120.00')).toBeInTheDocument()
+    expect(screen.queryByText('$100.00')).not.toBeInTheDocument()
+  })
+
   it('전체 선택 시 모든 주문을 표시하고 방향 필터를 적용한다', async () => {
     render(<StrategyOrderHistory strategyId="strategy-1" />)
+
+    await selectOption('상태', '전체')
 
     expect(screen.getByText('$100.00')).toBeInTheDocument()
     expect(screen.getByText('$110.00')).toBeInTheDocument()
@@ -79,6 +88,7 @@ describe('StrategyOrderHistory filters', () => {
   ] as const)('%s 필터를 적용한다', async (label, option, visible, hidden) => {
     render(<StrategyOrderHistory strategyId="strategy-1" />)
 
+    await selectOption('상태', '전체')
     await selectOption(label, option)
 
     expect(screen.getByText(visible)).toBeInTheDocument()
@@ -99,6 +109,7 @@ describe('StrategyOrderHistory filters', () => {
   it('원본 주문은 있지만 필터 결과가 없으면 전용 빈 상태를 표시한다', async () => {
     render(<StrategyOrderHistory strategyId="strategy-1" />)
 
+    await selectOption('상태', '전체')
     await selectOption('방향', '매수')
     await selectOption('유형', 'LOC')
 
@@ -111,6 +122,7 @@ describe('StrategyOrderHistory filters', () => {
     const user = userEvent.setup()
 
     render(<StrategyOrderHistory strategyId="strategy-1" />)
+    await selectOption('상태', '전체')
     await user.click(screen.getByText('2'))
     expect(screen.getByText('$111.00')).toBeInTheDocument()
 
