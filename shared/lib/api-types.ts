@@ -22,6 +22,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/trading-cycles/{id}/vr-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** VR 전략 운영 중 재설정 */
+        put: operations["reconfigureVr"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/settings/telegram": {
         parameters: {
             query?: never;
@@ -1643,11 +1660,62 @@ export interface components {
              */
             recurringAmount?: number;
             /**
+             * Format: int32
+             * @description VR: 램프 시작 시점 gradient(G) 값 (생략 시 인출식=20, 그 외=10)
+             * @example 10
+             */
+            initialGradient?: number;
+            /**
+             * Format: int32
+             * @description VR: gradient 램프 시작 전 유예 주수 (생략 시 52)
+             * @example 52
+             */
+            gGraceWeeks?: number;
+            /**
+             * Format: int32
+             * @description VR: gradient가 한 단계(1) 상승하는 주기 (생략 시 26)
+             * @example 26
+             */
+            gStepWeeks?: number;
+            /**
+             * Format: int32
+             * @description VR: gradient 램프 상한값 (생략 시 initialGradient — 램프 없음)
+             * @example 20
+             */
+            gMax?: number;
+            /**
+             * @description VR: 램프 시작 시점 poolLimitRate 값 (생략 시 적립식=0.75/거치식=0.50/인출식=0.25)
+             * @example 0.75
+             */
+            initialPoolLimitRate?: number;
+            /**
+             * Format: int32
+             * @description VR: poolLimitRate 램프 시작 전 유예 주수 (생략 시 52)
+             * @example 52
+             */
+            pGraceWeeks?: number;
+            /**
+             * Format: int32
+             * @description VR: poolLimitRate가 한 단계(5%p) 하강하는 주기 (생략 시 26)
+             * @example 26
+             */
+            pStepWeeks?: number;
+            /**
+             * @description VR: poolLimitRate 램프 하한값 (생략 시 initialPoolLimitRate — 램프 없음)
+             * @example 0.5
+             */
+            poolLimitFloor?: number;
+            /**
              * Format: date
              * @description 시작예정일, 기본값=오늘, 오늘 이후만 허용
              * @example 2026-08-01
              */
             scheduledStartDate?: string;
+            /**
+             * @description VR: 초기 V값 직접 지정 (지정 시 전일종가×보유수량 계산을 대체, 생략 시 평가금 기준. 첫 매수 후 산정하려면 평가금·예수금과 함께 생략)
+             * @example 5000
+             */
+            initialVrValue?: number;
         };
         TradingCycleResponse: {
             /**
@@ -1740,11 +1808,154 @@ export interface components {
             /** @description pool 상한 금액 (USD) */
             poolLimit?: number;
             /**
+             * @description pool 상한 비율(0~1) — 현재 사이클 고정 스냅샷
+             * @example 0.75
+             */
+            poolLimitRate?: number;
+            /**
              * Format: int32
-             * @description 실력공식 경사 계수 (G)
+             * @description 실력공식 경사 계수 (G) — 현재 사이클 고정 스냅샷
              * @example 10
              */
             gradient?: number;
+            /**
+             * Format: int32
+             * @description 램프 시작 시점(경과 0주) gradient(G) 값
+             * @example 10
+             */
+            initialGradient?: number;
+            /**
+             * Format: int32
+             * @description gradient 램프 시작 전 유예 주수
+             * @example 52
+             */
+            gGraceWeeks?: number;
+            /**
+             * Format: int32
+             * @description gradient가 한 단계 상승하는 주기 (주 단위)
+             * @example 26
+             */
+            gStepWeeks?: number;
+            /**
+             * Format: int32
+             * @description gradient 램프 상한값
+             * @example 20
+             */
+            gMax?: number;
+            /**
+             * @description 램프 시작 시점(경과 0주) poolLimitRate 값
+             * @example 0.75
+             */
+            initialPoolLimitRate?: number;
+            /**
+             * Format: int32
+             * @description poolLimitRate 램프 시작 전 유예 주수
+             * @example 52
+             */
+            pGraceWeeks?: number;
+            /**
+             * Format: int32
+             * @description poolLimitRate가 한 단계 하강하는 주기 (주 단위)
+             * @example 26
+             */
+            pStepWeeks?: number;
+            /**
+             * @description poolLimitRate 램프 하한값
+             * @example 0.5
+             */
+            poolLimitFloor?: number;
+        };
+        VrConfigRequest: {
+            /**
+             * @description 밴드 폭 (%) — 미지정 시 현재값 유지
+             * @example 15
+             */
+            bandWidth?: number;
+            /**
+             * Format: int32
+             * @description 리밸런싱 주기 (주) — 미지정 시 현재값 유지
+             * @example 4
+             */
+            intervalWeeks?: number;
+            /**
+             * Format: int32
+             * @description 주기당 추가 예수금 (USD, 음수=인출) — 미지정 시 현재값 유지
+             * @example 0
+             */
+            recurringAmount?: number;
+            /**
+             * Format: int32
+             * @description 램프: 경과 0주 gradient — 미지정 시 현재값 유지
+             * @example 10
+             */
+            initialGradient?: number;
+            /**
+             * Format: int32
+             * @description 램프: gradient 유예 주수 — 미지정 시 현재값 유지
+             * @example 52
+             */
+            gGraceWeeks?: number;
+            /**
+             * Format: int32
+             * @description 램프: gradient 단계 주기 — 미지정 시 현재값 유지
+             * @example 26
+             */
+            gStepWeeks?: number;
+            /**
+             * Format: int32
+             * @description 램프: gradient 상한 — 미지정 시 현재값 유지
+             * @example 20
+             */
+            gMax?: number;
+            /**
+             * @description 램프: 경과 0주 poolLimitRate — 미지정 시 현재값 유지
+             * @example 0.75
+             */
+            initialPoolLimitRate?: number;
+            /**
+             * Format: int32
+             * @description 램프: poolLimitRate 유예 주수 — 미지정 시 현재값 유지
+             * @example 52
+             */
+            pGraceWeeks?: number;
+            /**
+             * Format: int32
+             * @description 램프: poolLimitRate 단계 주기 — 미지정 시 현재값 유지
+             * @example 26
+             */
+            pStepWeeks?: number;
+            /**
+             * @description 램프: poolLimitRate 하한 — 미지정 시 현재값 유지
+             * @example 0.5
+             */
+            poolLimitFloor?: number;
+            /**
+             * Format: int32
+             * @description 자본 주입: 매수단가 편입할 주식 수 (null=주입 없음)
+             * @example 10
+             */
+            injectShares?: number;
+            /**
+             * @description 자본 주입: 위 주식의 매수단가 (injectShares>0이면 필수)
+             * @example 45.5
+             */
+            injectSharePrice?: number;
+            /**
+             * @description 자본 주입: 추가 예수금 (USD, null/0=주입 없음)
+             * @example 500
+             */
+            injectDeposit?: number;
+            /**
+             * Format: int32
+             * @description 자본 인출: 보유 수량에서 차감할 주식 수 (null=인출 없음, 보유 수량 초과 불가)
+             * @example 5
+             */
+            withdrawShares?: number;
+            /**
+             * @description 자본 인출: 예수금 차감액 (USD, null/0=인출 없음, 보유 예수금 초과 불가)
+             * @example 200
+             */
+            withdrawDeposit?: number;
         };
         TelegramUpdateRequest: {
             /** @description 사용자 텔레그램 봇 토큰 */
@@ -3515,6 +3726,32 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    reconfigureVr: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VrConfigRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TradingCycleResponse"];
+                };
             };
         };
     };
