@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fmtKrwEok, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, fmtSignedPercent, fmtSignedPercentPoint } from './index'
+import { fmtKrw, fmtKrwEok, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, fmtSignedPercent, fmtSignedPercentPoint } from './index'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -65,6 +65,16 @@ describe('fmtKrwEok', () => {
 
   it('0은 0억을 반환한다', () => {
     expect(fmtKrwEok(0)).toBe('0.0억')
+  })
+})
+
+describe('fmtKrw', () => {
+  it('천단위 구분자와 "원" 접미사를 붙인다', () => {
+    expect(fmtKrw(1000000)).toBe('1,000,000원')
+  })
+
+  it('0은 0원을 반환한다', () => {
+    expect(fmtKrw(0)).toBe('0원')
   })
 })
 

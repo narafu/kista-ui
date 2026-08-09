@@ -114,6 +114,18 @@ describe('proxy', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
+  // ①-e /assets는 개인 자산·부채 수동 기록이라 보호 경로 — 토큰 없으면 /login으로 리다이렉트
+  it('/assets는 토큰 없으면 /login?next=/assets로 리다이렉트한다', async () => {
+    vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
+    const fetchMock = stubFetch({})
+    const res = await proxy(makeRequest('/assets'))
+    expect(res.status).toBe(307)
+    const location = new URL(res.headers.get('location')!)
+    expect(location.pathname).toBe('/login')
+    expect(location.searchParams.get('next')).toBe('/assets')
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
   // ② 만료 AT + 유효 RT → refresh 성공 시 새 AT/RT Set-Cookie 부착 후 통과
   it('만료 AT + 유효 RT는 refresh 성공 후 새 AT Set-Cookie를 붙여 통과한다', async () => {
     vi.stubEnv('API_BASE_URL', 'https://kista-api.test')

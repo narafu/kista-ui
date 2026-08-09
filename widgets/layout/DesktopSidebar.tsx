@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
-import { LayoutDashboard, CreditCard, ListChecks, TrendingUp, Scale, Settings, LogOut, LogIn, ShieldCheck } from 'lucide-react'
+import { LayoutDashboard, CreditCard, ListChecks, TrendingUp, Scale, Wallet, Settings, LogOut, LogIn, ShieldCheck } from 'lucide-react'
 import { ThemeToggle } from '@widgets/theme-toggle'
 import { LogoutButton } from '@features/auth/logout'
 import { isNavItemActive } from './nav-utils'
@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: '/strategies', label: '전략',     icon: ListChecks },
   { href: '/stats',      label: '통계',     icon: TrendingUp },
   { href: '/benchmark',  label: '벤치마크', icon: Scale },
+  { href: '/assets',     label: '자산',     icon: Wallet },
   { href: '/settings',   label: '설정',     icon: Settings },
 ]
 

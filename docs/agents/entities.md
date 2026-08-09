@@ -16,6 +16,7 @@ entities끼리 직접 참조 금지. 두 도메인을 조합해야 하면 `featu
 | 슬라이스 | 역할 |
 |---|---|
 | `account` | 계좌 CRUD, KIS 연결 테스트, 증거금 조회 |
+| `asset` | 개인 자산·부채 수동 기록 CRUD, 월별 기록 완료 상태, 대시보드용 순수 집계 함수(`lib/aggregate.ts`) — 자동매매와 무관 |
 | `strategy` | 전략(TradingCycle) CRUD, 일시정지/재개 |
 | `order` | 다음 주문 미리보기, 주문 취소, 전략별 주문 내역 조회 |
 | `trade` | 거래 내역, 사이클 히스토리, KIS live 포트폴리오, SSE 거래 알림 |
@@ -77,6 +78,7 @@ import { deleteAccount } from '@entities/account'
 ## 주요 도메인별 quirk
 
 - **account**: `accountNo`는 8자리만. `kisAccountType`은 항상 `"01"`. `AccountRequest` 필드명은 `appKey`, `secretKey`. 계좌 목록은 `accountListQueryOptions(token?)`/`useAccountsQuery()`와 `accountKeys.list()` 캐시를 SSOT로 사용한다. 생성/수정/삭제 mutation은 완전한 list cache가 있으면 직접 반영하고, list cache가 없으면 canonical list query 전체 조회를 await한다. detail은 생성/수정 시 직접 쓰고 삭제 시 detail/margin/prices를 제거한다
+- **asset**: `category`만 `AssetCategory` enum(`INVESTMENT`/`SAVINGS`/`LOAN`/`REAL_ESTATE`, 와이어 값은 영문 상수 — 한글 라벨은 `shared/lib/api-schema.ts`의 `formatAssetCategoryLabel`에서만), 나머지 필드(`subcategory`/`institution`/`assetClass`/`strategy`)는 자유 입력. `strategy` 필드는 실제 자동매매 전략과 무관한 개인 메모다. 부채(순자산·구성비 분모) 판정은 반드시 `isLoanCategory(category)`로 하고 문자열 `'LOAN'` 직접 비교를 반복하지 않는다. `lib/aggregate.ts`가 위젯 공용 집계 함수를 전부 소유— 특히 `calcCategoryComposition`(대출 포함, 4개 세그먼트)과 `calcAssetClassComposition`(대출 제외)은 이름이 비슷해 혼동하기 쉬우니 범용 `calcComposition`을 위젯에서 직접 호출하지 말고 이 두 래퍼를 통해서만 쓴다. 목록은 벌크 삭제 전용 엔드포인트가 없어 `useDeleteManyAssetsMutation`이 개별 DELETE를 `Promise.allSettled`로 병렬 호출한다
 - **strategy**: 백엔드 이름은 `TradingCycle`. pause/resume은 strategyId 기준. capability는 `StrategyTypeMeta` 필드를 직접 소비하고, 최소 시드는 `useStrategySeedPreviewQuery`를 사용한다. `seedBadgeClass()`를 재사용한다
 - **meta**: `MetaProvider`는 `(main)/layout.tsx`에서만 제공 — `(main)` 밖에서 `useMeta()` 호출 불가. Client는 `useMeta()`의 `findStrategyType(code)`/`findTicker(code)`/`labelOf(category, code)` 사용. `TickerMeta.targetProfitRate`는 `string` 타입
 - **runtime-config**: `useRuntimeConfigQuery()`는 `cache: 'no-store'`, `staleTime: 0`, window focus refetch로 서버 설정을 최신화한다. 신규 계좌는 활성 증권사만, 신규 전략은 활성 타입과 각 필드의 `allowedValues`/`defaultValue`/`customizable`을 사용한다. ETF 벤치마크는 `benchmarks.etf.allowedValues/defaultValue`를 사용하고 서버 값이 없으면 `DEFAULT_RUNTIME_BENCHMARKS`로 보정한다. 수정 화면의 기존 값은 런타임 허용 목록으로 덮어쓰지 않는다

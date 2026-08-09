@@ -27,6 +27,8 @@ export type BenchmarkAssetType = NonNullable<HousingBenchmarkQuery['benchmarkTyp
 // 같은 값의 enum 제약은 admin-settings 필드 설정 스키마(FieldRequestRecurringMode)에 있어 그쪽에서 파생한다.
 export type RecurringMode = NonNullable<components['schemas']['FieldRequestRecurringMode']['defaultValue']>
 
+export type AssetCategory = NonNullable<components['schemas']['AssetRequest']['category']>
+
 const BROKER_LABEL: Record<string, string> = {
   KIS: '한국투자증권',
   TOSS: '토스증권',
@@ -40,4 +42,20 @@ export function formatBrokerLabel(broker: string): string {
 // 모의계좌 — 실제 증권사 연동 없이 DB 기반으로 매매를 시뮬레이션. 계좌 등록·전략 폼·통계 화면 전반의 분기 기준
 export function isMockBroker(broker: string | null | undefined): boolean {
   return broker === 'MOCK'
+}
+
+const ASSET_CATEGORY_LABEL: Record<string, string> = {
+  INVESTMENT: '투자',
+  SAVINGS: '예적금',
+  LOAN: '대출',
+  REAL_ESTATE: '부동산',
+}
+
+export function formatAssetCategoryLabel(category: string): string {
+  return ASSET_CATEGORY_LABEL[category] ?? category
+}
+
+// 대출 카테고리 — 순자산·총부채 집계의 부채 판정 기준값. 문자열 비교 대신 이 함수를 통해서만 판정한다.
+export function isLoanCategory(category: string): boolean {
+  return category === 'LOAN'
 }

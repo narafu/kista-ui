@@ -63,6 +63,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/assets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** 자산 기록 수정 */
+        put: operations["update_1"];
+        post?: never;
+        /** 자산 기록 삭제 */
+        delete: operations["delete_1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/asset-monthly-checks/{month}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * 월별 기록 완료 상태 설정
+         * @description 해당 연월의 완료 상태를 등록하거나 갱신합니다(upsert).
+         */
+        put: operations["setCompleted"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/settings": {
         parameters: {
             query?: never;
@@ -99,13 +137,13 @@ export interface paths {
          * 계좌 수정
          * @description 별명을 수정. 계좌번호 및 KIS 자격증명은 수정 불가.
          */
-        put: operations["update_1"];
+        put: operations["update_2"];
         post?: never;
         /**
          * 계좌 삭제
          * @description 계좌 및 관련 데이터를 영구 삭제.
          */
-        delete: operations["delete_1"];
+        delete: operations["delete_2"];
         options?: never;
         head?: never;
         patch?: never;
@@ -346,6 +384,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 내 자산 기록 목록 조회
+         * @description 로그인한 사용자의 전체 자산 기록을 기준 날짜 최신순으로 반환합니다.
+         */
+        get: operations["list"];
+        put?: never;
+        /** 자산 기록 등록 */
+        post: operations["register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/trades/reorders": {
         parameters: {
             query?: never;
@@ -434,13 +493,13 @@ export interface paths {
          * 내 계좌 목록 조회
          * @description 로그인한 사용자의 전체 계좌 목록 반환. 계좌번호는 마지막 4자리만 노출.
          */
-        get: operations["list"];
+        get: operations["list_1"];
         put?: never;
         /**
          * 계좌 등록
          * @description KIS/Toss 계좌 및 자격증명을 AES-256 암호화하여 저장.
          */
-        post: operations["register"];
+        post: operations["register_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -455,10 +514,10 @@ export interface paths {
             cookie?: never;
         };
         /** 거래 사이클 목록 조회 */
-        get: operations["list_1"];
+        get: operations["list_2"];
         put?: never;
         /** 거래 사이클 등록 */
-        post: operations["register_1"];
+        post: operations["register_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1033,6 +1092,23 @@ export interface paths {
          * @description 본인 계정 및 모든 연관 데이터(계좌, 거래내역 등)를 즉시 삭제합니다.
          */
         delete: operations["deleteMe"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/asset-monthly-checks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 월별 기록 완료 상태 목록 조회 */
+        get: operations["list_3"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1962,6 +2038,110 @@ export interface components {
             botToken: string;
             /** @description 텔레그램 채팅 ID */
             chatId: string;
+        };
+        AssetRequest: {
+            /**
+             * Format: date
+             * @description 기준 날짜
+             * @example 2026-08-01
+             */
+            entryDate: string;
+            /**
+             * @description 카테고리
+             * @example INVESTMENT
+             * @enum {string}
+             */
+            category: "INVESTMENT" | "SAVINGS" | "LOAN" | "REAL_ESTATE";
+            /**
+             * @description 세부카테고리 (자유 입력)
+             * @example 연금저축펀드
+             */
+            subcategory: string;
+            /**
+             * @description 금융기관 (자유 입력, 선택)
+             * @example 미래에셋증권
+             */
+            institution?: string;
+            /**
+             * @description 자산군 (자유 입력)
+             * @example 미국주식
+             */
+            assetClass: string;
+            /**
+             * @description 운용전략 (자유 입력, 선택 — 실제 자동매매 전략과 무관한 개인 메모)
+             * @example VR
+             */
+            strategy?: string;
+            /**
+             * Format: int64
+             * @description 금액 (원화 정수, 0 이상)
+             * @example 1000000
+             */
+            amount?: number;
+        };
+        AssetResponse: {
+            /**
+             * Format: uuid
+             * @description 자산 기록 고유 ID
+             */
+            id?: string;
+            /**
+             * Format: date
+             * @description 기준 날짜
+             * @example 2026-08-01
+             */
+            entryDate?: string;
+            /**
+             * @description 카테고리
+             * @example INVESTMENT
+             * @enum {string}
+             */
+            category?: "INVESTMENT" | "SAVINGS" | "LOAN" | "REAL_ESTATE";
+            /**
+             * @description 세부카테고리
+             * @example 연금저축펀드
+             */
+            subcategory?: string;
+            /**
+             * @description 금융기관
+             * @example 미래에셋증권
+             */
+            institution?: string;
+            /**
+             * @description 자산군
+             * @example 미국주식
+             */
+            assetClass?: string;
+            /**
+             * @description 운용전략
+             * @example VR
+             */
+            strategy?: string;
+            /**
+             * Format: int64
+             * @description 금액 (원화 정수)
+             * @example 1000000
+             */
+            amount?: number;
+        };
+        AssetMonthlyCheckRequest: {
+            /**
+             * @description 기록 완료 여부
+             * @example true
+             */
+            completed?: boolean;
+        };
+        AssetMonthlyCheckResponse: {
+            /**
+             * @description 연월
+             * @example 2026-08
+             */
+            month?: string;
+            /**
+             * @description 기록 완료 여부
+             * @example true
+             */
+            completed?: boolean;
         };
         AdminSettingsRequest: {
             /** @description 가입 승인 정책 설정 */
@@ -3802,6 +3982,125 @@ export interface operations {
             };
         };
     };
+    update_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 자산 기록 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetRequest"];
+            };
+        };
+        responses: {
+            /** @description 수정 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetResponse"];
+                };
+            };
+            /** @description 내 자산 기록이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetResponse"];
+                };
+            };
+            /** @description 자산 기록을 찾을 수 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetResponse"];
+                };
+            };
+        };
+    };
+    delete_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 자산 기록 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 삭제 성공 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 내 자산 기록이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 자산 기록을 찾을 수 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    setCompleted: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description 연월
+                 * @example 2026-08
+                 */
+                month: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetMonthlyCheckRequest"];
+            };
+        };
+        responses: {
+            /** @description 저장 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetMonthlyCheckResponse"];
+                };
+            };
+            /** @description 연월 형식이 올바르지 않음 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetMonthlyCheckResponse"];
+                };
+            };
+        };
+    };
     getSettings: {
         parameters: {
             query?: never;
@@ -3846,7 +4145,7 @@ export interface operations {
             };
         };
     };
-    update_1: {
+    update_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -3894,7 +4193,7 @@ export interface operations {
             };
         };
     };
-    delete_1: {
+    delete_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -4269,6 +4568,59 @@ export interface operations {
             };
         };
     };
+    list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetResponse"][];
+                };
+            };
+        };
+    };
+    register: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetRequest"];
+            };
+        };
+        responses: {
+            /** @description 등록 성공 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetResponse"];
+                };
+            };
+            /** @description 잘못된 요청 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetResponse"];
+                };
+            };
+        };
+    };
     reorder: {
         parameters: {
             query?: never;
@@ -4353,7 +4705,7 @@ export interface operations {
             };
         };
     };
-    list: {
+    list_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -4373,7 +4725,7 @@ export interface operations {
             };
         };
     };
-    register: {
+    register_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -4415,7 +4767,7 @@ export interface operations {
             };
         };
     };
-    list_1: {
+    list_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -4437,7 +4789,7 @@ export interface operations {
             };
         };
     };
-    register_1: {
+    register_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -5197,6 +5549,26 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    list_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetMonthlyCheckResponse"][];
+                };
             };
         };
     };
