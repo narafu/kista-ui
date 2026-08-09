@@ -40,17 +40,6 @@ export function useUpdateAssetMutation(assetId: string) {
   })
 }
 
-export function useDeleteAssetMutation(assetId: string) {
-  const queryClient = useQueryClient()
-  return useMutation<void, Error>({
-    mutationFn: () => deleteAsset(assetId),
-    onSuccess: async () => {
-      await synchronizeAssetList(queryClient, (assets) => assets.filter((asset) => asset.id !== assetId))
-    },
-    onError: (err) => toast.error(apiMsg(err, '자산 기록을 삭제하지 못했습니다')),
-  })
-}
-
 export interface DeleteManyAssetsResult {
   succeededIds: string[]
   failedCount: number
@@ -70,9 +59,11 @@ export function useDeleteManyAssetsMutation() {
         failedCount: results.filter((result) => result.status === 'rejected').length,
       }
     },
-    onSuccess: async ({ succeededIds, failedCount }) => {
+    onSuccess: async ({ succeededIds, failedCount }, ids) => {
       if (succeededIds.length === 0) {
-        if (failedCount > 0) toast.error('선택한 자산 기록을 삭제하지 못했습니다')
+        if (failedCount > 0) {
+          toast.error(ids.length > 1 ? `자산 기록 ${failedCount}건을 삭제하지 못했습니다` : '자산 기록을 삭제하지 못했습니다')
+        }
         return
       }
       await synchronizeAssetList(queryClient, (assets) =>

@@ -13,7 +13,6 @@ export {
 export { useAssetMonthlyChecksQuery, useAssetsQuery } from './hooks/useAssetQueries'
 export {
   useCreateAssetMutation,
-  useDeleteAssetMutation,
   useDeleteManyAssetsMutation,
   useSetAssetMonthlyCheckMutation,
   useUpdateAssetMutation,
