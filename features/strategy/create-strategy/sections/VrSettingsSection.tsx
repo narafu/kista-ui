@@ -147,7 +147,6 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
                 onChange={(v) => setField('initialValue', v)}
                 unit="USD"
                 disabled={disabled}
-                placeholder="평가금 사용"
                 maxDecimals={2}
               />
             </label>
