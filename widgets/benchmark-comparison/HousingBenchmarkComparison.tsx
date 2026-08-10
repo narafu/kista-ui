@@ -172,13 +172,13 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
         <HousingBenchmarkInfo benchmark={data?.benchmark ?? fallbackBenchmark} notice={data?.quality?.notice} />
       ) : null}
 
-      {/* 아파트 탭에서만 표시 — 사용자 투자 데이터와 무관하게 항상 나오는 분위 원본 시계열, 상단 "벤치마크 자산" 분위 선택과 연동, 상단 "비교 기간" 토글과 동일한 from/to 사용 */}
+      {/* 아파트 탭에서만 표시 — 사용자 투자 데이터와 무관하게 항상 나오는 5분위 원본 시계열, 위 비교 결과와 독립적, 상단 "비교 기간" 토글과 동일한 from/to 사용 */}
       {activeAsset === 'HOUSING' ? (
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">참고 · 아파트 시세 원본 데이터</p>
           <div className="flex flex-col gap-4">
-            <HousingBenchmarkQuintileTrendChart enabled={enabled} quintile={quintile} from={from} to={to} onRegionChange={handleTrendRegionChange} />
-            <HousingBenchmarkRegionQuintileInfo regionName={trendRegionName} quintile={quintile} />
+            <HousingBenchmarkQuintileTrendChart enabled={enabled} from={from} to={to} onRegionChange={handleTrendRegionChange} />
+            <HousingBenchmarkRegionQuintileInfo regionName={trendRegionName} />
           </div>
         </div>
       ) : null}

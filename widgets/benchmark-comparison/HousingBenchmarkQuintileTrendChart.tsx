@@ -11,7 +11,6 @@ import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
 import { fmtDate, fmtKrwEok, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
-import type { HousingQuintile } from './housingBenchmarkContent'
 import {
   calculateQuintileCagr,
   formatHousingBenchmarkAxisMonth,
@@ -21,7 +20,6 @@ import {
 
 interface Props {
   enabled: boolean
-  quintile: HousingQuintile
   from?: string
   to?: string
   onRegionChange?: (region: HousingBenchmarkRegion) => void
@@ -38,26 +36,26 @@ const ALLOWED_REGION_NAMES = ['서울', '수도권', '전국'] as const
 // 색상은 순서 표현보다 인접한 5개 선을 서로 뚜렷이 구분하는 역할에 집중한다.
 // 웜톤 그러데이션(--quintile-1~5, globals.css)이되 인접 색상 CVD 대비(ΔE)를 검증해 선정했다
 const QUINTILE_SERIES = [
-  { quintile: 1, dataKey: 'firstQuintilePrice', color: 'var(--quintile-1)', label: '1분위' },
-  { quintile: 2, dataKey: 'secondQuintilePrice', color: 'var(--quintile-2)', label: '2분위' },
-  { quintile: 3, dataKey: 'thirdQuintilePrice', color: 'var(--quintile-3)', label: '3분위' },
-  { quintile: 4, dataKey: 'fourthQuintilePrice', color: 'var(--quintile-4)', label: '4분위' },
-  { quintile: 5, dataKey: 'fifthQuintilePrice', color: 'var(--quintile-5)', label: '5분위' },
+  { dataKey: 'firstQuintilePrice', color: 'var(--quintile-1)', label: '1분위' },
+  { dataKey: 'secondQuintilePrice', color: 'var(--quintile-2)', label: '2분위' },
+  { dataKey: 'thirdQuintilePrice', color: 'var(--quintile-3)', label: '3분위' },
+  { dataKey: 'fourthQuintilePrice', color: 'var(--quintile-4)', label: '4분위' },
+  { dataKey: 'fifthQuintilePrice', color: 'var(--quintile-5)', label: '5분위' },
 ] as const
 
-function TrendLoading({ quintile }: { quintile: HousingQuintile }) {
+function TrendLoading() {
   return (
     <div
       role="status"
       aria-live="polite"
-      aria-label={`아파트 ${quintile}분위 가격 추이 불러오는 중`}
+      aria-label="아파트 5분위 가격 추이 불러오는 중"
     >
       <Skeleton data-testid="housing-benchmark-quintile-trend-skeleton" className="min-h-[240px] sm:min-h-[300px]" />
     </div>
   )
 }
 
-export function HousingBenchmarkQuintileTrendChart({ enabled, quintile, from, to, onRegionChange }: Props) {
+export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegionChange }: Props) {
   const [regionCode, setRegionCode] = useState(SEOUL_REGION_CODE)
   const regionsQuery = useHousingBenchmarkRegionsQuery(enabled)
   const fetchedRegions = regionsQuery.data?.regions ?? []
@@ -69,7 +67,6 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, quintile, from, to
   }, [fetchedRegions])
   const selectedRegion = regions.find((region) => region.code === regionCode) ?? regions[0]
   const regionLabel = selectedRegion.name
-  const selectedSeries = QUINTILE_SERIES.find((series) => series.quintile === quintile) ?? QUINTILE_SERIES[QUINTILE_SERIES.length - 1]
 
   useEffect(() => {
     onRegionChange?.(selectedRegion)
@@ -82,9 +79,9 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, quintile, from, to
   const points = data?.points ?? []
 
   // 현재 조회 기간(상단 "비교 기간" 토글) 첫·마지막 시점 기준 연평균 상승률(CAGR) — 범례 배지용
-  const selectedCagr = useMemo(
-    () => calculateQuintileCagr(points, selectedSeries.dataKey),
-    [points, selectedSeries.dataKey],
+  const quintileCagrs = useMemo(
+    () => new Map(QUINTILE_SERIES.map((series) => [series.dataKey, calculateQuintileCagr(points, series.dataKey)])),
+    [points],
   )
 
   return (
@@ -103,36 +100,41 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, quintile, from, to
                   <option key={region.code} value={region.code}>{region.name}</option>
                 ))}
               </select>
-              아파트 {quintile}분위 가격 추이
+              아파트 5분위 가격 추이
             </CardTitle>
             <p className="mt-1 text-xs text-muted-foreground">월별 매매평균가격 (억원) · 배지는 조회 기간 연평균 상승률</p>
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <span
-                className="inline-block h-0.5 w-3.5 rounded-full"
-                style={{ backgroundColor: selectedSeries.color }}
-              />
-              {selectedSeries.label}
-              <span className={cn('text-[10px]', selectedCagr == null ? 'text-muted-foreground' : pnlTextClass(selectedCagr))}>
-                {formatQuintileCagr(selectedCagr)}
-              </span>
-            </span>
+            {[...QUINTILE_SERIES].reverse().map((series) => {
+              const cagr = quintileCagrs.get(series.dataKey) ?? null
+              return (
+                <span key={series.dataKey} className="flex items-center gap-1.5">
+                  <span
+                    className="inline-block h-0.5 w-3.5 rounded-full"
+                    style={{ backgroundColor: series.color }}
+                  />
+                  {series.label}
+                  <span className={cn('text-[10px]', cagr == null ? 'text-muted-foreground' : pnlTextClass(cagr))}>
+                    {formatQuintileCagr(cagr)}
+                  </span>
+                </span>
+              )
+            })}
           </div>
         </div>
       </CardHeader>
       <CardContent className="px-2 pb-4 sm:px-6 sm:pb-6">
         {query.isLoading ? (
-          <TrendLoading quintile={quintile} />
+          <TrendLoading />
         ) : query.isError && !data ? (
           <div role="alert" aria-live="assertive">
-            <SectionError message={`${regionLabel} 아파트 ${quintile}분위 시세를 불러오지 못했습니다`} />
+            <SectionError message={`${regionLabel} 아파트 5분위 시세를 불러오지 못했습니다`} />
           </div>
         ) : points.length === 0 ? (
           <EmptyState message={`표시할 ${regionLabel} 아파트 시세 데이터가 없습니다.`} />
         ) : (
           <>
-            <figure className="h-[240px] min-h-[240px] w-full sm:h-[320px]" aria-label={`${regionLabel} 아파트 ${quintile}분위 월별 매매평균가격 선 차트`}>
+            <figure className="h-[240px] min-h-[240px] w-full sm:h-[320px]" aria-label={`${regionLabel} 아파트 5분위 월별 매매평균가격 선 차트`}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} accessibilityLayer>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
@@ -164,19 +166,22 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, quintile, from, to
                       borderRadius: 6,
                     }}
                   />
-                  <Line
-                    type="monotone"
-                    dataKey={selectedSeries.dataKey}
-                    name={selectedSeries.label}
-                    stroke={selectedSeries.color}
-                    strokeWidth={2}
-                    dot={false}
-                  />
+                  {QUINTILE_SERIES.map((series) => (
+                    <Line
+                      key={series.dataKey}
+                      type="monotone"
+                      dataKey={series.dataKey}
+                      name={series.label}
+                      stroke={series.color}
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  ))}
                 </LineChart>
               </ResponsiveContainer>
             </figure>
             <p className="mt-2 text-xs text-muted-foreground">
-              데이터 출처: KB부동산 {regionLabel} 아파트 {quintile}분위 매매평균가격
+              데이터 출처: KB부동산 {regionLabel} 아파트 5분위 매매평균가격
               {data?.sourceUpdatedDate ? ` · 업데이트 ${fmtDate(data.sourceUpdatedDate)}` : ''}
             </p>
           </>
