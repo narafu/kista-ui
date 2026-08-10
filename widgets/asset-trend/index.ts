@@ -1,0 +1,1 @@
+export { AssetTrend } from './AssetTrend'

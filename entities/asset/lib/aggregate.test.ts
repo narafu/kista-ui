@@ -198,6 +198,20 @@ describe('calcAssetClassComposition', () => {
     expect(column.total).toBe(1_000_000)
     expect(column.entries.find((e) => e.item === '미국주식')?.percent).toBe(100)
   })
+
+  it('자유 입력한 미등록 자산군을 분자·분모 양쪽에 포함한다 (누락 시 나머지 항목 비중이 부풀려지는 회귀 테스트)', () => {
+    const assets = [
+      asset({ entryDate: '2026-08-01', category: 'INVESTMENT', assetClass: '국내주식', amount: 7_000_000 }),
+      asset({ entryDate: '2026-08-01', category: 'INVESTMENT', assetClass: '미국주식', amount: 3_000_000 }),
+    ]
+
+    const [column] = calcAssetClassComposition(assets)
+
+    // 버그였다면 '국내주식'이 items 목록에 없어 통째로 빠지고, total=3,000,000·미국주식=100%로 나왔을 것
+    expect(column.total).toBe(10_000_000)
+    expect(column.entries.find((e) => e.item === '국내주식')?.percent).toBe(70)
+    expect(column.entries.find((e) => e.item === '미국주식')?.percent).toBe(30)
+  })
 })
 
 describe('월별 기록 점검', () => {

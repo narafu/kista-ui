@@ -143,11 +143,17 @@ export function calcCategoryComposition(assets: Asset[], monthsLimit = 6): Compo
   return calcComposition(assets, ASSET_CATEGORIES, (asset, item) => asset.category === item, monthsLimit)
 }
 
-// calcAssetClassBreakdown과 동일하게 대출을 제외한다 — 그렇지 않으면 자산군별 현황과 구성비의 분모가 어긋난다.
+// calcAssetClassBreakdown과 동일하게 대출을 제외하고, 자유 입력한 미등록 자산군도 알려진 순서 뒤에 이어붙인다.
+// KNOWN_ASSET_CLASSES만 items로 넘기면 미등록 자산군이 분자·분모 양쪽에서 통째로 빠져
+// 나머지 항목의 비중이 부풀려지는 조용한 회귀가 생긴다(calcAssetClassBreakdown 누락 버그와 동일한 종류).
 export function calcAssetClassComposition(assets: Asset[], monthsLimit = 6): CompositionColumn[] {
+  const items = [...KNOWN_ASSET_CLASSES]
+  for (const asset of assets) {
+    if (!isLoanCategory(asset.category) && !items.includes(asset.assetClass)) items.push(asset.assetClass)
+  }
   return calcComposition(
     assets,
-    KNOWN_ASSET_CLASSES,
+    items,
     (asset, item) => !isLoanCategory(asset.category) && asset.assetClass === item,
     monthsLimit,
   )
