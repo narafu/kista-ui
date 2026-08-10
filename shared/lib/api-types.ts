@@ -2156,6 +2156,20 @@ export interface components {
             };
             /** @description ETF 벤치마크 비교 자산 설정 (생략 시 기존 값 유지) */
             benchmarks?: components["schemas"]["BenchmarkRequest"];
+            /** @description 자산 등록 폼 추천 목록 설정 */
+            assetFormOptions: components["schemas"]["AssetFormOptionsRequest"];
+        };
+        AssetFormOptionsRequest: {
+            /** @description 카테고리별 세부 카테고리 추천 목록 (key=AssetCategory) */
+            subcategorySuggestions: {
+                [key: string]: string[];
+            };
+            /** @description 기관 추천 목록 */
+            institutionSuggestions: string[];
+            /** @description 자산군 추천 목록 */
+            assetClassSuggestions: string[];
+            /** @description 운용전략 추천 목록 */
+            strategySuggestions: string[];
         };
         AuthRequest: {
             /** @description 신규 가입 승인 필요 여부 */
@@ -2234,6 +2248,18 @@ export interface components {
             /** @description 전략별 생성 필드 설정 */
             fields: components["schemas"]["FieldRequests"];
         };
+        AssetFormOptionsResponse: {
+            /** @description 카테고리별 세부 카테고리 추천 목록 */
+            subcategorySuggestions?: {
+                [key: string]: string[];
+            };
+            /** @description 기관 추천 목록 */
+            institutionSuggestions?: string[];
+            /** @description 자산군 추천 목록 */
+            assetClassSuggestions?: string[];
+            /** @description 운용전략 추천 목록 */
+            strategySuggestions?: string[];
+        };
         AuthResponse: {
             /** @description 가입 승인 필수 여부 */
             approvalRequired?: boolean;
@@ -2277,6 +2303,8 @@ export interface components {
             };
             /** @description ETF 벤치마크 비교 자산 설정 */
             benchmarks?: components["schemas"]["BenchmarkResponse"];
+            /** @description 자산 등록 폼 추천 목록 설정 */
+            assetFormOptions?: components["schemas"]["AssetFormOptionsResponse"];
         };
         StrategyFieldSettingsObject: {
             customizable?: boolean;

@@ -66,7 +66,7 @@ export function AssetRecordFilters({
         </SelectContent>
       </Select>
       <Input
-        placeholder="세부 구분 검색"
+        placeholder="세부 카테고리 검색"
         value={subcategoryQuery}
         onChange={(e) => onSubcategoryQueryChange(e.target.value)}
         className="col-span-2 h-9 lg:w-40"

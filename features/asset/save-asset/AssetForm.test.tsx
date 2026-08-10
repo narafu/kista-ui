@@ -21,6 +21,11 @@ vi.mock('@entities/asset', async () => {
 
 vi.mock('sonner', () => ({ toast: { success: toastSuccessMock } }))
 
+vi.mock('@entities/runtime-config', async () => {
+  const actual = await vi.importActual<typeof import('@entities/runtime-config')>('@entities/runtime-config')
+  return { ...actual, useRuntimeConfigQuery: () => ({ data: undefined }) }
+})
+
 const onSuccess = vi.fn()
 const onCancel = vi.fn()
 
@@ -48,7 +53,7 @@ describe('AssetForm', () => {
     const user = userEvent.setup()
     render(<AssetForm mode="create" onSuccess={onSuccess} onCancel={onCancel} />)
 
-    await user.type(screen.getByLabelText('세부 구분'), '일반계좌')
+    await user.type(screen.getByLabelText('세부 카테고리'), '일반계좌')
     await user.type(screen.getByLabelText('자산군'), '미국주식')
     await user.type(screen.getByLabelText('금액 (원)'), '1234567')
 
@@ -62,7 +67,7 @@ describe('AssetForm', () => {
     )
   })
 
-  it('필수 항목(세부 구분·자산군·금액)이 비어있으면 제출 버튼이 비활성화된다', async () => {
+  it('필수 항목(세부 카테고리·자산군·금액)이 비어있으면 제출 버튼이 비활성화된다', async () => {
     render(<AssetForm mode="create" onSuccess={onSuccess} onCancel={onCancel} />)
 
     expect(screen.getAllByRole('button', { name: '등록' })[0]).toBeDisabled()
@@ -72,7 +77,7 @@ describe('AssetForm', () => {
     const user = userEvent.setup()
     render(<AssetForm mode="create" onSuccess={onSuccess} onCancel={onCancel} />)
 
-    await user.type(screen.getByLabelText('세부 구분'), '일반계좌')
+    await user.type(screen.getByLabelText('세부 카테고리'), '일반계좌')
     await user.type(screen.getByLabelText('자산군'), '미국주식')
     await user.type(screen.getByLabelText('금액 (원)'), '1000')
     expect(screen.getAllByRole('button', { name: '등록' })[0]).not.toBeDisabled()
@@ -85,7 +90,7 @@ describe('AssetForm', () => {
     const user = userEvent.setup()
     render(<AssetForm mode="edit" initial={existing} onSuccess={onSuccess} onCancel={onCancel} />)
 
-    expect(screen.getByLabelText('세부 구분')).toHaveValue('일반계좌')
+    expect(screen.getByLabelText('세부 카테고리')).toHaveValue('일반계좌')
     expect(screen.getByLabelText('금액 (원)')).toHaveValue('1,000,000')
 
     await user.click(screen.getAllByRole('button', { name: '수정' })[0])
@@ -115,11 +120,36 @@ describe('AssetForm', () => {
     expect(screen.getByLabelText('운용전략 (선택)')).toBeInTheDocument()
   })
 
+  it('운용전략 자유 입력에 영문을 타이핑하면 자동으로 제거된다', async () => {
+    const user = userEvent.setup()
+    render(<AssetForm mode="create" onSuccess={onSuccess} onCancel={onCancel} />)
+
+    const strategyInput = screen.getByLabelText('운용전략 (선택)')
+    await user.type(strategyInput, 'VR메모')
+
+    expect(strategyInput).toHaveValue('메모')
+  })
+
+  it('운용전략에 이미 값(목록 선택 등)이 있는 상태에서 이어 타이핑해도 기존 값은 보존되고 새로 입력한 영문만 제거된다', async () => {
+    const user = userEvent.setup()
+    // 목록 Select로 'VR'을 선택한 직후 상태를 mode="edit" 초기값으로 재현한다 — Select는 jsdom에서
+    // 신뢰성 있게 열리지 않아(known limitation) 실제 클릭 대신 이 방식으로 "선택 직후 이어 타이핑" 시나리오를 검증한다.
+    const existingWithStrategy: Asset = { ...existing, strategy: 'VR' }
+    render(<AssetForm mode="edit" initial={existingWithStrategy} onSuccess={onSuccess} onCancel={onCancel} />)
+
+    const strategyInput = screen.getByLabelText('운용전략 (선택)')
+    expect(strategyInput).toHaveValue('VR')
+
+    await user.type(strategyInput, '메모')
+
+    expect(strategyInput).toHaveValue('VR메모')
+  })
+
   it('제출 성공 시 성공 toast를 띄우고 onSuccess를 호출한다', async () => {
     const user = userEvent.setup()
     render(<AssetForm mode="create" onSuccess={onSuccess} onCancel={onCancel} />)
 
-    await user.type(screen.getByLabelText('세부 구분'), '일반계좌')
+    await user.type(screen.getByLabelText('세부 카테고리'), '일반계좌')
     await user.type(screen.getByLabelText('자산군'), '미국주식')
     await user.type(screen.getByLabelText('금액 (원)'), '1000')
     await user.click(screen.getAllByRole('button', { name: '등록' })[0])

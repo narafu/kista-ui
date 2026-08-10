@@ -239,7 +239,7 @@ export function AssetRecordList() {
                       카테고리{sortIcon('category')}
                     </button>
                   </TableHeadCell>
-                  <TableHeadCell>세부 구분</TableHeadCell>
+                  <TableHeadCell>세부 카테고리</TableHeadCell>
                   <TableHeadCell>자산군</TableHeadCell>
                   <TableHeadCell aria-sort={sortKey === 'amount' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}>
                     <button type="button" onClick={() => handleSort('amount')}>

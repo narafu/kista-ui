@@ -219,4 +219,19 @@ describe('AdminSettingsForm', () => {
       },
     }))
   })
+
+  it('자산 등록 폼 추천 목록에 새 기관을 추가하면 저장 payload에 반영된다', async () => {
+    const user = userEvent.setup()
+    render(<AdminSettingsForm />)
+
+    await user.type(screen.getByLabelText('기관 추가'), '카카오뱅크')
+    await user.click(screen.getByLabelText('기관 추가 확정'))
+    await user.click(screen.getByRole('button', { name: /변경 저장/ }))
+
+    expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({
+      assetFormOptions: expect.objectContaining({
+        institutionSuggestions: expect.arrayContaining(['카카오뱅크']),
+      }),
+    }))
+  })
 })

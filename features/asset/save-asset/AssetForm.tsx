@@ -11,8 +11,9 @@ import { Spinner } from '@shared/ui/Spinner'
 import { cn } from '@shared/lib/utils'
 import { todayKst } from '@shared/lib/format'
 import { formatAssetCategoryLabel } from '@shared/lib/api-schema'
-import { ASSET_CATEGORIES, KNOWN_ASSET_CLASSES, useCreateAssetMutation, useUpdateAssetMutation } from '@entities/asset'
+import { ASSET_CATEGORIES, useCreateAssetMutation, useUpdateAssetMutation } from '@entities/asset'
 import type { Asset, AssetCategory, AssetRequest } from '@entities/asset'
+import { DEFAULT_ASSET_FORM_OPTIONS, useRuntimeConfigQuery } from '@entities/runtime-config'
 
 export type AssetFormMode = 'create' | 'edit' | 'duplicate'
 
@@ -31,13 +32,89 @@ function formatAmountDisplay(digits: string) {
   return digits ? Number(digits).toLocaleString('ko-KR') : ''
 }
 
+// 운용전략은 VR/INFINITE/PRIVACY 같은 실제 자동매매 전략 코드와 이름이 겹친다 — 자유 입력으로
+// 영문을 허용하면 오탈자(vr, Vr 등)가 코드와 미묘하게 다른 값으로 저장되기 쉬워, 정확한 값은
+// 목록 선택으로 유도하고 자유 입력은 한글 메모로 한정한다.
+// 값 전체가 아니라 "이번에 새로 입력된 부분"에만 필터를 적용한다 — 값 전체를 매번 재필터링하면
+// 목록 Select로 선택한 영문 값(VR 등)이 이후 아무 키 입력(백스페이스 포함)에도 함께 지워진다.
+// 커서가 끝이 아닌 위치에 삽입되는 등 단순 append가 아닌 편집은 원본을 보존하는 쪽을 택한다
+// (드물게 영문이 새로 섞여 들어올 수 있지만, 흔한 사용 패턴에서 값을 조용히 잃는 것보다 낫다).
+function stripAppendedEnglishLetters(previous: string, next: string) {
+  if (next.length <= previous.length) return next
+  if (!next.startsWith(previous)) return next
+  const appended = next.slice(previous.length)
+  return previous + appended.replace(/[a-zA-Z]/g, '')
+}
+
 const MODE_LABEL: Record<AssetFormMode, string> = {
   create: '등록',
   edit: '수정',
   duplicate: '복제 등록',
 }
 
+interface ComboFieldProps {
+  id: string
+  label: string
+  placeholder: string
+  value: string
+  onChange: (value: string) => void
+  suggestions: string[]
+  selectLabel: string
+  disabled?: boolean
+  maxLength?: number
+  filterInput?: (previous: string, next: string) => string
+  helperText?: string
+}
+
+// 세부 카테고리·기관·자산군·운용전략 공통 UI — 자유 입력 Input과 추천 목록 Select를 한 필드로 묶는다.
+// Select는 값을 선택 즉시 onChange로 흘려보낼 뿐 자체 선택 상태를 갖지 않는다(자유 입력이 SSOT).
+function ComboField({
+  id,
+  label,
+  placeholder,
+  value,
+  onChange,
+  suggestions,
+  selectLabel,
+  disabled,
+  maxLength,
+  filterInput,
+  helperText,
+}: ComboFieldProps) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <div className="flex gap-2">
+        <Input
+          id={id}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(filterInput ? filterInput(value, e.target.value) : e.target.value)}
+          disabled={disabled}
+          maxLength={maxLength}
+          className="h-12 flex-1"
+        />
+        <Select
+          items={suggestions.map((s) => ({ value: s, label: s }))}
+          onValueChange={(next: string | null) => { if (next) onChange(next) }}
+        >
+          <SelectTrigger aria-label={selectLabel} className="w-32 h-12 shrink-0" disabled={disabled}>
+            <SelectValue>목록</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {suggestions.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+      {helperText && <p className="text-sm text-muted-foreground">{helperText}</p>}
+    </div>
+  )
+}
+
 export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
+  // 세부 카테고리/기관/자산군/운용전략 추천 목록은 kista-api 런타임 설정(관리자 수정 가능)이 SSOT다 —
+  // 필드 자체는 여전히 자유 입력이라 설정 로딩 전에는 알려진 기본값으로 폴백한다.
+  const assetFormOptions = useRuntimeConfigQuery().data?.assetFormOptions ?? DEFAULT_ASSET_FORM_OPTIONS
   const initialCategory: AssetCategory = initial?.category ?? 'INVESTMENT'
   const [entryDate, setEntryDate] = useState(initial?.entryDate ?? todayKst())
   const [category, setCategory] = useState<AssetCategory>(initialCategory)
@@ -129,72 +206,56 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="subcategory">세부 구분</Label>
-            <Input
-              id="subcategory"
-              placeholder="예: 일반계좌, 정기예금, 전세자금대출"
-              value={subcategory}
-              onChange={(e) => setSubcategory(e.target.value)}
-              disabled={isPending}
-              maxLength={100}
-              className="h-12"
-            />
-          </div>
+          <ComboField
+            id="subcategory"
+            label="세부 카테고리"
+            placeholder="예: 일반계좌, 정기예금, 전세자금대출"
+            value={subcategory}
+            onChange={setSubcategory}
+            suggestions={assetFormOptions.subcategorySuggestions[category] ?? []}
+            selectLabel="세부 카테고리 목록에서 선택"
+            disabled={isPending}
+            maxLength={100}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="institution">기관 (선택)</Label>
-            <Input
-              id="institution"
-              placeholder="예: 미래에셋증권, 국민은행"
-              value={institution}
-              onChange={(e) => setInstitution(e.target.value)}
-              disabled={isPending}
-              maxLength={100}
-              className="h-12"
-            />
-          </div>
+          <ComboField
+            id="institution"
+            label="기관 (선택)"
+            placeholder="예: 미래에셋증권, 국민은행"
+            value={institution}
+            onChange={setInstitution}
+            suggestions={assetFormOptions.institutionSuggestions}
+            selectLabel="기관 목록에서 선택"
+            disabled={isPending}
+            maxLength={100}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="assetClass">자산군</Label>
-            <div className="flex gap-2">
-              <Input
-                id="assetClass"
-                placeholder="예: 미국주식, 원화"
-                value={assetClass}
-                onChange={(e) => setAssetClass(e.target.value)}
-                disabled={isPending}
-                maxLength={50}
-                className="h-12 flex-1"
-              />
-              <Select
-                items={KNOWN_ASSET_CLASSES.map((c) => ({ value: c, label: c }))}
-                onValueChange={(value: string | null) => { if (value) setAssetClass(value) }}
-              >
-                <SelectTrigger aria-label="자산군 목록에서 선택" className="w-32 h-12 shrink-0" disabled={isPending}>
-                  <SelectValue>목록</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {KNOWN_ASSET_CLASSES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <ComboField
+            id="assetClass"
+            label="자산군"
+            placeholder="예: 미국주식, 원화"
+            value={assetClass}
+            onChange={setAssetClass}
+            suggestions={assetFormOptions.assetClassSuggestions}
+            selectLabel="자산군 목록에서 선택"
+            disabled={isPending}
+            maxLength={50}
+          />
 
           {category === 'INVESTMENT' && (
-            <div className="space-y-2">
-              <Label htmlFor="strategy">운용전략 (선택)</Label>
-              <Input
-                id="strategy"
-                placeholder="예: VR, 자유 메모"
-                value={strategy}
-                onChange={(e) => setStrategy(e.target.value)}
-                disabled={isPending}
-                maxLength={50}
-                className="h-12"
-              />
-              <p className="text-sm text-muted-foreground">자동매매 전략과 무관한 자유 메모입니다.</p>
-            </div>
+            <ComboField
+              id="strategy"
+              label="운용전략 (선택)"
+              placeholder="예: VR, 자유 메모"
+              value={strategy}
+              onChange={setStrategy}
+              suggestions={assetFormOptions.strategySuggestions}
+              selectLabel="운용전략 목록에서 선택"
+              disabled={isPending}
+              maxLength={50}
+              filterInput={stripAppendedEnglishLetters}
+              helperText="자동매매 전략과 무관한 자유 메모입니다. 목록 외 값은 한글로만 입력할 수 있습니다."
+            />
           )}
 
           <div className="space-y-2">
