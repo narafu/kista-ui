@@ -70,7 +70,7 @@ vi.mock('../api', () => ({
 const params: HousingBenchmarkParams = {
   scope: 'PORTFOLIO',
   benchmarkType: 'HOUSING',
-  quintile: 3,
+  regionCode: '11680',
   from: '2021-07-01',
   to: '2026-07-01',
 }
@@ -82,9 +82,8 @@ const response: HousingBenchmarkComparison = {
     assetType: 'HOUSING',
     regionCode: '11680',
     regionName: '강남구',
-    quintile: 3,
     symbol: null,
-    label: '강남구 3분위',
+    label: '강남구 매매가격지수',
     sourceUpdatedDate: '2026-07-01',
   },
   period: { fromDate: '2021-07-01', toDate: '2026-07-01', pointCount: 61 },
@@ -169,7 +168,7 @@ describe('useHousingBenchmarkQuery', () => {
 
     await waitFor(() => expect(result.current.data).toBe(response))
 
-    rerender({ queryParams: { ...params, quintile: 4 } })
+    rerender({ queryParams: { ...params, regionCode: '1100000000' } })
 
     await waitFor(() => expect(getHousingBenchmarkComparisonMock).toHaveBeenCalledTimes(2))
 

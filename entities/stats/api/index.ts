@@ -44,7 +44,7 @@ export async function getHousingBenchmarkComparison(
   const q = new URLSearchParams({ scope: params.scope, benchmarkType: params.benchmarkType })
   if (params.strategyId) q.set('strategyId', params.strategyId)
   if (params.benchmarkType === 'HOUSING') {
-    q.set('quintile', String(params.quintile))
+    q.set('regionCode', params.regionCode)
   } else {
     q.set('symbol', params.symbol)
   }

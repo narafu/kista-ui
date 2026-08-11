@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { EtfBenchmarkSymbol, HousingBenchmarkParams } from '@entities/stats'
-import type { HousingQuintile } from '../housingBenchmarkContent'
+import { DEFAULT_HOUSING_REGION_CODE } from '../housingBenchmarkContent'
 import {
   ETF_PERIODS,
   fromMonthInput,
@@ -15,7 +15,7 @@ import {
 type Scope = HousingBenchmarkParams['scope']
 
 type BenchmarkSelection =
-  | { type: 'HOUSING'; quintile: HousingQuintile }
+  | { type: 'HOUSING'; regionCode: string }
   | { type: 'ETF'; symbol: EtfBenchmarkSymbol }
 
 interface RuntimeEtfConfig {
@@ -30,14 +30,14 @@ export function useBenchmarkFilters(defaultTo: string, runtimeEtf: RuntimeEtfCon
   const [scope, setScope] = useState<Scope>('PORTFOLIO')
   const [selectedStrategyId, setSelectedStrategyId] = useState('')
   const [activeAsset, setActiveAsset] = useState<'ETF' | 'HOUSING'>('ETF')
-  const [quintile, setQuintile] = useState<HousingQuintile>(3)
+  const [regionCode, setRegionCode] = useState<string>(DEFAULT_HOUSING_REGION_CODE)
   const [etfSymbol, setEtfSymbol] = useState<EtfBenchmarkSymbol>(defaultEtfSymbol)
   const hasUserSelectedEtfRef = useRef(false)
   const handleEtfSymbolChange = useCallback((symbol: EtfBenchmarkSymbol) => {
     hasUserSelectedEtfRef.current = true
     setEtfSymbol(symbol)
   }, [])
-  const selection: BenchmarkSelection = activeAsset === 'ETF' ? { type: 'ETF', symbol: etfSymbol } : { type: 'HOUSING', quintile }
+  const selection: BenchmarkSelection = activeAsset === 'ETF' ? { type: 'ETF', symbol: etfSymbol } : { type: 'HOUSING', regionCode }
   const [housingPeriod, setHousingPeriod] = useState<Period>('1Y')
   const [etfPeriod, setEtfPeriod] = useState<Period>('3M')
   const period = activeAsset === 'ETF' ? etfPeriod : housingPeriod
@@ -73,7 +73,7 @@ export function useBenchmarkFilters(defaultTo: string, runtimeEtf: RuntimeEtfCon
           scope,
           ...strategyIdParam,
           benchmarkType: 'HOUSING',
-          quintile: selection.quintile,
+          regionCode: selection.regionCode,
           ...(from ? { from } : {}),
           to,
         }
@@ -92,8 +92,8 @@ export function useBenchmarkFilters(defaultTo: string, runtimeEtf: RuntimeEtfCon
     setScope,
     activeAsset,
     setActiveAsset,
-    quintile,
-    setQuintile,
+    regionCode,
+    setRegionCode,
     etfSymbol,
     handleEtfSymbolChange,
     period,

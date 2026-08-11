@@ -105,20 +105,20 @@ describe('stats api', () => {
       scope: 'PORTFOLIO',
       strategyId: 'strategy-1',
       benchmarkType: 'HOUSING',
-      quintile: 3,
+      regionCode: '1100000000',
       from: '2021-07-01',
       to: '2026-07-01',
     }, 'token-1')).resolves.toEqual(response)
 
     const [calledUrl] = fetchEitherMock.mock.calls[0]
     expect(calledUrl).toBe(
-      '/api/stats/housing-benchmark?scope=PORTFOLIO&benchmarkType=HOUSING&strategyId=strategy-1&quintile=3&from=2021-07-01&to=2026-07-01'
+      '/api/stats/housing-benchmark?scope=PORTFOLIO&benchmarkType=HOUSING&strategyId=strategy-1&regionCode=1100000000&from=2021-07-01&to=2026-07-01'
     )
     expect(calledUrl).not.toContain('symbol=')
     expect(fetchEitherMock).toHaveBeenCalledWith(calledUrl, { method: 'GET' }, 'token-1')
   })
 
-  it('getHousingBenchmarkComparison forwards every ETF filter and token without quintile', async () => {
+  it('getHousingBenchmarkComparison forwards every ETF filter and token without regionCode', async () => {
     const { getHousingBenchmarkComparison } = await import('./index')
     const response = {
       scope: 'PORTFOLIO',
@@ -140,7 +140,7 @@ describe('stats api', () => {
     expect(calledUrl).toBe(
       '/api/stats/housing-benchmark?scope=PORTFOLIO&benchmarkType=ETF&strategyId=strategy-1&symbol=QLD&from=2021-07-01&to=2026-07-01'
     )
-    expect(calledUrl).not.toContain('quintile=')
+    expect(calledUrl).not.toContain('regionCode=')
     expect(fetchEitherMock).toHaveBeenCalledWith(calledUrl, { method: 'GET' }, 'token-1')
   })
 
@@ -156,7 +156,7 @@ describe('stats api', () => {
     await expect(getHousingBenchmarkComparison({
       scope: 'PORTFOLIO',
       benchmarkType: 'HOUSING',
-      quintile: 3,
+      regionCode: '1100000000',
     })).resolves.toEqual(response)
   })
 })

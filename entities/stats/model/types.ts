@@ -59,7 +59,7 @@ export type HousingBenchmarkParams =
       scope: 'PORTFOLIO' | 'STRATEGY'
       strategyId?: string
       benchmarkType: 'HOUSING'
-      quintile: 1 | 2 | 3 | 4 | 5
+      regionCode: string
       from?: string
       to?: string
     }

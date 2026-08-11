@@ -92,7 +92,7 @@ describe('HousingBenchmarkQuintileTrendChart', () => {
   it('로딩 중에는 skeleton을 표시한다', () => {
     // mockSeriesQuery의 data 파라미터는 default parameter라 명시적 undefined 전달 시 SERIES로 대체되므로 직접 mockReturnValue 사용
     useHousingBenchmarkSeriesQueryMock.mockReturnValue({ data: undefined, isLoading: true, isError: false })
-    render(<HousingBenchmarkQuintileTrendChart enabled quintile={3} />)
+    render(<HousingBenchmarkQuintileTrendChart enabled />)
 
     expect(screen.getByTestId('housing-benchmark-quintile-trend-skeleton')).toBeInTheDocument()
     expect(screen.queryByTestId('housing-benchmark-quintile-trend-chart')).not.toBeInTheDocument()
@@ -100,20 +100,20 @@ describe('HousingBenchmarkQuintileTrendChart', () => {
 
   it('오류 시 SectionError를 alert로 표시한다', () => {
     useHousingBenchmarkSeriesQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: true })
-    render(<HousingBenchmarkQuintileTrendChart enabled quintile={3} />)
+    render(<HousingBenchmarkQuintileTrendChart enabled />)
 
-    expect(screen.getByRole('alert')).toHaveTextContent('서울 아파트 3분위 시세를 불러오지 못했습니다')
+    expect(screen.getByRole('alert')).toHaveTextContent('서울 아파트 5분위 시세를 불러오지 못했습니다')
   })
 
   it('points가 비어있으면 EmptyState를 표시한다', () => {
     mockSeriesQuery({ points: [], sourceUpdatedDate: '2026-07-01' })
-    render(<HousingBenchmarkQuintileTrendChart enabled quintile={3} />)
+    render(<HousingBenchmarkQuintileTrendChart enabled />)
 
     expect(screen.getByText('표시할 서울 아파트 시세 데이터가 없습니다.')).toBeInTheDocument()
   })
 
-  it('선택한 분위 하나만 라인과 범례로 렌더링하고, 상위에서 받은 기간으로 조회한다', () => {
-    render(<HousingBenchmarkQuintileTrendChart enabled quintile={3} from="2021-07-19" to="2026-07-19" />)
+  it('정상 데이터일 때 5개 분위 라인과 범례를 렌더링하고, 상위에서 받은 기간으로 조회한다', () => {
+    render(<HousingBenchmarkQuintileTrendChart enabled from="2021-07-19" to="2026-07-19" />)
 
     expect(useHousingBenchmarkSeriesQueryMock).toHaveBeenCalledWith(
       { from: '2021-07-19', to: '2026-07-19', regionCode: '1100000000' },
@@ -123,25 +123,25 @@ describe('HousingBenchmarkQuintileTrendChart', () => {
       'data-points',
       JSON.stringify(SERIES.points),
     )
-    expect(screen.getAllByText(/^3분위/).length).toBeGreaterThan(0)
-    for (const label of ['1분위', '2분위', '4분위', '5분위']) {
-      expect(screen.queryByText(new RegExp(`^${label}`))).not.toBeInTheDocument()
+    for (const label of ['1분위', '2분위', '3분위', '4분위', '5분위']) {
+      expect(screen.getAllByText(new RegExp(`^${label}`)).length).toBeGreaterThan(0)
     }
-    expect(screen.getByText(/데이터 출처: KB부동산.*3분위/)).toBeInTheDocument()
+    expect(screen.getByText(/데이터 출처: KB부동산/)).toBeInTheDocument()
   })
 
-  it('quintile prop이 바뀌면 표시되는 분위 라인도 바뀐다', () => {
-    const { rerender } = render(<HousingBenchmarkQuintileTrendChart enabled quintile={1} />)
-    expect(screen.getAllByText(/^1분위/).length).toBeGreaterThan(0)
+  it('5개 분위 라인 색상이 모두 서로 다르다', () => {
+    render(<HousingBenchmarkQuintileTrendChart enabled />)
 
-    rerender(<HousingBenchmarkQuintileTrendChart enabled quintile={5} />)
-    expect(screen.queryByText(/^1분위/)).not.toBeInTheDocument()
-    expect(screen.getAllByText(/^5분위/).length).toBeGreaterThan(0)
+    const strokes = ['1분위', '2분위', '3분위', '4분위', '5분위'].map((label) => {
+      const el = screen.getByText(new RegExp(`^${label}`), { selector: 'span[data-stroke]' })
+      return el.getAttribute('data-stroke')
+    })
+    expect(new Set(strokes).size).toBe(5)
   })
 
   it('지역 드롭다운에서 다른 지역을 선택하면 해당 regionCode로 시계열을 재조회한다', async () => {
     const user = userEvent.setup()
-    render(<HousingBenchmarkQuintileTrendChart enabled quintile={3} from="2021-07-19" to="2026-07-19" />)
+    render(<HousingBenchmarkQuintileTrendChart enabled from="2021-07-19" to="2026-07-19" />)
 
     await user.selectOptions(screen.getByLabelText('비교 지역'), '0000000000')
 
@@ -150,11 +150,11 @@ describe('HousingBenchmarkQuintileTrendChart', () => {
       true,
     )
     expect(screen.getByLabelText('비교 지역')).toHaveValue('0000000000')
-    expect(screen.getByLabelText(/전국 아파트 3분위 월별 매매평균가격 선 차트/)).toBeInTheDocument()
+    expect(screen.getByLabelText(/전국 아파트 5분위 월별 매매평균가격 선 차트/)).toBeInTheDocument()
   })
 
   it('비교 지역 옵션을 서울/수도권/전국 순서로만 표시하고, 그 외 지역(부산 등)은 제외한다', () => {
-    render(<HousingBenchmarkQuintileTrendChart enabled quintile={3} />)
+    render(<HousingBenchmarkQuintileTrendChart enabled />)
 
     const select = screen.getByLabelText('비교 지역') as HTMLSelectElement
     expect(Array.from(select.options).map((option) => option.textContent)).toEqual(['서울', '수도권', '전국'])
@@ -164,7 +164,7 @@ describe('HousingBenchmarkQuintileTrendChart', () => {
   it('지역이 선택되면 상위로 onRegionChange 콜백을 호출한다', async () => {
     const user = userEvent.setup()
     const onRegionChange = vi.fn()
-    render(<HousingBenchmarkQuintileTrendChart enabled quintile={3} onRegionChange={onRegionChange} />)
+    render(<HousingBenchmarkQuintileTrendChart enabled onRegionChange={onRegionChange} />)
 
     expect(onRegionChange).toHaveBeenLastCalledWith({ code: '1100000000', name: '서울' })
 
@@ -175,7 +175,7 @@ describe('HousingBenchmarkQuintileTrendChart', () => {
 
   it('지역 목록 조회 실패 시 서울 하나만 fallback으로 표시한다', () => {
     useHousingBenchmarkRegionsQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: true })
-    render(<HousingBenchmarkQuintileTrendChart enabled quintile={3} />)
+    render(<HousingBenchmarkQuintileTrendChart enabled />)
 
     const select = screen.getByLabelText('비교 지역') as HTMLSelectElement
     expect(select.options).toHaveLength(1)

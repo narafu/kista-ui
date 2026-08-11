@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import {
   emptyMessage,
   fromMonthInput,
-  isHousingQuintile,
   subtractMonths,
   toMonthInput,
   uniqueSymbols,
@@ -47,12 +46,12 @@ describe('subtractMonths', () => {
 describe('emptyMessage', () => {
   it('INSUFFICIENT_OVERLAP은 자산 단위에 따라 다른 문구를 반환한다', () => {
     expect(emptyMessage('INSUFFICIENT_OVERLAP', true)).toContain('거래일')
-    expect(emptyMessage('INSUFFICIENT_OVERLAP', false)).toContain('개월치')
+    expect(emptyMessage('INSUFFICIENT_OVERLAP', false)).toContain('주치')
   })
 
   it('INSUFFICIENT_COMMON_MONTHS도 동일하게 처리한다', () => {
     expect(emptyMessage('INSUFFICIENT_COMMON_MONTHS', true)).toContain('거래일')
-    expect(emptyMessage('INSUFFICIENT_COMMON_MONTHS', false)).toContain('개월치')
+    expect(emptyMessage('INSUFFICIENT_COMMON_MONTHS', false)).toContain('주치')
   })
 
   it('NO_INVESTMENT_DATA는 운용 기록 없음 문구를 반환한다', () => {
@@ -63,20 +62,6 @@ describe('emptyMessage', () => {
     expect(emptyMessage(null, true)).toBe('비교할 수 있는 데이터가 충분하지 않습니다.')
     expect(emptyMessage(undefined, true)).toBe('비교할 수 있는 데이터가 충분하지 않습니다.')
     expect(emptyMessage('UNKNOWN_REASON', true)).toBe('비교할 수 있는 데이터가 충분하지 않습니다.')
-  })
-})
-
-describe('isHousingQuintile', () => {
-  it('1~5는 유효한 분위로 판정한다', () => {
-    expect(isHousingQuintile(1)).toBe(true)
-    expect(isHousingQuintile(5)).toBe(true)
-  })
-
-  it('범위 밖 값·null·undefined는 무효로 판정한다', () => {
-    expect(isHousingQuintile(0)).toBe(false)
-    expect(isHousingQuintile(6)).toBe(false)
-    expect(isHousingQuintile(null)).toBe(false)
-    expect(isHousingQuintile(undefined)).toBe(false)
   })
 })
 

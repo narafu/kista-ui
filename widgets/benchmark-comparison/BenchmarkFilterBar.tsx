@@ -1,11 +1,11 @@
 'use client'
 
 import type { Account } from '@entities/account'
-import type { EtfBenchmarkSymbol, HousingBenchmarkParams } from '@entities/stats'
+import type { EtfBenchmarkSymbol, HousingBenchmarkParams, HousingBenchmarkRegion } from '@entities/stats'
 import type { Strategy } from '@entities/strategy'
 import { cn } from '@shared/lib/utils'
 import { toMonthInput, type Period } from './model/benchmarkPeriods'
-import { HOUSING_QUINTILES, type EtfBenchmarkContent, type HousingQuintile } from './housingBenchmarkContent'
+import type { EtfBenchmarkContent } from './housingBenchmarkContent'
 
 type Scope = HousingBenchmarkParams['scope']
 
@@ -73,8 +73,10 @@ interface BenchmarkFilterBarProps {
   etfSymbol: EtfBenchmarkSymbol
   handleEtfSymbolChange: (symbol: EtfBenchmarkSymbol) => void
   etfBenchmarks: (EtfBenchmarkContent & { symbol: EtfBenchmarkSymbol })[]
-  quintile: HousingQuintile
-  setQuintile: (quintile: HousingQuintile) => void
+  regionCode: string
+  setRegionCode: (regionCode: string) => void
+  regions: HousingBenchmarkRegion[]
+  regionsQuery: { isLoading: boolean; isError: boolean }
   period: Period
   setPeriod: (period: Period) => void
   periods: { value: Period; label: string; months?: number }[]
@@ -104,8 +106,10 @@ export function BenchmarkFilterBar({
   etfSymbol,
   handleEtfSymbolChange,
   etfBenchmarks,
-  quintile,
-  setQuintile,
+  regionCode,
+  setRegionCode,
+  regions,
+  regionsQuery,
   period,
   setPeriod,
   periods,
@@ -202,14 +206,22 @@ export function BenchmarkFilterBar({
             ) : (
               <select
                 aria-label="벤치마크 자산"
-                value={quintile}
-                onChange={(event) => setQuintile(Number(event.target.value) as HousingQuintile)}
+                value={regionCode}
+                onChange={(event) => setRegionCode(event.target.value)}
+                disabled={regions.length === 0}
                 className={ASSET_SELECT_CLASS}
               >
-                {HOUSING_QUINTILES.map((item) => (
-                  <option key={item.quintile} value={item.quintile}>
-                    {item.label} ({item.rangeLabel})
+                {regions.length === 0 ? (
+                  <option value="">
+                    {regionsQuery.isLoading
+                      ? '지역 목록 불러오는 중'
+                      : regionsQuery.isError
+                        ? '지역 목록 조회 실패'
+                        : '선택할 지역이 없습니다'}
                   </option>
+                ) : null}
+                {regions.map((region) => (
+                  <option key={region.code} value={region.code}>{region.name}</option>
                 ))}
               </select>
             )}

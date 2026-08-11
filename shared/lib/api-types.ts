@@ -462,6 +462,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/scheduler/kbland-price-index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * KB Land 주간 아파트 매매가격지수 스케쥴러 수동 트리거
+         * @description 운영 이슈 발생 시 다음 크론까지 기다리지 않고 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
+         */
+        post: operations["triggerKbLandPriceIndex"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/scheduler/kbland-housing-benchmark": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * KB Land 주택 벤치마크 스케쥴러 수동 트리거
+         * @description 운영 이슈 발생 시 다음 크론까지 기다리지 않고 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
+         */
+        post: operations["triggerKbLandHousingBenchmark"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/scheduler/close": {
         parameters: {
             query?: never;
@@ -831,8 +871,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 벤치마크 비교 (서울 아파트 · ETF)
-         * @description USD 투자 성과와 벤치마크(서울 아파트 분위 가격 또는 SPY/QQQ/QLD/IBIT/ETHA ETF)를 비교합니다. benchmarkType=ETF면 symbol이 필수이며 quintile은 무시됩니다.
+         * 벤치마크 비교 (아파트 매매가격지수 · ETF)
+         * @description USD 투자 성과와 벤치마크(아파트 지역 매매가격지수 또는 SPY/QQQ/QLD/IBIT/ETHA ETF)를 비교합니다. benchmarkType=ETF면 symbol이 필수이며 regionCode는 무시됩니다.
          */
         get: operations["getHousingBenchmarkComparison"];
         put?: never;
@@ -871,8 +911,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 서울 아파트 등 KB 지역 카탈로그
-         * @description 5분위 시계열 조회에 사용 가능한 지역 코드·명 목록.
+         * KB 지역 카탈로그
+         * @description 아파트 벤치마크 비교(regionCode)에 사용 가능한 지역 코드·명 목록. 5분위 시계열(`/housing-benchmark/series`)의 14개 지역은 이 목록(25개)의 부분집합이다.
          */
         get: operations["getHousingBenchmarkRegions"];
         put?: never;
@@ -3158,8 +3198,6 @@ export interface components {
             assetType?: string;
             regionCode?: string | null;
             regionName?: string | null;
-            /** Format: int32 */
-            quintile?: number | null;
             symbol?: string | null;
             label?: string;
             /** Format: date */
@@ -3197,8 +3235,8 @@ export interface components {
             investmentCumulativeReturn?: number;
             benchmarkCumulativeReturn?: number;
             excessReturn?: number;
-            investmentAnnualizedReturn?: number;
-            benchmarkAnnualizedReturn?: number;
+            investmentAnnualizedReturn?: number | null;
+            benchmarkAnnualizedReturn?: number | null;
             investmentMaxDrawdown?: number;
             benchmarkMaxDrawdown?: number;
         };
@@ -4715,6 +4753,42 @@ export interface operations {
             };
         };
     };
+    triggerKbLandPriceIndex: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    triggerKbLandHousingBenchmark: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     triggerClose: {
         parameters: {
             query?: never;
@@ -5229,7 +5303,7 @@ export interface operations {
                 scope?: "PORTFOLIO" | "STRATEGY";
                 strategyId?: string;
                 benchmarkType?: "HOUSING" | "ETF";
-                quintile?: number;
+                regionCode?: string;
                 symbol?: "SPY" | "QQQ" | "QLD" | "IBIT" | "ETHA";
                 from?: string;
                 to?: string;

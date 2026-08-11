@@ -34,7 +34,7 @@ describe('/api/stats proxy route', () => {
     vi.stubGlobal('fetch', fetchMock)
     const { GET } = await import('./route')
     const request = new NextRequest(
-      'https://kista.test/api/stats/housing-benchmark?scope=STRATEGY&strategyId=strategy-1&quintile=3&from=2021-07-01&to=2026-07-01'
+      'https://kista.test/api/stats/housing-benchmark?scope=STRATEGY&strategyId=strategy-1&regionCode=1100000000&from=2021-07-01&to=2026-07-01'
     )
 
     const response = await GET(request, {
@@ -43,7 +43,7 @@ describe('/api/stats proxy route', () => {
 
     expect(response.status).toBe(200)
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://kista-api.test/api/stats/housing-benchmark?scope=STRATEGY&strategyId=strategy-1&quintile=3&from=2021-07-01&to=2026-07-01',
+      'http://kista-api.test/api/stats/housing-benchmark?scope=STRATEGY&strategyId=strategy-1&regionCode=1100000000&from=2021-07-01&to=2026-07-01',
       expect.objectContaining({
         method: 'GET',
         headers: { Authorization: 'Bearer test-token' },

@@ -1,6 +1,6 @@
-import type { EtfBenchmarkSymbol, HousingBenchmarkParams } from '@entities/stats'
+import type { EtfBenchmarkSymbol } from '@entities/stats'
 
-export type HousingQuintile = Extract<HousingBenchmarkParams, { benchmarkType: 'HOUSING' }>['quintile']
+export type HousingQuintile = 1 | 2 | 3 | 4 | 5
 
 export interface HousingQuintileContent {
   quintile: HousingQuintile
@@ -52,6 +52,9 @@ export const HOUSING_QUINTILES: HousingQuintileContent[] = [
 export type HousingRegionName = '전국' | '서울' | '수도권'
 
 export const DEFAULT_HOUSING_REGION_NAME: HousingRegionName = '서울'
+
+// 서버 기본값(GET /housing-benchmark, /housing-benchmark/series의 regionCode 기본값)과 동일
+export const DEFAULT_HOUSING_REGION_CODE = '1100000000'
 
 const NATIONWIDE_QUINTILES: HousingQuintileContent[] = [
   {
@@ -137,11 +140,6 @@ export const HOUSING_QUINTILES_BY_REGION: Record<HousingRegionName, HousingQuint
 
 export function getHousingQuintilesByRegionName(regionName: string): HousingQuintileContent[] {
   return HOUSING_QUINTILES_BY_REGION[regionName as HousingRegionName] ?? HOUSING_QUINTILES_BY_REGION[DEFAULT_HOUSING_REGION_NAME]
-}
-
-export function getHousingQuintileContent(regionName: string, quintile: HousingQuintile): HousingQuintileContent {
-  const quintiles = getHousingQuintilesByRegionName(regionName)
-  return quintiles.find((item) => item.quintile === quintile) ?? quintiles[quintiles.length - 1]
 }
 
 // ETF 벤치마크 안내: 서버 quality.notice가 누락된 경우에도 통화 기준 안내가 사라지지 않도록 하는 클라이언트 폴백

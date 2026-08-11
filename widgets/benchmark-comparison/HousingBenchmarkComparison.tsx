@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
-import { useHousingBenchmarkQuery } from '@entities/stats'
+import { useHousingBenchmarkQuery, useHousingBenchmarkRegionsQuery } from '@entities/stats'
 import type { HousingBenchmark, HousingBenchmarkRegion } from '@entities/stats'
 import { DEFAULT_RUNTIME_BENCHMARKS, useRuntimeConfigQuery } from '@entities/runtime-config'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -13,7 +13,7 @@ import { HousingBenchmarkSummary } from './HousingBenchmarkSummary'
 import { HousingBenchmarkInfo } from './HousingBenchmarkInfo'
 import { HousingBenchmarkQuintileTrendChart } from './HousingBenchmarkQuintileTrendChart'
 import { HousingBenchmarkRegionQuintileInfo } from './HousingBenchmarkRegionQuintileInfo'
-import { emptyMessage, isHousingQuintile, uniqueSymbols } from './model/benchmarkPeriods'
+import { emptyMessage, uniqueSymbols } from './model/benchmarkPeriods'
 import { useBenchmarkFilters } from './model/useBenchmarkFilters'
 import { useBenchmarkStrategyOptions } from './model/useBenchmarkStrategyOptions'
 import {
@@ -42,7 +42,12 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   })), [etfSymbols])
 
   const filters = useBenchmarkFilters(defaultTo, { symbols: etfSymbols, defaultSymbol: defaultEtfSymbol })
-  const { scope, activeAsset, quintile, selection, from, to } = filters
+  const { scope, activeAsset, selection, from, to } = filters
+
+  const regionsQuery = useHousingBenchmarkRegionsQuery(enabled)
+  const regions = regionsQuery.data?.regions ?? []
+  const selectedRegionName = regions.find((region) => region.code === filters.regionCode)?.name
+    ?? DEFAULT_HOUSING_REGION_NAME
 
   const [trendRegionName, setTrendRegionName] = useState<string>(DEFAULT_HOUSING_REGION_NAME)
   const handleTrendRegionChange = useCallback(
@@ -66,19 +71,15 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   const params = filters.buildParams(effectiveStrategyId)
   const query = useHousingBenchmarkQuery(params, enabled && canQuery)
   const data = query.data
-  const fallbackQuintile = selection.type === 'HOUSING' ? selection.quintile : 3
-  const responseQuintile = data?.benchmark?.quintile
-  const displayedQuintile = isHousingQuintile(responseQuintile) ? responseQuintile : fallbackQuintile
   const benchmarkLabel = selection.type === 'ETF'
     ? (data?.benchmark?.label ?? selection.symbol)
-    : (data?.benchmark?.label ?? `서울 아파트 ${displayedQuintile}분위`)
+    : (data?.benchmark?.label ?? `${selectedRegionName} 아파트 매매가격지수`)
   const benchmarkCurrency: 'USD' | 'KRW' = data?.quality?.benchmarkCurrency === 'USD' ? 'USD' : 'KRW'
   const fallbackBenchmark: HousingBenchmark = selection.type === 'HOUSING'
     ? {
         assetType: 'HOUSING',
-        regionCode: null,
-        regionName: null,
-        quintile: selection.quintile,
+        regionCode: selection.regionCode,
+        regionName: selectedRegionName,
         symbol: null,
         label: benchmarkLabel,
         sourceUpdatedDate: null,
@@ -87,7 +88,6 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
         assetType: 'ETF',
         regionCode: null,
         regionName: null,
-        quintile: null,
         symbol: selection.symbol,
         label: benchmarkLabel,
         sourceUpdatedDate: null,
@@ -114,8 +114,10 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
         etfSymbol={filters.etfSymbol}
         handleEtfSymbolChange={filters.handleEtfSymbolChange}
         etfBenchmarks={etfBenchmarks}
-        quintile={filters.quintile}
-        setQuintile={filters.setQuintile}
+        regionCode={filters.regionCode}
+        setRegionCode={filters.setRegionCode}
+        regions={regions}
+        regionsQuery={{ isLoading: regionsQuery.isLoading, isError: regionsQuery.isError }}
         period={filters.period}
         setPeriod={filters.setPeriod}
         periods={filters.periods}
@@ -172,13 +174,13 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
         <HousingBenchmarkInfo benchmark={data?.benchmark ?? fallbackBenchmark} notice={data?.quality?.notice} />
       ) : null}
 
-      {/* 아파트 탭에서만 표시 — 사용자 투자 데이터와 무관하게 항상 나오는 분위 원본 시계열, 상단 "벤치마크 자산" 분위 선택과 연동, 상단 "비교 기간" 토글과 동일한 from/to 사용 */}
+      {/* 아파트 탭에서만 표시 — 사용자 투자 데이터와 무관하게 항상 나오는 5분위 원본 시계열, 위 비교 결과와 독립적, 상단 "비교 기간" 토글과 동일한 from/to 사용 */}
       {activeAsset === 'HOUSING' ? (
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">참고 · 아파트 시세 원본 데이터</p>
           <div className="flex flex-col gap-4">
-            <HousingBenchmarkQuintileTrendChart enabled={enabled} quintile={quintile} from={from} to={to} onRegionChange={handleTrendRegionChange} />
-            <HousingBenchmarkRegionQuintileInfo regionName={trendRegionName} quintile={quintile} />
+            <HousingBenchmarkQuintileTrendChart enabled={enabled} from={from} to={to} onRegionChange={handleTrendRegionChange} />
+            <HousingBenchmarkRegionQuintileInfo regionName={trendRegionName} />
           </div>
         </div>
       ) : null}
