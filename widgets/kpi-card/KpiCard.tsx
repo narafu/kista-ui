@@ -21,8 +21,8 @@ export function KpiCard({ label, labelAction, value, sub, variant = 'default', c
         variant === 'default' && 'bg-card border border-border shadow-[var(--sh-card)]',
         variant === 'accent' && [
           'text-white',
-          'bg-[linear-gradient(135deg,var(--rose-600)_0%,var(--rose-400)_100%)]',
-          'shadow-[var(--sh-rose)]',
+          'bg-[image:var(--primary-grad)]',
+          'shadow-[var(--primary-glow)]',
         ],
         variant === 'soft' && 'border border-rose-200',
         className,
