@@ -111,6 +111,7 @@ function CompositionChart({ title, columns, segments, labelFor }: CompositionCha
                   tickFormatter={(value: number) => `${value}%`}
                 />
                 <Tooltip
+                  cursor={{ fill: 'var(--muted)' }}
                   labelFormatter={(label) => formatMonthLabel(String(label))}
                   formatter={(value, name, item) => {
                     const percent = typeof value === 'number' ? value.toFixed(1) : String(value)

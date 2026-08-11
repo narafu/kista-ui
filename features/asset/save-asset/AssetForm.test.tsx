@@ -120,27 +120,12 @@ describe('AssetForm', () => {
     expect(screen.getByLabelText('운용전략 (선택)')).toBeInTheDocument()
   })
 
-  it('운용전략 자유 입력에 영문을 타이핑하면 자동으로 제거된다', async () => {
+  it('운용전략 자유 입력은 다른 콤보 필드와 동일하게 영문도 그대로 허용한다', async () => {
     const user = userEvent.setup()
     render(<AssetForm mode="create" onSuccess={onSuccess} onCancel={onCancel} />)
 
     const strategyInput = screen.getByLabelText('운용전략 (선택)')
     await user.type(strategyInput, 'VR메모')
-
-    expect(strategyInput).toHaveValue('메모')
-  })
-
-  it('운용전략에 이미 값(목록 선택 등)이 있는 상태에서 이어 타이핑해도 기존 값은 보존되고 새로 입력한 영문만 제거된다', async () => {
-    const user = userEvent.setup()
-    // 목록 Select로 'VR'을 선택한 직후 상태를 mode="edit" 초기값으로 재현한다 — Select는 jsdom에서
-    // 신뢰성 있게 열리지 않아(known limitation) 실제 클릭 대신 이 방식으로 "선택 직후 이어 타이핑" 시나리오를 검증한다.
-    const existingWithStrategy: Asset = { ...existing, strategy: 'VR' }
-    render(<AssetForm mode="edit" initial={existingWithStrategy} onSuccess={onSuccess} onCancel={onCancel} />)
-
-    const strategyInput = screen.getByLabelText('운용전략 (선택)')
-    expect(strategyInput).toHaveValue('VR')
-
-    await user.type(strategyInput, '메모')
 
     expect(strategyInput).toHaveValue('VR메모')
   })

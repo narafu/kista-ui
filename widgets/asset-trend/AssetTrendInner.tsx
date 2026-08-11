@@ -70,14 +70,14 @@ export default function AssetTrendInner() {
   const trend = useMemo(() => calcMonthlyTrend(assets, mode, effectiveSelector), [assets, mode, effectiveSelector])
 
   if (isLoading) {
-    return <div className="flex h-[240px] items-center justify-center text-sm text-muted-foreground sm:h-[280px]">불러오는 중…</div>
+    return <div className="flex min-h-[240px] flex-1 items-center justify-center text-sm text-muted-foreground sm:min-h-[280px]">불러오는 중…</div>
   }
   if (isError) {
     return <SectionError message="자산 추이를 불러오지 못했습니다" />
   }
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-1 flex-col gap-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="grid w-full grid-cols-3 rounded-md border border-border p-0.5 sm:w-64">
           {MODE_OPTIONS.map((option) => (
@@ -105,9 +105,11 @@ export default function AssetTrendInner() {
       </div>
 
       {trend.length === 0 ? (
-        <p className="py-10 text-center text-sm text-muted-foreground">표시할 추이 데이터가 없습니다</p>
+        <div className="flex flex-1 items-center justify-center">
+          <p className="text-sm text-muted-foreground">표시할 추이 데이터가 없습니다</p>
+        </div>
       ) : (
-        <div className="h-[240px] w-full sm:h-[280px]">
+        <div className="min-h-[240px] w-full flex-1 sm:min-h-[280px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trend} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />

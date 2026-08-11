@@ -32,20 +32,6 @@ function formatAmountDisplay(digits: string) {
   return digits ? Number(digits).toLocaleString('ko-KR') : ''
 }
 
-// 운용전략은 VR/INFINITE/PRIVACY 같은 실제 자동매매 전략 코드와 이름이 겹친다 — 자유 입력으로
-// 영문을 허용하면 오탈자(vr, Vr 등)가 코드와 미묘하게 다른 값으로 저장되기 쉬워, 정확한 값은
-// 목록 선택으로 유도하고 자유 입력은 한글 메모로 한정한다.
-// 값 전체가 아니라 "이번에 새로 입력된 부분"에만 필터를 적용한다 — 값 전체를 매번 재필터링하면
-// 목록 Select로 선택한 영문 값(VR 등)이 이후 아무 키 입력(백스페이스 포함)에도 함께 지워진다.
-// 커서가 끝이 아닌 위치에 삽입되는 등 단순 append가 아닌 편집은 원본을 보존하는 쪽을 택한다
-// (드물게 영문이 새로 섞여 들어올 수 있지만, 흔한 사용 패턴에서 값을 조용히 잃는 것보다 낫다).
-function stripAppendedEnglishLetters(previous: string, next: string) {
-  if (next.length <= previous.length) return next
-  if (!next.startsWith(previous)) return next
-  const appended = next.slice(previous.length)
-  return previous + appended.replace(/[a-zA-Z]/g, '')
-}
-
 const MODE_LABEL: Record<AssetFormMode, string> = {
   create: '등록',
   edit: '수정',
@@ -62,7 +48,6 @@ interface ComboFieldProps {
   selectLabel: string
   disabled?: boolean
   maxLength?: number
-  filterInput?: (previous: string, next: string) => string
   helperText?: string
 }
 
@@ -78,7 +63,6 @@ function ComboField({
   selectLabel,
   disabled,
   maxLength,
-  filterInput,
   helperText,
 }: ComboFieldProps) {
   return (
@@ -89,7 +73,7 @@ function ComboField({
           id={id}
           placeholder={placeholder}
           value={value}
-          onChange={(e) => onChange(filterInput ? filterInput(value, e.target.value) : e.target.value)}
+          onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
           maxLength={maxLength}
           className="h-12 flex-1"
@@ -253,8 +237,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
               selectLabel="운용전략 목록에서 선택"
               disabled={isPending}
               maxLength={50}
-              filterInput={stripAppendedEnglishLetters}
-              helperText="자동매매 전략과 무관한 자유 메모입니다. 목록 외 값은 한글로만 입력할 수 있습니다."
+              helperText="자동매매 전략과 무관한 자유 메모입니다."
             />
           )}
 
