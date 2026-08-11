@@ -99,6 +99,22 @@ describe('AssetOverview', () => {
     expect(screen.getByText('부동산')).toBeInTheDocument()
   })
 
+  it('카테고리별 현황 각 행에 금액과 함께 비율(%)을 표시한다', () => {
+    useAssetsQueryMock.mockReturnValue({
+      data: [
+        asset({ id: 'a1', category: 'INVESTMENT', amount: 3_000_000 }),
+        asset({ id: 'a2', category: 'SAVINGS', amount: 1_000_000 }),
+      ],
+      isLoading: false,
+      isError: false,
+    })
+    render(<AssetOverview month="2026-08" months={['2026-08']} onMonthChange={onMonthChange} />)
+
+    // 투자 3,000,000 / 총 4,000,000 = 75.0%, 예적금 1,000,000 / 4,000,000 = 25.0%
+    expect(screen.getByText('75.0%')).toBeInTheDocument()
+    expect(screen.getByText('25.0%')).toBeInTheDocument()
+  })
+
   it('자산군별 현황에 기록이 없으면(대출만 있는 경우) 안내 문구를 표시한다', () => {
     useAssetsQueryMock.mockReturnValue({
       data: [asset({ id: 'a1', category: 'LOAN', assetClass: '원화', amount: 500_000 })],

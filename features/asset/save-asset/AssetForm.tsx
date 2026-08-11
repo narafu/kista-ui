@@ -69,15 +69,6 @@ function ComboField({
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
       <div className="flex gap-2">
-        <Input
-          id={id}
-          placeholder={placeholder}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={disabled}
-          maxLength={maxLength}
-          className="h-12 flex-1"
-        />
         <Select
           items={suggestions.map((s) => ({ value: s, label: s }))}
           onValueChange={(next: string | null) => { if (next) onChange(next) }}
@@ -89,6 +80,15 @@ function ComboField({
             {suggestions.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Input
+          id={id}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+          maxLength={maxLength}
+          className="h-12 flex-1"
+        />
       </div>
       {helperText && <p className="text-sm text-muted-foreground">{helperText}</p>}
     </div>
@@ -106,7 +106,9 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
   const [institution, setInstitution] = useState(initial?.institution ?? '')
   const [assetClass, setAssetClass] = useState(initial?.assetClass ?? (initialCategory === 'INVESTMENT' ? '' : '원화'))
   const [strategy, setStrategy] = useState(initial?.strategy ?? '')
-  const [amountDigits, setAmountDigits] = useState(initial ? String(initial.amount) : '')
+  // 복제 모드는 금액을 제외한 나머지 필드만 이어받는다 — 복제 시점마다 금액이 다른 게
+  // 일반적인 사용 패턴이라, 이전 금액을 그대로 들고 있으면 고치는 걸 잊고 그대로 제출하기 쉽다.
+  const [amountDigits, setAmountDigits] = useState(mode === 'edit' && initial ? String(initial.amount) : '')
 
   const createMutation = useCreateAssetMutation()
   const updateMutation = useUpdateAssetMutation(initial?.id ?? '')
@@ -203,18 +205,6 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
           />
 
           <ComboField
-            id="institution"
-            label="기관 (선택)"
-            placeholder="예: 미래에셋증권, 국민은행"
-            value={institution}
-            onChange={setInstitution}
-            suggestions={assetFormOptions.institutionSuggestions}
-            selectLabel="기관 목록에서 선택"
-            disabled={isPending}
-            maxLength={100}
-          />
-
-          <ComboField
             id="assetClass"
             label="자산군"
             placeholder="예: 미국주식, 원화"
@@ -240,6 +230,18 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
               helperText="자동매매 전략과 무관한 자유 메모입니다."
             />
           )}
+
+          <ComboField
+            id="institution"
+            label="기관 (선택)"
+            placeholder="예: 미래에셋증권, 국민은행"
+            value={institution}
+            onChange={setInstitution}
+            suggestions={assetFormOptions.institutionSuggestions}
+            selectLabel="기관 목록에서 선택"
+            disabled={isPending}
+            maxLength={100}
+          />
 
           <div className="space-y-2">
             <Label htmlFor="amount">금액 (원)</Label>

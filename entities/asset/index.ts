@@ -18,6 +18,7 @@ export {
   useUpdateAssetMutation,
 } from './hooks/useAssetMutations'
 export type { DeleteManyAssetsResult } from './hooks/useAssetMutations'
+export { assetCategoryColor, assetClassColorMap } from './lib/colors'
 export {
   ASSET_CATEGORIES,
   KNOWN_ASSET_CLASSES,

@@ -125,7 +125,15 @@ export default function AssetTrendInner() {
                   borderRadius: 6,
                 }}
               />
-              <Line type="monotone" dataKey="amount" stroke="var(--chart-1)" strokeWidth={2.5} dot={false} />
+              <Line
+                type="monotone"
+                dataKey="amount"
+                stroke="var(--chart-1)"
+                strokeWidth={2.5}
+                dot={false}
+                animationDuration={500}
+                animationEasing="ease-out"
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>

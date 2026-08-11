@@ -8,22 +8,17 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGri
 import {
   ASSET_CATEGORIES,
   KNOWN_ASSET_CLASSES,
+  assetCategoryColor,
+  assetClassColorMap,
   calcAssetClassComposition,
   calcCategoryComposition,
   useAssetsQuery,
+  type AssetCategory,
   type CompositionColumn,
 } from '@entities/asset'
 import { formatAssetCategoryLabel } from '@shared/lib/api-schema'
 import { fmtKrw } from '@shared/lib/format'
 import { SectionError } from '@shared/ui/SectionError'
-
-// globals.css에 정의된 차트 토큰 5개(--chart-1~5)까지만 순환하고, 세그먼트가 더 많으면
-// (자산군 구성비가 KNOWN_ASSET_CLASSES 6개를 모두 채우는 경우) 나머지는 muted-foreground로 폴백한다.
-const CHART_COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)']
-
-function colorForIndex(index: number): string {
-  return CHART_COLORS[index] ?? 'var(--muted-foreground)'
-}
 
 function amountKey(item: string): string {
   return `${item}__amount`
@@ -76,9 +71,10 @@ interface CompositionChartProps {
   columns: CompositionColumn[]
   segments: string[]
   labelFor: (item: string) => string
+  colorFor: (item: string) => string
 }
 
-function CompositionChart({ title, columns, segments, labelFor }: CompositionChartProps) {
+function CompositionChart({ title, columns, segments, labelFor, colorFor }: CompositionChartProps) {
   const rows = toChartRows(columns)
 
   return (
@@ -127,16 +123,24 @@ function CompositionChart({ title, columns, segments, labelFor }: CompositionCha
                     borderRadius: 6,
                   }}
                 />
-                {segments.map((segment, index) => (
-                  <Bar key={segment} dataKey={segment} name={segment} stackId="composition" fill={colorForIndex(index)} />
+                {segments.map((segment) => (
+                  <Bar
+                    key={segment}
+                    dataKey={segment}
+                    name={segment}
+                    stackId="composition"
+                    fill={colorFor(segment)}
+                    animationDuration={500}
+                    animationEasing="ease-out"
+                  />
                 ))}
               </BarChart>
             </ResponsiveContainer>
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-            {segments.map((segment, index) => (
+            {segments.map((segment) => (
               <span key={segment} className="flex items-center gap-1.5">
-                <span className="inline-block size-2.5 rounded-full" style={{ backgroundColor: colorForIndex(index) }} />
+                <span className="inline-block size-2.5 rounded-full" style={{ backgroundColor: colorFor(segment) }} />
                 {labelFor(segment)}
               </span>
             ))}
@@ -161,6 +165,10 @@ export default function AssetCompositionInner() {
   const categoryColumns = calcCategoryComposition(assets)
   const assetClassColumns = calcAssetClassComposition(assets)
   const assetClassSegments = collectPresentSegments(assetClassColumns)
+  // useMemo가 아니라 일반 함수 호출이다 — isLoading/isError early return 뒤라 hook을 여기 두면
+  // Rules of Hooks 위반(hook 호출 개수가 렌더마다 달라짐)이 된다. assetClassColorMap 자체는
+  // 훅이 아닌 순수 함수라 조건부 호출이 안전하다.
+  const assetClassColor = assetClassColorMap(assets)
 
   return (
     <div className="flex flex-col gap-6">
@@ -169,12 +177,14 @@ export default function AssetCompositionInner() {
         columns={categoryColumns}
         segments={ASSET_CATEGORIES}
         labelFor={formatAssetCategoryLabel}
+        colorFor={(item) => assetCategoryColor(item as AssetCategory)}
       />
       <CompositionChart
         title="자산군별 구성비"
         columns={assetClassColumns}
         segments={assetClassSegments}
         labelFor={(item) => item}
+        colorFor={assetClassColor}
       />
     </div>
   )

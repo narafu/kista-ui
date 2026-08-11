@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { AssetsDashboard } from './AssetsDashboard'
@@ -35,12 +35,35 @@ describe('AssetsDashboard', () => {
     render(<AssetsDashboard />)
 
     expect(screen.getByRole('button', { name: '투자' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: '예산' })).toHaveAttribute('aria-pressed', 'false')
     expect(screen.getByRole('button', { name: '수입' })).toHaveAttribute('aria-pressed', 'false')
     expect(screen.getByRole('button', { name: '지출' })).toHaveAttribute('aria-pressed', 'false')
     for (const testId of WIDGET_TEST_IDS) {
       expect(screen.getByTestId(testId)).toBeInTheDocument()
     }
     expect(screen.getByRole('button', { name: '자산 등록' })).toBeInTheDocument()
+  })
+
+  it('탭은 예산·수입·지출·투자 순서로 배치된다', () => {
+    render(<AssetsDashboard />)
+
+    const group = screen.getByRole('group', { name: '자산 탭' })
+    const labels = within(group).getAllByRole('button').map((el) => el.textContent)
+
+    expect(labels).toEqual(['예산', '수입', '지출', '투자'])
+  })
+
+  it('예산 탭을 선택하면 준비 중 안내를 보여주고 투자 위젯·자산 등록 버튼은 사라진다', async () => {
+    const user = userEvent.setup()
+    render(<AssetsDashboard />)
+
+    await user.click(screen.getByRole('button', { name: '예산' }))
+
+    expect(screen.getByText('예산 탭은 준비 중입니다')).toBeInTheDocument()
+    for (const testId of WIDGET_TEST_IDS) {
+      expect(screen.queryByTestId(testId)).not.toBeInTheDocument()
+    }
+    expect(screen.queryByRole('button', { name: '자산 등록' })).not.toBeInTheDocument()
   })
 
   it('수입 탭을 선택하면 준비 중 안내를 보여주고 투자 위젯·자산 등록 버튼은 사라진다', async () => {

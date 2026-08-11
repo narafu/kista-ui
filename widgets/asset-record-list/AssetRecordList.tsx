@@ -36,8 +36,10 @@ const CATEGORY_TONE: Record<AssetCategory, 'brand' | 'error' | 'neutral'> = {
   REAL_ESTATE: 'neutral',
 }
 
+// 체크박스 aria-label 전용 — 컬럼 분리 이후 화면에는 이 조합 문자열이 그대로 보이지 않지만,
+// 세부 카테고리를 먼저 말해 화면(왼쪽 세부 카테고리·오른쪽 기관 등) 순서와 맞춘다.
 function accountLabel(asset: Asset): string {
-  return asset.institution ? `${asset.institution} · ${asset.subcategory}` : asset.subcategory
+  return asset.institution ? `${asset.subcategory} · ${asset.institution}` : asset.subcategory
 }
 
 export function AssetRecordList() {
@@ -47,11 +49,11 @@ export function AssetRecordList() {
   const [month, setMonth] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
   const [category, setCategory] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
   const [assetClass, setAssetClass] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
-  const [subcategoryQuery, setSubcategoryQuery] = useState('')
+  const [subcategory, setSubcategory] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
   const [sortKey, setSortKey] = useState<SortKey>('entryDate')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState('30')
+  const [pageSize, setPageSize] = useState('10')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [deleteTarget, setDeleteTarget] = useState<string[] | null>(null)
 
@@ -61,13 +63,17 @@ export function AssetRecordList() {
     assets.forEach((asset) => set.add(asset.assetClass))
     return Array.from(set)
   }, [assets])
+  const subcategoryOptions = useMemo(() => {
+    const set = new Set(assets.map((asset) => asset.subcategory))
+    return Array.from(set)
+  }, [assets])
 
   const filtered = useMemo(() => assets.filter((asset) =>
     (month === ALL_FILTER_VALUE || asset.entryDate.startsWith(month)) &&
     (category === ALL_FILTER_VALUE || asset.category === category) &&
-    (assetClass === ALL_FILTER_VALUE || asset.assetClass === assetClass) &&
-    (subcategoryQuery.trim() === '' || asset.subcategory.toLowerCase().includes(subcategoryQuery.trim().toLowerCase())),
-  ), [assets, month, category, assetClass, subcategoryQuery])
+    (subcategory === ALL_FILTER_VALUE || asset.subcategory === subcategory) &&
+    (assetClass === ALL_FILTER_VALUE || asset.assetClass === assetClass),
+  ), [assets, month, category, assetClass, subcategory])
 
   const sorted = useMemo(() => {
     const copy = [...filtered]
@@ -88,7 +94,7 @@ export function AssetRecordList() {
   useEffect(() => {
     setPage(1)
     setSelectedIds(new Set())
-  }, [month, category, assetClass, subcategoryQuery])
+  }, [month, category, assetClass, subcategory])
 
   function handlePageSizeChange(nextSize: string) {
     setPageSize(nextSize)
@@ -186,14 +192,15 @@ export function AssetRecordList() {
         <AssetRecordFilters
           month={month}
           category={category}
+          subcategory={subcategory}
           assetClass={assetClass}
-          subcategoryQuery={subcategoryQuery}
           months={months}
+          subcategories={subcategoryOptions}
           assetClasses={assetClassOptions}
           onMonthChange={setMonth}
           onCategoryChange={setCategory}
+          onSubcategoryChange={setSubcategory}
           onAssetClassChange={setAssetClass}
-          onSubcategoryQueryChange={setSubcategoryQuery}
         />
         <PageSizeSelector value={pageSize} onChange={handlePageSizeChange} />
       </div>
@@ -216,7 +223,7 @@ export function AssetRecordList() {
       ) : (
         <>
           <div className="hidden overflow-x-auto lg:block rounded-[var(--r-lg)] border border-border">
-            <table className="w-full min-w-[860px] text-sm" aria-label="자산 기록">
+            <table className="w-full min-w-[1080px] text-sm" aria-label="자산 기록">
               <thead className="bg-muted/50">
                 <tr>
                   <TableHeadCell className="w-10">
@@ -241,6 +248,8 @@ export function AssetRecordList() {
                   </TableHeadCell>
                   <TableHeadCell>세부 카테고리</TableHeadCell>
                   <TableHeadCell>자산군</TableHeadCell>
+                  <TableHeadCell>운용전략</TableHeadCell>
+                  <TableHeadCell>기관</TableHeadCell>
                   <TableHeadCell aria-sort={sortKey === 'amount' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}>
                     <button type="button" onClick={() => handleSort('amount')}>
                       금액{sortIcon('amount')}
@@ -265,16 +274,18 @@ export function AssetRecordList() {
                     <TableDataCell>
                       <Badge tone={CATEGORY_TONE[asset.category]} size="sm">{formatAssetCategoryLabel(asset.category)}</Badge>
                     </TableDataCell>
-                    <TableDataCell className="text-left">{accountLabel(asset)}</TableDataCell>
+                    <TableDataCell>{asset.subcategory}</TableDataCell>
                     <TableDataCell>{asset.assetClass}</TableDataCell>
+                    <TableDataCell className={cn(!asset.strategy && 'text-muted-foreground')}>{asset.strategy ?? '—'}</TableDataCell>
+                    <TableDataCell className={cn(!asset.institution && 'text-muted-foreground')}>{asset.institution ?? '—'}</TableDataCell>
                     <TableDataCell className={cn('tabular-nums whitespace-nowrap', isLoanCategory(asset.category) && 'text-destructive')}>
                       {fmtKrw(asset.amount)}
                     </TableDataCell>
                     <TableDataCell>
                       <div className="flex items-center justify-center gap-1">
-                        <Link href={`/assets/${asset.id}/edit`} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">수정</Link>
-                        <span className="text-muted-foreground/40">·</span>
                         <Link href={`/assets/new?duplicateFrom=${asset.id}`} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">복제</Link>
+                        <span className="text-muted-foreground/40">·</span>
+                        <Link href={`/assets/${asset.id}/edit`} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">수정</Link>
                         <span className="text-muted-foreground/40">·</span>
                         <button type="button" onClick={() => setDeleteTarget([asset.id])} className="text-xs font-semibold text-destructive hover:text-destructive/80">삭제</button>
                       </div>
@@ -285,11 +296,11 @@ export function AssetRecordList() {
             </table>
           </div>
 
-          <div className="divide-y rounded-[var(--r-lg)] border border-border lg:hidden" role="list" aria-label="자산 기록 모바일">
+          <ul className="m-0 list-none divide-y rounded-[var(--r-lg)] border border-border p-0 lg:hidden" aria-label="자산 기록 모바일">
             {paged.map((asset) => (
-              <section key={asset.id} className="px-4 py-4" role="listitem">
+              <li key={asset.id} className="px-4 py-4">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
+                  <div className="flex min-w-0 flex-1 items-start gap-3">
                     <input
                       type="checkbox"
                       aria-label={`${fmtDate(asset.entryDate)} ${accountLabel(asset)} 선택`}
@@ -297,13 +308,17 @@ export function AssetRecordList() {
                       onChange={() => toggleRow(asset.id)}
                       className="size-4 mt-1"
                     />
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-1.5 mb-1">
                         <Badge tone={CATEGORY_TONE[asset.category]} size="sm">{formatAssetCategoryLabel(asset.category)}</Badge>
                         <span className="text-xs text-muted-foreground">{fmtDate(asset.entryDate)}</span>
                       </div>
-                      <p className="text-sm font-medium">{accountLabel(asset)}</p>
-                      <p className="text-xs text-muted-foreground">{asset.assetClass}</p>
+                      <div className="flex items-baseline justify-between gap-2">
+                        <p className="shrink-0 text-sm font-medium">{asset.subcategory}</p>
+                        <p className="min-w-0 flex-1 truncate text-right text-xs text-muted-foreground">
+                          {[asset.assetClass, asset.strategy, asset.institution].filter(Boolean).join(' · ')}
+                        </p>
+                      </div>
                     </div>
                   </div>
                   <span className={cn('text-sm font-semibold tabular-nums', isLoanCategory(asset.category) && 'text-destructive')}>
@@ -311,13 +326,13 @@ export function AssetRecordList() {
                   </span>
                 </div>
                 <div className="mt-3 flex items-center justify-end gap-3 border-t pt-3">
-                  <Link href={`/assets/${asset.id}/edit`} className="text-xs font-semibold text-foreground">수정</Link>
                   <Link href={`/assets/new?duplicateFrom=${asset.id}`} className="text-xs font-semibold text-foreground">복제</Link>
+                  <Link href={`/assets/${asset.id}/edit`} className="text-xs font-semibold text-foreground">수정</Link>
                   <button type="button" onClick={() => setDeleteTarget([asset.id])} className="text-xs font-semibold text-destructive">삭제</button>
                 </div>
-              </section>
+              </li>
             ))}
-          </div>
+          </ul>
 
           {totalPages > 1 && (
             <PaginationBar page={currentPage} totalPages={totalPages} onPageChange={setPage} />

@@ -82,6 +82,54 @@ describe('AssetRecordList', () => {
     expect(screen.getAllByRole('link', { name: '복제' })[0]).toHaveAttribute('href', '/assets/new?duplicateFrom=a1')
   })
 
+  it('컬럼 순서(기준일·카테고리·세부카테고리·자산군·운용전략·기관·금액)대로 값을 표시한다', () => {
+    useAssetsQueryMock.mockReturnValue({
+      data: [asset({ subcategory: '일반계좌', assetClass: '미국주식', strategy: 'VR', institution: '미래에셋증권' })],
+      isLoading: false,
+      isError: false,
+    })
+    render(<AssetRecordList />)
+
+    const desktopTable = screen.getByRole('table', { name: '자산 기록' })
+    const dataRow = within(desktopTable).getAllByRole('row')[1]
+    const cellTexts = within(dataRow).getAllByRole('cell').map((cell) => cell.textContent)
+
+    // [체크박스, 기준일, 카테고리, 세부카테고리, 자산군, 운용전략, 기관, 금액, 작업]
+    expect(cellTexts[3]).toBe('일반계좌')
+    expect(cellTexts[4]).toBe('미국주식')
+    expect(cellTexts[5]).toBe('VR')
+    expect(cellTexts[6]).toBe('미래에셋증권')
+  })
+
+  it('운용전략·기관이 없으면 해당 컬럼에 — 로 표시한다', () => {
+    useAssetsQueryMock.mockReturnValue({
+      data: [asset({ strategy: undefined, institution: undefined })],
+      isLoading: false,
+      isError: false,
+    })
+    render(<AssetRecordList />)
+
+    const desktopTable = screen.getByRole('table', { name: '자산 기록' })
+    const dataRow = within(desktopTable).getAllByRole('row')[1]
+    const cellTexts = within(dataRow).getAllByRole('cell').map((cell) => cell.textContent)
+
+    expect(cellTexts[5]).toBe('—')
+    expect(cellTexts[6]).toBe('—')
+  })
+
+  it('작업 버튼은 복제·수정·삭제 순서로 배치된다', () => {
+    useAssetsQueryMock.mockReturnValue({ data: [asset({})], isLoading: false, isError: false })
+    render(<AssetRecordList />)
+
+    const desktopTable = screen.getByRole('table', { name: '자산 기록' })
+    const dataRow = within(desktopTable).getAllByRole('row')[1]
+    const actionCell = within(dataRow).getAllByRole('cell').at(-1) as HTMLElement
+    const labels = within(actionCell).getAllByRole('link').map((el) => el.textContent)
+      .concat(within(actionCell).getAllByRole('button').map((el) => el.textContent))
+
+    expect(labels).toEqual(['복제', '수정', '삭제'])
+  })
+
   it('행을 선택하면 선택 삭제 바가 나타나고, 확인 시 선택 id로 삭제 mutation을 호출한다', async () => {
     const user = userEvent.setup()
     useAssetsQueryMock.mockReturnValue({
@@ -131,11 +179,11 @@ describe('AssetRecordList', () => {
     const rows = () => within(desktopTable).getAllByRole('row').slice(1)
 
     // 기본 정렬: 기준일 내림차순(최신 먼저)
-    expect(within(rows()[0]).getByText((_, el) => el?.textContent === '미래에셋증권 · 최신기록')).toBeInTheDocument()
+    expect(within(rows()[0]).getByText('최신기록')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /기준일/ }))
 
-    expect(within(rows()[0]).getByText((_, el) => el?.textContent === '미래에셋증권 · 오래된기록')).toBeInTheDocument()
+    expect(within(rows()[0]).getByText('오래된기록')).toBeInTheDocument()
   })
 
   it('전체 성공 시 성공 toast를 띄우고 선택을 비운다 — 전체 실패(succeededIds 빈 배열)는 건드리지 않는다', async () => {

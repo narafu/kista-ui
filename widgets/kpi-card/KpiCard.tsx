@@ -17,7 +17,7 @@ export function KpiCard({ label, labelAction, value, sub, variant = 'default', c
   return (
     <div
       className={cn(
-        'rounded-[var(--r-lg)] p-5 flex flex-col gap-1',
+        'rounded-[var(--r-lg)] p-4 sm:p-5 flex flex-col gap-1',
         variant === 'default' && 'bg-card border border-border shadow-[var(--sh-card)]',
         variant === 'accent' && [
           'text-white',

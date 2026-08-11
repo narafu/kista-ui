@@ -13,9 +13,10 @@ import { PageHeader } from '@widgets/page-header'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { cn } from '@shared/lib/utils'
 
-type AssetTab = 'income' | 'expense' | 'investment'
+type AssetTab = 'budget' | 'income' | 'expense' | 'investment'
 
 const TAB_OPTIONS: { value: AssetTab; label: string }[] = [
+  { value: 'budget', label: '예산' },
   { value: 'income', label: '수입' },
   { value: 'expense', label: '지출' },
   { value: 'investment', label: '투자' },
@@ -64,7 +65,7 @@ export function AssetsDashboard() {
         actions={tab === 'investment' ? <NewAssetButton /> : undefined}
       />
       <div className="space-y-6">
-        <div role="group" aria-label="자산 탭" className="grid w-full grid-cols-3 rounded-md border border-border p-0.5 sm:w-72">
+        <div role="group" aria-label="자산 탭" className="grid w-full grid-cols-4 rounded-md border border-border p-0.5 sm:w-96">
           {TAB_OPTIONS.map((option) => (
             <TabButton key={option.value} active={tab === option.value} onClick={() => setTab(option.value)}>
               {option.label}

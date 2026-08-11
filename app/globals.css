@@ -130,6 +130,21 @@
   --quintile-4: #b55fba;
   --quintile-5: #7e74e1;
 
+  /* 자산 카테고리/자산군 구분 색상(6종) — 로즈골드 브랜드 톤(1번 슬롯)에서 출발해 서로 다른
+     색상군(청록·금·남보라·세이지·자두)으로 퍼지는 절제된 팔레트. dataviz 스킬의
+     validate_palette.js 6항목(명도대·채도·CVD 인접대비·정상시각대비·표면대비)을 라이트/다크
+     양쪽에서 통과했다 — 순서를 바꾸면 인접 대비가 깨지므로 이 순서를 유지한다.
+     라이트 1번 슬롯 값은 --primary와 우연이 아니라 의도적으로 동일하다(브랜드 톤에서 출발한다는
+     설계) — 다크 1번 슬롯(#BC7455)은 반대로 --primary의 다크값(#C99780)과 일부러 다르다(6색
+     세트로 검증된 값이라 단독으로 --primary 다크값을 넣으면 검증이 깨진다). 둘 다
+     var(--primary)로 치환하지 말 것 */
+  --asset-series-1: #B66951;
+  --asset-series-2: #00699A;
+  --asset-series-3: #B8862A;
+  --asset-series-4: #4A4FA0;
+  --asset-series-5: #4F8F4A;
+  --asset-series-6: #A84A85;
+
   /* shadcn sidebar tokens */
   --sidebar:                  #FBF6F1;
   --sidebar-foreground:       oklch(0.32 0.018 40);
@@ -229,6 +244,13 @@
   --quintile-3: #db6397;
   --quintile-4: #c26cc7;
   --quintile-5: #8a81ef;
+
+  --asset-series-1: #BC7455;
+  --asset-series-2: #3D8FBE;
+  --asset-series-3: #BC8B33;
+  --asset-series-4: #767CD1;
+  --asset-series-5: #6BA362;
+  --asset-series-6: #BD5E97;
 
   --sidebar:                  #0E0F11;
   --sidebar-foreground:       #9B9892;
