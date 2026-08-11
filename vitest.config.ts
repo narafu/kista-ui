@@ -9,7 +9,7 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     globals: true,
     env: { TZ: 'UTC' },
-    exclude: [...configDefaults.exclude, '**/.next/**', 'e2e/**', 'tests/e2e/**', '**/.claude/**'],
+    exclude: [...configDefaults.exclude, '**/.next/**', 'e2e/**', 'tests/e2e/**', '**/.claude/**', '**/.worktrees/**'],
   },
   resolve: {
     alias: {
