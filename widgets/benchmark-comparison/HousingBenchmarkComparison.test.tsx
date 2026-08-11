@@ -5,19 +5,29 @@ import userEvent from '@testing-library/user-event'
 import type { HousingBenchmark, HousingBenchmarkComparison as HousingBenchmarkComparisonData } from '@entities/stats'
 import { HousingBenchmarkComparison } from './HousingBenchmarkComparison'
 
-const { useHousingBenchmarkQueryMock, useAllStrategiesQueryMock, useAccountsQueryMock, useRuntimeConfigQueryMock } = vi.hoisted(() => ({
+const { useHousingBenchmarkQueryMock, useHousingBenchmarkRegionsQueryMock, useAllStrategiesQueryMock, useAccountsQueryMock, useRuntimeConfigQueryMock } = vi.hoisted(() => ({
   useHousingBenchmarkQueryMock: vi.fn(),
+  useHousingBenchmarkRegionsQueryMock: vi.fn(),
   useAllStrategiesQueryMock: vi.fn(),
   useAccountsQueryMock: vi.fn(),
   useRuntimeConfigQueryMock: vi.fn(),
 }))
 
 const API_QUALITY_NOTICE =
-  '전략 운용 기록 기반 근사치입니다. 투자 성과는 USD, 서울 아파트는 KRW 현지 통화 기준이며 현재 환율은 성과 계산에 반영하지 않습니다.'
+  '전략 운용 기록 기반 근사치입니다. 투자 성과는 USD, 아파트 매매가격지수는 KRW 현지 통화 기준이며 현재 환율은 성과 계산에 반영하지 않습니다. 벤치마크 시점은 KB Land 주간 조사일(매주 월요일) 기준입니다.'
+
+const MOCK_REGIONS = [
+  { code: '1100000000', name: '서울' },
+  { code: '11680', name: '강남구' },
+]
 
 vi.mock('@entities/stats', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@entities/stats')>()
-  return { ...actual, useHousingBenchmarkQuery: useHousingBenchmarkQueryMock }
+  return {
+    ...actual,
+    useHousingBenchmarkQuery: useHousingBenchmarkQueryMock,
+    useHousingBenchmarkRegionsQuery: useHousingBenchmarkRegionsQueryMock,
+  }
 })
 
 vi.mock('@entities/strategy', async (importOriginal) => {
@@ -57,9 +67,8 @@ const HOUSING_BENCHMARK: HousingBenchmark = {
   assetType: 'HOUSING',
   regionCode: '1100000000',
   regionName: '서울',
-  quintile: 3,
   symbol: null,
-  label: '서울 아파트 3분위',
+  label: '서울 아파트 매매가격지수',
   sourceUpdatedDate: '2026-07-01',
 }
 
@@ -121,12 +130,13 @@ const STRATEGY_COMPARISON: HousingBenchmarkComparisonData = {
   },
 }
 
-const FIFTH_QUINTILE_STRATEGY_COMPARISON: HousingBenchmarkComparisonData = {
+const GANGNAM_STRATEGY_COMPARISON: HousingBenchmarkComparisonData = {
   ...STRATEGY_COMPARISON,
   benchmark: {
     ...HOUSING_BENCHMARK,
-    quintile: 5,
-    label: '서울 아파트 5분위',
+    regionCode: '11680',
+    regionName: '강남구',
+    label: '강남구 아파트 매매가격지수',
   },
 }
 
@@ -136,7 +146,6 @@ const QLD_STRATEGY_COMPARISON: HousingBenchmarkComparisonData = {
     assetType: 'ETF',
     regionCode: null,
     regionName: null,
-    quintile: null,
     symbol: 'QLD',
     label: 'QLD (ProShares Ultra QQQ (2x 레버리지))',
     sourceUpdatedDate: '2026-07-01',
@@ -180,6 +189,9 @@ describe('HousingBenchmarkComparison', () => {
     useAllStrategiesQueryMock.mockReturnValue({ data: STRATEGIES, isLoading: false })
     useAccountsQueryMock.mockReturnValue({ data: ACCOUNTS, isLoading: false })
     useRuntimeConfigQueryMock.mockReturnValue({ data: undefined })
+    useHousingBenchmarkRegionsQueryMock.mockReturnValue({
+      data: { regions: MOCK_REGIONS }, isLoading: false, isError: false,
+    })
     mockQuery()
   })
 
@@ -198,7 +210,7 @@ describe('HousingBenchmarkComparison', () => {
     expect(screen.getByRole('button', { name: '3개월' })).toHaveAttribute('aria-pressed', 'true')
   })
 
-  it('아파트 탭에서 포트폴리오·3분위·1년 비교와 서버 지수 및 장기 요약을 표시한다', async () => {
+  it('아파트 탭에서 포트폴리오·서울·1년 비교와 서버 지수 및 장기 요약을 표시한다', async () => {
     const user = userEvent.setup()
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
@@ -207,27 +219,27 @@ describe('HousingBenchmarkComparison', () => {
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'PORTFOLIO',
       benchmarkType: 'HOUSING',
-      quintile: 3,
+      regionCode: '1100000000',
       from: '2025-07-17',
       to: '2026-07-17',
     }, true)
     expect(screen.getByRole('button', { name: '전체 포트폴리오' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: '1년' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('3')
+    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('1100000000')
 
     expect(screen.getByText('+32.5%p')).toBeInTheDocument()
     expect(screen.getByText('+84.2%')).toBeInTheDocument()
     expect(screen.getByText('+51.7%')).toBeInTheDocument()
     expect(screen.getByRole('table', { name: '장기 성과 지표 비교' })).toBeInTheDocument()
     expect(screen.getByText('전체 포트폴리오 (USD): investmentIndexUsd')).toBeInTheDocument()
-    expect(screen.getByText('서울 아파트 3분위 (KRW): benchmarkIndex')).toBeInTheDocument()
+    expect(screen.getByText('서울 아파트 매매가격지수 (KRW): benchmarkIndex')).toBeInTheDocument()
     expect(screen.getByTestId('housing-benchmark-chart')).toHaveAttribute(
       'data-points',
       JSON.stringify(COMPARISON.points),
     )
   })
 
-  it('전략 범위와 전략·분위·기간 필터를 요청에 반영한다', async () => {
+  it('전략 범위와 전략·지역·기간 필터를 요청에 반영한다', async () => {
     const user = userEvent.setup()
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
     await user.click(screen.getByRole('button', { name: '아파트' }))
@@ -242,14 +254,14 @@ describe('HousingBenchmarkComparison', () => {
     }), true)
 
     await user.selectOptions(strategySelect, 'strategy-2')
-    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), '5')
+    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), '11680')
     await user.click(screen.getByRole('button', { name: '1년' }))
 
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'STRATEGY',
       strategyId: 'strategy-2',
       benchmarkType: 'HOUSING',
-      quintile: 5,
+      regionCode: '11680',
       from: '2025-07-17',
       to: '2026-07-17',
     }, true)
@@ -259,7 +271,7 @@ describe('HousingBenchmarkComparison', () => {
       scope: 'STRATEGY',
       strategyId: 'strategy-2',
       benchmarkType: 'HOUSING',
-      quintile: 5,
+      regionCode: '11680',
       to: '2026-07-17',
     }, true)
   })
@@ -380,18 +392,18 @@ describe('HousingBenchmarkComparison', () => {
     await user.click(screen.getByRole('button', { name: '아파트' }))
 
     await user.click(screen.getByRole('button', { name: '개별 전략' }))
-    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), '5')
+    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), '11680')
 
     expect(screen.getByRole('button', { name: '개별 전략' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('5')
+    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('11680')
     expect(screen.getByRole('status', { name: '갱신 중' })).toBeInTheDocument()
     expect(screen.getByText('+32.5%p')).toBeInTheDocument()
     expect(screen.getByText('전체 포트폴리오 · USD')).toBeInTheDocument()
     expect(screen.getByText('전체 포트폴리오 (USD): investmentIndexUsd')).toBeInTheDocument()
-    expect(screen.getByText('서울 아파트 3분위 (KRW): benchmarkIndex')).toBeInTheDocument()
+    expect(screen.getByText('서울 아파트 매매가격지수 (KRW): benchmarkIndex')).toBeInTheDocument()
 
     strategyResult = {
-      data: FIFTH_QUINTILE_STRATEGY_COMPARISON,
+      data: GANGNAM_STRATEGY_COMPARISON,
       isLoading: false,
       isFetching: false,
       isError: false,
@@ -401,7 +413,7 @@ describe('HousingBenchmarkComparison', () => {
 
     expect(screen.getByText('INFINITE · SOXL · USD')).toBeInTheDocument()
     expect(screen.getByText('INFINITE · SOXL (USD): investmentIndexUsd')).toBeInTheDocument()
-    expect(screen.getByText('서울 아파트 5분위 (KRW): benchmarkIndex')).toBeInTheDocument()
+    expect(screen.getByText('강남구 아파트 매매가격지수 (KRW): benchmarkIndex')).toBeInTheDocument()
     expect(screen.queryByText('전체 포트폴리오 · USD')).not.toBeInTheDocument()
   })
 
@@ -535,7 +547,7 @@ describe('HousingBenchmarkComparison', () => {
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'PORTFOLIO',
       benchmarkType: 'HOUSING',
-      quintile: 3,
+      regionCode: '1100000000',
       from: '2023-02-28',
       to: '2024-02-29',
     }, true)
@@ -552,7 +564,7 @@ describe('HousingBenchmarkComparison', () => {
     expect(screen.queryByText(/환율.*불러오지 못/)).not.toBeInTheDocument()
   })
 
-  it('데이터 부족 사유는 자산별로 다른 단위(거래일/개월)로 안내한다', async () => {
+  it('데이터 부족 사유는 자산별로 다른 단위(거래일/주)로 안내한다', async () => {
     const user = userEvent.setup()
     mockQuery({ ...COMPARISON, summary: null, points: [], emptyReason: 'INSUFFICIENT_COMMON_MONTHS' })
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
@@ -560,7 +572,7 @@ describe('HousingBenchmarkComparison', () => {
     expect(screen.getByText(/최소 2개 거래일 데이터 필요/)).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: '아파트' }))
-    expect(screen.getByText(/최소 2개월치 데이터 필요/)).toBeInTheDocument()
+    expect(screen.getByText(/최소 2주치 데이터 필요/)).toBeInTheDocument()
   })
 
   it('빈 사유와 비교 섹션 오류를 각각 처리한다', () => {

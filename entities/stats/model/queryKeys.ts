@@ -12,7 +12,7 @@ export const statsKeys = {
     params.scope,
     params.strategyId ?? null,
     params.benchmarkType,
-    params.benchmarkType === 'HOUSING' ? params.quintile : null,
+    params.benchmarkType === 'HOUSING' ? params.regionCode : null,
     params.benchmarkType === 'ETF' ? params.symbol : null,
     params.from ?? null,
     params.to ?? null,

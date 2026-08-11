@@ -7,7 +7,6 @@ const ETF_BENCHMARK: HousingBenchmark = {
   assetType: 'ETF',
   regionCode: null,
   regionName: null,
-  quintile: null,
   symbol: 'QLD',
   label: 'QLD (ProShares Ultra QQQ (2x 레버리지))',
   sourceUpdatedDate: '2026-07-01',

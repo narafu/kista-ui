@@ -1,6 +1,6 @@
-import type { EtfBenchmarkSymbol, HousingBenchmarkParams } from '@entities/stats'
+import type { EtfBenchmarkSymbol } from '@entities/stats'
 
-export type HousingQuintile = Extract<HousingBenchmarkParams, { benchmarkType: 'HOUSING' }>['quintile']
+export type HousingQuintile = 1 | 2 | 3 | 4 | 5
 
 export interface HousingQuintileContent {
   quintile: HousingQuintile
@@ -52,6 +52,9 @@ export const HOUSING_QUINTILES: HousingQuintileContent[] = [
 export type HousingRegionName = '전국' | '서울' | '수도권'
 
 export const DEFAULT_HOUSING_REGION_NAME: HousingRegionName = '서울'
+
+// 서버 기본값(GET /housing-benchmark, /housing-benchmark/series의 regionCode 기본값)과 동일
+export const DEFAULT_HOUSING_REGION_CODE = '1100000000'
 
 const NATIONWIDE_QUINTILES: HousingQuintileContent[] = [
   {

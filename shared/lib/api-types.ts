@@ -22,6 +22,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/trading-cycles/{id}/vr-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** VR 전략 운영 중 재설정 */
+        put: operations["reconfigureVr"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/settings/telegram": {
         parameters: {
             query?: never;
@@ -41,6 +58,44 @@ export interface paths {
          * @description 저장된 텔레그램 봇 토큰과 채팅 ID를 삭제.
          */
         delete: operations["removeTelegram"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/assets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** 자산 기록 수정 */
+        put: operations["update_1"];
+        post?: never;
+        /** 자산 기록 삭제 */
+        delete: operations["delete_1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/asset-monthly-checks/{month}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * 월별 기록 완료 상태 설정
+         * @description 해당 연월의 완료 상태를 등록하거나 갱신합니다(upsert).
+         */
+        put: operations["setCompleted"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -82,13 +137,13 @@ export interface paths {
          * 계좌 수정
          * @description 별명을 수정. 계좌번호 및 KIS 자격증명은 수정 불가.
          */
-        put: operations["update_1"];
+        put: operations["update_2"];
         post?: never;
         /**
          * 계좌 삭제
          * @description 계좌 및 관련 데이터를 영구 삭제.
          */
-        delete: operations["delete_1"];
+        delete: operations["delete_2"];
         options?: never;
         head?: never;
         patch?: never;
@@ -329,6 +384,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 내 자산 기록 목록 조회
+         * @description 로그인한 사용자의 전체 자산 기록을 기준 날짜 최신순으로 반환합니다.
+         */
+        get: operations["list"];
+        put?: never;
+        /** 자산 기록 등록 */
+        post: operations["register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/trades/reorders": {
         parameters: {
             query?: never;
@@ -386,6 +462,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/scheduler/kbland-price-index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * KB Land 주간 아파트 매매가격지수 스케쥴러 수동 트리거
+         * @description 운영 이슈 발생 시 다음 크론까지 기다리지 않고 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
+         */
+        post: operations["triggerKbLandPriceIndex"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/scheduler/kbland-housing-benchmark": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * KB Land 주택 벤치마크 스케쥴러 수동 트리거
+         * @description 운영 이슈 발생 시 다음 크론까지 기다리지 않고 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
+         */
+        post: operations["triggerKbLandHousingBenchmark"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/scheduler/close": {
         parameters: {
             query?: never;
@@ -417,13 +533,13 @@ export interface paths {
          * 내 계좌 목록 조회
          * @description 로그인한 사용자의 전체 계좌 목록 반환. 계좌번호는 마지막 4자리만 노출.
          */
-        get: operations["list"];
+        get: operations["list_1"];
         put?: never;
         /**
          * 계좌 등록
          * @description KIS/Toss 계좌 및 자격증명을 AES-256 암호화하여 저장.
          */
-        post: operations["register"];
+        post: operations["register_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -438,10 +554,10 @@ export interface paths {
             cookie?: never;
         };
         /** 거래 사이클 목록 조회 */
-        get: operations["list_1"];
+        get: operations["list_2"];
         put?: never;
         /** 거래 사이클 등록 */
-        post: operations["register_1"];
+        post: operations["register_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -755,8 +871,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 벤치마크 비교 (서울 아파트 · ETF)
-         * @description USD 투자 성과와 벤치마크(서울 아파트 분위 가격 또는 SPY/QQQ/QLD/IBIT/ETHA ETF)를 비교합니다. benchmarkType=ETF면 symbol이 필수이며 quintile은 무시됩니다.
+         * 벤치마크 비교 (아파트 매매가격지수 · ETF)
+         * @description USD 투자 성과와 벤치마크(아파트 지역 매매가격지수 또는 SPY/QQQ/QLD/IBIT/ETHA ETF)를 비교합니다. benchmarkType=ETF면 symbol이 필수이며 regionCode는 무시됩니다.
          */
         get: operations["getHousingBenchmarkComparison"];
         put?: never;
@@ -795,8 +911,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 서울 아파트 등 KB 지역 카탈로그
-         * @description 5분위 시계열 조회에 사용 가능한 지역 코드·명 목록.
+         * KB 지역 카탈로그
+         * @description 아파트 벤치마크 비교(regionCode)에 사용 가능한 지역 코드·명 목록. 5분위 시계열(`/housing-benchmark/series`)의 14개 지역은 이 목록(25개)의 부분집합이다.
          */
         get: operations["getHousingBenchmarkRegions"];
         put?: never;
@@ -1016,6 +1132,23 @@ export interface paths {
          * @description 본인 계정 및 모든 연관 데이터(계좌, 거래내역 등)를 즉시 삭제합니다.
          */
         delete: operations["deleteMe"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/asset-monthly-checks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 월별 기록 완료 상태 목록 조회 */
+        get: operations["list_3"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1643,11 +1776,62 @@ export interface components {
              */
             recurringAmount?: number;
             /**
+             * Format: int32
+             * @description VR: 램프 시작 시점 gradient(G) 값 (생략 시 인출식=20, 그 외=10)
+             * @example 10
+             */
+            initialGradient?: number;
+            /**
+             * Format: int32
+             * @description VR: gradient 램프 시작 전 유예 주수 (생략 시 52)
+             * @example 52
+             */
+            gGraceWeeks?: number;
+            /**
+             * Format: int32
+             * @description VR: gradient가 한 단계(1) 상승하는 주기 (생략 시 26)
+             * @example 26
+             */
+            gStepWeeks?: number;
+            /**
+             * Format: int32
+             * @description VR: gradient 램프 상한값 (생략 시 initialGradient — 램프 없음)
+             * @example 20
+             */
+            gMax?: number;
+            /**
+             * @description VR: 램프 시작 시점 poolLimitRate 값 (생략 시 적립식=0.75/거치식=0.50/인출식=0.25)
+             * @example 0.75
+             */
+            initialPoolLimitRate?: number;
+            /**
+             * Format: int32
+             * @description VR: poolLimitRate 램프 시작 전 유예 주수 (생략 시 52)
+             * @example 52
+             */
+            pGraceWeeks?: number;
+            /**
+             * Format: int32
+             * @description VR: poolLimitRate가 한 단계(5%p) 하강하는 주기 (생략 시 26)
+             * @example 26
+             */
+            pStepWeeks?: number;
+            /**
+             * @description VR: poolLimitRate 램프 하한값 (생략 시 initialPoolLimitRate — 램프 없음)
+             * @example 0.5
+             */
+            poolLimitFloor?: number;
+            /**
              * Format: date
              * @description 시작예정일, 기본값=오늘, 오늘 이후만 허용
              * @example 2026-08-01
              */
             scheduledStartDate?: string;
+            /**
+             * @description VR: 초기 V값 직접 지정 (지정 시 전일종가×보유수량 계산을 대체, 생략 시 평가금 기준. 첫 매수 후 산정하려면 평가금·예수금과 함께 생략)
+             * @example 5000
+             */
+            initialVrValue?: number;
         };
         TradingCycleResponse: {
             /**
@@ -1740,17 +1924,264 @@ export interface components {
             /** @description pool 상한 금액 (USD) */
             poolLimit?: number;
             /**
+             * @description pool 상한 비율(0~1) — 현재 사이클 고정 스냅샷
+             * @example 0.75
+             */
+            poolLimitRate?: number;
+            /**
              * Format: int32
-             * @description 실력공식 경사 계수 (G)
+             * @description 실력공식 경사 계수 (G) — 현재 사이클 고정 스냅샷
              * @example 10
              */
             gradient?: number;
+            /**
+             * Format: int32
+             * @description 램프 시작 시점(경과 0주) gradient(G) 값
+             * @example 10
+             */
+            initialGradient?: number;
+            /**
+             * Format: int32
+             * @description gradient 램프 시작 전 유예 주수
+             * @example 52
+             */
+            gGraceWeeks?: number;
+            /**
+             * Format: int32
+             * @description gradient가 한 단계 상승하는 주기 (주 단위)
+             * @example 26
+             */
+            gStepWeeks?: number;
+            /**
+             * Format: int32
+             * @description gradient 램프 상한값
+             * @example 20
+             */
+            gMax?: number;
+            /**
+             * @description 램프 시작 시점(경과 0주) poolLimitRate 값
+             * @example 0.75
+             */
+            initialPoolLimitRate?: number;
+            /**
+             * Format: int32
+             * @description poolLimitRate 램프 시작 전 유예 주수
+             * @example 52
+             */
+            pGraceWeeks?: number;
+            /**
+             * Format: int32
+             * @description poolLimitRate가 한 단계 하강하는 주기 (주 단위)
+             * @example 26
+             */
+            pStepWeeks?: number;
+            /**
+             * @description poolLimitRate 램프 하한값
+             * @example 0.5
+             */
+            poolLimitFloor?: number;
+        };
+        VrConfigRequest: {
+            /**
+             * @description 밴드 폭 (%) — 미지정 시 현재값 유지
+             * @example 15
+             */
+            bandWidth?: number;
+            /**
+             * Format: int32
+             * @description 리밸런싱 주기 (주) — 미지정 시 현재값 유지
+             * @example 4
+             */
+            intervalWeeks?: number;
+            /**
+             * Format: int32
+             * @description 주기당 추가 예수금 (USD, 음수=인출) — 미지정 시 현재값 유지
+             * @example 0
+             */
+            recurringAmount?: number;
+            /**
+             * Format: int32
+             * @description 램프: 경과 0주 gradient — 미지정 시 현재값 유지
+             * @example 10
+             */
+            initialGradient?: number;
+            /**
+             * Format: int32
+             * @description 램프: gradient 유예 주수 — 미지정 시 현재값 유지
+             * @example 52
+             */
+            gGraceWeeks?: number;
+            /**
+             * Format: int32
+             * @description 램프: gradient 단계 주기 — 미지정 시 현재값 유지
+             * @example 26
+             */
+            gStepWeeks?: number;
+            /**
+             * Format: int32
+             * @description 램프: gradient 상한 — 미지정 시 현재값 유지
+             * @example 20
+             */
+            gMax?: number;
+            /**
+             * @description 램프: 경과 0주 poolLimitRate — 미지정 시 현재값 유지
+             * @example 0.75
+             */
+            initialPoolLimitRate?: number;
+            /**
+             * Format: int32
+             * @description 램프: poolLimitRate 유예 주수 — 미지정 시 현재값 유지
+             * @example 52
+             */
+            pGraceWeeks?: number;
+            /**
+             * Format: int32
+             * @description 램프: poolLimitRate 단계 주기 — 미지정 시 현재값 유지
+             * @example 26
+             */
+            pStepWeeks?: number;
+            /**
+             * @description 램프: poolLimitRate 하한 — 미지정 시 현재값 유지
+             * @example 0.5
+             */
+            poolLimitFloor?: number;
+            /**
+             * Format: int32
+             * @description 자본 주입: 매수단가 편입할 주식 수 (null=주입 없음)
+             * @example 10
+             */
+            injectShares?: number;
+            /**
+             * @description 자본 주입: 위 주식의 매수단가 (injectShares>0이면 필수)
+             * @example 45.5
+             */
+            injectSharePrice?: number;
+            /**
+             * @description 자본 주입: 추가 예수금 (USD, null/0=주입 없음)
+             * @example 500
+             */
+            injectDeposit?: number;
+            /**
+             * Format: int32
+             * @description 자본 인출: 보유 수량에서 차감할 주식 수 (null=인출 없음, 보유 수량 초과 불가)
+             * @example 5
+             */
+            withdrawShares?: number;
+            /**
+             * @description 자본 인출: 예수금 차감액 (USD, null/0=인출 없음, 보유 예수금 초과 불가)
+             * @example 200
+             */
+            withdrawDeposit?: number;
         };
         TelegramUpdateRequest: {
             /** @description 사용자 텔레그램 봇 토큰 */
             botToken: string;
             /** @description 텔레그램 채팅 ID */
             chatId: string;
+        };
+        AssetRequest: {
+            /**
+             * Format: date
+             * @description 기준 날짜
+             * @example 2026-08-01
+             */
+            entryDate: string;
+            /**
+             * @description 카테고리
+             * @example INVESTMENT
+             * @enum {string}
+             */
+            category: "INVESTMENT" | "SAVINGS" | "LOAN" | "REAL_ESTATE";
+            /**
+             * @description 세부카테고리 (자유 입력)
+             * @example 연금저축펀드
+             */
+            subcategory: string;
+            /**
+             * @description 금융기관 (자유 입력, 선택)
+             * @example 미래에셋증권
+             */
+            institution?: string;
+            /**
+             * @description 자산군 (자유 입력)
+             * @example 미국주식
+             */
+            assetClass: string;
+            /**
+             * @description 운용전략 (자유 입력, 선택 — 실제 자동매매 전략과 무관한 개인 메모)
+             * @example VR
+             */
+            strategy?: string;
+            /**
+             * Format: int64
+             * @description 금액 (원화 정수, 0 이상)
+             * @example 1000000
+             */
+            amount?: number;
+        };
+        AssetResponse: {
+            /**
+             * Format: uuid
+             * @description 자산 기록 고유 ID
+             */
+            id?: string;
+            /**
+             * Format: date
+             * @description 기준 날짜
+             * @example 2026-08-01
+             */
+            entryDate?: string;
+            /**
+             * @description 카테고리
+             * @example INVESTMENT
+             * @enum {string}
+             */
+            category?: "INVESTMENT" | "SAVINGS" | "LOAN" | "REAL_ESTATE";
+            /**
+             * @description 세부카테고리
+             * @example 연금저축펀드
+             */
+            subcategory?: string;
+            /**
+             * @description 금융기관
+             * @example 미래에셋증권
+             */
+            institution?: string;
+            /**
+             * @description 자산군
+             * @example 미국주식
+             */
+            assetClass?: string;
+            /**
+             * @description 운용전략
+             * @example VR
+             */
+            strategy?: string;
+            /**
+             * Format: int64
+             * @description 금액 (원화 정수)
+             * @example 1000000
+             */
+            amount?: number;
+        };
+        AssetMonthlyCheckRequest: {
+            /**
+             * @description 기록 완료 여부
+             * @example true
+             */
+            completed?: boolean;
+        };
+        AssetMonthlyCheckResponse: {
+            /**
+             * @description 연월
+             * @example 2026-08
+             */
+            month?: string;
+            /**
+             * @description 기록 완료 여부
+             * @example true
+             */
+            completed?: boolean;
         };
         AdminSettingsRequest: {
             /** @description 가입 승인 정책 설정 */
@@ -1765,6 +2196,20 @@ export interface components {
             };
             /** @description ETF 벤치마크 비교 자산 설정 (생략 시 기존 값 유지) */
             benchmarks?: components["schemas"]["BenchmarkRequest"];
+            /** @description 자산 등록 폼 추천 목록 설정 */
+            assetFormOptions: components["schemas"]["AssetFormOptionsRequest"];
+        };
+        AssetFormOptionsRequest: {
+            /** @description 카테고리별 세부 카테고리 추천 목록 (key=AssetCategory) */
+            subcategorySuggestions: {
+                [key: string]: string[];
+            };
+            /** @description 기관 추천 목록 */
+            institutionSuggestions: string[];
+            /** @description 자산군 추천 목록 */
+            assetClassSuggestions: string[];
+            /** @description 운용전략 추천 목록 */
+            strategySuggestions: string[];
         };
         AuthRequest: {
             /** @description 신규 가입 승인 필요 여부 */
@@ -1843,6 +2288,18 @@ export interface components {
             /** @description 전략별 생성 필드 설정 */
             fields: components["schemas"]["FieldRequests"];
         };
+        AssetFormOptionsResponse: {
+            /** @description 카테고리별 세부 카테고리 추천 목록 */
+            subcategorySuggestions?: {
+                [key: string]: string[];
+            };
+            /** @description 기관 추천 목록 */
+            institutionSuggestions?: string[];
+            /** @description 자산군 추천 목록 */
+            assetClassSuggestions?: string[];
+            /** @description 운용전략 추천 목록 */
+            strategySuggestions?: string[];
+        };
         AuthResponse: {
             /** @description 가입 승인 필수 여부 */
             approvalRequired?: boolean;
@@ -1886,6 +2343,8 @@ export interface components {
             };
             /** @description ETF 벤치마크 비교 자산 설정 */
             benchmarks?: components["schemas"]["BenchmarkResponse"];
+            /** @description 자산 등록 폼 추천 목록 설정 */
+            assetFormOptions?: components["schemas"]["AssetFormOptionsResponse"];
         };
         StrategyFieldSettingsObject: {
             customizable?: boolean;
@@ -2739,8 +3198,6 @@ export interface components {
             assetType?: string;
             regionCode?: string | null;
             regionName?: string | null;
-            /** Format: int32 */
-            quintile?: number | null;
             symbol?: string | null;
             label?: string;
             /** Format: date */
@@ -2778,8 +3235,8 @@ export interface components {
             investmentCumulativeReturn?: number;
             benchmarkCumulativeReturn?: number;
             excessReturn?: number;
-            investmentAnnualizedReturn?: number;
-            benchmarkAnnualizedReturn?: number;
+            investmentAnnualizedReturn?: number | null;
+            benchmarkAnnualizedReturn?: number | null;
             investmentMaxDrawdown?: number;
             benchmarkMaxDrawdown?: number;
         };
@@ -3518,6 +3975,32 @@ export interface operations {
             };
         };
     };
+    reconfigureVr: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VrConfigRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TradingCycleResponse"];
+                };
+            };
+        };
+    };
     updateTelegram: {
         parameters: {
             query?: never;
@@ -3565,6 +4048,125 @@ export interface operations {
             };
         };
     };
+    update_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 자산 기록 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetRequest"];
+            };
+        };
+        responses: {
+            /** @description 수정 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetResponse"];
+                };
+            };
+            /** @description 내 자산 기록이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetResponse"];
+                };
+            };
+            /** @description 자산 기록을 찾을 수 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetResponse"];
+                };
+            };
+        };
+    };
+    delete_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 자산 기록 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 삭제 성공 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 내 자산 기록이 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 자산 기록을 찾을 수 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    setCompleted: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description 연월
+                 * @example 2026-08
+                 */
+                month: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetMonthlyCheckRequest"];
+            };
+        };
+        responses: {
+            /** @description 저장 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetMonthlyCheckResponse"];
+                };
+            };
+            /** @description 연월 형식이 올바르지 않음 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetMonthlyCheckResponse"];
+                };
+            };
+        };
+    };
     getSettings: {
         parameters: {
             query?: never;
@@ -3609,7 +4211,7 @@ export interface operations {
             };
         };
     };
-    update_1: {
+    update_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -3657,7 +4259,7 @@ export interface operations {
             };
         };
     };
-    delete_1: {
+    delete_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -4032,6 +4634,59 @@ export interface operations {
             };
         };
     };
+    list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetResponse"][];
+                };
+            };
+        };
+    };
+    register: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetRequest"];
+            };
+        };
+        responses: {
+            /** @description 등록 성공 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetResponse"];
+                };
+            };
+            /** @description 잘못된 요청 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetResponse"];
+                };
+            };
+        };
+    };
     reorder: {
         parameters: {
             query?: never;
@@ -4098,6 +4753,42 @@ export interface operations {
             };
         };
     };
+    triggerKbLandPriceIndex: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    triggerKbLandHousingBenchmark: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     triggerClose: {
         parameters: {
             query?: never;
@@ -4116,7 +4807,7 @@ export interface operations {
             };
         };
     };
-    list: {
+    list_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -4136,7 +4827,7 @@ export interface operations {
             };
         };
     };
-    register: {
+    register_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -4178,7 +4869,7 @@ export interface operations {
             };
         };
     };
-    list_1: {
+    list_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -4200,7 +4891,7 @@ export interface operations {
             };
         };
     };
-    register_1: {
+    register_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -4612,7 +5303,7 @@ export interface operations {
                 scope?: "PORTFOLIO" | "STRATEGY";
                 strategyId?: string;
                 benchmarkType?: "HOUSING" | "ETF";
-                quintile?: number;
+                regionCode?: string;
                 symbol?: "SPY" | "QQQ" | "QLD" | "IBIT" | "ETHA";
                 from?: string;
                 to?: string;
@@ -4960,6 +5651,26 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    list_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetMonthlyCheckResponse"][];
+                };
             };
         };
     };
