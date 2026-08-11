@@ -2,8 +2,6 @@ import type { Metadata } from 'next'
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { assetListQueryOptions, assetMonthlyChecksQueryOptions } from '@entities/asset'
-import { NewAssetButton } from '@features/asset/save-asset'
-import { PageHeader } from '@widgets/page-header'
 import { createQueryClient } from '@shared/lib/query'
 import { AssetsDashboard } from './AssetsDashboard'
 
@@ -22,11 +20,8 @@ export default async function AssetsPage() {
     ])
   }
   return (
-    <>
-      <PageHeader eyebrow="자산 관리" title="내 자산" actions={<NewAssetButton />} />
-      <HydrationBoundary state={dehydrate(queryClient)}>
-        <AssetsDashboard />
-      </HydrationBoundary>
-    </>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <AssetsDashboard />
+    </HydrationBoundary>
   )
 }
