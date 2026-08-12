@@ -3,6 +3,7 @@ import type { HousingBenchmarkPoint } from '@entities/stats'
 import {
   formatHousingBenchmarkAxisDate,
   formatHousingBenchmarkAxisMonth,
+  formatHousingBenchmarkAxisWeek,
   formatHousingBenchmarkDate,
   formatHousingBenchmarkMonth,
   formatHousingBenchmarkSeriesLabel,
@@ -29,11 +30,15 @@ describe('housing benchmark chart formatters', () => {
     expect(formatHousingBenchmarkAxisDate('2026-07-05')).toBe('07.05')
   })
 
-  it('월별 포인트는 두 서버 지수와 각 월간수익률을 별도로 표시한다', () => {
+  it('아파트(주간) 축은 1~5년 기본 조회 기간을 고려해 연도까지 표시한다', () => {
+    expect(formatHousingBenchmarkAxisWeek('2026-07-05')).toBe('26.07.05')
+  })
+
+  it('주별 포인트는 두 서버 지수와 각 주간수익률을 별도로 표시한다', () => {
     expect(formatHousingBenchmarkTooltipValue(184.2, 'investmentIndexUsd', POINT, false))
-      .toBe('184.2 · +3.1% 월간')
+      .toBe('184.2 · +3.1% 주간')
     expect(formatHousingBenchmarkTooltipValue(151.7, 'benchmarkIndex', POINT, false))
-      .toBe('151.7 · -0.4% 월간')
+      .toBe('151.7 · -0.4% 주간')
   })
 
   it('일별 포인트는 두 서버 지수와 각 일간수익률을 별도로 표시한다', () => {
@@ -48,7 +53,7 @@ describe('housing benchmark chart formatters', () => {
       .toBe('전체 포트폴리오 (USD)')
     expect(formatHousingBenchmarkSeriesLabel('서울 아파트 3분위', 'KRW'))
       .toBe('서울 아파트 3분위 (KRW)')
-    expect(housingBenchmarkChartNotice(false)).toBe('월별 지수와 수익률은 서버 계산값입니다.')
+    expect(housingBenchmarkChartNotice(false)).toBe('주간 지수와 수익률은 서버 계산값입니다.')
     expect(housingBenchmarkChartNotice(true)).toBe('일별 지수와 수익률은 서버 계산값입니다.')
     expect(housingBenchmarkChartNotice(false)).not.toContain('환율')
   })

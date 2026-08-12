@@ -6,9 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { HousingBenchmark, HousingBenchmarkPoint } from '@entities/stats'
 import {
   formatHousingBenchmarkAxisDate,
-  formatHousingBenchmarkAxisMonth,
+  formatHousingBenchmarkAxisWeek,
   formatHousingBenchmarkDate,
-  formatHousingBenchmarkMonth,
   formatHousingBenchmarkSeriesLabel,
   formatHousingBenchmarkTooltipValue,
   housingBenchmarkChartNotice,
@@ -24,18 +23,21 @@ interface Props {
 
 export function HousingBenchmarkChart({ points, investmentLabel, benchmark, benchmarkCurrency }: Props) {
   const benchmarkLabel = benchmark.label ?? '벤치마크'
+  // ETF는 거래일별, 아파트는 KB Land 주간 조사일별 — 두 경우 모두 point.baseDate가 실제 일자라
+  // 툴팁은 항상 연도 포함 전체 일자 포맷터를 쓴다. 축은 아파트 기본 조회 기간이 1~5년이라
+  // 연도 없는 MM.DD만으로는 어느 해인지 구분이 안 돼 별도로 연도를 포함한 포맷터를 쓴다.
   const isDaily = benchmark.assetType === 'ETF'
-  const formatAxisLabel = isDaily ? formatHousingBenchmarkAxisDate : formatHousingBenchmarkAxisMonth
-  const formatTooltipLabel = isDaily ? formatHousingBenchmarkDate : formatHousingBenchmarkMonth
+  const formatAxisLabel = isDaily ? formatHousingBenchmarkAxisDate : formatHousingBenchmarkAxisWeek
+  const formatTooltipLabel = formatHousingBenchmarkDate
 
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <CardTitle className="text-base lg:text-lg">{isDaily ? '일별 누적지수' : '월별 누적지수'}</CardTitle>
+            <CardTitle className="text-base lg:text-lg">{isDaily ? '일별 누적지수' : '주별 누적지수'}</CardTitle>
             <p className="mt-1 text-xs text-muted-foreground">
-              {isDaily ? '첫 공통 거래일 100 기준' : '첫 공통 월 100 기준'}
+              {isDaily ? '첫 공통 거래일 100 기준' : '첫 공통 조사일 100 기준'}
             </p>
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
@@ -53,7 +55,7 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark, benc
       <CardContent className="px-2 pb-4 sm:px-6 sm:pb-6">
         <figure
           className="h-[240px] min-h-[240px] w-full sm:h-[320px]"
-          aria-label={`투자와 ${benchmarkLabel} ${isDaily ? '일별' : '월별'} 누적 성과 선 차트`}
+          aria-label={`투자와 ${benchmarkLabel} ${isDaily ? '일별' : '주별'} 누적 성과 선 차트`}
         >
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} accessibilityLayer>

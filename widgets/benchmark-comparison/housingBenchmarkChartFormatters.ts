@@ -2,10 +2,12 @@ import type { HousingBenchmarkPoint, HousingBenchmarkSeriesPoint } from '@entiti
 
 export type HousingBenchmarkSeriesKey = 'investmentIndexUsd' | 'benchmarkIndex'
 
+// 비교 차트는 ETF(일별)·아파트(KB Land 주간 조사일 기준 주별) 두 케이스뿐이다 — 월별 원본 시세는
+// 별도의 HousingBenchmarkQuintileTrendChart가 담당하므로 여기서는 등장하지 않는다.
 export function housingBenchmarkChartNotice(isDaily: boolean) {
   return isDaily
     ? '일별 지수와 수익률은 서버 계산값입니다.'
-    : '월별 지수와 수익률은 서버 계산값입니다.'
+    : '주간 지수와 수익률은 서버 계산값입니다.'
 }
 
 export function formatHousingBenchmarkSeriesLabel(label: string, currency: 'USD' | 'KRW') {
@@ -55,6 +57,15 @@ export function formatHousingBenchmarkAxisDate(value: string) {
     : formatHousingBenchmarkAxisMonth(value)
 }
 
+// 아파트(주간) 축 전용 — 기본 조회 기간이 1~5년이라 연도 없는 MM.DD만으로는 축만 훑을 때
+// 어느 해 데이터인지 구분이 안 된다. ETF(3M~1Y 기본)는 formatHousingBenchmarkAxisDate로 충분.
+export function formatHousingBenchmarkAxisWeek(value: string) {
+  const parsed = parseDate(value)
+  return parsed
+    ? `${parsed.year.slice(2)}.${String(parsed.month).padStart(2, '0')}.${String(parsed.day).padStart(2, '0')}`
+    : formatHousingBenchmarkAxisMonth(value)
+}
+
 function monthIndex(value: string) {
   const parsed = parseYearMonth(value)
   return parsed ? Number(parsed.year) * 12 + parsed.month : null
@@ -95,8 +106,8 @@ function formatIndex(value: unknown) {
 }
 
 function formatPeriodReturn(value: number | null | undefined, isDaily: boolean) {
-  if (value == null) return isDaily ? '기준일' : '기준월'
-  return `${value >= 0 ? '+' : ''}${(value * 100).toFixed(1)}% ${isDaily ? '일간' : '월간'}`
+  if (value == null) return isDaily ? '기준일' : '기준주'
+  return `${value >= 0 ? '+' : ''}${(value * 100).toFixed(1)}% ${isDaily ? '일간' : '주간'}`
 }
 
 export function formatHousingBenchmarkTooltipValue(
