@@ -2,10 +2,12 @@ import { fetchEither } from '@shared/lib/api-client'
 import type {
   CyclePerformancePage,
   EquityCurve,
+  EtfPriceSeries,
   HousingBenchmarkComparison,
   HousingBenchmarkParams,
   HousingBenchmarkRegionsList,
   HousingBenchmarkSeries,
+  HousingPriceIndexSeries,
   StatsSummary,
 } from '../model/types'
 
@@ -68,6 +70,36 @@ export async function getHousingBenchmarkSeries(
   const qs = q.size ? `?${q}` : ''
   return fetchEither<HousingBenchmarkSeries>(
     `/api/stats/housing-benchmark/series${qs}`,
+    { method: 'GET' },
+    token
+  )
+}
+
+export async function getHousingPriceIndexSeries(
+  params: { from?: string; to?: string; regionCode?: string },
+  token?: string
+): Promise<HousingPriceIndexSeries> {
+  const q = new URLSearchParams()
+  if (params.from) q.set('from', params.from)
+  if (params.to) q.set('to', params.to)
+  if (params.regionCode) q.set('regionCode', params.regionCode)
+  const qs = q.size ? `?${q}` : ''
+  return fetchEither<HousingPriceIndexSeries>(
+    `/api/stats/housing-benchmark/index-series${qs}`,
+    { method: 'GET' },
+    token
+  )
+}
+
+export async function getEtfPriceSeries(
+  params: { from?: string; to?: string; symbol: string },
+  token?: string
+): Promise<EtfPriceSeries> {
+  const q = new URLSearchParams({ symbol: params.symbol })
+  if (params.from) q.set('from', params.from)
+  if (params.to) q.set('to', params.to)
+  return fetchEither<EtfPriceSeries>(
+    `/api/stats/housing-benchmark/etf-series?${q}`,
     { method: 'GET' },
     token
   )

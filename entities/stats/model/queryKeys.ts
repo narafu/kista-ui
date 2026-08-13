@@ -19,5 +19,9 @@ export const statsKeys = {
   ] as const,
   housingSeries: (from?: string, to?: string, regionCode?: string) =>
     [...statsKeys.all, 'housing-series', from ?? null, to ?? null, regionCode ?? null] as const,
+  housingPriceIndexSeries: (from?: string, to?: string, regionCode?: string) =>
+    [...statsKeys.all, 'housing-price-index-series', from ?? null, to ?? null, regionCode ?? null] as const,
+  etfPriceSeries: (from?: string, to?: string, symbol?: string) =>
+    [...statsKeys.all, 'etf-price-series', from ?? null, to ?? null, symbol ?? null] as const,
   housingRegions: () => [...statsKeys.all, 'housing-regions'] as const,
 }

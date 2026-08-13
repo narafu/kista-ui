@@ -923,6 +923,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/stats/housing-benchmark/index-series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 아파트 주간 매매가격지수 시계열
+         * @description KB Land 주간 아파트 매매가격지수 원본 시계열 (regionCode 미지정 시 서울 기본값, 투자 성과와 무관·비교 없음).
+         */
+        get: operations["getHousingPriceIndexSeries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/stats/housing-benchmark/etf-series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * ETF 원본 종가 시계열
+         * @description ETF(SPY/QQQ/QLD/IBIT/ETHA) 일별 종가 원본 시계열 (symbol 필수, 투자 성과와 무관·비교 없음).
+         */
+        get: operations["getEtfPriceSeries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stats/equity-curve": {
         parameters: {
             query?: never;
@@ -3261,6 +3301,24 @@ export interface components {
         HousingBenchmarkRegionsResponse: {
             regions?: components["schemas"]["HousingBenchmarkRegionItem"][];
         };
+        HousingPriceIndexSeriesPoint: {
+            /** Format: date */
+            baseDate?: string;
+            indexValue?: number;
+        };
+        HousingPriceIndexSeriesResponse: {
+            points?: components["schemas"]["HousingPriceIndexSeriesPoint"][];
+            /** Format: date */
+            sourceUpdatedDate?: string;
+        };
+        EtfPriceSeriesPoint: {
+            /** Format: date */
+            tradeDate?: string;
+            close?: number;
+        };
+        EtfPriceSeriesResponse: {
+            points?: components["schemas"]["EtfPriceSeriesPoint"][];
+        };
         EquityCurvePoint: {
             /** Format: date */
             date?: string;
@@ -5365,6 +5423,54 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["HousingBenchmarkRegionsResponse"];
+                };
+            };
+        };
+    };
+    getHousingPriceIndexSeries: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                regionCode?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["HousingPriceIndexSeriesResponse"];
+                };
+            };
+        };
+    };
+    getEtfPriceSeries: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                symbol?: "SPY" | "QQQ" | "QLD" | "IBIT" | "ETHA";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EtfPriceSeriesResponse"];
                 };
             };
         };

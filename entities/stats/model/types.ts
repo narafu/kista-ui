@@ -88,3 +88,9 @@ export type HousingBenchmarkSeriesPoint = HousingBenchmarkSchemas['HousingBenchm
 export type HousingBenchmarkSeries = HousingBenchmarkSchemas['HousingBenchmarkSeriesResponse']
 export type HousingBenchmarkRegion = HousingBenchmarkSchemas['HousingBenchmarkRegionItem']
 export type HousingBenchmarkRegionsList = HousingBenchmarkSchemas['HousingBenchmarkRegionsResponse']
+
+export type HousingPriceIndexSeriesPoint = HousingBenchmarkSchemas['HousingPriceIndexSeriesPoint']
+export type HousingPriceIndexSeries = HousingBenchmarkSchemas['HousingPriceIndexSeriesResponse']
+
+export type EtfPriceSeriesPoint = HousingBenchmarkSchemas['EtfPriceSeriesPoint']
+export type EtfPriceSeries = HousingBenchmarkSchemas['EtfPriceSeriesResponse']

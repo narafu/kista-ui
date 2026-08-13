@@ -101,7 +101,8 @@ export function formatQuintileCagr(value: number | null) {
   return `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%/년`
 }
 
-function formatIndex(value: unknown) {
+// 비교 차트(투자·벤치마크 정규화 지수)와 '없음' 선택 시 단독 매매가격지수 차트가 함께 사용한다
+export function formatHousingIndexValue(value: unknown) {
   return typeof value === 'number' ? value.toFixed(1) : '—'
 }
 
@@ -120,5 +121,5 @@ export function formatHousingBenchmarkTooltipValue(
     ? point.investmentPeriodReturn
     : point.benchmarkPeriodReturn
 
-  return `${formatIndex(value)} · ${formatPeriodReturn(periodReturn, isDaily)}`
+  return `${formatHousingIndexValue(value)} · ${formatPeriodReturn(periodReturn, isDaily)}`
 }

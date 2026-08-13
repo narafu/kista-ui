@@ -1,17 +1,19 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useHousingBenchmarkQuery, useHousingBenchmarkRegionsQuery } from '@entities/stats'
 import type { HousingBenchmark, HousingBenchmarkRegion } from '@entities/stats'
 import { DEFAULT_RUNTIME_BENCHMARKS, useRuntimeConfigQuery } from '@entities/runtime-config'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
 import { BenchmarkFilterBar } from './BenchmarkFilterBar'
-import { BenchmarkLoading, StrategyListLoading } from './BenchmarkStates'
+import { BenchmarkLoading } from './BenchmarkStates'
+import { EtfPriceChart } from './EtfPriceChart'
 import { HousingBenchmarkChart } from './HousingBenchmarkChart'
 import { HousingBenchmarkSummary } from './HousingBenchmarkSummary'
 import { HousingBenchmarkInfo } from './HousingBenchmarkInfo'
 import { HousingBenchmarkQuintileTrendChart } from './HousingBenchmarkQuintileTrendChart'
+import { HousingPriceIndexChart } from './HousingPriceIndexChart'
 import { HousingBenchmarkRegionQuintileInfo } from './HousingBenchmarkRegionQuintileInfo'
 import { emptyMessage, uniqueSymbols } from './model/benchmarkPeriods'
 import { useBenchmarkFilters } from './model/useBenchmarkFilters'
@@ -40,9 +42,9 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
     ...getEtfBenchmarkContent(symbol),
     symbol,
   })), [etfSymbols])
-
   const filters = useBenchmarkFilters(defaultTo, { symbols: etfSymbols, defaultSymbol: defaultEtfSymbol })
-  const { scope, activeAsset, selection, from, to } = filters
+  const { activeAsset, selection, from, to } = filters
+  const selectedEtfBenchmark = etfBenchmarks.find((item) => item.symbol === filters.etfSymbol)
 
   const regionsQuery = useHousingBenchmarkRegionsQuery(enabled)
   const regions = regionsQuery.data?.regions ?? []
@@ -55,20 +57,26 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
     [],
   )
 
-  const isStrategyScope = scope === 'STRATEGY'
-  const strategyOptions = useBenchmarkStrategyOptions(enabled, isStrategyScope, filters.selectedStrategyId)
-  const {
-    strategiesQuery,
-    accountsById,
-    strategies,
-    effectiveStrategyId,
-    strategyListFailed,
-    strategyListLoading,
-    strategyListEmpty,
-  } = strategyOptions
+  // 전략 드롭다운은 두 자산 탭 모두 항상 노출되므로 조건 없이 로드한다
+  const strategyOptions = useBenchmarkStrategyOptions(enabled)
+  const { strategiesQuery, accountsQuery, accountsById, strategies, hasStrategyList } = strategyOptions
+  // 드롭다운 placeholder는 전략·계좌 두 쿼리 중 어느 쪽이 로딩·실패 중이어도 그 상태를 반영한다
+  const strategyDropdownStatus = {
+    isLoading: strategiesQuery.isLoading || accountsQuery.isLoading,
+    isError: strategiesQuery.isError || accountsQuery.isError,
+  }
 
-  const canQuery = scope === 'PORTFOLIO' || Boolean(effectiveStrategyId)
-  const params = filters.buildParams(effectiveStrategyId)
+  // 선택된 전략이 목록에서 사라지면(삭제·재조회) 드롭다운이 dangling id를 계속 들고 있지 않도록 '전체'로 되돌린다
+  useEffect(() => {
+    if (!filters.selectedStrategyId || !hasStrategyList) return
+    if (strategies.some((strategy) => strategy.id === filters.selectedStrategyId)) return
+    filters.setStrategySelection('ALL')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.selectedStrategyId, hasStrategyList, strategies])
+
+  const isNone = filters.strategySelection === 'NONE'
+  const canQuery = !isNone
+  const params = filters.buildParams()
   const query = useHousingBenchmarkQuery(params, enabled && canQuery)
   const data = query.data
   const benchmarkLabel = selection.type === 'ETF'
@@ -104,13 +112,11 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
       <BenchmarkFilterBar
         activeAsset={filters.activeAsset}
         setActiveAsset={filters.setActiveAsset}
-        scope={filters.scope}
-        setScope={filters.setScope}
         strategies={strategies}
-        strategiesQuery={strategiesQuery}
+        strategiesQuery={strategyDropdownStatus}
         accountsById={accountsById}
-        effectiveStrategyId={effectiveStrategyId}
-        setSelectedStrategyId={filters.setSelectedStrategyId}
+        strategySelection={filters.strategySelection}
+        setStrategySelection={filters.setStrategySelection}
         etfSymbol={filters.etfSymbol}
         handleEtfSymbolChange={filters.handleEtfSymbolChange}
         etfBenchmarks={etfBenchmarks}
@@ -134,17 +140,25 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
         showRefetchingStatus={query.isFetching && query.isPlaceholderData}
       />
 
-      {strategyListLoading ? (
-        <StrategyListLoading />
-      ) : strategyListFailed ? (
-        <div role="alert" aria-live="assertive">
-          <SectionError message="전략 목록을 불러오지 못했습니다" />
-        </div>
-      ) : strategyListEmpty ? (
-        <div role="status" aria-live="polite">
-          <EmptyState message="비교할 개별 전략이 없습니다." />
-        </div>
-      ) : !canQuery ? null : query.isLoading ? (
+      {!canQuery ? (
+        activeAsset === 'HOUSING' ? (
+          <HousingPriceIndexChart
+            enabled={enabled}
+            from={from}
+            to={to}
+            regionCode={filters.regionCode}
+            regionLabel={selectedRegionName}
+          />
+        ) : (
+          <EtfPriceChart
+            enabled={enabled}
+            from={from}
+            to={to}
+            symbol={filters.etfSymbol}
+            label={selectedEtfBenchmark?.label ?? filters.etfSymbol}
+          />
+        )
+      ) : query.isLoading ? (
         <BenchmarkLoading />
       ) : query.isError && !data ? (
         <div role="alert" aria-live="assertive">
@@ -176,12 +190,9 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
 
       {/* 아파트 탭에서만 표시 — 사용자 투자 데이터와 무관하게 항상 나오는 5분위 원본 시계열, 위 비교 결과와 독립적, 상단 "비교 기간" 토글과 동일한 from/to 사용 */}
       {activeAsset === 'HOUSING' ? (
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">참고 · 아파트 시세 원본 데이터</p>
-          <div className="flex flex-col gap-4">
-            <HousingBenchmarkQuintileTrendChart enabled={enabled} from={from} to={to} onRegionChange={handleTrendRegionChange} />
-            <HousingBenchmarkRegionQuintileInfo regionName={trendRegionName} />
-          </div>
+        <div className="flex flex-col gap-4">
+          <HousingBenchmarkQuintileTrendChart enabled={enabled} from={from} to={to} onRegionChange={handleTrendRegionChange} />
+          <HousingBenchmarkRegionQuintileInfo regionName={trendRegionName} />
         </div>
       ) : null}
     </div>

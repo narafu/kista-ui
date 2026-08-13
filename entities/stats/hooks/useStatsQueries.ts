@@ -2,9 +2,11 @@
 
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import {
+  getEtfPriceSeries,
   getHousingBenchmarkComparison,
   getHousingBenchmarkRegions,
   getHousingBenchmarkSeries,
+  getHousingPriceIndexSeries,
   getStatsCycles,
 } from '../api'
 import { equityCurveQueryOptions, statsSummaryQueryOptions } from '../model/queryOptions'
@@ -12,10 +14,12 @@ import { statsKeys } from '../model/queryKeys'
 import type {
   CyclePerformance,
   CyclePerformancePage,
+  EtfPriceSeries,
   HousingBenchmarkComparison,
   HousingBenchmarkParams,
   HousingBenchmarkRegionsList,
   HousingBenchmarkSeries,
+  HousingPriceIndexSeries,
 } from '../model/types'
 
 export function useStatsSummaryQuery() {
@@ -45,16 +49,42 @@ export function useHousingBenchmarkQuery(params: HousingBenchmarkParams, enabled
   })
 }
 
-export interface HousingBenchmarkSeriesParams {
+export interface RegionSeriesParams {
   from?: string
   to?: string
   regionCode?: string
 }
 
-export function useHousingBenchmarkSeriesQuery(params: HousingBenchmarkSeriesParams, enabled: boolean) {
+export function useHousingBenchmarkSeriesQuery(params: RegionSeriesParams, enabled: boolean) {
   return useQuery<HousingBenchmarkSeries>({
     queryKey: statsKeys.housingSeries(params.from, params.to, params.regionCode),
     queryFn: () => getHousingBenchmarkSeries(params),
+    enabled,
+    placeholderData: (prev) => prev,
+    staleTime: 60_000,
+  })
+}
+
+export function useHousingPriceIndexSeriesQuery(params: RegionSeriesParams, enabled: boolean) {
+  return useQuery<HousingPriceIndexSeries>({
+    queryKey: statsKeys.housingPriceIndexSeries(params.from, params.to, params.regionCode),
+    queryFn: () => getHousingPriceIndexSeries(params),
+    enabled,
+    placeholderData: (prev) => prev,
+    staleTime: 60_000,
+  })
+}
+
+export interface EtfSeriesParams {
+  from?: string
+  to?: string
+  symbol: string
+}
+
+export function useEtfPriceSeriesQuery(params: EtfSeriesParams, enabled: boolean) {
+  return useQuery<EtfPriceSeries>({
+    queryKey: statsKeys.etfPriceSeries(params.from, params.to, params.symbol),
+    queryFn: () => getEtfPriceSeries(params),
     enabled,
     placeholderData: (prev) => prev,
     staleTime: 60_000,

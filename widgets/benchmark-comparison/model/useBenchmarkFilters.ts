@@ -14,6 +14,10 @@ import {
 
 type Scope = HousingBenchmarkParams['scope']
 
+// 투자 범위 토글과 전략 드롭다운을 하나로 합친 선택값. ETF·아파트 탭 공용.
+// 'ALL'=전체 포트폴리오, 'NONE'=비교 없이 벤치마크 원본 데이터만, 그 외=전략 id
+export type BenchmarkStrategySelection = 'ALL' | 'NONE' | string
+
 type BenchmarkSelection =
   | { type: 'HOUSING'; regionCode: string }
   | { type: 'ETF'; symbol: EtfBenchmarkSymbol }
@@ -27,9 +31,17 @@ interface RuntimeEtfConfig {
 // 개별 useState 15개 이상을 컨테이너에서 분리해 가독성을 확보한다.
 export function useBenchmarkFilters(defaultTo: string, runtimeEtf: RuntimeEtfConfig) {
   const { symbols: etfSymbols, defaultSymbol: defaultEtfSymbol } = runtimeEtf
-  const [scope, setScope] = useState<Scope>('PORTFOLIO')
-  const [selectedStrategyId, setSelectedStrategyId] = useState('')
+  // 전략 선택은 ETF·아파트 탭에서 서로 독립 — 탭 전환 시 지역/심볼 선택처럼 각자 마지막 선택을 유지한다
+  const [housingStrategySelection, setHousingStrategySelection] = useState<BenchmarkStrategySelection>('ALL')
+  const [etfStrategySelection, setEtfStrategySelection] = useState<BenchmarkStrategySelection>('ALL')
   const [activeAsset, setActiveAsset] = useState<'ETF' | 'HOUSING'>('ETF')
+  const strategySelection = activeAsset === 'ETF' ? etfStrategySelection : housingStrategySelection
+  const setStrategySelection = activeAsset === 'ETF' ? setEtfStrategySelection : setHousingStrategySelection
+  const selectedStrategyId = strategySelection !== 'ALL' && strategySelection !== 'NONE'
+    ? strategySelection
+    : undefined
+  const scope: Scope = selectedStrategyId ? 'STRATEGY' : 'PORTFOLIO'
+
   const [regionCode, setRegionCode] = useState<string>(DEFAULT_HOUSING_REGION_CODE)
   const [etfSymbol, setEtfSymbol] = useState<EtfBenchmarkSymbol>(defaultEtfSymbol)
   const hasUserSelectedEtfRef = useRef(false)
@@ -64,11 +76,9 @@ export function useBenchmarkFilters(defaultTo: string, runtimeEtf: RuntimeEtfCon
     ? (activeAsset === 'ETF' ? (customToDate || defaultTo) : (customToMonth ? fromMonthInput(customToMonth) : defaultTo))
     : defaultTo
 
-  // effectiveStrategyId는 useBenchmarkStrategyOptions에서만 확정되므로 params 조립을 함수로 미룬다
-  // (selection이 매 렌더 새 객체라 useCallback으로 감싸도 메모이제이션 효과가 없어 일반 함수로 둔다)
-  const buildParams = (effectiveStrategyId: string | undefined): HousingBenchmarkParams => {
-    const strategyIdParam = scope === 'STRATEGY' && effectiveStrategyId ? { strategyId: effectiveStrategyId } : {}
-    return selection.type === 'HOUSING'
+  const strategyIdParam = scope === 'STRATEGY' && selectedStrategyId ? { strategyId: selectedStrategyId } : {}
+  const buildParams = (): HousingBenchmarkParams => (
+    selection.type === 'HOUSING'
       ? {
           scope,
           ...strategyIdParam,
@@ -85,11 +95,9 @@ export function useBenchmarkFilters(defaultTo: string, runtimeEtf: RuntimeEtfCon
           ...(from ? { from } : {}),
           to,
         }
-  }
+  )
 
   return {
-    scope,
-    setScope,
     activeAsset,
     setActiveAsset,
     regionCode,
@@ -108,8 +116,10 @@ export function useBenchmarkFilters(defaultTo: string, runtimeEtf: RuntimeEtfCon
     setCustomFromDate,
     customToDate,
     setCustomToDate,
+    scope,
+    strategySelection,
+    setStrategySelection,
     selectedStrategyId,
-    setSelectedStrategyId,
     selection,
     from,
     to,

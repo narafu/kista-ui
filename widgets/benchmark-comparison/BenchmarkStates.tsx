@@ -17,16 +17,3 @@ export function BenchmarkLoading() {
     </div>
   )
 }
-
-export function StrategyListLoading() {
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      aria-label="전략 목록 불러오는 중"
-      className="rounded-[var(--r-lg)] border border-border bg-card p-5"
-    >
-      <Skeleton className="h-20 w-full" />
-    </div>
-  )
-}

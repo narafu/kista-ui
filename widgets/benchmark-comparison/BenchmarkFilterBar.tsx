@@ -1,13 +1,11 @@
 'use client'
 
 import type { Account } from '@entities/account'
-import type { EtfBenchmarkSymbol, HousingBenchmarkParams, HousingBenchmarkRegion } from '@entities/stats'
+import type { EtfBenchmarkSymbol, HousingBenchmarkRegion } from '@entities/stats'
 import type { Strategy } from '@entities/strategy'
 import { cn } from '@shared/lib/utils'
 import { toMonthInput, type Period } from './model/benchmarkPeriods'
 import type { EtfBenchmarkContent } from './housingBenchmarkContent'
-
-type Scope = HousingBenchmarkParams['scope']
 
 export const ASSET_SELECT_CLASS = 'min-h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
@@ -63,13 +61,11 @@ export function AssetTabButton({
 interface BenchmarkFilterBarProps {
   activeAsset: 'ETF' | 'HOUSING'
   setActiveAsset: (asset: 'ETF' | 'HOUSING') => void
-  scope: Scope
-  setScope: (scope: Scope) => void
   strategies: Strategy[]
   strategiesQuery: { isLoading: boolean; isError: boolean }
   accountsById: Map<string, Account>
-  effectiveStrategyId: string | undefined
-  setSelectedStrategyId: (id: string) => void
+  strategySelection: string
+  setStrategySelection: (value: string) => void
   etfSymbol: EtfBenchmarkSymbol
   handleEtfSymbolChange: (symbol: EtfBenchmarkSymbol) => void
   etfBenchmarks: (EtfBenchmarkContent & { symbol: EtfBenchmarkSymbol })[]
@@ -96,13 +92,11 @@ interface BenchmarkFilterBarProps {
 export function BenchmarkFilterBar({
   activeAsset,
   setActiveAsset,
-  scope,
-  setScope,
   strategies,
   strategiesQuery,
   accountsById,
-  effectiveStrategyId,
-  setSelectedStrategyId,
+  strategySelection,
+  setStrategySelection,
   etfSymbol,
   handleEtfSymbolChange,
   etfBenchmarks,
@@ -141,52 +135,37 @@ export function BenchmarkFilterBar({
       </div>
 
       <section aria-label="벤치마크 비교 필터" className="border-b border-border pb-4">
-        <div className={cn(
-          'grid gap-4 sm:grid-cols-2 xl:items-end',
-          scope === 'STRATEGY' ? 'xl:grid-cols-4' : 'xl:grid-cols-3',
-        )}>
-          <fieldset>
-            <legend className="text-xs font-medium text-muted-foreground">투자 범위</legend>
-            <div className="mt-1 grid grid-cols-2 rounded-md border border-border p-0.5">
-              <ToggleButton active={scope === 'PORTFOLIO'} onClick={() => setScope('PORTFOLIO')}>
-                전체 포트폴리오
-              </ToggleButton>
-              <ToggleButton active={scope === 'STRATEGY'} onClick={() => setScope('STRATEGY')}>
-                개별 전략
-              </ToggleButton>
-            </div>
-          </fieldset>
-
-          {scope === 'STRATEGY' ? (
-            <label className="grid gap-1 text-xs font-medium text-muted-foreground">
-              전략
-              <select
-                aria-label="전략"
-                value={effectiveStrategyId ?? ''}
-                onChange={(event) => setSelectedStrategyId(event.target.value)}
-                disabled={strategies.length === 0}
-                className="min-h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {strategies.length === 0 ? (
-                  <option value="">
-                    {strategiesQuery.isLoading
-                      ? '전략 목록 불러오는 중'
-                      : strategiesQuery.isError
-                        ? '전략 목록 조회 실패'
-                        : '선택할 전략이 없습니다'}
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 xl:items-end">
+          {/* 투자 범위 토글 없이 전략 드롭다운 하나로 전체/없음/개별 전략을 모두 선택한다 — ETF·아파트 공통 */}
+          <label className="grid gap-1 text-xs font-medium text-muted-foreground">
+            전략
+            <select
+              aria-label="전략"
+              value={strategySelection}
+              onChange={(event) => setStrategySelection(event.target.value)}
+              className={ASSET_SELECT_CLASS}
+            >
+              <option value="ALL">전체</option>
+              <option value="NONE">없음</option>
+              {strategies.length === 0 ? (
+                <option value="" disabled>
+                  {strategiesQuery.isLoading
+                    ? '전략 목록 불러오는 중'
+                    : strategiesQuery.isError
+                      ? '전략 목록 조회 실패'
+                      : '등록된 전략이 없습니다'}
+                </option>
+              ) : null}
+              {strategies.map((strategy) => {
+                const nickname = accountsById.get(strategy.accountId)?.nickname
+                return (
+                  <option key={strategy.id} value={strategy.id}>
+                    {nickname ? `[${nickname}] ` : ''}{strategy.type} · {strategy.ticker}
                   </option>
-                ) : null}
-                {strategies.map((strategy) => {
-                  const nickname = accountsById.get(strategy.accountId)?.nickname
-                  return (
-                    <option key={strategy.id} value={strategy.id}>
-                      {nickname ? `[${nickname}] ` : ''}{strategy.type} · {strategy.ticker}
-                    </option>
-                  )
-                })}
-              </select>
-            </label>
-          ) : null}
+                )
+              })}
+            </select>
+          </label>
 
           <label className="grid gap-1 text-xs font-medium text-muted-foreground">
             벤치마크 자산

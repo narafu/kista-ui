@@ -20,6 +20,10 @@ export type {
   HousingBenchmarkSeries,
   HousingBenchmarkRegion,
   HousingBenchmarkRegionsList,
+  HousingPriceIndexSeriesPoint,
+  HousingPriceIndexSeries,
+  EtfPriceSeriesPoint,
+  EtfPriceSeries,
 } from './model/types'
 export { statsKeys } from './model/queryKeys'
 export { statsSummaryQueryOptions, equityCurveQueryOptions } from './model/queryOptions'
@@ -29,6 +33,8 @@ export {
   getStatsCycles,
   getHousingBenchmarkComparison,
   getHousingBenchmarkSeries,
+  getHousingPriceIndexSeries,
+  getEtfPriceSeries,
   getHousingBenchmarkRegions,
 } from './api'
 export {
@@ -36,7 +42,9 @@ export {
   useEquityCurveQuery,
   useHousingBenchmarkQuery,
   useHousingBenchmarkSeriesQuery,
+  useHousingPriceIndexSeriesQuery,
+  useEtfPriceSeriesQuery,
   useHousingBenchmarkRegionsQuery,
   useStatsCyclesQuery,
 } from './hooks/useStatsQueries'
-export type { EquityCurveParams, HousingBenchmarkSeriesParams } from './hooks/useStatsQueries'
+export type { EquityCurveParams, RegionSeriesParams, EtfSeriesParams } from './hooks/useStatsQueries'
