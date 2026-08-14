@@ -19,7 +19,7 @@ const TAB_OPTIONS: { value: AssetTab; label: string }[] = [
   { value: 'budget', label: '예산' },
   { value: 'income', label: '수입' },
   { value: 'expense', label: '지출' },
-  { value: 'investment', label: '투자' },
+  { value: 'investment', label: '자산' },
 ]
 
 function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
@@ -43,7 +43,7 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
 // '자산' 페이지의 상태 소유자 — asset-overview·asset-record-check가 공유하는 "기준 월"과
 // 탭 상태를 이 컴포넌트가 소유하고 props로 흘려보낸다. 위젯끼리 cross-import가 금지돼 있어
 // (widgets.md) 두 위젯이 상태를 공유하려면 app 레이어의 공통 client 부모가 필요하다.
-// PageHeader/NewAssetButton도 page.tsx가 아니라 여기서 렌더한다 — "자산 등록" 버튼은 투자
+// PageHeader/NewAssetButton도 page.tsx가 아니라 여기서 렌더한다 — "자산 등록" 버튼은 자산
 // 탭에서만 의미가 있고(수입/지출은 아직 미구현 안내만 표시), 탭 상태가 이 컴포넌트의 client
 // state라 Server Component인 page.tsx는 탭에 따라 버튼을 조건부로 숨길 수 없다.
 // 수입/지출 탭은 아직 별도 도메인이 구현되지 않아 자리만 잡아둔 안내 화면이다 — 실제 기능이

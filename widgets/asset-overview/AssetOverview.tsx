@@ -4,14 +4,16 @@ import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SectionError } from '@shared/ui/SectionError'
-import { fmtKrw } from '@shared/lib/format'
-import { formatAssetCategoryLabel } from '@shared/lib/api-schema'
+import { fmtKrw, fmtSignedKrw, pnlTextClass } from '@shared/lib/format'
+import { formatAssetCategoryLabel, isLoanCategory } from '@shared/lib/api-schema'
+import { cn } from '@shared/lib/utils'
 import {
   assetCategoryColor,
   assetClassColorMap,
   calcAssetClassBreakdown,
   calcCategoryBreakdown,
   calcMonthlySummary,
+  previousMonthOf,
   useAssetsQuery,
 } from '@entities/asset'
 import { KpiCard } from '@widgets/kpi-card'
@@ -26,10 +28,12 @@ interface BreakdownBarProps {
   label: string
   amount: number
   percent: number
+  delta: number | null
   color: string
+  isLiability?: boolean
 }
 
-function BreakdownBar({ label, amount, percent, color }: BreakdownBarProps) {
+function BreakdownBar({ label, amount, percent, delta, color, isLiability = false }: BreakdownBarProps) {
   return (
     <div className="flex items-center gap-3">
       <span className="w-24 shrink-0 truncate text-sm text-muted-foreground">{label}</span>
@@ -41,7 +45,9 @@ function BreakdownBar({ label, amount, percent, color }: BreakdownBarProps) {
       </div>
       <div className="flex w-32 shrink-0 flex-col items-end">
         <span className="text-sm font-medium tabular-nums">{fmtKrw(amount)}</span>
-        <span className="text-xs text-muted-foreground tabular-nums">{percent.toFixed(1)}%</span>
+        <span className={cn('text-xs tabular-nums', !delta ? 'text-muted-foreground' : pnlTextClass(isLiability ? -delta : delta))}>
+          {delta === null ? '—' : fmtSignedKrw(delta)}
+        </span>
       </div>
     </div>
   )
@@ -53,6 +59,26 @@ export function AssetOverview({ month, months, onMonthChange }: Props) {
   const summary = useMemo(() => (month ? calcMonthlySummary(assets, month) : null), [assets, month])
   const categoryBreakdown = useMemo(() => (month ? calcCategoryBreakdown(assets, month) : []), [assets, month])
   const assetClassBreakdown = useMemo(() => (month ? calcAssetClassBreakdown(assets, month) : []), [assets, month])
+
+  const previousMonth = month ? previousMonthOf(months, month) : null
+  const previousCategoryBreakdown = useMemo(
+    () => (previousMonth ? calcCategoryBreakdown(assets, previousMonth) : []),
+    [assets, previousMonth],
+  )
+  const previousAssetClassBreakdown = useMemo(
+    () => (previousMonth ? calcAssetClassBreakdown(assets, previousMonth) : []),
+    [assets, previousMonth],
+  )
+  const categoryDelta = (category: string, amount: number): number | null => {
+    if (!previousMonth) return null
+    const previousAmount = previousCategoryBreakdown.find((entry) => entry.category === category)?.amount ?? 0
+    return amount - previousAmount
+  }
+  const assetClassDelta = (assetClass: string, amount: number): number | null => {
+    if (!previousMonth) return null
+    const previousAmount = previousAssetClassBreakdown.find((entry) => entry.assetClass === assetClass)?.amount ?? 0
+    return amount - previousAmount
+  }
 
   const categoryTotal = categoryBreakdown.reduce((total, entry) => total + entry.amount, 0)
   const assetClassTotal = assetClassBreakdown.reduce((total, entry) => total + entry.amount, 0)
@@ -104,7 +130,9 @@ export function AssetOverview({ month, months, onMonthChange }: Props) {
                     label={formatAssetCategoryLabel(entry.category)}
                     amount={entry.amount}
                     percent={categoryTotal > 0 ? (entry.amount / categoryTotal) * 100 : 0}
+                    delta={categoryDelta(entry.category, entry.amount)}
                     color={assetCategoryColor(entry.category)}
+                    isLiability={isLoanCategory(entry.category)}
                   />
                 ))}
               </div>
@@ -122,6 +150,7 @@ export function AssetOverview({ month, months, onMonthChange }: Props) {
                       label={entry.assetClass}
                       amount={entry.amount}
                       percent={assetClassTotal > 0 ? (entry.amount / assetClassTotal) * 100 : 0}
+                      delta={assetClassDelta(entry.assetClass, entry.amount)}
                       color={assetClassColor(entry.assetClass)}
                     />
                   ))}

@@ -50,6 +50,11 @@ export function fmtKrw(n: number): string {
   return `${new Intl.NumberFormat('ko-KR').format(n)}원`
 }
 
+/** 부호 포함 원화 금액 — 양수는 +, 음수는 - */
+export function fmtSignedKrw(n: number): string {
+  return n >= 0 ? `+${fmtKrw(n)}` : `-${fmtKrw(Math.abs(n))}`
+}
+
 export function todayKst(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' })
 }

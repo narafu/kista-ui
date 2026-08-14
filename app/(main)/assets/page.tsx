@@ -6,7 +6,7 @@ import { createQueryClient } from '@shared/lib/query'
 import { AssetsDashboard } from './AssetsDashboard'
 
 export const metadata: Metadata = {
-  title: '자산 | KISTA',
+  title: '재무 | KISTA',
   description: '개인 자산·부채 기록을 관리합니다',
 }
 

@@ -14,7 +14,7 @@ const NAV_ITEMS = [
   { href: '/strategies', label: '전략',     icon: ListChecks },
   { href: '/stats',      label: '통계',     icon: TrendingUp },
   { href: '/benchmark',  label: '벤치마크', icon: Scale },
-  { href: '/assets',     label: '자산',     icon: Wallet },
+  { href: '/assets',     label: '재무',     icon: Wallet },
   { href: '/settings',   label: '설정',     icon: Settings },
 ]
 

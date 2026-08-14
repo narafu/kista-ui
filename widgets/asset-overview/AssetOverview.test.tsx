@@ -99,7 +99,7 @@ describe('AssetOverview', () => {
     expect(screen.getByText('부동산')).toBeInTheDocument()
   })
 
-  it('카테고리별 현황 각 행에 금액과 함께 비율(%)을 표시한다', () => {
+  it('지난달 기록이 없으면 카테고리별 현황 각 행에 —를 표시한다', () => {
     useAssetsQueryMock.mockReturnValue({
       data: [
         asset({ id: 'a1', category: 'INVESTMENT', amount: 3_000_000 }),
@@ -110,9 +110,55 @@ describe('AssetOverview', () => {
     })
     render(<AssetOverview month="2026-08" months={['2026-08']} onMonthChange={onMonthChange} />)
 
-    // 투자 3,000,000 / 총 4,000,000 = 75.0%, 예적금 1,000,000 / 4,000,000 = 25.0%
-    expect(screen.getByText('75.0%')).toBeInTheDocument()
-    expect(screen.getByText('25.0%')).toBeInTheDocument()
+    expect(screen.getAllByText('—').length).toBeGreaterThan(0)
+  })
+
+  it('지난달 기록이 있으면 카테고리별 현황 각 행에 지난달 대비 증감(부호 포함 금액)을 표시한다', () => {
+    useAssetsQueryMock.mockReturnValue({
+      data: [
+        asset({ id: 'a1', entryDate: '2026-08-01', category: 'INVESTMENT', amount: 3_000_000 }),
+        asset({ id: 'a2', entryDate: '2026-07-01', category: 'INVESTMENT', amount: 2_000_000 }),
+      ],
+      isLoading: false,
+      isError: false,
+    })
+    render(<AssetOverview month="2026-08" months={['2026-08', '2026-07']} onMonthChange={onMonthChange} />)
+
+    // 투자 카테고리·미국주식 자산군 둘 다 이번달 3,000,000 - 지난달 2,000,000 = +1,000,000원
+    expect(screen.getAllByText('+1,000,000원').length).toBe(2)
+  })
+
+  it('대출은 지난달보다 늘면(음수 아닌 델타) 손실 색상으로, 줄면 이익 색상으로 표시한다', () => {
+    useAssetsQueryMock.mockReturnValue({
+      data: [
+        asset({ id: 'a1', entryDate: '2026-08-01', category: 'LOAN', assetClass: '원화', amount: 1_500_000 }),
+        asset({ id: 'a2', entryDate: '2026-07-01', category: 'LOAN', assetClass: '원화', amount: 1_000_000 }),
+      ],
+      isLoading: false,
+      isError: false,
+    })
+    render(<AssetOverview month="2026-08" months={['2026-08', '2026-07']} onMonthChange={onMonthChange} />)
+
+    // 대출 500,000원 증가 = 나쁜 신호 → 손실 색상(text-neg), 이익 색상(text-pos)이면 안 됨
+    const loanDelta = screen.getByText('+500,000원')
+    expect(loanDelta).toHaveClass('text-neg')
+    expect(loanDelta).not.toHaveClass('text-pos')
+  })
+
+  it('지난달과 금액이 같으면(델타 0) 증감을 이익 색상이 아닌 중립 색상으로 표시한다', () => {
+    useAssetsQueryMock.mockReturnValue({
+      data: [
+        asset({ id: 'a1', entryDate: '2026-08-01', category: 'INVESTMENT', amount: 1_000_000 }),
+        asset({ id: 'a2', entryDate: '2026-07-01', category: 'INVESTMENT', amount: 1_000_000 }),
+      ],
+      isLoading: false,
+      isError: false,
+    })
+    render(<AssetOverview month="2026-08" months={['2026-08', '2026-07']} onMonthChange={onMonthChange} />)
+
+    const zeroDelta = screen.getAllByText('+0원')[0]
+    expect(zeroDelta).toHaveClass('text-muted-foreground')
+    expect(zeroDelta).not.toHaveClass('text-pos')
   })
 
   it('자산군별 현황에 기록이 없으면(대출만 있는 경우) 안내 문구를 표시한다', () => {
