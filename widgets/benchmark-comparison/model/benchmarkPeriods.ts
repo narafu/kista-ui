@@ -1,18 +1,10 @@
-export type Period = '3M' | '6M' | '1Y' | '3Y' | '5Y' | 'ALL' | 'CUSTOM'
+export type Period = '3M' | '1Y' | '5Y' | 'ALL' | 'CUSTOM'
 
-// 아파트는 월별 데이터라 연 단위, ETF는 일별 데이터라 개월 단위 기간이 자연스럽다 — 자산 탭별로 목록을 분리한다
-export const HOUSING_PERIODS: { value: Period; label: string; months?: number }[] = [
-  { value: '1Y', label: '1년', months: 12 },
-  { value: '3Y', label: '3년', months: 36 },
-  { value: '5Y', label: '5년', months: 60 },
-  { value: 'ALL', label: '전체' },
-  { value: 'CUSTOM', label: '직접' },
-]
-
-export const ETF_PERIODS: { value: Period; label: string; months?: number }[] = [
+// ETF·아파트 탭 공용 기간 목록
+export const BENCHMARK_PERIODS: { value: Period; label: string; months?: number }[] = [
   { value: '3M', label: '3개월', months: 3 },
-  { value: '6M', label: '6개월', months: 6 },
   { value: '1Y', label: '1년', months: 12 },
+  { value: '5Y', label: '5년', months: 60 },
   { value: 'ALL', label: '전체' },
   { value: 'CUSTOM', label: '직접' },
 ]

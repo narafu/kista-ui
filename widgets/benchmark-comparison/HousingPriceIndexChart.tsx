@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -7,8 +8,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useHousingPriceIndexSeriesQuery } from '@entities/stats'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
-import { fmtDate } from '@shared/lib/format'
+import { fmtDate, pnlTextClass } from '@shared/lib/format'
+import { cn } from '@shared/lib/utils'
 import {
+  calculateSeriesCagr,
+  formatCagr,
   formatHousingBenchmarkAxisWeek,
   formatHousingBenchmarkDate,
   formatHousingIndexValue,
@@ -35,13 +39,20 @@ export function HousingPriceIndexChart({ enabled, from, to, regionCode, regionLa
   const query = useHousingPriceIndexSeriesQuery({ from, to, regionCode }, enabled)
   const data = query.data
   const points = data?.points ?? []
+  // 조회 기간 첫·마지막 지수 기준 연평균 상승률(CAGR) — 배지용
+  const cagr = useMemo(() => calculateSeriesCagr(points, 'baseDate', 'indexValue'), [points])
 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base lg:text-lg">{regionLabel} 아파트 매매가격지수</CardTitle>
+        <CardTitle className="flex flex-wrap items-center gap-1.5 text-base lg:text-lg">
+          {regionLabel} 아파트 매매가격지수
+          <span className={cn('text-xs', cagr == null ? 'text-muted-foreground' : pnlTextClass(cagr))}>
+            {formatCagr(cagr)}
+          </span>
+        </CardTitle>
         <p className="mt-1 text-xs text-muted-foreground">
-          KB Land 주간 조사일 기준 · 투자 기록과 비교하지 않는 원본 지수입니다.
+          KB Land 주간 조사일 기준 · 투자 기록과 비교하지 않는 원본 지수입니다. 배지는 조회 기간 연평균 상승률
         </p>
       </CardHeader>
       <CardContent className="px-2 pb-4 sm:px-6 sm:pb-6">

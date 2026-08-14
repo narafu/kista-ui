@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -7,8 +8,14 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useEtfPriceSeriesQuery } from '@entities/stats'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
-import { fmtUsd } from '@shared/lib/format'
-import { formatHousingBenchmarkAxisDate, formatHousingBenchmarkDate } from './housingBenchmarkChartFormatters'
+import { fmtUsd, pnlTextClass } from '@shared/lib/format'
+import { cn } from '@shared/lib/utils'
+import {
+  calculateSeriesCagr,
+  formatCagr,
+  formatHousingBenchmarkAxisDate,
+  formatHousingBenchmarkDate,
+} from './housingBenchmarkChartFormatters'
 
 interface Props {
   enabled: boolean
@@ -31,13 +38,20 @@ export function EtfPriceChart({ enabled, from, to, symbol, label }: Props) {
   const query = useEtfPriceSeriesQuery({ from, to, symbol }, enabled)
   const data = query.data
   const points = data?.points ?? []
+  // 조회 기간 첫·마지막 종가 기준 연평균 상승률(CAGR) — 배지용
+  const cagr = useMemo(() => calculateSeriesCagr(points, 'tradeDate', 'close'), [points])
 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base lg:text-lg">{label} 가격 추이</CardTitle>
+        <CardTitle className="flex flex-wrap items-center gap-1.5 text-base lg:text-lg">
+          {label} 가격 추이
+          <span className={cn('text-xs', cagr == null ? 'text-muted-foreground' : pnlTextClass(cagr))}>
+            {formatCagr(cagr)}
+          </span>
+        </CardTitle>
         <p className="mt-1 text-xs text-muted-foreground">
-          일별 종가 · 투자 기록과 비교하지 않는 원본 시세입니다.
+          일별 종가 · 투자 기록과 비교하지 않는 원본 시세입니다. 배지는 조회 기간 연평균 상승률
         </p>
       </CardHeader>
       <CardContent className="px-2 pb-4 sm:px-6 sm:pb-6">

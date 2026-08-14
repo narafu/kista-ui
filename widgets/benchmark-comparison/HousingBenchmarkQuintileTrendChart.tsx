@@ -15,7 +15,7 @@ import {
   calculateQuintileCagr,
   formatHousingBenchmarkAxisMonth,
   formatHousingBenchmarkMonth,
-  formatQuintileCagr,
+  formatCagr,
 } from './housingBenchmarkChartFormatters'
 
 interface Props {
@@ -115,7 +115,7 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
                   />
                   {series.label}
                   <span className={cn('text-[10px]', cagr == null ? 'text-muted-foreground' : pnlTextClass(cagr))}>
-                    {formatQuintileCagr(cagr)}
+                    {formatCagr(cagr)}
                   </span>
                 </span>
               )

@@ -4,9 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { EtfBenchmarkSymbol, HousingBenchmarkParams } from '@entities/stats'
 import { DEFAULT_HOUSING_REGION_CODE } from '../housingBenchmarkContent'
 import {
-  ETF_PERIODS,
+  BENCHMARK_PERIODS,
   fromMonthInput,
-  HOUSING_PERIODS,
   subtractMonths,
   toMonthInput,
   type Period,
@@ -54,7 +53,7 @@ export function useBenchmarkFilters(defaultTo: string, runtimeEtf: RuntimeEtfCon
   const [etfPeriod, setEtfPeriod] = useState<Period>('3M')
   const period = activeAsset === 'ETF' ? etfPeriod : housingPeriod
   const setPeriod = activeAsset === 'ETF' ? setEtfPeriod : setHousingPeriod
-  const periods = activeAsset === 'ETF' ? ETF_PERIODS : HOUSING_PERIODS
+  const periods = BENCHMARK_PERIODS
   const [customFromMonth, setCustomFromMonth] = useState(() => toMonthInput(subtractMonths(defaultTo, 12)))
   const [customToMonth, setCustomToMonth] = useState(() => toMonthInput(defaultTo))
   const [customFromDate, setCustomFromDate] = useState(() => subtractMonths(defaultTo, 3))

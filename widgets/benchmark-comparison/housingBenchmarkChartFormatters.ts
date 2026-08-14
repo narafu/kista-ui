@@ -95,7 +95,32 @@ export function calculateQuintileCagr(
   return (last.value / first.value) ** (12 / monthSpan) - 1
 }
 
-export function formatQuintileCagr(value: number | null) {
+/** 기간 첫·마지막 유효 시점의 값으로 연평균 상승률(CAGR)을 계산한다(일 단위 날짜). 유효 구간이 하루 이하면 null */
+export function calculateSeriesCagr<T>(points: T[], dateKey: keyof T, valueKey: keyof T): number | null {
+  const valid: { date: string; value: number }[] = []
+  for (const point of points) {
+    const date = point[dateKey]
+    const value = point[valueKey]
+    if (typeof date === 'string' && typeof value === 'number' && value > 0) {
+      valid.push({ date, value })
+    }
+  }
+
+  if (valid.length < 2) return null
+
+  const first = valid[0]
+  const last = valid[valid.length - 1]
+  const firstMs = Date.parse(first.date)
+  const lastMs = Date.parse(last.date)
+  if (Number.isNaN(firstMs) || Number.isNaN(lastMs)) return null
+
+  const daySpan = (lastMs - firstMs) / 86_400_000
+  if (daySpan <= 0) return null
+
+  return (last.value / first.value) ** (365.25 / daySpan) - 1
+}
+
+export function formatCagr(value: number | null) {
   if (value == null) return '—'
   const pct = value * 100
   return `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%/년`
