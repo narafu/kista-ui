@@ -16,9 +16,10 @@ widget 슬라이스끼리 cross-import 금지. **단, 아래 "공용 UI 위젯" 
 
 ## 대표 슬라이스
 
-- 페이지 위젯: `admin-user-list`, `admin-trade-list`, `admin-log-list`, `admin-privacy-trade-list`, `all-strategies`, `dashboard`, `account-detail`, `accounts-grid`, `strategy-detail`, `strategy-list`, `cycle-history`, `fear-greed-card`, `market-holiday-calendar`, `stats-overview`, `benchmark-comparison`, `error-display`, `asset-overview`, `asset-trend`, `asset-composition`, `asset-record-check`, `asset-record-list`
+페이지 위젯 목록은 `ls widgets/`로 확인한다. cross-import는 원칙적으로 금지되며, 아래 화이트리스트만 예외다.
+
 - 공용 UI 위젯 (cross-import 허용 화이트리스트, 닫힌 목록): `layout`, `page-header`, `kpi-card`, `revealable-value`, `glass-card`, `theme-toggle`, `timeline`, `pull-to-refresh`, `account-card`, `strategy-card`, `cycle-history`, `strategy-list`
-- shared/ui로 이동됨: `stepper`, `percent-gauge`, `SectionError` (도메인 무관 UI 컴포넌트로 분류. `SectionError`는 `stats-overview`·`benchmark-comparison` 양쪽에서 쓰여 cross-widget import를 피하려 이동)
+- `stepper`·`percent-gauge`·`SectionError`는 도메인 무관 UI로 `shared/ui`에 있다 (이동 배경 → `docs/agents/shared.md`)
 
 ## shadcn / UI 컴포넌트
 
@@ -48,8 +49,8 @@ widget 슬라이스끼리 cross-import 금지. **단, 아래 "공용 UI 위젯" 
 ## 컴포넌트 설계 패턴
 
 - 인터랙션 추가 시 Client Component를 분리하고 페이지 전체를 `'use client'`로 바꾸지 않는다
-- 가변 서버 상태와 계산 값은 `docs/agents/cache-policy.md`에 따라 직접 cache write 또는 key factory 기반 invalidate로 동기화한다. routine mutation 성공 시 `router.refresh()`를 사용하지 않는다
-- `router.refresh()`는 명시적 pull-to-refresh와 SSE provider 예외에만 허용한다. 예외의 rationale과 종료 조건은 `docs/agents/cache-policy.md` 참고
+- 가변 서버 상태와 계산 값은 `docs/agents/entities.md`에 따라 직접 cache write 또는 key factory 기반 invalidate로 동기화한다. routine mutation 성공 시 `router.refresh()`를 사용하지 않는다
+- `router.refresh()`는 명시적 pull-to-refresh와 SSE provider 예외에만 허용한다. 예외의 rationale과 종료 조건은 `docs/agents/shared.md` 참고
 - "방금 동작 결과"는 toast, "현재 상태 경고"는 고정 텍스트로 남긴다
 - 독립 API 호출은 try/catch를 분리한다
 - JSX 내 IIFE 금지
@@ -68,8 +69,11 @@ widget 슬라이스끼리 cross-import 금지. **단, 아래 "공용 UI 위젯" 
 - **`all-strategies`**: Server Component가 전체 전략과 계좌 목록을 prefetch+hydrate하고 `AllStrategiesList`가 인자 없는 `useAllStrategiesQuery()`와 `useAccountsQuery()`를 canonical cache source로 소비한다
 - **`stats-overview`**: `/stats` 페이지 전용, 탭 없이 운용 통계만 표시한다. 전략 유형 비교와 사이클 성과는 `sm` 이상에서 열 헤더가 있는 실제 `table` 마크업, `sm` 미만에서 명시적인 라벨-값 요약 행으로 표시한다. 각 섹션의 데스크탑/모바일 표현은 같은 조회·페이지네이션 상태를 공유한다. 누적 자산 추이 상단의 전략 타입 탭은 누적 자산 추이와 사이클 성과에만 적용하고, 전략 유형 비교는 비교 목적상 항상 전체 타입 집계를 표시하며 사이클 성과 아래에 배치한다. 사이클 성과는 계좌/전략/종목/기간/손익/수익률을 표시하고(데스크탑은 계좌·전략 컬럼 분리, 가운데 정렬), 미종료 상태는 기간 값의 `진행 중` 텍스트로만 노출한다
 - **`benchmark-comparison`**: `/benchmark` 페이지 전용(별도 최상위 메뉴, `/stats`의 하위 탭 아님). 진입점은 `HousingBenchmarkComparison` — ETF/아파트(HOUSING) 두 자산 유형을 `benchmarkType` 판별 유니온으로 함께 처리하며, 파일명은 아파트 벤치마크가 먼저 추가된 이력 때문에 `Housing~` 접두사이지만 ETF도 포괄한다. ETF 벤치마크 자산 선택지는 `runtime-config`의 `benchmarks.etf`를 우선 사용하고, 미등록 심볼은 사용자 설정 ETF로 표시한다
+  - **규모 비교 축(investment vs. benchmark)**: `BenchmarkFilterBar.tsx` + `model/useBenchmarkFilters.ts`가 자산 탭(ETF/HOUSING)·전략 선택·기간·(HOUSING이면) `regionCode` 기반 지역 선택을 하나의 필터 상태로 통합 관리한다. 전략 선택은 3상태(전체/없음/개별 전략)이며 기본값은 "전체"(`useState('ALL')`)라 첫 진입 시에도 비교가 정상 수행된다 — 비교를 생략하는 조건은 "없음"(`NONE`)을 명시적으로 고른 경우뿐(`canQuery = !(selection === 'NONE')`). 이때는 `HousingPriceIndexChart.tsx`(아파트 주간 매매가격지수)/`EtfPriceChart.tsx`(ETF 일별 종가)가 CAGR 배지를 포함한 원본 시세만 보여준다. 그 외(전체/개별)에는 `HousingBenchmarkChart`/`HousingBenchmarkSummary`가 투자 대비 비교 결과를 표시한다
+  - **5분위(quintile) 원본 섹션 — 별도 이원 구조**: `HousingBenchmarkQuintileTrendChart`(5분위 매매평균가 원본 추이)와 `HousingBenchmarkRegionQuintileInfo`(선택 지역 5분위 안내)는 위 regionCode 비교 축과 독립적으로 `HousingBenchmarkComparison.tsx` 안에 여전히 마운트돼 있다 — HOUSING 탭에서만, 상단 "비교 기간" 필터의 from/to를 그대로 공유하지만 investment 데이터·전략 선택과는 무관하게 항상 렌더링된다. 즉 이 위젯은 "regionCode 기반 투자-벤치마크 비교"와 "5분위 원본 시계열 참고자료"라는 목적이 다른 두 섹션을 한 페이지에 함께 갖고 있다 — 신규 작업자는 어느 컴포넌트가 어느 축인지 파일명으로 구분한다(`HousingPriceIndexChart`/`EtfPriceChart`/`HousingBenchmarkChart`=비교 축, `HousingBenchmarkQuintileTrendChart`/`HousingBenchmarkRegionQuintileInfo`=5분위 원본 축)
 - **`admin-user-list`**: 이상감지 카드는 `AdminAnomalies { pausedAccounts, inactiveAccounts }`
 - **`market-holiday-calendar/WeeklyMarketCalendar`**: 주간/월간 데이터를 여러 쿼리로 조합
-- **`asset-overview`/`asset-trend`/`asset-composition`/`asset-record-check`/`asset-record-list`**: `/assets` 페이지의 5개 슬라이스. 위젯끼리 cross-import가 금지돼 있고 Server Component는 함수를 prop으로 넘길 수 없어, `asset-overview`(월 선택 UI)와 `asset-record-check`(선택된 월 기준 점검)가 공유하는 "기준 월" 상태는 `app/(main)/assets/AssetsDashboard.tsx`(app 레이어의 client 부모)가 소유하고 각 위젯에 `month`/`onMonthChange` prop으로 흘려보낸다 — `market-holiday-calendar`류의 `marketPanels` slot 패턴과 같은 이유의 같은 해법이다. `asset-trend`(recharts LineChart)·`asset-composition`(recharts 스택 BarChart ×2)은 각각 Shell + `next/dynamic({ ssr: false })` Inner 분리 구조이며, `react-doctor/prefer-dynamic-import` 룰은 파일 간 도달 가능성을 보지 않고 recharts 정적 import를 항상 감지하므로 기존 recharts 위젯과 동일하게 `// eslint-disable-next-line react-doctor/prefer-dynamic-import`를 import 직전 줄에 둔다(설명 주석은 disable 지시문보다 앞에 — 지시문과 import 사이에 다른 줄이 끼면 타겟팅이 깨진다). 순자산·카테고리별/자산군별 현황·구성비 계산은 전부 `entities/asset/lib/aggregate.ts`의 순수 함수를 공유한다(위젯 계층에 중복 구현 금지) — `calcAssetClassComposition`이 자유 입력 자산군(`KNOWN_ASSET_CLASSES`에 없는 값)을 분자·분모 양쪽에서 누락시키던 회귀가 있었으니 유사 집계 함수 추가·수정 시 자유 입력 항목 처리를 반드시 확인한다
+- **`/assets` 페이지 탭 구조**: `app/(main)/assets/AssetsDashboard.tsx`가 예산/수입/지출/자산 4탭(`AssetTab = 'budget'|'income'|'expense'|'investment'`)을 소유한다. 수입·지출·예산 탭은 아직 도메인이 구현되지 않아 `EmptyState`(Construction 아이콘) 안내만 표시하는 자리표시자이고, 아래 5개 위젯은 모두 `investment`(자산) 탭에서만 렌더링된다. `NewAssetButton`도 `investment` 탭에서만 노출된다
+- **`asset-overview`/`asset-trend`/`asset-composition`/`asset-record-check`/`asset-record-list`**: 위 `investment` 탭을 구성하는 5개 슬라이스. 위젯끼리 cross-import가 금지돼 있고 Server Component는 함수를 prop으로 넘길 수 없어, `asset-overview`(월 선택 UI)와 `asset-record-check`(선택된 월 기준 점검)가 공유하는 "기준 월" 상태는 `AssetsDashboard.tsx`(app 레이어의 client 부모)가 소유하고 각 위젯에 `month`/`onMonthChange` prop으로 흘려보낸다 — `market-holiday-calendar`류의 `marketPanels` slot 패턴과 같은 이유의 같은 해법이다. `asset-trend`(recharts LineChart)·`asset-composition`(recharts 스택 BarChart ×2)은 각각 Shell + `next/dynamic({ ssr: false })` Inner 분리 구조이며, `react-doctor/prefer-dynamic-import` 룰은 파일 간 도달 가능성을 보지 않고 recharts 정적 import를 항상 감지하므로 기존 recharts 위젯과 동일하게 `// eslint-disable-next-line react-doctor/prefer-dynamic-import`를 import 직전 줄에 둔다(설명 주석은 disable 지시문보다 앞에 — 지시문과 import 사이에 다른 줄이 끼면 타겟팅이 깨진다). 순자산·카테고리별/자산군별 현황·구성비 계산은 전부 `entities/asset/lib/aggregate.ts`의 순수 함수를 공유한다(위젯 계층에 중복 구현 금지) — `calcAssetClassComposition`이 자유 입력 자산군(`KNOWN_ASSET_CLASSES`에 없는 값)을 분자·분모 양쪽에서 누락시키던 회귀가 있었으니 유사 집계 함수 추가·수정 시 자유 입력 항목 처리를 반드시 확인한다
 - **`glass-card`**, **`pull-to-refresh`**, **`layout/DesktopSidebar`**: 일부 CSS 토큰/동적 계산 인라인 style 유지
 - **`glass-card/GlassCard`**: `topBar` prop(ReactNode) — 로그인/pending/rejected 등 인증 흐름 페이지 좌상단 로고+우상단 액션(로그아웃 등)을 `justify-between` 오버레이 행으로 배치. 컴패니언 `BrandWordmark`(로고+워드마크)와 함께 사용 (`app/pending/page.tsx`, `app/rejected/page.tsx` 참고). 배경은 `brand-radial-bg` 클래스(`globals.css`) 고정 적용

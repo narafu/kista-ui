@@ -1,23 +1,6 @@
 ## 자주 쓰는 명령어
 
-### Next.js / TypeScript
-
-```bash
-npm run dev           # 개발 서버 (Turbopack)
-npm run build         # 프로덕션 빌드 (Turbopack)
-npm run typecheck     # TypeScript 타입 검사
-npm run test:run      # Vitest 1회 실행
-npm run test          # Vitest watch
-npm run test:coverage # 테스트 커버리지
-npm run doctor        # React Doctor 점검
-```
-
-### OpenAPI 동기화
-
-```bash
-npm run fetch:spec    # 로컬 kista-api에서 openapi.json 갱신
-npm run gen:types     # openapi.json 기준 shared/lib/api-types.ts 재생성
-```
+npm 스크립트 목록은 `package.json`이 SSOT다 (`dev`/`build`/`typecheck`/`test`/`test:run`/`test:coverage`/`doctor`/`fetch:spec`/`gen:types` 등).
 
 ### shadcn/ui
 

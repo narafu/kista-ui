@@ -5,18 +5,9 @@ Keep tool-specific behavior in the root entrypoint files and keep shared project
 
 ## Shared Context
 
-Read the relevant shared documents before changing related code:
+`docs/agents/` holds long-lived project knowledge shared by every coding agent; root entrypoint files (`AGENTS.md`, `CLAUDE.md`) stay tool-specific and only bootstrap. Prefer adding new durable rules to `docs/agents/` over these entrypoint files.
 
-- `docs/agents/commands.md`: common npm, OpenAPI, Docker, and local debugging commands.
-- `docs/agents/architecture.md`: product overview, auth routing, FSD boundaries, aliases, and API layering.
-- `docs/agents/constraints.md`: project-specific implementation constraints, frontend quirks, and coding rules.
-- `docs/agents/deployment.md`: OCI server deploy, Docker, env var, and kista-api integration operations.
-- `docs/agents/cache-policy.md`: cache ownership, SSR hydration, mutation synchronization, freshness, and refresh exceptions.
-- `docs/agents/app.md`: app router, proxy, cookies, route handlers, SSE, and PWA quirks.
-- `docs/agents/entities.md`: domain DTOs, React Query patterns, OpenAPI, and KIS quirks.
-- `docs/agents/features.md`: feature-slice responsibilities and mutation usage rules.
-- `docs/agents/widgets.md`: page composition, responsive UI quirks, and widget patterns.
-- `docs/agents/shared.md`: api-client, cache, proxy helpers, shared utilities, and providers.
+Read the relevant shared documents under `docs/agents/` before changing related code — see `CLAUDE.md`'s "공통 지식"/"레이어별 상세 문서" sections for the current list and what each file covers.
 
 Directory-specific deep-dive notes live in each FSD directory's `CLAUDE.md` (`app/`, `entities/`, `features/`, `widgets/`, `shared/`).
 

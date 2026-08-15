@@ -8,33 +8,7 @@
 features/{domain}/{slice}  ->  entities/  ->  shared/
 ```
 
-feature 슬라이스끼리 cross-import 금지. 두 feature를 조합해야 하면 `widgets/`에서 처리.
-
-## 슬라이스 목록
-
-| 도메인 | 슬라이스 | 주요 컴포넌트 |
-|---|---|---|
-| `auth` | `logout` | `LogoutButton` |
-| `auth` | `reapply` | `ReapplyButton`, `RejectedReapplyButton` |
-| `account` | `create-account` | `CreateAccountStepper` + steps |
-| `account` | `edit-account` | `EditAccountForm` |
-| `strategy` | `create-strategy` | `StrategyFormPage`, `StrategyForm`, `NewStrategyButton` |
-| `settings` | `telegram-connect` | `TelegramSection`, `PendingTelegramConnect` |
-| `settings` | `notification-channel` | `NotificationSettings` |
-| `settings` | `notification-prefs` | `TradingAlertToggle` |
-| `settings` | `balance-check-setting` | `BalanceCheckSetting` |
-| `settings` | `edit-nickname` | `NicknameEditor` |
-| `settings` | `delete-user-account` | `DeleteAccountButton` |
-| `settings` | `theme-select` | `ThemeCards` |
-| `admin` | `approve-reject` | `ApproveRejectButtons` |
-| `admin` | `change-role` | `ChangeRoleButton` |
-| `admin` | `withdraw-user` | `WithdrawUserButton` |
-| `admin` | `logs` | `LogsFilterChips` |
-| `admin` | `error-logs` | `ErrorLogsSectionClient`, `ErrorLogItem` |
-| `admin` | `settings` | `AdminSettingsForm` |
-| `asset` | `save-asset` | `AssetForm`, `AssetFormPage`, `NewAssetButton` |
-| `asset` | `delete-asset` | `DeleteAssetDialog` |
-| `asset` | `toggle-monthly-check` | `ToggleMonthlyCheckButton` |
+feature 슬라이스끼리 cross-import 금지. 두 feature를 조합해야 하면 `widgets/`에서 처리. 슬라이스 목록은 `find features -maxdepth 2 -type d`로 확인한다.
 
 ## 슬라이스 내부 구조
 

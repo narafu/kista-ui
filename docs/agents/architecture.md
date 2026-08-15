@@ -17,29 +17,11 @@
 
 ## FSD 계층 구조
 
-```text
-app/           -> Next.js 라우팅만 (Server Component 데이터 프리페치/하이드레이션 + 레이아웃)
-widgets/       -> 페이지 합성 단위
-features/      -> 사용자 시나리오
-entities/      -> 도메인 모델 + API 함수 + React Query 훅
-shared/        -> 도메인 무관 공용
-```
-
-의존성은 `app -> widgets -> features -> entities -> shared` 단방향이다. 동일 계층 cross-import는 금지한다.
+표준 FSD 단방향 의존(`app -> widgets -> features -> entities -> shared`), 동일 계층 cross-import 금지. `app/`은 Next.js 라우팅 전용(Server Component 프리페치/하이드레이션 + 레이아웃)이 추가 제약이다.
 
 ## tsconfig 경로 alias
 
-```text
-@app/*         -> ./app/*
-@widgets/*     -> ./widgets/*
-@features/*    -> ./features/*
-@entities/*    -> ./entities/*
-@shared/*      -> ./shared/*
-@/lib/*        -> ./lib/*        # shadcn ui 호환용
-@/components/* -> ./components/* # shadcn ui 호환용
-```
-
-새 코드는 FSD alias를 우선 사용한다. `@/lib/*`, `@/components/*`는 shadcn 자동생성 파일 호환용으로만 유지한다.
+각 FSD 계층에 alias(`@app/*` 등)가 있다 — 목록은 `tsconfig.json` 참고. `@/lib/*`, `@/components/*`는 shadcn 자동생성 파일 호환용으로만 유지하고 새 코드는 FSD alias를 우선 사용한다.
 
 ## API 계층
 

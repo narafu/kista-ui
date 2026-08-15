@@ -1,6 +1,6 @@
 # app/ — Next.js · proxy · 쿠키 · SSE · PWA
 
-UI 캐시 소유권, hydration, mutation 동기화, `router.refresh()` 예외는 `docs/agents/cache-policy.md`를 SSOT로 따른다.
+UI 캐시 소유권·hydration·mutation 동기화는 `docs/agents/entities.md`, `router.refresh()` 예외는 `docs/agents/shared.md`를 SSOT로 따른다.
 
 ## proxy.ts (Edge runtime)
 
@@ -50,7 +50,7 @@ UI 캐시 소유권, hydration, mutation 동기화, `router.refresh()` 예외는
 
 - **가변 인증 데이터**: `accounts`·`strategies`·`me`는 Next.js persistent cache를 사용하지 않는다. 요청별 `createQueryClient()` + `prefetchQuery()` + `<HydrationBoundary>`로 넘기고 Client Content가 목록/빈 상태를 결정한다
 - **서버용 query options**: Server Component가 호출하는 factory는 `'use client'` hook 파일이 아니라 `entities/*/model/queryOptions.ts`에 둔다
-- **Next.js persistent cache**: 현재는 비인증 public meta fallback에만 1시간 TTL을 적용한다. market holidays의 visible state는 React Query 소유이며 persistent cache directive가 없다. 세부 기준과 `router.refresh()` 예외는 `docs/agents/cache-policy.md` 참고
+- **Next.js persistent cache**: 현재는 비인증 public meta fallback에만 1시간 TTL을 적용한다. market holidays의 visible state는 React Query 소유이며 persistent cache directive가 없다. 세부 기준은 `docs/agents/entities.md`, `router.refresh()` 예외는 `docs/agents/shared.md` 참고
 
 ## Toaster · UI 전역
 
@@ -60,6 +60,6 @@ UI 캐시 소유권, hydration, mutation 동기화, `router.refresh()` 예외는
 
 - **iOS 푸시 알림**: iOS는 WebKit → `PushManager` 미지원. iOS 16.4+ Safari + 홈화면 추가 PWA만 가능. `'PushManager' in window` 사전 체크 필수
 - **PWA 구성**: `app/manifest.ts` + `app/layout.tsx` metadata에 `manifest`/`icons.apple`/`appleWebApp`. 아이콘: `public/icon-192.png`, `icon-512.png`, `apple-touch-icon.png`
-- **`firebase-messaging-sw.js` git 추적 필수**: git에 없으면 배포 후 404 → FCM 토큰 발급 불가. 로컬 크롬 캐시로 눈에 안 띔
+- **`firebase-messaging-sw.js`는 정적 파일이 아니다**: `app/firebase-messaging-sw.js/route.ts` Route Handler가 런타임에 생성한다. 진짜 위험은 빌드타임에 `NEXT_PUBLIC_FIREBASE_*` 환경변수가 주입되지 않으면 빈 config로 서비스워커가 생성되어 FCM이 조용히 실패하는 것이다
 - **FCM 마운트**: `widgets/layout/FcmBridge.tsx`(Client Component)가 `useMeQuery()`로 `notificationChannel`을 소비해 `entities/fcm/providers/FcmAutoRegister.tsx`/`FcmForegroundListener.tsx`를 렌더링하고, `(main)/layout.tsx`가 `FcmBridge`를 마운트한다. FCM/ALL + 권한 granted 기기에서 `getToken()` 자동 등록(멱등), FCM/ALL이면 `onMessage()` 구독 후 granted 시 서비스 워커 `showNotification()`으로 표시
 - **PENDING 사용자 API 접근**: kista-api SettingsController는 UserStatus 미검증 → PENDING 상태도 `/api/settings/telegram` 호출 가능
