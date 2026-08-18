@@ -3,16 +3,16 @@
 import { AlertTriangle, CalendarClock, CheckCircle2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SectionError } from '@shared/ui/SectionError'
-import { formatAssetCategoryLabel } from '@shared/lib/api-schema'
 import {
   calcDateGroups,
   calcMissingAccounts,
   calcMissingCategories,
+  formatAssetL1CategoryLabel,
   listAvailableMonths,
   previousMonthOf,
-  useAssetMonthlyChecksQuery,
-  useAssetsQuery,
-} from '@entities/asset'
+  useAssetSnapshotsQuery,
+  useMonthlyClosingsQuery,
+} from '@entities/finance'
 import { ToggleMonthlyCheckButton } from '@features/asset/toggle-monthly-check'
 
 interface Props {
@@ -26,8 +26,8 @@ function formatMonthDay(dateStr: string): string {
 }
 
 export function AssetRecordCheck({ month }: Props) {
-  const { data: assets = [], isLoading: assetsLoading, isError: assetsError } = useAssetsQuery()
-  const { data: monthlyChecks = [], isLoading: checksLoading, isError: checksError } = useAssetMonthlyChecksQuery()
+  const { data: snapshots = [], isLoading: assetsLoading, isError: assetsError } = useAssetSnapshotsQuery()
+  const { data: monthlyClosings = [], isLoading: checksLoading, isError: checksError } = useMonthlyClosingsQuery()
 
   if (assetsLoading || checksLoading) {
     return (
@@ -53,12 +53,12 @@ export function AssetRecordCheck({ month }: Props) {
     )
   }
 
-  const months = listAvailableMonths(assets)
+  const months = listAvailableMonths(snapshots)
   const previousMonth = previousMonthOf(months, month)
-  const missingCategories = calcMissingCategories(assets, month)
-  const missingAccounts = calcMissingAccounts(assets, month, previousMonth)
-  const dateGroups = calcDateGroups(assets, month)
-  const completed = monthlyChecks.find((check) => check.month === month)?.completed ?? false
+  const missingCategories = calcMissingCategories(snapshots, month)
+  const missingAccounts = calcMissingAccounts(snapshots, month, previousMonth)
+  const dateGroups = calcDateGroups(snapshots, month)
+  const completed = monthlyClosings.find((closing) => closing.month === month)?.completed ?? false
 
   return (
     <Card>
@@ -75,7 +75,7 @@ export function AssetRecordCheck({ month }: Props) {
           ) : (
             <div className="flex items-start gap-1.5 rounded-[var(--r-md)] border border-[var(--warn)] bg-[var(--warn-bg)] px-3 py-2 text-sm text-[var(--warn)]">
               <AlertTriangle className="size-4 mt-0.5 shrink-0" />
-              <span>{missingCategories.map(formatAssetCategoryLabel).join(', ')}</span>
+              <span>{missingCategories.map(formatAssetL1CategoryLabel).join(', ')}</span>
             </div>
           )}
         </section>

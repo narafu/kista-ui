@@ -10,9 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { SectionError } from '@shared/ui/SectionError'
 import { cn } from '@shared/lib/utils'
 import { fmtKrw } from '@shared/lib/format'
-import { formatAssetCategoryLabel } from '@shared/lib/api-schema'
-import { ASSET_CATEGORIES, KNOWN_ASSET_CLASSES, calcMonthlyTrend, useAssetsQuery } from '@entities/asset'
-import type { TrendMode } from '@entities/asset'
+import { useMeta } from '@entities/meta'
+import {
+  ASSET_CLASS_ORDER,
+  ASSET_L1_CATEGORY_IDS,
+  calcMonthlyTrend,
+  formatAssetL1CategoryLabel,
+  useAssetSnapshotsQuery,
+} from '@entities/finance'
+import type { TrendMode } from '@entities/finance'
 
 // Y축 눈금 전용 — fmtKrw는 "1,000,000원" 같은 긴 문자열이라 좁은 축 폭에 맞지 않는다.
 // 만원 단위로 축약해 표시하고, 정확한 금액은 Tooltip의 fmtKrw로 보여준다.
@@ -45,17 +51,12 @@ function ModeButton({ active, onClick, children }: { active: boolean; onClick: (
 }
 
 export default function AssetTrendInner() {
-  const { data: assets = [], isLoading, isError } = useAssetsQuery()
+  const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
+  const { labelOf } = useMeta()
   const [mode, setMode] = useState<TrendMode>('netWorth')
   const [pickedSelector, setPickedSelector] = useState<string | null>(null)
 
-  const assetClassOptions = useMemo(() => {
-    const set = new Set(KNOWN_ASSET_CLASSES)
-    assets.forEach((asset) => set.add(asset.assetClass))
-    return Array.from(set)
-  }, [assets])
-
-  const selectorOptions = mode === 'category' ? ASSET_CATEGORIES : mode === 'assetClass' ? assetClassOptions : []
+  const selectorOptions = mode === 'category' ? ASSET_L1_CATEGORY_IDS : mode === 'assetClass' ? ASSET_CLASS_ORDER : []
 
   // 명시적으로 고른 값이 현재 모드의 선택지에 없으면(모드 전환 등) 첫 번째 선택지로 폴백한다.
   // useEffect로 state를 동기화하지 않고 렌더 중 파생값으로 계산한다.
@@ -64,10 +65,10 @@ export default function AssetTrendInner() {
 
   const selectorItems = selectorOptions.map((option) => ({
     value: option,
-    label: mode === 'category' ? formatAssetCategoryLabel(option) : option,
+    label: mode === 'category' ? formatAssetL1CategoryLabel(option) : labelOf('assetClasses', option),
   }))
 
-  const trend = useMemo(() => calcMonthlyTrend(assets, mode, effectiveSelector), [assets, mode, effectiveSelector])
+  const trend = useMemo(() => calcMonthlyTrend(snapshots, mode, effectiveSelector), [snapshots, mode, effectiveSelector])
 
   if (isLoading) {
     return <div className="flex min-h-[240px] flex-1 items-center justify-center text-sm text-muted-foreground sm:min-h-[280px]">불러오는 중…</div>

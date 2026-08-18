@@ -27,4 +27,8 @@ export interface MetaBundle {
   brokers: EnumMeta[]
   strategyStatuses: EnumMeta[]
   cycleSeedTypes: EnumMeta[]
+  assetClasses: EnumMeta[]
+  markets: EnumMeta[]
+  financeAccountTypes: EnumMeta[]
+  financeCategoryTypes: EnumMeta[]
 }

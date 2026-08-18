@@ -8,8 +8,7 @@ import { Button } from '@/components/ui/button'
 import { useAdminSettingsQuery, useUpdateAdminSettingsMutation } from '@entities/admin-settings'
 import { adminKeys } from '@entities/admin'
 import { useMeta } from '@entities/meta'
-import { ASSET_CATEGORIES } from '@entities/asset'
-import { formatAssetCategoryLabel, type AssetCategory, type BrokerCode } from '@shared/lib/api-schema'
+import type { BrokerCode } from '@shared/lib/api-schema'
 import {
   DEFAULT_ASSET_FORM_OPTIONS,
   DEFAULT_RUNTIME_BENCHMARKS,
@@ -35,17 +34,10 @@ function clone(value: RuntimeConfig): RuntimeConfig {
   const next = structuredClone(value)
   next.benchmarks ??= structuredClone(DEFAULT_RUNTIME_BENCHMARKS)
   next.benchmarks.etf ??= structuredClone(DEFAULT_RUNTIME_BENCHMARKS.etf)
-  // benchmarks와 동일하게 두 단계로 보충한다 — 객체 자체가 없을 때뿐 아니라 특정 하위 필드만 없는 경우도
-  // 방어한다(예: subcategorySuggestions에 향후 AssetCategory가 추가됐는데 저장된 응답이 아직 그 키를 채우지
-  // 않은 경우). 한 단계만 보충하면 이후 렌더에서 개별 필드에 대한 .map()/.length 접근이 그대로 터진다.
+  // benchmarks와 동일하게 두 단계로 보충한다 — 객체 자체가 없을 때뿐 아니라 하위 필드만 없는 경우도 방어한다.
+  // 한 단계만 보충하면 이후 렌더에서 .map()/.length 접근이 그대로 터진다.
   next.assetFormOptions ??= structuredClone(DEFAULT_ASSET_FORM_OPTIONS)
-  next.assetFormOptions.institutionSuggestions ??= structuredClone(DEFAULT_ASSET_FORM_OPTIONS.institutionSuggestions)
-  next.assetFormOptions.assetClassSuggestions ??= structuredClone(DEFAULT_ASSET_FORM_OPTIONS.assetClassSuggestions)
   next.assetFormOptions.strategySuggestions ??= structuredClone(DEFAULT_ASSET_FORM_OPTIONS.strategySuggestions)
-  next.assetFormOptions.subcategorySuggestions ??= structuredClone(DEFAULT_ASSET_FORM_OPTIONS.subcategorySuggestions)
-  for (const category of ASSET_CATEGORIES) {
-    next.assetFormOptions.subcategorySuggestions[category] ??= []
-  }
   return next
 }
 
@@ -143,25 +135,10 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
     }))
   }
   const currentAssetFormOptions = draft.assetFormOptions ?? DEFAULT_ASSET_FORM_OPTIONS
-  const setSubcategorySuggestions = (category: AssetCategory, values: string[]) => {
-    setDraft((current) => {
-      const options = current.assetFormOptions ?? DEFAULT_ASSET_FORM_OPTIONS
-      return {
-        ...current,
-        assetFormOptions: {
-          ...options,
-          subcategorySuggestions: { ...options.subcategorySuggestions, [category]: values },
-        },
-      }
-    })
-  }
-  const setAssetFormOptionsList = (
-    field: 'institutionSuggestions' | 'assetClassSuggestions' | 'strategySuggestions',
-    values: string[],
-  ) => {
+  const setStrategySuggestions = (values: string[]) => {
     setDraft((current) => ({
       ...current,
-      assetFormOptions: { ...(current.assetFormOptions ?? DEFAULT_ASSET_FORM_OPTIONS), [field]: values },
+      assetFormOptions: { ...(current.assetFormOptions ?? DEFAULT_ASSET_FORM_OPTIONS), strategySuggestions: values },
     }))
   }
   const submit = (event: FormEvent) => {
@@ -278,47 +255,18 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
         <section className="px-4 py-4 sm:px-5">
           <h2 className="text-base font-bold">자산 등록 폼 추천 목록</h2>
           <p className="pb-2 text-xs text-muted-foreground">
-            '자산' 메뉴 등록 폼은 자유 입력을 유지합니다 — 아래 목록은 입력을 돕는 추천값일 뿐 값 자체를 제한하지 않습니다.
+            '자산' 메뉴 등록 폼의 운용전략은 자유 입력을 유지합니다 — 아래 목록은 입력을 돕는 추천값일 뿐 값 자체를 제한하지 않습니다.
           </p>
           <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <span className="text-sm font-medium">기관</span>
-              <SuggestionListEditor
-                id="asset-institution"
-                label="기관"
-                values={currentAssetFormOptions.institutionSuggestions}
-                onChange={(values) => setAssetFormOptionsList('institutionSuggestions', values)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <span className="text-sm font-medium">자산군</span>
-              <SuggestionListEditor
-                id="asset-class"
-                label="자산군"
-                values={currentAssetFormOptions.assetClassSuggestions}
-                onChange={(values) => setAssetFormOptionsList('assetClassSuggestions', values)}
-              />
-            </div>
             <div className="space-y-1.5">
               <span className="text-sm font-medium">운용전략</span>
               <SuggestionListEditor
                 id="asset-strategy"
                 label="운용전략"
                 values={currentAssetFormOptions.strategySuggestions}
-                onChange={(values) => setAssetFormOptionsList('strategySuggestions', values)}
+                onChange={setStrategySuggestions}
               />
             </div>
-            {ASSET_CATEGORIES.map((category) => (
-              <div key={category} className="space-y-1.5">
-                <span className="text-sm font-medium">세부 카테고리 — {formatAssetCategoryLabel(category)}</span>
-                <SuggestionListEditor
-                  id={`asset-subcategory-${category}`}
-                  label={`세부 카테고리(${formatAssetCategoryLabel(category)})`}
-                  values={currentAssetFormOptions.subcategorySuggestions[category]}
-                  onChange={(values) => setSubcategorySuggestions(category, values)}
-                />
-              </div>
-            ))}
           </div>
         </section>
       </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button-variants'
@@ -10,19 +10,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Spinner } from '@shared/ui/Spinner'
 import { cn } from '@shared/lib/utils'
 import { todayKst } from '@shared/lib/format'
-import { formatAssetCategoryLabel } from '@shared/lib/api-schema'
-import { ASSET_CATEGORIES, useCreateAssetMutation, useUpdateAssetMutation } from '@entities/asset'
-import type { Asset, AssetCategory, AssetRequest } from '@entities/asset'
+import { useMeta } from '@entities/meta'
+import {
+  flattenFinanceCategories,
+  useCreateAssetSnapshotMutation,
+  useFinanceAccountsQuery,
+  useFinanceCategoriesQuery,
+  useUpdateAssetSnapshotMutation,
+} from '@entities/finance'
+import type { AssetClass, AssetSnapshot, AssetSnapshotRequest, Market } from '@entities/finance'
 import { DEFAULT_ASSET_FORM_OPTIONS, useRuntimeConfigQuery } from '@entities/runtime-config'
 
 export type AssetFormMode = 'create' | 'edit' | 'duplicate'
 
 interface Props {
   mode: AssetFormMode
-  initial?: Asset
+  initial?: AssetSnapshot
   onSuccess: () => void
   onCancel: () => void
 }
+
+// 계좌 Select 미선택("미지정") 센티널 — Base UI Select는 빈 문자열 value를 허용하지 않는다.
+const NO_ACCOUNT_VALUE = 'NONE'
 
 function digitsOnly(value: string) {
   return value.replace(/[^0-9]/g, '')
@@ -51,8 +60,8 @@ interface ComboFieldProps {
   helperText?: string
 }
 
-// 세부 카테고리·기관·자산군·운용전략 공통 UI — 자유 입력 Input과 추천 목록 Select를 한 필드로 묶는다.
-// Select는 값을 선택 즉시 onChange로 흘려보낼 뿐 자체 선택 상태를 갖지 않는다(자유 입력이 SSOT).
+// 운용전략 자유 입력 Input과 추천 목록 Select를 한 필드로 묶는다. Select는 값을 선택 즉시
+// onChange로 흘려보낼 뿐 자체 선택 상태를 갖지 않는다(자유 입력이 SSOT).
 function ComboField({
   id,
   label,
@@ -96,45 +105,43 @@ function ComboField({
 }
 
 export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
-  // 세부 카테고리/기관/자산군/운용전략 추천 목록은 kista-api 런타임 설정(관리자 수정 가능)이 SSOT다 —
-  // 필드 자체는 여전히 자유 입력이라 설정 로딩 전에는 알려진 기본값으로 폴백한다.
+  const { meta } = useMeta()
+  const { data: categories = [] } = useFinanceCategoriesQuery()
+  const { data: accounts = [] } = useFinanceAccountsQuery()
+  // 운용전략 추천 목록은 kista-api 런타임 설정(관리자 수정 가능)이 SSOT다 — strategy는 여전히
+  // 자유 입력이라 설정 로딩 전에는 알려진 기본값으로 폴백한다.
   const assetFormOptions = useRuntimeConfigQuery().data?.assetFormOptions ?? DEFAULT_ASSET_FORM_OPTIONS
-  const initialCategory: AssetCategory = initial?.category ?? 'INVESTMENT'
+  const flatCategories = useMemo(() => flattenFinanceCategories(categories), [categories])
+
   const [entryDate, setEntryDate] = useState(initial?.entryDate ?? todayKst())
-  const [category, setCategory] = useState<AssetCategory>(initialCategory)
-  const [subcategory, setSubcategory] = useState(initial?.subcategory ?? '')
-  const [institution, setInstitution] = useState(initial?.institution ?? '')
-  const [assetClass, setAssetClass] = useState(initial?.assetClass ?? (initialCategory === 'INVESTMENT' ? '' : '원화'))
+  const [categoryId, setCategoryId] = useState(initial?.categoryId ?? '')
+  const [accountId, setAccountId] = useState(initial?.accountId ?? NO_ACCOUNT_VALUE)
+  const [assetClass, setAssetClass] = useState<AssetClass>(initial?.assetClass ?? 'CASH')
+  const [market, setMarket] = useState<Market>(initial?.market ?? 'DOMESTIC')
   const [strategy, setStrategy] = useState(initial?.strategy ?? '')
   // 복제 모드는 금액을 제외한 나머지 필드만 이어받는다 — 복제 시점마다 금액이 다른 게
   // 일반적인 사용 패턴이라, 이전 금액을 그대로 들고 있으면 고치는 걸 잊고 그대로 제출하기 쉽다.
   const [amountDigits, setAmountDigits] = useState(mode === 'edit' && initial ? String(initial.amount) : '')
 
-  const createMutation = useCreateAssetMutation()
-  const updateMutation = useUpdateAssetMutation(initial?.id ?? '')
+  const createMutation = useCreateAssetSnapshotMutation()
+  const updateMutation = useUpdateAssetSnapshotMutation(initial?.id ?? '')
   const isPending = mode === 'edit' ? updateMutation.isPending : createMutation.isPending
 
-  function handleCategoryChange(next: AssetCategory) {
-    setCategory(next)
-    setSubcategory('')
-    // strategy는 지우지 않는다 — INVESTMENT가 아닐 때는 제출 payload에서 이미 제외되므로(아래 handleSubmit),
-    // 카테고리를 다시 INVESTMENT로 되돌렸을 때 입력했던 값이 그대로 남아있는 편이 사용자 경험상 자연스럽다.
-    setAssetClass(next === 'INVESTMENT' ? '' : '원화')
-  }
-
-  const canSubmit = entryDate !== '' && subcategory.trim() !== '' && assetClass.trim() !== '' && amountDigits !== ''
+  const canSubmit = entryDate !== '' && categoryId !== '' && amountDigits !== ''
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!canSubmit) return
 
-    const payload: AssetRequest = {
+    const payload: AssetSnapshotRequest = {
+      categoryId,
+      accountId: accountId === NO_ACCOUNT_VALUE ? undefined : accountId,
       entryDate,
-      category,
-      subcategory: subcategory.trim(),
-      institution: institution.trim() || undefined,
-      assetClass: assetClass.trim(),
-      strategy: category === 'INVESTMENT' ? (strategy.trim() || undefined) : undefined,
+      assetClass,
+      market,
+      // 구 폼은 category === 'INVESTMENT'일 때만 전송했으나, kista-api AssetSnapshotRequest.strategy는
+      // 카테고리 무관 자유 필드라 조건 없이 항상 전송한다(의도적 — 구 제약의 후계 없음).
+      strategy: strategy.trim() || undefined,
       amount: Number(amountDigits),
     }
 
@@ -177,70 +184,81 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
           <div className="space-y-2">
             <Label htmlFor="category">카테고리</Label>
             <Select
-              items={ASSET_CATEGORIES.map((c) => ({ value: c, label: formatAssetCategoryLabel(c) }))}
-              value={category}
-              onValueChange={(value) => { if (value && value !== category) handleCategoryChange(value as AssetCategory) }}
+              items={flatCategories.map((c) => ({ value: c.id, label: c.depth === 1 ? `― ${c.name}` : c.name }))}
+              value={categoryId || null}
+              onValueChange={(value) => { if (value) setCategoryId(value) }}
             >
               <SelectTrigger id="category" className="w-full h-12" disabled={isPending}>
-                <SelectValue />
+                <SelectValue placeholder="카테고리 선택" />
               </SelectTrigger>
               <SelectContent>
-                {ASSET_CATEGORIES.map((c) => (
-                  <SelectItem key={c} value={c}>{formatAssetCategoryLabel(c)}</SelectItem>
+                {flatCategories.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.depth === 1 ? `― ${c.name}` : c.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <ComboField
-            id="subcategory"
-            label="세부 카테고리"
-            placeholder="예: 일반계좌, 정기예금, 전세자금대출"
-            value={subcategory}
-            onChange={setSubcategory}
-            suggestions={assetFormOptions.subcategorySuggestions[category] ?? []}
-            selectLabel="세부 카테고리 목록에서 선택"
-            disabled={isPending}
-            maxLength={100}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="account">계좌 (선택)</Label>
+            <Select
+              items={[{ value: NO_ACCOUNT_VALUE, label: '계좌 미지정' }, ...accounts.map((a) => ({ value: a.id, label: a.name }))]}
+              value={accountId}
+              onValueChange={(value) => { if (value) setAccountId(value) }}
+            >
+              <SelectTrigger id="account" className="w-full h-12" disabled={isPending}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_ACCOUNT_VALUE}>계좌 미지정</SelectItem>
+                {accounts.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="assetClass">자산군</Label>
+            <Select
+              items={meta.assetClasses.map((c) => ({ value: c.code, label: c.label }))}
+              value={assetClass}
+              onValueChange={(value) => { if (value) setAssetClass(value as AssetClass) }}
+            >
+              <SelectTrigger id="assetClass" className="w-full h-12" disabled={isPending}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {meta.assetClasses.map((c) => <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="market">시장</Label>
+            <Select
+              items={meta.markets.map((m) => ({ value: m.code, label: m.label }))}
+              value={market}
+              onValueChange={(value) => { if (value) setMarket(value as Market) }}
+            >
+              <SelectTrigger id="market" className="w-full h-12" disabled={isPending}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {meta.markets.map((m) => <SelectItem key={m.code} value={m.code}>{m.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
 
           <ComboField
-            id="assetClass"
-            label="자산군"
-            placeholder="예: 미국주식, 원화"
-            value={assetClass}
-            onChange={setAssetClass}
-            suggestions={assetFormOptions.assetClassSuggestions}
-            selectLabel="자산군 목록에서 선택"
+            id="strategy"
+            label="운용전략 (선택)"
+            placeholder="예: VR, 자유 메모"
+            value={strategy}
+            onChange={setStrategy}
+            suggestions={assetFormOptions.strategySuggestions}
+            selectLabel="운용전략 목록에서 선택"
             disabled={isPending}
             maxLength={50}
-          />
-
-          {category === 'INVESTMENT' && (
-            <ComboField
-              id="strategy"
-              label="운용전략 (선택)"
-              placeholder="예: VR, 자유 메모"
-              value={strategy}
-              onChange={setStrategy}
-              suggestions={assetFormOptions.strategySuggestions}
-              selectLabel="운용전략 목록에서 선택"
-              disabled={isPending}
-              maxLength={50}
-              helperText="자동매매 전략과 무관한 자유 메모입니다."
-            />
-          )}
-
-          <ComboField
-            id="institution"
-            label="기관 (선택)"
-            placeholder="예: 미래에셋증권, 국민은행"
-            value={institution}
-            onChange={setInstitution}
-            suggestions={assetFormOptions.institutionSuggestions}
-            selectLabel="기관 목록에서 선택"
-            disabled={isPending}
-            maxLength={100}
+            helperText="자동매매 전략과 무관한 자유 메모입니다."
           />
 
           <div className="space-y-2">

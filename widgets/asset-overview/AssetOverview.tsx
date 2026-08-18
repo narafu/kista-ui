@@ -5,17 +5,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SectionError } from '@shared/ui/SectionError'
 import { fmtKrw, fmtSignedKrw, pnlTextClass } from '@shared/lib/format'
-import { formatAssetCategoryLabel, isLoanCategory } from '@shared/lib/api-schema'
 import { cn } from '@shared/lib/utils'
+import { useMeta } from '@entities/meta'
 import {
+  SYSTEM_LOAN_CATEGORY_ID,
   assetCategoryColor,
-  assetClassColorMap,
+  assetClassColor,
   calcAssetClassBreakdown,
   calcCategoryBreakdown,
   calcMonthlySummary,
+  formatAssetL1CategoryLabel,
   previousMonthOf,
-  useAssetsQuery,
-} from '@entities/asset'
+  useAssetSnapshotsQuery,
+} from '@entities/finance'
+import type { AssetClass } from '@entities/finance'
 import { KpiCard } from '@widgets/kpi-card'
 
 interface Props {
@@ -54,20 +57,21 @@ function BreakdownBar({ label, amount, percent, delta, color, isLiability = fals
 }
 
 export function AssetOverview({ month, months, onMonthChange }: Props) {
-  const { data: assets = [], isLoading, isError } = useAssetsQuery()
+  const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
+  const { labelOf } = useMeta()
 
-  const summary = useMemo(() => (month ? calcMonthlySummary(assets, month) : null), [assets, month])
-  const categoryBreakdown = useMemo(() => (month ? calcCategoryBreakdown(assets, month) : []), [assets, month])
-  const assetClassBreakdown = useMemo(() => (month ? calcAssetClassBreakdown(assets, month) : []), [assets, month])
+  const summary = useMemo(() => (month ? calcMonthlySummary(snapshots, month) : null), [snapshots, month])
+  const categoryBreakdown = useMemo(() => (month ? calcCategoryBreakdown(snapshots, month) : []), [snapshots, month])
+  const assetClassBreakdown = useMemo(() => (month ? calcAssetClassBreakdown(snapshots, month) : []), [snapshots, month])
 
   const previousMonth = month ? previousMonthOf(months, month) : null
   const previousCategoryBreakdown = useMemo(
-    () => (previousMonth ? calcCategoryBreakdown(assets, previousMonth) : []),
-    [assets, previousMonth],
+    () => (previousMonth ? calcCategoryBreakdown(snapshots, previousMonth) : []),
+    [snapshots, previousMonth],
   )
   const previousAssetClassBreakdown = useMemo(
-    () => (previousMonth ? calcAssetClassBreakdown(assets, previousMonth) : []),
-    [assets, previousMonth],
+    () => (previousMonth ? calcAssetClassBreakdown(snapshots, previousMonth) : []),
+    [snapshots, previousMonth],
   )
   const categoryDelta = (category: string, amount: number): number | null => {
     if (!previousMonth) return null
@@ -82,7 +86,6 @@ export function AssetOverview({ month, months, onMonthChange }: Props) {
 
   const categoryTotal = categoryBreakdown.reduce((total, entry) => total + entry.amount, 0)
   const assetClassTotal = assetClassBreakdown.reduce((total, entry) => total + entry.amount, 0)
-  const assetClassColor = useMemo(() => assetClassColorMap(assets), [assets])
 
   return (
     <Card>
@@ -116,7 +119,7 @@ export function AssetOverview({ month, months, onMonthChange }: Props) {
               <KpiCard label="총부채" value={fmtKrw(summary.totalLiabilities)} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
               <KpiCard
                 label="가장 큰 자산군"
-                value={summary.largestAssetClass?.assetClass ?? '—'}
+                value={summary.largestAssetClass ? labelOf('assetClasses', summary.largestAssetClass.assetClass) : '—'}
                 sub={summary.largestAssetClass ? fmtKrw(summary.largestAssetClass.amount) : undefined}
               />
             </div>
@@ -127,12 +130,12 @@ export function AssetOverview({ month, months, onMonthChange }: Props) {
                 {categoryBreakdown.map((entry) => (
                   <BreakdownBar
                     key={entry.category}
-                    label={formatAssetCategoryLabel(entry.category)}
+                    label={formatAssetL1CategoryLabel(entry.category)}
                     amount={entry.amount}
                     percent={categoryTotal > 0 ? (entry.amount / categoryTotal) * 100 : 0}
                     delta={categoryDelta(entry.category, entry.amount)}
                     color={assetCategoryColor(entry.category)}
-                    isLiability={isLoanCategory(entry.category)}
+                    isLiability={entry.category === SYSTEM_LOAN_CATEGORY_ID}
                   />
                 ))}
               </div>
@@ -147,11 +150,11 @@ export function AssetOverview({ month, months, onMonthChange }: Props) {
                   {assetClassBreakdown.map((entry) => (
                     <BreakdownBar
                       key={entry.assetClass}
-                      label={entry.assetClass}
+                      label={labelOf('assetClasses', entry.assetClass)}
                       amount={entry.amount}
                       percent={assetClassTotal > 0 ? (entry.amount / assetClassTotal) * 100 : 0}
                       delta={assetClassDelta(entry.assetClass, entry.amount)}
-                      color={assetClassColor(entry.assetClass)}
+                      color={assetClassColor(entry.assetClass as AssetClass)}
                     />
                   ))}
                 </div>
