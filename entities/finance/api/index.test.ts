@@ -11,50 +11,59 @@ vi.mock('@shared/lib/api-client', () => ({
   jsonBody: (method: string, body: unknown) => ({ method, body: JSON.stringify(body) }),
 }))
 
-describe('listAssets', () => {
+describe('listAssetSnapshots', () => {
   beforeEach(() => {
     clientFetchMock.mockReset()
     apiFetchMock.mockReset()
   })
 
   it('calls kista-api directly with the token when provided (Server Component)', async () => {
-    const assets = [{ id: 'a1', entryDate: '2026-08-01', category: 'INVESTMENT', subcategory: '일반계좌', assetClass: '미국주식', amount: 1000000 }]
-    apiFetchMock.mockResolvedValueOnce(assets)
+    const snapshots = [{
+      id: 's1',
+      categoryId: 'f1000000-0000-4000-8000-000000000403',
+      rootCategoryId: 'f1000000-0000-4000-8000-000000000403',
+      categoryName: '투자',
+      entryDate: '2026-08-01',
+      assetClass: 'EQUITY',
+      market: 'GLOBAL',
+      amount: 1000000,
+    }]
+    apiFetchMock.mockResolvedValueOnce(snapshots)
 
-    const { listAssets } = await import('./index')
-    const result = await listAssets('token-abc')
+    const { listAssetSnapshots } = await import('./index')
+    const result = await listAssetSnapshots('token-abc')
 
-    expect(apiFetchMock).toHaveBeenCalledWith('/api/assets', { method: 'GET' }, 'token-abc')
+    expect(apiFetchMock).toHaveBeenCalledWith('/api/finance/asset-snapshots', { method: 'GET' }, 'token-abc')
     expect(clientFetchMock).not.toHaveBeenCalled()
-    expect(result).toBe(assets)
+    expect(result).toBe(snapshots)
   })
 
   it('routes through the client proxy when no token is given (Client Component)', async () => {
     clientFetchMock.mockResolvedValueOnce([])
 
-    const { listAssets } = await import('./index')
-    await listAssets()
+    const { listAssetSnapshots } = await import('./index')
+    await listAssetSnapshots()
 
-    expect(clientFetchMock).toHaveBeenCalledWith('/api/assets', { method: 'GET' })
+    expect(clientFetchMock).toHaveBeenCalledWith('/api/finance/asset-snapshots', { method: 'GET' })
     expect(apiFetchMock).not.toHaveBeenCalled()
   })
 })
 
-describe('setAssetMonthlyCheck', () => {
+describe('setMonthlyClosing', () => {
   beforeEach(() => {
     clientFetchMock.mockReset()
     apiFetchMock.mockReset()
   })
 
-  it('PUTs to the month-scoped route with a completed body', async () => {
+  it('PATCHes to the month-scoped route with a completed body', async () => {
     clientFetchMock.mockResolvedValueOnce({ month: '2026-08', completed: true })
 
-    const { setAssetMonthlyCheck } = await import('./index')
-    await setAssetMonthlyCheck('2026-08', true)
+    const { setMonthlyClosing } = await import('./index')
+    await setMonthlyClosing('2026-08', true)
 
     expect(clientFetchMock).toHaveBeenCalledWith(
-      '/api/asset-monthly-checks/2026-08',
-      { method: 'PUT', body: JSON.stringify({ completed: true }) },
+      '/api/finance/monthly-closings/2026-08',
+      { method: 'PATCH', body: JSON.stringify({ completed: true }) },
     )
   })
 })

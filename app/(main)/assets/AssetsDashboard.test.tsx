@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { AssetsDashboard } from './AssetsDashboard'
 
-vi.mock('@entities/asset', () => ({
-  useAssetsQuery: () => ({ data: [] }),
+vi.mock('@entities/finance', () => ({
+  useAssetSnapshotsQuery: () => ({ data: [] }),
   listAvailableMonths: () => [],
 }))
 

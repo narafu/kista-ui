@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { Construction } from 'lucide-react'
-import { listAvailableMonths, useAssetsQuery } from '@entities/asset'
+import { listAvailableMonths, useAssetSnapshotsQuery } from '@entities/finance'
 import { NewAssetButton } from '@features/asset/save-asset'
 import { AssetOverview } from '@widgets/asset-overview'
 import { AssetTrend } from '@widgets/asset-trend'
@@ -50,8 +50,8 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
 // 생기면 각각 별도 위젯으로 분리한다.
 export function AssetsDashboard() {
   const [tab, setTab] = useState<AssetTab>('investment')
-  const { data: assets = [] } = useAssetsQuery()
-  const months = useMemo(() => listAvailableMonths(assets), [assets])
+  const { data: snapshots = [] } = useAssetSnapshotsQuery()
+  const months = useMemo(() => listAvailableMonths(snapshots), [snapshots])
   const [month, setMonth] = useState<string | null>(null)
   // 사용자가 고른 월이 더 이상 목록에 없으면(그 달의 기록을 전부 삭제한 경우 등) 최신 월로 폴백한다 —
   // AssetTrendInner의 effectiveSelector와 동일한 렌더 중 파생 계산(useEffect로 동기화하지 않는다).

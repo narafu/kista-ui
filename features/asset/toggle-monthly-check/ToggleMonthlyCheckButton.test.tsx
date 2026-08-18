@@ -5,11 +5,11 @@ import { ToggleMonthlyCheckButton } from './ToggleMonthlyCheckButton'
 
 const { mutateMock } = vi.hoisted(() => ({ mutateMock: vi.fn() }))
 
-vi.mock('@entities/asset', async () => {
-  const actual = await vi.importActual<typeof import('@entities/asset')>('@entities/asset')
+vi.mock('@entities/finance', async () => {
+  const actual = await vi.importActual<typeof import('@entities/finance')>('@entities/finance')
   return {
     ...actual,
-    useSetAssetMonthlyCheckMutation: () => ({ mutate: mutateMock, isPending: false }),
+    useSetMonthlyClosingMutation: () => ({ mutate: mutateMock, isPending: false }),
   }
 })
 

@@ -3,7 +3,7 @@
 import { Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@shared/lib/utils'
-import { useSetAssetMonthlyCheckMutation } from '@entities/asset'
+import { useSetMonthlyClosingMutation } from '@entities/finance'
 
 interface Props {
   month: string
@@ -11,7 +11,7 @@ interface Props {
 }
 
 export function ToggleMonthlyCheckButton({ month, completed }: Props) {
-  const mutation = useSetAssetMonthlyCheckMutation()
+  const mutation = useSetMonthlyClosingMutation()
 
   function handleClick() {
     mutation.mutate(

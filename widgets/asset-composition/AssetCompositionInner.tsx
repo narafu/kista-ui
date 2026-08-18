@@ -6,17 +6,18 @@
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
 import {
-  ASSET_CATEGORIES,
-  KNOWN_ASSET_CLASSES,
+  ASSET_CLASS_ORDER,
+  ASSET_L1_CATEGORY_IDS,
   assetCategoryColor,
-  assetClassColorMap,
+  assetClassColor,
   calcAssetClassComposition,
   calcCategoryComposition,
-  useAssetsQuery,
-  type AssetCategory,
+  formatAssetL1CategoryLabel,
+  useAssetSnapshotsQuery,
+  type AssetClass,
   type CompositionColumn,
-} from '@entities/asset'
-import { formatAssetCategoryLabel } from '@shared/lib/api-schema'
+} from '@entities/finance'
+import { useMeta } from '@entities/meta'
 import { fmtKrw } from '@shared/lib/format'
 import { SectionError } from '@shared/ui/SectionError'
 
@@ -50,20 +51,17 @@ function toChartRows(columns: CompositionColumn[]): Record<string, string | numb
   })
 }
 
-// 실제로 금액이 잡힌 자산군만 세그먼트로 노출한다 — KNOWN_ASSET_CLASSES만으로 필터링하면
-// calcAssetClassComposition이 이미 포함시킨 자유 입력 자산군이 세그먼트/범례에서 다시 빠진다.
-// 알려진 순서를 먼저 두고, 데이터에만 있는 항목은 등장한 순서대로 뒤에 이어붙인다.
+// 실제로 금액이 잡힌 자산군만 세그먼트로 노출한다. AssetClass는 서버 enum(닫힌 6값)이라
+// ASSET_CLASS_ORDER 고정 순서에서 등장한 것만 걸러내면 된다 — 자유 입력이던 시절의
+// "미등록 값 뒤에 이어붙이기" 방어는 더 이상 필요 없다.
 function collectPresentSegments(columns: CompositionColumn[]): string[] {
-  const order = [...KNOWN_ASSET_CLASSES]
   const present = new Set<string>()
   for (const column of columns) {
     for (const entry of column.entries) {
-      if (entry.amount <= 0) continue
-      present.add(entry.item)
-      if (!order.includes(entry.item)) order.push(entry.item)
+      if (entry.amount > 0) present.add(entry.item)
     }
   }
-  return order.filter((item) => present.has(item))
+  return ASSET_CLASS_ORDER.filter((item) => present.has(item))
 }
 
 interface CompositionChartProps {
@@ -152,7 +150,8 @@ function CompositionChart({ title, columns, segments, labelFor, colorFor }: Comp
 }
 
 export default function AssetCompositionInner() {
-  const { data: assets = [], isLoading, isError } = useAssetsQuery()
+  const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
+  const { labelOf } = useMeta()
 
   if (isLoading) {
     return <p className="py-10 text-center text-sm text-muted-foreground">불러오는 중…</p>
@@ -162,29 +161,25 @@ export default function AssetCompositionInner() {
     return <SectionError message="구성비 데이터를 불러오지 못했습니다" />
   }
 
-  const categoryColumns = calcCategoryComposition(assets)
-  const assetClassColumns = calcAssetClassComposition(assets)
+  const categoryColumns = calcCategoryComposition(snapshots)
+  const assetClassColumns = calcAssetClassComposition(snapshots)
   const assetClassSegments = collectPresentSegments(assetClassColumns)
-  // useMemo가 아니라 일반 함수 호출이다 — isLoading/isError early return 뒤라 hook을 여기 두면
-  // Rules of Hooks 위반(hook 호출 개수가 렌더마다 달라짐)이 된다. assetClassColorMap 자체는
-  // 훅이 아닌 순수 함수라 조건부 호출이 안전하다.
-  const assetClassColor = assetClassColorMap(assets)
 
   return (
     <div className="flex flex-col gap-6">
       <CompositionChart
         title="카테고리별 구성비"
         columns={categoryColumns}
-        segments={ASSET_CATEGORIES}
-        labelFor={formatAssetCategoryLabel}
-        colorFor={(item) => assetCategoryColor(item as AssetCategory)}
+        segments={ASSET_L1_CATEGORY_IDS}
+        labelFor={formatAssetL1CategoryLabel}
+        colorFor={assetCategoryColor}
       />
       <CompositionChart
         title="자산군별 구성비"
         columns={assetClassColumns}
         segments={assetClassSegments}
-        labelFor={(item) => item}
-        colorFor={assetClassColor}
+        labelFor={(item) => labelOf('assetClasses', item)}
+        colorFor={(item) => assetClassColor(item as AssetClass)}
       />
     </div>
   )

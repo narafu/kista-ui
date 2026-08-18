@@ -13,15 +13,21 @@ import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtKrw } from '@shared/lib/format'
-import { formatAssetCategoryLabel, isLoanCategory } from '@shared/lib/api-schema'
+import { useMeta } from '@entities/meta'
 import {
-  ASSET_CATEGORIES,
-  KNOWN_ASSET_CLASSES,
+  ASSET_L1_CATEGORY_IDS,
+  SYSTEM_INVESTMENT_CATEGORY_ID,
+  SYSTEM_LOAN_CATEGORY_ID,
+  SYSTEM_REAL_ESTATE_CATEGORY_ID,
+  SYSTEM_SAVINGS_CATEGORY_ID,
+  flattenFinanceCategories,
+  isLiability,
   listAvailableMonths,
-  useAssetsQuery,
-  useDeleteManyAssetsMutation,
-} from '@entities/asset'
-import type { Asset, AssetCategory } from '@entities/asset'
+  useAssetSnapshotsQuery,
+  useDeleteManyAssetSnapshotsMutation,
+  useFinanceCategoriesQuery,
+} from '@entities/finance'
+import type { AssetSnapshot } from '@entities/finance'
 import { DeleteAssetDialog } from '@features/asset/delete-asset'
 import { AssetRecordFilters, ALL_FILTER_VALUE } from './AssetRecordFilters'
 import type { AssetFilterValue } from './AssetRecordFilters'
@@ -29,27 +35,29 @@ import type { AssetFilterValue } from './AssetRecordFilters'
 type SortKey = 'entryDate' | 'category' | 'amount'
 type SortDirection = 'asc' | 'desc'
 
-const CATEGORY_TONE: Record<AssetCategory, 'brand' | 'error' | 'neutral'> = {
-  INVESTMENT: 'brand',
-  SAVINGS: 'neutral',
-  LOAN: 'error',
-  REAL_ESTATE: 'neutral',
+const CATEGORY_TONE: Record<string, 'brand' | 'error' | 'neutral'> = {
+  [SYSTEM_INVESTMENT_CATEGORY_ID]: 'brand',
+  [SYSTEM_SAVINGS_CATEGORY_ID]: 'neutral',
+  [SYSTEM_LOAN_CATEGORY_ID]: 'error',
+  [SYSTEM_REAL_ESTATE_CATEGORY_ID]: 'neutral',
 }
 
 // 체크박스 aria-label 전용 — 컬럼 분리 이후 화면에는 이 조합 문자열이 그대로 보이지 않지만,
-// 세부 카테고리를 먼저 말해 화면(왼쪽 세부 카테고리·오른쪽 기관 등) 순서와 맞춘다.
-function accountLabel(asset: Asset): string {
-  return asset.institution ? `${asset.subcategory} · ${asset.institution}` : asset.subcategory
+// 카테고리명을 먼저 말해 화면(왼쪽 카테고리·오른쪽 계좌 등) 순서와 맞춘다.
+function accountLabel(snapshot: AssetSnapshot): string {
+  return snapshot.accountName ? `${snapshot.categoryName} · ${snapshot.accountName}` : snapshot.categoryName
 }
 
 export function AssetRecordList() {
-  const { data: assets = [], isLoading, isError } = useAssetsQuery()
-  const deleteManyMutation = useDeleteManyAssetsMutation()
+  const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
+  const { data: categories = [] } = useFinanceCategoriesQuery()
+  const { meta, labelOf } = useMeta()
+  const deleteManyMutation = useDeleteManyAssetSnapshotsMutation()
 
   const [month, setMonth] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
-  const [category, setCategory] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
+  const [categoryId, setCategoryId] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
   const [assetClass, setAssetClass] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
-  const [subcategory, setSubcategory] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
+  const [market, setMarket] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
   const [sortKey, setSortKey] = useState<SortKey>('entryDate')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const [page, setPage] = useState(1)
@@ -57,30 +65,22 @@ export function AssetRecordList() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [deleteTarget, setDeleteTarget] = useState<string[] | null>(null)
 
-  const months = useMemo(() => listAvailableMonths(assets), [assets])
-  const assetClassOptions = useMemo(() => {
-    const set = new Set(KNOWN_ASSET_CLASSES)
-    assets.forEach((asset) => set.add(asset.assetClass))
-    return Array.from(set)
-  }, [assets])
-  const subcategoryOptions = useMemo(() => {
-    const set = new Set(assets.map((asset) => asset.subcategory))
-    return Array.from(set)
-  }, [assets])
+  const months = useMemo(() => listAvailableMonths(snapshots), [snapshots])
+  const flatCategories = useMemo(() => flattenFinanceCategories(categories), [categories])
 
-  const filtered = useMemo(() => assets.filter((asset) =>
-    (month === ALL_FILTER_VALUE || asset.entryDate.startsWith(month)) &&
-    (category === ALL_FILTER_VALUE || asset.category === category) &&
-    (subcategory === ALL_FILTER_VALUE || asset.subcategory === subcategory) &&
-    (assetClass === ALL_FILTER_VALUE || asset.assetClass === assetClass),
-  ), [assets, month, category, assetClass, subcategory])
+  const filtered = useMemo(() => snapshots.filter((snapshot) =>
+    (month === ALL_FILTER_VALUE || snapshot.entryDate.startsWith(month)) &&
+    (categoryId === ALL_FILTER_VALUE || snapshot.categoryId === categoryId) &&
+    (assetClass === ALL_FILTER_VALUE || snapshot.assetClass === assetClass) &&
+    (market === ALL_FILTER_VALUE || snapshot.market === market),
+  ), [snapshots, month, categoryId, assetClass, market])
 
   const sorted = useMemo(() => {
     const copy = [...filtered]
     copy.sort((a, b) => {
       let diff = 0
       if (sortKey === 'entryDate') diff = a.entryDate.localeCompare(b.entryDate)
-      else if (sortKey === 'category') diff = ASSET_CATEGORIES.indexOf(a.category) - ASSET_CATEGORIES.indexOf(b.category)
+      else if (sortKey === 'category') diff = ASSET_L1_CATEGORY_IDS.indexOf(a.rootCategoryId) - ASSET_L1_CATEGORY_IDS.indexOf(b.rootCategoryId)
       else diff = a.amount - b.amount
       return sortDirection === 'asc' ? diff : -diff
     })
@@ -94,7 +94,7 @@ export function AssetRecordList() {
   useEffect(() => {
     setPage(1)
     setSelectedIds(new Set())
-  }, [month, category, assetClass, subcategory])
+  }, [month, categoryId, assetClass, market])
 
   function handlePageSizeChange(nextSize: string) {
     setPageSize(nextSize)
@@ -106,7 +106,7 @@ export function AssetRecordList() {
   const currentPage = Math.min(page, totalPages)
   const paged = sorted.slice((currentPage - 1) * size, currentPage * size)
 
-  const pagedIds = useMemo(() => paged.map((asset) => asset.id), [paged])
+  const pagedIds = useMemo(() => paged.map((snapshot) => snapshot.id), [paged])
   const allPagedSelected = pagedIds.length > 0 && pagedIds.every((id) => selectedIds.has(id))
   const somePagedSelected = pagedIds.some((id) => selectedIds.has(id))
   const headerCheckboxRef = useRef<HTMLInputElement>(null)
@@ -158,7 +158,7 @@ export function AssetRecordList() {
     deleteManyMutation.mutate(deleteTarget, {
       onSuccess: ({ succeededIds, failedCount }) => {
         setDeleteTarget(null)
-        // 전체 실패 시 succeededIds가 비어있고, 이 경우 에러 toast는 useDeleteManyAssetsMutation이 이미 띄운다
+        // 전체 실패 시 succeededIds가 비어있고, 이 경우 에러 toast는 useDeleteManyAssetSnapshotsMutation이 이미 띄운다
         if (succeededIds.length === 0) return
 
         setSelectedIds((prev) => {
@@ -182,7 +182,7 @@ export function AssetRecordList() {
   if (isError) {
     return <SectionError message="자산 기록을 불러오지 못했습니다" />
   }
-  if (assets.length === 0) {
+  if (snapshots.length === 0) {
     return <EmptyState message="등록된 자산 기록이 없습니다. 자산 등록 버튼으로 첫 기록을 추가해보세요." />
   }
 
@@ -191,16 +191,17 @@ export function AssetRecordList() {
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <AssetRecordFilters
           month={month}
-          category={category}
-          subcategory={subcategory}
+          categoryId={categoryId}
           assetClass={assetClass}
+          market={market}
           months={months}
-          subcategories={subcategoryOptions}
-          assetClasses={assetClassOptions}
+          categories={flatCategories}
+          assetClasses={meta.assetClasses}
+          markets={meta.markets}
           onMonthChange={setMonth}
-          onCategoryChange={setCategory}
-          onSubcategoryChange={setSubcategory}
+          onCategoryChange={setCategoryId}
           onAssetClassChange={setAssetClass}
+          onMarketChange={setMarket}
         />
         <PageSizeSelector value={pageSize} onChange={handlePageSizeChange} />
       </div>
@@ -246,10 +247,10 @@ export function AssetRecordList() {
                       카테고리{sortIcon('category')}
                     </button>
                   </TableHeadCell>
-                  <TableHeadCell>세부 카테고리</TableHeadCell>
                   <TableHeadCell>자산군</TableHeadCell>
+                  <TableHeadCell>시장</TableHeadCell>
                   <TableHeadCell>운용전략</TableHeadCell>
-                  <TableHeadCell>기관</TableHeadCell>
+                  <TableHeadCell>계좌</TableHeadCell>
                   <TableHeadCell aria-sort={sortKey === 'amount' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}>
                     <button type="button" onClick={() => handleSort('amount')}>
                       금액{sortIcon('amount')}
@@ -259,35 +260,35 @@ export function AssetRecordList() {
                 </tr>
               </thead>
               <tbody>
-                {paged.map((asset) => (
-                  <tr key={asset.id} className="border-t hover:bg-muted/30 transition-colors">
+                {paged.map((snapshot) => (
+                  <tr key={snapshot.id} className="border-t hover:bg-muted/30 transition-colors">
                     <TableDataCell>
                       <input
                         type="checkbox"
-                        aria-label={`${fmtDate(asset.entryDate)} ${accountLabel(asset)} 선택`}
-                        checked={selectedIds.has(asset.id)}
-                        onChange={() => toggleRow(asset.id)}
+                        aria-label={`${fmtDate(snapshot.entryDate)} ${accountLabel(snapshot)} 선택`}
+                        checked={selectedIds.has(snapshot.id)}
+                        onChange={() => toggleRow(snapshot.id)}
                         className="size-4"
                       />
                     </TableDataCell>
-                    <TableDataCell className="text-muted-foreground whitespace-nowrap">{fmtDate(asset.entryDate)}</TableDataCell>
+                    <TableDataCell className="text-muted-foreground whitespace-nowrap">{fmtDate(snapshot.entryDate)}</TableDataCell>
                     <TableDataCell>
-                      <Badge tone={CATEGORY_TONE[asset.category]} size="sm">{formatAssetCategoryLabel(asset.category)}</Badge>
+                      <Badge tone={CATEGORY_TONE[snapshot.rootCategoryId] ?? 'neutral'} size="sm">{snapshot.categoryName}</Badge>
                     </TableDataCell>
-                    <TableDataCell>{asset.subcategory}</TableDataCell>
-                    <TableDataCell>{asset.assetClass}</TableDataCell>
-                    <TableDataCell className={cn(!asset.strategy && 'text-muted-foreground')}>{asset.strategy ?? '—'}</TableDataCell>
-                    <TableDataCell className={cn(!asset.institution && 'text-muted-foreground')}>{asset.institution ?? '—'}</TableDataCell>
-                    <TableDataCell className={cn('tabular-nums whitespace-nowrap', isLoanCategory(asset.category) && 'text-destructive')}>
-                      {fmtKrw(asset.amount)}
+                    <TableDataCell>{labelOf('assetClasses', snapshot.assetClass)}</TableDataCell>
+                    <TableDataCell>{labelOf('markets', snapshot.market)}</TableDataCell>
+                    <TableDataCell className={cn(!snapshot.strategy && 'text-muted-foreground')}>{snapshot.strategy ?? '—'}</TableDataCell>
+                    <TableDataCell className={cn(!snapshot.accountName && 'text-muted-foreground')}>{snapshot.accountName ?? '—'}</TableDataCell>
+                    <TableDataCell className={cn('tabular-nums whitespace-nowrap', isLiability(snapshot) && 'text-destructive')}>
+                      {fmtKrw(snapshot.amount)}
                     </TableDataCell>
                     <TableDataCell>
                       <div className="flex items-center justify-center gap-1">
-                        <Link href={`/assets/new?duplicateFrom=${asset.id}`} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">복제</Link>
+                        <Link href={`/assets/new?duplicateFrom=${snapshot.id}`} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">복제</Link>
                         <span className="text-muted-foreground/40">·</span>
-                        <Link href={`/assets/${asset.id}/edit`} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">수정</Link>
+                        <Link href={`/assets/${snapshot.id}/edit`} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">수정</Link>
                         <span className="text-muted-foreground/40">·</span>
-                        <button type="button" onClick={() => setDeleteTarget([asset.id])} className="text-xs font-semibold text-destructive hover:text-destructive/80">삭제</button>
+                        <button type="button" onClick={() => setDeleteTarget([snapshot.id])} className="text-xs font-semibold text-destructive hover:text-destructive/80">삭제</button>
                       </div>
                     </TableDataCell>
                   </tr>
@@ -297,38 +298,38 @@ export function AssetRecordList() {
           </div>
 
           <ul className="m-0 list-none divide-y rounded-[var(--r-lg)] border border-border p-0 lg:hidden" aria-label="자산 기록 모바일">
-            {paged.map((asset) => (
-              <li key={asset.id} className="px-4 py-4">
+            {paged.map((snapshot) => (
+              <li key={snapshot.id} className="px-4 py-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 flex-1 items-start gap-3">
                     <input
                       type="checkbox"
-                      aria-label={`${fmtDate(asset.entryDate)} ${accountLabel(asset)} 선택`}
-                      checked={selectedIds.has(asset.id)}
-                      onChange={() => toggleRow(asset.id)}
+                      aria-label={`${fmtDate(snapshot.entryDate)} ${accountLabel(snapshot)} 선택`}
+                      checked={selectedIds.has(snapshot.id)}
+                      onChange={() => toggleRow(snapshot.id)}
                       className="size-4 mt-1"
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                        <Badge tone={CATEGORY_TONE[asset.category]} size="sm">{formatAssetCategoryLabel(asset.category)}</Badge>
-                        <span className="text-xs text-muted-foreground">{fmtDate(asset.entryDate)}</span>
+                        <Badge tone={CATEGORY_TONE[snapshot.rootCategoryId] ?? 'neutral'} size="sm">{snapshot.categoryName}</Badge>
+                        <span className="text-xs text-muted-foreground">{fmtDate(snapshot.entryDate)}</span>
                       </div>
                       <div className="flex items-baseline justify-between gap-2">
-                        <p className="shrink-0 text-sm font-medium">{asset.subcategory}</p>
+                        <p className="shrink-0 text-sm font-medium">{labelOf('assetClasses', snapshot.assetClass)}</p>
                         <p className="min-w-0 flex-1 truncate text-right text-xs text-muted-foreground">
-                          {[asset.assetClass, asset.strategy, asset.institution].filter(Boolean).join(' · ')}
+                          {[labelOf('markets', snapshot.market), snapshot.strategy, snapshot.accountName].filter(Boolean).join(' · ')}
                         </p>
                       </div>
                     </div>
                   </div>
-                  <span className={cn('text-sm font-semibold tabular-nums', isLoanCategory(asset.category) && 'text-destructive')}>
-                    {fmtKrw(asset.amount)}
+                  <span className={cn('text-sm font-semibold tabular-nums', isLiability(snapshot) && 'text-destructive')}>
+                    {fmtKrw(snapshot.amount)}
                   </span>
                 </div>
                 <div className="mt-3 flex items-center justify-end gap-3 border-t pt-3">
-                  <Link href={`/assets/new?duplicateFrom=${asset.id}`} className="text-xs font-semibold text-foreground">복제</Link>
-                  <Link href={`/assets/${asset.id}/edit`} className="text-xs font-semibold text-foreground">수정</Link>
-                  <button type="button" onClick={() => setDeleteTarget([asset.id])} className="text-xs font-semibold text-destructive">삭제</button>
+                  <Link href={`/assets/new?duplicateFrom=${snapshot.id}`} className="text-xs font-semibold text-foreground">복제</Link>
+                  <Link href={`/assets/${snapshot.id}/edit`} className="text-xs font-semibold text-foreground">수정</Link>
+                  <button type="button" onClick={() => setDeleteTarget([snapshot.id])} className="text-xs font-semibold text-destructive">삭제</button>
                 </div>
               </li>
             ))}

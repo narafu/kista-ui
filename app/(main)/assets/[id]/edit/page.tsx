@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { PageHeader } from '@widgets/page-header'
-import { AssetFormPage, loadAssetById } from '@features/asset/save-asset'
+import { AssetFormPage, loadAssetSnapshotById } from '@features/asset/save-asset'
 import { getAuthToken } from '@shared/lib/auth/token'
 
 interface Props {
@@ -20,7 +20,7 @@ export default async function EditAssetPage({ params }: Props) {
     return notFound()
   }
 
-  const asset = await loadAssetById(id, token)
+  const asset = await loadAssetSnapshotById(id, token)
   if (!asset) {
     return notFound()
   }
