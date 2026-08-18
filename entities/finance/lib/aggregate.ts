@@ -32,8 +32,9 @@ export function formatAssetL1CategoryLabel(categoryId: string): string {
 // AssetClass는 서버 enum(닫힌 6값)이라 구 KNOWN_ASSET_CLASSES의 "미등록 값은 뒤에 이어붙이기" 방어가 불필요하다.
 export const ASSET_CLASS_ORDER: AssetClass[] = ['CASH', 'EQUITY', 'FIXED_INCOME', 'COMMODITY', 'CRYPTO', 'REAL_ESTATE']
 
-// 대출 판정 — kista-api AssetSnapshotController.enrich()가 rootCategoryId를 parentId ?? id로 채우므로
-// L1(대출)에 직접 등록한 기록도 self로 떨어져 이 비교가 성립한다. 문자열 비교 대신 이 함수를 통해서만 판정한다.
+// 대출 판정 — kista-api AssetSnapshotController.enrich()가 rootCategoryId를 임의 depth를 거슬러 올라가
+// 진짜 트리 루트(L1)로 채우므로, L1(대출)에 직접 등록한 기록도 self로 떨어져 이 비교가 성립한다.
+// 문자열 비교 대신 이 함수를 통해서만 판정한다.
 export function isLiability(snapshot: AssetSnapshot): boolean {
   return snapshot.rootCategoryId === SYSTEM_LOAN_CATEGORY_ID
 }
