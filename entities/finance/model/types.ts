@@ -49,3 +49,36 @@ export interface MonthlyClosing {
   completed: boolean
   closedAt?: string
 }
+
+export interface FinanceCategoryRequest {
+  parentId?: string
+  type: FinanceCategoryType
+  name: string
+  sortOrder: number
+}
+
+export interface FinanceAccountRequest {
+  accountType: FinanceAccountType
+  name: string
+  accountNo?: string
+  memo?: string
+}
+
+export interface FinanceGroup {
+  id: string
+  name: string
+  personal: boolean
+}
+
+// nickname은 kista-api FinanceGroupMemberResponse에 아직 없다(userId/role만 응답) —
+// 후속으로 서버가 필드를 추가하면 이 옵셔널 필드가 UI 변경 없이 채워진다.
+export interface FinanceGroupMember {
+  userId: string
+  role: string
+  nickname?: string
+}
+
+export interface FinanceGroupInvitation {
+  code: string
+  expiresAt: string
+}

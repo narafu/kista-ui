@@ -9,18 +9,22 @@ import { AssetTrend } from '@widgets/asset-trend'
 import { AssetComposition } from '@widgets/asset-composition'
 import { AssetRecordCheck } from '@widgets/asset-record-check'
 import { AssetRecordList } from '@widgets/asset-record-list'
+import { AssetSettingsPanel } from '@widgets/asset-settings/AssetSettingsPanel'
 import { PageHeader } from '@widgets/page-header'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { cn } from '@shared/lib/utils'
 
-type AssetTab = 'budget' | 'income' | 'expense' | 'investment'
+type AssetTab = 'budget' | 'income' | 'expense' | 'investment' | 'settings'
 
 const TAB_OPTIONS: { value: AssetTab; label: string }[] = [
   { value: 'budget', label: '예산' },
   { value: 'income', label: '수입' },
   { value: 'expense', label: '지출' },
   { value: 'investment', label: '자산' },
+  { value: 'settings', label: '설정' },
 ]
+
+const PLACEHOLDER_TABS: AssetTab[] = ['budget', 'income', 'expense']
 
 function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -65,7 +69,7 @@ export function AssetsDashboard() {
         actions={tab === 'investment' ? <NewAssetButton /> : undefined}
       />
       <div className="space-y-6">
-        <div role="group" aria-label="자산 탭" className="grid w-full grid-cols-4 rounded-md border border-border p-0.5 sm:w-96">
+        <div role="group" aria-label="자산 탭" className="grid w-full grid-cols-5 rounded-md border border-border p-0.5 sm:w-[30rem]">
           {TAB_OPTIONS.map((option) => (
             <TabButton key={option.value} active={tab === option.value} onClick={() => setTab(option.value)}>
               {option.label}
@@ -73,7 +77,7 @@ export function AssetsDashboard() {
           ))}
         </div>
 
-        {tab === 'investment' ? (
+        {tab === 'investment' && (
           <>
             <AssetOverview month={selectedMonth} months={months} onMonthChange={setMonth} />
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -83,7 +87,11 @@ export function AssetsDashboard() {
             <AssetRecordCheck month={selectedMonth} />
             <AssetRecordList />
           </>
-        ) : (
+        )}
+
+        {tab === 'settings' && <AssetSettingsPanel />}
+
+        {PLACEHOLDER_TABS.includes(tab) && (
           <EmptyState
             icon={<Construction className="size-6 text-muted-foreground" />}
             title={`${TAB_OPTIONS.find((option) => option.value === tab)?.label} 탭은 준비 중입니다`}

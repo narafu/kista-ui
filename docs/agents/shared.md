@@ -42,10 +42,11 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 
 ### router.refresh() 허용 범위
 
-일반 query mutation의 성공 처리에는 사용하지 않는다(캐시 동기화 대신 이동 전 `router.refresh()`를 호출하는 패턴 금지 — refresh는 현재 route만 갱신하고 목적지 Router Cache의 가변 상태를 보장하지 않는다). 현재 허용되는 예외는 다음 두 가지뿐이다.
+일반 query mutation의 성공 처리에는 사용하지 않는다(캐시 동기화 대신 이동 전 `router.refresh()`를 호출하는 패턴 금지 — refresh는 현재 route만 갱신하고 목적지 Router Cache의 가변 상태를 보장하지 않는다). 현재 허용되는 예외는 다음 세 가지뿐이다.
 
 - `widgets/pull-to-refresh/PullToRefresh.tsx`: 사용자가 명시적으로 요청한 화면 전체 재동기화다. 특정 mutation의 누락된 캐시 처리를 가리는 수단이 아니라 모바일의 수동 recovery 동작이므로 허용한다.
 - `entities/trade/providers/TradeNotificationProvider.tsx`: SSE `trade` 이벤트는 알림 중심 payload이며 영향을 받는 서버 렌더 집계 전체를 아직 식별할 수 없다. 외부에서 발생한 체결 뒤 toast와 서버 화면을 재동기화하기 위한 provider-level refresh를 유지한다. 이벤트 payload가 account/strategy/order/trade key를 완전히 특정하게 되면 targeted `setQueryData`/invalidate로 대체한다.
+- `entities/finance/providers/ActiveGroupProvider.tsx`(`setGroupId`): 그룹 전환은 finance 쿼리 전부(자산 스냅샷·카테고리·계좌·월 마감)의 스코프를 바꾸는 전역 컨텍스트 전환이다 — 영향받는 캐시 키가 `groupId` 세그먼트를 포함하는 모든 `financeKeys.*` 조합이라 targeted invalidate로 나열하기보다 화면 전체 재동기화가 더 안전하다. 그룹 전환 빈도가 낮아(설정 화면에서만 발생) 비용도 낮다. 종료 조건: finance 쿼리들이 유한한 목록으로 정리되어 groupId 변경 시 무효화할 키 집합을 안전하게 열거할 수 있게 되면 targeted invalidate로 대체한다.
 
 새 예외는 이 문서에 목적과 종료 조건을 먼저 기록해야 한다.
 

@@ -1,12 +1,34 @@
 import { fetchEither, jsonBody } from '@shared/lib/api-client'
-import type { AssetSnapshot, AssetSnapshotRequest, FinanceAccount, FinanceCategory, MonthlyClosing } from '../model/types'
+import type {
+  AssetSnapshot,
+  AssetSnapshotRequest,
+  FinanceAccount,
+  FinanceAccountRequest,
+  FinanceCategory,
+  FinanceCategoryRequest,
+  FinanceCategoryType,
+  FinanceGroup,
+  FinanceGroupInvitation,
+  FinanceGroupMember,
+  MonthlyClosing,
+} from '../model/types'
 
-export async function listAssetSnapshots(token?: string): Promise<AssetSnapshot[]> {
-  return fetchEither<AssetSnapshot[]>('/api/finance/asset-snapshots', { method: 'GET' }, token)
+// groupId 미지정 시 서버는 호출자의 개인 그룹으로 스코프한다.
+function withQuery(path: string, params: Record<string, string | undefined>) {
+  const query = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (value) query.set(key, value)
+  }
+  const qs = query.toString()
+  return qs ? `${path}?${qs}` : path
 }
 
-export async function createAssetSnapshot(data: AssetSnapshotRequest, token?: string): Promise<AssetSnapshot> {
-  return fetchEither<AssetSnapshot>('/api/finance/asset-snapshots', jsonBody('POST', data), token)
+export async function listAssetSnapshots(groupId?: string, token?: string): Promise<AssetSnapshot[]> {
+  return fetchEither<AssetSnapshot[]>(withQuery('/api/finance/asset-snapshots', { groupId }), { method: 'GET' }, token)
+}
+
+export async function createAssetSnapshot(data: AssetSnapshotRequest, groupId?: string, token?: string): Promise<AssetSnapshot> {
+  return fetchEither<AssetSnapshot>(withQuery('/api/finance/asset-snapshots', { groupId }), jsonBody('POST', data), token)
 }
 
 export async function updateAssetSnapshot(
@@ -14,30 +36,112 @@ export async function updateAssetSnapshot(
   data: AssetSnapshotRequest,
   token?: string,
 ): Promise<AssetSnapshot> {
-  return fetchEither<AssetSnapshot>(`/api/finance/asset-snapshots/${id}`, jsonBody('PUT', data), token)
+  return fetchEither<AssetSnapshot>(`/api/finance/asset-snapshots/${encodeURIComponent(id)}`, jsonBody('PUT', data), token)
 }
 
 export async function deleteAssetSnapshot(id: string, token?: string): Promise<void> {
-  return fetchEither<void>(`/api/finance/asset-snapshots/${id}`, { method: 'DELETE' }, token)
+  return fetchEither<void>(`/api/finance/asset-snapshots/${encodeURIComponent(id)}`, { method: 'DELETE' }, token)
 }
 
-// type=ASSET만 사용 — 예산/거래내역(INCOME/EXPENSE/SAVING)은 후속 범위
-export async function listFinanceCategories(token?: string): Promise<FinanceCategory[]> {
-  return fetchEither<FinanceCategory[]>('/api/finance/categories?type=ASSET', { method: 'GET' }, token)
+export async function listFinanceCategories(
+  type: FinanceCategoryType,
+  groupId?: string,
+  token?: string,
+): Promise<FinanceCategory[]> {
+  return fetchEither<FinanceCategory[]>(
+    withQuery('/api/finance/categories', { type, groupId }),
+    { method: 'GET' },
+    token,
+  )
 }
 
-export async function listFinanceAccounts(token?: string): Promise<FinanceAccount[]> {
-  return fetchEither<FinanceAccount[]>('/api/finance/accounts', { method: 'GET' }, token)
+export async function createFinanceCategory(
+  data: FinanceCategoryRequest,
+  groupId?: string,
+  token?: string,
+): Promise<FinanceCategory> {
+  return fetchEither<FinanceCategory>(withQuery('/api/finance/categories', { groupId }), jsonBody('POST', data), token)
 }
 
-export async function listMonthlyClosings(token?: string): Promise<MonthlyClosing[]> {
-  return fetchEither<MonthlyClosing[]>('/api/finance/monthly-closings', { method: 'GET' }, token)
+// PUT은 parentId/type을 무시한다(kista-api FinanceCategoryService.update) — 이름·sortOrder만 반영됨, 카테고리 이동 불가.
+export async function updateFinanceCategory(
+  id: string,
+  data: FinanceCategoryRequest,
+  token?: string,
+): Promise<FinanceCategory> {
+  return fetchEither<FinanceCategory>(`/api/finance/categories/${encodeURIComponent(id)}`, jsonBody('PUT', data), token)
+}
+
+export async function deleteFinanceCategory(id: string, token?: string): Promise<void> {
+  return fetchEither<void>(`/api/finance/categories/${encodeURIComponent(id)}`, { method: 'DELETE' }, token)
+}
+
+export async function listFinanceAccounts(groupId?: string, token?: string): Promise<FinanceAccount[]> {
+  return fetchEither<FinanceAccount[]>(withQuery('/api/finance/accounts', { groupId }), { method: 'GET' }, token)
+}
+
+export async function createFinanceAccount(
+  data: FinanceAccountRequest,
+  groupId?: string,
+  token?: string,
+): Promise<FinanceAccount> {
+  return fetchEither<FinanceAccount>(withQuery('/api/finance/accounts', { groupId }), jsonBody('POST', data), token)
+}
+
+export async function updateFinanceAccount(id: string, data: FinanceAccountRequest, token?: string): Promise<FinanceAccount> {
+  return fetchEither<FinanceAccount>(`/api/finance/accounts/${encodeURIComponent(id)}`, jsonBody('PUT', data), token)
+}
+
+export async function deleteFinanceAccount(id: string, token?: string): Promise<void> {
+  return fetchEither<void>(`/api/finance/accounts/${encodeURIComponent(id)}`, { method: 'DELETE' }, token)
+}
+
+export async function listMonthlyClosings(groupId?: string, token?: string): Promise<MonthlyClosing[]> {
+  return fetchEither<MonthlyClosing[]>(withQuery('/api/finance/monthly-closings', { groupId }), { method: 'GET' }, token)
 }
 
 export async function setMonthlyClosing(month: string, completed: boolean, token?: string): Promise<MonthlyClosing> {
   return fetchEither<MonthlyClosing>(
-    `/api/finance/monthly-closings/${month}`,
+    `/api/finance/monthly-closings/${encodeURIComponent(month)}`,
     jsonBody('PATCH', { completed }),
     token,
   )
+}
+
+export async function listFinanceGroups(token?: string): Promise<FinanceGroup[]> {
+  return fetchEither<FinanceGroup[]>('/api/finance/groups', { method: 'GET' }, token)
+}
+
+export async function listFinanceGroupMembers(groupId: string, token?: string): Promise<FinanceGroupMember[]> {
+  return fetchEither<FinanceGroupMember[]>(`/api/finance/groups/${encodeURIComponent(groupId)}/members`, { method: 'GET' }, token)
+}
+
+export async function removeFinanceGroupMember(groupId: string, userId: string, token?: string): Promise<void> {
+  return fetchEither<void>(
+    `/api/finance/groups/${encodeURIComponent(groupId)}/members/${encodeURIComponent(userId)}`,
+    { method: 'DELETE' },
+    token,
+  )
+}
+
+export async function createFinanceGroupInvitation(
+  groupId: string,
+  expiresInHours: number,
+  token?: string,
+): Promise<FinanceGroupInvitation> {
+  return fetchEither<FinanceGroupInvitation>(
+    `/api/finance/groups/${encodeURIComponent(groupId)}/invitations`,
+    jsonBody('POST', { expiresInHours }),
+    token,
+  )
+}
+
+// code는 사용자가 붙여넣는 자유 입력이라(초대 코드 입력 폼) URL path 세그먼트로 쓰기 전
+// 반드시 인코딩한다 — 그대로 넣으면 '#'·'/' 등이 포함된 값이 잘못된 경로로 잘린다.
+export async function respondToInvitation(
+  code: string,
+  status: 'ACCEPTED' | 'DECLINED',
+  token?: string,
+): Promise<FinanceGroup> {
+  return fetchEither<FinanceGroup>(`/api/finance/invitations/${encodeURIComponent(code)}`, jsonBody('PATCH', { status }), token)
 }

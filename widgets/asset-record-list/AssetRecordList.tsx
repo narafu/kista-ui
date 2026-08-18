@@ -50,7 +50,7 @@ function accountLabel(snapshot: AssetSnapshot): string {
 
 export function AssetRecordList() {
   const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
-  const { data: categories = [] } = useFinanceCategoriesQuery()
+  const { data: categories = [] } = useFinanceCategoriesQuery('ASSET')
   const { meta, labelOf } = useMeta()
   const deleteManyMutation = useDeleteManyAssetSnapshotsMutation()
 

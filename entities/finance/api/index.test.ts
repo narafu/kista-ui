@@ -31,7 +31,7 @@ describe('listAssetSnapshots', () => {
     apiFetchMock.mockResolvedValueOnce(snapshots)
 
     const { listAssetSnapshots } = await import('./index')
-    const result = await listAssetSnapshots('token-abc')
+    const result = await listAssetSnapshots(undefined, 'token-abc')
 
     expect(apiFetchMock).toHaveBeenCalledWith('/api/finance/asset-snapshots', { method: 'GET' }, 'token-abc')
     expect(clientFetchMock).not.toHaveBeenCalled()
@@ -46,6 +46,15 @@ describe('listAssetSnapshots', () => {
 
     expect(clientFetchMock).toHaveBeenCalledWith('/api/finance/asset-snapshots', { method: 'GET' })
     expect(apiFetchMock).not.toHaveBeenCalled()
+  })
+
+  it('forwards groupId as a query param when given', async () => {
+    clientFetchMock.mockResolvedValueOnce([])
+
+    const { listAssetSnapshots } = await import('./index')
+    await listAssetSnapshots('group-1')
+
+    expect(clientFetchMock).toHaveBeenCalledWith('/api/finance/asset-snapshots?groupId=group-1', { method: 'GET' })
   })
 })
 

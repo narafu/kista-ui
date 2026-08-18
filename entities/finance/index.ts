@@ -4,9 +4,14 @@ export type {
   AssetSnapshot,
   AssetSnapshotRequest,
   FinanceAccount,
+  FinanceAccountRequest,
   FinanceAccountType,
   FinanceCategory,
+  FinanceCategoryRequest,
   FinanceCategoryType,
+  FinanceGroup,
+  FinanceGroupInvitation,
+  FinanceGroupMember,
   Market,
   MonthlyClosing,
 } from './model/types'
@@ -15,31 +20,57 @@ export {
   assetSnapshotListQueryOptions,
   financeAccountListQueryOptions,
   financeCategoryListQueryOptions,
+  financeGroupListQueryOptions,
   monthlyClosingListQueryOptions,
 } from './model/queryOptions'
 export {
   createAssetSnapshot,
+  createFinanceAccount,
+  createFinanceCategory,
+  createFinanceGroupInvitation,
   deleteAssetSnapshot,
+  deleteFinanceAccount,
+  deleteFinanceCategory,
   listAssetSnapshots,
   listFinanceAccounts,
   listFinanceCategories,
+  listFinanceGroupMembers,
+  listFinanceGroups,
   listMonthlyClosings,
+  removeFinanceGroupMember,
+  respondToInvitation,
   setMonthlyClosing,
   updateAssetSnapshot,
+  updateFinanceAccount,
+  updateFinanceCategory,
 } from './api'
 export {
+  useActiveGroupId,
   useAssetSnapshotsQuery,
   useFinanceAccountsQuery,
   useFinanceCategoriesQuery,
+  useFinanceGroupMembersQuery,
+  useFinanceGroupsQuery,
   useMonthlyClosingsQuery,
+  useSetActiveGroupId,
 } from './hooks/useFinanceQueries'
 export {
   useCreateAssetSnapshotMutation,
+  useCreateFinanceAccountMutation,
+  useCreateFinanceCategoryMutation,
+  useCreateFinanceGroupInvitationMutation,
   useDeleteManyAssetSnapshotsMutation,
+  useDeleteFinanceAccountMutation,
+  useDeleteFinanceCategoryMutation,
+  useRemoveFinanceGroupMemberMutation,
+  useRespondToInvitationMutation,
   useSetMonthlyClosingMutation,
   useUpdateAssetSnapshotMutation,
+  useUpdateFinanceAccountMutation,
+  useUpdateFinanceCategoryMutation,
 } from './hooks/useFinanceMutations'
 export type { DeleteManyAssetSnapshotsResult } from './hooks/useFinanceMutations'
+export { ActiveGroupProvider } from './providers/ActiveGroupProvider'
 export { assetCategoryColor, assetClassColor } from './lib/colors'
 export {
   ASSET_CLASS_ORDER,

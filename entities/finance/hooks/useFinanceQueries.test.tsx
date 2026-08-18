@@ -25,7 +25,14 @@ vi.mock('../api', () => ({
   listAssetSnapshots: vi.fn(),
   listFinanceCategories: vi.fn(),
   listFinanceAccounts: vi.fn(),
+  listFinanceGroupMembers: vi.fn(),
+  listFinanceGroups: vi.fn(),
   listMonthlyClosings: vi.fn(),
+}))
+
+// 활성 그룹 = 개인 그룹(undefined) 고정 — 그룹 전환 자체는 ActiveGroupProvider 테스트에서 다룬다.
+vi.mock('../providers/ActiveGroupProvider', () => ({
+  useActiveGroupContext: () => ({ groupId: undefined, setGroupId: vi.fn() }),
 }))
 
 describe('useAssetSnapshotsQuery', () => {
@@ -33,17 +40,17 @@ describe('useAssetSnapshotsQuery', () => {
     renderHook(() => useAssetSnapshotsQuery())
 
     expect(useQueryMock).toHaveBeenCalledWith(expect.objectContaining({
-      queryKey: financeKeys.assetSnapshots(),
+      queryKey: financeKeys.assetSnapshots(undefined),
     }))
   })
 })
 
 describe('useFinanceCategoriesQuery', () => {
-  it('uses the canonical categories list key', () => {
-    renderHook(() => useFinanceCategoriesQuery())
+  it('uses the canonical categories list key for the given type', () => {
+    renderHook(() => useFinanceCategoriesQuery('ASSET'))
 
     expect(useQueryMock).toHaveBeenCalledWith(expect.objectContaining({
-      queryKey: financeKeys.categories(),
+      queryKey: financeKeys.categories('ASSET', undefined),
     }))
   })
 })
@@ -53,7 +60,7 @@ describe('useFinanceAccountsQuery', () => {
     renderHook(() => useFinanceAccountsQuery())
 
     expect(useQueryMock).toHaveBeenCalledWith(expect.objectContaining({
-      queryKey: financeKeys.accounts(),
+      queryKey: financeKeys.accounts(undefined),
     }))
   })
 })
@@ -63,7 +70,7 @@ describe('useMonthlyClosingsQuery', () => {
     renderHook(() => useMonthlyClosingsQuery())
 
     expect(useQueryMock).toHaveBeenCalledWith(expect.objectContaining({
-      queryKey: financeKeys.monthlyClosings(),
+      queryKey: financeKeys.monthlyClosings(undefined),
     }))
   })
 })

@@ -36,6 +36,21 @@ vi.mock('../api', () => ({
   updateAssetSnapshot: vi.fn(),
   deleteAssetSnapshot: deleteAssetSnapshotMock,
   setMonthlyClosing: setMonthlyClosingMock,
+  createFinanceCategory: vi.fn(),
+  updateFinanceCategory: vi.fn(),
+  deleteFinanceCategory: vi.fn(),
+  createFinanceAccount: vi.fn(),
+  updateFinanceAccount: vi.fn(),
+  deleteFinanceAccount: vi.fn(),
+  removeFinanceGroupMember: vi.fn(),
+  createFinanceGroupInvitation: vi.fn(),
+  respondToInvitation: vi.fn(),
+}))
+
+// 활성 그룹 = 개인 그룹(undefined) 고정 — 그룹 전환 자체는 다루지 않는 테스트라 실제 useQuery
+// 의존 없이 고정값으로 대체한다(파일 상단의 '@tanstack/react-query' 모킹이 useQuery를 대체하지 않는다).
+vi.mock('./useFinanceQueries', () => ({
+  useActiveGroupId: () => undefined,
 }))
 
 function fakeQueryClient(existingList?: unknown[]) {

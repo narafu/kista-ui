@@ -107,7 +107,7 @@ function ComboField({
 
 export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
   const { meta } = useMeta()
-  const { data: categories = [] } = useFinanceCategoriesQuery()
+  const { data: categories = [] } = useFinanceCategoriesQuery('ASSET')
   const { data: accounts = [] } = useFinanceAccountsQuery()
   // 운용전략 추천 목록은 kista-api 런타임 설정(관리자 수정 가능)이 SSOT다 — strategy는 여전히
   // 자유 입력이라 설정 로딩 전에는 알려진 기본값으로 폴백한다.

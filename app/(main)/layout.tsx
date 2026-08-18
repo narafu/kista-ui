@@ -3,11 +3,13 @@ import { MobileBottomNav } from '@widgets/layout/MobileBottomNav'
 import { MobileHeader } from '@widgets/layout/MobileHeader'
 import { FcmBridge } from '@widgets/layout/FcmBridge'
 import { MetaProvider } from '@entities/meta'
+import { ActiveGroupProvider } from '@entities/finance'
 import { PullToRefresh } from '@widgets/pull-to-refresh'
 import { TradeNotificationProvider } from '@entities/trade'
 import { getMetaBundle } from '@entities/meta'
 import { getMe } from '@entities/user'
 import { getAuthToken } from '@shared/lib/auth/token'
+import { getActiveGroupId } from '@shared/lib/auth/activeGroup'
 import { ROLE_COOKIE } from '@shared/lib/auth/cookies'
 import { isJwtExpired } from '@shared/lib/auth/jwt'
 import { cookies } from 'next/headers'
@@ -25,9 +27,10 @@ export default async function MainLayout({ children, modal }: Props) {
   const cookieStore = await cookies()
   // proxy가 /me 응답으로 1시간 캐시하는 role 쿠키 — 로그인 직후 첫 요청만 미존재
   const cachedRole = cookieStore.get(ROLE_COOKIE)?.value
-  const [meta, fallbackUser] = await Promise.all([
+  const [meta, fallbackUser, activeGroupId] = await Promise.all([
     getMetaBundle(),
     token && !cachedRole ? getMe(token).catch(() => null) : null,
+    getActiveGroupId(),
   ])
 
   const isAdmin = cachedRole ? cachedRole === 'ADMIN' : fallbackUser?.role === 'ADMIN'
@@ -37,7 +40,8 @@ export default async function MainLayout({ children, modal }: Props) {
 
   return (
     <MetaProvider meta={meta}>
-      <div className="flex min-h-screen bg-background">
+      <ActiveGroupProvider initialGroupId={activeGroupId}>
+        <div className="flex min-h-screen bg-background">
         <DesktopSidebar isAdmin={isAdmin} isAuthenticated={isAuthenticated} />
         <div className="flex flex-col flex-1 min-w-0">
           <MobileHeader
@@ -74,7 +78,8 @@ export default async function MainLayout({ children, modal }: Props) {
         {isAuthenticated && <FcmBridge />}
         <TradeNotificationProvider />
         {modal}
-      </div>
+        </div>
+      </ActiveGroupProvider>
     </MetaProvider>
   )
 }
