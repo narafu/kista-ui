@@ -4,6 +4,7 @@ export { seedBadgeClass } from './model/seed-badge'
 export { strategyStatusAccent } from './model/status-accent'
 export { strategyTypeShort } from './model/type-short'
 export { isScheduledStart, scheduledStartBadgeLabel } from './model/scheduled-start'
+export { nextVrRolloverDate } from './model/vr-rollover'
 export { applyGStepWeeksChange, applyPStepWeeksChange, POOL_LIMIT_FLOOR_ZERO_MESSAGE } from './model/poolLimitRamp'
 export {
   listAllStrategies,

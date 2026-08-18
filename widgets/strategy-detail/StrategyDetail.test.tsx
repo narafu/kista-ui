@@ -271,6 +271,9 @@ describe('StrategyDetail header card', () => {
     expect(vrGrid).toHaveTextContent('15%')
     expect(vrGrid).toHaveTextContent('주기')
     expect(vrGrid).toHaveTextContent('4주')
+    expect(vrGrid).toHaveTextContent('시작일')
+    expect(vrGrid).toHaveTextContent('다음 사이클 시작')
+    expect(vrGrid).toHaveTextContent('미설정')
     expect(vrGrid).toHaveTextContent('G')
     expect(vrGrid).toHaveTextContent('V')
     expect(vrGrid).toHaveTextContent('$3,000.00')
@@ -281,6 +284,43 @@ describe('StrategyDetail header card', () => {
     expect(vrGrid).toHaveTextContent('$500.00')
     expect(vrGrid).toHaveTextContent('50%')
     expect(screen.queryByText('매매표')).not.toBeInTheDocument()
+  })
+
+  it('shows the VR start date and next rollover date when startDate is set', () => {
+    render(<StrategyDetail
+      accountId="account-1"
+      strategy={{
+        ...baseStrategy,
+        type: 'VR',
+        ticker: 'TQQQ',
+        divisionCount: undefined,
+        initialUsdDeposit: 2000,
+        startDate: '2026-08-01',
+        vr: {
+          value: 3000,
+          bandWidth: 15,
+          intervalWeeks: 4,
+          recurringAmount: -100,
+          poolLimit: 500,
+          poolLimitRate: 0.5,
+          gradient: 20,
+          initialGradient: 20,
+          gGraceWeeks: 52,
+          gStepWeeks: 26,
+          gMax: 20,
+          initialPoolLimitRate: 0.5,
+          pGraceWeeks: 52,
+          pStepWeeks: 26,
+          poolLimitFloor: 0.3,
+        },
+      }}
+    />)
+
+    const vrGrid = screen.getByTestId('strategy-vr-grid')
+    expect(vrGrid).toHaveTextContent('시작일')
+    expect(vrGrid).toHaveTextContent('2026. 8. 1.')
+    expect(vrGrid).toHaveTextContent('다음 사이클 시작')
+    expect(vrGrid).toHaveTextContent('2026. 8. 29.')
   })
 
   it('shows the saving mode amount when recurringAmount is positive', () => {

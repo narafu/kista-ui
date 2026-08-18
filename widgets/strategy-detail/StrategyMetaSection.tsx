@@ -2,10 +2,10 @@
 
 import { Card, CardContent } from '@/components/ui/card'
 import { KpiCard } from '@widgets/kpi-card'
-import { seedBadgeClass, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
+import { seedBadgeClass, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel, nextVrRolloverDate } from '@entities/strategy'
 import { useMeta } from '@entities/meta'
 import { cn, toNum } from '@shared/lib/utils'
-import { fmtUsd } from '@shared/lib/format'
+import { fmtDate, fmtUsd } from '@shared/lib/format'
 import { Badge } from '@shared/ui/Badge'
 import type { Strategy } from '@entities/strategy'
 import type { NextOrderPreview } from '@entities/order'
@@ -107,9 +107,14 @@ export function StrategyMetaSection({ strategy, preview, isLoadingPreview, isPre
       {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
       {strategy.vr && (
         <div data-testid="strategy-vr-grid" className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <KpiCard label="주기" value={`${strategy.vr.intervalWeeks}주`} className="order-1 lg:order-2" />
-            <KpiCard label="밴드 폭" value={`${strategy.vr.bandWidth}%`} className="order-2 lg:order-1" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <KpiCard label="밴드 폭" value={`${strategy.vr.bandWidth}%`} />
+            <KpiCard label="주기" value={`${strategy.vr.intervalWeeks}주`} />
+            <KpiCard label="시작일" value={strategy.startDate ? fmtDate(strategy.startDate) : '미설정'} />
+            <KpiCard
+              label="다음 사이클 시작"
+              value={strategy.startDate ? fmtDate(nextVrRolloverDate(strategy.startDate, strategy.vr.intervalWeeks)) : '미설정'}
+            />
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <KpiCard label="G" value={`${strategy.vr.gradient}`} />
