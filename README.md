@@ -135,5 +135,3 @@ graph LR
 ## 배포
 
 GitHub `main` push 시 GitHub Actions가 arm64 Docker 이미지를 빌드해 OCI 단일 인스턴스 `kista-api-server`에 배포한다 — kista-api·Caddy·PostgreSQL·Redis와 같은 인스턴스를 공유하며(Caddy·DB·Redis는 `kista-infra` 레포 소유), 이 레포는 `kista-ui` 컨테이너 하나만 배포·운영한다. 상세: `deploy/server/README.md`. Docker 로컬 실행은 `docker compose up -d --build`.
-
-Vercel에서 운영하던 이전 배포(`narafus-projects/kista-ui`)는 프로젝트째 삭제되어 더 이상 존재하지 않는다.

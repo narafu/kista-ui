@@ -35,10 +35,6 @@ NEXT_PUBLIC_FIREBASE_VAPID_KEY=     # 웹 푸시 VAPID 인증서 키
 - Node.js 22 고정 필수 (undici v8 호환, 20으로 다운그레이드 금지)
 - 세부 쿠키, 프록시, Route Handler quirk는 `app/CLAUDE.md` 참고
 
-## Vercel 배포 (종료됨)
-
-`vercel project remove kista-ui`로 프로젝트 자체를 삭제했다(README.md/CLAUDE.md 참고) — 배포 이력·env var 복구 불가, 재구축 필요 시 `vercel project add`부터 새로 시작해야 한다.
-
 ## OCI 배포
 
 kista-ui는 OCI(Oracle Cloud, arm64) 단일 인스턴스 `kista-api-server`에서 `kista-api`와 함께 운영된다(2026-08-07 `kista-ui-server` 인스턴스 통합 완료). 토폴로지 상세는 `deploy/server/README.md` 참고.
