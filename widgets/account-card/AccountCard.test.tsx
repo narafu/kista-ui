@@ -128,7 +128,7 @@ describe('AccountCard', () => {
 
     const desktopBadge = screen.getByTestId('strategy-badge-strategy-1-desktop')
     const desktopRow = desktopBadge.closest('li')
-    const desktopAmount = screen.getByText('$2,103')
+    const desktopAmount = screen.getByText('$2,103.00')
 
     expect(desktopRow).toHaveClass('flex')
     expect(desktopRow).toHaveClass('items-center')

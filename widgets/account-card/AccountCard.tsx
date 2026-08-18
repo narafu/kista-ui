@@ -128,7 +128,7 @@ export function AccountCard({ account }: Props) {
                   </Badge>
                   {s.initialUsdDeposit != null && (
                     <span className="ml-auto shrink-0 text-sm font-semibold leading-none text-foreground tabular-nums">
-                      ${fmtUsd(s.initialUsdDeposit, 0)}
+                      ${fmtUsd(s.initialUsdDeposit)}
                     </span>
                   )}
                 </li>
