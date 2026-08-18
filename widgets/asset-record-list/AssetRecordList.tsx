@@ -20,7 +20,7 @@ import {
   SYSTEM_LOAN_CATEGORY_ID,
   SYSTEM_REAL_ESTATE_CATEGORY_ID,
   SYSTEM_SAVINGS_CATEGORY_ID,
-  flattenFinanceCategories,
+  collectSubtreeIds,
   isLiability,
   listAvailableMonths,
   useAssetSnapshotsQuery,
@@ -55,7 +55,7 @@ export function AssetRecordList() {
   const deleteManyMutation = useDeleteManyAssetSnapshotsMutation()
 
   const [month, setMonth] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
-  const [categoryId, setCategoryId] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
+  const [categoryPath, setCategoryPath] = useState<string[]>([])
   const [assetClass, setAssetClass] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
   const [market, setMarket] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
   const [sortKey, setSortKey] = useState<SortKey>('entryDate')
@@ -66,14 +66,18 @@ export function AssetRecordList() {
   const [deleteTarget, setDeleteTarget] = useState<string[] | null>(null)
 
   const months = useMemo(() => listAvailableMonths(snapshots), [snapshots])
-  const flatCategories = useMemo(() => flattenFinanceCategories(categories), [categories])
+  // 계단식 필터가 중간 depth에서 멈추면 그 하위 카테고리 전부를 포함해 매칭한다.
+  const categorySubtreeIds = useMemo(() => {
+    if (categoryPath.length === 0) return null
+    return new Set(collectSubtreeIds(categories, categoryPath[categoryPath.length - 1]))
+  }, [categories, categoryPath])
 
   const filtered = useMemo(() => snapshots.filter((snapshot) =>
     (month === ALL_FILTER_VALUE || snapshot.entryDate.startsWith(month)) &&
-    (categoryId === ALL_FILTER_VALUE || snapshot.categoryId === categoryId) &&
+    (categorySubtreeIds === null || categorySubtreeIds.has(snapshot.categoryId)) &&
     (assetClass === ALL_FILTER_VALUE || snapshot.assetClass === assetClass) &&
     (market === ALL_FILTER_VALUE || snapshot.market === market),
-  ), [snapshots, month, categoryId, assetClass, market])
+  ), [snapshots, month, categorySubtreeIds, assetClass, market])
 
   const sorted = useMemo(() => {
     const copy = [...filtered]
@@ -94,7 +98,7 @@ export function AssetRecordList() {
   useEffect(() => {
     setPage(1)
     setSelectedIds(new Set())
-  }, [month, categoryId, assetClass, market])
+  }, [month, categoryPath, assetClass, market])
 
   function handlePageSizeChange(nextSize: string) {
     setPageSize(nextSize)
@@ -191,15 +195,15 @@ export function AssetRecordList() {
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <AssetRecordFilters
           month={month}
-          categoryId={categoryId}
+          categoryTree={categories}
+          categoryPath={categoryPath}
           assetClass={assetClass}
           market={market}
           months={months}
-          categories={flatCategories}
           assetClasses={meta.assetClasses}
           markets={meta.markets}
           onMonthChange={setMonth}
-          onCategoryChange={setCategoryId}
+          onCategoryPathChange={setCategoryPath}
           onAssetClassChange={setAssetClass}
           onMarketChange={setMarket}
         />

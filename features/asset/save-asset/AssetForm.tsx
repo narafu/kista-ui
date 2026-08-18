@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button-variants'
@@ -12,7 +12,8 @@ import { cn } from '@shared/lib/utils'
 import { todayKst } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import {
-  flattenFinanceCategories,
+  getCascadeLevels,
+  getCategoryPath,
   useCreateAssetSnapshotMutation,
   useFinanceAccountsQuery,
   useFinanceCategoriesQuery,
@@ -111,10 +112,22 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
   // 운용전략 추천 목록은 kista-api 런타임 설정(관리자 수정 가능)이 SSOT다 — strategy는 여전히
   // 자유 입력이라 설정 로딩 전에는 알려진 기본값으로 폴백한다.
   const assetFormOptions = useRuntimeConfigQuery().data?.assetFormOptions ?? DEFAULT_ASSET_FORM_OPTIONS
-  const flatCategories = useMemo(() => flattenFinanceCategories(categories), [categories])
 
   const [entryDate, setEntryDate] = useState(initial?.entryDate ?? todayKst())
-  const [categoryId, setCategoryId] = useState(initial?.categoryId ?? '')
+  // 계단식 카테고리 Select: 각 단에서 선택한 categoryId를 순서대로 담는다. 마지막 값이
+  // 실제 제출용 categoryId — 트리 깊이가 늘어나도 이 상태 하나로 임의 depth를 표현한다.
+  const [selectedPath, setSelectedPath] = useState<string[]>(() =>
+    initial ? getCategoryPath(categories, initial.categoryId).map((c) => c.id) : []
+  )
+  // edit/duplicate 모드는 카테고리 쿼리가 마운트 시점에 아직 로딩 중일 수 있어, 데이터가
+  // 도착한 뒤 한 번 더 경로를 복원한다(이미 선택된 경로가 있으면 건드리지 않는다).
+  useEffect(() => {
+    if (initial && selectedPath.length === 0 && categories.length > 0) {
+      setSelectedPath(getCategoryPath(categories, initial.categoryId).map((c) => c.id))
+    }
+  }, [initial, categories, selectedPath.length])
+  const cascadeLevels = useMemo(() => getCascadeLevels(categories, selectedPath), [categories, selectedPath])
+  const categoryId = selectedPath[selectedPath.length - 1] ?? ''
   const [accountId, setAccountId] = useState(initial?.accountId ?? NO_ACCOUNT_VALUE)
   const [assetClass, setAssetClass] = useState<AssetClass>(initial?.assetClass ?? 'CASH')
   const [market, setMarket] = useState<Market>(initial?.market ?? 'DOMESTIC')
@@ -183,20 +196,25 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
 
           <div className="space-y-2">
             <Label htmlFor="category">카테고리</Label>
-            <Select
-              items={flatCategories.map((c) => ({ value: c.id, label: c.depth === 1 ? `― ${c.name}` : c.name }))}
-              value={categoryId || null}
-              onValueChange={(value) => { if (value) setCategoryId(value) }}
-            >
-              <SelectTrigger id="category" className="w-full h-12" disabled={isPending}>
-                <SelectValue placeholder="카테고리 선택" />
-              </SelectTrigger>
-              <SelectContent>
-                {flatCategories.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.depth === 1 ? `― ${c.name}` : c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              {cascadeLevels.map((level, levelIndex) => (
+                <Select
+                  key={levelIndex}
+                  items={level.map((c) => ({ value: c.id, label: c.name }))}
+                  value={selectedPath[levelIndex] || null}
+                  onValueChange={(value) => {
+                    if (value) setSelectedPath((prev) => [...prev.slice(0, levelIndex), value])
+                  }}
+                >
+                  <SelectTrigger id={levelIndex === 0 ? 'category' : undefined} className="w-full h-12" disabled={isPending}>
+                    <SelectValue placeholder="카테고리 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {level.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              ))}
+            </div>
           </div>
 
           <div className="space-y-2">

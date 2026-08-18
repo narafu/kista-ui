@@ -73,5 +73,4 @@ export type {
   TrendMode,
   TrendPoint,
 } from './lib/aggregate'
-export { flattenFinanceCategories } from './lib/categoryTree'
-export type { FlatFinanceCategory } from './lib/categoryTree'
+export { collectSubtreeIds, getCascadeLevels, getCategoryPath } from './lib/categoryTree'
