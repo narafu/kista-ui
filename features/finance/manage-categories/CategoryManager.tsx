@@ -83,21 +83,12 @@ export function CategoryManager() {
   const { data: categories } = useFinanceCategoriesQuery(type)
   const l1Categories = categories ?? []
 
-  const [isFormOpen, setIsFormOpen] = useState(false)
-  const [editingCategory, setEditingCategory] = useState<FinanceCategory | null>(null)
+  // AccountManager와 동일한 조건부 마운트 패턴 — 열 때마다 다이얼로그가 새로 마운트되므로
+  // key 트릭 없이도 내부 useState(name 등)가 매번 초기화된다.
+  const [formTarget, setFormTarget] = useState<FinanceCategory | 'new' | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<FinanceCategory | null>(null)
 
   const deleteMutation = useDeleteFinanceCategoryMutation()
-
-  function openCreateDialog() {
-    setEditingCategory(null)
-    setIsFormOpen(true)
-  }
-
-  function openEditDialog(category: FinanceCategory) {
-    setEditingCategory(category)
-    setIsFormOpen(true)
-  }
 
   function handleDelete() {
     if (!deleteTarget) return
@@ -120,7 +111,7 @@ export function CategoryManager() {
       </div>
 
       <div className="flex justify-end">
-        <Button type="button" size="sm" className="gap-1.5" onClick={openCreateDialog}>
+        <Button type="button" size="sm" className="gap-1.5" onClick={() => setFormTarget('new')}>
           <Plus className="size-4" />
           카테고리 추가
         </Button>
@@ -131,30 +122,32 @@ export function CategoryManager() {
       ) : (
         <ul className="m-0 list-none rounded-[var(--r-lg)] border border-border p-0">
           {l1Categories.map((category) => (
-            <CategoryRow key={category.id} category={category} depth={0} onEdit={openEditDialog} onDelete={setDeleteTarget} />
+            <CategoryRow key={category.id} category={category} depth={0} onEdit={setFormTarget} onDelete={setDeleteTarget} />
           ))}
         </ul>
       )}
 
-      {/* key: 편집 대상이 바뀔 때마다 다이얼로그 내부 useState(name 등)를 새로 초기화하기 위한 리마운트 트리거 */}
-      <CategoryFormDialog
-        key={`${editingCategory?.id ?? 'create'}-${isFormOpen}`}
-        open={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        type={type}
-        l1Categories={l1Categories}
-        category={editingCategory}
-        onSuccess={() => setIsFormOpen(false)}
-      />
+      {formTarget && (
+        <CategoryFormDialog
+          open
+          onOpenChange={(next) => { if (!next) setFormTarget(null) }}
+          type={type}
+          l1Categories={l1Categories}
+          category={formTarget === 'new' ? null : formTarget}
+          onSuccess={() => setFormTarget(null)}
+        />
+      )}
 
-      <DeleteCategoryDialog
-        open={deleteTarget !== null}
-        onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}
-        categoryName={deleteTarget?.name ?? ''}
-        subtreeCount={deleteTarget ? collectSubtreeIds(l1Categories, deleteTarget.id).length : 0}
-        onConfirm={handleDelete}
-        isPending={deleteMutation.isPending}
-      />
+      {deleteTarget && (
+        <DeleteCategoryDialog
+          open
+          onOpenChange={(next) => { if (!next) setDeleteTarget(null) }}
+          categoryName={deleteTarget.name}
+          subtreeCount={collectSubtreeIds(l1Categories, deleteTarget.id).length}
+          onConfirm={handleDelete}
+          isPending={deleteMutation.isPending}
+        />
+      )}
     </div>
   )
 }

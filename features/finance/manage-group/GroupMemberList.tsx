@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { toast } from 'sonner'
 import {
   AlertDialog,
@@ -10,10 +11,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { buttonVariants } from '@/components/ui/button-variants'
-import { cn } from '@shared/lib/utils'
+import { Button } from '@/components/ui/button'
 import { useRemoveFinanceGroupMemberMutation } from '@entities/finance'
 import type { FinanceGroupMember } from '@entities/finance'
 
@@ -24,31 +23,33 @@ function memberLabel(member: FinanceGroupMember) {
   return member.nickname ?? member.userId.slice(0, 8)
 }
 
-function KickMemberButton({ groupId, member }: { groupId: string; member: FinanceGroupMember }) {
-  const mutation = useRemoveFinanceGroupMemberMutation(groupId)
-  const label = memberLabel(member)
-
+// features/finance/manage-categories·manage-accounts의 삭제 확인 다이얼로그와 동일하게
+// 목록이 open state를 소유하고 다이얼로그는 순수 controlled 프레젠테이션만 담당한다.
+function KickMemberDialog({
+  open,
+  onOpenChange,
+  member,
+  isPending,
+  onConfirm,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  member: FinanceGroupMember | null
+  isPending: boolean
+  onConfirm: () => void
+}) {
+  const label = member ? memberLabel(member) : ''
   return (
-    <AlertDialog>
-      <AlertDialogTrigger
-        disabled={mutation.isPending}
-        className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
-      >
-        추방
-      </AlertDialogTrigger>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent size="sm">
         <AlertDialogHeader>
           <AlertDialogTitle>{label}님을 추방하시겠습니까?</AlertDialogTitle>
           <AlertDialogDescription>추방된 멤버의 데이터는 본인의 개인 그룹으로 이관됩니다.</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={mutation.isPending}>취소</AlertDialogCancel>
-          <AlertDialogAction
-            variant="destructive"
-            disabled={mutation.isPending}
-            onClick={() => mutation.mutate(member.userId, { onSuccess: () => toast.success(`${label}님을 추방했습니다`) })}
-          >
-            {mutation.isPending ? '처리 중...' : '추방'}
+          <AlertDialogCancel disabled={isPending}>취소</AlertDialogCancel>
+          <AlertDialogAction variant="destructive" disabled={isPending} onClick={onConfirm}>
+            {isPending ? '처리 중...' : '추방'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -66,6 +67,19 @@ interface Props {
 
 export function GroupMemberList({ groupId, members, isPersonal, isOwner, myUserId }: Props) {
   const showKick = isOwner && !isPersonal
+  const [kickTarget, setKickTarget] = useState<FinanceGroupMember | null>(null)
+  const mutation = useRemoveFinanceGroupMemberMutation(groupId)
+
+  function handleConfirmKick() {
+    if (!kickTarget) return
+    const label = memberLabel(kickTarget)
+    mutation.mutate(kickTarget.userId, {
+      onSuccess: () => {
+        toast.success(`${label}님을 추방했습니다`)
+        setKickTarget(null)
+      },
+    })
+  }
 
   return (
     <div className="space-y-2">
@@ -78,9 +92,27 @@ export function GroupMemberList({ groupId, members, isPersonal, isOwner, myUserI
               <span className="text-xs rounded-full bg-primary/10 px-2 py-0.5 text-primary shrink-0">나</span>
             )}
           </div>
-          {showKick && member.userId !== myUserId && <KickMemberButton groupId={groupId} member={member} />}
+          {showKick && member.userId !== myUserId && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setKickTarget(member)}
+              disabled={mutation.isPending}
+            >
+              추방
+            </Button>
+          )}
         </div>
       ))}
+
+      <KickMemberDialog
+        open={kickTarget !== null}
+        onOpenChange={(next) => { if (!next) setKickTarget(null) }}
+        member={kickTarget}
+        isPending={mutation.isPending}
+        onConfirm={handleConfirmKick}
+      />
     </div>
   )
 }

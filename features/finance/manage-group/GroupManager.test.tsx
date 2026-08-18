@@ -68,12 +68,12 @@ describe('GroupManager', () => {
     expect(screen.queryByRole('button', { name: '초대하기' })).not.toBeInTheDocument()
   })
 
-  it('개인 그룹에서는 초대·탈퇴 버튼을 모두 숨긴다', () => {
+  it('개인 그룹의 OWNER는 초대하기 버튼을 볼 수 있지만(그룹 생성의 유일한 경로) 탈퇴 버튼은 숨긴다(서버가 409)', () => {
     activeGroupId = undefined
     members = [{ userId: me.id, role: 'OWNER' }]
     render(<GroupManager />)
 
-    expect(screen.queryByRole('button', { name: '초대하기' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '초대하기' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '그룹 탈퇴' })).not.toBeInTheDocument()
   })
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getApiBaseUrlOrNull } from '@shared/lib/env'
 import {
+  ACTIVE_GROUP_COOKIE,
   KISTA_TOKEN_COOKIE,
   STATUS_COOKIE,
   ROLE_COOKIE,
@@ -31,5 +32,8 @@ export async function POST(request: NextRequest) {
   response.cookies.set(STATUS_COOKIE, '', CLEAR_COOKIE)
   response.cookies.set(ROLE_COOKIE, '', CLEAR_COOKIE)
   response.cookies.set(RT_COOKIE, '', CLEAR_COOKIE)
+  // 공유 기기에서 로그아웃 후 다음 로그인 사용자가 이전 사용자의 그룹 UUID를 물려받아
+  // 남의 그룹으로 스코프된 finance 조회가 403 나는 것을 방지한다.
+  response.cookies.set(ACTIVE_GROUP_COOKIE, '', CLEAR_COOKIE)
   return response
 }
