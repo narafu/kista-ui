@@ -11,13 +11,11 @@ export function AcceptInvitationForm() {
   const [code, setCode] = useState('')
   const mutation = useRespondToInvitationMutation()
 
-  // 거절(DECLINED) 응답은 kista-api가 {name: null}을 담은 200을 반환한다 — 응답 본문을
-  // 렌더링에 쓰지 않고 상태 분기로만 toast 문구를 고른다.
-  function respond(status: 'ACCEPTED' | 'DECLINED') {
+  function accept() {
     if (!code.trim() || mutation.isPending) return
-    mutation.mutate({ code: code.trim(), status }, {
+    mutation.mutate({ code: code.trim(), status: 'ACCEPTED' }, {
       onSuccess: () => {
-        toast.success(status === 'ACCEPTED' ? '그룹에 합류했습니다' : '초대를 거절했습니다')
+        toast.success('그룹에 합류했습니다')
         setCode('')
       },
     })
@@ -35,10 +33,7 @@ export function AcceptInvitationForm() {
           disabled={mutation.isPending}
           className="h-11 flex-1"
         />
-        <Button type="button" variant="outline" disabled={mutation.isPending || !code.trim()} onClick={() => respond('DECLINED')}>
-          거절
-        </Button>
-        <Button type="button" disabled={mutation.isPending || !code.trim()} onClick={() => respond('ACCEPTED')}>
+        <Button type="button" disabled={mutation.isPending || !code.trim()} onClick={accept}>
           수락
         </Button>
       </div>

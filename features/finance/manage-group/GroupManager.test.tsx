@@ -88,23 +88,4 @@ describe('GroupManager', () => {
     expect(screen.getByText('나')).toBeInTheDocument()
     expect(screen.getByText('user-oth')).toBeInTheDocument()
   })
-
-  it('초대 코드 거절 응답(name: null)에도 크래시 없이 toast만 띄운다', async () => {
-    const user = userEvent.setup()
-    members = [{ userId: me.id, role: 'OWNER' }]
-    render(<GroupManager />)
-
-    await user.type(screen.getByLabelText('초대 코드가 있으신가요?'), 'ABC123')
-    await user.click(screen.getByRole('button', { name: '거절' }))
-
-    expect(respondMutateMock).toHaveBeenCalledWith(
-      { code: 'ABC123', status: 'DECLINED' },
-      expect.objectContaining({ onSuccess: expect.any(Function) }),
-    )
-
-    const options = respondMutateMock.mock.calls.at(-1)?.[1] as { onSuccess: (data: unknown) => void }
-    expect(() => options.onSuccess({ name: null })).not.toThrow()
-
-    expect(toastSuccessMock).toHaveBeenCalledWith('초대를 거절했습니다')
-  })
 })
