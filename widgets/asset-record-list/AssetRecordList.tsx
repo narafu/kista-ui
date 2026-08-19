@@ -13,6 +13,7 @@ import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtKrw } from '@shared/lib/format'
+import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { useMeta } from '@entities/meta'
 import {
   ASSET_L1_CATEGORY_IDS,
@@ -63,7 +64,7 @@ export function AssetRecordList() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState('10')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [deleteTarget, setDeleteTarget] = useState<string[] | null>(null)
+  const deleteDialog = useConfirmDialog<string[]>()
 
   const months = useMemo(() => listAvailableMonths(snapshots), [snapshots])
   // 계단식 필터가 중간 depth에서 멈추면 그 하위 카테고리 전부를 포함해 매칭한다.
@@ -158,10 +159,10 @@ export function AssetRecordList() {
   }
 
   function confirmDelete() {
-    if (!deleteTarget) return
-    deleteManyMutation.mutate(deleteTarget, {
+    if (!deleteDialog.target) return
+    deleteManyMutation.mutate(deleteDialog.target, {
       onSuccess: ({ succeededIds, failedCount }) => {
-        setDeleteTarget(null)
+        deleteDialog.close()
         // 전체 실패 시 succeededIds가 비어있고, 이 경우 에러 toast는 useDeleteManyAssetSnapshotsMutation이 이미 띄운다
         if (succeededIds.length === 0) return
 
@@ -215,7 +216,7 @@ export function AssetRecordList() {
           <span className="text-sm font-medium">{selectedIds.size}건 선택됨</span>
           <button
             type="button"
-            onClick={() => setDeleteTarget(Array.from(selectedIds))}
+            onClick={() => deleteDialog.request(Array.from(selectedIds))}
             className="text-sm font-semibold text-destructive hover:text-destructive/80"
           >
             선택 삭제
@@ -288,11 +289,11 @@ export function AssetRecordList() {
                     </TableDataCell>
                     <TableDataCell>
                       <div className="flex items-center justify-center gap-1">
-                        <Link href={`/assets/new?duplicateFrom=${snapshot.id}`} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">복제</Link>
+                        <Link href={`/finance/new?duplicateFrom=${snapshot.id}`} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">복제</Link>
                         <span className="text-muted-foreground/40">·</span>
-                        <Link href={`/assets/${snapshot.id}/edit`} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">수정</Link>
+                        <Link href={`/finance/${snapshot.id}/edit`} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">수정</Link>
                         <span className="text-muted-foreground/40">·</span>
-                        <button type="button" onClick={() => setDeleteTarget([snapshot.id])} className="text-xs font-semibold text-destructive hover:text-destructive/80">삭제</button>
+                        <button type="button" onClick={() => deleteDialog.request([snapshot.id])} className="text-xs font-semibold text-destructive hover:text-destructive/80">삭제</button>
                       </div>
                     </TableDataCell>
                   </tr>
@@ -304,36 +305,34 @@ export function AssetRecordList() {
           <ul className="m-0 list-none divide-y rounded-[var(--r-lg)] border border-border p-0 lg:hidden" aria-label="자산 기록 모바일">
             {paged.map((snapshot) => (
               <li key={snapshot.id} className="px-4 py-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex min-w-0 flex-1 items-start gap-3">
-                    <input
-                      type="checkbox"
-                      aria-label={`${fmtDate(snapshot.entryDate)} ${accountLabel(snapshot)} 선택`}
-                      checked={selectedIds.has(snapshot.id)}
-                      onChange={() => toggleRow(snapshot.id)}
-                      className="size-4 mt-1"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                        <Badge tone={CATEGORY_TONE[snapshot.rootCategoryId] ?? 'neutral'} size="sm">{snapshot.categoryName}</Badge>
-                        <span className="text-xs text-muted-foreground">{fmtDate(snapshot.entryDate)}</span>
-                      </div>
-                      <div className="flex items-baseline justify-between gap-2">
-                        <p className="shrink-0 text-sm font-medium">{labelOf('assetClasses', snapshot.assetClass)}</p>
-                        <p className="min-w-0 flex-1 truncate text-right text-xs text-muted-foreground">
-                          {[labelOf('markets', snapshot.market), snapshot.strategy, snapshot.accountName].filter(Boolean).join(' · ')}
-                        </p>
-                      </div>
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    aria-label={`${fmtDate(snapshot.entryDate)} ${accountLabel(snapshot)} 선택`}
+                    checked={selectedIds.has(snapshot.id)}
+                    onChange={() => toggleRow(snapshot.id)}
+                    className="size-4 mt-1"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                      <Badge tone={CATEGORY_TONE[snapshot.rootCategoryId] ?? 'neutral'} size="sm">{snapshot.categoryName}</Badge>
+                      <span className="text-xs text-muted-foreground">{fmtDate(snapshot.entryDate)}</span>
                     </div>
+                    <div className="flex items-baseline justify-between gap-2">
+                      <p className="min-w-0 truncate text-sm font-medium">{labelOf('assetClasses', snapshot.assetClass)}</p>
+                      <span className={cn('shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums', isLiability(snapshot) && 'text-destructive')}>
+                        {fmtKrw(snapshot.amount)}
+                      </span>
+                    </div>
+                    <p className="mt-1 truncate text-xs text-muted-foreground">
+                      {[labelOf('markets', snapshot.market), snapshot.strategy, snapshot.accountName].filter(Boolean).join(' · ')}
+                    </p>
                   </div>
-                  <span className={cn('text-sm font-semibold tabular-nums', isLiability(snapshot) && 'text-destructive')}>
-                    {fmtKrw(snapshot.amount)}
-                  </span>
                 </div>
                 <div className="mt-3 flex items-center justify-end gap-3 border-t pt-3">
-                  <Link href={`/assets/new?duplicateFrom=${snapshot.id}`} className="text-xs font-semibold text-foreground">복제</Link>
-                  <Link href={`/assets/${snapshot.id}/edit`} className="text-xs font-semibold text-foreground">수정</Link>
-                  <button type="button" onClick={() => setDeleteTarget([snapshot.id])} className="text-xs font-semibold text-destructive">삭제</button>
+                  <Link href={`/finance/new?duplicateFrom=${snapshot.id}`} className="px-1 py-2 text-xs font-semibold text-foreground">복제</Link>
+                  <Link href={`/finance/${snapshot.id}/edit`} className="px-1 py-2 text-xs font-semibold text-foreground">수정</Link>
+                  <button type="button" onClick={() => deleteDialog.request([snapshot.id])} className="px-1 py-2 text-xs font-semibold text-destructive">삭제</button>
                 </div>
               </li>
             ))}
@@ -346,9 +345,9 @@ export function AssetRecordList() {
       )}
 
       <DeleteAssetDialog
-        open={deleteTarget !== null}
-        onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}
-        count={deleteTarget?.length ?? 0}
+        open={deleteDialog.open}
+        onOpenChange={deleteDialog.onOpenChange}
+        count={deleteDialog.target?.length ?? 0}
         onConfirm={confirmDelete}
         isPending={deleteManyMutation.isPending}
       />

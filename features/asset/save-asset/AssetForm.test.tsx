@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AssetForm } from './AssetForm'
+import { SYSTEM_INVESTMENT_CATEGORY_ID } from '@entities/finance'
 import type { AssetSnapshot, FinanceAccount, FinanceCategory } from '@entities/finance'
 
 const { createMutateMock, updateMutateMock, toastSuccessMock } = vi.hoisted(() => ({
@@ -10,23 +11,33 @@ const { createMutateMock, updateMutateMock, toastSuccessMock } = vi.hoisted(() =
   toastSuccessMock: vi.fn(),
 }))
 
-const categories: FinanceCategory[] = [{
-  id: 'cat-l1-invest',
-  type: 'ASSET',
-  name: '투자',
-  sortOrder: 30,
-  system: true,
-  children: [{
-    id: 'cat-l2-general',
-    parentId: 'cat-l1-invest',
-    groupId: 'group-1',
+const categories: FinanceCategory[] = [
+  {
+    id: 'cat-l1-savings',
     type: 'ASSET',
-    name: '일반계좌',
+    name: '예적금',
     sortOrder: 10,
-    system: false,
+    system: true,
     children: [],
-  }],
-}]
+  },
+  {
+    id: SYSTEM_INVESTMENT_CATEGORY_ID,
+    type: 'ASSET',
+    name: '투자',
+    sortOrder: 30,
+    system: true,
+    children: [{
+      id: 'cat-l2-general',
+      parentId: SYSTEM_INVESTMENT_CATEGORY_ID,
+      groupId: 'group-1',
+      type: 'ASSET',
+      name: '일반계좌',
+      sortOrder: 10,
+      system: false,
+      children: [],
+    }],
+  },
+]
 
 const accounts: FinanceAccount[] = [{ id: 'acc-1', accountType: 'SECURITIES', name: '미래에셋증권' }]
 
@@ -64,7 +75,7 @@ const onCancel = vi.fn()
 const existing: AssetSnapshot = {
   id: 'snap-1',
   categoryId: 'cat-l2-general',
-  rootCategoryId: 'cat-l1-invest',
+  rootCategoryId: SYSTEM_INVESTMENT_CATEGORY_ID,
   categoryName: '일반계좌',
   accountId: 'acc-1',
   accountName: '미래에셋증권',
@@ -153,8 +164,18 @@ describe('AssetForm', () => {
     expect(updateMutateMock).not.toHaveBeenCalled()
   })
 
-  it('운용전략 입력을 보여준다', () => {
+  it('카테고리 미선택 상태에서는 운용전략 입력을 숨긴다', () => {
     render(<AssetForm mode="create" onSuccess={onSuccess} onCancel={onCancel} />)
+    expect(screen.queryByLabelText('운용전략 (선택)')).not.toBeInTheDocument()
+  })
+
+  it('투자 카테고리를 선택하면 운용전략 입력을 보여준다', async () => {
+    const user = userEvent.setup()
+    render(<AssetForm mode="create" onSuccess={onSuccess} onCancel={onCancel} />)
+
+    await user.click(screen.getByRole('combobox', { name: '카테고리' }))
+    await user.click(await screen.findByRole('option', { name: '투자' }))
+
     expect(screen.getByLabelText('운용전략 (선택)')).toBeInTheDocument()
   })
 
@@ -162,10 +183,32 @@ describe('AssetForm', () => {
     const user = userEvent.setup()
     render(<AssetForm mode="create" onSuccess={onSuccess} onCancel={onCancel} />)
 
+    await user.click(screen.getByRole('combobox', { name: '카테고리' }))
+    await user.click(await screen.findByRole('option', { name: '투자' }))
+
     const strategyInput = screen.getByLabelText('운용전략 (선택)')
     await user.type(strategyInput, 'VR메모')
 
     expect(strategyInput).toHaveValue('VR메모')
+  })
+
+  it('투자 카테고리 선택 후 다른 카테고리로 바꾸면 운용전략 입력이 사라지고 값도 리셋된다', async () => {
+    const user = userEvent.setup()
+    render(<AssetForm mode="create" onSuccess={onSuccess} onCancel={onCancel} />)
+
+    await user.click(screen.getByRole('combobox', { name: '카테고리' }))
+    await user.click(await screen.findByRole('option', { name: '투자' }))
+    await user.type(screen.getByLabelText('운용전략 (선택)'), 'VR메모')
+
+    await user.click(screen.getAllByRole('combobox', { name: '카테고리' })[0])
+    await user.click(await screen.findByRole('option', { name: '예적금' }))
+
+    expect(screen.queryByLabelText('운용전략 (선택)')).not.toBeInTheDocument()
+
+    // 다시 투자로 되돌리면 리셋된 빈 값으로 재노출된다(이전 입력이 실수로 남아있지 않음)
+    await user.click(screen.getAllByRole('combobox', { name: '카테고리' })[0])
+    await user.click(await screen.findByRole('option', { name: '투자' }))
+    expect(screen.getByLabelText('운용전략 (선택)')).toHaveValue('')
   })
 
   it('제출 성공 시 성공 toast를 띄우고 onSuccess를 호출한다', async () => {

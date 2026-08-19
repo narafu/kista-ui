@@ -14,17 +14,17 @@ import { PageHeader } from '@widgets/page-header'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { cn } from '@shared/lib/utils'
 
-type AssetTab = 'budget' | 'income' | 'expense' | 'investment' | 'settings'
+type AssetTab = 'income' | 'expense' | 'saving' | 'investment' | 'settings'
 
 const TAB_OPTIONS: { value: AssetTab; label: string }[] = [
-  { value: 'budget', label: '예산' },
   { value: 'income', label: '수입' },
-  { value: 'expense', label: '지출' },
+  { value: 'expense', label: '소비' },
+  { value: 'saving', label: '저축' },
   { value: 'investment', label: '자산' },
   { value: 'settings', label: '설정' },
 ]
 
-const PLACEHOLDER_TABS: AssetTab[] = ['budget', 'income', 'expense']
+const PLACEHOLDER_TABS: AssetTab[] = ['income', 'expense', 'saving']
 
 function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -44,15 +44,15 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
   )
 }
 
-// '자산' 페이지의 상태 소유자 — asset-overview·asset-record-check가 공유하는 "기준 월"과
+// '가계부' 페이지의 상태 소유자 — asset-overview·asset-record-check가 공유하는 "기준 월"과
 // 탭 상태를 이 컴포넌트가 소유하고 props로 흘려보낸다. 위젯끼리 cross-import가 금지돼 있어
 // (widgets.md) 두 위젯이 상태를 공유하려면 app 레이어의 공통 client 부모가 필요하다.
 // PageHeader/NewAssetButton도 page.tsx가 아니라 여기서 렌더한다 — "자산 등록" 버튼은 자산
-// 탭에서만 의미가 있고(수입/지출은 아직 미구현 안내만 표시), 탭 상태가 이 컴포넌트의 client
+// 탭에서만 의미가 있고(수입/소비/저축은 아직 미구현 안내만 표시), 탭 상태가 이 컴포넌트의 client
 // state라 Server Component인 page.tsx는 탭에 따라 버튼을 조건부로 숨길 수 없다.
-// 수입/지출 탭은 아직 별도 도메인이 구현되지 않아 자리만 잡아둔 안내 화면이다 — 실제 기능이
+// 수입/소비/저축 탭은 아직 별도 도메인이 구현되지 않아 자리만 잡아둔 안내 화면이다 — 실제 기능이
 // 생기면 각각 별도 위젯으로 분리한다.
-export function AssetsDashboard() {
+export function FinanceDashboard() {
   const [tab, setTab] = useState<AssetTab>('investment')
   const { data: snapshots = [] } = useAssetSnapshotsQuery()
   const months = useMemo(() => listAvailableMonths(snapshots), [snapshots])
@@ -81,8 +81,8 @@ export function AssetsDashboard() {
           <>
             <AssetOverview month={selectedMonth} months={months} onMonthChange={setMonth} />
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <AssetTrend />
-              <AssetComposition />
+              <AssetTrend className="order-2 lg:order-1" />
+              <AssetComposition className="order-1 lg:order-2" />
             </div>
             <AssetRecordCheck month={selectedMonth} />
             <AssetRecordList />

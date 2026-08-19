@@ -12,8 +12,8 @@ interface UpdateAdminSettingsMutationOptions {
   onSuccess?: (settings: AdminSettings) => Promise<void> | void
 }
 
-export function useAdminSettingsQuery() {
-  return useQuery(adminSettingsQueryOptions())
+export function useAdminSettingsQuery(options: { enabled?: boolean } = {}) {
+  return useQuery({ ...adminSettingsQueryOptions(), enabled: options.enabled })
 }
 
 export function useUpdateAdminSettingsMutation(options: UpdateAdminSettingsMutationOptions = {}) {

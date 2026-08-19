@@ -14,6 +14,7 @@ import { useMeta } from '@entities/meta'
 import {
   getCascadeLevels,
   getCategoryPath,
+  isInvestmentCategoryId,
   useCreateAssetSnapshotMutation,
   useFinanceAccountsQuery,
   useFinanceCategoriesQuery,
@@ -128,6 +129,8 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
   }, [initial, categories, selectedPath.length])
   const cascadeLevels = useMemo(() => getCascadeLevels(categories, selectedPath), [categories, selectedPath])
   const categoryId = selectedPath[selectedPath.length - 1] ?? ''
+  // 운용전략 필드는 L1 카테고리가 '투자'(고정 시스템 카테고리)일 때만 노출한다.
+  const showStrategy = isInvestmentCategoryId(selectedPath[0])
   const [accountId, setAccountId] = useState(initial?.accountId ?? NO_ACCOUNT_VALUE)
   const [assetClass, setAssetClass] = useState<AssetClass>(initial?.assetClass ?? 'CASH')
   const [market, setMarket] = useState<Market>(initial?.market ?? 'DOMESTIC')
@@ -152,8 +155,8 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
       entryDate,
       assetClass,
       market,
-      // 구 폼은 category === 'INVESTMENT'일 때만 전송했으나, kista-api AssetSnapshotRequest.strategy는
-      // 카테고리 무관 자유 필드라 조건 없이 항상 전송한다(의도적 — 구 제약의 후계 없음).
+      // 화면에는 L1이 '투자'일 때만 노출되지만, 필드 자체는 카테고리 무관 자유 필드다(구 제약의
+      // 후계 없음) — 비노출 상태에서도 기존 값(레거시 기록 등)을 건드리지 않고 그대로 제출한다.
       strategy: strategy.trim() || undefined,
       amount: Number(amountDigits),
     }
@@ -203,7 +206,12 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
                   items={level.map((c) => ({ value: c.id, label: c.name }))}
                   value={selectedPath[levelIndex] || null}
                   onValueChange={(value) => {
-                    if (value) setSelectedPath((prev) => [...prev.slice(0, levelIndex), value])
+                    if (!value) return
+                    setSelectedPath((prev) => [...prev.slice(0, levelIndex), value])
+                    // L1을 '투자' 아닌 값으로 직접 바꾸면 전략 필드가 그 자리에서 숨겨지므로,
+                    // 화면에 남아있던(잠재적으로 방금 입력한) 값도 함께 비운다 — 사용자가 능동적으로
+                    // 바꾼 경우에만 지운다. 편집 진입 시 기존 레코드를 복원하는 경로는 건드리지 않는다.
+                    if (levelIndex === 0 && !isInvestmentCategoryId(value)) setStrategy('')
                   }}
                 >
                   <SelectTrigger id={levelIndex === 0 ? 'category' : undefined} className="w-full h-12" disabled={isPending}>
@@ -266,18 +274,20 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
             </Select>
           </div>
 
-          <ComboField
-            id="strategy"
-            label="운용전략 (선택)"
-            placeholder="예: VR, 자유 메모"
-            value={strategy}
-            onChange={setStrategy}
-            suggestions={assetFormOptions.strategySuggestions}
-            selectLabel="운용전략 목록에서 선택"
-            disabled={isPending}
-            maxLength={50}
-            helperText="자동매매 전략과 무관한 자유 메모입니다."
-          />
+          {showStrategy && (
+            <ComboField
+              id="strategy"
+              label="운용전략 (선택)"
+              placeholder="예: VR, 자유 메모"
+              value={strategy}
+              onChange={setStrategy}
+              suggestions={assetFormOptions.strategySuggestions}
+              selectLabel="운용전략 목록에서 선택"
+              disabled={isPending}
+              maxLength={50}
+              helperText="자동매매 전략과 무관한 자유 메모입니다."
+            />
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="amount">금액 (원)</Label>
@@ -313,8 +323,16 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
         </div>
       </div>
 
-      <div className="sm:hidden fixed bottom-14 left-0 right-0 p-4 bg-background border-t z-40">
-        <Button type="submit" className="w-full h-14 text-base font-semibold gap-2" disabled={isPending || !canSubmit}>
+      <div className="sm:hidden fixed bottom-14 left-0 right-0 p-4 bg-background border-t z-40 flex gap-3">
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={isPending}
+          className={cn(buttonVariants({ variant: 'outline' }), 'flex-1 h-14')}
+        >
+          취소
+        </button>
+        <Button type="submit" className="flex-1 h-14 text-base font-semibold gap-2" disabled={isPending || !canSubmit}>
           {isPending ? (
             <>
               <Spinner size={16} aria-hidden="true" />

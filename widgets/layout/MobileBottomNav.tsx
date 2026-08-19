@@ -12,7 +12,7 @@ const TABS = [
   { href: '/strategies', label: '전략',     icon: ListChecks },
   { href: '/stats',      label: '통계',     icon: TrendingUp },
   { href: '/benchmark',  label: '벤치마크', icon: Scale },
-  { href: '/assets',     label: '재무',     icon: Wallet },
+  { href: '/finance',    label: '가계부',   icon: Wallet },
   { href: '/settings',   label: '설정',     icon: Settings },
 ]
 

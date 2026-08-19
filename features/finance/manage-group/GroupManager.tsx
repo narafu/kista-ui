@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,6 +11,7 @@ import {
 } from '@entities/finance'
 import { useMeQuery } from '@entities/user'
 import { cn } from '@shared/lib/utils'
+import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { AcceptInvitationForm } from './AcceptInvitationForm'
 import { GroupMemberList } from './GroupMemberList'
 import { GroupSwitcher } from './GroupSwitcher'
@@ -37,7 +37,7 @@ function GroupSection({ groupId, isPersonal, myUserId, activeGroupId, setActiveG
   const { data: members = [] } = useFinanceGroupMembersQuery(groupId)
   const isOwner = members.some((m) => m.userId === myUserId && m.role === 'OWNER')
 
-  const [isLeaveOpen, setIsLeaveOpen] = useState(false)
+  const leaveDialog = useConfirmDialog<true>()
   const leaveMutation = useRemoveFinanceGroupMemberMutation(groupId)
 
   function handleLeave() {
@@ -45,7 +45,7 @@ function GroupSection({ groupId, isPersonal, myUserId, activeGroupId, setActiveG
     leaveMutation.mutate(myUserId, {
       onSuccess: () => {
         toast.success('그룹에서 탈퇴했습니다')
-        setIsLeaveOpen(false)
+        leaveDialog.close()
         // 지금 보고 있던 그룹에서 탈퇴하면 존재하지 않는 그룹을 계속 조회하지 않도록 개인 그룹으로 되돌린다.
         if (activeGroupId === groupId) setActiveGroupId(undefined)
       },
@@ -67,7 +67,7 @@ function GroupSection({ groupId, isPersonal, myUserId, activeGroupId, setActiveG
           <Button
             type="button"
             variant="outline"
-            onClick={() => setIsLeaveOpen(true)}
+            onClick={() => leaveDialog.request(true)}
             disabled={leaveMutation.isPending}
             className="text-destructive hover:text-destructive border-destructive/40"
           >
@@ -77,8 +77,8 @@ function GroupSection({ groupId, isPersonal, myUserId, activeGroupId, setActiveG
       </div>
 
       <LeaveGroupDialog
-        open={isLeaveOpen}
-        onOpenChange={setIsLeaveOpen}
+        open={leaveDialog.open}
+        onOpenChange={leaveDialog.onOpenChange}
         isPersonal={isPersonal}
         isPending={leaveMutation.isPending}
         onConfirm={handleLeave}

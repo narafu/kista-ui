@@ -4,7 +4,7 @@ import { getAuthToken } from '@shared/lib/auth/token'
 import { getActiveGroupId } from '@shared/lib/auth/activeGroup'
 import { assetSnapshotListQueryOptions, financeGroupListQueryOptions, monthlyClosingListQueryOptions } from '@entities/finance'
 import { createQueryClient } from '@shared/lib/query'
-import { AssetsDashboard } from './AssetsDashboard'
+import { FinanceDashboard } from './FinanceDashboard'
 
 export const metadata: Metadata = {
   title: '재무 | KISTA',
@@ -26,7 +26,7 @@ export default async function AssetsPage() {
   }
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <AssetsDashboard />
+      <FinanceDashboard />
     </HydrationBoundary>
   )
 }

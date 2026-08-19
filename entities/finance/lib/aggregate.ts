@@ -39,6 +39,11 @@ export function isLiability(snapshot: AssetSnapshot): boolean {
   return snapshot.rootCategoryId === SYSTEM_LOAN_CATEGORY_ID
 }
 
+// 운용전략 필드는 L1이 '투자'일 때만 의미가 있다 — 문자열 비교 대신 이 함수를 통해서만 판정한다.
+export function isInvestmentCategoryId(categoryId: string | undefined): boolean {
+  return categoryId === SYSTEM_INVESTMENT_CATEGORY_ID
+}
+
 function sum(snapshots: AssetSnapshot[]): number {
   return snapshots.reduce((total, snapshot) => total + snapshot.amount, 0)
 }

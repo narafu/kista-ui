@@ -21,7 +21,6 @@ import {
 import { validateAdminSettings } from '../model/validateAdminSettings'
 import { ToggleRow } from './ToggleRow'
 import { ValueListEditor } from './ValueListEditor'
-import { SuggestionListEditor } from './SuggestionListEditor'
 import { RecurringModeEditor } from './RecurringModeEditor'
 import { FieldEditor } from './FieldEditor'
 import { normalizeNumber, normalizeSymbol } from '../model/normalizers'
@@ -134,13 +133,6 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
       benchmarks: { ...(current.benchmarks ?? DEFAULT_RUNTIME_BENCHMARKS), etf: value },
     }))
   }
-  const currentAssetFormOptions = draft.assetFormOptions ?? DEFAULT_ASSET_FORM_OPTIONS
-  const setStrategySuggestions = (values: string[]) => {
-    setDraft((current) => ({
-      ...current,
-      assetFormOptions: { ...(current.assetFormOptions ?? DEFAULT_ASSET_FORM_OPTIONS), strategySuggestions: values },
-    }))
-  }
   const submit = (event: FormEvent) => {
     event.preventDefault()
     setAttempted(true)
@@ -234,7 +226,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
             error={attempted ? errors['VR.intervalWeeks'] : undefined} inputType="number" normalize={normalizeNumber} onChange={(value) => setStrategyField('VR', 'intervalWeeks', value)} />
         </section>
 
-        <section className="border-b border-border px-4 py-4 sm:px-5">
+        <section className="px-4 py-4 sm:px-5">
           <h2 className="text-base font-bold">벤치마크 비교</h2>
           <div className="grid gap-2 py-3 sm:grid-cols-[minmax(140px,1fr)_minmax(220px,1.5fr)] sm:items-start">
             <div className="flex min-h-8 items-center sm:pr-4">
@@ -249,24 +241,6 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
               normalize={normalizeSymbol}
               onChange={(value) => setBenchmarkEtf(value as RuntimeBenchmarkFieldSettings<string>)}
             />
-          </div>
-        </section>
-
-        <section className="px-4 py-4 sm:px-5">
-          <h2 className="text-base font-bold">자산 등록 폼 추천 목록</h2>
-          <p className="pb-2 text-xs text-muted-foreground">
-            '자산' 메뉴 등록 폼의 운용전략은 자유 입력을 유지합니다 — 아래 목록은 입력을 돕는 추천값일 뿐 값 자체를 제한하지 않습니다.
-          </p>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <span className="text-sm font-medium">운용전략</span>
-              <SuggestionListEditor
-                id="asset-strategy"
-                label="운용전략"
-                values={currentAssetFormOptions.strategySuggestions}
-                onChange={setStrategySuggestions}
-              />
-            </div>
           </div>
         </section>
       </div>

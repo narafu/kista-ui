@@ -6,28 +6,28 @@ import type { AssetSnapshot, FinanceAccount, FinanceCategory, FinanceCategoryTyp
 export function assetSnapshotListQueryOptions(groupId?: string, token?: string) {
   return queryOptions<AssetSnapshot[]>({
     queryKey: financeKeys.assetSnapshots(groupId),
-    queryFn: () => listAssetSnapshots(groupId, token),
+    queryFn: () => listAssetSnapshots({ groupId, token }),
   })
 }
 
 export function financeCategoryListQueryOptions(type: FinanceCategoryType, groupId?: string, token?: string) {
   return queryOptions<FinanceCategory[]>({
     queryKey: financeKeys.categories(type, groupId),
-    queryFn: () => listFinanceCategories(type, groupId, token),
+    queryFn: () => listFinanceCategories(type, { groupId, token }),
   })
 }
 
 export function financeAccountListQueryOptions(groupId?: string, token?: string) {
   return queryOptions<FinanceAccount[]>({
     queryKey: financeKeys.accounts(groupId),
-    queryFn: () => listFinanceAccounts(groupId, token),
+    queryFn: () => listFinanceAccounts({ groupId, token }),
   })
 }
 
 export function monthlyClosingListQueryOptions(groupId?: string, token?: string) {
   return queryOptions<MonthlyClosing[]>({
     queryKey: financeKeys.monthlyClosings(groupId),
-    queryFn: () => listMonthlyClosings(groupId, token),
+    queryFn: () => listMonthlyClosings({ groupId, token }),
   })
 }
 

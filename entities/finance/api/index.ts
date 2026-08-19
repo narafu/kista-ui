@@ -13,7 +13,13 @@ import type {
   MonthlyClosing,
 } from '../model/types'
 
-// groupId 미지정 시 서버는 호출자의 개인 그룹으로 스코프한다.
+// groupId 미지정 시 서버는 호출자의 개인 그룹으로 스코프한다. groupId·token을 함께 받는
+// 함수들이 포지셔널 인자 순서에 의존하지 않도록 이 named-params 객체로 통일한다.
+export interface GroupScopedOptions {
+  groupId?: string
+  token?: string
+}
+
 function withQuery(path: string, params: Record<string, string | undefined>) {
   const query = new URLSearchParams()
   for (const [key, value] of Object.entries(params)) {
@@ -23,11 +29,14 @@ function withQuery(path: string, params: Record<string, string | undefined>) {
   return qs ? `${path}?${qs}` : path
 }
 
-export async function listAssetSnapshots(groupId?: string, token?: string): Promise<AssetSnapshot[]> {
+export async function listAssetSnapshots({ groupId, token }: GroupScopedOptions = {}): Promise<AssetSnapshot[]> {
   return fetchEither<AssetSnapshot[]>(withQuery('/api/finance/asset-snapshots', { groupId }), { method: 'GET' }, token)
 }
 
-export async function createAssetSnapshot(data: AssetSnapshotRequest, groupId?: string, token?: string): Promise<AssetSnapshot> {
+export async function createAssetSnapshot(
+  data: AssetSnapshotRequest,
+  { groupId, token }: GroupScopedOptions = {},
+): Promise<AssetSnapshot> {
   return fetchEither<AssetSnapshot>(withQuery('/api/finance/asset-snapshots', { groupId }), jsonBody('POST', data), token)
 }
 
@@ -45,8 +54,7 @@ export async function deleteAssetSnapshot(id: string, token?: string): Promise<v
 
 export async function listFinanceCategories(
   type: FinanceCategoryType,
-  groupId?: string,
-  token?: string,
+  { groupId, token }: GroupScopedOptions = {},
 ): Promise<FinanceCategory[]> {
   return fetchEither<FinanceCategory[]>(
     withQuery('/api/finance/categories', { type, groupId }),
@@ -57,8 +65,7 @@ export async function listFinanceCategories(
 
 export async function createFinanceCategory(
   data: FinanceCategoryRequest,
-  groupId?: string,
-  token?: string,
+  { groupId, token }: GroupScopedOptions = {},
 ): Promise<FinanceCategory> {
   return fetchEither<FinanceCategory>(withQuery('/api/finance/categories', { groupId }), jsonBody('POST', data), token)
 }
@@ -76,14 +83,36 @@ export async function deleteFinanceCategory(id: string, token?: string): Promise
   return fetchEither<void>(`/api/finance/categories/${encodeURIComponent(id)}`, { method: 'DELETE' }, token)
 }
 
-export async function listFinanceAccounts(groupId?: string, token?: string): Promise<FinanceAccount[]> {
+// 관리자 전용 시스템(공통) 카테고리 CRUD — groupId 없이 항상 system:true로 생성된다.
+// /api/admin/** 는 app/api/admin/[[...path]]/route.ts가 그대로 프록시하며 kista-api가 서버에서 ADMIN role을 검증한다.
+export async function listSystemFinanceCategories(type: FinanceCategoryType, token?: string): Promise<FinanceCategory[]> {
+  return fetchEither<FinanceCategory[]>(withQuery('/api/admin/finance/categories', { type }), { method: 'GET' }, token)
+}
+
+export async function createSystemFinanceCategory(data: FinanceCategoryRequest, token?: string): Promise<FinanceCategory> {
+  return fetchEither<FinanceCategory>('/api/admin/finance/categories', jsonBody('POST', data), token)
+}
+
+// PUT은 parentId/type을 무시한다(kista-api FinanceCategoryService.updateSystem) — 이름·sortOrder만 반영됨.
+export async function updateSystemFinanceCategory(
+  id: string,
+  data: FinanceCategoryRequest,
+  token?: string,
+): Promise<FinanceCategory> {
+  return fetchEither<FinanceCategory>(`/api/admin/finance/categories/${encodeURIComponent(id)}`, jsonBody('PUT', data), token)
+}
+
+export async function deleteSystemFinanceCategory(id: string, token?: string): Promise<void> {
+  return fetchEither<void>(`/api/admin/finance/categories/${encodeURIComponent(id)}`, { method: 'DELETE' }, token)
+}
+
+export async function listFinanceAccounts({ groupId, token }: GroupScopedOptions = {}): Promise<FinanceAccount[]> {
   return fetchEither<FinanceAccount[]>(withQuery('/api/finance/accounts', { groupId }), { method: 'GET' }, token)
 }
 
 export async function createFinanceAccount(
   data: FinanceAccountRequest,
-  groupId?: string,
-  token?: string,
+  { groupId, token }: GroupScopedOptions = {},
 ): Promise<FinanceAccount> {
   return fetchEither<FinanceAccount>(withQuery('/api/finance/accounts', { groupId }), jsonBody('POST', data), token)
 }
@@ -96,7 +125,7 @@ export async function deleteFinanceAccount(id: string, token?: string): Promise<
   return fetchEither<void>(`/api/finance/accounts/${encodeURIComponent(id)}`, { method: 'DELETE' }, token)
 }
 
-export async function listMonthlyClosings(groupId?: string, token?: string): Promise<MonthlyClosing[]> {
+export async function listMonthlyClosings({ groupId, token }: GroupScopedOptions = {}): Promise<MonthlyClosing[]> {
   return fetchEither<MonthlyClosing[]>(withQuery('/api/finance/monthly-closings', { groupId }), { method: 'GET' }, token)
 }
 

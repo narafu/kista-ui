@@ -13,6 +13,9 @@ export const financeKeys = {
   categoriesRoot: () => [...financeKeys.all, 'categories'] as const,
   categories: (type: FinanceCategoryType, groupId?: string) =>
     [...financeKeys.categoriesRoot(), type, groupSegment(groupId), 'list'] as const,
+  // 관리자 시스템 카테고리 — groupId가 없는 별도 네임스페이스라 groupSegment()를 재사용하지 않는다.
+  systemCategoriesRoot: () => [...financeKeys.all, 'system-categories'] as const,
+  systemCategories: (type: FinanceCategoryType) => [...financeKeys.systemCategoriesRoot(), type, 'list'] as const,
   accountsRoot: () => [...financeKeys.all, 'accounts'] as const,
   accounts: (groupId?: string) => [...financeKeys.accountsRoot(), groupSegment(groupId), 'list'] as const,
   monthlyClosingsRoot: () => [...financeKeys.all, 'monthly-closings'] as const,

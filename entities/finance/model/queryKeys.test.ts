@@ -22,4 +22,9 @@ describe('financeKeys', () => {
     expect(financeKeys.groups()).toEqual(['finance', 'groups', 'list'])
     expect(financeKeys.groupMembers('g1')).toEqual(['finance', 'groups', 'g1', 'members'])
   })
+
+  it('scopes system category keys under a separate namespace from group-scoped categories', () => {
+    expect(financeKeys.systemCategoriesRoot()).toEqual(['finance', 'system-categories'])
+    expect(financeKeys.systemCategories('ASSET')).toEqual(['finance', 'system-categories', 'ASSET', 'list'])
+  })
 })
