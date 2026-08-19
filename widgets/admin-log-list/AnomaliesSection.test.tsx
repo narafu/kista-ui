@@ -14,6 +14,7 @@ const pausedAccount: AdminAnomalyAccount = {
   userId: 'user-1',
   ownerNickname: '홍길동',
   accountNoMasked: '123-45****',
+  accountNo: '123-4567890',
 }
 
 const inactiveAccount: AdminAnomalyAccount = {
@@ -21,6 +22,7 @@ const inactiveAccount: AdminAnomalyAccount = {
   userId: 'user-2',
   ownerNickname: '김영희',
   accountNoMasked: '987-65****',
+  accountNo: '987-6543210',
 }
 
 describe('AnomaliesSection', () => {

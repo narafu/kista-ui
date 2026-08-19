@@ -118,6 +118,7 @@ export interface AdminAnomalyAccount {
   userId: string
   ownerNickname: string
   accountNoMasked: string
+  accountNo: string
 }
 
 export interface AdminAnomalies {

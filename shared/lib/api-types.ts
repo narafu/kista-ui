@@ -186,6 +186,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/finance/categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * 시스템 카테고리 수정
+         * @description 이름·정렬 순서만 반영됩니다 — 타입·상위 카테고리는 생성 후 불변입니다.
+         */
+        put: operations["update_6"];
+        post?: never;
+        /**
+         * 시스템 카테고리 삭제
+         * @description 소프트 삭제 — 하위 카테고리도 함께 삭제됩니다.
+         */
+        delete: operations["delete_6"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/accounts/{id}": {
         parameters: {
             query?: never;
@@ -198,13 +222,13 @@ export interface paths {
          * 계좌 수정
          * @description 별명을 수정. 계좌번호 및 KIS 자격증명은 수정 불가.
          */
-        put: operations["update_6"];
+        put: operations["update_7"];
         post?: never;
         /**
          * 계좌 삭제
          * @description 계좌 및 관련 데이터를 영구 삭제.
          */
-        delete: operations["delete_6"];
+        delete: operations["delete_7"];
         options?: never;
         head?: never;
         patch?: never;
@@ -318,7 +342,7 @@ export interface paths {
         };
         /**
          * 카테고리 목록 조회
-         * @description L1 카테고리에 L2 하위 카테고리가 중첩된 트리로 반환합니다.
+         * @description 카테고리를 중첩된 트리로 반환합니다.
          */
         get: operations["list_1"];
         put?: never;
@@ -382,7 +406,10 @@ export interface paths {
         /** 계좌 목록 조회 */
         get: operations["list_4"];
         put?: never;
-        /** 계좌 등록 */
+        /**
+         * 계좌 등록
+         * @description 같은 그룹 안에서도 계좌명 중복이 허용됩니다.
+         */
         post: operations["create_4"];
         delete?: never;
         options?: never;
@@ -704,6 +731,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/finance/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 시스템 카테고리 목록 조회
+         * @description 그룹 공용 시스템 카테고리를 중첩된 트리로 반환합니다.
+         */
+        get: operations["list_5"];
+        put?: never;
+        /** 시스템 카테고리 등록 */
+        post: operations["create_5"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/accounts": {
         parameters: {
             query?: never;
@@ -715,7 +763,7 @@ export interface paths {
          * 내 계좌 목록 조회
          * @description 로그인한 사용자의 전체 계좌 목록 반환. 계좌번호는 마지막 4자리만 노출.
          */
-        get: operations["list_5"];
+        get: operations["list_6"];
         put?: never;
         /**
          * 계좌 등록
@@ -736,7 +784,7 @@ export interface paths {
             cookie?: never;
         };
         /** 거래 사이클 목록 조회 */
-        get: operations["list_6"];
+        get: operations["list_7"];
         put?: never;
         /** 거래 사이클 등록 */
         post: operations["register_1"];
@@ -1340,7 +1388,7 @@ export interface paths {
             cookie?: never;
         };
         /** 월별 마감 상태 목록 조회 */
-        get: operations["list_7"];
+        get: operations["list_8"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2501,7 +2549,7 @@ export interface components {
             sortOrder?: number;
             /** @description 시스템 전역 카테고리 여부 (true면 수정·삭제 불가) */
             system?: boolean;
-            /** @description 하위 카테고리 목록 (L1만 채워짐) */
+            /** @description 하위 카테고리 목록 (임의 depth로 재귀 중첩) */
             children?: components["schemas"]["FinanceCategoryResponse"][];
         };
         FinanceBudgetRequest: {
@@ -2716,15 +2764,18 @@ export interface components {
             /** @description 신규 가입 승인 필요 여부 */
             approvalRequired: boolean;
         };
-        BenchmarkFieldRequestString: {
+        BenchmarkFieldRequestEtfBenchmarkSymbol: {
             /** @description 허용 값 목록 */
-            allowedValues: string[];
-            /** @description 비교 기본값 */
-            defaultValue: string;
+            allowedValues: ("SPY" | "QQQ" | "QLD" | "IBIT" | "ETHA")[];
+            /**
+             * @description 비교 기본값
+             * @enum {string}
+             */
+            defaultValue: "SPY" | "QQQ" | "QLD" | "IBIT" | "ETHA";
         };
         BenchmarkRequest: {
             /** @description ETF 벤치마크 비교 자산 설정 */
-            etf: components["schemas"]["BenchmarkFieldRequestString"];
+            etf: components["schemas"]["BenchmarkFieldRequestEtfBenchmarkSymbol"];
         };
         BrokerRequest: {
             /** @description 증권사 신규 계좌 등록/연결 테스트 허용 여부 */
@@ -3605,7 +3656,7 @@ export interface components {
              * @example NO_PRIVACY_BASE
              * @enum {string}
              */
-            skipReason?: "NO_CYCLE_HISTORY" | "NO_PRIVACY_BASE";
+            skipReason?: "NO_CYCLE_HISTORY" | "NO_PRIVACY_BASE" | "SCHEDULED_START_NOT_REACHED";
             /** @description 오늘 이미 등록된 PLANNED·PLACED 주문 목록 */
             todayOrders?: components["schemas"]["TodayOrderItem"][];
             /** @description 계좌 내 타 전략의 당일 PLANNED BUY 합계 (USD) */
@@ -3962,6 +4013,8 @@ export interface components {
              * @description 사용자 ID
              */
             userId?: string;
+            /** @description 닉네임 */
+            nickname?: string;
             /**
              * @description 그룹 내 역할
              * @example OWNER
@@ -4249,6 +4302,11 @@ export interface components {
              * @example ****1234
              */
             accountNoMasked?: string;
+            /**
+             * @description 원본 계좌번호 (ADMIN 전용)
+             * @example 12345678-01
+             */
+            accountNo?: string;
             /**
              * @description 브로커 코드
              * @example KIS
@@ -5017,15 +5075,6 @@ export interface operations {
                     "*/*": components["schemas"]["FinanceAccountResponse"];
                 };
             };
-            /** @description 이름 중복 */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["FinanceAccountResponse"];
-                };
-            };
         };
     };
     delete_5: {
@@ -5112,6 +5161,86 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 카테고리 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FinanceCategoryRequest"];
+            };
+        };
+        responses: {
+            /** @description 수정 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinanceCategoryResponse"];
+                };
+            };
+            /** @description 시스템 카테고리가 아님 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinanceCategoryResponse"];
+                };
+            };
+            /** @description 카테고리를 찾을 수 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinanceCategoryResponse"];
+                };
+            };
+        };
+    };
+    delete_6: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 카테고리 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 삭제 성공 */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 시스템 카테고리가 아님 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 카테고리를 찾을 수 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    update_7: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
                 /**
                  * @description 계좌 ID
                  * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
@@ -5155,7 +5284,7 @@ export interface operations {
             };
         };
     };
-    delete_6: {
+    delete_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -5675,15 +5804,6 @@ export interface operations {
                     "*/*": components["schemas"]["FinanceAccountResponse"];
                 };
             };
-            /** @description 이름 중복 */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["FinanceAccountResponse"];
-                };
-            };
         };
     };
     registerToken: {
@@ -6037,6 +6157,61 @@ export interface operations {
     };
     list_5: {
         parameters: {
+            query?: {
+                type?: "INCOME" | "EXPENSE" | "SAVING" | "ASSET";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinanceCategoryResponse"][];
+                };
+            };
+        };
+    };
+    create_5: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FinanceCategoryRequest"];
+            };
+        };
+        responses: {
+            /** @description 등록 성공 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinanceCategoryResponse"];
+                };
+            };
+            /** @description 잘못된 요청 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinanceCategoryResponse"];
+                };
+            };
+        };
+    };
+    list_6: {
+        parameters: {
             query?: never;
             header?: never;
             path?: never;
@@ -6097,7 +6272,7 @@ export interface operations {
             };
         };
     };
-    list_6: {
+    list_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -6927,7 +7102,7 @@ export interface operations {
             };
         };
     };
-    list_7: {
+    list_8: {
         parameters: {
             query?: {
                 groupId?: string;

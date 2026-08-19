@@ -17,7 +17,7 @@ export function AccountTable({ accounts }: { accounts: AdminAnomalyAccount[] }) 
               <td className="px-4 py-2.5 font-medium">{a.ownerNickname}</td>
               <td className="px-4 py-2.5 font-mono text-sm text-muted-foreground">
                 <RevealableValue
-                  value={a.accountNoMasked ?? ''}
+                  value={a.accountNo ?? ''}
                   hiddenDisplay={a.accountNoMasked ?? ''}
                 />
               </td>
