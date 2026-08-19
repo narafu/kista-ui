@@ -46,18 +46,18 @@ describe('GroupManager', () => {
     activeGroupId = sharedGroup.id
   })
 
-  it('OWNER에게는 초대하기 버튼과 그룹 탈퇴 버튼을 모두 보여준다', () => {
+  it('OWNER에게는 초대코드 발급 버튼과 그룹 탈퇴 버튼을 모두 보여준다', () => {
     members = [
       { userId: me.id, role: 'OWNER' },
       { userId: 'user-other', role: 'MEMBER' },
     ]
     render(<GroupManager />)
 
-    expect(screen.getByRole('button', { name: '초대하기' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '초대코드 발급' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '그룹 탈퇴' })).toBeInTheDocument()
   })
 
-  it('일반 멤버에게는 그룹 탈퇴 버튼을 보여주고 초대하기 버튼은 숨긴다', () => {
+  it('일반 멤버에게는 그룹 탈퇴 버튼을 보여주고 초대코드 발급 버튼은 숨긴다', () => {
     members = [
       { userId: 'user-owner', role: 'OWNER' },
       { userId: me.id, role: 'MEMBER' },
@@ -65,15 +65,15 @@ describe('GroupManager', () => {
     render(<GroupManager />)
 
     expect(screen.getByRole('button', { name: '그룹 탈퇴' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: '초대하기' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '초대코드 발급' })).not.toBeInTheDocument()
   })
 
-  it('개인 그룹의 OWNER는 초대하기 버튼을 볼 수 있지만(그룹 생성의 유일한 경로) 탈퇴 버튼은 숨긴다(서버가 409)', () => {
+  it('개인 그룹의 OWNER는 초대코드 발급 버튼을 볼 수 있지만(그룹 생성의 유일한 경로) 탈퇴 버튼은 숨긴다(서버가 409)', () => {
     activeGroupId = undefined
     members = [{ userId: me.id, role: 'OWNER' }]
     render(<GroupManager />)
 
-    expect(screen.getByRole('button', { name: '초대하기' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '초대코드 발급' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '그룹 탈퇴' })).not.toBeInTheDocument()
   })
 

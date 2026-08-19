@@ -45,15 +45,11 @@ export function AccountManager() {
         <ul className="divide-y divide-border">
           {accounts.map((account) => (
             <li key={account.id} className="flex items-center justify-between gap-3 py-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-muted-foreground shrink-0">{accountTypeLabel(account.accountType)}</span>
-                  <span className="font-medium truncate">{account.name}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                  {account.accountNo && <span className="tabular-nums">{maskAccountNo(account.accountNo)}</span>}
-                  {account.memo && <span className="truncate">{account.memo}</span>}
-                </div>
+              <div className="min-w-0 flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground shrink-0">{accountTypeLabel(account.accountType)}</span>
+                <span className="font-medium truncate min-w-0">{account.name}</span>
+                {account.accountNo && <span className="text-xs text-muted-foreground tabular-nums shrink-0">{maskAccountNo(account.accountNo)}</span>}
+                {account.memo && <span className="text-xs text-muted-foreground truncate min-w-0">{account.memo}</span>}
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 <Button

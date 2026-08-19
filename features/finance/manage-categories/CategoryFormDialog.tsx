@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Spinner } from '@shared/ui/Spinner'
-import { useCreateFinanceCategoryMutation, useUpdateFinanceCategoryMutation } from '@entities/finance'
+import { getCascadeLevels, useCreateFinanceCategoryMutation, useUpdateFinanceCategoryMutation } from '@entities/finance'
 import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
 
 // Base UI Select는 빈 문자열 value를 허용하지 않는다 — AssetForm의 NO_ACCOUNT_VALUE와 동일한 센티널 패턴.
@@ -25,7 +25,7 @@ interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
   type: FinanceCategoryType
-  /** 부모 선택지(L1 카테고리 목록) — 생성 모드에서만 사용, UI는 L1/L2 2단만 지원한다 */
+  /** 부모 선택지 — 생성 모드에서만 사용, 루트 트리(children 포함) 전체를 받아 임의 depth 계단식 선택을 구성한다 */
   l1Categories: FinanceCategory[]
   /** null이면 생성 모드, 값이 있으면 수정 모드(name·sortOrder만 편집 가능) */
   category: FinanceCategory | null
@@ -36,7 +36,11 @@ export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, cat
   const mode = category ? 'edit' : 'create'
   const [name, setName] = useState(category?.name ?? '')
   const [sortOrder, setSortOrder] = useState(String(category?.sortOrder ?? 0))
-  const [parentId, setParentId] = useState(category?.parentId ?? NO_PARENT_VALUE)
+  // 계단식 부모 Select: 각 단에서 선택한 categoryId를 순서대로 담는다. 마지막 값이 실제
+  // parentId — 선택한 노드에 children이 있으면 다음 단이 자동으로 추가돼 depth 제한이 없다.
+  const [selectedPath, setSelectedPath] = useState<string[]>([])
+  const cascadeLevels = getCascadeLevels(l1Categories, selectedPath)
+  const parentId = selectedPath[selectedPath.length - 1] ?? NO_PARENT_VALUE
 
   const createMutation = useCreateFinanceCategoryMutation()
   const updateMutation = useUpdateFinanceCategoryMutation(category?.id ?? '')
@@ -87,22 +91,30 @@ export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, cat
             {mode === 'create' && (
               <div className="space-y-2">
                 <Label htmlFor="parentId">상위 카테고리</Label>
-                <Select
-                  items={[
-                    { value: NO_PARENT_VALUE, label: '없음 (최상위로 생성)' },
-                    ...l1Categories.map((c) => ({ value: c.id, label: c.name })),
-                  ]}
-                  value={parentId}
-                  onValueChange={(value) => { if (value) setParentId(value) }}
-                >
-                  <SelectTrigger id="parentId" className="w-full h-10" disabled={isPending}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={NO_PARENT_VALUE}>없음 (최상위로 생성)</SelectItem>
-                    {l1Categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <div className="space-y-2">
+                  {cascadeLevels.map((level, levelIndex) => (
+                    <Select
+                      key={levelIndex}
+                      items={[
+                        { value: NO_PARENT_VALUE, label: '없음 (최상위로 생성)' },
+                        ...level.map((c) => ({ value: c.id, label: c.name })),
+                      ]}
+                      value={selectedPath[levelIndex] ?? NO_PARENT_VALUE}
+                      onValueChange={(value) => {
+                        if (!value) return
+                        setSelectedPath((prev) => (value === NO_PARENT_VALUE ? prev.slice(0, levelIndex) : [...prev.slice(0, levelIndex), value]))
+                      }}
+                    >
+                      <SelectTrigger id={levelIndex === 0 ? 'parentId' : undefined} className="w-full h-10" disabled={isPending}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={NO_PARENT_VALUE}>없음 (최상위로 생성)</SelectItem>
+                        {level.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  ))}
+                </div>
               </div>
             )}
 

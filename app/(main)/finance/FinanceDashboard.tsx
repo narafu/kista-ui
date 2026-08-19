@@ -64,7 +64,7 @@ export function FinanceDashboard() {
   return (
     <>
       <PageHeader
-        eyebrow="자산 관리"
+        eyebrow="가계부"
         title="내 자산"
         actions={tab === 'investment' ? <NewAssetButton /> : undefined}
       />

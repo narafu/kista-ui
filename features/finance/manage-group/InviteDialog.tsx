@@ -21,9 +21,9 @@ import type { FinanceGroupInvitation } from '@entities/finance'
 // 초대 발급 API는 상한을 두지 않지만(kista-api), 재조회 API가 없어 발급 즉시 코드를 잃어버리면
 // 복구 불가능하다 — 프리셋으로 제한해 실수로 과도한 만료시간을 입력하는 걸 막는다.
 const EXPIRES_PRESETS = [
-  { value: '24', label: '24시간' },
-  { value: '72', label: '72시간' },
-  { value: '168', label: '7일' },
+  { value: '24', label: '1일(24시간)' },
+  { value: '72', label: '3일(72시간)' },
+  { value: '168', label: '7일(168시간)' },
 ]
 
 interface Props {
@@ -67,7 +67,7 @@ export function InviteDialog({ groupId }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger className={cn(buttonVariants({ size: 'sm' }))}>초대하기</DialogTrigger>
+      <DialogTrigger className={cn(buttonVariants({ size: 'sm' }))}>초대코드 발급</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>초대 코드 발급</DialogTitle>

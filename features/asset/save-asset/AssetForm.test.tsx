@@ -147,18 +147,17 @@ describe('AssetForm', () => {
     expect(screen.getAllByRole('button', { name: '수정' })[0]).toBeDisabled()
   })
 
-  it('duplicate 모드에서는 금액을 제외한 초기값을 채우고, 금액을 입력해야 등록(create) mutation을 호출한다', async () => {
+  it('duplicate 모드에서는 금액을 포함한 초기값을 그대로 채우고, 등록(create) mutation을 호출한다', async () => {
     const user = userEvent.setup()
     render(<AssetForm mode="duplicate" initial={existing} onSuccess={onSuccess} onCancel={onCancel} />)
 
-    expect(screen.getByLabelText('금액 (원)')).toHaveValue('')
-    expect(screen.getAllByRole('button', { name: '복제 등록' })[0]).toBeDisabled()
+    expect(screen.getByLabelText('금액 (원)')).toHaveValue('1,000,000')
+    expect(screen.getAllByRole('button', { name: '복제 등록' })[0]).not.toBeDisabled()
 
-    await user.type(screen.getByLabelText('금액 (원)'), '2000000')
     await user.click(screen.getAllByRole('button', { name: '복제 등록' })[0])
 
     expect(createMutateMock).toHaveBeenCalledWith(
-      expect.objectContaining({ categoryId: 'cat-l2-general', amount: 2_000_000 }),
+      expect.objectContaining({ categoryId: 'cat-l2-general', amount: 1_000_000 }),
       expect.objectContaining({ onSuccess: expect.any(Function) }),
     )
     expect(updateMutateMock).not.toHaveBeenCalled()

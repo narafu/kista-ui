@@ -33,8 +33,8 @@ export function AcceptInvitationForm() {
           disabled={mutation.isPending}
           className="h-11 flex-1"
         />
-        <Button type="button" disabled={mutation.isPending || !code.trim()} onClick={accept}>
-          수락
+        <Button type="button" className="h-11" disabled={mutation.isPending || !code.trim()} onClick={accept}>
+          등록
         </Button>
       </div>
     </div>

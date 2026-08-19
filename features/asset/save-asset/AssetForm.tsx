@@ -135,9 +135,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
   const [assetClass, setAssetClass] = useState<AssetClass>(initial?.assetClass ?? 'CASH')
   const [market, setMarket] = useState<Market>(initial?.market ?? 'DOMESTIC')
   const [strategy, setStrategy] = useState(initial?.strategy ?? '')
-  // 복제 모드는 금액을 제외한 나머지 필드만 이어받는다 — 복제 시점마다 금액이 다른 게
-  // 일반적인 사용 패턴이라, 이전 금액을 그대로 들고 있으면 고치는 걸 잊고 그대로 제출하기 쉽다.
-  const [amountDigits, setAmountDigits] = useState(mode === 'edit' && initial ? String(initial.amount) : '')
+  const [amountDigits, setAmountDigits] = useState(initial ? String(initial.amount) : '')
 
   const createMutation = useCreateAssetSnapshotMutation()
   const updateMutation = useUpdateAssetSnapshotMutation(initial?.id ?? '')
