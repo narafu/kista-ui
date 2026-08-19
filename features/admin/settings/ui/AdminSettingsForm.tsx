@@ -190,24 +190,6 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
         </section>
 
         <section className="border-b border-border px-4 py-4 sm:px-5">
-          <h2 className="text-base font-bold">벤치마크 비교</h2>
-          <div className="grid gap-2 py-3 sm:grid-cols-[minmax(140px,1fr)_minmax(220px,1.5fr)] sm:items-start">
-            <div className="flex min-h-8 items-center sm:pr-4">
-              <span className="text-sm font-medium">ETF 벤치마크 자산</span>
-            </div>
-            <ValueListEditor
-              id="benchmark-etf"
-              label="ETF 벤치마크 자산"
-              field={draft.benchmarks?.etf ?? DEFAULT_RUNTIME_BENCHMARKS.etf}
-              error={attempted ? errors['benchmarks.etf'] : undefined}
-              suggestions={DEFAULT_RUNTIME_BENCHMARKS.etf.allowedValues}
-              normalize={normalizeSymbol}
-              onChange={(value) => setBenchmarkEtf(value as RuntimeBenchmarkFieldSettings<string>)}
-            />
-          </div>
-        </section>
-
-        <section className="border-b border-border px-4 py-4 sm:px-5">
           <h2 className="text-base font-bold">INFINITE 필드</h2>
           <FieldEditor
             id="infinite-ticker"
@@ -250,6 +232,24 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
             error={attempted ? errors['VR.bandWidth'] : undefined} inputType="number" normalize={normalizeNumber} onChange={(value) => setStrategyField('VR', 'bandWidth', value)} />
           <FieldEditor id="vr-interval" label="주기 (주)" field={draft.strategies.VR.fields.intervalWeeks!}
             error={attempted ? errors['VR.intervalWeeks'] : undefined} inputType="number" normalize={normalizeNumber} onChange={(value) => setStrategyField('VR', 'intervalWeeks', value)} />
+        </section>
+
+        <section className="border-b border-border px-4 py-4 sm:px-5">
+          <h2 className="text-base font-bold">벤치마크 비교</h2>
+          <div className="grid gap-2 py-3 sm:grid-cols-[minmax(140px,1fr)_minmax(220px,1.5fr)] sm:items-start">
+            <div className="flex min-h-8 items-center sm:pr-4">
+              <span className="text-sm font-medium">ETF 벤치마크 자산</span>
+            </div>
+            <ValueListEditor
+              id="benchmark-etf"
+              label="ETF 벤치마크 자산"
+              field={draft.benchmarks?.etf ?? DEFAULT_RUNTIME_BENCHMARKS.etf}
+              error={attempted ? errors['benchmarks.etf'] : undefined}
+              suggestions={DEFAULT_RUNTIME_BENCHMARKS.etf.allowedValues}
+              normalize={normalizeSymbol}
+              onChange={(value) => setBenchmarkEtf(value as RuntimeBenchmarkFieldSettings<string>)}
+            />
+          </div>
         </section>
 
         <section className="px-4 py-4 sm:px-5">
