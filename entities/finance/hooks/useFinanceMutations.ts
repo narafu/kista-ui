@@ -10,15 +10,18 @@ import {
   createFinanceAccount,
   createFinanceCategory,
   createFinanceGroupInvitation,
+  createSystemFinanceCategory,
   deleteAssetSnapshot,
   deleteFinanceAccount,
   deleteFinanceCategory,
+  deleteSystemFinanceCategory,
   removeFinanceGroupMember,
   respondToInvitation,
   setMonthlyClosing,
   updateAssetSnapshot,
   updateFinanceAccount,
   updateFinanceCategory,
+  updateSystemFinanceCategory,
 } from '../api'
 import type {
   AssetSnapshot,
@@ -172,6 +175,40 @@ export function useUpdateFinanceCategoryMutation(categoryId: string) {
 export function useDeleteFinanceCategoryMutation() {
   return useInvalidateCategoriesMutation<void, string>(
     (id) => deleteFinanceCategory(id),
+    '카테고리를 삭제하지 못했습니다',
+  )
+}
+
+// 관리자 시스템 카테고리 — 그룹 스코프 카테고리와 캐시 네임스페이스가 분리돼 있어 그룹 캐시를 건드리지 않는다.
+function useInvalidateSystemCategoriesMutation<TData, TVariables>(
+  mutationFn: (variables: TVariables) => Promise<TData>,
+  errorFallback: string,
+) {
+  const queryClient = useQueryClient()
+  return useMutation<TData, Error, TVariables>({
+    mutationFn,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.systemCategoriesRoot() }),
+    onError: (err) => toast.error(apiMsg(err, errorFallback)),
+  })
+}
+
+export function useCreateSystemFinanceCategoryMutation() {
+  return useInvalidateSystemCategoriesMutation<FinanceCategory, FinanceCategoryRequest>(
+    (data) => createSystemFinanceCategory(data),
+    '카테고리를 저장하지 못했습니다',
+  )
+}
+
+export function useUpdateSystemFinanceCategoryMutation(categoryId: string) {
+  return useInvalidateSystemCategoriesMutation<FinanceCategory, FinanceCategoryRequest>(
+    (data) => updateSystemFinanceCategory(categoryId, data),
+    '카테고리를 수정하지 못했습니다',
+  )
+}
+
+export function useDeleteSystemFinanceCategoryMutation() {
+  return useInvalidateSystemCategoriesMutation<void, string>(
+    (id) => deleteSystemFinanceCategory(id),
     '카테고리를 삭제하지 못했습니다',
   )
 }

@@ -4,7 +4,10 @@ import { useState } from 'react'
 import { Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { normalizeText } from '../model/normalizers'
+
+function normalizeText(value: string) {
+  return value.trim()
+}
 
 // ValueListEditor와 달리 "기본값" 개념이 없는 순수 추천 목록 편집기 — 필드 자체가 여전히
 // 자유 입력이라(자산 등록 폼의 세부 카테고리/기관/자산군/운용전략) 값 하나를 defaultValue로

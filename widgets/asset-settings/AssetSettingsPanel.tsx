@@ -2,6 +2,7 @@
 
 import { CategoryManager } from '@features/finance/manage-categories'
 import { AccountManager } from '@features/finance/manage-accounts'
+import { StrategySuggestionManager } from '@features/finance/manage-strategy-suggestions'
 import { GroupManager } from '@features/finance/manage-group'
 import { Surface } from '@shared/ui/Surface'
 
@@ -9,6 +10,8 @@ import { Surface } from '@shared/ui/Surface'
 // features 슬라이스를 Surface 카드로 묶어 나열한다. 카테고리·계좌는 서로 다른 리소스라
 // AccountManager가 자체 카드(bg-card 배경)를 갖고 있어 이 컴포넌트가 다시 Surface로
 // 감싸지 않는다 — CategoryManager/GroupManager는 카드 배경이 없어 Surface로 감싼다.
+// StrategySuggestionManager는 ADMIN이 아니면 스스로 null을 반환한다(구 admin/settings 폼의
+// 전역 설정을 계좌관리 아래로 이관 — 일반 사용자도 방문하는 탭이라 컴포넌트 자체가 게이팅한다).
 export function AssetSettingsPanel() {
   return (
     <div className="flex flex-col gap-[18px]">
@@ -19,6 +22,8 @@ export function AssetSettingsPanel() {
       </Surface>
 
       <AccountManager />
+
+      <StrategySuggestionManager />
 
       <GroupManager />
     </div>

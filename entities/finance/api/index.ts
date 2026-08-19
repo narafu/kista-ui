@@ -76,6 +76,29 @@ export async function deleteFinanceCategory(id: string, token?: string): Promise
   return fetchEither<void>(`/api/finance/categories/${encodeURIComponent(id)}`, { method: 'DELETE' }, token)
 }
 
+// 관리자 전용 시스템(공통) 카테고리 CRUD — groupId 없이 항상 system:true로 생성된다.
+// /api/admin/** 는 app/api/admin/[[...path]]/route.ts가 그대로 프록시하며 kista-api가 서버에서 ADMIN role을 검증한다.
+export async function listSystemFinanceCategories(type: FinanceCategoryType, token?: string): Promise<FinanceCategory[]> {
+  return fetchEither<FinanceCategory[]>(withQuery('/api/admin/finance/categories', { type }), { method: 'GET' }, token)
+}
+
+export async function createSystemFinanceCategory(data: FinanceCategoryRequest, token?: string): Promise<FinanceCategory> {
+  return fetchEither<FinanceCategory>('/api/admin/finance/categories', jsonBody('POST', data), token)
+}
+
+// PUT은 parentId/type을 무시한다(kista-api FinanceCategoryService.updateSystem) — 이름·sortOrder만 반영됨.
+export async function updateSystemFinanceCategory(
+  id: string,
+  data: FinanceCategoryRequest,
+  token?: string,
+): Promise<FinanceCategory> {
+  return fetchEither<FinanceCategory>(`/api/admin/finance/categories/${encodeURIComponent(id)}`, jsonBody('PUT', data), token)
+}
+
+export async function deleteSystemFinanceCategory(id: string, token?: string): Promise<void> {
+  return fetchEither<void>(`/api/admin/finance/categories/${encodeURIComponent(id)}`, { method: 'DELETE' }, token)
+}
+
 export async function listFinanceAccounts(groupId?: string, token?: string): Promise<FinanceAccount[]> {
   return fetchEither<FinanceAccount[]>(withQuery('/api/finance/accounts', { groupId }), { method: 'GET' }, token)
 }

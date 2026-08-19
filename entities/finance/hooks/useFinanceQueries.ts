@@ -8,7 +8,7 @@ import {
   financeGroupListQueryOptions,
   monthlyClosingListQueryOptions,
 } from '../model/queryOptions'
-import { listFinanceGroupMembers } from '../api'
+import { listFinanceGroupMembers, listSystemFinanceCategories } from '../api'
 import { financeKeys } from '../model/queryKeys'
 import type { FinanceCategoryType } from '../model/types'
 import { useActiveGroupContext } from '../providers/ActiveGroupProvider'
@@ -56,5 +56,13 @@ export function useFinanceGroupMembersQuery(groupId: string) {
   return useQuery({
     queryKey: financeKeys.groupMembers(groupId),
     queryFn: () => listFinanceGroupMembers(groupId),
+  })
+}
+
+// 관리자 시스템 카테고리 — groupId가 없어 useActiveGroupId()/useFinanceGroupsQuery()를 구독하지 않는다.
+export function useSystemFinanceCategoriesQuery(type: FinanceCategoryType) {
+  return useQuery({
+    queryKey: financeKeys.systemCategories(type),
+    queryFn: () => listSystemFinanceCategories(type),
   })
 }

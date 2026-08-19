@@ -6,28 +6,26 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { useMeta } from '@entities/meta'
-import { collectSubtreeIds, useDeleteFinanceCategoryMutation, useFinanceCategoriesQuery } from '@entities/finance'
+import { collectSubtreeIds, useDeleteSystemFinanceCategoryMutation, useSystemFinanceCategoriesQuery } from '@entities/finance'
 import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
-import { CategoryFormDialog } from './CategoryFormDialog'
 import { CategoryRow } from './CategoryRow'
 import { DeleteCategoryDialog } from './DeleteCategoryDialog'
+import { SystemCategoryFormDialog } from './SystemCategoryFormDialog'
 import { TypeButton } from './TypeButton'
 
-// 4타입(ASSET/INCOME/EXPENSE/SAVING) 카테고리 트리를 사용자가 직접 생성·수정·삭제하는 화면.
-// 수입/지출/저축 탭 자체는 아직 미구현이지만 카테고리는 미리 만들어둘 수 있어야 해서 타입
-// 세그먼트만 먼저 노출한다. shadcn Tabs가 없어 FinanceDashboard의 TabButton 패턴을 그대로 따른다.
-export function CategoryManager() {
+// 관리자 전용 시스템(공통) 카테고리 CRUD — CategoryManager와 거의 동일한 구조이되
+// /api/admin/finance/categories를 소비하고(캐시 네임스페이스 분리: systemCategoriesRoot),
+// CategoryRow에 lockSystemCategories={false}를 넘겨 시스템 카테고리도 수정·삭제할 수 있게 한다.
+export function SystemCategoryManager() {
   const { meta } = useMeta()
   const [type, setType] = useState<FinanceCategoryType>('ASSET')
-  const { data: categories } = useFinanceCategoriesQuery(type)
+  const { data: categories } = useSystemFinanceCategoriesQuery(type)
   const l1Categories = categories ?? []
 
-  // AccountManager와 동일한 조건부 마운트 패턴 — 열 때마다 다이얼로그가 새로 마운트되므로
-  // key 트릭 없이도 내부 useState(name 등)가 매번 초기화된다.
   const [formTarget, setFormTarget] = useState<FinanceCategory | 'new' | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<FinanceCategory | null>(null)
 
-  const deleteMutation = useDeleteFinanceCategoryMutation()
+  const deleteMutation = useDeleteSystemFinanceCategoryMutation()
 
   function handleDelete() {
     if (!deleteTarget) return
@@ -41,6 +39,8 @@ export function CategoryManager() {
 
   return (
     <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">어드민에서 등록한 카테고리는 모든 그룹에 공통으로 노출됩니다.</p>
+
       <div role="group" aria-label="카테고리 유형" className="grid w-full grid-cols-4 rounded-md border border-border p-0.5 sm:w-96">
         {meta.financeCategoryTypes.map((t) => (
           <TypeButton key={t.code} active={type === t.code} onClick={() => setType(t.code as FinanceCategoryType)}>
@@ -61,13 +61,20 @@ export function CategoryManager() {
       ) : (
         <ul className="m-0 list-none rounded-[var(--r-lg)] border border-border p-0">
           {l1Categories.map((category) => (
-            <CategoryRow key={category.id} category={category} depth={0} onEdit={setFormTarget} onDelete={setDeleteTarget} />
+            <CategoryRow
+              key={category.id}
+              category={category}
+              depth={0}
+              onEdit={setFormTarget}
+              onDelete={setDeleteTarget}
+              lockSystemCategories={false}
+            />
           ))}
         </ul>
       )}
 
       {formTarget && (
-        <CategoryFormDialog
+        <SystemCategoryFormDialog
           open
           onOpenChange={(next) => { if (!next) setFormTarget(null) }}
           type={type}
