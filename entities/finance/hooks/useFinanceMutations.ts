@@ -57,7 +57,7 @@ export function useCreateAssetSnapshotMutation() {
   const queryClient = useQueryClient()
   const groupId = useActiveGroupId()
   return useMutation<AssetSnapshot, Error, AssetSnapshotRequest>({
-    mutationFn: (data) => createAssetSnapshot(data, groupId),
+    mutationFn: (data) => createAssetSnapshot(data, { groupId }),
     onSuccess: async (saved) => {
       await synchronizeAssetSnapshotList(queryClient, groupId, (snapshots) => upsertById(snapshots, saved))
     },
@@ -160,7 +160,7 @@ function useInvalidateCategoriesMutation<TData, TVariables>(
 export function useCreateFinanceCategoryMutation() {
   const groupId = useActiveGroupId()
   return useInvalidateCategoriesMutation<FinanceCategory, FinanceCategoryRequest>(
-    (data) => createFinanceCategory(data, groupId),
+    (data) => createFinanceCategory(data, { groupId }),
     '카테고리를 저장하지 못했습니다',
   )
 }
@@ -232,7 +232,7 @@ export function useCreateFinanceAccountMutation() {
   const queryClient = useQueryClient()
   const groupId = useActiveGroupId()
   return useMutation<FinanceAccount, Error, FinanceAccountRequest>({
-    mutationFn: (data) => createFinanceAccount(data, groupId),
+    mutationFn: (data) => createFinanceAccount(data, { groupId }),
     onSuccess: async (saved) => {
       await synchronizeAccountList(queryClient, groupId, (accounts) => upsertById(accounts, saved))
     },

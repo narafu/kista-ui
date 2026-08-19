@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { useMeta } from '@entities/meta'
 import { collectSubtreeIds, useDeleteSystemFinanceCategoryMutation, useSystemFinanceCategoriesQuery } from '@entities/finance'
 import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
@@ -23,16 +24,16 @@ export function SystemCategoryManager() {
   const l1Categories = categories ?? []
 
   const [formTarget, setFormTarget] = useState<FinanceCategory | 'new' | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<FinanceCategory | null>(null)
+  const deleteDialog = useConfirmDialog<FinanceCategory>()
 
   const deleteMutation = useDeleteSystemFinanceCategoryMutation()
 
   function handleDelete() {
-    if (!deleteTarget) return
-    deleteMutation.mutate(deleteTarget.id, {
+    if (!deleteDialog.target) return
+    deleteMutation.mutate(deleteDialog.target.id, {
       onSuccess: () => {
         toast.success('카테고리가 삭제되었습니다')
-        setDeleteTarget(null)
+        deleteDialog.close()
       },
     })
   }
@@ -66,7 +67,7 @@ export function SystemCategoryManager() {
               category={category}
               depth={0}
               onEdit={setFormTarget}
-              onDelete={setDeleteTarget}
+              onDelete={deleteDialog.request}
               lockSystemCategories={false}
             />
           ))}
@@ -84,12 +85,12 @@ export function SystemCategoryManager() {
         />
       )}
 
-      {deleteTarget && (
+      {deleteDialog.target && (
         <DeleteCategoryDialog
           open
-          onOpenChange={(next) => { if (!next) setDeleteTarget(null) }}
-          categoryName={deleteTarget.name}
-          subtreeCount={collectSubtreeIds(l1Categories, deleteTarget.id).length}
+          onOpenChange={deleteDialog.onOpenChange}
+          categoryName={deleteDialog.target.name}
+          subtreeCount={collectSubtreeIds(l1Categories, deleteDialog.target.id).length}
           onConfirm={handleDelete}
           isPending={deleteMutation.isPending}
         />

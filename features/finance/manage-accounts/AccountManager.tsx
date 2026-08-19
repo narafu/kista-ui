@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@shared/lib/utils'
+import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { useMeta } from '@entities/meta'
 import { useFinanceAccountsQuery } from '@entities/finance'
 import type { FinanceAccount } from '@entities/finance'
@@ -22,7 +23,7 @@ export function AccountManager() {
   const { data: accounts = [] } = useFinanceAccountsQuery()
   const { meta } = useMeta()
   const [formTarget, setFormTarget] = useState<FinanceAccount | 'new' | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<FinanceAccount | null>(null)
+  const deleteDialog = useConfirmDialog<FinanceAccount>()
 
   function accountTypeLabel(accountType: FinanceAccount['accountType']) {
     return meta.financeAccountTypes.find((t) => t.code === accountType)?.label ?? accountType
@@ -69,7 +70,7 @@ export function AccountManager() {
                   variant="ghost"
                   size="icon-sm"
                   aria-label={`${account.name} 계좌 삭제`}
-                  onClick={() => setDeleteTarget(account)}
+                  onClick={() => deleteDialog.request(account)}
                 >
                   <Trash2 className="size-4" />
                 </Button>
@@ -87,11 +88,11 @@ export function AccountManager() {
         />
       )}
 
-      {deleteTarget && (
+      {deleteDialog.target && (
         <DeleteAccountDialog
           open
-          onOpenChange={(next) => { if (!next) setDeleteTarget(null) }}
-          account={deleteTarget}
+          onOpenChange={deleteDialog.onOpenChange}
+          account={deleteDialog.target}
         />
       )}
     </div>

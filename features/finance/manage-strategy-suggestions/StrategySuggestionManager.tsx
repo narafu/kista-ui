@@ -40,7 +40,13 @@ export function StrategySuggestionManager() {
       <div className="text-sm text-muted-foreground mb-[18px]">
         자산 등록 폼의 운용전략은 자유 입력을 유지합니다 — 아래 목록은 입력을 돕는 추천값일 뿐 값 자체를 제한하지 않습니다.
       </div>
-      <SuggestionListEditor id="asset-strategy" label="운용전략" values={strategySuggestions} onChange={handleChange} />
+      <SuggestionListEditor
+        id="asset-strategy"
+        label="운용전략"
+        values={strategySuggestions}
+        onChange={handleChange}
+        disabled={mutation.isPending}
+      />
     </Surface>
   )
 }

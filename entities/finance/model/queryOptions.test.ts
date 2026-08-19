@@ -25,7 +25,7 @@ describe('finance query options', () => {
     await options.queryFn({} as never)
 
     expect(options.queryKey).toEqual(financeKeys.assetSnapshots('group-1'))
-    expect(listAssetSnapshotsMock).toHaveBeenCalledWith('group-1', 'server-token')
+    expect(listAssetSnapshotsMock).toHaveBeenCalledWith({ groupId: 'group-1', token: 'server-token' })
   })
 
   it('forwards the group id and server token for monthly closings and uses the canonical key', async () => {
@@ -37,6 +37,6 @@ describe('finance query options', () => {
     await options.queryFn({} as never)
 
     expect(options.queryKey).toEqual(financeKeys.monthlyClosings('group-1'))
-    expect(listMonthlyClosingsMock).toHaveBeenCalledWith('group-1', 'server-token')
+    expect(listMonthlyClosingsMock).toHaveBeenCalledWith({ groupId: 'group-1', token: 'server-token' })
   })
 })

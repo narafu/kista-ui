@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { useMeta } from '@entities/meta'
 import { collectSubtreeIds, useDeleteFinanceCategoryMutation, useFinanceCategoriesQuery } from '@entities/finance'
 import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
@@ -25,16 +26,16 @@ export function CategoryManager() {
   // AccountManager와 동일한 조건부 마운트 패턴 — 열 때마다 다이얼로그가 새로 마운트되므로
   // key 트릭 없이도 내부 useState(name 등)가 매번 초기화된다.
   const [formTarget, setFormTarget] = useState<FinanceCategory | 'new' | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<FinanceCategory | null>(null)
+  const deleteDialog = useConfirmDialog<FinanceCategory>()
 
   const deleteMutation = useDeleteFinanceCategoryMutation()
 
   function handleDelete() {
-    if (!deleteTarget) return
-    deleteMutation.mutate(deleteTarget.id, {
+    if (!deleteDialog.target) return
+    deleteMutation.mutate(deleteDialog.target.id, {
       onSuccess: () => {
         toast.success('카테고리가 삭제되었습니다')
-        setDeleteTarget(null)
+        deleteDialog.close()
       },
     })
   }
@@ -61,7 +62,7 @@ export function CategoryManager() {
       ) : (
         <ul className="m-0 list-none rounded-[var(--r-lg)] border border-border p-0">
           {l1Categories.map((category) => (
-            <CategoryRow key={category.id} category={category} depth={0} onEdit={setFormTarget} onDelete={setDeleteTarget} />
+            <CategoryRow key={category.id} category={category} depth={0} onEdit={setFormTarget} onDelete={deleteDialog.request} />
           ))}
         </ul>
       )}
@@ -77,12 +78,12 @@ export function CategoryManager() {
         />
       )}
 
-      {deleteTarget && (
+      {deleteDialog.target && (
         <DeleteCategoryDialog
           open
-          onOpenChange={(next) => { if (!next) setDeleteTarget(null) }}
-          categoryName={deleteTarget.name}
-          subtreeCount={collectSubtreeIds(l1Categories, deleteTarget.id).length}
+          onOpenChange={deleteDialog.onOpenChange}
+          categoryName={deleteDialog.target.name}
+          subtreeCount={collectSubtreeIds(l1Categories, deleteDialog.target.id).length}
           onConfirm={handleDelete}
           isPending={deleteMutation.isPending}
         />
