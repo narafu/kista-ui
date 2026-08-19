@@ -91,6 +91,7 @@ export {
   calcMonthlyTrend,
   formatAssetL1CategoryLabel,
   isLiability,
+  isInvestmentCategoryId,
   listAvailableMonths,
   previousMonthOf,
 } from './lib/aggregate'
