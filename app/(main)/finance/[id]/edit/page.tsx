@@ -28,7 +28,7 @@ export default async function EditAssetPage({ params }: Props) {
 
   return (
     <div className="max-w-lg mx-auto">
-      <PageHeader eyebrow="자산 관리" eyebrowHref="/assets" title="자산 수정" />
+      <PageHeader eyebrow="자산 관리" eyebrowHref="/finance" title="자산 수정" />
       <AssetFormPage mode="edit" initial={asset} />
     </div>
   )

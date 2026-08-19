@@ -91,8 +91,8 @@ describe('AssetRecordList', () => {
 
     expect(screen.getAllByText('1,000,000원').length).toBeGreaterThan(0)
     expect(screen.getAllByText('투자').length).toBeGreaterThan(0)
-    expect(screen.getAllByRole('link', { name: '수정' })[0]).toHaveAttribute('href', '/assets/a1/edit')
-    expect(screen.getAllByRole('link', { name: '복제' })[0]).toHaveAttribute('href', '/assets/new?duplicateFrom=a1')
+    expect(screen.getAllByRole('link', { name: '수정' })[0]).toHaveAttribute('href', '/finance/a1/edit')
+    expect(screen.getAllByRole('link', { name: '복제' })[0]).toHaveAttribute('href', '/finance/new?duplicateFrom=a1')
   })
 
   it('컬럼 순서(기준일·카테고리·자산군·시장·운용전략·계좌·금액)대로 값을 표시한다', () => {

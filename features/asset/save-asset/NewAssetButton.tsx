@@ -16,7 +16,7 @@ export function NewAssetButton({ className }: Props) {
   const [isPending, startTransition] = useTransition()
 
   function handleClick() {
-    startTransition(() => router.push('/assets/new'))
+    startTransition(() => router.push('/finance/new'))
   }
 
   return (

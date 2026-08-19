@@ -114,15 +114,15 @@ describe('proxy', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  // ①-e /assets는 개인 자산·부채 수동 기록이라 보호 경로 — 토큰 없으면 /login으로 리다이렉트
-  it('/assets는 토큰 없으면 /login?next=/assets로 리다이렉트한다', async () => {
+  // ①-e /finance는 개인 자산·부채 수동 기록이라 보호 경로 — 토큰 없으면 /login으로 리다이렉트
+  it('/finance는 토큰 없으면 /login?next=/finance로 리다이렉트한다', async () => {
     vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
     const fetchMock = stubFetch({})
-    const res = await proxy(makeRequest('/assets'))
+    const res = await proxy(makeRequest('/finance'))
     expect(res.status).toBe(307)
     const location = new URL(res.headers.get('location')!)
     expect(location.pathname).toBe('/login')
-    expect(location.searchParams.get('next')).toBe('/assets')
+    expect(location.searchParams.get('next')).toBe('/finance')
     expect(fetchMock).not.toHaveBeenCalled()
   })
 

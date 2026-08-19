@@ -14,7 +14,7 @@ import type { FinanceCategoryType } from '../model/types'
 import { useActiveGroupContext } from '../providers/ActiveGroupProvider'
 
 // 저장된 활성 그룹이 더 이상 내 소속이 아니면(추방 등) 렌더 중 파생으로 개인 그룹 취급한다 —
-// AssetsDashboard의 selectedMonth와 동일하게 useEffect 동기화 없이 순수 계산만 한다. 그룹
+// FinanceDashboard의 selectedMonth와 동일하게 useEffect 동기화 없이 순수 계산만 한다. 그룹
 // 목록 로딩 전에는 저장된 값을 낙관적으로 신뢰하고, 로드 후 무효로 판명되면 다음 렌더부터 undefined.
 export function useActiveGroupId(): string | undefined {
   const { groupId } = useActiveGroupContext()

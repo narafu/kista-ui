@@ -21,8 +21,8 @@ const cacheCookieOptions = (request: NextRequest) => ({
 })
 // '/dashboard'는 비회원도 접근 가능 — 보호 경로 아님 (감사 A-01·S-01 이후 정책 변경)
 // '/benchmark'는 본인 투자 성과 비교라 인증 필요 — 기존에 이 목록에서 누락되어 있었음
-// '/assets'는 개인 자산·부채 수동 기록 — 가장 민감한 데이터라 게스트 노출 없이 보호 경로로 시작
-const PROTECTED_PREFIXES = ['/accounts', '/strategies', '/stats', '/settings', '/benchmark', '/assets']
+// '/finance'는 개인 자산·부채 수동 기록 — 가장 민감한 데이터라 게스트 노출 없이 보호 경로로 시작
+const PROTECTED_PREFIXES = ['/accounts', '/strategies', '/stats', '/settings', '/benchmark', '/finance']
 const ADMIN_PREFIXES = ['/admin']
 
 // status/role 확정 결과: 성공(캐시 히트 or /me) 또는 실패(clearCache 여부만 전달)

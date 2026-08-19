@@ -14,7 +14,7 @@ interface Props {
 
 export function AssetFormPage({ mode, initial, dismiss = 'push' }: Props) {
   const router = useRouter()
-  const handleDone = dismiss === 'back' ? () => router.back() : () => router.push('/assets')
+  const handleDone = dismiss === 'back' ? () => router.back() : () => router.push('/finance')
 
   return (
     <AssetForm mode={mode} initial={initial} onSuccess={handleDone} onCancel={handleDone} />

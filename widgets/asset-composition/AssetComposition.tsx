@@ -12,9 +12,13 @@ const AssetCompositionInner = dynamic(() => import('./AssetCompositionInner'), {
   ),
 })
 
-export function AssetComposition() {
+interface Props {
+  className?: string
+}
+
+export function AssetComposition({ className }: Props) {
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader className="pb-3">
         <CardTitle className="text-base lg:text-lg">월별 구성비</CardTitle>
       </CardHeader>
