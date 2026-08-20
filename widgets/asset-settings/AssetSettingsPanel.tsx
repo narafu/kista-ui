@@ -2,6 +2,7 @@
 
 import { CategoryManager } from '@features/finance/manage-categories'
 import { AccountManager } from '@features/finance/manage-accounts'
+import { BudgetManager } from '@features/finance/manage-budgets'
 import { StrategySuggestionManager } from '@features/finance/manage-strategy-suggestions'
 import { GroupManager } from '@features/finance/manage-group'
 import { Surface } from '@shared/ui/Surface'
@@ -12,6 +13,8 @@ import { Surface } from '@shared/ui/Surface'
 // 감싸지 않는다 — CategoryManager/GroupManager는 카드 배경이 없어 Surface로 감싼다.
 // StrategySuggestionManager는 ADMIN이 아니면 스스로 null을 반환한다(구 admin/settings 폼의
 // 전역 설정을 계좌관리 아래로 이관 — 일반 사용자도 방문하는 탭이라 컴포넌트 자체가 게이팅한다).
+// BudgetManager(소비/저축 예산)는 카테고리 아래에 배치한다 — 예산이 참조하는 카테고리가 먼저
+// 존재해야 의미가 있는 순서다. CategoryManager와 마찬가지로 자체 카드 배경이 없어 Surface로 감싼다.
 export function AssetSettingsPanel() {
   return (
     <div className="flex flex-col gap-[18px]">
@@ -19,6 +22,12 @@ export function AssetSettingsPanel() {
         <div className="text-sm font-bold mb-0.5">카테고리</div>
         <div className="text-sm text-muted-foreground mb-[18px]">자산·수입·지출·저축 카테고리를 관리합니다.</div>
         <CategoryManager />
+      </Surface>
+
+      <Surface as="section" className="p-6">
+        <div className="text-sm font-bold mb-0.5">예산</div>
+        <div className="text-sm text-muted-foreground mb-[18px]">소비·저축 카테고리별 월 예산을 관리합니다.</div>
+        <BudgetManager />
       </Surface>
 
       <AccountManager />

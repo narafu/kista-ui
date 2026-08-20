@@ -3,10 +3,12 @@
 import { useQuery } from '@tanstack/react-query'
 import {
   assetSnapshotListQueryOptions,
+  budgetListQueryOptions,
   financeAccountListQueryOptions,
   financeCategoryListQueryOptions,
   financeGroupListQueryOptions,
   monthlyClosingListQueryOptions,
+  transactionListQueryOptions,
 } from '../model/queryOptions'
 import { listFinanceGroupMembers, listSystemFinanceCategories } from '../api'
 import { financeKeys } from '../model/queryKeys'
@@ -46,6 +48,17 @@ export function useFinanceAccountsQuery() {
 export function useMonthlyClosingsQuery() {
   const groupId = useActiveGroupId()
   return useQuery(monthlyClosingListQueryOptions(groupId))
+}
+
+// from/to는 lib/period.ts의 windowRange(month) — 수입/소비/저축 탭이 공유하는 12개월 윈도우.
+export function useFinanceTransactionsQuery(from: string, to: string) {
+  const groupId = useActiveGroupId()
+  return useQuery(transactionListQueryOptions(groupId, from, to))
+}
+
+export function useFinanceBudgetsQuery() {
+  const groupId = useActiveGroupId()
+  return useQuery(budgetListQueryOptions(groupId))
 }
 
 export function useFinanceGroupsQuery() {

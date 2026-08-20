@@ -6,38 +6,50 @@ export type {
   FinanceAccount,
   FinanceAccountRequest,
   FinanceAccountType,
+  FinanceBudget,
+  FinanceBudgetRequest,
   FinanceCategory,
   FinanceCategoryRequest,
   FinanceCategoryType,
   FinanceGroup,
   FinanceGroupInvitation,
   FinanceGroupMember,
+  FinanceTransaction,
+  FinanceTransactionRequest,
   Market,
   MonthlyClosing,
 } from './model/types'
 export { financeKeys } from './model/queryKeys'
 export {
   assetSnapshotListQueryOptions,
+  budgetListQueryOptions,
   financeAccountListQueryOptions,
   financeCategoryListQueryOptions,
   financeGroupListQueryOptions,
   monthlyClosingListQueryOptions,
+  transactionListQueryOptions,
 } from './model/queryOptions'
 export {
   createAssetSnapshot,
   createFinanceAccount,
+  createFinanceBudget,
   createFinanceCategory,
   createFinanceGroupInvitation,
+  createFinanceTransaction,
   createSystemFinanceCategory,
   deleteAssetSnapshot,
   deleteFinanceAccount,
+  deleteFinanceBudget,
   deleteFinanceCategory,
+  deleteFinanceTransaction,
   deleteSystemFinanceCategory,
   listAssetSnapshots,
   listFinanceAccounts,
+  listFinanceBudgets,
   listFinanceCategories,
   listFinanceGroupMembers,
   listFinanceGroups,
+  listFinanceTransactions,
   listMonthlyClosings,
   listSystemFinanceCategories,
   removeFinanceGroupMember,
@@ -45,16 +57,20 @@ export {
   setMonthlyClosing,
   updateAssetSnapshot,
   updateFinanceAccount,
+  updateFinanceBudget,
   updateFinanceCategory,
+  updateFinanceTransaction,
   updateSystemFinanceCategory,
 } from './api'
 export {
   useActiveGroupId,
   useAssetSnapshotsQuery,
   useFinanceAccountsQuery,
+  useFinanceBudgetsQuery,
   useFinanceCategoriesQuery,
   useFinanceGroupMembersQuery,
   useFinanceGroupsQuery,
+  useFinanceTransactionsQuery,
   useMonthlyClosingsQuery,
   useSetActiveGroupId,
   useSystemFinanceCategoriesQuery,
@@ -62,19 +78,25 @@ export {
 export {
   useCreateAssetSnapshotMutation,
   useCreateFinanceAccountMutation,
+  useCreateFinanceBudgetMutation,
   useCreateFinanceCategoryMutation,
   useCreateFinanceGroupInvitationMutation,
+  useCreateFinanceTransactionMutation,
   useCreateSystemFinanceCategoryMutation,
   useDeleteManyAssetSnapshotsMutation,
   useDeleteFinanceAccountMutation,
+  useDeleteFinanceBudgetMutation,
   useDeleteFinanceCategoryMutation,
+  useDeleteFinanceTransactionMutation,
   useDeleteSystemFinanceCategoryMutation,
   useRemoveFinanceGroupMemberMutation,
   useRespondToInvitationMutation,
   useSetMonthlyClosingMutation,
   useUpdateAssetSnapshotMutation,
   useUpdateFinanceAccountMutation,
+  useUpdateFinanceBudgetMutation,
   useUpdateFinanceCategoryMutation,
+  useUpdateFinanceTransactionMutation,
   useUpdateSystemFinanceCategoryMutation,
 } from './hooks/useFinanceMutations'
 export type { DeleteManyAssetSnapshotsResult } from './hooks/useFinanceMutations'
@@ -114,3 +136,16 @@ export type {
   TrendPoint,
 } from './lib/aggregate'
 export { collectSubtreeIds, getCascadeLevels, getCategoryPath } from './lib/categoryTree'
+export { buildCategoryIndex, resolveCategory } from './lib/categoryIndex'
+export type { CategoryIndex, CategoryIndexEntry } from './lib/categoryIndex'
+export { daysInMonth, elapsedMonthsInYear, monthEndDate, monthStartDate, periodRange, shiftMonth, windowRange } from './lib/period'
+export type { Period, PeriodMode } from './lib/period'
+export {
+  calcBudgetProgress,
+  calcFlowSummary,
+  calcFlowTrend,
+  filterByType,
+  unclassifiedTransactions,
+} from './lib/flowAggregate'
+export type { BudgetProgress, FlowSummary, FlowTrendPoint } from './lib/flowAggregate'
+export { flowCategoryColor } from './lib/colors'

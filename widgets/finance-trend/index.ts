@@ -1,0 +1,1 @@
+export { FinanceTrend } from './FinanceTrend'

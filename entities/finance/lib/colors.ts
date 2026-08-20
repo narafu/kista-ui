@@ -32,3 +32,10 @@ export function assetCategoryColor(categoryId: string): string {
 export function assetClassColor(assetClass: AssetClass): string {
   return colorAt(ASSET_CLASS_ORDER.indexOf(assetClass))
 }
+
+// 수입/소비/저축 L1 카테고리는 사용자가 임의로 생성해 자산군처럼 고정 순서가 없다 — 호출부가
+// sortOrder로 정렬한 L1 id 목록(orderedRootIds)을 넘기면 그 안에서의 위치로 색을 매긴다.
+// 같은 정렬 결과를 넘기는 한 위젯 간에도 항목별 색이 항상 일치한다.
+export function flowCategoryColor(orderedRootIds: string[], rootId: string): string {
+  return colorAt(orderedRootIds.indexOf(rootId))
+}

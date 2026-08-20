@@ -1,17 +1,30 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Construction } from 'lucide-react'
-import { listAvailableMonths, useAssetSnapshotsQuery } from '@entities/finance'
+import {
+  buildCategoryIndex,
+  listAvailableMonths,
+  useAssetSnapshotsQuery,
+  useFinanceBudgetsQuery,
+  useFinanceCategoriesQuery,
+  useFinanceTransactionsQuery,
+  windowRange,
+} from '@entities/finance'
+import type { FinanceCategoryType, Period } from '@entities/finance'
+import { todayKst } from '@shared/lib/format'
 import { NewAssetButton } from '@features/asset/save-asset'
+import { NewTransactionButton } from '@features/finance/save-transaction'
 import { AssetOverview } from '@widgets/asset-overview'
 import { AssetTrend } from '@widgets/asset-trend'
 import { AssetComposition } from '@widgets/asset-composition'
 import { AssetRecordCheck } from '@widgets/asset-record-check'
 import { AssetRecordList } from '@widgets/asset-record-list'
 import { AssetSettingsPanel } from '@widgets/asset-settings/AssetSettingsPanel'
+import { FinanceSummary } from '@widgets/finance-summary'
+import { FinanceTrend } from '@widgets/finance-trend'
+import { FinanceBudgetProgress } from '@widgets/finance-budget-progress'
+import { FinanceRecordList } from '@widgets/finance-record-list'
 import { PageHeader } from '@widgets/page-header'
-import { EmptyState } from '@shared/ui/EmptyState'
 import { cn } from '@shared/lib/utils'
 
 type AssetTab = 'income' | 'expense' | 'saving' | 'investment' | 'settings'
@@ -24,7 +37,14 @@ const TAB_OPTIONS: { value: AssetTab; label: string }[] = [
   { value: 'settings', label: '설정' },
 ]
 
-const PLACEHOLDER_TABS: AssetTab[] = ['income', 'expense', 'saving']
+// 수입/소비/저축 탭 -> FinanceCategoryType 매핑. 'ASSET'을 포함하지 않는 좁은 타입으로 선언해
+// categoryTreeByType(INCOME/EXPENSE/SAVING만 있는 Record) 인덱싱에서 타입 오류가 나지 않게 한다.
+const FLOW_TYPE: Record<'income' | 'expense' | 'saving', 'INCOME' | 'EXPENSE' | 'SAVING'> = {
+  income: 'INCOME',
+  expense: 'EXPENSE',
+  saving: 'SAVING',
+}
+const BUDGET_TABS = ['expense', 'saving'] as const
 
 function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -61,12 +81,49 @@ export function FinanceDashboard() {
   // AssetTrendInner의 effectiveSelector와 동일한 렌더 중 파생 계산(useEffect로 동기화하지 않는다).
   const selectedMonth = month && months.includes(month) ? month : (months[0] ?? null)
 
+  // 수입/소비/저축 탭 전용 상태 — 자산 탭의 selectedMonth(스냅샷 데이터 기반)와는 별개다.
+  // 위젯 cross-import 금지 규칙상 이 상태와 12개월 윈도우 데이터를 이 컴포넌트가 소유하고
+  // FinanceSummary/FinanceTrend/FinanceBudgetProgress/FinanceRecordList에 props로 내려보낸다.
+  const [period, setPeriod] = useState<Period>({ month: todayKst().slice(0, 7), mode: 'monthly' })
+  const flowWindow = useMemo(() => windowRange(period.month), [period.month])
+  const {
+    data: transactions = [],
+    isLoading: isTransactionsLoading,
+    isError: isTransactionsError,
+  } = useFinanceTransactionsQuery(flowWindow.from, flowWindow.to)
+  const { data: incomeCategories = [] } = useFinanceCategoriesQuery('INCOME')
+  const { data: expenseCategories = [] } = useFinanceCategoriesQuery('EXPENSE')
+  const { data: savingCategories = [] } = useFinanceCategoriesQuery('SAVING')
+  const { data: budgets = [] } = useFinanceBudgetsQuery()
+  const categoryIndex = useMemo(
+    () => buildCategoryIndex({ INCOME: incomeCategories, EXPENSE: expenseCategories, SAVING: savingCategories }),
+    [incomeCategories, expenseCategories, savingCategories],
+  )
+  const categoryTreeByType: Record<'INCOME' | 'EXPENSE' | 'SAVING', typeof incomeCategories> = {
+    INCOME: incomeCategories,
+    EXPENSE: expenseCategories,
+    SAVING: savingCategories,
+  }
+
+  const isFlowTab = tab === 'income' || tab === 'expense' || tab === 'saving'
+  const flowType = isFlowTab ? FLOW_TYPE[tab] : null
+
+  const TITLE: Record<AssetTab, string> = {
+    investment: '내 자산',
+    income: '수입',
+    expense: '소비',
+    saving: '저축',
+    settings: '설정',
+  }
+
   return (
     <>
       <PageHeader
         eyebrow="가계부"
-        title="내 자산"
-        actions={tab === 'investment' ? <NewAssetButton /> : undefined}
+        title={TITLE[tab]}
+        actions={
+          tab === 'investment' ? <NewAssetButton /> : isFlowTab && flowType ? <NewTransactionButton type={flowType} /> : undefined
+        }
       />
       <div className="space-y-6">
         <div role="group" aria-label="자산 탭" className="grid w-full grid-cols-5 rounded-md border border-border p-0.5 sm:w-[30rem]">
@@ -91,12 +148,47 @@ export function FinanceDashboard() {
 
         {tab === 'settings' && <AssetSettingsPanel />}
 
-        {PLACEHOLDER_TABS.includes(tab) && (
-          <EmptyState
-            icon={<Construction className="size-6 text-muted-foreground" />}
-            title={`${TAB_OPTIONS.find((option) => option.value === tab)?.label} 탭은 준비 중입니다`}
-            message="곧 이용하실 수 있도록 준비하고 있어요."
-          />
+        {isFlowTab && flowType && (
+          <>
+            <FinanceSummary
+              type={flowType}
+              transactions={transactions}
+              index={categoryIndex}
+              isLoading={isTransactionsLoading}
+              isError={isTransactionsError}
+              period={period}
+              onPeriodChange={setPeriod}
+            />
+            <FinanceTrend
+              type={flowType}
+              transactions={transactions}
+              index={categoryIndex}
+              month={period.month}
+              isLoading={isTransactionsLoading}
+              isError={isTransactionsError}
+            />
+            {(BUDGET_TABS as readonly AssetTab[]).includes(tab) && (
+              <FinanceBudgetProgress
+                type={flowType as 'EXPENSE' | 'SAVING'}
+                budgets={budgets}
+                transactions={transactions}
+                categoryTree={categoryTreeByType[flowType]}
+                index={categoryIndex}
+                period={period}
+                isLoading={isTransactionsLoading}
+                isError={isTransactionsError}
+              />
+            )}
+            <FinanceRecordList
+              type={flowType}
+              transactions={transactions}
+              categoryTree={categoryTreeByType[flowType]}
+              index={categoryIndex}
+              period={period}
+              isLoading={isTransactionsLoading}
+              isError={isTransactionsError}
+            />
+          </>
         )}
       </div>
     </>

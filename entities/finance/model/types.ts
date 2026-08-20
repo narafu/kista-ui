@@ -82,3 +82,33 @@ export interface FinanceGroupInvitation {
   code: string
   expiresAt: string
 }
+
+export interface FinanceTransaction {
+  id: string
+  categoryId: string
+  transactionDate: string // 'YYYY-MM-DD'
+  amount: number
+  memo?: string
+}
+
+export interface FinanceTransactionRequest {
+  categoryId: string
+  transactionDate: string
+  amount: number
+  memo?: string
+}
+
+export interface FinanceBudget {
+  id: string
+  categoryId: string
+  applyStartDate: string // 'YYYY-MM-DD'
+  applyEndDate?: string // 무기한이면 undefined
+  amount: number // 월 할당 예산
+}
+
+export interface FinanceBudgetRequest {
+  categoryId: string
+  applyStartDate: string
+  applyEndDate?: string
+  amount: number
+}

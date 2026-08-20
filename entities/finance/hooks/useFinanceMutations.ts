@@ -8,19 +8,25 @@ import { synchronizeListQueries, upsertById } from '@shared/lib/query'
 import {
   createAssetSnapshot,
   createFinanceAccount,
+  createFinanceBudget,
   createFinanceCategory,
   createFinanceGroupInvitation,
+  createFinanceTransaction,
   createSystemFinanceCategory,
   deleteAssetSnapshot,
   deleteFinanceAccount,
+  deleteFinanceBudget,
   deleteFinanceCategory,
+  deleteFinanceTransaction,
   deleteSystemFinanceCategory,
   removeFinanceGroupMember,
   respondToInvitation,
   setMonthlyClosing,
   updateAssetSnapshot,
   updateFinanceAccount,
+  updateFinanceBudget,
   updateFinanceCategory,
+  updateFinanceTransaction,
   updateSystemFinanceCategory,
 } from '../api'
 import type {
@@ -28,10 +34,14 @@ import type {
   AssetSnapshotRequest,
   FinanceAccount,
   FinanceAccountRequest,
+  FinanceBudget,
+  FinanceBudgetRequest,
   FinanceCategory,
   FinanceCategoryRequest,
   FinanceGroup,
   FinanceGroupInvitation,
+  FinanceTransaction,
+  FinanceTransactionRequest,
   MonthlyClosing,
 } from '../model/types'
 import { financeKeys } from '../model/queryKeys'
@@ -210,6 +220,74 @@ export function useDeleteSystemFinanceCategoryMutation() {
   return useInvalidateSystemCategoriesMutation<void, string>(
     (id) => deleteSystemFinanceCategory(id),
     '카테고리를 삭제하지 못했습니다',
+  )
+}
+
+// 거래내역/예산은 캐시 키에 조회 범위(from/to, 또는 없음)가 섞여 있어 특정 월 리스트에 saved 항목을
+// upsertById로 직접 꽂아 넣으려면 "이 거래가 지금 열려 있는 어느 윈도우 캐시에 속하는지"를 매번 판정해야
+// 한다 — 카테고리 뮤테이션과 같은 이유로 invalidate 후 재조회가 더 단순하고 안전하다.
+function useInvalidateFinanceMutation<TData, TVariables>(
+  mutationFn: (variables: TVariables) => Promise<TData>,
+  rootKey: readonly unknown[],
+  errorFallback: string,
+) {
+  const queryClient = useQueryClient()
+  return useMutation<TData, Error, TVariables>({
+    mutationFn,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: rootKey }),
+    onError: (err) => toast.error(apiMsg(err, errorFallback)),
+  })
+}
+
+export function useCreateFinanceTransactionMutation() {
+  const groupId = useActiveGroupId()
+  return useInvalidateFinanceMutation<FinanceTransaction, FinanceTransactionRequest>(
+    (data) => createFinanceTransaction(data, { groupId }),
+    financeKeys.transactionsRoot(),
+    '거래내역을 저장하지 못했습니다',
+  )
+}
+
+export function useUpdateFinanceTransactionMutation(transactionId: string) {
+  return useInvalidateFinanceMutation<FinanceTransaction, FinanceTransactionRequest>(
+    (data) => updateFinanceTransaction(transactionId, data),
+    financeKeys.transactionsRoot(),
+    '거래내역을 수정하지 못했습니다',
+  )
+}
+
+export function useDeleteFinanceTransactionMutation() {
+  return useInvalidateFinanceMutation<void, string>(
+    (id) => deleteFinanceTransaction(id),
+    financeKeys.transactionsRoot(),
+    '거래내역을 삭제하지 못했습니다',
+  )
+}
+
+// 카테고리 기간 중첩(finance_budgets_no_overlap) 위반은 409로 온다 — apiMsg가 서버 메시지를
+// 그대로 노출하므로 별도 문구 분기 없이 폴백만 지정한다.
+export function useCreateFinanceBudgetMutation() {
+  const groupId = useActiveGroupId()
+  return useInvalidateFinanceMutation<FinanceBudget, FinanceBudgetRequest>(
+    (data) => createFinanceBudget(data, { groupId }),
+    financeKeys.budgetsRoot(),
+    '예산을 저장하지 못했습니다',
+  )
+}
+
+export function useUpdateFinanceBudgetMutation(budgetId: string) {
+  return useInvalidateFinanceMutation<FinanceBudget, FinanceBudgetRequest>(
+    (data) => updateFinanceBudget(budgetId, data),
+    financeKeys.budgetsRoot(),
+    '예산을 수정하지 못했습니다',
+  )
+}
+
+export function useDeleteFinanceBudgetMutation() {
+  return useInvalidateFinanceMutation<void, string>(
+    (id) => deleteFinanceBudget(id),
+    financeKeys.budgetsRoot(),
+    '예산을 삭제하지 못했습니다',
   )
 }
 

@@ -4,14 +4,27 @@ import type {
   AssetSnapshotRequest,
   FinanceAccount,
   FinanceAccountRequest,
+  FinanceBudget,
+  FinanceBudgetRequest,
   FinanceCategory,
   FinanceCategoryRequest,
   FinanceCategoryType,
   FinanceGroup,
   FinanceGroupInvitation,
   FinanceGroupMember,
+  FinanceTransaction,
+  FinanceTransactionRequest,
   MonthlyClosing,
 } from '../model/types'
+
+// FinanceTransactionResponse/FinanceBudgetResponse는 openapi 스펙상 amount에 required 표시가 없다 —
+// 서버가 실제로 누락시키진 않지만 방어적으로 API 경계에서 0으로 정규화한다(폼 쪽 필수 검증과는 별개).
+function normalizeTransaction(t: FinanceTransaction): FinanceTransaction {
+  return { ...t, amount: t.amount ?? 0 }
+}
+function normalizeBudget(b: FinanceBudget): FinanceBudget {
+  return { ...b, amount: b.amount ?? 0 }
+}
 
 // groupId 미지정 시 서버는 호출자의 개인 그룹으로 스코프한다. groupId·token을 함께 받는
 // 함수들이 포지셔널 인자 순서에 의존하지 않도록 이 named-params 객체로 통일한다.
@@ -163,6 +176,89 @@ export async function createFinanceGroupInvitation(
     jsonBody('POST', { expiresInHours }),
     token,
   )
+}
+
+export interface TransactionListOptions extends GroupScopedOptions {
+  from?: string
+  to?: string
+  categoryId?: string
+  createdBy?: string
+}
+
+export async function listFinanceTransactions({
+  groupId,
+  token,
+  from,
+  to,
+  categoryId,
+  createdBy,
+}: TransactionListOptions = {}): Promise<FinanceTransaction[]> {
+  const list = await fetchEither<FinanceTransaction[]>(
+    withQuery('/api/finance/transactions', { groupId, from, to, categoryId, createdBy }),
+    { method: 'GET' },
+    token,
+  )
+  return list.map(normalizeTransaction)
+}
+
+export async function createFinanceTransaction(
+  data: FinanceTransactionRequest,
+  { groupId, token }: GroupScopedOptions = {},
+): Promise<FinanceTransaction> {
+  const saved = await fetchEither<FinanceTransaction>(
+    withQuery('/api/finance/transactions', { groupId }),
+    jsonBody('POST', data),
+    token,
+  )
+  return normalizeTransaction(saved)
+}
+
+export async function updateFinanceTransaction(
+  id: string,
+  data: FinanceTransactionRequest,
+  token?: string,
+): Promise<FinanceTransaction> {
+  const saved = await fetchEither<FinanceTransaction>(
+    `/api/finance/transactions/${encodeURIComponent(id)}`,
+    jsonBody('PUT', data),
+    token,
+  )
+  return normalizeTransaction(saved)
+}
+
+export async function deleteFinanceTransaction(id: string, token?: string): Promise<void> {
+  return fetchEither<void>(`/api/finance/transactions/${encodeURIComponent(id)}`, { method: 'DELETE' }, token)
+}
+
+export interface BudgetListOptions extends GroupScopedOptions {
+  categoryId?: string
+  date?: string
+}
+
+export async function listFinanceBudgets({ groupId, token, categoryId, date }: BudgetListOptions = {}): Promise<FinanceBudget[]> {
+  const list = await fetchEither<FinanceBudget[]>(
+    withQuery('/api/finance/budgets', { groupId, categoryId, date }),
+    { method: 'GET' },
+    token,
+  )
+  return list.map(normalizeBudget)
+}
+
+export async function createFinanceBudget(
+  data: FinanceBudgetRequest,
+  { groupId, token }: GroupScopedOptions = {},
+): Promise<FinanceBudget> {
+  const saved = await fetchEither<FinanceBudget>(withQuery('/api/finance/budgets', { groupId }), jsonBody('POST', data), token)
+  return normalizeBudget(saved)
+}
+
+export async function updateFinanceBudget(id: string, data: FinanceBudgetRequest, token?: string): Promise<FinanceBudget> {
+  const saved = await fetchEither<FinanceBudget>(`/api/finance/budgets/${encodeURIComponent(id)}`, jsonBody('PUT', data), token)
+  return normalizeBudget(saved)
+}
+
+export async function deleteFinanceBudget(id: string, token?: string): Promise<void> {
+  return fetchEither<void>(`/api/finance/budgets/${encodeURIComponent(id)}`, { method: 'DELETE' }, token)
 }
 
 // code는 사용자가 붙여넣는 자유 입력이라(초대 코드 입력 폼) URL path 세그먼트로 쓰기 전

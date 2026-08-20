@@ -22,4 +22,11 @@ export const financeKeys = {
   monthlyClosings: (groupId?: string) => [...financeKeys.monthlyClosingsRoot(), groupSegment(groupId), 'list'] as const,
   groups: () => [...financeKeys.all, 'groups', 'list'] as const,
   groupMembers: (groupId: string) => [...financeKeys.all, 'groups', groupId, 'members'] as const,
+  // from/to는 12개월 윈도우 시작·끝('YYYY-MM-DD') — lib/period.ts의 windowRange(month)가 계산한다.
+  // 월을 옮길 때마다 새 키로 재조회되지만 gcTime(10분) 안이면 캐시 히트다.
+  transactionsRoot: () => [...financeKeys.all, 'transactions'] as const,
+  transactions: (groupId: string | undefined, from: string, to: string) =>
+    [...financeKeys.transactionsRoot(), groupSegment(groupId), from, to, 'list'] as const,
+  budgetsRoot: () => [...financeKeys.all, 'budgets'] as const,
+  budgets: (groupId?: string) => [...financeKeys.budgetsRoot(), groupSegment(groupId), 'list'] as const,
 }
