@@ -19,6 +19,7 @@ import {
   periodRange,
   unclassifiedTransactions,
   useDeleteFinanceTransactionMutation,
+  windowRange,
 } from '@entities/finance'
 import type { CategoryIndex, FinanceCategory, FinanceCategoryType, FinanceTransaction, Period } from '@entities/finance'
 import { TransactionFormDialog } from '@features/finance/save-transaction'
@@ -53,6 +54,10 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
   const orderedRootIds = useMemo(() => [...categoryTree].sort((a, b) => a.sortOrder - b.sortOrder).map((c) => c.id), [categoryTree])
 
   const { from, to } = periodRange(period)
+  // 수정 다이얼로그의 날짜 min/max는 표시 중인 period(월간이면 그 달만)가 아니라 실제로 조회된
+  // 12개월 윈도우 전체다 — periodRange보다 넓게 허용해야 "다른 날짜로 옮기고 싶다"는 정상적인
+  // 수정 요청까지 막지 않는다.
+  const window = windowRange(period.month)
   const typed = useMemo(() => filterByType(transactions, index, type), [transactions, index, type])
   const inPeriod = useMemo(
     () => typed.filter((t) => t.transactionDate >= from && t.transactionDate <= to),
@@ -248,6 +253,8 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
           onOpenChange={editDialog.onOpenChange}
           type={type}
           initial={editDialog.target}
+          windowFrom={window.from}
+          windowTo={window.to}
           onSuccess={() => editDialog.close()}
         />
       )}

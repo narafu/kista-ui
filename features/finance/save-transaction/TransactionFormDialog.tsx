@@ -32,13 +32,25 @@ interface Props {
   type: FinanceCategoryType
   initial?: FinanceTransaction
   onSuccess: () => void
+  // 현재 화면이 조회 중인 12개월 윈도우('YYYY-MM-DD'). FinanceDashboard의 windowRange(period.month)
+  // 결과를 그대로 내려받는다 — 이 범위 밖 날짜로 등록하면 저장은 되지만 지금 보고 있는 요약·추이·
+  // 내역 어디에도 나타나지 않아(다른 달을 조회해야 보임) 혼란을 준다. 날짜 입력 자체를 이 범위로
+  // 막고, 새로 등록할 때 기본값도 범위 안으로 clamp한다.
+  windowFrom?: string
+  windowTo?: string
 }
 
-export function TransactionFormDialog({ open, onOpenChange, type, initial, onSuccess }: Props) {
+function clampDate(date: string, min?: string, max?: string): string {
+  if (min && date < min) return min
+  if (max && date > max) return max
+  return date
+}
+
+export function TransactionFormDialog({ open, onOpenChange, type, initial, onSuccess, windowFrom, windowTo }: Props) {
   const mode = initial ? 'edit' : 'create'
   const { data: categories = [] } = useFinanceCategoriesQuery(type)
 
-  const [transactionDate, setTransactionDate] = useState(initial?.transactionDate ?? todayKst())
+  const [transactionDate, setTransactionDate] = useState(initial?.transactionDate ?? clampDate(todayKst(), windowFrom, windowTo))
   // 계단식 카테고리 Select: AssetForm과 동일 패턴 — selectedPath 마지막 값이 실제 제출용 categoryId.
   const [selectedPath, setSelectedPath] = useState<string[]>(() =>
     initial ? getCategoryPath(categories, initial.categoryId).map((c) => c.id) : []
@@ -59,7 +71,8 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, onSuc
   const updateMutation = useUpdateFinanceTransactionMutation(initial?.id ?? '')
   const isPending = mode === 'edit' ? updateMutation.isPending : createMutation.isPending
 
-  const canSubmit = transactionDate !== '' && categoryId !== '' && amountDigits !== ''
+  const dateInWindow = (!windowFrom || transactionDate >= windowFrom) && (!windowTo || transactionDate <= windowTo)
+  const canSubmit = transactionDate !== '' && dateInWindow && categoryId !== '' && amountDigits !== ''
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -105,6 +118,8 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, onSuc
               <Input
                 id="transactionDate"
                 type="date"
+                min={windowFrom}
+                max={windowTo}
                 value={transactionDate}
                 onChange={(e) => setTransactionDate(e.target.value)}
                 disabled={isPending}

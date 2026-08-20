@@ -46,6 +46,13 @@ export function daysInMonth(month: string): number {
   return new Date(y, m, 0).getDate()
 }
 
+// 일평균 분모 — 선택 월이 진행 중인 이번 달이면 지난 일수만(오늘 포함), 이미 끝난 달이면 그 달 전체 일수.
+// today는 'YYYY-MM-DD'(todayKst() 호출부 주입) — 진행 중인 달 판정에만 쓰고 그 외엔 daysInMonth와 동일하다.
+export function elapsedDaysInMonth(month: string, today: string): number {
+  if (month === today.slice(0, 7)) return Number(today.slice(8, 10))
+  return daysInMonth(month)
+}
+
 // YTD 모드에서 "몇 개월치 실적인지" — 1월부터 선택 월까지 개월 수.
 export function elapsedMonthsInYear(month: string): number {
   return Number(month.slice(5, 7))

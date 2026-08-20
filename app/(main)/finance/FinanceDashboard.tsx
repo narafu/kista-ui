@@ -91,19 +91,26 @@ export function FinanceDashboard() {
     isLoading: isTransactionsLoading,
     isError: isTransactionsError,
   } = useFinanceTransactionsQuery(flowWindow.from, flowWindow.to)
-  const { data: incomeCategories = [] } = useFinanceCategoriesQuery('INCOME')
-  const { data: expenseCategories = [] } = useFinanceCategoriesQuery('EXPENSE')
-  const { data: savingCategories = [] } = useFinanceCategoriesQuery('SAVING')
+  const { data: incomeCategories = [], isLoading: isIncomeCategoriesLoading } = useFinanceCategoriesQuery('INCOME')
+  const { data: expenseCategories = [], isLoading: isExpenseCategoriesLoading } = useFinanceCategoriesQuery('EXPENSE')
+  const { data: savingCategories = [], isLoading: isSavingCategoriesLoading } = useFinanceCategoriesQuery('SAVING')
   const { data: budgets = [] } = useFinanceBudgetsQuery()
+  // 거래내역 쿼리만 보고 로딩 종료를 판단하면, 세 카테고리 쿼리가 아직 안 끝난 사이에 거래내역만
+  // 먼저 도착했을 때 categoryIndex가 빈 Map인 채로 한 프레임 렌더된다 — filterByType이 전부
+  // "분류할 수 없는 내역"으로 오분류하고 예산 대비도 "예산 없음"으로 잘못 표시한다.
+  const isFlowLoading = isTransactionsLoading || isIncomeCategoriesLoading || isExpenseCategoriesLoading || isSavingCategoriesLoading
   const categoryIndex = useMemo(
     () => buildCategoryIndex({ INCOME: incomeCategories, EXPENSE: expenseCategories, SAVING: savingCategories }),
     [incomeCategories, expenseCategories, savingCategories],
   )
-  const categoryTreeByType: Record<'INCOME' | 'EXPENSE' | 'SAVING', typeof incomeCategories> = {
-    INCOME: incomeCategories,
-    EXPENSE: expenseCategories,
-    SAVING: savingCategories,
-  }
+  const categoryTreeByType = useMemo(
+    (): Record<'INCOME' | 'EXPENSE' | 'SAVING', typeof incomeCategories> => ({
+      INCOME: incomeCategories,
+      EXPENSE: expenseCategories,
+      SAVING: savingCategories,
+    }),
+    [incomeCategories, expenseCategories, savingCategories],
+  )
 
   const isFlowTab = tab === 'income' || tab === 'expense' || tab === 'saving'
   const flowType = isFlowTab ? FLOW_TYPE[tab] : null
@@ -122,7 +129,11 @@ export function FinanceDashboard() {
         eyebrow="가계부"
         title={TITLE[tab]}
         actions={
-          tab === 'investment' ? <NewAssetButton /> : isFlowTab && flowType ? <NewTransactionButton type={flowType} /> : undefined
+          tab === 'investment' ? (
+            <NewAssetButton />
+          ) : isFlowTab && flowType ? (
+            <NewTransactionButton type={flowType} windowFrom={flowWindow.from} windowTo={flowWindow.to} />
+          ) : undefined
         }
       />
       <div className="space-y-6">
@@ -154,7 +165,7 @@ export function FinanceDashboard() {
               type={flowType}
               transactions={transactions}
               index={categoryIndex}
-              isLoading={isTransactionsLoading}
+              isLoading={isFlowLoading}
               isError={isTransactionsError}
               period={period}
               onPeriodChange={setPeriod}
@@ -164,7 +175,7 @@ export function FinanceDashboard() {
               transactions={transactions}
               index={categoryIndex}
               month={period.month}
-              isLoading={isTransactionsLoading}
+              isLoading={isFlowLoading}
               isError={isTransactionsError}
             />
             {(BUDGET_TABS as readonly AssetTab[]).includes(tab) && (
@@ -175,7 +186,7 @@ export function FinanceDashboard() {
                 categoryTree={categoryTreeByType[flowType]}
                 index={categoryIndex}
                 period={period}
-                isLoading={isTransactionsLoading}
+                isLoading={isFlowLoading}
                 isError={isTransactionsError}
               />
             )}
@@ -185,7 +196,7 @@ export function FinanceDashboard() {
               categoryTree={categoryTreeByType[flowType]}
               index={categoryIndex}
               period={period}
-              isLoading={isTransactionsLoading}
+              isLoading={isFlowLoading}
               isError={isTransactionsError}
             />
           </>

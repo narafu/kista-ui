@@ -10,9 +10,13 @@ import { TransactionFormDialog } from './TransactionFormDialog'
 interface Props {
   type: FinanceCategoryType
   className?: string
+  // 현재 화면이 조회 중인 12개월 윈도우 — TransactionFormDialog로 그대로 전달해 이 범위 밖
+  // 날짜로 등록하는 걸 막는다(자세한 이유는 TransactionFormDialog 주석 참고).
+  windowFrom?: string
+  windowTo?: string
 }
 
-export function NewTransactionButton({ type, className }: Props) {
+export function NewTransactionButton({ type, className, windowFrom, windowTo }: Props) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -28,7 +32,14 @@ export function NewTransactionButton({ type, className }: Props) {
       {/* CategoryManager 등 다른 CRUD 다이얼로그와 동일하게 조건부 마운트 — 항상 마운트해두면
           내부 useState(날짜·카테고리·금액·메모)가 다음 열림에도 초기화되지 않고 이전 입력값이 남는다. */}
       {open && (
-        <TransactionFormDialog open onOpenChange={setOpen} type={type} onSuccess={() => setOpen(false)} />
+        <TransactionFormDialog
+          open
+          onOpenChange={setOpen}
+          type={type}
+          windowFrom={windowFrom}
+          windowTo={windowTo}
+          onSuccess={() => setOpen(false)}
+        />
       )}
     </>
   )

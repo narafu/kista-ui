@@ -3,10 +3,10 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SectionError } from '@shared/ui/SectionError'
-import { fmtKrw, fmtSignedKrw, pnlTextClass } from '@shared/lib/format'
+import { fmtKrw, fmtSignedKrw, pnlTextClass, todayKst } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { useMeta } from '@entities/meta'
-import { calcFlowSummary, daysInMonth, elapsedMonthsInYear, filterByType } from '@entities/finance'
+import { calcFlowSummary, elapsedDaysInMonth, elapsedMonthsInYear, filterByType } from '@entities/finance'
 import type { CategoryIndex, FinanceCategoryType, FinanceTransaction, Period, PeriodMode } from '@entities/finance'
 import { KpiCard } from '@widgets/kpi-card'
 
@@ -100,7 +100,8 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
               label={period.mode === 'monthly' ? '일평균' : '월평균'}
               value={fmtKrw(
                 Math.round(
-                  summary.total / (period.mode === 'monthly' ? daysInMonth(period.month) : elapsedMonthsInYear(period.month)),
+                  summary.total /
+                    (period.mode === 'monthly' ? elapsedDaysInMonth(period.month, todayKst()) : elapsedMonthsInYear(period.month)),
                 ),
               )}
               valueClassName="break-words text-base sm:text-2xl lg:text-3xl"
