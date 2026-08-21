@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { fmtKrw } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
@@ -12,7 +13,6 @@ import { useMeta } from '@entities/meta'
 import { getCategoryPath, useDeleteFinanceBudgetMutation, useFinanceBudgetsQuery, useFinanceCategoriesQuery } from '@entities/finance'
 import type { FinanceBudget } from '@entities/finance'
 import { BudgetFormDialog } from './BudgetFormDialog'
-import { DeleteBudgetDialog } from './DeleteBudgetDialog'
 
 type BudgetType = 'EXPENSE' | 'SAVING'
 
@@ -114,9 +114,11 @@ export function BudgetManager() {
       )}
 
       {deleteDialog.target && (
-        <DeleteBudgetDialog
+        <ConfirmDeleteDialog
           open
           onOpenChange={deleteDialog.onOpenChange}
+          title="예산을 삭제하시겠습니까?"
+          description="삭제한 예산은 복구할 수 없습니다."
           onConfirm={handleDelete}
           isPending={deleteMutation.isPending}
         />

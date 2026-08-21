@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Spinner } from '@shared/ui/Spinner'
-import { todayKst } from '@shared/lib/format'
+import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import {
   getCascadeLevels,
   getCategoryPath,
@@ -17,14 +17,6 @@ import {
   useUpdateFinanceTransactionMutation,
 } from '@entities/finance'
 import type { FinanceCategoryType, FinanceTransaction, FinanceTransactionRequest } from '@entities/finance'
-
-function digitsOnly(value: string) {
-  return value.replace(/[^0-9]/g, '')
-}
-
-function formatAmountDisplay(digits: string) {
-  return digits ? Number(digits).toLocaleString('ko-KR') : ''
-}
 
 interface Props {
   open: boolean

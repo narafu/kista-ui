@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Spinner } from '@shared/ui/Spinner'
 import { cn } from '@shared/lib/utils'
-import { todayKst } from '@shared/lib/format'
+import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import {
   getCascadeLevels,
@@ -34,14 +34,6 @@ interface Props {
 
 // 계좌 Select 미선택("미지정") 센티널 — Base UI Select는 빈 문자열 value를 허용하지 않는다.
 const NO_ACCOUNT_VALUE = 'NONE'
-
-function digitsOnly(value: string) {
-  return value.replace(/[^0-9]/g, '')
-}
-
-function formatAmountDisplay(digits: string) {
-  return digits ? Number(digits).toLocaleString('ko-KR') : ''
-}
 
 const MODE_LABEL: Record<AssetFormMode, string> = {
   create: '등록',

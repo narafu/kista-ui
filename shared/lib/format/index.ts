@@ -55,6 +55,16 @@ export function fmtSignedKrw(n: number): string {
   return n >= 0 ? `+${fmtKrw(n)}` : `-${fmtKrw(Math.abs(n))}`
 }
 
+/** 금액 입력 필드의 raw value에서 숫자만 남긴다 (AssetForm/TransactionFormDialog/BudgetFormDialog 공용) */
+export function digitsOnly(value: string): string {
+  return value.replace(/[^0-9]/g, '')
+}
+
+/** digitsOnly 결과를 표시용 천단위 콤마 문자열로 변환 */
+export function formatAmountDisplay(digits: string): string {
+  return digits ? Number(digits).toLocaleString('ko-KR') : ''
+}
+
 export function todayKst(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' })
 }

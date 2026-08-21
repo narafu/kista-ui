@@ -9,6 +9,7 @@ import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
+import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtKrw } from '@shared/lib/format'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
@@ -23,7 +24,6 @@ import {
 } from '@entities/finance'
 import type { CategoryIndex, FinanceCategory, FinanceCategoryType, FinanceTransaction, Period } from '@entities/finance'
 import { TransactionFormDialog } from '@features/finance/save-transaction'
-import { DeleteTransactionDialog } from '@features/finance/delete-transaction'
 import { ALL_FILTER_VALUE, FinanceRecordFilters } from './FinanceRecordFilters'
 
 type SortKey = 'transactionDate' | 'category' | 'amount'
@@ -258,9 +258,11 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
           onSuccess={() => editDialog.close()}
         />
       )}
-      <DeleteTransactionDialog
+      <ConfirmDeleteDialog
         open={deleteDialog.open}
         onOpenChange={deleteDialog.onOpenChange}
+        title="거래내역을 삭제하시겠습니까?"
+        description="삭제한 내역은 복구할 수 없습니다."
         isPending={deleteMutation.isPending}
         onConfirm={handleDelete}
       />

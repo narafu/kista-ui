@@ -11,6 +11,7 @@ import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
+import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtKrw } from '@shared/lib/format'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
@@ -29,7 +30,6 @@ import {
   useFinanceCategoriesQuery,
 } from '@entities/finance'
 import type { AssetSnapshot } from '@entities/finance'
-import { DeleteAssetDialog } from '@features/asset/delete-asset'
 import { AssetRecordFilters, ALL_FILTER_VALUE } from './AssetRecordFilters'
 import type { AssetFilterValue } from './AssetRecordFilters'
 
@@ -344,10 +344,15 @@ export function AssetRecordList() {
         </>
       )}
 
-      <DeleteAssetDialog
+      <ConfirmDeleteDialog
         open={deleteDialog.open}
         onOpenChange={deleteDialog.onOpenChange}
-        count={deleteDialog.target?.length ?? 0}
+        title={
+          (deleteDialog.target?.length ?? 0) > 1
+            ? `자산 기록 ${deleteDialog.target?.length}건을 삭제하시겠습니까?`
+            : '자산 기록을 삭제하시겠습니까?'
+        }
+        description="삭제한 기록은 복구할 수 없습니다."
         onConfirm={confirmDelete}
         isPending={deleteManyMutation.isPending}
       />
