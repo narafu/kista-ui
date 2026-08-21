@@ -57,3 +57,10 @@ export function elapsedDaysInMonth(month: string, today: string): number {
 export function elapsedMonthsInYear(month: string): number {
   return Number(month.slice(5, 7))
 }
+
+// 연간(YTD) 모드의 "전년대비" 비교 대상 범위 — 선택 연도 전년 1월부터 선택월과 동일한 월까지.
+export function previousYearRange(period: Period): { from: string; to: string } {
+  const prevYear = Number(period.month.slice(0, 4)) - 1
+  const mm = period.month.slice(5, 7)
+  return { from: `${prevYear}-01-01`, to: monthEndDate(`${prevYear}-${mm}`) }
+}
