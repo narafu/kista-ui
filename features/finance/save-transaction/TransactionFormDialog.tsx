@@ -32,10 +32,13 @@ interface Props {
   type: FinanceCategoryType
   initial?: FinanceTransaction
   onSuccess: () => void
-  // 현재 화면이 조회 중인 12개월 윈도우('YYYY-MM-DD'). FinanceDashboard의 windowRange(period.month)
-  // 결과를 그대로 내려받는다 — 이 범위 밖 날짜로 등록하면 저장은 되지만 지금 보고 있는 요약·추이·
-  // 내역 어디에도 나타나지 않아(다른 달을 조회해야 보임) 혼란을 준다. 날짜 입력 자체를 이 범위로
-  // 막고, 새로 등록할 때 기본값도 범위 안으로 clamp한다.
+  // 유효 날짜 범위('YYYY-MM-DD'). 호출부가 무엇을 넘기는지에 따라 의미가 다르다 —
+  // 등록(NewTransactionButton)은 "오늘 기준" 독립 12개월 창(FinanceDashboard의 registerWindow),
+  // 수정(FinanceRecordList)은 "지금 조회 중인" 12개월 창(windowRange(period.month))을 넘긴다.
+  // 후자는 편집 대상 거래 자체가 그 창 안에서만 존재할 수 있어 조회 윈도우 그대로 쓰는 게 맞고,
+  // 전자를 조회 윈도우에 묶으면 과거 달을 보는 중엔 오늘 날짜조차 등록 못 하게 막혀버린다(실사용
+  // 시나리오로 지적됨) — 그래서 서로 다른 기준으로 분리했다. 날짜 입력 자체를 이 범위로 막고,
+  // 새로 등록할 때 기본값도 범위 안으로 clamp한다.
   windowFrom?: string
   windowTo?: string
 }

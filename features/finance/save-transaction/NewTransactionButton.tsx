@@ -10,8 +10,9 @@ import { TransactionFormDialog } from './TransactionFormDialog'
 interface Props {
   type: FinanceCategoryType
   className?: string
-  // 현재 화면이 조회 중인 12개월 윈도우 — TransactionFormDialog로 그대로 전달해 이 범위 밖
-  // 날짜로 등록하는 걸 막는다(자세한 이유는 TransactionFormDialog 주석 참고).
+  // "오늘 기준" 독립 12개월 창(FinanceDashboard의 registerWindow) — 조회 중인 기간과 무관하게
+  // 항상 같은 값이다. TransactionFormDialog로 그대로 전달해 이 범위 밖 날짜로 등록하는 걸
+  // 막는다(왜 조회 윈도우가 아니라 독립 창인지는 TransactionFormDialog 주석 참고).
   windowFrom?: string
   windowTo?: string
 }

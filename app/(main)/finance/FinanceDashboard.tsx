@@ -86,6 +86,11 @@ export function FinanceDashboard() {
   // FinanceSummary/FinanceTrend/FinanceBudgetProgress/FinanceRecordList에 props로 내려보낸다.
   const [period, setPeriod] = useState<Period>({ month: todayKst().slice(0, 7), mode: 'monthly' })
   const flowWindow = useMemo(() => windowRange(period.month), [period.month])
+  // 등록 다이얼로그의 날짜 제약은 "지금 조회 중인 기간"(flowWindow)이 아니라 "오늘 기준" 독립 창이다 —
+  // 조회 윈도우에 묶으면 과거 달을 보는 중엔 오늘 날짜조차 등록할 수 없어진다(리뷰에서 지적된 실사용
+  // 시나리오). 수정 다이얼로그(FinanceRecordList)는 반대로 조회 윈도우 그대로 쓴다 — 편집 대상 거래
+  // 자체가 그 창 안에서만 존재할 수 있어 여기서 분리할 이유가 없다.
+  const registerWindow = useMemo(() => windowRange(todayKst().slice(0, 7)), [])
   const {
     data: transactions = [],
     isLoading: isTransactionsLoading,
@@ -132,7 +137,7 @@ export function FinanceDashboard() {
           tab === 'investment' ? (
             <NewAssetButton />
           ) : isFlowTab && flowType ? (
-            <NewTransactionButton type={flowType} windowFrom={flowWindow.from} windowTo={flowWindow.to} />
+            <NewTransactionButton type={flowType} windowFrom={registerWindow.from} windowTo={registerWindow.to} />
           ) : undefined
         }
       />
