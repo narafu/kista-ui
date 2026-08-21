@@ -6,7 +6,7 @@ import { SectionError } from '@shared/ui/SectionError'
 import { fmtKrw, fmtSignedKrw, pnlTextClass, todayKst } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { useMeta } from '@entities/meta'
-import { calcFlowSummary, elapsedDaysInMonth, elapsedMonthsInYear, filterByType } from '@entities/finance'
+import { calcFlowSummary, elapsedDaysInMonth, elapsedMonthsInYear, filterByType, previousYearRange } from '@entities/finance'
 import type { CategoryIndex, FinanceCategoryType, FinanceTransaction, Period, PeriodMode } from '@entities/finance'
 import { KpiCard } from '@widgets/kpi-card'
 
@@ -18,6 +18,9 @@ interface Props {
   isError: boolean
   period: Period
   onPeriodChange: (period: Period) => void
+  // 연간 모드 전년대비 전용 — period.mode==='yearly'일 때만 부모(FinanceDashboard)가 조회해 넘긴다.
+  // 기존 12개월 슬라이딩 윈도우(windowRange)로는 전년 동기간을 커버할 수 없어 별도 쿼리가 필요하다.
+  previousYearTransactions?: FinanceTransaction[]
 }
 
 const MODE_OPTIONS: { value: PeriodMode; label: string }[] = [
@@ -44,7 +47,7 @@ function ModeButton({ active, onClick, children }: { active: boolean; onClick: (
   )
 }
 
-export function FinanceSummary({ type, transactions, index, isLoading, isError, period, onPeriodChange }: Props) {
+export function FinanceSummary({ type, transactions, index, isLoading, isError, period, onPeriodChange, previousYearTransactions }: Props) {
   const { labelOf } = useMeta()
 
   const typeTransactions = useMemo(() => filterByType(transactions, index, type), [transactions, index, type])
@@ -53,18 +56,42 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
   // 반전과 같은 이유. 수입·저축은 늘어난 게 좋은 신호라 그대로 둔다.
   const previousDelta = summary.previousTotal !== null ? summary.total - summary.previousTotal : null
 
+  const previousYearTotal = useMemo(() => {
+    if (period.mode !== 'yearly' || !previousYearTransactions) return null
+    const { from, to } = previousYearRange(period)
+    return filterByType(previousYearTransactions, index, type)
+      .filter((t) => t.transactionDate >= from && t.transactionDate <= to)
+      .reduce((sum, t) => sum + t.amount, 0)
+  }, [period, previousYearTransactions, index, type])
+  const previousYearDelta = previousYearTotal !== null ? summary.total - previousYearTotal : null
+
   return (
     <Card>
       <CardHeader className="flex flex-col gap-3 pb-3 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle className="text-base lg:text-lg">{labelOf('financeCategoryTypes', type)} 요약</CardTitle>
         <div className="flex flex-wrap items-center gap-2">
-          <input
-            type="month"
-            aria-label="기준 월"
-            value={period.month}
-            onChange={(e) => { if (e.target.value) onPeriodChange({ ...period, month: e.target.value }) }}
-            className="h-9 rounded-md border border-border bg-background px-2 text-sm"
-          />
+          {period.mode === 'monthly' ? (
+            <input
+              type="month"
+              aria-label="기준 월"
+              value={period.month}
+              onChange={(e) => { if (e.target.value) onPeriodChange({ ...period, month: e.target.value }) }}
+              className="h-9 rounded-md border border-border bg-background px-2 text-sm"
+            />
+          ) : (
+            <input
+              type="number"
+              aria-label="기준 연도"
+              value={Number(period.month.slice(0, 4))}
+              onChange={(e) => {
+                // 4자리 미만이면 커밋하지 않는다 — 도중에 "2-08" 같은 잘못된 month 문자열이
+                // period 전체(elapsedMonthsInYear·previousYearRange 등)를 오염시키는 걸 막는다.
+                if (e.target.value.length !== 4) return
+                onPeriodChange({ ...period, month: `${e.target.value}-${period.month.slice(5, 7)}` })
+              }}
+              className="h-9 w-24 rounded-md border border-border bg-background px-2 text-sm"
+            />
+          )}
           <div role="group" aria-label="기간 모드" className="grid grid-cols-2 rounded-md border border-border p-0.5">
             {MODE_OPTIONS.map((option) => (
               <ModeButton
@@ -89,11 +116,18 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <KpiCard label="합계" value={fmtKrw(summary.total)} variant="accent" valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
             <KpiCard label="건수" value={`${summary.count}건`} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
-            {previousDelta !== null && (
+            {period.mode === 'monthly' && previousDelta !== null && (
               <KpiCard
                 label="전월 대비"
                 value={fmtSignedKrw(previousDelta)}
                 valueClassName={cn('break-words text-base sm:text-2xl lg:text-3xl', pnlTextClass(type === 'EXPENSE' ? -previousDelta : previousDelta))}
+              />
+            )}
+            {period.mode === 'yearly' && previousYearDelta !== null && (
+              <KpiCard
+                label="전년 대비"
+                value={fmtSignedKrw(previousYearDelta)}
+                valueClassName={cn('break-words text-base sm:text-2xl lg:text-3xl', pnlTextClass(type === 'EXPENSE' ? -previousYearDelta : previousYearDelta))}
               />
             )}
             <KpiCard
