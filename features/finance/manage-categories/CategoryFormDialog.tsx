@@ -35,7 +35,7 @@ interface Props {
 export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, category, onSuccess }: Props) {
   const mode = category ? 'edit' : 'create'
   const [name, setName] = useState(category?.name ?? '')
-  const [sortOrder, setSortOrder] = useState(String(category?.sortOrder ?? 0))
+  const [sortOrder, setSortOrder] = useState(String(category?.sortOrder ?? 1))
   // 계단식 부모 Select: 각 단에서 선택한 categoryId를 순서대로 담는다. 마지막 값이 실제
   // parentId — 선택한 노드에 children이 있으면 다음 단이 자동으로 추가돼 depth 제한이 없다.
   const [selectedPath, setSelectedPath] = useState<string[]>([])
@@ -55,7 +55,7 @@ export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, cat
       parentId: mode === 'edit' ? category?.parentId : (parentId === NO_PARENT_VALUE ? undefined : parentId),
       type,
       name: name.trim(),
-      sortOrder: Number(sortOrder) || 0,
+      sortOrder: Math.max(1, Math.trunc(Number(sortOrder)) || 1),
     }
 
     if (mode === 'edit') {
@@ -134,6 +134,7 @@ export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, cat
               <Input
                 id="categorySortOrder"
                 type="number"
+                min={1}
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value)}
                 disabled={isPending}
