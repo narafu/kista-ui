@@ -7,40 +7,18 @@ import { Button } from '@/components/ui/button'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { fmtKrw } from '@shared/lib/format'
-import { cn } from '@shared/lib/utils'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
-import { useMeta } from '@entities/meta'
 import { getCategoryPath, useDeleteFinanceBudgetMutation, useFinanceBudgetsQuery, useFinanceCategoriesQuery } from '@entities/finance'
 import type { FinanceBudget } from '@entities/finance'
 import { BudgetFormDialog } from './BudgetFormDialog'
 
-type BudgetType = 'EXPENSE' | 'SAVING'
-
-// CategoryManager/SystemCategoryManager의 TypeButton과 동일 스타일 — feature 슬라이스끼리
-// cross-import 금지라 로컬로 다시 정의한다(다른 위젯들도 이미 다 그렇게 복제했다).
-function TypeButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={cn(
-        'min-h-9 w-full rounded px-2 py-1 text-sm font-medium transition-colors',
-        active
-          ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]'
-          : 'text-muted-foreground hover:text-foreground hover:bg-accent',
-      )}
-    >
-      {children}
-    </button>
-  )
+interface Props {
+  type: 'INCOME' | 'EXPENSE' | 'SAVING'
 }
 
-// 예산은 소비/저축 두 타입만 존재한다(CategoryManager는 ASSET/INCOME까지 4타입이지만 이 화면은
-// 예산 개념이 있는 2타입뿐이다).
-export function BudgetManager() {
-  const { labelOf } = useMeta()
-  const [type, setType] = useState<BudgetType>('EXPENSE')
+// 예산 유형은 더 이상 이 컴포넌트가 스스로 고르지 않는다 — 호출부(BudgetManagerDialog)가
+// 수입/소비/저축 탭 컨텍스트에서 이미 고정된 type을 넘긴다(설정 화면의 독립 세그먼트 UI는 폐기).
+export function BudgetManager({ type }: Props) {
   const { data: categories = [] } = useFinanceCategoriesQuery(type)
   const { data: allBudgets = [] } = useFinanceBudgetsQuery()
 
@@ -62,14 +40,6 @@ export function BudgetManager() {
 
   return (
     <div className="space-y-4">
-      <div role="group" aria-label="예산 유형" className="grid w-full grid-cols-2 rounded-md border border-border p-0.5 sm:w-64">
-        {(['EXPENSE', 'SAVING'] as const).map((t) => (
-          <TypeButton key={t} active={type === t} onClick={() => setType(t)}>
-            {labelOf('financeCategoryTypes', t)}
-          </TypeButton>
-        ))}
-      </div>
-
       <div className="flex justify-end">
         <Button type="button" size="sm" className="gap-1.5" onClick={() => setFormTarget('new')}>
           <Plus className="size-4" />
