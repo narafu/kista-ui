@@ -37,9 +37,13 @@ interface Props {
   period: Period
   isLoading: boolean
   isError: boolean
+  // 복제 시 새로 등록될 거래의 날짜 제약("오늘 기준" 독립 12개월 창) — FinanceDashboard의
+  // registerWindow와 동일한 값. 수정용 window(조회 윈도우)와는 의도적으로 분리한다.
+  registerWindowFrom?: string
+  registerWindowTo?: string
 }
 
-export function FinanceRecordList({ type, transactions, categoryTree, index, period, isLoading, isError }: Props) {
+export function FinanceRecordList({ type, transactions, categoryTree, index, period, isLoading, isError, registerWindowFrom, registerWindowTo }: Props) {
   const deleteMutation = useDeleteFinanceTransactionMutation()
 
   const [categoryPath, setCategoryPath] = useState<string[]>([])
@@ -50,6 +54,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
 
   const editDialog = useConfirmDialog<FinanceTransaction>()
   const deleteDialog = useConfirmDialog<string>()
+  const duplicateDialog = useConfirmDialog<FinanceTransaction>()
 
   const orderedRootIds = useMemo(() => [...categoryTree].sort((a, b) => a.sortOrder - b.sortOrder).map((c) => c.id), [categoryTree])
 
@@ -199,6 +204,8 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                             <div className="flex items-center justify-center gap-1">
                               <button type="button" onClick={() => editDialog.request(t)} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">수정</button>
                               <span className="text-muted-foreground/40">·</span>
+                              <button type="button" onClick={() => duplicateDialog.request(t)} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">복제</button>
+                              <span className="text-muted-foreground/40">·</span>
                               <button type="button" onClick={() => deleteDialog.request(t.id)} className="text-xs font-semibold text-destructive hover:text-destructive/80">삭제</button>
                             </div>
                           </TableDataCell>
@@ -230,6 +237,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                       </div>
                       <div className="mt-3 flex items-center justify-end gap-3 border-t pt-3">
                         <button type="button" onClick={() => editDialog.request(t)} className="px-1 py-2 text-xs font-semibold text-foreground">수정</button>
+                        <button type="button" onClick={() => duplicateDialog.request(t)} className="px-1 py-2 text-xs font-semibold text-foreground">복제</button>
                         <button type="button" onClick={() => deleteDialog.request(t.id)} className="px-1 py-2 text-xs font-semibold text-destructive">삭제</button>
                       </div>
                     </li>
@@ -256,6 +264,18 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
           windowFrom={window.from}
           windowTo={window.to}
           onSuccess={() => editDialog.close()}
+        />
+      )}
+
+      {duplicateDialog.target && (
+        <TransactionFormDialog
+          open
+          onOpenChange={duplicateDialog.onOpenChange}
+          type={type}
+          duplicateFrom={duplicateDialog.target}
+          windowFrom={registerWindowFrom}
+          windowTo={registerWindowTo}
+          onSuccess={() => duplicateDialog.close()}
         />
       )}
       <ConfirmDeleteDialog
