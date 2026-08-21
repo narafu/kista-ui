@@ -46,7 +46,6 @@ const FLOW_TYPE: Record<'income' | 'expense' | 'saving', 'INCOME' | 'EXPENSE' | 
   expense: 'EXPENSE',
   saving: 'SAVING',
 }
-const BUDGET_TABS = ['income', 'expense', 'saving'] as const
 
 function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -187,18 +186,16 @@ export function FinanceDashboard() {
               onPeriodChange={setPeriod}
               previousYearTransactions={previousYearTransactions}
             />
-            {(BUDGET_TABS as readonly AssetTab[]).includes(tab) && (
-              <FinanceBudgetProgress
-                type={flowType}
-                budgets={budgets}
-                transactions={transactions}
-                categoryTree={categoryTreeByType[flowType]}
-                index={categoryIndex}
-                period={period}
-                isLoading={isFlowLoading}
-                isError={isTransactionsError}
-              />
-            )}
+            <FinanceBudgetProgress
+              type={flowType}
+              budgets={budgets}
+              transactions={transactions}
+              categoryTree={categoryTreeByType[flowType]}
+              index={categoryIndex}
+              period={period}
+              isLoading={isFlowLoading}
+              isError={isTransactionsError}
+            />
             <FinanceTrend
               type={flowType}
               transactions={transactions}
