@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import {
   buildCategoryIndex,
   listAvailableMonths,
+  previousYearRange,
   useAssetSnapshotsQuery,
   useFinanceBudgetsQuery,
   useFinanceCategoriesQuery,
@@ -14,6 +15,7 @@ import type { FinanceCategoryType, Period } from '@entities/finance'
 import { todayKst } from '@shared/lib/format'
 import { NewAssetButton } from '@features/asset/save-asset'
 import { NewTransactionButton } from '@features/finance/save-transaction'
+import { BudgetManagerDialog } from '@features/finance/manage-budgets'
 import { AssetOverview } from '@widgets/asset-overview'
 import { AssetTrend } from '@widgets/asset-trend'
 import { AssetComposition } from '@widgets/asset-composition'
@@ -30,10 +32,10 @@ import { cn } from '@shared/lib/utils'
 type AssetTab = 'income' | 'expense' | 'saving' | 'investment' | 'settings'
 
 const TAB_OPTIONS: { value: AssetTab; label: string }[] = [
+  { value: 'investment', label: '자산' },
   { value: 'income', label: '수입' },
   { value: 'expense', label: '소비' },
   { value: 'saving', label: '저축' },
-  { value: 'investment', label: '자산' },
   { value: 'settings', label: '설정' },
 ]
 
@@ -44,7 +46,7 @@ const FLOW_TYPE: Record<'income' | 'expense' | 'saving', 'INCOME' | 'EXPENSE' | 
   expense: 'EXPENSE',
   saving: 'SAVING',
 }
-const BUDGET_TABS = ['expense', 'saving'] as const
+const BUDGET_TABS = ['income', 'expense', 'saving'] as const
 
 function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -94,6 +96,15 @@ export function FinanceDashboard() {
     isLoading: isTransactionsLoading,
     isError: isTransactionsError,
   } = useFinanceTransactionsQuery(flowWindow.from, flowWindow.to)
+  const isFlowTab = tab === 'income' || tab === 'expense' || tab === 'saving'
+  // 전년대비 전용 — 연간 모드일 때만 조회한다. 기존 12개월 윈도우(flowWindow)로는 전년 동기간이
+  // 커버되지 않아(예: 2026-08 YTD 대비 2025-01~08은 완전히 다른 범위) 별도 쿼리가 필요하다.
+  const previousYearWindow = useMemo(() => previousYearRange(period), [period])
+  const { data: previousYearTransactions = [] } = useFinanceTransactionsQuery(
+    previousYearWindow.from,
+    previousYearWindow.to,
+    { enabled: isFlowTab && period.mode === 'yearly' },
+  )
   const { data: incomeCategories = [], isLoading: isIncomeCategoriesLoading } = useFinanceCategoriesQuery('INCOME')
   const { data: expenseCategories = [], isLoading: isExpenseCategoriesLoading } = useFinanceCategoriesQuery('EXPENSE')
   const { data: savingCategories = [], isLoading: isSavingCategoriesLoading } = useFinanceCategoriesQuery('SAVING')
@@ -115,7 +126,6 @@ export function FinanceDashboard() {
     [incomeCategories, expenseCategories, savingCategories],
   )
 
-  const isFlowTab = tab === 'income' || tab === 'expense' || tab === 'saving'
   const flowType = isFlowTab ? FLOW_TYPE[tab] : null
 
   const TITLE: Record<AssetTab, string> = {
@@ -135,7 +145,10 @@ export function FinanceDashboard() {
           tab === 'investment' ? (
             <NewAssetButton />
           ) : isFlowTab && flowType ? (
-            <NewTransactionButton type={flowType} windowFrom={registerWindow.from} windowTo={registerWindow.to} />
+            <div className="flex items-center gap-2">
+              <BudgetManagerDialog type={flowType} />
+              <NewTransactionButton type={flowType} windowFrom={registerWindow.from} windowTo={registerWindow.to} />
+            </div>
           ) : undefined
         }
       />
@@ -172,18 +185,11 @@ export function FinanceDashboard() {
               isError={isTransactionsError}
               period={period}
               onPeriodChange={setPeriod}
-            />
-            <FinanceTrend
-              type={flowType}
-              transactions={transactions}
-              index={categoryIndex}
-              month={period.month}
-              isLoading={isFlowLoading}
-              isError={isTransactionsError}
+              previousYearTransactions={previousYearTransactions}
             />
             {(BUDGET_TABS as readonly AssetTab[]).includes(tab) && (
               <FinanceBudgetProgress
-                type={flowType as 'EXPENSE' | 'SAVING'}
+                type={flowType}
                 budgets={budgets}
                 transactions={transactions}
                 categoryTree={categoryTreeByType[flowType]}
@@ -193,6 +199,14 @@ export function FinanceDashboard() {
                 isError={isTransactionsError}
               />
             )}
+            <FinanceTrend
+              type={flowType}
+              transactions={transactions}
+              index={categoryIndex}
+              month={period.month}
+              isLoading={isFlowLoading}
+              isError={isTransactionsError}
+            />
             <FinanceRecordList
               type={flowType}
               transactions={transactions}
@@ -201,6 +215,8 @@ export function FinanceDashboard() {
               period={period}
               isLoading={isFlowLoading}
               isError={isTransactionsError}
+              registerWindowFrom={registerWindow.from}
+              registerWindowTo={registerWindow.to}
             />
           </>
         )}

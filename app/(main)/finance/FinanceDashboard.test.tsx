@@ -11,6 +11,7 @@ vi.mock('@entities/finance', () => ({
   useFinanceBudgetsQuery: () => ({ data: [] }),
   buildCategoryIndex: () => new Map(),
   windowRange: (month: string) => ({ from: `${month}-01`, to: `${month}-28` }),
+  previousYearRange: (period: { month: string }) => ({ from: `${period.month}-01`, to: `${period.month}-28` }),
 }))
 
 vi.mock('@features/asset/save-asset', () => ({
@@ -18,6 +19,9 @@ vi.mock('@features/asset/save-asset', () => ({
 }))
 vi.mock('@features/finance/save-transaction', () => ({
   NewTransactionButton: () => <button type="button">내역 등록</button>,
+}))
+vi.mock('@features/finance/manage-budgets', () => ({
+  BudgetManagerDialog: () => <button type="button">예산 등록</button>,
 }))
 
 vi.mock('@widgets/asset-overview', () => ({
@@ -69,16 +73,16 @@ describe('FinanceDashboard', () => {
     expect(screen.getByRole('button', { name: '자산 등록' })).toBeInTheDocument()
   })
 
-  it('탭은 수입·소비·저축·자산·설정 순서로 배치된다', () => {
+  it('탭은 자산·수입·소비·저축·설정 순서로 배치된다', () => {
     render(<FinanceDashboard />)
 
     const group = screen.getByRole('group', { name: '자산 탭' })
     const labels = within(group).getAllByRole('button').map((el) => el.textContent)
 
-    expect(labels).toEqual(['수입', '소비', '저축', '자산', '설정'])
+    expect(labels).toEqual(['자산', '수입', '소비', '저축', '설정'])
   })
 
-  it('수입 탭을 선택하면 요약·추이·내역 위젯과 내역 등록 버튼을 보여주고 예산 대비는 없다(수입은 예산 대상 아님)', async () => {
+  it('수입 탭을 선택하면 요약·예산 대비·추이·내역 위젯과 예산등록·내역등록 버튼을 보여준다', async () => {
     const user = userEvent.setup()
     render(<FinanceDashboard />)
 
@@ -90,8 +94,9 @@ describe('FinanceDashboard', () => {
     for (const testId of FLOW_WIDGET_TEST_IDS) {
       expect(screen.getByTestId(testId)).toBeInTheDocument()
     }
-    expect(screen.queryByTestId('finance-budget-progress')).not.toBeInTheDocument()
+    expect(screen.getByTestId('finance-budget-progress')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '자산 등록' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '예산 등록' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '내역 등록' })).toBeInTheDocument()
   })
 
@@ -109,6 +114,7 @@ describe('FinanceDashboard', () => {
     }
     expect(screen.getByTestId('finance-budget-progress')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '자산 등록' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '예산 등록' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '내역 등록' })).toBeInTheDocument()
   })
 
@@ -123,6 +129,7 @@ describe('FinanceDashboard', () => {
     }
     expect(screen.getByTestId('finance-budget-progress')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '자산 등록' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '예산 등록' })).toBeInTheDocument()
   })
 
   it('수입 탭에서 다시 자산 탭으로 돌아오면 자산 위젯과 자산 등록 버튼이 복원된다', async () => {
