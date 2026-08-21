@@ -67,11 +67,9 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
 // '가계부' 페이지의 상태 소유자 — asset-overview·asset-record-check가 공유하는 "기준 월"과
 // 탭 상태를 이 컴포넌트가 소유하고 props로 흘려보낸다. 위젯끼리 cross-import가 금지돼 있어
 // (widgets.md) 두 위젯이 상태를 공유하려면 app 레이어의 공통 client 부모가 필요하다.
-// PageHeader/NewAssetButton도 page.tsx가 아니라 여기서 렌더한다 — "자산 등록" 버튼은 자산
-// 탭에서만 의미가 있고(수입/소비/저축은 아직 미구현 안내만 표시), 탭 상태가 이 컴포넌트의 client
-// state라 Server Component인 page.tsx는 탭에 따라 버튼을 조건부로 숨길 수 없다.
-// 수입/소비/저축 탭은 아직 별도 도메인이 구현되지 않아 자리만 잡아둔 안내 화면이다 — 실제 기능이
-// 생기면 각각 별도 위젯으로 분리한다.
+// PageHeader의 actions도 page.tsx가 아니라 여기서 렌더한다 — 자산 탭은 NewAssetButton,
+// 수입/소비/저축 탭은 NewTransactionButton으로 서로 다르고, 탭 상태가 이 컴포넌트의 client
+// state라 Server Component인 page.tsx는 탭에 따라 버튼을 조건부로 고를 수 없다.
 export function FinanceDashboard() {
   const [tab, setTab] = useState<AssetTab>('investment')
   const { data: snapshots = [] } = useAssetSnapshotsQuery()
