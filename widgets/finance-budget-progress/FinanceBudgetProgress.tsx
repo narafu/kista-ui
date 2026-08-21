@@ -9,7 +9,7 @@ import { calcBudgetProgress, filterByType, flowCategoryColor } from '@entities/f
 import type { CategoryIndex, FinanceBudget, FinanceCategory, FinanceTransaction, Period } from '@entities/finance'
 
 interface Props {
-  type: 'EXPENSE' | 'SAVING'
+  type: 'INCOME' | 'EXPENSE' | 'SAVING'
   budgets: FinanceBudget[]
   transactions: FinanceTransaction[]
   categoryTree: FinanceCategory[]
