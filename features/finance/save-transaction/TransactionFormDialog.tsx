@@ -23,6 +23,9 @@ interface Props {
   onOpenChange: (open: boolean) => void
   type: FinanceCategoryType
   initial?: FinanceTransaction
+  // 내역 복제 전용 — initial과 달리 id를 갖지 않아 항상 create 모드로 제출된다. 카테고리·금액·메모만
+  // 프리필하고 날짜는 오늘로 초기화한다(clampDate 기본 동작 그대로 유지 — 아래서 별도 처리 안 함).
+  duplicateFrom?: Pick<FinanceTransaction, 'categoryId' | 'amount' | 'memo'>
   onSuccess: () => void
   // 유효 날짜 범위('YYYY-MM-DD'). 호출부가 무엇을 넘기는지에 따라 의미가 다르다 —
   // 등록(NewTransactionButton)은 "오늘 기준" 독립 12개월 창(FinanceDashboard의 registerWindow),
@@ -41,26 +44,27 @@ function clampDate(date: string, min?: string, max?: string): string {
   return date
 }
 
-export function TransactionFormDialog({ open, onOpenChange, type, initial, onSuccess, windowFrom, windowTo }: Props) {
+export function TransactionFormDialog({ open, onOpenChange, type, initial, duplicateFrom, onSuccess, windowFrom, windowTo }: Props) {
   const mode = initial ? 'edit' : 'create'
   const { data: categories = [] } = useFinanceCategoriesQuery(type)
+  const seed = initial ?? duplicateFrom
 
   const [transactionDate, setTransactionDate] = useState(initial?.transactionDate ?? clampDate(todayKst(), windowFrom, windowTo))
   // 계단식 카테고리 Select: AssetForm과 동일 패턴 — selectedPath 마지막 값이 실제 제출용 categoryId.
   const [selectedPath, setSelectedPath] = useState<string[]>(() =>
-    initial ? getCategoryPath(categories, initial.categoryId).map((c) => c.id) : []
+    seed ? getCategoryPath(categories, seed.categoryId).map((c) => c.id) : []
   )
   // 다이얼로그가 카테고리 쿼리 로딩보다 먼저 열릴 수 있어, 데이터 도착 후 한 번 더 경로를 복원한다.
   useEffect(() => {
-    if (initial && selectedPath.length === 0 && categories.length > 0) {
-      setSelectedPath(getCategoryPath(categories, initial.categoryId).map((c) => c.id))
+    if (seed && selectedPath.length === 0 && categories.length > 0) {
+      setSelectedPath(getCategoryPath(categories, seed.categoryId).map((c) => c.id))
     }
-  }, [initial, categories, selectedPath.length])
+  }, [seed, categories, selectedPath.length])
   const cascadeLevels = useMemo(() => getCascadeLevels(categories, selectedPath), [categories, selectedPath])
   const categoryId = selectedPath[selectedPath.length - 1] ?? ''
 
-  const [amountDigits, setAmountDigits] = useState(initial ? String(initial.amount) : '')
-  const [memo, setMemo] = useState(initial?.memo ?? '')
+  const [amountDigits, setAmountDigits] = useState(seed ? String(seed.amount) : '')
+  const [memo, setMemo] = useState(seed?.memo ?? '')
 
   const createMutation = useCreateFinanceTransactionMutation()
   const updateMutation = useUpdateFinanceTransactionMutation(initial?.id ?? '')
