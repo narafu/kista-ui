@@ -182,7 +182,7 @@ export interface TransactionListOptions extends GroupScopedOptions {
   from?: string
   to?: string
   categoryId?: string
-  createdBy?: string
+  userId?: string
 }
 
 export async function listFinanceTransactions({
@@ -191,10 +191,10 @@ export async function listFinanceTransactions({
   from,
   to,
   categoryId,
-  createdBy,
+  userId,
 }: TransactionListOptions = {}): Promise<FinanceTransaction[]> {
   const list = await fetchEither<FinanceTransaction[]>(
-    withQuery('/api/finance/transactions', { groupId, from, to, categoryId, createdBy }),
+    withQuery('/api/finance/transactions', { groupId, from, to, categoryId, userId }),
     { method: 'GET' },
     token,
   )
@@ -230,6 +230,16 @@ export async function deleteFinanceTransaction(id: string, token?: string): Prom
   return fetchEither<void>(`/api/finance/transactions/${encodeURIComponent(id)}`, { method: 'DELETE' }, token)
 }
 
+// 개인 소유 거래내역을 소유자의 현재 그룹으로 공유 전환한다(본인 소유·그룹 소속 상태에서만 성공).
+export async function shareFinanceTransaction(id: string, token?: string): Promise<FinanceTransaction> {
+  const saved = await fetchEither<FinanceTransaction>(
+    `/api/finance/transactions/${encodeURIComponent(id)}/share`,
+    { method: 'PATCH' },
+    token,
+  )
+  return normalizeTransaction(saved)
+}
+
 export interface BudgetListOptions extends GroupScopedOptions {
   categoryId?: string
   date?: string
@@ -259,6 +269,12 @@ export async function updateFinanceBudget(id: string, data: FinanceBudgetRequest
 
 export async function deleteFinanceBudget(id: string, token?: string): Promise<void> {
   return fetchEither<void>(`/api/finance/budgets/${encodeURIComponent(id)}`, { method: 'DELETE' }, token)
+}
+
+// 개인 소유 예산을 소유자의 현재 그룹으로 공유 전환한다(본인 소유·그룹 소속 상태에서만 성공).
+export async function shareFinanceBudget(id: string, token?: string): Promise<FinanceBudget> {
+  const saved = await fetchEither<FinanceBudget>(`/api/finance/budgets/${encodeURIComponent(id)}/share`, { method: 'PATCH' }, token)
+  return normalizeBudget(saved)
 }
 
 // code는 사용자가 붙여넣는 자유 입력이라(초대 코드 입력 폼) URL path 세그먼트로 쓰기 전

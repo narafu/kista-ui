@@ -19,7 +19,9 @@ import {
   flowCategoryColor,
   periodRange,
   unclassifiedTransactions,
+  useCanShareToGroup,
   useDeleteFinanceTransactionMutation,
+  useShareFinanceTransactionMutation,
   windowRange,
 } from '@entities/finance'
 import type { CategoryIndex, FinanceCategory, FinanceCategoryType, FinanceTransaction, Period } from '@entities/finance'
@@ -45,6 +47,12 @@ interface Props {
 
 export function FinanceRecordList({ type, transactions, categoryTree, index, period, isLoading, isError, registerWindowFrom, registerWindowTo }: Props) {
   const deleteMutation = useDeleteFinanceTransactionMutation()
+  const shareMutation = useShareFinanceTransactionMutation()
+  const canShare = useCanShareToGroup()
+
+  function handleShare(id: string) {
+    shareMutation.mutate(id, { onSuccess: () => toast.success('그룹에 공유했습니다') })
+  }
 
   const [categoryPath, setCategoryPath] = useState<string[]>([])
   const [sortKey, setSortKey] = useState<SortKey>('transactionDate')
@@ -205,6 +213,12 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                               <button type="button" onClick={() => editDialog.request(t)} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">수정</button>
                               <span className="text-muted-foreground/40">·</span>
                               <button type="button" onClick={() => duplicateDialog.request(t)} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">복제</button>
+                              {canShare && !t.groupId && (
+                                <>
+                                  <span className="text-muted-foreground/40">·</span>
+                                  <button type="button" onClick={() => handleShare(t.id)} disabled={shareMutation.isPending} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">공유</button>
+                                </>
+                              )}
                               <span className="text-muted-foreground/40">·</span>
                               <button type="button" onClick={() => deleteDialog.request(t.id)} className="text-xs font-semibold text-destructive hover:text-destructive/80">삭제</button>
                             </div>
@@ -238,6 +252,9 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                       <div className="mt-3 flex items-center justify-end gap-3 border-t pt-3">
                         <button type="button" onClick={() => editDialog.request(t)} className="px-1 py-2 text-xs font-semibold text-foreground">수정</button>
                         <button type="button" onClick={() => duplicateDialog.request(t)} className="px-1 py-2 text-xs font-semibold text-foreground">복제</button>
+                        {canShare && !t.groupId && (
+                          <button type="button" onClick={() => handleShare(t.id)} disabled={shareMutation.isPending} className="px-1 py-2 text-xs font-semibold text-foreground">공유</button>
+                        )}
                         <button type="button" onClick={() => deleteDialog.request(t.id)} className="px-1 py-2 text-xs font-semibold text-destructive">삭제</button>
                       </div>
                     </li>

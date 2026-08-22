@@ -22,6 +22,8 @@ import {
   removeFinanceGroupMember,
   respondToInvitation,
   setMonthlyClosing,
+  shareFinanceBudget,
+  shareFinanceTransaction,
   updateAssetSnapshot,
   updateFinanceAccount,
   updateFinanceBudget,
@@ -264,6 +266,14 @@ export function useDeleteFinanceTransactionMutation() {
   )
 }
 
+export function useShareFinanceTransactionMutation() {
+  return useInvalidateFinanceMutation<FinanceTransaction, string>(
+    (id) => shareFinanceTransaction(id),
+    financeKeys.transactionsRoot(),
+    '거래내역을 그룹에 공유하지 못했습니다',
+  )
+}
+
 // 카테고리 기간 중첩(finance_budgets_no_overlap) 위반은 409로 온다 — apiMsg가 서버 메시지를
 // 그대로 노출하므로 별도 문구 분기 없이 폴백만 지정한다.
 export function useCreateFinanceBudgetMutation() {
@@ -288,6 +298,14 @@ export function useDeleteFinanceBudgetMutation() {
     (id) => deleteFinanceBudget(id),
     financeKeys.budgetsRoot(),
     '예산을 삭제하지 못했습니다',
+  )
+}
+
+export function useShareFinanceBudgetMutation() {
+  return useInvalidateFinanceMutation<FinanceBudget, string>(
+    (id) => shareFinanceBudget(id),
+    financeKeys.budgetsRoot(),
+    '예산을 그룹에 공유하지 못했습니다',
   )
 }
 
@@ -360,10 +378,14 @@ export function useRemoveFinanceGroupMemberMutation(groupId: string) {
   })
 }
 
-// 초대 발급은 응답을 캐시할 목록이 없다(발급 이력 조회 API 자체가 없음) — 사이드이펙트 없음.
+// 초대 발급 자체의 응답은 캐시할 목록이 없다(발급 이력 조회 API 자체가 없음) — 다만 무그룹
+// 유저가 발급하면 kista-api가 그 자리에서 새 그룹을 만들고 본인을 OWNER로 등록하므로, groups()를
+// 무효화해야 GroupManager가 방금 생겨난 그룹을 곧바로 반영한다.
 export function useCreateFinanceGroupInvitationMutation(groupId: string) {
+  const queryClient = useQueryClient()
   return useMutation<FinanceGroupInvitation, Error, number>({
     mutationFn: (expiresInHours) => createFinanceGroupInvitation(groupId, expiresInHours),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.groups() }),
     onError: (err) => toast.error(apiMsg(err, '초대 코드를 발급하지 못했습니다')),
   })
 }
