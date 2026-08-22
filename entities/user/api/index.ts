@@ -17,6 +17,10 @@ export async function updateBalanceCheckEnabled(enabled: boolean): Promise<void>
   await clientFetch<void>('/api/settings/balance-check', jsonBody('PATCH', { enabled }))
 }
 
+export async function updateStrategySuggestions(suggestions: string[]): Promise<void> {
+  await clientFetch<void>('/api/settings/strategy-suggestions', jsonBody('PUT', { suggestions }))
+}
+
 export async function updateNickname(nickname: string): Promise<void> {
   await clientFetch<void>('/api/settings/nickname', jsonBody('PATCH', { nickname }))
 }

@@ -4,6 +4,7 @@ export type {
   NotificationChannel,
   User,
 } from './model/types'
+export { DEFAULT_STRATEGY_SUGGESTIONS } from './model/types'
 export { userKeys } from './model/queryKeys'
 export { meQueryOptions } from './model/queryOptions'
 export {
@@ -23,6 +24,7 @@ export {
   deleteTelegram,
   updateBalanceCheckEnabled,
   updateNickname,
+  updateStrategySuggestions,
 } from './api'
 export {
   useMeQuery,
@@ -33,4 +35,5 @@ export {
   useUpdateNotificationPrefMutation,
   useUpdateBalanceCheckEnabledMutation,
   useUpdateNicknameMutation,
+  useUpdateStrategySuggestionsMutation,
 } from './hooks/useUserQueries'

@@ -11,8 +11,8 @@ import { Surface } from '@shared/ui/Surface'
 // features 슬라이스를 Surface 카드로 묶어 나열한다. 카테고리·계좌는 서로 다른 리소스라
 // AccountManager가 자체 카드(bg-card 배경)를 갖고 있어 이 컴포넌트가 다시 Surface로
 // 감싸지 않는다 — CategoryManager/GroupManager는 카드 배경이 없어 Surface로 감싼다.
-// StrategySuggestionManager는 ADMIN이 아니면 스스로 null을 반환한다(구 admin/settings 폼의
-// 전역 설정을 계좌관리 아래로 이관 — 일반 사용자도 방문하는 탭이라 컴포넌트 자체가 게이팅한다).
+// StrategySuggestionManager는 유저별 설정(구 admin/settings 폼의 전역 설정을 2026-08 이관)이라
+// ADMIN 게이트 없이 모든 로그인 유저에게 노출된다.
 // 예산 관리는 수입/소비/저축 탭 상단 "예산등록" 버튼(BudgetManagerDialog)으로 이관됐다(2026-08).
 export function AssetSettingsPanel() {
   return (

@@ -51,6 +51,7 @@ const baseUser: User = {
   balanceCheckEnabled: true,
   notificationChannel: 'NONE',
   notificationPrefs: {},
+  strategySuggestions: [],
 }
 
 let serverUser: User

@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { deleteMe, updateNotificationChannel, updateTelegram, deleteTelegram, updateBalanceCheckEnabled, updateNickname, updateNotificationPref } from '../api'
+import { deleteMe, updateNotificationChannel, updateTelegram, deleteTelegram, updateBalanceCheckEnabled, updateNickname, updateNotificationPref, updateStrategySuggestions } from '../api'
 import { apiMsg } from '@shared/lib/api-client'
 import { userKeys } from '../model/queryKeys'
 import { meQueryOptions } from '../model/queryOptions'
@@ -35,6 +35,18 @@ export function useUpdateBalanceCheckEnabledMutation() {
       await invalidateMe(queryClient)
     },
     onError: (err) => toast.error(apiMsg(err, '잔고 검증 설정 변경에 실패했습니다.')),
+  })
+}
+
+export function useUpdateStrategySuggestionsMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (suggestions: string[]) => updateStrategySuggestions(suggestions),
+    onSuccess: async () => {
+      toast.success('운용전략 추천 목록을 저장했습니다')
+      await invalidateMe(queryClient)
+    },
+    onError: (err) => toast.error(apiMsg(err, '운용전략 추천 목록 저장에 실패했습니다.')),
   })
 }
 

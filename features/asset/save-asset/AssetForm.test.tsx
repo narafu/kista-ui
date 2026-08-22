@@ -64,9 +64,9 @@ vi.mock('@entities/meta', () => ({
 
 vi.mock('sonner', () => ({ toast: { success: toastSuccessMock } }))
 
-vi.mock('@entities/runtime-config', async () => {
-  const actual = await vi.importActual<typeof import('@entities/runtime-config')>('@entities/runtime-config')
-  return { ...actual, useRuntimeConfigQuery: () => ({ data: undefined }) }
+vi.mock('@entities/user', async () => {
+  const actual = await vi.importActual<typeof import('@entities/user')>('@entities/user')
+  return { ...actual, useMeQuery: () => ({ data: undefined }) }
 })
 
 const onSuccess = vi.fn()

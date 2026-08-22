@@ -21,7 +21,7 @@ import {
   useUpdateAssetSnapshotMutation,
 } from '@entities/finance'
 import type { AssetClass, AssetSnapshot, AssetSnapshotRequest, Market } from '@entities/finance'
-import { DEFAULT_ASSET_FORM_OPTIONS, useRuntimeConfigQuery } from '@entities/runtime-config'
+import { DEFAULT_STRATEGY_SUGGESTIONS, useMeQuery } from '@entities/user'
 
 export type AssetFormMode = 'create' | 'edit' | 'duplicate'
 
@@ -102,9 +102,9 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
   const { meta } = useMeta()
   const { data: categories = [] } = useFinanceCategoriesQuery('ASSET')
   const { data: accounts = [] } = useFinanceAccountsQuery()
-  // 운용전략 추천 목록은 kista-api 런타임 설정(관리자 수정 가능)이 SSOT다 — strategy는 여전히
-  // 자유 입력이라 설정 로딩 전에는 알려진 기본값으로 폴백한다.
-  const assetFormOptions = useRuntimeConfigQuery().data?.assetFormOptions ?? DEFAULT_ASSET_FORM_OPTIONS
+  // 운용전략 추천 목록은 유저별 설정(user_settings.strategy_suggestions)이 SSOT다 — strategy는
+  // 여전히 자유 입력이라 유저 정보 로딩 전에는 알려진 기본값으로 폴백한다.
+  const strategySuggestions = useMeQuery().data?.strategySuggestions ?? DEFAULT_STRATEGY_SUGGESTIONS
 
   const [entryDate, setEntryDate] = useState(initial?.entryDate ?? todayKst())
   // 계단식 카테고리 Select: 각 단에서 선택한 categoryId를 순서대로 담는다. 마지막 값이
@@ -271,7 +271,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
               placeholder="예: VR, 자유 메모"
               value={strategy}
               onChange={setStrategy}
-              suggestions={assetFormOptions.strategySuggestions}
+              suggestions={strategySuggestions}
               selectLabel="운용전략 목록에서 선택"
               disabled={isPending}
               maxLength={50}

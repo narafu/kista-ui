@@ -10,7 +10,6 @@ import { adminKeys } from '@entities/admin'
 import { useMeta } from '@entities/meta'
 import type { BrokerCode } from '@shared/lib/api-schema'
 import {
-  DEFAULT_ASSET_FORM_OPTIONS,
   DEFAULT_RUNTIME_BENCHMARKS,
   runtimeConfigKeys,
   type RuntimeBenchmarkFieldSettings,
@@ -33,10 +32,6 @@ function clone(value: RuntimeConfig): RuntimeConfig {
   const next = structuredClone(value)
   next.benchmarks ??= structuredClone(DEFAULT_RUNTIME_BENCHMARKS)
   next.benchmarks.etf ??= structuredClone(DEFAULT_RUNTIME_BENCHMARKS.etf)
-  // benchmarks와 동일하게 두 단계로 보충한다 — 객체 자체가 없을 때뿐 아니라 하위 필드만 없는 경우도 방어한다.
-  // 한 단계만 보충하면 이후 렌더에서 .map()/.length 접근이 그대로 터진다.
-  next.assetFormOptions ??= structuredClone(DEFAULT_ASSET_FORM_OPTIONS)
-  next.assetFormOptions.strategySuggestions ??= structuredClone(DEFAULT_ASSET_FORM_OPTIONS.strategySuggestions)
   return next
 }
 
