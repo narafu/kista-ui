@@ -7,6 +7,7 @@ import { buttonVariants } from '@/components/ui/button-variants'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { Spinner } from '@shared/ui/Spinner'
 import { cn } from '@shared/lib/utils'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
@@ -15,6 +16,7 @@ import {
   getCascadeLevels,
   getCategoryPath,
   isInvestmentCategoryId,
+  useCanShareToGroup,
   useCreateAssetSnapshotMutation,
   useFinanceAccountsQuery,
   useFinanceCategoriesQuery,
@@ -129,6 +131,10 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
   const [strategy, setStrategy] = useState(initial?.strategy ?? '')
   const [amountDigits, setAmountDigits] = useState(initial ? String(initial.amount) : '')
 
+  // 그룹 소속일 때만 노출, 기본값 켜짐(그룹 저장 우선) — edit 모드는 groupId가 이미 고정돼 있어 대상 아님.
+  const canShareToGroup = useCanShareToGroup()
+  const [shareToGroup, setShareToGroup] = useState(true)
+
   const createMutation = useCreateAssetSnapshotMutation()
   const updateMutation = useUpdateAssetSnapshotMutation(initial?.id ?? '')
   const isPending = mode === 'edit' ? updateMutation.isPending : createMutation.isPending
@@ -161,9 +167,13 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
       return
     }
 
-    createMutation.mutate(payload, {
-      onSuccess: () => {
-        toast.success(mode === 'duplicate' ? '자산 기록이 복제되었습니다' : '자산 기록이 등록되었습니다')
+    createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
+      onSuccess: (saved, variables) => {
+        if (variables.shareToGroup && !saved.groupId) {
+          toast.warning('자산 기록은 저장됐지만 그룹 공유에 실패했습니다 — 목록에서 공유 버튼으로 다시 시도하세요')
+        } else {
+          toast.success(mode === 'duplicate' ? '자산 기록이 복제되었습니다' : '자산 기록이 등록되었습니다')
+        }
         onSuccess()
       },
     })
@@ -291,6 +301,18 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
               className="h-12 text-right tabular-nums"
             />
           </div>
+
+          {mode !== 'edit' && canShareToGroup && (
+            <div className="flex items-center justify-between">
+              <Label htmlFor="assetShareToGroup">그룹으로 저장</Label>
+              <Switch
+                id="assetShareToGroup"
+                checked={shareToGroup}
+                onCheckedChange={setShareToGroup}
+                disabled={isPending}
+              />
+            </div>
+          )}
 
           <div className="hidden sm:flex gap-3 pt-2">
             <button

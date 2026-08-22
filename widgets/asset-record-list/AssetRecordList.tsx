@@ -26,8 +26,11 @@ import {
   isLiability,
   listAvailableMonths,
   useAssetSnapshotsQuery,
+  useCanShareToGroup,
   useDeleteManyAssetSnapshotsMutation,
   useFinanceCategoriesQuery,
+  useShareAssetSnapshotMutation,
+  useUnshareAssetSnapshotMutation,
 } from '@entities/finance'
 import type { AssetSnapshot } from '@entities/finance'
 import { AssetRecordFilters, ALL_FILTER_VALUE } from './AssetRecordFilters'
@@ -54,6 +57,17 @@ export function AssetRecordList() {
   const { data: categories = [] } = useFinanceCategoriesQuery('ASSET')
   const { meta, labelOf } = useMeta()
   const deleteManyMutation = useDeleteManyAssetSnapshotsMutation()
+  const shareMutation = useShareAssetSnapshotMutation()
+  const unshareMutation = useUnshareAssetSnapshotMutation()
+  const canShare = useCanShareToGroup()
+
+  function handleShare(id: string) {
+    shareMutation.mutate(id, { onSuccess: () => toast.success('그룹에 공유했습니다') })
+  }
+
+  function handleUnshare(id: string) {
+    unshareMutation.mutate(id, { onSuccess: () => toast.success('개인 소유로 되돌렸습니다') })
+  }
 
   const [month, setMonth] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
   const [categoryPath, setCategoryPath] = useState<string[]>([])
@@ -261,7 +275,7 @@ export function AssetRecordList() {
                       금액{sortIcon('amount')}
                     </button>
                   </TableHeadCell>
-                  <TableHeadCell className="w-32">작업</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">작업</TableHeadCell>
                 </tr>
               </thead>
               <tbody>
@@ -292,6 +306,18 @@ export function AssetRecordList() {
                         <Link href={`/finance/new?duplicateFrom=${snapshot.id}`} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">복제</Link>
                         <span className="text-muted-foreground/40">·</span>
                         <Link href={`/finance/${snapshot.id}/edit`} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">수정</Link>
+                        {canShare && !snapshot.groupId && (
+                          <>
+                            <span className="text-muted-foreground/40">·</span>
+                            <button type="button" onClick={() => handleShare(snapshot.id)} disabled={shareMutation.isPending} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">공유</button>
+                          </>
+                        )}
+                        {canShare && snapshot.groupId && (
+                          <>
+                            <span className="text-muted-foreground/40">·</span>
+                            <button type="button" onClick={() => handleUnshare(snapshot.id)} disabled={unshareMutation.isPending} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">개인으로</button>
+                          </>
+                        )}
                         <span className="text-muted-foreground/40">·</span>
                         <button type="button" onClick={() => deleteDialog.request([snapshot.id])} className="text-xs font-semibold text-destructive hover:text-destructive/80">삭제</button>
                       </div>
@@ -324,15 +350,23 @@ export function AssetRecordList() {
                         {fmtKrw(snapshot.amount)}
                       </span>
                     </div>
-                    <p className="mt-1 truncate text-xs text-muted-foreground">
-                      {[labelOf('markets', snapshot.market), snapshot.strategy, snapshot.accountName].filter(Boolean).join(' · ')}
-                    </p>
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+                        {[labelOf('markets', snapshot.market), snapshot.strategy, snapshot.accountName].filter(Boolean).join(' · ')}
+                      </p>
+                      <div className="flex shrink-0 items-center gap-1">
+                        <Link href={`/finance/new?duplicateFrom=${snapshot.id}`} className="px-1 py-2 text-xs font-semibold text-foreground">복제</Link>
+                        <Link href={`/finance/${snapshot.id}/edit`} className="px-1 py-2 text-xs font-semibold text-foreground">수정</Link>
+                        {canShare && !snapshot.groupId && (
+                          <button type="button" onClick={() => handleShare(snapshot.id)} disabled={shareMutation.isPending} className="px-1 py-2 text-xs font-semibold text-foreground">공유</button>
+                        )}
+                        {canShare && snapshot.groupId && (
+                          <button type="button" onClick={() => handleUnshare(snapshot.id)} disabled={unshareMutation.isPending} className="px-1 py-2 text-xs font-semibold text-foreground">개인으로</button>
+                        )}
+                        <button type="button" onClick={() => deleteDialog.request([snapshot.id])} className="px-1 py-2 text-xs font-semibold text-destructive">삭제</button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="mt-3 flex items-center justify-end gap-3 border-t pt-3">
-                  <Link href={`/finance/new?duplicateFrom=${snapshot.id}`} className="px-1 py-2 text-xs font-semibold text-foreground">복제</Link>
-                  <Link href={`/finance/${snapshot.id}/edit`} className="px-1 py-2 text-xs font-semibold text-foreground">수정</Link>
-                  <button type="button" onClick={() => deleteDialog.request([snapshot.id])} className="px-1 py-2 text-xs font-semibold text-destructive">삭제</button>
                 </div>
               </li>
             ))}

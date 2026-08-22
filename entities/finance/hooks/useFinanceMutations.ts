@@ -22,8 +22,10 @@ import {
   removeFinanceGroupMember,
   respondToInvitation,
   setMonthlyClosing,
+  shareAssetSnapshot,
   shareFinanceBudget,
   shareFinanceTransaction,
+  unshareAssetSnapshot,
   unshareFinanceBudget,
   unshareFinanceTransaction,
   updateAssetSnapshot,
@@ -67,15 +69,52 @@ async function synchronizeAssetSnapshotList(
   )
 }
 
+// 신규 등록은 항상 개인 소유로 저장된다(kista-api AssetSnapshotService.create — groupId 쿼리
+// 파라미터는 서버가 무시). 그룹으로 저장하려면 생성 직후 공유 전환(PATCH .../{id}/share)을 이어붙인다.
+// 공유 전환이 실패해도 자산 기록 자체는 이미 저장됐으니 전체 실패로 처리하지 않고 개인 소유로
+// 조용히 남긴다 — 여기서 toast를 띄우면 호출 feature가 성공 시 띄우는 toast.success와 겹쳐 보이므로
+// (하나의 제출에 실패+성공 toast가 동시에 뜸), 공유 성공 여부 판정과 toast는 호출부(mutate의
+// onSuccess, variables.shareToGroup && !saved.groupId로 판정)에 맡긴다.
+// upsertById로 activeGroupId 캐시에 직접 꽂지 않고 root invalidate를 쓴다 — shareToGroup이 결과
+// groupId를 activeGroupId와 다르게 만들 수 있어(공유 실패로 개인 소유 유지, 또는 활성 그룹 상태가
+// 전환 중인 경우) 특정 groupId 캐시 키로의 upsert가 스코프를 잘못 맞출 수 있다(unshare와 동일 이유).
 export function useCreateAssetSnapshotMutation() {
   const queryClient = useQueryClient()
-  const groupId = useActiveGroupId()
-  return useMutation<AssetSnapshot, Error, AssetSnapshotRequest>({
-    mutationFn: (data) => createAssetSnapshot(data, { groupId }),
-    onSuccess: async (saved) => {
-      await synchronizeAssetSnapshotList(queryClient, groupId, (snapshots) => upsertById(snapshots, saved))
+  return useMutation<AssetSnapshot, Error, AssetSnapshotRequest & { shareToGroup?: boolean }>({
+    mutationFn: async ({ shareToGroup, ...data }) => {
+      const saved = await createAssetSnapshot(data)
+      if (!shareToGroup) return saved
+      try {
+        return await shareAssetSnapshot(saved.id)
+      } catch {
+        return saved
+      }
     },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.assetSnapshotsRoot() }),
     onError: (err) => toast.error(apiMsg(err, '자산 기록을 저장하지 못했습니다')),
+  })
+}
+
+// create와 동일한 이유로 groupId 스코프 upsert 대신 root invalidate를 쓴다.
+export function useShareAssetSnapshotMutation() {
+  const queryClient = useQueryClient()
+  return useMutation<AssetSnapshot, Error, string>({
+    mutationFn: (id) => shareAssetSnapshot(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.assetSnapshotsRoot() }),
+    onError: (err) => toast.error(apiMsg(err, '자산 기록을 그룹에 공유하지 못했습니다')),
+  })
+}
+
+// unshare는 그룹 멤버 누구나 실행할 수 있어(소유자 한정 아님) 실행자 본인 소유가 아닌 항목이면
+// 되돌린 뒤 실행자의 "내 스코프"에서 완전히 벗어날 수 있다(개인 소유가 되며 소유자는 원래 그대로
+// 유지) — upsertById는 제거를 못 해 실행자 화면에 더 이상 접근 불가한 항목이 그대로 남는다.
+// share/update/delete와 달리 로컬 upsert 대신 invalidate 후 재조회로 처리한다.
+export function useUnshareAssetSnapshotMutation() {
+  const queryClient = useQueryClient()
+  return useMutation<AssetSnapshot, Error, string>({
+    mutationFn: (id) => unshareAssetSnapshot(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.assetSnapshotsRoot() }),
+    onError: (err) => toast.error(apiMsg(err, '자산 기록을 개인 소유로 되돌리지 못했습니다')),
   })
 }
 
@@ -246,7 +285,8 @@ function useInvalidateFinanceMutation<TData, TVariables>(
 // 신규 등록은 항상 개인 소유로 저장된다(kista-api FinanceTransactionService.create — groupId 쿼리
 // 파라미터는 서버가 무시). 그룹으로 저장하려면 생성 직후 공유 전환(PATCH .../{id}/share)을 이어붙인다.
 // 공유 전환이 실패해도(네트워크 오류 등) 거래내역 자체는 이미 저장됐으니 전체 실패로 처리하지 않고
-// 개인 소유로 남긴 채 별도 toast로 알린다(budget 쪽과 동일한 이유 — 성공한 저장을 실패로 오보하지 않기 위함).
+// 개인 소유로 조용히 남긴다 — 여기서 toast를 띄우면 호출 feature가 성공 시 띄우는 toast.success와
+// 겹쳐 보이므로, 공유 성공 여부 판정과 toast는 호출부(mutate의 onSuccess)에 맡긴다.
 export function useCreateFinanceTransactionMutation() {
   return useInvalidateFinanceMutation<FinanceTransaction, FinanceTransactionRequest & { shareToGroup?: boolean }>(
     async ({ shareToGroup, ...data }) => {
@@ -254,8 +294,7 @@ export function useCreateFinanceTransactionMutation() {
       if (!shareToGroup) return saved
       try {
         return await shareFinanceTransaction(saved.id)
-      } catch (err) {
-        toast.error(apiMsg(err, '거래내역은 저장됐지만 그룹 공유에 실패했습니다 — 목록에서 공유 버튼으로 다시 시도하세요'))
+      } catch {
         return saved
       }
     },
@@ -302,7 +341,8 @@ export function useUnshareFinanceTransactionMutation() {
 // 파라미터는 서버가 무시). 그룹으로 저장하려면 생성 직후 공유 전환(PATCH .../{id}/share)을 이어붙인다.
 // 공유 전환 단계는 create와 별개로 겹침(EXCLUDE 제약)에 409를 낼 수 있다(create는 개인 스코프로만
 // 겹침을 검사하므로 그룹 멤버의 동일 기간 예산은 이 시점에야 드러난다) — 실패해도 예산 자체는 이미
-// 저장됐으니 삭제하지 않고 개인 소유로 남긴 채 별도 toast로 알린다.
+// 저장됐으니 삭제하지 않고 개인 소유로 조용히 남긴다. 여기서 toast를 띄우면 호출 feature가 성공 시
+// 띄우는 toast.success와 겹쳐 보이므로, 공유 성공 여부 판정과 toast는 호출부(mutate의 onSuccess)에 맡긴다.
 export function useCreateFinanceBudgetMutation() {
   return useInvalidateFinanceMutation<FinanceBudget, FinanceBudgetRequest & { shareToGroup?: boolean }>(
     async ({ shareToGroup, ...data }) => {
@@ -310,8 +350,7 @@ export function useCreateFinanceBudgetMutation() {
       if (!shareToGroup) return saved
       try {
         return await shareFinanceBudget(saved.id)
-      } catch (err) {
-        toast.error(apiMsg(err, '예산은 저장됐지만 그룹 공유에 실패했습니다 — 목록에서 공유 버튼으로 다시 시도하세요'))
+      } catch {
         return saved
       }
     },

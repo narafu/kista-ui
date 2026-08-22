@@ -46,11 +46,9 @@ export async function listAssetSnapshots({ groupId, token }: GroupScopedOptions 
   return fetchEither<AssetSnapshot[]>(withQuery('/api/finance/asset-snapshots', { groupId }), { method: 'GET' }, token)
 }
 
-export async function createAssetSnapshot(
-  data: AssetSnapshotRequest,
-  { groupId, token }: GroupScopedOptions = {},
-): Promise<AssetSnapshot> {
-  return fetchEither<AssetSnapshot>(withQuery('/api/finance/asset-snapshots', { groupId }), jsonBody('POST', data), token)
+// groupId 쿼리 파라미터는 서버가 항상 무시하고 개인 소유로만 생성한다(budget/transaction과 동일 패턴).
+export async function createAssetSnapshot(data: AssetSnapshotRequest, token?: string): Promise<AssetSnapshot> {
+  return fetchEither<AssetSnapshot>('/api/finance/asset-snapshots', jsonBody('POST', data), token)
 }
 
 export async function updateAssetSnapshot(
@@ -59,6 +57,16 @@ export async function updateAssetSnapshot(
   token?: string,
 ): Promise<AssetSnapshot> {
   return fetchEither<AssetSnapshot>(`/api/finance/asset-snapshots/${encodeURIComponent(id)}`, jsonBody('PUT', data), token)
+}
+
+// 개인 소유 자산 기록을 소유자의 현재 그룹으로 공유 전환한다(본인 소유·그룹 소속 상태에서만 성공).
+export async function shareAssetSnapshot(id: string, token?: string): Promise<AssetSnapshot> {
+  return fetchEither<AssetSnapshot>(`/api/finance/asset-snapshots/${encodeURIComponent(id)}/share`, { method: 'PATCH' }, token)
+}
+
+// 그룹 공유 자산 기록을 개인 소유로 되돌린다(같은 그룹 멤버면 누구든 가능, 이미 개인 소유면 멱등).
+export async function unshareAssetSnapshot(id: string, token?: string): Promise<AssetSnapshot> {
+  return fetchEither<AssetSnapshot>(`/api/finance/asset-snapshots/${encodeURIComponent(id)}/unshare`, { method: 'PATCH' }, token)
 }
 
 export async function deleteAssetSnapshot(id: string, token?: string): Promise<void> {

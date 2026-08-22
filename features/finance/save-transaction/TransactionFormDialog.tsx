@@ -101,8 +101,12 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
     }
 
     createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
-      onSuccess: () => {
-        toast.success('거래내역이 등록되었습니다')
+      onSuccess: (saved, variables) => {
+        if (variables.shareToGroup && !saved.groupId) {
+          toast.warning('거래내역은 저장됐지만 그룹 공유에 실패했습니다 — 목록에서 공유 버튼으로 다시 시도하세요')
+        } else {
+          toast.success('거래내역이 등록되었습니다')
+        }
         onSuccess()
       },
     })

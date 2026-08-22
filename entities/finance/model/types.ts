@@ -3,6 +3,8 @@ import type { AssetClass, FinanceAccountType, FinanceCategoryType, Market } from
 
 export interface AssetSnapshot {
   id: string
+  // null이면 개인 소유(본인만 조회) — 값이 있으면 그룹 공유. 공유 버튼 노출 판정에 쓴다.
+  groupId?: string
   categoryId: string
   rootCategoryId: string
   categoryName: string
