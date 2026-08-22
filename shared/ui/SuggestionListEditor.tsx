@@ -46,24 +46,7 @@ export function SuggestionListEditor({ id, label, values, onChange, disabled }: 
   }
 
   return (
-    <div className="space-y-2">
-      <ul aria-label={`${label} 목록`} className="m-0 flex list-none flex-wrap gap-1.5 p-0">
-        {values.length === 0 && <li className="text-xs text-muted-foreground">등록된 값이 없습니다.</li>}
-        {values.map((value) => (
-          <li key={value} className="inline-flex items-center gap-1 rounded-full border border-border bg-background py-1 pl-2.5 pr-1 text-sm">
-            {value}
-            <button
-              type="button"
-              aria-label={`${value} 삭제`}
-              onClick={() => deleteValue(value)}
-              disabled={disabled}
-              className="-my-2.5 -mr-1 flex size-11 items-center justify-center rounded-full text-muted-foreground hover:text-destructive disabled:opacity-40 disabled:pointer-events-none"
-            >
-              <X className="size-3.5" />
-            </button>
-          </li>
-        ))}
-      </ul>
+    <div className="space-y-3">
       <div className="flex gap-2">
         <Input
           id={`${id}-add`}
@@ -89,6 +72,23 @@ export function SuggestionListEditor({ id, label, values, onChange, disabled }: 
         </Button>
       </div>
       {inputError && <p role="alert" className="text-xs text-destructive">{inputError}</p>}
+      <ul aria-label={`${label} 목록`} className="m-0 flex list-none flex-wrap gap-2 p-0">
+        {values.length === 0 && <li className="text-xs text-muted-foreground">등록된 값이 없습니다.</li>}
+        {values.map((value) => (
+          <li key={value} className="inline-flex items-center gap-1 rounded-full bg-muted py-1.5 pl-3 pr-1 text-sm font-medium">
+            {value}
+            <button
+              type="button"
+              aria-label={`${value} 삭제`}
+              onClick={() => deleteValue(value)}
+              disabled={disabled}
+              className="-my-2.5 -mr-1 flex size-11 items-center justify-center rounded-full text-muted-foreground hover:text-destructive disabled:opacity-40 disabled:pointer-events-none"
+            >
+              <X className="size-3.5" />
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

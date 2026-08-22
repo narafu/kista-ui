@@ -22,7 +22,8 @@ export function StrategySuggestionManager() {
 
   return (
     <Surface as="section" className="p-6">
-      <div className="text-sm font-bold mb-[18px]">운영전략 관리</div>
+      <div className="text-sm font-bold mb-0.5">운용전략 관리</div>
+      <div className="text-sm text-muted-foreground mb-[18px]">자산 등록 폼의 운용전략 추천 목록을 관리합니다.</div>
       <SuggestionListEditor
         id="asset-strategy"
         label="운용전략"
