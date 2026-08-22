@@ -67,6 +67,7 @@ export function SuggestionListEditor({ id, label, values, onChange, disabled }: 
       <div className="flex gap-2">
         <Input
           id={`${id}-add`}
+          className="h-11 max-w-xs"
           value={raw}
           maxLength={100}
           aria-label={`${label} 추가`}

@@ -55,6 +55,11 @@ export function fmtSignedKrw(n: number): string {
   return n >= 0 ? `+${fmtKrw(n)}` : `-${fmtKrw(Math.abs(n))}`
 }
 
+/** 금액 표시 문자열의 숫자만 ●로 가린다 (예: "1,234,567원" → "●,●●●,●●●원") — 금액 감추기 설정용 */
+export function maskAmount(display: string): string {
+  return display.replace(/\d/g, '●')
+}
+
 /** 금액 입력 필드의 raw value에서 숫자만 남긴다 (AssetForm/TransactionFormDialog/BudgetFormDialog 공용) */
 export function digitsOnly(value: string): string {
   return value.replace(/[^0-9]/g, '')

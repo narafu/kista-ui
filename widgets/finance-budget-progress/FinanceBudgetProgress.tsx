@@ -5,7 +5,7 @@ import { SectionError } from '@shared/ui/SectionError'
 import { fmtKrw } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { useMeta } from '@entities/meta'
-import { calcBudgetProgress, filterByType, flowCategoryColor } from '@entities/finance'
+import { calcBudgetProgress, filterByType, flowCategoryColor, sortCategoryTree } from '@entities/finance'
 import type { CategoryIndex, FinanceBudget, FinanceCategory, FinanceTransaction, Period } from '@entities/finance'
 
 interface Props {
@@ -42,7 +42,7 @@ function BreakdownBar({ label, actual, allocated, remaining, percent, color }: B
           style={{ width: `${percent}%`, backgroundColor: color }}
         />
       </div>
-      <div className="flex w-40 shrink-0 flex-col items-end">
+      <div className="flex w-auto min-w-[9rem] shrink-0 flex-col items-end">
         <span className="text-sm font-medium tabular-nums">{`${fmtKrw(actual)} / ${fmtKrw(allocated)}`}</span>
         <span className={cn('text-xs tabular-nums', isOver ? 'text-destructive' : 'text-muted-foreground')}>
           {isOver ? `초과 ${fmtKrw(Math.abs(remaining))}` : `잔여 ${fmtKrw(remaining)}`}
@@ -58,7 +58,7 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
   const typedBudgets = budgets.filter((b) => index.get(b.categoryId)?.type === type)
   const typedTransactions = filterByType(transactions, index, type)
   const progress = calcBudgetProgress(typedBudgets, typedTransactions, categoryTree, index, period)
-  const orderedRootIds = [...categoryTree].sort((a, b) => a.sortOrder - b.sortOrder).map((c) => c.id)
+  const orderedRootIds = sortCategoryTree(categoryTree).map((c) => c.id)
 
   return (
     <Card>

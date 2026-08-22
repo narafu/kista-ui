@@ -64,3 +64,10 @@ export function previousYearRange(period: Period): { from: string; to: string } 
   const mm = period.month.slice(5, 7)
   return { from: `${prevYear}-01-01`, to: monthEndDate(`${prevYear}-${mm}`) }
 }
+
+// 연간 모드 "최근 N개년 추이" 조회 윈도우 — 선택 연도 포함 과거 (yearsLimit-1)개년 1월 1일부터
+// 선택 월 말일까지. windowRange(12개월)로는 커버되지 않는 별도 쿼리가 필요하다(previousYearRange와 동일한 이유).
+export function yearsRange(month: string, yearsLimit: number): { from: string; to: string } {
+  const year = Number(month.slice(0, 4))
+  return { from: `${year - (yearsLimit - 1)}-01-01`, to: monthEndDate(month) }
+}

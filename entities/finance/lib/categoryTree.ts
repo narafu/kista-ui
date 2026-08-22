@@ -32,9 +32,13 @@ export function collectSubtreeIds(categories: FinanceCategory[], id: string): st
 // selectedPath(각 단계에서 선택한 categoryId)를 기준으로 렌더링할 계단식 Select 단(레벨)을 계산한다.
 // 마지막으로 선택한 노드에 children이 있을 때만 다음 단을 추가하므로, 트리 깊이가 늘어나도
 // 이 함수 호출부는 그대로 유지된다.
+// sortCategoryTree로 전체 트리를 미리 정렬해두면(재귀 정렬이라 한 번으로 모든 depth를 커버) 이후
+// 단(level) 전환은 이미 정렬된 children을 그대로 쓴다 — 계단식 Select를 쓰는 모든 소비처가 이 함수
+// 하나를 거치므로 동순위(가나다) tie-break이 여기 한 곳에만 있으면 전부에 적용된다.
 export function getCascadeLevels(categories: FinanceCategory[], selectedPath: string[]): FinanceCategory[][] {
-  const levels: FinanceCategory[][] = [categories]
-  let nodes = categories
+  const sorted = sortCategoryTree(categories)
+  const levels: FinanceCategory[][] = [sorted]
+  let nodes = sorted
   for (const id of selectedPath) {
     const selected = nodes.find((n) => n.id === id)
     if (!selected || selected.children.length === 0) break
@@ -42,4 +46,12 @@ export function getCascadeLevels(categories: FinanceCategory[], selectedPath: st
     levels.push(nodes)
   }
   return levels
+}
+
+// sortOrder 오름차순, 동순위는 가나다순(ko locale)으로 트리 전체(재귀)를 정렬한 새 배열을 반환한다.
+// 관리자 화면이 정렬순서 0을 허용하면서(일반 사용자는 1부터) 동순위 충돌이 늘어 표시 순서 tie-break이 필요해졌다.
+export function sortCategoryTree(categories: FinanceCategory[]): FinanceCategory[] {
+  return [...categories]
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name, 'ko'))
+    .map((c) => ({ ...c, children: sortCategoryTree(c.children) }))
 }

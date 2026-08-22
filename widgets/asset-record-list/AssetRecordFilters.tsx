@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { EnumMeta } from '@entities/meta'
 import type { FinanceCategory } from '@entities/finance'
@@ -46,7 +47,7 @@ export function AssetRecordFilters({
   // 계단식 카테고리 필터: 특정 depth에서 멈추면 그 하위 전부를 포함해 매칭한다(AssetRecordList의
   // collectSubtreeIds 참고). 최상단 select에만 "전체"(필터 해제) 항목을 둔다 — 하위 select를
   // 선택하지 않고 두는 것 자체가 "그 상위 depth까지만"이라는 의미라 별도 "전체" 항목이 불필요하다.
-  const cascadeLevels = getCascadeLevels(categoryTree, categoryPath)
+  const cascadeLevels = useMemo(() => getCascadeLevels(categoryTree, categoryPath), [categoryTree, categoryPath])
 
   return (
     <div className="grid grid-cols-2 gap-2 lg:flex lg:items-center lg:flex-wrap">

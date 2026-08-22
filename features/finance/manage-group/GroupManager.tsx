@@ -14,7 +14,6 @@ import { cn } from '@shared/lib/utils'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { AcceptInvitationForm } from './AcceptInvitationForm'
 import { GroupMemberList } from './GroupMemberList'
-import { GroupSwitcher } from './GroupSwitcher'
 import { InviteDialog } from './InviteDialog'
 import { LeaveGroupDialog } from './LeaveGroupDialog'
 
@@ -91,11 +90,6 @@ export function GroupManager() {
 
   return (
     <div className={cn(cardClass, 'space-y-6')}>
-      <div className="space-y-2">
-        <p className="text-sm font-semibold">그룹</p>
-        <GroupSwitcher group={group} />
-      </div>
-
       {groups && group && (
         <GroupSection groupId={group.id} myUserId={me?.id} activeGroupId={activeGroupId} setActiveGroupId={setActiveGroupId} />
       )}

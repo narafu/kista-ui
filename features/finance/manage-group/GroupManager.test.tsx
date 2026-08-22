@@ -7,7 +7,7 @@ const { toastSuccessMock } = vi.hoisted(() => ({
   toastSuccessMock: vi.fn(),
 }))
 
-const sharedGroup: FinanceGroup = { id: 'group-shared', name: '가족 재무' }
+const sharedGroup: FinanceGroup = { id: 'group-shared' }
 const me = { id: 'user-me' }
 
 // 1인 1그룹 정책 — groups는 0개(개인) 또는 1개(그룹 소속)뿐이다.

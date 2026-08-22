@@ -4,8 +4,9 @@ import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SectionError } from '@shared/ui/SectionError'
-import { fmtKrw, fmtSignedKrw, pnlTextClass } from '@shared/lib/format'
+import { fmtKrw, fmtSignedKrw, maskAmount, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
+import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { useMeta } from '@entities/meta'
 import {
   SYSTEM_LOAN_CATEGORY_ID,
@@ -20,6 +21,7 @@ import {
 } from '@entities/finance'
 import type { AssetClass } from '@entities/finance'
 import { KpiCard } from '@widgets/kpi-card'
+import { RevealableValue } from '@widgets/revealable-value'
 
 interface Props {
   month: string | null
@@ -59,6 +61,11 @@ function BreakdownBar({ label, amount, percent, delta, color, isLiability = fals
 export function AssetOverview({ month, months, onMonthChange }: Props) {
   const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
   const { labelOf } = useMeta()
+  const { hidden } = useAmountHiddenPreference()
+
+  function amountValue(display: string) {
+    return hidden ? <RevealableValue value={display} hiddenDisplay={maskAmount(display)} /> : display
+  }
 
   const summary = useMemo(() => (month ? calcMonthlySummary(snapshots, month) : null), [snapshots, month])
   const categoryBreakdown = useMemo(() => (month ? calcCategoryBreakdown(snapshots, month) : []), [snapshots, month])
@@ -113,14 +120,14 @@ export function AssetOverview({ month, months, onMonthChange }: Props) {
           <p className="py-8 text-center text-sm text-muted-foreground">표시할 자산 기록이 없습니다.</p>
         ) : (
           <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-              <KpiCard label="순자산" value={fmtKrw(summary.netWorth)} variant="accent" valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
-              <KpiCard label="총자산" value={fmtKrw(summary.totalAssets)} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
-              <KpiCard label="총부채" value={fmtKrw(summary.totalLiabilities)} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <KpiCard label="순자산" value={amountValue(fmtKrw(summary.netWorth))} variant="accent" valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
+              <KpiCard label="총자산" value={amountValue(fmtKrw(summary.totalAssets))} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
+              <KpiCard label="총부채" value={amountValue(fmtKrw(summary.totalLiabilities))} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
               <KpiCard
                 label="가장 큰 자산군"
                 value={summary.largestAssetClass ? labelOf('assetClasses', summary.largestAssetClass.assetClass) : '—'}
-                sub={summary.largestAssetClass ? fmtKrw(summary.largestAssetClass.amount) : undefined}
+                sub={summary.largestAssetClass ? amountValue(fmtKrw(summary.largestAssetClass.amount)) : undefined}
               />
             </div>
 

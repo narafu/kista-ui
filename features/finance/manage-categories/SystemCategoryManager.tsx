@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { useMeta } from '@entities/meta'
-import { collectSubtreeIds, useDeleteSystemFinanceCategoryMutation, useSystemFinanceCategoriesQuery } from '@entities/finance'
+import { collectSubtreeIds, sortCategoryTree, useDeleteSystemFinanceCategoryMutation, useSystemFinanceCategoriesQuery } from '@entities/finance'
 import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
 import { CategoryRow } from './CategoryRow'
 import { DeleteCategoryDialog } from './DeleteCategoryDialog'
@@ -21,7 +21,7 @@ export function SystemCategoryManager() {
   const { meta } = useMeta()
   const [type, setType] = useState<FinanceCategoryType>('ASSET')
   const { data: categories } = useSystemFinanceCategoriesQuery(type)
-  const l1Categories = categories ?? []
+  const l1Categories = categories ? sortCategoryTree(categories) : []
 
   const [formTarget, setFormTarget] = useState<FinanceCategory | 'new' | null>(null)
   const deleteDialog = useConfirmDialog<FinanceCategory>()

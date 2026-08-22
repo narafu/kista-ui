@@ -4,6 +4,7 @@ import { CategoryManager } from '@features/finance/manage-categories'
 import { AccountManager } from '@features/finance/manage-accounts'
 import { StrategySuggestionManager } from '@features/finance/manage-strategy-suggestions'
 import { GroupManager } from '@features/finance/manage-group'
+import { HideAmountsToggle } from '@features/finance/hide-amounts'
 import { Surface } from '@shared/ui/Surface'
 
 // 자산 탭의 5번째 세그먼트("설정")를 구성하는 조합 위젯 — SettingsPageContent와 동일하게
@@ -16,6 +17,10 @@ import { Surface } from '@shared/ui/Surface'
 export function AssetSettingsPanel() {
   return (
     <div className="flex flex-col gap-[18px]">
+      <Surface as="section" className="p-6">
+        <HideAmountsToggle />
+      </Surface>
+
       <Surface as="section" className="p-6">
         <div className="text-sm font-bold mb-0.5">카테고리</div>
         <div className="text-sm text-muted-foreground mb-[18px]">자산·수입·지출·저축 카테고리를 관리합니다.</div>

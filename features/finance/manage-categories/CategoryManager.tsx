@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { useMeta } from '@entities/meta'
-import { collectSubtreeIds, useDeleteFinanceCategoryMutation, useFinanceCategoriesQuery } from '@entities/finance'
+import { collectSubtreeIds, sortCategoryTree, useDeleteFinanceCategoryMutation, useFinanceCategoriesQuery } from '@entities/finance'
 import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
 import { CategoryFormDialog } from './CategoryFormDialog'
 import { CategoryRow } from './CategoryRow'
@@ -21,7 +21,7 @@ export function CategoryManager() {
   const { meta } = useMeta()
   const [type, setType] = useState<FinanceCategoryType>('ASSET')
   const { data: categories } = useFinanceCategoriesQuery(type)
-  const l1Categories = categories ?? []
+  const l1Categories = categories ? sortCategoryTree(categories) : []
 
   // AccountManager와 동일한 조건부 마운트 패턴 — 열 때마다 다이얼로그가 새로 마운트되므로
   // key 트릭 없이도 내부 useState(name 등)가 매번 초기화된다.

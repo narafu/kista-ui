@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import type { CategoryIndex, FinanceCategoryType, FinanceTransaction } from '@entities/finance'
+import type { CategoryIndex, FinanceCategory, FinanceCategoryType, FinanceTransaction, Period } from '@entities/finance'
 
 const FinanceTrendInner = dynamic(() => import('./FinanceTrendInner'), {
   ssr: false,
@@ -15,22 +15,33 @@ const FinanceTrendInner = dynamic(() => import('./FinanceTrendInner'), {
 
 interface Props {
   type: FinanceCategoryType
-  transactions: FinanceTransaction[]
+  transactions: FinanceTransaction[] // 월간 모드: 12개월 윈도우
+  yearlyTransactions: FinanceTransaction[] // 연간 모드: 최근 6개년 윈도우(FinanceDashboard가 period.mode==='yearly'일 때만 조회)
+  categoryTree: FinanceCategory[]
   index: CategoryIndex
-  month: string
+  period: Period
   isLoading: boolean
   isError: boolean
   className?: string
 }
 
-export function FinanceTrend({ type, transactions, index, month, isLoading, isError, className }: Props) {
+export function FinanceTrend({ type, transactions, yearlyTransactions, categoryTree, index, period, isLoading, isError, className }: Props) {
   return (
     <Card className={className}>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base lg:text-lg">최근 6개월 추이</CardTitle>
+        <CardTitle className="text-base lg:text-lg">{period.mode === 'yearly' ? '최근 6개년 추이' : '최근 6개월 추이'}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col">
-        <FinanceTrendInner type={type} transactions={transactions} index={index} month={month} isLoading={isLoading} isError={isError} />
+        <FinanceTrendInner
+          type={type}
+          transactions={transactions}
+          yearlyTransactions={yearlyTransactions}
+          categoryTree={categoryTree}
+          index={index}
+          period={period}
+          isLoading={isLoading}
+          isError={isError}
+        />
       </CardContent>
     </Card>
   )

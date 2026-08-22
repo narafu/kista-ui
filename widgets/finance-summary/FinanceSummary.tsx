@@ -3,12 +3,14 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SectionError } from '@shared/ui/SectionError'
-import { fmtKrw, fmtSignedKrw, pnlTextClass, todayKst } from '@shared/lib/format'
+import { fmtKrw, fmtSignedKrw, maskAmount, pnlTextClass, todayKst } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
+import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { useMeta } from '@entities/meta'
 import { calcFlowSummary, elapsedDaysInMonth, elapsedMonthsInYear, filterByType, previousYearRange } from '@entities/finance'
 import type { CategoryIndex, FinanceCategoryType, FinanceTransaction, Period, PeriodMode } from '@entities/finance'
 import { KpiCard } from '@widgets/kpi-card'
+import { RevealableValue } from '@widgets/revealable-value'
 
 interface Props {
   type: FinanceCategoryType
@@ -49,6 +51,11 @@ function ModeButton({ active, onClick, children }: { active: boolean; onClick: (
 
 export function FinanceSummary({ type, transactions, index, isLoading, isError, period, onPeriodChange, previousYearTransactions }: Props) {
   const { labelOf } = useMeta()
+  const { hidden } = useAmountHiddenPreference()
+
+  function amountValue(display: string) {
+    return hidden ? <RevealableValue value={display} hiddenDisplay={maskAmount(display)} /> : display
+  }
 
   const typeTransactions = useMemo(() => filterByType(transactions, index, type), [transactions, index, type])
   const summary = useMemo(() => calcFlowSummary(typeTransactions, period), [typeTransactions, period])
@@ -113,31 +120,31 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
         ) : summary.count === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">표시할 거래내역이 없습니다</p>
         ) : (
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <KpiCard label="합계" value={fmtKrw(summary.total)} variant="accent" valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <KpiCard label="합계" value={amountValue(fmtKrw(summary.total))} variant="accent" valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
             <KpiCard label="건수" value={`${summary.count}건`} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
             {period.mode === 'monthly' && previousDelta !== null && (
               <KpiCard
                 label="전월 대비"
-                value={fmtSignedKrw(previousDelta)}
+                value={amountValue(fmtSignedKrw(previousDelta))}
                 valueClassName={cn('break-words text-base sm:text-2xl lg:text-3xl', pnlTextClass(type === 'EXPENSE' ? -previousDelta : previousDelta))}
               />
             )}
             {period.mode === 'yearly' && previousYearDelta !== null && (
               <KpiCard
                 label="전년 대비"
-                value={fmtSignedKrw(previousYearDelta)}
+                value={amountValue(fmtSignedKrw(previousYearDelta))}
                 valueClassName={cn('break-words text-base sm:text-2xl lg:text-3xl', pnlTextClass(type === 'EXPENSE' ? -previousYearDelta : previousYearDelta))}
               />
             )}
             <KpiCard
               label={period.mode === 'monthly' ? '일평균' : '월평균'}
-              value={fmtKrw(
+              value={amountValue(fmtKrw(
                 Math.round(
                   summary.total /
                     (period.mode === 'monthly' ? elapsedDaysInMonth(period.month, todayKst()) : elapsedMonthsInYear(period.month)),
                 ),
-              )}
+              ))}
               valueClassName="break-words text-base sm:text-2xl lg:text-3xl"
             />
           </div>

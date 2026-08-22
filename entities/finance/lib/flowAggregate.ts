@@ -51,18 +51,37 @@ export function calcFlowSummary(transactions: FinanceTransaction[], period: Peri
 
 // entities/finance/lib/aggregate.ts의 TrendPoint(AssetSnapshot 전용)와 이름이 겹쳐 Flow 접두를 붙인다.
 export interface FlowTrendPoint {
-  month: string
+  period: string // 월간 모드: 'YYYY-MM', 연간 모드: 'YYYY' — 차트 x축 라벨
   amount: number
+  byCategory: Record<string, number> // rootId -> 합계, 카테고리별 라인용
 }
 
-// transactions는 12개월 윈도우 전체(타입 필터링만 된 상태)를 받는다 — month 기준 최근 monthsLimit개월.
-export function calcFlowTrend(transactions: FinanceTransaction[], month: string, monthsLimit = 6): FlowTrendPoint[] {
-  const months: string[] = []
-  for (let i = monthsLimit - 1; i >= 0; i--) months.push(shiftMonth(month, -i))
-  return months.map((m) => ({
-    month: m,
-    amount: sumAmount(transactions.filter((t) => t.transactionDate.startsWith(m))),
-  }))
+function trendBuckets(period: Period, limit: number): { label: string; from: string; to: string }[] {
+  if (period.mode === 'monthly') {
+    const months: string[] = []
+    for (let i = limit - 1; i >= 0; i--) months.push(shiftMonth(period.month, -i))
+    return months.map((m) => ({ label: m, from: monthStartDate(m), to: monthEndDate(m) }))
+  }
+  const year = Number(period.month.slice(0, 4))
+  const mm = period.month.slice(5, 7)
+  const years: number[] = []
+  for (let i = limit - 1; i >= 0; i--) years.push(year - i)
+  return years.map((y) => ({ label: String(y), from: `${y}-01-01`, to: monthEndDate(`${y}-${mm}`) }))
+}
+
+// transactions: 월간 모드는 windowRange(12개월) 윈도우, 연간 모드는 yearsRange(limit년) 윈도우를
+// 호출부가 각각 맞춰 넘긴다(타입 필터링만 된 상태). index로 거래를 rootId별로도 함께 집계한다.
+export function calcFlowTrend(transactions: FinanceTransaction[], index: CategoryIndex, period: Period, limit = 6): FlowTrendPoint[] {
+  return trendBuckets(period, limit).map(({ label, from, to }) => {
+    const inBucket = transactions.filter((t) => inRange(t.transactionDate, from, to))
+    const byCategory: Record<string, number> = {}
+    for (const t of inBucket) {
+      const rootId = index.get(t.categoryId)?.rootId
+      if (!rootId) continue
+      byCategory[rootId] = (byCategory[rootId] ?? 0) + t.amount
+    }
+    return { period: label, amount: sumAmount(inBucket), byCategory }
+  })
 }
 
 function budgetValidInMonth(budget: FinanceBudget, month: string): boolean {

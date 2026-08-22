@@ -66,7 +66,6 @@ export interface FinanceAccountRequest {
 
 export interface FinanceGroup {
   id: string
-  name: string
 }
 
 // nickname은 kista-api FinanceGroupMemberResponse에 아직 없다(userId/role만 응답) —

@@ -1,25 +1,29 @@
 import { describe, expect, it } from 'vitest'
 import type { FinanceCategory } from '../model/types'
-import { collectSubtreeIds, getCascadeLevels, getCategoryPath } from './categoryTree'
+import { collectSubtreeIds, getCascadeLevels, getCategoryPath, sortCategoryTree } from './categoryTree'
 
 function category(overrides: Partial<FinanceCategory> & { id: string; name: string }): FinanceCategory {
   return { type: 'ASSET', sortOrder: 0, system: false, children: [], ...overrides }
 }
 
 // L1 > L2 > L3 3단 트리 — depth가 2단을 넘어가도 정상 동작하는지 검증한다.
+// sortOrder를 서로 다르게 줘 getCascadeLevels의 sortCategoryTree 정렬(동순위 가나다 tie-break)이
+// 이 트리의 배열 순서를 바꾸지 않게 한다 — 이 테스트들은 정렬이 아니라 depth 순회를 검증한다.
 const TREE: FinanceCategory[] = [
   category({
     id: 'l1-a',
     name: '투자',
+    sortOrder: 1,
     children: [
       category({
         id: 'l2-a',
         name: '주식',
-        children: [category({ id: 'l3-a', name: '국내주식', children: [] })],
+        sortOrder: 1,
+        children: [category({ id: 'l3-a', name: '국내주식', sortOrder: 1, children: [] })],
       }),
     ],
   }),
-  category({ id: 'l1-b', name: '예적금', children: [] }),
+  category({ id: 'l1-b', name: '예적금', sortOrder: 2, children: [] }),
 ]
 
 describe('getCategoryPath', () => {
@@ -67,5 +71,53 @@ describe('getCascadeLevels', () => {
   it('children이 없는 노드를 선택하면 그 이후 레벨을 만들지 않는다', () => {
     const levels = getCascadeLevels(TREE, ['l1-b'])
     expect(levels.map((l) => l.map((c) => c.id))).toEqual([['l1-a', 'l1-b']])
+  })
+
+  it('동순위(sortOrder 동일) 노드는 가나다순으로 정렬해 반환한다 — 계단식 Select 전 소비처 공용 tie-break', () => {
+    const tied: FinanceCategory[] = [
+      category({ id: 'a', name: '나비', sortOrder: 0 }),
+      category({ id: 'b', name: '가재', sortOrder: 0 }),
+    ]
+    expect(getCascadeLevels(tied, [])[0].map((c) => c.id)).toEqual(['b', 'a'])
+  })
+})
+
+describe('sortCategoryTree', () => {
+  it('sortOrder 오름차순으로 정렬한다', () => {
+    const tree = [
+      category({ id: 'a', name: '나', sortOrder: 2 }),
+      category({ id: 'b', name: '가', sortOrder: 1 }),
+    ]
+    expect(sortCategoryTree(tree).map((c) => c.id)).toEqual(['b', 'a'])
+  })
+
+  it('sortOrder가 같으면 가나다순으로 정렬한다', () => {
+    const tree = [
+      category({ id: 'a', name: '다람쥐', sortOrder: 0 }),
+      category({ id: 'b', name: '가나다', sortOrder: 0 }),
+      category({ id: 'c', name: '나비', sortOrder: 0 }),
+    ]
+    expect(sortCategoryTree(tree).map((c) => c.id)).toEqual(['b', 'c', 'a'])
+  })
+
+  it('children도 재귀적으로 같은 규칙으로 정렬한다', () => {
+    const tree = [
+      category({
+        id: 'l1',
+        name: '루트',
+        sortOrder: 0,
+        children: [
+          category({ id: 'l2-b', name: '나', sortOrder: 0 }),
+          category({ id: 'l2-a', name: '가', sortOrder: 0 }),
+        ],
+      }),
+    ]
+    expect(sortCategoryTree(tree)[0].children.map((c) => c.id)).toEqual(['l2-a', 'l2-b'])
+  })
+
+  it('원본 배열을 변경하지 않는다', () => {
+    const tree = [category({ id: 'a', name: '나', sortOrder: 2 }), category({ id: 'b', name: '가', sortOrder: 1 })]
+    sortCategoryTree(tree)
+    expect(tree.map((c) => c.id)).toEqual(['a', 'b'])
   })
 })

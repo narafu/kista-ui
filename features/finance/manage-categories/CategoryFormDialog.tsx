@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -39,7 +39,7 @@ export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, cat
   // 계단식 부모 Select: 각 단에서 선택한 categoryId를 순서대로 담는다. 마지막 값이 실제
   // parentId — 선택한 노드에 children이 있으면 다음 단이 자동으로 추가돼 depth 제한이 없다.
   const [selectedPath, setSelectedPath] = useState<string[]>([])
-  const cascadeLevels = getCascadeLevels(l1Categories, selectedPath)
+  const cascadeLevels = useMemo(() => getCascadeLevels(l1Categories, selectedPath), [l1Categories, selectedPath])
   const parentId = selectedPath[selectedPath.length - 1] ?? NO_PARENT_VALUE
 
   const createMutation = useCreateFinanceCategoryMutation()

@@ -10,6 +10,7 @@ import {
   useFinanceCategoriesQuery,
   useFinanceTransactionsQuery,
   windowRange,
+  yearsRange,
 } from '@entities/finance'
 import type { FinanceCategoryType, Period } from '@entities/finance'
 import { todayKst } from '@shared/lib/format'
@@ -102,6 +103,14 @@ export function FinanceDashboard() {
   const { data: previousYearTransactions = [] } = useFinanceTransactionsQuery(
     previousYearWindow.from,
     previousYearWindow.to,
+    { enabled: isFlowTab && period.mode === 'yearly' },
+  )
+  // 최근추이(연간 모드 "최근 6개년") 전용 — flowWindow(12개월)로는 커버되지 않는 6년치 범위라
+  // previousYearTransactions와 동일한 이유로 별도 쿼리한다.
+  const yearlyTrendWindow = useMemo(() => yearsRange(period.month, 6), [period.month])
+  const { data: yearlyTrendTransactions = [] } = useFinanceTransactionsQuery(
+    yearlyTrendWindow.from,
+    yearlyTrendWindow.to,
     { enabled: isFlowTab && period.mode === 'yearly' },
   )
   const { data: incomeCategories = [], isLoading: isIncomeCategoriesLoading } = useFinanceCategoriesQuery('INCOME')
@@ -199,8 +208,10 @@ export function FinanceDashboard() {
             <FinanceTrend
               type={flowType}
               transactions={transactions}
+              yearlyTransactions={yearlyTrendTransactions}
+              categoryTree={categoryTreeByType[flowType]}
               index={categoryIndex}
-              month={period.month}
+              period={period}
               isLoading={isFlowLoading}
               isError={isTransactionsError}
             />

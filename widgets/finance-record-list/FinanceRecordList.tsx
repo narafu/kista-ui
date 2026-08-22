@@ -18,6 +18,7 @@ import {
   filterByType,
   flowCategoryColor,
   periodRange,
+  sortCategoryTree,
   unclassifiedTransactions,
   useCanShareToGroup,
   useDeleteFinanceTransactionMutation,
@@ -64,7 +65,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
   const deleteDialog = useConfirmDialog<string>()
   const duplicateDialog = useConfirmDialog<FinanceTransaction>()
 
-  const orderedRootIds = useMemo(() => [...categoryTree].sort((a, b) => a.sortOrder - b.sortOrder).map((c) => c.id), [categoryTree])
+  const orderedRootIds = useMemo(() => sortCategoryTree(categoryTree).map((c) => c.id), [categoryTree])
 
   const { from, to } = periodRange(period)
   // 수정 다이얼로그의 날짜 min/max는 표시 중인 period(월간이면 그 달만)가 아니라 실제로 조회된
@@ -188,7 +189,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                         </button>
                       </TableHeadCell>
                       <TableHeadCell>메모</TableHeadCell>
-                      <TableHeadCell className="w-24">작업</TableHeadCell>
+                      <TableHeadCell className="whitespace-nowrap">작업</TableHeadCell>
                     </tr>
                   </thead>
                   <tbody>
@@ -245,17 +246,24 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                             <span className="truncate text-sm font-medium">{entry?.name ?? '(알 수 없음)'}</span>
                             <span className="shrink-0 text-xs text-muted-foreground">{fmtDate(t.transactionDate)}</span>
                           </div>
-                          <p className="truncate text-xs text-muted-foreground">{t.memo ?? '—'}</p>
                         </div>
                         <span className="shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums">{fmtKrw(t.amount)}</span>
                       </div>
-                      <div className="mt-3 flex items-center justify-end gap-3 border-t pt-3">
-                        <button type="button" onClick={() => editDialog.request(t)} className="px-1 py-2 text-xs font-semibold text-foreground">수정</button>
-                        <button type="button" onClick={() => duplicateDialog.request(t)} className="px-1 py-2 text-xs font-semibold text-foreground">복제</button>
-                        {canShare && !t.groupId && (
-                          <button type="button" onClick={() => handleShare(t.id)} disabled={shareMutation.isPending} className="px-1 py-2 text-xs font-semibold text-foreground">공유</button>
-                        )}
-                        <button type="button" onClick={() => deleteDialog.request(t.id)} className="px-1 py-2 text-xs font-semibold text-destructive">삭제</button>
+                      <div className="mt-1 flex items-center justify-between gap-2">
+                        <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{t.memo ?? '—'}</p>
+                        <div className="flex shrink-0 items-center gap-1">
+                          <button type="button" onClick={() => editDialog.request(t)} className="px-1 py-2 text-xs font-semibold text-foreground">수정</button>
+                          <span className="text-muted-foreground/40">·</span>
+                          <button type="button" onClick={() => duplicateDialog.request(t)} className="px-1 py-2 text-xs font-semibold text-foreground">복제</button>
+                          {canShare && !t.groupId && (
+                            <>
+                              <span className="text-muted-foreground/40">·</span>
+                              <button type="button" onClick={() => handleShare(t.id)} disabled={shareMutation.isPending} className="px-1 py-2 text-xs font-semibold text-foreground">공유</button>
+                            </>
+                          )}
+                          <span className="text-muted-foreground/40">·</span>
+                          <button type="button" onClick={() => deleteDialog.request(t.id)} className="px-1 py-2 text-xs font-semibold text-destructive">삭제</button>
+                        </div>
                       </div>
                     </li>
                   )
