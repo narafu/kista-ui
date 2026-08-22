@@ -4,10 +4,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AssetRecordList } from './AssetRecordList'
 import type { AssetSnapshot } from '@entities/finance'
 
-const { useAssetSnapshotsQueryMock, useFinanceCategoriesQueryMock, deleteManyMutateMock } = vi.hoisted(() => ({
+const { useAssetSnapshotsQueryMock, useFinanceCategoriesQueryMock, deleteManyMutateMock, shareMutateMock, unshareMutateMock } = vi.hoisted(() => ({
   useAssetSnapshotsQueryMock: vi.fn(),
   useFinanceCategoriesQueryMock: vi.fn(() => ({ data: [] })),
   deleteManyMutateMock: vi.fn(),
+  shareMutateMock: vi.fn(),
+  unshareMutateMock: vi.fn(),
 }))
 
 vi.mock('@entities/finance', async () => {
@@ -17,6 +19,9 @@ vi.mock('@entities/finance', async () => {
     useAssetSnapshotsQuery: useAssetSnapshotsQueryMock,
     useFinanceCategoriesQuery: useFinanceCategoriesQueryMock,
     useDeleteManyAssetSnapshotsMutation: () => ({ mutate: deleteManyMutateMock, isPending: false }),
+    useShareAssetSnapshotMutation: () => ({ mutate: shareMutateMock, isPending: false }),
+    useUnshareAssetSnapshotMutation: () => ({ mutate: unshareMutateMock, isPending: false }),
+    useCanShareToGroup: () => false,
   }
 })
 

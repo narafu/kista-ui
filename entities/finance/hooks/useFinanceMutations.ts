@@ -79,9 +79,8 @@ async function synchronizeAssetSnapshotList(
 // groupId를 activeGroupId와 다르게 만들 수 있어(공유 실패로 개인 소유 유지, 또는 활성 그룹 상태가
 // 전환 중인 경우) 특정 groupId 캐시 키로의 upsert가 스코프를 잘못 맞출 수 있다(unshare와 동일 이유).
 export function useCreateAssetSnapshotMutation() {
-  const queryClient = useQueryClient()
-  return useMutation<AssetSnapshot, Error, AssetSnapshotRequest & { shareToGroup?: boolean }>({
-    mutationFn: async ({ shareToGroup, ...data }) => {
+  return useInvalidateFinanceMutation<AssetSnapshot, AssetSnapshotRequest & { shareToGroup?: boolean }>(
+    async ({ shareToGroup, ...data }) => {
       const saved = await createAssetSnapshot(data)
       if (!shareToGroup) return saved
       try {
@@ -90,19 +89,18 @@ export function useCreateAssetSnapshotMutation() {
         return saved
       }
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.assetSnapshotsRoot() }),
-    onError: (err) => toast.error(apiMsg(err, '자산 기록을 저장하지 못했습니다')),
-  })
+    financeKeys.assetSnapshotsRoot(),
+    '자산 기록을 저장하지 못했습니다',
+  )
 }
 
 // create와 동일한 이유로 groupId 스코프 upsert 대신 root invalidate를 쓴다.
 export function useShareAssetSnapshotMutation() {
-  const queryClient = useQueryClient()
-  return useMutation<AssetSnapshot, Error, string>({
-    mutationFn: (id) => shareAssetSnapshot(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.assetSnapshotsRoot() }),
-    onError: (err) => toast.error(apiMsg(err, '자산 기록을 그룹에 공유하지 못했습니다')),
-  })
+  return useInvalidateFinanceMutation<AssetSnapshot, string>(
+    (id) => shareAssetSnapshot(id),
+    financeKeys.assetSnapshotsRoot(),
+    '자산 기록을 그룹에 공유하지 못했습니다',
+  )
 }
 
 // unshare는 그룹 멤버 누구나 실행할 수 있어(소유자 한정 아님) 실행자 본인 소유가 아닌 항목이면
@@ -110,12 +108,11 @@ export function useShareAssetSnapshotMutation() {
 // 유지) — upsertById는 제거를 못 해 실행자 화면에 더 이상 접근 불가한 항목이 그대로 남는다.
 // share/update/delete와 달리 로컬 upsert 대신 invalidate 후 재조회로 처리한다.
 export function useUnshareAssetSnapshotMutation() {
-  const queryClient = useQueryClient()
-  return useMutation<AssetSnapshot, Error, string>({
-    mutationFn: (id) => unshareAssetSnapshot(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.assetSnapshotsRoot() }),
-    onError: (err) => toast.error(apiMsg(err, '자산 기록을 개인 소유로 되돌리지 못했습니다')),
-  })
+  return useInvalidateFinanceMutation<AssetSnapshot, string>(
+    (id) => unshareAssetSnapshot(id),
+    financeKeys.assetSnapshotsRoot(),
+    '자산 기록을 개인 소유로 되돌리지 못했습니다',
+  )
 }
 
 export function useUpdateAssetSnapshotMutation(snapshotId: string) {

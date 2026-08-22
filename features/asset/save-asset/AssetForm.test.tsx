@@ -49,6 +49,7 @@ vi.mock('@entities/finance', async () => {
     useFinanceAccountsQuery: () => ({ data: accounts }),
     useCreateAssetSnapshotMutation: () => ({ mutate: createMutateMock, isPending: false }),
     useUpdateAssetSnapshotMutation: () => ({ mutate: updateMutateMock, isPending: false }),
+    useCanShareToGroup: () => false,
   }
 })
 

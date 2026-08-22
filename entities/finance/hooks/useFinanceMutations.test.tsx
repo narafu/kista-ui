@@ -56,28 +56,26 @@ vi.mock('./useFinanceQueries', () => ({
 function fakeQueryClient(existingList?: unknown[]) {
   const setQueryData = vi.fn()
   const fetchQuery = vi.fn()
+  const invalidateQueries = vi.fn()
   return {
     getQueryData: vi.fn(() => existingList),
     setQueryData,
     fetchQuery,
+    invalidateQueries,
   }
 }
 
 describe('useCreateAssetSnapshotMutation', () => {
-  it('upserts the created snapshot into an existing list cache', async () => {
+  it('invalidates the asset snapshot list cache', async () => {
     const queryClient = fakeQueryClient([{ id: 's1', amount: 1 }])
     useQueryClientMock.mockReturnValue(queryClient)
 
     const { result } = renderHook(() => useCreateAssetSnapshotMutation())
-    const saved = { id: 's2', amount: 2 }
 
     // @ts-expect-error — 테스트에서 mutation config를 직접 캡처해 호출
-    await result.current.onSuccess(saved)
+    await result.current.onSuccess()
 
-    expect(queryClient.setQueryData).toHaveBeenCalledWith(
-      financeKeys.assetSnapshots(),
-      [{ id: 's1', amount: 1 }, saved],
-    )
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.assetSnapshotsRoot() })
   })
 })
 
