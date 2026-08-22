@@ -7,11 +7,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Switch } from '@/components/ui/switch'
 import { Spinner } from '@shared/ui/Spinner'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import {
   getCascadeLevels,
   getCategoryPath,
+  useCanShareToGroup,
   useCreateFinanceTransactionMutation,
   useFinanceCategoriesQuery,
   useUpdateFinanceTransactionMutation,
@@ -66,6 +68,10 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
   const [amountDigits, setAmountDigits] = useState(seed ? String(seed.amount) : '')
   const [memo, setMemo] = useState(seed?.memo ?? '')
 
+  // 그룹 소속일 때만 노출, 기본값 켜짐(그룹 저장 우선) — 수정 모드는 groupId가 이미 고정돼 있어 대상 아님.
+  const canShareToGroup = useCanShareToGroup()
+  const [shareToGroup, setShareToGroup] = useState(true)
+
   const createMutation = useCreateFinanceTransactionMutation()
   const updateMutation = useUpdateFinanceTransactionMutation(initial?.id ?? '')
   const isPending = mode === 'edit' ? updateMutation.isPending : createMutation.isPending
@@ -94,7 +100,7 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
       return
     }
 
-    createMutation.mutate(payload, {
+    createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
       onSuccess: () => {
         toast.success('거래내역이 등록되었습니다')
         onSuccess()
@@ -173,6 +179,18 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
                 maxLength={255}
               />
             </div>
+
+            {mode === 'create' && canShareToGroup && (
+              <div className="flex items-center justify-between">
+                <Label htmlFor="transactionShareToGroup">그룹으로 저장</Label>
+                <Switch
+                  id="transactionShareToGroup"
+                  checked={shareToGroup}
+                  onCheckedChange={setShareToGroup}
+                  disabled={isPending}
+                />
+              </div>
+            )}
           </div>
 
           <DialogFooter>

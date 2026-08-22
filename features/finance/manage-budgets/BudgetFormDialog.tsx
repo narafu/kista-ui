@@ -7,11 +7,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Switch } from '@/components/ui/switch'
 import { Spinner } from '@shared/ui/Spinner'
 import { digitsOnly, formatAmountDisplay } from '@shared/lib/format'
 import {
   getCascadeLevels,
   getCategoryPath,
+  useCanShareToGroup,
   useCreateFinanceBudgetMutation,
   useUpdateFinanceBudgetMutation,
 } from '@entities/finance'
@@ -46,6 +48,10 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, budget, onS
   const [applyEndDate, setApplyEndDate] = useState(budget?.applyEndDate ?? '')
   const [amountDigits, setAmountDigits] = useState(budget ? String(budget.amount) : '')
 
+  // 그룹 소속일 때만 노출, 기본값 켜짐(그룹 저장 우선) — 수정 모드는 groupId가 이미 고정돼 있어 대상 아님.
+  const canShareToGroup = useCanShareToGroup()
+  const [shareToGroup, setShareToGroup] = useState(true)
+
   const createMutation = useCreateFinanceBudgetMutation()
   const updateMutation = useUpdateFinanceBudgetMutation(budget?.id ?? '')
   const isPending = mode === 'edit' ? updateMutation.isPending : createMutation.isPending
@@ -73,7 +79,7 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, budget, onS
       return
     }
 
-    createMutation.mutate(payload, {
+    createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
       onSuccess: () => {
         toast.success('예산이 등록되었습니다')
         onSuccess()
@@ -152,6 +158,18 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, budget, onS
                 className="h-11 text-right tabular-nums"
               />
             </div>
+
+            {mode === 'create' && canShareToGroup && (
+              <div className="flex items-center justify-between">
+                <Label htmlFor="budgetShareToGroup">그룹으로 저장</Label>
+                <Switch
+                  id="budgetShareToGroup"
+                  checked={shareToGroup}
+                  onCheckedChange={setShareToGroup}
+                  disabled={isPending}
+                />
+              </div>
+            )}
           </div>
 
           <DialogFooter>

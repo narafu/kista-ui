@@ -24,6 +24,8 @@ import {
   setMonthlyClosing,
   shareFinanceBudget,
   shareFinanceTransaction,
+  unshareFinanceBudget,
+  unshareFinanceTransaction,
   updateAssetSnapshot,
   updateFinanceAccount,
   updateFinanceBudget,
@@ -241,10 +243,22 @@ function useInvalidateFinanceMutation<TData, TVariables>(
   })
 }
 
+// 신규 등록은 항상 개인 소유로 저장된다(kista-api FinanceTransactionService.create — groupId 쿼리
+// 파라미터는 서버가 무시). 그룹으로 저장하려면 생성 직후 공유 전환(PATCH .../{id}/share)을 이어붙인다.
+// 공유 전환이 실패해도(네트워크 오류 등) 거래내역 자체는 이미 저장됐으니 전체 실패로 처리하지 않고
+// 개인 소유로 남긴 채 별도 toast로 알린다(budget 쪽과 동일한 이유 — 성공한 저장을 실패로 오보하지 않기 위함).
 export function useCreateFinanceTransactionMutation() {
-  const groupId = useActiveGroupId()
-  return useInvalidateFinanceMutation<FinanceTransaction, FinanceTransactionRequest>(
-    (data) => createFinanceTransaction(data, { groupId }),
+  return useInvalidateFinanceMutation<FinanceTransaction, FinanceTransactionRequest & { shareToGroup?: boolean }>(
+    async ({ shareToGroup, ...data }) => {
+      const saved = await createFinanceTransaction(data)
+      if (!shareToGroup) return saved
+      try {
+        return await shareFinanceTransaction(saved.id)
+      } catch (err) {
+        toast.error(apiMsg(err, '거래내역은 저장됐지만 그룹 공유에 실패했습니다 — 목록에서 공유 버튼으로 다시 시도하세요'))
+        return saved
+      }
+    },
     financeKeys.transactionsRoot(),
     '거래내역을 저장하지 못했습니다',
   )
@@ -274,12 +288,33 @@ export function useShareFinanceTransactionMutation() {
   )
 }
 
+export function useUnshareFinanceTransactionMutation() {
+  return useInvalidateFinanceMutation<FinanceTransaction, string>(
+    (id) => unshareFinanceTransaction(id),
+    financeKeys.transactionsRoot(),
+    '거래내역을 개인 소유로 되돌리지 못했습니다',
+  )
+}
+
 // 카테고리 기간 중첩(finance_budgets_no_overlap) 위반은 409로 온다 — apiMsg가 서버 메시지를
 // 그대로 노출하므로 별도 문구 분기 없이 폴백만 지정한다.
+// 신규 등록은 항상 개인 소유로 저장된다(kista-api FinanceBudgetService.create — groupId 쿼리
+// 파라미터는 서버가 무시). 그룹으로 저장하려면 생성 직후 공유 전환(PATCH .../{id}/share)을 이어붙인다.
+// 공유 전환 단계는 create와 별개로 겹침(EXCLUDE 제약)에 409를 낼 수 있다(create는 개인 스코프로만
+// 겹침을 검사하므로 그룹 멤버의 동일 기간 예산은 이 시점에야 드러난다) — 실패해도 예산 자체는 이미
+// 저장됐으니 삭제하지 않고 개인 소유로 남긴 채 별도 toast로 알린다.
 export function useCreateFinanceBudgetMutation() {
-  const groupId = useActiveGroupId()
-  return useInvalidateFinanceMutation<FinanceBudget, FinanceBudgetRequest>(
-    (data) => createFinanceBudget(data, { groupId }),
+  return useInvalidateFinanceMutation<FinanceBudget, FinanceBudgetRequest & { shareToGroup?: boolean }>(
+    async ({ shareToGroup, ...data }) => {
+      const saved = await createFinanceBudget(data)
+      if (!shareToGroup) return saved
+      try {
+        return await shareFinanceBudget(saved.id)
+      } catch (err) {
+        toast.error(apiMsg(err, '예산은 저장됐지만 그룹 공유에 실패했습니다 — 목록에서 공유 버튼으로 다시 시도하세요'))
+        return saved
+      }
+    },
     financeKeys.budgetsRoot(),
     '예산을 저장하지 못했습니다',
   )
@@ -306,6 +341,14 @@ export function useShareFinanceBudgetMutation() {
     (id) => shareFinanceBudget(id),
     financeKeys.budgetsRoot(),
     '예산을 그룹에 공유하지 못했습니다',
+  )
+}
+
+export function useUnshareFinanceBudgetMutation() {
+  return useInvalidateFinanceMutation<FinanceBudget, string>(
+    (id) => unshareFinanceBudget(id),
+    financeKeys.budgetsRoot(),
+    '예산을 개인 소유로 되돌리지 못했습니다',
   )
 }
 

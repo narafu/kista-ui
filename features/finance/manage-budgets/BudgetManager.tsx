@@ -15,6 +15,7 @@ import {
   useFinanceBudgetsQuery,
   useFinanceCategoriesQuery,
   useShareFinanceBudgetMutation,
+  useUnshareFinanceBudgetMutation,
 } from '@entities/finance'
 import type { FinanceBudget } from '@entities/finance'
 import { BudgetFormDialog } from './BudgetFormDialog'
@@ -35,10 +36,15 @@ export function BudgetManager({ type }: Props) {
   const deleteDialog = useConfirmDialog<FinanceBudget>()
   const deleteMutation = useDeleteFinanceBudgetMutation()
   const shareMutation = useShareFinanceBudgetMutation()
+  const unshareMutation = useUnshareFinanceBudgetMutation()
   const canShare = useCanShareToGroup()
 
   function handleShare(id: string) {
     shareMutation.mutate(id, { onSuccess: () => toast.success('그룹에 공유했습니다') })
+  }
+
+  function handleUnshare(id: string) {
+    unshareMutation.mutate(id, { onSuccess: () => toast.success('개인 소유로 되돌렸습니다') })
   }
 
   function handleDelete() {
@@ -80,6 +86,9 @@ export function BudgetManager({ type }: Props) {
                   <button type="button" onClick={() => setFormTarget(budget)} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">수정</button>
                   {canShare && !budget.groupId && (
                     <button type="button" onClick={() => handleShare(budget.id)} disabled={shareMutation.isPending} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">공유</button>
+                  )}
+                  {canShare && budget.groupId && (
+                    <button type="button" onClick={() => handleUnshare(budget.id)} disabled={unshareMutation.isPending} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">개인으로</button>
                   )}
                   <button type="button" onClick={() => deleteDialog.request(budget)} className="text-xs font-semibold text-destructive hover:text-destructive/80">삭제</button>
                 </div>

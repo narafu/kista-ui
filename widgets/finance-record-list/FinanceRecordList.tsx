@@ -23,6 +23,7 @@ import {
   useCanShareToGroup,
   useDeleteFinanceTransactionMutation,
   useShareFinanceTransactionMutation,
+  useUnshareFinanceTransactionMutation,
   windowRange,
 } from '@entities/finance'
 import type { CategoryIndex, FinanceCategory, FinanceCategoryType, FinanceTransaction, Period } from '@entities/finance'
@@ -49,10 +50,15 @@ interface Props {
 export function FinanceRecordList({ type, transactions, categoryTree, index, period, isLoading, isError, registerWindowFrom, registerWindowTo }: Props) {
   const deleteMutation = useDeleteFinanceTransactionMutation()
   const shareMutation = useShareFinanceTransactionMutation()
+  const unshareMutation = useUnshareFinanceTransactionMutation()
   const canShare = useCanShareToGroup()
 
   function handleShare(id: string) {
     shareMutation.mutate(id, { onSuccess: () => toast.success('그룹에 공유했습니다') })
+  }
+
+  function handleUnshare(id: string) {
+    unshareMutation.mutate(id, { onSuccess: () => toast.success('개인 소유로 되돌렸습니다') })
   }
 
   const [categoryPath, setCategoryPath] = useState<string[]>([])
@@ -220,6 +226,12 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                                   <button type="button" onClick={() => handleShare(t.id)} disabled={shareMutation.isPending} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">공유</button>
                                 </>
                               )}
+                              {canShare && t.groupId && (
+                                <>
+                                  <span className="text-muted-foreground/40">·</span>
+                                  <button type="button" onClick={() => handleUnshare(t.id)} disabled={unshareMutation.isPending} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">개인으로</button>
+                                </>
+                              )}
                               <span className="text-muted-foreground/40">·</span>
                               <button type="button" onClick={() => deleteDialog.request(t.id)} className="text-xs font-semibold text-destructive hover:text-destructive/80">삭제</button>
                             </div>
@@ -259,6 +271,12 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                             <>
                               <span className="text-muted-foreground/40">·</span>
                               <button type="button" onClick={() => handleShare(t.id)} disabled={shareMutation.isPending} className="px-1 py-2 text-xs font-semibold text-foreground">공유</button>
+                            </>
+                          )}
+                          {canShare && t.groupId && (
+                            <>
+                              <span className="text-muted-foreground/40">·</span>
+                              <button type="button" onClick={() => handleUnshare(t.id)} disabled={unshareMutation.isPending} className="px-1 py-2 text-xs font-semibold text-foreground">개인으로</button>
                             </>
                           )}
                           <span className="text-muted-foreground/40">·</span>

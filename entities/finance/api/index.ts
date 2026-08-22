@@ -240,6 +240,16 @@ export async function shareFinanceTransaction(id: string, token?: string): Promi
   return normalizeTransaction(saved)
 }
 
+// 그룹 공유 거래내역을 개인 소유로 되돌린다(같은 그룹 멤버면 누구든 가능, 이미 개인 소유면 멱등).
+export async function unshareFinanceTransaction(id: string, token?: string): Promise<FinanceTransaction> {
+  const saved = await fetchEither<FinanceTransaction>(
+    `/api/finance/transactions/${encodeURIComponent(id)}/unshare`,
+    { method: 'PATCH' },
+    token,
+  )
+  return normalizeTransaction(saved)
+}
+
 export interface BudgetListOptions extends GroupScopedOptions {
   categoryId?: string
   date?: string
@@ -274,6 +284,12 @@ export async function deleteFinanceBudget(id: string, token?: string): Promise<v
 // 개인 소유 예산을 소유자의 현재 그룹으로 공유 전환한다(본인 소유·그룹 소속 상태에서만 성공).
 export async function shareFinanceBudget(id: string, token?: string): Promise<FinanceBudget> {
   const saved = await fetchEither<FinanceBudget>(`/api/finance/budgets/${encodeURIComponent(id)}/share`, { method: 'PATCH' }, token)
+  return normalizeBudget(saved)
+}
+
+// 그룹 공유 예산을 개인 소유로 되돌린다(같은 그룹 멤버면 누구든 가능, 이미 개인 소유면 멱등).
+export async function unshareFinanceBudget(id: string, token?: string): Promise<FinanceBudget> {
+  const saved = await fetchEither<FinanceBudget>(`/api/finance/budgets/${encodeURIComponent(id)}/unshare`, { method: 'PATCH' }, token)
   return normalizeBudget(saved)
 }
 
