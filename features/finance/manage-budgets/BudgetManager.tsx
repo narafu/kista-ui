@@ -8,7 +8,14 @@ import { EmptyState } from '@shared/ui/EmptyState'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { fmtKrw } from '@shared/lib/format'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
-import { getCategoryPath, useDeleteFinanceBudgetMutation, useFinanceBudgetsQuery, useFinanceCategoriesQuery } from '@entities/finance'
+import {
+  getCategoryPath,
+  useCanShareToGroup,
+  useDeleteFinanceBudgetMutation,
+  useFinanceBudgetsQuery,
+  useFinanceCategoriesQuery,
+  useShareFinanceBudgetMutation,
+} from '@entities/finance'
 import type { FinanceBudget } from '@entities/finance'
 import { BudgetFormDialog } from './BudgetFormDialog'
 
@@ -27,6 +34,12 @@ export function BudgetManager({ type }: Props) {
   const [formTarget, setFormTarget] = useState<FinanceBudget | 'new' | null>(null)
   const deleteDialog = useConfirmDialog<FinanceBudget>()
   const deleteMutation = useDeleteFinanceBudgetMutation()
+  const shareMutation = useShareFinanceBudgetMutation()
+  const canShare = useCanShareToGroup()
+
+  function handleShare(id: string) {
+    shareMutation.mutate(id, { onSuccess: () => toast.success('그룹에 공유했습니다') })
+  }
 
   function handleDelete() {
     if (!deleteDialog.target) return
@@ -65,6 +78,9 @@ export function BudgetManager({ type }: Props) {
                 <div className="flex shrink-0 items-center gap-3">
                   <span className="text-sm font-medium tabular-nums">{fmtKrw(budget.amount)}</span>
                   <button type="button" onClick={() => setFormTarget(budget)} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">수정</button>
+                  {canShare && !budget.groupId && (
+                    <button type="button" onClick={() => handleShare(budget.id)} disabled={shareMutation.isPending} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">공유</button>
+                  )}
                   <button type="button" onClick={() => deleteDialog.request(budget)} className="text-xs font-semibold text-destructive hover:text-destructive/80">삭제</button>
                 </div>
               </li>

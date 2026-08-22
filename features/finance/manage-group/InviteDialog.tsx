@@ -27,6 +27,9 @@ const EXPIRES_PRESETS = [
 ]
 
 interface Props {
+  // 이미 그룹이 있으면 그 그룹 ID. 무그룹(개인) 유저는 이 값을 서버가 무시한다 — kista-api가
+  // 무그룹 유저의 초대 발급 시점에 새 그룹을 만들고 본인을 OWNER로 등록하므로, 호출부(GroupManager)가
+  // 이 경우 본인 userId를 그대로 넘긴다(경로 세그먼트만 채우는 용도, 실제로 쓰이지 않음).
   groupId: string
 }
 

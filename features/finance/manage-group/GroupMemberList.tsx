@@ -44,7 +44,7 @@ function KickMemberDialog({
       <AlertDialogContent size="sm">
         <AlertDialogHeader>
           <AlertDialogTitle>{label}님을 추방하시겠습니까?</AlertDialogTitle>
-          <AlertDialogDescription>추방된 멤버의 데이터는 본인의 개인 그룹으로 이관됩니다.</AlertDialogDescription>
+          <AlertDialogDescription>추방된 멤버는 이 그룹의 데이터에 더 이상 접근할 수 없습니다. 기존 데이터는 삭제되지 않고 남은 멤버가 계속 볼 수 있습니다.</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>취소</AlertDialogCancel>
@@ -60,13 +60,11 @@ function KickMemberDialog({
 interface Props {
   groupId: string
   members: FinanceGroupMember[]
-  isPersonal: boolean
   isOwner: boolean
   myUserId?: string
 }
 
-export function GroupMemberList({ groupId, members, isPersonal, isOwner, myUserId }: Props) {
-  const showKick = isOwner && !isPersonal
+export function GroupMemberList({ groupId, members, isOwner, myUserId }: Props) {
   const [kickTarget, setKickTarget] = useState<FinanceGroupMember | null>(null)
   const mutation = useRemoveFinanceGroupMemberMutation(groupId)
 
@@ -92,7 +90,7 @@ export function GroupMemberList({ groupId, members, isPersonal, isOwner, myUserI
               <span className="text-xs rounded-full bg-primary/10 px-2 py-0.5 text-primary shrink-0">나</span>
             )}
           </div>
-          {showKick && member.userId !== myUserId && (
+          {isOwner && member.userId !== myUserId && (
             <Button
               type="button"
               variant="outline"

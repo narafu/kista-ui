@@ -1,33 +1,30 @@
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GroupManager } from './GroupManager'
 import type { FinanceGroup, FinanceGroupMember } from '@entities/finance'
 
-const { respondMutateMock, toastSuccessMock } = vi.hoisted(() => ({
-  respondMutateMock: vi.fn(),
+const { toastSuccessMock } = vi.hoisted(() => ({
   toastSuccessMock: vi.fn(),
 }))
 
-const personalGroup: FinanceGroup = { id: 'group-personal', name: '내 개인 그룹', personal: true }
-const sharedGroup: FinanceGroup = { id: 'group-shared', name: '가족 재무', personal: false }
+const sharedGroup: FinanceGroup = { id: 'group-shared', name: '가족 재무' }
 const me = { id: 'user-me' }
 
-let groups: FinanceGroup[] = [personalGroup, sharedGroup]
+// 1인 1그룹 정책 — groups는 0개(개인) 또는 1개(그룹 소속)뿐이다.
+let groups: FinanceGroup[] = [sharedGroup]
 let members: FinanceGroupMember[] = []
-let activeGroupId: string | undefined = sharedGroup.id
 
 vi.mock('@entities/finance', async () => {
   const actual = await vi.importActual<typeof import('@entities/finance')>('@entities/finance')
   return {
     ...actual,
     useFinanceGroupsQuery: () => ({ data: groups }),
-    useActiveGroupId: () => activeGroupId,
+    useActiveGroupId: () => sharedGroup.id,
     useSetActiveGroupId: () => vi.fn(),
     useFinanceGroupMembersQuery: () => ({ data: members }),
     useRemoveFinanceGroupMemberMutation: () => ({ mutate: vi.fn(), isPending: false }),
     useCreateFinanceGroupInvitationMutation: () => ({ mutate: vi.fn(), isPending: false }),
-    useRespondToInvitationMutation: () => ({ mutate: respondMutateMock, isPending: false }),
+    useRespondToInvitationMutation: () => ({ mutate: vi.fn(), isPending: false }),
   }
 })
 
@@ -40,10 +37,8 @@ vi.mock('sonner', () => ({ toast: { success: toastSuccessMock, error: vi.fn() } 
 
 describe('GroupManager', () => {
   beforeEach(() => {
-    respondMutateMock.mockClear()
     toastSuccessMock.mockClear()
-    groups = [personalGroup, sharedGroup]
-    activeGroupId = sharedGroup.id
+    groups = [sharedGroup]
   })
 
   it('OWNER에게는 초대코드 발급 버튼과 그룹 탈퇴 버튼을 모두 보여준다', () => {
@@ -68,9 +63,9 @@ describe('GroupManager', () => {
     expect(screen.queryByRole('button', { name: '초대코드 발급' })).not.toBeInTheDocument()
   })
 
-  it('개인 그룹의 OWNER는 초대코드 발급 버튼을 볼 수 있지만(그룹 생성의 유일한 경로) 탈퇴 버튼은 숨긴다(서버가 409)', () => {
-    activeGroupId = undefined
-    members = [{ userId: me.id, role: 'OWNER' }]
+  it('무그룹(개인) 상태에서는 초대코드 발급 버튼만 보여주고 멤버/탈퇴 UI는 없다(그룹 생성의 유일한 경로)', () => {
+    groups = []
+    members = []
     render(<GroupManager />)
 
     expect(screen.getByRole('button', { name: '초대코드 발급' })).toBeInTheDocument()

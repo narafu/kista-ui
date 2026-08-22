@@ -67,7 +67,6 @@ export interface FinanceAccountRequest {
 export interface FinanceGroup {
   id: string
   name: string
-  personal: boolean
 }
 
 // nickname은 kista-api FinanceGroupMemberResponse에 아직 없다(userId/role만 응답) —
@@ -86,6 +85,8 @@ export interface FinanceGroupInvitation {
 export interface FinanceTransaction {
   id: string
   categoryId: string
+  // null이면 개인 소유(본인만 조회) — 값이 있으면 그룹 공유. 공유 버튼 노출 판정에 쓴다.
+  groupId?: string
   transactionDate: string // 'YYYY-MM-DD'
   amount: number
   memo?: string
@@ -101,6 +102,8 @@ export interface FinanceTransactionRequest {
 export interface FinanceBudget {
   id: string
   categoryId: string
+  // null이면 개인 소유(본인만 조회) — 값이 있으면 그룹 공유. 공유 버튼 노출 판정에 쓴다.
+  groupId?: string
   applyStartDate: string // 'YYYY-MM-DD'
   applyEndDate?: string // 무기한이면 undefined
   amount: number // 월 할당 예산

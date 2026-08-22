@@ -66,6 +66,13 @@ export function useFinanceGroupsQuery() {
   return useQuery(financeGroupListQueryOptions())
 }
 
+// 그룹 소속이어야 개인 소유 거래내역/예산을 공유 전환할 수 있다 — 공유 버튼 게이팅을
+// 호출부(FinanceRecordList/BudgetManager)마다 중복 계산하지 않고 여기서 한 번만 정의한다.
+export function useCanShareToGroup(): boolean {
+  const { data: groups } = useFinanceGroupsQuery()
+  return (groups?.length ?? 0) > 0
+}
+
 export function useFinanceGroupMembersQuery(groupId: string) {
   return useQuery({
     queryKey: financeKeys.groupMembers(groupId),
