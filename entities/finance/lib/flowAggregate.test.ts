@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { calcFlowTrend } from './flowAggregate'
+import { calcBudgetProgress, calcFlowTrend } from './flowAggregate'
 import type { CategoryIndex } from './categoryIndex'
-import type { FinanceTransaction } from '../model/types'
+import type { FinanceBudget, FinanceCategory, FinanceTransaction } from '../model/types'
 
 function tx(id: string, categoryId: string, transactionDate: string, amount: number): FinanceTransaction {
   return { id, categoryId, transactionDate, amount }
@@ -49,5 +49,31 @@ describe('calcFlowTrend', () => {
     const result = calcFlowTrend(transactions, index, { month: '2026-08', mode: 'monthly' }, 1)
 
     expect(result).toEqual([{ period: '2026-08', amount: 500, byCategory: {} }])
+  })
+})
+
+describe('calcBudgetProgress', () => {
+  it('usageRatio가 아니라 카테고리 순번(sortOrder)으로 정렬한다', () => {
+    const categoryTree: FinanceCategory[] = [
+      { id: 'cat-salary', type: 'INCOME', name: '급여', sortOrder: 1, system: false, children: [] },
+      { id: 'cat-bonus', type: 'INCOME', name: '상여', sortOrder: 2, system: false, children: [] },
+    ]
+    const budgetIndex: CategoryIndex = new Map([
+      ['cat-salary', { type: 'INCOME', rootId: 'cat-salary', name: '급여', sortOrder: 1 }],
+      ['cat-bonus', { type: 'INCOME', rootId: 'cat-bonus', name: '상여', sortOrder: 2 }],
+    ])
+    const budgets: FinanceBudget[] = [
+      { id: 'b-bonus', categoryId: 'cat-bonus', applyStartDate: '2026-01-01', amount: 100 },
+      { id: 'b-salary', categoryId: 'cat-salary', applyStartDate: '2026-01-01', amount: 100 },
+    ]
+    // 상여(usageRatio 0.9)가 급여(usageRatio 0.1)보다 사용률은 높지만, 카테고리 순번상 급여가 먼저다.
+    const transactions = [
+      tx('1', 'cat-salary', '2026-08-05', 10),
+      tx('2', 'cat-bonus', '2026-08-05', 90),
+    ]
+
+    const result = calcBudgetProgress(budgets, transactions, categoryTree, budgetIndex, { month: '2026-08', mode: 'monthly' })
+
+    expect(result.map((r) => r.budgetId)).toEqual(['b-salary', 'b-bonus'])
   })
 })

@@ -315,7 +315,7 @@ export function AssetRecordList() {
                         {canShare && snapshot.groupId && (
                           <>
                             <span className="text-muted-foreground/40">·</span>
-                            <button type="button" onClick={() => handleUnshare(snapshot.id)} disabled={unshareMutation.isPending} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">개인으로</button>
+                            <button type="button" onClick={() => handleUnshare(snapshot.id)} disabled={unshareMutation.isPending} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">귀속</button>
                           </>
                         )}
                         <span className="text-muted-foreground/40">·</span>
@@ -361,7 +361,7 @@ export function AssetRecordList() {
                           <button type="button" onClick={() => handleShare(snapshot.id)} disabled={shareMutation.isPending} className="px-1 py-2 text-xs font-semibold text-foreground">공유</button>
                         )}
                         {canShare && snapshot.groupId && (
-                          <button type="button" onClick={() => handleUnshare(snapshot.id)} disabled={unshareMutation.isPending} className="px-1 py-2 text-xs font-semibold text-foreground">개인으로</button>
+                          <button type="button" onClick={() => handleUnshare(snapshot.id)} disabled={unshareMutation.isPending} className="px-1 py-2 text-xs font-semibold text-foreground">귀속</button>
                         )}
                         <button type="button" onClick={() => deleteDialog.request([snapshot.id])} className="px-1 py-2 text-xs font-semibold text-destructive">삭제</button>
                       </div>

@@ -1,4 +1,4 @@
-import { collectSubtreeIds } from './categoryTree'
+import { collectSubtreeIds, sortCategoryTree } from './categoryTree'
 import type { CategoryIndex } from './categoryIndex'
 import { monthEndDate, monthStartDate, periodRange, shiftMonth } from './period'
 import type { Period } from './period'
@@ -15,6 +15,10 @@ function sumAmount(list: FinanceTransaction[]): number {
 
 function inRange(dateStr: string, from: string, to: string): boolean {
   return dateStr >= from && dateStr <= to
+}
+
+function flattenTreeIds(categories: FinanceCategory[]): string[] {
+  return categories.flatMap((c) => [c.id, ...flattenTreeIds(c.children)])
 }
 
 // 카테고리가 삭제돼 인덱스에서 조회되지 않는 거래는 어느 탭에도 속하지 않는다 —
@@ -152,5 +156,9 @@ export function calcBudgetProgress(
       usageRatio: allocated > 0 ? actual / allocated : 0,
     })
   }
-  return results.sort((a, b) => b.usageRatio - a.usageRatio)
+  // 카테고리 고정 순번(카테고리 관리 화면과 동일한 sortCategoryTree 순서)으로 정렬한다 —
+  // usageRatio desc로 정렬하면 월간/연간 실제 사용률이 달라 표시 순서가 모드마다 뒤바뀌는
+  // 문제가 있었다(급여/상여 순서 흔들림).
+  const displayOrder = flattenTreeIds(sortCategoryTree(categoryTree))
+  return results.sort((a, b) => displayOrder.indexOf(a.categoryId) - displayOrder.indexOf(b.categoryId))
 }

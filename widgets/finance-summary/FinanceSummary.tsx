@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SectionError } from '@shared/ui/SectionError'
 import { fmtKrw, fmtSignedKrw, maskAmount, pnlTextClass, todayKst } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
@@ -72,6 +73,16 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
   }, [period, previousYearTransactions, index, type])
   const previousYearDelta = previousYearTotal !== null ? summary.total - previousYearTotal : null
 
+  // 연도 select 옵션 — 최근 15개년을 기본으로 잡되, 월간 모드(네이티브 month input, 연도 제한 없음)에서
+  // 그보다 더 과거 연도를 고른 뒤 연간 모드로 전환해도 현재 선택값이 항상 목록에 포함되도록 보정한다
+  // (안 하면 SelectValue가 목록에 없는 값이라 빈칸으로 보인다).
+  // 네이티브 number input은 모바일에서 숫자 키패드로 지우고 새로 입력할 때 controlled value가
+  // 매 keystroke마다 이전 값으로 되돌아가 연도를 바꿀 수 없는 문제가 있어 select로 교체했다.
+  const currentYear = Number(todayKst().slice(0, 4))
+  const selectedYear = Number(period.month.slice(0, 4))
+  const earliestYear = Math.min(selectedYear, currentYear - 14)
+  const yearOptions = Array.from({ length: currentYear - earliestYear + 1 }, (_, i) => currentYear - i)
+
   return (
     <Card>
       <CardHeader className="flex flex-col gap-3 pb-3 sm:flex-row sm:items-center sm:justify-between">
@@ -86,18 +97,21 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
               className="h-9 rounded-md border border-border bg-background px-2 text-sm"
             />
           ) : (
-            <input
-              type="number"
-              aria-label="기준 연도"
-              value={Number(period.month.slice(0, 4))}
-              onChange={(e) => {
-                // 4자리 미만이면 커밋하지 않는다 — 도중에 "2-08" 같은 잘못된 month 문자열이
-                // period 전체(elapsedMonthsInYear·previousYearRange 등)를 오염시키는 걸 막는다.
-                if (e.target.value.length !== 4) return
-                onPeriodChange({ ...period, month: `${e.target.value}-${period.month.slice(5, 7)}` })
+            <Select
+              items={yearOptions.map((y) => ({ value: String(y), label: `${y}년` }))}
+              value={period.month.slice(0, 4)}
+              onValueChange={(value) => {
+                if (!value) return
+                onPeriodChange({ ...period, month: `${value}-${period.month.slice(5, 7)}` })
               }}
-              className="h-9 w-24 rounded-md border border-border bg-background px-2 text-sm"
-            />
+            >
+              <SelectTrigger aria-label="기준 연도" className="h-9 w-24 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {yearOptions.map((y) => <SelectItem key={y} value={String(y)}>{y}년</SelectItem>)}
+              </SelectContent>
+            </Select>
           )}
           <div role="group" aria-label="기간 모드" className="grid grid-cols-2 rounded-md border border-border p-0.5">
             {MODE_OPTIONS.map((option) => (

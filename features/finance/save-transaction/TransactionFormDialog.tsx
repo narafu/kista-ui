@@ -30,8 +30,8 @@ interface Props {
   duplicateFrom?: Pick<FinanceTransaction, 'categoryId' | 'amount' | 'memo'>
   onSuccess: () => void
   // 유효 날짜 범위('YYYY-MM-DD'). 호출부가 무엇을 넘기는지에 따라 의미가 다르다 —
-  // 등록(NewTransactionButton)은 "오늘 기준" 독립 12개월 창(FinanceDashboard의 registerWindow),
-  // 수정(FinanceRecordList)은 "지금 조회 중인" 12개월 창(windowRange(period.month))을 넘긴다.
+  // 등록(NewTransactionButton)은 "오늘 기준" 독립 창(FinanceDashboard의 registerWindow, 하한 없음·
+  // 상한은 이번 달 말일), 수정(FinanceRecordList)은 "지금 조회 중인" 12개월 창(windowRange(period.month))을 넘긴다.
   // 후자는 편집 대상 거래 자체가 그 창 안에서만 존재할 수 있어 조회 윈도우 그대로 쓰는 게 맞고,
   // 전자를 조회 윈도우에 묶으면 과거 달을 보는 중엔 오늘 날짜조차 등록 못 하게 막혀버린다(실사용
   // 시나리오로 지적됨) — 그래서 서로 다른 기준으로 분리했다. 날짜 입력 자체를 이 범위로 막고,

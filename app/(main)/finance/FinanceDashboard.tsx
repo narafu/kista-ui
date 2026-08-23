@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import {
   buildCategoryIndex,
   listAvailableMonths,
+  monthEndDate,
   previousYearRange,
   useAssetSnapshotsQuery,
   useFinanceBudgetsQuery,
@@ -90,7 +91,10 @@ export function FinanceDashboard() {
   // 조회 윈도우에 묶으면 과거 달을 보는 중엔 오늘 날짜조차 등록할 수 없어진다(리뷰에서 지적된 실사용
   // 시나리오). 수정 다이얼로그(FinanceRecordList)는 반대로 조회 윈도우 그대로 쓴다 — 편집 대상 거래
   // 자체가 그 창 안에서만 존재할 수 있어 여기서 분리할 이유가 없다.
-  const registerWindow = useMemo(() => windowRange(todayKst().slice(0, 7)), [])
+  // 하한(from)은 없다 — 과거 연도 기록도 자유롭게 등록할 수 있어야 한다(12개월 슬라이딩 윈도우는
+  // 조회 전용 제약이었을 뿐 등록까지 막을 이유는 없었다). 상한(to)은 이번 달 말일까지만 허용해
+  // 미래 날짜 등록은 그대로 막는다.
+  const registerWindow = useMemo(() => ({ from: undefined, to: monthEndDate(todayKst().slice(0, 7)) }), [])
   const {
     data: transactions = [],
     isLoading: isTransactionsLoading,

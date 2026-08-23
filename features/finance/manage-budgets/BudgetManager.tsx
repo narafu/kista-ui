@@ -88,7 +88,7 @@ export function BudgetManager({ type }: Props) {
                     <button type="button" onClick={() => handleShare(budget.id)} disabled={shareMutation.isPending} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">공유</button>
                   )}
                   {canShare && budget.groupId && (
-                    <button type="button" onClick={() => handleUnshare(budget.id)} disabled={unshareMutation.isPending} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">개인으로</button>
+                    <button type="button" onClick={() => handleUnshare(budget.id)} disabled={unshareMutation.isPending} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">귀속</button>
                   )}
                   <button type="button" onClick={() => deleteDialog.request(budget)} className="text-xs font-semibold text-destructive hover:text-destructive/80">삭제</button>
                 </div>

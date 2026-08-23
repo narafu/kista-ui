@@ -41,8 +41,8 @@ interface Props {
   period: Period
   isLoading: boolean
   isError: boolean
-  // 복제 시 새로 등록될 거래의 날짜 제약("오늘 기준" 독립 12개월 창) — FinanceDashboard의
-  // registerWindow와 동일한 값. 수정용 window(조회 윈도우)와는 의도적으로 분리한다.
+  // 복제 시 새로 등록될 거래의 날짜 제약(하한 없음, 상한은 이번 달 말일 — "오늘 기준" 독립 창) —
+  // FinanceDashboard의 registerWindow와 동일한 값. 수정용 window(조회 윈도우)와는 의도적으로 분리한다.
   registerWindowFrom?: string
   registerWindowTo?: string
 }
@@ -229,7 +229,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                               {canShare && t.groupId && (
                                 <>
                                   <span className="text-muted-foreground/40">·</span>
-                                  <button type="button" onClick={() => handleUnshare(t.id)} disabled={unshareMutation.isPending} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">개인으로</button>
+                                  <button type="button" onClick={() => handleUnshare(t.id)} disabled={unshareMutation.isPending} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">귀속</button>
                                 </>
                               )}
                               <span className="text-muted-foreground/40">·</span>
@@ -276,7 +276,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                           {canShare && t.groupId && (
                             <>
                               <span className="text-muted-foreground/40">·</span>
-                              <button type="button" onClick={() => handleUnshare(t.id)} disabled={unshareMutation.isPending} className="px-1 py-2 text-xs font-semibold text-foreground">개인으로</button>
+                              <button type="button" onClick={() => handleUnshare(t.id)} disabled={unshareMutation.isPending} className="px-1 py-2 text-xs font-semibold text-foreground">귀속</button>
                             </>
                           )}
                           <span className="text-muted-foreground/40">·</span>
