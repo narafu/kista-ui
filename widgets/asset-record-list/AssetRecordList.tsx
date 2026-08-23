@@ -7,7 +7,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown, Copy, Pencil, Share2, Trash2, Undo2 } 
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
-import { IconButton } from '@shared/ui/IconButton'
+import { ICON_LINK_GHOST_CLASS, IconButton } from '@shared/ui/IconButton'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
@@ -53,10 +53,6 @@ function accountLabel(snapshot: AssetSnapshot): string {
   return snapshot.accountName ? `${snapshot.categoryName} · ${snapshot.accountName}` : snapshot.categoryName
 }
 
-// IconButton의 ghost variant와 동일한 44px 히트영역 클래스 — 복제·수정은 페이지 이동(Link)이라
-// widgets.md 규칙상 IconButton(버튼 전용)을 쓸 수 없어 동일 클래스를 직접 replicate한다.
-const ICON_LINK_CLASS = 'inline-flex items-center justify-center size-11 rounded-lg transition-colors text-muted-foreground hover:text-foreground hover:bg-accent'
-
 // 데스크탑 테이블 행·모바일 카드 행이 동일한 작업 버튼 세트를 공유한다.
 function AssetRecordActions({
   snapshotId, onShare, onUnshare, onDelete, canShare, hasGroupId, sharePending, unsharePending,
@@ -82,10 +78,10 @@ function AssetRecordActions({
           <Undo2 className="size-4" />
         </IconButton>
       )}
-      <Link href={`/finance/new?duplicateFrom=${snapshotId}`} aria-label="복제" title="복제" className={ICON_LINK_CLASS}>
+      <Link href={`/finance/new?duplicateFrom=${snapshotId}`} aria-label="복제" title="복제" className={ICON_LINK_GHOST_CLASS}>
         <Copy className="size-4" />
       </Link>
-      <Link href={`/finance/${snapshotId}/edit`} aria-label="수정" title="수정" className={ICON_LINK_CLASS}>
+      <Link href={`/finance/${snapshotId}/edit`} aria-label="수정" title="수정" className={ICON_LINK_GHOST_CLASS}>
         <Pencil className="size-4" />
       </Link>
       <IconButton aria-label="삭제" onClick={onDelete} className="text-destructive hover:text-destructive">

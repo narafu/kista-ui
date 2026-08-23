@@ -11,8 +11,7 @@ vi.mock('@entities/finance', () => ({
   useFinanceBudgetsQuery: () => ({ data: [] }),
   buildCategoryIndex: () => new Map(),
   monthEndDate: (month: string) => `${month}-28`,
-  windowRange: (month: string) => ({ from: `${month}-01`, to: `${month}-28` }),
-  periodRange: (period: { month: string }) => ({ from: `${period.month}-01`, to: `${period.month}-28` }),
+  displayWindow: (period: { month: string }) => ({ from: `${period.month}-01`, to: `${period.month}-28` }),
   previousYearRange: (period: { month: string }) => ({ from: `${period.month}-01`, to: `${period.month}-28` }),
   yearsRange: (month: string) => ({ from: `${month}-01`, to: `${month}-28` }),
 }))

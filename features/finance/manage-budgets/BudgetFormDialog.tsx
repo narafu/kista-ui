@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Switch } from '@/components/ui/switch'
 import { Spinner } from '@shared/ui/Spinner'
+import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { digitsOnly, formatAmountDisplay } from '@shared/lib/format'
 import {
   getCascadeLevels,
@@ -172,15 +172,7 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, du
             </div>
 
             {mode === 'create' && canShareToGroup && (
-              <div className="flex items-center justify-between">
-                <Label htmlFor="budgetShareToGroup">그룹으로 저장</Label>
-                <Switch
-                  id="budgetShareToGroup"
-                  checked={shareToGroup}
-                  onCheckedChange={setShareToGroup}
-                  disabled={isPending}
-                />
-              </div>
+              <ShareToGroupSwitch id="budgetShareToGroup" checked={shareToGroup} onCheckedChange={setShareToGroup} disabled={isPending} />
             )}
           </div>
 

@@ -157,7 +157,7 @@ export type {
 export { collectSubtreeIds, getCascadeLevels, getCategoryPath, sortCategoryTree } from './lib/categoryTree'
 export { buildCategoryIndex, resolveCategory } from './lib/categoryIndex'
 export type { CategoryIndex, CategoryIndexEntry } from './lib/categoryIndex'
-export { daysInMonth, elapsedDaysInMonth, elapsedMonthsInYear, monthEndDate, monthStartDate, periodRange, previousYearRange, shiftMonth, windowRange, yearsRange } from './lib/period'
+export { daysInMonth, displayWindow, elapsedDaysInMonth, elapsedMonthsInYear, isCurrentYear, monthEndDate, monthStartDate, periodRange, previousYearRange, shiftMonth, windowRange, yearsRange } from './lib/period'
 export type { Period, PeriodMode } from './lib/period'
 export {
   calcBudgetProgress,

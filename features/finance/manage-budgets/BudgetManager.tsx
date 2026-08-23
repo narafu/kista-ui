@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { Copy, Pencil, Plus, Share2, Trash2, Undo2 } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
-import { IconButton } from '@shared/ui/IconButton'
+import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
+import { ALL_FILTER_VALUE, CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { fmtKrw, todayKst } from '@shared/lib/format'
@@ -35,46 +36,7 @@ type FormTarget =
   | { mode: 'edit'; budget: FinanceBudget }
   | { mode: 'duplicate'; budget: FinanceBudget }
 
-const ALL_FILTER_VALUE = 'ALL'
 type StatusFilter = 'ALL' | 'ACTIVE' | 'ENDED'
-
-function BudgetRowActions({
-  onEdit, onDuplicate, onShare, onUnshare, onDelete, canShare, hasGroupId, sharePending, unsharePending,
-}: {
-  onEdit: () => void
-  onDuplicate: () => void
-  onShare: () => void
-  onUnshare: () => void
-  onDelete: () => void
-  canShare: boolean
-  hasGroupId: boolean
-  sharePending: boolean
-  unsharePending: boolean
-}) {
-  return (
-    <div className="flex shrink-0 items-center gap-1">
-      {canShare && !hasGroupId && (
-        <IconButton aria-label="공유" onClick={onShare} disabled={sharePending}>
-          <Share2 className="size-4" />
-        </IconButton>
-      )}
-      {canShare && hasGroupId && (
-        <IconButton aria-label="귀속" onClick={onUnshare} disabled={unsharePending}>
-          <Undo2 className="size-4" />
-        </IconButton>
-      )}
-      <IconButton aria-label="복제" onClick={onDuplicate}>
-        <Copy className="size-4" />
-      </IconButton>
-      <IconButton aria-label="수정" onClick={onEdit}>
-        <Pencil className="size-4" />
-      </IconButton>
-      <IconButton aria-label="삭제" onClick={onDelete} className="text-destructive hover:text-destructive">
-        <Trash2 className="size-4" />
-      </IconButton>
-    </div>
-  )
-}
 
 // 예산 유형은 더 이상 이 컴포넌트가 스스로 고르지 않는다 — 호출부(BudgetManagerDialog)가
 // 수입/소비/저축 탭 컨텍스트에서 이미 고정된 type을 넘긴다(설정 화면의 독립 세그먼트 UI는 폐기).
@@ -153,42 +115,7 @@ export function BudgetManager({ type }: Props) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          <Select
-            items={[{ value: ALL_FILTER_VALUE, label: '전체' }, ...cascadeLevels[0].map((c) => ({ value: c.id, label: c.name }))]}
-            value={categoryPath[0] ?? ALL_FILTER_VALUE}
-            onValueChange={(value) => {
-              if (!value) return
-              setCategoryPath(value === ALL_FILTER_VALUE ? [] : [value])
-            }}
-          >
-            <SelectTrigger aria-label="카테고리" className="w-full lg:w-32"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL_FILTER_VALUE}>전체</SelectItem>
-              {cascadeLevels[0].map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          {cascadeLevels.slice(1).map((level, i) => {
-            const levelIndex = i + 1
-            return (
-              <Select
-                key={levelIndex}
-                items={[{ value: ALL_FILTER_VALUE, label: '전체' }, ...level.map((c) => ({ value: c.id, label: c.name }))]}
-                value={categoryPath[levelIndex] ?? ALL_FILTER_VALUE}
-                onValueChange={(value) => {
-                  if (!value) return
-                  setCategoryPath(value === ALL_FILTER_VALUE ? categoryPath.slice(0, levelIndex) : [...categoryPath.slice(0, levelIndex), value])
-                }}
-              >
-                <SelectTrigger aria-label={`하위 카테고리 ${levelIndex}`} className="w-full lg:w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL_FILTER_VALUE}>전체</SelectItem>
-                  {level.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            )
-          })}
+          <CascadingCategorySelect levels={cascadeLevels} path={categoryPath} onPathChange={setCategoryPath} className="w-full lg:w-32" />
           <Select
             items={[
               { value: 'ALL', label: '전체 상태' },
@@ -233,7 +160,7 @@ export function BudgetManager({ type }: Props) {
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
                     <span className="text-sm font-medium tabular-nums">{fmtKrw(budget.amount)}</span>
-                    <BudgetRowActions
+                    <ShareableRowActions
                       onEdit={() => setFormTarget({ mode: 'edit', budget })}
                       onDuplicate={() => setFormTarget({ mode: 'duplicate', budget })}
                       onShare={() => handleShare(budget.id)}

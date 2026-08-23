@@ -34,7 +34,8 @@ export function monthStartDate(month: string): string {
 // "선택월까지"를 계산하면 과거 연도를 골라도 반쪽 합계만 나오는 버그가 된다.
 // 연간 모드 range 계산 4곳(periodRange·elapsedMonthsInYear·previousYearRange·yearsRange)이
 // 공통으로 쓰는 "선택 연도가 올해인가" 판정 — 판정 기준이 바뀌면 한 곳만 고치면 되도록 모은다.
-function isCurrentYear(year: string, today: string): boolean {
+// entities/finance 밖(예: 신규 finance 위젯)에서도 같은 판정이 필요할 수 있어 export한다.
+export function isCurrentYear(year: string, today: string): boolean {
   return year === today.slice(0, 4)
 }
 
@@ -48,6 +49,16 @@ export function periodRange({ month, mode }: Period, today: string): { from: str
 // 선택 월을 포함해 과거 11개월 전까지 — 연간 모드에서 YTD 범위(최대 12개월)가 항상 이 윈도우 안에 들어온다.
 export function windowRange(month: string): { from: string; to: string } {
   return { from: monthStartDate(shiftMonth(month, -11)), to: monthEndDate(month) }
+}
+
+// 화면이 "지금 조회 중인 기간"으로 실제 쿼리해야 하는 범위 — 월간은 12개월 슬라이딩 윈도우
+// (6개월 추이·전월대비까지 커버), 연간은 periodRange와 동일한 정확한 범위(올해는 1월~오늘,
+// 과거 연도는 1월~12월)로 직접 조회한다. windowRange(month)는 period.month의 mm(연간 모드엔
+// 없는 개념, 월간 탭에서 보던 달이 남은 값)에 걸려 있어 연간 모드에 그대로 쓰면 과거 연도를
+// 골랐을 때 그 mm월까지만 조회되는 버그가 된다. FinanceDashboard·FinanceRecordList 두 곳이
+// 동일한 분기를 썼던 것을 여기로 모았다.
+export function displayWindow(period: Period, today: string): { from: string; to: string } {
+  return period.mode === 'yearly' ? periodRange(period, today) : windowRange(period.month)
 }
 
 export function daysInMonth(month: string): number {

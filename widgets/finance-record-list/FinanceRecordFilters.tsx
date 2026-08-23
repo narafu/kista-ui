@@ -2,10 +2,11 @@
 
 import { useMemo } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ALL_FILTER_VALUE, CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import type { FinanceCategory } from '@entities/finance'
 import { getCascadeLevels } from '@entities/finance'
 
-export const ALL_FILTER_VALUE = 'ALL'
+export { ALL_FILTER_VALUE }
 
 interface Props {
   categoryTree: FinanceCategory[]
@@ -38,42 +39,7 @@ export function FinanceRecordFilters({ categoryTree, categoryPath, onCategoryPat
           </SelectContent>
         </Select>
       )}
-      <Select
-        items={[{ value: ALL_FILTER_VALUE, label: '전체' }, ...cascadeLevels[0].map((c) => ({ value: c.id, label: c.name }))]}
-        value={categoryPath[0] ?? ALL_FILTER_VALUE}
-        onValueChange={(value) => {
-          if (!value) return
-          onCategoryPathChange(value === ALL_FILTER_VALUE ? [] : [value])
-        }}
-      >
-        <SelectTrigger aria-label="카테고리" className="w-full lg:w-32"><SelectValue /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL_FILTER_VALUE}>전체</SelectItem>
-          {cascadeLevels[0].map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-        </SelectContent>
-      </Select>
-      {cascadeLevels.slice(1).map((level, i) => {
-        const levelIndex = i + 1
-        return (
-          <Select
-            key={levelIndex}
-            items={[{ value: ALL_FILTER_VALUE, label: '전체' }, ...level.map((c) => ({ value: c.id, label: c.name }))]}
-            value={categoryPath[levelIndex] ?? ALL_FILTER_VALUE}
-            onValueChange={(value) => {
-              if (!value) return
-              onCategoryPathChange(value === ALL_FILTER_VALUE ? categoryPath.slice(0, levelIndex) : [...categoryPath.slice(0, levelIndex), value])
-            }}
-          >
-            <SelectTrigger aria-label={`하위 카테고리 ${levelIndex}`} className="w-full lg:w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL_FILTER_VALUE}>전체</SelectItem>
-              {level.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        )
-      })}
+      <CascadingCategorySelect levels={cascadeLevels} path={categoryPath} onPathChange={onCategoryPathChange} className="w-full lg:w-32" />
     </div>
   )
 }

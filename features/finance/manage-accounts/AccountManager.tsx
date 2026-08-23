@@ -1,10 +1,10 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Plus, Pencil, Share2, Trash2, Undo2 } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { IconButton } from '@shared/ui/IconButton'
+import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
 import { cn } from '@shared/lib/utils'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { useMeta } from '@entities/meta'
@@ -113,28 +113,16 @@ export function AccountManager() {
                 {account.accountNo && <span className="text-xs text-muted-foreground tabular-nums shrink-0">{maskAccountNo(account.accountNo)}</span>}
                 {account.memo && <span className="text-xs text-muted-foreground truncate min-w-0">{account.memo}</span>}
               </div>
-              <div className="flex items-center gap-1 shrink-0">
-                {canShare && !account.groupId && (
-                  <IconButton aria-label="공유" onClick={() => shareMutation.mutate(account.id)} disabled={shareMutation.isPending}>
-                    <Share2 className="size-4" />
-                  </IconButton>
-                )}
-                {canShare && account.groupId && (
-                  <IconButton aria-label="귀속" onClick={() => unshareMutation.mutate(account.id)} disabled={unshareMutation.isPending}>
-                    <Undo2 className="size-4" />
-                  </IconButton>
-                )}
-                <IconButton aria-label="수정" onClick={() => setFormTarget(account)}>
-                  <Pencil className="size-4" />
-                </IconButton>
-                <IconButton
-                  aria-label="삭제"
-                  onClick={() => deleteDialog.request(account)}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="size-4" />
-                </IconButton>
-              </div>
+              <ShareableRowActions
+                canShare={canShare}
+                hasGroupId={!!account.groupId}
+                onShare={() => shareMutation.mutate(account.id)}
+                onUnshare={() => unshareMutation.mutate(account.id)}
+                sharePending={shareMutation.isPending}
+                unsharePending={unshareMutation.isPending}
+                onEdit={() => setFormTarget(account)}
+                onDelete={() => deleteDialog.request(account)}
+              />
             </li>
           ))}
         </ul>

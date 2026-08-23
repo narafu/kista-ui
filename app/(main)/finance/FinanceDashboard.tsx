@@ -3,15 +3,14 @@
 import { useMemo, useState } from 'react'
 import {
   buildCategoryIndex,
+  displayWindow,
   listAvailableMonths,
   monthEndDate,
-  periodRange,
   previousYearRange,
   useAssetSnapshotsQuery,
   useFinanceBudgetsQuery,
   useFinanceCategoriesQuery,
   useFinanceTransactionsQuery,
-  windowRange,
   yearsRange,
 } from '@entities/finance'
 import type { FinanceCategoryType, Period } from '@entities/finance'
@@ -88,14 +87,7 @@ export function FinanceDashboard() {
   // FinanceSummary/FinanceTrend/FinanceBudgetProgress/FinanceRecordList에 props로 내려보낸다.
   const [period, setPeriod] = useState<Period>({ month: todayKst().slice(0, 7), mode: 'monthly' })
   const today = todayKst()
-  // 월간은 12개월 슬라이딩 윈도우(6개월 추이·전월대비까지 커버), 연간은 periodRange와 동일한
-  // 정확한 범위(올해는 1월~오늘, 과거 연도는 1월~12월)로 직접 조회한다 — windowRange(month)는
-  // period.month의 mm(연간 모드엔 없는 개념, 월간 탭에서 보던 달이 남은 값)에 걸려 있어
-  // 과거 연도를 고르면 그 mm월까지만 조회돼 요약·예산대비 합계가 반쪽 나는 버그가 있었다.
-  const flowWindow = useMemo(
-    () => (period.mode === 'yearly' ? periodRange(period, today) : windowRange(period.month)),
-    [period, today],
-  )
+  const flowWindow = useMemo(() => displayWindow(period, today), [period, today])
   // 등록 다이얼로그의 날짜 제약은 "지금 조회 중인 기간"(flowWindow)이 아니라 "오늘 기준" 독립 창이다 —
   // 조회 윈도우에 묶으면 과거 달을 보는 중엔 오늘 날짜조차 등록할 수 없어진다(리뷰에서 지적된 실사용
   // 시나리오). 수정 다이얼로그(FinanceRecordList)는 반대로 조회 윈도우 그대로 쓴다 — 편집 대상 거래

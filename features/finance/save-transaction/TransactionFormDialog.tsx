@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Switch } from '@/components/ui/switch'
 import { Spinner } from '@shared/ui/Spinner'
+import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import {
   getCascadeLevels,
@@ -185,15 +185,7 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
             </div>
 
             {mode === 'create' && canShareToGroup && (
-              <div className="flex items-center justify-between">
-                <Label htmlFor="transactionShareToGroup">그룹으로 저장</Label>
-                <Switch
-                  id="transactionShareToGroup"
-                  checked={shareToGroup}
-                  onCheckedChange={setShareToGroup}
-                  disabled={isPending}
-                />
-              </div>
+              <ShareToGroupSwitch id="transactionShareToGroup" checked={shareToGroup} onCheckedChange={setShareToGroup} disabled={isPending} />
             )}
           </div>
 

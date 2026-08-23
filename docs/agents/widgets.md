@@ -54,7 +54,7 @@ widget 슬라이스끼리 cross-import 금지. **단, 아래 "공용 UI 위젯" 
 - "방금 동작 결과"는 toast, "현재 상태 경고"는 고정 텍스트로 남긴다
 - 독립 API 호출은 try/catch를 분리한다
 - JSX 내 IIFE 금지
-- **아이콘 전용 버튼 44px 히트영역**: `shared/ui/IconButton.tsx` 사용 (`<button>` 전용, `aria-label` 필수 prop). `<Link>`로 아이콘 버튼을 구현해야 하는 경우 IconButton 미사용 — 동일한 `size-11 rounded-lg` 클래스 패턴을 직접 replicate
+- **아이콘 전용 버튼 44px 히트영역**: `shared/ui/IconButton.tsx` 사용 (`<button>` 전용, `aria-label` 필수 prop). `<Link>`로 아이콘 버튼을 구현해야 하는 경우 IconButton 미사용 — 같은 파일이 export하는 `ICON_LINK_GHOST_CLASS`를 그대로 가져다 쓴다(직접 클래스 문자열을 손으로 다시 이어 붙이지 않는다 — 과거 그렇게 했다가 스타일이 드리프트한 사례가 있어 export로 전환됨)
 
 ## 주요 슬라이스 quirk
 

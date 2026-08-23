@@ -13,8 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Switch } from '@/components/ui/switch'
 import { Spinner } from '@shared/ui/Spinner'
+import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { digitsOnly } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import { useCanShareToGroup, useCreateFinanceAccountMutation, useUpdateFinanceAccountMutation } from '@entities/finance'
@@ -144,15 +144,7 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
             </div>
 
             {!account && canShareToGroup && (
-              <div className="flex items-center justify-between">
-                <Label htmlFor="accountShareToGroup">그룹으로 저장</Label>
-                <Switch
-                  id="accountShareToGroup"
-                  checked={shareToGroup}
-                  onCheckedChange={setShareToGroup}
-                  disabled={isPending}
-                />
-              </div>
+              <ShareToGroupSwitch id="accountShareToGroup" checked={shareToGroup} onCheckedChange={setShareToGroup} disabled={isPending} />
             )}
           </div>
 

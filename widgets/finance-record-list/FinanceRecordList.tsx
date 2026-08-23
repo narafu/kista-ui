@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { ArrowDown, ArrowUp, ArrowUpDown, Copy, Pencil, Share2, Trash2, Undo2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
-import { IconButton } from '@shared/ui/IconButton'
+import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
@@ -16,6 +16,7 @@ import { fmtDate, fmtKrw } from '@shared/lib/format'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import {
   collectSubtreeIds,
+  displayWindow,
   filterByType,
   flowCategoryColor,
   periodRange,
@@ -26,7 +27,6 @@ import {
   useDeleteFinanceTransactionMutation,
   useShareFinanceTransactionMutation,
   useUnshareFinanceTransactionMutation,
-  windowRange,
 } from '@entities/finance'
 import type { CategoryIndex, FinanceCategory, FinanceCategoryType, FinanceTransaction, Period } from '@entities/finance'
 import { TransactionFormDialog } from '@features/finance/save-transaction'
@@ -34,46 +34,6 @@ import { ALL_FILTER_VALUE, FinanceRecordFilters } from './FinanceRecordFilters'
 
 type SortKey = 'transactionDate' | 'category' | 'amount'
 type SortDirection = 'asc' | 'desc'
-
-// 데스크탑 테이블 행·모바일 카드 행이 동일한 작업 버튼 세트를 공유한다 — IconButton이 이미
-// 44px 히트영역을 고정해 두 레이아웃에서 별도 padding/font-size 클래스가 필요 없다.
-function RecordRowActions({
-  onEdit, onDuplicate, onShare, onUnshare, onDelete, canShare, hasGroupId, sharePending, unsharePending,
-}: {
-  onEdit: () => void
-  onDuplicate: () => void
-  onShare: () => void
-  onUnshare: () => void
-  onDelete: () => void
-  canShare: boolean
-  hasGroupId: boolean
-  sharePending: boolean
-  unsharePending: boolean
-}) {
-  return (
-    <div className="flex shrink-0 items-center gap-1">
-      {canShare && !hasGroupId && (
-        <IconButton aria-label="공유" onClick={onShare} disabled={sharePending}>
-          <Share2 className="size-4" />
-        </IconButton>
-      )}
-      {canShare && hasGroupId && (
-        <IconButton aria-label="귀속" onClick={onUnshare} disabled={unsharePending}>
-          <Undo2 className="size-4" />
-        </IconButton>
-      )}
-      <IconButton aria-label="복제" onClick={onDuplicate}>
-        <Copy className="size-4" />
-      </IconButton>
-      <IconButton aria-label="수정" onClick={onEdit}>
-        <Pencil className="size-4" />
-      </IconButton>
-      <IconButton aria-label="삭제" onClick={onDelete} className="text-destructive hover:text-destructive">
-        <Trash2 className="size-4" />
-      </IconButton>
-    </div>
-  )
-}
 
 interface Props {
   type: FinanceCategoryType
@@ -121,9 +81,8 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
   const { from, to } = periodRange(period, today)
   // 수정 다이얼로그의 날짜 min/max는 표시 중인 period(월간이면 그 달만)가 아니라 실제로 조회된
   // 범위 전체다 — periodRange보다 넓게 허용해야 "다른 날짜로 옮기고 싶다"는 정상적인 수정 요청까지
-  // 막지 않는다. FinanceDashboard의 flowWindow 계산과 동일하게 월간은 windowRange(12개월 슬라이딩),
-  // 연간은 periodRange 그대로 사용한다(연간에 windowRange를 쓰면 실제 조회 범위보다 좁아질 수 있다).
-  const window = period.mode === 'yearly' ? periodRange(period, today) : windowRange(period.month)
+  // 막지 않는다. FinanceDashboard의 flowWindow와 동일한 계산(displayWindow)을 그대로 재사용한다.
+  const window = displayWindow(period, today)
   const typed = useMemo(() => filterByType(transactions, index, type), [transactions, index, type])
   const inPeriod = useMemo(
     () => typed.filter((t) => t.transactionDate >= from && t.transactionDate <= to),
@@ -290,7 +249,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                           <TableDataCell className={cn(!t.memo && 'text-muted-foreground')}>{t.memo ?? '—'}</TableDataCell>
                           <TableDataCell>
                             <div className="flex items-center justify-center">
-                              <RecordRowActions
+                              <ShareableRowActions
                                 onEdit={() => editDialog.request(t)}
                                 onDuplicate={() => duplicateDialog.request(t)}
                                 onShare={() => handleShare(t.id)}
@@ -330,7 +289,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                       </div>
                       <div className="mt-1 flex items-center justify-between gap-2">
                         <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{t.memo ?? '—'}</p>
-                        <RecordRowActions
+                        <ShareableRowActions
                           onEdit={() => editDialog.request(t)}
                           onDuplicate={() => duplicateDialog.request(t)}
                           onShare={() => handleShare(t.id)}

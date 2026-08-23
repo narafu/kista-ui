@@ -7,8 +7,8 @@ import { buttonVariants } from '@/components/ui/button-variants'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
 import { Spinner } from '@shared/ui/Spinner'
+import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { cn } from '@shared/lib/utils'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
@@ -303,15 +303,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
           </div>
 
           {mode !== 'edit' && canShareToGroup && (
-            <div className="flex items-center justify-between">
-              <Label htmlFor="assetShareToGroup">그룹으로 저장</Label>
-              <Switch
-                id="assetShareToGroup"
-                checked={shareToGroup}
-                onCheckedChange={setShareToGroup}
-                disabled={isPending}
-              />
-            </div>
+            <ShareToGroupSwitch id="assetShareToGroup" checked={shareToGroup} onCheckedChange={setShareToGroup} disabled={isPending} />
           )}
 
           <div className="hidden sm:flex gap-3 pt-2">
