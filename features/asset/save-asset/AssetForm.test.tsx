@@ -39,7 +39,7 @@ const categories: FinanceCategory[] = [
   },
 ]
 
-const accounts: FinanceAccount[] = [{ id: 'acc-1', accountType: 'SECURITIES', name: '미래에셋증권' }]
+const accounts: FinanceAccount[] = [{ id: 'acc-1', accountType: 'SECURITIES', name: '미래에셋증권', memo: '주거래' }]
 
 vi.mock('@entities/finance', async () => {
   const actual = await vi.importActual<typeof import('@entities/finance')>('@entities/finance')
@@ -84,6 +84,7 @@ const existing: AssetSnapshot = {
   assetClass: 'EQUITY',
   market: 'GLOBAL',
   strategy: 'VR',
+  memo: '해외ETF 적립',
   amount: 1_000_000,
 }
 
@@ -131,11 +132,43 @@ describe('AssetForm', () => {
         assetClass: 'EQUITY',
         market: 'GLOBAL',
         strategy: 'VR',
+        memo: '해외ETF 적립',
         amount: 1_000_000,
       }),
       expect.objectContaining({ onSuccess: expect.any(Function) }),
     )
     expect(createMutateMock).not.toHaveBeenCalled()
+  })
+
+  it('메모 입력 필드는 카테고리 선택 여부와 무관하게 항상 노출된다', () => {
+    render(<AssetForm mode="create" onSuccess={onSuccess} onCancel={onCancel} />)
+    expect(screen.getByLabelText('메모 (선택)')).toBeInTheDocument()
+  })
+
+  it('edit 모드에서는 메모 초기값을 채우고, 값을 바꾸면 수정 mutation payload에 반영한다', async () => {
+    const user = userEvent.setup()
+    render(<AssetForm mode="edit" initial={existing} onSuccess={onSuccess} onCancel={onCancel} />)
+
+    const memoInput = screen.getByLabelText('메모 (선택)')
+    expect(memoInput).toHaveValue('해외ETF 적립')
+
+    await user.clear(memoInput)
+    await user.type(memoInput, '변경된 메모')
+    await user.click(screen.getAllByRole('button', { name: '수정' })[0])
+
+    expect(updateMutateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ memo: '변경된 메모' }),
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    )
+  })
+
+  it('계좌에 메모가 있으면 계좌 Select 옵션 라벨에 이어붙여 표시한다', async () => {
+    const user = userEvent.setup()
+    render(<AssetForm mode="create" onSuccess={onSuccess} onCancel={onCancel} />)
+
+    await user.click(screen.getByRole('combobox', { name: '계좌 (선택)' }))
+
+    expect(await screen.findByRole('option', { name: '미래에셋증권 · 주거래' })).toBeInTheDocument()
   })
 
   it('기준일을 비우면 제출 버튼이 비활성화된다', async () => {

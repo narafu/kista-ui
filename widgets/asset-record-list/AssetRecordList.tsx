@@ -282,7 +282,7 @@ export function AssetRecordList() {
       ) : (
         <>
           <div className="hidden overflow-x-auto lg:block rounded-[var(--r-lg)] border border-border">
-            <table className="w-full min-w-[1080px] text-sm" aria-label="자산 기록">
+            <table className="w-full min-w-[1200px] text-sm" aria-label="자산 기록">
               <thead className="bg-muted/50">
                 <tr>
                   <TableHeadCell className="w-10">
@@ -308,6 +308,7 @@ export function AssetRecordList() {
                   <TableHeadCell>자산군</TableHeadCell>
                   <TableHeadCell>시장</TableHeadCell>
                   <TableHeadCell>운용전략</TableHeadCell>
+                  <TableHeadCell>메모</TableHeadCell>
                   <TableHeadCell>계좌</TableHeadCell>
                   <TableHeadCell aria-sort={sortKey === 'amount' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}>
                     <button type="button" onClick={() => handleSort('amount')}>
@@ -336,6 +337,7 @@ export function AssetRecordList() {
                     <TableDataCell>{labelOf('assetClasses', snapshot.assetClass)}</TableDataCell>
                     <TableDataCell>{labelOf('markets', snapshot.market)}</TableDataCell>
                     <TableDataCell className={cn(!snapshot.strategy && 'text-muted-foreground')}>{snapshot.strategy ?? '—'}</TableDataCell>
+                    <TableDataCell title={snapshot.memo} className={cn('max-w-48 truncate', !snapshot.memo && 'text-muted-foreground')}>{snapshot.memo ?? '—'}</TableDataCell>
                     <TableDataCell className={cn(!snapshot.accountName && 'text-muted-foreground')}>{snapshot.accountName ?? '—'}</TableDataCell>
                     <TableDataCell className={cn('tabular-nums whitespace-nowrap', isLiability(snapshot) && 'text-destructive')}>
                       {fmtKrw(snapshot.amount)}
@@ -382,6 +384,9 @@ export function AssetRecordList() {
                         {fmtKrw(snapshot.amount)}
                       </span>
                     </div>
+                    {snapshot.memo && (
+                      <p className="mt-1 min-w-0 truncate text-xs text-muted-foreground">{snapshot.memo}</p>
+                    )}
                     <div className="mt-1 flex items-center justify-between gap-2">
                       <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
                         {[labelOf('markets', snapshot.market), snapshot.strategy, snapshot.accountName].filter(Boolean).join(' · ')}

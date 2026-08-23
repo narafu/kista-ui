@@ -100,9 +100,11 @@ describe('AssetRecordList', () => {
     expect(screen.getAllByRole('link', { name: '복제' })[0]).toHaveAttribute('href', '/finance/new?duplicateFrom=a1')
   })
 
-  it('컬럼 순서(기준일·카테고리·자산군·시장·운용전략·계좌·금액)대로 값을 표시한다', () => {
+  it('컬럼 순서(기준일·카테고리·자산군·시장·운용전략·메모·계좌·금액)대로 값을 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({
-      data: [snapshot({ categoryName: '일반계좌', assetClass: 'EQUITY', market: 'GLOBAL', strategy: 'VR', accountName: '미래에셋증권' })],
+      data: [snapshot({
+        categoryName: '일반계좌', assetClass: 'EQUITY', market: 'GLOBAL', strategy: 'VR', memo: '해외ETF 적립', accountName: '미래에셋증권',
+      })],
       isLoading: false,
       isError: false,
     })
@@ -112,17 +114,18 @@ describe('AssetRecordList', () => {
     const dataRow = within(desktopTable).getAllByRole('row')[1]
     const cellTexts = within(dataRow).getAllByRole('cell').map((cell) => cell.textContent)
 
-    // [체크박스, 기준일, 카테고리, 자산군, 시장, 운용전략, 계좌, 금액, 작업]
+    // [체크박스, 기준일, 카테고리, 자산군, 시장, 운용전략, 메모, 계좌, 금액, 작업]
     expect(cellTexts[2]).toBe('일반계좌')
     expect(cellTexts[3]).toBe('미국주식')
     expect(cellTexts[4]).toBe('해외')
     expect(cellTexts[5]).toBe('VR')
-    expect(cellTexts[6]).toBe('미래에셋증권')
+    expect(cellTexts[6]).toBe('해외ETF 적립')
+    expect(cellTexts[7]).toBe('미래에셋증권')
   })
 
-  it('운용전략·계좌가 없으면 해당 컬럼에 — 로 표시한다', () => {
+  it('운용전략·메모·계좌가 없으면 해당 컬럼에 — 로 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({
-      data: [snapshot({ strategy: undefined, accountName: undefined })],
+      data: [snapshot({ strategy: undefined, memo: undefined, accountName: undefined })],
       isLoading: false,
       isError: false,
     })
@@ -134,6 +137,24 @@ describe('AssetRecordList', () => {
 
     expect(cellTexts[5]).toBe('—')
     expect(cellTexts[6]).toBe('—')
+    expect(cellTexts[7]).toBe('—')
+  })
+
+  it('모바일 카드는 메모가 있을 때만 별도 줄로 표시한다', () => {
+    useAssetSnapshotsQueryMock.mockReturnValue({
+      data: [
+        snapshot({ id: 'a-with-memo', memo: '해외ETF 적립' }),
+        snapshot({ id: 'a-no-memo', categoryName: '정기예금', memo: undefined }),
+      ],
+      isLoading: false,
+      isError: false,
+    })
+    render(<AssetRecordList />)
+
+    const mobileList = screen.getByRole('list', { name: '자산 기록 모바일' })
+    const items = within(mobileList).getAllByRole('listitem')
+    expect(within(items[0]).getByText('해외ETF 적립')).toBeInTheDocument()
+    expect(within(items[1]).queryByText('해외ETF 적립')).not.toBeInTheDocument()
   })
 
   it('작업 버튼(아이콘)은 복제·수정·삭제 순서로 배치된다', () => {

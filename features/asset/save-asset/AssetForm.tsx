@@ -22,7 +22,7 @@ import {
   useFinanceCategoriesQuery,
   useUpdateAssetSnapshotMutation,
 } from '@entities/finance'
-import type { AssetClass, AssetSnapshot, AssetSnapshotRequest, Market } from '@entities/finance'
+import type { AssetClass, AssetSnapshot, AssetSnapshotRequest, FinanceAccount, Market } from '@entities/finance'
 import { DEFAULT_STRATEGY_SUGGESTIONS, useMeQuery } from '@entities/user'
 
 export type AssetFormMode = 'create' | 'edit' | 'duplicate'
@@ -41,6 +41,11 @@ const MODE_LABEL: Record<AssetFormMode, string> = {
   create: '등록',
   edit: '수정',
   duplicate: '복제 등록',
+}
+
+// 계좌 자체의 메모(FinanceAccount.memo)가 있으면 Select 라벨에 이어붙여 어느 계좌인지 구분하기 쉽게 한다.
+function accountOptionLabel(account: FinanceAccount): string {
+  return account.memo ? `${account.name} · ${account.memo}` : account.name
 }
 
 interface ComboFieldProps {
@@ -129,6 +134,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
   const [assetClass, setAssetClass] = useState<AssetClass>(initial?.assetClass ?? 'CASH')
   const [market, setMarket] = useState<Market>(initial?.market ?? 'DOMESTIC')
   const [strategy, setStrategy] = useState(initial?.strategy ?? '')
+  const [memo, setMemo] = useState(initial?.memo ?? '')
   const [amountDigits, setAmountDigits] = useState(initial ? String(initial.amount) : '')
 
   // 그룹 소속일 때만 노출, 기본값 켜짐(그룹 저장 우선) — edit 모드는 groupId가 이미 고정돼 있어 대상 아님.
@@ -154,6 +160,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
       // 화면에는 L1이 '투자'일 때만 노출되지만, 필드 자체는 카테고리 무관 자유 필드다(구 제약의
       // 후계 없음) — 비노출 상태에서도 기존 값(레거시 기록 등)을 건드리지 않고 그대로 제출한다.
       strategy: strategy.trim() || undefined,
+      memo: memo.trim() || undefined,
       amount: Number(amountDigits),
     }
 
@@ -228,7 +235,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
           <div className="space-y-2">
             <Label htmlFor="account">계좌 (선택)</Label>
             <Select
-              items={[{ value: NO_ACCOUNT_VALUE, label: '계좌 미지정' }, ...accounts.map((a) => ({ value: a.id, label: a.name }))]}
+              items={[{ value: NO_ACCOUNT_VALUE, label: '계좌 미지정' }, ...accounts.map((a) => ({ value: a.id, label: accountOptionLabel(a) }))]}
               value={accountId}
               onValueChange={(value) => { if (value) setAccountId(value) }}
             >
@@ -237,7 +244,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={NO_ACCOUNT_VALUE}>계좌 미지정</SelectItem>
-                {accounts.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
+                {accounts.map((a) => <SelectItem key={a.id} value={a.id}>{accountOptionLabel(a)}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -272,6 +279,19 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
                 {meta.markets.map((m) => <SelectItem key={m.code} value={m.code}>{m.label}</SelectItem>)}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="memo">메모 (선택)</Label>
+            <Input
+              id="memo"
+              placeholder="자유롭게 메모를 남겨보세요"
+              value={memo}
+              onChange={(e) => setMemo(e.target.value)}
+              disabled={isPending}
+              maxLength={255}
+              className="h-12"
+            />
           </div>
 
           {showStrategy && (

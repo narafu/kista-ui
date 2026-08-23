@@ -14,6 +14,7 @@ export interface AssetSnapshot {
   assetClass: AssetClass
   market: Market
   strategy?: string
+  memo?: string
   amount: number
 }
 
@@ -24,6 +25,7 @@ export interface AssetSnapshotRequest {
   assetClass: AssetClass
   market: Market
   strategy?: string
+  memo?: string
   amount: number
 }
 
