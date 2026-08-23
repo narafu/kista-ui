@@ -1145,6 +1145,46 @@ export interface paths {
         patch: operations["share_3"];
         trace?: never;
     };
+    "/api/finance/accounts/{id}/unshare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * 계좌 그룹 공유 해제
+         * @description 그룹 공유 계좌를 개인 소유로 되돌립니다. 같은 그룹 멤버면 누구든 가능합니다.
+         */
+        patch: operations["unshare_4"];
+        trace?: never;
+    };
+    "/api/finance/accounts/{id}/share": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * 계좌 그룹 공유 전환
+         * @description 개인 소유 계좌를 소유자의 현재 그룹으로 공유 전환합니다.
+         */
+        patch: operations["share_4"];
+        trace?: never;
+    };
     "/api/admin/users/{userId}/status": {
         parameters: {
             query?: never;
@@ -2834,6 +2874,8 @@ export interface components {
              * @example VR
              */
             strategy?: string;
+            /** @description 메모 (선택) */
+            memo?: string;
             /**
              * Format: int64
              * @description 금액 (원화 정수, 0 이상)
@@ -2892,6 +2934,8 @@ export interface components {
              * @example VR
              */
             strategy?: string;
+            /** @description 메모 */
+            memo?: string;
             /**
              * Format: int64
              * @description 금액 (원화 정수)
@@ -2911,7 +2955,7 @@ export interface components {
              * @example 토스증권 일반계좌
              */
             name: string;
-            /** @description 계좌번호 (선택) */
+            /** @description 계좌번호 (선택, 숫자만) */
             accountNo?: string;
             /** @description 메모 (선택) */
             memo?: string;
@@ -2922,6 +2966,11 @@ export interface components {
              * @description 계좌 고유 ID
              */
             id?: string;
+            /**
+             * Format: uuid
+             * @description 그룹 ID (개인 소유면 null)
+             */
+            groupId?: string;
             /**
              * @description 계좌 타입
              * @example SECURITIES
@@ -7120,6 +7169,88 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["AssetSnapshotResponse"];
+                };
+            };
+        };
+    };
+    unshare_4: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 계좌 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 해제 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinanceAccountResponse"];
+                };
+            };
+            /** @description 접근 권한 없음 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinanceAccountResponse"];
+                };
+            };
+            /** @description 계좌를 찾을 수 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinanceAccountResponse"];
+                };
+            };
+        };
+    };
+    share_4: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 계좌 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 전환 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinanceAccountResponse"];
+                };
+            };
+            /** @description 접근 권한 없음 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinanceAccountResponse"];
+                };
+            };
+            /** @description 계좌를 찾을 수 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinanceAccountResponse"];
                 };
             };
         };
