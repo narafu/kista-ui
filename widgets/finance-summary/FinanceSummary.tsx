@@ -74,14 +74,15 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
   const previousYearDelta = previousYearTotal !== null ? summary.total - previousYearTotal : null
 
   // 연도 select 옵션 — 최근 15개년을 기본으로 잡되, 월간 모드(네이티브 month input, 연도 제한 없음)에서
-  // 그보다 더 과거 연도를 고른 뒤 연간 모드로 전환해도 현재 선택값이 항상 목록에 포함되도록 보정한다
-  // (안 하면 SelectValue가 목록에 없는 값이라 빈칸으로 보인다).
+  // 그 범위 밖 연도(과거든 미래든)를 고른 뒤 연간 모드로 전환해도 현재 선택값이 항상 목록에
+  // 포함되도록 보정한다(안 하면 SelectValue가 목록에 없는 값이라 빈칸으로 보인다).
   // 네이티브 number input은 모바일에서 숫자 키패드로 지우고 새로 입력할 때 controlled value가
   // 매 keystroke마다 이전 값으로 되돌아가 연도를 바꿀 수 없는 문제가 있어 select로 교체했다.
   const currentYear = Number(todayKst().slice(0, 4))
   const selectedYear = Number(period.month.slice(0, 4))
+  const latestYear = Math.max(selectedYear, currentYear)
   const earliestYear = Math.min(selectedYear, currentYear - 14)
-  const yearOptions = Array.from({ length: currentYear - earliestYear + 1 }, (_, i) => currentYear - i)
+  const yearOptions = Array.from({ length: latestYear - earliestYear + 1 }, (_, i) => latestYear - i)
 
   return (
     <Card>

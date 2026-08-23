@@ -1,4 +1,4 @@
-import { collectSubtreeIds, sortCategoryTree } from './categoryTree'
+import { collectSubtreeIds } from './categoryTree'
 import type { CategoryIndex } from './categoryIndex'
 import { monthEndDate, monthStartDate, periodRange, shiftMonth } from './period'
 import type { Period } from './period'
@@ -118,7 +118,10 @@ export interface BudgetProgress {
 }
 
 // budgets: 소비 또는 저축 한 타입의 예산만 전달한다. categoryTree: 같은 타입의 카테고리 트리
-// (collectSubtreeIds가 예산 카테고리의 하위 트리 전체를 실적 집계에 포함하기 위해 필요).
+// (collectSubtreeIds가 예산 카테고리의 하위 트리 전체를 실적 집계에 포함하기 위해 필요) —
+// 정렬 결과가 표시 순번이 되므로 반드시 sortCategoryTree로 미리 정렬해서 넘긴다(호출부에서 이미
+// orderedRootIds 계산에 sortCategoryTree를 쓰는 경우가 많아, 여기서 또 정렬하면 렌더마다 트리를
+// 두 번 재귀 정렬하는 중복이 생긴다).
 // transactionsOfType: filterByType()로 같은 타입만 걸러진, 12개월 윈도우 전체 목록.
 export function calcBudgetProgress(
   budgets: FinanceBudget[],
@@ -158,7 +161,7 @@ export function calcBudgetProgress(
   }
   // 카테고리 고정 순번(카테고리 관리 화면과 동일한 sortCategoryTree 순서)으로 정렬한다 —
   // usageRatio desc로 정렬하면 월간/연간 실제 사용률이 달라 표시 순서가 모드마다 뒤바뀌는
-  // 문제가 있었다(급여/상여 순서 흔들림).
-  const displayOrder = flattenTreeIds(sortCategoryTree(categoryTree))
+  // 문제가 있었다(급여/상여 순서 흔들림). categoryTree는 이미 정렬된 상태로 받는다(위 주석 참고).
+  const displayOrder = flattenTreeIds(categoryTree)
   return results.sort((a, b) => displayOrder.indexOf(a.categoryId) - displayOrder.indexOf(b.categoryId))
 }
