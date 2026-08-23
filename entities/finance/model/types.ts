@@ -40,6 +40,8 @@ export interface FinanceCategory {
 
 export interface FinanceAccount {
   id: string
+  // null이면 개인 소유(본인만 조회) — 값이 있으면 그룹 공유. 공유 버튼 노출 판정에 쓴다.
+  groupId?: string
   accountType: FinanceAccountType
   name: string
   accountNo?: string

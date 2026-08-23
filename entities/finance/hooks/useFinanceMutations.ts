@@ -23,10 +23,12 @@ import {
   respondToInvitation,
   setMonthlyClosing,
   shareAssetSnapshot,
+  shareFinanceAccount,
   shareFinanceBudget,
   shareFinanceCategory,
   shareFinanceTransaction,
   unshareAssetSnapshot,
+  unshareFinanceAccount,
   unshareFinanceBudget,
   unshareFinanceCategory,
   unshareFinanceTransaction,
@@ -432,11 +434,24 @@ async function synchronizeAccountList(
   )
 }
 
+// 신규 등록은 항상 개인 소유로 저장된다(kista-api FinanceAccountService.create — groupId 쿼리
+// 파라미터는 서버가 무시). 그룹으로 저장하려면 생성 직후 공유 전환(PATCH .../{id}/share)을 이어붙인다.
+// 공유 전환이 실패해도(네트워크 오류 등) 계좌 자체는 이미 저장됐으니 전체 실패로 처리하지 않고
+// 개인 소유로 조용히 남긴다 — budget/category/transaction과 동일 이유로 toast는 호출부(mutate의
+// onSuccess, variables.shareToGroup && !saved.groupId로 판정)에 맡긴다.
 export function useCreateFinanceAccountMutation() {
   const queryClient = useQueryClient()
   const groupId = useActiveGroupId()
-  return useMutation<FinanceAccount, Error, FinanceAccountRequest>({
-    mutationFn: (data) => createFinanceAccount(data, { groupId }),
+  return useMutation<FinanceAccount, Error, FinanceAccountRequest & { shareToGroup?: boolean }>({
+    mutationFn: async ({ shareToGroup, ...data }) => {
+      const saved = await createFinanceAccount(data, { groupId })
+      if (!shareToGroup) return saved
+      try {
+        return await shareFinanceAccount(saved.id)
+      } catch {
+        return saved
+      }
+    },
     onSuccess: async (saved) => {
       await synchronizeAccountList(queryClient, groupId, (accounts) => upsertById(accounts, saved))
     },
@@ -466,6 +481,26 @@ export function useDeleteFinanceAccountMutation() {
     },
     onError: (err) => toast.error(apiMsg(err, '계좌를 삭제하지 못했습니다')),
   })
+}
+
+// share/unshare는 계좌가 flat 목록이어도 create/update와 다르게 invalidate 방식을 쓴다 — unshare는
+// 그룹 멤버 누구나 실행할 수 있어(소유자 한정 아님) 실행자 본인 소유가 아닌 계좌를 되돌리면 실행자의
+// groupId 스코프 목록에서 그 항목이 빠져야 한다. upsertById는 제거를 못 해 캐시에 그대로 남는다 —
+// asset-snapshot/budget/transaction/category의 share/unshare가 전부 invalidate를 쓰는 것과 같은 이유.
+export function useShareFinanceAccountMutation() {
+  return useInvalidateFinanceMutation<FinanceAccount, string>(
+    (id) => shareFinanceAccount(id),
+    financeKeys.accountsRoot(),
+    '계좌를 그룹에 공유하지 못했습니다',
+  )
+}
+
+export function useUnshareFinanceAccountMutation() {
+  return useInvalidateFinanceMutation<FinanceAccount, string>(
+    (id) => unshareFinanceAccount(id),
+    financeKeys.accountsRoot(),
+    '계좌를 개인 소유로 되돌리지 못했습니다',
+  )
 }
 
 // 탈퇴·추방 겸용 — 성공 시 멤버 목록과 함께 그룹 목록도 무효화한다(본인 탈퇴 시 내가 속한

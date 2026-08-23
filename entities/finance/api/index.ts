@@ -156,6 +156,16 @@ export async function deleteFinanceAccount(id: string, token?: string): Promise<
   return fetchEither<void>(`/api/finance/accounts/${encodeURIComponent(id)}`, { method: 'DELETE' }, token)
 }
 
+// 개인 소유 계좌를 소유자의 현재 그룹으로 공유 전환한다(본인 소유·그룹 소속 상태에서만 성공).
+export async function shareFinanceAccount(id: string, token?: string): Promise<FinanceAccount> {
+  return fetchEither<FinanceAccount>(`/api/finance/accounts/${encodeURIComponent(id)}/share`, { method: 'PATCH' }, token)
+}
+
+// 그룹 공유 계좌를 개인 소유로 되돌린다(같은 그룹 멤버면 누구든 가능, 이미 개인 소유면 멱등).
+export async function unshareFinanceAccount(id: string, token?: string): Promise<FinanceAccount> {
+  return fetchEither<FinanceAccount>(`/api/finance/accounts/${encodeURIComponent(id)}/unshare`, { method: 'PATCH' }, token)
+}
+
 export async function listMonthlyClosings({ groupId, token }: GroupScopedOptions = {}): Promise<MonthlyClosing[]> {
   return fetchEither<MonthlyClosing[]>(withQuery('/api/finance/monthly-closings', { groupId }), { method: 'GET' }, token)
 }

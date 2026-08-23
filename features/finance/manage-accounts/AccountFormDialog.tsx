@@ -13,9 +13,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Switch } from '@/components/ui/switch'
 import { Spinner } from '@shared/ui/Spinner'
+import { digitsOnly } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
-import { useCreateFinanceAccountMutation, useUpdateFinanceAccountMutation } from '@entities/finance'
+import { useCanShareToGroup, useCreateFinanceAccountMutation, useUpdateFinanceAccountMutation } from '@entities/finance'
 import type { FinanceAccount, FinanceAccountRequest, FinanceAccountType } from '@entities/finance'
 
 interface Props {
@@ -30,8 +32,16 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
     account?.accountType ?? (meta.financeAccountTypes[0]?.code as FinanceAccountType) ?? 'BANK'
   )
   const [name, setName] = useState(account?.name ?? '')
-  const [accountNo, setAccountNo] = useState(account?.accountNo ?? '')
+  // 기존 DB의 accountNo는 마이그레이션되지 않아 비숫자를 포함할 수 있다(서버는 신규/수정 요청만
+  // 숫자 전용으로 강제) — 초기값부터 digitsOnly로 정규화해야 필드를 건드리지 않고 다른 값만
+  // 고쳐 제출해도 400을 맞지 않는다.
+  const [accountNo, setAccountNo] = useState(digitsOnly(account?.accountNo ?? ''))
   const [memo, setMemo] = useState(account?.memo ?? '')
+
+  // 생성 모드에서만 노출, 그룹 소속일 때만 노출, 기본값 켜짐(그룹 저장 우선) —
+  // 수정 모드는 groupId가 이미 고정돼 있어 대상 아님(BudgetFormDialog와 동일 패턴).
+  const canShareToGroup = useCanShareToGroup()
+  const [shareToGroup, setShareToGroup] = useState(true)
 
   const createMutation = useCreateFinanceAccountMutation()
   const updateMutation = useUpdateFinanceAccountMutation(account?.id ?? '')
@@ -59,9 +69,13 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
       return
     }
 
-    createMutation.mutate(payload, {
-      onSuccess: () => {
-        toast.success('계좌가 등록되었습니다')
+    createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
+      onSuccess: (saved, variables) => {
+        if (variables.shareToGroup && !saved.groupId) {
+          toast.warning('계좌는 저장됐지만 그룹 공유에 실패했습니다 — 목록에서 공유 버튼으로 다시 시도하세요')
+        } else {
+          toast.success('계좌가 등록되었습니다')
+        }
         onOpenChange(false)
       },
     })
@@ -108,8 +122,9 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
               <Label htmlFor="accountNo">계좌번호 (선택)</Label>
               <Input
                 id="accountNo"
+                inputMode="numeric"
                 value={accountNo}
-                onChange={(e) => setAccountNo(e.target.value)}
+                onChange={(e) => setAccountNo(digitsOnly(e.target.value))}
                 disabled={isPending}
                 maxLength={50}
                 className="h-11"
@@ -127,6 +142,18 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
                 className="h-11"
               />
             </div>
+
+            {!account && canShareToGroup && (
+              <div className="flex items-center justify-between">
+                <Label htmlFor="accountShareToGroup">그룹으로 저장</Label>
+                <Switch
+                  id="accountShareToGroup"
+                  checked={shareToGroup}
+                  onCheckedChange={setShareToGroup}
+                  disabled={isPending}
+                />
+              </div>
+            )}
           </div>
 
           <DialogFooter>
