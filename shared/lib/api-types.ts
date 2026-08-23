@@ -1025,6 +1025,46 @@ export interface paths {
         patch: operations["respondToInvitation"];
         trace?: never;
     };
+    "/api/finance/categories/{id}/unshare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * 카테고리 그룹 공유 해제
+         * @description 그룹 공유 카테고리를 개인 소유로 되돌립니다. 하위 카테고리도 함께 전환됩니다. 같은 그룹 멤버면 누구든 가능합니다.
+         */
+        patch: operations["unshare_1"];
+        trace?: never;
+    };
+    "/api/finance/categories/{id}/share": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * 카테고리 그룹 공유 전환
+         * @description 개인 소유 카테고리를 소유자의 현재 그룹으로 공유 전환합니다. 하위 카테고리도 함께 전환됩니다.
+         */
+        patch: operations["share_1"];
+        trace?: never;
+    };
     "/api/finance/budgets/{id}/unshare": {
         parameters: {
             query?: never;
@@ -1042,7 +1082,7 @@ export interface paths {
          * 예산 그룹 공유 해제
          * @description 그룹 공유 예산을 개인 소유로 되돌립니다. 같은 그룹 멤버면 누구든 가능합니다.
          */
-        patch: operations["unshare_1"];
+        patch: operations["unshare_2"];
         trace?: never;
     };
     "/api/finance/budgets/{id}/share": {
@@ -1062,7 +1102,7 @@ export interface paths {
          * 예산 그룹 공유 전환
          * @description 개인 소유 예산을 소유자의 현재 그룹으로 공유 전환합니다.
          */
-        patch: operations["share_1"];
+        patch: operations["share_2"];
         trace?: never;
     };
     "/api/finance/asset-snapshots/{id}/unshare": {
@@ -1082,7 +1122,7 @@ export interface paths {
          * 자산 기록 그룹 공유 해제
          * @description 그룹 공유 자산 기록을 개인 소유로 되돌립니다. 같은 그룹 멤버면 누구든 가능합니다.
          */
-        patch: operations["unshare_2"];
+        patch: operations["unshare_3"];
         trace?: never;
     };
     "/api/finance/asset-snapshots/{id}/share": {
@@ -1102,7 +1142,7 @@ export interface paths {
          * 자산 기록 그룹 공유 전환
          * @description 개인 소유 자산 기록을 소유자의 현재 그룹으로 공유 전환합니다.
          */
-        patch: operations["share_2"];
+        patch: operations["share_3"];
         trace?: never;
     };
     "/api/admin/users/{userId}/status": {
@@ -6834,6 +6874,88 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description 카테고리 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 해제 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinanceCategoryResponse"];
+                };
+            };
+            /** @description 시스템 카테고리이거나 접근 권한 없음 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinanceCategoryResponse"];
+                };
+            };
+            /** @description 카테고리를 찾을 수 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinanceCategoryResponse"];
+                };
+            };
+        };
+    };
+    share_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 카테고리 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 전환 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinanceCategoryResponse"];
+                };
+            };
+            /** @description 시스템 카테고리이거나 접근 권한 없음 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinanceCategoryResponse"];
+                };
+            };
+            /** @description 카테고리를 찾을 수 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinanceCategoryResponse"];
+                };
+            };
+        };
+    };
+    unshare_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
                 /** @description 예산 ID */
                 id: string;
             };
@@ -6879,7 +7001,7 @@ export interface operations {
             };
         };
     };
-    share_1: {
+    share_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -6920,7 +7042,7 @@ export interface operations {
             };
         };
     };
-    unshare_2: {
+    unshare_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -6961,7 +7083,7 @@ export interface operations {
             };
         };
     };
-    share_2: {
+    share_3: {
         parameters: {
             query?: never;
             header?: never;

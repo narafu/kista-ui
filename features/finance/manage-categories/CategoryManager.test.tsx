@@ -4,10 +4,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CategoryManager } from './CategoryManager'
 import type { FinanceCategory } from '@entities/finance'
 
-const { createMutateMock, updateMutateMock, deleteMutateMock } = vi.hoisted(() => ({
+const { createMutateMock, updateMutateMock, deleteMutateMock, shareMutateMock, unshareMutateMock, canShareState } = vi.hoisted(() => ({
   createMutateMock: vi.fn(),
   updateMutateMock: vi.fn(),
   deleteMutateMock: vi.fn(),
+  shareMutateMock: vi.fn(),
+  unshareMutateMock: vi.fn(),
+  canShareState: { value: false },
 }))
 
 const assetCategories: FinanceCategory[] = [
@@ -39,6 +42,9 @@ vi.mock('@entities/finance', async () => {
     useCreateFinanceCategoryMutation: () => ({ mutate: createMutateMock, isPending: false }),
     useUpdateFinanceCategoryMutation: () => ({ mutate: updateMutateMock, isPending: false }),
     useDeleteFinanceCategoryMutation: () => ({ mutate: deleteMutateMock, isPending: false }),
+    useCanShareToGroup: () => canShareState.value,
+    useShareFinanceCategoryMutation: () => ({ mutate: shareMutateMock, isPending: false }),
+    useUnshareFinanceCategoryMutation: () => ({ mutate: unshareMutateMock, isPending: false }),
   }
 })
 
@@ -62,6 +68,9 @@ describe('CategoryManager', () => {
     createMutateMock.mockClear()
     updateMutateMock.mockClear()
     deleteMutateMock.mockClear()
+    shareMutateMock.mockClear()
+    unshareMutateMock.mockClear()
+    canShareState.value = false
   })
 
   it('기본은 자산 타입 카테고리를 보여주고, 타입 세그먼트를 전환하면 해당 타입 카테고리로 바뀐다', async () => {
@@ -102,5 +111,20 @@ describe('CategoryManager', () => {
     expect(screen.getByText('기타자산 카테고리를 삭제하시겠습니까?')).toBeInTheDocument()
     expect(screen.getByText(/하위 2개 카테고리가 함께 삭제됩니다/)).toBeInTheDocument()
     expect(screen.getByText(/이 카테고리를 사용한 과거 기록은 유지됩니다/)).toBeInTheDocument()
+  })
+
+  it('그룹 소속이면 개인 카테고리엔 공유, 그룹 카테고리엔 귀속 버튼이 뜨고 시스템 카테고리엔 뜨지 않는다', async () => {
+    canShareState.value = true
+    const user = userEvent.setup()
+    render(<CategoryManager />)
+
+    const systemRow = screen.getByText('투자').closest('li') as HTMLElement
+    expect(within(systemRow).queryByRole('button', { name: '공유' })).not.toBeInTheDocument()
+    expect(within(systemRow).queryByRole('button', { name: '귀속' })).not.toBeInTheDocument()
+
+    const personalRow = screen.getByText('기타자산').closest('li') as HTMLElement
+    const shareButton = within(personalRow).getByRole('button', { name: '공유' })
+    await user.click(shareButton)
+    expect(shareMutateMock).toHaveBeenCalledWith('l1-custom', expect.anything())
   })
 })

@@ -104,6 +104,16 @@ export async function deleteFinanceCategory(id: string, token?: string): Promise
   return fetchEither<void>(`/api/finance/categories/${encodeURIComponent(id)}`, { method: 'DELETE' }, token)
 }
 
+// 개인 소유 카테고리를 소유자의 현재 그룹으로 공유 전환한다. 하위 카테고리도 함께 전환된다(kista-api cascade).
+export async function shareFinanceCategory(id: string, token?: string): Promise<FinanceCategory> {
+  return fetchEither<FinanceCategory>(`/api/finance/categories/${encodeURIComponent(id)}/share`, { method: 'PATCH' }, token)
+}
+
+// 그룹 공유 카테고리를 개인 소유로 되돌린다. 하위 카테고리도 함께 전환된다(kista-api cascade).
+export async function unshareFinanceCategory(id: string, token?: string): Promise<FinanceCategory> {
+  return fetchEither<FinanceCategory>(`/api/finance/categories/${encodeURIComponent(id)}/unshare`, { method: 'PATCH' }, token)
+}
+
 // 관리자 전용 시스템(공통) 카테고리 CRUD — groupId 없이 항상 system:true로 생성된다.
 // /api/admin/** 는 app/api/admin/[[...path]]/route.ts가 그대로 프록시하며 kista-api가 서버에서 ADMIN role을 검증한다.
 export async function listSystemFinanceCategories(type: FinanceCategoryType, token?: string): Promise<FinanceCategory[]> {

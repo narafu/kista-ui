@@ -24,9 +24,11 @@ import {
   setMonthlyClosing,
   shareAssetSnapshot,
   shareFinanceBudget,
+  shareFinanceCategory,
   shareFinanceTransaction,
   unshareAssetSnapshot,
   unshareFinanceBudget,
+  unshareFinanceCategory,
   unshareFinanceTransaction,
   updateAssetSnapshot,
   updateFinanceAccount,
@@ -226,6 +228,21 @@ export function useDeleteFinanceCategoryMutation() {
   return useInvalidateCategoriesMutation<void, string>(
     (id) => deleteFinanceCategory(id),
     '카테고리를 삭제하지 못했습니다',
+  )
+}
+
+// 하위 카테고리도 함께 그룹으로 공유 전환된다(kista-api cascade) — 트리 전체 invalidate로 반영.
+export function useShareFinanceCategoryMutation() {
+  return useInvalidateCategoriesMutation<FinanceCategory, string>(
+    (id) => shareFinanceCategory(id),
+    '카테고리를 그룹에 공유하지 못했습니다',
+  )
+}
+
+export function useUnshareFinanceCategoryMutation() {
+  return useInvalidateCategoriesMutation<FinanceCategory, string>(
+    (id) => unshareFinanceCategory(id),
+    '카테고리를 개인 소유로 되돌리지 못했습니다',
   )
 }
 

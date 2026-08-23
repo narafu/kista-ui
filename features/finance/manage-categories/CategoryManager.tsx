@@ -7,7 +7,15 @@ import { Button } from '@/components/ui/button'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { useMeta } from '@entities/meta'
-import { collectSubtreeIds, sortCategoryTree, useDeleteFinanceCategoryMutation, useFinanceCategoriesQuery } from '@entities/finance'
+import {
+  collectSubtreeIds,
+  sortCategoryTree,
+  useCanShareToGroup,
+  useDeleteFinanceCategoryMutation,
+  useFinanceCategoriesQuery,
+  useShareFinanceCategoryMutation,
+  useUnshareFinanceCategoryMutation,
+} from '@entities/finance'
 import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
 import { CategoryFormDialog } from './CategoryFormDialog'
 import { CategoryRow } from './CategoryRow'
@@ -29,6 +37,9 @@ export function CategoryManager() {
   const deleteDialog = useConfirmDialog<FinanceCategory>()
 
   const deleteMutation = useDeleteFinanceCategoryMutation()
+  const canShare = useCanShareToGroup()
+  const shareMutation = useShareFinanceCategoryMutation()
+  const unshareMutation = useUnshareFinanceCategoryMutation()
 
   function handleDelete() {
     if (!deleteDialog.target) return
@@ -38,6 +49,14 @@ export function CategoryManager() {
         deleteDialog.close()
       },
     })
+  }
+
+  function handleShare(category: FinanceCategory) {
+    shareMutation.mutate(category.id, { onSuccess: () => toast.success('그룹에 공유했습니다') })
+  }
+
+  function handleUnshare(category: FinanceCategory) {
+    unshareMutation.mutate(category.id, { onSuccess: () => toast.success('개인 소유로 되돌렸습니다') })
   }
 
   return (
@@ -62,7 +81,18 @@ export function CategoryManager() {
       ) : (
         <ul className="m-0 list-none rounded-[var(--r-lg)] border border-border p-0">
           {l1Categories.map((category) => (
-            <CategoryRow key={category.id} category={category} depth={0} onEdit={setFormTarget} onDelete={deleteDialog.request} />
+            <CategoryRow
+              key={category.id}
+              category={category}
+              depth={0}
+              onEdit={setFormTarget}
+              onDelete={deleteDialog.request}
+              canShare={canShare}
+              onShare={handleShare}
+              onUnshare={handleUnshare}
+              shareMutationPending={shareMutation.isPending}
+              unshareMutationPending={unshareMutation.isPending}
+            />
           ))}
         </ul>
       )}
