@@ -13,6 +13,25 @@ function tx(date: string, amount: number): FinanceTransaction {
   return { id: date + amount, categoryId: 'cat-1', transactionDate: date, amount, memo: undefined } as FinanceTransaction
 }
 
+describe('FinanceSummary 월간 모드', () => {
+  it('네이티브 month input 대신 연도·월 select 쌍을 렌더한다 (데스크탑 사파리 type="month" 미지원 대응)', () => {
+    render(
+      <FinanceSummary
+        type="EXPENSE"
+        transactions={[]}
+        index={index}
+        isLoading={false}
+        isError={false}
+        period={{ month: '2026-08', mode: 'monthly' }}
+        onPeriodChange={() => {}}
+      />,
+    )
+    expect(document.querySelector('input[type="month"]')).not.toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: '기준 연도' })).toHaveTextContent('2026년')
+    expect(screen.getByRole('combobox', { name: '기준 월' })).toHaveTextContent('8월')
+  })
+})
+
 describe('FinanceSummary 연간 모드', () => {
   it('연간 모드일 때 월 선택 input 대신 연도 숫자 입력을 렌더한다', () => {
     render(

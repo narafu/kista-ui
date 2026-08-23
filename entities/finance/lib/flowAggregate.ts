@@ -40,15 +40,15 @@ export interface FlowSummary {
 }
 
 // transactions는 filterByType()으로 이미 타입 필터링된 목록을 받는다(호출부가 한 번만 필터링해 재사용).
-export function calcFlowSummary(transactions: FinanceTransaction[], period: Period): FlowSummary {
-  const { from, to } = periodRange(period)
+export function calcFlowSummary(transactions: FinanceTransaction[], period: Period, today: string): FlowSummary {
+  const { from, to } = periodRange(period, today)
   const inPeriod = transactions.filter((t) => inRange(t.transactionDate, from, to))
   const total = sumAmount(inPeriod)
   const count = inPeriod.length
 
   if (period.mode === 'yearly') return { total, count, previousTotal: null }
 
-  const prevRange = periodRange({ month: shiftMonth(period.month, -1), mode: 'monthly' })
+  const prevRange = periodRange({ month: shiftMonth(period.month, -1), mode: 'monthly' }, today)
   const previousTotal = sumAmount(transactions.filter((t) => inRange(t.transactionDate, prevRange.from, prevRange.to)))
   return { total, count, previousTotal }
 }
@@ -60,23 +60,27 @@ export interface FlowTrendPoint {
   byCategory: Record<string, number> // rootId -> 합계, 카테고리별 라인용
 }
 
-function trendBuckets(period: Period, limit: number): { label: string; from: string; to: string }[] {
+function trendBuckets(period: Period, today: string, limit: number): { label: string; from: string; to: string }[] {
   if (period.mode === 'monthly') {
     const months: string[] = []
     for (let i = limit - 1; i >= 0; i--) months.push(shiftMonth(period.month, -i))
     return months.map((m) => ({ label: m, from: monthStartDate(m), to: monthEndDate(m) }))
   }
   const year = Number(period.month.slice(0, 4))
-  const mm = period.month.slice(5, 7)
   const years: number[] = []
   for (let i = limit - 1; i >= 0; i--) years.push(year - i)
-  return years.map((y) => ({ label: String(y), from: `${y}-01-01`, to: monthEndDate(`${y}-${mm}`) }))
+  // 버킷별 to는 periodRange와 동일한 규칙(과거 연도는 12월까지, 올해는 오늘까지)을 그대로 쓴다 —
+  // 안 그러면 같은 연도인데 요약 카드 합계와 추이 차트 마지막 점이 서로 다른 값을 보이게 된다.
+  return years.map((y) => {
+    const { from, to } = periodRange({ month: `${y}-01`, mode: 'yearly' }, today)
+    return { label: String(y), from, to }
+  })
 }
 
 // transactions: 월간 모드는 windowRange(12개월) 윈도우, 연간 모드는 yearsRange(limit년) 윈도우를
 // 호출부가 각각 맞춰 넘긴다(타입 필터링만 된 상태). index로 거래를 rootId별로도 함께 집계한다.
-export function calcFlowTrend(transactions: FinanceTransaction[], index: CategoryIndex, period: Period, limit = 6): FlowTrendPoint[] {
-  return trendBuckets(period, limit).map(({ label, from, to }) => {
+export function calcFlowTrend(transactions: FinanceTransaction[], index: CategoryIndex, period: Period, today: string, limit = 6): FlowTrendPoint[] {
+  return trendBuckets(period, today, limit).map(({ label, from, to }) => {
     const inBucket = transactions.filter((t) => inRange(t.transactionDate, from, to))
     const byCategory: Record<string, number> = {}
     for (const t of inBucket) {
@@ -129,11 +133,14 @@ export function calcBudgetProgress(
   categoryTree: FinanceCategory[],
   index: CategoryIndex,
   period: Period,
+  today: string,
 ): BudgetProgress[] {
+  const { from, to } = periodRange(period, today)
   const yearStart = `${period.month.slice(0, 4)}-01`
   const fromMonth = period.mode === 'yearly' ? yearStart : period.month
-  const toMonth = period.month
-  const { from, to } = periodRange(period)
+  // to(periodRange 결과)를 그대로 월 단위로 잘라 쓴다 — 연간 모드에서 올해면 "오늘 달"까지,
+  // 과거 연도면 "12월"까지가 자동으로 나온다(period.month의 mm은 신뢰할 수 없다, periodRange 주석 참고).
+  const toMonth = to.slice(0, 7)
 
   const results: BudgetProgress[] = []
   for (const budget of budgets) {

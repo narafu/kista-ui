@@ -11,7 +11,7 @@ import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { cn } from '@shared/lib/utils'
-import { fmtDate, fmtKrw } from '@shared/lib/format'
+import { fmtDate, fmtKrw, todayKst } from '@shared/lib/format'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import {
   collectSubtreeIds,
@@ -73,11 +73,13 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
 
   const orderedRootIds = useMemo(() => sortCategoryTree(categoryTree).map((c) => c.id), [categoryTree])
 
-  const { from, to } = periodRange(period)
+  const today = todayKst()
+  const { from, to } = periodRange(period, today)
   // 수정 다이얼로그의 날짜 min/max는 표시 중인 period(월간이면 그 달만)가 아니라 실제로 조회된
-  // 12개월 윈도우 전체다 — periodRange보다 넓게 허용해야 "다른 날짜로 옮기고 싶다"는 정상적인
-  // 수정 요청까지 막지 않는다.
-  const window = windowRange(period.month)
+  // 범위 전체다 — periodRange보다 넓게 허용해야 "다른 날짜로 옮기고 싶다"는 정상적인 수정 요청까지
+  // 막지 않는다. FinanceDashboard의 flowWindow 계산과 동일하게 월간은 windowRange(12개월 슬라이딩),
+  // 연간은 periodRange 그대로 사용한다(연간에 windowRange를 쓰면 실제 조회 범위보다 좁아질 수 있다).
+  const window = period.mode === 'yearly' ? periodRange(period, today) : windowRange(period.month)
   const typed = useMemo(() => filterByType(transactions, index, type), [transactions, index, type])
   const inPeriod = useMemo(
     () => typed.filter((t) => t.transactionDate >= from && t.transactionDate <= to),

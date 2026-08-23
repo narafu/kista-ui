@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SectionError } from '@shared/ui/SectionError'
-import { fmtKrw } from '@shared/lib/format'
+import { fmtKrw, todayKst } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { useMeta } from '@entities/meta'
 import { calcBudgetProgress, filterByType, flowCategoryColor, sortCategoryTree } from '@entities/finance'
@@ -61,7 +61,7 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
   // 트리 재귀 정렬은 렌더마다 반복하기엔 비용이 있어 한 번만 계산해 calcBudgetProgress(표시 순번)와
   // orderedRootIds(색상 매핑) 양쪽에 재사용한다.
   const sortedCategoryTree = useMemo(() => sortCategoryTree(categoryTree), [categoryTree])
-  const progress = calcBudgetProgress(typedBudgets, typedTransactions, sortedCategoryTree, index, period)
+  const progress = calcBudgetProgress(typedBudgets, typedTransactions, sortedCategoryTree, index, period, todayKst())
   const orderedRootIds = sortedCategoryTree.map((c) => c.id)
 
   return (

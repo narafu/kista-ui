@@ -58,31 +58,31 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
     return hidden ? <RevealableValue value={display} hiddenDisplay={maskAmount(display)} /> : display
   }
 
+  const today = todayKst()
   const typeTransactions = useMemo(() => filterByType(transactions, index, type), [transactions, index, type])
-  const summary = useMemo(() => calcFlowSummary(typeTransactions, period), [typeTransactions, period])
+  const summary = useMemo(() => calcFlowSummary(typeTransactions, period, today), [typeTransactions, period, today])
   // 소비는 늘어난 게 나쁜 신호라 색상 부호를 뒤집는다 — AssetOverview의 부채(isLiability) 델타
   // 반전과 같은 이유. 수입·저축은 늘어난 게 좋은 신호라 그대로 둔다.
   const previousDelta = summary.previousTotal !== null ? summary.total - summary.previousTotal : null
 
   const previousYearTotal = useMemo(() => {
     if (period.mode !== 'yearly' || !previousYearTransactions) return null
-    const { from, to } = previousYearRange(period)
+    const { from, to } = previousYearRange(period, today)
     return filterByType(previousYearTransactions, index, type)
       .filter((t) => t.transactionDate >= from && t.transactionDate <= to)
       .reduce((sum, t) => sum + t.amount, 0)
-  }, [period, previousYearTransactions, index, type])
+  }, [period, previousYearTransactions, index, type, today])
   const previousYearDelta = previousYearTotal !== null ? summary.total - previousYearTotal : null
 
-  // 연도 select 옵션 — 최근 15개년을 기본으로 잡되, 월간 모드(네이티브 month input, 연도 제한 없음)에서
-  // 그 범위 밖 연도(과거든 미래든)를 고른 뒤 연간 모드로 전환해도 현재 선택값이 항상 목록에
-  // 포함되도록 보정한다(안 하면 SelectValue가 목록에 없는 값이라 빈칸으로 보인다).
-  // 네이티브 number input은 모바일에서 숫자 키패드로 지우고 새로 입력할 때 controlled value가
-  // 매 keystroke마다 이전 값으로 되돌아가 연도를 바꿀 수 없는 문제가 있어 select로 교체했다.
-  const currentYear = Number(todayKst().slice(0, 4))
+  // 연도 select 옵션 — 최근 15개년을 기본으로 잡되, 월간 모드에서 그 범위 밖 연도(과거든 미래든)를
+  // 고른 뒤 연간 모드로 전환해도 현재 선택값이 항상 목록에 포함되도록 보정한다(안 하면 SelectValue가
+  // 목록에 없는 값이라 빈칸으로 보인다).
+  const currentYear = Number(today.slice(0, 4))
   const selectedYear = Number(period.month.slice(0, 4))
   const latestYear = Math.max(selectedYear, currentYear)
   const earliestYear = Math.min(selectedYear, currentYear - 14)
   const yearOptions = Array.from({ length: latestYear - earliestYear + 1 }, (_, i) => latestYear - i)
+  const monthOptions = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
 
   return (
     <Card>
@@ -90,13 +90,40 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
         <CardTitle className="text-base lg:text-lg">{labelOf('financeCategoryTypes', type)} 요약</CardTitle>
         <div className="flex flex-wrap items-center gap-2">
           {period.mode === 'monthly' ? (
-            <input
-              type="month"
-              aria-label="기준 월"
-              value={period.month}
-              onChange={(e) => { if (e.target.value) onPeriodChange({ ...period, month: e.target.value }) }}
-              className="h-9 rounded-md border border-border bg-background px-2 text-sm"
-            />
+            // 네이티브 <input type="month">은 데스크탑 사파리가 지원하지 않아(텍스트 입력으로 깨짐)
+            // 연도·월 select 쌍으로 대체한다 — 연간 모드 연도 select와 동일한 컴포넌트 재사용.
+            <div className="flex items-center gap-1">
+              <Select
+                items={yearOptions.map((y) => ({ value: String(y), label: `${y}년` }))}
+                value={period.month.slice(0, 4)}
+                onValueChange={(value) => {
+                  if (!value) return
+                  onPeriodChange({ ...period, month: `${value}-${period.month.slice(5, 7)}` })
+                }}
+              >
+                <SelectTrigger aria-label="기준 연도" className="h-9 w-20 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {yearOptions.map((y) => <SelectItem key={y} value={String(y)}>{y}년</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select
+                items={monthOptions.map((m) => ({ value: m, label: `${Number(m)}월` }))}
+                value={period.month.slice(5, 7)}
+                onValueChange={(value) => {
+                  if (!value) return
+                  onPeriodChange({ ...period, month: `${period.month.slice(0, 4)}-${value}` })
+                }}
+              >
+                <SelectTrigger aria-label="기준 월" className="h-9 w-16 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {monthOptions.map((m) => <SelectItem key={m} value={m}>{Number(m)}월</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
           ) : (
             <Select
               items={yearOptions.map((y) => ({ value: String(y), label: `${y}년` }))}
@@ -157,7 +184,7 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
               value={amountValue(fmtKrw(
                 Math.round(
                   summary.total /
-                    (period.mode === 'monthly' ? elapsedDaysInMonth(period.month, todayKst()) : elapsedMonthsInYear(period.month)),
+                    (period.mode === 'monthly' ? elapsedDaysInMonth(period.month, today) : elapsedMonthsInYear(period.month, today)),
                 ),
               ))}
               valueClassName="break-words text-base sm:text-2xl lg:text-3xl"

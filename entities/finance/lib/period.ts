@@ -28,11 +28,15 @@ export function monthStartDate(month: string): string {
   return `${month}-01`
 }
 
-// 화면이 실제로 조회해야 하는 범위 — 월간은 그 달, 연간(YTD)은 1월~선택 월.
-export function periodRange({ month, mode }: Period): { from: string; to: string } {
+// 화면이 실제로 조회해야 하는 범위 — 월간은 그 달, 연간은 선택 연도가 올해면 1월~오늘(YTD),
+// 이미 끝난 과거 연도면 1월~12월 전체. 연간 모드엔 mm을 바꿀 UI가 없어(연도 select만 있음)
+// period.month의 mm은 월간 탭에서 보던 달이 그대로 남아있는 값이라 신뢰할 수 없다 — 그 mm으로
+// "선택월까지"를 계산하면 과거 연도를 골라도 반쪽 합계만 나오는 버그가 된다.
+export function periodRange({ month, mode }: Period, today: string): { from: string; to: string } {
   if (mode === 'monthly') return { from: monthStartDate(month), to: monthEndDate(month) }
   const year = month.slice(0, 4)
-  return { from: `${year}-01-01`, to: monthEndDate(month) }
+  const isCurrentYear = year === today.slice(0, 4)
+  return { from: `${year}-01-01`, to: isCurrentYear ? today : monthEndDate(`${year}-12`) }
 }
 
 // 요약·전월대비·6개월추이·YTD누적·예산대비를 단일 쿼리로 덮는 12개월 윈도우.
@@ -53,21 +57,37 @@ export function elapsedDaysInMonth(month: string, today: string): number {
   return daysInMonth(month)
 }
 
-// YTD 모드에서 "몇 개월치 실적인지" — 1월부터 선택 월까지 개월 수.
-export function elapsedMonthsInYear(month: string): number {
-  return Number(month.slice(5, 7))
+// 연간 모드에서 "몇 개월치 실적인지" — periodRange와 동일한 규칙: 올해면 1월~오늘 달,
+// 과거 연도면 12개월 전체.
+export function elapsedMonthsInYear(month: string, today: string): number {
+  if (month.slice(0, 4) === today.slice(0, 4)) return Number(today.slice(5, 7))
+  return 12
 }
 
-// 연간(YTD) 모드의 "전년대비" 비교 대상 범위 — 선택 연도 전년 1월부터 선택월과 동일한 월까지.
-export function previousYearRange(period: Period): { from: string; to: string } {
-  const prevYear = Number(period.month.slice(0, 4)) - 1
-  const mm = period.month.slice(5, 7)
-  return { from: `${prevYear}-01-01`, to: monthEndDate(`${prevYear}-${mm}`) }
+// 연간 모드의 "전년대비" 비교 대상 범위 — 올해는 periodRange와 동일하게 "정확히 오늘"에 대응하는
+// 전년 동일 일자까지, 과거 연도는 전년 1월~12월 전체. 올해를 월말(monthEndDate)까지로 끊으면
+// periodRange(정확히 오늘까지)와 어긋나 전년 쪽에 최대 한 달치 거래가 더 들어가 델타가 왜곡된다
+// (오늘이 그 달 1일이면 전년은 그 달 전체, 올해는 하루 — 8월분 전체가 델타에 스며든다). 전년에
+// 없는 날짜(예: 오늘이 윤년 2/29, 전년은 평년)는 그 달 말일로 clamp한다.
+export function previousYearRange(period: Period, today: string): { from: string; to: string } {
+  const year = period.month.slice(0, 4)
+  const prevYear = Number(year) - 1
+  const isCurrentYear = year === today.slice(0, 4)
+  if (!isCurrentYear) return { from: `${prevYear}-01-01`, to: monthEndDate(`${prevYear}-12`) }
+  const mm = today.slice(5, 7)
+  const dd = today.slice(8, 10)
+  const monthEnd = monthEndDate(`${prevYear}-${mm}`)
+  const sameDayLastYear = `${prevYear}-${mm}-${dd}`
+  return { from: `${prevYear}-01-01`, to: sameDayLastYear <= monthEnd ? sameDayLastYear : monthEnd }
 }
 
-// 연간 모드 "최근 N개년 추이" 조회 윈도우 — 선택 연도 포함 과거 (yearsLimit-1)개년 1월 1일부터
-// 선택 월 말일까지. windowRange(12개월)로는 커버되지 않는 별도 쿼리가 필요하다(previousYearRange와 동일한 이유).
-export function yearsRange(month: string, yearsLimit: number): { from: string; to: string } {
+// 연간 모드 "최근 N개년 추이" 조회 윈도우 — 선택 연도 포함 과거 (yearsLimit-1)개년 1월 1일부터,
+// to는 periodRange와 동일한 규칙(과거 연도면 12월까지, 올해면 오늘까지)이다. month의 mm은 연간
+// 모드에 없는 개념이라 신뢰할 수 없다(periodRange 주석 참고) — mm 기준으로 자르면 최근추이
+// 차트의 올해 구간이 실제보다 좁게 조회된다. windowRange(12개월)로는 커버되지 않는 별도 쿼리가
+// 필요하다(previousYearRange와 동일한 이유).
+export function yearsRange(month: string, yearsLimit: number, today: string): { from: string; to: string } {
   const year = Number(month.slice(0, 4))
-  return { from: `${year - (yearsLimit - 1)}-01-01`, to: monthEndDate(month) }
+  const isCurrentYear = String(year) === today.slice(0, 4)
+  return { from: `${year - (yearsLimit - 1)}-01-01`, to: isCurrentYear ? today : monthEndDate(`${year}-12`) }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calcBudgetProgress, calcFlowTrend } from './flowAggregate'
+import { calcBudgetProgress, calcFlowSummary, calcFlowTrend } from './flowAggregate'
 import type { CategoryIndex } from './categoryIndex'
 import type { FinanceBudget, FinanceCategory, FinanceTransaction } from '../model/types'
 
@@ -12,6 +12,33 @@ const index: CategoryIndex = new Map([
   ['cat-transport', { type: 'EXPENSE', rootId: 'root-transport', name: '교통', sortOrder: 2 }],
 ])
 
+describe('calcFlowSummary', () => {
+  it('연간 모드: 올해를 선택하면 1월~오늘까지(YTD)만 합산한다', () => {
+    const transactions = [
+      tx('1', 'cat-food', '2026-02-01', 1000),
+      tx('2', 'cat-food', '2026-08-23', 2000),
+      tx('3', 'cat-food', '2026-09-01', 9999), // 오늘(08-23) 이후 — 제외
+    ]
+
+    const result = calcFlowSummary(transactions, { month: '2026-03', mode: 'yearly' }, '2026-08-23')
+
+    expect(result).toEqual({ total: 3000, count: 2, previousTotal: null })
+  })
+
+  it('연간 모드: 이미 끝난 과거 연도를 선택하면 period.month의 mm과 무관하게 1~12월 전체를 합산한다', () => {
+    const transactions = [
+      tx('1', 'cat-food', '2025-01-01', 1000),
+      tx('2', 'cat-food', '2025-12-31', 2000),
+      tx('3', 'cat-food', '2024-12-31', 9999), // 전년 — 제외
+    ]
+
+    // month의 mm이 '03'이어도(월간 탭에서 남은 값) 과거 연도(2025)면 12월까지 전부 합산돼야 한다.
+    const result = calcFlowSummary(transactions, { month: '2025-03', mode: 'yearly' }, '2026-08-23')
+
+    expect(result).toEqual({ total: 3000, count: 2, previousTotal: null })
+  })
+})
+
 describe('calcFlowTrend', () => {
   it('월간 모드: 선택월 기준 최근 limit개월 버킷별 합계·카테고리별 합계를 반환한다', () => {
     const transactions = [
@@ -20,7 +47,7 @@ describe('calcFlowTrend', () => {
       tx('3', 'cat-food', '2026-08-01', 2000),
     ]
 
-    const result = calcFlowTrend(transactions, index, { month: '2026-08', mode: 'monthly' }, 2)
+    const result = calcFlowTrend(transactions, index, { month: '2026-08', mode: 'monthly' }, '2026-08-23', 2)
 
     expect(result).toEqual([
       { period: '2026-07', amount: 1500, byCategory: { 'root-food': 1000, 'root-transport': 500 } },
@@ -28,17 +55,18 @@ describe('calcFlowTrend', () => {
     ])
   })
 
-  it('연간 모드: 선택 연도 기준 최근 limit개년 버킷(각 연도 1월~선택월)별 합계를 반환한다', () => {
+  it('연간 모드: 과거 연도 버킷은 1~12월 전체, 올해 버킷은 오늘까지(YTD)만 합산한다', () => {
     const transactions = [
       tx('1', 'cat-food', '2025-03-01', 1000),
-      tx('2', 'cat-food', '2025-09-01', 9999), // 선택월(08) 이후라 2025년 버킷에서 제외
-      tx('3', 'cat-food', '2026-05-01', 3000),
+      tx('2', 'cat-food', '2025-12-31', 500), // 과거 연도(2025)는 12월까지 전부 포함
+      tx('3', 'cat-food', '2026-05-01', 3000), // 올해(2026), 오늘 이전 — 포함
+      tx('4', 'cat-food', '2026-08-24', 9999), // 올해, 오늘(08-23) 이후 — 제외
     ]
 
-    const result = calcFlowTrend(transactions, index, { month: '2026-08', mode: 'yearly' }, 2)
+    const result = calcFlowTrend(transactions, index, { month: '2026-08', mode: 'yearly' }, '2026-08-23', 2)
 
     expect(result).toEqual([
-      { period: '2025', amount: 1000, byCategory: { 'root-food': 1000 } },
+      { period: '2025', amount: 1500, byCategory: { 'root-food': 1500 } },
       { period: '2026', amount: 3000, byCategory: { 'root-food': 3000 } },
     ])
   })
@@ -46,7 +74,7 @@ describe('calcFlowTrend', () => {
   it('인덱스에 없는(삭제된) 카테고리 거래는 합계엔 포함하고 byCategory엔 넣지 않는다', () => {
     const transactions = [tx('1', 'cat-deleted', '2026-08-05', 500)]
 
-    const result = calcFlowTrend(transactions, index, { month: '2026-08', mode: 'monthly' }, 1)
+    const result = calcFlowTrend(transactions, index, { month: '2026-08', mode: 'monthly' }, '2026-08-23', 1)
 
     expect(result).toEqual([{ period: '2026-08', amount: 500, byCategory: {} }])
   })
@@ -72,7 +100,7 @@ describe('calcBudgetProgress', () => {
       tx('2', 'cat-bonus', '2026-08-05', 90),
     ]
 
-    const result = calcBudgetProgress(budgets, transactions, categoryTree, budgetIndex, { month: '2026-08', mode: 'monthly' })
+    const result = calcBudgetProgress(budgets, transactions, categoryTree, budgetIndex, { month: '2026-08', mode: 'monthly' }, '2026-08-23')
 
     expect(result.map((r) => r.budgetId)).toEqual(['b-salary', 'b-bonus'])
   })
