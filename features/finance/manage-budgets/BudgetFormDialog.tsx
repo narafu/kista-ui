@@ -23,37 +23,45 @@ interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
   categoryTree: FinanceCategory[]
-  budget: FinanceBudget | null
+  initial?: FinanceBudget
+  // 예산 복제 전용 — initial과 달리 id를 갖지 않아 항상 create 모드로 제출된다. 카테고리·금액만
+  // 프리필한다. applyStartDate/applyEndDate는 절대 시드로 넣지 않는다 — 예산은 카테고리별
+  // applyStartDate에 겹침 금지 EXCLUDE 제약(409)이 있어, 기존 기간을 그대로 복제하면 곧바로
+  // 충돌하기 때문에 사용자가 새 기간을 직접 입력해야 한다(TransactionFormDialog의
+  // initial/duplicateFrom 분리 패턴과 동일).
+  duplicateFrom?: Pick<FinanceBudget, 'categoryId' | 'amount'>
   onSuccess: () => void
 }
 
-export function BudgetFormDialog({ open, onOpenChange, categoryTree, budget, onSuccess }: Props) {
-  const mode = budget ? 'edit' : 'create'
+export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, duplicateFrom, onSuccess }: Props) {
+  const mode = initial ? 'edit' : 'create'
+  const seed = initial ?? duplicateFrom
 
   // 계단식 카테고리 Select — TransactionFormDialog와 동일 패턴, selectedPath 마지막 값이 제출용 categoryId.
   const [selectedPath, setSelectedPath] = useState<string[]>(() =>
-    budget ? getCategoryPath(categoryTree, budget.categoryId).map((c) => c.id) : []
+    seed ? getCategoryPath(categoryTree, seed.categoryId).map((c) => c.id) : []
   )
   // 다이얼로그가 카테고리 쿼리 로딩보다 먼저 열릴 수 있어, 데이터 도착 후 한 번 더 경로를 복원한다
   // (TransactionFormDialog와 동일 패턴).
   useEffect(() => {
-    if (budget && selectedPath.length === 0 && categoryTree.length > 0) {
-      setSelectedPath(getCategoryPath(categoryTree, budget.categoryId).map((c) => c.id))
+    if (seed && selectedPath.length === 0 && categoryTree.length > 0) {
+      setSelectedPath(getCategoryPath(categoryTree, seed.categoryId).map((c) => c.id))
     }
-  }, [budget, categoryTree, selectedPath.length])
+  }, [seed, categoryTree, selectedPath.length])
   const cascadeLevels = useMemo(() => getCascadeLevels(categoryTree, selectedPath), [categoryTree, selectedPath])
   const categoryId = selectedPath[selectedPath.length - 1] ?? ''
 
-  const [applyStartDate, setApplyStartDate] = useState(budget?.applyStartDate ?? '')
-  const [applyEndDate, setApplyEndDate] = useState(budget?.applyEndDate ?? '')
-  const [amountDigits, setAmountDigits] = useState(budget ? String(budget.amount) : '')
+  // applyStartDate/applyEndDate는 initial(수정)에서만 시드로 채운다 — duplicateFrom은 위 주석 참고.
+  const [applyStartDate, setApplyStartDate] = useState(initial?.applyStartDate ?? '')
+  const [applyEndDate, setApplyEndDate] = useState(initial?.applyEndDate ?? '')
+  const [amountDigits, setAmountDigits] = useState(seed ? String(seed.amount) : '')
 
   // 그룹 소속일 때만 노출, 기본값 켜짐(그룹 저장 우선) — 수정 모드는 groupId가 이미 고정돼 있어 대상 아님.
   const canShareToGroup = useCanShareToGroup()
   const [shareToGroup, setShareToGroup] = useState(true)
 
   const createMutation = useCreateFinanceBudgetMutation()
-  const updateMutation = useUpdateFinanceBudgetMutation(budget?.id ?? '')
+  const updateMutation = useUpdateFinanceBudgetMutation(initial?.id ?? '')
   const isPending = mode === 'edit' ? updateMutation.isPending : createMutation.isPending
 
   const canSubmit = categoryId !== '' && applyStartDate !== '' && amountDigits !== ''

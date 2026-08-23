@@ -188,17 +188,21 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
             {incomeRatio !== null && (
               <KpiCard label="수입 대비 비율" value={`${ratioToPercent(incomeRatio)}%`} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
             )}
+            {/* 일/월평균 카드는 수입 탭에서만 노출한다(건수 카드보다 앞) — 소비·저축 탭은 예산 대비
+                카드가 이미 있어 평균 지출액 카드가 중복 정보로 판단돼 제외됐다. */}
+            {type === 'INCOME' && (
+              <KpiCard
+                label={period.mode === 'monthly' ? '일평균' : '월평균'}
+                value={amountValue(fmtKrw(
+                  Math.round(
+                    summary.total /
+                      (period.mode === 'monthly' ? elapsedDaysInMonth(period.month, today) : elapsedMonthsInYear(period.month, today)),
+                  ),
+                ))}
+                valueClassName="break-words text-base sm:text-2xl lg:text-3xl"
+              />
+            )}
             <KpiCard label="건수" value={`${summary.count}건`} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
-            <KpiCard
-              label={period.mode === 'monthly' ? '일평균' : '월평균'}
-              value={amountValue(fmtKrw(
-                Math.round(
-                  summary.total /
-                    (period.mode === 'monthly' ? elapsedDaysInMonth(period.month, today) : elapsedMonthsInYear(period.month, today)),
-                ),
-              ))}
-              valueClassName="break-words text-base sm:text-2xl lg:text-3xl"
-            />
           </div>
         )}
       </CardContent>

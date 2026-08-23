@@ -19,6 +19,7 @@ import {
   filterByType,
   flowCategoryColor,
   periodRange,
+  shiftMonth,
   sortCategoryTree,
   unclassifiedTransactions,
   useCanShareToGroup,
@@ -105,6 +106,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
   }
 
   const [categoryPath, setCategoryPath] = useState<string[]>([])
+  const [monthFilter, setMonthFilter] = useState(ALL_FILTER_VALUE)
   const [sortKey, setSortKey] = useState<SortKey>('transactionDate')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const [page, setPage] = useState(1)
@@ -128,14 +130,34 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
     [typed, from, to],
   )
 
+  // 연간 모드 전용 "기준월" 필터 옵션 — periodRange가 이미 계산한 from~to(YTD 또는 1~12월 전체) 안의
+  // 달만 나열해 미래 달이 옵션에 뜨지 않게 한다. 월간 모드는 애초에 단일 달이라 빈 배열(필터 숨김).
+  const monthOptions = useMemo(() => {
+    if (period.mode !== 'yearly') return []
+    const months: string[] = []
+    for (let m = from.slice(0, 7); m <= to.slice(0, 7); m = shiftMonth(m, 1)) months.push(m)
+    return months
+  }, [period.mode, from, to])
+
+  // 월간 모드로 전환되거나(monthOptions=[]) 연간 모드에서 연도만 바뀌어 선택된 달이 더 이상
+  // 그 해에 없으면(예: 2026-08 선택 중 2025년으로 전환) 필터가 무효해진다 — mode만 보면 연도 전환은
+  // 놓친다. useEffect로 state를 사후 리셋하면 그 리셋이 반영되기 전 한 렌더 동안 무효한 monthFilter로
+  // filtered가 텅 비어 보이거나(리뷰에서 발견) Select가 목록에 없는 값을 잠깐 표시할 수 있어,
+  // 렌더 중 즉시 파생값으로 clamp해 filtered·페이지 리셋·Select 표시값 전부 이 값 하나로 통일한다.
+  const effectiveMonthFilter = monthOptions.includes(monthFilter) ? monthFilter : ALL_FILTER_VALUE
+
   const categorySubtreeIds = useMemo(() => {
     if (categoryPath.length === 0) return null
     return new Set(collectSubtreeIds(categoryTree, categoryPath[categoryPath.length - 1]))
   }, [categoryTree, categoryPath])
 
   const filtered = useMemo(
-    () => inPeriod.filter((t) => categorySubtreeIds === null || categorySubtreeIds.has(t.categoryId)),
-    [inPeriod, categorySubtreeIds],
+    () => inPeriod.filter((t) => {
+      if (categorySubtreeIds !== null && !categorySubtreeIds.has(t.categoryId)) return false
+      if (effectiveMonthFilter !== ALL_FILTER_VALUE && t.transactionDate.slice(0, 7) !== effectiveMonthFilter) return false
+      return true
+    }),
+    [inPeriod, categorySubtreeIds, effectiveMonthFilter],
   )
 
   const sorted = useMemo(() => {
@@ -150,10 +172,10 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
     return copy
   }, [filtered, sortKey, sortDirection, index])
 
-  // 카테고리 필터·기간 변경은 결과 집합 자체를 바꾸므로 페이지를 1로 리셋한다(AssetRecordList와 동일 이유).
+  // 카테고리·기준월 필터·기간 변경은 결과 집합 자체를 바꾸므로 페이지를 1로 리셋한다(AssetRecordList와 동일 이유).
   useEffect(() => {
     setPage(1)
-  }, [categoryPath, period.month, period.mode])
+  }, [categoryPath, effectiveMonthFilter, period.month, period.mode])
 
   function handlePageSizeChange(nextSize: string) {
     setPageSize(nextSize)
@@ -211,7 +233,14 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
       ) : (
         <>
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <FinanceRecordFilters categoryTree={categoryTree} categoryPath={categoryPath} onCategoryPathChange={setCategoryPath} />
+            <FinanceRecordFilters
+              categoryTree={categoryTree}
+              categoryPath={categoryPath}
+              onCategoryPathChange={setCategoryPath}
+              monthOptions={monthOptions}
+              month={effectiveMonthFilter}
+              onMonthChange={setMonthFilter}
+            />
             <PageSizeSelector value={pageSize} onChange={handlePageSizeChange} />
           </div>
 

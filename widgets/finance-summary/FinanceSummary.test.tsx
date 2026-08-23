@@ -122,3 +122,39 @@ describe('FinanceSummary 수입 대비 비율', () => {
     expect(screen.queryByText('수입 대비 비율')).not.toBeInTheDocument()
   })
 })
+
+describe('FinanceSummary 일평균/월평균 카드', () => {
+  it('EXPENSE/SAVING 탭은 일평균 카드를 보여주지 않는다', () => {
+    render(
+      <FinanceSummary
+        type="EXPENSE"
+        transactions={[tx('2026-08-05', 30000)]}
+        index={index}
+        isLoading={false}
+        isError={false}
+        period={{ month: '2026-08', mode: 'monthly' }}
+        onPeriodChange={() => {}}
+        today="2026-08-23"
+      />,
+    )
+    expect(screen.queryByText('일평균')).not.toBeInTheDocument()
+    expect(screen.queryByText('월평균')).not.toBeInTheDocument()
+  })
+
+  it('INCOME 탭은 일평균 카드를 건수 카드보다 앞에 배치한다', () => {
+    render(
+      <FinanceSummary
+        type="INCOME"
+        transactions={[tx('2026-08-01', 100000, 'cat-income')]}
+        index={index}
+        isLoading={false}
+        isError={false}
+        period={{ month: '2026-08', mode: 'monthly' }}
+        onPeriodChange={() => {}}
+        today="2026-08-23"
+      />,
+    )
+    const labels = screen.getAllByText(/^(일평균|건수)$/).map((el) => el.textContent)
+    expect(labels).toEqual(['일평균', '건수'])
+  })
+})

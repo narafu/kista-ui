@@ -11,15 +11,33 @@ interface Props {
   categoryTree: FinanceCategory[]
   categoryPath: string[]
   onCategoryPathChange: (path: string[]) => void
+  // 연간 모드 전용 "기준월" 필터 — 월간 모드는 부모가 monthOptions를 빈 배열로 넘겨 숨긴다
+  // (단일 달만 보는 월간 모드엔 이 필터 자체가 불필요).
+  monthOptions?: string[]
+  month?: string
+  onMonthChange?: (value: string) => void
 }
 
-// AssetRecordFilters의 계단식 카테고리 필터 부분만 이식 — 이 위젯은 기간(월 select)·자산군·시장
-// 필터가 없다(부모가 이미 period로 범위를 고정한다, "전체 기간" 옵션 자체가 없음).
-export function FinanceRecordFilters({ categoryTree, categoryPath, onCategoryPathChange }: Props) {
+// AssetRecordFilters의 계단식 카테고리 필터 부분만 이식 — 이 위젯은 자산군·시장 필터가 없다.
+// 기간(월 select)은 연간 모드에서만 monthOptions가 채워져 조건부로 나타난다("전체 기간" 옵션 포함).
+export function FinanceRecordFilters({ categoryTree, categoryPath, onCategoryPathChange, monthOptions = [], month = ALL_FILTER_VALUE, onMonthChange }: Props) {
   const cascadeLevels = useMemo(() => getCascadeLevels(categoryTree, categoryPath), [categoryTree, categoryPath])
 
   return (
     <div className="flex flex-wrap gap-2">
+      {monthOptions.length > 0 && (
+        <Select
+          items={[{ value: ALL_FILTER_VALUE, label: '전체 기간' }, ...monthOptions.map((m) => ({ value: m, label: m }))]}
+          value={month}
+          onValueChange={(value) => { if (value) onMonthChange?.(value) }}
+        >
+          <SelectTrigger aria-label="기준월" className="w-full lg:w-32"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_FILTER_VALUE}>전체 기간</SelectItem>
+            {monthOptions.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      )}
       <Select
         items={[{ value: ALL_FILTER_VALUE, label: '전체' }, ...cascadeLevels[0].map((c) => ({ value: c.id, label: c.name }))]}
         value={categoryPath[0] ?? ALL_FILTER_VALUE}

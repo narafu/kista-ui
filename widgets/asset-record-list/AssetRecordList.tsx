@@ -82,10 +82,10 @@ function AssetRecordActions({
           <Undo2 className="size-4" />
         </IconButton>
       )}
-      <Link href={`/finance/new?duplicateFrom=${snapshotId}`} aria-label="복제" className={ICON_LINK_CLASS}>
+      <Link href={`/finance/new?duplicateFrom=${snapshotId}`} aria-label="복제" title="복제" className={ICON_LINK_CLASS}>
         <Copy className="size-4" />
       </Link>
-      <Link href={`/finance/${snapshotId}/edit`} aria-label="수정" className={ICON_LINK_CLASS}>
+      <Link href={`/finance/${snapshotId}/edit`} aria-label="수정" title="수정" className={ICON_LINK_CLASS}>
         <Pencil className="size-4" />
       </Link>
       <IconButton aria-label="삭제" onClick={onDelete} className="text-destructive hover:text-destructive">
