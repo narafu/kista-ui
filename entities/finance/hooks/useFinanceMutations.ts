@@ -209,10 +209,22 @@ function useInvalidateCategoriesMutation<TData, TVariables>(
   })
 }
 
+// 신규 등록은 항상 개인 소유로 저장된다(kista-api FinanceCategoryService.create — groupId 쿼리
+// 파라미터는 서버가 무시). 그룹으로 저장하려면 생성 직후 공유 전환(PATCH .../{id}/share)을 이어붙인다.
+// 공유 전환이 실패해도(네트워크 오류 등) 카테고리 자체는 이미 저장됐으니 전체 실패로 처리하지 않고
+// 개인 소유로 조용히 남긴다 — budget/transaction과 동일 이유로 toast는 호출부(mutate의 onSuccess)에 맡긴다.
 export function useCreateFinanceCategoryMutation() {
   const groupId = useActiveGroupId()
-  return useInvalidateCategoriesMutation<FinanceCategory, FinanceCategoryRequest>(
-    (data) => createFinanceCategory(data, { groupId }),
+  return useInvalidateCategoriesMutation<FinanceCategory, FinanceCategoryRequest & { shareToGroup?: boolean }>(
+    async ({ shareToGroup, ...data }) => {
+      const saved = await createFinanceCategory(data, { groupId })
+      if (!shareToGroup) return saved
+      try {
+        return await shareFinanceCategory(saved.id)
+      } catch {
+        return saved
+      }
+    },
     '카테고리를 저장하지 못했습니다',
   )
 }

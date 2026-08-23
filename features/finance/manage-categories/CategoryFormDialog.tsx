@@ -14,8 +14,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Switch } from '@/components/ui/switch'
 import { Spinner } from '@shared/ui/Spinner'
-import { getCascadeLevels, useCreateFinanceCategoryMutation, useUpdateFinanceCategoryMutation } from '@entities/finance'
+import { getCascadeLevels, useCanShareToGroup, useCreateFinanceCategoryMutation, useUpdateFinanceCategoryMutation } from '@entities/finance'
 import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
 
 // Base UI Select는 빈 문자열 value를 허용하지 않는다 — AssetForm의 NO_ACCOUNT_VALUE와 동일한 센티널 패턴.
@@ -41,6 +42,10 @@ export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, cat
   const [selectedPath, setSelectedPath] = useState<string[]>([])
   const cascadeLevels = useMemo(() => getCascadeLevels(l1Categories, selectedPath), [l1Categories, selectedPath])
   const parentId = selectedPath[selectedPath.length - 1] ?? NO_PARENT_VALUE
+
+  // 그룹 소속일 때만 노출, 기본값 켜짐(그룹 저장 우선) — 수정 모드는 groupId가 이미 고정돼 있어 대상 아님.
+  const canShareToGroup = useCanShareToGroup()
+  const [shareToGroup, setShareToGroup] = useState(true)
 
   const createMutation = useCreateFinanceCategoryMutation()
   const updateMutation = useUpdateFinanceCategoryMutation(category?.id ?? '')
@@ -68,9 +73,13 @@ export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, cat
       return
     }
 
-    createMutation.mutate(payload, {
-      onSuccess: () => {
-        toast.success('카테고리가 추가되었습니다')
+    createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
+      onSuccess: (saved, variables) => {
+        if (variables.shareToGroup && !saved.groupId) {
+          toast.warning('카테고리는 저장됐지만 그룹 공유에 실패했습니다 — 목록에서 공유 버튼으로 다시 시도하세요')
+        } else {
+          toast.success('카테고리가 추가되었습니다')
+        }
         onSuccess()
       },
     })
@@ -140,6 +149,18 @@ export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, cat
                 disabled={isPending}
               />
             </div>
+
+            {mode === 'create' && canShareToGroup && (
+              <div className="flex items-center justify-between">
+                <Label htmlFor="categoryShareToGroup">그룹으로 저장</Label>
+                <Switch
+                  id="categoryShareToGroup"
+                  checked={shareToGroup}
+                  onCheckedChange={setShareToGroup}
+                  disabled={isPending}
+                />
+              </div>
+            )}
           </div>
 
           <DialogFooter>
