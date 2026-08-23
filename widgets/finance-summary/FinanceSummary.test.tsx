@@ -27,7 +27,7 @@ describe('FinanceSummary 연간 모드', () => {
       />,
     )
     expect(screen.queryByLabelText('기준 월')).not.toBeInTheDocument()
-    expect(screen.getByLabelText('기준 연도')).toHaveValue(2026)
+    expect(screen.getByRole('combobox', { name: '기준 연도' })).toHaveTextContent('2026년')
   })
 
   it('연간 모드에서 전년 동기간 거래가 있으면 전년 대비 카드를 보여준다', () => {
