@@ -7,10 +7,13 @@ vi.mock('@entities/meta', () => ({
   useMeta: () => ({ labelOf: () => '소비' }),
 }))
 
-const index = new Map([['cat-1', { type: 'EXPENSE' as const, rootId: 'cat-1', name: '식비', sortOrder: 0 }]])
+const index = new Map([
+  ['cat-1', { type: 'EXPENSE' as const, rootId: 'cat-1', name: '식비', sortOrder: 0 }],
+  ['cat-income', { type: 'INCOME' as const, rootId: 'cat-income', name: '급여', sortOrder: 0 }],
+])
 
-function tx(date: string, amount: number): FinanceTransaction {
-  return { id: date + amount, categoryId: 'cat-1', transactionDate: date, amount, memo: undefined } as FinanceTransaction
+function tx(date: string, amount: number, categoryId = 'cat-1'): FinanceTransaction {
+  return { id: date + amount + categoryId, categoryId, transactionDate: date, amount, memo: undefined } as FinanceTransaction
 }
 
 describe('FinanceSummary 월간 모드', () => {
@@ -66,5 +69,56 @@ describe('FinanceSummary 연간 모드', () => {
       />,
     )
     expect(screen.getByText('전년 대비')).toBeInTheDocument()
+  })
+})
+
+describe('FinanceSummary 수입 대비 비율', () => {
+  it('EXPENSE/SAVING 탭은 같은 기간 INCOME 합계 대비 비율을 보여준다', () => {
+    render(
+      <FinanceSummary
+        type="EXPENSE"
+        transactions={[tx('2026-08-05', 30000, 'cat-1'), tx('2026-08-01', 100000, 'cat-income')]}
+        index={index}
+        isLoading={false}
+        isError={false}
+        period={{ month: '2026-08', mode: 'monthly' }}
+        onPeriodChange={() => {}}
+        today="2026-08-23"
+      />,
+    )
+    expect(screen.getByText('수입 대비 비율')).toBeInTheDocument()
+    expect(screen.getByText('30%')).toBeInTheDocument()
+  })
+
+  it('INCOME 탭은 자기 자신 대비라 항상 100%라 카드를 보여주지 않는다', () => {
+    render(
+      <FinanceSummary
+        type="INCOME"
+        transactions={[tx('2026-08-01', 100000, 'cat-income')]}
+        index={index}
+        isLoading={false}
+        isError={false}
+        period={{ month: '2026-08', mode: 'monthly' }}
+        onPeriodChange={() => {}}
+        today="2026-08-23"
+      />,
+    )
+    expect(screen.queryByText('수입 대비 비율')).not.toBeInTheDocument()
+  })
+
+  it('같은 기간 수입이 없으면 나눗셈 0 분모를 피해 카드를 보여주지 않는다', () => {
+    render(
+      <FinanceSummary
+        type="EXPENSE"
+        transactions={[tx('2026-08-05', 30000, 'cat-1')]}
+        index={index}
+        isLoading={false}
+        isError={false}
+        period={{ month: '2026-08', mode: 'monthly' }}
+        onPeriodChange={() => {}}
+        today="2026-08-23"
+      />,
+    )
+    expect(screen.queryByText('수입 대비 비율')).not.toBeInTheDocument()
   })
 })

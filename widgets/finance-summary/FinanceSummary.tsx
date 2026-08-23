@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SectionError } from '@shared/ui/SectionError'
-import { fmtKrw, fmtSignedKrw, maskAmount, pnlTextClass } from '@shared/lib/format'
+import { fmtKrw, fmtSignedKrw, maskAmount, pnlTextClass, ratioToPercent } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { useMeta } from '@entities/meta'
@@ -97,6 +97,14 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
   }, [period, previousYearTransactions, index, type, today])
   const previousYearDelta = previousYearTotal !== null ? summary.total - previousYearTotal : null
 
+  // 수입 대비 비율 — INCOME 탭은 자기 자신 대비라 항상 100%로 무의미해 제외한다. 같은 기간 INCOME
+  // 합계는 이미 받고 있는 unfiltered transactions+index에서 뽑아내 별도 쿼리 없이 계산한다.
+  const incomeTotal = useMemo(() => {
+    const incomeTransactions = filterByType(transactions, index, 'INCOME')
+    return calcFlowSummary(incomeTransactions, period, today).total
+  }, [transactions, index, period, today])
+  const incomeRatio = type !== 'INCOME' && incomeTotal > 0 ? summary.total / incomeTotal : null
+
   // 연도 select 옵션 — 최근 15개년을 기본으로 잡되, 월간 모드에서 그 범위 밖 연도(과거든 미래든)를
   // 고른 뒤 연간 모드로 전환해도 현재 선택값이 항상 목록에 포함되도록 보정한다(안 하면 SelectValue가
   // 목록에 없는 값이라 빈칸으로 보인다).
@@ -163,7 +171,6 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <KpiCard label="합계" value={amountValue(fmtKrw(summary.total))} variant="accent" valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
-            <KpiCard label="건수" value={`${summary.count}건`} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
             {period.mode === 'monthly' && previousDelta !== null && (
               <KpiCard
                 label="전월 대비"
@@ -178,6 +185,10 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
                 valueClassName={cn('break-words text-base sm:text-2xl lg:text-3xl', pnlTextClass(type === 'EXPENSE' ? -previousYearDelta : previousYearDelta))}
               />
             )}
+            {incomeRatio !== null && (
+              <KpiCard label="수입 대비 비율" value={`${ratioToPercent(incomeRatio)}%`} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
+            )}
+            <KpiCard label="건수" value={`${summary.count}건`} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
             <KpiCard
               label={period.mode === 'monthly' ? '일평균' : '월평균'}
               value={amountValue(fmtKrw(

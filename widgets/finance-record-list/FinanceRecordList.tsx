@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Copy, Pencil, Share2, Trash2, Undo2 } from 'lucide-react'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
+import { IconButton } from '@shared/ui/IconButton'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
@@ -32,6 +33,46 @@ import { ALL_FILTER_VALUE, FinanceRecordFilters } from './FinanceRecordFilters'
 
 type SortKey = 'transactionDate' | 'category' | 'amount'
 type SortDirection = 'asc' | 'desc'
+
+// 데스크탑 테이블 행·모바일 카드 행이 동일한 작업 버튼 세트를 공유한다 — IconButton이 이미
+// 44px 히트영역을 고정해 두 레이아웃에서 별도 padding/font-size 클래스가 필요 없다.
+function RecordRowActions({
+  onEdit, onDuplicate, onShare, onUnshare, onDelete, canShare, hasGroupId, sharePending, unsharePending,
+}: {
+  onEdit: () => void
+  onDuplicate: () => void
+  onShare: () => void
+  onUnshare: () => void
+  onDelete: () => void
+  canShare: boolean
+  hasGroupId: boolean
+  sharePending: boolean
+  unsharePending: boolean
+}) {
+  return (
+    <div className="flex shrink-0 items-center gap-1">
+      {canShare && !hasGroupId && (
+        <IconButton aria-label="공유" onClick={onShare} disabled={sharePending}>
+          <Share2 className="size-4" />
+        </IconButton>
+      )}
+      {canShare && hasGroupId && (
+        <IconButton aria-label="귀속" onClick={onUnshare} disabled={unsharePending}>
+          <Undo2 className="size-4" />
+        </IconButton>
+      )}
+      <IconButton aria-label="복제" onClick={onDuplicate}>
+        <Copy className="size-4" />
+      </IconButton>
+      <IconButton aria-label="수정" onClick={onEdit}>
+        <Pencil className="size-4" />
+      </IconButton>
+      <IconButton aria-label="삭제" onClick={onDelete} className="text-destructive hover:text-destructive">
+        <Trash2 className="size-4" />
+      </IconButton>
+    </div>
+  )
+}
 
 interface Props {
   type: FinanceCategoryType
@@ -219,24 +260,18 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                           <TableDataCell className="tabular-nums whitespace-nowrap">{fmtKrw(t.amount)}</TableDataCell>
                           <TableDataCell className={cn(!t.memo && 'text-muted-foreground')}>{t.memo ?? '—'}</TableDataCell>
                           <TableDataCell>
-                            <div className="flex items-center justify-center gap-1">
-                              <button type="button" onClick={() => editDialog.request(t)} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">수정</button>
-                              <span className="text-muted-foreground/40">·</span>
-                              <button type="button" onClick={() => duplicateDialog.request(t)} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">복제</button>
-                              {canShare && !t.groupId && (
-                                <>
-                                  <span className="text-muted-foreground/40">·</span>
-                                  <button type="button" onClick={() => handleShare(t.id)} disabled={shareMutation.isPending} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">공유</button>
-                                </>
-                              )}
-                              {canShare && t.groupId && (
-                                <>
-                                  <span className="text-muted-foreground/40">·</span>
-                                  <button type="button" onClick={() => handleUnshare(t.id)} disabled={unshareMutation.isPending} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">귀속</button>
-                                </>
-                              )}
-                              <span className="text-muted-foreground/40">·</span>
-                              <button type="button" onClick={() => deleteDialog.request(t.id)} className="text-xs font-semibold text-destructive hover:text-destructive/80">삭제</button>
+                            <div className="flex items-center justify-center">
+                              <RecordRowActions
+                                onEdit={() => editDialog.request(t)}
+                                onDuplicate={() => duplicateDialog.request(t)}
+                                onShare={() => handleShare(t.id)}
+                                onUnshare={() => handleUnshare(t.id)}
+                                onDelete={() => deleteDialog.request(t.id)}
+                                canShare={canShare}
+                                hasGroupId={!!t.groupId}
+                                sharePending={shareMutation.isPending}
+                                unsharePending={unshareMutation.isPending}
+                              />
                             </div>
                           </TableDataCell>
                         </tr>
@@ -266,25 +301,17 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                       </div>
                       <div className="mt-1 flex items-center justify-between gap-2">
                         <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{t.memo ?? '—'}</p>
-                        <div className="flex shrink-0 items-center gap-1">
-                          <button type="button" onClick={() => editDialog.request(t)} className="px-1 py-2 text-xs font-semibold text-foreground">수정</button>
-                          <span className="text-muted-foreground/40">·</span>
-                          <button type="button" onClick={() => duplicateDialog.request(t)} className="px-1 py-2 text-xs font-semibold text-foreground">복제</button>
-                          {canShare && !t.groupId && (
-                            <>
-                              <span className="text-muted-foreground/40">·</span>
-                              <button type="button" onClick={() => handleShare(t.id)} disabled={shareMutation.isPending} className="px-1 py-2 text-xs font-semibold text-foreground">공유</button>
-                            </>
-                          )}
-                          {canShare && t.groupId && (
-                            <>
-                              <span className="text-muted-foreground/40">·</span>
-                              <button type="button" onClick={() => handleUnshare(t.id)} disabled={unshareMutation.isPending} className="px-1 py-2 text-xs font-semibold text-foreground">귀속</button>
-                            </>
-                          )}
-                          <span className="text-muted-foreground/40">·</span>
-                          <button type="button" onClick={() => deleteDialog.request(t.id)} className="px-1 py-2 text-xs font-semibold text-destructive">삭제</button>
-                        </div>
+                        <RecordRowActions
+                          onEdit={() => editDialog.request(t)}
+                          onDuplicate={() => duplicateDialog.request(t)}
+                          onShare={() => handleShare(t.id)}
+                          onUnshare={() => handleUnshare(t.id)}
+                          onDelete={() => deleteDialog.request(t.id)}
+                          canShare={canShare}
+                          hasGroupId={!!t.groupId}
+                          sharePending={shareMutation.isPending}
+                          unsharePending={unshareMutation.isPending}
+                        />
                       </div>
                     </li>
                   )

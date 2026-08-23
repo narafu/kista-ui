@@ -136,15 +136,15 @@ describe('AssetRecordList', () => {
     expect(cellTexts[6]).toBe('—')
   })
 
-  it('작업 버튼은 복제·수정·삭제 순서로 배치된다', () => {
+  it('작업 버튼(아이콘)은 복제·수정·삭제 순서로 배치된다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({})], isLoading: false, isError: false })
     render(<AssetRecordList />)
 
     const desktopTable = screen.getByRole('table', { name: '자산 기록' })
     const dataRow = within(desktopTable).getAllByRole('row')[1]
     const actionCell = within(dataRow).getAllByRole('cell').at(-1) as HTMLElement
-    const labels = within(actionCell).getAllByRole('link').map((el) => el.textContent)
-      .concat(within(actionCell).getAllByRole('button').map((el) => el.textContent))
+    // 아이콘 전용 버튼이라 textContent가 비어있다 — DOM 순서 그대로 aria-label을 읽는다.
+    const labels = Array.from(actionCell.querySelectorAll('[aria-label]')).map((el) => el.getAttribute('aria-label'))
 
     expect(labels).toEqual(['복제', '수정', '삭제'])
   })

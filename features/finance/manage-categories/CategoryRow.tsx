@@ -1,4 +1,6 @@
+import { Pencil, Share2, Trash2, Undo2 } from 'lucide-react'
 import { Badge } from '@shared/ui/Badge'
+import { IconButton } from '@shared/ui/IconButton'
 import { cn } from '@shared/lib/utils'
 import type { FinanceCategory } from '@entities/finance'
 
@@ -43,43 +45,33 @@ export function CategoryRow({
           <span className="truncate text-sm font-medium">{category.name}</span>
           {category.system && <Badge tone="neutral" size="sm">시스템</Badge>}
         </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <button
-            type="button"
-            onClick={() => onEdit(category)}
-            disabled={locked}
-            className={cn('text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]', locked && 'opacity-40 pointer-events-none')}
-          >
-            수정
-          </button>
+        <div className="flex shrink-0 items-center gap-1">
           {showShare && !category.groupId && (
-            <button
-              type="button"
-              onClick={() => onShare?.(category)}
-              disabled={shareMutationPending}
-              className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]"
-            >
-              공유
-            </button>
+            <IconButton aria-label="공유" onClick={() => onShare?.(category)} disabled={shareMutationPending}>
+              <Share2 className="size-4" />
+            </IconButton>
           )}
           {showShare && category.groupId && (
-            <button
-              type="button"
-              onClick={() => onUnshare?.(category)}
-              disabled={unshareMutationPending}
-              className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]"
-            >
-              귀속
-            </button>
+            <IconButton aria-label="귀속" onClick={() => onUnshare?.(category)} disabled={unshareMutationPending}>
+              <Undo2 className="size-4" />
+            </IconButton>
           )}
-          <button
-            type="button"
+          <IconButton
+            aria-label="수정"
+            onClick={() => onEdit(category)}
+            disabled={locked}
+            className={cn(locked && 'opacity-40 pointer-events-none')}
+          >
+            <Pencil className="size-4" />
+          </IconButton>
+          <IconButton
+            aria-label="삭제"
             onClick={() => onDelete(category)}
             disabled={locked}
-            className={cn('text-xs font-semibold text-destructive hover:text-destructive/80', locked && 'opacity-40 pointer-events-none')}
+            className={cn('text-destructive hover:text-destructive', locked && 'opacity-40 pointer-events-none')}
           >
-            삭제
-          </button>
+            <Trash2 className="size-4" />
+          </IconButton>
         </div>
       </li>
       {category.children.map((child) => (

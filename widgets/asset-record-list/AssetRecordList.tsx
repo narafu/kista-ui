@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Copy, Pencil, Share2, Trash2, Undo2 } from 'lucide-react'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
+import { IconButton } from '@shared/ui/IconButton'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
@@ -50,6 +51,48 @@ const CATEGORY_TONE: Record<string, 'brand' | 'error' | 'neutral'> = {
 // 카테고리명을 먼저 말해 화면(왼쪽 카테고리·오른쪽 계좌 등) 순서와 맞춘다.
 function accountLabel(snapshot: AssetSnapshot): string {
   return snapshot.accountName ? `${snapshot.categoryName} · ${snapshot.accountName}` : snapshot.categoryName
+}
+
+// IconButton의 ghost variant와 동일한 44px 히트영역 클래스 — 복제·수정은 페이지 이동(Link)이라
+// widgets.md 규칙상 IconButton(버튼 전용)을 쓸 수 없어 동일 클래스를 직접 replicate한다.
+const ICON_LINK_CLASS = 'inline-flex items-center justify-center size-11 rounded-lg transition-colors text-muted-foreground hover:text-foreground hover:bg-accent'
+
+// 데스크탑 테이블 행·모바일 카드 행이 동일한 작업 버튼 세트를 공유한다.
+function AssetRecordActions({
+  snapshotId, onShare, onUnshare, onDelete, canShare, hasGroupId, sharePending, unsharePending,
+}: {
+  snapshotId: string
+  onShare: () => void
+  onUnshare: () => void
+  onDelete: () => void
+  canShare: boolean
+  hasGroupId: boolean
+  sharePending: boolean
+  unsharePending: boolean
+}) {
+  return (
+    <div className="flex shrink-0 items-center gap-1">
+      {canShare && !hasGroupId && (
+        <IconButton aria-label="공유" onClick={onShare} disabled={sharePending}>
+          <Share2 className="size-4" />
+        </IconButton>
+      )}
+      {canShare && hasGroupId && (
+        <IconButton aria-label="귀속" onClick={onUnshare} disabled={unsharePending}>
+          <Undo2 className="size-4" />
+        </IconButton>
+      )}
+      <Link href={`/finance/new?duplicateFrom=${snapshotId}`} aria-label="복제" className={ICON_LINK_CLASS}>
+        <Copy className="size-4" />
+      </Link>
+      <Link href={`/finance/${snapshotId}/edit`} aria-label="수정" className={ICON_LINK_CLASS}>
+        <Pencil className="size-4" />
+      </Link>
+      <IconButton aria-label="삭제" onClick={onDelete} className="text-destructive hover:text-destructive">
+        <Trash2 className="size-4" />
+      </IconButton>
+    </div>
+  )
 }
 
 export function AssetRecordList() {
@@ -302,24 +345,17 @@ export function AssetRecordList() {
                       {fmtKrw(snapshot.amount)}
                     </TableDataCell>
                     <TableDataCell>
-                      <div className="flex items-center justify-center gap-1">
-                        <Link href={`/finance/new?duplicateFrom=${snapshot.id}`} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">복제</Link>
-                        <span className="text-muted-foreground/40">·</span>
-                        <Link href={`/finance/${snapshot.id}/edit`} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">수정</Link>
-                        {canShare && !snapshot.groupId && (
-                          <>
-                            <span className="text-muted-foreground/40">·</span>
-                            <button type="button" onClick={() => handleShare(snapshot.id)} disabled={shareMutation.isPending} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">공유</button>
-                          </>
-                        )}
-                        {canShare && snapshot.groupId && (
-                          <>
-                            <span className="text-muted-foreground/40">·</span>
-                            <button type="button" onClick={() => handleUnshare(snapshot.id)} disabled={unshareMutation.isPending} className="text-xs font-semibold text-foreground hover:text-[var(--brand-fg-soft)]">귀속</button>
-                          </>
-                        )}
-                        <span className="text-muted-foreground/40">·</span>
-                        <button type="button" onClick={() => deleteDialog.request([snapshot.id])} className="text-xs font-semibold text-destructive hover:text-destructive/80">삭제</button>
+                      <div className="flex items-center justify-center">
+                        <AssetRecordActions
+                          snapshotId={snapshot.id}
+                          onShare={() => handleShare(snapshot.id)}
+                          onUnshare={() => handleUnshare(snapshot.id)}
+                          onDelete={() => deleteDialog.request([snapshot.id])}
+                          canShare={canShare}
+                          hasGroupId={!!snapshot.groupId}
+                          sharePending={shareMutation.isPending}
+                          unsharePending={unshareMutation.isPending}
+                        />
                       </div>
                     </TableDataCell>
                   </tr>
@@ -354,17 +390,16 @@ export function AssetRecordList() {
                       <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
                         {[labelOf('markets', snapshot.market), snapshot.strategy, snapshot.accountName].filter(Boolean).join(' · ')}
                       </p>
-                      <div className="flex shrink-0 items-center gap-1">
-                        <Link href={`/finance/new?duplicateFrom=${snapshot.id}`} className="px-1 py-2 text-xs font-semibold text-foreground">복제</Link>
-                        <Link href={`/finance/${snapshot.id}/edit`} className="px-1 py-2 text-xs font-semibold text-foreground">수정</Link>
-                        {canShare && !snapshot.groupId && (
-                          <button type="button" onClick={() => handleShare(snapshot.id)} disabled={shareMutation.isPending} className="px-1 py-2 text-xs font-semibold text-foreground">공유</button>
-                        )}
-                        {canShare && snapshot.groupId && (
-                          <button type="button" onClick={() => handleUnshare(snapshot.id)} disabled={unshareMutation.isPending} className="px-1 py-2 text-xs font-semibold text-foreground">귀속</button>
-                        )}
-                        <button type="button" onClick={() => deleteDialog.request([snapshot.id])} className="px-1 py-2 text-xs font-semibold text-destructive">삭제</button>
-                      </div>
+                      <AssetRecordActions
+                        snapshotId={snapshot.id}
+                        onShare={() => handleShare(snapshot.id)}
+                        onUnshare={() => handleUnshare(snapshot.id)}
+                        onDelete={() => deleteDialog.request([snapshot.id])}
+                        canShare={canShare}
+                        hasGroupId={!!snapshot.groupId}
+                        sharePending={shareMutation.isPending}
+                        unsharePending={unshareMutation.isPending}
+                      />
                     </div>
                   </div>
                 </div>
