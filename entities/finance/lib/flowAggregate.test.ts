@@ -104,4 +104,25 @@ describe('calcBudgetProgress', () => {
 
     expect(result.map((r) => r.budgetId)).toEqual(['b-salary', 'b-bonus'])
   })
+
+  it('연간 모드: 과거 연도를 선택하면 period.month의 mm과 무관하게 12개월 전체를 유효 개월로 할당한다', () => {
+    const categoryTree: FinanceCategory[] = [
+      { id: 'cat-food', type: 'EXPENSE', name: '식비', sortOrder: 1, system: false, children: [] },
+    ]
+    const budgets: FinanceBudget[] = [
+      { id: 'b-food', categoryId: 'cat-food', applyStartDate: '2025-01-01', amount: 100 },
+    ]
+    const transactions = [
+      tx('1', 'cat-food', '2025-03-01', 50),
+      tx('2', 'cat-food', '2025-11-01', 50),
+    ]
+
+    // month의 mm이 '03'이어도(월간 탭에서 남은 값) 과거 연도(2025)면 12개월(1200) 전체가 allocated다 —
+    // mm 기준으로 세면 3개월(300)로 잘못 계산되던 버그의 회귀 테스트.
+    const result = calcBudgetProgress(budgets, transactions, categoryTree, index, { month: '2025-03', mode: 'yearly' }, '2026-08-23')
+
+    expect(result).toEqual([
+      { budgetId: 'b-food', categoryId: 'cat-food', categoryName: '식비', allocated: 1200, actual: 100, remaining: 1100, usageRatio: 100 / 1200 },
+    ])
+  })
 })

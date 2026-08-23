@@ -32,11 +32,16 @@ export function monthStartDate(month: string): string {
 // 이미 끝난 과거 연도면 1월~12월 전체. 연간 모드엔 mm을 바꿀 UI가 없어(연도 select만 있음)
 // period.month의 mm은 월간 탭에서 보던 달이 그대로 남아있는 값이라 신뢰할 수 없다 — 그 mm으로
 // "선택월까지"를 계산하면 과거 연도를 골라도 반쪽 합계만 나오는 버그가 된다.
+// 연간 모드 range 계산 4곳(periodRange·elapsedMonthsInYear·previousYearRange·yearsRange)이
+// 공통으로 쓰는 "선택 연도가 올해인가" 판정 — 판정 기준이 바뀌면 한 곳만 고치면 되도록 모은다.
+function isCurrentYear(year: string, today: string): boolean {
+  return year === today.slice(0, 4)
+}
+
 export function periodRange({ month, mode }: Period, today: string): { from: string; to: string } {
   if (mode === 'monthly') return { from: monthStartDate(month), to: monthEndDate(month) }
   const year = month.slice(0, 4)
-  const isCurrentYear = year === today.slice(0, 4)
-  return { from: `${year}-01-01`, to: isCurrentYear ? today : monthEndDate(`${year}-12`) }
+  return { from: `${year}-01-01`, to: isCurrentYear(year, today) ? today : monthEndDate(`${year}-12`) }
 }
 
 // 요약·전월대비·6개월추이·YTD누적·예산대비를 단일 쿼리로 덮는 12개월 윈도우.
@@ -60,7 +65,7 @@ export function elapsedDaysInMonth(month: string, today: string): number {
 // 연간 모드에서 "몇 개월치 실적인지" — periodRange와 동일한 규칙: 올해면 1월~오늘 달,
 // 과거 연도면 12개월 전체.
 export function elapsedMonthsInYear(month: string, today: string): number {
-  if (month.slice(0, 4) === today.slice(0, 4)) return Number(today.slice(5, 7))
+  if (isCurrentYear(month.slice(0, 4), today)) return Number(today.slice(5, 7))
   return 12
 }
 
@@ -72,8 +77,7 @@ export function elapsedMonthsInYear(month: string, today: string): number {
 export function previousYearRange(period: Period, today: string): { from: string; to: string } {
   const year = period.month.slice(0, 4)
   const prevYear = Number(year) - 1
-  const isCurrentYear = year === today.slice(0, 4)
-  if (!isCurrentYear) return { from: `${prevYear}-01-01`, to: monthEndDate(`${prevYear}-12`) }
+  if (!isCurrentYear(year, today)) return { from: `${prevYear}-01-01`, to: monthEndDate(`${prevYear}-12`) }
   const mm = today.slice(5, 7)
   const dd = today.slice(8, 10)
   const monthEnd = monthEndDate(`${prevYear}-${mm}`)
@@ -88,6 +92,8 @@ export function previousYearRange(period: Period, today: string): { from: string
 // 필요하다(previousYearRange와 동일한 이유).
 export function yearsRange(month: string, yearsLimit: number, today: string): { from: string; to: string } {
   const year = Number(month.slice(0, 4))
-  const isCurrentYear = String(year) === today.slice(0, 4)
-  return { from: `${year - (yearsLimit - 1)}-01-01`, to: isCurrentYear ? today : monthEndDate(`${year}-12`) }
+  return {
+    from: `${year - (yearsLimit - 1)}-01-01`,
+    to: isCurrentYear(String(year), today) ? today : monthEndDate(`${year}-12`),
+  }
 }

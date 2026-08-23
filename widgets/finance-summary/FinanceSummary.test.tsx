@@ -24,6 +24,7 @@ describe('FinanceSummary 월간 모드', () => {
         isError={false}
         period={{ month: '2026-08', mode: 'monthly' }}
         onPeriodChange={() => {}}
+        today="2026-08-23"
       />,
     )
     expect(document.querySelector('input[type="month"]')).not.toBeInTheDocument()
@@ -43,6 +44,7 @@ describe('FinanceSummary 연간 모드', () => {
         isError={false}
         period={{ month: '2026-08', mode: 'yearly' }}
         onPeriodChange={() => {}}
+        today="2026-08-23"
       />,
     )
     expect(screen.queryByLabelText('기준 월')).not.toBeInTheDocument()
@@ -60,6 +62,7 @@ describe('FinanceSummary 연간 모드', () => {
         period={{ month: '2026-08', mode: 'yearly' }}
         onPeriodChange={() => {}}
         previousYearTransactions={[tx('2025-03-01', 10000)]}
+        today="2026-08-23"
       />,
     )
     expect(screen.getByText('전년 대비')).toBeInTheDocument()

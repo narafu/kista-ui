@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react'
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { SectionError } from '@shared/ui/SectionError'
-import { fmtKrw, todayKst } from '@shared/lib/format'
+import { fmtKrw } from '@shared/lib/format'
 import { calcFlowTrend, filterByType, flowCategoryColor, sortCategoryTree } from '@entities/finance'
 import type { CategoryIndex, FinanceCategory, FinanceCategoryType, FinanceTransaction, Period } from '@entities/finance'
 
@@ -26,12 +26,12 @@ interface Props {
   period: Period
   isLoading: boolean
   isError: boolean
+  today: string
 }
 
-export default function FinanceTrendInner({ type, transactions, yearlyTransactions, categoryTree, index, period, isLoading, isError }: Props) {
+export default function FinanceTrendInner({ type, transactions, yearlyTransactions, categoryTree, index, period, isLoading, isError, today }: Props) {
   const [byCategory, setByCategory] = useState(false)
 
-  const today = todayKst()
   const sourceTransactions = period.mode === 'yearly' ? yearlyTransactions : transactions
   const typeTransactions = useMemo(() => filterByType(sourceTransactions, index, type), [sourceTransactions, index, type])
   const trend = useMemo(() => calcFlowTrend(typeTransactions, index, period, today, 6), [typeTransactions, index, period, today])

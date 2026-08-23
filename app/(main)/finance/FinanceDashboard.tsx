@@ -214,6 +214,7 @@ export function FinanceDashboard() {
               period={period}
               onPeriodChange={setPeriod}
               previousYearTransactions={previousYearTransactions}
+              today={today}
             />
             <FinanceBudgetProgress
               type={flowType}
@@ -224,6 +225,7 @@ export function FinanceDashboard() {
               period={period}
               isLoading={isFlowLoading}
               isError={isTransactionsError}
+              today={today}
             />
             <FinanceTrend
               type={flowType}
@@ -234,6 +236,7 @@ export function FinanceDashboard() {
               period={period}
               isLoading={isFlowLoading}
               isError={isTransactionsError}
+              today={today}
             />
             <FinanceRecordList
               type={flowType}
@@ -242,6 +245,7 @@ export function FinanceDashboard() {
               index={categoryIndex}
               period={period}
               isLoading={isFlowLoading}
+              today={today}
               isError={isTransactionsError}
               registerWindowFrom={registerWindow.from}
               registerWindowTo={registerWindow.to}

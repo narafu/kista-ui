@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SectionError } from '@shared/ui/SectionError'
-import { fmtKrw, todayKst } from '@shared/lib/format'
+import { fmtKrw } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { useMeta } from '@entities/meta'
 import { calcBudgetProgress, filterByType, flowCategoryColor, sortCategoryTree } from '@entities/finance'
@@ -18,6 +18,8 @@ interface Props {
   period: Period
   isLoading: boolean
   isError: boolean
+  // FinanceDashboard가 한 번만 계산해 내려주는 "오늘" — 위젯마다 todayKst()를 각자 호출하지 않는다.
+  today: string
 }
 
 interface BreakdownBarProps {
@@ -53,7 +55,7 @@ function BreakdownBar({ label, actual, allocated, remaining, percent, color }: B
   )
 }
 
-export function FinanceBudgetProgress({ type, budgets, transactions, categoryTree, index, period, isLoading, isError }: Props) {
+export function FinanceBudgetProgress({ type, budgets, transactions, categoryTree, index, period, isLoading, isError, today }: Props) {
   const { labelOf } = useMeta()
 
   const typedBudgets = budgets.filter((b) => index.get(b.categoryId)?.type === type)
@@ -61,7 +63,7 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
   // 트리 재귀 정렬은 렌더마다 반복하기엔 비용이 있어 한 번만 계산해 calcBudgetProgress(표시 순번)와
   // orderedRootIds(색상 매핑) 양쪽에 재사용한다.
   const sortedCategoryTree = useMemo(() => sortCategoryTree(categoryTree), [categoryTree])
-  const progress = calcBudgetProgress(typedBudgets, typedTransactions, sortedCategoryTree, index, period, todayKst())
+  const progress = calcBudgetProgress(typedBudgets, typedTransactions, sortedCategoryTree, index, period, today)
   const orderedRootIds = sortedCategoryTree.map((c) => c.id)
 
   return (

@@ -11,7 +11,7 @@ import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { cn } from '@shared/lib/utils'
-import { fmtDate, fmtKrw, todayKst } from '@shared/lib/format'
+import { fmtDate, fmtKrw } from '@shared/lib/format'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import {
   collectSubtreeIds,
@@ -45,9 +45,11 @@ interface Props {
   // FinanceDashboard의 registerWindow와 동일한 값. 수정용 window(조회 윈도우)와는 의도적으로 분리한다.
   registerWindowFrom?: string
   registerWindowTo?: string
+  // FinanceDashboard가 한 번만 계산해 내려주는 "오늘" — 위젯마다 todayKst()를 각자 호출하지 않는다.
+  today: string
 }
 
-export function FinanceRecordList({ type, transactions, categoryTree, index, period, isLoading, isError, registerWindowFrom, registerWindowTo }: Props) {
+export function FinanceRecordList({ type, transactions, categoryTree, index, period, isLoading, isError, registerWindowFrom, registerWindowTo, today }: Props) {
   const deleteMutation = useDeleteFinanceTransactionMutation()
   const shareMutation = useShareFinanceTransactionMutation()
   const unshareMutation = useUnshareFinanceTransactionMutation()
@@ -73,7 +75,6 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
 
   const orderedRootIds = useMemo(() => sortCategoryTree(categoryTree).map((c) => c.id), [categoryTree])
 
-  const today = todayKst()
   const { from, to } = periodRange(period, today)
   // 수정 다이얼로그의 날짜 min/max는 표시 중인 period(월간이면 그 달만)가 아니라 실제로 조회된
   // 범위 전체다 — periodRange보다 넓게 허용해야 "다른 날짜로 옮기고 싶다"는 정상적인 수정 요청까지

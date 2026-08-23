@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SectionError } from '@shared/ui/SectionError'
-import { fmtKrw, fmtSignedKrw, maskAmount, pnlTextClass, todayKst } from '@shared/lib/format'
+import { fmtKrw, fmtSignedKrw, maskAmount, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { useMeta } from '@entities/meta'
@@ -24,6 +24,30 @@ interface Props {
   // 연간 모드 전년대비 전용 — period.mode==='yearly'일 때만 부모(FinanceDashboard)가 조회해 넘긴다.
   // 기존 12개월 슬라이딩 윈도우(windowRange)로는 전년 동기간을 커버할 수 없어 별도 쿼리가 필요하다.
   previousYearTransactions?: FinanceTransaction[]
+  // FinanceDashboard가 한 번만 계산해 내려주는 "오늘"(period 상태와 동일한 소유 방식) — 위젯마다
+  // todayKst()를 각자 호출하지 않는다.
+  today: string
+}
+
+// 기준 연도·기준 월 select 한 쌍 — 월간 모드(연도+월)와 연간 모드(연도만)가 값·옵션만 다르고
+// Select/SelectTrigger/SelectValue/SelectContent 구조는 동일해 공유한다.
+function PeriodSelect({ ariaLabel, items, value, onValueChange, className }: {
+  ariaLabel: string
+  items: { value: string; label: string }[]
+  value: string
+  onValueChange: (value: string) => void
+  className: string
+}) {
+  return (
+    <Select items={items} value={value} onValueChange={(v) => { if (v) onValueChange(v) }}>
+      <SelectTrigger aria-label={ariaLabel} className={cn('h-9 text-sm', className)}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {items.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}
+      </SelectContent>
+    </Select>
+  )
 }
 
 const MODE_OPTIONS: { value: PeriodMode; label: string }[] = [
@@ -50,7 +74,7 @@ function ModeButton({ active, onClick, children }: { active: boolean; onClick: (
   )
 }
 
-export function FinanceSummary({ type, transactions, index, isLoading, isError, period, onPeriodChange, previousYearTransactions }: Props) {
+export function FinanceSummary({ type, transactions, index, isLoading, isError, period, onPeriodChange, previousYearTransactions, today }: Props) {
   const { labelOf } = useMeta()
   const { hidden } = useAmountHiddenPreference()
 
@@ -58,7 +82,6 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
     return hidden ? <RevealableValue value={display} hiddenDisplay={maskAmount(display)} /> : display
   }
 
-  const today = todayKst()
   const typeTransactions = useMemo(() => filterByType(transactions, index, type), [transactions, index, type])
   const summary = useMemo(() => calcFlowSummary(typeTransactions, period, today), [typeTransactions, period, today])
   // 소비는 늘어난 게 나쁜 신호라 색상 부호를 뒤집는다 — AssetOverview의 부채(isLiability) 델타
@@ -91,55 +114,31 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
         <div className="flex flex-wrap items-center gap-2">
           {period.mode === 'monthly' ? (
             // 네이티브 <input type="month">은 데스크탑 사파리가 지원하지 않아(텍스트 입력으로 깨짐)
-            // 연도·월 select 쌍으로 대체한다 — 연간 모드 연도 select와 동일한 컴포넌트 재사용.
+            // 연도·월 select 쌍으로 대체한다.
             <div className="flex items-center gap-1">
-              <Select
+              <PeriodSelect
+                ariaLabel="기준 연도"
+                className="w-20"
                 items={yearOptions.map((y) => ({ value: String(y), label: `${y}년` }))}
                 value={period.month.slice(0, 4)}
-                onValueChange={(value) => {
-                  if (!value) return
-                  onPeriodChange({ ...period, month: `${value}-${period.month.slice(5, 7)}` })
-                }}
-              >
-                <SelectTrigger aria-label="기준 연도" className="h-9 w-20 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {yearOptions.map((y) => <SelectItem key={y} value={String(y)}>{y}년</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Select
+                onValueChange={(value) => onPeriodChange({ ...period, month: `${value}-${period.month.slice(5, 7)}` })}
+              />
+              <PeriodSelect
+                ariaLabel="기준 월"
+                className="w-16"
                 items={monthOptions.map((m) => ({ value: m, label: `${Number(m)}월` }))}
                 value={period.month.slice(5, 7)}
-                onValueChange={(value) => {
-                  if (!value) return
-                  onPeriodChange({ ...period, month: `${period.month.slice(0, 4)}-${value}` })
-                }}
-              >
-                <SelectTrigger aria-label="기준 월" className="h-9 w-16 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {monthOptions.map((m) => <SelectItem key={m} value={m}>{Number(m)}월</SelectItem>)}
-                </SelectContent>
-              </Select>
+                onValueChange={(value) => onPeriodChange({ ...period, month: `${period.month.slice(0, 4)}-${value}` })}
+              />
             </div>
           ) : (
-            <Select
+            <PeriodSelect
+              ariaLabel="기준 연도"
+              className="w-24"
               items={yearOptions.map((y) => ({ value: String(y), label: `${y}년` }))}
               value={period.month.slice(0, 4)}
-              onValueChange={(value) => {
-                if (!value) return
-                onPeriodChange({ ...period, month: `${value}-${period.month.slice(5, 7)}` })
-              }}
-            >
-              <SelectTrigger aria-label="기준 연도" className="h-9 w-24 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {yearOptions.map((y) => <SelectItem key={y} value={String(y)}>{y}년</SelectItem>)}
-              </SelectContent>
-            </Select>
+              onValueChange={(value) => onPeriodChange({ ...period, month: `${value}-${period.month.slice(5, 7)}` })}
+            />
           )}
           <div role="group" aria-label="기간 모드" className="grid grid-cols-2 rounded-md border border-border p-0.5">
             {MODE_OPTIONS.map((option) => (

@@ -23,9 +23,11 @@ interface Props {
   isLoading: boolean
   isError: boolean
   className?: string
+  // FinanceDashboard가 한 번만 계산해 내려주는 "오늘" — 위젯마다 todayKst()를 각자 호출하지 않는다.
+  today: string
 }
 
-export function FinanceTrend({ type, transactions, yearlyTransactions, categoryTree, index, period, isLoading, isError, className }: Props) {
+export function FinanceTrend({ type, transactions, yearlyTransactions, categoryTree, index, period, isLoading, isError, className, today }: Props) {
   return (
     <Card className={className}>
       <CardHeader className="pb-3">
@@ -41,6 +43,7 @@ export function FinanceTrend({ type, transactions, yearlyTransactions, categoryT
           period={period}
           isLoading={isLoading}
           isError={isError}
+          today={today}
         />
       </CardContent>
     </Card>
