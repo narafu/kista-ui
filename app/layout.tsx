@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { GeistMono } from 'geist/font/mono'
 import { Bricolage_Grotesque } from 'next/font/google'
 import { Toaster } from "@/components/ui/sonner";
@@ -24,6 +24,10 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: 'KISTA',
   },
+};
+
+export const viewport: Viewport = {
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
