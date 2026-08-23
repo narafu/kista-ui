@@ -21,7 +21,7 @@ export function MobileBottomNav() {
   return (
     <nav
       aria-label="주요 메뉴"
-      className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border flex overflow-x-auto"
+      className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border flex overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] [transform:translateZ(0)]"
       style={{ background: 'var(--sidebar-bg)' }}
     >
       {TABS.map(({ href, label, icon: Icon }) => {
