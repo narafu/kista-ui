@@ -20,13 +20,16 @@ interface Props {
   allowClear?: boolean
   levelAriaLabel?: (levelIndex: number) => string
   className?: string
+  disabled?: boolean
+  // 최상단(levelIndex===0) SelectTrigger에만 부여 — 등록 폼의 <Label htmlFor> 연결용.
+  id?: string
 }
 
 /**
- * 임의 depth 계단식 카테고리 Select — 거래내역/예산/자산 기록 필터, 예산 등록 폼이 동일한
- * getCascadeLevels 기반 UI를 재사용한다.
+ * 임의 depth 계단식 카테고리 Select — 거래내역/예산/자산 기록 필터, 예산·거래내역·자산 등록
+ * 폼(카테고리 필수 선택)이 동일한 getCascadeLevels 기반 UI를 재사용한다.
  */
-export function CascadingCategorySelect({ levels, path, onPathChange, allowClear = true, levelAriaLabel, className }: Props) {
+export function CascadingCategorySelect({ levels, path, onPathChange, allowClear = true, levelAriaLabel, className, disabled, id }: Props) {
   return (
     <>
       {levels.map((level, levelIndex) => {
@@ -48,7 +51,12 @@ export function CascadingCategorySelect({ levels, path, onPathChange, allowClear
               }
             }}
           >
-            <SelectTrigger aria-label={levelAriaLabel?.(levelIndex) ?? (levelIndex === 0 ? '카테고리' : `하위 카테고리 ${levelIndex}`)} className={className}>
+            <SelectTrigger
+              id={levelIndex === 0 ? id : undefined}
+              aria-label={levelAriaLabel?.(levelIndex) ?? (levelIndex === 0 ? '카테고리' : `하위 카테고리 ${levelIndex}`)}
+              className={className}
+              disabled={disabled}
+            >
               <SelectValue placeholder={!allowClear ? '카테고리 선택' : undefined} />
             </SelectTrigger>
             <SelectContent>

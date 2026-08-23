@@ -1,6 +1,5 @@
-import { Pencil, Share2, Trash2, Undo2 } from 'lucide-react'
 import { Badge } from '@shared/ui/Badge'
-import { IconButton } from '@shared/ui/IconButton'
+import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
 import { cn } from '@shared/lib/utils'
 import type { FinanceCategory } from '@entities/finance'
 
@@ -45,34 +44,17 @@ export function CategoryRow({
           <span className="truncate text-sm font-medium">{category.name}</span>
           {category.system && <Badge tone="neutral" size="sm">시스템</Badge>}
         </div>
-        <div className="flex shrink-0 items-center gap-1">
-          {showShare && !category.groupId && (
-            <IconButton aria-label="공유" onClick={() => onShare?.(category)} disabled={shareMutationPending}>
-              <Share2 className="size-4" />
-            </IconButton>
-          )}
-          {showShare && category.groupId && (
-            <IconButton aria-label="귀속" onClick={() => onUnshare?.(category)} disabled={unshareMutationPending}>
-              <Undo2 className="size-4" />
-            </IconButton>
-          )}
-          <IconButton
-            aria-label="수정"
-            onClick={() => onEdit(category)}
-            disabled={locked}
-            className={cn(locked && 'opacity-40 pointer-events-none')}
-          >
-            <Pencil className="size-4" />
-          </IconButton>
-          <IconButton
-            aria-label="삭제"
-            onClick={() => onDelete(category)}
-            disabled={locked}
-            className={cn('text-destructive hover:text-destructive', locked && 'opacity-40 pointer-events-none')}
-          >
-            <Trash2 className="size-4" />
-          </IconButton>
-        </div>
+        <ShareableRowActions
+          canShare={showShare}
+          hasGroupId={!!category.groupId}
+          onShare={() => onShare?.(category)}
+          onUnshare={() => onUnshare?.(category)}
+          sharePending={shareMutationPending}
+          unsharePending={unshareMutationPending}
+          onEdit={() => onEdit(category)}
+          onDelete={() => onDelete(category)}
+          locked={locked}
+        />
       </li>
       {category.children.map((child) => (
         <CategoryRow

@@ -5,10 +5,10 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Spinner } from '@shared/ui/Spinner'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
+import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { digitsOnly, formatAmountDisplay } from '@shared/lib/format'
 import {
   getCascadeLevels,
@@ -112,24 +112,15 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, du
             <div className="space-y-2">
               <Label htmlFor="budgetCategory">카테고리</Label>
               <div className="space-y-2">
-                {cascadeLevels.map((level, levelIndex) => (
-                  <Select
-                    key={levelIndex}
-                    items={level.map((c) => ({ value: c.id, label: c.name }))}
-                    value={selectedPath[levelIndex] || null}
-                    onValueChange={(value) => {
-                      if (!value) return
-                      setSelectedPath((prev) => [...prev.slice(0, levelIndex), value])
-                    }}
-                  >
-                    <SelectTrigger id={levelIndex === 0 ? 'budgetCategory' : undefined} className="w-full h-11" disabled={isPending}>
-                      <SelectValue placeholder="카테고리 선택" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {level.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                ))}
+                <CascadingCategorySelect
+                  levels={cascadeLevels}
+                  path={selectedPath}
+                  onPathChange={setSelectedPath}
+                  allowClear={false}
+                  id="budgetCategory"
+                  className="w-full h-11"
+                  disabled={isPending}
+                />
               </div>
             </div>
 

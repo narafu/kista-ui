@@ -14,8 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Switch } from '@/components/ui/switch'
 import { Spinner } from '@shared/ui/Spinner'
+import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { getCascadeLevels, useCanShareToGroup, useCreateFinanceCategoryMutation, useUpdateFinanceCategoryMutation } from '@entities/finance'
 import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
 
@@ -151,15 +151,7 @@ export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, cat
             </div>
 
             {mode === 'create' && canShareToGroup && (
-              <div className="flex items-center justify-between">
-                <Label htmlFor="categoryShareToGroup">그룹으로 저장</Label>
-                <Switch
-                  id="categoryShareToGroup"
-                  checked={shareToGroup}
-                  onCheckedChange={setShareToGroup}
-                  disabled={isPending}
-                />
-              </div>
+              <ShareToGroupSwitch id="categoryShareToGroup" checked={shareToGroup} onCheckedChange={setShareToGroup} disabled={isPending} />
             )}
           </div>
 

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Pencil } from 'lucide-react'
+import { ICON_LINK_GHOST_CLASS } from '@shared/ui/IconButton'
 
 import { useAccountDetailQuery } from '@entities/account'
 import { PageHeader } from '@widgets/page-header'
@@ -38,7 +39,8 @@ export function AccountDetailContent({
           <Link
             href={`/accounts/${accountId}/edit`}
             aria-label="계좌 수정"
-            className="relative inline-flex items-center justify-center size-11 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            title="계좌 수정"
+            className={ICON_LINK_GHOST_CLASS}
           >
             <Pencil className="size-4" />
           </Link>

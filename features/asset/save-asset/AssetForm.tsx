@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Spinner } from '@shared/ui/Spinner'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
+import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { cn } from '@shared/lib/utils'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
@@ -207,28 +208,23 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
           <div className="space-y-2">
             <Label htmlFor="category">카테고리</Label>
             <div className="space-y-2">
-              {cascadeLevels.map((level, levelIndex) => (
-                <Select
-                  key={levelIndex}
-                  items={level.map((c) => ({ value: c.id, label: c.name }))}
-                  value={selectedPath[levelIndex] || null}
-                  onValueChange={(value) => {
-                    if (!value) return
-                    setSelectedPath((prev) => [...prev.slice(0, levelIndex), value])
-                    // L1을 '투자' 아닌 값으로 직접 바꾸면 전략 필드가 그 자리에서 숨겨지므로,
-                    // 화면에 남아있던(잠재적으로 방금 입력한) 값도 함께 비운다 — 사용자가 능동적으로
-                    // 바꾼 경우에만 지운다. 편집 진입 시 기존 레코드를 복원하는 경로는 건드리지 않는다.
-                    if (levelIndex === 0 && !isInvestmentCategoryId(value)) setStrategy('')
-                  }}
-                >
-                  <SelectTrigger id={levelIndex === 0 ? 'category' : undefined} className="w-full h-12" disabled={isPending}>
-                    <SelectValue placeholder="카테고리 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {level.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              ))}
+              <CascadingCategorySelect
+                levels={cascadeLevels}
+                path={selectedPath}
+                onPathChange={(next) => {
+                  // L1을 '투자' 아닌 값으로 직접 바꾸면 전략 필드가 그 자리에서 숨겨지므로, 화면에
+                  // 남아있던(잠재적으로 방금 입력한) 값도 함께 비운다 — 사용자가 능동적으로 L1을
+                  // 바꾼 경우에만 지운다(next[0]이 이전 selectedPath[0]과 달라진 경우로 판정 —
+                  // 하위 레벨 선택으로는 next[0]이 그대로라 이 조건에 걸리지 않는다). 편집 진입 시
+                  // 기존 레코드를 복원하는 경로는 건드리지 않는다.
+                  if (next[0] !== selectedPath[0] && !isInvestmentCategoryId(next[0])) setStrategy('')
+                  setSelectedPath(next)
+                }}
+                allowClear={false}
+                id="category"
+                className="w-full h-12"
+                disabled={isPending}
+              />
             </div>
           </div>
 
