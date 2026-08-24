@@ -37,7 +37,7 @@ GET /api/backtest?type=&ticker=&from=&to=&seed=&divisionCount=&vrBandWidth=&vrIn
 ### `entities/backtest/`
 - `model/types.ts`: `BacktestCommand`(camelCase, API record 그대로 매핑), `BacktestResult`
 - `api/index.ts`: `getBacktest(params, token?)` — `URLSearchParams` 빌더 + `fetchEither` (`entities/stats/api`의 `getEquityCurve` 패턴 그대로)
-- `hooks/useBacktestQuery.ts`: `useQuery({ queryKey: backtestKeys.run(params), queryFn, enabled: false })` + `refetch` 반환 (수동 트리거)
+- `hooks/useBacktestMutation.ts`: `useMutation({ mutationFn: getBacktest })` — 결과 저장/캐시 불필요(단발성 실행)라 쿼리키 기반 `useQuery(enabled:false)`보다 `useMutation`이 더 맞다. `mutate(params)`가 "실행" 버튼 트리거, `data`가 다음 실행 전까지 그대로 유지된다
 
 ### `features/backtest/run-backtest/`
 - `BacktestForm.tsx`: Type 선택 → Ticker(타입별 `availableTickers`) → from/to/seed 공통 → 타입별 조건부 섹션
