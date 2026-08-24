@@ -58,6 +58,7 @@ vi.mock('@entities/meta', () => ({
     meta: {
       assetClasses: [{ code: 'CASH', label: '현금' }, { code: 'EQUITY', label: '주식' }],
       markets: [{ code: 'DOMESTIC', label: '국내' }, { code: 'GLOBAL', label: '해외' }],
+      financeAccountTypes: [{ code: 'BANK', label: '은행' }, { code: 'SECURITIES', label: '증권사' }],
     },
     labelOf: (_category: string, code: string) => code,
   }),

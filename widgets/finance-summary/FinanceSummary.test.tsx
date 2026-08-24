@@ -123,8 +123,8 @@ describe('FinanceSummary 수입 대비 비율', () => {
   })
 })
 
-describe('FinanceSummary 일평균/월평균 카드', () => {
-  it('EXPENSE/SAVING 탭은 일평균 카드를 보여주지 않는다', () => {
+describe('FinanceSummary 남은 금액 카드', () => {
+  it('EXPENSE/SAVING 탭은 남은 금액 카드를 보여주지 않는다', () => {
     render(
       <FinanceSummary
         type="EXPENSE"
@@ -137,11 +137,10 @@ describe('FinanceSummary 일평균/월평균 카드', () => {
         today="2026-08-23"
       />,
     )
-    expect(screen.queryByText('일평균')).not.toBeInTheDocument()
-    expect(screen.queryByText('월평균')).not.toBeInTheDocument()
+    expect(screen.queryByText('남은 금액')).not.toBeInTheDocument()
   })
 
-  it('INCOME 탭은 일평균 카드를 건수 카드보다 앞에 배치한다', () => {
+  it('INCOME 탭은 남은 금액 카드를 건수 카드보다 앞에 배치한다', () => {
     render(
       <FinanceSummary
         type="INCOME"
@@ -154,7 +153,7 @@ describe('FinanceSummary 일평균/월평균 카드', () => {
         today="2026-08-23"
       />,
     )
-    const labels = screen.getAllByText(/^(일평균|건수)$/).map((el) => el.textContent)
-    expect(labels).toEqual(['일평균', '건수'])
+    const labels = screen.getAllByText(/^(남은 금액|건수)$/).map((el) => el.textContent)
+    expect(labels).toEqual(['남은 금액', '건수'])
   })
 })

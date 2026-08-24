@@ -153,7 +153,11 @@ describe('BudgetManager', () => {
     })
     render(<BudgetManager type="EXPENSE" />)
 
+    // 기본 상태 필터가 '진행중'이라 종료된 예산은 초기 화면에 보이지 않는다 — 먼저 '전체 상태'로
+    // 바꿔 둘 다 보이는 것을 확인한 뒤 필터 전환을 검증한다.
     const list = screen.getByRole('list', { name: '예산 목록' })
+    await user.click(screen.getByRole('combobox', { name: '적용 상태' }))
+    await user.click(await screen.findByRole('option', { name: '전체 상태' }))
     expect(within(list).getByText('식비')).toBeInTheDocument()
     expect(within(list).getByText('교통')).toBeInTheDocument()
 
