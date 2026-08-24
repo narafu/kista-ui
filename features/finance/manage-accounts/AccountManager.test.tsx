@@ -97,7 +97,9 @@ describe('AccountManager', () => {
     await user.click(within(rowOf('미래에셋증권')).getByRole('button', { name: '삭제' }))
 
     expect(screen.getByText('미래에셋증권 계좌를 삭제하시겠습니까?')).toBeInTheDocument()
-    expect(screen.getByText('이 계좌를 사용한 자산 기록은 계좌 미지정 상태로 남습니다.')).toBeInTheDocument()
+    expect(
+      screen.getByText('이 계좌를 사용한 자산 기록이 있으면 삭제할 수 없습니다. 먼저 해당 기록의 계좌 매핑을 해제해주세요.')
+    ).toBeInTheDocument()
   })
 
   it('그룹 소속이면 개인 소유 계좌엔 공유→수정→삭제, 그룹 소유 계좌엔 귀속→수정→삭제 순서로 버튼을 배치한다', () => {
