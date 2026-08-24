@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SectionError } from '@shared/ui/SectionError'
 import { fmtKrw, fmtSignedKrw, maskAmount, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
@@ -94,6 +94,18 @@ export function AssetOverview({ month, months, onMonthChange }: Props) {
   const categoryTotal = categoryBreakdown.reduce((total, entry) => total + entry.amount, 0)
   const assetClassTotal = assetClassBreakdown.reduce((total, entry) => total + entry.amount, 0)
 
+  // 월 목록이 길어지면(수년치) 평탄한 리스트 스크롤이 길어지므로 연도별로 묶어 탐색을 돕는다.
+  const monthsByYear = useMemo(() => {
+    const groups: { year: string; months: string[] }[] = []
+    for (const m of months) {
+      const year = m.slice(0, 4)
+      const last = groups[groups.length - 1]
+      if (last?.year === year) last.months.push(m)
+      else groups.push({ year, months: [m] })
+    }
+    return groups
+  }, [months])
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-3 pb-3">
@@ -104,8 +116,13 @@ export function AssetOverview({ month, months, onMonthChange }: Props) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {months.map((m) => (
-                <SelectItem key={m} value={m}>{m}</SelectItem>
+              {monthsByYear.map(({ year, months: yearMonths }) => (
+                <SelectGroup key={year}>
+                  <SelectLabel>{year}년</SelectLabel>
+                  {yearMonths.map((m) => (
+                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                  ))}
+                </SelectGroup>
               ))}
             </SelectContent>
           </Select>

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Spinner } from '@shared/ui/Spinner'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
@@ -110,6 +110,15 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
   const { meta } = useMeta()
   const { data: categories = [] } = useFinanceCategoriesQuery('ASSET')
   const { data: accounts = [] } = useFinanceAccountsQuery()
+  // 계좌 Select 정렬: accountType별로 묶고(순서는 meta.financeAccountTypes 기준) 그룹 내에서는 이름 가나다순.
+  const accountsByType = useMemo(() => {
+    const groups: { type: string; label: string; accounts: FinanceAccount[] }[] = []
+    for (const typeMeta of meta.financeAccountTypes) {
+      const inType = accounts.filter((a) => a.accountType === typeMeta.code).sort((a, b) => a.name.localeCompare(b.name, 'ko'))
+      if (inType.length > 0) groups.push({ type: typeMeta.code, label: typeMeta.label, accounts: inType })
+    }
+    return groups
+  }, [accounts, meta.financeAccountTypes])
   // 운용전략 추천 목록은 유저별 설정(user_settings.strategy_suggestions)이 SSOT다 — strategy는
   // 여전히 자유 입력이라 유저 정보 로딩 전에는 알려진 기본값으로 폴백한다.
   const strategySuggestions = useMeQuery().data?.strategySuggestions ?? DEFAULT_STRATEGY_SUGGESTIONS
@@ -240,7 +249,12 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={NO_ACCOUNT_VALUE}>계좌 미지정</SelectItem>
-                {accounts.map((a) => <SelectItem key={a.id} value={a.id}>{accountOptionLabel(a)}</SelectItem>)}
+                {accountsByType.map((group) => (
+                  <SelectGroup key={group.type}>
+                    <SelectLabel>{group.label}</SelectLabel>
+                    {group.accounts.map((a) => <SelectItem key={a.id} value={a.id}>{accountOptionLabel(a)}</SelectItem>)}
+                  </SelectGroup>
+                ))}
               </SelectContent>
             </Select>
           </div>
