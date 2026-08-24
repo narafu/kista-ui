@@ -25,9 +25,9 @@ interface Props {
   onOpenChange: (open: boolean) => void
   type: FinanceCategoryType
   initial?: FinanceTransaction
-  // 내역 복제 전용 — initial과 달리 id를 갖지 않아 항상 create 모드로 제출된다. 카테고리·금액·메모만
-  // 프리필하고 날짜는 오늘로 초기화한다(clampDate 기본 동작 그대로 유지 — 아래서 별도 처리 안 함).
-  duplicateFrom?: Pick<FinanceTransaction, 'categoryId' | 'amount' | 'memo'>
+  // 내역 복제 전용 — initial과 달리 id를 갖지 않아 항상 create 모드로 제출된다. 카테고리·금액·메모·
+  // 날짜(원본 날짜, windowFrom/windowTo로 clamp)를 프리필한다.
+  duplicateFrom?: Pick<FinanceTransaction, 'categoryId' | 'amount' | 'memo' | 'transactionDate'>
   onSuccess: () => void
   // 유효 날짜 범위('YYYY-MM-DD'). 호출부가 무엇을 넘기는지에 따라 의미가 다르다 —
   // 등록(NewTransactionButton)은 "오늘 기준" 독립 창(FinanceDashboard의 registerWindow, 하한 없음·
@@ -51,7 +51,9 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
   const { data: categories = [] } = useFinanceCategoriesQuery(type)
   const seed = initial ?? duplicateFrom
 
-  const [transactionDate, setTransactionDate] = useState(initial?.transactionDate ?? clampDate(todayKst(), windowFrom, windowTo))
+  const [transactionDate, setTransactionDate] = useState(
+    clampDate(initial?.transactionDate ?? duplicateFrom?.transactionDate ?? todayKst(), windowFrom, windowTo),
+  )
   // 계단식 카테고리 Select: AssetForm과 동일 패턴 — selectedPath 마지막 값이 실제 제출용 categoryId.
   const [selectedPath, setSelectedPath] = useState<string[]>(() =>
     seed ? getCategoryPath(categories, seed.categoryId).map((c) => c.id) : []

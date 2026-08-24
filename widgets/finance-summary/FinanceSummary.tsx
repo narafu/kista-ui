@@ -8,7 +8,7 @@ import { fmtKrw, fmtSignedKrw, maskAmount, pnlTextClass, ratioToPercent } from '
 import { cn } from '@shared/lib/utils'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { useMeta } from '@entities/meta'
-import { calcFlowSummary, elapsedDaysInMonth, elapsedMonthsInYear, filterByType, previousYearRange } from '@entities/finance'
+import { calcFlowSummary, filterByType, previousYearRange } from '@entities/finance'
 import type { CategoryIndex, FinanceCategoryType, FinanceTransaction, Period, PeriodMode } from '@entities/finance'
 import { KpiCard } from '@widgets/kpi-card'
 import { RevealableValue } from '@widgets/revealable-value'
@@ -105,6 +105,15 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
   }, [transactions, index, period, today])
   const incomeRatio = type !== 'INCOME' && incomeTotal > 0 ? summary.total / incomeTotal : null
 
+  // 남은 금액(INCOME 탭 전용) = 수입 - 소비 - 저축. incomeTotal과 동일 패턴으로 unfiltered
+  // transactions+index에서 EXPENSE/SAVING 합계를 뽑아낸다(별도 쿼리 없이 계산).
+  const remainingAmount = useMemo(() => {
+    if (type !== 'INCOME') return null
+    const expenseTotal = calcFlowSummary(filterByType(transactions, index, 'EXPENSE'), period, today).total
+    const savingTotal = calcFlowSummary(filterByType(transactions, index, 'SAVING'), period, today).total
+    return summary.total - expenseTotal - savingTotal
+  }, [type, transactions, index, period, today, summary.total])
+
   // 연도 select 옵션 — 최근 15개년을 기본으로 잡되, 월간 모드에서 그 범위 밖 연도(과거든 미래든)를
   // 고른 뒤 연간 모드로 전환해도 현재 선택값이 항상 목록에 포함되도록 보정한다(안 하면 SelectValue가
   // 목록에 없는 값이라 빈칸으로 보인다).
@@ -188,18 +197,13 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
             {incomeRatio !== null && (
               <KpiCard label="수입 대비 비율" value={`${ratioToPercent(incomeRatio)}%`} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
             )}
-            {/* 일/월평균 카드는 수입 탭에서만 노출한다(건수 카드보다 앞) — 소비·저축 탭은 예산 대비
-                카드가 이미 있어 평균 지출액 카드가 중복 정보로 판단돼 제외됐다. */}
-            {type === 'INCOME' && (
+            {/* 남은 금액 카드는 수입 탭에서만 노출한다(건수 카드보다 앞) — 소비·저축 탭은 예산 대비
+                카드가 이미 있어 중복 정보로 판단돼 제외됐다. */}
+            {remainingAmount !== null && (
               <KpiCard
-                label={period.mode === 'monthly' ? '일평균' : '월평균'}
-                value={amountValue(fmtKrw(
-                  Math.round(
-                    summary.total /
-                      (period.mode === 'monthly' ? elapsedDaysInMonth(period.month, today) : elapsedMonthsInYear(period.month, today)),
-                  ),
-                ))}
-                valueClassName="break-words text-base sm:text-2xl lg:text-3xl"
+                label="남은 금액"
+                value={amountValue(fmtSignedKrw(remainingAmount))}
+                valueClassName={cn('break-words text-base sm:text-2xl lg:text-3xl', pnlTextClass(remainingAmount))}
               />
             )}
             <KpiCard label="건수" value={`${summary.count}건`} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />

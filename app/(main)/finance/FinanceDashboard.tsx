@@ -231,6 +231,7 @@ export function FinanceDashboard() {
               today={today}
             />
             <FinanceRecordList
+              key={flowType}
               type={flowType}
               transactions={transactions}
               categoryTree={categoryTreeByType[flowType]}

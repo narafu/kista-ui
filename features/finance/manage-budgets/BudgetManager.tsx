@@ -49,7 +49,7 @@ export function BudgetManager({ type }: Props) {
   const budgets = allBudgets.filter((b) => getCategoryPath(categories, b.categoryId).length > 0)
 
   const [categoryPath, setCategoryPath] = useState<string[]>([])
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>(ALL_FILTER_VALUE)
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('ACTIVE')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState('10')
 
