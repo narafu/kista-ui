@@ -111,7 +111,7 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
     const yearTotal = typeTransactions
       .filter((t) => t.transactionDate >= yearRange.from && t.transactionDate <= yearRange.to)
       .reduce((sum, t) => sum + t.amount, 0)
-    return yearTotal / elapsedMonthsInYear(period.month, refDate)
+    return Math.round(yearTotal / elapsedMonthsInYear(period.month, refDate))
   }, [typeTransactions, period.mode, period.month, today])
 
   // 수입 대비 비율 — INCOME 탭은 자기 자신 대비라 항상 100%로 무의미해 제외한다. 같은 기간 INCOME
