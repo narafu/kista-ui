@@ -6,7 +6,7 @@
 - `REJECTED`: `/rejected`
 - `ACTIVE`: `/`·`/login`·`/pending`·`/rejected` 방문 시 `/dashboard`로
 
-`PROTECTED_PREFIXES`(`/accounts`·`/strategies`·`/stats`·`/settings`·`/benchmark`·`/finance`)는 비인증 시 `/login`으로 강제 리다이렉트한다. `/dashboard`는 이 목록에 없다 — 비회원도 접근 가능한 비보호 경로다. `/`는 `app/(auth)/page.tsx`가 인증 여부와 무관하게 항상 `/dashboard`로 리다이렉트한다.
+`PROTECTED_PREFIXES`(`/accounts`·`/strategies`·`/stats`·`/settings`·`/benchmark`·`/finance`·`/backtest`)는 비인증 시 `/login`으로 강제 리다이렉트한다. `/dashboard`는 이 목록에 없다 — 비회원도 접근 가능한 비보호 경로다. `/`는 `app/(auth)/page.tsx`가 인증 여부와 무관하게 항상 `/dashboard`로 리다이렉트한다.
 
 ## 레이아웃 그룹
 
