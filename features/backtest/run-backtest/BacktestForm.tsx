@@ -72,8 +72,9 @@ export function BacktestForm({ form }: Props) {
         </div>
 
         <div>
-          <Label className="mb-2 block text-sm font-bold">시드 (USD)</Label>
+          <Label htmlFor="seed" className="mb-2 block text-sm font-bold">시드 (USD)</Label>
           <Input
+            id="seed"
             type="number"
             min={0}
             value={form.seed ?? ''}
@@ -107,8 +108,9 @@ export function BacktestForm({ form }: Props) {
             <Label className="text-sm font-bold">밸류 리밸런싱 설정</Label>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="mb-2 block text-xs text-muted-foreground">밴드 폭(%)</Label>
+                <Label htmlFor="vrBandWidth" className="mb-2 block text-xs text-muted-foreground">밴드 폭(%)</Label>
                 <Input
+                  id="vrBandWidth"
                   type="number"
                   min={0}
                   step="0.01"
@@ -119,20 +121,23 @@ export function BacktestForm({ form }: Props) {
                 />
               </div>
               <div>
-                <Label className="mb-2 block text-xs text-muted-foreground">리밸런싱 주기(주)</Label>
+                <Label htmlFor="vrIntervalWeeks" className="mb-2 block text-xs text-muted-foreground">리밸런싱 주기(주)</Label>
                 <Input
+                  id="vrIntervalWeeks"
                   type="number"
                   min={1}
+                  step="1"
                   value={form.vrIntervalWeeks ?? ''}
-                  onChange={(e) => form.setVrIntervalWeeks(e.target.value === '' ? null : Number(e.target.value))}
+                  onChange={(e) => form.setVrIntervalWeeks(e.target.value === '' ? null : Math.round(Number(e.target.value)))}
                   disabled={form.isLoading}
                   placeholder="4"
                 />
               </div>
             </div>
             <div>
-              <Label className="mb-2 block text-xs text-muted-foreground">초기 V값(USD)</Label>
+              <Label htmlFor="vrInitialValue" className="mb-2 block text-xs text-muted-foreground">초기 V값(USD)</Label>
               <Input
+                id="vrInitialValue"
                 type="number"
                 min={0}
                 value={form.vrInitialValue ?? ''}
@@ -142,7 +147,7 @@ export function BacktestForm({ form }: Props) {
               />
             </div>
             <div>
-              <Label className="mb-2 block text-xs text-muted-foreground">적립(+)/거치/인출(-)</Label>
+              <Label htmlFor="vrRecurringAmountAbs" className="mb-2 block text-xs text-muted-foreground">적립(+)/거치/인출(-)</Label>
               <div className="grid grid-cols-3 gap-2">
                 {(['DEPOSIT', 'HOLD', 'WITHDRAW'] as const).map((mode) => (
                   <SelectionCard
@@ -158,11 +163,13 @@ export function BacktestForm({ form }: Props) {
               </div>
               {form.vrRecurringMode !== 'HOLD' && (
                 <Input
+                  id="vrRecurringAmountAbs"
                   type="number"
                   min={0}
+                  step="1"
                   className="mt-2"
                   value={form.vrRecurringAmountAbs ?? ''}
-                  onChange={(e) => form.setVrRecurringAmountAbs(e.target.value === '' ? null : Number(e.target.value))}
+                  onChange={(e) => form.setVrRecurringAmountAbs(e.target.value === '' ? null : Math.round(Number(e.target.value)))}
                   disabled={form.isLoading}
                   placeholder="0"
                 />

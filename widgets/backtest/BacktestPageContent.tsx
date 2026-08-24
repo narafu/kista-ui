@@ -1,6 +1,7 @@
 'use client'
 
 import { BacktestForm, useBacktestForm } from '@features/backtest/run-backtest'
+import { fmtDate, fmtUsd } from '@shared/lib/format'
 import { EquityLineChart } from '@shared/ui/EquityLineChart'
 import { BacktestSummaryCards } from './BacktestSummaryCards'
 import { BacktestWarnings } from './BacktestWarnings'
@@ -20,6 +21,10 @@ export function BacktestPageContent() {
               rows={result.points.map((p) => ({ date: p.date, asset: p.totalAsset, principal: p.principal }))}
               assetLabel="총자산"
               principalLabel="투입 원금"
+              valueFormatter={(v) => `$${fmtUsd(v)}`}
+              yAxisWidth={44}
+              yAxisTickFormatter={(v) => fmtUsd(v, 0)}
+              dateTickFormatter={fmtDate}
             />
           </div>
           <BacktestWarnings warnings={result.warnings} />

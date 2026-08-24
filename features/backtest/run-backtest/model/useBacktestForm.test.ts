@@ -121,4 +121,28 @@ describe('useBacktestForm', () => {
       vrInitialValue: undefined,
     })
   })
+
+  it('VR 인출 모드는 vrRecurringAmount를 음수로 변환해 mutate에 전달한다', async () => {
+    const { useBacktestForm } = await import('./useBacktestForm')
+    const { result } = renderHook(() => useBacktestForm())
+
+    act(() => {
+      result.current.setType('VR')
+      result.current.setSeed(10000)
+      result.current.setFrom('2026-01-01')
+      result.current.setTo('2026-06-01')
+      result.current.setVrBandWidth(15)
+      result.current.setVrIntervalWeeks(4)
+      result.current.setVrInitialValue(5000)
+      result.current.setVrRecurringMode('WITHDRAW')
+      result.current.setVrRecurringAmountAbs(500)
+    })
+    act(() => {
+      result.current.run()
+    })
+
+    expect(mutateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ vrRecurringAmount: -500 })
+    )
+  })
 })

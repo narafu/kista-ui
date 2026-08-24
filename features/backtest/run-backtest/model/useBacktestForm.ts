@@ -57,9 +57,23 @@ export function useBacktestForm() {
       if (vrBandWidth == null || vrBandWidth <= 0) return 'VR 밴드 폭은 0보다 커야 합니다'
       if (vrIntervalWeeks == null || vrIntervalWeeks <= 0) return 'VR 리밸런싱 주기는 1 이상이어야 합니다'
       if (vrInitialValue == null || vrInitialValue <= 0) return 'VR 초기 V값은 0보다 커야 합니다'
+      if (vrRecurringMode !== 'HOLD' && vrRecurringAmountAbs == null) return '적립/인출 금액을 입력하세요'
     }
     return null
-  }, [ticker, seed, from, to, type, divisionCountOptions.length, divisionCount, vrBandWidth, vrIntervalWeeks, vrInitialValue])
+  }, [
+    ticker,
+    seed,
+    from,
+    to,
+    type,
+    divisionCountOptions.length,
+    divisionCount,
+    vrBandWidth,
+    vrIntervalWeeks,
+    vrInitialValue,
+    vrRecurringMode,
+    vrRecurringAmountAbs,
+  ])
 
   function buildParams(): BacktestParams {
     return {
