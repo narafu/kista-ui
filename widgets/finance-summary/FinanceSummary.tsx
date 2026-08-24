@@ -8,7 +8,7 @@ import { fmtKrw, fmtSignedKrw, maskAmount, pnlTextClass, ratioToPercent } from '
 import { cn } from '@shared/lib/utils'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { useMeta } from '@entities/meta'
-import { calcFlowSummary, filterByType, previousYearRange } from '@entities/finance'
+import { calcFlowSummary, elapsedMonthsInYear, filterByType, monthEndDate, periodRange, previousYearRange } from '@entities/finance'
 import type { CategoryIndex, FinanceCategoryType, FinanceTransaction, Period, PeriodMode } from '@entities/finance'
 import { KpiCard } from '@widgets/kpi-card'
 import { RevealableValue } from '@widgets/revealable-value'
@@ -96,6 +96,23 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
       .reduce((sum, t) => sum + t.amount, 0)
   }, [period, previousYearTransactions, index, type, today])
   const previousYearDelta = previousYearTotal !== null ? summary.total - previousYearTotal : null
+
+  // 올해 월평균 — 월간/연간 탭 상관없이 항상 노출. 선택 월이 속한 연도의 YTD(또는 종료 연도면
+  // 연간 전체) 합계를 periodRange로 구해 elapsedMonthsInYear로 나눈다. 월간 모드의 typeTransactions는
+  // windowRange(선택 월 기준 trailing 12개월)라 선택 연도 1월~선택 월 구간만 보장된다 — today를 그대로
+  // 쓰면 실제 조회 안 된 선택월 이후 구간(과거 월 선택 시)까지 합계·분모에 걸쳐 있다고 가정해
+  // 과소집계된다. 그래서 월간 모드에선 today 대신 선택 월 말일을 기준일로 대체해 periodRange·
+  // elapsedMonthsInYear 둘 다 "선택 월까지"로 일관되게 계산한다(연간 모드는 today 그대로 — 이미
+  // 조회 윈도우 자체가 periodRange(period, today)와 동일해 일관됨).
+  const yearlyAverage = useMemo(() => {
+    const year = period.month.slice(0, 4)
+    const refDate = period.mode === 'monthly' ? monthEndDate(period.month) : today
+    const yearRange = periodRange({ month: `${year}-01`, mode: 'yearly' }, refDate)
+    const yearTotal = typeTransactions
+      .filter((t) => t.transactionDate >= yearRange.from && t.transactionDate <= yearRange.to)
+      .reduce((sum, t) => sum + t.amount, 0)
+    return yearTotal / elapsedMonthsInYear(period.month, refDate)
+  }, [typeTransactions, period.mode, period.month, today])
 
   // 수입 대비 비율 — INCOME 탭은 자기 자신 대비라 항상 100%로 무의미해 제외한다. 같은 기간 INCOME
   // 합계는 이미 받고 있는 unfiltered transactions+index에서 뽑아내 별도 쿼리 없이 계산한다.
@@ -197,7 +214,7 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
             {incomeRatio !== null && (
               <KpiCard label="수입 대비 비율" value={`${ratioToPercent(incomeRatio)}%`} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
             )}
-            {/* 남은 금액 카드는 수입 탭에서만 노출한다(건수 카드보다 앞) — 소비·저축 탭은 예산 대비
+            {/* 남은 금액 카드는 수입 탭에서만 노출한다(올해 월평균 카드보다 앞) — 소비·저축 탭은 예산 대비
                 카드가 이미 있어 중복 정보로 판단돼 제외됐다. */}
             {remainingAmount !== null && (
               <KpiCard
@@ -206,7 +223,7 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
                 valueClassName={cn('break-words text-base sm:text-2xl lg:text-3xl', pnlTextClass(remainingAmount))}
               />
             )}
-            <KpiCard label="건수" value={`${summary.count}건`} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
+            <KpiCard label="올해 월평균" value={amountValue(fmtKrw(yearlyAverage))} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
           </div>
         )}
       </CardContent>

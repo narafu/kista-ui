@@ -123,6 +123,47 @@ describe('FinanceSummary 수입 대비 비율', () => {
   })
 })
 
+describe('FinanceSummary 올해 월평균 카드', () => {
+  it('월간/연간 모드 상관없이 선택 연도 1월~선택 월 합계를 경과 개월 수로 나눠 보여준다', () => {
+    const transactions = [tx('2026-01-10', 100000), tx('2026-08-10', 200000), tx('2025-12-10', 999999)]
+    render(
+      <FinanceSummary
+        type="EXPENSE"
+        transactions={transactions}
+        index={index}
+        isLoading={false}
+        isError={false}
+        period={{ month: '2026-08', mode: 'monthly' }}
+        onPeriodChange={() => {}}
+        today="2026-08-23"
+      />,
+    )
+    // (100000 + 200000) / 8개월(1~8월) = 37500
+    expect(screen.getByText('올해 월평균')).toBeInTheDocument()
+    expect(screen.getByText('37,500원')).toBeInTheDocument()
+  })
+
+  it('월간 모드에서 오늘이 아닌 과거 월을 선택해도 그 월까지의 경과 개월로 나눈다', () => {
+    // 실제로는 windowRange(선택 월 기준 trailing 12개월)라 선택 월(3월) 이후 거래는 애초에 조회되지
+    // 않는다 — today(8월) 기준 8개월로 나누면 과소집계된 평균이 나오는 회귀를 방지하는 테스트.
+    const transactions = [tx('2026-01-10', 100000), tx('2026-02-10', 200000)]
+    render(
+      <FinanceSummary
+        type="EXPENSE"
+        transactions={transactions}
+        index={index}
+        isLoading={false}
+        isError={false}
+        period={{ month: '2026-02', mode: 'monthly' }}
+        onPeriodChange={() => {}}
+        today="2026-08-23"
+      />,
+    )
+    // (100000 + 200000) / 2개월(1~2월) = 150000 — 8개월로 나누면 37500이 돼 값이 달라진다
+    expect(screen.getByText('150,000원')).toBeInTheDocument()
+  })
+})
+
 describe('FinanceSummary 남은 금액 카드', () => {
   it('EXPENSE/SAVING 탭은 남은 금액 카드를 보여주지 않는다', () => {
     render(
@@ -140,7 +181,7 @@ describe('FinanceSummary 남은 금액 카드', () => {
     expect(screen.queryByText('남은 금액')).not.toBeInTheDocument()
   })
 
-  it('INCOME 탭은 남은 금액 카드를 건수 카드보다 앞에 배치한다', () => {
+  it('INCOME 탭은 남은 금액 카드를 올해 월평균 카드보다 앞에 배치한다', () => {
     render(
       <FinanceSummary
         type="INCOME"
@@ -153,7 +194,7 @@ describe('FinanceSummary 남은 금액 카드', () => {
         today="2026-08-23"
       />,
     )
-    const labels = screen.getAllByText(/^(남은 금액|건수)$/).map((el) => el.textContent)
-    expect(labels).toEqual(['남은 금액', '건수'])
+    const labels = screen.getAllByText(/^(남은 금액|올해 월평균)$/).map((el) => el.textContent)
+    expect(labels).toEqual(['남은 금액', '올해 월평균'])
   })
 })
