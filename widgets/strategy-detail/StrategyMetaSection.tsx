@@ -122,8 +122,8 @@ export function StrategyMetaSection({ strategy, preview, isLoadingPreview, isPre
             <KpiCard
               label="pool"
               value={
-                strategy.initialUsdDeposit != null ? (
-                  `$${fmtUsd(strategy.initialUsdDeposit)}`
+                strategy.vr.currentPool != null ? (
+                  `$${fmtUsd(strategy.vr.currentPool)}`
                 ) : (
                   <span className="inline-flex items-center text-sm lg:text-base text-muted-foreground font-normal">미설정</span>
                 )

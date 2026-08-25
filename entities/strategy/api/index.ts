@@ -15,6 +15,7 @@ function normalizeVrSummary(raw: unknown): StrategyVrSummary | undefined {
     intervalWeeks: num(v.intervalWeeks),
     recurringAmount: num(v.recurringAmount ?? 0),
     poolLimit: dec(v.poolLimit),
+    currentPool: optDec(v.currentPool),
     poolLimitRate: dec(v.poolLimitRate),
     gradient: num(v.gradient),
     initialGradient: num(v.initialGradient),

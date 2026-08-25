@@ -10,6 +10,7 @@ export interface StrategyVrSummary {
   intervalWeeks: number  // 롤오버 주기 (주)
   recurringAmount: number // 정기 입출금 (USD, 양수=입금 / 0=거치 / 음수=인출)
   poolLimit: number      // pool 한도 (현재 사이클 스냅샷 — 램프 0주차 값은 initialPoolLimitRate)
+  currentPool?: number   // 최신 포지션 기준 실시간 pool(예수금). 포지션 이력 없는 극초기 상태면 null
   poolLimitRate: number  // pool 한도 비율(0~1, 현재 사이클 스냅샷 — 램프 0주차 값은 initialPoolLimitRate)
   gradient: number       // 조정 계수 G (현재 사이클 스냅샷 — 램프 0주차 값은 initialGradient)
   initialGradient: number       // 램프 시작(경과 0주) G값
