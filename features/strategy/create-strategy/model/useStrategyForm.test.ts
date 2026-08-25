@@ -421,6 +421,10 @@ describe('useStrategyForm submit policy', () => {
       intervalWeeks: 4,
       bandWidth: 15,
       recurringAmount: 0,
+      initialGradient: 10,
+      gMax: 20,
+      initialPoolLimitRate: 0.75,
+      poolLimitFloor: 0.5,
     })
   })
 
@@ -458,6 +462,10 @@ describe('useStrategyForm submit policy', () => {
       bandWidth: 15,
       recurringAmount: 0,
       initialVrValue: 5000,
+      initialGradient: 10,
+      gMax: 20,
+      initialPoolLimitRate: 0.75,
+      poolLimitFloor: 0.5,
     })
   })
 
@@ -684,6 +692,10 @@ describe('useStrategyForm submit policy', () => {
       intervalWeeks: 2,
       bandWidth: 15,
       recurringAmount: 200,
+      initialGradient: 10,
+      gMax: 20,
+      initialPoolLimitRate: 1,
+      poolLimitFloor: 0.5,
     })
   })
 

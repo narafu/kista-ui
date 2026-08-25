@@ -33,7 +33,7 @@ export function buildStrategyPayload(input: BuildStrategyPayloadInput): Strategy
     avgPrice, quantity, intervalWeeks, bandWidth, initialValue, initialGradient,
     gGraceWeeks, gStepWeeks, gMax, initialPoolLimitRate, pGraceWeeks, pStepWeeks, poolLimitFloor,
   } = vrFields
-  const { normalizedRecurringAmount } = vrDerived
+  const { normalizedRecurringAmount, effectiveInitialGradient, effectiveGMax, effectiveInitialPoolLimitRate, effectivePoolLimitFloor } = vrDerived
   const normalizedInitialSeed = seedUsd ?? 0
 
   return initial
@@ -73,15 +73,16 @@ export function buildStrategyPayload(input: BuildStrategyPayloadInput): Strategy
           recurringAmount: normalizedRecurringAmount,
           // 초기 V 직접 입력 — 있으면 전송, 없으면 생략(서버가 평가금 기준으로 계산)
           ...(initialValue !== null && initialValue > 0 ? { initialVrValue: initialValue } : {}),
-          // 램프 파라미터 — 값이 있을 때만 포함(생략 시 서버 기본값 적용)
-          ...(initialGradient !== null ? { initialGradient } : {}),
+          // "자동" 4필드 — 미입력 시 UI가 표시한 placeholder(서버 기본값과 동일한 부호파생값)를 그대로 전송
+          initialGradient: initialGradient ?? effectiveInitialGradient,
+          gMax: gMax ?? effectiveGMax,
+          initialPoolLimitRate: initialPoolLimitRate ?? effectiveInitialPoolLimitRate,
+          poolLimitFloor: poolLimitFloor ?? effectivePoolLimitFloor,
+          // 유예·단계주기 — 값이 있을 때만 포함(생략 시 서버 기본값 적용)
           ...(gGraceWeeks !== null ? { gGraceWeeks } : {}),
           ...(gStepWeeks !== null ? { gStepWeeks } : {}),
-          ...(gMax !== null ? { gMax } : {}),
-          ...(initialPoolLimitRate !== null ? { initialPoolLimitRate } : {}),
           ...(pGraceWeeks !== null ? { pGraceWeeks } : {}),
           ...(pStepWeeks !== null ? { pStepWeeks } : {}),
-          ...(poolLimitFloor !== null ? { poolLimitFloor } : {}),
         } : {}),
       }
 }

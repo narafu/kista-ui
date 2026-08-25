@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { RAMP_DEFAULTS_BY_MODE } from './vrDerived'
 
 export const divisionCountSchema = z.number().int().positive()
 export type DivisionCount = z.infer<typeof divisionCountSchema>
@@ -17,7 +18,9 @@ export const strategyFormSchema = z.object({
   recurringMode: z.enum(['DEPOSIT', 'HOLD', 'WITHDRAW']),
   initialValue: z.number().nonnegative().nullable().optional(),
   scheduledStartDate: z.string().nullable().optional(),
-  // VR 램프 파라미터 — 전부 optional, 생략 시 백엔드 기본값 적용
+  // VR 램프 파라미터 — 전부 optional. initialGradient/gMax/initialPoolLimitRate/poolLimitFloor 4필드는
+  // 생략해도 백엔드로 넘어가지 않는다 — buildStrategyPayload가 RAMP_DEFAULTS_BY_MODE(recurringMode별 고정표)로
+  // 채워 항상 명시값을 보낸다. 나머지 유예·단계주기 4필드만 생략 시 백엔드 기본값에 위임한다
   initialGradient: z.number().int().positive().nullable().optional(),
   gGraceWeeks: z.number().int().nonnegative().nullable().optional(),
   // gStepWeeks=0은 gradient 램프 비활성화(상한/유예 무관)
@@ -29,7 +32,7 @@ export const strategyFormSchema = z.object({
   pStepWeeks: z.number().int().nonnegative().nullable().optional(),
   poolLimitFloor: z.number().nonnegative().max(1).nullable().optional(),
 }).superRefine((values, ctx) => {
-  const effectiveInitialGradient = values.initialGradient ?? (values.recurringMode === 'WITHDRAW' ? 20 : 10)
+  const effectiveInitialGradient = values.initialGradient ?? RAMP_DEFAULTS_BY_MODE[values.recurringMode].initialGradient
   if (values.gStepWeeks !== 0 && values.gMax !== null && values.gMax !== undefined && values.gMax < effectiveInitialGradient) {
     ctx.addIssue({
       code: 'custom',

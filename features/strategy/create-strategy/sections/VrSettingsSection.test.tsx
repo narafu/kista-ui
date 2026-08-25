@@ -23,6 +23,7 @@ describe('VrSettingsSection', () => {
     loading: false,
     isEdit: false,
     initialVrValue: 0,
+    vrRampDefaults: { initialGradient: 10, gMax: 10, initialPoolLimitRate: 0.5, poolLimitFloor: 0.5 },
     settings: {
       recurringMode: { customizable: true, allowedValues: ['DEPOSIT', 'HOLD', 'WITHDRAW'], defaultValue: 'HOLD' },
       bandWidth: { customizable: true, allowedValues: [10, 15, 20], defaultValue: 15 },

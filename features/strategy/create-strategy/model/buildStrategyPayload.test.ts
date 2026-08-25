@@ -39,6 +39,9 @@ function build(input: Partial<BuildStrategyPayloadInput> & { vrFields: VrFields;
     recurringAmount: rest.vrFields.recurringAmount,
     intervalWeeks: rest.vrFields.intervalWeeks,
     initialGradient: rest.vrFields.initialGradient,
+    gMax: rest.vrFields.gMax,
+    initialPoolLimitRate: rest.vrFields.initialPoolLimitRate,
+    poolLimitFloor: rest.vrFields.poolLimitFloor,
   })
   return buildStrategyPayload({
     type: 'INFINITE', ticker: 'TSLA', cycleSeedType: 'MAX', canEditSeed: false, isVr: false,
@@ -91,6 +94,7 @@ describe('buildStrategyPayload — create mode', () => {
     expect(payload).toEqual({
       type: 'VR', ticker: 'TQQQ', cycleSeedType: 'NONE', initialUsdDeposit: 2000,
       initialHoldings: 10, initialAvgPrice: 300, intervalWeeks: 4, bandWidth: 15, recurringAmount: 0,
+      initialGradient: 10, gMax: 20, initialPoolLimitRate: 0.75, poolLimitFloor: 0.5,
     })
   })
 
@@ -116,6 +120,28 @@ describe('buildStrategyPayload — create mode', () => {
       vrFields: vrFields({ intervalWeeks: 2, bandWidth: 15, recurringAmount: 250 }),
     })
     expect(payload).toMatchObject({ recurringAmount: -250 })
+  })
+
+  it('sends the mode-derived ramp default when a ramp field is left blank, instead of omitting it', () => {
+    const payload = build({
+      type: 'VR', ticker: 'TQQQ', cycleSeedType: 'NONE', isVr: true, seedUsd: 2000,
+      runtimeStrategy: vrRuntime, recurringMode: 'WITHDRAW',
+      vrFields: vrFields({ intervalWeeks: 4, bandWidth: 15, recurringAmount: 250 }),
+    })
+    expect(payload).toMatchObject({
+      initialGradient: 40, gMax: 50, initialPoolLimitRate: 0.1, poolLimitFloor: 0.1,
+    })
+  })
+
+  it('keeps the ramp default fixed to WITHDRAW mode even when recurringAmount is still 0', () => {
+    const payload = build({
+      type: 'VR', ticker: 'TQQQ', cycleSeedType: 'NONE', isVr: true, seedUsd: 2000,
+      runtimeStrategy: vrRuntime, recurringMode: 'WITHDRAW',
+      vrFields: vrFields({ intervalWeeks: 4, bandWidth: 15, recurringAmount: 0 }),
+    })
+    expect(payload).toMatchObject({
+      initialGradient: 40, gMax: 50, initialPoolLimitRate: 0.1, poolLimitFloor: 0.1,
+    })
   })
 
   it('includes ramp fields when provided and scheduledStartDate when set', () => {

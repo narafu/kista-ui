@@ -36,6 +36,9 @@ function derive(fields: VrFields, recurringMode: VrRecurringMode, seedUsd: numbe
     recurringAmount: fields.recurringAmount,
     intervalWeeks: fields.intervalWeeks,
     initialGradient: fields.initialGradient,
+    gMax: fields.gMax,
+    initialPoolLimitRate: fields.initialPoolLimitRate,
+    poolLimitFloor: fields.poolLimitFloor,
   }
   return computeVrDerived(input)
 }

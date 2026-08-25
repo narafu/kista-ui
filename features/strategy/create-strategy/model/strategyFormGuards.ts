@@ -41,8 +41,8 @@ export function isInvalidVr(input: {
   vrDerived: VrDerived
 }): boolean {
   const { isVr, vrFields, recurringMode, vrDerived } = input
-  const { intervalWeeks, bandWidth, recurringAmount, gStepWeeks, gMax, poolLimitFloor, initialPoolLimitRate, pStepWeeks } = vrFields
-  const { recurringMagnitude, normalizedRecurringAmount, initialAssets, evaluatedAssets, requiredWithdrawalAssets, effectiveInitialGradient } = vrDerived
+  const { intervalWeeks, bandWidth, recurringAmount, gStepWeeks, gMax, poolLimitFloor, pStepWeeks } = vrFields
+  const { recurringMagnitude, normalizedRecurringAmount, initialAssets, evaluatedAssets, requiredWithdrawalAssets, effectiveInitialGradient, effectiveInitialPoolLimitRate } = vrDerived
   return isVr && (
     intervalWeeks === null ||
     intervalWeeks < 1 ||
@@ -54,7 +54,7 @@ export function isInvalidVr(input: {
     (normalizedRecurringAmount <= 0 && initialAssets <= 0) ||
     (normalizedRecurringAmount < 0 && evaluatedAssets < requiredWithdrawalAssets) ||
     (gStepWeeks !== 0 && gMax !== null && gMax < effectiveInitialGradient) ||
-    (poolLimitFloor !== null && initialPoolLimitRate !== null && poolLimitFloor > initialPoolLimitRate) ||
+    (poolLimitFloor !== null && poolLimitFloor > effectiveInitialPoolLimitRate) ||
     // poolLimitRate 단계주기가 0(램프 비활성화)이 아니면 하한은 0보다 커야 함 — 단계주기=0일 때만 하한 0이 허용(자동 강제)
     (poolLimitFloor === 0 && pStepWeeks !== 0)
   )
@@ -133,8 +133,8 @@ export function computeSubmitDisabledReason(input: {
     initial, canEditSeed, runtimeConfigUnavailable, isInvalidScheduledStart, isVr, vrFields, recurringMode,
     vrDerived, isRuntimeValueInvalid, seedUnavailableReason, isBelowMinSeed, minSeed, isInvalidSeed, basePrice,
   } = input
-  const { avgPrice, quantity, intervalWeeks, bandWidth, recurringAmount, gStepWeeks, gMax, poolLimitFloor, initialPoolLimitRate, pStepWeeks } = vrFields
-  const { recurringMagnitude, normalizedRecurringAmount, initialAssets, evaluatedAssets, requiredWithdrawalAssets, effectiveInitialGradient } = vrDerived
+  const { avgPrice, quantity, intervalWeeks, bandWidth, recurringAmount, gStepWeeks, gMax, poolLimitFloor, pStepWeeks } = vrFields
+  const { recurringMagnitude, normalizedRecurringAmount, initialAssets, evaluatedAssets, requiredWithdrawalAssets, effectiveInitialGradient, effectiveInitialPoolLimitRate } = vrDerived
   return initial && !canEditSeed
     ? null
     : runtimeConfigUnavailable
@@ -177,7 +177,7 @@ export function computeSubmitDisabledReason(input: {
           if (gStepWeeks !== 0 && gMax !== null && gMax < effectiveInitialGradient) {
             return 'gradient 상한은 초기값 이상이어야 합니다.'
           }
-          if (poolLimitFloor !== null && initialPoolLimitRate !== null && poolLimitFloor > initialPoolLimitRate) {
+          if (poolLimitFloor !== null && poolLimitFloor > effectiveInitialPoolLimitRate) {
             return 'poolLimitRate 하한은 초기값 이하여야 합니다.'
           }
           if (poolLimitFloor === 0 && pStepWeeks !== 0) {

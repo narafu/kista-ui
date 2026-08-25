@@ -18,6 +18,13 @@ interface Props {
   isEdit: boolean
   // 수정 모드 읽기전용 표시 전용 — 평단가·수량 역산 불가라 저장된 V값을 그대로 보여준다
   initialVrValue: number
+  // 램프 파라미터 미입력 시 서버로 전송될 실제값 — placeholder에 표시
+  vrRampDefaults: {
+    initialGradient: number
+    gMax: number
+    initialPoolLimitRate: number
+    poolLimitFloor: number
+  }
   settings: {
     recurringMode?: RuntimeFieldSettings<string>
     bandWidth?: RuntimeFieldSettings<number>
@@ -50,7 +57,7 @@ function ChoiceButton({
   )
 }
 
-export function VrSettingsSection({ fields, setField, recurringMode, setRecurringMode, loading, isEdit, initialVrValue, settings }: Props) {
+export function VrSettingsSection({ fields, setField, recurringMode, setRecurringMode, loading, isEdit, initialVrValue, vrRampDefaults, settings }: Props) {
   const disabled = loading || isEdit
   const gStepWeeksIsZero = fields.gStepWeeks === 0
   const pStepWeeksIsZero = fields.pStepWeeks === 0
@@ -185,19 +192,19 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
           <div className="grid grid-cols-2 gap-x-3 gap-y-5 mt-5">
             <label>
               <span className={FIELD_LABEL_CLASS}>초기 gradient(G)</span>
-              <UnitInput value={fields.initialGradient} onChange={(v) => setField('initialGradient', v)} unit="" disabled={disabled} placeholder="자동" />
-            </label>
-            <label>
-              <span className={FIELD_LABEL_CLASS}>gradient 단계주기(주)</span>
-              <UnitInput value={fields.gStepWeeks} onChange={handleGStepWeeksChange} unit="주" disabled={disabled} placeholder="26" />
-            </label>
-            <label>
-              <span className={FIELD_LABEL_CLASS}>gradient 상한</span>
-              <UnitInput value={fields.gMax} onChange={(v) => setField('gMax', v)} unit="" disabled={disabled || gStepWeeksIsZero} placeholder="자동" />
+              <UnitInput value={fields.initialGradient} onChange={(v) => setField('initialGradient', v)} unit="" disabled={disabled} placeholder={String(vrRampDefaults.initialGradient)} />
             </label>
             <label>
               <span className={FIELD_LABEL_CLASS}>gradient 유예(주)</span>
               <UnitInput value={fields.gGraceWeeks} onChange={(v) => setField('gGraceWeeks', v)} unit="주" disabled={disabled || gStepWeeksIsZero} placeholder="52" />
+            </label>
+            <label>
+              <span className={FIELD_LABEL_CLASS}>gradient 상한</span>
+              <UnitInput value={fields.gMax} onChange={(v) => setField('gMax', v)} unit="" disabled={disabled || gStepWeeksIsZero} placeholder={String(vrRampDefaults.gMax)} />
+            </label>
+            <label>
+              <span className={FIELD_LABEL_CLASS}>gradient 단계주기(주)</span>
+              <UnitInput value={fields.gStepWeeks} onChange={handleGStepWeeksChange} unit="주" disabled={disabled} placeholder="26" />
             </label>
             <label>
               <span className={FIELD_LABEL_CLASS}>초기 poolLimitRate</span>
@@ -206,13 +213,13 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
                 onChange={(v) => setField('initialPoolLimitRate', v !== null ? percentToRatio(v) : null)}
                 unit="%"
                 disabled={disabled}
-                placeholder="자동"
+                placeholder={String(ratioToPercent(vrRampDefaults.initialPoolLimitRate))}
                 maxDecimals={0}
               />
             </label>
             <label>
-              <span className={FIELD_LABEL_CLASS}>poolLimitRate 단계주기(주)</span>
-              <UnitInput value={fields.pStepWeeks} onChange={handlePStepWeeksChange} unit="주" disabled={disabled} placeholder="26" />
+              <span className={FIELD_LABEL_CLASS}>poolLimitRate 유예(주)</span>
+              <UnitInput value={fields.pGraceWeeks} onChange={(v) => setField('pGraceWeeks', v)} unit="주" disabled={disabled || pStepWeeksIsZero} placeholder="52" />
             </label>
             <label>
               <span className={FIELD_LABEL_CLASS}>poolLimitRate 하한</span>
@@ -221,13 +228,13 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
                 onChange={(v) => setField('poolLimitFloor', v !== null ? percentToRatio(v) : null)}
                 unit="%"
                 disabled={disabled || pStepWeeksIsZero}
-                placeholder="자동"
+                placeholder={String(ratioToPercent(vrRampDefaults.poolLimitFloor))}
                 maxDecimals={0}
               />
             </label>
             <label>
-              <span className={FIELD_LABEL_CLASS}>poolLimitRate 유예(주)</span>
-              <UnitInput value={fields.pGraceWeeks} onChange={(v) => setField('pGraceWeeks', v)} unit="주" disabled={disabled || pStepWeeksIsZero} placeholder="52" />
+              <span className={FIELD_LABEL_CLASS}>poolLimitRate 단계주기(주)</span>
+              <UnitInput value={fields.pStepWeeks} onChange={handlePStepWeeksChange} unit="주" disabled={disabled} placeholder="26" />
             </label>
           </div>
         </details>

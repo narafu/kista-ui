@@ -13,6 +13,9 @@ function baseInput(overrides: Partial<VrDerivedInput> = {}): VrDerivedInput {
     recurringAmount: null,
     intervalWeeks: null,
     initialGradient: null,
+    gMax: null,
+    initialPoolLimitRate: null,
+    poolLimitFloor: null,
     ...overrides,
   }
 }
@@ -42,10 +45,27 @@ describe('computeVrDerived', () => {
     expect(computeVrDerived(baseInput({ recurringMode: 'WITHDRAW', recurringAmount: -250 })).recurringMagnitude).toBe(250)
   })
 
-  it('defaults effectiveInitialGradient to 20 for withdrawal, 10 otherwise, and respects an explicit value', () => {
-    expect(computeVrDerived(baseInput({ recurringMode: 'WITHDRAW', recurringAmount: 100 })).effectiveInitialGradient).toBe(20)
+  it('derives ramp defaults from recurringMode alone — amount magnitude (even 0) never flips the bucket', () => {
+    expect(computeVrDerived(baseInput({ recurringMode: 'DEPOSIT', recurringAmount: 0 })).effectiveInitialGradient).toBe(10)
     expect(computeVrDerived(baseInput({ recurringMode: 'DEPOSIT', recurringAmount: 100 })).effectiveInitialGradient).toBe(10)
+    expect(computeVrDerived(baseInput({ recurringMode: 'HOLD' })).effectiveInitialGradient).toBe(10)
+    expect(computeVrDerived(baseInput({ recurringMode: 'WITHDRAW', recurringAmount: 0 })).effectiveInitialGradient).toBe(40)
+    expect(computeVrDerived(baseInput({ recurringMode: 'WITHDRAW', recurringAmount: 100 })).effectiveInitialGradient).toBe(40)
     expect(computeVrDerived(baseInput({ initialGradient: 7 })).effectiveInitialGradient).toBe(7)
+  })
+
+  it('applies the fixed ramp table per mode (적립 100%/50%, 거치 75%/50%, 인출 10%/10%, gMax 20/20/50) and respects explicit overrides', () => {
+    expect(computeVrDerived(baseInput({ recurringMode: 'DEPOSIT', recurringAmount: 100 })).effectiveInitialPoolLimitRate).toBe(1.0)
+    expect(computeVrDerived(baseInput({ recurringMode: 'DEPOSIT', recurringAmount: 100 })).effectivePoolLimitFloor).toBe(0.5)
+    expect(computeVrDerived(baseInput({ recurringMode: 'DEPOSIT', recurringAmount: 100 })).effectiveGMax).toBe(20)
+    expect(computeVrDerived(baseInput({ recurringMode: 'HOLD' })).effectiveInitialPoolLimitRate).toBe(0.75)
+    expect(computeVrDerived(baseInput({ recurringMode: 'HOLD' })).effectivePoolLimitFloor).toBe(0.5)
+    expect(computeVrDerived(baseInput({ recurringMode: 'HOLD' })).effectiveGMax).toBe(20)
+    expect(computeVrDerived(baseInput({ recurringMode: 'WITHDRAW', recurringAmount: 100 })).effectiveInitialPoolLimitRate).toBe(0.1)
+    expect(computeVrDerived(baseInput({ recurringMode: 'WITHDRAW', recurringAmount: 100 })).effectivePoolLimitFloor).toBe(0.1)
+    expect(computeVrDerived(baseInput({ recurringMode: 'WITHDRAW', recurringAmount: 100 })).effectiveGMax).toBe(50)
+    expect(computeVrDerived(baseInput({ gMax: 30 })).effectiveGMax).toBe(30)
+    expect(computeVrDerived(baseInput({ poolLimitFloor: 0.2 })).effectivePoolLimitFloor).toBe(0.2)
   })
 
   it('combines V value and seed into initialAssets', () => {

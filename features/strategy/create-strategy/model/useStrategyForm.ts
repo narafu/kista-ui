@@ -95,6 +95,13 @@ export interface UseStrategyFormReturn {
   setVrField: (field: keyof VrFields, value: number | null) => void
   recurringMode: VrRecurringMode
   setRecurringMode: (mode: VrRecurringMode) => void
+  // 램프 파라미터 미입력 시 서버로 전송될 실제값 — "자동" 플레이스홀더에 표시
+  vrRampDefaults: {
+    initialGradient: number
+    gMax: number
+    initialPoolLimitRate: number
+    poolLimitFloor: number
+  }
   vrSettings: {
     recurringMode?: RuntimeFieldSettings<string>
     bandWidth?: RuntimeFieldSettings<number>
@@ -301,6 +308,7 @@ export function useStrategyForm({
   const vrDerived = computeVrDerived({
     initial, avgPrice, quantity, initialValue, seedUsd,
     recurringMode, recurringAmount, intervalWeeks, initialGradient,
+    gMax, initialPoolLimitRate, poolLimitFloor,
   })
 
   const invalidBootstrap = isInvalidBootstrap({ initial, avgPrice, quantity })
@@ -399,7 +407,14 @@ export function useStrategyForm({
     enabledStrategyTypes, runtimeConfigUnavailable,
     runtimeConfigError: runtimeQuery.isError,
     retryRuntimeConfig: () => { void runtimeQuery.refetch() },
-    isVr, vrFields, setVrField, recurringMode, setRecurringMode, vrSettings,
+    isVr, vrFields, setVrField, recurringMode, setRecurringMode,
+    vrRampDefaults: {
+      initialGradient: vrDerived.effectiveInitialGradient,
+      gMax: vrDerived.effectiveGMax,
+      initialPoolLimitRate: vrDerived.effectiveInitialPoolLimitRate,
+      poolLimitFloor: vrDerived.effectivePoolLimitFloor,
+    },
+    vrSettings,
     scheduledStartDate, setScheduledStartDate,
     loading: createMutation.isPending || updateMutation.isPending,
     initializing: (!initialized && loadingBase) || (!initial && runtimeQuery.isLoading),
