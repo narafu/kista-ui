@@ -244,6 +244,7 @@ describe('StrategyDetail header card', () => {
           bandWidth: 15,
           intervalWeeks: 4,
           recurringAmount: -100,
+          currentPool: 2000,
           poolLimit: 500,
           poolLimitRate: 0.5,
           gradient: 20,
