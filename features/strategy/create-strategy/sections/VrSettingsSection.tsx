@@ -7,7 +7,7 @@ import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import type { VrFields } from '../model/useStrategyForm'
 import type { RuntimeFieldSettings } from '@entities/runtime-config'
 import { applyGStepWeeksChange, applyPStepWeeksChange } from '@entities/strategy'
-import { UnitInput } from './UnitInput'
+import { UnitInput } from '@shared/ui/UnitInput'
 
 interface Props {
   fields: VrFields

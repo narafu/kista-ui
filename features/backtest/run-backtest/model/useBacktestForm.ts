@@ -19,6 +19,8 @@ export function useBacktestForm() {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [seed, setSeed] = useState<number | null>(null)
+  const [avgPrice, setAvgPrice] = useState<number | null>(null)
+  const [quantity, setQuantity] = useState<number | null>(null)
   const [divisionCount, setDivisionCount] = useState<number | null>(null)
   const [vrBandWidth, setVrBandWidth] = useState<number | null>(null)
   const [vrIntervalWeeks, setVrIntervalWeeks] = useState<number | null>(null)
@@ -47,9 +49,15 @@ export function useBacktestForm() {
 
   const submitDisabledReason = useMemo(() => {
     if (!ticker) return '종목을 선택하세요'
-    if (seed == null || seed <= 0) return '시드는 0보다 커야 합니다'
     if (!from || !to) return '기간을 선택하세요'
     if (from > to) return '시작일이 종료일보다 늦을 수 없습니다'
+    if (avgPrice != null && avgPrice < 0) return '평단가는 0 이상이어야 합니다'
+    if (quantity != null && quantity < 0) return '수량은 0 이상이어야 합니다'
+    const hasSeed = seed != null && seed > 0
+    const hasHoldings = quantity != null && quantity > 0
+    if (!hasSeed && !hasHoldings) return '예수금 또는 평단가·수량 중 하나는 입력하세요'
+    if (hasHoldings && (avgPrice == null || avgPrice <= 0)) return '수량을 입력했다면 평단가도 입력하세요'
+    if (avgPrice != null && avgPrice > 0 && !hasHoldings) return '평단가를 입력했다면 수량도 입력하세요'
     if (type === 'INFINITE' && divisionCountOptions.length > 0 && divisionCount == null) {
       return '분할 수를 선택하세요'
     }
@@ -63,6 +71,8 @@ export function useBacktestForm() {
   }, [
     ticker,
     seed,
+    avgPrice,
+    quantity,
     from,
     to,
     type,
@@ -81,7 +91,9 @@ export function useBacktestForm() {
       ticker,
       from,
       to,
-      seed: seed as number,
+      seed: seed ?? 0,
+      initialHoldings: quantity != null && quantity > 0 ? quantity : undefined,
+      initialAvgPrice: quantity != null && quantity > 0 ? (avgPrice ?? undefined) : undefined,
       divisionCount: type === 'INFINITE' ? (divisionCount ?? undefined) : undefined,
       vrBandWidth: type === 'VR' ? (vrBandWidth ?? undefined) : undefined,
       vrIntervalWeeks: type === 'VR' ? (vrIntervalWeeks ?? undefined) : undefined,
@@ -93,6 +105,16 @@ export function useBacktestForm() {
   function run() {
     if (submitDisabledReason) return
     mutation.mutate(buildParams())
+  }
+
+  function reset() {
+    setType('INFINITE')
+    setFrom('')
+    setTo('')
+    setSeed(null)
+    setAvgPrice(null)
+    setQuantity(null)
+    mutation.reset()
   }
 
   return {
@@ -108,6 +130,10 @@ export function useBacktestForm() {
     setTo,
     seed,
     setSeed,
+    avgPrice,
+    setAvgPrice,
+    quantity,
+    setQuantity,
     divisionCount,
     setDivisionCount,
     divisionCountOptions,
@@ -123,6 +149,7 @@ export function useBacktestForm() {
     setVrInitialValue,
     submitDisabledReason,
     run,
+    reset,
     result: mutation.data,
     isLoading: mutation.isPending,
     errorMessage: mutation.error ? apiMsg(mutation.error, '백테스트 실행에 실패했습니다. 잠시 후 다시 시도해주세요') : null,

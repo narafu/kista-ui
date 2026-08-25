@@ -14,5 +14,7 @@ export async function getBacktest(params: BacktestParams, token?: string): Promi
   if (params.vrIntervalWeeks != null) q.set('vrIntervalWeeks', String(params.vrIntervalWeeks))
   if (params.vrRecurringAmount != null) q.set('vrRecurringAmount', String(params.vrRecurringAmount))
   if (params.vrInitialValue != null) q.set('vrInitialValue', String(params.vrInitialValue))
+  if (params.initialHoldings != null) q.set('initialHoldings', String(params.initialHoldings))
+  if (params.initialAvgPrice != null) q.set('initialAvgPrice', String(params.initialAvgPrice))
   return fetchEither<BacktestResult>(`/api/backtest?${q}`, { method: 'GET' }, token)
 }

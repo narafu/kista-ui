@@ -1,6 +1,6 @@
 'use client'
 
-import { UnitInput } from './UnitInput'
+import { UnitInput } from '@shared/ui/UnitInput'
 
 interface Props {
   avgPrice: number | null

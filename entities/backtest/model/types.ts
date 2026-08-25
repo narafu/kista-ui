@@ -11,6 +11,9 @@ export interface BacktestParams {
   vrIntervalWeeks?: number
   vrRecurringAmount?: number
   vrInitialValue?: number
+  // 중간부터 시작 — 기존 보유 수량·평단가 (세 전략 공통, 미지정이면 빈 포지션에서 시작)
+  initialHoldings?: number
+  initialAvgPrice?: number
 }
 
 export interface BacktestPoint {

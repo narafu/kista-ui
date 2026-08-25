@@ -1,5 +1,7 @@
 'use client'
 
+import type { ReactNode } from 'react'
+import { Zap, Activity } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -7,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Spinner } from '@shared/ui/Spinner'
 import { SelectionCard } from '@shared/ui/selection-card'
+import { UnitInput } from '@shared/ui/UnitInput'
 import type { BacktestType } from '@entities/backtest'
 import type { UseBacktestFormResult } from './model/useBacktestForm'
 
@@ -20,25 +23,58 @@ const RECURRING_MODE_LABEL: Record<'DEPOSIT' | 'HOLD' | 'WITHDRAW', string> = {
   WITHDRAW: '- 인출',
 }
 
+const FIELD_LABEL_CLASS = 'block mb-2.5 text-sm font-bold text-muted-foreground'
+
+// 전략 등록 폼(features/strategy/create-strategy)의 ChoiceButton과 동일한 크기·타이포 — feature 간 cross-import가
+// 금지돼 있어 작은 프레젠테이션 래퍼를 그대로 복제한다
+function ChoiceButton({
+  children,
+  selected,
+  disabled,
+  onClick,
+}: {
+  children: ReactNode
+  selected: boolean
+  disabled: boolean
+  onClick: () => void
+}) {
+  return (
+    <SelectionCard
+      selected={selected}
+      disabled={disabled}
+      onClick={onClick}
+      className={selected ? 'h-11 px-3 text-center text-sm font-extrabold' : 'h-11 px-3 text-center text-sm font-extrabold text-muted-foreground'}
+    >
+      {children}
+    </SelectionCard>
+  )
+}
+
 export function BacktestForm({ form }: Props) {
   return (
     <Card>
       <CardContent className="flex flex-col gap-5 pt-6">
         <div>
           <Label className="mb-2 block text-sm font-bold">매매 전략</Label>
-          <div className="grid grid-cols-3 gap-2.5">
-            {form.meta.strategyTypes.map((t) => (
-              <SelectionCard
-                key={t.code}
-                selected={form.type === t.code}
-                showIndicator
-                onClick={() => form.setType(t.code as BacktestType)}
-                disabled={form.isLoading}
-                className="px-3 py-3 text-center text-sm font-[800]"
-              >
-                {t.code}
-              </SelectionCard>
-            ))}
+          <div className="grid grid-cols-2 gap-2.5">
+            {form.meta.strategyTypes.map((t) => {
+              const selected = form.type === t.code
+              const singleTicker = (t.availableTickers?.length ?? 0) <= 1
+              return (
+                <SelectionCard
+                  key={t.code}
+                  selected={selected}
+                  onClick={() => form.setType(t.code as BacktestType)}
+                  disabled={form.isLoading}
+                  className="flex items-center gap-2 rounded-[var(--r-md)] px-[14px] py-4"
+                >
+                  <span className={selected ? 'size-4 shrink-0 text-[var(--selection-fg)]' : 'size-4 shrink-0 text-muted-foreground'}>
+                    {singleTicker ? <Activity size={16} /> : <Zap size={16} />}
+                  </span>
+                  <span className="text-sm font-[800]">{t.code}</span>
+                </SelectionCard>
+              )
+            })}
           </div>
         </div>
 
@@ -72,7 +108,7 @@ export function BacktestForm({ form }: Props) {
         </div>
 
         <div>
-          <Label htmlFor="seed" className="mb-2 block text-sm font-bold">시드 (USD)</Label>
+          <Label htmlFor="seed" className="mb-2 block text-sm font-bold">예수금</Label>
           <Input
             id="seed"
             type="number"
@@ -80,8 +116,32 @@ export function BacktestForm({ form }: Props) {
             value={form.seed ?? ''}
             onChange={(e) => form.setSeed(e.target.value === '' ? null : Number(e.target.value))}
             disabled={form.isLoading}
-            placeholder="10000"
+            placeholder="USD"
           />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <label>
+            <span className="block mb-1 text-xs font-semibold text-muted-foreground">평단가</span>
+            <UnitInput
+              value={form.avgPrice}
+              onChange={(v) => form.setAvgPrice(v)}
+              unit="USD"
+              disabled={form.isLoading}
+              unitClassName="ml-1.5"
+              maxDecimals={2}
+            />
+          </label>
+          <label>
+            <span className="block mb-1 text-xs font-semibold text-muted-foreground">수량</span>
+            <UnitInput
+              value={form.quantity}
+              onChange={(v) => form.setQuantity(v !== null ? Math.round(v) : null)}
+              unit="주"
+              disabled={form.isLoading}
+              unitClassName="ml-1.5"
+            />
+          </label>
         </div>
 
         {form.type === 'INFINITE' && form.divisionCountOptions.length > 0 && (
@@ -104,77 +164,73 @@ export function BacktestForm({ form }: Props) {
         )}
 
         {form.type === 'VR' && (
-          <div className="flex flex-col gap-4 rounded-[var(--r-sm)] border border-border p-4">
-            <Label className="text-sm font-bold">밸류 리밸런싱 설정</Label>
-            <div className="grid grid-cols-2 gap-3">
+          <div className="py-[18px] border-t border-border">
+            <Label className="mb-2 block text-sm font-bold">밸류 리밸런싱 설정</Label>
+
+            <div className="grid grid-cols-1 gap-y-5">
               <div>
-                <Label htmlFor="vrBandWidth" className="mb-2 block text-xs text-muted-foreground">밴드 폭(%)</Label>
-                <Input
-                  id="vrBandWidth"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={form.vrBandWidth ?? ''}
-                  onChange={(e) => form.setVrBandWidth(e.target.value === '' ? null : Number(e.target.value))}
-                  disabled={form.isLoading}
-                  placeholder="15"
-                />
-              </div>
-              <div>
-                <Label htmlFor="vrIntervalWeeks" className="mb-2 block text-xs text-muted-foreground">리밸런싱 주기(주)</Label>
-                <Input
-                  id="vrIntervalWeeks"
-                  type="number"
-                  min={1}
-                  step="1"
-                  value={form.vrIntervalWeeks ?? ''}
-                  onChange={(e) => form.setVrIntervalWeeks(e.target.value === '' ? null : Math.round(Number(e.target.value)))}
-                  disabled={form.isLoading}
-                  placeholder="4"
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="vrInitialValue" className="mb-2 block text-xs text-muted-foreground">초기 V값(USD)</Label>
-              <Input
-                id="vrInitialValue"
-                type="number"
-                min={0}
-                value={form.vrInitialValue ?? ''}
-                onChange={(e) => form.setVrInitialValue(e.target.value === '' ? null : Number(e.target.value))}
-                disabled={form.isLoading}
-                placeholder="10000"
-              />
-            </div>
-            <div>
-              <Label htmlFor="vrRecurringAmountAbs" className="mb-2 block text-xs text-muted-foreground">적립(+)/거치/인출(-)</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {(['DEPOSIT', 'HOLD', 'WITHDRAW'] as const).map((mode) => (
-                  <SelectionCard
-                    key={mode}
-                    selected={form.vrRecurringMode === mode}
-                    onClick={() => form.setVrRecurringMode(mode)}
-                    disabled={form.isLoading}
-                    className="py-2.5 text-center text-sm font-bold"
-                  >
-                    {RECURRING_MODE_LABEL[mode]}
-                  </SelectionCard>
-                ))}
-              </div>
-              {form.vrRecurringMode !== 'HOLD' && (
-                <Input
-                  id="vrRecurringAmountAbs"
-                  type="number"
-                  min={0}
-                  step="1"
-                  className="mt-2"
-                  value={form.vrRecurringAmountAbs ?? ''}
-                  onChange={(e) => form.setVrRecurringAmountAbs(e.target.value === '' ? null : Math.round(Number(e.target.value)))}
-                  disabled={form.isLoading}
+                <span className={FIELD_LABEL_CLASS}>적립금(+)/인출금(-)</span>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['DEPOSIT', 'HOLD', 'WITHDRAW'] as const).map((mode) => (
+                    <ChoiceButton
+                      key={mode}
+                      selected={form.vrRecurringMode === mode}
+                      disabled={form.isLoading}
+                      onClick={() => form.setVrRecurringMode(mode)}
+                    >
+                      {RECURRING_MODE_LABEL[mode]}
+                    </ChoiceButton>
+                  ))}
+                </div>
+                <UnitInput
+                  value={form.vrRecurringAmountAbs}
+                  onChange={(v) => form.setVrRecurringAmountAbs(v !== null ? Math.round(v) : null)}
+                  unit="USD"
+                  disabled={form.isLoading || form.vrRecurringMode === 'HOLD'}
+                  ariaLabel="적립금(+)/인출금(-)"
                   placeholder="0"
+                  wrapperClassName="mt-2.5"
                 />
-              )}
+              </div>
             </div>
+
+            <details className="mt-4 group">
+              <summary className="cursor-pointer select-none text-sm font-bold text-muted-foreground list-none flex items-center gap-1.5">
+                <span className="transition-transform group-open:rotate-90">▸</span>
+                상세 설정
+              </summary>
+              <div className="grid grid-cols-1 gap-y-5 mt-4">
+                <label>
+                  <span className={FIELD_LABEL_CLASS}>초기 V</span>
+                  <UnitInput
+                    value={form.vrInitialValue}
+                    onChange={(v) => form.setVrInitialValue(v)}
+                    unit="USD"
+                    disabled={form.isLoading}
+                    maxDecimals={2}
+                  />
+                </label>
+                <label>
+                  <span className={FIELD_LABEL_CLASS}>밴드 폭</span>
+                  <UnitInput
+                    value={form.vrBandWidth}
+                    onChange={(v) => form.setVrBandWidth(v)}
+                    unit="%"
+                    disabled={form.isLoading}
+                    maxDecimals={2}
+                  />
+                </label>
+                <label>
+                  <span className={FIELD_LABEL_CLASS}>리밸런싱 주기</span>
+                  <UnitInput
+                    value={form.vrIntervalWeeks}
+                    onChange={(v) => form.setVrIntervalWeeks(v !== null ? Math.round(v) : null)}
+                    unit="주"
+                    disabled={form.isLoading}
+                  />
+                </label>
+              </div>
+            </details>
           </div>
         )}
 
@@ -185,19 +241,30 @@ export function BacktestForm({ form }: Props) {
           <p className="text-sm font-semibold text-[var(--status-error)]">{form.errorMessage}</p>
         )}
 
-        <Button
-          type="button"
-          onClick={form.run}
-          disabled={form.isLoading || !!form.submitDisabledReason}
-          className="h-11 gap-2 text-sm font-[800]"
-        >
-          {form.isLoading ? (
-            <>
-              <Spinner size={14} />
-              실행 중...
-            </>
-          ) : '실행'}
-        </Button>
+        <div className="flex gap-2.5">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={form.reset}
+            disabled={form.isLoading}
+            className="flex-1 h-11 text-sm font-bold"
+          >
+            초기화
+          </Button>
+          <Button
+            type="button"
+            onClick={form.run}
+            disabled={form.isLoading || !!form.submitDisabledReason}
+            className="flex-[1.5] h-11 gap-2 text-sm font-[800]"
+          >
+            {form.isLoading ? (
+              <>
+                <Spinner size={14} />
+                실행 중...
+              </>
+            ) : '실행'}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )

@@ -52,4 +52,25 @@ describe('backtest api', () => {
       undefined
     )
   })
+
+  it('getBacktest includes initialHoldings/initialAvgPrice when provided (중간부터 시작)', async () => {
+    const { getBacktest } = await import('./index')
+    fetchEitherMock.mockResolvedValueOnce({ points: [], summary: {}, warnings: [] })
+
+    await getBacktest({
+      type: 'INFINITE',
+      ticker: 'TQQQ',
+      from: '2026-01-01',
+      to: '2026-06-01',
+      seed: 0,
+      initialHoldings: 10,
+      initialAvgPrice: 87.5,
+    })
+
+    expect(fetchEitherMock).toHaveBeenCalledWith(
+      '/api/backtest?type=INFINITE&ticker=TQQQ&from=2026-01-01&to=2026-06-01&seed=0&initialHoldings=10&initialAvgPrice=87.5',
+      { method: 'GET' },
+      undefined
+    )
+  })
 })

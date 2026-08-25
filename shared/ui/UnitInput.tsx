@@ -29,7 +29,7 @@ function inputBoxClass(disabled: boolean) {
   )
 }
 
-// 우측 정렬 숫자 입력 + 단위 라벨 — VR 상세 설정, 중간부터 시작(평단가·수량) 등 여러 섹션이 공유하는 마크업
+// 우측 정렬 숫자 입력 + 단위 라벨 — VR 상세 설정, 중간부터 시작(평단가·수량), 백테스트 폼 등 여러 도메인이 공유하는 마크업
 export function UnitInput({
   value,
   onChange,
