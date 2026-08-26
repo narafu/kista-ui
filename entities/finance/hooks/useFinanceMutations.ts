@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { apiMsg } from '@shared/lib/api-client'
 import { synchronizeListQueries, upsertById } from '@shared/lib/query'
 import {
+  bulkRegisterFinance,
   createAssetSnapshot,
   createFinanceAccount,
   createFinanceBudget,
@@ -42,6 +43,8 @@ import {
 import type {
   AssetSnapshot,
   AssetSnapshotRequest,
+  BulkFinanceRegisterRequest,
+  BulkFinanceRegisterResponse,
   FinanceAccount,
   FinanceAccountRequest,
   FinanceBudget,
@@ -531,6 +534,17 @@ export function useCreateFinanceGroupInvitationMutation(groupId: string) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.groups() }),
     onError: (err) => toast.error(apiMsg(err, '초대 코드를 발급하지 못했습니다')),
   })
+}
+
+// 자산/거래 배치 등록 — 항목별 성공/실패는 응답에 담겨 오므로 mutation 자체는 항상 성공(reject
+// 없음, 서버가 400을 내는 요청 자체 오류만 error가 된다). asset/transaction 양쪽 루트를 함께
+// 무효화해야 해 financeKeys.all(공통 루트)을 그대로 쓴다.
+export function useBulkRegisterFinanceMutation() {
+  return useInvalidateFinanceMutation<BulkFinanceRegisterResponse, BulkFinanceRegisterRequest>(
+    (data) => bulkRegisterFinance(data),
+    financeKeys.all,
+    '일괄 등록에 실패했습니다',
+  )
 }
 
 export function useRespondToInvitationMutation() {

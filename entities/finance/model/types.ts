@@ -120,3 +120,34 @@ export interface FinanceBudgetRequest {
   applyEndDate?: string
   amount: number
 }
+
+// kista-api FinanceBulkController — 순수 flat 배치 등록. 소스월→대상월 복제는 UI가 각 항목의
+// entryDate/transactionDate를 대상월로 채워 보내는 방식으로 처리한다(서버는 관여하지 않음).
+export interface BulkFinanceRegisterAssetItem {
+  categoryId: string
+  accountId?: string
+  entryDate: string
+  assetClass: AssetClass
+  market: Market
+  strategy?: string
+  memo?: string
+  amount: number
+}
+
+export interface BulkFinanceRegisterTransactionItem {
+  categoryId: string
+  transactionDate: string
+  amount: number
+  memo?: string
+}
+
+export interface BulkFinanceRegisterRequest {
+  assets: BulkFinanceRegisterAssetItem[]
+  transactions: BulkFinanceRegisterTransactionItem[]
+}
+
+export interface BulkFinanceRegisterResponse {
+  assetSuccessCount: number
+  transactionSuccessCount: number
+  failures: string[]
+}

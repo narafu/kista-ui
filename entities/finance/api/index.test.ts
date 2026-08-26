@@ -58,6 +58,26 @@ describe('listAssetSnapshots', () => {
   })
 })
 
+describe('bulkRegisterFinance', () => {
+  beforeEach(() => {
+    clientFetchMock.mockReset()
+    apiFetchMock.mockReset()
+  })
+
+  it('POST /api/finance/bulk-register 로 배치 등록 요청을 보낸다', async () => {
+    clientFetchMock.mockResolvedValueOnce({ assetSuccessCount: 1, transactionSuccessCount: 2, failures: [] })
+
+    const { bulkRegisterFinance } = await import('./index')
+    const result = await bulkRegisterFinance({ assets: [], transactions: [] }, { groupId: 'group-1' })
+
+    expect(clientFetchMock).toHaveBeenCalledWith(
+      '/api/finance/bulk-register?groupId=group-1',
+      { method: 'POST', body: JSON.stringify({ assets: [], transactions: [] }) },
+    )
+    expect(result.assetSuccessCount).toBe(1)
+  })
+})
+
 describe('setMonthlyClosing', () => {
   beforeEach(() => {
     clientFetchMock.mockReset()

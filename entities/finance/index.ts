@@ -3,6 +3,8 @@ export type {
   AssetClass,
   AssetSnapshot,
   AssetSnapshotRequest,
+  BulkFinanceRegisterRequest,
+  BulkFinanceRegisterResponse,
   FinanceAccount,
   FinanceAccountRequest,
   FinanceAccountType,
@@ -30,6 +32,7 @@ export {
   transactionListQueryOptions,
 } from './model/queryOptions'
 export {
+  bulkRegisterFinance,
   createAssetSnapshot,
   createFinanceAccount,
   createFinanceBudget,
@@ -85,6 +88,7 @@ export {
   useSystemFinanceCategoriesQuery,
 } from './hooks/useFinanceQueries'
 export {
+  useBulkRegisterFinanceMutation,
   useCreateAssetSnapshotMutation,
   useCreateFinanceAccountMutation,
   useCreateFinanceBudgetMutation,
@@ -157,6 +161,8 @@ export type {
 export { collectSubtreeIds, getCascadeLevels, getCategoryPath, sortCategoryTree } from './lib/categoryTree'
 export { buildCategoryIndex, resolveCategory } from './lib/categoryIndex'
 export type { CategoryIndex, CategoryIndexEntry } from './lib/categoryIndex'
+export { buildBulkRegisterItems } from './lib/bulkRegisterPreview'
+export type { BulkRegisterGroup, BulkRegisterItem, BulkRegisterItems } from './lib/bulkRegisterPreview'
 export { daysInMonth, displayWindow, elapsedDaysInMonth, elapsedMonthsInYear, isCurrentYear, monthEndDate, monthStartDate, periodRange, previousYearRange, shiftMonth, windowRange, yearsRange } from './lib/period'
 export type { Period, PeriodMode } from './lib/period'
 export {
