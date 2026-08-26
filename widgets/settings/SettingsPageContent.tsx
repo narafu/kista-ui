@@ -51,6 +51,10 @@ export function SettingsPageContent() {
           <div className="flex-1"><div className="text-sm font-bold">장 시작/마감 알림</div><div className="text-sm text-muted-foreground mt-0.5">미국 장 개시 및 마감 시 알림</div></div>
           <TradingAlertToggle type="MARKET_ALERT" initialEnabled={user?.notificationPrefs?.['MARKET_ALERT'] ?? true} channel={notificationChannel} />
         </div>
+        <div className="flex items-center gap-[14px] py-3 border-t border-border">
+          <div className="flex-1"><div className="text-sm font-bold">가계부 등록 알림</div><div className="text-sm text-muted-foreground mt-0.5">이번 달 가계부 등록이 없으면 월말에 알려드려요</div></div>
+          <TradingAlertToggle type="FINANCE_REMINDER" initialEnabled={user?.notificationPrefs?.['FINANCE_REMINDER'] ?? true} channel={notificationChannel} />
+        </div>
       </Surface>
 
       <Surface as="section" id="preferences" className="p-6">
