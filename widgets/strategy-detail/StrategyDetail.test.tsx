@@ -1140,7 +1140,7 @@ describe('StrategyDetail executed-mode deficit badge', () => {
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
     expect(screen.queryByText(/예수금 \$[\d,.]+ 부족/)).not.toBeInTheDocument()
-    expect(screen.getByText('예수금 충족됨 — 마감 시 매수 재시도 예정')).toBeInTheDocument()
+    expect(screen.getByText('예수금 충족됨 — 마감 시 매수 예정')).toBeInTheDocument()
   })
 
   it('shows an uncertain notice instead of claiming the deficit is resolved when live balance lookup failed', () => {

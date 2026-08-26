@@ -19,7 +19,7 @@ interface DirectionCopy {
 export const BUY_COPY: DirectionCopy = {
   uncertainMessage: '예수금 확인 실패로 매수 미접수 — 잠시 후 다시 확인해주세요',
   formatDeficitMessage: () => '예수금 부족으로 매수 미접수',
-  sufficientMessage: '예수금 충족됨 — 마감 시 매수 재시도 예정',
+  sufficientMessage: '예수금 충족됨 — 마감 시 매수 예정',
 }
 
 export const SELL_COPY: DirectionCopy = {
