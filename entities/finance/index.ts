@@ -88,6 +88,7 @@ export {
   useSystemFinanceCategoriesQuery,
 } from './hooks/useFinanceQueries'
 export {
+  useBulkRegisterFinanceMutation,
   useCreateAssetSnapshotMutation,
   useCreateFinanceAccountMutation,
   useCreateFinanceBudgetMutation,
