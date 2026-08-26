@@ -2,6 +2,8 @@ import { fetchEither, jsonBody } from '@shared/lib/api-client'
 import type {
   AssetSnapshot,
   AssetSnapshotRequest,
+  BulkFinanceRegisterRequest,
+  BulkFinanceRegisterResponse,
   FinanceAccount,
   FinanceAccountRequest,
   FinanceBudget,
@@ -71,6 +73,19 @@ export async function unshareAssetSnapshot(id: string, token?: string): Promise<
 
 export async function deleteAssetSnapshot(id: string, token?: string): Promise<void> {
   return fetchEither<void>(`/api/finance/asset-snapshots/${encodeURIComponent(id)}`, { method: 'DELETE' }, token)
+}
+
+// 순수 flat 배치 등록 — 항목별 성공/실패를 응답으로 구분 반환한다(한 항목 실패가 전체를 막지 않음).
+// groupId 쿼리 파라미터는 다른 finance 생성 엔드포인트와 동일하게 서버가 무시하고 개인 소유로만 생성한다.
+export async function bulkRegisterFinance(
+  data: BulkFinanceRegisterRequest,
+  { groupId, token }: GroupScopedOptions = {},
+): Promise<BulkFinanceRegisterResponse> {
+  return fetchEither<BulkFinanceRegisterResponse>(
+    withQuery('/api/finance/bulk-register', { groupId }),
+    jsonBody('POST', data),
+    token,
+  )
 }
 
 export async function listFinanceCategories(

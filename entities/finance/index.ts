@@ -3,6 +3,8 @@ export type {
   AssetClass,
   AssetSnapshot,
   AssetSnapshotRequest,
+  BulkFinanceRegisterRequest,
+  BulkFinanceRegisterResponse,
   FinanceAccount,
   FinanceAccountRequest,
   FinanceAccountType,
@@ -30,6 +32,7 @@ export {
   transactionListQueryOptions,
 } from './model/queryOptions'
 export {
+  bulkRegisterFinance,
   createAssetSnapshot,
   createFinanceAccount,
   createFinanceBudget,
