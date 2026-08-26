@@ -40,7 +40,7 @@ describe('BulkRegisterForm', () => {
     render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
 
     await user.click(await screen.findByRole('switch', { name: '월급 8월급 3,650,000원 포함' }))
-    await user.click(screen.getByRole('button', { name: '이대로 확정하기' }))
+    await user.click(screen.getAllByRole('button', { name: '이대로 확정하기' })[0])
 
     expect(mutateMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -55,7 +55,7 @@ describe('BulkRegisterForm', () => {
     render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
 
     await screen.findByRole('switch', { name: '월급 8월급 3,650,000원 포함' })
-    await user.click(screen.getByRole('button', { name: '이대로 확정하기' }))
+    await user.click(screen.getAllByRole('button', { name: '이대로 확정하기' })[0])
 
     expect(mutateMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -72,7 +72,7 @@ describe('BulkRegisterForm', () => {
     render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
 
     await screen.findByRole('switch', { name: '월급 8월급 3,650,000원 포함' })
-    await user.click(screen.getByRole('button', { name: '이대로 확정하기' }))
+    await user.click(screen.getAllByRole('button', { name: '이대로 확정하기' })[0])
 
     const onSuccess = mutateMock.mock.calls[0][1].onSuccess
     onSuccess({ assetSuccessCount: 0, transactionSuccessCount: 1, failures: ['거래(용돈): 카테고리 없음'] })

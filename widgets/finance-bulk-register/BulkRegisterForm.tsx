@@ -178,8 +178,17 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
     )
   }
 
+  const submitBar = (
+    <>
+      <span className="text-sm text-muted-foreground">{includedCount}건 등록 예정</span>
+      <Button onClick={handleSubmit} disabled={mutation.isPending || includedCount === 0}>
+        이대로 확정하기
+      </Button>
+    </>
+  )
+
   return (
-    <div className="space-y-[18px] pb-24">
+    <div className="space-y-[18px] pb-24 sm:pb-0">
       <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
         <YearMonthSelect value={sourceMonth} onChange={setSourceMonth} yearLabel="소스 연도" monthLabel="소스 월" />
         <span>기록으로</span>
@@ -196,11 +205,14 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 flex items-center justify-between gap-4 border-t border-border bg-background/95 backdrop-blur px-4 py-4 sm:static sm:border-0 sm:bg-transparent sm:px-0 sm:backdrop-blur-none">
-        <span className="text-sm text-muted-foreground">{includedCount}건 등록 예정</span>
-        <Button onClick={handleSubmit} disabled={mutation.isPending || includedCount === 0}>
-          이대로 확정하기
-        </Button>
+      {/* 모바일 하단 탭바(widgets/layout/MobileBottomNav, fixed bottom-0 z-40)와 겹치지 않도록
+          bottom-14(탭바 높이만큼 위)에 별도 z-40 바를 띄운다 — bottom-0으로 겹치면 탭바가 위에
+          렌더돼 이 버튼이 완전히 가려진다(AssetForm.tsx의 동일 패턴 참고). */}
+      <div className="sm:hidden fixed bottom-14 left-0 right-0 z-40 flex items-center justify-between gap-4 border-t border-border bg-background px-4 py-4">
+        {submitBar}
+      </div>
+      <div className="hidden sm:flex items-center justify-between gap-4">
+        {submitBar}
       </div>
     </div>
   )
