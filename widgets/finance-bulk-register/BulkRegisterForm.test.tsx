@@ -3,10 +3,15 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi } from 'vitest'
 import { BulkRegisterForm } from './BulkRegisterForm'
 
-const { mutateMock, pushMock } = vi.hoisted(() => ({ mutateMock: vi.fn(), pushMock: vi.fn() }))
+const { mutateMock, pushMock, toastSuccessMock, toastWarningMock } = vi.hoisted(() => ({
+  mutateMock: vi.fn(),
+  pushMock: vi.fn(),
+  toastSuccessMock: vi.fn(),
+  toastWarningMock: vi.fn(),
+}))
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: pushMock }) }))
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
+vi.mock('sonner', () => ({ toast: { success: toastSuccessMock, warning: toastWarningMock, error: vi.fn() } }))
 vi.mock('@entities/meta', () => ({
   useMeta: () => ({ labelOf: (_category: string, code: string) => code }),
 }))
@@ -34,7 +39,7 @@ describe('BulkRegisterForm', () => {
     const user = userEvent.setup()
     render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
 
-    await user.click(await screen.findByRole('switch', { name: '월급 8월급 포함' }))
+    await user.click(await screen.findByRole('switch', { name: '월급 8월급 3,650,000원 포함' }))
     await user.click(screen.getByRole('button', { name: '이대로 확정하기' }))
 
     expect(mutateMock).toHaveBeenCalledWith(
@@ -49,7 +54,7 @@ describe('BulkRegisterForm', () => {
     const user = userEvent.setup()
     render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
 
-    await screen.findByRole('switch', { name: '월급 8월급 포함' })
+    await screen.findByRole('switch', { name: '월급 8월급 3,650,000원 포함' })
     await user.click(screen.getByRole('button', { name: '이대로 확정하기' }))
 
     expect(mutateMock).toHaveBeenCalledWith(
@@ -60,5 +65,19 @@ describe('BulkRegisterForm', () => {
       }),
       expect.anything(),
     )
+  })
+
+  it('일부 항목이 서버에서 실패하면 성공 대신 경고 토스트로 실패 건수를 알린다', async () => {
+    const user = userEvent.setup()
+    render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
+
+    await screen.findByRole('switch', { name: '월급 8월급 3,650,000원 포함' })
+    await user.click(screen.getByRole('button', { name: '이대로 확정하기' }))
+
+    const onSuccess = mutateMock.mock.calls[0][1].onSuccess
+    onSuccess({ assetSuccessCount: 0, transactionSuccessCount: 1, failures: ['거래(용돈): 카테고리 없음'] })
+
+    expect(toastWarningMock).toHaveBeenCalledWith(expect.stringContaining('1건 실패'))
+    expect(toastSuccessMock).not.toHaveBeenCalled()
   })
 })

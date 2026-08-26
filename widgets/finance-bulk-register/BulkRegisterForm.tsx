@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Surface } from '@shared/ui/Surface'
-import { digitsOnly, formatAmountDisplay } from '@shared/lib/format'
+import { digitsOnly, formatAmountDisplay, fmtKrw, todayKst } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import {
   buildBulkRegisterItems,
@@ -23,9 +23,10 @@ import {
 import type { BulkRegisterGroup, BulkRegisterItem } from '@entities/finance'
 import { YearMonthSelect } from './YearMonthSelect'
 
+// todayKst() 사용 — new Date()의 getFullYear/getMonth는 브라우저 로컬 타임존이라
+// KST가 아닌 기기·자정 근처(UTC 기준 전날)에서 소스/타겟월 기본값이 하루 어긋날 수 있다.
 function thisMonth(): string {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  return todayKst().slice(0, 7)
 }
 
 interface RowState {
@@ -114,7 +115,12 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
       { assets, transactions: transactionsPayload },
       {
         onSuccess: (result) => {
-          toast.success(`${result.assetSuccessCount + result.transactionSuccessCount}건 등록했어요`)
+          const succeeded = result.assetSuccessCount + result.transactionSuccessCount
+          if (result.failures.length > 0) {
+            toast.warning(`${succeeded}건 등록, ${result.failures.length}건 실패 — ${result.failures[0]}`)
+          } else {
+            toast.success(`${succeeded}건 등록했어요`)
+          }
           router.push('/finance')
         },
       },
@@ -123,9 +129,9 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
 
   function renderRow(item: BulkRegisterItem, showAssetColumns: boolean) {
     const state = rowState(item)
-    // 같은 카테고리 아래 여러 행이 있을 수 있어(예: '월급' 카테고리에 항목 2건) memo를 이어 붙여
-    // 접근성 이름을 행마다 고유하게 만든다 — categoryName만 쓰면 스위치/입력 라벨이 중복된다.
-    const rowLabel = item.memo ? `${item.categoryName} ${item.memo}` : item.categoryName
+    // 같은 카테고리+메모 조합이 두 행 이상일 수 있어(예: 같은 가맹점 메모의 카드 결제 2건) 원본
+    // 금액까지 이어 붙여 접근성 이름을 행마다 고유하게 만든다 — categoryName+memo만으로는 충돌한다.
+    const rowLabel = `${item.categoryName}${item.memo ? ' ' + item.memo : ''} ${fmtKrw(item.amount)}`
     return (
       <div key={item.id} className="flex items-center gap-3 py-3 border-t border-border first:border-t-0">
         <div className="min-w-0 flex-1">
