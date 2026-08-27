@@ -53,7 +53,7 @@ describe('nextOrderBannerText', () => {
     expect(result).toBe('오늘은 휴장일입니다')
   })
 
-  it('joins BUY deficit and SELL deficit messages with a middle dot when both occur simultaneously', () => {
+  it('joins BUY deficit and SELL deficit messages with a middle dot when both occur simultaneously (preview mode has no attempt to retry yet)', () => {
     const result = nextOrderBannerText(
       true,
       'preview',
@@ -65,7 +65,22 @@ describe('nextOrderBannerText', () => {
       }),
     )
 
-    expect(result).toBe('예수금 $100.00 부족(장 마감 시 재시도) · 판매가능수량 3주 부족(장 마감 시 재시도)')
+    expect(result).toBe('예수금 $100.00 부족 · 판매가능수량 3주 부족')
+  })
+
+  it('appends the schedule-specific follow-up wording in executed mode (BUY has not been attempted yet, SELL will be retried)', () => {
+    const result = nextOrderBannerText(
+      true,
+      'executed',
+      false,
+      null,
+      readiness({
+        buy: direction({ hasOrders: true, hasDeficit: true, deficitAmount: 100 }),
+        sell: direction({ hasOrders: true, hasDeficit: true, deficitAmount: 3 }),
+      }),
+    )
+
+    expect(result).toBe('예수금 $100.00 부족(장 마감 시 매수 예정) · 판매가능수량 3주 부족(장 마감 시 매도 재시도 예정)')
   })
 
   it('shows the uncertain check-failed message in preview mode when the live balance lookup failed', () => {

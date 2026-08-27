@@ -5,7 +5,7 @@ import { ApiError } from '@shared/lib/api-client'
 export const SKIP_REASON_LABELS: Record<SkipReason, string> = {
   NO_CYCLE_HISTORY: '첫 매매 전입니다. 사이클 정보가 아직 없습니다.',
   NO_PRIVACY_BASE: 'P 매매표가 없습니다.',
-  SCHEDULED_START_NOT_REACHED: '시작예정일 전입니다. 예정일 이후 첫 거래일부터 매매가 시작됩니다.',
+  SCHEDULED_START_NOT_REACHED: '시작예정일 전입니다.\n예정일 이후 첫 거래일부터 매매가 시작됩니다.',
 }
 
 // 방향별 문구 재료 — 라벨/부족 서식은 BUY·SELL 각각 다르므로 방향마다 한 벌씩 정의하고,
@@ -19,13 +19,13 @@ interface DirectionCopy {
 export const BUY_COPY: DirectionCopy = {
   uncertainMessage: '예수금 확인 실패로 매수 미접수 — 잠시 후 다시 확인해주세요',
   formatDeficitMessage: () => '예수금 부족으로 매수 미접수',
-  sufficientMessage: '예수금 충족됨 — 마감 시 매수 예정',
+  sufficientMessage: '예수금 충족(장 마감 시 매수 예정)',
 }
 
 export const SELL_COPY: DirectionCopy = {
   uncertainMessage: '판매가능수량 확인 실패로 매도 미접수 — 잠시 후 다시 확인해주세요',
   formatDeficitMessage: (qty) => `판매가능수량 ${qty}주 부족으로 매도 미접수`,
-  sufficientMessage: '판매가능수량 충족됨 — 마감 시 매도 재시도 예정',
+  sufficientMessage: '판매가능수량 충족(장 마감 시 매도 재시도 예정)',
 }
 
 // "미접수" 목록 문구 — 확인 실패 > 부족 > 충족 우선순위로 선택
@@ -54,9 +54,9 @@ export function nextOrderBannerText(canExecute: boolean, mode: 'preview' | 'exec
 
   const parts = [
     directionBannerText(mode, readiness.buy, '예수금 확인 실패 — 잠시 후 다시 확인해주세요', (amount) =>
-      mode === 'preview' ? `예수금 $${fmtUsd(amount)} 부족(장 마감 시 재시도)` : `예수금 $${fmtUsd(amount)} 부족`),
+      mode === 'preview' ? `예수금 $${fmtUsd(amount)} 부족` : `예수금 $${fmtUsd(amount)} 부족(장 마감 시 매수 예정)`),
     directionBannerText(mode, readiness.sell, '판매가능수량 확인 실패 — 잠시 후 다시 확인해주세요', (amount) =>
-      mode === 'preview' ? `판매가능수량 ${amount}주 부족(장 마감 시 재시도)` : `판매가능수량 ${amount}주 부족`),
+      mode === 'preview' ? `판매가능수량 ${amount}주 부족` : `판매가능수량 ${amount}주 부족(장 마감 시 매도 재시도 예정)`),
   ].filter((part): part is string => part != null)
   return parts.length > 0 ? parts.join(' · ') : null
 }

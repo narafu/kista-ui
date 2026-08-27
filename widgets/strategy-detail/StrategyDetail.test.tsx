@@ -595,7 +595,7 @@ describe('StrategyDetail unplaced order banner', () => {
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
-    expect(screen.getByText('판매가능수량 충족됨 — 마감 시 매도 재시도 예정')).toBeInTheDocument()
+    expect(screen.getByText('판매가능수량 충족(장 마감 시 매도 재시도 예정)')).toBeInTheDocument()
   })
 
   it('does not claim a deficit when the sell was unplaced but a live recheck now shows sufficient quantity', () => {
@@ -637,7 +637,7 @@ describe('StrategyDetail unplaced order banner', () => {
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
-    expect(screen.getByText('판매가능수량 충족됨 — 마감 시 매도 재시도 예정')).toBeInTheDocument()
+    expect(screen.getByText('판매가능수량 충족(장 마감 시 매도 재시도 예정)')).toBeInTheDocument()
     expect(screen.queryByText(/부족/)).not.toBeInTheDocument()
   })
 
@@ -823,7 +823,7 @@ describe('StrategyDetail budget deficit badge', () => {
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
     // previewDeficit = max(0, 900 + 200 - 1000) = 100
-    expect(screen.getByText('예수금 $100.00 부족(장 마감 시 재시도)')).toBeInTheDocument()
+    expect(screen.getByText('예수금 $100.00 부족')).toBeInTheDocument()
   })
 
   it('shows an uncertain banner in preview mode instead of hiding the state when live balance lookup failed', () => {
@@ -923,7 +923,7 @@ describe('StrategyDetail sell quantity deficit banner', () => {
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
-    expect(screen.getByText('판매가능수량 3주 부족(장 마감 시 재시도)')).toBeInTheDocument()
+    expect(screen.getByText('판매가능수량 3주 부족')).toBeInTheDocument()
   })
 
   it('판매가능수량 확인 실패 시 preview 모드에서도 배너를 숨기지 않고 확인 실패로 안내한다', () => {
@@ -1037,7 +1037,7 @@ describe('StrategyDetail concurrent BUY/SELL deficit', () => {
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
     // previewDeficit = max(0, 900 + 200 - 1000) = 100
-    expect(screen.getByText('예수금 $100.00 부족(장 마감 시 재시도) · 판매가능수량 3주 부족(장 마감 시 재시도)')).toBeInTheDocument()
+    expect(screen.getByText('예수금 $100.00 부족 · 판매가능수량 3주 부족')).toBeInTheDocument()
   })
 
   it('BUY/SELL 부족이 동시에 있으면 "바로 주문" 클릭 시 두 토스트를 모두 보여주고 주문을 실행하지 않는다', () => {
@@ -1117,7 +1117,7 @@ describe('StrategyDetail executed-mode deficit badge', () => {
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
     // deficitUsd = max(0, 900 + 200 - 1000) = 100
-    expect(screen.getByText('예수금 $100.00 부족')).toBeInTheDocument()
+    expect(screen.getByText('예수금 $100.00 부족(장 마감 시 매수 예정)')).toBeInTheDocument()
     expect(screen.getByText('예수금 부족으로 매수 미접수')).toBeInTheDocument()
   })
 
@@ -1152,7 +1152,7 @@ describe('StrategyDetail executed-mode deficit badge', () => {
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
     expect(screen.queryByText(/예수금 \$[\d,.]+ 부족/)).not.toBeInTheDocument()
-    expect(screen.getByText('예수금 충족됨 — 마감 시 매수 예정')).toBeInTheDocument()
+    expect(screen.getByText('예수금 충족(장 마감 시 매수 예정)')).toBeInTheDocument()
   })
 
   it('shows an uncertain notice instead of claiming the deficit is resolved when live balance lookup failed', () => {
@@ -1228,7 +1228,7 @@ describe('StrategyDetail executed-mode deficit badge', () => {
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
-    expect(screen.getByText('판매가능수량 3주 부족')).toBeInTheDocument()
+    expect(screen.getByText('판매가능수량 3주 부족(장 마감 시 매도 재시도 예정)')).toBeInTheDocument()
     expect(screen.getByText('판매가능수량 3주 부족으로 매도 미접수')).toBeInTheDocument()
   })
 

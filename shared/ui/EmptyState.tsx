@@ -34,7 +34,7 @@ export function EmptyState({ message, variant = 'box', icon, title, action, clas
 
   if (variant === 'text') {
     return (
-      <p className={cn('text-sm text-muted-foreground text-center py-8 px-6', className)}>
+      <p className={cn('text-sm text-muted-foreground text-center py-8 px-6 whitespace-pre-line', className)}>
         {message}
         {children}
       </p>
