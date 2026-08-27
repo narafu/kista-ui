@@ -72,20 +72,17 @@ export function NextOrderCard({
             <div>
               <CardTitle className="text-base lg:text-lg">다음 주문</CardTitle>
               <p className="text-sm lg:text-base text-muted-foreground mt-0.5">매 거래일 개장 시 자동실행</p>
-              {unplacedDirections.length > 0 && (
-                <div className="flex flex-col gap-0.5 mt-1.5">
-                  {unplacedDirections.map((d) => (
-                    <p key={d} className="text-sm lg:text-base text-warn">
-                      {d === 'BUY' ? directionUnplacedMessage(readiness.buy, BUY_COPY) : directionUnplacedMessage(readiness.sell, SELL_COPY)}
-                    </p>
-                  ))}
-                </div>
-              )}
             </div>
-            {canExecute && mode === 'preview' && (
+            {canExecute && (
               <button
                 type="button"
                 onClick={() => {
+                  // executed 모드는 오늘자 주문(PLANNED/PLACED)이 이미 있는 상태 — 백엔드 수동 실행 가드가
+                  // 전략 단위(방향 무관)로 걸려 있어 눌러도 항상 거부된다. 버튼을 숨기지 않고 이유만 안내한다
+                  if (mode === 'executed') {
+                    toast.info('이미 접수된 주문이 있어 실행할 수 없습니다')
+                    return
+                  }
                   if (marketStatusMessage) {
                     toast.info(marketStatusMessage)
                     return
@@ -108,7 +105,7 @@ export function NextOrderCard({
                   }
                   execute()
                 }}
-                disabled={isExecuting || orders.length === 0}
+                disabled={isExecuting || (mode === 'preview' && orders.length === 0)}
                 className={cn(
                   'inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md whitespace-nowrap shrink-0',
                   BRAND_GRADIENT_BUTTON_CLASS,
@@ -149,6 +146,18 @@ export function NextOrderCard({
                 cancellingId={cancelOneMutation.isPending ? cancelOneMutation.variables : null}
                 cancelPending={cancelOneMutation.isPending}
               />
+              {unplacedDirections.length > 0 && (
+                <div className="border-t border-border">
+                  <div className="flex flex-col gap-0.5 px-6 py-3 border-b border-border">
+                    {unplacedDirections.map((d) => (
+                      <p key={d} className="text-sm lg:text-base text-warn">
+                        {d === 'BUY' ? directionUnplacedMessage(readiness.buy, BUY_COPY) : directionUnplacedMessage(readiness.sell, SELL_COPY)}
+                      </p>
+                    ))}
+                  </div>
+                  <OrderRows orders={orders.filter((o) => unplacedDirections.some((d) => d === o.direction))} />
+                </div>
+              )}
             </div>
           ) : isLoadingPreview ? (
             <p className="text-sm lg:text-base text-muted-foreground text-center px-6 py-4">불러오는 중…</p>

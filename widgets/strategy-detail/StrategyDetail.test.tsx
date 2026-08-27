@@ -130,7 +130,9 @@ vi.mock('@entities/meta', () => ({
 }))
 
 vi.mock('./OrderRows', () => ({
-  OrderRows: () => <div>order-rows</div>,
+  OrderRows: ({ orders }: { orders: Array<{ ticker: string; direction: string }> }) => (
+    <div data-testid="order-rows">{orders.map((o) => `${o.direction}-${o.ticker}`).join(',')}</div>
+  ),
 }))
 
 vi.mock('./StrategyOrderHistory', () => ({
@@ -510,6 +512,16 @@ describe('StrategyDetail unplaced order banner', () => {
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
     expect(screen.getByText('예수금 부족으로 매수 미접수')).toBeInTheDocument()
+    // 접수된 SELL 테이블 아래에 아직 마감 대기 중인 BUY 계획 주문 테이블도 별도로 렌더한다 —
+    // 접수 테이블엔 SELL만, 미접수 테이블엔 BUY만 들어가는지 실제 필터 결과로 검증
+    const orderTables = screen.getAllByTestId('order-rows')
+    expect(orderTables).toHaveLength(2)
+    expect(orderTables[0]).toHaveTextContent('SELL-TSLA')
+    expect(orderTables[1]).toHaveTextContent('BUY-TSLA')
+
+    // executed 모드(오늘자 주문 존재)에서는 "바로 주문"이 숨지 않고 남아있되, 눌러도 항상 거부 사유만 안내한다
+    fireEvent.click(screen.getByText('바로 주문'))
+    expect(toast.info).toHaveBeenCalledWith('이미 접수된 주문이 있어 실행할 수 없습니다')
   })
 
   it('shows the sell quantity deficit when today plan has SELL but no SELL was placed', () => {
