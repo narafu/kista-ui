@@ -33,7 +33,7 @@ export function BudgetManagerDialog({ type, className }: Props) {
       </button>
       {open && (
         <Dialog open onOpenChange={setOpen}>
-          <DialogContent className="sm:max-w-lg">
+          <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{`${labelOf('financeCategoryTypes', type)} 예산 관리`}</DialogTitle>
               <DialogDescription>카테고리별 월 예산을 등록·수정·삭제합니다.</DialogDescription>
