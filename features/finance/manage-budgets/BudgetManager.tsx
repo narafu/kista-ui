@@ -11,6 +11,8 @@ import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
 import { ALL_FILTER_VALUE, CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
+import { BRAND_TINT_BUTTON_CLASS } from '@shared/ui/brand-button-class'
+import { cn } from '@shared/lib/utils'
 import { fmtKrw, todayKst } from '@shared/lib/format'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import {
@@ -135,7 +137,7 @@ export function BudgetManager({ type }: Props) {
           <PageSizeSelector value={pageSize} onChange={handlePageSizeChange} />
         </div>
         <div className="flex justify-end">
-          <Button type="button" size="sm" className="gap-1.5" onClick={() => setFormTarget({ mode: 'create' })}>
+          <Button type="button" size="sm" className={cn('gap-1.5', BRAND_TINT_BUTTON_CLASS)} onClick={() => setFormTarget({ mode: 'create' })}>
             <Plus className="size-4" />
             예산 추가
           </Button>
