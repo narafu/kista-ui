@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { CycleSeedSection } from './CycleSeedSection'
 
 describe('CycleSeedSection', () => {
-  it('shows an indicator only on the selected descriptive choice', () => {
+  it('marks only the selected seed mode as selected', () => {
     render(
       <CycleSeedSection
         autoStart
@@ -16,6 +16,5 @@ describe('CycleSeedSection', () => {
 
     expect(screen.getByRole('button', { name: /시드 MAX/ })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: /시드 유지/ })).toHaveAttribute('aria-pressed', 'false')
-    expect(screen.getAllByTestId('selection-indicator')).toHaveLength(1)
   })
 })

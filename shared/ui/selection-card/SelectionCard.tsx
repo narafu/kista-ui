@@ -3,13 +3,11 @@ import { cn } from '@shared/lib/utils'
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   selected: boolean
-  showIndicator?: boolean
   children: ReactNode
 }
 
 export function SelectionCard({
   selected,
-  showIndicator = false,
   className,
   type = 'button',
   children,
@@ -19,7 +17,7 @@ export function SelectionCard({
     <button
       type={type}
       className={cn(
-        'relative min-h-11 rounded-[var(--r-sm)] border text-left transition-[border-color,background-color,color,box-shadow] duration-150',
+        'min-h-11 rounded-[var(--r-sm)] border text-left transition-[border-color,background-color,color,box-shadow] duration-150',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         'disabled:cursor-not-allowed disabled:opacity-50',
         selected
@@ -31,15 +29,6 @@ export function SelectionCard({
       aria-pressed={selected}
     >
       {children}
-      {selected && showIndicator && (
-        <span
-          data-testid="selection-indicator"
-          aria-hidden="true"
-          className="absolute right-3 bottom-3 grid size-4 place-items-center rounded-full bg-[var(--selection-indicator-bg)] text-[10px] font-extrabold leading-none text-[var(--selection-indicator-fg)]"
-        >
-          ✓
-        </span>
-      )}
     </button>
   )
 }

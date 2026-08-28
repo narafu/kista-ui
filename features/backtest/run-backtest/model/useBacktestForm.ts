@@ -21,7 +21,9 @@ export function useBacktestForm() {
   const [seed, setSeed] = useState<number | null>(null)
   const [avgPrice, setAvgPrice] = useState<number | null>(null)
   const [quantity, setQuantity] = useState<number | null>(null)
-  const [divisionCount, setDivisionCount] = useState<number | null>(null)
+  const [divisionCount, setDivisionCount] = useState<number | null>(
+    () => meta.strategyTypes.find((t) => t.code === 'INFINITE')?.divisionCounts[0] ?? null
+  )
   const [vrBandWidth, setVrBandWidth] = useState<number | null>(null)
   const [vrIntervalWeeks, setVrIntervalWeeks] = useState<number | null>(null)
   const [vrRecurringMode, setVrRecurringMode] = useState<RecurringMode>('HOLD')
@@ -36,7 +38,7 @@ export function useBacktestForm() {
     setTypeState(next)
     const nextMeta = meta.strategyTypes.find((t) => t.code === next)
     setTicker(nextMeta?.availableTickers[0] ?? '')
-    setDivisionCount(null)
+    setDivisionCount(nextMeta?.divisionCounts[0] ?? null)
     setVrBandWidth(null)
     setVrIntervalWeeks(null)
     setVrRecurringMode('HOLD')

@@ -65,7 +65,7 @@ function RangeFilterBarContent({ current, from, to, pageParamKeys = ['page'], pa
             aria-label="시작 날짜"
             value={customFrom}
             onChange={(e) => setCustomFrom(e.target.value)}
-            className="rounded-md border border-input bg-background px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
+            className="rounded-md border border-[var(--border-strong)] bg-background px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
           />
           <span className="text-xs text-muted-foreground">~</span>
           <input
@@ -74,7 +74,7 @@ function RangeFilterBarContent({ current, from, to, pageParamKeys = ['page'], pa
             value={customTo}
             min={customFrom || undefined}
             onChange={(e) => setCustomTo(e.target.value)}
-            className="rounded-md border border-input bg-background px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
+            className="rounded-md border border-[var(--border-strong)] bg-background px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
           />
           <button
             type="button"

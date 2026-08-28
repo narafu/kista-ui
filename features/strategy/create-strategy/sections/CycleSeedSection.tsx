@@ -53,10 +53,9 @@ export function CycleSeedSection({ autoStart, setAutoStart, seedMode, setSeedMod
                 <SelectionCard
                   key={m.code}
                   selected={active}
-                  showIndicator
                   disabled={loading}
                   onClick={() => setSeedMode(m.code)}
-                  className="flex-1 rounded-[7px] px-3 py-2.5 pr-9 text-center"
+                  className="flex-1 rounded-[7px] px-3 py-2.5 text-center"
                 >
                   <div className={active ? 'text-sm font-bold' : 'text-sm font-bold text-muted-foreground'}>
                     {m.label}

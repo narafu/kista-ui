@@ -106,10 +106,9 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
           <SelectionCard
             key={c.value}
             selected={currentChannel === c.value}
-            showIndicator
             onClick={() => handleChannelSelect(c.value)}
             disabled={pendingChannel !== null}
-            className="min-w-0 px-3 py-3 pr-8 text-sm"
+            className="min-w-0 px-3 py-3 text-sm"
           >
             {pendingChannel === c.value ? (
               <div className="flex items-center gap-1.5">

@@ -7,7 +7,7 @@ import { StrategySuggestionManager } from '@features/finance/manage-strategy-sug
 import { GroupManager } from '@features/finance/manage-group'
 import { HideAmountsToggle } from '@features/finance/hide-amounts'
 import { Surface } from '@shared/ui/Surface'
-import { buttonVariants } from '@/components/ui/button-variants'
+import { BRAND_GRADIENT_BUTTON_CLASS } from '@shared/ui/brand-button-class'
 import { cn } from '@shared/lib/utils'
 
 // 자산 탭의 5번째 세그먼트("설정")를 구성하는 조합 위젯 — SettingsPageContent와 동일하게
@@ -25,7 +25,12 @@ export function AssetSettingsPanel() {
           <div className="text-sm font-bold mb-0.5">한 번에 등록하기</div>
           <div className="text-sm text-muted-foreground">지난달 자산·수입·소비·저축 기록을 이번 달로 한 번에 채워요</div>
         </div>
-        <Link href="/finance/bulk-register" className={cn(buttonVariants({ variant: 'default' }))}>모두 등록</Link>
+        <Link
+          href="/finance/bulk-register"
+          className={cn('inline-flex items-center h-8 px-3 rounded-md text-xs', BRAND_GRADIENT_BUTTON_CLASS)}
+        >
+          모두 등록
+        </Link>
       </Surface>
 
       <Surface as="section" className="p-6">

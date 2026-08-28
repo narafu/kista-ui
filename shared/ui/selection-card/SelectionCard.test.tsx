@@ -4,22 +4,10 @@ import { describe, expect, it, vi } from 'vitest'
 import { SelectionCard } from './SelectionCard'
 
 describe('SelectionCard', () => {
-  it('exposes the selected state and renders an optional indicator', () => {
-    render(
-      <SelectionCard selected showIndicator>
-        푸시 알림
-      </SelectionCard>,
-    )
+  it('exposes the selected state', () => {
+    render(<SelectionCard selected>푸시 알림</SelectionCard>)
 
     expect(screen.getByRole('button', { name: '푸시 알림' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByTestId('selection-indicator')).toBeInTheDocument()
-  })
-
-  it('does not render an indicator for compact choices', () => {
-    render(<SelectionCard selected>20분할</SelectionCard>)
-
-    expect(screen.getByRole('button', { name: '20분할' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.queryByTestId('selection-indicator')).not.toBeInTheDocument()
   })
 
   it('keeps selected as the source of truth for aria-pressed', () => {
