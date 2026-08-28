@@ -55,10 +55,17 @@ export function windowRange(month: string): { from: string; to: string } {
 // (6개월 추이·전월대비까지 커버), 연간은 periodRange와 동일한 정확한 범위(올해는 1월~오늘,
 // 과거 연도는 1월~12월)로 직접 조회한다. windowRange(month)는 period.month의 mm(연간 모드엔
 // 없는 개념, 월간 탭에서 보던 달이 남은 값)에 걸려 있어 연간 모드에 그대로 쓰면 과거 연도를
-// 골랐을 때 그 mm월까지만 조회되는 버그가 된다. FinanceDashboard·FinanceRecordList 두 곳이
+// 골랐을 때 그 mm월까지만 조회되는 버그가 된다. useFinanceFlowData·FinanceRecordList 두 곳이
 // 동일한 분기를 썼던 것을 여기로 모았다.
 export function displayWindow(period: Period, today: string): { from: string; to: string } {
   return period.mode === 'yearly' ? periodRange(period, today) : windowRange(period.month)
+}
+
+// 가계부 내역 등록의 "오늘 기준" 독립 창(하한 없음) 상한 — 이번 달 말일까지만 허용해 미래
+// 날짜 등록을 막는다. FinanceHeader.tsx(등록 버튼)·useFinanceFlowData.ts(FinanceRecordList로
+// 전달) 두 곳이 동일한 계산을 썼던 것을 여기로 모았다.
+export function registerWindowUpperBound(today: string): string {
+  return monthEndDate(today.slice(0, 7))
 }
 
 export function daysInMonth(month: string): number {

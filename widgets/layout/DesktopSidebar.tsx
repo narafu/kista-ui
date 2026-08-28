@@ -1,12 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { LayoutDashboard, CreditCard, ListChecks, TrendingUp, Wallet, Settings, LogOut, LogIn, ShieldCheck } from 'lucide-react'
 import { ThemeToggle } from '@widgets/theme-toggle'
 import { LogoutButton } from '@features/auth/logout'
-import { isNavItemActive, isStatsTabActive } from './nav-utils'
+import { isNavItemActive } from './nav-utils'
+import { isSectionTabActive } from '@shared/lib/utils'
 
 const NAV_ITEMS = [
   { href: '/dashboard',  label: '대시보드', icon: LayoutDashboard },
@@ -23,6 +24,23 @@ const STATS_SUB_ITEMS = [
   { href: '/stats/backtest',  label: '백테스트' },
 ]
 
+const FINANCE_SUB_ITEMS = [
+  { href: '/finance',          label: '자산' },
+  { href: '/finance/income',   label: '수입' },
+  { href: '/finance/expense',  label: '소비' },
+  { href: '/finance/saving',   label: '저축' },
+  { href: '/finance/settings', label: '설정' },
+]
+
+const SUB_NAV: Record<string, typeof STATS_SUB_ITEMS> = {
+  '/stats': STATS_SUB_ITEMS,
+  '/finance': FINANCE_SUB_ITEMS,
+}
+
+// 수입/소비/저축 3탭은 조회 기간(?month=&mode=)을 URL로 공유한다(useFinanceFlowData 참고) —
+// 사이드바 서브메뉴로 탭을 옮길 때도 현재 쿼리스트링을 이어받아야 보던 기간이 유지된다.
+const FINANCE_FLOW_HREFS = new Set(['/finance/income', '/finance/expense', '/finance/saving'])
+
 interface Props {
   isAdmin?: boolean
   isAuthenticated?: boolean
@@ -30,6 +48,8 @@ interface Props {
 
 export function DesktopSidebar({ isAdmin, isAuthenticated }: Props) {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const flowQuery = FINANCE_FLOW_HREFS.has(pathname) ? searchParams.toString() : ''
 
   return (
     <aside
@@ -53,11 +73,11 @@ export function DesktopSidebar({ isAdmin, isAuthenticated }: Props) {
       <nav className="flex flex-col gap-0.5 flex-1">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = isNavItemActive(pathname, href)
-          const hasSubNav = href === '/stats'
+          const subItems = SUB_NAV[href]
           // 서브메뉴가 있는 항목은 부모·서브 양쪽에 동시에 aria-current="page"가 걸리지
           // 않도록, 부모는 정확히 자기 자신일 때만 "현재 페이지"로 표시한다(시각적 active
           // 배경은 하위 라우트에서도 그대로 유지 — 위 active 값 그대로 사용).
-          const isCurrentPage = hasSubNav ? pathname === href : active
+          const isCurrentPage = subItems ? pathname === href : active
           return (
             <div key={href}>
               <Link
@@ -72,14 +92,15 @@ export function DesktopSidebar({ isAdmin, isAuthenticated }: Props) {
                 <Icon className="size-[18px] shrink-0" />
                 {label}
               </Link>
-              {hasSubNav && (
+              {subItems && (
                 <div className="flex flex-col gap-0.5 mt-0.5 ml-[15px] pl-4 border-l border-border">
-                  {STATS_SUB_ITEMS.map((sub) => {
-                    const subActive = isStatsTabActive(pathname, sub.href)
+                  {subItems.map((sub) => {
+                    const subActive = isSectionTabActive(pathname, sub.href, href)
+                    const subLinkHref = flowQuery && FINANCE_FLOW_HREFS.has(sub.href) ? `${sub.href}?${flowQuery}` : sub.href
                     return (
                       <Link
                         key={sub.href}
-                        href={sub.href}
+                        href={subLinkHref}
                         aria-current={subActive ? 'page' : undefined}
                         className={`px-3 py-1.5 rounded-[var(--r-md)] text-sm transition-colors ${
                           subActive

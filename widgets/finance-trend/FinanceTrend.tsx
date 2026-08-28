@@ -16,14 +16,14 @@ const FinanceTrendInner = dynamic(() => import('./FinanceTrendInner'), {
 interface Props {
   type: FinanceCategoryType
   transactions: FinanceTransaction[] // 월간 모드: 12개월 윈도우
-  yearlyTransactions: FinanceTransaction[] // 연간 모드: 최근 6개년 윈도우(FinanceDashboard가 period.mode==='yearly'일 때만 조회)
+  yearlyTransactions: FinanceTransaction[] // 연간 모드: 최근 6개년 윈도우(useFinanceFlowData.ts가 period.mode==='yearly'일 때만 조회)
   categoryTree: FinanceCategory[]
   index: CategoryIndex
   period: Period
   isLoading: boolean
   isError: boolean
   className?: string
-  // FinanceDashboard가 한 번만 계산해 내려주는 "오늘" — 위젯마다 todayKst()를 각자 호출하지 않는다.
+  // useFinanceFlowData.ts가 한 번만 계산해 내려주는 "오늘" — 위젯마다 todayKst()를 각자 호출하지 않는다.
   today: string
 }
 

@@ -18,7 +18,7 @@ interface Props {
   period: Period
   isLoading: boolean
   isError: boolean
-  // FinanceDashboard가 한 번만 계산해 내려주는 "오늘" — 위젯마다 todayKst()를 각자 호출하지 않는다.
+  // useFinanceFlowData.ts가 한 번만 계산해 내려주는 "오늘" — 위젯마다 todayKst()를 각자 호출하지 않는다.
   today: string
 }
 

@@ -26,7 +26,7 @@ import { TypeButton } from './TypeButton'
 
 // 4타입(ASSET/INCOME/EXPENSE/SAVING) 카테고리 트리를 사용자가 직접 생성·수정·삭제하는 화면.
 // 수입/지출/저축 탭 자체는 아직 미구현이지만 카테고리는 미리 만들어둘 수 있어야 해서 타입
-// 세그먼트만 먼저 노출한다. shadcn Tabs가 없어 FinanceDashboard의 TabButton 패턴을 그대로 따른다.
+// 세그먼트만 먼저 노출한다. shadcn Tabs가 없어 가계부 탭바(SectionTabBar)의 TabButton 패턴을 그대로 따른다.
 export function CategoryManager() {
   const { meta } = useMeta()
   const [type, setType] = useState<FinanceCategoryType>('ASSET')
