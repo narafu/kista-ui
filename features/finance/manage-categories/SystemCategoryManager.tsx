@@ -5,6 +5,8 @@ import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { BRAND_TINT_BUTTON_CLASS } from '@shared/ui/brand-button-class'
+import { cn } from '@shared/lib/utils'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { useMeta } from '@entities/meta'
 import { collectSubtreeIds, sortCategoryTree, useDeleteSystemFinanceCategoryMutation, useSystemFinanceCategoriesQuery } from '@entities/finance'
@@ -51,8 +53,8 @@ export function SystemCategoryManager() {
       </div>
 
       <div className="flex justify-end">
-        <Button type="button" size="sm" className="gap-1.5" onClick={() => setFormTarget('new')}>
-          <Plus className="size-4" />
+        <Button type="button" size="sm" className={cn('gap-1.5', BRAND_TINT_BUTTON_CLASS)} onClick={() => setFormTarget('new')}>
+          <Plus className="size-3.5" />
           카테고리 추가
         </Button>
       </div>
