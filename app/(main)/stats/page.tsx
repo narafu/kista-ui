@@ -3,13 +3,12 @@ import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { equityCurveQueryOptions, statsSummaryQueryOptions } from '@entities/stats'
 import { StatsOverview } from '@widgets/stats-overview'
-import { PageHeader } from '@widgets/page-header'
 import { createQueryClient } from '@shared/lib/query'
 import { todayKst } from '@shared/lib/format'
 import { kstDateMinusDays } from '@shared/lib/date-range'
 
 export const metadata: Metadata = {
-  title: '통계 | KISTA',
+  title: '성과 | KISTA',
 }
 
 // StatsOverview 기본 range='3M'과 동일한 산식(90일 차감)이어야
@@ -33,11 +32,8 @@ export default async function StatsPage() {
   }
 
   return (
-    <>
-      <PageHeader eyebrow="Stats" title="통계" />
-      <HydrationBoundary state={dehydrate(queryClient)}>
-        <StatsOverview defaultFrom={defaultFrom} defaultTo={defaultTo} />
-      </HydrationBoundary>
-    </>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <StatsOverview defaultFrom={defaultFrom} defaultTo={defaultTo} />
+    </HydrationBoundary>
   )
 }

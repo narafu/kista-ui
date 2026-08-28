@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { HousingBenchmarkComparison } from '@widgets/benchmark-comparison'
-import { PageHeader } from '@widgets/page-header'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { accountListQueryOptions } from '@entities/account'
 import { strategyListAllQueryOptions } from '@entities/strategy'
@@ -24,11 +23,8 @@ export default async function BenchmarkPage() {
   }
 
   return (
-    <>
-      <PageHeader eyebrow="Benchmark" title="벤치마크" />
-      <HydrationBoundary state={dehydrate(queryClient)}>
-        <HousingBenchmarkComparison enabled defaultTo={todayKst()} />
-      </HydrationBoundary>
-    </>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <HousingBenchmarkComparison enabled defaultTo={todayKst()} />
+    </HydrationBoundary>
   )
 }

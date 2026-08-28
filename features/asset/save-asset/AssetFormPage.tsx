@@ -17,7 +17,7 @@ export function AssetFormPage({ mode, initial, dismiss = 'push' }: Props) {
   const handleDone = dismiss === 'back' ? () => router.back() : () => router.push('/finance')
   // 모달(인터셉팅 라우트)에서는 취소도 back으로 닫아야 오버레이가 정상 종료된다 —
   // 전체 페이지 라우트일 때만 벤치마크로 이동한다.
-  const handleCancel = dismiss === 'back' ? handleDone : () => router.push('/benchmark')
+  const handleCancel = dismiss === 'back' ? handleDone : () => router.push('/stats/benchmark')
 
   return (
     <AssetForm mode={mode} initial={initial} onSuccess={handleDone} onCancel={handleCancel} />
