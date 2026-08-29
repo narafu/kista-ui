@@ -70,11 +70,17 @@ function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
           <span className="text-[10px] leading-none text-[var(--gold)]/60">휴장</span>
         )}
         {!isWeekend && !isHoliday && daySummary && (
-          <span className={cn(
-            'text-[10px] leading-none opacity-60',
-            directionTextClass(daySummary.netAmountUsd >= 0 ? 'SELL' : 'BUY'),
-          )}>
-            {`${daySummary.netAmountUsd >= 0 ? '+' : '-'}$${fmtUsd(Math.abs(daySummary.netAmountUsd), 0)}`}
+          <span className="flex flex-col items-center gap-px opacity-60">
+            {daySummary.buyCount > 0 && (
+              <span className={cn('text-[10px] leading-none', directionTextClass('BUY'))}>
+                {`매수 $${fmtUsd(daySummary.buyAmountUsd, 0)}`}
+              </span>
+            )}
+            {daySummary.sellCount > 0 && (
+              <span className={cn('text-[10px] leading-none', directionTextClass('SELL'))}>
+                {`매도 $${fmtUsd(daySummary.sellAmountUsd, 0)}`}
+              </span>
+            )}
           </span>
         )}
       </div>
@@ -113,13 +119,18 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
       badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-warn-bg text-warn">대기중</span>
       sub = <span className="text-xs text-muted-foreground">오늘</span>
     } else if (summary) {
-      const isSell = summary.netAmountUsd >= 0
       badge = (
-        <span className={cn(
-          'text-xs font-semibold px-1.5 py-[1px] rounded',
-          isSell ? 'bg-neg-bg text-neg' : 'bg-pos-bg text-pos',
-        )}>
-          {`${isSell ? '매도 +' : '매수 '}$${fmtUsd(Math.abs(summary.netAmountUsd), 0)}`}
+        <span className="flex flex-col items-center gap-0.5">
+          {summary.buyCount > 0 && (
+            <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-pos-bg text-pos">
+              {`매수 $${fmtUsd(summary.buyAmountUsd, 0)}`}
+            </span>
+          )}
+          {summary.sellCount > 0 && (
+            <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-neg-bg text-neg">
+              {`매도 $${fmtUsd(summary.sellAmountUsd, 0)}`}
+            </span>
+          )}
         </span>
       )
       sub = <span className="text-xs text-muted-foreground">{summary.tradeCount}체결</span>
