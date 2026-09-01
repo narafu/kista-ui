@@ -75,6 +75,17 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
   function updateRow(item: BulkRegisterItem, patch: Partial<RowState>) {
     setRowStates((prev) => ({ ...prev, [item.id]: { ...rowState(item), ...patch } }))
   }
+  // 항목별(자산/수입/소비/저축) 전체 토글 — 부분 선택 상태는 무시하고 섹션 전체를 받은 값으로 맞춘다.
+  // 헤더 Switch는 전체 포함일 때만 checked라 부분 선택 중 클릭하면 항상 전체 on부터 시작한다.
+  function setSectionIncluded(groups: BulkRegisterGroup[], included: boolean) {
+    setRowStates((prev) => {
+      const next = { ...prev }
+      for (const item of groups.flatMap((g) => g.items)) {
+        next[item.id] = { ...(prev[item.id] ?? { included: item.included, amount: item.amount }), included }
+      }
+      return next
+    })
+  }
 
   const mutation = useBulkRegisterFinanceMutation()
 
@@ -161,9 +172,20 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
   }
 
   function renderSection(title: string, groups: BulkRegisterGroup[], showAssetColumns = false) {
+    const sectionItems = groups.flatMap((g) => g.items)
+    const allIncluded = sectionItems.length > 0 && sectionItems.every((item) => rowState(item).included)
     return (
       <Surface as="section" className="p-6">
-        <div className="text-sm font-bold mb-3">{title}</div>
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="text-sm font-bold">{title}</div>
+          {sectionItems.length > 0 && (
+            <Switch
+              checked={allIncluded}
+              onCheckedChange={(next) => setSectionIncluded(groups, next)}
+              aria-label={`${title} 전체 포함`}
+            />
+          )}
+        </div>
         {groups.length === 0 ? (
           <p className="text-sm text-muted-foreground">이 달 등록된 기록이 없어요.</p>
         ) : (
@@ -178,14 +200,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
     )
   }
 
-  const submitBar = (
-    <>
-      <span className="text-sm text-muted-foreground">{includedCount}건 등록 예정</span>
-      <Button onClick={handleSubmit} disabled={mutation.isPending || includedCount === 0}>
-        이대로 확정하기
-      </Button>
-    </>
-  )
+  const submitDisabled = mutation.isPending || includedCount === 0
 
   return (
     <div className="space-y-[18px] pb-24 sm:pb-0">
@@ -207,12 +222,22 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
 
       {/* 모바일 하단 탭바(widgets/layout/MobileBottomNav, fixed bottom-0 z-40)와 겹치지 않도록
           bottom-14(탭바 높이만큼 위)에 별도 z-40 바를 띄운다 — bottom-0으로 겹치면 탭바가 위에
-          렌더돼 이 버튼이 완전히 가려진다(AssetForm.tsx의 동일 패턴 참고). */}
-      <div className="sm:hidden fixed bottom-14 left-0 right-0 z-40 flex items-center justify-between gap-4 border-t border-border bg-background px-4 py-4">
-        {submitBar}
+          렌더돼 이 버튼이 완전히 가려진다. 바/버튼 스타일은 AssetForm·EditAccountForm의 모바일
+          제출 바 SSOT(p-4 bg-background border-t z-40 + w-full h-14 text-base font-semibold)를 따른다. */}
+      <div className="sm:hidden fixed bottom-14 left-0 right-0 z-40 p-4 bg-background border-t">
+        <Button
+          onClick={handleSubmit}
+          disabled={submitDisabled}
+          className="w-full h-14 text-base font-semibold"
+        >
+          이대로 확정하기
+        </Button>
       </div>
       <div className="hidden sm:flex items-center justify-between gap-4">
-        {submitBar}
+        <span className="text-sm text-muted-foreground">{includedCount}건 등록 예정</span>
+        <Button onClick={handleSubmit} disabled={submitDisabled}>
+          이대로 확정하기
+        </Button>
       </div>
     </div>
   )

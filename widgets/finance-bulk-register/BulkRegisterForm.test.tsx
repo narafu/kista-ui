@@ -67,6 +67,20 @@ describe('BulkRegisterForm', () => {
     )
   })
 
+  it('항목별 전체 토글을 끄면 해당 섹션 하위 행이 모두 제외된다', async () => {
+    const user = userEvent.setup()
+    render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
+
+    await screen.findByRole('switch', { name: '월급 8월급 3,650,000원 포함' })
+    await user.click(screen.getByRole('switch', { name: '수입 전체 포함' }))
+
+    expect(screen.getByRole('switch', { name: '월급 8월급 3,650,000원 포함' })).not.toBeChecked()
+    expect(screen.getByRole('switch', { name: '월급 용돈 100,000원 포함' })).not.toBeChecked()
+    for (const btn of screen.getAllByRole('button', { name: '이대로 확정하기' })) {
+      expect(btn).toBeDisabled()
+    }
+  })
+
   it('일부 항목이 서버에서 실패하면 성공 대신 경고 토스트로 실패 건수를 알린다', async () => {
     const user = userEvent.setup()
     render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
