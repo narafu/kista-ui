@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import {
   buildCategoryIndex,
@@ -59,6 +59,19 @@ export function useFinanceFlowData(flowType: FlowCategoryType) {
     isLoading: isTransactionsLoading,
     isError: isTransactionsError,
   } = useFinanceTransactionsQuery(flowWindow.from, flowWindow.to)
+
+  // 자산탭(최근 기록월 기본값)과의 일관성 — URL에 ?month=가 없는 최초 진입(오늘 달 기본값)에
+  // 아직 등록된 거래가 없으면, 조회된 12개월 윈도우 안에서 가장 최근 기록이 있는 달로 최초
+  // 1회만 이동한다. 사용자가 이미 ?month=로 특정 월을 지정했거나 직접 고른 뒤에는 건드리지 않는다.
+  const [monthAutoAdjusted, setMonthAutoAdjusted] = useState(false)
+  useEffect(() => {
+    if (monthAutoAdjusted || isTransactionsLoading) return
+    setMonthAutoAdjusted(true)
+    if (searchParams.get('month') || period.mode !== 'monthly') return
+    if (transactions.some((transaction) => transaction.transactionDate.startsWith(period.month))) return
+    const latestMonth = transactions.map((transaction) => transaction.transactionDate.slice(0, 7)).sort().at(-1)
+    if (latestMonth && latestMonth !== period.month) setPeriod({ ...period, month: latestMonth })
+  }, [monthAutoAdjusted, isTransactionsLoading, transactions, period, searchParams])
 
   const previousYearWindow = useMemo(() => previousYearRange(period, today), [period, today])
   const { data: previousYearTransactions = [], isLoading: isPreviousYearLoading } = useFinanceTransactionsQuery(
