@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SectionError } from '@shared/ui/SectionError'
@@ -58,10 +58,14 @@ function BreakdownBar({ label, amount, percent, delta, color, isLiability = fals
   )
 }
 
-function summaryDeltaLabel(delta: number, { isLiability = false }: { isLiability?: boolean } = {}) {
+function summaryDeltaLabel(
+  delta: number,
+  amountValue: (display: string) => ReactNode,
+  { isLiability = false }: { isLiability?: boolean } = {},
+) {
   return (
     <span className={cn('tabular-nums', pnlTextClass(isLiability ? -delta : delta))}>
-      전월대비 {fmtSignedKrw(delta)}
+      전월대비 {amountValue(fmtSignedKrw(delta))}
     </span>
   )
 }
@@ -153,20 +157,19 @@ export function AssetOverview({ month, months, onMonthChange }: Props) {
               <KpiCard
                 label="순자산"
                 value={amountValue(fmtKrw(summary.netWorth))}
-                sub={previousSummary && summaryDeltaLabel(summary.netWorth - previousSummary.netWorth)}
-                variant="accent"
+                sub={previousSummary && summaryDeltaLabel(summary.netWorth - previousSummary.netWorth, amountValue)}
                 valueClassName="break-words text-base sm:text-2xl lg:text-3xl"
               />
               <KpiCard
                 label="총자산"
                 value={amountValue(fmtKrw(summary.totalAssets))}
-                sub={previousSummary && summaryDeltaLabel(summary.totalAssets - previousSummary.totalAssets)}
+                sub={previousSummary && summaryDeltaLabel(summary.totalAssets - previousSummary.totalAssets, amountValue)}
                 valueClassName="break-words text-base sm:text-2xl lg:text-3xl"
               />
               <KpiCard
                 label="총부채"
                 value={amountValue(fmtKrw(summary.totalLiabilities))}
-                sub={previousSummary && summaryDeltaLabel(summary.totalLiabilities - previousSummary.totalLiabilities, { isLiability: true })}
+                sub={previousSummary && summaryDeltaLabel(summary.totalLiabilities - previousSummary.totalLiabilities, amountValue, { isLiability: true })}
                 valueClassName="break-words text-base sm:text-2xl lg:text-3xl"
               />
               <KpiCard

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SectionError } from '@shared/ui/SectionError'
@@ -71,6 +71,15 @@ function ModeButton({ active, onClick, children }: { active: boolean; onClick: (
     >
       {children}
     </button>
+  )
+}
+
+// 소비는 늘어난 게 나쁜 신호라 색상 부호를 뒤집는다(AssetOverview의 부채 델타 반전과 동일 이유).
+function deltaLabel(label: string, delta: number, type: FinanceCategoryType, amountValue: (display: string) => ReactNode) {
+  return (
+    <span className={cn('tabular-nums', pnlTextClass(type === 'EXPENSE' ? -delta : delta))}>
+      {label} {amountValue(fmtSignedKrw(delta))}
+    </span>
   )
 }
 
@@ -196,21 +205,18 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
           <p className="py-8 text-center text-sm text-muted-foreground">표시할 거래내역이 없습니다</p>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard label="합계" value={amountValue(fmtKrw(summary.total))} variant="accent" valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
-            {period.mode === 'monthly' && previousDelta !== null && (
-              <KpiCard
-                label="전월 대비"
-                value={amountValue(fmtSignedKrw(previousDelta))}
-                valueClassName={cn('break-words text-base sm:text-2xl lg:text-3xl', pnlTextClass(type === 'EXPENSE' ? -previousDelta : previousDelta))}
-              />
-            )}
-            {period.mode === 'yearly' && previousYearDelta !== null && (
-              <KpiCard
-                label="전년 대비"
-                value={amountValue(fmtSignedKrw(previousYearDelta))}
-                valueClassName={cn('break-words text-base sm:text-2xl lg:text-3xl', pnlTextClass(type === 'EXPENSE' ? -previousYearDelta : previousYearDelta))}
-              />
-            )}
+            <KpiCard
+              label="합계"
+              value={amountValue(fmtKrw(summary.total))}
+              sub={
+                period.mode === 'monthly' && previousDelta !== null
+                  ? deltaLabel('전월대비', previousDelta, type, amountValue)
+                  : period.mode === 'yearly' && previousYearDelta !== null
+                    ? deltaLabel('전년대비', previousYearDelta, type, amountValue)
+                    : undefined
+              }
+              valueClassName="break-words text-base sm:text-2xl lg:text-3xl"
+            />
             {incomeRatio !== null && (
               <KpiCard label="수입 대비 비율" value={`${ratioToPercent(incomeRatio)}%`} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
             )}
@@ -224,6 +230,7 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
               />
             )}
             <KpiCard label="올해 월평균" value={amountValue(fmtKrw(yearlyAverage))} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
+            <KpiCard label="거래건수" value={`${summary.count}건`} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
           </div>
         )}
       </CardContent>
