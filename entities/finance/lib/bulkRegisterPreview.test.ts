@@ -37,7 +37,27 @@ describe('buildBulkRegisterItems', () => {
     expect(result.saving).toHaveLength(0)
   })
 
-  it('자산 스냅샷은 응답의 rootCategoryId/categoryName을 그대로 사용해 그룹핑한다', () => {
+  it('카테고리 트리가 3단이면 대/중/소분류 각 레벨의 그룹 노드로 중첩된다', () => {
+    const tree: FinanceCategory = {
+      id: 'l1', type: 'EXPENSE', name: '생활', sortOrder: 0, system: false, children: [
+        { id: 'l2', type: 'EXPENSE', parentId: 'l1', name: '식비', sortOrder: 0, system: false, children: [
+          { id: 'l3', type: 'EXPENSE', parentId: 'l2', name: '외식', sortOrder: 0, system: false, children: [] },
+        ] },
+      ],
+    }
+    const index = buildCategoryIndex({ EXPENSE: [tree] })
+    const transactions = [{ id: 't1', categoryId: 'l3', memo: '점심', amount: 12000, transactionDate: '2026-07-05' }]
+
+    const result = buildBulkRegisterItems({ transactions, assetSnapshots: [], index })
+
+    expect(result.expense).toHaveLength(1)
+    expect(result.expense[0]).toMatchObject({ id: 'l1', name: '생활', items: [] })
+    expect(result.expense[0].children[0]).toMatchObject({ id: 'l2', name: '식비', items: [] })
+    expect(result.expense[0].children[0].children[0]).toMatchObject({ id: 'l3', name: '외식' })
+    expect(result.expense[0].children[0].children[0].items[0]).toMatchObject({ categoryId: 'l3', memo: '점심', amount: 12000 })
+  })
+
+  it('자산 스냅샷은 응답의 rootCategoryId/categoryName을 그대로 사용해 (대분류>소분류) 2단으로 그룹핑한다', () => {
     const index = buildCategoryIndex({})
     const assetSnapshots = [
       {
@@ -49,6 +69,27 @@ describe('buildBulkRegisterItems', () => {
     const result = buildBulkRegisterItems({ transactions: [], assetSnapshots, index })
 
     expect(result.asset).toHaveLength(1)
-    expect(result.asset[0].items[0]).toMatchObject({ categoryId: 'leaf-1', categoryName: '예금', amount: 5000000, included: true })
+    expect(result.asset[0].children).toHaveLength(1)
+    expect(result.asset[0].children[0].items[0]).toMatchObject({ categoryId: 'leaf-1', categoryName: '예금', amount: 5000000, included: true })
+  })
+
+  it('자산 카테고리 트리가 실제로 있으면 그 트리 기준 전체 경로(대/중분류)로 그룹핑한다', () => {
+    const assetTree: FinanceCategory = {
+      id: 'f1000000-0000-4000-8000-000000000401', type: 'ASSET', name: '예적금', sortOrder: 0, system: true, children: [
+        { id: 'leaf-1', type: 'ASSET', parentId: 'f1000000-0000-4000-8000-000000000401', name: '예금', sortOrder: 0, system: false, children: [] },
+      ],
+    }
+    const index = buildCategoryIndex({ ASSET: [assetTree] })
+    const assetSnapshots = [
+      {
+        id: 'a1', categoryId: 'leaf-1', rootCategoryId: 'f1000000-0000-4000-8000-000000000401',
+        categoryName: '예금', entryDate: '2026-07-01', assetClass: 'CASH' as const, market: 'DOMESTIC' as const, amount: 5000000,
+      },
+    ]
+
+    const result = buildBulkRegisterItems({ transactions: [], assetSnapshots, index })
+
+    expect(result.asset[0]).toMatchObject({ id: 'f1000000-0000-4000-8000-000000000401', name: '예적금' })
+    expect(result.asset[0].children[0].items[0]).toMatchObject({ categoryId: 'leaf-1', amount: 5000000 })
   })
 })

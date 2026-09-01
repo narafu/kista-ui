@@ -25,7 +25,7 @@ const categoryTree: FinanceCategory[] = [
 ]
 
 const index: CategoryIndex = new Map([
-  ['cat-1', { type: 'EXPENSE' as const, rootId: 'cat-1', name: '식비', sortOrder: 0 }],
+  ['cat-1', { type: 'EXPENSE' as const, rootId: 'cat-1', name: '식비', path: [{ id: 'cat-1', name: '식비' }], sortOrder: 0 }],
 ])
 
 function tx(date: string, amount: number): FinanceTransaction {

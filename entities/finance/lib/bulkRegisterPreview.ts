@@ -8,9 +8,8 @@ import { formatAssetL1CategoryLabel } from './aggregate'
 export interface BulkRegisterItem {
   id: string
   categoryId: string
-  categoryName: string
-  rootId: string
-  rootLabel: string
+  categoryName: string // 리프(자신) 카테고리명 — categoryPath 마지막 항목과 동일
+  categoryPath: { id: string; name: string }[] // 대분류→…→자신 전체 경로, 계층 그룹핑에 사용
   memo?: string
   amount: number
   included: boolean
@@ -19,48 +18,77 @@ export interface BulkRegisterItem {
   market?: Market
   strategy?: string
   accountId?: string
+  accountName?: string
 }
 
-export interface BulkRegisterGroup {
-  rootId: string
-  rootLabel: string
+// 카테고리 경로 기준 계층 그룹 노드 — 대분류/중분류/소분류를 트리 깊이만큼만 생성한다
+// (트리가 2단이면 소분류 레벨 자체가 생기지 않는다). 중간 depth에 직접 등록된 항목(하위
+// 카테고리가 있는 노드에 리프로 등록된 경우)은 그 노드의 items에, 더 깊은 하위는 children에 담긴다.
+export interface CategoryGroupNode {
+  id: string
+  name: string
   items: BulkRegisterItem[]
+  children: CategoryGroupNode[]
 }
 
 export interface BulkRegisterItems {
-  asset: BulkRegisterGroup[]
-  income: BulkRegisterGroup[]
-  expense: BulkRegisterGroup[]
-  saving: BulkRegisterGroup[]
+  asset: CategoryGroupNode[]
+  income: CategoryGroupNode[]
+  expense: CategoryGroupNode[]
+  saving: CategoryGroupNode[]
 }
 
-// 정렬 기준: 카테고리(그룹 라벨 › 리프 이름) › 자산군 › 메모 › 금액. 그룹 헤딩(rootLabel)은
-// 가나다순으로, 그룹 내부는 위 기준 그대로 정렬한다.
-function groupAndSort(items: BulkRegisterItem[]): BulkRegisterGroup[] {
-  const byRoot = new Map<string, BulkRegisterItem[]>()
+function sortItems(items: BulkRegisterItem[]): BulkRegisterItem[] {
+  return [...items].sort((a, b) =>
+    (a.assetClass ?? '').localeCompare(b.assetClass ?? '') ||
+    (a.memo ?? '').localeCompare(b.memo ?? '') ||
+    a.amount - b.amount,
+  )
+}
+
+interface MutableNode {
+  id: string
+  name: string
+  items: BulkRegisterItem[]
+  childMap: Map<string, MutableNode>
+}
+
+function finalizeGroupTree(map: Map<string, MutableNode>): CategoryGroupNode[] {
+  const nodes = [...map.values()].map((n) => ({
+    id: n.id,
+    name: n.name,
+    items: sortItems(n.items),
+    children: finalizeGroupTree(n.childMap),
+  }))
+  nodes.sort((a, b) => a.name.localeCompare(b.name, 'ko'))
+  return nodes
+}
+
+// item.categoryPath(대분류→…→자신)를 그대로 트리 경로로 삼아 items를 중첩 그룹으로 묶는다.
+function buildGroupTree(items: BulkRegisterItem[]): CategoryGroupNode[] {
+  const rootMap = new Map<string, MutableNode>()
   for (const item of items) {
-    const list = byRoot.get(item.rootId) ?? []
-    list.push(item)
-    byRoot.set(item.rootId, list)
+    let siblingMap = rootMap
+    let node: MutableNode | undefined
+    for (const seg of item.categoryPath) {
+      let next = siblingMap.get(seg.id)
+      if (!next) {
+        next = { id: seg.id, name: seg.name, items: [], childMap: new Map() }
+        siblingMap.set(seg.id, next)
+      }
+      node = next
+      siblingMap = next.childMap
+    }
+    node?.items.push(item)
   }
-  const groups: BulkRegisterGroup[] = []
-  for (const groupItems of byRoot.values()) {
-    groupItems.sort((a, b) =>
-      a.categoryName.localeCompare(b.categoryName, 'ko') ||
-      (a.assetClass ?? '').localeCompare(b.assetClass ?? '') ||
-      (a.memo ?? '').localeCompare(b.memo ?? '') ||
-      a.amount - b.amount,
-    )
-    groups.push({ rootId: groupItems[0].rootId, rootLabel: groupItems[0].rootLabel, items: groupItems })
-  }
-  groups.sort((a, b) => a.rootLabel.localeCompare(b.rootLabel, 'ko'))
-  return groups
+  return finalizeGroupTree(rootMap)
 }
 
 // 소스월의 자산 스냅샷 + 거래내역을 프리뷰 화면용 편집 가능 아이템으로 변환한다. 거래내역은
-// index(buildCategoryIndex({INCOME,EXPENSE,SAVING})로 만든 값)로 타입을 분류하고, 자산은
-// AssetSnapshot 응답이 이미 갖고 있는 rootCategoryId/categoryName을 그대로 쓴다(카테고리 재조회 불필요).
+// index(buildCategoryIndex({ASSET,INCOME,EXPENSE,SAVING})로 만든 값)로 타입·전체 경로를 해석한다.
 // 카테고리가 삭제돼 index에 없는 거래는 어느 섹션에도 넣지 않는다(FinanceRecordList와 동일 정책).
+// 자산은 카테고리가 삭제돼 index에 없어도 응답의 rootCategoryId/categoryName으로 1~2단 경로를
+// 만들어 계속 포함한다(AssetSnapshot 응답이 이 필드를 항상 갖고 있어 기존 동작을 유지).
 export function buildBulkRegisterItems({
   transactions,
   assetSnapshots,
@@ -81,8 +109,7 @@ export function buildBulkRegisterItems({
       id: t.id,
       categoryId: t.categoryId,
       categoryName: entry.name,
-      rootId: entry.rootId,
-      rootLabel: index.get(entry.rootId)?.name ?? entry.name,
+      categoryPath: entry.path,
       memo: t.memo,
       amount: t.amount,
       included: true,
@@ -92,25 +119,32 @@ export function buildBulkRegisterItems({
     else if (entry.type === 'SAVING') saving.push(item)
   }
 
-  const asset: BulkRegisterItem[] = assetSnapshots.map((s) => ({
-    id: s.id,
-    categoryId: s.categoryId,
-    categoryName: s.categoryName,
-    rootId: s.rootCategoryId,
-    rootLabel: formatAssetL1CategoryLabel(s.rootCategoryId),
-    memo: s.memo,
-    amount: s.amount,
-    included: true,
-    assetClass: s.assetClass,
-    market: s.market,
-    strategy: s.strategy,
-    accountId: s.accountId,
-  }))
+  const asset: BulkRegisterItem[] = assetSnapshots.map((s) => {
+    const entry = resolveCategory(index, s.categoryId)
+    const categoryPath = entry?.path ?? [
+      { id: s.rootCategoryId, name: formatAssetL1CategoryLabel(s.rootCategoryId) },
+      ...(s.categoryId !== s.rootCategoryId ? [{ id: s.categoryId, name: s.categoryName }] : []),
+    ]
+    return {
+      id: s.id,
+      categoryId: s.categoryId,
+      categoryName: s.categoryName,
+      categoryPath,
+      memo: s.memo,
+      amount: s.amount,
+      included: true,
+      assetClass: s.assetClass,
+      market: s.market,
+      strategy: s.strategy,
+      accountId: s.accountId,
+      accountName: s.accountName,
+    }
+  })
 
   return {
-    asset: groupAndSort(asset),
-    income: groupAndSort(income),
-    expense: groupAndSort(expense),
-    saving: groupAndSort(saving),
+    asset: buildGroupTree(asset),
+    income: buildGroupTree(income),
+    expense: buildGroupTree(expense),
+    saving: buildGroupTree(saving),
   }
 }

@@ -16,7 +16,14 @@ vi.mock('@entities/meta', () => ({
   useMeta: () => ({ labelOf: (_category: string, code: string) => code }),
 }))
 
-const incomeCategory = { id: 'cat-income', type: 'INCOME' as const, name: '월급', sortOrder: 0, system: false, children: [] }
+// 대분류(월급, 하위 카테고리 있음) > 소분류(기본급, 리프) 2단 트리 — 대분류는 전체 토글을
+// 갖고 소분류(리프)는 갖지 않는다는 규칙을 함께 검증하기 위해 일부러 중첩 구조로 둔다.
+const incomeCategory = {
+  id: 'cat-income-root', type: 'INCOME' as const, name: '월급', sortOrder: 0, system: false,
+  children: [
+    { id: 'cat-income', type: 'INCOME' as const, name: '기본급', sortOrder: 0, system: false, children: [] },
+  ],
+}
 
 vi.mock('@entities/finance', async () => {
   const actual = await vi.importActual<typeof import('@entities/finance')>('@entities/finance')
@@ -39,7 +46,7 @@ describe('BulkRegisterForm', () => {
     const user = userEvent.setup()
     render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
 
-    await user.click(await screen.findByRole('switch', { name: '월급 8월급 3,650,000원 포함' }))
+    await user.click(await screen.findByRole('switch', { name: '기본급 8월급 3,650,000원 포함' }))
     await user.click(screen.getAllByRole('button', { name: '이대로 확정하기' })[0])
 
     expect(mutateMock).toHaveBeenCalledWith(
@@ -50,42 +57,61 @@ describe('BulkRegisterForm', () => {
     )
   })
 
-  it('포함된 항목은 대상월 1일 날짜로 요청에 담긴다', async () => {
+  it('포함된 항목은 대상월 마지막 일자로 요청에 담긴다', async () => {
     const user = userEvent.setup()
     render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
 
-    await screen.findByRole('switch', { name: '월급 8월급 3,650,000원 포함' })
+    await screen.findByRole('switch', { name: '기본급 8월급 3,650,000원 포함' })
     await user.click(screen.getAllByRole('button', { name: '이대로 확정하기' })[0])
 
     expect(mutateMock).toHaveBeenCalledWith(
       expect.objectContaining({
         transactions: expect.arrayContaining([
-          expect.objectContaining({ categoryId: 'cat-income', transactionDate: '2026-08-01', amount: 3650000 }),
+          expect.objectContaining({ categoryId: 'cat-income', transactionDate: '2026-08-31', amount: 3650000 }),
         ]),
       }),
       expect.anything(),
     )
   })
 
-  it('항목별 전체 토글을 끄면 해당 섹션 하위 행이 모두 제외된다', async () => {
+  it('섹션 전체 토글을 끄면 하위 행이 모두 제외된다', async () => {
     const user = userEvent.setup()
     render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
 
-    await screen.findByRole('switch', { name: '월급 8월급 3,650,000원 포함' })
+    await screen.findByRole('switch', { name: '기본급 8월급 3,650,000원 포함' })
     await user.click(screen.getByRole('switch', { name: '수입 전체 포함' }))
 
-    expect(screen.getByRole('switch', { name: '월급 8월급 3,650,000원 포함' })).not.toBeChecked()
-    expect(screen.getByRole('switch', { name: '월급 용돈 100,000원 포함' })).not.toBeChecked()
+    expect(screen.getByRole('switch', { name: '기본급 8월급 3,650,000원 포함' })).not.toBeChecked()
+    expect(screen.getByRole('switch', { name: '기본급 용돈 100,000원 포함' })).not.toBeChecked()
     for (const btn of screen.getAllByRole('button', { name: '이대로 확정하기' })) {
       expect(btn).toBeDisabled()
     }
+  })
+
+  it('대분류 전체 토글을 끄면 하위 행과 섹션 전체 토글도 함께 꺼진다', async () => {
+    const user = userEvent.setup()
+    render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
+
+    await screen.findByRole('switch', { name: '기본급 8월급 3,650,000원 포함' })
+    await user.click(screen.getByRole('switch', { name: '월급 전체 포함' }))
+
+    expect(screen.getByRole('switch', { name: '기본급 8월급 3,650,000원 포함' })).not.toBeChecked()
+    expect(screen.getByRole('switch', { name: '수입 전체 포함' })).not.toBeChecked()
+  })
+
+  it('소분류(하위 카테고리 없는 최하단 노드)는 전체 토글을 두지 않는다', async () => {
+    render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
+
+    await screen.findByRole('switch', { name: '기본급 8월급 3,650,000원 포함' })
+
+    expect(screen.queryByRole('switch', { name: '기본급 전체 포함' })).not.toBeInTheDocument()
   })
 
   it('일부 항목이 서버에서 실패하면 성공 대신 경고 토스트로 실패 건수를 알린다', async () => {
     const user = userEvent.setup()
     render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
 
-    await screen.findByRole('switch', { name: '월급 8월급 3,650,000원 포함' })
+    await screen.findByRole('switch', { name: '기본급 8월급 3,650,000원 포함' })
     await user.click(screen.getAllByRole('button', { name: '이대로 확정하기' })[0])
 
     const onSuccess = mutateMock.mock.calls[0][1].onSuccess

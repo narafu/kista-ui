@@ -24,7 +24,7 @@ export function AssetSettingsPanel() {
     <div className="flex flex-col gap-[18px]">
       <Surface as="section" className="p-6 flex items-center justify-between gap-4">
         <div>
-          <div className="text-sm font-bold mb-0.5">한 번에 등록하기</div>
+          <div className="text-sm font-bold mb-0.5">모두 등록</div>
           <div className="text-sm text-muted-foreground">지난달 자산·수입·소비·저축 기록을 이번 달로 한 번에 채워요</div>
         </div>
         <Link

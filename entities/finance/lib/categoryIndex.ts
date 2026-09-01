@@ -4,6 +4,7 @@ export interface CategoryIndexEntry {
   type: FinanceCategoryType
   rootId: string // L1 카테고리 id (자기 자신이면 rootId === id)
   name: string
+  path: { id: string; name: string }[] // 루트부터 자기 자신까지 전체 경로(대분류→…→자기 자신) — 일괄 등록 프리뷰의 계층 그룹핑에 사용
   sortOrder: number // rootId의 sortOrder — 색상·정렬에 사용 (entities/finance/lib/colors.ts)
 }
 
@@ -21,16 +22,23 @@ export function buildCategoryIndex(trees: Partial<Record<FinanceCategoryType, Fi
   for (const [type, roots] of Object.entries(trees) as [FinanceCategoryType, FinanceCategory[] | undefined][]) {
     if (!roots) continue
     for (const root of roots) {
-      walk(root, root, type, index)
+      walk(root, root, type, index, [])
     }
   }
   return index
 }
 
-function walk(node: FinanceCategory, root: FinanceCategory, type: FinanceCategoryType, index: CategoryIndex) {
-  index.set(node.id, { type, rootId: root.id, name: node.name, sortOrder: root.sortOrder })
+function walk(
+  node: FinanceCategory,
+  root: FinanceCategory,
+  type: FinanceCategoryType,
+  index: CategoryIndex,
+  ancestors: { id: string; name: string }[],
+) {
+  const path = [...ancestors, { id: node.id, name: node.name }]
+  index.set(node.id, { type, rootId: root.id, name: node.name, path, sortOrder: root.sortOrder })
   for (const child of node.children) {
-    walk(child, root, type, index)
+    walk(child, root, type, index, path)
   }
 }
 
