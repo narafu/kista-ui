@@ -58,6 +58,14 @@ function BreakdownBar({ label, amount, percent, delta, color, isLiability = fals
   )
 }
 
+function summaryDeltaLabel(delta: number, { isLiability = false }: { isLiability?: boolean } = {}) {
+  return (
+    <span className={cn('tabular-nums', pnlTextClass(isLiability ? -delta : delta))}>
+      전월대비 {fmtSignedKrw(delta)}
+    </span>
+  )
+}
+
 export function AssetOverview({ month, months, onMonthChange }: Props) {
   const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
   const { labelOf } = useMeta()
@@ -72,6 +80,10 @@ export function AssetOverview({ month, months, onMonthChange }: Props) {
   const assetClassBreakdown = useMemo(() => (month ? calcAssetClassBreakdown(snapshots, month) : []), [snapshots, month])
 
   const previousMonth = month ? previousMonthOf(months, month) : null
+  const previousSummary = useMemo(
+    () => (previousMonth ? calcMonthlySummary(snapshots, previousMonth) : null),
+    [snapshots, previousMonth],
+  )
   const previousCategoryBreakdown = useMemo(
     () => (previousMonth ? calcCategoryBreakdown(snapshots, previousMonth) : []),
     [snapshots, previousMonth],
@@ -138,9 +150,25 @@ export function AssetOverview({ month, months, onMonthChange }: Props) {
         ) : (
           <div className="space-y-6">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <KpiCard label="순자산" value={amountValue(fmtKrw(summary.netWorth))} variant="accent" valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
-              <KpiCard label="총자산" value={amountValue(fmtKrw(summary.totalAssets))} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
-              <KpiCard label="총부채" value={amountValue(fmtKrw(summary.totalLiabilities))} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
+              <KpiCard
+                label="순자산"
+                value={amountValue(fmtKrw(summary.netWorth))}
+                sub={previousSummary && summaryDeltaLabel(summary.netWorth - previousSummary.netWorth)}
+                variant="accent"
+                valueClassName="break-words text-base sm:text-2xl lg:text-3xl"
+              />
+              <KpiCard
+                label="총자산"
+                value={amountValue(fmtKrw(summary.totalAssets))}
+                sub={previousSummary && summaryDeltaLabel(summary.totalAssets - previousSummary.totalAssets)}
+                valueClassName="break-words text-base sm:text-2xl lg:text-3xl"
+              />
+              <KpiCard
+                label="총부채"
+                value={amountValue(fmtKrw(summary.totalLiabilities))}
+                sub={previousSummary && summaryDeltaLabel(summary.totalLiabilities - previousSummary.totalLiabilities, { isLiability: true })}
+                valueClassName="break-words text-base sm:text-2xl lg:text-3xl"
+              />
               <KpiCard
                 label="가장 큰 자산군"
                 value={summary.largestAssetClass ? labelOf('assetClasses', summary.largestAssetClass.assetClass) : '—'}

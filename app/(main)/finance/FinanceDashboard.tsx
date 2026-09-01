@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   buildCategoryIndex,
   displayWindow,
@@ -56,7 +56,7 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        'min-h-9 w-full rounded px-2 py-1 text-sm font-medium transition-colors',
+        'flex min-h-9 w-full items-center justify-center rounded px-2 py-1 text-sm font-medium transition-colors',
         active
           ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]'
           : 'text-muted-foreground hover:text-foreground hover:bg-accent',
@@ -102,6 +102,18 @@ export function FinanceDashboard() {
     isError: isTransactionsError,
   } = useFinanceTransactionsQuery(flowWindow.from, flowWindow.to)
   const isFlowTab = tab === 'income' || tab === 'expense' || tab === 'saving'
+  // 자산탭(최근 기록월 기본값)과의 일관성 — 오늘 달에 아직 등록된 거래가 없으면 조회된 12개월
+  // 윈도우 안에서 가장 최근 기록이 있는 달로 최초 1회만 이동한다. 이후 사용자가 직접 고른 달은
+  // 건드리지 않는다(monthAutoAdjusted 플래그로 최초 1회만 실행).
+  const [monthAutoAdjusted, setMonthAutoAdjusted] = useState(false)
+  useEffect(() => {
+    if (monthAutoAdjusted || isTransactionsLoading) return
+    setMonthAutoAdjusted(true)
+    if (period.mode !== 'monthly') return
+    if (transactions.some((transaction) => transaction.transactionDate.startsWith(period.month))) return
+    const latestMonth = transactions.map((transaction) => transaction.transactionDate.slice(0, 7)).sort().at(-1)
+    if (latestMonth && latestMonth !== period.month) setPeriod((prev) => ({ ...prev, month: latestMonth }))
+  }, [monthAutoAdjusted, isTransactionsLoading, transactions, period.mode, period.month])
   // 전년대비 전용 — 연간 모드일 때만 조회한다. 기존 12개월 윈도우(flowWindow)로는 전년 동기간이
   // 커버되지 않아(예: 2026-08 YTD 대비 2025-01~08은 완전히 다른 범위) 별도 쿼리가 필요하다.
   const previousYearWindow = useMemo(() => previousYearRange(period, today), [period, today])

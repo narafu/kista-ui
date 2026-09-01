@@ -21,7 +21,7 @@ export function StrategyTypeFilterToggle({ strategyTypes, strategyTypeFilter, on
         aria-pressed={strategyTypeFilter === undefined}
         onClick={() => onStrategyTypeFilterChange(undefined)}
         className={cn(
-          'min-h-9 shrink-0 rounded px-2 text-xs font-medium transition-colors',
+          'flex min-h-9 shrink-0 items-center justify-center rounded px-2 text-xs font-medium transition-colors',
           strategyTypeFilter === undefined
             ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]'
             : 'text-muted-foreground hover:text-foreground hover:bg-accent',
@@ -36,7 +36,7 @@ export function StrategyTypeFilterToggle({ strategyTypes, strategyTypeFilter, on
           aria-pressed={strategyTypeFilter === typeStats.type}
           onClick={() => onStrategyTypeFilterChange(typeStats.type)}
           className={cn(
-            'min-h-9 shrink-0 rounded px-2 text-xs font-medium transition-colors',
+            'flex min-h-9 shrink-0 items-center justify-center rounded px-2 text-xs font-medium transition-colors',
             strategyTypeFilter === typeStats.type
               ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]'
               : 'text-muted-foreground hover:text-foreground hover:bg-accent',
