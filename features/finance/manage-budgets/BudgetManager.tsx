@@ -11,6 +11,8 @@ import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
 import { ALL_FILTER_VALUE, CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
+import { BRAND_TINT_BUTTON_CLASS } from '@shared/ui/brand-button-class'
+import { cn } from '@shared/lib/utils'
 import { fmtKrw, todayKst } from '@shared/lib/format'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import {
@@ -113,9 +115,9 @@ export function BudgetManager({ type }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="space-y-2">
         <div className="flex flex-wrap items-center gap-2">
-          <CascadingCategorySelect levels={cascadeLevels} path={categoryPath} onPathChange={setCategoryPath} className="w-full lg:w-32" />
+          <CascadingCategorySelect levels={cascadeLevels} path={categoryPath} onPathChange={setCategoryPath} className="w-full sm:w-32" />
           <Select
             items={[
               { value: 'ALL', label: '전체 상태' },
@@ -125,7 +127,7 @@ export function BudgetManager({ type }: Props) {
             value={statusFilter}
             onValueChange={(value) => { if (value) setStatusFilter(value as StatusFilter) }}
           >
-            <SelectTrigger aria-label="적용 상태" className="w-full lg:w-28"><SelectValue /></SelectTrigger>
+            <SelectTrigger aria-label="적용 상태" className="w-full sm:w-28"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">전체 상태</SelectItem>
               <SelectItem value="ACTIVE">진행중</SelectItem>
@@ -134,10 +136,12 @@ export function BudgetManager({ type }: Props) {
           </Select>
           <PageSizeSelector value={pageSize} onChange={handlePageSizeChange} />
         </div>
-        <Button type="button" size="sm" className="gap-1.5" onClick={() => setFormTarget({ mode: 'create' })}>
-          <Plus className="size-4" />
-          예산 추가
-        </Button>
+        <div className="flex justify-end">
+          <Button type="button" size="sm" className={cn('gap-1.5', BRAND_TINT_BUTTON_CLASS)} onClick={() => setFormTarget({ mode: 'create' })}>
+            <Plus className="size-4" />
+            예산 추가
+          </Button>
+        </div>
       </div>
 
       {budgets.length === 0 ? (
@@ -151,15 +155,15 @@ export function BudgetManager({ type }: Props) {
               const path = getCategoryPath(categories, budget.categoryId)
               const categoryName = path[path.length - 1]?.name ?? '(삭제된 카테고리)'
               return (
-                <li key={budget.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{categoryName}</p>
-                    <p className="text-xs text-muted-foreground">
+                <li key={budget.id} className="px-4 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="min-w-0 flex-1 truncate text-sm font-medium">{categoryName}</p>
+                    <span className="shrink-0 whitespace-nowrap text-sm font-medium tabular-nums">{fmtKrw(budget.amount)}</span>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between gap-2">
+                    <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
                       {budget.applyStartDate} ~ {budget.applyEndDate ?? '무기한'}
                     </p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    <span className="text-sm font-medium tabular-nums">{fmtKrw(budget.amount)}</span>
                     <ShareableRowActions
                       onEdit={() => setFormTarget({ mode: 'edit', budget })}
                       onDuplicate={() => setFormTarget({ mode: 'duplicate', budget })}

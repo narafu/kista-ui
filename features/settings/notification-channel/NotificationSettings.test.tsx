@@ -59,11 +59,10 @@ describe('NotificationSettings — FCM 해제', () => {
     vi.unstubAllGlobals()
   })
 
-  it('현재 알림 수단을 선택 상태와 체크로 표시한다', () => {
+  it('현재 알림 수단을 선택 상태로 표시한다', () => {
     render(<NotificationSettings currentChannel="FCM" hasTelegram={false} />)
 
     expect(screen.getByRole('button', { name: /푸시 알림/ })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByTestId('selection-indicator')).toBeInTheDocument()
   })
 
   it('FCM에서 NONE으로 전환하고 캐시된 토큰이 있으면 서버에서 해제한다', async () => {

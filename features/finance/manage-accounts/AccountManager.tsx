@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
+import { BRAND_TINT_BUTTON_CLASS } from '@shared/ui/brand-button-class'
 import { cn } from '@shared/lib/utils'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { useMeta } from '@entities/meta'
@@ -63,7 +64,7 @@ export function AccountManager() {
     <div className={cn(cardClass, 'space-y-4')}>
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold">계좌 관리</h2>
-        <Button type="button" size="sm" className="gap-1.5" onClick={() => setFormTarget('new')}>
+        <Button type="button" size="sm" className={cn('gap-1.5', BRAND_TINT_BUTTON_CLASS)} onClick={() => setFormTarget('new')}>
           <Plus className="size-3.5" />
           계좌 추가
         </Button>

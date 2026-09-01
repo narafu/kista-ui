@@ -21,10 +21,10 @@ interface Props {
   isError: boolean
   period: Period
   onPeriodChange: (period: Period) => void
-  // 연간 모드 전년대비 전용 — period.mode==='yearly'일 때만 부모(FinanceDashboard)가 조회해 넘긴다.
+  // 연간 모드 전년대비 전용 — period.mode==='yearly'일 때만 부모(income/expense/saving 페이지, useFinanceFlowData 훅)가 조회해 넘긴다.
   // 기존 12개월 슬라이딩 윈도우(windowRange)로는 전년 동기간을 커버할 수 없어 별도 쿼리가 필요하다.
   previousYearTransactions?: FinanceTransaction[]
-  // FinanceDashboard가 한 번만 계산해 내려주는 "오늘"(period 상태와 동일한 소유 방식) — 위젯마다
+  // 부모 페이지(useFinanceFlowData 훅)가 한 번만 계산해 내려주는 "오늘"(period 상태와 동일한 소유 방식) — 위젯마다
   // todayKst()를 각자 호출하지 않는다.
   today: string
 }
@@ -55,7 +55,7 @@ const MODE_OPTIONS: { value: PeriodMode; label: string }[] = [
   { value: 'yearly', label: '연간' },
 ]
 
-// FinanceDashboard.tsx의 로컬 TabButton과 동일한 스타일 — widget cross-import 금지라 직접 복제.
+// 가계부 탭바(SectionTabBar)와 동일한 segmented control 스타일 — widget cross-import 금지라 직접 복제.
 function ModeButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button

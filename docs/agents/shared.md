@@ -82,7 +82,7 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 
 - `IconButton` — 44px 히트영역 아이콘 전용 버튼(`<button>`), `aria-label` 필수 prop. `<Link>` 아이콘 버튼엔 미사용 — 대신 같은 파일이 export하는 `ICON_LINK_GHOST_CLASS` 완성 클래스 문자열을 그대로 재사용한다(과거 손으로 다시 이어 붙이다 스타일이 드리프트한 적 있어 export로 전환)
 - `TableHeadCell` — 테이블 헤더 셀 공통 스타일 (`<th>` 래퍼). 데이터 셀은 `TableDataCell`(`<td>` 래퍼)과 짝을 이루며 둘 다 기본 정렬이 `text-center`다 — 새 테이블은 이 둘을 함께 써서 헤더·데이터 정렬 드리프트를 피한다
-- `SelectionCard` — `selected`를 `aria-pressed`와 테마 대응 외곽선·틴트로 표현하는 선택 버튼. 큰 카드는 `showIndicator`를 명시해 체크 표시
+- `SelectionCard` — `selected`를 `aria-pressed`와 테마 대응 외곽선·틴트로 표현하는 선택 버튼. 체크 배지(`showIndicator`)는 2026-08 전량 제거됐다(시각적으로 과했다는 피드백) — 크기·용도 무관하게 항상 테두리만으로 선택을 표시한다
 - `SectionError` — 섹션 단위 조회 실패 표시. `widgets/stats-overview`·`widgets/benchmark-comparison`·`widgets/asset-*`·`widgets/cycle-history` 등 여러 widget에서 공유해 cross-widget import를 피하려 이 위치로 이동됨 (`widgets.md` 화이트리스트 목록 참고)
 
 shadcn 자동생성 컴포넌트는 `components/ui/`에 두고 `npx shadcn@latest add <component> --yes`로만 추가한다.

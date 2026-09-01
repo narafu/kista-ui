@@ -94,7 +94,7 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
                 aria-label="비교 지역"
                 value={regionCode}
                 onChange={(event) => setRegionCode(event.target.value)}
-                className="min-h-8 rounded-md border border-input bg-background px-2 text-base font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring lg:text-lg"
+                className="min-h-8 rounded-md border border-[var(--border-strong)] bg-background px-2 text-base font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring lg:text-lg"
               >
                 {regions.map((region) => (
                   <option key={region.code} value={region.code}>{region.name}</option>

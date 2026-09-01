@@ -5,6 +5,8 @@ import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { BRAND_TINT_BUTTON_CLASS } from '@shared/ui/brand-button-class'
+import { cn } from '@shared/lib/utils'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { useMeta } from '@entities/meta'
 import {
@@ -24,7 +26,7 @@ import { TypeButton } from './TypeButton'
 
 // 4타입(ASSET/INCOME/EXPENSE/SAVING) 카테고리 트리를 사용자가 직접 생성·수정·삭제하는 화면.
 // 수입/지출/저축 탭 자체는 아직 미구현이지만 카테고리는 미리 만들어둘 수 있어야 해서 타입
-// 세그먼트만 먼저 노출한다. shadcn Tabs가 없어 FinanceDashboard의 TabButton 패턴을 그대로 따른다.
+// 세그먼트만 먼저 노출한다. shadcn Tabs가 없어 가계부 탭바(SectionTabBar)의 TabButton 패턴을 그대로 따른다.
 export function CategoryManager() {
   const { meta } = useMeta()
   const [type, setType] = useState<FinanceCategoryType>('ASSET')
@@ -70,8 +72,8 @@ export function CategoryManager() {
       </div>
 
       <div className="flex justify-end">
-        <Button type="button" size="sm" className="gap-1.5" onClick={() => setFormTarget('new')}>
-          <Plus className="size-4" />
+        <Button type="button" size="sm" className={cn('gap-1.5', BRAND_TINT_BUTTON_CLASS)} onClick={() => setFormTarget('new')}>
+          <Plus className="size-3.5" />
           카테고리 추가
         </Button>
       </div>

@@ -43,9 +43,8 @@ export function ThemeCards() {
           <SelectionCard
             key={o.key}
             selected={on}
-            showIndicator
             onClick={() => setTheme(o.key)}
-            className="w-full rounded-[var(--r-md)] p-3 pb-8"
+            className="w-full rounded-[var(--r-md)] p-3"
           >
             <div
               className="h-16 rounded-lg p-2 flex flex-col gap-1 mb-2.5 border border-border"

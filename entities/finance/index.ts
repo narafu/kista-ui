@@ -163,7 +163,7 @@ export { buildCategoryIndex, resolveCategory } from './lib/categoryIndex'
 export type { CategoryIndex, CategoryIndexEntry } from './lib/categoryIndex'
 export { buildBulkRegisterItems } from './lib/bulkRegisterPreview'
 export type { BulkRegisterGroup, BulkRegisterItem, BulkRegisterItems } from './lib/bulkRegisterPreview'
-export { daysInMonth, displayWindow, elapsedDaysInMonth, elapsedMonthsInYear, isCurrentYear, monthEndDate, monthStartDate, periodRange, previousYearRange, shiftMonth, windowRange, yearsRange } from './lib/period'
+export { daysInMonth, displayWindow, elapsedDaysInMonth, elapsedMonthsInYear, isCurrentYear, monthEndDate, monthStartDate, periodRange, previousYearRange, registerWindowUpperBound, shiftMonth, windowRange, yearsRange } from './lib/period'
 export type { Period, PeriodMode } from './lib/period'
 export {
   calcBudgetProgress,

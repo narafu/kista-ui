@@ -22,10 +22,8 @@ function handleFocus(event: FocusEvent<HTMLInputElement>) {
 
 function inputBoxClass(disabled: boolean) {
   return cn(
-    'flex items-center h-11 rounded-[var(--r-sm)] bg-card px-3',
-    disabled
-      ? 'opacity-50 border border-border'
-      : 'border border-[var(--rose-400)] shadow-[0_0_0_3px_rgba(203,131,106,0.18)]',
+    'flex items-center h-11 rounded-[var(--r-sm)] bg-card px-3 border border-[var(--border-strong)] transition-[border-color,box-shadow] duration-150',
+    disabled ? 'opacity-50' : 'focus-within:border-[var(--rose-400)] focus-within:shadow-[0_0_0_3px_rgba(203,131,106,0.18)]',
   )
 }
 

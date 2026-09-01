@@ -7,7 +7,7 @@ import { cn } from '@shared/lib/utils'
 import { toMonthInput, type Period } from './model/benchmarkPeriods'
 import type { EtfBenchmarkContent } from './housingBenchmarkContent'
 
-export const ASSET_SELECT_CLASS = 'min-h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring'
+export const ASSET_SELECT_CLASS = 'min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 export function ToggleButton({
   active,
@@ -223,7 +223,7 @@ export function BenchmarkFilterBar({
                   value={customFromDate}
                   max={customToDate}
                   onChange={(event) => setCustomFromDate(event.target.value)}
-                  className="min-h-10 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
                 <span className="shrink-0 text-xs text-muted-foreground">~</span>
                 <input
@@ -233,7 +233,7 @@ export function BenchmarkFilterBar({
                   min={customFromDate}
                   max={defaultTo}
                   onChange={(event) => setCustomToDate(event.target.value)}
-                  className="min-h-10 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
               </div>
             ) : isCustomPeriod ? (
@@ -244,7 +244,7 @@ export function BenchmarkFilterBar({
                   value={customFromMonth}
                   max={customToMonth}
                   onChange={(event) => setCustomFromMonth(event.target.value)}
-                  className="min-h-10 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
                 <span className="shrink-0 text-xs text-muted-foreground">~</span>
                 <input
@@ -254,7 +254,7 @@ export function BenchmarkFilterBar({
                   min={customFromMonth}
                   max={toMonthInput(defaultTo)}
                   onChange={(event) => setCustomToMonth(event.target.value)}
-                  className="min-h-10 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
               </div>
             ) : null}

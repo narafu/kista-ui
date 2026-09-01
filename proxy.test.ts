@@ -102,15 +102,15 @@ describe('proxy', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  // ①-d /benchmark는 본인 투자 성과 비교라 보호 경로 — 토큰 없으면 /login으로 리다이렉트, 쿼리스트링까지 next에 보존
-  it('/benchmark는 토큰 없으면 쿼리스트링을 포함해 /login?next=...로 리다이렉트한다', async () => {
+  // ①-d /stats/benchmark는 본인 투자 성과 비교라 보호 경로(/stats 서브라우트) — 토큰 없으면 /login으로 리다이렉트, 쿼리스트링까지 next에 보존
+  it('/stats/benchmark는 토큰 없으면 쿼리스트링을 포함해 /login?next=...로 리다이렉트한다', async () => {
     vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
     const fetchMock = stubFetch({})
-    const res = await proxy(makeRequest('/benchmark?tab=housing'))
+    const res = await proxy(makeRequest('/stats/benchmark?tab=housing'))
     expect(res.status).toBe(307)
     const location = new URL(res.headers.get('location')!)
     expect(location.pathname).toBe('/login')
-    expect(location.searchParams.get('next')).toBe('/benchmark?tab=housing')
+    expect(location.searchParams.get('next')).toBe('/stats/benchmark?tab=housing')
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
