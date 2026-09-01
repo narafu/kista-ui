@@ -12,6 +12,7 @@ import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { cn } from '@shared/lib/utils'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
+import { MOBILE_BOTTOM_NAV_OFFSET_CLASS, MOBILE_FIXED_BAR_RESERVE_CLASS } from '@shared/lib/layout-constants'
 import { useMeta } from '@entities/meta'
 import {
   SYSTEM_LOAN_CATEGORY_ID,
@@ -213,11 +214,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
 
   return (
     <form onSubmit={handleSubmit}>
-      {/* pb-40 — 아래 모바일 확정 바(bottom-14 + p-4 + h-14 버튼)의 실제 높이는 144px다.
-          이전 pb-24(96px)는 48px 부족해 폼이 길어지는 경우(작은 화면, 운용전략 필드 노출 등)
-          마지막 필드가 버튼에 가려질 수 있었다 — widgets/finance-bulk-register/BulkRegisterForm
-          에서 실제로 드러난 문제와 동일 구조라 여기도 함께 맞춘다. */}
-      <div className="max-w-xl pb-40 sm:pb-0">
+      <div className={cn('max-w-xl sm:pb-0', MOBILE_FIXED_BAR_RESERVE_CLASS)}>
         <div className={cn(cardClass, 'space-y-4')}>
           <div className="space-y-2">
             <Label htmlFor="entryDate">기준일</Label>
@@ -388,7 +385,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
         </div>
       </div>
 
-      <div className="sm:hidden fixed bottom-14 left-0 right-0 p-4 bg-background border-t z-40 flex gap-3">
+      <div className={cn('sm:hidden fixed left-0 right-0 p-4 bg-background border-t z-40 flex gap-3', MOBILE_BOTTOM_NAV_OFFSET_CLASS)}>
         <button
           type="button"
           onClick={onCancel}

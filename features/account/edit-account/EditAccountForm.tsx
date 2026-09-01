@@ -21,6 +21,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { cn } from '@shared/lib/utils'
+import { MOBILE_BOTTOM_NAV_OFFSET_CLASS, MOBILE_FIXED_BAR_RESERVE_CLASS } from '@shared/lib/layout-constants'
 import { useUpdateAccountMutation, useDeleteAccountMutation } from '@entities/account'
 import { strategyKeys } from '@entities/strategy'
 import { statsKeys } from '@entities/stats'
@@ -77,11 +78,7 @@ export function EditAccountForm({ account }: Props) {
 
   return (
     <form onSubmit={handleSubmit}>
-      {/* pb-40 — 아래 모바일 저장 바(bottom-14 + p-4 + h-14 버튼)의 실제 높이는 144px다.
-          이전 pb-12(48px)는 96px나 부족해 위험 구역 카드의 "계좌 삭제" 버튼이 저장 바에
-          가려질 수 있었다(widgets/finance-bulk-register/BulkRegisterForm에서 실제로 드러난
-          문제와 동일 구조). */}
-      <div className="max-w-xl space-y-4 pb-40 sm:pb-0">
+      <div className={cn('max-w-xl space-y-4 sm:pb-0', MOBILE_FIXED_BAR_RESERVE_CLASS)}>
         <div className={cn(cardClass, 'space-y-4')}>
           <h2 className="text-sm font-semibold mb-1">계좌 정보 수정</h2>
 
@@ -181,7 +178,7 @@ export function EditAccountForm({ account }: Props) {
         </div>
       </div>
 
-      <div className="sm:hidden fixed bottom-14 left-0 right-0 p-4 bg-background border-t z-40">
+      <div className={cn('sm:hidden fixed left-0 right-0 p-4 bg-background border-t z-40', MOBILE_BOTTOM_NAV_OFFSET_CLASS)}>
         <Button type="submit" className="w-full h-14 text-base font-semibold gap-2" disabled={updateMutation.isPending}>
           {updateMutation.isPending ? (
             <>

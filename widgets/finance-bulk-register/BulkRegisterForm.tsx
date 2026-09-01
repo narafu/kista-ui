@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Surface } from '@shared/ui/Surface'
 import { cn } from '@shared/lib/utils'
 import { digitsOnly, formatAmountDisplay, fmtKrw, todayKst } from '@shared/lib/format'
+import { MOBILE_BOTTOM_NAV_OFFSET_CLASS, MOBILE_FIXED_BAR_RESERVE_CLASS } from '@shared/lib/layout-constants'
 import { useMeta } from '@entities/meta'
 import {
   buildBulkRegisterItems,
@@ -244,13 +245,8 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
 
   const submitDisabled = mutation.isPending || includedCount === 0
 
-  // 모바일 하단 여백 pb-40 — 아래 확정 버튼 바가 실제로 차지하는 높이는 bottom-14(56px,
-  // MobileBottomNav 높이만큼 오프셋) + 바 자체 높이(p-4 상하 32px + h-14 버튼 56px = 88px)
-  // = 144px다. AssetForm 등 짧은 폼에서 쓰는 pb-24(96px)는 이보다 48px 부족한데, 폼 내용이
-  // 짧아 드러나지 않았을 뿐이다 — 카테고리 목록이 길게 이어지는 이 화면은 실제로 마지막
-  // 항목이 확정 버튼에 가려졌다. 144px에 여유분을 더해 pb-40(160px)으로 맞춘다.
   return (
-    <div className="space-y-[18px] pb-40 sm:pb-0">
+    <div className={cn('space-y-[18px] sm:pb-0', MOBILE_FIXED_BAR_RESERVE_CLASS)}>
       {/* PC 저장 버튼은 필터 행 우측 상단에 둔다 — 데이터가 길어지는 화면 하단부에 있으면
           스크롤해야 보이는 위치라 눈에 잘 띄지 않는다는 피드백으로 상단으로 옮겼다. */}
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -275,10 +271,10 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
       </div>
 
       {/* 모바일 하단 탭바(widgets/layout/MobileBottomNav, fixed bottom-0 z-40)와 겹치지 않도록
-          bottom-14(탭바 높이만큼 위)에 별도 z-40 바를 띄운다 — bottom-0으로 겹치면 탭바가 위에
-          렌더돼 이 버튼이 완전히 가려진다. 바/버튼 스타일은 AssetForm·EditAccountForm의 모바일
-          제출 바 SSOT(p-4 bg-background border-t z-40 + w-full h-14 text-base font-semibold)를 따른다. */}
-      <div className="sm:hidden fixed bottom-14 left-0 right-0 z-40 p-4 bg-background border-t">
+          탭바 실제 높이만큼 위(MOBILE_BOTTOM_NAV_OFFSET_CLASS)에 별도 z-40 바를 띄운다 — bottom-0으로
+          겹치면 탭바가 위에 렌더돼 이 버튼이 완전히 가려진다. 바/버튼 스타일은 AssetForm·EditAccountForm의
+          모바일 제출 바 SSOT(p-4 bg-background border-t z-40 + w-full h-14 text-base font-semibold)를 따른다. */}
+      <div className={cn('sm:hidden fixed left-0 right-0 z-40 p-4 bg-background border-t', MOBILE_BOTTOM_NAV_OFFSET_CLASS)}>
         <Button
           onClick={handleSubmit}
           disabled={submitDisabled}
