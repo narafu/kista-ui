@@ -77,7 +77,11 @@ export function EditAccountForm({ account }: Props) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="max-w-xl space-y-4 pb-12 sm:pb-0">
+      {/* pb-40 — 아래 모바일 저장 바(bottom-14 + p-4 + h-14 버튼)의 실제 높이는 144px다.
+          이전 pb-12(48px)는 96px나 부족해 위험 구역 카드의 "계좌 삭제" 버튼이 저장 바에
+          가려질 수 있었다(widgets/finance-bulk-register/BulkRegisterForm에서 실제로 드러난
+          문제와 동일 구조). */}
+      <div className="max-w-xl space-y-4 pb-40 sm:pb-0">
         <div className={cn(cardClass, 'space-y-4')}>
           <h2 className="text-sm font-semibold mb-1">계좌 정보 수정</h2>
 

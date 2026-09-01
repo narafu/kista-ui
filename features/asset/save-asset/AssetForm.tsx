@@ -213,7 +213,11 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="max-w-xl pb-24 sm:pb-0">
+      {/* pb-40 — 아래 모바일 확정 바(bottom-14 + p-4 + h-14 버튼)의 실제 높이는 144px다.
+          이전 pb-24(96px)는 48px 부족해 폼이 길어지는 경우(작은 화면, 운용전략 필드 노출 등)
+          마지막 필드가 버튼에 가려질 수 있었다 — widgets/finance-bulk-register/BulkRegisterForm
+          에서 실제로 드러난 문제와 동일 구조라 여기도 함께 맞춘다. */}
+      <div className="max-w-xl pb-40 sm:pb-0">
         <div className={cn(cardClass, 'space-y-4')}>
           <div className="space-y-2">
             <Label htmlFor="entryDate">기준일</Label>
