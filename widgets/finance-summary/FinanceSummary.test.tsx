@@ -54,7 +54,7 @@ describe('FinanceSummary 연간 모드', () => {
     expect(screen.getByRole('combobox', { name: '기준 연도' })).toHaveTextContent('2026년')
   })
 
-  it('연간 모드에서 전년 동기간 거래가 있으면 전년 대비 카드를 보여준다', () => {
+  it('연간 모드에서 전년 동기간 거래가 있으면 합계 카드에 전년대비를 함께 보여준다', () => {
     render(
       <FinanceSummary
         type="EXPENSE"
@@ -68,7 +68,7 @@ describe('FinanceSummary 연간 모드', () => {
         today="2026-08-23"
       />,
     )
-    expect(screen.getByText('전년 대비')).toBeInTheDocument()
+    expect(screen.getByText(/전년대비/)).toBeInTheDocument()
   })
 })
 
