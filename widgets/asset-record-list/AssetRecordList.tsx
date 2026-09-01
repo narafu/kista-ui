@@ -305,8 +305,8 @@ export function AssetRecordList() {
                       카테고리{sortIcon('category')}
                     </button>
                   </TableHeadCell>
-                  <TableHeadCell>자산군</TableHeadCell>
                   <TableHeadCell>시장</TableHeadCell>
+                  <TableHeadCell>자산군</TableHeadCell>
                   <TableHeadCell>운용전략</TableHeadCell>
                   <TableHeadCell>메모</TableHeadCell>
                   <TableHeadCell>계좌</TableHeadCell>
@@ -334,8 +334,8 @@ export function AssetRecordList() {
                     <TableDataCell>
                       <Badge tone={CATEGORY_TONE[snapshot.rootCategoryId] ?? 'neutral'} size="sm">{snapshot.categoryName}</Badge>
                     </TableDataCell>
-                    <TableDataCell>{labelOf('assetClasses', snapshot.assetClass)}</TableDataCell>
                     <TableDataCell>{labelOf('markets', snapshot.market)}</TableDataCell>
+                    <TableDataCell>{labelOf('assetClasses', snapshot.assetClass)}</TableDataCell>
                     <TableDataCell className={cn(!snapshot.strategy && 'text-muted-foreground')}>{snapshot.strategy ?? '—'}</TableDataCell>
                     <TableDataCell title={snapshot.memo} className={cn('max-w-48 truncate', !snapshot.memo && 'text-muted-foreground')}>{snapshot.memo ?? '—'}</TableDataCell>
                     <TableDataCell className={cn(!snapshot.accountName && 'text-muted-foreground')}>{snapshot.accountName ?? '—'}</TableDataCell>

@@ -14,6 +14,9 @@ import { cn } from '@shared/lib/utils'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import {
+  SYSTEM_LOAN_CATEGORY_ID,
+  SYSTEM_REAL_ESTATE_CATEGORY_ID,
+  SYSTEM_SAVINGS_CATEGORY_ID,
   getCascadeLevels,
   getCategoryPath,
   isInvestmentCategoryId,
@@ -37,6 +40,15 @@ interface Props {
 
 // 계좌 Select 미선택("미지정") 센티널 — Base UI Select는 빈 문자열 value를 허용하지 않는다.
 const NO_ACCOUNT_VALUE = 'NONE'
+
+// 예적금·대출·부동산 L1은 자산군·시장이 사실상 고정값이라 등록 시 매번 고를 필요가 없다 —
+// 해당 L1을 능동적으로 고르면 이 값으로 강제하고 Select 자체를 숨긴다. 투자(그 외) L1은 실제로
+// 국내/해외·자산군이 다양해 기존처럼 자유 선택을 유지한다.
+const FIXED_ASSET_META: Record<string, { assetClass: AssetClass; market: Market }> = {
+  [SYSTEM_SAVINGS_CATEGORY_ID]: { assetClass: 'CASH', market: 'DOMESTIC' },
+  [SYSTEM_LOAN_CATEGORY_ID]: { assetClass: 'CASH', market: 'DOMESTIC' },
+  [SYSTEM_REAL_ESTATE_CATEGORY_ID]: { assetClass: 'REAL_ESTATE', market: 'DOMESTIC' },
+}
 
 const MODE_LABEL: Record<AssetFormMode, string> = {
   create: '등록',
@@ -140,6 +152,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
   const categoryId = selectedPath[selectedPath.length - 1] ?? ''
   // 운용전략 필드는 L1 카테고리가 '투자'(고정 시스템 카테고리)일 때만 노출한다.
   const showStrategy = isInvestmentCategoryId(selectedPath[0])
+  const fixedAssetMeta = FIXED_ASSET_META[selectedPath[0] ?? '']
   const [accountId, setAccountId] = useState(initial?.accountId ?? NO_ACCOUNT_VALUE)
   const [assetClass, setAssetClass] = useState<AssetClass>(initial?.assetClass ?? 'CASH')
   const [market, setMarket] = useState<Market>(initial?.market ?? 'DOMESTIC')
@@ -227,6 +240,16 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
                   // 하위 레벨 선택으로는 next[0]이 그대로라 이 조건에 걸리지 않는다). 편집 진입 시
                   // 기존 레코드를 복원하는 경로는 건드리지 않는다.
                   if (next[0] !== selectedPath[0] && !isInvestmentCategoryId(next[0])) setStrategy('')
+                  // L1을 능동적으로 예적금·대출·부동산으로 바꾸면 자산군·시장을 고정값으로 강제한다
+                  // (edit 모드 진입 시 기존 레코드를 복원하는 경로는 selectedPath를 이 핸들러가 아니라
+                  // useState 초기값/useEffect로 채우므로 여기서 건드리지 않는다).
+                  if (next[0] !== selectedPath[0]) {
+                    const fixed = FIXED_ASSET_META[next[0] ?? '']
+                    if (fixed) {
+                      setAssetClass(fixed.assetClass)
+                      setMarket(fixed.market)
+                    }
+                  }
                   setSelectedPath(next)
                 }}
                 allowClear={false}
@@ -236,6 +259,42 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
               />
             </div>
           </div>
+
+          {!fixedAssetMeta && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="market">시장</Label>
+                <Select
+                  items={meta.markets.map((m) => ({ value: m.code, label: m.label }))}
+                  value={market}
+                  onValueChange={(value) => { if (value) setMarket(value as Market) }}
+                >
+                  <SelectTrigger id="market" className="w-full h-12" disabled={isPending}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {meta.markets.map((m) => <SelectItem key={m.code} value={m.code}>{m.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="assetClass">자산군</Label>
+                <Select
+                  items={meta.assetClasses.map((c) => ({ value: c.code, label: c.label }))}
+                  value={assetClass}
+                  onValueChange={(value) => { if (value) setAssetClass(value as AssetClass) }}
+                >
+                  <SelectTrigger id="assetClass" className="w-full h-12" disabled={isPending}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {meta.assetClasses.map((c) => <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="account">계좌 (선택)</Label>
@@ -255,38 +314,6 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
                     {group.accounts.map((a) => <SelectItem key={a.id} value={a.id}>{accountOptionLabel(a)}</SelectItem>)}
                   </SelectGroup>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="assetClass">자산군</Label>
-            <Select
-              items={meta.assetClasses.map((c) => ({ value: c.code, label: c.label }))}
-              value={assetClass}
-              onValueChange={(value) => { if (value) setAssetClass(value as AssetClass) }}
-            >
-              <SelectTrigger id="assetClass" className="w-full h-12" disabled={isPending}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {meta.assetClasses.map((c) => <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="market">시장</Label>
-            <Select
-              items={meta.markets.map((m) => ({ value: m.code, label: m.label }))}
-              value={market}
-              onValueChange={(value) => { if (value) setMarket(value as Market) }}
-            >
-              <SelectTrigger id="market" className="w-full h-12" disabled={isPending}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {meta.markets.map((m) => <SelectItem key={m.code} value={m.code}>{m.label}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
