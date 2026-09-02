@@ -57,7 +57,9 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, du
 
   const [applyStartDate, setApplyStartDate] = useState(seed?.applyStartDate ?? '')
   const [applyEndDate, setApplyEndDate] = useState(seed?.applyEndDate ?? '')
-  const [amountDigits, setAmountDigits] = useState(seed ? String(seed.amount) : '')
+  // amount<=0은 값이 없는 것으로 취급한다(예산 미설정 카테고리 빠른등록이 카테고리만 프리필하고
+  // 금액은 0으로 넘길 때, 그대로 '0'을 채우면 canSubmit의 "금액 입력 필수" 가드가 무력화된다).
+  const [amountDigits, setAmountDigits] = useState(seed && seed.amount > 0 ? String(seed.amount) : '')
 
   // 그룹 소속일 때만 노출, 기본값 켜짐(그룹 저장 우선) — 수정 모드는 groupId가 이미 고정돼 있어 대상 아님.
   const canShareToGroup = useCanShareToGroup()

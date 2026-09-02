@@ -73,7 +73,7 @@ describe('BudgetManager', () => {
     updateMutateMock.mockClear()
   })
 
-  it('복제 버튼을 클릭하면 다이얼로그가 열리고 카테고리·금액은 채워지지만 시작일은 비어있다', async () => {
+  it('복제 버튼을 클릭하면 다이얼로그가 열리고 카테고리·금액·시작일이 원본 그대로 채워진다', async () => {
     const user = userEvent.setup()
     useFinanceBudgetsQueryMock.mockReturnValue({
       data: [budget({ id: 'b1', categoryId: 'cat-food', amount: 100_000, applyStartDate: '2026-01-01' })],
@@ -84,10 +84,10 @@ describe('BudgetManager', () => {
 
     expect(screen.getByRole('heading', { name: '예산 추가' })).toBeInTheDocument()
     expect(screen.getByLabelText('월 예산 (원)')).toHaveValue('100,000')
-    expect(screen.getByLabelText('적용 시작일')).toHaveValue('')
+    expect(screen.getByLabelText('적용 시작일')).toHaveValue('2026-01-01')
   })
 
-  it('복제 제출 시 create mutation이 호출된다(update 아님)', async () => {
+  it('복제 제출 시(날짜를 바꿔) create mutation이 호출된다(update 아님)', async () => {
     const user = userEvent.setup()
     useFinanceBudgetsQueryMock.mockReturnValue({
       data: [budget({ id: 'b1', categoryId: 'cat-food', amount: 100_000, applyStartDate: '2026-01-01' })],
@@ -95,6 +95,8 @@ describe('BudgetManager', () => {
     render(<BudgetManager type="EXPENSE" />)
 
     await user.click(screen.getByRole('button', { name: '복제' }))
+    // 원본 기간을 그대로 제출하면 겹침 제약(409)에 걸리므로 날짜를 바꿔서 제출한다.
+    await user.clear(screen.getByLabelText('적용 시작일'))
     await user.type(screen.getByLabelText('적용 시작일'), '2026-09-01')
     await user.click(screen.getByRole('button', { name: '저장' }))
 

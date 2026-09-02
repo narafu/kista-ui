@@ -169,8 +169,9 @@ export {
   calcBudgetProgress,
   calcFlowSummary,
   calcFlowTrend,
+  calcUnbudgetedCategories,
   filterByType,
   unclassifiedTransactions,
 } from './lib/flowAggregate'
-export type { BudgetProgress, FlowSummary, FlowTrendPoint } from './lib/flowAggregate'
+export type { BudgetProgress, FlowSummary, FlowTrendPoint, UnbudgetedCategory } from './lib/flowAggregate'
 export { flowCategoryColor } from './lib/colors'

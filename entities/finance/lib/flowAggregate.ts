@@ -172,3 +172,45 @@ export function calcBudgetProgress(
   const displayOrder = flattenTreeIds(categoryTree)
   return results.sort((a, b) => displayOrder.indexOf(a.categoryId) - displayOrder.indexOf(b.categoryId))
 }
+
+export interface UnbudgetedCategory {
+  categoryId: string
+  categoryName: string
+  amount: number
+}
+
+// 이 기간에 지출/수입 실적은 있는데 예산이 없는 카테고리 — 예산은 어느 depth에나 걸 수 있어
+// "커버됨"의 기준은 유효 예산의 categoryId 서브트리 전체다(calcBudgetProgress의 actual 집계와
+// 동일 기준). 예산 없는 실적을 내역 리스트에서만 발견하기 쉬운 문제를 보완하기 위한 별도 섹션용.
+export function calcUnbudgetedCategories(
+  budgets: FinanceBudget[],
+  transactionsOfType: FinanceTransaction[],
+  categoryTree: FinanceCategory[],
+  index: CategoryIndex,
+  period: Period,
+  today: string,
+): UnbudgetedCategory[] {
+  const { from, to } = periodRange(period, today)
+  const yearStart = `${period.month.slice(0, 4)}-01`
+  const fromMonth = period.mode === 'yearly' ? yearStart : period.month
+  const toMonth = to.slice(0, 7)
+
+  const coveredIds = new Set<string>()
+  for (const budget of budgets) {
+    if (validMonthCount(budget, fromMonth, toMonth) === 0) continue
+    for (const id of collectSubtreeIds(categoryTree, budget.categoryId)) coveredIds.add(id)
+  }
+
+  const byCategory = new Map<string, number>()
+  for (const t of transactionsOfType) {
+    if (!inRange(t.transactionDate, from, to) || coveredIds.has(t.categoryId)) continue
+    const entry = index.get(t.categoryId)
+    if (!entry) continue // 삭제된 카테고리는 unclassifiedTransactions()가 별도로 다룬다
+    byCategory.set(t.categoryId, (byCategory.get(t.categoryId) ?? 0) + t.amount)
+  }
+
+  const displayOrder = flattenTreeIds(categoryTree)
+  return [...byCategory.entries()]
+    .map(([categoryId, amount]) => ({ categoryId, categoryName: index.get(categoryId)!.name, amount }))
+    .sort((a, b) => displayOrder.indexOf(a.categoryId) - displayOrder.indexOf(b.categoryId))
+}

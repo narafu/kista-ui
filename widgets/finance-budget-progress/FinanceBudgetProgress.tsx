@@ -1,13 +1,15 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { SectionError } from '@shared/ui/SectionError'
 import { fmtKrw } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { useMeta } from '@entities/meta'
-import { calcBudgetProgress, filterByType, flowCategoryColor, sortCategoryTree } from '@entities/finance'
+import { calcBudgetProgress, calcUnbudgetedCategories, filterByType, flowCategoryColor, sortCategoryTree } from '@entities/finance'
 import type { CategoryIndex, FinanceBudget, FinanceCategory, FinanceTransaction, Period } from '@entities/finance'
+import { BudgetFormDialog } from '@features/finance/manage-budgets'
 
 interface Props {
   type: 'INCOME' | 'EXPENSE' | 'SAVING'
@@ -57,6 +59,9 @@ function BreakdownBar({ label, actual, allocated, remaining, percent, color }: B
 
 export function FinanceBudgetProgress({ type, budgets, transactions, categoryTree, index, period, isLoading, isError, today }: Props) {
   const { labelOf } = useMeta()
+  // 예산 없이 실적만 있는 카테고리를 위한 즉석 예산등록 다이얼로그 대상 — 카테고리만 프리필하고
+  // 날짜·금액은 비워서 사용자가 직접 입력하게 한다(BudgetFormDialog의 duplicateFrom 재사용).
+  const [quickCreateCategoryId, setQuickCreateCategoryId] = useState<string | null>(null)
 
   const typedBudgets = budgets.filter((b) => index.get(b.categoryId)?.type === type)
   const typedTransactions = filterByType(transactions, index, type)
@@ -64,6 +69,7 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
   // orderedRootIds(색상 매핑) 양쪽에 재사용한다.
   const sortedCategoryTree = useMemo(() => sortCategoryTree(categoryTree), [categoryTree])
   const progress = calcBudgetProgress(typedBudgets, typedTransactions, sortedCategoryTree, index, period, today)
+  const unbudgeted = calcUnbudgetedCategories(typedBudgets, typedTransactions, sortedCategoryTree, index, period, today)
   const orderedRootIds = sortedCategoryTree.map((c) => c.id)
 
   return (
@@ -76,24 +82,61 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
           <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">불러오는 중…</div>
         ) : isError ? (
           <SectionError message="예산 대비 실적을 불러오지 못했습니다" />
-        ) : progress.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">설정한 예산이 없습니다.</p>
         ) : (
-          <div className="space-y-2">
-            {progress.map((entry) => (
-              <BreakdownBar
-                key={entry.budgetId}
-                label={entry.categoryName}
-                actual={entry.actual}
-                allocated={entry.allocated}
-                remaining={entry.remaining}
-                percent={Math.min(entry.usageRatio * 100, 100)}
-                color={flowCategoryColor(orderedRootIds, index.get(entry.categoryId)?.rootId ?? '')}
-              />
-            ))}
+          <div className="space-y-4">
+            {progress.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">설정한 예산이 없습니다.</p>
+            ) : (
+              <div className="space-y-2">
+                {progress.map((entry) => (
+                  <BreakdownBar
+                    key={entry.budgetId}
+                    label={entry.categoryName}
+                    actual={entry.actual}
+                    allocated={entry.allocated}
+                    remaining={entry.remaining}
+                    percent={Math.min(entry.usageRatio * 100, 100)}
+                    color={flowCategoryColor(orderedRootIds, index.get(entry.categoryId)?.rootId ?? '')}
+                  />
+                ))}
+              </div>
+            )}
+
+            {unbudgeted.length > 0 && (
+              <div className="space-y-2 border-t border-border pt-3">
+                <p className="text-xs font-medium text-muted-foreground">예산 미설정</p>
+                <ul className="m-0 list-none space-y-1.5 p-0">
+                  {unbudgeted.map((entry) => (
+                    <li key={entry.categoryId} className="flex items-center justify-between gap-3">
+                      <span className="min-w-0 flex-1 truncate text-sm">{entry.categoryName}</span>
+                      <span className="shrink-0 text-sm tabular-nums text-muted-foreground">{fmtKrw(entry.amount)}</span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0"
+                        onClick={() => setQuickCreateCategoryId(entry.categoryId)}
+                      >
+                        예산 등록
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </CardContent>
+
+      {quickCreateCategoryId && (
+        <BudgetFormDialog
+          open
+          onOpenChange={(next) => { if (!next) setQuickCreateCategoryId(null) }}
+          categoryTree={categoryTree}
+          duplicateFrom={{ categoryId: quickCreateCategoryId, amount: 0, applyStartDate: '', applyEndDate: undefined }}
+          onSuccess={() => setQuickCreateCategoryId(null)}
+        />
+      )}
     </Card>
   )
 }
