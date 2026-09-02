@@ -24,14 +24,18 @@ interface Props {
   onOpenChange: (open: boolean) => void
   categoryTree: FinanceCategory[]
   initial?: FinanceBudget
-  // 예산 복제 전용 — initial과 달리 id를 갖지 않아 항상 create 모드로 제출된다. 카테고리·금액만
-  // 프리필한다. applyStartDate/applyEndDate는 절대 시드로 넣지 않는다 — 예산은 카테고리별
-  // applyStartDate에 겹침 금지 EXCLUDE 제약(409)이 있어, 기존 기간을 그대로 복제하면 곧바로
-  // 충돌하기 때문에 사용자가 새 기간을 직접 입력해야 한다(TransactionFormDialog의
-  // initial/duplicateFrom 분리 패턴과 동일).
-  duplicateFrom?: Pick<FinanceBudget, 'categoryId' | 'amount'>
+  // 예산 복제 전용 — initial과 달리 id를 갖지 않아 항상 create 모드로 제출된다. 카테고리·금액·
+  // 적용기간까지 전부 그대로 프리필한다("복사"는 말 그대로 복사, 필요한 값은 사용자가 직접 수정).
+  // 원본 기간을 그대로 제출하면 겹침 금지 EXCLUDE 제약(409)에 걸리므로 사용자가 날짜를 바꿔야
+  // 제출되는데, 그 전제로 값을 비워두지 않고 그대로 보여준다.
+  duplicateFrom?: Pick<FinanceBudget, 'categoryId' | 'amount' | 'applyStartDate' | 'applyEndDate'>
   onSuccess: () => void
 }
+
+// 달력 위젯에서 연도 0000·임의 큰 값 등 극단값을 입력하면 서버가 예기치 못한 오류를 낼 수 있어
+// input 자체에서 방어적으로 합리적 연도 범위로 제한한다.
+const MIN_APPLY_DATE = '1900-01-01'
+const MAX_APPLY_DATE = '2999-12-31'
 
 export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, duplicateFrom, onSuccess }: Props) {
   const mode = initial ? 'edit' : 'create'
@@ -51,9 +55,8 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, du
   const cascadeLevels = useMemo(() => getCascadeLevels(categoryTree, selectedPath), [categoryTree, selectedPath])
   const categoryId = selectedPath[selectedPath.length - 1] ?? ''
 
-  // applyStartDate/applyEndDate는 initial(수정)에서만 시드로 채운다 — duplicateFrom은 위 주석 참고.
-  const [applyStartDate, setApplyStartDate] = useState(initial?.applyStartDate ?? '')
-  const [applyEndDate, setApplyEndDate] = useState(initial?.applyEndDate ?? '')
+  const [applyStartDate, setApplyStartDate] = useState(seed?.applyStartDate ?? '')
+  const [applyEndDate, setApplyEndDate] = useState(seed?.applyEndDate ?? '')
   const [amountDigits, setAmountDigits] = useState(seed ? String(seed.amount) : '')
 
   // 그룹 소속일 때만 노출, 기본값 켜짐(그룹 저장 우선) — 수정 모드는 groupId가 이미 고정돼 있어 대상 아님.
@@ -129,6 +132,8 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, du
               <Input
                 id="applyStartDate"
                 type="date"
+                min={MIN_APPLY_DATE}
+                max={MAX_APPLY_DATE}
                 value={applyStartDate}
                 onChange={(e) => setApplyStartDate(e.target.value)}
                 disabled={isPending}
@@ -141,6 +146,8 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, du
               <Input
                 id="applyEndDate"
                 type="date"
+                min={MIN_APPLY_DATE}
+                max={MAX_APPLY_DATE}
                 value={applyEndDate}
                 onChange={(e) => setApplyEndDate(e.target.value)}
                 disabled={isPending}

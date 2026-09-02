@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { QueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { apiMsg } from '@shared/lib/api-client'
+import { ApiError, apiMsg } from '@shared/lib/api-client'
 import { synchronizeListQueries, upsertById } from '@shared/lib/query'
 import {
   bulkRegisterFinance,
@@ -371,9 +371,11 @@ export function useUnshareFinanceTransactionMutation() {
 // 신규 등록은 항상 개인 소유로 저장된다(kista-api FinanceBudgetService.create — groupId 쿼리
 // 파라미터는 서버가 무시). 그룹으로 저장하려면 생성 직후 공유 전환(PATCH .../{id}/share)을 이어붙인다.
 // 공유 전환 단계는 create와 별개로 겹침(EXCLUDE 제약)에 409를 낼 수 있다(create는 개인 스코프로만
-// 겹침을 검사하므로 그룹 멤버의 동일 기간 예산은 이 시점에야 드러난다) — 실패해도 예산 자체는 이미
-// 저장됐으니 삭제하지 않고 개인 소유로 조용히 남긴다. 여기서 toast를 띄우면 호출 feature가 성공 시
-// 띄우는 toast.success와 겹쳐 보이므로, 공유 성공 여부 판정과 toast는 호출부(mutate의 onSuccess)에 맡긴다.
+// 겹침을 검사하므로 그룹 멤버의 동일 기간 예산은 이 시점에야 드러난다) — 겹침(409)이면 개인 예산으로
+// 조용히 남기지 않고 방금 만든 개인 예산을 삭제해 "등록 자체가 안 된 것"으로 되돌린 뒤 에러를 던져
+// 개인 스코프 중복(그 자체가 create에서 막히는 것)과 동일한 흐름으로 통일한다. 네트워크 오류 등
+// 겹침이 아닌 다른 원인의 공유 실패는 예산 자체는 이미 저장됐으니 삭제하지 않고 개인 소유로 조용히
+// 남긴다(호출부 mutate의 onSuccess가 이 케이스에 별도 경고 toast를 띄운다).
 export function useCreateFinanceBudgetMutation() {
   return useInvalidateFinanceMutation<FinanceBudget, FinanceBudgetRequest & { shareToGroup?: boolean }>(
     async ({ shareToGroup, ...data }) => {
@@ -381,7 +383,11 @@ export function useCreateFinanceBudgetMutation() {
       if (!shareToGroup) return saved
       try {
         return await shareFinanceBudget(saved.id)
-      } catch {
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 409) {
+          await deleteFinanceBudget(saved.id).catch(() => undefined)
+          throw err
+        }
         return saved
       }
     },
