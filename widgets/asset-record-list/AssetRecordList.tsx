@@ -25,7 +25,6 @@ import {
   SYSTEM_SAVINGS_CATEGORY_ID,
   collectSubtreeIds,
   isLiability,
-  listAvailableMonths,
   useAssetSnapshotsQuery,
   useCanShareToGroup,
   useDeleteManyAssetSnapshotsMutation,
@@ -91,7 +90,11 @@ function AssetRecordActions({
   )
 }
 
-export function AssetRecordList() {
+interface Props {
+  month: string
+}
+
+export function AssetRecordList({ month }: Props) {
   const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
   const { data: categories = [] } = useFinanceCategoriesQuery('ASSET')
   const { meta, labelOf } = useMeta()
@@ -108,7 +111,6 @@ export function AssetRecordList() {
     unshareMutation.mutate(id, { onSuccess: () => toast.success('개인 소유로 되돌렸습니다') })
   }
 
-  const [month, setMonth] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
   const [categoryPath, setCategoryPath] = useState<string[]>([])
   const [assetClass, setAssetClass] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
   const [market, setMarket] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
@@ -119,7 +121,6 @@ export function AssetRecordList() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const deleteDialog = useConfirmDialog<string[]>()
 
-  const months = useMemo(() => listAvailableMonths(snapshots), [snapshots])
   // 계단식 필터가 중간 depth에서 멈추면 그 하위 카테고리 전부를 포함해 매칭한다.
   const categorySubtreeIds = useMemo(() => {
     if (categoryPath.length === 0) return null
@@ -127,7 +128,7 @@ export function AssetRecordList() {
   }, [categories, categoryPath])
 
   const filtered = useMemo(() => snapshots.filter((snapshot) =>
-    (month === ALL_FILTER_VALUE || snapshot.entryDate.startsWith(month)) &&
+    snapshot.entryDate.startsWith(month) &&
     (categorySubtreeIds === null || categorySubtreeIds.has(snapshot.categoryId)) &&
     (assetClass === ALL_FILTER_VALUE || snapshot.assetClass === assetClass) &&
     (market === ALL_FILTER_VALUE || snapshot.market === market),
@@ -248,15 +249,12 @@ export function AssetRecordList() {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <AssetRecordFilters
-          month={month}
           categoryTree={categories}
           categoryPath={categoryPath}
           assetClass={assetClass}
           market={market}
-          months={months}
           assetClasses={meta.assetClasses}
           markets={meta.markets}
-          onMonthChange={setMonth}
           onCategoryPathChange={setCategoryPath}
           onAssetClassChange={setAssetClass}
           onMarketChange={setMarket}

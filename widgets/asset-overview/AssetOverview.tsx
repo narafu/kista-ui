@@ -2,8 +2,8 @@
 
 import { useMemo, type ReactNode } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SectionError } from '@shared/ui/SectionError'
+import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
 import { fmtKrw, fmtSignedKrw, maskAmount, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
@@ -24,9 +24,10 @@ import { KpiCard } from '@widgets/kpi-card'
 import { RevealableValue } from '@widgets/revealable-value'
 
 interface Props {
-  month: string | null
+  month: string
   months: string[]
   onMonthChange: (month: string) => void
+  today: string
 }
 
 interface BreakdownBarProps {
@@ -70,7 +71,7 @@ function summaryDeltaLabel(
   )
 }
 
-export function AssetOverview({ month, months, onMonthChange }: Props) {
+export function AssetOverview({ month, months, onMonthChange, today }: Props) {
   const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
   const { labelOf } = useMeta()
   const { hidden } = useAmountHiddenPreference()
@@ -79,11 +80,11 @@ export function AssetOverview({ month, months, onMonthChange }: Props) {
     return hidden ? <RevealableValue value={display} hiddenDisplay={maskAmount(display)} /> : display
   }
 
-  const summary = useMemo(() => (month ? calcMonthlySummary(snapshots, month) : null), [snapshots, month])
-  const categoryBreakdown = useMemo(() => (month ? calcCategoryBreakdown(snapshots, month) : []), [snapshots, month])
-  const assetClassBreakdown = useMemo(() => (month ? calcAssetClassBreakdown(snapshots, month) : []), [snapshots, month])
+  const summary = useMemo(() => calcMonthlySummary(snapshots, month), [snapshots, month])
+  const categoryBreakdown = useMemo(() => calcCategoryBreakdown(snapshots, month), [snapshots, month])
+  const assetClassBreakdown = useMemo(() => calcAssetClassBreakdown(snapshots, month), [snapshots, month])
 
-  const previousMonth = month ? previousMonthOf(months, month) : null
+  const previousMonth = previousMonthOf(months, month)
   const previousSummary = useMemo(
     () => (previousMonth ? calcMonthlySummary(snapshots, previousMonth) : null),
     [snapshots, previousMonth],
@@ -110,46 +111,18 @@ export function AssetOverview({ month, months, onMonthChange }: Props) {
   const categoryTotal = categoryBreakdown.reduce((total, entry) => total + entry.amount, 0)
   const assetClassTotal = assetClassBreakdown.reduce((total, entry) => total + entry.amount, 0)
 
-  // 월 목록이 길어지면(수년치) 평탄한 리스트 스크롤이 길어지므로 연도별로 묶어 탐색을 돕는다.
-  const monthsByYear = useMemo(() => {
-    const groups: { year: string; months: string[] }[] = []
-    for (const m of months) {
-      const year = m.slice(0, 4)
-      const last = groups[groups.length - 1]
-      if (last?.year === year) last.months.push(m)
-      else groups.push({ year, months: [m] })
-    }
-    return groups
-  }, [months])
-
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-3 pb-3">
         <CardTitle className="text-base lg:text-lg">이번 달 요약</CardTitle>
-        {months.length > 0 && month !== null && (
-          <Select items={months.map((m) => ({ value: m, label: m }))} value={month} onValueChange={(value) => { if (value) onMonthChange(value) }}>
-            <SelectTrigger aria-label="기준 월" className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {monthsByYear.map(({ year, months: yearMonths }) => (
-                <SelectGroup key={year}>
-                  <SelectLabel>{year}년</SelectLabel>
-                  {yearMonths.map((m) => (
-                    <SelectItem key={m} value={m}>{m}</SelectItem>
-                  ))}
-                </SelectGroup>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        <YearMonthSelect value={month} onValueChange={onMonthChange} today={today} />
       </CardHeader>
       <CardContent>
         {isLoading ? (
           <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">불러오는 중…</div>
         ) : isError ? (
           <SectionError message="자산 요약을 불러오지 못했습니다" />
-        ) : month === null || summary === null ? (
+        ) : summary.recordCount === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">표시할 자산 기록이 없습니다.</p>
         ) : (
           <div className="space-y-6">

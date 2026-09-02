@@ -16,7 +16,7 @@ import {
 import { ToggleMonthlyCheckButton } from '@features/asset/toggle-monthly-check'
 
 interface Props {
-  month: string | null
+  month: string
 }
 
 // entryDate('YYYY-MM-DD')를 Date로 파싱하지 않고 문자열에서 직접 M/D를 뽑는다 — Date 파싱은 타임존에 따라 날짜가 밀릴 수 있다.
@@ -40,17 +40,6 @@ export function AssetRecordCheck({ month }: Props) {
   }
   if (assetsError || checksError) {
     return <SectionError message="기록 점검 정보를 불러오지 못했습니다" />
-  }
-
-  if (month === null) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>기록 점검</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">확인할 자산 기록이 아직 없습니다.</CardContent>
-      </Card>
-    )
   }
 
   const months = listAvailableMonths(snapshots)

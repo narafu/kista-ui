@@ -4,6 +4,7 @@ import { useMemo, type ReactNode } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SectionError } from '@shared/ui/SectionError'
+import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
 import { fmtKrw, fmtSignedKrw, maskAmount, pnlTextClass, ratioToPercent } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
@@ -148,7 +149,6 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
   const latestYear = Math.max(selectedYear, currentYear)
   const earliestYear = Math.min(selectedYear, currentYear - 14)
   const yearOptions = Array.from({ length: latestYear - earliestYear + 1 }, (_, i) => latestYear - i)
-  const monthOptions = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
 
   return (
     <Card>
@@ -156,24 +156,11 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
         <CardTitle className="text-base lg:text-lg">{labelOf('financeCategoryTypes', type)} 요약</CardTitle>
         <div className="flex flex-wrap items-center gap-2">
           {period.mode === 'monthly' ? (
-            // 네이티브 <input type="month">은 데스크탑 사파리가 지원하지 않아(텍스트 입력으로 깨짐)
-            // 연도·월 select 쌍으로 대체한다.
-            <div className="flex items-center gap-1">
-              <PeriodSelect
-                ariaLabel="기준 연도"
-                className="w-20"
-                items={yearOptions.map((y) => ({ value: String(y), label: `${y}년` }))}
-                value={period.month.slice(0, 4)}
-                onValueChange={(value) => onPeriodChange({ ...period, month: `${value}-${period.month.slice(5, 7)}` })}
-              />
-              <PeriodSelect
-                ariaLabel="기준 월"
-                className="w-16"
-                items={monthOptions.map((m) => ({ value: m, label: `${Number(m)}월` }))}
-                value={period.month.slice(5, 7)}
-                onValueChange={(value) => onPeriodChange({ ...period, month: `${period.month.slice(0, 4)}-${value}` })}
-              />
-            </div>
+            <YearMonthSelect
+              value={period.month}
+              onValueChange={(month) => onPeriodChange({ ...period, month })}
+              today={today}
+            />
           ) : (
             <PeriodSelect
               ariaLabel="기준 연도"

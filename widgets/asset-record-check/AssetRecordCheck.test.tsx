@@ -50,13 +50,13 @@ describe('AssetRecordCheck', () => {
     useMonthlyClosingsQueryMock.mockReset()
   })
 
-  it('month가 null이면 크래시 없이 중립 상태를 표시한다', () => {
+  it('선택한 월에 기록이 없어도 크래시 없이 렌더링된다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: [], isLoading: false, isError: false })
     defaultClosingsMock()
 
-    render(<AssetRecordCheck month={null} />)
+    render(<AssetRecordCheck month="2026-08" />)
 
-    expect(screen.getByText('확인할 자산 기록이 아직 없습니다.')).toBeInTheDocument()
+    expect(screen.getByText('미기록 카테고리')).toBeInTheDocument()
   })
 
   it('둘 중 하나라도 로딩 중이면 로딩 문구를 표시한다', () => {
