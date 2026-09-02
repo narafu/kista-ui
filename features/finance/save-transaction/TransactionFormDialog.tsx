@@ -29,13 +29,11 @@ interface Props {
   // 날짜(원본 날짜, windowFrom/windowTo로 clamp)를 프리필한다.
   duplicateFrom?: Pick<FinanceTransaction, 'categoryId' | 'amount' | 'memo' | 'transactionDate'>
   onSuccess: () => void
-  // 유효 날짜 범위('YYYY-MM-DD'). 호출부가 무엇을 넘기는지에 따라 의미가 다르다 —
-  // 등록(NewTransactionButton)은 "오늘 기준" 독립 창(useFinanceFlowData.ts/FinanceHeader.tsx의 registerWindow, 하한 없음·
-  // 상한은 이번 달 말일), 수정(FinanceRecordList)은 "지금 조회 중인" 12개월 창(windowRange(period.month))을 넘긴다.
-  // 후자는 편집 대상 거래 자체가 그 창 안에서만 존재할 수 있어 조회 윈도우 그대로 쓰는 게 맞고,
-  // 전자를 조회 윈도우에 묶으면 과거 달을 보는 중엔 오늘 날짜조차 등록 못 하게 막혀버린다(실사용
-  // 시나리오로 지적됨) — 그래서 서로 다른 기준으로 분리했다. 날짜 입력 자체를 이 범위로 막고,
-  // 새로 등록할 때 기본값도 범위 안으로 clamp한다.
+  // 등록(NewTransactionButton)·복제 시 새로 저장될 날짜의 유효 범위('YYYY-MM-DD') — "오늘 기준"
+  // 독립 창(useFinanceFlowData.ts/FinanceHeader.tsx의 registerWindow, 하한 없음·상한은 이번 달 말일).
+  // 수정(FinanceRecordList)은 자산 기록 수정과 동일하게 날짜 제약이 없어 이 prop을 넘기지 않는다
+  // — 과거에는 조회 중인 12개월 창으로 clamp했으나, 등록 시점을 잘못 고른 내역을 그 창 밖 날짜로
+  // 옮기지 못하는 문제가 있어 수정만 무제한으로 풀었다.
   windowFrom?: string
   windowTo?: string
 }

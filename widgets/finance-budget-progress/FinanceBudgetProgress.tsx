@@ -88,7 +88,7 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
                 allocated={entry.allocated}
                 remaining={entry.remaining}
                 percent={Math.min(entry.usageRatio * 100, 100)}
-                color={entry.usageRatio > 1 ? 'var(--status-error)' : flowCategoryColor(orderedRootIds, index.get(entry.categoryId)?.rootId ?? '')}
+                color={flowCategoryColor(orderedRootIds, index.get(entry.categoryId)?.rootId ?? '')}
               />
             ))}
           </div>

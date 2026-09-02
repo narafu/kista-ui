@@ -16,7 +16,6 @@ import { fmtDate, fmtKrw } from '@shared/lib/format'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import {
   collectSubtreeIds,
-  displayWindow,
   filterByType,
   flowCategoryColor,
   periodRange,
@@ -79,10 +78,6 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
   const orderedRootIds = useMemo(() => sortCategoryTree(categoryTree).map((c) => c.id), [categoryTree])
 
   const { from, to } = periodRange(period, today)
-  // 수정 다이얼로그의 날짜 min/max는 표시 중인 period(월간이면 그 달만)가 아니라 실제로 조회된
-  // 범위 전체다 — periodRange보다 넓게 허용해야 "다른 날짜로 옮기고 싶다"는 정상적인 수정 요청까지
-  // 막지 않는다. useFinanceFlowData.ts의 flowWindow와 동일한 계산(displayWindow)을 그대로 재사용한다.
-  const window = displayWindow(period, today)
   const typed = useMemo(() => filterByType(transactions, index, type), [transactions, index, type])
   const inPeriod = useMemo(
     () => typed.filter((t) => t.transactionDate >= from && t.transactionDate <= to),
@@ -322,8 +317,6 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
           onOpenChange={editDialog.onOpenChange}
           type={type}
           initial={editDialog.target}
-          windowFrom={window.from}
-          windowTo={window.to}
           onSuccess={() => editDialog.close()}
         />
       )}
