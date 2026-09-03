@@ -85,21 +85,23 @@ export function CyclePerformanceList({ typeFilter }: Props) {
             <div className="divide-y sm:hidden" role="list" aria-label="사이클 성과 모바일">
               {cycles.map((cycle) => (
                 <section key={cycle.cycleId} className="px-4 py-4" role="listitem">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {accountsById.get(cycle.accountId) && (
-                      <Badge tone="neutral" size="sm">
-                        {accountsById.get(cycle.accountId)?.nickname}
+                  <div className="flex flex-wrap items-center justify-between gap-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {accountsById.get(cycle.accountId) && (
+                        <Badge tone="neutral" size="sm">
+                          {accountsById.get(cycle.accountId)?.nickname}
+                        </Badge>
+                      )}
+                      <Badge tone="brand" size="sm">
+                        {cycle.strategyType}
                       </Badge>
-                    )}
-                    <Badge tone="brand" size="sm">
-                      {cycle.strategyType}
-                    </Badge>
+                    </div>
                     <span className="text-xs text-muted-foreground">
                       {fmtDate(cycle.startDate)} ~ {cycle.endDate ? fmtDate(cycle.endDate) : '진행 중'}
                     </span>
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-4 border-t pt-3 text-sm">
-                    <span className="font-semibold tabular-nums">
+                    <span className="pl-2 font-semibold tabular-nums">
                       {cycle.ticker ?? '—'}
                     </span>
                     <div className="flex items-center gap-4">
