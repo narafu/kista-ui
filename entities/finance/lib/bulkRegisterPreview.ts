@@ -41,6 +41,7 @@ export interface BulkRegisterItems {
 function sortItems(items: BulkRegisterItem[]): BulkRegisterItem[] {
   return [...items].sort((a, b) =>
     (a.accountName ?? '').localeCompare(b.accountName ?? '', 'ko') ||
+    (a.strategy ?? '').localeCompare(b.strategy ?? '', 'ko') ||
     (a.assetClass ?? '').localeCompare(b.assetClass ?? '') ||
     (a.memo ?? '').localeCompare(b.memo ?? '') ||
     a.amount - b.amount,
