@@ -85,37 +85,37 @@ export function CyclePerformanceList({ typeFilter }: Props) {
             <div className="divide-y sm:hidden" role="list" aria-label="사이클 성과 모바일">
               {cycles.map((cycle) => (
                 <section key={cycle.cycleId} className="px-4 py-4" role="listitem">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      {accountsById.get(cycle.accountId) && (
-                        <Badge tone="neutral" size="sm">
-                          {accountsById.get(cycle.accountId)?.nickname}
-                        </Badge>
-                      )}
-                      <Badge tone="brand" size="sm">
-                        {cycle.strategyType}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {accountsById.get(cycle.accountId) && (
+                      <Badge tone="neutral" size="sm">
+                        {accountsById.get(cycle.accountId)?.nickname}
                       </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {fmtDate(cycle.startDate)} ~ {cycle.endDate ? fmtDate(cycle.endDate) : '진행 중'}
-                      </span>
-                    </div>
-                    <span className="text-sm font-semibold tabular-nums">
-                      {cycle.ticker ?? '—'}
+                    )}
+                    <Badge tone="brand" size="sm">
+                      {cycle.strategyType}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {fmtDate(cycle.startDate)} ~ {cycle.endDate ? fmtDate(cycle.endDate) : '진행 중'}
                     </span>
                   </div>
-                  <div className="mt-3 flex items-center justify-end gap-4 border-t pt-3 text-sm">
-                    <span className="text-muted-foreground">
-                      손익{' '}
-                      <span className={cn('tabular-nums', cycle.pnl != null ? pnlTextClass(cycle.pnl) : 'text-muted-foreground')}>
-                        {cycle.pnl != null ? fmtSignedUsd(cycle.pnl, 2, '$') : '—'}
-                      </span>
+                  <div className="mt-3 flex items-center justify-between gap-4 border-t pt-3 text-sm">
+                    <span className="font-semibold tabular-nums">
+                      {cycle.ticker ?? '—'}
                     </span>
-                    <span className="text-muted-foreground">
-                      수익률{' '}
-                      <span className={cn('tabular-nums', cycle.returnRate != null ? pnlTextClass(cycle.returnRate) : 'text-muted-foreground')}>
-                        {fmtSignedPercent(cycle.returnRate)}
+                    <div className="flex items-center gap-4">
+                      <span className="text-muted-foreground">
+                        손익{' '}
+                        <span className={cn('tabular-nums', cycle.pnl != null ? pnlTextClass(cycle.pnl) : 'text-muted-foreground')}>
+                          {cycle.pnl != null ? fmtSignedUsd(cycle.pnl, 2, '$') : '—'}
+                        </span>
                       </span>
-                    </span>
+                      <span className="text-muted-foreground">
+                        수익률{' '}
+                        <span className={cn('tabular-nums', cycle.returnRate != null ? pnlTextClass(cycle.returnRate) : 'text-muted-foreground')}>
+                          {fmtSignedPercent(cycle.returnRate)}
+                        </span>
+                      </span>
+                    </div>
                   </div>
                 </section>
               ))}
