@@ -1,8 +1,9 @@
 'use client'
 
-import type { ChangeEvent, FocusEvent } from 'react'
+import type { ChangeEvent } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '@shared/lib/utils'
+import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 
 function parseNumber(value: string): number | null {
   if (value.trim() === '') return null
@@ -14,10 +15,6 @@ function exceedsMaxDecimals(raw: string, maxDecimals: number): boolean {
   const dotIndex = raw.indexOf('.')
   if (dotIndex === -1) return false
   return raw.length - dotIndex - 1 > maxDecimals
-}
-
-function handleFocus(event: FocusEvent<HTMLInputElement>) {
-  event.currentTarget.select()
 }
 
 function inputBoxClass(disabled: boolean) {
@@ -77,7 +74,7 @@ export function UnitInput({
         aria-label={ariaLabel}
         value={text}
         onChange={handleChange}
-        onFocus={handleFocus}
+        onFocus={selectAllOnFocus}
         disabled={disabled}
         placeholder={placeholder}
         maxLength={20}

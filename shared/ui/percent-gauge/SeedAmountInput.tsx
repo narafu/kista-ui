@@ -3,6 +3,7 @@
 import { cn } from '@shared/lib/utils'
 import { fmtUsd } from '@shared/lib/format'
 import { useDecimalAmountText } from '@shared/lib/hooks/use-decimal-amount-text'
+import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 
 interface Props {
   value: number | null
@@ -40,6 +41,7 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled, s
           placeholder="0"
           maxLength={18}
           onChange={(e) => handleChange(e.target.value)}
+          onFocus={selectAllOnFocus}
           className="flex-1 border-0 outline-none bg-transparent font-extrabold text-foreground text-right min-w-0 text-lg"
         />
         <span className="text-xs font-semibold text-muted-foreground ml-1.5">USD</span>

@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Spinner } from '@shared/ui/Spinner'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
+import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { cn } from '@shared/lib/utils'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import { MOBILE_BOTTOM_NAV_OFFSET_CLASS, MOBILE_FIXED_BAR_RESERVE_CLASS } from '@shared/lib/layout-constants'
@@ -338,6 +339,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
               placeholder="0"
               value={formatAmountDisplay(amountDigits)}
               onChange={(e) => setAmountDigits(digitsOnly(e.target.value))}
+              onFocus={selectAllOnFocus}
               disabled={isPending}
               className="h-12 text-right tabular-nums"
             />

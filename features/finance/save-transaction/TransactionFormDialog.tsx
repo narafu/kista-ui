@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Spinner } from '@shared/ui/Spinner'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
+import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import {
   notifyShareCreateResult,
@@ -144,6 +145,7 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
                 placeholder="0"
                 value={formatAmountDisplay(amountDigits)}
                 onChange={(e) => setAmountDigits(digitsOnly(e.target.value))}
+                onFocus={selectAllOnFocus}
                 disabled={isPending}
                 className="h-11 text-right tabular-nums"
               />

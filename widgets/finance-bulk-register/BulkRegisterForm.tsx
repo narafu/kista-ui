@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Surface } from '@shared/ui/Surface'
+import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { cn } from '@shared/lib/utils'
 import { digitsOnly, formatAmountDisplay, fmtKrw, todayKst } from '@shared/lib/format'
 import { MOBILE_BOTTOM_NAV_OFFSET_CLASS, MOBILE_FIXED_BAR_RESERVE_CLASS } from '@shared/lib/layout-constants'
@@ -175,6 +176,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
           inputMode="numeric"
           value={formatAmountDisplay(String(state.amount))}
           onChange={(e) => updateRow(item, { amount: Number(digitsOnly(e.target.value)) })}
+          onFocus={selectAllOnFocus}
           disabled={!state.included}
           className="h-9 w-32 text-right tabular-nums shrink-0"
           aria-label={`${rowLabel} 금액`}

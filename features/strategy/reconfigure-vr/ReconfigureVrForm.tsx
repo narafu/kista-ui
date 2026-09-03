@@ -23,6 +23,7 @@ import { SelectionCard } from '@shared/ui/selection-card'
 import { cn } from '@shared/lib/utils'
 import { ratioToPercent, percentToRatio } from '@shared/lib/format'
 import { useDecimalAmountText } from '@shared/lib/hooks/use-decimal-amount-text'
+import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { orderKeys } from '@entities/order'
 import { useReconfigureVrMutation, applyPStepWeeksChange } from '@entities/strategy'
 import type { ReconfigureVrRequest } from '@entities/strategy'
@@ -327,7 +328,8 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
           <Label htmlFor="injectDeposit">추가 예수금 (USD)</Label>
           <Input id="injectDeposit" type="text" inputMode="decimal" placeholder="0" disabled={disabled}
             value={injectDeposit.text}
-            onChange={(e) => injectDeposit.handleChange(e.target.value)} />
+            onChange={(e) => injectDeposit.handleChange(e.target.value)}
+            onFocus={selectAllOnFocus} />
           {form.formState.errors.injectDeposit && <p className="text-sm text-destructive">{form.formState.errors.injectDeposit.message}</p>}
         </div>
       </section>
@@ -344,7 +346,8 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
           <Label htmlFor="withdrawDeposit">인출 예수금 (USD)</Label>
           <Input id="withdrawDeposit" type="text" inputMode="decimal" placeholder="0" disabled={disabled}
             value={withdrawDeposit.text}
-            onChange={(e) => withdrawDeposit.handleChange(e.target.value)} />
+            onChange={(e) => withdrawDeposit.handleChange(e.target.value)}
+            onFocus={selectAllOnFocus} />
           {form.formState.errors.withdrawDeposit && <p className="text-sm text-destructive">{form.formState.errors.withdrawDeposit.message}</p>}
         </div>
       </section>
