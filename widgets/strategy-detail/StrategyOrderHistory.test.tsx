@@ -68,6 +68,8 @@ describe('StrategyOrderHistory filters', () => {
     expect(screen.queryByText('$100.00')).not.toBeInTheDocument()
   })
 
+  // userEvent 연속 클릭 2회(Select 드롭다운 열기+옵션 선택 ×2) — 전체 스위트 동시 실행 시
+  // CPU 경합으로 기본 5000ms를 넘기는 사례가 있어 여유를 둔다.
   it('전체 선택 시 모든 주문을 표시하고 방향 필터를 적용한다', async () => {
     render(<StrategyOrderHistory strategyId="strategy-1" />)
 
@@ -80,7 +82,7 @@ describe('StrategyOrderHistory filters', () => {
 
     expect(screen.getByText('$100.00')).toBeInTheDocument()
     expect(screen.queryByText('$110.00')).not.toBeInTheDocument()
-  })
+  }, 15000)
 
   it.each([
     ['유형', 'LOC', '$110.00', '$100.00'],

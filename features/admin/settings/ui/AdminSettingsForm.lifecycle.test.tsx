@@ -118,6 +118,10 @@ describe('AdminSettingsForm mutation lifecycle', () => {
     toastSuccessMock.mockReset()
   })
 
+  // 전체 스위트(1000+개 테스트) 동시 실행 시 CPU 경합으로 기본 5000ms를 넘겨 타임아웃되는 사례가
+  // 있었다 — 이 테스트는 실제 wall-clock 지연에 취약한 다단 act()/waitFor() 시퀀스라 여유를 둔다.
+  // 타임아웃 자체가 실패하면 완료되지 못한 queryClient.clear()(finally)가 다음 테스트로 상태를
+  // 누출시켜 연쇄 실패를 일으키므로, 이 파일 두 테스트 모두 동일하게 늘린다.
   it('stays pending and defers success UI until every required approval refetch settles', async () => {
     const queryClient = createTestQueryClient()
     const refetches = prepareRequiredRefetches(queryClient)
@@ -167,7 +171,7 @@ describe('AdminSettingsForm mutation lifecycle', () => {
     } finally {
       queryClient.clear()
     }
-  })
+  }, 15000)
 
   it('routes a required refetch rejection through mutation error handling after all effects settle', async () => {
     const queryClient = createTestQueryClient()
@@ -205,5 +209,5 @@ describe('AdminSettingsForm mutation lifecycle', () => {
       process.off('unhandledRejection', unhandledRejection)
       queryClient.clear()
     }
-  })
+  }, 15000)
 })

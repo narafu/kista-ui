@@ -141,7 +141,9 @@ async function cacheArchitectureViolations(root: string): Promise<string[]> {
   )).flat()
   const violations = await Promise.all(files.map(async (file) => {
     const source = await readFile(file, 'utf8')
-    const relativePath = path.relative(root, file)
+    // path.relative는 Windows에서 백슬래시를 반환한다 — hasCacheArchitectureViolation의
+    // 'entities/' startsWith 검사와 이 파일의 기대 문자열이 전부 슬래시 전제라 정규화 필수.
+    const relativePath = path.relative(root, file).split(path.sep).join('/')
     const failures = hasCacheArchitectureViolation(source, relativePath)
 
     return failures.length > 0 ? `${relativePath}: ${failures.join(', ')}` : null
@@ -166,11 +168,13 @@ describe('query cache architecture', () => {
     await Promise.all(temporaryRoots.splice(0).map((root) => rm(root, { recursive: true, force: true })))
   })
 
+  // app/widgets/features/entities 전체 실 소스 트리를 읽고 AST 파싱한다 — 전체 스위트(1000+개)
+  // 동시 실행 시 CPU 경합으로 기본 5000ms를 넘기는 사례가 있어 여유를 둔다.
   it('keeps mutable Next.js Data Cache readers and forced stale hydration out of runtime sources', async () => {
     const violations = await cacheArchitectureViolations(projectRoot)
 
     expect(violations).toEqual([])
-  })
+  }, 15000)
 
   it('flags prohibited variants in every runtime source extension', async () => {
     const root = await fixtureRoot({
