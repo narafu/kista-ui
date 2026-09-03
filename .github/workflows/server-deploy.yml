@@ -43,8 +43,8 @@ jobs:
     needs: verify
     # 실측: 정상 8~9분. QEMU arm64 에뮬레이션이 간헐적으로 "Illegal instruction"으로
     # 크래시한 뒤 job이 실패 처리되지 않고 무한 대기한 사례가 있어(2026-08-04, 취소 전까지 29분+
-    # 점유) 타임아웃을 명시한다 — 정상 소요 대비 2배 이상 여유
-    timeout-minutes: 20
+    # 점유) 타임아웃을 명시한다. 2026-09-03 캐시 미스로 20분 초과 취소 발생해 여유 상향.
+    timeout-minutes: 30
     outputs:
       image: ${{ steps.image.outputs.image }}
       latest: ${{ steps.image.outputs.latest }}
@@ -89,6 +89,8 @@ jobs:
           context: .
           push: true
           platforms: linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: |
             ${{ steps.image.outputs.image }}
             ${{ steps.image.outputs.latest }}
