@@ -4,7 +4,7 @@ export interface CategoryIndexEntry {
   type: FinanceCategoryType
   rootId: string // L1 카테고리 id (자기 자신이면 rootId === id)
   name: string
-  path: { id: string; name: string }[] // 루트부터 자기 자신까지 전체 경로(대분류→…→자기 자신) — 일괄 등록 프리뷰의 계층 그룹핑에 사용
+  path: { id: string; name: string; sortOrder: number }[] // 루트부터 자기 자신까지 전체 경로(대분류→…→자기 자신) — 일괄 등록 프리뷰의 계층 그룹핑에 사용. sortOrder는 각 세그먼트 자신의 값(관리자 카테고리 화면 정렬순서)
   sortOrder: number // rootId의 sortOrder — 색상·정렬에 사용 (entities/finance/lib/colors.ts)
 }
 
@@ -33,9 +33,9 @@ function walk(
   root: FinanceCategory,
   type: FinanceCategoryType,
   index: CategoryIndex,
-  ancestors: { id: string; name: string }[],
+  ancestors: { id: string; name: string; sortOrder: number }[],
 ) {
-  const path = [...ancestors, { id: node.id, name: node.name }]
+  const path = [...ancestors, { id: node.id, name: node.name, sortOrder: node.sortOrder }]
   index.set(node.id, { type, rootId: root.id, name: node.name, path, sortOrder: root.sortOrder })
   for (const child of node.children) {
     walk(child, root, type, index, path)

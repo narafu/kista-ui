@@ -8,8 +8,8 @@ function tx(id: string, categoryId: string, transactionDate: string, amount: num
 }
 
 const index: CategoryIndex = new Map([
-  ['cat-food', { type: 'EXPENSE', rootId: 'root-food', name: '식비', path: [{ id: 'root-food', name: '식비' }], sortOrder: 1 }],
-  ['cat-transport', { type: 'EXPENSE', rootId: 'root-transport', name: '교통', path: [{ id: 'root-transport', name: '교통' }], sortOrder: 2 }],
+  ['cat-food', { type: 'EXPENSE', rootId: 'root-food', name: '식비', path: [{ id: 'root-food', name: '식비', sortOrder: 1 }], sortOrder: 1 }],
+  ['cat-transport', { type: 'EXPENSE', rootId: 'root-transport', name: '교통', path: [{ id: 'root-transport', name: '교통', sortOrder: 2 }], sortOrder: 2 }],
 ])
 
 describe('calcFlowSummary', () => {
@@ -87,8 +87,8 @@ describe('calcBudgetProgress', () => {
       { id: 'cat-bonus', type: 'INCOME', name: '상여', sortOrder: 2, system: false, children: [] },
     ]
     const budgetIndex: CategoryIndex = new Map([
-      ['cat-salary', { type: 'INCOME', rootId: 'cat-salary', name: '급여', path: [{ id: 'cat-salary', name: '급여' }], sortOrder: 1 }],
-      ['cat-bonus', { type: 'INCOME', rootId: 'cat-bonus', name: '상여', path: [{ id: 'cat-bonus', name: '상여' }], sortOrder: 2 }],
+      ['cat-salary', { type: 'INCOME', rootId: 'cat-salary', name: '급여', path: [{ id: 'cat-salary', name: '급여', sortOrder: 1 }], sortOrder: 1 }],
+      ['cat-bonus', { type: 'INCOME', rootId: 'cat-bonus', name: '상여', path: [{ id: 'cat-bonus', name: '상여', sortOrder: 2 }], sortOrder: 2 }],
     ])
     const budgets: FinanceBudget[] = [
       { id: 'b-bonus', categoryId: 'cat-bonus', applyStartDate: '2026-01-01', amount: 100 },

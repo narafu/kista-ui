@@ -8,8 +8,8 @@ vi.mock('@entities/meta', () => ({
 }))
 
 const index = new Map([
-  ['cat-1', { type: 'EXPENSE' as const, rootId: 'cat-1', name: '식비', path: [{ id: 'cat-1', name: '식비' }], sortOrder: 0 }],
-  ['cat-income', { type: 'INCOME' as const, rootId: 'cat-income', name: '급여', path: [{ id: 'cat-income', name: '급여' }], sortOrder: 0 }],
+  ['cat-1', { type: 'EXPENSE' as const, rootId: 'cat-1', name: '식비', path: [{ id: 'cat-1', name: '식비', sortOrder: 0 }], sortOrder: 0 }],
+  ['cat-income', { type: 'INCOME' as const, rootId: 'cat-income', name: '급여', path: [{ id: 'cat-income', name: '급여', sortOrder: 0 }], sortOrder: 0 }],
 ])
 
 function tx(date: string, amount: number, categoryId = 'cat-1'): FinanceTransaction {

@@ -9,7 +9,7 @@ export interface BulkRegisterItem {
   id: string
   categoryId: string
   categoryName: string // 리프(자신) 카테고리명 — categoryPath 마지막 항목과 동일
-  categoryPath: { id: string; name: string }[] // 대분류→…→자신 전체 경로, 계층 그룹핑에 사용
+  categoryPath: { id: string; name: string; sortOrder: number }[] // 대분류→…→자신 전체 경로, 계층 그룹핑에 사용. sortOrder는 각 세그먼트 자신의 관리자 정렬순서
   memo?: string
   amount: number
   included: boolean
@@ -27,6 +27,7 @@ export interface BulkRegisterItem {
 export interface CategoryGroupNode {
   id: string
   name: string
+  sortOrder: number
   items: BulkRegisterItem[]
   children: CategoryGroupNode[]
 }
@@ -51,18 +52,22 @@ function sortItems(items: BulkRegisterItem[]): BulkRegisterItem[] {
 interface MutableNode {
   id: string
   name: string
+  sortOrder: number
   items: BulkRegisterItem[]
   childMap: Map<string, MutableNode>
 }
 
+// sortOrder 오름차순, 동순위는 가나다순 — categoryTree.sortCategoryTree와 동일한 tie-break 규칙(관리자
+// 카테고리 화면 정렬순서를 그대로 반영, 이름순이 아니다).
 function finalizeGroupTree(map: Map<string, MutableNode>): CategoryGroupNode[] {
   const nodes = [...map.values()].map((n) => ({
     id: n.id,
     name: n.name,
+    sortOrder: n.sortOrder,
     items: sortItems(n.items),
     children: finalizeGroupTree(n.childMap),
   }))
-  nodes.sort((a, b) => a.name.localeCompare(b.name, 'ko'))
+  nodes.sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name, 'ko'))
   return nodes
 }
 
@@ -75,7 +80,7 @@ function buildGroupTree(items: BulkRegisterItem[]): CategoryGroupNode[] {
     for (const seg of item.categoryPath) {
       let next = siblingMap.get(seg.id)
       if (!next) {
-        next = { id: seg.id, name: seg.name, items: [], childMap: new Map() }
+        next = { id: seg.id, name: seg.name, sortOrder: seg.sortOrder, items: [], childMap: new Map() }
         siblingMap.set(seg.id, next)
       }
       node = next
@@ -123,9 +128,11 @@ export function buildBulkRegisterItems({
 
   const asset: BulkRegisterItem[] = assetSnapshots.map((s) => {
     const entry = resolveCategory(index, s.categoryId)
+    // 삭제된 카테고리라 index에 없는 경우 실제 sortOrder를 알 수 없다 — 맨 뒤로 밀려나도록
+    // Number.MAX_SAFE_INTEGER로 채운다(정상 카테고리는 이 값보다 항상 작다).
     const categoryPath = entry?.path ?? [
-      { id: s.rootCategoryId, name: formatAssetL1CategoryLabel(s.rootCategoryId) },
-      ...(s.categoryId !== s.rootCategoryId ? [{ id: s.categoryId, name: s.categoryName }] : []),
+      { id: s.rootCategoryId, name: formatAssetL1CategoryLabel(s.rootCategoryId), sortOrder: Number.MAX_SAFE_INTEGER },
+      ...(s.categoryId !== s.rootCategoryId ? [{ id: s.categoryId, name: s.categoryName, sortOrder: Number.MAX_SAFE_INTEGER }] : []),
     ]
     return {
       id: s.id,
