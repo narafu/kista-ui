@@ -377,14 +377,14 @@ export function AssetRecordList({ month }: Props) {
                       <span className="text-xs text-muted-foreground">{fmtDate(snapshot.entryDate)}</span>
                     </div>
                     <div className="flex items-baseline justify-between gap-2">
-                      <p className="min-w-0 truncate text-sm font-medium">{labelOf('assetClasses', snapshot.assetClass)}</p>
+                      <p className="min-w-0 truncate text-sm font-medium">
+                        {labelOf('assetClasses', snapshot.assetClass)}
+                        {snapshot.memo && <span className="ml-1.5 font-normal text-muted-foreground">{snapshot.memo}</span>}
+                      </p>
                       <span className={cn('shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums', isLiability(snapshot) && 'text-destructive')}>
                         {fmtKrw(snapshot.amount)}
                       </span>
                     </div>
-                    {snapshot.memo && (
-                      <p className="mt-1 min-w-0 truncate text-xs text-muted-foreground">{snapshot.memo}</p>
-                    )}
                     <div className="mt-1 flex items-center justify-between gap-2">
                       <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
                         {[labelOf('markets', snapshot.market), snapshot.strategy, snapshot.accountName].filter(Boolean).join(' · ')}

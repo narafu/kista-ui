@@ -95,28 +95,28 @@ export function CyclePerformanceList({ typeFilter }: Props) {
                       <Badge tone="brand" size="sm">
                         {cycle.strategyType}
                       </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {fmtDate(cycle.startDate)} ~ {cycle.endDate ? fmtDate(cycle.endDate) : '진행 중'}
+                      </span>
                     </div>
                     <span className="text-sm font-semibold tabular-nums">
                       {cycle.ticker ?? '—'}
                     </span>
                   </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                    {fmtDate(cycle.startDate)} ~ {cycle.endDate ? fmtDate(cycle.endDate) : '진행 중'}
-                  </div>
-                  <dl className="mt-3 grid grid-cols-2 gap-2 border-t pt-3 text-right">
-                    <div>
-                      <dt className="text-xs text-muted-foreground">손익</dt>
-                      <dd className={cn('mt-1 text-sm tabular-nums', cycle.pnl != null ? pnlTextClass(cycle.pnl) : 'text-muted-foreground')}>
+                  <div className="mt-3 flex items-center justify-end gap-4 border-t pt-3 text-sm">
+                    <span className="text-muted-foreground">
+                      손익{' '}
+                      <span className={cn('tabular-nums', cycle.pnl != null ? pnlTextClass(cycle.pnl) : 'text-muted-foreground')}>
                         {cycle.pnl != null ? fmtSignedUsd(cycle.pnl, 2, '$') : '—'}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs text-muted-foreground">수익률</dt>
-                      <dd className={cn('mt-1 text-sm tabular-nums', cycle.returnRate != null ? pnlTextClass(cycle.returnRate) : 'text-muted-foreground')}>
+                      </span>
+                    </span>
+                    <span className="text-muted-foreground">
+                      수익률{' '}
+                      <span className={cn('tabular-nums', cycle.returnRate != null ? pnlTextClass(cycle.returnRate) : 'text-muted-foreground')}>
                         {fmtSignedPercent(cycle.returnRate)}
-                      </dd>
-                    </div>
-                  </dl>
+                      </span>
+                    </span>
+                  </div>
                 </section>
               ))}
             </div>
