@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getAuthToken } from '@shared/lib/auth/token'
+import { requirePageToken } from '@shared/lib/auth/token'
 import { accountDetailQueryOptions } from '@entities/account'
 import { EditAccountForm } from '@features/account/edit-account'
 import { PageHeader } from '@widgets/page-header'
@@ -16,11 +16,7 @@ interface Props {
 }
 
 export default async function AccountEditPage({ params }: Props) {
-  const [{ id }, token] = await Promise.all([params, getAuthToken()])
-
-  if (!token) {
-    return notFound()
-  }
+  const { params: { id }, token } = await requirePageToken(params)
 
   const queryClient = createQueryClient()
   const account = await queryClient.fetchQuery(accountDetailQueryOptions(id, token))

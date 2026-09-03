@@ -199,28 +199,16 @@ export function useSetMonthlyClosingMutation() {
   })
 }
 
-// 카테고리는 트리 응답이고 POST/PUT 응답의 children이 항상 []로 고정된다(kista-api
-// FinanceCategoryController) — upsertById로 직접 캐시에 쓰면 부모의 children이 깨진다.
-// 그래서 다른 finance 리소스와 달리 invalidate 후 재조회하는 방식으로 뺀다.
-function useInvalidateCategoriesMutation<TData, TVariables>(
-  mutationFn: (variables: TVariables) => Promise<TData>,
-  errorFallback: string,
-) {
-  const queryClient = useQueryClient()
-  return useMutation<TData, Error, TVariables>({
-    mutationFn,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.categoriesRoot() }),
-    onError: (err) => toast.error(apiMsg(err, errorFallback)),
-  })
-}
-
 // 신규 등록은 항상 개인 소유로 저장된다(kista-api FinanceCategoryService.create — groupId 쿼리
 // 파라미터는 서버가 무시). 그룹으로 저장하려면 생성 직후 공유 전환(PATCH .../{id}/share)을 이어붙인다.
 // 공유 전환이 실패해도(네트워크 오류 등) 카테고리 자체는 이미 저장됐으니 전체 실패로 처리하지 않고
 // 개인 소유로 조용히 남긴다 — budget/transaction과 동일 이유로 toast는 호출부(mutate의 onSuccess)에 맡긴다.
+// 카테고리는 트리 응답이고 POST/PUT 응답의 children이 항상 []로 고정된다(kista-api
+// FinanceCategoryController) — upsertById로 직접 캐시에 쓰면 부모의 children이 깨진다.
+// 그래서 다른 finance 리소스와 달리 invalidate 후 재조회하는 방식(useInvalidateFinanceMutation)을 쓴다.
 export function useCreateFinanceCategoryMutation() {
   const groupId = useActiveGroupId()
-  return useInvalidateCategoriesMutation<FinanceCategory, FinanceCategoryRequest & { shareToGroup?: boolean }>(
+  return useInvalidateFinanceMutation<FinanceCategory, FinanceCategoryRequest & { shareToGroup?: boolean }>(
     async ({ shareToGroup, ...data }) => {
       const saved = await createFinanceCategory(data, { groupId })
       if (!shareToGroup) return saved
@@ -230,69 +218,65 @@ export function useCreateFinanceCategoryMutation() {
         return saved
       }
     },
+    financeKeys.categoriesRoot(),
     '카테고리를 저장하지 못했습니다',
   )
 }
 
 export function useUpdateFinanceCategoryMutation(categoryId: string) {
-  return useInvalidateCategoriesMutation<FinanceCategory, FinanceCategoryRequest>(
+  return useInvalidateFinanceMutation<FinanceCategory, FinanceCategoryRequest>(
     (data) => updateFinanceCategory(categoryId, data),
+    financeKeys.categoriesRoot(),
     '카테고리를 수정하지 못했습니다',
   )
 }
 
 export function useDeleteFinanceCategoryMutation() {
-  return useInvalidateCategoriesMutation<void, string>(
+  return useInvalidateFinanceMutation<void, string>(
     (id) => deleteFinanceCategory(id),
+    financeKeys.categoriesRoot(),
     '카테고리를 삭제하지 못했습니다',
   )
 }
 
 // 하위 카테고리도 함께 그룹으로 공유 전환된다(kista-api cascade) — 트리 전체 invalidate로 반영.
 export function useShareFinanceCategoryMutation() {
-  return useInvalidateCategoriesMutation<FinanceCategory, string>(
+  return useInvalidateFinanceMutation<FinanceCategory, string>(
     (id) => shareFinanceCategory(id),
+    financeKeys.categoriesRoot(),
     '카테고리를 그룹에 공유하지 못했습니다',
   )
 }
 
 export function useUnshareFinanceCategoryMutation() {
-  return useInvalidateCategoriesMutation<FinanceCategory, string>(
+  return useInvalidateFinanceMutation<FinanceCategory, string>(
     (id) => unshareFinanceCategory(id),
+    financeKeys.categoriesRoot(),
     '카테고리를 개인 소유로 되돌리지 못했습니다',
   )
 }
 
 // 관리자 시스템 카테고리 — 그룹 스코프 카테고리와 캐시 네임스페이스가 분리돼 있어 그룹 캐시를 건드리지 않는다.
-function useInvalidateSystemCategoriesMutation<TData, TVariables>(
-  mutationFn: (variables: TVariables) => Promise<TData>,
-  errorFallback: string,
-) {
-  const queryClient = useQueryClient()
-  return useMutation<TData, Error, TVariables>({
-    mutationFn,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.systemCategoriesRoot() }),
-    onError: (err) => toast.error(apiMsg(err, errorFallback)),
-  })
-}
-
 export function useCreateSystemFinanceCategoryMutation() {
-  return useInvalidateSystemCategoriesMutation<FinanceCategory, FinanceCategoryRequest>(
+  return useInvalidateFinanceMutation<FinanceCategory, FinanceCategoryRequest>(
     (data) => createSystemFinanceCategory(data),
+    financeKeys.systemCategoriesRoot(),
     '카테고리를 저장하지 못했습니다',
   )
 }
 
 export function useUpdateSystemFinanceCategoryMutation(categoryId: string) {
-  return useInvalidateSystemCategoriesMutation<FinanceCategory, FinanceCategoryRequest>(
+  return useInvalidateFinanceMutation<FinanceCategory, FinanceCategoryRequest>(
     (data) => updateSystemFinanceCategory(categoryId, data),
+    financeKeys.systemCategoriesRoot(),
     '카테고리를 수정하지 못했습니다',
   )
 }
 
 export function useDeleteSystemFinanceCategoryMutation() {
-  return useInvalidateSystemCategoriesMutation<void, string>(
+  return useInvalidateFinanceMutation<void, string>(
     (id) => deleteSystemFinanceCategory(id),
+    financeKeys.systemCategoriesRoot(),
     '카테고리를 삭제하지 못했습니다',
   )
 }
@@ -522,8 +506,8 @@ export function useRemoveFinanceGroupMemberMutation(groupId: string) {
     mutationFn: (userId) => removeFinanceGroupMember(groupId, userId),
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: financeKeys.groupMembers(groupId) }),
-        queryClient.invalidateQueries({ queryKey: financeKeys.groups() }),
+        queryClient.invalidateQueries({ queryKey: financeKeys.groupMembers(groupId) }).catch(() => null),
+        queryClient.invalidateQueries({ queryKey: financeKeys.groups() }).catch(() => null),
       ])
     },
     onError: (err) => toast.error(apiMsg(err, '처리하지 못했습니다')),

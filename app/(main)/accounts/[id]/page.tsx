@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { notFound } from 'next/navigation'
 import { AccountDetailContent } from '@widgets/account-detail'
-import { getAuthToken } from '@shared/lib/auth/token'
+import { requirePageToken } from '@shared/lib/auth/token'
 import { isMockBroker } from '@shared/lib/api-schema'
 import { accountDetailQueryOptions } from '@entities/account'
 import { getAccountPortfolio } from '@entities/trade'
@@ -21,11 +21,7 @@ export const metadata: Metadata = {
 }
 
 export default async function AccountDetailPage({ params }: Props) {
-  const [{ id }, token] = await Promise.all([params, getAuthToken()])
-
-  if (!token) {
-    return notFound()
-  }
+  const { params: { id }, token } = await requirePageToken(params)
 
   const queryClient = createQueryClient()
   const account = await queryClient.fetchQuery(accountDetailQueryOptions(id, token))

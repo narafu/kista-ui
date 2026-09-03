@@ -44,6 +44,11 @@ function withQuery(path: string, params: Record<string, string | undefined>) {
   return qs ? `${path}?${qs}` : path
 }
 
+// share/unshare는 모든 finance 리소스에서 `PATCH {basePath}/{id}/{share|unshare}` 형태로 동일하다.
+function shareToggle<T>(basePath: string, action: 'share' | 'unshare', id: string, token?: string): Promise<T> {
+  return fetchEither<T>(`${basePath}/${encodeURIComponent(id)}/${action}`, { method: 'PATCH' }, token)
+}
+
 export async function listAssetSnapshots({ groupId, token }: GroupScopedOptions = {}): Promise<AssetSnapshot[]> {
   return fetchEither<AssetSnapshot[]>(withQuery('/api/finance/asset-snapshots', { groupId }), { method: 'GET' }, token)
 }
@@ -63,12 +68,12 @@ export async function updateAssetSnapshot(
 
 // 개인 소유 자산 기록을 소유자의 현재 그룹으로 공유 전환한다(본인 소유·그룹 소속 상태에서만 성공).
 export async function shareAssetSnapshot(id: string, token?: string): Promise<AssetSnapshot> {
-  return fetchEither<AssetSnapshot>(`/api/finance/asset-snapshots/${encodeURIComponent(id)}/share`, { method: 'PATCH' }, token)
+  return shareToggle<AssetSnapshot>('/api/finance/asset-snapshots', 'share', id, token)
 }
 
 // 그룹 공유 자산 기록을 개인 소유로 되돌린다(같은 그룹 멤버면 누구든 가능, 이미 개인 소유면 멱등).
 export async function unshareAssetSnapshot(id: string, token?: string): Promise<AssetSnapshot> {
-  return fetchEither<AssetSnapshot>(`/api/finance/asset-snapshots/${encodeURIComponent(id)}/unshare`, { method: 'PATCH' }, token)
+  return shareToggle<AssetSnapshot>('/api/finance/asset-snapshots', 'unshare', id, token)
 }
 
 export async function deleteAssetSnapshot(id: string, token?: string): Promise<void> {
@@ -121,12 +126,12 @@ export async function deleteFinanceCategory(id: string, token?: string): Promise
 
 // 개인 소유 카테고리를 소유자의 현재 그룹으로 공유 전환한다. 하위 카테고리도 함께 전환된다(kista-api cascade).
 export async function shareFinanceCategory(id: string, token?: string): Promise<FinanceCategory> {
-  return fetchEither<FinanceCategory>(`/api/finance/categories/${encodeURIComponent(id)}/share`, { method: 'PATCH' }, token)
+  return shareToggle<FinanceCategory>('/api/finance/categories', 'share', id, token)
 }
 
 // 그룹 공유 카테고리를 개인 소유로 되돌린다. 하위 카테고리도 함께 전환된다(kista-api cascade).
 export async function unshareFinanceCategory(id: string, token?: string): Promise<FinanceCategory> {
-  return fetchEither<FinanceCategory>(`/api/finance/categories/${encodeURIComponent(id)}/unshare`, { method: 'PATCH' }, token)
+  return shareToggle<FinanceCategory>('/api/finance/categories', 'unshare', id, token)
 }
 
 // 관리자 전용 시스템(공통) 카테고리 CRUD — groupId 없이 항상 system:true로 생성된다.
@@ -173,12 +178,12 @@ export async function deleteFinanceAccount(id: string, token?: string): Promise<
 
 // 개인 소유 계좌를 소유자의 현재 그룹으로 공유 전환한다(본인 소유·그룹 소속 상태에서만 성공).
 export async function shareFinanceAccount(id: string, token?: string): Promise<FinanceAccount> {
-  return fetchEither<FinanceAccount>(`/api/finance/accounts/${encodeURIComponent(id)}/share`, { method: 'PATCH' }, token)
+  return shareToggle<FinanceAccount>('/api/finance/accounts', 'share', id, token)
 }
 
 // 그룹 공유 계좌를 개인 소유로 되돌린다(같은 그룹 멤버면 누구든 가능, 이미 개인 소유면 멱등).
 export async function unshareFinanceAccount(id: string, token?: string): Promise<FinanceAccount> {
-  return fetchEither<FinanceAccount>(`/api/finance/accounts/${encodeURIComponent(id)}/unshare`, { method: 'PATCH' }, token)
+  return shareToggle<FinanceAccount>('/api/finance/accounts', 'unshare', id, token)
 }
 
 export async function listMonthlyClosings({ groupId, token }: GroupScopedOptions = {}): Promise<MonthlyClosing[]> {
@@ -275,22 +280,12 @@ export async function deleteFinanceTransaction(id: string, token?: string): Prom
 
 // 개인 소유 거래내역을 소유자의 현재 그룹으로 공유 전환한다(본인 소유·그룹 소속 상태에서만 성공).
 export async function shareFinanceTransaction(id: string, token?: string): Promise<FinanceTransaction> {
-  const saved = await fetchEither<FinanceTransaction>(
-    `/api/finance/transactions/${encodeURIComponent(id)}/share`,
-    { method: 'PATCH' },
-    token,
-  )
-  return normalizeTransaction(saved)
+  return normalizeTransaction(await shareToggle<FinanceTransaction>('/api/finance/transactions', 'share', id, token))
 }
 
 // 그룹 공유 거래내역을 개인 소유로 되돌린다(같은 그룹 멤버면 누구든 가능, 이미 개인 소유면 멱등).
 export async function unshareFinanceTransaction(id: string, token?: string): Promise<FinanceTransaction> {
-  const saved = await fetchEither<FinanceTransaction>(
-    `/api/finance/transactions/${encodeURIComponent(id)}/unshare`,
-    { method: 'PATCH' },
-    token,
-  )
-  return normalizeTransaction(saved)
+  return normalizeTransaction(await shareToggle<FinanceTransaction>('/api/finance/transactions', 'unshare', id, token))
 }
 
 export interface BudgetListOptions extends GroupScopedOptions {
@@ -326,14 +321,12 @@ export async function deleteFinanceBudget(id: string, token?: string): Promise<v
 
 // 개인 소유 예산을 소유자의 현재 그룹으로 공유 전환한다(본인 소유·그룹 소속 상태에서만 성공).
 export async function shareFinanceBudget(id: string, token?: string): Promise<FinanceBudget> {
-  const saved = await fetchEither<FinanceBudget>(`/api/finance/budgets/${encodeURIComponent(id)}/share`, { method: 'PATCH' }, token)
-  return normalizeBudget(saved)
+  return normalizeBudget(await shareToggle<FinanceBudget>('/api/finance/budgets', 'share', id, token))
 }
 
 // 그룹 공유 예산을 개인 소유로 되돌린다(같은 그룹 멤버면 누구든 가능, 이미 개인 소유면 멱등).
 export async function unshareFinanceBudget(id: string, token?: string): Promise<FinanceBudget> {
-  const saved = await fetchEither<FinanceBudget>(`/api/finance/budgets/${encodeURIComponent(id)}/unshare`, { method: 'PATCH' }, token)
-  return normalizeBudget(saved)
+  return normalizeBudget(await shareToggle<FinanceBudget>('/api/finance/budgets', 'unshare', id, token))
 }
 
 // code는 사용자가 붙여넣는 자유 입력이라(초대 코드 입력 폼) URL path 세그먼트로 쓰기 전

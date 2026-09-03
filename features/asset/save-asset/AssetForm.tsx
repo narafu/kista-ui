@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button-variants'
@@ -18,10 +18,10 @@ import {
   SYSTEM_LOAN_CATEGORY_ID,
   SYSTEM_REAL_ESTATE_CATEGORY_ID,
   SYSTEM_SAVINGS_CATEGORY_ID,
-  getCascadeLevels,
-  getCategoryPath,
   isInvestmentCategoryId,
+  notifyShareCreateResult,
   useCanShareToGroup,
+  useCategoryPathState,
   useCreateAssetSnapshotMutation,
   useFinanceAccountsQuery,
   useFinanceCategoriesQuery,
@@ -137,20 +137,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
   const strategySuggestions = useMeQuery().data?.strategySuggestions ?? DEFAULT_STRATEGY_SUGGESTIONS
 
   const [entryDate, setEntryDate] = useState(initial?.entryDate ?? todayKst())
-  // 계단식 카테고리 Select: 각 단에서 선택한 categoryId를 순서대로 담는다. 마지막 값이
-  // 실제 제출용 categoryId — 트리 깊이가 늘어나도 이 상태 하나로 임의 depth를 표현한다.
-  const [selectedPath, setSelectedPath] = useState<string[]>(() =>
-    initial ? getCategoryPath(categories, initial.categoryId).map((c) => c.id) : []
-  )
-  // edit/duplicate 모드는 카테고리 쿼리가 마운트 시점에 아직 로딩 중일 수 있어, 데이터가
-  // 도착한 뒤 한 번 더 경로를 복원한다(이미 선택된 경로가 있으면 건드리지 않는다).
-  useEffect(() => {
-    if (initial && selectedPath.length === 0 && categories.length > 0) {
-      setSelectedPath(getCategoryPath(categories, initial.categoryId).map((c) => c.id))
-    }
-  }, [initial, categories, selectedPath.length])
-  const cascadeLevels = useMemo(() => getCascadeLevels(categories, selectedPath), [categories, selectedPath])
-  const categoryId = selectedPath[selectedPath.length - 1] ?? ''
+  const { selectedPath, setSelectedPath, cascadeLevels, categoryId } = useCategoryPathState(categories, initial?.categoryId)
   // 운용전략 필드는 L1 카테고리가 '투자'(고정 시스템 카테고리)일 때만 노출한다.
   const showStrategy = isInvestmentCategoryId(selectedPath[0])
   const fixedAssetMeta = FIXED_ASSET_META[selectedPath[0] ?? '']
@@ -200,11 +187,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
 
     createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
       onSuccess: (saved, variables) => {
-        if (variables.shareToGroup && !saved.groupId) {
-          toast.warning('자산 기록은 저장됐지만 그룹 공유에 실패했습니다 — 목록에서 공유 버튼으로 다시 시도하세요')
-        } else {
-          toast.success(mode === 'duplicate' ? '자산 기록이 복제되었습니다' : '자산 기록이 등록되었습니다')
-        }
+        notifyShareCreateResult(saved, variables, '자산 기록', mode === 'duplicate' ? '자산 기록이 복제되었습니다' : '자산 기록이 등록되었습니다')
         onSuccess()
       },
     })

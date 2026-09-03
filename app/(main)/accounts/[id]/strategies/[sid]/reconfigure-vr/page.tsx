@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { PageHeader } from '@widgets/page-header'
 import { ReconfigureVrForm, loadAccountAndStrategyForReconfigure } from '@features/strategy/reconfigure-vr'
-import { getAuthToken } from '@shared/lib/auth/token'
+import { requirePageToken } from '@shared/lib/auth/token'
 
 interface Props {
   params: Promise<{ id: string; sid: string }>
@@ -14,11 +14,7 @@ export const metadata: Metadata = {
 }
 
 export default async function ReconfigureVrPage({ params }: Props) {
-  const [{ id, sid }, token] = await Promise.all([params, getAuthToken()])
-
-  if (!token) {
-    return notFound()
-  }
+  const { params: { id, sid }, token } = await requirePageToken(params)
 
   const context = await loadAccountAndStrategyForReconfigure(id, sid, token)
   if (!context) {

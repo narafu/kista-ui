@@ -9,8 +9,8 @@ export default async function AdminOverviewPage() {
   const queryClient = createQueryClient()
   if (token) {
     await Promise.all([
-      queryClient.prefetchQuery(adminStatsQueryOptions(token)),
-      queryClient.prefetchQuery(adminUsersQueryOptions('PENDING', undefined, token)),
+      queryClient.prefetchQuery(adminStatsQueryOptions(token)).catch(() => null),
+      queryClient.prefetchQuery(adminUsersQueryOptions('PENDING', undefined, token)).catch(() => null),
     ])
   }
 

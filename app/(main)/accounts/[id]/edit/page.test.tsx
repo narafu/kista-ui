@@ -8,7 +8,14 @@ const { getAuthTokenMock, listAccountsMock, notFoundMock } = vi.hoisted(() => ({
   }),
 }))
 
-vi.mock('@shared/lib/auth/token', () => ({ getAuthToken: getAuthTokenMock }))
+vi.mock('@shared/lib/auth/token', () => ({
+  getAuthToken: getAuthTokenMock,
+  requirePageToken: async (params: Promise<unknown>) => {
+    const [resolvedParams, token] = await Promise.all([params, getAuthTokenMock()])
+    if (!token) return notFoundMock()
+    return { params: resolvedParams, token }
+  },
+}))
 vi.mock('next/navigation', () => ({ notFound: notFoundMock }))
 vi.mock('@entities/account', () => ({
   listAccounts: listAccountsMock,

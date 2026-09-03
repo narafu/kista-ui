@@ -2,18 +2,14 @@ import { notFound } from 'next/navigation'
 import { PageHeader } from '@widgets/page-header'
 import { StrategyFormPage, loadAccountForNewStrategy } from '@features/strategy/create-strategy'
 import { RouteModal } from '@shared/ui/RouteModal'
-import { getAuthToken } from '@shared/lib/auth/token'
+import { requirePageToken } from '@shared/lib/auth/token'
 
 interface Props {
   params: Promise<{ id: string }>
 }
 
 export default async function NewStrategyModal({ params }: Props) {
-  const [{ id }, token] = await Promise.all([params, getAuthToken()])
-
-  if (!token) {
-    return notFound()
-  }
+  const { params: { id }, token } = await requirePageToken(params)
 
   const account = await loadAccountForNewStrategy(id, token)
   if (!account) {

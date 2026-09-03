@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,9 +11,9 @@ import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { digitsOnly, formatAmountDisplay } from '@shared/lib/format'
 import {
-  getCascadeLevels,
-  getCategoryPath,
+  notifyShareCreateResult,
   useCanShareToGroup,
+  useCategoryPathState,
   useCreateFinanceBudgetMutation,
   useUpdateFinanceBudgetMutation,
 } from '@entities/finance'
@@ -41,19 +41,7 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, du
   const mode = initial ? 'edit' : 'create'
   const seed = initial ?? duplicateFrom
 
-  // 계단식 카테고리 Select — TransactionFormDialog와 동일 패턴, selectedPath 마지막 값이 제출용 categoryId.
-  const [selectedPath, setSelectedPath] = useState<string[]>(() =>
-    seed ? getCategoryPath(categoryTree, seed.categoryId).map((c) => c.id) : []
-  )
-  // 다이얼로그가 카테고리 쿼리 로딩보다 먼저 열릴 수 있어, 데이터 도착 후 한 번 더 경로를 복원한다
-  // (TransactionFormDialog와 동일 패턴).
-  useEffect(() => {
-    if (seed && selectedPath.length === 0 && categoryTree.length > 0) {
-      setSelectedPath(getCategoryPath(categoryTree, seed.categoryId).map((c) => c.id))
-    }
-  }, [seed, categoryTree, selectedPath.length])
-  const cascadeLevels = useMemo(() => getCascadeLevels(categoryTree, selectedPath), [categoryTree, selectedPath])
-  const categoryId = selectedPath[selectedPath.length - 1] ?? ''
+  const { selectedPath, setSelectedPath, cascadeLevels, categoryId } = useCategoryPathState(categoryTree, seed?.categoryId)
 
   const [applyStartDate, setApplyStartDate] = useState(seed?.applyStartDate ?? '')
   const [applyEndDate, setApplyEndDate] = useState(seed?.applyEndDate ?? '')
@@ -94,11 +82,7 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, du
 
     createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
       onSuccess: (saved, variables) => {
-        if (variables.shareToGroup && !saved.groupId) {
-          toast.warning('예산은 저장됐지만 그룹 공유에 실패했습니다 — 목록에서 공유 버튼으로 다시 시도하세요')
-        } else {
-          toast.success('예산이 등록되었습니다')
-        }
+        notifyShareCreateResult(saved, variables, '예산', '예산이 등록되었습니다')
         onSuccess()
       },
     })

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { notFound } from 'next/navigation'
 import { StrategyDetailContent } from '@widgets/strategy-detail'
-import { getAuthToken } from '@shared/lib/auth/token'
+import { requirePageToken } from '@shared/lib/auth/token'
 import { accountDetailQueryOptions } from '@entities/account'
 import { strategyDetailQueryOptions } from '@entities/strategy'
 import { orderPreviewQueryOptions } from '@entities/order'
@@ -18,11 +18,7 @@ export const metadata: Metadata = {
 }
 
 export default async function StrategyDetailPage({ params }: Props) {
-  const [{ id, sid }, token] = await Promise.all([params, getAuthToken()])
-
-  if (!token) {
-    return notFound()
-  }
+  const { params: { id, sid }, token } = await requirePageToken(params)
 
   const queryClient = createQueryClient()
   const [accountResult, strategyResult] = await Promise.allSettled([

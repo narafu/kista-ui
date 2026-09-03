@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dialog'
 import { Spinner } from '@shared/ui/Spinner'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
-import { getCascadeLevels, useCanShareToGroup, useCreateFinanceCategoryMutation, useUpdateFinanceCategoryMutation } from '@entities/finance'
+import { getCascadeLevels, notifyShareCreateResult, useCanShareToGroup, useCreateFinanceCategoryMutation, useUpdateFinanceCategoryMutation } from '@entities/finance'
 import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
 
 // Base UI Select는 빈 문자열 value를 허용하지 않는다 — AssetForm의 NO_ACCOUNT_VALUE와 동일한 센티널 패턴.
@@ -75,11 +75,7 @@ export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, cat
 
     createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
       onSuccess: (saved, variables) => {
-        if (variables.shareToGroup && !saved.groupId) {
-          toast.warning('카테고리는 저장됐지만 그룹 공유에 실패했습니다 — 목록에서 공유 버튼으로 다시 시도하세요')
-        } else {
-          toast.success('카테고리가 추가되었습니다')
-        }
+        notifyShareCreateResult(saved, variables, '카테고리', '카테고리가 추가되었습니다')
         onSuccess()
       },
     })

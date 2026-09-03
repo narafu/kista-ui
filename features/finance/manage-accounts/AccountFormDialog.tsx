@@ -17,7 +17,7 @@ import { Spinner } from '@shared/ui/Spinner'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { digitsOnly } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
-import { useCanShareToGroup, useCreateFinanceAccountMutation, useUpdateFinanceAccountMutation } from '@entities/finance'
+import { notifyShareCreateResult, useCanShareToGroup, useCreateFinanceAccountMutation, useUpdateFinanceAccountMutation } from '@entities/finance'
 import type { FinanceAccount, FinanceAccountRequest, FinanceAccountType } from '@entities/finance'
 
 interface Props {
@@ -71,11 +71,7 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
 
     createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
       onSuccess: (saved, variables) => {
-        if (variables.shareToGroup && !saved.groupId) {
-          toast.warning('계좌는 저장됐지만 그룹 공유에 실패했습니다 — 목록에서 공유 버튼으로 다시 시도하세요')
-        } else {
-          toast.success('계좌가 등록되었습니다')
-        }
+        notifyShareCreateResult(saved, variables, '계좌', '계좌가 등록되었습니다')
         onOpenChange(false)
       },
     })
