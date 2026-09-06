@@ -4,6 +4,7 @@ import type { Account } from '@entities/account'
 import type { EtfBenchmarkSymbol, HousingBenchmarkRegion } from '@entities/stats'
 import type { Strategy } from '@entities/strategy'
 import { cn } from '@shared/lib/utils'
+import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
 import { toMonthInput, type Period } from './model/benchmarkPeriods'
 import type { EtfBenchmarkContent } from './housingBenchmarkContent'
 
@@ -237,24 +238,29 @@ export function BenchmarkFilterBar({
                 />
               </div>
             ) : isCustomPeriod ? (
+              // 네이티브 <input type="month">은 데스크탑 사파리가 피커를 지원하지 않아 YearMonthSelect로 대체한다.
+              // 월 단위 min/max 교차 제약은 컴포넌트가 연 단위만 지원하므로 onValueChange에서 clamp한다.
               <div className="mt-2 flex items-center gap-2">
-                <input
-                  type="month"
-                  aria-label="시작월"
+                <YearMonthSelect
+                  label="시작월"
                   value={customFromMonth}
-                  max={customToMonth}
-                  onChange={(event) => setCustomFromMonth(event.target.value)}
-                  className="min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  today={defaultTo}
+                  maxYear={Number(customToMonth.slice(0, 4))}
+                  onValueChange={(month) => setCustomFromMonth(month > customToMonth ? customToMonth : month)}
+                  className="w-full"
                 />
                 <span className="shrink-0 text-xs text-muted-foreground">~</span>
-                <input
-                  type="month"
-                  aria-label="종료월"
+                <YearMonthSelect
+                  label="종료월"
                   value={customToMonth}
-                  min={customFromMonth}
-                  max={toMonthInput(defaultTo)}
-                  onChange={(event) => setCustomToMonth(event.target.value)}
-                  className="min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  today={defaultTo}
+                  minYear={Number(customFromMonth.slice(0, 4))}
+                  maxYear={Number(toMonthInput(defaultTo).slice(0, 4))}
+                  onValueChange={(month) => {
+                    const max = toMonthInput(defaultTo)
+                    setCustomToMonth(month < customFromMonth ? customFromMonth : month > max ? max : month)
+                  }}
+                  className="w-full"
                 />
               </div>
             ) : null}

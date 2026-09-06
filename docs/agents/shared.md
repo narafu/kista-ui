@@ -84,7 +84,7 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 - `TableHeadCell` — 테이블 헤더 셀 공통 스타일 (`<th>` 래퍼). 데이터 셀은 `TableDataCell`(`<td>` 래퍼)과 짝을 이루며 둘 다 기본 정렬이 `text-center`다 — 새 테이블은 이 둘을 함께 써서 헤더·데이터 정렬 드리프트를 피한다
 - `SelectionCard` — `selected`를 `aria-pressed`와 테마 대응 외곽선·틴트로 표현하는 선택 버튼. 체크 배지(`showIndicator`)는 2026-08 전량 제거됐다(시각적으로 과했다는 피드백) — 크기·용도 무관하게 항상 테두리만으로 선택을 표시한다
 - `SectionError` — 섹션 단위 조회 실패 표시. `widgets/stats-overview`·`widgets/benchmark-comparison`·`widgets/asset-*`·`widgets/cycle-history` 등 여러 widget에서 공유해 cross-widget import를 피하려 이 위치로 이동됨 (`widgets.md` 화이트리스트 목록 참고)
-- `YearMonthSelect` — `value`(`YYYY-MM`)를 받는 월 그리드 팝오버(네이티브 `<input type="month">` 데스크탑 사파리 미지원 대체). 이동 범위 기본은 `minYear`/`maxYear` 미지정 시 `today` 기준 15년 전 ~ 올해이며, 현재 선택 연도가 그 밖이면 하한/상한이 그 연도까지 넓어진다(선택값이 화살표로 도달 불가한 상태를 만들지 않는다). 미래 월 선택이 필요하면 `maxYear`를 넘긴다(`finance-bulk-register` 대상 월: `currentYear + 1`). 소비자: `asset-overview`·`finance-summary`(월간 모드)·`finance-bulk-register`
+- `YearMonthSelect` — `value`(`YYYY-MM`)를 받는 월 그리드 팝오버(네이티브 `<input type="month">` 데스크탑 사파리 미지원 대체). 이동 범위 기본은 `minYear`/`maxYear` 미지정 시 `today` 기준 15년 전 ~ 올해이며, 현재 선택 연도가 그 밖이면 하한/상한이 그 연도까지 넓어진다(선택값이 화살표로 도달 불가한 상태를 만들지 않는다). 미래 월 선택이 필요하면 `maxYear`를 넘긴다(`finance-bulk-register` 대상 월: `currentYear + 1`). 월 단위 교차 제약(from ≤ to 등)은 연 단위만 지원하므로 소비자가 `onValueChange`에서 clamp한다(`benchmark-comparison/BenchmarkFilterBar` 커스텀 기간 참고). 소비자: `asset-overview`·`finance-summary`(월간 모드)·`finance-bulk-register`·`benchmark-comparison`(아파트 커스텀 기간)
 
 shadcn 자동생성 컴포넌트는 `components/ui/`에 두고 `npx shadcn@latest add <component> --yes`로만 추가한다.
 
