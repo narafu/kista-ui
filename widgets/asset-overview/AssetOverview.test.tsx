@@ -77,8 +77,7 @@ describe('AssetOverview', () => {
   it('기록이 전혀 없어도 월 선택기는 항상 렌더링된다(임의 연도/월 자유 선택)', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: [], isLoading: false, isError: false })
     render(<AssetOverview month="2026-08" months={[]} onMonthChange={onMonthChange} today={TODAY} />)
-    expect(screen.getByRole('combobox', { name: '기준 월' })).toBeInTheDocument()
-    expect(screen.getByRole('combobox', { name: '기준 연도' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /기준 연월/ })).toBeInTheDocument()
   })
 
   it('KPI 카드에 순자산·총자산·총부채·가장 큰 자산군을 포맷팅해 표시한다', () => {
@@ -198,7 +197,6 @@ describe('AssetOverview', () => {
     })
     render(<AssetOverview month="2026-08" months={['2026-08', '2026-07']} onMonthChange={onMonthChange} today={TODAY} />)
 
-    expect(screen.getByRole('combobox', { name: '기준 연도' })).toHaveTextContent('2026년')
-    expect(screen.getByRole('combobox', { name: '기준 월' })).toHaveTextContent('8월')
+    expect(screen.getByRole('button', { name: /기준 연월/ })).toHaveTextContent('2026년 8월')
   })
 })

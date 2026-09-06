@@ -24,7 +24,7 @@ import {
   useFinanceTransactionsQuery,
 } from '@entities/finance'
 import type { CategoryGroupNode, BulkRegisterItem } from '@entities/finance'
-import { YearMonthSelect } from './YearMonthSelect'
+import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
 
 // todayKst() 사용 — new Date()의 getFullYear/getMonth는 브라우저 로컬 타임존이라
 // KST가 아닌 기기·자정 근처(UTC 기준 전날)에서 소스/타겟월 기본값이 하루 어긋날 수 있다.
@@ -52,6 +52,8 @@ function flattenNodes(nodes: CategoryGroupNode[]): BulkRegisterItem[] {
 export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Props) {
   const router = useRouter()
   const { labelOf } = useMeta()
+  const today = todayKst()
+  const currentYear = Number(today.slice(0, 4))
   const [sourceMonth, setSourceMonth] = useState(defaultSourceMonth ?? shiftMonth(thisMonth(), -1))
   const [targetMonth, setTargetMonth] = useState(defaultTargetMonth ?? thisMonth())
 
@@ -255,9 +257,9 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
           스크롤해야 보이는 위치라 눈에 잘 띄지 않는다는 피드백으로 상단으로 옮겼다. */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
-          <YearMonthSelect value={sourceMonth} onChange={setSourceMonth} yearLabel="소스 연도" monthLabel="소스 월" />
+          <YearMonthSelect value={sourceMonth} onValueChange={setSourceMonth} today={today} label="소스" />
           <span>기록으로</span>
-          <YearMonthSelect value={targetMonth} onChange={setTargetMonth} yearLabel="대상 연도" monthLabel="대상 월" />
+          <YearMonthSelect value={targetMonth} onValueChange={setTargetMonth} today={today} label="대상" maxYear={currentYear + 1} />
           <span>모두 등록</span>
         </div>
         <Button onClick={handleSubmit} disabled={submitDisabled} className="hidden sm:inline-flex">

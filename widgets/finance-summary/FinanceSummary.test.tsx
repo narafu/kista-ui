@@ -17,7 +17,7 @@ function tx(date: string, amount: number, categoryId = 'cat-1'): FinanceTransact
 }
 
 describe('FinanceSummary 월간 모드', () => {
-  it('네이티브 month input 대신 연도·월 select 쌍을 렌더한다 (데스크탑 사파리 type="month" 미지원 대응)', () => {
+  it('네이티브 month input 대신 연월 팝오버 트리거를 렌더한다 (데스크탑 사파리 type="month" 미지원 대응)', () => {
     render(
       <FinanceSummary
         type="EXPENSE"
@@ -31,8 +31,7 @@ describe('FinanceSummary 월간 모드', () => {
       />,
     )
     expect(document.querySelector('input[type="month"]')).not.toBeInTheDocument()
-    expect(screen.getByRole('combobox', { name: '기준 연도' })).toHaveTextContent('2026년')
-    expect(screen.getByRole('combobox', { name: '기준 월' })).toHaveTextContent('8월')
+    expect(screen.getByRole('button', { name: /기준 연월/ })).toHaveTextContent('2026년 8월')
   })
 })
 
@@ -50,7 +49,7 @@ describe('FinanceSummary 연간 모드', () => {
         today="2026-08-23"
       />,
     )
-    expect(screen.queryByLabelText('기준 월')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /기준 연월/ })).not.toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: '기준 연도' })).toHaveTextContent('2026년')
   })
 
