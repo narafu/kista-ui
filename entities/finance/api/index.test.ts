@@ -90,6 +90,53 @@ describe('bulkRegisterFinance', () => {
   })
 })
 
+describe('단건 create — shareToGroup 쿼리', () => {
+  beforeEach(() => {
+    clientFetchMock.mockReset()
+    apiFetchMock.mockReset()
+  })
+
+  it('shareToGroup 미지정이면 쿼리 없이 POST 한다', async () => {
+    clientFetchMock.mockResolvedValueOnce({ id: 'b1', amount: 1000 })
+
+    const { createFinanceBudget } = await import('./index')
+    await createFinanceBudget({ categoryId: 'c1', applyStartDate: '2026-01-01', amount: 1000 })
+
+    expect(clientFetchMock).toHaveBeenCalledWith(
+      '/api/finance/budgets',
+      { method: 'POST', body: JSON.stringify({ categoryId: 'c1', applyStartDate: '2026-01-01', amount: 1000 }) },
+    )
+  })
+
+  it('shareToGroup:true 면 ?shareToGroup=true 를 붙인다', async () => {
+    clientFetchMock.mockResolvedValueOnce({ id: 't1', amount: 1000 })
+
+    const { createFinanceTransaction } = await import('./index')
+    await createFinanceTransaction({ categoryId: 'c1', transactionDate: '2026-01-01', amount: 1000 }, { shareToGroup: true })
+
+    expect(clientFetchMock).toHaveBeenCalledWith(
+      '/api/finance/transactions?shareToGroup=true',
+      { method: 'POST', body: JSON.stringify({ categoryId: 'c1', transactionDate: '2026-01-01', amount: 1000 }) },
+    )
+  })
+
+  it.each([
+    ['createAssetSnapshot', '/api/finance/asset-snapshots'],
+    ['createFinanceAccount', '/api/finance/accounts'],
+    ['createFinanceCategory', '/api/finance/categories'],
+  ])('%s 도 shareToGroup:true 면 같은 쿼리를 붙인다', async (fnName, path) => {
+    clientFetchMock.mockResolvedValueOnce({ id: 'x1' })
+
+    const mod = await import('./index')
+    await (mod as Record<string, (d: unknown, o: unknown) => Promise<unknown>>)[fnName]({ nickname: 'x' }, { shareToGroup: true })
+
+    expect(clientFetchMock).toHaveBeenCalledWith(
+      `${path}?shareToGroup=true`,
+      { method: 'POST', body: JSON.stringify({ nickname: 'x' }) },
+    )
+  })
+})
+
 describe('setMonthlyClosing', () => {
   beforeEach(() => {
     clientFetchMock.mockReset()

@@ -12,7 +12,6 @@ import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { digitsOnly, formatAmountDisplay } from '@shared/lib/format'
 import {
-  notifyShareCreateResult,
   useCanShareToGroup,
   useCategoryPathState,
   useCreateFinanceBudgetMutation,
@@ -82,8 +81,8 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, du
     }
 
     createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
-      onSuccess: (saved, variables) => {
-        notifyShareCreateResult(saved, variables, '예산', '예산이 등록되었습니다')
+      onSuccess: () => {
+        toast.success('예산이 등록되었습니다')
         onSuccess()
       },
     })

@@ -15,6 +15,7 @@ const { createMutateMock, updateMutateMock, deleteMutateMock, shareMutateMock, u
 
 const assetCategories: FinanceCategory[] = [
   { id: 'l1-invest', type: 'ASSET', name: '투자', sortOrder: 10, system: true, children: [] },
+  { id: 'l1-shared', type: 'ASSET', name: '공유대분류', groupId: 'g1', sortOrder: 15, system: false, children: [] },
   {
     id: 'l1-custom',
     type: 'ASSET',
@@ -126,5 +127,26 @@ describe('CategoryManager', () => {
     const shareButton = within(personalRow).getByRole('button', { name: '공유' })
     await user.click(shareButton)
     expect(shareMutateMock).toHaveBeenCalledWith('l1-custom', expect.anything())
+  })
+
+  it('생성 다이얼로그: 개인 소유 부모를 고르면 "그룹으로 저장" 토글을 숨기고 안내 문구를 보여준다', async () => {
+    canShareState.value = true
+    const user = userEvent.setup()
+    render(<CategoryManager />)
+
+    await user.click(screen.getByRole('button', { name: '카테고리 추가' }))
+    // 부모 미선택(최상위) 상태에서는 토글이 보인다
+    expect(screen.getByRole('switch', { name: '그룹으로 저장' })).toBeInTheDocument()
+
+    // 개인 소유 부모(기타자산) 선택 → 토글 숨김 + 안내
+    await user.click(screen.getByRole('combobox', { name: '상위 카테고리' }))
+    await user.click(await screen.findByRole('option', { name: '기타자산' }))
+    expect(screen.queryByRole('switch', { name: '그룹으로 저장' })).not.toBeInTheDocument()
+    expect(screen.getByText(/개인 카테고리 하위에는 그룹 공유 카테고리를 만들 수 없어요/)).toBeInTheDocument()
+
+    // 그룹 소유 부모(공유대분류)로 바꾸면 토글이 다시 나타난다
+    await user.click(screen.getByRole('combobox', { name: '상위 카테고리' }))
+    await user.click(await screen.findByRole('option', { name: '공유대분류' }))
+    expect(screen.getByRole('switch', { name: '그룹으로 저장' })).toBeInTheDocument()
   })
 })

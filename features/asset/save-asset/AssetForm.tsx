@@ -20,7 +20,6 @@ import {
   SYSTEM_REAL_ESTATE_CATEGORY_ID,
   SYSTEM_SAVINGS_CATEGORY_ID,
   isInvestmentCategoryId,
-  notifyShareCreateResult,
   useCanShareToGroup,
   useCategoryPathState,
   useCreateAssetSnapshotMutation,
@@ -187,8 +186,8 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
     }
 
     createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
-      onSuccess: (saved, variables) => {
-        notifyShareCreateResult(saved, variables, '자산 기록', mode === 'duplicate' ? '자산 기록이 복제되었습니다' : '자산 기록이 등록되었습니다')
+      onSuccess: () => {
+        toast.success(mode === 'duplicate' ? '자산 기록이 복제되었습니다' : '자산 기록이 등록되었습니다')
         onSuccess()
       },
     })

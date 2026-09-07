@@ -12,7 +12,6 @@ import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import {
-  notifyShareCreateResult,
   useCanShareToGroup,
   useCategoryPathState,
   useCreateFinanceTransactionMutation,
@@ -91,8 +90,8 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
     }
 
     createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
-      onSuccess: (saved, variables) => {
-        notifyShareCreateResult(saved, variables, '거래내역', '거래내역이 등록되었습니다')
+      onSuccess: () => {
+        toast.success('거래내역이 등록되었습니다')
         onSuccess()
       },
     })

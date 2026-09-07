@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import {
   useCreateAssetSnapshotMutation,
+  useCreateFinanceAccountMutation,
   useDeleteManyAssetSnapshotsMutation,
   useSetMonthlyClosingMutation,
   useUpdateAssetSnapshotMutation,
@@ -12,6 +13,7 @@ const {
   useMutationMock,
   useQueryClientMock,
   createAssetSnapshotMock,
+  createFinanceAccountMock,
   deleteAssetSnapshotMock,
   setMonthlyClosingMock,
   toastErrorMock,
@@ -19,6 +21,7 @@ const {
   useMutationMock: vi.fn((options: unknown) => options),
   useQueryClientMock: vi.fn(),
   createAssetSnapshotMock: vi.fn(),
+  createFinanceAccountMock: vi.fn(),
   deleteAssetSnapshotMock: vi.fn(),
   setMonthlyClosingMock: vi.fn(),
   toastErrorMock: vi.fn(),
@@ -39,7 +42,7 @@ vi.mock('../api', () => ({
   createFinanceCategory: vi.fn(),
   updateFinanceCategory: vi.fn(),
   deleteFinanceCategory: vi.fn(),
-  createFinanceAccount: vi.fn(),
+  createFinanceAccount: createFinanceAccountMock,
   updateFinanceAccount: vi.fn(),
   deleteFinanceAccount: vi.fn(),
   removeFinanceGroupMember: vi.fn(),
@@ -76,6 +79,28 @@ describe('useCreateAssetSnapshotMutation', () => {
     await result.current.onSuccess()
 
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.assetSnapshotsRoot() })
+  })
+})
+
+describe('useCreateFinanceAccountMutation', () => {
+  it('shareToGroup을 createFinanceAccount로 전달하고 성공 시 accountsRoot를 invalidate한다 (그룹 스코프 upsert 아님)', async () => {
+    const queryClient = fakeQueryClient([{ id: 'a1' }])
+    useQueryClientMock.mockReturnValue(queryClient)
+    createFinanceAccountMock.mockResolvedValueOnce({ id: 'a2', groupId: 'g1' })
+
+    const { result } = renderHook(() => useCreateFinanceAccountMutation())
+
+    // @ts-expect-error — 테스트에서 mutation config를 직접 캡처해 호출
+    await result.current.mutationFn({ shareToGroup: true, nickname: '주거래', broker: 'BANK', accountNo: '12345678' })
+    expect(createFinanceAccountMock).toHaveBeenCalledWith(
+      { nickname: '주거래', broker: 'BANK', accountNo: '12345678' },
+      { shareToGroup: true },
+    )
+
+    // @ts-expect-error — 위와 동일
+    await result.current.onSuccess()
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.accountsRoot() })
+    expect(queryClient.setQueryData).not.toHaveBeenCalled()
   })
 })
 
