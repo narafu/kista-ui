@@ -36,7 +36,7 @@ describe('FinanceSummary 월간 모드', () => {
 })
 
 describe('FinanceSummary 연간 모드', () => {
-  it('연간 모드일 때 월 선택 input 대신 연도 숫자 입력을 렌더한다', () => {
+  it('연간 모드일 때 월 캘린더 대신 연도 선택 팝오버 트리거를 렌더한다', () => {
     render(
       <FinanceSummary
         type="EXPENSE"
@@ -50,7 +50,7 @@ describe('FinanceSummary 연간 모드', () => {
       />,
     )
     expect(screen.queryByRole('button', { name: /기준 연월/ })).not.toBeInTheDocument()
-    expect(screen.getByRole('combobox', { name: '기준 연도' })).toHaveTextContent('2026년')
+    expect(screen.getByRole('button', { name: /기준 연도/ })).toHaveTextContent('2026년')
   })
 
   it('연간 모드에서 전년 동기간 거래가 있으면 합계 카드에 전년대비를 함께 보여준다', () => {

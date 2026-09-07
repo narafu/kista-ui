@@ -2,9 +2,9 @@
 
 import { useMemo, type ReactNode } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SectionError } from '@shared/ui/SectionError'
 import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
+import { YearSelect } from '@shared/ui/YearSelect'
 import { fmtKrw, fmtSignedKrw, maskAmount, pnlTextClass, ratioToPercent } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
@@ -28,27 +28,6 @@ interface Props {
   // 부모 페이지(useFinanceFlowData 훅)가 한 번만 계산해 내려주는 "오늘"(period 상태와 동일한 소유 방식) — 위젯마다
   // todayKst()를 각자 호출하지 않는다.
   today: string
-}
-
-// 기준 연도·기준 월 select 한 쌍 — 월간 모드(연도+월)와 연간 모드(연도만)가 값·옵션만 다르고
-// Select/SelectTrigger/SelectValue/SelectContent 구조는 동일해 공유한다.
-function PeriodSelect({ ariaLabel, items, value, onValueChange, className }: {
-  ariaLabel: string
-  items: { value: string; label: string }[]
-  value: string
-  onValueChange: (value: string) => void
-  className: string
-}) {
-  return (
-    <Select items={items} value={value} onValueChange={(v) => { if (v) onValueChange(v) }}>
-      <SelectTrigger aria-label={ariaLabel} className={cn('h-9 text-sm', className)}>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {items.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}
-      </SelectContent>
-    </Select>
-  )
 }
 
 const MODE_OPTIONS: { value: PeriodMode; label: string }[] = [
@@ -141,15 +120,6 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
     return summary.total - expenseTotal - savingTotal
   }, [type, transactions, index, period, today, summary.total])
 
-  // 연도 select 옵션 — 최근 15개년을 기본으로 잡되, 월간 모드에서 그 범위 밖 연도(과거든 미래든)를
-  // 고른 뒤 연간 모드로 전환해도 현재 선택값이 항상 목록에 포함되도록 보정한다(안 하면 SelectValue가
-  // 목록에 없는 값이라 빈칸으로 보인다).
-  const currentYear = Number(today.slice(0, 4))
-  const selectedYear = Number(period.month.slice(0, 4))
-  const latestYear = Math.max(selectedYear, currentYear)
-  const earliestYear = Math.min(selectedYear, currentYear - 14)
-  const yearOptions = Array.from({ length: latestYear - earliestYear + 1 }, (_, i) => latestYear - i)
-
   return (
     <Card>
       <CardHeader className="flex flex-col gap-3 pb-3 sm:flex-row sm:items-center sm:justify-between">
@@ -162,12 +132,10 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
               today={today}
             />
           ) : (
-            <PeriodSelect
-              ariaLabel="기준 연도"
-              className="w-24"
-              items={yearOptions.map((y) => ({ value: String(y), label: `${y}년` }))}
-              value={period.month.slice(0, 4)}
-              onValueChange={(value) => onPeriodChange({ ...period, month: `${value}-${period.month.slice(5, 7)}` })}
+            <YearSelect
+              value={Number(period.month.slice(0, 4))}
+              onValueChange={(year) => onPeriodChange({ ...period, month: `${year}-${period.month.slice(5, 7)}` })}
+              today={today}
             />
           )}
           <div role="group" aria-label="기간 모드" className="grid grid-cols-2 rounded-md border border-border p-0.5">
