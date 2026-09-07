@@ -247,7 +247,7 @@ export function BenchmarkFilterBar({
                   today={defaultTo}
                   maxYear={Number(customToMonth.slice(0, 4))}
                   onValueChange={(month) => setCustomFromMonth(month > customToMonth ? customToMonth : month)}
-                  className="w-full"
+                  className="h-10 w-full"
                 />
                 <span className="shrink-0 text-xs text-muted-foreground">~</span>
                 <YearMonthSelect
@@ -260,7 +260,7 @@ export function BenchmarkFilterBar({
                     const max = toMonthInput(defaultTo)
                     setCustomToMonth(month < customFromMonth ? customFromMonth : month > max ? max : month)
                   }}
-                  className="w-full"
+                  className="h-10 w-full"
                 />
               </div>
             ) : null}
