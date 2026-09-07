@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { calcBudgetProgress, calcFlowSummary, calcFlowTrend } from './flowAggregate'
+import { buildBudgetProgressTree, calcBudgetProgress, calcFlowSummary, calcFlowTrend } from './flowAggregate'
+import type { BudgetProgress } from './flowAggregate'
 import type { CategoryIndex } from './categoryIndex'
 import type { FinanceBudget, FinanceCategory, FinanceTransaction } from '../model/types'
 
@@ -124,5 +125,66 @@ describe('calcBudgetProgress', () => {
     expect(result).toEqual([
       { budgetId: 'b-food', categoryId: 'cat-food', categoryName: '식비', allocated: 1200, actual: 100, remaining: 1100, usageRatio: 100 / 1200 },
     ])
+  })
+})
+
+describe('buildBudgetProgressTree', () => {
+  function cat(id: string, name: string, children: FinanceCategory[] = []): FinanceCategory {
+    return { id, type: 'EXPENSE', name, sortOrder: 0, system: false, children }
+  }
+  function bp(categoryId: string, categoryName: string, allocated: number, actual: number): BudgetProgress {
+    return { budgetId: `b-${categoryId}`, categoryId, categoryName, allocated, actual, remaining: allocated - actual, usageRatio: allocated > 0 ? actual / allocated : 0 }
+  }
+
+  it('자체 예산 없는 부모는 하위 예산 항목의 합을 소계로 갖는 그룹 노드가 된다', () => {
+    const tree = [
+      cat('food', '식비', [
+        cat('dining', '외식', [cat('lunch', '점심'), cat('dinner', '저녁')]),
+        cat('grocery', '장보기'),
+      ]),
+    ]
+    const progress = [bp('lunch', '점심', 200, 180), bp('dinner', '저녁', 150, 90), bp('grocery', '장보기', 200, 200)]
+
+    const [foodNode] = buildBudgetProgressTree(progress, tree)
+
+    expect(foodNode).toMatchObject({ categoryId: 'food', depth: 0, isGroup: true, allocated: 550, actual: 470, remaining: 80 })
+    expect(foodNode.budgetId).toBeUndefined()
+    const [diningNode, groceryNode] = foodNode.children
+    expect(diningNode).toMatchObject({ categoryId: 'dining', depth: 1, isGroup: true, allocated: 350, actual: 270 })
+    expect(diningNode.children.map((c) => [c.categoryId, c.depth, c.isGroup])).toEqual([['lunch', 2, false], ['dinner', 2, false]])
+    expect(groceryNode).toMatchObject({ categoryId: 'grocery', depth: 1, isGroup: false, budgetId: 'b-grocery' })
+  })
+
+  it('부모에 자체 예산이 있으면 그 예산 항목을 노드로 쓰고 하위를 중첩한다(Σ·중복 없음)', () => {
+    const tree = [cat('food', '식비', [cat('dining', '외식', [cat('lunch', '점심')])])]
+    const progress = [bp('food', '식비', 600, 530), bp('dining', '외식', 400, 320), bp('lunch', '점심', 200, 180)]
+
+    const [foodNode] = buildBudgetProgressTree(progress, tree)
+
+    expect(foodNode).toMatchObject({ categoryId: 'food', depth: 0, isGroup: false, budgetId: 'b-food', allocated: 600, actual: 530 })
+    expect(foodNode.children[0]).toMatchObject({ categoryId: 'dining', depth: 1, isGroup: false, allocated: 400, actual: 320 })
+    expect(foodNode.children[0].children[0]).toMatchObject({ categoryId: 'lunch', depth: 2, isGroup: false })
+  })
+
+  it('예산이 하나도 없는 가지는 결과에서 제외한다', () => {
+    const tree = [
+      cat('food', '식비', [cat('grocery', '장보기')]),
+      cat('culture', '문화', [cat('movie', '영화')]),
+    ]
+    const progress = [bp('grocery', '장보기', 200, 100)]
+
+    const roots = buildBudgetProgressTree(progress, tree)
+
+    expect(roots.map((n) => n.categoryId)).toEqual(['grocery'])
+  })
+
+  it('자체 예산 없고 하위가 1개뿐인 그룹 노드는 생략하고 하위를 그 자리로 올린다', () => {
+    const tree = [cat('shop', '쇼핑', [cat('clothes', '의류', [cat('top', '상의')])])]
+    const progress = [bp('top', '상의', 100, 50)]
+
+    const roots = buildBudgetProgressTree(progress, tree)
+
+    expect(roots).toHaveLength(1)
+    expect(roots[0]).toMatchObject({ categoryId: 'top', depth: 0, isGroup: false })
   })
 })

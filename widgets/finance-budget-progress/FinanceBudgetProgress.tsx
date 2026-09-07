@@ -7,8 +7,8 @@ import { SectionError } from '@shared/ui/SectionError'
 import { fmtKrw } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { useMeta } from '@entities/meta'
-import { calcBudgetProgress, calcUnbudgetedCategories, filterByType, flowCategoryColor, sortCategoryTree } from '@entities/finance'
-import type { CategoryIndex, FinanceBudget, FinanceCategory, FinanceTransaction, Period } from '@entities/finance'
+import { buildBudgetProgressTree, calcBudgetProgress, calcUnbudgetedCategories, filterByType, flowCategoryColor, sortCategoryTree } from '@entities/finance'
+import type { BudgetTreeNode, CategoryIndex, FinanceBudget, FinanceCategory, FinanceTransaction, Period } from '@entities/finance'
 import { BudgetFormDialog } from '@features/finance/manage-budgets'
 
 interface Props {
@@ -31,29 +31,55 @@ interface BreakdownBarProps {
   remaining: number
   percent: number
   color: string
+  // 자체 예산이 없는 그룹(중간 카테고리) 행 — 하위 예산 합만 보여준다. 라벨은 굵게, 막대는 무채색, 숫자에 Σ.
+  isGroup?: boolean
 }
 
 // widgets/asset-overview/AssetOverview.tsx의 로컬 BreakdownBar를 정본으로 복제하되
 // 시맨틱을 예산 대비용(우측: 실적/할당, 잔여·초과)으로 바꿨다 — widget 간 import 금지 규칙에 따라
 // 각 위젯이 각자 복제한다.
-function BreakdownBar({ label, actual, allocated, remaining, percent, color }: BreakdownBarProps) {
+function BreakdownBar({ label, actual, allocated, remaining, percent, color, isGroup = false }: BreakdownBarProps) {
   const isOver = remaining < 0
   return (
     <div className="flex items-center gap-3">
-      <span className="w-24 shrink-0 truncate text-sm text-muted-foreground">{label}</span>
+      <span className={cn('w-24 shrink-0 truncate text-sm', isGroup ? 'font-medium text-foreground' : 'text-muted-foreground')}>{label}</span>
       <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
         <div
-          className="h-full rounded-full transition-[width] duration-500 ease-out"
-          style={{ width: `${percent}%`, backgroundColor: color }}
+          className={cn('h-full rounded-full transition-[width] duration-500 ease-out', isGroup && 'bg-muted-foreground/40')}
+          style={isGroup ? { width: `${percent}%` } : { width: `${percent}%`, backgroundColor: color }}
         />
       </div>
       <div className="flex w-auto min-w-[9rem] shrink-0 flex-col items-end">
-        <span className="text-sm font-medium tabular-nums">{`${fmtKrw(actual)} / ${fmtKrw(allocated)}`}</span>
+        <span className="text-sm font-medium tabular-nums">{`${isGroup ? 'Σ ' : ''}${fmtKrw(actual)} / ${fmtKrw(allocated)}`}</span>
         <span className={cn('text-xs tabular-nums', isOver ? 'text-destructive' : 'text-muted-foreground')}>
           {isOver ? `초과 ${fmtKrw(Math.abs(remaining))}` : `잔여 ${fmtKrw(remaining)}`}
         </span>
       </div>
     </div>
+  )
+}
+
+// depth별 들여쓰기 — 트리가 깊어져도 3단계 이상은 동일 들여쓰기로 묶는다.
+const INDENT_BY_DEPTH = ['', 'pl-4', 'pl-8', 'pl-10'] as const
+
+function BudgetTreeRow({ node, orderedRootIds, index }: { node: BudgetTreeNode; orderedRootIds: string[]; index: CategoryIndex }) {
+  return (
+    <>
+      <div className={INDENT_BY_DEPTH[Math.min(node.depth, INDENT_BY_DEPTH.length - 1)]}>
+        <BreakdownBar
+          label={node.categoryName}
+          actual={node.actual}
+          allocated={node.allocated}
+          remaining={node.remaining}
+          percent={Math.min(node.usageRatio * 100, 100)}
+          color={flowCategoryColor(orderedRootIds, index.get(node.categoryId)?.rootId ?? '')}
+          isGroup={node.isGroup}
+        />
+      </div>
+      {node.children.map((child) => (
+        <BudgetTreeRow key={child.categoryId} node={child} orderedRootIds={orderedRootIds} index={index} />
+      ))}
+    </>
   )
 }
 
@@ -69,6 +95,7 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
   // orderedRootIds(색상 매핑) 양쪽에 재사용한다.
   const sortedCategoryTree = useMemo(() => sortCategoryTree(categoryTree), [categoryTree])
   const progress = calcBudgetProgress(typedBudgets, typedTransactions, sortedCategoryTree, index, period, today)
+  const budgetTree = buildBudgetProgressTree(progress, sortedCategoryTree)
   const unbudgeted = calcUnbudgetedCategories(typedBudgets, typedTransactions, sortedCategoryTree, index, period, today)
   const orderedRootIds = sortedCategoryTree.map((c) => c.id)
 
@@ -84,20 +111,12 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
           <SectionError message="예산 대비 실적을 불러오지 못했습니다" />
         ) : (
           <div className="space-y-4">
-            {progress.length === 0 ? (
+            {budgetTree.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">설정한 예산이 없습니다.</p>
             ) : (
               <div className="space-y-2">
-                {progress.map((entry) => (
-                  <BreakdownBar
-                    key={entry.budgetId}
-                    label={entry.categoryName}
-                    actual={entry.actual}
-                    allocated={entry.allocated}
-                    remaining={entry.remaining}
-                    percent={Math.min(entry.usageRatio * 100, 100)}
-                    color={flowCategoryColor(orderedRootIds, index.get(entry.categoryId)?.rootId ?? '')}
-                  />
+                {budgetTree.map((node) => (
+                  <BudgetTreeRow key={node.categoryId} node={node} orderedRootIds={orderedRootIds} index={index} />
                 ))}
               </div>
             )}

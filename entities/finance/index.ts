@@ -168,6 +168,7 @@ export type { BulkRegisterItem, BulkRegisterItems, CategoryGroupNode } from './l
 export { daysInMonth, displayWindow, elapsedDaysInMonth, elapsedMonthsInYear, isCurrentYear, monthEndDate, monthStartDate, periodRange, previousYearRange, registerWindowUpperBound, shiftMonth, windowRange, yearsRange } from './lib/period'
 export type { Period, PeriodMode } from './lib/period'
 export {
+  buildBudgetProgressTree,
   calcBudgetProgress,
   calcFlowSummary,
   calcFlowTrend,
@@ -175,5 +176,5 @@ export {
   filterByType,
   unclassifiedTransactions,
 } from './lib/flowAggregate'
-export type { BudgetProgress, FlowSummary, FlowTrendPoint, UnbudgetedCategory } from './lib/flowAggregate'
+export type { BudgetProgress, BudgetTreeNode, FlowSummary, FlowTrendPoint, UnbudgetedCategory } from './lib/flowAggregate'
 export { flowCategoryColor } from './lib/colors'

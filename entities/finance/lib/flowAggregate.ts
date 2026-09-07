@@ -173,6 +173,82 @@ export function calcBudgetProgress(
   return results.sort((a, b) => displayOrder.indexOf(a.categoryId) - displayOrder.indexOf(b.categoryId))
 }
 
+export interface BudgetTreeNode {
+  categoryId: string
+  categoryName: string
+  depth: number
+  // true = 자체 예산이 없어 하위 예산 합만 보여주는 그룹 노드(Σ). false = 자체 예산 항목.
+  isGroup: boolean
+  budgetId?: string // isGroup=false일 때만
+  allocated: number
+  actual: number
+  remaining: number
+  usageRatio: number
+  children: BudgetTreeNode[]
+}
+
+function shiftDepth(node: BudgetTreeNode, delta: number): BudgetTreeNode {
+  if (delta === 0) return node
+  return { ...node, depth: node.depth - delta, children: node.children.map((c) => shiftDepth(c, delta)) }
+}
+
+// calcBudgetProgress의 flat 목록(예산 1건 = 항목 1개)을 카테고리 계층 트리로 재구성한다 —
+// 수입/소비/저축 예산 대비 위젯이 중간 카테고리 소계와 함께 재귀 렌더한다.
+// categoryTree는 calcBudgetProgress와 동일하게 sortCategoryTree로 미리 정렬해서 넘긴다(표시 순번).
+// 규칙:
+// - 자체 예산이 있는 노드: 그 BudgetProgress 숫자를 그대로 쓰고(실적은 이미 서브트리 전체 집계) 하위를 중첩
+// - 자체 예산이 없지만 하위에 예산이 있는 노드: 직속 하위들의 표시값 합을 소계로 갖는 그룹 노드
+// - 자체 예산도 없고 하위에도 예산이 없는 가지: 렌더하지 않음(가지치기)
+// - 자체 예산 없고 하위가 1개뿐인 그룹 노드: 소계가 그 하위와 동일해 중복이므로 노드를 생략하고 하위를 끌어올림
+export function buildBudgetProgressTree(progress: BudgetProgress[], categoryTree: FinanceCategory[]): BudgetTreeNode[] {
+  const byCategory = new Map(progress.map((entry) => [entry.categoryId, entry]))
+
+  function build(node: FinanceCategory, depth: number): BudgetTreeNode | null {
+    const children = node.children
+      .map((child) => build(child, depth + 1))
+      .filter((built): built is BudgetTreeNode => built !== null)
+    const own = byCategory.get(node.id)
+
+    if (!own && children.length === 0) return null
+
+    if (own) {
+      return {
+        categoryId: node.id,
+        categoryName: node.name,
+        depth,
+        isGroup: false,
+        budgetId: own.budgetId,
+        allocated: own.allocated,
+        actual: own.actual,
+        remaining: own.remaining,
+        usageRatio: own.usageRatio,
+        children,
+      }
+    }
+
+    // build(x, d)는 항상 depth===d인 노드를 돌려주므로 유일 하위는 depth+1 → delta는 항상 1.
+    if (children.length === 1) return shiftDepth(children[0], 1)
+
+    const allocated = children.reduce((sum, child) => sum + child.allocated, 0)
+    const actual = children.reduce((sum, child) => sum + child.actual, 0)
+    return {
+      categoryId: node.id,
+      categoryName: node.name,
+      depth,
+      isGroup: true,
+      allocated,
+      actual,
+      remaining: allocated - actual,
+      usageRatio: allocated > 0 ? actual / allocated : 0,
+      children,
+    }
+  }
+
+  return categoryTree
+    .map((root) => build(root, 0))
+    .filter((built): built is BudgetTreeNode => built !== null)
+}
+
 export interface UnbudgetedCategory {
   categoryId: string
   categoryName: string
