@@ -68,13 +68,25 @@ describe('bulkRegisterFinance', () => {
     clientFetchMock.mockResolvedValueOnce({ assetSuccessCount: 1, transactionSuccessCount: 2, failures: [] })
 
     const { bulkRegisterFinance } = await import('./index')
-    const result = await bulkRegisterFinance({ assets: [], transactions: [] }, { groupId: 'group-1' })
+    const result = await bulkRegisterFinance({ assets: [], transactions: [] })
 
     expect(clientFetchMock).toHaveBeenCalledWith(
-      '/api/finance/bulk-register?groupId=group-1',
+      '/api/finance/bulk-register',
       { method: 'POST', body: JSON.stringify({ assets: [], transactions: [] }) },
     )
     expect(result.assetSuccessCount).toBe(1)
+  })
+
+  it('shareToGroup:true 면 ?shareToGroup=true 쿼리를 붙인다 (대상 그룹은 서버가 해석)', async () => {
+    clientFetchMock.mockResolvedValueOnce({ assetSuccessCount: 0, transactionSuccessCount: 0, failures: [] })
+
+    const { bulkRegisterFinance } = await import('./index')
+    await bulkRegisterFinance({ assets: [], transactions: [] }, { shareToGroup: true })
+
+    expect(clientFetchMock).toHaveBeenCalledWith(
+      '/api/finance/bulk-register?shareToGroup=true',
+      { method: 'POST', body: JSON.stringify({ assets: [], transactions: [] }) },
+    )
   })
 })
 

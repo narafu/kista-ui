@@ -529,9 +529,11 @@ export function useCreateFinanceGroupInvitationMutation(groupId: string) {
 // 자산/거래 배치 등록 — 항목별 성공/실패는 응답에 담겨 오므로 mutation 자체는 항상 성공(reject
 // 없음, 서버가 400을 내는 요청 자체 오류만 error가 된다). asset/transaction 양쪽 루트를 함께
 // 무효화해야 해 financeKeys.all(공통 루트)을 그대로 쓴다.
+// shareToGroup:true면 서버가 각 항목을 그룹 공유로 등록한다 — 공유 전환 실패 항목은 서버가 롤백해
+// 응답 failures[]로 내려오므로 호출부(BulkRegisterForm)의 failures.length 분기가 그대로 커버한다.
 export function useBulkRegisterFinanceMutation() {
-  return useInvalidateFinanceMutation<BulkFinanceRegisterResponse, BulkFinanceRegisterRequest>(
-    (data) => bulkRegisterFinance(data),
+  return useInvalidateFinanceMutation<BulkFinanceRegisterResponse, BulkFinanceRegisterRequest & { shareToGroup?: boolean }>(
+    ({ shareToGroup, ...data }) => bulkRegisterFinance(data, { shareToGroup }),
     financeKeys.all,
     '일괄 등록에 실패했습니다',
   )

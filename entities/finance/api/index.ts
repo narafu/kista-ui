@@ -81,13 +81,15 @@ export async function deleteAssetSnapshot(id: string, token?: string): Promise<v
 }
 
 // 순수 flat 배치 등록 — 항목별 성공/실패를 응답으로 구분 반환한다(한 항목 실패가 전체를 막지 않음).
-// groupId 쿼리 파라미터는 다른 finance 생성 엔드포인트와 동일하게 서버가 무시하고 개인 소유로만 생성한다.
+// shareToGroup:true면 서버가 각 항목 생성 직후 호출자의 현재 그룹으로 공유 전환한다 — 전환 실패
+// 항목은 방금 만든 개인 레코드를 롤백하고 failures로 카운트한다(성공 카운트에서 빠짐). 대상 그룹은
+// 서버가 userId로 해석하므로(단건 PATCH .../{id}/share와 동일) 클라이언트가 groupId를 지정하지 않는다.
 export async function bulkRegisterFinance(
   data: BulkFinanceRegisterRequest,
-  { groupId, token }: GroupScopedOptions = {},
+  { shareToGroup, token }: { shareToGroup?: boolean; token?: string } = {},
 ): Promise<BulkFinanceRegisterResponse> {
   return fetchEither<BulkFinanceRegisterResponse>(
-    withQuery('/api/finance/bulk-register', { groupId }),
+    withQuery('/api/finance/bulk-register', { shareToGroup: shareToGroup ? 'true' : undefined }),
     jsonBody('POST', data),
     token,
   )

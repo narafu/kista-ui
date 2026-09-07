@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Surface } from '@shared/ui/Surface'
+import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { cn } from '@shared/lib/utils'
 import { digitsOnly, formatAmountDisplay, fmtKrw, todayKst } from '@shared/lib/format'
@@ -18,8 +19,10 @@ import {
   monthEndDate,
   monthStartDate,
   shiftMonth,
+  useActiveGroupId,
   useAssetSnapshotsQuery,
   useBulkRegisterFinanceMutation,
+  useCanShareToGroup,
   useFinanceCategoriesQuery,
   useFinanceTransactionsQuery,
 } from '@entities/finance'
@@ -56,6 +59,12 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
   const currentYear = Number(today.slice(0, 4))
   const [sourceMonth, setSourceMonth] = useState(defaultSourceMonth ?? shiftMonth(thisMonth(), -1))
   const [targetMonth, setTargetMonth] = useState(defaultTargetMonth ?? thisMonth())
+
+  // 그룹 소속일 때만 노출(useCanShareToGroup). 기본값은 활성 그룹 스코프로 보고 있을 때만 켜짐 —
+  // 단건 폼(useState(true))과 달리 bulk는 한 달치를 한 번에 전환해 개인 모드 오제출 시 피해가 크다.
+  const canShareToGroup = useCanShareToGroup()
+  const activeGroupId = useActiveGroupId()
+  const [shareToGroup, setShareToGroup] = useState(() => activeGroupId != null)
 
   const { data: transactions = [] } = useFinanceTransactionsQuery(monthStartDate(sourceMonth), monthEndDate(sourceMonth))
   const { data: assetSnapshots = [] } = useAssetSnapshotsQuery()
@@ -136,7 +145,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
       }))
 
     mutation.mutate(
-      { assets, transactions: transactionsPayload },
+      { assets, transactions: transactionsPayload, shareToGroup: canShareToGroup && shareToGroup },
       {
         onSuccess: (result) => {
           const succeeded = result.assetSuccessCount + result.transactionSuccessCount
@@ -266,6 +275,17 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
           이대로 확정하기
         </Button>
       </div>
+
+      {canShareToGroup && (
+        <Surface className="px-6 py-4">
+          <ShareToGroupSwitch
+            id="bulkRegisterShareToGroup"
+            checked={shareToGroup}
+            onCheckedChange={setShareToGroup}
+            disabled={mutation.isPending}
+          />
+        </Surface>
+      )}
 
       <div className="grid gap-[18px] lg:grid-cols-2">
         <div>{renderSection('자산', items.asset, true)}</div>
