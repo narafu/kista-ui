@@ -153,7 +153,11 @@ function CompositionChart({ title, columns, segments, labelFor, colorFor }: Comp
   )
 }
 
-export default function AssetCompositionInner() {
+interface Props {
+  month?: string
+}
+
+export default function AssetCompositionInner({ month }: Props) {
   const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
   const { labelOf } = useMeta()
 
@@ -165,8 +169,8 @@ export default function AssetCompositionInner() {
     return <SectionError message="구성비 데이터를 불러오지 못했습니다" />
   }
 
-  const categoryColumns = calcCategoryComposition(snapshots)
-  const assetClassColumns = calcAssetClassComposition(snapshots)
+  const categoryColumns = calcCategoryComposition(snapshots, 6, month)
+  const assetClassColumns = calcAssetClassComposition(snapshots, 6, month)
   const assetClassSegments = collectPresentSegments(assetClassColumns)
 
   return (

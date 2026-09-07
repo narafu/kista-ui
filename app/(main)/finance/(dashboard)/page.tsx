@@ -32,8 +32,8 @@ export default function FinanceInvestmentPage() {
     <div className="space-y-6">
       <AssetOverview month={selectedMonth} months={months} onMonthChange={setMonth} today={today} />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <AssetTrend className="order-2 lg:order-1" />
-        <AssetComposition className="order-1 lg:order-2" />
+        <AssetTrend month={selectedMonth} />
+        <AssetComposition month={selectedMonth} />
       </div>
       <AssetRecordCheck month={selectedMonth} />
       <AssetRecordList month={selectedMonth} />

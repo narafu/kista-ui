@@ -129,8 +129,11 @@ export function calcMonthlyTrend(
   mode: TrendMode,
   selector: string | null,
   monthsLimit = 6,
+  endMonth?: string,
 ): TrendPoint[] {
-  const months = listAvailableMonths(snapshots).slice().sort() // 오름차순
+  const months = listAvailableMonths(snapshots)
+    .filter((month) => !endMonth || month <= endMonth)
+    .sort() // 오름차순
   return months.slice(-monthsLimit).map((month) => {
     if (mode === 'netWorth') return { month, amount: calcMonthlySummary(snapshots, month).netWorth }
     const monthSnapshots = snapshotsInMonth(snapshots, month)
@@ -162,8 +165,12 @@ export function calcComposition(
   items: string[],
   matcher: (snapshot: AssetSnapshot, item: string) => boolean,
   monthsLimit = 6,
+  endMonth?: string,
 ): CompositionColumn[] {
-  const months = listAvailableMonths(snapshots).slice(0, monthsLimit).reverse() // 오름차순 최근 N개월
+  const months = listAvailableMonths(snapshots)
+    .filter((month) => !endMonth || month <= endMonth)
+    .slice(0, monthsLimit)
+    .reverse() // 오름차순 최근 N개월
   return months.map((month) => {
     const monthSnapshots = snapshotsInMonth(snapshots, month)
     const entries = items.map((item) => ({
@@ -179,21 +186,23 @@ export function calcComposition(
   })
 }
 
-export function calcCategoryComposition(snapshots: AssetSnapshot[], monthsLimit = 6): CompositionColumn[] {
+export function calcCategoryComposition(snapshots: AssetSnapshot[], monthsLimit = 6, endMonth?: string): CompositionColumn[] {
   return calcComposition(
     snapshots,
     ASSET_L1_CATEGORY_IDS,
     (snapshot, item) => snapshot.rootCategoryId === item,
     monthsLimit,
+    endMonth,
   )
 }
 
-export function calcAssetClassComposition(snapshots: AssetSnapshot[], monthsLimit = 6): CompositionColumn[] {
+export function calcAssetClassComposition(snapshots: AssetSnapshot[], monthsLimit = 6, endMonth?: string): CompositionColumn[] {
   return calcComposition(
     snapshots,
     ASSET_CLASS_ORDER,
     (snapshot, item) => !isLiability(snapshot) && snapshot.assetClass === item,
     monthsLimit,
+    endMonth,
   )
 }
 

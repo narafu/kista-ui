@@ -14,16 +14,17 @@ const AssetTrendInner = dynamic(() => import('./AssetTrendInner'), {
 
 interface Props {
   className?: string
+  month?: string
 }
 
-export function AssetTrend({ className }: Props) {
+export function AssetTrend({ className, month }: Props) {
   return (
     <Card className={className}>
       <CardHeader className="pb-3">
         <CardTitle className="text-base lg:text-lg">월별 추이</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col">
-        <AssetTrendInner />
+        <AssetTrendInner month={month} />
       </CardContent>
     </Card>
   )

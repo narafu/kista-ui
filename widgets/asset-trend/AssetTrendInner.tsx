@@ -50,7 +50,11 @@ function ModeButton({ active, onClick, children }: { active: boolean; onClick: (
   )
 }
 
-export default function AssetTrendInner() {
+interface Props {
+  month?: string
+}
+
+export default function AssetTrendInner({ month }: Props) {
   const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
   const { labelOf } = useMeta()
   const [mode, setMode] = useState<TrendMode>('netWorth')
@@ -68,7 +72,10 @@ export default function AssetTrendInner() {
     label: mode === 'category' ? formatAssetL1CategoryLabel(option) : labelOf('assetClasses', option),
   }))
 
-  const trend = useMemo(() => calcMonthlyTrend(snapshots, mode, effectiveSelector), [snapshots, mode, effectiveSelector])
+  const trend = useMemo(
+    () => calcMonthlyTrend(snapshots, mode, effectiveSelector, 6, month),
+    [snapshots, mode, effectiveSelector, month],
+  )
 
   if (isLoading) {
     return <div className="flex min-h-[240px] flex-1 items-center justify-center text-sm text-muted-foreground sm:min-h-[280px]">불러오는 중…</div>
