@@ -19,7 +19,6 @@ import {
   monthEndDate,
   monthStartDate,
   shiftMonth,
-  useActiveGroupId,
   useAssetSnapshotsQuery,
   useBulkRegisterFinanceMutation,
   useCanShareToGroup,
@@ -60,11 +59,9 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
   const [sourceMonth, setSourceMonth] = useState(defaultSourceMonth ?? shiftMonth(thisMonth(), -1))
   const [targetMonth, setTargetMonth] = useState(defaultTargetMonth ?? thisMonth())
 
-  // 그룹 소속일 때만 노출(useCanShareToGroup). 기본값은 활성 그룹 스코프로 보고 있을 때만 켜짐 —
-  // 단건 폼(useState(true))과 달리 bulk는 한 달치를 한 번에 전환해 개인 모드 오제출 시 피해가 크다.
+  // 그룹 소속일 때만 노출(useCanShareToGroup). 단건 폼과 동일하게 그룹이 있으면 기본 ON.
   const canShareToGroup = useCanShareToGroup()
-  const activeGroupId = useActiveGroupId()
-  const [shareToGroup, setShareToGroup] = useState(() => activeGroupId != null)
+  const [shareToGroup, setShareToGroup] = useState(true)
 
   const { data: transactions = [] } = useFinanceTransactionsQuery(monthStartDate(sourceMonth), monthEndDate(sourceMonth))
   const { data: assetSnapshots = [] } = useAssetSnapshotsQuery()
