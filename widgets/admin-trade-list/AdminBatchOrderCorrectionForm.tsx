@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState, type FormEvent } from 'react'
 import type { AdminReorderTimingAvailability, AdminStrategyOrder } from '@entities/admin'
+import { ORDER_STATUS_LABEL } from '@entities/order'
 import type { OrderDirection } from '@shared/lib/api-schema'
 
 export interface ReorderBatchItem {
@@ -163,7 +164,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                   </span>
                 )}
                 <span className="ml-auto inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
-                  {order.status}
+                  {ORDER_STATUS_LABEL[order.status] ?? order.status}
                 </span>
               </div>
 
