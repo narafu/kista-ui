@@ -31,7 +31,7 @@ export function FinanceTrend({ type, transactions, yearlyTransactions, categoryT
   return (
     <Card className={className}>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base lg:text-lg">{period.mode === 'yearly' ? '최근 6개년 추이' : '최근 6개월 추이'}</CardTitle>
+        <CardTitle className="text-base lg:text-lg">{period.mode === 'yearly' ? '최근 6개년 추이' : '월별 추이(최근 12개월)'}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col">
         <FinanceTrendInner

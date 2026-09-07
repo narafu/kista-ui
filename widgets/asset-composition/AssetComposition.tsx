@@ -21,7 +21,7 @@ export function AssetComposition({ className, month }: Props) {
   return (
     <Card className={className}>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base lg:text-lg">월별 구성비</CardTitle>
+        <CardTitle className="text-base lg:text-lg">월별 구성비(최근 12개월)</CardTitle>
       </CardHeader>
       <CardContent className="px-2 pb-4 sm:px-6 sm:pb-6">
         <AssetCompositionInner month={month} />

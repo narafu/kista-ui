@@ -21,7 +21,7 @@ export function AssetTrend({ className, month }: Props) {
   return (
     <Card className={className}>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base lg:text-lg">월별 추이</CardTitle>
+        <CardTitle className="text-base lg:text-lg">월별 추이(최근 12개월)</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col">
         <AssetTrendInner month={month} />

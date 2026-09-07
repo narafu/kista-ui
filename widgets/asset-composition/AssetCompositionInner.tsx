@@ -34,7 +34,7 @@ function amountFromPayload(payload: unknown, item: string): number | undefined {
   return typeof value === 'number' ? value : undefined
 }
 
-// monthsLimit(기본 6)은 "최근 기록이 있는 달" 기준이라 기록이 뜸하면 연도를 건너뛸 수 있다
+// monthsLimit(12)은 "최근 기록이 있는 달" 기준이라 기록이 뜸하면 연도를 건너뛸 수 있다
 // (예: 2025-03, 2026-03만 기록이 있는 경우) — 연도 없이 "3월"만 쓰면 두 달이 같은 눈금으로 보인다.
 function formatMonthLabel(month: string): string {
   const [year, monthPart] = month.split('-')
@@ -169,8 +169,8 @@ export default function AssetCompositionInner({ month }: Props) {
     return <SectionError message="구성비 데이터를 불러오지 못했습니다" />
   }
 
-  const categoryColumns = calcCategoryComposition(snapshots, 6, month)
-  const assetClassColumns = calcAssetClassComposition(snapshots, 6, month)
+  const categoryColumns = calcCategoryComposition(snapshots, 12, month)
+  const assetClassColumns = calcAssetClassComposition(snapshots, 12, month)
   const assetClassSegments = collectPresentSegments(assetClassColumns)
 
   return (

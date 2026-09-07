@@ -34,7 +34,10 @@ export default function FinanceTrendInner({ type, transactions, yearlyTransactio
 
   const sourceTransactions = period.mode === 'yearly' ? yearlyTransactions : transactions
   const typeTransactions = useMemo(() => filterByType(sourceTransactions, index, type), [sourceTransactions, index, type])
-  const trend = useMemo(() => calcFlowTrend(typeTransactions, index, period, today, 6), [typeTransactions, index, period, today])
+  const trend = useMemo(
+    () => calcFlowTrend(typeTransactions, index, period, today, period.mode === 'yearly' ? 6 : 12),
+    [typeTransactions, index, period, today],
+  )
   const orderedRootIds = useMemo(() => sortCategoryTree(categoryTree).map((c) => c.id), [categoryTree])
 
   if (isLoading) {

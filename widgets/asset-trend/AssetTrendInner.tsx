@@ -73,7 +73,7 @@ export default function AssetTrendInner({ month }: Props) {
   }))
 
   const trend = useMemo(
-    () => calcMonthlyTrend(snapshots, mode, effectiveSelector, 6, month),
+    () => calcMonthlyTrend(snapshots, mode, effectiveSelector, 12, month),
     [snapshots, mode, effectiveSelector, month],
   )
 
