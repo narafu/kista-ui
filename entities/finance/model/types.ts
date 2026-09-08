@@ -54,6 +54,7 @@ export interface MonthlyClosing {
   month: string // 'YYYY-MM'
   completed: boolean
   closedAt?: string
+  groupId?: string | null // 그룹 마감이면 그룹 ID, 개인 마감이면 null
 }
 
 export interface FinanceCategoryRequest {

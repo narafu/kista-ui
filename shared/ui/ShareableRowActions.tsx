@@ -16,6 +16,11 @@ interface Props {
   // true면 수정·삭제만 비활성화한다(시스템 카테고리처럼 서버가 403을 내는 대상) — 공유/귀속/복제는
   // 이 잠금과 무관해 영향받지 않는다.
   locked?: boolean
+  // true면 공유·귀속·수정·삭제를 비활성화한다(마감된 달처럼 서버가 그 레코드의 변경을 전면 차단하는 대상).
+  // 복제는 사용자가 폼에서 새 날짜를 고르는 신규 생성이라 이 잠금과 무관해 영향받지 않는다.
+  readOnly?: boolean
+  // locked/readOnly로 비활성화된 버튼에 붙는 tooltip.
+  lockTitle?: string
 }
 
 /**
@@ -24,17 +29,21 @@ interface Props {
  * 라우팅 방식이 달라 이 컴포넌트를 쓰지 않고 각자 구현을 유지한다.
  */
 export function ShareableRowActions({
-  canShare, hasGroupId, onShare, onUnshare, sharePending, unsharePending, onDuplicate, onEdit, onDelete, locked = false,
+  canShare, hasGroupId, onShare, onUnshare, sharePending, unsharePending, onDuplicate, onEdit, onDelete,
+  locked = false, readOnly = false, lockTitle,
 }: Props) {
+  const editDisabled = locked || readOnly
+  // disabled 버튼이라 클릭은 이미 막힌다 — opacity만 낮추고 pointer-events는 남겨 hover 시 title(tooltip)이 뜨게 한다.
+  const dimmed = 'opacity-40'
   return (
     <div className="flex shrink-0 items-center gap-1">
       {canShare && !hasGroupId && (
-        <IconButton aria-label="공유" onClick={onShare} disabled={sharePending}>
+        <IconButton aria-label="공유" onClick={onShare} disabled={sharePending || readOnly} title={readOnly ? lockTitle : undefined} className={cn(readOnly && dimmed)}>
           <Share2 className="size-4" />
         </IconButton>
       )}
       {canShare && hasGroupId && (
-        <IconButton aria-label="귀속" onClick={onUnshare} disabled={unsharePending}>
+        <IconButton aria-label="귀속" onClick={onUnshare} disabled={unsharePending || readOnly} title={readOnly ? lockTitle : undefined} className={cn(readOnly && dimmed)}>
           <Undo2 className="size-4" />
         </IconButton>
       )}
@@ -43,14 +52,15 @@ export function ShareableRowActions({
           <Copy className="size-4" />
         </IconButton>
       )}
-      <IconButton aria-label="수정" onClick={onEdit} disabled={locked} className={cn(locked && 'opacity-40 pointer-events-none')}>
+      <IconButton aria-label="수정" onClick={onEdit} disabled={editDisabled} title={editDisabled ? lockTitle : undefined} className={cn(editDisabled && dimmed)}>
         <Pencil className="size-4" />
       </IconButton>
       <IconButton
         aria-label="삭제"
         onClick={onDelete}
-        disabled={locked}
-        className={cn('text-destructive hover:text-destructive', locked && 'opacity-40 pointer-events-none')}
+        disabled={editDisabled}
+        title={editDisabled ? lockTitle : undefined}
+        className={cn('text-destructive hover:text-destructive', editDisabled && dimmed)}
       >
         <Trash2 className="size-4" />
       </IconButton>

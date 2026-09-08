@@ -3,12 +3,13 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BulkRegisterForm } from './BulkRegisterForm'
 
-const { mutateMock, pushMock, toastSuccessMock, toastWarningMock, groupState } = vi.hoisted(() => ({
+const { mutateMock, pushMock, toastSuccessMock, toastWarningMock, groupState, closingsState } = vi.hoisted(() => ({
   mutateMock: vi.fn(),
   pushMock: vi.fn(),
   toastSuccessMock: vi.fn(),
   toastWarningMock: vi.fn(),
   groupState: { canShareToGroup: false },
+  closingsState: { data: [] as { month: string; completed: boolean }[] },
 }))
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: pushMock }) }))
@@ -40,6 +41,8 @@ vi.mock('@entities/finance', async () => {
     useFinanceCategoriesQuery: (type: string) => ({ data: type === 'INCOME' ? [incomeCategory] : [] }),
     useBulkRegisterFinanceMutation: () => ({ mutate: mutateMock, isPending: false }),
     useCanShareToGroup: () => groupState.canShareToGroup,
+    useMonthlyClosingsQuery: () => closingsState,
+    useActiveGroupId: () => undefined,
   }
 })
 
@@ -49,6 +52,17 @@ describe('BulkRegisterForm', () => {
     toastSuccessMock.mockClear()
     toastWarningMock.mockClear()
     groupState.canShareToGroup = false
+    closingsState.data = []
+  })
+
+  it('대상월이 기록 점검 완료된 달이면 확정 버튼을 비활성화하고 안내를 표시한다', async () => {
+    closingsState.data = [{ month: '2026-08', completed: true }]
+    render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
+
+    expect(await screen.findByText(/기록 점검이 완료된 달이라 등록할 수 없습니다/)).toBeInTheDocument()
+    for (const button of screen.getAllByRole('button', { name: '이대로 확정하기' })) {
+      expect(button).toBeDisabled()
+    }
   })
 
   it('행의 포함 토글을 끄면 확정 시 해당 항목이 요청에서 빠진다', async () => {

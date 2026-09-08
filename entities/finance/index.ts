@@ -146,6 +146,7 @@ export {
   formatAssetL1CategoryLabel,
   isLiability,
   isInvestmentCategoryId,
+  isMonthClosed,
   listAvailableMonths,
   previousMonthOf,
 } from './lib/aggregate'

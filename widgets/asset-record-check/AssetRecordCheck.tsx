@@ -8,8 +8,10 @@ import {
   calcMissingAccounts,
   calcMissingCategories,
   formatAssetL1CategoryLabel,
+  isMonthClosed,
   listAvailableMonths,
   previousMonthOf,
+  useActiveGroupId,
   useAssetSnapshotsQuery,
   useMonthlyClosingsQuery,
 } from '@entities/finance'
@@ -28,6 +30,7 @@ function formatMonthDay(dateStr: string): string {
 export function AssetRecordCheck({ month }: Props) {
   const { data: snapshots = [], isLoading: assetsLoading, isError: assetsError } = useAssetSnapshotsQuery()
   const { data: monthlyClosings = [], isLoading: checksLoading, isError: checksError } = useMonthlyClosingsQuery()
+  const activeGroupId = useActiveGroupId()
 
   if (assetsLoading || checksLoading) {
     return (
@@ -47,7 +50,7 @@ export function AssetRecordCheck({ month }: Props) {
   const missingCategories = calcMissingCategories(snapshots, month)
   const missingAccounts = calcMissingAccounts(snapshots, month, previousMonth)
   const dateGroups = calcDateGroups(snapshots, month)
-  const completed = monthlyClosings.find((closing) => closing.month === month)?.completed ?? false
+  const completed = isMonthClosed(monthlyClosings, month, activeGroupId)
 
   return (
     <Card>
@@ -97,7 +100,14 @@ export function AssetRecordCheck({ month }: Props) {
           </section>
         )}
 
-        <ToggleMonthlyCheckButton month={month} completed={completed} />
+        <div className="space-y-1.5">
+          <ToggleMonthlyCheckButton month={month} completed={completed} />
+          <p className="text-xs text-muted-foreground">
+            {completed
+              ? '완료된 달입니다 — 이 달 재무 기록의 등록·수정·삭제가 잠겨 있습니다. 편집하려면 완료를 해제하세요.'
+              : '완료로 표시하면 이 달 재무 기록의 등록·수정·삭제가 잠깁니다.'}
+          </p>
+        </div>
       </CardContent>
     </Card>
   )

@@ -1,4 +1,4 @@
-import type { AssetClass, AssetSnapshot } from '../model/types'
+import type { AssetClass, AssetSnapshot, MonthlyClosing } from '../model/types'
 
 // finance_categories 자산(ASSET) L1은 고정 UUID 시스템 시드다(kista-api V13 시드값과 동일, 수정·삭제 불가).
 // 구 AssetCategory enum(INVESTMENT/SAVINGS/LOAN/REAL_ESTATE)의 후계 — 같은 순서를 유지해 정렬·색상
@@ -42,6 +42,18 @@ export function isLiability(snapshot: AssetSnapshot): boolean {
 // 운용전략 필드는 L1이 '투자'일 때만 의미가 있다 — 문자열 비교 대신 이 함수를 통해서만 판정한다.
 export function isInvestmentCategoryId(categoryId: string | undefined): boolean {
   return categoryId === SYSTEM_INVESTMENT_CATEGORY_ID
+}
+
+// 해당 월(YYYY-MM)이 마감(기록 점검 완료)됐는지. 마감된 달은 재무 기록 등록·수정·삭제·공유가 잠긴다.
+// 마감 스코프는 kista-api 가드와 동일하게 판정한다 — 그룹 소속(activeGroupId 있음)이면 그 그룹의
+// 마감 행만, 무그룹이면 개인 마감 행(groupId null)만 본다. list 응답은 개인·그룹 마감을 함께 반환하므로
+// 스코프에 맞는 행만 골라야 판정이 어긋나지 않는다. 스코프에 맞는 행이 없으면 미마감(가드도 동일).
+export function isMonthClosed(closings: MonthlyClosing[], month: string, activeGroupId?: string): boolean {
+  const match = closings.find(
+    (closing) =>
+      closing.month === month && (activeGroupId ? closing.groupId === activeGroupId : !closing.groupId),
+  )
+  return match?.completed ?? false
 }
 
 function sum(snapshots: AssetSnapshot[]): number {

@@ -4,9 +4,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AssetRecordList } from './AssetRecordList'
 import type { AssetSnapshot } from '@entities/finance'
 
-const { useAssetSnapshotsQueryMock, useFinanceCategoriesQueryMock, deleteManyMutateMock, shareMutateMock, unshareMutateMock } = vi.hoisted(() => ({
+const { useAssetSnapshotsQueryMock, useFinanceCategoriesQueryMock, useMonthlyClosingsQueryMock, deleteManyMutateMock, shareMutateMock, unshareMutateMock } = vi.hoisted(() => ({
   useAssetSnapshotsQueryMock: vi.fn(),
   useFinanceCategoriesQueryMock: vi.fn(() => ({ data: [] })),
+  useMonthlyClosingsQueryMock: vi.fn(() => ({ data: [] as { month: string; completed: boolean }[] })),
   deleteManyMutateMock: vi.fn(),
   shareMutateMock: vi.fn(),
   unshareMutateMock: vi.fn(),
@@ -18,6 +19,8 @@ vi.mock('@entities/finance', async () => {
     ...actual,
     useAssetSnapshotsQuery: useAssetSnapshotsQueryMock,
     useFinanceCategoriesQuery: useFinanceCategoriesQueryMock,
+    useMonthlyClosingsQuery: useMonthlyClosingsQueryMock,
+    useActiveGroupId: () => undefined,
     useDeleteManyAssetSnapshotsMutation: () => ({ mutate: deleteManyMutateMock, isPending: false }),
     useShareAssetSnapshotMutation: () => ({ mutate: shareMutateMock, isPending: false }),
     useUnshareAssetSnapshotMutation: () => ({ mutate: unshareMutateMock, isPending: false }),
@@ -70,6 +73,19 @@ describe('AssetRecordList', () => {
     deleteManyMutateMock.mockClear()
     toastSuccessMock.mockClear()
     toastWarningMock.mockClear()
+    useMonthlyClosingsQueryMock.mockReturnValue({ data: [] })
+  })
+
+  it('기록 점검이 완료된 달이면 수정·삭제·선택 체크박스를 비활성화한다', () => {
+    useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({})], isLoading: false, isError: false })
+    useMonthlyClosingsQueryMock.mockReturnValue({ data: [{ month: '2026-08', completed: true }] })
+
+    render(<AssetRecordList month="2026-08" />)
+
+    const desktopTable = screen.getByRole('table', { name: '자산 기록' })
+    expect(within(desktopTable).getAllByLabelText('수정')[0]).toHaveAttribute('title', expect.stringContaining('기록 점검이 완료된 달'))
+    expect(within(desktopTable).getAllByLabelText('삭제')[0]).toBeDisabled()
+    expect(within(desktopTable).getAllByRole('checkbox').find((el) => el.getAttribute('aria-label')?.includes('선택'))).toBeDisabled()
   })
 
   it('로딩 중에는 로딩 문구를 표시한다', () => {

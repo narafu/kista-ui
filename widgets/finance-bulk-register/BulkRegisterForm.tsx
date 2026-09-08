@@ -16,14 +16,17 @@ import { useMeta } from '@entities/meta'
 import {
   buildBulkRegisterItems,
   buildCategoryIndex,
+  isMonthClosed,
   monthEndDate,
   monthStartDate,
   shiftMonth,
+  useActiveGroupId,
   useAssetSnapshotsQuery,
   useBulkRegisterFinanceMutation,
   useCanShareToGroup,
   useFinanceCategoriesQuery,
   useFinanceTransactionsQuery,
+  useMonthlyClosingsQuery,
 } from '@entities/finance'
 import type { CategoryGroupNode, BulkRegisterItem } from '@entities/finance'
 import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
@@ -62,6 +65,11 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
   // 그룹 소속일 때만 노출(useCanShareToGroup). 단건 폼과 동일하게 그룹이 있으면 기본 ON.
   const canShareToGroup = useCanShareToGroup()
   const [shareToGroup, setShareToGroup] = useState(true)
+
+  // 대상월이 기록 점검 완료(마감)된 달이면 서버가 모든 항목을 409로 거부한다 — 확정 자체를 막는다.
+  const { data: monthlyClosings = [] } = useMonthlyClosingsQuery()
+  const activeGroupId = useActiveGroupId()
+  const targetMonthClosed = isMonthClosed(monthlyClosings, targetMonth, activeGroupId)
 
   const { data: transactions = [] } = useFinanceTransactionsQuery(monthStartDate(sourceMonth), monthEndDate(sourceMonth))
   const { data: assetSnapshots = [] } = useAssetSnapshotsQuery()
@@ -255,7 +263,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
     )
   }
 
-  const submitDisabled = mutation.isPending || includedCount === 0
+  const submitDisabled = mutation.isPending || includedCount === 0 || targetMonthClosed
 
   return (
     <div className={cn('space-y-[18px] sm:pb-0', MOBILE_FIXED_BAR_RESERVE_CLASS)}>
@@ -272,6 +280,12 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
           이대로 확정하기
         </Button>
       </div>
+
+      {targetMonthClosed && (
+        <p className="rounded-[var(--r-md)] border border-[var(--warn)] bg-[var(--warn-bg)] px-3 py-2 text-sm text-[var(--warn)]">
+          {targetMonth} 은 기록 점검이 완료된 달이라 등록할 수 없습니다. 자산탭 기록 점검에서 완료를 해제하거나 다른 대상월을 고르세요.
+        </p>
+      )}
 
       {canShareToGroup && (
         <Surface className="px-6 py-4">

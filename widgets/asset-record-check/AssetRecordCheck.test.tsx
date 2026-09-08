@@ -14,6 +14,7 @@ vi.mock('@entities/finance', async () => {
     ...actual,
     useAssetSnapshotsQuery: useAssetSnapshotsQueryMock,
     useMonthlyClosingsQuery: useMonthlyClosingsQueryMock,
+    useActiveGroupId: () => undefined,
   }
 })
 
@@ -157,6 +158,7 @@ describe('AssetRecordCheck', () => {
     render(<AssetRecordCheck month="2026-08" />)
 
     expect(screen.getByTestId('toggle-monthly-check')).toHaveTextContent('2026-08 / 완료')
+    expect(screen.getByText(/등록·수정·삭제가 잠겨/)).toBeInTheDocument()
   })
 
   it('해당 월 완료 레코드가 없으면 completed=false를 기본값으로 전달한다', () => {

@@ -18,11 +18,14 @@ import {
   collectSubtreeIds,
   filterByType,
   flowCategoryColor,
+  isMonthClosed,
   periodRange,
   sortCategoryTree,
   unclassifiedTransactions,
+  useActiveGroupId,
   useCanShareToGroup,
   useDeleteFinanceTransactionMutation,
+  useMonthlyClosingsQuery,
   useShareFinanceTransactionMutation,
   useUnshareFinanceTransactionMutation,
 } from '@entities/finance'
@@ -54,6 +57,11 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
   const shareMutation = useShareFinanceTransactionMutation()
   const unshareMutation = useUnshareFinanceTransactionMutation()
   const canShare = useCanShareToGroup()
+  const { data: monthlyClosings = [] } = useMonthlyClosingsQuery()
+  const activeGroupId = useActiveGroupId()
+  // 기록 점검이 완료된 달의 거래는 서버가 등록·수정·삭제·공유를 전면 차단한다 — 행 작업 버튼을 미리 잠근다.
+  const closedMonthTitle = '기록 점검이 완료된 달입니다 · 자산탭에서 완료를 해제하면 편집할 수 있습니다'
+  const isClosed = (date: string) => isMonthClosed(monthlyClosings, date.slice(0, 7), activeGroupId)
 
   function handleShare(id: string) {
     shareMutation.mutate(id, { onSuccess: () => toast.success('그룹에 공유했습니다') })
@@ -229,6 +237,8 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                                 hasGroupId={!!t.groupId}
                                 sharePending={shareMutation.isPending}
                                 unsharePending={unshareMutation.isPending}
+                                readOnly={isClosed(t.transactionDate)}
+                                lockTitle={closedMonthTitle}
                               />
                             </div>
                           </TableDataCell>
@@ -269,6 +279,8 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                           hasGroupId={!!t.groupId}
                           sharePending={shareMutation.isPending}
                           unsharePending={unshareMutation.isPending}
+                          readOnly={isClosed(t.transactionDate)}
+                          lockTitle={closedMonthTitle}
                         />
                       </div>
                     </li>
