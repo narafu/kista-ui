@@ -11,6 +11,7 @@ import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import { submitFormDialog } from '@shared/lib/form/submitFormDialog'
+import { reportClientError } from '@entities/error-log'
 import {
   isMonthClosed,
   useActiveGroupId,
@@ -45,6 +46,26 @@ function clampDate(date: string, min?: string, max?: string): string {
   if (min && date < min) return min
   if (max && date > max) return max
   return date
+}
+
+// ponytail: iOS PWA 메모 input 포커스 시 화면이 벗어나는 버그 원인 확정 전 임시 진단 로그.
+// visualViewport 값 확보되면(app_error_logs의 MEMO_FOCUS_VIEWPORT) 이 핸들러 통째로 제거한다.
+function logMemoViewport(errorType: 'MEMO_FOCUS_VIEWPORT' | 'MEMO_BLUR_VIEWPORT') {
+  const vv = window.visualViewport
+  if (!vv) return
+  reportClientError({
+    errorType,
+    context: {
+      scale: String(vv.scale),
+      offsetLeft: String(vv.offsetLeft),
+      offsetTop: String(vv.offsetTop),
+      width: String(vv.width),
+      height: String(vv.height),
+      innerWidth: String(window.innerWidth),
+      scrollWidth: String(document.documentElement.scrollWidth),
+      standalone: String(window.matchMedia('(display-mode: standalone)').matches),
+    },
+  })
 }
 
 export function TransactionFormDialog({ open, onOpenChange, type, initial, duplicateFrom, onSuccess, windowFrom, windowTo }: Props) {
@@ -165,6 +186,8 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
                 id="memo"
                 value={memo}
                 onChange={(e) => setMemo(e.target.value)}
+                onFocus={() => logMemoViewport('MEMO_FOCUS_VIEWPORT')}
+                onBlur={() => logMemoViewport('MEMO_BLUR_VIEWPORT')}
                 disabled={isPending}
                 maxLength={255}
               />
