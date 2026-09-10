@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { submitFormDialog } from './submitFormDialog'
 
 vi.mock('sonner', () => ({
@@ -6,6 +6,10 @@ vi.mock('sonner', () => ({
 }))
 
 describe('submitFormDialog', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('create 모드는 createExtra를 병합해 createMutation을 호출하고 onSuccess를 부른다', () => {
     const createMutation = { mutate: vi.fn((_vars: unknown, opts: { onSuccess: () => void }) => opts.onSuccess()) }
     const updateMutation = { mutate: vi.fn() }

@@ -15,10 +15,10 @@ import {
 import { SaveButton } from '@shared/ui/SaveButton'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { digitsOnly } from '@shared/lib/format'
+import { submitFormDialog } from '@shared/lib/form/submitFormDialog'
 import { useMeta } from '@entities/meta'
 import { useCanShareToGroup, useCreateFinanceAccountMutation, useUpdateFinanceAccountMutation } from '@entities/finance'
 import type { FinanceAccount, FinanceAccountRequest, FinanceAccountType } from '@entities/finance'
-import { submitFormDialog } from '@shared/lib/form/submitFormDialog'
 
 interface Props {
   open: boolean
