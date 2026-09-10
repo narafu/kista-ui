@@ -1,2 +1,14 @@
-export type { AdminPrivacyBase, AdminPrivacyOrder } from './model/types'
-export { listAdminPrivacyBases } from './api'
+export type {
+  AdminPrivacyBase,
+  AdminPrivacyOrder,
+  AdminPrivacyBaseCreateRequest,
+  AdminPrivacyBaseUpdateRequest,
+  AdminPrivacyOrderRequest,
+  AdminPrivacyOrderUpdateRequest,
+} from './model/types'
+export {
+  listAdminPrivacyBases,
+  createAdminPrivacyBase,
+  updateAdminPrivacyBase,
+  updateAdminPrivacyOrder,
+} from './api'

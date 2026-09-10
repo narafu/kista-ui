@@ -27,12 +27,11 @@ function maskAccountNo(accountNo: string) {
 
 const cardClass = 'bg-card rounded-[1.25rem] py-7 px-6 shadow-[var(--sh-card)] border border-border'
 
-type SortKey = 'createdAt' | 'name' | 'type'
+type SortKey = 'createdAt' | 'name'
 
 const SORT_ITEMS: { value: SortKey; label: string }[] = [
   { value: 'createdAt', label: '등록순' },
   { value: 'name', label: '이름순' },
-  { value: 'type', label: '유형순' },
 ]
 
 export function AccountManager() {
@@ -47,18 +46,21 @@ export function AccountManager() {
   const shareMutation = useShareFinanceAccountMutation()
   const unshareMutation = useUnshareFinanceAccountMutation()
 
-  function accountTypeLabel(accountType: FinanceAccount['accountType']) {
-    return meta.financeAccountTypes.find((t) => t.code === accountType)?.label ?? accountType
-  }
-
-  // 필터 후 정렬 — 계좌 수가 적어 서버 API 없이 클라이언트에서 처리한다. '등록순'은 서버가
-  // 반환한 원본 순서(생성 순서)를 그대로 유지하는 것이라 별도 정렬을 하지 않는다.
-  const visibleAccounts = useMemo(() => {
+  // 필터 후 유형별로 묶는다 — 자산 등록 폼(AssetForm)의 계좌 Select와 동일하게 accountType별로
+  // 그룹핑하고(순서는 meta.financeAccountTypes 기준) 그룹 내에서는 sortKey로 정렬한다. 계좌 수가
+  // 적어 서버 API 없이 클라이언트에서 처리한다. '등록순'은 서버가 반환한 원본 순서(생성 순서)를
+  // 그대로 유지하는 것이라 별도 정렬을 하지 않는다.
+  const groupedAccounts = useMemo(() => {
     const filtered = typeFilter === 'ALL' ? accounts : accounts.filter((a) => a.accountType === typeFilter)
-    if (sortKey === 'createdAt') return filtered
-    if (sortKey === 'name') return [...filtered].sort((a, b) => a.name.localeCompare(b.name, 'ko'))
-    return [...filtered].sort((a, b) => accountTypeLabel(a.accountType).localeCompare(accountTypeLabel(b.accountType), 'ko'))
+    const groups: { type: string; label: string; accounts: FinanceAccount[] }[] = []
+    for (const typeMeta of meta.financeAccountTypes) {
+      const inType = filtered.filter((a) => a.accountType === typeMeta.code)
+      if (sortKey === 'name') inType.sort((a, b) => a.name.localeCompare(b.name, 'ko'))
+      if (inType.length > 0) groups.push({ type: typeMeta.code, label: typeMeta.label, accounts: inType })
+    }
+    return groups
   }, [accounts, typeFilter, sortKey, meta.financeAccountTypes])
+  const visibleAccounts = useMemo(() => groupedAccounts.flatMap((g) => g.accounts), [groupedAccounts])
 
   return (
     <div className={cn(cardClass, 'space-y-4')}>
@@ -105,28 +107,34 @@ export function AccountManager() {
       ) : visibleAccounts.length === 0 ? (
         <p className="text-sm text-muted-foreground py-6 text-center">조건에 맞는 계좌가 없습니다.</p>
       ) : (
-        <ul className="divide-y divide-border">
-          {visibleAccounts.map((account) => (
-            <li key={account.id} className="flex items-center justify-between gap-3 py-3">
-              <div className="min-w-0 flex items-center gap-2 text-sm">
-                <span className="text-muted-foreground shrink-0">{accountTypeLabel(account.accountType)}</span>
-                <span className="font-medium truncate min-w-0">{account.name}</span>
-                {account.accountNo && <span className="text-xs text-muted-foreground tabular-nums shrink-0">{maskAccountNo(account.accountNo)}</span>}
-                {account.memo && <span className="text-xs text-muted-foreground truncate min-w-0">{account.memo}</span>}
-              </div>
-              <ShareableRowActions
-                canShare={canShare}
-                hasGroupId={!!account.groupId}
-                onShare={() => shareMutation.mutate(account.id)}
-                onUnshare={() => unshareMutation.mutate(account.id)}
-                sharePending={shareMutation.isPending}
-                unsharePending={unshareMutation.isPending}
-                onEdit={() => setFormTarget(account)}
-                onDelete={() => deleteDialog.request(account)}
-              />
-            </li>
+        <div className="space-y-4">
+          {groupedAccounts.map((group) => (
+            <div key={group.type} className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">{group.label}</p>
+              <ul className="divide-y divide-border">
+                {group.accounts.map((account) => (
+                  <li key={account.id} className="flex items-center justify-between gap-3 py-3">
+                    <div className="min-w-0 flex items-center gap-2 text-sm">
+                      <span className="font-medium truncate min-w-0">{account.name}</span>
+                      {account.accountNo && <span className="text-xs text-muted-foreground tabular-nums shrink-0">{maskAccountNo(account.accountNo)}</span>}
+                      {account.memo && <span className="text-xs text-muted-foreground truncate min-w-0">{account.memo}</span>}
+                    </div>
+                    <ShareableRowActions
+                      canShare={canShare}
+                      hasGroupId={!!account.groupId}
+                      onShare={() => shareMutation.mutate(account.id)}
+                      onUnshare={() => unshareMutation.mutate(account.id)}
+                      sharePending={shareMutation.isPending}
+                      unsharePending={unshareMutation.isPending}
+                      onEdit={() => setFormTarget(account)}
+                      onDelete={() => deleteDialog.request(account)}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
 
       {formTarget && (

@@ -11,6 +11,7 @@ import { PaginationBar } from '@shared/ui/PaginationBar'
 import { UrlRangeFilterBar } from '@shared/ui/UrlRangeFilterBar'
 import { PageHeader } from '@widgets/page-header'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
+import { AdminAccountsFilterBar } from './AdminAccountsFilterBar'
 
 const STRATEGY_STATUS_COLOR: Record<string, string> = {
   ACTIVE: 'var(--status-ok)',
@@ -29,31 +30,51 @@ function StrategyBadge({ strategy }: { strategy: AdminAccountStrategy }) {
 export default async function AdminAccountsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ range?: string; size?: string; page?: string; from?: string; to?: string }>
+  searchParams: Promise<{
+    range?: string; size?: string; page?: string; from?: string; to?: string
+    owner?: string; broker?: string; strategyType?: string
+  }>
 }) {
-  const { range: rawRange, size: rawSize, page: rawPage, from, to } = await searchParams
+  const { range: rawRange, size: rawSize, page: rawPage, from, to, owner, broker, strategyType } = await searchParams
   const range = parseRangePreset(rawRange, 'all')
   const size = parseSize(rawSize)
   const { from: resolvedFrom, to: resolvedTo } = resolveRange(range, from, to)
 
   const token = await getAuthToken()
   const all: AdminAccount[] = token ? await listAdminAccounts(token, resolvedFrom, resolvedTo).catch(() => []) : []
+  // 닉네임은 유저 간 중복 가능 — 필터 식별자는 반드시 userId로 구분한다(ownerNickname은 표시용 라벨만).
+  const owners = [...new Map(all.map((a) => [a.userId, a.ownerNickname])).entries()]
+    .map(([userId, label]) => ({ userId, label }))
+    .sort((a, b) => a.label.localeCompare(b.label, 'ko'))
 
-  const totalPages = Math.max(1, Math.ceil(all.length / size))
+  const filtered = all.filter((acc) => {
+    if (owner && acc.userId !== owner) return false
+    if (broker && acc.broker !== broker) return false
+    if (strategyType && !acc.strategies.some((s) => s.type === strategyType)) return false
+    return true
+  })
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / size))
   const page = Math.min(parsePage(rawPage), totalPages)
-  const accounts = all.slice((page - 1) * size, page * size)
+  const accounts = filtered.slice((page - 1) * size, page * size)
 
   return (
     <div>
-      <PageHeader title="계좌 현황" description={`전체 사용자 계좌 목록 (총 ${all.length}개)`} />
+      <PageHeader title="계좌 현황" description={`전체 사용자 계좌 목록 (조건에 맞는 ${filtered.length}개 / 전체 ${all.length}개)`} />
 
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <UrlRangeFilterBar current={range} from={from} to={to} />
         <PageSizeSelector value={String(size)} />
       </div>
 
-      {accounts.length === 0 ? (
+      <div className="mb-4">
+        <AdminAccountsFilterBar owners={owners} />
+      </div>
+
+      {all.length === 0 ? (
         <EmptyState message="등록된 계좌가 없습니다." />
+      ) : accounts.length === 0 ? (
+        <EmptyState message="조건에 맞는 계좌가 없습니다." />
       ) : (
         <div className="rounded-xl border border-border overflow-x-auto">
           <table className="min-w-[720px] w-full text-sm">
