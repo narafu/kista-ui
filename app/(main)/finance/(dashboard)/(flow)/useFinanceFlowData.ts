@@ -17,7 +17,7 @@ import { todayKst } from '@shared/lib/format'
 
 // 수입/소비/저축 카테고리만 다룬다 — ASSET 인덱싱은 이 탭들과 무관해 좁은 타입으로 선언한다
 // (구 FinanceDashboard의 FLOW_TYPE 주석과 동일한 이유).
-type FlowCategoryType = 'INCOME' | 'EXPENSE' | 'SAVING'
+export type FlowCategoryType = 'INCOME' | 'EXPENSE' | 'SAVING'
 
 function parsePeriod(searchParams: URLSearchParams, today: string): Period {
   const month = searchParams.get('month')
