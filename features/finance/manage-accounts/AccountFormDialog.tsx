@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -19,6 +18,7 @@ import { digitsOnly } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import { useCanShareToGroup, useCreateFinanceAccountMutation, useUpdateFinanceAccountMutation } from '@entities/finance'
 import type { FinanceAccount, FinanceAccountRequest, FinanceAccountType } from '@entities/finance'
+import { submitFormDialog } from '@shared/lib/form/submitFormDialog'
 
 interface Props {
   open: boolean
@@ -59,21 +59,14 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
       memo: memo.trim() || undefined,
     }
 
-    if (account) {
-      updateMutation.mutate(payload, {
-        onSuccess: () => {
-          toast.success('계좌가 수정되었습니다')
-          onOpenChange(false)
-        },
-      })
-      return
-    }
-
-    createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
-      onSuccess: () => {
-        toast.success('계좌가 등록되었습니다')
-        onOpenChange(false)
-      },
+    submitFormDialog({
+      mode: account ? 'edit' : 'create',
+      payload,
+      createMutation,
+      updateMutation,
+      createExtra: { shareToGroup: canShareToGroup && shareToGroup },
+      messages: { create: '계좌가 등록되었습니다', edit: '계좌가 수정되었습니다' },
+      onSuccess: () => onOpenChange(false),
     })
   }
 
