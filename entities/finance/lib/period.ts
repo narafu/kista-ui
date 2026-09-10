@@ -61,6 +61,17 @@ export function displayWindow(period: Period, today: string): { from: string; to
   return period.mode === 'yearly' ? periodRange(period, today) : windowRange(period.month)
 }
 
+// 조회된 거래 날짜 목록을 보고 "지금 보여줄 월"을 옮겨야 하는지 판정한다 — 현재 선택월에 거래가
+// 하나라도 있으면 그대로(null), 없으면 목록 중 가장 최근 월을 반환한다. 최근 월이 현재 선택월과
+// 같으면(목록이 비었거나 전부 그 달이면) 조정 불필요라 null. 반환·selectedMonth는 'YYYY-MM',
+// transactionDates 원소는 'YYYY-MM-DD'. useFinanceFlowData가 매 마운트마다 오늘 기준으로 호출해
+// "데이터 있는 최근 월"을 잡되, 결과를 URL이 아닌 로컬 상태로만 반영한다.
+export function autoAdjustedMonth(selectedMonth: string, transactionDates: string[]): string | null {
+  if (transactionDates.some((date) => date.startsWith(selectedMonth))) return null
+  const latestMonth = transactionDates.map((date) => date.slice(0, 7)).sort().at(-1)
+  return latestMonth && latestMonth !== selectedMonth ? latestMonth : null
+}
+
 // 가계부 내역 등록의 "오늘 기준" 독립 창(하한 없음) 상한 — 이번 달 말일까지만 허용해 미래
 // 날짜 등록을 막는다. FinanceHeader.tsx(등록 버튼)·useFinanceFlowData.ts(FinanceRecordList로
 // 전달) 두 곳이 동일한 계산을 썼던 것을 여기로 모았다.

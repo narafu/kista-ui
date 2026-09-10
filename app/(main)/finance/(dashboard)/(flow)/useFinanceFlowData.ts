@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import {
+  autoAdjustedMonth,
   buildCategoryIndex,
   displayWindow,
   previousYearRange,
@@ -23,7 +24,8 @@ function parsePeriod(searchParams: URLSearchParams, today: string): Period {
   const month = searchParams.get('month')
   const mode = searchParams.get('mode')
   return {
-    month: month ?? today.slice(0, 7),
+    // 빈 문자열(?month=)도 오늘 달로 폴백 — shiftMonth('')가 NaN 날짜를 만드는 걸 막는다
+    month: month || today.slice(0, 7),
     mode: mode === 'yearly' ? 'yearly' : 'monthly',
   }
 }
@@ -36,7 +38,18 @@ export function useFinanceFlowData(flowType: FlowCategoryType) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const today = todayKst()
-  const period = useMemo(() => parsePeriod(searchParams, today), [searchParams, today])
+  const monthParam = searchParams.get('month')
+
+  // URL에 ?month=가 없는 동안에만 유효한 자동 선택월 — "데이터 있는 최근 월"을 URL에 쓰지 않고
+  // 로컬 상태로만 잡는다. 그래야 새로고침(마운트)할 때마다 오늘 기준으로 다시 판정하고, 그 사이
+  // 최근 월에 데이터가 생기면 그 달을 보여준다. 이 값을 URL에 쓰면 그게 "사용자가 고른 월"과
+  // 구분되지 않아 재평가가 영구히 봉인됐던 게 기존 버그다. 사용자가 월/모드를 직접 고르면
+  // setPeriod가 ?month=를 써서 아래 auto-adjust가 멈추고 period가 URL을 그대로 따른다.
+  const [autoMonth, setAutoMonth] = useState<string | null>(null)
+  const period = useMemo<Period>(() => {
+    const urlPeriod = parsePeriod(searchParams, today)
+    return monthParam || !autoMonth ? urlPeriod : { ...urlPeriod, month: autoMonth }
+  }, [searchParams, today, monthParam, autoMonth])
 
   const setPeriod = (next: Period) => {
     const params = new URLSearchParams()
@@ -60,18 +73,17 @@ export function useFinanceFlowData(flowType: FlowCategoryType) {
     isError: isTransactionsError,
   } = useFinanceTransactionsQuery(flowWindow.from, flowWindow.to)
 
-  // 자산탭(최근 기록월 기본값)과의 일관성 — URL에 ?month=가 없는 최초 진입(오늘 달 기본값)에
-  // 아직 등록된 거래가 없으면, 조회된 12개월 윈도우 안에서 가장 최근 기록이 있는 달로 최초
-  // 1회만 이동한다. 사용자가 이미 ?month=로 특정 월을 지정했거나 직접 고른 뒤에는 건드리지 않는다.
-  const [monthAutoAdjusted, setMonthAutoAdjusted] = useState(false)
+  // 자산탭(최근 기록월 기본값)과의 일관성 — URL에 ?month=가 없고 현재 선택월에 거래가 없으면,
+  // 조회된 12개월 윈도우 안에서 가장 최근 기록이 있는 달로 옮긴다(autoMonth 로컬 상태로만).
+  // autoMonth 반영 후 그 달엔 거래가 있으므로 autoAdjustedMonth가 null을 돌려 effect가 안정된다.
   useEffect(() => {
-    if (monthAutoAdjusted || isTransactionsLoading) return
-    setMonthAutoAdjusted(true)
-    if (searchParams.get('month') || period.mode !== 'monthly') return
-    if (transactions.some((transaction) => transaction.transactionDate.startsWith(period.month))) return
-    const latestMonth = transactions.map((transaction) => transaction.transactionDate.slice(0, 7)).sort().at(-1)
-    if (latestMonth && latestMonth !== period.month) setPeriod({ ...period, month: latestMonth })
-  }, [monthAutoAdjusted, isTransactionsLoading, transactions, period, searchParams])
+    if (isTransactionsLoading || monthParam || period.mode !== 'monthly') return
+    const adjusted = autoAdjustedMonth(
+      period.month,
+      transactions.map((transaction) => transaction.transactionDate),
+    )
+    if (adjusted) setAutoMonth(adjusted)
+  }, [isTransactionsLoading, monthParam, period.mode, period.month, transactions])
 
   const previousYearWindow = useMemo(() => previousYearRange(period, today), [period, today])
   const { data: previousYearTransactions = [], isLoading: isPreviousYearLoading } = useFinanceTransactionsQuery(
