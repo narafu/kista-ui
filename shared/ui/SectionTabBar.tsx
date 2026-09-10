@@ -14,12 +14,9 @@ interface Props {
   rootHref: string
   ariaLabel: string
   className?: string
-  // 탭 href를 그대로 쓰지 않고 가공해야 할 때(예: 가계부 수입/소비/저축의 조회 기간
-  // 쿼리스트링 계승) 호출부가 넘긴다. 기본은 항등 함수.
-  getHref?: (href: string) => string
 }
 
-export function SectionTabBar({ items, rootHref, ariaLabel, className, getHref }: Props) {
+export function SectionTabBar({ items, rootHref, ariaLabel, className }: Props) {
   const pathname = usePathname()
 
   return (
@@ -29,7 +26,7 @@ export function SectionTabBar({ items, rootHref, ariaLabel, className, getHref }
         return (
           <Link
             key={href}
-            href={getHref ? getHref(href) : href}
+            href={href}
             aria-current={active ? 'page' : undefined}
             className={cn(
               'flex min-h-9 w-full items-center justify-center rounded px-2 py-1 text-center text-sm font-medium transition-colors',

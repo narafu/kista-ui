@@ -6,7 +6,6 @@ let pathname = '/finance'
 
 vi.mock('next/navigation', () => ({
   usePathname: () => pathname,
-  useSearchParams: () => new URLSearchParams(),
 }))
 
 vi.mock('@features/asset/save-asset', () => ({

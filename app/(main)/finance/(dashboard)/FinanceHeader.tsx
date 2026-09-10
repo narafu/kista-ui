@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { PageHeader } from '@widgets/page-header'
 import { SectionTabBar } from '@shared/ui/SectionTabBar'
 import { isSectionTabActive } from '@shared/lib/utils'
@@ -34,12 +34,8 @@ const FLOW_TYPE_BY_HREF: Record<string, 'INCOME' | 'EXPENSE' | 'SAVING'> = {
 
 export function FinanceHeader() {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
   const activeHref = TAB_OPTIONS.find(({ href }) => isSectionTabActive(pathname, href, '/finance'))?.href ?? '/finance'
   const flowType = FLOW_TYPE_BY_HREF[activeHref]
-  // 수입/소비/저축 3탭은 조회 기간(?month=&mode=)을 URL로 공유한다(useFinanceFlowData 참고) —
-  // 탭 링크가 현재 쿼리스트링을 그대로 이어받아야 탭을 옮겨도 보던 기간이 유지된다.
-  const flowQuery = searchParams.toString()
   const registerWindowTo = registerWindowUpperBound(todayKst())
 
   return (
@@ -63,7 +59,6 @@ export function FinanceHeader() {
         rootHref="/finance"
         ariaLabel="가계부 탭"
         className="grid-cols-5 sm:w-[30rem]"
-        getHref={(href) => (href in FLOW_TYPE_BY_HREF && flowQuery ? `${href}?${flowQuery}` : href)}
       />
     </>
   )

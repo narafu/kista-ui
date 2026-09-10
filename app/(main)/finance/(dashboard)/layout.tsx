@@ -6,6 +6,7 @@ import { getActiveGroupId } from '@shared/lib/auth/activeGroup'
 import { assetSnapshotListQueryOptions, financeGroupListQueryOptions, monthlyClosingListQueryOptions } from '@entities/finance'
 import { createQueryClient } from '@shared/lib/query'
 import { FinanceHeader } from './FinanceHeader'
+import { FinancePeriodProvider } from './FinancePeriodProvider'
 
 // 탭(자산/수입/소비/저축/설정) 페이지가 전부 client component라 각자 metadata를 export할 수
 // 없다(Next.js 제약) — 그룹 전체에 하나의 정적 title만 부여한다. 기존에도 client 탭 전환이라
@@ -31,8 +32,10 @@ export default async function FinanceDashboardLayout({ children }: { children: R
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <FinanceHeader />
-      {children}
+      <FinancePeriodProvider>
+        <FinanceHeader />
+        {children}
+      </FinancePeriodProvider>
     </HydrationBoundary>
   )
 }
