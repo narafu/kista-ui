@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,6 +10,7 @@ import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
+import { submitFormDialog } from '@shared/lib/form/submitFormDialog'
 import {
   isMonthClosed,
   useActiveGroupId,
@@ -90,21 +90,14 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
       memo: memo.trim() || undefined,
     }
 
-    if (mode === 'edit') {
-      updateMutation.mutate(payload, {
-        onSuccess: () => {
-          toast.success('거래내역이 수정되었습니다')
-          onSuccess()
-        },
-      })
-      return
-    }
-
-    createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
-      onSuccess: () => {
-        toast.success('거래내역이 등록되었습니다')
-        onSuccess()
-      },
+    submitFormDialog({
+      mode,
+      payload,
+      createMutation,
+      updateMutation,
+      createExtra: { shareToGroup: canShareToGroup && shareToGroup },
+      messages: { create: '거래내역이 등록되었습니다', edit: '거래내역이 수정되었습니다' },
+      onSuccess,
     })
   }
 
