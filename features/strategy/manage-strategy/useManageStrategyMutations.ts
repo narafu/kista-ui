@@ -28,37 +28,35 @@ export function useManageStrategyMutations({ onDeleted, strategyId }: Options = 
     ])
   }
 
+  function withActionFeedback<TVariables>(
+    mutation: { mutate: (variables: TVariables, opts: { onSuccess: () => void; onError: (error: unknown) => void }) => void },
+    variables: TVariables,
+    successMessage: string,
+    errorFallback: string,
+    after?: () => void,
+  ) {
+    mutation.mutate(variables, {
+      onSuccess: async () => {
+        toast.success(successMessage)
+        await invalidateDependents()
+        after?.()
+      },
+      onError: (error) => toast.error(apiMsg(error, errorFallback)),
+    })
+  }
+
   const executeMutation = useExecuteStrategyMutation(strategyId, invalidateDependents)
 
   function pause(strategy: Strategy) {
-    pauseMutation.mutate(strategy, {
-      onSuccess: async () => {
-        toast.success('전략을 일시정지했습니다')
-        await invalidateDependents()
-      },
-      onError: (error) => toast.error(apiMsg(error, '일시정지에 실패했습니다')),
-    })
+    withActionFeedback(pauseMutation, strategy, '전략을 일시정지했습니다', '일시정지에 실패했습니다')
   }
 
   function resume(strategy: Strategy) {
-    resumeMutation.mutate(strategy, {
-      onSuccess: async () => {
-        toast.success('전략을 재개했습니다')
-        await invalidateDependents()
-      },
-      onError: (error) => toast.error(apiMsg(error, '재개에 실패했습니다')),
-    })
+    withActionFeedback(resumeMutation, strategy, '전략을 재개했습니다', '재개에 실패했습니다')
   }
 
   function remove(strategy: Strategy) {
-    deleteMutation.mutate(strategy, {
-      onSuccess: async () => {
-        toast.success('전략이 삭제되었습니다')
-        await invalidateDependents()
-        onDeleted?.()
-      },
-      onError: (error) => toast.error(apiMsg(error, '삭제에 실패했습니다')),
-    })
+    withActionFeedback(deleteMutation, strategy, '전략이 삭제되었습니다', '삭제에 실패했습니다', onDeleted)
   }
 
   function execute() {
