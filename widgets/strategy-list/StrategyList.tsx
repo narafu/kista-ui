@@ -22,7 +22,7 @@ export function StrategyList({ accountId, strategies, previewsByStrategyId }: Pr
       </CardHeader>
       <CardContent className="px-6 pb-6">
         {strategies.length === 0 ? (
-          <EmptyState variant="text" message="등록된 전략이 없습니다. 종목당 1개씩, 여러 전략을 추가할 수 있습니다." />
+          <EmptyState variant="text" message={`등록된 전략이 없습니다.\n종목당 1개씩, 여러 전략을 추가할 수 있습니다.`} />
         ) : (
           <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 lg:gap-3">
             {strategies.map((s) => (
