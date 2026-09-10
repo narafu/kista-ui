@@ -22,9 +22,9 @@ const {
 }))
 
 const accounts: FinanceAccount[] = [
+  { id: 'acc-3', accountType: 'SECURITIES', name: '삼성증권' },
   { id: 'acc-1', accountType: 'SECURITIES', name: '미래에셋증권', accountNo: '1234567890', memo: '주 계좌' },
   { id: 'acc-2', accountType: 'BANK', name: '국민은행', groupId: 'group-1' },
-  { id: 'acc-3', accountType: 'SECURITIES', name: '삼성증권' },
 ]
 
 vi.mock('@entities/finance', async () => {
@@ -146,22 +146,24 @@ describe('AccountManager', () => {
     expect(screen.queryByText('삼성증권')).not.toBeInTheDocument()
   })
 
-  it('이름순 정렬을 적용하면 목록 순서가 가나다순으로 바뀐다', async () => {
+  it('이름순 정렬을 적용하면 유형 그룹 내부 순서가 가나다순으로 바뀐다', async () => {
     const user = userEvent.setup()
     render(<AccountManager />)
 
-    // 기본(등록순)은 서버 응답 순서 그대로: 미래에셋증권, 국민은행, 삼성증권
-    expect(screen.getAllByRole('listitem').map((li) => li.textContent)[0]).toContain('미래에셋증권')
-
-    await user.click(screen.getByRole('combobox', { name: '정렬 기준' }))
-    await user.click(await screen.findByRole('option', { name: '이름순' }))
-
-    const namesInOrder = screen.getAllByRole('listitem').map((li) => (li.textContent?.includes('국민은행')
+    // 유형별로 묶여 표시된다(meta.financeAccountTypes 순서: 증권사 -> 은행) — 기본(등록순)은
+    // 그룹 내부에서 서버 응답 순서(삼성증권 -> 미래에셋증권) 그대로.
+    const namesInOrder = () => screen.getAllByRole('listitem').map((li) => (li.textContent?.includes('국민은행')
       ? '국민은행'
       : li.textContent?.includes('미래에셋증권')
         ? '미래에셋증권'
         : '삼성증권'))
-    expect(namesInOrder).toEqual(['국민은행', '미래에셋증권', '삼성증권'])
+    expect(namesInOrder()).toEqual(['삼성증권', '미래에셋증권', '국민은행'])
+
+    await user.click(screen.getByRole('combobox', { name: '정렬 기준' }))
+    await user.click(await screen.findByRole('option', { name: '이름순' }))
+
+    // 증권사 그룹 내부가 가나다순(미래에셋 -> 삼성)으로 바뀌고, 은행 그룹은 여전히 뒤에 온다.
+    expect(namesInOrder()).toEqual(['미래에셋증권', '삼성증권', '국민은행'])
   })
 
   it('생성 모드는 그룹 소속일 때 기본 켜짐 상태의 "그룹으로 저장" 스위치를 보여준다', async () => {

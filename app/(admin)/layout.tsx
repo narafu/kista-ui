@@ -17,7 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="flex flex-col flex-1 min-w-0">
           <AdminTopBar />
           <PullToRefresh />
-          <main className="flex-1 p-4 lg:p-8 max-w-5xl w-full mx-auto">
+          <main className="flex-1 p-4 lg:p-8 max-w-[1600px] w-full mx-auto">
             {children}
           </main>
         </div>
