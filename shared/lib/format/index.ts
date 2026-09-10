@@ -70,8 +70,14 @@ export function formatAmountDisplay(digits: string): string {
   return digits ? Number(digits).toLocaleString('ko-KR') : ''
 }
 
+/** 임의 시각을 KST 기준 'YYYY-MM-DD'로 — 문자열이면 Date로 파싱 후 적용 */
+export function toKstDateString(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date
+  return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' })
+}
+
 export function todayKst(): string {
-  return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' })
+  return toKstDateString(new Date())
 }
 
 /** 0~1 비율을 정수 % 값으로 변환 — 부동소수점 오차 제거(NUMERIC(6,2) 정밀도 기준) */

@@ -6,6 +6,7 @@ import { approveAdminUser, rejectAdminUser, changeAdminUserRole, deleteAdminUser
 import type { AdminStats, AdminUser } from '../model/types'
 import type { UserRole, UserStatus } from '@shared/lib/api-schema'
 import { apiMsg } from '@shared/lib/api-client'
+import { toKstDateString } from '@shared/lib/format'
 import type { AdminUsersQueryParams } from '../model/queryKeys'
 import { adminKeys } from '../model/queryKeys'
 import { adminStatsQueryOptions, adminUsersQueryOptions } from '../model/queryOptions'
@@ -57,7 +58,7 @@ function transitionCachedAdminUser(
 
 function isInUserDateRange(user: AdminUser, from: string, to: string) {
   if (!from && !to) return true
-  const kstDate = new Date(user.createdAt).toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' })
+  const kstDate = toKstDateString(user.createdAt)
   return (!from || kstDate >= from) && (!to || kstDate <= to)
 }
 
