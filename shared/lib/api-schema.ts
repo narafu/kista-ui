@@ -12,9 +12,25 @@ export type CycleSeedType = NonNullable<components['schemas']['TradingCycleReque
 export type StrategyType = NonNullable<components['schemas']['TradingCycleRequest']['type']>
 export type StrategyTicker = NonNullable<components['schemas']['TradingCycleRequest']['ticker']>
 
-export type OrderType = NonNullable<components['schemas']['Order']['orderType']>
-export type OrderDirection = NonNullable<components['schemas']['Order']['direction']>
-export type OrderStatus = NonNullable<components['schemas']['Order']['status']>
+// 주문 상태는 order 도메인 DTO(TodayOrderItem.status)에 enum 제약이 남아 있어 그쪽에서 파생한다.
+export type OrderStatus = NonNullable<components['schemas']['TodayOrderItem']['status']>
+// 매수/매도 방향은 일별 체결 응답(ItemDto.direction)의 enum 제약에서 파생한다.
+export type OrderDirection = NonNullable<components['schemas']['ItemDto']['direction']>
+// 주문 유형은 서버가 order 도메인 응답 DTO에서 enum을 걷어내고 자유 문자열로 직렬화하도록 바뀌었다
+// (TodayOrderItem/OrderItem/AdminTradeResponse 모두 String). 스펙에 남은 유일한 enum 앵커는 fida 도메인
+// (FidaPlannedOrder.orderType)뿐이라 도메인 결합을 피해 여기서 수기로 정의한다 — 값 집합(LOC/MOC/LIMIT)은
+// kista-api broker/trading/privacy 각 OrderType enum이 "모듈 경계상 별개지만 값 집합은 동일"로 관리한다.
+export type OrderType = 'LOC' | 'MOC' | 'LIMIT'
+
+// TodayOrderItem/ItemDto가 order 도메인 DTO라 서버가 Order 스키마에 한 것처럼 enum을 걷어내면
+// 위 파생 타입이 소리 없이 string으로 붕괴한다(스키마 제거·개명은 gen:types에서 시끄럽게 깨지지만
+// enum만 사라지는 회귀는 조용하다). 값 집합이 바뀌면 typecheck가 깨지도록 컴파일 타임에 고정한다.
+type ExactUnion<A, B> = [A] extends [B] ? ([B] extends [A] ? true : never) : never
+const _orderEnumPin: [
+  ExactUnion<OrderDirection, 'BUY' | 'SELL'>,
+  ExactUnion<OrderStatus, 'PLANNED' | 'PLACED' | 'FILLED' | 'PARTIALLY_FILLED' | 'FAILED' | 'CANCELLED'>,
+] = [true, true]
+void _orderEnumPin
 
 export type SkipReason = NonNullable<components['schemas']['NextOrdersResponse']['skipReason']>
 

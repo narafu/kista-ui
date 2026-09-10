@@ -20,12 +20,14 @@ import {
   SYSTEM_REAL_ESTATE_CATEGORY_ID,
   SYSTEM_SAVINGS_CATEGORY_ID,
   isInvestmentCategoryId,
-  notifyShareCreateResult,
+  isMonthClosed,
+  useActiveGroupId,
   useCanShareToGroup,
   useCategoryPathState,
   useCreateAssetSnapshotMutation,
   useFinanceAccountsQuery,
   useFinanceCategoriesQuery,
+  useMonthlyClosingsQuery,
   useUpdateAssetSnapshotMutation,
 } from '@entities/finance'
 import type { AssetClass, AssetSnapshot, AssetSnapshotRequest, FinanceAccount, Market } from '@entities/finance'
@@ -138,6 +140,14 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
   const strategySuggestions = useMeQuery().data?.strategySuggestions ?? DEFAULT_STRATEGY_SUGGESTIONS
 
   const [entryDate, setEntryDate] = useState(initial?.entryDate ?? todayKst())
+  // 기준일이 기록 점검 완료(마감)된 달이면 서버가 등록·수정을 409로 거부한다 — 제출 전에 막는다.
+  // 수정은 새 기준일뿐 아니라 원본 기준일의 달도 잠겨 있으면 거부되므로(서버 가드와 동일) 둘 다 검사한다.
+  // 복제/등록은 신규 생성이라 원본 날짜와 무관하다 — edit 모드에서만 원본 달을 함께 본다.
+  const { data: monthlyClosings = [] } = useMonthlyClosingsQuery()
+  const activeGroupId = useActiveGroupId()
+  const monthClosed =
+    isMonthClosed(monthlyClosings, entryDate.slice(0, 7), activeGroupId) ||
+    (mode === 'edit' && initial ? isMonthClosed(monthlyClosings, initial.entryDate.slice(0, 7), activeGroupId) : false)
   const { selectedPath, setSelectedPath, cascadeLevels, categoryId } = useCategoryPathState(categories, initial?.categoryId)
   // 운용전략 필드는 L1 카테고리가 '투자'(고정 시스템 카테고리)일 때만 노출한다.
   const showStrategy = isInvestmentCategoryId(selectedPath[0])
@@ -157,7 +167,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
   const updateMutation = useUpdateAssetSnapshotMutation(initial?.id ?? '')
   const isPending = mode === 'edit' ? updateMutation.isPending : createMutation.isPending
 
-  const canSubmit = entryDate !== '' && categoryId !== '' && amountDigits !== ''
+  const canSubmit = entryDate !== '' && categoryId !== '' && amountDigits !== '' && !monthClosed
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -187,8 +197,8 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
     }
 
     createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
-      onSuccess: (saved, variables) => {
-        notifyShareCreateResult(saved, variables, '자산 기록', mode === 'duplicate' ? '자산 기록이 복제되었습니다' : '자산 기록이 등록되었습니다')
+      onSuccess: () => {
+        toast.success(mode === 'duplicate' ? '자산 기록이 복제되었습니다' : '자산 기록이 등록되었습니다')
         onSuccess()
       },
     })
@@ -210,6 +220,11 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
               disabled={isPending}
               className="h-12"
             />
+            {monthClosed && (
+              <p className="text-xs text-[var(--warn)]">
+                이 달은 기록 점검이 완료되어 잠겨 있습니다. 자산탭 기록 점검에서 완료를 해제하세요.
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">

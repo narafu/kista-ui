@@ -49,9 +49,18 @@ export async function listAssetSnapshots({ groupId, token }: GroupScopedOptions 
   return fetchEither<AssetSnapshot[]>(withQuery('/api/finance/asset-snapshots', { groupId }), { method: 'GET' }, token)
 }
 
-// groupId 쿼리 파라미터는 서버가 항상 무시하고 개인 소유로만 생성한다(budget/transaction과 동일 패턴).
-export async function createAssetSnapshot(data: AssetSnapshotRequest, token?: string): Promise<AssetSnapshot> {
-  return fetchEither<AssetSnapshot>('/api/finance/asset-snapshots', jsonBody('POST', data), token)
+// shareToGroup:true면 서버가 호출자의 현재 그룹 소유로 원자적으로 생성한다(budget/transaction/account/
+// category 공통 — 대상 그룹은 서버가 userId로 해석, 클라가 groupId를 보내지 않는다). 무그룹 상태에서
+// shareToGroup:true면 서버가 400.
+export async function createAssetSnapshot(
+  data: AssetSnapshotRequest,
+  { shareToGroup, token }: { shareToGroup?: boolean; token?: string } = {},
+): Promise<AssetSnapshot> {
+  return fetchEither<AssetSnapshot>(
+    withQuery('/api/finance/asset-snapshots', { shareToGroup: shareToGroup ? 'true' : undefined }),
+    jsonBody('POST', data),
+    token,
+  )
 }
 
 export async function updateAssetSnapshot(
@@ -77,13 +86,15 @@ export async function deleteAssetSnapshot(id: string, token?: string): Promise<v
 }
 
 // 순수 flat 배치 등록 — 항목별 성공/실패를 응답으로 구분 반환한다(한 항목 실패가 전체를 막지 않음).
-// groupId 쿼리 파라미터는 다른 finance 생성 엔드포인트와 동일하게 서버가 무시하고 개인 소유로만 생성한다.
+// shareToGroup:true면 서버가 각 항목 생성 직후 호출자의 현재 그룹으로 공유 전환한다 — 전환 실패
+// 항목은 방금 만든 개인 레코드를 롤백하고 failures로 카운트한다(성공 카운트에서 빠짐). 대상 그룹은
+// 서버가 userId로 해석하므로(단건 PATCH .../{id}/share와 동일) 클라이언트가 groupId를 지정하지 않는다.
 export async function bulkRegisterFinance(
   data: BulkFinanceRegisterRequest,
-  { groupId, token }: GroupScopedOptions = {},
+  { shareToGroup, token }: { shareToGroup?: boolean; token?: string } = {},
 ): Promise<BulkFinanceRegisterResponse> {
   return fetchEither<BulkFinanceRegisterResponse>(
-    withQuery('/api/finance/bulk-register', { groupId }),
+    withQuery('/api/finance/bulk-register', { shareToGroup: shareToGroup ? 'true' : undefined }),
     jsonBody('POST', data),
     token,
   )
@@ -100,11 +111,17 @@ export async function listFinanceCategories(
   )
 }
 
+// shareToGroup:true면 그룹 소유로 생성한다 — 단 부모가 개인 소유면 서버가 400(개인 부모 아래
+// 그룹 자식 = 고아 트리 방지). 호출부(CategoryFormDialog)가 부모 소유 형태로 토글을 게이팅한다.
 export async function createFinanceCategory(
   data: FinanceCategoryRequest,
-  { groupId, token }: GroupScopedOptions = {},
+  { shareToGroup, token }: { shareToGroup?: boolean; token?: string } = {},
 ): Promise<FinanceCategory> {
-  return fetchEither<FinanceCategory>(withQuery('/api/finance/categories', { groupId }), jsonBody('POST', data), token)
+  return fetchEither<FinanceCategory>(
+    withQuery('/api/finance/categories', { shareToGroup: shareToGroup ? 'true' : undefined }),
+    jsonBody('POST', data),
+    token,
+  )
 }
 
 // PUT은 parentId/type을 무시한다(kista-api FinanceCategoryService.update) — 이름·sortOrder만 반영됨, 카테고리 이동 불가.
@@ -159,9 +176,13 @@ export async function listFinanceAccounts({ groupId, token }: GroupScopedOptions
 
 export async function createFinanceAccount(
   data: FinanceAccountRequest,
-  { groupId, token }: GroupScopedOptions = {},
+  { shareToGroup, token }: { shareToGroup?: boolean; token?: string } = {},
 ): Promise<FinanceAccount> {
-  return fetchEither<FinanceAccount>(withQuery('/api/finance/accounts', { groupId }), jsonBody('POST', data), token)
+  return fetchEither<FinanceAccount>(
+    withQuery('/api/finance/accounts', { shareToGroup: shareToGroup ? 'true' : undefined }),
+    jsonBody('POST', data),
+    token,
+  )
 }
 
 export async function updateFinanceAccount(id: string, data: FinanceAccountRequest, token?: string): Promise<FinanceAccount> {
@@ -247,10 +268,10 @@ export async function listFinanceTransactions({
 
 export async function createFinanceTransaction(
   data: FinanceTransactionRequest,
-  { groupId, token }: GroupScopedOptions = {},
+  { shareToGroup, token }: { shareToGroup?: boolean; token?: string } = {},
 ): Promise<FinanceTransaction> {
   const saved = await fetchEither<FinanceTransaction>(
-    withQuery('/api/finance/transactions', { groupId }),
+    withQuery('/api/finance/transactions', { shareToGroup: shareToGroup ? 'true' : undefined }),
     jsonBody('POST', data),
     token,
   )
@@ -298,11 +319,17 @@ export async function listFinanceBudgets({ groupId, token, categoryId, date }: B
   return list.map(normalizeBudget)
 }
 
+// shareToGroup:true면 그룹 소유로 생성 — 그룹 스코프에 기간이 겹치는 예산이 있으면 서버가 409
+// (finance_budgets_no_overlap). 개인 스코프 겹침은 서버가 규칙대로 자동 트림/삭제한다.
 export async function createFinanceBudget(
   data: FinanceBudgetRequest,
-  { groupId, token }: GroupScopedOptions = {},
+  { shareToGroup, token }: { shareToGroup?: boolean; token?: string } = {},
 ): Promise<FinanceBudget> {
-  const saved = await fetchEither<FinanceBudget>(withQuery('/api/finance/budgets', { groupId }), jsonBody('POST', data), token)
+  const saved = await fetchEither<FinanceBudget>(
+    withQuery('/api/finance/budgets', { shareToGroup: shareToGroup ? 'true' : undefined }),
+    jsonBody('POST', data),
+    token,
+  )
   return normalizeBudget(saved)
 }
 

@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dialog'
 import { SaveButton } from '@shared/ui/SaveButton'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
-import { getCascadeLevels, notifyShareCreateResult, useCanShareToGroup, useCreateFinanceCategoryMutation, useUpdateFinanceCategoryMutation } from '@entities/finance'
+import { getCascadeLevels, getCategoryPath, useCanShareToGroup, useCreateFinanceCategoryMutation, useUpdateFinanceCategoryMutation } from '@entities/finance'
 import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
 
 // Base UI Select는 빈 문자열 value를 허용하지 않는다 — AssetForm의 NO_ACCOUNT_VALUE와 동일한 센티널 패턴.
@@ -46,6 +46,14 @@ export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, cat
   // 그룹 소속일 때만 노출, 기본값 켜짐(그룹 저장 우선) — 수정 모드는 groupId가 이미 고정돼 있어 대상 아님.
   const canShareToGroup = useCanShareToGroup()
   const [shareToGroup, setShareToGroup] = useState(true)
+  // 부모가 개인 소유면 그 아래 그룹 공유 카테고리를 만들 수 없다(kista-api 400 — 다른 멤버에게
+  // 부모 없는 고아 트리로 보이는 것을 막음). 이 경우 토글을 숨기고 개인 소유로만 생성한다.
+  const parentIsPersonal = useMemo(() => {
+    if (parentId === NO_PARENT_VALUE) return false
+    const parent = getCategoryPath(l1Categories, parentId).at(-1)
+    return parent != null && !parent.groupId
+  }, [l1Categories, parentId])
+  const shareToGroupAllowed = canShareToGroup && !parentIsPersonal
 
   const createMutation = useCreateFinanceCategoryMutation()
   const updateMutation = useUpdateFinanceCategoryMutation(category?.id ?? '')
@@ -73,9 +81,9 @@ export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, cat
       return
     }
 
-    createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
-      onSuccess: (saved, variables) => {
-        notifyShareCreateResult(saved, variables, '카테고리', '카테고리가 추가되었습니다')
+    createMutation.mutate({ ...payload, shareToGroup: shareToGroupAllowed && shareToGroup }, {
+      onSuccess: () => {
+        toast.success('카테고리가 추가되었습니다')
         onSuccess()
       },
     })
@@ -146,8 +154,11 @@ export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, cat
               />
             </div>
 
-            {mode === 'create' && canShareToGroup && (
+            {mode === 'create' && shareToGroupAllowed && (
               <ShareToGroupSwitch id="categoryShareToGroup" checked={shareToGroup} onCheckedChange={setShareToGroup} disabled={isPending} />
+            )}
+            {mode === 'create' && canShareToGroup && parentIsPersonal && (
+              <p className="text-xs text-muted-foreground">개인 카테고리 하위에는 그룹 공유 카테고리를 만들 수 없어요.</p>
             )}
           </div>
 

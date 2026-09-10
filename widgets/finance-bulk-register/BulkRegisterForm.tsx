@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Surface } from '@shared/ui/Surface'
+import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { cn } from '@shared/lib/utils'
 import { digitsOnly, formatAmountDisplay, fmtKrw, todayKst } from '@shared/lib/format'
@@ -15,13 +16,17 @@ import { useMeta } from '@entities/meta'
 import {
   buildBulkRegisterItems,
   buildCategoryIndex,
+  isMonthClosed,
   monthEndDate,
   monthStartDate,
   shiftMonth,
+  useActiveGroupId,
   useAssetSnapshotsQuery,
   useBulkRegisterFinanceMutation,
+  useCanShareToGroup,
   useFinanceCategoriesQuery,
   useFinanceTransactionsQuery,
+  useMonthlyClosingsQuery,
 } from '@entities/finance'
 import type { CategoryGroupNode, BulkRegisterItem } from '@entities/finance'
 import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
@@ -56,6 +61,15 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
   const currentYear = Number(today.slice(0, 4))
   const [sourceMonth, setSourceMonth] = useState(defaultSourceMonth ?? shiftMonth(thisMonth(), -1))
   const [targetMonth, setTargetMonth] = useState(defaultTargetMonth ?? thisMonth())
+
+  // 그룹 소속일 때만 노출(useCanShareToGroup). 단건 폼과 동일하게 그룹이 있으면 기본 ON.
+  const canShareToGroup = useCanShareToGroup()
+  const [shareToGroup, setShareToGroup] = useState(true)
+
+  // 대상월이 기록 점검 완료(마감)된 달이면 서버가 모든 항목을 409로 거부한다 — 확정 자체를 막는다.
+  const { data: monthlyClosings = [] } = useMonthlyClosingsQuery()
+  const activeGroupId = useActiveGroupId()
+  const targetMonthClosed = isMonthClosed(monthlyClosings, targetMonth, activeGroupId)
 
   const { data: transactions = [] } = useFinanceTransactionsQuery(monthStartDate(sourceMonth), monthEndDate(sourceMonth))
   const { data: assetSnapshots = [] } = useAssetSnapshotsQuery()
@@ -136,7 +150,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
       }))
 
     mutation.mutate(
-      { assets, transactions: transactionsPayload },
+      { assets, transactions: transactionsPayload, shareToGroup: canShareToGroup && shareToGroup },
       {
         onSuccess: (result) => {
           const succeeded = result.assetSuccessCount + result.transactionSuccessCount
@@ -249,7 +263,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
     )
   }
 
-  const submitDisabled = mutation.isPending || includedCount === 0
+  const submitDisabled = mutation.isPending || includedCount === 0 || targetMonthClosed
 
   return (
     <div className={cn('space-y-[18px] sm:pb-0', MOBILE_FIXED_BAR_RESERVE_CLASS)}>
@@ -266,6 +280,23 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
           이대로 확정하기
         </Button>
       </div>
+
+      {targetMonthClosed && (
+        <p className="rounded-[var(--r-md)] border border-[var(--warn)] bg-[var(--warn-bg)] px-3 py-2 text-sm text-[var(--warn)]">
+          {targetMonth} 은 기록 점검이 완료된 달이라 등록할 수 없습니다. 자산탭 기록 점검에서 완료를 해제하거나 다른 대상월을 고르세요.
+        </p>
+      )}
+
+      {canShareToGroup && (
+        <Surface className="px-6 py-4">
+          <ShareToGroupSwitch
+            id="bulkRegisterShareToGroup"
+            checked={shareToGroup}
+            onCheckedChange={setShareToGroup}
+            disabled={mutation.isPending}
+          />
+        </Surface>
+      )}
 
       <div className="grid gap-[18px] lg:grid-cols-2">
         <div>{renderSection('자산', items.asset, true)}</div>

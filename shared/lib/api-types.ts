@@ -374,6 +374,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/finance/bulk-register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 가계부 일괄 등록
+         * @description 자산/수입/소비/저축 기록 여러 건을 한 번에 등록합니다 (항목별 날짜는 요청 값 그대로 사용).
+         */
+        post: operations["register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/finance/budgets": {
         parameters: {
             query?: never;
@@ -651,106 +671,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/admin/scheduler/open": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 개장 스케쥴러 수동 트리거
-         * @description 개장 대기 없이 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
-         */
-        post: operations["triggerOpen"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/scheduler/kbland-price-index": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * KB Land 주간 아파트 매매가격지수 스케쥴러 수동 트리거
-         * @description 운영 이슈 발생 시 다음 크론까지 기다리지 않고 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
-         */
-        post: operations["triggerKbLandPriceIndex"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/scheduler/kbland-price-index/full-refresh": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * KB Land 주간 아파트 매매가격지수 월간 풀 리프레시 수동 트리거
-         * @description 20년 전체를 다시 받아 KB Land 과거 값 보정을 즉시 반영하며, 202 반환 후 백그라운드에서 처리합니다.
-         */
-        post: operations["triggerKbLandPriceIndexFullRefresh"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/scheduler/kbland-housing-benchmark": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * KB Land 주택 벤치마크 스케쥴러 수동 트리거
-         * @description 운영 이슈 발생 시 다음 크론까지 기다리지 않고 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
-         */
-        post: operations["triggerKbLandHousingBenchmark"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/scheduler/close": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 마감 스케쥴러 수동 트리거
-         * @description 주문 대기 없이 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
-         */
-        post: operations["triggerClose"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/admin/finance/categories": {
         parameters: {
             query?: never;
@@ -789,7 +709,7 @@ export interface paths {
          * 계좌 등록
          * @description KIS/Toss 계좌 및 자격증명을 AES-256 암호화하여 저장.
          */
-        post: operations["register"];
+        post: operations["register_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -807,7 +727,7 @@ export interface paths {
         get: operations["list_7"];
         put?: never;
         /** 거래 사이클 등록 */
-        post: operations["register_1"];
+        post: operations["register_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1674,6 +1594,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/backtest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 전략 백테스트
+         * @description 과거 일봉으로 전략을 시뮬레이션해 자산 곡선·성과 요약·해석 주의사항을 반환. initialHoldings/initialAvgPrice로 기존 보유 포지션부터 시작하는 백테스트도 가능(seed=0 허용, 단 예수금과 보유 중 하나는 있어야 함).
+         */
+        get: operations["run"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/status-stream": {
         parameters: {
             query?: never;
@@ -2361,7 +2301,7 @@ export interface components {
             recurringAmount?: number;
             /**
              * Format: int32
-             * @description VR: 램프 시작 시점 gradient(G) 값 (생략 시 인출식=20, 그 외=10)
+             * @description VR: 램프 시작 시점 gradient(G) 값 (생략 시 인출식=40, 그 외=10)
              * @example 10
              */
             initialGradient?: number;
@@ -2379,12 +2319,12 @@ export interface components {
             gStepWeeks?: number;
             /**
              * Format: int32
-             * @description VR: gradient 램프 상한값 (생략 시 initialGradient — 램프 없음)
+             * @description VR: gradient 램프 상한값 (생략 시 적립식/거치식=20, 인출식=50)
              * @example 20
              */
             gMax?: number;
             /**
-             * @description VR: 램프 시작 시점 poolLimitRate 값 (생략 시 적립식=0.75/거치식=0.50/인출식=0.25)
+             * @description VR: 램프 시작 시점 poolLimitRate 값 (생략 시 적립식=1.0/거치식=0.75/인출식=0.1)
              * @example 0.75
              */
             initialPoolLimitRate?: number;
@@ -2401,7 +2341,7 @@ export interface components {
              */
             pStepWeeks?: number;
             /**
-             * @description VR: poolLimitRate 램프 하한값 (생략 시 initialPoolLimitRate — 램프 없음)
+             * @description VR: poolLimitRate 램프 하한값 (생략 시 적립식/거치식=0.5, 인출식=0.1)
              * @example 0.5
              */
             poolLimitFloor?: number;
@@ -2507,6 +2447,8 @@ export interface components {
             recurringAmount?: number;
             /** @description pool 상한 금액 (USD) */
             poolLimit?: number;
+            /** @description 현재 pool(예수금, USD) — 최신 포지션 기준, 개장값(initialUsdDeposit)과 다름 */
+            currentPool?: number;
             /**
              * @description pool 상한 비율(0~1) — 현재 사이클 고정 스냅샷
              * @example 0.75
@@ -2994,7 +2936,7 @@ export interface components {
             brokers: {
                 [key: string]: components["schemas"]["BrokerRequest"];
             };
-            /** @description 전략별 신규 생성 정책 설정 (key=Type) */
+            /** @description 전략별 신규 생성 정책 설정 (key=StrategyType) */
             strategies: {
                 [key: string]: components["schemas"]["StrategyRequest"];
             };
@@ -3052,7 +2994,7 @@ export interface components {
              */
             defaultValue: "DEPOSIT" | "HOLD" | "WITHDRAW";
         };
-        FieldRequestTicker: {
+        FieldRequestStrategyTicker: {
             /** @description 사용자 입력 허용 여부 */
             customizable: boolean;
             /** @description 허용 값 목록 */
@@ -3065,7 +3007,7 @@ export interface components {
         };
         FieldRequests: {
             /** @description 종목 생성 필드 설정 */
-            ticker?: components["schemas"]["FieldRequestTicker"];
+            ticker?: components["schemas"]["FieldRequestStrategyTicker"];
             /** @description 무한매수 분할 수 필드 설정 (INFINITE 전용) */
             divisionCount?: components["schemas"]["FieldRequestInteger"];
             /** @description VR 정기 입출금 방향 필드 설정 (VR 전용) */
@@ -3127,8 +3069,8 @@ export interface components {
         };
         StrategyFieldSettingsObject: {
             customizable?: boolean;
-            allowedValues?: Record<string, never>[];
-            defaultValue?: Record<string, never>;
+            allowedValues?: unknown[];
+            defaultValue?: unknown;
         };
         StrategyResponse: {
             /** @description 신규 전략 생성 허용 여부 */
@@ -3249,39 +3191,20 @@ export interface components {
             ticker: "MAGX" | "USD" | "TQQQ" | "SOXL";
             currentCycleStart: number;
             currentCycleRealizedPnl: number;
-            avgPrice?: number;
+            avgPrice?: number | null;
             /** Format: int32 */
             holdings?: number;
-            orders?: components["schemas"]["Order"][];
+            orders?: components["schemas"]["FidaPlannedOrder"][];
             buyQuantityValid?: boolean;
         };
-        Order: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            accountId?: string;
-            /** Format: uuid */
-            strategyCycleId?: string;
-            /** Format: date */
-            tradeDate?: string;
-            /** @enum {string} */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL";
-            /** @enum {string} */
-            orderType?: "LOC" | "MOC" | "LIMIT";
-            /** @enum {string} */
-            timing?: "AT_CLOSE" | "AT_OPEN" | "IMMEDIATE";
+        FidaPlannedOrder: {
             /** @enum {string} */
             direction?: "BUY" | "SELL";
-            orderLeg?: string;
+            /** @enum {string} */
+            orderType?: "LOC" | "MOC" | "LIMIT";
             /** Format: int32 */
             quantity?: number;
             price?: number;
-            /** @enum {string} */
-            status?: "PLANNED" | "PLACED" | "FILLED" | "PARTIALLY_FILLED" | "FAILED" | "CANCELLED";
-            externalOrderId?: string;
-            /** Format: int32 */
-            filledQuantity?: number;
-            filledPrice?: number;
         };
         FidaOrderResponse: {
             /**
@@ -3349,6 +3272,42 @@ export interface components {
              * @description 초대 만료 시각
              */
             expiresAt?: string;
+        };
+        AssetItem: {
+            /** Format: uuid */
+            categoryId: string;
+            /** Format: uuid */
+            accountId?: string;
+            /** Format: date */
+            entryDate: string;
+            /** @enum {string} */
+            assetClass: "CASH" | "EQUITY" | "FIXED_INCOME" | "COMMODITY" | "CRYPTO" | "REAL_ESTATE";
+            /** @enum {string} */
+            market: "DOMESTIC" | "GLOBAL";
+            strategy?: string;
+            memo?: string;
+            /** Format: int64 */
+            amount?: number;
+        };
+        BulkFinanceRegisterRequest: {
+            assets?: components["schemas"]["AssetItem"][];
+            transactions?: components["schemas"]["TransactionItem"][];
+        };
+        TransactionItem: {
+            /** Format: uuid */
+            categoryId: string;
+            /** Format: date */
+            transactionDate: string;
+            /** Format: int64 */
+            amount?: number;
+            memo?: string;
+        };
+        BulkFinanceRegisterResponse: {
+            /** Format: int32 */
+            assetSuccessCount?: number;
+            /** Format: int32 */
+            transactionSuccessCount?: number;
+            failures?: string[];
         };
         FcmTokenRequest: {
             /** @description FCM 디바이스 토큰 */
@@ -4303,6 +4262,28 @@ export interface components {
             /** @description 해외수수료합계 */
             overseasFee?: number;
         };
+        BacktestPoint: {
+            /** Format: date */
+            date?: string;
+            totalAsset?: number;
+            principal?: number;
+        };
+        BacktestResponse: {
+            points?: components["schemas"]["BacktestPoint"][];
+            summary?: components["schemas"]["BacktestSummary"];
+            warnings?: string[];
+        };
+        BacktestSummary: {
+            finalAsset?: number;
+            totalInvested?: number;
+            totalReturnRate?: number;
+            cagr?: number;
+            mdd?: number;
+            /** Format: int32 */
+            tradeCount?: number;
+            /** Format: int32 */
+            cycleCount?: number;
+        };
         AdminUserResponse: {
             /**
              * Format: uuid
@@ -4511,7 +4492,7 @@ export interface components {
             targetId?: string;
             /** @description 액션 상세 데이터 */
             payload?: {
-                [key: string]: Record<string, never>;
+                [key: string]: unknown;
             };
             /**
              * Format: date-time
@@ -5734,7 +5715,7 @@ export interface operations {
     create: {
         parameters: {
             query?: {
-                groupId?: string;
+                shareToGroup?: boolean;
             };
             header?: never;
             path?: never;
@@ -5828,7 +5809,7 @@ export interface operations {
     create_1: {
         parameters: {
             query?: {
-                groupId?: string;
+                shareToGroup?: boolean;
             };
             header?: never;
             path?: never;
@@ -5878,6 +5859,33 @@ export interface operations {
             };
         };
     };
+    register: {
+        parameters: {
+            query?: {
+                /** @description 생성 후 소유자의 현재 그룹으로 공유 전환 (기본 false, 무그룹 유저가 true면 400) */
+                shareToGroup?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkFinanceRegisterRequest"];
+            };
+        };
+        responses: {
+            /** @description 등록 처리 완료 (항목별 성공/실패는 응답 본문 참고) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BulkFinanceRegisterResponse"];
+                };
+            };
+        };
+    };
     list_2: {
         parameters: {
             query?: {
@@ -5905,7 +5913,8 @@ export interface operations {
     create_2: {
         parameters: {
             query?: {
-                groupId?: string;
+                /** @description true면 현재 그룹 소유로 생성 */
+                shareToGroup?: boolean;
             };
             header?: never;
             path?: never;
@@ -5974,7 +5983,7 @@ export interface operations {
     create_3: {
         parameters: {
             query?: {
-                groupId?: string;
+                shareToGroup?: boolean;
             };
             header?: never;
             path?: never;
@@ -6031,7 +6040,7 @@ export interface operations {
     create_4: {
         parameters: {
             query?: {
-                groupId?: string;
+                shareToGroup?: boolean;
             };
             header?: never;
             path?: never;
@@ -6322,96 +6331,6 @@ export interface operations {
             };
         };
     };
-    triggerOpen: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    triggerKbLandPriceIndex: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    triggerKbLandPriceIndexFullRefresh: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    triggerKbLandHousingBenchmark: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    triggerClose: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     list_5: {
         parameters: {
             query?: {
@@ -6487,7 +6406,7 @@ export interface operations {
             };
         };
     };
-    register: {
+    register_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -6551,7 +6470,7 @@ export interface operations {
             };
         };
     };
-    register_1: {
+    register_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -7879,6 +7798,39 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["DailyTransactionResponse"];
+                };
+            };
+        };
+    };
+    run: {
+        parameters: {
+            query: {
+                type: "INFINITE" | "PRIVACY" | "VR";
+                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL";
+                from: string;
+                to: string;
+                seed?: number;
+                divisionCount?: number;
+                vrBandWidth?: number;
+                vrIntervalWeeks?: number;
+                vrRecurringAmount?: number;
+                vrInitialValue?: number;
+                initialHoldings?: number;
+                initialAvgPrice?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BacktestResponse"];
                 };
             };
         };

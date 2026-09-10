@@ -26,10 +26,13 @@ import {
   SYSTEM_SAVINGS_CATEGORY_ID,
   collectSubtreeIds,
   isLiability,
+  isMonthClosed,
+  useActiveGroupId,
   useAssetSnapshotsQuery,
   useCanShareToGroup,
   useDeleteManyAssetSnapshotsMutation,
   useFinanceCategoriesQuery,
+  useMonthlyClosingsQuery,
   useShareAssetSnapshotMutation,
   useUnshareAssetSnapshotMutation,
 } from '@entities/finance'
@@ -54,8 +57,10 @@ function accountLabel(snapshot: AssetSnapshot): string {
 }
 
 // 데스크탑 테이블 행·모바일 카드 행이 동일한 작업 버튼 세트를 공유한다.
+// locked면(마감된 달) 서버가 그 레코드의 수정·삭제·공유를 전면 차단하므로 미리 잠근다.
+// 복제는 사용자가 폼에서 새 기준일을 고르는 신규 생성이라 잠금 대상이 아니다.
 function AssetRecordActions({
-  snapshotId, onShare, onUnshare, onDelete, canShare, hasGroupId, sharePending, unsharePending,
+  snapshotId, onShare, onUnshare, onDelete, canShare, hasGroupId, sharePending, unsharePending, locked, lockTitle,
 }: {
   snapshotId: string
   onShare: () => void
@@ -65,26 +70,34 @@ function AssetRecordActions({
   hasGroupId: boolean
   sharePending: boolean
   unsharePending: boolean
+  locked: boolean
+  lockTitle: string
 }) {
   return (
     <div className="flex shrink-0 items-center gap-1">
       {canShare && !hasGroupId && (
-        <IconButton aria-label="공유" onClick={onShare} disabled={sharePending}>
+        <IconButton aria-label="공유" onClick={onShare} disabled={sharePending || locked} title={locked ? lockTitle : undefined} className={cn(locked && 'opacity-40')}>
           <Share2 className="size-4" />
         </IconButton>
       )}
       {canShare && hasGroupId && (
-        <IconButton aria-label="귀속" onClick={onUnshare} disabled={unsharePending}>
+        <IconButton aria-label="귀속" onClick={onUnshare} disabled={unsharePending || locked} title={locked ? lockTitle : undefined} className={cn(locked && 'opacity-40')}>
           <Undo2 className="size-4" />
         </IconButton>
       )}
       <Link href={`/finance/new?duplicateFrom=${snapshotId}`} aria-label="복제" title="복제" className={ICON_LINK_GHOST_CLASS}>
         <Copy className="size-4" />
       </Link>
-      <Link href={`/finance/${snapshotId}/edit`} aria-label="수정" title="수정" className={ICON_LINK_GHOST_CLASS}>
-        <Pencil className="size-4" />
-      </Link>
-      <IconButton aria-label="삭제" onClick={onDelete} className="text-destructive hover:text-destructive">
+      {locked ? (
+        <IconButton aria-label="수정" disabled title={lockTitle} className="opacity-40">
+          <Pencil className="size-4" />
+        </IconButton>
+      ) : (
+        <Link href={`/finance/${snapshotId}/edit`} aria-label="수정" title="수정" className={ICON_LINK_GHOST_CLASS}>
+          <Pencil className="size-4" />
+        </Link>
+      )}
+      <IconButton aria-label="삭제" onClick={onDelete} disabled={locked} title={locked ? lockTitle : undefined} className={cn('text-destructive hover:text-destructive', locked && 'opacity-40')}>
         <Trash2 className="size-4" />
       </IconButton>
     </div>
@@ -98,6 +111,10 @@ interface Props {
 export function AssetRecordList({ month }: Props) {
   const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
   const { data: categories = [] } = useFinanceCategoriesQuery('ASSET')
+  const { data: monthlyClosings = [] } = useMonthlyClosingsQuery()
+  const activeGroupId = useActiveGroupId()
+  const monthClosed = isMonthClosed(monthlyClosings, month, activeGroupId)
+  const closedMonthTitle = '기록 점검이 완료된 달입니다 · 기록 점검에서 완료를 해제하면 편집할 수 있습니다'
   const { meta, labelOf } = useMeta()
   const deleteManyMutation = useDeleteManyAssetSnapshotsMutation()
   const shareMutation = useShareAssetSnapshotMutation()
@@ -291,7 +308,9 @@ export function AssetRecordList({ month }: Props) {
                       aria-label="현재 페이지 전체 선택"
                       checked={allPagedSelected}
                       onChange={toggleAllOnPage}
-                      className="size-4"
+                      disabled={monthClosed}
+                      title={monthClosed ? closedMonthTitle : undefined}
+                      className={cn('size-4', monthClosed && 'opacity-40')}
                     />
                   </TableHeadCell>
                   <TableHeadCell aria-sort={sortKey === 'entryDate' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}>
@@ -326,7 +345,9 @@ export function AssetRecordList({ month }: Props) {
                         aria-label={`${fmtDate(snapshot.entryDate)} ${accountLabel(snapshot)} 선택`}
                         checked={selectedIds.has(snapshot.id)}
                         onChange={() => toggleRow(snapshot.id)}
-                        className="size-4"
+                        disabled={monthClosed}
+                        title={monthClosed ? closedMonthTitle : undefined}
+                        className={cn('size-4', monthClosed && 'opacity-40')}
                       />
                     </TableDataCell>
                     <TableDataCell className="text-muted-foreground whitespace-nowrap">{fmtDate(snapshot.entryDate)}</TableDataCell>
@@ -352,6 +373,8 @@ export function AssetRecordList({ month }: Props) {
                           hasGroupId={!!snapshot.groupId}
                           sharePending={shareMutation.isPending}
                           unsharePending={unshareMutation.isPending}
+                          locked={monthClosed}
+                          lockTitle={closedMonthTitle}
                         />
                       </div>
                     </TableDataCell>
@@ -370,7 +393,9 @@ export function AssetRecordList({ month }: Props) {
                     aria-label={`${fmtDate(snapshot.entryDate)} ${accountLabel(snapshot)} 선택`}
                     checked={selectedIds.has(snapshot.id)}
                     onChange={() => toggleRow(snapshot.id)}
-                    className="size-4 mt-1"
+                    disabled={monthClosed}
+                    title={monthClosed ? closedMonthTitle : undefined}
+                    className={cn('size-4 mt-1', monthClosed && 'opacity-40')}
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-1.5 mb-1">
@@ -399,6 +424,8 @@ export function AssetRecordList({ month }: Props) {
                         hasGroupId={!!snapshot.groupId}
                         sharePending={shareMutation.isPending}
                         unsharePending={unshareMutation.isPending}
+                        locked={monthClosed}
+                        lockTitle={closedMonthTitle}
                       />
                     </div>
                   </div>

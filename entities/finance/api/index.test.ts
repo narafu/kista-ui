@@ -68,13 +68,72 @@ describe('bulkRegisterFinance', () => {
     clientFetchMock.mockResolvedValueOnce({ assetSuccessCount: 1, transactionSuccessCount: 2, failures: [] })
 
     const { bulkRegisterFinance } = await import('./index')
-    const result = await bulkRegisterFinance({ assets: [], transactions: [] }, { groupId: 'group-1' })
+    const result = await bulkRegisterFinance({ assets: [], transactions: [] })
 
     expect(clientFetchMock).toHaveBeenCalledWith(
-      '/api/finance/bulk-register?groupId=group-1',
+      '/api/finance/bulk-register',
       { method: 'POST', body: JSON.stringify({ assets: [], transactions: [] }) },
     )
     expect(result.assetSuccessCount).toBe(1)
+  })
+
+  it('shareToGroup:true 면 ?shareToGroup=true 쿼리를 붙인다 (대상 그룹은 서버가 해석)', async () => {
+    clientFetchMock.mockResolvedValueOnce({ assetSuccessCount: 0, transactionSuccessCount: 0, failures: [] })
+
+    const { bulkRegisterFinance } = await import('./index')
+    await bulkRegisterFinance({ assets: [], transactions: [] }, { shareToGroup: true })
+
+    expect(clientFetchMock).toHaveBeenCalledWith(
+      '/api/finance/bulk-register?shareToGroup=true',
+      { method: 'POST', body: JSON.stringify({ assets: [], transactions: [] }) },
+    )
+  })
+})
+
+describe('단건 create — shareToGroup 쿼리', () => {
+  beforeEach(() => {
+    clientFetchMock.mockReset()
+    apiFetchMock.mockReset()
+  })
+
+  it('shareToGroup 미지정이면 쿼리 없이 POST 한다', async () => {
+    clientFetchMock.mockResolvedValueOnce({ id: 'b1', amount: 1000 })
+
+    const { createFinanceBudget } = await import('./index')
+    await createFinanceBudget({ categoryId: 'c1', applyStartDate: '2026-01-01', amount: 1000 })
+
+    expect(clientFetchMock).toHaveBeenCalledWith(
+      '/api/finance/budgets',
+      { method: 'POST', body: JSON.stringify({ categoryId: 'c1', applyStartDate: '2026-01-01', amount: 1000 }) },
+    )
+  })
+
+  it('shareToGroup:true 면 ?shareToGroup=true 를 붙인다', async () => {
+    clientFetchMock.mockResolvedValueOnce({ id: 't1', amount: 1000 })
+
+    const { createFinanceTransaction } = await import('./index')
+    await createFinanceTransaction({ categoryId: 'c1', transactionDate: '2026-01-01', amount: 1000 }, { shareToGroup: true })
+
+    expect(clientFetchMock).toHaveBeenCalledWith(
+      '/api/finance/transactions?shareToGroup=true',
+      { method: 'POST', body: JSON.stringify({ categoryId: 'c1', transactionDate: '2026-01-01', amount: 1000 }) },
+    )
+  })
+
+  it.each([
+    ['createAssetSnapshot', '/api/finance/asset-snapshots'],
+    ['createFinanceAccount', '/api/finance/accounts'],
+    ['createFinanceCategory', '/api/finance/categories'],
+  ])('%s 도 shareToGroup:true 면 같은 쿼리를 붙인다', async (fnName, path) => {
+    clientFetchMock.mockResolvedValueOnce({ id: 'x1' })
+
+    const mod = await import('./index')
+    await (mod as Record<string, (d: unknown, o: unknown) => Promise<unknown>>)[fnName]({ nickname: 'x' }, { shareToGroup: true })
+
+    expect(clientFetchMock).toHaveBeenCalledWith(
+      `${path}?shareToGroup=true`,
+      { method: 'POST', body: JSON.stringify({ nickname: 'x' }) },
+    )
   })
 })
 

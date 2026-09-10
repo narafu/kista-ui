@@ -17,7 +17,7 @@ import { SaveButton } from '@shared/ui/SaveButton'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { digitsOnly } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
-import { notifyShareCreateResult, useCanShareToGroup, useCreateFinanceAccountMutation, useUpdateFinanceAccountMutation } from '@entities/finance'
+import { useCanShareToGroup, useCreateFinanceAccountMutation, useUpdateFinanceAccountMutation } from '@entities/finance'
 import type { FinanceAccount, FinanceAccountRequest, FinanceAccountType } from '@entities/finance'
 
 interface Props {
@@ -70,8 +70,8 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
     }
 
     createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
-      onSuccess: (saved, variables) => {
-        notifyShareCreateResult(saved, variables, '계좌', '계좌가 등록되었습니다')
+      onSuccess: () => {
+        toast.success('계좌가 등록되었습니다')
         onOpenChange(false)
       },
     })

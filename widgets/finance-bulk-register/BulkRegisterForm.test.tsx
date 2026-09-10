@@ -1,13 +1,15 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BulkRegisterForm } from './BulkRegisterForm'
 
-const { mutateMock, pushMock, toastSuccessMock, toastWarningMock } = vi.hoisted(() => ({
+const { mutateMock, pushMock, toastSuccessMock, toastWarningMock, groupState, closingsState } = vi.hoisted(() => ({
   mutateMock: vi.fn(),
   pushMock: vi.fn(),
   toastSuccessMock: vi.fn(),
   toastWarningMock: vi.fn(),
+  groupState: { canShareToGroup: false },
+  closingsState: { data: [] as { month: string; completed: boolean }[] },
 }))
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: pushMock }) }))
@@ -38,10 +40,31 @@ vi.mock('@entities/finance', async () => {
     useAssetSnapshotsQuery: () => ({ data: [] }),
     useFinanceCategoriesQuery: (type: string) => ({ data: type === 'INCOME' ? [incomeCategory] : [] }),
     useBulkRegisterFinanceMutation: () => ({ mutate: mutateMock, isPending: false }),
+    useCanShareToGroup: () => groupState.canShareToGroup,
+    useMonthlyClosingsQuery: () => closingsState,
+    useActiveGroupId: () => undefined,
   }
 })
 
 describe('BulkRegisterForm', () => {
+  beforeEach(() => {
+    mutateMock.mockClear()
+    toastSuccessMock.mockClear()
+    toastWarningMock.mockClear()
+    groupState.canShareToGroup = false
+    closingsState.data = []
+  })
+
+  it('대상월이 기록 점검 완료된 달이면 확정 버튼을 비활성화하고 안내를 표시한다', async () => {
+    closingsState.data = [{ month: '2026-08', completed: true }]
+    render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
+
+    expect(await screen.findByText(/기록 점검이 완료된 달이라 등록할 수 없습니다/)).toBeInTheDocument()
+    for (const button of screen.getAllByRole('button', { name: '이대로 확정하기' })) {
+      expect(button).toBeDisabled()
+    }
+  })
+
   it('행의 포함 토글을 끄면 확정 시 해당 항목이 요청에서 빠진다', async () => {
     const user = userEvent.setup()
     render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
@@ -119,5 +142,46 @@ describe('BulkRegisterForm', () => {
 
     expect(toastWarningMock).toHaveBeenCalledWith(expect.stringContaining('1건 실패'))
     expect(toastSuccessMock).not.toHaveBeenCalled()
+  })
+
+  it('그룹 미소속이면 "그룹으로 저장" 토글을 노출하지 않는다', async () => {
+    render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
+
+    await screen.findByRole('switch', { name: '기본급 8월급 3,650,000원 포함' })
+
+    expect(screen.queryByRole('switch', { name: '그룹으로 저장' })).not.toBeInTheDocument()
+  })
+
+  it('그룹 소속이면 토글이 기본 켜짐이고 확정 시 shareToGroup:true로 보낸다', async () => {
+    groupState.canShareToGroup = true
+    const user = userEvent.setup()
+    render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
+
+    await screen.findByRole('switch', { name: '기본급 8월급 3,650,000원 포함' })
+    expect(screen.getByRole('switch', { name: '그룹으로 저장' })).toBeChecked()
+
+    await user.click(screen.getAllByRole('button', { name: '이대로 확정하기' })[0])
+
+    expect(mutateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ shareToGroup: true }),
+      expect.anything(),
+    )
+  })
+
+  it('기본 켜진 "그룹으로 저장" 토글을 끄면 확정 시 shareToGroup:false로 보낸다', async () => {
+    groupState.canShareToGroup = true
+    const user = userEvent.setup()
+    render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
+
+    await screen.findByRole('switch', { name: '기본급 8월급 3,650,000원 포함' })
+    await user.click(screen.getByRole('switch', { name: '그룹으로 저장' }))
+    expect(screen.getByRole('switch', { name: '그룹으로 저장' })).not.toBeChecked()
+
+    await user.click(screen.getAllByRole('button', { name: '이대로 확정하기' })[0])
+
+    expect(mutateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ shareToGroup: false }),
+      expect.anything(),
+    )
   })
 })

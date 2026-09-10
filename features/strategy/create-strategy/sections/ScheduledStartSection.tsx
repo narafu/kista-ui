@@ -22,7 +22,7 @@ export function ScheduledStartSection({ value, onChange, loading }: Props) {
           disabled={loading}
           onChange={(e) => onChange(e.target.value || null)}
           className={cn(
-            'flex items-center h-11 rounded-[var(--r-sm)] bg-card px-3 text-sm outline-none',
+            'flex items-center h-11 rounded-[var(--r-sm)] bg-card px-3 text-base outline-none',
             loading
               ? 'opacity-50 border border-border'
               : 'border border-[var(--rose-400)] shadow-[0_0_0_3px_rgba(203,131,106,0.18)]',
