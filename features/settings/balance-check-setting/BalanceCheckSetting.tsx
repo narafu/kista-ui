@@ -14,7 +14,7 @@ export function BalanceCheckSetting({ initialEnabled }: Props) {
 
   function handleToggle(next: boolean) {
     setEnabled(next)
-    mutation.mutate(next)
+    mutation.mutate(next, { onError: () => setEnabled(!next) })
   }
 
   return (

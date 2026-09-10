@@ -26,7 +26,7 @@ describe('TradingAlertToggle', () => {
 
     await user.click(screen.getByRole('switch', { name: '매매 알림' }))
 
-    expect(mutateMock).toHaveBeenCalledWith({ type: 'ORDER_FILLED', enabled: true })
+    expect(mutateMock).toHaveBeenCalledWith({ type: 'ORDER_FILLED', enabled: true }, { onError: expect.any(Function) })
   })
 
   it('blocks the toggle and prompts to pick a channel when notifications are off', async () => {

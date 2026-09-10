@@ -100,7 +100,7 @@ export function ErrorLogsSectionClient({ logs }: Props) {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel disabled={mutation.isPending}>취소</AlertDialogCancel>
-              <AlertDialogAction disabled={mutation.isPending} onClick={handleDelete}>
+              <AlertDialogAction variant="destructive" disabled={mutation.isPending} onClick={handleDelete}>
                 {mutation.isPending ? '삭제 중...' : '삭제'}
               </AlertDialogAction>
             </AlertDialogFooter>

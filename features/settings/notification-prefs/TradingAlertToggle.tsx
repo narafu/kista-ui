@@ -23,7 +23,7 @@ export function TradingAlertToggle({ type, initialEnabled, channel }: Props) {
       return
     }
     setEnabled(next)
-    mutation.mutate({ type, enabled: next })
+    mutation.mutate({ type, enabled: next }, { onError: () => setEnabled(!next) })
   }
 
   return (
