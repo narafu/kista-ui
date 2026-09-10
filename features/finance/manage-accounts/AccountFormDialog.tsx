@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Spinner } from '@shared/ui/Spinner'
+import { SaveButton } from '@shared/ui/SaveButton'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { digitsOnly } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
@@ -145,14 +145,10 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
           </div>
 
           <DialogFooter>
-            <Button type="submit" className="gap-2" disabled={isPending || !canSubmit}>
-              {isPending ? (
-                <>
-                  <Spinner size={14} />
-                  저장 중...
-                </>
-              ) : '저장'}
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
+              취소
             </Button>
+            <SaveButton isPending={isPending} disabled={!canSubmit} />
           </DialogFooter>
         </form>
       </DialogContent>
