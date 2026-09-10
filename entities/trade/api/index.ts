@@ -1,4 +1,5 @@
 import { apiFetch, fetchEither } from '@shared/lib/api-client'
+import { buildQueryString } from '@shared/lib/query-string'
 import { toNum } from '@shared/lib/utils'
 import type {
   CycleHistoryPage,
@@ -39,33 +40,12 @@ function normalizePortfolio(raw: unknown): PortfolioSummary {
   }
 }
 
-function buildDateQuery(params: { from?: string; to?: string }): string {
-  const q = new URLSearchParams()
-  if (params.from) q.set('from', params.from)
-  if (params.to) q.set('to', params.to)
-  return q.size ? `?${q}` : ''
-}
-
-function buildCycleHistoryQuery(params: {
-  from?: string
-  to?: string
-  cursor?: string
-  size?: number
-}): string {
-  const q = new URLSearchParams()
-  if (params.from) q.set('from', params.from)
-  if (params.to) q.set('to', params.to)
-  if (params.cursor) q.set('cursor', params.cursor)
-  if (params.size != null) q.set('size', String(params.size))
-  return q.size ? `?${q}` : ''
-}
-
 export async function getAccountCycleHistory(
   accountId: string,
   params: { from?: string; to?: string; cursor?: string; size?: number },
   token?: string
 ): Promise<CycleHistoryPage> {
-  const qs = buildCycleHistoryQuery(params)
+  const qs = buildQueryString(params)
   return fetchEither<CycleHistoryPage>(`/api/accounts/${accountId}/cycle-history${qs}`, { method: 'GET' }, token)
 }
 
@@ -74,7 +54,7 @@ export async function getStrategyCycleHistory(
   params: { from?: string; to?: string; cursor?: string; size?: number },
   token?: string
 ): Promise<CycleHistoryPage> {
-  const qs = buildCycleHistoryQuery(params)
+  const qs = buildQueryString(params)
   return fetchEither<CycleHistoryPage>(`/api/trading-cycles/${strategyId}/history${qs}`, { method: 'GET' }, token)
 }
 

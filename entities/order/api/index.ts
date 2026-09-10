@@ -1,4 +1,5 @@
 import { clientFetch, fetchEither } from '@shared/lib/api-client'
+import { buildQueryString } from '@shared/lib/query-string'
 import { normalizePlacedOrderBase } from '@shared/model/placed-order'
 import type { PlacedOrder } from '@shared/model/placed-order'
 import type { BuyCompetitionSummary, CompetingStrategy, NextOrderPreview, SellSufficiencySummary, SkipReason, StrategyOrder } from '../model/types'
@@ -127,10 +128,7 @@ export async function listStrategyOrders(
   from?: string,
   to?: string,
 ): Promise<StrategyOrder[]> {
-  const params = new URLSearchParams()
-  if (from) params.set('from', from)
-  if (to) params.set('to', to)
-  const query = params.size ? `?${params}` : ''
+  const query = buildQueryString({ from, to })
   const raw = await clientFetch<{ orders: unknown[] }>(`/api/trading-cycles/${strategyId}/orders${query}`)
   return raw.orders.map((o) => {
     const item = o as Record<string, unknown>

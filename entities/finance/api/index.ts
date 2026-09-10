@@ -1,4 +1,5 @@
 import { fetchEither, jsonBody } from '@shared/lib/api-client'
+import { buildQueryString } from '@shared/lib/query-string'
 import type {
   AssetSnapshot,
   AssetSnapshotRequest,
@@ -36,12 +37,7 @@ export interface GroupScopedOptions {
 }
 
 function withQuery(path: string, params: Record<string, string | undefined>) {
-  const query = new URLSearchParams()
-  for (const [key, value] of Object.entries(params)) {
-    if (value) query.set(key, value)
-  }
-  const qs = query.toString()
-  return qs ? `${path}?${qs}` : path
+  return path + buildQueryString(params)
 }
 
 // share/unshare는 모든 finance 리소스에서 `PATCH {basePath}/{id}/{share|unshare}` 형태로 동일하다.
