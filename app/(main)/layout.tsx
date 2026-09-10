@@ -11,7 +11,7 @@ import { getMe } from '@entities/user'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { getActiveGroupId } from '@shared/lib/auth/activeGroup'
 import { ROLE_COOKIE } from '@shared/lib/auth/cookies'
-import { isJwtExpired } from '@shared/lib/auth/jwt'
+import { hasValidToken } from '@shared/lib/auth/jwt'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { ShieldCheck, LogOut, LogIn } from 'lucide-react'
@@ -36,7 +36,7 @@ export default async function MainLayout({ children, modal }: Props) {
   const isAdmin = cachedRole ? cachedRole === 'ADMIN' : fallbackUser?.role === 'ADMIN'
   // '/dashboard'가 비보호 경로가 되면서, AT 만료 + RT 갱신 실패 시 남아있는 죽은 토큰을
   // proxy가 캐시 쿠키만 지우고 kista-token 자체는 지우지 않는 경우가 있어 유효성까지 확인한다
-  const isAuthenticated = !!token && !isJwtExpired(token)
+  const isAuthenticated = hasValidToken(token)
 
   return (
     <MetaProvider meta={meta}>

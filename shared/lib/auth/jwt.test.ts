@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isJwtExpired } from './jwt'
+import { hasValidToken, isJwtExpired } from './jwt'
 
 function makeJwt(payload: object): string {
   const encoded = Buffer.from(JSON.stringify(payload)).toString('base64url')
@@ -27,5 +27,18 @@ describe('isJwtExpired', () => {
   })
   it('payload가 JSON이 아니면 true', () => {
     expect(isJwtExpired('h.%%%.s')).toBe(true)
+  })
+})
+
+describe('hasValidToken', () => {
+  it('토큰이 없으면 false', () => {
+    expect(hasValidToken(undefined)).toBe(false)
+    expect(hasValidToken(null)).toBe(false)
+  })
+  it('만료된 토큰이면 false', () => {
+    expect(hasValidToken(makeJwt({ exp: nowSec() - 10 }))).toBe(false)
+  })
+  it('유효한 토큰이면 true', () => {
+    expect(hasValidToken(makeJwt({ exp: nowSec() + 3600 }))).toBe(true)
   })
 })

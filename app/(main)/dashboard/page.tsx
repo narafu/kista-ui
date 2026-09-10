@@ -1,7 +1,7 @@
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 
 import { getAuthToken } from '@shared/lib/auth/token'
-import { isJwtExpired } from '@shared/lib/auth/jwt'
+import { hasValidToken } from '@shared/lib/auth/jwt'
 import { todayKst } from '@shared/lib/format'
 import { kstWeekStartDate } from '@shared/lib/date-range'
 import { monthlyHolidaysQueryOptions } from '@entities/market'
@@ -14,7 +14,7 @@ import { createQueryClient } from '@shared/lib/query'
 
 export default async function DashboardPage() {
   const token = await getAuthToken()
-  const isAuthenticated = !!token && !isJwtExpired(token)
+  const isAuthenticated = hasValidToken(token)
 
   const [calendarYear, calendarMonth] = todayKst().split('-').map(Number)
   const initialWeekStartDate = kstWeekStartDate()

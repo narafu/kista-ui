@@ -11,3 +11,8 @@ export function isJwtExpired(token: string, bufferSecs = 30): boolean {
     return true
   }
 }
+
+// 토큰이 있고 아직 만료되지 않았는지 — token이 없을 수 있는 지점(비회원 허용 페이지)에서 공통 사용
+export function hasValidToken(token: string | undefined | null): boolean {
+  return !!token && !isJwtExpired(token)
+}
