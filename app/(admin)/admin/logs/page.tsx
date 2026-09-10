@@ -5,6 +5,7 @@ import { adminErrorLogsQueryOptions, listAdminAuditLogs, getAdminAnomalies } fro
 import type { AdminAuditLog, AdminAnomalies } from '@entities/admin'
 import { LogsFilterChips } from '@features/admin/logs'
 import { AnomaliesSection, ErrorLogsSection, AuditLogsSection } from '@widgets/admin-log-list'
+import { PageHeader } from '@widgets/page-header'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
 import { createQueryClient } from '@shared/lib/query'
 
@@ -62,10 +63,7 @@ export default async function AdminLogsPage({
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-extrabold">운영 로그</h1>
-        <p className="text-sm text-muted-foreground mt-1">관리자 · 오류 · 이상 징후 통합 뷰</p>
-      </div>
+      <PageHeader title="운영 로그" description="관리자 · 오류 · 이상 징후 통합 뷰" className="mb-6" />
 
       <div className="mb-6">
         <Suspense fallback={null}><LogsFilterChips /></Suspense>

@@ -3,6 +3,7 @@ import { getAuthToken } from '@shared/lib/auth/token'
 import { adminSettingsQueryOptions } from '@entities/admin-settings'
 import { AdminSettingsForm } from '@features/admin/settings'
 import { SystemCategoryManager } from '@features/finance/manage-categories'
+import { PageHeader } from '@widgets/page-header'
 import { createQueryClient } from '@shared/lib/query'
 
 export default async function AdminSettingsPage() {
@@ -13,10 +14,7 @@ export default async function AdminSettingsPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-extrabold">운영 설정</h1>
-        <p className="mt-1 text-sm text-muted-foreground">신규 가입·계좌·전략 생성 정책</p>
-      </div>
+      <PageHeader title="운영 설정" description="신규 가입·계좌·전략 생성 정책" className="mb-6" />
       <HydrationBoundary state={dehydrate(queryClient)}><AdminSettingsForm /></HydrationBoundary>
 
       <div className="mt-10 mb-6">

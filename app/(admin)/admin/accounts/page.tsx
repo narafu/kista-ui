@@ -9,6 +9,7 @@ import { EmptyState } from '@shared/ui/EmptyState'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { UrlRangeFilterBar } from '@shared/ui/UrlRangeFilterBar'
+import { PageHeader } from '@widgets/page-header'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
 
 const STRATEGY_STATUS_COLOR: Record<string, string> = {
@@ -44,10 +45,7 @@ export default async function AdminAccountsPage({
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-extrabold">계좌 현황</h1>
-        <p className="text-sm text-muted-foreground mt-1">전체 사용자 계좌 목록 (총 {all.length}개)</p>
-      </div>
+      <PageHeader title="계좌 현황" description={`전체 사용자 계좌 목록 (총 ${all.length}개)`} />
 
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <UrlRangeFilterBar current={range} from={from} to={to} />
