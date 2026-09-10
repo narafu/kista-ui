@@ -30,7 +30,7 @@ export function FearGreedGauge({ value }: Props) {
   return (
     <div className="relative flex flex-col items-center">
       {/* recharts PieChart + 바늘 SVG 오버레이를 relative 컨테이너로 묶음 */}
-      <div style={{ position: 'relative', width, height }}>
+      <div className="relative w-[220px] h-[130px]">
         <PieChart width={width} height={height}>
           <Pie
             data={segments}
@@ -51,7 +51,7 @@ export function FearGreedGauge({ value }: Props) {
         </PieChart>
         {/* 바늘 + 중심 원 — recharts 외부 SVG로 오버레이 (recharts는 raw SVG 자식 미지원) */}
         <svg
-          style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
+          className="absolute inset-0 pointer-events-none"
           width={width}
           height={height}
         >
