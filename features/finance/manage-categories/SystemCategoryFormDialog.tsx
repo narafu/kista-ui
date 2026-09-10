@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Spinner } from '@shared/ui/Spinner'
+import { SaveButton } from '@shared/ui/SaveButton'
 import { getCascadeLevels, useCreateSystemFinanceCategoryMutation, useUpdateSystemFinanceCategoryMutation } from '@entities/finance'
 import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
 
@@ -147,9 +147,7 @@ export function SystemCategoryFormDialog({ open, onOpenChange, type, l1Categorie
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
               취소
             </Button>
-            <Button type="submit" disabled={isPending || !name.trim()} className="gap-2">
-              {isPending ? (<><Spinner size={14} />저장 중...</>) : '저장'}
-            </Button>
+            <SaveButton isPending={isPending} disabled={!name.trim()} />
           </DialogFooter>
         </form>
       </DialogContent>
