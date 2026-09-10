@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react'
 // (widgets/asset-trend/AssetTrendInner.tsx 등 기존 recharts 위젯과 동일한 처리).
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Skeleton } from '@/components/ui/skeleton'
 import { SectionError } from '@shared/ui/SectionError'
 import { fmtKrw } from '@shared/lib/format'
 import { calcFlowTrend, filterByType, flowCategoryColor, sortCategoryTree } from '@entities/finance'
@@ -41,7 +42,7 @@ export default function FinanceTrendInner({ type, transactions, yearlyTransactio
   const orderedRootIds = useMemo(() => sortCategoryTree(categoryTree).map((c) => c.id), [categoryTree])
 
   if (isLoading) {
-    return <div className="flex min-h-[240px] flex-1 items-center justify-center text-sm text-muted-foreground sm:min-h-[280px]">불러오는 중…</div>
+    return <Skeleton className="min-h-[240px] sm:min-h-[280px]" />
   }
   if (isError) {
     return <SectionError message="추이를 불러오지 못했습니다" />

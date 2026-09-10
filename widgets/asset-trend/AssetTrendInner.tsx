@@ -7,6 +7,7 @@ import { useMemo, useState } from 'react'
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
 import { SectionError } from '@shared/ui/SectionError'
 import { cn } from '@shared/lib/utils'
 import { fmtKrw } from '@shared/lib/format'
@@ -78,7 +79,7 @@ export default function AssetTrendInner({ month }: Props) {
   )
 
   if (isLoading) {
-    return <div className="flex min-h-[240px] flex-1 items-center justify-center text-sm text-muted-foreground sm:min-h-[280px]">불러오는 중…</div>
+    return <Skeleton data-testid="asset-trend-skeleton" className="min-h-[240px] sm:min-h-[280px]" />
   }
   if (isError) {
     return <SectionError message="자산 추이를 불러오지 못했습니다" />

@@ -45,10 +45,10 @@ describe('AssetTrendInner', () => {
     useAssetSnapshotsQueryMock.mockClear()
   })
 
-  it('로딩 중에는 로딩 문구를 표시한다', () => {
+  it('로딩 중에는 스켈레톤을 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: undefined, isLoading: true, isError: false })
     render(<AssetTrendInner />)
-    expect(screen.getByText('불러오는 중…')).toBeInTheDocument()
+    expect(screen.getByTestId('asset-trend-skeleton')).toBeInTheDocument()
   })
 
   it('조회 실패 시 에러 섹션을 표시한다', () => {
