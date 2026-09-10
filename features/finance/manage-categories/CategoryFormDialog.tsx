@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,10 +13,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { submitFormDialog } from '@shared/lib/form/submitFormDialog'
 import { SaveButton } from '@shared/ui/SaveButton'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { getCascadeLevels, getCategoryPath, useCanShareToGroup, useCreateFinanceCategoryMutation, useUpdateFinanceCategoryMutation } from '@entities/finance'
-import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
+import type { FinanceCategory, FinanceCategoryRequest, FinanceCategoryType } from '@entities/finance'
 
 // Base UI Select는 빈 문자열 value를 허용하지 않는다 — AssetForm의 NO_ACCOUNT_VALUE와 동일한 센티널 패턴.
 const NO_PARENT_VALUE = 'NONE'
@@ -64,28 +64,21 @@ export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, cat
     if (!name.trim()) return
 
     // PUT은 parentId/type을 서버가 무시하지만 요청 스키마상 필수라 기존 값을 그대로 실어 보낸다.
-    const payload = {
+    const payload: FinanceCategoryRequest = {
       parentId: mode === 'edit' ? category?.parentId : (parentId === NO_PARENT_VALUE ? undefined : parentId),
       type,
       name: name.trim(),
       sortOrder: Math.max(1, Math.trunc(Number(sortOrder)) || 1),
     }
 
-    if (mode === 'edit') {
-      updateMutation.mutate(payload, {
-        onSuccess: () => {
-          toast.success('카테고리가 수정되었습니다')
-          onSuccess()
-        },
-      })
-      return
-    }
-
-    createMutation.mutate({ ...payload, shareToGroup: shareToGroupAllowed && shareToGroup }, {
-      onSuccess: () => {
-        toast.success('카테고리가 추가되었습니다')
-        onSuccess()
-      },
+    submitFormDialog({
+      mode,
+      payload,
+      createMutation,
+      updateMutation,
+      createExtra: { shareToGroup: shareToGroupAllowed && shareToGroup },
+      messages: { create: '카테고리가 추가되었습니다', edit: '카테고리가 수정되었습니다' },
+      onSuccess,
     })
   }
 
