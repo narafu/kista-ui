@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { SectionError } from '@shared/ui/SectionError'
+import { LoadingRow } from '@shared/ui/LoadingRow'
 import { fmtKrw } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { useMeta } from '@entities/meta'
@@ -106,7 +107,7 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">불러오는 중…</div>
+          <LoadingRow />
         ) : isError ? (
           <SectionError message="예산 대비 실적을 불러오지 못했습니다" />
         ) : (

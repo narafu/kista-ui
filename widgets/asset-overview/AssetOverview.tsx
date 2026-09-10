@@ -3,6 +3,7 @@
 import { useMemo, type ReactNode } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SectionError } from '@shared/ui/SectionError'
+import { LoadingRow } from '@shared/ui/LoadingRow'
 import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
 import { fmtKrw, fmtSignedKrw, maskAmount, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
@@ -119,7 +120,7 @@ export function AssetOverview({ month, months, onMonthChange, today }: Props) {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">불러오는 중…</div>
+          <LoadingRow />
         ) : isError ? (
           <SectionError message="자산 요약을 불러오지 못했습니다" />
         ) : summary.recordCount === 0 ? (

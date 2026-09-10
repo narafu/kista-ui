@@ -3,6 +3,7 @@
 import { useMemo, type ReactNode } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SectionError } from '@shared/ui/SectionError'
+import { LoadingRow } from '@shared/ui/LoadingRow'
 import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
 import { YearSelect } from '@shared/ui/YearSelect'
 import { fmtKrw, fmtSignedKrw, maskAmount, pnlTextClass, ratioToPercent } from '@shared/lib/format'
@@ -153,7 +154,7 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">불러오는 중…</div>
+          <LoadingRow />
         ) : isError ? (
           <SectionError message="요약을 불러오지 못했습니다" />
         ) : summary.count === 0 ? (

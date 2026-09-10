@@ -6,6 +6,7 @@ import { useStrategyOrdersQuery, orderStatusBadgeClass, orderTypeBadgeClass, ORD
 import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { LoadingRow } from '@shared/ui/LoadingRow'
 import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
@@ -80,7 +81,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
       </CardHeader>
       <CardContent className="p-0">
         {isLoading ? (
-          <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">불러오는 중…</div>
+          <LoadingRow />
         ) : isError ? (
           <p className="text-sm text-destructive text-center py-8 px-6">주문 내역 조회 실패: {error instanceof Error ? error.message : String(error)}</p>
         ) : orders.length === 0 ? (

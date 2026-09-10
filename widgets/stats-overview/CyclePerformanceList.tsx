@@ -10,6 +10,7 @@ import { fmtDate, fmtSignedUsd, pnlTextClass, fmtSignedPercent } from '@shared/l
 import { useStatsCyclesQuery } from '@entities/stats'
 import { useAccountsQuery } from '@entities/account'
 import { SectionError } from '@shared/ui/SectionError'
+import { LoadingRow } from '@shared/ui/LoadingRow'
 import { useMemo } from 'react'
 
 interface Props {
@@ -31,7 +32,7 @@ export function CyclePerformanceList({ typeFilter }: Props) {
       </CardHeader>
       <CardContent className="p-0">
         {isLoading ? (
-          <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">불러오는 중…</div>
+          <LoadingRow />
         ) : isError ? (
           <SectionError message="사이클 성과를 불러오지 못했습니다" />
         ) : cycles.length === 0 ? (

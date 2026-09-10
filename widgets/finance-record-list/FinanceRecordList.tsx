@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
+import { LoadingRow } from '@shared/ui/LoadingRow'
 import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
@@ -152,7 +153,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
   }
 
   if (isLoading) {
-    return <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">불러오는 중…</div>
+    return <LoadingRow />
   }
   if (isError) {
     return <SectionError message="거래내역을 불러오지 못했습니다" />

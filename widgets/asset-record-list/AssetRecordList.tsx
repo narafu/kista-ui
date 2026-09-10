@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { ArrowDown, ArrowUp, ArrowUpDown, Copy, Pencil, Share2, Trash2, Undo2 } from 'lucide-react'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { LoadingRow } from '@shared/ui/LoadingRow'
 import { SectionError } from '@shared/ui/SectionError'
 import { ICON_LINK_GHOST_CLASS, IconButton } from '@shared/ui/IconButton'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
@@ -236,7 +237,7 @@ export function AssetRecordList({ month }: Props) {
   }
 
   if (isLoading) {
-    return <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">불러오는 중…</div>
+    return <LoadingRow />
   }
   if (isError) {
     return <SectionError message="자산 기록을 불러오지 못했습니다" />

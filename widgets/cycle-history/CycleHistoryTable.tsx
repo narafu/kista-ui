@@ -13,6 +13,7 @@ import { RangeFilterControls } from '@shared/ui/range-filter/RangeFilterControls
 import { useRangeFilterState } from '@shared/lib/hooks/use-range-filter-state'
 import { resolveRangeStrict } from '@shared/lib/date-range'
 import { SectionError } from '@shared/ui/SectionError'
+import { LoadingRow } from '@shared/ui/LoadingRow'
 
 interface HistoryQueryResult {
   cycleHistory: CycleHistoryItem[]
@@ -79,7 +80,7 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
 
       <CardContent className="p-0">
         {isLoading ? (
-          <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">불러오는 중…</div>
+          <LoadingRow />
         ) : isError ? (
           <SectionError message="잔고 이력을 불러오지 못했습니다" />
         ) : cycleHistory.length === 0 ? (
