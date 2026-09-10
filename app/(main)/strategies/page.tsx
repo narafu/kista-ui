@@ -7,7 +7,6 @@ import { getStrategyOrderPreviewsById } from '@entities/order'
 import { AllStrategiesList } from '@widgets/all-strategies'
 import { PageHeader } from '@widgets/page-header'
 import type { Strategy } from '@entities/strategy'
-import type { NextOrderPreview } from '@entities/order'
 import { createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
@@ -24,17 +23,17 @@ export default async function StrategiesPage() {
     ])
   }
   const strategies = queryClient.getQueryData<Strategy[]>(strategyKeys.listAll()) ?? []
-  // 전략별 다음 주문 미리보기(계좌 단위 배치 조회)는 await하지 않고 Promise 그대로 클라이언트에 전달한다 —
-  // 전략 카드 그리드의 첫 페인트를 블로킹하지 않고, 배지·배너는 도착하는 대로 카드별 Suspense로 스트리밍된다
-  // 실패해도 페이지 전체(error.tsx)로 전파되지 않도록 흡수 — 카드는 미리보기 배지 없이 렌더링됨
-  const previewsPromise: Promise<Record<string, NextOrderPreview>> = token
-    ? getStrategyOrderPreviewsById(strategies, token).catch((): Record<string, NextOrderPreview> => ({}))
-    : Promise.resolve({})
+  // 전략별 다음 주문 미리보기(계좌 단위 배치 조회)는 서버에서 await해 완전히 resolve된 값만 클라이언트로 넘긴다 —
+  // 미해결 Promise를 그대로 넘기면(구 스트리밍 방식) RSC 스트림이 중간에 끊길 때(Safari 네트워크 전환 등)
+  // 클라이언트의 use()가 rejected promise를 render 중 throw해 페이지 전체가 에러 화면으로 떨어졌다
+  const previewsByStrategyId = token
+    ? await getStrategyOrderPreviewsById(strategies, token).catch(() => ({}))
+    : {}
   return (
     <>
       <PageHeader eyebrow="Strategies" title="전략" />
       <HydrationBoundary state={dehydrate(queryClient)}>
-        <AllStrategiesList previewsPromise={previewsPromise} />
+        <AllStrategiesList previewsByStrategyId={previewsByStrategyId} />
       </HydrationBoundary>
     </>
   )
