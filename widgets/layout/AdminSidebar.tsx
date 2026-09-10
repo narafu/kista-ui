@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Users, LogOut, Wallet, ArrowLeftRight, ClipboardList, ArrowLeft, Table2, Settings } from 'lucide-react'
 import { LogoutButton } from '@features/auth/logout'
+import { SidebarNavItem } from './SidebarNavItem'
 
 const NAV_ITEMS = [
   { href: '/admin', label: '개요', icon: LayoutDashboard, exact: true },
@@ -32,29 +33,15 @@ export function AdminSidebar() {
 
       {/* 네비게이션 */}
       <nav className="flex flex-col gap-0.5 flex-1">
-        {NAV_ITEMS.map(({ href, label, icon: Icon, exact }) => {
+        {NAV_ITEMS.map(({ href, label, icon, exact }) => {
           const active = exact ? pathname === href : pathname.startsWith(href)
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                active ? 'bg-sidebar-active text-sidebar-active-fg' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-              }`}
-            >
-              <Icon className="size-[18px] shrink-0" />
-              {label}
-            </Link>
-          )
+          return <SidebarNavItem key={href} href={href} label={label} icon={icon} active={active} />
         })}
       </nav>
 
       {/* 앱으로 돌아가기 + 로그아웃 */}
-      <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-        <ArrowLeft className="size-[18px] shrink-0" />
-        앱으로 돌아가기
-      </Link>
-      <LogoutButton className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full text-left">
+      <SidebarNavItem href="/dashboard" label="앱으로 돌아가기" icon={ArrowLeft} active={false} />
+      <LogoutButton className="flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full text-left">
         <LogOut className="size-[18px] shrink-0" />
         로그아웃
       </LogoutButton>

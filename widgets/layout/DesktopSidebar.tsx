@@ -8,6 +8,7 @@ import { ThemeToggle } from '@widgets/theme-toggle'
 import { LogoutButton } from '@features/auth/logout'
 import { isNavItemActive } from './nav-utils'
 import { isSectionTabActive } from '@shared/lib/utils'
+import { SidebarNavItem } from './SidebarNavItem'
 
 const NAV_ITEMS = [
   { href: '/dashboard',  label: '대시보드', icon: LayoutDashboard },
@@ -80,18 +81,7 @@ export function DesktopSidebar({ isAdmin, isAuthenticated }: Props) {
           const isCurrentPage = subItems ? pathname === href : active
           return (
             <div key={href}>
-              <Link
-                href={href}
-                aria-current={isCurrentPage ? 'page' : undefined}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium transition-colors ${
-                  active
-                    ? 'bg-sidebar-active text-sidebar-active-fg'
-                    : 'text-muted-foreground hover:bg-rose-50/60 hover:text-foreground'
-                }`}
-              >
-                <Icon className="size-[18px] shrink-0" />
-                {label}
-              </Link>
+              <SidebarNavItem href={href} label={label} icon={Icon} active={active} ariaCurrent={isCurrentPage} hoverClassName="hover:bg-rose-50/60 hover:text-foreground" />
               {subItems && (
                 <div className="flex flex-col gap-0.5 mt-0.5 ml-[15px] pl-4 border-l border-border">
                   {subItems.map((sub) => {
@@ -151,13 +141,7 @@ export function DesktopSidebar({ isAdmin, isAuthenticated }: Props) {
             로그아웃
           </LogoutButton>
         ) : (
-          <Link
-            href="/login"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium text-muted-foreground hover:bg-rose-50/60 hover:text-foreground transition-colors"
-          >
-            <LogIn className="size-[18px] shrink-0" />
-            로그인
-          </Link>
+          <SidebarNavItem href="/login" label="로그인" icon={LogIn} active={false} hoverClassName="hover:bg-rose-50/60 hover:text-foreground" />
         )}
       </div>
     </aside>
