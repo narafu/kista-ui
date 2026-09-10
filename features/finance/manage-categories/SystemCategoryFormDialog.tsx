@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -15,6 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { SaveButton } from '@shared/ui/SaveButton'
+import { submitFormDialog } from '@shared/lib/form/submitFormDialog'
 import { getCascadeLevels, useCreateSystemFinanceCategoryMutation, useUpdateSystemFinanceCategoryMutation } from '@entities/finance'
 import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
 
@@ -59,21 +59,13 @@ export function SystemCategoryFormDialog({ open, onOpenChange, type, l1Categorie
       sortOrder: Math.max(0, Math.trunc(Number(sortOrder)) || 0),
     }
 
-    if (mode === 'edit') {
-      updateMutation.mutate(payload, {
-        onSuccess: () => {
-          toast.success('카테고리가 수정되었습니다')
-          onSuccess()
-        },
-      })
-      return
-    }
-
-    createMutation.mutate(payload, {
-      onSuccess: () => {
-        toast.success('카테고리가 추가되었습니다')
-        onSuccess()
-      },
+    submitFormDialog({
+      mode,
+      payload,
+      createMutation,
+      updateMutation,
+      messages: { create: '카테고리가 추가되었습니다', edit: '카테고리가 수정되었습니다' },
+      onSuccess,
     })
   }
 
