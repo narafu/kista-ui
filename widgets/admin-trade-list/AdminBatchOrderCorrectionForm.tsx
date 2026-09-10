@@ -136,7 +136,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
           </p>
         </div>
         {isBlocked && (
-          <div className="rounded-lg border border-dashed border-warn bg-warn-bg px-3 py-2 text-xs text-warn">
+          <div className="rounded-[var(--r-md)] border border-dashed border-warn bg-warn-bg px-3 py-2 text-xs text-warn">
             현재 시장 단계(장마감~프리마켓 전)에서는 접수 가능한 주문시점이 없습니다.
           </div>
         )}
@@ -153,7 +153,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
 
           const isChanged = changedOrderIds.includes(order.id)
           return (
-            <section key={order.id} className={`rounded-lg border bg-background p-3 ${isChanged ? 'border-primary' : 'border-border'}`}>
+            <section key={order.id} className={`rounded-[var(--r-md)] border bg-background p-3 ${isChanged ? 'border-primary' : 'border-border'}`}>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-medium">{order.direction} · {order.orderType}</span>
                 <span className="text-muted-foreground">· {order.quantity}주</span>
@@ -176,7 +176,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                     value={draft.timing}
                     onChange={(e) => handleDraftChange(order.id, 'timing', e.target.value)}
                     disabled={disabled || isBlocked}
-                    className="h-10 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="h-10 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {TIMING_OPTIONS.map(({ value, label, availKey }) => (
                       <option key={value} value={value} disabled={!timingAvailability[availKey]}>
@@ -199,7 +199,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                     value={draft.quantity}
                     onChange={(e) => handleDraftChange(order.id, 'quantity', e.target.value)}
                     disabled={disabled || isBlocked}
-                    className="h-10 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="h-10 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </label>
 
@@ -214,7 +214,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                     value={draft.price}
                     onChange={(e) => handleDraftChange(order.id, 'price', e.target.value)}
                     disabled={disabled || isBlocked}
-                    className="h-10 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="h-10 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </label>
 
@@ -226,7 +226,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                     onChange={(e) => handleDraftChange(order.id, 'memo', e.target.value)}
                     disabled={disabled || isBlocked}
                     maxLength={200}
-                    className="h-10 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="h-10 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </label>
               </div>
@@ -242,7 +242,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
         <button
           type="submit"
           disabled={disabled || changedOrderIds.length === 0 || isBlocked}
-          className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-[var(--r-md)] border border-border bg-background px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
         >
           {disabled ? '처리 중...' : `변경한 주문 ${changedOrderIds.length}건 재주문`}
         </button>

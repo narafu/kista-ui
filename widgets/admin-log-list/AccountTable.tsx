@@ -3,7 +3,7 @@ import type { AdminAnomalyAccount } from '@entities/admin'
 
 export function AccountTable({ accounts }: { accounts: AdminAnomalyAccount[] }) {
   return (
-    <div className="rounded-xl border border-border overflow-x-auto">
+    <div className="rounded-[var(--r-lg)] border border-border overflow-x-auto">
       <table className="min-w-[320px] w-full text-sm">
         <thead className="bg-muted/40 border-b border-border">
           <tr>

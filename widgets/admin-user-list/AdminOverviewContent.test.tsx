@@ -42,7 +42,7 @@ describe('AdminOverviewContent', () => {
 
     await waitFor(() => {
       expect(screen.queryByText('1명')).not.toBeInTheDocument()
-      const activeCard = screen.getByText('승인됨').closest('div.rounded-xl')
+      const activeCard = screen.getByText('승인됨').closest('div[class*="--r-lg"]')
       expect(activeCard).not.toBeNull()
       expect(within(activeCard as HTMLElement).getByText('2')).toBeInTheDocument()
     })

@@ -33,7 +33,7 @@ export function AdminOverviewContent() {
 
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: number | string }) {
   return (
-    <div className="rounded-xl border border-border p-4 bg-muted/40">
+    <div className="rounded-[var(--r-lg)] border border-border p-4 bg-muted/40">
       <div className="flex items-center gap-2 mb-3">
         {icon}
         <span className="text-sm text-muted-foreground font-medium">{label}</span>

@@ -220,7 +220,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
         key={node.id}
         className={cn(
           'mb-4 last:mb-0',
-          depth === 0 ? 'rounded-xl border border-border bg-muted/30 p-4' : 'pl-4 border-l border-border',
+          depth === 0 ? 'rounded-[var(--r-lg)] border border-border bg-muted/30 p-4' : 'pl-4 border-l border-border',
         )}
       >
         <div className="flex items-center justify-between gap-3 mb-1">

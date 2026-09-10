@@ -87,7 +87,7 @@ export function AdminTradeCorrectionPanel({
             value={selectedUserId}
             onChange={(event) => onUserChange(event.target.value)}
             disabled={reorderPending}
-            className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-10 w-full min-w-0 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">사용자 선택</option>
             {users.map((user) => (
@@ -105,7 +105,7 @@ export function AdminTradeCorrectionPanel({
             value={selectedBroker}
             onChange={(event) => onBrokerChange(event.target.value)}
             disabled={!selectedUserId || reorderPending}
-            className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-10 w-full min-w-0 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">증권사 선택</option>
             {brokers.map((broker) => (
@@ -123,7 +123,7 @@ export function AdminTradeCorrectionPanel({
             value={selectedAccountId}
             onChange={(event) => onAccountChange(event.target.value)}
             disabled={!selectedBroker || reorderPending}
-            className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-10 w-full min-w-0 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">계좌 선택</option>
             {accounts.map((account) => (
@@ -141,7 +141,7 @@ export function AdminTradeCorrectionPanel({
             value={selectedStrategyId}
             onChange={(event) => onStrategyChange(event.target.value)}
             disabled={!selectedAccountId || reorderPending}
-            className="h-10 w-full min-w-0 rounded-lg border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-10 w-full min-w-0 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">전략 선택</option>
             {strategies.map((strategy) => (
@@ -156,13 +156,13 @@ export function AdminTradeCorrectionPanel({
       </div>
 
       {helperMessage ? (
-        <p className="mt-4 rounded-lg border border-dashed border-border px-3 py-2 text-sm text-muted-foreground">
+        <p className="mt-4 rounded-[var(--r-md)] border border-dashed border-border px-3 py-2 text-sm text-muted-foreground">
           {helperMessage}
         </p>
       ) : null}
 
       {selectedStrategy ? (
-        <div className="mt-4 rounded-lg border border-border bg-muted/20 p-3">
+        <div className="mt-4 rounded-[var(--r-md)] border border-border bg-muted/20 p-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm font-medium">현재 전략 상태: {selectedStrategy.status}</p>
             <button
@@ -170,7 +170,7 @@ export function AdminTradeCorrectionPanel({
               onClick={onStrategyStatusToggle}
               disabled={strategyStatusPending}
               aria-label={nextStrategyActionLabel}
-              className="rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-[var(--r-md)] border border-border bg-background px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
             >
               {strategyStatusPending ? '처리 중...' : nextStrategyActionLabel}
             </button>

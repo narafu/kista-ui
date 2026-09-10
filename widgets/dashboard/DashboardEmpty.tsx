@@ -68,7 +68,7 @@ export function DashboardEmpty({ marketPanels }: Props) {
           style={{ background: 'var(--brand-soft-bg)' }}
         >
           <div className="size-16 rounded-2xl bg-card flex items-center justify-center mx-auto mb-3 shadow-[0_4px_12px_rgba(143,68,48,0.18)]">
-            <Image src="/logo.png" alt="KISTA" width={52} height={52} className="rounded-xl" style={{ height: 52, width: 52 }} />
+            <Image src="/logo.png" alt="KISTA" width={52} height={52} className="rounded-[var(--r-lg)]" style={{ height: 52, width: 52 }} />
           </div>
           <p className="text-sm font-bold tracking-[0.15em] uppercase text-[var(--brand-fg-soft)] mb-1.5">Welcome to KISTA</p>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
