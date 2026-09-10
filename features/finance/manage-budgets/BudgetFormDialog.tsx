@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,6 +10,7 @@ import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { digitsOnly, formatAmountDisplay } from '@shared/lib/format'
+import { submitFormDialog } from '@shared/lib/form/submitFormDialog'
 import {
   useCanShareToGroup,
   useCategoryPathState,
@@ -70,21 +70,14 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, du
       amount: Number(amountDigits),
     }
 
-    if (mode === 'edit') {
-      updateMutation.mutate(payload, {
-        onSuccess: () => {
-          toast.success('예산이 수정되었습니다')
-          onSuccess()
-        },
-      })
-      return
-    }
-
-    createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
-      onSuccess: () => {
-        toast.success('예산이 등록되었습니다')
-        onSuccess()
-      },
+    submitFormDialog({
+      mode,
+      payload,
+      createMutation,
+      updateMutation,
+      createExtra: { shareToGroup: canShareToGroup && shareToGroup },
+      messages: { create: '예산이 등록되었습니다', edit: '예산이 수정되었습니다' },
+      onSuccess,
     })
   }
 
