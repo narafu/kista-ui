@@ -90,7 +90,8 @@ export default function MarketChartCardInner({ category }: Props) {
     // eslint-disable-next-line react-doctor/no-pass-live-state-to-parent
     series.setData( // eslint-disable-next-line react-doctor/no-pass-live-state-to-parent
       candles
-        .toSorted((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
+        .slice()
+        .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
         .map((c) => ({ time: c.date, open: c.open, high: c.high, low: c.low, close: c.close })),
     )
     chart.timeScale().fitContent()
