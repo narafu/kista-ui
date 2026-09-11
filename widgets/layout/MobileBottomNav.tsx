@@ -20,7 +20,9 @@ function useNavViewportDiagnostics(navRef: React.RefObject<HTMLElement | null>) 
       const nav = navRef.current
       const vv = window.visualViewport
       if (!nav || !vv || logCount >= 5) return
-      const navBottom = nav.getBoundingClientRect().bottom
+      const rect = nav.getBoundingClientRect()
+      if (rect.width === 0) return // lg:hidden으로 display:none인 데스크탑 뷰포트 — rect 전부 0이라 오탐
+      const navBottom = rect.bottom
       const mismatch = Math.abs(navBottom - vv.height - vv.offsetTop)
       const now = Date.now()
       if (mismatch <= 5 || now - lastLoggedAt.current < 15000) return
