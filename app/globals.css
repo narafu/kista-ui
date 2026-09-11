@@ -311,6 +311,14 @@
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
   }
+  html,
+  body {
+    /* iOS standalone PWA: 문서 러버밴드 오버스크롤 시 position:fixed 하단 네비(MobileBottomNav)가
+       layout viewport에 고정된 채 visual viewport와 8~12px 어긋난다
+       (app_error_logs의 MOBILE_NAV_VIEWPORT_MISMATCH — scrollY 음수 = 상단 러버밴드 시점).
+       바운스 자체를 제거한다. 커스텀 PullToRefresh는 raw 터치 델타 기반이라 영향 없음. */
+    overscroll-behavior-y: none;
+  }
   html {
     font-family: var(--font-sans);
   }
