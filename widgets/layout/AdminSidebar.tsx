@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Users, LogOut, Wallet, ArrowLeftRight, ClipboardList, ArrowLeft, Table2, Settings } from 'lucide-react'
 import { LogoutButton } from '@features/auth/logout'
+import { Badge } from '@shared/ui/Badge'
 import { SidebarNavItem } from './SidebarNavItem'
 
 const NAV_ITEMS = [
@@ -26,9 +27,7 @@ export function AdminSidebar() {
         <span className="font-extrabold text-lg tracking-wide" style={{ color: 'var(--brand-fg-soft)' }}>
           KISTA
         </span>
-        <span className="text-xs font-semibold px-1.5 py-0.5 rounded" style={{ background: 'var(--rose-200)', color: 'var(--brand-fg-soft)' }}>
-          ADMIN
-        </span>
+        <Badge tone="admin" size="sm">ADMIN</Badge>
       </Link>
 
       {/* 네비게이션 */}

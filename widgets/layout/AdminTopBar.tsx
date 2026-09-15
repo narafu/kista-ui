@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Users, Wallet, ArrowLeftRight, ClipboardList, ArrowLeft, Table2, Settings } from 'lucide-react'
 import Link from 'next/link'
+import { Badge } from '@shared/ui/Badge'
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
@@ -27,7 +28,7 @@ export function AdminTopBar() {
             <ArrowLeft className="size-3" />
             앱으로
           </Link>
-          <span className="text-xs font-semibold bg-rose-100 text-rose-600 px-2 py-0.5 rounded">ADMIN</span>
+          <Badge tone="admin" size="sm">ADMIN</Badge>
         </div>
       </div>
       {/* 탭 네비게이션 */}

@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { LayoutDashboard, CreditCard, ListChecks, TrendingUp, Wallet, Settings, LogOut, LogIn, ShieldCheck } from 'lucide-react'
 import { ThemeToggle } from '@widgets/theme-toggle'
 import { LogoutButton } from '@features/auth/logout'
+import { Badge } from '@shared/ui/Badge'
 import { isNavItemActive } from './nav-utils'
 import { isSectionTabActive } from '@shared/lib/utils'
 import { SidebarNavItem } from './SidebarNavItem'
@@ -121,9 +122,7 @@ export function DesktopSidebar({ isAdmin, isAuthenticated }: Props) {
             >
               <ShieldCheck className="size-[18px] shrink-0" />
               관리자
-              <span className="ml-auto text-xs font-bold bg-admin-bg text-admin-fg rounded-full px-1.5 py-0.5 leading-none">
-                ADMIN
-              </span>
+              <Badge tone="admin" size="sm" className="ml-auto">ADMIN</Badge>
             </Link>
           </>
         )}

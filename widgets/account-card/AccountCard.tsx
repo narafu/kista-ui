@@ -55,10 +55,7 @@ export function AccountCard({ account }: Props) {
       <div className="flex flex-col gap-1.5 pl-5 pr-4 py-3 lg:hidden">
         {/* 1행: 브로커 배지 */}
         <div className="flex items-center gap-2">
-          <span
-            className="-ml-2 inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold shrink-0"
-            style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}
-          >
+          <span className="-ml-2 inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold shrink-0 bg-accent text-accent-foreground">
             {brokerLabel}
           </span>
         </div>
@@ -94,10 +91,7 @@ export function AccountCard({ account }: Props) {
         <div className="pl-6 pr-5 pt-4 pb-3">
           {/* 브로커 배지 */}
           <div className="flex items-center mb-2.5">
-            <span
-              className="-ml-2 inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold"
-              style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}
-            >
+            <span className="-ml-2 inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold bg-accent text-accent-foreground">
               {brokerLabel}
             </span>
           </div>

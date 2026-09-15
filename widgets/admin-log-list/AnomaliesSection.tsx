@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { UrlRangeFilterBar, type RangePreset } from '@shared/ui/UrlRangeFilterBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Surface } from '@shared/ui/Surface'
+import { Badge } from '@shared/ui/Badge'
 import type { AdminAnomalies } from '@entities/admin'
 import { AccountTable } from './AccountTable'
 
@@ -19,11 +20,7 @@ export function AnomaliesSection({
       <div className="mb-4 lg:flex lg:items-center lg:gap-3">
         <h2 className="text-base font-bold shrink-0 mb-2 lg:mb-0">
           이상징후(7일)
-          {total > 0 && (
-            <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-warn-bg text-warn">
-              {total}
-            </span>
-          )}
+          {total > 0 && <Badge tone="warn" size="sm" className="ml-2">{total}</Badge>}
         </h2>
         <div className="flex items-center gap-2">
           <Suspense fallback={null}>

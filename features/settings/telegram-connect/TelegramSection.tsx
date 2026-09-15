@@ -6,6 +6,7 @@ import { Send, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@shared/ui/Badge'
 import { useUpdateTelegramMutation, useDeleteTelegramMutation, useUpdateNotificationChannelMutation } from '@entities/user'
 import { ApiError } from '@shared/lib/api-client'
 import { cn } from '@shared/lib/utils'
@@ -70,10 +71,10 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
           <div className="text-sm text-muted-foreground mt-0.5">매매 체결 및 시스템 이벤트 실시간 알림</div>
         </div>
         {hasTelegram && (
-          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--status-ok-bg,#dcfce7)] text-[var(--status-ok,#16a34a)] text-xs font-semibold shrink-0">
+          <Badge tone="ok" size="sm" className="gap-1 shrink-0">
             <Check size={10} />
             <span>연결됨</span>
-          </div>
+          </Badge>
         )}
       </div>
 

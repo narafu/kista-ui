@@ -4,6 +4,7 @@ import { CheckCircle, Clock, Users, XCircle } from 'lucide-react'
 import Link from 'next/link'
 
 import { useAdminStatsQuery } from '@entities/admin'
+import { Badge } from '@shared/ui/Badge'
 import { AdminPendingList } from './AdminPendingList'
 
 export function AdminOverviewContent() {
@@ -21,7 +22,7 @@ export function AdminOverviewContent() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-bold">
             승인 대기
-            {stats?.pendingCount ? <span className="ml-2 text-xs font-semibold bg-warn-bg text-warn px-2 py-0.5 rounded-full">{stats.pendingCount}명</span> : null}
+            {stats?.pendingCount ? <Badge tone="warn" size="sm" className="ml-2">{stats.pendingCount}명</Badge> : null}
           </h2>
           <Link href="/admin/pending" className="text-xs text-muted-foreground hover:text-foreground transition-colors">전체 보기 →</Link>
         </div>

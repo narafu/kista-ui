@@ -12,6 +12,7 @@ const badgeVariants = cva(
         ok: 'bg-status-ok-bg text-status-ok',
         error: 'bg-[var(--status-error-bg)] text-[var(--status-error)]',
         brand: 'border border-[var(--rose-200)] bg-[var(--rose-50)] text-[var(--brand-fg-soft)]',
+        admin: 'bg-admin-bg text-admin-fg',
         // 색은 className으로 주입 — entities 배지 클래스(seedBadgeClass 등) 조합용
         none: '',
       },
