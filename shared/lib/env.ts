@@ -10,3 +10,10 @@ export function getApiBaseUrl(): string {
 export function getApiBaseUrlOrNull(): string | null {
   return process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || null
 }
+
+// kista-trading(8081) base URL 결정. 4a 단계로 trading-cycles/accounts/stats/backtest/dashboard/toss-statistics/statistics/order가 분리됨
+export function getTradingApiBaseUrl(): string {
+  const url = process.env.TRADING_API_BASE_URL || process.env.NEXT_PUBLIC_TRADING_API_BASE_URL
+  if (!url) throw new Error('TRADING_API_BASE_URL is not configured')
+  return url
+}

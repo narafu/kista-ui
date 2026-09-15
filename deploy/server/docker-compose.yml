@@ -10,6 +10,7 @@ services:
     container_name: kista-ui
     environment:
       API_BASE_URL: ${API_BASE_URL}   # 서버 전용, NEXT_PUBLIC_API_BASE_URL보다 우선 (shared/lib/env.ts) — .env(compose 자동 로드)에서 치환
+      TRADING_API_BASE_URL: ${TRADING_API_BASE_URL}   # kista-trading(4a 분리 프로세스) 서버 전용 base URL (shared/lib/env.ts) — .env에서 치환
     expose:
       - "3000"
     networks:

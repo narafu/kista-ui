@@ -56,4 +56,26 @@ describe('createProxyRoute', () => {
       expect.any(Object),
     )
   })
+
+  it('target: trading이면 TRADING_API_BASE_URL로 프록시한다', async () => {
+    vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
+    vi.stubEnv('TRADING_API_BASE_URL', 'https://kista-trading.test')
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ items: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const { GET } = createProxyRoute({ basePath: '/api/trading-cycles', target: 'trading' })
+    const request = new NextRequest('https://kista.test/api/trading-cycles')
+
+    const response = await (GET as unknown as (request: NextRequest) => Promise<Response>)(request)
+
+    expect(response.status).toBe(200)
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('https://kista-trading.test/api/trading-cycles'),
+      expect.any(Object),
+    )
+  })
 })
