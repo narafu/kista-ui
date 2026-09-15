@@ -45,10 +45,10 @@ describe('ReapplyButton', () => {
     const user = userEvent.setup()
     render(<ReapplyButton />)
 
-    await user.click(screen.getByRole('button', { name: '승인 재요청' }))
+    await user.click(screen.getByRole('button', { name: '승인 재신청' }))
 
     expect(reapplyMock).toHaveBeenCalled()
-    expect(toastSuccessMock).toHaveBeenCalledWith('승인 재요청이 완료되었습니다')
+    expect(toastSuccessMock).toHaveBeenCalledWith('승인 재신청이 완료되었습니다')
     expect(localStorage.getItem('reapply_last_requested_at')).not.toBeNull()
   })
 
@@ -57,7 +57,7 @@ describe('ReapplyButton', () => {
     const user = userEvent.setup()
     render(<ReapplyButton />)
 
-    const button = screen.getByRole('button', { name: /분 후 재요청 가능/ })
+    const button = screen.getByRole('button', { name: /분 후 재신청 가능/ })
     await user.click(button)
 
     expect(reapplyMock).not.toHaveBeenCalled()

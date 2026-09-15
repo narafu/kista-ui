@@ -146,7 +146,7 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
               />
               {monthClosed && (
                 <p className="text-xs text-[var(--warn)]">
-                  이 달은 기록 점검이 완료되어 잠겨 있습니다. 자산탭 기록 점검에서 완료를 해제하세요.
+                  이 달은 기록 점검이 완료되어 잠겨 있습니다. 자산 탭의 기록 점검에서 완료를 해제하세요.
                 </p>
               )}
             </div>

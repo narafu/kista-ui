@@ -29,7 +29,7 @@ export default function RejectedPage() {
                 반려 사유
               </div>
               <div className="text-sm leading-relaxed text-foreground">
-                관리자가 가입 신청을 거절했습니다. 재신청하거나 관리자에게 문의해 주세요.
+                관리자가 가입 신청을 반려했습니다. 재신청하거나 관리자에게 문의해 주세요.
               </div>
             </div>
           </div>

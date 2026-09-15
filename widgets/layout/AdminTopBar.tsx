@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { Badge } from '@shared/ui/Badge'
 
 const NAV_ITEMS = [
-  { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
+  { href: '/admin', label: '개요', icon: LayoutDashboard, exact: true },
   { href: '/admin/users', label: '사용자', icon: Users },
   { href: '/admin/accounts', label: '계좌', icon: Wallet },
   { href: '/admin/trades', label: '주문', icon: ArrowLeftRight },

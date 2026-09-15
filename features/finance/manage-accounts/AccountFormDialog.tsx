@@ -65,7 +65,7 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
       createMutation,
       updateMutation,
       createExtra: { shareToGroup: canShareToGroup && shareToGroup },
-      messages: { create: '계좌가 등록되었습니다', edit: '계좌가 수정되었습니다' },
+      messages: { create: '계좌가 추가되었습니다', edit: '계좌가 수정되었습니다' },
       onSuccess: () => onOpenChange(false),
     })
   }

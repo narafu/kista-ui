@@ -137,7 +137,7 @@ export function StrategyCard({ accountId, strategy, accountLabel, initialPreview
                 </Badge>
               )}
               {strategy.isReverseMode && (
-                <Badge tone="warn" size="sm" className="h-[22px]">리버스</Badge>
+                <Badge tone="warn" size="sm" className="h-[22px]">리버스모드</Badge>
               )}
               {scheduledStart && (
                 <Badge tone="none" size="sm" className="h-[22px] bg-info-bg text-info">

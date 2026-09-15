@@ -157,7 +157,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
           if (result.failures.length > 0) {
             toast.warning(`${succeeded}건 등록, ${result.failures.length}건 실패 — ${result.failures[0]}`)
           } else {
-            toast.success(`${succeeded}건 등록했어요`)
+            toast.success(`${succeeded}건 등록했습니다`)
           }
           router.push('/finance')
         },
@@ -255,7 +255,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
           )}
         </div>
         {nodes.length === 0 ? (
-          <p className="text-sm text-muted-foreground">이 달 등록된 기록이 없어요.</p>
+          <p className="text-sm text-muted-foreground">이 달 등록된 기록이 없습니다.</p>
         ) : (
           nodes.map((node) => renderGroupNode(node, 0, showAssetColumns))
         )}

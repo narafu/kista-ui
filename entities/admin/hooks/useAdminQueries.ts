@@ -163,6 +163,6 @@ export function useDeleteAdminUserMutation() {
       const previousStatus = removeCachedAdminUser(queryClient, userId)
       removeFromCachedAdminStats(queryClient, previousStatus)
     },
-    onError: (err) => toast.error(apiMsg(err, '사용자 삭제에 실패했습니다.')),
+    onError: (err) => toast.error(apiMsg(err, '회원 탈퇴에 실패했습니다.')),
   })
 }

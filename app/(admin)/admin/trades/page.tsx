@@ -25,7 +25,7 @@ export default async function AdminTradesPage({
     <div className="reveal-stagger">
       <div className="mb-8">
         <h1 className="text-2xl font-extrabold">주문 관리</h1>
-        <p className="text-sm text-muted-foreground mt-1">전체 {all.length}건</p>
+        <p className="text-sm text-muted-foreground mt-1">총 {all.length}건</p>
       </div>
 
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">

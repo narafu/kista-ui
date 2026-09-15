@@ -1,6 +1,5 @@
 'use client'
 
-import { toast } from 'sonner'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,9 +25,7 @@ export function WithdrawUserButton({ userId, nickname, isSelf = false }: Props) 
   const mutation = useDeleteAdminUserMutation()
 
   function handleConfirm() {
-    mutation.mutate(userId, {
-      onError: () => toast.error('회원 탈퇴에 실패했습니다. 잠시 후 다시 시도하세요.'),
-    })
+    mutation.mutate(userId)
   }
 
   return (

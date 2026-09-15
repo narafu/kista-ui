@@ -783,7 +783,7 @@ describe('StrategyDetail cancel-all toast', () => {
     fireEvent.click(screen.getByText('전체 취소'))
     cancelAllSuccessHandler?.({ cancelledCount: 1, failedCount: 0 })
 
-    expect(vi.mocked(toast.success)).toHaveBeenCalledWith('1건 모두 취소됐습니다.')
+    expect(vi.mocked(toast.success)).toHaveBeenCalledWith('1건 모두 취소됐습니다')
   })
 })
 

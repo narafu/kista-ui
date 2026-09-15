@@ -79,7 +79,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
         if (result.status === 'rejected') throw result.reason
       }
 
-      toast.success('운영 설정을 저장했습니다.')
+      toast.success('운영 설정을 저장했습니다')
       setAttempted(false)
     },
   })

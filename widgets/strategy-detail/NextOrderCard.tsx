@@ -129,9 +129,9 @@ export function NextOrderCard({
                     cancelAllMutation.mutate(undefined, {
                       onSuccess: (r) => {
                         if (r.failedCount === 0) {
-                          toast.success(`${r.cancelledCount}건 모두 취소됐습니다.`)
+                          toast.success(`${r.cancelledCount}건 모두 취소됐습니다`)
                         } else {
-                          toast.warning(`${r.cancelledCount}건 취소, ${r.failedCount}건 실패 — KIS에서 직접 확인하세요.`)
+                          toast.warning(`${r.cancelledCount}건 취소, ${r.failedCount}건 실패 — KIS에서 직접 확인하세요`)
                         }
                       },
                     })

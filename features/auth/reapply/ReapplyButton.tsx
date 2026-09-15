@@ -29,9 +29,9 @@ export function ReapplyButton() {
       await reapply()
       localStorage.setItem(STORAGE_KEY, Date.now().toString())
       setCooldownMinutes(60)
-      toast.success('승인 재요청이 완료되었습니다')
+      toast.success('승인 재신청이 완료되었습니다')
     } catch (err) {
-      toast.error(err instanceof ApiError ? '재요청에 실패했습니다' : '오류가 발생했습니다')
+      toast.error(err instanceof ApiError ? '재신청에 실패했습니다' : '오류가 발생했습니다')
     } finally {
       setIsLoading(false)
     }
@@ -46,7 +46,7 @@ export function ReapplyButton() {
         onClick={handleReapply}
         disabled={isLoading}
       >
-        {isLoading ? '요청 중...' : cooldownMinutes > 0 ? `${cooldownMinutes}분 후 재요청 가능` : '승인 재요청'}
+        {isLoading ? '신청 중...' : cooldownMinutes > 0 ? `${cooldownMinutes}분 후 재신청 가능` : '승인 재신청'}
       </Button>
     </div>
   )

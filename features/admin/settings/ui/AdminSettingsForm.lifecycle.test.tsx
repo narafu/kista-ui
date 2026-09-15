@@ -166,7 +166,7 @@ describe('AdminSettingsForm mutation lifecycle', () => {
         refetches.stats.resolve({ pendingUsers: 0 })
       })
       await waitFor(() => expect(screen.queryByRole('button', { name: /저장 중/ })).not.toBeInTheDocument())
-      expect(toastSuccessMock).toHaveBeenCalledWith('운영 설정을 저장했습니다.')
+      expect(toastSuccessMock).toHaveBeenCalledWith('운영 설정을 저장했습니다')
       expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     } finally {
       queryClient.clear()

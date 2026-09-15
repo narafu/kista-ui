@@ -28,8 +28,7 @@ export function ChangeRoleButton({ userId, currentRole, isSelf = false }: Props)
 
   function handleChange() {
     mutation.mutate({ userId, role: newRole }, {
-      onSuccess: () => toast.success(`역할을 ${newRole}로 변경했습니다`),
-      onError: () => toast.error('역할 변경 실패'),
+      onSuccess: () => toast.success(`역할을 ${newRole}${newRole === 'ADMIN' ? '으로' : '로'} 변경했습니다`),
     })
   }
 

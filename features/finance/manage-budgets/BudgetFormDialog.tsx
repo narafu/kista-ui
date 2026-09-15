@@ -76,7 +76,7 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, du
       createMutation,
       updateMutation,
       createExtra: { shareToGroup: canShareToGroup && shareToGroup },
-      messages: { create: '예산이 등록되었습니다', edit: '예산이 수정되었습니다' },
+      messages: { create: '예산이 추가되었습니다', edit: '예산이 수정되었습니다' },
       onSuccess,
     })
   }
