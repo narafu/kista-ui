@@ -116,7 +116,7 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
     } else if (isHoliday) {
       badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-[var(--gold)]/15 text-[var(--gold)]">휴장</span>
     } else if (isToday && !summary && accountIds.length > 0) {
-      badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-warn-bg text-warn">대기중</span>
+      badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-warn-bg text-warn">대기</span>
       sub = <span className="text-xs text-muted-foreground">오늘</span>
     } else if (summary) {
       badge = (
@@ -278,7 +278,7 @@ export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: 
             </span>
             <span className="flex items-center gap-1.5">
               <span className="size-[7px] rounded bg-warn shrink-0" />
-              대기중
+              대기
             </span>
           </>
         )}

@@ -76,11 +76,11 @@ describe('WeeklyMarketCalendar', () => {
 
     render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated />)
 
-    // accountIds.length > 0일 때만 매도/매수/대기중 범례가 표시된다
-    // (오늘 셀도 대기중 배지를 표시할 수 있어 '대기중'은 getAllByText로 확인)
+    // accountIds.length > 0일 때만 매도/매수/대기 범례가 표시된다
+    // (오늘 셀도 대기 배지를 표시할 수 있어 '대기'는 getAllByText로 확인)
     expect(screen.getByText('매도')).toBeInTheDocument()
     expect(screen.getByText('매수')).toBeInTheDocument()
-    expect(screen.getAllByText('대기중').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('대기').length).toBeGreaterThan(0)
   })
 
   it('disables the accounts query when unauthenticated (게스트 401 루프 방지)', () => {
