@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { AppErrorLog } from '@entities/admin'
 import { fmtDateTime } from '@shared/lib/format'
+import { Badge } from '@shared/ui/Badge'
 
 interface Props {
   log: AppErrorLog
@@ -31,9 +32,7 @@ export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled =
         <div className="flex-1 min-w-0">
           {/* errorType 뱃지 */}
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-700">
-              {log.errorType}
-            </span>
+            <Badge tone="brand" size="sm">{log.errorType}</Badge>
           </div>
 
           {/* message */}

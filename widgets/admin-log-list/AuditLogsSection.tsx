@@ -4,6 +4,7 @@ import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Surface } from '@shared/ui/Surface'
+import { Badge } from '@shared/ui/Badge'
 import { fmtDateTime } from '@shared/lib/format'
 import type { AdminAuditLog } from '@entities/admin'
 
@@ -46,9 +47,7 @@ export function AuditLogsSection({
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-700">
-                      {log.action}
-                    </span>
+                    <Badge tone="brand" size="sm">{log.action}</Badge>
                     {log.targetType && (
                       <span className="text-sm text-muted-foreground">
                         {log.targetType}
