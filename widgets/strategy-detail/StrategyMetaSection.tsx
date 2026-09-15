@@ -161,7 +161,7 @@ export function StrategyMetaSection({ strategy, preview, isLoadingPreview, isPre
             </>
           ) : (
             <Card className="col-span-2 lg:col-span-4">
-              <CardContent className="p-5 text-sm text-muted-foreground text-center">
+              <CardContent className="whitespace-pre-line p-5 text-sm text-muted-foreground text-center">
                 {preview?.skipReason ? SKIP_REASON_LABELS[preview.skipReason] : '다음 주문 정보를 불러올 수 없습니다.'}
               </CardContent>
             </Card>

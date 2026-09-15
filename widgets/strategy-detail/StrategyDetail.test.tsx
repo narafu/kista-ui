@@ -678,7 +678,7 @@ describe('StrategyDetail unplaced order banner', () => {
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
-    expect(screen.getByText('판매가능수량 확인 실패로 매도 미접수 — 잠시 후 다시 확인해주세요')).toBeInTheDocument()
+    expect(screen.getByText('판매가능수량 확인 실패로 매도 미접수. 잠시 후 다시 확인해주세요.')).toBeInTheDocument()
   })
 
   it('does not show a banner when every planned direction was placed', () => {
@@ -852,7 +852,7 @@ describe('StrategyDetail budget deficit badge', () => {
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
     expect(screen.queryByText(/예수금 \$[\d,.]+ 부족/)).not.toBeInTheDocument()
-    expect(screen.getByText('예수금 확인 실패 — 잠시 후 다시 확인해주세요')).toBeInTheDocument()
+    expect(screen.getByText('예수금 확인 실패. 잠시 후 다시 확인해주세요.')).toBeInTheDocument()
   })
 
   it('예수금 확인(라이브 조회)이 실패했으면 sufficientBudget이 true로 나와도 "바로 주문" 클릭 시 확인 실패 토스트를 보여주고 주문을 실행하지 않는다', () => {
@@ -882,7 +882,7 @@ describe('StrategyDetail budget deficit badge', () => {
 
     fireEvent.click(screen.getByText('바로 주문'))
 
-    expect(toast.info).toHaveBeenCalledWith('예수금 확인에 실패했습니다 — 잠시 후 다시 확인해주세요')
+    expect(toast.info).toHaveBeenCalledWith('예수금 확인에 실패했습니다. 잠시 후 다시 확인해주세요.')
     expect(toast.info).not.toHaveBeenCalledWith('예수금이 부족합니다')
     expect(executeMutate).not.toHaveBeenCalled()
   })
@@ -951,7 +951,7 @@ describe('StrategyDetail sell quantity deficit banner', () => {
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
     expect(screen.queryByText(/판매가능수량 \d+주 부족/)).not.toBeInTheDocument()
-    expect(screen.getByText('판매가능수량 확인 실패 — 잠시 후 다시 확인해주세요')).toBeInTheDocument()
+    expect(screen.getByText('판매가능수량 확인 실패. 잠시 후 다시 확인해주세요.')).toBeInTheDocument()
   })
 
   it('판매가능수량이 부족하면 "바로 주문" 클릭 시 토스트로 안내하고 주문을 실행하지 않는다', () => {
@@ -1037,7 +1037,7 @@ describe('StrategyDetail concurrent BUY/SELL deficit', () => {
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
     // previewDeficit = max(0, 900 + 200 - 1000) = 100
-    expect(screen.getByText('예수금 $100.00 부족 · 판매가능수량 3주 부족')).toBeInTheDocument()
+    expect(screen.getByText('예수금 $100.00 부족 판매가능수량 3주 부족')).toBeInTheDocument()
   })
 
   it('BUY/SELL 부족이 동시에 있으면 "바로 주문" 클릭 시 두 토스트를 모두 보여주고 주문을 실행하지 않는다', () => {
@@ -1186,9 +1186,9 @@ describe('StrategyDetail executed-mode deficit badge', () => {
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
     expect(screen.queryByText(/예수금 \$[\d,.]+ 부족/)).not.toBeInTheDocument()
-    expect(screen.getByText('예수금 확인 실패로 매수 미접수 — 잠시 후 다시 확인해주세요')).toBeInTheDocument()
+    expect(screen.getByText('예수금 확인 실패로 매수 미접수. 잠시 후 다시 확인해주세요.')).toBeInTheDocument()
     // executed 모드에서는 상단 배너에 "확인 실패" 문구를 중복 노출하지 않는다 — 방향별 미접수 목록이 이미 안내한다
-    expect(screen.queryByText('예수금 확인 실패 — 잠시 후 다시 확인해주세요')).not.toBeInTheDocument()
+    expect(screen.queryByText('예수금 확인 실패. 잠시 후 다시 확인해주세요.')).not.toBeInTheDocument()
   })
 
   it('executed 모드에서도 판매가능수량 부족 배너를 정확한 수량과 함께 보여준다', () => {
@@ -1269,7 +1269,7 @@ describe('StrategyDetail executed-mode deficit badge', () => {
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
-    expect(screen.getByText('판매가능수량 확인 실패로 매도 미접수 — 잠시 후 다시 확인해주세요')).toBeInTheDocument()
-    expect(screen.queryByText('판매가능수량 확인 실패 — 잠시 후 다시 확인해주세요')).not.toBeInTheDocument()
+    expect(screen.getByText('판매가능수량 확인 실패로 매도 미접수. 잠시 후 다시 확인해주세요.')).toBeInTheDocument()
+    expect(screen.queryByText('판매가능수량 확인 실패. 잠시 후 다시 확인해주세요.')).not.toBeInTheDocument()
   })
 })

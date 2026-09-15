@@ -155,7 +155,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
         onSuccess: (result) => {
           const succeeded = result.assetSuccessCount + result.transactionSuccessCount
           if (result.failures.length > 0) {
-            toast.warning(`${succeeded}건 등록, ${result.failures.length}건 실패 — ${result.failures[0]}`)
+            toast.warning(`${succeeded}건 등록, ${result.failures.length}건 실패. ${result.failures[0]}`)
           } else {
             toast.success(`${succeeded}건 등록했습니다`)
           }

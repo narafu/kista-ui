@@ -63,7 +63,7 @@ export function NextOrderCard({
       {bannerText && (
         <div className="flex items-center gap-2 rounded-[var(--r-md)] bg-warn-bg px-3.5 py-2.5 text-base font-semibold text-warn">
           <AlertTriangle className="size-4 shrink-0" />
-          <span>{bannerText}</span>
+          <span className="whitespace-pre-line">{bannerText}</span>
         </div>
       )}
       <Card>
@@ -72,7 +72,7 @@ export function NextOrderCard({
             <div>
               <CardTitle className="text-base lg:text-lg">다음 주문</CardTitle>
               <p className="text-base text-muted-foreground mt-0.5">
-                {canExecute ? '매 거래일 개장 시 자동실행' : '일시정지 중 — 자동실행 되지 않음'}
+                {canExecute ? '매 거래일 개장 시 자동실행' : '일시정지 중, 자동실행 되지 않음'}
               </p>
             </div>
             {canExecute && (
@@ -96,8 +96,8 @@ export function NextOrderCard({
                   // BUY/SELL 부족·확인 실패가 동시에 있을 수 있어 둘 다 확인해 각각 토스트로 안내한다 —
                   // 한쪽만 안내하면 사용자가 나머지 사유를 모른 채 재시도하게 된다
                   const blockers = [
-                    readiness.buy.uncertain && '예수금 확인에 실패했습니다 — 잠시 후 다시 확인해주세요',
-                    readiness.sell.uncertain && '판매가능수량 확인에 실패했습니다 — 잠시 후 다시 확인해주세요',
+                    readiness.buy.uncertain && '예수금 확인에 실패했습니다. 잠시 후 다시 확인해주세요.',
+                    readiness.sell.uncertain && '판매가능수량 확인에 실패했습니다. 잠시 후 다시 확인해주세요.',
                     !readiness.buy.uncertain && readiness.buy.hasDeficit && '예수금이 부족합니다',
                     !readiness.sell.uncertain && readiness.sell.hasDeficit && '판매가능수량이 부족합니다',
                   ].filter((msg): msg is string => Boolean(msg))
@@ -131,7 +131,7 @@ export function NextOrderCard({
                         if (r.failedCount === 0) {
                           toast.success(`${r.cancelledCount}건 모두 취소됐습니다`)
                         } else {
-                          toast.warning(`${r.cancelledCount}건 취소, ${r.failedCount}건 실패 — KIS에서 직접 확인하세요`)
+                          toast.warning(`${r.cancelledCount}건 취소, ${r.failedCount}건 실패. KIS에서 직접 확인하세요.`)
                         }
                       },
                     })
@@ -152,7 +152,7 @@ export function NextOrderCard({
                 <div className="border-t border-border">
                   <div className="flex flex-col gap-0.5 px-6 py-3 border-b border-border">
                     {unplacedDirections.map((d) => (
-                      <p key={d} className="text-base text-warn">
+                      <p key={d} className="whitespace-pre-line text-base text-warn">
                         {d === 'BUY' ? directionUnplacedMessage(readiness.buy, BUY_COPY) : directionUnplacedMessage(readiness.sell, SELL_COPY)}
                       </p>
                     ))}

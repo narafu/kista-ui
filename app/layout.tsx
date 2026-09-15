@@ -14,7 +14,7 @@ const bricolageGrotesque = Bricolage_Grotesque({
 
 export const metadata: Metadata = {
   title: 'KISTA',
-  description: 'Key Investment Strategy & Trading Automation — 핵심 투자 전략 및 매매 자동화',
+  description: 'Key Investment Strategy & Trading Automation (핵심 투자 전략 및 매매 자동화)',
   manifest: '/manifest.webmanifest',
   icons: {
     apple: '/apple-touch-icon.png',

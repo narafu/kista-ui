@@ -69,7 +69,10 @@ export function StatsOverview({ defaultFrom, defaultTo }: Props) {
   return (
     <div className="flex flex-col gap-4">
       {isEmpty ? (
-        <EmptyState message="아직 기록된 사이클이 없습니다 — 전략이 매매를 시작하면 통계가 쌓입니다." />
+        <EmptyState
+          message={'아직 기록된 사이클이 없습니다.\n전략이 매매를 시작하면 통계가 쌓입니다.'}
+          className="whitespace-pre-line"
+        />
       ) : (
         <>
           {summaryFailed ? (

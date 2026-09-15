@@ -71,8 +71,8 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
         </p>
       </div>
       {isMock && (
-        <p className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
-          모의계좌 — 실제 자금 없이 매매를 체험합니다.
+        <p className="whitespace-pre-line rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+          {'모의계좌\n실제 자금 없이 매매를 체험합니다.'}
         </p>
       )}
       <div className="flex flex-col gap-4">
