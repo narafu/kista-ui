@@ -61,7 +61,7 @@ export function NextOrderCard({
   return (
     <div className="space-y-2">
       {bannerText && (
-        <div className="flex items-center gap-2 rounded-[var(--r-md)] bg-warn-bg px-3.5 py-2.5 text-sm lg:text-base font-semibold text-warn">
+        <div className="flex items-center gap-2 rounded-[var(--r-md)] bg-warn-bg px-3.5 py-2.5 text-base font-semibold text-warn">
           <AlertTriangle className="size-4 shrink-0" />
           <span>{bannerText}</span>
         </div>
@@ -71,7 +71,7 @@ export function NextOrderCard({
           <div className="flex items-center justify-between gap-2">
             <div>
               <CardTitle className="text-base lg:text-lg">다음 주문</CardTitle>
-              <p className="text-sm lg:text-base text-muted-foreground mt-0.5">
+              <p className="text-base text-muted-foreground mt-0.5">
                 {canExecute ? '매 거래일 개장 시 자동실행' : '일시정지 중 — 자동실행 되지 않음'}
               </p>
             </div>
@@ -122,7 +122,7 @@ export function NextOrderCard({
           {mode === 'executed' ? (
             <div>
               <div className="flex items-center justify-between px-6 py-3 border-b border-border">
-                <p className="text-sm lg:text-base uppercase tracking-widest font-semibold text-warn">{placedOrders.length > 0 ? `${placedOrders.length}건 접수됨` : '접수됨'}</p>
+                <p className="text-base uppercase tracking-widest font-semibold text-warn">{placedOrders.length > 0 ? `${placedOrders.length}건 접수됨` : '접수됨'}</p>
                 <button
                   type="button"
                   onClick={() =>
@@ -137,7 +137,7 @@ export function NextOrderCard({
                     })
                   }
                   disabled={cancelAllMutation.isPending}
-                  className="text-sm lg:text-base px-2.5 py-1 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 disabled:opacity-50"
+                  className="text-base px-2.5 py-1 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 disabled:opacity-50"
                 >
                   {cancelAllMutation.isPending ? '취소 중...' : '전체 취소'}
                 </button>
@@ -152,7 +152,7 @@ export function NextOrderCard({
                 <div className="border-t border-border">
                   <div className="flex flex-col gap-0.5 px-6 py-3 border-b border-border">
                     {unplacedDirections.map((d) => (
-                      <p key={d} className="text-sm lg:text-base text-warn">
+                      <p key={d} className="text-base text-warn">
                         {d === 'BUY' ? directionUnplacedMessage(readiness.buy, BUY_COPY) : directionUnplacedMessage(readiness.sell, SELL_COPY)}
                       </p>
                     ))}
@@ -162,9 +162,9 @@ export function NextOrderCard({
               )}
             </div>
           ) : isLoadingPreview ? (
-            <p className="text-sm lg:text-base text-muted-foreground text-center px-6 py-4">불러오는 중…</p>
+            <p className="text-base text-muted-foreground text-center px-6 py-4">불러오는 중…</p>
           ) : isPreviewError ? (
-            <p className="text-sm lg:text-base text-muted-foreground text-center px-6 py-4">{previewErrorMsg(previewError)}</p>
+            <p className="text-base text-muted-foreground text-center px-6 py-4">{previewErrorMsg(previewError)}</p>
           ) : !canExecute ? (
             // 미리보기는 전략 상태·휴장 무관 강제 계산이라(kista-api: preview() "휴장·상태 무관 강제 계산"),
             // 일시정지 중에도 값이 나온다 — 그대로 노출하면 오늘 배치에서 실행될 주문처럼 오해할 수 있어 숨긴다

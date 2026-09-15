@@ -6,7 +6,7 @@ export function TableHeadCell({ className, ...props }: ThHTMLAttributes<HTMLTabl
   return (
     <th
       className={cn(
-        'px-4 py-3 text-center text-sm lg:text-base font-semibold uppercase tracking-widest text-[var(--brand-fg-soft)]',
+        'px-4 py-3 text-center text-base font-semibold uppercase tracking-widest text-[var(--brand-fg-soft)]',
         className,
       )}
       {...props}

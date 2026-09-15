@@ -23,7 +23,7 @@ export function StrategyTypeComparison({ byType }: Props) {
         ) : (
           <>
             <div className="hidden overflow-x-auto sm:block">
-              <table className="w-full text-sm lg:text-base">
+              <table className="w-full text-base">
                 <thead className="bg-muted/50">
                   <tr>
                     <TableHeadCell>전략</TableHeadCell>

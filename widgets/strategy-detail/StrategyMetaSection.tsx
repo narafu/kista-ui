@@ -74,7 +74,7 @@ export function StrategyMetaSection({ strategy, preview, isLoadingPreview, isPre
           <KpiCard
             label="다음 사이클"
             value={
-              <Badge tone="none" size="md" className={cn('h-[28px] lg:h-[36px] text-sm lg:text-base', seedBadgeCls)}>{cycleSeedLabel}</Badge>
+              <Badge tone="none" size="md" className={cn('h-[28px] lg:h-[36px] text-base', seedBadgeCls)}>{cycleSeedLabel}</Badge>
             }
             className="p-4 lg:p-5"
           />
@@ -96,7 +96,7 @@ export function StrategyMetaSection({ strategy, preview, isLoadingPreview, isPre
               strategy.initialUsdDeposit != null ? (
                 <span className="inline-flex items-center text-xl lg:text-3xl font-bold">{`$${fmtUsd(strategy.initialUsdDeposit)}`}</span>
               ) : (
-                <span className="inline-flex items-center text-sm lg:text-base text-muted-foreground font-normal">미설정</span>
+                <span className="inline-flex items-center text-base text-muted-foreground font-normal">미설정</span>
               )
             }
           />
@@ -125,7 +125,7 @@ export function StrategyMetaSection({ strategy, preview, isLoadingPreview, isPre
                 strategy.vr.currentPool != null ? (
                   `$${fmtUsd(strategy.vr.currentPool)}`
                 ) : (
-                  <span className="inline-flex items-center text-sm lg:text-base text-muted-foreground font-normal">미설정</span>
+                  <span className="inline-flex items-center text-base text-muted-foreground font-normal">미설정</span>
                 )
               }
             />

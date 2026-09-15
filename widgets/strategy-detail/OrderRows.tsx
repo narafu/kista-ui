@@ -97,9 +97,9 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
                   {directionLabel(o.direction)}
                 </Badge>
               </TableDataCell>
-              <TableDataCell className="px-5 py-3 text-sm lg:text-base font-semibold">{o.ticker}</TableDataCell>
-              <TableDataCell className="px-5 py-3 text-sm lg:text-base text-muted-foreground">{o.quantity}</TableDataCell>
-              <TableDataCell className="px-5 py-3 text-sm lg:text-base font-semibold">${fmtUsd(toNum(o.price))}</TableDataCell>
+              <TableDataCell className="px-5 py-3 text-base font-semibold">{o.ticker}</TableDataCell>
+              <TableDataCell className="px-5 py-3 text-base text-muted-foreground">{o.quantity}</TableDataCell>
+              <TableDataCell className="px-5 py-3 text-base font-semibold">${fmtUsd(toNum(o.price))}</TableDataCell>
               {hasCancel && (
                 <TableDataCell className="px-5 py-3">
                   {o.id && (
@@ -107,7 +107,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
                       type="button"
                       onClick={() => onCancelOne(o.id!)}
                       disabled={cancelPending}
-                      className="text-sm lg:text-base px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
+                      className="text-base px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
                     >
                       {cancelPending && cancellingId === o.id ? '취소 중...' : '취소'}
                     </button>

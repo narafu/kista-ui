@@ -397,6 +397,14 @@
   .lg\:settings-grid  { grid-template-columns: 200px 1fr; }
 }
 
+/* 모바일 가독성: text-xs/text-sm을 한 단계씩 올림 (line-height는 unitless 비율이라 자동 재계산) */
+@media (max-width: 1023px) {
+  :root {
+    --text-xs: 0.875rem;
+    --text-sm: 1rem;
+  }
+}
+
 /* ── 에러 페이지 ────────────────────────────────────────────── */
 @keyframes errorFadeUp {
   from { opacity: 0; transform: translateY(12px); }
