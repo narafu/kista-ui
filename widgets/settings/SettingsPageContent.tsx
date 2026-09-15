@@ -20,7 +20,7 @@ export function SettingsPageContent() {
     <div className="flex flex-col gap-[18px] reveal-stagger">
       <Surface as="section" id="profile" className="p-6">
         <div className="text-sm font-bold mb-0.5">프로필</div>
-        <div className="text-sm text-muted-foreground mb-[18px]">카카오 계정 정보</div>
+        <div className="text-sm text-muted-foreground mb-[18px]">카카오 계정 정보를 관리합니다.</div>
         <div className="flex items-center gap-4 mb-[18px]">
           <span className="size-[60px] rounded-full bg-[#FEE500] grid place-items-center shrink-0">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="#3C1E1E" aria-hidden="true">
@@ -52,7 +52,7 @@ export function SettingsPageContent() {
           <TradingAlertToggle type="MARKET_ALERT" initialEnabled={user?.notificationPrefs?.['MARKET_ALERT'] ?? true} channel={notificationChannel} />
         </div>
         <div className="flex items-center gap-[14px] py-3 border-t border-border">
-          <div className="flex-1"><div className="text-sm font-bold">가계부 등록 알림</div><div className="text-sm text-muted-foreground mt-0.5">이번 달 가계부 등록이 없으면 월말에 알려드려요</div></div>
+          <div className="flex-1"><div className="text-sm font-bold">가계부 등록 알림</div><div className="text-sm text-muted-foreground mt-0.5">이번 달 가계부 미등록 시 월말 알림</div></div>
           <TradingAlertToggle type="FINANCE_REMINDER" initialEnabled={user?.notificationPrefs?.['FINANCE_REMINDER'] ?? true} channel={notificationChannel} />
         </div>
       </Surface>

@@ -52,7 +52,7 @@ export function DeleteAccountButton() {
         </AlertDialogContent>
       </AlertDialog>
       <p className="text-sm text-muted-foreground mt-2">
-        탈퇴 시 모든 계좌·거래 데이터가 즉시 삭제됩니다
+        탈퇴 시 모든 계좌, 거래 내역, 설정이 즉시 삭제됩니다.
       </p>
     </>
   )
