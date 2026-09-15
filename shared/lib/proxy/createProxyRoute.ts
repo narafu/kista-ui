@@ -11,8 +11,8 @@ export type CreateProxyRouteOptions = {
   basePath: string
   // true(기본)이면 토큰 없을 때 401. false면 비인증 상태로 kista-api 직접 전달 (GET /api/market/** 등 공개 엔드포인트용)
   requireAuth?: boolean
-  // 'api'(기본, 8080) | 'trading'(8081, kista-trading 분리 프로세스)
-  target?: 'api' | 'trading'
+  // 'api'(기본, 8080) | 'trading'(8081, kista-trading 분리 프로세스). 서브패스별로 소유 프로세스가 갈리면 함수로 분기(예: /api/stats/housing-benchmark만 'api')
+  target?: 'api' | 'trading' | ((pathSegments: string[]) => 'api' | 'trading')
 }
 
 export function createProxyRoute(opts: CreateProxyRouteOptions): {
@@ -29,7 +29,8 @@ export function createProxyRoute(opts: CreateProxyRouteOptions): {
     if (!token && opts.requireAuth !== false) return unauthorizedJson()
 
     const subPath = pathSegments.length > 0 ? `/${pathSegments.join('/')}` : ''
-    const baseUrl = opts.target === 'trading' ? getTradingApiBaseUrl() : getApiBaseUrl()
+    const resolvedTarget = typeof opts.target === 'function' ? opts.target(pathSegments) : opts.target
+    const baseUrl = resolvedTarget === 'trading' ? getTradingApiBaseUrl() : getApiBaseUrl()
     const url = `${baseUrl}${opts.basePath}${subPath}${request.nextUrl.search}`
     const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {}
     let body: BodyInit | undefined

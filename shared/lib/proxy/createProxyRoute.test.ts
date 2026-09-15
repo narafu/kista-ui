@@ -78,4 +78,41 @@ describe('createProxyRoute', () => {
       expect.any(Object),
     )
   })
+
+  it('target이 함수면 서브패스별로 base URL을 분기한다', async () => {
+    vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
+    vi.stubEnv('TRADING_API_BASE_URL', 'https://kista-trading.test')
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({}), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const { GET } = createProxyRoute({
+      basePath: '/api/stats',
+      target: (segments) => (segments[0] === 'housing-benchmark' ? 'api' : 'trading'),
+    })
+
+    const rootRequest = new NextRequest('https://kista.test/api/stats/housing-benchmark')
+    await (GET as unknown as (
+      request: NextRequest,
+      context: object,
+    ) => Promise<Response>)(rootRequest, { params: Promise.resolve({ path: ['housing-benchmark'] }) })
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      expect.stringContaining('https://kista-api.test/api/stats/housing-benchmark'),
+      expect.any(Object),
+    )
+
+    const tradingRequest = new NextRequest('https://kista.test/api/stats/summary')
+    await (GET as unknown as (
+      request: NextRequest,
+      context: object,
+    ) => Promise<Response>)(tradingRequest, { params: Promise.resolve({ path: ['summary'] }) })
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      expect.stringContaining('https://kista-trading.test/api/stats/summary'),
+      expect.any(Object),
+    )
+  })
 })
