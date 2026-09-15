@@ -74,8 +74,7 @@ export function MobileBottomNav() {
     <nav
       ref={navRef}
       aria-label="주요 메뉴"
-      className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border flex overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] pb-[env(safe-area-inset-bottom)]"
-      style={{ background: 'var(--sidebar-bg)' }}
+      className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border flex overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] pb-[env(safe-area-inset-bottom)] bg-sidebar-bg"
     >
       {TABS.map(({ href, label, icon: Icon }) => {
         const active = isNavItemActive(pathname, href)

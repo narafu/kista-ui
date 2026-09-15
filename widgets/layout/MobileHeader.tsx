@@ -9,8 +9,7 @@ interface Props {
 export function MobileHeader({ trailing }: Props) {
   return (
     <header
-      className="lg:hidden sticky top-0 z-30 flex items-center justify-between px-4 h-14 border-b border-border"
-      style={{ background: 'var(--sidebar-bg)' }}
+      className="lg:hidden sticky top-0 z-30 flex items-center justify-between px-4 h-14 border-b border-border bg-sidebar-bg"
     >
       <Link href="/dashboard" className="flex items-center gap-2.5">
         <Image
