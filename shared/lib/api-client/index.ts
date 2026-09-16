@@ -1,4 +1,15 @@
-import { getApiBaseUrl } from '@shared/lib/env'
+import { getApiBaseUrl, getTradingApiBaseUrl } from '@shared/lib/env'
+
+// createProxyRoute의 target 분기(app/api/{accounts,trading-cycles,backtest,daily-trades,orders,stats}/**)와 동일 기준 —
+// Server Component 직결 fetch(apiFetch)도 4a 단계로 kista-trading(8081)에 이전된 prefix는 그쪽으로 보내야 한다.
+const TRADING_PREFIXES = ['/api/accounts', '/api/trading-cycles', '/api/backtest', '/api/daily-trades', '/api/orders']
+
+function resolveApiBaseUrl(path: string): string {
+  if (path.startsWith('/api/stats/housing-benchmark')) return getApiBaseUrl()
+  if (path.startsWith('/api/stats')) return getTradingApiBaseUrl()
+  if (TRADING_PREFIXES.some((prefix) => path.startsWith(prefix))) return getTradingApiBaseUrl()
+  return getApiBaseUrl()
+}
 
 export class ApiError extends Error {
   constructor(
@@ -97,7 +108,7 @@ export async function apiFetch<T>(
   options: RequestInit = {},
   accessToken: string
 ): Promise<T> {
-  const url = `${getApiBaseUrl()}${path}`
+  const url = `${resolveApiBaseUrl(path)}${path}`
 
   const response = await fetch(url, {
     ...options,
