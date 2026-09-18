@@ -1,7 +1,16 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { PropsWithChildren } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { reorderAdminOrder, getReorderTimingAvailability } from '@entities/admin'
+import {
+  listAdminAccounts,
+  listAdminStrategies,
+  listAdminStrategyOrders,
+  updateAdminStrategyStatus,
+  reorderAdminOrder,
+  getReorderTimingAvailability,
+} from '@entities/admin/api'
 import type { AdminAccount, AdminStrategy, AdminStrategyOrder, AdminTrade } from '@entities/admin'
 import { AdminTradesWorkbench } from './AdminTradesWorkbench'
 
@@ -10,11 +19,18 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }))
 
-vi.mock('@entities/admin', async () => {
-  const actual = await vi.importActual<typeof import('@entities/admin')>('@entities/admin')
+// 훅(entities/admin/hooks/useAdminQueries.ts)이 '../api'(=이 경로)를 직접 import해서 호출한다 —
+// '@entities/admin'(index.ts 배럴) 자체를 mock하면 훅 내부에서 쓰는 실제 api 함수는 그대로 남아
+// 실제 네트워크 호출을 시도한다. 훅이 실제로 참조하는 모듈 경로를 mock해야 한다.
+vi.mock('@entities/admin/api', async () => {
+  const actual = await vi.importActual<typeof import('@entities/admin/api')>('@entities/admin/api')
 
   return {
     ...actual,
+    listAdminAccounts: vi.fn(),
+    listAdminStrategies: vi.fn(),
+    listAdminStrategyOrders: vi.fn(),
+    updateAdminStrategyStatus: vi.fn(),
     reorderAdminOrder: vi.fn(),
     getReorderTimingAvailability: vi.fn().mockResolvedValue({
       atOpen: false,
@@ -154,8 +170,26 @@ const partiallyFilledOrder: AdminStrategyOrder = {
   filledPrice: 311.1,
 }
 
+const listAdminAccountsMock = vi.mocked(listAdminAccounts)
+const listAdminStrategiesMock = vi.mocked(listAdminStrategies)
+const listAdminStrategyOrdersMock = vi.mocked(listAdminStrategyOrders)
+const updateAdminStrategyStatusMock = vi.mocked(updateAdminStrategyStatus)
 const reorderAdminOrderMock = vi.mocked(reorderAdminOrder)
 const getReorderTimingAvailabilityMock = vi.mocked(getReorderTimingAvailability)
+
+function createWrapper() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
+  return function Wrapper({ children }: PropsWithChildren) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  }
+}
+
+function renderWorkbench(props: Partial<React.ComponentProps<typeof AdminTradesWorkbench>> = {}) {
+  return render(
+    <AdminTradesWorkbench initialTrades={trades} initialPage={1} initialSize={10} {...props} />,
+    { wrapper: createWrapper() },
+  )
+}
 
 async function selectBrokeredOrderTarget(user: ReturnType<typeof userEvent.setup>) {
   await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
@@ -170,8 +204,12 @@ async function selectStrategyTarget(user: ReturnType<typeof userEvent.setup>) {
 
 describe('AdminTradesWorkbench', () => {
   beforeEach(() => {
+    listAdminAccountsMock.mockReset().mockResolvedValue(accounts)
+    listAdminStrategiesMock.mockReset().mockResolvedValue(strategies.slice(0, 1))
+    listAdminStrategyOrdersMock.mockReset().mockResolvedValue(orders)
+    updateAdminStrategyStatusMock.mockReset().mockResolvedValue(undefined)
     reorderAdminOrderMock.mockReset()
-    getReorderTimingAvailabilityMock.mockResolvedValue({
+    getReorderTimingAvailabilityMock.mockReset().mockResolvedValue({
       atOpen: false,
       atClose: true,
       immediate: false,
@@ -180,9 +218,6 @@ describe('AdminTradesWorkbench', () => {
 
   it('submits only changed orders with per-order timing', async () => {
     const user = userEvent.setup()
-    const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
-    const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
-    const loadOrders = vi.fn(async () => orders)
 
     reorderAdminOrderMock.mockResolvedValue({
       userId: 'user-1',
@@ -194,18 +229,10 @@ describe('AdminTradesWorkbench', () => {
       newOrderExternalId: null,
     })
 
-    render(
-      <AdminTradesWorkbench
-        initialTrades={trades}
-        initialPage={1}
-        initialSize={10}
-        loadAccounts={loadAccounts}
-        loadStrategies={loadStrategies}
-        loadOrders={loadOrders}
-      />,
-    )
+    renderWorkbench()
 
     await selectStrategyTarget(user)
+    await waitFor(() => expect(screen.getByLabelText('order-1 재주문 수량')).toBeInTheDocument())
 
     // 주문시점 셀렉터 표시 확인
     expect(screen.getAllByLabelText(/주문시점/)).toHaveLength(2)
@@ -250,14 +277,11 @@ describe('AdminTradesWorkbench', () => {
 
   it('refreshes orders and shows batch success summary after reorder', async () => {
     const user = userEvent.setup()
-    const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
-    const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
     const refreshedOrders: AdminStrategyOrder[] = [
       { ...orders[0], status: 'PLANNED' },
       { ...orders[1], status: 'PLANNED' },
     ]
-    const loadOrders = vi
-      .fn<() => Promise<AdminStrategyOrder[]>>()
+    listAdminStrategyOrdersMock.mockReset()
       .mockResolvedValueOnce(orders)
       .mockResolvedValueOnce(refreshedOrders)
 
@@ -271,18 +295,10 @@ describe('AdminTradesWorkbench', () => {
       newOrderExternalId: null,
     })
 
-    render(
-      <AdminTradesWorkbench
-        initialTrades={trades}
-        initialPage={1}
-        initialSize={10}
-        loadAccounts={loadAccounts}
-        loadStrategies={loadStrategies}
-        loadOrders={loadOrders}
-      />,
-    )
+    renderWorkbench()
 
     await selectStrategyTarget(user)
+    await waitFor(() => expect(screen.getByLabelText('order-1 재주문 수량')).toBeInTheDocument())
     // order-1만 변경
     await user.clear(screen.getByLabelText('order-1 재주문 수량'))
     await user.type(screen.getByLabelText('order-1 재주문 수량'), '5')
@@ -292,9 +308,9 @@ describe('AdminTradesWorkbench', () => {
     await user.click(screen.getByRole('button', { name: '변경한 주문 1건 재주문' }))
 
     await waitFor(() => expect(reorderAdminOrderMock).toHaveBeenCalledTimes(1))
-    await waitFor(() => expect(loadOrders).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(listAdminStrategyOrdersMock).toHaveBeenCalledTimes(2))
     await waitFor(() =>
-      expect(loadOrders).toHaveBeenLastCalledWith('account-1', 'strategy-1', '2026-07-03'),
+      expect(listAdminStrategyOrdersMock).toHaveBeenLastCalledWith('account-1', 'strategy-1', '2026-07-03'),
     )
 
     expect(screen.getByText('거래일 재주문이 완료되었습니다')).toBeInTheDocument()
@@ -303,10 +319,8 @@ describe('AdminTradesWorkbench', () => {
 
   it('clears the previous success summary when strategy selection changes', async () => {
     const user = userEvent.setup()
-    const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
-    const loadStrategies = vi.fn(async () => strategies)
-    const loadOrders = vi
-      .fn<() => Promise<AdminStrategyOrder[]>>()
+    listAdminStrategiesMock.mockReset().mockResolvedValue(strategies)
+    listAdminStrategyOrdersMock.mockReset()
       .mockResolvedValueOnce(orders)    // strategy-1 초기 로드
       .mockResolvedValueOnce([orders[0], orders[1]]) // 재주문 후 리로드
       .mockResolvedValue([])            // strategy-2 선택 시
@@ -331,18 +345,10 @@ describe('AdminTradesWorkbench', () => {
         newOrderExternalId: null,
       })
 
-    render(
-      <AdminTradesWorkbench
-        initialTrades={trades}
-        initialPage={1}
-        initialSize={10}
-        loadAccounts={loadAccounts}
-        loadStrategies={loadStrategies}
-        loadOrders={loadOrders}
-      />,
-    )
+    renderWorkbench()
 
     await selectStrategyTarget(user)
+    await waitFor(() => expect(screen.getByLabelText('order-1 재주문 수량')).toBeInTheDocument())
     // 두 주문 모두 변경 후 재주문
     await user.clear(screen.getByLabelText('order-1 재주문 수량'))
     await user.type(screen.getByLabelText('order-1 재주문 수량'), '5')
@@ -360,20 +366,9 @@ describe('AdminTradesWorkbench', () => {
 
   it('supports user-broker-account-strategy selection and resets lower steps', async () => {
     const user = userEvent.setup()
-    const loadAccounts = vi.fn(async (userId: string) => accounts.filter((account) => account.userId === userId))
-    const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
-    const loadOrders = vi.fn(async () => orders)
+    listAdminAccountsMock.mockReset().mockImplementation(async () => accounts)
 
-    render(
-      <AdminTradesWorkbench
-        initialTrades={trades}
-        initialPage={1}
-        initialSize={10}
-        loadAccounts={loadAccounts}
-        loadStrategies={loadStrategies}
-        loadOrders={loadOrders}
-      />,
-    )
+    renderWorkbench()
 
     const brokerSelect = screen.getByRole('combobox', { name: '증권사 선택' })
     const accountSelect = screen.getByRole('combobox', { name: '계좌 선택' })
@@ -386,7 +381,7 @@ describe('AdminTradesWorkbench', () => {
 
     await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
 
-    await waitFor(() => expect(loadAccounts).toHaveBeenCalledWith('user-1'))
+    await waitFor(() => expect(listAdminAccountsMock).toHaveBeenCalled())
     await waitFor(() => expect(brokerSelect).not.toBeDisabled())
     expect(within(brokerSelect).getByRole('option', { name: '한국투자증권' })).toBeInTheDocument()
 
@@ -397,21 +392,20 @@ describe('AdminTradesWorkbench', () => {
 
     await user.selectOptions(accountSelect, 'account-1')
 
-    await waitFor(() => expect(loadStrategies).toHaveBeenCalledWith('account-1'))
+    await waitFor(() => expect(listAdminStrategiesMock).toHaveBeenCalledWith('account-1'))
     await waitFor(() => expect(strategySelect).not.toBeDisabled())
     expect(within(strategySelect).getByRole('option', { name: 'INFINITE · TSLA' })).toBeInTheDocument()
 
     await user.selectOptions(strategySelect, 'strategy-1')
 
-    await waitFor(() => expect(loadOrders).toHaveBeenCalledWith('account-1', 'strategy-1', '2026-07-03'))
+    await waitFor(() => expect(listAdminStrategyOrdersMock).toHaveBeenCalledWith('account-1', 'strategy-1', '2026-07-03'))
     await waitFor(() => expect(screen.getByLabelText('order-1 재주문 수량')).toBeInTheDocument())
     expect(screen.getByLabelText('order-2 재주문 수량')).toBeInTheDocument()
 
     // 사용자 재선택 시 하위 단계 초기화
     await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-2')
 
-    await waitFor(() => expect(loadAccounts).toHaveBeenLastCalledWith('user-2'))
-    expect(brokerSelect).toHaveValue('')
+    await waitFor(() => expect(brokerSelect).toHaveValue(''))
     expect(accountSelect).toHaveValue('')
     expect(strategySelect).toHaveValue('')
     expect(brokerSelect).not.toBeDisabled()
@@ -420,33 +414,21 @@ describe('AdminTradesWorkbench', () => {
 
   it('toggles selected strategy status and refreshes the strategy list', async () => {
     const user = userEvent.setup()
-    const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
-    const loadStrategies = vi
-      .fn<() => Promise<AdminStrategy[]>>()
+    listAdminStrategiesMock.mockReset()
       .mockResolvedValueOnce(strategies.slice(0, 1))
       .mockResolvedValueOnce([{ ...strategies[0], status: 'PAUSED' }])
-    const toggleStrategyStatus = vi.fn(async () => undefined)
 
-    render(
-      <AdminTradesWorkbench
-        initialTrades={trades}
-        initialPage={1}
-        initialSize={10}
-        loadAccounts={loadAccounts}
-        loadStrategies={loadStrategies}
-        toggleStrategyStatus={toggleStrategyStatus}
-      />,
-    )
+    renderWorkbench()
 
     await selectBrokeredOrderTarget(user)
     await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
 
-    expect(screen.getByText('현재 전략 상태: ACTIVE')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText('현재 전략 상태: ACTIVE')).toBeInTheDocument())
 
     await user.click(screen.getByRole('button', { name: '전략 중지' }))
 
-    await waitFor(() => expect(toggleStrategyStatus).toHaveBeenCalledWith('account-1', 'strategy-1', 'PAUSED'))
-    await waitFor(() => expect(loadStrategies).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(updateAdminStrategyStatusMock).toHaveBeenCalledWith('account-1', 'strategy-1', 'PAUSED'))
+    await waitFor(() => expect(listAdminStrategiesMock).toHaveBeenCalledTimes(2))
     await waitFor(() => expect(screen.getByText('현재 전략 상태: PAUSED')).toBeInTheDocument())
     expect(screen.getByRole('combobox', { name: '전략 선택' })).toHaveValue('strategy-1')
     expect(screen.getByRole('button', { name: '전략 재개' })).toBeInTheDocument()
@@ -454,22 +436,9 @@ describe('AdminTradesWorkbench', () => {
 
   it('shows a visible error message when strategy status toggle fails', async () => {
     const user = userEvent.setup()
-    const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
-    const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
-    const toggleStrategyStatus = vi.fn(async () => {
-      throw new Error('toggle failed')
-    })
+    updateAdminStrategyStatusMock.mockReset().mockRejectedValue(new Error('toggle failed'))
 
-    render(
-      <AdminTradesWorkbench
-        initialTrades={trades}
-        initialPage={1}
-        initialSize={10}
-        loadAccounts={loadAccounts}
-        loadStrategies={loadStrategies}
-        toggleStrategyStatus={toggleStrategyStatus}
-      />,
-    )
+    renderWorkbench()
 
     await selectBrokeredOrderTarget(user)
     await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
@@ -482,20 +451,8 @@ describe('AdminTradesWorkbench', () => {
 
   it('filters the table rows as the selection changes', async () => {
     const user = userEvent.setup()
-    const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
-    const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
-    const loadOrders = vi.fn(async () => orders)
 
-    render(
-      <AdminTradesWorkbench
-        initialTrades={trades}
-        initialPage={1}
-        initialSize={10}
-        loadAccounts={loadAccounts}
-        loadStrategies={loadStrategies}
-        loadOrders={loadOrders}
-      />,
-    )
+    renderWorkbench()
 
     const table = screen.getByRole('table')
 
@@ -518,24 +475,32 @@ describe('AdminTradesWorkbench', () => {
 
   it('renders the action error with readable dark-mode contrast classes', async () => {
     const user = userEvent.setup()
-    const loadAccounts = vi.fn(async () => {
-      throw new Error('accounts failed')
-    })
+    listAdminAccountsMock.mockReset().mockRejectedValue(new Error('accounts failed'))
 
-    render(
-      <AdminTradesWorkbench
-        initialTrades={trades}
-        initialPage={1}
-        initialSize={10}
-        loadAccounts={loadAccounts}
-      />,
-    )
+    renderWorkbench()
 
     await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
 
-    const errorSection = screen.getByLabelText('재주문 오류')
+    const errorSection = await screen.findByLabelText('재주문 오류')
     expect(errorSection).toHaveClass('dark:bg-rose-900/40')
     expect(errorSection).toHaveClass('dark:text-rose-100')
+  })
+
+  it('retries the accounts query when a different user is selected after a failed load', async () => {
+    // accountsQuery는 userId 무관 공용 키를 쓴다 — 실패 후 다른 사용자를 골랐을 때 자동으로
+    // 재조회되지 않으면(같은 키, enabled 유지) 오류 배너가 세션 내내 고정되는 회귀가 있었다.
+    const user = userEvent.setup()
+    listAdminAccountsMock.mockReset().mockRejectedValueOnce(new Error('accounts failed')).mockResolvedValue(accounts)
+
+    renderWorkbench()
+
+    await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
+    await screen.findByLabelText('재주문 오류')
+
+    await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-2')
+
+    await waitFor(() => expect(screen.queryByLabelText('재주문 오류')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('combobox', { name: '증권사 선택' })).not.toBeDisabled())
   })
 
   it.each([
@@ -543,72 +508,38 @@ describe('AdminTradesWorkbench', () => {
     ['CANCELLED', cancelledOrder],
   ])('shows reorder form controls for %s orders (all statuses reorderable)', async (_status, order) => {
     const user = userEvent.setup()
-    const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
-    const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
-    const loadOrders = vi.fn(async () => [order])
+    listAdminStrategyOrdersMock.mockReset().mockResolvedValue([order])
 
-    render(
-      <AdminTradesWorkbench
-        initialTrades={trades}
-        initialPage={1}
-        initialSize={10}
-        loadAccounts={loadAccounts}
-        loadStrategies={loadStrategies}
-        loadOrders={loadOrders}
-      />,
-    )
+    renderWorkbench()
 
     await selectStrategyTarget(user)
 
     // FAILED/CANCELLED 주문도 재주문 가능 — 수량 입력 활성화
-    expect(screen.getByLabelText(`${order.id} 재주문 수량`)).not.toBeDisabled()
+    await waitFor(() => expect(screen.getByLabelText(`${order.id} 재주문 수량`)).not.toBeDisabled())
     // 변경 전 — 버튼 비활성
     expect(screen.getByRole('button', { name: '변경한 주문 0건 재주문' })).toBeDisabled()
   })
 
   it('shows batch reorder submit controls for partially filled orders', async () => {
     const user = userEvent.setup()
-    const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
-    const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
-    const loadOrders = vi.fn(async () => [partiallyFilledOrder])
+    listAdminStrategyOrdersMock.mockReset().mockResolvedValue([partiallyFilledOrder])
 
-    render(
-      <AdminTradesWorkbench
-        initialTrades={trades}
-        initialPage={1}
-        initialSize={10}
-        loadAccounts={loadAccounts}
-        loadStrategies={loadStrategies}
-        loadOrders={loadOrders}
-      />,
-    )
+    renderWorkbench()
 
     await selectStrategyTarget(user)
 
-    expect(screen.getByLabelText(`${partiallyFilledOrder.id} 재주문 수량`)).not.toBeDisabled()
+    await waitFor(() => expect(screen.getByLabelText(`${partiallyFilledOrder.id} 재주문 수량`)).not.toBeDisabled())
     expect(screen.getByRole('button', { name: '변경한 주문 0건 재주문' })).toBeDisabled()
   })
 
   it('shows a visible error message when any batch reorder request fails', async () => {
     const user = userEvent.setup()
-    const loadAccounts = vi.fn(async () => accounts.slice(0, 1))
-    const loadStrategies = vi.fn(async () => strategies.slice(0, 1))
-    const loadOrders = vi.fn(async () => orders)
+    reorderAdminOrderMock.mockReset().mockRejectedValue(new Error('reorder failed'))
 
-    reorderAdminOrderMock.mockRejectedValue(new Error('reorder failed'))
-
-    render(
-      <AdminTradesWorkbench
-        initialTrades={trades}
-        initialPage={1}
-        initialSize={10}
-        loadAccounts={loadAccounts}
-        loadStrategies={loadStrategies}
-        loadOrders={loadOrders}
-      />,
-    )
+    renderWorkbench()
 
     await selectStrategyTarget(user)
+    await waitFor(() => expect(screen.getByLabelText('order-1 재주문 수량')).toBeInTheDocument())
     // 값 변경 후 재주문
     await user.clear(screen.getByLabelText('order-1 재주문 수량'))
     await user.type(screen.getByLabelText('order-1 재주문 수량'), '5')

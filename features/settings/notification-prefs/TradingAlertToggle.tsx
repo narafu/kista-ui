@@ -1,19 +1,18 @@
 'use client'
 
-import { useState } from 'react'
 import { toast } from 'sonner'
-import { useUpdateNotificationPrefMutation } from '@entities/user'
+import { useMeQuery, useUpdateNotificationPrefMutation } from '@entities/user'
 import type { NotificationChannel } from '@entities/user'
 import { Switch } from '@/components/ui/switch'
 
 interface Props {
   type: string
-  initialEnabled: boolean
   channel: NotificationChannel
 }
 
-export function TradingAlertToggle({ type, initialEnabled, channel }: Props) {
-  const [enabled, setEnabled] = useState(initialEnabled)
+export function TradingAlertToggle({ type, channel }: Props) {
+  const { data: user } = useMeQuery()
+  const enabled = user?.notificationPrefs?.[type] ?? true
   const mutation = useUpdateNotificationPrefMutation()
   const isChannelOff = channel === 'NONE'
 
@@ -22,8 +21,7 @@ export function TradingAlertToggle({ type, initialEnabled, channel }: Props) {
       toast.info('알림 수단을 먼저 선택해주세요')
       return
     }
-    setEnabled(next)
-    mutation.mutate({ type, enabled: next }, { onError: () => setEnabled(!next) })
+    mutation.mutate({ type, enabled: next })
   }
 
   return (

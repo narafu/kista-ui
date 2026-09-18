@@ -7,6 +7,7 @@ export type {
   AdminPrivacyOrderUpdateRequest,
   AdminPrivacyOrderCreateRequest,
 } from './model/types'
+export { orderRequiresQuantity } from './model/types'
 export {
   listAdminPrivacyBases,
   createAdminPrivacyBase,

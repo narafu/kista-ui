@@ -1,4 +1,4 @@
-import type { ReorderSummary } from './adminTradesReducer'
+import type { ReorderSummary } from './model/types'
 
 interface Props {
   actionError: string | null

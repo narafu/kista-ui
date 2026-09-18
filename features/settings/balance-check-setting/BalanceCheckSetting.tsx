@@ -1,20 +1,15 @@
 'use client'
 
-import { useState } from 'react'
-import { useUpdateBalanceCheckEnabledMutation } from '@entities/user'
+import { useMeQuery, useUpdateBalanceCheckEnabledMutation } from '@entities/user'
 import { Switch } from '@/components/ui/switch'
 
-interface Props {
-  initialEnabled: boolean
-}
-
-export function BalanceCheckSetting({ initialEnabled }: Props) {
-  const [enabled, setEnabled] = useState(initialEnabled)
+export function BalanceCheckSetting() {
+  const { data: user } = useMeQuery()
+  const enabled = user?.balanceCheckEnabled ?? true
   const mutation = useUpdateBalanceCheckEnabledMutation()
 
   function handleToggle(next: boolean) {
-    setEnabled(next)
-    mutation.mutate(next, { onError: () => setEnabled(!next) })
+    mutation.mutate(next)
   }
 
   return (

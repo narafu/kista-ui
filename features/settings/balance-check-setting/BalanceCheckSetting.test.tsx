@@ -1,52 +1,43 @@
-import { act, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BalanceCheckSetting } from './BalanceCheckSetting'
 
 const mutateMock = vi.fn()
+let meData: { balanceCheckEnabled: boolean } | undefined = { balanceCheckEnabled: true }
 
 vi.mock('@entities/user', () => ({
+  useMeQuery: () => ({ data: meData }),
   useUpdateBalanceCheckEnabledMutation: () => ({ mutate: mutateMock, isPending: false }),
 }))
 
 describe('BalanceCheckSetting', () => {
   beforeEach(() => {
     mutateMock.mockReset()
+    meData = { balanceCheckEnabled: true }
+  })
+
+  it('reflects the current me query value', () => {
+    render(<BalanceCheckSetting />)
+    expect(screen.getByRole('switch', { name: '잔고 검증' })).toBeChecked()
   })
 
   it('turns the switch off and calls the mutation with false', async () => {
     const user = userEvent.setup()
-    render(<BalanceCheckSetting initialEnabled />)
-
-    const toggle = screen.getByRole('switch', { name: '잔고 검증' })
-    expect(toggle).toBeChecked()
-
-    await user.click(toggle)
-
-    expect(toggle).not.toBeChecked()
-    expect(mutateMock).toHaveBeenCalledWith(false, { onError: expect.any(Function) })
-  })
-
-  it('turns the switch on from a disabled initial state', async () => {
-    const user = userEvent.setup()
-    render(<BalanceCheckSetting initialEnabled={false} />)
+    render(<BalanceCheckSetting />)
 
     await user.click(screen.getByRole('switch', { name: '잔고 검증' }))
 
-    expect(mutateMock).toHaveBeenCalledWith(true, { onError: expect.any(Function) })
+    expect(mutateMock).toHaveBeenCalledWith(false)
   })
 
-  it('rolls back the switch when the mutation fails', async () => {
+  it('turns the switch on from a disabled state', async () => {
+    meData = { balanceCheckEnabled: false }
     const user = userEvent.setup()
-    render(<BalanceCheckSetting initialEnabled />)
+    render(<BalanceCheckSetting />)
 
-    const toggle = screen.getByRole('switch', { name: '잔고 검증' })
-    await user.click(toggle)
-    expect(toggle).not.toBeChecked()
+    await user.click(screen.getByRole('switch', { name: '잔고 검증' }))
 
-    const [, options] = mutateMock.mock.calls[0]
-    act(() => options.onError())
-
-    expect(toggle).toBeChecked()
+    expect(mutateMock).toHaveBeenCalledWith(true)
   })
 })

@@ -45,15 +45,15 @@ export function SettingsPageContent() {
         <NotificationSettings currentChannel={notificationChannel} hasTelegram={user?.hasTelegram ?? false} />
         <div className="flex items-center gap-[14px] py-3">
           <div className="flex-1"><div className="text-sm font-bold">매매 알림</div><div className="text-sm text-muted-foreground mt-0.5">매매 체결 결과 알림</div></div>
-          <TradingAlertToggle type="TRADING_ALERT" initialEnabled={user?.notificationPrefs?.['TRADING_ALERT'] ?? true} channel={notificationChannel} />
+          <TradingAlertToggle type="TRADING_ALERT" channel={notificationChannel} />
         </div>
         <div className="flex items-center gap-[14px] py-3 border-t border-border">
           <div className="flex-1"><div className="text-sm font-bold">장 시작/마감 알림</div><div className="text-sm text-muted-foreground mt-0.5">미국 장 개시 및 마감 시 알림</div></div>
-          <TradingAlertToggle type="MARKET_ALERT" initialEnabled={user?.notificationPrefs?.['MARKET_ALERT'] ?? true} channel={notificationChannel} />
+          <TradingAlertToggle type="MARKET_ALERT" channel={notificationChannel} />
         </div>
         <div className="flex items-center gap-[14px] py-3 border-t border-border">
           <div className="flex-1"><div className="text-sm font-bold">가계부 등록 알림</div><div className="text-sm text-muted-foreground mt-0.5">이번 달 가계부 미등록 시 월말 알림</div></div>
-          <TradingAlertToggle type="FINANCE_REMINDER" initialEnabled={user?.notificationPrefs?.['FINANCE_REMINDER'] ?? true} channel={notificationChannel} />
+          <TradingAlertToggle type="FINANCE_REMINDER" channel={notificationChannel} />
         </div>
       </Surface>
 
@@ -62,7 +62,7 @@ export function SettingsPageContent() {
         <div className="text-sm text-muted-foreground mb-[18px]">테마와 알림 환경을 조정합니다.</div>
         <div className="text-sm font-semibold text-muted-foreground mb-2">테마</div>
         <ThemeCards />
-        <div className="mt-5 pt-4 border-t border-border"><BalanceCheckSetting initialEnabled={user?.balanceCheckEnabled ?? true} /></div>
+        <div className="mt-5 pt-4 border-t border-border"><BalanceCheckSetting /></div>
       </Surface>
 
       <section id="danger" className="rounded-[var(--r-lg)] border border-[var(--status-error-border)] bg-[var(--status-error-bg)] p-6">

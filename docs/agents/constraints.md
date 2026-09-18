@@ -47,7 +47,7 @@
 ### TypeScript / React Query
 
 - `any` 금지 — 제네릭·`?.`·`??`로 대체한다
-- 서버 상태를 `useState`에 복사하지 않는다 — React Query가 서버 상태의 SSOT
+- **서버 상태를 `useState`에 복사하지 않는다 — React Query가 서버 상태의 SSOT.** 2026-09 전수조사로 실제 위반 3건이 나온 규칙이라 예외 없이 적용한다: Server Component가 넘긴 prop을 그대로 `useState(prop)`로 받아 로컬에서 관리하는 패턴(`AdminPrivacyBaseTable`의 `bases`), api 함수를 `useEffect`에서 직접 호출해 `useReducer`/`useState`에 담는 패턴(`AdminTradesWorkbench`의 계좌→전략→주문 cascading select), `useMeQuery()` 값을 prop으로 받아 `useState(initialEnabled)`로 미러링하는 패턴(`BalanceCheckSetting`/`TradingAlertToggle`)이 전부 이 위반이었다. **이 작업과 무관한 코드를 보다가 위 패턴 중 하나를 발견하면, 하던 작업을 멈추지 않고 즉시 사용자에게 리팩토링을 제안한다** — 나중으로 미루면 같은 클래스의 버그(등록/수정 후 자동 반영 안 됨, 여러 화면 간 캐시 불일치)가 계속 새로 생긴다. `entities/{domain}`에 `hooks/` 디렉토리가 없으면 그 도메인의 모든 소비처가 이 패턴일 가능성이 높다는 신호다(`ls entities/{domain}`로 먼저 확인). 낙관적 업데이트가 필요한 토글류는 컴포넌트가 아니라 mutation 훅의 `onMutate`/`onError`에 캡슐화하고, 롤백은 실패한 필드만 "현재" 캐시에 되돌린다(전체 스냅샷 복원 금지 — 같은 화면에 동시에 열린 다른 mutation이 그 사이 성공시킨 값을 덮어쓰는 레이스가 생긴다, `useUpdateBalanceCheckEnabledMutation`/`useUpdateNotificationPrefMutation` 참고). userId처럼 매개변수화된 조회를 공용 키+`select` 필터로 캐싱할 때는(중복 조회 방지) 그 키가 실패한 뒤 멈춰 있지 않도록 선택 변경 시점에 명시적 `refetch()`를 챙긴다(`enabled`만으론 이미 활성화된 키의 에러 상태가 저절로 재시도되지 않는다).
 - 전역 QueryClient 기본값은 `@shared/lib/query/createQueryClient`에서만 변경한다 (`staleTime=30s`, `gcTime=10m`, `retry=0`, `refetchOnWindowFocus=false`)
 - `Promise.all`의 독립 호출은 fail-fast 방지를 위해 각 항목에 `.catch(() => null)`을 붙인다
 

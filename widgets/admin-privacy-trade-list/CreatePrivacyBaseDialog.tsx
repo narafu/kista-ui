@@ -12,7 +12,7 @@ import { IconButton } from '@shared/ui/IconButton'
 import { SaveButton } from '@shared/ui/SaveButton'
 import { todayKst } from '@shared/lib/format'
 import { apiMsg } from '@shared/lib/api-client'
-import { createAdminPrivacyBase } from '@entities/privacy'
+import { createAdminPrivacyBase, orderRequiresQuantity } from '@entities/privacy'
 import type { AdminPrivacyBase, AdminPrivacyOrder, AdminPrivacyOrderRequest } from '@entities/privacy'
 
 interface Props {
@@ -40,7 +40,7 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange, onCreated }: Props
   const [orders, setOrders] = useState<DraftOrder[]>([{ ...EMPTY_ORDER }])
   const [isPending, setIsPending] = useState(false)
 
-  const ordersValid = orders.every((o) => o.price !== '' && (o.direction !== 'BUY' || o.quantity !== ''))
+  const ordersValid = orders.every((o) => o.price !== '' && (!orderRequiresQuantity(o.direction) || o.quantity !== ''))
   const canSubmit = ticker.trim() !== '' && releaseDate !== '' && currentCycleStart !== '' && currentCycleRealizedPnl !== '' && holdings !== '' && ordersValid
 
   function updateOrder(index: number, patch: Partial<DraftOrder>) {
@@ -154,7 +154,7 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange, onCreated }: Props
                     <Input type="number" step="0.01" value={o.price} onChange={(e) => updateOrder(i, { price: e.target.value })} disabled={isPending} className="h-10" />
                   </div>
                   <div className="flex-1 space-y-1">
-                    <Label className="text-xs">수량{o.direction !== 'BUY' && '(선택)'}</Label>
+                    <Label className="text-xs">수량{!orderRequiresQuantity(o.direction) && '(선택)'}</Label>
                     <Input type="number" step="1" min="1" value={o.quantity} onChange={(e) => updateOrder(i, { quantity: e.target.value })} disabled={isPending} className="h-10" />
                   </div>
                   {orders.length > 1 && (

@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { SaveButton } from '@shared/ui/SaveButton'
 import { apiMsg } from '@shared/lib/api-client'
 import { DIRECTION_LABEL } from '@entities/trade'
-import { updateAdminPrivacyOrder } from '@entities/privacy'
+import { updateAdminPrivacyOrder, orderRequiresQuantity } from '@entities/privacy'
 import type { AdminPrivacyBase, AdminPrivacyOrder } from '@entities/privacy'
 
 interface Props {
@@ -26,7 +26,7 @@ export function EditPrivacyOrderDialog({ baseId, order, open, onOpenChange, onUp
   const [isPending, setIsPending] = useState(false)
 
   // BUY는 quantity 필수 — 서버가 400으로 거부하므로 선제 차단.
-  const canSubmit = price !== '' && (order.direction !== 'BUY' || quantity !== '')
+  const canSubmit = price !== '' && (!orderRequiresQuantity(order.direction) || quantity !== '')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -70,7 +70,7 @@ export function EditPrivacyOrderDialog({ baseId, order, open, onOpenChange, onUp
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="orderQuantity">수량{order.direction !== 'BUY' && ' (없으면 비움)'}</Label>
+              <Label htmlFor="orderQuantity">수량{!orderRequiresQuantity(order.direction) && ' (없으면 비움)'}</Label>
               <Input
                 id="orderQuantity"
                 type="number"

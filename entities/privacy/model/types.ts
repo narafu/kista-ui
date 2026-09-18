@@ -52,3 +52,8 @@ export interface AdminPrivacyOrderUpdateRequest {
 
 // POST /api/admin/privacy-trade-bases/{baseId}/orders — BUY는 quantity null 불가.
 export type AdminPrivacyOrderCreateRequest = AdminPrivacyOrderRequest
+
+// BUY는 서버가 quantity null을 거부(400)하므로 등록/추가/수정 폼이 선제 검증할 때 공유한다.
+export function orderRequiresQuantity(direction: AdminPrivacyOrder['direction']): boolean {
+  return direction === 'BUY'
+}
