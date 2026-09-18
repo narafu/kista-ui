@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { IconButton } from '@shared/ui/IconButton'
-import { Spinner } from '@shared/ui/Spinner'
+import { SaveButton } from '@shared/ui/SaveButton'
 import { todayKst } from '@shared/lib/format'
 import { apiMsg } from '@shared/lib/api-client'
 import { createAdminPrivacyBase } from '@entities/privacy'
@@ -31,7 +31,7 @@ const EMPTY_ORDER: DraftOrder = { direction: 'BUY', orderType: 'LOC', price: '',
 
 export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
   const [releaseDate, setReleaseDate] = useState(todayKst())
-  const [ticker, setTicker] = useState('')
+  const [ticker, setTicker] = useState('SOXL')
   const [currentCycleStart, setCurrentCycleStart] = useState('')
   const [currentCycleRealizedPnl, setCurrentCycleRealizedPnl] = useState('0')
   const [avgPrice, setAvgPrice] = useState('')
@@ -169,9 +169,10 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
           </div>
 
           <DialogFooter>
-            <Button type="submit" className="gap-2" disabled={isPending || !canSubmit}>
-              {isPending ? <><Spinner size={14} />등록 중...</> : '등록'}
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
+              취소
             </Button>
+            <SaveButton isPending={isPending} disabled={!canSubmit} label="등록" />
           </DialogFooter>
         </form>
       </DialogContent>

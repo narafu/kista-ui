@@ -5,10 +5,13 @@ export type {
   AdminPrivacyBaseUpdateRequest,
   AdminPrivacyOrderRequest,
   AdminPrivacyOrderUpdateRequest,
+  AdminPrivacyOrderCreateRequest,
 } from './model/types'
 export {
   listAdminPrivacyBases,
   createAdminPrivacyBase,
   updateAdminPrivacyBase,
   updateAdminPrivacyOrder,
+  addAdminPrivacyOrder,
+  deleteAdminPrivacyOrder,
 } from './api'

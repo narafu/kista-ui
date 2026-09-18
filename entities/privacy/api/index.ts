@@ -3,6 +3,7 @@ import type {
   AdminPrivacyBase,
   AdminPrivacyBaseCreateRequest,
   AdminPrivacyBaseUpdateRequest,
+  AdminPrivacyOrderCreateRequest,
   AdminPrivacyOrderUpdateRequest,
 } from '../model/types'
 
@@ -31,4 +32,17 @@ export async function updateAdminPrivacyOrder(
   request: AdminPrivacyOrderUpdateRequest,
 ): Promise<AdminPrivacyBase> {
   return clientFetch<AdminPrivacyBase>(`/api/admin/privacy-trade-bases/${baseId}/orders/${orderId}`, jsonBody('PATCH', request))
+}
+
+// 관리자 — P 매매표에 주문 추가.
+export async function addAdminPrivacyOrder(
+  baseId: string,
+  request: AdminPrivacyOrderCreateRequest,
+): Promise<AdminPrivacyBase> {
+  return clientFetch<AdminPrivacyBase>(`/api/admin/privacy-trade-bases/${baseId}/orders`, jsonBody('POST', request))
+}
+
+// 관리자 — P 매매표 개별 주문 삭제.
+export async function deleteAdminPrivacyOrder(baseId: string, orderId: string): Promise<AdminPrivacyBase> {
+  return clientFetch<AdminPrivacyBase>(`/api/admin/privacy-trade-bases/${baseId}/orders/${orderId}`, { method: 'DELETE' })
 }

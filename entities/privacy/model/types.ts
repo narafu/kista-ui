@@ -49,3 +49,6 @@ export interface AdminPrivacyOrderUpdateRequest {
   price: number
   quantity: number | null
 }
+
+// POST /api/admin/privacy-trade-bases/{baseId}/orders — BUY는 quantity null 불가.
+export type AdminPrivacyOrderCreateRequest = AdminPrivacyOrderRequest

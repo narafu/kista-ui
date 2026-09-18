@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Spinner } from '@shared/ui/Spinner'
+import { SaveButton } from '@shared/ui/SaveButton'
 import { apiMsg } from '@shared/lib/api-client'
 import { updateAdminPrivacyBase } from '@entities/privacy'
 import type { AdminPrivacyBase } from '@entities/privacy'
@@ -112,9 +112,10 @@ export function EditPrivacyBaseDialog({ base, open, onOpenChange, onUpdated }: P
           </div>
 
           <DialogFooter>
-            <Button type="submit" className="gap-2" disabled={isPending || !canSubmit}>
-              {isPending ? <><Spinner size={14} />저장 중...</> : '저장'}
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
+              취소
             </Button>
+            <SaveButton isPending={isPending} disabled={!canSubmit} />
           </DialogFooter>
         </form>
       </DialogContent>

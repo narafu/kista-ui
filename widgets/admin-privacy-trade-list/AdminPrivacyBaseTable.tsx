@@ -1,19 +1,24 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { ChevronRight, ChevronDown, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { fmtUsd, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
+import { apiMsg } from '@shared/lib/api-client'
 import { cn } from '@shared/lib/utils'
 import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
+import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { BRAND_TINT_BUTTON_CLASS } from '@shared/ui/brand-button-class'
+import { deleteAdminPrivacyOrder } from '@entities/privacy'
 import type { AdminPrivacyBase, AdminPrivacyOrder } from '@entities/privacy'
 import { CreatePrivacyBaseDialog } from './CreatePrivacyBaseDialog'
 import { EditPrivacyBaseDialog } from './EditPrivacyBaseDialog'
 import { EditPrivacyOrderDialog } from './EditPrivacyOrderDialog'
+import { AddPrivacyOrderDialog } from './AddPrivacyOrderDialog'
 
 interface Props {
   bases: AdminPrivacyBase[]
@@ -25,6 +30,9 @@ export function AdminPrivacyBaseTable({ bases: initialBases }: Props) {
   const [createOpen, setCreateOpen] = useState(false)
   const [editBase, setEditBase] = useState<AdminPrivacyBase | null>(null)
   const [editOrder, setEditOrder] = useState<{ baseId: string; order: AdminPrivacyOrder } | null>(null)
+  const [addOrderBaseId, setAddOrderBaseId] = useState<string | null>(null)
+  const [deleteOrderTarget, setDeleteOrderTarget] = useState<{ baseId: string; order: AdminPrivacyOrder } | null>(null)
+  const [deletePending, setDeletePending] = useState(false)
 
   const toggle = (id: string) => {
     setExpanded((prev) => {
@@ -44,6 +52,21 @@ export function AdminPrivacyBaseTable({ bases: initialBases }: Props) {
   // routine mutation에 금지돼 있어 대신 안내 후 사용자가 직접 새로고침하도록 한다.
   function updateBase(updated: AdminPrivacyBase) {
     setBases((prev) => prev.map((b) => (b.id === updated.id ? updated : b)))
+  }
+
+  async function handleDeleteOrder() {
+    if (!deleteOrderTarget) return
+    setDeletePending(true)
+    try {
+      const updated = await deleteAdminPrivacyOrder(deleteOrderTarget.baseId, deleteOrderTarget.order.id)
+      updateBase(updated)
+      toast.success('주문이 삭제되었습니다')
+      setDeleteOrderTarget(null)
+    } catch (err) {
+      toast.error(apiMsg(err, '삭제에 실패했습니다'))
+    } finally {
+      setDeletePending(false)
+    }
   }
 
   return (
@@ -70,6 +93,8 @@ export function AdminPrivacyBaseTable({ bases: initialBases }: Props) {
                   onToggle={() => toggle(b.id)}
                   onEditBase={() => setEditBase(b)}
                   onEditOrder={(order) => setEditOrder({ baseId: b.id, order })}
+                  onAddOrder={() => setAddOrderBaseId(b.id)}
+                  onDeleteOrder={(order) => setDeleteOrderTarget({ baseId: b.id, order })}
                 />
               )
             })}
@@ -104,6 +129,8 @@ export function AdminPrivacyBaseTable({ bases: initialBases }: Props) {
                       onToggle={() => toggle(b.id)}
                       onEditBase={() => setEditBase(b)}
                       onEditOrder={(order) => setEditOrder({ baseId: b.id, order })}
+                      onAddOrder={() => setAddOrderBaseId(b.id)}
+                      onDeleteOrder={(order) => setDeleteOrderTarget({ baseId: b.id, order })}
                     />
                   )
                 })}
@@ -135,18 +162,38 @@ export function AdminPrivacyBaseTable({ bases: initialBases }: Props) {
           onUpdated={updateBase}
         />
       )}
+
+      {addOrderBaseId && (
+        <AddPrivacyOrderDialog
+          baseId={addOrderBaseId}
+          open
+          onOpenChange={(next) => { if (!next) setAddOrderBaseId(null) }}
+          onAdded={updateBase}
+        />
+      )}
+
+      <ConfirmDeleteDialog
+        open={deleteOrderTarget != null}
+        onOpenChange={(next) => { if (!next) setDeleteOrderTarget(null) }}
+        title="주문 삭제"
+        description={deleteOrderTarget ? `${DIRECTION_LABEL[deleteOrderTarget.order.direction] ?? deleteOrderTarget.order.direction} ${deleteOrderTarget.order.orderType} 주문을 삭제합니다.` : ''}
+        onConfirm={handleDeleteOrder}
+        isPending={deletePending}
+      />
     </>
   )
 }
 
 function MobileBaseCard({
-  base: b, open, onToggle, onEditBase, onEditOrder,
+  base: b, open, onToggle, onEditBase, onEditOrder, onAddOrder, onDeleteOrder,
 }: {
   base: AdminPrivacyBase
   open: boolean
   onToggle: () => void
   onEditBase: () => void
   onEditOrder: (order: AdminPrivacyOrder) => void
+  onAddOrder: () => void
+  onDeleteOrder: (order: AdminPrivacyOrder) => void
 }) {
   return (
     <article className="rounded-[var(--r-lg)] border border-border bg-card/70 p-4 shadow-sm">
@@ -190,9 +237,9 @@ function MobileBaseCard({
         </dl>
       </div>
 
-      {open && b.orders.length > 0 && (
+      {open && (
         <div className="mt-4 border-t border-border pt-3">
-          <OrderDetailsTable orders={b.orders} onEditOrder={onEditOrder} />
+          <OrderDetailsSection orders={b.orders} onEditOrder={onEditOrder} onAddOrder={onAddOrder} onDeleteOrder={onDeleteOrder} />
         </div>
       )}
     </article>
@@ -211,7 +258,40 @@ function Metric({ label, value, valueClassName }: { label: string; value: string
 const ORDER_DETAILS_HEAD_CLASS = 'px-0 py-1 text-xs lg:text-xs font-medium normal-case tracking-normal text-muted-foreground'
 const ORDER_DETAILS_CELL_CLASS = 'px-0 py-1 text-xs'
 
-function OrderDetailsTable({ orders, onEditOrder }: { orders: AdminPrivacyBase['orders']; onEditOrder: (order: AdminPrivacyOrder) => void }) {
+function OrderDetailsSection({
+  orders, onEditOrder, onAddOrder, onDeleteOrder,
+}: {
+  orders: AdminPrivacyBase['orders']
+  onEditOrder: (order: AdminPrivacyOrder) => void
+  onAddOrder: () => void
+  onDeleteOrder: (order: AdminPrivacyOrder) => void
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-muted-foreground">주문 {orders.length}건</span>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="h-7 gap-1 px-2 text-xs"
+          onClick={(e) => { e.stopPropagation(); onAddOrder() }}
+        >
+          <Plus className="size-3" />주문 추가
+        </Button>
+      </div>
+      {orders.length > 0 && <OrderDetailsTable orders={orders} onEditOrder={onEditOrder} onDeleteOrder={onDeleteOrder} />}
+    </div>
+  )
+}
+
+function OrderDetailsTable({
+  orders, onEditOrder, onDeleteOrder,
+}: {
+  orders: AdminPrivacyBase['orders']
+  onEditOrder: (order: AdminPrivacyOrder) => void
+  onDeleteOrder: (order: AdminPrivacyOrder) => void
+}) {
   return (
     <table className="w-full text-xs">
       <thead>
@@ -220,7 +300,7 @@ function OrderDetailsTable({ orders, onEditOrder }: { orders: AdminPrivacyBase['
           <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'text-left')}>유형</TableHeadCell>
           <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'text-right')}>가격</TableHeadCell>
           <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'text-right')}>수량</TableHeadCell>
-          <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'text-right')} aria-label="수정" />
+          <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'text-right')} aria-label="수정·삭제" />
         </tr>
       </thead>
       <tbody>
@@ -233,13 +313,22 @@ function OrderDetailsTable({ orders, onEditOrder }: { orders: AdminPrivacyBase['
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right font-mono')}>${fmtUsd(o.price)}</TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right')}>{o.quantity ?? '-'}</TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right')}>
-              <button
-                type="button"
-                className="text-foreground underline underline-offset-2"
-                onClick={(e) => { e.stopPropagation(); onEditOrder(o) }}
-              >
-                수정
-              </button>
+              <span className="inline-flex items-center gap-2">
+                <button
+                  type="button"
+                  className="text-foreground underline underline-offset-2"
+                  onClick={(e) => { e.stopPropagation(); onEditOrder(o) }}
+                >
+                  수정
+                </button>
+                <button
+                  type="button"
+                  className="text-destructive underline underline-offset-2"
+                  onClick={(e) => { e.stopPropagation(); onDeleteOrder(o) }}
+                >
+                  삭제
+                </button>
+              </span>
             </TableDataCell>
           </tr>
         ))}
@@ -249,13 +338,15 @@ function OrderDetailsTable({ orders, onEditOrder }: { orders: AdminPrivacyBase['
 }
 
 function FragmentRow({
-  base: b, open, onToggle, onEditBase, onEditOrder,
+  base: b, open, onToggle, onEditBase, onEditOrder, onAddOrder, onDeleteOrder,
 }: {
   base: AdminPrivacyBase
   open: boolean
   onToggle: () => void
   onEditBase: () => void
   onEditOrder: (order: AdminPrivacyOrder) => void
+  onAddOrder: () => void
+  onDeleteOrder: (order: AdminPrivacyOrder) => void
 }) {
   return (
     <>
@@ -286,11 +377,11 @@ function FragmentRow({
           </button>
         </TableDataCell>
       </tr>
-      {open && b.orders.length > 0 && (
+      {open && (
         <tr className="bg-muted/10">
           <td></td>{/* eslint-disable-line react-doctor/control-has-associated-label */}
           <td colSpan={8} className="px-4 py-3">
-            <OrderDetailsTable orders={b.orders} onEditOrder={onEditOrder} />
+            <OrderDetailsSection orders={b.orders} onEditOrder={onEditOrder} onAddOrder={onAddOrder} onDeleteOrder={onDeleteOrder} />
           </td>
         </tr>
       )}
