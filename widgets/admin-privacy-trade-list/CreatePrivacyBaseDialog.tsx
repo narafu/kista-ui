@@ -13,11 +13,12 @@ import { SaveButton } from '@shared/ui/SaveButton'
 import { todayKst } from '@shared/lib/format'
 import { apiMsg } from '@shared/lib/api-client'
 import { createAdminPrivacyBase } from '@entities/privacy'
-import type { AdminPrivacyOrder, AdminPrivacyOrderRequest } from '@entities/privacy'
+import type { AdminPrivacyBase, AdminPrivacyOrder, AdminPrivacyOrderRequest } from '@entities/privacy'
 
 interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onCreated: (base: AdminPrivacyBase) => void
 }
 
 interface DraftOrder {
@@ -29,7 +30,7 @@ interface DraftOrder {
 
 const EMPTY_ORDER: DraftOrder = { direction: 'BUY', orderType: 'LOC', price: '', quantity: '' }
 
-export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
+export function CreatePrivacyBaseDialog({ open, onOpenChange, onCreated }: Props) {
   const [releaseDate, setReleaseDate] = useState(todayKst())
   const [ticker, setTicker] = useState('SOXL')
   const [currentCycleStart, setCurrentCycleStart] = useState('')
@@ -57,7 +58,7 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
         price: Number(o.price),
         quantity: o.quantity === '' ? null : Number(o.quantity),
       }))
-      await createAdminPrivacyBase({
+      const created = await createAdminPrivacyBase({
         releaseDate,
         ticker: ticker.trim(),
         currentCycleStart: Number(currentCycleStart),
@@ -66,9 +67,7 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
         holdings: Number(holdings),
         orders: orderRequests,
       })
-      // 현재 화면은 기간·페이지 필터가 걸린 서버 조회 결과라 방금 등록한 항목이 그 범위 밖이면
-      // 목록에 낙관적으로 얹을 수 없다 — 새로고침으로 안내한다.
-      toast.success('P 매매표가 등록되었습니다. 목록에 보이지 않으면 새로고침하세요.')
+      onCreated(created)
       onOpenChange(false)
     } catch (err) {
       toast.error(apiMsg(err, '등록에 실패했습니다'))

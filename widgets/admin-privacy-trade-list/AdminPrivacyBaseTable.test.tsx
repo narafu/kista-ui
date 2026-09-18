@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { AdminPrivacyBase } from '@entities/privacy'
-import { AdminPrivacyBaseTable } from './AdminPrivacyBaseTable'
+import { AdminPrivacyBaseTable, insertByReleaseDateDesc, shouldInsertLocally } from './AdminPrivacyBaseTable'
 
 const base: AdminPrivacyBase = {
   id: 'base-1',
@@ -24,7 +24,7 @@ const base: AdminPrivacyBase = {
 
 describe('AdminPrivacyBaseTable mobile UX', () => {
   it('renders a mobile card list instead of the scroll table on mobile', () => {
-    render(<AdminPrivacyBaseTable bases={[base]} />)
+    render(<AdminPrivacyBaseTable bases={[base]} totalCount={1} />)
 
     const mobileList = screen.getByTestId('admin-privacy-mobile-list')
     const desktopWrap = screen.getByTestId('admin-privacy-desktop-table-wrap')
@@ -35,7 +35,7 @@ describe('AdminPrivacyBaseTable mobile UX', () => {
   })
 
   it('shows the important trade-base values in the mobile card', () => {
-    render(<AdminPrivacyBaseTable bases={[base]} />)
+    render(<AdminPrivacyBaseTable bases={[base]} totalCount={1} />)
 
     const mobileList = screen.getByTestId('admin-privacy-mobile-list')
     const metrics = within(mobileList)
@@ -57,7 +57,7 @@ describe('AdminPrivacyBaseTable mobile UX', () => {
   })
 
   it('expands the order details inside the mobile card', () => {
-    render(<AdminPrivacyBaseTable bases={[base]} />)
+    render(<AdminPrivacyBaseTable bases={[base]} totalCount={1} />)
 
     const mobileList = screen.getByTestId('admin-privacy-mobile-list')
     const toggle = within(mobileList).getByRole('button', { name: /2026-07-02 NVDA 매매표 펼치기/ })
@@ -74,7 +74,7 @@ describe('AdminPrivacyBaseTable mobile UX', () => {
 
 describe('AdminPrivacyBaseTable desktop table', () => {
   it('keeps the desktop table width and compact header label behavior', () => {
-    render(<AdminPrivacyBaseTable bases={[base]} />)
+    render(<AdminPrivacyBaseTable bases={[base]} totalCount={1} />)
 
     const table = screen.getByTestId('admin-privacy-desktop-table')
     const desktopTable = within(table)
@@ -91,7 +91,7 @@ describe('AdminPrivacyBaseTable desktop table', () => {
   })
 
   it('centers the desktop headers and cells', () => {
-    render(<AdminPrivacyBaseTable bases={[base]} />)
+    render(<AdminPrivacyBaseTable bases={[base]} totalCount={1} />)
 
     const table = screen.getByTestId('admin-privacy-desktop-table')
     const desktopTable = within(table)
@@ -127,5 +127,58 @@ describe('AdminPrivacyBaseTable desktop table', () => {
     expect(avgCell).toHaveClass('text-center')
     expect(realizedCell).toHaveClass('text-center')
     expect(ordersCell).toHaveClass('text-center')
+  })
+})
+
+describe('shouldInsertLocally', () => {
+  const opts = { windowFrom: '2026-07-01', windowTo: '2026-07-31', isFirstPage: true, currentCount: 1, pageSize: 10 }
+
+  it('allows insertion within range, first page, and room', () => {
+    expect(shouldInsertLocally({ releaseDate: '2026-07-15' }, opts)).toBe(true)
+  })
+
+  it('rejects when not the first page', () => {
+    expect(shouldInsertLocally({ releaseDate: '2026-07-15' }, { ...opts, isFirstPage: false })).toBe(false)
+  })
+
+  it('rejects when the page is already full', () => {
+    expect(shouldInsertLocally({ releaseDate: '2026-07-15' }, { ...opts, currentCount: 10 })).toBe(false)
+  })
+
+  it('rejects when the release date is outside the filter window', () => {
+    expect(shouldInsertLocally({ releaseDate: '2026-08-01' }, opts)).toBe(false)
+  })
+
+  it('allows any date when the window is unbounded', () => {
+    expect(shouldInsertLocally({ releaseDate: '2020-01-01' }, { ...opts, windowFrom: undefined, windowTo: undefined })).toBe(true)
+  })
+})
+
+describe('insertByReleaseDateDesc', () => {
+  it('inserts at the front when newest', () => {
+    const bases = [{ releaseDate: '2026-07-10' }, { releaseDate: '2026-07-05' }]
+    expect(insertByReleaseDateDesc(bases, { releaseDate: '2026-07-15' })).toEqual([
+      { releaseDate: '2026-07-15' },
+      { releaseDate: '2026-07-10' },
+      { releaseDate: '2026-07-05' },
+    ])
+  })
+
+  it('inserts in the middle without reordering unrelated rows', () => {
+    const bases = [{ releaseDate: '2026-07-10' }, { releaseDate: '2026-07-05' }]
+    expect(insertByReleaseDateDesc(bases, { releaseDate: '2026-07-07' })).toEqual([
+      { releaseDate: '2026-07-10' },
+      { releaseDate: '2026-07-07' },
+      { releaseDate: '2026-07-05' },
+    ])
+  })
+
+  it('appends at the end when oldest', () => {
+    const bases = [{ releaseDate: '2026-07-10' }, { releaseDate: '2026-07-05' }]
+    expect(insertByReleaseDateDesc(bases, { releaseDate: '2026-07-01' })).toEqual([
+      { releaseDate: '2026-07-10' },
+      { releaseDate: '2026-07-05' },
+      { releaseDate: '2026-07-01' },
+    ])
   })
 })

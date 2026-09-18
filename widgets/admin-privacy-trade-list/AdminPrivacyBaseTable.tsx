@@ -20,12 +20,37 @@ import { EditPrivacyBaseDialog } from './EditPrivacyBaseDialog'
 import { EditPrivacyOrderDialog } from './EditPrivacyOrderDialog'
 import { AddPrivacyOrderDialog } from './AddPrivacyOrderDialog'
 
-interface Props {
-  bases: AdminPrivacyBase[]
+// kista-api PrivacyTradeBaseJpaRepository.findBasesFromReleaseDate가 releaseDate DESC로 정렬해 내려준다
+// (trading-core 쪽 @Query "ORDER BY b.releaseDate DESC") — 이 순서를 그대로 가정해 삽입 위치를 계산한다.
+export function shouldInsertLocally(
+  created: Pick<AdminPrivacyBase, 'releaseDate'>,
+  opts: { windowFrom?: string; windowTo?: string; isFirstPage: boolean; currentCount: number; pageSize: number },
+): boolean {
+  const inRange = (!opts.windowFrom || created.releaseDate >= opts.windowFrom) && (!opts.windowTo || created.releaseDate <= opts.windowTo)
+  return opts.isFirstPage && inRange && opts.currentCount < opts.pageSize
 }
 
-export function AdminPrivacyBaseTable({ bases: initialBases }: Props) {
+export function insertByReleaseDateDesc<T extends Pick<AdminPrivacyBase, 'releaseDate'>>(bases: T[], created: T): T[] {
+  const at = bases.findIndex((b) => b.releaseDate < created.releaseDate)
+  const idx = at === -1 ? bases.length : at
+  return [...bases.slice(0, idx), created, ...bases.slice(idx)]
+}
+
+interface Props {
+  bases: AdminPrivacyBase[]
+  // 서버가 집계한 필터 통과 전체 건수 — 헤더에 표시. 로컬 등록 반영 시 함께 증가시켜
+  // 화면에 보이는 행 수와 어긋나지 않게 한다.
+  totalCount: number
+  // 신규 등록 항목이 현재 화면(기간 필터·1페이지)에 들어오는지 판정하는 데 쓰는 서버 조회 조건.
+  windowFrom?: string
+  windowTo?: string
+  pageSize?: number
+  isFirstPage?: boolean
+}
+
+export function AdminPrivacyBaseTable({ bases: initialBases, totalCount: initialTotalCount, windowFrom, windowTo, pageSize = Infinity, isFirstPage = true }: Props) {
   const [bases, setBases] = useState(initialBases)
+  const [totalCount, setTotalCount] = useState(initialTotalCount)
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [createOpen, setCreateOpen] = useState(false)
   const [editBase, setEditBase] = useState<AdminPrivacyBase | null>(null)
@@ -46,12 +71,22 @@ export function AdminPrivacyBaseTable({ bases: initialBases }: Props) {
     })
   }
 
-  // 이미 화면에 보이는(=현재 기간·페이지 필터를 통과한) 항목의 수정만 반영한다. 신규 등록은
-  // releaseDate가 현재 기간 필터 밖일 수 있어 로컬에 낙관적으로 얹으면 새로고침 시 사라지거나
-  // 페이지 크기를 넘겨 헤더의 서버 총 건수와 어긋날 수 있다 — router.refresh()는 이 프로젝트에서
-  // routine mutation에 금지돼 있어 대신 안내 후 사용자가 직접 새로고침하도록 한다.
   function updateBase(updated: AdminPrivacyBase) {
     setBases((prev) => prev.map((b) => (b.id === updated.id ? updated : b)))
+  }
+
+  // 신규 등록 항목이 현재 화면(1페이지 + 기간 필터 범위 + 페이지 정원 이내)에 들어오면 로컬에
+  // 바로 얹는다. 그 밖이면(다른 페이지·필터 범위 밖·페이지 꽉 참) 서버 총 건수·페이지네이션과
+  // 어긋날 수 있어 얹지 않고 안내만 한다 — router.refresh()는 이 프로젝트에서 routine mutation에
+  // 금지돼 있어 안내 후 사용자가 직접 새로고침하도록 한다.
+  function handleCreated(created: AdminPrivacyBase) {
+    if (shouldInsertLocally(created, { windowFrom, windowTo, isFirstPage, currentCount: bases.length, pageSize })) {
+      setBases((prev) => insertByReleaseDateDesc(prev, created))
+      setTotalCount((prev) => prev + 1)
+      toast.success('P 매매표가 등록되었습니다')
+    } else {
+      toast.success('P 매매표가 등록되었습니다. 목록에 보이지 않으면 새로고침하세요.')
+    }
   }
 
   async function handleDeleteOrder() {
@@ -71,7 +106,8 @@ export function AdminPrivacyBaseTable({ bases: initialBases }: Props) {
 
   return (
     <>
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <span className="text-sm text-muted-foreground">총 {totalCount}건</span>
         <Button type="button" size="sm" className={cn('gap-1.5', BRAND_TINT_BUTTON_CLASS)} onClick={() => setCreateOpen(true)}>
           <Plus className="size-3.5" />
           매매표 등록
@@ -141,7 +177,7 @@ export function AdminPrivacyBaseTable({ bases: initialBases }: Props) {
       )}
 
       {createOpen && (
-        <CreatePrivacyBaseDialog open={createOpen} onOpenChange={setCreateOpen} />
+        <CreatePrivacyBaseDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={handleCreated} />
       )}
 
       {editBase && (
