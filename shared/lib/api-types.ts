@@ -2032,7 +2032,7 @@ export interface paths {
         };
         /**
          * 해외증거금 조회
-         * @description KIS API TTTC2101R — USD·KRW 통화별 통합주문가능금액(예수금) 조회.
+         * @description 브로커 어댑터 경유(KIS: TTTC2101R / Toss: buying-power) — USD·KRW 통화별 통합주문가능금액(예수금) 조회.
          */
         get: operations["getMargin"];
         put?: never;
