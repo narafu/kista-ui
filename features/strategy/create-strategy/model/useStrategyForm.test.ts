@@ -385,6 +385,32 @@ describe('useStrategyForm submit policy', () => {
     expect(result.current.cannotSubmit).toBe(true)
   })
 
+  it('edit mode with currentHoldings zero keeps existing seed instead of resetting to minSeed', async () => {
+    // 회귀 테스트: canEditSeed(holdings=0 수정)일 때 minSeed 도착 effect가 initialUsdDeposit을
+    // Math.ceil(minSeed)로 덮어쓰던 버그 — "신규 등록 한정" 주석과 달리 initial 존재 시에도 실행됐음
+    seedPreviewState.data.minSeed = 500
+
+    renderHook(() =>
+      useStrategyForm({
+        accountId: 'account-1',
+        initial: {
+          id: 'strategy-1',
+          accountId: 'account-1',
+          type: 'INFINITE',
+          status: 'ACTIVE',
+          ticker: 'TSLA',
+          cycleSeedType: 'MAX',
+          initialUsdDeposit: 1200,
+          divisionCount: 20,
+          isReverseMode: false,
+          currentHoldings: 0,
+        },
+      }),
+    )
+
+    expect(seedModelState.resetSeed).not.toHaveBeenCalled()
+  })
+
   it('VR create payload includes VR fields and forces cycleSeedType NONE', async () => {
     seedModelState.seedUsd = 2000
 

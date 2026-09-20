@@ -286,15 +286,17 @@ export function useStrategyForm({
   const { setType } = useTypeDefaults({ form, initial, runtimeConfig, enabledStrategyTypes, availableTickers })
 
   // 엔드포인트 minSeed 도착/변경 시 시드 게이지 재초기화 (신규 등록 한정)
+  // canEditSeed(holdings=0 수정)는 기존 시작금액을 유지해야 하므로 여기서 제외 — 그 경우의 초기화는
+  // useSeedModel의 "holdings=0 수정 모드" 전용 effect가 initial.initialUsdDeposit 기준으로 담당한다.
   useEffect(() => {
-    if (initial && !canEditSeed) return
+    if (initial) return
     if (minSeed === null) return
     // eslint-disable-next-line react-doctor/no-pass-data-to-parent
     resetSeed({
       pct: usdDeposit !== null && usdDeposit < minSeed ? 0 : 100,
       seedUsdInput: Math.ceil(minSeed),
     })
-  }, [canEditSeed, minSeed]) // eslint-disable-line react-doctor/exhaustive-deps
+  }, [initial, minSeed]) // eslint-disable-line react-doctor/exhaustive-deps
 
   // 잔고검증 OFF + VR 신규 등록은 초기 시드를 0으로 시작
   useEffect(() => {
