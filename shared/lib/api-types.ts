@@ -1992,7 +1992,7 @@ export interface paths {
         };
         /**
          * 현재 잔고 조회
-         * @description KIS API CTRP6504R — 체결 기준 현재 보유 종목별 잔고 및 평가손익 조회.
+         * @description 브로커 어댑터 경유(KIS: CTRP6504R+TTTC2101R 보정 / Toss: 보유종목+예수금 직접 산출) — 체결 기준 현재 보유 종목별 잔고 및 평가손익 조회.
          */
         get: operations["getPresentBalance"];
         put?: never;
@@ -2072,7 +2072,7 @@ export interface paths {
         };
         /**
          * 일별 거래내역 조회
-         * @description KIS API CTOS4001R — 지정 기간 동안의 일별 거래내역 조회.
+         * @description 저장된 체결 주문 기록 기준 지정 기간 동안의 일별 거래내역 조회 (외부 브로커 API 호출 없음).
          */
         get: operations["getDailyTransactions_1"];
         put?: never;
@@ -8357,7 +8357,7 @@ export interface operations {
                     "*/*": components["schemas"]["MultiPriceResponse"];
                 };
             };
-            /** @description KIS API 호출 실패 */
+            /** @description 브로커 API 호출 실패 */
             503: {
                 headers: {
                     [name: string]: unknown;
@@ -8410,7 +8410,7 @@ export interface operations {
                     "*/*": components["schemas"]["PortfolioSummaryResponse"];
                 };
             };
-            /** @description KIS API 호출 실패 */
+            /** @description 브로커 API 호출 실패 */
             503: {
                 headers: {
                     [name: string]: unknown;
@@ -8532,7 +8532,7 @@ export interface operations {
                     "*/*": components["schemas"]["MarginResponse"][];
                 };
             };
-            /** @description KIS API 호출 실패 */
+            /** @description 브로커 API 호출 실패 */
             503: {
                 headers: {
                     [name: string]: unknown;
@@ -8654,7 +8654,7 @@ export interface operations {
                     "*/*": components["schemas"]["DailyTransactionResponse"];
                 };
             };
-            /** @description KIS API 호출 실패 */
+            /** @description 브로커 API 호출 실패 */
             503: {
                 headers: {
                     [name: string]: unknown;
