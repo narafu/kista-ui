@@ -10,6 +10,8 @@ import { isNavItemActive } from './nav-utils'
 
 // ponytail: iOS PWA에서 하단 네비가 뷰포트 밖으로 밀리는 현상 원인 확정 전 임시 진단 로그.
 // viewport 불일치 값 확보되면(app_error_logs의 MOBILE_NAV_VIEWPORT_MISMATCH) 이 블록 통째로 제거한다.
+// 판정식은 2026-09-21에 |navBottom - vvHeight - vvOffsetTop|에서 |navBottom - vvHeight|로 변경 — 이전 식은
+// vvHeight==innerHeight일 때 항상 2*|vvOffsetTop|이라 nav 위치를 독립 측정하지 못했다. 이 날짜 이전 로그와 값 비교 불가.
 function useNavViewportDiagnostics(navRef: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
     const lastLoggedAt = { current: 0 }
@@ -23,7 +25,7 @@ function useNavViewportDiagnostics(navRef: React.RefObject<HTMLElement | null>) 
       const rect = nav.getBoundingClientRect()
       if (rect.width === 0) return // lg:hidden으로 display:none인 데스크탑 뷰포트 — rect 전부 0이라 오탐
       const navBottom = rect.bottom
-      const mismatch = Math.abs(navBottom - vv.height - vv.offsetTop)
+      const mismatch = Math.abs(navBottom - vv.height)
       const now = Date.now()
       if (mismatch <= 5 || now - lastLoggedAt.current < 15000) return
       lastLoggedAt.current = now
