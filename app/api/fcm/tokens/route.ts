@@ -1,9 +1,10 @@
 import type { NextRequest } from 'next/server'
+import { getAuthToken } from '@shared/lib/auth/token'
 import { getApiBaseUrl } from '@shared/lib/env'
-import { noContent, relayUpstreamError, requireAuthToken, unauthorizedJson } from '@shared/lib/proxy/routeHelpers'
+import { noContent, relayUpstreamError, unauthorizedJson } from '@shared/lib/proxy/routeHelpers'
 
 export async function POST(request: NextRequest) {
-  const token = await requireAuthToken()
+  const token = await getAuthToken()
   if (!token) return unauthorizedJson()
 
   const body = await request.json()

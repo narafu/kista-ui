@@ -4,8 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { apiMsg } from '@shared/lib/api-client'
 import { updateAdminSettings } from '../api'
-import { adminSettingsKeys } from '../model/queryKeys'
-import { adminSettingsQueryOptions } from '../model/queryOptions'
+import { adminSettingsKeys, adminSettingsQueryOptions } from '../model/queryOptions'
 import type { AdminSettings } from '../model/types'
 
 interface UpdateAdminSettingsMutationOptions {

@@ -184,28 +184,28 @@ function removeFromCachedAdminStats(
   })
 }
 
-export function useApproveUserMutation() {
+function useUserStatusTransitionMutation(
+  mutationFn: (userId: string) => Promise<void>,
+  nextStatus: UserStatus,
+  errorFallback: string,
+) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (userId: string) => approveAdminUser(userId),
-    onSuccess: (_result, userId) => {
-      const previousStatus = transitionCachedAdminUser(queryClient, userId, 'ACTIVE')
-      updateCachedAdminStats(queryClient, previousStatus, 'ACTIVE')
+    mutationFn,
+    onSuccess: (_result, userId: string) => {
+      const previousStatus = transitionCachedAdminUser(queryClient, userId, nextStatus)
+      updateCachedAdminStats(queryClient, previousStatus, nextStatus)
     },
-    onError: (err) => toast.error(apiMsg(err, '승인 처리에 실패했습니다.')),
+    onError: (err) => toast.error(apiMsg(err, errorFallback)),
   })
 }
 
+export function useApproveUserMutation() {
+  return useUserStatusTransitionMutation(approveAdminUser, 'ACTIVE', '승인 처리에 실패했습니다.')
+}
+
 export function useRejectUserMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (userId: string) => rejectAdminUser(userId),
-    onSuccess: (_result, userId) => {
-      const previousStatus = transitionCachedAdminUser(queryClient, userId, 'REJECTED')
-      updateCachedAdminStats(queryClient, previousStatus, 'REJECTED')
-    },
-    onError: (err) => toast.error(apiMsg(err, '거절 처리에 실패했습니다.')),
-  })
+  return useUserStatusTransitionMutation(rejectAdminUser, 'REJECTED', '거절 처리에 실패했습니다.')
 }
 
 export function useChangeUserRoleMutation() {

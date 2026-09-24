@@ -1,5 +1,6 @@
+import { getAuthToken } from '@shared/lib/auth/token'
 import { getApiBaseUrl } from '@shared/lib/env'
-import { requireAuthToken, sseAuthErrorResponse } from '@shared/lib/proxy/routeHelpers'
+import { sseAuthErrorResponse } from '@shared/lib/proxy/routeHelpers'
 import type { NextRequest } from 'next/server'
 import { Agent, fetch as undiciFetch } from 'undici'
 
@@ -9,7 +10,7 @@ export const dynamic = 'force-dynamic'
 const sseAgent = new Agent({ bodyTimeout: 0, headersTimeout: 0 })
 
 export async function GET(request: NextRequest) {
-  const token = await requireAuthToken()
+  const token = await getAuthToken()
   if (!token) {
     // EventSource는 4xx를 onerror로만 받아 상태 코드를 알 수 없음
     // → 200 SSE 스트림으로 auth-error 이벤트를 보내 클라이언트가 재연결을 중단하게 함

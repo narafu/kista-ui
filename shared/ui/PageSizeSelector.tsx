@@ -1,6 +1,5 @@
 'use client'
 
-import { Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
@@ -14,7 +13,7 @@ interface Props {
   sizeParamKey?: string
 }
 
-function PageSizeSelectorContent({ value, onChange, pageParamKeys = ['page'], sizeParamKey = 'size' }: Props) {
+export function PageSizeSelector({ value, onChange, pageParamKeys = ['page'], sizeParamKey = 'size' }: Props) {
   const router = useRouter()
 
   const handleChange = (size: string | null) => {
@@ -40,13 +39,5 @@ function PageSizeSelectorContent({ value, onChange, pageParamKeys = ['page'], si
         ))}
       </SelectContent>
     </Select>
-  )
-}
-
-export function PageSizeSelector(props: Props) {
-  return (
-    <Suspense>
-      <PageSizeSelectorContent {...props} />
-    </Suspense>
   )
 }

@@ -1,12 +1,9 @@
 export { getRuntimeConfig } from './api'
-export { runtimeConfigKeys } from './model/queryKeys'
-export { useRuntimeConfigQuery } from './hooks/useRuntimeConfigQuery'
+export { runtimeConfigKeys, useRuntimeConfigQuery } from './hooks/useRuntimeConfigQuery'
 export type {
   RuntimeConfig,
   RuntimeFieldSettings,
   RuntimeBenchmarkFieldSettings,
-  RuntimeBenchmarkSettings,
-  RuntimeBrokerCode,
   RuntimeStrategyType,
   RecurringMode,
 } from './model/types'

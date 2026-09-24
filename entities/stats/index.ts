@@ -3,13 +3,9 @@ export type {
   StatsSummary,
   EquityPoint,
   EquityCurve,
-  CyclePerformance,
-  CyclePerformancePage,
   BenchmarkAssetType,
   EtfBenchmarkSymbol,
   HousingBenchmarkParams,
-  CurrentExchangeRate,
-  HousingBenchmarkStrategy,
   HousingBenchmark,
   HousingBenchmarkPeriod,
   HousingBenchmarkSummary,
@@ -21,9 +17,7 @@ export type {
   HousingBenchmarkRegion,
   HousingBenchmarkRegionsList,
   HousingPriceIndexSeriesPoint,
-  HousingPriceIndexSeries,
   EtfPriceSeriesPoint,
-  EtfPriceSeries,
 } from './model/types'
 export { statsKeys } from './model/queryKeys'
 export { statsSummaryQueryOptions, equityCurveQueryOptions } from './model/queryOptions'
@@ -47,4 +41,3 @@ export {
   useHousingBenchmarkRegionsQuery,
   useStatsCyclesQuery,
 } from './hooks/useStatsQueries'
-export type { EquityCurveParams, RegionSeriesParams, EtfSeriesParams } from './hooks/useStatsQueries'

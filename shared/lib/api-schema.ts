@@ -10,7 +10,6 @@ export type NotificationChannel = NonNullable<components['schemas']['UserRespons
 
 export type CycleSeedType = NonNullable<components['schemas']['TradingCycleRequest']['cycleSeedType']>
 export type StrategyType = NonNullable<components['schemas']['TradingCycleRequest']['type']>
-export type StrategyTicker = NonNullable<components['schemas']['TradingCycleRequest']['ticker']>
 
 // 주문 상태는 order 도메인 DTO(TodayOrderItem.status)에 enum 제약이 남아 있어 그쪽에서 파생한다.
 export type OrderStatus = NonNullable<components['schemas']['TodayOrderItem']['status']>

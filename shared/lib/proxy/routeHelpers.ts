@@ -1,16 +1,8 @@
 import { NextResponse } from 'next/server'
-import { getAuthToken } from '@shared/lib/auth/token'
 
 // Route Handler 공통: 인증 실패 시 반환하는 401 JSON 응답
 export function unauthorizedJson(): NextResponse {
   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-}
-
-// Route Handler 공통: kista-token 쿠키에서 토큰을 읽는다. 없으면 null
-// (호출부는 `if (!token) return unauthorizedJson()` 패턴으로 사용)
-export async function requireAuthToken(): Promise<string | null> {
-  const token = await getAuthToken()
-  return token ?? null
 }
 
 // kista-api 업스트림 비정상 응답을 클라이언트로 매핑한다.

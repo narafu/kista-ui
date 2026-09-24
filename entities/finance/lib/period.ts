@@ -34,8 +34,8 @@ export function monthStartDate(month: string): string {
 // "선택월까지"를 계산하면 과거 연도를 골라도 반쪽 합계만 나오는 버그가 된다.
 // 연간 모드 range 계산 4곳(periodRange·elapsedMonthsInYear·previousYearRange·yearsRange)이
 // 공통으로 쓰는 "선택 연도가 올해인가" 판정 — 판정 기준이 바뀌면 한 곳만 고치면 되도록 모은다.
-// entities/finance 밖(예: 신규 finance 위젯)에서도 같은 판정이 필요할 수 있어 export한다.
-export function isCurrentYear(year: string, today: string): boolean {
+// 모듈 내부 전용(외부 소비처 없음) — 필요해지면 다시 export한다.
+function isCurrentYear(year: string, today: string): boolean {
   return year === today.slice(0, 4)
 }
 
@@ -82,13 +82,6 @@ export function registerWindowUpperBound(today: string): string {
 export function daysInMonth(month: string): number {
   const [y, m] = month.split('-').map(Number)
   return new Date(y, m, 0).getDate()
-}
-
-// 일평균 분모 — 선택 월이 진행 중인 이번 달이면 지난 일수만(오늘 포함), 이미 끝난 달이면 그 달 전체 일수.
-// today는 'YYYY-MM-DD'(todayKst() 호출부 주입) — 진행 중인 달 판정에만 쓰고 그 외엔 daysInMonth와 동일하다.
-export function elapsedDaysInMonth(month: string, today: string): number {
-  if (month === today.slice(0, 7)) return Number(today.slice(8, 10))
-  return daysInMonth(month)
 }
 
 // 연간 모드에서 "몇 개월치 실적인지" — periodRange와 동일한 규칙: 올해면 1월~오늘 달,

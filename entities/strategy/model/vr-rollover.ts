@@ -6,8 +6,5 @@
 export function nextVrRolloverDate(startDate: string, intervalWeeks: number): string {
   const [y, m, d] = startDate.split('-').map(Number)
   const date = new Date(Date.UTC(y, m - 1, d + intervalWeeks * 7))
-  const yyyy = date.getUTCFullYear()
-  const mm = String(date.getUTCMonth() + 1).padStart(2, '0')
-  const dd = String(date.getUTCDate()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd}`
+  return date.toISOString().slice(0, 10)
 }

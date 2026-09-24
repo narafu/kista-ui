@@ -11,18 +11,21 @@ export const RANGE_LABELS: Record<RangePreset, string> = {
   custom: '직접입력',
 }
 
+function kstTodayAsUtcDate(): Date {
+  const [y, m, d] = todayKst().split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d))
+}
+
 /** KST 오늘로부터 days일 전 날짜 (YYYY-MM-DD) */
 export function kstDateMinusDays(days: number): string {
-  const [y, m, d] = todayKst().split('-').map(Number)
-  const dt = new Date(Date.UTC(y, m - 1, d))
+  const dt = kstTodayAsUtcDate()
   dt.setUTCDate(dt.getUTCDate() - days)
   return dt.toISOString().slice(0, 10)
 }
 
 /** KST 오늘이 속한 주의 시작일(일요일, YYYY-MM-DD) */
 export function kstWeekStartDate(): string {
-  const [y, m, d] = todayKst().split('-').map(Number)
-  const dt = new Date(Date.UTC(y, m - 1, d))
+  const dt = kstTodayAsUtcDate()
   dt.setUTCDate(dt.getUTCDate() - dt.getUTCDay())
   return dt.toISOString().slice(0, 10)
 }

@@ -1,8 +1,11 @@
 import { queryOptions } from '@tanstack/react-query'
 
 import { getAdminSettings } from '../api'
-import { adminSettingsKeys } from './queryKeys'
 import type { AdminSettings } from './types'
+
+export const adminSettingsKeys = {
+  all: ['admin-settings'] as const,
+}
 
 export function adminSettingsQueryOptions(token?: string) {
   return queryOptions<AdminSettings>({

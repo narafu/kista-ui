@@ -1,11 +1,12 @@
+import { getAuthToken } from '@shared/lib/auth/token'
 import { getApiBaseUrl } from '@shared/lib/env'
-import { noContent, relayUpstreamError, requireAuthToken, unauthorizedJson } from '@shared/lib/proxy/routeHelpers'
+import { noContent, relayUpstreamError, unauthorizedJson } from '@shared/lib/proxy/routeHelpers'
 
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ token: string }> }
 ) {
-  const authToken = await requireAuthToken()
+  const authToken = await getAuthToken()
   if (!authToken) return unauthorizedJson()
 
   const { token } = await params

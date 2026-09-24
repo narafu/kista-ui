@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { getAuthToken } from '@shared/lib/auth/token'
 import { getApiBaseUrl } from '@shared/lib/env'
 import {
   KISTA_TOKEN_COOKIE,
@@ -6,10 +7,10 @@ import {
   ROLE_COOKIE,
   CLEAR_COOKIE,
 } from '@shared/lib/auth/cookies'
-import { noContent, relayUpstreamError, requireAuthToken, unauthorizedJson } from '@shared/lib/proxy/routeHelpers'
+import { noContent, relayUpstreamError, unauthorizedJson } from '@shared/lib/proxy/routeHelpers'
 
 export async function GET() {
-  const token = await requireAuthToken()
+  const token = await getAuthToken()
   if (!token) return unauthorizedJson()
 
   const res = await fetch(`${getApiBaseUrl()}/api/auth/me`, {
@@ -23,7 +24,7 @@ export async function GET() {
 }
 
 export async function DELETE() {
-  const token = await requireAuthToken()
+  const token = await getAuthToken()
   if (!token) return unauthorizedJson()
 
   const res = await fetch(`${getApiBaseUrl()}/api/auth/me`, {

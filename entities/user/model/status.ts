@@ -29,17 +29,16 @@ export const USER_STATUS_TONE: Record<UserStatus, 'ok' | 'warn' | 'error'> = {
   REJECTED: 'error',
 }
 
+const USER_STATUS_COLOR_VAR: Record<UserStatus, string> = {
+  ACTIVE: 'var(--status-ok)',
+  PENDING: 'var(--warn)',
+  REJECTED: 'var(--status-error)',
+}
+
 /**
  * 상태 톤을 CSS 변수로 변환.
  * 사용자 본인 화면에서 인라인 color 스타일링에 사용.
  */
 export function userStatusColorVar(status: UserStatus): string {
-  switch (status) {
-    case 'ACTIVE':
-      return 'var(--status-ok)'
-    case 'PENDING':
-      return 'var(--warn)'
-    case 'REJECTED':
-      return 'var(--status-error)'
-  }
+  return USER_STATUS_COLOR_VAR[status]
 }

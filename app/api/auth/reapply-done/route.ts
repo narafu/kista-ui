@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
+import { getAuthToken } from '@shared/lib/auth/token'
 import { getApiBaseUrl } from '@shared/lib/env'
 import { STATUS_COOKIE, CLEAR_COOKIE } from '@shared/lib/auth/cookies'
-import { requireAuthToken, unauthorizedJson } from '@shared/lib/proxy/routeHelpers'
+import { unauthorizedJson } from '@shared/lib/proxy/routeHelpers'
 
 export async function POST() {
-  const token = await requireAuthToken()
+  const token = await getAuthToken()
   if (!token) {
     return unauthorizedJson()
   }

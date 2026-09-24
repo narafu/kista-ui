@@ -2,40 +2,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   noContent,
   relayUpstreamError,
-  requireAuthToken,
   sseAuthErrorResponse,
   unauthorizedJson,
 } from './routeHelpers'
-
-vi.mock('@shared/lib/auth/token', () => ({
-  getAuthToken: vi.fn(),
-}))
 
 describe('unauthorizedJson', () => {
   it('401과 { error: "Unauthorized" } body를 반환한다', async () => {
     const res = unauthorizedJson()
     expect(res.status).toBe(401)
     expect(await res.json()).toEqual({ error: 'Unauthorized' })
-  })
-})
-
-describe('requireAuthToken', () => {
-  afterEach(() => {
-    vi.clearAllMocks()
-  })
-
-  it('쿠키에 토큰이 있으면 그대로 반환한다', async () => {
-    const { getAuthToken } = await import('@shared/lib/auth/token')
-    vi.mocked(getAuthToken).mockResolvedValue('test-token')
-
-    await expect(requireAuthToken()).resolves.toBe('test-token')
-  })
-
-  it('토큰이 없으면 null을 반환한다', async () => {
-    const { getAuthToken } = await import('@shared/lib/auth/token')
-    vi.mocked(getAuthToken).mockResolvedValue(undefined)
-
-    await expect(requireAuthToken()).resolves.toBeNull()
   })
 })
 

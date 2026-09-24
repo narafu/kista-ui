@@ -2,7 +2,10 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { getRuntimeConfig } from '../api'
-import { runtimeConfigKeys } from '../model/queryKeys'
+
+export const runtimeConfigKeys = {
+  all: ['runtime-config'] as const,
+}
 
 export function useRuntimeConfigQuery() {
   return useQuery({

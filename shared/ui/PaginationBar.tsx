@@ -26,62 +26,29 @@ function PaginationBarContent({ page, totalPages, onPageChange, pageParam = 'pag
 
   if (totalPages <= 1) return null
 
-  const href = (p: number) => {
+  const urlHref = (p: number) => {
     const params = new URLSearchParams(searchParams.toString())
     params.set(pageParam, String(p))
     return `?${params.toString()}`
   }
 
-  const pages = buildPageNumbers(page, totalPages)
+  // onPageChange 제공 시 콜백 모드(href="#" + preventDefault), 미제공 시 URL 링크 모드.
+  const linkProps = (p: number, disabled = false) => onPageChange
+    ? { href: '#', onClick: (e: React.MouseEvent) => { e.preventDefault(); if (!disabled) onPageChange(p) } }
+    : { href: urlHref(p), onClick: (e: React.MouseEvent) => { if (disabled) e.preventDefault() } }
 
+  const pages = buildPageNumbers(page, totalPages)
   const prevDisabled = page === 1
   const nextDisabled = page === totalPages
-
-  if (onPageChange) {
-    return (
-      <Pagination className="mt-4 justify-end">
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
-              href="#"
-              text="이전"
-              onClick={(e) => { e.preventDefault(); if (!prevDisabled) onPageChange(page - 1) }}
-              className={prevDisabled ? 'pointer-events-none opacity-40' : ''}
-            />
-          </PaginationItem>
-          {pagesWithKeys(pages).map(({ key, p }) =>
-            p === '...' ? (
-              <PaginationItem key={key}><PaginationEllipsis /></PaginationItem>
-            ) : (
-              <PaginationItem key={key}>
-                <PaginationLink href="#" isActive={p === page} onClick={(e) => { e.preventDefault(); onPageChange(p as number) }}>
-                  {p}
-                </PaginationLink>
-              </PaginationItem>
-            )
-          )}
-          <PaginationItem>
-            <PaginationNext
-              href="#"
-              text="다음"
-              onClick={(e) => { e.preventDefault(); if (!nextDisabled) onPageChange(page + 1) }}
-              className={nextDisabled ? 'pointer-events-none opacity-40' : ''}
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
-    )
-  }
 
   return (
     <Pagination className="mt-4 justify-end">
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
-            href={href(page - 1)}
             text="이전"
-            onClick={(e) => { if (prevDisabled) e.preventDefault() }}
             className={prevDisabled ? 'pointer-events-none opacity-40' : ''}
+            {...linkProps(page - 1, prevDisabled)}
           />
         </PaginationItem>
         {pagesWithKeys(pages).map(({ key, p }) =>
@@ -89,16 +56,15 @@ function PaginationBarContent({ page, totalPages, onPageChange, pageParam = 'pag
             <PaginationItem key={key}><PaginationEllipsis /></PaginationItem>
           ) : (
             <PaginationItem key={key}>
-              <PaginationLink href={href(p as number)} isActive={p === page}>{p}</PaginationLink>
+              <PaginationLink isActive={p === page} {...linkProps(p)}>{p}</PaginationLink>
             </PaginationItem>
           )
         )}
         <PaginationItem>
           <PaginationNext
-            href={href(page + 1)}
             text="다음"
-            onClick={(e) => { if (nextDisabled) e.preventDefault() }}
             className={nextDisabled ? 'pointer-events-none opacity-40' : ''}
+            {...linkProps(page + 1, nextDisabled)}
           />
         </PaginationItem>
       </PaginationContent>
@@ -115,12 +81,7 @@ export function PaginationBar(props: Props) {
 }
 
 function pagesWithKeys(pages: (number | '...')[]): { key: string; p: number | '...' }[] {
-  const result: { key: string; p: number | '...' }[] = []
-  let ellipsisCount = 0
-  for (const p of pages) {
-    result.push({ key: p === '...' ? `ellipsis-${++ellipsisCount}` : String(p), p })
-  }
-  return result
+  return pages.map((p, i) => ({ key: p === '...' ? `ellipsis-${i}` : String(p), p }))
 }
 
 function buildPageNumbers(current: number, total: number): (number | '...')[] {

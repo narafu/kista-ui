@@ -22,11 +22,8 @@ import type {
 
 // FinanceTransactionResponse/FinanceBudgetResponse는 openapi 스펙상 amount에 required 표시가 없다 —
 // 서버가 실제로 누락시키진 않지만 방어적으로 API 경계에서 0으로 정규화한다(폼 쪽 필수 검증과는 별개).
-function normalizeTransaction(t: FinanceTransaction): FinanceTransaction {
-  return { ...t, amount: t.amount ?? 0 }
-}
-function normalizeBudget(b: FinanceBudget): FinanceBudget {
-  return { ...b, amount: b.amount ?? 0 }
+function withDefaultAmount<T extends { amount: number }>(x: T): T {
+  return { ...x, amount: x.amount ?? 0 }
 }
 
 // groupId 미지정 시 서버는 호출자의 개인 그룹으로 스코프한다. groupId·token을 함께 받는
@@ -38,6 +35,11 @@ export interface GroupScopedOptions {
 
 function withQuery(path: string, params: Record<string, string | undefined>) {
   return path + buildQueryString(params)
+}
+
+// create* 6곳이 공유하는 { shareToGroup: 'true' | undefined } 쿼리 파라미터 조립.
+function shareToGroupQuery(shareToGroup?: boolean) {
+  return { shareToGroup: shareToGroup ? 'true' : undefined }
 }
 
 // share/unshare는 모든 finance 리소스에서 `PATCH {basePath}/{id}/{share|unshare}` 형태로 동일하다.
@@ -57,7 +59,7 @@ export async function createAssetSnapshot(
   { shareToGroup, token }: { shareToGroup?: boolean; token?: string } = {},
 ): Promise<AssetSnapshot> {
   return fetchEither<AssetSnapshot>(
-    withQuery('/api/finance/asset-snapshots', { shareToGroup: shareToGroup ? 'true' : undefined }),
+    withQuery('/api/finance/asset-snapshots', shareToGroupQuery(shareToGroup)),
     jsonBody('POST', data),
     token,
   )
@@ -94,7 +96,7 @@ export async function bulkRegisterFinance(
   { shareToGroup, token }: { shareToGroup?: boolean; token?: string } = {},
 ): Promise<BulkFinanceRegisterResponse> {
   return fetchEither<BulkFinanceRegisterResponse>(
-    withQuery('/api/finance/bulk-register', { shareToGroup: shareToGroup ? 'true' : undefined }),
+    withQuery('/api/finance/bulk-register', shareToGroupQuery(shareToGroup)),
     jsonBody('POST', data),
     token,
   )
@@ -118,7 +120,7 @@ export async function createFinanceCategory(
   { shareToGroup, token }: { shareToGroup?: boolean; token?: string } = {},
 ): Promise<FinanceCategory> {
   return fetchEither<FinanceCategory>(
-    withQuery('/api/finance/categories', { shareToGroup: shareToGroup ? 'true' : undefined }),
+    withQuery('/api/finance/categories', shareToGroupQuery(shareToGroup)),
     jsonBody('POST', data),
     token,
   )
@@ -179,7 +181,7 @@ export async function createFinanceAccount(
   { shareToGroup, token }: { shareToGroup?: boolean; token?: string } = {},
 ): Promise<FinanceAccount> {
   return fetchEither<FinanceAccount>(
-    withQuery('/api/finance/accounts', { shareToGroup: shareToGroup ? 'true' : undefined }),
+    withQuery('/api/finance/accounts', shareToGroupQuery(shareToGroup)),
     jsonBody('POST', data),
     token,
   )
@@ -263,7 +265,7 @@ export async function listFinanceTransactions({
     { method: 'GET' },
     token,
   )
-  return list.map(normalizeTransaction)
+  return list.map(withDefaultAmount)
 }
 
 export async function createFinanceTransaction(
@@ -271,11 +273,11 @@ export async function createFinanceTransaction(
   { shareToGroup, token }: { shareToGroup?: boolean; token?: string } = {},
 ): Promise<FinanceTransaction> {
   const saved = await fetchEither<FinanceTransaction>(
-    withQuery('/api/finance/transactions', { shareToGroup: shareToGroup ? 'true' : undefined }),
+    withQuery('/api/finance/transactions', shareToGroupQuery(shareToGroup)),
     jsonBody('POST', data),
     token,
   )
-  return normalizeTransaction(saved)
+  return withDefaultAmount(saved)
 }
 
 export async function updateFinanceTransaction(
@@ -288,7 +290,7 @@ export async function updateFinanceTransaction(
     jsonBody('PUT', data),
     token,
   )
-  return normalizeTransaction(saved)
+  return withDefaultAmount(saved)
 }
 
 export async function deleteFinanceTransaction(id: string, token?: string): Promise<void> {
@@ -297,12 +299,12 @@ export async function deleteFinanceTransaction(id: string, token?: string): Prom
 
 // 개인 소유 거래내역을 소유자의 현재 그룹으로 공유 전환한다(본인 소유·그룹 소속 상태에서만 성공).
 export async function shareFinanceTransaction(id: string, token?: string): Promise<FinanceTransaction> {
-  return normalizeTransaction(await shareToggle<FinanceTransaction>('/api/finance/transactions', 'share', id, token))
+  return withDefaultAmount(await shareToggle<FinanceTransaction>('/api/finance/transactions', 'share', id, token))
 }
 
 // 그룹 공유 거래내역을 개인 소유로 되돌린다(같은 그룹 멤버면 누구든 가능, 이미 개인 소유면 멱등).
 export async function unshareFinanceTransaction(id: string, token?: string): Promise<FinanceTransaction> {
-  return normalizeTransaction(await shareToggle<FinanceTransaction>('/api/finance/transactions', 'unshare', id, token))
+  return withDefaultAmount(await shareToggle<FinanceTransaction>('/api/finance/transactions', 'unshare', id, token))
 }
 
 export interface BudgetListOptions extends GroupScopedOptions {
@@ -316,7 +318,7 @@ export async function listFinanceBudgets({ groupId, token, categoryId, date }: B
     { method: 'GET' },
     token,
   )
-  return list.map(normalizeBudget)
+  return list.map(withDefaultAmount)
 }
 
 // shareToGroup:true면 그룹 소유로 생성 — 그룹 스코프에 기간이 겹치는 예산이 있으면 서버가 409
@@ -326,16 +328,16 @@ export async function createFinanceBudget(
   { shareToGroup, token }: { shareToGroup?: boolean; token?: string } = {},
 ): Promise<FinanceBudget> {
   const saved = await fetchEither<FinanceBudget>(
-    withQuery('/api/finance/budgets', { shareToGroup: shareToGroup ? 'true' : undefined }),
+    withQuery('/api/finance/budgets', shareToGroupQuery(shareToGroup)),
     jsonBody('POST', data),
     token,
   )
-  return normalizeBudget(saved)
+  return withDefaultAmount(saved)
 }
 
 export async function updateFinanceBudget(id: string, data: FinanceBudgetRequest, token?: string): Promise<FinanceBudget> {
   const saved = await fetchEither<FinanceBudget>(`/api/finance/budgets/${encodeURIComponent(id)}`, jsonBody('PUT', data), token)
-  return normalizeBudget(saved)
+  return withDefaultAmount(saved)
 }
 
 export async function deleteFinanceBudget(id: string, token?: string): Promise<void> {
@@ -344,12 +346,12 @@ export async function deleteFinanceBudget(id: string, token?: string): Promise<v
 
 // 개인 소유 예산을 소유자의 현재 그룹으로 공유 전환한다(본인 소유·그룹 소속 상태에서만 성공).
 export async function shareFinanceBudget(id: string, token?: string): Promise<FinanceBudget> {
-  return normalizeBudget(await shareToggle<FinanceBudget>('/api/finance/budgets', 'share', id, token))
+  return withDefaultAmount(await shareToggle<FinanceBudget>('/api/finance/budgets', 'share', id, token))
 }
 
 // 그룹 공유 예산을 개인 소유로 되돌린다(같은 그룹 멤버면 누구든 가능, 이미 개인 소유면 멱등).
 export async function unshareFinanceBudget(id: string, token?: string): Promise<FinanceBudget> {
-  return normalizeBudget(await shareToggle<FinanceBudget>('/api/finance/budgets', 'unshare', id, token))
+  return withDefaultAmount(await shareToggle<FinanceBudget>('/api/finance/budgets', 'unshare', id, token))
 }
 
 // code는 사용자가 붙여넣는 자유 입력이라(초대 코드 입력 폼) URL path 세그먼트로 쓰기 전

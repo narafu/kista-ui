@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAdminSettingsQuery, useUpdateAdminSettingsMutation } from './useAdminSettings'
-import { adminSettingsKeys } from '../model/queryKeys'
+import { adminSettingsKeys } from '../model/queryOptions'
 
 const { useQueryMock, useMutationMock, invalidateQueriesMock, setQueryDataMock, successMock } = vi.hoisted(() => ({
   useQueryMock: vi.fn(() => ({})),

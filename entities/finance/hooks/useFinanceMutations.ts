@@ -451,12 +451,11 @@ export function useRemoveFinanceGroupMemberMutation(groupId: string) {
 // 유저가 발급하면 kista-api가 그 자리에서 새 그룹을 만들고 본인을 OWNER로 등록하므로, groups()를
 // 무효화해야 GroupManager가 방금 생겨난 그룹을 곧바로 반영한다.
 export function useCreateFinanceGroupInvitationMutation(groupId: string) {
-  const queryClient = useQueryClient()
-  return useMutation<FinanceGroupInvitation, Error, number>({
-    mutationFn: (expiresInHours) => createFinanceGroupInvitation(groupId, expiresInHours),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.groups() }),
-    onError: (err) => toast.error(apiMsg(err, '초대 코드를 발급하지 못했습니다')),
-  })
+  return useInvalidateFinanceMutation<FinanceGroupInvitation, number>(
+    (expiresInHours) => createFinanceGroupInvitation(groupId, expiresInHours),
+    financeKeys.groups(),
+    '초대 코드를 발급하지 못했습니다',
+  )
 }
 
 // 자산/거래 배치 등록 — 항목별 성공/실패는 응답에 담겨 오므로 mutation 자체는 항상 성공(reject
@@ -473,10 +472,9 @@ export function useBulkRegisterFinanceMutation() {
 }
 
 export function useRespondToInvitationMutation() {
-  const queryClient = useQueryClient()
-  return useMutation<FinanceGroup, Error, { code: string; status: 'ACCEPTED' | 'DECLINED' }>({
-    mutationFn: ({ code, status }) => respondToInvitation(code, status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.groups() }),
-    onError: (err) => toast.error(apiMsg(err, '초대를 처리하지 못했습니다')),
-  })
+  return useInvalidateFinanceMutation<FinanceGroup, { code: string; status: 'ACCEPTED' | 'DECLINED' }>(
+    ({ code, status }) => respondToInvitation(code, status),
+    financeKeys.groups(),
+    '초대를 처리하지 못했습니다',
+  )
 }

@@ -1,7 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { useRuntimeConfigQuery } from './useRuntimeConfigQuery'
-import { runtimeConfigKeys } from '../model/queryKeys'
+import { runtimeConfigKeys, useRuntimeConfigQuery } from './useRuntimeConfigQuery'
 
 const { useQueryMock } = vi.hoisted(() => ({ useQueryMock: vi.fn(() => ({})) }))
 
