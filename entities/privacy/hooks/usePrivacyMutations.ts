@@ -45,7 +45,7 @@ export function useCreateAdminPrivacyBaseMutation() {
   return useMutation<AdminPrivacyBase, Error, AdminPrivacyBaseCreateRequest>({
     mutationFn: createAdminPrivacyBase,
     onSuccess: (saved) => upsertBaseInList(queryClient, saved),
-    onError: (err) => toast.error(apiMsg(err, '등록에 실패했습니다')),
+    onError: (err) => toast.error(apiMsg(err, '등록에 실패했습니다.')),
   })
 }
 
@@ -54,7 +54,7 @@ export function useUpdateAdminPrivacyBaseMutation(baseId: string) {
   return useMutation<AdminPrivacyBase, Error, AdminPrivacyBaseUpdateRequest>({
     mutationFn: (data) => updateAdminPrivacyBase(baseId, data),
     onSuccess: (saved) => upsertBaseInList(queryClient, saved),
-    onError: (err) => toast.error(apiMsg(err, '수정에 실패했습니다')),
+    onError: (err) => toast.error(apiMsg(err, '수정에 실패했습니다.')),
   })
 }
 
@@ -63,7 +63,7 @@ export function useAddAdminPrivacyOrderMutation(baseId: string) {
   return useMutation<AdminPrivacyBase, Error, AdminPrivacyOrderCreateRequest>({
     mutationFn: (data) => addAdminPrivacyOrder(baseId, data),
     onSuccess: (saved) => upsertBaseInList(queryClient, saved),
-    onError: (err) => toast.error(apiMsg(err, '추가에 실패했습니다')),
+    onError: (err) => toast.error(apiMsg(err, '추가에 실패했습니다.')),
   })
 }
 
@@ -72,7 +72,7 @@ export function useUpdateAdminPrivacyOrderMutation(baseId: string, orderId: stri
   return useMutation<AdminPrivacyBase, Error, AdminPrivacyOrderUpdateRequest>({
     mutationFn: (data) => updateAdminPrivacyOrder(baseId, orderId, data),
     onSuccess: (saved) => upsertBaseInList(queryClient, saved),
-    onError: (err) => toast.error(apiMsg(err, '수정에 실패했습니다')),
+    onError: (err) => toast.error(apiMsg(err, '수정에 실패했습니다.')),
   })
 }
 
@@ -81,6 +81,6 @@ export function useDeleteAdminPrivacyOrderMutation() {
   return useMutation<AdminPrivacyBase, Error, { baseId: string; orderId: string }>({
     mutationFn: ({ baseId, orderId }) => deleteAdminPrivacyOrder(baseId, orderId),
     onSuccess: (saved) => upsertBaseInList(queryClient, saved),
-    onError: (err) => toast.error(apiMsg(err, '삭제에 실패했습니다')),
+    onError: (err) => toast.error(apiMsg(err, '삭제에 실패했습니다.')),
   })
 }

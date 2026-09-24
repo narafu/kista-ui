@@ -1,11 +1,9 @@
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
-import { adminPrivacyBasesQueryOptions, filterAdminPrivacyBasesByRange, privacyKeys } from '@entities/privacy'
+import { adminPrivacyBasesQueryOptions } from '@entities/privacy'
 import { AdminPrivacyBaseTable } from '@widgets/admin-privacy-trade-list/AdminPrivacyBaseTable'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
-import { PaginationBar } from '@shared/ui/PaginationBar'
 import { UrlRangeFilterBar } from '@shared/ui/UrlRangeFilterBar'
-import type { AdminPrivacyBase } from '@entities/privacy'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
 import { createQueryClient } from '@shared/lib/query'
 
@@ -23,12 +21,8 @@ export default async function AdminPrivacyTradesPage({
   const token = await getAuthToken()
   const queryClient = createQueryClient()
   if (token) await queryClient.prefetchQuery(adminPrivacyBasesQueryOptions(token))
-  const all = queryClient.getQueryData<AdminPrivacyBase[]>(privacyKeys.list()) ?? []
 
   const { from: windowFrom, to: windowTo } = resolveRange(range, from, to)
-  const filtered = filterAdminPrivacyBasesByRange(all, windowFrom, windowTo)
-  const totalPages = Math.max(1, Math.ceil(filtered.length / size))
-  const currentPage = Math.min(page, totalPages)
 
   return (
     <div>
@@ -43,9 +37,12 @@ export default async function AdminPrivacyTradesPage({
       </div>
 
       <HydrationBoundary state={dehydrate(queryClient)}>
-        <AdminPrivacyBaseTable windowFrom={windowFrom} windowTo={windowTo} pageSize={size} currentPage={currentPage} />
+        {/* totalPages/PaginationBar는 위젯이 canonical 쿼리 캐시에서 직접 계산해 렌더한다 —
+            SSR 스냅샷으로 한 번만 계산하면 뮤테이션으로 캐시가 갱신돼도 totalPages가
+            갱신되지 않아, 방금 등록한 항목이 도달 불가능한 뒷 페이지에 남는 문제가 있었다
+            (리뷰에서 발견). page는 원본(clamp 전) 값을 그대로 넘기고 위젯이 클램프한다. */}
+        <AdminPrivacyBaseTable windowFrom={windowFrom} windowTo={windowTo} pageSize={size} page={page} />
       </HydrationBoundary>
-      <PaginationBar page={currentPage} totalPages={totalPages} />
     </div>
   )
 }

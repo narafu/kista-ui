@@ -4,13 +4,14 @@ import { useRouter } from 'next/navigation'
 import { StrategyForm } from './StrategyForm'
 import type { Strategy } from '@entities/strategy'
 import type { BrokerCode } from '@entities/account'
+import type { DismissMode } from '@shared/lib/dismiss'
 
 interface Props {
   accountId: string
   broker?: BrokerCode
   initial?: Strategy
   // 'push': 일반 페이지 라우트 — 상세 페이지로 이동. 'back': 인터셉팅 라우트(모달) — 이전 화면으로 복귀
-  dismiss?: 'push' | 'back'
+  dismiss?: DismissMode
 }
 
 export function StrategyFormPage({ accountId, broker, initial, dismiss = 'push' }: Props) {

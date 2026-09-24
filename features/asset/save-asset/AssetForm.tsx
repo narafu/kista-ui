@@ -2,18 +2,17 @@
 
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { buttonVariants } from '@/components/ui/button-variants'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Spinner } from '@shared/ui/Spinner'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { cn } from '@shared/lib/utils'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
-import { MOBILE_BOTTOM_NAV_OFFSET_CLASS, MOBILE_FIXED_BAR_RESERVE_CLASS } from '@shared/lib/layout-constants'
+import { MOBILE_FIXED_BAR_RESERVE_CLASS } from '@shared/lib/layout-constants'
+import { MobileSubmitBar } from '@shared/ui/MobileSubmitBar'
+import { FormActions } from '@shared/ui/FormActions'
 import { useMeta } from '@entities/meta'
 import {
   SYSTEM_LOAN_CATEGORY_ID,
@@ -365,44 +364,14 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
           )}
 
           <div className="hidden sm:flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onCancel}
-              disabled={isPending}
-              className={cn(buttonVariants({ variant: 'outline' }), 'flex-1 h-12')}
-            >
-              취소
-            </button>
-            <Button type="submit" className="flex-1 h-12 gap-2" disabled={isPending || !canSubmit}>
-              {isPending ? (
-                <>
-                  <Spinner size={14} />
-                  저장 중...
-                </>
-              ) : MODE_LABEL[mode]}
-            </Button>
+            <FormActions onCancel={onCancel} isPending={isPending} canSubmit={canSubmit} label={MODE_LABEL[mode]} size="md" />
           </div>
         </div>
       </div>
 
-      <div className={cn('sm:hidden fixed left-0 right-0 p-4 bg-background border-t z-40 flex gap-3', MOBILE_BOTTOM_NAV_OFFSET_CLASS)}>
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isPending}
-          className={cn(buttonVariants({ variant: 'outline' }), 'flex-1 h-14')}
-        >
-          취소
-        </button>
-        <Button type="submit" className="flex-1 h-14 text-base font-semibold gap-2" disabled={isPending || !canSubmit}>
-          {isPending ? (
-            <>
-              <Spinner size={16} aria-hidden="true" />
-              저장 중...
-            </>
-          ) : MODE_LABEL[mode]}
-        </Button>
-      </div>
+      <MobileSubmitBar className="flex gap-3">
+        <FormActions onCancel={onCancel} isPending={isPending} canSubmit={canSubmit} label={MODE_LABEL[mode]} size="lg" />
+      </MobileSubmitBar>
     </form>
   )
 }

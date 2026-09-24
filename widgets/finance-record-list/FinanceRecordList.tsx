@@ -6,6 +6,7 @@ import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
+import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
@@ -21,6 +22,7 @@ import {
   collectSubtreeIds,
   filterByType,
   flowCategoryColor,
+  getCascadeLevels,
   isMonthClosed,
   periodRange,
   sortCategoryTree,
@@ -34,7 +36,6 @@ import {
 } from '@entities/finance'
 import type { CategoryIndex, FinanceCategory, FinanceCategoryType, FinanceTransaction, Period } from '@entities/finance'
 import { TransactionFormDialog } from '@features/finance/save-transaction'
-import { FinanceRecordFilters } from './FinanceRecordFilters'
 
 type SortKey = 'transactionDate' | 'category' | 'amount'
 
@@ -94,6 +95,8 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
     return new Set(collectSubtreeIds(categoryTree, categoryPath[categoryPath.length - 1]))
   }, [categoryTree, categoryPath])
 
+  const cascadeLevels = useMemo(() => getCascadeLevels(categoryTree, categoryPath), [categoryTree, categoryPath])
+
   const filtered = useMemo(
     () => (categorySubtreeIds === null ? inPeriod : inPeriod.filter((t) => categorySubtreeIds.has(t.categoryId))),
     [inPeriod, categorySubtreeIds],
@@ -148,11 +151,9 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
       ) : (
         <>
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <FinanceRecordFilters
-              categoryTree={categoryTree}
-              categoryPath={categoryPath}
-              onCategoryPathChange={setCategoryPath}
-            />
+            <div className="flex flex-wrap gap-2">
+              <CascadingCategorySelect levels={cascadeLevels} path={categoryPath} onPathChange={setCategoryPath} className="w-full lg:w-32" />
+            </div>
             <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
           </div>
 
@@ -174,6 +175,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                   <tbody>
                     {paged.map((t) => {
                       const entry = index.get(t.categoryId)
+                      const closed = isClosed(t.transactionDate)
                       return (
                         <tr key={t.id} className="border-t hover:bg-muted/30 transition-colors">
                           <TableDataCell className="text-muted-foreground whitespace-nowrap">{fmtDate(t.transactionDate)}</TableDataCell>
@@ -200,7 +202,8 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                                 hasGroupId={!!t.groupId}
                                 sharePending={shareMutation.isPending}
                                 unsharePending={unshareMutation.isPending}
-                                readOnly={isClosed(t.transactionDate)}
+                                locked={closed}
+                                lockShare={closed}
                                 lockTitle={closedMonthTitle}
                               />
                             </div>
@@ -215,6 +218,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
               <ul className="m-0 list-none divide-y rounded-[var(--r-lg)] border border-border p-0 lg:hidden" aria-label="거래내역 모바일">
                 {paged.map((t) => {
                   const entry = index.get(t.categoryId)
+                  const closed = isClosed(t.transactionDate)
                   return (
                     <li key={t.id} className="px-4 py-4">
                       <div className="flex items-start justify-between gap-3">
@@ -242,7 +246,8 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                           hasGroupId={!!t.groupId}
                           sharePending={shareMutation.isPending}
                           unsharePending={unshareMutation.isPending}
-                          readOnly={isClosed(t.transactionDate)}
+                          locked={closed}
+                          lockShare={closed}
                           lockTitle={closedMonthTitle}
                         />
                       </div>

@@ -13,13 +13,14 @@ interface Props {
   onDuplicate?: () => void
   onEdit: () => void
   onDelete: () => void
-  // true면 수정·삭제만 비활성화한다(시스템 카테고리처럼 서버가 403을 내는 대상) — 공유/귀속/복제는
+  // true면 수정·삭제를 비활성화한다(시스템 카테고리처럼 서버가 403을 내는 대상, 마감된 달처럼
+  // 레코드 변경을 전면 차단하는 대상 등). 복제는 사용자가 폼에서 새 날짜를 고르는 신규 생성이라
   // 이 잠금과 무관해 영향받지 않는다.
   locked?: boolean
-  // true면 공유·귀속·수정·삭제를 비활성화한다(마감된 달처럼 서버가 그 레코드의 변경을 전면 차단하는 대상).
-  // 복제는 사용자가 폼에서 새 날짜를 고르는 신규 생성이라 이 잠금과 무관해 영향받지 않는다.
-  readOnly?: boolean
-  // locked/readOnly로 비활성화된 버튼에 붙는 tooltip.
+  // true면 공유·귀속도 함께 비활성화한다(마감된 달처럼 레코드 자체가 잠긴 대상 — locked와 함께 켠다).
+  // 시스템 카테고리처럼 수정·삭제만 막고 공유는 그대로 둬야 하는 대상은 locked만 켠다.
+  lockShare?: boolean
+  // locked/lockShare로 비활성화된 버튼에 붙는 tooltip.
   lockTitle?: string
 }
 
@@ -30,20 +31,21 @@ interface Props {
  */
 export function ShareableRowActions({
   canShare, hasGroupId, onShare, onUnshare, sharePending, unsharePending, onDuplicate, onEdit, onDelete,
-  locked = false, readOnly = false, lockTitle,
+  locked = false, lockShare = false, lockTitle,
 }: Props) {
-  const editDisabled = locked || readOnly
+  const editDisabled = locked
+  const shareDisabled = lockShare
   // disabled 버튼이라 클릭은 이미 막힌다 — opacity만 낮추고 pointer-events는 남겨 hover 시 title(tooltip)이 뜨게 한다.
   const dimmed = 'opacity-40'
   return (
     <div className="flex shrink-0 items-center gap-1">
       {canShare && !hasGroupId && (
-        <IconButton aria-label="공유" onClick={onShare} disabled={sharePending || readOnly} title={readOnly ? lockTitle : undefined} className={cn(readOnly && dimmed)}>
+        <IconButton aria-label="공유" onClick={onShare} disabled={sharePending || shareDisabled} title={shareDisabled ? lockTitle : undefined} className={cn(shareDisabled && dimmed)}>
           <Share2 className="size-4" />
         </IconButton>
       )}
       {canShare && hasGroupId && (
-        <IconButton aria-label="귀속" onClick={onUnshare} disabled={unsharePending || readOnly} title={readOnly ? lockTitle : undefined} className={cn(readOnly && dimmed)}>
+        <IconButton aria-label="귀속" onClick={onUnshare} disabled={unsharePending || shareDisabled} title={shareDisabled ? lockTitle : undefined} className={cn(shareDisabled && dimmed)}>
           <Undo2 className="size-4" />
         </IconButton>
       )}

@@ -8,6 +8,7 @@ import { fmtDate } from '@shared/lib/format'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { Badge } from '@shared/ui/Badge'
 import { ADMIN_USER_STATUS_LABEL, USER_STATUS_TONE } from '@entities/user'
 import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
@@ -37,14 +38,14 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
 
       <div className="rounded-[var(--r-lg)] border border-border overflow-x-auto">
         <table className="min-w-[720px] w-full text-sm">
-          <thead className="bg-muted/40 text-xs text-muted-foreground font-semibold">
+          <thead className="bg-muted/40">
             <tr>
-              <th className="text-left px-4 py-3 whitespace-nowrap">닉네임</th>
-              <th className="text-left px-4 py-3 whitespace-nowrap">상태</th>
-              <th className="text-left px-4 py-3 whitespace-nowrap">역할</th>
-              <th className="text-left px-4 py-3 whitespace-nowrap">가입일</th>
-              <th className="text-center px-4 py-3 whitespace-nowrap">역할 변경</th>
-              <th className="text-center px-4 py-3 whitespace-nowrap">탈퇴</th>
+              <TableHeadCell className="text-left whitespace-nowrap">닉네임</TableHeadCell>
+              <TableHeadCell className="text-left whitespace-nowrap">상태</TableHeadCell>
+              <TableHeadCell className="text-left whitespace-nowrap">역할</TableHeadCell>
+              <TableHeadCell className="text-left whitespace-nowrap">가입일</TableHeadCell>
+              <TableHeadCell className="whitespace-nowrap">역할 변경</TableHeadCell>
+              <TableHeadCell className="whitespace-nowrap">탈퇴</TableHeadCell>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">

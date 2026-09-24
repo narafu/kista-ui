@@ -1,5 +1,3 @@
-'use client'
-
 import { FlowPageView } from '../FlowPageView'
 
 export default function FinanceSavingPage() {

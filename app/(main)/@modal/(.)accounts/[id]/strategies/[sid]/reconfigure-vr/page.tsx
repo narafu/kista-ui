@@ -1,26 +1,14 @@
-import { notFound } from 'next/navigation'
-import { PageHeader } from '@widgets/page-header'
-import { ReconfigureVrForm, loadAccountAndStrategyForReconfigure } from '@features/strategy/reconfigure-vr'
+import { ReconfigureVrFormBody } from '@app/(main)/accounts/[id]/strategies/[sid]/reconfigure-vr/ReconfigureVrFormBody'
 import { RouteModal } from '@shared/ui/RouteModal'
-import { requirePageToken } from '@shared/lib/auth/token'
 
 interface Props {
   params: Promise<{ id: string; sid: string }>
 }
 
-export default async function ReconfigureVrModal({ params }: Props) {
-  const { params: { id, sid }, token } = await requirePageToken(params)
-
-  const context = await loadAccountAndStrategyForReconfigure(id, sid, token)
-  if (!context) {
-    return notFound()
-  }
-  const { strategy } = context
-
+export default function ReconfigureVrModal({ params }: Props) {
   return (
     <RouteModal>
-      <PageHeader eyebrow={strategy.ticker} eyebrowHref={`/accounts/${id}/strategies/${sid}`} title="VR 재설정" />
-      <ReconfigureVrForm accountId={id} strategy={strategy} dismiss="back" />
+      <ReconfigureVrFormBody params={params} dismiss="back" />
     </RouteModal>
   )
 }

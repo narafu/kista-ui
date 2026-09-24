@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { ChevronRight, ChevronDown, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@ import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
+import { PaginationBar } from '@shared/ui/PaginationBar'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { BRAND_TINT_BUTTON_CLASS } from '@shared/ui/brand-button-class'
 import { filterAdminPrivacyBasesByRange, useAdminPrivacyBasesQuery, useDeleteAdminPrivacyOrderMutation } from '@entities/privacy'
@@ -20,15 +21,16 @@ import { EditPrivacyOrderDialog } from './EditPrivacyOrderDialog'
 import { AddPrivacyOrderDialog } from './AddPrivacyOrderDialog'
 
 interface Props {
-  // 기간 필터·페이지 조회 조건. 서버가 SSR로 계산한 totalPages/PaginationBar와 일치시키기 위해
-  // 필터링·페이지 슬라이싱은 여기서 canonical 쿼리 캐시를 대상으로 동일하게 재계산한다.
+  // 기간 필터·페이지 조회 조건. windowFrom/windowTo는 URL 쿼리 그대로, page도 원본(클램프 전) 값을
+  // 그대로 받는다 — totalPages는 여기서 canonical 쿼리 캐시로부터 매번 다시 계산해 뮤테이션 직후에도
+  // (SSR 스냅샷이 아니라) 최신 총 건수를 반영한다. PaginationBar도 이 컴포넌트가 직접 렌더한다.
   windowFrom?: string
   windowTo?: string
   pageSize: number
-  currentPage: number
+  page: number
 }
 
-export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, currentPage }: Props) {
+export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, page }: Props) {
   const { data: allBases = [] } = useAdminPrivacyBasesQuery()
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [createOpen, setCreateOpen] = useState(false)
@@ -38,9 +40,14 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, currentP
   const [deleteOrderTarget, setDeleteOrderTarget] = useState<{ baseId: string; order: AdminPrivacyOrder } | null>(null)
   const deleteOrderMutation = useDeleteAdminPrivacyOrderMutation()
 
-  const filtered = filterAdminPrivacyBasesByRange(allBases, windowFrom, windowTo)
-  const bases = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  const filtered = useMemo(
+    () => filterAdminPrivacyBasesByRange(allBases, windowFrom, windowTo),
+    [allBases, windowFrom, windowTo],
+  )
   const totalCount = filtered.length
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
+  const currentPage = Math.min(page, totalPages)
+  const bases = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   const toggle = (id: string) => {
     setExpanded((prev) => {
@@ -138,6 +145,8 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, currentP
           </div>
         </>
       )}
+
+      <PaginationBar page={currentPage} totalPages={totalPages} />
 
       {createOpen && (
         <CreatePrivacyBaseDialog open={createOpen} onOpenChange={setCreateOpen} />

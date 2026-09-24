@@ -8,28 +8,16 @@ import { fmtTime } from '@shared/lib/format'
 import { useReportClientError } from '@entities/error-log'
 
 type ErrCfg = { badge: string; title: string; desc: string; colorVar: string; bgVar: string }
+// 호출부(app/**/error.tsx, not-found.tsx) 4곳이 실제로 전달하는 코드는 404·500뿐이다.
+type ErrorCode = 404 | 500
 
-const CFGS: Record<number, ErrCfg> = {
+const CFGS: Record<ErrorCode, ErrCfg> = {
   404: {
     badge: 'SYMBOL NOT FOUND',
     title: '종목을 찾을 수 없음',
     desc: '상장 폐지된 종목이거나 존재하지 않는 경로입니다',
     colorVar: 'var(--neg)',
     bgVar: 'var(--neg-bg)',
-  },
-  403: {
-    badge: 'ACCESS RESTRICTED',
-    title: '접근이 제한되었습니다',
-    desc: '해당 자산에 접근할 권한이 없습니다',
-    colorVar: 'var(--pos)',
-    bgVar: 'var(--pos-bg)',
-  },
-  401: {
-    badge: 'SESSION EXPIRED',
-    title: '세션이 만료되었습니다',
-    desc: '보안을 위해 자동 로그아웃되었습니다',
-    colorVar: 'var(--warn)',
-    bgVar: 'var(--warn-bg)',
   },
   500: {
     badge: 'CIRCUIT BREAKER',
@@ -40,25 +28,17 @@ const CFGS: Record<number, ErrCfg> = {
   },
 }
 
-const DEFAULT_CFG: ErrCfg = {
-  badge: 'SYSTEM ERROR',
-  title: '시스템 오류',
-  desc: '잠시 후 다시 시도해주세요',
-  colorVar: 'var(--pos)',
-  bgVar: 'var(--pos-bg)',
-}
-
 interface ErrorDisplayProps {
-  code?: number
+  code: ErrorCode
   error?: Error & { digest?: string }
   reset?: () => void
-  standalone?: boolean
+  standalone: boolean
 }
 
-export function ErrorDisplay({ code, error, reset, standalone = true }: ErrorDisplayProps) {
+export function ErrorDisplay({ code, error, reset, standalone }: ErrorDisplayProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const cfg = (code !== undefined && CFGS[code]) || DEFAULT_CFG
+  const cfg = CFGS[code]
   const timeStr = useSyncExternalStore(
     () => () => {},
     () => fmtTime(new Date()),
@@ -70,7 +50,7 @@ export function ErrorDisplay({ code, error, reset, standalone = true }: ErrorDis
   const content = (
     <div className="text-center max-w-[440px] w-full px-6">
       {/* 에러 코드 */}
-      <div className="error-code-num">{code ?? '—'}</div>
+      <div className="error-code-num">{code}</div>
 
       {/* 에러 상태 + 감지 시각 */}
       <div

@@ -1,9 +1,13 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { privacyKeys } from '@entities/privacy'
 import type { AdminPrivacyBase } from '@entities/privacy'
 import { AdminPrivacyBaseTable } from './AdminPrivacyBaseTable'
+
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(),
+}))
 
 const base: AdminPrivacyBase = {
   id: 'base-1',
@@ -29,7 +33,7 @@ function renderTable(bases: AdminPrivacyBase[] = [base]) {
   queryClient.setQueryData(privacyKeys.list(), bases)
   return render(
     <QueryClientProvider client={queryClient}>
-      <AdminPrivacyBaseTable pageSize={10} currentPage={1} />
+      <AdminPrivacyBaseTable pageSize={10} page={1} />
     </QueryClientProvider>,
   )
 }
@@ -150,11 +154,35 @@ describe('AdminPrivacyBaseTable filtering and paging', () => {
     queryClient.setQueryData(privacyKeys.list(), [base, older])
     render(
       <QueryClientProvider client={queryClient}>
-        <AdminPrivacyBaseTable windowFrom="2026-07-01" pageSize={10} currentPage={1} />
+        <AdminPrivacyBaseTable windowFrom="2026-07-01" pageSize={10} page={1} />
       </QueryClientProvider>,
     )
 
     expect(screen.getByText('총 1건')).toBeInTheDocument()
     expect(screen.queryByText('AAPL')).not.toBeInTheDocument()
+  })
+
+  it('recomputes totalPages/PaginationBar from the live cache when a mutation adds a row beyond the SSR snapshot (regression: previously PaginationBar was a static SSR value and newly created rows could become unreachable)', () => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    // pageSize=1이라 1건만 있을 땐 totalPages=1 → PaginationBar 미노출(totalPages<=1)
+    queryClient.setQueryData(privacyKeys.list(), [base])
+    const { rerender } = render(
+      <QueryClientProvider client={queryClient}>
+        <AdminPrivacyBaseTable pageSize={1} page={1} />
+      </QueryClientProvider>,
+    )
+    expect(screen.queryByRole('navigation', { name: 'pagination' })).not.toBeInTheDocument()
+
+    // 뮤테이션이 캐시에 새 항목을 얹으면(entities/privacy usePrivacyMutations와 동일한 효과) 위젯이
+    // 리렌더 시 새 totalCount로 totalPages를 다시 계산해 2페이지 링크를 노출해야 한다 —
+    // page.tsx가 SSR 시점 스냅샷으로 한 번만 계산하던 이전 구조에서는 갱신되지 않았다.
+    queryClient.setQueryData(privacyKeys.list(), [base, older])
+    rerender(
+      <QueryClientProvider client={queryClient}>
+        <AdminPrivacyBaseTable pageSize={1} page={1} />
+      </QueryClientProvider>,
+    )
+    expect(screen.getByText('총 2건')).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'pagination' })).toBeInTheDocument()
   })
 })

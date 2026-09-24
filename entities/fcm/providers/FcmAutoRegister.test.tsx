@@ -4,7 +4,7 @@ import { FcmAutoRegister } from './FcmAutoRegister'
 
 const requestFcmToken = vi.fn().mockResolvedValue('tok')
 const registerTokenToServer = vi.fn().mockResolvedValue(undefined)
-vi.mock('@entities/fcm', () => ({
+vi.mock('../api', () => ({
   requestFcmToken: (...args: unknown[]) => requestFcmToken(...args),
   registerTokenToServer: (...args: unknown[]) => registerTokenToServer(...args),
 }))

@@ -11,7 +11,8 @@ import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { cn } from '@shared/lib/utils'
 import { digitsOnly, formatAmountDisplay, fmtKrw, todayKst } from '@shared/lib/format'
-import { MOBILE_BOTTOM_NAV_OFFSET_CLASS, MOBILE_FIXED_BAR_RESERVE_CLASS } from '@shared/lib/layout-constants'
+import { MOBILE_FIXED_BAR_RESERVE_CLASS } from '@shared/lib/layout-constants'
+import { MobileSubmitBar } from '@shared/ui/MobileSubmitBar'
 import { useMeta } from '@entities/meta'
 import {
   buildBulkRegisterItems,
@@ -307,11 +308,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
         </div>
       </div>
 
-      {/* 모바일 하단 탭바(widgets/layout/MobileBottomNav, fixed bottom-0 z-40)와 겹치지 않도록
-          탭바 실제 높이만큼 위(MOBILE_BOTTOM_NAV_OFFSET_CLASS)에 별도 z-40 바를 띄운다 — bottom-0으로
-          겹치면 탭바가 위에 렌더돼 이 버튼이 완전히 가려진다. 바/버튼 스타일은 AssetForm·EditAccountForm의
-          모바일 제출 바 SSOT(p-4 bg-background border-t z-40 + w-full h-14 text-base font-semibold)를 따른다. */}
-      <div className={cn('sm:hidden fixed left-0 right-0 z-40 p-4 bg-background border-t', MOBILE_BOTTOM_NAV_OFFSET_CLASS)}>
+      <MobileSubmitBar>
         <Button
           onClick={handleSubmit}
           disabled={submitDisabled}
@@ -319,7 +316,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
         >
           이대로 확정하기
         </Button>
-      </div>
+      </MobileSubmitBar>
     </div>
   )
 }

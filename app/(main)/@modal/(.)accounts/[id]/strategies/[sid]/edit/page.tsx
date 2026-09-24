@@ -1,26 +1,14 @@
-import { notFound } from 'next/navigation'
-import { PageHeader } from '@widgets/page-header'
-import { StrategyFormPage, loadAccountAndStrategyForEdit } from '@features/strategy/create-strategy'
+import { EditStrategyFormBody } from '@app/(main)/accounts/[id]/strategies/[sid]/edit/EditStrategyFormBody'
 import { RouteModal } from '@shared/ui/RouteModal'
-import { requirePageToken } from '@shared/lib/auth/token'
 
 interface Props {
   params: Promise<{ id: string; sid: string }>
 }
 
-export default async function EditStrategyModal({ params }: Props) {
-  const { params: { id, sid }, token } = await requirePageToken(params)
-
-  const context = await loadAccountAndStrategyForEdit(id, sid, token)
-  if (!context) {
-    return notFound()
-  }
-  const { account, strategy } = context
-
+export default function EditStrategyModal({ params }: Props) {
   return (
     <RouteModal>
-      <PageHeader eyebrow={strategy.ticker} eyebrowHref={`/accounts/${id}/strategies/${sid}`} title="전략 수정" />
-      <StrategyFormPage accountId={id} initial={strategy} broker={account.broker} dismiss="back" />
+      <EditStrategyFormBody params={params} dismiss="back" />
     </RouteModal>
   )
 }

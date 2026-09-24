@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -21,7 +20,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { cn } from '@shared/lib/utils'
-import { MOBILE_BOTTOM_NAV_OFFSET_CLASS, MOBILE_FIXED_BAR_RESERVE_CLASS } from '@shared/lib/layout-constants'
+import { MOBILE_FIXED_BAR_RESERVE_CLASS } from '@shared/lib/layout-constants'
+import { MobileSubmitBar } from '@shared/ui/MobileSubmitBar'
+import { FormActions } from '@shared/ui/FormActions'
 import { useUpdateAccountMutation, useDeleteAccountMutation } from '@entities/account'
 import { strategyKeys } from '@entities/strategy'
 import { statsKeys } from '@entities/stats'
@@ -110,17 +111,7 @@ export function EditAccountForm({ account }: Props) {
           </p>
 
           <div className="hidden sm:flex gap-3 pt-2">
-            <Link href={`/accounts/${account.id}`} className={cn(buttonVariants({ variant: 'outline' }), 'flex-1 h-12')}>
-              취소
-            </Link>
-            <Button type="submit" className="flex-1 h-12 gap-2" disabled={updateMutation.isPending}>
-              {updateMutation.isPending ? (
-                <>
-                  <Spinner size={14} />
-                  저장 중...
-                </>
-              ) : '저장'}
-            </Button>
+            <FormActions cancelHref={`/accounts/${account.id}`} isPending={updateMutation.isPending} canSubmit label="저장" size="md" />
           </div>
         </div>
 
@@ -178,7 +169,7 @@ export function EditAccountForm({ account }: Props) {
         </div>
       </div>
 
-      <div className={cn('sm:hidden fixed left-0 right-0 p-4 bg-background border-t z-40', MOBILE_BOTTOM_NAV_OFFSET_CLASS)}>
+      <MobileSubmitBar>
         <Button type="submit" className="w-full h-14 text-base font-semibold gap-2" disabled={updateMutation.isPending}>
           {updateMutation.isPending ? (
             <>
@@ -187,7 +178,7 @@ export function EditAccountForm({ account }: Props) {
             </>
           ) : '저장'}
         </Button>
-      </div>
+      </MobileSubmitBar>
     </form>
   )
 }

@@ -29,12 +29,13 @@ import { useReconfigureVrMutation, applyPStepWeeksChange } from '@entities/strat
 import type { ReconfigureVrRequest } from '@entities/strategy'
 import { reconfigureVrFormSchema, type ReconfigureVrFormValues } from './model/reconfigureVrFormSchema'
 import type { ReconfigureVrStrategy } from './model/loadStrategyForReconfigure'
+import type { DismissMode } from '@shared/lib/dismiss'
 
 interface Props {
   accountId: string
   strategy: ReconfigureVrStrategy
   // 'push': 일반 페이지 라우트. 'back': 인터셉팅 라우트(모달)
-  dismiss?: 'push' | 'back'
+  dismiss?: DismissMode
 }
 
 type RecurringMode = 'DEPOSIT' | 'HOLD' | 'WITHDRAW'
