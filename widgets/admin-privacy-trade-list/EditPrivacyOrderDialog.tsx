@@ -7,44 +7,38 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SaveButton } from '@shared/ui/SaveButton'
-import { apiMsg } from '@shared/lib/api-client'
 import { DIRECTION_LABEL } from '@entities/trade'
-import { updateAdminPrivacyOrder, orderRequiresQuantity } from '@entities/privacy'
-import type { AdminPrivacyBase, AdminPrivacyOrder } from '@entities/privacy'
+import { orderRequiresQuantity, useUpdateAdminPrivacyOrderMutation } from '@entities/privacy'
+import type { AdminPrivacyOrder } from '@entities/privacy'
 
 interface Props {
   baseId: string
   order: AdminPrivacyOrder
   open: boolean
   onOpenChange: (open: boolean) => void
-  onUpdated: (base: AdminPrivacyBase) => void
 }
 
-export function EditPrivacyOrderDialog({ baseId, order, open, onOpenChange, onUpdated }: Props) {
+export function EditPrivacyOrderDialog({ baseId, order, open, onOpenChange }: Props) {
   const [price, setPrice] = useState(String(order.price))
   const [quantity, setQuantity] = useState(order.quantity == null ? '' : String(order.quantity))
-  const [isPending, setIsPending] = useState(false)
+  const updateMutation = useUpdateAdminPrivacyOrderMutation(baseId, order.id)
 
   // BUY는 quantity 필수 — 서버가 400으로 거부하므로 선제 차단.
   const canSubmit = price !== '' && (!orderRequiresQuantity(order.direction) || quantity !== '')
+  const isPending = updateMutation.isPending
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!canSubmit) return
-    setIsPending(true)
-    try {
-      const updated = await updateAdminPrivacyOrder(baseId, order.id, {
-        price: Number(price),
-        quantity: quantity === '' ? null : Number(quantity),
-      })
-      toast.success('주문이 수정되었습니다')
-      onUpdated(updated)
-      onOpenChange(false)
-    } catch (err) {
-      toast.error(apiMsg(err, '수정에 실패했습니다'))
-    } finally {
-      setIsPending(false)
-    }
+    updateMutation.mutate({
+      price: Number(price),
+      quantity: quantity === '' ? null : Number(quantity),
+    }, {
+      onSuccess: () => {
+        toast.success('주문이 수정되었습니다')
+        onOpenChange(false)
+      },
+    })
   }
 
   return (

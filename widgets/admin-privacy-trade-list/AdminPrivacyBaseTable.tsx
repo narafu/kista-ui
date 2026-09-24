@@ -5,7 +5,6 @@ import { toast } from 'sonner'
 import { ChevronRight, ChevronDown, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { fmtUsd, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
-import { apiMsg } from '@shared/lib/api-client'
 import { cn } from '@shared/lib/utils'
 import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -13,51 +12,35 @@ import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { BRAND_TINT_BUTTON_CLASS } from '@shared/ui/brand-button-class'
-import { deleteAdminPrivacyOrder } from '@entities/privacy'
+import { filterAdminPrivacyBasesByRange, useAdminPrivacyBasesQuery, useDeleteAdminPrivacyOrderMutation } from '@entities/privacy'
 import type { AdminPrivacyBase, AdminPrivacyOrder } from '@entities/privacy'
 import { CreatePrivacyBaseDialog } from './CreatePrivacyBaseDialog'
 import { EditPrivacyBaseDialog } from './EditPrivacyBaseDialog'
 import { EditPrivacyOrderDialog } from './EditPrivacyOrderDialog'
 import { AddPrivacyOrderDialog } from './AddPrivacyOrderDialog'
 
-// kista-api PrivacyTradeBaseJpaRepository.findBasesFromReleaseDate가 releaseDate DESC로 정렬해 내려준다
-// (trading-core 쪽 @Query "ORDER BY b.releaseDate DESC") — 이 순서를 그대로 가정해 삽입 위치를 계산한다.
-export function shouldInsertLocally(
-  created: Pick<AdminPrivacyBase, 'releaseDate'>,
-  opts: { windowFrom?: string; windowTo?: string; isFirstPage: boolean; currentCount: number; pageSize: number },
-): boolean {
-  const inRange = (!opts.windowFrom || created.releaseDate >= opts.windowFrom) && (!opts.windowTo || created.releaseDate <= opts.windowTo)
-  return opts.isFirstPage && inRange && opts.currentCount < opts.pageSize
-}
-
-export function insertByReleaseDateDesc<T extends Pick<AdminPrivacyBase, 'releaseDate'>>(bases: T[], created: T): T[] {
-  const at = bases.findIndex((b) => b.releaseDate < created.releaseDate)
-  const idx = at === -1 ? bases.length : at
-  return [...bases.slice(0, idx), created, ...bases.slice(idx)]
-}
-
 interface Props {
-  bases: AdminPrivacyBase[]
-  // 서버가 집계한 필터 통과 전체 건수 — 헤더에 표시. 로컬 등록 반영 시 함께 증가시켜
-  // 화면에 보이는 행 수와 어긋나지 않게 한다.
-  totalCount: number
-  // 신규 등록 항목이 현재 화면(기간 필터·1페이지)에 들어오는지 판정하는 데 쓰는 서버 조회 조건.
+  // 기간 필터·페이지 조회 조건. 서버가 SSR로 계산한 totalPages/PaginationBar와 일치시키기 위해
+  // 필터링·페이지 슬라이싱은 여기서 canonical 쿼리 캐시를 대상으로 동일하게 재계산한다.
   windowFrom?: string
   windowTo?: string
-  pageSize?: number
-  isFirstPage?: boolean
+  pageSize: number
+  currentPage: number
 }
 
-export function AdminPrivacyBaseTable({ bases: initialBases, totalCount: initialTotalCount, windowFrom, windowTo, pageSize = Infinity, isFirstPage = true }: Props) {
-  const [bases, setBases] = useState(initialBases)
-  const [totalCount, setTotalCount] = useState(initialTotalCount)
+export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, currentPage }: Props) {
+  const { data: allBases = [] } = useAdminPrivacyBasesQuery()
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [createOpen, setCreateOpen] = useState(false)
   const [editBase, setEditBase] = useState<AdminPrivacyBase | null>(null)
   const [editOrder, setEditOrder] = useState<{ baseId: string; order: AdminPrivacyOrder } | null>(null)
   const [addOrderBaseId, setAddOrderBaseId] = useState<string | null>(null)
   const [deleteOrderTarget, setDeleteOrderTarget] = useState<{ baseId: string; order: AdminPrivacyOrder } | null>(null)
-  const [deletePending, setDeletePending] = useState(false)
+  const deleteOrderMutation = useDeleteAdminPrivacyOrderMutation()
+
+  const filtered = filterAdminPrivacyBasesByRange(allBases, windowFrom, windowTo)
+  const bases = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  const totalCount = filtered.length
 
   const toggle = (id: string) => {
     setExpanded((prev) => {
@@ -71,37 +54,17 @@ export function AdminPrivacyBaseTable({ bases: initialBases, totalCount: initial
     })
   }
 
-  function updateBase(updated: AdminPrivacyBase) {
-    setBases((prev) => prev.map((b) => (b.id === updated.id ? updated : b)))
-  }
-
-  // 신규 등록 항목이 현재 화면(1페이지 + 기간 필터 범위 + 페이지 정원 이내)에 들어오면 로컬에
-  // 바로 얹는다. 그 밖이면(다른 페이지·필터 범위 밖·페이지 꽉 참) 서버 총 건수·페이지네이션과
-  // 어긋날 수 있어 얹지 않고 안내만 한다 — router.refresh()는 이 프로젝트에서 routine mutation에
-  // 금지돼 있어 안내 후 사용자가 직접 새로고침하도록 한다.
-  function handleCreated(created: AdminPrivacyBase) {
-    if (shouldInsertLocally(created, { windowFrom, windowTo, isFirstPage, currentCount: bases.length, pageSize })) {
-      setBases((prev) => insertByReleaseDateDesc(prev, created))
-      setTotalCount((prev) => prev + 1)
-      toast.success('P 매매표가 등록되었습니다')
-    } else {
-      toast.success('P 매매표가 등록되었습니다. 목록에 보이지 않으면 새로고침하세요.')
-    }
-  }
-
-  async function handleDeleteOrder() {
+  function handleDeleteOrder() {
     if (!deleteOrderTarget) return
-    setDeletePending(true)
-    try {
-      const updated = await deleteAdminPrivacyOrder(deleteOrderTarget.baseId, deleteOrderTarget.order.id)
-      updateBase(updated)
-      toast.success('주문이 삭제되었습니다')
-      setDeleteOrderTarget(null)
-    } catch (err) {
-      toast.error(apiMsg(err, '삭제에 실패했습니다'))
-    } finally {
-      setDeletePending(false)
-    }
+    deleteOrderMutation.mutate(
+      { baseId: deleteOrderTarget.baseId, orderId: deleteOrderTarget.order.id },
+      {
+        onSuccess: () => {
+          toast.success('주문이 삭제되었습니다')
+          setDeleteOrderTarget(null)
+        },
+      },
+    )
   }
 
   return (
@@ -177,7 +140,7 @@ export function AdminPrivacyBaseTable({ bases: initialBases, totalCount: initial
       )}
 
       {createOpen && (
-        <CreatePrivacyBaseDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={handleCreated} />
+        <CreatePrivacyBaseDialog open={createOpen} onOpenChange={setCreateOpen} />
       )}
 
       {editBase && (
@@ -185,7 +148,6 @@ export function AdminPrivacyBaseTable({ bases: initialBases, totalCount: initial
           base={editBase}
           open
           onOpenChange={(next) => { if (!next) setEditBase(null) }}
-          onUpdated={updateBase}
         />
       )}
 
@@ -195,7 +157,6 @@ export function AdminPrivacyBaseTable({ bases: initialBases, totalCount: initial
           order={editOrder.order}
           open
           onOpenChange={(next) => { if (!next) setEditOrder(null) }}
-          onUpdated={updateBase}
         />
       )}
 
@@ -204,7 +165,6 @@ export function AdminPrivacyBaseTable({ bases: initialBases, totalCount: initial
           baseId={addOrderBaseId}
           open
           onOpenChange={(next) => { if (!next) setAddOrderBaseId(null) }}
-          onAdded={updateBase}
         />
       )}
 
@@ -214,7 +174,7 @@ export function AdminPrivacyBaseTable({ bases: initialBases, totalCount: initial
         title="주문 삭제"
         description={deleteOrderTarget ? `${DIRECTION_LABEL[deleteOrderTarget.order.direction] ?? deleteOrderTarget.order.direction} ${deleteOrderTarget.order.orderType} 주문을 삭제합니다.` : ''}
         onConfirm={handleDeleteOrder}
-        isPending={deletePending}
+        isPending={deleteOrderMutation.isPending}
       />
     </>
   )

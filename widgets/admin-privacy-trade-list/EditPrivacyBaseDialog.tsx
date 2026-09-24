@@ -7,45 +7,39 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SaveButton } from '@shared/ui/SaveButton'
-import { apiMsg } from '@shared/lib/api-client'
-import { updateAdminPrivacyBase } from '@entities/privacy'
+import { useUpdateAdminPrivacyBaseMutation } from '@entities/privacy'
 import type { AdminPrivacyBase } from '@entities/privacy'
 
 interface Props {
   base: AdminPrivacyBase
   open: boolean
   onOpenChange: (open: boolean) => void
-  onUpdated: (base: AdminPrivacyBase) => void
 }
 
-export function EditPrivacyBaseDialog({ base, open, onOpenChange, onUpdated }: Props) {
+export function EditPrivacyBaseDialog({ base, open, onOpenChange }: Props) {
   const [currentCycleStart, setCurrentCycleStart] = useState(String(base.currentCycleStart))
   const [currentCycleRealizedPnl, setCurrentCycleRealizedPnl] = useState(String(base.currentCycleRealizedPnl))
   const [avgPrice, setAvgPrice] = useState(base.avgPrice == null ? '' : String(base.avgPrice))
   const [holdings, setHoldings] = useState(String(base.holdings))
-  const [isPending, setIsPending] = useState(false)
+  const updateMutation = useUpdateAdminPrivacyBaseMutation(base.id)
 
   const canSubmit = currentCycleStart !== '' && currentCycleRealizedPnl !== '' && holdings !== ''
+  const isPending = updateMutation.isPending
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!canSubmit) return
-    setIsPending(true)
-    try {
-      const updated = await updateAdminPrivacyBase(base.id, {
-        currentCycleStart: Number(currentCycleStart),
-        currentCycleRealizedPnl: Number(currentCycleRealizedPnl),
-        avgPrice: avgPrice === '' ? null : Number(avgPrice),
-        holdings: Number(holdings),
-      })
-      toast.success('P 매매표가 수정되었습니다')
-      onUpdated(updated)
-      onOpenChange(false)
-    } catch (err) {
-      toast.error(apiMsg(err, '수정에 실패했습니다'))
-    } finally {
-      setIsPending(false)
-    }
+    updateMutation.mutate({
+      currentCycleStart: Number(currentCycleStart),
+      currentCycleRealizedPnl: Number(currentCycleRealizedPnl),
+      avgPrice: avgPrice === '' ? null : Number(avgPrice),
+      holdings: Number(holdings),
+    }, {
+      onSuccess: () => {
+        toast.success('P 매매표가 수정되었습니다')
+        onOpenChange(false)
+      },
+    })
   }
 
   return (

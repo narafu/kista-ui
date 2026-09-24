@@ -1,16 +1,13 @@
+import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
-import { listAdminPrivacyBases } from '@entities/privacy'
+import { adminPrivacyBasesQueryOptions, filterAdminPrivacyBasesByRange, privacyKeys } from '@entities/privacy'
 import { AdminPrivacyBaseTable } from '@widgets/admin-privacy-trade-list/AdminPrivacyBaseTable'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { UrlRangeFilterBar } from '@shared/ui/UrlRangeFilterBar'
 import type { AdminPrivacyBase } from '@entities/privacy'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
-
-function filterByRange(bases: AdminPrivacyBase[], from?: string, to?: string): AdminPrivacyBase[] {
-  if (!from && !to) return bases
-  return bases.filter((b) => (!from || b.releaseDate >= from) && (!to || b.releaseDate <= to))
-}
+import { createQueryClient } from '@shared/lib/query'
 
 export default async function AdminPrivacyTradesPage({
   searchParams,
@@ -24,15 +21,14 @@ export default async function AdminPrivacyTradesPage({
   const sizeStr = String(size)
 
   const token = await getAuthToken()
-  const all: AdminPrivacyBase[] = token
-    ? await listAdminPrivacyBases(token).catch(() => [])
-    : []
+  const queryClient = createQueryClient()
+  if (token) await queryClient.prefetchQuery(adminPrivacyBasesQueryOptions(token))
+  const all = queryClient.getQueryData<AdminPrivacyBase[]>(privacyKeys.list()) ?? []
 
   const { from: windowFrom, to: windowTo } = resolveRange(range, from, to)
-  const filtered = filterByRange(all, windowFrom, windowTo)
+  const filtered = filterAdminPrivacyBasesByRange(all, windowFrom, windowTo)
   const totalPages = Math.max(1, Math.ceil(filtered.length / size))
   const currentPage = Math.min(page, totalPages)
-  const bases = filtered.slice((currentPage - 1) * size, currentPage * size)
 
   return (
     <div>
@@ -46,17 +42,9 @@ export default async function AdminPrivacyTradesPage({
         <PageSizeSelector value={sizeStr} />
       </div>
 
-      <AdminPrivacyBaseTable
-        // 필터·페이지 변경은 router.push(soft navigation)라 컴포넌트가 리마운트되지 않는다 —
-        // 로컬 state(bases/totalCount)가 새 서버 props와 동기화되도록 조회 조건을 key로 강제 리마운트한다.
-        key={`${range}-${size}-${currentPage}-${from ?? ''}-${to ?? ''}`}
-        bases={bases}
-        totalCount={filtered.length}
-        windowFrom={windowFrom}
-        windowTo={windowTo}
-        pageSize={size}
-        isFirstPage={currentPage === 1}
-      />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <AdminPrivacyBaseTable windowFrom={windowFrom} windowTo={windowTo} pageSize={size} currentPage={currentPage} />
+      </HydrationBoundary>
       <PaginationBar page={currentPage} totalPages={totalPages} />
     </div>
   )

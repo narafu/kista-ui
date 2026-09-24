@@ -8,46 +8,40 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SaveButton } from '@shared/ui/SaveButton'
-import { apiMsg } from '@shared/lib/api-client'
-import { addAdminPrivacyOrder, orderRequiresQuantity } from '@entities/privacy'
-import type { AdminPrivacyBase, AdminPrivacyOrder } from '@entities/privacy'
+import { orderRequiresQuantity, useAddAdminPrivacyOrderMutation } from '@entities/privacy'
+import type { AdminPrivacyOrder } from '@entities/privacy'
 
 interface Props {
   baseId: string
   open: boolean
   onOpenChange: (open: boolean) => void
-  onAdded: (base: AdminPrivacyBase) => void
 }
 
-export function AddPrivacyOrderDialog({ baseId, open, onOpenChange, onAdded }: Props) {
+export function AddPrivacyOrderDialog({ baseId, open, onOpenChange }: Props) {
   const [direction, setDirection] = useState<AdminPrivacyOrder['direction']>('BUY')
   const [orderType, setOrderType] = useState<AdminPrivacyOrder['orderType']>('LOC')
   const [price, setPrice] = useState('')
   const [quantity, setQuantity] = useState('')
-  const [isPending, setIsPending] = useState(false)
+  const addMutation = useAddAdminPrivacyOrderMutation(baseId)
 
   // BUY는 quantity 필수 — 서버가 400으로 거부하므로 선제 차단.
   const canSubmit = price !== '' && (!orderRequiresQuantity(direction) || quantity !== '')
+  const isPending = addMutation.isPending
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!canSubmit) return
-    setIsPending(true)
-    try {
-      const updated = await addAdminPrivacyOrder(baseId, {
-        direction,
-        orderType,
-        price: Number(price),
-        quantity: quantity === '' ? null : Number(quantity),
-      })
-      toast.success('주문이 추가되었습니다')
-      onAdded(updated)
-      onOpenChange(false)
-    } catch (err) {
-      toast.error(apiMsg(err, '추가에 실패했습니다'))
-    } finally {
-      setIsPending(false)
-    }
+    addMutation.mutate({
+      direction,
+      orderType,
+      price: Number(price),
+      quantity: quantity === '' ? null : Number(quantity),
+    }, {
+      onSuccess: () => {
+        toast.success('주문이 추가되었습니다')
+        onOpenChange(false)
+      },
+    })
   }
 
   return (

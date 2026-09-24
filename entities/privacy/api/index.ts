@@ -1,4 +1,4 @@
-import { apiFetch, clientFetch, jsonBody } from '@shared/lib/api-client'
+import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import type {
   AdminPrivacyBase,
   AdminPrivacyBaseCreateRequest,
@@ -7,11 +7,11 @@ import type {
   AdminPrivacyOrderUpdateRequest,
 } from '../model/types'
 
-// 관리자 — PRIVACY P 매매표 목록 (Server Component 전용, token 필요)
-// days 미전달 시 전체 기간 조회
-export async function listAdminPrivacyBases(token: string, days?: number): Promise<AdminPrivacyBase[]> {
+// 관리자 — PRIVACY P 매매표 목록. Server Component는 token과 함께, Client Component는
+// token 없이 호출(admin catch-all 라우트가 GET도 프록시). days 미전달 시 전체 기간 조회
+export async function listAdminPrivacyBases(token?: string, days?: number): Promise<AdminPrivacyBase[]> {
   const qs = days != null ? `?days=${days}` : ''
-  return apiFetch<AdminPrivacyBase[]>(`/api/admin/privacy-trade-bases${qs}`, { method: 'GET' }, token)
+  return fetchEither<AdminPrivacyBase[]>(`/api/admin/privacy-trade-bases${qs}`, { method: 'GET' }, token)
 }
 
 // 관리자 — P 매매표 등록(privacy_master 생성 + 주문). 기존 FIDA 수신 로직 재사용 —

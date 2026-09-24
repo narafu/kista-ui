@@ -11,14 +11,12 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { IconButton } from '@shared/ui/IconButton'
 import { SaveButton } from '@shared/ui/SaveButton'
 import { todayKst } from '@shared/lib/format'
-import { apiMsg } from '@shared/lib/api-client'
-import { createAdminPrivacyBase, orderRequiresQuantity } from '@entities/privacy'
-import type { AdminPrivacyBase, AdminPrivacyOrder, AdminPrivacyOrderRequest } from '@entities/privacy'
+import { orderRequiresQuantity, useCreateAdminPrivacyBaseMutation } from '@entities/privacy'
+import type { AdminPrivacyOrder, AdminPrivacyOrderRequest } from '@entities/privacy'
 
 interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onCreated: (base: AdminPrivacyBase) => void
 }
 
 interface DraftOrder {
@@ -30,7 +28,7 @@ interface DraftOrder {
 
 const EMPTY_ORDER: DraftOrder = { direction: 'BUY', orderType: 'LOC', price: '', quantity: '' }
 
-export function CreatePrivacyBaseDialog({ open, onOpenChange, onCreated }: Props) {
+export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
   const [releaseDate, setReleaseDate] = useState(todayKst())
   const [ticker, setTicker] = useState('SOXL')
   const [currentCycleStart, setCurrentCycleStart] = useState('')
@@ -38,7 +36,7 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange, onCreated }: Props
   const [avgPrice, setAvgPrice] = useState('')
   const [holdings, setHoldings] = useState('0')
   const [orders, setOrders] = useState<DraftOrder[]>([{ ...EMPTY_ORDER }])
-  const [isPending, setIsPending] = useState(false)
+  const createMutation = useCreateAdminPrivacyBaseMutation()
 
   const ordersValid = orders.every((o) => o.price !== '' && (!orderRequiresQuantity(o.direction) || o.quantity !== ''))
   const canSubmit = ticker.trim() !== '' && releaseDate !== '' && currentCycleStart !== '' && currentCycleRealizedPnl !== '' && holdings !== '' && ordersValid
@@ -47,34 +45,32 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange, onCreated }: Props
     setOrders((prev) => prev.map((o, i) => (i === index ? { ...o, ...patch } : o)))
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!canSubmit) return
-    setIsPending(true)
-    try {
-      const orderRequests: AdminPrivacyOrderRequest[] = orders.map((o) => ({
-        direction: o.direction,
-        orderType: o.orderType,
-        price: Number(o.price),
-        quantity: o.quantity === '' ? null : Number(o.quantity),
-      }))
-      const created = await createAdminPrivacyBase({
-        releaseDate,
-        ticker: ticker.trim(),
-        currentCycleStart: Number(currentCycleStart),
-        currentCycleRealizedPnl: Number(currentCycleRealizedPnl),
-        avgPrice: avgPrice === '' ? null : Number(avgPrice),
-        holdings: Number(holdings),
-        orders: orderRequests,
-      })
-      onCreated(created)
-      onOpenChange(false)
-    } catch (err) {
-      toast.error(apiMsg(err, '등록에 실패했습니다'))
-    } finally {
-      setIsPending(false)
-    }
+    const orderRequests: AdminPrivacyOrderRequest[] = orders.map((o) => ({
+      direction: o.direction,
+      orderType: o.orderType,
+      price: Number(o.price),
+      quantity: o.quantity === '' ? null : Number(o.quantity),
+    }))
+    createMutation.mutate({
+      releaseDate,
+      ticker: ticker.trim(),
+      currentCycleStart: Number(currentCycleStart),
+      currentCycleRealizedPnl: Number(currentCycleRealizedPnl),
+      avgPrice: avgPrice === '' ? null : Number(avgPrice),
+      holdings: Number(holdings),
+      orders: orderRequests,
+    }, {
+      onSuccess: () => {
+        toast.success('P 매매표가 등록되었습니다')
+        onOpenChange(false)
+      },
+    })
   }
+
+  const isPending = createMutation.isPending
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
