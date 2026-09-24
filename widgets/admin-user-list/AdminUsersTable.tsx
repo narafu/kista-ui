@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { useAdminUsersQuery } from '@entities/admin'
 import type { AdminUsersQueryParams } from '@entities/admin'
 import { ChangeRoleButton } from '@features/admin/change-role'
@@ -11,6 +10,7 @@ import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Badge } from '@shared/ui/Badge'
 import { ADMIN_USER_STATUS_LABEL, USER_STATUS_TONE } from '@entities/user'
+import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
 
 interface Props {
   currentUserId: string | null
@@ -20,17 +20,7 @@ interface Props {
 
 export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props) {
   const { data: users = [] } = useAdminUsersQuery(undefined, queryParams)
-  const [page, setPage] = useState(1)
-  const [size, setSize] = useState(10)
-
-  const totalPages = Math.max(1, Math.ceil(users.length / size))
-  const currentPage = Math.min(page, totalPages)
-  const paged = users.slice((currentPage - 1) * size, currentPage * size)
-
-  const handleSizeChange = (s: string) => {
-    setSize(Number(s))
-    setPage(1)
-  }
+  const { page: currentPage, setPage, size, totalPages, paged, handlePageSizeChange } = useClientPagination(users)
 
   if (users.length === 0) {
     return (
@@ -42,7 +32,7 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
     <div>
       <div className="flex items-center justify-between mb-4">
         <div>{filterBar}</div>
-        <PageSizeSelector value={String(size)} onChange={handleSizeChange} />
+        <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
       </div>
 
       <div className="rounded-[var(--r-lg)] border border-border overflow-x-auto">

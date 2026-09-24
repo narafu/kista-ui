@@ -2,19 +2,21 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
+import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtKrw } from '@shared/lib/format'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
+import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
+import { useTableSort } from '@shared/lib/hooks/use-table-sort'
 import {
   collectSubtreeIds,
   filterByType,
@@ -35,7 +37,6 @@ import { TransactionFormDialog } from '@features/finance/save-transaction'
 import { FinanceRecordFilters } from './FinanceRecordFilters'
 
 type SortKey = 'transactionDate' | 'category' | 'amount'
-type SortDirection = 'asc' | 'desc'
 
 interface Props {
   type: FinanceCategoryType
@@ -73,10 +74,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
   }
 
   const [categoryPath, setCategoryPath] = useState<string[]>([])
-  const [sortKey, setSortKey] = useState<SortKey>('transactionDate')
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
-  const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState('10')
+  const { sortKey, sortDirection, handleSort } = useTableSort<SortKey>('transactionDate')
 
   const editDialog = useConfirmDialog<FinanceTransaction>()
   const deleteDialog = useConfirmDialog<string>()
@@ -113,36 +111,12 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
     return copy
   }, [filtered, sortKey, sortDirection, index])
 
+  const { page: currentPage, setPage, size, totalPages, paged, handlePageSizeChange } = useClientPagination(sorted)
+
   // 카테고리 필터·기간 변경은 결과 집합 자체를 바꾸므로 페이지를 1로 리셋한다(AssetRecordList와 동일 이유).
   useEffect(() => {
     setPage(1)
   }, [categoryPath, period.month, period.mode])
-
-  function handlePageSizeChange(nextSize: string) {
-    setPageSize(nextSize)
-    setPage(1)
-  }
-
-  const size = Number(pageSize)
-  const totalPages = Math.max(1, Math.ceil(sorted.length / size))
-  const currentPage = Math.min(page, totalPages)
-  const paged = sorted.slice((currentPage - 1) * size, currentPage * size)
-
-  function handleSort(key: SortKey) {
-    if (sortKey === key) {
-      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
-    } else {
-      setSortKey(key)
-      setSortDirection('desc')
-    }
-  }
-
-  function sortIcon(key: SortKey) {
-    if (sortKey !== key) return <ArrowUpDown className="size-3.5 inline ml-1 text-muted-foreground/50" />
-    return sortDirection === 'asc'
-      ? <ArrowUp className="size-3.5 inline ml-1" />
-      : <ArrowDown className="size-3.5 inline ml-1" />
-  }
 
   // 카테고리가 삭제돼 이 타입 어디에도 속하지 못하는 거래 — 필터링해 숨기지 않고 존재만 알린다.
   const unclassifiedCount = useMemo(() => {
@@ -179,7 +153,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
               categoryPath={categoryPath}
               onCategoryPathChange={setCategoryPath}
             />
-            <PageSizeSelector value={pageSize} onChange={handlePageSizeChange} />
+            <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
           </div>
 
           {sorted.length === 0 ? (
@@ -190,21 +164,9 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                 <table className="w-full min-w-[720px] text-sm" aria-label="거래내역">
                   <thead className="bg-muted/50">
                     <tr>
-                      <TableHeadCell aria-sort={sortKey === 'transactionDate' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}>
-                        <button type="button" onClick={() => handleSort('transactionDate')}>
-                          날짜{sortIcon('transactionDate')}
-                        </button>
-                      </TableHeadCell>
-                      <TableHeadCell aria-sort={sortKey === 'category' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}>
-                        <button type="button" onClick={() => handleSort('category')}>
-                          카테고리{sortIcon('category')}
-                        </button>
-                      </TableHeadCell>
-                      <TableHeadCell aria-sort={sortKey === 'amount' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}>
-                        <button type="button" onClick={() => handleSort('amount')}>
-                          금액{sortIcon('amount')}
-                        </button>
-                      </TableHeadCell>
+                      <SortableHeadCell sortKey="transactionDate" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>날짜</SortableHeadCell>
+                      <SortableHeadCell sortKey="category" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>카테고리</SortableHeadCell>
+                      <SortableHeadCell sortKey="amount" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>금액</SortableHeadCell>
                       <TableHeadCell>메모</TableHeadCell>
                       <TableHeadCell className="whitespace-nowrap">작업</TableHeadCell>
                     </tr>

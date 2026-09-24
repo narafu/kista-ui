@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
 import {
   adminKeys,
   useAdminAccountsByUserQuery,
@@ -42,8 +43,6 @@ function uniqBy<T>(items: T[], getKey: (item: T) => string): T[] {
 export function AdminTradesWorkbench({ initialTrades, initialPage, initialSize }: Props) {
   const queryClient = useQueryClient()
 
-  const [page, setPage] = useState(initialPage)
-  const [size, setSize] = useState(initialSize)
   const [selectedUserId, setSelectedUserId] = useState('')
   const [selectedBroker, setSelectedBroker] = useState('')
   const [selectedAccountId, setSelectedAccountId] = useState('')
@@ -91,9 +90,7 @@ export function AdminTradesWorkbench({ initialTrades, initialPage, initialSize }
     if (selectedStrategy && trade.strategyId !== selectedStrategy.id) return false
     return true
   })
-  const totalPages = Math.max(1, Math.ceil(filteredTrades.length / size))
-  const currentPage = Math.min(page, totalPages)
-  const pagedTrades = filteredTrades.slice((currentPage - 1) * size, currentPage * size)
+  const { page: currentPage, setPage, size, totalPages, paged: pagedTrades, handlePageSizeChange } = useClientPagination(filteredTrades, { initialPage, initialSize })
 
   // 선택 단계가 바뀔 때마다 반복되는 피드백 초기화 + 1페이지 복귀 — 예전 reducer의
   // FEEDBACK_CLEAR 상수와 같은 역할, 새 선택 핸들러 추가 시 이 호출을 빠뜨리지 않도록 모은다.
@@ -246,7 +243,7 @@ export function AdminTradesWorkbench({ initialTrades, initialPage, initialSize }
 
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <h2 className="text-base font-semibold">거래 내역</h2>
-        <PageSizeSelector value={String(size)} onChange={(nextSize) => { setSize(Number(nextSize)); setPage(1) }} />
+        <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
       </div>
 
       <AdminTradesTable trades={pagedTrades} />

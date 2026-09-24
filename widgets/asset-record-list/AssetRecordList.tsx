@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { ArrowDown, ArrowUp, ArrowUpDown, Copy, Pencil, Share2, Trash2, Undo2 } from 'lucide-react'
+import { Copy, Pencil, Share2, Trash2, Undo2 } from 'lucide-react'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
@@ -11,12 +11,15 @@ import { SectionError } from '@shared/ui/SectionError'
 import { ICON_LINK_GHOST_CLASS, IconButton } from '@shared/ui/IconButton'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
+import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtKrw } from '@shared/lib/format'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
+import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
+import { useTableSort } from '@shared/lib/hooks/use-table-sort'
 import { useMeta } from '@entities/meta'
 import {
   ASSET_L1_CATEGORY_IDS,
@@ -41,7 +44,6 @@ import { AssetRecordFilters, ALL_FILTER_VALUE } from './AssetRecordFilters'
 import type { AssetFilterValue } from './AssetRecordFilters'
 
 type SortKey = 'entryDate' | 'category' | 'amount'
-type SortDirection = 'asc' | 'desc'
 
 const CATEGORY_TONE: Record<string, 'brand' | 'error' | 'neutral'> = {
   [SYSTEM_INVESTMENT_CATEGORY_ID]: 'brand',
@@ -132,10 +134,7 @@ export function AssetRecordList({ month }: Props) {
   const [categoryPath, setCategoryPath] = useState<string[]>([])
   const [assetClass, setAssetClass] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
   const [market, setMarket] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
-  const [sortKey, setSortKey] = useState<SortKey>('entryDate')
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
-  const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState('10')
+  const { sortKey, sortDirection, handleSort } = useTableSort<SortKey>('entryDate')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const deleteDialog = useConfirmDialog<string[]>()
 
@@ -164,6 +163,8 @@ export function AssetRecordList({ month }: Props) {
     return copy
   }, [filtered, sortKey, sortDirection])
 
+  const { page: currentPage, setPage, size, totalPages, paged, handlePageSizeChange } = useClientPagination(sorted)
+
   // 필터 변경은 결과 집합 자체를 바꾸므로 페이지를 1로 리셋하고 선택도 초기화한다(선택 유지 시
   // 필터를 바꾼 뒤 화면에 없는 레코드가 실수로 함께 삭제될 수 있다). 정렬·페이지 이동은 같은 결과
   // 집합 안에서의 보기 방식만 바꿀 뿐이므로 선택을 유지한다 — 여러 페이지에 걸친 선택 삭제(다건
@@ -172,16 +173,6 @@ export function AssetRecordList({ month }: Props) {
     setPage(1)
     setSelectedIds(new Set())
   }, [month, categoryPath, assetClass, market])
-
-  function handlePageSizeChange(nextSize: string) {
-    setPageSize(nextSize)
-    setPage(1)
-  }
-
-  const size = Number(pageSize)
-  const totalPages = Math.max(1, Math.ceil(sorted.length / size))
-  const currentPage = Math.min(page, totalPages)
-  const paged = sorted.slice((currentPage - 1) * size, currentPage * size)
 
   const pagedIds = useMemo(() => paged.map((snapshot) => snapshot.id), [paged])
   const allPagedSelected = pagedIds.length > 0 && pagedIds.every((id) => selectedIds.has(id))
@@ -212,22 +203,6 @@ export function AssetRecordList({ month }: Props) {
       }
       return next
     })
-  }
-
-  function handleSort(key: SortKey) {
-    if (sortKey === key) {
-      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
-    } else {
-      setSortKey(key)
-      setSortDirection('desc')
-    }
-  }
-
-  function sortIcon(key: SortKey) {
-    if (sortKey !== key) return <ArrowUpDown className="size-3.5 inline ml-1 text-muted-foreground/50" />
-    return sortDirection === 'asc'
-      ? <ArrowUp className="size-3.5 inline ml-1" />
-      : <ArrowDown className="size-3.5 inline ml-1" />
   }
 
   function confirmDelete() {
@@ -277,7 +252,7 @@ export function AssetRecordList({ month }: Props) {
           onAssetClassChange={setAssetClass}
           onMarketChange={setMarket}
         />
-        <PageSizeSelector value={pageSize} onChange={handlePageSizeChange} />
+        <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
       </div>
 
       {selectedIds.size > 0 && (
@@ -313,26 +288,14 @@ export function AssetRecordList({ month }: Props) {
                       className={cn('size-4', monthClosed && 'opacity-40')}
                     />
                   </TableHeadCell>
-                  <TableHeadCell aria-sort={sortKey === 'entryDate' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}>
-                    <button type="button" onClick={() => handleSort('entryDate')}>
-                      기준일{sortIcon('entryDate')}
-                    </button>
-                  </TableHeadCell>
-                  <TableHeadCell aria-sort={sortKey === 'category' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}>
-                    <button type="button" onClick={() => handleSort('category')}>
-                      카테고리{sortIcon('category')}
-                    </button>
-                  </TableHeadCell>
+                  <SortableHeadCell sortKey="entryDate" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>기준일</SortableHeadCell>
+                  <SortableHeadCell sortKey="category" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>카테고리</SortableHeadCell>
                   <TableHeadCell>시장</TableHeadCell>
                   <TableHeadCell>자산군</TableHeadCell>
                   <TableHeadCell>운용전략</TableHeadCell>
                   <TableHeadCell>메모</TableHeadCell>
                   <TableHeadCell>계좌</TableHeadCell>
-                  <TableHeadCell aria-sort={sortKey === 'amount' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}>
-                    <button type="button" onClick={() => handleSort('amount')}>
-                      금액{sortIcon('amount')}
-                    </button>
-                  </TableHeadCell>
+                  <SortableHeadCell sortKey="amount" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>금액</SortableHeadCell>
                   <TableHeadCell className="whitespace-nowrap">작업</TableHeadCell>
                 </tr>
               </thead>

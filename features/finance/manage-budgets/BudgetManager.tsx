@@ -15,6 +15,7 @@ import { BRAND_TINT_BUTTON_CLASS } from '@shared/ui/brand-button-class'
 import { cn } from '@shared/lib/utils'
 import { fmtKrw, todayKst } from '@shared/lib/format'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
+import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
 import {
   collectSubtreeIds,
   getCascadeLevels,
@@ -52,8 +53,6 @@ export function BudgetManager({ type }: Props) {
 
   const [categoryPath, setCategoryPath] = useState<string[]>([])
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ACTIVE')
-  const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState('10')
 
   // 계단식 카테고리 필터: 특정 depth에서 멈추면 그 하위 전부를 포함해 매칭한다(AssetRecordList와 동일 패턴).
   const cascadeLevels = useMemo(() => getCascadeLevels(categories, categoryPath), [categories, categoryPath])
@@ -73,20 +72,12 @@ export function BudgetManager({ type }: Props) {
     (statusFilter === ALL_FILTER_VALUE || (statusFilter === 'ACTIVE' ? isActiveBudget(b) : !isActiveBudget(b))),
   ), [budgets, categorySubtreeIds, statusFilter, today])
 
+  const { page: currentPage, setPage, size, totalPages, paged, handlePageSizeChange } = useClientPagination(filtered)
+
   // 필터 변경은 결과 집합을 바꾸므로 페이지를 1로 리셋한다(AssetRecordList와 동일 패턴).
   useEffect(() => {
     setPage(1)
   }, [categoryPath, statusFilter])
-
-  function handlePageSizeChange(nextSize: string) {
-    setPageSize(nextSize)
-    setPage(1)
-  }
-
-  const size = Number(pageSize)
-  const totalPages = Math.max(1, Math.ceil(filtered.length / size))
-  const currentPage = Math.min(page, totalPages)
-  const paged = filtered.slice((currentPage - 1) * size, currentPage * size)
 
   const [formTarget, setFormTarget] = useState<FormTarget | null>(null)
   const deleteDialog = useConfirmDialog<FinanceBudget>()
@@ -134,7 +125,7 @@ export function BudgetManager({ type }: Props) {
               <SelectItem value="ENDED">종료</SelectItem>
             </SelectContent>
           </Select>
-          <PageSizeSelector value={pageSize} onChange={handlePageSizeChange} />
+          <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
         </div>
         <div className="flex justify-end">
           <Button type="button" size="sm" className={cn('gap-1.5', BRAND_TINT_BUTTON_CLASS)} onClick={() => setFormTarget({ mode: 'create' })}>

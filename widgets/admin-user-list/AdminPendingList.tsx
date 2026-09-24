@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { Clock } from 'lucide-react'
 import { useAdminUsersQuery } from '@entities/admin'
 import { ApproveRejectButtons } from '@features/admin/approve-reject'
@@ -8,24 +7,15 @@ import { fmtDate } from '@shared/lib/format'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
 interface Props {
   max?: number
 }
 
 export function AdminPendingList({ max }: Props) {
   const { data: users = [] } = useAdminUsersQuery('PENDING')
-  const [page, setPage] = useState(1)
-  const [size, setSize] = useState(10)
-
   const source = max ? users.slice(0, max) : users
-  const totalPages = Math.max(1, Math.ceil(source.length / size))
-  const currentPage = Math.min(page, totalPages)
-  const displayed = source.slice((currentPage - 1) * size, currentPage * size)
-
-  const handleSizeChange = (s: string) => {
-    setSize(Number(s))
-    setPage(1)
-  }
+  const { page: currentPage, setPage, size, totalPages, paged: displayed, handlePageSizeChange } = useClientPagination(source)
 
   if (source.length === 0) {
     return (
@@ -38,7 +28,7 @@ export function AdminPendingList({ max }: Props) {
   return (
     <div>
       <div className="flex justify-end mb-4">
-        <PageSizeSelector value={String(size)} onChange={handleSizeChange} />
+        <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
       </div>
 
       <div className="grid gap-3">
