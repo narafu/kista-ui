@@ -5,18 +5,14 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
-import { isMockBroker } from '@shared/lib/api-schema'
-import { useMeta } from '@entities/meta'
-import { useAccountMarginQuery, useAccountPricesQuery } from '@entities/account'
 import { useCreateStrategyMutation, useUpdateStrategyMutation, useStrategySeedPreviewQuery } from '@entities/strategy'
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
 import { tradeKeys } from '@entities/trade'
 import type { CycleSeedType, Strategy } from '@entities/strategy'
 import type { BrokerCode, PriceMap } from '@entities/account'
-import { useMeQuery } from '@entities/user'
-import { useRuntimeConfigQuery } from '@entities/runtime-config'
 import type { RuntimeFieldSettings, RuntimeStrategyType } from '@entities/runtime-config'
+import { useStrategyFormData } from './useStrategyFormData'
 import { useSeedModel } from './useSeedModel'
 import { computeVrDerived } from './vrDerived'
 import type { VrRecurringMode } from './vrDerived'
@@ -126,13 +122,10 @@ export function useStrategyForm({
   onSuccess,
 }: UseStrategyFormOptions): UseStrategyFormReturn {
   const queryClient = useQueryClient()
-  const isMock = isMockBroker(broker)
-  const { meta, findStrategyType } = useMeta()
-  const runtimeQuery = useRuntimeConfigQuery()
-  const runtimeConfig = runtimeQuery.data
-  const enabledStrategyTypes = meta.strategyTypes
-    .filter(({ code }) => runtimeConfig?.strategies[code as RuntimeStrategyType]?.enabled === true)
-    .map(({ code }) => code)
+  const {
+    isMock, meta, findStrategyType, runtimeQuery, runtimeConfig, enabledStrategyTypes,
+    balanceCheckEnabled, marginItems, marginLoading, prices,
+  } = useStrategyFormData(accountId, broker)
 
   const handleMutationSuccess = async () => {
     toast.success(initial ? '전략이 수정되었습니다' : '전략이 등록되었습니다')
@@ -230,21 +223,6 @@ export function useStrategyForm({
     bandWidth: runtimeStrategy?.fields.bandWidth,
     intervalWeeks: runtimeStrategy?.fields.intervalWeeks,
   }
-
-  const { data: meData } = useMeQuery()
-  // 모의계좌는 실제 잔고가 없어 예수금 조회 자체가 무의미 — 항상 수동 입력
-  const balanceCheckEnabled = (meData?.balanceCheckEnabled ?? true) && !isMock
-
-  // 잔고검증 OFF면 예수금 불필요 → margin 쿼리 skip
-  // eslint-disable-next-line react-doctor/no-event-handler
-  const { items: marginItems, isLoading: marginLoading } = useAccountMarginQuery(accountId, {
-    enabled: balanceCheckEnabled,
-  })
-
-  // 티커 선택 버튼의 가격 표시용 — 여러 ticker 동시 (basePrice 계산엔 미사용)
-  const allTickerCodes = useMemo(() => meta.tickers.map((t) => t.code), [meta.tickers])
-  const { data: pricesData } = useAccountPricesQuery(accountId, allTickerCodes)
-  const prices = pricesData ?? null
 
   // basePrice/minSeed는 백엔드 계산 — VR 전략은 시드 미리보기 불필요
   const seedPreview = useStrategySeedPreviewQuery(
