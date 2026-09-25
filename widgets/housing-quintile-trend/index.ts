@@ -1,0 +1,1 @@
+export { HousingQuintileTrend } from './HousingQuintileTrend'

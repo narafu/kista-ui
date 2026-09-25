@@ -1,4 +1,4 @@
-import { getHousingQuintilesByRegionName } from './housingBenchmarkContent'
+import { getHousingQuintilesByRegionName } from './housingQuintileContent'
 
 interface Props {
   regionName: string
