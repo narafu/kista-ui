@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, type ReactNode } from 'react'
 import { useHousingBenchmarkQuery, useHousingBenchmarkRegionsQuery } from '@entities/stats'
-import type { HousingBenchmark, HousingBenchmarkRegion } from '@entities/stats'
+import type { HousingBenchmark } from '@entities/stats'
 import { DEFAULT_RUNTIME_BENCHMARKS, useRuntimeConfigQuery } from '@entities/runtime-config'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
@@ -12,9 +12,7 @@ import { EtfPriceChart } from './EtfPriceChart'
 import { HousingBenchmarkChart } from './HousingBenchmarkChart'
 import { HousingBenchmarkSummary } from './HousingBenchmarkSummary'
 import { HousingBenchmarkInfo } from './HousingBenchmarkInfo'
-import { HousingBenchmarkQuintileTrendChart } from './HousingBenchmarkQuintileTrendChart'
 import { HousingPriceIndexChart } from './HousingPriceIndexChart'
-import { HousingBenchmarkRegionQuintileInfo } from './HousingBenchmarkRegionQuintileInfo'
 import { emptyMessage, uniqueSymbols } from './model/benchmarkPeriods'
 import { useBenchmarkFilters } from './model/useBenchmarkFilters'
 import { useBenchmarkStrategyOptions } from './model/useBenchmarkStrategyOptions'
@@ -24,9 +22,10 @@ import { getEtfBenchmarkContent } from './housingBenchmarkContent'
 interface Props {
   enabled: boolean
   defaultTo: string
+  renderHousingExtras?: (range: { from?: string; to: string }) => ReactNode
 }
 
-export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
+export function HousingBenchmarkComparison({ enabled, defaultTo, renderHousingExtras }: Props) {
   const runtimeConfigQuery = useRuntimeConfigQuery()
   const runtimeEtfSettings = runtimeConfigQuery.data?.benchmarks?.etf ?? DEFAULT_RUNTIME_BENCHMARKS.etf
   const etfSymbols = useMemo(() => {
@@ -48,12 +47,6 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
   const regions = regionsQuery.data?.regions ?? []
   const selectedRegionName = regions.find((region) => region.code === filters.regionCode)?.name
     ?? DEFAULT_HOUSING_REGION_NAME
-
-  const [trendRegionName, setTrendRegionName] = useState<string>(DEFAULT_HOUSING_REGION_NAME)
-  const handleTrendRegionChange = useCallback(
-    (region: HousingBenchmarkRegion) => setTrendRegionName(region.name ?? DEFAULT_HOUSING_REGION_NAME),
-    [],
-  )
 
   // 전략 드롭다운은 두 자산 탭 모두 항상 노출되므로 조건 없이 로드한다
   const strategyOptions = useBenchmarkStrategyOptions(enabled)
@@ -186,13 +179,9 @@ export function HousingBenchmarkComparison({ enabled, defaultTo }: Props) {
         <HousingBenchmarkInfo benchmark={data?.benchmark ?? fallbackBenchmark} notice={data?.quality?.notice} />
       ) : null}
 
-      {/* 아파트 탭에서만 표시 — 사용자 투자 데이터와 무관하게 항상 나오는 5분위 원본 시계열, 위 비교 결과와 독립적, 상단 "비교 기간" 토글과 동일한 from/to 사용 */}
-      {activeAsset === 'HOUSING' ? (
-        <div className="flex flex-col gap-4">
-          <HousingBenchmarkQuintileTrendChart enabled={enabled} from={from} to={to} onRegionChange={handleTrendRegionChange} />
-          <HousingBenchmarkRegionQuintileInfo regionName={trendRegionName} />
-        </div>
-      ) : null}
+      {/* 아파트 탭에서만 표시 — 5분위 원본 시계열은 widgets/housing-quintile-trend가 담당,
+          이 위젯은 그 존재를 모르고 콜백만 호출한다(app 레이어 BenchmarkPageContent가 연결) */}
+      {activeAsset === 'HOUSING' ? renderHousingExtras?.({ from, to }) : null}
     </div>
   )
 }

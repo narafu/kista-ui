@@ -49,10 +49,6 @@ vi.mock('@entities/runtime-config', async (importOriginal) => {
   return { ...actual, useRuntimeConfigQuery: useRuntimeConfigQueryMock }
 })
 
-vi.mock('./HousingBenchmarkQuintileTrendChart', () => ({
-  HousingBenchmarkQuintileTrendChart: () => <div data-testid="housing-benchmark-quintile-trend-chart-stub" />,
-}))
-
 vi.mock('recharts', () => ({
   ResponsiveContainer: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   LineChart: ({ children, data }: { children: ReactNode; data: unknown[] }) => (
@@ -395,7 +391,8 @@ describe('HousingBenchmarkComparison', () => {
       isLoading: false,
       isError: false,
     })
-    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+    const renderHousingExtras = vi.fn(() => <div data-testid="housing-extras-stub" />)
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" renderHousingExtras={renderHousingExtras} />)
     await user.click(screen.getByRole('button', { name: '아파트' }))
 
     await user.selectOptions(screen.getByLabelText('전략'), 'NONE')
@@ -406,8 +403,16 @@ describe('HousingBenchmarkComparison', () => {
     expect(screen.getByText('서울 아파트 매매가격지수')).toBeInTheDocument()
     expect(screen.getByText('매매가격지수: indexValue')).toBeInTheDocument()
     expect(screen.queryByRole('table', { name: '장기 성과 지표 비교' })).not.toBeInTheDocument()
-    // 아파트 5분위 원본 시세 섹션은 '없음' 선택과 무관하게 항상 유지된다
-    expect(screen.getByTestId('housing-benchmark-quintile-trend-chart-stub')).toBeInTheDocument()
+    // 아파트 5분위 원본 시세 섹션(renderHousingExtras)은 '없음' 선택과 무관하게 항상 호출된다
+    expect(screen.getByTestId('housing-extras-stub')).toBeInTheDocument()
+  })
+
+  it('ETF 탭(기본 탭)에서는 renderHousingExtras를 호출하지 않는다', () => {
+    const renderHousingExtras = vi.fn(() => <div data-testid="housing-extras-stub" />)
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" renderHousingExtras={renderHousingExtras} />)
+
+    expect(renderHousingExtras).not.toHaveBeenCalled()
+    expect(screen.queryByTestId('housing-extras-stub')).not.toBeInTheDocument()
   })
 
   it("전략 드롭다운에서 '없음'에서 다시 '전체'로 되돌리면 비교 화면이 복원된다", async () => {
@@ -434,16 +439,6 @@ describe('HousingBenchmarkComparison', () => {
 
     expect(screen.queryByText('서울 3분위 안내')).not.toBeInTheDocument()
     expect(screen.queryByText(API_QUALITY_NOTICE)).not.toBeInTheDocument()
-  })
-
-  it('가격 추이 아래에 기본 지역(서울) 1~5분위 안내를 표시한다', async () => {
-    const user = userEvent.setup()
-    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
-    await user.click(screen.getByRole('button', { name: '아파트' }))
-
-    expect(screen.getByText('서울 아파트 5분위 안내')).toBeInTheDocument()
-    expect(screen.getByText(/노원구, 도봉구, 강북구/)).toBeInTheDocument()
-    expect(screen.getByText(/서초구, 강남구, 송파구, 용산구/)).toBeInTheDocument()
   })
 
   it('scope 변경 중에는 필터만 즉시 바꾸고 응답 라벨은 이전 스냅샷을 유지한 뒤 함께 갱신한다', async () => {
