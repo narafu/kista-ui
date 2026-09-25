@@ -1,4 +1,4 @@
-import type { EtfBenchmarkSymbol } from '@entities/stats'
+import { type EtfBenchmarkSymbol, DEFAULT_HOUSING_REGION_NAME } from '@entities/stats'
 
 export type HousingQuintile = 1 | 2 | 3 | 4 | 5
 
@@ -50,11 +50,7 @@ export const HOUSING_QUINTILES: HousingQuintileContent[] = [
 
 // "가격 추이" 비교지역 선택과 연동되는 지역별 5분위 안내 — 전국/수도권은 서울 설명 패턴(대표 지역·특징)에 맞춰 편집
 export type HousingRegionName = '전국' | '서울' | '수도권'
-
-export const DEFAULT_HOUSING_REGION_NAME: HousingRegionName = '서울'
-
-// 서버 기본값(GET /housing-benchmark, /housing-benchmark/series의 regionCode 기본값)과 동일
-export const DEFAULT_HOUSING_REGION_CODE = '1100000000'
+export { DEFAULT_HOUSING_REGION_NAME }
 
 const NATIONWIDE_QUINTILES: HousingQuintileContent[] = [
   {

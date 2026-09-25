@@ -56,3 +56,4 @@ export {
   formatHousingBenchmarkTooltipValue,
 } from './lib/housingBenchmarkChartFormatters'
 export type { HousingBenchmarkSeriesKey } from './lib/housingBenchmarkChartFormatters'
+export { DEFAULT_HOUSING_REGION_CODE, DEFAULT_HOUSING_REGION_NAME } from './lib/housingRegionDefaults'

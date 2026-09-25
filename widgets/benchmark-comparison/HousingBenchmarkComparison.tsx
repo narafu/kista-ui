@@ -18,10 +18,8 @@ import { HousingBenchmarkRegionQuintileInfo } from './HousingBenchmarkRegionQuin
 import { emptyMessage, uniqueSymbols } from './model/benchmarkPeriods'
 import { useBenchmarkFilters } from './model/useBenchmarkFilters'
 import { useBenchmarkStrategyOptions } from './model/useBenchmarkStrategyOptions'
-import {
-  DEFAULT_HOUSING_REGION_NAME,
-  getEtfBenchmarkContent,
-} from './housingBenchmarkContent'
+import { DEFAULT_HOUSING_REGION_NAME } from '@entities/stats'
+import { getEtfBenchmarkContent } from './housingBenchmarkContent'
 
 interface Props {
   enabled: boolean

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { EtfBenchmarkSymbol, HousingBenchmarkParams } from '@entities/stats'
-import { DEFAULT_HOUSING_REGION_CODE } from '../housingBenchmarkContent'
+import { DEFAULT_HOUSING_REGION_CODE } from '@entities/stats'
 import {
   BENCHMARK_PERIODS,
   fromMonthInput,
