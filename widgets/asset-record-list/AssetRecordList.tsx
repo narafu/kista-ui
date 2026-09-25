@@ -1,14 +1,12 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import Link from 'next/link'
 import { toast } from 'sonner'
-import { Copy, Pencil, Share2, Trash2, Undo2 } from 'lucide-react'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { SectionError } from '@shared/ui/SectionError'
-import { ICON_LINK_GHOST_CLASS, IconButton } from '@shared/ui/IconButton'
+import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
@@ -56,54 +54,6 @@ const CATEGORY_TONE: Record<string, 'brand' | 'error' | 'neutral'> = {
 // 카테고리명을 먼저 말해 화면(왼쪽 카테고리·오른쪽 계좌 등) 순서와 맞춘다.
 function accountLabel(snapshot: AssetSnapshot): string {
   return snapshot.accountName ? `${snapshot.categoryName} · ${snapshot.accountName}` : snapshot.categoryName
-}
-
-// 데스크탑 테이블 행·모바일 카드 행이 동일한 작업 버튼 세트를 공유한다.
-// locked면(마감된 달) 서버가 그 레코드의 수정·삭제·공유를 전면 차단하므로 미리 잠근다.
-// 복제는 사용자가 폼에서 새 기준일을 고르는 신규 생성이라 잠금 대상이 아니다.
-function AssetRecordActions({
-  snapshotId, onShare, onUnshare, onDelete, canShare, hasGroupId, sharePending, unsharePending, locked, lockTitle,
-}: {
-  snapshotId: string
-  onShare: () => void
-  onUnshare: () => void
-  onDelete: () => void
-  canShare: boolean
-  hasGroupId: boolean
-  sharePending: boolean
-  unsharePending: boolean
-  locked: boolean
-  lockTitle: string
-}) {
-  return (
-    <div className="flex shrink-0 items-center gap-1">
-      {canShare && !hasGroupId && (
-        <IconButton aria-label="공유" onClick={onShare} disabled={sharePending || locked} title={locked ? lockTitle : undefined} className={cn(locked && 'opacity-40')}>
-          <Share2 className="size-4" />
-        </IconButton>
-      )}
-      {canShare && hasGroupId && (
-        <IconButton aria-label="귀속" onClick={onUnshare} disabled={unsharePending || locked} title={locked ? lockTitle : undefined} className={cn(locked && 'opacity-40')}>
-          <Undo2 className="size-4" />
-        </IconButton>
-      )}
-      <Link href={`/finance/new?duplicateFrom=${snapshotId}`} aria-label="복제" title="복제" className={ICON_LINK_GHOST_CLASS}>
-        <Copy className="size-4" />
-      </Link>
-      {locked ? (
-        <IconButton aria-label="수정" disabled title={lockTitle} className="opacity-40">
-          <Pencil className="size-4" />
-        </IconButton>
-      ) : (
-        <Link href={`/finance/${snapshotId}/edit`} aria-label="수정" title="수정" className={ICON_LINK_GHOST_CLASS}>
-          <Pencil className="size-4" />
-        </Link>
-      )}
-      <IconButton aria-label="삭제" onClick={onDelete} disabled={locked} title={locked ? lockTitle : undefined} className={cn('text-destructive hover:text-destructive', locked && 'opacity-40')}>
-        <Trash2 className="size-4" />
-      </IconButton>
-    </div>
-  )
 }
 
 interface Props {
@@ -327,8 +277,9 @@ export function AssetRecordList({ month }: Props) {
                     </TableDataCell>
                     <TableDataCell>
                       <div className="flex items-center justify-center">
-                        <AssetRecordActions
-                          snapshotId={snapshot.id}
+                        <ShareableRowActions
+                          duplicateHref={`/finance/new?duplicateFrom=${snapshot.id}`}
+                          editHref={`/finance/${snapshot.id}/edit`}
                           onShare={() => handleShare(snapshot.id)}
                           onUnshare={() => handleUnshare(snapshot.id)}
                           onDelete={() => deleteDialog.request([snapshot.id])}
@@ -337,6 +288,7 @@ export function AssetRecordList({ month }: Props) {
                           sharePending={shareMutation.isPending}
                           unsharePending={unshareMutation.isPending}
                           locked={monthClosed}
+                          lockShare={monthClosed}
                           lockTitle={closedMonthTitle}
                         />
                       </div>
@@ -378,8 +330,9 @@ export function AssetRecordList({ month }: Props) {
                       <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
                         {[labelOf('markets', snapshot.market), snapshot.strategy, snapshot.accountName].filter(Boolean).join(' · ')}
                       </p>
-                      <AssetRecordActions
-                        snapshotId={snapshot.id}
+                      <ShareableRowActions
+                        duplicateHref={`/finance/new?duplicateFrom=${snapshot.id}`}
+                        editHref={`/finance/${snapshot.id}/edit`}
                         onShare={() => handleShare(snapshot.id)}
                         onUnshare={() => handleUnshare(snapshot.id)}
                         onDelete={() => deleteDialog.request([snapshot.id])}
@@ -388,6 +341,7 @@ export function AssetRecordList({ month }: Props) {
                         sharePending={shareMutation.isPending}
                         unsharePending={unshareMutation.isPending}
                         locked={monthClosed}
+                        lockShare={monthClosed}
                         lockTitle={closedMonthTitle}
                       />
                     </div>
