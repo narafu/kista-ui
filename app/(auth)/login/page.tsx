@@ -1,47 +1,47 @@
-"use client";
+'use client'
 
-import { Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import Image from "next/image";
+import { Suspense, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import Image from 'next/image'
 import { GlassCard } from '@widgets/glass-card'
 import { Spinner } from '@shared/ui/Spinner'
 import { safeRedirectPath } from '@shared/lib/auth/redirectPath'
 import { ApprovalNotice } from './ApprovalNotice'
 
 const ERROR_MESSAGES: Record<string, string> = {
-  no_code: "로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.",
-  auth_failed: "카카오 인증에 실패했습니다. 다시 시도해주세요.",
-  registration_failed: "서버 등록에 실패했습니다. 잠시 후 다시 시도해주세요.",
-  server_error: "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
-};
+  no_code: '로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.',
+  auth_failed: '카카오 인증에 실패했습니다. 다시 시도해주세요.',
+  registration_failed: '서버 등록에 실패했습니다. 잠시 후 다시 시도해주세요.',
+  server_error: '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+}
 
 function LoginPageContent() {
-  const searchParams = useSearchParams();
-  const urlError = searchParams.get("error");
-  const next = safeRedirectPath(searchParams.get("next"));
+  const searchParams = useSearchParams()
+  const urlError = searchParams.get('error')
+  const next = safeRedirectPath(searchParams.get('next'))
   const [errorMessage, setErrorMessage] = useState<string | null>(
     urlError
-      ? (ERROR_MESSAGES[urlError] ?? "알 수 없는 오류가 발생했습니다.")
+      ? (ERROR_MESSAGES[urlError] ?? '알 수 없는 오류가 발생했습니다.')
       : null,
-  );
+  )
   // eslint-disable-next-line react-doctor/rendering-usetransition-loading
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false)
 
   function handleKakaoLogin() {
-    if (isLoading) return;
-    setErrorMessage(null);
-    const clientId = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID;
+    if (isLoading) return
+    setErrorMessage(null)
+    const clientId = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID
     if (!clientId) {
-      setErrorMessage("카카오 로그인 설정이 올바르지 않습니다.");
-      return;
+      setErrorMessage('카카오 로그인 설정이 올바르지 않습니다.')
+      return
     }
-    setIsLoading(true);
+    setIsLoading(true)
     const redirectUri = encodeURIComponent(
       `${window.location.origin}/auth/callback`,
-    );
+    )
     // 카카오는 인증 완료 후 state를 그대로 콜백에 돌려준다 — 로그인 후 원래 가려던 경로 복원용
-    const stateParam = next ? `&state=${encodeURIComponent(next)}` : "";
-    window.location.href = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}${stateParam}`;
+    const stateParam = next ? `&state=${encodeURIComponent(next)}` : ''
+    window.location.href = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}${stateParam}`
   }
 
   return (
@@ -60,10 +60,10 @@ function LoginPageContent() {
           <h1
             className="display text-5xl tracking-[-1px] select-none"
             style={{
-              background: "linear-gradient(135deg, var(--rose-700) 0%, var(--rose-500) 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
+              background: 'linear-gradient(135deg, var(--rose-700) 0%, var(--rose-500) 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
             }}
           >
             KISTA
@@ -115,7 +115,7 @@ function LoginPageContent() {
         가입 시 서비스 약관 및 개인정보 처리방침에 동의합니다.
       </div>
     </GlassCard>
-  );
+  )
 }
 
 export default function LoginPage() {
@@ -123,5 +123,5 @@ export default function LoginPage() {
     <Suspense>
       <LoginPageContent />
     </Suspense>
-  );
+  )
 }
