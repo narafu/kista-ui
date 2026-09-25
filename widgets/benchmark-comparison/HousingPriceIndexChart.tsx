@@ -16,7 +16,7 @@ import {
   formatHousingBenchmarkAxisWeek,
   formatHousingBenchmarkDate,
   formatHousingIndexValue,
-} from './housingBenchmarkChartFormatters'
+} from '@entities/stats'
 
 interface Props {
   enabled: boolean

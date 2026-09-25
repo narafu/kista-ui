@@ -15,7 +15,7 @@ import {
   formatCagr,
   formatHousingBenchmarkAxisDate,
   formatHousingBenchmarkDate,
-} from './housingBenchmarkChartFormatters'
+} from '@entities/stats'
 
 interface Props {
   enabled: boolean

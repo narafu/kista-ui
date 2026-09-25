@@ -1,4 +1,4 @@
-import type { HousingBenchmarkPoint, HousingBenchmarkSeriesPoint } from '@entities/stats'
+import type { HousingBenchmarkPoint, HousingBenchmarkSeriesPoint } from '../model/types'
 
 export type HousingBenchmarkSeriesKey = 'investmentIndexUsd' | 'benchmarkIndex'
 

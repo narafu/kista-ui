@@ -41,3 +41,18 @@ export {
   useHousingBenchmarkRegionsQuery,
   useStatsCyclesQuery,
 } from './hooks/useStatsQueries'
+export {
+  housingBenchmarkChartNotice,
+  formatHousingBenchmarkSeriesLabel,
+  formatHousingBenchmarkMonth,
+  formatHousingBenchmarkAxisMonth,
+  formatHousingBenchmarkDate,
+  formatHousingBenchmarkAxisDate,
+  formatHousingBenchmarkAxisWeek,
+  calculateQuintileCagr,
+  calculateSeriesCagr,
+  formatCagr,
+  formatHousingIndexValue,
+  formatHousingBenchmarkTooltipValue,
+} from './lib/housingBenchmarkChartFormatters'
+export type { HousingBenchmarkSeriesKey } from './lib/housingBenchmarkChartFormatters'

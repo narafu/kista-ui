@@ -12,7 +12,7 @@ import {
   formatHousingBenchmarkTooltipValue,
   housingBenchmarkChartNotice,
   type HousingBenchmarkSeriesKey,
-} from './housingBenchmarkChartFormatters'
+} from '@entities/stats'
 
 interface Props {
   points: HousingBenchmarkPoint[]
