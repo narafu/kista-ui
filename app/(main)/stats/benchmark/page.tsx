@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
-import { HousingBenchmarkComparison } from '@widgets/benchmark-comparison'
+import { BenchmarkPageContent } from './BenchmarkPageContent'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { accountListQueryOptions } from '@entities/account'
 import { strategyListAllQueryOptions } from '@entities/strategy'
@@ -24,7 +24,7 @@ export default async function BenchmarkPage() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <HousingBenchmarkComparison enabled defaultTo={todayKst()} />
+      <BenchmarkPageContent enabled defaultTo={todayKst()} />
     </HydrationBoundary>
   )
 }
