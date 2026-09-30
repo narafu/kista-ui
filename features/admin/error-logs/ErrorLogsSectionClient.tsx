@@ -95,7 +95,7 @@ export function ErrorLogsSectionClient({ logs }: Props) {
           </AlertDialogTrigger>
           <AlertDialogContent size="sm">
             <AlertDialogHeader>
-              <AlertDialogTitle>오류 로그를 모두 삭제하시겠습니까?</AlertDialogTitle>
+              <AlertDialogTitle>선택한 오류 로그를 삭제하시겠습니까?</AlertDialogTitle>
               <AlertDialogDescription>현재 페이지에서 선택한 오류 로그 {selectedCount}건을 삭제합니다.</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

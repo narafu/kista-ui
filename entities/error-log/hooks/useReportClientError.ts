@@ -8,9 +8,10 @@ export function useReportClientError(error: (Error & { digest?: string }) | unde
   useEffect(() => {
     if (!error) return
     reportClientError({
-      errorType: error.name || 'Error',
-      message: error.message,
-      stackTrace: error.stack,
+      // kista-api ClientErrorLogRequest @Size 한도(255/2000/8000) 초과 시 400으로 로그 자체가 유실되므로 잘라서 보낸다
+      errorType: (error.name || 'Error').slice(0, 255),
+      message: error.message?.slice(0, 2000),
+      stackTrace: error.stack?.slice(0, 8000),
       context: { pathname: pathname ?? '', ...(error.digest ? { digest: error.digest } : {}) },
     })
   }, [error, pathname])
