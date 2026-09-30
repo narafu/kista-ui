@@ -8,24 +8,35 @@ import { cn } from '@shared/lib/utils'
 import { reportClientError } from '@entities/error-log'
 import { isNavItemActive } from './nav-utils'
 
-// ponytail: iOS PWA에서 하단 네비가 뷰포트 밖으로 밀리는 현상 원인 확정 전 임시 진단 로그.
-// viewport 불일치 값 확보되면(app_error_logs의 MOBILE_NAV_VIEWPORT_MISMATCH) 이 블록 통째로 제거한다.
-// 판정식은 2026-09-21에 |navBottom - vvHeight - vvOffsetTop|에서 |navBottom - vvHeight|로 변경 — 이전 식은
-// vvHeight==innerHeight일 때 항상 2*|vvOffsetTop|이라 nav 위치를 독립 측정하지 못했다. 이 날짜 이전 로그와 값 비교 불가.
-function useNavViewportDiagnostics(navRef: React.RefObject<HTMLElement | null>) {
+const isEditableFocused = () => {
+  const el = document.activeElement
+  return el instanceof HTMLElement && (el.matches('input:not([type=checkbox], [type=radio], [type=button], [type=submit], [type=range]), textarea, select') || el.isContentEditable)
+}
+
+// iOS standalone PWA: 키보드가 닫힌 뒤(또는 하단 러버밴드 중) visualViewport.offsetTop이 0으로 복귀하지 않고 남아
+// position:fixed 네비가 navBottom = innerHeight - offsetTop 위치로 떠 있거나 화면 밖으로 밀린다
+// (app_error_logs MOBILE_NAV_VIEWPORT_MISMATCH 2026-09-21~28, 키보드 닫힌 행 전부 이 관계식 성립).
+// 키보드 닫힘 + 줌 없음일 때만 offsetTop만큼 되돌린다 — 키보드가 열려 있으면 네비가 키보드 뒤에 있는 게 정상이라 보정 안 함.
+// 키보드 판정은 포커스된 편집 요소 기준 — innerHeight 자체가 키보드와 함께 줄어드는 경우가 있어 높이 비교는 못 쓴다.
+// ponytail: 실기기 검증 불가라 진단 로그를 같이 유지 — 보정 적용 후에도 어긋난 경우만 기록(shift 포함). 로그 잠잠해지면 로그 블록 제거.
+function useNavViewportCorrection(navRef: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
     const lastLoggedAt = { current: 0 }
     let logCount = 0
     let rafId = 0
-    const check = () => {
+    const update = () => {
       rafId = 0
       const nav = navRef.current
-      const vv = window.visualViewport
-      if (!nav || !vv || logCount >= 5) return
+      if (!nav) return
+      const keyboardOpen = isEditableFocused()
+      const shift = !keyboardOpen && Math.abs(vv.scale - 1) < 0.01 ? vv.offsetTop : 0
+      nav.style.transform = shift ? `translateY(${shift}px)` : ''
+
       const rect = nav.getBoundingClientRect()
-      if (rect.width === 0) return // lg:hidden으로 display:none인 데스크탑 뷰포트 — rect 전부 0이라 오탐
-      const navBottom = rect.bottom
-      const mismatch = Math.abs(navBottom - vv.height)
+      if (keyboardOpen || rect.width === 0 || logCount >= 5) return // width 0 = lg:hidden 데스크탑
+      const mismatch = Math.abs(rect.bottom - vv.height)
       const now = Date.now()
       if (mismatch <= 5 || now - lastLoggedAt.current < 15000) return
       lastLoggedAt.current = now
@@ -33,28 +44,34 @@ function useNavViewportDiagnostics(navRef: React.RefObject<HTMLElement | null>) 
       reportClientError({
         errorType: 'MOBILE_NAV_VIEWPORT_MISMATCH',
         context: {
-          navBottom: String(navBottom),
+          navBottom: String(rect.bottom),
           innerHeight: String(window.innerHeight),
           vvHeight: String(vv.height),
           vvOffsetTop: String(vv.offsetTop),
+          vvScale: String(vv.scale),
+          appliedShift: String(shift),
           scrollY: String(window.scrollY),
-          bodyTransform: getComputedStyle(document.body).transform,
           standalone: String(window.matchMedia('(display-mode: standalone)').matches),
         },
       })
     }
-    const scheduleCheck = () => {
+    const schedule = () => {
       if (rafId) return
-      rafId = requestAnimationFrame(check)
+      rafId = requestAnimationFrame(update)
     }
-    window.visualViewport?.addEventListener('resize', scheduleCheck)
-    window.visualViewport?.addEventListener('scroll', scheduleCheck)
-    window.addEventListener('scroll', scheduleCheck, { passive: true })
+    vv.addEventListener('resize', schedule)
+    vv.addEventListener('scroll', schedule)
+    window.addEventListener('scroll', schedule, { passive: true })
+    document.addEventListener('focusin', schedule)
+    document.addEventListener('focusout', schedule)
+    schedule() // 마운트 시점에 이미 offsetTop이 남아 있을 수 있다
     return () => {
       if (rafId) cancelAnimationFrame(rafId)
-      window.visualViewport?.removeEventListener('resize', scheduleCheck)
-      window.visualViewport?.removeEventListener('scroll', scheduleCheck)
-      window.removeEventListener('scroll', scheduleCheck)
+      vv.removeEventListener('resize', schedule)
+      vv.removeEventListener('scroll', schedule)
+      window.removeEventListener('scroll', schedule)
+      document.removeEventListener('focusin', schedule)
+      document.removeEventListener('focusout', schedule)
     }
   }, [navRef])
 }
@@ -71,7 +88,7 @@ const TABS = [
 export function MobileBottomNav() {
   const pathname = usePathname()
   const navRef = useRef<HTMLElement>(null)
-  useNavViewportDiagnostics(navRef)
+  useNavViewportCorrection(navRef)
   return (
     <nav
       ref={navRef}
