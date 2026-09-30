@@ -2,6 +2,7 @@ import { fetchEither } from '@shared/lib/api-client'
 import { buildQueryString } from '@shared/lib/query-string'
 import type {
   CyclePerformancePage,
+  StatsCyclesFilters,
   EquityCurve,
   EtfPriceSeries,
   HousingBenchmarkComparison,
@@ -25,7 +26,7 @@ export async function getEquityCurve(
 }
 
 export async function getStatsCycles(
-  params: { type?: string; cursor?: string; size?: number },
+  params: StatsCyclesFilters & { cursor?: string; size?: number },
   token?: string
 ): Promise<CyclePerformancePage> {
   const qs = buildQueryString(params)

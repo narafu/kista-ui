@@ -58,11 +58,11 @@ describe('stats query freshness and error handling', () => {
     getStatsCyclesMock.mockRejectedValueOnce(failure)
     useInfiniteQueryMock.mockReturnValue(emptyInfiniteResult)
 
-    renderHook(() => useStatsCyclesQuery('VR'))
+    renderHook(() => useStatsCyclesQuery({ type: 'VR' }))
 
     const options = useInfiniteQueryMock.mock.calls.at(-1)?.[0]
     expect(options).toEqual(expect.objectContaining({
-      queryKey: statsKeys.cycles('VR'),
+      queryKey: statsKeys.cycles({ type: 'VR' }),
       staleTime: 60_000,
     }))
     await expect(options.queryFn({ pageParam: undefined })).rejects.toThrow(failure)

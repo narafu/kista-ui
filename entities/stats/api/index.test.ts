@@ -73,6 +73,15 @@ describe('stats api', () => {
     )
   })
 
+  it('getStatsCycles forwards accountId/ticker filters', async () => {
+    const { getStatsCycles } = await import('./index')
+    fetchEitherMock.mockResolvedValueOnce({ items: [], nextCursor: null, hasMore: false })
+
+    await getStatsCycles({ type: 'VR', accountId: 'account-1', ticker: 'SOXL' })
+
+    expect(fetchEitherMock).toHaveBeenCalledWith('/api/stats/cycles?type=VR&accountId=account-1&ticker=SOXL', { method: 'GET' }, undefined)
+  })
+
   it('getStatsCycles omits query string when no params given', async () => {
     const { getStatsCycles } = await import('./index')
     fetchEitherMock.mockResolvedValueOnce({ items: [], nextCursor: null, hasMore: false })

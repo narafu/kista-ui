@@ -1,11 +1,12 @@
-import type { HousingBenchmarkParams } from './types'
+import type { HousingBenchmarkParams, StatsCyclesFilters } from './types'
 
 export const statsKeys = {
   all: ['stats'] as const,
   summary: () => [...statsKeys.all, 'summary'] as const,
   equityCurve: (from?: string, to?: string, type = 'ALL') =>
     [...statsKeys.all, 'equity-curve', from ?? null, to ?? null, type] as const,
-  cycles: (type = 'ALL') => [...statsKeys.all, 'cycles', type] as const,
+  cycles: ({ type, accountId, ticker }: StatsCyclesFilters = {}) =>
+    [...statsKeys.all, 'cycles', type ?? 'ALL', accountId ?? null, ticker ?? null] as const,
   housingComparison: (params: HousingBenchmarkParams) => [
     ...statsKeys.all,
     'housing-comparison',

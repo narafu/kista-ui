@@ -1,6 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
@@ -9,26 +10,56 @@ import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtSignedUsd, pnlTextClass, fmtSignedPercent } from '@shared/lib/format'
 import { useStatsCyclesQuery } from '@entities/stats'
 import { useAccountsQuery } from '@entities/account'
+import { useAllStrategiesQuery } from '@entities/strategy'
 import { SectionError } from '@shared/ui/SectionError'
 import { LoadingRow } from '@shared/ui/LoadingRow'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+
+const ALL = 'ALL'
 
 interface Props {
   typeFilter?: string
 }
 
 export function CyclePerformanceList({ typeFilter }: Props) {
-  const { cycles, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useStatsCyclesQuery(typeFilter)
+  const [accountId, setAccountId] = useState(ALL)
+  const [ticker, setTicker] = useState(ALL)
+  const { cycles, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useStatsCyclesQuery({
+    type: typeFilter,
+    accountId: accountId === ALL ? undefined : accountId,
+    ticker: ticker === ALL ? undefined : ticker,
+  })
   const accountsQuery = useAccountsQuery()
+  const strategiesQuery = useAllStrategiesQuery()
   const accountsById = useMemo(
     () => new Map(accountsQuery.data?.map((account) => [account.id, account]) ?? []),
     [accountsQuery.data],
   )
+  // 삭제된 전략의 사이클은 서버 목록에서 제외되므로 현재 전략들의 티커만으로 선택지가 충분하다
+  const accountOptions = [{ value: ALL, label: '전체 계좌' }, ...(accountsQuery.data ?? []).map((account) => ({ value: account.id, label: account.nickname }))]
+  const tickerOptions = useMemo(
+    () => [{ value: ALL, label: '전체 종목' }, ...[...new Set(strategiesQuery.data?.map((strategy) => strategy.ticker))].sort().map((value) => ({ value, label: value }))],
+    [strategiesQuery.data],
+  )
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="pb-3">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 pb-3">
         <CardTitle className="text-base lg:text-lg">사이클 성과</CardTitle>
+        <div className="flex gap-2">
+          <Select items={accountOptions} value={accountId} onValueChange={(value) => { if (value) setAccountId(value) }}>
+            <SelectTrigger aria-label="계좌" className="w-32"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {accountOptions.map(({ value, label }) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select items={tickerOptions} value={ticker} onValueChange={(value) => { if (value) setTicker(value) }}>
+            <SelectTrigger aria-label="종목" className="w-28"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {tickerOptions.map(({ value, label }) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         {isLoading ? (

@@ -6,7 +6,11 @@ const useStatsCyclesQueryMock = vi.fn()
 const useAccountsQueryMock = vi.fn()
 
 vi.mock('@entities/stats', () => ({
-  useStatsCyclesQuery: () => useStatsCyclesQueryMock(),
+  useStatsCyclesQuery: (filters: unknown) => useStatsCyclesQueryMock(filters),
+}))
+
+vi.mock('@entities/strategy', () => ({
+  useAllStrategiesQuery: () => ({ data: [] }),
 }))
 
 vi.mock('@entities/account', () => ({
@@ -28,6 +32,7 @@ describe('CyclePerformanceList', () => {
     render(<CyclePerformanceList />)
 
     expect(screen.getByText('사이클 성과를 불러오지 못했습니다')).toBeInTheDocument()
+    expect(useStatsCyclesQueryMock).toHaveBeenCalledWith({ type: undefined, accountId: undefined, ticker: undefined })
     expect(screen.queryByText('사이클 내역이 없습니다.')).not.toBeInTheDocument()
   })
 

@@ -14,6 +14,7 @@ import { statsKeys } from '../model/queryKeys'
 import type {
   CyclePerformance,
   CyclePerformancePage,
+  StatsCyclesFilters,
   EtfPriceSeries,
   HousingBenchmarkComparison,
   HousingBenchmarkParams,
@@ -101,12 +102,12 @@ export function useHousingBenchmarkRegionsQuery(enabled: boolean) {
   })
 }
 
-export function useStatsCyclesQuery(type?: string) {
+export function useStatsCyclesQuery(filters: StatsCyclesFilters = {}) {
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery<CyclePerformancePage>({
-      queryKey: statsKeys.cycles(type ?? 'ALL'),
+      queryKey: statsKeys.cycles(filters),
       queryFn: ({ pageParam }) =>
-        getStatsCycles({ type, cursor: pageParam as string | undefined }),
+        getStatsCycles({ ...filters, cursor: pageParam as string | undefined }),
       initialPageParam: undefined,
       getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
       placeholderData: (prev) => prev,

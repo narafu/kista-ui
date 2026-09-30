@@ -48,6 +48,13 @@ export interface CyclePerformance {
   closed: boolean
 }
 
+// GET /api/stats/cycles 필터 — 모두 AND 조합, ticker는 서버 StrategyTicker enum 값
+export type StatsCyclesFilters = {
+  type?: string
+  accountId?: string
+  ticker?: string
+}
+
 export interface CyclePerformancePage {
   items: CyclePerformance[]
   nextCursor?: string | null
