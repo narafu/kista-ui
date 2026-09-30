@@ -1,16 +1,18 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { CyclePerformanceList } from './CyclePerformanceList'
 
 const useStatsCyclesQueryMock = vi.fn()
 const useAccountsQueryMock = vi.fn()
+const useAllStrategiesQueryMock = vi.fn(() => ({ data: [] as { ticker: string }[] }))
 
 vi.mock('@entities/stats', () => ({
   useStatsCyclesQuery: (filters: unknown) => useStatsCyclesQueryMock(filters),
 }))
 
 vi.mock('@entities/strategy', () => ({
-  useAllStrategiesQuery: () => ({ data: [] }),
+  useAllStrategiesQuery: () => useAllStrategiesQueryMock(),
 }))
 
 vi.mock('@entities/account', () => ({
@@ -67,5 +69,33 @@ describe('CyclePerformanceList', () => {
     render(<CyclePerformanceList />)
 
     expect(screen.getAllByText('메인계좌').length).toBeGreaterThan(0)
+  })
+
+  it('선택한 종목을 필터로 넘기고, 종목이 선택지에서 사라지면 전체로 되돌린다', async () => {
+    const user = userEvent.setup()
+    useStatsCyclesQueryMock.mockReturnValue({
+      cycles: [],
+      isLoading: false,
+      isError: false,
+      fetchNextPage: vi.fn(),
+      hasNextPage: false,
+      isFetchingNextPage: false,
+    })
+    useAccountsQueryMock.mockReturnValue({ data: [] })
+    useAllStrategiesQueryMock.mockReturnValue({ data: [{ ticker: 'SOXL' }, { ticker: 'TQQQ' }, { ticker: 'SOXL' }] })
+
+    const { rerender } = render(<CyclePerformanceList typeFilter="VR" />)
+
+    await user.click(screen.getByRole('combobox', { name: '종목' }))
+    await user.click(await screen.findByRole('option', { name: 'SOXL' }))
+
+    expect(useStatsCyclesQueryMock).toHaveBeenLastCalledWith({ type: 'VR', accountId: undefined, ticker: 'SOXL' })
+    expect(screen.getByText('조건에 맞는 사이클이 없습니다.')).toBeInTheDocument()
+
+    useAllStrategiesQueryMock.mockReturnValue({ data: [{ ticker: 'TQQQ' }] })
+    rerender(<CyclePerformanceList typeFilter="VR" />)
+
+    expect(useStatsCyclesQueryMock).toHaveBeenLastCalledWith({ type: 'VR', accountId: undefined, ticker: undefined })
+    expect(screen.getByText('사이클 내역이 없습니다.')).toBeInTheDocument()
   })
 })

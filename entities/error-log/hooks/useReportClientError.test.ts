@@ -18,4 +18,17 @@ describe('useReportClientError', () => {
     expect(input.stackTrace).toHaveLength(8000)
     expect(input.context).toEqual({ pathname: '/stats' })
   })
+
+  it('truncates errorType and drops a dangling high surrogate at the cut', () => {
+    const error = new Error()
+    error.name = 'E'.repeat(254) + '😀'
+    error.stack = undefined
+
+    renderHook(() => useReportClientError(error, null))
+
+    const input = reportClientErrorMock.mock.calls.at(-1)?.[0]
+    expect(input.errorType).toBe('E'.repeat(254))
+    expect(input.stackTrace).toBeUndefined()
+    expect(input.context).toEqual({ pathname: '' })
+  })
 })

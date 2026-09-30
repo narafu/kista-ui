@@ -76,7 +76,7 @@ import { deleteAccount } from '@entities/account'
 - **trade/providers**: `TradeNotificationProvider`는 SSE `/api/trades/stream` 구독용
 - **privacy**: 관리자 전용 — Server Component에서 apiFetch로 `/api/admin/privacy-trade-bases` 직접 호출 (Route Handler 없음)
 - **fcm**: `registerTokenToServer`는 `clientFetch<void>` 사용 (토큰 해제 API는 클라이언트 미구현 — `app/api/fcm/tokens/[token]` DELETE 라우트만 존재)
-- **stats**: `GET /api/stats/summary|equity-curve|cycles` 소비. `equity-curve`와 `cycles`는 선택 전략 타입 필터(`type=INFINITE|PRIVACY|VR`)를 공유하고, `summary`는 전략 유형 비교 목적상 항상 전체 집계를 사용한다. `byType[].winRate`/`avgReturnRate`/`avgDurationDays`와 `CyclePerformance`의 `pnl`/`returnRate`/`durationDays`/`endDate`/`endAmount`는 미종료 사이클에서 `null` 가능 — 렌더링 시 null 가드 필수. `getStatsCycles`의 `nextCursor`는 없으면 응답에서 필드 자체가 생략되므로 옵셔널 처리
+- **stats**: `GET /api/stats/summary|equity-curve|cycles` 소비. `equity-curve`와 `cycles`는 선택 전략 타입 필터(`type=INFINITE|PRIVACY|VR`)를 공유하고, `summary`는 전략 유형 비교 목적상 항상 전체 집계를 사용한다. `cycles`는 추가로 `accountId`·`ticker`(서버 `StrategyTicker` enum — 잘못된 값은 400) 필터를 받으며(`StatsCyclesFilters`, 전부 AND), 서버가 필터 후 커서 페이지네이션한다. 이 엔드포인트 타입은 `api-types.ts` 생성물이 아니라 `model/types.ts` 수기 정의다. `byType[].winRate`/`avgReturnRate`/`avgDurationDays`와 `CyclePerformance`의 `pnl`/`returnRate`/`durationDays`/`endDate`/`endAmount`는 미종료 사이클에서 `null` 가능 — 렌더링 시 null 가드 필수. `getStatsCycles`의 `nextCursor`는 없으면 응답에서 필드 자체가 생략되므로 옵셔널 처리
 - **stats 서버 TTL**: `summary`/`equity-curve`/`housing-benchmark`는 kista-api가 사용자 단위 서버 사이드 5-10분 TTL 캐시(`StatsResultCache`)를 두며 mutation으로 busting되지 않는다. `statsKeys.all` invalidate 직후 refetch해도 서버가 그 TTL만큼 이전 값을 반환할 수 있다 — React Query 캐시 문제로 오진하지 않는다
 
 ## KIS live API quirk
