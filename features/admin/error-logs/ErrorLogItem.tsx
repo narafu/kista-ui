@@ -45,18 +45,24 @@ export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled =
             </p>
           )}
 
-          {/* stackTrace 접기/펼치기 */}
-          <button
-            type="button"
-            onClick={() => setOpen(v => !v)}
-            className="mt-1.5 text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
-          >
-            {open ? '스택트레이스 접기' : '스택트레이스 보기'}
-          </button>
-          {open && (
-            <pre className="mt-1 text-sm bg-muted/40 rounded p-2 overflow-x-auto whitespace-pre-wrap break-all">
-              {log.stackTrace}
-            </pre>
+          {/* stackTrace 접기/펼치기 — 스택 없이 저장된 로그(클라이언트 보고 등)는 버튼 대신 안내 */}
+          {log.stackTrace?.trim() ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setOpen(v => !v)}
+                className="mt-1.5 text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+              >
+                {open ? '스택트레이스 접기' : '스택트레이스 보기'}
+              </button>
+              {open && (
+                <pre className="mt-1 text-sm bg-muted/40 rounded p-2 overflow-x-auto whitespace-pre-wrap break-all">
+                  {log.stackTrace}
+                </pre>
+              )}
+            </>
+          ) : (
+            <p className="mt-1.5 text-sm text-muted-foreground">스택트레이스 없음</p>
           )}
         </div>
 

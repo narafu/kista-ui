@@ -8,7 +8,7 @@ export const RANGE_LABELS: Record<RangePreset, string> = {
   '7d': '7일',
   '30d': '30일',
   all: '전체',
-  custom: '직접입력',
+  custom: '입력',
 }
 
 function kstTodayAsUtcDate(): Date {

@@ -90,6 +90,24 @@ describe('ErrorLogsSectionClient', () => {
     expect(screen.getByText('2건 선택됨')).toBeInTheDocument()
   })
 
+  it('toggles the stack trace of a log', async () => {
+    const user = userEvent.setup()
+
+    render(<ErrorLogsSectionClient logs={logs} />)
+
+    await user.click(screen.getAllByRole('button', { name: '스택트레이스 보기' })[0])
+
+    expect(screen.getByText('trace-1')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '스택트레이스 접기' })).toBeInTheDocument()
+  })
+
+  it('shows a placeholder instead of the toggle when the stack trace is empty', () => {
+    render(<ErrorLogsSectionClient logs={[{ ...logs[0], stackTrace: null }]} />)
+
+    expect(screen.queryByRole('button', { name: '스택트레이스 보기' })).not.toBeInTheDocument()
+    expect(screen.getByText('스택트레이스 없음')).toBeInTheDocument()
+  })
+
   it('soft deletes selected logs from the current page without refreshing the route', async () => {
     const user = userEvent.setup()
     mutateAsyncMock.mockResolvedValue([{ status: 'fulfilled' }])

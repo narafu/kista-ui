@@ -88,7 +88,7 @@ export function ErrorLogsSectionClient({ logs }: Props) {
           />
           전체 선택
         </label>
-        <span className="text-sm text-muted-foreground">{selectedCount > 0 ? `${selectedCount}건 선택됨` : '현재 페이지 기준 선택'}</span>
+        {selectedCount > 0 && <span className="text-sm text-muted-foreground">{selectedCount}건 선택됨</span>}
         <AlertDialog open={open} onOpenChange={setOpen}>
           <AlertDialogTrigger className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'ml-auto')} disabled={selectedCount === 0 || mutation.isPending}>
             {mutation.isPending ? '삭제 중...' : selectedLabel}

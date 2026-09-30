@@ -132,7 +132,7 @@ export interface AppErrorLog {
   id: string
   errorType: string
   message: string
-  stackTrace: string
+  stackTrace?: string | null
   context: Record<string, string>
   createdAt: string
 }
