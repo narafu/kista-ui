@@ -7,7 +7,9 @@
 ```text
 /opt/kista-ui/
 ├── .env                    ← kista-infra 배포 워크플로가 매 배포마다 렌더링·덮어씀
-└── docker-compose.yml      ← GitHub Actions 업로드
+├── docker-compose.yml      ← GitHub Actions 업로드
+├── bin/                    ← deploy.sh·health-gate.sh (GitHub Actions 업로드, 서버에서 실행)
+└── rollback/               ← 교체 직전 compose·이미지·run 식별자 기록
 ```
 
 ## 초기 서버 설정
@@ -24,6 +26,7 @@
 | `SERVER_USER` | SSH 사용자명 |
 | `SERVER_SSH_KEY` | SSH 개인키 (PEM) — kista-api/fida와 동일 키페어 |
 | `SERVER_SSH_PORT` | SSH 포트 (기본값 22, 생략 가능) |
+| `SERVER_SSH_HOST_KEYS` | 서버 공개 호스트 키(`<keytype> <base64>` 한 줄씩) — known_hosts에 고정(TOFU 금지) |
 
 `NEXT_PUBLIC_*` 9개는 레포 루트 `.env.production.public`(평문 커밋, 클라이언트 번들에 노출되는 설계상 공개값)에서 빌드 타임에 로드된다 — GitHub Secrets 미사용. 값 변경 시 이 파일을 직접 수정.
 
@@ -40,11 +43,11 @@ API_BASE_URL=https://api.kista-app.com
 
 `push: main` 또는 `workflow_dispatch` → `server-deploy.yml` — kista-api/fida와 동일한 트리거 구조다.
 
-1. `main` push 또는 `workflow_dispatch` → `verify` job (`npm run typecheck`, `npm run test:run`)
+1. `main` push 또는 `workflow_dispatch` → `verify` job (`npm run typecheck`, `npm run test:run`) + `deploy-checks` job (배포 스크립트 shellcheck·bats — `.github/tests`)
 2. Docker 이미지 빌드(`.env.production.public`에서 읽은 9개 `NEXT_PUBLIC_*`를 build-args로 주입) → GHCR push
-3. SSH로 `docker-compose.yml` 업로드
-4. `docker compose pull kista-ui && docker compose up -d --no-deps kista-ui` (caddy는 kista-infra 소관 — 이 워크플로 관여 없음)
-5. 헬스 게이트: 호스트에서 `docker inspect --format '{{.State.Health.Status}}' kista-ui`로 컨테이너 헬스 상태를 10초 간격 최대 5분(300초) 폴링
+3. SSH(`.github/actions/ssh-setup`가 `remote`/`upload` 헬퍼 제공)로 `docker-compose.yml`과 `bin/*.sh` 업로드
+4. `bin/deploy.sh`: `docker compose pull kista-ui && docker compose up -d --no-deps kista-ui` (caddy는 kista-infra 소관 — 이 워크플로 관여 없음)
+5. `bin/health-gate.sh` 헬스 게이트: 호스트에서 `docker inspect --format '{{.State.Health.Status}}' kista-ui`로 컨테이너 헬스 상태를 10초 간격 최대 5분(300초) 폴링
 6. 실패 시 이전 이미지로 자동 롤백
 7. Caddy `lb_try_duration 120s`가 컨테이너 재시작 공백을 클라이언트에 투명하게 처리
 

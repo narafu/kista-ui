@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# bats용 docker 스텁 — 호출을 $DOCKER_LOG에 남기고 STUB_* 환경변수로 응답을 정한다
+echo "docker $*" >> "${DOCKER_LOG:?}"
+case "$1 $2" in
+  "inspect -f") echo "${STUB_PREV_IMAGE:-}" ;;
+  "inspect --format") echo "${STUB_HEALTH:-healthy}" ;;
+esac
+exit 0
