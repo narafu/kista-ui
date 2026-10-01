@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -18,6 +18,27 @@ import {
 import type { FinanceAccount, FinanceAccountType } from '@entities/finance'
 import { AccountFormDialog } from './AccountFormDialog'
 import { DeleteAccountDialog } from './DeleteAccountDialog'
+
+// 기관 · 계좌번호 · 소유자 · 메모 순으로 값이 있는 것만 가운뎃점으로 잇는다.
+function AccountDetails({ account }: { account: FinanceAccount }) {
+  const parts = [
+    account.institution,
+    account.accountNo && maskAccountNo(account.accountNo),
+    account.owner,
+    account.memo,
+  ].filter((part): part is string => !!part)
+  if (parts.length === 0) return null
+  return (
+    <p className="truncate text-xs text-muted-foreground tabular-nums">
+      {parts.map((part, index) => (
+        <Fragment key={index}>
+          {index > 0 && ' · '}
+          <span>{part}</span>
+        </Fragment>
+      ))}
+    </p>
+  )
+}
 
 // accountNo는 kista-api가 복호화한 평문으로 내려온다 — 목록 화면에는 뒷자리만 남기고 마스킹한다.
 function maskAccountNo(accountNo: string) {
@@ -114,10 +135,10 @@ export function AccountManager() {
               <ul className="divide-y divide-border">
                 {group.accounts.map((account) => (
                   <li key={account.id} className="flex items-center justify-between gap-3 py-3">
-                    <div className="min-w-0 flex items-center gap-2 text-sm">
-                      <span className="font-medium truncate min-w-0">{account.name}</span>
-                      {account.accountNo && <span className="text-xs text-muted-foreground tabular-nums shrink-0">{maskAccountNo(account.accountNo)}</span>}
-                      {account.memo && <span className="text-xs text-muted-foreground truncate min-w-0">{account.memo}</span>}
+                    {/* 모바일에서 행 작업 버튼과 한 줄에 다 담기지 않아 이름 / 부가정보 2줄로 나누고 각 줄을 말줄임한다. */}
+                    <div className="min-w-0 flex-1 text-sm">
+                      <p className="font-medium truncate">{account.name}</p>
+                      <AccountDetails account={account} />
                     </div>
                     <ShareableRowActions
                       canShare={canShare}

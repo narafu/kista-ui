@@ -46,7 +46,9 @@ export interface FinanceAccount {
   groupId?: string
   accountType: FinanceAccountType
   name: string
+  institution?: string | null // 기관 (자유 입력, 미입력 시 서버가 null)
   accountNo?: string
+  owner?: string | null // 소유자 (자유 입력, 미입력 시 서버가 null)
   memo?: string
 }
 
@@ -67,7 +69,9 @@ export interface FinanceCategoryRequest {
 export interface FinanceAccountRequest {
   accountType: FinanceAccountType
   name: string
+  institution?: string
   accountNo?: string
+  owner?: string
   memo?: string
 }
 

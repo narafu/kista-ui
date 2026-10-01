@@ -32,10 +32,12 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
     account?.accountType ?? (meta.financeAccountTypes[0]?.code as FinanceAccountType) ?? 'BANK'
   )
   const [name, setName] = useState(account?.name ?? '')
+  const [institution, setInstitution] = useState(account?.institution ?? '')
   // 기존 DB의 accountNo는 마이그레이션되지 않아 비숫자를 포함할 수 있다(서버는 신규/수정 요청만
   // 숫자 전용으로 강제) — 초기값부터 digitsOnly로 정규화해야 필드를 건드리지 않고 다른 값만
   // 고쳐 제출해도 400을 맞지 않는다.
   const [accountNo, setAccountNo] = useState(digitsOnly(account?.accountNo ?? ''))
+  const [owner, setOwner] = useState(account?.owner ?? '')
   const [memo, setMemo] = useState(account?.memo ?? '')
 
   // 생성 모드에서만 노출, 그룹 소속일 때만 노출, 기본값 켜짐(그룹 저장 우선) —
@@ -55,7 +57,9 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
     const payload: FinanceAccountRequest = {
       accountType,
       name: name.trim(),
+      institution: institution.trim() || undefined,
       accountNo: accountNo.trim() || undefined,
+      owner: owner.trim() || undefined,
       memo: memo.trim() || undefined,
     }
 
@@ -108,12 +112,36 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="accountInstitution">기관 (선택)</Label>
+              <Input
+                id="accountInstitution"
+                value={institution}
+                onChange={(e) => setInstitution(e.target.value)}
+                disabled={isPending}
+                maxLength={50}
+                className="h-11"
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="accountNo">계좌번호 (선택)</Label>
               <Input
                 id="accountNo"
                 inputMode="numeric"
                 value={accountNo}
                 onChange={(e) => setAccountNo(digitsOnly(e.target.value))}
+                disabled={isPending}
+                maxLength={50}
+                className="h-11"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="accountOwner">소유자 (선택)</Label>
+              <Input
+                id="accountOwner"
+                value={owner}
+                onChange={(e) => setOwner(e.target.value)}
                 disabled={isPending}
                 maxLength={50}
                 className="h-11"

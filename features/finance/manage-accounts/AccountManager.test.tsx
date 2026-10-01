@@ -23,7 +23,7 @@ const {
 
 const accounts: FinanceAccount[] = [
   { id: 'acc-3', accountType: 'SECURITIES', name: '삼성증권' },
-  { id: 'acc-1', accountType: 'SECURITIES', name: '미래에셋증권', accountNo: '1234567890', memo: '주 계좌' },
+  { id: 'acc-1', accountType: 'SECURITIES', name: '미래에셋증권', institution: '미래에셋', accountNo: '1234567890', owner: '홍길동', memo: '주 계좌' },
   { id: 'acc-2', accountType: 'BANK', name: '국민은행', groupId: 'group-1' },
 ]
 
@@ -88,6 +88,13 @@ describe('AccountManager', () => {
 
     expect(screen.getByText('••••7890')).toBeInTheDocument()
     expect(screen.queryByText('1234567890')).not.toBeInTheDocument()
+  })
+
+  it('기관·소유자를 계좌번호·메모와 함께 부가정보 줄에 보여준다', () => {
+    render(<AccountManager />)
+
+    const details = screen.getByText('••••7890').parentElement as HTMLElement
+    expect(details).toHaveTextContent('미래에셋 · ••••7890 · 홍길동 · 주 계좌')
   })
 
   it('삭제 버튼을 누르면 확인 다이얼로그가 뜬다', async () => {
@@ -242,5 +249,19 @@ describe('AccountManager', () => {
       expect.objectContaining({ accountNo: '123456789' }),
       expect.objectContaining({ onSuccess: expect.any(Function) }),
     )
+  })
+
+  it('수정 모드는 기존 기관·소유자를 다시 보내고, 비운 필드는 생략해 null로 지운다', async () => {
+    // PUT은 빠진 필드를 null로 지우므로 건드리지 않은 값은 반드시 다시 보내야 한다.
+    const user = userEvent.setup()
+    const account: FinanceAccount = { id: 'acc-9', accountType: 'BANK', name: '신한은행', institution: '신한', owner: '홍길동' }
+    render(<AccountFormDialog open onOpenChange={() => {}} account={account} />)
+
+    await user.clear(screen.getByLabelText('소유자 (선택)'))
+    await user.click(screen.getByRole('button', { name: '저장' }))
+
+    const payload = updateMutateMock.mock.calls[0][0]
+    expect(payload.institution).toBe('신한')
+    expect(payload).not.toHaveProperty('owner', expect.anything())
   })
 })
