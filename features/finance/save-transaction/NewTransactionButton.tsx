@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
-import { BRAND_GRADIENT_BUTTON_CLASS } from '@shared/ui/brand-button-class'
+import { buttonVariants } from '@/components/ui/button-variants'
 import type { FinanceCategoryType } from '@entities/finance'
 import { TransactionFormDialog } from './TransactionFormDialog'
 
@@ -25,7 +25,7 @@ export function NewTransactionButton({ type, className, windowFrom, windowTo }: 
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={cn('inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-xs', BRAND_GRADIENT_BUTTON_CLASS, className)}
+        className={cn(buttonVariants({ variant: 'brand' }), 'gap-1.5 h-8 px-3 rounded-md text-xs', className)}
       >
         <Plus className="size-3.5" />
         내역 등록

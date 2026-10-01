@@ -2,6 +2,8 @@
 
 import { usePathname } from 'next/navigation'
 import { useReportClientError } from '@entities/error-log'
+import { buttonVariants } from '@/components/ui/button-variants'
+import { cn } from '@shared/lib/utils'
 import './globals.css'
 
 export default function GlobalError({
@@ -61,7 +63,7 @@ export default function GlobalError({
           <button
             type="button"
             onClick={reset}
-            className="inline-flex items-center px-[22px] py-[9px] rounded-[10px] bg-primary text-primary-foreground text-sm font-bold tracking-[-0.01em] border-none"
+            className={cn(buttonVariants({ size: 'form' }), 'px-6')}
           >
             다시 시도
           </button>

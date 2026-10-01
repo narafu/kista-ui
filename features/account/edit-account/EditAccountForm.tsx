@@ -121,7 +121,7 @@ export function EditAccountForm({ account }: Props) {
           </p>
 
           <Dialog open={isDeleteOpen} onOpenChange={(open) => { setIsDeleteOpen(open); if (!open) setDeleteConfirm('') }}>
-            <DialogTrigger className={cn(buttonVariants({ variant: 'outline' }), 'w-full text-destructive hover:text-destructive border-destructive/40')}>
+            <DialogTrigger className={cn(buttonVariants({ variant: 'destructive' }), 'w-full')}>
               계좌 삭제
             </DialogTrigger>
             <DialogContent>

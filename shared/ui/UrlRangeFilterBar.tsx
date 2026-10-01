@@ -2,6 +2,8 @@
 
 import { Suspense, useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { cn } from '@shared/lib/utils'
+import { buttonVariants } from '@/components/ui/button-variants'
 import { RANGE_LABELS, type RangePreset } from '@shared/lib/date-range'
 
 export type { RangePreset }
@@ -80,7 +82,7 @@ function RangeFilterBarContent({ current, from, to, pageParamKeys = ['page'], pa
             type="button"
             onClick={() => navigate('custom', customFrom, customTo)}
             disabled={!customFrom || !customTo}
-            className="px-3 py-1.5 rounded-lg text-sm font-medium bg-rose-50 text-rose-600 transition-colors hover:bg-rose-100 disabled:opacity-40 disabled:cursor-not-allowed"
+            className={cn(buttonVariants({ variant: 'brand-soft', size: 'sm' }))}
           >
             적용
           </button>

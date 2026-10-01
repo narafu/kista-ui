@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
-import { BRAND_GRADIENT_BUTTON_CLASS } from '@shared/ui/brand-button-class'
+import { buttonVariants } from '@/components/ui/button-variants'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useAccountsQuery } from '@entities/account'
 import { useMeta } from '@entities/meta'
@@ -23,7 +23,7 @@ export function AddStrategyButton() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger className={cn('inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-xs', BRAND_GRADIENT_BUTTON_CLASS)}>
+      <PopoverTrigger className={cn(buttonVariants({ variant: 'brand' }), 'gap-1.5 h-8 px-3 rounded-md text-xs')}>
         <Plus className="size-3.5" />
         전략 추가
       </PopoverTrigger>

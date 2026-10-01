@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useCreateAccountMutation } from '@entities/account'
 import { useMeta } from '@entities/meta'
 import { ApiError } from '@shared/lib/api-client'
+import { Button } from '@/components/ui/button'
 import { Spinner } from '@shared/ui/Spinner'
 import { isMockBroker } from '@shared/lib/api-schema'
 import type { BrokerCode, AccountRequest } from '@entities/account'
@@ -95,27 +96,17 @@ export function ConfirmStep({ data, onBack }: Props) {
       )}
 
       <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={onBack}
-          disabled={isPending}
-          className="flex-1 h-11 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted transition-colors disabled:opacity-50"
-        >
+        <Button type="button" variant="outline" size="form" className="flex-1" onClick={onBack} disabled={isPending}>
           이전
-        </button>
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={isPending}
-          className="flex-1 h-11 rounded-[var(--r-md)] bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 disabled:opacity-50 transition-colors inline-flex items-center justify-center gap-2"
-        >
+        </Button>
+        <Button type="button" size="form" className="flex-1" onClick={handleSubmit} disabled={isPending}>
           {isPending ? (
             <>
               <Spinner size={16} />
               연결 중...
             </>
           ) : '계좌 연결'}
-        </button>
+        </Button>
       </div>
     </div>
   )

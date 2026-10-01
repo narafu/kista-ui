@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/dialog'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { BRAND_TINT_BUTTON_CLASS } from '@shared/ui/brand-button-class'
 import { cn } from '@shared/lib/utils'
 import { useCreateFinanceGroupInvitationMutation } from '@entities/finance'
 import type { FinanceGroupInvitation } from '@entities/finance'
@@ -71,7 +70,7 @@ export function InviteDialog({ groupId }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger className={cn(buttonVariants({ size: 'sm' }), BRAND_TINT_BUTTON_CLASS, 'gap-1.5')}>
+      <DialogTrigger className={cn(buttonVariants({ variant: 'brand-soft', size: 'sm' }), 'gap-1.5')}>
         <Plus className="size-3.5" />
         초대코드 발급
       </DialogTrigger>

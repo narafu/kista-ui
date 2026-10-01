@@ -23,7 +23,7 @@ widget 슬라이스끼리 cross-import 금지. **단, 아래 "공용 UI 위젯" 
 
 ## shadcn / UI 컴포넌트
 
-- **shadcn v4**: `asChild` 대신 `cn(buttonVariants({ variant, size }))` 패턴 사용
+- **shadcn v4**: `asChild` 대신 `cn(buttonVariants({ variant, size }))` 패턴 사용. raw `<button>`에 색·높이를 직접 지정하지 않는다 — variant/size 체계와 사용 기준은 `docs/agents/features.md` "CTA 버튼 위계"
 - **Base UI Select**: `items` prop을 사용할 때 각 항목에 `value`와 표시용 `label` 메타데이터를 함께 제공한다
 - **AlertDialog**: `open`/`onOpenChange` 직접 제어 필요. `AlertDialogTrigger`에 `disabled` prop 없음 → `className`에 `opacity-40 pointer-events-none`
 - **disabled 버튼 툴팁**: wrapper `div` + `group-hover` 패턴 사용

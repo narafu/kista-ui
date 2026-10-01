@@ -314,7 +314,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
       </div>
 
       {/* 모바일은 상단 버튼을 숨기고 목록 맨 끝에 둔다 */}
-      <Button onClick={handleSubmit} disabled={submitDisabled} className="sm:hidden w-full h-12">
+      <Button onClick={handleSubmit} disabled={submitDisabled} size="form" className="sm:hidden w-full">
         이대로 확정하기
       </Button>
     </div>

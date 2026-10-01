@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Button } from '@/components/ui/button'
 import type { BrokerCode } from '@entities/account'
 import { isMockBroker } from '@shared/lib/api-schema'
 import type { StepData } from '../CreateAccountStepper'
@@ -122,21 +123,18 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
         )}
       </div>
       <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex-1 h-11 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted transition-colors"
-        >
+        <Button type="button" variant="outline" size="form" className="flex-1" onClick={onBack}>
           이전
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          size="form"
+          className="flex-1"
           disabled={!valid}
           onClick={() => onNext({ nickname: nickname.trim(), accountNo: isMock ? '' : accountNo })}
-          className="flex-1 h-11 rounded-[var(--r-md)] bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           다음
-        </button>
+        </Button>
       </div>
     </div>
   )

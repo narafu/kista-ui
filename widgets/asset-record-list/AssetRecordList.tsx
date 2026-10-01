@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
@@ -208,13 +209,9 @@ export function AssetRecordList({ month }: Props) {
       {selectedIds.size > 0 && (
         <div className="flex items-center justify-between rounded-[var(--r-md)] border border-border bg-muted/40 px-4 py-2.5">
           <span className="text-sm font-medium">{selectedIds.size}건 선택됨</span>
-          <button
-            type="button"
-            onClick={() => deleteDialog.request(Array.from(selectedIds))}
-            className="text-sm font-semibold text-destructive hover:text-destructive/80"
-          >
+          <Button type="button" variant="destructive" size="sm" onClick={() => deleteDialog.request(Array.from(selectedIds))}>
             선택 삭제
-          </button>
+          </Button>
         </div>
       )}
 

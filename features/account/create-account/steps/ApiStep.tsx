@@ -2,6 +2,7 @@
 
 import { useReducer } from 'react'
 import { Eye, EyeOff, CheckCircle2, XCircle, ExternalLink } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Spinner } from '@shared/ui/Spinner'
 import { useTestKisConnectionMutation } from '@entities/account'
 import type { BrokerCode } from '@entities/account'
@@ -155,11 +156,12 @@ export function ApiStep({ data, onNext, onBack }: Props) {
 
       {config.needsTest && (
         <div className="flex flex-col gap-2">
-          <button
+          <Button
             type="button"
+            variant="outline"
+            className="w-full h-10 gap-2 font-semibold"
             disabled={!canTest || testMutation.isPending}
             onClick={() => testMutation.mutate({ appKey: apiKey, appSecret: apiSecret, broker })}
-            className="w-full h-10 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
           >
             {testMutation.isPending ? (
               <>
@@ -168,7 +170,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
             ) : (
               '연결 테스트'
             )}
-          </button>
+          </Button>
           {testMutation.isSuccess && (
             <div className="flex items-center gap-1.5 text-sm text-status-ok">
               <CheckCircle2 className="size-4" /> 연결 성공
@@ -184,17 +186,18 @@ export function ApiStep({ data, onNext, onBack }: Props) {
       )}
 
       <div className="flex gap-3">
-        <button type="button" onClick={onBack} className="flex-1 h-11 rounded-[var(--r-md)] border border-border text-sm font-semibold hover:bg-muted transition-colors">
+        <Button type="button" variant="outline" size="form" className="flex-1" onClick={onBack}>
           이전
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          size="form"
+          className="flex-1"
           disabled={!canProceed}
           onClick={() => onNext({ apiKey, apiSecret })}
-          className="flex-1 h-11 rounded-[var(--r-md)] bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           다음
-        </button>
+        </Button>
       </div>
     </div>
   )

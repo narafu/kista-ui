@@ -63,8 +63,8 @@ export function PendingTelegramConnect({ hasTelegram, currentChannel }: Props) {
         <p className="text-sm text-status-ok font-medium">✓ 텔레그램 봇이 연동되었습니다</p>
         <Button
           variant="outline"
-          size="lg"
-          className="w-full h-12"
+          size="form"
+          className="w-full"
           onClick={() => deleteMutation.mutate()}
           disabled={isDeleteLoading}
         >
@@ -108,10 +108,10 @@ export function PendingTelegramConnect({ hasTelegram, currentChannel }: Props) {
           {chatIdError && <p id="pending-chat-id-error" className="text-xs text-neg">{chatIdError}</p>}
         </div>
         <div className="flex gap-2">
-          <Button className="flex-1 h-11" onClick={handleSave} disabled={isLoading}>
+          <Button size="form" className="flex-1" onClick={handleSave} disabled={isLoading}>
             {isLoading ? '저장 중...' : '저장'}
           </Button>
-          <Button variant="outline" className="h-11" onClick={() => { setShowForm(false); setBotToken(''); setChatId('') }} disabled={isLoading}>
+          <Button variant="outline" size="form" onClick={() => { setShowForm(false); setBotToken(''); setChatId('') }} disabled={isLoading}>
             취소
           </Button>
         </div>
@@ -121,7 +121,7 @@ export function PendingTelegramConnect({ hasTelegram, currentChannel }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
-      <Button variant="outline" size="lg" className="w-full h-12" onClick={() => setShowForm(true)}>
+      <Button variant="outline" size="form" className="w-full" onClick={() => setShowForm(true)}>
         텔레그램 봇 연동하기
       </Button>
       <p className="text-sm text-muted-foreground">

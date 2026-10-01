@@ -26,7 +26,7 @@ interface Props {
 export function DeleteStrategyDialog({ open, onOpenChange, ticker, onConfirm, disabled, isDeleting }: Props) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogTrigger className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'flex-1 text-destructive hover:text-destructive')} disabled={disabled}>
+      <AlertDialogTrigger className={cn(buttonVariants({ variant: 'destructive', size: 'sm' }), 'flex-1')} disabled={disabled}>
         삭제
       </AlertDialogTrigger>
       <AlertDialogContent size="sm">

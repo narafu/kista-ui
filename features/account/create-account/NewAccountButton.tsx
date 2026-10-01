@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
 import { Spinner } from '@shared/ui/Spinner'
-import { BRAND_GRADIENT_BUTTON_CLASS } from '@shared/ui/brand-button-class'
+import { buttonVariants } from '@/components/ui/button-variants'
 
 interface Props {
   href?: string
@@ -27,8 +27,8 @@ export function NewAccountButton({ href = '/accounts/new', className, children =
       onClick={handleClick}
       disabled={isPending}
       className={cn(
-        'inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-md)] text-sm',
-        BRAND_GRADIENT_BUTTON_CLASS,
+        buttonVariants({ variant: 'brand' }),
+        'h-9 gap-1.5 px-4 rounded-[var(--r-md)] text-sm',
         'shadow-[0_2px_8px_rgba(225,29,72,0.30)]',
         className,
       )}

@@ -21,7 +21,7 @@ interface Props {
 // 폼 맨 끝에 놓이는 취소(outline) + 제출(spinner) 버튼 행 — 모바일·PC 모두 화면에 띄우지(fixed) 않고
 // 콘텐츠 흐름 안에 둔다. AssetForm·StrategyForm·EditAccountForm·ReconfigureVrForm이 공유한다.
 export function FormActions({ onCancel, cancelHref, isPending, canSubmit, label, pendingLabel = '저장 중...', submitVariant = 'default', className }: Props) {
-  const cancelClassName = cn(buttonVariants({ variant: 'outline' }), 'flex-1 h-12')
+  const cancelClassName = cn(buttonVariants({ variant: 'outline', size: 'form' }), 'flex-1')
   return (
     <div className={cn('flex gap-3', className)}>
       {cancelHref ? (
@@ -31,7 +31,7 @@ export function FormActions({ onCancel, cancelHref, isPending, canSubmit, label,
           취소
         </button>
       ) : null}
-      <Button type="submit" variant={submitVariant} className="flex-1 h-12 gap-2" disabled={isPending || !canSubmit}>
+      <Button type="submit" variant={submitVariant} size="form" className="flex-1" disabled={isPending || !canSubmit}>
         {isPending ? (
           <>
             <Spinner size={14} />

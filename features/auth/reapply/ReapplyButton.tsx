@@ -41,8 +41,8 @@ export function ReapplyButton() {
     <div className="mb-3">
       <Button
         variant="outline"
-        size="lg"
-        className="w-full h-12"
+        size="form"
+        className="w-full"
         onClick={handleReapply}
         disabled={isLoading}
       >

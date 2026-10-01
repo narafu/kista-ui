@@ -90,7 +90,7 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
               type="button"
               onClick={() => deleteMutation.mutate()}
               disabled={isDeleteLoading}
-              className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'text-destructive hover:text-destructive shrink-0')}
+              className={cn(buttonVariants({ variant: 'destructive', size: 'sm' }), 'shrink-0')}
             >
               {isDeleteLoading ? '해제 중...' : '연결 해제'}
             </button>
@@ -129,7 +129,7 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
             />
             {chatIdError && <p id="chat-id-error" className="mt-1 text-xs text-neg">{chatIdError}</p>}
           </div>
-          <Button className="h-10 px-5 w-fit" onClick={handleSave} disabled={isLoading}>
+          <Button size="form" className="w-fit px-5" onClick={handleSave} disabled={isLoading}>
             {isLoading ? '연결 중...' : '연결하기'}
           </Button>
         </div>

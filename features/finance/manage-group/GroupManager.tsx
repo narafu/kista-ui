@@ -52,10 +52,9 @@ function GroupSection({ groupId, myUserId }: GroupSectionProps) {
         {myUserId && (
           <Button
             type="button"
-            variant="outline"
+            variant="destructive"
             onClick={() => leaveDialog.request(true)}
             disabled={leaveMutation.isPending}
-            className="text-destructive hover:text-destructive border-destructive/40"
           >
             {leaveMutation.isPending ? '처리 중...' : '그룹 탈퇴'}
           </Button>

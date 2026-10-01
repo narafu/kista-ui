@@ -12,7 +12,6 @@ import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
-import { BRAND_TINT_BUTTON_CLASS } from '@shared/ui/brand-button-class'
 import { filterAdminPrivacyBasesByRange, useAdminPrivacyBasesQuery, useDeleteAdminPrivacyOrderMutation } from '@entities/privacy'
 import type { AdminPrivacyBase, AdminPrivacyOrder } from '@entities/privacy'
 import { CreatePrivacyBaseDialog } from './CreatePrivacyBaseDialog'
@@ -78,7 +77,7 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, page }: 
     <>
       <div className="mb-4 flex items-center justify-between gap-3">
         <span className="text-sm text-muted-foreground">총 {totalCount}건</span>
-        <Button type="button" size="sm" className={cn('gap-1.5', BRAND_TINT_BUTTON_CLASS)} onClick={() => setCreateOpen(true)}>
+        <Button type="button" variant="brand-soft" size="sm" className="gap-1.5" onClick={() => setCreateOpen(true)}>
           <Plus className="size-3.5" />
           매매표 등록
         </Button>

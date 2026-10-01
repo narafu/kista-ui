@@ -7,7 +7,6 @@ import { GroupManager } from '@features/finance/manage-group'
 import { HideAmountsToggle } from '@features/finance/hide-amounts'
 import { Surface } from '@shared/ui/Surface'
 import { buttonVariants } from '@/components/ui/button-variants'
-import { BRAND_TINT_BUTTON_CLASS } from '@shared/ui/brand-button-class'
 import { cn } from '@shared/lib/utils'
 
 // 자산 탭의 5번째 세그먼트("설정")를 구성하는 조합 위젯 — SettingsPageContent와 동일하게
@@ -27,7 +26,7 @@ export function AssetSettingsPanel() {
         </div>
         <Link
           href="/finance/bulk-register"
-          className={cn(buttonVariants({ size: 'sm' }), BRAND_TINT_BUTTON_CLASS, 'gap-1.5')}
+          className={cn(buttonVariants({ variant: 'brand-soft', size: 'sm' }), 'gap-1.5')}
         >
           <Plus className="size-3.5" />
           모두 등록
