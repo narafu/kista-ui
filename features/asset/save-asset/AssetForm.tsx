@@ -219,11 +219,6 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
               disabled={isPending}
               className="h-12"
             />
-            {monthClosed && (
-              <p className="text-xs text-[var(--warn)]">
-                이 달은 기록 점검이 완료되어 잠겨 있습니다. 자산탭 기록 점검에서 완료를 해제하세요.
-              </p>
-            )}
           </div>
 
           <div className="space-y-2">
@@ -361,6 +356,14 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
 
           {mode !== 'edit' && canShareToGroup && (
             <ShareToGroupSwitch id="assetShareToGroup" checked={shareToGroup} onCheckedChange={setShareToGroup} disabled={isPending} />
+          )}
+
+          {/* 저장이 막힌 이유를 버튼 바로 위에서 알린다. 문장 단위 inline-block이라 줄바꿈되면 문장마다 끊긴다. */}
+          {monthClosed && (
+            <p className="text-xs text-[var(--warn)]">
+              <span className="inline-block">기록 점검이 완료되어 잠겨 있습니다.</span>{' '}
+              <span className="inline-block">자산탭 기록 점검에서 완료를 해제하세요.</span>
+            </p>
           )}
 
           <div className="hidden sm:flex gap-3 pt-2">

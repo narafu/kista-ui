@@ -5,10 +5,11 @@ import { AssetForm } from './AssetForm'
 import { SYSTEM_INVESTMENT_CATEGORY_ID } from '@entities/finance'
 import type { AssetSnapshot, FinanceAccount, FinanceCategory } from '@entities/finance'
 
-const { createMutateMock, updateMutateMock, toastSuccessMock } = vi.hoisted(() => ({
+const { createMutateMock, updateMutateMock, toastSuccessMock, closingsState } = vi.hoisted(() => ({
   createMutateMock: vi.fn(),
   updateMutateMock: vi.fn(),
   toastSuccessMock: vi.fn(),
+  closingsState: { data: [] as { month: string; completed: boolean }[] },
 }))
 
 const categories: FinanceCategory[] = [
@@ -47,7 +48,7 @@ vi.mock('@entities/finance', async () => {
     ...actual,
     useFinanceCategoriesQuery: () => ({ data: categories }),
     useFinanceAccountsQuery: () => ({ data: accounts }),
-    useMonthlyClosingsQuery: () => ({ data: [] }),
+    useMonthlyClosingsQuery: () => closingsState,
     useMonthlyClosingScopeGroupId: () => undefined,
     useCreateAssetSnapshotMutation: () => ({ mutate: createMutateMock, isPending: false }),
     useUpdateAssetSnapshotMutation: () => ({ mutate: updateMutateMock, isPending: false }),
@@ -93,6 +94,7 @@ const existing: AssetSnapshot = {
 
 describe('AssetForm', () => {
   beforeEach(() => {
+    closingsState.data = []
     createMutateMock.mockClear()
     updateMutateMock.mockClear()
     toastSuccessMock.mockClear()
@@ -258,5 +260,17 @@ describe('AssetForm', () => {
 
     expect(toastSuccessMock).toHaveBeenCalledWith('자산 기록이 수정되었습니다')
     expect(onSuccess).toHaveBeenCalled()
+  })
+
+  it('기록 점검 완료된 달이면 저장 버튼 위에 잠김 안내를 표시하고 제출을 막는다', () => {
+    closingsState.data = [{ month: '2026-08', completed: true }]
+    render(<AssetForm mode="edit" initial={existing} onSuccess={onSuccess} onCancel={onCancel} />)
+
+    const notice = screen.getByText('기록 점검이 완료되어 잠겨 있습니다.').closest('p') as HTMLElement
+    expect(notice).toHaveTextContent('기록 점검이 완료되어 잠겨 있습니다. 자산탭 기록 점검에서 완료를 해제하세요.')
+    // 안내가 데스크톱 버튼 영역 바로 앞에 온다.
+    const desktopActions = screen.getAllByRole('button', { name: '수정' })[0].closest('div.hidden') as HTMLElement
+    expect(notice.nextElementSibling).toBe(desktopActions)
+    for (const button of screen.getAllByRole('button', { name: '수정' })) expect(button).toBeDisabled()
   })
 })
