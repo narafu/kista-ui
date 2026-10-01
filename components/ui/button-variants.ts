@@ -39,6 +39,8 @@ export const buttonVariants = cva(
         "icon-lg": "size-9",
         // 폼 하단 제출/취소 행·단독 주요 버튼 표준 높이
         form: "h-12 gap-2 px-4",
+        // PageHeader 우측 등 헤더 CTA(brand variant와 함께)
+        cta: "h-8 gap-1.5 rounded-md px-3 text-xs",
       },
     },
     defaultVariants: {

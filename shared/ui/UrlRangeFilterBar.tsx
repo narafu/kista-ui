@@ -52,7 +52,7 @@ function RangeFilterBarContent({ current, from, to, pageParamKeys = ['page'], pa
             onClick={() => navigate(r, customFrom, customTo)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               current === r
-                ? 'bg-rose-50 text-rose-600'
+                ? 'bg-rose-50 text-[var(--brand-fg-soft)]'
                 : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             }`}
           >

@@ -25,8 +25,7 @@ export function NewAssetButton({ className }: Props) {
       onClick={handleClick}
       disabled={isPending}
       className={cn(
-        buttonVariants({ variant: 'brand' }),
-        'gap-1.5 h-8 px-3 rounded-md text-xs',
+        buttonVariants({ variant: 'brand', size: 'cta' }),
         className,
       )}
     >

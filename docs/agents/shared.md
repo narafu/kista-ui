@@ -86,7 +86,7 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 - `YearMonthSelect` — `value`(`YYYY-MM`)를 받는 월 그리드 팝오버(네이티브 `<input type="month">` 데스크탑 사파리 미지원 대체). 이동 범위 기본은 `minYear`/`maxYear` 미지정 시 `today` 기준 15년 전 ~ 올해이며, 현재 선택 연도가 그 밖이면 하한/상한이 그 연도까지 넓어진다(선택값이 화살표로 도달 불가한 상태를 만들지 않는다). 미래 월 선택이 필요하면 `maxYear`를 넘긴다(`finance-bulk-register` 대상 월: `currentYear + 1`). 월 단위 교차 제약(from ≤ to 등)은 연 단위만 지원하므로 소비자가 `onValueChange`에서 clamp한다(`benchmark-comparison/BenchmarkFilterBar` 커스텀 기간 참고). 소비자: `asset-overview`·`finance-summary`(월간 모드)·`finance-bulk-register`·`benchmark-comparison`(아파트 커스텀 기간)
 - `YearSelect` — `value`(연도 `number`)를 받는 연도 그리드 팝오버. `YearMonthSelect`와 같은 시각 언어의 연 단위 버전(월 그리드 대신 3열 연도 그리드, 페이징 화살표 없음). 범위 규칙은 `YearMonthSelect`와 동일(`minYear`/`maxYear` 미지정 시 `today` 기준 15개년, 선택값 밖이면 확장). 소비자: `finance-summary`(연간 모드)
 
-shadcn 자동생성 컴포넌트는 `components/ui/`에 두고 `npx shadcn@latest add <component> --yes`로만 추가한다. 단 `button-variants.ts`(버튼 스타일 SSOT, `button.tsx`가 import)는 커스텀 variant(`brand`/`brand-soft`)·size(`form`)가 들어 있어 `button`을 다시 add하면 덮어쓰인다 — 재생성 시 수동 병합한다.
+shadcn 자동생성 컴포넌트는 `components/ui/`에 두고 `npx shadcn@latest add <component> --yes`로만 추가한다. 단 `button-variants.ts`(버튼 스타일 SSOT, `button.tsx`가 import)는 커스텀 variant(`brand`/`brand-soft`)·size(`form`/`cta`)가 들어 있어 `button`을 다시 add하면 덮어쓰인다 — 재생성 시 수동 병합한다.
 
 ## providers
 

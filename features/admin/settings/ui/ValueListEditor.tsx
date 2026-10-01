@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { IconButton } from '@shared/ui/IconButton'
 
 export type ValueSet<T extends string | number> = {
   allowedValues: T[]
@@ -76,16 +77,13 @@ export function ValueListEditor<T extends string | number>({ id, label, field, e
               className="size-4 shrink-0 accent-primary"
             />
             <span className="min-w-0 flex-1 truncate font-mono text-sm">{String(value)}</span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="size-11 text-muted-foreground hover:text-foreground"
+            <IconButton
               aria-label={`${String(value)} 삭제`}
               onClick={() => deleteValue(value)}
+              className="text-destructive hover:text-destructive"
             >
-              <Trash2 />
-            </Button>
+              <Trash2 className="size-4" />
+            </IconButton>
           </div>
         ))}
       </div>

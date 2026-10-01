@@ -60,7 +60,7 @@ features/{domain}/{slice}/
 - **`strategy/create-strategy/sections`**: CSS 토큰 기반 인라인 style 다수 사용
 - **선택형 카드**: 전략 등록·수정 섹션, 알림 수단, 테마 선택, 백테스트 폼은 전부 `@shared/ui/selection-card`의 `SelectionCard`를 사용한다. 카드 크기·용도 무관하게 항상 테두리만으로 선택을 표시한다 — 체크 배지(`showIndicator`)는 2026-08 전량 제거됐다(시각적으로 과했다는 피드백, `SelectionCard`에 해당 prop 자체가 더 이상 없음)
 - **CTA 버튼 위계**: 버튼 스타일 SSOT는 `components/ui/button-variants.ts`의 `buttonVariants`다(`Button`도 이걸 import — 화면마다 색·높이·radius를 직접 지정하지 않는다).
-  - `variant: 'brand'`(로즈골드 그라데이션): "화면(탭)당 유일한 최상위 등록/실행 진입점"에만 쓴다(자산/거래/계좌/전략 등록, 바로 주문). gradient를 남발하면 CTA 위계가 무너진다(2026-08 "모두 등록" 버튼을 gradient로 바꿨다가 되돌린 사례 있음). 헤더 CTA는 `h-8 px-3 rounded-md text-xs`를 className으로 덮어 크기를 맞춘다
+  - `variant: 'brand'`(로즈골드 그라데이션): "화면(탭)당 유일한 최상위 등록/실행 진입점"에만 쓴다(자산/거래/계좌/전략 등록, 바로 주문). gradient를 남발하면 CTA 위계가 무너진다(2026-08 "모두 등록" 버튼을 gradient로 바꿨다가 되돌린 사례 있음). PageHeader 우측 헤더 CTA는 `size: 'cta'`(h-8·text-xs)와 함께 쓴다
   - `variant: 'brand-soft'`(로즈 틴트): 설정 화면 CRUD 관리 리스트의 "항목 추가"류(카테고리 추가, 재무계좌 추가, 초대코드 발급, 예산등록 등) 2단계 CTA, `size: 'sm'`과 함께 쓴다 — 한 화면에 여러 개가 동시에 존재할 수 있어 gradient 대신 이 단계로 낮춘다. 기간 필터 "적용"처럼 브랜드 톤 보조 액션도 이 variant
   - 폼 제출 버튼은 `default`(primary). 폼 하단 제출/취소 행은 `shared/ui/FormActions`를 쓰고, 그 밖의 단독 주요 버튼(위저드 이전/다음, 재신청 등)도 `size: 'form'`(h-12)으로 높이를 맞춘다. 예외: Input 옆 인라인 버튼은 Input 높이에 맞춘다(`AcceptInvitationForm` h-11)
   - 삭제·탈퇴·연결 해제 등 파괴적 동작의 텍스트 트리거 버튼은 `variant: 'destructive'`(연한 빨강 틴트)로 통일한다 — outline+빨간 글씨·ghost+빨간 글씨·텍스트 링크를 섞지 않는다. 확인 다이얼로그의 최종 버튼(`AlertDialogAction`)도 `destructive`. 행 안의 아이콘 전용 삭제 버튼은 `IconButton` 규칙을 따른다

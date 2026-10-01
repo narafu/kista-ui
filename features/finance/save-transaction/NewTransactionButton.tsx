@@ -25,7 +25,7 @@ export function NewTransactionButton({ type, className, windowFrom, windowTo }: 
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={cn(buttonVariants({ variant: 'brand' }), 'gap-1.5 h-8 px-3 rounded-md text-xs', className)}
+        className={cn(buttonVariants({ variant: 'brand', size: 'cta' }), className)}
       >
         <Plus className="size-3.5" />
         내역 등록
