@@ -107,8 +107,8 @@ export function AssetRecordCheck({ month }: Props) {
           <ToggleMonthlyCheckButton month={month} completed={completed} />
           <p className="whitespace-pre-line text-xs text-muted-foreground">
             {completed
-              ? '완료된 달입니다.\n이 달 재무 기록의 등록·수정·삭제가 잠겨 있습니다.\n편집하려면 위 버튼을 눌러 완료를 해제하세요.'
-              : '완료로 표시하면 이 달 재무 기록의 등록·수정·삭제가 잠깁니다.'}
+              ? '재무 기록의 등록·수정·삭제가 잠겨 있습니다.\n편집하려면 위 버튼을 눌러 완료를 해제하세요.'
+              : '완료로 설정하면 재무 기록의 등록·수정·삭제가 잠깁니다.'}
           </p>
         </div>
       </CardContent>
