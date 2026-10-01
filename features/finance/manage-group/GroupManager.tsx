@@ -3,11 +3,9 @@
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
-  useActiveGroupId,
   useFinanceGroupMembersQuery,
   useFinanceGroupsQuery,
   useRemoveFinanceGroupMemberMutation,
-  useSetActiveGroupId,
 } from '@entities/finance'
 import { useMeQuery } from '@entities/user'
 import { cn } from '@shared/lib/utils'
@@ -22,16 +20,12 @@ const cardClass = 'bg-card rounded-[1.25rem] py-7 px-6 shadow-[var(--sh-card)] b
 interface GroupSectionProps {
   groupId: string
   myUserId?: string
-  // GroupManager가 이미 useActiveGroupId/useSetActiveGroupId를 구독하고 있어 여기서 다시
-  // 구독하지 않고 그대로 물려받는다.
-  activeGroupId: string | undefined
-  setActiveGroupId: (groupId: string | undefined) => void
 }
 
 // 그룹은 생성/삭제/이름변경 API가 없다 — 초대 발급으로만 생긴다(무그룹 유저가 초대를 발급하면
 // kista-api가 그 자리에서 새 그룹을 만들고 본인을 OWNER로 등록한다). 멤버 조회는 이 컴포넌트가
 // 한 번만 수행해 GroupMemberList에는 결과를 그대로 내려준다.
-function GroupSection({ groupId, myUserId, activeGroupId, setActiveGroupId }: GroupSectionProps) {
+function GroupSection({ groupId, myUserId }: GroupSectionProps) {
   const { data: members = [] } = useFinanceGroupMembersQuery(groupId)
   const isOwner = members.some((m) => m.userId === myUserId && m.role === 'OWNER')
 
@@ -44,8 +38,6 @@ function GroupSection({ groupId, myUserId, activeGroupId, setActiveGroupId }: Gr
       onSuccess: () => {
         toast.success('그룹에서 탈퇴했습니다')
         leaveDialog.close()
-        // 지금 보고 있던 그룹에서 탈퇴하면 존재하지 않는 그룹을 계속 조회하지 않도록 개인 상태로 되돌린다.
-        if (activeGroupId === groupId) setActiveGroupId(undefined)
       },
     })
   }
@@ -83,15 +75,13 @@ function GroupSection({ groupId, myUserId, activeGroupId, setActiveGroupId }: Gr
 export function GroupManager() {
   const { data: groups } = useFinanceGroupsQuery()
   const { data: me } = useMeQuery()
-  const activeGroupId = useActiveGroupId()
-  const setActiveGroupId = useSetActiveGroupId()
   // 1인 1그룹 정책 — groups는 0개(개인) 또는 1개(그룹 소속)뿐이다.
   const group = groups?.[0]
 
   return (
     <div className={cn(cardClass, 'space-y-6')}>
       {groups && group && (
-        <GroupSection groupId={group.id} myUserId={me?.id} activeGroupId={activeGroupId} setActiveGroupId={setActiveGroupId} />
+        <GroupSection groupId={group.id} myUserId={me?.id} />
       )}
       {groups && !group && me?.id && (
         <div className="space-y-2">

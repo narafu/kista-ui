@@ -74,7 +74,6 @@ export {
   updateSystemFinanceCategory,
 } from './api'
 export {
-  useActiveGroupId,
   useAssetSnapshotsQuery,
   useCanShareToGroup,
   useMonthlyClosingScopeGroupId,
@@ -85,7 +84,6 @@ export {
   useFinanceGroupsQuery,
   useFinanceTransactionsQuery,
   useMonthlyClosingsQuery,
-  useSetActiveGroupId,
   useSystemFinanceCategoriesQuery,
 } from './hooks/useFinanceQueries'
 export { useCategoryPathState } from './hooks/useCategoryPathState'
@@ -125,7 +123,6 @@ export {
   useUpdateSystemFinanceCategoryMutation,
 } from './hooks/useFinanceMutations'
 export type { DeleteManyAssetSnapshotsResult } from './hooks/useFinanceMutations'
-export { ActiveGroupProvider } from './providers/ActiveGroupProvider'
 export { assetCategoryColor, assetClassColor } from './lib/colors'
 export {
   ASSET_CLASS_ORDER,

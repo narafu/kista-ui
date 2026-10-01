@@ -147,7 +147,7 @@ describe('isMonthClosed', () => {
     expect(isMonthClosed([{ month: '2026-07', completed: true }], '2026-08')).toBe(false)
   })
 
-  it('그룹 소속(activeGroupId)이면 그 그룹의 마감 행만 본다 — 같은 달 개인 마감은 무시', () => {
+  it('그룹 소속이면 그 그룹의 마감 행만 본다 — 같은 달 개인 마감은 무시', () => {
     const closings = [
       { month: '2026-08', completed: true, groupId: null },
       { month: '2026-08', completed: false, groupId: 'g1' },

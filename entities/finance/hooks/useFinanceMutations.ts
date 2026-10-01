@@ -59,18 +59,16 @@ import type {
 } from '../model/types'
 import { financeKeys } from '../model/queryKeys'
 import { assetSnapshotListQueryOptions, financeAccountListQueryOptions, monthlyClosingListQueryOptions } from '../model/queryOptions'
-import { useActiveGroupId } from './useFinanceQueries'
 
 async function synchronizeAssetSnapshotList(
   queryClient: QueryClient,
-  groupId: string | undefined,
   update: (snapshots: AssetSnapshot[]) => AssetSnapshot[],
 ) {
   await synchronizeListQueries(
     queryClient,
     [{
-      queryKey: financeKeys.assetSnapshots(groupId),
-      fetchCompleteList: () => queryClient.fetchQuery(assetSnapshotListQueryOptions(groupId)),
+      queryKey: financeKeys.assetSnapshots(),
+      fetchCompleteList: () => queryClient.fetchQuery(assetSnapshotListQueryOptions()),
     }],
     update,
   )
@@ -78,8 +76,8 @@ async function synchronizeAssetSnapshotList(
 
 // shareToGroup:true면 서버가 그룹 소유로 원자적으로 생성한다(kista-api AssetSnapshotService.create —
 // ?shareToGroup=true, 대상 그룹은 서버가 userId로 해석). 생성이 성공하면 요청한 소유 형태 그대로다 —
-// 부분 실패("저장됐지만 공유 실패") 상태가 없어졌다. 결과 groupId가 activeGroupId 캐시 키와
-// 어긋날 수 있어(활성 그룹 전환 중) 특정 키 upsert 대신 root invalidate를 쓴다.
+// 부분 실패("저장됐지만 공유 실패") 상태가 없어졌다. 서버가 붙인 정렬·파생 필드를 그대로 받도록
+// upsert 대신 root invalidate를 쓴다.
 export function useCreateAssetSnapshotMutation() {
   return useInvalidateFinanceMutation<AssetSnapshot, AssetSnapshotRequest & { shareToGroup?: boolean }>(
     ({ shareToGroup, ...data }) => createAssetSnapshot(data, { shareToGroup }),
@@ -88,7 +86,7 @@ export function useCreateAssetSnapshotMutation() {
   )
 }
 
-// create와 동일한 이유로 groupId 스코프 upsert 대신 root invalidate를 쓴다.
+// create와 동일하게 upsert 대신 root invalidate를 쓴다.
 export function useShareAssetSnapshotMutation() {
   return useInvalidateFinanceMutation<AssetSnapshot, string>(
     (id) => shareAssetSnapshot(id),
@@ -111,11 +109,10 @@ export function useUnshareAssetSnapshotMutation() {
 
 export function useUpdateAssetSnapshotMutation(snapshotId: string) {
   const queryClient = useQueryClient()
-  const groupId = useActiveGroupId()
   return useMutation<AssetSnapshot, Error, AssetSnapshotRequest>({
     mutationFn: (data) => updateAssetSnapshot(snapshotId, data),
     onSuccess: async (saved) => {
-      await synchronizeAssetSnapshotList(queryClient, groupId, (snapshots) => upsertById(snapshots, saved))
+      await synchronizeAssetSnapshotList(queryClient, (snapshots) => upsertById(snapshots, saved))
     },
     onError: (err) => toast.error(apiMsg(err, '자산 기록을 수정하지 못했습니다')),
   })
@@ -132,7 +129,6 @@ export interface DeleteManyAssetSnapshotsResult {
 // failedCount를 보고 직접 표시한다("N건 성공, M건 실패" 등 조합 메시지가 필요하므로).
 export function useDeleteManyAssetSnapshotsMutation() {
   const queryClient = useQueryClient()
-  const groupId = useActiveGroupId()
   return useMutation<DeleteManyAssetSnapshotsResult, Error, string[]>({
     mutationFn: async (ids) => {
       const results = await Promise.allSettled(ids.map((id) => deleteAssetSnapshot(id)))
@@ -148,7 +144,7 @@ export function useDeleteManyAssetSnapshotsMutation() {
         }
         return
       }
-      await synchronizeAssetSnapshotList(queryClient, groupId, (snapshots) =>
+      await synchronizeAssetSnapshotList(queryClient, (snapshots) =>
         snapshots.filter((snapshot) => !succeededIds.includes(snapshot.id)))
     },
   })
@@ -156,14 +152,13 @@ export function useDeleteManyAssetSnapshotsMutation() {
 
 async function synchronizeMonthlyClosings(
   queryClient: QueryClient,
-  groupId: string | undefined,
   update: (closings: MonthlyClosing[]) => MonthlyClosing[],
 ) {
   await synchronizeListQueries(
     queryClient,
     [{
-      queryKey: financeKeys.monthlyClosings(groupId),
-      fetchCompleteList: () => queryClient.fetchQuery(monthlyClosingListQueryOptions(groupId)),
+      queryKey: financeKeys.monthlyClosings(),
+      fetchCompleteList: () => queryClient.fetchQuery(monthlyClosingListQueryOptions()),
     }],
     update,
   )
@@ -171,7 +166,6 @@ async function synchronizeMonthlyClosings(
 
 export function useSetMonthlyClosingMutation() {
   const queryClient = useQueryClient()
-  const groupId = useActiveGroupId()
   return useMutation<MonthlyClosing, Error, { month: string; completed: boolean }>({
     mutationFn: ({ month, completed }) => setMonthlyClosing(month, completed),
     onSuccess: async (saved) => {
@@ -179,7 +173,7 @@ export function useSetMonthlyClosingMutation() {
       // 스코프(groupId)가 같은 행만 교체해야 다른 스코프의 마감 행을 덮어쓰지 않는다.
       const isSameRow = (closing: MonthlyClosing) =>
         closing.month === saved.month && (closing.groupId ?? null) === (saved.groupId ?? null)
-      await synchronizeMonthlyClosings(queryClient, groupId, (closings) =>
+      await synchronizeMonthlyClosings(queryClient, (closings) =>
         closings.some(isSameRow)
           ? closings.map((closing) => (isSameRow(closing) ? saved : closing))
           : [...closings, saved],
@@ -363,23 +357,20 @@ export function useUnshareFinanceBudgetMutation() {
 
 async function synchronizeAccountList(
   queryClient: QueryClient,
-  groupId: string | undefined,
   update: (accounts: FinanceAccount[]) => FinanceAccount[],
 ) {
   await synchronizeListQueries(
     queryClient,
     [{
-      queryKey: financeKeys.accounts(groupId),
-      fetchCompleteList: () => queryClient.fetchQuery(financeAccountListQueryOptions(groupId)),
+      queryKey: financeKeys.accounts(),
+      fetchCompleteList: () => queryClient.fetchQuery(financeAccountListQueryOptions()),
     }],
     update,
   )
 }
 
 // shareToGroup:true면 서버가 그룹 소유로 원자적으로 생성한다(kista-api FinanceAccountService.create —
-// ?shareToGroup=true). saved.groupId가 activeGroupId 스코프와 어긋날 수 있어(개인 스코프로 보는데
-// 그룹 저장, 또는 그 반대) 특정 groupId 캐시 키로의 upsert 대신 root invalidate를 쓴다 — 계좌
-// share/unshare가 같은 이유로 invalidate 방식인 것과 동일.
+// ?shareToGroup=true). 자산 기록 create와 같이 upsert 대신 root invalidate를 쓴다.
 export function useCreateFinanceAccountMutation() {
   return useInvalidateFinanceMutation<FinanceAccount, FinanceAccountRequest & { shareToGroup?: boolean }>(
     ({ shareToGroup, ...data }) => createFinanceAccount(data, { shareToGroup }),
@@ -390,11 +381,10 @@ export function useCreateFinanceAccountMutation() {
 
 export function useUpdateFinanceAccountMutation(accountId: string) {
   const queryClient = useQueryClient()
-  const groupId = useActiveGroupId()
   return useMutation<FinanceAccount, Error, FinanceAccountRequest>({
     mutationFn: (data) => updateFinanceAccount(accountId, data),
     onSuccess: async (saved) => {
-      await synchronizeAccountList(queryClient, groupId, (accounts) => upsertById(accounts, saved))
+      await synchronizeAccountList(queryClient, (accounts) => upsertById(accounts, saved))
     },
     onError: (err) => toast.error(apiMsg(err, '계좌를 수정하지 못했습니다')),
   })
@@ -402,11 +392,10 @@ export function useUpdateFinanceAccountMutation(accountId: string) {
 
 export function useDeleteFinanceAccountMutation() {
   const queryClient = useQueryClient()
-  const groupId = useActiveGroupId()
   return useMutation<void, Error, string>({
     mutationFn: (id) => deleteFinanceAccount(id),
     onSuccess: async (_, id) => {
-      await synchronizeAccountList(queryClient, groupId, (accounts) => accounts.filter((a) => a.id !== id))
+      await synchronizeAccountList(queryClient, (accounts) => accounts.filter((a) => a.id !== id))
     },
     onError: (err) => toast.error(apiMsg(err, '계좌를 삭제하지 못했습니다')),
   })
@@ -414,7 +403,7 @@ export function useDeleteFinanceAccountMutation() {
 
 // share/unshare는 계좌가 flat 목록이어도 create/update와 다르게 invalidate 방식을 쓴다 — unshare는
 // 그룹 멤버 누구나 실행할 수 있어(소유자 한정 아님) 실행자 본인 소유가 아닌 계좌를 되돌리면 실행자의
-// groupId 스코프 목록에서 그 항목이 빠져야 한다. upsertById는 제거를 못 해 캐시에 그대로 남는다 —
+// 스코프 목록에서 그 항목이 빠져야 한다. upsertById는 제거를 못 해 캐시에 그대로 남는다 —
 // asset-snapshot/budget/transaction/category의 share/unshare가 전부 invalidate를 쓰는 것과 같은 이유.
 export function useShareFinanceAccountMutation() {
   return useInvalidateFinanceMutation<FinanceAccount, string>(
@@ -432,31 +421,23 @@ export function useUnshareFinanceAccountMutation() {
   )
 }
 
-// 탈퇴·추방 겸용 — 성공 시 멤버 목록과 함께 그룹 목록도 무효화한다(본인 탈퇴 시 내가 속한
-// 그룹 자체가 바뀌므로 groups() 캐시를 갱신 안 하면 GroupSwitcher가 이미 나간 그룹을 계속
-// 선택 가능한 상태로 보여줄 수 있다). 활성 그룹이 사라지는 경우(본인이 나감)의 쿠키 클리어는
-// 호출 feature(manage-group)가 판단해 useSetActiveGroupId로 직접 처리한다.
+// 탈퇴·추방 겸용. 소속이 바뀌면 kista-api가 모든 finance 목록의 스코프를 새 소속으로 판정하므로
+// 멤버·그룹 목록뿐 아니라 finance 전체를 무효화한다(초대 수락·발급도 같은 이유).
 export function useRemoveFinanceGroupMemberMutation(groupId: string) {
-  const queryClient = useQueryClient()
-  return useMutation<void, Error, string>({
-    mutationFn: (userId) => removeFinanceGroupMember(groupId, userId),
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: financeKeys.groupMembers(groupId) }).catch(() => null),
-        queryClient.invalidateQueries({ queryKey: financeKeys.groups() }).catch(() => null),
-      ])
-    },
-    onError: (err) => toast.error(apiMsg(err, '처리하지 못했습니다')),
-  })
+  return useInvalidateFinanceMutation<void, string>(
+    (userId) => removeFinanceGroupMember(groupId, userId),
+    financeKeys.all,
+    '처리하지 못했습니다',
+  )
 }
 
 // 초대 발급 자체의 응답은 캐시할 목록이 없다(발급 이력 조회 API 자체가 없음) — 다만 무그룹
-// 유저가 발급하면 kista-api가 그 자리에서 새 그룹을 만들고 본인을 OWNER로 등록하므로, groups()를
-// 무효화해야 GroupManager가 방금 생겨난 그룹을 곧바로 반영한다.
+// 유저가 발급하면 kista-api가 그 자리에서 새 그룹을 만들고 본인을 OWNER로 등록해 소속이 바뀌므로
+// finance 전체를 무효화한다.
 export function useCreateFinanceGroupInvitationMutation(groupId: string) {
   return useInvalidateFinanceMutation<FinanceGroupInvitation, number>(
     (expiresInHours) => createFinanceGroupInvitation(groupId, expiresInHours),
-    financeKeys.groups(),
+    financeKeys.all,
     '초대 코드를 발급하지 못했습니다',
   )
 }
@@ -477,7 +458,7 @@ export function useBulkRegisterFinanceMutation() {
 export function useRespondToInvitationMutation() {
   return useInvalidateFinanceMutation<FinanceGroup, { code: string; status: 'ACCEPTED' | 'DECLINED' }>(
     ({ code, status }) => respondToInvitation(code, status),
-    financeKeys.groups(),
+    financeKeys.all,
     '초대를 처리하지 못했습니다',
   )
 }

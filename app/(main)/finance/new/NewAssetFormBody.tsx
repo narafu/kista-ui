@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation'
 import { PageHeader } from '@widgets/page-header'
 import { AssetFormPage, loadAssetSnapshotById } from '@features/asset/save-asset'
 import { getAuthToken } from '@shared/lib/auth/token'
-import { getActiveGroupId } from '@shared/lib/auth/activeGroup'
 import type { DismissMode } from '@shared/lib/dismiss'
 
 interface Props {
@@ -13,14 +12,14 @@ interface Props {
 }
 
 export async function NewAssetFormBody({ searchParams, dismiss }: Props) {
-  const [{ duplicateFrom }, token, groupId] = await Promise.all([searchParams, getAuthToken(), getActiveGroupId()])
+  const [{ duplicateFrom }, token] = await Promise.all([searchParams, getAuthToken()])
 
   if (!token) {
     return notFound()
   }
 
   // 복제 대상 조회 실패는 등록 자체를 막지 않는다 — 빈 등록 폼으로 그레이스풀 폴백한다
-  const initial = duplicateFrom ? await loadAssetSnapshotById(duplicateFrom, groupId, token).catch(() => null) : null
+  const initial = duplicateFrom ? await loadAssetSnapshotById(duplicateFrom, token).catch(() => null) : null
 
   return (
     <>

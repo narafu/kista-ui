@@ -48,7 +48,7 @@ export function isInvestmentCategoryId(categoryId: string | undefined): boolean 
 // 마감 스코프는 kista-api 가드와 동일하게 판정한다 — 그룹 소속(scopeGroupId 있음)이면 그 그룹의
 // 마감 행만, 무그룹이면 개인 마감 행(groupId null)만 본다. list 응답은 개인·그룹 마감을 함께 반환하므로
 // 스코프에 맞는 행만 골라야 판정이 어긋나지 않는다. 스코프에 맞는 행이 없으면 미마감(가드도 동일).
-// scopeGroupId는 반드시 useMonthlyClosingScopeGroupId()(실제 소속) 값을 넘긴다 — 활성 그룹 쿠키(useActiveGroupId) 금지.
+// scopeGroupId는 useMonthlyClosingScopeGroupId()(실제 소속) 값을 넘긴다.
 export function isMonthClosed(closings: MonthlyClosing[], month: string, scopeGroupId?: string): boolean {
   const match = closings.find(
     (closing) =>

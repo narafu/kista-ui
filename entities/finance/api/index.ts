@@ -26,13 +26,6 @@ function withDefaultAmount<T extends { amount: number }>(x: T): T {
   return { ...x, amount: x.amount ?? 0 }
 }
 
-// groupId 미지정 시 서버는 호출자의 개인 그룹으로 스코프한다. groupId·token을 함께 받는
-// 함수들이 포지셔널 인자 순서에 의존하지 않도록 이 named-params 객체로 통일한다.
-export interface GroupScopedOptions {
-  groupId?: string
-  token?: string
-}
-
 function withQuery(path: string, params: Record<string, string | undefined>) {
   return path + buildQueryString(params)
 }
@@ -47,8 +40,9 @@ function shareToggle<T>(basePath: string, action: 'share' | 'unshare', id: strin
   return fetchEither<T>(`${basePath}/${encodeURIComponent(id)}/${action}`, { method: 'PATCH' }, token)
 }
 
-export async function listAssetSnapshots({ groupId, token }: GroupScopedOptions = {}): Promise<AssetSnapshot[]> {
-  return fetchEither<AssetSnapshot[]>(withQuery('/api/finance/asset-snapshots', { groupId }), { method: 'GET' }, token)
+// 목록 조회는 그룹을 지정하지 않는다 — 서버가 호출자의 실제 소속 그룹(없으면 개인)으로 스코프한다.
+export async function listAssetSnapshots(token?: string): Promise<AssetSnapshot[]> {
+  return fetchEither<AssetSnapshot[]>('/api/finance/asset-snapshots', { method: 'GET' }, token)
 }
 
 // shareToGroup:true면 서버가 호출자의 현재 그룹 소유로 원자적으로 생성한다(budget/transaction/account/
@@ -104,10 +98,10 @@ export async function bulkRegisterFinance(
 
 export async function listFinanceCategories(
   type: FinanceCategoryType,
-  { groupId, token }: GroupScopedOptions = {},
+  token?: string,
 ): Promise<FinanceCategory[]> {
   return fetchEither<FinanceCategory[]>(
-    withQuery('/api/finance/categories', { type, groupId }),
+    withQuery('/api/finance/categories', { type }),
     { method: 'GET' },
     token,
   )
@@ -172,8 +166,8 @@ export async function deleteSystemFinanceCategory(id: string, token?: string): P
   return fetchEither<void>(`/api/admin/finance/categories/${encodeURIComponent(id)}`, { method: 'DELETE' }, token)
 }
 
-export async function listFinanceAccounts({ groupId, token }: GroupScopedOptions = {}): Promise<FinanceAccount[]> {
-  return fetchEither<FinanceAccount[]>(withQuery('/api/finance/accounts', { groupId }), { method: 'GET' }, token)
+export async function listFinanceAccounts(token?: string): Promise<FinanceAccount[]> {
+  return fetchEither<FinanceAccount[]>('/api/finance/accounts', { method: 'GET' }, token)
 }
 
 export async function createFinanceAccount(
@@ -205,8 +199,8 @@ export async function unshareFinanceAccount(id: string, token?: string): Promise
   return shareToggle<FinanceAccount>('/api/finance/accounts', 'unshare', id, token)
 }
 
-export async function listMonthlyClosings({ groupId, token }: GroupScopedOptions = {}): Promise<MonthlyClosing[]> {
-  return fetchEither<MonthlyClosing[]>(withQuery('/api/finance/monthly-closings', { groupId }), { method: 'GET' }, token)
+export async function listMonthlyClosings(token?: string): Promise<MonthlyClosing[]> {
+  return fetchEither<MonthlyClosing[]>('/api/finance/monthly-closings', { method: 'GET' }, token)
 }
 
 export async function setMonthlyClosing(month: string, completed: boolean, token?: string): Promise<MonthlyClosing> {
@@ -245,7 +239,8 @@ export async function createFinanceGroupInvitation(
   )
 }
 
-export interface TransactionListOptions extends GroupScopedOptions {
+export interface TransactionListOptions {
+  token?: string
   from?: string
   to?: string
   categoryId?: string
@@ -253,7 +248,6 @@ export interface TransactionListOptions extends GroupScopedOptions {
 }
 
 export async function listFinanceTransactions({
-  groupId,
   token,
   from,
   to,
@@ -261,7 +255,7 @@ export async function listFinanceTransactions({
   userId,
 }: TransactionListOptions = {}): Promise<FinanceTransaction[]> {
   const list = await fetchEither<FinanceTransaction[]>(
-    withQuery('/api/finance/transactions', { groupId, from, to, categoryId, userId }),
+    withQuery('/api/finance/transactions', { from, to, categoryId, userId }),
     { method: 'GET' },
     token,
   )
@@ -307,14 +301,15 @@ export async function unshareFinanceTransaction(id: string, token?: string): Pro
   return withDefaultAmount(await shareToggle<FinanceTransaction>('/api/finance/transactions', 'unshare', id, token))
 }
 
-export interface BudgetListOptions extends GroupScopedOptions {
+export interface BudgetListOptions {
+  token?: string
   categoryId?: string
   date?: string
 }
 
-export async function listFinanceBudgets({ groupId, token, categoryId, date }: BudgetListOptions = {}): Promise<FinanceBudget[]> {
+export async function listFinanceBudgets({ token, categoryId, date }: BudgetListOptions = {}): Promise<FinanceBudget[]> {
   const list = await fetchEither<FinanceBudget[]>(
-    withQuery('/api/finance/budgets', { groupId, categoryId, date }),
+    withQuery('/api/finance/budgets', { categoryId, date }),
     { method: 'GET' },
     token,
   )

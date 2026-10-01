@@ -13,53 +13,31 @@ import {
 import { listFinanceGroupMembers, listSystemFinanceCategories } from '../api'
 import { financeKeys } from '../model/queryKeys'
 import type { FinanceCategoryType } from '../model/types'
-import { useActiveGroupContext } from '../providers/ActiveGroupProvider'
-
-// 저장된 활성 그룹이 더 이상 내 소속이 아니면(추방 등) 렌더 중 파생으로 개인 그룹 취급한다 —
-// 자산 탭(app/(main)/finance/(dashboard)/page.tsx)의 selectedMonth와 동일하게 useEffect 동기화 없이 순수 계산만 한다. 그룹
-// 목록 로딩 전에는 저장된 값을 낙관적으로 신뢰하고, 로드 후 무효로 판명되면 다음 렌더부터 undefined.
-export function useActiveGroupId(): string | undefined {
-  const { groupId } = useActiveGroupContext()
-  const { data: groups } = useFinanceGroupsQuery()
-  if (!groupId) return undefined
-  if (!groups) return groupId
-  return groups.some((g) => g.id === groupId) ? groupId : undefined
-}
-
-export function useSetActiveGroupId(): (groupId: string | undefined) => void {
-  return useActiveGroupContext().setGroupId
-}
 
 export function useAssetSnapshotsQuery() {
-  const groupId = useActiveGroupId()
-  return useQuery(assetSnapshotListQueryOptions(groupId))
+  return useQuery(assetSnapshotListQueryOptions())
 }
 
 export function useFinanceCategoriesQuery(type: FinanceCategoryType) {
-  const groupId = useActiveGroupId()
-  return useQuery(financeCategoryListQueryOptions(type, groupId))
+  return useQuery(financeCategoryListQueryOptions(type))
 }
 
 export function useFinanceAccountsQuery() {
-  const groupId = useActiveGroupId()
-  return useQuery(financeAccountListQueryOptions(groupId))
+  return useQuery(financeAccountListQueryOptions())
 }
 
 export function useMonthlyClosingsQuery() {
-  const groupId = useActiveGroupId()
-  return useQuery(monthlyClosingListQueryOptions(groupId))
+  return useQuery(monthlyClosingListQueryOptions())
 }
 
 // from/to는 lib/period.ts의 windowRange(month) — 수입/소비/저축 탭이 공유하는 12개월 윈도우.
 // enabled: 연간 모드 전년대비 쿼리처럼 조건부로만 실행해야 하는 호출부를 위한 옵션(기본 true).
 export function useFinanceTransactionsQuery(from: string, to: string, options?: { enabled?: boolean }) {
-  const groupId = useActiveGroupId()
-  return useQuery({ ...transactionListQueryOptions(groupId, from, to), enabled: options?.enabled ?? true })
+  return useQuery({ ...transactionListQueryOptions(from, to), enabled: options?.enabled ?? true })
 }
 
 export function useFinanceBudgetsQuery() {
-  const groupId = useActiveGroupId()
-  return useQuery(budgetListQueryOptions(groupId))
+  return useQuery(budgetListQueryOptions())
 }
 
 export function useFinanceGroupsQuery() {
@@ -73,9 +51,9 @@ export function useCanShareToGroup(): boolean {
   return (groups?.length ?? 0) > 0
 }
 
-// 월 마감 판정 스코프. kista-api는 마감 조회·저장·쓰기 가드(MonthlyClosingGuard) 전부를 활성 그룹 쿠키가 아니라
-// 실제 그룹 소속(findCurrentGroupId)으로 판정한다 — 1인 1그룹이라 소속 그룹 = groups[0]. 쿠키 기반
-// useActiveGroupId로 판정하면 그룹 멤버인데 쿠키가 없을 때 서버는 그룹 마감 행을 쓰고 UI는 개인 행을 찾아 어긋난다.
+// 월 마감 판정 스코프. kista-api는 마감 조회·저장·쓰기 가드(MonthlyClosingGuard) 전부를 실제 그룹
+// 소속(findCurrentGroupId)으로 판정한다 — 1인 1그룹이라 소속 그룹 = groups[0]. 마감 목록은 개인 행과
+// 그룹 행이 섞여 오므로 이 값으로 행을 고른다. 클라이언트가 그룹 스코프를 아는 유일한 지점이다.
 // 그룹 목록 로딩 전에는 undefined(개인 스코프)라 호출부가 필요하면 isLoading으로 게이팅한다.
 export function useMonthlyClosingScopeGroupId(): string | undefined {
   return useFinanceGroupsQuery().data?.[0]?.id
@@ -88,7 +66,7 @@ export function useFinanceGroupMembersQuery(groupId: string) {
   })
 }
 
-// 관리자 시스템 카테고리 — groupId가 없어 useActiveGroupId()/useFinanceGroupsQuery()를 구독하지 않는다.
+// 관리자 시스템 카테고리 — 그룹과 무관한 별도 키.
 export function useSystemFinanceCategoriesQuery(type: FinanceCategoryType) {
   return useQuery({
     queryKey: financeKeys.systemCategories(type),

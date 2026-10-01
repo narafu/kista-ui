@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation'
 import { PageHeader } from '@widgets/page-header'
 import { AssetFormPage, loadAssetSnapshotById } from '@features/asset/save-asset'
 import { getAuthToken } from '@shared/lib/auth/token'
-import { getActiveGroupId } from '@shared/lib/auth/activeGroup'
 import type { DismissMode } from '@shared/lib/dismiss'
 
 interface Props {
@@ -12,13 +11,13 @@ interface Props {
 }
 
 export async function EditAssetFormBody({ params, dismiss }: Props) {
-  const [{ id }, token, groupId] = await Promise.all([params, getAuthToken(), getActiveGroupId()])
+  const [{ id }, token] = await Promise.all([params, getAuthToken()])
 
   if (!token) {
     return notFound()
   }
 
-  const asset = await loadAssetSnapshotById(id, groupId, token)
+  const asset = await loadAssetSnapshotById(id, token)
   if (!asset) {
     return notFound()
   }

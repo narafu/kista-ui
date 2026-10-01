@@ -16,27 +16,27 @@ vi.mock('../api', () => ({
 }))
 
 describe('finance query options', () => {
-  it('forwards the group id and server token and uses the canonical asset-snapshots list key', async () => {
+  it('forwards the server token and uses the canonical asset-snapshots list key', async () => {
     listAssetSnapshotsMock.mockResolvedValue([])
 
-    const options = assetSnapshotListQueryOptions('group-1', 'server-token')
+    const options = assetSnapshotListQueryOptions('server-token')
     if (!options.queryFn) throw new Error('asset snapshot query options require a query function')
 
     await options.queryFn({} as never)
 
-    expect(options.queryKey).toEqual(financeKeys.assetSnapshots('group-1'))
-    expect(listAssetSnapshotsMock).toHaveBeenCalledWith({ groupId: 'group-1', token: 'server-token' })
+    expect(options.queryKey).toEqual(financeKeys.assetSnapshots())
+    expect(listAssetSnapshotsMock).toHaveBeenCalledWith('server-token')
   })
 
-  it('forwards the group id and server token for monthly closings and uses the canonical key', async () => {
+  it('forwards the server token for monthly closings and uses the canonical key', async () => {
     listMonthlyClosingsMock.mockResolvedValue([])
 
-    const options = monthlyClosingListQueryOptions('group-1', 'server-token')
+    const options = monthlyClosingListQueryOptions('server-token')
     if (!options.queryFn) throw new Error('monthly closing query options require a query function')
 
     await options.queryFn({} as never)
 
-    expect(options.queryKey).toEqual(financeKeys.monthlyClosings('group-1'))
-    expect(listMonthlyClosingsMock).toHaveBeenCalledWith({ groupId: 'group-1', token: 'server-token' })
+    expect(options.queryKey).toEqual(financeKeys.monthlyClosings())
+    expect(listMonthlyClosingsMock).toHaveBeenCalledWith('server-token')
   })
 })

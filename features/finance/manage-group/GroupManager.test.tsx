@@ -19,8 +19,6 @@ vi.mock('@entities/finance', async () => {
   return {
     ...actual,
     useFinanceGroupsQuery: () => ({ data: groups }),
-    useActiveGroupId: () => sharedGroup.id,
-    useSetActiveGroupId: () => vi.fn(),
     useFinanceGroupMembersQuery: () => ({ data: members }),
     useRemoveFinanceGroupMemberMutation: () => ({ mutate: vi.fn(), isPending: false }),
     useCreateFinanceGroupInvitationMutation: () => ({ mutate: vi.fn(), isPending: false }),

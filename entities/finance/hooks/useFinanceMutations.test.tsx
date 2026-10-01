@@ -50,12 +50,6 @@ vi.mock('../api', () => ({
   respondToInvitation: vi.fn(),
 }))
 
-// 활성 그룹 = 개인 그룹(undefined) 고정 — 그룹 전환 자체는 다루지 않는 테스트라 실제 useQuery
-// 의존 없이 고정값으로 대체한다(파일 상단의 '@tanstack/react-query' 모킹이 useQuery를 대체하지 않는다).
-vi.mock('./useFinanceQueries', () => ({
-  useActiveGroupId: () => undefined,
-}))
-
 function fakeQueryClient(existingList?: unknown[]) {
   const setQueryData = vi.fn()
   const fetchQuery = vi.fn()
