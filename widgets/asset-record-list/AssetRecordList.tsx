@@ -28,7 +28,7 @@ import {
   collectSubtreeIds,
   isLiability,
   isMonthClosed,
-  useActiveGroupId,
+  useMonthlyClosingScopeGroupId,
   useAssetSnapshotsQuery,
   useCanShareToGroup,
   useDeleteManyAssetSnapshotsMutation,
@@ -64,8 +64,8 @@ export function AssetRecordList({ month }: Props) {
   const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
   const { data: categories = [] } = useFinanceCategoriesQuery('ASSET')
   const { data: monthlyClosings = [] } = useMonthlyClosingsQuery()
-  const activeGroupId = useActiveGroupId()
-  const monthClosed = isMonthClosed(monthlyClosings, month, activeGroupId)
+  const closingScopeGroupId = useMonthlyClosingScopeGroupId()
+  const monthClosed = isMonthClosed(monthlyClosings, month, closingScopeGroupId)
   const closedMonthTitle = '기록 점검이 완료된 달입니다 · 기록 점검에서 완료를 해제하면 편집할 수 있습니다'
   const { meta, labelOf } = useMeta()
   const deleteManyMutation = useDeleteManyAssetSnapshotsMutation()

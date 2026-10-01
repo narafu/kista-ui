@@ -3,9 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AssetRecordCheck } from './AssetRecordCheck'
 import type { AssetSnapshot, MonthlyClosing } from '@entities/finance'
 
-const { useAssetSnapshotsQueryMock, useMonthlyClosingsQueryMock } = vi.hoisted(() => ({
+const { useAssetSnapshotsQueryMock, useMonthlyClosingsQueryMock, scopeState } = vi.hoisted(() => ({
   useAssetSnapshotsQueryMock: vi.fn(),
   useMonthlyClosingsQueryMock: vi.fn(),
+  scopeState: { groupId: undefined as string | undefined, groupsLoading: false, groupsError: false },
 }))
 
 vi.mock('@entities/finance', async () => {
@@ -14,7 +15,12 @@ vi.mock('@entities/finance', async () => {
     ...actual,
     useAssetSnapshotsQuery: useAssetSnapshotsQueryMock,
     useMonthlyClosingsQuery: useMonthlyClosingsQueryMock,
-    useActiveGroupId: () => undefined,
+    useFinanceGroupsQuery: () => ({
+      data: scopeState.groupId ? [{ id: scopeState.groupId }] : [],
+      isLoading: scopeState.groupsLoading,
+      isError: scopeState.groupsError,
+    }),
+    useMonthlyClosingScopeGroupId: () => scopeState.groupId,
   }
 })
 
@@ -49,6 +55,9 @@ describe('AssetRecordCheck', () => {
   beforeEach(() => {
     useAssetSnapshotsQueryMock.mockReset()
     useMonthlyClosingsQueryMock.mockReset()
+    scopeState.groupId = undefined
+    scopeState.groupsLoading = false
+    scopeState.groupsError = false
   })
 
   it('선택한 월에 기록이 없어도 크래시 없이 렌더링된다', () => {
@@ -168,5 +177,31 @@ describe('AssetRecordCheck', () => {
     render(<AssetRecordCheck month="2026-08" />)
 
     expect(screen.getByTestId('toggle-monthly-check')).toHaveTextContent('2026-08 / 미완료')
+  })
+
+  it('그룹 소속이면 활성 그룹 쿠키가 없어도 그룹 마감 행으로 완료를 판정한다', () => {
+    // 운영 회귀: 서버는 소속 그룹 행에 마감을 저장하는데 UI가 쿠키(없음) 기준으로 개인 행을 찾아 항상 미완료로 보였다.
+    scopeState.groupId = 'g1'
+    useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({})], isLoading: false, isError: false })
+    defaultClosingsMock([{ month: '2026-08', completed: true, groupId: 'g1' }])
+
+    render(<AssetRecordCheck month="2026-08" />)
+
+    expect(screen.getByTestId('toggle-monthly-check')).toHaveTextContent('2026-08 / 완료')
+  })
+
+  it('그룹 목록 로딩·에러 중엔 스코프를 확정할 수 없어 완료 상태를 그리지 않는다', () => {
+    useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({})], isLoading: false, isError: false })
+    defaultClosingsMock([])
+
+    scopeState.groupsLoading = true
+    const { unmount } = render(<AssetRecordCheck month="2026-08" />)
+    expect(screen.queryByTestId('toggle-monthly-check')).not.toBeInTheDocument()
+    unmount()
+
+    scopeState.groupsLoading = false
+    scopeState.groupsError = true
+    render(<AssetRecordCheck month="2026-08" />)
+    expect(screen.getByText('기록 점검 정보를 불러오지 못했습니다')).toBeInTheDocument()
   })
 })

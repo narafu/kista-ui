@@ -13,7 +13,7 @@ import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import { submitFormDialog } from '@shared/lib/form/submitFormDialog'
 import {
   isMonthClosed,
-  useActiveGroupId,
+  useMonthlyClosingScopeGroupId,
   useCanShareToGroup,
   useCategoryPathState,
   useCreateFinanceTransactionMutation,
@@ -71,10 +71,10 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
   // 날짜가 기록 점검 완료(마감)된 달이면 서버가 등록·수정을 409로 거부한다 — 제출 전에 막는다.
   // 수정은 새 날짜뿐 아니라 원본 날짜의 달도 잠겨 있으면 거부되므로(서버 가드와 동일) 둘 다 검사한다.
   const { data: monthlyClosings = [] } = useMonthlyClosingsQuery()
-  const activeGroupId = useActiveGroupId()
+  const closingScopeGroupId = useMonthlyClosingScopeGroupId()
   const monthClosed =
-    isMonthClosed(monthlyClosings, transactionDate.slice(0, 7), activeGroupId) ||
-    (initial ? isMonthClosed(monthlyClosings, initial.transactionDate.slice(0, 7), activeGroupId) : false)
+    isMonthClosed(monthlyClosings, transactionDate.slice(0, 7), closingScopeGroupId) ||
+    (initial ? isMonthClosed(monthlyClosings, initial.transactionDate.slice(0, 7), closingScopeGroupId) : false)
 
   const dateInWindow = (!windowFrom || transactionDate >= windowFrom) && (!windowTo || transactionDate <= windowTo)
   const canSubmit = transactionDate !== '' && dateInWindow && categoryId !== '' && amountDigits !== '' && !monthClosed

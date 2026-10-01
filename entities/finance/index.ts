@@ -77,6 +77,7 @@ export {
   useActiveGroupId,
   useAssetSnapshotsQuery,
   useCanShareToGroup,
+  useMonthlyClosingScopeGroupId,
   useFinanceAccountsQuery,
   useFinanceBudgetsQuery,
   useFinanceCategoriesQuery,

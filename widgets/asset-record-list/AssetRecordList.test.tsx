@@ -20,7 +20,7 @@ vi.mock('@entities/finance', async () => {
     useAssetSnapshotsQuery: useAssetSnapshotsQueryMock,
     useFinanceCategoriesQuery: useFinanceCategoriesQueryMock,
     useMonthlyClosingsQuery: useMonthlyClosingsQueryMock,
-    useActiveGroupId: () => undefined,
+    useMonthlyClosingScopeGroupId: () => undefined,
     useDeleteManyAssetSnapshotsMutation: () => ({ mutate: deleteManyMutateMock, isPending: false }),
     useShareAssetSnapshotMutation: () => ({ mutate: shareMutateMock, isPending: false }),
     useUnshareAssetSnapshotMutation: () => ({ mutate: unshareMutateMock, isPending: false }),

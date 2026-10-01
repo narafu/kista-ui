@@ -11,8 +11,9 @@ import {
   isMonthClosed,
   listAvailableMonths,
   previousMonthOf,
-  useActiveGroupId,
+  useMonthlyClosingScopeGroupId,
   useAssetSnapshotsQuery,
+  useFinanceGroupsQuery,
   useMonthlyClosingsQuery,
 } from '@entities/finance'
 import { ToggleMonthlyCheckButton } from '@features/asset/toggle-monthly-check'
@@ -30,9 +31,11 @@ function formatMonthDay(dateStr: string): string {
 export function AssetRecordCheck({ month }: Props) {
   const { data: snapshots = [], isLoading: assetsLoading, isError: assetsError } = useAssetSnapshotsQuery()
   const { data: monthlyClosings = [], isLoading: checksLoading, isError: checksError } = useMonthlyClosingsQuery()
-  const activeGroupId = useActiveGroupId()
+  const closingScopeGroupId = useMonthlyClosingScopeGroupId()
+  // 그룹 목록 로딩 전엔 스코프가 개인으로 잡혀 완료 상태가 잘못 그려진다 — 함께 로딩으로 막는다.
+  const { isLoading: groupsLoading, isError: groupsError } = useFinanceGroupsQuery()
 
-  if (assetsLoading || checksLoading) {
+  if (assetsLoading || checksLoading || groupsLoading) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-8 text-sm text-muted-foreground">
@@ -41,7 +44,7 @@ export function AssetRecordCheck({ month }: Props) {
       </Card>
     )
   }
-  if (assetsError || checksError) {
+  if (assetsError || checksError || groupsError) {
     return <SectionError message="기록 점검 정보를 불러오지 못했습니다" />
   }
 
@@ -50,7 +53,7 @@ export function AssetRecordCheck({ month }: Props) {
   const missingCategories = calcMissingCategories(snapshots, month)
   const missingAccounts = calcMissingAccounts(snapshots, month, previousMonth)
   const dateGroups = calcDateGroups(snapshots, month)
-  const completed = isMonthClosed(monthlyClosings, month, activeGroupId)
+  const completed = isMonthClosed(monthlyClosings, month, closingScopeGroupId)
 
   return (
     <Card>

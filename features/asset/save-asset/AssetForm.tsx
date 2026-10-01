@@ -20,7 +20,7 @@ import {
   SYSTEM_SAVINGS_CATEGORY_ID,
   isInvestmentCategoryId,
   isMonthClosed,
-  useActiveGroupId,
+  useMonthlyClosingScopeGroupId,
   useCanShareToGroup,
   useCategoryPathState,
   useCreateAssetSnapshotMutation,
@@ -143,10 +143,10 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
   // 수정은 새 기준일뿐 아니라 원본 기준일의 달도 잠겨 있으면 거부되므로(서버 가드와 동일) 둘 다 검사한다.
   // 복제/등록은 신규 생성이라 원본 날짜와 무관하다 — edit 모드에서만 원본 달을 함께 본다.
   const { data: monthlyClosings = [] } = useMonthlyClosingsQuery()
-  const activeGroupId = useActiveGroupId()
+  const closingScopeGroupId = useMonthlyClosingScopeGroupId()
   const monthClosed =
-    isMonthClosed(monthlyClosings, entryDate.slice(0, 7), activeGroupId) ||
-    (mode === 'edit' && initial ? isMonthClosed(monthlyClosings, initial.entryDate.slice(0, 7), activeGroupId) : false)
+    isMonthClosed(monthlyClosings, entryDate.slice(0, 7), closingScopeGroupId) ||
+    (mode === 'edit' && initial ? isMonthClosed(monthlyClosings, initial.entryDate.slice(0, 7), closingScopeGroupId) : false)
   const { selectedPath, setSelectedPath, cascadeLevels, categoryId } = useCategoryPathState(categories, initial?.categoryId)
   // 운용전략 필드는 L1 카테고리가 '투자'(고정 시스템 카테고리)일 때만 노출한다.
   const showStrategy = isInvestmentCategoryId(selectedPath[0])

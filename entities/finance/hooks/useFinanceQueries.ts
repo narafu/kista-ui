@@ -73,6 +73,14 @@ export function useCanShareToGroup(): boolean {
   return (groups?.length ?? 0) > 0
 }
 
+// 월 마감 판정 스코프. kista-api는 마감 조회·저장·쓰기 가드(MonthlyClosingGuard) 전부를 활성 그룹 쿠키가 아니라
+// 실제 그룹 소속(findCurrentGroupId)으로 판정한다 — 1인 1그룹이라 소속 그룹 = groups[0]. 쿠키 기반
+// useActiveGroupId로 판정하면 그룹 멤버인데 쿠키가 없을 때 서버는 그룹 마감 행을 쓰고 UI는 개인 행을 찾아 어긋난다.
+// 그룹 목록 로딩 전에는 undefined(개인 스코프)라 호출부가 필요하면 isLoading으로 게이팅한다.
+export function useMonthlyClosingScopeGroupId(): string | undefined {
+  return useFinanceGroupsQuery().data?.[0]?.id
+}
+
 export function useFinanceGroupMembersQuery(groupId: string) {
   return useQuery({
     queryKey: financeKeys.groupMembers(groupId),

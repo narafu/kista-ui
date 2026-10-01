@@ -27,7 +27,7 @@ import {
   periodRange,
   sortCategoryTree,
   unclassifiedTransactions,
-  useActiveGroupId,
+  useMonthlyClosingScopeGroupId,
   useCanShareToGroup,
   useDeleteFinanceTransactionMutation,
   useMonthlyClosingsQuery,
@@ -61,10 +61,10 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
   const unshareMutation = useUnshareFinanceTransactionMutation()
   const canShare = useCanShareToGroup()
   const { data: monthlyClosings = [] } = useMonthlyClosingsQuery()
-  const activeGroupId = useActiveGroupId()
+  const closingScopeGroupId = useMonthlyClosingScopeGroupId()
   // 기록 점검이 완료된 달의 거래는 서버가 등록·수정·삭제·공유를 전면 차단한다 — 행 작업 버튼을 미리 잠근다.
   const closedMonthTitle = '기록 점검이 완료된 달입니다 · 자산 탭의 기록 점검에서 완료를 해제하면 편집할 수 있습니다'
-  const isClosed = (date: string) => isMonthClosed(monthlyClosings, date.slice(0, 7), activeGroupId)
+  const isClosed = (date: string) => isMonthClosed(monthlyClosings, date.slice(0, 7), closingScopeGroupId)
 
   function handleShare(id: string) {
     shareMutation.mutate(id, { onSuccess: () => toast.success('그룹에 공유했습니다') })

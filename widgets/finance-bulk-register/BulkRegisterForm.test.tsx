@@ -42,7 +42,7 @@ vi.mock('@entities/finance', async () => {
     useBulkRegisterFinanceMutation: () => ({ mutate: mutateMock, isPending: false }),
     useCanShareToGroup: () => groupState.canShareToGroup,
     useMonthlyClosingsQuery: () => closingsState,
-    useActiveGroupId: () => undefined,
+    useMonthlyClosingScopeGroupId: () => undefined,
   }
 })
 

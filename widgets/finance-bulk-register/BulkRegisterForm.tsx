@@ -21,7 +21,7 @@ import {
   monthEndDate,
   monthStartDate,
   shiftMonth,
-  useActiveGroupId,
+  useMonthlyClosingScopeGroupId,
   useAssetSnapshotsQuery,
   useBulkRegisterFinanceMutation,
   useCanShareToGroup,
@@ -69,8 +69,8 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
 
   // 대상월이 기록 점검 완료(마감)된 달이면 서버가 모든 항목을 409로 거부한다 — 확정 자체를 막는다.
   const { data: monthlyClosings = [] } = useMonthlyClosingsQuery()
-  const activeGroupId = useActiveGroupId()
-  const targetMonthClosed = isMonthClosed(monthlyClosings, targetMonth, activeGroupId)
+  const closingScopeGroupId = useMonthlyClosingScopeGroupId()
+  const targetMonthClosed = isMonthClosed(monthlyClosings, targetMonth, closingScopeGroupId)
 
   const { data: transactions = [] } = useFinanceTransactionsQuery(monthStartDate(sourceMonth), monthEndDate(sourceMonth))
   const { data: assetSnapshots = [] } = useAssetSnapshotsQuery()

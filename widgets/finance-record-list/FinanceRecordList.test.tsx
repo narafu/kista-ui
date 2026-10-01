@@ -16,7 +16,7 @@ vi.mock('@entities/finance', async () => {
     useShareFinanceTransactionMutation: () => ({ mutate: vi.fn(), isPending: false }),
     useUnshareFinanceTransactionMutation: () => ({ mutate: vi.fn(), isPending: false }),
     useMonthlyClosingsQuery: () => ({ data: [] }),
-    useActiveGroupId: () => undefined,
+    useMonthlyClosingScopeGroupId: () => undefined,
     useCanShareToGroup: () => false,
   }
 })
