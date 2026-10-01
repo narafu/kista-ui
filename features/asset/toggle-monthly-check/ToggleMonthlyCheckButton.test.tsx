@@ -71,6 +71,6 @@ describe('ToggleMonthlyCheckButton', () => {
 
   it('미완료 상태에서는 완료 유도 문구를 보여준다', () => {
     render(<ToggleMonthlyCheckButton month="2026-08" completed={false} />)
-    expect(screen.getByRole('button', { name: '이번 달 기록 점검 완료' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '이번 달 기록 점검 완료로 표시' })).toBeInTheDocument()
   })
 })
