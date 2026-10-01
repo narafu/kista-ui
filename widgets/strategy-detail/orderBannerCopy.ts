@@ -1,6 +1,6 @@
 import type { SkipReason, OrderReadiness, DirectionReadiness } from '@entities/order'
 import { fmtUsd } from '@shared/lib/format'
-import { ApiError } from '@shared/lib/api-client'
+import { ApiError, apiMsg } from '@shared/lib/api-client'
 
 export const SKIP_REASON_LABELS: Record<SkipReason, string> = {
   NO_CYCLE_HISTORY: '첫 매매 전입니다.\n사이클 정보가 아직 없습니다.',
@@ -61,12 +61,11 @@ export function nextOrderBannerText(canExecute: boolean, mode: 'preview' | 'exec
   return parts.length > 0 ? parts.join('\n') : null
 }
 
+// 404만 화면 고유 문구, 나머지는 서버 detail을 그대로 노출한다 — 증권사 장애 503·API 키 오류 422·호출 한도 429는
+// kista-api가 사용자용 문구를 내려주고, 프록시는 그 외 5xx를 숨겨 detail이 없으므로 기본 문구로 떨어진다
 export function previewErrorMsg(error: unknown): string {
-  if (error instanceof ApiError) {
-    if (error.status === 404) return '전략 사이클 정보를 찾을 수 없습니다.'
-    if (error.status === 503) return '증권사 API에 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
-  }
-  return '주문 미리보기를 불러오는 중 오류가 발생했습니다.'
+  if (error instanceof ApiError && error.status === 404) return '전략 사이클 정보를 찾을 수 없습니다.'
+  return apiMsg(error, '주문 미리보기를 불러오는 중 오류가 발생했습니다.')
 }
 
 // VR 정기 입출금 부호별 라벨 — 카드 자체가 "운용 방식"을 겸하므로 별도 recurringMode 필드 없이 amount 부호로만 판정한다

@@ -127,8 +127,15 @@ describe('previewErrorMsg', () => {
     expect(previewErrorMsg(new ApiError(404, 'not found'))).toBe('전략 사이클 정보를 찾을 수 없습니다.')
   })
 
-  it('shows a broker-outage message for a 503 ApiError', () => {
-    expect(previewErrorMsg(new ApiError(503, 'unavailable'))).toBe('증권사 API에 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+  it.each([
+    [503, '증권사 API 조회에 실패했습니다. 잠시 후 다시 시도해주세요'],
+    [422, '증권사 API 키가 유효하지 않습니다'],
+  ])('shows the server detail for a %i ApiError', (status, detail) => {
+    expect(previewErrorMsg(new ApiError(status, { detail }))).toBe(detail)
+  })
+
+  it('falls back to the generic message for a masked 5xx without detail', () => {
+    expect(previewErrorMsg(new ApiError(500, { error: 'Failed' }))).toBe('주문 미리보기를 불러오는 중 오류가 발생했습니다.')
   })
 
   it('shows a generic message for any other error', () => {
