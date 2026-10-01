@@ -200,4 +200,18 @@ describe('useSetMonthlyClosingMutation', () => {
 
     expect(queryClient.setQueryData).toHaveBeenCalledWith(financeKeys.monthlyClosings(), [saved])
   })
+
+  it('does not overwrite the other scope row of the same month', async () => {
+    const personal = { month: '2026-08', completed: true, groupId: null }
+    const queryClient = fakeQueryClient([personal, { month: '2026-08', completed: false, groupId: 'g1' }])
+    useQueryClientMock.mockReturnValue(queryClient)
+
+    const { result } = renderHook(() => useSetMonthlyClosingMutation())
+    const saved = { month: '2026-08', completed: true, groupId: 'g1' }
+
+    // @ts-expect-error
+    await result.current.onSuccess(saved)
+
+    expect(queryClient.setQueryData).toHaveBeenCalledWith(financeKeys.monthlyClosings(), [personal, saved])
+  })
 })

@@ -175,12 +175,15 @@ export function useSetMonthlyClosingMutation() {
   return useMutation<MonthlyClosing, Error, { month: string; completed: boolean }>({
     mutationFn: ({ month, completed }) => setMonthlyClosing(month, completed),
     onSuccess: async (saved) => {
-      await synchronizeMonthlyClosings(queryClient, groupId, (closings) => {
-        const exists = closings.some((closing) => closing.month === saved.month)
-        return exists
-          ? closings.map((closing) => (closing.month === saved.month ? saved : closing))
-          : [...closings, saved]
-      })
+      // list는 개인 마감과 현재 그룹 마감을 함께 반환한다(kista-api findMyScope) — 같은 달이라도
+      // 스코프(groupId)가 같은 행만 교체해야 다른 스코프의 마감 행을 덮어쓰지 않는다.
+      const isSameRow = (closing: MonthlyClosing) =>
+        closing.month === saved.month && (closing.groupId ?? null) === (saved.groupId ?? null)
+      await synchronizeMonthlyClosings(queryClient, groupId, (closings) =>
+        closings.some(isSameRow)
+          ? closings.map((closing) => (isSameRow(closing) ? saved : closing))
+          : [...closings, saved],
+      )
     },
     onError: (err) => toast.error(apiMsg(err, '기록 완료 상태를 저장하지 못했습니다')),
   })
