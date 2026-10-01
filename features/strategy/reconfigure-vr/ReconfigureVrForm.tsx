@@ -16,10 +16,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SelectionCard } from '@shared/ui/selection-card'
+import { FormActions } from '@shared/ui/FormActions'
 import { cn } from '@shared/lib/utils'
 import { ratioToPercent, percentToRatio } from '@shared/lib/format'
 import { useDecimalAmountText } from '@shared/lib/hooks/use-decimal-amount-text'
@@ -353,14 +353,15 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
         </div>
       </section>
 
-      <div className="flex gap-3 pt-2">
-        <Button type="button" variant="outline" className="flex-1 h-12" onClick={handleDone} disabled={disabled}>
-          취소
-        </Button>
-        <Button type="submit" variant="destructive" className="flex-1 h-12" disabled={disabled}>
-          재설정
-        </Button>
-      </div>
+      <FormActions
+        onCancel={handleDone}
+        isPending={disabled}
+        canSubmit
+        label="재설정"
+        pendingLabel="재설정 중..."
+        submitVariant="destructive"
+        className="pt-2"
+      />
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent size="sm">
