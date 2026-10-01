@@ -67,7 +67,7 @@ describe('BulkRegisterForm', () => {
     }
   })
 
-  it('자산 행은 계좌명과 나머지 정보(기관·소유자·전략·시장 자산군·메모)를 2줄로 고정해 표시한다', async () => {
+  it('자산 행은 1줄 계좌명·기관·소유자, 2줄 시장·자산군·운용전략으로 표시한다', async () => {
     snapshotsState.data = [{
       id: 'a1', categoryId: 'leaf-1', rootCategoryId: 'f1000000-0000-4000-8000-000000000403', categoryName: '일반계좌',
       entryDate: '2026-07-01', assetClass: 'EQUITY', market: 'GLOBAL', amount: 2350000, strategy: 'VR', memo: '적립',
@@ -75,8 +75,9 @@ describe('BulkRegisterForm', () => {
     }]
     render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
 
-    expect(await screen.findByText('미래에셋 종합위탁')).toBeInTheDocument()
-    expect(screen.getByText('미래에셋증권 · 홍길동 · VR · GLOBAL EQUITY · 적립')).toBeInTheDocument()
+    const accountLine = (await screen.findByText('미래에셋 종합위탁')).closest('p') as HTMLElement
+    expect(accountLine).toHaveTextContent('미래에셋 종합위탁 · 미래에셋증권 · 홍길동')
+    expect(screen.getByText('GLOBAL · EQUITY · VR')).toBeInTheDocument()
   })
 
   it('행의 포함 토글을 끄면 확정 시 해당 항목이 요청에서 빠진다', async () => {

@@ -174,18 +174,17 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
     return (
       <div key={item.id} className="flex items-center gap-3 py-3 border-t border-border first:border-t-0">
         {/* 카테고리명은 이미 그룹 헤더(대/중/소분류)가 표시하므로 행에서 반복하지 않는다. 자산은 금액 입력·스위치와
-            폭을 나눠 쓰는 모바일에서 줄바꿈이 제각각이 되지 않도록 계좌명 / 나머지 정보 2줄로 고정하고 각 줄을 말줄임한다. */}
+            폭을 나눠 쓰는 모바일에서 줄바꿈이 제각각이 되지 않도록 계좌(계좌명·기관·소유자) / 시장·자산군·운용전략 2줄로 고정하고 각 줄을 말줄임한다. */}
         {showAssetColumns ? (
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium truncate">{item.accountName ?? '계좌 미지정'}</p>
+            <p className="text-sm truncate">
+              <span className="font-medium">{item.accountName ?? '계좌 미지정'}</span>
+              {(item.accountInstitution || item.accountOwner) && (
+                <span className="text-muted-foreground"> · {[item.accountInstitution, item.accountOwner].filter(Boolean).join(' · ')}</span>
+              )}
+            </p>
             <p className="text-xs text-muted-foreground truncate">
-              {[
-                item.accountInstitution,
-                item.accountOwner,
-                item.strategy,
-                [labelOf('markets', item.market ?? ''), labelOf('assetClasses', item.assetClass ?? '')].filter(Boolean).join(' '),
-                item.memo,
-              ].filter(Boolean).join(' · ')}
+              {[labelOf('markets', item.market ?? ''), labelOf('assetClasses', item.assetClass ?? ''), item.strategy].filter(Boolean).join(' · ')}
             </p>
           </div>
         ) : (
