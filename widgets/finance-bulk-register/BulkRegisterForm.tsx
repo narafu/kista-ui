@@ -11,8 +11,6 @@ import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { cn } from '@shared/lib/utils'
 import { digitsOnly, formatAmountDisplay, fmtKrw, todayKst } from '@shared/lib/format'
-import { MOBILE_FIXED_BAR_RESERVE_CLASS } from '@shared/lib/layout-constants'
-import { MobileSubmitBar } from '@shared/ui/MobileSubmitBar'
 import { useMeta } from '@entities/meta'
 import {
   buildBulkRegisterItems,
@@ -273,7 +271,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
   const submitDisabled = mutation.isPending || includedCount === 0 || targetMonthClosed
 
   return (
-    <div className={cn('space-y-[18px] sm:pb-0', MOBILE_FIXED_BAR_RESERVE_CLASS)}>
+    <div className="space-y-[18px]">
       {/* PC 저장 버튼은 필터 행 우측 상단에 둔다 — 데이터가 길어지는 화면 하단부에 있으면
           스크롤해야 보이는 위치라 눈에 잘 띄지 않는다는 피드백으로 상단으로 옮겼다. */}
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -315,15 +313,10 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
         </div>
       </div>
 
-      <MobileSubmitBar>
-        <Button
-          onClick={handleSubmit}
-          disabled={submitDisabled}
-          className="w-full h-14 text-base font-semibold"
-        >
-          이대로 확정하기
-        </Button>
-      </MobileSubmitBar>
+      {/* 모바일은 상단 버튼을 숨기고 목록 맨 끝에 둔다 */}
+      <Button onClick={handleSubmit} disabled={submitDisabled} className="sm:hidden w-full h-12">
+        이대로 확정하기
+      </Button>
     </div>
   )
 }

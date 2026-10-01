@@ -124,7 +124,7 @@ export function useStrategyForm({
   const queryClient = useQueryClient()
   const {
     isMock, meta, findStrategyType, runtimeQuery, runtimeConfig, enabledStrategyTypes,
-    balanceCheckEnabled, marginItems, marginLoading, prices,
+    balanceCheckEnabled, marginItems, marginLoading, marginError, prices, pricesError,
   } = useStrategyFormData(accountId, broker)
 
   const handleMutationSuccess = async () => {
@@ -242,15 +242,16 @@ export function useStrategyForm({
   if (!loadingBase) initRef.current = true
   const initialized = initRef.current
 
+  // 실제 쿼리 실패만 알린다 — 값이 null인지로 판정하면 현재가 조회가 아직 진행 중이거나(loadingBase에
+  // 미포함) 잔고검증 OFF로 예수금 조회를 건너뛴 경우까지 실패로 오탐한다.
+  // 모의계좌는 실제 잔고·시세 조회 대상이 아니라 제외한다.
   useEffect(() => {
-    if (loadingBase) return
-    // 모의계좌는 예수금 조회를 스킵하므로 usdDeposit이 항상 null — 현재가 조회 실패만으로 오탐 방지
     if (isMock) return
-    if (usdDeposit === null && prices === null) {
+    if (marginError || pricesError) {
       // eslint-disable-next-line react-doctor/no-event-handler
-      toast.error('예수금 / 현재가 조회에 실패했습니다')
+      toast.error('예수금 / 현재가 조회에 실패했습니다', { id: 'strategy-form-load-fail' })
     }
-  }, [loadingBase]) // eslint-disable-line react-doctor/exhaustive-deps
+  }, [isMock, marginError, pricesError])
 
   const {
     pct, setPct,

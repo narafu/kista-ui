@@ -10,8 +10,6 @@ import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { cn } from '@shared/lib/utils'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
-import { MOBILE_FIXED_BAR_RESERVE_CLASS } from '@shared/lib/layout-constants'
-import { MobileSubmitBar } from '@shared/ui/MobileSubmitBar'
 import { FormActions } from '@shared/ui/FormActions'
 import { useMeta } from '@entities/meta'
 import {
@@ -207,7 +205,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className={cn('max-w-xl sm:pb-0', MOBILE_FIXED_BAR_RESERVE_CLASS)}>
+      <div className="max-w-xl">
         <div className={cn(cardClass, 'space-y-4')}>
           <div className="space-y-2">
             <Label htmlFor="entryDate">기준일</Label>
@@ -366,15 +364,9 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
             </p>
           )}
 
-          <div className="hidden sm:flex gap-3 pt-2">
-            <FormActions onCancel={onCancel} isPending={isPending} canSubmit={canSubmit} label={MODE_LABEL[mode]} size="md" />
-          </div>
+          <FormActions onCancel={onCancel} isPending={isPending} canSubmit={canSubmit} label={MODE_LABEL[mode]} className="pt-2" />
         </div>
       </div>
-
-      <MobileSubmitBar className="flex gap-3">
-        <FormActions onCancel={onCancel} isPending={isPending} canSubmit={canSubmit} label={MODE_LABEL[mode]} size="lg" />
-      </MobileSubmitBar>
     </form>
   )
 }

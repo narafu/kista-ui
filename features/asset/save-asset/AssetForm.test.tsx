@@ -268,9 +268,9 @@ describe('AssetForm', () => {
 
     const notice = screen.getByText('기록 점검이 완료되어 잠겨 있습니다.').closest('p') as HTMLElement
     expect(notice).toHaveTextContent('기록 점검이 완료되어 잠겨 있습니다. 자산탭 기록 점검에서 완료를 해제하세요.')
-    // 안내가 데스크톱 버튼 영역 바로 앞에 온다.
-    const desktopActions = screen.getAllByRole('button', { name: '수정' })[0].closest('div.hidden') as HTMLElement
-    expect(notice.nextElementSibling).toBe(desktopActions)
-    for (const button of screen.getAllByRole('button', { name: '수정' })) expect(button).toBeDisabled()
+    // 안내가 버튼 영역 바로 앞에 온다.
+    const submit = screen.getByRole('button', { name: '수정' })
+    expect(notice.nextElementSibling).toBe(submit.parentElement)
+    expect(submit).toBeDisabled()
   })
 })

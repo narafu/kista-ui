@@ -47,9 +47,9 @@ export function StrategyFormSkeleton({ hasCancel = true }: { hasCancel?: boolean
       </div>
 
       {/* 버튼 */}
-      <div className="flex gap-2.5 py-6">
-        {hasCancel && <Skeleton className="flex-1 h-[46px] rounded" />}
-        <Skeleton className={hasCancel ? 'flex-[1.5] h-[46px] rounded' : 'flex-1 h-[46px] rounded'} />
+      <div className="flex gap-3 py-6">
+        {hasCancel && <Skeleton className="flex-1 h-12 rounded" />}
+        <Skeleton className="flex-1 h-12 rounded" />
       </div>
     </div>
   )

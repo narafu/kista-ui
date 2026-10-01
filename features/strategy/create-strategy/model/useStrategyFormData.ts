@@ -22,13 +22,13 @@ export function useStrategyFormData(accountId: string, broker: BrokerCode | unde
 
   // 잔고검증 OFF면 예수금 불필요 → margin 쿼리 skip
   // eslint-disable-next-line react-doctor/no-event-handler
-  const { items: marginItems, isLoading: marginLoading } = useAccountMarginQuery(accountId, {
+  const { items: marginItems, isLoading: marginLoading, isError: marginError } = useAccountMarginQuery(accountId, {
     enabled: balanceCheckEnabled,
   })
 
   // 티커 선택 버튼의 가격 표시용 — 여러 ticker 동시 (basePrice 계산엔 미사용)
   const allTickerCodes = useMemo(() => meta.tickers.map((t) => t.code), [meta.tickers])
-  const { data: pricesData } = useAccountPricesQuery(accountId, allTickerCodes)
+  const { data: pricesData, isError: pricesError } = useAccountPricesQuery(accountId, allTickerCodes)
   const prices = pricesData ?? null
 
   return {
@@ -41,6 +41,8 @@ export function useStrategyFormData(accountId: string, broker: BrokerCode | unde
     balanceCheckEnabled,
     marginItems,
     marginLoading,
+    marginError,
     prices,
+    pricesError,
   }
 }

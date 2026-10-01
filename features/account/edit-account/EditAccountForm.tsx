@@ -20,8 +20,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { cn } from '@shared/lib/utils'
-import { MOBILE_FIXED_BAR_RESERVE_CLASS } from '@shared/lib/layout-constants'
-import { MobileSubmitBar } from '@shared/ui/MobileSubmitBar'
 import { FormActions } from '@shared/ui/FormActions'
 import { useUpdateAccountMutation, useDeleteAccountMutation } from '@entities/account'
 import { strategyKeys } from '@entities/strategy'
@@ -79,7 +77,7 @@ export function EditAccountForm({ account }: Props) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className={cn('max-w-xl space-y-4 sm:pb-0', MOBILE_FIXED_BAR_RESERVE_CLASS)}>
+      <div className="max-w-xl space-y-4">
         <div className={cn(cardClass, 'space-y-4')}>
           <h2 className="text-sm font-semibold mb-1">계좌 정보 수정</h2>
 
@@ -110,9 +108,7 @@ export function EditAccountForm({ account }: Props) {
             전략은 계좌 상세 화면에서 등록·수정할 수 있습니다.
           </p>
 
-          <div className="hidden sm:flex gap-3 pt-2">
-            <FormActions cancelHref={`/accounts/${account.id}`} isPending={updateMutation.isPending} canSubmit label="저장" size="md" />
-          </div>
+          <FormActions cancelHref={`/accounts/${account.id}`} isPending={updateMutation.isPending} canSubmit label="저장" className="pt-2" />
         </div>
 
         <div className={cn(cardClass, 'border-[var(--status-error-border)] bg-[var(--status-error-bg)]')}>
@@ -168,17 +164,6 @@ export function EditAccountForm({ account }: Props) {
           </Dialog>
         </div>
       </div>
-
-      <MobileSubmitBar>
-        <Button type="submit" className="w-full h-14 text-base font-semibold gap-2" disabled={updateMutation.isPending}>
-          {updateMutation.isPending ? (
-            <>
-              <Spinner size={16} aria-hidden="true" />
-              저장 중...
-            </>
-          ) : '저장'}
-        </Button>
-      </MobileSubmitBar>
     </form>
   )
 }
