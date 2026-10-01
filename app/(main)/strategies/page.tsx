@@ -6,6 +6,7 @@ import { strategyKeys, strategyListAllQueryOptions } from '@entities/strategy'
 import { getStrategyOrderPreviewsById } from '@entities/order'
 import { AllStrategiesList } from '@widgets/all-strategies'
 import { PageHeader } from '@widgets/page-header'
+import { AddStrategyButton } from '@features/strategy/create-strategy'
 import type { Strategy } from '@entities/strategy'
 import { createQueryClient } from '@shared/lib/query'
 
@@ -31,8 +32,8 @@ export default async function StrategiesPage() {
     : {}
   return (
     <>
-      <PageHeader eyebrow="Strategies" title="전략" />
       <HydrationBoundary state={dehydrate(queryClient)}>
+        <PageHeader eyebrow="Strategies" title="전략" actions={<AddStrategyButton />} />
         <AllStrategiesList previewsByStrategyId={previewsByStrategyId} />
       </HydrationBoundary>
     </>
