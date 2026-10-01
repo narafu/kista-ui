@@ -73,7 +73,7 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 
 ## proxy
 
-`createProxyRoute`는 catch-all 및 정적 Route Handler에서 kista-api 요청 프록시와 인증 토큰 포함을 공통화한다. 모든 upstream fetch는 `cache: 'no-store'`이며, 정적 Route Handler처럼 route context가 없는 호출은 `basePath`를 그대로 사용한다.
+`createProxyRoute`는 catch-all 및 정적 Route Handler에서 kista-api 요청 프록시와 인증 토큰 포함을 공통화한다. 모든 upstream fetch는 `cache: 'no-store'`이며, 정적 Route Handler처럼 route context가 없는 호출은 `basePath`를 그대로 사용한다. 업스트림 에러는 `relayUpstreamError`가 매핑한다 — 4xx는 JSON body를 그대로 relay, 5xx는 `{ error: 'Failed' }`로 숨긴다. **예외: kista-api 증권사 장애 503(ProblemDetail `title`이 `'KIS API Error'`/`'Toss API Error'`, `detail`이 사용자용 고정 문구)만 `title`/`detail`/`status`를 골라 relay**한다 — 다른 503(`Trading Core Unavailable` 등)은 `detail`에 내부 호스트가 담긴 예외 메시지가 올 수 있어 숨긴다. kista-api가 이 title을 바꾸면 UI도 함께 바꿔야 한다(422 자격증명 오류·429 호출 한도는 4xx라 원래 relay됨)
 
 ## ui
 
