@@ -173,27 +173,26 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
     const rowLabel = `${item.categoryName}${item.memo ? ' ' + item.memo : ''} ${fmtKrw(item.amount)}`
     return (
       <div key={item.id} className="flex items-center gap-3 py-3 border-t border-border first:border-t-0">
-        {/* 카테고리명은 이미 그룹 헤더(대/중/소분류)가 표시하므로 행에서 반복하지 않는다 — 자산은
-            계좌·자산군·전략, 그 외는 메모만 한 줄로 넓게 나열한다. */}
-        <div className="min-w-0 flex-1 flex flex-wrap items-center gap-x-3 gap-y-0.5">
-          {showAssetColumns && (
-            <>
-              <span className="text-sm font-medium truncate">{item.accountName ?? '계좌 미지정'}</span>
-              {(item.accountInstitution || item.accountOwner) && (
-                <span className="text-xs text-muted-foreground truncate">
-                  {[item.accountInstitution, item.accountOwner].filter(Boolean).join(' · ')}
-                </span>
-              )}
-              {item.strategy && <span className="text-xs text-muted-foreground truncate">{item.strategy}</span>}
-              <span className="text-xs text-muted-foreground">
-                {labelOf('markets', item.market ?? '')} {labelOf('assetClasses', item.assetClass ?? '')}
-              </span>
-            </>
-          )}
-          {item.memo && (
-            <span className={cn('text-xs text-muted-foreground truncate', !showAssetColumns && 'text-sm')}>{item.memo}</span>
-          )}
-        </div>
+        {/* 카테고리명은 이미 그룹 헤더(대/중/소분류)가 표시하므로 행에서 반복하지 않는다. 자산은 금액 입력·스위치와
+            폭을 나눠 쓰는 모바일에서 줄바꿈이 제각각이 되지 않도록 계좌명 / 나머지 정보 2줄로 고정하고 각 줄을 말줄임한다. */}
+        {showAssetColumns ? (
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium truncate">{item.accountName ?? '계좌 미지정'}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {[
+                item.accountInstitution,
+                item.accountOwner,
+                item.strategy,
+                [labelOf('markets', item.market ?? ''), labelOf('assetClasses', item.assetClass ?? '')].filter(Boolean).join(' '),
+                item.memo,
+              ].filter(Boolean).join(' · ')}
+            </p>
+          </div>
+        ) : (
+          <div className="min-w-0 flex-1">
+            {item.memo && <p className="text-sm text-muted-foreground truncate">{item.memo}</p>}
+          </div>
+        )}
         <Input
           inputMode="numeric"
           value={formatAmountDisplay(String(state.amount))}

@@ -3,13 +3,14 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BulkRegisterForm } from './BulkRegisterForm'
 
-const { mutateMock, pushMock, toastSuccessMock, toastWarningMock, groupState, closingsState } = vi.hoisted(() => ({
+const { mutateMock, pushMock, toastSuccessMock, toastWarningMock, groupState, closingsState, snapshotsState } = vi.hoisted(() => ({
   mutateMock: vi.fn(),
   pushMock: vi.fn(),
   toastSuccessMock: vi.fn(),
   toastWarningMock: vi.fn(),
   groupState: { canShareToGroup: false },
   closingsState: { data: [] as { month: string; completed: boolean }[] },
+  snapshotsState: { data: [] as Record<string, unknown>[] },
 }))
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: pushMock }) }))
@@ -37,7 +38,7 @@ vi.mock('@entities/finance', async () => {
         { id: 't2', categoryId: 'cat-income', memo: '용돈', amount: 100000, transactionDate: '2026-07-05' },
       ],
     }),
-    useAssetSnapshotsQuery: () => ({ data: [] }),
+    useAssetSnapshotsQuery: () => snapshotsState,
     useFinanceCategoriesQuery: (type: string) => ({ data: type === 'INCOME' ? [incomeCategory] : [] }),
     useBulkRegisterFinanceMutation: () => ({ mutate: mutateMock, isPending: false }),
     useCanShareToGroup: () => groupState.canShareToGroup,
@@ -53,6 +54,7 @@ describe('BulkRegisterForm', () => {
     toastWarningMock.mockClear()
     groupState.canShareToGroup = false
     closingsState.data = []
+    snapshotsState.data = []
   })
 
   it('대상월이 기록 점검 완료된 달이면 확정 버튼을 비활성화하고 안내를 표시한다', async () => {
@@ -63,6 +65,18 @@ describe('BulkRegisterForm', () => {
     for (const button of screen.getAllByRole('button', { name: '이대로 확정하기' })) {
       expect(button).toBeDisabled()
     }
+  })
+
+  it('자산 행은 계좌명과 나머지 정보(기관·소유자·전략·시장 자산군·메모)를 2줄로 고정해 표시한다', async () => {
+    snapshotsState.data = [{
+      id: 'a1', categoryId: 'leaf-1', rootCategoryId: 'f1000000-0000-4000-8000-000000000403', categoryName: '일반계좌',
+      entryDate: '2026-07-01', assetClass: 'EQUITY', market: 'GLOBAL', amount: 2350000, strategy: 'VR', memo: '적립',
+      accountName: '미래에셋 종합위탁', accountInstitution: '미래에셋증권', accountOwner: '홍길동',
+    }]
+    render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
+
+    expect(await screen.findByText('미래에셋 종합위탁')).toBeInTheDocument()
+    expect(screen.getByText('미래에셋증권 · 홍길동 · VR · GLOBAL EQUITY · 적립')).toBeInTheDocument()
   })
 
   it('행의 포함 토글을 끄면 확정 시 해당 항목이 요청에서 빠진다', async () => {
