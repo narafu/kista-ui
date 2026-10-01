@@ -245,7 +245,7 @@ export function AssetRecordList({ month }: Props) {
                   <TableHeadCell>운용전략</TableHeadCell>
                   <TableHeadCell>계좌명</TableHeadCell>
                   <TableHeadCell>기관</TableHeadCell>
-                  <SortableHeadCell sortKey="amount" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>금액</SortableHeadCell>
+                  <SortableHeadCell sortKey="amount" activeKey={sortKey} direction={sortDirection} onSort={handleSort} className="text-right">금액</SortableHeadCell>
                   <TableHeadCell>메모</TableHeadCell>
                   <TableHeadCell className="whitespace-nowrap">작업</TableHeadCell>
                 </tr>
@@ -273,7 +273,7 @@ export function AssetRecordList({ month }: Props) {
                     <TableDataCell className={cn(!snapshot.strategy && 'text-muted-foreground')}>{snapshot.strategy ?? '—'}</TableDataCell>
                     <TableDataCell className={cn(!snapshot.accountName && 'text-muted-foreground')}>{snapshot.accountName ?? '—'}</TableDataCell>
                     <TableDataCell className={cn(!snapshot.accountInstitution && 'text-muted-foreground')}>{snapshot.accountInstitution ?? '—'}</TableDataCell>
-                    <TableDataCell className={cn('tabular-nums whitespace-nowrap', isLiability(snapshot) && 'text-destructive')}>
+                    <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap', isLiability(snapshot) && 'text-destructive')}>
                       {fmtKrw(snapshot.amount)}
                     </TableDataCell>
                     <TableDataCell title={snapshot.memo} className={cn('max-w-48 truncate', !snapshot.memo && 'text-muted-foreground')}>{snapshot.memo ?? '—'}</TableDataCell>

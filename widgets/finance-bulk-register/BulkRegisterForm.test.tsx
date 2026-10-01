@@ -61,7 +61,7 @@ describe('BulkRegisterForm', () => {
     closingsState.data = [{ month: '2026-08', completed: true }]
     render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
 
-    expect(await screen.findByText(/기록 점검이 완료된 달이라 등록할 수 없습니다/)).toBeInTheDocument()
+    expect(await screen.findByText('2026-08은 기록 점검이 완료되어 잠겨 있습니다.')).toBeInTheDocument()
     for (const button of screen.getAllByRole('button', { name: '이대로 확정하기' })) {
       expect(button).toBeDisabled()
     }

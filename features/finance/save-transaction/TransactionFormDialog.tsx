@@ -123,11 +123,6 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
                 disabled={isPending}
                 className="h-11"
               />
-              {monthClosed && (
-                <p className="text-xs text-[var(--warn)]">
-                  이 달은 기록 점검이 완료되어 잠겨 있습니다. 자산 탭의 기록 점검에서 완료를 해제하세요.
-                </p>
-              )}
             </div>
 
             <div className="space-y-2">
@@ -174,6 +169,13 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
               <ShareToGroupSwitch id="transactionShareToGroup" checked={shareToGroup} onCheckedChange={setShareToGroup} disabled={isPending} />
             )}
           </div>
+
+          {monthClosed && (
+            <p className="text-xs text-[var(--warn)]">
+              <span className="inline-block">기록 점검이 완료되어 잠겨 있습니다.</span>{' '}
+              <span className="inline-block">자산탭 기록 점검에서 완료를 해제하세요.</span>
+            </p>
+          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>

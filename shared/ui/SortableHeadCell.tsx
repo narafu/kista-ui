@@ -9,13 +9,14 @@ interface Props<K extends string> {
   direction: SortDirection
   onSort: (key: K) => void
   children: ReactNode
+  className?: string
 }
 
 /** 정렬 가능한 테이블 헤더 셀 — aria-sort + 방향 아이콘 + 클릭 핸들러를 묶는다. `useTableSort`와 함께 쓴다. */
-export function SortableHeadCell<K extends string>({ sortKey, activeKey, direction, onSort, children }: Props<K>) {
+export function SortableHeadCell<K extends string>({ sortKey, activeKey, direction, onSort, children, className }: Props<K>) {
   const active = sortKey === activeKey
   return (
-    <TableHeadCell aria-sort={active ? (direction === 'asc' ? 'ascending' : 'descending') : 'none'}>
+    <TableHeadCell className={className} aria-sort={active ? (direction === 'asc' ? 'ascending' : 'descending') : 'none'}>
       <button type="button" onClick={() => onSort(sortKey)}>
         {children}
         {active

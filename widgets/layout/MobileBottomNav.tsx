@@ -179,7 +179,7 @@ export function MobileBottomNav() {
       {TABS.map(({ href, label, icon: Icon }) => {
         const active = isNavItemActive(pathname, href)
         return (
-          <Link key={href} href={href} aria-current={active ? 'page' : undefined} className="min-w-16 flex-1 flex flex-col items-center gap-1 py-2.5 relative">
+          <Link key={href} href={href} aria-current={active ? 'page' : undefined} className="min-w-0 flex-1 flex flex-col items-center gap-1 py-2.5 relative">
             {active && (
               <span className="absolute top-1.5 left-1/2 -translate-x-1/2 size-1.5 rounded-full bg-sidebar-active-fg" />
             )}

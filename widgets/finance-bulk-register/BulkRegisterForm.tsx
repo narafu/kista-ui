@@ -290,7 +290,8 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
 
       {targetMonthClosed && (
         <p className="rounded-[var(--r-md)] border border-[var(--warn)] bg-[var(--warn-bg)] px-3 py-2 text-sm text-[var(--warn)]">
-          {targetMonth} 은 기록 점검이 완료된 달이라 등록할 수 없습니다. 자산탭 기록 점검에서 완료를 해제하거나 다른 대상월을 고르세요.
+          <span className="inline-block">{targetMonth}은 기록 점검이 완료되어 잠겨 있습니다.</span>{' '}
+          <span className="inline-block">자산탭 기록 점검에서 완료를 해제하거나 다른 대상월을 고르세요.</span>
         </p>
       )}
 
