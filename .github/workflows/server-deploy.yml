@@ -192,9 +192,11 @@ jobs:
               STATUS=$(docker inspect --format '{{.State.Health.Status}}' kista-ui 2>/dev/null || echo "unknown")
               if [ "$STATUS" = "healthy" ]; then
                 echo "✓ 헬스체크 통과 (${i}회 시도)"
-                # 미사용 이미지 중 7일 지난 것만 정리 — dangling만 지우는 prune -f로는 SHA 태그 이미지가 무한 누적된다.
-                # 다른 레포 prune이 롤백 대상 이미지를 지워도 compose up이 GHCR(public)에서 다시 pull한다
-                docker image prune -af --filter "until=168h" || true
+                # 이 레포 이미지 중 컨테이너가 안 쓰는 태그만 정리(사용 중이면 rmi가 거부) + dangling 레이어 —
+                # prune -f(dangling만)로는 SHA 태그가 무한 누적되고, prune -a는 다른 레포(kista-infra 등)가 막 pull한 이미지까지 지울 수 있다.
+                # 롤백·수동 복구는 GHCR(public)에서 다시 pull된다
+                docker image ls --format '{{.Repository}}:{{.Tag}}' ghcr.io/narafu/kista-ui | xargs -r docker rmi >/dev/null 2>&1 || true
+                docker image prune -f >/dev/null || true
                 exit 0
               fi
               if [ "$STATUS" = "unhealthy" ]; then
