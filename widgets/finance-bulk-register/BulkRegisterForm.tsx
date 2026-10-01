@@ -172,11 +172,12 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
     // 금액까지 이어 붙여 접근성 이름을 행마다 고유하게 만든다 — categoryName+memo만으로는 충돌한다.
     const rowLabel = `${item.categoryName}${item.memo ? ' ' + item.memo : ''} ${fmtKrw(item.amount)}`
     return (
-      <div key={item.id} className="flex items-center gap-3 py-3 border-t border-border first:border-t-0">
-        {/* 카테고리명은 이미 그룹 헤더(대/중/소분류)가 표시하므로 행에서 반복하지 않는다. 자산은 금액 입력·스위치와
-            폭을 나눠 쓰는 모바일에서 줄바꿈이 제각각이 되지 않도록 계좌(계좌명·기관·소유자) / 시장·자산군·운용전략 2줄로 고정하고 각 줄을 말줄임한다. */}
+      <div key={item.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3 border-t border-border first:border-t-0">
+        {/* 카테고리명은 이미 그룹 헤더(대/중/소분류)가 표시하므로 행에서 반복하지 않는다. 자산은 계좌(계좌명·기관·소유자) /
+            시장·자산군·운용전략 2줄로 고정하고 각 줄을 말줄임한다. 모바일은 카드 패딩 중첩 + 금액 입력·스위치를 빼면 글자 폭이
+            거의 남지 않아 텍스트를 한 줄 전체(basis-full)로 올리고 금액·스위치는 다음 줄 오른쪽으로 내린다. */}
         {showAssetColumns ? (
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 basis-full sm:basis-0 sm:flex-1">
             <p className="text-sm truncate">
               <span className="font-medium">{item.accountName ?? '계좌 미지정'}</span>
               {(item.accountInstitution || item.accountOwner) && (
@@ -188,9 +189,11 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
             </p>
           </div>
         ) : (
-          <div className="min-w-0 flex-1">
-            {item.memo && <p className="text-sm text-muted-foreground truncate">{item.memo}</p>}
-          </div>
+          item.memo && (
+            <div className="min-w-0 basis-full sm:basis-0 sm:flex-1">
+              <p className="text-sm text-muted-foreground truncate">{item.memo}</p>
+            </div>
+          )
         )}
         <Input
           inputMode="numeric"
@@ -198,7 +201,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
           onChange={(e) => updateRow(item, { amount: Number(digitsOnly(e.target.value)) })}
           onFocus={selectAllOnFocus}
           disabled={!state.included}
-          className="h-9 w-32 text-right tabular-nums shrink-0"
+          className="h-9 w-32 ml-auto text-right tabular-nums shrink-0"
           aria-label={`${rowLabel} 금액`}
         />
         <Switch
@@ -302,7 +305,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
         </Surface>
       )}
 
-      <div className="grid gap-[18px] lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-[18px] lg:grid-cols-2">
         <div>{renderSection('자산', items.asset, true)}</div>
         <div className="space-y-[18px]">
           {renderSection('수입', items.income)}
