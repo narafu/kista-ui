@@ -2855,6 +2855,10 @@ export interface components {
             accountId?: string;
             /** @description 계좌명 (없으면 null) */
             accountName?: string;
+            /** @description 계좌 기관 (계좌가 없거나 기관 미입력이면 null) */
+            accountInstitution?: string;
+            /** @description 계좌 소유자 (계좌가 없거나 소유자 미입력이면 null) */
+            accountOwner?: string;
             /**
              * Format: date
              * @description 기준 날짜
@@ -2901,6 +2905,10 @@ export interface components {
             accountNo?: string;
             /** @description 메모 (선택) */
             memo?: string;
+            /** @description 기관 (선택) */
+            institution?: string;
+            /** @description 소유자 (선택) */
+            owner?: string;
         };
         FinanceAccountResponse: {
             /**
@@ -2928,6 +2936,10 @@ export interface components {
             accountNo?: string;
             /** @description 메모 */
             memo?: string;
+            /** @description 기관 */
+            institution?: string;
+            /** @description 소유자 */
+            owner?: string;
         };
         AdminSettingsRequest: {
             /** @description 가입 승인 정책 설정 */
