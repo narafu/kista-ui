@@ -243,9 +243,10 @@ export function AssetRecordList({ month }: Props) {
                   <TableHeadCell>시장</TableHeadCell>
                   <TableHeadCell>자산군</TableHeadCell>
                   <TableHeadCell>운용전략</TableHeadCell>
-                  <TableHeadCell>메모</TableHeadCell>
-                  <TableHeadCell>계좌</TableHeadCell>
+                  <TableHeadCell>계좌명</TableHeadCell>
+                  <TableHeadCell>기관</TableHeadCell>
                   <SortableHeadCell sortKey="amount" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>금액</SortableHeadCell>
+                  <TableHeadCell>메모</TableHeadCell>
                   <TableHeadCell className="whitespace-nowrap">작업</TableHeadCell>
                 </tr>
               </thead>
@@ -270,11 +271,12 @@ export function AssetRecordList({ month }: Props) {
                     <TableDataCell>{labelOf('markets', snapshot.market)}</TableDataCell>
                     <TableDataCell>{labelOf('assetClasses', snapshot.assetClass)}</TableDataCell>
                     <TableDataCell className={cn(!snapshot.strategy && 'text-muted-foreground')}>{snapshot.strategy ?? '—'}</TableDataCell>
-                    <TableDataCell title={snapshot.memo} className={cn('max-w-48 truncate', !snapshot.memo && 'text-muted-foreground')}>{snapshot.memo ?? '—'}</TableDataCell>
                     <TableDataCell className={cn(!snapshot.accountName && 'text-muted-foreground')}>{snapshot.accountName ?? '—'}</TableDataCell>
+                    <TableDataCell className={cn(!snapshot.accountInstitution && 'text-muted-foreground')}>{snapshot.accountInstitution ?? '—'}</TableDataCell>
                     <TableDataCell className={cn('tabular-nums whitespace-nowrap', isLiability(snapshot) && 'text-destructive')}>
                       {fmtKrw(snapshot.amount)}
                     </TableDataCell>
+                    <TableDataCell title={snapshot.memo} className={cn('max-w-48 truncate', !snapshot.memo && 'text-muted-foreground')}>{snapshot.memo ?? '—'}</TableDataCell>
                     <TableDataCell>
                       <div className="flex items-center justify-center">
                         <ShareableRowActions
@@ -326,9 +328,15 @@ export function AssetRecordList({ month }: Props) {
                         {fmtKrw(snapshot.amount)}
                       </span>
                     </div>
+                    {/* 계좌명·기관은 길어 작업 버튼과 같은 줄에 두면 거의 항상 잘린다 — 버튼 없는 별도 줄로 분리한다. */}
+                    {(snapshot.accountName || snapshot.accountInstitution) && (
+                      <p className="mt-1 truncate text-xs text-muted-foreground">
+                        {[snapshot.accountName, snapshot.accountInstitution].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
                     <div className="mt-1 flex items-center justify-between gap-2">
                       <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-                        {[labelOf('markets', snapshot.market), snapshot.strategy, snapshot.accountName].filter(Boolean).join(' · ')}
+                        {[labelOf('markets', snapshot.market), snapshot.strategy].filter(Boolean).join(' · ')}
                       </p>
                       <ShareableRowActions
                         duplicateHref={`/finance/new?duplicateFrom=${snapshot.id}`}

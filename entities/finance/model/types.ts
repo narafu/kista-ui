@@ -10,6 +10,8 @@ export interface AssetSnapshot {
   categoryName: string
   accountId?: string
   accountName?: string
+  accountInstitution?: string | null // 연결 계좌의 기관 (서버 조인)
+  accountOwner?: string | null // 연결 계좌의 소유자 (서버 조인)
   entryDate: string // 'YYYY-MM-DD'
   assetClass: AssetClass
   market: Market
