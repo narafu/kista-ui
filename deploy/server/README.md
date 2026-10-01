@@ -63,7 +63,7 @@ export KISTA_UI_IMAGE=ghcr.io/<org>/kista-ui:<previous-sha>
 docker compose up -d --no-deps kista-ui
 ```
 
-**이미지 디스크 정리 참고**: 배포 워크플로의 `docker image prune -f`는 dangling(태그 없는) 레이어만 제거한다 — 롤백에 쓰이는 SHA 태그 이미지는 계속 쌓인다. 디스크 압박이 느껴지면 수동으로 `docker image prune -af --filter "until=720h"`(30일 이상 지난 이미지만) 등으로 정리하되, 최근 롤백 후보 몇 개는 남겨둘 것.
+**이미지 디스크 정리 참고**: 배포 성공 시 `docker image prune -af --filter "until=168h"`로 컨테이너가 쓰지 않는 7일 지난 이미지를 정리한다(예전 `prune -f`는 dangling만 지워 SHA 태그 이미지가 누적됐다 — 2026-10-01 실측 181개·35GB). 롤백 기록(이전 이미지·compose 파일)은 `/opt/kista-ui/rollback/`에 있고, 이미지가 정리됐어도 GHCR이 public이라 롤백 시 다시 pull된다.
 
 ## 모니터링
 
