@@ -36,7 +36,7 @@ export function AdminTopBar() {
         {NAV_ITEMS.map(({ href, label, icon: Icon, exact }) => {
           const active = exact ? pathname === href : pathname.startsWith(href)
           return (
-            <Link key={href} href={href} className={`min-w-16 flex-1 flex flex-col items-center gap-1 py-2 text-xs font-medium transition-colors ${active ? 'text-rose-600' : 'text-muted-foreground'}`}>
+            <Link key={href} href={href} className={`min-w-0 flex-1 flex flex-col items-center gap-1 py-2 text-xs font-medium transition-colors ${active ? 'text-rose-600' : 'text-muted-foreground'}`}>
               <Icon className="size-4" />
               {label}
             </Link>

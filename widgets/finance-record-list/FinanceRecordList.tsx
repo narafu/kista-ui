@@ -167,7 +167,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                     <tr>
                       <SortableHeadCell sortKey="transactionDate" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>날짜</SortableHeadCell>
                       <SortableHeadCell sortKey="category" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>카테고리</SortableHeadCell>
-                      <SortableHeadCell sortKey="amount" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>금액</SortableHeadCell>
+                      <SortableHeadCell sortKey="amount" activeKey={sortKey} direction={sortDirection} onSort={handleSort} className="text-right">금액</SortableHeadCell>
                       <TableHeadCell>메모</TableHeadCell>
                       <TableHeadCell className="whitespace-nowrap">작업</TableHeadCell>
                     </tr>
@@ -188,7 +188,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                               {entry?.name ?? '(알 수 없음)'}
                             </span>
                           </TableDataCell>
-                          <TableDataCell className="tabular-nums whitespace-nowrap">{fmtKrw(t.amount)}</TableDataCell>
+                          <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtKrw(t.amount)}</TableDataCell>
                           <TableDataCell className={cn(!t.memo && 'text-muted-foreground')}>{t.memo ?? '—'}</TableDataCell>
                           <TableDataCell>
                             <div className="flex items-center justify-center">
