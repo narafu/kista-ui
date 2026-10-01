@@ -1,10 +1,8 @@
 {
   "permissions": {
-    "allow": ["Bash(npx react-doctor*)"]
-  },
-  "enabledPlugins": {
-    "frontend-design@claude-plugins-official": true,
-    "commit-commands@claude-plugins-official": true
+    "allow": [
+      "Bash(npx react-doctor*)"
+    ]
   },
   "hooks": {
     "PreToolUse": [
@@ -29,5 +27,10 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
+    "commit-commands@claude-plugins-official": true,
+    "ait@apps-in-toss": true
   }
 }
