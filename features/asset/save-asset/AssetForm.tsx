@@ -59,9 +59,9 @@ const MODE_LABEL: Record<AssetFormMode, string> = {
   duplicate: '복제 등록',
 }
 
-// 계좌 자체의 메모(FinanceAccount.memo)가 있으면 Select 라벨에 이어붙여 어느 계좌인지 구분하기 쉽게 한다.
+// 같은 이름의 계좌를 구분할 수 있도록 기관·소유자를 덧붙인다.
 function accountOptionLabel(account: FinanceAccount): string {
-  return account.memo ? `${account.name} · ${account.memo}` : account.name
+  return [account.name, account.institution, account.owner].filter(Boolean).join(' · ')
 }
 
 interface ComboFieldProps {

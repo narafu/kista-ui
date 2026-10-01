@@ -179,6 +179,11 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
           {showAssetColumns && (
             <>
               <span className="text-sm font-medium truncate">{item.accountName ?? '계좌 미지정'}</span>
+              {(item.accountInstitution || item.accountOwner) && (
+                <span className="text-xs text-muted-foreground truncate">
+                  {[item.accountInstitution, item.accountOwner].filter(Boolean).join(' · ')}
+                </span>
+              )}
               {item.strategy && <span className="text-xs text-muted-foreground truncate">{item.strategy}</span>}
               <span className="text-xs text-muted-foreground">
                 {labelOf('markets', item.market ?? '')} {labelOf('assetClasses', item.assetClass ?? '')}

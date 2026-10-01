@@ -63,6 +63,7 @@ describe('buildBulkRegisterItems', () => {
       {
         id: 'a1', categoryId: 'leaf-1', rootCategoryId: 'f1000000-0000-4000-8000-000000000401',
         categoryName: '예금', entryDate: '2026-07-01', assetClass: 'CASH' as const, market: 'DOMESTIC' as const, amount: 5000000,
+        accountName: '정기예금', accountInstitution: 'KB국민은행', accountOwner: '홍길동',
       },
     ]
 
@@ -70,7 +71,10 @@ describe('buildBulkRegisterItems', () => {
 
     expect(result.asset).toHaveLength(1)
     expect(result.asset[0].children).toHaveLength(1)
-    expect(result.asset[0].children[0].items[0]).toMatchObject({ categoryId: 'leaf-1', categoryName: '예금', amount: 5000000, included: true })
+    expect(result.asset[0].children[0].items[0]).toMatchObject({
+      categoryId: 'leaf-1', categoryName: '예금', amount: 5000000, included: true,
+      accountName: '정기예금', accountInstitution: 'KB국민은행', accountOwner: '홍길동',
+    })
   })
 
   it('자산 카테고리 트리가 실제로 있으면 그 트리 기준 전체 경로(대/중분류)로 그룹핑한다', () => {

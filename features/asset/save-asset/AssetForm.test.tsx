@@ -39,7 +39,7 @@ const categories: FinanceCategory[] = [
   },
 ]
 
-const accounts: FinanceAccount[] = [{ id: 'acc-1', accountType: 'SECURITIES', name: '미래에셋증권', memo: '주거래' }]
+const accounts: FinanceAccount[] = [{ id: 'acc-1', accountType: 'SECURITIES', name: '미래에셋증권', institution: '미래에셋', owner: '홍길동', memo: '주거래' }]
 
 vi.mock('@entities/finance', async () => {
   const actual = await vi.importActual<typeof import('@entities/finance')>('@entities/finance')
@@ -165,13 +165,13 @@ describe('AssetForm', () => {
     )
   })
 
-  it('계좌에 메모가 있으면 계좌 Select 옵션 라벨에 이어붙여 표시한다', async () => {
+  it('계좌 Select 옵션 라벨은 계좌명 · 기관 · 소유자로 표시한다', async () => {
     const user = userEvent.setup()
     render(<AssetForm mode="create" onSuccess={onSuccess} onCancel={onCancel} />)
 
     await user.click(screen.getByRole('combobox', { name: '계좌 (선택)' }))
 
-    expect(await screen.findByRole('option', { name: '미래에셋증권 · 주거래' })).toBeInTheDocument()
+    expect(await screen.findByRole('option', { name: '미래에셋증권 · 미래에셋 · 홍길동' })).toBeInTheDocument()
   })
 
   it('기준일을 비우면 제출 버튼이 비활성화된다', async () => {

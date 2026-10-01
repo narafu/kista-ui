@@ -19,6 +19,8 @@ export interface BulkRegisterItem {
   strategy?: string
   accountId?: string
   accountName?: string
+  accountInstitution?: string | null
+  accountOwner?: string | null
 }
 
 // 카테고리 경로 기준 계층 그룹 노드 — 대분류/중분류/소분류를 트리 깊이만큼만 생성한다
@@ -148,6 +150,8 @@ export function buildBulkRegisterItems({
       strategy: s.strategy,
       accountId: s.accountId,
       accountName: s.accountName,
+      accountInstitution: s.accountInstitution,
+      accountOwner: s.accountOwner,
     }
   })
 
