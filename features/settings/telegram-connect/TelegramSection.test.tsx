@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { TelegramSection } from './TelegramSection'
@@ -48,12 +48,14 @@ describe('TelegramSection', () => {
     )
   })
 
-  it('disconnects the linked chat when already connected', async () => {
+  it('disconnects the linked chat only after confirming', async () => {
     const user = userEvent.setup()
     render(<TelegramSection hasTelegram telegramBotUsername="kista_bot" currentChannel="TELEGRAM" />)
 
     await user.click(screen.getByRole('button', { name: '연결 해제' }))
+    expect(deleteMutateMock).not.toHaveBeenCalled()
 
+    await user.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: '연결 해제' }))
     expect(deleteMutateMock).toHaveBeenCalled()
   })
 })

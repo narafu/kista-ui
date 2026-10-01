@@ -18,9 +18,12 @@ interface Props {
   description: string
   onConfirm: () => void
   isPending: boolean
+  // 삭제가 아닌 파괴적 동작(연결 해제 등)에 재사용할 때만 바꾼다
+  confirmLabel?: string
+  pendingLabel?: string
 }
 
-export function ConfirmDeleteDialog({ open, onOpenChange, title, description, onConfirm, isPending }: Props) {
+export function ConfirmDeleteDialog({ open, onOpenChange, title, description, onConfirm, isPending, confirmLabel = '삭제', pendingLabel = '삭제 중...' }: Props) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent size="sm">
@@ -31,7 +34,7 @@ export function ConfirmDeleteDialog({ open, onOpenChange, title, description, on
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>취소</AlertDialogCancel>
           <AlertDialogAction variant="destructive" onClick={onConfirm} disabled={isPending}>
-            {isPending ? '삭제 중...' : '삭제'}
+            {isPending ? pendingLabel : confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useUpdateTelegramMutation, useDeleteTelegramMutation, useUpdateNotificationChannelMutation } from '@entities/user'
 import { ApiError } from '@shared/lib/api-client'
+import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import type { NotificationChannel } from '@entities/user'
 
 interface Props {
@@ -20,6 +21,7 @@ export function PendingTelegramConnect({ hasTelegram, currentChannel }: Props) {
   const [chatId, setChatId] = useState('')
   const [botTokenError, setBotTokenError] = useState('')
   const [chatIdError, setChatIdError] = useState('')
+  const [isDisconnectOpen, setIsDisconnectOpen] = useState(false)
 
   const updateMutation = useUpdateTelegramMutation()
   const deleteMutation = useDeleteTelegramMutation()
@@ -62,14 +64,24 @@ export function PendingTelegramConnect({ hasTelegram, currentChannel }: Props) {
       <div className="flex flex-col gap-3">
         <p className="text-sm text-status-ok font-medium">✓ 텔레그램 봇이 연동되었습니다</p>
         <Button
-          variant="outline"
+          variant="destructive"
           size="form"
           className="w-full"
-          onClick={() => deleteMutation.mutate()}
+          onClick={() => setIsDisconnectOpen(true)}
           disabled={isDeleteLoading}
         >
           {isDeleteLoading ? '해제 중...' : '연동 해제'}
         </Button>
+        <ConfirmDeleteDialog
+          open={isDisconnectOpen}
+          onOpenChange={setIsDisconnectOpen}
+          title="텔레그램 연동을 해제하시겠습니까?"
+          description="해제하면 텔레그램으로 알림을 받을 수 없습니다."
+          onConfirm={() => deleteMutation.mutate(undefined, { onSuccess: () => setIsDisconnectOpen(false) })}
+          isPending={isDeleteLoading}
+          confirmLabel="연동 해제"
+          pendingLabel="해제 중..."
+        />
       </div>
     )
   }

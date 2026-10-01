@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@shared/ui/Badge'
+import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { useUpdateTelegramMutation, useDeleteTelegramMutation, useUpdateNotificationChannelMutation } from '@entities/user'
 import { ApiError } from '@shared/lib/api-client'
 import { cn } from '@shared/lib/utils'
@@ -23,6 +24,7 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
   const [chatId, setChatId] = useState('')
   const [botTokenError, setBotTokenError] = useState('')
   const [chatIdError, setChatIdError] = useState('')
+  const [isDisconnectOpen, setIsDisconnectOpen] = useState(false)
 
   const updateChannelMutation = useUpdateNotificationChannelMutation()
   const updateMutation = useUpdateTelegramMutation()
@@ -88,13 +90,23 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
             </div>
             <button
               type="button"
-              onClick={() => deleteMutation.mutate()}
+              onClick={() => setIsDisconnectOpen(true)}
               disabled={isDeleteLoading}
               className={cn(buttonVariants({ variant: 'destructive', size: 'sm' }), 'shrink-0')}
             >
               {isDeleteLoading ? '해제 중...' : '연결 해제'}
             </button>
           </div>
+          <ConfirmDeleteDialog
+            open={isDisconnectOpen}
+            onOpenChange={setIsDisconnectOpen}
+            title="텔레그램 연결을 해제하시겠습니까?"
+            description="해제하면 텔레그램으로 매매 체결·시스템 알림을 받을 수 없습니다."
+            onConfirm={() => deleteMutation.mutate(undefined, { onSuccess: () => setIsDisconnectOpen(false) })}
+            isPending={isDeleteLoading}
+            confirmLabel="연결 해제"
+            pendingLabel="해제 중..."
+          />
         </div>
       )}
 
