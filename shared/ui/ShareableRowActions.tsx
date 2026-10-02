@@ -36,6 +36,69 @@ type Props = {
   lockTitle?: string
 } & DuplicateAction & EditAction
 
+// disabled 버튼이라 클릭은 이미 막힌다 — opacity만 낮추고 pointer-events는 남겨 hover 시 title(tooltip)이 뜨게 한다.
+const DIMMED = 'opacity-40'
+
+type ShareProps = Pick<Props, 'canShare' | 'hasGroupId' | 'onShare' | 'onUnshare' | 'sharePending' | 'unsharePending'> & {
+  shareDisabled: boolean
+  lockTitle?: string
+}
+
+function ShareButton({ canShare, hasGroupId, onShare, onUnshare, sharePending, unsharePending, shareDisabled, lockTitle }: ShareProps) {
+  if (!canShare) return null
+  return (
+    <IconButton
+      aria-label={hasGroupId ? '귀속' : '공유'}
+      onClick={hasGroupId ? onUnshare : onShare}
+      disabled={(hasGroupId ? unsharePending : sharePending) || shareDisabled}
+      title={shareDisabled ? lockTitle : undefined}
+      className={cn(shareDisabled && DIMMED)}
+    >
+      {hasGroupId ? <Undo2 className="size-4" /> : <Share2 className="size-4" />}
+    </IconButton>
+  )
+}
+
+function DuplicateButton({ duplicateHref, onDuplicate }: { duplicateHref?: string; onDuplicate?: () => void }) {
+  if (duplicateHref) {
+    return (
+      <Link href={duplicateHref} aria-label="복제" title="복제" className={ICON_LINK_GHOST_CLASS}>
+        <Copy className="size-4" />
+      </Link>
+    )
+  }
+  if (!onDuplicate) return null
+  return (
+    <IconButton aria-label="복제" onClick={onDuplicate}>
+      <Copy className="size-4" />
+    </IconButton>
+  )
+}
+
+type EditProps = { editHref?: string; onEdit?: () => void; editDisabled: boolean; lockTitle?: string }
+
+function EditButton({ editHref, onEdit, editDisabled, lockTitle }: EditProps) {
+  if (editHref && !editDisabled) {
+    return (
+      <Link href={editHref} aria-label="수정" title="수정" className={ICON_LINK_GHOST_CLASS}>
+        <Pencil className="size-4" />
+      </Link>
+    )
+  }
+  if (editHref) {
+    return (
+      <IconButton aria-label="수정" disabled title={lockTitle} className={DIMMED}>
+        <Pencil className="size-4" />
+      </IconButton>
+    )
+  }
+  return (
+    <IconButton aria-label="수정" onClick={onEdit} disabled={editDisabled} title={editDisabled ? lockTitle : undefined} className={cn(editDisabled && DIMMED)}>
+      <Pencil className="size-4" />
+    </IconButton>
+  )
+}
+
 /**
  * 공유/귀속(조건부) → 복제(선택) → 수정 → 삭제 순서의 공용 행 작업 버튼 세트.
  * 거래내역·예산·계좌·카테고리·자산 기록 목록이 동일한 조합을 재사용한다. 자산 기록처럼 복제/수정이
@@ -48,51 +111,20 @@ export function ShareableRowActions({
   locked = false, lockShare = false, lockTitle,
 }: Props) {
   const editDisabled = locked
-  const shareDisabled = lockShare
-  // disabled 버튼이라 클릭은 이미 막힌다 — opacity만 낮추고 pointer-events는 남겨 hover 시 title(tooltip)이 뜨게 한다.
-  const dimmed = 'opacity-40'
   return (
     <div className="flex shrink-0 items-center gap-1">
-      {canShare && !hasGroupId && (
-        <IconButton aria-label="공유" onClick={onShare} disabled={sharePending || shareDisabled} title={shareDisabled ? lockTitle : undefined} className={cn(shareDisabled && dimmed)}>
-          <Share2 className="size-4" />
-        </IconButton>
-      )}
-      {canShare && hasGroupId && (
-        <IconButton aria-label="귀속" onClick={onUnshare} disabled={unsharePending || shareDisabled} title={shareDisabled ? lockTitle : undefined} className={cn(shareDisabled && dimmed)}>
-          <Undo2 className="size-4" />
-        </IconButton>
-      )}
-      {duplicateHref ? (
-        <Link href={duplicateHref} aria-label="복제" title="복제" className={ICON_LINK_GHOST_CLASS}>
-          <Copy className="size-4" />
-        </Link>
-      ) : onDuplicate && (
-        <IconButton aria-label="복제" onClick={onDuplicate}>
-          <Copy className="size-4" />
-        </IconButton>
-      )}
-      {editHref ? (
-        editDisabled ? (
-          <IconButton aria-label="수정" disabled title={lockTitle} className={dimmed}>
-            <Pencil className="size-4" />
-          </IconButton>
-        ) : (
-          <Link href={editHref} aria-label="수정" title="수정" className={ICON_LINK_GHOST_CLASS}>
-            <Pencil className="size-4" />
-          </Link>
-        )
-      ) : (
-        <IconButton aria-label="수정" onClick={onEdit} disabled={editDisabled} title={editDisabled ? lockTitle : undefined} className={cn(editDisabled && dimmed)}>
-          <Pencil className="size-4" />
-        </IconButton>
-      )}
+      <ShareButton
+        canShare={canShare} hasGroupId={hasGroupId} onShare={onShare} onUnshare={onUnshare}
+        sharePending={sharePending} unsharePending={unsharePending} shareDisabled={lockShare} lockTitle={lockTitle}
+      />
+      <DuplicateButton duplicateHref={duplicateHref} onDuplicate={onDuplicate} />
+      <EditButton editHref={editHref} onEdit={onEdit} editDisabled={editDisabled} lockTitle={lockTitle} />
       <IconButton
         aria-label="삭제"
         onClick={onDelete}
         disabled={editDisabled}
         title={editDisabled ? lockTitle : undefined}
-        className={cn('text-destructive hover:text-destructive', editDisabled && dimmed)}
+        className={cn('text-destructive hover:text-destructive', editDisabled && DIMMED)}
       >
         <Trash2 className="size-4" />
       </IconButton>
