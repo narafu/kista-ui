@@ -50,6 +50,16 @@ vi.mock('../api', () => ({
   respondToInvitation: vi.fn(),
 }))
 
+// useMutation mock이 options를 그대로 반환하므로 훅 결과를 mutation config로 다룬다
+type MutationConfig = {
+  mutationFn: (variables: unknown) => Promise<unknown>
+  onSuccess: (data?: unknown, variables?: unknown) => Promise<void> | void
+}
+
+function renderMutation(useMutationHook: () => unknown) {
+  return renderHook(useMutationHook).result.current as MutationConfig
+}
+
 function fakeQueryClient(existingList?: unknown[]) {
   const setQueryData = vi.fn()
   const fetchQuery = vi.fn()
@@ -67,10 +77,9 @@ describe('useCreateAssetSnapshotMutation', () => {
     const queryClient = fakeQueryClient([{ id: 's1', amount: 1 }])
     useQueryClientMock.mockReturnValue(queryClient)
 
-    const { result } = renderHook(() => useCreateAssetSnapshotMutation())
+    const mutation = renderMutation(() => useCreateAssetSnapshotMutation())
 
-    // @ts-expect-error — 테스트에서 mutation config를 직접 캡처해 호출
-    await result.current.onSuccess()
+    await mutation.onSuccess()
 
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.assetSnapshotsRoot() })
   })
@@ -82,17 +91,15 @@ describe('useCreateFinanceAccountMutation', () => {
     useQueryClientMock.mockReturnValue(queryClient)
     createFinanceAccountMock.mockResolvedValueOnce({ id: 'a2', groupId: 'g1' })
 
-    const { result } = renderHook(() => useCreateFinanceAccountMutation())
+    const mutation = renderMutation(() => useCreateFinanceAccountMutation())
 
-    // @ts-expect-error — 테스트에서 mutation config를 직접 캡처해 호출
-    await result.current.mutationFn({ shareToGroup: true, nickname: '주거래', broker: 'BANK', accountNo: '12345678' })
+    await mutation.mutationFn({ shareToGroup: true, nickname: '주거래', broker: 'BANK', accountNo: '12345678' })
     expect(createFinanceAccountMock).toHaveBeenCalledWith(
       { nickname: '주거래', broker: 'BANK', accountNo: '12345678' },
       { shareToGroup: true },
     )
 
-    // @ts-expect-error — 위와 동일
-    await result.current.onSuccess()
+    await mutation.onSuccess()
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.accountsRoot() })
     expect(queryClient.setQueryData).not.toHaveBeenCalled()
   })
@@ -103,11 +110,10 @@ describe('useUpdateAssetSnapshotMutation', () => {
     const queryClient = fakeQueryClient([{ id: 's1', amount: 1 }])
     useQueryClientMock.mockReturnValue(queryClient)
 
-    const { result } = renderHook(() => useUpdateAssetSnapshotMutation('s1'))
+    const mutation = renderMutation(() => useUpdateAssetSnapshotMutation('s1'))
     const saved = { id: 's1', amount: 9 }
 
-    // @ts-expect-error — 테스트에서 mutation config를 직접 캡처해 호출
-    await result.current.onSuccess(saved)
+    await mutation.onSuccess(saved)
 
     expect(queryClient.setQueryData).toHaveBeenCalledWith(financeKeys.assetSnapshots(), [saved])
   })
@@ -119,16 +125,14 @@ describe('useDeleteManyAssetSnapshotsMutation', () => {
     const queryClient = fakeQueryClient([{ id: 's1' }, { id: 'bad' }])
     useQueryClientMock.mockReturnValue(queryClient)
 
-    const { result } = renderHook(() => useDeleteManyAssetSnapshotsMutation())
+    const mutation = renderMutation(() => useDeleteManyAssetSnapshotsMutation())
 
-    // @ts-expect-error — 테스트에서 mutation config를 직접 캡처해 호출
-    const outcome = await result.current.mutationFn(['s1', 'bad'])
+    const outcome = await mutation.mutationFn(['s1', 'bad'])
 
     expect(outcome).toEqual({ succeededIds: ['s1'], failedCount: 1 })
     expect(deleteAssetSnapshotMock).toHaveBeenCalledTimes(2)
 
-    // @ts-expect-error — useMutation mock이 반환한 mutation config를 직접 호출
-    await result.current.onSuccess(outcome, ['s1', 'bad'])
+    await mutation.onSuccess(outcome, ['s1', 'bad'])
     expect(queryClient.setQueryData).toHaveBeenCalledWith(financeKeys.assetSnapshots(), [{ id: 'bad' }])
   })
 
@@ -137,14 +141,12 @@ describe('useDeleteManyAssetSnapshotsMutation', () => {
     const queryClient = fakeQueryClient([{ id: 's1' }])
     useQueryClientMock.mockReturnValue(queryClient)
 
-    const { result } = renderHook(() => useDeleteManyAssetSnapshotsMutation())
+    const mutation = renderMutation(() => useDeleteManyAssetSnapshotsMutation())
 
-    // @ts-expect-error — useMutation mock이 반환한 mutation config를 직접 호출
-    const outcome = await result.current.mutationFn(['s1'])
+    const outcome = await mutation.mutationFn(['s1'])
     expect(outcome).toEqual({ succeededIds: [], failedCount: 1 })
 
-    // @ts-expect-error — useMutation mock이 반환한 mutation config를 직접 호출
-    await result.current.onSuccess(outcome, ['s1'])
+    await mutation.onSuccess(outcome, ['s1'])
 
     expect(queryClient.setQueryData).not.toHaveBeenCalled()
     expect(toastErrorMock).toHaveBeenCalledWith('자산 기록을 삭제하지 못했습니다')
@@ -155,14 +157,12 @@ describe('useDeleteManyAssetSnapshotsMutation', () => {
     const queryClient = fakeQueryClient([{ id: 's1' }, { id: 's2' }])
     useQueryClientMock.mockReturnValue(queryClient)
 
-    const { result } = renderHook(() => useDeleteManyAssetSnapshotsMutation())
+    const mutation = renderMutation(() => useDeleteManyAssetSnapshotsMutation())
 
-    // @ts-expect-error — useMutation mock이 반환한 mutation config를 직접 호출
-    const outcome = await result.current.mutationFn(['s1', 's2'])
+    const outcome = await mutation.mutationFn(['s1', 's2'])
     expect(outcome).toEqual({ succeededIds: [], failedCount: 2 })
 
-    // @ts-expect-error — useMutation mock이 반환한 mutation config를 직접 호출
-    await result.current.onSuccess(outcome, ['s1', 's2'])
+    await mutation.onSuccess(outcome, ['s1', 's2'])
 
     expect(toastErrorMock).toHaveBeenCalledWith('자산 기록 2건을 삭제하지 못했습니다')
   })
@@ -173,11 +173,10 @@ describe('useSetMonthlyClosingMutation', () => {
     const queryClient = fakeQueryClient([])
     useQueryClientMock.mockReturnValue(queryClient)
 
-    const { result } = renderHook(() => useSetMonthlyClosingMutation())
+    const mutation = renderMutation(() => useSetMonthlyClosingMutation())
     const saved = { month: '2026-08', completed: true }
 
-    // @ts-expect-error — useMutation mock이 반환한 mutation config를 직접 호출
-    await result.current.onSuccess(saved)
+    await mutation.onSuccess(saved)
 
     expect(queryClient.setQueryData).toHaveBeenCalledWith(financeKeys.monthlyClosings(), [saved])
   })
@@ -186,11 +185,10 @@ describe('useSetMonthlyClosingMutation', () => {
     const queryClient = fakeQueryClient([{ month: '2026-08', completed: false }])
     useQueryClientMock.mockReturnValue(queryClient)
 
-    const { result } = renderHook(() => useSetMonthlyClosingMutation())
+    const mutation = renderMutation(() => useSetMonthlyClosingMutation())
     const saved = { month: '2026-08', completed: true }
 
-    // @ts-expect-error — useMutation mock이 반환한 mutation config를 직접 호출
-    await result.current.onSuccess(saved)
+    await mutation.onSuccess(saved)
 
     expect(queryClient.setQueryData).toHaveBeenCalledWith(financeKeys.monthlyClosings(), [saved])
   })
@@ -200,11 +198,10 @@ describe('useSetMonthlyClosingMutation', () => {
     const queryClient = fakeQueryClient([personal, { month: '2026-08', completed: false, groupId: 'g1' }])
     useQueryClientMock.mockReturnValue(queryClient)
 
-    const { result } = renderHook(() => useSetMonthlyClosingMutation())
+    const mutation = renderMutation(() => useSetMonthlyClosingMutation())
     const saved = { month: '2026-08', completed: true, groupId: 'g1' }
 
-    // @ts-expect-error — useMutation mock이 반환한 mutation config를 직접 호출
-    await result.current.onSuccess(saved)
+    await mutation.onSuccess(saved)
 
     expect(queryClient.setQueryData).toHaveBeenCalledWith(financeKeys.monthlyClosings(), [personal, saved])
   })
