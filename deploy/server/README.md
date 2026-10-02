@@ -23,7 +23,7 @@
 
 | Secret | 설명 |
 |--------|------|
-| `INFRA_DISPATCH_TOKEN` | `kista-infra` 대상 fine-grained PAT — Contents read/write(dispatch), Actions read(run 추적). 이 레포는 서버 SSH 키를 갖지 않는다 |
+| `INFRA_APP_PRIVATE_KEY` (secret) + `INFRA_APP_CLIENT_ID` (Actions variable) | GitHub App `kista-infra-dispatch`(kista-infra에만 설치, Contents read/write·Actions read) — Actions 변수 `INFRA_APP_CLIENT_ID` + secret `INFRA_APP_PRIVATE_KEY`, 워크플로가 실행마다 `actions/create-github-app-token`으로 1시간짜리 설치 토큰 발급(장기 PAT 없음). 이 레포는 서버 SSH 키를 갖지 않는다 |
 
 `NEXT_PUBLIC_*` 9개는 레포 루트 `.env.production.public`(평문 커밋, 클라이언트 번들에 노출되는 설계상 공개값)에서 빌드 타임에 로드된다 — GitHub Secrets 미사용. 값 변경 시 이 파일을 직접 수정.
 
