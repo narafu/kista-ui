@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, apiFetch, apiMsg, jsonBody } from './index'
+import { ApiError, apiErrorCode, apiFetch, apiMsg, jsonBody } from './index'
 
 function jsonResponse(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
@@ -23,6 +23,15 @@ describe('apiMsg', () => {
     expect(apiMsg(new ApiError(400, {}), 'fallback')).toBe('fallback')
     expect(apiMsg(new ApiError(400, null), 'fallback')).toBe('fallback')
     expect(apiMsg(new Error('not api error'), 'fallback')).toBe('fallback')
+  })
+})
+
+describe('apiErrorCode', () => {
+  it('ApiError body의 문자열 code만 반환한다', () => {
+    expect(apiErrorCode(new ApiError(409, { code: 'DUPLICATE_ACCOUNT', detail: 'x' }))).toBe('DUPLICATE_ACCOUNT')
+    expect(apiErrorCode(new ApiError(409, { detail: 'x' }))).toBeUndefined()
+    expect(apiErrorCode(new ApiError(500, null))).toBeUndefined()
+    expect(apiErrorCode(new Error('x'))).toBeUndefined()
   })
 })
 

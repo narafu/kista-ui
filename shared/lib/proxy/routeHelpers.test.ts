@@ -34,12 +34,13 @@ describe('relayUpstreamError', () => {
     consoleErrorSpy.mockRestore()
   })
 
-  it.each(['KIS API Error', 'Toss API Error'])('증권사 장애 503(%s)은 title/detail/status만 골라 relay한다', async (title) => {
+  it.each(['KIS API Error', 'Toss API Error'])('증권사 장애 503(%s)은 title/detail/status/code만 골라 relay한다', async (title) => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     const upstream = new Response(JSON.stringify({
       title,
-      detail: '증권사 API 조회에 실패했습니다. 잠시 후 다시 시도해주세요',
+      detail: '증권사 API 조회에 실패했습니다. 잠시 후 다시 시도해주세요.',
       status: 503,
+      code: 'BROKER_UNAVAILABLE',
       instance: '/api/trading-cycles/x/preview',
       debug: 'internal',
     }), { status: 503 })
@@ -49,15 +50,17 @@ describe('relayUpstreamError', () => {
     expect(res.status).toBe(503)
     expect(await res.json()).toEqual({
       title,
-      detail: '증권사 API 조회에 실패했습니다. 잠시 후 다시 시도해주세요',
+      detail: '증권사 API 조회에 실패했습니다. 잠시 후 다시 시도해주세요.',
       status: 503,
+      code: 'BROKER_UNAVAILABLE',
     })
   })
 
   it.each([
-    ['다른 title의 JSON 503', 503, JSON.stringify({ title: 'Trading Core Unavailable', detail: 'I/O error on GET http://internal:8081' })],
+    ['다른 code의 JSON 503', 503, JSON.stringify({ title: 'Trading Core Unavailable', detail: 'I/O error on GET http://internal:8081', code: 'TRADING_CORE_UNAVAILABLE' })],
+    ['code 없는 증권사 title 503', 503, JSON.stringify({ title: 'KIS API Error', detail: 'x' })],
     ['비JSON 503(게이트웨이 등)', 503, '<html>Service Unavailable</html>'],
-    ['증권사 장애 title이어도 502', 502, JSON.stringify({ title: 'KIS API Error', detail: 'x' })],
+    ['증권사 장애 code여도 502', 502, JSON.stringify({ title: 'KIS API Error', detail: 'x', code: 'BROKER_UNAVAILABLE' })],
   ])('%s는 { error: "Failed" }로 숨긴다', async (_name, status, body) => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     const res = await relayUpstreamError(new Response(body, { status }), 'test-label')

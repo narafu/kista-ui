@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 
 import { useCreateAccountMutation } from '@entities/account'
 import { useMeta } from '@entities/meta'
-import { ApiError } from '@shared/lib/api-client'
+import { apiErrorCode, apiMsg } from '@shared/lib/api-client'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@shared/ui/Spinner'
 import { isMockBroker } from '@shared/lib/api-schema'
@@ -41,21 +41,12 @@ export function ConfirmStep({ data, onBack }: Props) {
     })
   }
 
-  let errorMessage = '계좌 연결에 실패했습니다'
-  if (error instanceof ApiError) {
-    const detail = (error.body as { detail?: string } | null)?.detail
-    if (error.status === 409) {
-      errorMessage = detail ?? '이미 등록된 계좌번호입니다.'
-    } else if (error.status === 429) {
-      errorMessage = '잠시 후 다시 시도하세요. KIS API 인증 요청이 너무 잦습니다.'
-    } else if (error.status === 422) {
-      errorMessage = broker === 'TOSS'
-        ? 'Toss 자격증명 인증에 실패했습니다. Client ID와 Client Secret을 확인하세요.'
-        : 'App Key, App Secret 또는 계좌번호를 다시 확인하세요.'
-    } else if (detail) {
-      errorMessage = detail
-    }
-  }
+  // 자격증명 오류만 증권사별 입력 항목을 짚어주고, 나머지(중복 계좌·호출 한도 등)는 서버 detail을 그대로 노출한다
+  const errorMessage = apiErrorCode(error) === 'BROKER_CREDENTIAL_INVALID'
+    ? broker === 'TOSS'
+      ? 'Toss 자격증명 인증에 실패했습니다. Client ID와 Client Secret을 확인하세요.'
+      : 'App Key, App Secret 또는 계좌번호를 다시 확인하세요.'
+    : apiMsg(error, '계좌 연결에 실패했습니다')
 
   return (
     <div className="flex flex-col gap-6">

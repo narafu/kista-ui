@@ -57,15 +57,19 @@ describe('ConfirmStep', () => {
     mockState = {
       isPending: false,
       isError: true,
-      error: new ApiError(409, { detail: '이미 등록된 계좌입니다.' }),
+      error: new ApiError(409, { detail: '이미 등록된 계좌번호입니다.', code: 'DUPLICATE_ACCOUNT' }),
     }
     render(<ConfirmStep data={data} onBack={vi.fn()} />)
 
-    expect(screen.getByText('이미 등록된 계좌입니다.')).toBeInTheDocument()
+    expect(screen.getByText('이미 등록된 계좌번호입니다.')).toBeInTheDocument()
   })
 
-  it('shows a broker-specific credential error on a 422 response', () => {
-    mockState = { isPending: false, isError: true, error: new ApiError(422, null) }
+  it('shows a broker-specific credential error on BROKER_CREDENTIAL_INVALID', () => {
+    mockState = {
+      isPending: false,
+      isError: true,
+      error: new ApiError(422, { detail: '증권사 API 키가 유효하지 않습니다.', code: 'BROKER_CREDENTIAL_INVALID' }),
+    }
     render(<ConfirmStep data={data} onBack={vi.fn()} />)
 
     expect(screen.getByText(/App Key, App Secret 또는 계좌번호를 다시 확인하세요/)).toBeInTheDocument()

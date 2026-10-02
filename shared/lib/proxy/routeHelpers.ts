@@ -5,13 +5,9 @@ export function unauthorizedJson(): NextResponse {
   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 }
 
-// kista-api 증권사 장애 503의 ProblemDetail title("<vendorLabel> API Error", kista-api TradingExceptionHandler와의 계약)
-// — detail이 고정 사용자 문구인 유일한 503. 증권사 추가 시 kista-api와 함께 갱신
-const BROKER_UNAVAILABLE_TITLES = ['KIS API Error', 'Toss API Error']
-
 // kista-api 업스트림 비정상 응답을 클라이언트로 매핑한다.
 // 5xx: 서버 로그만 남기고 { error: 'Failed' }로 뭉갠다 (내부 오류 노출 방지)
-// 예외: 증권사 장애 503은 사용자용 고정 문구라 title/detail/status만 골라 relay한다
+// 예외: 증권사 장애 503(code=BROKER_UNAVAILABLE)은 사용자용 고정 문구라 title/detail/status/code만 골라 relay한다
 //   (다른 503은 detail에 내부 호스트 등 예외 메시지가 담길 수 있어 그대로 숨긴다)
 // 4xx: 업스트림 JSON body를 그대로 relay한다 (파싱 실패 시 { error: 'Failed' })
 export async function relayUpstreamError(res: Response, label: string): Promise<NextResponse> {
@@ -29,11 +25,11 @@ export async function relayUpstreamError(res: Response, label: string): Promise<
   }
 }
 
-function parseBrokerUnavailable(text: string): { title: string; detail: string; status: number } | null {
+function parseBrokerUnavailable(text: string): { title: string; detail: string; status: number; code: string } | null {
   try {
     const body = JSON.parse(text)
-    if (!BROKER_UNAVAILABLE_TITLES.includes(body?.title) || typeof body.detail !== 'string') return null
-    return { title: body.title, detail: body.detail, status: 503 }
+    if (body?.code !== 'BROKER_UNAVAILABLE' || typeof body.detail !== 'string') return null
+    return { title: body.title, detail: body.detail, status: 503, code: body.code }
   } catch {
     return null
   }

@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { QueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { ApiError, apiMsg } from '@shared/lib/api-client'
+import { apiErrorCode, apiMsg } from '@shared/lib/api-client'
 import { upsertById, synchronizeListQueries } from '@shared/lib/query'
 import {
   createAccount,
@@ -88,7 +88,7 @@ export function useCreateAccountMutation() {
       await synchronizeAccountList(queryClient, (accounts) => upsertById(accounts, saved))
     },
     onError: (error) => {
-      if (error instanceof ApiError && error.status === 422) {
+      if (apiErrorCode(error) === 'BROKER_CREDENTIAL_INVALID') {
         toast.error('자격증명 인증에 실패했습니다')
       } else {
         toast.error('계좌 연결에 실패했습니다')

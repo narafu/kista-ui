@@ -32,6 +32,13 @@ export function apiMsg(err: unknown, fallback: string): string {
   return fallback
 }
 
+// kista-api ProblemDetail의 기계 판독 에러 코드(카탈로그 대상 예외에만 존재). 화면별 문구 분기는 status 대신 이 값을 쓴다
+export function apiErrorCode(err: unknown): string | undefined {
+  if (!(err instanceof ApiError)) return undefined
+  const code = (err.body as { code?: unknown } | null)?.code
+  return typeof code === 'string' ? code : undefined
+}
+
 // 동시 다발 401 시 RT를 한 번만 사용하도록 in-flight refresh 단일화
 let refreshInFlight: Promise<boolean> | null = null
 
