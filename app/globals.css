@@ -164,7 +164,7 @@
   /* Korean securities color convention */
   --pos:        #D14B3F;   --pos-bg: #FBE4E0;   /* 상승/매수/수익 — 빨강 */
   --neg:        #1F6FE5;   --neg-bg: #DEE9FA;   /* 하락/매도/손실 — 파랑 */
-  --warn:       #B07A1F;   --warn-bg:#F6E5C2;
+  --warn:       #855C13;   --warn-bg:#F6E5C2;
   --status-ok:  #2F8A57;   --status-ok-bg: #DCEFE0;   /* 운영중 — 초록 */
 
   /* Info (정보성 상태 — 사이클 시드 MAX, 주문 PLACED/LOC 등) */
@@ -174,7 +174,7 @@
 
   /* Brand semantic tokens */
   --brand-fg:      #6E3A2A;
-  --brand-fg-soft: #B66951;
+  --brand-fg-soft: #A35A43;
   --brand-soft-bg: linear-gradient(135deg, #FCEFE8 0%, #FFFFFF 70%);
 
   /* Selection cards */

@@ -50,7 +50,7 @@ function LoginPageContent() {
       <div className="flex flex-col items-center gap-3 mb-10">
         <Image
           src="/logo.png"
-          alt="KISTA"
+          alt=""
           width={56}
           height={56}
           className="rounded-[12px] shadow-[0_4px_16px_rgba(143,68,48,.25)]"

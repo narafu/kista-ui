@@ -62,7 +62,7 @@ function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
       <div key={ds} className="flex flex-col items-center gap-0.5 py-1">
         <span className={cn(
           'text-xs',
-          isSun ? 'text-pos/40' : isSat ? 'text-neg/40' : 'text-muted-foreground/30',
+          isSun ? 'text-pos' : isSat ? 'text-neg' : 'text-muted-foreground',
         )}>
           {day.getDate()}
         </span>
@@ -219,7 +219,7 @@ export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: 
 
   return (
     <Surface className="p-5 flex flex-col gap-1">
-      <span className="text-sm font-semibold tracking-widest uppercase text-rose-500">
+      <span className="text-sm font-semibold tracking-widest uppercase text-[var(--brand-fg-soft)]">
         미국 휴장일 · 주간 거래
       </span>
       <div className="flex items-center justify-between mb-1">

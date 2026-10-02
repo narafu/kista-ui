@@ -14,7 +14,7 @@ export function MobileHeader({ trailing }: Props) {
       <Link href="/dashboard" className="flex items-center gap-2.5">
         <Image
           src="/logo.png"
-          alt="KISTA"
+          alt=""
           width={28}
           height={28}
           className="rounded-[6px] shadow-[0_2px_6px_rgba(143,68,48,.22)]"

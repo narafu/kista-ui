@@ -118,7 +118,7 @@ export function ErrorDisplay({ code, error, reset, standalone }: ErrorDisplayPro
   return (
     <div className="error-page-bg min-h-screen grid place-items-center relative overflow-hidden">
       <div className="absolute top-6 left-8 flex items-center gap-2">
-        <Image src="/logo.png" alt="KISTA" width={22} height={22} className="size-[22px] rounded-[5px]" />
+        <Image src="/logo.png" alt="" width={22} height={22} className="size-[22px] rounded-[5px]" />
         <span
           className="text-sm font-extrabold text-[var(--rose-700)] tracking-[2px]"
         >

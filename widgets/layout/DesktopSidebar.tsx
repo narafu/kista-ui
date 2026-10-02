@@ -61,7 +61,7 @@ export function DesktopSidebar({ isAdmin, isAuthenticated }: Props) {
       <Link href="/dashboard" className="flex items-center gap-2.5 px-2.5 pb-6">
         <Image
           src="/logo.png"
-          alt="KISTA"
+          alt=""
           width={32}
           height={32}
           className="rounded-[7px] shadow-[0_2px_8px_rgba(143,68,48,.22)]"

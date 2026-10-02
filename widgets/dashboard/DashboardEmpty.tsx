@@ -13,7 +13,7 @@ interface Props {
 
 const NOTIFICATION_CARD = {
   title: '매매 알림 받기',
-  desc: '계좌 등록 후 알림을 설정하면 매매 체결 내역을 바로 받을 수 있어요. 브라우저 푸시(FCM)가 가장 간편하며, 텔레그램 봇 연동도 지원합니다.',
+  desc: '계좌 등록 후 알림을 설정하면 매매 체결 내역을 바로 받을 수 있습니다. 브라우저 푸시(FCM)가 가장 간편하며, 텔레그램 봇 연동도 지원합니다.',
   cta: '알림 설정하기 →',
   href: '/settings',
 }
@@ -63,6 +63,7 @@ export function DashboardEmpty({ marketPanels }: Props) {
 
       {/* Mobile */}
       <div className="lg:hidden">
+        <h1 className="sr-only">대시보드</h1>
         <div
           className="rounded-[var(--r-lg)] border border-rose-200 p-5 mb-4 text-center"
           style={{ background: 'var(--brand-soft-bg)' }}

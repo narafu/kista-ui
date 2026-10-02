@@ -34,6 +34,7 @@ export function DashboardOverview({ marketPanels }: Props) {
 
       {/* Mobile */}
       <div className="lg:hidden reveal-stagger">
+        <h1 className="sr-only">대시보드</h1>
         <div className="flex flex-col gap-4 mb-4">
           {marketPanels}
         </div>
