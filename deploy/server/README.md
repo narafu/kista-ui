@@ -64,7 +64,7 @@ nohup bash /opt/kista-infra/bin/reconcile.sh kista-ui "$(basename "$(readlink /o
 ## 모니터링
 
 - **헬스체크**: `/api/health` (Next.js Route Handler, 인증 불필요) — Caddy·Docker healthcheck 공용 대상
-- **로그**: `docker compose logs -f kista-ui` (서버 SSH)
+- **로그**: `docker logs -f kista-ui` (서버 SSH — 서버 루트엔 compose 파일이 없어 `docker compose logs`는 쓰지 않는다)
 
 ## 운영 전환 시 확인 사항
 
