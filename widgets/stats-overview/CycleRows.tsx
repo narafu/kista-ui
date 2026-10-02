@@ -7,10 +7,8 @@ import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtSignedUsd, pnlTextClass, fmtSignedPercent } from '@shared/lib/format'
-import type { useStatsCyclesQuery } from '@entities/stats'
+import type { CyclePerformance } from '@entities/stats'
 import type { Account } from '@entities/account'
-
-type CyclePerformance = ReturnType<typeof useStatsCyclesQuery>['cycles'][number]
 
 interface Props {
   cycles: CyclePerformance[]
