@@ -1,4 +1,5 @@
 import { getApiBaseUrl, getTradingApiBaseUrl } from '@shared/lib/env'
+import type { ErrorCode } from '@shared/lib/api-schema'
 
 // createProxyRoute의 target 분기(app/api/{accounts,trading-cycles,backtest,daily-trades,orders,stats}/**)와 동일 기준 —
 // Server Component 직결 fetch(apiFetch)도 4a 단계로 kista-trading(8081)에 이전된 prefix는 그쪽으로 보내야 한다.
@@ -33,10 +34,10 @@ export function apiMsg(err: unknown, fallback: string): string {
 }
 
 // kista-api ProblemDetail의 기계 판독 에러 코드(카탈로그 대상 예외에만 존재). 화면별 문구 분기는 status 대신 이 값을 쓴다
-export function apiErrorCode(err: unknown): string | undefined {
+export function apiErrorCode(err: unknown): ErrorCode | undefined {
   if (!(err instanceof ApiError)) return undefined
   const code = (err.body as { code?: unknown } | null)?.code
-  return typeof code === 'string' ? code : undefined
+  return typeof code === 'string' ? (code as ErrorCode) : undefined
 }
 
 // 동시 다발 401 시 RT를 한 번만 사용하도록 in-flight refresh 단일화

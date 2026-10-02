@@ -4794,6 +4794,8 @@ export interface components {
              */
             failedCount?: number;
         };
+        /** @enum {string} */
+        ErrorCode: "BROKER_UNAVAILABLE" | "BROKER_CREDENTIAL_INVALID" | "BROKER_RATE_LIMITED" | "DUPLICATE_ACCOUNT" | "ALREADY_ORDERED_TODAY" | "ORDER_NOT_CANCELLABLE" | "MONTH_CLOSED" | "ACCESS_DENIED" | "COOLDOWN_ACTIVE" | "TRADING_CORE_UNAVAILABLE";
     };
     responses: never;
     parameters: never;

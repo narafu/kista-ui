@@ -2,6 +2,9 @@
 // 갱신: npm run gen:types (openapi.json 교체 후 실행)
 import type { components, operations } from './api-types'
 
+// kista-api ProblemDetail 확장 프로퍼티 code — 상수는 추가만 되고 이름 변경·삭제되지 않는다
+export type ErrorCode = components['schemas']['ErrorCode']
+
 export type BrokerCode = NonNullable<components['schemas']['AccountRequest']['broker']>
 
 export type UserStatus = NonNullable<components['schemas']['UserResponse']['status']>
