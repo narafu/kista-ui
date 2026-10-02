@@ -9,7 +9,7 @@ import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YA
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { SectionError } from '@shared/ui/SectionError'
-import { cn } from '@shared/lib/utils'
+import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { fmtKrw } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import {
@@ -32,24 +32,6 @@ const MODE_OPTIONS: { value: TrendMode; label: string }[] = [
   { value: 'category', label: '카테고리별' },
   { value: 'assetClass', label: '자산군별' },
 ]
-
-function ModeButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={cn(
-        'flex min-h-9 w-full items-center justify-center rounded px-2 py-1 text-xs font-medium transition-colors',
-        active
-          ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]'
-          : 'text-muted-foreground hover:text-foreground hover:bg-accent',
-      )}
-    >
-      {children}
-    </button>
-  )
-}
 
 interface Props {
   month?: string
@@ -89,13 +71,13 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
   return (
     <div className="flex flex-1 flex-col gap-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="grid w-full grid-cols-3 rounded-md border border-border p-0.5 sm:w-64">
-          {MODE_OPTIONS.map((option) => (
-            <ModeButton key={option.value} active={mode === option.value} onClick={() => setMode(option.value)}>
-              {option.label}
-            </ModeButton>
-          ))}
-        </div>
+        <SegmentedToggle
+          aria-label="추이 기준"
+          options={MODE_OPTIONS}
+          value={mode}
+          onChange={setMode}
+          className="grid w-full grid-cols-3 sm:w-64"
+        />
         {mode !== 'netWorth' && selectorItems.length > 0 && (
           <Select
             items={selectorItems}

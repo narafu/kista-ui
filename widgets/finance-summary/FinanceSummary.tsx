@@ -3,6 +3,7 @@
 import { useMemo, type ReactNode } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SectionError } from '@shared/ui/SectionError'
+import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
 import { YearSelect } from '@shared/ui/YearSelect'
@@ -35,25 +36,6 @@ const MODE_OPTIONS: { value: PeriodMode; label: string }[] = [
   { value: 'monthly', label: '월간' },
   { value: 'yearly', label: '연간' },
 ]
-
-// 가계부 탭바(SectionTabBar)와 동일한 segmented control 스타일 — widget cross-import 금지라 직접 복제.
-function ModeButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={cn(
-        'flex min-h-9 items-center justify-center rounded px-3 py-1 text-sm font-medium transition-colors',
-        active
-          ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]'
-          : 'text-muted-foreground hover:text-foreground hover:bg-accent',
-      )}
-    >
-      {children}
-    </button>
-  )
-}
 
 // 소비는 늘어난 게 나쁜 신호라 색상 부호를 뒤집는다(AssetOverview의 부채 델타 반전과 동일 이유).
 function deltaLabel(label: string, delta: number, type: FinanceCategoryType, amountValue: (display: string) => ReactNode) {
@@ -139,17 +121,14 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
               today={today}
             />
           )}
-          <div role="group" aria-label="기간 모드" className="grid grid-cols-2 rounded-md border border-border p-0.5">
-            {MODE_OPTIONS.map((option) => (
-              <ModeButton
-                key={option.value}
-                active={period.mode === option.value}
-                onClick={() => onPeriodChange({ ...period, mode: option.value })}
-              >
-                {option.label}
-              </ModeButton>
-            ))}
-          </div>
+          <SegmentedToggle
+            aria-label="기간 모드"
+            options={MODE_OPTIONS}
+            value={period.mode}
+            onChange={(mode) => onPeriodChange({ ...period, mode })}
+            className="grid grid-cols-2"
+            itemClassName="px-3 py-1 text-sm"
+          />
         </div>
       </CardHeader>
       <CardContent>
