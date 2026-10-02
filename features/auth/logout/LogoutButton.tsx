@@ -6,9 +6,10 @@ import { clientFetch } from '@shared/lib/api-client'
 interface Props {
   className?: string
   children?: React.ReactNode
+  'aria-label'?: string
 }
 
-export function LogoutButton({ className, children }: Props) {
+export function LogoutButton({ className, children, 'aria-label': ariaLabel }: Props) {
   const [isLoading, setIsLoading] = useState(false)
 
   async function handleLogout() {
@@ -23,6 +24,7 @@ export function LogoutButton({ className, children }: Props) {
       type="button"
       onClick={handleLogout}
       disabled={isLoading}
+      aria-label={ariaLabel}
       className={className ?? 'inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-transparent border border-border text-muted-foreground cursor-pointer hover:bg-accent transition-colors disabled:opacity-60'}
     >
       {children ?? (isLoading ? '로그아웃 중...' : '로그아웃')}

@@ -226,7 +226,7 @@ export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: 
         <button
           type="button"
           onClick={() => setDisplayWeekStart(d => addDays(d, -7))}
-          className="p-0.5 rounded hover:bg-muted transition-colors"
+          className="p-[5px] rounded hover:bg-muted transition-colors"
           aria-label="이전 주"
         >
           <ChevronLeft className="size-3.5 text-muted-foreground" />
@@ -237,7 +237,7 @@ export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: 
         <button
           type="button"
           onClick={() => setDisplayWeekStart(d => addDays(d, 7))}
-          className="p-0.5 rounded hover:bg-muted transition-colors"
+          className="p-[5px] rounded hover:bg-muted transition-colors"
           aria-label="다음 주"
         >
           <ChevronRight className="size-3.5 text-muted-foreground" />

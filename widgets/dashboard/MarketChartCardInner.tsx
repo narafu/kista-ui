@@ -138,7 +138,8 @@ export default function MarketChartCardInner({ category }: Props) {
               key={n}
               type="button"
               onClick={() => setCandleCount(n)}
-              className={`text-xs px-1.5 py-0.5 rounded font-medium transition-colors ${
+              aria-pressed={candleCount === n}
+              className={`text-xs px-1.5 py-1 rounded font-medium transition-colors ${
                 candleCount === n
                   ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]'
                   : 'text-muted-foreground hover:text-foreground hover:bg-accent'
@@ -148,7 +149,7 @@ export default function MarketChartCardInner({ category }: Props) {
             </button>
           ))}
           <Popover>
-            <PopoverTrigger className="ml-1 text-muted-foreground hover:text-foreground transition-colors">
+            <PopoverTrigger aria-label={`${selected.label} 설명`} className="ml-1 text-muted-foreground hover:text-foreground transition-colors">
               <Info className="size-3.5" />
             </PopoverTrigger>
             <PopoverContent className="w-auto text-sm whitespace-nowrap">{selected.description}</PopoverContent>
@@ -156,7 +157,7 @@ export default function MarketChartCardInner({ category }: Props) {
         </div>
       </div>
       <Select value={symbol} onValueChange={(value) => value && setSymbol(value)}>
-        <SelectTrigger size="sm" className="w-full">
+        <SelectTrigger size="sm" className="w-full" aria-label={`${category.title} 종목 선택`}>
           <SelectValue>{selected.label}</SelectValue>
         </SelectTrigger>
         <SelectContent>

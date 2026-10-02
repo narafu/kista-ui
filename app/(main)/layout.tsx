@@ -49,18 +49,20 @@ export default async function MainLayout({ children, modal }: Props) {
                   {isAdmin && (
                     <Link
                       href="/admin"
+                      aria-label="관리자"
                       className="flex items-center justify-center size-10 rounded-lg bg-admin-bg text-admin-fg"
                     >
                       <ShieldCheck className="size-4" />
                     </Link>
                   )}
-                  <LogoutButton className="flex items-center justify-center size-10 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer bg-transparent border-none">
+                  <LogoutButton aria-label="로그아웃" className="flex items-center justify-center size-10 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer bg-transparent border-none">
                     <LogOut className="size-4" />
                   </LogoutButton>
                 </div>
               ) : (
                 <Link
                   href="/login"
+                  aria-label="로그인"
                   className="flex items-center justify-center size-10 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
                 >
                   <LogIn className="size-4" />

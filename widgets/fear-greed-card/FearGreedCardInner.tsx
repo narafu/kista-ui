@@ -28,7 +28,8 @@ export default function FearGreedCardInner({ title, data, days, onDaysChange, da
               key={n}
               type="button"
               onClick={() => onDaysChange(n)}
-              className={`text-xs px-1.5 py-0.5 rounded font-medium transition-colors ${
+              aria-pressed={days === n}
+              className={`text-xs px-1.5 py-1 rounded font-medium transition-colors ${
                 days === n
                   ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]'
                   : 'text-muted-foreground hover:text-foreground hover:bg-accent'

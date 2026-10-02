@@ -13,7 +13,7 @@ const reactDoctorStub = {
 
 export default tseslint.config(
   nextPlugin.configs['core-web-vitals'],
-  jsxA11y.flatConfigs.recommended,
+  jsxA11y.flatConfigs.strict,
   {
     rules: {
       // UnitInput은 내부에 <input>을 렌더링해 <label>로 감싸면 DOM 중첩으로 연결된다 — 규칙이 커스텀 컴포넌트를 컨트롤로 인식하지 못해 생기는 오탐 방지
