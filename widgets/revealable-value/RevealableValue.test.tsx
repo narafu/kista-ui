@@ -32,7 +32,8 @@ describe('RevealableValue', () => {
     const user = userEvent.setup()
     const onAncestorClick = vi.fn()
     render(
-      <div onClick={onAncestorClick}>
+      // 실제 소비처의 클릭 가능한 행/카드를 흉내 내는 버블링 감지용 래퍼 — 자체는 조작 대상이 아니다
+      <div role="presentation" onClick={onAncestorClick}>
         <RevealableValue value="123-456789-01" />
       </div>,
     )

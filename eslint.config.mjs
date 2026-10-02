@@ -1,4 +1,5 @@
 import nextPlugin from '@next/eslint-plugin-next'
+import jsxA11y from 'eslint-plugin-jsx-a11y'
 import reactHooks from 'eslint-plugin-react-hooks'
 import tseslint from 'typescript-eslint'
 
@@ -12,6 +13,13 @@ const reactDoctorStub = {
 
 export default tseslint.config(
   nextPlugin.configs['core-web-vitals'],
+  jsxA11y.flatConfigs.recommended,
+  {
+    rules: {
+      // UnitInput은 내부에 <input>을 렌더링해 <label>로 감싸면 DOM 중첩으로 연결된다 — 규칙이 커스텀 컴포넌트를 컨트롤로 인식하지 못해 생기는 오탐 방지
+      'jsx-a11y/label-has-associated-control': ['error', { controlComponents: ['UnitInput'] }],
+    },
+  },
   {
     plugins: { 'react-doctor': reactDoctorStub },
     // stub은 아무것도 보고하지 않아 react-doctor 주석이 전부 "unused directive"로 잡히고,
@@ -38,6 +46,6 @@ export default tseslint.config(
   },
   {
     // shadcn 자동생성 파일 — 직접 수정 금지, false positive 스캔 제외
-    ignores: ['node_modules/**', '.next/**', 'out/**', 'build/**', 'next-env.d.ts', 'components/ui/**'],
+    ignores: ['node_modules/**', '.worktrees/**', '.next/**', 'out/**', 'build/**', 'next-env.d.ts', 'components/ui/**'],
   },
 )

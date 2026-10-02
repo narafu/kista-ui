@@ -57,7 +57,9 @@ export function RouteModal({ children, className }: Props) {
   }, []) // eslint-disable-line react-doctor/exhaustive-deps
 
   return (
+    // 배경 클릭 닫기는 마우스 보조 수단 — 키보드는 ESC(위 keydown 핸들러)와 닫기 버튼으로 동일하게 닫을 수 있어 배경 자체는 presentation으로 둔다
     <div
+      role="presentation"
       className="fixed inset-0 z-50 overflow-y-auto touch-pan-y sm:overflow-y-visible sm:flex sm:items-center sm:justify-center sm:bg-black/40 sm:p-4"
       onClick={(e) => { if (e.target === e.currentTarget) dismiss() }}
     >

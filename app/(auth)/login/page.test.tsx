@@ -12,7 +12,8 @@ vi.mock('next/navigation', () => ({
 }))
 
 vi.mock('next/image', () => ({
-  default: (props: React.ComponentProps<'img'>) => <img {...props} />,
+  // eslint-disable-next-line @next/next/no-img-element -- 테스트용 next/image mock
+  default: ({ alt, ...props }: React.ComponentProps<'img'>) => <img alt={alt} {...props} />,
 }))
 
 vi.mock('@entities/runtime-config', () => ({
