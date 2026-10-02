@@ -58,13 +58,13 @@ function TrendLoading() {
 export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegionChange }: Props) {
   const [regionCode, setRegionCode] = useState(SEOUL_REGION_CODE)
   const regionsQuery = useHousingBenchmarkRegionsQuery(enabled)
-  const fetchedRegions = regionsQuery.data?.regions ?? []
   const regions = useMemo(() => {
+    const fetchedRegions = regionsQuery.data?.regions ?? []
     const allowed = ALLOWED_REGION_NAMES
       .map((name) => fetchedRegions.find((region) => region.name === name))
       .filter((region): region is HousingBenchmarkRegion => region != null)
     return allowed.length > 0 ? allowed : [SEOUL_FALLBACK_REGION]
-  }, [fetchedRegions])
+  }, [regionsQuery.data])
   const selectedRegion = regions.find((region) => region.code === regionCode) ?? regions[0]
   const regionLabel = selectedRegion.name
 
@@ -76,7 +76,7 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
   // 상단 "비교 기간" 토글과 동일한 from/to로 조회 — 추이 차트만 별도 기간을 쓰지 않는다
   const query = useHousingBenchmarkSeriesQuery({ from, to, regionCode }, enabled)
   const data = query.data
-  const points = data?.points ?? []
+  const points = useMemo(() => data?.points ?? [], [data])
 
   // 현재 조회 기간(상단 "비교 기간" 토글) 첫·마지막 시점 기준 연평균 상승률(CAGR) — 범례 배지용
   const quintileCagrs = useMemo(

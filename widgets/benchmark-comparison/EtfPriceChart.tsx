@@ -37,7 +37,7 @@ function EtfChartLoading() {
 export function EtfPriceChart({ enabled, from, to, symbol, label }: Props) {
   const query = useEtfPriceSeriesQuery({ from, to, symbol }, enabled)
   const data = query.data
-  const points = data?.points ?? []
+  const points = useMemo(() => data?.points ?? [], [data])
   // 조회 기간 첫·마지막 종가 기준 연평균 상승률(CAGR) — 배지용
   const cagr = useMemo(() => calculateSeriesCagr(points, 'tradeDate', 'close'), [points])
 

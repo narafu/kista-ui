@@ -123,7 +123,7 @@ export function AssetRecordList({ month }: Props) {
   useEffect(() => {
     setPage(1)
     setSelectedIds(new Set())
-  }, [month, categoryPath, assetClass, market])
+  }, [month, categoryPath, assetClass, market, setPage])
 
   const pagedIds = useMemo(() => paged.map((snapshot) => snapshot.id), [paged])
   const allPagedSelected = pagedIds.length > 0 && pagedIds.every((id) => selectedIds.has(id))

@@ -119,7 +119,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
   // 카테고리 필터·기간 변경은 결과 집합 자체를 바꾸므로 페이지를 1로 리셋한다(AssetRecordList와 동일 이유).
   useEffect(() => {
     setPage(1)
-  }, [categoryPath, period.month, period.mode])
+  }, [categoryPath, period.month, period.mode, setPage])
 
   // 카테고리가 삭제돼 이 타입 어디에도 속하지 못하는 거래 — 필터링해 숨기지 않고 존재만 알린다.
   const unclassifiedCount = useMemo(() => {

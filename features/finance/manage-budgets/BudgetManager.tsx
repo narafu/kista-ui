@@ -39,6 +39,12 @@ type FormTarget =
 
 type StatusFilter = 'ALL' | 'ACTIVE' | 'ENDED'
 
+// "진행중"은 오늘이 적용 기간(applyStartDate~applyEndDate) 안에 있다는 뜻이다 — applyEndDate만
+// 보면 시작일이 미래인(아직 시작 전) 예산도 진행중으로 잘못 분류된다(리뷰에서 발견).
+function isActiveBudget(budget: FinanceBudget, today: string): boolean {
+  return budget.applyStartDate <= today && (!budget.applyEndDate || budget.applyEndDate >= today)
+}
+
 // 예산 유형은 더 이상 이 컴포넌트가 스스로 고르지 않는다 — 호출부(BudgetManagerDialog)가
 // 수입/소비/저축 탭 컨텍스트에서 이미 고정된 type을 넘긴다(설정 화면의 독립 세그먼트 UI는 폐기).
 export function BudgetManager({ type }: Props) {
@@ -59,15 +65,9 @@ export function BudgetManager({ type }: Props) {
     return new Set(collectSubtreeIds(categories, categoryPath[categoryPath.length - 1]))
   }, [categories, categoryPath])
 
-  // "진행중"은 오늘이 적용 기간(applyStartDate~applyEndDate) 안에 있다는 뜻이다 — applyEndDate만
-  // 보면 시작일이 미래인(아직 시작 전) 예산도 진행중으로 잘못 분류된다(리뷰에서 발견).
-  function isActiveBudget(budget: FinanceBudget): boolean {
-    return budget.applyStartDate <= today && (!budget.applyEndDate || budget.applyEndDate >= today)
-  }
-
   const filtered = useMemo(() => budgets.filter((b) =>
     (categorySubtreeIds === null || categorySubtreeIds.has(b.categoryId)) &&
-    (statusFilter === ALL_FILTER_VALUE || (statusFilter === 'ACTIVE' ? isActiveBudget(b) : !isActiveBudget(b))),
+    (statusFilter === ALL_FILTER_VALUE || (statusFilter === 'ACTIVE' ? isActiveBudget(b, today) : !isActiveBudget(b, today))),
   ), [budgets, categorySubtreeIds, statusFilter, today])
 
   const { page: currentPage, setPage, size, totalPages, paged, handlePageSizeChange } = useClientPagination(filtered)
@@ -75,7 +75,7 @@ export function BudgetManager({ type }: Props) {
   // 필터 변경은 결과 집합을 바꾸므로 페이지를 1로 리셋한다(AssetRecordList와 동일 패턴).
   useEffect(() => {
     setPage(1)
-  }, [categoryPath, statusFilter])
+  }, [categoryPath, statusFilter, setPage])
 
   const [formTarget, setFormTarget] = useState<FormTarget | null>(null)
   const deleteDialog = useConfirmDialog<FinanceBudget>()

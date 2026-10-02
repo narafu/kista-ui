@@ -38,7 +38,7 @@ function IndexChartLoading() {
 export function HousingPriceIndexChart({ enabled, from, to, regionCode, regionLabel }: Props) {
   const query = useHousingPriceIndexSeriesQuery({ from, to, regionCode }, enabled)
   const data = query.data
-  const points = data?.points ?? []
+  const points = useMemo(() => data?.points ?? [], [data])
   // 조회 기간 첫·마지막 지수 기준 연평균 상승률(CAGR) — 배지용
   const cagr = useMemo(() => calculateSeriesCagr(points, 'baseDate', 'indexValue'), [points])
 
