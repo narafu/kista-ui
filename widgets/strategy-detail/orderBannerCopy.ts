@@ -6,6 +6,7 @@ export const SKIP_REASON_LABELS: Record<SkipReason, string> = {
   NO_CYCLE_HISTORY: '첫 매매 전입니다.\n사이클 정보가 아직 없습니다.',
   NO_PRIVACY_BASE: 'P 매매표가 없습니다.',
   SCHEDULED_START_NOT_REACHED: '시작예정일 전입니다.\n예정일 이후 첫 거래일부터 매매가 시작됩니다.',
+  CYCLE_ENDED: '사이클이 종료되었습니다.\n전략을 중지 후 재개하면 새 사이클이 시작됩니다.',
 }
 
 // 방향별 문구 재료 — 라벨/부족 서식은 BUY·SELL 각각 다르므로 방향마다 한 벌씩 정의하고,

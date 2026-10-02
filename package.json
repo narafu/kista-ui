@@ -13,7 +13,7 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "fetch:spec": "curl -s http://localhost:8080/api-docs -o openapi.json",
+    "fetch:spec": "node scripts/fetch-spec.mjs",
     "gen:types": "openapi-typescript openapi.json -o shared/lib/api-types.ts"
   },
   "dependencies": {
