@@ -7,32 +7,29 @@
 ```text
 /opt/kista-ui/
 ├── .env                    ← kista-infra 배포 워크플로가 매 배포마다 렌더링·덮어씀
-├── docker-compose.yml      ← GitHub Actions 업로드
-├── bin/                    ← deploy.sh·health-gate.sh (GitHub Actions 업로드, 서버에서 실행)
-└── rollback/               ← 교체 직전 compose·이미지·run 식별자 기록
+├── releases/<id>/          ← kista-infra가 config SHA의 deploy/server/{docker-compose.yml,roles,required-env} + images.env로 구성한 bundle
+├── current → releases/<id> ← 마지막 적용 성공 release
+├── previous → releases/<id>
+└── reconcile.log           ← 마지막 reconcile 출력
 ```
 
 ## 초기 서버 설정
 
 호스트 프로비저닝(OCI 인스턴스·방화벽·Docker 설치·로그 로테이션 등)과 도메인·Caddy·Reserved IP 관리는 `kista-infra` 레포가 전담한다 — 상세 절차는 그 레포 README의 "서버 재구축 시 순서" 참고.
 
-`/opt/kista-ui/` 디렉터리 생성·`.env` 렌더링은 이 레포와 kista-infra의 배포 워크플로가 각각 자동으로 처리한다(`server-deploy.yml`이 `mkdir -p`, kista-infra가 `.env` 렌더링) — 수동으로 만들거나 `.env`를 직접 편집할 필요 없다. 직접 편집해도 다음 kista-infra 배포 때 소실된다(위 "서버 레이아웃" 참고). 환경변수 변경은 반드시 kista-infra의 `scripts/env.sh edit kista-ui` 경로로만 한다.
+`/opt/kista-ui/` 디렉터리 생성·`.env` 렌더링·release 업로드는 kista-infra 워크플로가 자동으로 처리한다 — 수동으로 만들거나 `.env`를 직접 편집할 필요 없다. 직접 편집해도 다음 kista-infra 배포 때 소실된다(위 "서버 레이아웃" 참고). 환경변수 변경은 반드시 kista-infra의 `scripts/env.sh edit kista-ui` 경로로만 한다.
 
 ## GitHub Secrets
 
 | Secret | 설명 |
 |--------|------|
-| `SERVER_HOST` | 서버 IP 또는 도메인 — `kista-api`와 같은 인스턴스를 공유하지만 저장소별 GitHub Secret은 독립 등록 필요 |
-| `SERVER_USER` | SSH 사용자명 |
-| `SERVER_SSH_KEY` | SSH 개인키 (PEM) — kista-api/fida와 동일 키페어 |
-| `SERVER_SSH_PORT` | SSH 포트 (기본값 22, 생략 가능) |
-| `SERVER_SSH_HOST_KEYS` | 서버 공개 호스트 키(`<keytype> <base64>` 한 줄씩) — known_hosts에 고정(TOFU 금지) |
+| `INFRA_DISPATCH_TOKEN` | `kista-infra` 대상 fine-grained PAT — Contents read/write(dispatch), Actions read(run 추적). 이 레포는 서버 SSH 키를 갖지 않는다 |
 
 `NEXT_PUBLIC_*` 9개는 레포 루트 `.env.production.public`(평문 커밋, 클라이언트 번들에 노출되는 설계상 공개값)에서 빌드 타임에 로드된다 — GitHub Secrets 미사용. 값 변경 시 이 파일을 직접 수정.
 
 ## .env 내용
 
-`NEXT_PUBLIC_*`는 빌드 타임에 이미지에 인라인되므로 서버 `.env`에 다시 넣을 필요 없다. 서버 `.env`에는 `API_BASE_URL`(kista-ui 런타임이 실제로 소비 — `environment:`로 컨테이너에 주입됨)과 `UI_DOMAIN` 2개가 있다. **`UI_DOMAIN`은 이 레포의 스택에서는 더 이상 아무것도 소비하지 않는 사실상 흔적값이다** — kista-infra의 Caddy는 자신의 `/opt/kista-infra/.env`(`infra.env.gpg`에서 렌더링)에 담긴 자체 `UI_DOMAIN`을 참조하며, kista-ui의 `docker-compose.yml`도 더 이상 `UI_DOMAIN`을 읽지 않는다. `server-deploy.yml`의 필수 키 검증(`for key in UI_DOMAIN API_BASE_URL`)이 여전히 이 값의 존재를 요구하므로 `.env`에는 계속 채워둬야 한다. 이 `.env` 자체는 `kista-infra`의 배포 워크플로가 `secrets/kista-ui.env.gpg`에서 매 배포마다 렌더링·덮어쓴다 — 값을 바꾸려면 kista-infra의 `scripts/env.sh edit kista-ui`로 암호화 파일을 직접 수정해야 하며, 서버 `.env`를 직접 편집해도 다음 kista-infra 배포 때 덮어써진다.
+`NEXT_PUBLIC_*`는 빌드 타임에 이미지에 인라인되므로 서버 `.env`에 다시 넣을 필요 없다. 서버 `.env`에는 `API_BASE_URL`(kista-ui 런타임이 실제로 소비 — `environment:`로 컨테이너에 주입됨)과 `UI_DOMAIN` 2개가 있다. **`UI_DOMAIN`은 이 레포의 스택에서는 더 이상 아무것도 소비하지 않는 사실상 흔적값이다** — kista-infra의 Caddy는 자신의 `/opt/kista-infra/.env`(`infra.env.gpg`에서 렌더링)에 담긴 자체 `UI_DOMAIN`을 참조하며, kista-ui의 `docker-compose.yml`도 더 이상 `UI_DOMAIN`을 읽지 않는다. `deploy/server/required-env`(kista-infra reconcile.sh가 적용 전 검사)가 여전히 이 값의 존재를 요구하므로 `.env`에는 계속 채워둬야 한다. 이 `.env` 자체는 `kista-infra`의 배포 워크플로가 `secrets/kista-ui.env.gpg`에서 매 배포마다 렌더링·덮어쓴다 — 값을 바꾸려면 kista-infra의 `scripts/env.sh edit kista-ui`로 암호화 파일을 직접 수정해야 하며, 서버 `.env`를 직접 편집해도 다음 kista-infra 배포 때 덮어써진다.
 
 ```dotenv
 UI_DOMAIN=kista-app.com
@@ -41,32 +38,28 @@ API_BASE_URL=https://api.kista-app.com
 
 ## 배포 흐름
 
-`push: main` 또는 `workflow_dispatch` → `server-deploy.yml` — kista-api/fida와 동일한 트리거 구조다.
+`push: main` 또는 `workflow_dispatch` → `server-deploy.yml`. 서버 적용은 kista-infra `Reconcile App`이 한다 — 설계 `kista-infra/docs/superpowers/specs/2026-10-02-deploy-reconcile-design.md`.
 
-1. `main` push 또는 `workflow_dispatch` → `verify` job (`npm run typecheck`, `npm run test:run`) + `deploy-checks` job (배포 스크립트 shellcheck·bats — `.github/tests`)
+1. `verify` job (`npm run typecheck`, `npm run test:run`) + `deploy-checks` job (shellcheck·bats — `.github/tests`)
 2. Docker 이미지 빌드(`.env.production.public`에서 읽은 9개 `NEXT_PUBLIC_*`를 build-args로 주입) → GHCR push
-3. SSH(`.github/actions/ssh-setup`가 `remote`/`upload` 헬퍼 제공)로 `docker-compose.yml`과 `bin/*.sh` 업로드
-4. `bin/deploy.sh`: `docker compose pull kista-ui && docker compose up -d --no-deps kista-ui` (caddy는 kista-infra 소관 — 이 워크플로 관여 없음)
-5. `bin/health-gate.sh` 헬스 게이트: 호스트에서 `docker inspect --format '{{.State.Health.Status}}' kista-ui`로 컨테이너 헬스 상태를 10초 간격 최대 5분(300초) 폴링
-6. 실패 시 이전 이미지로 자동 롤백
-7. Caddy `lb_try_duration 120s`가 컨테이너 재시작 공백을 클라이언트에 투명하게 처리
+3. `deploy` — kista-infra에 `repository_dispatch(deploy-kista-ui)`로 `{config=이 커밋, roles=kista-ui=이 커밋, request_id}`를 보내고 그 run이 끝날 때까지 대기(`wait-reconcile.sh`). 커밋의 초록불 = 서버 적용·헬스 게이트 통과. 대기 중 더 새 요청이 대체하면 생략으로 성공 처리
+4. kista-infra — SHA·이미지 검증, state보다 옛 요청 무시(신선도 병합), config SHA로 bundle 구성 → 서버 `reconcile.sh`: `required-env` 검사 → `docker compose up -d --no-deps kista-ui` → Docker 헬스 healthy 10초 간격 최대 5분 → 실패 시 직전 release로 자동 롤백, 성공 시 `current` 전환·미사용 이미지 태그 정리 → `state/kista-ui.yml` 커밋
+5. Caddy `lb_try_duration 120s`가 컨테이너 재시작 공백을 클라이언트에 투명하게 처리
 
-kista-api와 달리 매매 시간대 배포 가드는 불필요하다 — kista-ui는 로그인·조회 UI일 뿐 트레이딩 로직을 직접 실행하지 않는다.
+매매 시간대 배포 가드는 없다 — kista-ui는 로그인·조회 UI일 뿐 트레이딩 로직을 직접 실행하지 않는다.
 
 ## 롤백 Runbook
 
-**자동 롤백**: 헬스 게이트 실패 시 Actions가 이전 이미지로 자동 복구. 자동 롤백 후 롤백된 컨테이너의 헬스는 재검증되지 않으므로, Actions 실패 알림을 받으면 서버에서 `docker inspect --format '{{.State.Health.Status}}' kista-ui`로 수동 확인 필요.
+**자동 롤백**: reconcile 헬스 게이트 실패 시 직전 release(이미지·compose)로 자동 복구(kista-infra run 실패 + 텔레그램 알림). 롤백된 컨테이너의 헬스는 재검증되지 않으므로 알림을 받으면 서버에서 `docker inspect --format '{{.State.Health.Status}}' kista-ui`로 확인.
 
-**수동 롤백**: GHCR에 SHA 태그 이미지가 보존됨.
+**수동 롤백**: 서버에서 직전 release를 재적용한다(GHCR이 public이라 정리된 이미지도 다시 pull).
 ```bash
-cd /opt/kista-ui
-docker images | grep kista-ui
-
-export KISTA_UI_IMAGE=ghcr.io/<org>/kista-ui:<previous-sha>
-docker compose up -d --no-deps kista-ui
+ls -l /opt/kista-ui/current /opt/kista-ui/previous
+nohup bash /opt/kista-infra/bin/reconcile.sh kista-ui "$(basename "$(readlink /opt/kista-ui/previous)")"
 ```
+그 뒤 kista-infra `state/kista-ui.yml`을 실제 적용한 SHA로 커밋한다(안 하면 다음 요청의 기준점이 어긋난다).
 
-**이미지 디스크 정리 참고**: 배포 성공 시 이 레포 이미지(`ghcr.io/narafu/<repo>`) 중 컨테이너가 쓰지 않는 태그를 `docker rmi`로 지우고 dangling 레이어를 `prune -f`로 정리한다(예전 `prune -f`만으로는 SHA 태그 이미지가 누적됐다 — 2026-10-01 실측 181개·35GB. `prune -a`는 다른 레포가 막 pull한 이미지까지 지울 수 있어 쓰지 않는다). 정리된 이미지로 롤백해도 GHCR이 public이라 compose가 다시 pull한다.
+**이미지 디스크 정리 참고**: 적용 성공 시 이 레포 이미지(`ghcr.io/narafu/kista-ui`) 중 컨테이너가 쓰지 않는 태그를 `docker rmi`로 지우고 dangling 레이어를 `prune -f`로 정리한다(예전 `prune -f`만으로는 SHA 태그 이미지가 누적됐다 — 2026-10-01 실측 181개·35GB. `prune -a`는 다른 레포가 막 pull한 이미지까지 지울 수 있어 쓰지 않는다). 정리된 이미지로 롤백해도 GHCR이 public이라 compose가 다시 pull한다.
 
 ## 모니터링
 

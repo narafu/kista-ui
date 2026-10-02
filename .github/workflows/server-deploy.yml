@@ -11,9 +11,6 @@ permissions:
   contents: read
   packages: write
 
-env:
-  DEPLOY_PATH: /opt/kista-ui
-
 jobs:
   verify:
     name: Typecheck & Test
@@ -44,7 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: shellcheck
-        run: shellcheck deploy/server/bin/*.sh .github/tests/stub/docker
+        run: shellcheck .github/scripts/*.sh .github/tests/stub/gh
       - name: bats
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq bats >/dev/null
@@ -113,45 +110,27 @@ jobs:
             NEXT_PUBLIC_FIREBASE_APP_ID=${{ env.NEXT_PUBLIC_FIREBASE_APP_ID }}
             NEXT_PUBLIC_FIREBASE_VAPID_KEY=${{ env.NEXT_PUBLIC_FIREBASE_VAPID_KEY }}
 
+  # 서버 적용은 kista-infra Reconcile App이 한다(검증·신선도 병합·reconcile.sh 헬스 게이트·롤백·state 커밋).
+  # 여기선 요청 후 결과까지 대기 — 커밋의 초록불 = 서버 적용·헬스 게이트 통과
+  # 설계: kista-infra/docs/superpowers/specs/2026-10-02-deploy-reconcile-design.md
   deploy:
-    name: Deploy to Server
+    name: Deploy (kista-infra reconcile)
     runs-on: ubuntu-latest
     needs: build
-    concurrency: server-production
+    timeout-minutes: 20
     environment:
       name: production
-    # 헬스 게이트 내부 폴링이 최대 5분 — SSH·업로드 오버헤드 포함 여유
-    timeout-minutes: 12
     env:
-      # 롤백 기록을 이 run 시도에 묶는 식별자 — 다른 run이 남긴 기록으로 엉뚱하게 롤백하는 것 방지
-      RUN_TAG: ${{ github.run_id }}-${{ github.run_attempt }}
+      GH_TOKEN: ${{ secrets.INFRA_DISPATCH_TOKEN }}
+      REQUEST_ID: kista-ui-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-
-      - uses: ./.github/actions/ssh-setup
-        with:
-          ssh-key: ${{ secrets.SERVER_SSH_KEY }}
-          host: ${{ secrets.SERVER_HOST }}
-          port: ${{ secrets.SERVER_SSH_PORT || '22' }}
-          host-keys: ${{ secrets.SERVER_SSH_HOST_KEYS }}
-          user: ${{ secrets.SERVER_USER }}
-
-      - name: Upload deployment files
+      # UI는 단일 role이고 매 push 빌드하므로 config·role 모두 이 커밋 — 옛 run 재실행은 infra 신선도 병합이 무시한다
+      - name: dispatch
         run: |
-          remote "mkdir -p '${DEPLOY_PATH}/rollback' '${DEPLOY_PATH}/bin'"
-          upload deploy/server/bin/*.sh "${DEPLOY_PATH}/bin/"
-          # 스테이징 파일명으로 올리고 deploy.sh가 롤백 기록 후 교체 — 교체 전 compose 파일을 롤백용으로 보존하기 위함
-          upload deploy/server/docker-compose.yml "${DEPLOY_PATH}/docker-compose.yml.new"
-
-      - name: Deploy application
-        id: deploy
-        env:
-          KISTA_UI_IMAGE: ${{ needs.build.outputs.image }}
-        run: remote "DEPLOY_PATH='${DEPLOY_PATH}' KISTA_UI_IMAGE='${KISTA_UI_IMAGE}' RUN_TAG='${RUN_TAG}' bash '${DEPLOY_PATH}/bin/deploy.sh'"
-
-      # deploy가 실패해도(up 도중 실패 등) 컨테이너 교체가 시작됐다면 롤백해야 하므로 실행 — 교체 여부는 run 식별자로 판정
-      - name: Health gate & auto-rollback
-        if: ${{ !cancelled() && steps.deploy.outcome != 'skipped' }}
-        env:
-          KISTA_UI_IMAGE: ${{ needs.build.outputs.image }}
-        run: remote "DEPLOY_PATH='${DEPLOY_PATH}' KISTA_UI_IMAGE='${KISTA_UI_IMAGE}' RUN_TAG='${RUN_TAG}' bash '${DEPLOY_PATH}/bin/health-gate.sh'"
+          gh api repos/narafu/kista-infra/dispatches -f event_type=deploy-kista-ui \
+            -f "client_payload[app]=kista-ui" -f "client_payload[config]=$GITHUB_SHA" \
+            -f "client_payload[roles]=kista-ui=$GITHUB_SHA" -f "client_payload[request_id]=$REQUEST_ID" \
+            -f "client_payload[force]=false"
+      - name: 서버 적용 대기
+        run: bash .github/scripts/wait-reconcile.sh "$REQUEST_ID"
