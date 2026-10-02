@@ -38,6 +38,133 @@ function getOrderBorderColor(readiness: OrderReadiness, hasTodayOrders: boolean)
   return null
 }
 
+interface LayoutProps {
+  strategy: Strategy
+  accountLabel?: string | ReactNode
+  usesDivisionCount: boolean
+  isVr: boolean
+  scheduledStart: boolean
+  seedLabel: string
+  seedBadgeCls: string
+}
+
+function InitialDeposit({ value }: { value: Strategy['initialUsdDeposit'] }) {
+  return value != null ? `$${fmtUsd(value)}` : <span className="text-muted-foreground font-normal">미설정</span>
+}
+
+function MobileLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, seedLabel, seedBadgeCls }: LayoutProps) {
+  // 모바일: 2행 레이아웃
+  return (
+    <div className="flex flex-col gap-1.5 pl-5 pr-4 py-3 lg:hidden">
+      {/* 1행: 배지 + 계좌번호 */}
+      <div data-testid="strategy-card-mobile-top-row" className="flex items-center gap-1.5">
+        <Badge tone="brand" size="sm" className="px-2.5">{strategy.type}</Badge>
+        {!isVr && <Badge tone="none" size="sm" className={seedBadgeCls}>{seedLabel}</Badge>}
+        {scheduledStart && (
+          <Badge tone="none" size="sm" className="bg-info-bg text-info">
+            {scheduledStartBadgeLabel(strategy.startDate!)}
+          </Badge>
+        )}
+        {accountLabel && (
+          <span className="ml-auto text-xs font-semibold text-foreground/60 shrink-0 font-mono tracking-wider">{accountLabel}</span>
+        )}
+      </div>
+      {/* 2행: 티커 + 분할 + 회차 + 금액 */}
+      <div data-testid="strategy-card-mobile-main-row" className="flex items-center gap-2">
+        <span className="font-bold text-base text-foreground">{strategy.ticker}</span>
+        {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
+        {usesDivisionCount && (
+          <Badge tone="neutral" size="sm" className="text-foreground">
+            {strategy.divisionCount}분할
+          </Badge>
+        )}
+        {/* VR 전략 compact V값 배지 */}
+        {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
+        {isVr && strategy.vr && (
+          <Badge tone="neutral" size="sm" className="text-foreground">
+            V ${fmtUsd(strategy.vr.value)}
+          </Badge>
+        )}
+        {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
+        {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
+          <span className="shrink-0 whitespace-nowrap text-xs font-semibold text-warn">{strategy.currentRound!.toFixed(1)}회차</span>
+        )}
+        <span className="ml-auto text-sm font-semibold text-foreground">
+          <InitialDeposit value={strategy.initialUsdDeposit} />
+        </span>
+        <ChevronRight className="size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
+      </div>
+    </div>
+  )
+}
+
+function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, seedLabel, seedBadgeCls }: LayoutProps) {
+  // PC: 카드 형태
+  return (
+    <div className="hidden lg:flex flex-col">
+      <div className="pl-5 pr-4 pt-4 pb-3">
+        {/* 배지 row + 계좌번호 우측 */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Badge tone="brand" size="md" className="h-[22px]">{strategy.type}</Badge>
+            {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
+            {usesDivisionCount && (
+              <Badge tone="neutral" size="sm" className="h-[22px] text-foreground">
+                {strategy.divisionCount}분할
+              </Badge>
+            )}
+            {/* VR 전략 compact V값 배지 */}
+            {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
+            {isVr && strategy.vr && (
+              <Badge tone="neutral" size="sm" className="h-[22px] text-foreground">
+                V ${fmtUsd(strategy.vr.value)}
+              </Badge>
+            )}
+            {strategy.isReverseMode && (
+              <Badge tone="warn" size="sm" className="h-[22px]">리버스모드</Badge>
+            )}
+            {scheduledStart && (
+              <Badge tone="none" size="sm" className="h-[22px] bg-info-bg text-info">
+                {scheduledStartBadgeLabel(strategy.startDate!)}
+              </Badge>
+            )}
+          </div>
+          {accountLabel && (
+            <span className="text-xs font-semibold text-foreground/60 shrink-0 ml-3 font-mono tracking-wider">{accountLabel}</span>
+          )}
+        </div>
+        {/* 티커 + 회차 */}
+        <div className="flex items-center justify-between">
+          <span className="font-bold text-xl tracking-tight text-foreground leading-none">
+            {strategy.ticker}
+          </span>
+          {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
+          {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
+            <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-warn">{strategy.currentRound!.toFixed(1)}회차</span>
+          )}
+        </div>
+      </div>
+      {/* 시드 정보 행 */}
+      {!isVr && (
+        <div className="flex items-center justify-between pl-5 pr-4 py-2 border-t border-border">
+          <span className="text-sm text-muted-foreground">다음 사이클</span>
+          <Badge tone="none" size="sm" className={seedBadgeCls}>{seedLabel}</Badge>
+        </div>
+      )}
+      {/* 시작금액 푸터 */}
+      <div className="flex items-center justify-between pl-5 pr-4 py-2.5 border-t border-border bg-muted/30">
+        <span className="text-sm text-muted-foreground">시작금액</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm font-semibold text-foreground">
+            <InitialDeposit value={strategy.initialUsdDeposit} />
+          </span>
+          <ChevronRight className="size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function StrategyCard({ accountId, strategy, accountLabel, initialPreview }: Props) {
   const { findStrategyType, labelOf } = useMeta()
   const { data: preview } = useStrategyOrderPreviewQuery(strategy.id, initialPreview)
@@ -51,6 +178,8 @@ export function StrategyCard({ accountId, strategy, accountLabel, initialPreview
   const readiness = computeOrderReadiness(preview)
   const hasTodayOrders = (preview?.todayOrders ?? []).length > 0
   const orderBorderColor = getOrderBorderColor(readiness, hasTodayOrders)
+
+  const layoutProps: LayoutProps = { strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, seedLabel, seedBadgeCls }
 
   return (
     <Link
@@ -70,118 +199,9 @@ export function StrategyCard({ accountId, strategy, accountLabel, initialPreview
         />
       )}
 
-      {/* 모바일: 2행 레이아웃 */}
-      <div className="flex flex-col gap-1.5 pl-5 pr-4 py-3 lg:hidden">
-        {/* 1행: 배지 + 계좌번호 */}
-        <div data-testid="strategy-card-mobile-top-row" className="flex items-center gap-1.5">
-          <Badge tone="brand" size="sm" className="px-2.5">{strategy.type}</Badge>
-          {!isVr && <Badge tone="none" size="sm" className={seedBadgeCls}>{seedLabel}</Badge>}
-          {scheduledStart && (
-            <Badge tone="none" size="sm" className="bg-info-bg text-info">
-              {scheduledStartBadgeLabel(strategy.startDate!)}
-            </Badge>
-          )}
-          {accountLabel && (
-            <span className="ml-auto text-xs font-semibold text-foreground/60 shrink-0 font-mono tracking-wider">{accountLabel}</span>
-          )}
-        </div>
-        {/* 2행: 티커 + 분할 + 회차 + 금액 */}
-        <div data-testid="strategy-card-mobile-main-row" className="flex items-center gap-2">
-          <span className="font-bold text-base text-foreground">{strategy.ticker}</span>
-          {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
-          {usesDivisionCount && (
-            <Badge tone="neutral" size="sm" className="text-foreground">
-              {strategy.divisionCount}분할
-            </Badge>
-          )}
-          {/* VR 전략 compact V값 배지 */}
-          {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
-          {isVr && strategy.vr && (
-            <Badge tone="neutral" size="sm" className="text-foreground">
-              V ${fmtUsd(strategy.vr.value)}
-            </Badge>
-          )}
-          {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
-          {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
-            <span className="shrink-0 whitespace-nowrap text-xs font-semibold text-warn">{strategy.currentRound!.toFixed(1)}회차</span>
-          )}
-          <span className="ml-auto text-sm font-semibold text-foreground">
-            {strategy.initialUsdDeposit != null ? (
-              `$${fmtUsd(strategy.initialUsdDeposit)}`
-            ) : (
-              <span className="text-muted-foreground font-normal">미설정</span>
-            )}
-          </span>
-          <ChevronRight className="size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
-        </div>
-      </div>
+      <MobileLayout {...layoutProps} />
 
-      {/* PC: 카드 형태 */}
-      <div className="hidden lg:flex flex-col">
-        <div className="pl-5 pr-4 pt-4 pb-3">
-          {/* 배지 row + 계좌번호 우측 */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <Badge tone="brand" size="md" className="h-[22px]">{strategy.type}</Badge>
-              {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
-              {usesDivisionCount && (
-                <Badge tone="neutral" size="sm" className="h-[22px] text-foreground">
-                  {strategy.divisionCount}분할
-                </Badge>
-              )}
-              {/* VR 전략 compact V값 배지 */}
-              {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
-              {isVr && strategy.vr && (
-                <Badge tone="neutral" size="sm" className="h-[22px] text-foreground">
-                  V ${fmtUsd(strategy.vr.value)}
-                </Badge>
-              )}
-              {strategy.isReverseMode && (
-                <Badge tone="warn" size="sm" className="h-[22px]">리버스모드</Badge>
-              )}
-              {scheduledStart && (
-                <Badge tone="none" size="sm" className="h-[22px] bg-info-bg text-info">
-                  {scheduledStartBadgeLabel(strategy.startDate!)}
-                </Badge>
-              )}
-            </div>
-            {accountLabel && (
-              <span className="text-xs font-semibold text-foreground/60 shrink-0 ml-3 font-mono tracking-wider">{accountLabel}</span>
-            )}
-          </div>
-          {/* 티커 + 회차 */}
-          <div className="flex items-center justify-between">
-            <span className="font-bold text-xl tracking-tight text-foreground leading-none">
-              {strategy.ticker}
-            </span>
-            {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
-            {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
-              <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-warn">{strategy.currentRound!.toFixed(1)}회차</span>
-            )}
-          </div>
-        </div>
-        {/* 시드 정보 행 */}
-        {!isVr && (
-          <div className="flex items-center justify-between pl-5 pr-4 py-2 border-t border-border">
-            <span className="text-sm text-muted-foreground">다음 사이클</span>
-            <Badge tone="none" size="sm" className={seedBadgeCls}>{seedLabel}</Badge>
-          </div>
-        )}
-        {/* 시작금액 푸터 */}
-        <div className="flex items-center justify-between pl-5 pr-4 py-2.5 border-t border-border bg-muted/30">
-          <span className="text-sm text-muted-foreground">시작금액</span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm font-semibold text-foreground">
-              {strategy.initialUsdDeposit != null ? (
-                `$${fmtUsd(strategy.initialUsdDeposit)}`
-              ) : (
-                <span className="text-muted-foreground font-normal">미설정</span>
-              )}
-            </span>
-            <ChevronRight className="size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
-          </div>
-        </div>
-      </div>
+      <PcLayout {...layoutProps} />
     </Link>
   )
 }

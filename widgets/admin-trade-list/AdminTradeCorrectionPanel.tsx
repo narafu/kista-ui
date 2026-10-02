@@ -32,6 +32,17 @@ interface Props {
   onReorderSubmit: (items: ReorderBatchItem[]) => Promise<void>
 }
 
+type HelperInput = Pick<Props, 'brokers' | 'accounts' | 'strategies' | 'orders' | 'selectedUserId' | 'selectedBroker' | 'selectedAccountId' | 'selectedStrategyId'>
+
+// 선택 단계별 안내 문구 — 앞 단계가 비어 있으면 그 단계 안내가 우선
+function getHelperMessage({ brokers, accounts, strategies, orders, selectedUserId, selectedBroker, selectedAccountId, selectedStrategyId }: HelperInput): string | null {
+  if (!selectedUserId) return '재주문할 사용자를 먼저 선택하세요.'
+  if (!selectedBroker) return brokers.length === 0 ? '선택한 사용자에 연결된 증권사 계좌가 없습니다.' : '재주문할 증권사를 선택하세요.'
+  if (!selectedAccountId) return accounts.length === 0 ? '선택한 증권사에 연결된 계좌가 없습니다.' : '재주문할 계좌를 선택하세요.'
+  if (!selectedStrategyId) return strategies.length === 0 ? '선택한 계좌에 연결된 전략이 없습니다.' : '재주문할 전략을 선택하세요.'
+  return orders.length === 0 ? '선택한 전략의 오늘 주문이 없습니다.' : null
+}
+
 export function AdminTradeCorrectionPanel({
   users,
   brokers,
@@ -54,23 +65,7 @@ export function AdminTradeCorrectionPanel({
   onReorderSubmit,
 }: Props) {
   const nextStrategyActionLabel = selectedStrategy?.status === 'ACTIVE' ? '전략 중지' : '전략 재개'
-  const helperMessage = !selectedUserId
-    ? '재주문할 사용자를 먼저 선택하세요.'
-    : !selectedBroker
-      ? brokers.length === 0
-        ? '선택한 사용자에 연결된 증권사 계좌가 없습니다.'
-        : '재주문할 증권사를 선택하세요.'
-    : !selectedAccountId
-      ? accounts.length === 0
-        ? '선택한 증권사에 연결된 계좌가 없습니다.'
-        : '재주문할 계좌를 선택하세요.'
-      : !selectedStrategyId
-        ? strategies.length === 0
-          ? '선택한 계좌에 연결된 전략이 없습니다.'
-          : '재주문할 전략을 선택하세요.'
-        : orders.length === 0
-          ? '선택한 전략의 오늘 주문이 없습니다.'
-          : null
+  const helperMessage = getHelperMessage({ brokers, accounts, strategies, orders, selectedUserId, selectedBroker, selectedAccountId, selectedStrategyId })
 
   return (
     <section className="rounded-[var(--r-lg)] border border-border bg-background p-4" aria-label="재주문 대상 선택">
