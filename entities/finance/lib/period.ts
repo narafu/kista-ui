@@ -119,3 +119,33 @@ export function yearsRange(month: string, yearsLimit: number, today: string): { 
     to: isCurrentYear(String(year), today) ? today : monthEndDate(`${year}-12`),
   }
 }
+
+// 추이·구성비 차트의 표시 기간 — 숫자는 버킷 개수(월간=개월, 연간=년), 'all'은 기록 전체.
+export type TrendRange = number | 'all'
+
+export const MONTHLY_TREND_RANGE_OPTIONS: { value: TrendRange; label: string }[] = [
+  { value: 12, label: '12개월' },
+  { value: 24, label: '24개월' },
+  { value: 36, label: '36개월' },
+  { value: 'all', label: '전체' },
+]
+
+export const YEARLY_TREND_RANGE_OPTIONS: { value: TrendRange; label: string }[] = [
+  { value: 5, label: '5년' },
+  { value: 10, label: '10년' },
+  { value: 'all', label: '전체' },
+]
+
+// 수입·소비·저축 추이 차트의 조회 윈도우 — 요약·내역이 쓰는 displayWindow와 별개 쿼리다(기간이
+// 길어져도 요약·내역 조회는 무거워지지 않게). 'all'은 from을 비워 서버에 하한 없이 조회한다.
+// 월간 12개월은 windowRange와 같은 범위라 같은 쿼리 키로 캐시가 공유된다.
+export function trendWindow(period: Period, range: TrendRange, today: string): { from: string | undefined; to: string } {
+  if (period.mode === 'yearly') {
+    const { from, to } = yearsRange(period.month, range === 'all' ? 1 : range, today)
+    return { from: range === 'all' ? undefined : from, to }
+  }
+  return {
+    from: range === 'all' ? undefined : monthStartDate(shiftMonth(period.month, -(range - 1))),
+    to: monthEndDate(period.month),
+  }
+}

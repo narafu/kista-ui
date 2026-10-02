@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { autoAdjustedMonth, elapsedMonthsInYear, periodRange, previousYearRange, yearsRange } from './period'
+import { autoAdjustedMonth, elapsedMonthsInYear, periodRange, previousYearRange, trendWindow, windowRange, yearsRange } from './period'
 
 describe('periodRange 연간 모드', () => {
   it('선택 연도가 올해면 1월 1일~오늘까지(YTD)를 반환한다', () => {
@@ -87,5 +87,23 @@ describe('autoAdjustedMonth', () => {
 
   it('선택월보다 미래에만 거래가 있으면 그 미래 월로 이동한다', () => {
     expect(autoAdjustedMonth('2026-06', dates)).toBe('2026-08')
+  })
+})
+
+describe('trendWindow', () => {
+  const today = '2026-08-23'
+
+  it('월간: 선택월 포함 N개월, 12개월은 windowRange와 같은 범위(캐시 공유)', () => {
+    expect(trendWindow({ month: '2026-08', mode: 'monthly' }, 12, today)).toEqual(windowRange('2026-08'))
+    expect(trendWindow({ month: '2026-08', mode: 'monthly' }, 24, today)).toEqual({ from: '2024-09-01', to: '2026-08-31' })
+  })
+
+  it('연간: yearsRange와 동일, 올해는 오늘까지', () => {
+    expect(trendWindow({ month: '2026-03', mode: 'yearly' }, 5, today)).toEqual({ from: '2022-01-01', to: '2026-08-23' })
+  })
+
+  it("'all'은 하한 없이 조회한다", () => {
+    expect(trendWindow({ month: '2026-08', mode: 'monthly' }, 'all', today)).toEqual({ from: undefined, to: '2026-08-31' })
+    expect(trendWindow({ month: '2025-03', mode: 'yearly' }, 'all', today)).toEqual({ from: undefined, to: '2025-12-31' })
   })
 })

@@ -79,6 +79,17 @@ describe('calcFlowTrend', () => {
 
     expect(result).toEqual([{ period: '2026-08', amount: 500, byCategory: {} }])
   })
+
+  it("'all'이면 가장 오래된 거래의 월/연도부터 버킷을 만든다", () => {
+    const transactions = [tx('1', 'cat-food', '2026-05-10', 1000), tx('2', 'cat-food', '2024-03-01', 700)]
+
+    const monthly = calcFlowTrend(transactions, index, { month: '2026-08', mode: 'monthly' }, '2026-08-23', 'all')
+    expect(monthly).toHaveLength(30) // 2024-03 ~ 2026-08
+    expect(monthly[0]).toEqual({ period: '2024-03', amount: 700, byCategory: { 'root-food': 700 } })
+
+    const yearly = calcFlowTrend(transactions, index, { month: '2026-08', mode: 'yearly' }, '2026-08-23', 'all')
+    expect(yearly.map((point) => point.period)).toEqual(['2024', '2025', '2026'])
+  })
 })
 
 describe('calcBudgetProgress', () => {

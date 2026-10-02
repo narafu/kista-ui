@@ -32,7 +32,7 @@ export function useMonthlyClosingsQuery() {
 
 // from/to는 lib/period.ts의 windowRange(month) — 수입/소비/저축 탭이 공유하는 12개월 윈도우.
 // enabled: 연간 모드 전년대비 쿼리처럼 조건부로만 실행해야 하는 호출부를 위한 옵션(기본 true).
-export function useFinanceTransactionsQuery(from: string, to: string, options?: { enabled?: boolean }) {
+export function useFinanceTransactionsQuery(from: string | undefined, to: string, options?: { enabled?: boolean }) {
   return useQuery({ ...transactionListQueryOptions(from, to), enabled: options?.enabled ?? true })
 }
 

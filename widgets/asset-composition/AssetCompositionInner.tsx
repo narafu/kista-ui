@@ -16,6 +16,7 @@ import {
   useAssetSnapshotsQuery,
   type AssetClass,
   type CompositionColumn,
+  type TrendRange,
 } from '@entities/finance'
 import { useMeta } from '@entities/meta'
 import { fmtKrw } from '@shared/lib/format'
@@ -155,9 +156,10 @@ function CompositionChart({ title, columns, segments, labelFor, colorFor }: Comp
 
 interface Props {
   month?: string
+  range?: TrendRange
 }
 
-export default function AssetCompositionInner({ month }: Props) {
+export default function AssetCompositionInner({ month, range = 12 }: Props) {
   const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
   const { labelOf } = useMeta()
 
@@ -169,8 +171,10 @@ export default function AssetCompositionInner({ month }: Props) {
     return <SectionError message="구성비 데이터를 불러오지 못했습니다" />
   }
 
-  const categoryColumns = calcCategoryComposition(snapshots, 12, month)
-  const assetClassColumns = calcAssetClassComposition(snapshots, 12, month)
+  // 'all'은 slice 상한을 없애 기록 전체 월을 쓴다(Infinity).
+  const monthsLimit = range === 'all' ? Infinity : range
+  const categoryColumns = calcCategoryComposition(snapshots, monthsLimit, month)
+  const assetClassColumns = calcAssetClassComposition(snapshots, monthsLimit, month)
   const assetClassSegments = collectPresentSegments(assetClassColumns)
 
   return (

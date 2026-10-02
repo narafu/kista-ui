@@ -57,7 +57,7 @@ export function financeGroupListQueryOptions(token?: string) {
 
 // from/to는 lib/period.ts의 windowRange(month)가 계산한 12개월 윈도우 — 요약·추이·예산대비를
 // 이 하나의 쿼리로 전부 클라이언트 필터링한다(설계 근거는 docs/agents/entities.md finance 항목 참고).
-export function transactionListQueryOptions(from: string, to: string, token?: string) {
+export function transactionListQueryOptions(from: string | undefined, to: string, token?: string) {
   return queryOptions<FinanceTransaction[]>({
     queryKey: financeKeys.transactions(from, to),
     queryFn: () => listFinanceTransactions({ from, to, token }),

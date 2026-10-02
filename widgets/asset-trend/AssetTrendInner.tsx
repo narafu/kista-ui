@@ -19,7 +19,7 @@ import {
   formatAssetL1CategoryLabel,
   useAssetSnapshotsQuery,
 } from '@entities/finance'
-import type { TrendMode } from '@entities/finance'
+import type { TrendMode, TrendRange } from '@entities/finance'
 
 // Y축 눈금 전용 — fmtKrw는 "1,000,000원" 같은 긴 문자열이라 좁은 축 폭에 맞지 않는다.
 // 만원 단위로 축약해 표시하고, 정확한 금액은 Tooltip의 fmtKrw로 보여준다.
@@ -53,9 +53,10 @@ function ModeButton({ active, onClick, children }: { active: boolean; onClick: (
 
 interface Props {
   month?: string
+  range?: TrendRange
 }
 
-export default function AssetTrendInner({ month }: Props) {
+export default function AssetTrendInner({ month, range = 12 }: Props) {
   const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
   const { labelOf } = useMeta()
   const [mode, setMode] = useState<TrendMode>('netWorth')
@@ -74,8 +75,8 @@ export default function AssetTrendInner({ month }: Props) {
   }))
 
   const trend = useMemo(
-    () => calcMonthlyTrend(snapshots, mode, effectiveSelector, 12, month),
-    [snapshots, mode, effectiveSelector, month],
+    () => calcMonthlyTrend(snapshots, mode, effectiveSelector, range === 'all' ? Infinity : range, month),
+    [snapshots, mode, effectiveSelector, range, month],
   )
 
   if (isLoading) {

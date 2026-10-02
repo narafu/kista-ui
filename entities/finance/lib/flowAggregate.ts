@@ -1,7 +1,7 @@
 import { collectSubtreeIds } from './categoryTree'
 import type { CategoryIndex } from './categoryIndex'
 import { monthEndDate, monthStartDate, periodRange, shiftMonth } from './period'
-import type { Period } from './period'
+import type { Period, TrendRange } from './period'
 import type { FinanceBudget, FinanceCategory, FinanceCategoryType, FinanceTransaction } from '../model/types'
 
 // 수입/소비/저축 탭 공용 집계 — entities/finance/lib/aggregate.ts(AssetSnapshot 전용, entryDate/
@@ -77,9 +77,20 @@ function trendBuckets(period: Period, today: string, limit: number): { label: st
   })
 }
 
-// transactions: 월간 모드는 windowRange(12개월) 윈도우, 연간 모드는 yearsRange(limit년) 윈도우를
-// 호출부가 각각 맞춰 넘긴다(타입 필터링만 된 상태). index로 거래를 rootId별로도 함께 집계한다.
-export function calcFlowTrend(transactions: FinanceTransaction[], index: CategoryIndex, period: Period, today: string, limit = 6): FlowTrendPoint[] {
+// 'all'의 버킷 수 — 가장 오래된 거래가 속한 월/연도부터 선택 월/연도까지. 거래가 없으면 1.
+function bucketCountSinceEarliest(transactions: FinanceTransaction[], period: Period): number {
+  const earliest = transactions.reduce<string | null>((min, t) => (min === null || t.transactionDate < min ? t.transactionDate : min), null)
+  if (!earliest) return 1
+  const [ey, em] = earliest.split('-').map(Number)
+  const [py, pm] = period.month.split('-').map(Number)
+  const span = period.mode === 'yearly' ? py - ey + 1 : (py - ey) * 12 + (pm - em) + 1
+  return Math.max(1, span)
+}
+
+// transactions: 호출부가 trendWindow(period, range)로 조회해 타입 필터링만 한 목록을 넘긴다.
+// index로 거래를 rootId별로도 함께 집계한다.
+export function calcFlowTrend(transactions: FinanceTransaction[], index: CategoryIndex, period: Period, today: string, range: TrendRange = 6): FlowTrendPoint[] {
+  const limit = range === 'all' ? bucketCountSinceEarliest(transactions, period) : range
   return trendBuckets(period, today, limit).map(({ label, from, to }) => {
     const inBucket = transactions.filter((t) => inRange(t.transactionDate, from, to))
     const byCategory: Record<string, number> = {}

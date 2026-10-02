@@ -7,10 +7,10 @@ import {
   displayWindow,
   previousYearRange,
   registerWindowUpperBound,
+  trendWindow,
   useFinanceBudgetsQuery,
   useFinanceCategoriesQuery,
   useFinanceTransactionsQuery,
-  yearsRange,
 } from '@entities/finance'
 import type { Period } from '@entities/finance'
 import { todayKst } from '@shared/lib/format'
@@ -24,7 +24,7 @@ export type FlowCategoryType = 'INCOME' | 'EXPENSE' | 'SAVING'
 // (dashboard)/layout.tsx 레벨에서 들고 있어 탭(라우트) 전환 후에도 유지되고 새로고침엔 초기화된다.
 // React Query 캐시가 전역이라 쿼리 결과는 동일 키로 자동 공유되므로 이어줘야 할 건 이 period뿐이다.
 export function useFinanceFlowData(flowType: FlowCategoryType) {
-  const { userMonth, mode, setPeriod } = useFinancePeriod()
+  const { userMonth, mode, setPeriod, trendMonths, trendYears, setTrendMonths, setTrendYears } = useFinancePeriod()
   const today = todayKst()
 
   // 사용자가 아직 월을 직접 고르지 않았을 때(userMonth === null)의 자동 선택월 — "데이터 있는
@@ -69,12 +69,16 @@ export function useFinanceFlowData(flowType: FlowCategoryType) {
     { enabled: period.mode === 'yearly' },
   )
 
-  const yearlyTrendWindow = useMemo(() => yearsRange(period.month, 6, today), [period.month, today])
-  const { data: yearlyTrendTransactions = [], isLoading: isYearlyTrendLoading } = useFinanceTransactionsQuery(
-    yearlyTrendWindow.from,
-    yearlyTrendWindow.to,
-    { enabled: period.mode === 'yearly' },
-  )
+  // 추이 차트 전용 조회 — 기간(trendRange)을 늘려도 요약·내역 쿼리(flowWindow)는 그대로 둔다.
+  // 로딩도 isFlowLoading과 분리해 기간 변경 시 추이 카드만 스켈레톤이 된다.
+  const trendRange = period.mode === 'yearly' ? trendYears : trendMonths
+  const setTrendRange = period.mode === 'yearly' ? setTrendYears : setTrendMonths
+  const trendRangeWindow = useMemo(() => trendWindow(period, trendRange, today), [period, trendRange, today])
+  const {
+    data: trendTransactions = [],
+    isLoading: isTrendLoading,
+    isError: isTrendError,
+  } = useFinanceTransactionsQuery(trendRangeWindow.from, trendRangeWindow.to)
 
   const { data: incomeCategories = [], isLoading: isIncomeCategoriesLoading } = useFinanceCategoriesQuery('INCOME')
   const { data: expenseCategories = [], isLoading: isExpenseCategoriesLoading } = useFinanceCategoriesQuery('EXPENSE')
@@ -86,7 +90,7 @@ export function useFinanceFlowData(flowType: FlowCategoryType) {
     isIncomeCategoriesLoading ||
     isExpenseCategoriesLoading ||
     isSavingCategoriesLoading ||
-    (period.mode === 'yearly' && (isPreviousYearLoading || isYearlyTrendLoading))
+    (period.mode === 'yearly' && isPreviousYearLoading)
 
   const categoryIndex = useMemo(
     () => buildCategoryIndex({ INCOME: incomeCategories, EXPENSE: expenseCategories, SAVING: savingCategories }),
@@ -104,7 +108,11 @@ export function useFinanceFlowData(flowType: FlowCategoryType) {
     today,
     transactions,
     previousYearTransactions,
-    yearlyTrendTransactions,
+    trendTransactions,
+    trendRange,
+    setTrendRange,
+    isTrendLoading,
+    isTrendError,
     categoryIndex,
     categoryTree: categoryTreeByType[flowType],
     budgets,

@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
-import type { Period, PeriodMode } from '@entities/finance'
+import type { Period, PeriodMode, TrendRange } from '@entities/finance'
 
 interface FinancePeriodValue {
   // 사용자가 명시적으로 고른 월. null이면 각 탭이 "데이터 있는 최근 월"을 자체 판정한다.
@@ -11,6 +11,11 @@ interface FinancePeriodValue {
   setPeriod: (period: Period) => void
   // 자산 탭 — 월만 설정(연간 모드 개념 없음)
   setMonth: (month: string) => void
+  // 추이·구성비 차트 표시 기간 — 월간 차트(자산 추이·구성비, 수입/소비/저축 월간)와 연간 차트가 각각 공유
+  trendMonths: TrendRange
+  trendYears: TrendRange
+  setTrendMonths: (range: TrendRange) => void
+  setTrendYears: (range: TrendRange) => void
 }
 
 const FinancePeriodContext = createContext<FinancePeriodValue | null>(null)
@@ -24,6 +29,8 @@ const FinancePeriodContext = createContext<FinancePeriodValue | null>(null)
 export function FinancePeriodProvider({ children }: { children: ReactNode }) {
   const [userMonth, setUserMonth] = useState<string | null>(null)
   const [mode, setMode] = useState<PeriodMode>('monthly')
+  const [trendMonths, setTrendMonths] = useState<TrendRange>(12)
+  const [trendYears, setTrendYears] = useState<TrendRange>(5)
 
   const value = useMemo<FinancePeriodValue>(
     () => ({
@@ -34,8 +41,12 @@ export function FinancePeriodProvider({ children }: { children: ReactNode }) {
         setMode(period.mode)
       },
       setMonth: (month) => setUserMonth(month),
+      trendMonths,
+      trendYears,
+      setTrendMonths,
+      setTrendYears,
     }),
-    [userMonth, mode],
+    [userMonth, mode, trendMonths, trendYears],
   )
 
   return <FinancePeriodContext.Provider value={value}>{children}</FinancePeriodContext.Provider>

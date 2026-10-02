@@ -14,7 +14,11 @@ export function FlowPageView({ type }: { type: FlowCategoryType }) {
     today,
     transactions,
     previousYearTransactions,
-    yearlyTrendTransactions,
+    trendTransactions,
+    trendRange,
+    setTrendRange,
+    isTrendLoading,
+    isTrendError,
     categoryIndex,
     categoryTree,
     budgets,
@@ -49,13 +53,14 @@ export function FlowPageView({ type }: { type: FlowCategoryType }) {
       />
       <FinanceTrend
         type={type}
-        transactions={transactions}
-        yearlyTransactions={yearlyTrendTransactions}
+        transactions={trendTransactions}
+        range={trendRange}
+        onRangeChange={setTrendRange}
         categoryTree={categoryTree}
         index={categoryIndex}
         period={period}
-        isLoading={isFlowLoading}
-        isError={isTransactionsError}
+        isLoading={isFlowLoading || isTrendLoading}
+        isError={isTrendError}
         today={today}
       />
       <FinanceRecordList

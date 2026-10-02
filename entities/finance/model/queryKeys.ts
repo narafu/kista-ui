@@ -21,7 +21,7 @@ export const financeKeys = {
   // from/to는 12개월 윈도우 시작·끝('YYYY-MM-DD') — lib/period.ts의 windowRange(month)가 계산한다.
   // 월을 옮길 때마다 새 키로 재조회되지만 gcTime(10분) 안이면 캐시 히트다.
   transactionsRoot: () => [...financeKeys.all, 'transactions'] as const,
-  transactions: (from: string, to: string) => [...financeKeys.transactionsRoot(), from, to, 'list'] as const,
+  transactions: (from: string | undefined, to: string) => [...financeKeys.transactionsRoot(), from, to, 'list'] as const,
   budgetsRoot: () => [...financeKeys.all, 'budgets'] as const,
   budgets: () => [...financeKeys.budgetsRoot(), 'list'] as const,
 }

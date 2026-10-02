@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { SectionError } from '@shared/ui/SectionError'
 import { fmtKrw } from '@shared/lib/format'
 import { calcFlowTrend, filterByType, flowCategoryColor, sortCategoryTree } from '@entities/finance'
-import type { CategoryIndex, FinanceCategory, FinanceCategoryType, FinanceTransaction, Period } from '@entities/finance'
+import type { CategoryIndex, FinanceCategory, FinanceCategoryType, FinanceTransaction, Period, TrendRange } from '@entities/finance'
 
 // Y축 눈금 전용 — fmtKrw는 "1,000,000원" 같은 긴 문자열이라 좁은 축 폭에 맞지 않는다.
 // 만원 단위로 축약해 표시하고, 정확한 금액은 Tooltip의 fmtKrw로 보여준다.
@@ -21,7 +21,7 @@ function fmtKrwAxisTick(value: number): string {
 interface Props {
   type: FinanceCategoryType
   transactions: FinanceTransaction[]
-  yearlyTransactions: FinanceTransaction[]
+  range: TrendRange
   categoryTree: FinanceCategory[]
   index: CategoryIndex
   period: Period
@@ -30,14 +30,13 @@ interface Props {
   today: string
 }
 
-export default function FinanceTrendInner({ type, transactions, yearlyTransactions, categoryTree, index, period, isLoading, isError, today }: Props) {
+export default function FinanceTrendInner({ type, transactions, range, categoryTree, index, period, isLoading, isError, today }: Props) {
   const [byCategory, setByCategory] = useState(false)
 
-  const sourceTransactions = period.mode === 'yearly' ? yearlyTransactions : transactions
-  const typeTransactions = useMemo(() => filterByType(sourceTransactions, index, type), [sourceTransactions, index, type])
+  const typeTransactions = useMemo(() => filterByType(transactions, index, type), [transactions, index, type])
   const trend = useMemo(
-    () => calcFlowTrend(typeTransactions, index, period, today, period.mode === 'yearly' ? 6 : 12),
-    [typeTransactions, index, period, today],
+    () => calcFlowTrend(typeTransactions, index, period, today, range),
+    [typeTransactions, index, period, today, range],
   )
   const orderedRootIds = useMemo(() => sortCategoryTree(categoryTree).map((c) => c.id), [categoryTree])
 
