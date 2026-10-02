@@ -3,31 +3,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { SectionError } from '@shared/ui/SectionError'
-import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
-import { TableHeadCell } from '@shared/ui/TableHeadCell'
-import { TableDataCell } from '@shared/ui/TableDataCell'
-import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
-import { cn } from '@shared/lib/utils'
-import { fmtDate, fmtKrw } from '@shared/lib/format'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
 import { useTableSort } from '@shared/lib/hooks/use-table-sort'
 import { useMeta } from '@entities/meta'
 import {
   ASSET_L1_CATEGORY_IDS,
-  SYSTEM_INVESTMENT_CATEGORY_ID,
-  SYSTEM_LOAN_CATEGORY_ID,
-  SYSTEM_REAL_ESTATE_CATEGORY_ID,
-  SYSTEM_SAVINGS_CATEGORY_ID,
   collectSubtreeIds,
-  isLiability,
   isMonthClosed,
   useMonthlyClosingScopeGroupId,
   useAssetSnapshotsQuery,
@@ -38,24 +26,10 @@ import {
   useShareAssetSnapshotMutation,
   useUnshareAssetSnapshotMutation,
 } from '@entities/finance'
-import type { AssetSnapshot } from '@entities/finance'
 import { AssetRecordFilters, ALL_FILTER_VALUE } from './AssetRecordFilters'
 import type { AssetFilterValue } from './AssetRecordFilters'
-
-type SortKey = 'entryDate' | 'category' | 'amount'
-
-const CATEGORY_TONE: Record<string, 'brand' | 'error' | 'neutral'> = {
-  [SYSTEM_INVESTMENT_CATEGORY_ID]: 'brand',
-  [SYSTEM_SAVINGS_CATEGORY_ID]: 'neutral',
-  [SYSTEM_LOAN_CATEGORY_ID]: 'error',
-  [SYSTEM_REAL_ESTATE_CATEGORY_ID]: 'neutral',
-}
-
-// 체크박스 aria-label 전용 — 컬럼 분리 이후 화면에는 이 조합 문자열이 그대로 보이지 않지만,
-// 카테고리명을 먼저 말해 화면(왼쪽 카테고리·오른쪽 계좌 등) 순서와 맞춘다.
-function accountLabel(snapshot: AssetSnapshot): string {
-  return snapshot.accountName ? `${snapshot.categoryName} · ${snapshot.accountName}` : snapshot.categoryName
-}
+import { AssetRecordTable, AssetRecordMobileList } from './AssetRecordRows'
+import type { AssetRowContext, SortKey } from './AssetRecordRows'
 
 interface Props {
   month: string
@@ -180,6 +154,20 @@ export function AssetRecordList({ month }: Props) {
     })
   }
 
+  const rowCtx: AssetRowContext = {
+    selectedIds,
+    monthClosed,
+    closedMonthTitle,
+    canShare,
+    sharePending: shareMutation.isPending,
+    unsharePending: unshareMutation.isPending,
+    labelOf,
+    onToggleRow: toggleRow,
+    onShare: handleShare,
+    onUnshare: handleUnshare,
+    onDelete: (id) => deleteDialog.request([id]),
+  }
+
   if (isLoading) {
     return <LoadingRow />
   }
@@ -220,142 +208,17 @@ export function AssetRecordList({ month }: Props) {
         <EmptyState variant="text" message="조건에 맞는 자산 기록이 없습니다." />
       ) : (
         <>
-          <div className="hidden overflow-x-auto lg:block rounded-[var(--r-lg)] border border-border">
-            <table className="w-full min-w-[1200px] text-sm" aria-label="자산 기록">
-              <thead className="bg-muted/50">
-                <tr>
-                  <TableHeadCell className="w-10">
-                    <input
-                      ref={headerCheckboxRef}
-                      type="checkbox"
-                      aria-label="현재 페이지 전체 선택"
-                      checked={allPagedSelected}
-                      onChange={toggleAllOnPage}
-                      disabled={monthClosed}
-                      title={monthClosed ? closedMonthTitle : undefined}
-                      className={cn('size-4', monthClosed && 'opacity-40')}
-                    />
-                  </TableHeadCell>
-                  <SortableHeadCell sortKey="entryDate" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>기준일</SortableHeadCell>
-                  <SortableHeadCell sortKey="category" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>카테고리</SortableHeadCell>
-                  <TableHeadCell>시장</TableHeadCell>
-                  <TableHeadCell>자산군</TableHeadCell>
-                  <TableHeadCell>운용전략</TableHeadCell>
-                  <TableHeadCell>계좌명</TableHeadCell>
-                  <TableHeadCell>기관</TableHeadCell>
-                  <SortableHeadCell sortKey="amount" activeKey={sortKey} direction={sortDirection} onSort={handleSort} className="text-right">금액</SortableHeadCell>
-                  <TableHeadCell>메모</TableHeadCell>
-                  <TableHeadCell className="whitespace-nowrap">작업</TableHeadCell>
-                </tr>
-              </thead>
-              <tbody>
-                {paged.map((snapshot) => (
-                  <tr key={snapshot.id} className="border-t hover:bg-muted/30 transition-colors">
-                    <TableDataCell>
-                      <input
-                        type="checkbox"
-                        aria-label={`${fmtDate(snapshot.entryDate)} ${accountLabel(snapshot)} 선택`}
-                        checked={selectedIds.has(snapshot.id)}
-                        onChange={() => toggleRow(snapshot.id)}
-                        disabled={monthClosed}
-                        title={monthClosed ? closedMonthTitle : undefined}
-                        className={cn('size-4', monthClosed && 'opacity-40')}
-                      />
-                    </TableDataCell>
-                    <TableDataCell className="text-muted-foreground whitespace-nowrap">{fmtDate(snapshot.entryDate)}</TableDataCell>
-                    <TableDataCell>
-                      <Badge tone={CATEGORY_TONE[snapshot.rootCategoryId] ?? 'neutral'} size="sm">{snapshot.categoryName}</Badge>
-                    </TableDataCell>
-                    <TableDataCell>{labelOf('markets', snapshot.market)}</TableDataCell>
-                    <TableDataCell>{labelOf('assetClasses', snapshot.assetClass)}</TableDataCell>
-                    <TableDataCell className={cn(!snapshot.strategy && 'text-muted-foreground')}>{snapshot.strategy ?? '—'}</TableDataCell>
-                    <TableDataCell className={cn(!snapshot.accountName && 'text-muted-foreground')}>{snapshot.accountName ?? '—'}</TableDataCell>
-                    <TableDataCell className={cn(!snapshot.accountInstitution && 'text-muted-foreground')}>{snapshot.accountInstitution ?? '—'}</TableDataCell>
-                    <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap', isLiability(snapshot) && 'text-destructive')}>
-                      {fmtKrw(snapshot.amount)}
-                    </TableDataCell>
-                    <TableDataCell title={snapshot.memo} className={cn('max-w-48 truncate', !snapshot.memo && 'text-muted-foreground')}>{snapshot.memo ?? '—'}</TableDataCell>
-                    <TableDataCell>
-                      <div className="flex items-center justify-center">
-                        <ShareableRowActions
-                          duplicateHref={`/finance/new?duplicateFrom=${snapshot.id}`}
-                          editHref={`/finance/${snapshot.id}/edit`}
-                          onShare={() => handleShare(snapshot.id)}
-                          onUnshare={() => handleUnshare(snapshot.id)}
-                          onDelete={() => deleteDialog.request([snapshot.id])}
-                          canShare={canShare}
-                          hasGroupId={!!snapshot.groupId}
-                          sharePending={shareMutation.isPending}
-                          unsharePending={unshareMutation.isPending}
-                          locked={monthClosed}
-                          lockShare={monthClosed}
-                          lockTitle={closedMonthTitle}
-                        />
-                      </div>
-                    </TableDataCell>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <ul className="m-0 list-none divide-y rounded-[var(--r-lg)] border border-border p-0 lg:hidden" aria-label="자산 기록 모바일">
-            {paged.map((snapshot) => (
-              <li key={snapshot.id} className="px-4 py-4">
-                <div className="flex items-start gap-3">
-                  <input
-                    type="checkbox"
-                    aria-label={`${fmtDate(snapshot.entryDate)} ${accountLabel(snapshot)} 선택`}
-                    checked={selectedIds.has(snapshot.id)}
-                    onChange={() => toggleRow(snapshot.id)}
-                    disabled={monthClosed}
-                    title={monthClosed ? closedMonthTitle : undefined}
-                    className={cn('size-4 mt-1', monthClosed && 'opacity-40')}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                      <Badge tone={CATEGORY_TONE[snapshot.rootCategoryId] ?? 'neutral'} size="sm">{snapshot.categoryName}</Badge>
-                      <span className="text-xs text-muted-foreground">{fmtDate(snapshot.entryDate)}</span>
-                    </div>
-                    <div className="flex items-baseline justify-between gap-2">
-                      <p className="min-w-0 truncate text-sm font-medium">
-                        {labelOf('assetClasses', snapshot.assetClass)}
-                        {snapshot.memo && <span className="ml-1.5 font-normal text-muted-foreground">{snapshot.memo}</span>}
-                      </p>
-                      <span className={cn('shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums', isLiability(snapshot) && 'text-destructive')}>
-                        {fmtKrw(snapshot.amount)}
-                      </span>
-                    </div>
-                    {/* 계좌명·기관은 길어 작업 버튼과 같은 줄에 두면 거의 항상 잘린다 — 버튼 없는 별도 줄로 분리한다. */}
-                    {(snapshot.accountName || snapshot.accountInstitution) && (
-                      <p className="mt-1 truncate text-xs text-muted-foreground">
-                        {[snapshot.accountName, snapshot.accountInstitution].filter(Boolean).join(' · ')}
-                      </p>
-                    )}
-                    <div className="mt-1 flex items-center justify-between gap-2">
-                      <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-                        {[labelOf('markets', snapshot.market), snapshot.strategy].filter(Boolean).join(' · ')}
-                      </p>
-                      <ShareableRowActions
-                        duplicateHref={`/finance/new?duplicateFrom=${snapshot.id}`}
-                        editHref={`/finance/${snapshot.id}/edit`}
-                        onShare={() => handleShare(snapshot.id)}
-                        onUnshare={() => handleUnshare(snapshot.id)}
-                        onDelete={() => deleteDialog.request([snapshot.id])}
-                        canShare={canShare}
-                        hasGroupId={!!snapshot.groupId}
-                        sharePending={shareMutation.isPending}
-                        unsharePending={unshareMutation.isPending}
-                        locked={monthClosed}
-                        lockShare={monthClosed}
-                        lockTitle={closedMonthTitle}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <AssetRecordTable
+            paged={paged}
+            row={rowCtx}
+            sortKey={sortKey}
+            sortDirection={sortDirection}
+            onSort={handleSort}
+            headerCheckboxRef={headerCheckboxRef}
+            allPagedSelected={allPagedSelected}
+            onToggleAll={toggleAllOnPage}
+          />
+          <AssetRecordMobileList paged={paged} row={rowCtx} />
 
           {totalPages > 1 && (
             <PaginationBar page={currentPage} totalPages={totalPages} onPageChange={setPage} />

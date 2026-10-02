@@ -1,20 +1,17 @@
 'use client'
 
-import { useMemo, type ReactNode } from 'react'
+import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SectionError } from '@shared/ui/SectionError'
-import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { LoadingRow } from '@shared/ui/LoadingRow'
-import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
-import { YearSelect } from '@shared/ui/YearSelect'
-import { fmtKrw, fmtSignedKrw, maskAmount, pnlTextClass, ratioToPercent } from '@shared/lib/format'
-import { cn } from '@shared/lib/utils'
+import { maskAmount } from '@shared/lib/format'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { useMeta } from '@entities/meta'
-import { calcFlowSummary, elapsedMonthsInYear, filterByType, monthEndDate, periodRange, previousYearRange } from '@entities/finance'
-import type { CategoryIndex, FinanceCategoryType, FinanceTransaction, Period, PeriodMode } from '@entities/finance'
-import { KpiCard } from '@widgets/kpi-card'
+import { calcFlowSummary, filterByType } from '@entities/finance'
+import type { CategoryIndex, FinanceCategoryType, FinanceTransaction, Period } from '@entities/finance'
 import { RevealableValue } from '@widgets/revealable-value'
+import { FinanceKpis, PeriodControls } from './FinanceSummaryParts'
+import { calcPreviousYearTotal, calcRemainingAmount, calcYearlyAverage } from './financeSummaryCalc'
 
 interface Props {
   type: FinanceCategoryType
@@ -32,20 +29,6 @@ interface Props {
   today: string
 }
 
-const MODE_OPTIONS: { value: PeriodMode; label: string }[] = [
-  { value: 'monthly', label: '월간' },
-  { value: 'yearly', label: '연간' },
-]
-
-// 소비는 늘어난 게 나쁜 신호라 색상 부호를 뒤집는다(AssetOverview의 부채 델타 반전과 동일 이유).
-function deltaLabel(label: string, delta: number, type: FinanceCategoryType, amountValue: (display: string) => ReactNode) {
-  return (
-    <span className={cn('tabular-nums', pnlTextClass(type === 'EXPENSE' ? -delta : delta))}>
-      {label} {amountValue(fmtSignedKrw(delta))}
-    </span>
-  )
-}
-
 export function FinanceSummary({ type, transactions, index, isLoading, isError, period, onPeriodChange, previousYearTransactions, today }: Props) {
   const { labelOf } = useMeta()
   const { hidden } = useAmountHiddenPreference()
@@ -60,31 +43,16 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
   // 반전과 같은 이유. 수입·저축은 늘어난 게 좋은 신호라 그대로 둔다.
   const previousDelta = summary.previousTotal !== null ? summary.total - summary.previousTotal : null
 
-  const previousYearTotal = useMemo(() => {
-    if (period.mode !== 'yearly' || !previousYearTransactions) return null
-    const { from, to } = previousYearRange(period, today)
-    return filterByType(previousYearTransactions, index, type)
-      .filter((t) => t.transactionDate >= from && t.transactionDate <= to)
-      .reduce((sum, t) => sum + t.amount, 0)
-  }, [period, previousYearTransactions, index, type, today])
+  const previousYearTotal = useMemo(
+    () => calcPreviousYearTotal(period, previousYearTransactions, index, type, today),
+    [period, previousYearTransactions, index, type, today],
+  )
   const previousYearDelta = previousYearTotal !== null ? summary.total - previousYearTotal : null
 
-  // 올해 월평균 — 월간/연간 탭 상관없이 항상 노출. 선택 월이 속한 연도의 YTD(또는 종료 연도면
-  // 연간 전체) 합계를 periodRange로 구해 elapsedMonthsInYear로 나눈다. 월간 모드의 typeTransactions는
-  // windowRange(선택 월 기준 trailing 12개월)라 선택 연도 1월~선택 월 구간만 보장된다 — today를 그대로
-  // 쓰면 실제 조회 안 된 선택월 이후 구간(과거 월 선택 시)까지 합계·분모에 걸쳐 있다고 가정해
-  // 과소집계된다. 그래서 월간 모드에선 today 대신 선택 월 말일을 기준일로 대체해 periodRange·
-  // elapsedMonthsInYear 둘 다 "선택 월까지"로 일관되게 계산한다(연간 모드는 today 그대로 — 이미
-  // 조회 윈도우 자체가 periodRange(period, today)와 동일해 일관됨).
-  const yearlyAverage = useMemo(() => {
-    const year = period.month.slice(0, 4)
-    const refDate = period.mode === 'monthly' ? monthEndDate(period.month) : today
-    const yearRange = periodRange({ month: `${year}-01`, mode: 'yearly' }, refDate)
-    const yearTotal = typeTransactions
-      .filter((t) => t.transactionDate >= yearRange.from && t.transactionDate <= yearRange.to)
-      .reduce((sum, t) => sum + t.amount, 0)
-    return Math.round(yearTotal / elapsedMonthsInYear(period.month, refDate))
-  }, [typeTransactions, period.mode, period.month, today])
+  const yearlyAverage = useMemo(
+    () => calcYearlyAverage(typeTransactions, period.mode, period.month, today),
+    [typeTransactions, period.mode, period.month, today],
+  )
 
   // 수입 대비 비율 — INCOME 탭은 자기 자신 대비라 항상 100%로 무의미해 제외한다. 같은 기간 INCOME
   // 합계는 이미 받고 있는 unfiltered transactions+index에서 뽑아내 별도 쿼리 없이 계산한다.
@@ -94,42 +62,16 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
   }, [transactions, index, period, today])
   const incomeRatio = type !== 'INCOME' && incomeTotal > 0 ? summary.total / incomeTotal : null
 
-  // 남은 금액(INCOME 탭 전용) = 수입 - 소비 - 저축. incomeTotal과 동일 패턴으로 unfiltered
-  // transactions+index에서 EXPENSE/SAVING 합계를 뽑아낸다(별도 쿼리 없이 계산).
-  const remainingAmount = useMemo(() => {
-    if (type !== 'INCOME') return null
-    const expenseTotal = calcFlowSummary(filterByType(transactions, index, 'EXPENSE'), period, today).total
-    const savingTotal = calcFlowSummary(filterByType(transactions, index, 'SAVING'), period, today).total
-    return summary.total - expenseTotal - savingTotal
-  }, [type, transactions, index, period, today, summary.total])
+  const remainingAmount = useMemo(
+    () => calcRemainingAmount(type, transactions, index, period, today, summary.total),
+    [type, transactions, index, period, today, summary.total],
+  )
 
   return (
     <Card>
       <CardHeader className="flex flex-col gap-3 pb-3 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle className="text-base lg:text-lg">{labelOf('financeCategoryTypes', type)} 요약</CardTitle>
-        <div className="flex flex-wrap items-center gap-2">
-          {period.mode === 'monthly' ? (
-            <YearMonthSelect
-              value={period.month}
-              onValueChange={(month) => onPeriodChange({ ...period, month })}
-              today={today}
-            />
-          ) : (
-            <YearSelect
-              value={Number(period.month.slice(0, 4))}
-              onValueChange={(year) => onPeriodChange({ ...period, month: `${year}-${period.month.slice(5, 7)}` })}
-              today={today}
-            />
-          )}
-          <SegmentedToggle
-            aria-label="기간 모드"
-            options={MODE_OPTIONS}
-            value={period.mode}
-            onChange={(mode) => onPeriodChange({ ...period, mode })}
-            className="grid grid-cols-2"
-            itemClassName="px-3 py-1 text-sm"
-          />
-        </div>
+        <PeriodControls period={period} onPeriodChange={onPeriodChange} today={today} />
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -139,34 +81,18 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
         ) : summary.count === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">표시할 거래내역이 없습니다</p>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard
-              label="합계"
-              value={amountValue(fmtKrw(summary.total))}
-              sub={
-                period.mode === 'monthly' && previousDelta !== null
-                  ? deltaLabel('전월대비', previousDelta, type, amountValue)
-                  : period.mode === 'yearly' && previousYearDelta !== null
-                    ? deltaLabel('전년대비', previousYearDelta, type, amountValue)
-                    : undefined
-              }
-              valueClassName="break-words text-base sm:text-2xl lg:text-3xl"
-            />
-            {incomeRatio !== null && (
-              <KpiCard label="수입 대비 비율" value={`${ratioToPercent(incomeRatio)}%`} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
-            )}
-            {/* 남은 금액 카드는 수입 탭에서만 노출한다(올해 월평균 카드보다 앞) — 소비·저축 탭은 예산 대비
-                카드가 이미 있어 중복 정보로 판단돼 제외됐다. */}
-            {remainingAmount !== null && (
-              <KpiCard
-                label="남은 금액"
-                value={amountValue(fmtSignedKrw(remainingAmount))}
-                valueClassName={cn('break-words text-base sm:text-2xl lg:text-3xl', pnlTextClass(remainingAmount))}
-              />
-            )}
-            <KpiCard label="올해 월평균" value={amountValue(fmtKrw(yearlyAverage))} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
-            <KpiCard label="거래건수" value={`${summary.count}건`} valueClassName="break-words text-base sm:text-2xl lg:text-3xl" />
-          </div>
+          <FinanceKpis
+            type={type}
+            mode={period.mode}
+            total={summary.total}
+            count={summary.count}
+            previousDelta={previousDelta}
+            previousYearDelta={previousYearDelta}
+            incomeRatio={incomeRatio}
+            remainingAmount={remainingAmount}
+            yearlyAverage={yearlyAverage}
+            amountValue={amountValue}
+          />
         )}
       </CardContent>
     </Card>

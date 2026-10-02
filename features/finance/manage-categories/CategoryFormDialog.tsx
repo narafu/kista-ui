@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   Dialog,
   DialogContent,
@@ -16,11 +15,10 @@ import {
 import { submitFormDialog } from '@shared/lib/form/submitFormDialog'
 import { SaveButton } from '@shared/ui/SaveButton'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
-import { getCascadeLevels, getCategoryPath, useCanShareToGroup, useCreateFinanceCategoryMutation, useUpdateFinanceCategoryMutation } from '@entities/finance'
-import type { FinanceCategory, FinanceCategoryRequest, FinanceCategoryType } from '@entities/finance'
-
-// Base UI Select는 빈 문자열 value를 허용하지 않는다 — AssetForm의 NO_ACCOUNT_VALUE와 동일한 센티널 패턴.
-const NO_PARENT_VALUE = 'NONE'
+import { getCascadeLevels, useCanShareToGroup, useCreateFinanceCategoryMutation, useUpdateFinanceCategoryMutation } from '@entities/finance'
+import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
+import { ParentCategoryField } from './CategoryParentField'
+import { NO_PARENT_VALUE, buildCategoryPayload, initialCategoryName, initialSortOrder, isPersonalParent } from './categoryFormHelpers'
 
 interface Props {
   open: boolean
@@ -35,8 +33,8 @@ interface Props {
 
 export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, category, onSuccess }: Props) {
   const mode = category ? 'edit' : 'create'
-  const [name, setName] = useState(category?.name ?? '')
-  const [sortOrder, setSortOrder] = useState(String(category?.sortOrder ?? 1))
+  const [name, setName] = useState(() => initialCategoryName(category))
+  const [sortOrder, setSortOrder] = useState(() => initialSortOrder(category))
   // 계단식 부모 Select: 각 단에서 선택한 categoryId를 순서대로 담는다. 마지막 값이 실제
   // parentId — 선택한 노드에 children이 있으면 다음 단이 자동으로 추가돼 depth 제한이 없다.
   const [selectedPath, setSelectedPath] = useState<string[]>([])
@@ -48,11 +46,7 @@ export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, cat
   const [shareToGroup, setShareToGroup] = useState(true)
   // 부모가 개인 소유면 그 아래 그룹 공유 카테고리를 만들 수 없다(kista-api 400 — 다른 멤버에게
   // 부모 없는 고아 트리로 보이는 것을 막음). 이 경우 토글을 숨기고 개인 소유로만 생성한다.
-  const parentIsPersonal = useMemo(() => {
-    if (parentId === NO_PARENT_VALUE) return false
-    const parent = getCategoryPath(l1Categories, parentId).at(-1)
-    return parent != null && !parent.groupId
-  }, [l1Categories, parentId])
+  const parentIsPersonal = useMemo(() => isPersonalParent(l1Categories, parentId), [l1Categories, parentId])
   const shareToGroupAllowed = canShareToGroup && !parentIsPersonal
 
   const createMutation = useCreateFinanceCategoryMutation()
@@ -63,13 +57,7 @@ export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, cat
     e.preventDefault()
     if (!name.trim()) return
 
-    // PUT은 parentId/type을 서버가 무시하지만 요청 스키마상 필수라 기존 값을 그대로 실어 보낸다.
-    const payload: FinanceCategoryRequest = {
-      parentId: mode === 'edit' ? category?.parentId : (parentId === NO_PARENT_VALUE ? undefined : parentId),
-      type,
-      name: name.trim(),
-      sortOrder: Math.max(1, Math.trunc(Number(sortOrder)) || 1),
-    }
+    const payload = buildCategoryPayload(mode, category, parentId, type, name, sortOrder)
 
     submitFormDialog({
       mode,
@@ -95,33 +83,7 @@ export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, cat
 
           <div className="space-y-4 py-2">
             {mode === 'create' && (
-              <div className="space-y-2">
-                <Label htmlFor="parentId">상위 카테고리</Label>
-                <div className="space-y-2">
-                  {cascadeLevels.map((level, levelIndex) => (
-                    <Select
-                      key={levelIndex}
-                      items={[
-                        { value: NO_PARENT_VALUE, label: '없음 (최상위로 생성)' },
-                        ...level.map((c) => ({ value: c.id, label: c.name })),
-                      ]}
-                      value={selectedPath[levelIndex] ?? NO_PARENT_VALUE}
-                      onValueChange={(value) => {
-                        if (!value) return
-                        setSelectedPath((prev) => (value === NO_PARENT_VALUE ? prev.slice(0, levelIndex) : [...prev.slice(0, levelIndex), value]))
-                      }}
-                    >
-                      <SelectTrigger id={levelIndex === 0 ? 'parentId' : undefined} className="w-full h-10" disabled={isPending}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={NO_PARENT_VALUE}>없음 (최상위로 생성)</SelectItem>
-                        {level.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  ))}
-                </div>
-              </div>
+              <ParentCategoryField cascadeLevels={cascadeLevels} selectedPath={selectedPath} onPathChange={setSelectedPath} disabled={isPending} />
             )}
 
             <div className="space-y-2">

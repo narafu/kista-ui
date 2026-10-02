@@ -12,7 +12,6 @@ import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import { submitFormDialog } from '@shared/lib/form/submitFormDialog'
 import {
-  isMonthClosed,
   useMonthlyClosingScopeGroupId,
   useCanShareToGroup,
   useCategoryPathState,
@@ -22,6 +21,7 @@ import {
   useUpdateFinanceTransactionMutation,
 } from '@entities/finance'
 import type { FinanceCategoryType, FinanceTransaction, FinanceTransactionRequest } from '@entities/finance'
+import { initialTransactionDate, isDateInWindow, isTransactionLocked } from './transactionFormHelpers'
 
 interface Props {
   open: boolean
@@ -41,19 +41,13 @@ interface Props {
   windowTo?: string
 }
 
-function clampDate(date: string, min?: string, max?: string): string {
-  if (min && date < min) return min
-  if (max && date > max) return max
-  return date
-}
-
 export function TransactionFormDialog({ open, onOpenChange, type, initial, duplicateFrom, onSuccess, windowFrom, windowTo }: Props) {
   const mode = initial ? 'edit' : 'create'
   const { data: categories = [] } = useFinanceCategoriesQuery(type)
   const seed = initial ?? duplicateFrom
 
   const [transactionDate, setTransactionDate] = useState(
-    () => clampDate(initial?.transactionDate ?? duplicateFrom?.transactionDate ?? todayKst(), windowFrom, windowTo),
+    () => initialTransactionDate(initial, duplicateFrom, todayKst(), windowFrom, windowTo),
   )
   const { selectedPath, setSelectedPath, cascadeLevels, categoryId } = useCategoryPathState(categories, seed?.categoryId)
 
@@ -68,15 +62,11 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
   const updateMutation = useUpdateFinanceTransactionMutation(initial?.id ?? '')
   const isPending = mode === 'edit' ? updateMutation.isPending : createMutation.isPending
 
-  // 날짜가 기록 점검 완료(마감)된 달이면 서버가 등록·수정을 409로 거부한다 — 제출 전에 막는다.
-  // 수정은 새 날짜뿐 아니라 원본 날짜의 달도 잠겨 있으면 거부되므로(서버 가드와 동일) 둘 다 검사한다.
   const { data: monthlyClosings = [] } = useMonthlyClosingsQuery()
   const closingScopeGroupId = useMonthlyClosingScopeGroupId()
-  const monthClosed =
-    isMonthClosed(monthlyClosings, transactionDate.slice(0, 7), closingScopeGroupId) ||
-    (initial ? isMonthClosed(monthlyClosings, initial.transactionDate.slice(0, 7), closingScopeGroupId) : false)
+  const monthClosed = isTransactionLocked(monthlyClosings, closingScopeGroupId, transactionDate, initial)
 
-  const dateInWindow = (!windowFrom || transactionDate >= windowFrom) && (!windowTo || transactionDate <= windowTo)
+  const dateInWindow = isDateInWindow(transactionDate, windowFrom, windowTo)
   const canSubmit = transactionDate !== '' && dateInWindow && categoryId !== '' && amountDigits !== '' && !monthClosed
 
   function handleSubmit(e: React.FormEvent) {

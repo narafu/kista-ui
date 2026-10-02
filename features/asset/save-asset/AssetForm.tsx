@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
@@ -13,11 +12,7 @@ import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import { FormActions } from '@shared/ui/FormActions'
 import { useMeta } from '@entities/meta'
 import {
-  SYSTEM_LOAN_CATEGORY_ID,
-  SYSTEM_REAL_ESTATE_CATEGORY_ID,
-  SYSTEM_SAVINGS_CATEGORY_ID,
   isInvestmentCategoryId,
-  isMonthClosed,
   useMonthlyClosingScopeGroupId,
   useCanShareToGroup,
   useCategoryPathState,
@@ -27,96 +22,19 @@ import {
   useMonthlyClosingsQuery,
   useUpdateAssetSnapshotMutation,
 } from '@entities/finance'
-import type { AssetClass, AssetSnapshot, AssetSnapshotRequest, FinanceAccount, Market } from '@entities/finance'
+import type { AssetClass, AssetSnapshot, FinanceAccount, Market } from '@entities/finance'
 import { DEFAULT_STRATEGY_SUGGESTIONS, useMeQuery } from '@entities/user'
+import { AccountField, ComboField, MarketAssetClassFields } from './AssetFormFields'
+import { FIXED_ASSET_META, MODE_LABEL, buildAssetPayload, categoryChangeEffect, initialFormValues, isEntryLocked } from './model/assetFormHelpers'
+import type { AssetFormMode } from './model/assetFormHelpers'
 
-export type AssetFormMode = 'create' | 'edit' | 'duplicate'
+export type { AssetFormMode }
 
 interface Props {
   mode: AssetFormMode
   initial?: AssetSnapshot
   onSuccess: () => void
   onCancel: () => void
-}
-
-// 계좌 Select 미선택("미지정") 센티널 — Base UI Select는 빈 문자열 value를 허용하지 않는다.
-const NO_ACCOUNT_VALUE = 'NONE'
-
-// 예적금·대출·부동산 L1은 자산군·시장이 사실상 고정값이라 등록 시 매번 고를 필요가 없다 —
-// 해당 L1을 능동적으로 고르면 이 값으로 강제하고 Select 자체를 숨긴다. 투자(그 외) L1은 실제로
-// 국내/해외·자산군이 다양해 기존처럼 자유 선택을 유지한다.
-const FIXED_ASSET_META: Record<string, { assetClass: AssetClass; market: Market }> = {
-  [SYSTEM_SAVINGS_CATEGORY_ID]: { assetClass: 'CASH', market: 'DOMESTIC' },
-  [SYSTEM_LOAN_CATEGORY_ID]: { assetClass: 'CASH', market: 'DOMESTIC' },
-  [SYSTEM_REAL_ESTATE_CATEGORY_ID]: { assetClass: 'REAL_ESTATE', market: 'DOMESTIC' },
-}
-
-const MODE_LABEL: Record<AssetFormMode, string> = {
-  create: '등록',
-  edit: '수정',
-  duplicate: '복제 등록',
-}
-
-// 같은 이름의 계좌를 구분할 수 있도록 기관·소유자를 덧붙인다.
-function accountOptionLabel(account: FinanceAccount): string {
-  return [account.name, account.institution, account.owner].filter(Boolean).join(' · ')
-}
-
-interface ComboFieldProps {
-  id: string
-  label: string
-  placeholder: string
-  value: string
-  onChange: (value: string) => void
-  suggestions: string[]
-  selectLabel: string
-  disabled?: boolean
-  maxLength?: number
-  helperText?: string
-}
-
-// 운용전략 자유 입력 Input과 추천 목록 Select를 한 필드로 묶는다. Select는 값을 선택 즉시
-// onChange로 흘려보낼 뿐 자체 선택 상태를 갖지 않는다(자유 입력이 SSOT).
-function ComboField({
-  id,
-  label,
-  placeholder,
-  value,
-  onChange,
-  suggestions,
-  selectLabel,
-  disabled,
-  maxLength,
-  helperText,
-}: ComboFieldProps) {
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      <div className="flex gap-2">
-        <Select
-          items={suggestions.map((s) => ({ value: s, label: s }))}
-          onValueChange={(next: string | null) => { if (next) onChange(next) }}
-        >
-          <SelectTrigger aria-label={selectLabel} className="w-32 h-12 shrink-0" disabled={disabled}>
-            <SelectValue>목록</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {suggestions.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Input
-          id={id}
-          placeholder={placeholder}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={disabled}
-          maxLength={maxLength}
-          className="h-12 flex-1"
-        />
-      </div>
-      {helperText && <p className="text-sm text-muted-foreground">{helperText}</p>}
-    </div>
-  )
 }
 
 export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
@@ -136,25 +54,21 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
   // 여전히 자유 입력이라 유저 정보 로딩 전에는 알려진 기본값으로 폴백한다.
   const strategySuggestions = useMeQuery().data?.strategySuggestions ?? DEFAULT_STRATEGY_SUGGESTIONS
 
-  const [entryDate, setEntryDate] = useState(initial?.entryDate ?? todayKst())
-  // 기준일이 기록 점검 완료(마감)된 달이면 서버가 등록·수정을 409로 거부한다 — 제출 전에 막는다.
-  // 수정은 새 기준일뿐 아니라 원본 기준일의 달도 잠겨 있으면 거부되므로(서버 가드와 동일) 둘 다 검사한다.
-  // 복제/등록은 신규 생성이라 원본 날짜와 무관하다 — edit 모드에서만 원본 달을 함께 본다.
+  const init = initialFormValues(initial, todayKst())
+  const [entryDate, setEntryDate] = useState(init.entryDate)
   const { data: monthlyClosings = [] } = useMonthlyClosingsQuery()
   const closingScopeGroupId = useMonthlyClosingScopeGroupId()
-  const monthClosed =
-    isMonthClosed(monthlyClosings, entryDate.slice(0, 7), closingScopeGroupId) ||
-    (mode === 'edit' && initial ? isMonthClosed(monthlyClosings, initial.entryDate.slice(0, 7), closingScopeGroupId) : false)
+  const monthClosed = isEntryLocked(monthlyClosings, closingScopeGroupId, entryDate, mode, initial)
   const { selectedPath, setSelectedPath, cascadeLevels, categoryId } = useCategoryPathState(categories, initial?.categoryId)
   // 운용전략 필드는 L1 카테고리가 '투자'(고정 시스템 카테고리)일 때만 노출한다.
   const showStrategy = isInvestmentCategoryId(selectedPath[0])
   const fixedAssetMeta = FIXED_ASSET_META[selectedPath[0] ?? '']
-  const [accountId, setAccountId] = useState(initial?.accountId ?? NO_ACCOUNT_VALUE)
-  const [assetClass, setAssetClass] = useState<AssetClass>(initial?.assetClass ?? 'CASH')
-  const [market, setMarket] = useState<Market>(initial?.market ?? 'DOMESTIC')
-  const [strategy, setStrategy] = useState(initial?.strategy ?? '')
-  const [memo, setMemo] = useState(initial?.memo ?? '')
-  const [amountDigits, setAmountDigits] = useState(initial ? String(initial.amount) : '')
+  const [accountId, setAccountId] = useState(init.accountId)
+  const [assetClass, setAssetClass] = useState<AssetClass>(init.assetClass)
+  const [market, setMarket] = useState<Market>(init.market)
+  const [strategy, setStrategy] = useState(init.strategy)
+  const [memo, setMemo] = useState(init.memo)
+  const [amountDigits, setAmountDigits] = useState(init.amountDigits)
 
   // 그룹 소속일 때만 노출, 기본값 켜짐(그룹 저장 우선) — edit 모드는 groupId가 이미 고정돼 있어 대상 아님.
   const canShareToGroup = useCanShareToGroup()
@@ -170,18 +84,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
     e.preventDefault()
     if (!canSubmit) return
 
-    const payload: AssetSnapshotRequest = {
-      categoryId,
-      accountId: accountId === NO_ACCOUNT_VALUE ? undefined : accountId,
-      entryDate,
-      assetClass,
-      market,
-      // 화면에는 L1이 '투자'일 때만 노출되지만, 필드 자체는 카테고리 무관 자유 필드다(구 제약의
-      // 후계 없음) — 비노출 상태에서도 기존 값(레거시 기록 등)을 건드리지 않고 그대로 제출한다.
-      strategy: strategy.trim() || undefined,
-      memo: memo.trim() || undefined,
-      amount: Number(amountDigits),
-    }
+    const payload = buildAssetPayload({ categoryId, accountId, entryDate, assetClass, market, strategy, memo, amountDigits })
 
     if (mode === 'edit') {
       updateMutation.mutate(payload, {
@@ -226,21 +129,11 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
                 levels={cascadeLevels}
                 path={selectedPath}
                 onPathChange={(next) => {
-                  // L1을 '투자' 아닌 값으로 직접 바꾸면 전략 필드가 그 자리에서 숨겨지므로, 화면에
-                  // 남아있던(잠재적으로 방금 입력한) 값도 함께 비운다 — 사용자가 능동적으로 L1을
-                  // 바꾼 경우에만 지운다(next[0]이 이전 selectedPath[0]과 달라진 경우로 판정 —
-                  // 하위 레벨 선택으로는 next[0]이 그대로라 이 조건에 걸리지 않는다). 편집 진입 시
-                  // 기존 레코드를 복원하는 경로는 건드리지 않는다.
-                  if (next[0] !== selectedPath[0] && !isInvestmentCategoryId(next[0])) setStrategy('')
-                  // L1을 능동적으로 예적금·대출·부동산으로 바꾸면 자산군·시장을 고정값으로 강제한다
-                  // (edit 모드 진입 시 기존 레코드를 복원하는 경로는 selectedPath를 이 핸들러가 아니라
-                  // useState 초기값/useEffect로 채우므로 여기서 건드리지 않는다).
-                  if (next[0] !== selectedPath[0]) {
-                    const fixed = FIXED_ASSET_META[next[0] ?? '']
-                    if (fixed) {
-                      setAssetClass(fixed.assetClass)
-                      setMarket(fixed.market)
-                    }
+                  const effect = categoryChangeEffect(selectedPath[0], next)
+                  if (effect.clearStrategy) setStrategy('')
+                  if (effect.fixed) {
+                    setAssetClass(effect.fixed.assetClass)
+                    setMarket(effect.fixed.market)
                   }
                   setSelectedPath(next)
                 }}
@@ -253,62 +146,17 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
           </div>
 
           {!fixedAssetMeta && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="market">시장</Label>
-                <Select
-                  items={meta.markets.map((m) => ({ value: m.code, label: m.label }))}
-                  value={market}
-                  onValueChange={(value) => { if (value) setMarket(value as Market) }}
-                >
-                  <SelectTrigger id="market" className="w-full h-12" disabled={isPending}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {meta.markets.map((m) => <SelectItem key={m.code} value={m.code}>{m.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="assetClass">자산군</Label>
-                <Select
-                  items={meta.assetClasses.map((c) => ({ value: c.code, label: c.label }))}
-                  value={assetClass}
-                  onValueChange={(value) => { if (value) setAssetClass(value as AssetClass) }}
-                >
-                  <SelectTrigger id="assetClass" className="w-full h-12" disabled={isPending}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {meta.assetClasses.map((c) => <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </>
+            <MarketAssetClassFields
+              meta={meta}
+              market={market}
+              assetClass={assetClass}
+              onMarketChange={setMarket}
+              onAssetClassChange={setAssetClass}
+              disabled={isPending}
+            />
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="account">계좌 (선택)</Label>
-            <Select
-              items={[{ value: NO_ACCOUNT_VALUE, label: '계좌 미지정' }, ...accounts.map((a) => ({ value: a.id, label: accountOptionLabel(a) }))]}
-              value={accountId}
-              onValueChange={(value) => { if (value) setAccountId(value) }}
-            >
-              <SelectTrigger id="account" className="w-full h-12" disabled={isPending}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NO_ACCOUNT_VALUE}>계좌 미지정</SelectItem>
-                {accountsByType.map((group) => (
-                  <SelectGroup key={group.type}>
-                    <SelectLabel>{group.label}</SelectLabel>
-                    {group.accounts.map((a) => <SelectItem key={a.id} value={a.id}>{accountOptionLabel(a)}</SelectItem>)}
-                  </SelectGroup>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <AccountField accounts={accounts} accountsByType={accountsByType} value={accountId} onChange={setAccountId} disabled={isPending} />
 
           <div className="space-y-2">
             <Label htmlFor="memo">메모 (선택)</Label>
