@@ -3,13 +3,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
-import { useCreateStrategyMutation, useUpdateStrategyMutation, useStrategySeedPreviewQuery } from '@entities/strategy'
-import { orderKeys } from '@entities/order'
-import { statsKeys } from '@entities/stats'
-import { tradeKeys } from '@entities/trade'
-import type { CycleSeedType, Strategy } from '@entities/strategy'
+import { useStrategySeedPreviewQuery } from '@entities/strategy'
+import type { Strategy } from '@entities/strategy'
 import type { BrokerCode, PriceMap } from '@entities/account'
 import type { RuntimeFieldSettings, RuntimeStrategyType } from '@entities/runtime-config'
 import { useStrategyFormData } from './useStrategyFormData'
@@ -19,6 +15,8 @@ import type { VrRecurringMode } from './vrDerived'
 import { isInvalidBootstrap, isInvalidScheduledStart, isInvalidVr, isRuntimeValueInvalid, computeCannotSubmit, computeSubmitDisabledReason } from './strategyFormGuards'
 import { buildStrategyPayload } from './buildStrategyPayload'
 import { useTypeDefaults } from './useTypeDefaults'
+import { buildStrategyFormDefaults, createFormSetters, deriveRuntimeFields, deriveSeedPreview, findUsdDeposit, toCycleSeedType, watchVrFields } from './strategyFormHelpers'
+import { useInitialSeedReset, useInitializing, useLoadFailToast, useStrategyMutations } from './useStrategyFormEffects'
 import { strategyFormSchema, type DivisionCount, type StrategyFormValues } from './strategyFormSchema'
 
 interface UseStrategyFormOptions {
@@ -127,50 +125,12 @@ export function useStrategyForm({
     balanceCheckEnabled, marginItems, marginLoading, marginError, prices, pricesError,
   } = useStrategyFormData(accountId, broker)
 
-  const handleMutationSuccess = async () => {
-    toast.success(initial ? '전략이 수정되었습니다' : '전략이 등록되었습니다')
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: orderKeys.all }).catch(() => null),
-      queryClient.invalidateQueries({ queryKey: statsKeys.all }).catch(() => null),
-      queryClient.invalidateQueries({ queryKey: tradeKeys.all }).catch(() => null),
-    ])
-    onSuccess?.()
-  }
-  const createMutation = useCreateStrategyMutation(accountId, handleMutationSuccess)
-  const updateMutation = useUpdateStrategyMutation(initial?.id ?? '', handleMutationSuccess)
-  const initialDivisionCount: DivisionCount = initial?.divisionCount ?? 1
+  const { submit, loading } = useStrategyMutations({ queryClient, accountId, initial, onSuccess })
 
   // react-hook-form — type/ticker/autoStart/seedMode/divisionCount + VR 필드 관리
   const form = useForm<StrategyFormValues>({
     resolver: zodResolver(strategyFormSchema),
-    defaultValues: {
-      // eslint-disable-next-line react-doctor/no-event-handler
-      type: initial?.type ?? meta.strategyTypes[0]?.code ?? '',
-      ticker: initial?.ticker ?? '',
-      autoStart: initial ? initial.cycleSeedType !== 'NONE' : true,
-      seedMode: initial?.cycleSeedType === 'MAINTAIN' ? 'KEEP' : 'MAX',
-      divisionCount: initialDivisionCount,
-      // 중간부터 시작(평단가·수량)은 등록 전용 — 수정 모드에서는 역산 불가하므로 항상 빈 값
-      avgPrice: null,
-      quantity: null,
-      intervalWeeks: initial?.vr?.intervalWeeks ?? 2,
-      bandWidth: initial?.vr?.bandWidth ?? 15,
-      recurringAmount: Math.abs(initial?.vr?.recurringAmount ?? 0),
-      recurringMode: initial?.vr?.recurringAmount
-        ? initial.vr.recurringAmount < 0 ? 'WITHDRAW' : 'DEPOSIT'
-        : 'HOLD',
-      initialValue: null,
-      initialGradient: initial?.vr?.initialGradient ?? null,
-      gGraceWeeks: initial?.vr?.gGraceWeeks ?? null,
-      gStepWeeks: initial?.vr?.gStepWeeks ?? null,
-      gMax: initial?.vr?.gMax ?? null,
-      initialPoolLimitRate: initial?.vr?.initialPoolLimitRate ?? null,
-      pGraceWeeks: initial?.vr?.pGraceWeeks ?? null,
-      pStepWeeks: initial?.vr?.pStepWeeks ?? null,
-      poolLimitFloor: initial?.vr?.poolLimitFloor ?? null,
-      // 시작예정일도 등록 전용 — 수정 모드에서는 항상 빈 값
-      scheduledStartDate: null,
-    },
+    defaultValues: buildStrategyFormDefaults(initial, meta.strategyTypes[0]?.code),
   })
   const [resolverValidationReason, setResolverValidationReason] = useState<string | null>(null)
 
@@ -186,71 +146,35 @@ export function useStrategyForm({
   const divisionCount = form.watch('divisionCount')
   const canEditSeed = !!initial && (initial.currentHoldings ?? 0) === 0
 
-  // VR 필드 watch (avgPrice·quantity는 중간부터 시작 공통 필드)
-  const avgPrice = form.watch('avgPrice') ?? null
-  const quantity = form.watch('quantity') ?? null
-  const intervalWeeks = form.watch('intervalWeeks') ?? null
-  const bandWidth = form.watch('bandWidth') ?? null
-  const recurringAmount = form.watch('recurringAmount') ?? null
-  const recurringMode = form.watch('recurringMode')
-  const initialValue = form.watch('initialValue') ?? null
-  const scheduledStartDate = form.watch('scheduledStartDate') ?? null
-  const initialGradient = form.watch('initialGradient') ?? null
-  const gGraceWeeks = form.watch('gGraceWeeks') ?? null
-  const gStepWeeks = form.watch('gStepWeeks') ?? null
-  const gMax = form.watch('gMax') ?? null
-  const initialPoolLimitRate = form.watch('initialPoolLimitRate') ?? null
-  const pGraceWeeks = form.watch('pGraceWeeks') ?? null
-  const pStepWeeks = form.watch('pStepWeeks') ?? null
-  const poolLimitFloor = form.watch('poolLimitFloor') ?? null
-  const isVr = type === 'VR'
-  const vrFields: VrFields = {
+  const vrFields = watchVrFields(form)
+  const {
     avgPrice, quantity, intervalWeeks, bandWidth, recurringAmount, initialValue,
-    initialGradient, gGraceWeeks, gStepWeeks, gMax,
-    initialPoolLimitRate, pGraceWeeks, pStepWeeks, poolLimitFloor,
-  }
+    initialGradient, gMax, initialPoolLimitRate, poolLimitFloor,
+  } = vrFields
+  const recurringMode = form.watch('recurringMode')
+  const scheduledStartDate = form.watch('scheduledStartDate') ?? null
+  const isVr = type === 'VR'
 
-  // capability 파생 — isInfinite 휴리스틱 대신 백엔드 SSOT 사용
   const typeMeta = useMemo(() => findStrategyType(type), [findStrategyType, type])
   const runtimeStrategy = runtimeConfig?.strategies[type as RuntimeStrategyType]
-  const availableTickers = initial ? [initial.ticker] : runtimeStrategy?.fields.ticker.allowedValues ?? []
-  const divisionCountSettings = runtimeStrategy?.fields.divisionCount
-  const usesDivisionCount = initial ? initial.divisionCount !== undefined : !!divisionCountSettings
+  const {
+    availableTickers, divisionCountSettings, usesDivisionCount, tickerCustomizable, vrSettings,
+  } = deriveRuntimeFields(initial, runtimeStrategy)
   const requiresPrivacyBase = typeMeta?.requiresPrivacyBase ?? false
-  const tickerCustomizable = initial ? false : runtimeStrategy?.fields.ticker.customizable ?? false
-  const vrSettings = {
-    recurringMode: runtimeStrategy?.fields.recurringMode as RuntimeFieldSettings<string> | undefined,
-    bandWidth: runtimeStrategy?.fields.bandWidth,
-    intervalWeeks: runtimeStrategy?.fields.intervalWeeks,
-  }
 
-  // basePrice/minSeed는 백엔드 계산 — VR 전략은 시드 미리보기 불필요
   const seedPreview = useStrategySeedPreviewQuery(
     accountId,
     { type, ticker, divisionCount },
     { enabled: !!type && !!ticker && !isVr },
   )
-  const basePrice = isVr ? null : seedPreview.data?.basePrice ?? null
-  const minSeed = isVr ? null : seedPreview.data?.minSeed ?? null
-  const seedUnavailableReason = isVr ? null : seedPreview.data?.skipReason ?? null
+  const { basePrice, minSeed, seedUnavailableReason } = deriveSeedPreview(isVr, seedPreview.data)
   const loadingBase = seedPreview.isLoading || marginLoading
 
-  const usdDeposit = marginItems.find((m) => m.currency === 'USD')?.purchasableAmount ?? null
+  const usdDeposit = findUsdDeposit(marginItems)
 
-  // 초기 로딩 완료 후엔 true로 고정 — 타입 전환 시 재스켈레톤 방지
-  const [initialized, setInitialized] = useState(false)
-  if (!loadingBase && !initialized) setInitialized(true)
+  const initializing = useInitializing(loadingBase, initial, runtimeQuery.isLoading)
 
-  // 실제 쿼리 실패만 알린다 — 값이 null인지로 판정하면 현재가 조회가 아직 진행 중이거나(loadingBase에
-  // 미포함) 잔고검증 OFF로 예수금 조회를 건너뛴 경우까지 실패로 오탐한다.
-  // 모의계좌는 실제 잔고·시세 조회 대상이 아니라 제외한다.
-  useEffect(() => {
-    if (isMock) return
-    if (marginError || pricesError) {
-      // eslint-disable-next-line react-doctor/no-event-handler
-      toast.error('예수금 / 현재가 조회에 실패했습니다', { id: 'strategy-form-load-fail' })
-    }
-  }, [isMock, marginError, pricesError])
+  useLoadFailToast(isMock, marginError, pricesError)
 
   const {
     pct, setPct,
@@ -263,28 +187,7 @@ export function useStrategyForm({
   // type 변경 시 ticker·VR 기본값 설정 (effect + setType 공용) — 시드는 minSeed effect에서 처리
   const { setType } = useTypeDefaults({ form, initial, runtimeConfig, enabledStrategyTypes, availableTickers })
 
-  // 엔드포인트 minSeed 도착/변경 시 시드 게이지 재초기화 (신규 등록 한정)
-  // canEditSeed(holdings=0 수정)는 기존 시작금액을 유지해야 하므로 여기서 제외 — 그 경우의 초기화는
-  // useSeedModel의 "holdings=0 수정 모드" 전용 effect가 initial.initialUsdDeposit 기준으로 담당한다.
-  useEffect(() => {
-    if (initial) return
-    if (minSeed === null) return
-    // eslint-disable-next-line react-doctor/no-pass-data-to-parent
-    resetSeed({
-      pct: usdDeposit !== null && usdDeposit < minSeed ? 0 : 100,
-      seedUsdInput: Math.ceil(minSeed),
-    })
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- minSeed 도착/변경 시점에만 재초기화한다. usdDeposit 변경마다 돌면 사용자가 조정한 시드가 덮어써진다
-  }, [initial, minSeed])
-
-  // 잔고검증 OFF + VR 신규 등록은 초기 시드를 0으로 시작
-  useEffect(() => {
-    if (initial) return
-    if (balanceCheckEnabled) return
-    if (!isVr) return
-    // eslint-disable-next-line react-doctor/no-pass-data-to-parent
-    resetSeed({ seedUsdInput: 0 })
-  }, [balanceCheckEnabled, initial, isVr, resetSeed])
+  useInitialSeedReset({ initial, minSeed, usdDeposit, balanceCheckEnabled, isVr, resetSeed })
 
   const vrDerived = computeVrDerived({
     initial, avgPrice, quantity, initialValue, seedUsd,
@@ -319,76 +222,36 @@ export function useStrategyForm({
 
   const submitDisabledReason = preSubmitDisabledReason ?? resolverValidationReason
 
-  // VR은 cycleSeedType 항상 NONE — 롤오버가 자체 사이클 교체 담당
-  const cycleSeedType: CycleSeedType = isVr
-    ? 'NONE'
-    : !autoStart
-      ? 'NONE'
-      : seedMode === 'KEEP'
-        ? 'MAINTAIN'
-        : 'MAX'
+  const cycleSeedType = toCycleSeedType(isVr, autoStart, seedMode)
 
-  function handleTickerChange(code: string) {
-    form.setValue('ticker', code)
-  }
-
-  function setAutoStart(v: boolean) {
-    form.setValue('autoStart', v)
-  }
-
-  function setSeedMode(m: 'KEEP' | 'MAX') {
-    form.setValue('seedMode', m)
-  }
-
-  function setDivisionCount(n: DivisionCount) {
-    form.setValue('divisionCount', n)
-  }
-
-  // VR 필드 개별 setter
-  function setVrField(field: keyof VrFields, value: number | null) {
-    form.setValue(field, field === 'recurringAmount' && value !== null ? Math.abs(value) : value)
-  }
-
-  function setRecurringMode(mode: VrRecurringMode) {
-    form.setValue('recurringMode', mode)
-    if (mode === 'HOLD') form.setValue('recurringAmount', 0)
-  }
-
-  function setScheduledStartDate(date: string | null) {
-    form.setValue('scheduledStartDate', date)
-  }
+  const setters = createFormSetters(form)
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     form.handleSubmit(() => {
-      const payload = buildStrategyPayload({
+      submit(buildStrategyPayload({
         initial, type, ticker, cycleSeedType, seedUsd, canEditSeed, isVr,
         usesDivisionCount, divisionCount, divisionCountSettings, runtimeStrategy,
         vrFields, vrDerived, scheduledStartDate,
-      })
-
-      if (initial) {
-        updateMutation.mutate(payload)
-      } else {
-        createMutation.mutate(payload)
-      }
+      }))
     }, () => {
       setResolverValidationReason('입력값을 다시 확인해 주세요.')
     })(e)
   }
 
   return {
+    ...setters,
     type, setType, usesDivisionCount, requiresPrivacyBase, canEditSeed, seedUnavailableReason,
-    ticker, availableTickers, handleTickerChange, basePrice, prices,
+    ticker, availableTickers, basePrice, prices,
     pct, setPct, seedUsdInput, setSeedUsdInput, usdDeposit, minSeed, isBelowMinSeed, loadingBase,
     balanceCheckEnabled,
     isMock,
-    autoStart, setAutoStart, seedMode, setSeedMode,
-    divisionCount, setDivisionCount, divisionCountSettings, tickerCustomizable,
+    autoStart, seedMode,
+    divisionCount, divisionCountSettings, tickerCustomizable,
     enabledStrategyTypes, runtimeConfigUnavailable,
     runtimeConfigError: runtimeQuery.isError,
     retryRuntimeConfig: () => { void runtimeQuery.refetch() },
-    isVr, vrFields, setVrField, recurringMode, setRecurringMode,
+    isVr, vrFields, recurringMode,
     vrRampDefaults: {
       initialGradient: vrDerived.effectiveInitialGradient,
       gMax: vrDerived.effectiveGMax,
@@ -396,9 +259,9 @@ export function useStrategyForm({
       poolLimitFloor: vrDerived.effectivePoolLimitFloor,
     },
     vrSettings,
-    scheduledStartDate, setScheduledStartDate,
-    loading: createMutation.isPending || updateMutation.isPending,
-    initializing: (!initialized && loadingBase) || (!initial && runtimeQuery.isLoading),
+    scheduledStartDate,
+    loading,
+    initializing,
     cannotSubmit,
     submitDisabledReason,
     handleSubmit,

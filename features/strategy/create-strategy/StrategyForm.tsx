@@ -4,6 +4,7 @@ import { FormActions } from '@shared/ui/FormActions'
 import { Button } from '@/components/ui/button'
 import { useMeta } from '@entities/meta'
 import { useStrategyForm } from './model/useStrategyForm'
+import type { UseStrategyFormReturn } from './model/useStrategyForm'
 import { StrategyTypeSection } from './sections/StrategyTypeSection'
 import { StrategyTickerSection } from './sections/StrategyTickerSection'
 import { UsageRatioSection } from './sections/UsageRatioSection'
@@ -25,6 +26,49 @@ interface Props {
   onCancel?: () => void
 }
 
+function divisionCountOptions(form: UseStrategyFormReturn, initial?: Strategy): number[] {
+  return form.divisionCountSettings?.allowedValues ?? (initial?.divisionCount ? [initial.divisionCount] : [])
+}
+
+function seedHint(isVr: boolean, initial?: Strategy) {
+  if (isVr || !initial) return undefined
+  return '첫 매매 전이라 시드 수정이 가능합니다'
+}
+
+function RuntimeConfigError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-4 text-sm text-muted-foreground">
+      <p>전략 설정을 불러오지 못했습니다.</p>
+      <Button type="button" variant="outline" onClick={onRetry} className="mt-3 h-9">
+        다시 시도
+      </Button>
+    </div>
+  )
+}
+
+function SeedSection({ form, initial }: { form: UseStrategyFormReturn; initial?: Strategy }) {
+  if (initial && !form.canEditSeed) {
+    return <ReadOnlySeedSection initialUsdDeposit={initial.initialUsdDeposit} />
+  }
+  return (
+    <UsageRatioSection
+      hint={seedHint(form.isVr, initial)}
+      pct={form.pct}
+      setPct={form.setPct}
+      seedUsdInput={form.seedUsdInput}
+      setSeedUsdInput={form.setSeedUsdInput}
+      usdDeposit={form.usdDeposit}
+      minSeed={form.minSeed}
+      loading={form.loading}
+      loadingBase={form.loadingBase}
+      isBelowMinSeed={form.isBelowMinSeed}
+      seedUnavailableReason={form.seedUnavailableReason}
+      balanceCheckEnabled={form.balanceCheckEnabled}
+      offBadgeLabel={form.isMock ? '모의계좌' : undefined}
+    />
+  )
+}
+
 export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }: Props) {
   const { meta } = useMeta()
   const form = useStrategyForm({ accountId, broker, initial, onSuccess })
@@ -38,14 +82,7 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
   }
 
   if (!initial && form.runtimeConfigError) {
-    return (
-      <div className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-4 text-sm text-muted-foreground">
-        <p>전략 설정을 불러오지 못했습니다.</p>
-        <Button type="button" variant="outline" onClick={form.retryRuntimeConfig} className="mt-3 h-9">
-          다시 시도
-        </Button>
-      </div>
-    )
+    return <RuntimeConfigError onRetry={form.retryRuntimeConfig} />
   }
 
   return (
@@ -64,7 +101,7 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
         setDivisionCount={form.setDivisionCount}
         loading={form.loading}
         isEdit={!!initial}
-        options={form.divisionCountSettings?.allowedValues ?? (initial?.divisionCount ? [initial.divisionCount] : [])}
+        options={divisionCountOptions(form, initial)}
         customizable={form.divisionCountSettings?.customizable ?? false}
       />
 
@@ -110,25 +147,7 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
         />
       )}
 
-      {initial && !form.canEditSeed ? (
-        <ReadOnlySeedSection initialUsdDeposit={initial.initialUsdDeposit} />
-      ) : (
-        <UsageRatioSection
-          hint={form.isVr ? undefined : initial ? '첫 매매 전이라 시드 수정이 가능합니다' : undefined}
-          pct={form.pct}
-          setPct={form.setPct}
-          seedUsdInput={form.seedUsdInput}
-          setSeedUsdInput={form.setSeedUsdInput}
-          usdDeposit={form.usdDeposit}
-          minSeed={form.minSeed}
-          loading={form.loading}
-          loadingBase={form.loadingBase}
-          isBelowMinSeed={form.isBelowMinSeed}
-          seedUnavailableReason={form.seedUnavailableReason}
-          balanceCheckEnabled={form.balanceCheckEnabled}
-          offBadgeLabel={form.isMock ? '모의계좌' : undefined}
-        />
-      )}
+      <SeedSection form={form} initial={initial} />
 
       {!form.isVr && (
         <CycleSeedSection
