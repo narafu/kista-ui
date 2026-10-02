@@ -117,7 +117,7 @@ jobs:
     name: Deploy (kista-infra reconcile)
     runs-on: ubuntu-latest
     needs: build
-    timeout-minutes: 20
+    timeout-minutes: 75   # infra reconcile 대기열(앞선 run 최대 30분) + 자기 run 30분 + 여유
     environment:
       name: production
     env:
