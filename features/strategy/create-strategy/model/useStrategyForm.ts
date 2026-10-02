@@ -276,7 +276,7 @@ export function useStrategyForm({
       seedUsdInput: Math.ceil(minSeed),
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps -- minSeed 도착/변경 시점에만 재초기화한다. usdDeposit 변경마다 돌면 사용자가 조정한 시드가 덮어써진다
-  }, [initial, minSeed]) // eslint-disable-line react-doctor/exhaustive-deps
+  }, [initial, minSeed])
 
   // 잔고검증 OFF + VR 신규 등록은 초기 시드를 0으로 시작
   useEffect(() => {
@@ -285,8 +285,7 @@ export function useStrategyForm({
     if (!isVr) return
     // eslint-disable-next-line react-doctor/no-pass-data-to-parent
     resetSeed({ seedUsdInput: 0 })
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- 조건 전환 시점에만 시드를 0으로 리셋한다. resetSeed는 매 렌더 새 참조라 deps에 넣으면 매 렌더 시드가 0으로 고정된다
-  }, [balanceCheckEnabled, initial, isVr]) // eslint-disable-line react-doctor/exhaustive-deps
+  }, [balanceCheckEnabled, initial, isVr, resetSeed])
 
   const vrDerived = computeVrDerived({
     initial, avgPrice, quantity, initialValue, seedUsd,

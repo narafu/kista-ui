@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Strategy } from '@entities/strategy'
 
 interface UseSeedModelOptions {
@@ -57,10 +57,11 @@ export function useSeedModel({
     setSeedUsdInputInternal(v)
   }
 
-  function resetSeed({ pct: newPct, seedUsdInput: newSeedUsd }: { pct?: number; seedUsdInput?: number | null }) {
+  // 호출부 effect deps에 넣을 수 있도록 참조를 고정한다 — state setter만 쓰므로 deps가 비어도 안전하다
+  const resetSeed = useCallback(({ pct: newPct, seedUsdInput: newSeedUsd }: { pct?: number; seedUsdInput?: number | null }) => {
     if (newPct !== undefined) setPctInternal(newPct)
     if (newSeedUsd !== undefined) setSeedUsdInputInternal(newSeedUsd)
-  }
+  }, [])
 
   // holdings=0 수정 모드 + 잔고검증 ON이면 기존 시작금액 비율로 게이지를 1회 초기화
   useEffect(() => {

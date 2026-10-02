@@ -55,7 +55,7 @@ export function RouteModal({ children, className }: Props) {
       previouslyFocused?.focus()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps -- 마운트 시 1회만 포커스 트랩을 건다. dismiss는 매 렌더 새로 생기지만 router.back()만 호출해 stale 위험이 없고, 재실행되면 포커스가 컨테이너로 다시 튄다
-  }, []) // eslint-disable-line react-doctor/exhaustive-deps
+  }, [])
 
   return (
     // 배경 클릭 닫기는 마우스 보조 수단 — 키보드는 ESC(위 keydown 핸들러)와 닫기 버튼으로 동일하게 닫을 수 있어 배경 자체는 presentation으로 둔다

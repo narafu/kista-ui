@@ -55,7 +55,7 @@ export function useTypeDefaults({
     }
     applyTypeDefaults(form, runtimeStrategy)
   // eslint-disable-next-line react-hooks/exhaustive-deps -- type 변경/설정 도착 시점에만 기본값을 세팅한다. ticker 등을 deps에 넣으면 사용자 입력 때마다 재실행돼 입력값을 덮어쓸 수 있다
-  }, [type, runtimeConfig]) // eslint-disable-line react-doctor/exhaustive-deps
+  }, [type, runtimeConfig])
 
   function setType(t: string) {
     form.setValue('type', t)
