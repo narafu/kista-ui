@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import type { BrokerCode } from '@entities/account'
 import { isMockBroker } from '@shared/lib/api-schema'
 import type { StepData } from '../CreateAccountStepper'
+import { NicknameField, AccountNoField } from './AccountInfoFields'
 
 interface Props {
   data: StepData
@@ -77,49 +78,21 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
         </p>
       )}
       <div className="flex flex-col gap-4">
-        <div>
-          <label htmlFor="account-nickname" className="text-sm font-semibold mb-1.5 block">
-            계좌 별칭 <span className="text-destructive">*</span>
-          </label>
-          <input
-            id="account-nickname"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            onBlur={() => setTouchedNickname(true)}
-            placeholder={isMock ? '예: 모의 계좌' : '예: 메인 계좌'}
-            maxLength={100}
-            aria-describedby={showNicknameError ? 'nickname-error' : undefined}
-            aria-invalid={showNicknameError}
-            className="w-full px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          />
-          {showNicknameError && (
-            <p id="nickname-error" className="text-sm text-destructive mt-1">별칭을 입력해주세요.</p>
-          )}
-        </div>
+        <NicknameField
+          value={nickname}
+          placeholder={isMock ? '예: 모의 계좌' : '예: 메인 계좌'}
+          showError={showNicknameError}
+          onChange={setNickname}
+          onBlur={() => setTouchedNickname(true)}
+        />
         {config && (
-          <div>
-            <label htmlFor="account-no" className="text-sm font-semibold mb-1.5 block">
-              {config.label} <span className="text-destructive">*</span>
-            </label>
-            <input
-              id="account-no"
-              value={accountNo}
-              onChange={(e) => setAccountNo(config.format(e.target.value))}
-              onBlur={() => setTouchedAccountNo(true)}
-              placeholder={config.placeholder}
-              maxLength={config.maxLen}
-              aria-describedby={showAccountNoError ? 'accountno-error' : 'accountno-hint'}
-              aria-invalid={showAccountNoError}
-              className="w-full px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm font-mono focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
-            {showAccountNoError ? (
-              <p id="accountno-error" className="text-sm text-destructive mt-1">
-                올바른 계좌번호 형식으로 입력해주세요. (예: {config.placeholder})
-              </p>
-            ) : (
-              <p id="accountno-hint" className="text-sm text-muted-foreground mt-1">{config.hint}</p>
-            )}
-          </div>
+          <AccountNoField
+            config={config}
+            value={accountNo}
+            showError={showAccountNoError}
+            onChange={setAccountNo}
+            onBlur={() => setTouchedAccountNo(true)}
+          />
         )}
       </div>
       <div className="flex gap-3">

@@ -2,6 +2,29 @@ import { cn } from '@shared/lib/utils'
 import type { ReactNode } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 
+type Variant = NonNullable<Props['variant']>
+
+const CONTAINER_CLASS: Record<Variant, string> = {
+  default: 'bg-card border border-border shadow-[var(--sh-card)]',
+  accent: 'text-white bg-[image:var(--primary-grad)] shadow-[var(--primary-glow)]',
+  soft: 'border border-rose-200',
+}
+const LABEL_CLASS: Record<Variant, string> = {
+  default: 'text-[var(--brand-fg-soft)]',
+  accent: 'text-white/80',
+  soft: 'text-[var(--brand-fg-soft)]',
+}
+const VALUE_CLASS: Record<Variant, string> = {
+  default: 'text-foreground',
+  accent: 'text-white',
+  soft: 'text-[var(--brand-fg)]',
+}
+const SUB_CLASS: Record<Variant, string> = {
+  default: 'text-muted-foreground',
+  accent: 'text-white/70',
+  soft: 'text-[var(--brand-fg-soft)]',
+}
+
 interface Props {
   label: string
   labelAction?: ReactNode
@@ -18,13 +41,7 @@ export function KpiCard({ label, labelAction, value, sub, variant = 'default', c
     <div
       className={cn(
         'rounded-[var(--r-lg)] p-4 sm:p-5 flex flex-col gap-1',
-        variant === 'default' && 'bg-card border border-border shadow-[var(--sh-card)]',
-        variant === 'accent' && [
-          'text-white',
-          'bg-[image:var(--primary-grad)]',
-          'shadow-[var(--primary-glow)]',
-        ],
-        variant === 'soft' && 'border border-rose-200',
+        CONTAINER_CLASS[variant],
         className,
       )}
       style={variant === 'soft' ? { background: 'var(--brand-soft-bg)' } : undefined}
@@ -33,9 +50,7 @@ export function KpiCard({ label, labelAction, value, sub, variant = 'default', c
         <span
           className={cn(
             'text-base font-semibold tracking-widest uppercase',
-            variant === 'default' && 'text-[var(--brand-fg-soft)]',
-            variant === 'accent' && 'text-white/80',
-            variant === 'soft' && 'text-[var(--brand-fg-soft)]',
+            LABEL_CLASS[variant],
           )}
         >
           {label}
@@ -45,9 +60,7 @@ export function KpiCard({ label, labelAction, value, sub, variant = 'default', c
       <div
         className={cn(
           'text-2xl lg:text-3xl font-bold leading-tight',
-          variant === 'default' && 'text-foreground',
-          variant === 'accent' && 'text-white',
-          variant === 'soft' && 'text-[var(--brand-fg)]',
+          VALUE_CLASS[variant],
           valueClassName,
         )}
       >
@@ -59,9 +72,7 @@ export function KpiCard({ label, labelAction, value, sub, variant = 'default', c
         <div
           className={cn(
             'text-base',
-            variant === 'default' && 'text-muted-foreground',
-            variant === 'accent' && 'text-white/70',
-            variant === 'soft' && 'text-[var(--brand-fg-soft)]',
+            SUB_CLASS[variant],
           )}
         >
           {sub}

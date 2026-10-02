@@ -1,12 +1,12 @@
 'use client'
 
 import { useReducer } from 'react'
-import { Eye, EyeOff, CheckCircle2, XCircle, ExternalLink } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Spinner } from '@shared/ui/Spinner'
 import { useTestKisConnectionMutation } from '@entities/account'
 import type { BrokerCode } from '@entities/account'
 import type { StepData } from '../CreateAccountStepper'
+import { ApiKeyField, ApiSecretField, ConnectionTest } from './ApiStepParts'
 
 interface Props {
   data: StepData
@@ -99,90 +99,34 @@ export function ApiStep({ data, onNext, onBack }: Props) {
       </div>
 
       <div className="flex flex-col gap-4">
-        <div>
-          <label htmlFor="api-key" className="text-sm font-semibold mb-1.5 block">
-            {config.keyLabel} <span className="text-destructive">*</span>
-          </label>
-          <input
-            id="api-key"
-            value={apiKey}
-            onChange={handleFieldChange('key')}
-            onBlur={() => dispatch({ type: 'touchKey' })}
-            placeholder={`발급받은 ${config.keyLabel}`}
-            maxLength={256}
-            aria-describedby={showKeyError ? 'api-key-error' : undefined}
-            aria-invalid={showKeyError}
-            className="w-full px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          />
-          {showKeyError && (
-            <p id="api-key-error" className="text-sm text-destructive mt-1">
-              유효한 {config.keyLabel}를 입력해주세요.
-            </p>
-          )}
-        </div>
-        <div>
-          <label htmlFor="api-secret" className="text-sm font-semibold mb-1.5 block">
-            {config.secretLabel} <span className="text-destructive">*</span>
-          </label>
-          <div className="relative">
-            <input
-              id="api-secret"
-              type={showSecret ? 'text' : 'password'}
-              value={apiSecret}
-              onChange={handleFieldChange('secret')}
-              onBlur={() => dispatch({ type: 'touchSecret' })}
-              placeholder={`발급받은 ${config.secretLabel}`}
-              maxLength={512}
-              aria-describedby={showSecretError ? 'api-secret-error' : undefined}
-              aria-invalid={showSecretError}
-              className="w-full px-3 py-2.5 pr-10 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
-            <button
-              type="button"
-              onClick={() => dispatch({ type: 'toggleSecret' })}
-              aria-label={showSecret ? '숨기기' : '보기'}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            >
-              {showSecret ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-            </button>
-          </div>
-          {showSecretError && (
-            <p id="api-secret-error" className="text-sm text-destructive mt-1">
-              유효한 {config.secretLabel}를 입력해주세요.
-            </p>
-          )}
-        </div>
+        <ApiKeyField
+          label={config.keyLabel}
+          value={apiKey}
+          showError={showKeyError}
+          onChange={handleFieldChange('key')}
+          onBlur={() => dispatch({ type: 'touchKey' })}
+        />
+        <ApiSecretField
+          label={config.secretLabel}
+          value={apiSecret}
+          showError={showSecretError}
+          onChange={handleFieldChange('secret')}
+          onBlur={() => dispatch({ type: 'touchSecret' })}
+          showSecret={showSecret}
+          onToggle={() => dispatch({ type: 'toggleSecret' })}
+        />
       </div>
 
       {config.needsTest && (
-        <div className="flex flex-col gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full h-10 gap-2 font-semibold"
-            disabled={!canTest || testMutation.isPending}
-            onClick={() => testMutation.mutate({ appKey: apiKey, appSecret: apiSecret, broker })}
-          >
-            {testMutation.isPending ? (
-              <>
-                <Spinner size={16} /> 연결 확인 중...
-              </>
-            ) : (
-              '연결 테스트'
-            )}
-          </Button>
-          {testMutation.isSuccess && (
-            <div className="flex items-center gap-1.5 text-sm text-status-ok">
-              <CheckCircle2 className="size-4" /> 연결 성공
-            </div>
-          )}
-          {testMutation.isError && (
-            <div className="flex items-center gap-1.5 text-sm text-neg">
-              <XCircle className="size-4" />
-              증권사 API 인증에 실패했습니다. {config.keyLabel} 또는 {config.secretLabel}을 확인하세요.
-            </div>
-          )}
-        </div>
+        <ConnectionTest
+          keyLabel={config.keyLabel}
+          secretLabel={config.secretLabel}
+          disabled={!canTest || testMutation.isPending}
+          isPending={testMutation.isPending}
+          isSuccess={testMutation.isSuccess}
+          isError={testMutation.isError}
+          onTest={() => testMutation.mutate({ appKey: apiKey, appSecret: apiSecret, broker })}
+        />
       )}
 
       <div className="flex gap-3">

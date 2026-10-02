@@ -6,14 +6,11 @@ import {
   useEquityCurveQuery,
 } from '@entities/stats'
 import { EmptyState } from '@shared/ui/EmptyState'
-import { SectionError } from '@shared/ui/SectionError'
 import { CardSkeleton } from '@shared/ui/CardSkeleton'
 import { normalizeEquityCurve } from './lib/normalizeEquityCurve'
-import { StatsKpiRow } from './StatsKpiRow'
-import { EquityCurveChart } from './EquityCurveChart'
+import { SummarySection, CurveSection } from './StatsSections'
 import { StrategyTypeComparison } from './StrategyTypeComparison'
 import { CyclePerformanceList } from './CyclePerformanceList'
-import { StrategyTypeFilterToggle } from './StrategyTypeFilterToggle'
 
 export type RangeKey = '1M' | '3M' | '6M' | '1Y' | 'ALL'
 
@@ -75,33 +72,17 @@ export function StatsOverview({ defaultFrom, defaultTo }: Props) {
         />
       ) : (
         <>
-          {summaryFailed ? (
-            <SectionError />
-          ) : summary ? (
-            <StatsKpiRow summary={summary} />
-          ) : null}
+          <SummarySection failed={summaryFailed} summary={summary} />
 
-          {curveFailed ? (
-            <div className="flex flex-col gap-3">
-              <SectionError />
-              <div className="flex justify-end">
-                <StrategyTypeFilterToggle
-                  strategyTypes={byType}
-                  strategyTypeFilter={strategyTypeFilter}
-                  onStrategyTypeFilterChange={setStrategyTypeFilter}
-                />
-              </div>
-            </div>
-          ) : (
-            <EquityCurveChart
-              rows={rows}
-              range={range}
-              onRangeChange={setRange}
-              strategyTypes={byType}
-              strategyTypeFilter={strategyTypeFilter}
-              onStrategyTypeFilterChange={setStrategyTypeFilter}
-            />
-          )}
+          <CurveSection
+            failed={curveFailed}
+            rows={rows}
+            range={range}
+            onRangeChange={setRange}
+            strategyTypes={byType}
+            strategyTypeFilter={strategyTypeFilter}
+            onStrategyTypeFilterChange={setStrategyTypeFilter}
+          />
 
           <CyclePerformanceList typeFilter={strategyTypeFilter} />
 
