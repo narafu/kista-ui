@@ -3,7 +3,6 @@
 import type { FearGreedSourceView } from '@entities/market'
 import { FearGreedGauge } from './FearGreedGauge'
 import { FearGreedTrend } from './FearGreedTrend'
-import { zoneOf } from './fearGreedZones'
 
 interface Props {
   title: string

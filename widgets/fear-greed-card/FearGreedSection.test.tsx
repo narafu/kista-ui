@@ -16,7 +16,6 @@ vi.mock('./FearGreedCard', () => ({
   FearGreedCard: ({
     title,
     error,
-    days,
     onDaysChange,
     daysOptions,
   }: {

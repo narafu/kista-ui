@@ -35,7 +35,6 @@ export function AccountCard({ account }: Props) {
   const { findBroker } = useMeta()
   const broker = findBroker(account.broker)
   const brokerLabel = broker?.label ?? account.broker
-  const brokerShort = broker?.description ?? account.broker
   const aggregated = aggregateStatus(strategies)
 
   return (

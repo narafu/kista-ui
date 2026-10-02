@@ -10,7 +10,7 @@ export interface TradeEvent {
 }
 
 export type { OrderDirection, OrderType, OrderStatus } from '@shared/lib/api-schema'
-import type { OrderDirection, OrderType, OrderStatus } from '@shared/lib/api-schema'
+import type { OrderDirection } from '@shared/lib/api-schema'
 
 export interface CycleHistoryItem {
   createdAt: string

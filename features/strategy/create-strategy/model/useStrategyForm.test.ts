@@ -17,7 +17,6 @@ function addDaysToKstDate(days: number): string {
 const runtimeRecurringMode = vi.hoisted(() => ({ defaultValue: 'HOLD' }))
 const invalidateQueriesMock = vi.hoisted(() => vi.fn(() => Promise.resolve()))
 let createSuccessHandler: (() => void) | undefined
-let updateSuccessHandler: (() => void) | undefined
 
 vi.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ invalidateQueries: invalidateQueriesMock }),
@@ -106,8 +105,7 @@ vi.mock('@entities/strategy', () => ({
     isPending: false,
     }
   },
-  useUpdateStrategyMutation: (_strategyId: string, onSuccess?: () => void) => {
-    updateSuccessHandler = onSuccess
+  useUpdateStrategyMutation: (_strategyId: string) => {
     return {
     mutate: mockUpdateMutate,
     isPending: false,
@@ -131,7 +129,6 @@ describe('useStrategyForm submit policy', () => {
     mockUpdateMutate.mockClear()
     invalidateQueriesMock.mockClear()
     createSuccessHandler = undefined
-    updateSuccessHandler = undefined
     meQueryState.data.balanceCheckEnabled = true
     seedModelState.pct = 100
     seedModelState.seedUsdInput = 1200

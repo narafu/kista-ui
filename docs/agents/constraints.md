@@ -57,4 +57,4 @@
 - Route Handler URL 변경 시 보통 `entities/{domain}/api/` 호출부만 수정한다
 - 새 `NEXT_PUBLIC_*` 환경변수를 추가하면 예제 env 파일도 같이 맞춘다
 - `openapi.json`이 SSOT이며, 타입은 `npm run gen:types`로 재생성한다
-- 기본 검증은 `npm run typecheck`를 우선 사용한다. 현재 `lint`는 신뢰 가능한 기본 검증 명령이 아니다.
+- 기본 검증은 `npm run typecheck`와 `npm run lint`(0 errors 유지, warning은 허용)를 사용한다.

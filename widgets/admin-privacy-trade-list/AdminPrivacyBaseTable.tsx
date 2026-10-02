@@ -201,7 +201,6 @@ function MobileBaseCard({
 }) {
   return (
     <article className="rounded-[var(--r-lg)] border border-border bg-card/70 p-4 shadow-sm">
-      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events -- role=button + tabIndex 아래에서 명시, 내부에 실제 <button>(수정) 중첩 필요해 <button> 래퍼 대신 div 사용 */}
       <div
         role="button"
         tabIndex={0}

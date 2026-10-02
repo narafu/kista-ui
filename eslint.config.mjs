@@ -27,6 +27,16 @@ export default tseslint.config(
   },
   ...tseslint.configs.recommended,
   {
+    // `_` 접두는 의도된 미사용(mock 시그니처 인자, rest 구조분해로 필드 제외, 타입 단언용 type alias)
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['error', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+      }],
+    },
+  },
+  {
     // shadcn 자동생성 파일 — 직접 수정 금지, false positive 스캔 제외
     ignores: ['node_modules/**', '.next/**', 'out/**', 'build/**', 'next-env.d.ts', 'components/ui/**'],
   },
