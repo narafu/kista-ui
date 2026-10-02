@@ -1,23 +1,17 @@
 'use client'
 
-import { useEffect, useMemo, type ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { useHousingBenchmarkQuery, useHousingBenchmarkRegionsQuery } from '@entities/stats'
-import type { HousingBenchmark } from '@entities/stats'
-import { DEFAULT_RUNTIME_BENCHMARKS, useRuntimeConfigQuery } from '@entities/runtime-config'
-import { EmptyState } from '@shared/ui/EmptyState'
-import { SectionError } from '@shared/ui/SectionError'
 import { BenchmarkFilterBar } from './BenchmarkFilterBar'
-import { BenchmarkLoading } from './BenchmarkStates'
+import { BenchmarkResult } from './BenchmarkResult'
 import { EtfPriceChart } from './EtfPriceChart'
-import { HousingBenchmarkChart } from './HousingBenchmarkChart'
-import { HousingBenchmarkSummary } from './HousingBenchmarkSummary'
 import { HousingBenchmarkInfo } from './HousingBenchmarkInfo'
 import { HousingPriceIndexChart } from './HousingPriceIndexChart'
-import { emptyMessage, uniqueSymbols } from './model/benchmarkPeriods'
+import { buildFallbackBenchmark, resolveBenchmarkLabel, resolveInvestmentLabel } from './model/benchmarkView'
 import { useBenchmarkFilters } from './model/useBenchmarkFilters'
+import { useEtfBenchmarkOptions } from './model/useEtfBenchmarkOptions'
 import { useBenchmarkStrategyOptions } from './model/useBenchmarkStrategyOptions'
 import { DEFAULT_HOUSING_REGION_NAME } from '@entities/stats'
-import { getEtfBenchmarkContent } from './housingBenchmarkContent'
 
 interface Props {
   enabled: boolean
@@ -26,19 +20,7 @@ interface Props {
 }
 
 export function HousingBenchmarkComparison({ enabled, defaultTo, renderHousingExtras }: Props) {
-  const runtimeConfigQuery = useRuntimeConfigQuery()
-  const runtimeEtfSettings = runtimeConfigQuery.data?.benchmarks?.etf ?? DEFAULT_RUNTIME_BENCHMARKS.etf
-  const etfSymbols = useMemo(() => {
-    const allowedValues = uniqueSymbols(runtimeEtfSettings.allowedValues)
-    return allowedValues.length > 0 ? allowedValues : DEFAULT_RUNTIME_BENCHMARKS.etf.allowedValues
-  }, [runtimeEtfSettings.allowedValues])
-  const defaultEtfSymbol = etfSymbols.includes(runtimeEtfSettings.defaultValue)
-    ? runtimeEtfSettings.defaultValue
-    : etfSymbols[0]
-  const etfBenchmarks = useMemo(() => etfSymbols.map((symbol) => ({
-    ...getEtfBenchmarkContent(symbol),
-    symbol,
-  })), [etfSymbols])
+  const { etfSymbols, defaultEtfSymbol, etfBenchmarks } = useEtfBenchmarkOptions()
   const filters = useBenchmarkFilters(defaultTo, { symbols: etfSymbols, defaultSymbol: defaultEtfSymbol })
   const { activeAsset, selection, from, to } = filters
   const selectedEtfBenchmark = etfBenchmarks.find((item) => item.symbol === filters.etfSymbol)
@@ -70,33 +52,10 @@ export function HousingBenchmarkComparison({ enabled, defaultTo, renderHousingEx
   const params = filters.buildParams()
   const query = useHousingBenchmarkQuery(params, enabled && canQuery)
   const data = query.data
-  const benchmarkLabel = selection.type === 'ETF'
-    ? (data?.benchmark?.label ?? selection.symbol)
-    : (data?.benchmark?.label ?? `${selectedRegionName} 아파트 매매가격지수`)
+  const benchmarkLabel = resolveBenchmarkLabel(selection, data, selectedRegionName)
   const benchmarkCurrency: 'USD' | 'KRW' = data?.quality?.benchmarkCurrency === 'USD' ? 'USD' : 'KRW'
-  const fallbackBenchmark: HousingBenchmark = selection.type === 'HOUSING'
-    ? {
-        assetType: 'HOUSING',
-        regionCode: selection.regionCode,
-        regionName: selectedRegionName,
-        symbol: null,
-        label: benchmarkLabel,
-        sourceUpdatedDate: null,
-      }
-    : {
-        assetType: 'ETF',
-        regionCode: null,
-        regionName: null,
-        symbol: selection.symbol,
-        label: benchmarkLabel,
-        sourceUpdatedDate: null,
-      }
-  const responseScope = data?.scope === 'STRATEGY' ? 'STRATEGY' : 'PORTFOLIO'
-  const investmentLabel = responseScope === 'PORTFOLIO'
-    ? '전체 포트폴리오'
-    : data?.strategy?.type && data.strategy.ticker
-      ? `${data.strategy.type} · ${data.strategy.ticker}`
-      : '개별 전략'
+  const fallbackBenchmark = buildFallbackBenchmark(selection, selectedRegionName, benchmarkLabel)
+  const investmentLabel = resolveInvestmentLabel(data)
 
   return (
     <div className="flex flex-col gap-4">
@@ -131,48 +90,32 @@ export function HousingBenchmarkComparison({ enabled, defaultTo, renderHousingEx
         showRefetchingStatus={query.isFetching && query.isPlaceholderData}
       />
 
-      {!canQuery ? (
-        activeAsset === 'HOUSING' ? (
-          <HousingPriceIndexChart
-            enabled={enabled}
-            from={from}
-            to={to}
-            regionCode={filters.regionCode}
-            regionLabel={selectedRegionName}
-          />
-        ) : (
-          <EtfPriceChart
-            enabled={enabled}
-            from={from}
-            to={to}
-            symbol={filters.etfSymbol}
-            label={selectedEtfBenchmark?.label ?? filters.etfSymbol}
-          />
-        )
-      ) : query.isLoading ? (
-        <BenchmarkLoading />
-      ) : query.isError && !data ? (
-        <div role="alert" aria-live="assertive">
-          <SectionError message="벤치마크 비교를 불러오지 못했습니다" />
-        </div>
-      ) : data && data.summary && (data.points?.length ?? 0) > 0 ? (
-        <>
-          <HousingBenchmarkSummary
-            summary={data.summary}
-            investmentLabel={investmentLabel}
-            benchmarkLabel={benchmarkLabel}
-            benchmarkCurrency={benchmarkCurrency}
-          />
-          <HousingBenchmarkChart
-            points={data.points ?? []}
-            investmentLabel={investmentLabel}
-            benchmark={data.benchmark ?? fallbackBenchmark}
-            benchmarkCurrency={benchmarkCurrency}
-          />
-        </>
-      ) : data ? (
-        <EmptyState message={emptyMessage(data.emptyReason, activeAsset === 'ETF')} />
-      ) : null}
+      {canQuery ? (
+        <BenchmarkResult
+          query={query}
+          activeAsset={activeAsset}
+          investmentLabel={investmentLabel}
+          benchmarkLabel={benchmarkLabel}
+          benchmarkCurrency={benchmarkCurrency}
+          fallbackBenchmark={fallbackBenchmark}
+        />
+      ) : activeAsset === 'HOUSING' ? (
+        <HousingPriceIndexChart
+          enabled={enabled}
+          from={from}
+          to={to}
+          regionCode={filters.regionCode}
+          regionLabel={selectedRegionName}
+        />
+      ) : (
+        <EtfPriceChart
+          enabled={enabled}
+          from={from}
+          to={to}
+          symbol={filters.etfSymbol}
+          label={selectedEtfBenchmark?.label ?? filters.etfSymbol}
+        />
+      )}
 
       {/* ETF 탭에서만 표시되는 위험 안내 — 부동산(서울 분위) 안내는 아래 아파트 탭의 "가격 추이" 비교지역 선택과 연동된 안내로 이동 */}
       {activeAsset === 'ETF' ? (

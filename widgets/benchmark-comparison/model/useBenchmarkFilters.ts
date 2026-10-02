@@ -17,13 +17,51 @@ type Scope = HousingBenchmarkParams['scope']
 // 'ALL'=전체 포트폴리오, 'NONE'=비교 없이 벤치마크 원본 데이터만, 그 외=전략 id
 export type BenchmarkStrategySelection = 'ALL' | 'NONE' | string
 
-type BenchmarkSelection =
+export type BenchmarkSelection =
   | { type: 'HOUSING'; regionCode: string }
   | { type: 'ETF'; symbol: EtfBenchmarkSymbol }
 
 interface RuntimeEtfConfig {
   symbols: EtfBenchmarkSymbol[]
   defaultSymbol: EtfBenchmarkSymbol
+}
+
+interface RangeInput {
+  period: Period
+  isEtf: boolean
+  defaultTo: string
+  customFromMonth: string
+  customToMonth: string
+  customFromDate: string
+  customToDate: string
+}
+
+function resolveCustomRange(r: RangeInput) {
+  if (r.isEtf) return { from: r.customFromDate || undefined, to: r.customToDate || r.defaultTo }
+  return {
+    from: r.customFromMonth ? fromMonthInput(r.customFromMonth) : undefined,
+    to: r.customToMonth ? fromMonthInput(r.customToMonth) : r.defaultTo,
+  }
+}
+
+function resolveRange(r: RangeInput) {
+  if (r.period === 'CUSTOM') return resolveCustomRange(r)
+  const months = BENCHMARK_PERIODS.find((item) => item.value === r.period)?.months
+  return { from: months ? subtractMonths(r.defaultTo, months) : undefined, to: r.defaultTo }
+}
+
+function buildBenchmarkParams(
+  selection: BenchmarkSelection,
+  scope: Scope,
+  selectedStrategyId: string | undefined,
+  from: string | undefined,
+  to: string,
+): HousingBenchmarkParams {
+  const strategyIdParam = scope === 'STRATEGY' && selectedStrategyId ? { strategyId: selectedStrategyId } : {}
+  const range = { ...(from ? { from } : {}), to }
+  return selection.type === 'HOUSING'
+    ? { scope, ...strategyIdParam, benchmarkType: 'HOUSING', regionCode: selection.regionCode, ...range }
+    : { scope, ...strategyIdParam, benchmarkType: 'ETF', symbol: selection.symbol, ...range }
 }
 
 // 필터 상태 전체와 from/to/selection/query params 파생을 한 훅에 모은다 —
@@ -57,37 +95,17 @@ export function useBenchmarkFilters(defaultTo: string, runtimeEtf: RuntimeEtfCon
   const [customFromDate, setCustomFromDate] = useState(() => subtractMonths(defaultTo, 3))
   const [customToDate, setCustomToDate] = useState(() => defaultTo)
 
-  const selectedPeriod = periods.find((item) => item.value === period)
+  const { from, to } = resolveRange({
+    period,
+    isEtf: activeAsset === 'ETF',
+    defaultTo,
+    customFromMonth,
+    customToMonth,
+    customFromDate,
+    customToDate,
+  })
   const isCustomPeriod = period === 'CUSTOM'
-  const from = isCustomPeriod
-    ? (activeAsset === 'ETF'
-        ? (customFromDate || undefined)
-        : (customFromMonth ? fromMonthInput(customFromMonth) : undefined))
-    : selectedPeriod?.months ? subtractMonths(defaultTo, selectedPeriod.months) : undefined
-  const to = isCustomPeriod
-    ? (activeAsset === 'ETF' ? (customToDate || defaultTo) : (customToMonth ? fromMonthInput(customToMonth) : defaultTo))
-    : defaultTo
-
-  const strategyIdParam = scope === 'STRATEGY' && selectedStrategyId ? { strategyId: selectedStrategyId } : {}
-  const buildParams = (): HousingBenchmarkParams => (
-    selection.type === 'HOUSING'
-      ? {
-          scope,
-          ...strategyIdParam,
-          benchmarkType: 'HOUSING',
-          regionCode: selection.regionCode,
-          ...(from ? { from } : {}),
-          to,
-        }
-      : {
-          scope,
-          ...strategyIdParam,
-          benchmarkType: 'ETF',
-          symbol: selection.symbol,
-          ...(from ? { from } : {}),
-          to,
-        }
-  )
+  const buildParams = () => buildBenchmarkParams(selection, scope, selectedStrategyId, from, to)
 
   return {
     activeAsset,
