@@ -1,0 +1,3 @@
+# blue/green 무중단 교체 대상 — kista-infra reconcile.sh가 스케일 1→2→1로 교체한다(옛 컨테이너는 모든 role·Caddy 통과 후 제거)
+# kista-ui는 상태 없는 Next.js 서버라 두 버전이 잠시 겹쳐도 안전하다(이중 실행될 배치·스케줄러 없음)
+kista-ui

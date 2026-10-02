@@ -7,7 +7,7 @@
 services:
   kista-ui:
     image: ${KISTA_UI_IMAGE:?KISTA_UI_IMAGE is required}
-    container_name: kista-ui
+    # container_name 없음 — blue/green 교체 때 새 컨테이너가 kista-ui-kista-ui-N으로 옆에 뜬다(서비스 DNS 이름 kista-ui는 불변)
     environment:
       API_BASE_URL: ${API_BASE_URL}   # 서버 전용, NEXT_PUBLIC_API_BASE_URL보다 우선 (shared/lib/env.ts) — .env(compose 자동 로드)에서 치환
       TRADING_API_BASE_URL: ${TRADING_API_BASE_URL}   # kista-trading(4a 분리 프로세스) 서버 전용 base URL (shared/lib/env.ts) — .env에서 치환
@@ -15,7 +15,13 @@ services:
       - "3000"
     networks:
       - shared_net   # kista-infra의 caddy가 리버스 프록시하는 공용 네트워크 — data_net(postgres/redis)은 가입하지 않음
-    mem_limit: 1536m   # Next.js standalone 서버 — 유일한 앱 서비스라 여유 큼
+    mem_limit: 1536m   # Next.js standalone 서버. limit 합계는 kista-api compose 주석 참고(kista-ui 1536m 포함)
+                       # 예외: blue/green 교체 중 수 분간은 kista-ui 2개(+1536m)로 합계가 호스트를 넘는다 — limit은 예약 아닌 상한(kista-api와 같은 2026-10-02 결정)
+    # SIGTERM 시 Next.js(start-server)가 server.close()로 새 연결을 막고 처리 중 요청을 끝낸 뒤 종료한다.
+    # 단 SSE(/api/trades/stream·/api/auth/status-stream)는 스스로 끝나지 않아 매 교체마다 이 시간을 다 채우고 SIGKILL된다
+    # (클라이언트는 onerror 재연결) — 값이 곧 옛 컨테이너 정리 시간. kista-api graceful(30s+여유)과 맞춤
+    # ponytail: 35s 넘는 요청(백테스트 등)은 끊긴다 — 실측으로 길면 늘릴 것
+    stop_grace_period: 35s
     restart: unless-stopped
     healthcheck:
       # localhost는 컨테이너 내부에서 ::1(IPv6)로 먼저 풀리는데 Next.js는 HOSTNAME=0.0.0.0(IPv4)으로만 바인딩돼 connection refused —

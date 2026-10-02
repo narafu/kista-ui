@@ -8,3 +8,8 @@ D="$BATS_TEST_DIRNAME/../../deploy/server"
   [ "$(tr '\n' ' ' < "$D/required-env")" = "UI_DOMAIN API_BASE_URL " ]
   grep -q 'image: ${KISTA_UI_IMAGE' "$D/docker-compose.yml"
 }
+
+@test "bluegreen: kista-ui 대상 + compose에 container_name 없음(있으면 --scale 2가 이름 충돌로 실패)" {
+  [ "$(grep -vE '^[[:space:]]*(#|$)' "$D/bluegreen")" = kista-ui ]
+  [ "$(grep -vE '^[[:space:]]*#' "$D/docker-compose.yml" | grep -c container_name)" -eq 0 ]
+}

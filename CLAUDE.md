@@ -32,4 +32,4 @@ KISTA V2 — 한국투자증권 KIS API 기반 해외주식 자동 분할매매 
 
 ## 운영 도구
 
-- **운영 로그**: 서버 SSH 후 `docker logs -f kista-ui` (Vercel 배포 종료됨 — vercel-cli 사용 불가)
+- **운영 로그**: 서버 SSH 후 `docker logs -f $(docker ps -qlf label=com.docker.compose.service=kista-ui)` (blue/green 교체로 컨테이너 이름이 고정되지 않음, Vercel 배포 종료됨 — vercel-cli 사용 불가)

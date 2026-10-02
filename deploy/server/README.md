@@ -43,14 +43,14 @@ API_BASE_URL=https://api.kista-app.com
 1. `verify` job (`npm run typecheck`, `npm run test:run`) + `deploy-checks` job (shellcheck·bats — `.github/tests`)
 2. Docker 이미지 빌드(`.env.production.public`에서 읽은 9개 `NEXT_PUBLIC_*`를 build-args로 주입) → GHCR push
 3. `deploy` — kista-infra에 `repository_dispatch(deploy-kista-ui)`로 `{config=이 커밋, roles=kista-ui=이 커밋, request_id}`를 보내고 그 run이 끝날 때까지 대기(`wait-reconcile.sh`). 커밋의 초록불 = 서버 적용·헬스 게이트 통과. 대기 중 더 새 요청이 대체하면 생략으로 성공 처리
-4. kista-infra — SHA·이미지 검증, state보다 옛 요청 무시(신선도 병합), config SHA로 bundle 구성 → 서버 `reconcile.sh`: `required-env` 검사 → `docker compose up -d --no-deps kista-ui` → Docker 헬스 healthy 10초 간격 최대 5분 → 실패 시 직전 release로 자동 롤백, 성공 시 `current` 전환·미사용 이미지 태그 정리 → `state/kista-ui.yml` 커밋
-5. Caddy `lb_try_duration 120s`가 컨테이너 재시작 공백을 클라이언트에 투명하게 처리
+4. kista-infra — SHA·이미지 검증, state보다 옛 요청 무시(신선도 병합), config SHA로 bundle 구성 → 서버 `reconcile.sh`: `required-env` 검사 → kista-ui는 `bluegreen` 대상이라 `up --dry-run`으로 변경 판정 후 `--scale kista-ui=2 --no-recreate`로 새 컨테이너를 옆에 띄움 → Docker 헬스 healthy 10초 간격 최대 5분 → 실패 시 새 컨테이너만 제거(옛 컨테이너가 계속 서비스), 성공 시 옛 컨테이너 stop/rm·`current` 전환·미사용 이미지 태그 정리 → `state/kista-ui.yml` 커밋
+5. 교체 중 서비스 DNS 이름 `kista-ui`가 두 컨테이너를 모두 가리키고, Caddy(kista-infra `Caddyfile`, upstream `keepalive off`)가 종료 중 컨테이너로의 connection refused를 재시도로 흡수한다. 옛 컨테이너는 SIGTERM 후 처리 중 요청을 끝내고 `stop_grace_period` 35s 안에 종료(SSE는 끊기고 클라이언트가 재연결) — 설계 `kista-infra/docs/superpowers/specs/2026-10-02-kista-api-blue-green-design.md`
 
 매매 시간대 배포 가드는 없다 — kista-ui는 로그인·조회 UI일 뿐 트레이딩 로직을 직접 실행하지 않는다.
 
 ## 롤백 Runbook
 
-**자동 롤백**: reconcile 헬스 게이트 실패 시 직전 release(이미지·compose)로 자동 복구(kista-infra run 실패 + 텔레그램 알림). 롤백된 컨테이너의 헬스는 재검증되지 않으므로 알림을 받으면 서버에서 `docker inspect --format '{{.State.Health.Status}}' kista-ui`로 확인.
+**자동 롤백**: reconcile 헬스 게이트 실패 시 새 컨테이너만 제거하고 옛 컨테이너가 계속 서비스한다(kista-infra run 실패 + 텔레그램 알림). 알림을 받으면 서버에서 `docker inspect --format '{{.Name}} {{.State.Health.Status}}' $(docker ps -qf label=com.docker.compose.service=kista-ui)`로 확인 — 컨테이너가 2개 이상(정지 포함, `docker ps -aqf ...`) 남아 있으면 다음 reconcile이 exit 2로 거부하므로 수동 정리.
 
 **수동 롤백**: 서버에서 직전 release를 재적용한다(GHCR이 public이라 정리된 이미지도 다시 pull).
 ```bash
@@ -64,7 +64,7 @@ nohup bash /opt/kista-infra/bin/reconcile.sh kista-ui "$(basename "$(readlink /o
 ## 모니터링
 
 - **헬스체크**: `/api/health` (Next.js Route Handler, 인증 불필요) — Caddy·Docker healthcheck 공용 대상
-- **로그**: `docker logs -f kista-ui` (서버 SSH — 서버 루트엔 compose 파일이 없어 `docker compose logs`는 쓰지 않는다)
+- **로그**: `docker logs -f $(docker ps -qlf label=com.docker.compose.service=kista-ui)` (서버 SSH — 컨테이너 이름은 blue/green 교체로 고정되지 않고, 서버 루트엔 compose 파일이 없어 `docker compose logs`는 쓰지 않는다)
 
 ## 운영 전환 시 확인 사항
 
