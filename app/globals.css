@@ -162,7 +162,7 @@
   --sidebar-active-fg:  #95513C;
 
   /* Korean securities color convention */
-  --pos:        #D14B3F;   --pos-bg: #FBE4E0;   /* 상승/매수/수익 — 빨강 */
+  --pos:        #C94437;   --pos-bg: #FBE4E0;   /* 상승/매수/수익 — 빨강 */
   --neg:        #1F6FE5;   --neg-bg: #DEE9FA;   /* 하락/매도/손실 — 파랑 */
   --warn:       #855C13;   --warn-bg:#F6E5C2;
   --status-ok:  #2F8A57;   --status-ok-bg: #DCEFE0;   /* 운영중 — 초록 */
