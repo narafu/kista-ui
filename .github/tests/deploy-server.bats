@@ -74,3 +74,9 @@ gate_after_deploy() {
   [[ "$output" == *"수동 복구 필요"* ]]
   ! grep -q "compose" "$DOCKER_LOG"
 }
+
+@test "reconcile 계약: roles=kista-ui, required-env는 deploy.sh 필수 키와 동일" {
+  D="$BATS_TEST_DIRNAME/../../deploy/server"
+  [ "$(cat "$D/roles")" = kista-ui ]
+  [ "$(tr '\n' ' ' < "$D/required-env")" = "UI_DOMAIN API_BASE_URL " ]
+}
