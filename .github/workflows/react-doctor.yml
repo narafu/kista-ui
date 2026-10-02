@@ -7,11 +7,14 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  statuses: write
 
 jobs:
   react-doctor:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # scope=changed가 base 브랜치와 비교하려면 전체 이력 필요
       # SHA 고정: 이 액션은 위 permissions의 토큰(github.token)을 암묵적으로 사용한다 — 브랜치 참조면 업스트림 변경이 즉시 실행됨
       - uses: millionco/react-doctor@013f7373f91a3b9e68bd1dc7d4d354f4b041b117 # v2.2.9
