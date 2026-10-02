@@ -36,7 +36,7 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
   // 기존 DB의 accountNo는 마이그레이션되지 않아 비숫자를 포함할 수 있다(서버는 신규/수정 요청만
   // 숫자 전용으로 강제) — 초기값부터 digitsOnly로 정규화해야 필드를 건드리지 않고 다른 값만
   // 고쳐 제출해도 400을 맞지 않는다.
-  const [accountNo, setAccountNo] = useState(digitsOnly(account?.accountNo ?? ''))
+  const [accountNo, setAccountNo] = useState(() => digitsOnly(account?.accountNo ?? ''))
   const [owner, setOwner] = useState(account?.owner ?? '')
   const [memo, setMemo] = useState(account?.memo ?? '')
 

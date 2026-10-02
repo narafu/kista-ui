@@ -122,6 +122,7 @@ export function AssetRecordList({ month }: Props) {
   // 선택 후 페이지를 넘겨가며 추가 선택)를 의도적으로 허용한다. 페이지 크기 변경은 handlePageSizeChange가 처리한다.
   useEffect(() => {
     setPage(1)
+    // eslint-disable-next-line react-doctor/no-adjust-state-on-prop-change -- key 리마운트는 필터 상태까지 날려 의도와 다름, 1프레임 지연만 감수
     setSelectedIds(new Set())
   }, [month, categoryPath, assetClass, market, setPage])
 

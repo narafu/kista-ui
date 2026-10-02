@@ -28,6 +28,7 @@ export function ErrorLogsSectionClient({ logs }: Props) {
   const mutation = useDeleteAdminErrorLogsMutation()
 
   const selectedCount = selectedIds.length
+  const selectedIdSet = new Set(selectedIds)
   const allSelected = logs.length > 0 && selectedCount === logs.length
   const someSelected = selectedCount > 0 && !allSelected
   const selectedLabel = useMemo(() => `선택 ${selectedCount}건 삭제`, [selectedCount])
@@ -109,7 +110,7 @@ export function ErrorLogsSectionClient({ logs }: Props) {
       </div>
 
       {logs.map((log) => (
-        <ErrorLogItem key={log.id} log={log} checked={selectedIds.includes(log.id)} disabled={mutation.isPending} onCheckedChange={(checked) => toggleOne(log.id, checked)} />
+        <ErrorLogItem key={log.id} log={log} checked={selectedIdSet.has(log.id)} disabled={mutation.isPending} onCheckedChange={(checked) => toggleOne(log.id, checked)} />
       ))}
     </div>
   )

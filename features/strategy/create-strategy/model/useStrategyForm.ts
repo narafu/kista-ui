@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -238,9 +238,8 @@ export function useStrategyForm({
   const usdDeposit = marginItems.find((m) => m.currency === 'USD')?.purchasableAmount ?? null
 
   // 초기 로딩 완료 후엔 true로 고정 — 타입 전환 시 재스켈레톤 방지
-  const initRef = useRef(false)
-  if (!loadingBase) initRef.current = true
-  const initialized = initRef.current
+  const [initialized, setInitialized] = useState(false)
+  if (!loadingBase && !initialized) setInitialized(true)
 
   // 실제 쿼리 실패만 알린다 — 값이 null인지로 판정하면 현재가 조회가 아직 진행 중이거나(loadingBase에
   // 미포함) 잔고검증 OFF로 예수금 조회를 건너뛴 경우까지 실패로 오탐한다.

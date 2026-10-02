@@ -53,7 +53,7 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
   const seed = initial ?? duplicateFrom
 
   const [transactionDate, setTransactionDate] = useState(
-    clampDate(initial?.transactionDate ?? duplicateFrom?.transactionDate ?? todayKst(), windowFrom, windowTo),
+    () => clampDate(initial?.transactionDate ?? duplicateFrom?.transactionDate ?? todayKst(), windowFrom, windowTo),
   )
   const { selectedPath, setSelectedPath, cascadeLevels, categoryId } = useCategoryPathState(categories, seed?.categoryId)
 

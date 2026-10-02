@@ -166,7 +166,8 @@ describe('HousingBenchmarkQuintileTrendChart', () => {
     const onRegionChange = vi.fn()
     render(<HousingBenchmarkQuintileTrendChart enabled onRegionChange={onRegionChange} />)
 
-    expect(onRegionChange).toHaveBeenLastCalledWith({ code: '1100000000', name: '서울' })
+    // 초기 선택(서울)은 상위 기본값과 같아 마운트 시에는 알리지 않는다
+    expect(onRegionChange).not.toHaveBeenCalled()
 
     await user.selectOptions(screen.getByLabelText('비교 지역'), '4100000000')
 

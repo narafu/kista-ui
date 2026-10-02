@@ -10,6 +10,7 @@ export function BacktestWarnings({ warnings }: Props) {
       <p className="text-sm font-bold text-[var(--warn)]">해석 시 유의사항</p>
       <ul className="flex flex-col gap-1.5 text-sm text-[var(--warn)]">
         {warnings.map((warning, index) => (
+          // eslint-disable-next-line react-doctor/no-array-index-as-key -- 중복 가능한 정적 경고 문구 목록(재정렬 없음)
           <li key={index}>· {warning}</li>
         ))}
       </ul>

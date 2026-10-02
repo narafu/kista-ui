@@ -126,9 +126,9 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
     // 대상월의 마지막 일자로 등록한다 — 월말 마감 시점 기준 자산·거래 기록이라는 성격에 맞춘다.
     const targetDate = monthEndDate(targetMonth)
 
-    const assets = flattenNodes(items.asset)
-      .filter((item) => rowState(item).included)
-      .map((item) => ({
+    const assets = flattenNodes(items.asset).flatMap((item) => {
+      const state = rowState(item)
+      return state.included ? [{
         categoryId: item.categoryId,
         accountId: item.accountId,
         entryDate: targetDate,
@@ -136,17 +136,19 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
         market: item.market!,
         strategy: item.strategy,
         memo: item.memo,
-        amount: rowState(item).amount,
-      }))
+        amount: state.amount,
+      }] : []
+    })
 
-    const transactionsPayload = flattenNodes([...items.income, ...items.expense, ...items.saving])
-      .filter((item) => rowState(item).included)
-      .map((item) => ({
+    const transactionsPayload = flattenNodes([...items.income, ...items.expense, ...items.saving]).flatMap((item) => {
+      const state = rowState(item)
+      return state.included ? [{
         categoryId: item.categoryId,
         transactionDate: targetDate,
-        amount: rowState(item).amount,
+        amount: state.amount,
         memo: item.memo,
-      }))
+      }] : []
+    })
 
     mutation.mutate(
       { assets, transactions: transactionsPayload, shareToGroup: canShareToGroup && shareToGroup },

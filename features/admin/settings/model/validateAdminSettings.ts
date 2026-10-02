@@ -40,8 +40,8 @@ export function validateAdminSettings(settings: RuntimeConfig): AdminSettingsErr
   }
   if (settings.benchmarks?.etf) {
     validateValueSet('benchmarks.etf', settings.benchmarks.etf.allowedValues, settings.benchmarks.etf.defaultValue, errors)
-    const supportedSymbols = DEFAULT_RUNTIME_BENCHMARKS.etf.allowedValues
-    const unsupported = settings.benchmarks.etf.allowedValues.filter((symbol) => !supportedSymbols.includes(symbol))
+    const supportedSymbols = new Set<string>(DEFAULT_RUNTIME_BENCHMARKS.etf.allowedValues)
+    const unsupported = settings.benchmarks.etf.allowedValues.filter((symbol) => !supportedSymbols.has(symbol))
     if (unsupported.length > 0) {
       errors['benchmarks.etf'] = `지원하지 않는 ETF 심볼입니다: ${unsupported.join(', ')}`
     }

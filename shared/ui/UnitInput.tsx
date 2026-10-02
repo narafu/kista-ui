@@ -50,6 +50,8 @@ export function UnitInput({
   const [text, setText] = useState(value !== null ? String(value) : '')
   const emittedValueRef = useRef(value)
 
+  // 외부(폼 reset 등)에서 value가 바뀐 경우에만 버퍼를 되돌린다 — key 리마운트는 매 키 입력마다 포커스가 끊긴다
+  // eslint-disable-next-line react-doctor/no-reset-all-state-on-prop-change -- 입력 중간 상태 보존용 하이브리드 컨트롤드 인풋
   useEffect(() => {
     if (value !== emittedValueRef.current) {
       emittedValueRef.current = value

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -68,11 +68,6 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
   const selectedRegion = regions.find((region) => region.code === regionCode) ?? regions[0]
   const regionLabel = selectedRegion.name
 
-  useEffect(() => {
-    onRegionChange?.(selectedRegion)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedRegion.code, selectedRegion.name])
-
   // 상단 "비교 기간" 토글과 동일한 from/to로 조회 — 추이 차트만 별도 기간을 쓰지 않는다
   const query = useHousingBenchmarkSeriesQuery({ from, to, regionCode }, enabled)
   const data = query.data
@@ -93,7 +88,13 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
               <select
                 aria-label="비교 지역"
                 value={regionCode}
-                onChange={(event) => setRegionCode(event.target.value)}
+                onChange={(event) => {
+                  const code = event.target.value
+                  setRegionCode(code)
+                  // 상위 기본값(서울)과 초기 선택이 같아 마운트 시 알릴 필요 없이 사용자 변경 시점에만 알린다
+                  const region = regions.find((item) => item.code === code)
+                  if (region) onRegionChange?.(region)
+                }}
                 className="min-h-8 rounded-md border border-[var(--border-strong)] bg-background px-2 text-base font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring lg:text-lg"
               >
                 {regions.map((region) => (

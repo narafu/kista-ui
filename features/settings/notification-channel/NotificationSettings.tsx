@@ -137,7 +137,8 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
       )}
       {fcmStatus === 'error' && (
         <p className="text-sm mt-2" style={{ color: 'var(--warn)' }}>
-          {'Notification' in window && 'PushManager' in window
+          {/* eslint-disable-next-line react-doctor/no-hydration-branch-on-browser-global -- fcmStatus 'error'는 클라이언트 effect 이후에만 설정되어 SSR 렌더에 도달하지 않음 */}
+          {typeof window !== 'undefined' && 'Notification' in window && 'PushManager' in window
             ? '푸시 알림 설정에 실패했습니다. 새로고침 후 다시 시도해주세요.'
             : '이 브라우저에서는 푸시 알림이 지원되지 않습니다. Chrome 또는 Edge를 이용해주세요.'}
         </p>

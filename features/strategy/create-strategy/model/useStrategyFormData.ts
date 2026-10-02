@@ -12,9 +12,8 @@ export function useStrategyFormData(accountId: string, broker: BrokerCode | unde
   const { meta, findStrategyType } = useMeta()
   const runtimeQuery = useRuntimeConfigQuery()
   const runtimeConfig = runtimeQuery.data
-  const enabledStrategyTypes = meta.strategyTypes
-    .filter(({ code }) => runtimeConfig?.strategies[code as RuntimeStrategyType]?.enabled === true)
-    .map(({ code }) => code)
+  const enabledStrategyTypes = meta.strategyTypes.flatMap(({ code }) =>
+    runtimeConfig?.strategies[code as RuntimeStrategyType]?.enabled === true ? [code] : [])
 
   const { data: meData } = useMeQuery()
   // 모의계좌는 실제 잔고가 없어 예수금 조회 자체가 무의미 — 항상 수동 입력

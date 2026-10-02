@@ -30,7 +30,7 @@ function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
               <Link
                 key={account.id}
                 href={`/accounts/${account.id}`}
-                className="flex items-center justify-between px-4 py-2.5 rounded-[var(--r-md)] border border-border bg-card hover:border-rose-300 hover:shadow-[var(--sh-rose)] transition-all text-sm"
+                className="flex items-center justify-between px-4 py-2.5 rounded-[var(--r-md)] border border-border bg-card hover:border-rose-300 hover:shadow-[var(--sh-rose)] transition-[border-color,box-shadow] text-sm"
               >
                 <span className="font-medium text-foreground">{account.nickname}</span>
                 <span className="flex items-center gap-1 text-muted-foreground text-sm">
@@ -66,12 +66,10 @@ export function AllStrategiesList({ previewsByStrategyId }: Props) {
   const groupByAccount = accounts.length > 1
 
   // 계좌 등록 순서를 유지한 채 계좌별 전략을 그룹핑 — 전략이 없는 계좌는 섹션 생략
-  const groups = accounts
-    .map((account) => ({
-      account,
-      strategies: strategies.filter((s) => s.accountId === account.id),
-    }))
-    .filter((g) => g.strategies.length > 0)
+  const groups = accounts.flatMap((account) => {
+    const accountStrategies = strategies.filter((s) => s.accountId === account.id)
+    return accountStrategies.length > 0 ? [{ account, strategies: accountStrategies }] : []
+  })
 
   // NOTE: 초대제 SaaS 규모상 전략 5개 수준 — 100+ 전략 시 페이지네이션 재검토
   return (

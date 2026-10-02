@@ -30,6 +30,7 @@ function AccountDetails({ account }: { account: FinanceAccount }) {
   return (
     <p className="truncate text-xs text-muted-foreground tabular-nums">
       {parts.map((part, index) => (
+        // eslint-disable-next-line react-doctor/no-array-index-as-key -- 값이 중복될 수 있는 정적 표시 목록(재정렬 없음)
         <Fragment key={index}>
           {index > 0 && ' · '}
           <span>{part}</span>

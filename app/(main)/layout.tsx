@@ -38,6 +38,7 @@ export default async function MainLayout({ children, modal }: Props) {
   return (
     <MetaProvider meta={meta}>
         <div className="flex min-h-screen bg-background">
+        {/* eslint-disable-next-line react-doctor/nextjs-no-use-search-params-without-suspense -- cookies() 사용으로 이미 동적 렌더링이라 CSR bailout 없음, Suspense fallback은 사이드바 깜빡임 유발 */}
         <DesktopSidebar isAdmin={isAdmin} isAuthenticated={isAuthenticated} />
         <div className="flex flex-col flex-1 min-w-0">
           <MobileHeader

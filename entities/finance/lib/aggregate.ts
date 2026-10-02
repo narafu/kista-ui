@@ -125,9 +125,10 @@ export function calcAssetClassBreakdown(snapshots: AssetSnapshot[], month: strin
   for (const snapshot of monthSnapshots) {
     amountByClass.set(snapshot.assetClass, (amountByClass.get(snapshot.assetClass) ?? 0) + snapshot.amount)
   }
-  return ASSET_CLASS_ORDER
-    .map((assetClass) => ({ assetClass, amount: amountByClass.get(assetClass) ?? 0 }))
-    .filter((entry) => entry.amount > 0)
+  return ASSET_CLASS_ORDER.flatMap((assetClass) => {
+    const amount = amountByClass.get(assetClass) ?? 0
+    return amount > 0 ? [{ assetClass, amount }] : []
+  })
 }
 
 export type TrendMode = 'netWorth' | 'category' | 'assetClass'

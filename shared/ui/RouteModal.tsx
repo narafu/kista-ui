@@ -64,8 +64,10 @@ export function RouteModal({ children, className }: Props) {
       className="fixed inset-0 z-50 overflow-y-auto touch-pan-y sm:overflow-y-visible sm:flex sm:items-center sm:justify-center sm:bg-black/40 sm:p-4"
       onClick={(e) => { if (e.target === e.currentTarget) dismiss() }}
     >
+      {/* eslint-disable-next-line react-doctor/dialog-has-accessible-name -- 자식 폼이 제목을 자유롭게 렌더링하는 셸이라 제목 id를 알 수 없음 */}
       <div
         ref={containerRef}
+        // eslint-disable-next-line react-doctor/prefer-html-dialog -- ESC·포커스 트랩·복귀를 위 effect에서 직접 구현했고 <dialog>로 바꾸면 인터셉팅 라우트 레이아웃이 달라짐
         role="dialog"
         aria-modal="true"
         data-slot="dialog-content"

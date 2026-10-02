@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Pencil } from 'lucide-react'
-import { ICON_LINK_GHOST_CLASS } from '@shared/ui/IconButton'
+import { ICON_LINK_GHOST_CLASS } from '@shared/ui/iconButtonStyles'
 
 import { useAccountDetailQuery } from '@entities/account'
 import { PageHeader } from '@widgets/page-header'

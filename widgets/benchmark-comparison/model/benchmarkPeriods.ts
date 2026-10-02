@@ -42,5 +42,8 @@ export function emptyMessage(reason: string | null | undefined, isDaily: boolean
 }
 
 export function uniqueSymbols(symbols: string[]) {
-  return Array.from(new Set(symbols.map((symbol) => symbol.trim().toUpperCase()).filter(Boolean)))
+  return Array.from(new Set(symbols.flatMap((symbol) => {
+    const normalized = symbol.trim().toUpperCase()
+    return normalized ? [normalized] : []
+  })))
 }

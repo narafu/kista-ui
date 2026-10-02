@@ -45,9 +45,11 @@ export function fmtKrwEok(manwon: number, digits = 1): string {
   return `${(manwon / 10000).toFixed(digits)}억`
 }
 
+const krwNumberFormat = new Intl.NumberFormat('ko-KR')
+
 /** 원화 정수 금액 포맷 (예: 1000000 → "1,000,000원") */
 export function fmtKrw(n: number): string {
-  return `${new Intl.NumberFormat('ko-KR').format(n)}원`
+  return `${krwNumberFormat.format(n)}원`
 }
 
 /** 부호 포함 원화 금액 — 양수는 +, 음수는 - */

@@ -28,9 +28,10 @@ interface Props {
 export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }: Props) {
   const { meta } = useMeta()
   const form = useStrategyForm({ accountId, broker, initial, onSuccess })
+  const enabledTypeSet = new Set(form.enabledStrategyTypes)
   const strategyTypes = initial
     ? meta.strategyTypes
-    : meta.strategyTypes.filter(({ code }) => form.enabledStrategyTypes.includes(code))
+    : meta.strategyTypes.filter(({ code }) => enabledTypeSet.has(code))
 
   if (form.initializing) {
     return <StrategyFormSkeleton hasCancel={!!onCancel} />

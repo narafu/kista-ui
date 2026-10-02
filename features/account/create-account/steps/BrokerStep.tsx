@@ -57,7 +57,7 @@ export function BrokerStep({ onNext }: Props) {
               key={code}
               type="button"
               onClick={() => onNext({ broker: code as BrokerCode })}
-              className="flex items-center gap-4 w-full rounded-[var(--r-lg)] border border-border bg-card p-5 text-left hover:border-rose-300 hover:shadow-[var(--sh-rose)] transition-all"
+              className="flex items-center gap-4 w-full rounded-[var(--r-lg)] border border-border bg-card p-5 text-left hover:border-rose-300 hover:shadow-[var(--sh-rose)] transition-[border-color,box-shadow]"
             >
               <div className="size-10 rounded-full bg-muted flex items-center justify-center shrink-0">
                 <Icon className="size-5 text-rose-600" />

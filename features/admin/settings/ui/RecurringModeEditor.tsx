@@ -3,12 +3,7 @@
 import { useState } from 'react'
 import { Switch } from '@/components/ui/switch'
 import type { RecurringMode, RuntimeFieldSettings } from '@entities/runtime-config'
-
-export const RECURRING_MODE_OPTIONS = [
-  { value: 'DEPOSIT', label: '입금' },
-  { value: 'HOLD', label: '거치' },
-  { value: 'WITHDRAW', label: '인출' },
-] as const satisfies readonly { value: RecurringMode; label: string }[]
+import { RECURRING_MODE_OPTIONS } from './recurringModeOptions'
 
 export function RecurringModeEditor({ id, label, field, error, onChange }: {
   id: string

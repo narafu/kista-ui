@@ -144,8 +144,9 @@ export function useDeleteManyAssetSnapshotsMutation() {
         }
         return
       }
+      const succeededSet = new Set(succeededIds)
       await synchronizeAssetSnapshotList(queryClient, (snapshots) =>
-        snapshots.filter((snapshot) => !succeededIds.includes(snapshot.id)))
+        snapshots.filter((snapshot) => !succeededSet.has(snapshot.id)))
     },
   })
 }

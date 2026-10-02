@@ -64,6 +64,7 @@ export function useSeedModel({
   }, [])
 
   // holdings=0 수정 모드 + 잔고검증 ON이면 기존 시작금액 비율로 게이지를 1회 초기화
+  // eslint-disable-next-line react-doctor/no-derived-state-effect -- 1회 초기화 후 사용자가 게이지를 조작하는 독립 상태라 파생값이 아님
   useEffect(() => {
     if (!editableEdit || !balanceCheckEnabled) return
     if (!initial || pctInitialized.current) return
@@ -76,6 +77,7 @@ export function useSeedModel({
   }, [balanceCheckEnabled, editableEdit, initial, usdDeposit])
 
   // 잔고검증 OFF + 신규 등록 시 minSeed로 자동 동기화 (사용자가 직접 조작하기 전까지)
+  // eslint-disable-next-line react-doctor/no-derived-state-effect -- 사용자 입력 전까지만 따라가는 편집 가능 상태라 파생값이 아님
   useEffect(() => {
     if (balanceCheckEnabled) return
     if (initial) return

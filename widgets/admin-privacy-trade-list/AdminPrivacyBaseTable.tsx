@@ -217,6 +217,7 @@ function MobileBaseCard({
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>{b.orders.length}건</span>
+            {/* eslint-disable-next-line react-doctor/html-no-nested-interactive -- 행 전체 토글 영역 안의 수정 버튼, stopPropagation으로 분리해 동작하며 마크업 분리는 레이아웃 변경이 큼 */}
             <button
               type="button"
               className="text-xs font-medium text-foreground underline underline-offset-2"

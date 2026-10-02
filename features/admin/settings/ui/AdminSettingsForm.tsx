@@ -49,6 +49,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
   const [draft, setDraft] = useState(() => clone(settings))
   const [serverSnapshot, setServerSnapshot] = useState(() => clone(settings))
   const latestServerRef = useRef<RuntimeConfig | null>(null)
+  // eslint-disable-next-line react-doctor/no-ref-current-in-render -- null 가드 지연 초기화(1회)라 렌더 재실행에도 안전
   if (latestServerRef.current === null) latestServerRef.current = clone(settings)
   const draftRef = useRef(draft)
   const [attempted, setAttempted] = useState(false)

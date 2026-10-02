@@ -29,7 +29,7 @@ interface DraftOrder {
 const EMPTY_ORDER: DraftOrder = { direction: 'BUY', orderType: 'LOC', price: '', quantity: '' }
 
 export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
-  const [releaseDate, setReleaseDate] = useState(todayKst())
+  const [releaseDate, setReleaseDate] = useState(() => todayKst())
   const [ticker, setTicker] = useState('SOXL')
   const [currentCycleStart, setCurrentCycleStart] = useState('')
   const [currentCycleRealizedPnl, setCurrentCycleRealizedPnl] = useState('0')
@@ -123,6 +123,7 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
               </div>
 
               {orders.map((o, i) => (
+                // eslint-disable-next-line react-doctor/no-array-index-as-key -- id 없는 편집형 주문 목록(삭제 시 index 기준 갱신)이라 index 키 유지
                 <div key={i} className="flex items-end gap-2 rounded-[var(--r-sm)] border border-border p-3">
                   <div className="flex-1 space-y-1">
                     <Label className="text-xs">방향</Label>

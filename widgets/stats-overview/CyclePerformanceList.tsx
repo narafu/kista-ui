@@ -121,9 +121,9 @@ export function CyclePerformanceList({ typeFilter }: Props) {
                 </tbody>
               </table>
             </div>
-            <div className="divide-y sm:hidden" role="list" aria-label="사이클 성과 모바일">
+            <ul className="divide-y sm:hidden list-none p-0 m-0" aria-label="사이클 성과 모바일">
               {cycles.map((cycle) => (
-                <section key={cycle.cycleId} className="px-4 py-4" role="listitem">
+                <li key={cycle.cycleId} className="px-4 py-4">
                   <div className="flex flex-wrap items-center justify-between gap-1.5">
                     <div className="flex flex-wrap items-center gap-1.5">
                       {accountsById.get(cycle.accountId) && (
@@ -158,9 +158,9 @@ export function CyclePerformanceList({ typeFilter }: Props) {
                       </span>
                     </div>
                   </div>
-                </section>
+                </li>
               ))}
-            </div>
+            </ul>
             {(hasNextPage || isFetchingNextPage) && (
               <div className="flex justify-center py-4 border-t">
                 <button type="button" onClick={() => fetchNextPage()} disabled={isFetchingNextPage} className="px-4 py-2 text-sm font-medium text-rose-600 hover:text-rose-700 disabled:opacity-50">

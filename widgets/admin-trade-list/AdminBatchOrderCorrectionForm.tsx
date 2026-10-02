@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState, type FormEvent } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import type { AdminReorderTimingAvailability, AdminStrategyOrder } from '@entities/admin'
 import { ORDER_STATUS_LABEL } from '@entities/order'
 import type { OrderDirection } from '@shared/lib/api-schema'
@@ -70,8 +70,8 @@ function isDraftChanged(current: OrderDraft, initial: OrderDraft): boolean {
 }
 
 export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailability, onSubmit }: Props) {
-  const initialDraftsRef = useRef<Record<string, OrderDraft>>(buildInitialDrafts(orders, timingAvailability))
-  const [drafts, setDrafts] = useState<Record<string, OrderDraft>>(() => initialDraftsRef.current)
+  const [initialDrafts] = useState<Record<string, OrderDraft>>(() => buildInitialDrafts(orders, timingAvailability))
+  const [drafts, setDrafts] = useState<Record<string, OrderDraft>>(() => initialDrafts)
 
   const isBlocked = useMemo(
     () => !timingAvailability.atOpen && !timingAvailability.atClose && !timingAvailability.immediate,
@@ -79,13 +79,14 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
   )
 
   const changedOrderIds = useMemo(
-    () => orders.filter((order) => {
+    () => orders.flatMap((order) => {
       const current = drafts[order.id]
-      const initial = initialDraftsRef.current[order.id]
-      return current != null && initial != null && isDraftChanged(current, initial)
-    }).map((order) => order.id),
-    [orders, drafts],
+      const initial = initialDrafts[order.id]
+      return current != null && initial != null && isDraftChanged(current, initial) ? [order.id] : []
+    }),
+    [orders, drafts, initialDrafts],
   )
+  const changedSet = useMemo(() => new Set(changedOrderIds), [changedOrderIds])
 
   const handleDraftChange = (orderId: string, key: keyof OrderDraft, value: string) => {
     setDrafts((current) => ({
@@ -105,20 +106,18 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    const changedSet = new Set(changedOrderIds)
-    const items: ReorderBatchItem[] = orders
-      .filter((order) => changedSet.has(order.id))
-      .map((order) => {
-        const draft = drafts[order.id]!
-        return {
-          orderId: order.id,
-          timing: draft.timing,
-          direction: order.direction,
-          quantity: Number(draft.quantity),
-          price: Number(draft.price),
-          memo: draft.memo.trim() || undefined,
-        }
-      })
+    const items: ReorderBatchItem[] = orders.flatMap((order) => {
+      if (!changedSet.has(order.id)) return []
+      const draft = drafts[order.id]!
+      return [{
+        orderId: order.id,
+        timing: draft.timing,
+        direction: order.direction,
+        quantity: Number(draft.quantity),
+        price: Number(draft.price),
+        memo: draft.memo.trim() || undefined,
+      }]
+    })
 
     if (items.length === 0) return
     await onSubmit(items)
@@ -151,7 +150,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
             memo: '',
           }
 
-          const isChanged = changedOrderIds.includes(order.id)
+          const isChanged = changedSet.has(order.id)
           return (
             <section key={order.id} className={`rounded-[var(--r-md)] border bg-background p-3 ${isChanged ? 'border-primary' : 'border-border'}`}>
               <div className="flex flex-wrap items-center gap-2">

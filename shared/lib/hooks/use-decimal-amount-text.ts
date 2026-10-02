@@ -28,6 +28,7 @@ export function useDecimalAmountText({ value, onChange, maxDecimals = 2, allowNe
   // "12." 같은 입력 중간 상태는 number로 표현 불가해 text가 value의 순수 파생값일 수 없다.
   // value가 이 훅 스스로 emit한 게 아니라 외부(폼 reset 등)에서 바뀐 경우에만 되돌리는
   // 하이브리드 컨트롤드 인풋 — key 리마운트는 매 키 입력마다 value가 바뀌어 포커스가 끊긴다.
+  // eslint-disable-next-line react-doctor/no-derived-state-effect -- 위 사유: 입력 중간 상태 보존을 위한 문자열 버퍼
   useEffect(() => {
     if (value === lastEmitted.current) return
     lastEmitted.current = value

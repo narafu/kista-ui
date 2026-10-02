@@ -46,6 +46,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
           {hasCancel && <span>취소</span>}
         </li>
         {orders.map((o, i) => (
+          // eslint-disable-next-line react-doctor/no-array-index-as-key -- id 없는 주문의 fallback 키(재정렬 없는 읽기 전용 목록)
           <li key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className={cn(
             'grid items-center text-sm px-6 py-3 border-b border-border last:border-b-0 text-center',
             hasCancel ? 'grid-cols-5' : 'grid-cols-4',
@@ -91,6 +92,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
         </thead>
         <tbody>
           {orders.map((o, i) => (
+            // eslint-disable-next-line react-doctor/no-array-index-as-key -- id 없는 주문의 fallback 키(재정렬 없는 읽기 전용 목록)
             <tr key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className="border-b border-border last:border-b-0">
               <TableDataCell className="px-5 py-3">
                 <Badge tone="none" size="sm" className={cn('lg:h-[24px] lg:text-sm', directionBadgeCls(o.direction))}>

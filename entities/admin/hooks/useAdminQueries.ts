@@ -80,7 +80,9 @@ export function useUpdateAdminStrategyStatusMutation() {
 // onError에 toast를 두지 않는다 — 호출부(AdminTradesWorkbench)가 배치의 여러 주문을 순차
 // mutateAsync로 호출한 뒤 실패 건수를 하나의 인라인 배너로 합쳐 보여준다. 여기서 toast까지 붙이면
 // 재주문 10건 중 3건 실패 시 토스트 3개가 동시에 쌓이는 스팸이 된다 — 집계된 배너 하나가 맞다.
+// 캐시 무효화도 같은 이유로 호출부가 배치 종료 후 한 번에 수행한다(건별 invalidate 시 재조회 폭주).
 export function useReorderAdminOrderMutation() {
+  // eslint-disable-next-line react-doctor/query-mutation-missing-invalidation -- 위 사유: 호출부가 배치 종료 후 일괄 무효화
   return useMutation({
     mutationFn: (request: AdminReorderRequest) => reorderAdminOrder(request),
   })

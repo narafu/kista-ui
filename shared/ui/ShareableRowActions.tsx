@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { Copy, Pencil, Share2, Trash2, Undo2 } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
-import { IconButton, ICON_LINK_GHOST_CLASS } from './IconButton'
+import { IconButton } from './IconButton'
+import { ICON_LINK_GHOST_CLASS } from './iconButtonStyles'
 
 // 미전달 시 복제 버튼 자체를 렌더하지 않는다(계좌 목록처럼 복제 개념이 없는 리소스).
 // duplicateHref가 있으면 <Link>로(자산 기록처럼 라우트 이동), onDuplicate만 있으면 onClick으로 렌더한다 —

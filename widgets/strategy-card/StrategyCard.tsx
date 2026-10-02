@@ -55,7 +55,7 @@ export function StrategyCard({ accountId, strategy, accountLabel, initialPreview
   return (
     <Link
       href={`/accounts/${accountId}/strategies/${strategy.id}`}
-      className="group relative block rounded-[var(--r-lg)] border border-border bg-card shadow-[var(--sh-card)] hover:border-rose-300 hover:shadow-[var(--sh-rose)] transition-all overflow-hidden"
+      className="group relative block rounded-[var(--r-lg)] border border-border bg-card shadow-[var(--sh-card)] hover:border-rose-300 hover:shadow-[var(--sh-rose)] transition-[border-color,box-shadow] overflow-hidden"
     >
       {/* 상태 액센트 스트립 */}
       <span

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import type { EtfBenchmarkSymbol, HousingBenchmarkParams } from '@entities/stats'
 import { DEFAULT_HOUSING_REGION_CODE } from '@entities/stats'
 import {
@@ -42,12 +42,10 @@ export function useBenchmarkFilters(defaultTo: string, runtimeEtf: RuntimeEtfCon
   const scope: Scope = selectedStrategyId ? 'STRATEGY' : 'PORTFOLIO'
 
   const [regionCode, setRegionCode] = useState<string>(DEFAULT_HOUSING_REGION_CODE)
-  const [etfSymbol, setEtfSymbol] = useState<EtfBenchmarkSymbol>(defaultEtfSymbol)
-  const hasUserSelectedEtfRef = useRef(false)
-  const handleEtfSymbolChange = useCallback((symbol: EtfBenchmarkSymbol) => {
-    hasUserSelectedEtfRef.current = true
-    setEtfSymbol(symbol)
-  }, [])
+  // 사용자가 고른 심볼이 런타임 허용 목록에 있을 때만 유지하고, 아니면(미선택 포함) 런타임 기본값을 따른다
+  const [userEtfSymbol, setUserEtfSymbol] = useState<EtfBenchmarkSymbol | null>(null)
+  const etfSymbol = userEtfSymbol !== null && etfSymbols.includes(userEtfSymbol) ? userEtfSymbol : defaultEtfSymbol
+  const handleEtfSymbolChange = useCallback((symbol: EtfBenchmarkSymbol) => setUserEtfSymbol(symbol), [])
   const selection: BenchmarkSelection = activeAsset === 'ETF' ? { type: 'ETF', symbol: etfSymbol } : { type: 'HOUSING', regionCode }
   const [housingPeriod, setHousingPeriod] = useState<Period>('1Y')
   const [etfPeriod, setEtfPeriod] = useState<Period>('3M')
@@ -58,11 +56,6 @@ export function useBenchmarkFilters(defaultTo: string, runtimeEtf: RuntimeEtfCon
   const [customToMonth, setCustomToMonth] = useState(() => toMonthInput(defaultTo))
   const [customFromDate, setCustomFromDate] = useState(() => subtractMonths(defaultTo, 3))
   const [customToDate, setCustomToDate] = useState(() => defaultTo)
-
-  useEffect(() => {
-    if (hasUserSelectedEtfRef.current && etfSymbols.includes(etfSymbol)) return
-    setEtfSymbol(defaultEtfSymbol)
-  }, [defaultEtfSymbol, etfSymbol, etfSymbols])
 
   const selectedPeriod = periods.find((item) => item.value === period)
   const isCustomPeriod = period === 'CUSTOM'

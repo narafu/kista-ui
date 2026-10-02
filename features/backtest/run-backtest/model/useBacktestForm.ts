@@ -14,7 +14,7 @@ export function useBacktestForm() {
 
   const [type, setTypeState] = useState<BacktestType>('INFINITE')
   const [ticker, setTicker] = useState(
-    meta.strategyTypes.find((t) => t.code === 'INFINITE')?.availableTickers[0] ?? ''
+    () => meta.strategyTypes.find((t) => t.code === 'INFINITE')?.availableTickers[0] ?? ''
   )
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')

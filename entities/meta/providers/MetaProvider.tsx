@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, use } from 'react'
+import { createContext, use, useMemo } from 'react'
 import type { MetaBundle, StrategyTypeMeta, TickerMeta, EnumMeta } from '@entities/meta'
 
 interface MetaContextValue {
@@ -15,7 +15,7 @@ interface MetaContextValue {
 const MetaContext = createContext<MetaContextValue | null>(null)
 
 export function MetaProvider({ children, meta }: { children: React.ReactNode; meta: MetaBundle }) {
-  const value: MetaContextValue = {
+  const value = useMemo<MetaContextValue>(() => ({
     meta,
     findStrategyType: (code) => meta.strategyTypes.find(t => t.code === code),
     findTicker: (code) => meta.tickers.find(t => t.code === code),
@@ -25,7 +25,7 @@ export function MetaProvider({ children, meta }: { children: React.ReactNode; me
       const items = meta[category] as { code: string; label: string }[]
       return items.find(i => i.code === code)?.label ?? code
     },
-  }
+  }), [meta])
   return <MetaContext.Provider value={value}>{children}</MetaContext.Provider>
 }
 

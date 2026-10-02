@@ -43,7 +43,6 @@ export function PullToRefresh() {
     e.preventDefault()
   }, [])
 
-  const handleTouchEndRef = useRef<() => void>(() => {})
   const handleTouchEnd = useCallback(() => {
     if (!isPullingRef.current) return
     isPullingRef.current = false
@@ -58,21 +57,18 @@ export function PullToRefresh() {
       })
     }
   }, [router, queryClient])
-  handleTouchEndRef.current = handleTouchEnd
 
-  // eslint-disable-next-line react-doctor/advanced-event-handler-refs
   useEffect(() => {
-    const stableEnd = () => handleTouchEndRef.current()
     document.addEventListener('touchstart', handleTouchStart, { passive: true })
     // eslint-disable-next-line react-doctor/client-passive-event-listeners
     document.addEventListener('touchmove', handleTouchMove, { passive: false })
-    document.addEventListener('touchend', stableEnd, { passive: true })
+    document.addEventListener('touchend', handleTouchEnd, { passive: true })
     return () => {
       document.removeEventListener('touchstart', handleTouchStart)
       document.removeEventListener('touchmove', handleTouchMove)
-      document.removeEventListener('touchend', stableEnd)
+      document.removeEventListener('touchend', handleTouchEnd)
     }
-  }, [handleTouchStart, handleTouchMove])
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd])
 
   const progress = Math.min(pullDistance / THRESHOLD, 1)
   const triggered = pullDistance >= THRESHOLD

@@ -56,9 +56,9 @@ export function StrategyTypeComparison({ byType }: Props) {
                 </tbody>
               </table>
             </div>
-            <div className="divide-y sm:hidden" role="list" aria-label="전략 유형 비교 모바일">
+            <ul className="divide-y sm:hidden list-none p-0 m-0" aria-label="전략 유형 비교 모바일">
               {byType.map((item) => (
-                <section key={item.type} className="px-4 py-4" role="listitem">
+                <li key={item.type} className="px-4 py-4">
                   <Badge tone="brand" size="md">
                     {item.type}
                   </Badge>
@@ -88,9 +88,9 @@ export function StrategyTypeComparison({ byType }: Props) {
                       <dd className={cn('mt-0.5 font-medium tabular-nums', pnlTextClass(item.unrealizedPnl))}>{fmtSignedUsd(item.unrealizedPnl, 2, '$')}</dd>
                     </div>
                   </dl>
-                </section>
+                </li>
               ))}
-            </div>
+            </ul>
           </>
         )}
       </CardContent>
