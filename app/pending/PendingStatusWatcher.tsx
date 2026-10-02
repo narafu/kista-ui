@@ -17,7 +17,7 @@ export function PendingStatusWatcher() {
     }
 
     eventSource.addEventListener('status', handleStatus)
-    eventSource.onerror = () => eventSource.close()
+    // onerror에서 close하지 않는다 — 네트워크 끊김(kista-api 교체 등)은 브라우저가 자동 재연결하고, 비-200 응답은 브라우저가 스스로 닫는다
 
     return () => {
       eventSource.removeEventListener('status', handleStatus)

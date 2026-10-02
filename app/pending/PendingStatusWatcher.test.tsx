@@ -9,7 +9,9 @@ vi.mock('next/navigation', () => ({
 }))
 
 // vitest.setup.ts의 MockEventSource 참조
-declare const EventSource: { instances: Array<{ emit: (type: string, data: string) => void }> }
+declare const EventSource: {
+  instances: Array<{ emit: (type: string, data: string) => void; onerror: ((e: Event) => void) | null; readyState: number }>
+}
 
 describe('PendingStatusWatcher', () => {
   beforeEach(() => {
@@ -47,5 +49,14 @@ describe('PendingStatusWatcher', () => {
     source.emit('status', 'PENDING')
 
     expect(mockPush).not.toHaveBeenCalled()
+  })
+
+  it('연결 오류에도 닫지 않음 — 브라우저 자동 재연결(kista-api 교체로 스트림이 끊겨도 이어짐)', () => {
+    render(<PendingStatusWatcher />)
+
+    const source = EventSource.instances[0]
+    source.onerror?.(new Event('error'))
+
+    expect(source.readyState).not.toBe(2)
   })
 })
