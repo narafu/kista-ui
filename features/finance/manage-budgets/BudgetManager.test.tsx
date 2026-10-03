@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BudgetManager } from './BudgetManager'
@@ -62,6 +62,13 @@ function budget(overrides: Partial<FinanceBudget>): FinanceBudget {
   }
 }
 
+// 다이얼로그는 열린 뒤 비동기로 첫 포커스(카테고리 셀렉트)를 옮긴다 — 그 전에 타이핑하면 도중에
+// 포커스를 빼앗겨 입력이 유실된다(파일 전체 실행처럼 빠를 때만 재현되는 경합). 폼 입력 전에 기다린다.
+async function openDuplicateForm(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('button', { name: '복제' }))
+  await waitFor(() => expect(document.activeElement?.id).toBe('budgetCategory'))
+}
+
 describe('BudgetManager', () => {
   beforeEach(() => {
     useFinanceCategoriesQueryMock.mockReturnValue({ data: categoryTree })
@@ -94,7 +101,7 @@ describe('BudgetManager', () => {
     })
     render(<BudgetManager type="EXPENSE" />)
 
-    await user.click(screen.getByRole('button', { name: '복제' }))
+    await openDuplicateForm(user)
     // 원본 기간을 그대로 제출하면 겹침 제약(409)에 걸리므로 날짜를 바꿔서 제출한다.
     await user.clear(screen.getByLabelText('적용 시작일'))
     await user.type(screen.getByLabelText('적용 시작일'), '2026-09-01')
@@ -212,7 +219,7 @@ describe('BudgetManager', () => {
     })
     render(<BudgetManager type="EXPENSE" />)
 
-    await user.click(screen.getByRole('button', { name: '복제' }))
+    await openDuplicateForm(user)
     await user.clear(screen.getByLabelText('월 예산 (원)'))
     await user.type(screen.getByLabelText('월 예산 (원)'), '0')
 
@@ -256,8 +263,8 @@ describe('BudgetManager', () => {
     })
     render(<BudgetManager type="EXPENSE" />)
 
-    await user.click(screen.getByRole('button', { name: '복제' }))
-    fireEvent.change(screen.getByLabelText('적용 종료일 (선택)'), { target: { value: '2026-04-30' } })
+    await openDuplicateForm(user)
+    await user.type(screen.getByLabelText('적용 종료일 (선택)'), '2026-04-30')
 
     expect(screen.getByText('종료일은 시작일 이후여야 합니다.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '저장' })).toBeDisabled()
