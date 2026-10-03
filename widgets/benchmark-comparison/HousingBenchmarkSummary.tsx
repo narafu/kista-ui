@@ -76,7 +76,7 @@ export function HousingBenchmarkSummary({ summary, investmentLabel, benchmarkLab
 
       <CardContent className="border-t border-border p-0">
         <div className="px-3 pb-1 pt-4 sm:px-5">
-          <h3 className="text-sm font-medium text-foreground">장기 성과 지표</h3>
+          <h2 className="text-sm font-medium text-foreground">장기 성과 지표</h2>
           {annualizedUnavailable ? (
             <p className="mt-1 text-xs text-muted-foreground">비교 기간이 90일 미만이라 연평균 수익률은 표시하지 않습니다.</p>
           ) : null}

@@ -149,7 +149,7 @@ export default function MarketChartCardInner({ category }: Props) {
             </button>
           ))}
           <Popover>
-            <PopoverTrigger aria-label={`${selected.label} 설명`} className="ml-1 text-muted-foreground hover:text-foreground transition-colors">
+            <PopoverTrigger aria-label={`${selected.label} 설명`} className="inline-flex size-6 -my-[5px] items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
               <Info className="size-3.5" />
             </PopoverTrigger>
             <PopoverContent className="w-auto text-sm whitespace-nowrap">{selected.description}</PopoverContent>

@@ -12,7 +12,7 @@ export function HousingBenchmarkInfo({ benchmark, notice }: Props) {
   return (
     <section aria-labelledby="housing-benchmark-info-title" className="border-t border-border pt-5 text-sm">
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <h3 id="housing-benchmark-info-title" className="font-medium text-foreground">{etfContent.label} 안내</h3>
+        <h2 id="housing-benchmark-info-title" className="font-medium text-foreground">{etfContent.label} 안내</h2>
         <span className="text-xs text-muted-foreground">{etfContent.fullName}</span>
       </div>
       <div className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(16rem,1fr)]">

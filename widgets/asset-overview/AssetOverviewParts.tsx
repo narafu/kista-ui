@@ -105,7 +105,7 @@ export function CategorySection({ breakdown, delta }: {
   const total = breakdown.reduce((sum, entry) => sum + entry.amount, 0)
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-foreground">카테고리별 현황</h3>
+      <h2 className="text-sm font-semibold text-foreground">카테고리별 현황</h2>
       <div className="space-y-2">
         {breakdown.map((entry) => (
           <BreakdownBar
@@ -131,7 +131,7 @@ export function AssetClassSection({ breakdown, delta, labelOf }: {
   const total = breakdown.reduce((sum, entry) => sum + entry.amount, 0)
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-foreground">자산군별 현황</h3>
+      <h2 className="text-sm font-semibold text-foreground">자산군별 현황</h2>
       {breakdown.length === 0 ? (
         <p className="text-sm text-muted-foreground">이번 달 기록이 없습니다</p>
       ) : (

@@ -98,12 +98,12 @@ export function BacktestForm({ form }: Props) {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label className="mb-2 block text-sm font-bold">시작일</Label>
-            <Input type="date" value={form.from} onChange={(e) => form.setFrom(e.target.value)} disabled={form.isLoading} />
+            <Label htmlFor="backtestFrom" className="mb-2 block text-sm font-bold">시작일</Label>
+            <Input id="backtestFrom" type="date" value={form.from} onChange={(e) => form.setFrom(e.target.value)} disabled={form.isLoading} />
           </div>
           <div>
-            <Label className="mb-2 block text-sm font-bold">종료일</Label>
-            <Input type="date" value={form.to} onChange={(e) => form.setTo(e.target.value)} disabled={form.isLoading} />
+            <Label htmlFor="backtestTo" className="mb-2 block text-sm font-bold">종료일</Label>
+            <Input id="backtestTo" type="date" value={form.to} onChange={(e) => form.setTo(e.target.value)} disabled={form.isLoading} />
           </div>
         </div>
 

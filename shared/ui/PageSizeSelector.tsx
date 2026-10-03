@@ -30,7 +30,7 @@ export function PageSizeSelector({ value, onChange, pageParamKeys = ['page'], si
 
   return (
     <Select value={value} onValueChange={handleChange}>
-      <SelectTrigger className="w-24 h-8 text-sm">
+      <SelectTrigger aria-label="페이지당 표시 개수" className="w-24 h-8 text-sm">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
