@@ -16,11 +16,11 @@ describe('BudgetManagerDialog', () => {
     expect(screen.queryByTestId('budget-manager')).not.toBeInTheDocument()
   })
 
-  it('예산 등록 버튼을 클릭하면 해당 타입의 BudgetManager가 담긴 다이얼로그가 열린다', async () => {
+  it('예산 관리 버튼을 클릭하면 해당 타입의 BudgetManager가 담긴 다이얼로그가 열린다', async () => {
     const user = userEvent.setup()
     render(<BudgetManagerDialog type="EXPENSE" />)
 
-    await user.click(screen.getByRole('button', { name: '예산 등록' }))
+    await user.click(screen.getByRole('button', { name: '예산 관리' }))
 
     expect(screen.getByText('소비 예산 관리')).toBeInTheDocument()
     expect(screen.getByTestId('budget-manager')).toHaveTextContent('EXPENSE')

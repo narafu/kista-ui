@@ -37,12 +37,14 @@ type FormTarget =
   | { mode: 'edit'; budget: FinanceBudget }
   | { mode: 'duplicate'; budget: FinanceBudget }
 
-type StatusFilter = 'ALL' | 'ACTIVE' | 'ENDED'
+type BudgetStatus = 'UPCOMING' | 'ACTIVE' | 'ENDED'
+type StatusFilter = 'ALL' | BudgetStatus
 
-// "진행중"은 오늘이 적용 기간(applyStartDate~applyEndDate) 안에 있다는 뜻이다 — applyEndDate만
-// 보면 시작일이 미래인(아직 시작 전) 예산도 진행중으로 잘못 분류된다(리뷰에서 발견).
-function isActiveBudget(budget: FinanceBudget, today: string): boolean {
-  return budget.applyStartDate <= today && (!budget.applyEndDate || budget.applyEndDate >= today)
+// 시작 전(예정)을 따로 둔다 — 진행중이 아니면 전부 종료로 묶으면 시작일이 미래인 예산이 "종료"에 섞인다.
+function budgetStatus(budget: FinanceBudget, today: string): BudgetStatus {
+  if (budget.applyStartDate > today) return 'UPCOMING'
+  if (budget.applyEndDate && budget.applyEndDate < today) return 'ENDED'
+  return 'ACTIVE'
 }
 
 // 예산 유형은 더 이상 이 컴포넌트가 스스로 고르지 않는다 — 호출부(BudgetManagerDialog)가
@@ -67,7 +69,7 @@ export function BudgetManager({ type }: Props) {
 
   const filtered = useMemo(() => budgets.filter((b) =>
     (categorySubtreeIds === null || categorySubtreeIds.has(b.categoryId)) &&
-    (statusFilter === ALL_FILTER_VALUE || (statusFilter === 'ACTIVE' ? isActiveBudget(b, today) : !isActiveBudget(b, today))),
+    (statusFilter === ALL_FILTER_VALUE || budgetStatus(b, today) === statusFilter),
   ), [budgets, categorySubtreeIds, statusFilter, today])
 
   const { page: currentPage, setPage, size, totalPages, paged, handlePageSizeChange } = useClientPagination(filtered)
@@ -104,33 +106,31 @@ export function BudgetManager({ type }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <CascadingCategorySelect levels={cascadeLevels} path={categoryPath} onPathChange={setCategoryPath} className="w-full sm:w-32" />
-          <Select
-            items={[
-              { value: 'ALL', label: '전체 상태' },
-              { value: 'ACTIVE', label: '진행중' },
-              { value: 'ENDED', label: '종료' },
-            ]}
-            value={statusFilter}
-            onValueChange={(value) => { if (value) setStatusFilter(value as StatusFilter) }}
-          >
-            <SelectTrigger aria-label="적용 상태" className="w-full sm:w-28"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">전체 상태</SelectItem>
-              <SelectItem value="ACTIVE">진행중</SelectItem>
-              <SelectItem value="ENDED">종료</SelectItem>
-            </SelectContent>
-          </Select>
-          <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
-        </div>
-        <div className="flex justify-end">
-          <Button type="button" variant="brand-soft" size="sm" className="gap-1.5" onClick={() => setFormTarget({ mode: 'create' })}>
-            <Plus className="size-4" />
-            예산 추가
-          </Button>
-        </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <CascadingCategorySelect levels={cascadeLevels} path={categoryPath} onPathChange={setCategoryPath} className="min-w-0 grow basis-[calc(50%-0.25rem)] sm:w-32 sm:grow-0 sm:basis-auto" />
+        <Select
+          items={[
+            { value: 'ALL', label: '전체 상태' },
+            { value: 'UPCOMING', label: '예정' },
+            { value: 'ACTIVE', label: '진행중' },
+            { value: 'ENDED', label: '종료' },
+          ]}
+          value={statusFilter}
+          onValueChange={(value) => { if (value) setStatusFilter(value as StatusFilter) }}
+        >
+          <SelectTrigger aria-label="적용 상태" className="min-w-0 grow basis-[calc(50%-0.25rem)] sm:w-28 sm:grow-0 sm:basis-auto"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">전체 상태</SelectItem>
+            <SelectItem value="UPCOMING">예정</SelectItem>
+            <SelectItem value="ACTIVE">진행중</SelectItem>
+            <SelectItem value="ENDED">종료</SelectItem>
+          </SelectContent>
+        </Select>
+        <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
+        <Button type="button" variant="brand-soft" size="sm" className="ml-auto gap-1.5" onClick={() => setFormTarget({ mode: 'create' })}>
+          <Plus className="size-4" />
+          예산 추가
+        </Button>
       </div>
 
       {budgets.length === 0 ? (

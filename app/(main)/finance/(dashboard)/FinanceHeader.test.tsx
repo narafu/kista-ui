@@ -15,7 +15,7 @@ vi.mock('@features/finance/save-transaction', () => ({
   NewTransactionButton: ({ type }: { type: string }) => <button type="button">내역 등록 ({type})</button>,
 }))
 vi.mock('@features/finance/manage-budgets', () => ({
-  BudgetManagerDialog: ({ type }: { type: string }) => <button type="button">예산 등록 ({type})</button>,
+  BudgetManagerDialog: ({ type }: { type: string }) => <button type="button">예산 관리 ({type})</button>,
 }))
 
 describe('FinanceHeader', () => {
@@ -25,7 +25,7 @@ describe('FinanceHeader', () => {
 
     expect(screen.getByRole('heading', { name: '내 자산' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '자산 등록' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /예산 등록/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /예산 관리/ })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: '자산' })).toHaveAttribute('aria-current', 'page')
   })
 
@@ -34,7 +34,7 @@ describe('FinanceHeader', () => {
     render(<FinanceHeader />)
 
     expect(screen.getByRole('heading', { name: '수입' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '예산 등록 (INCOME)' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '예산 관리 (INCOME)' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '내역 등록 (INCOME)' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '자산 등록' })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: '수입' })).toHaveAttribute('aria-current', 'page')
@@ -46,7 +46,7 @@ describe('FinanceHeader', () => {
 
     expect(screen.getByRole('heading', { name: '설정' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '자산 등록' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /예산 등록/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /예산 관리/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /내역 등록/ })).not.toBeInTheDocument()
   })
 

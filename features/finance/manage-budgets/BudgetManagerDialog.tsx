@@ -28,7 +28,7 @@ export function BudgetManagerDialog({ type, className }: Props) {
         className={cn(buttonVariants({ variant: 'brand-soft', size: 'sm' }), 'gap-1.5', className)}
       >
         <Plus className="size-3.5" />
-        예산 등록
+        예산 관리
       </button>
       {open && (
         <Dialog open onOpenChange={setOpen}>

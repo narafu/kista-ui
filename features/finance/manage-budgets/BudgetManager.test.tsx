@@ -82,7 +82,7 @@ describe('BudgetManager', () => {
 
     await user.click(screen.getByRole('button', { name: '복제' }))
 
-    expect(screen.getByRole('heading', { name: '예산 추가' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '예산 복제' })).toBeInTheDocument()
     expect(screen.getByLabelText('월 예산 (원)')).toHaveValue('100,000')
     expect(screen.getByLabelText('적용 시작일')).toHaveValue('2026-01-01')
   })
@@ -187,6 +187,36 @@ describe('BudgetManager', () => {
     await user.click(await screen.findByRole('option', { name: '진행중' }))
 
     expect(screen.queryByText('식비')).not.toBeInTheDocument()
+  })
+
+  it('시작일이 미래인 예산은 "예정" 필터에만 나오고 "종료"에는 섞이지 않는다', async () => {
+    const user = userEvent.setup()
+    useFinanceBudgetsQueryMock.mockReturnValue({
+      data: [budget({ id: 'not-started', categoryId: 'cat-food', applyStartDate: '2099-01-01', applyEndDate: undefined })],
+    })
+    render(<BudgetManager type="EXPENSE" />)
+
+    await user.click(screen.getByRole('combobox', { name: '적용 상태' }))
+    await user.click(await screen.findByRole('option', { name: '종료' }))
+    expect(screen.queryByText('식비')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('combobox', { name: '적용 상태' }))
+    await user.click(await screen.findByRole('option', { name: '예정' }))
+    expect(screen.getByText('식비')).toBeInTheDocument()
+  })
+
+  it('월 예산이 0원이면 저장 버튼이 비활성화된다', async () => {
+    const user = userEvent.setup()
+    useFinanceBudgetsQueryMock.mockReturnValue({
+      data: [budget({ id: 'b1', categoryId: 'cat-food', amount: 100_000, applyStartDate: '2026-01-01' })],
+    })
+    render(<BudgetManager type="EXPENSE" />)
+
+    await user.click(screen.getByRole('button', { name: '복제' }))
+    await user.clear(screen.getByLabelText('월 예산 (원)'))
+    await user.type(screen.getByLabelText('월 예산 (원)'), '0')
+
+    expect(screen.getByRole('button', { name: '저장' })).toBeDisabled()
   })
 
   it('11건 이상이면 페이지가 나뉘고 다음 버튼으로 다음 페이지 항목을 볼 수 있다', async () => {

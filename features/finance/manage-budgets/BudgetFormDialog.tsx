@@ -29,6 +29,8 @@ interface Props {
   // 원본 기간을 그대로 제출하면 겹침 금지 EXCLUDE 제약(409)에 걸리므로 사용자가 날짜를 바꿔야
   // 제출되는데, 그 전제로 값을 비워두지 않고 그대로 보여준다.
   duplicateFrom?: Pick<FinanceBudget, 'categoryId' | 'amount' | 'applyStartDate' | 'applyEndDate'>
+  // 예산 미설정 카테고리 빠른 등록 — 카테고리만 프리필하는 일반 추가(복제 아님).
+  defaultCategoryId?: string
   onSuccess: () => void
 }
 
@@ -37,16 +39,16 @@ interface Props {
 const MIN_APPLY_DATE = '1900-01-01'
 const MAX_APPLY_DATE = '2999-12-31'
 
-export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, duplicateFrom, onSuccess }: Props) {
+export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, duplicateFrom, defaultCategoryId, onSuccess }: Props) {
   const mode = initial ? 'edit' : 'create'
+  const isDuplicate = !initial && !!duplicateFrom
   const seed = initial ?? duplicateFrom
 
-  const { selectedPath, setSelectedPath, cascadeLevels, categoryId } = useCategoryPathState(categoryTree, seed?.categoryId)
+  const { selectedPath, setSelectedPath, cascadeLevels, categoryId } = useCategoryPathState(categoryTree, seed?.categoryId ?? defaultCategoryId)
 
   const [applyStartDate, setApplyStartDate] = useState(seed?.applyStartDate ?? '')
   const [applyEndDate, setApplyEndDate] = useState(seed?.applyEndDate ?? '')
-  // amount<=0은 값이 없는 것으로 취급한다(예산 미설정 카테고리 빠른등록이 카테고리만 프리필하고
-  // 금액은 0으로 넘길 때, 그대로 '0'을 채우면 canSubmit의 "금액 입력 필수" 가드가 무력화된다).
+  // amount<=0은 값이 없는 것으로 취급한다 — 0원 예산은 제출할 수 없다(canSubmit).
   const [amountDigits, setAmountDigits] = useState(seed && seed.amount > 0 ? String(seed.amount) : '')
 
   // 그룹 소속일 때만 노출, 기본값 켜짐(그룹 저장 우선) — 수정 모드는 groupId가 이미 고정돼 있어 대상 아님.
@@ -57,7 +59,7 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, du
   const updateMutation = useUpdateFinanceBudgetMutation(initial?.id ?? '')
   const isPending = mode === 'edit' ? updateMutation.isPending : createMutation.isPending
 
-  const canSubmit = categoryId !== '' && applyStartDate !== '' && amountDigits !== ''
+  const canSubmit = categoryId !== '' && applyStartDate !== '' && (!applyEndDate || applyEndDate >= applyStartDate) && Number(amountDigits) > 0
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -86,24 +88,26 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, du
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{mode === 'edit' ? '예산 수정' : '예산 추가'}</DialogTitle>
-            <DialogDescription>카테고리, 적용 기간, 월 예산을 입력하세요.</DialogDescription>
+            <DialogTitle>{mode === 'edit' ? '예산 수정' : isDuplicate ? '예산 복제' : '예산 추가'}</DialogTitle>
+            <DialogDescription>
+              {isDuplicate
+                ? '원본과 적용 기간이 겹치면 저장되지 않습니다. 적용 기간을 변경하세요.'
+                : '카테고리, 적용 기간, 월 예산을 입력하세요.'}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label htmlFor="budgetCategory">카테고리</Label>
-              <div className="space-y-2">
-                <CascadingCategorySelect
-                  levels={cascadeLevels}
-                  path={selectedPath}
-                  onPathChange={setSelectedPath}
-                  allowClear={false}
-                  id="budgetCategory"
-                  className="w-full h-11"
-                  disabled={isPending}
-                />
-              </div>
+              <CascadingCategorySelect
+                levels={cascadeLevels}
+                path={selectedPath}
+                onPathChange={setSelectedPath}
+                allowClear={false}
+                id="budgetCategory"
+                className="w-full h-11"
+                disabled={isPending}
+              />
             </div>
 
             <div className="space-y-2">
@@ -125,7 +129,7 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, du
               <Input
                 id="applyEndDate"
                 type="date"
-                min={MIN_APPLY_DATE}
+                min={applyStartDate || MIN_APPLY_DATE}
                 max={MAX_APPLY_DATE}
                 value={applyEndDate}
                 onChange={(e) => setApplyEndDate(e.target.value)}

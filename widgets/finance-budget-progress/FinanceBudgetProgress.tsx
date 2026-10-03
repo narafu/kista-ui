@@ -87,7 +87,7 @@ function BudgetTreeRow({ node, orderedRootIds, index }: { node: BudgetTreeNode; 
 export function FinanceBudgetProgress({ type, budgets, transactions, categoryTree, index, period, isLoading, isError, today }: Props) {
   const { labelOf } = useMeta()
   // 예산 없이 실적만 있는 카테고리를 위한 즉석 예산등록 다이얼로그 대상 — 카테고리만 프리필하고
-  // 날짜·금액은 비워서 사용자가 직접 입력하게 한다(BudgetFormDialog의 duplicateFrom 재사용).
+  // 날짜·금액은 비워서 사용자가 직접 입력하게 한다(BudgetFormDialog의 defaultCategoryId).
   const [quickCreateCategoryId, setQuickCreateCategoryId] = useState<string | null>(null)
 
   const typedBudgets = budgets.filter((b) => index.get(b.categoryId)?.type === type)
@@ -153,7 +153,7 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
           open
           onOpenChange={(next) => { if (!next) setQuickCreateCategoryId(null) }}
           categoryTree={categoryTree}
-          duplicateFrom={{ categoryId: quickCreateCategoryId, amount: 0, applyStartDate: '', applyEndDate: undefined }}
+          defaultCategoryId={quickCreateCategoryId}
           onSuccess={() => setQuickCreateCategoryId(null)}
         />
       )}
