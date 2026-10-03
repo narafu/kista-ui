@@ -16,19 +16,20 @@ const isEditableFocused = () => {
 const describeElement = (el: Element | null) =>
   el ? [el.tagName.toLowerCase(), el.getAttribute('type'), el.id || el.getAttribute('name')].filter(Boolean).join(':') : 'none'
 
-// iOS standalone PWA: 키보드가 닫힌 뒤(또는 하단 러버밴드 중) visualViewport.offsetTop이 0으로 복귀하지 않고 남아
+// iOS standalone PWA: 키보드가 닫힌 뒤 visualViewport.offsetTop이 0으로 복귀하지 않고 남아
 // position:fixed 네비가 navBottom = innerHeight - offsetTop 위치로 떠 있거나 화면 밖으로 밀린다
-// (app_error_logs MOBILE_NAV_VIEWPORT_MISMATCH 2026-09-21~28, 키보드 닫힌 행 전부 이 관계식 성립).
-// 키보드 닫힘 + 줌 없음일 때만 offsetTop만큼 되돌린다 — 키보드가 열려 있으면 네비가 키보드 뒤에 있는 게 정상이라 보정 안 함.
-// 키보드 판정은 포커스된 편집 요소 기준 — innerHeight 자체가 키보드와 함께 줄어드는 경우가 있어 높이 비교는 못 쓴다.
-// ponytail: 실기기 검증 불가라 진단 로그를 같이 유지 — 원인 확정·보정 효과 확인되면 로그 블록 제거.
-//   MOBILE_NAV_VIEWPORT_SHIFT phase=start/end: SHIFT_LOG_MIN_MS 넘게 지속된 offsetTop 잔류 구간만(원래 버그 = 오래 남는 잔류).
+// (app_error_logs MOBILE_NAV_VIEWPORT_MISMATCH 2026-09-21~28, 키보드 닫힌 행 전부 이 관계식 성립). 원인 미확정 — 진단만 한다.
+// translateY(offsetTop) 보정(e163aa9e)은 제거했다: 2026-10-01 로그 19행 전부 보정 전 네비가 이미 innerHeight에 있었는데
+// (iPhone 일반 스크롤 중 offsetTop이 ±466까지 흔들림, Android Chrome까지 적용돼 네비를 231px 화면 밖으로 밀어냄) 보정이 오히려 네비를 밀어냈다.
+// ponytail: 실기기 검증 불가라 진단 로그만 유지 — 원인 확정되면 로그 블록 제거.
+//   MOBILE_NAV_VIEWPORT_SHIFT phase=start/end: 키보드 닫힘 + 줌 없음 상태에서 SHIFT_LOG_MIN_MS 넘게 지속된 offsetTop 잔류 구간.
 //     하단 러버밴드·긴 페이지→짧은 페이지 탭 이동은 8~35ms 내 자연 복귀해 2026-09-30 로그 전부가 이 노이즈였다.
-//   MOBILE_NAV_VIEWPORT_MISMATCH: 보정 후에도 네비가 visual viewport 하단과 SHIFT_LOG_MIN_MS 넘게 어긋난 경우(보정 가설이 틀렸다는 신호).
+//   MOBILE_NAV_VIEWPORT_MISMATCH: 네비가 visual viewport 하단과 SHIFT_LOG_MIN_MS 넘게 어긋난 경우(원래 버그 시그니처).
 //     키보드가 닫히는 도중엔 포커스가 먼저 빠져 isEditableFocused()가 false인데 vvHeight는 아직 작아 순간 오탐이 났다(2026-09-30 2건) — 지속 여부로 거른다.
+// 키보드 판정은 포커스된 편집 요소 기준 — innerHeight 자체가 키보드와 함께 줄어드는 경우가 있어 높이 비교는 못 쓴다.
 const SHIFT_LOG_MIN_MS = 300
 
-function useNavViewportCorrection(navRef: React.RefObject<HTMLElement | null>) {
+function useNavViewportDiagnostics(navRef: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
     const vv = window.visualViewport
     if (!vv) return
@@ -39,12 +40,11 @@ function useNavViewportCorrection(navRef: React.RefObject<HTMLElement | null>) {
     let lastFocusOutAt = 0
     let lastBlurred = 'none'
     let episode: { startedAt: number, trigger: string, maxShift: number, timer: number, reported: boolean } | null = null
-    let appliedShift = 0
     let mismatchTimer = 0
 
     const isMismatch = () => {
       const rect = navRef.current?.getBoundingClientRect()
-      return !!rect && rect.width > 0 && !isEditableFocused() && Math.abs(rect.bottom - vv.height) > 5
+      return !!rect && rect.width > 0 && !isEditableFocused() && Math.abs(vv.scale - 1) < 0.01 && Math.abs(rect.bottom - vv.height) > 5
     }
 
     // throttle=false는 SHIFT start/end 짝 유지용 — 대신 상한을 늘려 에피소드 5개(start+end)를 담는다
@@ -86,9 +86,6 @@ function useNavViewportCorrection(navRef: React.RefObject<HTMLElement | null>) {
       if (!nav) return
       const keyboardOpen = isEditableFocused()
       const shift = !keyboardOpen && Math.abs(vv.scale - 1) < 0.01 ? vv.offsetTop : 0
-      nav.style.transform = shift ? `translateY(${shift}px)` : ''
-
-      appliedShift = shift
 
       if (nav.getBoundingClientRect().width === 0) { // lg:hidden 데스크탑 — 진행 중 에피소드는 짝 없는 start가 남지 않게 버린다
         if (episode) clearTimeout(episode.timer)
@@ -99,10 +96,10 @@ function useNavViewportCorrection(navRef: React.RefObject<HTMLElement | null>) {
         if (!episode) {
           const current = { startedAt: Date.now(), trigger: lastEvent, maxShift: shift, timer: 0, reported: false }
           current.timer = window.setTimeout(() => {
-            // offsetTop이 이벤트 없이 0으로 돌아왔으면 update를 다시 돌려 transform 해제 + 에피소드 무기록 종료
+            // offsetTop이 이벤트 없이 0으로 돌아왔으면 update를 다시 돌려 에피소드 무기록 종료
             if (Math.abs(vv.offsetTop) <= 5) return schedule()
             current.reported = true
-            report('MOBILE_NAV_VIEWPORT_SHIFT', { phase: 'start', startTrigger: current.trigger, appliedShift: String(vv.offsetTop) }, false)
+            report('MOBILE_NAV_VIEWPORT_SHIFT', { phase: 'start', startTrigger: current.trigger }, false)
           }, SHIFT_LOG_MIN_MS)
           episode = current
         } else if (Math.abs(shift) > Math.abs(episode.maxShift)) {
@@ -116,14 +113,13 @@ function useNavViewportCorrection(navRef: React.RefObject<HTMLElement | null>) {
           startTrigger: episode.trigger,
           maxShift: String(episode.maxShift),
           endReason: keyboardOpen ? 'keyboardOpen' : 'resolved',
-          appliedShift: String(shift),
         }, false)
         episode = null
       }
       if (isMismatch() && !mismatchTimer) {
         mismatchTimer = window.setTimeout(() => {
           mismatchTimer = 0
-          if (isMismatch()) report('MOBILE_NAV_VIEWPORT_MISMATCH', { appliedShift: String(appliedShift) })
+          if (isMismatch()) report('MOBILE_NAV_VIEWPORT_MISMATCH', {})
         }, SHIFT_LOG_MIN_MS)
       }
     }
@@ -169,7 +165,7 @@ const TABS = [
 export function MobileBottomNav() {
   const pathname = usePathname()
   const navRef = useRef<HTMLElement>(null)
-  useNavViewportCorrection(navRef)
+  useNavViewportDiagnostics(navRef)
   return (
     <nav
       ref={navRef}
