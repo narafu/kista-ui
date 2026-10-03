@@ -48,13 +48,15 @@ describe('SuggestionListEditor', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('이미 추가된 값입니다.')
   })
 
-  it('삭제 버튼으로 값을 제거한다', async () => {
+  it('삭제 버튼은 확인 다이얼로그를 거쳐 값을 제거한다', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()
     render(<SuggestionListEditor id="test" label="기관" values={['토스증권', '국민은행']} onChange={onChange} />)
 
     await user.click(screen.getByLabelText('토스증권 삭제'))
+    expect(onChange).not.toHaveBeenCalled()
 
+    await user.click(await screen.findByRole('button', { name: '삭제' }))
     expect(onChange).toHaveBeenCalledWith(['국민은행'])
   })
 

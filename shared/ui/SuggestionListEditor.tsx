@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
+import { ConfirmDeleteDialog } from './ConfirmDeleteDialog'
 
 function normalizeText(value: string) {
   return value.trim()
@@ -23,6 +25,8 @@ export function SuggestionListEditor({ id, label, values, onChange, disabled }: 
 }) {
   const [raw, setRaw] = useState('')
   const [inputError, setInputError] = useState<string>()
+  // 호출부가 onChange를 즉시 저장으로 이어 붙이므로, 삭제는 확인을 한 번 거친다
+  const deleteDialog = useConfirmDialog<string>()
 
   const addValue = () => {
     if (disabled) return
@@ -40,9 +44,11 @@ export function SuggestionListEditor({ id, label, values, onChange, disabled }: 
     onChange([...values, parsed])
   }
 
-  const deleteValue = (value: string) => {
-    if (disabled) return
-    onChange(values.filter((item) => item !== value))
+  const deleteValue = () => {
+    const target = deleteDialog.target
+    deleteDialog.close()
+    if (disabled || target === null) return
+    onChange(values.filter((item) => item !== target))
   }
 
   return (
@@ -80,7 +86,7 @@ export function SuggestionListEditor({ id, label, values, onChange, disabled }: 
             <button
               type="button"
               aria-label={`${value} 삭제`}
-              onClick={() => deleteValue(value)}
+              onClick={() => deleteDialog.request(value)}
               disabled={disabled}
               className="-my-2.5 -mr-1 flex size-11 items-center justify-center rounded-full text-muted-foreground hover:text-destructive disabled:opacity-40 disabled:pointer-events-none"
             >
@@ -89,6 +95,16 @@ export function SuggestionListEditor({ id, label, values, onChange, disabled }: 
           </li>
         ))}
       </ul>
+      {deleteDialog.target !== null && (
+        <ConfirmDeleteDialog
+          open
+          onOpenChange={deleteDialog.onOpenChange}
+          title={`"${deleteDialog.target}" 추천값을 삭제하시겠습니까?`}
+          description="추천 목록에서만 빠지며, 이미 등록된 자산 기록은 바뀌지 않습니다."
+          onConfirm={deleteValue}
+          isPending={Boolean(disabled)}
+        />
+      )}
     </div>
   )
 }

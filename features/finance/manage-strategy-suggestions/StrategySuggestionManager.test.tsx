@@ -35,4 +35,15 @@ describe('StrategySuggestionManager', () => {
 
     expect(mutateMock).toHaveBeenCalledWith(['VR', 'INFINITE', 'DCA-PLUS'])
   })
+
+  it('운용전략 삭제는 확인 다이얼로그를 거친 뒤 저장한다', async () => {
+    const user = userEvent.setup()
+    render(<StrategySuggestionManager />)
+
+    await user.click(screen.getByLabelText('VR 삭제'))
+    expect(mutateMock).not.toHaveBeenCalled()
+
+    await user.click(await screen.findByRole('button', { name: '삭제' }))
+    expect(mutateMock).toHaveBeenCalledWith(['INFINITE'])
+  })
 })
