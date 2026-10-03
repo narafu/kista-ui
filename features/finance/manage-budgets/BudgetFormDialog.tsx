@@ -9,9 +9,10 @@ import { SaveButton } from '@shared/ui/SaveButton'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
-import { digitsOnly, formatAmountDisplay } from '@shared/lib/format'
+import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import { submitFormDialog } from '@shared/lib/form/submitFormDialog'
 import {
+  monthStartDate,
   useCanShareToGroup,
   useCategoryPathState,
   useCreateFinanceBudgetMutation,
@@ -46,7 +47,8 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, du
 
   const { selectedPath, setSelectedPath, cascadeLevels, categoryId } = useCategoryPathState(categoryTree, seed?.categoryId ?? defaultCategoryId)
 
-  const [applyStartDate, setApplyStartDate] = useState(seed?.applyStartDate ?? '')
+  // 월 예산이라 신규 등록은 이번 달 1일을 기본 시작일로 둔다.
+  const [applyStartDate, setApplyStartDate] = useState(seed?.applyStartDate || monthStartDate(todayKst().slice(0, 7)))
   const [applyEndDate, setApplyEndDate] = useState(seed?.applyEndDate ?? '')
   // amount<=0은 값이 없는 것으로 취급한다 — 0원 예산은 제출할 수 없다(canSubmit).
   const [amountDigits, setAmountDigits] = useState(seed && seed.amount > 0 ? String(seed.amount) : '')
@@ -59,7 +61,8 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, du
   const updateMutation = useUpdateFinanceBudgetMutation(initial?.id ?? '')
   const isPending = mode === 'edit' ? updateMutation.isPending : createMutation.isPending
 
-  const canSubmit = categoryId !== '' && applyStartDate !== '' && (!applyEndDate || applyEndDate >= applyStartDate) && Number(amountDigits) > 0
+  const endBeforeStart = applyEndDate !== '' && applyEndDate < applyStartDate
+  const canSubmit = categoryId !== '' && applyStartDate !== '' && !endBeforeStart && Number(amountDigits) > 0
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -134,9 +137,15 @@ export function BudgetFormDialog({ open, onOpenChange, categoryTree, initial, du
                 value={applyEndDate}
                 onChange={(e) => setApplyEndDate(e.target.value)}
                 disabled={isPending}
+                aria-invalid={endBeforeStart || undefined}
+                aria-describedby="applyEndDateHint"
                 className="h-11"
               />
-              <p className="text-xs text-muted-foreground">비워두면 무기한 적용</p>
+              {endBeforeStart ? (
+                <p id="applyEndDateHint" className="text-xs text-destructive">종료일은 시작일 이후여야 합니다.</p>
+              ) : (
+                <p id="applyEndDateHint" className="text-xs text-muted-foreground">비워두면 무기한 적용</p>
+              )}
             </div>
 
             <div className="space-y-2">

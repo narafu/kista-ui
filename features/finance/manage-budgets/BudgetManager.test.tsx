@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BudgetManager } from './BudgetManager'
@@ -216,6 +216,50 @@ describe('BudgetManager', () => {
     await user.clear(screen.getByLabelText('월 예산 (원)'))
     await user.type(screen.getByLabelText('월 예산 (원)'), '0')
 
+    expect(screen.getByRole('button', { name: '저장' })).toBeDisabled()
+  })
+
+  it('전체 상태에서 예정·종료 예산에는 상태 배지가 붙고 진행중에는 붙지 않는다', async () => {
+    const user = userEvent.setup()
+    useFinanceBudgetsQueryMock.mockReturnValue({
+      data: [
+        budget({ id: 'active', categoryId: 'cat-food', applyEndDate: undefined }),
+        budget({ id: 'ended', categoryId: 'cat-transit', applyStartDate: '2020-01-01', applyEndDate: '2020-12-31' }),
+      ],
+    })
+    render(<BudgetManager type="EXPENSE" />)
+
+    await user.click(screen.getByRole('combobox', { name: '적용 상태' }))
+    await user.click(await screen.findByRole('option', { name: '전체 상태' }))
+
+    const items = within(screen.getByRole('list', { name: '예산 목록' })).getAllByRole('listitem')
+    const ended = items.find((li) => within(li).queryByText('교통'))!
+    const active = items.find((li) => within(li).queryByText('식비'))!
+    expect(within(ended).getByText('종료')).toBeInTheDocument()
+    expect(within(active).queryByText('진행중')).not.toBeInTheDocument()
+  })
+
+  it('예산 추가 폼은 이번 달 1일을 시작일 기본값으로 채운다', async () => {
+    const user = userEvent.setup()
+    useFinanceBudgetsQueryMock.mockReturnValue({ data: [] })
+    render(<BudgetManager type="EXPENSE" />)
+
+    await user.click(screen.getByRole('button', { name: '예산 추가' }))
+
+    expect((screen.getByLabelText('적용 시작일') as HTMLInputElement).value).toMatch(/^\d{4}-\d{2}-01$/)
+  })
+
+  it('종료일이 시작일보다 앞서면 안내가 뜨고 저장 버튼이 비활성화된다', async () => {
+    const user = userEvent.setup()
+    useFinanceBudgetsQueryMock.mockReturnValue({
+      data: [budget({ id: 'b1', categoryId: 'cat-food', amount: 100_000, applyStartDate: '2026-05-01' })],
+    })
+    render(<BudgetManager type="EXPENSE" />)
+
+    await user.click(screen.getByRole('button', { name: '복제' }))
+    fireEvent.change(screen.getByLabelText('적용 종료일 (선택)'), { target: { value: '2026-04-30' } })
+
+    expect(screen.getByText('종료일은 시작일 이후여야 합니다.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '저장' })).toBeDisabled()
   })
 

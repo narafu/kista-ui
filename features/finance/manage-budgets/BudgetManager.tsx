@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
@@ -143,15 +144,23 @@ export function BudgetManager({ type }: Props) {
             {paged.map((budget) => {
               const path = getCategoryPath(categories, budget.categoryId)
               const categoryName = path[path.length - 1]?.name ?? '(삭제된 카테고리)'
+              const status = budgetStatus(budget, today)
               return (
                 <li key={budget.id} className="px-4 py-3">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="min-w-0 flex-1 truncate text-sm font-medium">{categoryName}</p>
+                    <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                      <p className="min-w-0 truncate text-sm font-medium">{categoryName}</p>
+                      {/* 기본 필터가 진행중이라 진행중 배지는 생략 — 예외 상태만 표시 */}
+                      {status === 'UPCOMING' && <Badge tone="brand">예정</Badge>}
+                      {status === 'ENDED' && <Badge tone="neutral">종료</Badge>}
+                    </div>
                     <span className="shrink-0 whitespace-nowrap text-sm font-medium tabular-nums">{fmtKrw(budget.amount)}</span>
                   </div>
                   <div className="mt-1 flex items-center justify-between gap-2">
-                    <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-                      {budget.applyStartDate} ~ {budget.applyEndDate ?? '무기한'}
+                    <p className="min-w-0 flex-1 text-xs text-muted-foreground">
+                      {/* 좁은 화면에서 날짜 중간이 끊기지 않게 날짜 단위로만 줄바꿈 */}
+                      <span className="whitespace-nowrap">{budget.applyStartDate}</span>{' '}
+                      <span className="whitespace-nowrap">~ {budget.applyEndDate ?? '무기한'}</span>
                     </p>
                     <ShareableRowActions
                       onEdit={() => setFormTarget({ mode: 'edit', budget })}
