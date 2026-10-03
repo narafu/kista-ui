@@ -1,6 +1,7 @@
 // 접근성 회귀 점검: axe(PC·모바일 × 라이트·다크), 키보드 포커스 링, 다이얼로그·라우트 모달 포커스 관리.
 // 위반이 하나라도 있으면 exit 1. 사용법·전제·제외 규칙 근거는 같은 디렉토리 README.md
-// 안전장치: 이미 떠 있는 dev 서버(--url)를 읽기만 한다 — 브라우저에서 나가는 GET/HEAD 외 요청은 전부 abort(로컬 DB 실데이터 보호)
+// 안전장치: 이미 떠 있는 dev 서버(--url)를 읽기만 한다 — 브라우저에서 나가는 GET/HEAD 외 요청은 전부 abort(로컬 DB 실데이터 보호).
+// 예외는 계좌 등록 위저드의 연결 테스트 POST 하나로, 브라우저 안에서 가짜 응답을 돌려줘 서버에 도달하지 않는다
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { parseArgs } from 'node:util'
@@ -19,10 +20,11 @@ const MAX_TABS = 80
 
 const detail = ({ accountId, strategyId }) => `/accounts/${accountId}/strategies/${strategyId}`
 const ACCT = `/accounts/${seed.infinite.accountId}`
+const WIZARD = '/accounts/new'
 const PAGES = {
   guest: ['/login', '/dashboard'],
   user: [
-    '/dashboard', '/accounts', ACCT, `${ACCT}/edit`, detail(seed.infinite), detail(seed.vr),
+    '/dashboard', '/accounts', WIZARD, ACCT, `${ACCT}/edit`, detail(seed.infinite), detail(seed.vr),
     '/stats', '/stats/benchmark', '/stats/backtest',
     '/finance', '/finance/income', '/finance/expense', '/finance/saving', '/finance/settings', '/settings',
   ],
@@ -131,6 +133,41 @@ async function checkTabOrder(page, path, vp) {
   }
 }
 
+async function checkPage(page, label, vp, scheme) {
+  if (!skip.has('axe')) {
+    const res = await runAxe(page)
+    for (const v of res.violations) for (const n of v.nodes) fail(`[axe] ${label} ${vp}/${scheme}: ${describe(v, n)}`)
+  }
+  if (scheme === 'light' && !skip.has('tab')) await checkTabOrder(page, label, vp)
+}
+
+// 계좌 등록 위저드 2~4단계: 3단계부터는 KIS 연결 테스트(POST)를 통과해야 열린다.
+// 그 POST만 page.route로 가짜 204를 돌려준다(page route가 context의 abort보다 먼저 잡는다). 마지막 "계좌 연결"(계좌 생성 POST)은 누르지 않는다
+async function checkAccountWizard(page, vp, scheme) {
+  await page.route('**/api/accounts/connection-tests', (route) => route.fulfill({ status: 204 }))
+  try {
+    await page.locator('button', { hasText: 'App Key / App Secret' }).click()
+    await page.locator('#api-key').waitFor()
+    await checkPage(page, `${WIZARD}#2`, vp, scheme)
+    await page.locator('#api-key').fill('a11y-check-dummy-key')
+    await page.locator('#api-secret').fill('a11y-check-dummy-secret')
+    await page.getByRole('button', { name: '연결 테스트' }).click()
+    await page.getByText('연결 성공').waitFor()
+    await page.getByRole('button', { name: '다음' }).click()
+    await page.locator('#account-no').waitFor()
+    await checkPage(page, `${WIZARD}#3`, vp, scheme)
+    await page.locator('#account-nickname').fill('a11y')
+    await page.locator('#account-no').fill('1234567890')
+    await page.getByRole('button', { name: '다음' }).click()
+    await page.getByRole('button', { name: '계좌 연결' }).waitFor()
+    await checkPage(page, `${WIZARD}#4`, vp, scheme)
+  } catch (e) {
+    fail(`[wizard] ${vp}/${scheme}: 진행 실패 — ${e.message.split('\n')[0]}`)
+  } finally {
+    await page.unroute('**/api/accounts/connection-tests')
+  }
+}
+
 const dialogState = () => {
   const d = [...document.querySelectorAll('[role=dialog],[role=alertdialog]')].pop()
   if (!d) return { open: false }
@@ -225,11 +262,8 @@ try {
         const page = await ctx.newPage()
         for (const path of pages) {
           await open(page, path)
-          if (!skip.has('axe')) {
-            const res = await runAxe(page)
-            for (const v of res.violations) for (const n of v.nodes) fail(`[axe] ${path} ${vp}/${scheme}: ${describe(v, n)}`)
-          }
-          if (scheme === 'light' && !skip.has('tab')) await checkTabOrder(page, path, vp)
+          await checkPage(page, path, vp, scheme)
+          if (path === WIZARD) await checkAccountWizard(page, vp, scheme)
         }
         await ctx.close()
       }

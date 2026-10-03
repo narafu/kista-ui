@@ -5,6 +5,7 @@
 - **axe**: 비회원·user·admin 페이지를 PC(1440)·모바일(390) × 라이트·다크 4조합으로 검사한다. 태그는 `wcag2a/aa`, `wcag21a/aa`, `wcag22aa`, `best-practice`.
 - **포커스 링**: 라이트 모드에서 Tab으로 페이지를 순회하며, 포커스 전과 스타일(outline·box-shadow·border-color)이 달라지지 않는 요소를 잡는다.
 - **다이얼로그**: `[data-slot=alert-dialog-trigger|dialog-trigger|sheet-trigger]`를 키보드로 열어 이름, 모달 전달(`aria-modal` 또는 배경 `main`의 `aria-hidden`/`inert` — base-ui는 후자), 초기 포커스, Tab·Shift+Tab 트랩, 모달 내부 axe, ESC로 닫힘, 같은 트리거 요소로 포커스 복귀를 본다.
+- **계좌 등록 위저드**: `/accounts/new`에서 KIS를 골라 2~4단계(API 키·계좌 정보·확인)마다 axe와 포커스 링을 본다.
 - **라우트 모달**: 인터셉팅 라우트 모달(RouteModal)을 PC·모바일에서 같은 기준으로 본다.
 
 ```bash
@@ -18,7 +19,7 @@ npm run a11y-check -- --url http://localhost:3000 --skip tab,dialog  # 점검 �
 ## 전제와 안전장치
 
 - dev 서버와 로컬 kista-api(:8080, local 프로파일)가 떠 있어야 한다. 이 도구는 아무것도 기동하지 않는다. 다른 세션의 dev 서버를 쓰면 그 세션의 작업 중 변경까지 함께 점검된다는 점에 주의한다.
-- 로컬 DB에는 실데이터가 있다. 브라우저에서 나가는 요청 중 GET/HEAD가 아닌 것은 전부 abort한다. 서버 쪽에서 GET 요청을 받아 upstream에 쓰기 요청을 보내는 Route Handler는 없다(추가되면 이 방식으로는 막히지 않으니 visual-diff의 GET 전용 프록시로 바꿔야 한다).
+- 로컬 DB에는 실데이터가 있다. 브라우저에서 나가는 요청 중 GET/HEAD가 아닌 것은 전부 abort한다. 예외는 계좌 등록 위저드의 KIS 연결 테스트(`POST /api/accounts/connection-tests`)로, 3단계 이후 화면에 들어가려고 브라우저 안에서 가짜 204를 돌려준다. 이 요청은 서버에 도달하지 않는다. 마지막 단계의 "계좌 연결" 버튼은 누르지 않는다. 서버 쪽에서 GET 요청을 받아 upstream에 쓰기 요청을 보내는 Route Handler는 없다(추가되면 이 방식으로는 막히지 않으니 visual-diff의 GET 전용 프록시로 바꿔야 한다).
 - 쓰기성 호출은 dev 토큰 발급(`POST /api/auth/dev-token`, `dev-admin-token`) 하나뿐이다.
 - 계좌·전략 ID는 `scripts/shared/seed.mjs`(dev 시드, visual-diff와 공용)를 그대로 쓴다. 로컬 시드가 다르면 `VISUAL_DIFF_SEED`로 덮어쓴다.
 
