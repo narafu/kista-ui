@@ -200,7 +200,7 @@ describe('BudgetManager', () => {
     const list = screen.getByRole('list', { name: '예산 목록' })
     expect(within(list).getAllByRole('listitem')).toHaveLength(10)
 
-    await user.click(screen.getByRole('button', { name: 'Go to next page' }))
+    await user.click(screen.getByRole('button', { name: '다음 페이지' }))
 
     expect(within(list).getAllByRole('listitem')).toHaveLength(1)
   })
