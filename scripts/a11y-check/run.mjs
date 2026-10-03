@@ -22,7 +22,7 @@ const ACCT = `/accounts/${seed.infinite.accountId}`
 const PAGES = {
   guest: ['/login', '/dashboard'],
   user: [
-    '/dashboard', '/accounts', ACCT, detail(seed.infinite), detail(seed.vr),
+    '/dashboard', '/accounts', ACCT, `${ACCT}/edit`, detail(seed.infinite), detail(seed.vr),
     '/stats', '/stats/benchmark', '/stats/backtest',
     '/finance', '/finance/income', '/finance/expense', '/finance/saving', '/finance/settings', '/settings',
   ],
@@ -30,11 +30,13 @@ const PAGES = {
 }
 // 트리거([data-slot=*-trigger])로 여는 다이얼로그를 점검할 페이지
 const DIALOG_PAGES = {
-  user: ['/settings', '/finance/settings', ACCT, detail(seed.infinite), '/finance'],
+  user: ['/settings', '/finance/settings', ACCT, `${ACCT}/edit`, detail(seed.infinite), '/finance'],
   admin: ['/admin/users', '/admin/pending', '/admin/accounts', '/admin/privacy-trades', '/admin/settings', '/admin/logs'],
 }
-// 인터셉팅 라우트 모달(RouteModal): [이름, 시작 페이지, 링크 셀렉터]
+// 인터셉팅 라우트 모달(RouteModal): [이름, 시작 페이지, 트리거 셀렉터, 모바일에서 트리거를 보이게 할 탭 이름?]
 const ROUTE_MODALS = [
+  ['전략 등록', ACCT, 'button:has-text("전략 추가"):visible', '전략'],
+  ['VR 재설정', detail(seed.vr), 'a[href$="/reconfigure-vr"]:visible'],
   ['전략 수정', detail(seed.infinite), 'a[href$="/edit"]:visible'],
   ['자산 수정', '/finance', 'a[href^="/finance/"][href$="/edit"]:visible'],
   ['자산 복제', '/finance', 'a[href^="/finance/new"]:visible'],
@@ -196,8 +198,9 @@ async function checkDialogs(page, path) {
 }
 
 async function checkRouteModals(page, vp) {
-  for (const [name, start, sel] of ROUTE_MODALS) {
+  for (const [name, start, sel, mobileTab] of ROUTE_MODALS) {
     await open(page, start)
+    if (vp === 'mo' && mobileTab) { await page.getByRole('button', { name: mobileTab, exact: true }).click(); await page.waitForTimeout(800) }
     const link = page.locator(sel).first()
     if (!(await link.count())) { fail(`[modal] ${name} ${vp}: 트리거 링크 없음(${sel}) — 시드 데이터 확인`); continue }
     await link.focus()
