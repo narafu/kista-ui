@@ -68,14 +68,16 @@ export function ValueListEditor<T extends string | number>({ id, label, field, e
       <div role="radiogroup" aria-label={`${label} 기본값`} className="space-y-1.5">
         {field.allowedValues.map((value) => (
           <div key={String(value)} className="flex min-h-11 items-center gap-2 rounded-md border border-border bg-background px-2">
-            <input
-              type="radio"
-              name={`${id}-default`}
-              checked={Object.is(value, field.defaultValue)}
-              onChange={() => setDefault(value)}
-              aria-label={`${String(value)} 기본값`}
-              className="size-4 shrink-0 accent-primary"
-            />
+            <label className="-m-1 inline-flex shrink-0 p-1">
+              <input
+                type="radio"
+                name={`${id}-default`}
+                checked={Object.is(value, field.defaultValue)}
+                onChange={() => setDefault(value)}
+                aria-label={`${String(value)} 기본값`}
+                className="size-4 shrink-0 accent-primary"
+              />
+            </label>
             <span className="min-w-0 flex-1 truncate font-mono text-sm">{String(value)}</span>
             <IconButton
               aria-label={`${String(value)} 삭제`}

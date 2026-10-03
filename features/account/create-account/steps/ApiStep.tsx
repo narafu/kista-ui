@@ -92,7 +92,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
       <div>
         <h2 className="text-lg font-bold mb-1">{config.title}</h2>
         <p className="text-sm text-muted-foreground">{config.desc}</p>
-        <a href={config.linkHref} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[var(--brand-fg-soft)] hover:opacity-75 transition-opacity">
+        <a href={config.linkHref} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[var(--brand-fg-soft)] underline-offset-4 hover:underline">
           {config.linkLabel} <ExternalLink className="size-3" />
         </a>
         <p className="text-sm text-muted-foreground mt-2">{config.hint}</p>

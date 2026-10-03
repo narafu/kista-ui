@@ -44,6 +44,19 @@
 - **nav/메뉴 라벨은 전부 한글로 쓴다**: 영문 라벨(예: "Overview")이 섞여 들어가는 걸 발견하면 바로 한글화한다.
 - **mutation 훅의 `onError`를 호출부에서 다시 덮어쓰지 않는다**: `entities/*/hooks/*.ts`의 mutation 훅이 이미 `onError`에 `toast.error`를 두고 있다면(`docs/agents/entities.md` 패턴), feature 호출부의 `mutate(data, { onError })`에 또 다른 토스트를 넣지 않는다 — React Query는 훅 레벨과 호출 레벨 `onError`를 둘 다 실행하므로 실패 시 토스트가 두 번 뜬다(`ChangeRoleButton.tsx`/`WithdrawUserButton.tsx`에서 실제 발견된 버그). 호출부는 성공 후 추가 동작만 `onSuccess`로 넣는다.
 
+### 접근성
+
+`eslint-plugin-jsx-a11y` strict가 lint에 걸려 있다. 아래는 lint로 잡히지 않아 2026-10 axe·키보드 점검에서 실제로 발견된 결함만 규칙화한 것이다.
+
+- **아이콘만 있는 버튼·링크, `SelectTrigger`에는 `aria-label`을 단다**: `role="combobox"`는 안의 텍스트(선택값)로 이름이 계산되지 않는다. `PageSizeSelector`, 대시보드 차트 종목 셀렉트, 모바일 헤더 아이콘 링크가 이름 없이 남아 있던 사례가 있다.
+- **색 토큰 대비는 실제로 놓이는 배경 기준으로 4.5:1을 맞춘다**: 흰 배경만 확인하면 `bg-*-bg` 배지(예: `bg-pos-bg text-pos`)나 `bg-muted` 위에서 깨진다. 토큰을 바꿀 때 해당 `*-bg` 조합까지 계산한다. 포커스 링(`--ring`)은 배경 대비 3:1 이상이다. 텍스트에 `opacity-*`나 `/40` 같은 투명도를 걸거나 `hover:opacity-*`를 쓰면 대비가 떨어진다. 비활성 상태가 아니면 쓰지 않는다. 텍스트 링크 hover는 `hover:underline`을 쓴다.
+- **가로 스크롤 표 컨테이너는 `role="region"` + `aria-label` + `tabIndex={0}`**: 키보드로 스크롤할 수 있어야 한다. lint의 `no-noninteractive-tabindex`는 `region`을 허용하도록 설정돼 있다.
+- **recharts 차트에는 `title`을 준다**: recharts 3의 `accessibilityLayer`가 svg를 탭 순서에 넣는데, 이름이 없으면 이름 없는 포커스 지점이 된다.
+- **모달을 여는 트리거에 `disabled`를 걸지 않는다**: 트랜지션 대기 중 `disabled`가 되면 포커스가 body로 빠져, 모달을 닫은 뒤 트리거로 돌아오지 못한다. `aria-disabled` + 핸들러 가드를 쓴다(`NewStrategyButton`).
+- **heading 레벨을 건너뛰지 않는다**: 페이지 `h1`(`PageHeader`) 바로 아래 섹션 제목은 `h2`다. `CardTitle`은 `div`라 heading이 아니다.
+- **페이지 최상위에 `<main>` 랜드마크가 하나 있어야 한다**: `(main)`/`(admin)` 레이아웃 밖의 화면(`(auth)`, `/pending`, `/rejected`)은 각 layout이 `<main>`으로 감싼다.
+- **작은 체크박스·라디오(`size-4`)는 `<label className="-m-1 inline-flex shrink-0 p-1">`로 감싸** 레이아웃은 그대로 두고 터치 영역만 24px로 넓힌다.
+
 ### TypeScript / React Query
 
 - `any` 금지 — 제네릭·`?.`·`??`로 대체한다

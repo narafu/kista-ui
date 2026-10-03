@@ -11,7 +11,7 @@ const THEMES = [
     desc: '밝은 환경',
     bg: '#FBF6F1',
     card: '#fff',
-    accent: '#B66951',
+    accent: '#A35A43',
   },
   {
     key: 'dark',
@@ -27,7 +27,7 @@ const THEMES = [
     desc: 'OS 설정에 따름',
     bg: 'linear-gradient(90deg, #FBF6F1 0% 50%, #131416 50% 100%)',
     card: 'linear-gradient(90deg, #fff 0% 50%, #1B1C1F 50% 100%)',
-    accent: '#B66951',
+    accent: '#A35A43',
   },
 ]
 

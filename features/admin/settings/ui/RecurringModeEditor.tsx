@@ -50,28 +50,32 @@ export function RecurringModeEditor({ id, label, field, error, onChange }: {
               const checked = field.allowedValues.includes(option.value)
               return (
                 <div key={option.value} className="flex min-h-11 items-center gap-3 rounded-md border border-border bg-background px-3">
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={(event) => toggleAllowed(option.value, event.target.checked)}
-                    aria-label={`${option.value} 허용`}
-                    className="size-4 shrink-0 accent-primary"
-                  />
+                  <label className="-m-1 inline-flex shrink-0 p-1">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(event) => toggleAllowed(option.value, event.target.checked)}
+                      aria-label={`${option.value} 허용`}
+                      className="size-4 shrink-0 accent-primary"
+                    />
+                  </label>
                   <span className="min-w-0 flex-1 truncate font-mono text-sm">
                     {option.value} <span className="font-sans text-xs text-muted-foreground">· {option.label}</span>
                   </span>
-                  <input
-                    type="radio"
-                    name={`${id}-default`}
-                    checked={field.defaultValue === option.value}
-                    disabled={!checked}
-                    onChange={() => {
-                      setInputError(undefined)
-                      onChange({ ...field, defaultValue: option.value })
-                    }}
-                    aria-label={`${option.value} 기본값`}
-                    className="size-4 shrink-0 accent-primary disabled:opacity-40"
-                  />
+                  <label className="-m-1 inline-flex shrink-0 p-1">
+                    <input
+                      type="radio"
+                      name={`${id}-default`}
+                      checked={field.defaultValue === option.value}
+                      disabled={!checked}
+                      onChange={() => {
+                        setInputError(undefined)
+                        onChange({ ...field, defaultValue: option.value })
+                      }}
+                      aria-label={`${option.value} 기본값`}
+                      className="size-4 shrink-0 accent-primary disabled:opacity-40"
+                    />
+                  </label>
                 </div>
               )
             })}

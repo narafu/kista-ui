@@ -87,7 +87,7 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 - `SegmentedToggle` — `aria-pressed` 버튼 그룹 세그먼트 토글(`role="group"`, `aria-label` 필수). 모드·기간·필터 선택용 공용 컴포넌트라 위젯마다 `ModeButton`류를 다시 만들지 않는다. 균등 분할은 `className="grid grid-cols-N"`, 버튼 크기 조정은 `itemClassName`. "선택 없음(undefined)"은 센티널 값으로 매핑한다(`stats-overview/StrategyTypeFilterToggle` 참고). 소비자: `asset-trend`·`asset-composition`·`finance-trend`·`finance-summary`·`stats-overview`
 - `YearSelect` — `value`(연도 `number`)를 받는 연도 그리드 팝오버. `YearMonthSelect`와 같은 시각 언어의 연 단위 버전(월 그리드 대신 3열 연도 그리드, 페이징 화살표 없음). 범위 규칙은 `YearMonthSelect`와 동일(`minYear`/`maxYear` 미지정 시 `today` 기준 15개년, 선택값 밖이면 확장). 소비자: `finance-summary`(연간 모드)
 
-shadcn 자동생성 컴포넌트는 `components/ui/`에 두고 `npx shadcn@latest add <component> --yes`로만 추가한다. 단 `button-variants.ts`(버튼 스타일 SSOT, `button.tsx`가 import)는 커스텀 variant(`brand`/`brand-soft`)·size(`form`/`cta`)가 들어 있어 `button`을 다시 add하면 덮어쓰인다 — 재생성 시 수동 병합한다.
+shadcn 자동생성 컴포넌트는 `components/ui/`에 두고 `npx shadcn@latest add <component> --yes`로만 추가한다. 단 `button-variants.ts`(버튼 스타일 SSOT, `button.tsx`가 import)는 커스텀 variant(`brand`/`brand-soft`)·size(`form`/`cta`)가 들어 있어 `button`을 다시 add하면 덮어쓰인다 — 재생성 시 수동 병합한다. `dialog.tsx`도 닫기 버튼 sr-only 문구를 한글("닫기")로 바꿔 두었으니 `dialog`를 다시 add하면 같은 수정을 다시 적용한다.
 
 ## providers
 

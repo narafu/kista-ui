@@ -111,7 +111,7 @@
   --destructive:        #B3352A;
   --border:             oklch(0.92 0.012 50);
   --input:              oklch(0.92 0.012 50);
-  --ring:               #CB836A;
+  --ring:               #BA735C;
   --radius:             0.75rem;
 
   /* Charts */
@@ -148,12 +148,12 @@
   /* shadcn sidebar tokens */
   --sidebar:                  #FBF6F1;
   --sidebar-foreground:       oklch(0.32 0.018 40);
-  --sidebar-primary:          #B66951;
+  --sidebar-primary:          #A35A43;
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent:           #FFFFFF;
   --sidebar-accent-foreground: #95513C;
   --sidebar-border:           oklch(0.92 0.012 50);
-  --sidebar-ring:             #CB836A;
+  --sidebar-ring:             #BA735C;
 
   /* KISTA-specific layout tokens */
   --sidebar-bg:         #FBF6F1;

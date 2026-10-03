@@ -19,7 +19,7 @@ export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled =
   return (
     <div className="px-4 py-3 hover:bg-muted/20 transition-colors">
       <div className="flex items-start justify-between gap-4">
-        <label className="mt-0.5 flex items-center">
+        <label className="mt-0.5 -m-1 inline-flex shrink-0 p-1">
           <input
             type="checkbox"
             aria-label={`오류 로그 선택 ${log.id}`}
