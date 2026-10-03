@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { X } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
@@ -17,6 +17,7 @@ const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disab
 export function RouteModal({ children, className }: Props) {
   const router = useRouter()
   const containerRef = useRef<HTMLDivElement>(null)
+  const titleId = useId()
 
   function dismiss() {
     router.back()
@@ -29,6 +30,21 @@ export function RouteModal({ children, className }: Props) {
     const previouslyFocused = document.activeElement as HTMLElement | null
     container.focus()
 
+    // 대화상자 이름 — 자식 폼의 h1(PageHeader 제목)은 로더를 거쳐 늦게 렌더링되거나 교체될 수 있어 계속 관찰해 다시 연결한다
+    function linkTitle() {
+      const heading = container?.querySelector('h1')
+      if (!container) return
+      if (!heading) {
+        container.removeAttribute('aria-labelledby')
+        return
+      }
+      heading.id ||= titleId
+      container.setAttribute('aria-labelledby', heading.id)
+    }
+    linkTitle()
+    const titleObserver = new MutationObserver(linkTitle)
+    titleObserver.observe(container, { childList: true, subtree: true })
+
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         event.stopPropagation()
@@ -36,14 +52,18 @@ export function RouteModal({ children, className }: Props) {
         return
       }
       if (event.key !== 'Tab' || !container) return
-      const focusables = container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
+      // 포커스를 받을 수 없는 요소(모바일에서 display:none인 닫기 버튼, tabindex가 붙은 disabled 제출 버튼)를 first/last로 잡으면 트랩이 풀린다
+      const focusables = [...container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)]
+        .filter((el) => el.getClientRects().length > 0 && !el.matches(':disabled'))
       if (focusables.length === 0) return
       const first = focusables[0]
       const last = focusables[focusables.length - 1]
-      if (event.shiftKey && document.activeElement === first) {
+      // 포털로 뜬 Select·Popover 팝업 안의 Tab은 base-ui가 처리하도록 컨테이너 밖 포커스에는 개입하지 않는다
+      const active = document.activeElement
+      if (event.shiftKey && (active === first || active === container)) {
         event.preventDefault()
         last.focus()
-      } else if (!event.shiftKey && document.activeElement === last) {
+      } else if (!event.shiftKey && active === last) {
         event.preventDefault()
         first.focus()
       }
@@ -52,6 +72,7 @@ export function RouteModal({ children, className }: Props) {
     document.addEventListener('keydown', handleKeyDown)
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
+      titleObserver.disconnect()
       previouslyFocused?.focus()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps -- 마운트 시 1회만 포커스 트랩을 건다. dismiss는 매 렌더 새로 생기지만 router.back()만 호출해 stale 위험이 없고, 재실행되면 포커스가 컨테이너로 다시 튄다
@@ -64,7 +85,7 @@ export function RouteModal({ children, className }: Props) {
       className="fixed inset-0 z-50 overflow-y-auto touch-pan-y sm:overflow-y-visible sm:flex sm:items-center sm:justify-center sm:bg-black/40 sm:p-4"
       onClick={(e) => { if (e.target === e.currentTarget) dismiss() }}
     >
-      {/* eslint-disable-next-line react-doctor/dialog-has-accessible-name -- 자식 폼이 제목을 자유롭게 렌더링하는 셸이라 제목 id를 알 수 없음 */}
+      {/* eslint-disable-next-line react-doctor/dialog-has-accessible-name -- aria-labelledby는 마운트 후 자식 h1을 찾아 effect에서 연결한다 */}
       <div
         ref={containerRef}
         // eslint-disable-next-line react-doctor/prefer-html-dialog -- ESC·포커스 트랩·복귀를 위 effect에서 직접 구현했고 <dialog>로 바꾸면 인터셉팅 라우트 레이아웃이 달라짐

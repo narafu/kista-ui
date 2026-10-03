@@ -26,6 +26,8 @@ export function FearGreedGauge({ value }: Props) {
   const ny = cy - needleLen * Math.sin(rad)
 
   const zone = zoneOf(value)
+  // 게이지 구간색은 그대로 두고, 글자는 테마 전경색과 섞어 라이트·다크 모두 대비 4.5 이상을 확보한다
+  const textColor = `color-mix(in oklab, ${zone.color} 55%, var(--foreground))`
 
   return (
     <div className="relative flex flex-col items-center">
@@ -61,8 +63,8 @@ export function FearGreedGauge({ value }: Props) {
       </div>
       {/* 현재값 + 등급 라벨 */}
       <div className="flex flex-col items-center">
-        <span className="text-3xl font-bold" style={{ color: zone.color }}>{value}</span>
-        <span className="text-sm font-medium" style={{ color: zone.color }}>{zone.label}</span>
+        <span className="text-3xl font-bold" style={{ color: textColor }}>{value}</span>
+        <span className="text-sm font-medium" style={{ color: textColor }}>{zone.label}</span>
       </div>
     </div>
   )

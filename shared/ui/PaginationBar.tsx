@@ -33,9 +33,13 @@ function PaginationBarContent({ page, totalPages, onPageChange, pageParam = 'pag
   }
 
   // onPageChange 제공 시 콜백 모드(href="#" + preventDefault), 미제공 시 URL 링크 모드.
-  const linkProps = (p: number, disabled = false) => onPageChange
-    ? { href: '#', onClick: (e: React.MouseEvent) => { e.preventDefault(); if (!disabled) onPageChange(p) } }
-    : { href: urlHref(p), onClick: (e: React.MouseEvent) => { if (disabled) e.preventDefault() } }
+  // 비활성 이전/다음은 링크로 남지만 탭 순서에서 빼고 보조기기에 비활성으로 알린다.
+  const linkProps = (p: number, disabled = false) => ({
+    ...(onPageChange
+      ? { href: '#', onClick: (e: React.MouseEvent) => { e.preventDefault(); if (!disabled) onPageChange(p) } }
+      : { href: urlHref(p), onClick: (e: React.MouseEvent) => { if (disabled) e.preventDefault() } }),
+    ...(disabled && { 'aria-disabled': true, tabIndex: -1 }),
+  })
 
   const pages = buildPageNumbers(page, totalPages)
   const prevDisabled = page === 1
@@ -47,6 +51,7 @@ function PaginationBarContent({ page, totalPages, onPageChange, pageParam = 'pag
         <PaginationItem>
           <PaginationPrevious
             text="이전"
+            aria-label="이전 페이지"
             className={prevDisabled ? 'pointer-events-none opacity-40' : ''}
             {...linkProps(page - 1, prevDisabled)}
           />
@@ -63,6 +68,7 @@ function PaginationBarContent({ page, totalPages, onPageChange, pageParam = 'pag
         <PaginationItem>
           <PaginationNext
             text="다음"
+            aria-label="다음 페이지"
             className={nextDisabled ? 'pointer-events-none opacity-40' : ''}
             {...linkProps(page + 1, nextDisabled)}
           />

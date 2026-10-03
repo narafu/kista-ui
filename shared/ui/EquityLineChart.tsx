@@ -12,6 +12,8 @@ export interface EquityLineChartRow {
 
 interface Props {
   rows: EquityLineChartRow[]
+  /** 차트 svg의 접근 가능한 이름 — recharts accessibilityLayer가 svg를 탭 순서에 넣으므로 필요 */
+  title?: string
   assetLabel?: string
   principalLabel?: string
   /** 툴팁에 표시할 값 포맷터. 기본값은 기존 동작(소수 1자리)을 그대로 유지한다 */
@@ -26,6 +28,7 @@ interface Props {
 
 export function EquityLineChart({
   rows,
+  title,
   assetLabel = '내 자산',
   principalLabel = '투입 원금',
   valueFormatter = (value: number) => value.toFixed(1),
@@ -51,7 +54,7 @@ export function EquityLineChart({
       </div>
       <div className="h-[240px] w-full sm:h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={rows} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+          <LineChart data={rows} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} title={title}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis
               dataKey="date"

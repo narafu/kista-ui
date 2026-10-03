@@ -90,7 +90,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
           <EmptyState variant="text" message="조건에 맞는 주문이 없습니다." />
         ) : (
           <div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" role="region" aria-label="주문 내역" tabIndex={0}>
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>

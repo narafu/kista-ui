@@ -72,7 +72,7 @@ export function EquityCurveChart({
         </div>
       </CardHeader>
       <CardContent className="px-2 pb-4 sm:px-6 sm:pb-6">
-        <EquityLineChart rows={rows} />
+        <EquityLineChart rows={rows} title="누적 자산 추이" />
         <p className="mt-2 text-xs text-muted-foreground">
           전략에 배정된 예수금 기준 근사치입니다. 수수료는 반영되지 않습니다.
         </p>

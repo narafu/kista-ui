@@ -36,7 +36,7 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
         <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
       </div>
 
-      <div className="rounded-[var(--r-lg)] border border-border overflow-x-auto">
+      <div className="rounded-[var(--r-lg)] border border-border overflow-x-auto" role="region" aria-label="사용자 목록" tabIndex={0}>
         <table className="min-w-[720px] w-full text-sm">
           <thead className="bg-muted/40">
             <tr>

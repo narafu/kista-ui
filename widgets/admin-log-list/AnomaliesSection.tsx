@@ -41,7 +41,7 @@ export function AnomaliesSection({
           {anomalies.pausedAccounts.length === 0 ? (
             <EmptyState message="일시정지된 계좌가 없습니다" />
           ) : (
-            <AccountTable accounts={anomalies.pausedAccounts} />
+            <AccountTable accounts={anomalies.pausedAccounts} label="일시정지 계좌" />
           )}
         </div>
         <div>
@@ -57,7 +57,7 @@ export function AnomaliesSection({
           {anomalies.inactiveAccounts.length === 0 ? (
             <EmptyState message="비활성 계좌가 없습니다" />
           ) : (
-            <AccountTable accounts={anomalies.inactiveAccounts} />
+            <AccountTable accounts={anomalies.inactiveAccounts} label="비활성 계좌" />
           )}
         </div>
       </div>

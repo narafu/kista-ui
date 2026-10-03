@@ -18,6 +18,8 @@ export default tseslint.config(
     rules: {
       // UnitInput은 내부에 <input>을 렌더링해 <label>로 감싸면 DOM 중첩으로 연결된다 — 규칙이 커스텀 컴포넌트를 컨트롤로 인식하지 못해 생기는 오탐 방지
       'jsx-a11y/label-has-associated-control': ['error', { controlComponents: ['UnitInput'] }],
+      // 가로 스크롤 표 컨테이너는 키보드로 스크롤할 수 있도록 role="region" + tabIndex={0}을 준다(axe scrollable-region-focusable)
+      'jsx-a11y/no-noninteractive-tabindex': ['error', { tags: [], roles: ['tabpanel', 'region'] }],
     },
   },
   {

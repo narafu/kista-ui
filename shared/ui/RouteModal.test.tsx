@@ -20,6 +20,19 @@ describe('RouteModal', () => {
     expect(dialog).toHaveAttribute('aria-modal', 'true')
   })
 
+  it('labels the dialog with the first h1 rendered inside', () => {
+    render(<RouteModal><h1>전략 등록</h1></RouteModal>)
+
+    expect(screen.getByRole('dialog', { name: '전략 등록' })).toBeInTheDocument()
+  })
+
+  it('links the h1 even when it renders after mount', async () => {
+    const { rerender } = render(<RouteModal><p>loading</p></RouteModal>)
+    rerender(<RouteModal><h1>자산 수정</h1></RouteModal>)
+
+    expect(await screen.findByRole('dialog', { name: '자산 수정' })).toBeInTheDocument()
+  })
+
   it('allows vertical touch panning on the mobile scroll container', () => {
     render(<RouteModal><p>content</p></RouteModal>)
 

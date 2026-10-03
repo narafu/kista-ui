@@ -87,7 +87,7 @@
   --rose-200: #EFC2AB;
   --rose-300: #E0A38C;
   --rose-400: #CB836A;
-  --rose-500: #B66951;
+  --rose-500: #A35A43;
   --rose-600: #95513C;
   --rose-700: #6E3A2A;
   --rose-800: #4A271C;
@@ -100,15 +100,15 @@
   --card-foreground:    oklch(0.18 0.012 35);
   --popover:            oklch(1 0 0);
   --popover-foreground: oklch(0.18 0.012 35);
-  --primary:            #B66951;
+  --primary:            #A35A43;
   --primary-foreground: #FFFFFF;
   --secondary:          oklch(0.965 0.008 55);
   --secondary-foreground: oklch(0.18 0.012 35);
   --muted:              oklch(0.965 0.008 55);
-  --muted-foreground:   oklch(0.55 0.012 40);
+  --muted-foreground:   oklch(0.53 0.012 40);
   --accent:             #FCEFE8;
   --accent-foreground:  #95513C;
-  --destructive:        #D14B3F;
+  --destructive:        #B3352A;
   --border:             oklch(0.92 0.012 50);
   --input:              oklch(0.92 0.012 50);
   --ring:               #CB836A;
@@ -162,15 +162,15 @@
   --sidebar-active-fg:  #95513C;
 
   /* Korean securities color convention */
-  --pos:        #C94437;   --pos-bg: #FBE4E0;   /* 상승/매수/수익 — 빨강 */
-  --neg:        #1F6FE5;   --neg-bg: #DEE9FA;   /* 하락/매도/손실 — 파랑 */
+  --pos:        #B83D31;   --pos-bg: #FBE4E0;   /* 상승/매수/수익 — 빨강 */
+  --neg:        #185FC8;   --neg-bg: #DEE9FA;   /* 하락/매도/손실 — 파랑 */
   --warn:       #855C13;   --warn-bg:#F6E5C2;
-  --status-ok:  #2F8A57;   --status-ok-bg: #DCEFE0;   /* 운영중 — 초록 */
+  --status-ok:  #28754A;   --status-ok-bg: #DCEFE0;   /* 운영중 — 초록 */
 
   /* Info (정보성 상태 — 사이클 시드 MAX, 주문 PLACED/LOC 등) */
-  --info:    #4A6FA5;   --info-bg: #E3EBF5;
+  --info:    #46699C;   --info-bg: #E3EBF5;
   /* Admin 액센트 (골드 계열 — 보라 대체) */
-  --admin-fg: #8A6420;  --admin-bg: #F3E7CC;
+  --admin-fg: #84601F;  --admin-bg: #F3E7CC;
 
   /* Brand semantic tokens */
   --brand-fg:      #6E3A2A;
@@ -205,7 +205,7 @@
   --r-xl: 22px;
 
   /* Status: error (반려/거절) */
-  --status-error: #C8443A;
+  --status-error: #C03F36;
   --status-error-bg: rgba(200, 68, 58, 0.08);
   --status-error-border: rgba(200, 68, 58, 0.18);
 }
@@ -223,10 +223,10 @@
   --secondary:          #232427;
   --secondary-foreground: #E8E6E3;
   --muted:              #232427;
-  --muted-foreground:   #9B9892;
+  --muted-foreground:   #A9A6A0;
   --accent:             rgba(214,169,142,0.16);
   --accent-foreground:  #EAC3AC;
-  --destructive:        #FF6A5C;
+  --destructive:        #FF8174;
   --border:             rgba(232,230,227,0.07);
   --input:              rgba(232,230,227,0.10);
   --ring:               #C99780;
@@ -470,7 +470,7 @@
 }
 
 .error-status-line-time {
-  color: var(--muted-foreground);
+  color: var(--foreground);
   font-weight: 500;
   letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
@@ -563,3 +563,10 @@ img[data-nimg][height="52"] { height: 52px; }
 img[data-nimg][height="56"] { height: 56px; }
 img[data-nimg][height="78"] { height: 78px; }
 
+/* sonner richColors 라이트 기본 글자색(error #E60000, warning·info 등)은 자기 배경 대비 4.5 미만 — 프로젝트 상태 토큰으로 맞춘다. sonner가 런타임에 주입하는 같은 선택자보다 우선하도록 :root로 특이도를 높인다 */
+:root [data-sonner-toaster][data-sonner-theme='light'] {
+  --error-text: var(--destructive);
+  --warning-text: var(--warn);
+  --info-text: var(--info);
+  --success-text: var(--status-ok);
+}

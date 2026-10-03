@@ -69,7 +69,7 @@ export default function FinanceTrendInner({ type, transactions, range, categoryT
           </div>
           <div className="min-h-[240px] w-full flex-1 sm:min-h-[280px]">
             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
-              <LineChart data={trend} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+              <LineChart data={trend} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} title={period.mode === 'yearly' ? '연도별 추이' : '월별 추이'}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis dataKey="period" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} minTickGap={24} />
                 <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={44} tickFormatter={fmtKrwAxisTick} domain={['auto', 'auto']} />

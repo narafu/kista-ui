@@ -67,10 +67,10 @@ function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
           {day.getDate()}
         </span>
         {isHoliday && !isWeekend && (
-          <span className="text-[10px] leading-none text-[var(--gold)]/60">휴장</span>
+          <span className="text-[10px] leading-none text-warn">휴장</span>
         )}
         {!isWeekend && !isHoliday && daySummary && (
-          <span className="flex flex-col items-center gap-px opacity-60">
+          <span className="flex flex-col items-center gap-px">
             {daySummary.buyCount > 0 && (
               <span className={cn('text-[10px] leading-none', directionTextClass('BUY'))}>
                 {`매수 $${fmtUsd(daySummary.buyAmountUsd, 0)}`}
