@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AccountManager } from './AccountManager'
@@ -62,6 +62,12 @@ function rowOf(name: string): HTMLElement {
 
 function ariaLabelsOf(row: HTMLElement): (string | null)[] {
   return Array.from(row.querySelectorAll('[aria-label]')).map((el) => el.getAttribute('aria-label'))
+}
+
+// 다이얼로그는 열린 뒤 비동기로 첫 포커스(계좌 유형 셀렉트)를 옮긴다 — 그 전에 타이핑하면 도중에
+// 포커스를 빼앗겨 입력이 유실될 수 있다(실행이 빠를 때만 재현되는 경합). 폼 입력 전에 기다린다.
+async function waitForInitialFocus() {
+  await waitFor(() => expect(document.activeElement?.id).toBe('accountType'))
 }
 
 describe('AccountManager', () => {
@@ -187,6 +193,7 @@ describe('AccountManager', () => {
     render(<AccountManager />)
 
     await user.click(screen.getByRole('button', { name: '계좌 추가' }))
+    await waitForInitialFocus()
     await user.type(screen.getByLabelText('계좌 이름'), '새 계좌')
     await user.click(screen.getAllByRole('button', { name: '저장' })[0])
 
@@ -201,6 +208,7 @@ describe('AccountManager', () => {
     render(<AccountManager />)
 
     await user.click(screen.getByRole('button', { name: '계좌 추가' }))
+    await waitForInitialFocus()
     await user.type(screen.getByLabelText('계좌 이름'), '새 계좌')
     await user.click(screen.getByRole('switch', { name: '그룹으로 저장' }))
     await user.click(screen.getAllByRole('button', { name: '저장' })[0])
@@ -226,6 +234,7 @@ describe('AccountManager', () => {
     render(<AccountManager />)
 
     await user.click(screen.getByRole('button', { name: '계좌 추가' }))
+    await waitForInitialFocus()
     const accountNoInput = screen.getByLabelText('계좌번호 (선택)')
     await user.type(accountNoInput, '12ab-34')
 
@@ -236,6 +245,7 @@ describe('AccountManager', () => {
     const user = userEvent.setup()
     const legacyAccount: FinanceAccount = { id: 'acc-legacy', accountType: 'BANK', name: '하나은행', accountNo: '123-456-789' }
     render(<AccountFormDialog open onOpenChange={() => {}} account={legacyAccount} />)
+    await waitForInitialFocus()
 
     // accountNo 필드는 건드리지 않고 이름만 바꿔 제출한다 — 초기 state부터 숫자만 정규화돼 있어야
     // 서버의 accountNo 숫자 전용 검증(신규/수정 요청 강제)에 걸리지 않는다. clear()로 비웠다가
@@ -256,6 +266,7 @@ describe('AccountManager', () => {
     const user = userEvent.setup()
     const account: FinanceAccount = { id: 'acc-9', accountType: 'BANK', name: '신한은행', institution: '신한', owner: '홍길동' }
     render(<AccountFormDialog open onOpenChange={() => {}} account={account} />)
+    await waitForInitialFocus()
 
     await user.clear(screen.getByLabelText('소유자 (선택)'))
     await user.click(screen.getByRole('button', { name: '저장' }))

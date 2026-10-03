@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Plus } from 'lucide-react'
+import { SlidersHorizontal } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { PageHeader } from '@widgets/page-header'
 import { SectionTabBar } from '@shared/ui/SectionTabBar'
@@ -54,7 +54,7 @@ export function FinanceHeader() {
           ) : flowType ? (
             <div className="flex items-center gap-2">
               <Link href={budgetListHref(flowType)} className={cn(buttonVariants({ variant: 'brand-soft', size: 'sm' }), 'gap-1.5')}>
-                <Plus className="size-3.5" />
+                <SlidersHorizontal className="size-3.5" />
                 예산 관리
               </Link>
               <NewTransactionButton type={flowType} windowFrom={undefined} windowTo={registerWindowTo} />
