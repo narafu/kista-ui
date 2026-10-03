@@ -46,7 +46,7 @@
 
 ### 접근성
 
-`eslint-plugin-jsx-a11y` strict가 lint에 걸려 있다. 아래는 lint로 잡히지 않아 2026-10 axe·키보드 점검에서 실제로 발견된 결함만 규칙화한 것이다.
+`eslint-plugin-jsx-a11y` strict가 lint에 걸려 있다. 화면 단위 회귀는 `npm run a11y-check`(axe·포커스 링·다이얼로그, `scripts/a11y-check/README.md`)로 확인한다. 아래는 lint로 잡히지 않아 2026-10 axe·키보드 점검에서 실제로 발견된 결함만 규칙화한 것이다.
 
 - **아이콘만 있는 버튼·링크, `SelectTrigger`에는 `aria-label`을 단다**: `role="combobox"`는 안의 텍스트(선택값)로 이름이 계산되지 않는다. `PageSizeSelector`, 대시보드 차트 종목 셀렉트, 모바일 헤더 아이콘 링크가 이름 없이 남아 있던 사례가 있다.
 - **색 토큰 대비는 실제로 놓이는 배경 기준으로 4.5:1을 맞춘다**: 흰 배경만 확인하면 `bg-*-bg` 배지(예: `bg-pos-bg text-pos`)나 `bg-muted` 위에서 깨진다. 토큰을 바꿀 때 해당 `*-bg` 조합까지 계산한다. 포커스 링(`--ring`)은 배경 대비 3:1 이상이다. 텍스트에 `opacity-*`나 `/40` 같은 투명도를 걸거나 `hover:opacity-*`를 쓰면 대비가 떨어진다. 비활성 상태가 아니면 쓰지 않는다. 텍스트 링크 hover는 `hover:underline`을 쓴다.

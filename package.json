@@ -15,6 +15,7 @@
     "test:e2e": "playwright test",
     "fetch:spec": "node scripts/fetch-spec.mjs",
     "visual-diff": "node scripts/visual-diff/run.mjs",
+    "a11y-check": "node scripts/a11y-check/run.mjs",
     "gen:types": "openapi-typescript openapi.json -o shared/lib/api-types.ts"
   },
   "dependencies": {

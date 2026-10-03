@@ -24,6 +24,7 @@ tail -f .next/dev/logs/next-development.log
 npx playwright screenshot --browser chromium --viewport-size "1440,900" http://localhost:3000/path /tmp/out.png
 cd ../kista-api && ./gradlew compileJava
 npm run visual-diff -- <base-ref>   # 리팩토링 전후 화면 픽셀 비교 (scripts/visual-diff/README.md)
+npm run a11y-check -- --url http://localhost:3000   # 접근성 회귀 점검: axe·포커스 링·다이얼로그 (scripts/a11y-check/README.md)
 ```
 
 참고:
