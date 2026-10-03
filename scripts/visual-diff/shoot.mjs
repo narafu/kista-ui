@@ -58,16 +58,17 @@ export async function shoot({ scenarios, servers, tokens, outDir, setMode, log }
     for (const scenario of scenarios) {
       setMode(scenario.mode ?? 'real')
       for (const [vp, viewport] of Object.entries(VIEWPORTS)) {
-        const shots = {}
-        for (const [label, port] of Object.entries(servers)) {
+        // head/base는 같은 모드라 병렬로 찍는다. 시나리오·뷰포트 간 병렬은 하지 않는다 — 모드(setMode)가 전역이고,
+        // 동시 촬영이 늘수록 두 dev 서버의 lazy 컴파일이 겹쳐 고정 SETTLE_MS 안에 안 그려질 위험이 커진다
+        const shots = Object.fromEntries(await Promise.all(Object.entries(servers).map(async ([label, port]) => {
           mkdirSync(`${outDir}/${label}`, { recursive: true })
-          shots[label] = await capture(browser, {
+          return [label, await capture(browser, {
             url: `http://localhost:${port}${scenario.path}`,
             token: scenario.admin ? tokens.admin : tokens.user,
             viewport, scenario,
             file: `${outDir}/${label}/${scenario.name}-${vp}.png`,
-          })
-        }
+          })]
+        })))
         const diff = await diffPixels(shots.head.file, shots.base.file)
         const newErrs = shots.head.errs.filter((e) => !shots.base.errs.includes(e))
         const line = { name: scenario.name, vp, diff, head: shots.head, base: shots.base, newErrs }

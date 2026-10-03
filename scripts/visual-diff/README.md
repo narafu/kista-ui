@@ -6,12 +6,22 @@
 npm run visual-diff -- <base-ref>                    # base-ref vs HEAD, 전체 시나리오
 npm run visual-diff -- 4c074cf5 --head 991acc1f      # 임의의 두 커밋 비교
 npm run visual-diff -- HEAD~3 --only '^(m-inf|finance)'   # 시나리오 이름 정규식 필터
+npm run visual-diff -- HEAD --dirty                  # 커밋 전 변경(HEAD + 작업 트리) vs HEAD
+npm run visual-diff -- HEAD --dirty --path widgets --path 'app/(main)'   # 변경 범위를 pathspec으로 제한
 npm run visual-diff -- --list                        # 시나리오 목록
 ```
 
 - 결과는 `--out <dir>`(기본 `$TMPDIR/kista-visual-diff/<timestamp>`)에 남는다: `shots/{head,base}/*.png`, `report.json`, dev 서버 로그(`head.log`, `base.log`), `proxy.log`.
 - 차이가 있으면(픽셀 차이, 크기 불일치, 최종 URL·상태코드 불일치, head에만 있는 콘솔 에러) exit 1.
-- 비교 대상은 커밋된 ref뿐이다. 커밋하지 않은 변경은 비교하지 않는다.
+- head와 base는 시나리오·뷰포트마다 병렬로 찍는다(같은 trading 모드). 시나리오 사이는 순차다 — fixture 모드가 전역 상태라서.
+
+## 커밋 전 변경 비교 (`--dirty`)
+
+- 실행 시작 시점에 메인 작업 트리의 커밋 안 된 변경을 `dirty.patch`로 한 번 떠서 head worktree에 `git apply`한다. 이후 메인 트리가 바뀌어도 이번 실행에는 반영되지 않는다.
+- untracked 파일도 포함한다(`.gitignore` 대상 제외) — 새로 만든 컴포넌트가 빠지면 head가 컴파일되지 않기 때문이다. 다른 세션의 미커밋 변경이 섞이지 않게 `--path <pathspec>`(여러 번 가능)으로 범위를 좁힌다. 기본은 레포 전체다.
+- 임시 index로 patch를 뜨므로 메인 index(다른 세션이 staged한 것 포함)는 건드리지 않는다.
+- `--head`가 현재 HEAD가 아니면 거부한다. 범위 안에 변경이 없으면 중단한다. `report.json`의 `dirtyPatch`에 patch 경로가 남는다.
+- `package.json` 의존성 변경은 반영되지 않는다(node_modules는 메인 트리 것을 복사).
 
 ## 전제와 안전장치
 
@@ -28,7 +38,7 @@ npm run visual-diff -- --list                        # 시나리오 목록
 - `../shared/seed.mjs`(a11y-check와 공용): 시나리오가 여는 계좌·전략 ID. 로컬 시드가 다르면 `VISUAL_DIFF_SEED=<json>`으로 최상위 키 단위 덮어쓰기.
 - `fixtures/trading.mjs`: preview·previews의 인위적 분기를 모드별로 응답한다(`deficit`/`uncertain`/`executed`/`skip`/`empty`). 시나리오의 `mode`로 고르고, 기본값 `real`은 실데이터를 그대로 통과시킨다.
 - kista-api(8080)는 fixture 없이 실데이터를 그대로 통과시킨다. `etf-series`는 09:00 KST cron에서만 수집되므로, 수집 전이면 ETF 벤치마크 탭이 "데이터 부족" 상태로만 비교된다.
-- 프록시는 실행 동안 upstream의 성공 JSON 응답을 메모이즈한다(URL·인증 헤더 기준). 실시간 가격이나 preview가 head와 base 촬영 사이에 바뀌어도 가짜 diff가 생기지 않는다.
+- 프록시는 실행 동안 upstream의 성공 응답(SSE 제외)을 메모이즈한다(URL·인증 헤더 기준). 진행 중인 요청도 공유하므로, head와 base가 병렬로 같은 데이터를 요청해도 실시간 가격이나 preview가 달라져 가짜 diff가 생기지 않는다.
 
 ## 시나리오 추가
 

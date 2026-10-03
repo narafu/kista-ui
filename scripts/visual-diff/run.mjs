@@ -2,7 +2,7 @@
 // 안전장치: kista-api(8080)·kista-trading(8081)은 기동하지 않고 확인만, 프록시는 GET만 통과,
 // 내가 띄운 next dev 프로세스 그룹만 종료(포트가 이미 점유돼 있으면 다른 세션으로 보고 중단)
 import { spawn, execFileSync } from 'node:child_process'
-import { cpSync, existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, openSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import net from 'node:net'
 import os from 'node:os'
 import path from 'node:path'
@@ -24,6 +24,8 @@ const { positionals, values: opts } = parseArgs({
     only: { type: 'string' },
     out: { type: 'string' },
     list: { type: 'boolean' },
+    dirty: { type: 'boolean' },
+    path: { type: 'string', multiple: true },
   },
 })
 
@@ -32,12 +34,16 @@ if (opts.list) {
   process.exit(0)
 }
 if (positionals.length !== 1) {
-  console.error('usage: npm run visual-diff -- <base-ref> [--head <ref>] [--only <regex>] [--out <dir>] [--list]')
+  console.error('usage: npm run visual-diff -- <base-ref> [--head <ref>] [--dirty [--path <pathspec>]...] [--only <regex>] [--out <dir>] [--list]')
+  process.exit(2)
+}
+if (opts.path && !opts.dirty) {
+  console.error('--path는 --dirty와 함께만 쓴다')
   process.exit(2)
 }
 
 const repo = execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' }).trim()
-const git = (...args) => execFileSync('git', ['-C', repo, ...args], { encoding: 'utf8' }).trim()
+const git = (...args) => execFileSync('git', ['-C', repo, ...args], { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 }).trim()
 const sha = (ref) => git('rev-parse', '--verify', `${ref}^{commit}`)
 const outDir = path.resolve(opts.out ?? path.join(os.tmpdir(), 'kista-visual-diff', new Date().toISOString().replace(/[:.]/g, '-')))
 mkdirSync(outDir, { recursive: true })
@@ -73,6 +79,30 @@ const cleanup = () => (cleaning ??= (async () => {
   try { git('worktree', 'prune') } catch {}
 })())
 for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => cleanup().finally(() => process.exit(130)))
+
+// 메인 트리의 커밋 안 된 변경(untracked 포함, .gitignore 제외)을 실행 시작 시점에 한 번만 patch로 뜬다.
+// 임시 index라 메인 index(동시 세션이 staged한 것 포함)는 건드리지 않는다. pathspec으로 남의 변경을 걸러낸다
+function snapshotDirty(commit, pathspecs) {
+  const index = path.join(outDir, 'dirty.index')
+  const env = { ...process.env, GIT_INDEX_FILE: index }
+  const g = (...args) => execFileSync('git', ['-C', repo, ...args], { env, maxBuffer: 256 * 1024 * 1024 })
+  try {
+    g('read-tree', commit)
+    // --out이 레포 안이면 이 도구의 산출물(dirty.index·로그·남은 worktree)이 patch에 섞이지 않게 뺀다
+    const rel = path.relative(repo, outDir)
+    const exclude = rel && !rel.startsWith('..') && !path.isAbsolute(rel) ? [`:(exclude)${rel}`] : []
+    g('add', '-A', '--', ...pathspecs, ...exclude)
+    // porcelain diff는 diff.noprefix·diff.external·textconv 설정을 타서 apply 불가 patch가 될 수 있어 plumbing 사용
+    const patch = g('diff-index', '--cached', '-p', '--binary', commit)
+    if (!patch.length) throw new Error(`--dirty: ${pathspecs.join(' ')} 범위에 커밋 안 된 변경 없음`)
+    const file = path.join(outDir, 'dirty.patch')
+    writeFileSync(file, patch)
+    log(g('diff', '--cached', '--stat', commit).toString().trimEnd())
+    return file
+  } finally {
+    rmSync(index, { force: true })
+  }
+}
 
 async function addWorktree(label, commit) {
   const dir = path.join(outDir, `wt-${label}`)
@@ -152,7 +182,10 @@ try {
   const only = opts.only ? new RegExp(opts.only) : null
   const selected = allScenarios.filter((s) => !only || only.test(s.name))
   if (!selected.length) throw new Error(`--only '${opts.only}'에 맞는 시나리오 없음 (--list로 확인)`)
+  // HEAD는 여기서 한 번만 고정 — 동시 세션이 실행 중 커밋해도 worktree·patch 기준이 어긋나지 않게
   const commits = { head: sha(opts.head), base: sha(positionals[0]) }
+  if (opts.dirty && commits.head !== sha('HEAD')) throw new Error('--dirty는 --head가 현재 HEAD일 때만 쓸 수 있다(patch 기준이 작업 트리의 커밋)')
+  const dirtyPatch = opts.dirty ? snapshotDirty(commits.head, opts.path ?? ['.']) : null
 
   for (const [name, url] of Object.entries(UPSTREAM)) {
     if (!(await reachable(url))) throw new Error(`${name}(${url}) 응답 없음 — 이 도구는 백엔드를 기동하지 않는다. 직접 띄운 뒤 다시 실행`)
@@ -167,10 +200,12 @@ try {
   proxies.push(await startProxy({ name: 'apiproxy', port: PORTS.api, upstream: UPSTREAM.api, log: plog }))
   proxies.push(await startProxy({ name: 'tradingproxy', port: PORTS.trading, upstream: UPSTREAM.trading, route: tradingFixture.route, log: plog }))
 
-  log(`head ${commits.head.slice(0, 8)} vs base ${commits.base.slice(0, 8)} — 시나리오 ${scenarios.length}개, 작업 트리 구성 중`)
+  log(`head ${commits.head.slice(0, 8)}${dirtyPatch ? '+dirty' : ''} vs base ${commits.base.slice(0, 8)} — 시나리오 ${scenarios.length}개, 작업 트리 구성 중`)
   const servers = {}
   for (const label of ['head', 'base']) {
-    servers[label] = startNext(label, await addWorktree(label, commits[label]), PORTS[label])
+    const dir = await addWorktree(label, commits[label])
+    if (label === 'head' && dirtyPatch) git('-C', dir, 'apply', '--binary', dirtyPatch)
+    servers[label] = startNext(label, dir, PORTS[label])
   }
   await Promise.all(Object.entries(servers).map(([label, s]) => waitReady(s, PORTS[label])))
   log('dev 서버 준비 완료, warm-up 중')
@@ -182,7 +217,7 @@ try {
     outDir: path.join(outDir, 'shots'),
     setMode: tradingFixture.setMode,
   })
-  writeFileSync(path.join(outDir, 'report.json'), JSON.stringify({ commits, report }, null, 1))
+  writeFileSync(path.join(outDir, 'report.json'), JSON.stringify({ commits, dirtyPatch, report }, null, 1))
   exitCode = summarize(report) ? 1 : 0
 } catch (e) {
   console.error(`\n중단: ${e.message}`)
