@@ -23,7 +23,7 @@ export async function NewAssetFormBody({ searchParams, dismiss }: Props) {
 
   return (
     <>
-      <PageHeader eyebrow="자산 관리" eyebrowHref="/finance" title={initial ? '자산 기록 복제' : '자산 등록'} />
+      <PageHeader eyebrow="자산 관리" eyebrowHref="/finance" title={initial ? '자산 기록 복제' : '자산 등록'} description="기준일·카테고리·금액 등 자산 기록 입력" />
       <AssetFormPage mode={initial ? 'duplicate' : 'create'} initial={initial ?? undefined} dismiss={dismiss} />
     </>
   )

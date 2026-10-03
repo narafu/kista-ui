@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SaveButton } from '@shared/ui/SaveButton'
 import { orderRequiresQuantity, useAddAdminPrivacyOrderMutation } from '@entities/privacy'
 import type { AdminPrivacyOrder } from '@entities/privacy'
@@ -50,6 +50,7 @@ export function AddPrivacyOrderDialog({ baseId, open, onOpenChange }: Props) {
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>주문 추가</DialogTitle>
+            <DialogDescription>방향, 유형, 가격, 수량을 입력하세요.</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">

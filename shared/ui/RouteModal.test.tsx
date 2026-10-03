@@ -26,6 +26,12 @@ describe('RouteModal', () => {
     expect(screen.getByRole('dialog', { name: '전략 등록' })).toBeInTheDocument()
   })
 
+  it('describes the dialog with the PageHeader description', () => {
+    render(<RouteModal><h1>전략 등록</h1><p data-slot="page-description">전략 종류와 매매 조건 설정</p></RouteModal>)
+
+    expect(screen.getByRole('dialog')).toHaveAccessibleDescription('전략 종류와 매매 조건 설정')
+  })
+
   it('links the h1 even when it renders after mount', async () => {
     const { rerender } = render(<RouteModal><p>loading</p></RouteModal>)
     rerender(<RouteModal><h1>자산 수정</h1></RouteModal>)

@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SaveButton } from '@shared/ui/SaveButton'
 import { useUpdateAdminPrivacyBaseMutation } from '@entities/privacy'
 import type { AdminPrivacyBase } from '@entities/privacy'
@@ -48,6 +48,7 @@ export function EditPrivacyBaseDialog({ base, open, onOpenChange }: Props) {
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>{base.releaseDate} {base.ticker} 수정</DialogTitle>
+            <DialogDescription>사이클 시작금액, 평단가, 보유, 실현손익을 입력하세요.</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">

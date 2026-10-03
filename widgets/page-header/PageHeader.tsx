@@ -34,7 +34,8 @@ export function PageHeader({ eyebrow, eyebrowHref, title, titleSuffix, descripti
           <h1 className="text-2xl font-[800] leading-tight text-foreground">{title}</h1>
           {titleSuffix}
         </div>
-        {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
+        {/* data-slot: RouteModal이 대화상자 설명(aria-describedby)으로 연결한다 */}
+        {description && <p data-slot="page-description" className="text-sm text-muted-foreground mt-1">{description}</p>}
       </div>
       {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
     </div>

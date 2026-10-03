@@ -18,6 +18,7 @@ export function RouteModal({ children, className }: Props) {
   const router = useRouter()
   const containerRef = useRef<HTMLDivElement>(null)
   const titleId = useId()
+  const descriptionId = useId()
 
   function dismiss() {
     router.back()
@@ -30,16 +31,20 @@ export function RouteModal({ children, className }: Props) {
     const previouslyFocused = document.activeElement as HTMLElement | null
     container.focus()
 
-    // 대화상자 이름 — 자식 폼의 h1(PageHeader 제목)은 로더를 거쳐 늦게 렌더링되거나 교체될 수 있어 계속 관찰해 다시 연결한다
-    function linkTitle() {
-      const heading = container?.querySelector('h1')
+    // 대화상자 이름·설명 — 자식 폼의 h1(PageHeader 제목)과 설명은 로더를 거쳐 늦게 렌더링되거나 교체될 수 있어 계속 관찰해 다시 연결한다
+    function link(attr: string, selector: string, fallbackId: string) {
+      const el = container?.querySelector(selector)
       if (!container) return
-      if (!heading) {
-        container.removeAttribute('aria-labelledby')
+      if (!el) {
+        container.removeAttribute(attr)
         return
       }
-      heading.id ||= titleId
-      container.setAttribute('aria-labelledby', heading.id)
+      el.id ||= fallbackId
+      container.setAttribute(attr, el.id)
+    }
+    function linkTitle() {
+      link('aria-labelledby', 'h1', titleId)
+      link('aria-describedby', '[data-slot=page-description]', descriptionId)
     }
     linkTitle()
     const titleObserver = new MutationObserver(linkTitle)

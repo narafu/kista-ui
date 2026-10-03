@@ -21,7 +21,7 @@ export async function ReconfigureVrFormBody({ params, dismiss }: Props) {
 
   return (
     <>
-      <PageHeader eyebrow={strategy.ticker} eyebrowHref={`/accounts/${id}/strategies/${sid}`} title="VR 재설정" />
+      <PageHeader eyebrow={strategy.ticker} eyebrowHref={`/accounts/${id}/strategies/${sid}`} title="VR 재설정" description="VR 파라미터와 자본 주입·인출 재설정" />
       <ReconfigureVrForm accountId={id} strategy={strategy} dismiss={dismiss} />
     </>
   )

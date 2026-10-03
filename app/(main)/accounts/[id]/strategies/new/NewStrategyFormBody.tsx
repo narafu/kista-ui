@@ -20,7 +20,7 @@ export async function NewStrategyFormBody({ params, dismiss }: Props) {
 
   return (
     <>
-      <PageHeader eyebrow={account.nickname} eyebrowHref={`/accounts/${id}`} title="전략 등록" />
+      <PageHeader eyebrow={account.nickname} eyebrowHref={`/accounts/${id}`} title="전략 등록" description="전략 종류와 매매 조건 설정" />
       <StrategyFormPage accountId={id} broker={account.broker} dismiss={dismiss} />
     </>
   )

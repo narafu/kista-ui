@@ -21,7 +21,7 @@ export async function EditStrategyFormBody({ params, dismiss }: Props) {
 
   return (
     <>
-      <PageHeader eyebrow={strategy.ticker} eyebrowHref={`/accounts/${id}/strategies/${sid}`} title="전략 수정" />
+      <PageHeader eyebrow={strategy.ticker} eyebrowHref={`/accounts/${id}/strategies/${sid}`} title="전략 수정" description="전략 매매 조건 변경" />
       <StrategyFormPage accountId={id} initial={strategy} broker={account.broker} dismiss={dismiss} />
     </>
   )
