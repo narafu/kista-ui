@@ -1,5 +1,5 @@
 // 로컬 dev 시드(kista-api scripts/dev-seed/seed.sh)의 계좌·전략 ID. visual-diff(시나리오·trading fixture)와 a11y-check가 함께 참조한다.
-// 로컬 DB 시드가 다르면 VISUAL_DIFF_SEED=<json 경로>로 최상위 키 단위 덮어쓰기
+// 로컬 DB 시드가 다르면 KISTA_DEV_SEED=<json 경로>로 최상위 키 단위 덮어쓰기
 import { readFileSync } from 'node:fs'
 
 // MOCK 계좌: ACTIVE 전략, preview·prices 등 trading API가 실제로 200
@@ -20,7 +20,7 @@ const defaults = {
   privacy: { accountId: KIS2, strategyId: '5eed0000-0000-0000-0000-000000000004' },
 }
 
-const override = process.env.VISUAL_DIFF_SEED ? JSON.parse(readFileSync(process.env.VISUAL_DIFF_SEED, 'utf8')) : {}
+const override = process.env.KISTA_DEV_SEED ? JSON.parse(readFileSync(process.env.KISTA_DEV_SEED, 'utf8')) : {}
 
 export const seed = { ...defaults, ...override }
 
