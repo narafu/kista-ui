@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
+import { GroupSharedBadge } from '@shared/ui/GroupSharedBadge'
 import { cn } from '@shared/lib/utils'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { useMeta } from '@entities/meta'
@@ -137,7 +138,10 @@ export function AccountManager() {
                   <li key={account.id} className="flex items-center justify-between gap-3 py-3">
                     {/* 모바일에서 행 작업 버튼과 한 줄에 다 담기지 않아 이름 / 부가정보 2줄로 나누고 각 줄을 말줄임한다. */}
                     <div className="min-w-0 flex-1 text-sm">
-                      <p className="font-medium truncate">{account.name}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="min-w-0 truncate font-medium">{account.name}</p>
+                        <GroupSharedBadge groupId={account.groupId} />
+                      </div>
                       <AccountDetails account={account} />
                     </div>
                     <ShareableRowActions

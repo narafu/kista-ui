@@ -106,6 +106,16 @@ describe('BudgetManager', () => {
     expect(labels).toEqual(['공유', '복제', '수정', '삭제'])
   })
 
+  it('그룹 소유 예산에만 공유 배지를 붙인다', () => {
+    useFinanceBudgetsQueryMock.mockReturnValue({
+      data: [budget({ id: 'b1', groupId: 'g1' }), budget({ id: 'b2', categoryId: 'cat-transit' })],
+    })
+    render(<BudgetManager type="EXPENSE" />)
+
+    expect(within(screen.getByText('식비').closest('li') as HTMLElement).getByText('공유')).toBeInTheDocument()
+    expect(within(screen.getByText('교통').closest('li') as HTMLElement).queryByText('공유')).not.toBeInTheDocument()
+  })
+
   it('카테고리 필터를 적용하면 목록이 좁혀진다', async () => {
     const user = userEvent.setup()
     useFinanceBudgetsQueryMock.mockReturnValue({

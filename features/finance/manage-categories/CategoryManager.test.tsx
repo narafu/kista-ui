@@ -129,6 +129,13 @@ describe('CategoryManager', () => {
     expect(shareMutateMock).toHaveBeenCalledWith('l1-custom', expect.anything())
   })
 
+  it('그룹 카테고리에만 공유 배지를 붙인다', () => {
+    render(<CategoryManager />)
+
+    expect(within(screen.getByText('공유대분류').closest('li') as HTMLElement).getByText('공유')).toBeInTheDocument()
+    expect(within(screen.getByText('기타자산').closest('li') as HTMLElement).queryByText('공유')).not.toBeInTheDocument()
+  })
+
   it('생성 다이얼로그: 개인 소유 부모를 고르면 "그룹으로 저장" 토글을 숨기고 안내 문구를 보여준다', async () => {
     canShareState.value = true
     const user = userEvent.setup()

@@ -11,6 +11,7 @@ import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
+import { GroupSharedBadge } from '@shared/ui/GroupSharedBadge'
 import { ALL_FILTER_VALUE, CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
@@ -193,6 +194,7 @@ export function BudgetManager({ type }: Props) {
                       {/* 기본 필터가 진행중이라 진행중 배지는 생략 — 예외 상태만 표시 */}
                       {status === 'UPCOMING' && <Badge tone="brand">예정</Badge>}
                       {status === 'ENDED' && <Badge tone="neutral">종료</Badge>}
+                      <GroupSharedBadge groupId={budget.groupId} />
                     </div>
                     <span className="shrink-0 whitespace-nowrap text-sm font-medium tabular-nums">{fmtKrw(budget.amount)}</span>
                   </div>

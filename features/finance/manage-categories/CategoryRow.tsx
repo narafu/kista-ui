@@ -1,5 +1,6 @@
 import { Badge } from '@shared/ui/Badge'
 import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
+import { GroupSharedBadge } from '@shared/ui/GroupSharedBadge'
 import { cn } from '@shared/lib/utils'
 import type { FinanceCategory } from '@entities/finance'
 
@@ -43,6 +44,7 @@ export function CategoryRow({
         <div className="flex min-w-0 items-center gap-2">
           <span className="truncate text-sm font-medium">{category.name}</span>
           {category.system && <Badge tone="neutral" size="sm">시스템</Badge>}
+          <GroupSharedBadge groupId={category.groupId} />
         </div>
         <ShareableRowActions
           canShare={showShare}

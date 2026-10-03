@@ -116,6 +116,17 @@ describe('AssetRecordList', () => {
     expect(screen.getAllByRole('link', { name: '복제' })[0]).toHaveAttribute('href', '/finance/new?duplicateFrom=a1')
   })
 
+  it('그룹 소유 기록에만 데스크톱·모바일 모두 공유 배지를 붙인다', () => {
+    useAssetSnapshotsQueryMock.mockReturnValue({
+      data: [snapshot({ id: 'a1', groupId: 'g1' }), snapshot({ id: 'a2' })],
+      isLoading: false,
+      isError: false,
+    })
+    render(<AssetRecordList month="2026-08" />)
+
+    expect(screen.getAllByText('공유')).toHaveLength(2)
+  })
+
   it('컬럼 순서(기준일·카테고리·시장·자산군·운용전략·계좌명·기관·금액·메모)대로 값을 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({
       data: [snapshot({

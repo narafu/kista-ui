@@ -6,6 +6,7 @@ import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
+import { GroupSharedBadge } from '@shared/ui/GroupSharedBadge'
 import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
@@ -186,6 +187,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                                 style={{ backgroundColor: flowCategoryColor(orderedRootIds, entry?.rootId ?? '') }}
                               />
                               {entry?.name ?? '(알 수 없음)'}
+                              <GroupSharedBadge groupId={t.groupId} />
                             </span>
                           </TableDataCell>
                           <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtKrw(t.amount)}</TableDataCell>
@@ -229,6 +231,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                               style={{ backgroundColor: flowCategoryColor(orderedRootIds, entry?.rootId ?? '') }}
                             />
                             <span className="truncate text-sm font-medium">{entry?.name ?? '(알 수 없음)'}</span>
+                            <GroupSharedBadge groupId={t.groupId} />
                             <span className="shrink-0 text-xs text-muted-foreground">{fmtDate(t.transactionDate)}</span>
                           </div>
                         </div>

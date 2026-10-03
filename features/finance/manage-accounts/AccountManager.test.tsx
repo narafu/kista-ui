@@ -89,6 +89,14 @@ describe('AccountManager', () => {
     expect(screen.getByText('은행')).toBeInTheDocument()
   })
 
+  it('그룹 소유 계좌에만 공유 배지를 붙인다(그룹 미소속이어도 groupId 기준)', () => {
+    canShareState.value = false
+    render(<AccountManager />)
+
+    expect(within(screen.getByText('국민은행').closest('li') as HTMLElement).getByText('공유')).toBeInTheDocument()
+    expect(within(screen.getByText('삼성증권').closest('li') as HTMLElement).queryByText('공유')).not.toBeInTheDocument()
+  })
+
   it('계좌번호를 뒷자리만 남기고 마스킹해 보여준다', () => {
     render(<AccountManager />)
 

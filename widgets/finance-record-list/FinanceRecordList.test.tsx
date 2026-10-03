@@ -74,3 +74,22 @@ describe('FinanceRecordList 연간 모드', () => {
     expect(within(screen.getByRole('table', { name: '거래내역' })).getAllByRole('row')).toHaveLength(2)
   })
 })
+
+describe('FinanceRecordList 공유 배지', () => {
+  it('그룹 소유 거래에만 데스크톱·모바일 모두 공유 배지를 붙인다', () => {
+    render(
+      <FinanceRecordList
+        type="EXPENSE"
+        transactions={[{ ...tx('2026-08-10', 20000), groupId: 'g1' }, tx('2026-08-11', 30000)]}
+        categoryTree={categoryTree}
+        index={index}
+        period={{ month: '2026-08', mode: 'monthly' }}
+        isLoading={false}
+        isError={false}
+        today="2026-08-23"
+      />,
+    )
+
+    expect(screen.getAllByText('공유')).toHaveLength(2)
+  })
+})

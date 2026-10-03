@@ -3,6 +3,7 @@
 import type { RefObject } from 'react'
 import { Badge } from '@shared/ui/Badge'
 import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
+import { GroupSharedBadge } from '@shared/ui/GroupSharedBadge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
@@ -92,7 +93,10 @@ function DesktopRow({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowC
       </TableDataCell>
       <TableDataCell className="text-muted-foreground whitespace-nowrap">{fmtDate(snapshot.entryDate)}</TableDataCell>
       <TableDataCell>
-        <Badge tone={CATEGORY_TONE[snapshot.rootCategoryId] ?? 'neutral'} size="sm">{snapshot.categoryName}</Badge>
+        <span className="inline-flex items-center gap-1.5">
+          <Badge tone={CATEGORY_TONE[snapshot.rootCategoryId] ?? 'neutral'} size="sm">{snapshot.categoryName}</Badge>
+          <GroupSharedBadge groupId={snapshot.groupId} />
+        </span>
       </TableDataCell>
       <TableDataCell>{labelOf('markets', snapshot.market)}</TableDataCell>
       <TableDataCell>{labelOf('assetClasses', snapshot.assetClass)}</TableDataCell>
@@ -174,6 +178,7 @@ function MobileItem({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowC
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5 mb-1">
             <Badge tone={CATEGORY_TONE[snapshot.rootCategoryId] ?? 'neutral'} size="sm">{snapshot.categoryName}</Badge>
+            <GroupSharedBadge groupId={snapshot.groupId} />
             <span className="text-xs text-muted-foreground">{fmtDate(snapshot.entryDate)}</span>
           </div>
           <div className="flex items-baseline justify-between gap-2">
