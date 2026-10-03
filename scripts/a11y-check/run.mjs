@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { parseArgs } from 'node:util'
 import { chromium } from '@playwright/test'
-import { seed } from '../visual-diff/seed.mjs'
+import { seed } from '../shared/seed.mjs'
 
 // axe-core는 eslint-plugin-jsx-a11y의 전이 의존성으로 설치돼 있다 — 별도 devDependency로 추가하지 않음
 const axeSrc = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8')

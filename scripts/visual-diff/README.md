@@ -25,7 +25,7 @@ npm run visual-diff -- --list                        # 시나리오 목록
 
 기본은 dev 시드 실데이터다(kista-api `scripts/dev-seed/seed.sh`, 멱등). MOCK 계좌의 ACTIVE 전략은 preview·prices 등이 실제로 200을 준다. KIS 시드 전략은 PAUSED이고 preview가 503이다. fixture는 실데이터로 만들 수 없는 것만 채운다.
 
-- `seed.mjs`: 시나리오가 여는 계좌·전략 ID. 로컬 시드가 다르면 `VISUAL_DIFF_SEED=<json>`으로 최상위 키 단위 덮어쓰기.
+- `../shared/seed.mjs`(a11y-check와 공용): 시나리오가 여는 계좌·전략 ID. 로컬 시드가 다르면 `VISUAL_DIFF_SEED=<json>`으로 최상위 키 단위 덮어쓰기.
 - `fixtures/trading.mjs`: preview·previews의 인위적 분기를 모드별로 응답한다(`deficit`/`uncertain`/`executed`/`skip`/`empty`). 시나리오의 `mode`로 고르고, 기본값 `real`은 실데이터를 그대로 통과시킨다.
 - kista-api(8080)는 fixture 없이 실데이터를 그대로 통과시킨다. `etf-series`는 09:00 KST cron에서만 수집되므로, 수집 전이면 ETF 벤치마크 탭이 "데이터 부족" 상태로만 비교된다.
 - 프록시는 실행 동안 upstream의 성공 JSON 응답을 메모이즈한다(URL·인증 헤더 기준). 실시간 가격이나 preview가 head와 base 촬영 사이에 바뀌어도 가짜 diff가 생기지 않는다.

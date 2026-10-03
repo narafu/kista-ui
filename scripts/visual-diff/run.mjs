@@ -10,7 +10,7 @@ import { parseArgs } from 'node:util'
 import { startProxy } from './proxy.mjs'
 import * as tradingFixture from './fixtures/trading.mjs'
 import { scenarios as allScenarios } from './scenarios.mjs'
-import { seed } from './seed.mjs'
+import { seed } from '../shared/seed.mjs'
 import { shoot } from './shoot.mjs'
 
 const UPSTREAM = { api: 'http://localhost:8080', trading: 'http://localhost:8081' }

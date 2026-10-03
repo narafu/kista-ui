@@ -1,4 +1,4 @@
-// 로컬 dev 시드(kista-api scripts/dev-seed/seed.sh)의 계좌·전략 ID. 시나리오 경로와 trading fixture가 함께 참조한다.
+// 로컬 dev 시드(kista-api scripts/dev-seed/seed.sh)의 계좌·전략 ID. visual-diff(시나리오·trading fixture)와 a11y-check가 함께 참조한다.
 // 로컬 DB 시드가 다르면 VISUAL_DIFF_SEED=<json 경로>로 최상위 키 단위 덮어쓰기
 import { readFileSync } from 'node:fs'
 

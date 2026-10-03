@@ -1,6 +1,6 @@
 // 촬영 시나리오. 뮤테이션 금지: 제출/저장 버튼은 누르지 않는다 — 열기·탭 전환·선택만.
 // { name, path(문자열 또는 실행 시 조회값 ctx를 받는 함수), admin?, steps?, mode?(trading fixture 모드, 기본 real=실데이터), clock?(평일 시계 고정 — 휴장일 배너가 부족 배너를 가리는 것 방지) }
-import { seed } from './seed.mjs'
+import { seed } from '../shared/seed.mjs'
 
 const clickText = (t) => async (p) => { await p.getByText(t, { exact: true }).first().click(); await p.waitForTimeout(800) }
 const clickRole = (role, name) => async (p) => { await p.getByRole(role, { name }).first().click(); await p.waitForTimeout(800) }
