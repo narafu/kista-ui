@@ -1,3 +1,5 @@
+import type { CycleSeedType } from '@shared/lib/api-schema'
+
 export type BacktestType = 'INFINITE' | 'PRIVACY' | 'VR'
 
 export interface BacktestParams {
@@ -7,6 +9,8 @@ export interface BacktestParams {
   to: string
   seed: number
   divisionCount?: number
+  // INFINITE·PRIVACY 전용 사이클 연속 정책 — 생략하면 서버가 MAX(전액 이월)로 처리
+  cycleSeedType?: CycleSeedType
   vrBandWidth?: number
   vrIntervalWeeks?: number
   vrRecurringAmount?: number

@@ -46,6 +46,11 @@ vi.mock('@entities/meta', () => ({
         { code: 'PRIVACY', availableTickers: ['SOXL'], divisionCounts: [] },
         { code: 'VR', availableTickers: ['TQQQ'], divisionCounts: [] },
       ],
+      cycleSeedTypes: [
+        { code: 'NONE', label: 'OFF' },
+        { code: 'MAINTAIN', label: 'ON(유지)' },
+        { code: 'MAX', label: 'ON(MAX)' },
+      ],
     },
   }),
 }))
@@ -186,6 +191,7 @@ describe('useBacktestForm', () => {
       to: '2026-06-01',
       seed: 10000,
       divisionCount: 20,
+      cycleSeedType: 'MAX',
       vrBandWidth: undefined,
       vrIntervalWeeks: undefined,
       vrRecurringAmount: undefined,
@@ -311,5 +317,30 @@ describe('useBacktestForm', () => {
       result.current.setVrRampField('initialGradient', 10.5)
     })
     expect(result.current.submitDisabledReason).toBe('gradient와 주 단위 값은 정수로 입력하세요')
+  })
+
+  it('사이클 연속 정책은 INFINITE·PRIVACY에만 전달하고 VR에선 생략한다', async () => {
+    const { useBacktestForm } = await import('./useBacktestForm')
+    const { result } = renderHook(() => useBacktestForm())
+
+    act(() => {
+      result.current.setSeed(10000)
+      result.current.setFrom('2026-01-01')
+      result.current.setTo('2026-06-01')
+      result.current.setCycleSeedType('NONE')
+    })
+    act(() => {
+      result.current.run()
+    })
+    expect(mutateMock.mock.calls[0][0].cycleSeedType).toBe('NONE')
+
+    act(() => {
+      result.current.setType('VR')
+    })
+    expect(result.current.cycleSeedType).toBe('MAX')
+    act(() => {
+      result.current.run()
+    })
+    expect(mutateMock.mock.calls[1][0].cycleSeedType).toBeUndefined()
   })
 })

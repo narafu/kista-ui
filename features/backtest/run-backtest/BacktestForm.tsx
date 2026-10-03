@@ -10,7 +10,8 @@ import { Spinner } from '@shared/ui/Spinner'
 import { SelectionCard } from '@shared/ui/selection-card'
 import { UnitInput } from '@shared/ui/UnitInput'
 import type { BacktestType } from '@entities/backtest'
-import { OptionChoiceGroup, RecurringModeField, VrRampFields, VR_FIELD_LABEL_CLASS } from '@entities/strategy'
+import type { CycleSeedType } from '@entities/strategy'
+import { ChoiceButton, OptionChoiceGroup, RecurringModeField, VrRampFields, VR_FIELD_LABEL_CLASS } from '@entities/strategy'
 import type { UseBacktestFormResult } from './model/useBacktestForm'
 
 interface Props {
@@ -128,6 +129,25 @@ export function BacktestForm({ form }: Props) {
                 </SelectionCard>
               ))}
             </div>
+          </div>
+        )}
+
+        {form.type !== 'VR' && form.meta.cycleSeedTypes.length > 0 && (
+          <div>
+            <Label className={FIELD_LABEL_CLASS}>사이클 연속</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {form.meta.cycleSeedTypes.map((t) => (
+                <ChoiceButton
+                  key={t.code}
+                  selected={form.cycleSeedType === t.code}
+                  disabled={form.isLoading}
+                  onClick={() => form.setCycleSeedType(t.code as CycleSeedType)}
+                >
+                  {t.label}
+                </ChoiceButton>
+              ))}
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">익절로 사이클이 끝난 뒤 다음 사이클을 이어갈지와 시드 처리 방식</p>
           </div>
         )}
 

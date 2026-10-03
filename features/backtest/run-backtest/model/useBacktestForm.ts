@@ -8,7 +8,7 @@ import type { BacktestParams, BacktestType } from '@entities/backtest'
 import { useRuntimeConfigQuery } from '@entities/runtime-config'
 import type { RuntimeStrategyType } from '@entities/runtime-config'
 import { EMPTY_VR_RAMP, POOL_LIMIT_FLOOR_ZERO_MESSAGE, RAMP_DEFAULTS_BY_MODE } from '@entities/strategy'
-import type { VrRampValues, VrRecurringMode } from '@entities/strategy'
+import type { CycleSeedType, VrRampValues, VrRecurringMode } from '@entities/strategy'
 
 // 운영 전략 등록과 같은 범위로 백테스트한다 — 분할 수·밴드 폭·주기·적립 모드의 선택지와 기본값은 runtime-config가 SSOT.
 // 사용자가 고르지 않은 값은 state에 복사하지 않고(null) 읽는 시점에 runtime 기본값으로 파생한다(서버 상태를 useState에 미러링 금지)
@@ -25,6 +25,7 @@ export function useBacktestForm() {
   const [avgPrice, setAvgPrice] = useState<number | null>(null)
   const [quantity, setQuantity] = useState<number | null>(null)
   const [divisionCountOverride, setDivisionCount] = useState<number | null>(null)
+  const [cycleSeedType, setCycleSeedType] = useState<CycleSeedType>('MAX')
   const [bandWidthOverride, setVrBandWidth] = useState<number | null>(null)
   const [intervalWeeksOverride, setVrIntervalWeeks] = useState<number | null>(null)
   const [recurringModeOverride, setVrRecurringMode] = useState<VrRecurringMode | null>(null)
@@ -51,6 +52,7 @@ export function useBacktestForm() {
     setTypeState(next)
     setTicker(null)
     setDivisionCount(null)
+    setCycleSeedType('MAX')
     setVrBandWidth(null)
     setVrIntervalWeeks(null)
     setVrRecurringMode(null)
@@ -119,6 +121,7 @@ export function useBacktestForm() {
       initialHoldings: quantity != null && quantity > 0 ? quantity : undefined,
       initialAvgPrice: quantity != null && quantity > 0 ? (avgPrice ?? undefined) : undefined,
       divisionCount: type === 'INFINITE' ? (divisionCount ?? undefined) : undefined,
+      cycleSeedType: isVr ? undefined : cycleSeedType,
       vrBandWidth: isVr ? (vrBandWidth ?? undefined) : undefined,
       vrIntervalWeeks: isVr ? (vrIntervalWeeks ?? undefined) : undefined,
       vrRecurringAmount: isVr ? vrRecurringAmount : undefined,
@@ -174,6 +177,8 @@ export function useBacktestForm() {
     divisionCount,
     setDivisionCount,
     divisionCountOptions,
+    cycleSeedType,
+    setCycleSeedType,
     vrSettings: settings,
     vrBandWidth,
     setVrBandWidth,
