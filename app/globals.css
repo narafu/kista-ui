@@ -184,10 +184,6 @@
   --selection-fg: #6E3A2A;
   --selection-halo: rgba(182, 105, 81, 0.14);
 
-  /* Primary gradient & glow */
-  --primary-grad: linear-gradient(135deg, #D89881 0%, #B66951 55%, #8E4530 100%);
-  --primary-glow: 0 1px 0 rgba(255,255,255,.35) inset, 0 6px 16px rgba(143,68,48,.28);
-
   /* Shadows */
   --sh-card: 0 1px 2px rgba(74,38,22,.04), 0 6px 16px rgba(74,38,22,.05);
   --sh-pop:  0 14px 38px rgba(74,38,22,.14);
@@ -282,9 +278,6 @@
   --selection-bg: rgba(214, 169, 142, 0.14);
   --selection-fg: #F1CFBB;
   --selection-halo: rgba(214, 169, 142, 0.13);
-
-  --primary-grad: linear-gradient(135deg, #D6A98E 0%, #B5826A 55%, #8A5740 100%);
-  --primary-glow: 0 1px 0 rgba(255,235,222,.12) inset, 0 8px 20px rgba(180,118,95,.32);
 
   --sh-card: 0 1px 2px rgba(0,0,0,.36), 0 8px 18px rgba(0,0,0,.42);
   --sh-pop:  0 16px 42px rgba(0,0,0,.55);

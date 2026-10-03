@@ -126,9 +126,9 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
                 // eslint-disable-next-line react-doctor/no-array-index-as-key -- id 없는 편집형 주문 목록(삭제 시 index 기준 갱신)이라 index 키 유지
                 <div key={i} className="flex items-end gap-2 rounded-[var(--r-sm)] border border-border p-3">
                   <div className="flex-1 space-y-1">
-                    <Label className="text-xs">방향</Label>
+                    <Label htmlFor={`base-order-${i}-direction`} className="text-xs">방향</Label>
                     <Select items={[{ value: 'BUY', label: '매수' }, { value: 'SELL', label: '매도' }]} value={o.direction} onValueChange={(v) => { if (v) updateOrder(i, { direction: v as DraftOrder['direction'] }) }}>
-                      <SelectTrigger className="h-10" disabled={isPending}><SelectValue /></SelectTrigger>
+                      <SelectTrigger id={`base-order-${i}-direction`} className="h-10" disabled={isPending}><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="BUY">매수</SelectItem>
                         <SelectItem value="SELL">매도</SelectItem>
@@ -136,9 +136,9 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
                     </Select>
                   </div>
                   <div className="flex-1 space-y-1">
-                    <Label className="text-xs">유형</Label>
+                    <Label htmlFor={`base-order-${i}-type`} className="text-xs">유형</Label>
                     <Select items={[{ value: 'LOC', label: 'LOC' }, { value: 'MOC', label: 'MOC' }, { value: 'LIMIT', label: 'LIMIT' }]} value={o.orderType} onValueChange={(v) => { if (v) updateOrder(i, { orderType: v as DraftOrder['orderType'] }) }}>
-                      <SelectTrigger className="h-10" disabled={isPending}><SelectValue /></SelectTrigger>
+                      <SelectTrigger id={`base-order-${i}-type`} className="h-10" disabled={isPending}><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="LOC">LOC</SelectItem>
                         <SelectItem value="MOC">MOC</SelectItem>
@@ -147,12 +147,12 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
                     </Select>
                   </div>
                   <div className="flex-1 space-y-1">
-                    <Label className="text-xs">가격</Label>
-                    <Input type="number" step="0.01" value={o.price} onChange={(e) => updateOrder(i, { price: e.target.value })} disabled={isPending} className="h-10" />
+                    <Label htmlFor={`base-order-${i}-price`} className="text-xs">가격</Label>
+                    <Input id={`base-order-${i}-price`} type="number" step="0.01" value={o.price} onChange={(e) => updateOrder(i, { price: e.target.value })} disabled={isPending} className="h-10" />
                   </div>
                   <div className="flex-1 space-y-1">
-                    <Label className="text-xs">수량{!orderRequiresQuantity(o.direction) && '(선택)'}</Label>
-                    <Input type="number" step="1" min="1" value={o.quantity} onChange={(e) => updateOrder(i, { quantity: e.target.value })} disabled={isPending} className="h-10" />
+                    <Label htmlFor={`base-order-${i}-quantity`} className="text-xs">수량{!orderRequiresQuantity(o.direction) && '(선택)'}</Label>
+                    <Input id={`base-order-${i}-quantity`} type="number" step="1" min="1" value={o.quantity} onChange={(e) => updateOrder(i, { quantity: e.target.value })} disabled={isPending} className="h-10" />
                   </div>
                   {orders.length > 1 && (
                     <IconButton aria-label="주문 삭제" onClick={() => setOrders((prev) => prev.filter((_, idx) => idx !== i))} disabled={isPending}>

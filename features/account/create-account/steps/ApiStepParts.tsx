@@ -64,7 +64,7 @@ export function ApiSecretField({ label, value, showError, onChange, onBlur, show
           type="button"
           onClick={onToggle}
           aria-label={showSecret ? '숨기기' : '보기'}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+          className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex size-9 items-center justify-center text-muted-foreground"
         >
           {showSecret ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
         </button>

@@ -16,6 +16,7 @@ export function NewAssetButton({ className }: Props) {
   const [isPending, startTransition] = useTransition()
 
   function handleClick() {
+    if (isPending) return
     startTransition(() => router.push('/finance/new'))
   }
 
@@ -23,9 +24,11 @@ export function NewAssetButton({ className }: Props) {
     <button
       type="button"
       onClick={handleClick}
-      disabled={isPending}
+      // disabled로 바꾸면 포커스가 body로 빠져 모달을 닫은 뒤 이 버튼으로 복귀하지 못한다
+      aria-disabled={isPending}
       className={cn(
         buttonVariants({ variant: 'brand', size: 'cta' }),
+        'aria-disabled:opacity-50',
         className,
       )}
     >
