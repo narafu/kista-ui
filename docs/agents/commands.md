@@ -23,6 +23,7 @@ cat /tmp/kista_dev.log | grep "Local:"   # dev 서버 실제 포트 확인
 tail -f .next/dev/logs/next-development.log
 npx playwright screenshot --browser chromium --viewport-size "1440,900" http://localhost:3000/path /tmp/out.png
 cd ../kista-api && ./gradlew compileJava
+npm run visual-diff -- <base-ref>   # 리팩토링 전후 화면 픽셀 비교 (scripts/visual-diff/README.md)
 ```
 
 참고:
