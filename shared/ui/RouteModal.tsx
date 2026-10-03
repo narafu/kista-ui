@@ -13,6 +13,9 @@ interface Props {
 
 const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
+// RouteModal 위에 뜨는 하위 오버레이 — 확인창(AlertDialog)·Select/Combobox 목록·메뉴. RouteModal 자신은 role=dialog라 제외된다.
+const CHILD_OVERLAY_SELECTOR = '[role="alertdialog"], [role="listbox"], [role="menu"]'
+
 // 인터셉팅 라우트 전용 셸 — PC(sm 이상)는 배경 위 모달, 모바일은 일반 페이지와 동일한 전체화면으로 렌더링한다.
 export function RouteModal({ children, className }: Props) {
   const router = useRouter()
@@ -52,6 +55,13 @@ export function RouteModal({ children, className }: Props) {
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
+        // 모달 위에 포털로 뜬 하위 확인창·Select 팝업이 ESC를 받으면 그쪽만 닫히게 둔다 — 라우트까지 닫히면
+        // 예산 목록에서 삭제 확인을 ESC로 취소했는데 목록 모달도 사라진다. 팝업이 열린 직후엔 포커스가 아직
+        // 모달 안 트리거에 남아 있을 수 있어(초기 포커스 이동이 비동기) 포커스 위치와 열린 오버레이 둘 다 본다.
+        const active = document.activeElement
+        if (!container || (active && active !== document.body && !container.contains(active))) return
+        // base-ui Select는 값이 한 번 바뀌면 닫힌 뒤에도 [hidden] 포지셔너 안에 listbox를 남겨 두므로 숨겨진 것은 제외한다
+        if ([...document.querySelectorAll(CHILD_OVERLAY_SELECTOR)].some((el) => !el.closest('[hidden]'))) return
         event.stopPropagation()
         dismiss()
         return

@@ -42,7 +42,7 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
   const [memo, setMemo] = useState(account?.memo ?? '')
 
   // 생성 모드에서만 노출, 그룹 소속일 때만 노출, 기본값 켜짐(그룹 저장 우선) —
-  // 수정 모드는 groupId가 이미 고정돼 있어 대상 아님(BudgetFormDialog와 동일 패턴).
+  // 수정 모드는 groupId가 이미 고정돼 있어 대상 아님(BudgetForm와 동일 패턴).
   const canShareToGroup = useCanShareToGroup()
   const [shareToGroup, setShareToGroup] = useState(true)
 

@@ -1,19 +1,19 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button-variants'
 import { SectionError } from '@shared/ui/SectionError'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { fmtKrw } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { useMeta } from '@entities/meta'
-import { buildBudgetProgressTree, calcBudgetProgress, calcUnbudgetedCategories, filterByType, flowCategoryColor, sortCategoryTree } from '@entities/finance'
-import type { BudgetTreeNode, CategoryIndex, FinanceBudget, FinanceCategory, FinanceTransaction, Period } from '@entities/finance'
-import { BudgetFormDialog } from '@features/finance/manage-budgets'
+import { buildBudgetProgressTree, calcBudgetProgress, calcUnbudgetedCategories, filterByType, flowCategoryColor, newBudgetHref, sortCategoryTree } from '@entities/finance'
+import type { BudgetTreeNode, CategoryIndex, FinanceBudget, FinanceCategory, FinanceTransaction, FlowType, Period } from '@entities/finance'
 
 interface Props {
-  type: 'INCOME' | 'EXPENSE' | 'SAVING'
+  type: FlowType
   budgets: FinanceBudget[]
   transactions: FinanceTransaction[]
   categoryTree: FinanceCategory[]
@@ -86,9 +86,6 @@ function BudgetTreeRow({ node, orderedRootIds, index }: { node: BudgetTreeNode; 
 
 export function FinanceBudgetProgress({ type, budgets, transactions, categoryTree, index, period, isLoading, isError, today }: Props) {
   const { labelOf } = useMeta()
-  // 예산 없이 실적만 있는 카테고리를 위한 즉석 예산등록 다이얼로그 대상 — 카테고리만 프리필하고
-  // 날짜·금액은 비워서 사용자가 직접 입력하게 한다(BudgetFormDialog의 defaultCategoryId).
-  const [quickCreateCategoryId, setQuickCreateCategoryId] = useState<string | null>(null)
 
   const typedBudgets = budgets.filter((b) => index.get(b.categoryId)?.type === type)
   const typedTransactions = filterByType(transactions, index, type)
@@ -130,15 +127,14 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
                     <li key={entry.categoryId} className="flex items-center justify-between gap-3">
                       <span className="min-w-0 flex-1 truncate text-sm">{entry.categoryName}</span>
                       <span className="shrink-0 text-sm tabular-nums text-muted-foreground">{fmtKrw(entry.amount)}</span>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="shrink-0"
-                        onClick={() => setQuickCreateCategoryId(entry.categoryId)}
+                      {/* 예산 없이 실적만 있는 카테고리 즉석 등록 — 카테고리만 프리필, 날짜·금액은 사용자가 입력 */}
+                      <Link
+                        href={newBudgetHref(type, { categoryId: entry.categoryId })}
+                        aria-label={`${entry.categoryName} 예산 등록`}
+                        className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'shrink-0')}
                       >
                         예산 등록
-                      </Button>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -147,16 +143,6 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
           </div>
         )}
       </CardContent>
-
-      {quickCreateCategoryId && (
-        <BudgetFormDialog
-          open
-          onOpenChange={(next) => { if (!next) setQuickCreateCategoryId(null) }}
-          categoryTree={categoryTree}
-          defaultCategoryId={quickCreateCategoryId}
-          onSuccess={() => setQuickCreateCategoryId(null)}
-        />
-      )}
     </Card>
   )
 }

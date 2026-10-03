@@ -62,7 +62,7 @@ export function maskAmount(display: string): string {
   return display.replace(/\d/g, '●')
 }
 
-/** 금액 입력 필드의 raw value에서 숫자만 남긴다 (AssetForm/TransactionFormDialog/BudgetFormDialog 공용) */
+/** 금액 입력 필드의 raw value에서 숫자만 남긴다 (AssetForm/TransactionFormDialog/BudgetForm 공용) */
 export function digitsOnly(value: string): string {
   return value.replace(/[^0-9]/g, '')
 }

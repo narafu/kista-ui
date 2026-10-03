@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button-variants'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -14,11 +16,13 @@ import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { fmtKrw, todayKst } from '@shared/lib/format'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
-import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
+import { cn } from '@shared/lib/utils'
 import {
   collectSubtreeIds,
+  editBudgetHref,
   getCascadeLevels,
   getCategoryPath,
+  newBudgetHref,
   useCanShareToGroup,
   useDeleteFinanceBudgetMutation,
   useFinanceBudgetsQuery,
@@ -26,20 +30,23 @@ import {
   useShareFinanceBudgetMutation,
   useUnshareFinanceBudgetMutation,
 } from '@entities/finance'
-import type { FinanceBudget } from '@entities/finance'
-import { BudgetFormDialog } from './BudgetFormDialog'
+import type { FinanceBudget, FlowType } from '@entities/finance'
 
 interface Props {
-  type: 'INCOME' | 'EXPENSE' | 'SAVING'
+  type: FlowType
 }
-
-type FormTarget =
-  | { mode: 'create' }
-  | { mode: 'edit'; budget: FinanceBudget }
-  | { mode: 'duplicate'; budget: FinanceBudget }
 
 type BudgetStatus = 'UPCOMING' | 'ACTIVE' | 'ENDED'
 type StatusFilter = 'ALL' | BudgetStatus
+
+const STATUS_VALUES: StatusFilter[] = ['ALL', 'UPCOMING', 'ACTIVE', 'ENDED']
+const PAGE_SIZES = [10, 30, 50, 100]
+const DEFAULT_SIZE = 10
+
+function positiveInt(raw: string | null): number | null {
+  const n = Number(raw)
+  return Number.isInteger(n) && n > 0 ? n : null
+}
 
 // 시작 전(예정)을 따로 둔다 — 진행중이 아니면 전부 종료로 묶으면 시작일이 미래인 예산이 "종료"에 섞인다.
 function budgetStatus(budget: FinanceBudget, today: string): BudgetStatus {
@@ -48,8 +55,8 @@ function budgetStatus(budget: FinanceBudget, today: string): BudgetStatus {
   return 'ACTIVE'
 }
 
-// 예산 유형은 더 이상 이 컴포넌트가 스스로 고르지 않는다 — 호출부(BudgetManagerDialog)가
-// 수입/소비/저축 탭 컨텍스트에서 이미 고정된 type을 넘긴다(설정 화면의 독립 세그먼트 UI는 폐기).
+// 예산 유형은 이 컴포넌트가 스스로 고르지 않는다 — 호출 라우트(/finance/budgets/[type])가
+// 경로에서 고정된 type을 넘긴다(설정 화면의 독립 세그먼트 UI는 폐기).
 export function BudgetManager({ type }: Props) {
   const { data: categories = [] } = useFinanceCategoriesQuery(type)
   const { data: allBudgets = [] } = useFinanceBudgetsQuery()
@@ -58,8 +65,44 @@ export function BudgetManager({ type }: Props) {
 
   const budgets = allBudgets.filter((b) => getCategoryPath(categories, b.categoryId).length > 0)
 
-  const [categoryPath, setCategoryPath] = useState<string[]>([])
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('ACTIVE')
+  const searchParams = useSearchParams()
+  const statusParam = searchParams.get('status') as StatusFilter | null
+  const statusFilter: StatusFilter = statusParam && STATUS_VALUES.includes(statusParam) ? statusParam : 'ACTIVE'
+  const categoryParam = searchParams.get('category')
+  // 경로는 URL에 마지막 id 하나만 두고 트리에서 복원한다 — 트리에 없는 id면 빈 경로(전체)로 폴백
+  const categoryPath = useMemo(
+    () => (categoryParam ? getCategoryPath(categories, categoryParam).map((c) => c.id) : []),
+    [categories, categoryParam],
+  )
+  const sizeParam = positiveInt(searchParams.get('size'))
+  const size = sizeParam && PAGE_SIZES.includes(sizeParam) ? sizeParam : DEFAULT_SIZE
+  const pageParam = positiveInt(searchParams.get('page')) ?? 1
+
+  // 목록 모달이 폼 라우트로 교체됐다가 돌아와도 필터가 남도록 URL에 둔다. replaceState는 서버 왕복·
+  // 인터셉트 재평가 없이 useSearchParams와 동기화된다(Next.js 네이티브 history 지원). 기본값은 생략한다.
+  function updateParams(patch: Record<string, string | null>) {
+    const next = new URLSearchParams(searchParams.toString())
+    for (const [key, value] of Object.entries(patch)) {
+      if (value === null) next.delete(key)
+      else next.set(key, value)
+    }
+    const qs = next.toString()
+    window.history.replaceState(null, '', qs ? `?${qs}` : window.location.pathname)
+  }
+
+  // 필터 변경은 결과 집합을 바꾸므로 page를 지워 1페이지로 돌아간다.
+  function setCategoryPath(path: string[]) {
+    updateParams({ category: path.at(-1) ?? null, page: null })
+  }
+  function setStatusFilter(value: StatusFilter) {
+    updateParams({ status: value === 'ACTIVE' ? null : value, page: null })
+  }
+  function setPage(next: number) {
+    updateParams({ page: next === 1 ? null : String(next) })
+  }
+  function handlePageSizeChange(next: string) {
+    updateParams({ size: next === String(DEFAULT_SIZE) ? null : next, page: null })
+  }
 
   // 계단식 카테고리 필터: 특정 depth에서 멈추면 그 하위 전부를 포함해 매칭한다(AssetRecordList와 동일 패턴).
   const cascadeLevels = useMemo(() => getCascadeLevels(categories, categoryPath), [categories, categoryPath])
@@ -73,14 +116,11 @@ export function BudgetManager({ type }: Props) {
     (statusFilter === ALL_FILTER_VALUE || budgetStatus(b, today) === statusFilter),
   ), [budgets, categorySubtreeIds, statusFilter, today])
 
-  const { page: currentPage, setPage, size, totalPages, paged, handlePageSizeChange } = useClientPagination(filtered)
+  // 범위를 벗어난 page(삭제·필터로 결과가 줄어든 경우)는 마지막 페이지로 클램프한다
+  const totalPages = Math.max(1, Math.ceil(filtered.length / size))
+  const currentPage = Math.min(pageParam, totalPages)
+  const paged = filtered.slice((currentPage - 1) * size, currentPage * size)
 
-  // 필터 변경은 결과 집합을 바꾸므로 페이지를 1로 리셋한다(AssetRecordList와 동일 패턴).
-  useEffect(() => {
-    setPage(1)
-  }, [categoryPath, statusFilter, setPage])
-
-  const [formTarget, setFormTarget] = useState<FormTarget | null>(null)
   const deleteDialog = useConfirmDialog<FinanceBudget>()
   const deleteMutation = useDeleteFinanceBudgetMutation()
   const shareMutation = useShareFinanceBudgetMutation()
@@ -128,10 +168,10 @@ export function BudgetManager({ type }: Props) {
           </SelectContent>
         </Select>
         <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
-        <Button type="button" variant="brand-soft" size="sm" className="ml-auto gap-1.5" onClick={() => setFormTarget({ mode: 'create' })}>
+        <Link href={newBudgetHref(type)} className={cn(buttonVariants({ variant: 'brand-soft', size: 'sm' }), 'ml-auto gap-1.5')}>
           <Plus className="size-4" />
           예산 추가
-        </Button>
+        </Link>
       </div>
 
       {budgets.length === 0 ? (
@@ -163,8 +203,8 @@ export function BudgetManager({ type }: Props) {
                       <span className="whitespace-nowrap">~ {budget.applyEndDate ?? '무기한'}</span>
                     </p>
                     <ShareableRowActions
-                      onEdit={() => setFormTarget({ mode: 'edit', budget })}
-                      onDuplicate={() => setFormTarget({ mode: 'duplicate', budget })}
+                      editHref={editBudgetHref(type, budget.id)}
+                      duplicateHref={newBudgetHref(type, { duplicateFrom: budget.id })}
                       onShare={() => handleShare(budget.id)}
                       onUnshare={() => handleUnshare(budget.id)}
                       onDelete={() => deleteDialog.request(budget)}
@@ -180,17 +220,6 @@ export function BudgetManager({ type }: Props) {
           </ul>
           {totalPages > 1 && <PaginationBar page={currentPage} totalPages={totalPages} onPageChange={setPage} />}
         </>
-      )}
-
-      {formTarget && (
-        <BudgetFormDialog
-          open
-          onOpenChange={(next) => { if (!next) setFormTarget(null) }}
-          categoryTree={categories}
-          initial={formTarget.mode === 'edit' ? formTarget.budget : undefined}
-          duplicateFrom={formTarget.mode === 'duplicate' ? formTarget.budget : undefined}
-          onSuccess={() => setFormTarget(null)}
-        />
       )}
 
       {deleteDialog.target && (

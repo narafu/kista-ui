@@ -14,9 +14,6 @@ vi.mock('@features/asset/save-asset', () => ({
 vi.mock('@features/finance/save-transaction', () => ({
   NewTransactionButton: ({ type }: { type: string }) => <button type="button">내역 등록 ({type})</button>,
 }))
-vi.mock('@features/finance/manage-budgets', () => ({
-  BudgetManagerDialog: ({ type }: { type: string }) => <button type="button">예산 관리 ({type})</button>,
-}))
 
 describe('FinanceHeader', () => {
   it('자산 탭에서는 제목이 "내 자산"이고 자산 등록 버튼만 보여준다', () => {
@@ -25,7 +22,7 @@ describe('FinanceHeader', () => {
 
     expect(screen.getByRole('heading', { name: '내 자산' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '자산 등록' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /예산 관리/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /예산 관리/ })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: '자산' })).toHaveAttribute('aria-current', 'page')
   })
 
@@ -34,7 +31,7 @@ describe('FinanceHeader', () => {
     render(<FinanceHeader />)
 
     expect(screen.getByRole('heading', { name: '수입' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '예산 관리 (INCOME)' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '예산 관리' })).toHaveAttribute('href', '/finance/budgets/income')
     expect(screen.getByRole('button', { name: '내역 등록 (INCOME)' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '자산 등록' })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: '수입' })).toHaveAttribute('aria-current', 'page')
@@ -46,7 +43,7 @@ describe('FinanceHeader', () => {
 
     expect(screen.getByRole('heading', { name: '설정' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '자산 등록' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /예산 관리/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /예산 관리/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /내역 등록/ })).not.toBeInTheDocument()
   })
 
@@ -58,5 +55,14 @@ describe('FinanceHeader', () => {
     const labels = Array.from(group.querySelectorAll('a')).map((el) => el.textContent)
 
     expect(labels).toEqual(['자산', '수입', '소비', '저축', '설정'])
+  })
+
+  it('예산 관리 라우트 모달이 떠 있는 동안(배경 페이지)에도 해당 흐름 탭 헤더를 유지한다', () => {
+    pathname = '/finance/budgets/expense/b1/edit'
+    render(<FinanceHeader />)
+
+    expect(screen.getByRole('heading', { name: '소비' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '소비' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: '예산 관리' })).toHaveAttribute('href', '/finance/budgets/expense')
   })
 })

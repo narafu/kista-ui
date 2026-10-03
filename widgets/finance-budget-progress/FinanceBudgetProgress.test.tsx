@@ -86,3 +86,16 @@ describe('FinanceBudgetProgress 중간 카테고리 소계', () => {
     expect(screen.getByText('180원 / 200원')).toBeInTheDocument()
   })
 })
+
+describe('FinanceBudgetProgress 예산 미설정 빠른 등록', () => {
+  it('예산 없이 실적만 있는 카테고리에 추가 라우트 링크(categoryId 프리필)를 단다', () => {
+    renderWidget({
+      budgets: [],
+      transactions: [tx('food', 30_000)],
+      categoryTree: [cat('food', '식비')],
+      index: new Map([idx('food', '식비')]),
+    })
+
+    expect(screen.getByRole('link', { name: '식비 예산 등록' })).toHaveAttribute('href', '/finance/budgets/expense/new?categoryId=food')
+  })
+})

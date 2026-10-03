@@ -15,7 +15,7 @@ import { cn } from '@shared/lib/utils'
 // 감싸지 않는다 — CategoryManager/GroupManager는 카드 배경이 없어 Surface로 감싼다.
 // StrategySuggestionManager는 유저별 설정(구 admin/settings 폼의 전역 설정을 2026-08 이관)이라
 // ADMIN 게이트 없이 모든 로그인 유저에게 노출된다.
-// 예산 관리는 수입/소비/저축 탭 상단 "예산등록" 버튼(BudgetManagerDialog)으로 이관됐다(2026-08).
+// 예산 관리는 수입/소비/저축 탭 상단 "예산 관리" 링크(/finance/budgets/[type] 라우트)로 이관됐다(2026-08, 라우트 전환 2026-10).
 export function AssetSettingsPanel() {
   return (
     <div className="flex flex-col gap-[18px]">

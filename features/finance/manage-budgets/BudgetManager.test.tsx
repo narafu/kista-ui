@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BudgetManager } from './BudgetManager'
@@ -11,18 +11,25 @@ const {
   deleteMutateMock,
   shareMutateMock,
   unshareMutateMock,
-  createMutateMock,
-  updateMutateMock,
-} = vi.hoisted(() => ({
-  useFinanceBudgetsQueryMock: vi.fn(),
-  useFinanceCategoriesQueryMock: vi.fn(),
-  useCanShareToGroupMock: vi.fn(() => false),
-  deleteMutateMock: vi.fn(),
-  shareMutateMock: vi.fn(),
-  unshareMutateMock: vi.fn(),
-  createMutateMock: vi.fn(),
-  updateMutateMock: vi.fn(),
-}))
+  urlListeners,
+} = vi.hoisted(() => {
+  // 실제 Next.js처럼 history.replaceState가 useSearchParams를 갱신하도록 URL 변경을 구독자에게 알린다
+  const urlListeners = new Set<() => void>()
+  const original = window.history.replaceState.bind(window.history)
+  window.history.replaceState = ((...args: Parameters<History['replaceState']>) => {
+    original(...args)
+    urlListeners.forEach((l) => l())
+  }) as History['replaceState']
+  return {
+    useFinanceBudgetsQueryMock: vi.fn(),
+    useFinanceCategoriesQueryMock: vi.fn(),
+    useCanShareToGroupMock: vi.fn(() => false),
+    deleteMutateMock: vi.fn(),
+    shareMutateMock: vi.fn(),
+    unshareMutateMock: vi.fn(),
+    urlListeners,
+  }
+})
 
 vi.mock('@entities/finance', async () => {
   const actual = await vi.importActual<typeof import('@entities/finance')>('@entities/finance')
@@ -34,15 +41,23 @@ vi.mock('@entities/finance', async () => {
     useDeleteFinanceBudgetMutation: () => ({ mutate: deleteMutateMock, isPending: false }),
     useShareFinanceBudgetMutation: () => ({ mutate: shareMutateMock, isPending: false }),
     useUnshareFinanceBudgetMutation: () => ({ mutate: unshareMutateMock, isPending: false }),
-    useCreateFinanceBudgetMutation: () => ({ mutate: createMutateMock, isPending: false }),
-    useUpdateFinanceBudgetMutation: () => ({ mutate: updateMutateMock, isPending: false }),
   }
 })
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
-  useSearchParams: () => new URLSearchParams(),
-}))
+vi.mock('next/navigation', async () => {
+  const { useSyncExternalStore } = await vi.importActual<typeof import('react')>('react')
+  return {
+    // PageSizeSelector가 useRouter를 호출한다(onChange를 넘기므로 실제로 쓰지는 않음)
+    useRouter: () => ({ push: vi.fn() }),
+    useSearchParams: () => {
+      const search = useSyncExternalStore(
+        (cb) => { urlListeners.add(cb); return () => { urlListeners.delete(cb) } },
+        () => window.location.search,
+      )
+      return new URLSearchParams(search)
+    },
+  }
+})
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), warning: vi.fn(), error: vi.fn() } }))
 
@@ -62,13 +77,6 @@ function budget(overrides: Partial<FinanceBudget>): FinanceBudget {
   }
 }
 
-// 다이얼로그는 열린 뒤 비동기로 첫 포커스(카테고리 셀렉트)를 옮긴다 — 그 전에 타이핑하면 도중에
-// 포커스를 빼앗겨 입력이 유실된다(파일 전체 실행처럼 빠를 때만 재현되는 경합). 폼 입력 전에 기다린다.
-async function openDuplicateForm(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole('button', { name: '복제' }))
-  await waitFor(() => expect(document.activeElement?.id).toBe('budgetCategory'))
-}
-
 describe('BudgetManager', () => {
   beforeEach(() => {
     useFinanceCategoriesQueryMock.mockReturnValue({ data: categoryTree })
@@ -76,40 +84,7 @@ describe('BudgetManager', () => {
     deleteMutateMock.mockClear()
     shareMutateMock.mockClear()
     unshareMutateMock.mockClear()
-    createMutateMock.mockClear()
-    updateMutateMock.mockClear()
-  })
-
-  it('복제 버튼을 클릭하면 다이얼로그가 열리고 카테고리·금액·시작일이 원본 그대로 채워진다', async () => {
-    const user = userEvent.setup()
-    useFinanceBudgetsQueryMock.mockReturnValue({
-      data: [budget({ id: 'b1', categoryId: 'cat-food', amount: 100_000, applyStartDate: '2026-01-01' })],
-    })
-    render(<BudgetManager type="EXPENSE" />)
-
-    await user.click(screen.getByRole('button', { name: '복제' }))
-
-    expect(screen.getByRole('heading', { name: '예산 복제' })).toBeInTheDocument()
-    expect(screen.getByLabelText('월 예산 (원)')).toHaveValue('100,000')
-    expect(screen.getByLabelText('적용 시작일')).toHaveValue('2026-01-01')
-  })
-
-  it('복제 제출 시(날짜를 바꿔) create mutation이 호출된다(update 아님)', async () => {
-    const user = userEvent.setup()
-    useFinanceBudgetsQueryMock.mockReturnValue({
-      data: [budget({ id: 'b1', categoryId: 'cat-food', amount: 100_000, applyStartDate: '2026-01-01' })],
-    })
-    render(<BudgetManager type="EXPENSE" />)
-
-    await openDuplicateForm(user)
-    // 원본 기간을 그대로 제출하면 겹침 제약(409)에 걸리므로 날짜를 바꿔서 제출한다.
-    await user.clear(screen.getByLabelText('적용 시작일'))
-    await user.type(screen.getByLabelText('적용 시작일'), '2026-09-01')
-    await user.click(screen.getByRole('button', { name: '저장' }))
-
-    expect(createMutateMock).toHaveBeenCalledTimes(1)
-    expect(createMutateMock.mock.calls[0][0]).toMatchObject({ categoryId: 'cat-food', amount: 100_000, applyStartDate: '2026-09-01' })
-    expect(updateMutateMock).not.toHaveBeenCalled()
+    window.history.replaceState(null, '', '/finance/budgets/expense')
   })
 
   it('공유 불가 상태에서는 복제·수정·삭제 순서로 아이콘 버튼이 나타난다', () => {
@@ -212,20 +187,6 @@ describe('BudgetManager', () => {
     expect(screen.getByText('식비')).toBeInTheDocument()
   })
 
-  it('월 예산이 0원이면 저장 버튼이 비활성화된다', async () => {
-    const user = userEvent.setup()
-    useFinanceBudgetsQueryMock.mockReturnValue({
-      data: [budget({ id: 'b1', categoryId: 'cat-food', amount: 100_000, applyStartDate: '2026-01-01' })],
-    })
-    render(<BudgetManager type="EXPENSE" />)
-
-    await openDuplicateForm(user)
-    await user.clear(screen.getByLabelText('월 예산 (원)'))
-    await user.type(screen.getByLabelText('월 예산 (원)'), '0')
-
-    expect(screen.getByRole('button', { name: '저장' })).toBeDisabled()
-  })
-
   it('전체 상태에서 예정·종료 예산에는 상태 배지가 붙고 진행중에는 붙지 않는다', async () => {
     const user = userEvent.setup()
     useFinanceBudgetsQueryMock.mockReturnValue({
@@ -244,30 +205,6 @@ describe('BudgetManager', () => {
     const active = items.find((li) => within(li).queryByText('식비'))!
     expect(within(ended).getByText('종료')).toBeInTheDocument()
     expect(within(active).queryByText('진행중')).not.toBeInTheDocument()
-  })
-
-  it('예산 추가 폼은 이번 달 1일을 시작일 기본값으로 채운다', async () => {
-    const user = userEvent.setup()
-    useFinanceBudgetsQueryMock.mockReturnValue({ data: [] })
-    render(<BudgetManager type="EXPENSE" />)
-
-    await user.click(screen.getByRole('button', { name: '예산 추가' }))
-
-    expect((screen.getByLabelText('적용 시작일') as HTMLInputElement).value).toMatch(/^\d{4}-\d{2}-01$/)
-  })
-
-  it('종료일이 시작일보다 앞서면 안내가 뜨고 저장 버튼이 비활성화된다', async () => {
-    const user = userEvent.setup()
-    useFinanceBudgetsQueryMock.mockReturnValue({
-      data: [budget({ id: 'b1', categoryId: 'cat-food', amount: 100_000, applyStartDate: '2026-05-01' })],
-    })
-    render(<BudgetManager type="EXPENSE" />)
-
-    await openDuplicateForm(user)
-    await user.type(screen.getByLabelText('적용 종료일 (선택)'), '2026-04-30')
-
-    expect(screen.getByText('종료일은 시작일 이후여야 합니다.')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '저장' })).toBeDisabled()
   })
 
   it('11건 이상이면 페이지가 나뉘고 다음 버튼으로 다음 페이지 항목을 볼 수 있다', async () => {
@@ -296,5 +233,72 @@ describe('BudgetManager', () => {
 
     expect(screen.getByText('조건에 맞는 예산이 없습니다.')).toBeInTheDocument()
     expect(screen.queryByText('등록된 예산이 없습니다.')).not.toBeInTheDocument()
+  })
+
+  it('URL의 필터·페이지를 초기 상태로 읽는다', () => {
+    window.history.replaceState(null, '', '/finance/budgets/expense?status=ENDED&category=cat-transit')
+    useFinanceBudgetsQueryMock.mockReturnValue({
+      data: [
+        budget({ id: 'a', categoryId: 'cat-food', applyStartDate: '2020-01-01', applyEndDate: '2020-12-31' }),
+        budget({ id: 'b', categoryId: 'cat-transit', applyStartDate: '2020-01-01', applyEndDate: '2020-12-31' }),
+        budget({ id: 'c', categoryId: 'cat-transit' }),
+      ],
+    })
+    render(<BudgetManager type="EXPENSE" />)
+
+    const items = within(screen.getByRole('list', { name: '예산 목록' })).getAllByRole('listitem')
+    expect(items).toHaveLength(1)
+    expect(within(items[0]).getByText('교통')).toBeInTheDocument()
+    expect(within(items[0]).getByText('종료')).toBeInTheDocument()
+  })
+
+  it('잘못된 URL 값은 기본값(진행중·전체 카테고리·1페이지·10개)으로 폴백한다', () => {
+    window.history.replaceState(null, '', '/finance/budgets/expense?status=FOO&category=nope&page=-3&size=7')
+    useFinanceBudgetsQueryMock.mockReturnValue({
+      data: [
+        budget({ id: 'active', categoryId: 'cat-food' }),
+        budget({ id: 'ended', categoryId: 'cat-transit', applyStartDate: '2020-01-01', applyEndDate: '2020-12-31' }),
+      ],
+    })
+    render(<BudgetManager type="EXPENSE" />)
+
+    const list = screen.getByRole('list', { name: '예산 목록' })
+    expect(within(list).getByText('식비')).toBeInTheDocument()
+    expect(within(list).queryByText('교통')).not.toBeInTheDocument()
+  })
+
+  it('필터 변경은 URL에 기록되고 page는 지워진다(기본값은 생략)', async () => {
+    const user = userEvent.setup()
+    window.history.replaceState(null, '', '/finance/budgets/expense?page=2')
+    useFinanceBudgetsQueryMock.mockReturnValue({ data: [budget({})] })
+    render(<BudgetManager type="EXPENSE" />)
+
+    await user.click(screen.getByRole('combobox', { name: '적용 상태' }))
+    await user.click(await screen.findByRole('option', { name: '종료' }))
+    expect(window.location.search).toBe('?status=ENDED')
+
+    await user.click(screen.getByRole('combobox', { name: '적용 상태' }))
+    await user.click(await screen.findByRole('option', { name: '진행중' }))
+    expect(window.location.search).toBe('')
+  })
+
+  it('범위를 벗어난 page는 마지막 페이지로 클램프한다', () => {
+    window.history.replaceState(null, '', '/finance/budgets/expense?page=9')
+    const budgets = Array.from({ length: 11 }, (_, i) =>
+      budget({ id: `b${i}`, categoryId: 'cat-food', applyStartDate: `2026-01-${String(i + 1).padStart(2, '0')}` })
+    )
+    useFinanceBudgetsQueryMock.mockReturnValue({ data: budgets })
+    render(<BudgetManager type="EXPENSE" />)
+
+    expect(within(screen.getByRole('list', { name: '예산 목록' })).getAllByRole('listitem')).toHaveLength(1)
+  })
+
+  it('예산 추가·복제·수정은 각 라우트 링크다', () => {
+    useFinanceBudgetsQueryMock.mockReturnValue({ data: [budget({ id: 'b1' })] })
+    render(<BudgetManager type="EXPENSE" />)
+
+    expect(screen.getByRole('link', { name: '예산 추가' })).toHaveAttribute('href', '/finance/budgets/expense/new')
+    expect(screen.getByRole('link', { name: '복제' })).toHaveAttribute('href', '/finance/budgets/expense/new?duplicateFrom=b1')
+    expect(screen.getByRole('link', { name: '수정' })).toHaveAttribute('href', '/finance/budgets/expense/b1/edit')
   })
 })

@@ -1,3 +1,2 @@
-export { BudgetFormDialog } from './BudgetFormDialog'
+export { BudgetForm } from './BudgetForm'
 export { BudgetManager } from './BudgetManager'
-export { BudgetManagerDialog } from './BudgetManagerDialog'
