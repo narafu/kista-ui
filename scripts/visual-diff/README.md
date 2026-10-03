@@ -27,7 +27,7 @@ npm run visual-diff -- --list                        # 시나리오 목록
 
 - `seed.mjs`: 시나리오가 여는 계좌·전략 ID. 로컬 시드가 다르면 `VISUAL_DIFF_SEED=<json>`으로 최상위 키 단위 덮어쓰기.
 - `fixtures/trading.mjs`: preview·previews의 인위적 분기를 모드별로 응답한다(`deficit`/`uncertain`/`executed`/`skip`/`empty`). 시나리오의 `mode`로 고르고, 기본값 `real`은 실데이터를 그대로 통과시킨다.
-- `fixtures/api.mjs`: `etf-series`만 채운다. 09:00 KST cron에서만 수집돼 로컬에는 최근 구간이 비어 있다.
+- kista-api(8080)는 fixture 없이 실데이터를 그대로 통과시킨다. `etf-series`는 09:00 KST cron에서만 수집되므로, 수집 전이면 ETF 벤치마크 탭이 "데이터 부족" 상태로만 비교된다.
 - 프록시는 실행 동안 upstream의 성공 JSON 응답을 메모이즈한다(URL·인증 헤더 기준). 실시간 가격이나 preview가 head와 base 촬영 사이에 바뀌어도 가짜 diff가 생기지 않는다.
 
 ## 시나리오 추가

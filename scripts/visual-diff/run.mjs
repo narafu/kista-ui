@@ -8,7 +8,6 @@ import os from 'node:os'
 import path from 'node:path'
 import { parseArgs } from 'node:util'
 import { startProxy } from './proxy.mjs'
-import * as apiFixture from './fixtures/api.mjs'
 import * as tradingFixture from './fixtures/trading.mjs'
 import { scenarios as allScenarios } from './scenarios.mjs'
 import { seed } from './seed.mjs'
@@ -165,7 +164,7 @@ try {
   const ctx = await resolveContext(tokens.user)
   const scenarios = selected.map((s) => ({ ...s, path: typeof s.path === 'function' ? s.path(ctx) : s.path }))
 
-  proxies.push(await startProxy({ name: 'apiproxy', port: PORTS.api, upstream: UPSTREAM.api, route: apiFixture.route, log: plog }))
+  proxies.push(await startProxy({ name: 'apiproxy', port: PORTS.api, upstream: UPSTREAM.api, log: plog }))
   proxies.push(await startProxy({ name: 'tradingproxy', port: PORTS.trading, upstream: UPSTREAM.trading, route: tradingFixture.route, log: plog }))
 
   log(`head ${commits.head.slice(0, 8)} vs base ${commits.base.slice(0, 8)} — 시나리오 ${scenarios.length}개, 작업 트리 구성 중`)
