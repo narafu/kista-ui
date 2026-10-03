@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -80,6 +81,7 @@ export function AccountFormDialog({ open, onOpenChange, account }: Props) {
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>{account ? '계좌 수정' : '계좌 추가'}</DialogTitle>
+            <DialogDescription>계좌 유형, 계좌 이름을 입력하세요.</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">

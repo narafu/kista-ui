@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { IconButton } from '@shared/ui/IconButton'
 import { SaveButton } from '@shared/ui/SaveButton'
 import { todayKst } from '@shared/lib/format'
@@ -78,6 +78,7 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>P 매매표 등록</DialogTitle>
+            <DialogDescription>날짜, 종목, 사이클 시작금액, 주문을 입력하세요.</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
