@@ -27,6 +27,8 @@ async function capture(browser, { url, token, viewport, scenario, file }) {
     for (const step of scenario.steps ?? []) await step(page)
     await page.waitForTimeout(500)
   } catch (e) { errs.push('NAV ' + String(e).slice(0, 200)) }
+  // Next dev 표시 배지("N"·"1 Issue")는 에러 유무·애니메이션에 따라 달라져 가짜 diff를 만든다 — 에러는 errs로 따로 비교한다
+  await page.addStyleTag({ content: 'nextjs-portal { display: none !important }' }).catch(() => {})
   await page.screenshot({ path: file, fullPage: true, animations: 'disabled', caret: 'hide' }).catch((e) => errs.push('SHOT ' + e))
   const finalUrl = new URL(page.url()).pathname
   await ctx.close()
