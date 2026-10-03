@@ -1,6 +1,5 @@
 'use client'
 
-import type { ReactNode } from 'react'
 import { Zap, Activity } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -11,51 +10,21 @@ import { Spinner } from '@shared/ui/Spinner'
 import { SelectionCard } from '@shared/ui/selection-card'
 import { UnitInput } from '@shared/ui/UnitInput'
 import type { BacktestType } from '@entities/backtest'
+import { OptionChoiceGroup, RecurringModeField, VrRampFields, VR_FIELD_LABEL_CLASS } from '@entities/strategy'
 import type { UseBacktestFormResult } from './model/useBacktestForm'
 
 interface Props {
   form: UseBacktestFormResult
 }
 
-const RECURRING_MODE_LABEL: Record<'DEPOSIT' | 'HOLD' | 'WITHDRAW', string> = {
-  DEPOSIT: '+ 적립',
-  HOLD: '거치',
-  WITHDRAW: '- 인출',
-}
-
-const FIELD_LABEL_CLASS = 'block mb-2.5 text-sm font-bold text-muted-foreground'
-
-// 전략 등록 폼(features/strategy/create-strategy)의 ChoiceButton과 동일한 크기·타이포 — feature 간 cross-import가
-// 금지돼 있어 작은 프레젠테이션 래퍼를 그대로 복제한다
-function ChoiceButton({
-  children,
-  selected,
-  disabled,
-  onClick,
-}: {
-  children: ReactNode
-  selected: boolean
-  disabled: boolean
-  onClick: () => void
-}) {
-  return (
-    <SelectionCard
-      selected={selected}
-      disabled={disabled}
-      onClick={onClick}
-      className={selected ? 'h-11 px-3 text-center text-sm font-extrabold' : 'h-11 px-3 text-center text-sm font-extrabold text-muted-foreground'}
-    >
-      {children}
-    </SelectionCard>
-  )
-}
+const FIELD_LABEL_CLASS = 'mb-2 block text-sm font-bold'
 
 export function BacktestForm({ form }: Props) {
   return (
     <Card>
       <CardContent className="flex flex-col gap-5 pt-6">
         <div>
-          <Label className="mb-2 block text-sm font-bold">매매 전략</Label>
+          <Label className={FIELD_LABEL_CLASS}>매매 전략</Label>
           <div className="grid grid-cols-2 gap-2.5">
             {form.meta.strategyTypes.map((t) => {
               const selected = form.type === t.code
@@ -79,7 +48,7 @@ export function BacktestForm({ form }: Props) {
         </div>
 
         <div>
-          <Label className="mb-2 block text-sm font-bold">종목</Label>
+          <Label className={FIELD_LABEL_CLASS}>종목</Label>
           <Select
             items={form.availableTickers.map((code) => ({ value: code, label: code }))}
             value={form.ticker}
@@ -98,34 +67,33 @@ export function BacktestForm({ form }: Props) {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label htmlFor="backtestFrom" className="mb-2 block text-sm font-bold">시작일</Label>
+            <Label htmlFor="backtestFrom" className={FIELD_LABEL_CLASS}>시작일</Label>
             <Input id="backtestFrom" type="date" value={form.from} onChange={(e) => form.setFrom(e.target.value)} disabled={form.isLoading} />
           </div>
           <div>
-            <Label htmlFor="backtestTo" className="mb-2 block text-sm font-bold">종료일</Label>
+            <Label htmlFor="backtestTo" className={FIELD_LABEL_CLASS}>종료일</Label>
             <Input id="backtestTo" type="date" value={form.to} onChange={(e) => form.setTo(e.target.value)} disabled={form.isLoading} />
           </div>
         </div>
 
-        <div>
-          <Label htmlFor="seed" className="mb-2 block text-sm font-bold">예수금</Label>
-          <Input
-            id="seed"
-            type="number"
-            min={0}
-            value={form.seed ?? ''}
-            onChange={(e) => form.setSeed(e.target.value === '' ? null : Number(e.target.value))}
+        <label className="block">
+          <span className={FIELD_LABEL_CLASS}>예수금</span>
+          <UnitInput
+            value={form.seed}
+            onChange={form.setSeed}
+            unit="USD"
             disabled={form.isLoading}
-            placeholder="USD"
+            unitClassName="ml-1.5"
+            maxDecimals={2}
           />
-        </div>
+        </label>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <label>
-            <span className="block mb-1 text-xs font-semibold text-muted-foreground">평단가</span>
+            <span className={FIELD_LABEL_CLASS}>평단가</span>
             <UnitInput
               value={form.avgPrice}
-              onChange={(v) => form.setAvgPrice(v)}
+              onChange={form.setAvgPrice}
               unit="USD"
               disabled={form.isLoading}
               unitClassName="ml-1.5"
@@ -133,7 +101,7 @@ export function BacktestForm({ form }: Props) {
             />
           </label>
           <label>
-            <span className="block mb-1 text-xs font-semibold text-muted-foreground">수량</span>
+            <span className={FIELD_LABEL_CLASS}>수량</span>
             <UnitInput
               value={form.quantity}
               onChange={(v) => form.setQuantity(v !== null ? Math.round(v) : null)}
@@ -146,7 +114,7 @@ export function BacktestForm({ form }: Props) {
 
         {form.type === 'INFINITE' && form.divisionCountOptions.length > 0 && (
           <div>
-            <Label className="mb-2 block text-sm font-bold">분할 수</Label>
+            <Label className={FIELD_LABEL_CLASS}>분할 수</Label>
             <div className="flex gap-2">
               {form.divisionCountOptions.map((n) => (
                 <SelectionCard
@@ -165,77 +133,65 @@ export function BacktestForm({ form }: Props) {
 
         {form.type === 'VR' && (
           <div className="py-[18px] border-t border-border">
-            <Label className="mb-2 block text-sm font-bold">밸류 리밸런싱 설정</Label>
+            <Label className={FIELD_LABEL_CLASS}>밸류 리밸런싱 설정</Label>
 
             <div className="grid grid-cols-1 gap-y-5">
-              <div>
-                <span className={FIELD_LABEL_CLASS}>적립금(+)/인출금(-)</span>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['DEPOSIT', 'HOLD', 'WITHDRAW'] as const).map((mode) => (
-                    <ChoiceButton
-                      key={mode}
-                      selected={form.vrRecurringMode === mode}
-                      disabled={form.isLoading}
-                      onClick={() => form.setVrRecurringMode(mode)}
-                    >
-                      {RECURRING_MODE_LABEL[mode]}
-                    </ChoiceButton>
-                  ))}
-                </div>
-                <UnitInput
-                  value={form.vrRecurringAmountAbs}
-                  onChange={(v) => form.setVrRecurringAmountAbs(v !== null ? Math.round(v) : null)}
-                  unit="USD"
-                  disabled={form.isLoading || form.vrRecurringMode === 'HOLD'}
-                  ariaLabel="적립금(+)/인출금(-)"
-                  placeholder="0"
-                  wrapperClassName="mt-2.5"
-                />
-              </div>
+              <RecurringModeField
+                mode={form.vrRecurringMode}
+                setMode={form.setVrRecurringMode}
+                amount={form.vrRecurringAmountAbs}
+                setAmount={(v) => form.setVrRecurringAmountAbs(v !== null ? Math.round(v) : null)}
+                disabled={form.isLoading}
+                setting={form.vrSettings?.recurringMode}
+              />
             </div>
 
             <details className="mt-4 group">
               <summary className="cursor-pointer select-none text-sm font-bold text-muted-foreground list-none flex items-center gap-1.5">
                 <span className="transition-transform group-open:rotate-90">▸</span>
-                상세 설정
+                고급 설정
               </summary>
               <div className="grid grid-cols-1 gap-y-5 mt-4">
                 <label>
-                  <span className={FIELD_LABEL_CLASS}>초기 V</span>
+                  <span className={VR_FIELD_LABEL_CLASS}>초기 V</span>
                   <UnitInput
                     value={form.vrInitialValue}
-                    onChange={(v) => form.setVrInitialValue(v)}
+                    onChange={form.setVrInitialValue}
                     unit="USD"
                     disabled={form.isLoading}
                     maxDecimals={2}
                   />
                 </label>
-                <label>
-                  <span className={FIELD_LABEL_CLASS}>밴드 폭</span>
-                  <UnitInput
-                    value={form.vrBandWidth}
-                    onChange={(v) => form.setVrBandWidth(v)}
-                    unit="%"
-                    disabled={form.isLoading}
-                    maxDecimals={2}
-                  />
-                </label>
-                <label>
-                  <span className={FIELD_LABEL_CLASS}>리밸런싱 주기</span>
-                  <UnitInput
-                    value={form.vrIntervalWeeks}
-                    onChange={(v) => form.setVrIntervalWeeks(v !== null ? Math.round(v) : null)}
-                    unit="주"
-                    disabled={form.isLoading}
-                  />
-                </label>
+                <OptionChoiceGroup
+                  label="밴드 폭"
+                  suffix="%"
+                  value={form.vrBandWidth}
+                  setting={form.vrSettings?.bandWidth}
+                  disabled={form.isLoading}
+                  onSelect={form.setVrBandWidth}
+                />
+                <OptionChoiceGroup
+                  label="리밸런싱 주기"
+                  suffix="주"
+                  value={form.vrIntervalWeeks}
+                  setting={form.vrSettings?.intervalWeeks}
+                  disabled={form.isLoading}
+                  onSelect={form.setVrIntervalWeeks}
+                />
               </div>
+              <VrRampFields
+                fields={form.vrRamp}
+                setField={form.setVrRampField}
+                disabled={form.isLoading}
+                rampDefaults={form.rampDefaults}
+              />
             </details>
           </div>
         )}
 
         {form.submitDisabledReason && (
-          <p className="text-sm font-semibold text-[var(--warn)]">{form.submitDisabledReason}</p>
+          // 아직 입력 전인 안내도 포함하므로 경고색 대신 보조 텍스트로 표시
+          <p className="text-sm text-muted-foreground">{form.submitDisabledReason}</p>
         )}
         {form.errorMessage && (
           <p className="text-sm font-semibold text-[var(--status-error)]">{form.errorMessage}</p>

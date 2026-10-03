@@ -15,6 +15,11 @@ export function BacktestPageContent() {
       <BacktestForm form={form} />
       {result && (
         <div className="flex flex-col gap-5">
+          {form.isResultStale && (
+            <p role="status" className="text-sm text-muted-foreground">
+              입력값이 바뀌었습니다. 아래 결과는 이전 입력 기준이며, 다시 실행하면 갱신됩니다.
+            </p>
+          )}
           <BacktestSummaryCards summary={result.summary} />
           <div className="rounded-[var(--r-lg)] border border-border bg-card p-4 sm:p-6">
             <EquityLineChart

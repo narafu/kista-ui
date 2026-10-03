@@ -97,7 +97,8 @@ vi.mock('@entities/account', () => ({
   }),
 }))
 
-vi.mock('@entities/strategy', () => ({
+vi.mock('@entities/strategy', async () => ({
+  ...(await import('@entities/strategy/model/vrRamp')),
   useCreateStrategyMutation: (_accountId: string, onSuccess?: () => void) => {
     createSuccessHandler = onSuccess
     return {

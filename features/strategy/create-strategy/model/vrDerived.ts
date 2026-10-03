@@ -1,6 +1,8 @@
-import type { Strategy } from '@entities/strategy'
+import { RAMP_DEFAULTS_BY_MODE } from '@entities/strategy'
+import type { Strategy, VrRecurringMode } from '@entities/strategy'
 
-export type VrRecurringMode = 'DEPOSIT' | 'HOLD' | 'WITHDRAW'
+// VrRecurringMode는 entities/strategy가 SSOT — create-strategy 내부 import 경로 호환용 재노출
+export type { VrRecurringMode }
 
 export interface VrDerivedInput {
   initial?: Strategy
@@ -15,18 +17,6 @@ export interface VrDerivedInput {
   gMax: number | null
   initialPoolLimitRate: number | null
   poolLimitFloor: number | null
-}
-
-// 램프 4필드 미입력("자동") 시 사용할 값 — 적립/거치/인출 선택 자체로만 결정(금액과 무관)
-export const RAMP_DEFAULTS_BY_MODE: Record<VrRecurringMode, {
-  initialGradient: number
-  gMax: number
-  initialPoolLimitRate: number
-  poolLimitFloor: number
-}> = {
-  DEPOSIT: { initialGradient: 10, gMax: 20, initialPoolLimitRate: 1.0, poolLimitFloor: 0.5 },
-  HOLD: { initialGradient: 10, gMax: 20, initialPoolLimitRate: 0.75, poolLimitFloor: 0.5 },
-  WITHDRAW: { initialGradient: 40, gMax: 50, initialPoolLimitRate: 0.1, poolLimitFloor: 0.1 },
 }
 
 export interface VrDerived {

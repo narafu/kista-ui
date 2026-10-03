@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { RAMP_DEFAULTS_BY_MODE } from './vrDerived'
+import { RAMP_DEFAULTS_BY_MODE } from '@entities/strategy'
 
 export const divisionCountSchema = z.number().int().positive()
 export type DivisionCount = z.infer<typeof divisionCountSchema>
