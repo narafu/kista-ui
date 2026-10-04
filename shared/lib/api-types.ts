@@ -2045,7 +2045,7 @@ export interface paths {
         };
         /**
          * 전략 백테스트
-         * @description 과거 일봉으로 전략을 시뮬레이션해 자산 곡선·성과 요약·해석 주의사항을 반환. initialHoldings/initialAvgPrice로 기존 보유 포지션부터 시작하는 백테스트도 가능(seed=0 허용, 단 예수금과 보유 중 하나는 있어야 함).
+         * @description 과거 일봉으로 전략을 시뮬레이션해 자산 곡선·성과 요약·해석 주의사항을 반환. initialHoldings/initialAvgPrice로 기존 보유 포지션부터 시작하는 백테스트도 가능(seed=0 허용, 단 예수금과 보유 중 하나는 있어야 함). VR은 운영 전략 등록과 같은 조건 — vrBandWidth/vrIntervalWeeks는 런타임 허용값만, 램프 8파라미터 미지정 시 recurringAmount별 기본값, vrInitialValue 미지정(또는 0)이면 첫 거래일 종가 × initialHoldings(보유 없으면 0에서 bootstrap 매수로 시작). cycleSeedType(INFINITE/PRIVACY): NONE=첫 사이클 종료 후 매매 중단, MAINTAIN=시작 금액으로 재시작(초과분은 유휴 현금), MAX(기본)=전액 이월.
          */
         get: operations["run"];
         put?: never;
@@ -8468,6 +8468,15 @@ export interface operations {
                 vrInitialValue?: number;
                 initialHoldings?: number;
                 initialAvgPrice?: number;
+                vrInitialGradient?: number;
+                vrGGraceWeeks?: number;
+                vrGStepWeeks?: number;
+                vrGMax?: number;
+                vrInitialPoolLimitRate?: number;
+                vrPGraceWeeks?: number;
+                vrPStepWeeks?: number;
+                vrPoolLimitFloor?: number;
+                cycleSeedType?: "NONE" | "MAINTAIN" | "MAX";
             };
             header?: never;
             path?: never;
