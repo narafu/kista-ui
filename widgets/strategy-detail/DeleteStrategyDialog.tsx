@@ -32,7 +32,7 @@ export function DeleteStrategyDialog({ open, onOpenChange, ticker, onConfirm, di
       <AlertDialogContent size="sm">
         <AlertDialogHeader>
           <AlertDialogTitle>전략을 삭제하시겠습니까?</AlertDialogTitle>
-          <AlertDialogDescription>{ticker} 전략을 삭제하시겠습니까? 진행 중인 사이클이 종료됩니다.</AlertDialogDescription>
+          <AlertDialogDescription>{ticker} 전략을 삭제하시겠습니까? 증권사에 접수된 미체결 주문을 먼저 취소하고, 전략과 사이클 기록을 더 이상 볼 수 없습니다.</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={disabled}>취소</AlertDialogCancel>
