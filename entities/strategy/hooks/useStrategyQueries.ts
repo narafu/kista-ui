@@ -76,14 +76,14 @@ export function useStrategyDetailQuery(accountId: string, strategyId: string) {
   return useQuery(strategyDetailQueryOptions(accountId, strategyId))
 }
 
-export function useCreateStrategyMutation(accountId: string, onSuccess?: () => void | Promise<void>) {
+export function useCreateStrategyMutation(accountId: string, onSuccess?: (saved: Strategy) => void | Promise<void>) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (data: StrategyRequest) => createStrategy(accountId, data),
     onSuccess: async (saved) => {
       queryClient.setQueryData(strategyKeys.detail(saved.id), saved)
       await synchronizeStrategyLists(queryClient, saved.accountId, (strategies) => upsertById(strategies, saved))
-      return onSuccess?.()
+      return onSuccess?.(saved) // 등록 응답 전용 필드(todayOpenBatchMissed) 안내용
     },
     onError: (err) => toast.error(apiMsg(err, '저장에 실패했습니다')),
   })

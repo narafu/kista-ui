@@ -37,6 +37,7 @@ export interface Strategy {
   currentHoldings?: number
   vr?: StrategyVrSummary  // VR 전략 전용 요약 (타 전략 undefined)
   startDate?: string      // 사이클 시작(예정)일 (yyyy-MM-dd) — 오늘 이후면 아직 매매 시작 전(시작예정)
+  todayOpenBatchMissed?: boolean // 등록 응답 전용 — 오늘 개장 배치 이후 등록돼 오늘 밤 장 시작 주문이 자동 생성되지 않음
 }
 
 export interface StrategyRequest {

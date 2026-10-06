@@ -16,7 +16,10 @@ function addDaysToKstDate(days: number): string {
 
 const runtimeRecurringMode = vi.hoisted(() => ({ defaultValue: 'HOLD' }))
 const invalidateQueriesMock = vi.hoisted(() => vi.fn(() => Promise.resolve()))
-let createSuccessHandler: (() => void) | undefined
+let createSuccessHandler: ((saved?: { todayOpenBatchMissed?: boolean }) => void) | undefined
+const toastInfoMock = vi.hoisted(() => vi.fn())
+
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: toastInfoMock } }))
 
 vi.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ invalidateQueries: invalidateQueriesMock }),
@@ -99,7 +102,7 @@ vi.mock('@entities/account', () => ({
 
 vi.mock('@entities/strategy', async () => ({
   ...(await import('@entities/strategy/model/vrRamp')),
-  useCreateStrategyMutation: (_accountId: string, onSuccess?: () => void) => {
+  useCreateStrategyMutation: (_accountId: string, onSuccess?: (saved?: { todayOpenBatchMissed?: boolean }) => void) => {
     createSuccessHandler = onSuccess
     return {
     mutate: mockCreateMutate,
@@ -129,6 +132,7 @@ describe('useStrategyForm submit policy', () => {
     mockCreateMutate.mockClear()
     mockUpdateMutate.mockClear()
     invalidateQueriesMock.mockClear()
+    toastInfoMock.mockClear()
     createSuccessHandler = undefined
     meQueryState.data.balanceCheckEnabled = true
     seedModelState.pct = 100
@@ -182,6 +186,17 @@ describe('useStrategyForm submit policy', () => {
     await createSuccessHandler?.()
 
     expect(onSuccess).toHaveBeenCalledOnce()
+  })
+
+  it('shows the open-batch notice only when the register response flags a missed open batch', async () => {
+    renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+
+    await createSuccessHandler?.({ todayOpenBatchMissed: false })
+    expect(toastInfoMock).not.toHaveBeenCalled()
+
+    await createSuccessHandler?.({ todayOpenBatchMissed: true })
+    expect(toastInfoMock).toHaveBeenCalledOnce()
+    expect(toastInfoMock.mock.calls[0][0]).toContain('바로 주문')
   })
 
   it('edit payload does not include initialUsdDeposit', async () => {

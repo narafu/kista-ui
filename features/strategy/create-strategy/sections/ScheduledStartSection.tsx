@@ -9,7 +9,7 @@ interface Props {
   loading: boolean
 }
 
-// 시작예정일 — 세 전략 공통, 등록 전용. 지정한 날짜 자체가 아니라 그 이후 첫 거래일부터 매매가 시작된다(경계 exclusive)
+// 시작예정일 — 세 전략 공통, 등록 전용. 시작예정일 밤 미국장(그날 22:30 개장 배치)부터 매매가 시작된다
 export function ScheduledStartSection({ value, onChange, loading }: Props) {
   return (
     <div className="py-[18px] border-b border-border">
@@ -30,7 +30,7 @@ export function ScheduledStartSection({ value, onChange, loading }: Props) {
         />
       </label>
       <p className="mt-2 text-sm text-muted-foreground">
-        선택한 날짜 이후 첫 거래일부터 시작됩니다. 비워두면 오늘 시작합니다.
+        시작예정일 밤 미국장부터 매매합니다. 비워두면 오늘 시작합니다.
       </p>
     </div>
   )

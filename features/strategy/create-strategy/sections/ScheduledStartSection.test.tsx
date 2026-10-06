@@ -21,7 +21,7 @@ describe('ScheduledStartSection', () => {
   it('shows the exclusive-boundary hint text', () => {
     render(<ScheduledStartSection value={null} onChange={mockOnChange} loading={false} />)
 
-    expect(screen.getByText('선택한 날짜 이후 첫 거래일부터 시작됩니다. 비워두면 오늘 시작합니다.')).toBeInTheDocument()
+    expect(screen.getByText('시작예정일 밤 미국장부터 매매합니다. 비워두면 오늘 시작합니다.')).toBeInTheDocument()
   })
 
   it('calls onChange with the selected date', () => {

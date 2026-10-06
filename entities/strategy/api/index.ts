@@ -45,6 +45,7 @@ function normalizeStrategy(raw: unknown): Strategy {
     currentHoldings: optNum(s.currentHoldings),
     vr: normalizeVrSummary(s.vr),
     startDate: optStr(s.startDate),
+    todayOpenBatchMissed: s.todayOpenBatchMissed === true || undefined,
   }
 }
 

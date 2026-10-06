@@ -21,8 +21,12 @@ export function useStrategyMutations({
   initial?: Strategy
   onSuccess?: () => void
 }) {
-  const handleMutationSuccess = async () => {
+  const handleMutationSuccess = async (saved?: Strategy) => {
     toast.success(initial ? '전략이 수정되었습니다' : '전략이 등록되었습니다')
+    // 오늘 시작인데 오늘 개장 배치(22:30) 이후 등록 — 동작은 그대로, 오늘 밤 장 시작 주문의 수동 접수 경로만 안내
+    if (!initial && saved?.todayOpenBatchMissed) {
+      toast.info("오늘 개장 배치(22:30)가 지나 오늘 밤 장 시작 주문은 자동으로 나가지 않습니다. 미국장이 열린 뒤 전략 화면의 '바로 주문'으로 접수할 수 있습니다.", { duration: 10000 })
+    }
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: orderKeys.all }).catch(() => null),
       queryClient.invalidateQueries({ queryKey: statsKeys.all }).catch(() => null),

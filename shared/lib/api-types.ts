@@ -2480,7 +2480,7 @@ export interface components {
             initialUsdDeposit?: number;
             /**
              * Format: date
-             * @description 사이클 시작일 (미래면 시작예정일 — 이 날짜 이후 첫 거래일부터 매매 시작)
+             * @description 사이클 시작일 (미래면 시작예정일 — 시작예정일 밤 미국장부터 매매 시작)
              * @example 2026-08-01
              */
             startDate?: string;
@@ -2514,6 +2514,8 @@ export interface components {
             currentHoldings?: number;
             /** @description VR 전략 상세 (VR 전략만 non-null) */
             vr?: components["schemas"]["VrSummary"];
+            /** @description 등록 응답 전용 — 오늘 시작인데 오늘 개장 배치(22:30 KST, 월~금) 이후 등록돼 오늘 밤 장 시작 주문(INFINITE 매도·VR 사다리)이 자동 생성되지 않으면 true(PRIVACY는 항상 false, 미국 휴장일엔 거짓 양성 가능). 등록 외 응답에선 생략 */
+            todayOpenBatchMissed?: boolean;
         };
         VrSummary: {
             /** @description V값 (실력 기준선) */
