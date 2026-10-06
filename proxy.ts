@@ -36,11 +36,13 @@ async function resolveStatusRole(
   request: NextRequest,
   token: string,
   apiUrl: string | null,
+  skipCache: boolean,
 ): Promise<ResolveResult> {
   const cachedStatus = request.cookies.get(STATUS_COOKIE)?.value
   const cachedRole = request.cookies.get(ROLE_COOKIE)?.value
 
-  if (cachedStatus && VALID_STATUSES.has(cachedStatus) && cachedRole) {
+  // AT를 방금 갱신했으면 캐시를 쓰지 않는다 — 역할 변경으로 옛 AT가 거절(TOKEN_STALE_ROLE)된 뒤라 캐시된 역할이 낡았을 수 있다
+  if (!skipCache && cachedStatus && VALID_STATUSES.has(cachedStatus) && cachedRole) {
     // 빠른 경로: 쿠키 캐시 사용
     return { ok: true, status: cachedStatus, role: cachedRole, needsCacheUpdate: false }
   }
@@ -139,7 +141,7 @@ export async function proxy(request: NextRequest) {
 
   // 인증됨: status + role 확정 (캐시 fast path / /me slow path)
   const apiUrl = getApiBaseUrlOrNull()
-  const resolved = await resolveStatusRole(request, token, apiUrl)
+  const resolved = await resolveStatusRole(request, token, apiUrl, extraSetCookies.length > 0)
 
   if (!resolved.ok) {
     // AT 갱신이 선행된 경우 새 AT 쿠키를 반드시 적용 (RT는 안정 RT이므로 drift 없음)

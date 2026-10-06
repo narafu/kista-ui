@@ -73,6 +73,9 @@ describe('/api/auth/refresh POST', () => {
     expect(at).toBe('kista-token=new-at; Path=/; Max-Age=604800; SameSite=Lax; HttpOnly')
     // RT relay 생존
     expect(setCookies).toContain('refresh_token=rt2; Path=/; HttpOnly')
+    // status/role 캐시 무효화 — 역할 변경 뒤 다음 페이지 이동이 /me로 새 역할을 읽도록
+    expect(setCookies).toContain('kista-user-status=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax')
+    expect(setCookies).toContain('kista-user-role=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax')
     // rt 는 refreshAccessToken 에 그대로 전달
     expect(refreshAccessTokenMock).toHaveBeenCalledWith({ rt: 'rt1', userAgent: 'ua' })
   })

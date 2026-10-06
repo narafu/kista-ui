@@ -129,8 +129,8 @@ describe('proxy', () => {
   // ② 만료 AT + 유효 RT → refresh 성공 시 새 AT/RT Set-Cookie 부착 후 통과
   it('만료 AT + 유효 RT는 refresh 성공 후 새 AT Set-Cookie를 붙여 통과한다', async () => {
     vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
-    // 캐시 히트로 /me 호출을 막아 refresh 경로만 검증
-    const fetchMock = stubFetch({ refresh: () => refreshOk('fresh-access-token') })
+    // AT를 갱신하면 캐시된 status/role을 믿지 않고 /me로 다시 읽는다(역할 변경 직후 낡은 역할 캐시 방지)
+    const fetchMock = stubFetch({ refresh: () => refreshOk('fresh-access-token'), me: () => meOk('ACTIVE', 'ADMIN') })
     const req = makeRequest('/dashboard', {
       'kista-token': EXPIRED_AT,
       refresh_token: 'valid-rt',
@@ -141,9 +141,10 @@ describe('proxy', () => {
 
     expect(res.status).toBe(200)
     expect(res.headers.get('location')).toBeNull()
-    // refresh만 호출, /me는 캐시 히트로 미호출
-    expect(fetchMock).toHaveBeenCalledTimes(1)
+    // refresh 후 캐시를 건너뛰고 /me 호출 → 새 역할로 캐시 갱신
+    expect(fetchMock).toHaveBeenCalledTimes(2)
     const setCookies = res.headers.getSetCookie()
+    expect(setCookies.some((c) => c.startsWith('kista-user-role=ADMIN'))).toBe(true)
     // 새 AT 쿠키
     expect(setCookies.some((c) => c.startsWith('kista-token=fresh-access-token'))).toBe(true)
     // AT 쿠키 속성 보존
