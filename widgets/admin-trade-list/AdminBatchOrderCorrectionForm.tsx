@@ -1,9 +1,21 @@
 'use client'
 
 import { useMemo, useState, type FormEvent } from 'react'
-import type { AdminReorderTimingAvailability, AdminStrategyOrder } from '@entities/admin'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { useAdminReorderBuyBudgetQueries } from '@entities/admin'
+import type { AdminReorderBuyBudget, AdminReorderTimingAvailability, AdminStrategyOrder } from '@entities/admin'
 import { ORDER_STATUS_LABEL } from '@entities/order'
 import type { OrderDirection } from '@shared/lib/api-schema'
+import { fmtUsd, todayKst } from '@shared/lib/format'
 
 export interface ReorderBatchItem {
   orderId: string
@@ -60,6 +72,36 @@ function buildInitialDrafts(orders: AdminStrategyOrder[], avail: AdminReorderTim
   ) as Record<string, OrderDraft>
 }
 
+interface BudgetQueryState {
+  data?: AdminReorderBuyBudget
+  isPending: boolean
+  isError: boolean
+}
+
+type BuyBudgetSummary =
+  | { state: 'loading' }
+  | { state: 'unknown' }
+  | { state: 'ok'; remaining: number; required: number; over: boolean }
+
+// 남은 예산 = liveOrderable − plannedBuy(계좌 공통, 한 번만) + Σ 재주문할 BUY 원본의 sourceRefund.
+// 재주문하지 않는 행은 원본이 취소되지 않으므로 refund를 더하지 않는다.
+// ponytail: 폼의 주문은 모두 선택된 한 계좌 소속이라 계좌별 그룹핑 없음 — 다계좌 폼이 생기면 accountId로 묶을 것
+function summarizeBuyBudget(
+  allBuy: BudgetQueryState[],
+  targets: { query: BudgetQueryState; amount: number }[],
+): BuyBudgetSummary {
+  const relevant = targets.length > 0 ? targets.map((t) => t.query) : allBuy
+  if (relevant.some((q) => q.isError)) return { state: 'unknown' }
+  if (relevant.some((q) => q.isPending)) return { state: 'loading' }
+  // 주문마다 live 잔고를 따로 조회하므로 일부만 실패할 수 있다 — 성공한 응답 하나면 충분
+  const base = relevant.find((q) => q.data?.liveOrderable != null)?.data
+  if (base?.liveOrderable == null) return { state: 'unknown' }
+  const refund = targets.reduce((sum, t) => sum + (t.query.data?.sourceRefund ?? 0), 0)
+  const remaining = base.liveOrderable - base.plannedBuy + refund
+  const required = targets.reduce((sum, t) => sum + t.amount, 0)
+  return { state: 'ok', remaining, required, over: targets.length > 0 && required - remaining > 0.005 }
+}
+
 function isDraftChanged(current: OrderDraft, initial: OrderDraft): boolean {
   return (
     current.timing !== initial.timing ||
@@ -87,6 +129,20 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
     [orders, drafts, initialDrafts],
   )
   const changedSet = useMemo(() => new Set(changedOrderIds), [changedOrderIds])
+  const [confirmOpen, setConfirmOpen] = useState(false)
+
+  // 재주문 POST와 같은 거래일(todayKst) 기준 — 날짜가 바뀌면 queryKey가 달라져 재조회된다
+  const buyOrders = orders.filter((order) => order.direction === 'BUY')
+  const budgetQueries = useAdminReorderBuyBudgetQueries(buyOrders.map((order) => order.id), todayKst())
+  const budget = buyOrders.length === 0 ? null : summarizeBuyBudget(
+    budgetQueries,
+    buyOrders.flatMap((order, index) => {
+      if (!changedSet.has(order.id)) return []
+      const draft = drafts[order.id]
+      return [{ query: budgetQueries[index]!, amount: Number(draft?.price) * Number(draft?.quantity) || 0 }]
+    }),
+  )
+  const hasChangedBuy = buyOrders.some((order) => changedSet.has(order.id))
 
   const handleDraftChange = (orderId: string, key: keyof OrderDraft, value: string) => {
     setDrafts((current) => ({
@@ -103,9 +159,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
     }))
   }
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
+  const submitItems = async () => {
     const items: ReorderBatchItem[] = orders.flatMap((order) => {
       if (!changedSet.has(order.id)) return []
       const draft = drafts[order.id]!
@@ -121,6 +175,16 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
 
     if (items.length === 0) return
     await onSubmit(items)
+  }
+
+  // 예산 초과는 차단하지 않고 확인 후 진행한다 — 서버도 차단하지 않는다
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (budget?.state === 'ok' && budget.over) {
+      setConfirmOpen(true)
+      return
+    }
+    await submitItems()
   }
 
   if (orders.length === 0) return null
@@ -140,6 +204,32 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
           </div>
         )}
       </div>
+
+      {budget && (
+        <div aria-live="polite" className="mt-3 space-y-2 text-sm">
+          {budget.state === 'loading' && (
+            <p className="text-muted-foreground">남은 주문가능금액 조회 중...</p>
+          )}
+          {budget.state === 'unknown' && (
+            <p className="rounded-[var(--r-md)] border border-dashed border-warn bg-warn-bg px-3 py-2 text-warn">
+              주문가능금액 조회 실패 — 예산 확인 불가
+            </p>
+          )}
+          {budget.state === 'ok' && (
+            <>
+              <p className="text-muted-foreground">
+                남은 주문가능금액 <span className="font-semibold text-foreground">${fmtUsd(budget.remaining)}</span>
+                {hasChangedBuy && <> · 변경한 BUY 합계 <span className="font-semibold text-foreground">${fmtUsd(budget.required)}</span></>}
+              </p>
+              {budget.over && (
+                <p className="rounded-[var(--r-md)] border border-dashed border-warn bg-warn-bg px-3 py-2 text-warn">
+                  변경한 BUY 주문 합계가 남은 주문가능금액을 ${fmtUsd(budget.required - budget.remaining)} 초과합니다. 그대로 진행하면 증권사에서 거절될 수 있습니다.
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       <div className="mt-4 space-y-3">
         {orders.map((order) => {
@@ -246,6 +336,23 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
           {disabled ? '처리 중...' : `변경한 주문 ${changedOrderIds.length}건 재주문`}
         </button>
       </div>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>주문가능금액을 초과합니다</AlertDialogTitle>
+            <AlertDialogDescription>
+              {budget?.state === 'ok'
+                ? `변경한 BUY 합계 $${fmtUsd(budget.required)}가 남은 주문가능금액 $${fmtUsd(budget.remaining)}를 넘습니다. 증권사에서 거절될 수 있습니다. 그래도 재주문하시겠습니까?`
+                : '변경한 BUY 합계가 남은 주문가능금액을 넘습니다. 그래도 재주문하시겠습니까?'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void submitItems()}>재주문</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </form>
   )
 }

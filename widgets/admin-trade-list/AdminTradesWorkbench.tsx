@@ -187,6 +187,8 @@ export function AdminTradesWorkbench({ initialTrades, initialPage, initialSize }
         await queryClient.invalidateQueries({
           queryKey: adminKeys.strategyOrders(selectedAccountId, selectedStrategyId, todayKst()),
         }).catch(() => {}) // 재주문은 적용됐으므로 목록 갱신 실패는 무시
+        // 재주문으로 계좌 PLANNED BUY 합계가 바뀌어 예산도 다시 조회
+        await queryClient.invalidateQueries({ queryKey: adminKeys.reorderBuyBudgetRoot() }).catch(() => {})
         setReorderResult({
           processed: results.length,
           skipped: Math.max(0, ordersCountBeforeReload - items.length),
