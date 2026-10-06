@@ -10,6 +10,7 @@ import {
   updateAdminStrategyStatus,
   reorderAdminOrder,
   getReorderTimingAvailability,
+  getReorderBuyBudget,
 } from '@entities/admin/api'
 import type { AdminAccount, AdminStrategy, AdminStrategyOrder, AdminTrade } from '@entities/admin'
 import { AdminTradesWorkbench } from './AdminTradesWorkbench'
@@ -37,6 +38,7 @@ vi.mock('@entities/admin/api', async () => {
       atClose: true,
       immediate: false,
     }),
+    getReorderBuyBudget: vi.fn(),
   }
 })
 
@@ -176,6 +178,7 @@ const listAdminStrategyOrdersMock = vi.mocked(listAdminStrategyOrders)
 const updateAdminStrategyStatusMock = vi.mocked(updateAdminStrategyStatus)
 const reorderAdminOrderMock = vi.mocked(reorderAdminOrder)
 const getReorderTimingAvailabilityMock = vi.mocked(getReorderTimingAvailability)
+const getReorderBuyBudgetMock = vi.mocked(getReorderBuyBudget)
 
 function createWrapper() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
@@ -213,6 +216,12 @@ describe('AdminTradesWorkbench', () => {
       atOpen: false,
       atClose: true,
       immediate: false,
+    })
+    getReorderBuyBudgetMock.mockReset().mockResolvedValue({
+      plannedBuy: 0,
+      sourceRefund: 0,
+      liveOrderable: 1_000_000,
+      remaining: 1_000_000,
     })
   })
 
@@ -548,5 +557,87 @@ describe('AdminTradesWorkbench', () => {
     await waitFor(() =>
       expect(screen.getByText('재주문에 실패했습니다. 입력값과 주문 상태를 다시 확인하세요.')).toBeInTheDocument(),
     )
+  })
+
+  it('sums changed BUY rows against one shared budget plus only their own refunds, then confirms before submit', async () => {
+    const user = userEvent.setup()
+    const buyOrders: AdminStrategyOrder[] = [
+      orders[0],
+      { ...orders[0], id: 'order-3' },
+      { ...orders[0], id: 'order-4' }, // 변경하지 않음 — refund 300을 더하면 초과가 사라진다
+    ]
+    const refunds: Record<string, number> = { 'order-1': 100, 'order-3': 200, 'order-4': 300 }
+    listAdminStrategyOrdersMock.mockReset().mockResolvedValue(buyOrders)
+    getReorderBuyBudgetMock.mockReset().mockImplementation(async (orderId) => ({
+      plannedBuy: 1000,
+      sourceRefund: refunds[orderId] ?? 0,
+      liveOrderable: 1500,
+      remaining: 500 + (refunds[orderId] ?? 0),
+    }))
+    reorderAdminOrderMock.mockResolvedValue({
+      userId: 'user-1',
+      accountId: 'account-1',
+      strategyId: 'strategy-1',
+      sourceOrderId: 'order-1',
+      originalStatus: 'PLACED',
+      resultingStatus: 'PLANNED',
+      newOrderExternalId: null,
+    })
+
+    renderWorkbench()
+
+    await selectStrategyTarget(user)
+    await waitFor(() => expect(screen.getByLabelText('order-1 재주문 수량')).toBeInTheDocument())
+    expect(getReorderBuyBudgetMock).toHaveBeenCalledWith('order-1', '2026-07-03')
+
+    // order-1: 2 × 300 = 600, order-3: 1 × 500 = 500 → 1,100 vs 1500 − 1000 + 100 + 200 = 800
+    await user.clear(screen.getByLabelText('order-1 재주문 수량'))
+    await user.type(screen.getByLabelText('order-1 재주문 수량'), '2')
+    await user.clear(screen.getByLabelText('order-1 재주문 가격'))
+    await user.type(screen.getByLabelText('order-1 재주문 가격'), '300')
+    await user.clear(screen.getByLabelText('order-3 재주문 수량'))
+    await user.type(screen.getByLabelText('order-3 재주문 수량'), '1')
+    await user.clear(screen.getByLabelText('order-3 재주문 가격'))
+    await user.type(screen.getByLabelText('order-3 재주문 가격'), '500')
+
+    expect(await screen.findByText(/남은 주문가능금액을 \$300\.00 초과합니다/)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '변경한 주문 2건 재주문' }))
+    const dialog = await screen.findByRole('alertdialog')
+    expect(reorderAdminOrderMock).not.toHaveBeenCalled()
+    await user.click(within(dialog).getByRole('button', { name: '재주문' }))
+
+    await waitFor(() => expect(reorderAdminOrderMock).toHaveBeenCalledTimes(2))
+  })
+
+  it('warns but submits without confirmation when live orderable amount is unavailable', async () => {
+    const user = userEvent.setup()
+    getReorderBuyBudgetMock.mockReset().mockResolvedValue({
+      plannedBuy: 1000,
+      sourceRefund: 0,
+      liveOrderable: null,
+      remaining: null,
+    })
+    reorderAdminOrderMock.mockResolvedValue({
+      userId: 'user-1',
+      accountId: 'account-1',
+      strategyId: 'strategy-1',
+      sourceOrderId: 'order-1',
+      originalStatus: 'PLACED',
+      resultingStatus: 'PLANNED',
+      newOrderExternalId: null,
+    })
+
+    renderWorkbench()
+
+    await selectStrategyTarget(user)
+    expect(await screen.findByText('주문가능금액 조회 실패 — 예산 확인 불가')).toBeInTheDocument()
+
+    await user.clear(screen.getByLabelText('order-1 재주문 수량'))
+    await user.type(screen.getByLabelText('order-1 재주문 수량'), '5')
+    await user.click(screen.getByRole('button', { name: '변경한 주문 1건 재주문' }))
+
+    await waitFor(() => expect(reorderAdminOrderMock).toHaveBeenCalledTimes(1))
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
   })
 })
