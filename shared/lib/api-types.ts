@@ -2921,7 +2921,7 @@ export interface components {
              * @example NO_PRIVACY_BASE
              * @enum {string}
              */
-            skipReason?: "NO_CYCLE_HISTORY" | "NO_PRIVACY_BASE" | "SCHEDULED_START_NOT_REACHED" | "CYCLE_ENDED";
+            skipReason?: "NO_CYCLE_HISTORY" | "NO_PRIVACY_BASE" | "SCHEDULED_START_NOT_REACHED" | "CYCLE_ENDED" | "PRIVACY_BASE_BLOCKED";
             /** @description 오늘 이미 등록된 PLANNED·PLACED 주문 목록 */
             todayOrders?: components["schemas"]["TodayOrderItem"][];
             /** @description 계좌 내 타 전략의 당일 PLANNED BUY 합계 (USD) */
