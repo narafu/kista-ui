@@ -51,7 +51,7 @@ export {
   useAdminStrategiesByAccountQuery,
   useAdminStrategyOrdersQuery,
   useAdminReorderTimingQuery,
-  useAdminReorderBuyBudgetQueries,
+  useAdminReorderBuyBudgetQuery,
   useUpdateAdminStrategyStatusMutation,
   useReorderAdminOrderMutation,
 } from './hooks/useAdminQueries'

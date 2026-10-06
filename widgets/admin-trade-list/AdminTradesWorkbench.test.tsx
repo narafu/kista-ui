@@ -219,9 +219,8 @@ describe('AdminTradesWorkbench', () => {
     })
     getReorderBuyBudgetMock.mockReset().mockResolvedValue({
       plannedBuy: 0,
-      sourceRefund: 0,
       liveOrderable: 1_000_000,
-      remaining: 1_000_000,
+      sourceRefunds: {},
     })
   })
 
@@ -566,14 +565,12 @@ describe('AdminTradesWorkbench', () => {
       { ...orders[0], id: 'order-3' },
       { ...orders[0], id: 'order-4' }, // 변경하지 않음 — refund 300을 더하면 초과가 사라진다
     ]
-    const refunds: Record<string, number> = { 'order-1': 100, 'order-3': 200, 'order-4': 300 }
     listAdminStrategyOrdersMock.mockReset().mockResolvedValue(buyOrders)
-    getReorderBuyBudgetMock.mockReset().mockImplementation(async (orderId) => ({
+    getReorderBuyBudgetMock.mockReset().mockResolvedValue({
       plannedBuy: 1000,
-      sourceRefund: refunds[orderId] ?? 0,
       liveOrderable: 1500,
-      remaining: 500 + (refunds[orderId] ?? 0),
-    }))
+      sourceRefunds: { 'order-1': 100, 'order-3': 200, 'order-4': 300 },
+    })
     reorderAdminOrderMock.mockResolvedValue({
       userId: 'user-1',
       accountId: 'account-1',
@@ -588,7 +585,8 @@ describe('AdminTradesWorkbench', () => {
 
     await selectStrategyTarget(user)
     await waitFor(() => expect(screen.getByLabelText('order-1 재주문 수량')).toBeInTheDocument())
-    expect(getReorderBuyBudgetMock).toHaveBeenCalledWith('order-1', '2026-07-03')
+    expect(getReorderBuyBudgetMock).toHaveBeenCalledTimes(1)
+    expect(getReorderBuyBudgetMock).toHaveBeenCalledWith(['order-1', 'order-3', 'order-4'], '2026-07-03')
 
     // order-1: 2 × 300 = 600, order-3: 1 × 500 = 500 → 1,100 vs 1500 − 1000 + 100 + 200 = 800
     await user.clear(screen.getByLabelText('order-1 재주문 수량'))
@@ -614,9 +612,8 @@ describe('AdminTradesWorkbench', () => {
     const user = userEvent.setup()
     getReorderBuyBudgetMock.mockReset().mockResolvedValue({
       plannedBuy: 1000,
-      sourceRefund: 0,
       liveOrderable: null,
-      remaining: null,
+      sourceRefunds: { 'order-1': 0 },
     })
     reorderAdminOrderMock.mockResolvedValue({
       userId: 'user-1',

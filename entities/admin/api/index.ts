@@ -103,8 +103,8 @@ export async function getReorderTimingAvailability(): Promise<AdminReorderTiming
   return clientFetch<AdminReorderTimingAvailability>('/api/admin/trades/reorder-timing', { method: 'GET' })
 }
 
-export async function getReorderBuyBudget(orderId: string, tradeDate: string): Promise<AdminReorderBuyBudget> {
-  const params = new URLSearchParams({ orderId, tradeDate })
+export async function getReorderBuyBudget(orderIds: string[], tradeDate: string): Promise<AdminReorderBuyBudget> {
+  const params = new URLSearchParams([...orderIds.map((id) => ['orderIds', id]), ['tradeDate', tradeDate]])
   return clientFetch<AdminReorderBuyBudget>(`/api/admin/trades/reorder-buy-budget?${params}`, { method: 'GET' })
 }
 

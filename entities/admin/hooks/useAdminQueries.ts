@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery, useQueries, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
   approveAdminUser,
@@ -67,13 +67,12 @@ export function useAdminReorderTimingQuery() {
   })
 }
 
-// 원본 BUY 주문별 예산 — sourceRefund가 주문마다 달라 주문 단위로 조회한다
-export function useAdminReorderBuyBudgetQueries(orderIds: string[], tradeDate: string) {
-  return useQueries({
-    queries: orderIds.map((orderId) => ({
-      queryKey: adminKeys.reorderBuyBudget(orderId, tradeDate),
-      queryFn: () => getReorderBuyBudget(orderId, tradeDate),
-    })),
+// 같은 계좌 BUY 원본 주문 일괄 예산 — live 잔고는 서버가 1회만 조회
+export function useAdminReorderBuyBudgetQuery(orderIds: string[], tradeDate: string) {
+  return useQuery({
+    queryKey: adminKeys.reorderBuyBudget(orderIds, tradeDate),
+    queryFn: () => getReorderBuyBudget(orderIds, tradeDate),
+    enabled: orderIds.length > 0,
   })
 }
 

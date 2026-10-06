@@ -27,8 +27,8 @@ export const adminKeys = {
     [...adminKeys.strategyOrdersRoot(), accountId, strategyId, tradeDate] as const,
   reorderTiming: () => [...adminKeys.all, 'reorder-timing'] as const,
   reorderBuyBudgetRoot: () => [...adminKeys.all, 'reorder-buy-budget'] as const,
-  reorderBuyBudget: (orderId: string, tradeDate: string) =>
-    [...adminKeys.reorderBuyBudgetRoot(), orderId, tradeDate] as const,
+  reorderBuyBudget: (orderIds: string[], tradeDate: string) =>
+    [...adminKeys.reorderBuyBudgetRoot(), [...orderIds].sort(), tradeDate] as const,
   errorLogsRoot: () => [...adminKeys.all, 'error-logs'] as const,
   errorLogs: (params?: AdminErrorLogsQueryParams) => [
     ...adminKeys.errorLogsRoot(),

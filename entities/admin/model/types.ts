@@ -82,12 +82,11 @@ export interface AdminReorderTimingAvailability {
   immediate: boolean
 }
 
-// BUY 재주문 예산 — liveOrderable·plannedBuy는 계좌 공통, sourceRefund는 원본 주문별
+// BUY 재주문 예산 — 같은 계좌 원본 주문 일괄 조회, live는 1회
 export interface AdminReorderBuyBudget {
   plannedBuy: number
-  sourceRefund: number
   liveOrderable: number | null // 증권사 조회 실패 시 null
-  remaining: number | null // liveOrderable − plannedBuy + sourceRefund
+  sourceRefunds: Record<string, number> // 원본 주문 id → 환급분(해당 없으면 0)
 }
 
 export interface AdminReorderRequest {

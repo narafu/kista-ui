@@ -11,7 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { useAdminReorderBuyBudgetQueries } from '@entities/admin'
+import { useAdminReorderBuyBudgetQuery } from '@entities/admin'
 import type { AdminReorderBuyBudget, AdminReorderTimingAvailability, AdminStrategyOrder } from '@entities/admin'
 import { ORDER_STATUS_LABEL } from '@entities/order'
 import type { OrderDirection } from '@shared/lib/api-schema'
@@ -72,32 +72,24 @@ function buildInitialDrafts(orders: AdminStrategyOrder[], avail: AdminReorderTim
   ) as Record<string, OrderDraft>
 }
 
-interface BudgetQueryState {
-  data?: AdminReorderBuyBudget
-  isPending: boolean
-  isError: boolean
-}
-
 type BuyBudgetSummary =
   | { state: 'loading' }
   | { state: 'unknown' }
   | { state: 'ok'; remaining: number; required: number; over: boolean }
 
-// 남은 예산 = liveOrderable − plannedBuy(계좌 공통, 한 번만) + Σ 재주문할 BUY 원본의 sourceRefund.
+// 남은 예산 = liveOrderable − plannedBuy + Σ 재주문할 BUY 원본의 sourceRefunds.
 // 재주문하지 않는 행은 원본이 취소되지 않으므로 refund를 더하지 않는다.
-// ponytail: 폼의 주문은 모두 선택된 한 계좌 소속이라 계좌별 그룹핑 없음 — 다계좌 폼이 생기면 accountId로 묶을 것
+// 폼의 주문은 모두 선택된 한 계좌 소속 — 서버도 같은 계좌가 아니면 400
 function summarizeBuyBudget(
-  allBuy: BudgetQueryState[],
-  targets: { query: BudgetQueryState; amount: number }[],
+  query: { data?: AdminReorderBuyBudget; isPending: boolean; isError: boolean },
+  targets: { orderId: string; amount: number }[],
 ): BuyBudgetSummary {
-  const relevant = targets.length > 0 ? targets.map((t) => t.query) : allBuy
-  if (relevant.some((q) => q.isError)) return { state: 'unknown' }
-  if (relevant.some((q) => q.isPending)) return { state: 'loading' }
-  // 주문마다 live 잔고를 따로 조회하므로 일부만 실패할 수 있다 — 성공한 응답 하나면 충분
-  const base = relevant.find((q) => q.data?.liveOrderable != null)?.data
-  if (base?.liveOrderable == null) return { state: 'unknown' }
-  const refund = targets.reduce((sum, t) => sum + (t.query.data?.sourceRefund ?? 0), 0)
-  const remaining = base.liveOrderable - base.plannedBuy + refund
+  if (query.isError) return { state: 'unknown' }
+  if (query.isPending) return { state: 'loading' }
+  const budget = query.data
+  if (budget?.liveOrderable == null) return { state: 'unknown' }
+  const refund = targets.reduce((sum, t) => sum + (budget.sourceRefunds[t.orderId] ?? 0), 0)
+  const remaining = budget.liveOrderable - budget.plannedBuy + refund
   const required = targets.reduce((sum, t) => sum + t.amount, 0)
   return { state: 'ok', remaining, required, over: targets.length > 0 && required - remaining > 0.005 }
 }
@@ -133,13 +125,13 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
 
   // 재주문 POST와 같은 거래일(todayKst) 기준 — 날짜가 바뀌면 queryKey가 달라져 재조회된다
   const buyOrders = orders.filter((order) => order.direction === 'BUY')
-  const budgetQueries = useAdminReorderBuyBudgetQueries(buyOrders.map((order) => order.id), todayKst())
+  const budgetQuery = useAdminReorderBuyBudgetQuery(buyOrders.map((order) => order.id), todayKst())
   const budget = buyOrders.length === 0 ? null : summarizeBuyBudget(
-    budgetQueries,
-    buyOrders.flatMap((order, index) => {
+    budgetQuery,
+    buyOrders.flatMap((order) => {
       if (!changedSet.has(order.id)) return []
       const draft = drafts[order.id]
-      return [{ query: budgetQueries[index]!, amount: Number(draft?.price) * Number(draft?.quantity) || 0 }]
+      return [{ orderId: order.id, amount: Number(draft?.price) * Number(draft?.quantity) || 0 }]
     }),
   )
   const hasChangedBuy = buyOrders.some((order) => changedSet.has(order.id))
