@@ -1464,6 +1464,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/trades/reorder-buy-budget": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * BUY 재주문 예산 일괄 조회
+         * @description 같은 계좌 원본 주문 1~50건. 남은 예산 = liveOrderable − plannedBuy + 재주문할 원본들의 sourceRefunds 합. live 조회 실패 시 liveOrderable은 null입니다.
+         */
+        get: operations["getReorderBuyBudget"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/logs/errors": {
         parameters: {
             query?: never;
@@ -4697,6 +4717,16 @@ export interface components {
             /** @description 즉시 접수 가능 여부 (정규장 중에만 true) */
             immediate?: boolean;
         };
+        ReorderBuyBudgetResponse: {
+            /** @description 거래일 계좌 PLANNED BUY 합계 */
+            plannedBuy?: number;
+            /** @description live 주문가능금액(USD), 조회 실패 시 null */
+            liveOrderable?: number | null;
+            /** @description 원본 주문 ID별 재주문 시 취소로 되돌려 받는 BUY 금액(해당 없으면 0) */
+            sourceRefunds?: {
+                [key: string]: number;
+            };
+        };
         ErrorLogResponse: {
             /**
              * Format: uuid
@@ -7572,6 +7602,29 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ReorderTimingAvailabilityResponse"];
+                };
+            };
+        };
+    };
+    getReorderBuyBudget: {
+        parameters: {
+            query: {
+                orderIds: string[];
+                tradeDate?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ReorderBuyBudgetResponse"];
                 };
             };
         };

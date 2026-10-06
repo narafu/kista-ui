@@ -1,3 +1,4 @@
+import type { components } from '@shared/lib/api-types'
 import type { OrderDirection, OrderStatus, OrderType, UserRole, UserStatus } from '@shared/lib/api-schema'
 
 export interface AdminUser {
@@ -82,12 +83,9 @@ export interface AdminReorderTimingAvailability {
   immediate: boolean
 }
 
-// BUY 재주문 예산 — 같은 계좌 원본 주문 일괄 조회, live는 1회
-export interface AdminReorderBuyBudget {
-  plannedBuy: number
-  liveOrderable: number | null // 증권사 조회 실패 시 null
-  sourceRefunds: Record<string, number> // 원본 주문 id → 환급분(해당 없으면 0)
-}
+// BUY 재주문 예산 — 같은 계좌 원본 주문 일괄 조회, live는 1회(실패 시 liveOrderable null).
+// 서버 record라 항상 전 필드를 보내지만 스펙엔 optional로 생성돼 Required로 고정한다.
+export type AdminReorderBuyBudget = Required<components['schemas']['ReorderBuyBudgetResponse']>
 
 export interface AdminReorderRequest {
   userId: string
