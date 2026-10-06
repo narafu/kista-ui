@@ -13,7 +13,7 @@ import {
   useReorderAdminOrderMutation,
 } from '@entities/admin'
 import type { AdminTrade } from '@entities/admin'
-import { todayKst } from '@shared/lib/format'
+import { nextTradeDateKst } from '@shared/lib/format'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { AdminTradeCorrectionPanel } from './AdminTradeCorrectionPanel'
@@ -55,7 +55,7 @@ export function AdminTradesWorkbench({ initialTrades, initialPage, initialSize }
 
   const accountsQuery = useAdminAccountsByUserQuery(selectedUserId)
   const strategiesQuery = useAdminStrategiesByAccountQuery(selectedAccountId)
-  const ordersQuery = useAdminStrategyOrdersQuery(selectedAccountId, selectedStrategyId, todayKst())
+  const ordersQuery = useAdminStrategyOrdersQuery(selectedAccountId, selectedStrategyId, nextTradeDateKst())
   const timingQuery = useAdminReorderTimingQuery()
   const statusMutation = useUpdateAdminStrategyStatusMutation()
   const reorderMutation = useReorderAdminOrderMutation()
@@ -165,7 +165,7 @@ export function AdminTradesWorkbench({ initialTrades, initialPage, initialSize }
             userId: selectedUserId,
             accountId: selectedAccountId,
             strategyId: selectedStrategyId,
-            tradeDate: todayKst(),
+            tradeDate: nextTradeDateKst(),
             orderId: item.orderId,
             timing: item.timing,
             direction: item.direction,
@@ -185,7 +185,7 @@ export function AdminTradesWorkbench({ initialTrades, initialPage, initialSize }
 
       if (results.length > 0) {
         await queryClient.invalidateQueries({
-          queryKey: adminKeys.strategyOrders(selectedAccountId, selectedStrategyId, todayKst()),
+          queryKey: adminKeys.strategyOrders(selectedAccountId, selectedStrategyId, nextTradeDateKst()),
         }).catch(() => {}) // 재주문은 적용됐으므로 목록 갱신 실패는 무시
         // 재주문으로 계좌 PLANNED BUY 합계가 바뀌어 예산도 다시 조회
         await queryClient.invalidateQueries({ queryKey: adminKeys.reorderBuyBudgetRoot() }).catch(() => {})

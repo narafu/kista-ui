@@ -82,6 +82,16 @@ export function todayKst(): string {
   return toKstDateString(new Date())
 }
 
+/**
+ * 매매 거래일(KST) — KST 04:30 이후면 다음 날. kista-api DstInfo.nextTradeDate()(SCHEDULER_RUN_TIME 04:30)와 같은 규칙.
+ * 밤 미국장 주문(22:30 개장 배치·바로 주문)은 다음 날 거래일로 저장되므로 관리자 재주문 화면은 이 날짜로 조회·접수한다.
+ */
+export function nextTradeDateKst(now: Date = new Date()): string {
+  const kstTime = now.toLocaleTimeString('en-GB', { timeZone: 'Asia/Seoul', hourCycle: 'h23' })
+  if (kstTime < '04:30') return toKstDateString(now)
+  return toKstDateString(new Date(now.getTime() + 24 * 60 * 60 * 1000))
+}
+
 /** 0~1 비율을 정수 % 값으로 변환 — 부동소수점 오차 제거(NUMERIC(6,2) 정밀도 기준) */
 export function ratioToPercent(ratio: number): number {
   return Math.round(ratio * 10000) / 100

@@ -46,7 +46,7 @@ vi.mock('@shared/lib/format', async () => {
   const actual = await vi.importActual<typeof import('@shared/lib/format')>('@shared/lib/format')
   return {
     ...actual,
-    todayKst: vi.fn(() => '2026-07-03'),
+    nextTradeDateKst: vi.fn(() => '2026-07-03'),
   }
 })
 
@@ -147,7 +147,7 @@ const orders: AdminStrategyOrder[] = [
     timing: 'AT_CLOSE',
     quantity: 1,
     price: 320.0,
-    status: 'FILLED',
+    status: 'PLANNED',
     externalOrderId: 'ext-2',
   },
 ]
@@ -514,7 +514,8 @@ describe('AdminTradesWorkbench', () => {
   it.each([
     ['FAILED', failedOrder],
     ['CANCELLED', cancelledOrder],
-  ])('shows reorder form controls for %s orders (all statuses reorderable)', async (_status, order) => {
+    ['PARTIALLY_FILLED', partiallyFilledOrder],
+  ])('locks reorder inputs for %s orders (only PLANNED·PLACED reorderable)', async (_status, order) => {
     const user = userEvent.setup()
     listAdminStrategyOrdersMock.mockReset().mockResolvedValue([order])
 
@@ -522,21 +523,9 @@ describe('AdminTradesWorkbench', () => {
 
     await selectStrategyTarget(user)
 
-    // FAILED/CANCELLED 주문도 재주문 가능 — 수량 입력 활성화
-    await waitFor(() => expect(screen.getByLabelText(`${order.id} 재주문 수량`)).not.toBeDisabled())
-    // 변경 전 — 버튼 비활성
-    expect(screen.getByRole('button', { name: '변경한 주문 0건 재주문' })).toBeDisabled()
-  })
-
-  it('shows batch reorder submit controls for partially filled orders', async () => {
-    const user = userEvent.setup()
-    listAdminStrategyOrdersMock.mockReset().mockResolvedValue([partiallyFilledOrder])
-
-    renderWorkbench()
-
-    await selectStrategyTarget(user)
-
-    await waitFor(() => expect(screen.getByLabelText(`${partiallyFilledOrder.id} 재주문 수량`)).not.toBeDisabled())
+    // 서버가 미체결(PLANNED·PLACED) 원본만 재주문을 받으므로 입력을 잠그고 안내한다
+    await waitFor(() => expect(screen.getByLabelText(`${order.id} 재주문 수량`)).toBeDisabled())
+    expect(screen.getByText('미체결 주문만 재주문할 수 있습니다.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '변경한 주문 0건 재주문' })).toBeDisabled()
   })
 

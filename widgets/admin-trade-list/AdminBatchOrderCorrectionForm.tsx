@@ -15,7 +15,7 @@ import { useAdminReorderBuyBudgetQuery } from '@entities/admin'
 import type { AdminReorderBuyBudget, AdminReorderTimingAvailability, AdminStrategyOrder } from '@entities/admin'
 import { ORDER_STATUS_LABEL } from '@entities/order'
 import type { OrderDirection } from '@shared/lib/api-schema'
-import { fmtUsd, todayKst } from '@shared/lib/format'
+import { fmtUsd, nextTradeDateKst } from '@shared/lib/format'
 
 export interface ReorderBatchItem {
   orderId: string
@@ -123,9 +123,9 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
   const changedSet = useMemo(() => new Set(changedOrderIds), [changedOrderIds])
   const [confirmOpen, setConfirmOpen] = useState(false)
 
-  // 재주문 POST와 같은 거래일(todayKst) 기준 — 날짜가 바뀌면 queryKey가 달라져 재조회된다
+  // 재주문 POST와 같은 거래일(nextTradeDateKst) 기준 — 날짜가 바뀌면 queryKey가 달라져 재조회된다
   const buyOrders = orders.filter((order) => order.direction === 'BUY')
-  const budgetQuery = useAdminReorderBuyBudgetQuery(buyOrders.map((order) => order.id), todayKst())
+  const budgetQuery = useAdminReorderBuyBudgetQuery(buyOrders.map((order) => order.id), nextTradeDateKst())
   const budget = buyOrders.length === 0 ? null : summarizeBuyBudget(
     budgetQuery,
     buyOrders.flatMap((order) => {
@@ -233,6 +233,8 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
           }
 
           const isChanged = changedSet.has(order.id)
+          // 체결·취소·실패한 주문은 재주문 불가 — 서버도 미체결(PLANNED·PLACED) 원본만 받는다. 체결분 보정은 수동 체결 보정
+          const isClosed = order.status !== 'PLANNED' && order.status !== 'PLACED'
           return (
             <section key={order.id} className={`rounded-[var(--r-md)] border bg-background p-3 ${isChanged ? 'border-primary' : 'border-border'}`}>
               <div className="flex flex-wrap items-center gap-2">
@@ -248,6 +250,9 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                   {ORDER_STATUS_LABEL[order.status] ?? order.status}
                 </span>
               </div>
+              {isClosed && (
+                <p className="mt-1 text-xs text-muted-foreground">미체결 주문만 재주문할 수 있습니다.</p>
+              )}
 
               <div className="mt-3">
                 <label className="grid gap-2 text-sm">
@@ -256,7 +261,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                     aria-label={`${order.id} 주문시점`}
                     value={draft.timing}
                     onChange={(e) => handleDraftChange(order.id, 'timing', e.target.value)}
-                    disabled={disabled || isBlocked}
+                    disabled={disabled || isBlocked || isClosed}
                     className="h-10 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {TIMING_OPTIONS.map(({ value, label, availKey }) => (
@@ -279,7 +284,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                     step="1"
                     value={draft.quantity}
                     onChange={(e) => handleDraftChange(order.id, 'quantity', e.target.value)}
-                    disabled={disabled || isBlocked}
+                    disabled={disabled || isBlocked || isClosed}
                     className="h-10 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </label>
@@ -294,7 +299,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                     step="0.01"
                     value={draft.price}
                     onChange={(e) => handleDraftChange(order.id, 'price', e.target.value)}
-                    disabled={disabled || isBlocked}
+                    disabled={disabled || isBlocked || isClosed}
                     className="h-10 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </label>
@@ -305,7 +310,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                     aria-label={`${order.id} 메모`}
                     value={draft.memo}
                     onChange={(e) => handleDraftChange(order.id, 'memo', e.target.value)}
-                    disabled={disabled || isBlocked}
+                    disabled={disabled || isBlocked || isClosed}
                     maxLength={200}
                     className="h-10 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
                   />
