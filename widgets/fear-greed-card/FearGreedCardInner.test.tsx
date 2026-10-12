@@ -59,12 +59,12 @@ describe('FearGreedCardInner', () => {
 
   it('shows day-over-day and week-over-week deltas from history', () => {
     const data: FearGreedSourceView = {
-      current: { date: '2026-07-10', value: 60, rating: 'GREED' },
+      current: { date: '2026-07-10T03:00:01.038742Z', value: 60, rating: 'GREED' },
       history: [
-        { date: '2026-07-02', value: 70, rating: 'GREED' },
-        { date: '2026-07-03', value: 65, rating: 'GREED' },
-        { date: '2026-07-09', value: 55, rating: 'NEUTRAL' },
-        { date: '2026-07-10', value: 60, rating: 'GREED' },
+        { date: '2026-07-02T03:00:01.038742Z', value: 70, rating: 'GREED' },
+        { date: '2026-07-03T03:00:01.038742Z', value: 65, rating: 'GREED' },
+        { date: '2026-07-09T03:00:01.038742Z', value: 55, rating: 'NEUTRAL' },
+        { date: '2026-07-10T03:00:01.038742Z', value: 60, rating: 'GREED' },
       ],
     }
     render(

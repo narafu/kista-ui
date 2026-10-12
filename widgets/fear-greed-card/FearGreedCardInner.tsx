@@ -2,6 +2,7 @@
 
 import type { FearGreedPoint, FearGreedSourceView } from '@entities/market'
 import { cn } from '@shared/lib/utils'
+import { toKstDateString } from '@shared/lib/format'
 import { FearGreedGauge } from './FearGreedGauge'
 import { FearGreedTrend } from './FearGreedTrend'
 
@@ -13,15 +14,16 @@ interface Props {
   daysOptions: readonly number[]
 }
 
-// history는 오름차순이고 마지막이 current — 전일은 직전 기록, 전주는 7일 전 이하 중 가장 최근 기록
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000
+
+// history는 오름차순이고 마지막이 current — 전일은 직전 기록, 전주는 KST 기준 7일 전 이하 중 가장 최근 기록
+// date는 수집 시각(ISO Instant)이라 시각 차이를 무시하려고 KST 날짜끼리 비교한다
 function deltas(history: FearGreedPoint[]) {
   const current = history.at(-1)
   if (!current) return { day: null, week: null }
-  const weekAgo = new Date(`${current.date}T00:00:00Z`)
-  weekAgo.setUTCDate(weekAgo.getUTCDate() - 7)
-  const weekAgoDate = weekAgo.toISOString().slice(0, 10)
+  const weekAgoDate = toKstDateString(new Date(Date.parse(current.date) - WEEK_MS))
   const prevDay = history.at(-2)
-  const prevWeek = history.findLast((p) => p.date <= weekAgoDate)
+  const prevWeek = history.findLast((p) => toKstDateString(p.date) <= weekAgoDate)
   return {
     day: prevDay ? current.value - prevDay.value : null,
     week: prevWeek ? current.value - prevWeek.value : null,
@@ -71,7 +73,7 @@ export default function FearGreedCardInner({ title, data, days, onDaysChange, da
       </div>
       {current && (
         <span className="text-xs text-muted-foreground">
-          {current.date.replace(/-/g, '.')} KST
+          {toKstDateString(current.date).replace(/-/g, '.')} KST
         </span>
       )}
       {current ? (
