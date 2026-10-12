@@ -14,7 +14,7 @@ const BASE_SUMMARY: HousingBenchmarkSummaryData = {
 }
 
 describe('HousingBenchmarkSummary', () => {
-  it('연환산 수익률이 모두 있으면 90일 미만 안내를 표시하지 않는다', () => {
+  it('연환산 수익률이 모두 있으면 1년 미만 안내를 표시하지 않는다', () => {
     render(
       <HousingBenchmarkSummary
         summary={BASE_SUMMARY}
@@ -24,10 +24,10 @@ describe('HousingBenchmarkSummary', () => {
       />,
     )
 
-    expect(screen.queryByText(/90일 미만/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/1년 미만/)).not.toBeInTheDocument()
   })
 
-  it('연환산 수익률이 null이면 90일 미만이라 미표시라는 안내를 표시한다', () => {
+  it('연환산 수익률이 null이면 1년 미만이라 미표시라는 안내를 표시한다', () => {
     render(
       <HousingBenchmarkSummary
         summary={{ ...BASE_SUMMARY, investmentAnnualizedReturn: null, benchmarkAnnualizedReturn: null }}
@@ -37,6 +37,6 @@ describe('HousingBenchmarkSummary', () => {
       />,
     )
 
-    expect(screen.getByText(/90일 미만/)).toBeInTheDocument()
+    expect(screen.getByText(/1년 미만/)).toBeInTheDocument()
   })
 })
