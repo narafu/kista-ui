@@ -170,7 +170,7 @@ describe('isMonthClosed', () => {
 })
 
 describe('calcMonthlyTrend', () => {
-  it('netWorth 모드는 월별 순자산 추이를 오름차순으로 반환한다', () => {
+  it('netWorth 모드는 월별 순자산과 총자산 추이를 오름차순으로 반환한다', () => {
     const snapshots = [
       snapshot({ entryDate: '2026-07-01', rootCategoryId: SYSTEM_INVESTMENT_CATEGORY_ID, amount: 1_000_000 }),
       snapshot({ entryDate: '2026-08-01', rootCategoryId: SYSTEM_INVESTMENT_CATEGORY_ID, amount: 3_000_000 }),
@@ -180,8 +180,8 @@ describe('calcMonthlyTrend', () => {
     const trend = calcMonthlyTrend(snapshots, 'netWorth', null)
 
     expect(trend).toEqual([
-      { month: '2026-07', amount: 1_000_000 },
-      { month: '2026-08', amount: 2_000_000 },
+      { month: '2026-07', amount: 1_000_000, totalAssets: 1_000_000 },
+      { month: '2026-08', amount: 2_000_000, totalAssets: 3_000_000 },
     ])
   })
 

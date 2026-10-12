@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react'
 // 도달 가능성을 보지 않고 recharts import를 정적으로만 감지해 분리 구조와 무관하게 항상 발화한다
 // (EquityCurveChart.tsx 등 기존 recharts 위젯과 동일한 처리).
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { SectionError } from '@shared/ui/SectionError'
@@ -111,7 +111,7 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
               <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={44} tickFormatter={fmtKrwAxisTick} domain={['auto', 'auto']} />
               {/* hover 가독성 — 세로 가이드선 + 강조 점 + 큰 금액 글씨로 어느 달의 값인지 바로 읽히게 한다 */}
               <Tooltip
-                formatter={(value) => [maskIfHidden(fmtKrw(Number(value))), '금액']}
+                formatter={(value, name) => [maskIfHidden(fmtKrw(Number(value))), name]}
                 cursor={{ stroke: 'var(--muted-foreground)', strokeWidth: 1, strokeDasharray: '4 4' }}
                 contentStyle={{
                   fontSize: 14,
@@ -125,9 +125,25 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
                 labelStyle={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 2 }}
                 itemStyle={{ fontWeight: 600, color: 'var(--foreground)' }}
               />
+              {mode === 'netWorth' && <Legend wrapperStyle={{ fontSize: 11 }} />}
+              {mode === 'netWorth' && (
+                <Line
+                  type="monotone"
+                  dataKey="totalAssets"
+                  name="총자산"
+                  stroke="var(--muted-foreground)"
+                  strokeWidth={1.5}
+                  strokeDasharray="5 4"
+                  dot={false}
+                  activeDot={{ r: 4, stroke: 'var(--card)', strokeWidth: 2, fill: 'var(--muted-foreground)' }}
+                  animationDuration={500}
+                  animationEasing="ease-out"
+                />
+              )}
               <Line
                 type="monotone"
                 dataKey="amount"
+                name={mode === 'netWorth' ? '순자산' : '금액'}
                 stroke="var(--chart-1)"
                 strokeWidth={2.5}
                 dot={false}

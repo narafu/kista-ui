@@ -136,6 +136,7 @@ export type TrendMode = 'netWorth' | 'category' | 'assetClass'
 export interface TrendPoint {
   month: string
   amount: number
+  totalAssets?: number // netWorth 모드에서만 채운다 — 순자산 차트에 총자산을 비교선으로 겹쳐 그리기 위함
 }
 
 export function calcMonthlyTrend(
@@ -149,7 +150,10 @@ export function calcMonthlyTrend(
     .filter((month) => !endMonth || month <= endMonth)
     .sort() // 오름차순
   return months.slice(-monthsLimit).map((month) => {
-    if (mode === 'netWorth') return { month, amount: calcMonthlySummary(snapshots, month).netWorth }
+    if (mode === 'netWorth') {
+      const { netWorth, totalAssets } = calcMonthlySummary(snapshots, month)
+      return { month, amount: netWorth, totalAssets }
+    }
     const monthSnapshots = snapshotsInMonth(snapshots, month)
     if (mode === 'category') {
       return { month, amount: sum(monthSnapshots.filter((snapshot) => snapshot.rootCategoryId === selector)) }
