@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { FinanceRecordList } from './FinanceRecordList'
 import type { CategoryIndex, FinanceCategory, FinanceTransaction } from '@entities/finance'
@@ -47,6 +47,8 @@ describe('FinanceRecordList 연간 모드', () => {
         isLoading={false}
         isError={false}
         today="2026-08-23"
+        categoryPath={[]}
+        onCategoryPathChange={vi.fn()}
       />,
     )
 
@@ -66,6 +68,8 @@ describe('FinanceRecordList 연간 모드', () => {
         isLoading={false}
         isError={false}
         today="2026-08-23"
+        categoryPath={[]}
+        onCategoryPathChange={vi.fn()}
       />,
     )
 
@@ -87,9 +91,40 @@ describe('FinanceRecordList 공유 배지', () => {
         isLoading={false}
         isError={false}
         today="2026-08-23"
+        categoryPath={[]}
+        onCategoryPathChange={vi.fn()}
       />,
     )
 
     expect(screen.getAllByText('공유')).toHaveLength(2)
+  })
+})
+
+describe('FinanceRecordList 메모 검색', () => {
+  it('메모에 검색어(대소문자 무시)가 포함된 내역만 보여준다', () => {
+    render(
+      <FinanceRecordList
+        type="EXPENSE"
+        transactions={[
+          { ...tx('2026-08-10', 20000), memo: '관리비 Apt' },
+          { ...tx('2026-08-11', 30000), memo: '점심' },
+          tx('2026-08-12', 40000),
+        ]}
+        categoryTree={categoryTree}
+        index={index}
+        period={{ month: '2026-08', mode: 'monthly' }}
+        isLoading={false}
+        isError={false}
+        today="2026-08-23"
+        categoryPath={[]}
+        onCategoryPathChange={vi.fn()}
+      />,
+    )
+
+    fireEvent.change(screen.getByRole('searchbox', { name: '메모 검색' }), { target: { value: 'apt' } })
+
+    const rows = within(screen.getByRole('table', { name: '거래내역' })).getAllByRole('row')
+    expect(rows).toHaveLength(2)
+    expect(rows[1]).toHaveTextContent('관리비 Apt')
   })
 })

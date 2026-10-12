@@ -1,5 +1,7 @@
 'use client'
 
+import { useRef, useState } from 'react'
+import { getCategoryPath } from '@entities/finance'
 import { FinanceSummary } from '@widgets/finance-summary'
 import { FinanceBudgetProgress } from '@widgets/finance-budget-progress'
 import { FinanceTrend } from '@widgets/finance-trend'
@@ -27,6 +29,15 @@ export function FlowPageView({ type }: { type: FlowCategoryType }) {
     registerWindow,
   } = useFinanceFlowData(type)
 
+  // 예산 대비 카드 행 클릭 → 거래내역 카테고리 필터. 두 위젯이 공유하는 상태라 여기(app)가 소유한다.
+  const [categoryPath, setCategoryPath] = useState<string[]>([])
+  const recordListRef = useRef<HTMLDivElement>(null)
+
+  function handleCategorySelect(categoryId: string) {
+    setCategoryPath(getCategoryPath(categoryTree, categoryId).map((c) => c.id))
+    recordListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
     <div className="space-y-6">
       <FinanceSummary
@@ -50,6 +61,7 @@ export function FlowPageView({ type }: { type: FlowCategoryType }) {
         isLoading={isFlowLoading}
         isError={isTransactionsError}
         today={today}
+        onCategorySelect={handleCategorySelect}
       />
       <FinanceTrend
         type={type}
@@ -63,18 +75,22 @@ export function FlowPageView({ type }: { type: FlowCategoryType }) {
         isError={isTrendError}
         today={today}
       />
-      <FinanceRecordList
-        type={type}
-        transactions={transactions}
-        categoryTree={categoryTree}
-        index={categoryIndex}
-        period={period}
-        isLoading={isFlowLoading}
-        today={today}
-        isError={isTransactionsError}
-        registerWindowFrom={registerWindow.from}
-        registerWindowTo={registerWindow.to}
-      />
+      <div ref={recordListRef} className="scroll-mt-20">
+        <FinanceRecordList
+          type={type}
+          transactions={transactions}
+          categoryTree={categoryTree}
+          index={categoryIndex}
+          period={period}
+          isLoading={isFlowLoading}
+          today={today}
+          isError={isTransactionsError}
+          registerWindowFrom={registerWindow.from}
+          registerWindowTo={registerWindow.to}
+          categoryPath={categoryPath}
+          onCategoryPathChange={setCategoryPath}
+        />
+      </div>
     </div>
   )
 }

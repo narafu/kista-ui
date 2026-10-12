@@ -23,6 +23,8 @@ interface Props {
   isError: boolean
   // useFinanceFlowData.ts가 한 번만 계산해 내려주는 "오늘" — 위젯마다 todayKst()를 각자 호출하지 않는다.
   today: string
+  // 카테고리 행 클릭 — 아래 거래내역 목록을 그 카테고리(하위 포함)로 필터한다. 상태는 FlowPageView(app)가 소유.
+  onCategorySelect: (categoryId: string) => void
 }
 
 interface BreakdownBarProps {
@@ -42,31 +44,44 @@ interface BreakdownBarProps {
 function BreakdownBar({ label, actual, allocated, remaining, percent, color, isGroup = false }: BreakdownBarProps) {
   const isOver = remaining < 0
   return (
-    <div className="flex items-center gap-3">
+    <span className="flex items-center gap-3">
       <span className={cn('w-24 shrink-0 truncate text-sm', isGroup ? 'font-medium text-foreground' : 'text-muted-foreground')}>{label}</span>
-      <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
-        <div
-          className={cn('h-full rounded-full transition-[width] duration-500 ease-out', isGroup && 'bg-muted-foreground/40')}
+      <span className="block h-2 flex-1 overflow-hidden rounded-full bg-muted">
+        <span
+          className={cn('block h-full rounded-full transition-[width] duration-500 ease-out', isGroup && 'bg-muted-foreground/40')}
           style={isGroup ? { width: `${percent}%` } : { width: `${percent}%`, backgroundColor: color }}
         />
-      </div>
-      <div className="flex w-auto min-w-[9rem] shrink-0 flex-col items-end">
+      </span>
+      <span className="flex w-auto min-w-[9rem] shrink-0 flex-col items-end">
         <span className="text-sm font-medium tabular-nums">{`${isGroup ? 'Σ ' : ''}${fmtKrw(actual)} / ${fmtKrw(allocated)}`}</span>
         <span className={cn('text-xs tabular-nums', isOver ? 'text-destructive' : 'text-muted-foreground')}>
           {isOver ? `초과 ${fmtKrw(Math.abs(remaining))}` : `잔여 ${fmtKrw(remaining)}`}
         </span>
-      </div>
-    </div>
+      </span>
+    </span>
   )
 }
 
 // depth별 들여쓰기 — 트리가 깊어져도 3단계 이상은 동일 들여쓰기로 묶는다.
 const INDENT_BY_DEPTH = ['', 'pl-4', 'pl-8', 'pl-10'] as const
 
-function BudgetTreeRow({ node, orderedRootIds, index }: { node: BudgetTreeNode; orderedRootIds: string[]; index: CategoryIndex }) {
+const ROW_BUTTON_CLASS = 'block w-full rounded-md px-1 py-0.5 text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+
+interface BudgetTreeRowProps {
+  node: BudgetTreeNode
+  orderedRootIds: string[]
+  index: CategoryIndex
+  onSelect: (categoryId: string) => void
+}
+
+function BudgetTreeRow({ node, orderedRootIds, index, onSelect }: BudgetTreeRowProps) {
   return (
     <>
-      <div className={INDENT_BY_DEPTH[Math.min(node.depth, INDENT_BY_DEPTH.length - 1)]}>
+      <button
+        type="button"
+        onClick={() => onSelect(node.categoryId)}
+        className={cn(ROW_BUTTON_CLASS, INDENT_BY_DEPTH[Math.min(node.depth, INDENT_BY_DEPTH.length - 1)])}
+      >
         <BreakdownBar
           label={node.categoryName}
           actual={node.actual}
@@ -76,15 +91,16 @@ function BudgetTreeRow({ node, orderedRootIds, index }: { node: BudgetTreeNode; 
           color={flowCategoryColor(orderedRootIds, index.get(node.categoryId)?.rootId ?? '')}
           isGroup={node.isGroup}
         />
-      </div>
+        <span className="sr-only">내역 보기</span>
+      </button>
       {node.children.map((child) => (
-        <BudgetTreeRow key={child.categoryId} node={child} orderedRootIds={orderedRootIds} index={index} />
+        <BudgetTreeRow key={child.categoryId} node={child} orderedRootIds={orderedRootIds} index={index} onSelect={onSelect} />
       ))}
     </>
   )
 }
 
-export function FinanceBudgetProgress({ type, budgets, transactions, categoryTree, index, period, isLoading, isError, today }: Props) {
+export function FinanceBudgetProgress({ type, budgets, transactions, categoryTree, index, period, isLoading, isError, today, onCategorySelect }: Props) {
   const { labelOf } = useMeta()
 
   const typedBudgets = budgets.filter((b) => index.get(b.categoryId)?.type === type)
@@ -114,7 +130,7 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
             ) : (
               <div className="space-y-2">
                 {budgetTree.map((node) => (
-                  <BudgetTreeRow key={node.categoryId} node={node} orderedRootIds={orderedRootIds} index={index} />
+                  <BudgetTreeRow key={node.categoryId} node={node} orderedRootIds={orderedRootIds} index={index} onSelect={onCategorySelect} />
                 ))}
               </div>
             )}
@@ -125,7 +141,14 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
                 <ul className="m-0 list-none space-y-1.5 p-0">
                   {unbudgeted.map((entry) => (
                     <li key={entry.categoryId} className="flex items-center justify-between gap-3">
-                      <span className="min-w-0 flex-1 truncate text-sm">{entry.categoryName}</span>
+                      <button
+                        type="button"
+                        onClick={() => onCategorySelect(entry.categoryId)}
+                        aria-label={`${entry.categoryName} 내역 보기`}
+                        className={cn(ROW_BUTTON_CLASS, 'min-w-0 flex-1 truncate text-sm')}
+                      >
+                        {entry.categoryName}
+                      </button>
                       <span className="shrink-0 text-sm tabular-nums text-muted-foreground">{fmtKrw(entry.amount)}</span>
                       {/* 예산 없이 실적만 있는 카테고리 즉석 등록 — 카테고리만 프리필, 날짜·금액은 사용자가 입력 */}
                       <Link

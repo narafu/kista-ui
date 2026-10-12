@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
+import { Input } from '@/components/ui/input'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
 import { LoadingRow } from '@shared/ui/LoadingRow'
@@ -54,9 +55,12 @@ interface Props {
   registerWindowTo?: string
   // useFinanceFlowData.ts가 한 번만 계산해 내려주는 "오늘" — 위젯마다 todayKst()를 각자 호출하지 않는다.
   today: string
+  // 카테고리 필터 경로 — 예산 대비 카드의 행 클릭으로도 바뀌어 FlowPageView(app)가 소유한다.
+  categoryPath: string[]
+  onCategoryPathChange: (path: string[]) => void
 }
 
-export function FinanceRecordList({ type, transactions, categoryTree, index, period, isLoading, isError, registerWindowFrom, registerWindowTo, today }: Props) {
+export function FinanceRecordList({ type, transactions, categoryTree, index, period, isLoading, isError, registerWindowFrom, registerWindowTo, today, categoryPath, onCategoryPathChange }: Props) {
   const deleteMutation = useDeleteFinanceTransactionMutation()
   const shareMutation = useShareFinanceTransactionMutation()
   const unshareMutation = useUnshareFinanceTransactionMutation()
@@ -75,7 +79,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
     unshareMutation.mutate(id, { onSuccess: () => toast.success('개인 소유로 되돌렸습니다') })
   }
 
-  const [categoryPath, setCategoryPath] = useState<string[]>([])
+  const [memoQuery, setMemoQuery] = useState('')
   const { sortKey, sortDirection, handleSort } = useTableSort<SortKey>('transactionDate')
 
   const editDialog = useConfirmDialog<FinanceTransaction>()
@@ -98,10 +102,14 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
 
   const cascadeLevels = useMemo(() => getCascadeLevels(categoryTree, categoryPath), [categoryTree, categoryPath])
 
-  const filtered = useMemo(
-    () => (categorySubtreeIds === null ? inPeriod : inPeriod.filter((t) => categorySubtreeIds.has(t.categoryId))),
-    [inPeriod, categorySubtreeIds],
-  )
+  const filtered = useMemo(() => {
+    const q = memoQuery.trim().toLowerCase()
+    return inPeriod.filter(
+      (t) =>
+        (categorySubtreeIds === null || categorySubtreeIds.has(t.categoryId)) &&
+        (q === '' || (t.memo?.toLowerCase().includes(q) ?? false)),
+    )
+  }, [inPeriod, categorySubtreeIds, memoQuery])
 
   const sorted = useMemo(() => {
     const copy = [...filtered]
@@ -120,7 +128,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
   // 카테고리 필터·기간 변경은 결과 집합 자체를 바꾸므로 페이지를 1로 리셋한다(AssetRecordList와 동일 이유).
   useEffect(() => {
     setPage(1)
-  }, [categoryPath, period.month, period.mode, setPage])
+  }, [categoryPath, memoQuery, period.month, period.mode, setPage])
 
   // 카테고리가 삭제돼 이 타입 어디에도 속하지 못하는 거래 — 필터링해 숨기지 않고 존재만 알린다.
   const unclassifiedCount = useMemo(() => {
@@ -153,7 +161,15 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
         <>
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-wrap gap-2">
-              <CascadingCategorySelect levels={cascadeLevels} path={categoryPath} onPathChange={setCategoryPath} className="w-full lg:w-32" />
+              <CascadingCategorySelect levels={cascadeLevels} path={categoryPath} onPathChange={onCategoryPathChange} className="w-full lg:w-32" />
+              <Input
+                type="search"
+                value={memoQuery}
+                onChange={(e) => setMemoQuery(e.target.value)}
+                placeholder="메모 검색"
+                aria-label="메모 검색"
+                className="w-full lg:w-48"
+              />
             </div>
             <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
           </div>

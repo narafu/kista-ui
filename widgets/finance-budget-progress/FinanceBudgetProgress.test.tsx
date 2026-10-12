@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { FinanceBudgetProgress } from './FinanceBudgetProgress'
 import type { CategoryIndex, CategoryIndexEntry, FinanceBudget, FinanceCategory, FinanceTransaction } from '@entities/finance'
@@ -28,6 +28,7 @@ function renderWidget(props: {
   transactions: FinanceTransaction[]
   categoryTree: FinanceCategory[]
   index: CategoryIndex
+  onCategorySelect?: (categoryId: string) => void
 }) {
   return render(
     <FinanceBudgetProgress
@@ -40,6 +41,7 @@ function renderWidget(props: {
       isLoading={false}
       isError={false}
       today={TODAY}
+      onCategorySelect={props.onCategorySelect ?? vi.fn()}
     />,
   )
 }
@@ -97,5 +99,24 @@ describe('FinanceBudgetProgress 예산 미설정 빠른 등록', () => {
     })
 
     expect(screen.getByRole('link', { name: '식비 예산 등록' })).toHaveAttribute('href', '/finance/budgets/expense/new?categoryId=food')
+  })
+})
+
+describe('FinanceBudgetProgress 행 클릭', () => {
+  it('예산 행·예산 미설정 행을 누르면 그 카테고리 id로 onCategorySelect를 호출한다', () => {
+    const onCategorySelect = vi.fn()
+    renderWidget({
+      categoryTree: [cat('house', '주거비', [cat('fee', '관리비'), cat('rent', '월세')]), cat('food', '식비')],
+      index: new Map([idx('house', '주거비'), idx('fee', '관리비'), idx('rent', '월세'), idx('food', '식비')]),
+      budgets: [budget('b-fee', 'fee', 100), budget('b-rent', 'rent', 100)],
+      transactions: [tx('fee', 50), tx('food', 30)],
+      onCategorySelect,
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /^주거비.*내역 보기$/ }))
+    fireEvent.click(screen.getByRole('button', { name: /^관리비.*내역 보기$/ }))
+    fireEvent.click(screen.getByRole('button', { name: '식비 내역 보기' }))
+
+    expect(onCategorySelect.mock.calls).toEqual([['house'], ['fee'], ['food']])
   })
 })
