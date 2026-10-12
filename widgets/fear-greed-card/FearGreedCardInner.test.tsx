@@ -56,4 +56,28 @@ describe('FearGreedCardInner', () => {
 
     expect(onDaysChange).toHaveBeenCalledWith(50)
   })
+
+  it('shows day-over-day and week-over-week deltas from history', () => {
+    const data: FearGreedSourceView = {
+      current: { date: '2026-07-10', value: 60, rating: 'GREED' },
+      history: [
+        { date: '2026-07-02', value: 70, rating: 'GREED' },
+        { date: '2026-07-03', value: 65, rating: 'GREED' },
+        { date: '2026-07-09', value: 55, rating: 'NEUTRAL' },
+        { date: '2026-07-10', value: 60, rating: 'GREED' },
+      ],
+    }
+    render(
+      <FearGreedCardInner
+        title="CNN 공포탐욕지수"
+        data={data}
+        days={200}
+        onDaysChange={vi.fn()}
+        daysOptions={[200, 120, 50, 20]}
+      />,
+    )
+
+    expect(screen.getByText('+5')).toHaveClass('text-pos')
+    expect(screen.getByText('-5')).toHaveClass('text-neg')
+  })
 })
