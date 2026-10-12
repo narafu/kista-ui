@@ -66,10 +66,14 @@ export function StatsOverview({ defaultFrom, defaultTo }: Props) {
   return (
     <div className="flex flex-col gap-4">
       {isEmpty ? (
-        <EmptyState
-          message={'아직 기록된 사이클이 없습니다.\n전략이 매매를 시작하면 통계가 쌓입니다.'}
-          className="whitespace-pre-line"
-        />
+        <>
+          <EmptyState
+            message={'아직 집계된 통계가 없습니다.\n모의계좌는 집계에서 제외되며, 전략이 매매를 시작하면 통계가 쌓입니다.'}
+            className="whitespace-pre-line"
+          />
+          {/* 요약·추이는 모의계좌를 빼고 집계하지만 사이클 목록은 포함하므로, 모의계좌 사이클만 있어도 목록은 보여준다 */}
+          <CyclePerformanceList typeFilter={strategyTypeFilter} />
+        </>
       ) : (
         <>
           <SummarySection failed={summaryFailed} summary={summary} />

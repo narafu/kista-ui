@@ -181,7 +181,7 @@ describe('StatsOverview', () => {
         client.setQueryData(statsKeys.equityCurve('2026-04-17', '2026-07-17', 'ALL'), { points: [] })
       },
     )
-    expect(screen.getByText(/아직 기록된 사이클이 없습니다/)).toBeInTheDocument()
+    expect(screen.getByText(/아직 집계된 통계가 없습니다/)).toBeInTheDocument()
   })
 
   it('summary 조회 실패 시 KPI 슬롯에만 SectionError를 보여주고 전략비교 테이블은 생략한다', async () => {
