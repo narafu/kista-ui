@@ -43,10 +43,11 @@ interface BreakdownBarProps {
 // 각 위젯이 각자 복제한다.
 function BreakdownBar({ label, actual, allocated, remaining, percent, color, isGroup = false }: BreakdownBarProps) {
   const isOver = remaining < 0
+  // 모바일: 1행 라벨·금액, 2행 전체 폭 막대 — 한 줄에 두면 금액 열이 폭을 다 써서 막대가 거의 사라진다.
   return (
-    <span className="flex items-center gap-3">
-      <span className={cn('w-16 shrink-0 truncate text-sm sm:w-24', isGroup ? 'font-medium text-foreground' : 'text-muted-foreground')}>{label}</span>
-      <span className="block h-2 flex-1 overflow-hidden rounded-full bg-muted">
+    <span className="flex flex-wrap items-center gap-x-3 gap-y-1.5 sm:flex-nowrap">
+      <span className={cn('min-w-0 flex-1 truncate text-sm sm:w-24 sm:flex-none sm:shrink-0', isGroup ? 'font-medium text-foreground' : 'text-muted-foreground')}>{label}</span>
+      <span className="order-last block h-2 basis-full overflow-hidden rounded-full bg-muted sm:order-none sm:flex-1">
         <span
           className={cn('block h-full rounded-full transition-[width] duration-500 ease-out', isGroup && 'bg-muted-foreground/40')}
           style={isGroup ? { width: `${percent}%` } : { width: `${percent}%`, backgroundColor: color }}
