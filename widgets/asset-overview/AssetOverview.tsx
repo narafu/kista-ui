@@ -28,10 +28,12 @@ interface Props {
 export function AssetOverview({ month, months, onMonthChange, today }: Props) {
   const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
   const { labelOf } = useMeta()
-  const { hidden } = useAmountHiddenPreference()
+  const { hidden, masked } = useAmountHiddenPreference()
 
   function amountValue(display: string) {
-    return hidden ? <RevealableValue value={display} hiddenDisplay={maskAmount(display)} /> : display
+    if (!masked) return display
+    // 설정을 읽기 전(hidden === null)엔 보기 버튼 없이 가리기만 한다
+    return hidden ? <RevealableValue value={display} hiddenDisplay={maskAmount(display)} /> : maskAmount(display)
   }
 
   const summary = useMemo(() => calcMonthlySummary(snapshots, month), [snapshots, month])

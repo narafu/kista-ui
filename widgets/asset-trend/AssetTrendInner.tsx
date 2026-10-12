@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { SectionError } from '@shared/ui/SectionError'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { fmtKrw } from '@shared/lib/format'
+import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { useMeta } from '@entities/meta'
 import {
   ASSET_CLASS_ORDER,
@@ -41,6 +42,7 @@ interface Props {
 export default function AssetTrendInner({ month, range = 12 }: Props) {
   const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
   const { labelOf } = useMeta()
+  const { maskIfHidden } = useAmountHiddenPreference()
   const [mode, setMode] = useState<TrendMode>('netWorth')
   const [pickedSelector, setPickedSelector] = useState<string | null>(null)
 
@@ -109,7 +111,7 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
               <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={44} tickFormatter={fmtKrwAxisTick} domain={['auto', 'auto']} />
               {/* hover 가독성 — 세로 가이드선 + 강조 점 + 큰 금액 글씨로 어느 달의 값인지 바로 읽히게 한다 */}
               <Tooltip
-                formatter={(value) => [fmtKrw(Number(value)), '금액']}
+                formatter={(value) => [maskIfHidden(fmtKrw(Number(value))), '금액']}
                 cursor={{ stroke: 'var(--muted-foreground)', strokeWidth: 1, strokeDasharray: '4 4' }}
                 contentStyle={{
                   fontSize: 14,

@@ -17,6 +17,7 @@ import { PaginationBar } from '@shared/ui/PaginationBar'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtKrw } from '@shared/lib/format'
+import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
 import { useTableSort } from '@shared/lib/hooks/use-table-sort'
@@ -65,6 +66,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
   const shareMutation = useShareFinanceTransactionMutation()
   const unshareMutation = useUnshareFinanceTransactionMutation()
   const canShare = useCanShareToGroup()
+  const { maskIfHidden } = useAmountHiddenPreference()
   const { data: monthlyClosings = [] } = useMonthlyClosingsQuery()
   const closingScopeGroupId = useMonthlyClosingScopeGroupId()
   // 기록 점검이 완료된 달의 거래는 서버가 등록·수정·삭제·공유를 전면 차단한다 — 행 작업 버튼을 미리 잠근다.
@@ -206,7 +208,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                               <GroupSharedBadge groupId={t.groupId} />
                             </span>
                           </TableDataCell>
-                          <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtKrw(t.amount)}</TableDataCell>
+                          <TableDataCell className="text-right tabular-nums whitespace-nowrap">{maskIfHidden(fmtKrw(t.amount))}</TableDataCell>
                           <TableDataCell className={cn(!t.memo && 'text-muted-foreground')}>{t.memo ?? '—'}</TableDataCell>
                           <TableDataCell>
                             <div className="flex items-center justify-center">
@@ -251,7 +253,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                             <span className="shrink-0 text-xs text-muted-foreground">{fmtDate(t.transactionDate)}</span>
                           </div>
                         </div>
-                        <span className="shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums">{fmtKrw(t.amount)}</span>
+                        <span className="shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums">{maskIfHidden(fmtKrw(t.amount))}</span>
                       </div>
                       <div className="mt-1 flex items-center justify-between gap-2">
                         <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{t.memo ?? '—'}</p>

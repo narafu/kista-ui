@@ -7,6 +7,7 @@ import { buttonVariants } from '@/components/ui/button-variants'
 import { SectionError } from '@shared/ui/SectionError'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { fmtKrw } from '@shared/lib/format'
+import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { cn } from '@shared/lib/utils'
 import { useMeta } from '@entities/meta'
 import { buildBudgetProgressTree, calcBudgetProgress, calcUnbudgetedCategories, filterByType, flowCategoryColor, newBudgetHref, sortCategoryTree } from '@entities/finance'
@@ -42,6 +43,7 @@ interface BreakdownBarProps {
 // 시맨틱을 예산 대비용(우측: 실적/할당, 잔여·초과)으로 바꿨다 — widget 간 import 금지 규칙에 따라
 // 각 위젯이 각자 복제한다.
 function BreakdownBar({ label, actual, allocated, remaining, percent, color, isGroup = false }: BreakdownBarProps) {
+  const { maskIfHidden } = useAmountHiddenPreference()
   const isOver = remaining < 0
   // 모바일: 1행 라벨·금액, 2행 전체 폭 막대 — 한 줄에 두면 금액 열이 폭을 다 써서 막대가 거의 사라진다.
   return (
@@ -54,9 +56,9 @@ function BreakdownBar({ label, actual, allocated, remaining, percent, color, isG
         />
       </span>
       <span className="flex w-auto min-w-[9rem] shrink-0 flex-col items-end">
-        <span className="text-sm font-medium tabular-nums">{`${isGroup ? 'Σ ' : ''}${fmtKrw(actual)} / ${fmtKrw(allocated)}`}</span>
+        <span className="text-sm font-medium tabular-nums">{`${isGroup ? 'Σ ' : ''}${maskIfHidden(fmtKrw(actual))} / ${maskIfHidden(fmtKrw(allocated))}`}</span>
         <span className={cn('text-xs tabular-nums', isOver ? 'text-destructive' : 'text-muted-foreground')}>
-          {isOver ? `초과 ${fmtKrw(Math.abs(remaining))}` : `잔여 ${fmtKrw(remaining)}`}
+          {isOver ? `초과 ${maskIfHidden(fmtKrw(Math.abs(remaining)))}` : `잔여 ${maskIfHidden(fmtKrw(remaining))}`}
         </span>
       </span>
     </span>
@@ -103,6 +105,7 @@ function BudgetTreeRow({ node, orderedRootIds, index, onSelect }: BudgetTreeRowP
 
 export function FinanceBudgetProgress({ type, budgets, transactions, categoryTree, index, period, isLoading, isError, today, onCategorySelect }: Props) {
   const { labelOf } = useMeta()
+  const { maskIfHidden } = useAmountHiddenPreference()
 
   const typedBudgets = budgets.filter((b) => index.get(b.categoryId)?.type === type)
   const typedTransactions = filterByType(transactions, index, type)
@@ -150,7 +153,7 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
                       >
                         {entry.categoryName}
                       </button>
-                      <span className="shrink-0 text-sm tabular-nums text-muted-foreground">{fmtKrw(entry.amount)}</span>
+                      <span className="shrink-0 text-sm tabular-nums text-muted-foreground">{maskIfHidden(fmtKrw(entry.amount))}</span>
                       {/* 예산 없이 실적만 있는 카테고리 즉석 등록 — 카테고리만 프리필, 날짜·금액은 사용자가 입력 */}
                       <Link
                         href={newBudgetHref(type, { categoryId: entry.categoryId })}

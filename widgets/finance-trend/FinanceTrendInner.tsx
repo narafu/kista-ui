@@ -9,6 +9,7 @@ import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, X
 import { Skeleton } from '@/components/ui/skeleton'
 import { SectionError } from '@shared/ui/SectionError'
 import { fmtKrw } from '@shared/lib/format'
+import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { calcFlowTrend, filterByType, flowCategoryColor, sortCategoryTree } from '@entities/finance'
 import type { CategoryIndex, FinanceCategory, FinanceCategoryType, FinanceTransaction, Period, TrendRange } from '@entities/finance'
 
@@ -32,6 +33,7 @@ interface Props {
 
 export default function FinanceTrendInner({ type, transactions, range, categoryTree, index, period, isLoading, isError, today }: Props) {
   const [byCategory, setByCategory] = useState(false)
+  const { maskIfHidden } = useAmountHiddenPreference()
 
   const typeTransactions = useMemo(() => filterByType(transactions, index, type), [transactions, index, type])
   const trend = useMemo(
@@ -76,7 +78,7 @@ export default function FinanceTrendInner({ type, transactions, range, categoryT
                 {/* hover 가독성 — AssetTrendInner와 동일한 가이드선·강조 점·툴팁 스타일. 카테고리별 보기에선
                     항목 색으로 계열을 구분하므로 itemStyle에 color를 고정하지 않는다. */}
                 <Tooltip
-                  formatter={(value, name) => [fmtKrw(Number(value)), name]}
+                  formatter={(value, name) => [maskIfHidden(fmtKrw(Number(value))), name]}
                   cursor={{ stroke: 'var(--muted-foreground)', strokeWidth: 1, strokeDasharray: '4 4' }}
                   contentStyle={{
                     fontSize: 14,

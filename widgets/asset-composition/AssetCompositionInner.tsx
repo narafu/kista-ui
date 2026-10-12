@@ -20,6 +20,7 @@ import {
 } from '@entities/finance'
 import { useMeta } from '@entities/meta'
 import { fmtKrw } from '@shared/lib/format'
+import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { SectionError } from '@shared/ui/SectionError'
 
 // Tailwind `sm` 브레이크포인트(640px)와 동일 기준 — globals.css 변경 시 함께 맞출 것.
@@ -77,6 +78,7 @@ interface CompositionChartProps {
 }
 
 function CompositionChart({ title, columns, segments, labelFor, colorFor }: CompositionChartProps) {
+  const { maskIfHidden } = useAmountHiddenPreference()
   const rows = toChartRows(columns)
 
   return (
@@ -115,7 +117,7 @@ function CompositionChart({ title, columns, segments, labelFor, colorFor }: Comp
                     const percent = typeof value === 'number' ? value.toFixed(1) : String(value)
                     const isMobile = typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT_PX
                     const amount = isMobile ? undefined : amountFromPayload(item?.payload, String(name))
-                    const amountLabel = typeof amount === 'number' ? ` (${fmtKrw(amount)})` : ''
+                    const amountLabel = typeof amount === 'number' ? ` (${maskIfHidden(fmtKrw(amount))})` : ''
                     return [`${percent}%${amountLabel}`, labelFor(String(name))]
                   }}
                   contentStyle={{

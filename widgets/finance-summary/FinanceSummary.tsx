@@ -31,10 +31,12 @@ interface Props {
 
 export function FinanceSummary({ type, transactions, index, isLoading, isError, period, onPeriodChange, previousYearTransactions, today }: Props) {
   const { labelOf } = useMeta()
-  const { hidden } = useAmountHiddenPreference()
+  const { hidden, masked } = useAmountHiddenPreference()
 
   function amountValue(display: string) {
-    return hidden ? <RevealableValue value={display} hiddenDisplay={maskAmount(display)} /> : display
+    if (!masked) return display
+    // 설정을 읽기 전(hidden === null)엔 보기 버튼 없이 가리기만 한다
+    return hidden ? <RevealableValue value={display} hiddenDisplay={maskAmount(display)} /> : maskAmount(display)
   }
 
   const typeTransactions = useMemo(() => filterByType(transactions, index, type), [transactions, index, type])

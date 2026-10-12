@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react'
 import { fmtKrw, fmtSignedKrw, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
+import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import {
   SYSTEM_LOAN_CATEGORY_ID,
   assetCategoryColor,
@@ -28,6 +29,7 @@ interface BreakdownBarProps {
 }
 
 function BreakdownBar({ label, amount, percent, delta, color, isLiability = false }: BreakdownBarProps) {
+  const { maskIfHidden } = useAmountHiddenPreference()
   return (
     <div className="flex items-center gap-3">
       <span className="w-24 shrink-0 truncate text-sm text-muted-foreground">{label}</span>
@@ -38,9 +40,9 @@ function BreakdownBar({ label, amount, percent, delta, color, isLiability = fals
         />
       </div>
       <div className="flex w-32 shrink-0 flex-col items-end">
-        <span className="text-sm font-medium tabular-nums">{fmtKrw(amount)}</span>
+        <span className="text-sm font-medium tabular-nums">{maskIfHidden(fmtKrw(amount))}</span>
         <span className={cn('text-xs tabular-nums', !delta ? 'text-muted-foreground' : pnlTextClass(isLiability ? -delta : delta))}>
-          {delta === null ? '—' : fmtSignedKrw(delta)}
+          {delta === null ? '—' : maskIfHidden(fmtSignedKrw(delta))}
         </span>
       </div>
     </div>

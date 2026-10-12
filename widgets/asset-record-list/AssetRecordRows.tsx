@@ -9,6 +9,7 @@ import { TableDataCell } from '@shared/ui/TableDataCell'
 import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtKrw } from '@shared/lib/format'
+import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { useMeta } from '@entities/meta'
 import {
   SYSTEM_INVESTMENT_CATEGORY_ID,
@@ -85,6 +86,7 @@ function RowCheckbox({ snapshot, row, className }: { snapshot: AssetSnapshot; ro
 }
 
 function DesktopRow({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowContext }) {
+  const { maskIfHidden } = useAmountHiddenPreference()
   const { labelOf } = row
   return (
     <tr className="border-t hover:bg-muted/30 transition-colors">
@@ -104,7 +106,7 @@ function DesktopRow({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowC
       <TableDataCell className={cn(!snapshot.accountName && 'text-muted-foreground')}>{snapshot.accountName ?? '—'}</TableDataCell>
       <TableDataCell className={cn(!snapshot.accountInstitution && 'text-muted-foreground')}>{snapshot.accountInstitution ?? '—'}</TableDataCell>
       <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap', isLiability(snapshot) && 'text-destructive')}>
-        {fmtKrw(snapshot.amount)}
+        {maskIfHidden(fmtKrw(snapshot.amount))}
       </TableDataCell>
       <TableDataCell title={snapshot.memo} className={cn('max-w-48 truncate', !snapshot.memo && 'text-muted-foreground')}>{snapshot.memo ?? '—'}</TableDataCell>
       <TableDataCell>
@@ -170,6 +172,7 @@ export function AssetRecordTable({ paged, row, sortKey, sortDirection, onSort, h
 }
 
 function MobileItem({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowContext }) {
+  const { maskIfHidden } = useAmountHiddenPreference()
   const { labelOf } = row
   return (
     <li className="px-4 py-4">
@@ -187,7 +190,7 @@ function MobileItem({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowC
               {snapshot.memo && <span className="ml-1.5 font-normal text-muted-foreground">{snapshot.memo}</span>}
             </p>
             <span className={cn('shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums', isLiability(snapshot) && 'text-destructive')}>
-              {fmtKrw(snapshot.amount)}
+              {maskIfHidden(fmtKrw(snapshot.amount))}
             </span>
           </div>
           {/* 계좌명·기관은 길어 작업 버튼과 같은 줄에 두면 거의 항상 잘린다 — 버튼 없는 별도 줄로 분리한다. */}

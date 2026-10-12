@@ -1,15 +1,18 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { SlidersHorizontal } from 'lucide-react'
+import { Eye, EyeOff, SlidersHorizontal } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { PageHeader } from '@widgets/page-header'
 import { SectionTabBar } from '@shared/ui/SectionTabBar'
+import { IconButton } from '@shared/ui/IconButton'
 import { cn, isSectionTabActive } from '@shared/lib/utils'
 import { budgetListHref, registerWindowUpperBound } from '@entities/finance'
 import type { FlowType } from '@entities/finance'
 import { todayKst } from '@shared/lib/format'
+import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { NewAssetButton } from '@features/asset/save-asset'
 import { NewTransactionButton } from '@features/finance/save-transaction'
 
@@ -42,6 +45,15 @@ export function FinanceHeader() {
   const activeHref = TAB_OPTIONS.find(({ href }) => isSectionTabActive(pathname, href, '/finance'))?.href ?? '/finance'
   const flowType = FLOW_TYPE_BY_HREF[activeHref]
   const registerWindowTo = registerWindowUpperBound(todayKst())
+  const { hidden, revealed, setAmountRevealed } = useAmountHiddenPreference()
+  // 일시 공개는 가계부를 떠나면 끝낸다 — 모듈 스토어라 언마운트 시 직접 되돌리지 않으면 SPA 세션 내내 유지된다
+  useEffect(() => () => setAmountRevealed(false), [setAmountRevealed])
+  // 금액 감추기를 켠 경우에만, 금액이 있는 자산·수입·소비·저축 탭에서 이 화면의 금액을 한꺼번에 잠깐 공개한다
+  const revealToggle = hidden ? (
+    <IconButton aria-label={revealed ? '금액 숨기기' : '금액 보기'} onClick={() => setAmountRevealed(!revealed)}>
+      {revealed ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+    </IconButton>
+  ) : null
 
   return (
     <>
@@ -50,9 +62,13 @@ export function FinanceHeader() {
         title={TITLE_BY_HREF[activeHref]}
         actions={
           activeHref === '/finance' ? (
-            <NewAssetButton />
+            <div className="flex items-center gap-2">
+              {revealToggle}
+              <NewAssetButton />
+            </div>
           ) : flowType ? (
             <div className="flex items-center gap-2">
+              {revealToggle}
               <Link href={budgetListHref(flowType)} className={cn(buttonVariants({ variant: 'brand-soft', size: 'sm' }), 'gap-1.5')}>
                 <SlidersHorizontal className="size-3.5" />
                 예산 관리
