@@ -73,15 +73,22 @@ export default function FinanceTrendInner({ type, transactions, range, categoryT
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis dataKey="period" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} minTickGap={24} />
                 <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={44} tickFormatter={fmtKrwAxisTick} domain={['auto', 'auto']} />
+                {/* hover 가독성 — AssetTrendInner와 동일한 가이드선·강조 점·툴팁 스타일. 카테고리별 보기에선
+                    항목 색으로 계열을 구분하므로 itemStyle에 color를 고정하지 않는다. */}
                 <Tooltip
                   formatter={(value, name) => [fmtKrw(Number(value)), name]}
+                  cursor={{ stroke: 'var(--muted-foreground)', strokeWidth: 1, strokeDasharray: '4 4' }}
                   contentStyle={{
-                    fontSize: 12,
+                    fontSize: 14,
                     backgroundColor: 'var(--card)',
                     border: '1px solid var(--border)',
                     color: 'var(--foreground)',
-                    borderRadius: 6,
+                    borderRadius: 8,
+                    padding: '8px 12px',
+                    boxShadow: '0 4px 12px rgb(0 0 0 / 0.12)',
                   }}
+                  labelStyle={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 2 }}
+                  itemStyle={{ fontWeight: 600 }}
                 />
                 {byCategory && <Legend wrapperStyle={{ fontSize: 11 }} />}
                 <Line
@@ -91,6 +98,7 @@ export default function FinanceTrendInner({ type, transactions, range, categoryT
                   stroke="var(--chart-1)"
                   strokeWidth={2.5}
                   dot={false}
+                  activeDot={{ r: 6, stroke: 'var(--card)', strokeWidth: 2, fill: 'var(--chart-1)' }}
                   animationDuration={500}
                   animationEasing="ease-out"
                 />
@@ -103,6 +111,7 @@ export default function FinanceTrendInner({ type, transactions, range, categoryT
                     stroke={flowCategoryColor(orderedRootIds, rootId)}
                     strokeWidth={1.5}
                     dot={false}
+                    activeDot={{ r: 4, stroke: 'var(--card)', strokeWidth: 2, fill: flowCategoryColor(orderedRootIds, rootId) }}
                     animationDuration={500}
                     animationEasing="ease-out"
                   />
