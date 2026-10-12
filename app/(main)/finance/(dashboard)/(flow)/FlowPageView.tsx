@@ -35,7 +35,7 @@ export function FlowPageView({ type }: { type: FlowCategoryType }) {
 
   function handleCategorySelect(categoryId: string) {
     setCategoryPath(getCategoryPath(categoryTree, categoryId).map((c) => c.id))
-    recordListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    recordListRef.current?.scrollIntoView({ block: 'start' })
   }
 
   return (

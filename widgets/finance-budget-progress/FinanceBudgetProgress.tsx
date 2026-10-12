@@ -45,7 +45,7 @@ function BreakdownBar({ label, actual, allocated, remaining, percent, color, isG
   const isOver = remaining < 0
   return (
     <span className="flex items-center gap-3">
-      <span className={cn('w-24 shrink-0 truncate text-sm', isGroup ? 'font-medium text-foreground' : 'text-muted-foreground')}>{label}</span>
+      <span className={cn('w-16 shrink-0 truncate text-sm sm:w-24', isGroup ? 'font-medium text-foreground' : 'text-muted-foreground')}>{label}</span>
       <span className="block h-2 flex-1 overflow-hidden rounded-full bg-muted">
         <span
           className={cn('block h-full rounded-full transition-[width] duration-500 ease-out', isGroup && 'bg-muted-foreground/40')}
