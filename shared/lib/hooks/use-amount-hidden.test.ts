@@ -33,6 +33,18 @@ describe('useAmountHiddenPreference', () => {
     expect(window.localStorage.getItem('kista-amount-hidden')).toBe('1')
   })
 
+  it('다른 탭에서 설정을 바꾸면 storage 이벤트로 즉시 반영한다', async () => {
+    const useAmountHiddenPreference = await loadHook()
+    const { result } = renderHook(() => useAmountHiddenPreference())
+    expect(result.current.masked).toBe(false)
+
+    act(() => {
+      window.localStorage.setItem('kista-amount-hidden', '1')
+      window.dispatchEvent(new StorageEvent('storage', { key: 'kista-amount-hidden', newValue: '1' }))
+    })
+    expect(result.current.masked).toBe(true)
+  })
+
   it('설정이 꺼져 있으면 그대로 표시한다', async () => {
     const useAmountHiddenPreference = await loadHook()
     const { result } = renderHook(() => useAmountHiddenPreference())

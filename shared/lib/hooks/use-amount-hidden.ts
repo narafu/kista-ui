@@ -18,6 +18,7 @@ const SERVER_STATE: AmountHiddenState = { hidden: null, revealed: false }
 // 여러 위젯과 상태를 공유해야 해서 모듈 스토어 + useSyncExternalStore로 둔다.
 let state: AmountHiddenState | null = null
 const listeners = new Set<() => void>()
+let storageListening = false
 
 function getState(): AmountHiddenState {
   if (state) return state
@@ -27,12 +28,26 @@ function getState(): AmountHiddenState {
   } catch {
     // localStorage 접근 불가(프라이빗 모드 등) — 기본값(표시)으로 동작
   }
+  if (!storageListening) {
+    window.addEventListener('storage', handleStorage)
+    storageListening = true
+  }
   state = { hidden, revealed: false }
   return state
 }
 
 function setState(next: AmountHiddenState) {
   state = next
+  listeners.forEach((listener) => listener())
+}
+
+// 다른 브라우저 탭에서 설정을 바꾸면 storage 이벤트가 온다(같은 탭에선 발생하지 않음) — 캐시를 버리고 다시 읽는다.
+// key가 null이면 localStorage.clear()라 함께 처리한다. 구독자가 없는 동안(가계부 밖)에도 캐시가 낡지 않도록
+// 리스너는 모듈 수명 동안 한 번만 걸고 떼지 않는다.
+function handleStorage(event: StorageEvent) {
+  // 값이 실제로 바뀐 경우만 — 같은 값 재기록에 이 탭의 일시 공개(revealed)가 풀리지 않게 한다
+  if ((event.key !== STORAGE_KEY && event.key !== null) || event.newValue === event.oldValue) return
+  state = null
   listeners.forEach((listener) => listener())
 }
 
