@@ -4,6 +4,7 @@ export type {
   EquityPoint,
   EquityCurve,
   CyclePerformance,
+  CycleStatusFilter,
   BenchmarkAssetType,
   EtfBenchmarkSymbol,
   HousingBenchmarkParams,

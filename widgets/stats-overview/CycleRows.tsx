@@ -144,12 +144,9 @@ interface BodyProps extends Props {
   isLoading: boolean
   isError: boolean
   filtered: boolean
-  hasNextPage: boolean
-  isFetchingNextPage: boolean
-  fetchNextPage: () => unknown
 }
 
-export function CycleListBody({ isLoading, isError, filtered, hasNextPage, isFetchingNextPage, fetchNextPage, ...listProps }: BodyProps) {
+export function CycleListBody({ isLoading, isError, filtered, ...listProps }: BodyProps) {
   if (isLoading) return <LoadingRow />
   if (isError) return <SectionError message="사이클 성과를 불러오지 못했습니다" />
   if (listProps.cycles.length === 0) {
@@ -159,13 +156,6 @@ export function CycleListBody({ isLoading, isError, filtered, hasNextPage, isFet
     <div>
       <CycleTable {...listProps} />
       <CycleCardList {...listProps} />
-      {(hasNextPage || isFetchingNextPage) && (
-        <div className="flex justify-center py-4 border-t">
-          <button type="button" onClick={() => fetchNextPage()} disabled={isFetchingNextPage} className="px-4 py-2 text-sm font-medium text-rose-600 hover:text-rose-700 disabled:opacity-50">
-            {isFetchingNextPage ? '불러오는 중…' : '더 보기'}
-          </button>
-        </div>
-      )}
     </div>
   )
 }

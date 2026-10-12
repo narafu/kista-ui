@@ -80,8 +80,8 @@ describe('StatsOverview', () => {
             durationDays: 9,
             closed: false,
           }],
-          nextCursor: null,
-          hasMore: false,
+          page: 0,
+          totalElements: 1, totalPages: 1,
         })
       }
       return Promise.reject(new Error(`unexpected url: ${url}`))
@@ -162,7 +162,7 @@ describe('StatsOverview', () => {
         undefined,
       )
       expect(fetchEitherMock).toHaveBeenCalledWith(
-        '/api/stats/cycles?type=INFINITE',
+        '/api/stats/cycles?type=INFINITE&status=ACTIVE&page=0&size=20',
         { method: 'GET' },
         undefined,
       )
@@ -188,7 +188,7 @@ describe('StatsOverview', () => {
     fetchEitherMock.mockImplementation((url: string) => {
       if (url.startsWith('/api/stats/summary')) return Promise.reject(new Error('summary failed'))
       if (url.startsWith('/api/stats/equity-curve')) return Promise.resolve({ points: [] })
-      if (url.startsWith('/api/stats/cycles')) return Promise.resolve({ items: [], nextCursor: null, hasMore: false })
+      if (url.startsWith('/api/stats/cycles')) return Promise.resolve({ items: [], page: 0, totalElements: 0, totalPages: 0 })
       return Promise.reject(new Error(`unexpected url: ${url}`))
     })
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import {
   getEtfPriceSeries,
   getHousingBenchmarkComparison,
@@ -12,7 +12,6 @@ import {
 import { equityCurveQueryOptions, statsSummaryQueryOptions } from '../model/queryOptions'
 import { statsKeys } from '../model/queryKeys'
 import type {
-  CyclePerformance,
   CyclePerformancePage,
   StatsCyclesFilters,
   EtfPriceSeries,
@@ -102,18 +101,13 @@ export function useHousingBenchmarkRegionsQuery(enabled: boolean) {
   })
 }
 
-export function useStatsCyclesQuery(filters: StatsCyclesFilters = {}) {
-  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useInfiniteQuery<CyclePerformancePage>({
-      queryKey: statsKeys.cycles(filters),
-      queryFn: ({ pageParam }) =>
-        getStatsCycles({ ...filters, cursor: pageParam as string | undefined }),
-      initialPageParam: undefined,
-      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-      placeholderData: (prev) => prev,
-      staleTime: 60_000,
-    })
+const STATS_CYCLES_PAGE_SIZE = 20
 
-  const cycles: CyclePerformance[] = data?.pages.flatMap((p) => p.items) ?? []
-  return { cycles, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage }
+export function useStatsCyclesQuery(filters: StatsCyclesFilters = {}) {
+  return useQuery<CyclePerformancePage>({
+    queryKey: statsKeys.cycles(filters),
+    queryFn: () => getStatsCycles({ ...filters, size: STATS_CYCLES_PAGE_SIZE }),
+    placeholderData: (prev) => prev,
+    staleTime: 60_000,
+  })
 }

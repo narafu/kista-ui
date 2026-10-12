@@ -5,8 +5,8 @@ export const statsKeys = {
   summary: () => [...statsKeys.all, 'summary'] as const,
   equityCurve: (from?: string, to?: string, type = 'ALL') =>
     [...statsKeys.all, 'equity-curve', from ?? null, to ?? null, type] as const,
-  cycles: ({ type, accountId, ticker }: StatsCyclesFilters = {}) =>
-    [...statsKeys.all, 'cycles', type ?? 'ALL', accountId ?? null, ticker ?? null] as const,
+  cycles: ({ type, accountId, ticker, status, page = 0 }: StatsCyclesFilters = {}) =>
+    [...statsKeys.all, 'cycles', type ?? 'ALL', accountId ?? null, ticker ?? null, status ?? 'ALL', page] as const,
   housingComparison: (params: HousingBenchmarkParams) => [
     ...statsKeys.all,
     'housing-comparison',

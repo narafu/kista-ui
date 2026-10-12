@@ -60,14 +60,14 @@ describe('stats api', () => {
     expect(fetchEitherMock).toHaveBeenCalledWith('/api/stats/equity-curve', { method: 'GET' }, undefined)
   })
 
-  it('getStatsCycles builds type/cursor/size query string', async () => {
+  it('getStatsCycles builds type/status/page/size query string', async () => {
     const { getStatsCycles } = await import('./index')
-    fetchEitherMock.mockResolvedValueOnce({ items: [], nextCursor: null, hasMore: false })
+    fetchEitherMock.mockResolvedValueOnce({ items: [], page: 0, totalElements: 0, totalPages: 0 })
 
-    await getStatsCycles({ type: 'INFINITE', cursor: '2026-02-01T00:00:00Z', size: 20 })
+    await getStatsCycles({ type: 'INFINITE', status: 'ACTIVE', page: 1, size: 20 })
 
     expect(fetchEitherMock).toHaveBeenCalledWith(
-      '/api/stats/cycles?type=INFINITE&cursor=2026-02-01T00%3A00%3A00Z&size=20',
+      '/api/stats/cycles?type=INFINITE&status=ACTIVE&page=1&size=20',
       { method: 'GET' },
       undefined
     )
@@ -75,7 +75,7 @@ describe('stats api', () => {
 
   it('getStatsCycles forwards accountId/ticker filters', async () => {
     const { getStatsCycles } = await import('./index')
-    fetchEitherMock.mockResolvedValueOnce({ items: [], nextCursor: null, hasMore: false })
+    fetchEitherMock.mockResolvedValueOnce({ items: [], page: 0, totalElements: 0, totalPages: 0 })
 
     await getStatsCycles({ type: 'VR', accountId: 'account-1', ticker: 'SOXL' })
 
@@ -84,7 +84,7 @@ describe('stats api', () => {
 
   it('getStatsCycles omits query string when no params given', async () => {
     const { getStatsCycles } = await import('./index')
-    fetchEitherMock.mockResolvedValueOnce({ items: [], nextCursor: null, hasMore: false })
+    fetchEitherMock.mockResolvedValueOnce({ items: [], page: 0, totalElements: 0, totalPages: 0 })
 
     await getStatsCycles({})
 

@@ -3,14 +3,12 @@ import { describe, expect, it, vi } from 'vitest'
 import { useEquityCurveQuery, useStatsCyclesQuery, useStatsSummaryQuery } from './useStatsQueries'
 import { statsKeys } from '../model/queryKeys'
 
-const { useInfiniteQueryMock, useQueryMock, getStatsCyclesMock } = vi.hoisted(() => ({
-  useInfiniteQueryMock: vi.fn(),
+const { useQueryMock, getStatsCyclesMock } = vi.hoisted(() => ({
   useQueryMock: vi.fn(),
   getStatsCyclesMock: vi.fn(),
 }))
 
 vi.mock('@tanstack/react-query', () => ({
-  useInfiniteQuery: useInfiniteQueryMock,
   useQuery: useQueryMock,
   queryOptions: (options: unknown) => options,
 }))
@@ -23,16 +21,6 @@ vi.mock('../api', () => ({
   getStatsCycles: getStatsCyclesMock,
   getStatsSummary: vi.fn(),
 }))
-
-const emptyInfiniteResult = {
-  data: undefined,
-  isLoading: false,
-  isError: false,
-  error: null,
-  fetchNextPage: vi.fn(),
-  hasNextPage: false,
-  isFetchingNextPage: false,
-}
 
 describe('stats query freshness and error handling', () => {
   it('keeps summary and equity-curve data fresh for one minute', () => {
@@ -56,15 +44,16 @@ describe('stats query freshness and error handling', () => {
   it('keeps cycle performance fresh for one minute and propagates request failures', async () => {
     const failure = new Error('stats cycles failed')
     getStatsCyclesMock.mockRejectedValueOnce(failure)
-    useInfiniteQueryMock.mockReturnValue(emptyInfiniteResult)
+    useQueryMock.mockReturnValue({ data: undefined })
 
-    renderHook(() => useStatsCyclesQuery({ type: 'VR' }))
+    renderHook(() => useStatsCyclesQuery({ type: 'VR', status: 'ACTIVE', page: 2 }))
 
-    const options = useInfiniteQueryMock.mock.calls.at(-1)?.[0]
+    const options = useQueryMock.mock.calls.at(-1)?.[0]
     expect(options).toEqual(expect.objectContaining({
-      queryKey: statsKeys.cycles({ type: 'VR' }),
+      queryKey: statsKeys.cycles({ type: 'VR', status: 'ACTIVE', page: 2 }),
       staleTime: 60_000,
     }))
-    await expect(options.queryFn({ pageParam: undefined })).rejects.toThrow(failure)
+    await expect(options.queryFn()).rejects.toThrow(failure)
+    expect(getStatsCyclesMock).toHaveBeenCalledWith({ type: 'VR', status: 'ACTIVE', page: 2, size: 20 })
   })
 })

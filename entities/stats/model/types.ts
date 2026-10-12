@@ -49,16 +49,21 @@ export interface CyclePerformance {
 }
 
 // GET /api/stats/cycles 필터 — 모두 AND 조합, ticker는 서버 StrategyTicker enum 값
+export type CycleStatusFilter = 'ACTIVE' | 'CLOSED'
+
 export type StatsCyclesFilters = {
   type?: string
   accountId?: string
   ticker?: string
+  status?: CycleStatusFilter
+  page?: number // 0-based
 }
 
 export interface CyclePerformancePage {
   items: CyclePerformance[]
-  nextCursor?: string | null
-  hasMore: boolean
+  page: number
+  totalElements: number
+  totalPages: number
 }
 
 export type HousingBenchmarkParams =
