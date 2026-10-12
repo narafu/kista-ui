@@ -107,15 +107,21 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis dataKey="month" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} minTickGap={24} />
               <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={44} tickFormatter={fmtKrwAxisTick} domain={['auto', 'auto']} />
+              {/* hover 가독성 — 세로 가이드선 + 강조 점 + 큰 금액 글씨로 어느 달의 값인지 바로 읽히게 한다 */}
               <Tooltip
                 formatter={(value) => [fmtKrw(Number(value)), '금액']}
+                cursor={{ stroke: 'var(--muted-foreground)', strokeWidth: 1, strokeDasharray: '4 4' }}
                 contentStyle={{
-                  fontSize: 12,
+                  fontSize: 14,
                   backgroundColor: 'var(--card)',
                   border: '1px solid var(--border)',
                   color: 'var(--foreground)',
-                  borderRadius: 6,
+                  borderRadius: 8,
+                  padding: '8px 12px',
+                  boxShadow: '0 4px 12px rgb(0 0 0 / 0.12)',
                 }}
+                labelStyle={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 2 }}
+                itemStyle={{ fontWeight: 600, color: 'var(--foreground)' }}
               />
               <Line
                 type="monotone"
@@ -123,6 +129,7 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
                 stroke="var(--chart-1)"
                 strokeWidth={2.5}
                 dot={false}
+                activeDot={{ r: 6, stroke: 'var(--card)', strokeWidth: 2, fill: 'var(--chart-1)' }}
                 animationDuration={500}
                 animationEasing="ease-out"
               />
