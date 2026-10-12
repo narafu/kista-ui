@@ -6,6 +6,11 @@ import { StatsOverview } from './StatsOverview'
 import { statsKeys } from '@entities/stats'
 import type { EquityCurve, StatsSummary } from '@entities/stats'
 
+vi.mock('next/navigation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/navigation')>()),
+  useRouter: () => ({ push: vi.fn() }),
+}))
+
 const fetchEitherMock = vi.fn()
 
 vi.mock('@shared/lib/api-client', () => ({
@@ -162,7 +167,7 @@ describe('StatsOverview', () => {
         undefined,
       )
       expect(fetchEitherMock).toHaveBeenCalledWith(
-        '/api/stats/cycles?type=INFINITE&status=ACTIVE&page=0&size=20',
+        '/api/stats/cycles?type=INFINITE&status=ACTIVE&page=0&size=10',
         { method: 'GET' },
         undefined,
       )

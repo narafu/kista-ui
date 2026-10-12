@@ -3,6 +3,11 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { CyclePerformanceList } from './CyclePerformanceList'
 
+vi.mock('next/navigation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/navigation')>()),
+  useRouter: () => ({ push: vi.fn() }),
+}))
+
 const useStatsCyclesQueryMock = vi.fn()
 const useAccountsQueryMock = vi.fn()
 const useAllStrategiesQueryMock = vi.fn(() => ({ data: [] as { ticker: string }[] }))
@@ -31,7 +36,7 @@ describe('CyclePerformanceList', () => {
     render(<CyclePerformanceList />)
 
     expect(screen.getByText('사이클 성과를 불러오지 못했습니다')).toBeInTheDocument()
-    expect(useStatsCyclesQueryMock).toHaveBeenCalledWith({ type: undefined, accountId: undefined, ticker: undefined, status: 'ACTIVE', page: 0 })
+    expect(useStatsCyclesQueryMock).toHaveBeenCalledWith({ type: undefined, accountId: undefined, ticker: undefined, status: 'ACTIVE', page: 0, size: 10 })
     expect(screen.queryByText('사이클 내역이 없습니다.')).not.toBeInTheDocument()
   })
 
@@ -85,13 +90,13 @@ describe('CyclePerformanceList', () => {
     await user.click(screen.getByRole('combobox', { name: '종목' }))
     await user.click(await screen.findByRole('option', { name: 'SOXL' }))
 
-    expect(useStatsCyclesQueryMock).toHaveBeenLastCalledWith({ type: 'VR', accountId: undefined, ticker: 'SOXL', status: 'ACTIVE', page: 0 })
+    expect(useStatsCyclesQueryMock).toHaveBeenLastCalledWith({ type: 'VR', accountId: undefined, ticker: 'SOXL', status: 'ACTIVE', page: 0, size: 10 })
     expect(screen.getByText('조건에 맞는 사이클이 없습니다.')).toBeInTheDocument()
 
     useAllStrategiesQueryMock.mockReturnValue({ data: [{ ticker: 'TQQQ' }] })
     rerender(<CyclePerformanceList typeFilter="VR" />)
 
-    expect(useStatsCyclesQueryMock).toHaveBeenLastCalledWith({ type: 'VR', accountId: undefined, ticker: undefined, status: 'ACTIVE', page: 0 })
+    expect(useStatsCyclesQueryMock).toHaveBeenLastCalledWith({ type: 'VR', accountId: undefined, ticker: undefined, status: 'ACTIVE', page: 0, size: 10 })
   })
 
   it('상태 기본값은 진행 중이고, 전체 상태를 고르면 status 없이 조회한다', async () => {
@@ -110,7 +115,7 @@ describe('CyclePerformanceList', () => {
     await user.click(screen.getByRole('combobox', { name: '상태' }))
     await user.click(await screen.findByRole('option', { name: '전체 상태' }))
 
-    expect(useStatsCyclesQueryMock).toHaveBeenLastCalledWith({ type: undefined, accountId: undefined, ticker: undefined, status: undefined, page: 0 })
+    expect(useStatsCyclesQueryMock).toHaveBeenLastCalledWith({ type: undefined, accountId: undefined, ticker: undefined, status: undefined, page: 0, size: 10 })
     expect(screen.getByText('사이클 내역이 없습니다.')).toBeInTheDocument()
   })
 
@@ -131,6 +136,11 @@ describe('CyclePerformanceList', () => {
 
     await user.click(screen.getByRole('combobox', { name: '상태' }))
     await user.click(await screen.findByRole('option', { name: '종료' }))
-    expect(useStatsCyclesQueryMock).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'CLOSED', page: 0 }))
+    expect(useStatsCyclesQueryMock).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'CLOSED', page: 0, size: 10 }))
+
+    await user.click(screen.getByRole('button', { name: '2' }))
+    await user.click(screen.getByRole('combobox', { name: '페이지당 표시 개수' }))
+    await user.click(await screen.findByRole('option', { name: '30개' }))
+    expect(useStatsCyclesQueryMock).toHaveBeenLastCalledWith(expect.objectContaining({ page: 0, size: 30 }))
   })
 })

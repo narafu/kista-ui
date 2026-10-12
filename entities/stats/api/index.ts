@@ -26,7 +26,7 @@ export async function getEquityCurve(
 }
 
 export async function getStatsCycles(
-  params: StatsCyclesFilters & { size?: number },
+  params: StatsCyclesFilters,
   token?: string
 ): Promise<CyclePerformancePage> {
   const qs = buildQueryString(params)

@@ -101,12 +101,10 @@ export function useHousingBenchmarkRegionsQuery(enabled: boolean) {
   })
 }
 
-const STATS_CYCLES_PAGE_SIZE = 20
-
 export function useStatsCyclesQuery(filters: StatsCyclesFilters = {}) {
   return useQuery<CyclePerformancePage>({
     queryKey: statsKeys.cycles(filters),
-    queryFn: () => getStatsCycles({ ...filters, size: STATS_CYCLES_PAGE_SIZE }),
+    queryFn: () => getStatsCycles(filters),
     placeholderData: (prev) => prev,
     staleTime: 60_000,
   })

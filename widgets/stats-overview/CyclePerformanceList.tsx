@@ -6,6 +6,7 @@ import { useAccountsQuery } from '@entities/account'
 import { useAllStrategiesQuery } from '@entities/strategy'
 import { useMemo, useState } from 'react'
 import { PaginationBar } from '@shared/ui/PaginationBar'
+import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { CycleListBody, FilterSelect } from './CycleRows'
 
 const ALL = 'ALL'
@@ -25,6 +26,7 @@ export function CyclePerformanceList({ typeFilter }: Props) {
   const [selectedTicker, setTicker] = useState(ALL)
   const [status, setStatus] = useState('ACTIVE')
   const [page, setPage] = useState(1)
+  const [size, setSize] = useState('10')
   // 전략 타입 탭(typeFilter)이 바뀌어도 1페이지부터 다시 본다 — 부모 prop이라 렌더 중 이전 값과 비교해 리셋
   const [prevTypeFilter, setPrevTypeFilter] = useState(typeFilter)
   if (prevTypeFilter !== typeFilter) {
@@ -60,6 +62,7 @@ export function CyclePerformanceList({ typeFilter }: Props) {
     ticker: ticker === ALL ? undefined : ticker,
     status: status === ALL ? undefined : (status as CycleStatusFilter),
     page: page - 1,
+    size: Number(size),
   })
 
   return (
@@ -70,6 +73,7 @@ export function CyclePerformanceList({ typeFilter }: Props) {
           <FilterSelect items={STATUS_OPTIONS} value={status} onChange={withPageReset(setStatus)} ariaLabel="상태" triggerClassName="w-28" />
           <FilterSelect items={accountOptions} value={accountId} onChange={withPageReset(setAccountId)} ariaLabel="계좌" triggerClassName="w-32" />
           <FilterSelect items={tickerOptions} value={ticker} onChange={withPageReset(setTicker)} ariaLabel="종목" triggerClassName="w-28" />
+          <PageSizeSelector value={size} onChange={withPageReset(setSize)} />
         </div>
       </CardHeader>
       <CardContent className="p-0">

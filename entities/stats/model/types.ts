@@ -57,6 +57,7 @@ export type StatsCyclesFilters = {
   ticker?: string
   status?: CycleStatusFilter
   page?: number // 0-based
+  size?: number
 }
 
 export interface CyclePerformancePage {

@@ -46,14 +46,14 @@ describe('stats query freshness and error handling', () => {
     getStatsCyclesMock.mockRejectedValueOnce(failure)
     useQueryMock.mockReturnValue({ data: undefined })
 
-    renderHook(() => useStatsCyclesQuery({ type: 'VR', status: 'ACTIVE', page: 2 }))
+    renderHook(() => useStatsCyclesQuery({ type: 'VR', status: 'ACTIVE', page: 2, size: 10 }))
 
     const options = useQueryMock.mock.calls.at(-1)?.[0]
     expect(options).toEqual(expect.objectContaining({
-      queryKey: statsKeys.cycles({ type: 'VR', status: 'ACTIVE', page: 2 }),
+      queryKey: statsKeys.cycles({ type: 'VR', status: 'ACTIVE', page: 2, size: 10 }),
       staleTime: 60_000,
     }))
     await expect(options.queryFn()).rejects.toThrow(failure)
-    expect(getStatsCyclesMock).toHaveBeenCalledWith({ type: 'VR', status: 'ACTIVE', page: 2, size: 20 })
+    expect(getStatsCyclesMock).toHaveBeenCalledWith({ type: 'VR', status: 'ACTIVE', page: 2, size: 10 })
   })
 })
