@@ -4,6 +4,7 @@ import type { Account } from '@entities/account'
 import type { EtfBenchmarkSymbol, HousingBenchmarkRegion } from '@entities/stats'
 import type { Strategy } from '@entities/strategy'
 import { cn } from '@shared/lib/utils'
+import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import type { Period } from './model/benchmarkPeriods'
 import {
   ASSET_SELECT_CLASS,
@@ -15,6 +16,11 @@ import {
 import type { EtfBenchmarkContent } from './housingBenchmarkContent'
 
 export { ASSET_SELECT_CLASS }
+
+const ASSET_OPTIONS: { value: 'ETF' | 'HOUSING'; label: string }[] = [
+  { value: 'ETF', label: 'ETF' },
+  { value: 'HOUSING', label: '아파트' },
+]
 
 export function ToggleButton({
   active,
@@ -36,29 +42,6 @@ export function ToggleButton({
           ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]'
           : 'text-muted-foreground hover:bg-accent hover:text-foreground',
       )}
-    >
-      {children}
-    </button>
-  )
-}
-
-export function AssetTabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={active
-        ? 'min-h-10 rounded bg-card px-4 text-sm font-medium text-foreground shadow-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50'
-        : 'min-h-10 rounded px-4 text-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50'}
     >
       {children}
     </button>
@@ -128,18 +111,14 @@ export function BenchmarkFilterBar({
 }: BenchmarkFilterBarProps) {
   return (
     <>
-      <div
-        role="group"
+      <SegmentedToggle
         aria-label="벤치마크 자산 유형"
-        className="grid w-full grid-cols-2 rounded-md border border-border bg-muted/30 p-0.5 sm:w-[240px]"
-      >
-        <AssetTabButton active={activeAsset === 'ETF'} onClick={() => setActiveAsset('ETF')}>
-          ETF
-        </AssetTabButton>
-        <AssetTabButton active={activeAsset === 'HOUSING'} onClick={() => setActiveAsset('HOUSING')}>
-          아파트
-        </AssetTabButton>
-      </div>
+        options={ASSET_OPTIONS}
+        value={activeAsset}
+        onChange={setActiveAsset}
+        className="grid w-full grid-cols-2 sm:w-[240px]"
+        itemClassName="min-h-10 px-4 text-sm"
+      />
 
       <section aria-label="벤치마크 비교 필터" className="border-b border-border pb-4">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 xl:items-end">
