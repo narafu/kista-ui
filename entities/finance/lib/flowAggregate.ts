@@ -198,11 +198,6 @@ export interface BudgetTreeNode {
   children: BudgetTreeNode[]
 }
 
-function shiftDepth(node: BudgetTreeNode, delta: number): BudgetTreeNode {
-  if (delta === 0) return node
-  return { ...node, depth: node.depth - delta, children: node.children.map((c) => shiftDepth(c, delta)) }
-}
-
 // calcBudgetProgress의 flat 목록(예산 1건 = 항목 1개)을 카테고리 계층 트리로 재구성한다 —
 // 수입/소비/저축 예산 대비 위젯이 중간 카테고리 소계와 함께 재귀 렌더한다.
 // categoryTree는 calcBudgetProgress와 동일하게 sortCategoryTree로 미리 정렬해서 넘긴다(표시 순번).
@@ -210,7 +205,8 @@ function shiftDepth(node: BudgetTreeNode, delta: number): BudgetTreeNode {
 // - 자체 예산이 있는 노드: 그 BudgetProgress 숫자를 그대로 쓰고(실적은 이미 서브트리 전체 집계) 하위를 중첩
 // - 자체 예산이 없지만 하위에 예산이 있는 노드: 직속 하위들의 표시값 합을 소계로 갖는 그룹 노드
 // - 자체 예산도 없고 하위에도 예산이 없는 가지: 렌더하지 않음(가지치기)
-// - 자체 예산 없고 하위가 1개뿐인 그룹 노드: 소계가 그 하위와 동일해 중복이므로 노드를 생략하고 하위를 끌어올림
+// - 하위가 1개뿐인 그룹 노드도 생략하지 않는다 — 소계가 하위와 같아 숫자는 중복되지만, 행 클릭으로
+//   상위 카테고리 전체(예산 없는 형제 포함)를 거래내역에서 필터할 진입점이 필요하다
 export function buildBudgetProgressTree(progress: BudgetProgress[], categoryTree: FinanceCategory[]): BudgetTreeNode[] {
   const byCategory = new Map(progress.map((entry) => [entry.categoryId, entry]))
 
@@ -236,9 +232,6 @@ export function buildBudgetProgressTree(progress: BudgetProgress[], categoryTree
         children,
       }
     }
-
-    // build(x, d)는 항상 depth===d인 노드를 돌려주므로 유일 하위는 depth+1 → delta는 항상 1.
-    if (children.length === 1) return shiftDepth(children[0], 1)
 
     const allocated = children.reduce((sum, child) => sum + child.allocated, 0)
     const actual = children.reduce((sum, child) => sum + child.actual, 0)

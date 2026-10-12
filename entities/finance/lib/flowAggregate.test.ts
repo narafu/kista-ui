@@ -186,16 +186,19 @@ describe('buildBudgetProgressTree', () => {
 
     const roots = buildBudgetProgressTree(progress, tree)
 
-    expect(roots.map((n) => n.categoryId)).toEqual(['grocery'])
+    expect(roots.map((n) => n.categoryId)).toEqual(['food'])
+    expect(roots[0].children.map((n) => n.categoryId)).toEqual(['grocery'])
   })
 
-  it('자체 예산 없고 하위가 1개뿐인 그룹 노드는 생략하고 하위를 그 자리로 올린다', () => {
+  it('자체 예산 없고 하위가 1개뿐인 그룹 노드도 생략하지 않고 그룹으로 남긴다', () => {
     const tree = [cat('shop', '쇼핑', [cat('clothes', '의류', [cat('top', '상의')])])]
     const progress = [bp('top', '상의', 100, 50)]
 
     const roots = buildBudgetProgressTree(progress, tree)
 
     expect(roots).toHaveLength(1)
-    expect(roots[0]).toMatchObject({ categoryId: 'top', depth: 0, isGroup: false })
+    expect(roots[0]).toMatchObject({ categoryId: 'shop', depth: 0, isGroup: true, allocated: 100, actual: 50 })
+    expect(roots[0].children[0]).toMatchObject({ categoryId: 'clothes', depth: 1, isGroup: true })
+    expect(roots[0].children[0].children[0]).toMatchObject({ categoryId: 'top', depth: 2, isGroup: false })
   })
 })
