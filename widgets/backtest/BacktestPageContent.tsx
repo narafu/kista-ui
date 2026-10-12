@@ -11,10 +11,11 @@ export function BacktestPageContent() {
   const result = form.result
 
   return (
-    <div className="flex flex-col gap-5">
+    // PC에선 입력 폼(좌)과 결과(우)를 나란히 둬 폼이 화면 전체 너비로 늘어나지 않게 한다
+    <div className="grid gap-5 lg:grid-cols-[26rem_minmax(0,1fr)] lg:items-start">
       <BacktestForm form={form} />
-      {result && (
-        <div className="flex flex-col gap-5">
+      {result ? (
+        <div className="flex min-w-0 flex-col gap-5">
           {form.isResultStale && (
             <p role="status" className="text-sm text-muted-foreground">
               입력값이 바뀌었습니다. 아래 결과는 이전 입력 기준이며, 다시 실행하면 갱신됩니다.
@@ -33,6 +34,10 @@ export function BacktestPageContent() {
             />
           </div>
           <BacktestWarnings warnings={result.warnings} />
+        </div>
+      ) : (
+        <div className="hidden min-h-[24rem] items-center justify-center rounded-[var(--r-lg)] border border-dashed border-border text-sm text-muted-foreground lg:flex">
+          조건을 입력하고 실행하면 결과가 여기에 표시됩니다.
         </div>
       )}
     </div>
