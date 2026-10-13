@@ -59,6 +59,7 @@ describe('apiFetch', () => {
     const [url, init] = fetchMock.mock.calls[0]
     expect(url).toBe('https://api.test/foo')
     expect((init.headers as Record<string, string>).Authorization).toBe('Bearer tok123')
+    expect(init.cache).toBe('no-store')
   })
 
   it('비정상 응답이면 ApiError(status, body)를 던진다', async () => {

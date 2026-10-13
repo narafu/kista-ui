@@ -118,7 +118,9 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const url = `${resolveApiBaseUrl(path)}${path}`
 
+  // 인증 데이터 — Next 기본값에 기대지 않고 Data Cache 미사용을 고정한다(cacheComponents 도입 시 기본값이 바뀜)
   const response = await fetch(url, {
+    cache: 'no-store',
     ...options,
     headers: {
       'Content-Type': 'application/json',

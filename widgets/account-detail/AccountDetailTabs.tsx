@@ -6,7 +6,6 @@ import { useStrategiesQuery } from '@entities/strategy'
 import { AccountSummaryCard } from './AccountSummaryCard'
 import { TradesTab } from './TradesTab'
 import type { Account } from '@entities/account'
-import type { NextOrderPreview } from '@entities/order'
 
 type Tab = 'summary' | 'strategy'
 
@@ -19,10 +18,9 @@ interface Props {
   account: Account
   usdDeposit: number
   posEvalUsd: number
-  previewsByStrategyId?: Record<string, NextOrderPreview>
 }
 
-export function AccountDetailTabs({ account, usdDeposit, posEvalUsd, previewsByStrategyId }: Props) {
+export function AccountDetailTabs({ account, usdDeposit, posEvalUsd }: Props) {
   const { data: strategies = [] } = useStrategiesQuery(account.id)
   const [activeTab, setActiveTab] = useState<Tab>('summary')
 
@@ -51,7 +49,7 @@ export function AccountDetailTabs({ account, usdDeposit, posEvalUsd, previewsByS
           </div>
         )}
         {activeTab === 'strategy' && (
-          <StrategyList accountId={account.id} strategies={strategies} previewsByStrategyId={previewsByStrategyId} />
+          <StrategyList accountId={account.id} strategies={strategies} />
         )}
       </div>
 
@@ -59,7 +57,7 @@ export function AccountDetailTabs({ account, usdDeposit, posEvalUsd, previewsByS
       <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6">
         <div className="space-y-6">
           <AccountSummaryCard account={account} usdDeposit={usdDeposit} posEvalUsd={posEvalUsd} />
-          <StrategyList accountId={account.id} strategies={strategies} previewsByStrategyId={previewsByStrategyId} />
+          <StrategyList accountId={account.id} strategies={strategies} />
         </div>
         <TradesTab accountId={account.id} />
       </div>

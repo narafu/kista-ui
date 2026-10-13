@@ -3,15 +3,13 @@ import { StrategyCard } from '@widgets/strategy-card'
 import { NewStrategyButton } from '@features/strategy/create-strategy'
 import { EmptyState } from '@shared/ui/EmptyState'
 import type { Strategy } from '@entities/strategy'
-import type { NextOrderPreview } from '@entities/order'
 
 interface Props {
   accountId: string
   strategies: Strategy[]
-  previewsByStrategyId?: Record<string, NextOrderPreview>
 }
 
-export function StrategyList({ accountId, strategies, previewsByStrategyId }: Props) {
+export function StrategyList({ accountId, strategies }: Props) {
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -26,7 +24,7 @@ export function StrategyList({ accountId, strategies, previewsByStrategyId }: Pr
         ) : (
           <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 lg:gap-3">
             {strategies.map((s) => (
-              <StrategyCard key={s.id} accountId={accountId} strategy={s} initialPreview={previewsByStrategyId?.[s.id]} />
+              <StrategyCard key={s.id} accountId={accountId} strategy={s} />
             ))}
           </div>
         )}

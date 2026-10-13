@@ -7,7 +7,6 @@ import { ICON_LINK_GHOST_CLASS } from '@shared/ui/iconButtonStyles'
 import { useAccountDetailQuery } from '@entities/account'
 import { PageHeader } from '@widgets/page-header'
 import type { Account } from '@entities/account'
-import type { NextOrderPreview } from '@entities/order'
 import { AccountDetailTabs } from './AccountDetailTabs'
 
 interface Props {
@@ -15,7 +14,6 @@ interface Props {
   initialAccount: Account
   usdDeposit: number
   posEvalUsd: number
-  previewsByStrategyId?: Record<string, NextOrderPreview>
 }
 
 export function AccountDetailContent({
@@ -23,7 +21,6 @@ export function AccountDetailContent({
   initialAccount,
   usdDeposit,
   posEvalUsd,
-  previewsByStrategyId,
 }: Props) {
   const { data } = useAccountDetailQuery(accountId)
   const account = data === undefined ? initialAccount : data
@@ -51,7 +48,6 @@ export function AccountDetailContent({
         account={account}
         usdDeposit={usdDeposit}
         posEvalUsd={posEvalUsd}
-        previewsByStrategyId={previewsByStrategyId}
       />
     </div>
   )

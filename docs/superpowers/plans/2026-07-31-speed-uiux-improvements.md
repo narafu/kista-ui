@@ -36,7 +36,7 @@
 - 구현 서브에이전트는 **직접 `git commit` 금지** — 각 태스크의 커밋 스텝은 오케스트레이터가 검수 통과 후 실행한다.
 - 포맷: 싱글 쿼트, 세미콜론 없음, import 중괄호 공백 유지. 기존 파일 포맷 일괄 변경 금지.
 - `any` 금지. FSD 단방향 의존성(`app -> widgets -> features -> entities -> shared`) 준수, entities 간 cross-import 금지.
-- 캐시 규범은 `docs/agents/cache-policy.md`가 SSOT — `initialDataUpdatedAt: 0` 금지, Server prop을 canonical `initialData`로 사용 금지.
+- 캐시 규범은 `docs/agents/shared.md`가 SSOT — `initialDataUpdatedAt: 0` 금지, Server prop을 canonical `initialData`로 사용 금지.
 - 기본 검증은 `npm run typecheck` (lint는 신뢰 불가). 각 태스크는 focused test + typecheck 통과 후 커밋.
 - 커밋 메시지 한글, author `narafu <narafu@kakao.com>`, 괄호 경로는 `git add "app/(main)/..."` 큰따옴표. `git push`는 사용자 명시 요청 시에만.
 - `.next/dev/types` 스테일 참조로 typecheck 실패 시 `.next` 삭제 후 재실행 (코드 오류 아님).
@@ -396,7 +396,7 @@ git commit -m "perf(layout): role 쿠키 재사용으로 SSR getMe 왕복 제거
 - Produces: `getMetaBundle(): Promise<MetaBundle>` — token 파라미터 제거
 - Consumes: 없음 (apiFetch 의존 제거)
 
-배경: kista-api `MetaController`는 사용자 무관 정적 메타를 permitAll + `Cache-Control: max-age=3600`으로 반환한다. 인증 시에만 no-store `apiFetch`를 타는 분기는 매 SSR마다 불필요한 왕복을 만든다. 참조 데이터는 Next.js Data Cache 허용 대상(`docs/agents/cache-policy.md`).
+배경: kista-api `MetaController`는 사용자 무관 정적 메타를 permitAll + `Cache-Control: max-age=3600`으로 반환한다. 인증 시에만 no-store `apiFetch`를 타는 분기는 매 SSR마다 불필요한 왕복을 만든다. 참조 데이터는 Next.js Data Cache 허용 대상(`docs/agents/shared.md`).
 
 - [ ] **Step 1: 호출부 전수 확인**
 
@@ -452,7 +452,7 @@ git commit -m "perf(meta): 메타 번들 조회를 1시간 Data Cache로 통일"
 - Consumes: `useQueryClient()`(`@tanstack/react-query`), `useTransition`(React 19 async transition)
 - Produces: 없음 (컴포넌트 내부 변경)
 
-배경: 현재 PTR은 `router.refresh()` 후 고정 1200ms 타이머로 스피너를 끈다. ① 스피너가 실제 갱신과 무관하고 ② `router.refresh()`는 서버 prefetch된 쿼리만 갱신해 클라이언트 전용 쿼리(증거금·포트폴리오·stats)는 그대로다. "화면 전체 재동기화"라는 목적(`docs/agents/cache-policy.md` 허용 rationale)에 맞게 `invalidateQueries()`를 병행하고 `useTransition`으로 완료를 추적한다.
+배경: 현재 PTR은 `router.refresh()` 후 고정 1200ms 타이머로 스피너를 끈다. ① 스피너가 실제 갱신과 무관하고 ② `router.refresh()`는 서버 prefetch된 쿼리만 갱신해 클라이언트 전용 쿼리(증거금·포트폴리오·stats)는 그대로다. "화면 전체 재동기화"라는 목적(`docs/agents/shared.md` 허용 rationale)에 맞게 `invalidateQueries()`를 병행하고 `useTransition`으로 완료를 추적한다.
 
 - [ ] **Step 1: 실패하는 테스트 작성**
 
@@ -947,5 +947,5 @@ git commit -m "perf(benchmark): 계좌·전략 목록 서버 prefetch로 초기 
 
 - Task 3의 role 쿠키는 proxy가 1시간 캐시한다 — role 변경 반영 지연은 proxy의 `/admin` 가드와 동일한 기존 트레이드오프이며 새 취약점이 아니다. 쿠키 미존재 시 `getMe` 폴백으로 로그인 직후 첫 요청의 정확성을 보장한다.
 - Task 7에서 `useStatsCyclesQuery`(무한 스크롤)는 이미 클라이언트 소유라 건드리지 않는다.
-- Task 5의 `invalidateQueries()` 전체 무효화는 PTR의 "명시적 전체 재동기화" 목적에 한정한다 — mutation 경로에 복사 금지 (`docs/agents/cache-policy.md`).
+- Task 5의 `invalidateQueries()` 전체 무효화는 PTR의 "명시적 전체 재동기화" 목적에 한정한다 — mutation 경로에 복사 금지 (`docs/agents/shared.md`).
 - 각 태스크는 독립 커밋으로 개별 revert 가능하다. Task 4는 Task 3 이후에만, Task 7은 Task 2 이후에만 진행한다.

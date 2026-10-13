@@ -7,7 +7,7 @@ import { isMockBroker } from '@shared/lib/api-schema'
 import { accountDetailQueryOptions } from '@entities/account'
 import { getAccountPortfolio } from '@entities/trade'
 import { strategyListByAccountQueryOptions } from '@entities/strategy'
-import { getAccountOrderPreviews } from '@entities/order'
+import { getAccountOrderPreviews, seedOrderPreviews } from '@entities/order'
 import type { PortfolioSummary } from '@entities/trade'
 import { createQueryClient } from '@shared/lib/query'
 
@@ -44,6 +44,8 @@ export default async function AccountDetailPage({ params }: Props) {
     strategiesPromise,
   ])
 
+  seedOrderPreviews(queryClient, previewsByStrategyId)
+
   const usdDeposit = portfolioRaw?.summary?.usdDeposit ?? 0
   const posEvalUsd = portfolioRaw?.summary?.posEvalUsd ?? 0
 
@@ -54,7 +56,6 @@ export default async function AccountDetailPage({ params }: Props) {
         initialAccount={account}
         usdDeposit={usdDeposit}
         posEvalUsd={posEvalUsd}
-        previewsByStrategyId={previewsByStrategyId}
       />
     </HydrationBoundary>
   )

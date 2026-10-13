@@ -8,12 +8,7 @@ import { useAllStrategiesQuery } from '@entities/strategy'
 import { useAccountsQuery } from '@entities/account'
 import { useMeta } from '@entities/meta'
 import type { Account } from '@entities/account'
-import type { NextOrderPreview } from '@entities/order'
 import { EmptyState } from '@shared/ui/EmptyState'
-
-interface Props {
-  previewsByStrategyId?: Record<string, NextOrderPreview>
-}
 
 function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
   const hasAccounts = accounts.length > 0
@@ -55,7 +50,7 @@ function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
   )
 }
 
-export function AllStrategiesList({ previewsByStrategyId }: Props) {
+export function AllStrategiesList() {
   const { data: strategies = [] } = useAllStrategiesQuery()
   const { data: accounts = [] } = useAccountsQuery()
   const { findBroker } = useMeta()
@@ -93,7 +88,6 @@ export function AllStrategiesList({ previewsByStrategyId }: Props) {
                 accountId={s.accountId}
                 strategy={s}
                 accountLabel={groupByAccount ? undefined : account.nickname}
-                initialPreview={previewsByStrategyId?.[s.id]}
               />
             ))}
           </div>

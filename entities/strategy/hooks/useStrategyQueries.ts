@@ -57,7 +57,6 @@ export function useStrategySeedPreviewQuery(
     queryKey: strategyKeys.seedPreview(accountId, params.type, params.ticker, params.divisionCount),
     queryFn: () => getStrategySeedPreview(accountId, params),
     enabled: options?.enabled ?? true,
-    staleTime: 30_000,
   })
 }
 

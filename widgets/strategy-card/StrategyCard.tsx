@@ -9,14 +9,12 @@ import { computeOrderReadiness, useStrategyOrderPreviewQuery } from '@entities/o
 import type { DirectionReadiness, OrderReadiness } from '@entities/order'
 import { seedBadgeClass, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
-import type { NextOrderPreview } from '@entities/order'
 import { Badge } from '@shared/ui/Badge'
 
 interface Props {
   accountId: string
   strategy: Strategy
   accountLabel?: string | ReactNode
-  initialPreview?: NextOrderPreview
 }
 
 // 부족 최우선. 미접수인데 라이브 잔고/판매가능수량 확인 자체가 실패했으면(uncertain) 충족으로 오인시키지
@@ -165,9 +163,9 @@ function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledSt
   )
 }
 
-export function StrategyCard({ accountId, strategy, accountLabel, initialPreview }: Props) {
+export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
   const { findStrategyType, labelOf } = useMeta()
-  const { data: preview } = useStrategyOrderPreviewQuery(strategy.id, initialPreview)
+  const { data: preview } = useStrategyOrderPreviewQuery(strategy.id)
   const usesDivisionCount = (findStrategyType(strategy.type)?.divisionCounts?.length ?? 0) > 0
   const isVr = strategy.vr != null // VR 전략 여부 — vr 필드 존재 여부로 판정
   const scheduledStart = isScheduledStart(strategy) // startDate가 오늘 이후면 아직 매매 시작 전

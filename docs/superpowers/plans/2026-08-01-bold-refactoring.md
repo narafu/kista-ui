@@ -376,7 +376,7 @@ export function orderPreviewQueryOptions(strategyId: string, token?: string) {
 
 **Files:**
 - Create: `entities/market/model/queryOptions.ts` + 테스트
-- Modify: `entities/market/hooks/useMarketQueries.ts:9-18`, `entities/market/index.ts`, `app/(main)/dashboard/page.tsx` (speed Task 2 적용 후 기준 — `kstWeekStartDate()` 유지), `widgets/market-holiday-calendar/WeeklyMarketCalendar.tsx`, `widgets/dashboard/DashboardContent.tsx`·`DashboardEmpty.tsx`·`DashboardOverview.tsx`, `docs/agents/entities.md`·`docs/agents/cache-policy.md` (holidays initialData 예외 서술 갱신)
+- Modify: `entities/market/hooks/useMarketQueries.ts:9-18`, `entities/market/index.ts`, `app/(main)/dashboard/page.tsx` (speed Task 2 적용 후 기준 — `kstWeekStartDate()` 유지), `widgets/market-holiday-calendar/WeeklyMarketCalendar.tsx`, `widgets/dashboard/DashboardContent.tsx`·`DashboardEmpty.tsx`·`DashboardOverview.tsx`, `docs/agents/entities.md`·`docs/agents/shared.md` (holidays initialData 예외 서술 갱신)
 
 **Interfaces (Produces):**
 

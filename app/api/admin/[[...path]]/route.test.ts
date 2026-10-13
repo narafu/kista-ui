@@ -1,12 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
 
-const { getMock, putMock } = vi.hoisted(() => ({
+const { getMock, postMock, putMock } = vi.hoisted(() => ({
   getMock: vi.fn(async () => Response.json({ enabled: true })),
+  postMock: vi.fn(async () => Response.json({ ok: true })),
   putMock: vi.fn(async (request: Request) => Response.json({ method: request.method, body: await request.json() })),
 }))
 
 vi.mock('@shared/lib/proxy/createProxyRoute', () => ({
-  createProxyRoute: vi.fn(() => ({ GET: getMock, POST: vi.fn(), PUT: putMock, PATCH: vi.fn(), DELETE: vi.fn() })),
+  createProxyRoute: vi.fn(() => ({ GET: getMock, POST: postMock, PUT: putMock, PATCH: vi.fn(), DELETE: vi.fn() })),
 }))
 
 describe('/api/admin proxy route', () => {
@@ -28,6 +29,13 @@ describe('/api/admin proxy route', () => {
       body: method === 'PUT' ? JSON.stringify({ enabled: true }) : undefined,
     })
     const response = await handlers[method](request as never, { params: Promise.resolve({ path: ['settings'] }) })
+    expect(response.headers.get('cache-control')).toBe('no-store')
+  })
+
+  it.each([['GET', ['users']], ['POST', ['trades', 'reorder']]] as const)('sets no-store on non-settings %s responses too', async (method, path) => {
+    const handlers = await import('./route')
+    const request = new Request(`https://kista.test/api/admin/${path.join('/')}`, { method })
+    const response = await handlers[method](request as never, { params: Promise.resolve({ path: [...path] }) })
     expect(response.headers.get('cache-control')).toBe('no-store')
   })
 })

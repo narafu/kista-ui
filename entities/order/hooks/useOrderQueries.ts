@@ -7,13 +7,10 @@ import type { NextOrderPreview, StrategyOrder } from '../model/types'
 import { orderKeys } from '../model/queryKeys'
 import { orderPreviewQueryOptions } from '../model/queryOptions'
 
-export function useStrategyOrderPreviewQuery(strategyId: string, initialData?: NextOrderPreview) {
+export function useStrategyOrderPreviewQuery(strategyId: string) {
   return useQuery<NextOrderPreview>({
     ...orderPreviewQueryOptions(strategyId),
     // staleTime 60초 — 카드 목록 재진입 시 캐시 재사용. "바로 주문"/취소는 invalidateQueries로 별도 강제 갱신되므로 신선도에 영향 없음
-    initialData,
-    // 서버에서 prefetch한 시점 기준으로 신선도를 매겨야 staleTime 동안 클라이언트 재요청을 건너뜀
-    initialDataUpdatedAt: initialData ? Date.now() : undefined,
     // 라이브 예수금/판매가능수량 조회 실패로 판정 불가 상태면 짧은 주기로 자동 재시도 — 그렇지 않으면
     // staleTime 60초 동안 판정 불가 스냅샷이 그대로 고정돼 재조회 없이는 스스로 회복되지 않는다
     refetchInterval: (query) =>

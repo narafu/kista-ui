@@ -57,6 +57,7 @@ export function useAdminStrategyOrdersQuery(accountId: string, strategyId: strin
     queryKey: adminKeys.strategyOrders(accountId, strategyId, tradeDate),
     queryFn: () => listAdminStrategyOrders(accountId, strategyId, tradeDate),
     enabled: !!accountId && !!strategyId && !!tradeDate,
+    staleTime: 0, // 재주문 판단에 쓰는 당일 주문 상태 — 라이브 값
   })
 }
 
@@ -64,6 +65,9 @@ export function useAdminReorderTimingQuery() {
   return useQuery({
     queryKey: adminKeys.reorderTiming(),
     queryFn: getReorderTimingAvailability,
+    // 장 시각에 따라 바뀌는 값 — 탭을 열어둔 채 시각이 넘어가도 갱신되도록 주기 재조회
+    staleTime: 0,
+    refetchInterval: 60_000,
   })
 }
 
@@ -73,6 +77,7 @@ export function useAdminReorderBuyBudgetQuery(orderIds: string[], tradeDate: str
     queryKey: adminKeys.reorderBuyBudget(orderIds, tradeDate),
     queryFn: () => getReorderBuyBudget(orderIds, tradeDate),
     enabled: orderIds.length > 0,
+    staleTime: 0, // live 잔고 기반 예산
   })
 }
 
