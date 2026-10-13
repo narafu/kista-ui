@@ -67,4 +67,17 @@ describe('DcaStrategyDetail', () => {
     expect(screen.getByRole('button', { name: '중지' })).toBeInTheDocument()
     expect(screen.queryByText('다음 판정일')).not.toBeInTheDocument()
   })
+  it('nextExecution이 null이면 다음 판정일을 미정으로 표시한다', () => {
+    renderDetail({ ...strategy, dca: { ...strategy.dca!, nextExecution: null } })
+    expect(screen.getByText('미정')).toBeInTheDocument()
+  })
+  it('조건이 없으면 조건 없음 문구를 표시한다', () => {
+    renderDetail({ ...strategy, dca: { ...strategy.dca!, conditions: [] } })
+    expect(screen.getByText('조건 없이 매 회차 주문')).toBeInTheDocument()
+  })
+  it('ORDERED 행에 referencePrice가 없으면 기준가 칸에 -를 표시한다', () => {
+    renderDetail()
+    const orderedRow = screen.getByText('2026-09-30').closest('tr')!
+    expect(orderedRow.querySelectorAll('td')[3]).toHaveTextContent('-')
+  })
 })

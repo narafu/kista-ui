@@ -2,6 +2,7 @@ import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
 import { dec, num, optDec, optNum, optStr, str } from '@shared/lib/normalize'
 import type { CycleSeedType, DcaCondition, DcaConfigRequest, DcaDirection, DcaExecution, DcaExecutionPage, DcaFrequency, DcaIndicator, DcaOperator, DcaOrderType, DcaWeekday, ReconfigureVrRequest, Strategy, StrategyDcaSummary, StrategyRequest, StrategySeedPreview, StrategyVrSummary } from '../model/types'
+import { WEEKDAY_LABEL } from '../model/dcaFormat'
 import type { PlacedOrder } from '@shared/model/placed-order'
 import { normalizePlacedOrderBase } from '@shared/model/placed-order'
 
@@ -39,6 +40,10 @@ function normalizeDcaCondition(raw: unknown): DcaCondition {
   }
 }
 
+function isDcaWeekday(v: unknown): v is DcaWeekday {
+  return typeof v === 'string' && Object.hasOwn(WEEKDAY_LABEL, v)
+}
+
 function normalizeDca(raw: unknown): StrategyDcaSummary | undefined {
   if (raw == null) return undefined
   const d = raw as Record<string, unknown>
@@ -49,7 +54,7 @@ function normalizeDca(raw: unknown): StrategyDcaSummary | undefined {
     amountUsd: dec(d.amountUsd),
     orderType: str(d.orderType) as DcaOrderType,
     frequency: str(d.frequency) as DcaFrequency,
-    dayOfWeek: (d.dayOfWeek as DcaWeekday | null) ?? null,
+    dayOfWeek: isDcaWeekday(d.dayOfWeek) ? d.dayOfWeek : null,
     dayOfMonth: d.dayOfMonth != null ? num(d.dayOfMonth) : null,
     conditions: ((d.conditions as unknown[] | undefined) ?? []).map(normalizeDcaCondition),
     nextExecution: next ? { usSessionDate: str(next.usSessionDate), kstTradeDate: str(next.kstTradeDate) } : null,

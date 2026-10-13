@@ -311,3 +311,26 @@ describe('StrategyForm VR settings section', () => {
     expect(screen.queryByText('division-count-section')).not.toBeInTheDocument()
   })
 })
+
+describe('StrategyForm DCA 수정 모드', () => {
+  const dcaInitial = { ...initialStrategy, id: 'dca-1', type: 'DCA', ticker: 'QLD' } as Strategy
+
+  it('initial.type이 DCA면 form.type과 무관하게 DcaStrategyForm을 렌더한다', () => {
+    useStrategyFormMock.mockReturnValue({ ...baseFormState, type: 'INFINITE', availableTickers: ['UPRO', 'QLD'] })
+
+    render(<StrategyForm accountId="account-1" initial={dcaInitial} />)
+
+    expect(screen.getByTestId('dca-strategy-form')).toBeInTheDocument()
+    expect(screen.queryByTestId('usage-ratio-section')).not.toBeInTheDocument()
+    expect(screen.queryByText('division-count-section')).not.toBeInTheDocument()
+  })
+
+  it('수정 모드에서는 종목을 initial.ticker 하나로 고정하고 유형 선택은 숨긴다', () => {
+    useStrategyFormMock.mockReturnValue({ ...baseFormState, availableTickers: ['UPRO', 'QLD'] })
+
+    render(<StrategyForm accountId="account-1" initial={dcaInitial} />)
+
+    expect(screen.getByTestId('dca-strategy-form')).toHaveTextContent(/^QLD$/)
+    expect(screen.queryByText('type-section')).not.toBeInTheDocument()
+  })
+})

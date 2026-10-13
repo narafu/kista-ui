@@ -100,6 +100,19 @@ describe('DCA api', () => {
     })
   })
 
+  it('알 수 없는 dayOfWeek 값은 null로 버린다', async () => {
+    const { listStrategies } = await import('./index')
+    fetchEitherMock.mockResolvedValueOnce([
+      { id: 's3', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
+        dca: { direction: 'BUY', amountUsd: 100, orderType: 'MOC', frequency: 'WEEKLY', dayOfWeek: 'SATURDAY', dayOfMonth: null, conditions: [] } },
+      { id: 's4', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
+        dca: { direction: 'BUY', amountUsd: 100, orderType: 'MOC', frequency: 'WEEKLY', dayOfWeek: 'FRIDAY', dayOfMonth: null, conditions: [] } },
+    ])
+    const [unknown, friday] = await listStrategies('a1')
+    expect(unknown.dca?.dayOfWeek).toBeNull()
+    expect(friday.dca?.dayOfWeek).toBe('FRIDAY')
+  })
+
   it('비DCA 응답은 dca undefined', async () => {
     const { listStrategies } = await import('./index')
     fetchEitherMock.mockResolvedValueOnce([{ id: 's2', accountId: 'a1', type: 'INFINITE', status: 'ACTIVE', ticker: 'TQQQ', cycleSeedType: 'MAX', isReverseMode: false, dca: null }])

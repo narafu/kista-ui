@@ -9,9 +9,11 @@ function toCondition(c: DcaConditionFormValue): DcaCondition {
 
 // 주기 전환 후 남은 요일/날짜 값은 해당 주기가 아니면 null로 버린다
 export function buildDcaConfig(v: DcaFormValues): DcaConfigRequest {
+  // 스키마가 null을 거부하므로 도달 불가 — 0 폴백으로 조용히 0달러 주문을 보내지 않도록 실패시킨다
+  if (v.amountUsd == null) throw new Error('amountUsd는 스키마 검증을 통과한 값이어야 합니다')
   return {
     direction: v.direction,
-    amountUsd: v.amountUsd ?? 0,
+    amountUsd: v.amountUsd,
     orderType: v.orderType,
     frequency: v.frequency,
     dayOfWeek: v.frequency === 'WEEKLY' ? v.dayOfWeek : null,

@@ -48,6 +48,7 @@ export function DcaExecutionHistory({ strategyId }: { strategyId: string }) {
                 </tr>
               </thead>
               <tbody>
+                {/* kista-api uq_dca_execution_strategy_trade_date(strategy_id, trade_date)로 전략당 거래일 1건 보장 */}
                 {rows.map((r) => (
                   <tr key={r.kstTradeDate} className="border-t border-border">
                     <td className="px-4 py-2 tabular-nums whitespace-nowrap">{r.kstTradeDate}</td>

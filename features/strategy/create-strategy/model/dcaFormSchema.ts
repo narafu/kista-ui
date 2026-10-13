@@ -1,7 +1,8 @@
 import { z } from 'zod'
-import type { DcaWeekday, Strategy } from '@entities/strategy'
+import type { Strategy } from '@entities/strategy'
 
 export const LAST_DAY = 'LAST' // 매월 말일 — payload에서 dayOfMonth null로 직렬화
+export const DAY_OPTIONS = [...Array.from({ length: 31 }, (_, i) => String(i + 1)), LAST_DAY]
 export const MAX_DCA_CONDITIONS = 10 // kista-api 상한과 동일
 
 const conditionSchema = z.object({
@@ -46,6 +47,8 @@ export const dcaFormSchema = z.object({
   }
   if (v.frequency === 'MONTHLY' && !v.dayOfMonth) {
     ctx.addIssue({ code: 'custom', path: ['dayOfMonth'], message: '날짜를 선택하세요.' })
+  } else if (v.frequency === 'MONTHLY' && !DAY_OPTIONS.includes(v.dayOfMonth ?? '')) {
+    ctx.addIssue({ code: 'custom', path: ['dayOfMonth'], message: '1~31일 또는 말일을 선택하세요.' })
   }
 })
 
@@ -66,7 +69,7 @@ export function buildDcaFormDefaults(initial: Strategy | undefined, defaultTicke
     amountUsd: d.amountUsd,
     orderType: d.orderType,
     frequency: d.frequency,
-    dayOfWeek: (d.dayOfWeek as DcaWeekday | null) ?? null,
+    dayOfWeek: d.dayOfWeek,
     dayOfMonth: d.frequency === 'MONTHLY' ? (d.dayOfMonth == null ? LAST_DAY : String(d.dayOfMonth)) : null,
     scheduledStartDate: null,
     conditions: d.conditions.map((c) => ({

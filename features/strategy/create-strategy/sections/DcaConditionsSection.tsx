@@ -1,6 +1,7 @@
 'use client'
 
-import { Controller, useFieldArray, type FieldErrors, type UseFormReturn } from 'react-hook-form'
+import { useId } from 'react'
+import { Controller, useFieldArray, type UseFormReturn } from 'react-hook-form'
 import { Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -21,6 +22,12 @@ export function DcaConditionsSection({ form, indicators, direction }: Props) {
   const { meta, labelOf } = useMeta()
   const { fields, append, remove } = useFieldArray({ control: form.control, name: 'conditions' })
   const conditions = form.watch('conditions')
+  const errorIdBase = useId()
+  // 새 조건 기본값은 메타 첫 항목 — 메타가 비면 추가 버튼을 숨긴다
+  const defaultIndicator = indicators[0] as DcaIndicator | undefined
+  const defaultOperator = meta.dcaOperators?.[0]?.code as DcaOperator | undefined
+  const conditionErrors = form.formState.errors.conditions
+  const listError = conditionErrors?.root?.message ?? conditionErrors?.message // 최대 개수 등 배열 단위 오류
 
   return (
     <div className="py-[18px] border-b border-border">
@@ -34,75 +41,74 @@ export function DcaConditionsSection({ form, indicators, direction }: Props) {
         {fields.map((f, i) => {
           const indicator = conditions[i]?.indicator
           const smaPeriods = (meta.dcaIndicators ?? []).find((m) => m.code === indicator)?.smaPeriods ?? []
+          const rowError = conditionErrors?.[i]
+          // 지표·연산자 오류(메타에 없는 코드 등)는 대응 입력이 없어 일반 문구로 표시
+          const rowErrorMessage = rowError?.smaPeriod?.message ?? rowError?.threshold?.message ?? (rowError ? '조건 입력값을 확인하세요.' : undefined)
+          const errorId = rowErrorMessage ? `${errorIdBase}-${i}` : undefined
           return (
-            <div key={f.id} className="flex items-center gap-2">
-              <Controller control={form.control} name={`conditions.${i}.indicator`} render={({ field }) => (
-                <Select items={indicators.map((code) => ({ value: code, label: labelOf('dcaIndicators', code) }))}
-                  value={field.value} onValueChange={(v) => {
-                  field.onChange(v as DcaIndicator)
-                  form.setValue(`conditions.${i}.threshold`, null)
-                  form.setValue(`conditions.${i}.smaPeriod`, null)
-                }}>
-                  <SelectTrigger aria-label={`조건 ${i + 1} 지표`} className="h-11 flex-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {indicators.map((code) => <SelectItem key={code} value={code}>{labelOf('dcaIndicators', code)}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              )} />
-
-              {indicator === 'SMA' ? (
-                <Controller control={form.control} name={`conditions.${i}.smaPeriod`} render={({ field }) => (
-                  <Select items={smaPeriods.map((p) => ({ value: String(p), label: `${p}일` }))}
-                    value={field.value != null ? String(field.value) : ''} onValueChange={(v) => field.onChange(Number(v))}>
-                    <SelectTrigger aria-label={`조건 ${i + 1} 이동평균 기간`} className="h-11 w-24"><SelectValue placeholder="기간" /></SelectTrigger>
+            <div key={f.id}>
+              <div className="flex items-center gap-2">
+                <Controller control={form.control} name={`conditions.${i}.indicator`} render={({ field }) => (
+                  <Select items={indicators.map((code) => ({ value: code, label: labelOf('dcaIndicators', code) }))}
+                    value={field.value} onValueChange={(v) => {
+                    field.onChange(v as DcaIndicator)
+                    form.setValue(`conditions.${i}.threshold`, null)
+                    form.setValue(`conditions.${i}.smaPeriod`, null)
+                    form.clearErrors([`conditions.${i}.threshold`, `conditions.${i}.smaPeriod`])
+                  }}>
+                    <SelectTrigger aria-label={`조건 ${i + 1} 지표`} className="h-11 flex-1"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {smaPeriods.map((p) => <SelectItem key={p} value={String(p)}>{p}일</SelectItem>)}
+                      {indicators.map((code) => <SelectItem key={code} value={code}>{labelOf('dcaIndicators', code)}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 )} />
-              ) : (
-                <label className="flex items-center gap-1">
-                  <span className="sr-only">{`조건 ${i + 1} 기준값`}</span>
-                  <input type="number" step="any"
-                    {...form.register(`conditions.${i}.threshold`, { setValueAs: (v) => (v === '' || v == null ? null : Number(v)) })}
-                    className="h-11 w-20 rounded-[var(--r-sm)] border border-border bg-card px-2 text-base" />
-                  {indicator && THRESHOLD_SUFFIX[indicator] && <span className="text-sm">{THRESHOLD_SUFFIX[indicator]}</span>}
-                </label>
-              )}
 
-              <Controller control={form.control} name={`conditions.${i}.operator`} render={({ field }) => (
-                <Select items={(meta.dcaOperators ?? []).map((o) => ({ value: o.code, label: o.label }))}
-                  value={field.value} onValueChange={(v) => field.onChange(v as DcaOperator)}>
-                  <SelectTrigger aria-label={`조건 ${i + 1} 비교`} className="h-11 w-20"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {(meta.dcaOperators ?? []).map((o) => <SelectItem key={o.code} value={o.code}>{o.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              )} />
+                {indicator === 'SMA' ? (
+                  <Controller control={form.control} name={`conditions.${i}.smaPeriod`} render={({ field }) => (
+                    <Select items={smaPeriods.map((p) => ({ value: String(p), label: `${p}일` }))}
+                      value={field.value != null ? String(field.value) : ''} onValueChange={(v) => field.onChange(Number(v))}>
+                      <SelectTrigger aria-label={`조건 ${i + 1} 이동평균 기간`} aria-invalid={!!rowError?.smaPeriod} aria-describedby={errorId} className="h-11 w-24"><SelectValue placeholder="기간" /></SelectTrigger>
+                      <SelectContent>
+                        {smaPeriods.map((p) => <SelectItem key={p} value={String(p)}>{p}일</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  )} />
+                ) : (
+                  <label className="flex items-center gap-1">
+                    <span className="sr-only">{`조건 ${i + 1} 기준값`}</span>
+                    <input type="number" step="any" aria-invalid={!!rowError?.threshold} aria-describedby={errorId}
+                      {...form.register(`conditions.${i}.threshold`, { setValueAs: (v) => (v === '' || v == null ? null : Number(v)) })}
+                      className="h-11 w-20 rounded-[var(--r-sm)] border border-border bg-card px-2 text-base" />
+                    {indicator && THRESHOLD_SUFFIX[indicator] && <span className="text-sm">{THRESHOLD_SUFFIX[indicator]}</span>}
+                  </label>
+                )}
 
-              <Button type="button" variant="ghost" size="icon" aria-label={`조건 ${i + 1} 삭제`} onClick={() => remove(i)}>
-                <Trash2 className="size-4" />
-              </Button>
+                <Controller control={form.control} name={`conditions.${i}.operator`} render={({ field }) => (
+                  <Select items={(meta.dcaOperators ?? []).map((o) => ({ value: o.code, label: o.label }))}
+                    value={field.value} onValueChange={(v) => field.onChange(v as DcaOperator)}>
+                    <SelectTrigger aria-label={`조건 ${i + 1} 비교`} className="h-11 w-20"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {(meta.dcaOperators ?? []).map((o) => <SelectItem key={o.code} value={o.code}>{o.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                )} />
+
+                <Button type="button" variant="ghost" size="icon" aria-label={`조건 ${i + 1} 삭제`} onClick={() => remove(i)}>
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+              {rowErrorMessage && <p id={errorId} className="mt-1 text-sm text-[var(--status-error)]">{rowErrorMessage}</p>}
             </div>
           )
         })}
       </div>
 
-      {form.formState.errors.conditions && (
-        <p className="mt-1 text-sm text-[var(--status-error)]">{firstConditionError(form.formState.errors.conditions)}</p>
-      )}
+      {listError && <p className="mt-1 text-sm text-[var(--status-error)]">{listError}</p>}
 
-      {fields.length < MAX_DCA_CONDITIONS && <Button type="button" variant="brand-soft" size="sm" className="mt-3"
-        onClick={() => append({ indicator: (indicators[0] ?? 'RSI') as DcaIndicator, operator: 'LTE', threshold: null, smaPeriod: null })}>
+      {fields.length < MAX_DCA_CONDITIONS && defaultIndicator && defaultOperator && <Button type="button" variant="brand-soft" size="sm" className="mt-3"
+        onClick={() => append({ indicator: defaultIndicator, operator: defaultOperator, threshold: null, smaPeriod: null })}>
         조건 추가
       </Button>}
     </div>
   )
-}
-
-// 배열 루트(최대 개수) 또는 첫 조건 행의 필드 오류 메시지
-function firstConditionError(errors: FieldErrors<DcaFormValues>['conditions']): string {
-  const rows = Array.isArray(errors) ? errors : []
-  const row = rows.find(Boolean)
-  return errors?.root?.message ?? errors?.message ?? row?.threshold?.message ?? row?.smaPeriod?.message ?? '조건 입력값을 확인하세요.'
 }

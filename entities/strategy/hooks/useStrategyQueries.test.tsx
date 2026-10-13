@@ -2,6 +2,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { renderHook, waitFor } from '@testing-library/react'
 import type { PropsWithChildren } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { toast } from 'sonner'
+import { ApiError } from '@shared/lib/api-client'
 
 import type { Strategy } from '../model/types'
 import { strategyKeys } from '../model/queryKeys'
@@ -10,6 +12,7 @@ import {
   useDcaExecutionsQuery,
   useDeleteStrategyMutation,
   usePauseStrategyMutation,
+  useReconfigureDcaMutation,
   useReconfigureVrMutation,
   useResumeStrategyMutation,
   useUpdateStrategyMutation,
@@ -21,6 +24,7 @@ const {
   createStrategyMock,
   updateStrategyMock,
   reconfigureVrMock,
+  reconfigureDcaMock,
   deleteStrategyMock,
   pauseStrategyMock,
   resumeStrategyMock,
@@ -31,6 +35,7 @@ const {
   createStrategyMock: vi.fn(),
   updateStrategyMock: vi.fn(),
   reconfigureVrMock: vi.fn(),
+  reconfigureDcaMock: vi.fn(),
   deleteStrategyMock: vi.fn(),
   pauseStrategyMock: vi.fn(),
   resumeStrategyMock: vi.fn(),
@@ -43,6 +48,7 @@ vi.mock('../api', () => ({
   createStrategy: createStrategyMock,
   updateStrategy: updateStrategyMock,
   reconfigureVr: reconfigureVrMock,
+  reconfigureDca: reconfigureDcaMock,
   deleteStrategy: deleteStrategyMock,
   pauseStrategy: pauseStrategyMock,
   resumeStrategy: resumeStrategyMock,
@@ -50,6 +56,8 @@ vi.mock('../api', () => ({
   executeStrategy: vi.fn(),
   getStrategySeedPreview: vi.fn(),
 }))
+
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
 const strategyA: Strategy = {
   id: 'strategy-a',
@@ -292,5 +300,58 @@ describe('useDcaExecutionsQuery', () => {
     expect(result.current.isPlaceholderData).toBe(true)
     resolve1({ ...page0, page: 1 })
     await waitFor(() => expect(result.current.data?.page).toBe(1))
+  })
+})
+
+describe('useReconfigureDcaMutation', () => {
+  const dcaRequest = {
+    direction: 'BUY', amountUsd: 300, orderType: 'MOC', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, conditions: [],
+  } as unknown as Parameters<ReturnType<typeof useReconfigureDcaMutation>['mutateAsync']>[0]
+
+  it('전략 id로 재설정 API를 호출하고 상세·목록 캐시를 갱신한 뒤 onSuccess를 호출한다', async () => {
+    const queryClient = createTestQueryClient()
+    const reconfigured = { ...strategyA, type: 'DCA' } as Strategy
+    seedStrategyLists(queryClient, [strategyA, strategyB])
+    reconfigureDcaMock.mockResolvedValue(reconfigured)
+    const callback = vi.fn()
+
+    const { result } = renderHook(() => useReconfigureDcaMutation(strategyA.id, callback), {
+      wrapper: createWrapper(queryClient),
+    })
+    await result.current.mutateAsync(dcaRequest)
+
+    expect(reconfigureDcaMock).toHaveBeenCalledWith(strategyA.id, dcaRequest)
+    expect(queryClient.getQueryData(strategyKeys.detail(strategyA.id))).toEqual(reconfigured)
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([reconfigured, strategyB])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([reconfigured, strategyB])
+    expect(callback).toHaveBeenCalledOnce()
+  })
+
+  it('실패하면 서버 메시지로 에러 토스트를 띄우고 onSuccess와 캐시 갱신은 하지 않는다', async () => {
+    const queryClient = createTestQueryClient()
+    seedStrategyLists(queryClient, [strategyA, strategyB])
+    reconfigureDcaMock.mockRejectedValue(new ApiError(400, { detail: '조건이 올바르지 않습니다' }))
+    const callback = vi.fn()
+
+    const { result } = renderHook(() => useReconfigureDcaMutation(strategyA.id, callback), {
+      wrapper: createWrapper(queryClient),
+    })
+    await expect(result.current.mutateAsync(dcaRequest)).rejects.toBeInstanceOf(ApiError)
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('조건이 올바르지 않습니다'))
+    expect(callback).not.toHaveBeenCalled()
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([strategyA, strategyB])
+  })
+
+  it('서버 메시지가 없으면 기본 문구로 에러 토스트를 띄운다', async () => {
+    const queryClient = createTestQueryClient()
+    reconfigureDcaMock.mockRejectedValue(new Error('boom'))
+
+    const { result } = renderHook(() => useReconfigureDcaMutation(strategyA.id), {
+      wrapper: createWrapper(queryClient),
+    })
+    await expect(result.current.mutateAsync(dcaRequest)).rejects.toThrow('boom')
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('저장에 실패했습니다.'))
   })
 })

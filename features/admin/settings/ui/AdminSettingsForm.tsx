@@ -28,6 +28,9 @@ const STRATEGY_LABELS: Record<RuntimeStrategyType, string> = {
   INFINITE: 'INFINITE', PRIVACY: 'PRIVACY', VR: 'VR', DCA: 'DCA',
 }
 
+// kista-api StrategyTicker의 DCA 전용 종목. 메타 availableTickers는 지금 편집 중인 허용값 자체라 후보 목록으로 쓸 수 없다
+const DCA_TICKER_SUGGESTIONS = ['UPRO', 'QLD']
+
 function clone(value: RuntimeConfig): RuntimeConfig {
   const next = structuredClone(value)
   next.benchmarks ??= structuredClone(DEFAULT_RUNTIME_BENCHMARKS)
@@ -101,6 +104,8 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
   }, [settings])
 
   const errors = useMemo(() => validateAdminSettings(draft), [draft])
+  // 배포 직후 낡은 응답엔 DCA 키가 없다 — 그대로 저장하면 kista-api가 400을 낸다
+  const dca = draft.strategies.DCA
   const dirty = JSON.stringify(draft) !== JSON.stringify(serverSnapshot)
   const setStrategyField = <T extends string | number>(strategy: RuntimeStrategyType, field: string, value: RuntimeFieldSettings<T>) => {
     setDraft((current) => ({
@@ -132,7 +137,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
   const submit = (event: FormEvent) => {
     event.preventDefault()
     setAttempted(true)
-    if (Object.keys(errors).length > 0 || mutation.isPending) return
+    if (Object.keys(errors).length > 0 || mutation.isPending || !dca) return
     activatesPendingUsersRef.current = serverSnapshot.auth.approvalRequired && !draft.auth.approvalRequired
     mutation.mutate(draft)
   }
@@ -224,20 +229,22 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
             error={attempted ? errors['VR.intervalWeeks'] : undefined} inputType="number" normalize={normalizeNumber} onChange={(value) => setStrategyField('VR', 'intervalWeeks', value)} />
         </section>
 
-        {draft.strategies.DCA && (
-          <section className="border-b border-border px-4 py-4 sm:px-5">
-            <h2 className="text-base font-bold">DCA 필드</h2>
+        <section className="border-b border-border px-4 py-4 sm:px-5">
+          <h2 className="text-base font-bold">DCA 필드</h2>
+          {dca ? (
             <FieldEditor
               id="dca-ticker"
               label="종목"
-              field={draft.strategies.DCA.fields.ticker}
+              field={dca.fields.ticker}
               error={attempted ? errors['DCA.ticker'] : undefined}
-              suggestions={['UPRO', 'QLD']}
+              suggestions={DCA_TICKER_SUGGESTIONS}
               normalize={normalizeSymbol}
               onChange={(value) => setStrategyField('DCA', 'ticker', value)}
             />
-          </section>
-        )}
+          ) : (
+            <p className="mt-2 text-sm text-[var(--status-error)]">설정 정보가 오래되어 저장할 수 없습니다. 페이지를 새로고침해야 합니다.</p>
+          )}
+        </section>
 
         <section className="px-4 py-4 sm:px-5">
           <h2 className="text-base font-bold">벤치마크 비교</h2>
@@ -262,7 +269,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
         <Button type="button" variant="outline" onClick={reset} disabled={!dirty || mutation.isPending}>
           <RotateCcw /> 변경 취소
         </Button>
-        <Button type="submit" disabled={!dirty || mutation.isPending}>
+        <Button type="submit" disabled={!dirty || mutation.isPending || !dca}>
           <Save /> {mutation.isPending ? '저장 중...' : '변경 저장'}
         </Button>
       </div>

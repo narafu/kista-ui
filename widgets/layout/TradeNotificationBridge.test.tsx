@@ -25,6 +25,7 @@ const INVALIDATED: QueryKey[] = [
   strategyKeys.listAll(),
   strategyKeys.listByAccount('a1'),
   strategyKeys.detail('s1'),
+  strategyKeys.dcaExecutions('s1', 0, 20),
   orderKeys.preview('s1'),
   orderKeys.history('s1', '2026-01-01', '2026-01-31'),
   statsKeys.summary(),

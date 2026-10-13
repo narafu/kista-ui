@@ -28,4 +28,9 @@ describe('formatDcaCondition', () => {
     expect(formatDcaCondition({ indicator: 'RSI', operator: 'LTE', threshold: 35 }, 'RSI(14)', '이하')).toBe('RSI(14) 35 이하')
     expect(formatDcaCondition({ indicator: 'FEAR_GREED', operator: 'LT', threshold: 25 }, '공포탐욕지수(CNN)', '미만')).toBe('공포탐욕지수(CNN) 25 미만')
   })
+  it('기간·기준값 누락 시 undefined 대신 -', () => {
+    expect(formatDcaCondition({ indicator: 'SMA', operator: 'LT' }, '이동평균선', '미만')).toBe('이동평균선(-) 미만')
+    expect(formatDcaCondition({ indicator: 'AVG_PRICE', operator: 'LTE' }, '평단가', '이하')).toBe('평단가 - 이하')
+    expect(formatDcaCondition({ indicator: 'RSI', operator: 'LTE', }, 'RSI(14)', '이하')).toBe('RSI(14) - 이하')
+  })
 })

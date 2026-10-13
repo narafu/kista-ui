@@ -86,7 +86,7 @@ export function useCreateStrategyMutation(accountId: string, onSuccess?: (saved:
       await synchronizeStrategyLists(queryClient, saved.accountId, (strategies) => upsertById(strategies, saved))
       return onSuccess?.(saved) // 등록 응답 전용 필드(todayOpenBatchMissed) 안내용
     },
-    onError: (err) => toast.error(apiMsg(err, '저장에 실패했습니다')),
+    onError: (err) => toast.error(apiMsg(err, '저장에 실패했습니다.')),
   })
 }
 
@@ -99,7 +99,7 @@ export function useUpdateStrategyMutation(strategyId: string, onSuccess?: () => 
       await synchronizeStrategyLists(queryClient, saved.accountId, (strategies) => upsertById(strategies, saved))
       return onSuccess?.()
     },
-    onError: (err) => toast.error(apiMsg(err, '저장에 실패했습니다')),
+    onError: (err) => toast.error(apiMsg(err, '저장에 실패했습니다.')),
   })
 }
 
@@ -113,7 +113,7 @@ export function useReconfigureVrMutation(strategyId: string, onSuccess?: () => v
       await synchronizeStrategyLists(queryClient, saved.accountId, (strategies) => upsertById(strategies, saved))
       return onSuccess?.()
     },
-    onError: (err) => toast.error(apiMsg(err, '재설정에 실패했습니다')),
+    onError: (err) => toast.error(apiMsg(err, '재설정에 실패했습니다.')),
   })
 }
 

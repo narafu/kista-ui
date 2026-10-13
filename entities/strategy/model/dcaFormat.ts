@@ -18,11 +18,10 @@ export function formatDcaSchedule(
   return frequencyLabel
 }
 
+// 서버 검증상 SMA는 smaPeriod, 그 외는 threshold가 필수지만 응답 누락 시 'undefined' 노출 방지로 '-' 표기
 export function formatDcaCondition(c: DcaCondition, indicatorLabel: string, operatorLabel: string): string {
-  if (c.indicator === 'SMA') return `${indicatorLabel}(${c.smaPeriod}) ${operatorLabel}`
-  if (c.indicator === 'AVG_PRICE') {
-    const t = c.threshold ?? 0
-    return `${indicatorLabel} ${t > 0 ? '+' : ''}${t}% ${operatorLabel}`
-  }
+  if (c.indicator === 'SMA') return `${indicatorLabel}(${c.smaPeriod ?? '-'}) ${operatorLabel}`
+  if (c.threshold == null) return `${indicatorLabel} - ${operatorLabel}`
+  if (c.indicator === 'AVG_PRICE') return `${indicatorLabel} ${c.threshold > 0 ? '+' : ''}${c.threshold}% ${operatorLabel}`
   return `${indicatorLabel} ${c.threshold} ${operatorLabel}`
 }

@@ -25,8 +25,10 @@ interface Props {
 
 export function DeleteStrategyDialog({ open, onOpenChange, ticker, onConfirm, disabled, isDeleting }: Props) {
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogTrigger className={cn(buttonVariants({ variant: 'destructive', size: 'sm' }), 'flex-1')} disabled={disabled}>
+    // 처리 중 열기만 막는다 — 삭제 진행 중 닫기 동작은 기존과 동일
+    <AlertDialog open={open} onOpenChange={(next) => { if (!(next && disabled)) onOpenChange(next) }}>
+      {/* disabled로 바꾸면 포커스가 body로 빠져 모달을 닫은 뒤 이 버튼으로 복귀하지 못한다 */}
+      <AlertDialogTrigger className={cn(buttonVariants({ variant: 'destructive', size: 'sm' }), 'flex-1 aria-disabled:opacity-50')} aria-disabled={disabled}>
         삭제
       </AlertDialogTrigger>
       <AlertDialogContent size="sm">

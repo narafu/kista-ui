@@ -1,12 +1,13 @@
 'use client'
 
+import { useId } from 'react'
 import { Controller, type UseFormReturn } from 'react-hook-form'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SelectionCard } from '@shared/ui/selection-card'
 import { useMeta } from '@entities/meta'
 import { WEEKDAY_LABEL, type DcaWeekday } from '@entities/strategy'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
-import { LAST_DAY, type DcaFormValues } from '../model/dcaFormSchema'
+import { DAY_OPTIONS, LAST_DAY, type DcaFormValues } from '../model/dcaFormSchema'
 
 interface Props {
   form: UseFormReturn<DcaFormValues>
@@ -17,7 +18,6 @@ interface Props {
   frequencies: string[]
 }
 
-const DAY_OPTIONS = [...Array.from({ length: 31 }, (_, i) => String(i + 1)), LAST_DAY]
 const LATE_DAYS = new Set(['29', '30', '31'])
 const ORDER_TYPE_CAPTION: Record<string, string> = {
   MOO: '장 시작 시 시장가 주문',
@@ -30,6 +30,8 @@ function Caption({ children }: { children: React.ReactNode }) {
 
 export function DcaSettingsSection({ form, isEdit, broker, orderTypes, directions, frequencies }: Props) {
   const { labelOf } = useMeta()
+  const amountId = useId()
+  const scheduleErrorId = useId()
   const { watch, setValue, register, formState: { errors } } = form
   const direction = watch('direction')
   const orderType = watch('orderType')
@@ -57,13 +59,12 @@ export function DcaSettingsSection({ form, isEdit, broker, orderTypes, direction
       </div>
 
       <div className="py-[18px] border-b border-border">
-        <label>
-          <StrategyFieldLabel>회차당 금액 (USD)</StrategyFieldLabel>
-          <input type="number" inputMode="decimal" min={0} step="0.01"
-            {...register('amountUsd', { setValueAs: (v) => (v === '' || v == null ? null : Number(v)) })}
-            className="h-11 w-full rounded-[var(--r-sm)] border border-border bg-card px-3 text-base" />
-        </label>
-        {errors.amountUsd && <p className="mt-1 text-sm text-[var(--status-error)]">{errors.amountUsd.message}</p>}
+        <StrategyFieldLabel htmlFor={amountId}>회차당 금액 (USD)</StrategyFieldLabel>
+        <input id={amountId} type="number" inputMode="decimal" min={0} step="0.01"
+          aria-invalid={!!errors.amountUsd} aria-describedby={errors.amountUsd ? `${amountId}-error` : undefined}
+          {...register('amountUsd', { setValueAs: (v) => (v === '' || v == null ? null : Number(v)) })}
+          className="h-11 w-full rounded-[var(--r-sm)] border border-border bg-card px-3 text-base" />
+        {errors.amountUsd && <p id={`${amountId}-error`} className="mt-1 text-sm text-[var(--status-error)]">{errors.amountUsd.message}</p>}
       </div>
 
       <div className="py-[18px] border-b border-border">
@@ -96,7 +97,7 @@ export function DcaSettingsSection({ form, isEdit, broker, orderTypes, direction
           <Controller control={form.control} name="dayOfWeek" render={({ field }) => (
             <Select items={(Object.keys(WEEKDAY_LABEL) as DcaWeekday[]).map((d) => ({ value: d, label: WEEKDAY_LABEL[d] }))}
               value={field.value ?? ''} onValueChange={(v) => field.onChange(v as DcaWeekday)}>
-              <SelectTrigger aria-label="실행 요일" className="mt-3 h-11 w-full"><SelectValue placeholder="요일 선택" /></SelectTrigger>
+              <SelectTrigger aria-label="실행 요일" aria-invalid={!!errors.dayOfWeek} aria-describedby={errors.dayOfWeek ? scheduleErrorId : undefined} className="mt-3 h-11 w-full"><SelectValue placeholder="요일 선택" /></SelectTrigger>
               <SelectContent>
                 {(Object.keys(WEEKDAY_LABEL) as DcaWeekday[]).map((d) => (
                   <SelectItem key={d} value={d}>{WEEKDAY_LABEL[d]}</SelectItem>
@@ -110,7 +111,7 @@ export function DcaSettingsSection({ form, isEdit, broker, orderTypes, direction
           <Controller control={form.control} name="dayOfMonth" render={({ field }) => (
             <Select items={DAY_OPTIONS.map((d) => ({ value: d, label: d === LAST_DAY ? '말일' : `${d}일` }))}
               value={field.value ?? ''} onValueChange={field.onChange}>
-              <SelectTrigger aria-label="실행 날짜" className="mt-3 h-11 w-full"><SelectValue placeholder="날짜 선택" /></SelectTrigger>
+              <SelectTrigger aria-label="실행 날짜" aria-invalid={!!errors.dayOfMonth} aria-describedby={errors.dayOfMonth ? scheduleErrorId : undefined} className="mt-3 h-11 w-full"><SelectValue placeholder="날짜 선택" /></SelectTrigger>
               <SelectContent>
                 {DAY_OPTIONS.map((d) => (
                   <SelectItem key={d} value={d}>{d === LAST_DAY ? '말일' : `${d}일`}</SelectItem>
@@ -121,7 +122,7 @@ export function DcaSettingsSection({ form, isEdit, broker, orderTypes, direction
         )}
 
         {(errors.dayOfWeek || errors.dayOfMonth) && (
-          <p className="mt-1 text-sm text-[var(--status-error)]">{errors.dayOfWeek?.message ?? errors.dayOfMonth?.message}</p>
+          <p id={scheduleErrorId} className="mt-1 text-sm text-[var(--status-error)]">{errors.dayOfWeek?.message ?? errors.dayOfMonth?.message}</p>
         )}
         {frequency === 'MONTHLY' && dayOfMonth && LATE_DAYS.has(dayOfMonth) && <Caption>해당 날짜가 없는 달은 말일에 실행</Caption>}
         <Caption>휴장일이면 같은 주·월 안의 다음 거래일에 실행</Caption>

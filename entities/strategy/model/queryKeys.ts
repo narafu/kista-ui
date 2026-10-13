@@ -5,7 +5,8 @@ export const strategyKeys = {
   listByAccount: (accountId: string) => [...strategyKeys.lists(), 'account', accountId] as const,
   details: () => [...strategyKeys.all, 'detail'] as const,
   detail: (id: string) => [...strategyKeys.details(), id] as const,
-  dcaExecutions: (id: string, page: number, size: number) => [...strategyKeys.all, 'dca-executions', id, page, size] as const,
+  dcaExecutionsAll: () => [...strategyKeys.all, 'dca-executions'] as const,
+  dcaExecutions: (id: string, page: number, size: number) => [...strategyKeys.dcaExecutionsAll(), id, page, size] as const,
   seedPreview: (accountId: string, type: string, ticker: string, divisionCount: number) =>
     [...strategyKeys.all, 'seed-preview', accountId, type, ticker, divisionCount] as const,
 }

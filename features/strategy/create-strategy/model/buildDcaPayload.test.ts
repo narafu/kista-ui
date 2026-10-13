@@ -14,6 +14,9 @@ describe('buildDcaConfig', () => {
       dayOfWeek: null, dayOfMonth: null, conditions: [],
     })
   })
+  it('검증을 거치지 않은 null 금액은 0달러로 보내지 않고 실패', () => {
+    expect(() => buildDcaConfig({ ...base, amountUsd: null })).toThrow()
+  })
   it('29~31은 숫자 그대로', () => {
     expect(buildDcaConfig({ ...base, dayOfMonth: '30' }).dayOfMonth).toBe(30)
   })

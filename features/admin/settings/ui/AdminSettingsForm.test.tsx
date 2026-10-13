@@ -90,11 +90,17 @@ describe('AdminSettingsForm', () => {
     expect(screen.getByRole('heading', { name: 'DCA 필드' })).toBeInTheDocument()
   })
 
-  it('런타임 설정에 DCA 키가 없어도 크래시하지 않는다', () => {
+  it('런타임 설정에 DCA 키가 없으면 새로고침 안내를 띄우고 저장을 막는다', async () => {
+    const user = userEvent.setup()
     const { DCA: _omit, ...legacy } = settings.strategies
     queryState.data = { ...settings, strategies: legacy as typeof settings.strategies }
     render(<AdminSettingsForm />)
-    expect(screen.queryByRole('heading', { name: 'DCA 필드' })).not.toBeInTheDocument()
+    expect(document.getElementById('dca-ticker')).toBeNull()
+    expect(screen.getByText('설정 정보가 오래되어 저장할 수 없습니다. 페이지를 새로고침해야 합니다.')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('switch', { name: 'VR' }))
+    expect(screen.getByRole('button', { name: /변경 저장/ })).toBeDisabled()
+    expect(mutateMock).not.toHaveBeenCalled()
   })
 
   it('renders a toggle for the MOCK broker', () => {
