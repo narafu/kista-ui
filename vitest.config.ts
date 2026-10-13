@@ -9,6 +9,8 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     globals: true,
     env: { TZ: 'UTC' },
+    // Node 25+ 내장 Web Storage(--localstorage-file 없으면 undefined)가 jsdom의 localStorage를 가린다 — 끄고 jsdom 것을 쓴다
+    execArgv: ['--no-experimental-webstorage'],
     exclude: [...configDefaults.exclude, '**/.next/**', 'e2e/**', 'tests/e2e/**', '**/.claude/**', '**/.worktrees/**'],
   },
   resolve: {
