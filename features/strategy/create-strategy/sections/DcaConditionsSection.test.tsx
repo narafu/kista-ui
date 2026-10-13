@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { describe, expect, it } from 'vitest'
@@ -55,6 +56,22 @@ describe('DcaConditionsSection', () => {
     expect(screen.getByLabelText(/조건 1 기준값/)).toHaveAttribute('aria-invalid', 'false')
     expect(document.getElementById(second.getAttribute('aria-describedby')!)).toHaveTextContent('기준값을 입력하세요.')
     expect(screen.getAllByText('기준값을 입력하세요.')).toHaveLength(1)
+  })
+  it('오류 난 행의 지표를 SMA로 바꾸면 기존 기준값 오류가 사라진다', async () => {
+    const user = userEvent.setup()
+    render(<Harness />)
+    await user.click(screen.getByRole('button', { name: '조건 추가' }))
+    await user.click(screen.getByRole('button', { name: '조건 추가' }))
+    fireEvent.change(screen.getByLabelText(/조건 1 기준값/), { target: { value: '30' } })
+    await user.click(screen.getByRole('button', { name: '검증' }))
+    expect(await screen.findByText('기준값을 입력하세요.')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('combobox', { name: '조건 2 지표' }))
+    await user.click(await screen.findByRole('option', { name: '이동평균선' }))
+
+    await waitFor(() => expect(screen.queryByText('기준값을 입력하세요.')).not.toBeInTheDocument())
+    expect(screen.queryByText('조건 입력값을 확인하세요.')).not.toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: '조건 2 이동평균 기간' })).not.toHaveAttribute('aria-describedby')
   })
   it('새 조건 기본값은 메타 첫 지표·첫 비교 연산자', () => {
     render(<Harness meta={{ ...dcaTestMeta, dcaOperators: [{ code: 'GT', label: '초과' }] }} />)
