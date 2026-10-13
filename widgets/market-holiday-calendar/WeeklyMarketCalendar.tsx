@@ -148,7 +148,8 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
       >
         <div className={cn(
           'w-[26px] h-[26px] flex items-center justify-center text-xs font-medium rounded-full',
-          isToday ? 'bg-rose-500 text-white font-bold' :
+          // 다크 --rose-500(#C77F63)은 흰 글자 대비 3.16이라 어두운 배경색 글자로 바꾼다
+          isToday ? 'bg-rose-500 text-white dark:text-background font-bold' :
           isHoliday ? 'text-[var(--gold)]' :
           isSun ? 'text-pos' :
           isSat ? 'text-neg' :

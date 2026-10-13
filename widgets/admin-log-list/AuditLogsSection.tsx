@@ -59,7 +59,7 @@ export function AuditLogsSection({
                     admin: {log.adminId.slice(0, 8)}…
                   </p>
                   {log.payload && Object.keys(log.payload).length > 0 && (
-                    <pre className="mt-1 text-sm text-muted-foreground bg-muted/40 rounded p-1 overflow-x-auto">
+                    <pre className="mt-1 text-sm text-muted-foreground bg-muted/40 rounded p-1 whitespace-pre-wrap break-all">
                       {JSON.stringify(log.payload, null, 2)}
                     </pre>
                   )}
