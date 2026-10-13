@@ -62,6 +62,7 @@ const settings: RuntimeConfig = {
       bandWidth: { customizable: true, allowedValues: [10, 15], defaultValue: 15 },
       intervalWeeks: { customizable: true, allowedValues: [1, 2], defaultValue: 2 },
     } },
+    DCA: { enabled: false, fields: { ticker: { customizable: true, allowedValues: ['UPRO', 'QLD'], defaultValue: 'UPRO' } } },
   },
 }
 

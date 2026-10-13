@@ -27,7 +27,8 @@ export function BacktestForm({ form }: Props) {
         <div>
           <Label className={FIELD_LABEL_CLASS}>매매 전략</Label>
           <div className="grid grid-cols-2 gap-2.5">
-            {form.meta.strategyTypes.map((t) => {
+            {/* 백엔드 백테스트는 DCA 미지원(spec 3.5) — 지원 추가 시 필터 제거 */}
+            {form.meta.strategyTypes.filter((t) => t.code !== 'DCA').map((t) => {
               const selected = form.type === t.code
               const singleTicker = (t.availableTickers?.length ?? 0) <= 1
               return (

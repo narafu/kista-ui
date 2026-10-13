@@ -22,7 +22,7 @@ export function MetaProvider({ children, meta }: { children: React.ReactNode; me
     findBroker: (code) => meta.brokers.find(b => b.code === code),
     findStrategyStatus: (code) => meta.strategyStatuses.find(s => s.code === code),
     labelOf: (category, code) => {
-      const items = meta[category] as { code: string; label: string }[]
+      const items = (meta[category] ?? []) as { code: string; label: string }[]
       return items.find(i => i.code === code)?.label ?? code
     },
   }), [meta])

@@ -1335,7 +1335,7 @@ export interface paths {
         };
         /**
          * 내 그룹 목록 조회
-         * @description 내가 속한 그룹 전체 — 개인 그룹 포함.
+         * @description 내가 속한 그룹 목록(한 사용자는 최대 1개 그룹).
          */
         get: operations["listMyGroups"];
         put?: never;
@@ -1670,7 +1670,7 @@ export interface paths {
         post?: never;
         /**
          * 그룹 탈퇴 / 멤버 추방
-         * @description 본인이 나가거나(userId=본인) OWNER가 다른 멤버를 추방할 수 있습니다. 개인 그룹은 탈퇴할 수 없습니다.
+         * @description 본인이 나가거나(userId=본인) OWNER가 다른 멤버를 추방할 수 있습니다. 마지막 멤버가 나가면 그룹이 삭제되고, OWNER가 나가면 가장 먼저 합류한 멤버가 OWNER를 승계합니다.
          */
         delete: operations["leaveGroup"];
         options?: never;
@@ -1746,7 +1746,10 @@ export interface paths {
         /** 거래 사이클 수정 */
         put: operations["trading_update"];
         post?: never;
-        /** 거래 사이클 삭제 */
+        /**
+         * 거래 사이클 삭제
+         * @description 미체결 주문을 증권사에 취소한 뒤 전략·사이클·포지션을 삭제 처리(소프트 삭제). 취소에 실패한 주문이 있으면 400으로 중단.
+         */
         delete: operations["trading_delete"];
         options?: never;
         head?: never;
@@ -1770,6 +1773,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/trading-cycles/{id}/dca-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** DCA 설정 수정 */
+        put: operations["reconfigureDca"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/accounts/{id}": {
         parameters: {
             query?: never;
@@ -1786,7 +1806,7 @@ export interface paths {
         post?: never;
         /**
          * 계좌 삭제
-         * @description 계좌 및 관련 데이터를 영구 삭제.
+         * @description 미체결 주문을 증권사에 취소한 뒤 계좌와 전략·사이클·포지션을 삭제 처리(소프트 삭제). 주문 이력은 보존.
          */
         delete: operations["trading_delete_1"];
         options?: never;
@@ -1904,7 +1924,10 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** 거래 사이클 중지 */
+        /**
+         * 거래 사이클 중지
+         * @description 오늘 미체결 주문을 정리(PLANNED 삭제·PLACED 증권사 취소)한 뒤 PAUSED로 바꾼다. 취소 실패분은 관리자에게 알리고 중지는 진행.
+         */
         patch: operations["pause"];
         trace?: never;
     };
@@ -1976,6 +1999,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/trading-cycles/{id}/dca-executions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** DCA 회차 이력 조회 */
+        get: operations["listDcaExecutions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stats/summary": {
         parameters: {
             query?: never;
@@ -2025,7 +2065,7 @@ export interface paths {
         };
         /**
          * 사이클 성과 목록
-         * @description 종료·진행 중 사이클의 손익/수익률/소요일 (커서 페이지네이션). type/accountId/ticker는 AND 조합, 타 사용자 accountId는 빈 결과.
+         * @description 종료·진행 중 사이클의 손익/수익률/소요일 (번호 페이지네이션, page 0-based). type/accountId/ticker/status는 AND 조합(status 생략 시 전체), 타 사용자 accountId는 빈 결과.
          */
         get: operations["getCycles"];
         put?: never;
@@ -2331,19 +2371,35 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        DcaConfigRequest: {
+            /** @enum {string} */
+            direction: "BUY" | "SELL";
+            amountUsd: number;
+            /** @enum {string} */
+            orderType: "LOC" | "MOC" | "LIMIT" | "MOO";
+            /** @enum {string} */
+            frequency: "DAILY" | "WEEKLY" | "MONTHLY";
+            /** @enum {string} */
+            dayOfWeek?: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
+            /** Format: int32 */
+            dayOfMonth?: number;
+            conditions?: {
+                [key: string]: unknown;
+            }[];
+        };
         TradingCycleRequest: {
             /**
              * @description 전략 종류 (등록 시 필수)
              * @example INFINITE
              * @enum {string}
              */
-            type: "INFINITE" | "PRIVACY" | "VR";
+            type: "INFINITE" | "PRIVACY" | "VR" | "DCA";
             /**
              * @description 거래 종목 (null이면 런타임 기본값, PRIVACY=SOXL/VR=TQQQ 외 명시값은 400)
              * @example TQQQ
              * @enum {string}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL";
+            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
             /**
              * @description 초기 입금액 (PRIVACY: 배수 자동 산출 기준, VR: 예수금=초기 pool)
              * @example 2000
@@ -2446,6 +2502,36 @@ export interface components {
              * @example 5000
              */
             initialVrValue?: number;
+            /** @description DCA 설정 (type=DCA일 때 필수, 그 외 무시) */
+            dca?: components["schemas"]["DcaConfigRequest"];
+        };
+        DcaResponse: {
+            /** @enum {string} */
+            direction?: "BUY" | "SELL";
+            amountUsd?: number;
+            /** @enum {string} */
+            orderType?: "LOC" | "MOC" | "LIMIT" | "MOO";
+            /** @enum {string} */
+            frequency?: "DAILY" | "WEEKLY" | "MONTHLY";
+            /** @enum {string} */
+            dayOfWeek?: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
+            /** Format: int32 */
+            dayOfMonth?: number;
+            conditions?: unknown[];
+            nextExecution?: components["schemas"]["NextExecution"];
+            lastExecution?: components["schemas"]["LastExecution"];
+        };
+        LastExecution: {
+            /** Format: date */
+            kstTradeDate?: string;
+            status?: string;
+            skipReason?: string;
+        };
+        NextExecution: {
+            /** Format: date */
+            usSessionDate?: string;
+            /** Format: date */
+            kstTradeDate?: string;
         };
         TradingCycleResponse: {
             /**
@@ -2514,7 +2600,9 @@ export interface components {
             currentHoldings?: number;
             /** @description VR 전략 상세 (VR 전략만 non-null) */
             vr?: components["schemas"]["VrSummary"];
-            /** @description 등록 응답 전용 — 오늘 시작인데 오늘 개장 배치(22:30 KST, 월~금) 이후 등록돼 오늘 밤 장 시작 주문(INFINITE 매도·VR 사다리)이 자동 생성되지 않으면 true(PRIVACY는 항상 false, 미국 휴장일엔 거짓 양성 가능). 등록 외 응답에선 생략 */
+            /** @description DCA 전략 상세 (DCA 전략만 non-null) */
+            dca?: components["schemas"]["DcaResponse"];
+            /** @description 등록 응답 전용 — 오늘 시작인데 오늘 개장 배치(22:00 KST, 월~금) 이후 등록돼 오늘 밤 장 시작 주문(INFINITE 매도·VR 사다리)이 자동 생성되지 않으면 true(PRIVACY는 항상 false, 미국 휴장일엔 거짓 양성 가능). 등록 외 응답에선 생략 */
             todayOpenBatchMissed?: boolean;
         };
         VrSummary: {
@@ -2892,12 +2980,12 @@ export interface components {
              * @description 경쟁 전략 타입
              * @enum {string}
              */
-            type?: "INFINITE" | "PRIVACY" | "VR";
+            type?: "INFINITE" | "PRIVACY" | "VR" | "DCA";
             /**
              * @description 경쟁 전략 거래 종목
              * @enum {string}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL";
+            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
             /** @description 경쟁 전략 필요 매수금액 */
             requiredBuyUsd?: number;
             /**
@@ -2936,13 +3024,13 @@ export interface components {
              * @description 거래 종목
              * @enum {string}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL";
+            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
             /**
              * @description 주문 유형
              * @example LOC
              * @enum {string}
              */
-            orderType?: "LOC" | "MOC" | "LIMIT";
+            orderType?: "LOC" | "MOC" | "LIMIT" | "MOO";
             /**
              * @description 매수/매도 방향
              * @example BUY
@@ -2962,7 +3050,7 @@ export interface components {
              * @description 거래 종목
              * @enum {string}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL";
+            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
             /**
              * Format: int32
              * @description 보유 수량
@@ -3045,6 +3133,15 @@ export interface components {
              */
             status?: "PLANNED" | "PLACED" | "FILLED" | "PARTIALLY_FILLED" | "FAILED" | "CANCELLED";
         };
+        DcaExecutionPageResponse: {
+            content?: components["schemas"]["Item"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+            /** Format: int64 */
+            totalElements?: number;
+        };
         StatsSummaryResponse: {
             totalRealizedPnl?: number;
             totalUnrealizedPnl?: number;
@@ -3075,8 +3172,12 @@ export interface components {
         };
         CyclePerformancePageResponse: {
             items?: components["schemas"]["Item"][];
-            nextCursor?: string;
-            hasMore?: boolean;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
         };
         DailyTransactionResponse: {
             /** @description 일별 체결 내역 목록 */
@@ -3097,7 +3198,7 @@ export interface components {
              * @description 종목코드
              * @enum {string}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL";
+            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
             /** @description 종목명 */
             symbolName?: string;
             /**
@@ -3200,7 +3301,7 @@ export interface components {
              * @example TQQQ
              * @enum {string}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL";
+            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
             /**
              * @description 현재가 (USD)
              * @example 120.5
@@ -3218,7 +3319,7 @@ export interface components {
              * @description 종목코드
              * @enum {string}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL";
+            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
             /**
              * Format: int32
              * @description 잔고수량
@@ -3747,12 +3848,12 @@ export interface components {
             /** @description 사용자 입력 허용 여부 */
             customizable: boolean;
             /** @description 허용 값 목록 */
-            allowedValues: ("MAGX" | "USD" | "TQQQ" | "SOXL")[];
+            allowedValues: ("MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD")[];
             /**
              * @description 신규 생성 기본값
              * @enum {string}
              */
-            defaultValue: "MAGX" | "USD" | "TQQQ" | "SOXL";
+            defaultValue: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
         };
         FieldRequests: {
             /** @description 종목 생성 필드 설정 */
@@ -4210,7 +4311,7 @@ export interface components {
             /** Format: date */
             releaseDate: string;
             /** @enum {string} */
-            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL";
+            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
             currentCycleStart: number;
             currentCycleRealizedPnl: number;
             avgPrice?: number;
@@ -4222,7 +4323,7 @@ export interface components {
             /** @enum {string} */
             direction?: "BUY" | "SELL";
             /** @enum {string} */
-            orderType?: "LOC" | "MOC" | "LIMIT";
+            orderType?: "LOC" | "MOC" | "LIMIT" | "MOO";
             /** Format: int32 */
             quantity?: number;
             price?: number;
@@ -4285,7 +4386,7 @@ export interface components {
             /** @enum {string} */
             direction: "BUY" | "SELL";
             /** @enum {string} */
-            orderType: "LOC" | "MOC" | "LIMIT";
+            orderType: "LOC" | "MOC" | "LIMIT" | "MOO";
             price: number;
             /** Format: int32 */
             quantity?: number;
@@ -4505,6 +4606,19 @@ export interface components {
         EtfPriceSeriesResponse: {
             points?: components["schemas"]["EtfPriceSeriesPoint"][];
         };
+        DcaIndicatorMeta: {
+            /**
+             * @description enum name() 값
+             * @example SMA
+             */
+            code?: string;
+            /** @description 한국어 표시 이름 */
+            label?: string;
+            /** @description 비교 방식 설명 */
+            description?: string;
+            /** @description SMA 기간 옵션 (SMA 외에는 빈 목록) */
+            smaPeriods?: number[];
+        };
         EnumMeta: {
             /**
              * @description enum name() 값
@@ -4535,6 +4649,18 @@ export interface components {
             financeAccountTypes?: components["schemas"]["EnumMeta"][];
             /** @description 재무 카테고리 유형 목록 */
             financeCategoryTypes?: components["schemas"]["EnumMeta"][];
+            /** @description 주문 유형 목록 */
+            orderTypes?: components["schemas"]["EnumMeta"][];
+            /** @description 주문 방향 목록 */
+            orderDirections?: components["schemas"]["EnumMeta"][];
+            /** @description DCA 실행 주기 목록 */
+            dcaFrequencies?: components["schemas"]["EnumMeta"][];
+            /** @description DCA 조건 연산자 목록 */
+            dcaOperators?: components["schemas"]["EnumMeta"][];
+            /** @description DCA 회차 미주문 사유 목록 */
+            dcaSkipReasons?: components["schemas"]["EnumMeta"][];
+            /** @description DCA 조건 지표 목록 */
+            dcaIndicators?: components["schemas"]["DcaIndicatorMeta"][];
         };
         StrategyTypeMeta: {
             /**
@@ -4554,6 +4680,14 @@ export interface components {
             supportsReverseMode?: boolean;
             /** @description 분할 수 옵션 (빈 목록이면 분할 개념 없음) */
             divisionCounts?: number[];
+            /** @description 사용자 선택 주문유형 name() 목록 (빈 목록이면 선택 없음) */
+            orderTypes?: string[];
+            /** @description 사용자 선택 방향 name() 목록 (빈 목록이면 선택 없음) */
+            directions?: string[];
+            /** @description DCA 실행 주기 name() 목록 */
+            frequencies?: string[];
+            /** @description DCA 조건 지표 name() 목록 */
+            conditionIndicators?: string[];
         };
         TickerMeta: {
             /**
@@ -4904,7 +5038,7 @@ export interface components {
             adminId?: string;
         };
         /** @enum {string} */
-        ErrorCode: "BROKER_UNAVAILABLE" | "BROKER_CREDENTIAL_INVALID" | "BROKER_RATE_LIMITED" | "DUPLICATE_ACCOUNT" | "ALREADY_ORDERED_TODAY" | "ORDER_NOT_CANCELLABLE" | "MONTH_CLOSED" | "ACCESS_DENIED" | "COOLDOWN_ACTIVE" | "TRADING_CORE_UNAVAILABLE";
+        ErrorCode: "BROKER_UNAVAILABLE" | "BROKER_CREDENTIAL_INVALID" | "BROKER_RATE_LIMITED" | "DUPLICATE_ACCOUNT" | "ALREADY_ORDERED_TODAY" | "DCA_MANUAL_EXECUTION_UNSUPPORTED" | "ORDER_NOT_CANCELLABLE" | "MONTH_CLOSED" | "ACCESS_DENIED" | "COOLDOWN_ACTIVE" | "TRADING_CORE_UNAVAILABLE";
     };
     responses: never;
     parameters: never;
@@ -7863,13 +7997,6 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description 개인 그룹은 탈퇴할 수 없음 */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
         };
     };
     unregisterToken: {
@@ -8004,6 +8131,32 @@ export interface operations {
             };
         };
     };
+    reconfigureDca: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DcaConfigRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TradingCycleResponse"];
+                };
+            };
+        };
+    };
     trading_update_1: {
         parameters: {
             query?: never;
@@ -8069,6 +8222,13 @@ export interface operations {
         responses: {
             /** @description 삭제 성공 */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 증권사 주문 취소에 실패한 주문이 있어 삭제 중단 */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8407,6 +8567,31 @@ export interface operations {
             };
         };
     };
+    listDcaExecutions: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DcaExecutionPageResponse"];
+                };
+            };
+        };
+    };
     getSummary: {
         parameters: {
             query?: never;
@@ -8430,7 +8615,7 @@ export interface operations {
     getEquityCurve: {
         parameters: {
             query?: {
-                type?: "INFINITE" | "PRIVACY" | "VR";
+                type?: "INFINITE" | "PRIVACY" | "VR" | "DCA";
                 from?: string;
                 to?: string;
             };
@@ -8454,10 +8639,11 @@ export interface operations {
     getCycles: {
         parameters: {
             query?: {
-                type?: "INFINITE" | "PRIVACY" | "VR";
+                type?: "INFINITE" | "PRIVACY" | "VR" | "DCA";
                 accountId?: string;
-                ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL";
-                cursor?: string;
+                ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
+                status?: "ACTIVE" | "CLOSED";
+                page?: number;
                 size?: number;
             };
             header?: never;
@@ -8511,8 +8697,8 @@ export interface operations {
     run: {
         parameters: {
             query: {
-                type: "INFINITE" | "PRIVACY" | "VR";
-                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL";
+                type: "INFINITE" | "PRIVACY" | "VR" | "DCA";
+                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
                 from: string;
                 to: string;
                 seed?: number;
@@ -8577,8 +8763,8 @@ export interface operations {
     seedPreview: {
         parameters: {
             query: {
-                type: "INFINITE" | "PRIVACY" | "VR";
-                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL";
+                type: "INFINITE" | "PRIVACY" | "VR" | "DCA";
+                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
                 divisionCount?: number;
             };
             header?: never;
@@ -8607,7 +8793,7 @@ export interface operations {
                  * @description 종목 코드
                  * @example SOXL
                  */
-                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL";
+                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
             };
             header?: never;
             path: {
@@ -8671,7 +8857,7 @@ export interface operations {
                  * @description 조회할 종목 코드 목록 (TQQQ/SOXL/USD)
                  * @example TQQQ,SOXL,USD
                  */
-                tickers: ("MAGX" | "USD" | "TQQQ" | "SOXL")[];
+                tickers: ("MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD")[];
             };
             header?: never;
             path: {
@@ -9072,7 +9258,7 @@ export interface operations {
                  * @description 종목 코드
                  * @example SOXL
                  */
-                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL";
+                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
                 /**
                  * @description 간격 (1D/1W/1M)
                  * @example 1D

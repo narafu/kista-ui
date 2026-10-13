@@ -54,6 +54,7 @@ const settings: RuntimeConfig = {
       bandWidth: { customizable: true, allowedValues: [10, 15], defaultValue: 15 },
       intervalWeeks: { customizable: true, allowedValues: [1, 2], defaultValue: 2 },
     } },
+    DCA: { enabled: false, fields: { ticker: { customizable: true, allowedValues: ['UPRO', 'QLD'], defaultValue: 'UPRO' } } },
   },
 }
 
@@ -72,6 +73,28 @@ describe('AdminSettingsForm', () => {
     expect(screen.getByText(/가입 승인 대기 상태가 해제/)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /변경 저장/ }))
     expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({ auth: { approvalRequired: false } }))
+  })
+
+  it('DCA 전략 토글을 켜서 저장하면 strategies.DCA.enabled=true로 전송한다', async () => {
+    const user = userEvent.setup()
+    render(<AdminSettingsForm />)
+    await user.click(screen.getByRole('switch', { name: 'DCA' }))
+    await user.click(screen.getByRole('button', { name: /변경 저장/ }))
+    expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({
+      strategies: expect.objectContaining({ DCA: expect.objectContaining({ enabled: true }) }),
+    }))
+  })
+
+  it('DCA 종목 필드 편집기를 렌더한다', () => {
+    render(<AdminSettingsForm />)
+    expect(screen.getByRole('heading', { name: 'DCA 필드' })).toBeInTheDocument()
+  })
+
+  it('런타임 설정에 DCA 키가 없어도 크래시하지 않는다', () => {
+    const { DCA: _omit, ...legacy } = settings.strategies
+    queryState.data = { ...settings, strategies: legacy as typeof settings.strategies }
+    render(<AdminSettingsForm />)
+    expect(screen.queryByRole('heading', { name: 'DCA 필드' })).not.toBeInTheDocument()
   })
 
   it('renders a toggle for the MOCK broker', () => {
@@ -93,8 +116,8 @@ describe('AdminSettingsForm', () => {
     const user = userEvent.setup()
     render(<AdminSettingsForm />)
 
-    await user.type(screen.getByRole('combobox', { name: '종목 추가' }), 'qld')
-    await user.click(screen.getByRole('button', { name: '종목 추가 확정' }))
+    await user.type(screen.getAllByRole('combobox', { name: '종목 추가' })[0], 'qld')
+    await user.click(screen.getAllByRole('button', { name: '종목 추가 확정' })[0])
     await user.type(screen.getByRole('textbox', { name: '분할 수 추가' }), '40')
     await user.click(screen.getByRole('button', { name: '분할 수 추가 확정' }))
     await user.click(screen.getByRole('button', { name: /변경 저장/ }))
@@ -113,10 +136,10 @@ describe('AdminSettingsForm', () => {
     const user = userEvent.setup()
     render(<AdminSettingsForm />)
 
-    await user.click(screen.getByRole('button', { name: '종목 추가 확정' }))
+    await user.click(screen.getAllByRole('button', { name: '종목 추가 확정' })[0])
     expect(screen.getByRole('alert')).toHaveTextContent('값을 입력하세요.')
-    await user.type(screen.getByRole('combobox', { name: '종목 추가' }), 'soxl')
-    await user.click(screen.getByRole('button', { name: '종목 추가 확정' }))
+    await user.type(screen.getAllByRole('combobox', { name: '종목 추가' })[0], 'soxl')
+    await user.click(screen.getAllByRole('button', { name: '종목 추가 확정' })[0])
     expect(screen.getByRole('alert')).toHaveTextContent('이미 추가된 값입니다.')
 
     await user.type(screen.getByRole('textbox', { name: '분할 수 추가' }), 'abc')
@@ -210,7 +233,8 @@ describe('AdminSettingsForm', () => {
 
     await user.type(screen.getByRole('combobox', { name: 'ETF 벤치마크 자산 추가' }), 'qld')
     await user.click(screen.getByRole('button', { name: 'ETF 벤치마크 자산 추가 확정' }))
-    await user.click(screen.getByRole('radio', { name: 'QLD 기본값' }))
+    // DCA 픽스처에도 QLD가 있어 복수 매칭 — 벤치마크 섹션이 마지막
+    await user.click(screen.getAllByRole('radio', { name: 'QLD 기본값' }).at(-1)!)
     await user.click(screen.getByRole('button', { name: /변경 저장/ }))
 
     expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({

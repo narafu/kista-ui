@@ -25,7 +25,7 @@ import { FieldEditor } from './FieldEditor'
 import { normalizeNumber, normalizeSymbol } from '../model/normalizers'
 
 const STRATEGY_LABELS: Record<RuntimeStrategyType, string> = {
-  INFINITE: 'INFINITE', PRIVACY: 'PRIVACY', VR: 'VR',
+  INFINITE: 'INFINITE', PRIVACY: 'PRIVACY', VR: 'VR', DCA: 'DCA',
 }
 
 function clone(value: RuntimeConfig): RuntimeConfig {
@@ -171,10 +171,12 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
 
         <section className="border-b border-border px-4 py-4 sm:px-5">
           <h2 className="text-base font-bold">전략 생성</h2>
-          {(Object.keys(STRATEGY_LABELS) as RuntimeStrategyType[]).map((strategy) => (
-            <ToggleRow key={strategy} id={`strategy-${strategy}`} label={STRATEGY_LABELS[strategy]}
-              checked={draft.strategies[strategy].enabled} onChange={(enabled) => setStrategyEnabled(strategy, enabled)} />
-          ))}
+          {(Object.keys(STRATEGY_LABELS) as RuntimeStrategyType[])
+            .filter((strategy) => draft.strategies[strategy])
+            .map((strategy) => (
+              <ToggleRow key={strategy} id={`strategy-${strategy}`} label={STRATEGY_LABELS[strategy]}
+                checked={draft.strategies[strategy].enabled} onChange={(enabled) => setStrategyEnabled(strategy, enabled)} />
+            ))}
         </section>
 
         <section className="border-b border-border px-4 py-4 sm:px-5">
@@ -221,6 +223,21 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
           <FieldEditor id="vr-interval" label="주기 (주)" field={draft.strategies.VR.fields.intervalWeeks!}
             error={attempted ? errors['VR.intervalWeeks'] : undefined} inputType="number" normalize={normalizeNumber} onChange={(value) => setStrategyField('VR', 'intervalWeeks', value)} />
         </section>
+
+        {draft.strategies.DCA && (
+          <section className="border-b border-border px-4 py-4 sm:px-5">
+            <h2 className="text-base font-bold">DCA 필드</h2>
+            <FieldEditor
+              id="dca-ticker"
+              label="종목"
+              field={draft.strategies.DCA.fields.ticker}
+              error={attempted ? errors['DCA.ticker'] : undefined}
+              suggestions={['UPRO', 'QLD']}
+              normalize={normalizeSymbol}
+              onChange={(value) => setStrategyField('DCA', 'ticker', value)}
+            />
+          </section>
+        )}
 
         <section className="px-4 py-4 sm:px-5">
           <h2 className="text-base font-bold">벤치마크 비교</h2>

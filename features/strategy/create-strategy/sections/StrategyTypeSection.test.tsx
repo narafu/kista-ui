@@ -21,6 +21,10 @@ describe('StrategyTypeSection', () => {
           tickerFixed: true,
           supportsReverseMode: false,
           divisionCounts: [],
+          orderTypes: [],
+          directions: [],
+          frequencies: [],
+          conditionIndicators: [],
         }]}
       />,
     )
