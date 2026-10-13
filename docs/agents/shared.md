@@ -57,6 +57,8 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 - **대상 키**: 무효화는 `widgets/layout/TradeNotificationBridge.tsx`에서 마운트된다. prefix 무효화 대상은 다음과 같다.
   - `tradeKeys.all`(portfolio 포함)
   - `strategyKeys.lists()`·`strategyKeys.details()`(`currentRound`·`currentHoldings`)
+    - 상세 전용 API가 없어 `strategyDetailQueryOptions`는 queryFn의 `client.fetchQuery`로 계좌별 목록 캐시를 거쳐 찾는다. 그래서 list·detail이 함께 무효화돼도 목록 API는 1회만 나간다(진행 중 요청 공유).
+    - 이 공유는 lists를 details보다 **먼저** 무효화해야 성립한다. 순서가 바뀌면 detail이 아직 무효화되지 않은(30초 fresh) 목록 캐시를 재사용해 갱신 전 값을 받는다. 순서는 `TradeNotificationBridge.test.tsx`가, 1회 호출은 `entities/strategy/model/queryOptions.test.ts`가 고정한다.
   - `orderKeys.all`
   - `statsKeys.summary()`·`statsKeys.equityCurveAll()`·`statsKeys.cyclesAll()`·`statsKeys.housingComparisonAll()`. housing-comparison은 이름과 달리 내 투자 수익률(`investmentCumulativeReturn` 등)을 포함하므로 대상이다.
 - **제외 키**:

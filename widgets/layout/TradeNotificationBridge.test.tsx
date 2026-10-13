@@ -6,7 +6,7 @@ import { statsKeys } from '@entities/stats'
 import { strategyKeys } from '@entities/strategy'
 import { accountKeys } from '@entities/account'
 import { tradeKeys } from '@entities/trade'
-import { TradeNotificationBridge } from './TradeNotificationBridge'
+import { TRADE_DEPENDENT_KEYS, TradeNotificationBridge } from './TradeNotificationBridge'
 
 vi.mock('sonner', () => ({
   toast: { custom: vi.fn() },
@@ -60,5 +60,10 @@ describe('TradeNotificationBridge', () => {
 
     for (const key of INVALIDATED) expect(client.getQueryState(key)?.isInvalidated, JSON.stringify(key)).toBe(true)
     for (const key of PRESERVED) expect(client.getQueryState(key)?.isInvalidated, JSON.stringify(key)).toBe(false)
+  })
+
+  it('strategy lists를 details보다 먼저 무효화한다 (detail은 목록 캐시를 거쳐 조회)', () => {
+    const keys = TRADE_DEPENDENT_KEYS.map((key) => JSON.stringify(key))
+    expect(keys.indexOf(JSON.stringify(strategyKeys.lists()))).toBeLessThan(keys.indexOf(JSON.stringify(strategyKeys.details())))
   })
 })

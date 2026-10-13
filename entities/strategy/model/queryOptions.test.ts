@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from 'vitest'
+import { QueryClient, QueryObserver } from '@tanstack/react-query'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { strategyKeys } from './queryKeys'
 import {
@@ -17,7 +18,16 @@ vi.mock('../api', () => ({
   listStrategies: listStrategiesMock,
 }))
 
+function createClient() {
+  return new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 30_000 } } })
+}
+
 describe('strategy query options', () => {
+  beforeEach(() => {
+    listAllStrategiesMock.mockReset()
+    listStrategiesMock.mockReset()
+  })
+
   it('is importable from the server-compatible model module and forwards server tokens', async () => {
     listAllStrategiesMock.mockResolvedValue([])
     listStrategiesMock.mockResolvedValue([])
@@ -50,22 +60,58 @@ describe('strategy query options', () => {
     listStrategiesMock.mockResolvedValue([strategy])
 
     const options = strategyDetailQueryOptions(strategy.accountId, strategy.id, 'server-token')
-    if (!options.queryFn) throw new Error('strategy detail query options require a query function')
 
-    await expect(options.queryFn({} as never)).resolves.toEqual(strategy)
+    await expect(createClient().fetchQuery(options)).resolves.toEqual(strategy)
     expect(options.queryKey).toEqual(strategyKeys.detail(strategy.id))
     expect(listStrategiesMock).toHaveBeenCalledWith(strategy.accountId, 'server-token')
   })
 
   it('distinguishes successful absence from a strategy-list transport failure', async () => {
     const missing = strategyDetailQueryOptions('account-1', 'missing', 'server-token')
-    if (!missing.queryFn) throw new Error('strategy detail query options require a query function')
     listStrategiesMock.mockResolvedValueOnce([])
 
-    await expect(missing.queryFn({} as never)).resolves.toBeNull()
+    await expect(createClient().fetchQuery(missing)).resolves.toBeNull()
 
     const backendError = new Error('backend unavailable')
     listStrategiesMock.mockRejectedValueOnce(backendError)
-    await expect(missing.queryFn({} as never)).rejects.toBe(backendError)
+    await expect(createClient().fetchQuery(missing)).rejects.toBe(backendError)
+  })
+
+  it('shares one list request when list and detail are invalidated together (trade SSE order: lists, then details)', async () => {
+    const client = createClient()
+    listStrategiesMock.mockResolvedValue([{ id: 'strategy-1', currentHoldings: 0 }])
+    const unsubscribe = [
+      new QueryObserver(client, strategyListByAccountQueryOptions('account-1')).subscribe(() => {}),
+      new QueryObserver(client, strategyDetailQueryOptions('account-1', 'strategy-1')).subscribe(() => {}),
+    ]
+    await vi.waitFor(() => expect(client.getQueryData(strategyKeys.detail('strategy-1'))).not.toBeUndefined())
+    listStrategiesMock.mockClear()
+    listStrategiesMock.mockResolvedValue([{ id: 'strategy-1', currentHoldings: 3 }])
+
+    await Promise.all([
+      client.invalidateQueries({ queryKey: strategyKeys.lists() }),
+      client.invalidateQueries({ queryKey: strategyKeys.details() }),
+    ])
+
+    expect(listStrategiesMock).toHaveBeenCalledOnce()
+    expect(client.getQueryData(strategyKeys.detail('strategy-1'))).toEqual({ id: 'strategy-1', currentHoldings: 3 })
+    unsubscribe.forEach((stop) => stop())
+  })
+
+  it('resolves fresh detail data when one strategyKeys.all invalidation refetches detail before list', async () => {
+    const client = createClient()
+    listStrategiesMock.mockResolvedValue([{ id: 'strategy-1', currentHoldings: 0 }])
+    const unsubscribe = [
+      new QueryObserver(client, strategyDetailQueryOptions('account-1', 'strategy-1')).subscribe(() => {}),
+      new QueryObserver(client, strategyListByAccountQueryOptions('account-1')).subscribe(() => {}),
+    ]
+    await vi.waitFor(() => expect(client.getQueryData(strategyKeys.detail('strategy-1'))).not.toBeUndefined())
+    listStrategiesMock.mockResolvedValue([{ id: 'strategy-1', currentHoldings: 5 }])
+
+    await client.invalidateQueries({ queryKey: strategyKeys.all })
+
+    expect(client.getQueryState(strategyKeys.detail('strategy-1'))?.status).toBe('success')
+    expect(client.getQueryData(strategyKeys.detail('strategy-1'))).toEqual({ id: 'strategy-1', currentHoldings: 5 })
+    unsubscribe.forEach((stop) => stop())
   })
 })
