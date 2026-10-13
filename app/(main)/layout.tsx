@@ -4,7 +4,7 @@ import { MobileHeader } from '@widgets/layout/MobileHeader'
 import { FcmBridge } from '@widgets/layout/FcmBridge'
 import { MetaProvider } from '@entities/meta'
 import { PullToRefresh } from '@widgets/pull-to-refresh'
-import { TradeNotificationProvider } from '@entities/trade'
+import { TradeNotificationBridge } from '@widgets/layout/TradeNotificationBridge'
 import { getMetaBundle } from '@entities/meta'
 import { getMe } from '@entities/user'
 import { getAuthToken } from '@shared/lib/auth/token'
@@ -75,7 +75,7 @@ export default async function MainLayout({ children, modal }: Props) {
           <MobileBottomNav />
         </div>
         {isAuthenticated && <FcmBridge />}
-        <TradeNotificationProvider />
+        <TradeNotificationBridge />
         {modal}
         </div>
     </MetaProvider>

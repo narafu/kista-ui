@@ -45,7 +45,10 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 일반 query mutation의 성공 처리에는 사용하지 않는다(캐시 동기화 대신 이동 전 `router.refresh()`를 호출하는 패턴 금지 — refresh는 현재 route만 갱신하고 목적지 Router Cache의 가변 상태를 보장하지 않는다). 현재 허용되는 예외는 다음 두 가지뿐이다.
 
 - `widgets/pull-to-refresh/PullToRefresh.tsx`: 사용자가 명시적으로 요청한 화면 전체 재동기화다. 특정 mutation의 누락된 캐시 처리를 가리는 수단이 아니라 모바일의 수동 recovery 동작이므로 허용한다.
-- `entities/trade/providers/TradeNotificationProvider.tsx`: SSE `trade` 이벤트는 알림 중심 payload이며 영향을 받는 서버 렌더 집계 전체를 아직 식별할 수 없다. 외부에서 발생한 체결 뒤 toast와 서버 화면을 재동기화하기 위한 provider-level refresh를 유지한다. 이벤트 payload가 account/strategy/order/trade key를 완전히 특정하게 되면 targeted `setQueryData`/invalidate로 대체한다.
+- `entities/trade/providers/TradeNotificationProvider.tsx`: SSE `trade` 이벤트를 받으면 두 가지를 함께 한다.
+  - 주입된 `onTrade`가 체결로 바뀌는 클라이언트 쿼리를 prefix로 무효화한다. 마운트 위치는 `widgets/layout/TradeNotificationBridge.tsx`다. 대상은 `tradeKeys.all`·`orderKeys.all`·`statsKeys.summary()`·`statsKeys.equityCurveAll()`·`statsKeys.cyclesAll()`이다. stats의 housing·etf·regions 같은 외부 참조 데이터는 체결과 무관해서 제외한다(`statsKeys.all` 사용 금지). 대상 키는 `TradeNotificationBridge.test.tsx`가 고정한다. 무효화 로직을 브리지에 둔 이유는 `entities/trade`에서 `@entities/order`·`@entities/stats`를 import하면 같은 계층 cross-import가 되기 때문이다.
+  - `router.refresh()`는 유지한다. 레이아웃·페이지의 서버 렌더 집계(계좌 포트폴리오 등 React Query 키가 없는 SSR 값)는 refresh로만 갱신된다. 현재 route에서 prefetch된 키는 hydrate와 invalidate refetch로 두 번 조회될 수 있지만, 체결 빈도를 고려해 감수한다.
+  - 종료 조건: 이벤트 payload에 accountId·strategyId가 담겨 account/strategy/order/trade key를 완전히 특정하게 되면(kista-api 변경 필요) prefix 무효화를 targeted `setQueryData`/invalidate로 좁힌다. SSR 집계가 React Query로 이관되면 `router.refresh()`를 제거한다.
 
 새 예외는 이 문서에 목적과 종료 조건을 먼저 기록해야 한다.
 

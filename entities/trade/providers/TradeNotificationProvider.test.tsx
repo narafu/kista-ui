@@ -3,13 +3,14 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { TradeNotificationProvider } from './TradeNotificationProvider'
 import type { TradeEvent } from '@entities/trade'
 
-const { refreshMock, toastCustomMock } = vi.hoisted(() => ({
-  refreshMock: vi.fn(),
-  toastCustomMock: vi.fn(),
-}))
+const { refreshMock, toastCustomMock, router } = vi.hoisted(() => {
+  const refreshMock = vi.fn()
+  // 실제 Next router처럼 렌더 간 같은 참조를 유지한다 (effect deps 재실행 방지)
+  return { refreshMock, toastCustomMock: vi.fn(), router: { refresh: refreshMock } }
+})
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ refresh: refreshMock }),
+  useRouter: () => router,
 }))
 
 vi.mock('sonner', () => ({
@@ -49,6 +50,23 @@ describe('TradeNotificationProvider', () => {
     expect(toastCustomMock).toHaveBeenCalledTimes(1)
     expect(toastCustomMock).toHaveBeenCalledWith(expect.any(Function), { duration: 6000 })
     expect(refreshMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('trade 이벤트 수신 시 주입된 onTrade에 이벤트를 넘긴다', () => {
+    const onTrade = vi.fn()
+    render(<TradeNotificationProvider onTrade={onTrade} />)
+    const event: TradeEvent = { kind: 'SELL', ticker: 'SOXL', time: '2026-01-01T00:00:00Z', accountNickname: '계좌1' }
+
+    EventSource.instances[0].emit('trade', JSON.stringify(event))
+
+    expect(onTrade).toHaveBeenCalledWith(event)
+  })
+
+  it('onTrade가 바뀌어도 SSE를 재연결하지 않는다', () => {
+    const { rerender } = render(<TradeNotificationProvider onTrade={vi.fn()} />)
+    rerender(<TradeNotificationProvider onTrade={vi.fn()} />)
+
+    expect(EventSource.instances).toHaveLength(1)
   })
 
   it('trade 이벤트 payload가 JSON parse 불가면 무시하고 예외를 던지지 않는다', () => {
