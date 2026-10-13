@@ -112,6 +112,8 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
               {/* hover 가독성 — 세로 가이드선 + 강조 점 + 큰 금액 글씨로 어느 달의 값인지 바로 읽히게 한다 */}
               <Tooltip
                 formatter={(value, name) => [maskIfHidden(fmtKrw(Number(value))), name]}
+                // recharts 기본 정렬(name)은 "순자산"을 "총자산"보다 먼저 보여준다 — 그래프 위아래 순서와 맞추려고 금액 내림차순 정렬
+                itemSorter={(item) => -Number(item.value)}
                 cursor={{ stroke: 'var(--muted-foreground)', strokeWidth: 1, strokeDasharray: '4 4' }}
                 contentStyle={{
                   fontSize: 14,
