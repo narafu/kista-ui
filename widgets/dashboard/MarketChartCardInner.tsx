@@ -61,6 +61,7 @@ function readChartColors() {
   return {
     background: readVar('--background', 'background-color'),
     foreground: readVar('--foreground'),
+    mutedForeground: readVar('--muted-foreground'),
     border: readVar('--border'),
     pos: readVar('--pos'),
     neg: readVar('--neg'),
@@ -85,7 +86,7 @@ export default function MarketChartCardInner({ category }: Props) {
     const container = containerRef.current
     if (!container) return
 
-    const { background, foreground, border, pos, neg, maLines, rsi: rsiColor } = readChartColors()
+    const { background, foreground, mutedForeground, border, pos, neg, maLines, rsi: rsiColor } = readChartColors()
 
     const chart = createChart(container, {
       width: container.clientWidth,
@@ -135,6 +136,7 @@ export default function MarketChartCardInner({ category }: Props) {
             ...LINE_OPTIONS,
             color: rsiColor,
             lastValueVisible: true,
+            priceFormat: { type: 'price', precision: 0, minMove: 1 },
             autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 100 } }),
           },
           1,
@@ -142,7 +144,7 @@ export default function MarketChartCardInner({ category }: Props) {
       : null
     const rsiGuideLines = rsiSeries
       ? [70, 30].map((price) =>
-          rsiSeries.createPriceLine({ price, color: border, lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: false }),
+          rsiSeries.createPriceLine({ price, color: mutedForeground, lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: false }),
         )
       : []
     if (rsiSeries) {
@@ -170,7 +172,7 @@ export default function MarketChartCardInner({ category }: Props) {
       series.applyOptions({ upColor: colors.pos, downColor: colors.neg, borderVisible: false, wickUpColor: colors.pos, wickDownColor: colors.neg })
       maSeries.forEach((line, index) => line.applyOptions({ color: colors.maLines[index] }))
       rsiSeries?.applyOptions({ color: colors.rsi })
-      rsiGuideLines.forEach((line) => line.applyOptions({ color: colors.border }))
+      rsiGuideLines.forEach((line) => line.applyOptions({ color: colors.mutedForeground }))
     })
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
 

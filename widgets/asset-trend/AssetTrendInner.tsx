@@ -26,7 +26,11 @@ import type { AssetClass, TrendMode, TrendRange } from '@entities/finance'
 
 // Y축 눈금 전용 — fmtKrw는 "1,000,000원" 같은 긴 문자열이라 좁은 축 폭에 맞지 않는다.
 // 만원 단위로 축약해 표시하고, 정확한 금액은 Tooltip의 fmtKrw로 보여준다.
+// 1억 이상은 "60,000만"처럼 길어져 축 폭(44px)에서 앞자리가 잘리므로 억 단위로 줄인다.
 function fmtKrwAxisTick(value: number): string {
+  if (Math.abs(value) >= 100_000_000) {
+    return `${(value / 100_000_000).toLocaleString('ko-KR', { maximumFractionDigits: 1 })}억`
+  }
   return `${Math.round(value / 10_000).toLocaleString('ko-KR')}만`
 }
 
