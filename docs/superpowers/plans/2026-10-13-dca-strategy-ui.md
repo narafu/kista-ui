@@ -41,6 +41,9 @@
 - 수정: `PUT /api/trading-cycles/{id}/dca-config` 본문은 `dca` 객체다. ticker와 direction은 변경할 수 없다(다르면 400).
 - 조회: `TradingCycleResponse.dca`(비DCA는 null)에 등록 필드 + `nextExecution{usSessionDate,kstTradeDate}|null` + `lastExecution{kstTradeDate,status,skipReason}|null`이 실린다.
 - 이력: `GET /api/trading-cycles/{id}/dca-executions?page&size` 응답 `{content[], page, size, totalElements}`. page는 0부터 센다.
+  - `referencePrice`: SKIPPED 행에는 판정에 쓴 전일 종가가 담기고, 데이터 실패 시 null이다. ORDERED 행은 단계 ①에서 항상 null이다. 이력 표의 "기준가" 열은 null이면 `-`로 표시한다.
+- `nextExecution`: 사이클 시작일 당일은 판정하지 않는다. 오늘 시작으로 등록하면 빨라야 다음 거래일이다(UI는 받은 값을 표시만 한다).
+- `currentHoldings`: 같은 계좌·종목의 매수 DCA와 매도 DCA는 같은 계좌 보유값을 공유한다. 계좌 통계·포트폴리오에서는 DCA가 제외된다(서버 처리, UI 변경 없음).
 - 메타:
   - `StrategyTypeMeta`에 `orderTypes`, `directions`, `frequencies`, `conditionIndicators`(code 배열)가 붙는다.
   - 최상위 신규 키: `orderTypes`, `orderDirections`, `dcaFrequencies`, `dcaOperators`, `dcaSkipReasons`(EnumMeta[]), `dcaIndicators`(`{code,label,description,smaPeriods:number[]}[]`)
@@ -467,10 +470,15 @@ Expected: PASS
   })
 
   it('listDcaExecutions는 page·size 쿼리로 조회하고 숫자를 정규화한다', async () => {
-    mockResponse({ content: [{ kstTradeDate: '2026-09-30', usSessionDate: '2026-09-29', status: 'ORDERED', skipReason: null, detail: null, referencePrice: '87.12', quantity: 3, order: { id: 'o1', status: 'FILLED', filledQuantity: 3, filledPrice: '87.40' } }], page: 0, size: 20, totalElements: 1 })
+    mockResponse({ content: [
+      { kstTradeDate: '2026-09-30', usSessionDate: '2026-09-29', status: 'ORDERED', skipReason: null, detail: null, referencePrice: null, quantity: 3, order: { id: 'o1', status: 'FILLED', filledQuantity: 3, filledPrice: '87.40' } },
+      { kstTradeDate: '2026-08-29', usSessionDate: '2026-08-28', status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET', detail: 'RSI(14) 48.20 > 35', referencePrice: '86.50', quantity: null, order: null },
+    ], page: 0, size: 20, totalElements: 2 })
     const res = await listDcaExecutions('s1', 0, 20)
-    expect(res.content[0]).toMatchObject({ referencePrice: 87.12, quantity: 3, order: { filledPrice: 87.4 } })
-    expect(res.totalElements).toBe(1)
+    // ORDERED 행 referencePrice는 단계 ①에서 항상 null, SKIPPED 행은 판정에 쓴 전일 종가
+    expect(res.content[0]).toMatchObject({ referencePrice: undefined, quantity: 3, order: { filledPrice: 87.4 } })
+    expect(res.content[1]).toMatchObject({ referencePrice: 86.5, quantity: undefined, order: null })
+    expect(res.totalElements).toBe(2)
   })
 ```
 
@@ -1699,8 +1707,8 @@ vi.mock('@entities/strategy', async (orig) => ({
   ...(await orig<typeof import('@entities/strategy')>()),
   useDcaExecutionsQuery: () => ({
     data: { content: [
-      { kstTradeDate: '2026-09-30', status: 'ORDERED', skipReason: null, detail: null, referencePrice: 87.12, quantity: 3, order: { id: 'o1', status: 'FILLED', filledQuantity: 3, filledPrice: 87.4 } },
-      { kstTradeDate: '2026-08-29', status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET', detail: 'RSI(14) 48.20 > 35', order: null },
+      { kstTradeDate: '2026-09-30', status: 'ORDERED', skipReason: null, detail: null, quantity: 3, order: { id: 'o1', status: 'FILLED', filledQuantity: 3, filledPrice: 87.4 } },
+      { kstTradeDate: '2026-08-29', status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET', detail: 'RSI(14) 48.20 > 35', referencePrice: 86.5, order: null },
     ], page: 0, size: 20, totalElements: 2 },
     isLoading: false, isError: false,
   }),
