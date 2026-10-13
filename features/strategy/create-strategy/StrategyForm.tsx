@@ -14,6 +14,7 @@ import { DivisionCountSection } from './sections/DivisionCountSection'
 import { VrSettingsSection } from './sections/VrSettingsSection'
 import { InitialHoldingsSection } from './sections/InitialHoldingsSection'
 import { ScheduledStartSection } from './sections/ScheduledStartSection'
+import { DcaStrategyForm } from './DcaStrategyForm'
 import { StrategyFormSkeleton } from './StrategyFormSkeleton'
 import type { Strategy } from '@entities/strategy'
 import type { BrokerCode } from '@entities/account'
@@ -83,6 +84,26 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
 
   if (!initial && form.runtimeConfigError) {
     return <RuntimeConfigError onRetry={form.retryRuntimeConfig} />
+  }
+
+  // DCA는 시드·분할·VR과 무관한 별도 폼 — 유형 선택(등록)만 공유하고 나머지는 DcaStrategyForm이 렌더
+  if ((initial?.type ?? form.type) === 'DCA') {
+    return (
+      <>
+        {!initial && (
+          <StrategyTypeSection initial={initial} type={form.type} setType={form.setType} loading={form.loading} strategyTypes={strategyTypes} />
+        )}
+        <DcaStrategyForm
+          key={initial?.id ?? 'new'}
+          accountId={accountId}
+          broker={broker}
+          initial={initial}
+          availableTickers={initial ? [initial.ticker] : form.availableTickers}
+          onSuccess={onSuccess}
+          onCancel={onCancel}
+        />
+      </>
+    )
   }
 
   return (

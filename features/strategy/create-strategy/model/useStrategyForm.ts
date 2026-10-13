@@ -165,7 +165,7 @@ export function useStrategyForm({
   const seedPreview = useStrategySeedPreviewQuery(
     accountId,
     { type, ticker, divisionCount },
-    { enabled: !!type && !!ticker && !isVr },
+    { enabled: !!type && !!ticker && !isVr && type !== 'DCA' },
   )
   const { basePrice, minSeed, seedUnavailableReason } = deriveSeedPreview(isVr, seedPreview.data)
   const loadingBase = seedPreview.isLoading || marginLoading

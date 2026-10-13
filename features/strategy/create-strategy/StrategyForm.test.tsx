@@ -64,6 +64,12 @@ vi.mock('./sections/ScheduledStartSection', () => ({
   },
 }))
 
+vi.mock('./DcaStrategyForm', () => ({
+  DcaStrategyForm: (props: { availableTickers: string[] }) => (
+    <div data-testid="dca-strategy-form">{props.availableTickers.join(',')}</div>
+  ),
+}))
+
 const baseFormState = {
   type: 'INFINITE',
   setType: vi.fn(),
@@ -292,5 +298,16 @@ describe('StrategyForm VR settings section', () => {
 
     expect(screen.getByText('입력값을 다시 확인해 주세요.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '등록' })).toBeEnabled()
+  })
+
+  it('type=DCA면 DcaStrategyForm만 렌더하고 시드·분할 섹션은 렌더하지 않는다', () => {
+    useStrategyFormMock.mockReturnValue({ ...baseFormState, type: 'DCA', availableTickers: ['UPRO', 'QLD'] })
+
+    render(<StrategyForm accountId="account-1" />)
+
+    expect(screen.getByTestId('dca-strategy-form')).toHaveTextContent('UPRO,QLD')
+    expect(screen.getByText('type-section')).toBeInTheDocument()
+    expect(screen.queryByTestId('usage-ratio-section')).not.toBeInTheDocument()
+    expect(screen.queryByText('division-count-section')).not.toBeInTheDocument()
   })
 })

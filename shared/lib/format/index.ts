@@ -84,7 +84,7 @@ export function todayKst(): string {
 
 /**
  * 매매 거래일(KST) — KST 04:30 이후면 다음 날. kista-api DstInfo.nextTradeDate()(SCHEDULER_RUN_TIME 04:30)와 같은 규칙.
- * 밤 미국장 주문(22:30 개장 배치·바로 주문)은 다음 날 거래일로 저장되므로 관리자 재주문 화면은 이 날짜로 조회·접수한다.
+ * 밤 미국장 주문(22:00 개장 배치·바로 주문)은 다음 날 거래일로 저장되므로 관리자 재주문 화면은 이 날짜로 조회·접수한다.
  */
 export function nextTradeDateKst(now: Date = new Date()): string {
   const kstTime = now.toLocaleTimeString('en-GB', { timeZone: 'Asia/Seoul', hourCycle: 'h23' })

@@ -9,7 +9,7 @@ interface Props {
   loading: boolean
 }
 
-// 시작예정일 — 세 전략 공통, 등록 전용. 시작예정일 밤 미국장(그날 22:30 개장 배치)부터 매매가 시작된다
+// 시작예정일 — 네 전략 공통, 등록 전용. 시작예정일 밤 미국장(그날 22:00 개장 배치)부터 매매가 시작된다
 export function ScheduledStartSection({ value, onChange, loading }: Props) {
   return (
     <div className="py-[18px] border-b border-border">
