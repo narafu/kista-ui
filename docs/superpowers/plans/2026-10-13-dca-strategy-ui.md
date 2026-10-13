@@ -23,6 +23,10 @@
 - **접근성:** `SelectTrigger`에는 `aria-label`을 단다. 가로 스크롤 표는 `role="region"` + `aria-label` + `tabIndex={0}`로 감싼다. 섹션 제목 heading 레벨을 건너뛰지 않는다.
 - **React Query:** 서버 상태를 `useState`에 복사하지 않는다. mutation 훅의 `onError`를 호출부에서 다시 지정하지 않는다.
 - **검증:** 태스크마다 관련 테스트 파일만 실행한다. 전체 `npm run test:run`, `typecheck`, `lint`는 Task 7에서 1회만 돌린다.
+- **서브에이전트 모델(사용자 전역 규칙: 매번 명시):**
+  - Task 1·2·3·7(기계적 작업): `sonnet`
+  - Task 4(폼, 가장 큼)·5·6(위젯 분기): 구현은 `sonnet`, 리뷰어는 `opus`
+  - fix-round 재검토: 원 태스크보다 한 단계 낮은 모델
 - **커밋:**
   - 커밋은 각 태스크의 리뷰어 통과 후에 한다.
   - author는 `narafu <narafu@kakao.com>`이고 메시지는 한글로 쓴다.
@@ -49,7 +53,7 @@
 
 ## Review Focus
 
-1. **DCA 카드·상세에서 단건 미리보기(409)가 호출되지 않아야 한다.** `StrategyCard`/`StrategyDetail`의 훅 호출 순서 때문에 분기를 컴포넌트 안에 넣으면 훅이 먼저 실행된다. 반드시 래퍼에서 분기한다(Task 5·6 테스트로 고정).
+1. **DCA 전략에 대해 단건 미리보기(409)와 바로 주문이 어디에서도 호출되지 않아야 한다.** 2026-10-13 grep 기준으로 호출하는 곳은 `StrategyCard`, `StrategyDetail`, 상세 페이지 prefetch뿐이다. 실행 중 새 소비처가 생기면 같은 가드를 추가한다. `StrategyCard`/`StrategyDetail`의 훅 호출 순서 때문에 분기를 컴포넌트 안에 넣으면 훅이 먼저 실행된다. 반드시 래퍼에서 분기한다(Task 5·6 테스트로 고정).
 2. **런타임 설정에 `strategies.DCA`가 없는 구버전 응답이 와도 폼과 관리자 화면이 크래시하지 않아야 한다.** API ① 배포 전후 캐시 혼재 상황이다. 관리자 폼은 `draft.strategies.DCA?.`로 가드한다(Task 1 테스트).
 3. **MONTHLY에서 "말일"을 고르면 payload `dayOfMonth`가 null이어야 하고, 29~31 선택은 숫자 그대로 가야 한다.** 주기를 WEEKLY→MONTHLY로 바꿀 때 남아 있던 `dayOfWeek` 값은 payload에서 null이어야 한다(Task 3 테스트).
 4. **조건을 SMA로 바꾸면 이전 threshold가 payload에 남지 않아야 하고, RSI·공포탐욕의 0~100 범위를 벗어나면 제출이 막혀야 한다**(Task 3 테스트).
@@ -84,11 +88,12 @@
 
 ---
 
-### Task 1: 타입 재생성 + 메타 타입 + 관리자 설정 DCA 행
+### Task 1: 타입 재생성 + 메타 타입 + 관리자 설정 DCA 행 + 백테스트 제외
 
 **Files:**
 - Modify: `shared/lib/api-types.ts`, `openapi.json` (생성물)
-- Modify: `entities/meta/model/types.ts`
+- Modify: `entities/meta/model/types.ts`, `entities/meta/providers/MetaProvider.tsx:24-27`
+- Modify: `features/backtest/run-backtest/BacktestForm.tsx:30`
 - Modify: `features/admin/settings/ui/AdminSettingsForm.tsx:27-28, 172-230`
 - Test: `features/admin/settings/ui/AdminSettingsForm.test.tsx`
 
@@ -239,16 +244,45 @@ VR 필드 `<section>` 바로 뒤에 다음을 추가한다(`tickerSuggestions`�
 
 `validateAdminSettings`는 `Object.entries(settings.strategies)`를 순회하므로 수정하지 않는다. 허용 티커가 capability를 벗어나면 서버가 400을 반환하고, 기존 저장 실패 토스트로 표시된다.
 
-- [ ] **Step 7: 통과 확인**
+- [ ] **Step 7: 메타 누락 가드 + 백테스트 DCA 제외**
 
-Run: `npx vitest run features/admin/settings`
+`MetaProvider.tsx` `labelOf`: `getMetaBundle`은 1시간 동안 캐시된다. 신규 키가 없는 구버전 응답이 캐시에 남아 있어도 `undefined.find`로 크래시하지 않게 가드한다.
+
+```tsx
+    labelOf: (category, code) => {
+      const items = (meta[category] ?? []) as { code: string; label: string }[]
+      return items.find(i => i.code === code)?.label ?? code
+    },
+```
+
+`BacktestForm.tsx:30`:
+
+```tsx
+            {/* 백엔드 백테스트는 DCA 미지원(spec 3.5) — 지원 추가 시 필터 제거 */}
+            {form.meta.strategyTypes.filter((t) => t.code !== 'DCA').map((t) => {
+```
+
+`features/backtest/run-backtest`에 테스트가 있으면(`ls features/backtest/run-backtest/*.test.tsx`) 메타 픽스처에 DCA 유형을 추가하고 다음 단언을 넣는다:
+
+```tsx
+  it('DCA 유형은 백테스트 선택지에 없다', () => {
+    renderBacktestForm()
+    expect(screen.queryByText('DCA')).not.toBeInTheDocument()
+  })
+```
+
+(`renderBacktestForm`은 그 파일의 기존 render 헬퍼 이름을 쓴다.)
+
+- [ ] **Step 8: 통과 확인**
+
+Run: `npx vitest run features/admin/settings features/backtest entities/meta`
 Expected: PASS
 
-- [ ] **Step 8: 리뷰어 통과 후 커밋**
+- [ ] **Step 9: 리뷰어 통과 후 커밋**
 
 ```bash
-git add openapi.json shared/lib/api-types.ts entities/meta features/admin/settings
-git commit -m "feat(admin): 런타임 설정에 DCA 전략 토글·종목 필드 추가 및 메타 타입 확장"
+git add openapi.json shared/lib/api-types.ts entities/meta features/admin/settings features/backtest
+git commit -m "feat(admin): 런타임 설정에 DCA 전략 토글·종목 필드 추가, 메타 타입 확장, 백테스트에서 DCA 제외"
 ```
 
 (Step 3에서 고친 테스트 픽스처 파일도 함께 add한다.)
@@ -1179,7 +1213,7 @@ export function DcaConditionsSection({ form, indicators, direction }: Props) {
       <div className="space-y-2">
         {fields.map((f, i) => {
           const indicator = conditions[i]?.indicator
-          const smaPeriods = meta.dcaIndicators.find((m) => m.code === indicator)?.smaPeriods ?? []
+          const smaPeriods = (meta.dcaIndicators ?? []).find((m) => m.code === indicator)?.smaPeriods ?? []
           return (
             <div key={f.id} className="flex items-center gap-2">
               <Controller control={form.control} name={`conditions.${i}.indicator`} render={({ field }) => (
@@ -1218,7 +1252,7 @@ export function DcaConditionsSection({ form, indicators, direction }: Props) {
                 <Select value={field.value} onValueChange={(v) => field.onChange(v as DcaOperator)}>
                   <SelectTrigger aria-label={`조건 ${i + 1} 비교`} className="h-11 w-20"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {meta.dcaOperators.map((o) => <SelectItem key={o.code} value={o.code}>{o.label}</SelectItem>)}
+                    {(meta.dcaOperators ?? []).map((o) => <SelectItem key={o.code} value={o.code}>{o.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               )} />

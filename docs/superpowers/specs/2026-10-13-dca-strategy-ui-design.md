@@ -26,6 +26,8 @@
 4. 개장 배치가 22:30에서 22:00 KST로 당겨진다.
 5. DCA는 수동 실행(`/execute`)과 미리보기를 지원하지 않는다(409 `DCA_MANUAL_EXECUTION_UNSUPPORTED`).
 6. 수정 시 ticker와 direction은 바꿀 수 없다.
+7. 런타임 설정 `strategies.DCA`는 필수 키이고 기본값은 `enabled=false`다. 배포 후에도 관리자가 설정 화면에서 켜기 전까지 등록 폼에 나타나지 않는다.
+8. 메타 최상위 신규 키: `orderTypes`, `orderDirections`, `dcaFrequencies`, `dcaOperators`, `dcaSkipReasons`(EnumMeta[]), `dcaIndicators`(`smaPeriods` 포함). `StrategyTypeMeta`에는 `orderTypes/directions/frequencies/conditionIndicators` code 배열이 평탄하게 붙는다.
 
 ## 2. 데이터 계층 (`entities/`)
 
@@ -76,7 +78,12 @@
 - `model/buildDcaPayload.ts`(신규): 등록은 `{ type: 'DCA', ticker, scheduledStartDate?, dca }`, 수정은 `dca` 객체만 보낸다.
 - 수정 경로: `DcaStrategyForm`이 `initial`이 있으면 `PUT /dca-config`(`useReconfigureDcaMutation`)로, 없으면 기존 `useCreateStrategyMutation`으로 저장한다. 수정 모드에서 ticker와 direction은 읽기 전용이다.
 - 등록 응답의 `todayOpenBatchMissed` 토스트는 DCA에서 띄우지 않는다. "바로 주문" 경로가 없기 때문이다.
-- 409 중복(같은 계좌·티커·방향)은 기존 서버 에러 피드백 패턴으로 표시한다.
+- 같은 계좌·티커·방향 중복은 400(detail "같은 계좌·종목에 같은 방향의 DCA 전략이 이미 있습니다.")이다. 기존 mutation 훅 onError의 `apiMsg` 토스트로 표시한다.
+
+## 3.5 관리자 설정·백테스트
+
+- `features/admin/settings`: "전략 생성" 토글에 DCA 행을 추가하고, "DCA 필드" 섹션(종목 허용값·기본값 편집)을 둔다. 런타임 응답에 DCA 키가 없는 구버전 캐시가 와도 크래시하지 않게 가드한다.
+- `features/backtest/run-backtest`: 백엔드 spec에 백테스트의 DCA 지원 계획이 없으므로 유형 선택지에서 DCA를 제외한다(지원이 추가되면 필터를 제거).
 
 ## 4. 카드·상세 (`widgets/`)
 
