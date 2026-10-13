@@ -37,7 +37,8 @@ export function DcaConditionsSection({ form, indicators, direction }: Props) {
           return (
             <div key={f.id} className="flex items-center gap-2">
               <Controller control={form.control} name={`conditions.${i}.indicator`} render={({ field }) => (
-                <Select value={field.value} onValueChange={(v) => {
+                <Select items={indicators.map((code) => ({ value: code, label: labelOf('dcaIndicators', code) }))}
+                  value={field.value} onValueChange={(v) => {
                   field.onChange(v as DcaIndicator)
                   form.setValue(`conditions.${i}.threshold`, null)
                   form.setValue(`conditions.${i}.smaPeriod`, null)
@@ -51,7 +52,8 @@ export function DcaConditionsSection({ form, indicators, direction }: Props) {
 
               {indicator === 'SMA' ? (
                 <Controller control={form.control} name={`conditions.${i}.smaPeriod`} render={({ field }) => (
-                  <Select value={field.value != null ? String(field.value) : ''} onValueChange={(v) => field.onChange(Number(v))}>
+                  <Select items={smaPeriods.map((p) => ({ value: String(p), label: `${p}일` }))}
+                    value={field.value != null ? String(field.value) : ''} onValueChange={(v) => field.onChange(Number(v))}>
                     <SelectTrigger aria-label={`조건 ${i + 1} 이동평균 기간`} className="h-11 w-24"><SelectValue placeholder="기간" /></SelectTrigger>
                     <SelectContent>
                       {smaPeriods.map((p) => <SelectItem key={p} value={String(p)}>{p}일</SelectItem>)}
@@ -69,7 +71,8 @@ export function DcaConditionsSection({ form, indicators, direction }: Props) {
               )}
 
               <Controller control={form.control} name={`conditions.${i}.operator`} render={({ field }) => (
-                <Select value={field.value} onValueChange={(v) => field.onChange(v as DcaOperator)}>
+                <Select items={(meta.dcaOperators ?? []).map((o) => ({ value: o.code, label: o.label }))}
+                  value={field.value} onValueChange={(v) => field.onChange(v as DcaOperator)}>
                   <SelectTrigger aria-label={`조건 ${i + 1} 비교`} className="h-11 w-20"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {(meta.dcaOperators ?? []).map((o) => <SelectItem key={o.code} value={o.code}>{o.label}</SelectItem>)}

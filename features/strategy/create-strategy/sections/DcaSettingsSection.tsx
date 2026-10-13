@@ -94,7 +94,8 @@ export function DcaSettingsSection({ form, isEdit, broker, orderTypes, direction
 
         {frequency === 'WEEKLY' && (
           <Controller control={form.control} name="dayOfWeek" render={({ field }) => (
-            <Select value={field.value ?? ''} onValueChange={(v) => field.onChange(v as DcaWeekday)}>
+            <Select items={(Object.keys(WEEKDAY_LABEL) as DcaWeekday[]).map((d) => ({ value: d, label: WEEKDAY_LABEL[d] }))}
+              value={field.value ?? ''} onValueChange={(v) => field.onChange(v as DcaWeekday)}>
               <SelectTrigger aria-label="실행 요일" className="mt-3 h-11 w-full"><SelectValue placeholder="요일 선택" /></SelectTrigger>
               <SelectContent>
                 {(Object.keys(WEEKDAY_LABEL) as DcaWeekday[]).map((d) => (
@@ -107,7 +108,8 @@ export function DcaSettingsSection({ form, isEdit, broker, orderTypes, direction
 
         {frequency === 'MONTHLY' && (
           <Controller control={form.control} name="dayOfMonth" render={({ field }) => (
-            <Select value={field.value ?? ''} onValueChange={field.onChange}>
+            <Select items={DAY_OPTIONS.map((d) => ({ value: d, label: d === LAST_DAY ? '말일' : `${d}일` }))}
+              value={field.value ?? ''} onValueChange={field.onChange}>
               <SelectTrigger aria-label="실행 날짜" className="mt-3 h-11 w-full"><SelectValue placeholder="날짜 선택" /></SelectTrigger>
               <SelectContent>
                 {DAY_OPTIONS.map((d) => (
