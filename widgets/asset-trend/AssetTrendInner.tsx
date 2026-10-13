@@ -6,6 +6,8 @@ import { useMemo, useState } from 'react'
 // (EquityCurveChart.tsx 등 기존 recharts 위젯과 동일한 처리).
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import type { TooltipContentProps } from 'recharts'
+import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { SectionError } from '@shared/ui/SectionError'
@@ -32,6 +34,32 @@ function fmtKrwAxisTick(value: number): string {
     return `${(value / 100_000_000).toLocaleString('ko-KR', { maximumFractionDigits: 1 })}억`
   }
   return `${Math.round(value / 10_000).toLocaleString('ko-KR')}만`
+}
+
+// 선이 여러 개(순자산·전체)일 때 범례와 바로 대응되도록 항목 앞에 선 색 점을 둔다.
+// 팔레트 색을 글자에 입히면 흰 배경 대비 4.5:1을 못 맞출 수 있어 금액 글자는 --foreground 그대로 둔다.
+function TrendTooltip({
+  active,
+  payload,
+  label,
+  maskIfHidden,
+}: TooltipContentProps<ValueType, NameType> & { maskIfHidden: (value: string) => string }) {
+  if (!active || !payload?.length) return null
+  // recharts 기본 정렬(name)은 "순자산"을 "총자산"보다 먼저 보여준다 — 그래프 위아래 순서와 맞추려고 금액 내림차순 정렬
+  const items = [...payload].sort((a, b) => Number(b.value) - Number(a.value))
+  return (
+    <div className="rounded-lg border bg-card px-3 py-2 text-foreground shadow-[0_4px_12px_rgb(0_0_0/0.12)]">
+      <p className="mb-0.5 text-xs text-muted-foreground">{label}</p>
+      <ul className="flex flex-col gap-1">
+        {items.map((item) => (
+          <li key={String(item.dataKey)} className="flex items-center gap-2 text-sm font-semibold">
+            <span aria-hidden className="size-2 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
+            {item.name} : {maskIfHidden(fmtKrw(Number(item.value)))}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
 }
 
 const MODE_OPTIONS: { value: TrendMode; label: string }[] = [
@@ -142,21 +170,8 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
               <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={44} tickFormatter={fmtKrwAxisTick} domain={['auto', 'auto']} />
               {/* hover 가독성 — 세로 가이드선 + 강조 점 + 큰 금액 글씨로 어느 달의 값인지 바로 읽히게 한다 */}
               <Tooltip
-                formatter={(value, name) => [maskIfHidden(fmtKrw(Number(value))), name]}
-                // recharts 기본 정렬(name)은 "순자산"을 "총자산"보다 먼저 보여준다 — 그래프 위아래 순서와 맞추려고 금액 내림차순 정렬
-                itemSorter={(item) => -Number(item.value)}
+                content={(props) => <TrendTooltip {...props} maskIfHidden={maskIfHidden} />}
                 cursor={{ stroke: 'var(--muted-foreground)', strokeWidth: 1, strokeDasharray: '4 4' }}
-                contentStyle={{
-                  fontSize: 14,
-                  backgroundColor: 'var(--card)',
-                  border: '1px solid var(--border)',
-                  color: 'var(--foreground)',
-                  borderRadius: 8,
-                  padding: '8px 12px',
-                  boxShadow: '0 4px 12px rgb(0 0 0 / 0.12)',
-                }}
-                labelStyle={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 2 }}
-                itemStyle={{ fontWeight: 600, color: 'var(--foreground)' }}
               />
               {(mode === 'netWorth' || isAll) && <Legend wrapperStyle={{ fontSize: 11 }} />}
               {isAll && seriesKeys.map((key) => (
