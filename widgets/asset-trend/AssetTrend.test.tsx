@@ -103,6 +103,16 @@ describe('AssetTrendInner', () => {
     expect(screen.getByRole('combobox', { name: '자산군' })).toBeInTheDocument()
   })
 
+  it('카테고리별 모드의 보조 선택자는 기본값이 전체다', async () => {
+    const user = userEvent.setup()
+    useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({})], isLoading: false, isError: false })
+    render(<AssetTrendInner />)
+
+    await user.click(screen.getByRole('button', { name: '카테고리별' }))
+
+    expect(screen.getByRole('combobox', { name: '카테고리' })).toHaveTextContent('전체')
+  })
+
   it('순자산 모드로 되돌아가면 보조 선택자가 다시 사라진다', async () => {
     const user = userEvent.setup()
     useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({})], isLoading: false, isError: false })

@@ -16,11 +16,13 @@ import { useMeta } from '@entities/meta'
 import {
   ASSET_CLASS_ORDER,
   ASSET_L1_CATEGORY_IDS,
+  assetCategoryColor,
+  assetClassColor,
   calcMonthlyTrend,
   formatAssetL1CategoryLabel,
   useAssetSnapshotsQuery,
 } from '@entities/finance'
-import type { TrendMode, TrendRange } from '@entities/finance'
+import type { AssetClass, TrendMode, TrendRange } from '@entities/finance'
 
 // Y축 눈금 전용 — fmtKrw는 "1,000,000원" 같은 긴 문자열이라 좁은 축 폭에 맞지 않는다.
 // 만원 단위로 축약해 표시하고, 정확한 금액은 Tooltip의 fmtKrw로 보여준다.
@@ -34,6 +36,9 @@ const MODE_OPTIONS: { value: TrendMode; label: string }[] = [
   { value: 'assetClass', label: '자산군별' },
 ]
 
+// 카테고리별/자산군별 보조 선택자의 '전체' — 항목별 추이를 색으로 구분해 한 차트에 모두 겹쳐 그린다
+const ALL_SELECTOR = 'all'
+
 interface Props {
   month?: string
   range?: TrendRange
@@ -46,22 +51,44 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
   const [mode, setMode] = useState<TrendMode>('netWorth')
   const [pickedSelector, setPickedSelector] = useState<string | null>(null)
 
-  const selectorOptions = mode === 'category' ? ASSET_L1_CATEGORY_IDS : mode === 'assetClass' ? ASSET_CLASS_ORDER : []
+  const itemOptions: string[] = mode === 'category' ? ASSET_L1_CATEGORY_IDS : mode === 'assetClass' ? ASSET_CLASS_ORDER : []
+  const selectorOptions = itemOptions.length > 0 ? [ALL_SELECTOR, ...itemOptions] : []
 
   // 명시적으로 고른 값이 현재 모드의 선택지에 없으면(모드 전환 등) 첫 번째 선택지로 폴백한다.
   // useEffect로 state를 동기화하지 않고 렌더 중 파생값으로 계산한다.
   const effectiveSelector =
     mode === 'netWorth' ? null : pickedSelector && selectorOptions.includes(pickedSelector) ? pickedSelector : (selectorOptions[0] ?? null)
 
+  const itemLabel = (option: string) =>
+    mode === 'category' ? formatAssetL1CategoryLabel(option) : labelOf('assetClasses', option)
+  const itemColor = (option: string) =>
+    mode === 'category' ? assetCategoryColor(option) : assetClassColor(option as AssetClass)
+
   const selectorItems = selectorOptions.map((option) => ({
     value: option,
-    label: mode === 'category' ? formatAssetL1CategoryLabel(option) : labelOf('assetClasses', option),
+    label: option === ALL_SELECTOR ? '전체' : itemLabel(option),
   }))
 
-  const trend = useMemo(
-    () => calcMonthlyTrend(snapshots, mode, effectiveSelector, range === 'all' ? Infinity : range, month),
-    [snapshots, mode, effectiveSelector, range, month],
-  )
+  const isAll = effectiveSelector === ALL_SELECTOR
+
+  // '전체'면 항목별 calcMonthlyTrend 결과를 월 기준으로 합쳐 { month, [항목]: 금액 } 행으로 만든다.
+  // 모든 달이 0인 항목은 선만 늘려 범례를 어지럽히므로 뺀다.
+  const { trend, seriesKeys } = useMemo(() => {
+    const monthsLimit = range === 'all' ? Infinity : range
+    if (!isAll) {
+      return { trend: calcMonthlyTrend(snapshots, mode, effectiveSelector, monthsLimit, month), seriesKeys: [] }
+    }
+    const series = itemOptions
+      .map((option) => ({ option, points: calcMonthlyTrend(snapshots, mode, option, monthsLimit, month) }))
+      .filter(({ points }) => points.some((point) => point.amount !== 0))
+    const rows = (series[0]?.points ?? []).map((point, index) => ({
+      month: point.month,
+      ...Object.fromEntries(series.map(({ option, points }) => [option, points[index].amount])),
+    }))
+    return { trend: rows, seriesKeys: series.map(({ option }) => option) }
+    // itemOptions는 mode로 결정되는 모듈 상수라 mode만 의존성에 둔다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [snapshots, mode, effectiveSelector, isAll, range, month])
 
   if (isLoading) {
     return <Skeleton data-testid="asset-trend-skeleton" className="min-h-[240px] sm:min-h-[280px]" />
@@ -127,7 +154,21 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
                 labelStyle={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 2 }}
                 itemStyle={{ fontWeight: 600, color: 'var(--foreground)' }}
               />
-              {mode === 'netWorth' && <Legend wrapperStyle={{ fontSize: 11 }} />}
+              {(mode === 'netWorth' || isAll) && <Legend wrapperStyle={{ fontSize: 11 }} />}
+              {isAll && seriesKeys.map((key) => (
+                <Line
+                  key={key}
+                  type="monotone"
+                  dataKey={key}
+                  name={itemLabel(key)}
+                  stroke={itemColor(key)}
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 5, stroke: 'var(--card)', strokeWidth: 2, fill: itemColor(key) }}
+                  animationDuration={500}
+                  animationEasing="ease-out"
+                />
+              ))}
               {mode === 'netWorth' && (
                 <Line
                   type="monotone"
@@ -142,7 +183,7 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
                   animationEasing="ease-out"
                 />
               )}
-              <Line
+              {!isAll && <Line
                 type="monotone"
                 dataKey="amount"
                 name={mode === 'netWorth' ? '순자산' : '금액'}
@@ -152,7 +193,7 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
                 activeDot={{ r: 6, stroke: 'var(--card)', strokeWidth: 2, fill: 'var(--chart-1)' }}
                 animationDuration={500}
                 animationEasing="ease-out"
-              />
+              />}
             </LineChart>
           </ResponsiveContainer>
         </div>
