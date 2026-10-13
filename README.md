@@ -6,7 +6,7 @@
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4-38bdf8)
 
 KISTA(Key Investment Strategy & Trading Automation) — 정밀한 투자 전략을 기반으로 작동하는 다중 증권사 통합 자동매매 SaaS의 프론트엔드.
-백엔드는 별도 저장소 [`kista-api`](https://github.com/narafu/kista-api)(Java 21 + Spring Boot 4)이며, 백엔드 내부 구조는 그쪽 README를 참고한다.
+백엔드는 별도 저장소 [`kista-api`](https://github.com/narafu/kista-api)(Java 25 + Spring Boot 4)이며, 백엔드 내부 구조는 그쪽 README를 참고한다.
 
 ## 기술 스택
 
