@@ -64,6 +64,7 @@ widget 슬라이스끼리 cross-import 금지. **단, 아래 "공용 UI 위젯" 
 - **`cycle-history`**: 계좌/전략 양쪽에서 공유
 - **`strategy-detail`**: `useStrategyOrderPreviewQuery(strategyId)` 사용, 분할/리버스모드 배지 규칙 고정. VR은 `strategy.vr` 존재 여부로 운용 방식(적립식/거치식/인출식 + 금액), 밴드 폭, 주기, G, V, pool(현재 시작금액), pool 상한을 표시한다. `divisionCounts.length === 0`을 PRIVACY로 단정하지 않는다. `isScheduledStart(strategy)`가 true(시작예정일이 미래)면 상태 배지 그룹에 "N월 N일 시작예정" 배지(`--info`/`--info-bg` 토큰) 추가. 주문 내역의 방향·유형·상태 Select는 모바일에서 동일 너비 3열, PC에서 한 행으로 배치해 가로 넘침을 만들지 않는다. 필터는 기간 조회 결과에 AND 조건으로 적용한 뒤 페이지네이션하며, 필터 변경 시 1페이지로 초기화하고 원본 주문 없음과 필터 결과 없음을 서로 다른 빈 상태로 표시한다
 - **`strategy-card`**: VR은 분할 배지 대신 compact `V $3,000.00` 형식의 배지를 표시한다. 왼쪽 변은 전략 활성 상태 색상, 위/오른쪽/아래 변은 당일 PLANNED 주문(녹색) 또는 예수금 부족(장 개시 전 주황, `marketSession=DIRECT` 이후 빨강)을 표시한다. `isScheduledStart(strategy)`면 배지 행(모바일 1행·PC 배지 row)에 "N월 N일 시작예정" 배지 추가 — `AccountCard`의 compact 배지 행에는 넣지 않는다(혼잡 방지)
+- **`strategy-card`·`strategy-detail` DCA 분기**: 래퍼에서 훅 호출 전에 `strategy.type === 'DCA'`만으로 분기한다(`&& dca` 아님). 단건 미리보기·바로 주문이 409 `DCA_MANUAL_EXECUTION_UNSUPPORTED`를 반환하기 때문이며, 전략 상세 페이지도 DCA면 SSR 미리보기 프리페치를 건너뛴다(목록 페이지의 계좌 배치 미리보기 시딩은 서버가 DCA를 제외하므로 그대로). DCA 상세는 `currentHoldings`(계좌 전체 값 — 같은 계좌·종목의 매수·매도 DCA가 공유)와 페이지네이션된 `dca-executions` 이력을 보여준다
 - **`kpi-card`**: `<KpiCard />` 그리드 패턴 유지
 - **`revealable-value`**: 마스킹 값 공개 토글
 - **`all-strategies`**: Server Component가 전체 전략과 계좌 목록을 prefetch+hydrate하고 `AllStrategiesList`가 인자 없는 `useAllStrategiesQuery()`와 `useAccountsQuery()`를 canonical cache source로 소비한다
