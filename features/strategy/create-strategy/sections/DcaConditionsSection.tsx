@@ -1,13 +1,13 @@
 'use client'
 
-import { Controller, useFieldArray, type UseFormReturn } from 'react-hook-form'
+import { Controller, useFieldArray, type FieldErrors, type UseFormReturn } from 'react-hook-form'
 import { Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useMeta } from '@entities/meta'
 import type { DcaIndicator, DcaOperator } from '@entities/strategy'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
-import type { DcaFormValues } from '../model/dcaFormSchema'
+import { MAX_DCA_CONDITIONS, type DcaFormValues } from '../model/dcaFormSchema'
 
 interface Props {
   form: UseFormReturn<DcaFormValues>
@@ -89,13 +89,20 @@ export function DcaConditionsSection({ form, indicators, direction }: Props) {
       </div>
 
       {form.formState.errors.conditions && (
-        <p className="mt-1 text-sm text-[var(--status-error)]">조건 입력값을 확인하세요.</p>
+        <p className="mt-1 text-sm text-[var(--status-error)]">{firstConditionError(form.formState.errors.conditions)}</p>
       )}
 
-      <Button type="button" variant="brand-soft" size="sm" className="mt-3"
+      {fields.length < MAX_DCA_CONDITIONS && <Button type="button" variant="brand-soft" size="sm" className="mt-3"
         onClick={() => append({ indicator: (indicators[0] ?? 'RSI') as DcaIndicator, operator: 'LTE', threshold: null, smaPeriod: null })}>
         조건 추가
-      </Button>
+      </Button>}
     </div>
   )
+}
+
+// 배열 루트(최대 개수) 또는 첫 조건 행의 필드 오류 메시지
+function firstConditionError(errors: FieldErrors<DcaFormValues>['conditions']): string {
+  const rows = Array.isArray(errors) ? errors : []
+  const row = rows.find(Boolean)
+  return errors?.root?.message ?? errors?.message ?? row?.threshold?.message ?? row?.smaPeriod?.message ?? '조건 입력값을 확인하세요.'
 }

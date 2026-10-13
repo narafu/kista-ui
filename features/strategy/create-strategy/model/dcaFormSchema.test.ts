@@ -36,4 +36,17 @@ describe('dcaFormSchema', () => {
     expect(ok({ conditions: [{ indicator: 'SMA', operator: 'LT', threshold: null, smaPeriod: null }] })).toBe(false)
     expect(ok({ conditions: [{ indicator: 'SMA', operator: 'LT', threshold: 999, smaPeriod: 200 }] })).toBe(true)
   })
+  it('AVG_PRICE는 -100 초과', () => {
+    expect(ok({ conditions: [{ indicator: 'AVG_PRICE', operator: 'LTE', threshold: -100, smaPeriod: null }] })).toBe(false)
+    expect(ok({ conditions: [{ indicator: 'AVG_PRICE', operator: 'LTE', threshold: -99.99, smaPeriod: null }] })).toBe(true)
+  })
+  it('기준값은 소수 둘째 자리까지', () => {
+    expect(ok({ conditions: [{ indicator: 'RSI', operator: 'LTE', threshold: 35.123, smaPeriod: null }] })).toBe(false)
+    expect(ok({ conditions: [{ indicator: 'RSI', operator: 'LTE', threshold: 35.12, smaPeriod: null }] })).toBe(true)
+  })
+  it('조건은 최대 10개', () => {
+    const c = { indicator: 'RSI' as const, operator: 'LTE' as const, threshold: 35, smaPeriod: null }
+    expect(ok({ conditions: Array(10).fill(c) })).toBe(true)
+    expect(ok({ conditions: Array(11).fill(c) })).toBe(false)
+  })
 })

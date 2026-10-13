@@ -2,6 +2,7 @@ import { z } from 'zod'
 import type { DcaWeekday, Strategy } from '@entities/strategy'
 
 export const LAST_DAY = 'LAST' // 매월 말일 — payload에서 dayOfMonth null로 직렬화
+export const MAX_DCA_CONDITIONS = 10 // kista-api 상한과 동일
 
 const conditionSchema = z.object({
   indicator: z.enum(['AVG_PRICE', 'SMA', 'RSI', 'FEAR_GREED']),
@@ -20,6 +21,12 @@ const conditionSchema = z.object({
   if ((c.indicator === 'RSI' || c.indicator === 'FEAR_GREED') && (c.threshold < 0 || c.threshold > 100)) {
     ctx.addIssue({ code: 'custom', path: ['threshold'], message: '0~100 사이로 입력하세요.' })
   }
+  if (c.indicator === 'AVG_PRICE' && c.threshold <= -100) {
+    ctx.addIssue({ code: 'custom', path: ['threshold'], message: '-100보다 큰 값을 입력하세요.' })
+  }
+  if (!/^-?\d+(\.\d{1,2})?$/.test(String(c.threshold))) {
+    ctx.addIssue({ code: 'custom', path: ['threshold'], message: '소수 둘째 자리까지 입력하세요.' })
+  }
 })
 
 export const dcaFormSchema = z.object({
@@ -32,7 +39,7 @@ export const dcaFormSchema = z.object({
   dayOfWeek: z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']).nullable(),
   dayOfMonth: z.string().nullable(),
   scheduledStartDate: z.string().nullable(),
-  conditions: z.array(conditionSchema),
+  conditions: z.array(conditionSchema).max(MAX_DCA_CONDITIONS, `조건은 최대 ${MAX_DCA_CONDITIONS}개입니다.`),
 }).superRefine((v, ctx) => {
   if (v.frequency === 'WEEKLY' && !v.dayOfWeek) {
     ctx.addIssue({ code: 'custom', path: ['dayOfWeek'], message: '요일을 선택하세요.' })
