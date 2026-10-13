@@ -19,17 +19,18 @@ interface Props {
   broker?: string
   initial?: Strategy
   availableTickers: string[] // 런타임 설정 허용 티커 (StrategyForm이 계산해 전달)
+  defaultTicker: string // 런타임 설정 기본 티커 (deriveRuntimeFields가 허용 목록 기준으로 확정)
   onSuccess?: () => void
   onCancel?: () => void
 }
 
 // DCA 등록·수정 — 시드·분할·VR이 엮인 useStrategyForm과 분리된 자체 폼(spec A'안)
-export function DcaStrategyForm({ accountId, broker, initial, availableTickers, onSuccess, onCancel }: Props) {
+export function DcaStrategyForm({ accountId, broker, initial, availableTickers, defaultTicker, onSuccess, onCancel }: Props) {
   const { findStrategyType } = useMeta()
   const typeMeta = findStrategyType('DCA')
   const form = useForm<DcaFormValues>({
     resolver: zodResolver(dcaFormSchema),
-    defaultValues: buildDcaFormDefaults(initial, availableTickers[0] ?? ''),
+    defaultValues: buildDcaFormDefaults(initial, defaultTicker),
   })
   const done = () => {
     toast.success(initial ? '전략이 수정되었습니다' : '전략이 등록되었습니다')

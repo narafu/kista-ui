@@ -54,6 +54,7 @@ export interface UseStrategyFormReturn {
 
   ticker: string
   availableTickers: string[]
+  defaultTicker: string
   handleTickerChange: (code: string) => void
   basePrice: number | null
   prices: PriceMap | null
@@ -158,7 +159,7 @@ export function useStrategyForm({
   const typeMeta = useMemo(() => findStrategyType(type), [findStrategyType, type])
   const runtimeStrategy = runtimeConfig?.strategies[type as RuntimeStrategyType]
   const {
-    availableTickers, divisionCountSettings, usesDivisionCount, tickerCustomizable, vrSettings,
+    availableTickers, defaultTicker, divisionCountSettings, usesDivisionCount, tickerCustomizable, vrSettings,
   } = deriveRuntimeFields(initial, runtimeStrategy)
   const requiresPrivacyBase = typeMeta?.requiresPrivacyBase ?? false
 
@@ -242,7 +243,7 @@ export function useStrategyForm({
   return {
     ...setters,
     type, setType, usesDivisionCount, requiresPrivacyBase, canEditSeed, seedUnavailableReason,
-    ticker, availableTickers, basePrice, prices,
+    ticker, availableTickers, defaultTicker, basePrice, prices,
     pct, setPct, seedUsdInput, setSeedUsdInput, usdDeposit, minSeed, isBelowMinSeed, loadingBase,
     balanceCheckEnabled,
     isMock,

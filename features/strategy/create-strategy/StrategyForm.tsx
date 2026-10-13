@@ -99,6 +99,7 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
           broker={broker}
           initial={initial}
           availableTickers={initial ? [initial.ticker] : form.availableTickers}
+          defaultTicker={form.defaultTicker}
           onSuccess={onSuccess}
           onCancel={onCancel}
         />

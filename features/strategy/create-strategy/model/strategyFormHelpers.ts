@@ -63,8 +63,12 @@ export function watchVrFields(form: UseFormReturn<StrategyFormValues>): VrFields
 // capability 파생 — isInfinite 휴리스틱 대신 백엔드 SSOT 사용
 export function deriveRuntimeFields(initial: Strategy | undefined, runtimeStrategy: RuntimeStrategySettings | undefined) {
   const divisionCountSettings = runtimeStrategy?.fields.divisionCount
+  const availableTickers = initial ? [initial.ticker] : runtimeStrategy?.fields.ticker.allowedValues ?? []
+  const configDefault = runtimeStrategy?.fields.ticker.defaultValue
   return {
-    availableTickers: initial ? [initial.ticker] : runtimeStrategy?.fields.ticker.allowedValues ?? [],
+    availableTickers,
+    // 설정 기본값이 허용 목록 밖이면(설정 드리프트) 첫 허용값으로 대체한다
+    defaultTicker: configDefault && availableTickers.includes(configDefault) ? configDefault : availableTickers[0] ?? '',
     divisionCountSettings,
     usesDivisionCount: initial ? initial.divisionCount !== undefined : !!divisionCountSettings,
     tickerCustomizable: initial ? false : runtimeStrategy?.fields.ticker.customizable ?? false,

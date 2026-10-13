@@ -27,10 +27,10 @@ const existing: Strategy = {
   dca: { direction: 'SELL', amountUsd: 200, orderType: 'MOO', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, conditions: [], nextExecution: null, lastExecution: null },
 }
 
-function renderForm(initial?: Strategy) {
+function renderForm(initial?: Strategy, defaultTicker = 'UPRO') {
   return render(
     <MetaProvider meta={meta}>
-      <DcaStrategyForm accountId="a1" broker="KIS" initial={initial} availableTickers={['UPRO', 'QLD']} />
+      <DcaStrategyForm accountId="a1" broker="KIS" initial={initial} availableTickers={['UPRO', 'QLD']} defaultTicker={defaultTicker} />
     </MetaProvider>,
   )
 }
@@ -47,6 +47,16 @@ describe('DcaStrategyForm', () => {
       expect.anything(),
     ))
     expect(reconfigureMutate).not.toHaveBeenCalled()
+  })
+
+  it('등록: 런타임 설정 기본 티커가 있으면 첫 허용값 대신 그 티커로 시작한다', async () => {
+    renderForm(undefined, 'QLD')
+    fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
+    fireEvent.click(screen.getByRole('button', { name: '등록' }))
+    await waitFor(() => expect(createMutate).toHaveBeenCalledWith(
+      expect.objectContaining({ ticker: 'QLD' }),
+      expect.anything(),
+    ))
   })
 
   it('수정: PUT dca-config(reconfigure) 경로로 dca 객체만, 종목·방향 변경 UI 없음', async () => {
