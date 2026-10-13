@@ -23,6 +23,19 @@ export interface StrategyVrSummary {
   poolLimitFloor: number          // poolLimitRate 하한(0~1)
 }
 
+// DCA(정기 적립식) — 코드 값은 kista-api 계약(spec 7장) 그대로. 라벨은 메타(labelOf)가 SSOT
+export type DcaDirection = 'BUY' | 'SELL'
+export type DcaOrderType = 'MOO' | 'MOC'
+export type DcaFrequency = 'DAILY' | 'WEEKLY' | 'MONTHLY'
+export type DcaWeekday = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY'
+export type DcaIndicator = 'AVG_PRICE' | 'SMA' | 'RSI' | 'FEAR_GREED'
+export type DcaOperator = 'LTE' | 'LT' | 'GTE' | 'GT'
+export interface DcaCondition { indicator: DcaIndicator; operator: DcaOperator; threshold?: number; smaPeriod?: number }
+export interface DcaConfigRequest { direction: DcaDirection; amountUsd: number; orderType: DcaOrderType; frequency: DcaFrequency; dayOfWeek: DcaWeekday | null; dayOfMonth: number | null; conditions: DcaCondition[] }
+export interface StrategyDcaSummary extends DcaConfigRequest { nextExecution: { usSessionDate: string; kstTradeDate: string } | null; lastExecution: { kstTradeDate: string; status: string; skipReason: string | null } | null }
+export interface DcaExecution { kstTradeDate: string; usSessionDate?: string; status: string; skipReason: string | null; detail: string | null; referencePrice?: number; quantity?: number; order: { id: string; status: string; filledQuantity?: number; filledPrice?: number } | null }
+export interface DcaExecutionPage { content: DcaExecution[]; page: number; size: number; totalElements: number }
+
 export interface Strategy {
   id: string
   accountId: string
@@ -36,6 +49,7 @@ export interface Strategy {
   currentRound?: number   // 현재 회차 (INFINITE 전략만, 이력 없으면 0)
   currentHoldings?: number
   vr?: StrategyVrSummary  // VR 전략 전용 요약 (타 전략 undefined)
+  dca?: StrategyDcaSummary // DCA 전략 전용 설정·다음 판정일·최근 결과 (타 전략 undefined)
   startDate?: string      // 사이클 시작(예정)일 (yyyy-MM-dd) — 오늘 이후면 아직 매매 시작 전(시작예정)
   todayOpenBatchMissed?: boolean // 등록 응답 전용 — 오늘 개장 배치 이후 등록돼 오늘 밤 장 시작 주문이 자동 생성되지 않음
 }
@@ -60,6 +74,7 @@ export interface StrategyRequest {
   pGraceWeeks?: number             // VR 전용: poolLimitRate 램프 시작 전 유예 주수
   pStepWeeks?: number              // VR 전용: poolLimitRate가 5%p 내려가는 주기(주)
   poolLimitFloor?: number          // VR 전용: poolLimitRate 하한(0~1)
+  dca?: DcaConfigRequest      // DCA 전용: type=DCA일 때 필수 (나머지 시드·분할·VR 필드는 서버가 무시)
   scheduledStartDate?: string // 시작예정일 (yyyy-MM-dd) — 세 전략 공통, 등록 전용, 미전송 시 오늘 시작
 }
 

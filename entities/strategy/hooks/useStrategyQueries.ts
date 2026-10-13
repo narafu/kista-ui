@@ -9,13 +9,15 @@ import {
   createStrategy,
   updateStrategy,
   reconfigureVr,
+  reconfigureDca,
+  listDcaExecutions,
   deleteStrategy,
   pauseStrategy,
   resumeStrategy,
   executeStrategy,
   getStrategySeedPreview,
 } from '../api'
-import type { ReconfigureVrRequest, Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
+import type { DcaConfigRequest, DcaExecutionPage, ReconfigureVrRequest, Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
 import { strategyKeys } from '../model/queryKeys'
 import {
   strategyDetailQueryOptions,
@@ -112,6 +114,26 @@ export function useReconfigureVrMutation(strategyId: string, onSuccess?: () => v
       return onSuccess?.()
     },
     onError: (err) => toast.error(apiMsg(err, '재설정에 실패했습니다')),
+  })
+}
+
+export function useReconfigureDcaMutation(strategyId: string, onSuccess?: () => void | Promise<void>) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: DcaConfigRequest) => reconfigureDca(strategyId, data),
+    onSuccess: async (saved) => {
+      queryClient.setQueryData(strategyKeys.detail(saved.id), saved)
+      await synchronizeStrategyLists(queryClient, saved.accountId, (strategies) => upsertById(strategies, saved))
+      return onSuccess?.()
+    },
+    onError: (err) => toast.error(apiMsg(err, '저장에 실패했습니다.')),
+  })
+}
+
+export function useDcaExecutionsQuery(strategyId: string, page: number, size: number) {
+  return useQuery<DcaExecutionPage>({
+    queryKey: strategyKeys.dcaExecutions(strategyId, page, size),
+    queryFn: () => listDcaExecutions(strategyId, page, size),
   })
 }
 

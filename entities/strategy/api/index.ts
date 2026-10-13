@@ -1,7 +1,7 @@
 import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
 import { dec, num, optDec, optNum, optStr, str } from '@shared/lib/normalize'
-import type { CycleSeedType, ReconfigureVrRequest, Strategy, StrategyRequest, StrategySeedPreview, StrategyVrSummary } from '../model/types'
+import type { CycleSeedType, DcaCondition, DcaConfigRequest, DcaDirection, DcaExecution, DcaExecutionPage, DcaFrequency, DcaIndicator, DcaOperator, DcaOrderType, DcaWeekday, ReconfigureVrRequest, Strategy, StrategyDcaSummary, StrategyRequest, StrategySeedPreview, StrategyVrSummary } from '../model/types'
 import type { PlacedOrder } from '@shared/model/placed-order'
 import { normalizePlacedOrderBase } from '@shared/model/placed-order'
 
@@ -29,6 +29,53 @@ function normalizeVrSummary(raw: unknown): StrategyVrSummary | undefined {
   }
 }
 
+function normalizeDcaCondition(raw: unknown): DcaCondition {
+  const c = raw as Record<string, unknown>
+  return {
+    indicator: str(c.indicator) as DcaIndicator,
+    operator: str(c.operator) as DcaOperator,
+    ...(c.threshold != null ? { threshold: dec(c.threshold) } : {}),
+    ...(c.smaPeriod != null ? { smaPeriod: num(c.smaPeriod) } : {}),
+  }
+}
+
+function normalizeDca(raw: unknown): StrategyDcaSummary | undefined {
+  if (raw == null) return undefined
+  const d = raw as Record<string, unknown>
+  const next = d.nextExecution as Record<string, unknown> | null | undefined
+  const last = d.lastExecution as Record<string, unknown> | null | undefined
+  return {
+    direction: str(d.direction) as DcaDirection,
+    amountUsd: dec(d.amountUsd),
+    orderType: str(d.orderType) as DcaOrderType,
+    frequency: str(d.frequency) as DcaFrequency,
+    dayOfWeek: (d.dayOfWeek as DcaWeekday | null) ?? null,
+    dayOfMonth: d.dayOfMonth != null ? num(d.dayOfMonth) : null,
+    conditions: ((d.conditions as unknown[] | undefined) ?? []).map(normalizeDcaCondition),
+    nextExecution: next ? { usSessionDate: str(next.usSessionDate), kstTradeDate: str(next.kstTradeDate) } : null,
+    lastExecution: last
+      ? { kstTradeDate: str(last.kstTradeDate), status: str(last.status), skipReason: optStr(last.skipReason) ?? null }
+      : null,
+  }
+}
+
+function normalizeDcaExecution(raw: unknown): DcaExecution {
+  const e = raw as Record<string, unknown>
+  const o = e.order as Record<string, unknown> | null | undefined
+  return {
+    kstTradeDate: str(e.kstTradeDate),
+    usSessionDate: optStr(e.usSessionDate),
+    status: str(e.status),
+    skipReason: optStr(e.skipReason) ?? null,
+    detail: optStr(e.detail) ?? null,
+    referencePrice: optDec(e.referencePrice),
+    quantity: optNum(e.quantity),
+    order: o
+      ? { id: str(o.id), status: str(o.status), filledQuantity: optNum(o.filledQuantity), filledPrice: optDec(o.filledPrice) }
+      : null,
+  }
+}
+
 function normalizeStrategy(raw: unknown): Strategy {
   const s = raw as Record<string, unknown>
   return {
@@ -44,6 +91,7 @@ function normalizeStrategy(raw: unknown): Strategy {
     currentRound: optNum(s.currentRound),
     currentHoldings: optNum(s.currentHoldings),
     vr: normalizeVrSummary(s.vr),
+    dca: normalizeDca(s.dca),
     startDate: optStr(s.startDate),
     todayOpenBatchMissed: s.todayOpenBatchMissed === true || undefined,
   }
@@ -72,6 +120,22 @@ export async function updateStrategy(id: string, data: Partial<StrategyRequest>,
 export async function reconfigureVr(id: string, data: ReconfigureVrRequest, token?: string): Promise<Strategy> {
   const raw = await fetchEither<unknown>(`/api/trading-cycles/${id}/vr-config`, jsonBody('PUT', data), token)
   return normalizeStrategy(raw)
+}
+
+export async function reconfigureDca(id: string, data: DcaConfigRequest, token?: string): Promise<Strategy> {
+  const raw = await fetchEither<unknown>(`/api/trading-cycles/${id}/dca-config`, jsonBody('PUT', data), token)
+  return normalizeStrategy(raw)
+}
+
+export async function listDcaExecutions(id: string, page: number, size: number, token?: string): Promise<DcaExecutionPage> {
+  const qs = new URLSearchParams({ page: String(page), size: String(size) }).toString()
+  const raw = await fetchEither<Record<string, unknown>>(`/api/trading-cycles/${id}/dca-executions?${qs}`, undefined, token)
+  return {
+    content: ((raw.content as unknown[] | undefined) ?? []).map(normalizeDcaExecution),
+    page: num(raw.page),
+    size: num(raw.size),
+    totalElements: num(raw.totalElements),
+  }
 }
 
 export async function deleteStrategy(id: string, token?: string): Promise<void> {

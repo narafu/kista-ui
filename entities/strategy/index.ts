@@ -1,4 +1,5 @@
-export type { CycleSeedType, Strategy, StrategyRequest, ReconfigureVrRequest, StrategySeedPreview, StrategyVrSummary } from './model/types'
+export type { CycleSeedType, DcaCondition, DcaConfigRequest, DcaDirection, DcaExecution, DcaExecutionPage, DcaFrequency, DcaIndicator, DcaOperator, DcaOrderType, DcaWeekday, StrategyDcaSummary, Strategy, StrategyRequest, ReconfigureVrRequest, StrategySeedPreview, StrategyVrSummary } from './model/types'
+export { formatDcaCondition, formatDcaSchedule, WEEKDAY_LABEL } from './model/dcaFormat'
 export { strategyKeys } from './model/queryKeys'
 export { seedBadgeClass, strategyStatusAccent, strategyTypeShort } from './model/badges'
 export { isScheduledStart, scheduledStartBadgeLabel } from './model/scheduled-start'
@@ -15,6 +16,8 @@ export {
   executeStrategy,
   getStrategySeedPreview,
   reconfigureVr,
+  reconfigureDca,
+  listDcaExecutions,
 } from './api'
 export {
   useStrategySeedPreviewQuery,
@@ -24,6 +27,8 @@ export {
   useCreateStrategyMutation,
   useUpdateStrategyMutation,
   useReconfigureVrMutation,
+  useReconfigureDcaMutation,
+  useDcaExecutionsQuery,
   useDeleteStrategyMutation,
   usePauseStrategyMutation,
   useResumeStrategyMutation,

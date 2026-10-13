@@ -78,6 +78,62 @@ describe('strategy api normalization', () => {
   })
 })
 
+describe('DCA api', () => {
+  it('DCA 응답의 dca 객체를 정규화한다 (금액 문자열 → number, 말일 null 유지)', async () => {
+    const { listStrategies } = await import('./index')
+    fetchEitherMock.mockResolvedValueOnce([{
+      id: 's1', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
+      currentHoldings: 12,
+      dca: {
+        direction: 'BUY', amountUsd: '300.00', orderType: 'MOC', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null,
+        conditions: [{ indicator: 'RSI', operator: 'LTE', threshold: '35' }, { indicator: 'SMA', operator: 'LT', threshold: null, smaPeriod: 200 }],
+        nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' },
+        lastExecution: null,
+      },
+    }])
+    const [s] = await listStrategies('a1')
+    expect(s.dca).toEqual({
+      direction: 'BUY', amountUsd: 300, orderType: 'MOC', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null,
+      conditions: [{ indicator: 'RSI', operator: 'LTE', threshold: 35 }, { indicator: 'SMA', operator: 'LT', smaPeriod: 200 }],
+      nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' },
+      lastExecution: null,
+    })
+  })
+
+  it('비DCA 응답은 dca undefined', async () => {
+    const { listStrategies } = await import('./index')
+    fetchEitherMock.mockResolvedValueOnce([{ id: 's2', accountId: 'a1', type: 'INFINITE', status: 'ACTIVE', ticker: 'TQQQ', cycleSeedType: 'MAX', isReverseMode: false, dca: null }])
+    const [s] = await listStrategies('a1')
+    expect(s.dca).toBeUndefined()
+  })
+
+  it('reconfigureDca는 PUT /dca-config로 dca 객체만 보낸다', async () => {
+    const { reconfigureDca } = await import('./index')
+    fetchEitherMock.mockResolvedValueOnce({ id: 's1', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false, dca: null })
+    const body = { direction: 'BUY' as const, amountUsd: 100, orderType: 'MOO' as const, frequency: 'DAILY' as const, dayOfWeek: null, dayOfMonth: null, conditions: [] }
+    await reconfigureDca('s1', body)
+    expect(fetchEitherMock).toHaveBeenLastCalledWith(
+      expect.stringContaining('/api/trading-cycles/s1/dca-config'),
+      { method: 'PUT', body: JSON.stringify(body) },
+      undefined,
+    )
+  })
+
+  it('listDcaExecutions는 page·size 쿼리로 조회하고 숫자를 정규화한다', async () => {
+    const { listDcaExecutions } = await import('./index')
+    fetchEitherMock.mockResolvedValueOnce({ content: [
+      { kstTradeDate: '2026-09-30', usSessionDate: '2026-09-29', status: 'ORDERED', skipReason: null, detail: null, referencePrice: null, quantity: 3, order: { id: 'o1', status: 'FILLED', filledQuantity: 3, filledPrice: '87.40' } },
+      { kstTradeDate: '2026-08-29', usSessionDate: '2026-08-28', status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET', detail: 'RSI(14) 48.20 > 35', referencePrice: '86.50', quantity: null, order: null },
+    ], page: 0, size: 20, totalElements: 2 })
+    const res = await listDcaExecutions('s1', 0, 20)
+    expect(fetchEitherMock).toHaveBeenLastCalledWith('/api/trading-cycles/s1/dca-executions?page=0&size=20', undefined, undefined)
+    // ORDERED 행 referencePrice는 단계 ①에서 항상 null, SKIPPED 행은 판정에 쓴 전일 종가
+    expect(res.content[0]).toMatchObject({ referencePrice: undefined, quantity: 3, order: { filledPrice: 87.4 } })
+    expect(res.content[1]).toMatchObject({ referencePrice: 86.5, quantity: undefined, order: null })
+    expect(res.totalElements).toBe(2)
+  })
+})
+
 describe('reconfigureVr', () => {
   it('PUT /api/trading-cycles/{id}/vr-config 로 요청하고 응답을 정규화한다', async () => {
     const { reconfigureVr } = await import('./index')
