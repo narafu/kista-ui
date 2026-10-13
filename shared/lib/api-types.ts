@@ -2371,6 +2371,15 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        DcaConditionRequest: {
+            /** @enum {string} */
+            indicator?: "AVG_PRICE" | "SMA" | "RSI" | "FEAR_GREED";
+            /** @enum {string} */
+            operator?: "LTE" | "LT" | "GTE" | "GT";
+            /** Format: int32 */
+            smaPeriod?: number;
+            threshold?: number;
+        };
         DcaConfigRequest: {
             /** @enum {string} */
             direction: "BUY" | "SELL";
@@ -2383,9 +2392,7 @@ export interface components {
             dayOfWeek?: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
             /** Format: int32 */
             dayOfMonth?: number;
-            conditions?: {
-                [key: string]: unknown;
-            }[];
+            conditions?: components["schemas"]["DcaConditionRequest"][];
         };
         TradingCycleRequest: {
             /**
@@ -2505,6 +2512,15 @@ export interface components {
             /** @description DCA 설정 (type=DCA일 때 필수, 그 외 무시) */
             dca?: components["schemas"]["DcaConfigRequest"];
         };
+        DcaConditionResponse: {
+            /** @enum {string} */
+            indicator?: "AVG_PRICE" | "SMA" | "RSI" | "FEAR_GREED";
+            /** @enum {string} */
+            operator?: "LTE" | "LT" | "GTE" | "GT";
+            /** Format: int32 */
+            smaPeriod?: number;
+            threshold?: number;
+        };
         DcaResponse: {
             /** @enum {string} */
             direction?: "BUY" | "SELL";
@@ -2517,7 +2533,7 @@ export interface components {
             dayOfWeek?: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
             /** Format: int32 */
             dayOfMonth?: number;
-            conditions?: unknown[];
+            conditions?: components["schemas"]["DcaConditionResponse"][];
             nextExecution?: components["schemas"]["NextExecution"];
             lastExecution?: components["schemas"]["LastExecution"];
         };
