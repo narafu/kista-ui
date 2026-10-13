@@ -2,6 +2,7 @@
 
 import { useId } from 'react'
 import { Controller, type UseFormReturn } from 'react-hook-form'
+import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SelectionCard } from '@shared/ui/selection-card'
 import { useMeta } from '@entities/meta'
@@ -60,10 +61,10 @@ export function DcaSettingsSection({ form, isEdit, broker, orderTypes, direction
 
       <div className="py-[18px] border-b border-border">
         <StrategyFieldLabel htmlFor={amountId}>회차당 금액 (USD)</StrategyFieldLabel>
-        <input id={amountId} type="number" inputMode="decimal" min={0} step="0.01"
+        <Input id={amountId} type="number" inputMode="decimal" min={0} step="0.01"
           aria-invalid={!!errors.amountUsd} aria-describedby={errors.amountUsd ? `${amountId}-error` : undefined}
           {...register('amountUsd', { setValueAs: (v) => (v === '' || v == null ? null : Number(v)) })}
-          className="h-11 w-full rounded-[var(--r-sm)] border border-border bg-card px-3 text-base" />
+          className="h-11 rounded-[var(--r-sm)] px-3" />
         {errors.amountUsd && <p id={`${amountId}-error`} className="mt-1 text-sm text-[var(--status-error)]">{errors.amountUsd.message}</p>}
       </div>
 

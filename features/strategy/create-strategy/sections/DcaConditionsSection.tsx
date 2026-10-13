@@ -4,6 +4,7 @@ import { useId } from 'react'
 import { Controller, useFieldArray, type UseFormReturn } from 'react-hook-form'
 import { Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useMeta } from '@entities/meta'
 import type { DcaIndicator, DcaOperator } from '@entities/strategy'
@@ -76,9 +77,9 @@ export function DcaConditionsSection({ form, indicators, direction }: Props) {
                 ) : (
                   <label className="flex items-center gap-1">
                     <span className="sr-only">{`조건 ${i + 1} 기준값`}</span>
-                    <input type="number" step="any" aria-invalid={!!rowError?.threshold} aria-describedby={errorId}
+                    <Input type="number" step="any" aria-invalid={!!rowError?.threshold} aria-describedby={errorId}
                       {...form.register(`conditions.${i}.threshold`, { setValueAs: (v) => (v === '' || v == null ? null : Number(v)) })}
-                      className="h-11 w-20 rounded-[var(--r-sm)] border border-border bg-card px-2 text-base" />
+                      className="h-11 w-20 rounded-[var(--r-sm)] px-2" />
                     {indicator && THRESHOLD_SUFFIX[indicator] && <span className="text-sm">{THRESHOLD_SUFFIX[indicator]}</span>}
                   </label>
                 )}
