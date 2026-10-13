@@ -1,13 +1,15 @@
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { PieChart, Pie, Cell } from 'recharts'
+import type { ReactNode } from 'react'
 import { FEAR_GREED_ZONES, zoneOf } from './fearGreedZones'
 
 interface Props {
   value: number // 0~100
+  aside?: ReactNode // 현재값 오른쪽 보조 정보(전일·전주 대비) — 현재값이 바늘 중심에 정렬되도록 흐름 밖에 띄운다
 }
 
 // 반원 게이지: 5개 구간 색상 호 + 현재값 바늘
-export function FearGreedGauge({ value }: Props) {
+export function FearGreedGauge({ value, aside }: Props) {
   const width = 220
   const height = 130
   const cx = width / 2
@@ -63,7 +65,10 @@ export function FearGreedGauge({ value }: Props) {
       </div>
       {/* 현재값 + 등급 라벨 */}
       <div className="flex flex-col items-center">
-        <span className="text-3xl font-bold" style={{ color: textColor }}>{value}</span>
+        <div className="relative">
+          <span className="text-3xl font-bold" style={{ color: textColor }}>{value}</span>
+          {aside && <div className="absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap">{aside}</div>}
+        </div>
         <span className="text-sm font-medium" style={{ color: textColor }}>{zone.label}</span>
       </div>
     </div>
