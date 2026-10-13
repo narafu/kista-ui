@@ -28,10 +28,11 @@ const INVALIDATED: QueryKey[] = [
   statsKeys.summary(),
   statsKeys.equityCurve('2026-01-01', '2026-02-01', 'ACCOUNT'),
   statsKeys.cycles({ accountId: 'a1', page: 2 }),
+  statsKeys.housingComparison({ scope: 'PORTFOLIO', benchmarkType: 'HOUSING', regionCode: '11' }),
+  statsKeys.housingComparison({ scope: 'STRATEGY', strategyId: 's1', benchmarkType: 'ETF', symbol: 'SPY' }),
 ]
 
 const PRESERVED: QueryKey[] = [
-  statsKeys.housingComparison({ scope: 'PORTFOLIO', benchmarkType: 'HOUSING', regionCode: '11' }),
   statsKeys.housingSeries('2026-01-01', '2026-02-01', '11'),
   statsKeys.housingPriceIndexSeries(),
   statsKeys.etfPriceSeries(undefined, undefined, 'SPY'),
@@ -39,7 +40,7 @@ const PRESERVED: QueryKey[] = [
 ]
 
 describe('TradeNotificationBridge', () => {
-  it('trade 이벤트 수신 시 체결 관련 키만 무효화하고 stats 외부 참조 키는 남긴다', () => {
+  it('trade 이벤트 수신 시 체결 관련 키만 무효화하고 stats 시장·참조 키는 남긴다', () => {
     EventSource.instances = []
     const client = new QueryClient()
     for (const key of [...INVALIDATED, ...PRESERVED]) client.setQueryData(key, {})

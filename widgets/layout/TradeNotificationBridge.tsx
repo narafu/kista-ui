@@ -5,13 +5,15 @@ import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
 import { TradeNotificationProvider, tradeKeys } from '@entities/trade'
 
-// 체결로 값이 바뀌는 클라이언트 조회 키. stats의 housing·etf·regions 같은 외부 참조 데이터는 체결과 무관해 제외한다
+// 체결로 값이 바뀌는 클라이언트 조회 키. housing-comparison은 내 투자 수익률을 포함해 대상이고,
+// stats의 housing·etf 시장 시계열과 regions 같은 외부 참조 데이터는 체결과 무관해 제외한다
 export const TRADE_DEPENDENT_KEYS = [
   tradeKeys.all,
   orderKeys.all,
   statsKeys.summary(),
   statsKeys.equityCurveAll(),
   statsKeys.cyclesAll(),
+  statsKeys.housingComparisonAll(),
 ] as const
 
 export function invalidateTradeDependents(queryClient: QueryClient) {

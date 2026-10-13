@@ -46,9 +46,10 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 
 - `widgets/pull-to-refresh/PullToRefresh.tsx`: 사용자가 명시적으로 요청한 화면 전체 재동기화다. 특정 mutation의 누락된 캐시 처리를 가리는 수단이 아니라 모바일의 수동 recovery 동작이므로 허용한다.
 - `entities/trade/providers/TradeNotificationProvider.tsx`: SSE `trade` 이벤트를 받으면 두 가지를 함께 한다.
-  - 주입된 `onTrade`가 체결로 바뀌는 클라이언트 쿼리를 prefix로 무효화한다. 마운트 위치는 `widgets/layout/TradeNotificationBridge.tsx`다. 대상은 `tradeKeys.all`·`orderKeys.all`·`statsKeys.summary()`·`statsKeys.equityCurveAll()`·`statsKeys.cyclesAll()`이다. stats의 housing·etf·regions 같은 외부 참조 데이터는 체결과 무관해서 제외한다(`statsKeys.all` 사용 금지). 대상 키는 `TradeNotificationBridge.test.tsx`가 고정한다. 무효화 로직을 브리지에 둔 이유는 `entities/trade`에서 `@entities/order`·`@entities/stats`를 import하면 같은 계층 cross-import가 되기 때문이다.
+  - 주입된 `onTrade`가 체결로 바뀌는 클라이언트 쿼리를 prefix로 무효화한다. 마운트 위치는 `widgets/layout/TradeNotificationBridge.tsx`다. 대상은 `tradeKeys.all`·`orderKeys.all`·`statsKeys.summary()`·`statsKeys.equityCurveAll()`·`statsKeys.cyclesAll()`·`statsKeys.housingComparisonAll()`이다. housing-comparison은 이름과 달리 내 투자 수익률(`investmentCumulativeReturn` 등)을 포함하므로 대상이다. housing·etf 시장 시계열과 regions 같은 외부 참조 데이터는 체결과 무관해서 제외한다(`statsKeys.all` 사용 금지). summary·equity-curve·housing-comparison은 kista-api 서버 TTL 캐시 때문에 다시 조회해도 최대 TTL 동안 이전 값이 올 수 있다(`entities.md` "stats 서버 TTL" 참고). 대상 키는 `TradeNotificationBridge.test.tsx`가 고정한다. 무효화 로직을 브리지에 둔 이유는 `entities/trade`에서 `@entities/order`·`@entities/stats`를 import하면 같은 계층 cross-import가 되기 때문이다.
   - `router.refresh()`는 유지한다. 레이아웃·페이지의 서버 렌더 집계(계좌 포트폴리오 등 React Query 키가 없는 SSR 값)는 refresh로만 갱신된다. 현재 route에서 prefetch된 키는 hydrate와 invalidate refetch로 두 번 조회될 수 있지만, 체결 빈도를 고려해 감수한다.
-  - 종료 조건: 이벤트 payload에 accountId·strategyId가 담겨 account/strategy/order/trade key를 완전히 특정하게 되면(kista-api 변경 필요) prefix 무효화를 targeted `setQueryData`/invalidate로 좁힌다. SSR 집계가 React Query로 이관되면 `router.refresh()`를 제거한다.
+  - targeted 무효화를 하지 않는 이유: 2026-10부터 payload에 `accountId`·`strategyId`(nullable)가 담기지만, 이를 써서 키를 좁히지 않는다. `invalidateQueries`는 활성 쿼리만 즉시 다시 조회하는데, 활성 쿼리는 대부분 체결된 계좌·전략의 것이라 좁혀도 줄어드는 요청이 거의 없다. 반면 `tradeKeys.dailyRange`(계좌 id를 이어 붙인 문자열 키)용 predicate와 null·필드 누락 폴백이 생기고, 하나를 빠뜨리면 체결 후에도 값이 갱신되지 않는 버그가 다시 생긴다. 비활성 쿼리의 재조회가 실제 부하로 측정되면 그때 전환한다.
+  - 종료 조건: SSR 집계가 React Query로 이관되면 `router.refresh()`를 제거한다.
 
 새 예외는 이 문서에 목적과 종료 조건을 먼저 기록해야 한다.
 

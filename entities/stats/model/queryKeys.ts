@@ -10,9 +10,9 @@ export const statsKeys = {
   cyclesAll: () => [...statsKeys.all, 'cycles'] as const,
   cycles: ({ type, accountId, ticker, status, page = 0, size }: StatsCyclesFilters = {}) =>
     [...statsKeys.cyclesAll(), type ?? 'ALL', accountId ?? null, ticker ?? null, status ?? 'ALL', page, size ?? null] as const,
+  housingComparisonAll: () => [...statsKeys.all, 'housing-comparison'] as const,
   housingComparison: (params: HousingBenchmarkParams) => [
-    ...statsKeys.all,
-    'housing-comparison',
+    ...statsKeys.housingComparisonAll(),
     params.scope,
     params.strategyId ?? null,
     params.benchmarkType,
