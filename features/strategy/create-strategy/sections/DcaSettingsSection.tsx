@@ -127,7 +127,7 @@ export function DcaSettingsSection({ form, isEdit, broker, orderTypes, direction
         )}
         {frequency === 'MONTHLY' && dayOfMonth && LATE_DAYS.has(dayOfMonth) && <Caption>해당 날짜가 없는 달은 말일에 실행</Caption>}
         <Caption>휴장일이면 같은 주·월 안의 다음 거래일에 실행</Caption>
-        <Caption>실행일은 미국 거래일 기준이라 한국 날짜와 하루 차이 날 수 있음</Caption>
+        <Caption>실행일은 미국 거래일 기준</Caption>
       </div>
     </>
   )
