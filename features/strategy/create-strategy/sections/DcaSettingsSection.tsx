@@ -79,7 +79,7 @@ export function DcaSettingsSection({ form, isEdit, broker, orderTypes, direction
             </SelectionCard>
           ))}
         </div>
-        {direction === 'BUY' && <Caption>매수는 전일 종가 +5% 상한 지정가로 접수되어 급등 시 미체결될 수 있음</Caption>}
+        {direction === 'BUY' && <Caption>매수는 전일 종가와 현재가 중 높은 값의 +5% 상한 지정가로 접수되어 급등 시 미체결될 수 있음</Caption>}
         {broker === 'TOSS' && orderType === 'MOO' && <Caption>토스증권은 개장 직후 지정가로 접수되어 시가 체결이 보장되지 않음</Caption>}
       </div>
 

@@ -140,7 +140,7 @@ describe('DCA api', () => {
     ], page: 0, size: 20, totalElements: 2 })
     const res = await listDcaExecutions('s1', 0, 20)
     expect(fetchEitherMock).toHaveBeenLastCalledWith('/api/trading-cycles/s1/dca-executions?page=0&size=20', undefined, undefined)
-    // ORDERED 행 referencePrice는 단계 ①에서 항상 null, SKIPPED 행은 판정에 쓴 전일 종가
+    // referencePrice는 주문 기준가(매수: max(전일 종가, 배치 시점 현재가), 매도: 전일 종가) — null은 기존 주문 복구 경로의 ORDERED 행뿐(content[0]이 그 경우)
     expect(res.content[0]).toMatchObject({ referencePrice: undefined, quantity: 3, order: { filledPrice: 87.4 } })
     expect(res.content[1]).toMatchObject({ referencePrice: 86.5, quantity: undefined, order: null })
     expect(res.totalElements).toBe(2)

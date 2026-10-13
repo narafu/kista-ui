@@ -30,7 +30,7 @@ describe('DcaSettingsSection', () => {
   })
   it('매수면 +5% 상한 캡션, 매도면 없음', () => {
     const { unmount } = render(<Harness />)
-    expect(screen.getByText('매수는 전일 종가 +5% 상한 지정가로 접수되어 급등 시 미체결될 수 있음')).toBeInTheDocument()
+    expect(screen.getByText('매수는 전일 종가와 현재가 중 높은 값의 +5% 상한 지정가로 접수되어 급등 시 미체결될 수 있음')).toBeInTheDocument()
     unmount()
     render(<Harness defaults={{ direction: 'SELL' }} />)
     expect(screen.queryByText(/상한 지정가/)).not.toBeInTheDocument()
