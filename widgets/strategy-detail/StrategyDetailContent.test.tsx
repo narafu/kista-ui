@@ -7,7 +7,10 @@ import { strategyKeys, type Strategy } from '@entities/strategy'
 import { StrategyDetailContent } from './StrategyDetailContent'
 
 vi.mock('./StrategyDetail', () => ({
-  StrategyDetail: () => null,
+  StrategyDetail: () => <div data-testid="infinite-detail" />,
+}))
+vi.mock('./DcaStrategyDetail', () => ({
+  DcaStrategyDetail: () => <div data-testid="dca-detail" />,
 }))
 
 const serverAccount: Account = {
@@ -84,5 +87,16 @@ describe('StrategyDetailContent', () => {
       expect(screen.getByRole('heading', { name: 'MAGX' })).toBeInTheDocument()
       expect(screen.getByRole('link', { name: /Edited account/ })).toBeInTheDocument()
     })
+  })
+
+  it('DCA 전략은 dca 유무와 무관하게 DcaStrategyDetail로 분기하고 StrategyDetail은 렌더하지 않는다', () => {
+    const dcaStrategy: Strategy = { ...serverStrategy, type: 'DCA' }
+    const queryClient = createClient()
+    queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
+    queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), dcaStrategy)
+    render(<QueryClientProvider client={queryClient}>{content()}</QueryClientProvider>)
+
+    expect(screen.getByTestId('dca-detail')).toBeInTheDocument()
+    expect(screen.queryByTestId('infinite-detail')).not.toBeInTheDocument()
   })
 })

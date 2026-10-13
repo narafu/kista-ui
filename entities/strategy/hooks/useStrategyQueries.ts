@@ -134,6 +134,7 @@ export function useDcaExecutionsQuery(strategyId: string, page: number, size: nu
   return useQuery<DcaExecutionPage>({
     queryKey: strategyKeys.dcaExecutions(strategyId, page, size),
     queryFn: () => listDcaExecutions(strategyId, page, size),
+    placeholderData: (prev) => prev, // 페이지 전환 중 이전 페이지 유지 — 표·페이지네이션 깜빡임 방지
   })
 }
 

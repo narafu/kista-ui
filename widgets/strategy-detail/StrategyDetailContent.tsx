@@ -10,6 +10,7 @@ import { cn } from '@shared/lib/utils'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 import { StrategyDetail } from './StrategyDetail'
+import { DcaStrategyDetail } from './DcaStrategyDetail'
 
 interface Props {
   accountId: string
@@ -57,7 +58,9 @@ export function StrategyDetailContent({
         }
       />
 
-      <StrategyDetail accountId={accountId} strategy={strategy} />
+      {strategy.type === 'DCA'
+        ? <DcaStrategyDetail accountId={accountId} strategy={strategy} />
+        : <StrategyDetail accountId={accountId} strategy={strategy} />}
     </div>
   )
 }

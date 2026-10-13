@@ -35,7 +35,10 @@ export default async function StrategyDetailPage({ params }: Props) {
   }
 
   // "다음 주문" 배너·데이터가 하이드레이션 이후 재요청 없이 첫 페인트부터 보이도록 서버에서 미리 조회
-  await queryClient.prefetchQuery(orderPreviewQueryOptions(strategy.id, token)).catch(() => undefined)
+  // DCA는 단건 미리보기를 지원하지 않는다(409) — 호출 자체를 생략
+  if (strategy.type !== 'DCA') {
+    await queryClient.prefetchQuery(orderPreviewQueryOptions(strategy.id, token)).catch(() => undefined)
+  }
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

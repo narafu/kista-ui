@@ -7,6 +7,7 @@ import type { Strategy } from '../model/types'
 import { strategyKeys } from '../model/queryKeys'
 import {
   useCreateStrategyMutation,
+  useDcaExecutionsQuery,
   useDeleteStrategyMutation,
   usePauseStrategyMutation,
   useReconfigureVrMutation,
@@ -23,6 +24,7 @@ const {
   deleteStrategyMock,
   pauseStrategyMock,
   resumeStrategyMock,
+  listDcaExecutionsMock,
 } = vi.hoisted(() => ({
   listAllStrategiesMock: vi.fn(),
   listStrategiesMock: vi.fn(),
@@ -32,6 +34,7 @@ const {
   deleteStrategyMock: vi.fn(),
   pauseStrategyMock: vi.fn(),
   resumeStrategyMock: vi.fn(),
+  listDcaExecutionsMock: vi.fn(),
 }))
 
 vi.mock('../api', () => ({
@@ -43,6 +46,7 @@ vi.mock('../api', () => ({
   deleteStrategy: deleteStrategyMock,
   pauseStrategy: pauseStrategyMock,
   resumeStrategy: resumeStrategyMock,
+  listDcaExecutions: listDcaExecutionsMock,
   executeStrategy: vi.fn(),
   getStrategySeedPreview: vi.fn(),
 }))
@@ -269,5 +273,24 @@ describe('strategy mutations', () => {
     expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([strategyB, strategyOtherAccount])
     expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([strategyB])
     expect(queryClient.getQueryData(strategyKeys.detail(strategyA.id))).toBeUndefined()
+  })
+})
+
+describe('useDcaExecutionsQuery', () => {
+  it('페이지 전환 중에도 이전 페이지 데이터를 유지한다', async () => {
+    const page0 = { content: [], page: 0, size: 20, totalElements: 40 }
+    let resolve1!: (v: unknown) => void
+    listDcaExecutionsMock.mockResolvedValueOnce(page0).mockReturnValueOnce(new Promise((r) => { resolve1 = r }))
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const wrapper = ({ children }: PropsWithChildren) => <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    const { result, rerender } = renderHook(({ page }) => useDcaExecutionsQuery('s1', page, 20), { wrapper, initialProps: { page: 0 } })
+    await waitFor(() => expect(result.current.data).toEqual(page0))
+
+    rerender({ page: 1 })
+
+    expect(result.current.data).toEqual(page0)
+    expect(result.current.isPlaceholderData).toBe(true)
+    resolve1({ ...page0, page: 1 })
+    await waitFor(() => expect(result.current.data?.page).toBe(1))
   })
 })
