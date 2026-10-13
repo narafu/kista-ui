@@ -33,9 +33,9 @@ function deltas(history: FearGreedPoint[]) {
 function Delta({ label, value }: { label: string; value: number | null }) {
   if (value === null) return null
   return (
-    <span className="text-xs text-muted-foreground">
+    <span className="text-sm text-muted-foreground">
       {label}{' '}
-      <span className={cn('font-medium tabular-nums', value > 0 ? 'text-pos' : value < 0 ? 'text-neg' : 'text-muted-foreground')}>
+      <span className={cn('text-base font-semibold tabular-nums', value > 0 ? 'text-pos' : value < 0 ? 'text-neg' : 'text-muted-foreground')}>
         {value > 0 ? `+${value}` : value}
       </span>
     </span>
@@ -79,7 +79,7 @@ export default function FearGreedCardInner({ title, data, days, onDaysChange, da
       {current ? (
         <>
           <FearGreedGauge value={current.value} />
-          <div className="flex justify-center gap-3">
+          <div className="flex justify-center gap-4">
             <Delta label="전일대비" value={day} />
             <Delta label="전주대비" value={week} />
           </div>
