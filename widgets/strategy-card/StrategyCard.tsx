@@ -10,6 +10,7 @@ import type { DirectionReadiness, OrderReadiness } from '@entities/order'
 import { seedBadgeClass, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import { Badge } from '@shared/ui/Badge'
+import { DcaStrategyCard } from './DcaStrategyCard'
 
 interface Props {
   accountId: string
@@ -163,7 +164,7 @@ function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledSt
   )
 }
 
-export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
+function CycleStrategyCard({ accountId, strategy, accountLabel }: Props) {
   const { findStrategyType, labelOf } = useMeta()
   const { data: preview } = useStrategyOrderPreviewQuery(strategy.id)
   const usesDivisionCount = (findStrategyType(strategy.type)?.divisionCounts?.length ?? 0) > 0
@@ -202,4 +203,13 @@ export function StrategyCard({ accountId, strategy, accountLabel }: Props) {
       <PcLayout {...layoutProps} />
     </Link>
   )
+}
+
+// DCA는 단건 미리보기를 지원하지 않아(409) 미리보기 훅이 실행되기 전에 래퍼에서 분기한다
+export function StrategyCard(props: Props) {
+  const { strategy } = props
+  if (strategy.type === 'DCA') {
+    return <DcaStrategyCard {...props} />
+  }
+  return <CycleStrategyCard {...props} />
 }

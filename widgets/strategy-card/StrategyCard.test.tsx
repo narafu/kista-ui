@@ -28,6 +28,8 @@ let previewState = {
   isLoading: false,
 }
 
+const { previewMock } = vi.hoisted(() => ({ previewMock: vi.fn() }))
+
 vi.mock('next/link', () => ({
   default: ({ children, href, ...props }: React.ComponentProps<'a'>) => <a href={href} {...props}>{children}</a>,
 }))
@@ -36,19 +38,26 @@ vi.mock('@entities/order', async () => {
   const actual = await vi.importActual<typeof import('@entities/order')>('@entities/order')
   return {
     ...actual,
-    useStrategyOrderPreviewQuery: () => previewState,
+    useStrategyOrderPreviewQuery: (id: string) => { previewMock(id); return previewState },
   }
 })
 
-vi.mock('@entities/meta', () => ({
+vi.mock('@entities/meta', async () => {
+  const { dcaTestMeta } = await import('@features/strategy/create-strategy/sections/__fixtures__/dcaTestMeta')
+  const groups: Record<string, Array<{ code: string; label: string }>> = {
+    ...dcaTestMeta,
+    dcaSkipReasons: [{ code: 'CONDITION_NOT_MET', label: '조건 미충족' }],
+  }
+  return {
   useMeta: () => ({
     findStrategyType: (code: string) => {
       if (code === 'INFINITE') return { divisionCounts: [20, 30, 40] }
       return { divisionCounts: [] }
     },
-    labelOf: (_group: string, value: string) => value,
+    labelOf: (group: string, value: string) => groups[group]?.find(i => i.code === value)?.label ?? value,
   }),
-}))
+  }
+})
 
 vi.mock('@entities/strategy', async () => {
   const actual = await vi.importActual<typeof import('@entities/strategy')>('@entities/strategy')
@@ -380,5 +389,38 @@ describe('StrategyCard scheduled start badge', () => {
     render(<StrategyCard accountId="account-1" strategy={strategy} />)
 
     expect(screen.queryByText(/시작예정$/)).not.toBeInTheDocument()
+  })
+})
+
+describe('StrategyCard DCA', () => {
+  const dcaStrategy = {
+    id: 'd1', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
+    dca: {
+      direction: 'BUY', amountUsd: 300, orderType: 'MOC', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, conditions: [],
+      nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' },
+      lastExecution: { kstTradeDate: '2026-09-30', status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET' },
+    },
+  } as unknown as Strategy
+
+  beforeEach(() => previewMock.mockClear())
+
+  it('DCA 카드는 단건 미리보기를 호출하지 않는다', () => {
+    render(<StrategyCard accountId="a1" strategy={dcaStrategy} />)
+    expect(previewMock).not.toHaveBeenCalled()
+  })
+
+  it('dca 요약이 없는 DCA 전략도 미리보기 없이 카드 셸을 렌더한다', () => {
+    render(<StrategyCard accountId="a1" strategy={{ ...dcaStrategy, dca: undefined }} />)
+    expect(screen.getByText('DCA')).toBeInTheDocument()
+    expect(screen.getByText('UPRO')).toBeInTheDocument()
+    expect(previewMock).not.toHaveBeenCalled()
+  })
+
+  it('DCA 카드는 방향·주기 요약·다음 판정일·최근 결과를 보여준다', () => {
+    render(<StrategyCard accountId="a1" strategy={dcaStrategy} />)
+    expect(screen.getByText('매수')).toBeInTheDocument()
+    expect(screen.getByText('매월 말일 · $300.00 · 장 마감 시장가')).toBeInTheDocument()
+    expect(screen.getByText(/다음 판정일 2026-10-31/)).toBeInTheDocument()
+    expect(screen.getByText(/최근 건너뜀 · 조건 미충족/)).toBeInTheDocument()
   })
 })
