@@ -1,15 +1,35 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { createChart, CandlestickSeries, ColorType, type IChartApi } from 'lightweight-charts'
+import { createChart, CandlestickSeries, ColorType, LineSeries, LineStyle, type IChartApi } from 'lightweight-charts'
 import { Info } from 'lucide-react'
-import { useCandlesQuery } from '@entities/market'
+import { CHART_CANDLE_COUNT, useCandlesQuery } from '@entities/market'
+import { rsi, sma } from '@shared/lib/indicators'
+import { cn } from '@shared/lib/utils'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { MarketChartCategory } from './marketChartCategories'
 
 const CANDLE_OPTIONS = [200, 120, 50, 20] as const
 type CandleCount = (typeof CANDLE_OPTIONS)[number]
+
+const CHART_HEIGHT = 280
+const RSI_PANE_HEIGHT = 100
+const RSI_PERIOD = 14
+// 캔들이 상승 빨강(--pos)·하락 파랑(--neg)이라 겹치지 않는 금·초록 계열 자산 팔레트를 쓴다
+const MA_LINES = [
+  { period: 20, colorVar: '--asset-series-3' },
+  { period: 60, colorVar: '--asset-series-5' },
+] as const
+const RSI_COLOR_VAR = '--asset-series-4'
+const LINE_OPTIONS = { lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false } as const
+
+function toggleButtonClass(active: boolean) {
+  return cn(
+    'text-xs px-1.5 py-1 rounded font-medium transition-colors',
+    active ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]' : 'text-muted-foreground hover:text-foreground hover:bg-accent',
+  )
+}
 
 interface Props {
   category: MarketChartCategory
@@ -44,6 +64,8 @@ function readChartColors() {
     border: readVar('--border'),
     pos: readVar('--pos'),
     neg: readVar('--neg'),
+    maLines: MA_LINES.map(({ colorVar }) => readVar(colorVar)),
+    rsi: readVar(RSI_COLOR_VAR),
   }
 }
 
@@ -51,8 +73,10 @@ export default function MarketChartCardInner({ category }: Props) {
   // eslint-disable-next-line react-doctor/no-derived-useState
   const [symbol, setSymbol] = useState(category.options[0].symbol)
   const [candleCount, setCandleCount] = useState<CandleCount>(200)
+  const [showRsi, setShowRsi] = useState(false)
   const selected = category.options.find((o) => o.symbol === symbol) ?? category.options[0]
-  const { data: candles = [], isError } = useCandlesQuery(symbol, candleCount)
+  // 이평선·RSI의 선행 구간을 채우려고 항상 최대치로 조회하고, 캔들 개수 선택은 보이는 범위로만 반영한다
+  const { data: candles = [], isError } = useCandlesQuery(symbol, CHART_CANDLE_COUNT)
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
 
@@ -61,11 +85,11 @@ export default function MarketChartCardInner({ category }: Props) {
     const container = containerRef.current
     if (!container) return
 
-    const { background, foreground, border, pos, neg } = readChartColors()
+    const { background, foreground, border, pos, neg, maLines, rsi: rsiColor } = readChartColors()
 
     const chart = createChart(container, {
       width: container.clientWidth,
-      height: 280,
+      height: showRsi ? CHART_HEIGHT + RSI_PANE_HEIGHT : CHART_HEIGHT,
       layout: {
         background: { type: ColorType.Solid, color: background },
         textColor: foreground,
@@ -87,14 +111,44 @@ export default function MarketChartCardInner({ category }: Props) {
       wickDownColor: neg,
     })
 
+    const sorted = candles.slice().sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
     // eslint-disable-next-line react-doctor/no-pass-live-state-to-parent
     series.setData( // eslint-disable-next-line react-doctor/no-pass-live-state-to-parent
-      candles
-        .slice()
-        .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
-        .map((c) => ({ time: c.date, open: c.open, high: c.high, low: c.low, close: c.close })),
+      sorted.map((c) => ({ time: c.date, open: c.open, high: c.high, low: c.low, close: c.close })),
     )
-    chart.timeScale().fitContent()
+
+    const closes = sorted.map((c) => c.close)
+    const toLineData = (values: (number | null)[]) =>
+      values.flatMap((value, index) => (value === null ? [] : [{ time: sorted[index].date, value }]))
+
+    const maSeries = MA_LINES.map(({ period }, index) => {
+      const line = chart.addSeries(LineSeries, { ...LINE_OPTIONS, color: maLines[index] })
+      line.setData(toLineData(sma(closes, period)))
+      return line
+    })
+
+    // RSI는 별도 pane(index 1)에 0~100 고정 눈금 + 70/30 기준선으로 그린다
+    const rsiSeries = showRsi
+      ? chart.addSeries(
+          LineSeries,
+          {
+            ...LINE_OPTIONS,
+            color: rsiColor,
+            lastValueVisible: true,
+            autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 100 } }),
+          },
+          1,
+        )
+      : null
+    const rsiGuideLines = rsiSeries
+      ? [70, 30].map((price) =>
+          rsiSeries.createPriceLine({ price, color: border, lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: false }),
+        )
+      : []
+    if (rsiSeries) {
+      rsiSeries.setData(toLineData(rsi(closes, RSI_PERIOD)))
+      chart.panes()[1]?.setHeight(RSI_PANE_HEIGHT)
+    }
 
     const resizeObserver = new ResizeObserver(() => {
       chart.applyOptions({ width: container.clientWidth })
@@ -114,6 +168,9 @@ export default function MarketChartCardInner({ category }: Props) {
         rightPriceScale: { borderColor: colors.border },
       })
       series.applyOptions({ upColor: colors.pos, downColor: colors.neg, borderVisible: false, wickUpColor: colors.pos, wickDownColor: colors.neg })
+      maSeries.forEach((line, index) => line.applyOptions({ color: colors.maLines[index] }))
+      rsiSeries?.applyOptions({ color: colors.rsi })
+      rsiGuideLines.forEach((line) => line.applyOptions({ color: colors.border }))
     })
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
 
@@ -123,7 +180,17 @@ export default function MarketChartCardInner({ category }: Props) {
       chart.remove()
       chartRef.current = null
     }
-  }, [candles, isError])
+  }, [candles, isError, showRsi])
+
+  // 캔들 개수 선택 = 최근 N봉만 보이게 범위 지정 (차트를 다시 만들지 않는다)
+  useEffect(() => {
+    const chart = chartRef.current
+    if (!chart || candles.length === 0) return
+    chart.timeScale().setVisibleLogicalRange({
+      from: Math.max(0, candles.length - candleCount) - 0.5,
+      to: candles.length - 0.5,
+    })
+  }, [candleCount, candles, isError, showRsi])
 
   return (
     <>
@@ -139,11 +206,7 @@ export default function MarketChartCardInner({ category }: Props) {
               type="button"
               onClick={() => setCandleCount(n)}
               aria-pressed={candleCount === n}
-              className={`text-xs px-1.5 py-1 rounded font-medium transition-colors ${
-                candleCount === n
-                  ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-              }`}
+              className={toggleButtonClass(candleCount === n)}
             >
               {n}
             </button>
@@ -168,10 +231,23 @@ export default function MarketChartCardInner({ category }: Props) {
           ))}
         </SelectContent>
       </Select>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          {MA_LINES.map(({ period, colorVar }) => (
+            <span key={period} className="inline-flex items-center gap-1">
+              <span aria-hidden className="h-0.5 w-3 rounded-full" style={{ backgroundColor: `var(${colorVar})` }} />
+              MA{period}
+            </span>
+          ))}
+        </div>
+        <button type="button" onClick={() => setShowRsi((prev) => !prev)} aria-pressed={showRsi} className={toggleButtonClass(showRsi)}>
+          RSI
+        </button>
+      </div>
       {isError ? (
         <div className="flex h-[280px] items-center justify-center text-sm text-warn">시장 차트를 불러오지 못했습니다</div>
       ) : (
-        <div ref={containerRef} className="h-[280px] w-full" />
+        <div ref={containerRef} className={cn('w-full', showRsi ? 'h-[380px]' : 'h-[280px]')} />
       )}
     </>
   )

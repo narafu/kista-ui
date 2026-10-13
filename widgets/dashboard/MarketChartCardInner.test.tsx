@@ -22,17 +22,23 @@ beforeAll(() => {
 const useCandlesQueryMock = vi.fn((_ticker: string, _count: number): { data: unknown[] | undefined; isError?: boolean } => ({ data: [] }))
 
 vi.mock('@entities/market', () => ({
+  CHART_CANDLE_COUNT: 200,
   useCandlesQuery: (ticker: string, count: number) => useCandlesQueryMock(ticker, count),
 }))
 
+const addSeriesMock = vi.fn((..._args: unknown[]) => ({ setData: vi.fn(), applyOptions: vi.fn(), createPriceLine: vi.fn() }))
+
 vi.mock('lightweight-charts', () => ({
   createChart: () => ({
-    addSeries: () => ({ setData: vi.fn(), applyOptions: vi.fn() }),
-    timeScale: () => ({ fitContent: vi.fn() }),
+    addSeries: addSeriesMock,
+    timeScale: () => ({ setVisibleLogicalRange: vi.fn() }),
+    panes: () => [{ setHeight: vi.fn() }, { setHeight: vi.fn() }],
     applyOptions: vi.fn(),
     remove: vi.fn(),
   }),
   CandlestickSeries: {},
+  LineSeries: {},
+  LineStyle: { Dashed: 2 },
   ColorType: { Solid: 'solid' },
 }))
 
@@ -58,14 +64,32 @@ describe('MarketChartCardInner', () => {
     expect(screen.getByRole('combobox')).toHaveTextContent('SPY · S&P 500')
   })
 
-  it('switches the candle count query when a different count button is clicked', async () => {
+  it('keeps querying the max candle count when a different count button is clicked', async () => {
     useCandlesQueryMock.mockClear()
     const user = userEvent.setup()
     render(<MarketChartCardInner category={category} />)
 
     await user.click(screen.getByRole('button', { name: '50' }))
 
-    expect(useCandlesQueryMock).toHaveBeenLastCalledWith('SPY', 50)
+    expect(screen.getByRole('button', { name: '50' })).toHaveAttribute('aria-pressed', 'true')
+    expect(useCandlesQueryMock).toHaveBeenLastCalledWith('SPY', 200)
+  })
+
+  it('adds an RSI series on pane 1 only when the RSI toggle is on', async () => {
+    useCandlesQueryMock.mockReturnValue({
+      data: [{ date: '2026-10-01', open: 1, high: 2, low: 1, close: 2, volume: 0 }],
+    })
+    addSeriesMock.mockClear()
+    const user = userEvent.setup()
+    render(<MarketChartCardInner category={category} />)
+
+    expect(addSeriesMock.mock.calls.some((call) => call[2] === 1)).toBe(false)
+
+    await user.click(screen.getByRole('button', { name: 'RSI' }))
+
+    expect(screen.getByRole('button', { name: 'RSI' })).toHaveAttribute('aria-pressed', 'true')
+    expect(addSeriesMock.mock.calls.some((call) => call[2] === 1)).toBe(true)
+    useCandlesQueryMock.mockReturnValue({ data: [] })
   })
 
   it('switches the queried symbol when a different option is selected', async () => {
