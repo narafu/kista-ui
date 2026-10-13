@@ -3,12 +3,10 @@ import { QueryClient, QueryClientProvider, type QueryKey } from '@tanstack/react
 import { describe, expect, it, vi } from 'vitest'
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
+import { strategyKeys } from '@entities/strategy'
+import { accountKeys } from '@entities/account'
 import { tradeKeys } from '@entities/trade'
 import { TradeNotificationBridge } from './TradeNotificationBridge'
-
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ refresh: vi.fn() }),
-}))
 
 vi.mock('sonner', () => ({
   toast: { custom: vi.fn() },
@@ -23,6 +21,10 @@ const INVALIDATED: QueryKey[] = [
   tradeKeys.accountCycleHistory('a1', { size: 20 }),
   tradeKeys.strategyCycleHistory('s1', null),
   tradeKeys.dailyRange(['a2', 'a1'], '2026-01-01', '2026-01-31'),
+  tradeKeys.portfolio('a1'),
+  strategyKeys.listAll(),
+  strategyKeys.listByAccount('a1'),
+  strategyKeys.detail('s1'),
   orderKeys.preview('s1'),
   orderKeys.history('s1', '2026-01-01', '2026-01-31'),
   statsKeys.summary(),
@@ -37,6 +39,10 @@ const PRESERVED: QueryKey[] = [
   statsKeys.housingPriceIndexSeries(),
   statsKeys.etfPriceSeries(undefined, undefined, 'SPY'),
   statsKeys.housingRegions(),
+  // 계좌 메타(이름·증권사)는 체결과 무관. margin은 전략 생성 폼 전용 staleTime 0이라 refresh 시절에도 대상이 아니었다
+  strategyKeys.seedPreview('a1', 'INFINITE', 'TQQQ', 40),
+  accountKeys.list(),
+  accountKeys.margin('a1'),
 ]
 
 describe('TradeNotificationBridge', () => {

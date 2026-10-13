@@ -50,7 +50,7 @@ widget 슬라이스끼리 cross-import 금지. **단, 아래 "공용 UI 위젯" 
 
 - 인터랙션 추가 시 Client Component를 분리하고 페이지 전체를 `'use client'`로 바꾸지 않는다
 - 가변 서버 상태와 계산 값은 `docs/agents/entities.md`에 따라 직접 cache write 또는 key factory 기반 invalidate로 동기화한다. routine mutation 성공 시 `router.refresh()`를 사용하지 않는다
-- `router.refresh()`는 명시적 pull-to-refresh와 SSE provider 예외에만 허용한다. 예외의 rationale과 종료 조건은 `docs/agents/shared.md` 참고
+- `router.refresh()`는 명시적 pull-to-refresh 예외에만 허용한다(체결 SSE도 refresh 없이 키 무효화만 한다). 예외의 rationale은 `docs/agents/shared.md` 참고
 - "방금 동작 결과"는 toast, "현재 상태 경고"는 고정 텍스트로 남긴다
 - 독립 API 호출은 try/catch를 분리한다
 - JSX 내 IIFE 금지

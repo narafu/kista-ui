@@ -40,7 +40,9 @@ vi.mock('@entities/strategy', () => ({
     queryFn: async () => [],
   }),
 }))
-vi.mock('@entities/trade', () => ({ getAccountPortfolio: vi.fn() }))
+vi.mock('@entities/trade', () => ({
+  accountPortfolioQueryOptions: (id: string) => ({ queryKey: ['trades', 'portfolio', id], queryFn: vi.fn() }),
+}))
 vi.mock('@entities/order', () => ({ getAccountOrderPreviews: vi.fn().mockResolvedValue({}) }))
 vi.mock('@widgets/account-detail', () => ({
   AccountDetailTabs: () => null,

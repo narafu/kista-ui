@@ -1,7 +1,7 @@
 # shared/ — 도메인 무관 공용 자산
 
 도메인 지식 없이 어디서나 사용 가능한 유틸리티. 모든 계층에서 import 가능하며, `shared/` 내부에서 `entities/`·`features/`·`widgets/` import는 금지한다. 구성: `lib/`(api-client·api-schema·api-types·auth·query·format·hooks·proxy·date-range·env·firebase·normalize·utils), `model/`, `providers/`, `ui/`.
-캐시 소유권·hydration·mutation 동기화 규범은 `docs/agents/entities.md`를 따른다. router.refresh() 허용 범위와 stale time 기준은 아래 참고.
+캐시 소유권·hydration·mutation 동기화 규범은 `docs/agents/entities.md`를 따른다. router.refresh() 허용 범위·체결 SSE 무효화 대상과 stale time 기준은 아래 참고.
 
 ## api-client
 
@@ -42,14 +42,34 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 
 ### router.refresh() 허용 범위
 
-일반 query mutation의 성공 처리에는 사용하지 않는다(캐시 동기화 대신 이동 전 `router.refresh()`를 호출하는 패턴 금지 — refresh는 현재 route만 갱신하고 목적지 Router Cache의 가변 상태를 보장하지 않는다). 현재 허용되는 예외는 다음 두 가지뿐이다.
+일반 query mutation의 성공 처리에는 사용하지 않는다(캐시 동기화 대신 이동 전 `router.refresh()`를 호출하는 패턴 금지 — refresh는 현재 route만 갱신하고 목적지 Router Cache의 가변 상태를 보장하지 않는다). 현재 허용되는 예외는 다음 하나뿐이다.
 
 - `widgets/pull-to-refresh/PullToRefresh.tsx`: 사용자가 명시적으로 요청한 화면 전체 재동기화다. 특정 mutation의 누락된 캐시 처리를 가리는 수단이 아니라 모바일의 수동 recovery 동작이므로 허용한다.
-- `entities/trade/providers/TradeNotificationProvider.tsx`: SSE `trade` 이벤트를 받으면 두 가지를 함께 한다.
-  - 주입된 `onTrade`가 체결로 바뀌는 클라이언트 쿼리를 prefix로 무효화한다. 마운트 위치는 `widgets/layout/TradeNotificationBridge.tsx`다. 대상은 `tradeKeys.all`·`orderKeys.all`·`statsKeys.summary()`·`statsKeys.equityCurveAll()`·`statsKeys.cyclesAll()`·`statsKeys.housingComparisonAll()`이다. housing-comparison은 이름과 달리 내 투자 수익률(`investmentCumulativeReturn` 등)을 포함하므로 대상이다. housing·etf 시장 시계열과 regions 같은 외부 참조 데이터는 체결과 무관해서 제외한다(`statsKeys.all` 사용 금지). `strategyKeys`(`currentRound`·`currentHoldings` 포함)와 `accountKeys.margin`도 체결로 바뀌지만 대상에서 뺀다. strategy list/detail을 체결 민감 필드로 쓰는 화면(`/accounts`, `/accounts/[id]`, 전략 상세, `/strategies`)은 모두 서버 prefetch라 `router.refresh()`의 hydrate로 갱신된다. 클라이언트 전용 소비처인 `CyclePerformanceList`는 ticker 목록만 쓴다. margin은 전략 생성 폼에서만 쓰고 `staleTime: 0`이다(2026-10 점검). 클라이언트 전용 소비처가 체결 민감 필드를 쓰게 되면 그 키를 대상에 추가한다. summary·equity-curve·housing-comparison의 kista-api 서버 TTL 캐시는 체결 시 사용자 단위로 비워지므로 재조회가 새 값을 받는다. Redis 메시지 유실이나 계산 중 경합이 생기면 TTL이 지나야 갱신된다(`entities.md` "stats 서버 TTL" 참고). 대상 키는 `TradeNotificationBridge.test.tsx`가 고정한다. 무효화 로직을 브리지에 둔 이유는 `entities/trade`에서 `@entities/order`·`@entities/stats`를 import하면 같은 계층 cross-import가 되기 때문이다.
-  - `router.refresh()`는 유지한다. 레이아웃·페이지의 서버 렌더 집계(계좌 포트폴리오 등 React Query 키가 없는 SSR 값)는 refresh로만 갱신된다. 현재 route에서 prefetch된 키는 hydrate와 invalidate refetch로 두 번 조회될 수 있지만, 체결 빈도를 고려해 감수한다.
-  - targeted 무효화를 하지 않는 이유: 2026-10부터 payload에 `accountId`·`strategyId`(nullable)가 담기지만, 이를 써서 키를 좁히지 않는다. `invalidateQueries`는 활성 쿼리만 즉시 다시 조회하는데, 활성 쿼리는 대부분 체결된 계좌·전략의 것이라 좁혀도 줄어드는 요청이 거의 없다. 반면 `tradeKeys.dailyRange`(계좌 id를 이어 붙인 문자열 키)용 predicate와 null·필드 누락 폴백이 생기고, 하나를 빠뜨리면 체결 후에도 값이 갱신되지 않는 버그가 다시 생긴다. 비활성 쿼리의 재조회가 실제 부하로 측정되면 그때 전환한다.
-  - 종료 조건: SSR 집계가 React Query로 이관되면 `router.refresh()`를 제거한다.
+
+#### 체결 SSE는 refresh 없이 무효화만 한다
+
+`entities/trade/providers/TradeNotificationProvider.tsx`는 SSE `trade` 이벤트를 받으면 toast를 띄우고 주입된 `onTrade`를 호출할 뿐 `router.refresh()`를 하지 않는다. 2026-10에 제거했다. 그전에는 키 없는 SSR 집계를 갱신하려고 refresh를 함께 호출했고, 그 결과 현재 route의 prefetch 키가 hydrate와 invalidate refetch로 두 번 조회됐다.
+
+- **전제**: 체결로 바뀌는 값은 전부 React Query 키로 조회된다. 2026-10 인벤토리에서 키 없이 SSR prop으로 렌더되던 체결 민감 값은 두 가지였고 둘 다 이관했다.
+  - `/accounts/[id]`의 예수금·평가금: `tradeKeys.portfolio`, `accountPortfolioQueryOptions`
+  - 전략 수정 폼의 `currentHoldings`·`vr.value`: `StrategyFormPage`가 `strategyKeys.detail` 캐시를 읽는다
+- **새 화면 규칙**: 체결 민감 값을 Server Component에서 직접 계산해 prop으로 넘기지 않는다. refresh가 없으므로 체결 후에도 갱신되지 않는다. queryOptions로 prefetch+hydrate하고, 그 키를 아래 대상에 포함시킨다.
+- **대상 키**: 무효화는 `widgets/layout/TradeNotificationBridge.tsx`에서 마운트된다. prefix 무효화 대상은 다음과 같다.
+  - `tradeKeys.all`(portfolio 포함)
+  - `strategyKeys.lists()`·`strategyKeys.details()`(`currentRound`·`currentHoldings`)
+  - `orderKeys.all`
+  - `statsKeys.summary()`·`statsKeys.equityCurveAll()`·`statsKeys.cyclesAll()`·`statsKeys.housingComparisonAll()`. housing-comparison은 이름과 달리 내 투자 수익률(`investmentCumulativeReturn` 등)을 포함하므로 대상이다.
+- **제외 키**:
+  - housing·etf 시장 시계열과 regions 같은 외부 참조 데이터는 체결과 무관하다(`statsKeys.all` 사용 금지).
+  - `strategyKeys.seedPreview`는 시세 기반이다. 전략 폼이 열린 중 재조회되면 minSeed가 바뀌어 사용자가 조정한 시드가 초기화될 수 있다(`strategyKeys.all` 사용 금지).
+  - `accountKeys.margin`은 전략 폼 전용 클라이언트 쿼리(`staleTime: 0`)라 refresh 시절에도 갱신 대상이 아니었다.
+  - 대상·제외 키는 `TradeNotificationBridge.test.tsx`가 고정한다.
+- **서버 TTL**: summary·equity-curve·housing-comparison의 kista-api 서버 TTL 캐시는 체결 시 사용자 단위로 비워지므로 재조회가 새 값을 받는다. Redis 메시지 유실이나 계산 중 경합이 생기면 TTL이 지나야 갱신된다(`entities.md` "stats 서버 TTL" 참고).
+- **브리지에 두는 이유**: `entities/trade`에서 `@entities/order`·`@entities/stats`·`@entities/strategy`를 import하면 같은 계층 cross-import가 된다.
+- **targeted 무효화를 하지 않는 이유**: 2026-10부터 payload에 `accountId`·`strategyId`(nullable)가 담기지만, 이를 써서 키를 좁히지 않는다.
+  - `invalidateQueries`는 활성 쿼리만 즉시 다시 조회한다. 활성 쿼리는 대부분 체결된 계좌·전략의 것이라, 좁혀도 줄어드는 요청이 거의 없다.
+  - 반면 `tradeKeys.dailyRange`(계좌 id를 이어 붙인 문자열 키)용 predicate와 null·필드 누락 폴백이 필요해진다. 하나를 빠뜨리면 체결 후에도 값이 갱신되지 않는 버그가 다시 생긴다.
+  - 비활성 쿼리의 재조회가 실제 부하로 측정되면 그때 전환한다.
 
 새 예외는 이 문서에 목적과 종료 조건을 먼저 기록해야 한다.
 

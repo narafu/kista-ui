@@ -1,4 +1,4 @@
-import { apiFetch, fetchEither } from '@shared/lib/api-client'
+import { fetchEither } from '@shared/lib/api-client'
 import { buildQueryString } from '@shared/lib/query-string'
 import { toNum } from '@shared/lib/utils'
 import type {
@@ -58,8 +58,8 @@ export async function getStrategyCycleHistory(
   return fetchEither<CycleHistoryPage>(`/api/trading-cycles/${strategyId}/history${qs}`, { method: 'GET' }, token)
 }
 
-export async function getAccountPortfolio(accountId: string, token: string): Promise<PortfolioSummary> {
-  const raw = await apiFetch<unknown>(`/api/accounts/${accountId}/portfolio`, { method: 'GET' }, token)
+export async function getAccountPortfolio(accountId: string, token?: string): Promise<PortfolioSummary> {
+  const raw = await fetchEither<unknown>(`/api/accounts/${accountId}/portfolio`, { method: 'GET' }, token)
   return normalizePortfolio(raw)
 }
 

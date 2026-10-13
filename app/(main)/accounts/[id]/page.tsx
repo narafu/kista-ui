@@ -5,10 +5,9 @@ import { AccountDetailContent } from '@widgets/account-detail'
 import { requirePageToken } from '@shared/lib/auth/token'
 import { isMockBroker } from '@shared/lib/api-schema'
 import { accountDetailQueryOptions } from '@entities/account'
-import { getAccountPortfolio } from '@entities/trade'
+import { accountPortfolioQueryOptions } from '@entities/trade'
 import { strategyListByAccountQueryOptions } from '@entities/strategy'
 import { getAccountOrderPreviews, seedOrderPreviews } from '@entities/order'
-import type { PortfolioSummary } from '@entities/trade'
 import { createQueryClient } from '@shared/lib/query'
 
 interface Props {
@@ -36,26 +35,19 @@ export default async function AccountDetailPage({ params }: Props) {
   const previewsPromise = getAccountOrderPreviews(id, token).catch(() => ({}))
 
   // MOCK 계좌는 KIS-live 포트폴리오 조회 대상이 아니고 값도 화면에서 숨겨지므로 호출 자체를 스킵
-  const [portfolioRaw, previewsByStrategyId] = await Promise.all([
-    isMockBroker(account.broker)
-      ? Promise.resolve(null)
-      : getAccountPortfolio(id, token).catch((): PortfolioSummary | null => null),
-    previewsPromise,
-    strategiesPromise,
-  ])
+  const portfolioPromise = isMockBroker(account.broker)
+    ? undefined
+    : queryClient.prefetchQuery(accountPortfolioQueryOptions(id, token)).catch(() => undefined)
+
+  const [previewsByStrategyId] = await Promise.all([previewsPromise, strategiesPromise, portfolioPromise])
 
   seedOrderPreviews(queryClient, previewsByStrategyId)
-
-  const usdDeposit = portfolioRaw?.summary?.usdDeposit ?? 0
-  const posEvalUsd = portfolioRaw?.summary?.posEvalUsd ?? 0
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <AccountDetailContent
         accountId={id}
         initialAccount={account}
-        usdDeposit={usdDeposit}
-        posEvalUsd={posEvalUsd}
       />
     </HydrationBoundary>
   )

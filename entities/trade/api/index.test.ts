@@ -1,17 +1,14 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 const fetchEitherMock = vi.fn()
-const apiFetchMock = vi.fn()
 
 vi.mock('@shared/lib/api-client', () => ({
   fetchEither: (...args: unknown[]) => fetchEitherMock(...args),
-  apiFetch: (...args: unknown[]) => apiFetchMock(...args),
 }))
 
 describe('trade api', () => {
   beforeEach(() => {
     fetchEitherMock.mockReset()
-    apiFetchMock.mockReset()
   })
 
   it('getAccountCycleHistory builds full query string with from/to/cursor/size', async () => {
@@ -49,13 +46,13 @@ describe('trade api', () => {
     )
   })
 
-  it('getAccountPortfolio uses apiFetch (Server Component, requires token)', async () => {
+  it('getAccountPortfolio routes through fetchEither so Server and Client Components share it', async () => {
     const { getAccountPortfolio } = await import('./index')
-    apiFetchMock.mockResolvedValueOnce({ positions: [], summary: {} })
+    fetchEitherMock.mockResolvedValueOnce({ positions: [], summary: {} })
 
     const result = await getAccountPortfolio('account-1', 'token-1')
 
-    expect(apiFetchMock).toHaveBeenCalledWith('/api/accounts/account-1/portfolio', { method: 'GET' }, 'token-1')
+    expect(fetchEitherMock).toHaveBeenCalledWith('/api/accounts/account-1/portfolio', { method: 'GET' }, 'token-1')
     expect(result.positions).toEqual([])
   })
 
@@ -76,7 +73,7 @@ describe('trade api', () => {
 
   it('getAccountPortfolio normalizes KIS BigDecimal strings to numbers', async () => {
     const { getAccountPortfolio } = await import('./index')
-    apiFetchMock.mockResolvedValueOnce({
+    fetchEitherMock.mockResolvedValueOnce({
       positions: [
         {
           ticker: 'TQQQ',
@@ -120,7 +117,7 @@ describe('trade api', () => {
 
   it('getAccountPortfolio preserves null fields and tolerates an empty response', async () => {
     const { getAccountPortfolio } = await import('./index')
-    apiFetchMock.mockResolvedValueOnce({})
+    fetchEitherMock.mockResolvedValueOnce({})
 
     const result = await getAccountPortfolio('account-1', 'token-1')
 

@@ -3,10 +3,13 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { accountKeys, type Account } from '@entities/account'
+import { tradeKeys } from '@entities/trade'
 import { AccountDetailContent } from './AccountDetailContent'
 
+const { tabsMock } = vi.hoisted(() => ({ tabsMock: vi.fn((_props: unknown) => null) }))
+
 vi.mock('./AccountDetailTabs', () => ({
-  AccountDetailTabs: () => null,
+  AccountDetailTabs: (props: unknown) => tabsMock(props),
 }))
 
 const serverAccount: Account = {
@@ -29,8 +32,6 @@ function content(account = serverAccount) {
     <AccountDetailContent
       accountId={account.id}
       initialAccount={account}
-      usdDeposit={0}
-      posEvalUsd={0}
     />
   )
 }
@@ -71,5 +72,23 @@ describe('AccountDetailContent', () => {
       expect(screen.getByRole('heading', { name: 'Edited nickname' })).toBeInTheDocument()
     })
     expect(screen.queryByRole('heading', { name: 'Server nickname' })).not.toBeInTheDocument()
+  })
+
+  it('reads deposit and evaluation from the portfolio cache so trade invalidation updates them without a refresh', async () => {
+    const liveAccount: Account = { ...serverAccount, broker: 'KIS' }
+    const queryClient = createClient()
+    queryClient.setQueryData(accountKeys.detail(liveAccount.id), liveAccount)
+    queryClient.setQueryData(tradeKeys.portfolio(liveAccount.id), { summary: { usdDeposit: 100, posEvalUsd: 200 } })
+    render(<QueryClientProvider client={queryClient}>{content(liveAccount)}</QueryClientProvider>)
+
+    expect(tabsMock).toHaveBeenLastCalledWith(expect.objectContaining({ usdDeposit: 100, posEvalUsd: 200 }))
+
+    act(() => {
+      queryClient.setQueryData(tradeKeys.portfolio(liveAccount.id), { summary: { usdDeposit: 50, posEvalUsd: 250 } })
+    })
+
+    await waitFor(() => {
+      expect(tabsMock).toHaveBeenLastCalledWith(expect.objectContaining({ usdDeposit: 50, posEvalUsd: 250 }))
+    })
   })
 })

@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useEffectEvent, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { TradeToast } from './TradeToast'
 import type { TradeEvent } from '@entities/trade'
@@ -14,7 +13,6 @@ interface Props {
 }
 
 export function TradeNotificationProvider({ onTrade }: Props) {
-  const router = useRouter()
   // 콜백 identity가 바뀌어도 EventSource를 재연결하지 않는다
   const handleTrade = useEffectEvent((event: TradeEvent) => onTrade?.(event))
   const esRef = useRef<EventSource | null>(null)
@@ -36,9 +34,8 @@ export function TradeNotificationProvider({ onTrade }: Props) {
             () => <TradeToast event={event} />,
             { duration: 6000 },
           )
+          // 체결로 바뀌는 값은 전부 React Query 키로 조회되므로 무효화만 한다(router.refresh() 불필요 — shared.md 참고)
           handleTrade(event)
-          // 레이아웃·페이지의 서버 렌더 집계(계좌 포트폴리오 등)는 React Query 키가 없어 refresh로만 갱신된다
-          router.refresh()
         } catch {
           // parse 오류 무시
         }
@@ -62,7 +59,7 @@ export function TradeNotificationProvider({ onTrade }: Props) {
       esRef.current?.close()
       if (retryRef.current) clearTimeout(retryRef.current)
     }
-  }, [router])
+  }, [])
 
   return null
 }

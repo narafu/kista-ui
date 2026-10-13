@@ -3,14 +3,11 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { TradeNotificationProvider } from './TradeNotificationProvider'
 import type { TradeEvent } from '@entities/trade'
 
-const { refreshMock, toastCustomMock, router } = vi.hoisted(() => {
-  const refreshMock = vi.fn()
-  // 실제 Next router처럼 렌더 간 같은 참조를 유지한다 (effect deps 재실행 방지)
-  return { refreshMock, toastCustomMock: vi.fn(), router: { refresh: refreshMock } }
-})
+const { refreshMock, toastCustomMock } = vi.hoisted(() => ({ refreshMock: vi.fn(), toastCustomMock: vi.fn() }))
 
+// 체결 시 서버 렌더 재요청(router.refresh)을 하지 않는다는 회귀 방지용
 vi.mock('next/navigation', () => ({
-  useRouter: () => router,
+  useRouter: () => ({ refresh: refreshMock }),
 }))
 
 vi.mock('sonner', () => ({
@@ -40,7 +37,7 @@ describe('TradeNotificationProvider', () => {
     expect(EventSource.instances[0].url).toBe('/api/trades/stream')
   })
 
-  it('trade 이벤트 수신 시 toast를 표시하고 라우트를 refresh한다', () => {
+  it('trade 이벤트 수신 시 toast를 표시하고 라우트는 refresh하지 않는다', () => {
     render(<TradeNotificationProvider />)
     const source = EventSource.instances[0]
     const event: TradeEvent = { kind: 'BUY', ticker: 'TQQQ', time: '2026-01-01T00:00:00Z', accountNickname: '계좌1' }
@@ -49,7 +46,7 @@ describe('TradeNotificationProvider', () => {
 
     expect(toastCustomMock).toHaveBeenCalledTimes(1)
     expect(toastCustomMock).toHaveBeenCalledWith(expect.any(Function), { duration: 6000 })
-    expect(refreshMock).toHaveBeenCalledTimes(1)
+    expect(refreshMock).not.toHaveBeenCalled()
   })
 
   it('trade 이벤트 수신 시 주입된 onTrade에 이벤트를 넘긴다', () => {
