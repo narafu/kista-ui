@@ -46,13 +46,13 @@
 
 ## 3. 등록·수정 폼 (`features/strategy/create-strategy`)
 
-방식: 기존 `StrategyForm`에 `isDca` 분기를 둔다(A안 승인).
+방식: A'안(2026-10-13 승인, A안 수정). 라우트·페이지·모달·전략 유형 선택은 기존 `StrategyForm`을 그대로 쓰고, 유형이 DCA면 그 아래를 별도 `DcaStrategyForm`(자체 hook·스키마·payload)으로 렌더한다.
 
-- `useStrategyForm`: `isDca = type === 'DCA'`
-  - seed preview 쿼리 `enabled`에 `!isDca`를 추가한다(DCA는 시드 개념 없음).
-  - `runtimeConfig.strategies['DCA']`가 없을 수 있다. 이때 `deriveRuntimeFields`가 안전하게 동작하는지 계획 단계에서 확인한다.
-- 숨김 섹션: CycleSeed, DivisionCount, UsageRatio, InitialHoldings, ReadOnlySeed, VrSettings
-- 재사용 섹션: Type, Ticker, ScheduledStart
+- 변경 이유: `useStrategyForm`의 제출 guard(`computeCannotSubmit`, `computeSubmitDisabledReason`)가 시드·예수금·VR 계산에 엮여 있다. DCA 분기를 끼워 넣으면 guard마다 `!isDca`가 필요하고, 하나라도 빠지면 제출이 막힌다.
+- `useStrategyForm` 변경은 seed preview 쿼리 `enabled`에 `type !== 'DCA'`를 추가하는 것뿐이다.
+- `StrategyForm`: `form.type === 'DCA'`(등록) 또는 `initial?.type === 'DCA'`(수정)이면 `StrategyTypeSection` 아래에 `DcaStrategyForm`을 렌더하고 기존 섹션과 제출 버튼은 렌더하지 않는다.
+- `DcaStrategyForm` 구성: Ticker(기존 `StrategyTickerSection` 재사용), ScheduledStart(등록 전용, 재사용), `DcaSettingsSection`, `DcaConditionsSection`, 자체 `FormActions`
+- 런타임 설정 노출: 등록 폼은 `runtimeConfig.strategies[code].enabled`인 유형만 보여준다. DCA가 런타임 설정에 포함되는지는 API 회신으로 확정하고 계획에 반영한다.
 - 신규 `sections/DcaSettingsSection.tsx`
   - 방향: 매수/매도 라디오. 수정 모드에서는 읽기 전용.
   - 금액(USD)
@@ -68,13 +68,13 @@
   - 조건 영역 상단에 "계좌 전체 보유 기준" 캡션을 둔다.
   - 매수 DCA에만 "보유 0주일 때는 평단가 조건 없이 매수" 캡션을 단다.
   - 지표 선택지는 `capability.conditionIndicators`를 따른다. 백엔드 1단계 배포에서는 미지원 지표 등록 시 400이 나므로, 메타가 반환하는 목록만 노출한다.
-- `strategyFormSchema`: DCA 분기 검증
+- `model/dcaFormSchema.ts`(신규, zod): DCA 검증
   - 금액 > 0
   - WEEKLY면 요일 필수
   - RSI·FEAR_GREED 0~100, AVG_PRICE는 숫자
   - SMA면 기간 필수
-- `buildStrategyPayload`: DCA면 `{ type, ticker, scheduledStartDate, dca }`만 보낸다.
-- 수정 경로: DCA 수정은 `PUT /dca-config`로 보낸다(`updateStrategy` 아님). ticker와 direction 필드는 비활성화한다. 저장 경로 분기 위치(폼 submit 안의 분기 vs 별도 수정 폼)는 계획 단계에서 기존 VR 수정 경로(`reconfigure-vr`)와 비교해 정한다.
+- `model/buildDcaPayload.ts`(신규): 등록은 `{ type: 'DCA', ticker, scheduledStartDate?, dca }`, 수정은 `dca` 객체만 보낸다.
+- 수정 경로: `DcaStrategyForm`이 `initial`이 있으면 `PUT /dca-config`(`useReconfigureDcaMutation`)로, 없으면 기존 `useCreateStrategyMutation`으로 저장한다. 수정 모드에서 ticker와 direction은 읽기 전용이다.
 - 등록 응답의 `todayOpenBatchMissed` 토스트는 DCA에서 띄우지 않는다. "바로 주문" 경로가 없기 때문이다.
 - 409 중복(같은 계좌·티커·방향)은 기존 서버 에러 피드백 패턴으로 표시한다.
 
@@ -130,8 +130,8 @@
 
 ## 8. 테스트
 
-- 순수 함수 단위 테스트: `formatDcaSchedule`(말일·요일·일자), `formatDcaCondition`(지표별), `buildStrategyPayload` DCA 분기(말일 → null, SMA는 threshold 미포함, 무시 필드 미전송)
-- 스키마: `strategyFormSchema` DCA 분기 검증
+- 순수 함수 단위 테스트: `formatDcaSchedule`(말일·요일·일자), `formatDcaCondition`(지표별), `buildDcaPayload`(말일 → null, SMA는 threshold 미포함, WEEKLY 외 dayOfWeek null)
+- 스키마: `dcaFormSchema` 검증
 - 섹션 RTL: `DcaSettingsSection`(주기 전환 시 요일/날짜 노출, 29~31 캡션, 수정 모드에서 방향 읽기 전용), `DcaConditionsSection`(행 추가·삭제, SMA면 기간 셀렉트, 0개 안내)
 - 위젯: `StrategyCard`와 `StrategyDetail`이 DCA에서 preview 쿼리를 호출하지 않고 바로 주문 버튼이 없는지
 - 최종: `typecheck` + `lint` + 관련 테스트, Playwright로 등록 폼·카드·상세 스크린샷 확인
