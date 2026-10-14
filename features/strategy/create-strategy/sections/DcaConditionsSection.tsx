@@ -19,6 +19,13 @@ interface Props {
 
 const THRESHOLD_SUFFIX: Partial<Record<DcaIndicator, string>> = { AVG_PRICE: '%' }
 
+// 평단가 조건 풀이 — 서버는 전일 종가와 평단가 × (1 + n%)를 비교한다(DcaCycleOrderStrategy.evaluateAvgPrice)
+function describeAvgPrice(threshold: number | null | undefined, operatorLabel: string): string {
+  if (threshold == null || Number.isNaN(threshold)) return '0을 입력하면 평단가 그대로 비교'
+  const target = threshold === 0 ? '평단가' : `평단가보다 ${Math.abs(threshold)}% ${threshold > 0 ? '높은' : '낮은'} 가격`
+  return `전일 종가가 ${target} ${operatorLabel}일 때 주문`
+}
+
 export function DcaConditionsSection({ form, indicators, direction }: Props) {
   const { meta, labelOf } = useMeta()
   const { fields, append, remove } = useFieldArray({ control: form.control, name: 'conditions' })
@@ -98,6 +105,11 @@ export function DcaConditionsSection({ form, indicators, direction }: Props) {
                   <Trash2 className="size-4" />
                 </Button>
               </div>
+              {indicator === 'AVG_PRICE' && (
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {describeAvgPrice(conditions[i]?.threshold, (meta.dcaOperators ?? []).find((o) => o.code === conditions[i]?.operator)?.label ?? '')}
+                </p>
+              )}
               {rowErrorMessage && <p id={errorId} className="mt-1 text-sm text-[var(--status-error)]">{rowErrorMessage}</p>}
             </div>
           )

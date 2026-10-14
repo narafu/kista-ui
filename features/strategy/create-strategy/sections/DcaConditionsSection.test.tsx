@@ -33,6 +33,18 @@ describe('DcaConditionsSection', () => {
     fireEvent.click(screen.getByRole('button', { name: '조건 1 삭제' }))
     expect(screen.queryByRole('combobox', { name: '조건 1 지표' })).not.toBeInTheDocument()
   })
+  it('평단가 조건은 입력값에 따라 풀이 문장을 보여준다', () => {
+    render(<Harness />)
+    fireEvent.click(screen.getByRole('button', { name: '조건 추가' }))
+    expect(screen.getByText('0을 입력하면 평단가 그대로 비교')).toBeInTheDocument()
+    const input = screen.getByLabelText(/조건 1 기준값/)
+    fireEvent.change(input, { target: { value: '5' } })
+    expect(screen.getByText('전일 종가가 평단가보다 5% 높은 가격 이하일 때 주문')).toBeInTheDocument()
+    fireEvent.change(input, { target: { value: '-5' } })
+    expect(screen.getByText('전일 종가가 평단가보다 5% 낮은 가격 이하일 때 주문')).toBeInTheDocument()
+    fireEvent.change(input, { target: { value: '0' } })
+    expect(screen.getByText('전일 종가가 평단가 이하일 때 주문')).toBeInTheDocument()
+  })
   it('계좌 전체 보유 기준 캡션', () => {
     render(<Harness />)
     expect(screen.getByText('평단가·보유 수량은 계좌 전체 보유 기준')).toBeInTheDocument()
