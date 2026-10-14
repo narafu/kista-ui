@@ -45,7 +45,7 @@ function fmtPrices(prices: number[]) {
 // 범례와 툴팁이 같은 표식을 쓰도록 한곳에 둔다 — 툴팁 값과 차트 요소를 눈으로 짝짓기 위함
 const SWATCH = {
   close: 'h-0.5 w-4 bg-[var(--chart-2)]',
-  avgPrice: 'h-0.5 w-4 bg-[var(--foreground)]',
+  avgPrice: 'w-4 border-t-2 border-dashed border-[var(--foreground)]',
   buy: 'size-2 rounded-full bg-[var(--pos)]',
   sell: 'size-2 rounded-full bg-[var(--neg)]',
   cash: 'h-2 w-4 rounded-sm bg-[var(--info)]',
@@ -208,9 +208,10 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
                     {Array.from({ length: maxSellOrders }, (_, i) => (
                       <Line key={`sell${i}`} dataKey={`sell${i}`} stroke="var(--neg)" strokeWidth={0} dot={ORDER_DOT_SELL} activeDot={false} isAnimationActive={false} />
                     ))}
-                    {/* 종가·평단가 선은 주문 점보다 나중에 그려 점에 가리지 않게 한다 */}
-                    <Line dataKey="close" stroke="var(--chart-2)" strokeWidth={2.5} dot={false} isAnimationActive={false} />
-                    <Line type="stepAfter" dataKey="avgPrice" stroke="var(--foreground)" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+                    {/* 종가·평단가 선은 주문 점보다 나중에 그려 점에 가리지 않게 한다. 종가는 매일 바뀌는 값이라 곡선,
+                        평단가는 체결 때만 바뀌므로 계단+점선으로 구분한다 */}
+                    <Line type="monotone" dataKey="close" stroke="var(--chart-2)" strokeWidth={2.5} dot={false} isAnimationActive={false} />
+                    <Line type="stepAfter" dataKey="avgPrice" stroke="var(--foreground)" strokeWidth={1.5} strokeDasharray="5 3" dot={false} isAnimationActive={false} />
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
