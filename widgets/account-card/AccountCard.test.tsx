@@ -19,9 +19,7 @@ vi.mock('@entities/meta', () => ({
 }))
 
 vi.mock('@entities/strategy', () => ({
-  useStrategiesQuery: () => ({
-    data: strategiesQueryData,
-  }),
+  useStrategiesQuery: () => strategiesQueryState ?? { data: strategiesQueryData },
   strategyStatusAccent: (status: string) => status === 'ACTIVE' ? undefined : 'var(--muted-foreground)',
   strategyTypeShort: (type: string) => {
     if (type === 'PRIVACY') return 'P'
@@ -31,6 +29,7 @@ vi.mock('@entities/strategy', () => ({
 }))
 
 let strategiesQueryData: Strategy[] = []
+let strategiesQueryState: { data?: Strategy[]; isPending?: boolean; isError?: boolean } | null = null
 
 const baseAccount: Account = {
   id: 'account-1',
@@ -54,6 +53,22 @@ const baseStrategy: Strategy = {
 describe('AccountCard', () => {
   beforeEach(() => {
     strategiesQueryData = []
+    strategiesQueryState = null
+  })
+
+  it('distinguishes loading and failed strategy queries from an empty strategy list', () => {
+    strategiesQueryState = { data: undefined, isPending: true, isError: false }
+    const { rerender } = render(<AccountCard account={baseAccount} />)
+    expect(screen.getAllByText('불러오는 중…')).toHaveLength(2)
+    expect(screen.queryByText('전략 미등록')).not.toBeInTheDocument()
+
+    strategiesQueryState = { data: undefined, isPending: false, isError: true }
+    rerender(<AccountCard account={baseAccount} />)
+    expect(screen.getAllByText('전략 조회 실패')).toHaveLength(2)
+
+    strategiesQueryState = { data: [], isPending: false, isError: false }
+    rerender(<AccountCard account={baseAccount} />)
+    expect(screen.getAllByText('전략 미등록')).toHaveLength(2)
   })
 
   it('hides the left accent strip when all strategies are active', () => {

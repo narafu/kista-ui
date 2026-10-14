@@ -4,6 +4,7 @@ import { Landmark } from 'lucide-react'
 
 import { NewAccountButton } from '@features/account/create-account'
 import { useAccountsQuery } from '@entities/account'
+import { CardSkeleton } from '@shared/ui/CardSkeleton'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { AccountsGrid } from './AccountsGrid'
 
@@ -15,7 +16,7 @@ export function AccountsPageContent() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="h-40 rounded-[var(--r-lg)] border border-border bg-card animate-pulse" />
+          <CardSkeleton key={index} className="h-40" />
         ))}
       </div>
     )

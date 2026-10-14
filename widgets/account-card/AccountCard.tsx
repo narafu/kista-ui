@@ -8,6 +8,7 @@ import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 import { Badge } from '@shared/ui/Badge'
 import { fmtUsd } from '@shared/lib/format'
+import { cn } from '@shared/lib/utils'
 
 const EMPTY_STRATEGIES: Strategy[] = []
 
@@ -20,23 +21,20 @@ interface Props {
   account: Account
 }
 
-/** 전략 목록에서 대표 상태를 집계. 모두 ACTIVE면 ACTIVE, 혼재면 PAUSED, 없으면 null. */
-function aggregateStatus(strategies: Strategy[]): 'ACTIVE' | 'PAUSED' | null {
-  if (strategies.length === 0) return null
-  const hasActive = strategies.some((s) => s.status === 'ACTIVE')
-  const allActive = strategies.every((s) => s.status === 'ACTIVE')
-  if (allActive) return 'ACTIVE'
-  if (hasActive) return 'PAUSED'
-  return 'PAUSED'
-}
-
 export function AccountCard({ account }: Props) {
-  const { data: strategies = EMPTY_STRATEGIES } = useStrategiesQuery(account.id)
+  const strategiesQuery = useStrategiesQuery(account.id)
+  const strategies = strategiesQuery.data ?? EMPTY_STRATEGIES
   const { findBroker, labelOf } = useMeta()
   const broker = findBroker(account.broker)
   const brokerLabel = broker?.label ?? account.broker
-  const aggregated = aggregateStatus(strategies)
-  const aggregatedAccent = aggregated ? strategyStatusAccent(aggregated) : undefined
+  // 하나라도 ACTIVE가 아니면 그 상태의 accent로 왼쪽 띠를 표시한다(모두 ACTIVE면 띠 없음)
+  const inactive = strategies.find((s) => s.status !== 'ACTIVE')
+  const aggregatedAccent = inactive ? strategyStatusAccent(inactive.status) : undefined
+  // 조회 전·실패를 "전략 미등록"으로 오인하지 않도록 빈 목록일 때의 문구를 상태별로 나눈다
+  const strategiesFailed = !strategiesQuery.data && strategiesQuery.isError
+  const emptyLabel = strategiesFailed
+    ? '전략 조회 실패'
+    : !strategiesQuery.data && strategiesQuery.isPending ? '불러오는 중…' : '전략 미등록'
 
   return (
     <Link
@@ -61,11 +59,11 @@ export function AccountCard({ account }: Props) {
         </div>
         {/* 2행: 닉네임 + 전략 수 + 상태 + 화살표 */}
         <div className="flex items-start gap-2">
-          <span className="font-bold text-sm text-foreground truncate flex-1 min-w-0">
+          <span className="font-bold text-sm text-foreground truncate flex-1 min-w-16">
             {account.nickname}
           </span>
           {strategies.length > 0 ? (
-            <div className="flex items-start content-start justify-end gap-1.5 shrink-0 flex-wrap">
+            <div className="flex min-w-0 max-w-[65%] items-start content-start justify-end gap-1.5 flex-wrap">
               {strategies.map((s) => (
                 <Badge
                   key={s.id}
@@ -80,7 +78,7 @@ export function AccountCard({ account }: Props) {
               ))}
             </div>
           ) : (
-            <Badge tone="neutral">미등록</Badge>
+            <Badge tone={strategiesFailed ? 'error' : 'neutral'}>{emptyLabel}</Badge>
           )}
           <ChevronRight className="mt-0.5 size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
         </div>
@@ -131,7 +129,7 @@ export function AccountCard({ account }: Props) {
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">전략 미등록</p>
+            <p className={cn('text-sm', strategiesFailed ? 'text-[var(--status-error)]' : 'text-muted-foreground')}>{emptyLabel}</p>
           )}
         </div>
 
