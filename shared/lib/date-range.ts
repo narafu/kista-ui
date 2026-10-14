@@ -13,6 +13,9 @@ export const RANGE_LABELS: Record<RangePreset, string> = {
   custom: '입력',
 }
 
+/** UrlRangeFilterBar·RangeFilterControls가 기본으로 노출하는 프리셋 버튼 목록 */
+export const DEFAULT_RANGE_PRESETS: readonly RangePreset[] = ['7d', '30d', 'all', 'custom']
+
 function kstTodayAsUtcDate(): Date {
   const [y, m, d] = todayKst().split('-').map(Number)
   return new Date(Date.UTC(y, m - 1, d))
@@ -62,8 +65,18 @@ export function resolveRangeStrict(
 
 const VALID_SIZES = new Set(['10', '30', '50', '100'])
 
-export function parseRangePreset(raw: string | undefined, fallback: RangePreset): RangePreset {
-  return raw !== undefined && Object.hasOwn(RANGE_LABELS, raw) ? (raw as RangePreset) : fallback
+/**
+ * allowed(= 화면에 노출한 프리셋 버튼)에 없는 값은 fallback으로 돌린다 — 버튼에 없는 ?range=90d가
+ * 필터만 적용되고 활성 버튼 표시가 사라지는 걸 막는다. 기본은 UrlRangeFilterBar 기본 버튼 목록.
+ */
+export function parseRangePreset(
+  raw: string | undefined,
+  fallback: RangePreset,
+  allowed: readonly RangePreset[] = DEFAULT_RANGE_PRESETS,
+): RangePreset {
+  return raw !== undefined && Object.hasOwn(RANGE_LABELS, raw) && allowed.includes(raw as RangePreset)
+    ? (raw as RangePreset)
+    : fallback
 }
 
 export function parseSize(raw: string | undefined): number {

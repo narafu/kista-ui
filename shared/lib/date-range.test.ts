@@ -85,13 +85,21 @@ describe('resolveRangeStrict', () => {
 })
 
 describe('parseRangePreset', () => {
-  it('유효한 값은 그대로, 그 외는 fallback', () => {
+  it('기본 버튼 목록(7d/30d/all/custom)에 있는 값만 그대로, 그 외는 fallback', () => {
     expect(parseRangePreset('30d', '7d')).toBe('30d')
-    expect(parseRangePreset('90d', '7d')).toBe('90d')
-    expect(parseRangePreset('180d', '7d')).toBe('180d')
+    expect(parseRangePreset('custom', 'all')).toBe('custom')
+    expect(parseRangePreset('90d', '7d')).toBe('7d')
+    expect(parseRangePreset('180d', '7d')).toBe('7d')
     expect(parseRangePreset('bogus', '7d')).toBe('7d')
     expect(parseRangePreset('toString', '7d')).toBe('7d')
     expect(parseRangePreset(undefined, 'all')).toBe('all')
+  })
+  it('allowed를 주면 그 목록 기준', () => {
+    const presets = ['30d', '90d', '180d', 'all', 'custom'] as const
+    expect(parseRangePreset('90d', '30d', presets)).toBe('90d')
+    expect(parseRangePreset('180d', '30d', presets)).toBe('180d')
+    expect(parseRangePreset('7d', '30d', presets)).toBe('30d')
+    expect(parseRangePreset('bogus', '30d', presets)).toBe('30d')
   })
 })
 

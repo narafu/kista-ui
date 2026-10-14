@@ -19,8 +19,7 @@ export default async function AdminPrivacyTradesPage({
 }) {
   const { range: rawRange, size: rawSize, page: rawPage, from, to } = await searchParams
   // 이 화면에 없는 프리셋(예: 예전 링크의 ?range=7d)은 기본값으로 돌린다
-  const parsedRange = parseRangePreset(rawRange, '30d')
-  const range = PRESETS.includes(parsedRange) ? parsedRange : '30d'
+  const range = parseRangePreset(rawRange, '30d', PRESETS)
   const size = parseSize(rawSize)
   const page = parsePage(rawPage)
 

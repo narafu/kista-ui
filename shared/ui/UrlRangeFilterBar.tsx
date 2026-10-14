@@ -4,7 +4,7 @@ import { Suspense, useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { cn } from '@shared/lib/utils'
 import { buttonVariants } from '@/components/ui/button-variants'
-import { RANGE_LABELS, type RangePreset } from '@shared/lib/date-range'
+import { DEFAULT_RANGE_PRESETS, RANGE_LABELS, type RangePreset } from '@shared/lib/date-range'
 
 export type { RangePreset }
 
@@ -14,10 +14,10 @@ interface Props {
   to?: string
   pageParamKeys?: string[]
   paramPrefix?: string
-  presets?: RangePreset[]
+  presets?: readonly RangePreset[]
 }
 
-function RangeFilterBarContent({ current, from, to, pageParamKeys = ['page'], paramPrefix, presets = ['7d', '30d', 'all', 'custom'] }: Props) {
+function RangeFilterBarContent({ current, from, to, pageParamKeys = ['page'], paramPrefix, presets = DEFAULT_RANGE_PRESETS }: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()

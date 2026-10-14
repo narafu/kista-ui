@@ -4,7 +4,7 @@
 'use client'
 
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
-import { RANGE_LABELS, type RangePreset } from '@shared/lib/date-range'
+import { DEFAULT_RANGE_PRESETS, RANGE_LABELS, type RangePreset } from '@shared/lib/date-range'
 
 interface Props {
   rangeType: RangePreset
@@ -35,7 +35,7 @@ export function RangeFilterControls({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex gap-0.5 rounded-lg bg-muted p-1">
-            {(['7d', '30d', 'all', 'custom'] as RangePreset[]).map((r) => (
+            {DEFAULT_RANGE_PRESETS.map((r) => (
               <button
                 key={r}
                 type="button"
