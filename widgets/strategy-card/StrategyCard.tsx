@@ -181,7 +181,8 @@ function CycleStrategyCard({ accountId, strategy, accountLabel }: Props) {
   // 이 전략의 실제 주문 시도 결과로 판정한다 (SELL만 성공하고 BUY만 미접수인 상태를 구분하기 위함)
   const readiness = computeOrderReadiness(preview)
   const hasTodayOrders = (preview?.todayOrders ?? []).length > 0
-  const orderBorderColor = getOrderBorderColor(readiness, hasTodayOrders)
+  // 미리보기는 일시중지 중에도 계획·부족 판정을 내려준다 — 실행되지 않을 주문의 경고를 띄우지 않도록 운영중일 때만 표시 (NextOrderCard와 동일)
+  const orderBorderColor = strategy.status === 'ACTIVE' ? getOrderBorderColor(readiness, hasTodayOrders) : null
 
   const layoutProps: LayoutProps = { strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, seedLabel, seedBadgeCls, statusLabel }
 

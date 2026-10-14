@@ -414,6 +414,22 @@ describe('StrategyCard status', () => {
     expect(screen.queryByText('운영중')).not.toBeInTheDocument()
   })
 
+  it('hides the order border for a paused strategy even when the preview reports a deficit', () => {
+    previewState = {
+      data: {
+        orders: [{ direction: 'BUY' }],
+        todayOrders: [],
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: { sufficientBudget: false, liveBalanceUnavailable: false, consumedByHigherPriority: '0', requiredForThisStrategy: '100', availableDeposit: '0' },
+        sellSufficiency: null,
+      },
+      isLoading: false,
+    } as unknown as typeof previewState
+    render(<StrategyCard accountId="account-1" strategy={{ ...strategy, status: 'PAUSED' }} />)
+
+    expect(screen.queryByTestId('strategy-order-border-accent')).not.toBeInTheDocument()
+  })
+
   it('marks a paused strategy with a muted strip and a localized badge', () => {
     render(<StrategyCard accountId="account-1" strategy={{ ...strategy, status: 'PAUSED' }} />)
 
