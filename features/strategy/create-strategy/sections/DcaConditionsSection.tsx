@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useMeta } from '@entities/meta'
 import type { DcaIndicator, DcaOperator } from '@entities/strategy'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
-import { MAX_DCA_CONDITIONS, type DcaFormValues } from '../model/dcaFormSchema'
+import { MAX_DCA_CONDITIONS, type DcaConditionFormValue, type DcaFormValues } from '../model/dcaFormSchema'
 
 interface Props {
   form: UseFormReturn<DcaFormValues>
@@ -19,11 +19,25 @@ interface Props {
 
 const THRESHOLD_SUFFIX: Partial<Record<DcaIndicator, string>> = { AVG_PRICE: '%' }
 
-// 평단가 조건 풀이 — 서버는 전일 종가와 평단가 × (1 + n%)를 비교한다(DcaCycleOrderStrategy.evaluateAvgPrice)
-function describeAvgPrice(threshold: number | null | undefined, operatorLabel: string): string {
-  if (threshold == null || Number.isNaN(threshold)) return '0을 입력하면 평단가 그대로 비교'
-  const target = threshold === 0 ? '평단가' : `평단가보다 ${Math.abs(threshold)}% ${threshold > 0 ? '높은' : '낮은'} 가격`
-  return `전일 종가가 ${target} ${operatorLabel}일 때 주문`
+// 조건 풀이 — kista-api DcaCycleOrderStrategy.evaluate와 같은 비교식을 문장으로 보여준다
+// 평단가·이동평균은 전일 종가 기준, 평단가는 평단가 × (1 + n%)와 비교, RSI·공포탐욕지수는 직전 거래일 값
+function describeCondition(c: DcaConditionFormValue | undefined, operatorLabel: string): string | null {
+  if (!c) return null
+  const blank = c.threshold == null || Number.isNaN(c.threshold)
+  switch (c.indicator) {
+    case 'AVG_PRICE': {
+      if (blank) return '0을 입력하면 평단가 그대로 비교'
+      const n = c.threshold as number
+      const target = n === 0 ? '평단가' : `평단가보다 ${Math.abs(n)}% ${n > 0 ? '높은' : '낮은'} 가격`
+      return `전일 종가가 ${target} ${operatorLabel}일 때 주문`
+    }
+    case 'SMA':
+      return c.smaPeriod == null ? '전일 종가를 이동평균과 비교' : `전일 종가가 ${c.smaPeriod}일 이동평균 ${operatorLabel}일 때 주문`
+    case 'RSI':
+      return blank ? '직전 거래일 RSI(14)와 비교, 0~100 입력' : `직전 거래일 RSI(14)가 ${c.threshold} ${operatorLabel}일 때 주문`
+    case 'FEAR_GREED':
+      return blank ? '직전 거래일 공포탐욕지수와 비교, 0~100 입력' : `직전 거래일 공포탐욕지수가 ${c.threshold} ${operatorLabel}일 때 주문`
+  }
 }
 
 export function DcaConditionsSection({ form, indicators, direction }: Props) {
@@ -53,6 +67,7 @@ export function DcaConditionsSection({ form, indicators, direction }: Props) {
           // 지표·연산자 오류(메타에 없는 코드 등)는 대응 입력이 없어 일반 문구로 표시
           const rowErrorMessage = rowError?.smaPeriod?.message ?? rowError?.threshold?.message ?? (rowError ? '조건 입력값을 확인하세요.' : undefined)
           const errorId = rowErrorMessage ? `${errorIdBase}-${i}` : undefined
+          const description = describeCondition(conditions[i], (meta.dcaOperators ?? []).find((o) => o.code === conditions[i]?.operator)?.label ?? '')
           return (
             <div key={f.id}>
               <div className="flex items-center gap-2">
@@ -105,11 +120,7 @@ export function DcaConditionsSection({ form, indicators, direction }: Props) {
                   <Trash2 className="size-4" />
                 </Button>
               </div>
-              {indicator === 'AVG_PRICE' && (
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {describeAvgPrice(conditions[i]?.threshold, (meta.dcaOperators ?? []).find((o) => o.code === conditions[i]?.operator)?.label ?? '')}
-                </p>
-              )}
+              {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
               {rowErrorMessage && <p id={errorId} className="mt-1 text-sm text-[var(--status-error)]">{rowErrorMessage}</p>}
             </div>
           )

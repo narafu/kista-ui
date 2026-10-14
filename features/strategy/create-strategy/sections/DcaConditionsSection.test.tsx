@@ -8,10 +8,10 @@ import { DcaConditionsSection } from './DcaConditionsSection'
 import { buildDcaFormDefaults, dcaFormSchema, type DcaFormValues } from '../model/dcaFormSchema'
 import { dcaTestMeta } from './__fixtures__/dcaTestMeta'
 
-function Harness({ direction = 'BUY', meta = dcaTestMeta }: { direction?: 'BUY' | 'SELL'; meta?: typeof dcaTestMeta }) {
+function Harness({ direction = 'BUY', meta = dcaTestMeta, conditions = [] }: { direction?: 'BUY' | 'SELL'; meta?: typeof dcaTestMeta; conditions?: DcaFormValues['conditions'] }) {
   const form = useForm<DcaFormValues>({
     resolver: zodResolver(dcaFormSchema),
-    defaultValues: { ...buildDcaFormDefaults(undefined, 'UPRO'), direction },
+    defaultValues: { ...buildDcaFormDefaults(undefined, 'UPRO'), direction, conditions },
   })
   return (
     <MetaProvider meta={meta}>
@@ -44,6 +44,16 @@ describe('DcaConditionsSection', () => {
     expect(screen.getByText('전일 종가가 평단가보다 5% 낮은 가격 이하일 때 주문')).toBeInTheDocument()
     fireEvent.change(input, { target: { value: '0' } })
     expect(screen.getByText('전일 종가가 평단가 이하일 때 주문')).toBeInTheDocument()
+  })
+  it('이동평균·RSI·공포탐욕지수 조건도 풀이 문장을 보여준다', () => {
+    render(<Harness conditions={[
+      { indicator: 'SMA', operator: 'GTE', threshold: null, smaPeriod: 200 },
+      { indicator: 'RSI', operator: 'LT', threshold: 30, smaPeriod: null },
+      { indicator: 'FEAR_GREED', operator: 'LTE', threshold: null, smaPeriod: null },
+    ]} />)
+    expect(screen.getByText('전일 종가가 200일 이동평균 이상일 때 주문')).toBeInTheDocument()
+    expect(screen.getByText('직전 거래일 RSI(14)가 30 미만일 때 주문')).toBeInTheDocument()
+    expect(screen.getByText('직전 거래일 공포탐욕지수와 비교, 0~100 입력')).toBeInTheDocument()
   })
   it('계좌 전체 보유 기준 캡션', () => {
     render(<Harness />)
