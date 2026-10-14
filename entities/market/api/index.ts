@@ -26,6 +26,11 @@ export function getCandlesClient(ticker: string, count = CHART_CANDLE_COUNT): Pr
   return clientFetch<Candle[]>(`/api/market/candles?ticker=${ticker}&count=${count}`)
 }
 
+// 기간 조회(양 끝 포함) — kista-api가 내부에서 200봉씩 페이징한다. 기간은 최대 5년(초과 시 400)
+export function getCandlesRangeClient(ticker: string, from: string, to: string): Promise<Candle[]> {
+  return clientFetch<Candle[]>(`/api/market/candles?ticker=${ticker}&from=${from}&to=${to}`)
+}
+
 export function getFearGreedClient(days = CHART_CANDLE_COUNT): Promise<FearGreed> {
   return clientFetch<FearGreed>(`/api/market/fear-greed?days=${days}`)
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { getCandlesClient, getFearGreedClient } from '../api'
+import { getCandlesClient, getCandlesRangeClient, getFearGreedClient } from '../api'
 import type { Candle, FearGreed } from '../model/types'
 import { CHART_CANDLE_COUNT } from '../model/constants'
 import { marketKeys } from '../model/queryKeys'
@@ -19,6 +19,15 @@ export function useCandlesQuery(ticker: string, count = CHART_CANDLE_COUNT) {
   return useQuery<Candle[]>({
     queryKey: marketKeys.candles(ticker, count),
     queryFn: () => getCandlesClient(ticker, count),
+    staleTime: 1000 * 60 * 10,
+  })
+}
+
+export function useCandlesRangeQuery(ticker: string, range: { from: string; to: string } | null) {
+  return useQuery<Candle[]>({
+    queryKey: marketKeys.candlesRange(ticker, range?.from ?? '', range?.to ?? ''),
+    queryFn: () => (range ? getCandlesRangeClient(ticker, range.from, range.to) : Promise.resolve([])),
+    enabled: range != null,
     staleTime: 1000 * 60 * 10,
   })
 }

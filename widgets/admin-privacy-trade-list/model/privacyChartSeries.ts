@@ -22,6 +22,26 @@ export interface PrivacyChartSeries {
   maxSellOrders: number
 }
 
+const CANDLE_LOOKBACK_DAYS = 10 // 첫 발표일 "직전" 거래일 종가까지 받도록 연휴를 덮는 여유
+const MAX_CANDLE_RANGE_YEARS = 5 // kista-api candles 기간 조회 상한(초과 시 400)
+
+function shiftDate(date: string, { years = 0, days = 0 }: { years?: number; days?: number }): string {
+  const d = new Date(`${date}T00:00:00Z`)
+  d.setUTCFullYear(d.getUTCFullYear() + years)
+  d.setUTCDate(d.getUTCDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
+// 매매표 발표일 범위를 덮는 종가 조회 기간. from = max(첫 발표일 − 여유, 마지막 발표일 − 5년 + 1일)
+export function candleRangeFor(bases: AdminPrivacyBase[]): { from: string; to: string } | null {
+  if (bases.length === 0) return null
+  const dates = bases.map((b) => b.releaseDate).sort()
+  const to = dates[dates.length - 1]
+  const wanted = shiftDate(dates[0], { days: -CANDLE_LOOKBACK_DAYS })
+  const floor = shiftDate(to, { years: -MAX_CANDLE_RANGE_YEARS, days: 1 })
+  return { from: wanted > floor ? wanted : floor, to }
+}
+
 // 발표일 기준 평가 종가 = 발표일 "이전" 가장 최근 거래일 종가. 매매표는 직전 정규장 마감 후
 // 상태라 같은 날짜의 종가(아직 열리지 않은 장)를 쓰면 미래 값이 섞인다.
 function closeBefore(sortedCandles: Candle[], date: string): number | null {

@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { filterAdminPrivacyBasesByRange, useAdminPrivacyBasesQuery } from '@entities/privacy'
-import { useCandlesQuery } from '@entities/market'
+import { useCandlesRangeQuery } from '@entities/market'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { fmtMonthDay, fmtSignedUsd, fmtUsd } from '@shared/lib/format'
-import { buildPrivacyChartSeries } from './model/privacyChartSeries'
+import { buildPrivacyChartSeries, candleRangeFor } from './model/privacyChartSeries'
 
 interface Props {
   windowFrom?: string
@@ -55,17 +55,15 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
   const tickers = useMemo(() => [...new Set(allBases.map((b) => b.ticker))].sort(), [allBases])
   const [pickedTicker, setPickedTicker] = useState<string | null>(null)
   const ticker = pickedTicker ?? (tickers.includes(DEFAULT_TICKER) ? DEFAULT_TICKER : tickers[0] ?? DEFAULT_TICKER)
-  // ponytail: candles API 최대 200거래일 — 기간 기반 조회는 kista-api에 요청됨, 반영되면 from/to로 교체
-  const candlesQuery = useCandlesQuery(ticker, 200)
   const pnlGradientId = `pnl-${useId().replace(/[^a-zA-Z0-9]/g, '')}`
 
-  const series = useMemo(
-    () => buildPrivacyChartSeries(
-      filterAdminPrivacyBasesByRange(allBases.filter((b) => b.ticker === ticker), windowFrom, windowTo),
-      candlesQuery.data ?? [],
-    ),
-    [allBases, ticker, windowFrom, windowTo, candlesQuery.data],
+  const bases = useMemo(
+    () => filterAdminPrivacyBasesByRange(allBases.filter((b) => b.ticker === ticker), windowFrom, windowTo),
+    [allBases, ticker, windowFrom, windowTo],
   )
+  const candleRange = useMemo(() => candleRangeFor(bases), [bases])
+  const candlesQuery = useCandlesRangeQuery(ticker, candleRange)
+  const series = useMemo(() => buildPrivacyChartSeries(bases, candlesQuery.data ?? []), [bases, candlesQuery.data])
   const { rows, maxBuyOrders, maxSellOrders } = series
   const boundaries = rows.filter((r) => r.cycleBoundary).map((r) => r.date)
   const missingCloseCount = rows.filter((r) => r.close == null).length
@@ -165,7 +163,7 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
             {candlesQuery.isError ? (
               <p className="text-xs text-[var(--warn)]">종가를 불러오지 못해 종가·현금비율을 표시하지 않습니다.</p>
             ) : missingCloseCount > 0 ? (
-              <p className="text-xs text-muted-foreground">종가 데이터(최근 200거래일) 밖의 {missingCloseCount}일은 종가·현금비율을 표시하지 않습니다.</p>
+              <p className="text-xs text-muted-foreground">종가 조회 범위(최대 5년) 밖이거나 종가가 없는 {missingCloseCount}일은 종가·현금비율을 표시하지 않습니다.</p>
             ) : null}
           </>
         )}
