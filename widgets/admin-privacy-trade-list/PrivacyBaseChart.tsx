@@ -1,8 +1,9 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
-import { Area, Brush, CartesianGrid, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Area, Brush, CartesianGrid, ComposedChart, Line, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -30,6 +31,8 @@ const ORDER_DOT_BUY = { r: 2, fill: 'var(--pos)', stroke: 'none' }
 const ORDER_DOT_SELL = { r: 2, fill: 'var(--neg)', stroke: 'none' }
 const CURSOR = { stroke: 'var(--muted-foreground)', strokeDasharray: '3 3' }
 const CASH_TICKS = [0, 0.5, 1]
+// 현금비중 경고 기준 — 이 아래 구간은 배경 음영으로 구분한다
+const CASH_THRESHOLD = 0.5
 
 function fmtPercent(ratio: number) {
   return `${Math.round(ratio * 100)}%`
@@ -39,38 +42,91 @@ function fmtPrices(prices: number[]) {
   return prices.length > 0 ? prices.map((p) => fmtUsd(p)).join(' · ') : '-'
 }
 
+// 범례와 툴팁이 같은 표식을 쓰도록 한곳에 둔다 — 툴팁 값과 차트 요소를 눈으로 짝짓기 위함
+const SWATCH = {
+  close: 'h-0.5 w-4 bg-[var(--chart-2)]',
+  avgPrice: 'h-0.5 w-4 bg-[var(--foreground)]',
+  buy: 'size-2 rounded-full bg-[var(--pos)]',
+  sell: 'size-2 rounded-full bg-[var(--neg)]',
+  cash: 'h-2 w-4 rounded-sm bg-[var(--info)]',
+  cashLow: 'h-2 w-4 rounded-sm border border-[var(--warn)] bg-[var(--warn-bg)]',
+  boundary: 'h-3 w-0 border-l border-dashed border-muted-foreground',
+  profit: 'h-2 w-4 rounded-sm bg-[var(--pos)]',
+  loss: 'h-2 w-4 rounded-sm bg-[var(--neg)]',
+  flat: 'h-2 w-4 rounded-sm bg-muted-foreground',
+}
+
 // 범례 — 패널마다 recharts Legend를 두면 차트 사이에 떠서 산만해 카드 상단 한 줄로 모은다
 const LEGEND_ITEMS: Array<{ label: string; swatch: string }> = [
-  { label: '종가', swatch: 'h-0.5 w-4 bg-[var(--chart-2)]' },
-  { label: '평단가', swatch: 'h-0.5 w-4 bg-[var(--foreground)]' },
-  { label: '매수 주문', swatch: 'size-2 rounded-full bg-[var(--pos)]' },
-  { label: '매도 주문', swatch: 'size-2 rounded-full bg-[var(--neg)]' },
-  { label: '현금비중', swatch: 'h-2 w-4 rounded-sm bg-[var(--info)]' },
-  { label: '사이클 경계', swatch: 'h-3 w-0 border-l border-dashed border-muted-foreground' },
+  { label: '종가', swatch: SWATCH.close },
+  { label: '평단가', swatch: SWATCH.avgPrice },
+  { label: '매수 주문', swatch: SWATCH.buy },
+  { label: '매도 주문', swatch: SWATCH.sell },
+  { label: '현금비중', swatch: SWATCH.cash },
+  { label: '현금 50% 미만', swatch: SWATCH.cashLow },
+  { label: '사이클 경계', swatch: SWATCH.boundary },
 ]
 
-function TooltipRow({ label, value, className }: { label: string; value: string; className?: string }) {
+function Swatch({ className }: { className: string }) {
   return (
-    <div className="flex justify-between gap-4">
-      <span className="text-muted-foreground">{label}</span>
-      <span className={cn('tabular-nums', className)}>{value}</span>
+    <span className="inline-flex w-4 shrink-0 items-center justify-center" aria-hidden>
+      <span className={cn('inline-block', className)} />
+    </span>
+  )
+}
+
+function TooltipRow({ label, value, swatch, className }: { label: string; value: string; swatch: string; className?: string }) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+        <Swatch className={swatch} />
+        {label}
+      </span>
+      <span className={cn('font-medium tabular-nums', className)}>{value}</span>
+    </div>
+  )
+}
+
+// 툴팁 묶음은 위에서 아래로 차트 패널 순서(가격 → 현금비중 → 실현손익)와 같게 둔다
+function TooltipSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="space-y-0.5 border-t border-border pt-1.5">
+      <div className="text-[11px] text-muted-foreground">{title}</div>
+      {children}
     </div>
   )
 }
 
 // 툴팁은 가격 패널에만 두고 그날 지표를 한 번에 보여준다 — 세 패널이 각자 툴팁을 띄우면 화면을 덮는다
 // payload는 값이 null인 계열을 걸러내 종가·평단가·주문이 모두 없는 날엔 비므로, 행은 label(날짜)로 찾는다
-function ChartTooltip({ row }: { row: PrivacyChartRow | undefined }) {
+function ChartTooltip({ row, ticker }: { row: PrivacyChartRow | undefined; ticker: string }) {
   if (!row) return null
+  const cashLow = row.cashRatio != null && row.cashRatio < CASH_THRESHOLD
   return (
-    <div className="min-w-44 space-y-0.5 rounded-md border border-border bg-card px-3 py-2 text-xs shadow-sm">
-      <div className="mb-1 font-semibold">{row.date}</div>
-      <TooltipRow label="종가" value={row.close == null ? '-' : fmtUsd(row.close)} />
-      <TooltipRow label="평단가" value={row.avgPrice == null ? '-' : fmtUsd(row.avgPrice)} />
-      <TooltipRow label="매수" value={fmtPrices(row.buys)} className="text-pos" />
-      <TooltipRow label="매도" value={fmtPrices(row.sells)} className="text-neg" />
-      <TooltipRow label="현금비중" value={row.cashRatio == null ? '-' : fmtPercent(row.cashRatio)} />
-      <TooltipRow label="실현손익" value={fmtSignedUsd(row.realizedPnl)} className={pnlTextClass(row.realizedPnl)} />
+    <div className="min-w-52 space-y-1.5 rounded-md border border-border bg-card px-3 py-2 text-xs shadow-md">
+      <div className="font-semibold">{row.date}</div>
+      <TooltipSection title={`${ticker} 가격`}>
+        <TooltipRow label="종가" value={row.close == null ? '-' : fmtUsd(row.close)} swatch={SWATCH.close} />
+        <TooltipRow label="평단가" value={row.avgPrice == null ? '-' : fmtUsd(row.avgPrice)} swatch={SWATCH.avgPrice} />
+        <TooltipRow label="매수" value={fmtPrices(row.buys)} swatch={SWATCH.buy} className="text-pos" />
+        <TooltipRow label="매도" value={fmtPrices(row.sells)} swatch={SWATCH.sell} className="text-neg" />
+      </TooltipSection>
+      <TooltipSection title="현금비중">
+        <TooltipRow
+          label={cashLow ? '현금비중 (50% 미만)' : '현금비중'}
+          value={row.cashRatio == null ? '-' : fmtPercent(row.cashRatio)}
+          swatch={cashLow ? SWATCH.cashLow : SWATCH.cash}
+          className={cashLow ? 'text-[var(--warn)]' : undefined}
+        />
+      </TooltipSection>
+      <TooltipSection title="사이클 실현손익">
+        <TooltipRow
+          label="실현손익"
+          value={fmtSignedUsd(row.realizedPnl)}
+          swatch={row.realizedPnl > 0 ? SWATCH.profit : row.realizedPnl < 0 ? SWATCH.loss : SWATCH.flat}
+          className={pnlTextClass(row.realizedPnl)}
+        />
+      </TooltipSection>
     </div>
   )
 }
@@ -144,7 +200,7 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
                     <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
                     <XAxis dataKey="date" hide />
                     <YAxis tickFormatter={(v) => fmtUsd(Number(v), 0)} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} domain={['auto', 'auto']} />
-                    <Tooltip content={({ active, label }) => <ChartTooltip row={active ? rowByDate.get(String(label)) : undefined} />} cursor={CURSOR} />
+                    <Tooltip content={({ active, label }) => <ChartTooltip row={active ? rowByDate.get(String(label)) : undefined} ticker={ticker} />} cursor={CURSOR} />
                     {boundaries.map((d) => <ReferenceLine key={d} x={d} stroke="var(--muted-foreground)" strokeDasharray="4 4" />)}
                     {Array.from({ length: maxBuyOrders }, (_, i) => (
                       <Line key={`buy${i}`} dataKey={`buy${i}`} stroke="var(--pos)" strokeWidth={0} dot={ORDER_DOT_BUY} activeDot={false} isAnimationActive={false} />
@@ -169,6 +225,8 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
                     <XAxis dataKey="date" hide />
                     <YAxis domain={[0, 1]} ticks={CASH_TICKS} tickFormatter={(v) => fmtPercent(Number(v))} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} />
                     <Tooltip content={() => null} cursor={CURSOR} />
+                    <ReferenceArea y1={0} y2={CASH_THRESHOLD} fill="var(--warn-bg)" ifOverflow="hidden" />
+                    <ReferenceLine y={CASH_THRESHOLD} stroke="var(--warn)" strokeDasharray="4 4" />
                     {boundaries.map((d) => <ReferenceLine key={d} x={d} stroke="var(--muted-foreground)" strokeDasharray="4 4" />)}
                     <Area type="stepAfter" dataKey="cashRatio" stroke="var(--info)" strokeWidth={1.5} fill="var(--info)" fillOpacity={0.15} isAnimationActive={false} />
                   </ComposedChart>
