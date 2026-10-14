@@ -9,6 +9,16 @@ export const WEEKDAY_LABEL: Record<DcaWeekday, string> = {
   FRIDAY: '금요일',
 }
 
+// DCA 실행 결과 상태는 메타에 없음 — 카드·실행 이력이 같은 라벨을 쓰도록 로컬 상수 하나로 둔다
+const DCA_EXECUTION_STATUS_LABEL: Record<string, string> = {
+  ORDERED: '주문됨',
+  SKIPPED: '건너뜀',
+}
+
+export function dcaExecutionStatusLabel(status: string): string {
+  return DCA_EXECUTION_STATUS_LABEL[status] ?? status
+}
+
 export function formatDcaSchedule(
   dca: Pick<DcaConfigRequest, 'frequency' | 'dayOfWeek' | 'dayOfMonth'>,
   frequencyLabel: string,

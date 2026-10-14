@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MetaProvider } from '@entities/meta'
 import type { Strategy } from '@entities/strategy'
+import { fmtDate } from '@shared/lib/format'
 import { DcaStrategyDetail } from './DcaStrategyDetail'
 import { dcaTestMeta } from '@features/strategy/create-strategy/sections/__fixtures__/dcaTestMeta'
 
@@ -49,7 +50,7 @@ describe('DcaStrategyDetail', () => {
     renderDetail()
     expect(screen.getByText('매월 말일')).toBeInTheDocument()
     expect(screen.getByText('RSI(14) 35 이하')).toBeInTheDocument()
-    expect(screen.getByText('2026-10-31')).toBeInTheDocument()
+    expect(screen.getByText(fmtDate('2026-10-31'))).toBeInTheDocument()
     expect(screen.getByText('12주')).toBeInTheDocument()
     expect(screen.getByText('계좌 전체 보유 기준')).toBeInTheDocument()
   })
@@ -77,7 +78,7 @@ describe('DcaStrategyDetail', () => {
   })
   it('ORDERED 행에 referencePrice가 없으면 기준가 칸에 -를 표시한다', () => {
     renderDetail()
-    const orderedRow = screen.getByText('2026-09-30').closest('tr')!
+    const orderedRow = screen.getByText(fmtDate('2026-09-30')).closest('tr')!
     expect(orderedRow.querySelectorAll('td')[3]).toHaveTextContent('-')
   })
 })

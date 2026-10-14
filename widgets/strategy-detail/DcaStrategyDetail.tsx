@@ -8,7 +8,7 @@ import { useManageStrategyMutations } from '@features/strategy/manage-strategy'
 import { useMeta } from '@entities/meta'
 import { formatDcaCondition, formatDcaSchedule } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
-import { fmtUsd } from '@shared/lib/format'
+import { fmtDate, fmtUsd } from '@shared/lib/format'
 import { DeleteStrategyDialog } from './DeleteStrategyDialog'
 import { DcaExecutionHistory } from './DcaExecutionHistory'
 
@@ -51,7 +51,7 @@ export function DcaStrategyDetail({ accountId, strategy }: Props) {
               <Row label="주기">{formatDcaSchedule(dca, labelOf('dcaFrequencies', dca.frequency))}</Row>
               <Row label="회차당 금액">${fmtUsd(dca.amountUsd)}</Row>
               <Row label="주문 방식">{labelOf('orderTypes', dca.orderType)}</Row>
-              <Row label="다음 판정일">{dca.nextExecution?.kstTradeDate ?? '미정'}</Row>
+              <Row label="다음 판정일">{dca.nextExecution ? fmtDate(dca.nextExecution.kstTradeDate) : '미정'}</Row>
               <p className="text-xs text-muted-foreground">조건 충족 여부는 실행일에 판정</p>
             </>
           )}

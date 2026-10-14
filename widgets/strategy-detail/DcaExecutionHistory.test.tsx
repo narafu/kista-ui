@@ -6,7 +6,8 @@ const { queryMock } = vi.hoisted(() => ({ queryMock: vi.fn() }))
 
 vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams() }))
 vi.mock('@entities/meta', () => ({ useMeta: () => ({ labelOf: (_g: string, v: string) => v }) }))
-vi.mock('@entities/strategy', () => ({
+vi.mock('@entities/strategy', async () => ({
+  ...(await vi.importActual<typeof import('@entities/strategy')>('@entities/strategy')),
   useDcaExecutionsQuery: (...args: unknown[]) => queryMock(...args),
 }))
 

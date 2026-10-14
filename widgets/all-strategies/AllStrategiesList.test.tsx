@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
@@ -6,6 +6,7 @@ import { AllStrategiesList } from './AllStrategiesList'
 
 const pushMock = vi.fn()
 const strategyCardMock = vi.fn()
+const refetchStrategiesMock = vi.fn()
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: pushMock }),
@@ -25,12 +26,15 @@ vi.mock('@widgets/strategy-card', () => ({
 vi.mock('@entities/strategy', () => ({
   useAllStrategiesQuery: () => ({
     data: strategiesQueryData,
+    isError: strategiesQueryError,
+    refetch: refetchStrategiesMock,
   }),
 }))
 
 vi.mock('@entities/account', () => ({
   useAccountsQuery: () => ({
     data: accountsQueryData,
+    isError: false,
   }),
 }))
 
@@ -85,7 +89,8 @@ function strategyFor(accountId: string, id: string): Strategy {
   }
 }
 
-let strategiesQueryData: Strategy[] = []
+let strategiesQueryData: Strategy[] | undefined = []
+let strategiesQueryError = false
 let accountsQueryData: Account[] = []
 
 function setQueries(strategies: Strategy[], accounts: Account[]) {
@@ -96,6 +101,8 @@ function setQueries(strategies: Strategy[], accounts: Account[]) {
 describe('AllStrategiesList', () => {
   beforeEach(() => {
     strategyCardMock.mockClear()
+    refetchStrategiesMock.mockClear()
+    strategiesQueryError = false
     setQueries([], [])
   })
 
@@ -122,6 +129,23 @@ describe('AllStrategiesList', () => {
 
     expect(screen.getByText('토스 메인')).toBeInTheDocument()
     expect(screen.queryByText('123-45')).not.toBeInTheDocument()
+  })
+
+  it('links each account in the empty state straight to the new strategy route', () => {
+    setQueries([], multiAccounts)
+    render(<AllStrategiesList />)
+
+    expect(screen.getByRole('link', { name: '한투 서브' })).toHaveAttribute('href', '/accounts/account-2/strategies/new')
+  })
+
+  it('offers a retry that refetches the failed query', () => {
+    strategiesQueryData = undefined
+    strategiesQueryError = true
+    accountsQueryData = singleAccount
+    render(<AllStrategiesList />)
+
+    fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
+    expect(refetchStrategiesMock).toHaveBeenCalledTimes(1)
   })
 
   it('groups strategies by account with a section header per account when there are multiple accounts', () => {

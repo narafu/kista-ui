@@ -8,6 +8,7 @@ import { useAllStrategiesQuery } from '@entities/strategy'
 import { useAccountsQuery } from '@entities/account'
 import { useMeta } from '@entities/meta'
 import type { Account } from '@entities/account'
+import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { SectionError } from '@shared/ui/SectionError'
@@ -19,30 +20,21 @@ function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
     <EmptyState
       icon={<TrendingUp className="size-7 text-muted-foreground" />}
       title="등록된 전략이 없습니다"
-      message={hasAccounts ? '계좌 상세 페이지에서 전략을 추가할 수 있습니다.' : '계좌를 먼저 등록한 후 전략을 추가해주세요.'}
+      message={hasAccounts ? '전략을 추가할 계좌를 선택해주세요.' : '계좌를 먼저 등록한 후 전략을 추가해주세요.'}
       action={
         hasAccounts ? (
+          // 헤더의 "전략 추가"와 같은 생성 라우트(PC는 @modal 인터셉트)로 바로 보낸다
           <div className="flex flex-col gap-2 w-full max-w-xs">
-            {accounts.slice(0, 3).map((account) => (
+            {accounts.map((account) => (
               <Link
                 key={account.id}
-                href={`/accounts/${account.id}`}
+                href={`/accounts/${account.id}/strategies/new`}
                 className="flex items-center justify-between px-4 py-2.5 rounded-[var(--r-md)] border border-border bg-card hover:border-rose-300 hover:shadow-[var(--sh-rose)] transition-[border-color,box-shadow] text-sm"
               >
                 <span className="font-medium text-foreground">{account.nickname}</span>
-                <span className="flex items-center gap-1 text-muted-foreground text-sm">
-                  <ChevronRight className="size-3.5" />
-                </span>
+                <ChevronRight className="size-3.5 text-muted-foreground" />
               </Link>
             ))}
-            {accounts.length > 3 && (
-              <Link
-                href="/accounts"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                계좌 {accounts.length - 3}개 더 보기
-              </Link>
-            )}
           </div>
         ) : (
           <NewAccountButton>계좌 등록하기</NewAccountButton>
@@ -61,7 +53,15 @@ export function AllStrategiesList() {
 
   // 계좌 목록이 없으면 전략을 계좌별로 묶을 수 없어 빈 화면이 되므로 두 쿼리를 함께 게이팅한다
   if ((!strategies && strategiesQuery.isError) || (!accounts && accountsQuery.isError))
-    return <SectionError message="전략 목록을 불러오지 못했습니다" />
+    return (
+      <SectionError
+        message="전략 목록을 불러오지 못했습니다"
+        onRetry={() => {
+          if (strategiesQuery.isError) void strategiesQuery.refetch()
+          if (accountsQuery.isError) void accountsQuery.refetch()
+        }}
+      />
+    )
   if (!strategies || !accounts) return <LoadingRow />
 
   if (strategies.length === 0)
@@ -82,11 +82,7 @@ export function AllStrategiesList() {
         <div key={account.id}>
           {groupByAccount && (
             <div className="flex items-center gap-2 mb-2.5">
-              <span
-                className="inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold shrink-0 bg-accent text-accent-foreground"
-              >
-                {findBroker(account.broker)?.label ?? account.broker}
-              </span>
+              <Badge tone="none" size="sm" className="rounded-sm bg-accent text-accent-foreground">{findBroker(account.broker)?.label ?? account.broker}</Badge>
               <h2 className="text-sm font-semibold text-foreground">{account.nickname}</h2>
             </div>
           )}

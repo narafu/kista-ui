@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { Strategy } from '@entities/strategy'
+import { fmtDate } from '@shared/lib/format'
 import { DcaStrategyCard } from './DcaStrategyCard'
 
 vi.mock('next/link', () => ({
@@ -39,7 +40,7 @@ describe('DcaStrategyCard', () => {
   })
   it('nextExecution이 있으면 다음 판정일 날짜를 표시한다', () => {
     render(<DcaStrategyCard accountId="a1" strategy={strategy} />)
-    expect(screen.getByText(/다음 판정일 2026-10-31/)).toBeInTheDocument()
+    expect(screen.getByText(`다음 판정일 ${fmtDate('2026-10-31')}`, { exact: false })).toBeInTheDocument()
   })
   it('lastExecution이 null이면 최근 실행 문구를 표시하지 않는다', () => {
     render(<DcaStrategyCard accountId="a1" strategy={strategy} />)

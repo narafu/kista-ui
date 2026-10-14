@@ -3,10 +3,10 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
-import { fmtUsd } from '@shared/lib/format'
+import { fmtDate, fmtUsd } from '@shared/lib/format'
 import { Badge } from '@shared/ui/Badge'
 import { useMeta } from '@entities/meta'
-import { formatDcaSchedule, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
+import { dcaExecutionStatusLabel, formatDcaSchedule, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import { directionBadgeClass } from '@entities/trade'
 
@@ -23,7 +23,7 @@ export function DcaStrategyCard({ accountId, strategy, accountLabel }: Props) {
   const summary = dca && `${formatDcaSchedule(dca, labelOf('dcaFrequencies', dca.frequency))} · $${fmtUsd(dca.amountUsd)} · ${labelOf('orderTypes', dca.orderType)}`
   const last = dca?.lastExecution
   const lastLabel = last
-    ? last.status === 'ORDERED' ? '주문됨' : `건너뜀${last.skipReason ? ` · ${labelOf('dcaSkipReasons', last.skipReason)}` : ''}`
+    ? `${dcaExecutionStatusLabel(last.status)}${last.skipReason ? ` · ${labelOf('dcaSkipReasons', last.skipReason)}` : ''}`
     : null
   const scheduledStart = isScheduledStart(strategy)
   const statusLabel = strategy.status === 'ACTIVE' ? null : labelOf('strategyStatuses', strategy.status)
@@ -46,14 +46,14 @@ export function DcaStrategyCard({ accountId, strategy, accountLabel }: Props) {
             {scheduledStart && (
               <Badge tone="none" size="sm" className="bg-info-bg text-info">{scheduledStartBadgeLabel(strategy.startDate!)}</Badge>
             )}
-            <span className="text-sm font-[800]">{strategy.ticker}</span>
-            {accountLabel && <span className="text-xs text-muted-foreground truncate">{accountLabel}</span>}
+            <span className="text-sm font-bold text-foreground">{strategy.ticker}</span>
+            {accountLabel && <span className="min-w-0 truncate text-xs font-semibold text-muted-foreground">{accountLabel}</span>}
           </div>
           {dca && (
             <>
               <p className="text-sm">{summary}</p>
               <p className="text-xs text-muted-foreground">
-                다음 판정일 {dca.nextExecution?.kstTradeDate ?? '미정'}
+                다음 판정일 {dca.nextExecution ? fmtDate(dca.nextExecution.kstTradeDate) : '미정'}
                 {lastLabel && ` · 최근 ${lastLabel}`}
               </p>
             </>

@@ -30,11 +30,28 @@ function directionHasWarning(d: DirectionReadiness): boolean {
   return d.unplaced || (d.hasOrders && d.uncertain)
 }
 
-function getOrderBorderColor(readiness: OrderReadiness, hasTodayOrders: boolean): string | null {
-  if (directionHasError(readiness.buy) || directionHasError(readiness.sell)) return 'var(--status-error)'
-  if (directionHasWarning(readiness.buy) || directionHasWarning(readiness.sell)) return 'var(--warn)'
-  if (hasTodayOrders) return 'var(--status-ok)'
+interface OrderSignal {
+  color: string
+  // 색만으로 전달하지 않도록 같은 판정의 텍스트를 함께 둔다 — 정상(접수됨)은 배지 없이 스크린리더 텍스트만
+  tone: 'error' | 'warn' | null
+  label: string
+}
+
+function getOrderSignal({ buy, sell }: OrderReadiness, hasTodayOrders: boolean): OrderSignal | null {
+  if (directionHasError(buy) || directionHasError(sell)) {
+    const label = buy.hasDeficit ? '예수금 부족' : sell.hasDeficit ? '판매가능수량 부족' : '잔고 확인 실패'
+    return { color: 'var(--status-error)', tone: 'error', label }
+  }
+  if (directionHasWarning(buy) || directionHasWarning(sell)) {
+    return { color: 'var(--warn)', tone: 'warn', label: buy.unplaced || sell.unplaced ? '미접수 주문' : '잔고 확인 실패' }
+  }
+  if (hasTodayOrders) return { color: 'var(--status-ok)', tone: null, label: '오늘 주문 접수됨' }
   return null
+}
+
+function OrderSignalBadge({ signal, className }: { signal: OrderSignal | null; className?: string }) {
+  if (!signal?.tone) return null
+  return <Badge tone={signal.tone} size="sm" className={className}>{signal.label}</Badge>
 }
 
 interface LayoutProps {
@@ -46,28 +63,31 @@ interface LayoutProps {
   seedLabel: string
   seedBadgeCls: string
   statusLabel: string | null
+  orderSignal: OrderSignal | null
 }
 
 function InitialDeposit({ value }: { value: Strategy['initialUsdDeposit'] }) {
   return value != null ? `$${fmtUsd(value)}` : <span className="text-muted-foreground font-normal">미설정</span>
 }
 
-function MobileLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, seedLabel, seedBadgeCls, statusLabel }: LayoutProps) {
+function MobileLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, seedLabel, seedBadgeCls, statusLabel, orderSignal }: LayoutProps) {
   // 모바일: 2행 레이아웃
   return (
     <div className="flex flex-col gap-1.5 pl-5 pr-4 py-3 lg:hidden">
-      {/* 1행: 배지 + 계좌번호 */}
-      <div data-testid="strategy-card-mobile-top-row" className="flex items-center gap-1.5">
+      {/* 1행: 배지 + 계좌명 */}
+      <div data-testid="strategy-card-mobile-top-row" className="flex flex-wrap items-center gap-1.5">
         <Badge tone="brand" size="sm" className="px-2.5">{strategy.type}</Badge>
         {statusLabel && <Badge tone="neutral" size="sm">{statusLabel}</Badge>}
+        <OrderSignalBadge signal={orderSignal} />
         {!isVr && <Badge tone="none" size="sm" className={seedBadgeCls}>{seedLabel}</Badge>}
+        {strategy.isReverseMode && <Badge tone="warn" size="sm">리버스모드</Badge>}
         {scheduledStart && (
           <Badge tone="none" size="sm" className="bg-info-bg text-info">
             {scheduledStartBadgeLabel(strategy.startDate!)}
           </Badge>
         )}
         {accountLabel && (
-          <span className="ml-auto text-xs font-semibold text-foreground/60 shrink-0 font-mono tracking-wider">{accountLabel}</span>
+          <span className="ml-auto min-w-0 truncate text-xs font-semibold text-muted-foreground">{accountLabel}</span>
         )}
       </div>
       {/* 2행: 티커 + 분할 + 회차 + 금액 */}
@@ -88,7 +108,7 @@ function MobileLayout({ strategy, accountLabel, usesDivisionCount, isVr, schedul
         )}
         {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
         {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
-          <span className="shrink-0 whitespace-nowrap text-xs font-semibold text-warn">{strategy.currentRound!.toFixed(1)}회차</span>
+          <span className="shrink-0 whitespace-nowrap text-xs font-semibold text-foreground">{strategy.currentRound!.toFixed(1)}회차</span>
         )}
         <span className="ml-auto text-sm font-semibold text-foreground">
           <InitialDeposit value={strategy.initialUsdDeposit} />
@@ -99,16 +119,17 @@ function MobileLayout({ strategy, accountLabel, usesDivisionCount, isVr, schedul
   )
 }
 
-function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, seedLabel, seedBadgeCls, statusLabel }: LayoutProps) {
+function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, seedLabel, seedBadgeCls, statusLabel, orderSignal }: LayoutProps) {
   // PC: 카드 형태
   return (
     <div className="hidden lg:flex flex-col">
       <div className="pl-5 pr-4 pt-4 pb-3">
-        {/* 배지 row + 계좌번호 우측 */}
+        {/* 배지 row + 계좌명 우측 */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex flex-wrap items-center gap-1.5">
             <Badge tone="brand" size="md" className="h-[22px]">{strategy.type}</Badge>
             {statusLabel && <Badge tone="neutral" size="sm" className="h-[22px]">{statusLabel}</Badge>}
+            <OrderSignalBadge signal={orderSignal} className="h-[22px]" />
             {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
             {usesDivisionCount && (
               <Badge tone="neutral" size="sm" className="h-[22px] text-foreground">
@@ -132,7 +153,7 @@ function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledSt
             )}
           </div>
           {accountLabel && (
-            <span className="text-xs font-semibold text-foreground/60 shrink-0 ml-3 font-mono tracking-wider">{accountLabel}</span>
+            <span className="ml-3 min-w-0 truncate text-xs font-semibold text-muted-foreground">{accountLabel}</span>
           )}
         </div>
         {/* 티커 + 회차 */}
@@ -142,7 +163,7 @@ function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledSt
           </span>
           {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
           {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
-            <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-warn">{strategy.currentRound!.toFixed(1)}회차</span>
+            <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-foreground">{strategy.currentRound!.toFixed(1)}회차</span>
           )}
         </div>
       </div>
@@ -182,9 +203,9 @@ function CycleStrategyCard({ accountId, strategy, accountLabel }: Props) {
   const readiness = computeOrderReadiness(preview)
   const hasTodayOrders = (preview?.todayOrders ?? []).length > 0
   // 미리보기는 일시중지 중에도 계획·부족 판정을 내려준다 — 실행되지 않을 주문의 경고를 띄우지 않도록 운영중일 때만 표시 (NextOrderCard와 동일)
-  const orderBorderColor = strategy.status === 'ACTIVE' ? getOrderBorderColor(readiness, hasTodayOrders) : null
+  const orderSignal = strategy.status === 'ACTIVE' ? getOrderSignal(readiness, hasTodayOrders) : null
 
-  const layoutProps: LayoutProps = { strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, seedLabel, seedBadgeCls, statusLabel }
+  const layoutProps: LayoutProps = { strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, seedLabel, seedBadgeCls, statusLabel, orderSignal }
 
   return (
     <Link
@@ -199,13 +220,14 @@ function CycleStrategyCard({ accountId, strategy, accountLabel }: Props) {
           style={{ background: statusAccent }}
         />
       )}
-      {orderBorderColor && (
+      {orderSignal && (
         <span
           data-testid="strategy-order-border-accent"
           className="pointer-events-none absolute inset-0 rounded-[var(--r-lg)] border-t-[3px] border-r-[3px] border-b-[3px] border-l-0"
-          style={{ borderColor: orderBorderColor }}
+          style={{ borderColor: orderSignal.color }}
         />
       )}
+      {orderSignal && !orderSignal.tone && <span className="sr-only">{orderSignal.label}</span>}
 
       <MobileLayout {...layoutProps} />
 

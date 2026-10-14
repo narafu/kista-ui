@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fmtKrw, fmtKrwEok, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, nextTradeDateKst, fmtSignedPercent, fmtSignedPercentPoint } from './index'
+import { fmtKrw, fmtKrwEok, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, nextTradeDateKst, fmtSignedPercent, fmtSignedPercentPoint, fmtDate } from './index'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -165,5 +165,11 @@ describe('nextTradeDateKst', () => {
   it('KST 자정 직후는 같은 날 거래일', () => {
     // 2026-07-17 00:05 KST
     expect(nextTradeDateKst(new Date('2026-07-16T15:05:00Z'))).toBe('2026-07-17')
+  })
+})
+
+describe('fmtDate', () => {
+  it('formats a date-only string as that calendar day regardless of viewer timezone', () => {
+    expect(fmtDate('2026-10-31')).toBe('2026. 10. 31.')
   })
 })

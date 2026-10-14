@@ -22,7 +22,9 @@ export function fmtSignedPercentPoint(ratio: number | null | undefined, digits =
 }
 
 export function fmtDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('ko-KR')
+  // 'yyyy-MM-dd'는 UTC 자정으로 파싱되므로 UTC로 포맷해야 뷰어 시간대(UTC 서쪽)에서 하루 밀리지 않는다
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
+  return new Date(dateStr).toLocaleDateString('ko-KR', dateOnly ? { timeZone: 'UTC' } : undefined)
 }
 
 /** 날짜+시각 (ko-KR 로케일) */

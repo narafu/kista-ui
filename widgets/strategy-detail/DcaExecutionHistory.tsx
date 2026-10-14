@@ -3,13 +3,13 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useMeta } from '@entities/meta'
-import { useDcaExecutionsQuery } from '@entities/strategy'
+import { dcaExecutionStatusLabel, useDcaExecutionsQuery } from '@entities/strategy'
 import { ORDER_STATUS_LABEL } from '@entities/order'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { Badge } from '@shared/ui/Badge'
-import { fmtUsd } from '@shared/lib/format'
+import { fmtDate, fmtUsd } from '@shared/lib/format'
 
 const PAGE_SIZE = 20
 
@@ -51,9 +51,9 @@ export function DcaExecutionHistory({ strategyId }: { strategyId: string }) {
                 {/* kista-api uq_dca_execution_strategy_trade_date(strategy_id, trade_date)로 전략당 거래일 1건 보장 */}
                 {rows.map((r) => (
                   <tr key={r.kstTradeDate} className="border-t border-border">
-                    <td className="px-4 py-2 tabular-nums whitespace-nowrap">{r.kstTradeDate}</td>
+                    <td className="px-4 py-2 tabular-nums whitespace-nowrap">{fmtDate(r.kstTradeDate)}</td>
                     <td className="px-4 py-2">
-                      <Badge tone={r.status === 'ORDERED' ? 'none' : 'neutral'} size="sm" className={r.status === 'ORDERED' ? 'bg-info-bg text-info' : undefined}>{r.status === 'ORDERED' ? '주문됨' : '건너뜀'}</Badge>
+                      <Badge tone={r.status === 'ORDERED' ? 'none' : 'neutral'} size="sm" className={r.status === 'ORDERED' ? 'bg-info-bg text-info' : undefined}>{dcaExecutionStatusLabel(r.status)}</Badge>
                     </td>
                     <td className="px-4 py-2">
                       {r.skipReason && <div>{labelOf('dcaSkipReasons', r.skipReason)}</div>}

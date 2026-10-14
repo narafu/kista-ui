@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { todayKst } from '@shared/lib/format'
+import { fmtDate, todayKst } from '@shared/lib/format'
 import type { Strategy } from '@entities/strategy'
 import type { BuyCompetitionSummary, SellSufficiencySummary } from '@entities/order'
 import { StrategyCard } from './StrategyCard'
@@ -200,6 +200,8 @@ describe('StrategyCard mobile row', () => {
     render(<StrategyCard accountId="account-1" strategy={strategy} />)
 
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-ok);'))
+    // 정상은 배지 없이 스크린리더 텍스트만
+    expect(screen.getByText('오늘 주문 접수됨')).toHaveClass('sr-only')
   })
 
   it('marks borders red when the budget is insufficient before any order has been attempted', () => {
@@ -216,6 +218,8 @@ describe('StrategyCard mobile row', () => {
     render(<StrategyCard accountId="account-1" strategy={strategy} />)
 
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
+    // 색만으로 전달하지 않도록 같은 판정을 배지 텍스트로도 보여준다 (모바일·PC 레이아웃 각각)
+    expect(screen.getAllByText('예수금 부족')).toHaveLength(2)
   })
 
   it('marks borders red when sell placed but buy is unplaced and still short on budget', () => {
@@ -349,6 +353,33 @@ describe('StrategyCard mobile row', () => {
     render(<StrategyCard accountId="account-1" strategy={strategy} />)
 
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--warn);'))
+    expect(screen.getAllByText('잔고 확인 실패')).toHaveLength(2)
+  })
+
+  it('labels an unplaced direction as 미접수 주문', () => {
+    previewState = {
+      ...previewState,
+      data: {
+        ...previewState.data,
+        orders: [
+          { direction: 'BUY', price: '1200', quantity: 1 },
+          { direction: 'SELL', price: '1300', quantity: 1 },
+        ],
+        todayOrders: [{ status: 'PLACED', direction: 'SELL' }],
+        competition: { sufficientBudget: true },
+      },
+    }
+
+    render(<StrategyCard accountId="account-1" strategy={strategy} />)
+
+    expect(screen.getAllByText('미접수 주문')).toHaveLength(2)
+  })
+
+  it('shows the reverse mode badge on mobile as well as PC', () => {
+    render(<StrategyCard accountId="account-1" strategy={{ ...strategy, isReverseMode: true }} />)
+
+    expect(screen.getByTestId('strategy-card-mobile-top-row')).toHaveTextContent('리버스모드')
+    expect(screen.getAllByText('리버스모드')).toHaveLength(2)
   })
 })
 
@@ -472,7 +503,7 @@ describe('StrategyCard DCA', () => {
     render(<StrategyCard accountId="a1" strategy={dcaStrategy} />)
     expect(screen.getByText('매수')).toBeInTheDocument()
     expect(screen.getByText('매월 말일 · $300.00 · 장 마감 시장가')).toBeInTheDocument()
-    expect(screen.getByText(/다음 판정일 2026-10-31/)).toBeInTheDocument()
+    expect(screen.getByText(`다음 판정일 ${fmtDate('2026-10-31')}`, { exact: false })).toBeInTheDocument()
     expect(screen.getByText(/최근 건너뜀 · 조건 미충족/)).toBeInTheDocument()
   })
 })
