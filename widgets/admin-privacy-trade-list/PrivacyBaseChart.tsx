@@ -1,15 +1,16 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { useAdminPrivacyBasesQuery } from '@entities/privacy'
 import { useCandlesRangeQuery } from '@entities/market'
 import { EmptyState } from '@shared/ui/EmptyState'
-import { buildPrivacyChartSeries, candleRangeFor, sliceSeriesByRange } from './model/privacyChartSeries'
+import { buildPrivacyChartSeries, candleRangeFor, latestYearlyResetByTicker, sliceSeriesByRange } from './model/privacyChartSeries'
 import { ChartSkeleton, LEGEND_GROUPS, Swatch, useIsNarrow } from './privacyChartParts'
 
 // recharts는 무거워 Inner로 분리해 지연 로드한다 (asset-trend/AssetTrend + AssetTrendInner 패턴)
@@ -21,13 +22,15 @@ const PrivacyBaseChartInner = dynamic(() => import('./PrivacyBaseChartInner'), {
 interface Props {
   windowFrom?: string
   windowTo?: string
+  // '올해' 기간 — 선택 종목의 마지막 연초 재설정일부터 보여준다(windowFrom/windowTo는 비어 온다)
+  sinceYearlyReset?: boolean
 }
 
 const DEFAULT_TICKER = 'SOXL'
 
 const BASIS_NOTE = '발표일 기준으로 표시합니다. 종가는 발표일 직전 거래일 종가입니다. 현금비중은 실현손익이 현금으로 회수되고 입출금이 없다고 가정한 추정치입니다.'
 
-export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
+export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyReset = false }: Props) {
   const pathname = usePathname()
   const narrow = useIsNarrow()
   const searchParams = useSearchParams()
@@ -52,6 +55,9 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
   const tickerBases = useMemo(() => allBases.filter((b) => b.ticker === ticker), [allBases, ticker])
   const candleRange = useMemo(() => candleRangeFor(tickerBases), [tickerBases])
   const candlesQuery = useCandlesRangeQuery(ticker, candleRange)
+  const windowFrom = sinceYearlyReset ? latestYearlyResetByTicker(tickerBases).get(ticker) : rangeFrom
+  // 주문 점은 가격선을 가릴 때가 있어 끌 수 있게 한다. 종목·기간이 바뀌어 차트가 다시 마운트돼도 유지되도록 여기 둔다
+  const [showOrders, setShowOrders] = useState(true)
   const series = useMemo(() => buildPrivacyChartSeries(tickerBases, candlesQuery.data ?? []), [tickerBases, candlesQuery.data])
   const rows = useMemo(() => sliceSeriesByRange(series.rows, windowFrom, windowTo), [series.rows, windowFrom, windowTo])
   const missingCloseCount = rows.filter((r) => r.close == null).length
@@ -105,11 +111,17 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
           <div className="mt-2">{legend}</div>
         </details>
         <div className="hidden sm:block">{legend}</div>
-        {/* 모바일은 하단 정보 줄이 같은 안내를 하므로 PC에만 둔다 */}
-        <p className="hidden pl-1 text-xs text-muted-foreground sm:block">차트를 가리키면 해당 일자의 값이 가격 차트에 표시됩니다.</p>
+        <div className="flex flex-wrap items-center justify-between gap-2 pl-1 text-xs text-muted-foreground">
+          {/* 모바일은 하단 정보 줄이 같은 안내를 하므로 PC에만 둔다 */}
+          <p className="hidden sm:block">차트를 가리키면 해당 일자의 값이 가격 차트에 표시됩니다.</p>
+          <span className="ml-auto inline-flex items-center gap-2">
+            <Switch id="privacy-chart-show-orders" size="sm" checked={showOrders} onCheckedChange={setShowOrders} />
+            <label htmlFor="privacy-chart-show-orders" className="cursor-pointer">매수·매도 주문 표시</label>
+          </span>
+        </div>
 
         {/* 종목·기간·건수가 바뀌거나 화면 폭이 모바일로 넘어가면(Brush가 사라져 되돌릴 수단이 없음) 구간을 처음(전체)으로 되돌리도록 다시 마운트한다 */}
-        <PrivacyBaseChartInner key={`${ticker}|${windowFrom}|${windowTo}|${rows.length}|${narrow}`} rows={rows} ticker={ticker} />
+        <PrivacyBaseChartInner key={`${ticker}|${windowFrom}|${windowTo}|${rows.length}|${narrow}`} rows={rows} ticker={ticker} showOrders={showOrders} />
       </div>
     )
   }

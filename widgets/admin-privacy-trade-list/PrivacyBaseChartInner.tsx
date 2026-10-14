@@ -9,7 +9,7 @@ import type { MouseHandlerDataParam } from 'recharts'
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { Area, Brush, CartesianGrid, ComposedChart, Line, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
-import { fmtMonthDay, fmtSignedUsd, fmtUsd, pnlTextClass } from '@shared/lib/format'
+import { fmtMonthDay, fmtSignedPercent, fmtSignedUsd, fmtUsd, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { CASH_THRESHOLD, PANEL_HEIGHT, SWATCH, Swatch, fmtPercent, useIsNarrow } from './privacyChartParts'
 import type { PrivacyChartRow } from './model/privacyChartSeries'
@@ -17,6 +17,7 @@ import type { PrivacyChartRow } from './model/privacyChartSeries'
 interface Props {
   rows: PrivacyChartRow[]
   ticker: string
+  showOrders: boolean
 }
 
 const SYNC_ID = 'privacy-base-chart'
@@ -34,6 +35,23 @@ const CASH_TICKS = [0, 0.5, 1]
 
 function fmtPrices(prices: number[]) {
   return prices.length > 0 ? prices.map((p) => fmtUsd(p)).join(' · ') : '-'
+}
+
+// 평단가 + 종가 기준 평가 손익률. 예: 137.00(-19.3%)
+function fmtAvgPrice(avgPrice: number | null, close: number | null | undefined) {
+  if (avgPrice == null) return '-'
+  return close == null || avgPrice <= 0 ? fmtUsd(avgPrice) : `${fmtUsd(avgPrice)}(${fmtSignedPercent((close - avgPrice) / avgPrice)})`
+}
+
+// 현금비중 + 추정 현금. 예: 21%(2,519.69)
+function fmtCash(row: PrivacyChartRow) {
+  if (row.cashRatio == null) return '-'
+  return row.cash == null ? fmtPercent(row.cashRatio) : `${fmtPercent(row.cashRatio)}(${fmtUsd(row.cash)})`
+}
+
+// 기간 표기 — 2026/09/15~2026/10/15
+function fmtPeriod(from: string, to: string) {
+  return `${from.replaceAll('-', '/')}~${to.replaceAll('-', '/')}`
 }
 
 function TooltipRow({ label, value, swatch, className }: { label: string; value: string; swatch: string; className?: string }) {
@@ -73,14 +91,14 @@ function ChartTooltip({ row, ticker }: { row: PrivacyChartRow | undefined; ticke
       <div className="font-semibold">{row.date}</div>
       <TooltipSection title={`${ticker} 가격`}>
         <TooltipRow label="종가" value={row.close == null ? '-' : fmtUsd(row.close)} swatch={SWATCH.close} />
-        <TooltipRow label="평단가" value={row.avgPrice == null ? '-' : fmtUsd(row.avgPrice)} swatch={SWATCH.avgPrice} />
+        <TooltipRow label="평단가" value={fmtAvgPrice(row.avgPrice, row.close)} swatch={SWATCH.avgPrice} />
         <TooltipRow label="매수" value={fmtPrices(row.buys)} swatch={SWATCH.buy} className="text-pos" />
         <TooltipRow label="매도" value={fmtPrices(row.sells)} swatch={SWATCH.sell} className="text-neg" />
       </TooltipSection>
       <TooltipSection title="현금비중">
         <TooltipRow
-          label={cashLow ? '현금비중 (50% 미만)' : '현금비중'}
-          value={row.cashRatio == null ? '-' : fmtPercent(row.cashRatio)}
+          label="현금비중"
+          value={fmtCash(row)}
           swatch={cashLow ? SWATCH.cashLow : SWATCH.cash}
           className={cashLow ? 'text-[var(--warn)]' : undefined}
         />
@@ -115,7 +133,7 @@ function MobileInfoBar({ row, isLatest }: { row: PrivacyChartRow; isLatest: bool
       </div>
       <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 tabular-nums">
         <InfoItem swatch={SWATCH.close} label="종가" value={row.close == null ? '-' : fmtUsd(row.close)} />
-        <InfoItem swatch={SWATCH.avgPrice} label="평단가" value={row.avgPrice == null ? '-' : fmtUsd(row.avgPrice)} />
+        <InfoItem swatch={SWATCH.avgPrice} label="평단가" value={fmtAvgPrice(row.avgPrice, row.close)} />
         <InfoItem swatch={SWATCH.buy} label="매수" value={fmtPrices(row.buys)} className="text-pos" wide />
         <InfoItem swatch={SWATCH.sell} label="매도" value={fmtPrices(row.sells)} className="text-neg" wide />
         {/* 현금비중·누적 실현손익은 비중/손익 요약끼리 한 줄로 묶는다 — 반칸 폭에 넣으면 긴 값이 잘려 내용 폭대로 양끝 정렬 */}
@@ -123,7 +141,7 @@ function MobileInfoBar({ row, isLatest }: { row: PrivacyChartRow; isLatest: bool
           <InfoItem
             swatch={cashLow ? SWATCH.cashLow : SWATCH.cash}
             label="현금비중"
-            value={row.cashRatio == null ? '-' : fmtPercent(row.cashRatio)}
+            value={fmtCash(row)}
             className={cashLow ? 'text-[var(--warn)]' : undefined}
             inline
           />
@@ -152,14 +170,13 @@ function PanelCaption({ title, summary, srOnly }: { title: string; summary: stri
   return (
     <figcaption className="pl-1 text-xs">
       <span className="font-medium text-muted-foreground">{title}</span>
-      {/* 모바일은 하단 정보 줄이 최신 값을 보여줘 캡션 값은 PC에만 — 스크린리더 요약(srOnly)은 그대로 */}
-      {summary && <span className="ml-2 hidden tabular-nums text-foreground sm:inline">{summary}</span>}
+      {summary && <span className="ml-2 tabular-nums text-foreground">{summary}</span>}
       <span className="sr-only">{srOnly}</span>
     </figcaption>
   )
 }
 
-export default function PrivacyBaseChartInner({ rows, ticker }: Props) {
+export default function PrivacyBaseChartInner({ rows, ticker, showOrders }: Props) {
   // 주문 점 계열 수는 보이는 기간 기준 — 전체 이력 최대치로 그리면 빈 계열이 생긴다
   // 호버마다 다시 그려지므로 rows에서 파생되는 값은 한 번만 계산한다
   const { maxBuyOrders, maxSellOrders, rowByDate, boundaries } = useMemo(() => ({
@@ -188,9 +205,9 @@ export default function PrivacyBaseChartInner({ rows, ticker }: Props) {
 
   const priceSummary = [
     lastClose?.close != null ? `종가 ${fmtUsd(lastClose.close)}` : null,
-    last.avgPrice != null ? `평단가 ${fmtUsd(last.avgPrice)}` : null,
+    last.avgPrice != null ? `평단가 ${fmtAvgPrice(last.avgPrice, lastClose?.close)}` : null,
   ].filter(Boolean).join(' · ')
-  const cashSummary = lastCash?.cashRatio != null ? fmtPercent(lastCash.cashRatio) : ''
+  const cashSummary = lastCash ? fmtCash(lastCash) : ''
   const pnlSummary = fmtSignedUsd(last.cumulativePnl)
 
   return (
@@ -210,10 +227,10 @@ export default function PrivacyBaseChartInner({ rows, ticker }: Props) {
               {/* 아래 패널을 눌러도 툴팁이 가격 패널 위쪽에 고정돼 화면 밖으로 밀리지 않게 y를 고정한다 */}
               <Tooltip position={{ y: 0 }} content={({ active, label }) => <div className="hidden sm:block"><ChartTooltip row={active ? rowByDate.get(String(label)) : undefined} ticker={ticker} /></div>} cursor={CURSOR} />
               {boundaries.map((d) => <ReferenceLine key={d} x={d} stroke="var(--muted-foreground)" strokeDasharray="4 4" />)}
-              {Array.from({ length: maxBuyOrders }, (_, i) => (
+              {showOrders && Array.from({ length: maxBuyOrders }, (_, i) => (
                 <Line key={`buy${i}`} dataKey={`buy${i}`} stroke="var(--pos)" strokeWidth={0} dot={ORDER_DOT_BUY} activeDot={false} isAnimationActive={false} />
               ))}
-              {Array.from({ length: maxSellOrders }, (_, i) => (
+              {showOrders && Array.from({ length: maxSellOrders }, (_, i) => (
                 <Line key={`sell${i}`} dataKey={`sell${i}`} stroke="var(--neg)" strokeWidth={0} dot={ORDER_DOT_SELL} activeDot={false} isAnimationActive={false} />
               ))}
               {/* 종가·평단가 선은 주문 점보다 나중에 그려 점에 가리지 않게 한다. 종가는 매일 바뀌는 값이라 곡선,
@@ -252,7 +269,7 @@ export default function PrivacyBaseChartInner({ rows, ticker }: Props) {
       <figure className="w-full">
         <PanelCaption
           title="누적 실현손익"
-          summary={`${pnlSummary} (기간 합계)`}
+          summary={`${pnlSummary} (${fmtPeriod(first.date, last.date)})`}
           srOnly={`${period}. 기간 마지막 날 누적 실현손익 ${pnlSummary}.`}
         />
         <div className={PANEL_HEIGHT.pnl}>

@@ -20,6 +20,7 @@ import { CreatePrivacyBaseDialog } from './CreatePrivacyBaseDialog'
 import { EditPrivacyBaseDialog } from './EditPrivacyBaseDialog'
 import { EditPrivacyOrderDialog } from './EditPrivacyOrderDialog'
 import { AddPrivacyOrderDialog } from './AddPrivacyOrderDialog'
+import { latestYearlyResetByTicker } from './model/privacyChartSeries'
 
 // 조회 전·실패 시 useMemo 의존성 참조를 고정한다
 const EMPTY_BASES: AdminPrivacyBase[] = []
@@ -38,11 +39,13 @@ interface Props {
   // (SSR 스냅샷이 아니라) 최신 총 건수를 반영한다. PaginationBar도 이 컴포넌트가 직접 렌더한다.
   windowFrom?: string
   windowTo?: string
+  // '올해' 기간 — 종목마다 마지막 연초 재설정일부터 보여준다(windowFrom/windowTo는 비어 온다)
+  sinceYearlyReset?: boolean
   pageSize: number
   page: number
 }
 
-export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, page }: Props) {
+export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset = false, pageSize, page }: Props) {
   const { data, isError, isFetching, refetch } = useAdminPrivacyBasesQuery()
   const allBases = data ?? EMPTY_BASES
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
@@ -56,8 +59,12 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, page }: 
   const deleteOrderMutation = useDeleteAdminPrivacyOrderMutation()
 
   const filtered = useMemo(
-    () => filterAdminPrivacyBasesByRange(allBases, windowFrom, windowTo),
-    [allBases, windowFrom, windowTo],
+    () => {
+      if (!sinceYearlyReset) return filterAdminPrivacyBasesByRange(allBases, windowFrom, windowTo)
+      const resets = latestYearlyResetByTicker(allBases)
+      return allBases.filter((b) => b.releaseDate >= (resets.get(b.ticker) ?? ''))
+    },
+    [allBases, windowFrom, windowTo, sinceYearlyReset],
   )
   const totalCount = filtered.length
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
@@ -73,7 +80,7 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, page }: 
   const editOrder = findOrder(editOrderRef)
   const deleteOrderTarget = findOrder(deleteOrderRef)
   const addOrderBase = allBases.find((b) => b.id === addOrderBaseId)
-  const isRangeFiltered = Boolean(windowFrom || windowTo)
+  const isRangeFiltered = sinceYearlyReset || Boolean(windowFrom || windowTo)
 
   const toggle = (id: string) => {
     setExpanded((prev) => {

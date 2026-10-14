@@ -16,6 +16,8 @@ export interface PrivacyChartRow {
   yearlyReset: boolean
   // confirmedPnl + realizedPnl — 진행 중 사이클까지 포함한 누적 실현손익. 첫날은 그날의 진행 사이클 손익에서 시작한다
   cumulativePnl: number
+  // 추정 현금(cashOf). 보유 중인데 평단가가 없으면 계산 불가 → null
+  cash: number | null
   // 현금 ÷ (현금 + 보유수량 × 종가). 종가나 (보유 중인데) 평단가가 없으면 계산 불가 → null
   cashRatio: number | null
   // 직전 행과 사이클 시작금액이 달라진 날 — 새 사이클 시작 경계선
@@ -67,13 +69,43 @@ function closeBefore(sortedCandles: Candle[], date: string): number | null {
 }
 
 // 현금 = 사이클 시작금액 + 사이클 실현손익 − 평단가 × 보유수량 (실현손익은 현금 회수, 별도 입출금 없음 가정)
-function cashRatioOf(base: AdminPrivacyBase, close: number | null): number | null {
-  if (close == null) return null
+function cashOf(base: AdminPrivacyBase): number | null {
   if (base.holdings > 0 && base.avgPrice == null) return null
   const cost = base.holdings > 0 ? (base.avgPrice ?? 0) * base.holdings : 0
-  const cash = base.currentCycleStart + base.currentCycleRealizedPnl - cost
+  return base.currentCycleStart + base.currentCycleRealizedPnl - cost
+}
+
+function cashRatioOf(base: AdminPrivacyBase, cash: number | null, close: number | null): number | null {
+  if (close == null || cash == null) return null
   const equity = cash + base.holdings * close
   return equity > 0 ? cash / equity : null
+}
+
+// 사이클 시작금액은 매년 1월 첫 사이클 시작일에 1만 달러로 재설정된다(1월 1일이 아님 — 해를 넘긴 사이클은
+// 끝날 때까지 이전 시작금액을 유지). 그래서 "그 해 첫 사이클 경계 + 새 시작금액이 1만 달러"인 날을 재설정일로 본다.
+// 판정이 조회 기간에 휘둘리지 않도록 종목 하나의 전체 이력(발표일 오름차순)을 받는다
+function yearlyResetFlags(sortedBases: AdminPrivacyBase[]): boolean[] {
+  let lastBoundaryYear: string | null = null
+  return sortedBases.map((base, index) => {
+    const prev = index > 0 ? sortedBases[index - 1] : null
+    if (prev == null || prev.currentCycleStart === base.currentCycleStart) return false
+    const year = base.releaseDate.slice(0, 4)
+    const reset = lastBoundaryYear !== year && base.currentCycleStart === YEARLY_RESET_START
+    lastBoundaryYear = year
+    return reset
+  })
+}
+
+// '올해' 기간의 시작일 — 종목별 가장 최근 연초 재설정일. 해가 바뀌어도 사이클이 끝나지 않아 재설정 전이면
+// 직전 재설정일이 그대로 유지된다. 재설정 이력이 없는 종목은 맵에 없다(전체 기간)
+export function latestYearlyResetByTicker(bases: AdminPrivacyBase[]): Map<string, string> {
+  const result = new Map<string, string>()
+  for (const ticker of new Set(bases.map((b) => b.ticker))) {
+    const sorted = bases.filter((b) => b.ticker === ticker).sort((a, b) => a.releaseDate.localeCompare(b.releaseDate))
+    const index = yearlyResetFlags(sorted).lastIndexOf(true)
+    if (index >= 0) result.set(ticker, sorted[index].releaseDate)
+  }
+  return result
 }
 
 function estimateFinalSellPnl(prev: AdminPrivacyBase, close: number | null): number | null {
@@ -94,13 +126,11 @@ export function buildPrivacyChartSeries(bases: AdminPrivacyBase[], candles: Cand
   const sortedBases = [...bases].sort((a, b) => a.releaseDate.localeCompare(b.releaseDate))
   let maxBuyOrders = 0
   let maxSellOrders = 0
-  // 사이클 시작금액은 매년 1월 첫 사이클 시작일에 1만 달러로 재설정된다(1월 1일이 아님 — 해를 넘긴 사이클은
-  // 끝날 때까지 이전 시작금액을 유지). 그래서 "그 해 첫 사이클 경계 + 새 시작금액이 1만 달러"인 날은 손익이 아니라
-  // 기준 재설정으로 본다 — 직전 날까지의 누적을 carry로 넘기고 새 시작금액을 기준으로 삼는다.
-  // 판정이 조회 기간에 휘둘리지 않도록 종목 전체 이력을 받아 계산하고, 기간 자르기는 sliceSeriesByRange가 한다.
+  // 연초 재설정(yearlyResetFlags)은 손익이 아니라 기준 재설정으로 본다 — 직전 날까지의 누적을 carry로 넘기고
+  // 새 시작금액을 기준으로 삼는다. 종목 전체 이력으로 계산하고, 기간 자르기는 sliceSeriesByRange가 한다.
+  const resetFlags = yearlyResetFlags(sortedBases)
   let carry = 0
   let baseline = sortedBases[0]?.currentCycleStart ?? 0
-  let lastBoundaryYear: string | null = null
 
   const rows = sortedBases.map((base, index) => {
     const close = closeBefore(sortedCandles, base.releaseDate)
@@ -108,10 +138,8 @@ export function buildPrivacyChartSeries(bases: AdminPrivacyBase[], candles: Cand
     const sellPrices = base.orders.filter((o) => o.direction === 'SELL').map((o) => o.price)
     const prev = index > 0 ? sortedBases[index - 1] : null
     const cycleBoundary = prev != null && prev.currentCycleStart !== base.currentCycleStart
-    const year = base.releaseDate.slice(0, 4)
     let resetEstimatedPnl: number | null = null
-    const yearlyReset = prev != null && cycleBoundary && lastBoundaryYear !== year && base.currentCycleStart === YEARLY_RESET_START
-    if (cycleBoundary) lastBoundaryYear = year
+    const yearlyReset = resetFlags[index]
     if (prev && yearlyReset) {
       // 재설정 날 끝난 사이클의 마지막 매도 체결가는 원천(FIDA)에 없고 시작금액도 1만 달러로 덮여 증감으로 알 수
       // 없다 — 남은 수량이 직전 거래일 종가에 LOC 체결됐다고 보고 추정한다(수수료·체결가 차이는 오차로 남음)
@@ -120,6 +148,7 @@ export function buildPrivacyChartSeries(bases: AdminPrivacyBase[], candles: Cand
       baseline = base.currentCycleStart
     }
     const confirmedPnl = carry + base.currentCycleStart - baseline
+    const cash = cashOf(base)
     const row: PrivacyChartRow = {
       date: base.releaseDate,
       close,
@@ -130,7 +159,8 @@ export function buildPrivacyChartSeries(bases: AdminPrivacyBase[], candles: Cand
       resetEstimatedPnl,
       yearlyReset,
       cumulativePnl: confirmedPnl + base.currentCycleRealizedPnl,
-      cashRatio: cashRatioOf(base, close),
+      cash,
+      cashRatio: cashRatioOf(base, cash, close),
       cycleBoundary,
       buys: buyPrices,
       sells: sellPrices,

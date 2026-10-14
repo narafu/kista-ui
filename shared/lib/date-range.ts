@@ -2,9 +2,10 @@
 // 서버(UTC)·브라우저 어디서 실행돼도 같은 결과를 내도록 todayKst()를 기준으로 한다.
 import { todayKst } from '@shared/lib/format'
 
-export type RangePreset = '7d' | '30d' | '90d' | '180d' | 'all' | 'custom'
+export type RangePreset = 'ytd' | '7d' | '30d' | '90d' | '180d' | 'all' | 'custom'
 
 export const RANGE_LABELS: Record<RangePreset, string> = {
+  ytd: '올해',
   '7d': '7일',
   '30d': '30일',
   '90d': '90일',
@@ -38,6 +39,7 @@ export function kstWeekStartDate(): string {
 /**
  * 프리셋 → { from, to } 변환.
  * - all: {} (전체 기간)
+ * - ytd: KST 올해 1월 1일 ~ 상한 없음 (P 매매표처럼 '올해'의 시작이 데이터로 정해지는 화면은 호출부가 대체한다)
  * - custom: 입력 그대로 통과 (서버 페이지는 미완성 custom을 전체 조회로 처리)
  * - 7d/30d/90d/180d: KST 오늘 기준 N일 전 ~ 상한 없음 (미래 선접수 데이터 노출 위해 to 미지정)
  */
@@ -50,6 +52,7 @@ export function resolveRange(
 ): { from?: string; to?: string } {
   if (preset === 'all') return {}
   if (preset === 'custom') return { from, to }
+  if (preset === 'ytd') return { from: `${todayKst().slice(0, 4)}-01-01` }
   return { from: kstDateMinusDays(PRESET_DAYS[preset]) }
 }
 

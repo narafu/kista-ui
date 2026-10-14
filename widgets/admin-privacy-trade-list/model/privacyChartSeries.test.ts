@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { AdminPrivacyBase } from '@entities/privacy'
 import type { Candle } from '@entities/market'
-import { buildPrivacyChartSeries, candleRangeFor, sliceSeriesByRange } from './privacyChartSeries'
+import { buildPrivacyChartSeries, candleRangeFor, latestYearlyResetByTicker, sliceSeriesByRange } from './privacyChartSeries'
 
 function base(overrides: Partial<AdminPrivacyBase>): AdminPrivacyBase {
   return {
@@ -29,6 +29,7 @@ describe('buildPrivacyChartSeries', () => {
     )
     // 현금 = 1000 + 100 − 10×50 = 600, 평가 = 600 + 50×12 = 1200
     expect(rows[0].close).toBe(12)
+    expect(rows[0].cash).toBe(600)
     expect(rows[0].cashRatio).toBeCloseTo(0.5)
   })
 
@@ -146,5 +147,24 @@ describe('candleRangeFor', () => {
   it('5년을 넘으면 마지막 발표일 기준 5년으로 자른다', () => {
     expect(candleRangeFor([base({ releaseDate: '2018-01-01' }), base({ releaseDate: '2026-07-10' })]))
       .toEqual({ from: '2021-07-11', to: '2026-07-10' })
+  })
+})
+
+describe('latestYearlyResetByTicker', () => {
+  it('종목별 가장 최근 연초 재설정일 — 해가 바뀌어도 재설정 전이면 직전 재설정일을 유지한다', () => {
+    const resets = latestYearlyResetByTicker([
+      base({ id: '1', releaseDate: '2025-12-30', currentCycleStart: 12000 }),
+      base({ id: '2', releaseDate: '2026-01-06', currentCycleStart: 10000 }),
+      base({ id: '3', releaseDate: '2026-03-02', currentCycleStart: 10500 }),
+      // 2027년이 됐지만 사이클이 이어지는 중 — 재설정 아님
+      base({ id: '4', releaseDate: '2027-01-04', currentCycleStart: 10500 }),
+      base({ id: '5', releaseDate: '2026-01-09', ticker: 'TQQQ', currentCycleStart: 11000 }),
+      base({ id: '6', releaseDate: '2026-01-12', ticker: 'TQQQ', currentCycleStart: 10000 }),
+      // 재설정 이력이 없는 종목은 맵에 없다
+      base({ id: '7', releaseDate: '2026-01-05', ticker: 'UPRO', currentCycleStart: 10000 }),
+    ])
+    expect(resets.get('SOXL')).toBe('2026-01-06')
+    expect(resets.get('TQQQ')).toBe('2026-01-12')
+    expect(resets.has('UPRO')).toBe(false)
   })
 })
