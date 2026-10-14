@@ -14,6 +14,7 @@ vi.mock('@entities/meta', () => ({
       label: '한국투자',
       description: 'KIS',
     }),
+    labelOf: (group: string, code: string) => (group === 'strategyStatuses' && code === 'PAUSED' ? '일시중지' : code),
   }),
 }))
 
@@ -86,7 +87,7 @@ describe('AccountCard', () => {
       <AccountCard account={baseAccount} />,
     )
 
-    expect(screen.getAllByText('P-SOXL')).toHaveLength(2)
+    expect(screen.getAllByText('P-SOXL · 일시중지')).toHaveLength(2)
     expect(screen.getAllByText('I-MAGX')).toHaveLength(2)
     expect(screen.queryByText('전략 2개')).not.toBeInTheDocument()
 

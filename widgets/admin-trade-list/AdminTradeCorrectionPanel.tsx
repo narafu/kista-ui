@@ -1,6 +1,7 @@
 'use client'
 
 import type { AdminAccount, AdminReorderTimingAvailability, AdminStrategy, AdminStrategyOrder } from '@entities/admin'
+import { useMeta } from '@entities/meta'
 import { formatBrokerLabel } from '@shared/lib/api-schema'
 import { AdminBatchOrderCorrectionForm } from './AdminBatchOrderCorrectionForm'
 import type { ReorderBatchItem } from './AdminBatchOrderCorrectionForm'
@@ -64,6 +65,7 @@ export function AdminTradeCorrectionPanel({
   onStrategyStatusToggle,
   onReorderSubmit,
 }: Props) {
+  const { labelOf } = useMeta()
   const nextStrategyActionLabel = selectedStrategy?.status === 'ACTIVE' ? '전략 중지' : '전략 재개'
   const helperMessage = getHelperMessage({ brokers, accounts, strategies, orders, selectedUserId, selectedBroker, selectedAccountId, selectedStrategyId })
 
@@ -159,7 +161,7 @@ export function AdminTradeCorrectionPanel({
       {selectedStrategy ? (
         <div className="mt-4 rounded-[var(--r-md)] border border-border bg-muted/20 p-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm font-medium">현재 전략 상태: {selectedStrategy.status}</p>
+            <p className="text-sm font-medium">현재 전략 상태: {labelOf('strategyStatuses', selectedStrategy.status)}</p>
             <button
               type="button"
               onClick={onStrategyStatusToggle}

@@ -32,7 +32,7 @@ function aggregateStatus(strategies: Strategy[]): 'ACTIVE' | 'PAUSED' | null {
 
 export function AccountCard({ account }: Props) {
   const { data: strategies = EMPTY_STRATEGIES } = useStrategiesQuery(account.id)
-  const { findBroker } = useMeta()
+  const { findBroker, labelOf } = useMeta()
   const broker = findBroker(account.broker)
   const brokerLabel = broker?.label ?? account.broker
   const aggregated = aggregateStatus(strategies)
@@ -75,6 +75,7 @@ export function AccountCard({ account }: Props) {
                   style={{ borderColor: strategyStatusAccent(s.status), color: strategyStatusAccent(s.status) }}
                 >
                   {formatStrategyBadge(s)}
+                  {s.status !== 'ACTIVE' && ` · ${labelOf('strategyStatuses', s.status)}`}
                 </Badge>
               ))}
             </div>
@@ -119,6 +120,7 @@ export function AccountCard({ account }: Props) {
                     style={{ borderColor: strategyStatusAccent(s.status), color: strategyStatusAccent(s.status) }}
                   >
                     {formatStrategyBadge(s)}
+                    {s.status !== 'ACTIVE' && ` · ${labelOf('strategyStatuses', s.status)}`}
                   </Badge>
                   {s.initialUsdDeposit != null && (
                     <span className="ml-auto shrink-0 text-sm font-semibold leading-none text-foreground tabular-nums">

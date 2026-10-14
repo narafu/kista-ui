@@ -15,6 +15,12 @@ import {
 import type { AdminAccount, AdminStrategy, AdminStrategyOrder, AdminTrade } from '@entities/admin'
 import { AdminTradesWorkbench } from './AdminTradesWorkbench'
 
+vi.mock('@entities/meta', () => ({
+  useMeta: () => ({
+    labelOf: (group: string, code: string) => (group === 'strategyStatuses' ? ({ ACTIVE: '운영중', PAUSED: '일시중지' } as Record<string, string>)[code] : undefined) ?? code,
+  }),
+}))
+
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
@@ -431,13 +437,13 @@ describe('AdminTradesWorkbench', () => {
     await selectBrokeredOrderTarget(user)
     await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
 
-    await waitFor(() => expect(screen.getByText('현재 전략 상태: ACTIVE')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('현재 전략 상태: 운영중')).toBeInTheDocument())
 
     await user.click(screen.getByRole('button', { name: '전략 중지' }))
 
     await waitFor(() => expect(updateAdminStrategyStatusMock).toHaveBeenCalledWith('account-1', 'strategy-1', 'PAUSED'))
     await waitFor(() => expect(listAdminStrategiesMock).toHaveBeenCalledTimes(2))
-    await waitFor(() => expect(screen.getByText('현재 전략 상태: PAUSED')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('현재 전략 상태: 일시중지')).toBeInTheDocument())
     expect(screen.getByRole('combobox', { name: '전략 선택' })).toHaveValue('strategy-1')
     expect(screen.getByRole('button', { name: '전략 재개' })).toBeInTheDocument()
   })
