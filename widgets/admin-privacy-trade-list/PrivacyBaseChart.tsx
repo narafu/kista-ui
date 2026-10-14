@@ -54,6 +54,9 @@ const SWATCH = {
   profit: 'h-2 w-4 rounded-sm bg-[var(--pos)]',
   loss: 'h-2 w-4 rounded-sm bg-[var(--neg)]',
   flat: 'h-2 w-4 rounded-sm bg-muted-foreground',
+  cumulative: 'h-0.5 w-4 bg-[var(--chart-4)]',
+  // 범례용 — 확정 손익 영역은 이익/손실에 따라 두 색이라 반반으로 보여준다
+  confirmed: 'h-2 w-4 rounded-sm bg-[linear-gradient(90deg,var(--pos)_50%,var(--neg)_50%)]',
 }
 
 // 범례 — 패널마다 recharts Legend를 두면 차트 사이에 떠서 산만해 카드 상단 한 줄로 모은다
@@ -64,6 +67,8 @@ const LEGEND_ITEMS: Array<{ label: string; swatch: string }> = [
   { label: '매도 주문', swatch: SWATCH.sell },
   { label: '현금비중', swatch: SWATCH.cash },
   { label: '현금 50% 미만', swatch: SWATCH.cashLow },
+  { label: '확정 손익(종료 사이클)', swatch: SWATCH.confirmed },
+  { label: '누적 손익(진행 포함)', swatch: SWATCH.cumulative },
   { label: '사이클 경계', swatch: SWATCH.boundary },
 ]
 
@@ -87,7 +92,11 @@ function TooltipRow({ label, value, swatch, className }: { label: string; value:
   )
 }
 
-// 툴팁 묶음은 위에서 아래로 차트 패널 순서(가격 → 현금비중 → 실현손익)와 같게 둔다
+function pnlSwatch(value: number) {
+  return value > 0 ? SWATCH.profit : value < 0 ? SWATCH.loss : SWATCH.flat
+}
+
+// 툴팁 묶음은 위에서 아래로 차트 패널 순서(가격 → 현금비중 → 누적 실현손익)와 같게 둔다
 function TooltipSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="space-y-0.5 border-t border-border pt-1.5">
@@ -119,20 +128,18 @@ function ChartTooltip({ row, ticker }: { row: PrivacyChartRow | undefined; ticke
           className={cashLow ? 'text-[var(--warn)]' : undefined}
         />
       </TooltipSection>
-      <TooltipSection title="사이클 실현손익">
-        <TooltipRow
-          label="실현손익"
-          value={fmtSignedUsd(row.realizedPnl)}
-          swatch={row.realizedPnl > 0 ? SWATCH.profit : row.realizedPnl < 0 ? SWATCH.loss : SWATCH.flat}
-          className={pnlTextClass(row.realizedPnl)}
-        />
+      <TooltipSection title="누적 실현손익">
+        <TooltipRow label="사이클 시작금액" value={fmtUsd(row.cycleStart)} swatch={SWATCH.flat} />
+        <TooltipRow label="확정 손익" value={fmtSignedUsd(row.confirmedPnl)} swatch={pnlSwatch(row.confirmedPnl)} className={pnlTextClass(row.confirmedPnl)} />
+        <TooltipRow label="진행 사이클 손익" value={fmtSignedUsd(row.realizedPnl)} swatch={pnlSwatch(row.realizedPnl)} className={pnlTextClass(row.realizedPnl)} />
+        <TooltipRow label="누적 손익" value={fmtSignedUsd(row.cumulativePnl)} swatch={SWATCH.cumulative} className={cn('font-semibold', pnlTextClass(row.cumulativePnl))} />
       </TooltipSection>
     </div>
   )
 }
 
-const pnlProfit = (row: PrivacyChartRow) => Math.max(row.realizedPnl, 0)
-const pnlLoss = (row: PrivacyChartRow) => Math.min(row.realizedPnl, 0)
+const confirmedProfit = (row: PrivacyChartRow) => Math.max(row.confirmedPnl, 0)
+const confirmedLoss = (row: PrivacyChartRow) => Math.min(row.confirmedPnl, 0)
 
 function PanelLabel({ children }: { children: string }) {
   return <div className="pl-1 text-xs font-medium text-muted-foreground">{children}</div>
@@ -236,10 +243,10 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
             </figure>
 
             <figure className="w-full">
-              <PanelLabel>사이클 실현손익</PanelLabel>
+              <PanelLabel>누적 실현손익</PanelLabel>
               <div className="h-[160px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={rows} syncId={SYNC_ID} margin={MARGIN} title="사이클 실현손익">
+                  <ComposedChart data={rows} syncId={SYNC_ID} margin={MARGIN} title="누적 실현손익">
                     <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
                     <XAxis dataKey="date" tickFormatter={(d) => fmtMonthDay(String(d))} tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={28} />
                     <YAxis tickFormatter={(v) => fmtUsd(Number(v), 0)} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} />
@@ -255,9 +262,12 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
                       stroke="var(--muted-foreground)"
                       fill="var(--card)"
                     />
-                    {/* 이익/손실을 0 기준 두 영역으로 나눠 칠한다 — 그라디언트 분기점은 Brush로 보이는 구간이 바뀌면 0과 어긋난다 */}
-                    <Area type="stepAfter" dataKey={pnlProfit} stroke="var(--pos)" strokeWidth={1.5} fill="var(--pos)" fillOpacity={0.2} isAnimationActive={false} />
-                    <Area type="stepAfter" dataKey={pnlLoss} stroke="var(--neg)" strokeWidth={1.5} fill="var(--neg)" fillOpacity={0.2} isAnimationActive={false} />
+                    {/* 확정분(종료 사이클 손익 = 시작금액 증감)은 0 기준 이익/손실 두 영역으로 칠하고(그라디언트 분기점은
+                        Brush로 보이는 구간이 바뀌면 0과 어긋난다), 진행 중 사이클까지 더한 누적은 선으로 얹는다.
+                        영역과 선 사이 간격이 진행 중 사이클 손익이다 */}
+                    <Area type="stepAfter" dataKey={confirmedProfit} stroke="none" activeDot={false} fill="var(--pos)" fillOpacity={0.25} isAnimationActive={false} />
+                    <Area type="stepAfter" dataKey={confirmedLoss} stroke="none" activeDot={false} fill="var(--neg)" fillOpacity={0.25} isAnimationActive={false} />
+                    <Line type="stepAfter" dataKey="cumulativePnl" stroke="var(--chart-4)" strokeWidth={2} dot={false} isAnimationActive={false} />
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>

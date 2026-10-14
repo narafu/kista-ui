@@ -76,6 +76,36 @@ describe('buildPrivacyChartSeries', () => {
   })
 })
 
+describe('누적 실현손익', () => {
+  it('사이클 종료 시 시작금액 증감을 확정분으로 쌓고, 진행 중 손익을 더해 누적을 만든다', () => {
+    const { rows } = buildPrivacyChartSeries(
+      [
+        base({ id: '1', releaseDate: '2026-03-01', currentCycleStart: 10000, currentCycleRealizedPnl: 0 }),
+        base({ id: '2', releaseDate: '2026-03-02', currentCycleStart: 10000, currentCycleRealizedPnl: 300 }),
+        base({ id: '3', releaseDate: '2026-03-03', currentCycleStart: 10500, currentCycleRealizedPnl: 0 }),
+        base({ id: '4', releaseDate: '2026-03-04', currentCycleStart: 10500, currentCycleRealizedPnl: -100 }),
+      ],
+      [],
+    )
+    expect(rows.map((r) => [r.confirmedPnl, r.cumulativePnl])).toEqual([[0, 0], [0, 300], [500, 500], [500, 400]])
+  })
+
+  it('해를 넘긴 사이클은 이전 기준을 유지하고, 1월 첫 사이클 경계에서 1만 달러 재설정 — 직전 누적을 이어받는다', () => {
+    const { rows } = buildPrivacyChartSeries(
+      [
+        base({ id: '1', releaseDate: '2025-12-30', currentCycleStart: 10000, currentCycleRealizedPnl: 0 }),
+        base({ id: '2', releaseDate: '2025-12-31', currentCycleStart: 12000, currentCycleRealizedPnl: 200 }),
+        base({ id: '3', releaseDate: '2026-01-02', currentCycleStart: 12000, currentCycleRealizedPnl: 300 }),
+        base({ id: '4', releaseDate: '2026-01-08', currentCycleStart: 10000, currentCycleRealizedPnl: 0 }),
+        base({ id: '5', releaseDate: '2026-01-20', currentCycleStart: 10300, currentCycleRealizedPnl: 50 }),
+      ],
+      [],
+    )
+    // 01-02는 해를 넘긴 사이클 진행 중(재설정 전) → 같은 기준. 01-08 재설정 시 직전 누적 (12000−10000)+300 = 2300 이월
+    expect(rows.map((r) => [r.confirmedPnl, r.cumulativePnl])).toEqual([[0, 0], [2000, 2200], [2000, 2300], [2300, 2300], [2600, 2650]])
+  })
+})
+
 describe('candleRangeFor', () => {
   it('매매표가 없으면 null', () => {
     expect(candleRangeFor([])).toBeNull()
