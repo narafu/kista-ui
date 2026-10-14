@@ -2,15 +2,17 @@
 
 import { useId, useMemo, useState } from 'react'
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
-import { Area, Bar, CartesianGrid, ComposedChart, Legend, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Area, CartesianGrid, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { filterAdminPrivacyBasesByRange, useAdminPrivacyBasesQuery } from '@entities/privacy'
 import { useCandlesRangeQuery } from '@entities/market'
 import { EmptyState } from '@shared/ui/EmptyState'
-import { fmtMonthDay, fmtSignedUsd, fmtUsd } from '@shared/lib/format'
+import { fmtMonthDay, fmtSignedUsd, fmtUsd, pnlTextClass } from '@shared/lib/format'
+import { cn } from '@shared/lib/utils'
 import { buildPrivacyChartSeries, candleRangeFor } from './model/privacyChartSeries'
+import type { PrivacyChartRow } from './model/privacyChartSeries'
 
 interface Props {
   windowFrom?: string
@@ -20,34 +22,60 @@ interface Props {
 const DEFAULT_TICKER = 'SOXL'
 const SYNC_ID = 'privacy-base-chart'
 const AXIS_TICK = { fontSize: 10 }
-const TOOLTIP_STYLE = {
-  fontSize: 12,
-  backgroundColor: 'var(--card)',
-  border: '1px solid var(--border)',
-  color: 'var(--foreground)',
-  borderRadius: 6,
-}
-const LEGEND_STYLE = { fontSize: 11 }
+const Y_AXIS_WIDTH = 52
+// 세 패널의 플롯 영역 좌우 끝을 맞추기 위해 margin·축 폭을 공유한다
+const MARGIN = { top: 4, right: 12, left: 0, bottom: 0 }
 const ORDER_DOT_BUY = { r: 2, fill: 'var(--pos)', stroke: 'none' }
 const ORDER_DOT_SELL = { r: 2, fill: 'var(--neg)', stroke: 'none' }
+const CURSOR = { stroke: 'var(--muted-foreground)', strokeDasharray: '3 3' }
+const CASH_TICKS = [0, 0.5, 1]
 
 function fmtPercent(ratio: number) {
   return `${Math.round(ratio * 100)}%`
 }
 
-// 주문 점(buyN/sellN)은 같은 이름이 여러 줄 뜨므로 툴팁에서만 "매수 1"처럼 번호를 붙인다
-function fmtTooltipEntry(value: unknown, name: unknown, item: { dataKey?: unknown }): [string, string] {
-  const order = /^(buy|sell)(\d+)$/.exec(String(item.dataKey))
-  const label = order ? `${order[1] === 'buy' ? '매수' : '매도'} ${Number(order[2]) + 1}` : String(name)
-  return [fmtTooltipValue(value, name), label]
+function fmtPrices(prices: number[]) {
+  return prices.length > 0 ? prices.map((p) => fmtUsd(p)).join(' · ') : '-'
 }
 
-function fmtTooltipValue(value: unknown, name: unknown) {
-  const n = Number(value)
-  if (name === '현금비율') return fmtPercent(n)
-  if (name === '보유수량') return `${n}주`
-  if (name === '실현손익') return fmtSignedUsd(n)
-  return fmtUsd(n)
+// 범례 — 패널마다 recharts Legend를 두면 차트 사이에 떠서 산만해 카드 상단 한 줄로 모은다
+const LEGEND_ITEMS: Array<{ label: string; swatch: string }> = [
+  { label: '종가', swatch: 'h-0.5 w-4 bg-[var(--chart-2)]' },
+  { label: '평단가', swatch: 'h-0.5 w-4 bg-[var(--foreground)]' },
+  { label: '매수 주문', swatch: 'size-2 rounded-full bg-[var(--pos)]' },
+  { label: '매도 주문', swatch: 'size-2 rounded-full bg-[var(--neg)]' },
+  { label: '현금비중', swatch: 'h-2 w-4 rounded-sm bg-[var(--info)]' },
+  { label: '사이클 경계', swatch: 'h-3 w-0 border-l border-dashed border-muted-foreground' },
+]
+
+function TooltipRow({ label, value, className }: { label: string; value: string; className?: string }) {
+  return (
+    <div className="flex justify-between gap-4">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={cn('tabular-nums', className)}>{value}</span>
+    </div>
+  )
+}
+
+// 툴팁은 가격 패널에만 두고 그날 지표를 한 번에 보여준다 — 세 패널이 각자 툴팁을 띄우면 화면을 덮는다
+// payload는 값이 null인 계열을 걸러내 종가·평단가·주문이 모두 없는 날엔 비므로, 행은 label(날짜)로 찾는다
+function ChartTooltip({ row }: { row: PrivacyChartRow | undefined }) {
+  if (!row) return null
+  return (
+    <div className="min-w-44 space-y-0.5 rounded-md border border-border bg-card px-3 py-2 text-xs shadow-sm">
+      <div className="mb-1 font-semibold">{row.date}</div>
+      <TooltipRow label="종가" value={row.close == null ? '-' : fmtUsd(row.close)} />
+      <TooltipRow label="평단가" value={row.avgPrice == null ? '-' : fmtUsd(row.avgPrice)} />
+      <TooltipRow label="매수" value={fmtPrices(row.buys)} className="text-pos" />
+      <TooltipRow label="매도" value={fmtPrices(row.sells)} className="text-neg" />
+      <TooltipRow label="현금비중" value={row.cashRatio == null ? '-' : fmtPercent(row.cashRatio)} />
+      <TooltipRow label="실현손익" value={fmtSignedUsd(row.realizedPnl)} className={pnlTextClass(row.realizedPnl)} />
+    </div>
+  )
+}
+
+function PanelLabel({ children }: { children: string }) {
+  return <div className="pl-1 text-xs font-medium text-muted-foreground">{children}</div>
 }
 
 export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
@@ -65,6 +93,7 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
   const candlesQuery = useCandlesRangeQuery(ticker, candleRange)
   const series = useMemo(() => buildPrivacyChartSeries(bases, candlesQuery.data ?? []), [bases, candlesQuery.data])
   const { rows, maxBuyOrders, maxSellOrders } = series
+  const rowByDate = new Map(rows.map((r) => [r.date, r]))
   const boundaries = rows.filter((r) => r.cycleBoundary).map((r) => r.date)
   const missingCloseCount = rows.filter((r) => r.close == null).length
 
@@ -87,85 +116,96 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
           </Select>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
-          발표일 기준 · 종가는 발표일 직전 거래일 · 현금비율은 실현손익이 현금으로 회수되고 입출금이 없다고 가정한 추정치
+          발표일 기준 · 종가는 발표일 직전 거래일 · 현금비중은 실현손익이 현금으로 회수되고 입출금이 없다고 가정한 추정치
         </p>
       </CardHeader>
-      <CardContent className="space-y-2 px-2 pb-4 sm:px-6 sm:pb-6">
+      <CardContent className="px-2 pb-4 sm:px-6 sm:pb-6">
         {rows.length === 0 ? (
           <EmptyState message="선택한 기간에 표시할 매매표가 없습니다." />
         ) : candlesQuery.isLoading ? (
           <div role="status" aria-live="polite" aria-label="종가 불러오는 중">
-            <Skeleton className="h-[520px]" />
+            <Skeleton className="h-[480px]" />
           </div>
         ) : (
-          <>
-            <figure className="h-[220px] w-full" aria-label={`${ticker} 종가·평단가·주문 가격`}>
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={rows} syncId={SYNC_ID} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} title={`${ticker} 가격`}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="date" hide />
-                  <YAxis yAxisId="price" tickFormatter={(v) => fmtUsd(Number(v), 0)} tick={AXIS_TICK} tickLine={false} axisLine={false} width={48} domain={['auto', 'auto']} />
-                  <YAxis yAxisId="spacer" orientation="right" width={40} tick={false} axisLine={false} />
-                  <Tooltip labelFormatter={(d) => String(d)} formatter={fmtTooltipEntry} contentStyle={TOOLTIP_STYLE} />
-                  <Legend wrapperStyle={LEGEND_STYLE} />
-                  {boundaries.map((d) => <ReferenceLine key={d} yAxisId="price" x={d} stroke="var(--muted-foreground)" strokeDasharray="4 4" />)}
-                  {Array.from({ length: maxBuyOrders }, (_, i) => (
-                    <Line key={`buy${i}`} yAxisId="price" dataKey={`buy${i}`} name="매수 주문" stroke="var(--pos)" strokeWidth={0} dot={ORDER_DOT_BUY} activeDot={false} legendType={i === 0 ? 'circle' : 'none'} isAnimationActive={false} />
-                  ))}
-                  {Array.from({ length: maxSellOrders }, (_, i) => (
-                    <Line key={`sell${i}`} yAxisId="price" dataKey={`sell${i}`} name="매도 주문" stroke="var(--neg)" strokeWidth={0} dot={ORDER_DOT_SELL} activeDot={false} legendType={i === 0 ? 'circle' : 'none'} isAnimationActive={false} />
-                  ))}
-                  {/* 종가·평단가 선은 주문 점보다 나중에 그려 점에 가리지 않게 한다 */}
-                  <Line yAxisId="price" dataKey="close" name="종가" stroke="var(--chart-2)" strokeWidth={2.5} dot={false} isAnimationActive={false} />
-                  <Line yAxisId="price" type="stepAfter" dataKey="avgPrice" name="평단가" stroke="var(--chart-4)" strokeWidth={2} dot={false} isAnimationActive={false} />
-                </ComposedChart>
-              </ResponsiveContainer>
+          <div className="space-y-3">
+            <ul className="flex flex-wrap gap-x-4 gap-y-1.5 pl-1 text-xs text-muted-foreground" aria-label="범례">
+              {LEGEND_ITEMS.map((item) => (
+                <li key={item.label} className="inline-flex items-center gap-1.5">
+                  <span aria-hidden className={cn('inline-block', item.swatch)} />
+                  {item.label}
+                </li>
+              ))}
+            </ul>
+
+            <figure className="w-full">
+              <PanelLabel>{`${ticker} 가격`}</PanelLabel>
+              <div className="h-[260px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={rows} syncId={SYNC_ID} margin={MARGIN} title={`${ticker} 종가·평단가·주문 가격`}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+                    <XAxis dataKey="date" hide />
+                    <YAxis tickFormatter={(v) => fmtUsd(Number(v), 0)} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} domain={['auto', 'auto']} />
+                    <Tooltip content={({ active, label }) => <ChartTooltip row={active ? rowByDate.get(String(label)) : undefined} />} cursor={CURSOR} />
+                    {boundaries.map((d) => <ReferenceLine key={d} x={d} stroke="var(--muted-foreground)" strokeDasharray="4 4" />)}
+                    {Array.from({ length: maxBuyOrders }, (_, i) => (
+                      <Line key={`buy${i}`} dataKey={`buy${i}`} stroke="var(--pos)" strokeWidth={0} dot={ORDER_DOT_BUY} activeDot={false} isAnimationActive={false} />
+                    ))}
+                    {Array.from({ length: maxSellOrders }, (_, i) => (
+                      <Line key={`sell${i}`} dataKey={`sell${i}`} stroke="var(--neg)" strokeWidth={0} dot={ORDER_DOT_SELL} activeDot={false} isAnimationActive={false} />
+                    ))}
+                    {/* 종가·평단가 선은 주문 점보다 나중에 그려 점에 가리지 않게 한다 */}
+                    <Line dataKey="close" stroke="var(--chart-2)" strokeWidth={2.5} dot={false} isAnimationActive={false} />
+                    <Line type="stepAfter" dataKey="avgPrice" stroke="var(--foreground)" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
             </figure>
 
-            <figure className="h-[160px] w-full" aria-label="보유수량·현금비율">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={rows} syncId={SYNC_ID} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} title="보유수량·현금비율">
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="date" hide />
-                  <YAxis yAxisId="qty" tick={AXIS_TICK} tickLine={false} axisLine={false} width={48} />
-                  <YAxis yAxisId="ratio" orientation="right" domain={[0, 1]} tickFormatter={(v) => fmtPercent(Number(v))} tick={AXIS_TICK} tickLine={false} axisLine={false} width={40} />
-                  <Tooltip labelFormatter={(d) => String(d)} formatter={fmtTooltipEntry} contentStyle={TOOLTIP_STYLE} />
-                  <Legend wrapperStyle={LEGEND_STYLE} />
-                  {boundaries.map((d) => <ReferenceLine key={d} yAxisId="qty" x={d} stroke="var(--muted-foreground)" strokeDasharray="4 4" />)}
-                  <Bar yAxisId="qty" dataKey="holdings" name="보유수량" fill="var(--chart-5)" isAnimationActive={false} />
-                  <Line yAxisId="ratio" dataKey="cashRatio" name="현금비율" stroke="var(--chart-1)" strokeWidth={2} dot={false} isAnimationActive={false} />
-                </ComposedChart>
-              </ResponsiveContainer>
+            <figure className="w-full">
+              <PanelLabel>현금비중</PanelLabel>
+              <div className="h-[110px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={rows} syncId={SYNC_ID} margin={MARGIN} title="현금비중">
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+                    <XAxis dataKey="date" hide />
+                    <YAxis domain={[0, 1]} ticks={CASH_TICKS} tickFormatter={(v) => fmtPercent(Number(v))} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} />
+                    <Tooltip content={() => null} cursor={CURSOR} />
+                    {boundaries.map((d) => <ReferenceLine key={d} x={d} stroke="var(--muted-foreground)" strokeDasharray="4 4" />)}
+                    <Area type="stepAfter" dataKey="cashRatio" stroke="var(--info)" strokeWidth={1.5} fill="var(--info)" fillOpacity={0.15} isAnimationActive={false} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
             </figure>
 
-            <figure className="h-[160px] w-full" aria-label="사이클 실현손익">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={rows} syncId={SYNC_ID} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} title="사이클 실현손익">
-                  <defs>
-                    <linearGradient id={pnlGradientId} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset={pnlZeroOffset} stopColor="var(--pos)" />
-                      <stop offset={pnlZeroOffset} stopColor="var(--neg)" />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="date" tickFormatter={(d) => fmtMonthDay(String(d))} tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={28} />
-                  <YAxis yAxisId="pnl" tickFormatter={(v) => fmtUsd(Number(v), 0)} tick={AXIS_TICK} tickLine={false} axisLine={false} width={48} />
-                  <YAxis yAxisId="spacer" orientation="right" width={40} tick={false} axisLine={false} />
-                  <Tooltip labelFormatter={(d) => String(d)} formatter={fmtTooltipEntry} contentStyle={TOOLTIP_STYLE} />
-                  <Legend wrapperStyle={LEGEND_STYLE} />
-                  <ReferenceLine yAxisId="pnl" y={0} stroke="var(--muted-foreground)" />
-                  {boundaries.map((d) => <ReferenceLine key={d} yAxisId="pnl" x={d} stroke="var(--muted-foreground)" strokeDasharray="4 4" />)}
-                  <Area yAxisId="pnl" type="stepAfter" dataKey="realizedPnl" name="실현손익" stroke={`url(#${pnlGradientId})`} fill={`url(#${pnlGradientId})`} fillOpacity={0.25} isAnimationActive={false} />
-                </ComposedChart>
-              </ResponsiveContainer>
+            <figure className="w-full">
+              <PanelLabel>사이클 실현손익</PanelLabel>
+              <div className="h-[130px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={rows} syncId={SYNC_ID} margin={MARGIN} title="사이클 실현손익">
+                    <defs>
+                      <linearGradient id={pnlGradientId} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset={pnlZeroOffset} stopColor="var(--pos)" />
+                        <stop offset={pnlZeroOffset} stopColor="var(--neg)" />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+                    <XAxis dataKey="date" tickFormatter={(d) => fmtMonthDay(String(d))} tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={28} />
+                    <YAxis tickFormatter={(v) => fmtUsd(Number(v), 0)} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} />
+                    <Tooltip content={() => null} cursor={CURSOR} />
+                    <ReferenceLine y={0} stroke="var(--muted-foreground)" />
+                    {boundaries.map((d) => <ReferenceLine key={d} x={d} stroke="var(--muted-foreground)" strokeDasharray="4 4" />)}
+                    <Area type="stepAfter" dataKey="realizedPnl" stroke={`url(#${pnlGradientId})`} strokeWidth={1.5} fill={`url(#${pnlGradientId})`} fillOpacity={0.2} isAnimationActive={false} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
             </figure>
 
             {candlesQuery.isError ? (
-              <p className="text-xs text-[var(--warn)]">종가를 불러오지 못해 종가·현금비율을 표시하지 않습니다.</p>
+              <p className="pl-1 text-xs text-[var(--warn)]">종가를 불러오지 못해 종가·현금비중을 표시하지 않습니다.</p>
             ) : missingCloseCount > 0 ? (
-              <p className="text-xs text-muted-foreground">종가 조회 범위(최대 5년) 밖이거나 종가가 없는 {missingCloseCount}일은 종가·현금비율을 표시하지 않습니다.</p>
+              <p className="pl-1 text-xs text-muted-foreground">종가 조회 범위(최대 5년) 밖이거나 종가가 없는 {missingCloseCount}일은 종가·현금비중을 표시하지 않습니다.</p>
             ) : null}
-          </>
+          </div>
         )}
       </CardContent>
     </Card>

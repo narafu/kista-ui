@@ -22,7 +22,7 @@ function candle(date: string, close: number): Candle {
 }
 
 describe('buildPrivacyChartSeries', () => {
-  it('발표일 이전 가장 최근 종가로 현금비율을 계산한다 (같은 날 종가는 쓰지 않음)', () => {
+  it('발표일 이전 가장 최근 종가로 현금비중을 계산한다 (같은 날 종가는 쓰지 않음)', () => {
     const { rows } = buildPrivacyChartSeries(
       [base({ releaseDate: '2026-07-02', currentCycleRealizedPnl: 100 })],
       [candle('2026-07-02', 999), candle('2026-06-30', 8), candle('2026-07-01', 12)],
@@ -32,7 +32,7 @@ describe('buildPrivacyChartSeries', () => {
     expect(rows[0].cashRatio).toBeCloseTo(0.5)
   })
 
-  it('종가가 없거나 보유 중인데 평단가가 없으면 현금비율은 null, 무보유면 평단가 없어도 100%', () => {
+  it('종가가 없거나 보유 중인데 평단가가 없으면 현금비중은 null, 무보유면 평단가 없어도 100%', () => {
     const { rows } = buildPrivacyChartSeries(
       [
         base({ id: '1', releaseDate: '2026-07-01' }),
