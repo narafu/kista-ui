@@ -474,7 +474,6 @@
   font-size: 11.5px;
   letter-spacing: 0.06em;
   color: var(--muted-foreground);
-  opacity: 0.55;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -491,7 +490,7 @@
   width: 26px;
   height: 1px;
   background: currentColor;
-  opacity: 0.35;
+  opacity: 0.2; /* 부모 opacity 제거 전 실효값(0.55×0.35) 유지 */
 }
 
 /* ── Glass Card ───────────────────────────────────────────── */
