@@ -1,7 +1,8 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
+import type { MouseHandlerDataParam } from 'recharts'
 // 부모 PrivacyBaseChart.tsx의 next/dynamic({ ssr: false }) 셸이 이 파일 자체를 지연 로드한다. 룰은 파일 간
 // 도달 가능성을 보지 않고 recharts import를 정적으로만 감지해 분리 구조와 무관하게 항상 발화한다
 // (asset-trend/AssetTrendInner.tsx 등 기존 recharts 위젯과 동일한 처리).
@@ -100,6 +101,43 @@ function ChartTooltip({ row, ticker }: { row: PrivacyChartRow | undefined; ticke
   )
 }
 
+// 모바일 전용 고정 정보 줄 — 떠다니는 툴팁은 가격 패널 안에만 떠서, 가격 패널이 화면 위로 스크롤된 상태에서
+// 아래 패널을 누르면 헤더에 가린다. 좁은 화면에서는 툴팁 대신 화면 하단에 붙는 이 줄에 그날 값을 보여준다
+function MobileInfoBar({ row, isLatest }: { row: PrivacyChartRow; isLatest: boolean }) {
+  const cashLow = row.cashRatio != null && row.cashRatio < CASH_THRESHOLD
+  return (
+    <div className="sticky bottom-0 z-10 -mx-2 border-t border-border bg-card/95 px-3 py-2 text-xs backdrop-blur sm:hidden">
+      <div className="mb-1 font-semibold">
+        {row.date}
+        {isLatest && <span className="ml-1 font-normal text-muted-foreground">(최신 · 차트를 누르면 바뀝니다)</span>}
+      </div>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 tabular-nums">
+        <InfoItem swatch={SWATCH.close} label="종가" value={row.close == null ? '-' : fmtUsd(row.close)} />
+        <InfoItem swatch={SWATCH.avgPrice} label="평단가" value={row.avgPrice == null ? '-' : fmtUsd(row.avgPrice)} />
+        <InfoItem swatch={SWATCH.buy} label="매수" value={fmtPrices(row.buys)} className="text-pos" wide />
+        <InfoItem swatch={SWATCH.sell} label="매도" value={fmtPrices(row.sells)} className="text-neg" />
+        <InfoItem
+          swatch={cashLow ? SWATCH.cashLow : SWATCH.cash}
+          label="현금비중"
+          value={row.cashRatio == null ? '-' : fmtPercent(row.cashRatio)}
+          className={cashLow ? 'text-[var(--warn)]' : undefined}
+        />
+        <InfoItem swatch={SWATCH.cumulative} label="누적 실현손익" value={fmtSignedUsd(row.cumulativePnl)} className={cn('font-semibold', pnlTextClass(row.cumulativePnl))} wide />
+      </div>
+    </div>
+  )
+}
+
+function InfoItem({ swatch, label, value, className, wide }: { swatch: string; label: string; value: string; className?: string; wide?: boolean }) {
+  return (
+    <div className={cn('flex min-w-0 items-center gap-1.5', wide && 'col-span-2')}>
+      <Swatch className={swatch} />
+      <span className="shrink-0 text-muted-foreground">{label}</span>
+      <span className={cn('ml-auto truncate font-medium', className)}>{value}</span>
+    </div>
+  )
+}
+
 const confirmedProfit = (row: PrivacyChartRow) => Math.max(row.confirmedPnl, 0)
 const confirmedLoss = (row: PrivacyChartRow) => Math.min(row.confirmedPnl, 0)
 
@@ -124,8 +162,17 @@ export default function PrivacyBaseChartInner({ rows, ticker }: Props) {
     boundaries: rows.filter((r) => r.cycleBoundary).map((r) => r.date),
   }), [rows])
 
+  // 마지막으로 가리키거나 누른 날짜 — 모바일 정보 줄이 쓴다(없으면 최신 일자)
+  const [activeDate, setActiveDate] = useState<string | null>(null)
+  // PC는 떠다니는 툴팁을 쓰고 정보 줄이 숨겨져 있어, 좁은 화면에서만 상태를 갱신해 호버마다 세 차트를 다시 그리지 않는다
+  const pickActive = (state: MouseHandlerDataParam) => {
+    if (state.activeLabel == null || !window.matchMedia('(max-width: 639px)').matches) return
+    setActiveDate(String(state.activeLabel))
+  }
+
   const first = rows[0]
   const last = rows[rows.length - 1]
+  const activeRow = (activeDate ? rowByDate.get(activeDate) : undefined) ?? last
   const lastClose = rows.findLast((r) => r.close != null)
   const lastCash = rows.findLast((r) => r.cashRatio != null)
   const lowCashDays = rows.filter((r) => r.cashRatio != null && r.cashRatio < CASH_THRESHOLD).length
@@ -148,12 +195,12 @@ export default function PrivacyBaseChartInner({ rows, ticker }: Props) {
         />
         <div className={PANEL_HEIGHT.price}>
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={rows} syncId={SYNC_ID} margin={MARGIN} title={`${ticker} 종가·평단가·주문 가격`}>
+            <ComposedChart data={rows} syncId={SYNC_ID} margin={MARGIN} onMouseMove={pickActive} onClick={pickActive} onTouchMove={pickActive} title={`${ticker} 종가·평단가·주문 가격`}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
               <XAxis dataKey="date" hide />
               <YAxis tickFormatter={(v) => fmtUsd(Number(v), 0)} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} domain={['auto', 'auto']} />
               {/* 아래 패널을 눌러도 툴팁이 가격 패널 위쪽에 고정돼 화면 밖으로 밀리지 않게 y를 고정한다 */}
-              <Tooltip position={{ y: 0 }} content={({ active, label }) => <ChartTooltip row={active ? rowByDate.get(String(label)) : undefined} ticker={ticker} />} cursor={CURSOR} />
+              <Tooltip position={{ y: 0 }} content={({ active, label }) => <div className="hidden sm:block"><ChartTooltip row={active ? rowByDate.get(String(label)) : undefined} ticker={ticker} /></div>} cursor={CURSOR} />
               {boundaries.map((d) => <ReferenceLine key={d} x={d} stroke="var(--muted-foreground)" strokeDasharray="4 4" />)}
               {Array.from({ length: maxBuyOrders }, (_, i) => (
                 <Line key={`buy${i}`} dataKey={`buy${i}`} stroke="var(--pos)" strokeWidth={0} dot={ORDER_DOT_BUY} activeDot={false} isAnimationActive={false} />
@@ -178,7 +225,7 @@ export default function PrivacyBaseChartInner({ rows, ticker }: Props) {
         />
         <div className={PANEL_HEIGHT.cash}>
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={rows} syncId={SYNC_ID} margin={MARGIN} title="현금비중">
+            <ComposedChart data={rows} syncId={SYNC_ID} margin={MARGIN} onMouseMove={pickActive} onClick={pickActive} onTouchMove={pickActive} title="현금비중">
               <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
               <XAxis dataKey="date" hide />
               <YAxis domain={[0, 1]} ticks={CASH_TICKS} tickFormatter={(v) => fmtPercent(Number(v))} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} />
@@ -202,7 +249,7 @@ export default function PrivacyBaseChartInner({ rows, ticker }: Props) {
         />
         <div className={PANEL_HEIGHT.pnl}>
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={rows} syncId={SYNC_ID} margin={MARGIN} title="누적 실현손익">
+            <ComposedChart data={rows} syncId={SYNC_ID} margin={MARGIN} onMouseMove={pickActive} onClick={pickActive} onTouchMove={pickActive} title="누적 실현손익">
               <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
               <XAxis dataKey="date" tickFormatter={(d) => fmtMonthDay(String(d))} tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={28} />
               <YAxis tickFormatter={(v) => fmtUsd(Number(v), 0)} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} />
@@ -229,6 +276,7 @@ export default function PrivacyBaseChartInner({ rows, ticker }: Props) {
           </ResponsiveContainer>
         </div>
       </figure>
+      <MobileInfoBar row={activeRow} isLatest={activeRow === last} />
     </div>
   )
 }

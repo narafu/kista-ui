@@ -94,7 +94,10 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
             </div>
           ))}
         </div>
-        <p className="pl-1 text-xs text-muted-foreground">차트를 누르거나 가리키면 해당 일자의 값이 가격 차트에 표시됩니다.</p>
+        <p className="pl-1 text-xs text-muted-foreground">
+          <span className="sm:hidden">차트를 누르면 해당 일자의 값이 아래 정보 줄에 표시됩니다.</span>
+          <span className="hidden sm:inline">차트를 가리키면 해당 일자의 값이 가격 차트에 표시됩니다.</span>
+        </p>
 
         {/* 종목·기간·건수가 바뀌면 Brush 구간을 처음(전체)으로 되돌리도록 다시 마운트한다 */}
         <PrivacyBaseChartInner key={`${ticker}|${windowFrom}|${windowTo}|${rows.length}`} rows={rows} ticker={ticker} />
@@ -102,8 +105,9 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
     )
   }
 
+  // Card 기본 overflow-hidden은 스크롤 컨테이너를 만들어 모바일 정보 줄의 sticky를 막는다 — clip은 잘라내기만 한다
   return (
-    <Card className="mb-6">
+    <Card className="mb-6 overflow-clip">
       <CardHeader className="pb-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">P 매매표 추이</CardTitle>
