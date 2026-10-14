@@ -8,6 +8,7 @@ import { fmtUsd, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { LoadingRow } from '@shared/ui/LoadingRow'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { PaginationBar } from '@shared/ui/PaginationBar'
@@ -18,6 +19,9 @@ import { CreatePrivacyBaseDialog } from './CreatePrivacyBaseDialog'
 import { EditPrivacyBaseDialog } from './EditPrivacyBaseDialog'
 import { EditPrivacyOrderDialog } from './EditPrivacyOrderDialog'
 import { AddPrivacyOrderDialog } from './AddPrivacyOrderDialog'
+
+// 조회 전·실패 시 useMemo 의존성 참조를 고정한다
+const EMPTY_BASES: AdminPrivacyBase[] = []
 
 interface Props {
   // 기간 필터·페이지 조회 조건. windowFrom/windowTo는 URL 쿼리 그대로, page도 원본(클램프 전) 값을
@@ -30,7 +34,8 @@ interface Props {
 }
 
 export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, page }: Props) {
-  const { data: allBases = [] } = useAdminPrivacyBasesQuery()
+  const { data, isError } = useAdminPrivacyBasesQuery()
+  const allBases = data ?? EMPTY_BASES
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [createOpen, setCreateOpen] = useState(false)
   const [editBase, setEditBase] = useState<AdminPrivacyBase | null>(null)
@@ -76,14 +81,18 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, page }: 
   return (
     <>
       <div className="mb-4 flex items-center justify-between gap-3">
-        <span className="text-sm text-muted-foreground">총 {totalCount}건</span>
+        <span className="text-sm text-muted-foreground">{data ? `총 ${totalCount}건` : ''}</span>
         <Button type="button" variant="brand-soft" size="sm" className="gap-1.5" onClick={() => setCreateOpen(true)}>
           <Plus className="size-3.5" />
           매매표 등록
         </Button>
       </div>
 
-      {bases.length === 0 ? (
+      {!data && isError ? (
+        <EmptyState message="P 매매표를 불러오지 못했습니다." />
+      ) : !data ? (
+        <LoadingRow />
+      ) : bases.length === 0 ? (
         <EmptyState message="P 매매표가 없습니다." />
       ) : (
         <>

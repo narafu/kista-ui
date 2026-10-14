@@ -9,6 +9,8 @@ import { useAccountsQuery } from '@entities/account'
 import { useMeta } from '@entities/meta'
 import type { Account } from '@entities/account'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { LoadingRow } from '@shared/ui/LoadingRow'
+import { SectionError } from '@shared/ui/SectionError'
 
 function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
   const hasAccounts = accounts.length > 0
@@ -51,9 +53,16 @@ function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
 }
 
 export function AllStrategiesList() {
-  const { data: strategies = [] } = useAllStrategiesQuery()
-  const { data: accounts = [] } = useAccountsQuery()
+  const strategiesQuery = useAllStrategiesQuery()
+  const accountsQuery = useAccountsQuery()
   const { findBroker } = useMeta()
+  const strategies = strategiesQuery.data
+  const accounts = accountsQuery.data
+
+  // 계좌 목록이 없으면 전략을 계좌별로 묶을 수 없어 빈 화면이 되므로 두 쿼리를 함께 게이팅한다
+  if ((!strategies && strategiesQuery.isError) || (!accounts && accountsQuery.isError))
+    return <SectionError message="전략 목록을 불러오지 못했습니다" />
+  if (!strategies || !accounts) return <LoadingRow />
 
   if (strategies.length === 0)
     return <StrategiesEmptyState accounts={accounts} />

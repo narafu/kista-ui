@@ -7,15 +7,26 @@ import { fmtDate } from '@shared/lib/format'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { LoadingRow } from '@shared/ui/LoadingRow'
+import { SectionError } from '@shared/ui/SectionError'
 import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
+import type { AdminUser } from '@entities/admin'
+
+// 조회 전·실패 시에도 페이지네이션 훅 입력 참조를 고정한다
+const EMPTY_USERS: AdminUser[] = []
+
 interface Props {
   max?: number
 }
 
 export function AdminPendingList({ max }: Props) {
-  const { data: users = [] } = useAdminUsersQuery('PENDING')
+  const { data, isError } = useAdminUsersQuery('PENDING')
+  const users = data ?? EMPTY_USERS
   const source = max ? users.slice(0, max) : users
   const { page: currentPage, setPage, size, totalPages, paged: displayed, handlePageSizeChange } = useClientPagination(source)
+
+  if (!data && isError) return <SectionError message="가입 신청 목록을 불러오지 못했습니다" />
+  if (!data) return <LoadingRow />
 
   if (source.length === 0) {
     return (

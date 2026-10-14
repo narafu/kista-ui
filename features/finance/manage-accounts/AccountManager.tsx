@@ -19,6 +19,9 @@ import type { FinanceAccount, FinanceAccountType } from '@entities/finance'
 import { AccountFormDialog } from './AccountFormDialog'
 import { DeleteAccountDialog } from './DeleteAccountDialog'
 
+// 조회 전·실패 시 useMemo 의존성 참조를 고정한다
+const EMPTY_ACCOUNTS: FinanceAccount[] = []
+
 // 기관 · 계좌번호 · 소유자 · 메모 순으로 값이 있는 것만 가운뎃점으로 잇는다.
 function AccountDetails({ account }: { account: FinanceAccount }) {
   const parts = [
@@ -57,7 +60,8 @@ const SORT_ITEMS: { value: SortKey; label: string }[] = [
 ]
 
 export function AccountManager() {
-  const { data: accounts = [] } = useFinanceAccountsQuery()
+  const { data, isError } = useFinanceAccountsQuery()
+  const accounts = data ?? EMPTY_ACCOUNTS
   const { meta } = useMeta()
   const [formTarget, setFormTarget] = useState<FinanceAccount | 'new' | null>(null)
   const deleteDialog = useConfirmDialog<FinanceAccount>()
@@ -124,7 +128,11 @@ export function AccountManager() {
         </div>
       )}
 
-      {accounts.length === 0 ? (
+      {!data && isError ? (
+        <p className="text-sm text-muted-foreground py-6 text-center">계좌 목록을 불러오지 못했습니다.</p>
+      ) : !data ? (
+        <p className="text-sm text-muted-foreground py-6 text-center">불러오는 중…</p>
+      ) : accounts.length === 0 ? (
         <p className="text-sm text-muted-foreground py-6 text-center">등록된 계좌가 없습니다.</p>
       ) : visibleAccounts.length === 0 ? (
         <p className="text-sm text-muted-foreground py-6 text-center">조건에 맞는 계좌가 없습니다.</p>

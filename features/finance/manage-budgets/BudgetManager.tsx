@@ -33,6 +33,9 @@ import {
 } from '@entities/finance'
 import type { FinanceBudget, FlowType } from '@entities/finance'
 
+// 조회 전·실패 시 useMemo 의존성 참조를 고정한다
+const EMPTY_BUDGETS: FinanceBudget[] = []
+
 interface Props {
   type: FlowType
 }
@@ -60,7 +63,8 @@ function budgetStatus(budget: FinanceBudget, today: string): BudgetStatus {
 // 경로에서 고정된 type을 넘긴다(설정 화면의 독립 세그먼트 UI는 폐기).
 export function BudgetManager({ type }: Props) {
   const { data: categories = [] } = useFinanceCategoriesQuery(type)
-  const { data: allBudgets = [] } = useFinanceBudgetsQuery()
+  const budgetsQuery = useFinanceBudgetsQuery()
+  const allBudgets = budgetsQuery.data ?? EMPTY_BUDGETS
   // 여러 하위 위젯이 공유하는 값이 아니라 이 컴포넌트 하나만 쓰므로 직접 호출한다.
   const today = todayKst()
 
@@ -175,7 +179,11 @@ export function BudgetManager({ type }: Props) {
         </Link>
       </div>
 
-      {budgets.length === 0 ? (
+      {!budgetsQuery.data && budgetsQuery.isError ? (
+        <EmptyState variant="text" message="예산 목록을 불러오지 못했습니다." />
+      ) : !budgetsQuery.data ? (
+        <EmptyState variant="text" message="불러오는 중…" />
+      ) : budgets.length === 0 ? (
         <EmptyState variant="text" message="등록된 예산이 없습니다." />
       ) : filtered.length === 0 ? (
         <EmptyState variant="text" message="조건에 맞는 예산이 없습니다." />

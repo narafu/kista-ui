@@ -26,7 +26,8 @@ interface GroupSectionProps {
 // kista-api가 그 자리에서 새 그룹을 만들고 본인을 OWNER로 등록한다). 멤버 조회는 이 컴포넌트가
 // 한 번만 수행해 GroupMemberList에는 결과를 그대로 내려준다.
 function GroupSection({ groupId, myUserId }: GroupSectionProps) {
-  const { data: members = [] } = useFinanceGroupMembersQuery(groupId)
+  const membersQuery = useFinanceGroupMembersQuery(groupId)
+  const members = membersQuery.data ?? []
   const isOwner = members.some((m) => m.userId === myUserId && m.role === 'OWNER')
 
   const leaveDialog = useConfirmDialog<true>()
@@ -45,7 +46,14 @@ function GroupSection({ groupId, myUserId }: GroupSectionProps) {
   return (
     <div className="space-y-4">
       <p className="text-sm font-semibold">멤버</p>
-      <GroupMemberList groupId={groupId} members={members} isOwner={isOwner} myUserId={myUserId} />
+      {/* 멤버 조회 실패를 "멤버 없음·초대 권한 없음"으로 조용히 보이지 않도록 구분한다 */}
+      {!membersQuery.data && membersQuery.isError ? (
+        <p className="text-sm text-muted-foreground">멤버 목록을 불러오지 못했습니다.</p>
+      ) : !membersQuery.data ? (
+        <p className="text-sm text-muted-foreground">불러오는 중…</p>
+      ) : (
+        <GroupMemberList groupId={groupId} members={members} isOwner={isOwner} myUserId={myUserId} />
+      )}
 
       <div className="flex gap-2">
         {isOwner && <InviteDialog groupId={groupId} />}

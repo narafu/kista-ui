@@ -14,13 +14,14 @@ interface Props {
 }
 
 export function AdminUsersContent({ currentUserId, range, from, to, queryParams }: Props) {
-  const { data: users = [] } = useAdminUsersQuery(undefined, queryParams)
+  const { data: users } = useAdminUsersQuery(undefined, queryParams)
 
   return (
     <>
       <div className="mb-8">
         <h1 className="text-2xl font-extrabold">사용자 목록</h1>
-        <p className="text-sm text-muted-foreground mt-1">전체 {users.length}명</p>
+        {/* 조회 전·실패 시 "전체 0명"으로 보이지 않도록 건수는 데이터가 있을 때만 표시 */}
+        {users && <p className="text-sm text-muted-foreground mt-1">전체 {users.length}명</p>}
       </div>
       <AdminUsersTable
         currentUserId={currentUserId}
