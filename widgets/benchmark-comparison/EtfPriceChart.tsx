@@ -1,5 +1,6 @@
 'use client'
 
+import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 import { useMemo } from 'react'
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
@@ -75,14 +76,14 @@ export function EtfPriceChart({ enabled, from, to, symbol, label }: Props) {
                   <XAxis
                     dataKey="tradeDate"
                     tickFormatter={formatHousingBenchmarkAxisDate}
-                    tick={{ fontSize: 10 }}
+                    tick={AXIS_TICK}
                     tickLine={false}
                     axisLine={false}
                     minTickGap={28}
                   />
                   <YAxis
                     tickFormatter={(value) => fmtUsd(Number(value), 0)}
-                    tick={{ fontSize: 10 }}
+                    tick={AXIS_TICK}
                     tickLine={false}
                     axisLine={false}
                     width={44}

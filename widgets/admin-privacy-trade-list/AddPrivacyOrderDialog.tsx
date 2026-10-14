@@ -10,6 +10,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { SaveButton } from '@shared/ui/SaveButton'
 import { orderRequiresQuantity, useAddAdminPrivacyOrderMutation } from '@entities/privacy'
 import type { AdminPrivacyOrder } from '@entities/privacy'
+import { DIRECTION_ITEMS, ORDER_TYPE_ITEMS } from './orderSelectItems'
+import { PrivacyOrderQuantityField } from './PrivacyOrderQuantityField'
 
 interface Props {
   baseId: string
@@ -25,7 +27,8 @@ export function AddPrivacyOrderDialog({ baseId, open, onOpenChange }: Props) {
   const addMutation = useAddAdminPrivacyOrderMutation(baseId)
 
   // BUY는 quantity 필수 — 서버가 400으로 거부하므로 선제 차단.
-  const canSubmit = price !== '' && (!orderRequiresQuantity(direction) || quantity !== '')
+  const priceInvalid = price !== '' && Number(price) <= 0
+  const canSubmit = price !== '' && Number(price) > 0 && (!orderRequiresQuantity(direction) || quantity !== '')
   const isPending = addMutation.isPending
 
   function handleSubmit(e: React.FormEvent) {
@@ -57,22 +60,19 @@ export function AddPrivacyOrderDialog({ baseId, open, onOpenChange }: Props) {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="addOrderDirection">방향</Label>
-                <Select items={[{ value: 'BUY', label: '매수' }, { value: 'SELL', label: '매도' }]} value={direction} onValueChange={(v) => { if (v) setDirection(v as AdminPrivacyOrder['direction']) }}>
+                <Select items={DIRECTION_ITEMS} value={direction} onValueChange={(v) => { if (v) setDirection(v as AdminPrivacyOrder['direction']) }}>
                   <SelectTrigger id="addOrderDirection" className="h-11" disabled={isPending}><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="BUY">매수</SelectItem>
-                    <SelectItem value="SELL">매도</SelectItem>
+                    {DIRECTION_ITEMS.map((i) => <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="addOrderType">유형</Label>
-                <Select items={[{ value: 'LOC', label: 'LOC' }, { value: 'MOC', label: 'MOC' }, { value: 'LIMIT', label: 'LIMIT' }]} value={orderType} onValueChange={(v) => { if (v) setOrderType(v as AdminPrivacyOrder['orderType']) }}>
+                <Select items={ORDER_TYPE_ITEMS} value={orderType} onValueChange={(v) => { if (v) setOrderType(v as AdminPrivacyOrder['orderType']) }}>
                   <SelectTrigger id="addOrderType" className="h-11" disabled={isPending}><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="LOC">LOC</SelectItem>
-                    <SelectItem value="MOC">MOC</SelectItem>
-                    <SelectItem value="LIMIT">LIMIT</SelectItem>
+                    {ORDER_TYPE_ITEMS.map((i) => <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -84,25 +84,19 @@ export function AddPrivacyOrderDialog({ baseId, open, onOpenChange }: Props) {
                 id="addOrderPrice"
                 type="number"
                 step="0.01"
+                min="0.01"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 disabled={isPending}
+                aria-invalid={priceInvalid || undefined}
+                aria-describedby={priceInvalid ? 'addOrderPrice-error' : undefined}
                 className="h-11"
               />
+              {priceInvalid && <p id="addOrderPrice-error" className="text-xs text-destructive">가격은 0보다 커야 합니다.</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="addOrderQuantity">수량{!orderRequiresQuantity(direction) && ' (없으면 비움)'}</Label>
-              <Input
-                id="addOrderQuantity"
-                type="number"
-                step="1"
-                min="1"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                disabled={isPending}
-                className="h-11"
-              />
+              <PrivacyOrderQuantityField id="addOrderQuantity" direction={direction} value={quantity} onChange={setQuantity} disabled={isPending} />
             </div>
           </div>
 

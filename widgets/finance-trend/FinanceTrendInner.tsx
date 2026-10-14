@@ -12,6 +12,7 @@ import { fmtKrw } from '@shared/lib/format'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { calcFlowTrend, filterByType, flowCategoryColor, sortCategoryTree } from '@entities/finance'
 import type { CategoryIndex, FinanceCategory, FinanceCategoryType, FinanceTransaction, Period, TrendRange } from '@entities/finance'
+import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 
 // Y축 눈금 전용 — fmtKrw는 "1,000,000원" 같은 긴 문자열이라 좁은 축 폭에 맞지 않는다.
 // 만원 단위로 축약해 표시하고, 정확한 금액은 Tooltip의 fmtKrw로 보여준다.
@@ -73,8 +74,8 @@ export default function FinanceTrendInner({ type, transactions, range, categoryT
             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
               <LineChart data={trend} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} title={period.mode === 'yearly' ? '연도별 추이' : '월별 추이'}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="period" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} minTickGap={24} />
-                <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={44} tickFormatter={fmtKrwAxisTick} domain={['auto', 'auto']} />
+                <XAxis dataKey="period" tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={24} />
+                <YAxis tick={AXIS_TICK} tickLine={false} axisLine={false} width={44} tickFormatter={fmtKrwAxisTick} domain={['auto', 'auto']} />
                 {/* hover 가독성 — AssetTrendInner와 동일한 가이드선·강조 점·툴팁 스타일. 카테고리별 보기에선
                     항목 색으로 계열을 구분하므로 itemStyle에 color를 고정하지 않는다. */}
                 <Tooltip
@@ -92,7 +93,7 @@ export default function FinanceTrendInner({ type, transactions, range, categoryT
                   labelStyle={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 2 }}
                   itemStyle={{ fontWeight: 600 }}
                 />
-                {byCategory && <Legend wrapperStyle={{ fontSize: 11 }} />}
+                {byCategory && <Legend wrapperStyle={{ fontSize: 11, color: 'var(--muted-foreground)' }} />}
                 <Line
                   type="monotone"
                   dataKey="amount"

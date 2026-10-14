@@ -1,5 +1,6 @@
 'use client'
 
+import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 import { useMemo, useState } from 'react'
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
@@ -142,14 +143,14 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
                   <XAxis
                     dataKey="baseMonth"
                     tickFormatter={formatHousingBenchmarkAxisMonth}
-                    tick={{ fontSize: 10 }}
+                    tick={AXIS_TICK}
                     tickLine={false}
                     axisLine={false}
                     minTickGap={28}
                   />
                   <YAxis
                     tickFormatter={(value) => fmtKrwEok(Number(value), 0)}
-                    tick={{ fontSize: 10 }}
+                    tick={AXIS_TICK}
                     tickLine={false}
                     axisLine={false}
                     width={44}

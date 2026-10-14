@@ -85,7 +85,7 @@ describe('StrategyOrderHistory filters', () => {
   }, 15000)
 
   it.each([
-    ['유형', 'LOC', '$110.00', '$100.00'],
+    ['유형', 'LOC(종가지정)', '$110.00', '$100.00'],
     ['상태', '체결', '$120.00', '$110.00'],
   ] as const)('%s 필터를 적용한다', async (label, option, visible, hidden) => {
     render(<StrategyOrderHistory strategyId="strategy-1" />)
@@ -101,7 +101,7 @@ describe('StrategyOrderHistory filters', () => {
     render(<StrategyOrderHistory strategyId="strategy-1" />)
 
     await selectOption('방향', '매도')
-    await selectOption('유형', 'LOC')
+    await selectOption('유형', 'LOC(종가지정)')
     await selectOption('상태', '접수')
 
     expect(screen.getByText('$110.00')).toBeInTheDocument()
@@ -113,7 +113,7 @@ describe('StrategyOrderHistory filters', () => {
 
     await selectOption('상태', '전체')
     await selectOption('방향', '매수')
-    await selectOption('유형', 'LOC')
+    await selectOption('유형', 'LOC(종가지정)')
 
     expect(screen.getByText('조건에 맞는 주문이 없습니다.')).toBeInTheDocument()
     expect(screen.queryByText('주문 내역이 없습니다.')).not.toBeInTheDocument()

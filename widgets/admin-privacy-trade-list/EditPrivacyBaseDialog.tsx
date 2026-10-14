@@ -23,7 +23,7 @@ export function EditPrivacyBaseDialog({ base, open, onOpenChange }: Props) {
   const [holdings, setHoldings] = useState(String(base.holdings))
   const updateMutation = useUpdateAdminPrivacyBaseMutation(base.id)
 
-  const canSubmit = currentCycleStart !== '' && currentCycleRealizedPnl !== '' && holdings !== ''
+  const canSubmit = (avgPrice === '' || Number(avgPrice) >= 0) && currentCycleStart !== '' && currentCycleRealizedPnl !== '' && holdings !== ''
   const isPending = updateMutation.isPending
 
   function handleSubmit(e: React.FormEvent) {
@@ -71,6 +71,7 @@ export function EditPrivacyBaseDialog({ base, open, onOpenChange }: Props) {
                 id="avgPrice"
                 type="number"
                 step="0.01"
+                min="0"
                 value={avgPrice}
                 onChange={(e) => setAvgPrice(e.target.value)}
                 disabled={isPending}

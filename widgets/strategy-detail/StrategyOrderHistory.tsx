@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useStrategyOrdersQuery, orderStatusBadgeClass, ORDER_STATUS_LABEL } from '@entities/order'
-import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
+import { DIRECTION_LABEL, directionTextClass, orderTypeLabel } from '@entities/trade'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
@@ -110,7 +110,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                       <TableDataCell className={`font-semibold whitespace-nowrap ${directionTextClass(o.direction)}`}>{DIRECTION_LABEL[o.direction] ?? o.direction}</TableDataCell>
                       <TableDataCell className="whitespace-nowrap">
                         <Badge tone="neutral" size="sm">
-                          {o.orderType}
+                          {orderTypeLabel(o.orderType)}
                         </Badge>
                       </TableDataCell>
                       <TableDataCell className="whitespace-nowrap">

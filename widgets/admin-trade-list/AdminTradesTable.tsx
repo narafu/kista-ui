@@ -1,5 +1,5 @@
 import { fmtUsd } from '@shared/lib/format'
-import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
+import { DIRECTION_LABEL, directionTextClass, orderTypeLabel } from '@entities/trade'
 import { orderStatusBadgeClass, ORDER_STATUS_LABEL } from '@entities/order'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Badge } from '@shared/ui/Badge'
@@ -48,7 +48,7 @@ export function AdminTradesTable({ trades }: Props) {
                 <TableDataCell className={`font-semibold whitespace-nowrap ${directionTextClass(trade.direction)}`}>
                   {DIRECTION_LABEL[trade.direction] ?? trade.direction}
                 </TableDataCell>
-                <TableDataCell className="text-xs text-muted-foreground whitespace-nowrap">{trade.orderType}</TableDataCell>
+                <TableDataCell className="text-xs text-muted-foreground whitespace-nowrap">{orderTypeLabel(trade.orderType)}</TableDataCell>
                 <TableDataCell className="whitespace-nowrap">{trade.quantity}</TableDataCell>
                 <TableDataCell className="font-mono text-xs whitespace-nowrap">${fmtUsd(trade.price)}</TableDataCell>
                 <TableDataCell className="whitespace-nowrap">

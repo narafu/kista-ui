@@ -6,12 +6,13 @@ import { ChevronRight, ChevronDown, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { fmtUsd, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
-import { DIRECTION_LABEL, directionTextClass } from '@entities/trade'
+import { DIRECTION_LABEL, directionTextClass, orderTypeLabel } from '@entities/trade'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { PaginationBar } from '@shared/ui/PaginationBar'
+import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { filterAdminPrivacyBasesByRange, useAdminPrivacyBasesQuery, useDeleteAdminPrivacyOrderMutation } from '@entities/privacy'
 import type { AdminPrivacyBase, AdminPrivacyOrder } from '@entities/privacy'
@@ -22,6 +23,14 @@ import { AddPrivacyOrderDialog } from './AddPrivacyOrderDialog'
 
 // 조회 전·실패 시 useMemo 의존성 참조를 고정한다
 const EMPTY_BASES: AdminPrivacyBase[] = []
+
+// 수정·삭제 텍스트 버튼 — 높이 24px 이상의 터치 영역 확보
+const TEXT_BUTTON_CLASS = 'inline-flex min-h-6 items-center px-1.5 text-xs underline underline-offset-2'
+
+function describeOrder(order: AdminPrivacyOrder): string {
+  const qty = order.quantity == null ? '' : ` × ${order.quantity}주`
+  return `${DIRECTION_LABEL[order.direction] ?? order.direction} ${orderTypeLabel(order.orderType)} $${fmtUsd(order.price)}${qty}`
+}
 
 interface Props {
   // 기간 필터·페이지 조회 조건. windowFrom/windowTo는 URL 쿼리 그대로, page도 원본(클램프 전) 값을
@@ -34,14 +43,16 @@ interface Props {
 }
 
 export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, page }: Props) {
-  const { data, isError } = useAdminPrivacyBasesQuery()
+  const { data, isError, isFetching, refetch } = useAdminPrivacyBasesQuery()
   const allBases = data ?? EMPTY_BASES
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [createOpen, setCreateOpen] = useState(false)
-  const [editBase, setEditBase] = useState<AdminPrivacyBase | null>(null)
-  const [editOrder, setEditOrder] = useState<{ baseId: string; order: AdminPrivacyOrder } | null>(null)
+  // 서버 객체를 복사해 두면 뮤테이션 후 낡은 값이 남으므로 id만 보관하고 렌더 때 캐시에서 찾는다.
+  // 대상이 캐시에서 사라지면 find가 undefined를 돌려줘 다이얼로그가 닫힌다.
+  const [editBaseId, setEditBaseId] = useState<string | null>(null)
+  const [editOrderRef, setEditOrderRef] = useState<{ baseId: string; orderId: string } | null>(null)
   const [addOrderBaseId, setAddOrderBaseId] = useState<string | null>(null)
-  const [deleteOrderTarget, setDeleteOrderTarget] = useState<{ baseId: string; order: AdminPrivacyOrder } | null>(null)
+  const [deleteOrderRef, setDeleteOrderRef] = useState<{ baseId: string; orderId: string } | null>(null)
   const deleteOrderMutation = useDeleteAdminPrivacyOrderMutation()
 
   const filtered = useMemo(
@@ -52,6 +63,17 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, page }: 
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
   const currentPage = Math.min(page, totalPages)
   const bases = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
+  const findOrder = (ref: { baseId: string; orderId: string } | null) => {
+    if (!ref) return undefined
+    const order = allBases.find((b) => b.id === ref.baseId)?.orders.find((o) => o.id === ref.orderId)
+    return order && { baseId: ref.baseId, order }
+  }
+  const editBase = allBases.find((b) => b.id === editBaseId)
+  const editOrder = findOrder(editOrderRef)
+  const deleteOrderTarget = findOrder(deleteOrderRef)
+  const addOrderBase = allBases.find((b) => b.id === addOrderBaseId)
+  const isRangeFiltered = Boolean(windowFrom || windowTo)
 
   const toggle = (id: string) => {
     setExpanded((prev) => {
@@ -72,7 +94,7 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, page }: 
       {
         onSuccess: () => {
           toast.success('주문이 삭제되었습니다')
-          setDeleteOrderTarget(null)
+          setDeleteOrderRef(null)
         },
       },
     )
@@ -82,18 +104,25 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, page }: 
     <>
       <div className="mb-4 flex items-center justify-between gap-3">
         <span className="text-sm text-muted-foreground">{data ? `총 ${totalCount}건` : ''}</span>
-        <Button type="button" variant="brand-soft" size="sm" className="gap-1.5" onClick={() => setCreateOpen(true)}>
+        <div className="flex items-center gap-2">
+          {/* 페이지 크기는 이 표에만 적용돼 차트 위가 아니라 표 머리에 둔다 — 값은 URL(size)이 SSOT */}
+          <PageSizeSelector value={String(pageSize)} />
+          <Button type="button" variant="brand-soft" size="sm" className="gap-1.5" onClick={() => setCreateOpen(true)}>
           <Plus className="size-3.5" />
           매매표 등록
-        </Button>
+          </Button>
+        </div>
       </div>
 
       {!data && isError ? (
-        <EmptyState message="P 매매표를 불러오지 못했습니다." />
+        <EmptyState
+          message="P 매매표를 불러오지 못했습니다."
+          action={<Button type="button" variant="outline" size="sm" onClick={() => { void refetch() }} disabled={isFetching}>다시 시도</Button>}
+        />
       ) : !data ? (
         <LoadingRow />
       ) : bases.length === 0 ? (
-        <EmptyState message="P 매매표가 없습니다." />
+        <EmptyState message={isRangeFiltered && allBases.length > 0 ? '선택한 기간에 매매표가 없습니다. 기간을 넓혀 보세요.' : 'P 매매표가 없습니다.'} />
       ) : (
         <>
           <div className="space-y-3 sm:hidden" data-testid="admin-privacy-mobile-list">
@@ -105,31 +134,28 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, page }: 
                   base={b}
                   open={open}
                   onToggle={() => toggle(b.id)}
-                  onEditBase={() => setEditBase(b)}
-                  onEditOrder={(order) => setEditOrder({ baseId: b.id, order })}
+                  onEditBase={() => setEditBaseId(b.id)}
+                  onEditOrder={(order) => setEditOrderRef({ baseId: b.id, orderId: order.id })}
                   onAddOrder={() => setAddOrderBaseId(b.id)}
-                  onDeleteOrder={(order) => setDeleteOrderTarget({ baseId: b.id, order })}
+                  onDeleteOrder={(order) => setDeleteOrderRef({ baseId: b.id, orderId: order.id })}
                 />
               )
             })}
           </div>
 
-          <div className="hidden rounded-[var(--r-lg)] border border-border overflow-x-auto sm:block" data-testid="admin-privacy-desktop-table-wrap">
-            <table className="w-full text-sm sm:min-w-[760px]" data-testid="admin-privacy-desktop-table">
+          <div className="hidden rounded-[var(--r-lg)] border border-border overflow-x-auto sm:block" role="region" aria-label="P 매매표 목록" tabIndex={0} data-testid="admin-privacy-desktop-table-wrap">
+            <table className="w-full text-sm min-w-[760px]" data-testid="admin-privacy-desktop-table">
               <thead className="bg-muted/40 border-b border-border">
                 <tr>
-                  <TableHeadCell className="w-8 px-2" aria-label="확장" />
-                  <TableHeadCell className="px-2.5 sm:px-4 whitespace-nowrap">날짜</TableHeadCell>
-                  <TableHeadCell className="px-2.5 sm:px-4 whitespace-nowrap">종목</TableHeadCell>
-                  <TableHeadCell className="px-2.5 sm:px-4 whitespace-nowrap">
-                    <span className="sm:hidden">시작금액</span>
-                    <span className="hidden sm:inline">사이클 시작금액</span>
-                  </TableHeadCell>
-                  <TableHeadCell className="hidden sm:table-cell px-2.5 sm:px-4 whitespace-nowrap">평단가</TableHeadCell>
-                  <TableHeadCell className="px-2.5 sm:px-4 whitespace-nowrap">보유</TableHeadCell>
-                  <TableHeadCell className="hidden sm:table-cell px-2.5 sm:px-4 whitespace-nowrap">실현손익</TableHeadCell>
-                  <TableHeadCell className="hidden sm:table-cell px-2.5 sm:px-4 whitespace-nowrap">주문</TableHeadCell>
-                  <TableHeadCell className="w-16 px-2.5 sm:px-4 whitespace-nowrap" aria-label="수정" />
+                  <TableHeadCell className="w-8 px-2"><span className="sr-only">펼치기</span></TableHeadCell>
+                  <TableHeadCell className="px-4 whitespace-nowrap">날짜</TableHeadCell>
+                  <TableHeadCell className="px-4 whitespace-nowrap">종목</TableHeadCell>
+                  <TableHeadCell className="px-4 whitespace-nowrap">사이클 시작금액</TableHeadCell>
+                  <TableHeadCell className="px-4 whitespace-nowrap">평단가</TableHeadCell>
+                  <TableHeadCell className="px-4 whitespace-nowrap">보유</TableHeadCell>
+                  <TableHeadCell className="px-4 whitespace-nowrap">실현손익</TableHeadCell>
+                  <TableHeadCell className="px-4 whitespace-nowrap">주문</TableHeadCell>
+                  <TableHeadCell className="w-16 px-4 whitespace-nowrap"><span className="sr-only">수정</span></TableHeadCell>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -141,10 +167,10 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, page }: 
                       base={b}
                       open={open}
                       onToggle={() => toggle(b.id)}
-                      onEditBase={() => setEditBase(b)}
-                      onEditOrder={(order) => setEditOrder({ baseId: b.id, order })}
+                      onEditBase={() => setEditBaseId(b.id)}
+                      onEditOrder={(order) => setEditOrderRef({ baseId: b.id, orderId: order.id })}
                       onAddOrder={() => setAddOrderBaseId(b.id)}
-                      onDeleteOrder={(order) => setDeleteOrderTarget({ baseId: b.id, order })}
+                      onDeleteOrder={(order) => setDeleteOrderRef({ baseId: b.id, orderId: order.id })}
                     />
                   )
                 })}
@@ -164,7 +190,7 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, page }: 
         <EditPrivacyBaseDialog
           base={editBase}
           open
-          onOpenChange={(next) => { if (!next) setEditBase(null) }}
+          onOpenChange={(next) => { if (!next) setEditBaseId(null) }}
         />
       )}
 
@@ -173,13 +199,13 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, page }: 
           baseId={editOrder.baseId}
           order={editOrder.order}
           open
-          onOpenChange={(next) => { if (!next) setEditOrder(null) }}
+          onOpenChange={(next) => { if (!next) setEditOrderRef(null) }}
         />
       )}
 
-      {addOrderBaseId && (
+      {addOrderBase && (
         <AddPrivacyOrderDialog
-          baseId={addOrderBaseId}
+          baseId={addOrderBase.id}
           open
           onOpenChange={(next) => { if (!next) setAddOrderBaseId(null) }}
         />
@@ -187,9 +213,9 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, pageSize, page }: 
 
       <ConfirmDeleteDialog
         open={deleteOrderTarget != null}
-        onOpenChange={(next) => { if (!next) setDeleteOrderTarget(null) }}
+        onOpenChange={(next) => { if (!next) setDeleteOrderRef(null) }}
         title="주문 삭제"
-        description={deleteOrderTarget ? `${DIRECTION_LABEL[deleteOrderTarget.order.direction] ?? deleteOrderTarget.order.direction} ${deleteOrderTarget.order.orderType} 주문을 삭제합니다.` : ''}
+        description={deleteOrderTarget ? `${describeOrder(deleteOrderTarget.order)} 주문을 삭제합니다.` : ''}
         onConfirm={handleDeleteOrder}
         isPending={deleteOrderMutation.isPending}
       />
@@ -210,48 +236,43 @@ function MobileBaseCard({
 }) {
   return (
     <article className="rounded-[var(--r-lg)] border border-border bg-card/70 p-4 shadow-sm">
-      <div
-        role="button"
-        tabIndex={0}
-        className="w-full text-left cursor-pointer"
-        onClick={onToggle}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle() } }}
-        aria-expanded={open}
-        aria-label={`${b.releaseDate} ${b.ticker} 매매표 ${open ? '접기' : '펼치기'}`}
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">{b.releaseDate}</p>
-            <h3 className="mt-1 text-lg font-extrabold tracking-tight">{b.ticker}</h3>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>{b.orders.length}건</span>
-            {/* eslint-disable-next-line react-doctor/html-no-nested-interactive -- 행 전체 토글 영역 안의 수정 버튼, stopPropagation으로 분리해 동작하며 마크업 분리는 레이아웃 변경이 큼 */}
-            <button
-              type="button"
-              className="text-xs font-medium text-foreground underline underline-offset-2"
-              onClick={(e) => { e.stopPropagation(); onEditBase() }}
-            >
-              수정
-            </button>
-            {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-          </div>
-        </div>
-
-        <dl className="mt-4 grid grid-cols-2 gap-2">
-          <Metric label="시작금액" value={`$${fmtUsd(b.currentCycleStart)}`} valueClassName="font-mono" />
-          <Metric
-            label="실현손익"
-            value={fmtSignedUsd(b.currentCycleRealizedPnl)}
-            valueClassName={`font-mono ${pnlTextClass(b.currentCycleRealizedPnl)}`}
-          />
-          <Metric label="평단가" value={b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`} valueClassName="font-mono" />
-          <Metric label="보유" value={String(b.holdings)} />
-        </dl>
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="min-w-0 flex-1">
+          <button
+            type="button"
+            className="flex w-full items-start justify-between gap-3 text-left"
+            onClick={onToggle}
+            aria-expanded={open}
+            aria-controls={open ? `privacy-base-${b.id}-mobile` : undefined}
+          >
+            <span>
+              <span className="block text-xs font-medium text-muted-foreground">{b.releaseDate}</span>
+              <span className="mt-1 block text-lg font-extrabold tracking-tight">{b.ticker}</span>
+            </span>
+            <span className="flex items-center gap-2 pt-1 text-sm text-muted-foreground">
+              <span>{b.orders.length}건</span>
+              {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
+            </span>
+          </button>
+        </h3>
+        <button type="button" className={cn(TEXT_BUTTON_CLASS, 'font-medium text-foreground')} onClick={onEditBase}>
+          수정
+        </button>
       </div>
 
+      <dl className="mt-4 grid grid-cols-2 gap-2">
+        <Metric label="시작금액" value={`$${fmtUsd(b.currentCycleStart)}`} valueClassName="font-mono" />
+        <Metric
+          label="실현손익"
+          value={fmtSignedUsd(b.currentCycleRealizedPnl)}
+          valueClassName={`font-mono ${pnlTextClass(b.currentCycleRealizedPnl)}`}
+        />
+        <Metric label="평단가" value={b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`} valueClassName="font-mono" />
+        <Metric label="보유" value={String(b.holdings)} />
+      </dl>
+
       {open && (
-        <div className="mt-4 border-t border-border pt-3">
+        <div id={`privacy-base-${b.id}-mobile`} className="mt-4 border-t border-border pt-3">
           <OrderDetailsSection orders={b.orders} onEditOrder={onEditOrder} onAddOrder={onAddOrder} onDeleteOrder={onDeleteOrder} />
         </div>
       )}
@@ -322,21 +343,21 @@ function OrderDetailsTable({
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-left font-semibold', directionTextClass(o.direction))}>
               {DIRECTION_LABEL[o.direction] ?? o.direction}
             </TableDataCell>
-            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-left text-muted-foreground')}>{o.orderType}</TableDataCell>
+            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-left text-muted-foreground')}>{orderTypeLabel(o.orderType)}</TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right font-mono')}>${fmtUsd(o.price)}</TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right')}>{o.quantity ?? '-'}</TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right')}>
-              <span className="inline-flex items-center gap-2">
+              <span className="inline-flex items-center gap-3">
                 <button
                   type="button"
-                  className="text-foreground underline underline-offset-2"
+                  className={cn(TEXT_BUTTON_CLASS, 'text-foreground')}
                   onClick={(e) => { e.stopPropagation(); onEditOrder(o) }}
                 >
                   수정
                 </button>
                 <button
                   type="button"
-                  className="text-destructive underline underline-offset-2"
+                  className={cn(TEXT_BUTTON_CLASS, 'text-destructive')}
                   onClick={(e) => { e.stopPropagation(); onDeleteOrder(o) }}
                 >
                   삭제
@@ -363,27 +384,32 @@ function FragmentRow({
 }) {
   return (
     <>
-      <tr
-        className="hover:bg-muted/20 transition-colors cursor-pointer"
-        onClick={onToggle}
-        aria-label={`${b.releaseDate} ${b.ticker} 행 ${open ? '접기' : '펼치기'}`}
-      >
+      <tr className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={onToggle}>
         <TableDataCell className="px-2 py-3 text-muted-foreground">
-          {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-        </TableDataCell>
-        <TableDataCell className="px-2.5 py-3 text-muted-foreground text-xs whitespace-nowrap sm:px-4">{b.releaseDate}</TableDataCell>
-        <TableDataCell className="px-2.5 py-3 whitespace-nowrap sm:px-4">{b.ticker}</TableDataCell>
-        <TableDataCell className="px-2.5 py-3 font-mono text-xs whitespace-nowrap sm:px-4">${fmtUsd(b.currentCycleStart)}</TableDataCell>
-        <TableDataCell className="hidden px-2.5 py-3 font-mono text-xs whitespace-nowrap sm:table-cell sm:px-4">{b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`}</TableDataCell>
-        <TableDataCell className="px-2.5 py-3 whitespace-nowrap sm:px-4">{b.holdings}</TableDataCell>
-        <TableDataCell className={`hidden px-2.5 py-3 font-mono text-xs whitespace-nowrap sm:table-cell sm:px-4 ${pnlTextClass(b.currentCycleRealizedPnl)}`}>
-          {fmtSignedUsd(b.currentCycleRealizedPnl)}
-        </TableDataCell>
-        <TableDataCell className="hidden px-2.5 py-3 text-muted-foreground whitespace-nowrap sm:table-cell sm:px-4">{b.orders.length}건</TableDataCell>
-        <TableDataCell className="px-2.5 py-3 whitespace-nowrap sm:px-4">
           <button
             type="button"
-            className="text-xs font-medium text-foreground underline underline-offset-2"
+            className="inline-flex size-6 items-center justify-center rounded-sm"
+            onClick={(e) => { e.stopPropagation(); onToggle() }}
+            aria-expanded={open}
+            aria-controls={open ? `privacy-base-${b.id}-details` : undefined}
+            aria-label={`${b.releaseDate} ${b.ticker} 주문 명세`}
+          >
+            {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
+          </button>
+        </TableDataCell>
+        <TableDataCell className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">{b.releaseDate}</TableDataCell>
+        <TableDataCell className="px-4 py-3 whitespace-nowrap">{b.ticker}</TableDataCell>
+        <TableDataCell className="px-4 py-3 font-mono text-xs whitespace-nowrap">${fmtUsd(b.currentCycleStart)}</TableDataCell>
+        <TableDataCell className="px-4 py-3 font-mono text-xs whitespace-nowrap">{b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`}</TableDataCell>
+        <TableDataCell className="px-4 py-3 whitespace-nowrap">{b.holdings}</TableDataCell>
+        <TableDataCell className={`px-4 py-3 font-mono text-xs whitespace-nowrap ${pnlTextClass(b.currentCycleRealizedPnl)}`}>
+          {fmtSignedUsd(b.currentCycleRealizedPnl)}
+        </TableDataCell>
+        <TableDataCell className="px-4 py-3 text-muted-foreground whitespace-nowrap">{b.orders.length}건</TableDataCell>
+        <TableDataCell className="px-4 py-3 whitespace-nowrap">
+          <button
+            type="button"
+            className={cn(TEXT_BUTTON_CLASS, 'font-medium text-foreground')}
             onClick={(e) => { e.stopPropagation(); onEditBase() }}
           >
             수정
@@ -391,7 +417,7 @@ function FragmentRow({
         </TableDataCell>
       </tr>
       {open && (
-        <tr className="bg-muted/10">
+        <tr id={`privacy-base-${b.id}-details`} className="bg-muted/10">
           <td></td>{/* eslint-disable-line react-doctor/control-has-associated-label */}
           <td colSpan={8} className="px-4 py-3">
             <OrderDetailsSection orders={b.orders} onEditOrder={onEditOrder} onAddOrder={onAddOrder} onDeleteOrder={onDeleteOrder} />

@@ -22,6 +22,7 @@ import { useMeta } from '@entities/meta'
 import { fmtKrw } from '@shared/lib/format'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { SectionError } from '@shared/ui/SectionError'
+import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 
 // Tailwind `sm` 브레이크포인트(640px)와 동일 기준 — globals.css 변경 시 함께 맞출 것.
 const MOBILE_BREAKPOINT_PX = 640
@@ -97,13 +98,13 @@ function CompositionChart({ title, columns, segments, labelFor, colorFor }: Comp
                 <XAxis
                   dataKey="month"
                   tickFormatter={formatMonthLabel}
-                  tick={{ fontSize: 10 }}
+                  tick={AXIS_TICK}
                   tickLine={false}
                   axisLine={false}
                   minTickGap={16}
                 />
                 <YAxis
-                  tick={{ fontSize: 10 }}
+                  tick={AXIS_TICK}
                   tickLine={false}
                   axisLine={false}
                   width={32}

@@ -25,6 +25,7 @@ import {
   useAssetSnapshotsQuery,
 } from '@entities/finance'
 import type { AssetClass, TrendMode, TrendRange } from '@entities/finance'
+import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 
 // Y축 눈금 전용 — fmtKrw는 "1,000,000원" 같은 긴 문자열이라 좁은 축 폭에 맞지 않는다.
 // 만원 단위로 축약해 표시하고, 정확한 금액은 Tooltip의 fmtKrw로 보여준다.
@@ -166,14 +167,14 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
           <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
             <LineChart data={trend} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} title="월별 추이">
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="month" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} minTickGap={24} />
-              <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={44} tickFormatter={fmtKrwAxisTick} domain={['auto', 'auto']} />
+              <XAxis dataKey="month" tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={24} />
+              <YAxis tick={AXIS_TICK} tickLine={false} axisLine={false} width={44} tickFormatter={fmtKrwAxisTick} domain={['auto', 'auto']} />
               {/* hover 가독성 — 세로 가이드선 + 강조 점 + 큰 금액 글씨로 어느 달의 값인지 바로 읽히게 한다 */}
               <Tooltip
                 content={(props) => <TrendTooltip {...props} maskIfHidden={maskIfHidden} />}
                 cursor={{ stroke: 'var(--muted-foreground)', strokeWidth: 1, strokeDasharray: '4 4' }}
               />
-              {(mode === 'netWorth' || isAll) && <Legend wrapperStyle={{ fontSize: 11 }} />}
+              {(mode === 'netWorth' || isAll) && <Legend wrapperStyle={{ fontSize: 11, color: 'var(--muted-foreground)' }} />}
               {isAll && seriesKeys.map((key) => (
                 <Line
                   key={key}

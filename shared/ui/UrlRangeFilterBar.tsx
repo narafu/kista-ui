@@ -23,12 +23,14 @@ function RangeFilterBarContent({ current, from, to, pageParamKeys = ['page'], pa
   const searchParams = useSearchParams()
   const [customFrom, setCustomFrom] = useState(from ?? '')
   const [customTo, setCustomTo] = useState(to ?? '')
+  const invalidRange = !!customFrom && !!customTo && customFrom > customTo
 
   const rangeKey = paramPrefix ? `${paramPrefix}Range` : 'range'
   const fromKey  = paramPrefix ? `${paramPrefix}From`  : 'from'
   const toKey    = paramPrefix ? `${paramPrefix}To`    : 'to'
 
   function navigate(range: RangePreset, f?: string, t?: string) {
+    if (range === 'custom' && f && t && f > t) return
     const params = new URLSearchParams(searchParams.toString())
     params.set(rangeKey, range)
     pageParamKeys.forEach((key) => params.set(key, '1'))
@@ -49,6 +51,7 @@ function RangeFilterBarContent({ current, from, to, pageParamKeys = ['page'], pa
           <button
             key={r}
             type="button"
+            aria-pressed={current === r}
             onClick={() => navigate(r, customFrom, customTo)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               current === r
@@ -67,7 +70,7 @@ function RangeFilterBarContent({ current, from, to, pageParamKeys = ['page'], pa
             aria-label="시작 날짜"
             value={customFrom}
             onChange={(e) => setCustomFrom(e.target.value)}
-            className="rounded-md border border-[var(--border-strong)] bg-background px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
+            className="rounded-md border border-[var(--border-strong)] bg-background px-3 py-1.5 text-base sm:text-xs outline-none focus:ring-2 focus:ring-ring"
           />
           <span className="text-xs text-muted-foreground">~</span>
           <input
@@ -76,26 +79,30 @@ function RangeFilterBarContent({ current, from, to, pageParamKeys = ['page'], pa
             value={customTo}
             min={customFrom || undefined}
             onChange={(e) => setCustomTo(e.target.value)}
-            className="rounded-md border border-[var(--border-strong)] bg-background px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
+            className="rounded-md border border-[var(--border-strong)] bg-background px-3 py-1.5 text-base sm:text-xs outline-none focus:ring-2 focus:ring-ring"
           />
           <button
             type="button"
             onClick={() => navigate('custom', customFrom, customTo)}
-            disabled={!customFrom || !customTo}
+            disabled={!customFrom || !customTo || invalidRange}
             className={cn(buttonVariants({ variant: 'brand-soft', size: 'sm' }))}
           >
             적용
           </button>
+          {invalidRange && (
+            <p role="alert" className="w-full text-xs text-destructive">시작 날짜가 종료 날짜보다 늦습니다.</p>
+          )}
         </div>
       )}
     </div>
   )
 }
 
+// from/to가 바뀌면(뒤로가기·앞으로가기) key로 내부 입력 state를 새 URL 값에 다시 맞춘다.
 export function UrlRangeFilterBar(props: Props) {
   return (
     <Suspense>
-      <RangeFilterBarContent {...props} />
+      <RangeFilterBarContent key={`${props.from ?? ''}|${props.to ?? ''}`} {...props} />
     </Suspense>
   )
 }

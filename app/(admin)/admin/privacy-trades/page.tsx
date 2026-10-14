@@ -3,7 +3,7 @@ import { getAuthToken } from '@shared/lib/auth/token'
 import { adminPrivacyBasesQueryOptions } from '@entities/privacy'
 import { AdminPrivacyBaseTable } from '@widgets/admin-privacy-trade-list/AdminPrivacyBaseTable'
 import { PrivacyBaseChart } from '@widgets/admin-privacy-trade-list/PrivacyBaseChart'
-import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
+import { PageHeader } from '@widgets/page-header'
 import { UrlRangeFilterBar } from '@shared/ui/UrlRangeFilterBar'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
 import type { RangePreset } from '@shared/lib/date-range'
@@ -23,7 +23,6 @@ export default async function AdminPrivacyTradesPage({
   const range = PRESETS.includes(parsedRange) ? parsedRange : '30d'
   const size = parseSize(rawSize)
   const page = parsePage(rawPage)
-  const sizeStr = String(size)
 
   const token = await getAuthToken()
   const queryClient = createQueryClient()
@@ -33,14 +32,10 @@ export default async function AdminPrivacyTradesPage({
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-extrabold">P 매매표</h1>
-        <p className="text-sm text-muted-foreground mt-1">PRIVACY 전략 P 매매표 및 주문 명세</p>
-      </div>
+      <PageHeader title="P 매매표" description="PRIVACY 전략 P 매매표 및 주문 명세" />
 
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+      <div className="mb-4">
         <UrlRangeFilterBar current={range} from={from} to={to} presets={PRESETS} />
-        <PageSizeSelector value={sizeStr} />
       </div>
 
       <HydrationBoundary state={dehydrate(queryClient)}>

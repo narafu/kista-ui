@@ -7,6 +7,7 @@ import { AdminPrivacyBaseTable } from './AdminPrivacyBaseTable'
 
 vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }))
 
 const base: AdminPrivacyBase = {
@@ -59,7 +60,7 @@ describe('AdminPrivacyBaseTable mobile UX', () => {
       .map((node) => node.textContent)
 
     expect(within(mobileList).getByText('2026-07-02')).toBeInTheDocument()
-    expect(within(mobileList).getByRole('heading', { name: 'NVDA' })).toBeInTheDocument()
+    expect(within(mobileList).getByRole('heading', { name: /NVDA/ })).toBeInTheDocument()
     expect(metrics).toEqual(['시작금액', '실현손익', '평단가', '보유'])
     expect(within(mobileList).getByText('시작금액')).toBeInTheDocument()
     expect(within(mobileList).getByText('$1,234.56')).toBeInTheDocument()
@@ -76,34 +77,43 @@ describe('AdminPrivacyBaseTable mobile UX', () => {
     renderTable()
 
     const mobileList = screen.getByTestId('admin-privacy-mobile-list')
-    const toggle = within(mobileList).getByRole('button', { name: /2026-07-02 NVDA 매매표 펼치기/ })
+    const toggle = within(mobileList).getByRole('button', { name: /2026-07-02.*NVDA/ })
 
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
 
     fireEvent.click(toggle)
 
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
-    expect(within(mobileList).getByText('LOC')).toBeInTheDocument()
+    expect(within(mobileList).getByText('LOC(종가지정)')).toBeInTheDocument()
     expect(within(mobileList).getByText('$100.25')).toBeInTheDocument()
   })
 })
 
 describe('AdminPrivacyBaseTable desktop table', () => {
-  it('keeps the desktop table width and compact header label behavior', () => {
+  it('keeps the desktop table min width and exposes a keyboard-scrollable region', () => {
     renderTable()
 
     const table = screen.getByTestId('admin-privacy-desktop-table')
-    const desktopTable = within(table)
-    const startHeader = desktopTable.getByRole('columnheader', { name: /시작금액/ })
-    const mobileLabel = desktopTable.getByText('시작금액')
-    const desktopLabel = desktopTable.getByText('사이클 시작금액')
+    const wrap = screen.getByTestId('admin-privacy-desktop-table-wrap')
 
-    expect(table).toHaveClass('sm:min-w-[760px]')
-    expect(table).not.toHaveClass('min-w-[560px]')
-    expect(startHeader).toContainElement(mobileLabel)
-    expect(mobileLabel).toHaveClass('sm:hidden')
-    expect(desktopLabel).toHaveClass('hidden')
-    expect(desktopLabel).toHaveClass('sm:inline')
+    expect(table).toHaveClass('min-w-[760px]')
+    expect(wrap).toHaveAttribute('role', 'region')
+    expect(wrap).toHaveAttribute('aria-label', 'P 매매표 목록')
+    expect(wrap).toHaveAttribute('tabindex', '0')
+    expect(within(table).getByRole('columnheader', { name: '사이클 시작금액' })).toBeInTheDocument()
+  })
+
+  it('expands a row via a real keyboard-focusable toggle button', () => {
+    renderTable()
+
+    const table = screen.getByTestId('admin-privacy-desktop-table')
+    const toggle = within(table).getByRole('button', { name: '2026-07-02 NVDA 주문 명세' })
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(toggle.getAttribute('aria-controls')).toBe('privacy-base-base-1-details')
+    expect(document.getElementById('privacy-base-base-1-details')).not.toBeNull()
   })
 
   it('centers the desktop headers and cells', () => {
@@ -184,5 +194,30 @@ describe('AdminPrivacyBaseTable filtering and paging', () => {
     )
     expect(screen.getByText('총 2건')).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'pagination' })).toBeInTheDocument()
+  })
+})
+
+describe('AdminPrivacyBaseTable empty states', () => {
+  it('distinguishes a range-filtered empty result from no data at all', () => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    queryClient.setQueryData(privacyKeys.list(), [base])
+    const { unmount } = render(
+      <QueryClientProvider client={queryClient}>
+        <AdminPrivacyBaseTable windowFrom="2027-01-01" pageSize={10} page={1} />
+      </QueryClientProvider>,
+    )
+    expect(screen.getByText('선택한 기간에 매매표가 없습니다. 기간을 넓혀 보세요.')).toBeInTheDocument()
+    unmount()
+
+    renderTable([])
+    expect(screen.getByText('P 매매표가 없습니다.')).toBeInTheDocument()
+  })
+
+  it('includes price and quantity in the delete confirmation', () => {
+    renderTable()
+    const table = screen.getByTestId('admin-privacy-desktop-table')
+    fireEvent.click(within(table).getByRole('button', { name: '2026-07-02 NVDA 주문 명세' }))
+    fireEvent.click(within(table).getByRole('button', { name: '삭제' }))
+    expect(screen.getByText('매수 LOC(종가지정) $100.25 × 1주 주문을 삭제합니다.')).toBeInTheDocument()
   })
 })

@@ -1,7 +1,7 @@
 'use client'
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { DIRECTION_LABEL } from '@entities/trade'
+import { DIRECTION_LABEL, ORDER_TYPE_LABEL } from '@entities/trade'
 import { ORDER_STATUS_LABEL } from '@entities/order'
 
 export type OrderHistoryFilterValue = 'ALL' | string
@@ -23,12 +23,8 @@ const DIRECTION_OPTIONS = [
   ['SELL', DIRECTION_LABEL.SELL],
 ] as const
 
-const ORDER_TYPE_OPTIONS = [
-  [ALL_FILTER_VALUE, '전체'],
-  ['LIMIT', 'LIMIT'],
-  ['LOC', 'LOC'],
-  ['MOC', 'MOC'],
-] as const
+// 유형 목록은 ORDER_TYPE_LABEL이 SSOT — 유형이 추가되면 라벨 맵만 고친다
+const ORDER_TYPE_OPTIONS: Array<readonly [string, string]> = [[ALL_FILTER_VALUE, '전체'], ...Object.entries(ORDER_TYPE_LABEL)]
 
 const STATUS_OPTIONS = [
   [ALL_FILTER_VALUE, '전체'],

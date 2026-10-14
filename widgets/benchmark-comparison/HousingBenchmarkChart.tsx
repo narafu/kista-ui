@@ -1,5 +1,6 @@
 'use client'
 
+import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -63,13 +64,13 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark, benc
               <XAxis
                 dataKey="baseDate"
                 tickFormatter={formatAxisLabel}
-                tick={{ fontSize: 10 }}
+                tick={AXIS_TICK}
                 tickLine={false}
                 axisLine={false}
                 minTickGap={28}
               />
               <YAxis
-                tick={{ fontSize: 10 }}
+                tick={AXIS_TICK}
                 tickLine={false}
                 axisLine={false}
                 width={36}

@@ -14,7 +14,7 @@ import {
 import { useAdminReorderBuyBudgetQuery } from '@entities/admin'
 import type { AdminReorderBuyBudget, AdminReorderTimingAvailability, AdminStrategyOrder } from '@entities/admin'
 import { orderStatusBadgeClass, ORDER_STATUS_LABEL } from '@entities/order'
-import { DIRECTION_LABEL } from '@entities/trade'
+import { DIRECTION_LABEL, orderTypeLabel } from '@entities/trade'
 import type { OrderDirection } from '@shared/lib/api-schema'
 import { fmtUsd, nextTradeDateKst } from '@shared/lib/format'
 
@@ -239,7 +239,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
           return (
             <section key={order.id} className={`rounded-[var(--r-md)] border bg-background p-3 ${isChanged ? 'border-primary' : 'border-border'}`}>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-medium">{DIRECTION_LABEL[order.direction] ?? order.direction} · {order.orderType}</span>
+                <span className="font-medium">{DIRECTION_LABEL[order.direction] ?? order.direction} · {orderTypeLabel(order.orderType)}</span>
                 <span className="text-muted-foreground">· {order.quantity}주</span>
                 <span className="text-muted-foreground">· {order.ticker}</span>
                 {isChanged && (

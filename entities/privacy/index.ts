@@ -8,6 +8,7 @@ export type {
   AdminPrivacyOrderCreateRequest,
 } from './model/types'
 export { orderRequiresQuantity } from './model/types'
+export { PRIVACY_ORDER_DIRECTIONS, PRIVACY_ORDER_TYPES } from './model/options'
 export { privacyKeys } from './model/queryKeys'
 export { adminPrivacyBasesQueryOptions } from './model/queryOptions'
 export { filterAdminPrivacyBasesByRange } from './model/filter'

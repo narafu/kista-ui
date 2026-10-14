@@ -2,6 +2,7 @@ import { getAuthToken } from '@shared/lib/auth/token'
 import { listAdminTrades } from '@entities/admin'
 import type { AdminTrade } from '@entities/admin'
 import { UrlRangeFilterBar } from '@shared/ui/UrlRangeFilterBar'
+import { PageHeader } from '@widgets/page-header'
 import { AdminTradesWorkbench } from '@widgets/admin-trade-list'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
 
@@ -23,10 +24,7 @@ export default async function AdminTradesPage({
 
   return (
     <div className="reveal-stagger">
-      <div className="mb-8">
-        <h1 className="text-2xl font-extrabold">주문 관리</h1>
-        <p className="text-sm text-muted-foreground mt-1">총 {all.length}건</p>
-      </div>
+      <PageHeader title="주문 관리" description={`총 ${all.length}건`} />
 
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <UrlRangeFilterBar current={range} from={from} to={to} />

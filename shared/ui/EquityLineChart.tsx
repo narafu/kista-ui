@@ -3,6 +3,7 @@
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
 import { fmtMonthDay, fmtDate } from '@shared/lib/format'
+import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 
 export interface EquityLineChartRow {
   date: string
@@ -59,13 +60,13 @@ export function EquityLineChart({
             <XAxis
               dataKey="date"
               tickFormatter={(value: string) => dateTickFormatter(value)}
-              tick={{ fontSize: 10 }}
+              tick={AXIS_TICK}
               tickLine={false}
               axisLine={false}
               minTickGap={24}
             />
             <YAxis
-              tick={{ fontSize: 10 }}
+              tick={AXIS_TICK}
               tickLine={false}
               axisLine={false}
               width={yAxisWidth}
@@ -82,6 +83,8 @@ export function EquityLineChart({
                 color: 'var(--foreground)',
                 borderRadius: 6,
               }}
+              // 항목 글자색이 기본값(계열 stroke)이면 --chart-1이 흰 배경 대비 4.09:1로 미달 — 본문색으로 고정
+              itemStyle={{ color: 'var(--foreground)' }}
             />
             <Line type="monotone" dataKey="principal" name={principalLabel} stroke="var(--muted-foreground)" strokeWidth={2} strokeDasharray="5 4" dot={false} />
             <Line type="monotone" dataKey="asset" name={assetLabel} stroke="var(--chart-1)" strokeWidth={2.5} dot={false} />

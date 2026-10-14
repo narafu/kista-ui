@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SaveButton } from '@shared/ui/SaveButton'
-import { DIRECTION_LABEL } from '@entities/trade'
+import { DIRECTION_LABEL, orderTypeLabel } from '@entities/trade'
 import { orderRequiresQuantity, useUpdateAdminPrivacyOrderMutation } from '@entities/privacy'
 import type { AdminPrivacyOrder } from '@entities/privacy'
+import { PrivacyOrderQuantityField } from './PrivacyOrderQuantityField'
 
 interface Props {
   baseId: string
@@ -24,7 +25,8 @@ export function EditPrivacyOrderDialog({ baseId, order, open, onOpenChange }: Pr
   const updateMutation = useUpdateAdminPrivacyOrderMutation(baseId, order.id)
 
   // BUY는 quantity 필수 — 서버가 400으로 거부하므로 선제 차단.
-  const canSubmit = price !== '' && (!orderRequiresQuantity(order.direction) || quantity !== '')
+  const priceInvalid = price !== '' && Number(price) <= 0
+  const canSubmit = price !== '' && Number(price) > 0 && (!orderRequiresQuantity(order.direction) || quantity !== '')
   const isPending = updateMutation.isPending
 
   function handleSubmit(e: React.FormEvent) {
@@ -46,7 +48,7 @@ export function EditPrivacyOrderDialog({ baseId, order, open, onOpenChange }: Pr
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{DIRECTION_LABEL[order.direction] ?? order.direction} {order.orderType} 주문 수정</DialogTitle>
+            <DialogTitle>{DIRECTION_LABEL[order.direction] ?? order.direction} {orderTypeLabel(order.orderType)} 주문 수정</DialogTitle>
             <DialogDescription>가격, 수량을 입력하세요.</DialogDescription>
           </DialogHeader>
 
@@ -57,25 +59,19 @@ export function EditPrivacyOrderDialog({ baseId, order, open, onOpenChange }: Pr
                 id="orderPrice"
                 type="number"
                 step="0.01"
+                min="0.01"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 disabled={isPending}
+                aria-invalid={priceInvalid || undefined}
+                aria-describedby={priceInvalid ? 'orderPrice-error' : undefined}
                 className="h-11"
               />
+              {priceInvalid && <p id="orderPrice-error" className="text-xs text-destructive">가격은 0보다 커야 합니다.</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="orderQuantity">수량{!orderRequiresQuantity(order.direction) && ' (없으면 비움)'}</Label>
-              <Input
-                id="orderQuantity"
-                type="number"
-                step="1"
-                min="1"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                disabled={isPending}
-                className="h-11"
-              />
+              <PrivacyOrderQuantityField id="orderQuantity" direction={order.direction} value={quantity} onChange={setQuantity} disabled={isPending} />
             </div>
           </div>
 

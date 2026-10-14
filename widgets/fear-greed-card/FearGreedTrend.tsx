@@ -6,6 +6,7 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianG
 import type { FearGreedPoint } from '@entities/market'
 import { zoneOf } from './fearGreedZones'
 import { fmtMonthDay } from '@shared/lib/format'
+import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 
 interface Props {
   history: FearGreedPoint[]
@@ -59,8 +60,8 @@ export function FearGreedTrend({ history, title }: Props) {
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-        <XAxis dataKey="date" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} minTickGap={24} />
-        <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={28} />
+        <XAxis dataKey="date" tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={24} />
+        <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tick={AXIS_TICK} tickLine={false} axisLine={false} width={28} />
         <Tooltip
           formatter={(v) => [String(v), '지수']}
           labelStyle={{ fontSize: 12 }}

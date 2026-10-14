@@ -39,6 +39,7 @@ export function RangeFilterControls({
               <button
                 key={r}
                 type="button"
+                aria-pressed={rangeType === r}
                 onClick={() => onRangeChange(r)}
                 className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-all whitespace-nowrap ${
                   rangeType === r ? 'bg-background text-rose-600 shadow-sm' : 'text-muted-foreground hover:text-foreground'
@@ -59,7 +60,7 @@ export function RangeFilterControls({
             aria-label="시작 날짜"
             value={customFrom}
             onChange={(e) => onCustomFromChange(e.target.value)}
-            className="rounded-md border border-[var(--border-strong)] bg-background px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+            className="rounded-md border border-[var(--border-strong)] bg-background px-3 py-1.5 text-base sm:text-sm outline-none focus:ring-2 focus:ring-ring"
           />
           <span className="text-sm text-muted-foreground">~</span>
           <input
@@ -68,7 +69,7 @@ export function RangeFilterControls({
             value={customTo}
             min={customFrom || undefined}
             onChange={(e) => onCustomToChange(e.target.value)}
-            className="rounded-md border border-[var(--border-strong)] bg-background px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+            className="rounded-md border border-[var(--border-strong)] bg-background px-3 py-1.5 text-base sm:text-sm outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
       )}
