@@ -39,7 +39,7 @@ export function DcaStrategyDetail({ accountId, strategy }: Props) {
   })
   const toggleLoading = isPausing || isResuming
   const loading = toggleLoading || isDeleting
-  const toggleLabel = toggleLoading ? '처리 중...' : strategy.status === 'ACTIVE' ? '중지' : '재개'
+  const toggleLabel = toggleLoading ? '처리 중...' : strategy.status === 'ACTIVE' ? '일시중지' : '재개'
 
   return (
     <div className="space-y-4">

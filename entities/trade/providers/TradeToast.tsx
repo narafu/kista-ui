@@ -10,7 +10,7 @@ const KIND_CONFIG = {
   BUY:  { icon: TrendingUp,   color: 'text-pos',                    bg: 'bg-pos/10',   label: '매수 체결' },
   SELL: { icon: TrendingDown, color: 'text-neg',                    bg: 'bg-neg/10',   label: '매도 체결' },
   INFO: { icon: Info,         color: 'text-[var(--brand-fg-soft)]', bg: 'bg-[var(--brand-soft-bg)]', label: '알림' },
-  FAIL: { icon: AlertCircle,  color: 'text-warn',                   bg: 'bg-warn-bg',  label: '실패'     },
+  FAIL: { icon: AlertCircle,  color: 'text-status-error',           bg: 'bg-status-error-bg', label: '실패' },
 } as const
 
 export function TradeToast({ event }: Props) {

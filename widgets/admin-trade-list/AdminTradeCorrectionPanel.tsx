@@ -66,7 +66,7 @@ export function AdminTradeCorrectionPanel({
   onReorderSubmit,
 }: Props) {
   const { labelOf } = useMeta()
-  const nextStrategyActionLabel = selectedStrategy?.status === 'ACTIVE' ? '전략 중지' : '전략 재개'
+  const nextStrategyActionLabel = selectedStrategy?.status === 'ACTIVE' ? '전략 일시중지' : '전략 재개'
   const helperMessage = getHelperMessage({ brokers, accounts, strategies, orders, selectedUserId, selectedBroker, selectedAccountId, selectedStrategyId })
 
   return (

@@ -60,6 +60,7 @@ function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
 
     return (
       <div key={ds} className="flex flex-col items-center gap-0.5 py-1">
+        {/* 일=빨강·토=파랑은 한국 달력 관례라 의도적으로 유지 — 매수/매도와 같은 토큰이지만 요일 숫자에만 쓰여 혼동 여지가 작다 */}
         <span className={cn(
           'text-xs',
           isSun ? 'text-pos' : isSat ? 'text-neg' : 'text-muted-foreground',
@@ -67,7 +68,7 @@ function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
           {day.getDate()}
         </span>
         {isHoliday && !isWeekend && (
-          <span className="text-[10px] leading-none text-warn">휴장</span>
+          <span className="text-[10px] leading-none text-[var(--gold)]">휴장</span>
         )}
         {!isWeekend && !isHoliday && daySummary && (
           <span className="flex flex-col items-center gap-px">

@@ -165,7 +165,7 @@
   --pos:        #B83D31;   --pos-bg: #FBE4E0;   /* 상승/매수/수익 — 빨강 */
   --neg:        #185FC8;   --neg-bg: #DEE9FA;   /* 하락/매도/손실 — 파랑 */
   --warn:       #855C13;   --warn-bg:#F6E5C2;
-  --status-ok:  #28754A;   --status-ok-bg: #DCEFE0;   /* 운영중 — 초록 */
+  --status-ok:  #28754A;   --status-ok-bg: #DCEFE0;   /* 정상·완료(체결·승인 등) — 초록 */
 
   /* Info (정보성 상태 — 사이클 시드 MAX, 주문 PLACED/LOC 등) */
   --info:    #46699C;   --info-bg: #E3EBF5;

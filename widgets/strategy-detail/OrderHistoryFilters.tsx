@@ -1,6 +1,8 @@
 'use client'
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { DIRECTION_LABEL } from '@entities/trade'
+import { ORDER_STATUS_LABEL } from '@entities/order'
 
 export type OrderHistoryFilterValue = 'ALL' | string
 
@@ -17,8 +19,8 @@ interface Props {
 
 const DIRECTION_OPTIONS = [
   [ALL_FILTER_VALUE, '전체'],
-  ['BUY', '매수'],
-  ['SELL', '매도'],
+  ['BUY', DIRECTION_LABEL.BUY],
+  ['SELL', DIRECTION_LABEL.SELL],
 ] as const
 
 const ORDER_TYPE_OPTIONS = [
@@ -30,12 +32,12 @@ const ORDER_TYPE_OPTIONS = [
 
 const STATUS_OPTIONS = [
   [ALL_FILTER_VALUE, '전체'],
-  ['PLANNED', '예정'],
-  ['PLACED', '접수'],
-  ['FILLED', '체결'],
-  ['PARTIALLY_FILLED', '부분체결'],
-  ['CANCELLED', '취소'],
-  ['FAILED', '실패'],
+  ['PLANNED', ORDER_STATUS_LABEL.PLANNED],
+  ['PLACED', ORDER_STATUS_LABEL.PLACED],
+  ['FILLED', ORDER_STATUS_LABEL.FILLED],
+  ['PARTIALLY_FILLED', ORDER_STATUS_LABEL.PARTIALLY_FILLED],
+  ['CANCELLED', ORDER_STATUS_LABEL.CANCELLED],
+  ['FAILED', ORDER_STATUS_LABEL.FAILED],
 ] as const
 
 export function OrderHistoryFilters({

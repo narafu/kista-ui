@@ -53,7 +53,7 @@ export function DcaExecutionHistory({ strategyId }: { strategyId: string }) {
                   <tr key={r.kstTradeDate} className="border-t border-border">
                     <td className="px-4 py-2 tabular-nums whitespace-nowrap">{r.kstTradeDate}</td>
                     <td className="px-4 py-2">
-                      <Badge tone={r.status === 'ORDERED' ? 'ok' : 'neutral'} size="sm">{r.status === 'ORDERED' ? '주문됨' : '건너뜀'}</Badge>
+                      <Badge tone={r.status === 'ORDERED' ? 'none' : 'neutral'} size="sm" className={r.status === 'ORDERED' ? 'bg-info-bg text-info' : undefined}>{r.status === 'ORDERED' ? '주문됨' : '건너뜀'}</Badge>
                     </td>
                     <td className="px-4 py-2">
                       {r.skipReason && <div>{labelOf('dcaSkipReasons', r.skipReason)}</div>}

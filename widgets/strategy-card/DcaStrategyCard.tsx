@@ -8,6 +8,7 @@ import { Badge } from '@shared/ui/Badge'
 import { useMeta } from '@entities/meta'
 import { formatDcaSchedule, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
+import { directionBadgeClass } from '@entities/trade'
 
 interface Props {
   accountId: string
@@ -41,7 +42,7 @@ export function DcaStrategyCard({ accountId, strategy, accountLabel }: Props) {
           <div className="flex flex-wrap items-center gap-1.5">
             <Badge tone="brand" size="sm">DCA</Badge>
             {statusLabel && <Badge tone="neutral" size="sm">{statusLabel}</Badge>}
-            {dca && <Badge tone={dca.direction === 'BUY' ? 'ok' : 'warn'} size="sm">{labelOf('orderDirections', dca.direction)}</Badge>}
+            {dca && <Badge tone="none" size="sm" className={directionBadgeClass(dca.direction)}>{labelOf('orderDirections', dca.direction)}</Badge>}
             {scheduledStart && (
               <Badge tone="none" size="sm" className="bg-info-bg text-info">{scheduledStartBadgeLabel(strategy.startDate!)}</Badge>
             )}

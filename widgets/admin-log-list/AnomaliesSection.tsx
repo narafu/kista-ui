@@ -31,7 +31,7 @@ export function AnomaliesSection({
       <div className="space-y-4">
         <div>
           <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-            일시정지 계좌
+            일시중지 계좌
             {anomalies.pausedAccounts.length > 0 && (
               <span className="ml-2 normal-case font-medium text-warn">
                 {anomalies.pausedAccounts.length}
@@ -39,9 +39,9 @@ export function AnomaliesSection({
             )}
           </p>
           {anomalies.pausedAccounts.length === 0 ? (
-            <EmptyState message="일시정지된 계좌가 없습니다" />
+            <EmptyState message="일시중지된 계좌가 없습니다" />
           ) : (
-            <AccountTable accounts={anomalies.pausedAccounts} label="일시정지 계좌" />
+            <AccountTable accounts={anomalies.pausedAccounts} label="일시중지 계좌" />
           )}
         </div>
         <div>

@@ -13,7 +13,8 @@ import {
 } from '@/components/ui/alert-dialog'
 import { useAdminReorderBuyBudgetQuery } from '@entities/admin'
 import type { AdminReorderBuyBudget, AdminReorderTimingAvailability, AdminStrategyOrder } from '@entities/admin'
-import { ORDER_STATUS_LABEL } from '@entities/order'
+import { orderStatusBadgeClass, ORDER_STATUS_LABEL } from '@entities/order'
+import { DIRECTION_LABEL } from '@entities/trade'
 import type { OrderDirection } from '@shared/lib/api-schema'
 import { fmtUsd, nextTradeDateKst } from '@shared/lib/format'
 
@@ -238,7 +239,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
           return (
             <section key={order.id} className={`rounded-[var(--r-md)] border bg-background p-3 ${isChanged ? 'border-primary' : 'border-border'}`}>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-medium">{order.direction} · {order.orderType}</span>
+                <span className="font-medium">{DIRECTION_LABEL[order.direction] ?? order.direction} · {order.orderType}</span>
                 <span className="text-muted-foreground">· {order.quantity}주</span>
                 <span className="text-muted-foreground">· {order.ticker}</span>
                 {isChanged && (
@@ -246,7 +247,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                     변경됨
                   </span>
                 )}
-                <span className="ml-auto inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+                <span className={`ml-auto inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${orderStatusBadgeClass(order.status)}`}>
                   {ORDER_STATUS_LABEL[order.status] ?? order.status}
                 </span>
               </div>

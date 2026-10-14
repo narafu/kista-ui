@@ -72,7 +72,7 @@ function ExecutedBody({ placedOrders, orders, unplacedDirections, readiness, onC
   return (
     <div>
       <div className="flex items-center justify-between px-6 py-3 border-b border-border">
-        <p className="text-base uppercase tracking-widest font-semibold text-warn">{placedOrders.length > 0 ? `${placedOrders.length}건 접수됨` : '접수됨'}</p>
+        <p className="text-base uppercase tracking-widest font-semibold text-info">{placedOrders.length > 0 ? `${placedOrders.length}건 접수됨` : '접수됨'}</p>
         <button
           type="button"
           onClick={onCancelAll}
@@ -117,8 +117,8 @@ function PreviewBody({ preview, orders, isLoadingPreview, isPreviewError, previe
   if (isLoadingPreview) return <p className="text-base text-muted-foreground text-center px-6 py-4">불러오는 중…</p>
   if (isPreviewError) return <p className="text-base text-muted-foreground text-center px-6 py-4">{previewErrorMsg(previewError)}</p>
   // 미리보기는 전략 상태·휴장 무관 강제 계산이라(kista-api: preview() "휴장·상태 무관 강제 계산"),
-  // 일시정지 중에도 값이 나온다 — 그대로 노출하면 오늘 배치에서 실행될 주문처럼 오해할 수 있어 숨긴다
-  if (!canExecute) return <EmptyState variant="text" message={'일시정지 중입니다\n재개하면 이 계획대로 매매가 진행됩니다'} />
+  // 일시중지 중에도 값이 나온다 — 그대로 노출하면 오늘 배치에서 실행될 주문처럼 오해할 수 있어 숨긴다
+  if (!canExecute) return <EmptyState variant="text" message={'일시중지 중입니다\n재개하면 이 계획대로 매매가 진행됩니다'} />
   if (orders.length === 0) return <EmptyState variant="text" message={preview?.skipReason ? SKIP_REASON_LABELS[preview.skipReason] : '예정된 주문이 없습니다.'} />
   return <OrderRows orders={orders} />
 }
@@ -165,7 +165,7 @@ export function NextOrderCard({
             <div>
               <CardTitle className="text-base lg:text-lg">다음 주문</CardTitle>
               <p className="text-base text-muted-foreground mt-0.5">
-                {canExecute ? '매 거래일 개장 시 자동실행' : '일시정지 중, 자동실행 되지 않음'}
+                {canExecute ? '매 거래일 개장 시 자동실행' : '일시중지 중, 자동실행 되지 않음'}
               </p>
             </div>
             {canExecute && (

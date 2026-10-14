@@ -439,7 +439,7 @@ describe('AdminTradesWorkbench', () => {
 
     await waitFor(() => expect(screen.getByText('현재 전략 상태: 운영중')).toBeInTheDocument())
 
-    await user.click(screen.getByRole('button', { name: '전략 중지' }))
+    await user.click(screen.getByRole('button', { name: '전략 일시중지' }))
 
     await waitFor(() => expect(updateAdminStrategyStatusMock).toHaveBeenCalledWith('account-1', 'strategy-1', 'PAUSED'))
     await waitFor(() => expect(listAdminStrategiesMock).toHaveBeenCalledTimes(2))
@@ -456,7 +456,7 @@ describe('AdminTradesWorkbench', () => {
 
     await selectBrokeredOrderTarget(user)
     await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
-    await user.click(screen.getByRole('button', { name: '전략 중지' }))
+    await user.click(screen.getByRole('button', { name: '전략 일시중지' }))
 
     await waitFor(() =>
       expect(screen.getByText('전략 상태 변경에 실패했습니다. 잠시 후 다시 시도하세요.')).toBeInTheDocument(),

@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { IconButton } from '@shared/ui/IconButton'
 import { SaveButton } from '@shared/ui/SaveButton'
 import { todayKst } from '@shared/lib/format'
+import { DIRECTION_LABEL } from '@entities/trade'
 import { orderRequiresQuantity, useCreateAdminPrivacyBaseMutation } from '@entities/privacy'
 import type { AdminPrivacyOrder, AdminPrivacyOrderRequest } from '@entities/privacy'
 
@@ -128,11 +129,11 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
                 <div key={i} className="flex items-end gap-2 rounded-[var(--r-sm)] border border-border p-3">
                   <div className="flex-1 space-y-1">
                     <Label htmlFor={`base-order-${i}-direction`} className="text-xs">방향</Label>
-                    <Select items={[{ value: 'BUY', label: '매수' }, { value: 'SELL', label: '매도' }]} value={o.direction} onValueChange={(v) => { if (v) updateOrder(i, { direction: v as DraftOrder['direction'] }) }}>
+                    <Select items={[{ value: 'BUY', label: DIRECTION_LABEL.BUY }, { value: 'SELL', label: DIRECTION_LABEL.SELL }]} value={o.direction} onValueChange={(v) => { if (v) updateOrder(i, { direction: v as DraftOrder['direction'] }) }}>
                       <SelectTrigger id={`base-order-${i}-direction`} className="h-10" disabled={isPending}><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="BUY">매수</SelectItem>
-                        <SelectItem value="SELL">매도</SelectItem>
+                        <SelectItem value="BUY">{DIRECTION_LABEL.BUY}</SelectItem>
+                        <SelectItem value="SELL">{DIRECTION_LABEL.SELL}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

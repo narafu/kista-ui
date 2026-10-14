@@ -30,7 +30,7 @@ export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled =
           />
         </label>
         <div className="flex-1 min-w-0">
-          {/* errorType 뱃지 */}
+          {/* errorType 뱃지 — 관리자 디버깅용으로 원본 코드를 그대로 표시한다 */}
           <div className="flex items-center gap-2 flex-wrap">
             <Badge tone="brand" size="sm">{log.errorType}</Badge>
           </div>

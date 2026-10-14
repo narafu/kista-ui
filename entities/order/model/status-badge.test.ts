@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { orderStatusBadgeClass, orderTypeBadgeClass, ORDER_STATUS_LABEL } from './status-badge'
+import { orderStatusBadgeClass, ORDER_STATUS_LABEL } from './status-badge'
 
 describe('orderStatusBadgeClass', () => {
   it.each([
@@ -30,19 +30,5 @@ describe('ORDER_STATUS_LABEL', () => {
       CANCELLED: '취소',
       PLANNED: '예정',
     })
-  })
-})
-
-describe('orderTypeBadgeClass', () => {
-  it.each([
-    ['LOC', 'info'],
-    ['MOC', 'warn'],
-    ['LIMIT', 'muted'],
-  ])('%s uses the %s semantic token', (orderType, token) => {
-    expect(orderTypeBadgeClass(orderType)).toContain(token)
-  })
-
-  it('unknown order type falls back to the muted token', () => {
-    expect(orderTypeBadgeClass('UNKNOWN')).toContain('muted')
   })
 })

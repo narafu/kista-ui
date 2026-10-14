@@ -3,6 +3,7 @@
 import { cn } from '@shared/lib/utils'
 import { fmtUsd } from '@shared/lib/format'
 import { toNum } from '@shared/lib/utils'
+import { DIRECTION_LABEL, directionBadgeClass } from '@entities/trade'
 import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
@@ -22,11 +23,6 @@ interface Props {
   cancellingId?: string | null
   cancelPending?: boolean
 }
-
-const directionBadgeCls = (direction: string) =>
-  direction === 'BUY' ? 'bg-pos-bg text-pos' : 'bg-neg-bg text-neg'
-
-const directionLabel = (direction: string) => direction === 'BUY' ? '매수' : '매도'
 
 export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: Props) {
   const hasCancel = !!onCancelOne
@@ -52,8 +48,8 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
             hasCancel ? 'grid-cols-5' : 'grid-cols-4',
           )}>
             <div className="flex justify-center">
-              <Badge tone="none" size="sm" className={directionBadgeCls(o.direction)}>
-                {directionLabel(o.direction)}
+              <Badge tone="none" size="sm" className={directionBadgeClass(o.direction)}>
+                {DIRECTION_LABEL[o.direction] ?? o.direction}
               </Badge>
             </div>
             <span className="font-medium">{o.ticker}</span>
@@ -95,8 +91,8 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
             // eslint-disable-next-line react-doctor/no-array-index-as-key -- id 없는 주문의 fallback 키(재정렬 없는 읽기 전용 목록)
             <tr key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className="border-b border-border last:border-b-0">
               <TableDataCell className="px-5 py-3">
-                <Badge tone="none" size="sm" className={cn('lg:h-[24px] lg:text-sm', directionBadgeCls(o.direction))}>
-                  {directionLabel(o.direction)}
+                <Badge tone="none" size="sm" className={cn('lg:h-[24px] lg:text-sm', directionBadgeClass(o.direction))}>
+                  {DIRECTION_LABEL[o.direction] ?? o.direction}
                 </Badge>
               </TableDataCell>
               <TableDataCell className="px-5 py-3 text-base font-semibold">{o.ticker}</TableDataCell>

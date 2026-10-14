@@ -2,7 +2,8 @@ import { getAuthToken } from '@shared/lib/auth/token'
 import { formatBrokerLabel } from '@shared/lib/api-schema'
 import { listAdminAccounts } from '@entities/admin'
 import type { AdminAccount, AdminAccountStrategy } from '@entities/admin'
-import { strategyTypeShort } from '@entities/strategy'
+import { getMetaBundle } from '@entities/meta'
+import { strategyStatusAccent, strategyTypeShort } from '@entities/strategy'
 import { RevealableValue } from '@widgets/revealable-value'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -13,16 +14,12 @@ import { PageHeader } from '@widgets/page-header'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
 import { AdminAccountsFilterBar } from './AdminAccountsFilterBar'
 
-const STRATEGY_STATUS_COLOR: Record<string, string> = {
-  ACTIVE: 'var(--status-ok)',
-  PAUSED: 'var(--warn)',
-}
-
-function StrategyBadge({ strategy }: { strategy: AdminAccountStrategy }) {
-  const color = STRATEGY_STATUS_COLOR[strategy.status] ?? 'var(--muted-foreground)'
+function StrategyBadge({ strategy, statusLabel }: { strategy: AdminAccountStrategy; statusLabel: string }) {
+  const color = strategyStatusAccent(strategy.status)
   return (
     <Badge tone='none' size='sm' className="border bg-muted/40 font-bold" style={{ borderColor: color, color }}>
       {strategyTypeShort(strategy.type)}-{strategy.ticker}
+      {strategy.status !== 'ACTIVE' && ` · ${statusLabel}`}
     </Badge>
   )
 }
@@ -40,6 +37,7 @@ export default async function AdminAccountsPage({
   const size = parseSize(rawSize)
   const { from: resolvedFrom, to: resolvedTo } = resolveRange(range, from, to)
 
+  const meta = await getMetaBundle()
   const token = await getAuthToken()
   const all: AdminAccount[] = token ? await listAdminAccounts(token, resolvedFrom, resolvedTo).catch(() => []) : []
   // 닉네임은 유저 간 중복 가능 — 필터 식별자는 반드시 userId로 구분한다(ownerNickname은 표시용 라벨만).
@@ -103,7 +101,7 @@ export default async function AdminAccountsPage({
                     {acc.strategies.length > 0 ? (
                       <div className="flex flex-wrap gap-1">
                         {acc.strategies.map((s) => (
-                          <StrategyBadge key={s.id} strategy={s} />
+                          <StrategyBadge key={s.id} strategy={s} statusLabel={meta.strategyStatuses.find((m) => m.code === s.status)?.label ?? s.status} />
                         ))}
                       </div>
                     ) : (

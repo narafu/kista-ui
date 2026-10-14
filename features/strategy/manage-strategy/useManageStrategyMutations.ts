@@ -48,7 +48,7 @@ export function useManageStrategyMutations({ onDeleted, strategyId }: Options = 
   const executeMutation = useExecuteStrategyMutation(strategyId, invalidateDependents)
 
   function pause(strategy: Strategy) {
-    withActionFeedback(pauseMutation, strategy, '전략을 일시정지했습니다', '일시정지에 실패했습니다')
+    withActionFeedback(pauseMutation, strategy, '전략을 일시중지했습니다', '일시중지에 실패했습니다')
   }
 
   function resume(strategy: Strategy) {

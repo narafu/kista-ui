@@ -60,11 +60,11 @@ describe('DcaStrategyDetail', () => {
     expect(screen.getByText('RSI(14) 48.20 > 35')).toBeInTheDocument()
     expect(screen.getByRole('region', { name: '회차별 실행 이력' })).toHaveAttribute('tabindex', '0')
   })
-  it('dca가 없어도 보유 수량·이력·중지 버튼을 렌더한다', () => {
+  it('dca가 없어도 보유 수량·이력·일시중지 버튼을 렌더한다', () => {
     renderDetail({ ...strategy, dca: undefined })
     expect(screen.getByText('12주')).toBeInTheDocument()
     expect(screen.getByRole('region', { name: '회차별 실행 이력' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '중지' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '일시중지' })).toBeInTheDocument()
     expect(screen.queryByText('다음 판정일')).not.toBeInTheDocument()
   })
   it('nextExecution이 null이면 다음 판정일을 미정으로 표시한다', () => {

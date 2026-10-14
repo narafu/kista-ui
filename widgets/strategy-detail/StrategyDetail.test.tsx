@@ -200,7 +200,7 @@ describe('StrategyDetail header card', () => {
     const paused = { ...baseStrategy, status: 'PAUSED' }
     const { rerender } = render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
-    fireEvent.click(screen.getByRole('button', { name: '중지' }))
+    fireEvent.click(screen.getByRole('button', { name: '일시중지' }))
     expect(pauseMutate).toHaveBeenCalledWith(baseStrategy)
     rerender(<StrategyDetail accountId="account-1" strategy={paused} />)
 

@@ -47,6 +47,7 @@ export function AuditLogsSection({
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
+                    {/* action은 kista-api 서비스별 자유 문자열(enum 없음) — 관리자 디버깅용으로 원본 코드를 그대로 표시한다 */}
                     <Badge tone="brand" size="sm">{log.action}</Badge>
                     {log.targetType && (
                       <span className="text-sm text-muted-foreground">

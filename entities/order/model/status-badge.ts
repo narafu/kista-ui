@@ -22,16 +22,3 @@ export const ORDER_STATUS_LABEL: Record<string, string> = {
   CANCELLED:        '취소',
   PLANNED:          '예정',
 }
-
-const ORDER_TYPE_BADGE_CLS: Record<string, string> = {
-  LOC: 'bg-info-bg text-info',
-  MOC: 'bg-warn-bg text-warn',
-}
-
-/**
- * 주문 유형 배지 클래스를 반환한다.
- * 시맨틱 토큰 기반 — 라이트/다크는 토큰(`--info`·`--warn`)이 자동 전환한다.
- */
-export function orderTypeBadgeClass(orderType: string): string {
-  return ORDER_TYPE_BADGE_CLS[orderType] ?? 'bg-muted text-muted-foreground'
-}
