@@ -27,12 +27,20 @@ const describeElement = (el: Element | null) =>
 //   MOBILE_NAV_VIEWPORT_MISMATCH: 네비가 visual viewport 하단과 SHIFT_LOG_MIN_MS 넘게 어긋난 경우(원래 버그 시그니처).
 //     키보드가 닫히는 도중엔 포커스가 먼저 빠져 isEditableFocused()가 false인데 vvHeight는 아직 작아 순간 오탐이 났다(2026-09-30 2건) — 지속 여부로 거른다.
 // 키보드 판정은 포커스된 편집 요소 기준 — innerHeight 자체가 키보드와 함께 줄어드는 경우가 있어 높이 비교는 못 쓴다.
+// 2026-10-15 MISMATCH 3건(iPhone standalone)은 포커스 이력 없이 마운트 시점부터 vvHeight가 innerHeight보다 318px 작았다 —
+// 키보드 닫힘 잔류(위)와 다른 패턴이라 콜드 스타트인지 앱 내 이동인지 가르려고 msSinceLoad를 남긴다.
 const SHIFT_LOG_MIN_MS = 300
+
+// 버그는 iOS에서만 재현된다. 크롤러(Googlebot이 문서 전체 높이로 렌더해 nav가 6887px)와 CSS가 안 먹은 데스크톱
+// 환경(nav 높이 20px)이 MISMATCH로 쌓여 iOS 실기기만 본다(iPadOS 데스크톱 UA는 터치 지점으로 판별)
+const isIosDevice = () =>
+  !/bot|crawler|spider/i.test(navigator.userAgent)
+  && (/iP(hone|ad|od)/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1))
 
 function useNavViewportDiagnostics(navRef: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
     const vv = window.visualViewport
-    if (!vv) return
+    if (!vv || !isIosDevice()) return
     const lastLoggedAt: Record<string, number> = {}
     const logCounts: Record<string, number> = {}
     let rafId = 0
@@ -73,6 +81,7 @@ function useNavViewportDiagnostics(navRef: React.RefObject<HTMLElement | null>) 
           activeElement: describeElement(document.activeElement),
           lastBlurred,
           msSinceFocusOut: lastFocusOutAt ? String(now - lastFocusOutAt) : 'never',
+          msSinceLoad: String(Math.round(performance.now())),
           pathname: window.location.pathname,
           standalone: String(window.matchMedia('(display-mode: standalone)').matches),
           userAgent: navigator.userAgent,
