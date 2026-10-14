@@ -1,5 +1,5 @@
 // 로컬 dev 시드(kista-api scripts/dev-seed/seed.sh)의 계좌·전략 ID. visual-diff(시나리오·trading fixture)와 a11y-check가 함께 참조한다.
-// 로컬 DB 시드가 다르면 KISTA_DEV_SEED=<json 경로>로 최상위 키 단위 덮어쓰기
+// 로컬 API(8080·8081)가 떠 있으면 MOCK 시드 계좌·전략 ID를 실행 시 조회해 덮는다. KISTA_DEV_SEED=<json 경로>를 주면 조회 대신 그 파일로 최상위 키 단위 덮어쓰기
 import { readFileSync } from 'node:fs'
 
 // MOCK 계좌: ACTIVE 전략, preview·prices 등 trading API가 실제로 200
@@ -20,7 +20,43 @@ const defaults = {
   privacy: { accountId: KIS2, strategyId: '5eed0000-0000-0000-0000-000000000004' },
 }
 
-const override = process.env.KISTA_DEV_SEED ? JSON.parse(readFileSync(process.env.KISTA_DEV_SEED, 'utf8')) : {}
+// seed.sh는 MOCK 계좌·전략을 API로 등록해 ID가 DB마다 달라진다 — 로컬 API에서 닉네임·type·ticker로 찾아 기본값을 덮는다.
+// API가 응답하지 않으면 기본값 그대로(조회만 하고 dev 토큰 외 쓰기 없음)
+async function resolveFromApi() {
+  try {
+    // 요청마다 타임아웃을 따로 둔다 — 하나로 묶으면 앞 요청이 느릴 때 뒤 요청까지 중단돼 조용히 기본값으로 떨어진다
+    const { accessToken } = await (await fetch('http://localhost:8080/api/auth/dev-token', { method: 'POST', signal: AbortSignal.timeout(3000) })).json()
+    const get = async (path) => {
+      const r = await fetch(`http://localhost:8081${path}`, { headers: { Authorization: `Bearer ${accessToken}` }, signal: AbortSignal.timeout(3000) })
+      if (!r.ok) throw new Error(`${path} ${r.status}`)
+      return r.json()
+    }
+    const account = (await get('/api/accounts')).find((a) => a.broker === 'MOCK' && a.nickname === '[시드] 모의계좌')
+    if (!account) {
+      console.warn('[seed] MOCK 시드 계좌 없음 — 기본 ID 사용(kista-api scripts/dev-seed/seed.sh 확인)')
+      return {}
+    }
+    const strategies = await get(`/api/accounts/${account.id}/trading-cycles`)
+    // seed.sh 기준 ticker(SOXL·TQQQ)의 ACTIVE를 우선하고, 없으면 같은 type의 ACTIVE, 그다음 아무 상태
+    const pick = (type, ticker) =>
+      [(s) => s.ticker === ticker && s.status === 'ACTIVE', (s) => s.status === 'ACTIVE', () => true]
+        .map((cond) => strategies.find((s) => s.type === type && cond(s)))
+        .find(Boolean)
+    // 기본값 계좌 맵에 합친다 — 못 찾은 키가 기본 ID로 남아도 tickerOf가 그 ID의 ticker를 계속 찾도록
+    const resolved = { accounts: { ...defaults.accounts, [account.id]: Object.fromEntries(strategies.map((s) => [s.id, s.ticker])) } }
+    for (const [key, type, ticker] of [['infinite', 'INFINITE', 'SOXL'], ['vr', 'VR', 'TQQQ']]) {
+      const s = pick(type, ticker)
+      if (s) resolved[key] = { accountId: account.id, strategyId: s.id }
+      else console.warn(`[seed] MOCK 계좌에 ${type} 전략 없음 — ${key}는 기본 ID 사용(해당 화면 점검 실패 예상, kista-api scripts/dev-seed/seed.sh 확인)`)
+    }
+    return resolved
+  } catch (error) {
+    console.warn(`[seed] 로컬 API 조회 실패 — 기본 ID 사용: ${error.message}`)
+    return {}
+  }
+}
+
+const override = process.env.KISTA_DEV_SEED ? JSON.parse(readFileSync(process.env.KISTA_DEV_SEED, 'utf8')) : await resolveFromApi()
 
 export const seed = { ...defaults, ...override }
 

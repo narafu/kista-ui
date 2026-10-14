@@ -20,8 +20,9 @@ export const buttonVariants = cva(
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
         // 화면(탭)당 유일한 최상위 등록/실행 CTA 전용 — 기준은 docs/agents/features.md "CTA 버튼 위계"
+        // 다크 --rose-500·700(#C77F63·#D6A98E)은 흰 글자 대비 2.1~3.2라 어두운 배경색 글자(5.8~8.7). hover는 투명도 대신 명도
         brand:
-          "bg-gradient-to-br from-rose-500 to-rose-700 font-semibold text-white shadow-[0_1px_4px_rgba(225,29,72,0.30)] hover:opacity-90",
+          "bg-gradient-to-br from-rose-500 to-rose-700 font-semibold text-white dark:text-background shadow-[0_1px_4px_rgba(225,29,72,0.30)] hover:brightness-95",
         // 설정 화면 CRUD 리스트의 "항목 추가"류 2단계 CTA. --rose-*·--brand-fg-soft는 다크모드 오버라이드 있음(globals.css)
         "brand-soft":
           "border-[var(--rose-200)] bg-[var(--rose-50)] font-semibold text-[var(--brand-fg-soft)] hover:border-[var(--rose-300)] hover:bg-[var(--rose-100)]",

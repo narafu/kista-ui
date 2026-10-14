@@ -46,7 +46,7 @@ node scripts/visual-diff/sheet.mjs <out-dir> --only '^m-inf-.*-pc$' --crop 300,5
 
 기본은 dev 시드 실데이터다(kista-api `scripts/dev-seed/seed.sh`, 멱등). MOCK 계좌의 ACTIVE 전략은 preview·prices 등이 실제로 200을 준다. KIS 시드 전략은 PAUSED이고 preview가 503이다. fixture는 실데이터로 만들 수 없는 것만 채운다.
 
-- `../shared/seed.mjs`(a11y-check와 공용): 시나리오가 여는 계좌·전략 ID. 로컬 시드가 다르면 `KISTA_DEV_SEED=<json>`으로 최상위 키 단위 덮어쓰기(ID 확인 방법은 `../a11y-check/README.md` "전제와 안전장치").
+- `../shared/seed.mjs`(a11y-check와 공용): 시나리오가 여는 계좌·전략 ID. 실행 시 로컬 API에서 MOCK 시드 계좌·전략을 조회해 정하고(실패 시 기본값), `KISTA_DEV_SEED=<json>`을 주면 그 파일로 최상위 키 단위 덮어쓰기(동작 상세는 `../a11y-check/README.md` "전제와 안전장치").
 - `fixtures/trading.mjs`: preview·previews의 인위적 분기를 모드별로 응답한다(`deficit`/`uncertain`/`executed`/`skip`/`empty`). 시나리오의 `mode`로 고르고, 기본값 `real`은 실데이터를 그대로 통과시킨다.
 - kista-api(8080)는 fixture 없이 실데이터를 그대로 통과시킨다. `etf-series`는 09:00 KST cron에서만 수집되므로, 수집 전이면 ETF 벤치마크 탭이 "데이터 부족" 상태로만 비교된다.
 - 프록시는 실행 동안 upstream의 성공 응답(SSE 제외)을 메모이즈한다(URL·인증 헤더 기준). 진행 중인 요청도 공유하므로, head와 base가 병렬로 같은 데이터를 요청해도 실시간 가격이나 preview가 달라져 가짜 diff가 생기지 않는다.
