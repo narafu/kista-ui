@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { AdminPrivacyBase } from '@entities/privacy'
 import type { Candle } from '@entities/market'
-import { buildPrivacyChartSeries, candleRangeFor } from './privacyChartSeries'
+import { buildPrivacyChartSeries, candleRangeFor, sliceSeriesByRange } from './privacyChartSeries'
 
 function base(overrides: Partial<AdminPrivacyBase>): AdminPrivacyBase {
   return {
@@ -103,6 +103,33 @@ describe('누적 실현손익', () => {
     )
     // 01-02는 해를 넘긴 사이클 진행 중(재설정 전) → 같은 기준. 01-08 재설정 시 직전 누적 (12000−10000)+300 = 2300 이월
     expect(rows.map((r) => [r.confirmedPnl, r.cumulativePnl])).toEqual([[0, 0], [2000, 2200], [2000, 2300], [2300, 2300], [2600, 2650]])
+  })
+})
+
+describe('연초 재설정 최종 손익 추정·기간 자르기', () => {
+  // 운영 실측(2026-01-05 → 01-06 재설정)과 같은 모양
+  const history = [
+    base({ id: '1', releaseDate: '2026-01-02', currentCycleStart: 14883.96, currentCycleRealizedPnl: 300, avgPrice: 43.36, holdings: 73 }),
+    base({ id: '2', releaseDate: '2026-01-05', currentCycleStart: 14883.96, currentCycleRealizedPnl: 321.08, avgPrice: 43.36, holdings: 73 }),
+    base({ id: '3', releaseDate: '2026-01-06', currentCycleStart: 10000, currentCycleRealizedPnl: 0, avgPrice: null, holdings: 0 }),
+    base({ id: '4', releaseDate: '2026-01-07', currentCycleStart: 10000, currentCycleRealizedPnl: 20, avgPrice: 50, holdings: 10 }),
+  ]
+  const candles = [candle('2026-01-02', 47.24), candle('2026-01-05', 49.22), candle('2026-01-06', 54.01)]
+
+  it('재설정 날 남은 수량 × (직전 거래일 종가 − 평단가)를 직전 사이클 마지막 매도 손익으로 추정해 이월한다', () => {
+    const { rows } = buildPrivacyChartSeries(history, candles)
+    const estimate = 73 * (49.22 - 43.36)
+    expect(rows[2].resetEstimatedPnl).toBeCloseTo(estimate)
+    expect(rows[2].cumulativePnl).toBeCloseTo(321.08 + estimate)
+    expect(rows[3].cumulativePnl).toBeCloseTo(321.08 + estimate + 20)
+    expect(rows[1].resetEstimatedPnl).toBeNull()
+  })
+
+  it('기간으로 자르면 첫날 확정 손익을 0으로 맞추고, 재설정 판정은 전체 이력 기준을 유지한다', () => {
+    const { rows } = buildPrivacyChartSeries(history, candles)
+    const sliced = sliceSeriesByRange(rows, '2026-01-06')
+    expect(sliced.map((r) => r.date)).toEqual(['2026-01-06', '2026-01-07'])
+    expect(sliced.map((r) => [r.confirmedPnl, r.cumulativePnl])).toEqual([[0, 0], [0, 20]])
   })
 })
 

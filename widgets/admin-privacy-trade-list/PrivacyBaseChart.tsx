@@ -7,12 +7,12 @@ import { Area, Brush, CartesianGrid, ComposedChart, Line, ReferenceArea, Referen
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
-import { filterAdminPrivacyBasesByRange, useAdminPrivacyBasesQuery } from '@entities/privacy'
+import { useAdminPrivacyBasesQuery } from '@entities/privacy'
 import { useCandlesRangeQuery } from '@entities/market'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { fmtMonthDay, fmtSignedUsd, fmtUsd, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
-import { buildPrivacyChartSeries, candleRangeFor } from './model/privacyChartSeries'
+import { buildPrivacyChartSeries, candleRangeFor, sliceSeriesByRange } from './model/privacyChartSeries'
 import type { PrivacyChartRow } from './model/privacyChartSeries'
 
 interface Props {
@@ -132,6 +132,14 @@ function ChartTooltip({ row, ticker }: { row: PrivacyChartRow | undefined; ticke
         <TooltipRow label="사이클 시작금액" value={fmtUsd(row.cycleStart)} swatch={SWATCH.flat} />
         <TooltipRow label="확정 손익" value={fmtSignedUsd(row.confirmedPnl)} swatch={pnlSwatch(row.confirmedPnl)} className={pnlTextClass(row.confirmedPnl)} />
         <TooltipRow label="진행 사이클 손익" value={fmtSignedUsd(row.realizedPnl)} swatch={pnlSwatch(row.realizedPnl)} className={pnlTextClass(row.realizedPnl)} />
+        {row.yearlyReset && (
+          <TooltipRow
+            label="연초 재설정 · 직전 사이클 마지막 매도(추정)"
+            value={row.resetEstimatedPnl == null ? '추정 불가(종가·평단가 없음)' : fmtSignedUsd(row.resetEstimatedPnl)}
+            swatch={pnlSwatch(row.resetEstimatedPnl ?? 0)}
+            className={row.resetEstimatedPnl == null ? 'text-[var(--warn)]' : pnlTextClass(row.resetEstimatedPnl)}
+          />
+        )}
         <TooltipRow label="누적 손익" value={fmtSignedUsd(row.cumulativePnl)} swatch={SWATCH.cumulative} className={cn('font-semibold', pnlTextClass(row.cumulativePnl))} />
       </TooltipSection>
     </div>
@@ -151,14 +159,17 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
   const [pickedTicker, setPickedTicker] = useState<string | null>(null)
   const ticker = pickedTicker ?? (tickers.includes(DEFAULT_TICKER) ? DEFAULT_TICKER : tickers[0] ?? DEFAULT_TICKER)
 
-  const bases = useMemo(
-    () => filterAdminPrivacyBasesByRange(allBases.filter((b) => b.ticker === ticker), windowFrom, windowTo),
-    [allBases, ticker, windowFrom, windowTo],
-  )
-  const candleRange = useMemo(() => candleRangeFor(bases), [bases])
+  // 누적 손익의 연초 재설정 판정·추정에 전체 이력이 필요해 종목 전체로 계산한 뒤 조회 기간으로 자른다.
+  // 종가도 전체 이력 범위(최대 5년)로 받는다 — 기간 필터를 바꿔도 같은 키라 다시 조회하지 않는다.
+  // ponytail: 이력이 5년을 넘으면 오래된 구간은 종가·현금비중·재설정 추정이 빈다 — 그때 기간별로 나눠 조회한다
+  const tickerBases = useMemo(() => allBases.filter((b) => b.ticker === ticker), [allBases, ticker])
+  const candleRange = useMemo(() => candleRangeFor(tickerBases), [tickerBases])
   const candlesQuery = useCandlesRangeQuery(ticker, candleRange)
-  const series = useMemo(() => buildPrivacyChartSeries(bases, candlesQuery.data ?? []), [bases, candlesQuery.data])
-  const { rows, maxBuyOrders, maxSellOrders } = series
+  const series = useMemo(() => buildPrivacyChartSeries(tickerBases, candlesQuery.data ?? []), [tickerBases, candlesQuery.data])
+  const rows = useMemo(() => sliceSeriesByRange(series.rows, windowFrom, windowTo), [series.rows, windowFrom, windowTo])
+  // 주문 점 계열 수는 보이는 기간 기준 — 전체 이력 최대치로 그리면 빈 계열이 생긴다
+  const maxBuyOrders = Math.max(0, ...rows.map((r) => r.buys.length))
+  const maxSellOrders = Math.max(0, ...rows.map((r) => r.sells.length))
   const rowByDate = new Map(rows.map((r) => [r.date, r]))
   const boundaries = rows.filter((r) => r.cycleBoundary).map((r) => r.date)
   const missingCloseCount = rows.filter((r) => r.close == null).length
