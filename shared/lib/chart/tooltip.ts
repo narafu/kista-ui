@@ -1,2 +1,9 @@
-// recharts 기본 툴팁 항목 글자색은 계열 stroke 색이라 흰 배경 대비 4.5:1 미달(--chart-1 4.09:1) — 기본 렌더 툴팁은 이 상수를 itemStyle로 쓴다.
-export const TOOLTIP_ITEM_STYLE = { color: 'var(--foreground)' }
+// recharts 기본 툴팁 박스 스타일 — 카드 토큰을 따라 다크 모드에서도 배경·테두리·글자가 맞는다.
+// 항목 글자색·계열 색 점은 app/globals.css의 .recharts-tooltip-item 규칙이 처리한다.
+export const TOOLTIP_CONTENT_STYLE = {
+  fontSize: 12,
+  backgroundColor: 'var(--card)',
+  border: '1px solid var(--border)',
+  color: 'var(--foreground)',
+  borderRadius: 6,
+}

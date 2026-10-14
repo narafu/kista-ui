@@ -562,3 +562,21 @@ img[data-nimg][height="78"] { height: 78px; }
   --info-text: var(--info);
   --success-text: var(--status-ok);
 }
+
+/* recharts 기본 툴팁(custom content 미사용) 항목: recharts는 li에 계열 색을 인라인으로 입힌다.
+   그 색 글자는 흰 배경 대비 4.5:1을 못 맞추므로(--chart-1 4.09:1) 글자는 본문색으로 덮고,
+   계열이 2개 이상이면 li에 남은 계열 색(currentColor)으로 앞에 색 점을 그려 구분한다
+   (단일 계열은 구분할 게 없고, FearGreedTrend처럼 stroke가 url(#gradient)면 색이 무효라 점이 의미 없다). */
+.recharts-tooltip-item > span {
+  color: var(--foreground);
+}
+.recharts-tooltip-item-list:has(> li + li) > .recharts-tooltip-item::before {
+  content: '';
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.375rem;
+  border-radius: 9999px;
+  background-color: currentColor;
+  vertical-align: middle;
+}

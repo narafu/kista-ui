@@ -4,7 +4,7 @@
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
 import { fmtMonthDay, fmtDate } from '@shared/lib/format'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
-import { TOOLTIP_ITEM_STYLE } from '@shared/lib/chart/tooltip'
+import { TOOLTIP_CONTENT_STYLE } from '@shared/lib/chart/tooltip'
 
 export interface EquityLineChartRow {
   date: string
@@ -77,14 +77,7 @@ export function EquityLineChart({
             <Tooltip
               labelFormatter={(label) => fmtDate(String(label))}
               formatter={(value, name) => [typeof value === 'number' ? valueFormatter(value) : String(value), String(name)]}
-              contentStyle={{
-                fontSize: 12,
-                backgroundColor: 'var(--card)',
-                border: '1px solid var(--border)',
-                color: 'var(--foreground)',
-                borderRadius: 6,
-              }}
-              itemStyle={TOOLTIP_ITEM_STYLE}
+              contentStyle={TOOLTIP_CONTENT_STYLE}
             />
             <Line type="monotone" dataKey="principal" name={principalLabel} stroke="var(--muted-foreground)" strokeWidth={2} strokeDasharray="5 4" dot={false} />
             <Line type="monotone" dataKey="asset" name={assetLabel} stroke="var(--chart-1)" strokeWidth={2.5} dot={false} />

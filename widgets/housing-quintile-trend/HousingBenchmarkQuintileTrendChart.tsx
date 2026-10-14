@@ -1,7 +1,7 @@
 'use client'
 
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
-import { TOOLTIP_ITEM_STYLE } from '@shared/lib/chart/tooltip'
+import { TOOLTIP_CONTENT_STYLE } from '@shared/lib/chart/tooltip'
 import { useMemo, useState } from 'react'
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
@@ -158,17 +158,10 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
                     domain={['auto', 'auto']}
                   />
                   <Tooltip
-                    itemStyle={TOOLTIP_ITEM_STYLE}
                     labelFormatter={(label) => formatHousingBenchmarkMonth(String(label))}
                     formatter={(value) => fmtKrwEok(Number(value))}
                     itemSorter={(item) => -Number(item.value)}
-                    contentStyle={{
-                      fontSize: 12,
-                      backgroundColor: 'var(--card)',
-                      border: '1px solid var(--border)',
-                      color: 'var(--foreground)',
-                      borderRadius: 6,
-                    }}
+                    contentStyle={TOOLTIP_CONTENT_STYLE}
                   />
                   {QUINTILE_SERIES.map((series) => (
                     <Line

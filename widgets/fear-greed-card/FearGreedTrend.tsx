@@ -7,7 +7,7 @@ import type { FearGreedPoint } from '@entities/market'
 import { zoneOf } from './fearGreedZones'
 import { fmtMonthDay } from '@shared/lib/format'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
-import { TOOLTIP_ITEM_STYLE } from '@shared/lib/chart/tooltip'
+import { TOOLTIP_CONTENT_STYLE } from '@shared/lib/chart/tooltip'
 
 interface Props {
   history: FearGreedPoint[]
@@ -64,16 +64,9 @@ export function FearGreedTrend({ history, title }: Props) {
         <XAxis dataKey="date" tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={24} />
         <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tick={AXIS_TICK} tickLine={false} axisLine={false} width={28} />
         <Tooltip
-          itemStyle={TOOLTIP_ITEM_STYLE}
           formatter={(v) => [String(v), '지수']}
           labelStyle={{ fontSize: 12 }}
-          contentStyle={{
-            fontSize: 12,
-            backgroundColor: 'var(--card)',
-            border: '1px solid var(--border)',
-            color: 'var(--foreground)',
-            borderRadius: 6,
-          }}
+          contentStyle={TOOLTIP_CONTENT_STYLE}
         />
         <Area
           type="monotone"
