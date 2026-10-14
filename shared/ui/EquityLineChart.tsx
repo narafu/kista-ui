@@ -4,6 +4,7 @@
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
 import { fmtMonthDay, fmtDate } from '@shared/lib/format'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
+import { TOOLTIP_ITEM_STYLE } from '@shared/lib/chart/tooltip'
 
 export interface EquityLineChartRow {
   date: string
@@ -83,8 +84,7 @@ export function EquityLineChart({
                 color: 'var(--foreground)',
                 borderRadius: 6,
               }}
-              // 항목 글자색이 기본값(계열 stroke)이면 --chart-1이 흰 배경 대비 4.09:1로 미달 — 본문색으로 고정
-              itemStyle={{ color: 'var(--foreground)' }}
+              itemStyle={TOOLTIP_ITEM_STYLE}
             />
             <Line type="monotone" dataKey="principal" name={principalLabel} stroke="var(--muted-foreground)" strokeWidth={2} strokeDasharray="5 4" dot={false} />
             <Line type="monotone" dataKey="asset" name={assetLabel} stroke="var(--chart-1)" strokeWidth={2.5} dot={false} />

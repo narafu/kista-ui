@@ -1,6 +1,7 @@
 'use client'
 
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
+import { TOOLTIP_ITEM_STYLE } from '@shared/lib/chart/tooltip'
 import { useMemo } from 'react'
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
@@ -90,6 +91,7 @@ export function EtfPriceChart({ enabled, from, to, symbol, label }: Props) {
                     domain={['auto', 'auto']}
                   />
                   <Tooltip
+                    itemStyle={TOOLTIP_ITEM_STYLE}
                     labelFormatter={(tickLabel) => formatHousingBenchmarkDate(String(tickLabel))}
                     formatter={(value) => fmtUsd(Number(value))}
                     contentStyle={{

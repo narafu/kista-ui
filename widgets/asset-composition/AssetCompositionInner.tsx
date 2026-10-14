@@ -23,6 +23,7 @@ import { fmtKrw } from '@shared/lib/format'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { SectionError } from '@shared/ui/SectionError'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
+import { TOOLTIP_ITEM_STYLE } from '@shared/lib/chart/tooltip'
 
 // Tailwind `sm` 브레이크포인트(640px)와 동일 기준 — globals.css 변경 시 함께 맞출 것.
 const MOBILE_BREAKPOINT_PX = 640
@@ -112,6 +113,7 @@ function CompositionChart({ title, columns, segments, labelFor, colorFor }: Comp
                   tickFormatter={(value: number) => `${value}%`}
                 />
                 <Tooltip
+                  itemStyle={TOOLTIP_ITEM_STYLE}
                   cursor={{ fill: 'var(--muted)' }}
                   labelFormatter={(label) => formatMonthLabel(String(label))}
                   formatter={(value, name, item) => {

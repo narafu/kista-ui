@@ -1,6 +1,7 @@
 'use client'
 
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
+import { TOOLTIP_ITEM_STYLE } from '@shared/lib/chart/tooltip'
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -77,6 +78,7 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark, benc
                 domain={['auto', 'auto']}
               />
               <Tooltip
+                itemStyle={TOOLTIP_ITEM_STYLE}
                 labelFormatter={(label) => formatTooltipLabel(String(label))}
                 formatter={(value, name, item) => {
                   const point = item.payload as HousingBenchmarkPoint

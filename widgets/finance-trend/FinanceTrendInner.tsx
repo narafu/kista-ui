@@ -13,6 +13,7 @@ import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { calcFlowTrend, filterByType, flowCategoryColor, sortCategoryTree } from '@entities/finance'
 import type { CategoryIndex, FinanceCategory, FinanceCategoryType, FinanceTransaction, Period, TrendRange } from '@entities/finance'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
+import { TOOLTIP_ITEM_STYLE } from '@shared/lib/chart/tooltip'
 
 // Y축 눈금 전용 — fmtKrw는 "1,000,000원" 같은 긴 문자열이라 좁은 축 폭에 맞지 않는다.
 // 만원 단위로 축약해 표시하고, 정확한 금액은 Tooltip의 fmtKrw로 보여준다.
@@ -77,7 +78,7 @@ export default function FinanceTrendInner({ type, transactions, range, categoryT
                 <XAxis dataKey="period" tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={24} />
                 <YAxis tick={AXIS_TICK} tickLine={false} axisLine={false} width={44} tickFormatter={fmtKrwAxisTick} domain={['auto', 'auto']} />
                 {/* hover 가독성 — AssetTrendInner와 동일한 가이드선·강조 점·툴팁 스타일. 카테고리별 보기에선
-                    항목 색으로 계열을 구분하므로 itemStyle에 color를 고정하지 않는다. */}
+                    항목 글자색은 대비를 위해 foreground 고정 — 계열은 툴팁의 name 표기와 범례로 구분한다. */}
                 <Tooltip
                   formatter={(value, name) => [maskIfHidden(fmtKrw(Number(value))), name]}
                   cursor={{ stroke: 'var(--muted-foreground)', strokeWidth: 1, strokeDasharray: '4 4' }}
@@ -91,7 +92,7 @@ export default function FinanceTrendInner({ type, transactions, range, categoryT
                     boxShadow: '0 4px 12px rgb(0 0 0 / 0.12)',
                   }}
                   labelStyle={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 2 }}
-                  itemStyle={{ fontWeight: 600 }}
+                  itemStyle={{ ...TOOLTIP_ITEM_STYLE, fontWeight: 600 }}
                 />
                 {byCategory && <Legend wrapperStyle={{ fontSize: 11, color: 'var(--muted-foreground)' }} />}
                 <Line
