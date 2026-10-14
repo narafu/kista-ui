@@ -3,8 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { PageHeader } from '@widgets/page-header'
 import { NewAccountButton } from '@features/account/create-account'
-import { MarketChartCard } from '@widgets/dashboard/MarketChartCard'
-import { MARKET_CHART_CATEGORIES } from '@widgets/dashboard/marketChartCategories'
+import { DashboardMarkets } from '@widgets/dashboard/DashboardMarkets'
 import { Surface } from '@shared/ui/Surface'
 
 interface Props {
@@ -21,9 +20,9 @@ const NOTIFICATION_CARD = {
 export function DashboardEmpty({ marketPanels }: Props) {
   return (
     <>
-      {/* Desktop */}
+      {/* Desktop 안내 */}
       <div className="hidden lg:block">
-        <PageHeader eyebrow="Dashboard" title="대시보드" />
+        <PageHeader eyebrow="홈" title="대시보드" />
         {/* Row 1: 안내 카드 2개 */}
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div
@@ -49,19 +48,9 @@ export function DashboardEmpty({ marketPanels }: Props) {
             </Link>
           </Surface>
         </div>
-        {/* Row 2: 달력 + 공포탐욕 2개 (3칸) */}
-        <div className="grid grid-cols-3 gap-4 mb-4">
-          {marketPanels}
-        </div>
-        {/* Row 3: 트레이딩뷰 차트 3개 */}
-        <div className="grid grid-cols-3 gap-4">
-          {MARKET_CHART_CATEGORIES.map((category) => (
-            <MarketChartCard key={category.title} category={category} />
-          ))}
-        </div>
       </div>
 
-      {/* Mobile */}
+      {/* Mobile 안내 */}
       <div className="lg:hidden">
         <h1 className="sr-only">대시보드</h1>
         <div
@@ -71,9 +60,9 @@ export function DashboardEmpty({ marketPanels }: Props) {
           <div className="size-16 rounded-2xl bg-card flex items-center justify-center mx-auto mb-3 shadow-[0_4px_12px_rgba(143,68,48,0.18)]">
             <Image src="/logo.png" alt="KISTA" width={52} height={52} className="rounded-[var(--r-lg)]" style={{ height: 52, width: 52 }} />
           </div>
-          <p className="text-sm font-bold tracking-[0.15em] uppercase text-[var(--brand-fg-soft)] mb-1.5">Welcome to KISTA</p>
+          <p className="text-sm font-bold tracking-[0.15em] uppercase text-[var(--brand-fg-soft)] mb-1.5">KISTA 시작하기</p>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            한국투자증권 KIS API 키만 입력하면<br />분할매매 자동화가 시작됩니다.
+            한국투자증권 KIS API 키와 계좌번호를 입력하면<br />분할매매 자동화가 시작됩니다.
           </p>
           <NewAccountButton className="w-full justify-center py-3">첫 계좌 등록하기</NewAccountButton>
         </div>
@@ -84,15 +73,9 @@ export function DashboardEmpty({ marketPanels }: Props) {
             {NOTIFICATION_CARD.cta}
           </Link>
         </div>
-        <div className="flex flex-col gap-4">
-          {marketPanels}
-        </div>
-        <div className="flex flex-col gap-4 mt-4">
-          {MARKET_CHART_CATEGORIES.map((category) => (
-            <MarketChartCard key={category.title} category={category} />
-          ))}
-        </div>
       </div>
+
+      <DashboardMarkets marketPanels={marketPanels} />
     </>
   )
 }

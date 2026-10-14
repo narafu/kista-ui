@@ -41,7 +41,7 @@
 - **같은 개념·행위는 한 플로우 안에서 하나의 용어로 통일한다**: 특히 "등록/추가", "재요청/재신청" 같은 동의어가 같은 폼의 트리거 버튼·다이얼로그 제목·성공 토스트 사이에서 각각 다르게 쓰이기 쉽다 — 폼을 새로 만들거나 수정할 때 트리거 버튼 라벨, 다이얼로그 제목, 성공 토스트 세 곳의 동사가 일치하는지 확인한다.
   - **예외 — 의도적으로 분리된 용어는 건드리지 않는다**: `entities/user/model/status.ts`의 `USER_STATUS_LABEL`(본인 화면, REJECTED="반려")과 `ADMIN_USER_STATUS_LABEL`(관리자 화면, REJECTED="거절")처럼 화면 맥락에 따라 의도적으로 다른 단어를 쓰는 경우가 있다 — 코드에 "의도적으로 다름" 주석이 있으면 통일하지 말고, 그 경계를 넘어선 진짜 자기모순(예: 관리자 화면 안에서 자기 버튼과 다른 단어를 쓰는 경우)만 고친다. 새로 의도적 용어 분리가 필요하면 이 파일처럼 이유를 주석으로 남긴다.
 - **새 카피를 쓰기 전에 기존 문구를 grep한다**: 같은 개념을 가리키는 문구가 이미 있으면(`grep -rn "<키워드>" --include="*.tsx" .`) 그 표현을 재사용한다. 좁은 화면/도메인 단위로만 비교하면 실제로는 다른 레이어·다른 역할의 정당한 컨벤션을 "불일치"로 오판하기 쉽다(예: `entities/` 레이어 mutation 훅과 `features/`·`widgets/` 인라인 토스트는 서로 다른 정당한 마침표 컨벤션을 갖는다) — 앱 전역 grep으로 실제 다수 패턴을 확인한 뒤 고친다.
-- **nav/메뉴 라벨은 전부 한글로 쓴다**: 영문 라벨(예: "Overview")이 섞여 들어가는 걸 발견하면 바로 한글화한다.
+- **nav/메뉴 라벨과 `PageHeader` eyebrow는 전부 한글로 쓴다**: 영문 라벨(예: "Overview", eyebrow "Dashboard")이 섞여 들어가는 걸 발견하면 바로 한글화한다.
 - **mutation 훅의 `onError`를 호출부에서 다시 덮어쓰지 않는다**: `entities/*/hooks/*.ts`의 mutation 훅이 이미 `onError`에 `toast.error`를 두고 있다면(`docs/agents/entities.md` 패턴), feature 호출부의 `mutate(data, { onError })`에 또 다른 토스트를 넣지 않는다 — React Query는 훅 레벨과 호출 레벨 `onError`를 둘 다 실행하므로 실패 시 토스트가 두 번 뜬다(`ChangeRoleButton.tsx`/`WithdrawUserButton.tsx`에서 실제 발견된 버그). 호출부는 성공 후 추가 동작만 `onSuccess`로 넣는다.
 
 ### 접근성

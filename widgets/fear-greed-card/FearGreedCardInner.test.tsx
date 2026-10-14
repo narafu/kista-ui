@@ -20,6 +20,22 @@ describe('FearGreedCardInner', () => {
     expect(screen.queryByText('중립')).not.toBeInTheDocument()
   })
 
+  it('shows a loading message instead of 데이터 없음 while the query is pending', () => {
+    render(
+      <FearGreedCardInner
+        title="CNN 공포탐욕지수"
+        data={undefined}
+        loading
+        days={200}
+        onDaysChange={vi.fn()}
+        daysOptions={[200, 120, 50, 20]}
+      />,
+    )
+
+    expect(screen.getByText('불러오는 중…')).toBeInTheDocument()
+    expect(screen.queryByText('데이터 없음')).not.toBeInTheDocument()
+  })
+
   it('renders the current gauge value when data.current is present', () => {
     const data: FearGreedSourceView = {
       current: { date: '2026-07-01', value: 80, rating: 'EXTREME_GREED' },
@@ -77,7 +93,7 @@ describe('FearGreedCardInner', () => {
       />,
     )
 
-    expect(screen.getByText('+5')).toHaveClass('text-pos')
-    expect(screen.getByText('-5')).toHaveClass('text-neg')
+    expect(screen.getByText('+5')).toHaveClass('text-foreground')
+    expect(screen.getByText('-5')).toHaveClass('text-foreground')
   })
 })

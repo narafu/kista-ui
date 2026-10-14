@@ -19,7 +19,7 @@ function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
     <EmptyState
       icon={<TrendingUp className="size-7 text-muted-foreground" />}
       title="등록된 전략이 없습니다"
-      message={hasAccounts ? '계좌 상세 페이지에서 전략을 추가할 수 있습니다.' : '계좌를 먼저 등록한 후 전략을 추가해 주세요.'}
+      message={hasAccounts ? '계좌 상세 페이지에서 전략을 추가할 수 있습니다.' : '계좌를 먼저 등록한 후 전략을 추가해주세요.'}
       action={
         hasAccounts ? (
           <div className="flex flex-col gap-2 w-full max-w-xs">

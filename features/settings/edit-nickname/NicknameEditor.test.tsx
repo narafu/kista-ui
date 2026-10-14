@@ -28,7 +28,7 @@ describe('NicknameEditor', () => {
     await user.clear(screen.getByLabelText('닉네임'))
     await user.click(screen.getByRole('button', { name: '저장' }))
 
-    expect(screen.getByText('닉네임을 입력해 주세요.')).toBeInTheDocument()
+    expect(screen.getByText('닉네임을 입력해주세요.')).toBeInTheDocument()
     expect(mutateMock).not.toHaveBeenCalled()
   })
 

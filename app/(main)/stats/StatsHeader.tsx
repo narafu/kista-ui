@@ -17,7 +17,7 @@ export function StatsHeader() {
 
   return (
     <>
-      <PageHeader eyebrow="Stats" title={activeLabel} />
+      <PageHeader eyebrow="통계" title={activeLabel} />
       <SectionTabBar items={TAB_OPTIONS} rootHref="/stats" ariaLabel="통계 탭" className="grid-cols-3 sm:w-[22rem]" />
     </>
   )

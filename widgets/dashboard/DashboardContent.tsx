@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { useAccountsQuery } from '@entities/account'
 import { DashboardEmpty } from './DashboardEmpty'
 import { DashboardOverview } from './DashboardOverview'
+import { DashboardSkeleton } from './DashboardSkeleton'
 
 interface Props {
   marketPanels: ReactNode
@@ -19,17 +20,18 @@ export function DashboardContent({ marketPanels, isAuthenticated }: Props) {
   }
 
   if (!accounts && query.isPending) {
-    return (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <div key={index} className="h-48 rounded-[var(--r-lg)] border border-border bg-card animate-pulse" />
-        ))}
-      </div>
-    )
+    return <DashboardSkeleton />
   }
 
+  // 계좌 조회 실패는 계좌와 무관한 공개 시장 패널까지 가리지 않는다. Empty로 떨어지면 기존 사용자에게
+  // "첫 계좌 등록"을 권하게 되므로 Overview에 안내만 얹는다
   if (!accounts && query.isError) {
-    throw query.error
+    return (
+      <DashboardOverview
+        marketPanels={marketPanels}
+        notice={<p className="mb-4 text-sm text-warn">계좌 정보를 불러오지 못했습니다</p>}
+      />
+    )
   }
 
   if (!accounts || accounts.length === 0) {

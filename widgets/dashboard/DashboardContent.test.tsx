@@ -76,4 +76,16 @@ describe('DashboardContent', () => {
     expect(queryState?.fetchStatus ?? 'idle').toBe('idle')
     expect(queryState?.dataUpdateCount ?? 0).toBe(0)
   })
+
+  it('keeps market panels with an inline notice instead of throwing when the account query fails', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')))
+    const client = createQueryClient()
+
+    renderWithClient(client)
+
+    expect(await screen.findByText('계좌 정보를 불러오지 못했습니다')).toBeInTheDocument()
+    expect(screen.getByTestId('market-panels-sentinel')).toBeInTheDocument()
+    expect(screen.queryByText('첫 계좌 등록')).not.toBeInTheDocument()
+    vi.unstubAllGlobals()
+  })
 })

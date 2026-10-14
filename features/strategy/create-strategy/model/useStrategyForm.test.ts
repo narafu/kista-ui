@@ -694,7 +694,7 @@ describe('useStrategyForm submit policy', () => {
     })
 
     await waitFor(() => {
-      expect(result.current.submitDisabledReason).toBe('입력값을 다시 확인해 주세요.')
+      expect(result.current.submitDisabledReason).toBe('입력값을 다시 확인해주세요.')
     })
     expect(mockCreateMutate).not.toHaveBeenCalled()
   })

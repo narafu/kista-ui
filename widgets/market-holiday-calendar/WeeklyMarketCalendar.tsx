@@ -5,9 +5,11 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
 import { fmtUsd } from '@shared/lib/format'
 import { Surface } from '@shared/ui/Surface'
+import { IconButton } from '@shared/ui/IconButton'
+import { Spinner } from '@shared/ui/Spinner'
 import { useAccountsQuery } from '@entities/account'
 import { useMonthlyHolidaysQuery } from '@entities/market'
-import { useDailyTradesRangeQuery, directionTextClass, type DayTradeSummary } from '@entities/trade'
+import { useDailyTradesRangeQuery, directionBadgeClass, directionTextClass, type DayTradeSummary } from '@entities/trade'
 
 interface Props {
   initialWeekStartDate: string // 'YYYY-MM-DD', 이번 주 일요일
@@ -15,6 +17,9 @@ interface Props {
 }
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
+
+// 7열 칸(모바일 약 33px)에 들어가도록 2자리 유효숫자 축약 — 정확한 금액은 title로 노출
+const compactUsd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumSignificantDigits: 2 })
 
 function pad(n: number) { return String(n).padStart(2, '0') }
 
@@ -73,13 +78,13 @@ function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
         {!isWeekend && !isHoliday && daySummary && (
           <span className="flex flex-col items-center gap-px">
             {daySummary.buyCount > 0 && (
-              <span className={cn('text-[10px] leading-none', directionTextClass('BUY'))}>
-                {`매수 $${fmtUsd(daySummary.buyAmountUsd, 0)}`}
+              <span className={cn('text-[10px] leading-none', directionTextClass('BUY'))} title={`매수 $${fmtUsd(daySummary.buyAmountUsd, 0)}`}>
+                {`매수 ${compactUsd.format(daySummary.buyAmountUsd)}`}
               </span>
             )}
             {daySummary.sellCount > 0 && (
-              <span className={cn('text-[10px] leading-none', directionTextClass('SELL'))}>
-                {`매도 $${fmtUsd(daySummary.sellAmountUsd, 0)}`}
+              <span className={cn('text-[10px] leading-none', directionTextClass('SELL'))} title={`매도 $${fmtUsd(daySummary.sellAmountUsd, 0)}`}>
+                {`매도 ${compactUsd.format(daySummary.sellAmountUsd)}`}
               </span>
             )}
           </span>
@@ -88,6 +93,9 @@ function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
     )
   })
 }
+
+// 라벨·금액 2줄로 쌓아 칸 너비를 넘지 않게 한다(좌우 패딩 없음)
+const DAY_BADGE_CLASS = 'block rounded py-px text-[11px] font-semibold leading-tight'
 
 interface CurrentRowProps {
   weekStart: Date
@@ -113,30 +121,30 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
     let sub: React.ReactNode = null
 
     if (isWeekend) {
-      badge = <span className="text-xs px-1.5 py-[1px] rounded bg-muted text-muted-foreground/50">휴</span>
+      badge = <span className="text-xs px-1.5 py-[1px] rounded bg-muted text-muted-foreground">휴</span>
     } else if (isHoliday) {
       badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-[var(--gold)]/15 text-[var(--gold)]">휴장</span>
     } else if (isToday && !summary && accountIds.length > 0) {
-      badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-warn-bg text-warn">대기</span>
+      badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-info-bg text-info">대기</span>
       sub = <span className="text-xs text-muted-foreground">오늘</span>
     } else if (summary) {
       badge = (
-        <span className="flex flex-col items-center gap-0.5">
+        <span className="flex w-full flex-col items-stretch gap-0.5">
           {summary.buyCount > 0 && (
-            <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-pos-bg text-pos">
-              {`매수 $${fmtUsd(summary.buyAmountUsd, 0)}`}
+            <span className={cn(DAY_BADGE_CLASS, directionBadgeClass('BUY'))} title={`매수 $${fmtUsd(summary.buyAmountUsd, 0)}`}>
+              매수<br />{compactUsd.format(summary.buyAmountUsd)}
             </span>
           )}
           {summary.sellCount > 0 && (
-            <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-neg-bg text-neg">
-              {`매도 $${fmtUsd(summary.sellAmountUsd, 0)}`}
+            <span className={cn(DAY_BADGE_CLASS, directionBadgeClass('SELL'))} title={`매도 $${fmtUsd(summary.sellAmountUsd, 0)}`}>
+              매도<br />{compactUsd.format(summary.sellAmountUsd)}
             </span>
           )}
         </span>
       )
       sub = <span className="text-xs text-muted-foreground">{summary.tradeCount}체결</span>
     } else {
-      badge = <span className="text-xs text-muted-foreground/30">—</span>
+      badge = <span className="text-xs text-muted-foreground">—</span>
     }
 
     return (
@@ -205,7 +213,7 @@ export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: 
   const holidaySet = new Set(holidayQueries.flatMap((query) => query.holidays))
 
   // 전주 시작~다음주 끝(3주)을 1회 요청으로 조회 — 계좌별/주별 개별 요청 대신 배치 API 사용
-  const { data: tradeSummary = new Map(), isFetching: anyFetching } = useDailyTradesRangeQuery(
+  const { data: tradeSummary = new Map(), isFetching: anyFetching, isError: tradesFetchFailed } = useDailyTradesRangeQuery(
     accountIds,
     prevWeekStart,
     addDays(nextWeekStart, 6),
@@ -225,28 +233,19 @@ export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: 
         미국 휴장일 · 주간 거래
       </span>
       <div className="flex items-center justify-between mb-1">
-        <button
-          type="button"
-          onClick={() => setDisplayWeekStart(d => addDays(d, -7))}
-          className="p-[5px] rounded hover:bg-muted transition-colors"
-          aria-label="이전 주"
-        >
-          <ChevronLeft className="size-3.5 text-muted-foreground" />
-        </button>
-        <span className="text-sm text-muted-foreground">
+        <IconButton onClick={() => setDisplayWeekStart(d => addDays(d, -7))} aria-label="이전 주" className="-my-2.5">
+          <ChevronLeft className="size-4" />
+        </IconButton>
+        <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
           {weekLabel(displayWeekStart)}
+          {anyFetching && <Spinner size={12} />}
         </span>
-        <button
-          type="button"
-          onClick={() => setDisplayWeekStart(d => addDays(d, 7))}
-          className="p-[5px] rounded hover:bg-muted transition-colors"
-          aria-label="다음 주"
-        >
-          <ChevronRight className="size-3.5 text-muted-foreground" />
-        </button>
+        <IconButton onClick={() => setDisplayWeekStart(d => addDays(d, 7))} aria-label="다음 주" className="-my-2.5">
+          <ChevronRight className="size-4" />
+        </IconButton>
       </div>
 
-      <div className={cn('grid grid-cols-7 text-center gap-0.5', anyFetching && 'opacity-50')}>
+      <div className="grid grid-cols-7 text-center gap-0.5" aria-busy={anyFetching}>
         {WEEKDAYS.map((d, i) => (
           <div
             key={d}
@@ -271,27 +270,30 @@ export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: 
         {accountIds.length > 0 && (
           <>
             <span className="flex items-center gap-1.5">
-              <span className="size-[7px] rounded bg-neg shrink-0" />
-              매도
-            </span>
-            <span className="flex items-center gap-1.5">
               <span className="size-[7px] rounded bg-pos shrink-0" />
               매수
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="size-[7px] rounded bg-warn shrink-0" />
+              <span className="size-[7px] rounded bg-neg shrink-0" />
+              매도
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="size-[7px] rounded bg-info shrink-0" />
               대기
             </span>
           </>
         )}
       </div>
 
+      {tradesFetchFailed && (
+        <p className="pt-2 text-sm text-warn">거래 내역을 불러오지 못했습니다</p>
+      )}
       {holidayFetchFailed ? (
         <p className="mt-auto pt-2 text-sm text-warn">휴장일 정보를 불러오지 못했습니다</p>
       ) : nextHoliday && ddayCount !== null && (
         <p className="mt-auto pt-2 text-sm text-muted-foreground">
           다음 휴장일{' '}
-          <span className="font-medium" style={{ color: 'var(--gold)' }}>{monthDayLabel(nextHoliday)}</span>
+          <span className="font-medium text-[var(--gold)]">{monthDayLabel(nextHoliday)}</span>
           <span className="num">{ddayCount === 0 ? ' · 오늘' : ` · D-${ddayCount}`}</span>
         </p>
       )}

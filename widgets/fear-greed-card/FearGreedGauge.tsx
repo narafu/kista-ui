@@ -5,11 +5,12 @@ import { FEAR_GREED_ZONES, zoneOf } from './fearGreedZones'
 
 interface Props {
   value: number // 0~100
+  title: string // recharts accessibilityLayer가 svg를 탭 순서에 넣으므로 이름을 준다
   aside?: ReactNode // 현재값 오른쪽 보조 정보(전일·전주 대비) — 현재값이 바늘 중심에 정렬되도록 흐름 밖에 띄운다
 }
 
 // 반원 게이지: 5개 구간 색상 호 + 현재값 바늘
-export function FearGreedGauge({ value, aside }: Props) {
+export function FearGreedGauge({ value, title, aside }: Props) {
   const width = 220
   const height = 130
   const cx = width / 2
@@ -35,7 +36,7 @@ export function FearGreedGauge({ value, aside }: Props) {
     <div className="relative flex flex-col items-center">
       {/* recharts PieChart + 바늘 SVG 오버레이를 relative 컨테이너로 묶음 */}
       <div className="relative w-[220px] h-[130px]">
-        <PieChart width={width} height={height}>
+        <PieChart width={width} height={height} title={title}>
           <Pie
             data={segments}
             dataKey="span"

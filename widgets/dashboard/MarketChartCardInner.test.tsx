@@ -19,7 +19,7 @@ beforeAll(() => {
   } as unknown as CanvasRenderingContext2D)
 })
 
-const useCandlesQueryMock = vi.fn((_ticker: string, _count: number): { data: unknown[] | undefined; isError?: boolean } => ({ data: [] }))
+const useCandlesQueryMock = vi.fn((_ticker: string, _count: number): { data: unknown[] | undefined; isError?: boolean; isPending?: boolean } => ({ data: [] }))
 
 vi.mock('@entities/market', () => ({
   CHART_CANDLE_COUNT: 200,
@@ -28,8 +28,10 @@ vi.mock('@entities/market', () => ({
 
 const addSeriesMock = vi.fn((..._args: unknown[]) => ({ setData: vi.fn(), applyOptions: vi.fn(), createPriceLine: vi.fn() }))
 
+const createChartMock = vi.fn()
+
 vi.mock('lightweight-charts', () => ({
-  createChart: () => ({
+  createChart: () => (createChartMock(), {
     addSeries: addSeriesMock,
     timeScale: () => ({ setVisibleLogicalRange: vi.fn() }),
     panes: () => [{ setHeight: vi.fn() }, { setHeight: vi.fn() }],
@@ -51,6 +53,32 @@ const category: MarketChartCategory = {
 }
 
 describe('MarketChartCardInner', () => {
+  it('rebuilds the chart in the new container when a failed refetch recovers with the same data', () => {
+    const data = [{ date: '2026-10-01', open: 1, high: 2, low: 1, close: 2, volume: 0 }]
+    useCandlesQueryMock.mockReturnValue({ data })
+    const { rerender } = render(<MarketChartCardInner category={category} />)
+    createChartMock.mockClear()
+
+    useCandlesQueryMock.mockReturnValue({ data, isError: true })
+    rerender(<MarketChartCardInner category={category} />)
+    useCandlesQueryMock.mockReturnValue({ data })
+    rerender(<MarketChartCardInner category={category} />)
+
+    expect(createChartMock).toHaveBeenCalledTimes(1)
+    useCandlesQueryMock.mockReturnValue({ data: [] })
+  })
+
+  it('distinguishes loading from an empty candle response', () => {
+    useCandlesQueryMock.mockReturnValueOnce({ data: undefined, isPending: true })
+    const { unmount } = render(<MarketChartCardInner category={category} />)
+    expect(screen.getByText('차트 불러오는 중…')).toBeInTheDocument()
+    unmount()
+
+    useCandlesQueryMock.mockReturnValueOnce({ data: [] })
+    render(<MarketChartCardInner category={category} />)
+    expect(screen.getByText('표시할 시세가 없습니다')).toBeInTheDocument()
+  })
+
   it('queries candles for the first option at the default 200-candle count', () => {
     useCandlesQueryMock.mockClear()
     render(<MarketChartCardInner category={category} />)

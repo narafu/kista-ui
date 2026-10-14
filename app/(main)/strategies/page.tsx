@@ -33,7 +33,7 @@ export default async function StrategiesPage() {
   return (
     <>
       <HydrationBoundary state={dehydrate(queryClient)}>
-        <PageHeader eyebrow="Strategies" title="전략" actions={<AddStrategyButton />} />
+        <PageHeader eyebrow="전략 관리" title="전략" actions={<AddStrategyButton />} />
         <AllStrategiesList />
       </HydrationBoundary>
     </>

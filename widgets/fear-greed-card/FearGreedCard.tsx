@@ -17,18 +17,19 @@ interface Props {
   title: string
   data: FearGreedSourceView | undefined
   error?: boolean
+  loading?: boolean
   days: number
   onDaysChange: (days: number) => void
   daysOptions: readonly number[]
 }
 
-export function FearGreedCard({ title, data, error, days, onDaysChange, daysOptions }: Props) {
+export function FearGreedCard({ title, data, error, loading, days, onDaysChange, daysOptions }: Props) {
   return (
     <Surface className="p-5 flex flex-col gap-2">
       {error ? (
         <div className="flex h-[250px] items-center justify-center text-sm text-warn">공포탐욕지수를 불러오지 못했습니다</div>
       ) : (
-        <FearGreedCardInner title={title} data={data} days={days} onDaysChange={onDaysChange} daysOptions={daysOptions} />
+        <FearGreedCardInner title={title} data={data} loading={loading} days={days} onDaysChange={onDaysChange} daysOptions={daysOptions} />
       )}
     </Surface>
   )

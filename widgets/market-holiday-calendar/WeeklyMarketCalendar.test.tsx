@@ -15,11 +15,11 @@ vi.mock('@entities/account', () => ({
   useAccountsQuery: (options?: { enabled?: boolean }) => useAccountsQueryMock(options),
 }))
 
-vi.mock('@entities/trade', () => ({
-  useDailyTradesRangeQuery: () => ({
-    data: new Map(),
-    isFetching: false,
-  }),
+const { useDailyTradesRangeQueryMock } = vi.hoisted(() => ({ useDailyTradesRangeQueryMock: vi.fn() }))
+
+vi.mock('@entities/trade', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@entities/trade')>()),
+  useDailyTradesRangeQuery: () => useDailyTradesRangeQueryMock(),
 }))
 
 describe('WeeklyMarketCalendar', () => {
@@ -32,6 +32,7 @@ describe('WeeklyMarketCalendar', () => {
     }))
     // 계좌 ID는 이제 WeeklyMarketCalendar가 useAccountsQuery() 캐시에서 직접 파생한다 (prop 아님)
     useAccountsQueryMock.mockReturnValue({ data: [] })
+    useDailyTradesRangeQueryMock.mockReturnValue({ data: new Map(), isFetching: false, isError: false })
   })
 
   afterEach(() => {
@@ -87,5 +88,25 @@ describe('WeeklyMarketCalendar', () => {
     render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated={false} />)
 
     expect(useAccountsQueryMock).toHaveBeenCalledWith({ enabled: false })
+  })
+
+  it('shows a trade-data error instead of rendering failed days as no trades', () => {
+    useDailyTradesRangeQueryMock.mockReturnValue({ data: undefined, isFetching: false, isError: true })
+    render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated />)
+
+    expect(screen.getByText('거래 내역을 불러오지 못했습니다')).toBeInTheDocument()
+  })
+
+  it('stacks label and compact amount so the badge fits a narrow day cell', () => {
+    useAccountsQueryMock.mockReturnValue({ data: [{ id: 'a1' }] })
+    useDailyTradesRangeQueryMock.mockReturnValue({
+      data: new Map([['2026-06-30', { buyCount: 1, sellCount: 0, buyAmountUsd: 12345, sellAmountUsd: 0, tradeCount: 1 }]]),
+      isFetching: false,
+      isError: false,
+    })
+    render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated />)
+
+    const badge = screen.getByTitle('매수 $12,345')
+    expect(badge).toHaveTextContent('매수$12K')
   })
 })

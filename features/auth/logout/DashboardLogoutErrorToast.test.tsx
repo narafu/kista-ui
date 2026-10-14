@@ -28,7 +28,7 @@ describe('DashboardLogoutErrorToast', () => {
     useSearchParamsMock.mockReturnValue(new URLSearchParams('error=token_blacklisted'))
     render(<DashboardLogoutErrorToast />)
 
-    expect(toastErrorMock).toHaveBeenCalledWith('로그아웃된 토큰입니다. 다시 로그인해 주세요.')
+    expect(toastErrorMock).toHaveBeenCalledWith('로그아웃된 토큰입니다. 다시 로그인해주세요.')
     expect(replaceMock).toHaveBeenCalledWith('/dashboard')
   })
 
@@ -36,7 +36,7 @@ describe('DashboardLogoutErrorToast', () => {
     useSearchParamsMock.mockReturnValue(new URLSearchParams('error=weird_reason'))
     render(<DashboardLogoutErrorToast />)
 
-    expect(toastErrorMock).toHaveBeenCalledWith('세션이 만료되어 로그아웃되었습니다. 다시 로그인해 주세요.')
+    expect(toastErrorMock).toHaveBeenCalledWith('세션이 만료되어 로그아웃되었습니다. 다시 로그인해주세요.')
   })
 
   it('error 쿼리가 없으면 toast나 라우팅을 호출하지 않는다', () => {

@@ -1,7 +1,7 @@
 'use client'
 
 import type { FearGreedPoint, FearGreedSourceView } from '@entities/market'
-import { cn } from '@shared/lib/utils'
+import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { toKstDateString } from '@shared/lib/format'
 import { FearGreedGauge } from './FearGreedGauge'
 import { FearGreedTrend } from './FearGreedTrend'
@@ -9,6 +9,7 @@ import { FearGreedTrend } from './FearGreedTrend'
 interface Props {
   title: string
   data: FearGreedSourceView | undefined
+  loading?: boolean
   days: number
   onDaysChange: (days: number) => void
   daysOptions: readonly number[]
@@ -30,46 +31,38 @@ function deltas(history: FearGreedPoint[]) {
   }
 }
 
+// 증감은 부호로만 전달한다 — 상승=빨강(--pos) 관례를 쓰면 게이지의 빨강(극공포)과 뜻이 충돌한다
 function Delta({ label, value }: { label: string; value: number | null }) {
   if (value === null) return null
   return (
     <span className="text-xs text-muted-foreground">
       {label}{' '}
-      <span className={cn('text-sm font-semibold tabular-nums', value > 0 ? 'text-pos' : value < 0 ? 'text-neg' : 'text-muted-foreground')}>
+      <span className="text-sm font-semibold tabular-nums text-foreground">
         {value > 0 ? `+${value}` : value}
       </span>
     </span>
   )
 }
 
-export default function FearGreedCardInner({ title, data, days, onDaysChange, daysOptions }: Props) {
+export default function FearGreedCardInner({ title, data, loading, days, onDaysChange, daysOptions }: Props) {
   const current = data?.current
   const { day, week } = deltas(data?.history ?? [])
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
+      <div className="flex flex-wrap items-center justify-between gap-y-1">
+        <div className="flex items-center gap-1.5 whitespace-nowrap">
           <span className="text-sm font-semibold text-foreground">{title}</span>
           <span className="text-xs text-muted-foreground">일봉</span>
         </div>
-        <div className="flex items-center gap-1">
-          {daysOptions.map((n) => (
-            <button
-              key={n}
-              type="button"
-              onClick={() => onDaysChange(n)}
-              aria-pressed={days === n}
-              className={`text-xs px-1.5 py-1 rounded font-medium transition-colors ${
-                days === n
-                  ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-              }`}
-            >
-              {n}
-            </button>
-          ))}
-        </div>
+        <SegmentedToggle
+          aria-label={`${title} 조회 기간(일)`}
+          options={daysOptions.map((n) => ({ value: n, label: String(n) }))}
+          value={days}
+          onChange={onDaysChange}
+          size="sm"
+          className="ml-auto"
+        />
       </div>
       {current && (
         <span className="text-xs text-muted-foreground">
@@ -80,6 +73,7 @@ export default function FearGreedCardInner({ title, data, days, onDaysChange, da
         <>
           <FearGreedGauge
             value={current.value}
+            title={`${title} 게이지`}
             aside={
               <div className="flex flex-col">
                 <Delta label="전일" value={day} />
@@ -87,11 +81,11 @@ export default function FearGreedCardInner({ title, data, days, onDaysChange, da
               </div>
             }
           />
-          <FearGreedTrend history={data?.history ?? []} />
+          <FearGreedTrend history={data?.history ?? []} title={`${title} 추이`} />
         </>
       ) : (
         <div className="flex items-center justify-center h-[250px] text-sm text-muted-foreground">
-          데이터 없음
+          {loading ? '불러오는 중…' : '데이터 없음'}
         </div>
       )}
     </div>

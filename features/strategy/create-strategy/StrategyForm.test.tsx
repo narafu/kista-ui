@@ -291,12 +291,12 @@ describe('StrategyForm VR settings section', () => {
     useStrategyFormMock.mockReturnValue({
       ...baseFormState,
       cannotSubmit: false,
-      submitDisabledReason: '입력값을 다시 확인해 주세요.',
+      submitDisabledReason: '입력값을 다시 확인해주세요.',
     })
 
     render(<StrategyForm accountId="account-1" />)
 
-    expect(screen.getByText('입력값을 다시 확인해 주세요.')).toBeInTheDocument()
+    expect(screen.getByText('입력값을 다시 확인해주세요.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '등록' })).toBeEnabled()
   })
 

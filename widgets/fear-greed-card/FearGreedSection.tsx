@@ -11,8 +11,8 @@ export function FearGreedSection() {
   const [cnnDays, setCnnDays] = useState<(typeof CNN_OPTIONS)[number]>(200)
   const [cryptoDays, setCryptoDays] = useState<(typeof CRYPTO_OPTIONS)[number]>(365)
 
-  const { data: cnnData, isError: isCnnError } = useFearGreedQuery(cnnDays)
-  const { data: cryptoData, isError: isCryptoError } = useFearGreedQuery(cryptoDays)
+  const { data: cnnData, isError: isCnnError, isPending: isCnnPending } = useFearGreedQuery(cnnDays)
+  const { data: cryptoData, isError: isCryptoError, isPending: isCryptoPending } = useFearGreedQuery(cryptoDays)
 
   return (
     <>
@@ -20,6 +20,7 @@ export function FearGreedSection() {
         title="CNN 공포탐욕지수"
         data={cnnData?.cnn}
         error={isCnnError}
+        loading={isCnnPending}
         days={cnnDays}
         onDaysChange={(d) => setCnnDays(d as (typeof CNN_OPTIONS)[number])}
         daysOptions={CNN_OPTIONS}
@@ -28,6 +29,7 @@ export function FearGreedSection() {
         title="크립토 공포탐욕지수"
         data={cryptoData?.crypto}
         error={isCryptoError}
+        loading={isCryptoPending}
         days={cryptoDays}
         onDaysChange={(d) => setCryptoDays(d as (typeof CRYPTO_OPTIONS)[number])}
         daysOptions={CRYPTO_OPTIONS}

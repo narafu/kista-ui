@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 
 const ERROR_MESSAGES: Record<string, string> = {
-  token_blacklisted: '로그아웃된 토큰입니다. 다시 로그인해 주세요.',
+  token_blacklisted: '로그아웃된 토큰입니다. 다시 로그인해주세요.',
 }
 
 function DashboardLogoutErrorToastContent() {
@@ -15,7 +15,7 @@ function DashboardLogoutErrorToastContent() {
 
   useEffect(() => {
     if (!error) return
-    toast.error(ERROR_MESSAGES[error] ?? '세션이 만료되어 로그아웃되었습니다. 다시 로그인해 주세요.')
+    toast.error(ERROR_MESSAGES[error] ?? '세션이 만료되어 로그아웃되었습니다. 다시 로그인해주세요.')
     // eslint-disable-next-line react-doctor/nextjs-no-client-side-redirect -- 토스트 표시 후 error 쿼리 파라미터만 제거하는 용도
     router.replace('/dashboard')
   }, [error, router])

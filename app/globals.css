@@ -91,7 +91,7 @@
   --rose-600: #95513C;
   --rose-700: #6E3A2A;
   --rose-800: #4A271C;
-  --gold:     #B68A4A;
+  --gold:     #7F5D22;   /* 휴장 글자색 — 흰 배경·/15 틴트 배지 위 모두 4.5:1 이상 */
 
   /* shadcn core tokens → rose-gold */
   --background:         oklch(0.995 0.004 60);

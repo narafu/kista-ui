@@ -9,6 +9,7 @@ import { fmtMonthDay } from '@shared/lib/format'
 
 interface Props {
   history: FearGreedPoint[]
+  title: string
 }
 
 function buildLineStops(values: number[]) {
@@ -34,7 +35,7 @@ function buildLineStops(values: number[]) {
   })
 }
 
-export function FearGreedTrend({ history }: Props) {
+export function FearGreedTrend({ history, title }: Props) {
   const gradientId = useId().replace(/:/g, '')
   const data = history.map((p) => ({
     date: fmtMonthDay(p.date),
@@ -45,7 +46,7 @@ export function FearGreedTrend({ history }: Props) {
 
   return (
     <ResponsiveContainer width="100%" height={120}>
-      <AreaChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+      <AreaChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} title={title}>
         <defs>
           <linearGradient id={`fg-line-${gradientId}`} x1="0" y1="0" x2="1" y2="0">
             {lineStops.map((stop, index) => (
