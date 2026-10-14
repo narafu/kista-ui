@@ -53,15 +53,7 @@ export function AllStrategiesList() {
 
   // 계좌 목록이 없으면 전략을 계좌별로 묶을 수 없어 빈 화면이 되므로 두 쿼리를 함께 게이팅한다
   if ((!strategies && strategiesQuery.isError) || (!accounts && accountsQuery.isError))
-    return (
-      <SectionError
-        message="전략 목록을 불러오지 못했습니다"
-        onRetry={() => {
-          if (strategiesQuery.isError) void strategiesQuery.refetch()
-          if (accountsQuery.isError) void accountsQuery.refetch()
-        }}
-      />
-    )
+    return <SectionError message="전략 목록을 불러오지 못했습니다" />
   if (!strategies || !accounts) return <LoadingRow />
 
   if (strategies.length === 0)

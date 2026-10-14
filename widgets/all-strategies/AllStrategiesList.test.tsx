@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
@@ -6,7 +6,6 @@ import { AllStrategiesList } from './AllStrategiesList'
 
 const pushMock = vi.fn()
 const strategyCardMock = vi.fn()
-const refetchStrategiesMock = vi.fn()
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: pushMock }),
@@ -27,7 +26,6 @@ vi.mock('@entities/strategy', () => ({
   useAllStrategiesQuery: () => ({
     data: strategiesQueryData,
     isError: strategiesQueryError,
-    refetch: refetchStrategiesMock,
   }),
 }))
 
@@ -101,7 +99,6 @@ function setQueries(strategies: Strategy[], accounts: Account[]) {
 describe('AllStrategiesList', () => {
   beforeEach(() => {
     strategyCardMock.mockClear()
-    refetchStrategiesMock.mockClear()
     strategiesQueryError = false
     setQueries([], [])
   })
@@ -138,14 +135,13 @@ describe('AllStrategiesList', () => {
     expect(screen.getByRole('link', { name: '한투 서브' })).toHaveAttribute('href', '/accounts/account-2/strategies/new')
   })
 
-  it('offers a retry that refetches the failed query', () => {
+  it('shows the error state when the strategy list fails to load', () => {
     strategiesQueryData = undefined
     strategiesQueryError = true
     accountsQueryData = singleAccount
     render(<AllStrategiesList />)
 
-    fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
-    expect(refetchStrategiesMock).toHaveBeenCalledTimes(1)
+    expect(screen.getByText('전략 목록을 불러오지 못했습니다')).toBeInTheDocument()
   })
 
   it('groups strategies by account with a section header per account when there are multiple accounts', () => {
