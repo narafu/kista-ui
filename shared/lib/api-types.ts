@@ -1074,7 +1074,7 @@ export interface paths {
         head?: never;
         /**
          * 전략 상태 변경
-         * @description status: ACTIVE(재개), PAUSED(일시정지)
+         * @description status: ACTIVE(재개), PAUSED(일시중지)
          */
         patch: operations["updateStrategyStatus"];
         trace?: never;
@@ -1533,7 +1533,7 @@ export interface paths {
         };
         /**
          * 이상 징후 조회
-         * @description 일시정지·비활성 계좌 목록을 반환합니다.
+         * @description 일시중지·비활성 계좌 목록을 반환합니다.
          */
         get: operations["getAnomalies"];
         put?: never;
@@ -1925,8 +1925,8 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * 거래 사이클 중지
-         * @description 오늘 미체결 주문을 정리(PLANNED 삭제·PLACED 증권사 취소)한 뒤 PAUSED로 바꾼다. 취소 실패분은 관리자에게 알리고 중지는 진행.
+         * 거래 사이클 일시중지
+         * @description 오늘 미체결 주문을 정리(PLANNED 삭제·PLACED 증권사 취소)한 뒤 PAUSED로 바꾼다. 취소 실패분은 관리자에게 알리고 일시중지는 진행.
          */
         patch: operations["pause"];
         trace?: never;
@@ -4509,7 +4509,7 @@ export interface components {
         };
         StrategyStatusRequest: {
             /**
-             * @description 변경할 전략 상태 — ACTIVE(재개) / PAUSED(일시정지)
+             * @description 변경할 전략 상태 — ACTIVE(재개) / PAUSED(일시중지)
              * @example PAUSED
              * @enum {string}
              */
