@@ -1,8 +1,8 @@
 'use client'
 
-import { useId, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
-import { Area, CartesianGrid, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Area, Brush, CartesianGrid, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -24,7 +24,8 @@ const SYNC_ID = 'privacy-base-chart'
 const AXIS_TICK = { fontSize: 10 }
 const Y_AXIS_WIDTH = 52
 // 세 패널의 플롯 영역 좌우 끝을 맞추기 위해 margin·축 폭을 공유한다
-const MARGIN = { top: 4, right: 12, left: 0, bottom: 0 }
+// right는 Brush 끝 날짜 라벨이 잘리지 않을 만큼 둔다
+const MARGIN = { top: 4, right: 40, left: 0, bottom: 0 }
 const ORDER_DOT_BUY = { r: 2, fill: 'var(--pos)', stroke: 'none' }
 const ORDER_DOT_SELL = { r: 2, fill: 'var(--neg)', stroke: 'none' }
 const CURSOR = { stroke: 'var(--muted-foreground)', strokeDasharray: '3 3' }
@@ -74,6 +75,9 @@ function ChartTooltip({ row }: { row: PrivacyChartRow | undefined }) {
   )
 }
 
+const pnlProfit = (row: PrivacyChartRow) => Math.max(row.realizedPnl, 0)
+const pnlLoss = (row: PrivacyChartRow) => Math.min(row.realizedPnl, 0)
+
 function PanelLabel({ children }: { children: string }) {
   return <div className="pl-1 text-xs font-medium text-muted-foreground">{children}</div>
 }
@@ -83,7 +87,6 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
   const tickers = useMemo(() => [...new Set(allBases.map((b) => b.ticker))].sort(), [allBases])
   const [pickedTicker, setPickedTicker] = useState<string | null>(null)
   const ticker = pickedTicker ?? (tickers.includes(DEFAULT_TICKER) ? DEFAULT_TICKER : tickers[0] ?? DEFAULT_TICKER)
-  const pnlGradientId = `pnl-${useId().replace(/[^a-zA-Z0-9]/g, '')}`
 
   const bases = useMemo(
     () => filterAdminPrivacyBasesByRange(allBases.filter((b) => b.ticker === ticker), windowFrom, windowTo),
@@ -97,11 +100,6 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
   const boundaries = rows.filter((r) => r.cycleBoundary).map((r) => r.date)
   const missingCloseCount = rows.filter((r) => r.close == null).length
 
-  // 손익 영역을 0 기준으로 이익(--pos)/손실(--neg) 색을 나누는 그라디언트 분기점
-  const pnlValues = rows.map((r) => r.realizedPnl)
-  const pnlMax = Math.max(0, ...pnlValues)
-  const pnlMin = Math.min(0, ...pnlValues)
-  const pnlZeroOffset = pnlMax === pnlMin ? 1 : pnlMax / (pnlMax - pnlMin)
 
   return (
     <Card className="mb-6">
@@ -127,7 +125,8 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
             <Skeleton className="h-[480px]" />
           </div>
         ) : (
-          <div className="space-y-3">
+          // 종목·기간·건수가 바뀌면 Brush 구간을 처음(전체)으로 되돌리도록 다시 마운트한다
+          <div key={`${ticker}|${windowFrom}|${windowTo}|${rows.length}`} className="space-y-3">
             <ul className="flex flex-wrap gap-x-4 gap-y-1.5 pl-1 text-xs text-muted-foreground" aria-label="범례">
               {LEGEND_ITEMS.map((item) => (
                 <li key={item.label} className="inline-flex items-center gap-1.5">
@@ -179,22 +178,27 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
 
             <figure className="w-full">
               <PanelLabel>사이클 실현손익</PanelLabel>
-              <div className="h-[130px]">
+              <div className="h-[160px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart data={rows} syncId={SYNC_ID} margin={MARGIN} title="사이클 실현손익">
-                    <defs>
-                      <linearGradient id={pnlGradientId} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset={pnlZeroOffset} stopColor="var(--pos)" />
-                        <stop offset={pnlZeroOffset} stopColor="var(--neg)" />
-                      </linearGradient>
-                    </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
                     <XAxis dataKey="date" tickFormatter={(d) => fmtMonthDay(String(d))} tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={28} />
                     <YAxis tickFormatter={(v) => fmtUsd(Number(v), 0)} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} />
                     <Tooltip content={() => null} cursor={CURSOR} />
                     <ReferenceLine y={0} stroke="var(--muted-foreground)" />
                     {boundaries.map((d) => <ReferenceLine key={d} x={d} stroke="var(--muted-foreground)" strokeDasharray="4 4" />)}
-                    <Area type="stepAfter" dataKey="realizedPnl" stroke={`url(#${pnlGradientId})`} strokeWidth={1.5} fill={`url(#${pnlGradientId})`} fillOpacity={0.2} isAnimationActive={false} />
+                    {/* 구간 슬라이더 — 같은 syncId의 위 두 패널도 recharts가 같은 구간으로 맞춘다 */}
+                    <Brush
+                      dataKey="date"
+                      height={24}
+                      travellerWidth={10}
+                      tickFormatter={(d) => fmtMonthDay(String(d))}
+                      stroke="var(--muted-foreground)"
+                      fill="var(--card)"
+                    />
+                    {/* 이익/손실을 0 기준 두 영역으로 나눠 칠한다 — 그라디언트 분기점은 Brush로 보이는 구간이 바뀌면 0과 어긋난다 */}
+                    <Area type="stepAfter" dataKey={pnlProfit} stroke="var(--pos)" strokeWidth={1.5} fill="var(--pos)" fillOpacity={0.2} isAnimationActive={false} />
+                    <Area type="stepAfter" dataKey={pnlLoss} stroke="var(--neg)" strokeWidth={1.5} fill="var(--neg)" fillOpacity={0.2} isAnimationActive={false} />
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>

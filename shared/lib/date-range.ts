@@ -2,11 +2,13 @@
 // 서버(UTC)·브라우저 어디서 실행돼도 같은 결과를 내도록 todayKst()를 기준으로 한다.
 import { todayKst } from '@shared/lib/format'
 
-export type RangePreset = '7d' | '30d' | 'all' | 'custom'
+export type RangePreset = '7d' | '30d' | '90d' | '180d' | 'all' | 'custom'
 
 export const RANGE_LABELS: Record<RangePreset, string> = {
   '7d': '7일',
   '30d': '30일',
+  '90d': '90일',
+  '180d': '180일',
   all: '전체',
   custom: '입력',
 }
@@ -34,8 +36,10 @@ export function kstWeekStartDate(): string {
  * 프리셋 → { from, to } 변환.
  * - all: {} (전체 기간)
  * - custom: 입력 그대로 통과 (서버 페이지는 미완성 custom을 전체 조회로 처리)
- * - 7d/30d: KST 오늘 기준 N일 전 ~ 상한 없음 (미래 선접수 데이터 노출 위해 to 미지정)
+ * - 7d/30d/90d/180d: KST 오늘 기준 N일 전 ~ 상한 없음 (미래 선접수 데이터 노출 위해 to 미지정)
  */
+const PRESET_DAYS = { '7d': 7, '30d': 30, '90d': 90, '180d': 180 } as const
+
 export function resolveRange(
   preset: RangePreset,
   from?: string,
@@ -43,8 +47,7 @@ export function resolveRange(
 ): { from?: string; to?: string } {
   if (preset === 'all') return {}
   if (preset === 'custom') return { from, to }
-  const days = preset === '7d' ? 7 : 30
-  return { from: kstDateMinusDays(days) }
+  return { from: kstDateMinusDays(PRESET_DAYS[preset]) }
 }
 
 /** custom인데 from/to가 미완성이면 null — 클라이언트 테이블의 조회 보류용 */
@@ -60,7 +63,7 @@ export function resolveRangeStrict(
 const VALID_SIZES = new Set(['10', '30', '50', '100'])
 
 export function parseRangePreset(raw: string | undefined, fallback: RangePreset): RangePreset {
-  return raw === '7d' || raw === '30d' || raw === 'all' || raw === 'custom' ? raw : fallback
+  return raw !== undefined && Object.hasOwn(RANGE_LABELS, raw) ? (raw as RangePreset) : fallback
 }
 
 export function parseSize(raw: string | undefined): number {

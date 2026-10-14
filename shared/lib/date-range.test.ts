@@ -59,6 +59,11 @@ describe('resolveRange', () => {
     freezeAtKstMorning()
     expect(resolveRange('30d')).toEqual({ from: '2026-06-09' })
   })
+  it('90d·180d도 KST 오늘 기준 N일 전부터', () => {
+    freezeAtKstMorning()
+    expect(resolveRange('90d')).toEqual({ from: kstDateMinusDays(90) })
+    expect(resolveRange('180d')).toEqual({ from: kstDateMinusDays(180) })
+  })
   it('all은 빈 객체(전체 기간)', () => {
     expect(resolveRange('all')).toEqual({})
   })
@@ -82,7 +87,10 @@ describe('resolveRangeStrict', () => {
 describe('parseRangePreset', () => {
   it('유효한 값은 그대로, 그 외는 fallback', () => {
     expect(parseRangePreset('30d', '7d')).toBe('30d')
+    expect(parseRangePreset('90d', '7d')).toBe('90d')
+    expect(parseRangePreset('180d', '7d')).toBe('180d')
     expect(parseRangePreset('bogus', '7d')).toBe('7d')
+    expect(parseRangePreset('toString', '7d')).toBe('7d')
     expect(parseRangePreset(undefined, 'all')).toBe('all')
   })
 })

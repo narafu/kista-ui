@@ -44,7 +44,7 @@ function RangeFilterBarContent({ current, from, to, pageParamKeys = ['page'], pa
 
   return (
     <div className="space-y-2">
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {presets.map((r) => (
           <button
             key={r}

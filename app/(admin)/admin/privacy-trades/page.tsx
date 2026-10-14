@@ -6,7 +6,11 @@ import { PrivacyBaseChart } from '@widgets/admin-privacy-trade-list/PrivacyBaseC
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { UrlRangeFilterBar } from '@shared/ui/UrlRangeFilterBar'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
+import type { RangePreset } from '@shared/lib/date-range'
 import { createQueryClient } from '@shared/lib/query'
+
+// 매매표는 장기 추이를 보는 화면이라 7일 대신 90·180일 프리셋을 노출한다
+const PRESETS: RangePreset[] = ['30d', '90d', '180d', 'all', 'custom']
 
 export default async function AdminPrivacyTradesPage({
   searchParams,
@@ -14,7 +18,9 @@ export default async function AdminPrivacyTradesPage({
   searchParams: Promise<{ range?: string; size?: string; page?: string; from?: string; to?: string }>
 }) {
   const { range: rawRange, size: rawSize, page: rawPage, from, to } = await searchParams
-  const range = parseRangePreset(rawRange, '7d')
+  // 이 화면에 없는 프리셋(예: 예전 링크의 ?range=7d)은 기본값으로 돌린다
+  const parsedRange = parseRangePreset(rawRange, '30d')
+  const range = PRESETS.includes(parsedRange) ? parsedRange : '30d'
   const size = parseSize(rawSize)
   const page = parsePage(rawPage)
   const sizeStr = String(size)
@@ -33,7 +39,7 @@ export default async function AdminPrivacyTradesPage({
       </div>
 
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-        <UrlRangeFilterBar current={range} from={from} to={to} />
+        <UrlRangeFilterBar current={range} from={from} to={to} presets={PRESETS} />
         <PageSizeSelector value={sizeStr} />
       </div>
 
