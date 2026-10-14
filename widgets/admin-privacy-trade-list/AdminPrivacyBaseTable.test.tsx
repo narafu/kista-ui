@@ -77,7 +77,7 @@ describe('AdminPrivacyBaseTable mobile UX', () => {
     renderTable()
 
     const mobileList = screen.getByTestId('admin-privacy-mobile-list')
-    const toggle = within(mobileList).getByRole('button', { name: /2026-07-02.*NVDA/ })
+    const toggle = within(mobileList).getByRole('button', { name: /NVDA.*2026-07-02/ })
 
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
 

@@ -235,21 +235,22 @@ function MobileBaseCard({
   onDeleteOrder: (order: AdminPrivacyOrder) => void
 }) {
   return (
-    <article className="rounded-[var(--r-lg)] border border-border bg-card/70 p-4 shadow-sm">
+    <article className="rounded-[var(--r-lg)] border border-border bg-card/70 px-4 py-3 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <h3 className="min-w-0 flex-1">
           <button
             type="button"
-            className="flex w-full items-start justify-between gap-3 text-left"
+            className="flex w-full items-center justify-between gap-3 text-left"
             onClick={onToggle}
             aria-expanded={open}
             aria-controls={open ? `privacy-base-${b.id}-mobile` : undefined}
           >
-            <span>
-              <span className="block text-xs font-medium text-muted-foreground">{b.releaseDate}</span>
-              <span className="mt-1 block text-lg font-extrabold tracking-tight">{b.ticker}</span>
+            {/* 날짜·종목을 한 줄로 — 카드 높이를 줄여 목록을 한눈에 훑게 한다 */}
+            <span className="flex min-w-0 items-baseline gap-2">
+              <span className="text-base font-extrabold tracking-tight">{b.ticker}</span>
+              <span className="text-xs font-medium text-muted-foreground">{b.releaseDate}</span>
             </span>
-            <span className="flex items-center gap-2 pt-1 text-sm text-muted-foreground">
+            <span className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>{b.orders.length}건</span>
               {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
             </span>
@@ -260,7 +261,8 @@ function MobileBaseCard({
         </button>
       </div>
 
-      <dl className="mt-4 grid grid-cols-2 gap-2">
+      {/* 지표 4개는 타일 대신 라벨-값 2열 목록 — 카드 하나가 화면을 덜 차지하게 */}
+      <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1">
         <Metric label="시작금액" value={`$${fmtUsd(b.currentCycleStart)}`} valueClassName="font-mono" />
         <Metric
           label="실현손익"
@@ -272,7 +274,7 @@ function MobileBaseCard({
       </dl>
 
       {open && (
-        <div id={`privacy-base-${b.id}-mobile`} className="mt-4 border-t border-border pt-3">
+        <div id={`privacy-base-${b.id}-mobile`} className="mt-3 border-t border-border pt-3">
           <OrderDetailsSection orders={b.orders} onEditOrder={onEditOrder} onAddOrder={onAddOrder} onDeleteOrder={onDeleteOrder} />
         </div>
       )}
@@ -282,9 +284,9 @@ function MobileBaseCard({
 
 function Metric({ label, value, valueClassName }: { label: string; value: string; valueClassName?: string }) {
   return (
-    <div className="rounded-[var(--r-sm)] bg-muted/30 px-3 py-2">
-      <dt className="text-[11px] font-medium text-muted-foreground">{label}</dt>
-      <dd className={`mt-1 text-sm font-bold ${valueClassName ?? ''}`}>{value}</dd>
+    <div className="flex items-baseline justify-between gap-2">
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className={`text-sm font-semibold ${valueClassName ?? ''}`}>{value}</dd>
     </div>
   )
 }

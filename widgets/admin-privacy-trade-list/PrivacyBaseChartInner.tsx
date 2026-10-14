@@ -117,25 +117,29 @@ function MobileInfoBar({ row, isLatest }: { row: PrivacyChartRow; isLatest: bool
         <InfoItem swatch={SWATCH.close} label="종가" value={row.close == null ? '-' : fmtUsd(row.close)} />
         <InfoItem swatch={SWATCH.avgPrice} label="평단가" value={row.avgPrice == null ? '-' : fmtUsd(row.avgPrice)} />
         <InfoItem swatch={SWATCH.buy} label="매수" value={fmtPrices(row.buys)} className="text-pos" wide />
-        <InfoItem swatch={SWATCH.sell} label="매도" value={fmtPrices(row.sells)} className="text-neg" />
-        <InfoItem
-          swatch={cashLow ? SWATCH.cashLow : SWATCH.cash}
-          label="현금비중"
-          value={row.cashRatio == null ? '-' : fmtPercent(row.cashRatio)}
-          className={cashLow ? 'text-[var(--warn)]' : undefined}
-        />
-        <InfoItem swatch={SWATCH.cumulative} label="누적 실현손익" value={fmtSignedUsd(row.cumulativePnl)} className={cn('font-semibold', pnlTextClass(row.cumulativePnl))} wide />
+        <InfoItem swatch={SWATCH.sell} label="매도" value={fmtPrices(row.sells)} className="text-neg" wide />
+        {/* 현금비중·누적 실현손익은 비중/손익 요약끼리 한 줄로 묶는다 — 반칸 폭에 넣으면 긴 값이 잘려 내용 폭대로 양끝 정렬 */}
+        <div className="col-span-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5">
+          <InfoItem
+            swatch={cashLow ? SWATCH.cashLow : SWATCH.cash}
+            label="현금비중"
+            value={row.cashRatio == null ? '-' : fmtPercent(row.cashRatio)}
+            className={cashLow ? 'text-[var(--warn)]' : undefined}
+            inline
+          />
+          <InfoItem swatch={SWATCH.cumulative} label="누적 실현손익" value={fmtSignedUsd(row.cumulativePnl)} className={cn('font-semibold', pnlTextClass(row.cumulativePnl))} inline />
+        </div>
       </div>
     </div>
   )
 }
 
-function InfoItem({ swatch, label, value, className, wide }: { swatch: string; label: string; value: string; className?: string; wide?: boolean }) {
+function InfoItem({ swatch, label, value, className, wide, inline }: { swatch: string; label: string; value: string; className?: string; wide?: boolean; inline?: boolean }) {
   return (
-    <div className={cn('flex min-w-0 items-center gap-1.5', wide && 'col-span-2')}>
+    <div className={cn('flex min-w-0 items-center gap-1.5', wide && 'col-span-2', inline && 'shrink-0')}>
       <Swatch className={swatch} />
       <span className="shrink-0 text-muted-foreground">{label}</span>
-      <span className={cn('ml-auto truncate font-medium', className)}>{value}</span>
+      <span className={cn('font-medium', inline ? 'ml-1' : 'ml-auto truncate', className)}>{value}</span>
     </div>
   )
 }
