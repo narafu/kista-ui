@@ -47,6 +47,7 @@ vi.mock('@entities/meta', async () => {
   const groups: Record<string, Array<{ code: string; label: string }>> = {
     ...dcaTestMeta,
     dcaSkipReasons: [{ code: 'CONDITION_NOT_MET', label: '조건 미충족' }],
+    strategyStatuses: [{ code: 'ACTIVE', label: '운영중' }, { code: 'PAUSED', label: '일시중지' }],
   }
   return {
   useMeta: () => ({
@@ -392,6 +393,35 @@ describe('StrategyCard scheduled start badge', () => {
   })
 })
 
+describe('StrategyCard status', () => {
+  beforeEach(() => {
+    previewState = {
+      data: {
+        orders: [],
+        todayOrders: [],
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: null,
+        sellSufficiency: null,
+      },
+      isLoading: false,
+    }
+  })
+
+  it('does not highlight an active strategy with a strip or status badge', () => {
+    render(<StrategyCard accountId="account-1" strategy={strategy} />)
+
+    expect(screen.queryByTestId('strategy-status-strip')).not.toBeInTheDocument()
+    expect(screen.queryByText('운영중')).not.toBeInTheDocument()
+  })
+
+  it('marks a paused strategy with a muted strip and a localized badge', () => {
+    render(<StrategyCard accountId="account-1" strategy={{ ...strategy, status: 'PAUSED' }} />)
+
+    expect(screen.getByTestId('strategy-status-strip')).toHaveAttribute('style', expect.stringContaining('background: var(--muted-foreground);'))
+    expect(screen.getAllByText('일시중지').length).toBeGreaterThan(0)
+  })
+})
+
 describe('StrategyCard DCA', () => {
   const dcaStrategy = {
     id: 'd1', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
@@ -403,6 +433,12 @@ describe('StrategyCard DCA', () => {
   } as unknown as Strategy
 
   beforeEach(() => previewMock.mockClear())
+
+  it('일시중지된 DCA 카드는 회색 스트립과 상태 배지를 보여준다', () => {
+    render(<StrategyCard accountId="a1" strategy={{ ...dcaStrategy, status: 'PAUSED' }} />)
+    expect(screen.getByTestId('strategy-status-strip')).toHaveAttribute('style', expect.stringContaining('background: var(--muted-foreground);'))
+    expect(screen.getByText('일시중지')).toBeInTheDocument()
+  })
 
   it('DCA 카드는 단건 미리보기를 호출하지 않는다', () => {
     render(<StrategyCard accountId="a1" strategy={dcaStrategy} />)

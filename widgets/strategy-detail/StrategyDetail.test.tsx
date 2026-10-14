@@ -71,7 +71,6 @@ vi.mock('@entities/strategy', async () => {
   return {
     ...actual,
     seedBadgeClass: () => 'seed-badge',
-    strategyStatusAccent: (status: string) => status === 'ACTIVE' ? 'var(--status-ok)' : 'var(--warn)',
   }
 })
 
@@ -121,7 +120,7 @@ vi.mock('@entities/market', () => ({
 
 vi.mock('@entities/meta', () => ({
   useMeta: () => ({
-    labelOf: (_group: string, value: string) => value,
+    labelOf: (group: string, value: string) => group === 'strategyStatuses' && value === 'PAUSED' ? '일시중지' : value,
     findStrategyType: (code: string) => {
       if (code === 'INFINITE') return { divisionCounts: [20, 30, 40] }
       return { divisionCounts: [] }
@@ -160,12 +159,8 @@ describe('StrategyDetail header card', () => {
   })
 
   it('shows strategy type and next cycle in the header metadata cards', () => {
-    const { container } = render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
-    const accent = container.querySelector('[data-testid="strategy-status-accent"]')
-
-    expect(accent).toBeInTheDocument()
-    expect(accent).toHaveStyle({ background: 'var(--status-ok)' })
     expect(screen.queryByText('123-45')).not.toBeInTheDocument()
     expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('전략타입')
     expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('INFINITE')
@@ -192,13 +187,11 @@ describe('StrategyDetail header card', () => {
     expect(screen.getByTestId('strategy-status-group')).not.toHaveTextContent('시작예정')
   })
 
-  it('shows paused styling and keeps reverse mode as a badge near status', () => {
-    const { container } = render(<StrategyDetail accountId="account-1" strategy={{ ...baseStrategy, status: 'PAUSED', isReverseMode: true }} />)
+  it('shows the localized paused badge and keeps reverse mode as a badge near status', () => {
+    render(<StrategyDetail accountId="account-1" strategy={{ ...baseStrategy, status: 'PAUSED', isReverseMode: true }} />)
 
-    const accent = container.querySelector('[data-testid="strategy-status-accent"]')
-
-    expect(accent).toHaveStyle({ background: 'var(--warn)' })
-    expect(screen.getByText('PAUSED')).toBeInTheDocument()
+    expect(screen.getByTestId('strategy-status-group')).toHaveTextContent('일시중지')
+    expect(screen.queryByText('PAUSED')).not.toBeInTheDocument()
     expect(screen.getByTestId('strategy-status-group')).toHaveTextContent('리버스모드')
     expect(screen.getByText('리버스모드')).toBeInTheDocument()
   })
@@ -211,7 +204,7 @@ describe('StrategyDetail header card', () => {
     expect(pauseMutate).toHaveBeenCalledWith(baseStrategy)
     rerender(<StrategyDetail accountId="account-1" strategy={paused} />)
 
-    expect(screen.getByText('PAUSED')).toBeInTheDocument()
+    expect(screen.getByText('일시중지')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '재개' }))
     expect(resumeMutate).toHaveBeenCalledWith(paused)
   })

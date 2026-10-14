@@ -25,17 +25,22 @@ export function DcaStrategyCard({ accountId, strategy, accountLabel }: Props) {
     ? last.status === 'ORDERED' ? '주문됨' : `건너뜀${last.skipReason ? ` · ${labelOf('dcaSkipReasons', last.skipReason)}` : ''}`
     : null
   const scheduledStart = isScheduledStart(strategy)
+  const statusLabel = strategy.status === 'ACTIVE' ? null : labelOf('strategyStatuses', strategy.status)
+  const statusAccent = strategyStatusAccent(strategy.status)
 
   return (
     <Link
       href={`/accounts/${accountId}/strategies/${strategy.id}`}
       className="group relative block rounded-[var(--r-lg)] border border-border bg-card shadow-[var(--sh-card)] hover:border-rose-300 hover:shadow-[var(--sh-rose)] transition-[border-color,box-shadow] overflow-hidden"
     >
-      <span className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: strategyStatusAccent(strategy.status) }} />
+      {statusAccent && (
+        <span data-testid="strategy-status-strip" className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: statusAccent }} />
+      )}
       <div className="flex items-center gap-3 pl-5 pr-4 py-3">
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex flex-wrap items-center gap-1.5">
             <Badge tone="brand" size="sm">DCA</Badge>
+            {statusLabel && <Badge tone="neutral" size="sm">{statusLabel}</Badge>}
             {dca && <Badge tone={dca.direction === 'BUY' ? 'ok' : 'warn'} size="sm">{labelOf('orderDirections', dca.direction)}</Badge>}
             {scheduledStart && (
               <Badge tone="none" size="sm" className="bg-info-bg text-info">{scheduledStartBadgeLabel(strategy.startDate!)}</Badge>

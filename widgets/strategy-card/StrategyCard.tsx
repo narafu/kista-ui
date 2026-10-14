@@ -45,19 +45,21 @@ interface LayoutProps {
   scheduledStart: boolean
   seedLabel: string
   seedBadgeCls: string
+  statusLabel: string | null
 }
 
 function InitialDeposit({ value }: { value: Strategy['initialUsdDeposit'] }) {
   return value != null ? `$${fmtUsd(value)}` : <span className="text-muted-foreground font-normal">미설정</span>
 }
 
-function MobileLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, seedLabel, seedBadgeCls }: LayoutProps) {
+function MobileLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, seedLabel, seedBadgeCls, statusLabel }: LayoutProps) {
   // 모바일: 2행 레이아웃
   return (
     <div className="flex flex-col gap-1.5 pl-5 pr-4 py-3 lg:hidden">
       {/* 1행: 배지 + 계좌번호 */}
       <div data-testid="strategy-card-mobile-top-row" className="flex items-center gap-1.5">
         <Badge tone="brand" size="sm" className="px-2.5">{strategy.type}</Badge>
+        {statusLabel && <Badge tone="neutral" size="sm">{statusLabel}</Badge>}
         {!isVr && <Badge tone="none" size="sm" className={seedBadgeCls}>{seedLabel}</Badge>}
         {scheduledStart && (
           <Badge tone="none" size="sm" className="bg-info-bg text-info">
@@ -97,7 +99,7 @@ function MobileLayout({ strategy, accountLabel, usesDivisionCount, isVr, schedul
   )
 }
 
-function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, seedLabel, seedBadgeCls }: LayoutProps) {
+function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, seedLabel, seedBadgeCls, statusLabel }: LayoutProps) {
   // PC: 카드 형태
   return (
     <div className="hidden lg:flex flex-col">
@@ -106,6 +108,7 @@ function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledSt
         <div className="flex items-center justify-between mb-3">
           <div className="flex flex-wrap items-center gap-1.5">
             <Badge tone="brand" size="md" className="h-[22px]">{strategy.type}</Badge>
+            {statusLabel && <Badge tone="neutral" size="sm" className="h-[22px]">{statusLabel}</Badge>}
             {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
             {usesDivisionCount && (
               <Badge tone="neutral" size="sm" className="h-[22px] text-foreground">
@@ -172,24 +175,29 @@ function CycleStrategyCard({ accountId, strategy, accountLabel }: Props) {
   const scheduledStart = isScheduledStart(strategy) // startDate가 오늘 이후면 아직 매매 시작 전
   const seedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
   const seedBadgeCls = seedBadgeClass(strategy.cycleSeedType)
+  const statusLabel = strategy.status === 'ACTIVE' ? null : labelOf('strategyStatuses', strategy.status)
+  const statusAccent = strategyStatusAccent(strategy.status)
   // "오늘 계획된 주문 중 실제 미접수 방향이 있는가" 기준 — marketSession(장 시간대)이 아니라
   // 이 전략의 실제 주문 시도 결과로 판정한다 (SELL만 성공하고 BUY만 미접수인 상태를 구분하기 위함)
   const readiness = computeOrderReadiness(preview)
   const hasTodayOrders = (preview?.todayOrders ?? []).length > 0
   const orderBorderColor = getOrderBorderColor(readiness, hasTodayOrders)
 
-  const layoutProps: LayoutProps = { strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, seedLabel, seedBadgeCls }
+  const layoutProps: LayoutProps = { strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, seedLabel, seedBadgeCls, statusLabel }
 
   return (
     <Link
       href={`/accounts/${accountId}/strategies/${strategy.id}`}
       className="group relative block rounded-[var(--r-lg)] border border-border bg-card shadow-[var(--sh-card)] hover:border-rose-300 hover:shadow-[var(--sh-rose)] transition-[border-color,box-shadow] overflow-hidden"
     >
-      {/* 상태 액센트 스트립 */}
-      <span
-        className="absolute left-0 top-0 bottom-0 w-[3px]"
-        style={{ background: strategyStatusAccent(strategy.status) }}
-      />
+      {/* 상태 액센트 스트립 — 정상(ACTIVE)은 표시하지 않는다 */}
+      {statusAccent && (
+        <span
+          data-testid="strategy-status-strip"
+          className="absolute left-0 top-0 bottom-0 w-[3px]"
+          style={{ background: statusAccent }}
+        />
+      )}
       {orderBorderColor && (
         <span
           data-testid="strategy-order-border-accent"

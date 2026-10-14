@@ -21,7 +21,7 @@ vi.mock('@entities/strategy', () => ({
   useStrategiesQuery: () => ({
     data: strategiesQueryData,
   }),
-  strategyStatusAccent: (status: string) => status === 'ACTIVE' ? 'var(--status-ok)' : 'var(--warn)',
+  strategyStatusAccent: (status: string) => status === 'ACTIVE' ? undefined : 'var(--muted-foreground)',
   strategyTypeShort: (type: string) => {
     if (type === 'PRIVACY') return 'P'
     if (type === 'INFINITE') return 'I'
@@ -55,20 +55,17 @@ describe('AccountCard', () => {
     strategiesQueryData = []
   })
 
-  it('shows an active left accent strip and no status dot label when all strategies are active', () => {
+  it('hides the left accent strip when all strategies are active', () => {
     strategiesQueryData = [baseStrategy]
     const { container } = render(
       <AccountCard account={baseAccount} />,
     )
 
-    const accent = container.querySelector('[data-testid="account-status-accent"]')
-
-    expect(accent).toBeInTheDocument()
-    expect(accent).toHaveStyle({ background: 'var(--status-ok)' })
+    expect(container.querySelector('[data-testid="account-status-accent"]')).not.toBeInTheDocument()
     expect(screen.queryByText('ACTIVE')).not.toBeInTheDocument()
   })
 
-  it('uses the warn accent when strategy statuses are mixed', () => {
+  it('uses the muted accent when strategy statuses are mixed', () => {
     strategiesQueryData = [baseStrategy, { ...baseStrategy, id: 'strategy-2', status: 'PAUSED' }]
     const { container } = render(
       <AccountCard account={baseAccount} />,
@@ -76,7 +73,7 @@ describe('AccountCard', () => {
 
     const accent = container.querySelector('[data-testid="account-status-accent"]')
 
-    expect(accent).toHaveStyle({ background: 'var(--warn)' })
+    expect(accent).toHaveStyle({ background: 'var(--muted-foreground)' })
     expect(screen.queryByText('ACTIVE 1개')).not.toBeInTheDocument()
   })
 
@@ -95,8 +92,8 @@ describe('AccountCard', () => {
 
     const pausedBadge = container.querySelector('[data-testid="strategy-badge-strategy-1-mobile"]')
 
-    expect(pausedBadge).toHaveAttribute('style', expect.stringContaining('border-color: var(--warn);'))
-    expect(pausedBadge).toHaveAttribute('style', expect.stringContaining('color: var(--warn);'))
+    expect(pausedBadge).toHaveAttribute('style', expect.stringContaining('border-color: var(--muted-foreground);'))
+    expect(pausedBadge).toHaveAttribute('style', expect.stringContaining('color: var(--muted-foreground);'))
   })
 
   it('top-aligns wrapped mobile strategy badges so multiple rows do not collapse toward the center', () => {

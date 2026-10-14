@@ -36,17 +36,18 @@ export function AccountCard({ account }: Props) {
   const broker = findBroker(account.broker)
   const brokerLabel = broker?.label ?? account.broker
   const aggregated = aggregateStatus(strategies)
+  const aggregatedAccent = aggregated ? strategyStatusAccent(aggregated) : undefined
 
   return (
     <Link
       href={`/accounts/${account.id}`}
       className="group relative block rounded-[var(--r-lg)] border border-border bg-card shadow-[var(--sh-card)] hover:border-rose-200 hover:shadow-[var(--sh-rose)] hover:-translate-y-0.5 transition-[border-color,box-shadow,translate] duration-200 overflow-hidden"
     >
-      {aggregated && (
+      {aggregatedAccent && (
         <span
           data-testid="account-status-accent"
           className="absolute left-0 top-0 bottom-0 w-[3px]"
-          style={{ background: strategyStatusAccent(aggregated) }}
+          style={{ background: aggregatedAccent }}
         />
       )}
 

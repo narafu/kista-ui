@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from '@/components/ui/card'
 import { KpiCard } from '@widgets/kpi-card'
-import { seedBadgeClass, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel, nextVrRolloverDate } from '@entities/strategy'
+import { seedBadgeClass, isScheduledStart, scheduledStartBadgeLabel, nextVrRolloverDate } from '@entities/strategy'
 import { useMeta } from '@entities/meta'
 import { cn, toNum } from '@shared/lib/utils'
 import { fmtDate, fmtUsd } from '@shared/lib/format'
@@ -20,17 +20,13 @@ interface Props {
 }
 
 function StatusStrip({ strategy }: { strategy: Strategy }) {
+  const { labelOf } = useMeta()
   const scheduledStart = isScheduledStart(strategy) // startDate가 오늘 이후면 아직 매매 시작 전
   return (
     <>
       {/* 전략 정보 헤더 스트립 — 카드 중첩 대신 얇은 라벨 행 + 균일 타일 그리드 (감사 A-20) */}
       <div className="flex items-center justify-between gap-3">
-        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--brand-fg-soft)]">
-          <span
-            data-testid="strategy-status-accent"
-            className="size-2 rounded-full shrink-0"
-            style={{ background: strategyStatusAccent(strategy.status) }}
-          />
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--brand-fg-soft)]">
           전략 정보
         </p>
         <div data-testid="strategy-status-group" className="flex flex-wrap items-center justify-end gap-2">
@@ -43,8 +39,8 @@ function StatusStrip({ strategy }: { strategy: Strategy }) {
             <Badge tone="warn" size="md">리버스모드</Badge>
           )}
           {strategy.status !== 'ACTIVE' && (
-            <Badge tone="warn" size="lg" className="border border-warn/20">
-              {strategy.status}
+            <Badge tone="neutral" size="lg">
+              {labelOf('strategyStatuses', strategy.status)}
             </Badge>
           )}
         </div>
