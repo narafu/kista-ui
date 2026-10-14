@@ -11,7 +11,7 @@ import { Area, Brush, CartesianGrid, ComposedChart, Line, ReferenceArea, Referen
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 import { fmtMonthDay, fmtSignedUsd, fmtUsd, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
-import { CASH_THRESHOLD, PANEL_HEIGHT, SWATCH, Swatch, fmtPercent } from './privacyChartParts'
+import { CASH_THRESHOLD, PANEL_HEIGHT, SWATCH, Swatch, fmtPercent, useIsNarrow } from './privacyChartParts'
 import type { PrivacyChartRow } from './model/privacyChartSeries'
 
 interface Props {
@@ -24,6 +24,8 @@ const Y_AXIS_WIDTH = 52
 // 세 패널의 플롯 영역 좌우 끝을 맞추기 위해 margin·축 폭을 공유한다
 // right는 Brush 끝 날짜 라벨이 잘리지 않을 만큼 둔다
 const MARGIN = { top: 4, right: 40, left: 0, bottom: 0 }
+// 모바일은 Brush가 없어 끝 날짜 라벨 여백이 필요 없다 — 좁은 화면에서 플롯 폭을 돌려받는다
+const MARGIN_NARROW = { ...MARGIN, right: 12 }
 // 매수는 채운 원, 매도는 속이 빈 원 — 색만으로 구분하지 않는다
 const ORDER_DOT_BUY = { r: 3, fill: 'var(--pos)', stroke: 'none' }
 const ORDER_DOT_SELL = { r: 3, fill: 'var(--card)', stroke: 'var(--neg)', strokeWidth: 1.5 }
@@ -146,7 +148,8 @@ function PanelCaption({ title, summary, srOnly }: { title: string; summary: stri
   return (
     <figcaption className="pl-1 text-xs">
       <span className="font-medium text-muted-foreground">{title}</span>
-      {summary && <span className="ml-2 tabular-nums text-foreground">{summary}</span>}
+      {/* 모바일은 하단 정보 줄이 최신 값을 보여줘 캡션 값은 PC에만 — 스크린리더 요약(srOnly)은 그대로 */}
+      {summary && <span className="ml-2 hidden tabular-nums text-foreground sm:inline">{summary}</span>}
       <span className="sr-only">{srOnly}</span>
     </figcaption>
   )
@@ -165,8 +168,9 @@ export default function PrivacyBaseChartInner({ rows, ticker }: Props) {
   // 마지막으로 가리키거나 누른 날짜 — 모바일 정보 줄이 쓴다(없으면 최신 일자)
   const [activeDate, setActiveDate] = useState<string | null>(null)
   // PC는 떠다니는 툴팁을 쓰고 정보 줄이 숨겨져 있어, 좁은 화면에서만 상태를 갱신해 호버마다 세 차트를 다시 그리지 않는다
+  const narrow = useIsNarrow()
   const pickActive = (state: MouseHandlerDataParam) => {
-    if (state.activeLabel == null || !window.matchMedia('(max-width: 639px)').matches) return
+    if (state.activeLabel == null || !narrow) return
     setActiveDate(String(state.activeLabel))
   }
 
@@ -195,7 +199,7 @@ export default function PrivacyBaseChartInner({ rows, ticker }: Props) {
         />
         <div className={PANEL_HEIGHT.price}>
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={rows} syncId={SYNC_ID} margin={MARGIN} onMouseMove={pickActive} onClick={pickActive} onTouchMove={pickActive} title={`${ticker} 종가·평단가·주문 가격`}>
+            <ComposedChart data={rows} syncId={SYNC_ID} margin={narrow ? MARGIN_NARROW : MARGIN} onMouseMove={pickActive} onClick={pickActive} onTouchMove={pickActive} title={`${ticker} 종가·평단가·주문 가격`}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
               <XAxis dataKey="date" hide />
               <YAxis tickFormatter={(v) => fmtUsd(Number(v), 0)} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} domain={['auto', 'auto']} />
@@ -225,7 +229,7 @@ export default function PrivacyBaseChartInner({ rows, ticker }: Props) {
         />
         <div className={PANEL_HEIGHT.cash}>
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={rows} syncId={SYNC_ID} margin={MARGIN} onMouseMove={pickActive} onClick={pickActive} onTouchMove={pickActive} title="현금비중">
+            <ComposedChart data={rows} syncId={SYNC_ID} margin={narrow ? MARGIN_NARROW : MARGIN} onMouseMove={pickActive} onClick={pickActive} onTouchMove={pickActive} title="현금비중">
               <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
               <XAxis dataKey="date" hide />
               <YAxis domain={[0, 1]} ticks={CASH_TICKS} tickFormatter={(v) => fmtPercent(Number(v))} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} />
@@ -239,7 +243,7 @@ export default function PrivacyBaseChartInner({ rows, ticker }: Props) {
         </div>
       </figure>
 
-      <p className="pl-1 text-xs text-muted-foreground">아래 슬라이더로 구간을 조절합니다.</p>
+      <p className="hidden pl-1 text-xs text-muted-foreground sm:block">아래 슬라이더로 구간을 조절합니다.</p>
 
       <figure className="w-full">
         <PanelCaption
@@ -249,7 +253,7 @@ export default function PrivacyBaseChartInner({ rows, ticker }: Props) {
         />
         <div className={PANEL_HEIGHT.pnl}>
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={rows} syncId={SYNC_ID} margin={MARGIN} onMouseMove={pickActive} onClick={pickActive} onTouchMove={pickActive} title="누적 실현손익">
+            <ComposedChart data={rows} syncId={SYNC_ID} margin={narrow ? MARGIN_NARROW : MARGIN} onMouseMove={pickActive} onClick={pickActive} onTouchMove={pickActive} title="누적 실현손익">
               <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
               <XAxis dataKey="date" tickFormatter={(d) => fmtMonthDay(String(d))} tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={28} />
               <YAxis tickFormatter={(v) => fmtUsd(Number(v), 0)} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} />
@@ -258,14 +262,15 @@ export default function PrivacyBaseChartInner({ rows, ticker }: Props) {
               {boundaries.map((d) => <ReferenceLine key={d} x={d} stroke="var(--muted-foreground)" strokeDasharray="4 4" />)}
               {/* 구간 슬라이더 — 같은 syncId의 위 두 패널도 recharts가 같은 구간으로 맞춘다.
                   라벨 글자색은 recharts가 stroke를 그대로 쓰므로 stroke가 곧 텍스트 토큰이다 */}
-              <Brush
+              {/* 모바일은 손잡이가 작아 조작이 어렵고 상단 기간 필터로 충분해 PC에만 둔다 */}
+              {!narrow && <Brush
                 dataKey="date"
                 height={32}
                 travellerWidth={18}
                 tickFormatter={(d) => fmtMonthDay(String(d))}
                 stroke="var(--muted-foreground)"
                 fill="var(--card)"
-              />
+              />}
               {/* 확정분(종료 사이클 손익 = 시작금액 증감)은 0 기준 이익/손실 두 영역으로 칠하고(그라디언트 분기점은
                   Brush로 보이는 구간이 바뀌면 0과 어긋난다), 진행 중 사이클까지 더한 누적은 선으로 얹는다.
                   영역과 선 사이 간격이 진행 중 사이클 손익이다 */}

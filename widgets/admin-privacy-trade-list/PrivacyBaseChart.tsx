@@ -10,7 +10,7 @@ import { useAdminPrivacyBasesQuery } from '@entities/privacy'
 import { useCandlesRangeQuery } from '@entities/market'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { buildPrivacyChartSeries, candleRangeFor, sliceSeriesByRange } from './model/privacyChartSeries'
-import { ChartSkeleton, LEGEND_GROUPS, Swatch } from './privacyChartParts'
+import { ChartSkeleton, LEGEND_GROUPS, Swatch, useIsNarrow } from './privacyChartParts'
 
 // recharts는 무거워 Inner로 분리해 지연 로드한다 (asset-trend/AssetTrend + AssetTrendInner 패턴)
 const PrivacyBaseChartInner = dynamic(() => import('./PrivacyBaseChartInner'), {
@@ -25,8 +25,11 @@ interface Props {
 
 const DEFAULT_TICKER = 'SOXL'
 
+const BASIS_NOTE = '발표일 기준으로 표시합니다. 종가는 발표일 직전 거래일 종가입니다. 현금비중은 실현손익이 현금으로 회수되고 입출금이 없다고 가정한 추정치입니다.'
+
 export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
   const pathname = usePathname()
+  const narrow = useIsNarrow()
   const searchParams = useSearchParams()
   const { data: allBases = [], isError: basesError, isLoading: basesLoading, refetch: refetchBases } = useAdminPrivacyBasesQuery()
   const tickers = useMemo(() => [...new Set(allBases.map((b) => b.ticker))].sort(), [allBases])
@@ -66,6 +69,24 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
     if (allBases.length === 0) return <EmptyState variant="text" message="등록된 P 매매표가 없습니다." />
     if (rows.length === 0) return <EmptyState variant="text" message={'선택한 기간에 표시할 매매표가 없습니다.\n기간을 넓혀 다시 확인해 주세요.'} />
     if (candlesQuery.isLoading) return <ChartSkeleton />
+    const legend = (
+      <div role="group" aria-label="범례" className="space-y-1 text-xs text-muted-foreground">
+            {LEGEND_GROUPS.map((group) => (
+              // 묶음 제목 열을 고정하고 항목은 오른쪽 칸에서만 줄바꿈한다 — 좁은 화면에서 항목이 제목 아래로 흘러내리지 않게
+              <div key={group.title} className="flex items-start gap-3">
+                <span className="w-14 shrink-0 font-medium text-foreground">{group.title}</span>
+                <span className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1">
+                  {group.items.map((item) => (
+                    <span key={item.label} className="inline-flex items-center gap-1.5">
+                      <Swatch className={item.swatch} />
+                      {item.label}
+                    </span>
+                  ))}
+                </span>
+              </div>
+            ))}
+          </div>
+    )
     return (
       <div className="space-y-3">
         {candlesQuery.isError ? (
@@ -77,30 +98,18 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
           <p className="pl-1 text-xs text-muted-foreground">종가 조회 범위(최대 5년) 밖이거나 종가가 없는 {missingCloseCount}일은 종가·현금비중을 표시하지 않습니다.</p>
         ) : null}
 
-        {/* 패널마다 recharts Legend를 두면 차트 사이에 떠서 산만해, 카드 상단에 패널별 묶음으로 한 번만 둔다 */}
-        <div role="group" aria-label="범례" className="space-y-1 pl-1 text-xs text-muted-foreground">
-          {LEGEND_GROUPS.map((group) => (
-            // 묶음 제목 열을 고정하고 항목은 오른쪽 칸에서만 줄바꿈한다 — 좁은 화면에서 항목이 제목 아래로 흘러내리지 않게
-            <div key={group.title} className="flex items-start gap-3">
-              <span className="w-14 shrink-0 font-medium text-foreground">{group.title}</span>
-              <span className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1">
-                {group.items.map((item) => (
-                  <span key={item.label} className="inline-flex items-center gap-1.5">
-                    <Swatch className={item.swatch} />
-                    {item.label}
-                  </span>
-                ))}
-              </span>
-            </div>
-          ))}
-        </div>
-        <p className="pl-1 text-xs text-muted-foreground">
-          <span className="sm:hidden">차트를 누르면 해당 일자의 값이 아래 정보 줄에 표시됩니다.</span>
-          <span className="hidden sm:inline">차트를 가리키면 해당 일자의 값이 가격 차트에 표시됩니다.</span>
-        </p>
+        {/* 패널마다 recharts Legend를 두면 차트 사이에 떠서 산만해, 카드 상단에 패널별 묶음으로 한 번만 둔다.
+            모바일은 화면이 좁아 범례가 5줄을 차지하므로 기본 접힘 — 하단 정보 줄에도 같은 색 표식이 붙어 있다 */}
+        <details className="pl-1 text-xs sm:hidden">
+          <summary className="cursor-pointer text-muted-foreground">범례</summary>
+          <div className="mt-2">{legend}</div>
+        </details>
+        <div className="hidden sm:block">{legend}</div>
+        {/* 모바일은 하단 정보 줄이 같은 안내를 하므로 PC에만 둔다 */}
+        <p className="hidden pl-1 text-xs text-muted-foreground sm:block">차트를 가리키면 해당 일자의 값이 가격 차트에 표시됩니다.</p>
 
-        {/* 종목·기간·건수가 바뀌면 Brush 구간을 처음(전체)으로 되돌리도록 다시 마운트한다 */}
-        <PrivacyBaseChartInner key={`${ticker}|${windowFrom}|${windowTo}|${rows.length}`} rows={rows} ticker={ticker} />
+        {/* 종목·기간·건수가 바뀌거나 화면 폭이 모바일로 넘어가면(Brush가 사라져 되돌릴 수단이 없음) 구간을 처음(전체)으로 되돌리도록 다시 마운트한다 */}
+        <PrivacyBaseChartInner key={`${ticker}|${windowFrom}|${windowTo}|${rows.length}|${narrow}`} rows={rows} ticker={ticker} />
       </div>
     )
   }
@@ -118,9 +127,12 @@ export function PrivacyBaseChart({ windowFrom, windowTo }: Props) {
             </SelectContent>
           </Select>
         </div>
-        <p className="mt-1 text-xs text-muted-foreground">
-          발표일 기준으로 표시합니다. 종가는 발표일 직전 거래일 종가입니다. 현금비중은 실현손익이 현금으로 회수되고 입출금이 없다고 가정한 추정치입니다.
-        </p>
+        {/* 계산 기준 설명은 한 번 읽으면 되는 정보라 모바일에서는 접어 둔다 */}
+        <p className="mt-1 hidden text-xs text-muted-foreground sm:block">{BASIS_NOTE}</p>
+        <details className="mt-1 text-xs text-muted-foreground sm:hidden">
+          <summary className="cursor-pointer">계산 기준</summary>
+          <p className="mt-1">{BASIS_NOTE}</p>
+        </details>
       </CardHeader>
       <CardContent className="px-2 pb-4 sm:px-6 sm:pb-6">{renderBody()}</CardContent>
     </Card>

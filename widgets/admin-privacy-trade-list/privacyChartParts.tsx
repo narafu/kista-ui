@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@shared/lib/utils'
 
@@ -5,7 +6,7 @@ import { cn } from '@shared/lib/utils'
 export const CASH_THRESHOLD = 0.5
 
 // 패널 높이 — 실제 차트와 스켈레톤이 같은 값을 써서 로딩 전후 레이아웃이 튀지 않게 한다
-export const PANEL_HEIGHT = { price: 'h-[260px]', cash: 'h-[110px]', pnl: 'h-[176px]' }
+export const PANEL_HEIGHT = { price: 'h-[260px]', cash: 'h-[110px]', pnl: 'h-[144px] sm:h-[176px]' }
 
 // 부호 없는 정수 % — 현금비중처럼 0~1 비율을 그대로 보여줄 때 쓴다 (다른 사용처는 아직 없어 로컬 유지)
 export function fmtPercent(ratio: number) {
@@ -74,4 +75,15 @@ export function ChartSkeleton() {
       <Skeleton className={PANEL_HEIGHT.pnl} />
     </div>
   )
+}
+
+// sm(640px) 미만 여부 — 서버 스냅샷은 false(PC 기준), 클라이언트 첫 렌더 직후 실제 값으로 맞춰진다
+const NARROW_QUERY = '(max-width: 639px)'
+function subscribeNarrow(onChange: () => void) {
+  const mq = window.matchMedia(NARROW_QUERY)
+  mq.addEventListener('change', onChange)
+  return () => mq.removeEventListener('change', onChange)
+}
+export function useIsNarrow() {
+  return useSyncExternalStore(subscribeNarrow, () => window.matchMedia(NARROW_QUERY).matches, () => false)
 }
