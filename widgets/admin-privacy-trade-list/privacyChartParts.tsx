@@ -8,6 +8,15 @@ export const CASH_THRESHOLD = 0.5
 // 패널 높이 — 실제 차트와 스켈레톤이 같은 값을 써서 로딩 전후 레이아웃이 튀지 않게 한다
 export const PANEL_HEIGHT = { price: 'h-[260px]', cash: 'h-[110px]', pnl: 'h-[144px] sm:h-[176px]' }
 
+// 평단가-종가 괴리 단계 — 종가가 평단가에서 위아래로 10%·20% 이상 벌어지면 평단가를 색으로 강조한다
+export const AVG_GAP_LEVELS = [0.1, 0.2] as const
+
+export function avgGapLevel(close: number | null, avgPrice: number | null): 0 | 1 | 2 {
+  if (close == null || avgPrice == null || avgPrice <= 0) return 0
+  const gap = Math.abs(close - avgPrice) / avgPrice
+  return gap >= AVG_GAP_LEVELS[1] ? 2 : gap >= AVG_GAP_LEVELS[0] ? 1 : 0
+}
+
 // 부호 없는 정수 % — 현금비중처럼 0~1 비율을 그대로 보여줄 때 쓴다 (다른 사용처는 아직 없어 로컬 유지)
 export function fmtPercent(ratio: number) {
   return `${Math.round(ratio * 100)}%`
@@ -18,6 +27,8 @@ export function fmtPercent(ratio: number) {
 export const SWATCH = {
   close: 'h-0.5 w-4 bg-[var(--chart-2)]',
   avgPrice: 'w-4 border-t-2 border-dashed border-[var(--foreground)]',
+  avgGap1: 'h-0.5 w-4 bg-[var(--avg-gap-1)]',
+  avgGap2: 'h-1 w-4 bg-[var(--avg-gap-2)]',
   buy: 'size-2.5 rounded-full bg-[var(--pos)]',
   sell: 'size-2.5 rounded-full border-2 border-[var(--neg)] bg-card',
   cash: 'h-2 w-4 rounded-sm bg-[var(--info)]',
@@ -58,6 +69,16 @@ export const LEGEND_GROUPS: Array<{ title: string; items: Array<{ label: string;
   },
   { title: '공통', items: [{ label: '사이클 경계', swatch: SWATCH.boundary }] },
 ]
+
+// 괴리 강조를 켰을 때만 가격 묶음에 괴리 단계 표식을 덧붙인다
+export const LEGEND_GROUPS_WITH_AVG_GAP = LEGEND_GROUPS.map((group) => group.title !== '가격' ? group : {
+  ...group,
+  items: [
+    ...group.items,
+    { label: '평단가 괴리 10% 이상', swatch: SWATCH.avgGap1 },
+    { label: '평단가 괴리 20% 이상', swatch: SWATCH.avgGap2 },
+  ],
+})
 
 export function Swatch({ className }: { className: string }) {
   return (

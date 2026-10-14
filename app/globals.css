@@ -169,6 +169,8 @@
 
   /* Info (정보성 상태 — 사이클 시드 MAX, 주문 PLACED/LOC 등) */
   --info:    #46699C;   --info-bg: #E3EBF5;
+  /* P 매매표 평단가-종가 괴리 10%↑/20%↑ — 차트의 빨강(매수)·파랑(매도)·금색(종가)과 겹치지 않는 보라 계열 */
+  --avg-gap-1: #8B5CC7;  --avg-gap-2: #5B2A9E;
   /* Admin 액센트 (골드 계열 — 보라 대체) */
   --admin-fg: #84601F;  --admin-bg: #F3E7CC;
 
@@ -266,6 +268,7 @@
   --status-ok:  #6FCD8E;   --status-ok-bg: rgba(111,205,142,0.13);
 
   --info:    #8FB4E3;   --info-bg: rgba(143,180,227,0.13);
+  --avg-gap-1: #A98BE0;  --avg-gap-2: #CDB2FF;
   --admin-fg: #D9B375;  --admin-bg: rgba(217,179,117,0.16);
 
   --brand-fg:      #EAC3AC;

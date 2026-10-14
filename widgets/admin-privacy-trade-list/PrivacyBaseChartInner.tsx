@@ -11,13 +11,14 @@ import { Area, Brush, CartesianGrid, ComposedChart, Line, ReferenceArea, Referen
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 import { fmtMonthDay, fmtSignedPercent, fmtSignedUsd, fmtUsd, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
-import { CASH_THRESHOLD, PANEL_HEIGHT, SWATCH, Swatch, fmtPercent, useIsNarrow } from './privacyChartParts'
+import { CASH_THRESHOLD, PANEL_HEIGHT, SWATCH, Swatch, avgGapLevel, fmtPercent, useIsNarrow } from './privacyChartParts'
 import type { PrivacyChartRow } from './model/privacyChartSeries'
 
 interface Props {
   rows: PrivacyChartRow[]
   ticker: string
   showOrders: boolean
+  showAvgGap: boolean
 }
 
 const SYNC_ID = 'privacy-base-chart'
@@ -41,6 +42,13 @@ function fmtPrices(prices: number[]) {
 function fmtAvgPrice(avgPrice: number | null, close: number | null | undefined) {
   if (avgPrice == null) return '-'
   return close == null || avgPrice <= 0 ? fmtUsd(avgPrice) : `${fmtUsd(avgPrice)}(${fmtSignedPercent((close - avgPrice) / avgPrice)})`
+}
+
+// 괴리 강조가 켜졌을 때 평단가 값 글자색 — 차트 선과 같은 단계 색을 쓴다
+function avgGapTextClass(row: PrivacyChartRow, showAvgGap: boolean) {
+  if (!showAvgGap) return undefined
+  const level = avgGapLevel(row.close, row.avgPrice)
+  return level === 2 ? 'font-semibold text-[var(--avg-gap-2)]' : level === 1 ? 'text-[var(--avg-gap-1)]' : undefined
 }
 
 // 현금비중 + 추정 현금. 예: 21%(2,519.69)
@@ -83,7 +91,7 @@ function TooltipSection({ title, children }: { title: string; children: ReactNod
 // 툴팁은 가격 패널에만 두고 그날 지표를 한 번에 보여준다 — 세 패널이 각자 툴팁을 띄우면 화면을 덮는다.
 // 같은 syncId라 아래 두 패널을 만지거나 가리켜도 이 툴팁이 활성화된다.
 // payload는 값이 null인 계열을 걸러내 종가·평단가·주문이 모두 없는 날엔 비므로, 행은 label(날짜)로 찾는다
-function ChartTooltip({ row, ticker }: { row: PrivacyChartRow | undefined; ticker: string }) {
+function ChartTooltip({ row, ticker, showAvgGap }: { row: PrivacyChartRow | undefined; ticker: string; showAvgGap: boolean }) {
   if (!row) return null
   const cashLow = row.cashRatio != null && row.cashRatio < CASH_THRESHOLD
   return (
@@ -91,7 +99,7 @@ function ChartTooltip({ row, ticker }: { row: PrivacyChartRow | undefined; ticke
       <div className="font-semibold">{row.date}</div>
       <TooltipSection title={`${ticker} 가격`}>
         <TooltipRow label="종가" value={row.close == null ? '-' : fmtUsd(row.close)} swatch={SWATCH.close} />
-        <TooltipRow label="평단가" value={fmtAvgPrice(row.avgPrice, row.close)} swatch={SWATCH.avgPrice} />
+        <TooltipRow label="평단가" value={fmtAvgPrice(row.avgPrice, row.close)} swatch={SWATCH.avgPrice} className={avgGapTextClass(row, showAvgGap)} />
         <TooltipRow label="매수" value={fmtPrices(row.buys)} swatch={SWATCH.buy} className="text-pos" />
         <TooltipRow label="매도" value={fmtPrices(row.sells)} swatch={SWATCH.sell} className="text-neg" />
       </TooltipSection>
@@ -123,7 +131,7 @@ function ChartTooltip({ row, ticker }: { row: PrivacyChartRow | undefined; ticke
 
 // 모바일 전용 고정 정보 줄 — 떠다니는 툴팁은 가격 패널 안에만 떠서, 가격 패널이 화면 위로 스크롤된 상태에서
 // 아래 패널을 누르면 헤더에 가린다. 좁은 화면에서는 툴팁 대신 화면 하단에 붙는 이 줄에 그날 값을 보여준다
-function MobileInfoBar({ row, isLatest }: { row: PrivacyChartRow; isLatest: boolean }) {
+function MobileInfoBar({ row, isLatest, showAvgGap }: { row: PrivacyChartRow; isLatest: boolean; showAvgGap: boolean }) {
   const cashLow = row.cashRatio != null && row.cashRatio < CASH_THRESHOLD
   return (
     <div className="sticky bottom-0 z-10 -mx-2 border-t border-border bg-card/95 px-3 py-2 text-xs backdrop-blur sm:hidden">
@@ -135,7 +143,7 @@ function MobileInfoBar({ row, isLatest }: { row: PrivacyChartRow; isLatest: bool
         {/* 평단가에 손익률이 붙어 반칸 폭이면 잘려, 종가와 함께 내용 폭대로 양끝 정렬한다 */}
         <div className="col-span-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5">
           <InfoItem swatch={SWATCH.close} label="종가" value={row.close == null ? '-' : fmtUsd(row.close)} inline />
-          <InfoItem swatch={SWATCH.avgPrice} label="평단가" value={fmtAvgPrice(row.avgPrice, row.close)} inline />
+          <InfoItem swatch={SWATCH.avgPrice} label="평단가" value={fmtAvgPrice(row.avgPrice, row.close)} className={avgGapTextClass(row, showAvgGap)} inline />
         </div>
         <InfoItem swatch={SWATCH.buy} label="매수" value={fmtPrices(row.buys)} className="text-pos" wide />
         <InfoItem swatch={SWATCH.sell} label="매도" value={fmtPrices(row.sells)} className="text-neg" wide />
@@ -179,7 +187,7 @@ function PanelCaption({ title, summary, srOnly }: { title: string; summary: stri
   )
 }
 
-export default function PrivacyBaseChartInner({ rows, ticker, showOrders }: Props) {
+export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAvgGap }: Props) {
   // 주문 점 계열 수는 보이는 기간 기준 — 전체 이력 최대치로 그리면 빈 계열이 생긴다
   // 호버마다 다시 그려지므로 rows에서 파생되는 값은 한 번만 계산한다
   const { maxBuyOrders, maxSellOrders, rowByDate, boundaries } = useMemo(() => ({
@@ -188,6 +196,15 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders }: Prop
     rowByDate: new Map(rows.map((r) => [r.date, r])),
     boundaries: rows.filter((r) => r.cycleBoundary).map((r) => r.date),
   }), [rows])
+
+  // 괴리 단계별 평단가 덧칠 계열 — 해당 단계인 날과 그 다음 날에 값을 둬서 stepAfter 계단이 다음 날 x까지 이어지게 한다
+  // (단계가 바뀌는 날 덧칠이 끊기지 않음). 해당 단계가 아닌 구간은 undefined라 선이 그려지지 않는다
+  const priceRows = useMemo(() => {
+    if (!showAvgGap) return rows
+    const levels = rows.map((r) => avgGapLevel(r.close, r.avgPrice))
+    const pick = (i: number, level: number) => (levels[i] === level || levels[i - 1] === level ? rows[i].avgPrice ?? undefined : undefined)
+    return rows.map((r, i) => ({ ...r, avgGap1: pick(i, 1), avgGap2: pick(i, 2) }))
+  }, [rows, showAvgGap])
 
   // 마지막으로 가리키거나 누른 날짜 — 모바일 정보 줄이 쓴다(없으면 최신 일자)
   const [activeDate, setActiveDate] = useState<string | null>(null)
@@ -223,12 +240,12 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders }: Prop
         />
         <div className={PANEL_HEIGHT.price}>
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={rows} syncId={SYNC_ID} margin={narrow ? MARGIN_NARROW : MARGIN} onMouseMove={pickActive} onClick={pickActive} onTouchMove={pickActive} title={`${ticker} 종가·평단가·주문 가격`}>
+            <ComposedChart data={priceRows} syncId={SYNC_ID} margin={narrow ? MARGIN_NARROW : MARGIN} onMouseMove={pickActive} onClick={pickActive} onTouchMove={pickActive} title={`${ticker} 종가·평단가·주문 가격`}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
               <XAxis dataKey="date" hide />
               <YAxis tickFormatter={(v) => fmtUsd(Number(v), 0)} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} domain={['auto', 'auto']} />
               {/* 아래 패널을 눌러도 툴팁이 가격 패널 위쪽에 고정돼 화면 밖으로 밀리지 않게 y를 고정한다 */}
-              <Tooltip position={{ y: 0 }} content={({ active, label }) => <div className="hidden sm:block"><ChartTooltip row={active ? rowByDate.get(String(label)) : undefined} ticker={ticker} /></div>} cursor={CURSOR} />
+              <Tooltip position={{ y: 0 }} content={({ active, label }) => <div className="hidden sm:block"><ChartTooltip row={active ? rowByDate.get(String(label)) : undefined} ticker={ticker} showAvgGap={showAvgGap} /></div>} cursor={CURSOR} />
               {boundaries.map((d) => <ReferenceLine key={d} x={d} stroke="var(--muted-foreground)" strokeDasharray="4 4" />)}
               {showOrders && Array.from({ length: maxBuyOrders }, (_, i) => (
                 <Line key={`buy${i}`} dataKey={`buy${i}`} stroke="var(--pos)" strokeWidth={0} dot={ORDER_DOT_BUY} activeDot={false} isAnimationActive={false} />
@@ -240,6 +257,9 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders }: Prop
                   평단가는 체결 때만 바뀌므로 계단+점선으로 구분한다 */}
               <Line type="monotone" dataKey="close" stroke="var(--chart-2)" strokeWidth={2.5} dot={false} isAnimationActive={false} />
               <Line type="stepAfter" dataKey="avgPrice" stroke="var(--foreground)" strokeWidth={1.5} strokeDasharray="5 3" dot={false} isAnimationActive={false} />
+              {/* 괴리 구간은 평단가 점선 위에 단계 색 실선을 덧칠한다 — 20%가 더 굵어 색 외에 굵기로도 구분된다 */}
+              {showAvgGap && <Line type="stepAfter" dataKey="avgGap1" stroke="var(--avg-gap-1)" strokeWidth={2.5} dot={false} activeDot={false} isAnimationActive={false} />}
+              {showAvgGap && <Line type="stepAfter" dataKey="avgGap2" stroke="var(--avg-gap-2)" strokeWidth={3.5} dot={false} activeDot={false} isAnimationActive={false} />}
             </ComposedChart>
           </ResponsiveContainer>
         </div>
@@ -305,7 +325,7 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders }: Prop
           </ResponsiveContainer>
         </div>
       </figure>
-      <MobileInfoBar row={activeRow} isLatest={activeRow === last} />
+      <MobileInfoBar row={activeRow} isLatest={activeRow === last} showAvgGap={showAvgGap} />
     </div>
   )
 }

@@ -11,7 +11,7 @@ import { useAdminPrivacyBasesQuery } from '@entities/privacy'
 import { useCandlesRangeQuery } from '@entities/market'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { buildPrivacyChartSeries, candleRangeFor, latestYearlyResetByTicker, sliceSeriesByRange } from './model/privacyChartSeries'
-import { ChartSkeleton, LEGEND_GROUPS, Swatch, useIsNarrow } from './privacyChartParts'
+import { ChartSkeleton, LEGEND_GROUPS, LEGEND_GROUPS_WITH_AVG_GAP, Swatch, useIsNarrow } from './privacyChartParts'
 
 // recharts는 무거워 Inner로 분리해 지연 로드한다 (asset-trend/AssetTrend + AssetTrendInner 패턴)
 const PrivacyBaseChartInner = dynamic(() => import('./PrivacyBaseChartInner'), {
@@ -58,6 +58,8 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
   const windowFrom = sinceYearlyReset ? latestYearlyResetByTicker(tickerBases).get(ticker) : rangeFrom
   // 주문 점은 가격선을 가릴 때가 있어 끌 수 있게 한다. 종목·기간이 바뀌어 차트가 다시 마운트돼도 유지되도록 여기 둔다
   const [showOrders, setShowOrders] = useState(true)
+  // 평단가-종가 괴리 강조 — 켜면 괴리 10%·20% 이상 구간의 평단가를 색으로 표시한다
+  const [showAvgGap, setShowAvgGap] = useState(false)
   const series = useMemo(() => buildPrivacyChartSeries(tickerBases, candlesQuery.data ?? []), [tickerBases, candlesQuery.data])
   const rows = useMemo(() => sliceSeriesByRange(series.rows, windowFrom, windowTo), [series.rows, windowFrom, windowTo])
   const missingCloseCount = rows.filter((r) => r.close == null).length
@@ -77,7 +79,7 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
     if (candlesQuery.isLoading) return <ChartSkeleton />
     const legend = (
       <div role="group" aria-label="범례" className="space-y-1 text-xs text-muted-foreground">
-            {LEGEND_GROUPS.map((group) => (
+            {(showAvgGap ? LEGEND_GROUPS_WITH_AVG_GAP : LEGEND_GROUPS).map((group) => (
               // 묶음 제목 열을 고정하고 항목은 오른쪽 칸에서만 줄바꿈한다 — 좁은 화면에서 항목이 제목 아래로 흘러내리지 않게
               <div key={group.title} className="flex items-start gap-3">
                 <span className="w-14 shrink-0 font-medium text-foreground">{group.title}</span>
@@ -114,14 +116,20 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
         <div className="flex flex-wrap items-center justify-between gap-2 pl-1 text-xs text-muted-foreground">
           {/* 모바일은 하단 정보 줄이 같은 안내를 하므로 PC에만 둔다 */}
           <p className="hidden sm:block">차트를 가리키면 해당 일자의 값이 가격 차트에 표시됩니다.</p>
-          <span className="ml-auto inline-flex items-center gap-2">
-            <Switch id="privacy-chart-show-orders" size="sm" checked={showOrders} onCheckedChange={setShowOrders} />
-            <label htmlFor="privacy-chart-show-orders" className="cursor-pointer">매수·매도 주문 표시</label>
+          <span className="ml-auto flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+            <span className="inline-flex items-center gap-2">
+              <Switch id="privacy-chart-show-orders" size="sm" checked={showOrders} onCheckedChange={setShowOrders} />
+              <label htmlFor="privacy-chart-show-orders" className="cursor-pointer">매수·매도 주문 표시</label>
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <Switch id="privacy-chart-show-avg-gap" size="sm" checked={showAvgGap} onCheckedChange={setShowAvgGap} />
+              <label htmlFor="privacy-chart-show-avg-gap" className="cursor-pointer">평단가 괴리 강조</label>
+            </span>
           </span>
         </div>
 
         {/* 종목·기간·건수가 바뀌거나 화면 폭이 모바일로 넘어가면(Brush가 사라져 되돌릴 수단이 없음) 구간을 처음(전체)으로 되돌리도록 다시 마운트한다 */}
-        <PrivacyBaseChartInner key={`${ticker}|${windowFrom}|${windowTo}|${rows.length}|${narrow}`} rows={rows} ticker={ticker} showOrders={showOrders} />
+        <PrivacyBaseChartInner key={`${ticker}|${windowFrom}|${windowTo}|${rows.length}|${narrow}`} rows={rows} ticker={ticker} showOrders={showOrders} showAvgGap={showAvgGap} />
       </div>
     )
   }
