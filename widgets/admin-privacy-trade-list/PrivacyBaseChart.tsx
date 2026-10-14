@@ -132,12 +132,15 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
       <CardHeader className="pb-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">P 매매표 추이</CardTitle>
-          <Select value={ticker} onValueChange={pickTicker}>
-            <SelectTrigger aria-label="종목" className="w-28"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {tickers.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          {/* 현재 PRIVACY는 SOXL 한 종목뿐이라 고를 게 있을 때만 보인다 — 종목명은 가격 패널 제목에 나온다 */}
+          {tickers.length > 1 && (
+            <Select value={ticker} onValueChange={pickTicker}>
+              <SelectTrigger aria-label="종목" className="w-28"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {tickers.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
         </div>
         {/* 계산 기준 설명은 한 번 읽으면 되는 정보라 모바일에서는 접어 둔다 */}
         <p className="mt-1 hidden text-xs text-muted-foreground sm:block">{BASIS_NOTE}</p>

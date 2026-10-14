@@ -132,8 +132,11 @@ function MobileInfoBar({ row, isLatest }: { row: PrivacyChartRow; isLatest: bool
         {isLatest && <span className="ml-1 font-normal text-muted-foreground">(최신 · 차트를 누르면 바뀝니다)</span>}
       </div>
       <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 tabular-nums">
-        <InfoItem swatch={SWATCH.close} label="종가" value={row.close == null ? '-' : fmtUsd(row.close)} />
-        <InfoItem swatch={SWATCH.avgPrice} label="평단가" value={fmtAvgPrice(row.avgPrice, row.close)} />
+        {/* 평단가에 손익률이 붙어 반칸 폭이면 잘려, 종가와 함께 내용 폭대로 양끝 정렬한다 */}
+        <div className="col-span-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5">
+          <InfoItem swatch={SWATCH.close} label="종가" value={row.close == null ? '-' : fmtUsd(row.close)} inline />
+          <InfoItem swatch={SWATCH.avgPrice} label="평단가" value={fmtAvgPrice(row.avgPrice, row.close)} inline />
+        </div>
         <InfoItem swatch={SWATCH.buy} label="매수" value={fmtPrices(row.buys)} className="text-pos" wide />
         <InfoItem swatch={SWATCH.sell} label="매도" value={fmtPrices(row.sells)} className="text-neg" wide />
         {/* 현금비중·누적 실현손익은 비중/손익 요약끼리 한 줄로 묶는다 — 반칸 폭에 넣으면 긴 값이 잘려 내용 폭대로 양끝 정렬 */}
