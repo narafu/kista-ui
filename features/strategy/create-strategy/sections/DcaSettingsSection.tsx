@@ -13,7 +13,6 @@ import { DAY_OPTIONS, LAST_DAY, type DcaFormValues } from '../model/dcaFormSchem
 interface Props {
   form: UseFormReturn<DcaFormValues>
   isEdit: boolean
-  broker?: string
   orderTypes: string[]
   directions: string[]
   frequencies: string[]
@@ -29,7 +28,7 @@ function Caption({ children }: { children: React.ReactNode }) {
   return <p className="mt-2 text-sm text-muted-foreground">{children}</p>
 }
 
-export function DcaSettingsSection({ form, isEdit, broker, orderTypes, directions, frequencies }: Props) {
+export function DcaSettingsSection({ form, isEdit, orderTypes, directions, frequencies }: Props) {
   const { labelOf } = useMeta()
   const amountId = useId()
   const scheduleErrorId = useId()
@@ -79,8 +78,6 @@ export function DcaSettingsSection({ form, isEdit, broker, orderTypes, direction
             </SelectionCard>
           ))}
         </div>
-        {direction === 'BUY' && <Caption>매수는 전일 종가와 현재가 중 높은 값의 +5% 상한 지정가로 접수되어 급등 시 미체결될 수 있음</Caption>}
-        {broker === 'TOSS' && orderType === 'MOO' && <Caption>토스증권은 개장 직후 지정가로 접수되어 시가 체결이 보장되지 않음</Caption>}
       </div>
 
       <div className="py-[18px] border-b border-border">
@@ -127,7 +124,6 @@ export function DcaSettingsSection({ form, isEdit, broker, orderTypes, direction
         )}
         {frequency === 'MONTHLY' && dayOfMonth && LATE_DAYS.has(dayOfMonth) && <Caption>해당 날짜가 없는 달은 말일에 실행</Caption>}
         <Caption>휴장일이면 같은 주·월 안의 다음 거래일에 실행</Caption>
-        <Caption>실행일은 미국 거래일 기준</Caption>
       </div>
     </>
   )

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Strategy } from '@entities/strategy'
+import { todayKst } from '@shared/lib/format'
 import { buildDcaFormDefaults, dcaFormSchema, type DcaFormValues } from './dcaFormSchema'
 
 const base: DcaFormValues = {
@@ -11,6 +12,10 @@ const ok = (v: Partial<DcaFormValues>) => dcaFormSchema.safeParse({ ...base, ...
 
 describe('dcaFormSchema', () => {
   it('기본값 통과', () => expect(ok({})).toBe(true))
+  it('시작예정일은 오늘 이후만 허용', () => {
+    expect(ok({ scheduledStartDate: todayKst() })).toBe(true)
+    expect(ok({ scheduledStartDate: '2000-01-01' })).toBe(false)
+  })
   it('금액 0·null 거부', () => {
     expect(ok({ amountUsd: 0 })).toBe(false)
     expect(ok({ amountUsd: null })).toBe(false)
@@ -87,7 +92,7 @@ describe('buildDcaFormDefaults', () => {
   it('initial이 없으면 기본값(월간·말일·MOC)을 돌려준다', () => {
     expect(buildDcaFormDefaults(undefined, 'UPRO')).toEqual({
       ticker: 'UPRO', direction: 'BUY', amountUsd: null, orderType: 'MOC', frequency: 'MONTHLY',
-      dayOfWeek: null, dayOfMonth: 'LAST', scheduledStartDate: null, conditions: [],
+      dayOfWeek: null, dayOfMonth: 'LAST', scheduledStartDate: todayKst(), conditions: [],
     })
   })
 

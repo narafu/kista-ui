@@ -30,7 +30,7 @@ const existing: Strategy = {
 function renderForm(initial?: Strategy, defaultTicker = 'UPRO') {
   return render(
     <MetaProvider meta={meta}>
-      <DcaStrategyForm accountId="a1" broker="KIS" initial={initial} availableTickers={['UPRO', 'QLD']} defaultTicker={defaultTicker} />
+      <DcaStrategyForm accountId="a1" initial={initial} availableTickers={['UPRO', 'QLD']} defaultTicker={defaultTicker} />
     </MetaProvider>,
   )
 }

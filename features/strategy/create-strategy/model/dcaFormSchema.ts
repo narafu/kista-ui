@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { Strategy } from '@entities/strategy'
+import { todayKst } from '@shared/lib/format'
 
 export const LAST_DAY = 'LAST' // 매월 말일 — payload에서 dayOfMonth null로 직렬화
 export const DAY_OPTIONS = [...Array.from({ length: 31 }, (_, i) => String(i + 1)), LAST_DAY]
@@ -42,6 +43,10 @@ export const dcaFormSchema = z.object({
   scheduledStartDate: z.string().nullable(),
   conditions: z.array(conditionSchema).max(MAX_DCA_CONDITIONS, `조건은 최대 ${MAX_DCA_CONDITIONS}개입니다.`),
 }).superRefine((v, ctx) => {
+  // 등록 화면을 자정(KST) 넘겨 열어두면 기본값(오늘)이 어제가 된다 — 서버는 과거 날짜를 거부. 수정 모드는 null
+  if (v.scheduledStartDate && v.scheduledStartDate < todayKst()) {
+    ctx.addIssue({ code: 'custom', path: ['scheduledStartDate'], message: '시작예정일은 오늘 이후여야 합니다.' })
+  }
   if (v.frequency === 'WEEKLY' && !v.dayOfWeek) {
     ctx.addIssue({ code: 'custom', path: ['dayOfWeek'], message: '요일을 선택하세요.' })
   }
@@ -60,7 +65,7 @@ export function buildDcaFormDefaults(initial: Strategy | undefined, defaultTicke
   if (!initial || !d) {
     return {
       ticker: defaultTicker, direction: 'BUY', amountUsd: null, orderType: 'MOC', frequency: 'MONTHLY',
-      dayOfWeek: null, dayOfMonth: LAST_DAY, scheduledStartDate: null, conditions: [],
+      dayOfWeek: null, dayOfMonth: LAST_DAY, scheduledStartDate: todayKst(), conditions: [],
     }
   }
   return {

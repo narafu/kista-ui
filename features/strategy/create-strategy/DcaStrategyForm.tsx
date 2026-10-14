@@ -16,7 +16,6 @@ import { buildDcaConfig, buildDcaCreatePayload } from './model/buildDcaPayload'
 
 interface Props {
   accountId: string
-  broker?: string
   initial?: Strategy
   availableTickers: string[] // 런타임 설정 허용 티커 (StrategyForm이 계산해 전달)
   defaultTicker: string // 런타임 설정 기본 티커 (deriveRuntimeFields가 허용 목록 기준으로 확정)
@@ -25,7 +24,7 @@ interface Props {
 }
 
 // DCA 등록·수정 — 시드·분할·VR이 엮인 useStrategyForm과 분리된 자체 폼(spec A'안)
-export function DcaStrategyForm({ accountId, broker, initial, availableTickers, defaultTicker, onSuccess, onCancel }: Props) {
+export function DcaStrategyForm({ accountId, initial, availableTickers, defaultTicker, onSuccess, onCancel }: Props) {
   const { findStrategyType } = useMeta()
   const typeMeta = findStrategyType('DCA')
   const form = useForm<DcaFormValues>({
@@ -62,14 +61,14 @@ export function DcaStrategyForm({ accountId, broker, initial, availableTickers, 
       {!initial && (
         <ScheduledStartSection
           value={form.watch('scheduledStartDate')}
-          onChange={(d) => form.setValue('scheduledStartDate', d)}
+          onChange={(d) => form.setValue('scheduledStartDate', d, { shouldValidate: form.formState.isSubmitted })}
           loading={pending}
+          error={form.formState.errors.scheduledStartDate?.message}
         />
       )}
       <DcaSettingsSection
         form={form}
         isEdit={!!initial}
-        broker={broker}
         orderTypes={typeMeta?.orderTypes ?? []}
         directions={typeMeta?.directions ?? []}
         frequencies={typeMeta?.frequencies ?? []}

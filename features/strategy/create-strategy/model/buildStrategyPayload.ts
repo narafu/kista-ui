@@ -60,7 +60,7 @@ export function buildStrategyPayload(input: BuildStrategyPayloadInput): Strategy
           initialHoldings: quantity,
           initialAvgPrice: avgPrice ?? undefined,
         } : {}),
-        // 시작예정일 — 세 전략 공통, 등록 전용, 미입력 시 생략(서버가 오늘로 처리)
+        // 시작예정일 — 세 전략 공통, 등록 전용(기본값 오늘), 수정 모드는 null이라 생략
         ...(scheduledStartDate ? { scheduledStartDate } : {}),
         // VR 전용 필드 — null이면 0으로 기본값 처리
         ...(isVr ? {

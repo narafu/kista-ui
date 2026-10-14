@@ -1,4 +1,5 @@
 import type { UseFormReturn } from 'react-hook-form'
+import { todayKst } from '@shared/lib/format'
 import type { CycleSeedType, Strategy, StrategySeedPreview } from '@entities/strategy'
 import type { MarginItem } from '@entities/account'
 import type { RuntimeConfig, RuntimeFieldSettings, RuntimeStrategyType } from '@entities/runtime-config'
@@ -50,8 +51,8 @@ export function buildStrategyFormDefaults(initial: Strategy | undefined, default
     avgPrice: null,
     quantity: null,
     ...buildVrDefaults(initial?.vr),
-    // 시작예정일도 등록 전용 — 수정 모드에서는 항상 빈 값
-    scheduledStartDate: null,
+    // 시작예정일도 등록 전용 — 등록은 오늘 기본값(필수), 수정 모드에서는 항상 빈 값
+    scheduledStartDate: initial ? null : todayKst(),
   }
 }
 

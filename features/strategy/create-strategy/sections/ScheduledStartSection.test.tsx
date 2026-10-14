@@ -10,41 +10,36 @@ describe('ScheduledStartSection', () => {
     mockOnChange.mockClear()
   })
 
-  it('renders the date input with min set to today', () => {
-    render(<ScheduledStartSection value={null} onChange={mockOnChange} loading={false} />)
+  it('renders a required date input with min set to today', () => {
+    render(<ScheduledStartSection value={todayKst()} onChange={mockOnChange} loading={false} />)
 
-    const input = screen.getByLabelText('시작예정일 (선택)') as HTMLInputElement
+    const input = screen.getByLabelText('시작예정일') as HTMLInputElement
     expect(input).toHaveAttribute('min', todayKst())
-    expect(input).toHaveValue('')
-  })
-
-  it('shows the exclusive-boundary hint text', () => {
-    render(<ScheduledStartSection value={null} onChange={mockOnChange} loading={false} />)
-
-    expect(screen.getByText('시작예정일 밤 미국장부터 매매합니다. 비워두면 오늘 시작합니다.')).toBeInTheDocument()
+    expect(input).toBeRequired()
+    expect(input).toHaveValue(todayKst())
   })
 
   it('calls onChange with the selected date', () => {
     render(<ScheduledStartSection value={null} onChange={mockOnChange} loading={false} />)
 
-    const input = screen.getByLabelText('시작예정일 (선택)')
+    const input = screen.getByLabelText('시작예정일')
     fireEvent.change(input, { target: { value: '2026-08-01' } })
 
     expect(mockOnChange).toHaveBeenCalledWith('2026-08-01')
   })
 
-  it('calls onChange with null when cleared', () => {
+  it('falls back to today when cleared', () => {
     render(<ScheduledStartSection value="2026-08-01" onChange={mockOnChange} loading={false} />)
 
-    const input = screen.getByLabelText('시작예정일 (선택)')
+    const input = screen.getByLabelText('시작예정일')
     fireEvent.change(input, { target: { value: '' } })
 
-    expect(mockOnChange).toHaveBeenCalledWith(null)
+    expect(mockOnChange).toHaveBeenCalledWith(todayKst())
   })
 
   it('disables the input when loading', () => {
     render(<ScheduledStartSection value={null} onChange={mockOnChange} loading={true} />)
 
-    expect(screen.getByLabelText('시작예정일 (선택)')).toBeDisabled()
+    expect(screen.getByLabelText('시작예정일')).toBeDisabled()
   })
 })

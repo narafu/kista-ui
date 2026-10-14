@@ -96,7 +96,6 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
         <DcaStrategyForm
           key={initial?.id ?? 'new'}
           accountId={accountId}
-          broker={broker}
           initial={initial}
           availableTickers={initial ? [initial.ticker] : form.availableTickers}
           defaultTicker={form.defaultTicker}

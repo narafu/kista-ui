@@ -328,6 +328,7 @@ describe('useStrategyForm submit policy', () => {
     })
 
     expect(mockCreateMutate).toHaveBeenCalledWith({
+      scheduledStartDate: todayKst(),
       type: 'INFINITE',
       ticker: 'TSLA',
       cycleSeedType: 'MAX',
@@ -451,6 +452,7 @@ describe('useStrategyForm submit policy', () => {
     })
 
     expect(mockCreateMutate).toHaveBeenCalledWith({
+      scheduledStartDate: todayKst(),
       type: 'VR',
       ticker: 'TQQQ',
       cycleSeedType: 'NONE',
@@ -493,6 +495,7 @@ describe('useStrategyForm submit policy', () => {
     })
 
     expect(mockCreateMutate).toHaveBeenCalledWith({
+      scheduledStartDate: todayKst(),
       type: 'VR',
       ticker: 'TQQQ',
       cycleSeedType: 'NONE',
@@ -570,6 +573,7 @@ describe('useStrategyForm submit policy', () => {
     })
 
     expect(mockCreateMutate).toHaveBeenCalledWith({
+      scheduledStartDate: todayKst(),
       type: 'VR',
       ticker: 'TQQQ',
       cycleSeedType: 'NONE',
@@ -724,6 +728,7 @@ describe('useStrategyForm submit policy', () => {
     })
 
     expect(mockCreateMutate).toHaveBeenCalledWith({
+      scheduledStartDate: todayKst(),
       type: 'VR',
       ticker: 'TQQQ',
       cycleSeedType: 'NONE',
@@ -1082,7 +1087,7 @@ describe('useStrategyForm submit policy', () => {
     }))
   })
 
-  it('create payload omits scheduledStartDate when left empty', async () => {
+  it('create payload defaults scheduledStartDate to today', async () => {
     const { result } = renderHook(() =>
       useStrategyForm({
         accountId: 'account-1',
@@ -1097,7 +1102,7 @@ describe('useStrategyForm submit policy', () => {
       expect(mockCreateMutate).toHaveBeenCalled()
     })
 
-    expect(mockCreateMutate.mock.calls[0][0]).not.toHaveProperty('scheduledStartDate')
+    expect(mockCreateMutate.mock.calls[0][0]).toHaveProperty('scheduledStartDate', todayKst())
   })
 
   it('create is blocked when scheduledStartDate is in the past', () => {
