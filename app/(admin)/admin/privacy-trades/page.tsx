@@ -2,6 +2,7 @@ import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { adminPrivacyBasesQueryOptions } from '@entities/privacy'
 import { AdminPrivacyBaseTable } from '@widgets/admin-privacy-trade-list/AdminPrivacyBaseTable'
+import { PrivacyBaseChart } from '@widgets/admin-privacy-trade-list/PrivacyBaseChart'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { UrlRangeFilterBar } from '@shared/ui/UrlRangeFilterBar'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
@@ -41,6 +42,7 @@ export default async function AdminPrivacyTradesPage({
             SSR 스냅샷으로 한 번만 계산하면 뮤테이션으로 캐시가 갱신돼도 totalPages가
             갱신되지 않아, 방금 등록한 항목이 도달 불가능한 뒷 페이지에 남는 문제가 있었다
             (리뷰에서 발견). page는 원본(clamp 전) 값을 그대로 넘기고 위젯이 클램프한다. */}
+        <PrivacyBaseChart windowFrom={windowFrom} windowTo={windowTo} />
         <AdminPrivacyBaseTable windowFrom={windowFrom} windowTo={windowTo} pageSize={size} page={page} />
       </HydrationBoundary>
     </div>
