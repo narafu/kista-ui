@@ -20,7 +20,7 @@ interface Props {
 const THRESHOLD_SUFFIX: Partial<Record<DcaIndicator, string>> = { AVG_PRICE: '%' }
 
 // 조건 풀이 — kista-api DcaCycleOrderStrategy.evaluate와 같은 비교식을 문장으로 보여준다
-// 평단가·이동평균은 전일 종가 기준, 평단가는 평단가 × (1 + n%)와 비교, RSI·공포탐욕지수는 직전 거래일 값
+// 평단가·이동평균은 전일 종가 기준, 평단가는 평단가 × (1 + n%)와 비교, RSI는 직전 거래일 값, 공포탐욕지수는 주문 시점 최신값
 function describeCondition(c: DcaConditionFormValue | undefined, operatorLabel: string): string | null {
   if (!c) return null
   const blank = c.threshold == null || Number.isNaN(c.threshold)
@@ -36,7 +36,7 @@ function describeCondition(c: DcaConditionFormValue | undefined, operatorLabel: 
     case 'RSI':
       return blank ? '직전 거래일 RSI(14)와 비교, 0~100 입력' : `직전 거래일 RSI(14)가 ${c.threshold} ${operatorLabel}일 때 주문`
     case 'FEAR_GREED':
-      return blank ? '직전 거래일 공포탐욕지수와 비교, 0~100 입력' : `직전 거래일 공포탐욕지수가 ${c.threshold} ${operatorLabel}일 때 주문`
+      return blank ? '주문 시점 공포탐욕지수와 비교, 0~100 입력' : `주문 시점 공포탐욕지수가 ${c.threshold} ${operatorLabel}일 때 주문`
   }
 }
 
@@ -79,7 +79,7 @@ export function DcaConditionsSection({ form, indicators, direction }: Props) {
                     form.setValue(`conditions.${i}.smaPeriod`, null)
                     form.clearErrors([`conditions.${i}.threshold`, `conditions.${i}.smaPeriod`])
                   }}>
-                    <SelectTrigger aria-label={`조건 ${i + 1} 지표`} className="h-11 flex-1"><SelectValue /></SelectTrigger>
+                    <SelectTrigger aria-label={`조건 ${i + 1} 지표`} className="h-11 min-w-0 flex-1"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {indicators.map((code) => <SelectItem key={code} value={code}>{labelOf('dcaIndicators', code)}</SelectItem>)}
                     </SelectContent>

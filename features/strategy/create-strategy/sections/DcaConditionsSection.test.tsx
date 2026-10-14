@@ -53,7 +53,7 @@ describe('DcaConditionsSection', () => {
     ]} />)
     expect(screen.getByText('전일 종가가 200일 이동평균 이상일 때 주문')).toBeInTheDocument()
     expect(screen.getByText('직전 거래일 RSI(14)가 30 미만일 때 주문')).toBeInTheDocument()
-    expect(screen.getByText('직전 거래일 공포탐욕지수와 비교, 0~100 입력')).toBeInTheDocument()
+    expect(screen.getByText('주문 시점 공포탐욕지수와 비교, 0~100 입력')).toBeInTheDocument()
   })
   it('계좌 전체 보유 기준 캡션', () => {
     render(<Harness />)
