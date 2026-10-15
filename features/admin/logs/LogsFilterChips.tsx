@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { cn } from '@shared/lib/utils'
 
 const FILTERS = [
   { type: 'all',     label: '전체' },
@@ -14,7 +15,6 @@ const PRESERVE_KEYS = [
   'anoRange', 'anoFrom', 'anoTo',
   'errRange', 'errFrom', 'errTo', 'errSize',
   'audRange', 'audFrom', 'audTo', 'audSize',
-  'inactiveDays',
 ]
 
 export function LogsFilterChips() {
@@ -38,11 +38,13 @@ export function LogsFilterChips() {
         <Link
           key={type}
           href={buildHref(type)}
-          className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+          aria-current={active === type ? 'page' : undefined}
+          className={cn(
+            'px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
             active === type
-              ? 'bg-rose-100 text-rose-700'
-              : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
-          }`}
+              ? 'border border-[var(--rose-200)] bg-[var(--rose-50)] text-[var(--brand-fg-soft)]'
+              : 'border border-transparent bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground',
+          )}
         >
           {label}
         </Link>

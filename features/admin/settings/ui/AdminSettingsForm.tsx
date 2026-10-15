@@ -1,10 +1,12 @@
 'use client'
 
-import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { type FormEvent, useMemo, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { AlertTriangle, RotateCcw, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { LoadingRow } from '@shared/ui/LoadingRow'
+import { SectionError } from '@shared/ui/SectionError'
 import { useAdminSettingsQuery, useUpdateAdminSettingsMutation } from '@entities/admin-settings'
 import { adminKeys } from '@entities/admin'
 import { useMeta } from '@entities/meta'
@@ -24,9 +26,8 @@ import { RecurringModeEditor } from './RecurringModeEditor'
 import { FieldEditor } from './FieldEditor'
 import { normalizeNumber, normalizeSymbol } from '../model/normalizers'
 
-const STRATEGY_LABELS: Record<RuntimeStrategyType, string> = {
-  INFINITE: 'INFINITE', PRIVACY: 'PRIVACY', VR: 'VR', DCA: 'DCA',
-}
+// 전략 유형 코드는 상품명 그대로 표기한다(메타 strategyTypes에는 라벨 필드가 없다)
+const STRATEGY_TYPES: RuntimeStrategyType[] = ['INFINITE', 'PRIVACY', 'VR', 'DCA']
 
 // kista-api StrategyTicker의 DCA 전용 종목. 메타 availableTickers는 지금 편집 중인 허용값 자체라 후보 목록으로 쓸 수 없다
 const DCA_TICKER_SUGGESTIONS = ['UPRO', 'QLD']
@@ -39,9 +40,9 @@ function clone(value: RuntimeConfig): RuntimeConfig {
 }
 
 export function AdminSettingsForm() {
-  const { data } = useAdminSettingsQuery()
+  const { data, isError } = useAdminSettingsQuery()
 
-  if (!data) return null
+  if (!data) return isError ? <SectionError message="운영 설정을 불러오지 못했습니다." /> : <LoadingRow />
 
   return <AdminSettingsFormContent settings={data} />
 }
@@ -50,11 +51,13 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
   const { meta, labelOf } = useMeta()
   const queryClient = useQueryClient()
   const [draft, setDraft] = useState(() => clone(settings))
-  const [serverSnapshot, setServerSnapshot] = useState(() => clone(settings))
-  const latestServerRef = useRef<RuntimeConfig | null>(null)
-  // eslint-disable-next-line react-doctor/no-ref-current-in-render -- null 가드 지연 초기화(1회)라 렌더 재실행에도 안전
-  if (latestServerRef.current === null) latestServerRef.current = clone(settings)
-  const draftRef = useRef(draft)
+  const serverSnapshot = useMemo(() => clone(settings), [settings])
+  const [prevSettings, setPrevSettings] = useState(settings)
+  // 서버값이 바뀌었을 때 초안이 이전 서버값과 같았다면(미편집) 새 서버값으로 따라간다 — 편집 중이면 초안을 보존
+  if (settings !== prevSettings) {
+    setPrevSettings(settings)
+    if (JSON.stringify(draft) === JSON.stringify(clone(prevSettings))) setDraft(clone(settings))
+  }
   const [attempted, setAttempted] = useState(false)
   const activatesPendingUsersRef = useRef(false)
   const mutation = useUpdateAdminSettingsMutation({
@@ -78,30 +81,14 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
         )
       }
 
-      const results = await Promise.allSettled(invalidations)
-      for (const result of results) {
-        if (result.status === 'rejected') throw result.reason
-      }
+      // 저장은 이미 서버에 반영됐다 — 재조회 실패가 저장 실패 토스트로 이어지지 않게 삼키고 성공 토스트는 항상 띄운다
+      await Promise.allSettled(invalidations)
 
       toast.success('운영 설정을 저장했습니다')
       setAttempted(false)
     },
   })
   const tickerSuggestions = useMemo(() => meta.tickers.map((ticker) => ticker.code), [meta.tickers])
-
-  // "최신값 ref" 패턴 — 렌더 중 직접 대입하면 React Doctor가 "렌더 중 ref 변경"으로 표시하므로
-  // 커밋 이후 effect에서 갱신한다. 아래 [data] effect보다 먼저 선언돼 있어 같은 커밋에서
-  // draft와 data가 함께 바뀌어도 이 effect가 먼저 실행되어 최신 draftRef를 보장한다.
-  useEffect(() => {
-    draftRef.current = draft
-  })
-
-  useEffect(() => {
-    const wasPristine = JSON.stringify(draftRef.current) === JSON.stringify(latestServerRef.current)
-    latestServerRef.current = clone(settings)
-    setServerSnapshot(clone(settings))
-    if (wasPristine) setDraft(clone(settings))
-  }, [settings])
 
   const errors = useMemo(() => validateAdminSettings(draft), [draft])
   // 배포 직후 낡은 응답엔 DCA 키가 없다 — 그대로 저장하면 kista-api가 400을 낸다
@@ -142,8 +129,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
     mutation.mutate(draft)
   }
   const reset = () => {
-    setDraft(clone(latestServerRef.current!))
-    setServerSnapshot(clone(latestServerRef.current!))
+    setDraft(clone(settings))
     setAttempted(false)
   }
 
@@ -155,7 +141,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
           <ToggleRow
             id="approval-required"
             label="관리자 승인 필요"
-            description="끄면 현재 승인 대기 사용자도 즉시 활성화됩니다."
+            description="끄면 승인 대기 사용자도 즉시 활성화"
             checked={draft.auth.approvalRequired}
             onChange={(approvalRequired) => setDraft((current) => ({ ...current, auth: { approvalRequired } }))}
           />
@@ -176,10 +162,10 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
 
         <section className="border-b border-border px-4 py-4 sm:px-5">
           <h2 className="text-base font-bold">전략 생성</h2>
-          {(Object.keys(STRATEGY_LABELS) as RuntimeStrategyType[])
+          {STRATEGY_TYPES
             .filter((strategy) => draft.strategies[strategy])
             .map((strategy) => (
-              <ToggleRow key={strategy} id={`strategy-${strategy}`} label={STRATEGY_LABELS[strategy]}
+              <ToggleRow key={strategy} id={`strategy-${strategy}`} label={strategy}
                 checked={draft.strategies[strategy].enabled} onChange={(enabled) => setStrategyEnabled(strategy, enabled)} />
             ))}
         </section>
@@ -266,6 +252,11 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
       </div>
 
       <div className="sticky bottom-3 flex justify-end gap-2 rounded-lg border border-border bg-background/95 p-3 shadow-sm backdrop-blur">
+        {(!dca || !dirty) && (
+          <p className="mr-auto self-center text-xs text-muted-foreground">
+            {!dca ? 'DCA 설정이 없어 저장할 수 없습니다.' : '변경 사항이 없습니다.'}
+          </p>
+        )}
         <Button type="button" variant="outline" onClick={reset} disabled={!dirty || mutation.isPending}>
           <RotateCcw /> 변경 취소
         </Button>

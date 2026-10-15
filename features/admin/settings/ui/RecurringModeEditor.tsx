@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Switch } from '@/components/ui/switch'
 import type { RecurringMode, RuntimeFieldSettings } from '@entities/runtime-config'
+import { VR_RECURRING_MODE_LABEL } from '@entities/strategy'
 import { RECURRING_MODE_OPTIONS } from './recurringModeOptions'
 
 export function RecurringModeEditor({ id, label, field, error, onChange }: {
@@ -46,6 +47,10 @@ export function RecurringModeEditor({ id, label, field, error, onChange }: {
       <div className="space-y-2">
         {field.customizable ? (
           <div className="space-y-1.5">
+            <div className="flex px-3 text-xs text-muted-foreground">
+              <span>허용</span>
+              <span className="ml-auto">기본값</span>
+            </div>
             {RECURRING_MODE_OPTIONS.map((option) => {
               const checked = field.allowedValues.includes(option.value)
               return (
@@ -55,12 +60,12 @@ export function RecurringModeEditor({ id, label, field, error, onChange }: {
                       type="checkbox"
                       checked={checked}
                       onChange={(event) => toggleAllowed(option.value, event.target.checked)}
-                      aria-label={`${option.value} 허용`}
+                      aria-label={`${option.label} 허용`}
                       className="size-4 shrink-0 accent-primary"
                     />
                   </label>
-                  <span className="min-w-0 flex-1 truncate font-mono text-sm">
-                    {option.value} <span className="font-sans text-xs text-muted-foreground">· {option.label}</span>
+                  <span className="min-w-0 flex-1 truncate text-sm">
+                    {option.label} <span className="font-mono text-xs text-muted-foreground">· {option.value}</span>
                   </span>
                   <label className="-m-1 inline-flex shrink-0 p-1">
                     <input
@@ -72,7 +77,7 @@ export function RecurringModeEditor({ id, label, field, error, onChange }: {
                         setInputError(undefined)
                         onChange({ ...field, defaultValue: option.value })
                       }}
-                      aria-label={`${option.value} 기본값`}
+                      aria-label={`${option.label} 기본값`}
                       className="size-4 shrink-0 accent-primary disabled:opacity-40"
                     />
                   </label>
@@ -82,10 +87,10 @@ export function RecurringModeEditor({ id, label, field, error, onChange }: {
           </div>
         ) : (
           <div className="flex h-8 items-center rounded-lg border border-border bg-muted/40 px-2.5 font-mono text-sm text-muted-foreground">
-            HOLD <span className="ml-auto text-xs font-sans">고정</span>
+            {VR_RECURRING_MODE_LABEL.HOLD} <span className="ml-auto text-xs font-sans">고정</span>
           </div>
         )}
-        {(inputError || error) && <p role="alert" className="text-xs text-destructive">{inputError || error}</p>}
+        {(inputError || error) && <p role="alert" className="text-xs text-[var(--status-error)]">{inputError || error}</p>}
       </div>
     </div>
   )

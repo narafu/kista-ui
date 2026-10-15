@@ -82,7 +82,7 @@ export function useCreateAssetSnapshotMutation() {
   return useInvalidateFinanceMutation<AssetSnapshot, AssetSnapshotRequest & { shareToGroup?: boolean }>(
     ({ shareToGroup, ...data }) => createAssetSnapshot(data, { shareToGroup }),
     financeKeys.assetSnapshotsRoot(),
-    '자산 기록을 저장하지 못했습니다',
+    '자산 기록을 저장하지 못했습니다.',
   )
 }
 
@@ -91,7 +91,7 @@ export function useShareAssetSnapshotMutation() {
   return useInvalidateFinanceMutation<AssetSnapshot, string>(
     (id) => shareAssetSnapshot(id),
     financeKeys.assetSnapshotsRoot(),
-    '자산 기록을 그룹에 공유하지 못했습니다',
+    '자산 기록을 그룹에 공유하지 못했습니다.',
   )
 }
 
@@ -103,7 +103,7 @@ export function useUnshareAssetSnapshotMutation() {
   return useInvalidateFinanceMutation<AssetSnapshot, string>(
     (id) => unshareAssetSnapshot(id),
     financeKeys.assetSnapshotsRoot(),
-    '자산 기록을 개인 소유로 되돌리지 못했습니다',
+    '자산 기록을 개인 소유로 되돌리지 못했습니다.',
   )
 }
 
@@ -114,7 +114,7 @@ export function useUpdateAssetSnapshotMutation(snapshotId: string) {
     onSuccess: async (saved) => {
       await synchronizeAssetSnapshotList(queryClient, (snapshots) => upsertById(snapshots, saved))
     },
-    onError: (err) => toast.error(apiMsg(err, '자산 기록을 수정하지 못했습니다')),
+    onError: (err) => toast.error(apiMsg(err, '자산 기록을 수정하지 못했습니다.')),
   })
 }
 
@@ -140,7 +140,7 @@ export function useDeleteManyAssetSnapshotsMutation() {
     onSuccess: async ({ succeededIds, failedCount }, ids) => {
       if (succeededIds.length === 0) {
         if (failedCount > 0) {
-          toast.error(ids.length > 1 ? `자산 기록 ${failedCount}건을 삭제하지 못했습니다` : '자산 기록을 삭제하지 못했습니다')
+          toast.error(ids.length > 1 ? `자산 기록 ${failedCount}건을 삭제하지 못했습니다.` : '자산 기록을 삭제하지 못했습니다.')
         }
         return
       }
@@ -180,7 +180,7 @@ export function useSetMonthlyClosingMutation() {
           : [...closings, saved],
       )
     },
-    onError: (err) => toast.error(apiMsg(err, '기록 완료 상태를 저장하지 못했습니다')),
+    onError: (err) => toast.error(apiMsg(err, '기록 완료 상태를 저장하지 못했습니다.')),
   })
 }
 
@@ -192,7 +192,7 @@ export function useCreateFinanceCategoryMutation() {
   return useInvalidateFinanceMutation<FinanceCategory, FinanceCategoryRequest & { shareToGroup?: boolean }>(
     ({ shareToGroup, ...data }) => createFinanceCategory(data, { shareToGroup }),
     financeKeys.categoriesRoot(),
-    '카테고리를 저장하지 못했습니다',
+    '카테고리를 저장하지 못했습니다.',
   )
 }
 
@@ -200,7 +200,7 @@ export function useUpdateFinanceCategoryMutation(categoryId: string) {
   return useInvalidateFinanceMutation<FinanceCategory, FinanceCategoryRequest>(
     (data) => updateFinanceCategory(categoryId, data),
     financeKeys.categoriesRoot(),
-    '카테고리를 수정하지 못했습니다',
+    '카테고리를 수정하지 못했습니다.',
   )
 }
 
@@ -208,7 +208,7 @@ export function useDeleteFinanceCategoryMutation() {
   return useInvalidateFinanceMutation<void, string>(
     (id) => deleteFinanceCategory(id),
     financeKeys.categoriesRoot(),
-    '카테고리를 삭제하지 못했습니다',
+    '카테고리를 삭제하지 못했습니다.',
   )
 }
 
@@ -217,7 +217,7 @@ export function useShareFinanceCategoryMutation() {
   return useInvalidateFinanceMutation<FinanceCategory, string>(
     (id) => shareFinanceCategory(id),
     financeKeys.categoriesRoot(),
-    '카테고리를 그룹에 공유하지 못했습니다',
+    '카테고리를 그룹에 공유하지 못했습니다.',
   )
 }
 
@@ -225,7 +225,7 @@ export function useUnshareFinanceCategoryMutation() {
   return useInvalidateFinanceMutation<FinanceCategory, string>(
     (id) => unshareFinanceCategory(id),
     financeKeys.categoriesRoot(),
-    '카테고리를 개인 소유로 되돌리지 못했습니다',
+    '카테고리를 개인 소유로 되돌리지 못했습니다.',
   )
 }
 
@@ -234,7 +234,7 @@ export function useCreateSystemFinanceCategoryMutation() {
   return useInvalidateFinanceMutation<FinanceCategory, FinanceCategoryRequest>(
     (data) => createSystemFinanceCategory(data),
     financeKeys.systemCategoriesRoot(),
-    '카테고리를 저장하지 못했습니다',
+    '카테고리를 저장하지 못했습니다.',
   )
 }
 
@@ -242,7 +242,7 @@ export function useUpdateSystemFinanceCategoryMutation(categoryId: string) {
   return useInvalidateFinanceMutation<FinanceCategory, FinanceCategoryRequest>(
     (data) => updateSystemFinanceCategory(categoryId, data),
     financeKeys.systemCategoriesRoot(),
-    '카테고리를 수정하지 못했습니다',
+    '카테고리를 수정하지 못했습니다.',
   )
 }
 
@@ -250,7 +250,7 @@ export function useDeleteSystemFinanceCategoryMutation() {
   return useInvalidateFinanceMutation<void, string>(
     (id) => deleteSystemFinanceCategory(id),
     financeKeys.systemCategoriesRoot(),
-    '카테고리를 삭제하지 못했습니다',
+    '카테고리를 삭제하지 못했습니다.',
   )
 }
 
@@ -276,7 +276,7 @@ export function useCreateFinanceTransactionMutation() {
   return useInvalidateFinanceMutation<FinanceTransaction, FinanceTransactionRequest & { shareToGroup?: boolean }>(
     ({ shareToGroup, ...data }) => createFinanceTransaction(data, { shareToGroup }),
     financeKeys.transactionsRoot(),
-    '거래내역을 저장하지 못했습니다',
+    '거래내역을 저장하지 못했습니다.',
   )
 }
 
@@ -284,7 +284,7 @@ export function useUpdateFinanceTransactionMutation(transactionId: string) {
   return useInvalidateFinanceMutation<FinanceTransaction, FinanceTransactionRequest>(
     (data) => updateFinanceTransaction(transactionId, data),
     financeKeys.transactionsRoot(),
-    '거래내역을 수정하지 못했습니다',
+    '거래내역을 수정하지 못했습니다.',
   )
 }
 
@@ -292,7 +292,7 @@ export function useDeleteFinanceTransactionMutation() {
   return useInvalidateFinanceMutation<void, string>(
     (id) => deleteFinanceTransaction(id),
     financeKeys.transactionsRoot(),
-    '거래내역을 삭제하지 못했습니다',
+    '거래내역을 삭제하지 못했습니다.',
   )
 }
 
@@ -300,7 +300,7 @@ export function useShareFinanceTransactionMutation() {
   return useInvalidateFinanceMutation<FinanceTransaction, string>(
     (id) => shareFinanceTransaction(id),
     financeKeys.transactionsRoot(),
-    '거래내역을 그룹에 공유하지 못했습니다',
+    '거래내역을 그룹에 공유하지 못했습니다.',
   )
 }
 
@@ -308,7 +308,7 @@ export function useUnshareFinanceTransactionMutation() {
   return useInvalidateFinanceMutation<FinanceTransaction, string>(
     (id) => unshareFinanceTransaction(id),
     financeKeys.transactionsRoot(),
-    '거래내역을 개인 소유로 되돌리지 못했습니다',
+    '거래내역을 개인 소유로 되돌리지 못했습니다.',
   )
 }
 
@@ -320,7 +320,7 @@ export function useCreateFinanceBudgetMutation() {
   return useInvalidateFinanceMutation<FinanceBudget, FinanceBudgetRequest & { shareToGroup?: boolean }>(
     ({ shareToGroup, ...data }) => createFinanceBudget(data, { shareToGroup }),
     financeKeys.budgetsRoot(),
-    '예산을 저장하지 못했습니다',
+    '예산을 저장하지 못했습니다.',
   )
 }
 
@@ -328,7 +328,7 @@ export function useUpdateFinanceBudgetMutation(budgetId: string) {
   return useInvalidateFinanceMutation<FinanceBudget, FinanceBudgetRequest>(
     (data) => updateFinanceBudget(budgetId, data),
     financeKeys.budgetsRoot(),
-    '예산을 수정하지 못했습니다',
+    '예산을 수정하지 못했습니다.',
   )
 }
 
@@ -336,7 +336,7 @@ export function useDeleteFinanceBudgetMutation() {
   return useInvalidateFinanceMutation<void, string>(
     (id) => deleteFinanceBudget(id),
     financeKeys.budgetsRoot(),
-    '예산을 삭제하지 못했습니다',
+    '예산을 삭제하지 못했습니다.',
   )
 }
 
@@ -344,7 +344,7 @@ export function useShareFinanceBudgetMutation() {
   return useInvalidateFinanceMutation<FinanceBudget, string>(
     (id) => shareFinanceBudget(id),
     financeKeys.budgetsRoot(),
-    '예산을 그룹에 공유하지 못했습니다',
+    '예산을 그룹에 공유하지 못했습니다.',
   )
 }
 
@@ -352,7 +352,7 @@ export function useUnshareFinanceBudgetMutation() {
   return useInvalidateFinanceMutation<FinanceBudget, string>(
     (id) => unshareFinanceBudget(id),
     financeKeys.budgetsRoot(),
-    '예산을 개인 소유로 되돌리지 못했습니다',
+    '예산을 개인 소유로 되돌리지 못했습니다.',
   )
 }
 
@@ -376,7 +376,7 @@ export function useCreateFinanceAccountMutation() {
   return useInvalidateFinanceMutation<FinanceAccount, FinanceAccountRequest & { shareToGroup?: boolean }>(
     ({ shareToGroup, ...data }) => createFinanceAccount(data, { shareToGroup }),
     financeKeys.accountsRoot(),
-    '계좌를 저장하지 못했습니다',
+    '계좌를 저장하지 못했습니다.',
   )
 }
 
@@ -387,7 +387,7 @@ export function useUpdateFinanceAccountMutation(accountId: string) {
     onSuccess: async (saved) => {
       await synchronizeAccountList(queryClient, (accounts) => upsertById(accounts, saved))
     },
-    onError: (err) => toast.error(apiMsg(err, '계좌를 수정하지 못했습니다')),
+    onError: (err) => toast.error(apiMsg(err, '계좌를 수정하지 못했습니다.')),
   })
 }
 
@@ -398,7 +398,7 @@ export function useDeleteFinanceAccountMutation() {
     onSuccess: async (_, id) => {
       await synchronizeAccountList(queryClient, (accounts) => accounts.filter((a) => a.id !== id))
     },
-    onError: (err) => toast.error(apiMsg(err, '계좌를 삭제하지 못했습니다')),
+    onError: (err) => toast.error(apiMsg(err, '계좌를 삭제하지 못했습니다.')),
   })
 }
 
@@ -410,7 +410,7 @@ export function useShareFinanceAccountMutation() {
   return useInvalidateFinanceMutation<FinanceAccount, string>(
     (id) => shareFinanceAccount(id),
     financeKeys.accountsRoot(),
-    '계좌를 그룹에 공유하지 못했습니다',
+    '계좌를 그룹에 공유하지 못했습니다.',
   )
 }
 
@@ -418,7 +418,7 @@ export function useUnshareFinanceAccountMutation() {
   return useInvalidateFinanceMutation<FinanceAccount, string>(
     (id) => unshareFinanceAccount(id),
     financeKeys.accountsRoot(),
-    '계좌를 개인 소유로 되돌리지 못했습니다',
+    '계좌를 개인 소유로 되돌리지 못했습니다.',
   )
 }
 
@@ -428,7 +428,7 @@ export function useRemoveFinanceGroupMemberMutation(groupId: string) {
   return useInvalidateFinanceMutation<void, string>(
     (userId) => removeFinanceGroupMember(groupId, userId),
     financeKeys.all,
-    '처리하지 못했습니다',
+    '처리하지 못했습니다.',
   )
 }
 
@@ -439,7 +439,7 @@ export function useCreateFinanceGroupInvitationMutation(groupId: string) {
   return useInvalidateFinanceMutation<FinanceGroupInvitation, number>(
     (expiresInHours) => createFinanceGroupInvitation(groupId, expiresInHours),
     financeKeys.all,
-    '초대 코드를 발급하지 못했습니다',
+    '초대 코드를 발급하지 못했습니다.',
   )
 }
 
@@ -460,6 +460,6 @@ export function useRespondToInvitationMutation() {
   return useInvalidateFinanceMutation<FinanceGroup, { code: string; status: 'ACCEPTED' | 'DECLINED' }>(
     ({ code, status }) => respondToInvitation(code, status),
     financeKeys.all,
-    '초대를 처리하지 못했습니다',
+    '초대를 처리하지 못했습니다.',
   )
 }

@@ -8,8 +8,11 @@ import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
+import { SectionError } from '@shared/ui/SectionError'
 import { Surface } from '@shared/ui/Surface'
 import { UrlRangeFilterBar, type RangePreset } from '@shared/ui/UrlRangeFilterBar'
+
+const ERROR_LOG_LIMIT = 500
 
 interface Props {
   page: number
@@ -20,7 +23,7 @@ interface Props {
 }
 
 export function ErrorLogsSectionContent({ page, size, range, from, to }: Props) {
-  const { data, isError } = useAdminErrorLogsQuery({ limit: 500, from, to })
+  const { data, isError } = useAdminErrorLogsQuery({ limit: ERROR_LOG_LIMIT, from, to })
   const allLogs = data ?? []
   const totalPages = Math.max(1, Math.ceil(allLogs.length / size))
   const currentPage = Math.min(page, totalPages)
@@ -31,7 +34,11 @@ export function ErrorLogsSectionContent({ page, size, range, from, to }: Props) 
       <div className="mb-4 lg:flex lg:items-center lg:gap-3">
         <h2 className="text-base font-bold shrink-0 mb-2 lg:mb-0">
           오류 로그
-          {data && <span className="ml-2 text-sm font-normal text-muted-foreground">총 {allLogs.length}건</span>}
+          {data && (
+            <span className="ml-2 text-sm font-normal text-muted-foreground">
+              {allLogs.length >= ERROR_LOG_LIMIT ? `최근 ${ERROR_LOG_LIMIT}건` : `총 ${allLogs.length}건`}
+            </span>
+          )}
         </h2>
         <div className="flex items-center gap-2 lg:flex-1">
           <Suspense fallback={null}>
@@ -46,7 +53,7 @@ export function ErrorLogsSectionContent({ page, size, range, from, to }: Props) 
       </div>
       {/* 조회 실패를 "기록된 오류가 없습니다."로 오인하지 않도록 상태를 먼저 구분한다 */}
       {!data && isError ? (
-        <EmptyState message="오류 로그를 불러오지 못했습니다." />
+        <SectionError message="오류 로그를 불러오지 못했습니다." />
       ) : !data ? (
         <LoadingRow />
       ) : logs.length === 0 ? (

@@ -1,3 +1,4 @@
+import { VR_RECURRING_MODE_LABEL } from '@entities/strategy'
 import { DEFAULT_RUNTIME_BENCHMARKS, type RuntimeConfig, type RuntimeFieldSettings } from '@entities/runtime-config'
 
 export type AdminSettingsErrors = Record<string, string>
@@ -36,7 +37,7 @@ export function validateAdminSettings(settings: RuntimeConfig): AdminSettingsErr
   const recurring = settings.strategies.VR.fields.recurringMode
   if (recurring && !recurring.customizable
       && (recurring.defaultValue !== 'HOLD' || recurring.allowedValues.length !== 1 || recurring.allowedValues[0] !== 'HOLD')) {
-    errors['VR.recurringMode'] = '고정 정기 입출금 방식은 HOLD만 허용할 수 있습니다.'
+    errors['VR.recurringMode'] = `고정 정기 입출금 방식은 ${VR_RECURRING_MODE_LABEL.HOLD}만 허용할 수 있습니다.`
   }
   if (settings.benchmarks?.etf) {
     validateValueSet('benchmarks.etf', settings.benchmarks.etf.allowedValues, settings.benchmarks.etf.defaultValue, errors)

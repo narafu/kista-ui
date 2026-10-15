@@ -40,8 +40,8 @@ describe('AnomaliesSection', () => {
 
     expect(screen.getByText('홍길동')).toBeInTheDocument()
     expect(screen.queryByText('일시중지된 계좌가 없습니다.')).not.toBeInTheDocument()
-    // 이상징후(7일) 헤딩 옆에 총 개수(1) 배지가 표시된다
-    const heading = screen.getByRole('heading', { name: /이상징후/ })
+    // 이상 징후 헤딩 옆에 총 개수(1) 배지가 표시된다
+    const heading = screen.getByRole('heading', { name: /이상 징후/ })
     expect(heading).toHaveTextContent('1')
   })
 

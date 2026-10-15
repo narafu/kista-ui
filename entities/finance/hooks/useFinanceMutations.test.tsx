@@ -149,7 +149,7 @@ describe('useDeleteManyAssetSnapshotsMutation', () => {
     await mutation.onSuccess(outcome, ['s1'])
 
     expect(queryClient.setQueryData).not.toHaveBeenCalled()
-    expect(toastErrorMock).toHaveBeenCalledWith('자산 기록을 삭제하지 못했습니다')
+    expect(toastErrorMock).toHaveBeenCalledWith('자산 기록을 삭제하지 못했습니다.')
   })
 
   it('다건 선택 삭제 전체 실패 시 건수를 포함한 문구로 에러 toast를 띄운다', async () => {
@@ -164,7 +164,7 @@ describe('useDeleteManyAssetSnapshotsMutation', () => {
 
     await mutation.onSuccess(outcome, ['s1', 's2'])
 
-    expect(toastErrorMock).toHaveBeenCalledWith('자산 기록 2건을 삭제하지 못했습니다')
+    expect(toastErrorMock).toHaveBeenCalledWith('자산 기록 2건을 삭제하지 못했습니다.')
   })
 })
 

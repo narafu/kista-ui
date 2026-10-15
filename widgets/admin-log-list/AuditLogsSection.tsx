@@ -5,13 +5,15 @@ import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Surface } from '@shared/ui/Surface'
 import { Badge } from '@shared/ui/Badge'
+import { SectionError } from '@shared/ui/SectionError'
 import { fmtDateTime } from '@shared/lib/format'
 import type { AdminAuditLog } from '@entities/admin'
 
 export function AuditLogsSection({
   logs, total, page, totalPages, size, range, from, to,
 }: {
-  logs: AdminAuditLog[]
+  /** null이면 조회 실패 */
+  logs: AdminAuditLog[] | null
   total: number
   page: number
   totalPages: number
@@ -38,13 +40,15 @@ export function AuditLogsSection({
           </div>
         </div>
       </div>
-      {logs.length === 0 ? (
+      {!logs ? (
+        <SectionError message="관리자 로그를 불러오지 못했습니다." serverRetry />
+      ) : logs.length === 0 ? (
         <EmptyState message="관리자 로그가 없습니다." />
       ) : (
         <div className="rounded-[var(--r-lg)] border border-border divide-y divide-border">
           {logs.map((log) => (
             <div key={log.id} className="px-4 py-3 hover:bg-muted/20 transition-colors">
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     {/* action은 kista-api 서비스별 자유 문자열(enum 없음) — 관리자 디버깅용으로 원본 코드를 그대로 표시한다 */}
@@ -65,7 +69,7 @@ export function AuditLogsSection({
                     </pre>
                   )}
                 </div>
-                <time className="text-sm text-muted-foreground shrink-0">
+                <time dateTime={log.createdAt} className="text-sm text-muted-foreground shrink-0">
                   {fmtDateTime(log.createdAt)}
                 </time>
               </div>

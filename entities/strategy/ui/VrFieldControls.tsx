@@ -5,7 +5,7 @@ import { ratioToPercent, percentToRatio } from '@shared/lib/format'
 import { SelectionCard } from '@shared/ui/selection-card'
 import { UnitInput } from '@shared/ui/UnitInput'
 import { applyGStepWeeksChange, applyPStepWeeksChange } from '../model/poolLimitRamp'
-import type { VrRampValues, VrRecurringMode } from '../model/vrRamp'
+import { VR_RECURRING_MODE_LABEL, type VrRampValues, type VrRecurringMode } from '../model/vrRamp'
 
 // VR 설정 입력 컨트롤 — 전략 등록 폼(features/strategy/create-strategy)과 백테스트 폼(features/backtest)이 공유한다
 
@@ -53,9 +53,9 @@ function toRatioOrNull(percent: number | null) {
 }
 
 const RECURRING_MODES: { mode: VrRecurringMode; label: string }[] = [
-  { mode: 'DEPOSIT', label: '+ 적립' },
-  { mode: 'HOLD', label: '거치' },
-  { mode: 'WITHDRAW', label: '- 인출' },
+  { mode: 'DEPOSIT', label: `+ ${VR_RECURRING_MODE_LABEL.DEPOSIT}` },
+  { mode: 'HOLD', label: VR_RECURRING_MODE_LABEL.HOLD },
+  { mode: 'WITHDRAW', label: `- ${VR_RECURRING_MODE_LABEL.WITHDRAW}` },
 ]
 
 // amount는 부호 없는 크기로 다룬다 — 부호는 mode가 결정

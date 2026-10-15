@@ -196,8 +196,8 @@ describe('AdminSettingsForm', () => {
     const user = userEvent.setup()
     render(<AdminSettingsForm />)
 
-    await user.click(screen.getByRole('radio', { name: 'DEPOSIT 기본값' }))
-    await user.click(screen.getByRole('checkbox', { name: 'WITHDRAW 허용' }))
+    await user.click(screen.getByRole('radio', { name: '적립 기본값' }))
+    await user.click(screen.getByRole('checkbox', { name: '인출 허용' }))
     await user.click(screen.getByRole('switch', { name: '정기 입출금 방식 사용자 변경 허용' }))
     await user.click(screen.getByRole('button', { name: /변경 저장/ }))
 

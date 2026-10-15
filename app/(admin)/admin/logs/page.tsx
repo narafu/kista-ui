@@ -2,16 +2,19 @@ import { Suspense } from 'react'
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { adminErrorLogsQueryOptions, listAdminAuditLogs, getAdminAnomalies } from '@entities/admin'
-import type { AdminAuditLog, AdminAnomalies } from '@entities/admin'
+import type { AdminAuditLog } from '@entities/admin'
 import { LogsFilterChips } from '@features/admin/logs'
-import { AnomaliesSection, ErrorLogsSection, AuditLogsSection } from '@widgets/admin-log-list'
+import { AnomaliesSection, ErrorLogsSectionContent, AuditLogsSection } from '@widgets/admin-log-list'
 import { PageHeader } from '@widgets/page-header'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
 import { createQueryClient } from '@shared/lib/query'
 
-type LogType = 'all' | 'audit' | 'error' | 'anomaly'
+const LOG_TYPES = ['all', 'audit', 'error', 'anomaly'] as const
+type LogType = (typeof LOG_TYPES)[number]
 
-const EMPTY_ANOMALIES: AdminAnomalies = { pausedAccounts: [], inactiveAccounts: [] }
+function parseLogType(value?: string): LogType {
+  return LOG_TYPES.find((type) => type === value) ?? 'all'
+}
 
 export default async function AdminLogsPage({
   searchParams,
@@ -25,7 +28,7 @@ export default async function AdminLogsPage({
   }>
 }) {
   const params = await searchParams
-  const logType = (params.type ?? 'all') as LogType
+  const logType = parseLogType(params.type)
 
   const anoRange = parseRangePreset(params.anoRange, '7d')
   const errRange = parseRangePreset(params.errRange, '7d')
@@ -49,17 +52,19 @@ export default async function AdminLogsPage({
 
   const [allAuditLogs, anomalies] = await Promise.all([
     showAudit && token
-      ? listAdminAuditLogs(token, audFrom, audTo).catch(() => [] as AdminAuditLog[])
+      ? listAdminAuditLogs(token, audFrom, audTo).catch(() => null)
       : ([] as AdminAuditLog[]),
     showAnomaly && token
-      ? getAdminAnomalies(token, 7, anoFrom, anoTo).catch(() => EMPTY_ANOMALIES)
-      : EMPTY_ANOMALIES,
+      ? getAdminAnomalies(token, 7, anoFrom, anoTo).catch(() => null)
+      : null,
   ])
 
-  const auditTotalPages = Math.max(1, Math.ceil(allAuditLogs.length / audSize))
+  // 조회 실패(null)는 섹션이 SectionError로 표시한다 — 빈 목록과 구분
+  const auditAll = allAuditLogs ?? []
+  const auditTotalPages = Math.max(1, Math.ceil(auditAll.length / audSize))
   const auditPage = Math.min(parsePage(params.ap), auditTotalPages)
 
-  const auditLogs = allAuditLogs.slice((auditPage - 1) * audSize, auditPage * audSize)
+  const auditLogs = allAuditLogs && auditAll.slice((auditPage - 1) * audSize, auditPage * audSize)
 
   return (
     <div>
@@ -80,13 +85,13 @@ export default async function AdminLogsPage({
         )}
         {showError && (
           <HydrationBoundary state={dehydrate(queryClient)}>
-            <ErrorLogsSection page={parsePage(params.ep)} size={errSize} range={errRange} from={errFrom} to={errTo} />
+            <ErrorLogsSectionContent page={parsePage(params.ep)} size={errSize} range={errRange} from={errFrom} to={errTo} />
           </HydrationBoundary>
         )}
         {showAudit && (
           <AuditLogsSection
             logs={auditLogs}
-            total={allAuditLogs.length}
+            total={auditAll.length}
             page={auditPage}
             totalPages={auditTotalPages}
             size={audSize}

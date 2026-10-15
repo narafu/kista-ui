@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { buttonVariants } from '@/components/ui/button-variants'
 import {
@@ -23,26 +23,24 @@ interface Props {
 }
 
 export function ErrorLogsSectionClient({ logs }: Props) {
-  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [pickedIds, setPickedIds] = useState<string[]>([])
   const [open, setOpen] = useState(false)
   const mutation = useDeleteAdminErrorLogsMutation()
 
+  // 페이지·목록이 바뀌어 사라진 로그의 선택은 렌더 시점에 걸러낸다
+  const selectedIds = pickedIds.filter((id) => logs.some((log) => log.id === id))
   const selectedCount = selectedIds.length
   const selectedIdSet = new Set(selectedIds)
   const allSelected = logs.length > 0 && selectedCount === logs.length
   const someSelected = selectedCount > 0 && !allSelected
-  const selectedLabel = useMemo(() => `선택 ${selectedCount}건 삭제`, [selectedCount])
-
-  useEffect(() => {
-    setSelectedIds((current) => current.filter((id) => logs.some((log) => log.id === id)))
-  }, [logs])
+  const selectedLabel = `선택 ${selectedCount}건 삭제`
 
   const toggleAll = (checked: boolean) => {
-    setSelectedIds(checked ? logs.map((log) => log.id) : [])
+    setPickedIds(checked ? logs.map((log) => log.id) : [])
   }
 
   const toggleOne = (id: string, checked: boolean) => {
-    setSelectedIds((current) => (checked ? [...current, id] : current.filter((value) => value !== id)))
+    setPickedIds((current) => (checked ? [...current, id] : current.filter((value) => value !== id)))
   }
 
   const handleDelete = async () => {
@@ -56,7 +54,7 @@ export function ErrorLogsSectionClient({ logs }: Props) {
     setOpen(false)
 
     if (successCount > 0) {
-      setSelectedIds([])
+      setPickedIds([])
     }
 
     if (failedCount === 0) {
@@ -85,13 +83,18 @@ export function ErrorLogsSectionClient({ logs }: Props) {
             }}
             disabled={mutation.isPending || logs.length === 0}
             onChange={(event) => toggleAll(event.target.checked)}
-            className="size-4 rounded border-border accent-rose-600"
+            className="size-4 rounded border-border accent-primary"
           />
           전체 선택
         </label>
         {selectedCount > 0 && <span className="text-sm text-muted-foreground">{selectedCount}건 선택됨</span>}
         <AlertDialog open={open} onOpenChange={setOpen}>
-          <AlertDialogTrigger className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'ml-auto')} disabled={selectedCount === 0 || mutation.isPending}>
+          <AlertDialogTrigger
+            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'ml-auto aria-disabled:opacity-50')}
+            // disabled로 바꾸면 모달을 닫은 뒤 포커스가 body로 빠진다
+            aria-disabled={selectedCount === 0 || mutation.isPending}
+            onClick={(e) => { if (selectedCount === 0 || mutation.isPending) e.preventBaseUIHandler() }}
+          >
             {mutation.isPending ? '삭제 중...' : selectedLabel}
           </AlertDialogTrigger>
           <AlertDialogContent size="sm">

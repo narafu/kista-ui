@@ -1,5 +1,12 @@
 export type VrRecurringMode = 'DEPOSIT' | 'HOLD' | 'WITHDRAW'
 
+/** VR 정기 입출금 방식 표시 라벨 — 전략 폼·관리자 운영 설정이 공유하는 SSOT */
+export const VR_RECURRING_MODE_LABEL: Record<VrRecurringMode, string> = {
+  DEPOSIT: '적립',
+  HOLD: '거치',
+  WITHDRAW: '인출',
+}
+
 // VR 램프 8필드 — 전략 등록 폼과 백테스트 폼이 공유. null은 "미입력(기본값 사용)"
 export interface VrRampValues {
   initialGradient: number | null

@@ -20,6 +20,7 @@ import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
 
 // Base UI Select는 빈 문자열 value를 허용하지 않는다 — AssetForm의 NO_ACCOUNT_VALUE와 동일한 센티널 패턴.
 const NO_PARENT_VALUE = 'NONE'
+const NO_PARENT_LABEL = '없음 (최상위로 생성)'
 
 interface Props {
   open: boolean
@@ -74,7 +75,7 @@ export function SystemCategoryFormDialog({ open, onOpenChange, type, l1Categorie
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{mode === 'edit' ? '가계부 공통카테고리 수정' : '가계부 공통카테고리 추가'}</DialogTitle>
+            <DialogTitle>{mode === 'edit' ? '가계부 공통 카테고리 수정' : '가계부 공통 카테고리 추가'}</DialogTitle>
             <DialogDescription>
               {mode === 'edit' ? '이름과 정렬순서만 수정할 수 있습니다.' : '모든 그룹에 공통으로 노출되는 카테고리를 추가합니다.'}
             </DialogDescription>
@@ -89,7 +90,7 @@ export function SystemCategoryFormDialog({ open, onOpenChange, type, l1Categorie
                     <Select
                       key={levelIndex}
                       items={[
-                        { value: NO_PARENT_VALUE, label: '없음 (최상위로 생성)' },
+                        { value: NO_PARENT_VALUE, label: NO_PARENT_LABEL },
                         ...level.map((c) => ({ value: c.id, label: c.name })),
                       ]}
                       value={selectedPath[levelIndex] ?? NO_PARENT_VALUE}
@@ -98,11 +99,11 @@ export function SystemCategoryFormDialog({ open, onOpenChange, type, l1Categorie
                         setSelectedPath((prev) => (value === NO_PARENT_VALUE ? prev.slice(0, levelIndex) : [...prev.slice(0, levelIndex), value]))
                       }}
                     >
-                      <SelectTrigger id={levelIndex === 0 ? 'systemCategoryParentId' : undefined} className="w-full h-10" disabled={isPending}>
+                      <SelectTrigger id={levelIndex === 0 ? 'systemCategoryParentId' : undefined} aria-label={`상위 카테고리 ${levelIndex + 1}단계`} className="w-full h-10" disabled={isPending}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={NO_PARENT_VALUE}>없음 (최상위로 생성)</SelectItem>
+                        <SelectItem value={NO_PARENT_VALUE}>{NO_PARENT_LABEL}</SelectItem>
                         {level.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                       </SelectContent>
                     </Select>

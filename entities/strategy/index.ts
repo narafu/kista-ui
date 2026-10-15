@@ -39,7 +39,7 @@ export {
   strategyListAllQueryOptions,
   strategyListByAccountQueryOptions,
 } from './model/queryOptions'
-export { EMPTY_VR_RAMP, RAMP_DEFAULTS_BY_MODE } from './model/vrRamp'
+export { EMPTY_VR_RAMP, RAMP_DEFAULTS_BY_MODE, VR_RECURRING_MODE_LABEL } from './model/vrRamp'
 export type { VrRampValues, VrRecurringMode } from './model/vrRamp'
 export {
   ChoiceButton,

@@ -65,6 +65,7 @@ export function ValueListEditor<T extends string | number>({ id, label, field, e
 
   return (
     <div className="space-y-2">
+      <p className="text-xs text-muted-foreground">선택한 값이 기본값입니다.</p>
       <div role="radiogroup" aria-label={`${label} 기본값`} className="space-y-1.5">
         {field.allowedValues.map((value) => (
           <div key={String(value)} className="flex min-h-11 items-center gap-2 rounded-md border border-border bg-background px-2">
@@ -119,7 +120,7 @@ export function ValueListEditor<T extends string | number>({ id, label, field, e
           {suggestions?.map((suggestion) => <option key={suggestion} value={suggestion} />)}
         </datalist>
       )}
-      {(inputError || error) && <p role="alert" className="text-xs text-destructive">{inputError || error}</p>}
+      {(inputError || error) && <p role="alert" className="text-xs text-[var(--status-error)]">{inputError || error}</p>}
     </div>
   )
 }

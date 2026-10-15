@@ -22,11 +22,11 @@ export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled =
         <label className="mt-0.5 -m-1 inline-flex shrink-0 p-1">
           <input
             type="checkbox"
-            aria-label={`오류 로그 선택 ${log.id}`}
+            aria-label={`오류 로그 선택 ${log.errorType} ${fmtDateTime(log.createdAt)}`}
             checked={checked}
             disabled={disabled}
             onChange={(event) => onCheckedChange?.(event.target.checked)}
-            className="size-4 rounded border-border accent-rose-600"
+            className="size-4 rounded border-border accent-primary"
           />
         </label>
         <div className="flex-1 min-w-0">
@@ -36,11 +36,11 @@ export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled =
           </div>
 
           {/* message */}
-          <p className="text-sm mt-1 font-medium truncate" title={log.message}>{log.message}</p>
+          <p className="text-sm mt-1 font-medium break-words">{log.message}</p>
 
           {/* context */}
           {hasContext && (
-            <p className="mt-1 text-xs text-muted-foreground bg-muted/40 rounded px-2 py-1 font-mono truncate" title={JSON.stringify(log.context)}>
+            <p className="mt-1 text-xs text-muted-foreground bg-muted/40 rounded px-2 py-1 font-mono whitespace-pre-wrap break-all">
               {JSON.stringify(log.context)}
             </p>
           )}
@@ -67,7 +67,7 @@ export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled =
         </div>
 
         {/* 발생 시각 */}
-        <time className="text-sm text-muted-foreground shrink-0">
+        <time dateTime={log.createdAt} className="text-sm text-muted-foreground shrink-0">
           {fmtDateTime(log.createdAt)}
         </time>
       </div>

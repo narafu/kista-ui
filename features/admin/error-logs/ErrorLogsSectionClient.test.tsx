@@ -85,8 +85,8 @@ describe('ErrorLogsSectionClient', () => {
 
     await user.click(screen.getByRole('checkbox', { name: '현재 페이지 오류 로그 전체 선택' }))
 
-    expect(screen.getByRole('checkbox', { name: '오류 로그 선택 log-1' })).toBeChecked()
-    expect(screen.getByRole('checkbox', { name: '오류 로그 선택 log-2' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: /오류 로그 선택 API/ })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: /오류 로그 선택 AUTH/ })).toBeChecked()
     expect(screen.getByText('2건 선택됨')).toBeInTheDocument()
   })
 
@@ -114,7 +114,7 @@ describe('ErrorLogsSectionClient', () => {
 
     render(<ErrorLogsSectionClient logs={logs} />)
 
-    await user.click(screen.getByRole('checkbox', { name: '오류 로그 선택 log-1' }))
+    await user.click(screen.getByRole('checkbox', { name: /오류 로그 선택 API/ }))
     await user.click(screen.getByRole('button', { name: '선택 1건 삭제' }))
     await user.click(screen.getByRole('button', { name: '삭제' }))
 

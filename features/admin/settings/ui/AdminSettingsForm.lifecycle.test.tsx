@@ -174,7 +174,7 @@ describe('AdminSettingsForm mutation lifecycle', () => {
     }
   }, 15000)
 
-  it('routes a required refetch rejection through mutation error handling after all effects settle', async () => {
+  it('still reports success when a required refetch rejects after the save was applied', async () => {
     const queryClient = createTestQueryClient()
     const refetches = prepareRequiredRefetches(queryClient)
     const unhandledRejection = vi.fn()
@@ -200,8 +200,8 @@ describe('AdminSettingsForm mutation lifecycle', () => {
         refetches.users.resolve([])
       })
       await waitFor(() => expect(queryClient.isMutating()).toBe(0))
-      expect(toastErrorMock).toHaveBeenCalledWith('운영 설정을 저장하지 못했습니다.')
-      expect(toastSuccessMock).not.toHaveBeenCalled()
+      expect(toastErrorMock).not.toHaveBeenCalled()
+      expect(toastSuccessMock).toHaveBeenCalledWith('운영 설정을 저장했습니다')
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 0))
       })

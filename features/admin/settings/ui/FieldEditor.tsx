@@ -62,7 +62,7 @@ export function FieldEditor<T extends string | number>({ id, label, field, error
             {String(field.defaultValue)} <span className="ml-auto text-xs font-sans">고정</span>
           </div>
         )}
-        {!field.customizable && error && <p role="alert" className="text-xs text-destructive">{error}</p>}
+        {!field.customizable && error && <p role="alert" className="text-xs text-[var(--status-error)]">{error}</p>}
       </div>
     </div>
   )

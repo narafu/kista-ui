@@ -5,6 +5,8 @@ import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { LoadingRow } from '@shared/ui/LoadingRow'
+import { SectionError } from '@shared/ui/SectionError'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { useMeta } from '@entities/meta'
 import { collectSubtreeIds, sortCategoryTree, useDeleteSystemFinanceCategoryMutation, useSystemFinanceCategoriesQuery } from '@entities/finance'
@@ -20,7 +22,7 @@ import { TypeButton } from './TypeButton'
 export function SystemCategoryManager() {
   const { meta } = useMeta()
   const [type, setType] = useState<FinanceCategoryType>('ASSET')
-  const { data: categories } = useSystemFinanceCategoriesQuery(type)
+  const { data: categories, isPending, isError } = useSystemFinanceCategoriesQuery(type)
   const l1Categories = categories ? sortCategoryTree(categories) : []
 
   const [formTarget, setFormTarget] = useState<FinanceCategory | 'new' | null>(null)
@@ -40,8 +42,6 @@ export function SystemCategoryManager() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">어드민에서 등록한 카테고리는 모든 그룹에 공통으로 노출됩니다.</p>
-
       <div role="group" aria-label="카테고리 유형" className="grid w-full grid-cols-4 rounded-md border border-border p-0.5 sm:w-96">
         {meta.financeCategoryTypes.map((t) => (
           <TypeButton key={t.code} active={type === t.code} onClick={() => setType(t.code as FinanceCategoryType)}>
@@ -57,7 +57,11 @@ export function SystemCategoryManager() {
         </Button>
       </div>
 
-      {l1Categories.length === 0 ? (
+      {isError ? (
+        <SectionError message="카테고리를 불러오지 못했습니다." />
+      ) : isPending ? (
+        <LoadingRow />
+      ) : l1Categories.length === 0 ? (
         <EmptyState variant="text" message="등록된 카테고리가 없습니다." />
       ) : (
         <ul className="m-0 list-none rounded-[var(--r-lg)] border border-border p-0">

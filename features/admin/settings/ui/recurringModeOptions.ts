@@ -1,7 +1,5 @@
-import type { RecurringMode } from '@entities/runtime-config'
+import { VR_RECURRING_MODE_LABEL, type VrRecurringMode } from '@entities/strategy'
 
-export const RECURRING_MODE_OPTIONS = [
-  { value: 'DEPOSIT', label: '입금' },
-  { value: 'HOLD', label: '거치' },
-  { value: 'WITHDRAW', label: '인출' },
-] as const satisfies readonly { value: RecurringMode; label: string }[]
+const RECURRING_MODES = ['DEPOSIT', 'HOLD', 'WITHDRAW'] as const satisfies readonly VrRecurringMode[]
+
+export const RECURRING_MODE_OPTIONS = RECURRING_MODES.map((value) => ({ value, label: VR_RECURRING_MODE_LABEL[value] }))
