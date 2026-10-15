@@ -171,6 +171,7 @@
   --info:    #46699C;   --info-bg: #E3EBF5;
   /* P 매매표 평단가-종가 괴리 10%↑/20%↑ — 차트의 빨강(매수)·파랑(매도)·금색(종가)과 겹치지 않는 보라 계열 */
   --avg-gap-1: #8B5CC7;  --avg-gap-2: #5B2A9E;
+  --avg-gap-1-bg: rgba(139,92,199,0.14);  --avg-gap-2-bg: rgba(91,42,158,0.28);
   /* Admin 액센트 (골드 계열 — 보라 대체) */
   --admin-fg: #84601F;  --admin-bg: #F3E7CC;
 
@@ -269,6 +270,8 @@
 
   --info:    #8FB4E3;   --info-bg: rgba(143,180,227,0.13);
   --avg-gap-1: #A98BE0;  --avg-gap-2: #CDB2FF;
+  /* 어두운 배경에선 라이트와 같은 투명도면 띠가 묻혀 더 진하게 둔다 */
+  --avg-gap-1-bg: rgba(169,139,224,0.24);  --avg-gap-2-bg: rgba(205,178,255,0.42);
   --admin-fg: #D9B375;  --admin-bg: rgba(217,179,117,0.16);
 
   --brand-fg:      #EAC3AC;

@@ -27,8 +27,9 @@ export function fmtPercent(ratio: number) {
 export const SWATCH = {
   close: 'h-0.5 w-4 bg-[var(--chart-2)]',
   avgPrice: 'w-4 border-t-2 border-dashed border-[var(--foreground)]',
-  avgGap1: 'h-0.5 w-4 bg-[var(--avg-gap-1)]',
-  avgGap2: 'h-1 w-4 bg-[var(--avg-gap-2)]',
+  // 차트 배경 띠와 같은 토큰
+  avgGap1: 'h-2 w-4 rounded-sm bg-[var(--avg-gap-1-bg)]',
+  avgGap2: 'h-2 w-4 rounded-sm bg-[var(--avg-gap-2-bg)]',
   buy: 'size-2.5 rounded-full bg-[var(--pos)]',
   sell: 'size-2.5 rounded-full border-2 border-[var(--neg)] bg-card',
   cash: 'h-2 w-4 rounded-sm bg-[var(--info)]',

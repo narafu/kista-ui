@@ -197,13 +197,20 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAv
     boundaries: rows.filter((r) => r.cycleBoundary).map((r) => r.date),
   }), [rows])
 
-  // 괴리 단계별 평단가 덧칠 계열 — 해당 단계인 날과 그 다음 날에 값을 둬서 stepAfter 계단이 다음 날 x까지 이어지게 한다
-  // (단계가 바뀌는 날 덧칠이 끊기지 않음). 해당 단계가 아닌 구간은 undefined라 선이 그려지지 않는다
-  const priceRows = useMemo(() => {
-    if (!showAvgGap) return rows
-    const levels = rows.map((r) => avgGapLevel(r.close, r.avgPrice))
-    const pick = (i: number, level: number) => (levels[i] === level || levels[i - 1] === level ? rows[i].avgPrice ?? undefined : undefined)
-    return rows.map((r, i) => ({ ...r, avgGap1: pick(i, 1), avgGap2: pick(i, 2) }))
+  // 괴리 단계가 같은 연속 구간 → 배경 띠. x축이 날짜 점(폭 없음)이라 평단가 계단(stepAfter)처럼 구간 마지막 날의
+  // 다음 날 x까지 칠한다 — 하루짜리 구간도 폭이 생긴다. ponytail: 마지막 날 하루만 해당하면 폭 0이라 안 보인다(툴팁·정보 줄 색으로 대신)
+  const avgGapBands = useMemo(() => {
+    if (!showAvgGap) return []
+    const bands: Array<{ x1: string; x2: string; level: 1 | 2 }> = []
+    rows.forEach((r, i) => {
+      const level = avgGapLevel(r.close, r.avgPrice)
+      const x2 = rows[i + 1]?.date ?? r.date
+      const prev = bands[bands.length - 1]
+      if (level === 0) return
+      if (prev?.level === level && prev.x2 === r.date) prev.x2 = x2
+      else bands.push({ x1: r.date, x2, level })
+    })
+    return bands
   }, [rows, showAvgGap])
 
   // 마지막으로 가리키거나 누른 날짜 — 모바일 정보 줄이 쓴다(없으면 최신 일자)
@@ -240,12 +247,16 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAv
         />
         <div className={PANEL_HEIGHT.price}>
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={priceRows} syncId={SYNC_ID} margin={narrow ? MARGIN_NARROW : MARGIN} onMouseMove={pickActive} onClick={pickActive} onTouchMove={pickActive} title={`${ticker} 종가·평단가·주문 가격`}>
+            <ComposedChart data={rows} syncId={SYNC_ID} margin={narrow ? MARGIN_NARROW : MARGIN} onMouseMove={pickActive} onClick={pickActive} onTouchMove={pickActive} title={`${ticker} 종가·평단가·주문 가격`}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
               <XAxis dataKey="date" hide />
               <YAxis tickFormatter={(v) => fmtUsd(Number(v), 0)} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} domain={['auto', 'auto']} />
               {/* 아래 패널을 눌러도 툴팁이 가격 패널 위쪽에 고정돼 화면 밖으로 밀리지 않게 y를 고정한다 */}
               <Tooltip position={{ y: 0 }} content={({ active, label }) => <div className="hidden sm:block"><ChartTooltip row={active ? rowByDate.get(String(label)) : undefined} ticker={ticker} showAvgGap={showAvgGap} /></div>} cursor={CURSOR} />
+              {/* 괴리 구간은 패널 전체 높이 배경 띠 — 선 굵기만으로는 눈에 덜 띄어 면적으로 보여준다(현금비중 50% 미만 음영과 같은 방식) */}
+              {avgGapBands.map((b) => (
+                <ReferenceArea key={b.x1} x1={b.x1} x2={b.x2} fill={b.level === 2 ? 'var(--avg-gap-2-bg)' : 'var(--avg-gap-1-bg)'} fillOpacity={1} ifOverflow="hidden" />
+              ))}
               {boundaries.map((d) => <ReferenceLine key={d} x={d} stroke="var(--muted-foreground)" strokeDasharray="4 4" />)}
               {showOrders && Array.from({ length: maxBuyOrders }, (_, i) => (
                 <Line key={`buy${i}`} dataKey={`buy${i}`} stroke="var(--pos)" strokeWidth={0} dot={ORDER_DOT_BUY} activeDot={false} isAnimationActive={false} />
@@ -257,9 +268,6 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAv
                   평단가는 체결 때만 바뀌므로 계단+점선으로 구분한다 */}
               <Line type="monotone" dataKey="close" stroke="var(--chart-2)" strokeWidth={2.5} dot={false} isAnimationActive={false} />
               <Line type="stepAfter" dataKey="avgPrice" stroke="var(--foreground)" strokeWidth={1.5} strokeDasharray="5 3" dot={false} isAnimationActive={false} />
-              {/* 괴리 구간은 평단가 점선 위에 단계 색 실선을 덧칠한다 — 20%가 더 굵어 색 외에 굵기로도 구분된다 */}
-              {showAvgGap && <Line type="stepAfter" dataKey="avgGap1" stroke="var(--avg-gap-1)" strokeWidth={2.5} dot={false} activeDot={false} isAnimationActive={false} />}
-              {showAvgGap && <Line type="stepAfter" dataKey="avgGap2" stroke="var(--avg-gap-2)" strokeWidth={3.5} dot={false} activeDot={false} isAnimationActive={false} />}
             </ComposedChart>
           </ResponsiveContainer>
         </div>
