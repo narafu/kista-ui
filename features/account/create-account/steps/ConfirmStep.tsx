@@ -83,7 +83,7 @@ export function ConfirmStep({ data, onBack }: Props) {
       </div>
 
       {isError && (
-        <p className="text-sm text-neg">{errorMessage}</p>
+        <p className="text-sm text-[var(--status-error)]">{errorMessage}</p>
       )}
 
       <div className="flex gap-3">

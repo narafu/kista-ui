@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { QueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { apiErrorCode, apiMsg } from '@shared/lib/api-client'
+import { apiMsg } from '@shared/lib/api-client'
 import { upsertById, synchronizeListQueries } from '@shared/lib/query'
 import {
   createAccount,
@@ -60,7 +60,7 @@ export function useUpdateAccountMutation(accountId: string) {
       queryClient.setQueryData(accountKeys.detail(accountId), saved)
       await synchronizeAccountList(queryClient, (accounts) => upsertById(accounts, saved))
     },
-    onError: (err) => toast.error(apiMsg(err, '수정에 실패했습니다')),
+    onError: (err) => toast.error(apiMsg(err, '수정에 실패했습니다.')),
   })
 }
 
@@ -75,7 +75,7 @@ export function useDeleteAccountMutation(accountId: string) {
       await synchronizeAccountList(queryClient, (accounts) =>
         accounts.filter((account) => account.id !== accountId))
     },
-    onError: (err) => toast.error(apiMsg(err, '삭제에 실패했습니다')),
+    onError: (err) => toast.error(apiMsg(err, '삭제에 실패했습니다.')),
   })
 }
 
@@ -87,13 +87,7 @@ export function useCreateAccountMutation() {
       queryClient.setQueryData(accountKeys.detail(saved.id), saved)
       await synchronizeAccountList(queryClient, (accounts) => upsertById(accounts, saved))
     },
-    onError: (error) => {
-      if (apiErrorCode(error) === 'BROKER_CREDENTIAL_INVALID') {
-        toast.error('자격증명 인증에 실패했습니다')
-      } else {
-        toast.error('계좌 연결에 실패했습니다')
-      }
-    },
+    // 실패 안내는 ConfirmStep이 증권사별 입력 항목을 짚어 인라인으로 표시한다 — 토스트까지 띄우면 같은 피드백이 두 번 나온다
   })
 }
 
