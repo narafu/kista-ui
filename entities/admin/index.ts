@@ -16,8 +16,8 @@ export type {
   AppErrorLog,
 } from './model/types'
 export { adminKeys } from './model/queryKeys'
-export type { AdminErrorLogsQueryParams, AdminUsersQueryParams } from './model/queryKeys'
-export { adminErrorLogsQueryOptions, adminStatsQueryOptions, adminUsersQueryOptions } from './model/queryOptions'
+export type { AdminErrorLogsQueryParams, AdminTradesQueryParams, AdminUsersQueryParams } from './model/queryKeys'
+export { adminErrorLogsQueryOptions, adminStatsQueryOptions, adminTradesQueryOptions, adminUsersQueryOptions } from './model/queryOptions'
 export {
   listAdminUsers,
   approveAdminUser,
@@ -55,6 +55,7 @@ export {
   useUpdateAdminStrategyStatusMutation,
   useReorderAdminOrderMutation,
 } from './hooks/useAdminQueries'
+export { useAdminTradesQuery, useAdminAllAccountsQuery } from './hooks/useAdminTradesQuery'
 export {
   useAdminErrorLogsQuery,
   useDeleteAdminErrorLogsMutation,

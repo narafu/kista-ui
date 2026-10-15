@@ -11,6 +11,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@shared/ui/Badge'
+import { directionTextClass } from '@entities/trade'
 import { useAdminReorderBuyBudgetQuery } from '@entities/admin'
 import type { AdminReorderBuyBudget, AdminReorderTimingAvailability, AdminStrategyOrder } from '@entities/admin'
 import { orderStatusBadgeClass, ORDER_STATUS_LABEL } from '@entities/order'
@@ -46,8 +49,8 @@ const TIMING_OPTIONS: {
   label: string
   availKey: keyof AdminReorderTimingAvailability
 }[] = [
-  { value: 'AT_OPEN',   label: '개장 접수 (AT_OPEN)',  availKey: 'atOpen' },
-  { value: 'AT_CLOSE',  label: '마감 접수 (AT_CLOSE)', availKey: 'atClose' },
+  { value: 'AT_OPEN',   label: '개장 접수',  availKey: 'atOpen' },
+  { value: 'AT_CLOSE',  label: '마감 접수', availKey: 'atClose' },
   { value: 'IMMEDIATE', label: '즉시 접수',             availKey: 'immediate' },
 ]
 
@@ -188,7 +191,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
         <div>
           <h3 className="text-sm font-semibold">거래일 주문 일괄 재주문</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            조회된 주문 {orders.length}건을 같은 요청 흐름에서 순차 재주문합니다.
+            조회된 주문 {orders.length}건 중 값을 바꾼 주문만 순차 재주문합니다.
           </p>
         </div>
         {isBlocked && (
@@ -212,11 +215,11 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
             <>
               <p className="text-muted-foreground">
                 남은 주문가능금액 <span className="font-semibold text-foreground">${fmtUsd(budget.remaining)}</span>
-                {hasChangedBuy && <> · 변경한 BUY 합계 <span className="font-semibold text-foreground">${fmtUsd(budget.required)}</span></>}
+                {hasChangedBuy && <> · 변경한 매수 합계 <span className="font-semibold text-foreground">${fmtUsd(budget.required)}</span></>}
               </p>
               {budget.over && (
                 <p className="rounded-[var(--r-md)] border border-dashed border-warn bg-warn-bg px-3 py-2 text-warn">
-                  변경한 BUY 주문 합계가 남은 주문가능금액을 ${fmtUsd(budget.required - budget.remaining)} 초과합니다. 그대로 진행하면 증권사에서 거절될 수 있습니다.
+                  변경한 매수 주문 합계가 남은 주문가능금액을 ${fmtUsd(budget.required - budget.remaining)} 초과합니다. 그대로 진행하면 증권사에서 거절될 수 있습니다.
                 </p>
               )}
             </>
@@ -225,7 +228,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
       )}
 
       <div className="mt-4 space-y-3">
-        {orders.map((order) => {
+        {orders.map((order, index) => {
           const draft = drafts[order.id] ?? {
             timing: getDefaultTiming(timingAvailability),
             quantity: String(order.quantity),
@@ -239,7 +242,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
           return (
             <section key={order.id} className={`rounded-[var(--r-md)] border bg-background p-3 ${isChanged ? 'border-primary' : 'border-border'}`}>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-medium">{DIRECTION_LABEL[order.direction] ?? order.direction} · {orderTypeLabel(order.orderType)}</span>
+                <span className="font-medium"><span className={directionTextClass(order.direction)}>{DIRECTION_LABEL[order.direction] ?? order.direction}</span> · {orderTypeLabel(order.orderType)}</span>
                 <span className="text-muted-foreground">· {order.quantity}주</span>
                 <span className="text-muted-foreground">· {order.ticker}</span>
                 {isChanged && (
@@ -247,9 +250,9 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                     변경됨
                   </span>
                 )}
-                <span className={`ml-auto inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${orderStatusBadgeClass(order.status)}`}>
+                <Badge tone="none" className={`ml-auto ${orderStatusBadgeClass(order.status)}`}>
                   {ORDER_STATUS_LABEL[order.status] ?? order.status}
-                </span>
+                </Badge>
               </div>
               {isClosed && (
                 <p className="mt-1 text-xs text-muted-foreground">미체결 주문만 재주문할 수 있습니다.</p>
@@ -259,7 +262,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                 <label className="grid gap-2 text-sm">
                   <span className="font-medium">주문시점</span>
                   <select
-                    aria-label={`${order.id} 주문시점`}
+                    aria-label={`주문 ${index + 1} 주문시점`}
                     value={draft.timing}
                     onChange={(e) => handleDraftChange(order.id, 'timing', e.target.value)}
                     disabled={disabled || isBlocked || isClosed}
@@ -278,7 +281,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                 <label className="grid gap-2 text-sm">
                   <span className="font-medium">재주문 수량</span>
                   <input
-                    aria-label={`${order.id} 재주문 수량`}
+                    aria-label={`주문 ${index + 1} 재주문 수량`}
                     type="number"
                     required
                     min="1"
@@ -293,7 +296,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                 <label className="grid gap-2 text-sm">
                   <span className="font-medium">재주문 가격</span>
                   <input
-                    aria-label={`${order.id} 재주문 가격`}
+                    aria-label={`주문 ${index + 1} 재주문 가격`}
                     type="number"
                     required
                     min="0.01"
@@ -308,7 +311,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                 <label className="grid gap-2 text-sm">
                   <span className="font-medium">메모</span>
                   <input
-                    aria-label={`${order.id} 메모`}
+                    aria-label={`주문 ${index + 1} 메모`}
                     value={draft.memo}
                     onChange={(e) => handleDraftChange(order.id, 'memo', e.target.value)}
                     disabled={disabled || isBlocked || isClosed}
@@ -326,13 +329,9 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
         {!isBlocked && changedOrderIds.length === 0 && orders.length > 0 && (
           <p className="text-sm text-muted-foreground">변경된 주문이 없습니다.</p>
         )}
-        <button
-          type="submit"
-          disabled={disabled || changedOrderIds.length === 0 || isBlocked}
-          className="rounded-[var(--r-md)] border border-border bg-background px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <Button type="submit" variant="brand" disabled={disabled || changedOrderIds.length === 0 || isBlocked}>
           {disabled ? '처리 중...' : `변경한 주문 ${changedOrderIds.length}건 재주문`}
-        </button>
+        </Button>
       </div>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
@@ -341,8 +340,8 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
             <AlertDialogTitle>주문가능금액을 초과합니다</AlertDialogTitle>
             <AlertDialogDescription>
               {budget?.state === 'ok'
-                ? `변경한 BUY 합계 $${fmtUsd(budget.required)}가 남은 주문가능금액 $${fmtUsd(budget.remaining)}를 넘습니다. 증권사에서 거절될 수 있습니다. 그래도 재주문하시겠습니까?`
-                : '변경한 BUY 합계가 남은 주문가능금액을 넘습니다. 그래도 재주문하시겠습니까?'}
+                ? `변경한 매수 합계 $${fmtUsd(budget.required)}가 남은 주문가능금액 $${fmtUsd(budget.remaining)}를 넘습니다. 증권사에서 거절될 수 있습니다. 그래도 재주문하시겠습니까?`
+                : '변경한 매수 합계가 남은 주문가능금액을 넘습니다. 그래도 재주문하시겠습니까?'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

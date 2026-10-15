@@ -210,14 +210,14 @@ describe('AdminPrivacyBaseTable empty states', () => {
     unmount()
 
     renderTable([])
-    expect(screen.getByText('P 매매표가 없습니다.')).toBeInTheDocument()
+    expect(screen.getByText('P 매매표가 없습니다. 매매표 등록 버튼으로 추가할 수 있습니다.')).toBeInTheDocument()
   })
 
   it('includes price and quantity in the delete confirmation', () => {
     renderTable()
     const table = screen.getByTestId('admin-privacy-desktop-table')
     fireEvent.click(within(table).getByRole('button', { name: '2026-07-02 NVDA 주문 명세' }))
-    fireEvent.click(within(table).getByRole('button', { name: '삭제' }))
+    fireEvent.click(within(table).getByRole('button', { name: /삭제$/ }))
     expect(screen.getByText('매수 LOC(종가지정) $100.25 × 1주 주문을 삭제합니다.')).toBeInTheDocument()
   })
 })

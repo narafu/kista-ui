@@ -1,11 +1,8 @@
 import { getAuthToken } from '@shared/lib/auth/token'
-import { formatBrokerLabel } from '@shared/lib/api-schema'
 import { listAdminAccounts } from '@entities/admin'
-import type { AdminAccount, AdminAccountStrategy } from '@entities/admin'
-import { getMetaBundle } from '@entities/meta'
-import { strategyStatusAccent, strategyTypeShort } from '@entities/strategy'
-import { RevealableValue } from '@widgets/revealable-value'
-import { Badge } from '@shared/ui/Badge'
+import type { AdminAccount } from '@entities/admin'
+import { AdminAccountsTable } from '@widgets/admin-account-list'
+import { SectionError } from '@shared/ui/SectionError'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
@@ -13,16 +10,6 @@ import { UrlRangeFilterBar } from '@shared/ui/UrlRangeFilterBar'
 import { PageHeader } from '@widgets/page-header'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
 import { AdminAccountsFilterBar } from './AdminAccountsFilterBar'
-
-function StrategyBadge({ strategy, statusLabel }: { strategy: AdminAccountStrategy; statusLabel: string }) {
-  const color = strategyStatusAccent(strategy.status)
-  return (
-    <Badge tone='none' size='sm' className="border bg-muted/40 font-bold" style={{ borderColor: color, color }}>
-      {strategyTypeShort(strategy.type)}-{strategy.ticker}
-      {strategy.status !== 'ACTIVE' && ` · ${statusLabel}`}
-    </Badge>
-  )
-}
 
 export default async function AdminAccountsPage({
   searchParams,
@@ -37,9 +24,10 @@ export default async function AdminAccountsPage({
   const size = parseSize(rawSize)
   const { from: resolvedFrom, to: resolvedTo } = resolveRange(range, from, to)
 
-  const meta = await getMetaBundle()
   const token = await getAuthToken()
-  const all: AdminAccount[] = token ? await listAdminAccounts(token, resolvedFrom, resolvedTo).catch(() => []) : []
+  // 조회 실패를 빈 목록으로 삼키면 "등록된 계좌가 없습니다"로 오인된다 — null로 구분해 오류 화면을 보인다
+  const loaded: AdminAccount[] | null = token ? await listAdminAccounts(token, resolvedFrom, resolvedTo).catch(() => null) : []
+  const all = loaded ?? []
   // 닉네임은 유저 간 중복 가능 — 필터 식별자는 반드시 userId로 구분한다(ownerNickname은 표시용 라벨만).
   const owners = [...new Map(all.map((a) => [a.userId, a.ownerNickname])).entries()]
     .map(([userId, label]) => ({ userId, label }))
@@ -58,7 +46,7 @@ export default async function AdminAccountsPage({
 
   return (
     <div>
-      <PageHeader title="계좌 현황" description={`전체 사용자 계좌 목록 (조건에 맞는 ${filtered.length}개 / 전체 ${all.length}개)`} />
+      <PageHeader title="계좌 현황" description={loaded === null ? '전체 사용자 계좌 목록' : `전체 사용자 계좌 목록 (조건에 맞는 ${filtered.length}개 / 전체 ${all.length}개)`} />
 
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <UrlRangeFilterBar current={range} from={from} to={to} />
@@ -69,53 +57,17 @@ export default async function AdminAccountsPage({
         <AdminAccountsFilterBar owners={owners} />
       </div>
 
-      {all.length === 0 ? (
+      {loaded === null ? (
+        <SectionError message="계좌 목록을 불러오지 못했습니다." serverRetry />
+      ) : all.length === 0 ? (
         <EmptyState message="등록된 계좌가 없습니다." />
       ) : accounts.length === 0 ? (
         <EmptyState message="조건에 맞는 계좌가 없습니다." />
       ) : (
-        <div className="rounded-xl border border-border overflow-x-auto">
-          <table className="min-w-[720px] w-full text-sm">
-            <thead className="bg-muted/40 border-b border-border">
-              <tr>
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">소유자</th>
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">증권사</th>
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">계좌번호</th>
-                <th className="text-left px-4 py-3 font-semibold text-muted-foreground whitespace-nowrap">전략</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {accounts.map((acc) => (
-                <tr key={acc.id} className="hover:bg-muted/20 transition-colors">
-                  <td className="px-4 py-3 font-medium">{acc.ownerNickname}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {acc.broker ? formatBrokerLabel(acc.broker) : '-'}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground font-mono text-xs">
-                    <RevealableValue
-                      value={acc.accountNoMasked ?? ''}
-                      hiddenDisplay={acc.accountNoMasked ?? ''}
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    {acc.strategies.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {acc.strategies.map((s) => (
-                          <StrategyBadge key={s.id} strategy={s} statusLabel={meta.strategyStatuses.find((m) => m.code === s.status)?.label ?? s.status} />
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <AdminAccountsTable accounts={accounts} />
       )}
 
-      <PaginationBar page={page} totalPages={totalPages} />
+      {loaded !== null && <PaginationBar page={page} totalPages={totalPages} />}
     </div>
   )
 }

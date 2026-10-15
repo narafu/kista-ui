@@ -12,6 +12,7 @@ import {
   getReorderTimingAvailability,
   getReorderBuyBudget,
 } from '@entities/admin/api'
+import { adminKeys } from '@entities/admin'
 import type { AdminAccount, AdminStrategy, AdminStrategyOrder, AdminTrade } from '@entities/admin'
 import { AdminTradesWorkbench } from './AdminTradesWorkbench'
 
@@ -20,6 +21,9 @@ vi.mock('@entities/meta', () => ({
     labelOf: (group: string, code: string) => (group === 'strategyStatuses' ? ({ ACTIVE: '운영중', PAUSED: '일시중지' } as Record<string, string>)[code] : undefined) ?? code,
   }),
 }))
+
+const toastError = vi.hoisted(() => vi.fn())
+vi.mock('sonner', () => ({ toast: { error: toastError, success: vi.fn() } }))
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -187,7 +191,9 @@ const getReorderTimingAvailabilityMock = vi.mocked(getReorderTimingAvailability)
 const getReorderBuyBudgetMock = vi.mocked(getReorderBuyBudget)
 
 function createWrapper() {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
+  // 거래 내역은 서버가 prefetch한 캐시를 읽는다 — staleTime을 무한으로 두어 시드한 값을 네트워크 없이 쓴다
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity }, mutations: { retry: false } } })
+  queryClient.setQueryData(adminKeys.trades({}), trades)
   return function Wrapper({ children }: PropsWithChildren) {
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   }
@@ -195,7 +201,7 @@ function createWrapper() {
 
 function renderWorkbench(props: Partial<React.ComponentProps<typeof AdminTradesWorkbench>> = {}) {
   return render(
-    <AdminTradesWorkbench initialTrades={trades} initialPage={1} initialSize={10} {...props} />,
+    <AdminTradesWorkbench initialPage={1} initialSize={10} {...props} />,
     { wrapper: createWrapper() },
   )
 }
@@ -246,20 +252,20 @@ describe('AdminTradesWorkbench', () => {
     renderWorkbench()
 
     await selectStrategyTarget(user)
-    await waitFor(() => expect(screen.getByLabelText('order-1 재주문 수량')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByLabelText('주문 1 재주문 수량')).toBeInTheDocument())
 
     // 주문시점 셀렉터 표시 확인
     expect(screen.getAllByLabelText(/주문시점/)).toHaveLength(2)
 
     // order-1 값 변경
-    await user.clear(screen.getByLabelText('order-1 재주문 수량'))
-    await user.type(screen.getByLabelText('order-1 재주문 수량'), '5')
-    await user.clear(screen.getByLabelText('order-1 재주문 가격'))
-    await user.type(screen.getByLabelText('order-1 재주문 가격'), '320.5')
-    await user.type(screen.getByLabelText('order-1 메모'), '관리자 재주문')
+    await user.clear(screen.getByLabelText('주문 1 재주문 수량'))
+    await user.type(screen.getByLabelText('주문 1 재주문 수량'), '5')
+    await user.clear(screen.getByLabelText('주문 1 재주문 가격'))
+    await user.type(screen.getByLabelText('주문 1 재주문 가격'), '320.5')
+    await user.type(screen.getByLabelText('주문 1 메모'), '관리자 재주문')
     // order-2 값 변경
-    await user.clear(screen.getByLabelText('order-2 재주문 가격'))
-    await user.type(screen.getByLabelText('order-2 재주문 가격'), '321')
+    await user.clear(screen.getByLabelText('주문 2 재주문 가격'))
+    await user.type(screen.getByLabelText('주문 2 재주문 가격'), '321')
     await user.click(screen.getByRole('button', { name: '변경한 주문 2건 재주문' }))
 
     await waitFor(() => expect(reorderAdminOrderMock).toHaveBeenCalledTimes(2))
@@ -312,13 +318,13 @@ describe('AdminTradesWorkbench', () => {
     renderWorkbench()
 
     await selectStrategyTarget(user)
-    await waitFor(() => expect(screen.getByLabelText('order-1 재주문 수량')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByLabelText('주문 1 재주문 수량')).toBeInTheDocument())
     // order-1만 변경
-    await user.clear(screen.getByLabelText('order-1 재주문 수량'))
-    await user.type(screen.getByLabelText('order-1 재주문 수량'), '5')
-    await user.clear(screen.getByLabelText('order-1 재주문 가격'))
-    await user.type(screen.getByLabelText('order-1 재주문 가격'), '320.5')
-    await user.type(screen.getByLabelText('order-1 메모'), '재주문 반영')
+    await user.clear(screen.getByLabelText('주문 1 재주문 수량'))
+    await user.type(screen.getByLabelText('주문 1 재주문 수량'), '5')
+    await user.clear(screen.getByLabelText('주문 1 재주문 가격'))
+    await user.type(screen.getByLabelText('주문 1 재주문 가격'), '320.5')
+    await user.type(screen.getByLabelText('주문 1 메모'), '재주문 반영')
     await user.click(screen.getByRole('button', { name: '변경한 주문 1건 재주문' }))
 
     await waitFor(() => expect(reorderAdminOrderMock).toHaveBeenCalledTimes(1))
@@ -362,12 +368,12 @@ describe('AdminTradesWorkbench', () => {
     renderWorkbench()
 
     await selectStrategyTarget(user)
-    await waitFor(() => expect(screen.getByLabelText('order-1 재주문 수량')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByLabelText('주문 1 재주문 수량')).toBeInTheDocument())
     // 두 주문 모두 변경 후 재주문
-    await user.clear(screen.getByLabelText('order-1 재주문 수량'))
-    await user.type(screen.getByLabelText('order-1 재주문 수량'), '5')
-    await user.clear(screen.getByLabelText('order-2 재주문 가격'))
-    await user.type(screen.getByLabelText('order-2 재주문 가격'), '321')
+    await user.clear(screen.getByLabelText('주문 1 재주문 수량'))
+    await user.type(screen.getByLabelText('주문 1 재주문 수량'), '5')
+    await user.clear(screen.getByLabelText('주문 2 재주문 가격'))
+    await user.type(screen.getByLabelText('주문 2 재주문 가격'), '321')
     await user.click(screen.getByRole('button', { name: '변경한 주문 2건 재주문' }))
 
     await waitFor(() => expect(screen.getByText('거래일 재주문이 완료되었습니다')).toBeInTheDocument())
@@ -388,7 +394,7 @@ describe('AdminTradesWorkbench', () => {
     const accountSelect = screen.getByRole('combobox', { name: '계좌 선택' })
     const strategySelect = screen.getByRole('combobox', { name: '전략 선택' })
 
-    expect(screen.getByRole('heading', { name: '거래일 재주문 대상' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '재주문 대상 선택' })).toBeInTheDocument()
     expect(brokerSelect).toBeDisabled()
     expect(accountSelect).toBeDisabled()
     expect(strategySelect).toBeDisabled()
@@ -413,8 +419,8 @@ describe('AdminTradesWorkbench', () => {
     await user.selectOptions(strategySelect, 'strategy-1')
 
     await waitFor(() => expect(listAdminStrategyOrdersMock).toHaveBeenCalledWith('account-1', 'strategy-1', '2026-07-03'))
-    await waitFor(() => expect(screen.getByLabelText('order-1 재주문 수량')).toBeInTheDocument())
-    expect(screen.getByLabelText('order-2 재주문 수량')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByLabelText('주문 1 재주문 수량')).toBeInTheDocument())
+    expect(screen.getByLabelText('주문 2 재주문 수량')).toBeInTheDocument()
 
     // 사용자 재선택 시 하위 단계 초기화
     await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-2')
@@ -448,7 +454,7 @@ describe('AdminTradesWorkbench', () => {
     expect(screen.getByRole('button', { name: '전략 재개' })).toBeInTheDocument()
   })
 
-  it('shows a visible error message when strategy status toggle fails', async () => {
+  it('reports a failed strategy status toggle via the hook toast only (no duplicate banner)', async () => {
     const user = userEvent.setup()
     updateAdminStrategyStatusMock.mockReset().mockRejectedValue(new Error('toggle failed'))
 
@@ -458,9 +464,8 @@ describe('AdminTradesWorkbench', () => {
     await user.selectOptions(await screen.findByRole('combobox', { name: '전략 선택' }), 'strategy-1')
     await user.click(screen.getByRole('button', { name: '전략 일시중지' }))
 
-    await waitFor(() =>
-      expect(screen.getByText('전략 상태 변경에 실패했습니다. 잠시 후 다시 시도하세요.')).toBeInTheDocument(),
-    )
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith('전략 상태 변경에 실패했습니다.'))
+    expect(screen.queryByLabelText('재주문 오류')).not.toBeInTheDocument()
   })
 
   it('filters the table rows as the selection changes', async () => {
@@ -487,7 +492,7 @@ describe('AdminTradesWorkbench', () => {
     expect(within(table).queryByText('NVDA')).not.toBeInTheDocument()
   })
 
-  it('renders the action error with readable dark-mode contrast classes', async () => {
+  it('renders the action error as an alert with status-error tokens', async () => {
     const user = userEvent.setup()
     listAdminAccountsMock.mockReset().mockRejectedValue(new Error('accounts failed'))
 
@@ -496,15 +501,16 @@ describe('AdminTradesWorkbench', () => {
     await user.selectOptions(screen.getByRole('combobox', { name: '사용자 선택' }), 'user-1')
 
     const errorSection = await screen.findByLabelText('재주문 오류')
-    expect(errorSection).toHaveClass('dark:bg-rose-900/40')
-    expect(errorSection).toHaveClass('dark:text-rose-100')
+    expect(errorSection).toHaveAttribute('role', 'alert')
+    expect(errorSection).toHaveClass('text-status-error')
   })
 
   it('retries the accounts query when a different user is selected after a failed load', async () => {
     // accountsQuery는 userId 무관 공용 키를 쓴다 — 실패 후 다른 사용자를 골랐을 때 자동으로
     // 재조회되지 않으면(같은 키, enabled 유지) 오류 배너가 세션 내내 고정되는 회귀가 있었다.
     const user = userEvent.setup()
-    listAdminAccountsMock.mockReset().mockRejectedValueOnce(new Error('accounts failed')).mockResolvedValue(accounts)
+    // 첫 호출은 마운트 시 사용자 후보 조회(useAdminAllAccountsQuery), 둘째가 사용자 선택 시 재조회
+    listAdminAccountsMock.mockReset().mockRejectedValueOnce(new Error('accounts failed')).mockRejectedValueOnce(new Error('accounts failed')).mockResolvedValue(accounts)
 
     renderWorkbench()
 
@@ -530,7 +536,7 @@ describe('AdminTradesWorkbench', () => {
     await selectStrategyTarget(user)
 
     // 서버가 미체결(PLANNED·PLACED) 원본만 재주문을 받으므로 입력을 잠그고 안내한다
-    await waitFor(() => expect(screen.getByLabelText(`${order.id} 재주문 수량`)).toBeDisabled())
+    await waitFor(() => expect(screen.getByLabelText("주문 1 재주문 수량")).toBeDisabled())
     expect(screen.getByText('미체결 주문만 재주문할 수 있습니다.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '변경한 주문 0건 재주문' })).toBeDisabled()
   })
@@ -542,10 +548,10 @@ describe('AdminTradesWorkbench', () => {
     renderWorkbench()
 
     await selectStrategyTarget(user)
-    await waitFor(() => expect(screen.getByLabelText('order-1 재주문 수량')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByLabelText('주문 1 재주문 수량')).toBeInTheDocument())
     // 값 변경 후 재주문
-    await user.clear(screen.getByLabelText('order-1 재주문 수량'))
-    await user.type(screen.getByLabelText('order-1 재주문 수량'), '5')
+    await user.clear(screen.getByLabelText('주문 1 재주문 수량'))
+    await user.type(screen.getByLabelText('주문 1 재주문 수량'), '5')
     await user.click(screen.getByRole('button', { name: '변경한 주문 1건 재주문' }))
 
     await waitFor(() =>
@@ -579,19 +585,19 @@ describe('AdminTradesWorkbench', () => {
     renderWorkbench()
 
     await selectStrategyTarget(user)
-    await waitFor(() => expect(screen.getByLabelText('order-1 재주문 수량')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByLabelText('주문 1 재주문 수량')).toBeInTheDocument())
     expect(getReorderBuyBudgetMock).toHaveBeenCalledTimes(1)
     expect(getReorderBuyBudgetMock).toHaveBeenCalledWith(['order-1', 'order-3', 'order-4'], '2026-07-03')
 
     // order-1: 2 × 300 = 600, order-3: 1 × 500 = 500 → 1,100 vs 1500 − 1000 + 100 + 200 = 800
-    await user.clear(screen.getByLabelText('order-1 재주문 수량'))
-    await user.type(screen.getByLabelText('order-1 재주문 수량'), '2')
-    await user.clear(screen.getByLabelText('order-1 재주문 가격'))
-    await user.type(screen.getByLabelText('order-1 재주문 가격'), '300')
-    await user.clear(screen.getByLabelText('order-3 재주문 수량'))
-    await user.type(screen.getByLabelText('order-3 재주문 수량'), '1')
-    await user.clear(screen.getByLabelText('order-3 재주문 가격'))
-    await user.type(screen.getByLabelText('order-3 재주문 가격'), '500')
+    await user.clear(screen.getByLabelText('주문 1 재주문 수량'))
+    await user.type(screen.getByLabelText('주문 1 재주문 수량'), '2')
+    await user.clear(screen.getByLabelText('주문 1 재주문 가격'))
+    await user.type(screen.getByLabelText('주문 1 재주문 가격'), '300')
+    await user.clear(screen.getByLabelText('주문 2 재주문 수량'))
+    await user.type(screen.getByLabelText('주문 2 재주문 수량'), '1')
+    await user.clear(screen.getByLabelText('주문 2 재주문 가격'))
+    await user.type(screen.getByLabelText('주문 2 재주문 가격'), '500')
 
     expect(await screen.findByText(/남은 주문가능금액을 \$300\.00 초과합니다/)).toBeInTheDocument()
 
@@ -625,8 +631,8 @@ describe('AdminTradesWorkbench', () => {
     await selectStrategyTarget(user)
     expect(await screen.findByText('주문가능금액 조회 실패 — 예산 확인 불가')).toBeInTheDocument()
 
-    await user.clear(screen.getByLabelText('order-1 재주문 수량'))
-    await user.type(screen.getByLabelText('order-1 재주문 수량'), '5')
+    await user.clear(screen.getByLabelText('주문 1 재주문 수량'))
+    await user.type(screen.getByLabelText('주문 1 재주문 수량'), '5')
     await user.click(screen.getByRole('button', { name: '변경한 주문 1건 재주문' }))
 
     await waitFor(() => expect(reorderAdminOrderMock).toHaveBeenCalledTimes(1))

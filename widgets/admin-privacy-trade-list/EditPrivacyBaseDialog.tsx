@@ -111,7 +111,7 @@ export function EditPrivacyBaseDialog({ base, open, onOpenChange }: Props) {
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
               취소
             </Button>
-            <SaveButton isPending={isPending} disabled={!canSubmit} />
+            <SaveButton isPending={isPending} disabled={!canSubmit} label="수정" />
           </DialogFooter>
         </form>
       </DialogContent>

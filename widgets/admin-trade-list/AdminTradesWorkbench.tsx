@@ -6,6 +6,8 @@ import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
 import {
   adminKeys,
   useAdminAccountsByUserQuery,
+  useAdminAllAccountsQuery,
+  useAdminTradesQuery,
   useAdminStrategiesByAccountQuery,
   useAdminStrategyOrdersQuery,
   useAdminReorderTimingQuery,
@@ -14,8 +16,10 @@ import {
 } from '@entities/admin'
 import type { AdminTrade } from '@entities/admin'
 import { nextTradeDateKst } from '@shared/lib/format'
+import { SectionError } from '@shared/ui/SectionError'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
+import { LoadingRow } from '@shared/ui/LoadingRow'
 import { AdminTradeCorrectionPanel } from './AdminTradeCorrectionPanel'
 import { AdminTradesFeedback } from './AdminTradesFeedback'
 import { AdminTradesTable } from './AdminTradesTable'
@@ -23,11 +27,13 @@ import type { ReorderSummary } from './model/types'
 import type { ReorderBatchItem } from './AdminBatchOrderCorrectionForm'
 
 interface Props {
-  initialTrades: AdminTrade[]
+  from?: string
+  to?: string
   initialPage: number
   initialSize: number
 }
 
+const EMPTY_TRADES: AdminTrade[] = []
 const DEFAULT_TIMING_AVAILABILITY = { atOpen: false, atClose: true, immediate: false }
 
 function uniqBy<T>(items: T[], getKey: (item: T) => string): T[] {
@@ -40,7 +46,7 @@ function uniqBy<T>(items: T[], getKey: (item: T) => string): T[] {
   })
 }
 
-export function AdminTradesWorkbench({ initialTrades, initialPage, initialSize }: Props) {
+export function AdminTradesWorkbench({ from, to, initialPage, initialSize }: Props) {
   const queryClient = useQueryClient()
 
   const [selectedUserId, setSelectedUserId] = useState('')
@@ -53,6 +59,8 @@ export function AdminTradesWorkbench({ initialTrades, initialPage, initialSize }
   // 표시한다 — 운영 개입 화면이라 사라지는 토스트보다 고정 배너가 낫다는 기존 설계를 유지.
   const [manualError, setManualError] = useState<string | null>(null)
 
+  const tradesQuery = useAdminTradesQuery({ from, to })
+  const allAccountsQuery = useAdminAllAccountsQuery()
   const accountsQuery = useAdminAccountsByUserQuery(selectedUserId)
   const strategiesQuery = useAdminStrategiesByAccountQuery(selectedAccountId)
   const ordersQuery = useAdminStrategyOrdersQuery(selectedAccountId, selectedStrategyId, nextTradeDateKst())
@@ -60,6 +68,7 @@ export function AdminTradesWorkbench({ initialTrades, initialPage, initialSize }
   const statusMutation = useUpdateAdminStrategyStatusMutation()
   const reorderMutation = useReorderAdminOrderMutation()
 
+  const trades = tradesQuery.data ?? EMPTY_TRADES
   const accounts = accountsQuery.data ?? []
   const strategies = strategiesQuery.data ?? []
   const orders = ordersQuery.data ?? []
@@ -67,14 +76,18 @@ export function AdminTradesWorkbench({ initialTrades, initialPage, initialSize }
 
   const actionError =
     manualError
-    ?? (accountsQuery.isError ? '계좌 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.' : null)
+    ?? (selectedUserId && accountsQuery.isError ? '계좌 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.' : null)
     ?? (strategiesQuery.isError ? '전략 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.' : null)
     ?? (ordersQuery.isError ? '주문 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.' : null)
 
-  const userOptions = uniqBy(initialTrades, (trade) => trade.userId).map((trade) => ({
-    id: trade.userId,
-    label: trade.ownerNickname,
-  }))
+  // 기간 필터에 걸린 거래만으로 후보를 만들면 그 기간에 거래가 없는 사용자는 재주문 대상으로 고를 수 없다 — 전체 계좌 소유자와 합친다
+  const userOptions = uniqBy(
+    [
+      ...trades.map((trade) => ({ id: trade.userId, label: trade.ownerNickname })),
+      ...(allAccountsQuery.data ?? []).map((account) => ({ id: account.userId, label: account.ownerNickname })),
+    ],
+    (user) => user.id,
+  )
   const brokerOptions = uniqBy(
     accounts.map((account) => account.broker),
     (broker) => broker,
@@ -84,12 +97,13 @@ export function AdminTradesWorkbench({ initialTrades, initialPage, initialSize }
     : []
   const selectedAccount = filteredAccounts.find((account) => account.id === selectedAccountId) ?? null
   const selectedStrategy = strategies.find((strategy) => strategy.id === selectedStrategyId) ?? null
-  const filteredTrades = initialTrades.filter((trade) => {
+  const filteredTrades = trades.filter((trade) => {
     if (selectedUserId && trade.userId !== selectedUserId) return false
     if (selectedAccount && trade.accountId !== selectedAccount.id) return false
     if (selectedStrategy && trade.strategyId !== selectedStrategy.id) return false
     return true
   })
+  // 페이지네이션은 클라이언트 상태(URL에 반영하지 않음) — 선택한 사용자·전략 필터가 클라이언트 상태라 필터 후 목록을 자르기 때문이다
   const { page: currentPage, setPage, size, totalPages, paged: pagedTrades, handlePageSizeChange } = useClientPagination(filteredTrades, { initialPage, initialSize })
 
   // 선택 단계가 바뀔 때마다 반복되는 피드백 초기화 + 1페이지 복귀 — 예전 reducer의
@@ -130,15 +144,12 @@ export function AdminTradesWorkbench({ initialTrades, initialPage, initialSize }
     setSelectedStrategyId(strategyId)
   }
 
-  async function handleStrategyStatusToggle() {
+  function handleStrategyStatusToggle() {
     if (!selectedAccountId || !selectedStrategy) return
     const nextStatus = selectedStrategy.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE'
     setManualError(null)
-    try {
-      await statusMutation.mutateAsync({ accountId: selectedAccountId, strategyId: selectedStrategy.id, status: nextStatus })
-    } catch {
-      setManualError('전략 상태 변경에 실패했습니다. 잠시 후 다시 시도하세요.')
-    }
+    // 실패 토스트는 mutation 훅의 onError가 띄운다 — 여기서 배너를 또 띄우면 중복이다
+    statusMutation.mutate({ accountId: selectedAccountId, strategyId: selectedStrategy.id, status: nextStatus })
   }
 
   async function handleReorderSubmit(items: ReorderBatchItem[]) {
@@ -189,6 +200,8 @@ export function AdminTradesWorkbench({ initialTrades, initialPage, initialSize }
         }).catch(() => {}) // 재주문은 적용됐으므로 목록 갱신 실패는 무시
         // 재주문으로 계좌 PLANNED BUY 합계가 바뀌어 예산도 다시 조회
         await queryClient.invalidateQueries({ queryKey: adminKeys.reorderBuyBudgetRoot() }).catch(() => {})
+        // 아래 거래 내역 표의 원본 주문 상태(취소 등)도 다시 조회
+        await queryClient.invalidateQueries({ queryKey: adminKeys.tradesRoot() }).catch(() => {})
         setReorderResult({
           processed: results.length,
           skipped: Math.max(0, ordersCountBeforeReload - items.length),
@@ -210,15 +223,6 @@ export function AdminTradesWorkbench({ initialTrades, initialPage, initialSize }
 
   return (
     <div className="space-y-4">
-      <section className="rounded-[var(--r-lg)] border border-border bg-muted/20 p-4" aria-label="거래일 재주문 대상">
-        <div>
-          <h2 className="text-base font-semibold">거래일 재주문 대상</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            전략을 고르면 오늘 주문 전체를 한 번에 재주문합니다.
-          </p>
-        </div>
-      </section>
-
       <AdminTradeCorrectionPanel
         users={userOptions}
         brokers={brokerOptions}
@@ -244,11 +248,20 @@ export function AdminTradesWorkbench({ initialTrades, initialPage, initialSize }
       <AdminTradesFeedback actionError={actionError} reorderResult={reorderResult} />
 
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h2 className="text-base font-semibold">거래 내역</h2>
+        <h2 className="text-base font-semibold">
+          거래 내역
+          <span className="ml-2 text-sm font-normal text-muted-foreground">{filteredTrades.length}건</span>
+        </h2>
         <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
       </div>
 
-      <AdminTradesTable trades={pagedTrades} />
+      {tradesQuery.isError && !tradesQuery.data ? (
+        <SectionError message="거래 내역을 불러오지 못했습니다." />
+      ) : tradesQuery.isPending ? (
+        <LoadingRow />
+      ) : (
+        <AdminTradesTable trades={pagedTrades} />
+      )}
 
       <PaginationBar page={currentPage} totalPages={totalPages} onPageChange={setPage} />
     </div>

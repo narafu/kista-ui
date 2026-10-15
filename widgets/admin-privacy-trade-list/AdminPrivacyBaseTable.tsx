@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { ChevronRight, ChevronDown, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { IconButton } from '@shared/ui/IconButton'
 import { fmtUsd, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { DIRECTION_LABEL, directionTextClass, orderTypeLabel } from '@entities/trade'
@@ -129,9 +130,11 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
       ) : !data ? (
         <LoadingRow />
       ) : bases.length === 0 ? (
-        <EmptyState message={isRangeFiltered && allBases.length > 0 ? '선택한 기간에 매매표가 없습니다. 기간을 넓혀 보세요.' : 'P 매매표가 없습니다.'} />
+        <EmptyState message={isRangeFiltered && allBases.length > 0 ? '선택한 기간에 매매표가 없습니다. 기간을 넓혀 보세요.' : 'P 매매표가 없습니다. 매매표 등록 버튼으로 추가할 수 있습니다.'} />
       ) : (
         <>
+          {/* 위 차트 카드 제목(h2) 아래에 모바일 카드 h3이 이어 붙지 않도록 이 목록 자체의 제목을 둔다 */}
+          <h2 className="sr-only">P 매매표 목록</h2>
           <div className="space-y-3 sm:hidden" data-testid="admin-privacy-mobile-list">
             {bases.map((b) => {
               const open = expanded.has(b.id)
@@ -263,7 +266,7 @@ function MobileBaseCard({
             </span>
           </button>
         </h3>
-        <button type="button" className={cn(TEXT_BUTTON_CLASS, 'font-medium text-foreground')} onClick={onEditBase}>
+        <button type="button" className={cn(TEXT_BUTTON_CLASS, 'font-medium text-foreground')} onClick={onEditBase} aria-label={`${b.releaseDate} ${b.ticker} 매매표 수정`}>
           수정
         </button>
       </div>
@@ -298,7 +301,7 @@ function Metric({ label, value, valueClassName }: { label: string; value: string
   )
 }
 
-const ORDER_DETAILS_HEAD_CLASS = 'px-0 py-1 text-xs lg:text-xs font-medium normal-case tracking-normal text-muted-foreground'
+const ORDER_DETAILS_HEAD_CLASS = 'px-0 py-1 text-xs font-medium normal-case tracking-normal text-muted-foreground'
 const ORDER_DETAILS_CELL_CLASS = 'px-0 py-1 text-xs'
 
 function OrderDetailsSection({
@@ -343,7 +346,7 @@ function OrderDetailsTable({
           <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'text-left')}>유형</TableHeadCell>
           <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'text-right')}>가격</TableHeadCell>
           <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'text-right')}>수량</TableHeadCell>
-          <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'text-right')} aria-label="수정·삭제" />
+          <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'text-right')}><span className="sr-only">수정·삭제</span></TableHeadCell>
         </tr>
       </thead>
       <tbody>
@@ -361,6 +364,7 @@ function OrderDetailsTable({
                   type="button"
                   className={cn(TEXT_BUTTON_CLASS, 'text-foreground')}
                   onClick={(e) => { e.stopPropagation(); onEditOrder(o) }}
+                  aria-label={`${describeOrder(o)} 수정`}
                 >
                   수정
                 </button>
@@ -368,6 +372,7 @@ function OrderDetailsTable({
                   type="button"
                   className={cn(TEXT_BUTTON_CLASS, 'text-destructive')}
                   onClick={(e) => { e.stopPropagation(); onDeleteOrder(o) }}
+                  aria-label={`${describeOrder(o)} 삭제`}
                 >
                   삭제
                 </button>
@@ -395,16 +400,16 @@ function FragmentRow({
     <>
       <tr className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={onToggle}>
         <TableDataCell className="px-2 py-3 text-muted-foreground">
-          <button
-            type="button"
-            className="inline-flex size-6 items-center justify-center rounded-sm"
+          {/* 행 높이를 키우지 않도록 IconButton 기본 44px 대신 32px로 줄인다 — 행 전체 클릭으로도 펼쳐져 터치 영역은 그 이상이다 */}
+          <IconButton
+            className="-my-1 size-8"
             onClick={(e) => { e.stopPropagation(); onToggle() }}
             aria-expanded={open}
             aria-controls={open ? `privacy-base-${b.id}-details` : undefined}
             aria-label={`${b.releaseDate} ${b.ticker} 주문 명세`}
           >
             {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-          </button>
+          </IconButton>
         </TableDataCell>
         <TableDataCell className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">{b.releaseDate}</TableDataCell>
         <TableDataCell className="px-4 py-3 whitespace-nowrap">{b.ticker}</TableDataCell>
@@ -420,6 +425,7 @@ function FragmentRow({
             type="button"
             className={cn(TEXT_BUTTON_CLASS, 'font-medium text-foreground')}
             onClick={(e) => { e.stopPropagation(); onEditBase() }}
+            aria-label={`${b.releaseDate} ${b.ticker} 매매표 수정`}
           >
             수정
           </button>

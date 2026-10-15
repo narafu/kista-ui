@@ -74,8 +74,8 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
       )
     }
     if (basesLoading) return <ChartSkeleton />
-    if (allBases.length === 0) return <EmptyState variant="text" message="등록된 P 매매표가 없습니다." />
-    if (rows.length === 0) return <EmptyState variant="text" message={'선택한 기간에 표시할 매매표가 없습니다.\n기간을 넓혀 다시 확인해 주세요.'} />
+    if (allBases.length === 0) return <EmptyState variant="text" message="P 매매표가 없습니다." />
+    if (rows.length === 0) return <EmptyState variant="text" message="선택한 기간에 매매표가 없습니다. 기간을 넓혀 보세요." />
     if (candlesQuery.isLoading) return <ChartSkeleton />
     const legend = (
       <div role="group" aria-label="범례" className="space-y-1 text-xs text-muted-foreground">

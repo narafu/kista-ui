@@ -1,9 +1,10 @@
 import { queryOptions } from '@tanstack/react-query'
 
+import { fetchEither } from '@shared/lib/api-client'
 import { getAdminStats, getAdminStatsClient, listAdminErrorLogs, listAdminErrorLogsClient, listAdminUsers } from '../api'
 import { adminKeys } from './queryKeys'
-import type { AdminErrorLogsQueryParams, AdminUsersQueryParams } from './queryKeys'
-import type { AdminStats, AdminUser, AppErrorLog } from './types'
+import type { AdminErrorLogsQueryParams, AdminTradesQueryParams, AdminUsersQueryParams } from './queryKeys'
+import type { AdminStats, AdminTrade, AdminUser, AppErrorLog } from './types'
 import type { UserStatus } from '@shared/lib/api-schema'
 
 export function adminUsersQueryOptions(filter?: UserStatus, params?: AdminUsersQueryParams, token?: string) {
@@ -27,5 +28,20 @@ export function adminErrorLogsQueryOptions(params?: AdminErrorLogsQueryParams, t
     queryFn: () => token
       ? listAdminErrorLogs(token, limit, params?.from, params?.to)
       : listAdminErrorLogsClient(limit, params?.from, params?.to),
+  })
+}
+
+// 서버(token)·클라이언트 겸용 — 서버가 prefetch한 캐시를 클라이언트 재시도·무효화가 같은 키로 이어받는다.
+// 재주문 워크벤치의 거래 내역이 SSR props가 아니라 이 쿼리를 읽어야 재주문 후 invalidate로 갱신된다.
+export function adminTradesQueryOptions(params?: AdminTradesQueryParams, token?: string) {
+  return queryOptions<AdminTrade[]>({
+    queryKey: adminKeys.trades(params),
+    queryFn: () => {
+      const search = new URLSearchParams()
+      if (params?.from) search.set('from', params.from)
+      if (params?.to) search.set('to', params.to)
+      const query = search.size ? `?${search}` : ''
+      return fetchEither<AdminTrade[]>(`/api/admin/trades${query}`, { method: 'GET' }, token)
+    },
   })
 }

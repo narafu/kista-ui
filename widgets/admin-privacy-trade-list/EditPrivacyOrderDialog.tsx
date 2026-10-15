@@ -79,7 +79,7 @@ export function EditPrivacyOrderDialog({ baseId, order, open, onOpenChange }: Pr
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
               취소
             </Button>
-            <SaveButton isPending={isPending} disabled={!canSubmit} />
+            <SaveButton isPending={isPending} disabled={!canSubmit} label="수정" />
           </DialogFooter>
         </form>
       </DialogContent>

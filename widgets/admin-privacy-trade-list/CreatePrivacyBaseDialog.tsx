@@ -169,7 +169,7 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
                     <PrivacyOrderQuantityField id={`base-order-${i}-quantity`} direction={o.direction} value={o.quantity} onChange={(v) => updateOrder(i, { quantity: v })} disabled={isPending} compact />
                   </div>
                   {orders.length > 1 && (
-                    <IconButton aria-label="주문 삭제" className="col-span-2 justify-self-end sm:col-auto" onClick={() => setOrders((prev) => prev.filter((_, idx) => idx !== i))} disabled={isPending}>
+                    <IconButton aria-label={`주문 ${i + 1} 삭제`} className="col-span-2 justify-self-end sm:col-auto" onClick={() => setOrders((prev) => prev.filter((_, idx) => idx !== i))} disabled={isPending}>
                       <X className="size-4" />
                     </IconButton>
                   )}

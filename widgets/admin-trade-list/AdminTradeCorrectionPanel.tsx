@@ -2,6 +2,7 @@
 
 import type { AdminAccount, AdminReorderTimingAvailability, AdminStrategy, AdminStrategyOrder } from '@entities/admin'
 import { useMeta } from '@entities/meta'
+import { Button } from '@/components/ui/button'
 import { formatBrokerLabel } from '@shared/lib/api-schema'
 import { AdminBatchOrderCorrectionForm } from './AdminBatchOrderCorrectionForm'
 import type { ReorderBatchItem } from './AdminBatchOrderCorrectionForm'
@@ -41,7 +42,7 @@ function getHelperMessage({ brokers, accounts, strategies, orders, selectedUserI
   if (!selectedBroker) return brokers.length === 0 ? '선택한 사용자에 연결된 증권사 계좌가 없습니다.' : '재주문할 증권사를 선택하세요.'
   if (!selectedAccountId) return accounts.length === 0 ? '선택한 증권사에 연결된 계좌가 없습니다.' : '재주문할 계좌를 선택하세요.'
   if (!selectedStrategyId) return strategies.length === 0 ? '선택한 계좌에 연결된 전략이 없습니다.' : '재주문할 전략을 선택하세요.'
-  return orders.length === 0 ? '선택한 전략의 오늘 주문이 없습니다.' : null
+  return orders.length === 0 ? '선택한 전략의 재주문 대상 거래일 주문이 없습니다.' : null
 }
 
 export function AdminTradeCorrectionPanel({
@@ -73,7 +74,7 @@ export function AdminTradeCorrectionPanel({
     <section className="rounded-[var(--r-lg)] border border-border bg-background p-4" aria-label="재주문 대상 선택">
       <div>
         <h2 className="text-base font-semibold">재주문 대상 선택</h2>
-        <p className="mt-1 text-sm text-muted-foreground">사용자부터 주문까지 순서대로 선택합니다</p>
+        <p className="mt-1 text-sm text-muted-foreground">사용자부터 전략까지 순서대로 선택한 뒤, 값을 바꾼 주문만 다음 거래일 기준으로 재주문합니다.</p>
       </div>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -143,7 +144,7 @@ export function AdminTradeCorrectionPanel({
             <option value="">전략 선택</option>
             {strategies.map((strategy) => (
               <option key={strategy.id} value={strategy.id}>
-                {strategy.type} · {strategy.ticker}
+                {labelOf('strategyTypes', strategy.type)} · {strategy.ticker}
               </option>
             ))}
           </select>
@@ -162,15 +163,9 @@ export function AdminTradeCorrectionPanel({
         <div className="mt-4 rounded-[var(--r-md)] border border-border bg-muted/20 p-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm font-medium">현재 전략 상태: {labelOf('strategyStatuses', selectedStrategy.status)}</p>
-            <button
-              type="button"
-              onClick={onStrategyStatusToggle}
-              disabled={strategyStatusPending}
-              aria-label={nextStrategyActionLabel}
-              className="rounded-[var(--r-md)] border border-border bg-background px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
-            >
+            <Button type="button" variant="outline" size="sm" onClick={onStrategyStatusToggle} disabled={strategyStatusPending}>
               {strategyStatusPending ? '처리 중...' : nextStrategyActionLabel}
-            </button>
+            </Button>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
             전략 상태 변경 후 목록을 다시 불러와 최신 상태를 반영합니다.

@@ -20,7 +20,9 @@ function AdminAccountsFilterBarContent({ owners, pageParamKeys = ['page'] }: Pro
   const searchParams = useSearchParams()
   const { meta } = useMeta()
 
-  const owner = searchParams.get('owner') ?? ALL
+  // 목록에 없는 owner 값(예전 링크 등)은 UUID가 그대로 보이므로 전체로 돌린다
+  const rawOwner = searchParams.get('owner')
+  const owner = rawOwner && owners.some((o) => o.userId === rawOwner) ? rawOwner : ALL
   const broker = searchParams.get('broker') ?? ALL
   const strategyType = searchParams.get('strategyType') ?? ALL
 
@@ -39,7 +41,7 @@ function AdminAccountsFilterBarContent({ owners, pageParamKeys = ['page'] }: Pro
         value={owner}
         onValueChange={(v) => { if (v) setParam('owner', v) }}
       >
-        <SelectTrigger aria-label="소유자 필터" className="h-9 text-sm w-32">
+        <SelectTrigger aria-label="소유자 필터" className="h-9 text-sm min-w-28 max-w-48">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -53,7 +55,7 @@ function AdminAccountsFilterBarContent({ owners, pageParamKeys = ['page'] }: Pro
         value={broker}
         onValueChange={(v) => { if (v) setParam('broker', v) }}
       >
-        <SelectTrigger aria-label="증권사 필터" className="h-9 text-sm w-28">
+        <SelectTrigger aria-label="증권사 필터" className="h-9 text-sm min-w-28">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -67,7 +69,7 @@ function AdminAccountsFilterBarContent({ owners, pageParamKeys = ['page'] }: Pro
         value={strategyType}
         onValueChange={(v) => { if (v) setParam('strategyType', v) }}
       >
-        <SelectTrigger aria-label="전략 필터" className="h-9 text-sm w-24">
+        <SelectTrigger aria-label="전략 유형 필터" className="h-9 text-sm min-w-24">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

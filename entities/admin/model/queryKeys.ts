@@ -3,6 +3,11 @@ export interface AdminUsersQueryParams {
   to?: string
 }
 
+export interface AdminTradesQueryParams {
+  from?: string
+  to?: string
+}
+
 export interface AdminErrorLogsQueryParams {
   limit?: number
   from?: string
@@ -19,6 +24,8 @@ export const adminKeys = {
     params?.to ?? '',
   ] as const,
   stats: () => [...adminKeys.all, 'stats'] as const,
+  tradesRoot: () => [...adminKeys.all, 'trades'] as const,
+  trades: (params?: AdminTradesQueryParams) => [...adminKeys.tradesRoot(), params?.from ?? '', params?.to ?? ''] as const,
   accounts: () => [...adminKeys.all, 'accounts'] as const,
   strategiesByAccountRoot: () => [...adminKeys.all, 'strategies-by-account'] as const,
   strategiesByAccount: (accountId: string) => [...adminKeys.strategiesByAccountRoot(), accountId] as const,

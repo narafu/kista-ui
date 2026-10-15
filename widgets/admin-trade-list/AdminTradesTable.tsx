@@ -1,3 +1,4 @@
+import { useMeta } from '@entities/meta'
 import { fmtUsd } from '@shared/lib/format'
 import { DIRECTION_LABEL, directionTextClass, orderTypeLabel } from '@entities/trade'
 import { orderStatusBadgeClass, ORDER_STATUS_LABEL } from '@entities/order'
@@ -12,6 +13,8 @@ interface Props {
 }
 
 export function AdminTradesTable({ trades }: Props) {
+  const { labelOf } = useMeta()
+
   if (trades.length === 0) {
     return (
       <EmptyState message="거래 내역이 없습니다." />
@@ -43,7 +46,7 @@ export function AdminTradesTable({ trades }: Props) {
               >
                 <TableDataCell className="text-muted-foreground text-xs whitespace-nowrap">{trade.tradeDate}</TableDataCell>
                 <TableDataCell className="font-medium whitespace-nowrap">{trade.ownerNickname}</TableDataCell>
-                <TableDataCell className="text-xs text-muted-foreground whitespace-nowrap">{trade.strategyType ?? '-'}</TableDataCell>
+                <TableDataCell className="text-xs text-muted-foreground whitespace-nowrap">{trade.strategyType ? labelOf('strategyTypes', trade.strategyType) : '-'}</TableDataCell>
                 <TableDataCell className="whitespace-nowrap">{trade.ticker}</TableDataCell>
                 <TableDataCell className={`font-semibold whitespace-nowrap ${directionTextClass(trade.direction)}`}>
                   {DIRECTION_LABEL[trade.direction] ?? trade.direction}
