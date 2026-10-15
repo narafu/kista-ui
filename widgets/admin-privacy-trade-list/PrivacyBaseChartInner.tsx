@@ -128,13 +128,10 @@ function InfoSections({ row, ticker, showAvgGap }: { row: PrivacyChartRow; ticke
 
 // PC 하단 정보 줄 — 모바일 정보 줄처럼 항상 차트 아래에 붙어 가리킨 날(없으면 최신)의 지표를 가로 3묶음으로 보여준다.
 // 세 패널이 같은 syncId라 어느 패널을 가리켜도 같은 날짜로 바뀐다
-function PcInfoBar({ row, isLatest, ticker, showAvgGap }: { row: PrivacyChartRow; isLatest: boolean; ticker: string; showAvgGap: boolean }) {
+function PcInfoBar({ row, ticker, showAvgGap }: { row: PrivacyChartRow; ticker: string; showAvgGap: boolean }) {
   return (
     <div className="sticky bottom-0 z-10 hidden grid-cols-3 gap-x-6 gap-y-1.5 border-t border-border bg-card/95 px-3 py-2 text-xs backdrop-blur sm:grid">
-      <div className="col-span-3 font-semibold">
-        {row.date}
-        {isLatest && <span className="ml-1 font-normal text-muted-foreground">(최신 · 차트를 가리키면 바뀝니다)</span>}
-      </div>
+      <div className="col-span-3 font-semibold">{row.date}</div>
       <InfoSections row={row} ticker={ticker} showAvgGap={showAvgGap} />
     </div>
   )
@@ -154,14 +151,11 @@ function ChartTooltip({ row, ticker, showAvgGap }: { row: PrivacyChartRow | unde
 
 // 모바일 전용 고정 정보 줄 — 떠다니는 툴팁은 가격 패널 안에만 떠서, 가격 패널이 화면 위로 스크롤된 상태에서
 // 아래 패널을 누르면 헤더에 가린다. 좁은 화면에서는 툴팁 대신 화면 하단에 붙는 이 줄에 그날 값을 보여준다
-function MobileInfoBar({ row, isLatest, showAvgGap }: { row: PrivacyChartRow; isLatest: boolean; showAvgGap: boolean }) {
+function MobileInfoBar({ row, showAvgGap }: { row: PrivacyChartRow; showAvgGap: boolean }) {
   const cashLow = row.cashRatio != null && row.cashRatio < CASH_THRESHOLD
   return (
     <div className="sticky bottom-0 z-10 -mx-2 border-t border-border bg-card/95 px-3 py-2 text-xs backdrop-blur sm:hidden">
-      <div className="mb-1 font-semibold">
-        {row.date}
-        {isLatest && <span className="ml-1 font-normal text-muted-foreground">(최신 · 차트를 누르면 바뀝니다)</span>}
-      </div>
+      <div className="mb-1 font-semibold">{row.date}</div>
       <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 tabular-nums">
         {/* 평단가에 손익률이 붙어 반칸 폭이면 잘려, 종가와 함께 내용 폭대로 양끝 정렬한다 */}
         <div className="col-span-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5">
@@ -221,8 +215,8 @@ function ActiveInfoBars({ store, rowByDate, last, ticker, showAvgGap }: { store:
   const row = (activeDate ? rowByDate.get(activeDate) : undefined) ?? last
   return (
     <>
-      <MobileInfoBar row={row} isLatest={row === last} showAvgGap={showAvgGap} />
-      <PcInfoBar row={row} isLatest={row === last} ticker={ticker} showAvgGap={showAvgGap} />
+      <MobileInfoBar row={row} showAvgGap={showAvgGap} />
+      <PcInfoBar row={row} ticker={ticker} showAvgGap={showAvgGap} />
     </>
   )
 }
@@ -347,8 +341,6 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAv
           </ResponsiveContainer>
         </div>
       </figure>
-
-      <p className="hidden pl-1 text-xs text-muted-foreground sm:block">아래 슬라이더로 구간을 조절합니다.</p>
 
       <figure className="w-full">
         <PanelCaption

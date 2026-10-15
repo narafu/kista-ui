@@ -28,8 +28,6 @@ interface Props {
 
 const DEFAULT_TICKER = 'SOXL'
 
-const BASIS_NOTE = '발표일 기준으로 표시합니다. 종가는 발표일 직전 거래일 종가입니다. 현금비중은 실현손익이 현금으로 회수되고 입출금이 없다고 가정한 추정치입니다.'
-
 export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyReset = false }: Props) {
   const pathname = usePathname()
   const narrow = useIsNarrow()
@@ -57,7 +55,7 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
   const candlesQuery = useCandlesRangeQuery(ticker, candleRange)
   const windowFrom = sinceYearlyReset ? latestYearlyResetByTicker(tickerBases).get(ticker) : rangeFrom
   // 주문 점은 가격선을 가릴 때가 있어 끌 수 있게 한다. 종목·기간이 바뀌어 차트가 다시 마운트돼도 유지되도록 여기 둔다
-  const [showOrders, setShowOrders] = useState(true)
+  const [showOrders, setShowOrders] = useState(false)
   // 평단가-종가 괴리 강조 — 켜면 괴리 10%·20% 이상 구간의 평단가를 색으로 표시한다
   const [showAvgGap, setShowAvgGap] = useState(false)
   // PC 차트 툴팁 — 값은 모바일처럼 차트 아래 정보 줄에 항상 나오고, 그래프를 가리는 떠다니는 툴팁은 켰을 때만 추가로 띄운다(기본 꺼짐)
@@ -115,22 +113,18 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
           <div className="mt-2">{legend}</div>
         </details>
         <div className="hidden sm:block">{legend}</div>
-        <div className="flex flex-wrap items-center justify-between gap-2 pl-1 text-xs text-muted-foreground">
-          {/* 모바일은 하단 정보 줄이 같은 안내를 하므로 PC에만 둔다 */}
-          <p className="hidden sm:block">차트를 가리키면 해당 일자의 값이 차트 아래에 표시됩니다.</p>
-          <span className="ml-auto flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
-            <span className="inline-flex items-center gap-2">
-              <Switch id="privacy-chart-show-orders" size="sm" checked={showOrders} onCheckedChange={setShowOrders} />
-              <label htmlFor="privacy-chart-show-orders" className="cursor-pointer">매수·매도 주문 표시</label>
-            </span>
-            <span className="hidden items-center gap-2 sm:inline-flex">
-              <Switch id="privacy-chart-show-pc-tooltip" size="sm" checked={showPcTooltip} onCheckedChange={setShowPcTooltip} />
-              <label htmlFor="privacy-chart-show-pc-tooltip" className="cursor-pointer">차트 툴팁 표시</label>
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <Switch id="privacy-chart-show-avg-gap" size="sm" checked={showAvgGap} onCheckedChange={setShowAvgGap} />
-              <label htmlFor="privacy-chart-show-avg-gap" className="cursor-pointer">평단가 괴리 강조</label>
-            </span>
+        <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 pl-1 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-2">
+            <Switch id="privacy-chart-show-orders" size="sm" checked={showOrders} onCheckedChange={setShowOrders} />
+            <label htmlFor="privacy-chart-show-orders" className="cursor-pointer">매수·매도 주문 표시</label>
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <Switch id="privacy-chart-show-avg-gap" size="sm" checked={showAvgGap} onCheckedChange={setShowAvgGap} />
+            <label htmlFor="privacy-chart-show-avg-gap" className="cursor-pointer">평단가 괴리 강조</label>
+          </span>
+          <span className="hidden items-center gap-2 sm:inline-flex">
+            <Switch id="privacy-chart-show-pc-tooltip" size="sm" checked={showPcTooltip} onCheckedChange={setShowPcTooltip} />
+            <label htmlFor="privacy-chart-show-pc-tooltip" className="cursor-pointer">차트 툴팁 표시</label>
           </span>
         </div>
 
@@ -156,12 +150,6 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
             </Select>
           )}
         </div>
-        {/* 계산 기준 설명은 한 번 읽으면 되는 정보라 모바일에서는 접어 둔다 */}
-        <p className="mt-1 hidden text-xs text-muted-foreground sm:block">{BASIS_NOTE}</p>
-        <details className="mt-1 text-xs text-muted-foreground sm:hidden">
-          <summary className="cursor-pointer">계산 기준</summary>
-          <p className="mt-1">{BASIS_NOTE}</p>
-        </details>
       </CardHeader>
       <CardContent className="px-2 pb-4 sm:px-6 sm:pb-6">{renderBody()}</CardContent>
     </Card>
