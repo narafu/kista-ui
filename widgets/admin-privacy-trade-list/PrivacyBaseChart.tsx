@@ -68,7 +68,7 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
     if (basesError) {
       return (
         <div role="alert" className="py-8 text-center">
-          <p className="text-sm text-muted-foreground">P 매매표를 불러오지 못했습니다</p>
+          <p className="text-sm text-muted-foreground">P 매매표를 불러오지 못했습니다.</p>
           <Button variant="outline" size="sm" className="mt-3" onClick={() => void refetchBases()}>다시 시도</Button>
         </div>
       )

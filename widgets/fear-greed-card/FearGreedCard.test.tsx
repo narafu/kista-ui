@@ -19,7 +19,7 @@ describe('FearGreedCard', () => {
       />,
     )
 
-    expect(screen.getByText('공포탐욕지수를 불러오지 못했습니다')).toBeInTheDocument()
+    expect(screen.getByText('공포탐욕지수를 불러오지 못했습니다.')).toBeInTheDocument()
     expect(screen.queryByText('chart')).not.toBeInTheDocument()
   })
 })

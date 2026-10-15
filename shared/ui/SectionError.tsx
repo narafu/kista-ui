@@ -16,7 +16,7 @@ interface Props {
  * 부모 훅·props 여러 단계 위에 있어도 호출부가 refetch를 넘길 필요가 없다(retry=0 기본값이라 자동 재시도 없음).
  * QueryClientProvider 밖(단위 테스트 등)에서는 버튼을 숨긴다.
  */
-export function SectionError({ message = '통계를 불러오지 못했습니다' }: Props) {
+export function SectionError({ message = '통계를 불러오지 못했습니다.' }: Props) {
   const queryClient = useContext(QueryClientContext)
   const [retrying, setRetrying] = useState(false)
 

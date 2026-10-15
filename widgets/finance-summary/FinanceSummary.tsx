@@ -72,16 +72,16 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
   return (
     <Card>
       <CardHeader className="flex flex-col gap-3 pb-3 sm:flex-row sm:items-center sm:justify-between">
-        <CardTitle className="text-base lg:text-lg">{labelOf('financeCategoryTypes', type)} 요약</CardTitle>
+        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">{labelOf('financeCategoryTypes', type)} 요약</CardTitle>
         <PeriodControls period={period} onPeriodChange={onPeriodChange} today={today} />
       </CardHeader>
       <CardContent>
         {isLoading ? (
           <LoadingRow />
         ) : isError ? (
-          <SectionError message="요약을 불러오지 못했습니다" />
+          <SectionError message="요약을 불러오지 못했습니다." />
         ) : summary.count === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">표시할 거래내역이 없습니다</p>
+          <p className="py-8 text-center text-sm text-muted-foreground">표시할 거래내역이 없습니다.</p>
         ) : (
           <FinanceKpis
             type={type}

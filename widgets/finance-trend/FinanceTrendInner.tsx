@@ -48,7 +48,7 @@ export default function FinanceTrendInner({ type, transactions, range, categoryT
     return <Skeleton className="min-h-[240px] sm:min-h-[280px]" />
   }
   if (isError) {
-    return <SectionError message="추이를 불러오지 못했습니다" />
+    return <SectionError message="추이를 불러오지 못했습니다." />
   }
 
   const hasData = trend.some((point) => point.amount !== 0)
@@ -57,7 +57,7 @@ export default function FinanceTrendInner({ type, transactions, range, categoryT
     <div className="flex flex-1 flex-col gap-3">
       {!hasData ? (
         <div className="flex flex-1 items-center justify-center">
-          <p className="text-sm text-muted-foreground">표시할 추이 데이터가 없습니다</p>
+          <p className="text-sm text-muted-foreground">표시할 추이 데이터가 없습니다.</p>
         </div>
       ) : (
         <>

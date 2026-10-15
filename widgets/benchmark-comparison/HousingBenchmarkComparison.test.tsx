@@ -711,7 +711,7 @@ describe('HousingBenchmarkComparison', () => {
       isError: true,
     })
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
-    expect(screen.getByRole('alert')).toHaveTextContent('벤치마크 비교를 불러오지 못했습니다')
+    expect(screen.getByRole('alert')).toHaveTextContent('벤치마크 비교를 불러오지 못했습니다.')
     expect(screen.queryByText('총 실현손익')).not.toBeInTheDocument()
   })
 

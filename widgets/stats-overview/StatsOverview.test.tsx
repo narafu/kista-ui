@@ -201,8 +201,8 @@ describe('StatsOverview', () => {
       <StatsOverview defaultFrom="2026-04-17" defaultTo="2026-07-17" />
     )
 
-    await screen.findByText('통계를 불러오지 못했습니다')
-    expect(screen.getAllByText('통계를 불러오지 못했습니다')).toHaveLength(1)
+    await screen.findByText('통계를 불러오지 못했습니다.')
+    expect(screen.getAllByText('통계를 불러오지 못했습니다.')).toHaveLength(1)
     expect(screen.queryByText('전략 유형 비교')).not.toBeInTheDocument()
   })
 

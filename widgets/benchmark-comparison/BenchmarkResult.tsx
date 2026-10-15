@@ -30,7 +30,7 @@ export function BenchmarkResult({
   if (query.isError && !data) {
     return (
       <div role="alert" aria-live="assertive">
-        <SectionError message="벤치마크 비교를 불러오지 못했습니다" />
+        <SectionError message="벤치마크 비교를 불러오지 못했습니다." />
       </div>
     )
   }

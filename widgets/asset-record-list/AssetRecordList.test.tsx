@@ -97,7 +97,7 @@ describe('AssetRecordList', () => {
   it('조회 실패 시 에러 섹션을 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: true })
     render(<AssetRecordList month="2026-08" />)
-    expect(screen.getByText('자산 기록을 불러오지 못했습니다')).toBeInTheDocument()
+    expect(screen.getByText('자산 기록을 불러오지 못했습니다.')).toBeInTheDocument()
   })
 
   it('기록이 없으면 빈 상태를 표시한다', () => {

@@ -84,7 +84,7 @@ describe('AssetRecordCheck', () => {
 
     render(<AssetRecordCheck month="2026-08" />)
 
-    expect(screen.getByText('기록 점검 정보를 불러오지 못했습니다')).toBeInTheDocument()
+    expect(screen.getByText('기록 점검 정보를 불러오지 못했습니다.')).toBeInTheDocument()
   })
 
   it('이번 달 기록이 없는 카테고리를 한글 라벨로 표시한다', () => {
@@ -202,6 +202,6 @@ describe('AssetRecordCheck', () => {
     scopeState.groupsLoading = false
     scopeState.groupsError = true
     render(<AssetRecordCheck month="2026-08" />)
-    expect(screen.getByText('기록 점검 정보를 불러오지 못했습니다')).toBeInTheDocument()
+    expect(screen.getByText('기록 점검 정보를 불러오지 못했습니다.')).toBeInTheDocument()
   })
 })

@@ -245,11 +245,11 @@ export default function MarketChartCardInner({ category }: Props) {
         </button>
       </div>
       {isError ? (
-        <div className="flex h-[280px] items-center justify-center text-sm text-warn">시장 차트를 불러오지 못했습니다</div>
+        <div className="flex h-[280px] items-center justify-center text-sm text-warn">시장 차트를 불러오지 못했습니다.</div>
       ) : isPending ? (
         <div className="flex h-[280px] items-center justify-center text-sm text-muted-foreground">차트 불러오는 중…</div>
       ) : !showChart ? (
-        <div className="flex h-[280px] items-center justify-center text-sm text-muted-foreground">표시할 시세가 없습니다</div>
+        <div className="flex h-[280px] items-center justify-center text-sm text-muted-foreground">표시할 시세가 없습니다.</div>
       ) : (
         <div
           ref={containerRef}

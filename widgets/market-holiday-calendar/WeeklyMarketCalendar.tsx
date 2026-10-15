@@ -286,10 +286,10 @@ export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: 
       </div>
 
       {tradesFetchFailed && (
-        <p className="pt-2 text-sm text-warn">거래 내역을 불러오지 못했습니다</p>
+        <p className="pt-2 text-sm text-warn">거래 내역을 불러오지 못했습니다.</p>
       )}
       {holidayFetchFailed ? (
-        <p className="mt-auto pt-2 text-sm text-warn">휴장일 정보를 불러오지 못했습니다</p>
+        <p className="mt-auto pt-2 text-sm text-warn">휴장일 정보를 불러오지 못했습니다.</p>
       ) : nextHoliday && ddayCount !== null && (
         <p className="mt-auto pt-2 text-sm text-muted-foreground">
           다음 휴장일{' '}

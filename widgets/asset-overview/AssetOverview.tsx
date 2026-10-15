@@ -67,14 +67,14 @@ export function AssetOverview({ month, months, onMonthChange, today }: Props) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-3 pb-3">
-        <CardTitle className="text-base lg:text-lg">이번 달 요약</CardTitle>
+        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">이번 달 요약</CardTitle>
         <YearMonthSelect value={month} onValueChange={onMonthChange} today={today} />
       </CardHeader>
       <CardContent>
         {isLoading ? (
           <LoadingRow />
         ) : isError ? (
-          <SectionError message="자산 요약을 불러오지 못했습니다" />
+          <SectionError message="자산 요약을 불러오지 못했습니다." />
         ) : summary.recordCount === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">표시할 자산 기록이 없습니다.</p>
         ) : (

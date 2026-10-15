@@ -76,7 +76,7 @@ describe('MarketChartCardInner', () => {
 
     useCandlesQueryMock.mockReturnValueOnce({ data: [] })
     render(<MarketChartCardInner category={category} />)
-    expect(screen.getByText('표시할 시세가 없습니다')).toBeInTheDocument()
+    expect(screen.getByText('표시할 시세가 없습니다.')).toBeInTheDocument()
   })
 
   it('queries candles for the first option at the default 200-candle count', () => {
@@ -147,6 +147,6 @@ describe('MarketChartCardInner', () => {
 
     render(<MarketChartCardInner category={category} />)
 
-    expect(screen.getByText('시장 차트를 불러오지 못했습니다')).toBeInTheDocument()
+    expect(screen.getByText('시장 차트를 불러오지 못했습니다.')).toBeInTheDocument()
   })
 })

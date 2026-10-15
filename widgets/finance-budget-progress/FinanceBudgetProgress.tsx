@@ -120,13 +120,13 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base lg:text-lg">{`${labelOf('financeCategoryTypes', type)} 예산 대비`}</CardTitle>
+        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">{`${labelOf('financeCategoryTypes', type)} 예산 대비`}</CardTitle>
       </CardHeader>
       <CardContent>
         {isLoading ? (
           <LoadingRow />
         ) : isError ? (
-          <SectionError message="예산 대비 실적을 불러오지 못했습니다" />
+          <SectionError message="예산 대비 실적을 불러오지 못했습니다." />
         ) : (
           <div className="space-y-4">
             {budgetTree.length === 0 ? (

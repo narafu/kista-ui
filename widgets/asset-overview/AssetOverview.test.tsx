@@ -61,7 +61,7 @@ describe('AssetOverview', () => {
   it('조회 실패 시 에러 섹션을 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: true })
     render(<AssetOverview month="2026-08" months={[]} onMonthChange={onMonthChange} today={TODAY} />)
-    expect(screen.getByText('자산 요약을 불러오지 못했습니다')).toBeInTheDocument()
+    expect(screen.getByText('자산 요약을 불러오지 못했습니다.')).toBeInTheDocument()
   })
 
   it('선택한 월에 기록이 없으면 크래시 없이 안내 문구를 표시한다(자유 선택이라 데이터 없는 달도 고를 수 있다)', () => {
@@ -186,7 +186,7 @@ describe('AssetOverview', () => {
     })
     render(<AssetOverview month="2026-08" months={['2026-08']} onMonthChange={onMonthChange} today={TODAY} />)
 
-    expect(screen.getByText('이번 달 기록이 없습니다')).toBeInTheDocument()
+    expect(screen.getByText('이번 달 기록이 없습니다.')).toBeInTheDocument()
   })
 
   it('월 선택기 트리거에 현재 선택된 연도·월이 표시된다', () => {

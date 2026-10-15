@@ -34,7 +34,7 @@ export function FinanceTrend({ type, transactions, range, onRangeChange, categor
   return (
     <Card className={className}>
       <CardHeader className="items-center pb-3">
-        <CardTitle className="text-base lg:text-lg">{period.mode === 'yearly' ? '연도별 추이' : '월별 추이'}</CardTitle>
+        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">{period.mode === 'yearly' ? '연도별 추이' : '월별 추이'}</CardTitle>
         <CardAction>
           <SegmentedToggle
             aria-label="추이 기간"

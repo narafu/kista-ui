@@ -39,7 +39,7 @@ export function AuditLogsSection({
         </div>
       </div>
       {logs.length === 0 ? (
-        <EmptyState message="관리자 로그가 없습니다" />
+        <EmptyState message="관리자 로그가 없습니다." />
       ) : (
         <div className="rounded-[var(--r-lg)] border border-border divide-y divide-border">
           {logs.map((log) => (

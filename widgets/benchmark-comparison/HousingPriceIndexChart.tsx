@@ -47,7 +47,7 @@ export function HousingPriceIndexChart({ enabled, from, to, regionCode, regionLa
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="flex flex-wrap items-center gap-1.5 text-base lg:text-lg">
+        <CardTitle role="heading" aria-level={2} className="flex flex-wrap items-center gap-1.5 text-base lg:text-lg">
           {regionLabel} 아파트 매매가격지수
           <span className={cn('text-xs', cagr == null ? 'text-muted-foreground' : pnlTextClass(cagr))}>
             {formatCagr(cagr)}
@@ -62,7 +62,7 @@ export function HousingPriceIndexChart({ enabled, from, to, regionCode, regionLa
           <IndexChartLoading />
         ) : query.isError && !data ? (
           <div role="alert" aria-live="assertive">
-            <SectionError message={`${regionLabel} 아파트 매매가격지수를 불러오지 못했습니다`} />
+            <SectionError message={`${regionLabel} 아파트 매매가격지수를 불러오지 못했습니다.`} />
           </div>
         ) : points.length === 0 ? (
           <EmptyState message={`표시할 ${regionLabel} 아파트 매매가격지수 데이터가 없습니다.`} />

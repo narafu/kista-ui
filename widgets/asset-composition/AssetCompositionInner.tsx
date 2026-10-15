@@ -166,7 +166,7 @@ export default function AssetCompositionInner({ month, range = 12 }: Props) {
   }
 
   if (isError) {
-    return <SectionError message="구성비 데이터를 불러오지 못했습니다" />
+    return <SectionError message="구성비 데이터를 불러오지 못했습니다." />
   }
 
   // 'all'은 slice 상한을 없애 기록 전체 월을 쓴다(Infinity).

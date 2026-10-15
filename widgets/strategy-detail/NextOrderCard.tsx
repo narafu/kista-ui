@@ -163,7 +163,7 @@ export function NextOrderCard({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between gap-2">
             <div>
-              <CardTitle className="text-base lg:text-lg">다음 주문</CardTitle>
+              <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">다음 주문</CardTitle>
               <p className="text-base text-muted-foreground mt-0.5">
                 {canExecute ? '매 거래일 개장 시 자동실행' : '일시중지 중, 자동실행 되지 않음'}
               </p>

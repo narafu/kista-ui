@@ -30,7 +30,7 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
   const users = data ?? EMPTY_USERS
   const { page: currentPage, setPage, size, totalPages, paged, handlePageSizeChange } = useClientPagination(users)
 
-  if (!data && isError) return <SectionError message="사용자 목록을 불러오지 못했습니다" />
+  if (!data && isError) return <SectionError message="사용자 목록을 불러오지 못했습니다." />
   if (!data) return <LoadingRow />
 
   if (users.length === 0) {

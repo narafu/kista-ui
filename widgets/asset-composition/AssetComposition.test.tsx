@@ -55,7 +55,7 @@ describe('AssetCompositionInner', () => {
   it('조회 실패 시 에러 섹션을 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: true })
     render(<AssetCompositionInner />)
-    expect(screen.getByText('구성비 데이터를 불러오지 못했습니다')).toBeInTheDocument()
+    expect(screen.getByText('구성비 데이터를 불러오지 못했습니다.')).toBeInTheDocument()
   })
 
   it('자산 기록이 없으면 두 차트 모두 빈 상태 문구를 표시한다', () => {

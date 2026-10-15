@@ -15,7 +15,7 @@ export function StrategyTypeComparison({ byType }: Props) {
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base lg:text-lg"><h2>전략 유형 비교</h2></CardTitle>
+        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">전략 유형 비교</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         {byType.length === 0 ? (

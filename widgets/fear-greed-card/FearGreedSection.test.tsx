@@ -27,7 +27,7 @@ vi.mock('./FearGreedCard', () => ({
   }) => (
     <div>
       <span>{title}</span>
-      {error && <span>{title} 데이터를 불러오지 못했습니다</span>}
+      {error && <span>{title} 데이터를 불러오지 못했습니다.</span>}
       {daysOptions.map((n) => (
         <button key={n} type="button" onClick={() => onDaysChange(n)}>
           {n}
@@ -76,7 +76,7 @@ describe('FearGreedSection', () => {
 
     render(<FearGreedSection />)
 
-    expect(screen.getByText('CNN 공포탐욕지수 데이터를 불러오지 못했습니다')).toBeInTheDocument()
-    expect(screen.queryByText('크립토 공포탐욕지수 데이터를 불러오지 못했습니다')).not.toBeInTheDocument()
+    expect(screen.getByText('CNN 공포탐욕지수 데이터를 불러오지 못했습니다.')).toBeInTheDocument()
+    expect(screen.queryByText('크립토 공포탐욕지수 데이터를 불러오지 못했습니다.')).not.toBeInTheDocument()
   })
 })

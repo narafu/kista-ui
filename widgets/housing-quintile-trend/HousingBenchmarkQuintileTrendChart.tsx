@@ -86,7 +86,7 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
       <CardHeader className="pb-3">
         <div className="flex flex-col gap-3">
           <div>
-            <CardTitle className="flex flex-wrap items-center gap-1.5 text-base lg:text-lg">
+            <CardTitle role="heading" aria-level={2} className="flex flex-wrap items-center gap-1.5 text-base lg:text-lg">
               <select
                 aria-label="비교 지역"
                 value={regionCode}
@@ -131,7 +131,7 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
           <TrendLoading />
         ) : query.isError && !data ? (
           <div role="alert" aria-live="assertive">
-            <SectionError message={`${regionLabel} 아파트 5분위 시세를 불러오지 못했습니다`} />
+            <SectionError message={`${regionLabel} 아파트 5분위 시세를 불러오지 못했습니다.`} />
           </div>
         ) : points.length === 0 ? (
           <EmptyState message={`표시할 ${regionLabel} 아파트 시세 데이터가 없습니다.`} />

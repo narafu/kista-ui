@@ -149,7 +149,7 @@ interface BodyProps extends Props {
 export function CycleListBody({ isLoading, isError, filtered, ...listProps }: BodyProps) {
   if (isLoading) return <LoadingRow />
   // 카드 본문이 p-0(테이블 풀폭)이라 카드형 에러 폴백은 직접 여백을 준다
-  if (isError) return <div className="px-4 pb-4"><SectionError message="사이클 성과를 불러오지 못했습니다" /></div>
+  if (isError) return <div className="px-4 pb-4"><SectionError message="사이클 성과를 불러오지 못했습니다." /></div>
   if (listProps.cycles.length === 0) {
     return <EmptyState variant="text" message={filtered ? '조건에 맞는 사이클이 없습니다.' : '사이클 내역이 없습니다.'} />
   }

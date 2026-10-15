@@ -172,7 +172,7 @@ export function AssetRecordList({ month }: Props) {
     return <LoadingRow />
   }
   if (isError) {
-    return <SectionError message="자산 기록을 불러오지 못했습니다" />
+    return <SectionError message="자산 기록을 불러오지 못했습니다." />
   }
   if (snapshots.length === 0) {
     return <EmptyState message="등록된 자산 기록이 없습니다. 자산 등록 버튼으로 첫 기록을 추가해보세요." />

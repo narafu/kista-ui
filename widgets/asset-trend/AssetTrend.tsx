@@ -26,7 +26,7 @@ export function AssetTrend({ className, month, range, onRangeChange }: Props) {
   return (
     <Card className={className}>
       <CardHeader className="items-center pb-3">
-        <CardTitle className="text-base lg:text-lg">월별 추이</CardTitle>
+        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">월별 추이</CardTitle>
         <CardAction>
           <SegmentedToggle aria-label="추이 기간" options={MONTHLY_TREND_RANGE_OPTIONS} value={range} onChange={onRangeChange} />
         </CardAction>

@@ -46,7 +46,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
         <div className="space-y-2">
-          <CardTitle className="text-base lg:text-lg">주문 내역</CardTitle>
+          <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">주문 내역</CardTitle>
           <RangeFilterControls
             rangeType={rangeType}
             onRangeChange={setRangeType}

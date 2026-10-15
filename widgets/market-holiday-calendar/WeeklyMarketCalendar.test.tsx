@@ -68,7 +68,7 @@ describe('WeeklyMarketCalendar', () => {
 
     render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated />)
 
-    expect(screen.getByText('휴장일 정보를 불러오지 못했습니다')).toBeInTheDocument()
+    expect(screen.getByText('휴장일 정보를 불러오지 못했습니다.')).toBeInTheDocument()
     expect(screen.queryByText('다음 휴장일')).not.toBeInTheDocument()
   })
 
@@ -94,7 +94,7 @@ describe('WeeklyMarketCalendar', () => {
     useDailyTradesRangeQueryMock.mockReturnValue({ data: undefined, isFetching: false, isError: true })
     render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated />)
 
-    expect(screen.getByText('거래 내역을 불러오지 못했습니다')).toBeInTheDocument()
+    expect(screen.getByText('거래 내역을 불러오지 못했습니다.')).toBeInTheDocument()
   })
 
   it('stacks label and compact amount so the badge fits a narrow day cell', () => {

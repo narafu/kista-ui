@@ -102,7 +102,7 @@ describe('HousingBenchmarkQuintileTrendChart', () => {
     useHousingBenchmarkSeriesQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: true })
     render(<HousingBenchmarkQuintileTrendChart enabled />)
 
-    expect(screen.getByRole('alert')).toHaveTextContent('서울 아파트 5분위 시세를 불러오지 못했습니다')
+    expect(screen.getByRole('alert')).toHaveTextContent('서울 아파트 5분위 시세를 불러오지 못했습니다.')
   })
 
   it('points가 비어있으면 EmptyState를 표시한다', () => {

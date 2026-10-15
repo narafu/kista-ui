@@ -5,7 +5,7 @@ import { SectionError } from './SectionError'
 
 function FailingSection({ queryFn }: { queryFn: () => Promise<string> }) {
   const { data, isError } = useQuery({ queryKey: ['section'], queryFn, retry: false })
-  if (isError) return <SectionError message="불러오지 못했습니다" />
+  if (isError) return <SectionError message="불러오지 못했습니다." />
   return <p>{data ?? 'loading'}</p>
 }
 
@@ -25,7 +25,7 @@ describe('SectionError', () => {
   })
 
   it('hides the retry button outside a QueryClientProvider', () => {
-    render(<SectionError message="불러오지 못했습니다" />)
+    render(<SectionError message="불러오지 못했습니다." />)
 
     expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument()
   })

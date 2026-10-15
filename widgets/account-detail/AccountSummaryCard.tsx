@@ -24,7 +24,7 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd }: Props) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">계좌 요약</CardTitle>
+        <CardTitle role="heading" aria-level={2} className="text-base">계좌 요약</CardTitle>
       </CardHeader>
       <CardContent className="px-6 pb-6">
         <div className="grid grid-cols-2 gap-3">

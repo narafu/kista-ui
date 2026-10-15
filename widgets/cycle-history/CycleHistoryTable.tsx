@@ -42,7 +42,7 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
     return (
       <Card className="overflow-hidden">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">{title}</CardTitle>
+          <CardTitle role="heading" aria-level={2} className="text-base">{title}</CardTitle>
         </CardHeader>
         <CardContent>
           <EmptyState variant="text" message={emptyIdMessage} />
@@ -64,7 +64,7 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
         <div className="space-y-2">
-          <CardTitle className="text-base lg:text-lg">{title}</CardTitle>
+          <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">{title}</CardTitle>
           <RangeFilterControls
             rangeType={rangeType}
             onRangeChange={setRangeType}
@@ -82,7 +82,7 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
         {isLoading ? (
           <LoadingRow />
         ) : isError ? (
-          <SectionError message="잔고 이력을 불러오지 못했습니다" />
+          <SectionError message="잔고 이력을 불러오지 못했습니다." />
         ) : cycleHistory.length === 0 ? (
           <EmptyState variant="text" message="잔고 이력이 없습니다." />
         ) : (

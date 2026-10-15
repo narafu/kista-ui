@@ -141,7 +141,7 @@ describe('AllStrategiesList', () => {
     accountsQueryData = singleAccount
     render(<AllStrategiesList />)
 
-    expect(screen.getByText('전략 목록을 불러오지 못했습니다')).toBeInTheDocument()
+    expect(screen.getByText('전략 목록을 불러오지 못했습니다.')).toBeInTheDocument()
   })
 
   it('groups strategies by account with a section header per account when there are multiple accounts', () => {

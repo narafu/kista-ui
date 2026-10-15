@@ -83,7 +83,7 @@ describe('DashboardContent', () => {
 
     renderWithClient(client)
 
-    expect(await screen.findByText('계좌 정보를 불러오지 못했습니다')).toBeInTheDocument()
+    expect(await screen.findByText('계좌 정보를 불러오지 못했습니다.')).toBeInTheDocument()
     expect(screen.getByTestId('market-panels-sentinel')).toBeInTheDocument()
     expect(screen.queryByText('첫 계좌 등록')).not.toBeInTheDocument()
     vi.unstubAllGlobals()

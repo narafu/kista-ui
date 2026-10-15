@@ -127,7 +127,7 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
     return <Skeleton data-testid="asset-trend-skeleton" className="min-h-[240px] sm:min-h-[280px]" />
   }
   if (isError) {
-    return <SectionError message="자산 추이를 불러오지 못했습니다" />
+    return <SectionError message="자산 추이를 불러오지 못했습니다." />
   }
 
   return (
@@ -160,7 +160,7 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
 
       {trend.length === 0 ? (
         <div className="flex flex-1 items-center justify-center">
-          <p className="text-sm text-muted-foreground">표시할 추이 데이터가 없습니다</p>
+          <p className="text-sm text-muted-foreground">표시할 추이 데이터가 없습니다.</p>
         </div>
       ) : (
         <div className="min-h-[240px] w-full flex-1 sm:min-h-[280px]">

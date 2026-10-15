@@ -152,7 +152,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
     return <LoadingRow />
   }
   if (isError) {
-    return <SectionError message="거래내역을 불러오지 못했습니다" />
+    return <SectionError message="거래내역을 불러오지 못했습니다." />
   }
 
   return (

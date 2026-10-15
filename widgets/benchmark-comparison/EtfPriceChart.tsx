@@ -46,7 +46,7 @@ export function EtfPriceChart({ enabled, from, to, symbol, label }: Props) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="flex flex-wrap items-center gap-1.5 text-base lg:text-lg">
+        <CardTitle role="heading" aria-level={2} className="flex flex-wrap items-center gap-1.5 text-base lg:text-lg">
           {label} 가격 추이
           <span className={cn('text-xs', cagr == null ? 'text-muted-foreground' : pnlTextClass(cagr))}>
             {formatCagr(cagr)}
@@ -61,7 +61,7 @@ export function EtfPriceChart({ enabled, from, to, symbol, label }: Props) {
           <EtfChartLoading />
         ) : query.isError && !data ? (
           <div role="alert" aria-live="assertive">
-            <SectionError message={`${label} 가격을 불러오지 못했습니다`} />
+            <SectionError message={`${label} 가격을 불러오지 못했습니다.`} />
           </div>
         ) : points.length === 0 ? (
           <EmptyState message={`표시할 ${label} 가격 데이터가 없습니다.`} />

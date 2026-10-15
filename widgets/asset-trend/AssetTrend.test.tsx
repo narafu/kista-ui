@@ -54,20 +54,20 @@ describe('AssetTrendInner', () => {
   it('조회 실패 시 에러 섹션을 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: true })
     render(<AssetTrendInner />)
-    expect(screen.getByText('자산 추이를 불러오지 못했습니다')).toBeInTheDocument()
+    expect(screen.getByText('자산 추이를 불러오지 못했습니다.')).toBeInTheDocument()
   })
 
   it('기록이 없으면 표시할 추이 데이터가 없다는 문구를 보여준다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: [], isLoading: false, isError: false })
     render(<AssetTrendInner />)
-    expect(screen.getByText('표시할 추이 데이터가 없습니다')).toBeInTheDocument()
+    expect(screen.getByText('표시할 추이 데이터가 없습니다.')).toBeInTheDocument()
   })
 
   it('기록이 있으면 빈 상태 문구 대신 3개의 모드 버튼을 보여준다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({})], isLoading: false, isError: false })
     render(<AssetTrendInner />)
 
-    expect(screen.queryByText('표시할 추이 데이터가 없습니다')).not.toBeInTheDocument()
+    expect(screen.queryByText('표시할 추이 데이터가 없습니다.')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '순자산' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '카테고리별' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '자산군별' })).toBeInTheDocument()

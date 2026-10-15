@@ -25,7 +25,7 @@ export function AdminPendingList({ max }: Props) {
   const source = max ? users.slice(0, max) : users
   const { page: currentPage, setPage, size, totalPages, paged: displayed, handlePageSizeChange } = useClientPagination(source)
 
-  if (!data && isError) return <SectionError message="가입 신청 목록을 불러오지 못했습니다" />
+  if (!data && isError) return <SectionError message="가입 신청 목록을 불러오지 못했습니다." />
   if (!data) return <LoadingRow />
 
   if (source.length === 0) {

@@ -29,7 +29,7 @@ export function DashboardContent({ marketPanels, isAuthenticated }: Props) {
     return (
       <DashboardOverview
         marketPanels={marketPanels}
-        notice={<p className="mb-4 text-sm text-warn">계좌 정보를 불러오지 못했습니다</p>}
+        notice={<p className="mb-4 text-sm text-warn">계좌 정보를 불러오지 못했습니다.</p>}
       />
     )
   }

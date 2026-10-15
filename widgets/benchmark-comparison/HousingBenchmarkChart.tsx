@@ -37,7 +37,7 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark, benc
       <CardHeader className="pb-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <CardTitle className="text-base lg:text-lg">{isDaily ? '일별 누적지수' : '주별 누적지수'}</CardTitle>
+            <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">{isDaily ? '일별 누적지수' : '주별 누적지수'}</CardTitle>
             <p className="mt-1 text-xs text-muted-foreground">
               {isDaily ? '첫 공통 거래일 100 기준' : '첫 공통 조사일 100 기준'}
             </p>

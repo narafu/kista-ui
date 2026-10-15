@@ -17,13 +17,13 @@ export function StrategyList({ accountId, strategies, isError = false }: Props) 
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">전략</CardTitle>
+          <CardTitle role="heading" aria-level={2} className="text-base">전략</CardTitle>
           <NewStrategyButton accountId={accountId} />
         </div>
       </CardHeader>
       <CardContent className="px-6 pb-6">
         {!strategies && isError ? (
-          <EmptyState variant="text" message="전략 목록을 불러오지 못했습니다" />
+          <EmptyState variant="text" message="전략 목록을 불러오지 못했습니다." />
         ) : !strategies ? (
           <LoadingRow />
         ) : strategies.length === 0 ? (

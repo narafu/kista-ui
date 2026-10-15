@@ -45,7 +45,7 @@ export function AssetRecordCheck({ month }: Props) {
     )
   }
   if (assetsError || checksError || groupsError) {
-    return <SectionError message="기록 점검 정보를 불러오지 못했습니다" />
+    return <SectionError message="기록 점검 정보를 불러오지 못했습니다." />
   }
 
   const months = listAvailableMonths(snapshots)
@@ -58,7 +58,7 @@ export function AssetRecordCheck({ month }: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>기록 점검</CardTitle>
+        <CardTitle role="heading" aria-level={2}>기록 점검</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <section>

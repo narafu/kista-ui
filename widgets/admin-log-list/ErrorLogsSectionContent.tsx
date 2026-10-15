@@ -44,13 +44,13 @@ export function ErrorLogsSectionContent({ page, size, range, from, to }: Props) 
           </div>
         </div>
       </div>
-      {/* 조회 실패를 "기록된 오류가 없습니다"로 오인하지 않도록 상태를 먼저 구분한다 */}
+      {/* 조회 실패를 "기록된 오류가 없습니다."로 오인하지 않도록 상태를 먼저 구분한다 */}
       {!data && isError ? (
-        <EmptyState message="오류 로그를 불러오지 못했습니다" />
+        <EmptyState message="오류 로그를 불러오지 못했습니다." />
       ) : !data ? (
         <LoadingRow />
       ) : logs.length === 0 ? (
-        <EmptyState message="기록된 오류가 없습니다" />
+        <EmptyState message="기록된 오류가 없습니다." />
       ) : (
         <ErrorLogsSectionClient logs={logs} />
       )}

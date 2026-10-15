@@ -35,7 +35,7 @@ describe('CyclePerformanceList', () => {
 
     render(<CyclePerformanceList />)
 
-    expect(screen.getByText('사이클 성과를 불러오지 못했습니다')).toBeInTheDocument()
+    expect(screen.getByText('사이클 성과를 불러오지 못했습니다.')).toBeInTheDocument()
     expect(useStatsCyclesQueryMock).toHaveBeenCalledWith({ type: undefined, accountId: undefined, ticker: undefined, status: 'ACTIVE', page: 0, size: 10 })
     expect(screen.queryByText('사이클 내역이 없습니다.')).not.toBeInTheDocument()
   })

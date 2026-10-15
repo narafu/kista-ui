@@ -41,7 +41,7 @@ export function EquityCurveChart({
     <Card>
       <CardHeader className="pb-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle className="text-base lg:text-lg"><h2>누적 자산 추이</h2></CardTitle>
+          <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">누적 자산 추이</CardTitle>
           <StrategyTypeFilterToggle
             strategyTypes={strategyTypes}
             strategyTypeFilter={strategyTypeFilter}

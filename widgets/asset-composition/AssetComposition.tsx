@@ -26,7 +26,7 @@ export function AssetComposition({ className, month, range, onRangeChange }: Pro
   return (
     <Card className={className}>
       <CardHeader className="items-center pb-3">
-        <CardTitle className="text-base lg:text-lg">월별 구성비</CardTitle>
+        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">월별 구성비</CardTitle>
         <CardAction>
           <SegmentedToggle aria-label="구성비 기간" options={MONTHLY_TREND_RANGE_OPTIONS} value={range} onChange={onRangeChange} />
         </CardAction>

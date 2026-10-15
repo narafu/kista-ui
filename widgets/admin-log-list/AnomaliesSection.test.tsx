@@ -30,8 +30,8 @@ describe('AnomaliesSection', () => {
     const anomalies: AdminAnomalies = { pausedAccounts: [], inactiveAccounts: [] }
     render(<AnomaliesSection anomalies={anomalies} range="7d" />)
 
-    expect(screen.getByText('일시중지된 계좌가 없습니다')).toBeInTheDocument()
-    expect(screen.getByText('비활성 계좌가 없습니다')).toBeInTheDocument()
+    expect(screen.getByText('일시중지된 계좌가 없습니다.')).toBeInTheDocument()
+    expect(screen.getByText('비활성 계좌가 없습니다.')).toBeInTheDocument()
   })
 
   it('renders the paused accounts table and the total count badge when paused accounts exist', () => {
@@ -39,7 +39,7 @@ describe('AnomaliesSection', () => {
     render(<AnomaliesSection anomalies={anomalies} range="7d" />)
 
     expect(screen.getByText('홍길동')).toBeInTheDocument()
-    expect(screen.queryByText('일시중지된 계좌가 없습니다')).not.toBeInTheDocument()
+    expect(screen.queryByText('일시중지된 계좌가 없습니다.')).not.toBeInTheDocument()
     // 이상징후(7일) 헤딩 옆에 총 개수(1) 배지가 표시된다
     const heading = screen.getByRole('heading', { name: /이상징후/ })
     expect(heading).toHaveTextContent('1')
@@ -50,7 +50,7 @@ describe('AnomaliesSection', () => {
     render(<AnomaliesSection anomalies={anomalies} range="7d" />)
 
     expect(screen.getByText('김영희')).toBeInTheDocument()
-    expect(screen.getByText('일시중지된 계좌가 없습니다')).toBeInTheDocument()
-    expect(screen.queryByText('비활성 계좌가 없습니다')).not.toBeInTheDocument()
+    expect(screen.getByText('일시중지된 계좌가 없습니다.')).toBeInTheDocument()
+    expect(screen.queryByText('비활성 계좌가 없습니다.')).not.toBeInTheDocument()
   })
 })

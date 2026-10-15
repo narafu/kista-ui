@@ -33,7 +33,7 @@ describe('AuditLogsSection', () => {
   it('shows an empty state when there are no logs', () => {
     render(<AuditLogsSection logs={[]} total={0} page={1} totalPages={1} size={10} range="7d" />)
 
-    expect(screen.getByText('관리자 로그가 없습니다')).toBeInTheDocument()
+    expect(screen.getByText('관리자 로그가 없습니다.')).toBeInTheDocument()
   })
 
   it('renders the payload JSON block only for logs that have a non-empty payload', () => {

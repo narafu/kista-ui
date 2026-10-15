@@ -70,7 +70,7 @@ export function CyclePerformanceList({ typeFilter }: Props) {
     <Card className="overflow-hidden">
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 pb-3">
         <div className="flex items-center gap-2">
-          <CardTitle className="text-base lg:text-lg"><h2>사이클 성과</h2></CardTitle>
+          <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">사이클 성과</CardTitle>
           {/* 전략 타입 필터는 자산 추이 카드 헤더에 있지만 이 목록에도 걸린다 — 적용 중임을 여기서도 보여준다 */}
           {typeFilter && <Badge tone="brand" size="sm">{typeFilter}</Badge>}
         </div>
