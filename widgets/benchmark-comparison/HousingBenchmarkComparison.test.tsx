@@ -432,13 +432,13 @@ describe('HousingBenchmarkComparison', () => {
     expect(screen.getByText('전체 포트폴리오 (USD): investmentIndexUsd')).toBeInTheDocument()
   })
 
-  it('부동산(서울 분위) 선택 시에는 안내 박스를 표시하지 않는다 — 가격 추이 아래 지역별 안내로 이동', async () => {
+  it('아파트 탭은 ETF 안내 박스 대신 통화·환율 기준 notice만 표시한다', async () => {
     const user = userEvent.setup()
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
     await user.click(screen.getByRole('button', { name: '아파트' }))
 
     expect(screen.queryByText('서울 3분위 안내')).not.toBeInTheDocument()
-    expect(screen.queryByText(API_QUALITY_NOTICE)).not.toBeInTheDocument()
+    expect(await screen.findByText(API_QUALITY_NOTICE)).toBeInTheDocument()
   })
 
   it('scope 변경 중에는 필터만 즉시 바꾸고 응답 라벨은 이전 스냅샷을 유지한 뒤 함께 갱신한다', async () => {
@@ -692,16 +692,16 @@ describe('HousingBenchmarkComparison', () => {
     mockQuery({ ...COMPARISON, summary: null, points: [], emptyReason: 'INSUFFICIENT_COMMON_MONTHS' })
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
-    expect(screen.getByText(/최소 2개 거래일 데이터 필요/)).toBeInTheDocument()
+    expect(screen.getByText(/최소 2개 거래일/)).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: '아파트' }))
-    expect(screen.getByText(/최소 2주치 데이터 필요/)).toBeInTheDocument()
+    expect(screen.getByText(/최소 2주/)).toBeInTheDocument()
   })
 
   it('빈 사유와 비교 섹션 오류를 각각 처리한다', () => {
     mockQuery({ ...COMPARISON, summary: null, points: [], emptyReason: 'NO_INVESTMENT_DATA' })
     const { unmount } = render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
-    expect(screen.getByText('선택한 기간에 전략 운용 기록이 없습니다.')).toBeInTheDocument()
+    expect(screen.getByText(/선택한 기간에 전략 운용 기록이 없습니다\./)).toBeInTheDocument()
 
     unmount()
     useHousingBenchmarkQueryMock.mockReturnValue({

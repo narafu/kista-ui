@@ -126,7 +126,7 @@ describe('HousingBenchmarkQuintileTrendChart', () => {
     for (const label of ['1분위', '2분위', '3분위', '4분위', '5분위']) {
       expect(screen.getAllByText(new RegExp(`^${label}`)).length).toBeGreaterThan(0)
     }
-    expect(screen.getByText(/데이터 출처: KB부동산/)).toBeInTheDocument()
+    expect(screen.getByText(/데이터 출처: KB Land/)).toBeInTheDocument()
   })
 
   it('5개 분위 라인 색상이 모두 서로 다르다', () => {

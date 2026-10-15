@@ -7,6 +7,7 @@ import {
   BENCHMARK_PERIODS,
   fromMonthInput,
   subtractMonths,
+  toMonthEnd,
   toMonthInput,
   type Period,
 } from './benchmarkPeriods'
@@ -40,7 +41,7 @@ function resolveCustomRange(r: RangeInput) {
   if (r.isEtf) return { from: r.customFromDate || undefined, to: r.customToDate || r.defaultTo }
   return {
     from: r.customFromMonth ? fromMonthInput(r.customFromMonth) : undefined,
-    to: r.customToMonth ? fromMonthInput(r.customToMonth) : r.defaultTo,
+    to: r.customToMonth ? toMonthEnd(r.customToMonth, r.defaultTo) : r.defaultTo,
   }
 }
 

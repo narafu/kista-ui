@@ -17,6 +17,14 @@ export function fromMonthInput(month: string) {
   return `${month}-01`
 }
 
+// 종료월의 말일 — 단, 진행 중인 달은 오늘(max)을 넘기지 않는다
+export function toMonthEnd(month: string, max: string) {
+  const [year, monthIndex] = month.split('-').map(Number)
+  const lastDay = new Date(Date.UTC(year, monthIndex, 0)).getUTCDate()
+  const end = `${month}-${String(lastDay).padStart(2, '0')}`
+  return end > max ? max : end
+}
+
 export function subtractMonths(date: string, months: number) {
   const [year, month, day] = date.split('-').map(Number)
   const totalMonths = year * 12 + (month - 1) - months
@@ -34,10 +42,12 @@ export function subtractMonths(date: string, months: number) {
 export function emptyMessage(reason: string | null | undefined, isDaily: boolean) {
   if (reason === 'INSUFFICIENT_OVERLAP' || reason === 'INSUFFICIENT_COMMON_MONTHS') {
     return isDaily
-      ? '투자 기록과 벤치마크 데이터가 겹치는 기간이 부족합니다. (최소 2개 거래일 데이터 필요)'
-      : '투자 기록과 벤치마크 데이터가 겹치는 기간이 부족합니다. (최소 2주치 데이터 필요)'
+      ? '투자 기록과 벤치마크 데이터가 겹치는 기간이 부족합니다(최소 2개 거래일). 비교 기간을 넓혀 보세요.'
+      : '투자 기록과 벤치마크 데이터가 겹치는 기간이 부족합니다(최소 2주). 비교 기간을 넓혀 보세요.'
   }
-  if (reason === 'NO_INVESTMENT_DATA') return '선택한 기간에 전략 운용 기록이 없습니다.'
+  if (reason === 'NO_INVESTMENT_DATA') {
+    return "선택한 기간에 전략 운용 기록이 없습니다. 기간을 넓히거나 전략을 '없음'으로 바꾸면 벤치마크 시세만 볼 수 있습니다."
+  }
   return '비교할 수 있는 데이터가 충분하지 않습니다.'
 }
 

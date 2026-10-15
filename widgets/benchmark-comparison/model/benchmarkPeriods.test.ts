@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   emptyMessage,
   fromMonthInput,
+  toMonthEnd,
   subtractMonths,
   toMonthInput,
   uniqueSymbols,
@@ -43,19 +44,30 @@ describe('subtractMonths', () => {
   })
 })
 
+describe('toMonthEnd', () => {
+  it('종료월의 말일을 반환한다(윤년 포함)', () => {
+    expect(toMonthEnd('2026-06', '2026-07-17')).toBe('2026-06-30')
+    expect(toMonthEnd('2024-02', '2026-07-17')).toBe('2024-02-29')
+  })
+
+  it('진행 중인 달은 max(오늘)를 넘기지 않는다', () => {
+    expect(toMonthEnd('2026-07', '2026-07-17')).toBe('2026-07-17')
+  })
+})
+
 describe('emptyMessage', () => {
   it('INSUFFICIENT_OVERLAP은 자산 단위에 따라 다른 문구를 반환한다', () => {
     expect(emptyMessage('INSUFFICIENT_OVERLAP', true)).toContain('거래일')
-    expect(emptyMessage('INSUFFICIENT_OVERLAP', false)).toContain('주치')
+    expect(emptyMessage('INSUFFICIENT_OVERLAP', false)).toContain('최소 2주')
   })
 
   it('INSUFFICIENT_COMMON_MONTHS도 동일하게 처리한다', () => {
     expect(emptyMessage('INSUFFICIENT_COMMON_MONTHS', true)).toContain('거래일')
-    expect(emptyMessage('INSUFFICIENT_COMMON_MONTHS', false)).toContain('주치')
+    expect(emptyMessage('INSUFFICIENT_COMMON_MONTHS', false)).toContain('최소 2주')
   })
 
   it('NO_INVESTMENT_DATA는 운용 기록 없음 문구를 반환한다', () => {
-    expect(emptyMessage('NO_INVESTMENT_DATA', true)).toBe('선택한 기간에 전략 운용 기록이 없습니다.')
+    expect(emptyMessage('NO_INVESTMENT_DATA', true)).toContain('선택한 기간에 전략 운용 기록이 없습니다.')
   })
 
   it('그 외 사유·null·undefined는 기본 문구를 반환한다', () => {

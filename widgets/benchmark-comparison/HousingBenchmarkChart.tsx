@@ -60,7 +60,7 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark, benc
           aria-label={`투자와 ${benchmarkLabel} ${isDaily ? '일별' : '주별'} 누적 성과 선 차트`}
         >
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} accessibilityLayer>
+            <LineChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} accessibilityLayer title={isDaily ? '일별 누적지수' : '주별 누적지수'}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis
                 dataKey="baseDate"
@@ -115,7 +115,7 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark, benc
         </figure>
         <p className="mt-2 text-xs text-muted-foreground">
           {housingBenchmarkChartNotice(isDaily)}
-          {points[0]?.baseDate ? ` 비교 시작 ${formatTooltipLabel(points[0].baseDate)}` : ''}
+          {points[0]?.baseDate ? ` 비교 시작일은 ${formatTooltipLabel(points[0].baseDate)}입니다.` : ''}
         </p>
       </CardContent>
     </Card>

@@ -7,7 +7,7 @@ import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
 import { toMonthInput } from './model/benchmarkPeriods'
 import type { EtfBenchmarkContent } from './housingBenchmarkContent'
 
-export const ASSET_SELECT_CLASS = 'min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring'
+const ASSET_SELECT_CLASS = 'min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 const DATE_INPUT_CLASS = 'min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
@@ -40,7 +40,7 @@ export function StrategySelect({
         className={ASSET_SELECT_CLASS}
       >
         <option value="ALL">전체</option>
-        <option value="NONE">없음</option>
+        <option value="NONE">없음 (벤치마크만 보기)</option>
         {strategies.length === 0 ? (
           <option value="" disabled>
             {emptyListLabel(strategiesQuery, '전략 목록 불러오는 중', '전략 목록 조회 실패', '등록된 전략이 없습니다')}

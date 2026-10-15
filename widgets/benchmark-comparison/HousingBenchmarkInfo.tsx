@@ -1,4 +1,5 @@
 import type { EtfBenchmarkSymbol, HousingBenchmark } from '@entities/stats'
+import { fmtDate } from '@shared/lib/format'
 import { ETF_BENCHMARK_CURRENCY_NOTICE_FALLBACK, getEtfBenchmarkContent } from './housingBenchmarkContent'
 
 interface Props {
@@ -30,6 +31,12 @@ export function HousingBenchmarkInfo({ benchmark, notice }: Props) {
               <dt className="text-xs text-muted-foreground">설명</dt>
               <dd className="mt-1 leading-5">{etfContent.description}</dd>
             </div>
+            {etfContent.riskNotice ? (
+              <div className="sm:col-span-2">
+                <dt className="text-xs text-muted-foreground">유의 사항</dt>
+                <dd className="mt-1 leading-5">{etfContent.riskNotice}</dd>
+              </div>
+            ) : null}
           </dl>
         </div>
 
@@ -39,7 +46,7 @@ export function HousingBenchmarkInfo({ benchmark, notice }: Props) {
           <p className="mt-1">
             데이터 출처: Alpaca Market Data (일별 종가)
             {benchmark?.sourceUpdatedDate ? ` · 업데이트 ` : ''}
-            {benchmark?.sourceUpdatedDate ? <time dateTime={benchmark.sourceUpdatedDate}>{benchmark.sourceUpdatedDate}</time> : null}
+            {benchmark?.sourceUpdatedDate ? <time dateTime={benchmark.sourceUpdatedDate}>{fmtDate(benchmark.sourceUpdatedDate)}</time> : null}
           </p>
         </div>
       </div>

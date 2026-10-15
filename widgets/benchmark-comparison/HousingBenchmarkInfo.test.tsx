@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import type { HousingBenchmark } from '@entities/stats'
+import { fmtDate } from '@shared/lib/format'
 import { HousingBenchmarkInfo } from './HousingBenchmarkInfo'
 
 const ETF_BENCHMARK: HousingBenchmark = {
@@ -22,7 +23,14 @@ describe('HousingBenchmarkInfo', () => {
     expect(screen.getByText('나스닥100 일일 수익률의 2배를 추종하는 레버리지 ETF입니다.')).toBeInTheDocument()
     expect(screen.getByText(/Alpaca Market Data/)).toBeInTheDocument()
     expect(screen.getByText('test notice')).toBeInTheDocument()
-    expect(screen.getByText('2026-07-01')).toBeInTheDocument()
+    expect(screen.getByText(/복리효과\(decay\)/)).toBeInTheDocument()
+    expect(screen.getByText(fmtDate('2026-07-01'))).toBeInTheDocument()
+  })
+
+  it('지수추종 ETF는 유의 사항을 표시하지 않는다', () => {
+    render(<HousingBenchmarkInfo benchmark={{ ...ETF_BENCHMARK, symbol: 'SPY' }} />)
+
+    expect(screen.queryByText('유의 사항')).not.toBeInTheDocument()
   })
 
   it('notice가 없으면 클라이언트 폴백 문구를 표시한다', () => {

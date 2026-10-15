@@ -36,7 +36,7 @@ export function HousingBenchmarkSummary({ summary, investmentLabel, benchmarkLab
   const annualizedUnavailable = summary.investmentAnnualizedReturn == null || summary.benchmarkAnnualizedReturn == null
 
   return (
-    <Card className="gap-0 overflow-hidden py-0" aria-label="장기 초과 성과 요약">
+    <Card role="region" className="gap-0 overflow-hidden py-0" aria-label="장기 초과 성과 요약">
       <div className="grid grid-cols-2 sm:grid-cols-3">
         <div className="col-span-2 border-b border-border p-4 sm:col-span-1 sm:border-b-0 sm:border-r sm:p-5">
           <p className="text-xs font-medium text-muted-foreground">초과 성과</p>
@@ -61,7 +61,7 @@ export function HousingBenchmarkSummary({ summary, investmentLabel, benchmarkLab
           </p>
         </div>
         <div className="min-w-0 p-4 sm:p-5">
-          <p className="text-xs font-medium text-muted-foreground">벤치마크 누적 상승률</p>
+          <p className="text-xs font-medium text-muted-foreground">벤치마크 누적 수익률</p>
           <p className={cn(
             'mt-1 break-words text-xl font-bold tabular-nums sm:text-2xl',
             summary.benchmarkCumulativeReturn != null && pnlTextClass(summary.benchmarkCumulativeReturn),

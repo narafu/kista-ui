@@ -7,7 +7,12 @@ import { useMemo, useState } from 'react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useHousingBenchmarkRegionsQuery, useHousingBenchmarkSeriesQuery } from '@entities/stats'
+import {
+  DEFAULT_HOUSING_REGION_CODE,
+  DEFAULT_HOUSING_REGION_NAME,
+  useHousingBenchmarkRegionsQuery,
+  useHousingBenchmarkSeriesQuery,
+} from '@entities/stats'
 import type { HousingBenchmarkRegion } from '@entities/stats'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
@@ -28,8 +33,7 @@ interface Props {
 }
 
 // KB Land 지역 목록 조회가 실패했을 때만 사용하는 최소 fallback — 하드코딩 목록 아님
-const SEOUL_REGION_CODE = '1100000000'
-const SEOUL_FALLBACK_REGION = { code: SEOUL_REGION_CODE, name: '서울' }
+const SEOUL_FALLBACK_REGION = { code: DEFAULT_HOUSING_REGION_CODE, name: DEFAULT_HOUSING_REGION_NAME }
 
 // "가격 추이" 비교지역은 서울/수도권/전국 3개로만 제한 — KB Land가 내려주는 전체 지역 목록 중 일부만 노출
 const ALLOWED_REGION_NAMES = ['서울', '수도권', '전국'] as const
@@ -58,7 +62,7 @@ function TrendLoading() {
 }
 
 export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegionChange }: Props) {
-  const [regionCode, setRegionCode] = useState(SEOUL_REGION_CODE)
+  const [regionCode, setRegionCode] = useState(DEFAULT_HOUSING_REGION_CODE)
   const regionsQuery = useHousingBenchmarkRegionsQuery(enabled)
   const regions = useMemo(() => {
     const fetchedRegions = regionsQuery.data?.regions ?? []
@@ -105,7 +109,7 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
               </select>
               아파트 5분위 가격 추이
             </CardTitle>
-            <p className="mt-1 text-xs text-muted-foreground">월별 매매평균가격 (억원) · 배지는 조회 기간 연평균 상승률</p>
+            <p className="mt-1 text-xs text-muted-foreground">월별 매매평균가격 (억원) · 상단 벤치마크 지역과 별도로 선택 · 배지는 조회 기간 연평균 상승률</p>
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             {[...QUINTILE_SERIES].reverse().map((series) => {
@@ -117,7 +121,7 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
                     style={{ backgroundColor: series.color }}
                   />
                   {series.label}
-                  <span className={cn('text-[10px]', cagr == null ? 'text-muted-foreground' : pnlTextClass(cagr))}>
+                  <span className={cn('text-xs', cagr == null ? 'text-muted-foreground' : pnlTextClass(cagr))}>
                     {formatCagr(cagr)}
                   </span>
                 </span>
@@ -139,7 +143,7 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
           <>
             <figure className="h-[240px] min-h-[240px] w-full sm:h-[320px]" aria-label={`${regionLabel} 아파트 5분위 월별 매매평균가격 선 차트`}>
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} accessibilityLayer>
+                <LineChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} accessibilityLayer title={`${regionLabel} 아파트 5분위 가격 추이`}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis
                     dataKey="baseMonth"
@@ -178,7 +182,7 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
               </ResponsiveContainer>
             </figure>
             <p className="mt-2 text-xs text-muted-foreground">
-              데이터 출처: KB부동산 {regionLabel} 아파트 5분위 매매평균가격
+              데이터 출처: KB Land {regionLabel} 아파트 5분위 매매평균가격
               {data?.sourceUpdatedDate ? ` · 업데이트 ${fmtDate(data.sourceUpdatedDate)}` : ''}
             </p>
           </>

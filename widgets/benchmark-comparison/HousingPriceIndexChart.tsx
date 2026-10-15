@@ -54,7 +54,7 @@ export function HousingPriceIndexChart({ enabled, from, to, regionCode, regionLa
           </span>
         </CardTitle>
         <p className="mt-1 text-xs text-muted-foreground">
-          KB Land 주간 조사일 기준 · 투자 기록과 비교하지 않는 원본 지수입니다. 배지는 조회 기간 연평균 상승률
+          KB Land 주간 조사일 기준 · 투자 기록과 비교하지 않는 원본 지수입니다. 배지는 조회 기간 연평균 상승률입니다.
         </p>
       </CardHeader>
       <CardContent className="px-2 pb-4 sm:px-6 sm:pb-6">
@@ -73,7 +73,7 @@ export function HousingPriceIndexChart({ enabled, from, to, regionCode, regionLa
               aria-label={`${regionLabel} 아파트 매매가격지수 선 차트`}
             >
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} accessibilityLayer>
+                <LineChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} accessibilityLayer title={`${regionLabel} 아파트 매매가격지수`}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis
                     dataKey="baseDate"

@@ -122,6 +122,11 @@ export function HousingBenchmarkComparison({ enabled, defaultTo, renderHousingEx
         <HousingBenchmarkInfo benchmark={data?.benchmark ?? fallbackBenchmark} notice={data?.quality?.notice} />
       ) : null}
 
+      {/* 아파트 비교는 USD 투자 vs KRW 지수라 환율 미반영 안내가 필요하다 — ETF는 위 안내 섹션이 같은 notice를 보여준다 */}
+      {activeAsset === 'HOUSING' && canQuery && data?.benchmark?.assetType === 'HOUSING' && data.quality?.notice ? (
+        <p className="text-xs leading-5 text-muted-foreground">{data.quality.notice}</p>
+      ) : null}
+
       {/* 아파트 탭에서만 표시 — 5분위 원본 시계열은 widgets/housing-quintile-trend가 담당,
           이 위젯은 그 존재를 모르고 콜백만 호출한다(app 레이어 BenchmarkPageContent가 연결) */}
       {activeAsset === 'HOUSING' ? renderHousingExtras?.({ from, to }) : null}

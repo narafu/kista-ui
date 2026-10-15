@@ -3,11 +3,9 @@
 import type { Account } from '@entities/account'
 import type { EtfBenchmarkSymbol, HousingBenchmarkRegion } from '@entities/stats'
 import type { Strategy } from '@entities/strategy'
-import { cn } from '@shared/lib/utils'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import type { Period } from './model/benchmarkPeriods'
 import {
-  ASSET_SELECT_CLASS,
   BenchmarkAssetSelect,
   CustomDateRange,
   CustomMonthRange,
@@ -15,38 +13,10 @@ import {
 } from './BenchmarkFilterFields'
 import type { EtfBenchmarkContent } from './housingBenchmarkContent'
 
-export { ASSET_SELECT_CLASS }
-
 const ASSET_OPTIONS: { value: 'ETF' | 'HOUSING'; label: string }[] = [
   { value: 'ETF', label: 'ETF' },
   { value: 'HOUSING', label: '아파트' },
 ]
-
-export function ToggleButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={cn(
-        'min-h-10 rounded px-3 py-1 text-xs font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
-        active
-          ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]'
-          : 'text-muted-foreground hover:bg-accent hover:text-foreground',
-      )}
-    >
-      {children}
-    </button>
-  )
-}
 
 interface BenchmarkFilterBarProps {
   activeAsset: 'ETF' | 'HOUSING'
@@ -142,15 +112,16 @@ export function BenchmarkFilterBar({
             regionsQuery={regionsQuery}
           />
 
-          <fieldset>
-            <legend className="text-xs font-medium text-muted-foreground">비교 기간</legend>
-            <div className="mt-1 grid grid-cols-5 rounded-md border border-border p-0.5">
-              {periods.map((item) => (
-                <ToggleButton key={item.value} active={period === item.value} onClick={() => setPeriod(item.value)}>
-                  {item.label}
-                </ToggleButton>
-              ))}
-            </div>
+          <div>
+            <p className="text-xs font-medium text-muted-foreground">비교 기간</p>
+            <SegmentedToggle
+              aria-label="비교 기간"
+              options={periods}
+              value={period}
+              onChange={setPeriod}
+              className="mt-1 grid w-full grid-cols-5"
+              itemClassName="min-h-10 px-3 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            />
             {isCustomPeriod && activeAsset === 'ETF' ? (
               <CustomDateRange
                 customFromDate={customFromDate}
@@ -168,7 +139,7 @@ export function BenchmarkFilterBar({
                 defaultTo={defaultTo}
               />
             ) : null}
-          </fieldset>
+          </div>
         </div>
         {showRefetchingStatus ? (
           <p

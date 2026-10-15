@@ -53,7 +53,7 @@ export function EtfPriceChart({ enabled, from, to, symbol, label }: Props) {
           </span>
         </CardTitle>
         <p className="mt-1 text-xs text-muted-foreground">
-          일별 종가 · 투자 기록과 비교하지 않는 원본 시세입니다. 배지는 조회 기간 연평균 상승률
+          일별 종가 · 투자 기록과 비교하지 않는 원본 시세입니다. 배지는 조회 기간 연평균 상승률입니다.
         </p>
       </CardHeader>
       <CardContent className="px-2 pb-4 sm:px-6 sm:pb-6">
@@ -72,7 +72,7 @@ export function EtfPriceChart({ enabled, from, to, symbol, label }: Props) {
               aria-label={`${label} 일별 종가 선 차트`}
             >
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} accessibilityLayer>
+                <LineChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} accessibilityLayer title={`${label} 일별 종가`}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis
                     dataKey="tradeDate"
