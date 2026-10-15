@@ -60,7 +60,7 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
   const [showOrders, setShowOrders] = useState(true)
   // 평단가-종가 괴리 강조 — 켜면 괴리 10%·20% 이상 구간의 평단가를 색으로 표시한다
   const [showAvgGap, setShowAvgGap] = useState(false)
-  // PC 툴팁 — 떠다니는 툴팁이 그래프를 가려, 켰을 때만 모바일 정보 줄처럼 차트 아래에 고정해 보여준다(기본 꺼짐)
+  // PC 차트 툴팁 — 값은 모바일처럼 차트 아래 정보 줄에 항상 나오고, 그래프를 가리는 떠다니는 툴팁은 켰을 때만 추가로 띄운다(기본 꺼짐)
   const [showPcTooltip, setShowPcTooltip] = useState(false)
   const series = useMemo(() => buildPrivacyChartSeries(tickerBases, candlesQuery.data ?? []), [tickerBases, candlesQuery.data])
   const rows = useMemo(() => sliceSeriesByRange(series.rows, windowFrom, windowTo), [series.rows, windowFrom, windowTo])
@@ -117,7 +117,7 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
         <div className="hidden sm:block">{legend}</div>
         <div className="flex flex-wrap items-center justify-between gap-2 pl-1 text-xs text-muted-foreground">
           {/* 모바일은 하단 정보 줄이 같은 안내를 하므로 PC에만 둔다 */}
-          {showPcTooltip && <p className="hidden sm:block">차트를 가리키면 해당 일자의 값이 차트 아래에 표시됩니다.</p>}
+          <p className="hidden sm:block">차트를 가리키면 해당 일자의 값이 차트 아래에 표시됩니다.</p>
           <span className="ml-auto flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
             <span className="inline-flex items-center gap-2">
               <Switch id="privacy-chart-show-orders" size="sm" checked={showOrders} onCheckedChange={setShowOrders} />
@@ -125,7 +125,7 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
             </span>
             <span className="hidden items-center gap-2 sm:inline-flex">
               <Switch id="privacy-chart-show-pc-tooltip" size="sm" checked={showPcTooltip} onCheckedChange={setShowPcTooltip} />
-              <label htmlFor="privacy-chart-show-pc-tooltip" className="cursor-pointer">툴팁 표시</label>
+              <label htmlFor="privacy-chart-show-pc-tooltip" className="cursor-pointer">차트 툴팁 표시</label>
             </span>
             <span className="inline-flex items-center gap-2">
               <Switch id="privacy-chart-show-avg-gap" size="sm" checked={showAvgGap} onCheckedChange={setShowAvgGap} />

@@ -89,16 +89,11 @@ function TooltipSection({ title, children }: { title: string; children: ReactNod
   )
 }
 
-// PC 전용 하단 정보 줄 — 떠다니는 툴팁은 그래프를 가려, 토글을 켰을 때만 차트 아래에 붙여 그날 지표를 한 번에 보여준다.
-// 세 패널이 같은 syncId라 어느 패널을 가리켜도 같은 날짜로 바뀐다. 묶음은 차트 패널 순서대로 가로로 놓는다
-function PcInfoBar({ row, isLatest, ticker, showAvgGap }: { row: PrivacyChartRow; isLatest: boolean; ticker: string; showAvgGap: boolean }) {
+// PC 하단 정보 줄과 차트 툴팁이 같은 내용을 쓴다 — 묶음은 차트 패널 순서(가격 → 현금비중 → 누적 실현손익)
+function InfoSections({ row, ticker, showAvgGap }: { row: PrivacyChartRow; ticker: string; showAvgGap: boolean }) {
   const cashLow = row.cashRatio != null && row.cashRatio < CASH_THRESHOLD
   return (
-    <div className="sticky bottom-0 z-10 hidden grid-cols-3 gap-x-6 gap-y-1.5 border-t border-border bg-card/95 px-3 py-2 text-xs backdrop-blur sm:grid">
-      <div className="col-span-3 font-semibold">
-        {row.date}
-        {isLatest && <span className="ml-1 font-normal text-muted-foreground">(최신 · 차트를 가리키면 바뀝니다)</span>}
-      </div>
+    <>
       <TooltipSection title={`${ticker} 가격`}>
         <TooltipRow label="종가" value={row.close == null ? '-' : fmtUsd(row.close)} swatch={SWATCH.close} />
         <TooltipRow label="평단가" value={fmtAvgPrice(row.avgPrice, row.close)} swatch={SWATCH.avgPrice} className={avgGapTextClass(row, showAvgGap)} />
@@ -127,6 +122,32 @@ function PcInfoBar({ row, isLatest, ticker, showAvgGap }: { row: PrivacyChartRow
         )}
         <TooltipRow label="누적 실현손익" value={fmtSignedUsd(row.cumulativePnl)} swatch={SWATCH.cumulative} className={cn('font-semibold', pnlTextClass(row.cumulativePnl))} />
       </TooltipSection>
+    </>
+  )
+}
+
+// PC 하단 정보 줄 — 모바일 정보 줄처럼 항상 차트 아래에 붙어 가리킨 날(없으면 최신)의 지표를 가로 3묶음으로 보여준다.
+// 세 패널이 같은 syncId라 어느 패널을 가리켜도 같은 날짜로 바뀐다
+function PcInfoBar({ row, isLatest, ticker, showAvgGap }: { row: PrivacyChartRow; isLatest: boolean; ticker: string; showAvgGap: boolean }) {
+  return (
+    <div className="sticky bottom-0 z-10 hidden grid-cols-3 gap-x-6 gap-y-1.5 border-t border-border bg-card/95 px-3 py-2 text-xs backdrop-blur sm:grid">
+      <div className="col-span-3 font-semibold">
+        {row.date}
+        {isLatest && <span className="ml-1 font-normal text-muted-foreground">(최신 · 차트를 가리키면 바뀝니다)</span>}
+      </div>
+      <InfoSections row={row} ticker={ticker} showAvgGap={showAvgGap} />
+    </div>
+  )
+}
+
+// PC 차트 툴팁 — 그래프를 가려 토글로 켰을 때만 하단 정보 줄에 더해 가격 패널 위에 띄운다.
+// payload는 값이 null인 계열을 걸러내 종가·평단가·주문이 모두 없는 날엔 비므로, 행은 label(날짜)로 찾는다
+function ChartTooltip({ row, ticker, showAvgGap }: { row: PrivacyChartRow | undefined; ticker: string; showAvgGap: boolean }) {
+  if (!row) return null
+  return (
+    <div className="min-w-52 max-w-[calc(100vw-2rem)] space-y-1.5 rounded-md border border-border bg-card px-3 py-2 text-xs shadow-md">
+      <div className="font-semibold">{row.date}</div>
+      <InfoSections row={row} ticker={ticker} showAvgGap={showAvgGap} />
     </div>
   )
 }
@@ -217,10 +238,9 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAv
 
   // 마지막으로 가리키거나 누른 날짜 — 하단 정보 줄이 쓴다(없으면 최신 일자)
   const [activeDate, setActiveDate] = useState<string | null>(null)
-  // PC에서 툴팁을 끄면 정보 줄이 없어, 그때는 상태를 갱신하지 않아 호버마다 세 차트를 다시 그리지 않는다
   const narrow = useIsNarrow()
   const pickActive = (state: MouseHandlerDataParam) => {
-    if (state.activeLabel == null || (!narrow && !showPcTooltip)) return
+    if (state.activeLabel == null) return
     setActiveDate(String(state.activeLabel))
   }
 
@@ -254,7 +274,8 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAv
               <XAxis dataKey="date" hide />
               <YAxis tickFormatter={(v) => fmtUsd(Number(v), 0)} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} domain={['auto', 'auto']} />
               {/* 아래 패널을 눌러도 툴팁이 가격 패널 위쪽에 고정돼 화면 밖으로 밀리지 않게 y를 고정한다 */}
-              <Tooltip content={() => null} cursor={CURSOR} />
+              {/* 아래 패널을 눌러도 툴팁이 가격 패널 위쪽에 고정돼 화면 밖으로 밀리지 않게 y를 고정한다 */}
+              <Tooltip position={{ y: 0 }} content={({ active, label }) => showPcTooltip && <div className="hidden sm:block"><ChartTooltip row={active ? rowByDate.get(String(label)) : undefined} ticker={ticker} showAvgGap={showAvgGap} /></div>} cursor={CURSOR} />
               {/* 괴리 구간은 패널 전체 높이 배경 띠 — 선 굵기만으로는 눈에 덜 띄어 면적으로 보여준다(현금비중 50% 미만 음영과 같은 방식) */}
               {avgGapBands.map((b) => (
                 <ReferenceArea key={b.x1} x1={b.x1} x2={b.x2} fill={b.level === 2 ? 'var(--avg-gap-2-bg)' : 'var(--avg-gap-1-bg)'} fillOpacity={1} ifOverflow="hidden" />
@@ -336,7 +357,7 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAv
         </div>
       </figure>
       <MobileInfoBar row={activeRow} isLatest={activeRow === last} showAvgGap={showAvgGap} />
-      {showPcTooltip && <PcInfoBar row={activeRow} isLatest={activeRow === last} ticker={ticker} showAvgGap={showAvgGap} />}
+      <PcInfoBar row={activeRow} isLatest={activeRow === last} ticker={ticker} showAvgGap={showAvgGap} />
     </div>
   )
 }
