@@ -7,10 +7,11 @@ import { Switch } from '@/components/ui/switch'
 
 interface Props {
   type: string
+  label: string
   channel: NotificationChannel
 }
 
-export function TradingAlertToggle({ type, channel }: Props) {
+export function TradingAlertToggle({ type, label, channel }: Props) {
   const { data: user } = useMeQuery()
   const enabled = user?.notificationPrefs?.[type] ?? true
   const mutation = useUpdateNotificationPrefMutation()
@@ -30,11 +31,11 @@ export function TradingAlertToggle({ type, channel }: Props) {
         checked={enabled && !isChannelOff}
         onCheckedChange={handleToggle}
         disabled={mutation.isPending}
-        aria-label="매매 알림"
+        aria-label={label}
         className={isChannelOff ? 'opacity-50' : ''}
       />
       {isChannelOff && (
-        <span className="text-sm text-muted-foreground">알림 수단을 먼저 선택하세요</span>
+        <span className="text-sm text-muted-foreground">알림 수단을 먼저 선택해주세요</span>
       )}
     </div>
   )

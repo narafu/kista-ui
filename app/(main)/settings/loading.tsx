@@ -11,7 +11,7 @@ export default function SettingsLoading() {
         </div>
       </div>
       <div className="flex flex-col gap-[18px]">
-        {Array.from({ length: 3 }).map((_, i) => (
+        {Array.from({ length: 4 }).map((_, i) => (
           <CardSkeleton key={i} className="h-40" />
         ))}
       </div>

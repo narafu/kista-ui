@@ -1,6 +1,6 @@
 'use client'
 
-import { toast } from 'sonner'
+import { buttonVariants } from '@/components/ui/button-variants'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,14 +22,14 @@ export function DeleteAccountButton() {
       await mutation.mutateAsync()
       window.location.href = '/'
     } catch {
-      toast.error('탈퇴 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+      // 실패 토스트는 useDeleteMeMutation의 onError가 띄운다
     }
   }
 
   return (
     <>
       <AlertDialog>
-        <AlertDialogTrigger className="px-4 py-2 rounded-[var(--r-md)] border border-neg/50 text-neg text-sm font-semibold hover:bg-neg/5 transition-colors">
+        <AlertDialogTrigger className={buttonVariants({ variant: 'destructive' })}>
           회원 탈퇴
         </AlertDialogTrigger>
         <AlertDialogContent>
@@ -44,7 +44,7 @@ export function DeleteAccountButton() {
             <AlertDialogAction
               onClick={handleDelete}
               disabled={mutation.isPending}
-              className="bg-neg text-white hover:bg-neg/90 disabled:opacity-60"
+              variant="destructive"
             >
               {mutation.isPending ? '처리 중...' : '탈퇴 확인'}
             </AlertDialogAction>

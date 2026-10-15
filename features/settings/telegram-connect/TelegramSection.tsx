@@ -1,17 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { Send, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Badge } from '@shared/ui/Badge'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
-import { useUpdateTelegramMutation, useDeleteTelegramMutation, useUpdateNotificationChannelMutation } from '@entities/user'
-import { ApiError } from '@shared/lib/api-client'
+import { useDeleteTelegramMutation } from '@entities/user'
 import { cn } from '@shared/lib/utils'
 import type { NotificationChannel } from '@entities/user'
+import { useTelegramConnectForm } from './useTelegramConnectForm'
 
 interface Props {
   hasTelegram: boolean
@@ -20,45 +20,9 @@ interface Props {
 }
 
 export function TelegramSection({ hasTelegram, telegramBotUsername, currentChannel }: Props) {
-  const [botToken, setBotToken] = useState('')
-  const [chatId, setChatId] = useState('')
-  const [botTokenError, setBotTokenError] = useState('')
-  const [chatIdError, setChatIdError] = useState('')
   const [isDisconnectOpen, setIsDisconnectOpen] = useState(false)
-
-  const updateChannelMutation = useUpdateNotificationChannelMutation()
-  const updateMutation = useUpdateTelegramMutation()
+  const form = useTelegramConnectForm(currentChannel)
   const deleteMutation = useDeleteTelegramMutation()
-
-  function handleSave() {
-    const nextBotTokenError = botToken.trim() ? '' : 'Bot Token을 입력해주세요'
-    const nextChatIdError = chatId.trim() ? '' : 'Chat ID를 입력해주세요'
-    setBotTokenError(nextBotTokenError)
-    setChatIdError(nextChatIdError)
-    if (nextBotTokenError || nextChatIdError) return
-
-    updateMutation.mutate(
-      { botToken: botToken.trim(), chatId: chatId.trim() },
-      {
-        onSuccess: () => {
-          setBotToken('')
-          setChatId('')
-          const nextChannel: NotificationChannel | null =
-            currentChannel === 'NONE' ? 'TELEGRAM'
-            : currentChannel === 'FCM' ? 'ALL'
-            : null
-          if (nextChannel) {
-            updateChannelMutation.mutate(nextChannel)
-          }
-        },
-        onError: (err) => {
-          toast.error(err instanceof ApiError && err.status === 400 ? '유효하지 않은 Bot Token입니다' : '연결에 실패했습니다')
-        },
-      }
-    )
-  }
-
-  const isLoading = updateMutation.isPending
   const isDeleteLoading = deleteMutation.isPending
 
   return (
@@ -85,8 +49,9 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
         <div className="bg-muted rounded-[10px] px-[14px] py-[12px]">
           <div className="text-sm text-muted-foreground mb-1">연결된 채팅</div>
           <div className="flex items-center justify-between gap-3 min-w-0">
+            {/* telegramBotUsername은 nullable 컬럼이라 레거시 연결은 값이 없을 수 있다 — 로딩 상태가 아니다 */}
             <div className="text-sm font-bold font-mono truncate min-w-0">
-              {telegramBotUsername ? `@${telegramBotUsername}` : '불러오는 중…'}
+              {telegramBotUsername ? `@${telegramBotUsername}` : '-'}
             </div>
             <button
               type="button"
@@ -114,35 +79,37 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
       {!hasTelegram && (
         <div className="flex flex-col gap-3">
           <div>
-            <div className="text-sm text-muted-foreground mb-1">Bot Token</div>
+            <Label htmlFor="bot-token" className="mb-1 text-sm font-normal text-muted-foreground">Bot Token</Label>
             <Input
+              id="bot-token"
               placeholder="123456:ABC-DEF..."
               className="h-10 text-sm"
-              value={botToken}
-              onChange={(e) => { setBotToken(e.target.value); if (botTokenError) setBotTokenError('') }}
-              disabled={isLoading}
+              value={form.botToken}
+              onChange={(e) => form.setBotToken(e.target.value)}
+              disabled={form.isLoading}
               maxLength={512}
-              aria-invalid={!!botTokenError}
-              aria-describedby={botTokenError ? 'bot-token-error' : undefined}
+              aria-invalid={!!form.botTokenError}
+              aria-describedby={form.botTokenError ? 'bot-token-error' : undefined}
             />
-            {botTokenError && <p id="bot-token-error" className="mt-1 text-xs text-neg">{botTokenError}</p>}
+            {form.botTokenError && <p id="bot-token-error" className="mt-1 text-xs text-[var(--status-error)]">{form.botTokenError}</p>}
           </div>
           <div>
-            <div className="text-sm text-muted-foreground mb-1">Chat ID</div>
+            <Label htmlFor="chat-id" className="mb-1 text-sm font-normal text-muted-foreground">Chat ID</Label>
             <Input
+              id="chat-id"
               placeholder="-100123456789"
               className="h-10 text-sm"
-              value={chatId}
-              onChange={(e) => { setChatId(e.target.value); if (chatIdError) setChatIdError('') }}
-              disabled={isLoading}
+              value={form.chatId}
+              onChange={(e) => form.setChatId(e.target.value)}
+              disabled={form.isLoading}
               maxLength={50}
-              aria-invalid={!!chatIdError}
-              aria-describedby={chatIdError ? 'chat-id-error' : undefined}
+              aria-invalid={!!form.chatIdError}
+              aria-describedby={form.chatIdError ? 'chat-id-error' : undefined}
             />
-            {chatIdError && <p id="chat-id-error" className="mt-1 text-xs text-neg">{chatIdError}</p>}
+            {form.chatIdError && <p id="chat-id-error" className="mt-1 text-xs text-[var(--status-error)]">{form.chatIdError}</p>}
           </div>
-          <Button size="form" className="w-fit px-5" onClick={handleSave} disabled={isLoading}>
-            {isLoading ? '연결 중...' : '연결하기'}
+          <Button size="form" className="w-fit px-5" onClick={form.save} disabled={form.isLoading}>
+            {form.isLoading ? '연결 중...' : '연결하기'}
           </Button>
         </div>
       )}

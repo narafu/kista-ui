@@ -10,16 +10,19 @@ import { ThemeCards } from '@features/settings/theme-select'
 import { BalanceCheckSetting } from '@features/settings/balance-check-setting'
 import { TradingAlertToggle } from '@features/settings/notification-prefs'
 import { NicknameEditor } from '@features/settings/edit-nickname'
+import { SectionError } from '@shared/ui/SectionError'
 import { Surface } from '@shared/ui/Surface'
 
 export function SettingsPageContent() {
-  const { data: user } = useMeQuery()
+  const { data: user, isError } = useMeQuery()
+  // 조회 실패 시 기본값(토글 켜짐 등)이 실제 설정처럼 보이지 않도록 화면 전체를 에러로 대체
+  if (isError && !user) return <SectionError message="설정을 불러오지 못했습니다." />
   const notificationChannel = user?.notificationChannel ?? (user?.hasTelegram ? 'TELEGRAM' : 'NONE')
 
   return (
     <div className="flex flex-col gap-[18px] reveal-stagger">
       <Surface as="section" id="profile" className="p-6">
-        <div className="text-sm font-bold mb-0.5">프로필</div>
+        <h2 className="text-sm font-bold mb-0.5">프로필</h2>
         <div className="text-sm text-muted-foreground mb-[18px]">카카오 계정 정보를 관리합니다.</div>
         <div className="flex items-center gap-4 mb-[18px]">
           <span className="size-[60px] rounded-full bg-[#FEE500] grid place-items-center shrink-0">
@@ -39,27 +42,27 @@ export function SettingsPageContent() {
       </Surface>
 
       <Surface as="section" id="notifications" className="p-6">
-        <div className="text-sm font-bold mb-0.5">알림</div>
-        <div className="text-sm text-muted-foreground mb-[18px]">알림 채널과 텔레그램 연동을 설정합니다.</div>
+        <h2 className="text-sm font-bold mb-0.5">알림</h2>
+        <div className="text-sm text-muted-foreground mb-[18px]">알림 수단과 텔레그램 연결을 설정합니다.</div>
         <TelegramSection hasTelegram={user?.hasTelegram ?? false} telegramBotUsername={user?.telegramBotUsername} currentChannel={notificationChannel} />
         <NotificationSettings currentChannel={notificationChannel} hasTelegram={user?.hasTelegram ?? false} />
         <div className="flex items-center gap-[14px] py-3">
           <div className="flex-1"><div className="text-sm font-bold">매매 알림</div><div className="text-sm text-muted-foreground mt-0.5">매매 체결 결과 알림</div></div>
-          <TradingAlertToggle type="TRADING_ALERT" channel={notificationChannel} />
+          <TradingAlertToggle type="TRADING_ALERT" label="매매 알림" channel={notificationChannel} />
         </div>
         <div className="flex items-center gap-[14px] py-3 border-t border-border">
           <div className="flex-1"><div className="text-sm font-bold">장 시작/마감 알림</div><div className="text-sm text-muted-foreground mt-0.5">미국 장 개시 및 마감 시 알림</div></div>
-          <TradingAlertToggle type="MARKET_ALERT" channel={notificationChannel} />
+          <TradingAlertToggle type="MARKET_ALERT" label="장 시작/마감 알림" channel={notificationChannel} />
         </div>
         <div className="flex items-center gap-[14px] py-3 border-t border-border">
           <div className="flex-1"><div className="text-sm font-bold">가계부 등록 알림</div><div className="text-sm text-muted-foreground mt-0.5">이번 달 가계부 미등록 시 월말 알림</div></div>
-          <TradingAlertToggle type="FINANCE_REMINDER" channel={notificationChannel} />
+          <TradingAlertToggle type="FINANCE_REMINDER" label="가계부 등록 알림" channel={notificationChannel} />
         </div>
       </Surface>
 
       <Surface as="section" id="preferences" className="p-6">
-        <div className="text-sm font-bold mb-0.5">환경설정</div>
-        <div className="text-sm text-muted-foreground mb-[18px]">테마와 알림 환경을 조정합니다.</div>
+        <h2 className="text-sm font-bold mb-0.5">환경설정</h2>
+        <div className="text-sm text-muted-foreground mb-[18px]">테마와 잔고 검증을 설정합니다.</div>
         <div className="text-sm font-semibold text-muted-foreground mb-2">테마</div>
         <ThemeCards />
         <div className="mt-5 pt-4 border-t border-border"><BalanceCheckSetting /></div>

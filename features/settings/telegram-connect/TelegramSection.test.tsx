@@ -44,7 +44,7 @@ describe('TelegramSection', () => {
 
     expect(updateMutateMock).toHaveBeenCalledWith(
       { botToken: '123456:ABC', chatId: '-100123456789' },
-      expect.objectContaining({ onSuccess: expect.any(Function), onError: expect.any(Function) })
+      expect.objectContaining({ onSuccess: expect.any(Function) })
     )
   })
 

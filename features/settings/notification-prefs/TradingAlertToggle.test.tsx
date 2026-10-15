@@ -25,7 +25,7 @@ describe('TradingAlertToggle', () => {
 
   it('toggles the preference and calls the mutation when a channel is set', async () => {
     const user = userEvent.setup()
-    render(<TradingAlertToggle type="ORDER_FILLED" channel="TELEGRAM" />)
+    render(<TradingAlertToggle type="ORDER_FILLED" label="매매 알림" channel="TELEGRAM" />)
 
     await user.click(screen.getByRole('switch', { name: '매매 알림' }))
 
@@ -35,9 +35,9 @@ describe('TradingAlertToggle', () => {
   it('blocks the toggle and prompts to pick a channel when notifications are off', async () => {
     meData = { notificationPrefs: { ORDER_FILLED: true } }
     const user = userEvent.setup()
-    render(<TradingAlertToggle type="ORDER_FILLED" channel="NONE" />)
+    render(<TradingAlertToggle type="ORDER_FILLED" label="매매 알림" channel="NONE" />)
 
-    expect(screen.getByText('알림 수단을 먼저 선택하세요')).toBeInTheDocument()
+    expect(screen.getByText('알림 수단을 먼저 선택해주세요')).toBeInTheDocument()
 
     await user.click(screen.getByRole('switch', { name: '매매 알림' }))
 

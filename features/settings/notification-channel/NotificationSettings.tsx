@@ -9,7 +9,7 @@ import { Spinner } from '@shared/ui/Spinner'
 import { SelectionCard } from '@shared/ui/selection-card'
 
 const NOTIFICATION_CHANNELS: { value: NotificationChannel; label: string; desc: string }[] = [
-  { value: 'NONE', label: '끄기', desc: '알림을 받지 않습니다' },
+  { value: 'NONE', label: '끄기', desc: '알림 받지 않음' },
   { value: 'FCM', label: '푸시 알림', desc: '브라우저 / 모바일 푸시' },
   { value: 'TELEGRAM', label: '텔레그램', desc: '텔레그램 봇 알림' },
   { value: 'ALL', label: '모두', desc: '텔레그램 + 푸시 동시 수신' },
@@ -53,7 +53,7 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
 
       if ((next === 'FCM' || next === 'ALL') && fcmStatus !== 'registered') {
         if (!('Notification' in window) || !('PushManager' in window)) {
-          toast.error('이 기기/브라우저에서는 푸시 알림이 지원되지 않습니다. 데스크탑 브라우저를 이용해주세요')
+          toast.error('이 기기/브라우저에서는 푸시 알림이 지원되지 않습니다. 데스크탑 브라우저를 이용해주세요.')
           return
         }
 
@@ -61,9 +61,9 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
         const token = await acquireToken()
         if (!token) {
           if (Notification.permission === 'denied') {
-            toast.error('알림이 차단되어 있습니다. 브라우저 설정 > 알림에서 허용 후 다시 시도해주세요')
+            toast.error('알림이 차단되어 있습니다. 브라우저 설정 > 알림에서 허용 후 다시 시도해주세요.')
           } else {
-            toast.error('푸시 알림 토큰 발급에 실패했습니다. 잠시 후 다시 시도해주세요')
+            toast.error('푸시 알림 토큰 발급에 실패했습니다. 잠시 후 다시 시도해주세요.')
           }
           return
         }
@@ -126,7 +126,7 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
       </div>
 
       {needsTelegram && (
-        <p className="text-sm mt-2" style={{ color: 'var(--warn)' }}>
+        <p className="text-sm mt-2 text-[var(--warn)]">
           텔레그램 알림을 받으려면 위에서 텔레그램 봇을 먼저 연결해주세요.
         </p>
       )}
@@ -136,7 +136,7 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
         </p>
       )}
       {fcmStatus === 'error' && (
-        <p className="text-sm mt-2" style={{ color: 'var(--warn)' }}>
+        <p className="text-sm mt-2 text-[var(--warn)]">
           {/* eslint-disable-next-line react-doctor/no-hydration-branch-on-browser-global -- fcmStatus 'error'는 클라이언트 effect 이후에만 설정되어 SSR 렌더에 도달하지 않음 */}
           {typeof window !== 'undefined' && 'Notification' in window && 'PushManager' in window
             ? '푸시 알림 설정에 실패했습니다. 새로고침 후 다시 시도해주세요.'

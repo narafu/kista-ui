@@ -78,24 +78,12 @@ export function NicknameEditor({ initialNickname }: Props) {
           disabled={mutation.isPending}
           className="w-32 h-7 px-2 text-sm rounded border border-border bg-background focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
         />
-        <button
-          type="button"
-          onClick={save}
-          disabled={mutation.isPending}
-          className="text-[var(--status-ok)] hover:opacity-70 transition-opacity disabled:opacity-50"
-          aria-label="저장"
-        >
+        <IconButton onClick={save} disabled={mutation.isPending} aria-label="저장" className="text-[var(--status-ok)] hover:text-[var(--status-ok)]">
           <Check className="size-4" />
-        </button>
-        <button
-          type="button"
-          onClick={cancel}
-          disabled={mutation.isPending}
-          className="text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-          aria-label="취소"
-        >
+        </IconButton>
+        <IconButton onClick={cancel} disabled={mutation.isPending} aria-label="취소">
           <X className="size-4" />
-        </button>
+        </IconButton>
       </div>
       {error && <p className="text-sm text-[var(--status-error)]">{error}</p>}
     </div>
