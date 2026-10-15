@@ -37,11 +37,11 @@ describe('TradingAlertToggle', () => {
     const user = userEvent.setup()
     render(<TradingAlertToggle type="ORDER_FILLED" label="매매 알림" channel="NONE" />)
 
-    expect(screen.getByText('알림 수단을 먼저 선택해주세요')).toBeInTheDocument()
+    expect(screen.getByText('알림 수단을 먼저 선택하세요')).toBeInTheDocument()
 
     await user.click(screen.getByRole('switch', { name: '매매 알림' }))
 
-    expect(toastInfoMock).toHaveBeenCalledWith('알림 수단을 먼저 선택해주세요')
+    expect(toastInfoMock).toHaveBeenCalledWith('알림 수단을 먼저 선택하세요')
     expect(mutateMock).not.toHaveBeenCalled()
   })
 })

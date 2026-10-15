@@ -60,6 +60,7 @@ interface LayoutProps {
   usesDivisionCount: boolean
   isVr: boolean
   scheduledStart: boolean
+  typeLabel: string
   seedLabel: string
   seedBadgeCls: string
   statusLabel: string | null
@@ -70,13 +71,13 @@ function InitialDeposit({ value }: { value: Strategy['initialUsdDeposit'] }) {
   return value != null ? `$${fmtUsd(value)}` : <span className="text-muted-foreground font-normal">미설정</span>
 }
 
-function MobileLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, seedLabel, seedBadgeCls, statusLabel, orderSignal }: LayoutProps) {
+function MobileLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, typeLabel, seedLabel, seedBadgeCls, statusLabel, orderSignal }: LayoutProps) {
   // 모바일: 2행 레이아웃
   return (
     <div className="flex flex-col gap-1.5 pl-5 pr-4 py-3 lg:hidden">
       {/* 1행: 배지 + 계좌명 */}
       <div data-testid="strategy-card-mobile-top-row" className="flex flex-wrap items-center gap-1.5">
-        <Badge tone="brand" size="sm" className="px-2.5">{strategy.type}</Badge>
+        <Badge tone="brand" size="sm" className="px-2.5">{typeLabel}</Badge>
         {statusLabel && <Badge tone="neutral" size="sm">{statusLabel}</Badge>}
         <OrderSignalBadge signal={orderSignal} />
         {!isVr && <Badge tone="none" size="sm" className={seedBadgeCls}>{seedLabel}</Badge>}
@@ -119,7 +120,7 @@ function MobileLayout({ strategy, accountLabel, usesDivisionCount, isVr, schedul
   )
 }
 
-function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, seedLabel, seedBadgeCls, statusLabel, orderSignal }: LayoutProps) {
+function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, typeLabel, seedLabel, seedBadgeCls, statusLabel, orderSignal }: LayoutProps) {
   // PC: 카드 형태
   return (
     <div className="hidden lg:flex flex-col">
@@ -127,7 +128,7 @@ function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledSt
         {/* 배지 row + 계좌명 우측 */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex flex-wrap items-center gap-1.5">
-            <Badge tone="brand" size="md" className="h-[22px]">{strategy.type}</Badge>
+            <Badge tone="brand" size="md" className="h-[22px]">{typeLabel}</Badge>
             {statusLabel && <Badge tone="neutral" size="sm" className="h-[22px]">{statusLabel}</Badge>}
             <OrderSignalBadge signal={orderSignal} className="h-[22px]" />
             {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
@@ -205,7 +206,7 @@ function CycleStrategyCard({ accountId, strategy, accountLabel }: Props) {
   // 미리보기는 일시중지 중에도 계획·부족 판정을 내려준다 — 실행되지 않을 주문의 경고를 띄우지 않도록 운영중일 때만 표시 (NextOrderCard와 동일)
   const orderSignal = strategy.status === 'ACTIVE' ? getOrderSignal(readiness, hasTodayOrders) : null
 
-  const layoutProps: LayoutProps = { strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, seedLabel, seedBadgeCls, statusLabel, orderSignal }
+  const layoutProps: LayoutProps = { strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, typeLabel: labelOf('strategyTypes', strategy.type), seedLabel, seedBadgeCls, statusLabel, orderSignal }
 
   return (
     <Link

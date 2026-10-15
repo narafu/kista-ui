@@ -8,6 +8,7 @@ import { TableDataCell } from '@shared/ui/TableDataCell'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtSignedUsd, pnlTextClass, fmtSignedPercent } from '@shared/lib/format'
 import type { CyclePerformance } from '@entities/stats'
+import { useMeta } from '@entities/meta'
 import type { Account } from '@entities/account'
 
 interface Props {
@@ -28,6 +29,7 @@ function Period({ cycle }: { cycle: CyclePerformance }) {
 }
 
 function CycleTable({ cycles, accountsById }: Props) {
+  const { labelOf } = useMeta()
   return (
     <div className="hidden overflow-x-auto sm:block" role="region" aria-label="사이클 성과 표" tabIndex={0}>
       <table className="w-full min-w-[800px] text-sm" aria-label="사이클 성과">
@@ -55,7 +57,7 @@ function CycleTable({ cycles, accountsById }: Props) {
               </TableDataCell>
               <TableDataCell>
                 <Badge tone="brand" size="sm">
-                  {cycle.strategyType}
+                  {labelOf('strategyTypes', cycle.strategyType)}
                 </Badge>
               </TableDataCell>
               <TableDataCell className="font-medium tabular-nums">{cycle.ticker ?? '—'}</TableDataCell>
@@ -77,6 +79,7 @@ function CycleTable({ cycles, accountsById }: Props) {
 }
 
 function CycleCardList({ cycles, accountsById }: Props) {
+  const { labelOf } = useMeta()
   return (
     <ul className="divide-y sm:hidden list-none p-0 m-0" aria-label="사이클 성과">
       {cycles.map((cycle) => (
@@ -89,7 +92,7 @@ function CycleCardList({ cycles, accountsById }: Props) {
                 </Badge>
               )}
               <Badge tone="brand" size="sm">
-                {cycle.strategyType}
+                {labelOf('strategyTypes', cycle.strategyType)}
               </Badge>
             </div>
             <span className="text-xs text-muted-foreground">

@@ -5,6 +5,8 @@ import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { LoadingRow } from '@shared/ui/LoadingRow'
+import { SectionError } from '@shared/ui/SectionError'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { useMeta } from '@entities/meta'
 import {
@@ -28,7 +30,7 @@ import { TypeButton } from './TypeButton'
 export function CategoryManager() {
   const { meta } = useMeta()
   const [type, setType] = useState<FinanceCategoryType>('ASSET')
-  const { data: categories } = useFinanceCategoriesQuery(type)
+  const { data: categories, isError, isPending } = useFinanceCategoriesQuery(type)
   const l1Categories = categories ? sortCategoryTree(categories) : []
 
   // AccountManager와 동일한 조건부 마운트 패턴 — 열 때마다 다이얼로그가 새로 마운트되므로
@@ -76,7 +78,11 @@ export function CategoryManager() {
         </Button>
       </div>
 
-      {l1Categories.length === 0 ? (
+      {isError && !categories ? (
+        <SectionError message="카테고리를 불러오지 못했습니다." />
+      ) : isPending ? (
+        <LoadingRow />
+      ) : l1Categories.length === 0 ? (
         <EmptyState variant="text" message="등록된 카테고리가 없습니다." />
       ) : (
         <ul className="m-0 list-none rounded-[var(--r-lg)] border border-border p-0">

@@ -23,7 +23,7 @@ export function NicknameField({ value, placeholder, showError, onChange, onBlur 
         className="w-full px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />
       {showError && (
-        <p id="nickname-error" className="text-sm text-destructive mt-1">별칭을 입력해주세요.</p>
+        <p id="nickname-error" className="text-sm text-destructive mt-1">별칭을 입력하세요.</p>
       )}
     </div>
   )
@@ -56,7 +56,7 @@ export function AccountNoField({ config, value, showError, onChange, onBlur }: F
       />
       {showError ? (
         <p id="accountno-error" className="text-sm text-destructive mt-1">
-          올바른 계좌번호 형식으로 입력해주세요. (예: {config.placeholder})
+          올바른 계좌번호 형식으로 입력하세요. (예: {config.placeholder})
         </p>
       ) : (
         <p id="accountno-hint" className="text-sm text-muted-foreground mt-1">{config.hint}</p>

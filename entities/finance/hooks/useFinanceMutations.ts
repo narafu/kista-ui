@@ -452,7 +452,7 @@ export function useBulkRegisterFinanceMutation() {
   return useInvalidateFinanceMutation<BulkFinanceRegisterResponse, BulkFinanceRegisterRequest & { shareToGroup?: boolean }>(
     ({ shareToGroup, ...data }) => bulkRegisterFinance(data, { shareToGroup }),
     financeKeys.all,
-    '일괄 등록에 실패했습니다',
+    '일괄 등록에 실패했습니다.',
   )
 }
 

@@ -76,9 +76,9 @@ export function AdminTradesWorkbench({ from, to, initialPage, initialSize }: Pro
 
   const actionError =
     manualError
-    ?? (selectedUserId && accountsQuery.isError ? '계좌 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.' : null)
-    ?? (strategiesQuery.isError ? '전략 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.' : null)
-    ?? (ordersQuery.isError ? '주문 목록을 불러오지 못했습니다. 잠시 후 다시 시도하세요.' : null)
+    ?? (selectedUserId && accountsQuery.isError ? '계좌 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.' : null)
+    ?? (strategiesQuery.isError ? '전략 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.' : null)
+    ?? (ordersQuery.isError ? '주문 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.' : null)
 
   // 기간 필터에 걸린 거래만으로 후보를 만들면 그 기간에 거래가 없는 사용자는 재주문 대상으로 고를 수 없다 — 전체 계좌 소유자와 합친다
   const userOptions = uniqBy(

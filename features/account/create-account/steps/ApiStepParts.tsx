@@ -29,7 +29,7 @@ export function ApiKeyField({ label, value, showError, onChange, onBlur }: KeyFi
       />
       {showError && (
         <p id="api-key-error" className="text-sm text-destructive mt-1">
-          유효한 {label}를 입력해주세요.
+          유효한 {label}를 입력하세요.
         </p>
       )}
     </div>
@@ -71,7 +71,7 @@ export function ApiSecretField({ label, value, showError, onChange, onBlur, show
       </div>
       {showError && (
         <p id="api-secret-error" className="text-sm text-destructive mt-1">
-          유효한 {label}를 입력해주세요.
+          유효한 {label}를 입력하세요.
         </p>
       )}
     </div>

@@ -19,7 +19,7 @@ export function TradingAlertToggle({ type, label, channel }: Props) {
 
   function handleToggle(next: boolean) {
     if (isChannelOff) {
-      toast.info('알림 수단을 먼저 선택해주세요')
+      toast.info('알림 수단을 먼저 선택하세요')
       return
     }
     mutation.mutate({ type, enabled: next })
@@ -35,7 +35,7 @@ export function TradingAlertToggle({ type, label, channel }: Props) {
         className={isChannelOff ? 'opacity-50' : ''}
       />
       {isChannelOff && (
-        <span className="text-sm text-muted-foreground">알림 수단을 먼저 선택해주세요</span>
+        <span className="text-sm text-muted-foreground">알림 수단을 먼저 선택하세요</span>
       )}
     </div>
   )

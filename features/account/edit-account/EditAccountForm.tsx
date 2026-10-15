@@ -129,7 +129,7 @@ export function EditAccountForm({ account }: Props) {
                 <DialogTitle>계좌 삭제 확인</DialogTitle>
                 <DialogDescription>
                   이 작업은 되돌릴 수 없습니다. 계속하려면 계좌 별칭{' '}
-                  <strong className="text-foreground">{account.nickname}</strong>을(를) 정확히 입력해주세요.
+                  <strong className="text-foreground">{account.nickname}</strong>을(를) 정확히 입력하세요.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-2 py-2">

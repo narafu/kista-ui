@@ -9,6 +9,7 @@ import { buttonVariants } from '@/components/ui/button-variants'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { SectionError } from '@shared/ui/SectionError'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
 import { GroupSharedBadge } from '@shared/ui/GroupSharedBadge'
@@ -31,10 +32,11 @@ import {
   useShareFinanceBudgetMutation,
   useUnshareFinanceBudgetMutation,
 } from '@entities/finance'
-import type { FinanceBudget, FlowType } from '@entities/finance'
+import type { FinanceBudget, FinanceCategory, FlowType } from '@entities/finance'
 
 // 조회 전·실패 시 useMemo 의존성 참조를 고정한다
 const EMPTY_BUDGETS: FinanceBudget[] = []
+const EMPTY_CATEGORIES: FinanceCategory[] = []
 
 interface Props {
   type: FlowType
@@ -62,7 +64,8 @@ function budgetStatus(budget: FinanceBudget, today: string): BudgetStatus {
 // 예산 유형은 이 컴포넌트가 스스로 고르지 않는다 — 호출 라우트(/finance/budgets/[type])가
 // 경로에서 고정된 type을 넘긴다(설정 화면의 독립 세그먼트 UI는 폐기).
 export function BudgetManager({ type }: Props) {
-  const { data: categories = [] } = useFinanceCategoriesQuery(type)
+  const categoriesQuery = useFinanceCategoriesQuery(type)
+  const categories = categoriesQuery.data ?? EMPTY_CATEGORIES
   const budgetsQuery = useFinanceBudgetsQuery()
   const allBudgets = budgetsQuery.data ?? EMPTY_BUDGETS
   // 여러 하위 위젯이 공유하는 값이 아니라 이 컴포넌트 하나만 쓰므로 직접 호출한다.
@@ -179,9 +182,9 @@ export function BudgetManager({ type }: Props) {
         </Link>
       </div>
 
-      {!budgetsQuery.data && budgetsQuery.isError ? (
-        <EmptyState variant="text" message="예산 목록을 불러오지 못했습니다." />
-      ) : !budgetsQuery.data ? (
+      {(!budgetsQuery.data && budgetsQuery.isError) || (!categoriesQuery.data && categoriesQuery.isError) ? (
+        <SectionError message="예산 목록을 불러오지 못했습니다." />
+      ) : !budgetsQuery.data || !categoriesQuery.data ? (
         <EmptyState variant="text" message="불러오는 중…" />
       ) : budgets.length === 0 ? (
         <EmptyState variant="text" message="등록된 예산이 없습니다." />

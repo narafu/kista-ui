@@ -25,7 +25,8 @@ export function FlowPageView({ type }: { type: FlowCategoryType }) {
     categoryTree,
     budgets,
     isFlowLoading,
-    isTransactionsError,
+    isFlowError,
+    isBudgetsError,
     registerWindow,
   } = useFinanceFlowData(type)
 
@@ -45,7 +46,7 @@ export function FlowPageView({ type }: { type: FlowCategoryType }) {
         transactions={transactions}
         index={categoryIndex}
         isLoading={isFlowLoading}
-        isError={isTransactionsError}
+        isError={isFlowError}
         period={period}
         onPeriodChange={setPeriod}
         previousYearTransactions={previousYearTransactions}
@@ -59,7 +60,7 @@ export function FlowPageView({ type }: { type: FlowCategoryType }) {
         index={categoryIndex}
         period={period}
         isLoading={isFlowLoading}
-        isError={isTransactionsError}
+        isError={isFlowError || isBudgetsError}
         today={today}
         onCategorySelect={handleCategorySelect}
       />
@@ -84,7 +85,7 @@ export function FlowPageView({ type }: { type: FlowCategoryType }) {
           period={period}
           isLoading={isFlowLoading}
           today={today}
-          isError={isTransactionsError}
+          isError={isFlowError}
           registerWindowFrom={registerWindow.from}
           registerWindowTo={registerWindow.to}
           categoryPath={categoryPath}

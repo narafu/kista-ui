@@ -80,10 +80,17 @@ export function useFinanceFlowData(flowType: FlowCategoryType) {
     isError: isTrendError,
   } = useFinanceTransactionsQuery(trendRangeWindow.from, trendRangeWindow.to)
 
-  const { data: incomeCategories = [], isLoading: isIncomeCategoriesLoading } = useFinanceCategoriesQuery('INCOME')
-  const { data: expenseCategories = [], isLoading: isExpenseCategoriesLoading } = useFinanceCategoriesQuery('EXPENSE')
-  const { data: savingCategories = [], isLoading: isSavingCategoriesLoading } = useFinanceCategoriesQuery('SAVING')
-  const { data: budgets = [] } = useFinanceBudgetsQuery()
+  const { data: incomeCategories = [], isLoading: isIncomeCategoriesLoading, isError: isIncomeCategoriesError } = useFinanceCategoriesQuery('INCOME')
+  const { data: expenseCategories = [], isLoading: isExpenseCategoriesLoading, isError: isExpenseCategoriesError } = useFinanceCategoriesQuery('EXPENSE')
+  const { data: savingCategories = [], isLoading: isSavingCategoriesLoading, isError: isSavingCategoriesError } = useFinanceCategoriesQuery('SAVING')
+  const { data: budgets = [], isError: isBudgetsError } = useFinanceBudgetsQuery()
+
+  // 카테고리 조회가 실패하면 거래가 카테고리 인덱스에 매칭되지 않아 "내역 없음"으로 보인다 — 실패로 묶어 오류를 띄운다
+  const isFlowError =
+    isTransactionsError ||
+    isIncomeCategoriesError ||
+    isExpenseCategoriesError ||
+    isSavingCategoriesError
 
   const isFlowLoading =
     isTransactionsLoading ||
@@ -117,7 +124,8 @@ export function useFinanceFlowData(flowType: FlowCategoryType) {
     categoryTree: categoryTreeByType[flowType],
     budgets,
     isFlowLoading,
-    isTransactionsError,
+    isFlowError,
+    isBudgetsError,
     registerWindow,
   }
 }

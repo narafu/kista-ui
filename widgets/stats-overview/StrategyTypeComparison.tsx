@@ -6,12 +6,14 @@ import { EmptyState } from '@shared/ui/EmptyState'
 import { fmtSignedUsd, pnlTextClass, fmtSignedPercent } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import type { StrategyTypeStats } from '@entities/stats'
+import { useMeta } from '@entities/meta'
 
 interface Props {
   byType: StrategyTypeStats[]
 }
 
 export function StrategyTypeComparison({ byType }: Props) {
+  const { labelOf } = useMeta()
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
@@ -39,7 +41,7 @@ export function StrategyTypeComparison({ byType }: Props) {
                     <tr key={t.type} className="border-t hover:bg-muted/30 transition-colors">
                       <TableDataCell>
                         <Badge tone="brand" size="md">
-                          {t.type}
+                          {labelOf('strategyTypes', t.type)}
                         </Badge>
                       </TableDataCell>
                       <TableDataCell className="tabular-nums text-muted-foreground">
@@ -60,7 +62,7 @@ export function StrategyTypeComparison({ byType }: Props) {
               {byType.map((item) => (
                 <li key={item.type} className="px-4 py-4">
                   <Badge tone="brand" size="md">
-                    {item.type}
+                    {labelOf('strategyTypes', item.type)}
                   </Badge>
                   <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                     <div>

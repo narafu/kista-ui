@@ -29,8 +29,8 @@ describe('TelegramSection', () => {
 
     await user.click(screen.getByRole('button', { name: '연결하기' }))
 
-    expect(screen.getByText('Bot Token을 입력해주세요')).toBeInTheDocument()
-    expect(screen.getByText('Chat ID를 입력해주세요')).toBeInTheDocument()
+    expect(screen.getByText('Bot Token을 입력하세요')).toBeInTheDocument()
+    expect(screen.getByText('Chat ID를 입력하세요')).toBeInTheDocument()
     expect(updateMutateMock).not.toHaveBeenCalled()
   })
 

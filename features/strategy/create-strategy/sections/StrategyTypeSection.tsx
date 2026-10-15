@@ -4,6 +4,7 @@ import { Zap, Activity } from 'lucide-react'
 import { SelectionCard } from '@shared/ui/selection-card'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import type { Strategy } from '@entities/strategy'
+import { useMeta } from '@entities/meta'
 import type { StrategyTypeMeta } from '@entities/meta'
 
 interface Props {
@@ -15,13 +16,14 @@ interface Props {
 }
 
 export function StrategyTypeSection({ initial, type, setType, loading, strategyTypes }: Props) {
+  const { labelOf } = useMeta()
   return (
     <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel>매매 전략</StrategyFieldLabel>
       {initial ? (
         <div className="flex items-center gap-2 px-[14px] py-3 rounded-[var(--r-sm)] border border-border bg-muted">
           <span className="text-sm font-[800] text-rose-600">
-            {initial.type}
+            {labelOf('strategyTypes', initial.type)}
           </span>
         </div>
       ) : (
@@ -46,7 +48,7 @@ export function StrategyTypeSection({ initial, type, setType, loading, strategyT
                   {singleTicker ? <Activity size={16} /> : <Zap size={16} />}
                 </span>
                 <span className="text-sm font-[800]">
-                  {t.code}
+                  {labelOf('strategyTypes', t.code)}
                 </span>
               </SelectionCard>
             )

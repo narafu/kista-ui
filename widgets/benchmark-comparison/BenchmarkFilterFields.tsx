@@ -3,6 +3,7 @@
 import type { Account } from '@entities/account'
 import type { EtfBenchmarkSymbol, HousingBenchmarkRegion } from '@entities/stats'
 import type { Strategy } from '@entities/strategy'
+import { useMeta } from '@entities/meta'
 import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
 import { toMonthInput } from './model/benchmarkPeriods'
 import type { EtfBenchmarkContent } from './housingBenchmarkContent'
@@ -30,6 +31,7 @@ export function StrategySelect({
   strategySelection: string
   setStrategySelection: (value: string) => void
 }) {
+  const { labelOf } = useMeta()
   return (
     <label className="grid gap-1 text-xs font-medium text-muted-foreground">
       전략
@@ -50,7 +52,7 @@ export function StrategySelect({
           const nickname = accountsById.get(strategy.accountId)?.nickname
           return (
             <option key={strategy.id} value={strategy.id}>
-              {nickname ? `[${nickname}] ` : ''}{strategy.type} · {strategy.ticker}
+              {nickname ? `[${nickname}] ` : ''}{labelOf('strategyTypes', strategy.type)} · {strategy.ticker}
             </option>
           )
         })}

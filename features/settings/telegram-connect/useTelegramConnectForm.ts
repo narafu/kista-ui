@@ -32,8 +32,8 @@ export function useTelegramConnectForm(currentChannel: NotificationChannel, onCo
   }
 
   function save() {
-    const nextBotTokenError = botToken.trim() ? '' : 'Bot Token을 입력해주세요'
-    const nextChatIdError = chatId.trim() ? '' : 'Chat ID를 입력해주세요'
+    const nextBotTokenError = botToken.trim() ? '' : 'Bot Token을 입력하세요'
+    const nextChatIdError = chatId.trim() ? '' : 'Chat ID를 입력하세요'
     setBotTokenError(nextBotTokenError)
     setChatIdError(nextChatIdError)
     if (nextBotTokenError || nextChatIdError) return

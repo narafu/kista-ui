@@ -22,8 +22,10 @@ export function MetaProvider({ children, meta }: { children: React.ReactNode; me
     findBroker: (code) => meta.brokers.find(b => b.code === code),
     findStrategyStatus: (code) => meta.strategyStatuses.find(s => s.code === code),
     labelOf: (category, code) => {
-      const items = (meta[category] ?? []) as { code: string; label: string }[]
-      return items.find(i => i.code === code)?.label ?? code
+      // strategyTypes는 label 없이 description이 한글 이름이다 — label이 없으면 description으로 폴백
+      const items = (meta[category] ?? []) as { code: string; label?: string; description?: string }[]
+      const item = items.find(i => i.code === code)
+      return item?.label ?? item?.description ?? code
     },
   }), [meta])
   return <MetaContext.Provider value={value}>{children}</MetaContext.Provider>

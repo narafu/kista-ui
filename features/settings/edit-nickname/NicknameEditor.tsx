@@ -37,11 +37,11 @@ export function NicknameEditor({ initialNickname }: Props) {
   function save() {
     const trimmed = value.trim()
     if (!trimmed) {
-      setError('닉네임을 입력해주세요.')
+      setError('닉네임을 입력하세요.')
       return
     }
     if (!NICKNAME_REGEX.test(trimmed)) {
-      setError('한글·영문·숫자·공백 1~10자로 입력해주세요.')
+      setError('한글·영문·숫자·공백 1~10자로 입력하세요.')
       return
     }
     mutation.mutate(trimmed, { onSuccess: () => setEditing(false) })

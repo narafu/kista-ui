@@ -2,6 +2,7 @@
 
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import type { StrategyTypeStats } from '@entities/stats'
+import { useMeta } from '@entities/meta'
 
 interface Props {
   strategyTypes: StrategyTypeStats[]
@@ -17,10 +18,11 @@ const ALL = ''
  * EquityCurveChart 실패 시에도 CyclePerformanceList 필터링이 가능하도록 독립 컴포넌트로 분리됨.
  */
 export function StrategyTypeFilterToggle({ strategyTypes, strategyTypeFilter, onStrategyTypeFilterChange }: Props) {
+  const { labelOf } = useMeta()
   return (
     <SegmentedToggle
       aria-label="전략 타입"
-      options={[{ value: ALL, label: '전체' }, ...strategyTypes.map(({ type }) => ({ value: type, label: type }))]}
+      options={[{ value: ALL, label: '전체' }, ...strategyTypes.map(({ type }) => ({ value: type, label: labelOf('strategyTypes', type) }))]}
       value={strategyTypeFilter ?? ALL}
       onChange={(type) => onStrategyTypeFilterChange(type === ALL ? undefined : type)}
       className="-mx-1 flex max-w-full items-center gap-0.5 overflow-x-auto"

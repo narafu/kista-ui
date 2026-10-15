@@ -97,7 +97,7 @@ export function AssetRecordCheck({ month }: Props) {
             <div className="flex items-start gap-1.5 rounded-[var(--r-md)] border border-[var(--info)] bg-[var(--info-bg)] px-3 py-2 text-sm text-[var(--info)]">
               <CalendarClock className="size-4 mt-0.5 shrink-0" />
               <span>
-                이번 달 기록이 여러 날짜({dateGroups.map((group) => formatMonthDay(group.date)).join(', ')})에 나뉘어 있습니다. 확인해주세요.
+                이번 달 기록이 여러 날짜({dateGroups.map((group) => formatMonthDay(group.date)).join(', ')})에 나뉘어 있습니다. 확인하세요.
               </span>
             </div>
           </section>

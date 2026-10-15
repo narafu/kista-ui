@@ -6,6 +6,11 @@ import { StatsOverview } from './StatsOverview'
 import { statsKeys } from '@entities/stats'
 import type { EquityCurve, StatsSummary } from '@entities/stats'
 
+// 전략 타입 라벨은 메타(description)가 SSOT — 테스트에선 코드를 그대로 돌려준다
+vi.mock('@entities/meta', () => ({
+  useMeta: () => ({ labelOf: (_category: string, code: string) => code }),
+}))
+
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
   useRouter: () => ({ push: vi.fn() }),

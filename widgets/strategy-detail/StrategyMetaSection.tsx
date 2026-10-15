@@ -55,12 +55,13 @@ interface TopGridProps {
 }
 
 function TopGrid({ strategy, cycleSeedLabel }: TopGridProps) {
+  const { labelOf } = useMeta()
   const seedBadgeCls = seedBadgeClass(strategy.cycleSeedType)
   return (
     <div data-testid="strategy-meta-grid" className="grid grid-cols-2 gap-3">
       <KpiCard
         label="전략타입"
-        value={<span className="inline-flex items-center text-xl lg:text-2xl font-bold">{strategy.type}</span>}
+        value={<span className="inline-flex items-center text-xl lg:text-2xl font-bold">{labelOf('strategyTypes', strategy.type)}</span>}
         className="p-4 lg:p-5"
         valueClassName="text-xl lg:text-2xl"
       />

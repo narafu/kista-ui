@@ -20,7 +20,7 @@ function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
     <EmptyState
       icon={<TrendingUp className="size-7 text-muted-foreground" />}
       title="등록된 전략이 없습니다"
-      message={hasAccounts ? '전략을 추가할 계좌를 선택해주세요.' : '계좌를 먼저 등록한 후 전략을 추가해주세요.'}
+      message={hasAccounts ? '전략을 추가할 계좌를 선택하세요.' : '계좌를 먼저 등록한 후 전략을 추가하세요.'}
       action={
         hasAccounts ? (
           // 헤더의 "전략 추가"와 같은 생성 라우트(PC는 @modal 인터셉트)로 바로 보낸다

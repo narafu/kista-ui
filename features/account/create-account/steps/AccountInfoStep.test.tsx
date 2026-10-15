@@ -41,7 +41,7 @@ describe('AccountInfoStep', () => {
     await user.type(screen.getByLabelText(/계좌번호/), '123')
     await user.tab()
 
-    expect(screen.getByText(/올바른 계좌번호 형식으로 입력해주세요/)).toBeInTheDocument()
+    expect(screen.getByText(/올바른 계좌번호 형식으로 입력하세요/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '다음' })).toBeDisabled()
     expect(onNext).not.toHaveBeenCalled()
   })

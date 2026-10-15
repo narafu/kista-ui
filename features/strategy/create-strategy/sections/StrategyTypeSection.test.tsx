@@ -2,6 +2,11 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { StrategyTypeSection } from './StrategyTypeSection'
 
+// 전략 타입 라벨은 메타(description)가 SSOT — 테스트에선 코드를 그대로 돌려준다
+vi.mock('@entities/meta', () => ({
+  useMeta: () => ({ labelOf: (_category: string, code: string) => code }),
+}))
+
 describe('StrategyTypeSection', () => {
   it('shows a genuine all-disabled state when no enabled type remains', () => {
     render(<StrategyTypeSection type="" setType={vi.fn()} loading={false} strategyTypes={[]} />)

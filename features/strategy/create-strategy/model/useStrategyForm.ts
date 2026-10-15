@@ -236,7 +236,7 @@ export function useStrategyForm({
         vrFields, vrDerived, scheduledStartDate,
       }))
     }, () => {
-      setResolverValidationReason('입력값을 다시 확인해주세요.')
+      setResolverValidationReason('입력값을 다시 확인하세요.')
     })(e)
   }
 
