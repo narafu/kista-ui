@@ -22,11 +22,12 @@ const RANGE_DAYS: Record<Exclude<RangeKey, 'ALL'>, number> = {
 }
 
 /** range 프리셋 → equity-curve API의 from 파라미터. 'ALL'은 제한 없음(undefined). */
+// to(서버가 정한 KST 오늘)를 기준으로 UTC 연산 — 로컬 Date 연산은 서머타임 시간대에서 하루 어긋날 수 있다
 function rangeToFrom(range: RangeKey, to: string): string | undefined {
   if (range === 'ALL') return undefined
-  const toDate = new Date(to)
-  toDate.setDate(toDate.getDate() - RANGE_DAYS[range])
-  return toDate.toISOString().slice(0, 10)
+  const date = new Date(`${to}T00:00:00Z`)
+  date.setUTCDate(date.getUTCDate() - RANGE_DAYS[range])
+  return date.toISOString().slice(0, 10)
 }
 
 interface Props {
@@ -81,6 +82,7 @@ export function StatsOverview({ defaultFrom, defaultTo }: Props) {
           <CurveSection
             failed={curveFailed}
             rows={rows}
+            stale={curveQuery.isPlaceholderData}
             range={range}
             onRangeChange={setRange}
             strategyTypes={byType}

@@ -14,6 +14,7 @@ export function SummarySection({ failed, summary }: { failed: boolean; summary?:
 interface CurveProps {
   failed: boolean
   rows: NormalizedRow[]
+  stale: boolean
   range: RangeKey
   onRangeChange: (range: RangeKey) => void
   strategyTypes: StrategyTypeStats[]

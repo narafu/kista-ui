@@ -122,7 +122,7 @@ describe('StatsOverview', () => {
     expect(within(strategyTable).getByText('INFINITE')).toBeInTheDocument()
     expect(within(strategyTable).getByText('PRIVACY')).toBeInTheDocument()
 
-    const cycleMobile = screen.getByRole('list', { name: '사이클 성과 모바일' })
+    const cycleMobile = screen.getByRole('list', { name: '사이클 성과' })
     expect(cycleMobile).toHaveClass('sm:hidden')
     for (const label of ['손익', '수익률']) {
       expect(within(cycleMobile).getByText(label)).toBeInTheDocument()
@@ -132,7 +132,7 @@ describe('StatsOverview', () => {
     const activeCycleCard = within(cycleMobile).getByRole('listitem')
     expect(activeCycleCard.textContent?.match(/진행 중/g)).toHaveLength(1)
 
-    const strategyMobile = screen.getByRole('list', { name: '전략 유형 비교 모바일' })
+    const strategyMobile = screen.getByRole('list', { name: '전략 유형 비교' })
     expect(strategyMobile).toHaveClass('sm:hidden')
     for (const label of ['사이클', '평균 수익률', '평균 소요일', '실현손익', '미실현']) {
       expect(within(strategyMobile).getAllByText(label).length).toBeGreaterThan(0)
@@ -142,8 +142,8 @@ describe('StatsOverview', () => {
     expect(within(strategyMobile).getByText('INFINITE')).toBeInTheDocument()
     expect(screen.queryByText('무한매수법')).not.toBeInTheDocument()
 
-    const threeMonths = screen.getByRole('button', { name: '3M' })
-    const oneMonth = screen.getByRole('button', { name: '1M' })
+    const threeMonths = screen.getByRole('button', { name: '3개월' })
+    const oneMonth = screen.getByRole('button', { name: '1개월' })
     expect(threeMonths).toHaveAttribute('aria-pressed', 'true')
     expect(oneMonth).toHaveAttribute('aria-pressed', 'false')
     await user.click(oneMonth)

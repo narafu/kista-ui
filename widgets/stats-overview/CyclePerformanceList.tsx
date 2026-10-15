@@ -7,6 +7,7 @@ import { useAllStrategiesQuery } from '@entities/strategy'
 import { useMemo, useState } from 'react'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
+import { Badge } from '@shared/ui/Badge'
 import { CycleListBody, FilterSelect } from './CycleRows'
 
 const ALL = 'ALL'
@@ -68,7 +69,11 @@ export function CyclePerformanceList({ typeFilter }: Props) {
   return (
     <Card className="overflow-hidden">
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 pb-3">
-        <CardTitle className="text-base lg:text-lg">사이클 성과</CardTitle>
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-base lg:text-lg"><h2>사이클 성과</h2></CardTitle>
+          {/* 전략 타입 필터는 자산 추이 카드 헤더에 있지만 이 목록에도 걸린다 — 적용 중임을 여기서도 보여준다 */}
+          {typeFilter && <Badge tone="brand" size="sm">{typeFilter}</Badge>}
+        </div>
         <div className="flex flex-wrap gap-2">
           <FilterSelect items={STATUS_OPTIONS} value={status} onChange={withPageReset(setStatus)} ariaLabel="상태" triggerClassName="w-28" />
           <FilterSelect items={accountOptions} value={accountId} onChange={withPageReset(setAccountId)} ariaLabel="계좌" triggerClassName="w-32" />

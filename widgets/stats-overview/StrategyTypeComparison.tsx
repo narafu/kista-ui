@@ -15,14 +15,14 @@ export function StrategyTypeComparison({ byType }: Props) {
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base lg:text-lg">전략 유형 비교</CardTitle>
+        <CardTitle className="text-base lg:text-lg"><h2>전략 유형 비교</h2></CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         {byType.length === 0 ? (
           <EmptyState variant="text" message="비교할 전략 데이터가 없습니다." />
         ) : (
           <>
-            <div className="hidden overflow-x-auto sm:block">
+            <div className="hidden overflow-x-auto sm:block" role="region" aria-label="전략 유형 비교 표" tabIndex={0}>
               <table className="w-full text-base">
                 <thead className="bg-muted/50">
                   <tr>
@@ -56,7 +56,7 @@ export function StrategyTypeComparison({ byType }: Props) {
                 </tbody>
               </table>
             </div>
-            <ul className="divide-y sm:hidden list-none p-0 m-0" aria-label="전략 유형 비교 모바일">
+            <ul className="divide-y sm:hidden list-none p-0 m-0" aria-label="전략 유형 비교">
               {byType.map((item) => (
                 <li key={item.type} className="px-4 py-4">
                   <Badge tone="brand" size="md">
