@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeAll, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { MarketChartCategory } from './marketChartCategories'
 import MarketChartCardInner from './MarketChartCardInner'
 
@@ -53,6 +53,10 @@ const category: MarketChartCategory = {
 }
 
 describe('MarketChartCardInner', () => {
+  afterEach(() => {
+    useCandlesQueryMock.mockReturnValue({ data: [] })
+  })
+
   it('keeps the chart when a refetch fails but candles are already loaded', () => {
     const data = [{ date: '2026-10-01', open: 1, high: 2, low: 1, close: 2, volume: 0 }]
     useCandlesQueryMock.mockReturnValue({ data })
@@ -64,7 +68,19 @@ describe('MarketChartCardInner', () => {
 
     expect(screen.queryByText('시장 차트를 불러오지 못했습니다.')).not.toBeInTheDocument()
     expect(createChartMock).not.toHaveBeenCalled()
-    useCandlesQueryMock.mockReturnValue({ data: [] })
+  })
+
+  it('builds the chart in the container mounted once loading finishes', () => {
+    const data = [{ date: '2026-10-01', open: 1, high: 2, low: 1, close: 2, volume: 0 }]
+    useCandlesQueryMock.mockReturnValue({ data: undefined, isPending: true })
+    const { rerender } = render(<MarketChartCardInner category={category} />)
+    createChartMock.mockClear()
+
+    useCandlesQueryMock.mockReturnValue({ data })
+    rerender(<MarketChartCardInner category={category} />)
+
+    expect(screen.getByRole('figure')).toBeInTheDocument()
+    expect(createChartMock).toHaveBeenCalledTimes(1)
   })
 
   it('distinguishes loading from an empty candle response', () => {
@@ -116,7 +132,6 @@ describe('MarketChartCardInner', () => {
 
     expect(screen.getByRole('button', { name: 'RSI' })).toHaveAttribute('aria-pressed', 'true')
     expect(addSeriesMock.mock.calls.some((call) => call[2] === 1)).toBe(true)
-    useCandlesQueryMock.mockReturnValue({ data: [] })
   })
 
   it('switches the queried symbol when a different option is selected', async () => {

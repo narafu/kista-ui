@@ -90,6 +90,13 @@ describe('CycleHistoryTable', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('다음 내역을 불러오지 못했습니다.')
   })
 
+  it('hides the retry hint while the next page is being refetched', () => {
+    const useHistoryQuery = makeHook({ cycleHistory: [itemA], hasNextPage: true, isFetchNextPageError: true, isFetchingNextPage: true })
+    render(<CycleHistoryTable title="잔고 이력" id="account-1" useHistoryQuery={useHistoryQuery} />)
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
   it('computes the eval amount from avgPrice * holdings and falls back to - when avgPrice is missing', () => {
     const useHistoryQuery = makeHook({ cycleHistory: [itemA, itemB] })
     render(<CycleHistoryTable title="잔고 이력" id="account-1" useHistoryQuery={useHistoryQuery} />)
