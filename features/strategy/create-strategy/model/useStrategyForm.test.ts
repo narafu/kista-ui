@@ -102,6 +102,7 @@ vi.mock('@entities/account', () => ({
 
 vi.mock('@entities/strategy', async () => ({
   ...(await import('@entities/strategy/model/vrRamp')),
+  ...(await import('@entities/strategy/model/poolLimitRamp')),
   useCreateStrategyMutation: (_accountId: string, onSuccess?: (saved?: { todayOpenBatchMissed?: boolean }) => void) => {
     createSuccessHandler = onSuccess
     return {

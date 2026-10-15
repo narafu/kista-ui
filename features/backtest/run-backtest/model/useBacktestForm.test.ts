@@ -95,7 +95,7 @@ describe('useBacktestForm', () => {
       result.current.setDivisionCount(20)
     })
 
-    expect(result.current.submitDisabledReason).toBe('예수금 또는 평단가·수량 중 하나는 입력하세요')
+    expect(result.current.submitDisabledReason).toBe('예수금 또는 평단가·수량 중 하나는 입력하세요.')
   })
 
   it('수량만 입력하고 평단가를 비우면 제출을 막는다', async () => {
@@ -109,7 +109,7 @@ describe('useBacktestForm', () => {
       result.current.setQuantity(10)
     })
 
-    expect(result.current.submitDisabledReason).toBe('수량을 입력했다면 평단가도 입력하세요')
+    expect(result.current.submitDisabledReason).toBe('수량을 입력했다면 평단가도 입력하세요.')
   })
 
   it('평단가·수량만으로도(예수금 0) 제출 가능하다', async () => {
@@ -145,7 +145,7 @@ describe('useBacktestForm', () => {
       result.current.setTo('2026-01-01')
     })
 
-    expect(result.current.submitDisabledReason).toBe('시작일이 종료일보다 늦을 수 없습니다')
+    expect(result.current.submitDisabledReason).toBe('시작일이 종료일보다 늦을 수 없습니다.')
   })
 
   it('VR은 밴드폭·주기를 runtime 기본값으로 채워 초기V값 없이도 제출 가능하다', async () => {
@@ -280,7 +280,7 @@ describe('useBacktestForm', () => {
       result.current.setVrInitialValue(5000)
       result.current.setVrRampField('gMax', 5)
     })
-    expect(result.current.submitDisabledReason).toBe('gradient 상한은 초기 gradient 이상이어야 합니다')
+    expect(result.current.submitDisabledReason).toBe('gradient 상한은 초기값 이상이어야 합니다.')
   })
 
   it('마지막 실행 입력과 현재 입력이 다르면 결과를 낡음으로 표시한다', async () => {
@@ -316,7 +316,7 @@ describe('useBacktestForm', () => {
       result.current.setTo('2026-06-01')
       result.current.setVrRampField('initialGradient', 10.5)
     })
-    expect(result.current.submitDisabledReason).toBe('gradient와 주 단위 값은 정수로 입력하세요')
+    expect(result.current.submitDisabledReason).toBe('gradient와 주 단위 값은 정수로 입력하세요.')
   })
 
   it('사이클 연속 정책은 INFINITE·PRIVACY에만 전달하고 VR에선 생략한다', async () => {

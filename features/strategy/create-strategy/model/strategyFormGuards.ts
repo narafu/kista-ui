@@ -1,5 +1,5 @@
 import { fmtUsd, todayKst } from '@shared/lib/format'
-import { POOL_LIMIT_FLOOR_ZERO_MESSAGE } from '@entities/strategy'
+import { vrRampInvalidReason } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import type { RuntimeConfig, RuntimeFieldSettings, RuntimeStrategyType } from '@entities/runtime-config'
 import type { DivisionCount } from './strategyFormSchema'
@@ -174,15 +174,11 @@ export function computeSubmitDisabledReason(input: {
           if (normalizedRecurringAmount < 0 && evaluatedAssets < requiredWithdrawalAssets) {
             return `인출식은 초기 자산이 $${fmtUsd(requiredWithdrawalAssets)} 이상이어야 합니다.`
           }
-          if (gStepWeeks !== 0 && gMax !== null && gMax < effectiveInitialGradient) {
-            return 'gradient 상한은 초기값 이상이어야 합니다.'
-          }
-          if (poolLimitFloor !== null && poolLimitFloor > effectiveInitialPoolLimitRate) {
-            return 'poolLimitRate 하한은 초기값 이하여야 합니다.'
-          }
-          if (poolLimitFloor === 0 && pStepWeeks !== 0) {
-            return POOL_LIMIT_FLOOR_ZERO_MESSAGE
-          }
+          const rampReason = vrRampInvalidReason({
+            gStepWeeks, gMax, pStepWeeks, poolLimitFloor,
+            initialGradient: effectiveInitialGradient, initialPoolLimitRate: effectiveInitialPoolLimitRate,
+          })
+          if (rampReason) return rampReason
           if (isRuntimeValueInvalid) return '현재 허용되지 않는 설정이 선택되었습니다.'
           return null
         })()

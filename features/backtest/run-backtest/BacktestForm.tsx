@@ -25,8 +25,8 @@ export function BacktestForm({ form }: Props) {
     <Card>
       <CardContent className="flex flex-col gap-5 pt-6">
         <div>
-          <Label className={FIELD_LABEL_CLASS}>매매 전략</Label>
-          <div className="grid grid-cols-2 gap-2.5">
+          <Label id="backtestTypeLabel" className={FIELD_LABEL_CLASS}>매매 전략</Label>
+          <div role="group" aria-labelledby="backtestTypeLabel" className="grid grid-cols-2 gap-2.5">
             {/* 백엔드 백테스트는 DCA 미지원(spec 3.5) — 지원 추가 시 필터 제거 */}
             {form.meta.strategyTypes.filter((t) => t.code !== 'DCA').map((t) => {
               const selected = form.type === t.code
@@ -116,8 +116,8 @@ export function BacktestForm({ form }: Props) {
 
         {form.type === 'INFINITE' && form.divisionCountOptions.length > 0 && (
           <div>
-            <Label className={FIELD_LABEL_CLASS}>분할 수</Label>
-            <div className="flex gap-2">
+            <Label id="backtestDivisionLabel" className={FIELD_LABEL_CLASS}>분할 수</Label>
+            <div role="group" aria-labelledby="backtestDivisionLabel" className="flex gap-2">
               {form.divisionCountOptions.map((n) => (
                 <SelectionCard
                   key={n}
@@ -135,8 +135,8 @@ export function BacktestForm({ form }: Props) {
 
         {form.type !== 'VR' && form.meta.cycleSeedTypes.length > 0 && (
           <div>
-            <Label className={FIELD_LABEL_CLASS}>사이클 연속</Label>
-            <div className="grid grid-cols-3 gap-2">
+            <Label id="backtestCycleSeedLabel" className={FIELD_LABEL_CLASS}>사이클 연속</Label>
+            <div role="group" aria-labelledby="backtestCycleSeedLabel" className="grid grid-cols-3 gap-2">
               {form.meta.cycleSeedTypes.map((t) => (
                 <ChoiceButton
                   key={t.code}
@@ -212,10 +212,11 @@ export function BacktestForm({ form }: Props) {
 
         {form.submitDisabledReason && (
           // 아직 입력 전인 안내도 포함하므로 경고색 대신 보조 텍스트로 표시
-          <p className="text-sm text-muted-foreground">{form.submitDisabledReason}</p>
+          // 입력마다 바뀌어 live region이면 계속 읽히므로 실행 버튼 설명으로만 연결한다
+          <p id="backtestSubmitReason" className="text-sm text-muted-foreground">{form.submitDisabledReason}</p>
         )}
         {form.errorMessage && (
-          <p className="text-sm font-semibold text-[var(--status-error)]">{form.errorMessage}</p>
+          <p role="alert" className="text-sm font-semibold text-[var(--status-error)]">{form.errorMessage}</p>
         )}
 
         <div className="flex gap-2.5">
@@ -232,6 +233,7 @@ export function BacktestForm({ form }: Props) {
             type="button"
             onClick={form.run}
             disabled={form.isLoading || !!form.submitDisabledReason}
+            aria-describedby={form.submitDisabledReason ? 'backtestSubmitReason' : undefined}
             className="flex-[1.5] h-11 gap-2 text-sm font-[800]"
           >
             {form.isLoading ? (

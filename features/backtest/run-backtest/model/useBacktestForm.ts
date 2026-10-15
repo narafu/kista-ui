@@ -7,7 +7,7 @@ import { useBacktestMutation } from '@entities/backtest'
 import type { BacktestParams, BacktestType } from '@entities/backtest'
 import { useRuntimeConfigQuery } from '@entities/runtime-config'
 import type { RuntimeStrategyType } from '@entities/runtime-config'
-import { EMPTY_VR_RAMP, POOL_LIMIT_FLOOR_ZERO_MESSAGE, RAMP_DEFAULTS_BY_MODE } from '@entities/strategy'
+import { EMPTY_VR_RAMP, RAMP_DEFAULTS_BY_MODE, vrRampInvalidReason } from '@entities/strategy'
 import type { CycleSeedType, VrRampValues, VrRecurringMode } from '@entities/strategy'
 
 // 운영 전략 등록과 같은 범위로 백테스트한다 — 분할 수·밴드 폭·주기·적립 모드의 선택지와 기본값은 runtime-config가 SSOT.
@@ -65,45 +65,43 @@ export function useBacktestForm() {
     vrRecurringMode === 'HOLD' ? 0 : vrRecurringMode === 'WITHDRAW' ? -(vrRecurringAmountAbs ?? 0) : (vrRecurringAmountAbs ?? 0)
 
   function getSubmitDisabledReason(): string | null {
-    if (!ticker) return '종목을 선택하세요'
-    if (!from || !to) return '기간을 선택하세요'
-    if (from > to) return '시작일이 종료일보다 늦을 수 없습니다'
-    if (avgPrice != null && avgPrice < 0) return '평단가는 0 이상이어야 합니다'
-    if (quantity != null && quantity < 0) return '수량은 0 이상이어야 합니다'
+    if (!ticker) return '종목을 선택하세요.'
+    if (!from || !to) return '기간을 선택하세요.'
+    if (from > to) return '시작일이 종료일보다 늦을 수 없습니다.'
+    if (avgPrice != null && avgPrice < 0) return '평단가는 0 이상이어야 합니다.'
+    if (quantity != null && quantity < 0) return '수량은 0 이상이어야 합니다.'
     const hasSeed = seed != null && seed > 0
     const hasHoldings = quantity != null && quantity > 0
-    if (!hasSeed && !hasHoldings) return '예수금 또는 평단가·수량 중 하나는 입력하세요'
-    if (hasHoldings && (avgPrice == null || avgPrice <= 0)) return '수량을 입력했다면 평단가도 입력하세요'
-    if (avgPrice != null && avgPrice > 0 && !hasHoldings) return '평단가를 입력했다면 수량도 입력하세요'
+    if (!hasSeed && !hasHoldings) return '예수금 또는 평단가·수량 중 하나는 입력하세요.'
+    if (hasHoldings && (avgPrice == null || avgPrice <= 0)) return '수량을 입력했다면 평단가도 입력하세요.'
+    if (avgPrice != null && avgPrice > 0 && !hasHoldings) return '평단가를 입력했다면 수량도 입력하세요.'
     if (type === 'INFINITE' && divisionCountOptions.length > 0 && divisionCount == null) {
-      return '분할 수를 선택하세요'
+      return '분할 수를 선택하세요.'
     }
     if (type === 'VR') {
       // VR 선택지(밴드 폭·주기·적립 모드)는 runtime-config에서만 온다 — 없으면 고를 수 없으니 원인을 안내
       if (!settings) {
         return runtimeConfigError
-          ? 'VR 설정값을 불러오지 못했습니다. 새로고침 후 다시 시도해주세요'
-          : 'VR 설정값을 불러오는 중입니다'
+          ? 'VR 설정값을 불러오지 못했습니다. 새로고침 후 다시 시도해주세요.'
+          : 'VR 설정값을 불러오는 중입니다.'
       }
-      if (vrBandWidth == null || vrBandWidth <= 0) return 'VR 밴드 폭을 선택하세요'
-      if (vrIntervalWeeks == null || vrIntervalWeeks <= 0) return 'VR 리밸런싱 주기를 선택하세요'
+      if (vrBandWidth == null || vrBandWidth <= 0) return 'VR 밴드 폭을 선택하세요.'
+      if (vrIntervalWeeks == null || vrIntervalWeeks <= 0) return 'VR 리밸런싱 주기를 선택하세요.'
       // 초기 V는 선택 — 비우면 서버가 첫 거래일 종가×보유수량으로 산출한다(운영 등록과 같은 규칙)
-      if (vrInitialValue != null && vrInitialValue < 0) return 'VR 초기 V값은 0 이상이어야 합니다'
-      if (vrRecurringMode !== 'HOLD' && !vrRecurringAmountAbs) return '적립/인출 금액을 입력하세요'
+      if (vrInitialValue != null && vrInitialValue < 0) return 'VR 초기 V값은 0 이상이어야 합니다.'
+      if (vrRecurringMode !== 'HOLD' && !vrRecurringAmountAbs) return '적립/인출 금액을 입력하세요.'
       // 서버 Integer 필드 — 소수 입력은 보존하고 여기서 차단(전략 등록 폼과 같은 방식)
       const integerRampFields = [vrRamp.initialGradient, vrRamp.gGraceWeeks, vrRamp.gStepWeeks, vrRamp.gMax, vrRamp.pGraceWeeks, vrRamp.pStepWeeks]
-      if (integerRampFields.some((v) => v != null && !Number.isInteger(v))) return 'gradient와 주 단위 값은 정수로 입력하세요'
+      if (integerRampFields.some((v) => v != null && !Number.isInteger(v))) return 'gradient와 주 단위 값은 정수로 입력하세요.'
       // 램프 검증 — 전략 등록(isInvalidVr)·서버 validateVrCommand와 같은 규칙
       const effectiveInitialGradient = vrRamp.initialGradient ?? rampDefaults.initialGradient
       const effectiveInitialPoolLimitRate = vrRamp.initialPoolLimitRate ?? rampDefaults.initialPoolLimitRate
-      if (effectiveInitialPoolLimitRate > 1) return '초기 poolLimitRate는 100% 이하여야 합니다'
-      if (vrRamp.gStepWeeks !== 0 && vrRamp.gMax != null && vrRamp.gMax < effectiveInitialGradient) {
-        return 'gradient 상한은 초기 gradient 이상이어야 합니다'
-      }
-      if (vrRamp.poolLimitFloor != null && vrRamp.poolLimitFloor > effectiveInitialPoolLimitRate) {
-        return 'poolLimitRate 하한은 초기 poolLimitRate 이하여야 합니다'
-      }
-      if (vrRamp.poolLimitFloor === 0 && vrRamp.pStepWeeks !== 0) return POOL_LIMIT_FLOOR_ZERO_MESSAGE
+      if (effectiveInitialPoolLimitRate > 1) return '초기 poolLimitRate는 100% 이하여야 합니다.'
+      const rampReason = vrRampInvalidReason({
+        gStepWeeks: vrRamp.gStepWeeks, gMax: vrRamp.gMax, pStepWeeks: vrRamp.pStepWeeks, poolLimitFloor: vrRamp.poolLimitFloor,
+        initialGradient: effectiveInitialGradient, initialPoolLimitRate: effectiveInitialPoolLimitRate,
+      })
+      if (rampReason) return rampReason
     }
     return null
   }
@@ -199,7 +197,7 @@ export function useBacktestForm() {
     result: mutation.data,
     isResultStale,
     isLoading: mutation.isPending,
-    errorMessage: mutation.error ? apiMsg(mutation.error, '백테스트 실행에 실패했습니다. 잠시 후 다시 시도해주세요') : null,
+    errorMessage: mutation.error ? apiMsg(mutation.error, '백테스트 실행에 실패했습니다. 잠시 후 다시 시도해주세요.') : null,
   }
 }
 

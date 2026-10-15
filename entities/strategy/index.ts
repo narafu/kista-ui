@@ -4,7 +4,7 @@ export { strategyKeys } from './model/queryKeys'
 export { seedBadgeClass, strategyStatusAccent, strategyTypeShort } from './model/badges'
 export { isScheduledStart, scheduledStartBadgeLabel } from './model/scheduled-start'
 export { nextVrRolloverDate } from './model/vr-rollover'
-export { applyGStepWeeksChange, applyPStepWeeksChange, POOL_LIMIT_FLOOR_ZERO_MESSAGE } from './model/poolLimitRamp'
+export { applyGStepWeeksChange, applyPStepWeeksChange, POOL_LIMIT_FLOOR_ZERO_MESSAGE, vrRampInvalidReason } from './model/poolLimitRamp'
 export {
   listAllStrategies,
   listStrategies,
