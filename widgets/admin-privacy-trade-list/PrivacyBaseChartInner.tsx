@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useSyncExternalStore } from 'react'
 import type { ReactNode } from 'react'
 import type { MouseHandlerDataParam } from 'recharts'
 // 부모 PrivacyBaseChart.tsx의 next/dynamic({ ssr: false }) 셸이 이 파일 자체를 지연 로드한다. 룰은 파일 간
@@ -196,6 +196,37 @@ function InfoItem({ swatch, label, value, className, wide, inline }: { swatch: s
   )
 }
 
+// 가리킨 날짜는 하단 정보 줄만 구독하는 작은 스토어에 둔다 — Inner 상태로 두면 호버로 날짜가 바뀔 때마다
+// 세 차트 전체가 다시 그려져 PC에서 마우스를 움직이면 버벅인다
+function createActiveDateStore() {
+  let value: string | null = null
+  const listeners = new Set<() => void>()
+  return {
+    get: () => value,
+    set: (next: string) => {
+      if (next === value) return
+      value = next
+      listeners.forEach((listener) => listener())
+    },
+    subscribe: (listener: () => void) => {
+      listeners.add(listener)
+      return () => { listeners.delete(listener) }
+    },
+  }
+}
+type ActiveDateStore = ReturnType<typeof createActiveDateStore>
+
+function ActiveInfoBars({ store, rowByDate, last, ticker, showAvgGap }: { store: ActiveDateStore; rowByDate: Map<string, PrivacyChartRow>; last: PrivacyChartRow; ticker: string; showAvgGap: boolean }) {
+  const activeDate = useSyncExternalStore(store.subscribe, store.get, store.get)
+  const row = (activeDate ? rowByDate.get(activeDate) : undefined) ?? last
+  return (
+    <>
+      <MobileInfoBar row={row} isLatest={row === last} showAvgGap={showAvgGap} />
+      <PcInfoBar row={row} isLatest={row === last} ticker={ticker} showAvgGap={showAvgGap} />
+    </>
+  )
+}
+
 const confirmedProfit = (row: PrivacyChartRow) => Math.max(row.confirmedPnl, 0)
 const confirmedLoss = (row: PrivacyChartRow) => Math.min(row.confirmedPnl, 0)
 
@@ -237,16 +268,15 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAv
   }, [rows, showAvgGap])
 
   // 마지막으로 가리키거나 누른 날짜 — 하단 정보 줄이 쓴다(없으면 최신 일자)
-  const [activeDate, setActiveDate] = useState<string | null>(null)
+  const [activeDateStore] = useState(createActiveDateStore)
   const narrow = useIsNarrow()
   const pickActive = (state: MouseHandlerDataParam) => {
     if (state.activeLabel == null) return
-    setActiveDate(String(state.activeLabel))
+    activeDateStore.set(String(state.activeLabel))
   }
 
   const first = rows[0]
   const last = rows[rows.length - 1]
-  const activeRow = (activeDate ? rowByDate.get(activeDate) : undefined) ?? last
   const lastClose = rows.findLast((r) => r.close != null)
   const lastCash = rows.findLast((r) => r.cashRatio != null)
   const lowCashDays = rows.filter((r) => r.cashRatio != null && r.cashRatio < CASH_THRESHOLD).length
@@ -356,8 +386,7 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAv
           </ResponsiveContainer>
         </div>
       </figure>
-      <MobileInfoBar row={activeRow} isLatest={activeRow === last} showAvgGap={showAvgGap} />
-      <PcInfoBar row={activeRow} isLatest={activeRow === last} ticker={ticker} showAvgGap={showAvgGap} />
+      <ActiveInfoBars store={activeDateStore} rowByDate={rowByDate} last={last} ticker={ticker} showAvgGap={showAvgGap} />
     </div>
   )
 }
