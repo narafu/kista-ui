@@ -31,7 +31,7 @@ export function ApproveRejectButtons({ userId, nickname }: Props) {
   function handleApprove() {
     setAction('approve')
     approveMutation.mutate(userId, {
-      onSuccess: () => toast.success(`${nickname} 승인 완료`),
+      onSuccess: () => toast.success(`${nickname} 님을 승인했습니다`),
       onSettled: () => setAction(null),
     })
   }
@@ -39,19 +39,25 @@ export function ApproveRejectButtons({ userId, nickname }: Props) {
   function handleReject() {
     setAction('reject')
     rejectMutation.mutate(userId, {
-      onSuccess: () => toast.success(`${nickname} 거절 완료`),
+      onSuccess: () => toast.success(`${nickname} 님의 가입을 거절했습니다`),
       onSettled: () => setAction(null),
     })
   }
 
   const loading = approveMutation.isPending || rejectMutation.isPending
 
+  // disabled로 바꾸면 확인 후 포커스가 body로 빠져 트리거로 복귀하지 못한다 — aria-disabled + 열기 차단
+  function blockWhileLoading(e: { preventBaseUIHandler: () => void }) {
+    if (loading) e.preventBaseUIHandler()
+  }
+
   return (
     <div className="flex gap-2">
       <AlertDialog>
         <AlertDialogTrigger
-          disabled={loading}
-          className={cn(buttonVariants({ variant: 'default', size: 'sm' }), 'gap-1')}
+          aria-disabled={loading}
+          onClick={blockWhileLoading}
+          className={cn(buttonVariants({ variant: 'default', size: 'sm' }), 'gap-1 aria-disabled:opacity-50')}
         >
           {action === 'approve' ? <><Spinner size={12} />승인 중...</> : '승인'}
         </AlertDialogTrigger>
@@ -72,8 +78,9 @@ export function ApproveRejectButtons({ userId, nickname }: Props) {
       </AlertDialog>
       <AlertDialog>
         <AlertDialogTrigger
-          disabled={loading}
-          className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1')}
+          aria-disabled={loading}
+          onClick={blockWhileLoading}
+          className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1 aria-disabled:opacity-50')}
         >
           {action === 'reject' ? <><Spinner size={12} />거절 중...</> : '거절'}
         </AlertDialogTrigger>

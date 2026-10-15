@@ -33,7 +33,8 @@ describe('AdminOverviewContent', () => {
 
     render(<AdminOverviewContent />, { wrapper: createWrapper(queryClient) })
     expect(screen.getByText('1명')).toBeInTheDocument()
-    expect(screen.getAllByText('승인 대기')).toHaveLength(2)
+    expect(screen.getByText('대기')).toBeInTheDocument()
+    expect(screen.getByText('승인 대기')).toBeInTheDocument()
 
     act(() => {
       queryClient.setQueryData(adminKeys.stats(), { ...stats, pendingCount: 0, activeCount: 2 })
@@ -42,7 +43,7 @@ describe('AdminOverviewContent', () => {
 
     await waitFor(() => {
       expect(screen.queryByText('1명')).not.toBeInTheDocument()
-      const activeCard = screen.getByText('승인됨').closest('div[class*="--r-lg"]')
+      const activeCard = screen.getByText('승인').closest('div[class*="--r-lg"]')
       expect(activeCard).not.toBeNull()
       expect(within(activeCard as HTMLElement).getByText('2')).toBeInTheDocument()
     })

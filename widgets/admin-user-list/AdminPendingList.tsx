@@ -38,9 +38,11 @@ export function AdminPendingList({ max }: Props) {
 
   return (
     <div>
-      <div className="flex justify-end mb-4">
-        <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
-      </div>
+      {!max && (
+        <div className="flex justify-end mb-4">
+          <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
+        </div>
+      )}
 
       <div className="grid gap-3">
         {displayed.map((user) => (
@@ -59,7 +61,7 @@ export function AdminPendingList({ max }: Props) {
         ))}
       </div>
 
-      <PaginationBar page={currentPage} totalPages={totalPages} onPageChange={setPage} />
+      {!max && <PaginationBar page={currentPage} totalPages={totalPages} onPageChange={setPage} />}
     </div>
   )
 }

@@ -3,6 +3,9 @@ import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-quer
 import { describe, expect, it, vi } from 'vitest'
 import { SectionError } from './SectionError'
 
+const refresh = vi.fn()
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
+
 function FailingSection({ queryFn }: { queryFn: () => Promise<string> }) {
   const { data, isError } = useQuery({ queryKey: ['section'], queryFn, retry: false })
   if (isError) return <SectionError message="불러오지 못했습니다." />
@@ -28,5 +31,13 @@ describe('SectionError', () => {
     render(<SectionError message="불러오지 못했습니다." />)
 
     expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument()
+  })
+
+  it('refreshes the server tree when serverRetry is set', () => {
+    render(<SectionError message="불러오지 못했습니다." serverRetry />)
+
+    fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
+
+    expect(refresh).toHaveBeenCalledTimes(1)
   })
 })

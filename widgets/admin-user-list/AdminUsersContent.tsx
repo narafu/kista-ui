@@ -2,6 +2,7 @@
 
 import { useAdminUsersQuery } from '@entities/admin'
 import type { AdminUsersQueryParams } from '@entities/admin'
+import { PageHeader } from '@widgets/page-header'
 import { UrlRangeFilterBar } from '@shared/ui/UrlRangeFilterBar'
 import { AdminUsersTable } from './AdminUsersTable'
 
@@ -18,11 +19,8 @@ export function AdminUsersContent({ currentUserId, range, from, to, queryParams 
 
   return (
     <>
-      <div className="mb-8">
-        <h1 className="text-2xl font-extrabold">사용자 목록</h1>
-        {/* 조회 전·실패 시 "전체 0명"으로 보이지 않도록 건수는 데이터가 있을 때만 표시 */}
-        {users && <p className="text-sm text-muted-foreground mt-1">전체 {users.length}명</p>}
-      </div>
+      {/* 조회 전·실패 시 "전체 0명"으로 보이지 않도록 건수는 데이터가 있을 때만 표시 */}
+      <PageHeader title="사용자 목록" description={users ? `전체 ${users.length}명` : undefined} />
       <AdminUsersTable
         currentUserId={currentUserId}
         queryParams={queryParams}

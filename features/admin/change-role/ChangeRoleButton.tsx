@@ -13,55 +13,66 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { useChangeUserRoleMutation } from '@entities/admin'
+import { USER_ROLE_LABEL } from '@entities/user'
 import type { UserRole } from '@entities/user'
+import { buttonVariants } from '@/components/ui/button-variants'
 import { Spinner } from '@shared/ui/Spinner'
+import { cn } from '@shared/lib/utils'
 
 interface Props {
   userId: string
+  nickname: string
   currentRole: UserRole
   isSelf?: boolean
 }
 
-export function ChangeRoleButton({ userId, currentRole, isSelf = false }: Props) {
+const TRIGGER_CLASS = cn(buttonVariants({ variant: 'outline', size: 'xs' }), 'aria-disabled:opacity-50')
+
+export function ChangeRoleButton({ userId, nickname, currentRole, isSelf = false }: Props) {
   const mutation = useChangeUserRoleMutation()
   const newRole: UserRole = currentRole === 'ADMIN' ? 'USER' : 'ADMIN'
+  const newRoleLabel = USER_ROLE_LABEL[newRole]
 
   function handleChange() {
     mutation.mutate({ userId, role: newRole }, {
-      onSuccess: () => toast.success(`역할을 ${newRole}${newRole === 'ADMIN' ? '으로' : '로'} 변경했습니다`),
+      onSuccess: () => toast.success(`${nickname} 님의 역할을 ${newRoleLabel}로 변경했습니다`),
     })
   }
 
   if (isSelf) {
     return (
-      <div className="inline-block" title="자신의 역할은 변경할 수 없습니다">
+      <>
         <button
           type="button"
           disabled
-          className="px-2.5 py-1 text-xs font-semibold rounded-md border border-border text-muted-foreground opacity-40 pointer-events-none"
+          aria-describedby={`self-role-${userId}`}
+          className={cn(buttonVariants({ variant: 'outline', size: 'xs' }), 'opacity-40')}
         >
-          → {newRole}
+          → {newRoleLabel}
         </button>
-      </div>
+        <span id={`self-role-${userId}`} className="sr-only">자신의 역할은 변경할 수 없습니다</span>
+      </>
     )
   }
 
   return (
     <AlertDialog>
       <AlertDialogTrigger
-        disabled={mutation.isPending}
-        className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md border border-border text-muted-foreground hover:bg-muted disabled:opacity-50 transition-colors"
+        // disabled로 바꾸면 확인 후 포커스가 body로 빠져 트리거로 복귀하지 못한다
+        aria-disabled={mutation.isPending}
+        onClick={(e) => { if (mutation.isPending) e.preventBaseUIHandler() }}
+        className={TRIGGER_CLASS}
       >
         {mutation.isPending ? (
           <><Spinner size={11} />변경 중...</>
-        ) : `→ ${newRole}`}
+        ) : `→ ${newRoleLabel}`}
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>역할을 변경하시겠습니까?</AlertDialogTitle>
           <AlertDialogDescription>
-            {`이 회원의 역할을 ${currentRole}에서 ${newRole}(으)로 변경합니다.`}
-            {newRole === 'ADMIN' && ' ADMIN은 모든 관리자 기능에 접근할 수 있습니다.'}
+            {`${nickname} 님의 역할을 ${USER_ROLE_LABEL[currentRole]}에서 ${newRoleLabel}로 변경합니다.`}
+            {newRole === 'ADMIN' && ' 관리자는 모든 관리자 기능에 접근할 수 있습니다.'}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

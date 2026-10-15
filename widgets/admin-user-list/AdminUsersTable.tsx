@@ -12,7 +12,7 @@ import { LoadingRow } from '@shared/ui/LoadingRow'
 import { SectionError } from '@shared/ui/SectionError'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { Badge } from '@shared/ui/Badge'
-import { ADMIN_USER_STATUS_LABEL, USER_STATUS_TONE } from '@entities/user'
+import { ADMIN_USER_STATUS_LABEL, USER_ROLE_LABEL, USER_STATUS_TONE } from '@entities/user'
 import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
 import type { AdminUser } from '@entities/admin'
 
@@ -33,15 +33,20 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
   if (!data && isError) return <SectionError message="사용자 목록을 불러오지 못했습니다." />
   if (!data) return <LoadingRow />
 
+  // 기간 필터로 0건이 되어도 필터바는 남겨 사용자가 범위를 바꿔 복구할 수 있게 한다
   if (users.length === 0) {
+    const filtered = !!queryParams?.from || !!queryParams?.to
     return (
-      <EmptyState message="등록된 사용자가 없습니다." />
+      <div className="space-y-4">
+        {filterBar}
+        <EmptyState message={filtered ? '해당 기간에 가입한 사용자가 없습니다.' : '등록된 사용자가 없습니다.'} />
+      </div>
     )
   }
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
         <div>{filterBar}</div>
         <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
       </div>
@@ -55,7 +60,7 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
               <TableHeadCell className="text-left whitespace-nowrap">역할</TableHeadCell>
               <TableHeadCell className="text-left whitespace-nowrap">가입일</TableHeadCell>
               <TableHeadCell className="whitespace-nowrap">역할 변경</TableHeadCell>
-              <TableHeadCell className="whitespace-nowrap">탈퇴</TableHeadCell>
+              <TableHeadCell className="whitespace-nowrap">탈퇴 처리</TableHeadCell>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -65,8 +70,8 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
                 <td className="px-4 py-3 whitespace-nowrap">
                   <Badge tone={USER_STATUS_TONE[user.status]}>{ADMIN_USER_STATUS_LABEL[user.status]}</Badge>
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">
-                  {user.role}
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <Badge tone={user.role === 'ADMIN' ? 'admin' : 'neutral'}>{USER_ROLE_LABEL[user.role]}</Badge>
                 </td>
                 <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                   {fmtDate(user.createdAt)}
@@ -74,6 +79,7 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
                 <td className="px-4 py-3 whitespace-nowrap text-center">
                   <ChangeRoleButton
                     userId={user.id}
+                    nickname={user.nickname}
                     currentRole={user.role}
                     isSelf={currentUserId === user.id}
                   />

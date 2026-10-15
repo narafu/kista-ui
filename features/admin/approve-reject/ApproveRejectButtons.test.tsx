@@ -108,7 +108,7 @@ describe('ApproveRejectButtons', () => {
 
     render(<ApproveRejectButtons userId="user-5" nickname="박민수" />)
 
-    expect(screen.getByRole('button', { name: '승인' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: '거절' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '승인' })).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByRole('button', { name: '거절' })).toHaveAttribute('aria-disabled', 'true')
   })
 })

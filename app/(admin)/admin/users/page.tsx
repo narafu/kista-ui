@@ -20,7 +20,7 @@ export default async function AdminUsersPage({
   if (token) await queryClient.prefetchQuery(adminUsersQueryOptions(undefined, queryParams, token))
 
   return (
-    <div>
+    <div className="reveal-stagger">
       <HydrationBoundary state={dehydrate(queryClient)}>
         <AdminUsersContent currentUserId={me?.id ?? null} range={range} from={from} to={to} queryParams={queryParams} />
       </HydrationBoundary>
