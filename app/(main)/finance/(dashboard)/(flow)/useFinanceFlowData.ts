@@ -44,11 +44,9 @@ export function useFinanceFlowData(flowType: FlowCategoryType) {
   // registerWindowUpperBound로 공유한다.
   const registerWindow = useMemo(() => ({ from: undefined, to: registerWindowUpperBound(today) }), [today])
 
-  const {
-    data: transactions = [],
-    isLoading: isTransactionsLoading,
-    isError: isTransactionsError,
-  } = useFinanceTransactionsQuery(flowWindow.from, flowWindow.to)
+  const transactionsQuery = useFinanceTransactionsQuery(flowWindow.from, flowWindow.to)
+  const transactions = useMemo(() => transactionsQuery.data ?? [], [transactionsQuery.data])
+  const isTransactionsLoading = transactionsQuery.isLoading
 
   // 자산탭(최근 기록월 기본값)과의 일관성 — 사용자가 월을 직접 안 골랐고(userMonth === null)
   // 현재 선택월에 거래가 없으면, 조회된 12개월 윈도우에서 가장 최근 기록 월로 옮긴다(autoMonth
@@ -74,29 +72,32 @@ export function useFinanceFlowData(flowType: FlowCategoryType) {
   const trendRange = period.mode === 'yearly' ? trendYears : trendMonths
   const setTrendRange = period.mode === 'yearly' ? setTrendYears : setTrendMonths
   const trendRangeWindow = useMemo(() => trendWindow(period, trendRange, today), [period, trendRange, today])
-  const {
-    data: trendTransactions = [],
-    isLoading: isTrendLoading,
-    isError: isTrendError,
-  } = useFinanceTransactionsQuery(trendRangeWindow.from, trendRangeWindow.to)
+  const trendQuery = useFinanceTransactionsQuery(trendRangeWindow.from, trendRangeWindow.to)
+  const trendTransactions = useMemo(() => trendQuery.data ?? [], [trendQuery.data])
+  const isTrendLoading = trendQuery.isLoading
 
-  const { data: incomeCategories = [], isLoading: isIncomeCategoriesLoading, isError: isIncomeCategoriesError } = useFinanceCategoriesQuery('INCOME')
-  const { data: expenseCategories = [], isLoading: isExpenseCategoriesLoading, isError: isExpenseCategoriesError } = useFinanceCategoriesQuery('EXPENSE')
-  const { data: savingCategories = [], isLoading: isSavingCategoriesLoading, isError: isSavingCategoriesError } = useFinanceCategoriesQuery('SAVING')
-  const { data: budgets = [], isError: isBudgetsError } = useFinanceBudgetsQuery()
+  const incomeCategoriesQuery = useFinanceCategoriesQuery('INCOME')
+  const expenseCategoriesQuery = useFinanceCategoriesQuery('EXPENSE')
+  const savingCategoriesQuery = useFinanceCategoriesQuery('SAVING')
+  const budgetsQuery = useFinanceBudgetsQuery()
+  const incomeCategories = useMemo(() => incomeCategoriesQuery.data ?? [], [incomeCategoriesQuery.data])
+  const expenseCategories = useMemo(() => expenseCategoriesQuery.data ?? [], [expenseCategoriesQuery.data])
+  const savingCategories = useMemo(() => savingCategoriesQuery.data ?? [], [savingCategoriesQuery.data])
+  const budgets = budgetsQuery.data ?? []
 
+  // 위젯은 기본값([])이 채워진 배열만 받아 "미수신"과 "빈 목록"을 구분할 수 없다 — 여기서 데이터 유무로 판정한다.
+  // 재조회 실패는 이미 받은 데이터를 덮지 않도록, 데이터가 없을 때만 오류로 본다.
+  const loadFailed = (query: { isError: boolean; data?: unknown }) => query.isError && !query.data
   // 카테고리 조회가 실패하면 거래가 카테고리 인덱스에 매칭되지 않아 "내역 없음"으로 보인다 — 실패로 묶어 오류를 띄운다
-  const isFlowError =
-    isTransactionsError ||
-    isIncomeCategoriesError ||
-    isExpenseCategoriesError ||
-    isSavingCategoriesError
+  const isFlowError = [transactionsQuery, incomeCategoriesQuery, expenseCategoriesQuery, savingCategoriesQuery].some(loadFailed)
+  const isTrendError = loadFailed(trendQuery)
+  const isBudgetsError = loadFailed(budgetsQuery)
 
   const isFlowLoading =
     isTransactionsLoading ||
-    isIncomeCategoriesLoading ||
-    isExpenseCategoriesLoading ||
-    isSavingCategoriesLoading ||
+    incomeCategoriesQuery.isLoading ||
+    expenseCategoriesQuery.isLoading ||
+    savingCategoriesQuery.isLoading ||
     (period.mode === 'yearly' && isPreviousYearLoading)
 
   const categoryIndex = useMemo(

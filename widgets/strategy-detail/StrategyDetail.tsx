@@ -24,7 +24,9 @@ export function StrategyDetail({ accountId, strategy }: Props) {
   const { push } = useRouter()
   const [deleteOpen, setDeleteOpen] = useState(false)
 
-  const { data: preview, isLoading: isLoadingPreview, isError: isPreviewError, error: previewError } = useStrategyOrderPreviewQuery(strategy.id)
+  const { data: preview, isLoading: isLoadingPreview, isError, error: previewError } = useStrategyOrderPreviewQuery(strategy.id)
+  // 재조회 실패는 이미 받은 미리보기를 덮지 않는다 — 데이터가 없을 때만 오류로 본다
+  const isPreviewError = isError && !preview
 
   const placedOrders = preview?.todayOrders ?? []
   const mode: 'preview' | 'executed' = placedOrders.length > 0 ? 'executed' : 'preview'

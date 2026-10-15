@@ -78,7 +78,8 @@ interface Props {
 }
 
 export default function AssetTrendInner({ month, range = 12 }: Props) {
-  const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
+  const { data, isLoading, isError } = useAssetSnapshotsQuery()
+  const snapshots = useMemo(() => data ?? [], [data])
   const { labelOf } = useMeta()
   const { maskIfHidden } = useAmountHiddenPreference()
   const [mode, setMode] = useState<TrendMode>('netWorth')
@@ -126,7 +127,7 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
   if (isLoading) {
     return <Skeleton data-testid="asset-trend-skeleton" className="min-h-[240px] sm:min-h-[280px]" />
   }
-  if (isError) {
+  if (isError && !data) {
     return <SectionError message="자산 추이를 불러오지 못했습니다." />
   }
 

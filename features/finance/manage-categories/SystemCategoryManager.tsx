@@ -57,7 +57,7 @@ export function SystemCategoryManager() {
         </Button>
       </div>
 
-      {isError ? (
+      {isError && !categories ? (
         <SectionError message="카테고리를 불러오지 못했습니다." />
       ) : isPending ? (
         <LoadingRow />

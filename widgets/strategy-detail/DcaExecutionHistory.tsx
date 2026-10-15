@@ -30,7 +30,7 @@ export function DcaExecutionHistory({ strategyId }: { strategyId: string }) {
       <CardContent className="p-0">
         {isLoading ? (
           <LoadingRow />
-        ) : isError ? (
+        ) : isError && !data ? (
           <EmptyState variant="text" message="실행 이력을 불러오지 못했습니다." />
         ) : rows.length === 0 ? (
           <EmptyState variant="text" message="아직 실행된 회차가 없습니다." />

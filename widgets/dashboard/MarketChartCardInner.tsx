@@ -79,8 +79,9 @@ export default function MarketChartCardInner({ category }: Props) {
   const selected = category.options.find((o) => o.symbol === symbol) ?? category.options[0]
   // 이평선·RSI의 선행 구간을 채우려고 항상 최대치로 조회하고, 캔들 개수 선택은 보이는 범위로만 반영한다
   const { data: candles, isError, isPending } = useCandlesQuery(symbol, CHART_CANDLE_COUNT)
-  // 컨테이너는 차트를 그릴 때만 마운트된다 — 에러→복구 시 같은 candles 참조로 새 컨테이너가 붙을 수 있어 effect deps에 넣는다
-  const showChart = !isError && !isPending && !!candles?.length
+  // 컨테이너는 차트를 그릴 때만 마운트된다 — 다시 마운트될 때 새 컨테이너에 차트를 붙이도록 effect deps에 넣는다.
+  // 재조회 실패는 이미 받은 candles를 덮지 않는다(데이터가 없을 때만 오류 표시)
+  const showChart = !isPending && !!candles?.length
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
 
@@ -244,7 +245,7 @@ export default function MarketChartCardInner({ category }: Props) {
           RSI
         </button>
       </div>
-      {isError ? (
+      {isError && !candles ? (
         <div className="flex h-[280px] items-center justify-center text-sm text-warn">시장 차트를 불러오지 못했습니다.</div>
       ) : isPending ? (
         <div className="flex h-[280px] items-center justify-center text-sm text-muted-foreground">차트 불러오는 중…</div>

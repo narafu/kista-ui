@@ -45,6 +45,20 @@ describe('CyclePerformanceList', () => {
     expect(screen.queryByText('사이클 내역이 없습니다.')).not.toBeInTheDocument()
   })
 
+  it('재조회가 실패해도 이미 받은 목록은 오류로 덮지 않는다', () => {
+    useStatsCyclesQueryMock.mockReturnValue({
+      data: { items: [], page: 0, totalElements: 0, totalPages: 0 },
+      isLoading: false,
+      isError: true,
+    })
+    useAccountsQueryMock.mockReturnValue({ data: [] })
+
+    render(<CyclePerformanceList />)
+
+    expect(screen.queryByText('사이클 성과를 불러오지 못했습니다.')).not.toBeInTheDocument()
+    expect(screen.getByText('조건에 맞는 사이클이 없습니다.')).toBeInTheDocument()
+  })
+
   it('전략 뱃지 앞에 계좌 닉네임 뱃지를 표시한다', () => {
     useStatsCyclesQueryMock.mockReturnValue({
       data: {

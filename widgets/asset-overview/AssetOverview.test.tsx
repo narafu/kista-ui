@@ -64,6 +64,12 @@ describe('AssetOverview', () => {
     expect(screen.getByText('자산 요약을 불러오지 못했습니다.')).toBeInTheDocument()
   })
 
+  it('재조회가 실패해도 이미 받은 기록은 오류로 덮지 않는다', () => {
+    useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({})], isLoading: false, isError: true })
+    render(<AssetOverview month="2026-08" months={['2026-08']} onMonthChange={onMonthChange} today={TODAY} />)
+    expect(screen.queryByText('자산 요약을 불러오지 못했습니다.')).not.toBeInTheDocument()
+  })
+
   it('선택한 월에 기록이 없으면 크래시 없이 안내 문구를 표시한다(자유 선택이라 데이터 없는 달도 고를 수 있다)', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({
       data: [snapshot({})],

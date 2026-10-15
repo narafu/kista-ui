@@ -32,7 +32,8 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
   const pathname = usePathname()
   const narrow = useIsNarrow()
   const searchParams = useSearchParams()
-  const { data: allBases = [], isError: basesError, isLoading: basesLoading, refetch: refetchBases } = useAdminPrivacyBasesQuery()
+  const { data: basesData, isError: basesError, isLoading: basesLoading, refetch: refetchBases } = useAdminPrivacyBasesQuery()
+  const allBases = useMemo(() => basesData ?? [], [basesData])
   const tickers = useMemo(() => [...new Set(allBases.map((b) => b.ticker))].sort(), [allBases])
   // 선택 종목은 URL(?ticker=)이 SSOT — 공유·새로고침해도 유지된다. 목록에 없는 값은 기본 종목으로 돌린다
   const pickedTicker = searchParams.get('ticker')
@@ -65,7 +66,7 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
   const missingCloseCount = rows.filter((r) => r.close == null).length
 
   function renderBody() {
-    if (basesError) {
+    if (basesError && !basesData) {
       return (
         <div role="alert" className="py-8 text-center">
           <p className="text-sm text-muted-foreground">P 매매표를 불러오지 못했습니다.</p>
@@ -97,7 +98,7 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
     )
     return (
       <div className="space-y-3">
-        {candlesQuery.isError ? (
+        {candlesQuery.isError && !candlesQuery.data ? (
           <div role="alert" className="flex flex-wrap items-center gap-2 pl-1 text-xs text-[var(--warn)]">
             <span>종가를 불러오지 못해 종가·현금비중을 표시하지 않습니다.</span>
             <Button variant="outline" size="sm" onClick={() => void candlesQuery.refetch()}>다시 시도</Button>

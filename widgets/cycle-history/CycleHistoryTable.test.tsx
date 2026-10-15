@@ -12,6 +12,7 @@ function makeHook(result: {
   cycleHistory: CycleHistoryItem[]
   isLoading?: boolean
   isError?: boolean
+  isFetchNextPageError?: boolean
   fetchNextPage?: () => void
   hasNextPage?: boolean
   isFetchingNextPage?: boolean
@@ -20,6 +21,7 @@ function makeHook(result: {
     cycleHistory: result.cycleHistory,
     isLoading: result.isLoading ?? false,
     isError: result.isError ?? false,
+    isFetchNextPageError: result.isFetchNextPageError ?? false,
     fetchNextPage: result.fetchNextPage ?? vi.fn(),
     hasNextPage: result.hasNextPage ?? false,
     isFetchingNextPage: result.isFetchingNextPage ?? false,
@@ -78,6 +80,14 @@ describe('CycleHistoryTable', () => {
 
     expect(screen.getByText('잔고 이력을 불러오지 못했습니다.')).toBeInTheDocument()
     expect(screen.queryByText('잔고 이력이 없습니다.')).not.toBeInTheDocument()
+  })
+
+  it('keeps loaded rows and shows a retry hint when loading the next page fails', () => {
+    const useHistoryQuery = makeHook({ cycleHistory: [itemA], hasNextPage: true, isFetchNextPageError: true })
+    render(<CycleHistoryTable title="잔고 이력" id="account-1" useHistoryQuery={useHistoryQuery} />)
+
+    expect(screen.getAllByText('TSLA').length).toBeGreaterThan(0)
+    expect(screen.getByRole('alert')).toHaveTextContent('다음 내역을 불러오지 못했습니다.')
   })
 
   it('computes the eval amount from avgPrice * holdings and falls back to - when avgPrice is missing', () => {

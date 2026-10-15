@@ -8,7 +8,7 @@ import { tradeKeys, type CycleHistoryKeyParams } from '../model/queryKeys'
 export type DateParams = CycleHistoryKeyParams
 
 export function useAccountCycleHistoryQuery(accountId: string, params: DateParams) {
-  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, isLoading, isError, isFetchNextPageError, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery<CycleHistoryPage>({
       queryKey: tradeKeys.accountCycleHistory(accountId, params),
       queryFn: ({ pageParam }) =>
@@ -24,11 +24,12 @@ export function useAccountCycleHistoryQuery(accountId: string, params: DateParam
     })
 
   const cycleHistory: CycleHistoryItem[] = data?.pages.flatMap((p) => p.items) ?? []
-  return { cycleHistory, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage }
+  // "더 보기"·재조회 실패도 isError가 되지만, 이미 받은 페이지는 덮지 않도록 데이터가 없을 때만 오류로 넘긴다("더 보기" 실패는 isFetchNextPageError로 따로 안내)
+  return { cycleHistory, isLoading, isError: isError && !data, isFetchNextPageError, fetchNextPage, hasNextPage, isFetchingNextPage }
 }
 
 export function useStrategyCycleHistoryQuery(strategyId: string | undefined, params: DateParams) {
-  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, isLoading, isError, isFetchNextPageError, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery<CycleHistoryPage>({
       queryKey: tradeKeys.strategyCycleHistory(strategyId!, params),
       queryFn: ({ pageParam }) =>
@@ -44,5 +45,6 @@ export function useStrategyCycleHistoryQuery(strategyId: string | undefined, par
     })
 
   const cycleHistory: CycleHistoryItem[] = data?.pages.flatMap((p) => p.items) ?? []
-  return { cycleHistory, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage }
+  // "더 보기"·재조회 실패도 isError가 되지만, 이미 받은 페이지는 덮지 않도록 데이터가 없을 때만 오류로 넘긴다("더 보기" 실패는 isFetchNextPageError로 따로 안내)
+  return { cycleHistory, isLoading, isError: isError && !data, isFetchNextPageError, fetchNextPage, hasNextPage, isFetchingNextPage }
 }

@@ -29,13 +29,15 @@ function formatMonthDay(dateStr: string): string {
 }
 
 export function AssetRecordCheck({ month }: Props) {
-  const { data: snapshots = [], isLoading: assetsLoading, isError: assetsError } = useAssetSnapshotsQuery()
-  const { data: monthlyClosings = [], isLoading: checksLoading, isError: checksError } = useMonthlyClosingsQuery()
+  const assetsQuery = useAssetSnapshotsQuery()
+  const checksQuery = useMonthlyClosingsQuery()
   const closingScopeGroupId = useMonthlyClosingScopeGroupId()
   // 그룹 목록 로딩 전엔 스코프가 개인으로 잡혀 완료 상태가 잘못 그려진다 — 함께 로딩으로 막는다.
-  const { isLoading: groupsLoading, isError: groupsError } = useFinanceGroupsQuery()
+  const groupsQuery = useFinanceGroupsQuery()
+  const snapshots = assetsQuery.data ?? []
+  const monthlyClosings = checksQuery.data ?? []
 
-  if (assetsLoading || checksLoading || groupsLoading) {
+  if (assetsQuery.isLoading || checksQuery.isLoading || groupsQuery.isLoading) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-8 text-sm text-muted-foreground">
@@ -44,7 +46,7 @@ export function AssetRecordCheck({ month }: Props) {
       </Card>
     )
   }
-  if (assetsError || checksError || groupsError) {
+  if ([assetsQuery, checksQuery, groupsQuery].some((query) => query.isError && !query.data)) {
     return <SectionError message="기록 점검 정보를 불러오지 못했습니다." />
   }
 

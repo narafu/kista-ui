@@ -31,7 +31,8 @@ export function StrategyOrderHistory({ strategyId }: Props) {
   useEffect(() => setPage(1), [rangeType, customFrom, customTo, pageSize, directionFilter, orderTypeFilter, statusFilter])
 
   const range = resolveRangeStrict(rangeType, customFrom, customTo)
-  const { data: orders = [], isLoading, isError, error } = useStrategyOrdersQuery(strategyId, range?.from, range?.to, { enabled: range !== null })
+  const { data, isLoading, isError, error } = useStrategyOrdersQuery(strategyId, range?.from, range?.to, { enabled: range !== null })
+  const orders = data ?? []
 
   const size = Number(pageSize)
   const filteredOrders = orders.filter((order) =>
@@ -82,7 +83,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
       <CardContent className="p-0">
         {isLoading ? (
           <LoadingRow />
-        ) : isError ? (
+        ) : isError && !data ? (
           <p className="text-sm text-destructive text-center py-8 px-6">주문 내역 조회 실패: {error instanceof Error ? error.message : String(error)}</p>
         ) : orders.length === 0 ? (
           <EmptyState variant="text" message="주문 내역이 없습니다." />

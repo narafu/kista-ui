@@ -53,7 +53,7 @@ const category: MarketChartCategory = {
 }
 
 describe('MarketChartCardInner', () => {
-  it('rebuilds the chart in the new container when a failed refetch recovers with the same data', () => {
+  it('keeps the chart when a refetch fails but candles are already loaded', () => {
     const data = [{ date: '2026-10-01', open: 1, high: 2, low: 1, close: 2, volume: 0 }]
     useCandlesQueryMock.mockReturnValue({ data })
     const { rerender } = render(<MarketChartCardInner category={category} />)
@@ -61,10 +61,9 @@ describe('MarketChartCardInner', () => {
 
     useCandlesQueryMock.mockReturnValue({ data, isError: true })
     rerender(<MarketChartCardInner category={category} />)
-    useCandlesQueryMock.mockReturnValue({ data })
-    rerender(<MarketChartCardInner category={category} />)
 
-    expect(createChartMock).toHaveBeenCalledTimes(1)
+    expect(screen.queryByText('시장 차트를 불러오지 못했습니다.')).not.toBeInTheDocument()
+    expect(createChartMock).not.toHaveBeenCalled()
     useCandlesQueryMock.mockReturnValue({ data: [] })
   })
 

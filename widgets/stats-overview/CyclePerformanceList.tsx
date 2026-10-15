@@ -84,7 +84,7 @@ export function CyclePerformanceList({ typeFilter }: Props) {
       <CardContent className="p-0">
         <CycleListBody
           isLoading={isLoading}
-          isError={isError}
+          isError={isError && !data}
           cycles={data?.items ?? []}
           accountsById={accountsById}
           filtered={filtered}

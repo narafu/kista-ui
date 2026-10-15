@@ -16,7 +16,7 @@ vi.mock('@entities/finance', async () => {
     useAssetSnapshotsQuery: useAssetSnapshotsQueryMock,
     useMonthlyClosingsQuery: useMonthlyClosingsQueryMock,
     useFinanceGroupsQuery: () => ({
-      data: scopeState.groupId ? [{ id: scopeState.groupId }] : [],
+      data: scopeState.groupsError ? undefined : scopeState.groupId ? [{ id: scopeState.groupId }] : [],
       isLoading: scopeState.groupsLoading,
       isError: scopeState.groupsError,
     }),

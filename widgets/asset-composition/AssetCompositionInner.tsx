@@ -158,14 +158,15 @@ interface Props {
 }
 
 export default function AssetCompositionInner({ month, range = 12 }: Props) {
-  const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
+  const { data, isLoading, isError } = useAssetSnapshotsQuery()
+  const snapshots = data ?? []
   const { labelOf } = useMeta()
 
   if (isLoading) {
     return <p className="py-10 text-center text-sm text-muted-foreground">불러오는 중…</p>
   }
 
-  if (isError) {
+  if (isError && !data) {
     return <SectionError message="구성비 데이터를 불러오지 못했습니다." />
   }
 

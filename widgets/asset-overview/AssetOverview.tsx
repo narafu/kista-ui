@@ -26,7 +26,8 @@ interface Props {
 }
 
 export function AssetOverview({ month, months, onMonthChange, today }: Props) {
-  const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
+  const { data, isLoading, isError } = useAssetSnapshotsQuery()
+  const snapshots = useMemo(() => data ?? [], [data])
   const { labelOf } = useMeta()
   const { hidden, masked } = useAmountHiddenPreference()
 
@@ -73,7 +74,7 @@ export function AssetOverview({ month, months, onMonthChange, today }: Props) {
       <CardContent>
         {isLoading ? (
           <LoadingRow />
-        ) : isError ? (
+        ) : isError && !data ? (
           <SectionError message="자산 요약을 불러오지 못했습니다." />
         ) : summary.recordCount === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">표시할 자산 기록이 없습니다.</p>

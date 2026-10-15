@@ -36,7 +36,8 @@ interface Props {
 }
 
 export function AssetRecordList({ month }: Props) {
-  const { data: snapshots = [], isLoading, isError } = useAssetSnapshotsQuery()
+  const { data, isLoading, isError } = useAssetSnapshotsQuery()
+  const snapshots = useMemo(() => data ?? [], [data])
   const { data: categories = [] } = useFinanceCategoriesQuery('ASSET')
   const { data: monthlyClosings = [] } = useMonthlyClosingsQuery()
   const closingScopeGroupId = useMonthlyClosingScopeGroupId()
@@ -171,7 +172,7 @@ export function AssetRecordList({ month }: Props) {
   if (isLoading) {
     return <LoadingRow />
   }
-  if (isError) {
+  if (isError && !data) {
     return <SectionError message="자산 기록을 불러오지 못했습니다." />
   }
   if (snapshots.length === 0) {

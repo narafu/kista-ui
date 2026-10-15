@@ -19,6 +19,7 @@ interface HistoryQueryResult {
   cycleHistory: CycleHistoryItem[]
   isLoading: boolean
   isError?: boolean
+  isFetchNextPageError?: boolean
   fetchNextPage: () => void
   hasNextPage?: boolean
   isFetchingNextPage?: boolean
@@ -36,7 +37,7 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
     useRangeFilterState()
   const baseParams = resolveRangeStrict(rangeType, customFrom, customTo)
   const params = baseParams !== null ? { ...baseParams, size: Number(pageSize) } : null
-  const { cycleHistory, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useHistoryQuery(id, params)
+  const { cycleHistory, isLoading, isError, isFetchNextPageError, fetchNextPage, hasNextPage, isFetchingNextPage } = useHistoryQuery(id, params)
 
   if (!id && emptyIdMessage) {
     return (
@@ -152,7 +153,10 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
             </div>
             {/* 더 보기 버튼 — 모바일·데스크탑 공통 */}
             {(hasNextPage || isFetchingNextPage) && (
-              <div className="flex justify-center py-4 border-t">
+              <div className="flex flex-col items-center gap-1 py-4 border-t">
+                {isFetchNextPageError && !isFetchingNextPage && (
+                  <p role="alert" className="text-sm text-[var(--status-error)]">다음 내역을 불러오지 못했습니다. 다시 시도해주세요.</p>
+                )}
                 <button
                   type="button"
                   onClick={fetchNextPage}
