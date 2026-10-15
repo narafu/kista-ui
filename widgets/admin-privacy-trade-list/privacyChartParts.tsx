@@ -1,3 +1,5 @@
+'use client'
+
 import { useSyncExternalStore } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@shared/lib/utils'
