@@ -60,6 +60,8 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
   const [showOrders, setShowOrders] = useState(true)
   // 평단가-종가 괴리 강조 — 켜면 괴리 10%·20% 이상 구간의 평단가를 색으로 표시한다
   const [showAvgGap, setShowAvgGap] = useState(false)
+  // PC 툴팁 — 떠다니는 툴팁이 그래프를 가려, 켰을 때만 모바일 정보 줄처럼 차트 아래에 고정해 보여준다(기본 꺼짐)
+  const [showPcTooltip, setShowPcTooltip] = useState(false)
   const series = useMemo(() => buildPrivacyChartSeries(tickerBases, candlesQuery.data ?? []), [tickerBases, candlesQuery.data])
   const rows = useMemo(() => sliceSeriesByRange(series.rows, windowFrom, windowTo), [series.rows, windowFrom, windowTo])
   const missingCloseCount = rows.filter((r) => r.close == null).length
@@ -115,11 +117,15 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
         <div className="hidden sm:block">{legend}</div>
         <div className="flex flex-wrap items-center justify-between gap-2 pl-1 text-xs text-muted-foreground">
           {/* 모바일은 하단 정보 줄이 같은 안내를 하므로 PC에만 둔다 */}
-          <p className="hidden sm:block">차트를 가리키면 해당 일자의 값이 가격 차트에 표시됩니다.</p>
+          {showPcTooltip && <p className="hidden sm:block">차트를 가리키면 해당 일자의 값이 차트 아래에 표시됩니다.</p>}
           <span className="ml-auto flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
             <span className="inline-flex items-center gap-2">
               <Switch id="privacy-chart-show-orders" size="sm" checked={showOrders} onCheckedChange={setShowOrders} />
               <label htmlFor="privacy-chart-show-orders" className="cursor-pointer">매수·매도 주문 표시</label>
+            </span>
+            <span className="hidden items-center gap-2 sm:inline-flex">
+              <Switch id="privacy-chart-show-pc-tooltip" size="sm" checked={showPcTooltip} onCheckedChange={setShowPcTooltip} />
+              <label htmlFor="privacy-chart-show-pc-tooltip" className="cursor-pointer">툴팁 표시</label>
             </span>
             <span className="inline-flex items-center gap-2">
               <Switch id="privacy-chart-show-avg-gap" size="sm" checked={showAvgGap} onCheckedChange={setShowAvgGap} />
@@ -129,7 +135,7 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
         </div>
 
         {/* 종목·기간·건수가 바뀌거나 화면 폭이 모바일로 넘어가면(Brush가 사라져 되돌릴 수단이 없음) 구간을 처음(전체)으로 되돌리도록 다시 마운트한다 */}
-        <PrivacyBaseChartInner key={`${ticker}|${windowFrom}|${windowTo}|${rows.length}|${narrow}`} rows={rows} ticker={ticker} showOrders={showOrders} showAvgGap={showAvgGap} />
+        <PrivacyBaseChartInner key={`${ticker}|${windowFrom}|${windowTo}|${rows.length}|${narrow}`} rows={rows} ticker={ticker} showOrders={showOrders} showAvgGap={showAvgGap} showPcTooltip={showPcTooltip} />
       </div>
     )
   }
