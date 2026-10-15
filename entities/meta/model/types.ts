@@ -6,6 +6,7 @@ export interface EnumMeta {
 
 export interface StrategyTypeMeta {
   code: string
+  label?: string                // 한국어 표시 이름 (kista-api a95ad797부터, 1h 메타 캐시 대비 optional — labelOf가 description으로 폴백)
   description?: string
   availableTickers: string[]
   requiresPrivacyBase: boolean  // basePrice 소스가 기준매매표인지 (true=기준매매표, false=실시간 현재가)
