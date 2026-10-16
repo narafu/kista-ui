@@ -206,7 +206,14 @@ export function AssetRecordList({ month }: Props) {
       )}
 
       {sorted.length === 0 ? (
-        <EmptyState variant="text" message="조건에 맞는 자산 기록이 없습니다." />
+        <EmptyState
+          variant="text"
+          message={
+            categoryPath.length === 0 && assetClass === ALL_FILTER_VALUE && market === ALL_FILTER_VALUE
+              ? '선택한 달에 자산 기록이 없습니다.'
+              : '조건에 맞는 자산 기록이 없습니다.'
+          }
+        />
       ) : (
         <>
           <AssetRecordTable

@@ -2,6 +2,7 @@
 
 import { AlertTriangle, CalendarClock, CheckCircle2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { LoadingRow } from '@shared/ui/LoadingRow'
 import { SectionError } from '@shared/ui/SectionError'
 import {
   calcDateGroups,
@@ -40,8 +41,8 @@ export function AssetRecordCheck({ month }: Props) {
   if (assetsQuery.isLoading || checksQuery.isLoading || groupsQuery.isLoading) {
     return (
       <Card>
-        <CardContent className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-          불러오는 중…
+        <CardContent>
+          <LoadingRow />
         </CardContent>
       </Card>
     )
@@ -60,7 +61,7 @@ export function AssetRecordCheck({ month }: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle role="heading" aria-level={2}>기록 점검</CardTitle>
+        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">기록 점검</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <section>
@@ -82,7 +83,7 @@ export function AssetRecordCheck({ month }: Props) {
             <h3 className="text-sm font-semibold mb-1.5">전월 대비 누락 계좌</h3>
             {missingAccounts.length === 0 ? (
               <p className="flex items-center gap-1.5 text-sm text-[var(--status-ok)]">
-                <CheckCircle2 className="size-4" /> 전월 대비 누락된 계좌가 없습니다
+                <CheckCircle2 className="size-4" /> 전월 대비 누락 계좌 없음
               </p>
             ) : (
               <div className="flex items-start gap-1.5 rounded-[var(--r-md)] border border-[var(--warn)] bg-[var(--warn-bg)] px-3 py-2 text-sm text-[var(--warn)]">
@@ -99,7 +100,7 @@ export function AssetRecordCheck({ month }: Props) {
             <div className="flex items-start gap-1.5 rounded-[var(--r-md)] border border-[var(--info)] bg-[var(--info-bg)] px-3 py-2 text-sm text-[var(--info)]">
               <CalendarClock className="size-4 mt-0.5 shrink-0" />
               <span>
-                이번 달 기록이 여러 날짜({dateGroups.map((group) => formatMonthDay(group.date)).join(', ')})에 나뉘어 있습니다. 확인하세요.
+                선택한 달의 기록이 여러 날짜({dateGroups.map((group) => formatMonthDay(group.date)).join(', ')})에 나뉘어 있습니다. 확인하세요.
               </span>
             </div>
           </section>

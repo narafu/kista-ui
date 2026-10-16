@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { SectionError } from '@shared/ui/SectionError'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
-import { fmtKrw } from '@shared/lib/format'
+import { fmtKrw, fmtShortYearMonth } from '@shared/lib/format'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { useMeta } from '@entities/meta'
 import {
@@ -50,7 +50,7 @@ function TrendTooltip({
   const items = [...payload].sort((a, b) => Number(b.value) - Number(a.value))
   return (
     <div className="rounded-lg border bg-card px-3 py-2 text-foreground shadow-[0_4px_12px_rgb(0_0_0/0.12)]">
-      <p className="mb-0.5 text-xs text-muted-foreground">{label}</p>
+      <p className="mb-0.5 text-xs text-muted-foreground">{fmtShortYearMonth(String(label))}</p>
       <ul className="flex flex-col gap-1">
         {items.map((item) => (
           <li key={String(item.dataKey)} className="flex items-center gap-2 text-sm font-semibold">
@@ -168,7 +168,7 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
           <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
             <LineChart data={trend} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} title="월별 추이">
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="month" tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={24} />
+              <XAxis dataKey="month" tickFormatter={fmtShortYearMonth} tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={24} />
               <YAxis tick={AXIS_TICK} tickLine={false} axisLine={false} width={44} tickFormatter={fmtKrwAxisTick} domain={['auto', 'auto']} />
               {/* hover 가독성 — 세로 가이드선 + 강조 점 + 큰 금액 글씨로 어느 달의 값인지 바로 읽히게 한다 */}
               <Tooltip

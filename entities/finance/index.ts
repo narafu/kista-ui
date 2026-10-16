@@ -123,7 +123,7 @@ export {
   useUpdateSystemFinanceCategoryMutation,
 } from './hooks/useFinanceMutations'
 export type { DeleteManyAssetSnapshotsResult } from './hooks/useFinanceMutations'
-export { assetCategoryColor, assetClassColor } from './lib/colors'
+export { assetCategoryBadgeTone, assetCategoryColor, assetClassColor } from './lib/colors'
 export {
   ASSET_CLASS_ORDER,
   ASSET_L1_CATEGORY_IDS,

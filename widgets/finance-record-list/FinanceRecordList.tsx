@@ -180,7 +180,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
             <EmptyState variant="text" message="조건에 맞는 거래내역이 없습니다." />
           ) : (
             <>
-              <div className="hidden overflow-x-auto lg:block rounded-[var(--r-lg)] border border-border">
+              <div className="hidden overflow-x-auto lg:block rounded-[var(--r-lg)] border border-border" role="region" aria-label="거래내역 표" tabIndex={0}>
                 <table className="w-full min-w-[720px] text-sm" aria-label="거래내역">
                   <thead className="bg-muted/50">
                     <tr>

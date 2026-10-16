@@ -46,10 +46,10 @@ describe('AssetCompositionInner', () => {
     useAssetSnapshotsQueryMock.mockClear()
   })
 
-  it('로딩 중에는 로딩 문구를 표시한다', () => {
+  it('로딩 중에는 스켈레톤을 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: undefined, isLoading: true, isError: false })
     render(<AssetCompositionInner />)
-    expect(screen.getByText('불러오는 중…')).toBeInTheDocument()
+    expect(screen.getByTestId('asset-composition-skeleton')).toBeInTheDocument()
   })
 
   it('조회 실패 시 에러 섹션을 표시한다', () => {
@@ -63,7 +63,7 @@ describe('AssetCompositionInner', () => {
     render(<AssetCompositionInner />)
     expect(screen.getByText('카테고리별 구성비')).toBeInTheDocument()
     expect(screen.getByText('자산군별 구성비')).toBeInTheDocument()
-    expect(screen.getAllByText('표시할 구성비 데이터가 없습니다')).toHaveLength(2)
+    expect(screen.getAllByText('표시할 구성비 데이터가 없습니다.')).toHaveLength(2)
   })
 
   it('카테고리 구성비는 L1 카테고리 4개를 항상 범례에 표시한다', () => {

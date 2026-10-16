@@ -55,7 +55,7 @@ function summaryDeltaLabel(
   { isLiability = false }: { isLiability?: boolean } = {},
 ) {
   return (
-    <span className={cn('tabular-nums', pnlTextClass(isLiability ? -delta : delta))}>
+    <span className={cn('tabular-nums', delta === 0 ? 'text-muted-foreground' : pnlTextClass(isLiability ? -delta : delta))}>
       전월대비 {amountValue(fmtSignedKrw(delta))}
     </span>
   )
@@ -135,7 +135,7 @@ export function AssetClassSection({ breakdown, delta, labelOf }: {
     <div className="space-y-3">
       <h3 className="text-sm font-semibold text-foreground">자산군별 현황</h3>
       {breakdown.length === 0 ? (
-        <p className="text-sm text-muted-foreground">이번 달 기록이 없습니다.</p>
+        <p className="text-sm text-muted-foreground">선택한 달의 자산군 기록이 없습니다.</p>
       ) : (
         <div className="space-y-2">
           {breakdown.map((entry) => (

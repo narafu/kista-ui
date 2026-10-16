@@ -11,23 +11,10 @@ import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtKrw } from '@shared/lib/format'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { useMeta } from '@entities/meta'
-import {
-  SYSTEM_INVESTMENT_CATEGORY_ID,
-  SYSTEM_LOAN_CATEGORY_ID,
-  SYSTEM_REAL_ESTATE_CATEGORY_ID,
-  SYSTEM_SAVINGS_CATEGORY_ID,
-  isLiability,
-} from '@entities/finance'
+import { assetCategoryBadgeTone } from '@entities/finance'
 import type { AssetSnapshot } from '@entities/finance'
 
 export type SortKey = 'entryDate' | 'category' | 'amount'
-
-const CATEGORY_TONE: Record<string, 'brand' | 'error' | 'neutral'> = {
-  [SYSTEM_INVESTMENT_CATEGORY_ID]: 'brand',
-  [SYSTEM_SAVINGS_CATEGORY_ID]: 'neutral',
-  [SYSTEM_LOAN_CATEGORY_ID]: 'error',
-  [SYSTEM_REAL_ESTATE_CATEGORY_ID]: 'neutral',
-}
 
 // 체크박스 aria-label 전용 — 컬럼 분리 이후 화면에는 이 조합 문자열이 그대로 보이지 않지만,
 // 카테고리명을 먼저 말해 화면(왼쪽 카테고리·오른쪽 계좌 등) 순서와 맞춘다.
@@ -96,7 +83,7 @@ function DesktopRow({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowC
       <TableDataCell className="text-muted-foreground whitespace-nowrap">{fmtDate(snapshot.entryDate)}</TableDataCell>
       <TableDataCell>
         <span className="inline-flex items-center gap-1.5">
-          <Badge tone={CATEGORY_TONE[snapshot.rootCategoryId] ?? 'neutral'} size="sm">{snapshot.categoryName}</Badge>
+          <Badge tone={assetCategoryBadgeTone(snapshot.rootCategoryId)} size="sm">{snapshot.categoryName}</Badge>
           <GroupSharedBadge groupId={snapshot.groupId} />
         </span>
       </TableDataCell>
@@ -105,7 +92,8 @@ function DesktopRow({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowC
       <TableDataCell className={cn(!snapshot.strategy && 'text-muted-foreground')}>{snapshot.strategy ?? '—'}</TableDataCell>
       <TableDataCell className={cn(!snapshot.accountName && 'text-muted-foreground')}>{snapshot.accountName ?? '—'}</TableDataCell>
       <TableDataCell className={cn(!snapshot.accountInstitution && 'text-muted-foreground')}>{snapshot.accountInstitution ?? '—'}</TableDataCell>
-      <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap', isLiability(snapshot) && 'text-destructive')}>
+      {/* 부채는 카테고리 배지로 구분한다 — 금액을 빨강으로 칠하면 요약의 상승(text-pos)과 같은 색이 돼 뜻이 섞인다 */}
+      <TableDataCell className="text-right tabular-nums whitespace-nowrap">
         {maskIfHidden(fmtKrw(snapshot.amount))}
       </TableDataCell>
       <TableDataCell title={snapshot.memo} className={cn('max-w-48 truncate', !snapshot.memo && 'text-muted-foreground')}>{snapshot.memo ?? '—'}</TableDataCell>
@@ -131,7 +119,7 @@ interface TableProps {
 
 export function AssetRecordTable({ paged, row, sortKey, sortDirection, onSort, headerCheckboxRef, allPagedSelected, onToggleAll }: TableProps) {
   return (
-    <div className="hidden overflow-x-auto lg:block rounded-[var(--r-lg)] border border-border">
+    <div className="hidden overflow-x-auto lg:block rounded-[var(--r-lg)] border border-border" role="region" aria-label="자산 기록 표" tabIndex={0}>
       <table className="w-full min-w-[1200px] text-sm" aria-label="자산 기록">
         <thead className="bg-muted/50">
           <tr>
@@ -180,7 +168,7 @@ function MobileItem({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowC
         <RowCheckbox snapshot={snapshot} row={row} className="mt-1" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5 mb-1">
-            <Badge tone={CATEGORY_TONE[snapshot.rootCategoryId] ?? 'neutral'} size="sm">{snapshot.categoryName}</Badge>
+            <Badge tone={assetCategoryBadgeTone(snapshot.rootCategoryId)} size="sm">{snapshot.categoryName}</Badge>
             <GroupSharedBadge groupId={snapshot.groupId} />
             <span className="text-xs text-muted-foreground">{fmtDate(snapshot.entryDate)}</span>
           </div>
@@ -189,7 +177,7 @@ function MobileItem({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowC
               {labelOf('assetClasses', snapshot.assetClass)}
               {snapshot.memo && <span className="ml-1.5 font-normal text-muted-foreground">{snapshot.memo}</span>}
             </p>
-            <span className={cn('shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums', isLiability(snapshot) && 'text-destructive')}>
+            <span className="shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums">
               {maskIfHidden(fmtKrw(snapshot.amount))}
             </span>
           </div>
@@ -213,7 +201,7 @@ function MobileItem({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowC
 
 export function AssetRecordMobileList({ paged, row }: { paged: AssetSnapshot[]; row: AssetRowContext }) {
   return (
-    <ul className="m-0 list-none divide-y rounded-[var(--r-lg)] border border-border p-0 lg:hidden" aria-label="자산 기록 모바일">
+    <ul className="m-0 list-none divide-y rounded-[var(--r-lg)] border border-border p-0 lg:hidden" aria-label="자산 기록">
       {paged.map((snapshot) => (
         <MobileItem key={snapshot.id} snapshot={snapshot} row={row} />
       ))}

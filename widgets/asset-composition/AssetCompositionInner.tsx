@@ -19,7 +19,8 @@ import {
   type TrendRange,
 } from '@entities/finance'
 import { useMeta } from '@entities/meta'
-import { fmtKrw } from '@shared/lib/format'
+import { Skeleton } from '@/components/ui/skeleton'
+import { fmtKrw, fmtShortYearMonth } from '@shared/lib/format'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { SectionError } from '@shared/ui/SectionError'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
@@ -36,15 +37,6 @@ function amountFromPayload(payload: unknown, item: string): number | undefined {
   if (!payload || typeof payload !== 'object') return undefined
   const value = (payload as Record<string, unknown>)[amountKey(item)]
   return typeof value === 'number' ? value : undefined
-}
-
-// monthsLimit(12)은 "최근 기록이 있는 달" 기준이라 기록이 뜸하면 연도를 건너뛸 수 있다
-// (예: 2025-03, 2026-03만 기록이 있는 경우) — 연도 없이 "3월"만 쓰면 두 달이 같은 눈금으로 보인다.
-function formatMonthLabel(month: string): string {
-  const [year, monthPart] = month.split('-')
-  const parsedMonth = Number(monthPart)
-  if (!year || Number.isNaN(parsedMonth)) return month
-  return `${year.slice(2)}.${parsedMonth}월`
 }
 
 function toChartRows(columns: CompositionColumn[]): Record<string, string | number>[] {
@@ -88,7 +80,7 @@ function CompositionChart({ title, columns, segments, labelFor, colorFor }: Comp
       <h3 className="text-sm font-medium text-foreground">{title}</h3>
       {columns.length === 0 ? (
         <div className="flex h-[240px] items-center justify-center text-sm text-muted-foreground sm:h-[280px]">
-          표시할 구성비 데이터가 없습니다
+          표시할 구성비 데이터가 없습니다.
         </div>
       ) : (
         <>
@@ -98,7 +90,7 @@ function CompositionChart({ title, columns, segments, labelFor, colorFor }: Comp
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis
                   dataKey="month"
-                  tickFormatter={formatMonthLabel}
+                  tickFormatter={fmtShortYearMonth}
                   tick={AXIS_TICK}
                   tickLine={false}
                   axisLine={false}
@@ -114,7 +106,7 @@ function CompositionChart({ title, columns, segments, labelFor, colorFor }: Comp
                 />
                 <Tooltip
                   cursor={{ fill: 'var(--muted)' }}
-                  labelFormatter={(label) => formatMonthLabel(String(label))}
+                  labelFormatter={(label) => fmtShortYearMonth(String(label))}
                   formatter={(value, name, item) => {
                     const percent = typeof value === 'number' ? value.toFixed(1) : String(value)
                     const isMobile = typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT_PX
@@ -163,7 +155,7 @@ export default function AssetCompositionInner({ month, range = 12 }: Props) {
   const { labelOf } = useMeta()
 
   if (isLoading) {
-    return <p className="py-10 text-center text-sm text-muted-foreground">불러오는 중…</p>
+    return <Skeleton data-testid="asset-composition-skeleton" className="h-[240px] sm:h-[280px]" />
   }
 
   if (isError && !data) {

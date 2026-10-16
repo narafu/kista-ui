@@ -37,6 +37,17 @@ export function fmtMonthDay(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })
 }
 
+/**
+ * 'YYYY-MM' → "26.3월" — 월별 차트 축·툴팁용. 기록이 뜸하면 연도를 건너뛸 수 있어
+ * (예: 2025-03, 2026-03) 연도 없이 "3월"만 쓰면 두 달이 같은 눈금으로 보인다.
+ */
+export function fmtShortYearMonth(month: string): string {
+  const [year, monthPart] = month.split('-')
+  const parsedMonth = Number(monthPart)
+  if (!year || Number.isNaN(parsedMonth)) return month
+  return `${year.slice(2)}.${parsedMonth}월`
+}
+
 /** 시각만 (24시간제) */
 export function fmtTime(dateStr: string | Date): string {
   return new Date(dateStr).toLocaleTimeString('ko-KR', { hour12: false })

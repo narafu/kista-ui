@@ -68,7 +68,7 @@ export function AssetOverview({ month, months, onMonthChange, today }: Props) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-3 pb-3">
-        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">이번 달 요약</CardTitle>
+        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">자산 요약</CardTitle>
         <YearMonthSelect value={month} onValueChange={onMonthChange} today={today} />
       </CardHeader>
       <CardContent>

@@ -182,6 +182,10 @@ describe('AssetOverview', () => {
     const zeroDelta = screen.getAllByText('+0원')[0]
     expect(zeroDelta).toHaveClass('text-muted-foreground')
     expect(zeroDelta).not.toHaveClass('text-pos')
+    // KPI 카드의 "전월대비 +0원"도 같은 기준
+    for (const kpiDelta of screen.getAllByText(/^전월대비/)) {
+      expect(kpiDelta).toHaveClass('text-muted-foreground')
+    }
   })
 
   it('자산군별 현황에 기록이 없으면(대출만 있는 경우) 안내 문구를 표시한다', () => {
@@ -192,7 +196,7 @@ describe('AssetOverview', () => {
     })
     render(<AssetOverview month="2026-08" months={['2026-08']} onMonthChange={onMonthChange} today={TODAY} />)
 
-    expect(screen.getByText('이번 달 기록이 없습니다.')).toBeInTheDocument()
+    expect(screen.getByText('선택한 달의 자산군 기록이 없습니다.')).toBeInTheDocument()
   })
 
   it('월 선택기 트리거에 현재 선택된 연도·월이 표시된다', () => {

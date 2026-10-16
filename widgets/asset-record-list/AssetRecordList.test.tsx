@@ -76,6 +76,18 @@ describe('AssetRecordList', () => {
     useMonthlyClosingsQueryMock.mockReturnValue({ data: [] })
   })
 
+  it('필터 없이 선택한 달에 기록이 없으면 필터 조건이 아닌 월 기준 빈 상태 문구를 표시한다', () => {
+    useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({ entryDate: '2026-07-01' })], isLoading: false, isError: false })
+    render(<AssetRecordList month="2026-08" />)
+    expect(screen.getByText('선택한 달에 자산 기록이 없습니다.')).toBeInTheDocument()
+  })
+
+  it('데스크탑 표 스크롤 컨테이너는 키보드로 스크롤할 수 있는 region이다', () => {
+    useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({})], isLoading: false, isError: false })
+    render(<AssetRecordList month="2026-08" />)
+    expect(screen.getByRole('region', { name: '자산 기록 표' })).toHaveAttribute('tabindex', '0')
+  })
+
   it('기록 점검이 완료된 달이면 수정·삭제·선택 체크박스를 비활성화한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({})], isLoading: false, isError: false })
     useMonthlyClosingsQueryMock.mockReturnValue({ data: [{ month: '2026-08', completed: true }] })
@@ -181,7 +193,7 @@ describe('AssetRecordList', () => {
     })
     render(<AssetRecordList month="2026-08" />)
 
-    const mobileList = screen.getByRole('list', { name: '자산 기록 모바일' })
+    const mobileList = screen.getByRole('list', { name: '자산 기록' })
     const items = within(mobileList).getAllByRole('listitem')
     expect(within(items[0]).getByText('해외ETF 적립')).toBeInTheDocument()
     expect(within(items[1]).queryByText('해외ETF 적립')).not.toBeInTheDocument()
@@ -198,7 +210,7 @@ describe('AssetRecordList', () => {
     })
     render(<AssetRecordList month="2026-08" />)
 
-    const items = within(screen.getByRole('list', { name: '자산 기록 모바일' })).getAllByRole('listitem')
+    const items = within(screen.getByRole('list', { name: '자산 기록' })).getAllByRole('listitem')
     expect(within(items[0]).getByText('미래에셋증권 종합위탁 · 미래에셋증권')).toBeInTheDocument()
     expect(within(items[1]).queryByText(/·.*증권/)).not.toBeInTheDocument()
   })

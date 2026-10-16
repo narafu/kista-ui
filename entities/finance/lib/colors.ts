@@ -1,4 +1,9 @@
-import { ASSET_CLASS_ORDER, ASSET_L1_CATEGORY_IDS } from './aggregate'
+import {
+  ASSET_CLASS_ORDER,
+  ASSET_L1_CATEGORY_IDS,
+  SYSTEM_INVESTMENT_CATEGORY_ID,
+  SYSTEM_LOAN_CATEGORY_ID,
+} from './aggregate'
 import type { AssetClass } from '../model/types'
 
 // 카테고리별/자산군별 현황(asset-overview)·구성비(asset-composition) 색상 — 두 위젯이
@@ -25,6 +30,13 @@ function colorAt(index: number): string {
 // 카테고리는 L1 4종 고정이라 양쪽 위젯이 항상 같은 ASSET_L1_CATEGORY_IDS 순서를 그대로 쓴다.
 export function assetCategoryColor(categoryId: string): string {
   return colorAt(ASSET_L1_CATEGORY_IDS.indexOf(categoryId))
+}
+
+// 자산 기록 목록의 L1 카테고리 배지 톤(shared/ui/Badge tone) — 투자는 브랜드, 대출은 부채라 error, 나머지는 중립.
+export function assetCategoryBadgeTone(rootCategoryId: string): 'brand' | 'error' | 'neutral' {
+  if (rootCategoryId === SYSTEM_INVESTMENT_CATEGORY_ID) return 'brand'
+  if (rootCategoryId === SYSTEM_LOAN_CATEGORY_ID) return 'error'
+  return 'neutral'
 }
 
 // AssetClass는 서버 enum(닫힌 6값, 팔레트 길이와 정확히 일치)이라 구 assetClassColorMap의
