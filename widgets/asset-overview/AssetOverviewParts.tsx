@@ -41,7 +41,7 @@ function BreakdownBar({ label, amount, percent, delta, color, isLiability = fals
       </div>
       <div className="flex w-32 shrink-0 flex-col items-end">
         <span className="text-sm font-medium tabular-nums">{maskIfHidden(fmtKrw(amount))}</span>
-        <span className={cn('text-xs tabular-nums', !delta ? 'text-muted-foreground' : pnlTextClass(isLiability ? -delta : delta))}>
+        <span className={cn('text-xs tabular-nums', delta === null ? 'text-muted-foreground' : pnlTextClass(isLiability ? -delta : delta))}>
           {delta === null ? '—' : maskIfHidden(fmtSignedKrw(delta))}
         </span>
       </div>
@@ -55,7 +55,7 @@ function summaryDeltaLabel(
   { isLiability = false }: { isLiability?: boolean } = {},
 ) {
   return (
-    <span className={cn('tabular-nums', delta === 0 ? 'text-muted-foreground' : pnlTextClass(isLiability ? -delta : delta))}>
+    <span className={cn('tabular-nums', pnlTextClass(isLiability ? -delta : delta))}>
       전월대비 {amountValue(fmtSignedKrw(delta))}
     </span>
   )

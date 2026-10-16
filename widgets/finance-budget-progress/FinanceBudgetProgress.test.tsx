@@ -63,9 +63,13 @@ describe('FinanceBudgetProgress 중간 카테고리 소계', () => {
     })
 
     // 식비: 하위 예산 합 (200+150+200) / 실적 (180+90+200)
-    expect(screen.getByText('Σ 470원 / 550원')).toBeInTheDocument()
+    expect(screen.getByText('470원 / 550원')).toBeInTheDocument()
     // 외식: 점심+저녁 합
-    expect(screen.getByText('Σ 270원 / 350원')).toBeInTheDocument()
+    expect(screen.getByText('270원 / 350원')).toBeInTheDocument()
+    // 그룹 행(식비·외식) 2개에만 Σ 표시 — 시각용 Σ는 aria-hidden, 스크린리더엔 "하위 합계"
+    expect(screen.getAllByText('Σ')).toHaveLength(2)
+    for (const sigma of screen.getAllByText('Σ')) expect(sigma).toHaveAttribute('aria-hidden')
+    expect(screen.getAllByText('하위 합계')).toHaveLength(2)
     // 하위 leaf 예산 행은 Σ 없이
     expect(screen.getByText('180원 / 200원')).toBeInTheDocument()
     expect(screen.getByText('식비')).toBeInTheDocument()
@@ -84,8 +88,40 @@ describe('FinanceBudgetProgress 중간 카테고리 소계', () => {
 
     // 식비 자체 예산: 서브트리 실적 190 / 예산 600, Σ 접두 없음
     expect(screen.getByText('190원 / 600원')).toBeInTheDocument()
-    expect(screen.queryByText('Σ 190원 / 600원')).not.toBeInTheDocument()
+    expect(screen.queryByText('Σ')).not.toBeInTheDocument()
     expect(screen.getByText('180원 / 200원')).toBeInTheDocument()
+  })
+})
+
+describe('FinanceBudgetProgress 예산 초과 표현', () => {
+  it('소비는 예산을 넘으면 경고색 "초과"로 표시한다', () => {
+    renderWidget({
+      budgets: [budget('b-food', 'food', 100)],
+      transactions: [tx('food', 150)],
+      categoryTree: [cat('food', '식비')],
+      index: new Map([idx('food', '식비')]),
+    })
+    expect(screen.getByText('초과 50원')).toHaveClass('text-destructive')
+  })
+
+  it('저축·수입은 목표를 넘기면 좋은 신호라 "초과 달성"으로 경고색 없이 표시한다', () => {
+    const entry: CategoryIndexEntry = { type: 'SAVING', rootId: 'fund', name: '펀드', path: [{ id: 'fund', name: '펀드', sortOrder: 0 }], sortOrder: 0 }
+    render(
+      <FinanceBudgetProgress
+        type="SAVING"
+        budgets={[budget('b-fund', 'fund', 100)]}
+        transactions={[tx('fund', 150)]}
+        categoryTree={[{ ...cat('fund', '펀드'), type: 'SAVING' }]}
+        index={new Map([['fund', entry]])}
+        period={PERIOD}
+        isLoading={false}
+        isError={false}
+        today={TODAY}
+        onCategorySelect={vi.fn()}
+      />,
+    )
+    const over = screen.getByText('초과 달성 50원')
+    expect(over).not.toHaveClass('text-destructive')
   })
 })
 

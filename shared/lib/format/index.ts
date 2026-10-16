@@ -48,6 +48,17 @@ export function fmtShortYearMonth(month: string): string {
   return `${year.slice(2)}.${parsedMonth}월`
 }
 
+/**
+ * 차트 Y축 원화 눈금 — fmtKrw("1,000,000원")는 좁은 축 폭(44px)에 맞지 않아 만원 단위로 줄인다.
+ * 1억 이상은 "60,000만"처럼 길어져 앞자리가 잘리므로 억 단위로 줄인다. 정확한 금액은 툴팁의 fmtKrw로 보여준다.
+ */
+export function fmtKrwAxisTick(value: number): string {
+  if (Math.abs(value) >= 100_000_000) {
+    return `${(value / 100_000_000).toLocaleString('ko-KR', { maximumFractionDigits: 1 })}억`
+  }
+  return `${Math.round(value / 10_000).toLocaleString('ko-KR')}만`
+}
+
 /** 시각만 (24시간제) */
 export function fmtTime(dateStr: string | Date): string {
   return new Date(dateStr).toLocaleTimeString('ko-KR', { hour12: false })

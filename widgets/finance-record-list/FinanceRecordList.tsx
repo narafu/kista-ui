@@ -158,7 +158,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
   return (
     <div className="space-y-4">
       {inPeriod.length === 0 ? (
-        <EmptyState message="이 기간에 등록된 거래내역이 없습니다." />
+        <EmptyState message="이 기간에 등록된 거래내역이 없습니다. 거래내역 등록 버튼으로 내역을 추가해보세요." />
       ) : (
         <>
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -235,7 +235,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                 </table>
               </div>
 
-              <ul className="m-0 list-none divide-y rounded-[var(--r-lg)] border border-border p-0 lg:hidden" aria-label="거래내역 모바일">
+              <ul className="m-0 list-none divide-y rounded-[var(--r-lg)] border border-border p-0 lg:hidden" aria-label="거래내역">
                 {paged.map((t) => {
                   const entry = index.get(t.categoryId)
                   const closed = isClosed(t.transactionDate)
@@ -312,7 +312,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
         open={deleteDialog.open}
         onOpenChange={deleteDialog.onOpenChange}
         title="거래내역을 삭제하시겠습니까?"
-        description="삭제한 내역은 복구할 수 없습니다."
+        description="삭제한 거래내역은 복구할 수 없습니다."
         isPending={deleteMutation.isPending}
         onConfirm={handleDelete}
       />

@@ -8,18 +8,18 @@ import { useMemo, useState } from 'react'
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Skeleton } from '@/components/ui/skeleton'
 import { SectionError } from '@shared/ui/SectionError'
-import { fmtKrw } from '@shared/lib/format'
+import { fmtKrw, fmtKrwAxisTick, fmtShortYearMonth } from '@shared/lib/format'
+import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { calcFlowTrend, filterByType, flowCategoryColor, sortCategoryTree } from '@entities/finance'
 import type { CategoryIndex, FinanceCategory, FinanceCategoryType, FinanceTransaction, Period, TrendRange } from '@entities/finance'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 import { TOOLTIP_CONTENT_STYLE } from '@shared/lib/chart/tooltip'
 
-// Y축 눈금 전용 — fmtKrw는 "1,000,000원" 같은 긴 문자열이라 좁은 축 폭에 맞지 않는다.
-// 만원 단위로 축약해 표시하고, 정확한 금액은 Tooltip의 fmtKrw로 보여준다.
-function fmtKrwAxisTick(value: number): string {
-  return `${Math.round(value / 10_000).toLocaleString('ko-KR')}만`
-}
+const SERIES_OPTIONS: { value: 'total' | 'category'; label: string }[] = [
+  { value: 'total', label: '합계' },
+  { value: 'category', label: '카테고리별' },
+]
 
 interface Props {
   type: FinanceCategoryType
@@ -62,25 +62,24 @@ export default function FinanceTrendInner({ type, transactions, range, categoryT
       ) : (
         <>
           <div className="flex justify-end">
-            <button
-              type="button"
-              aria-pressed={byCategory}
-              onClick={() => setByCategory((v) => !v)}
-              className="rounded px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent aria-pressed:bg-[var(--brand-fg-soft)] aria-pressed:text-[var(--background)]"
-            >
-              카테고리별 보기
-            </button>
+            <SegmentedToggle
+              aria-label="추이 표시 방식"
+              options={SERIES_OPTIONS}
+              value={byCategory ? 'category' : 'total'}
+              onChange={(value) => setByCategory(value === 'category')}
+            />
           </div>
           <div className="min-h-[240px] w-full flex-1 sm:min-h-[280px]">
             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
               <LineChart data={trend} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} title={period.mode === 'yearly' ? '연도별 추이' : '월별 추이'}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="period" tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={24} />
+                <XAxis dataKey="period" tickFormatter={fmtShortYearMonth} tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={24} />
                 <YAxis tick={AXIS_TICK} tickLine={false} axisLine={false} width={44} tickFormatter={fmtKrwAxisTick} domain={['auto', 'auto']} />
                 {/* hover 가독성 — AssetTrendInner와 동일한 가이드선·강조 점·툴팁 스타일. 카테고리별 보기의
                     계열 구분은 globals.css의 툴팁 항목 색 점이 맡는다. */}
                 <Tooltip
                   formatter={(value, name) => [maskIfHidden(fmtKrw(Number(value))), name]}
+                  labelFormatter={(label) => fmtShortYearMonth(String(label))}
                   cursor={{ stroke: 'var(--muted-foreground)', strokeWidth: 1, strokeDasharray: '4 4' }}
                   contentStyle={{
                     ...TOOLTIP_CONTENT_STYLE,

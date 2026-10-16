@@ -55,6 +55,9 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
     () => calcYearlyAverage(typeTransactions, period.mode, period.month, today),
     [typeTransactions, period.mode, period.month, today],
   )
+  // 평균은 선택한 연도 기준이라 과거 연도를 보면서 "올해"라고 부르지 않는다
+  const selectedYear = period.month.slice(0, 4)
+  const yearlyAverageLabel = selectedYear === today.slice(0, 4) ? '올해 월평균' : `${selectedYear}년 월평균`
 
   // 수입 대비 비율 — INCOME 탭은 자기 자신 대비라 항상 100%로 무의미해 제외한다. 같은 기간 INCOME
   // 합계는 이미 받고 있는 unfiltered transactions+index에서 뽑아내 별도 쿼리 없이 계산한다.
@@ -93,6 +96,7 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
             incomeRatio={incomeRatio}
             remainingAmount={remainingAmount}
             yearlyAverage={yearlyAverage}
+            yearlyAverageLabel={yearlyAverageLabel}
             amountValue={amountValue}
           />
         )}

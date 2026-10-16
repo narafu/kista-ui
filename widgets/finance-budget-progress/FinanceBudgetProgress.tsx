@@ -37,12 +37,14 @@ interface BreakdownBarProps {
   color: string
   // 자체 예산이 없는 그룹(중간 카테고리) 행 — 하위 예산 합만 보여준다. 라벨은 굵게, 막대는 무채색, 숫자에 Σ.
   isGroup?: boolean
+  // 소비는 예산을 넘으면 경고(빨강 "초과")지만, 수입·저축은 목표를 넘긴 것이라 좋은 신호다("초과 달성", 초록).
+  overIsGood: boolean
 }
 
 // widgets/asset-overview/AssetOverview.tsx의 로컬 BreakdownBar를 정본으로 복제하되
 // 시맨틱을 예산 대비용(우측: 실적/할당, 잔여·초과)으로 바꿨다 — widget 간 import 금지 규칙에 따라
 // 각 위젯이 각자 복제한다.
-function BreakdownBar({ label, actual, allocated, remaining, percent, color, isGroup = false }: BreakdownBarProps) {
+function BreakdownBar({ label, actual, allocated, remaining, percent, color, isGroup = false, overIsGood }: BreakdownBarProps) {
   const { maskIfHidden } = useAmountHiddenPreference()
   const isOver = remaining < 0
   // 모바일: 1행 라벨·금액, 2행 전체 폭 막대 — 한 줄에 두면 금액 열이 폭을 다 써서 막대가 거의 사라진다.
@@ -56,9 +58,20 @@ function BreakdownBar({ label, actual, allocated, remaining, percent, color, isG
         />
       </span>
       <span className="flex w-auto min-w-[9rem] shrink-0 flex-col items-end">
-        <span className="text-sm font-medium tabular-nums">{`${isGroup ? 'Σ ' : ''}${maskIfHidden(fmtKrw(actual))} / ${maskIfHidden(fmtKrw(allocated))}`}</span>
-        <span className={cn('text-xs tabular-nums', isOver ? 'text-destructive' : 'text-muted-foreground')}>
-          {isOver ? `초과 ${maskIfHidden(fmtKrw(Math.abs(remaining)))}` : `잔여 ${maskIfHidden(fmtKrw(remaining))}`}
+        <span className="text-sm font-medium tabular-nums">
+          {/* Σ는 스크린리더가 "시그마"로 읽으므로 시각용으로만 두고 뜻은 sr-only로 전한다 */}
+          {isGroup && <><span aria-hidden>Σ </span><span className="sr-only">하위 합계 </span></>}
+          <span>{`${maskIfHidden(fmtKrw(actual))} / ${maskIfHidden(fmtKrw(allocated))}`}</span>
+        </span>
+        <span
+          className={cn(
+            'text-xs tabular-nums',
+            !isOver ? 'text-muted-foreground' : overIsGood ? 'text-[var(--status-ok)]' : 'text-destructive',
+          )}
+        >
+          {isOver
+            ? `${overIsGood ? '초과 달성' : '초과'} ${maskIfHidden(fmtKrw(Math.abs(remaining)))}`
+            : `잔여 ${maskIfHidden(fmtKrw(remaining))}`}
         </span>
       </span>
     </span>
@@ -75,9 +88,10 @@ interface BudgetTreeRowProps {
   orderedRootIds: string[]
   index: CategoryIndex
   onSelect: (categoryId: string) => void
+  overIsGood: boolean
 }
 
-function BudgetTreeRow({ node, orderedRootIds, index, onSelect }: BudgetTreeRowProps) {
+function BudgetTreeRow({ node, orderedRootIds, index, onSelect, overIsGood }: BudgetTreeRowProps) {
   return (
     <>
       <button
@@ -93,11 +107,12 @@ function BudgetTreeRow({ node, orderedRootIds, index, onSelect }: BudgetTreeRowP
           percent={Math.min(node.usageRatio * 100, 100)}
           color={flowCategoryColor(orderedRootIds, index.get(node.categoryId)?.rootId ?? '')}
           isGroup={node.isGroup}
+          overIsGood={overIsGood}
         />
         <span className="sr-only">내역 보기</span>
       </button>
       {node.children.map((child) => (
-        <BudgetTreeRow key={child.categoryId} node={child} orderedRootIds={orderedRootIds} index={index} onSelect={onSelect} />
+        <BudgetTreeRow key={child.categoryId} node={child} orderedRootIds={orderedRootIds} index={index} onSelect={onSelect} overIsGood={overIsGood} />
       ))}
     </>
   )
@@ -130,11 +145,11 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
         ) : (
           <div className="space-y-4">
             {budgetTree.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">설정한 예산이 없습니다.</p>
+              <p className="py-8 text-center text-sm text-muted-foreground">설정한 예산이 없습니다. 예산 관리에서 예산을 등록하세요.</p>
             ) : (
               <div className="space-y-2">
                 {budgetTree.map((node) => (
-                  <BudgetTreeRow key={node.categoryId} node={node} orderedRootIds={orderedRootIds} index={index} onSelect={onCategorySelect} />
+                  <BudgetTreeRow key={node.categoryId} node={node} orderedRootIds={orderedRootIds} index={index} onSelect={onCategorySelect} overIsGood={type !== 'EXPENSE'} />
                 ))}
               </div>
             )}

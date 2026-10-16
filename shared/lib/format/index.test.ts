@@ -83,8 +83,9 @@ describe('pnlTextClass', () => {
     expect(pnlTextClass(10)).toBe('text-pos')
   })
 
-  it('0은 text-pos를 반환한다', () => {
-    expect(pnlTextClass(0)).toBe('text-pos')
+  it('0은 상승색이 아닌 중립색을 반환한다', () => {
+    expect(pnlTextClass(0)).toBe('text-muted-foreground')
+    expect(pnlTextClass(-0)).toBe('text-muted-foreground')
   })
 
   it('음수는 text-neg를 반환한다', () => {

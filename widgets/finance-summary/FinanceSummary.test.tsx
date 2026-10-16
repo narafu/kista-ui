@@ -122,6 +122,25 @@ describe('FinanceSummary 수입 대비 비율', () => {
   })
 })
 
+describe('FinanceSummary 월평균 카드 라벨', () => {
+  it('올해가 아닌 연도를 보면 "올해" 대신 그 연도로 부른다', () => {
+    render(
+      <FinanceSummary
+        type="EXPENSE"
+        transactions={[tx('2025-03-10', 100000)]}
+        index={index}
+        isLoading={false}
+        isError={false}
+        period={{ month: '2025-03', mode: 'monthly' }}
+        onPeriodChange={() => {}}
+        today="2026-08-23"
+      />,
+    )
+    expect(screen.getByText('2025년 월평균')).toBeInTheDocument()
+    expect(screen.queryByText('올해 월평균')).not.toBeInTheDocument()
+  })
+})
+
 describe('FinanceSummary 올해 월평균 카드', () => {
   it('월간/연간 모드 상관없이 선택 연도 1월~선택 월 합계를 경과 개월 수로 나눠 보여준다', () => {
     const transactions = [tx('2026-01-10', 100000), tx('2026-08-10', 200000), tx('2025-12-10', 999999)]

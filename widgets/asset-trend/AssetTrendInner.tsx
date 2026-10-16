@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { SectionError } from '@shared/ui/SectionError'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
-import { fmtKrw, fmtShortYearMonth } from '@shared/lib/format'
+import { fmtKrw, fmtKrwAxisTick, fmtShortYearMonth } from '@shared/lib/format'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { useMeta } from '@entities/meta'
 import {
@@ -26,16 +26,6 @@ import {
 } from '@entities/finance'
 import type { AssetClass, TrendMode, TrendRange } from '@entities/finance'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
-
-// Y축 눈금 전용 — fmtKrw는 "1,000,000원" 같은 긴 문자열이라 좁은 축 폭에 맞지 않는다.
-// 만원 단위로 축약해 표시하고, 정확한 금액은 Tooltip의 fmtKrw로 보여준다.
-// 1억 이상은 "60,000만"처럼 길어져 축 폭(44px)에서 앞자리가 잘리므로 억 단위로 줄인다.
-function fmtKrwAxisTick(value: number): string {
-  if (Math.abs(value) >= 100_000_000) {
-    return `${(value / 100_000_000).toLocaleString('ko-KR', { maximumFractionDigits: 1 })}억`
-  }
-  return `${Math.round(value / 10_000).toLocaleString('ko-KR')}만`
-}
 
 // 선이 여러 개(순자산·전체)일 때 범례와 바로 대응되도록 항목 앞에 선 색 점을 둔다.
 // 팔레트 색을 글자에 입히면 흰 배경 대비 4.5:1을 못 맞출 수 있어 금액 글자는 --foreground 그대로 둔다.

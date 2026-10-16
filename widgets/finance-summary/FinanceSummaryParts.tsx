@@ -71,7 +71,7 @@ function totalSub(
   return undefined
 }
 
-export function FinanceKpis({ type, mode, total, count, previousDelta, previousYearDelta, incomeRatio, remainingAmount, yearlyAverage, amountValue }: {
+export function FinanceKpis({ type, mode, total, count, previousDelta, previousYearDelta, incomeRatio, remainingAmount, yearlyAverage, yearlyAverageLabel, amountValue }: {
   type: FinanceCategoryType
   mode: PeriodMode
   total: number
@@ -81,6 +81,7 @@ export function FinanceKpis({ type, mode, total, count, previousDelta, previousY
   incomeRatio: number | null
   remainingAmount: number | null
   yearlyAverage: number
+  yearlyAverageLabel: string
   amountValue: AmountValue
 }) {
   return (
@@ -103,7 +104,7 @@ export function FinanceKpis({ type, mode, total, count, previousDelta, previousY
           valueClassName={cn(KPI_VALUE_CLASS, pnlTextClass(remainingAmount))}
         />
       )}
-      <KpiCard label="올해 월평균" value={amountValue(fmtKrw(yearlyAverage))} valueClassName={KPI_VALUE_CLASS} />
+      <KpiCard label={yearlyAverageLabel} value={amountValue(fmtKrw(yearlyAverage))} valueClassName={KPI_VALUE_CLASS} />
       <KpiCard label="거래건수" value={`${count}건`} valueClassName={KPI_VALUE_CLASS} />
     </div>
   )

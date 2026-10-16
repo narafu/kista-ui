@@ -9,6 +9,7 @@ const { setPeriodMock, state } = vi.hoisted(() => ({
     userMonth: null as string | null,
     mode: 'monthly' as 'monthly' | 'yearly',
     transactions: [] as { transactionDate: string }[],
+    previousYearFailed: false,
   },
 }))
 
@@ -30,11 +31,11 @@ vi.mock('@entities/finance', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@entities/finance')>()
   return {
     ...actual,
-    useFinanceTransactionsQuery: (_from: string, _to: string, options?: { enabled?: boolean }) => ({
-      data: options?.enabled === false ? [] : state.transactions,
-      isLoading: false,
-      isError: false,
-    }),
+    // enabled 옵션을 넘기는 건 전년 동기간 조회뿐이다 — previousYearFailed면 그 조회만 실패시킨다
+    useFinanceTransactionsQuery: (_from: string, _to: string, options?: { enabled?: boolean }) =>
+      options?.enabled === true && state.previousYearFailed
+        ? { data: undefined, isLoading: false, isError: true }
+        : { data: options?.enabled === false ? [] : state.transactions, isLoading: false, isError: false },
     useFinanceCategoriesQuery: () => ({ data: [], isLoading: false }),
     useFinanceBudgetsQuery: () => ({ data: [] }),
   }
@@ -44,12 +45,27 @@ function seed(dates: string[]) {
   state.transactions = dates.map((transactionDate) => ({ transactionDate }))
 }
 
+describe('useFinanceFlowData 전년 동기간 조회', () => {
+  beforeEach(() => {
+    state.userMonth = null
+    state.mode = 'yearly'
+    state.transactions = []
+    state.previousYearFailed = true
+  })
+
+  it('전년 조회가 실패하면 빈 배열이 아닌 undefined를 넘겨 "전년 0원" 기준 전년대비를 만들지 않는다', () => {
+    const { result } = renderHook(() => useFinanceFlowData('INCOME'))
+    expect(result.current.previousYearTransactions).toBeUndefined()
+  })
+})
+
 describe('useFinanceFlowData 자동 월 조정', () => {
   beforeEach(() => {
     setPeriodMock.mockClear()
     state.userMonth = null
     state.mode = 'monthly'
     state.transactions = []
+    state.previousYearFailed = false
   })
 
   it('사용자 미선택 + 오늘 달에 거래 없으면 데이터 있는 최근 월을 표시하되 프로바이더는 건드리지 않는다', async () => {

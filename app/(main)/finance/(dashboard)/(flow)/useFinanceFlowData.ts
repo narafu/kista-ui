@@ -61,7 +61,9 @@ export function useFinanceFlowData(flowType: FlowCategoryType) {
   }, [isTransactionsLoading, userMonth, period.mode, period.month, transactions])
 
   const previousYearWindow = useMemo(() => previousYearRange(period, today), [period, today])
-  const { data: previousYearTransactions = [], isLoading: isPreviousYearLoading } = useFinanceTransactionsQuery(
+  // 기본값([])을 채우지 않는다 — 조회 실패를 "전년 0원"으로 오인해 "전년대비 +올해 전액"을 띄우게 된다.
+  // undefined면 calcPreviousYearTotal이 null을 돌려 전년대비 표시 자체를 숨긴다.
+  const { data: previousYearTransactions, isLoading: isPreviousYearLoading } = useFinanceTransactionsQuery(
     previousYearWindow.from,
     previousYearWindow.to,
     { enabled: period.mode === 'yearly' },
