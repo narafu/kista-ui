@@ -21,6 +21,7 @@ vi.mock('sonner', () => ({
   toast: {
     success: vi.fn(),
     warning: vi.fn(),
+    error: vi.fn(),
     info: vi.fn(),
   },
 }))
@@ -97,7 +98,7 @@ const mockPreviewQuery = vi.fn(() => ({
   error: null as unknown,
 }))
 
-let cancelAllSuccessHandler: ((r: { cancelledCount: number; failedCount: number }) => void) | undefined
+let cancelAllSuccessHandler: ((r: { cancelledCount: number; failedCount: number; credentialFailedCount: number }) => void) | undefined
 
 vi.mock('@entities/order', async () => {
   const actual = await vi.importActual<typeof import('@entities/order')>('@entities/order')
@@ -105,7 +106,7 @@ vi.mock('@entities/order', async () => {
     ...actual,
     useStrategyOrderPreviewQuery: () => mockPreviewQuery(),
     useCancelAllOrdersMutation: () => ({
-      mutate: (_: undefined, opts?: { onSuccess?: (r: { cancelledCount: number; failedCount: number }) => void }) => {
+      mutate: (_: undefined, opts?: { onSuccess?: (r: { cancelledCount: number; failedCount: number; credentialFailedCount: number }) => void }) => {
         cancelAllSuccessHandler = opts?.onSuccess
       },
       isPending: false,
@@ -774,9 +775,33 @@ describe('StrategyDetail cancel-all toast', () => {
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
     fireEvent.click(screen.getByText('전체 취소'))
-    cancelAllSuccessHandler?.({ cancelledCount: 1, failedCount: 0 })
+    cancelAllSuccessHandler?.({ cancelledCount: 1, failedCount: 0, credentialFailedCount: 0 })
 
     expect(vi.mocked(toast.success)).toHaveBeenCalledWith('1건 모두 취소됐습니다')
+  })
+
+  it('증권사 키 만료로 취소 실패하면 키 재등록을 안내한다', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [
+          { id: 'o1', ticker: 'TSLA', direction: 'BUY', orderType: 'LOC', quantity: 5, price: '20.00', status: 'PLACED' },
+        ],
+        position: null,
+        orders: [],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: null,
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+    fireEvent.click(screen.getByText('전체 취소'))
+    cancelAllSuccessHandler?.({ cancelledCount: 0, failedCount: 1, credentialFailedCount: 1 })
+
+    expect(vi.mocked(toast.error)).toHaveBeenCalledWith(expect.stringContaining('계좌 키를 다시 등록하세요'))
   })
 })
 

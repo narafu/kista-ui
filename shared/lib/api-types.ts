@@ -1299,7 +1299,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 종목 일봉 캔들 조회 (최대 200개, 계좌 무관 공용 시세) */
+        /**
+         * 종목 일봉 캔들 조회 (계좌 무관 공용 시세)
+         * @description from·to를 함께 주면 기간(양끝 포함, 최대 5년) 조회 — 200개 한도 없음. 없으면 최신 count개(최대 200)
+         */
         get: operations["getCandles"];
         put?: never;
         post?: never;
@@ -1742,7 +1745,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** 거래 사이클 단건 조회 */
+        get: operations["get"];
         /** 거래 사이클 수정 */
         put: operations["trading_update"];
         post?: never;
@@ -3446,6 +3450,11 @@ export interface components {
              * @description 취소 실패 건수 (이미 체결되었거나 증권사 오류)
              */
             failedCount?: number;
+            /**
+             * Format: int32
+             * @description 취소 실패 중 증권사 자격증명 오류(키 만료·철회) 건수 — 재시도해도 풀리지 않아 계좌 키 재등록 필요
+             */
+            credentialFailedCount?: number;
         };
         TelegramUpdateRequest: {
             /** @description 사용자 텔레그램 봇 토큰 */
@@ -4684,6 +4693,11 @@ export interface components {
              * @example INFINITE
              */
             code?: string;
+            /**
+             * @description 한국어 표시 이름
+             * @example 무한매수법
+             */
+            label?: string;
             /** @description 전략 설명 */
             description?: string;
             /** @description 사용 가능한 티커 name() 목록 (정렬됨) */
@@ -7539,10 +7553,20 @@ export interface operations {
                  */
                 ticker: string;
                 /**
-                 * @description 캔들 개수 (최대 200)
+                 * @description 캔들 개수 (최대 200, from/to 지정 시 무시)
                  * @example 200
                  */
                 count?: number;
+                /**
+                 * @description 시작일 (to와 함께 지정)
+                 * @example 2025-01-01
+                 */
+                from?: string;
+                /**
+                 * @description 종료일 (from과 함께 지정)
+                 * @example 2026-10-14
+                 */
+                to?: string;
             };
             header?: never;
             path?: never;
@@ -8072,6 +8096,28 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TradingCycleResponse"];
+                };
             };
         };
     };

@@ -7,6 +7,7 @@ import type { BuyCompetitionSummary, CompetingStrategy, NextOrderPreview, SellSu
 export interface CancelOrdersResult {
   cancelledCount: number
   failedCount: number
+  credentialFailedCount: number // failedCount 중 증권사 키 만료·철회 건수 — 재시도로 안 풀려 계좌 키 재등록 필요
 }
 
 function normalizeCompetingStrategy(raw: unknown): CompetingStrategy {

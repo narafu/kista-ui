@@ -202,6 +202,8 @@ export function NextOrderCard({
                   onSuccess: (r) => {
                     if (r.failedCount === 0) {
                       toast.success(`${r.cancelledCount}건 모두 취소됐습니다`)
+                    } else if (r.credentialFailedCount > 0) {
+                      toast.error(`${r.cancelledCount}건 취소, ${r.failedCount}건 실패. 증권사 키가 만료·철회돼 취소할 수 없습니다. 계좌 키를 다시 등록하세요.`)
                     } else {
                       toast.warning(`${r.cancelledCount}건 취소, ${r.failedCount}건 실패. KIS에서 직접 확인하세요.`)
                     }
