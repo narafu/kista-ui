@@ -255,7 +255,10 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                 </Badge>
               </div>
               {isClosed && (
-                <p className="mt-1 text-xs text-muted-foreground">미체결 주문만 재주문할 수 있습니다.</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {/* 서버(ReorderService)도 SUBMITTING을 거부 — 결과 불명 주문은 런북으로 PLACED/FAILED 정정 후 재주문 */}
+                  {order.status === 'SUBMITTING' ? '접수 결과가 확정되지 않은 주문은 재주문할 수 없습니다.' : '미체결 주문만 재주문할 수 있습니다.'}
+                </p>
               )}
 
               <div className="mt-3">

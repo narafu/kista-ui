@@ -47,7 +47,7 @@ export interface AdminTrade {
   quantity: number
   price: number
   // GET /api/admin/trades는 status 필터 없이 도메인 Order.status.name()을 그대로 내려
-  // OrderStatus 6값 전체(PLANNED·PARTIALLY_FILLED·CANCELLED 포함)가 올 수 있다.
+  // OrderStatus 전체(PLANNED·SUBMITTING·PARTIALLY_FILLED·CANCELLED 포함)가 올 수 있다.
   status: OrderStatus
 }
 
