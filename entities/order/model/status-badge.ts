@@ -1,10 +1,12 @@
+import type { OrderStatus } from '@shared/lib/api-schema'
+
 const ORDER_STATUS_BADGE_CLS: Record<string, string> = {
   PLACED:           'bg-info-bg text-info',
   FILLED:           'bg-status-ok-bg text-status-ok',
   PARTIALLY_FILLED: 'bg-warn-bg text-warn',
   SUBMITTING:       'bg-warn-bg text-warn', // 접수 결과 미확정 — 오래 남으면 관리자 정정 대상
   FAILED:           'bg-status-error-bg text-status-error',
-}
+} satisfies Partial<Record<OrderStatus, string>>
 
 /**
  * 주문 상태 배지 클래스를 반환한다.
@@ -23,4 +25,4 @@ export const ORDER_STATUS_LABEL: Record<string, string> = {
   CANCELLED:        '취소',
   PLANNED:          '예정',
   SUBMITTING:       '접수 중',
-}
+} satisfies Record<OrderStatus, string> // 서버 enum 추가 시 라벨 누락을 컴파일에서 잡는다

@@ -68,11 +68,20 @@ interface ExecutedBodyProps {
   cancelPending: boolean
 }
 
+// SUBMITTING은 접수 결과 미확정이라 "접수됨"에 섞지 않고 따로 센다
+export function executedHeaderLabel(placedOrders: NextOrderPreview['todayOrders']): string {
+  if (placedOrders.length === 0) return '접수됨'
+  const submitting = placedOrders.filter((o) => o.status === 'SUBMITTING').length
+  const placed = placedOrders.length - submitting
+  if (submitting === 0) return `${placed}건 접수됨`
+  return placed > 0 ? `${placed}건 접수됨 · ${submitting}건 접수 중` : `${submitting}건 접수 중`
+}
+
 function ExecutedBody({ placedOrders, orders, unplacedDirections, readiness, onCancelAll, cancelAllPending, onCancelOne, cancellingId, cancelPending }: ExecutedBodyProps) {
   return (
     <div>
       <div className="flex items-center justify-between px-6 py-3 border-b border-border">
-        <p className="text-base uppercase tracking-widest font-semibold text-info">{placedOrders.length > 0 ? `${placedOrders.length}건 접수됨` : '접수됨'}</p>
+        <p className="text-base uppercase tracking-widest font-semibold text-info">{executedHeaderLabel(placedOrders)}</p>
         <button
           type="button"
           onClick={onCancelAll}
