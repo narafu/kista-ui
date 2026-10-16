@@ -156,4 +156,15 @@ describe('CategoryManager', () => {
     await user.click(await screen.findByRole('option', { name: '공유대분류' }))
     expect(screen.getByRole('switch', { name: '그룹으로 저장' })).toBeInTheDocument()
   })
+
+  it('생성 다이얼로그: 하위가 있는 상위 카테고리를 고르면 2단계 Select에 단계 이름이 붙는다', async () => {
+    const user = userEvent.setup()
+    render(<CategoryManager />)
+
+    await user.click(screen.getByRole('button', { name: '카테고리 추가' }))
+    await user.click(screen.getByRole('combobox', { name: '상위 카테고리' }))
+    await user.click(await screen.findByRole('option', { name: '기타자산' }))
+
+    expect(screen.getByRole('combobox', { name: '상위 카테고리 2단계' })).toBeInTheDocument()
+  })
 })

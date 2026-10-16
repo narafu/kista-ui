@@ -11,14 +11,15 @@ const sharedGroup: FinanceGroup = { id: 'group-shared' }
 const me = { id: 'user-me' }
 
 // 1인 1그룹 정책 — groups는 0개(개인) 또는 1개(그룹 소속)뿐이다.
-let groups: FinanceGroup[] = [sharedGroup]
+let groups: FinanceGroup[] | undefined = [sharedGroup]
+let groupsError = false
 let members: FinanceGroupMember[] = []
 
 vi.mock('@entities/finance', async () => {
   const actual = await vi.importActual<typeof import('@entities/finance')>('@entities/finance')
   return {
     ...actual,
-    useFinanceGroupsQuery: () => ({ data: groups }),
+    useFinanceGroupsQuery: () => ({ data: groups, isError: groupsError }),
     useFinanceGroupMembersQuery: () => ({ data: members }),
     useRemoveFinanceGroupMemberMutation: () => ({ mutate: vi.fn(), isPending: false }),
     useCreateFinanceGroupInvitationMutation: () => ({ mutate: vi.fn(), isPending: false }),
@@ -37,6 +38,7 @@ describe('GroupManager', () => {
   beforeEach(() => {
     toastSuccessMock.mockClear()
     groups = [sharedGroup]
+    groupsError = false
   })
 
   it('OWNER에게는 초대 코드 발급 버튼과 그룹 탈퇴 버튼을 모두 보여준다', () => {
@@ -80,5 +82,29 @@ describe('GroupManager', () => {
     expect(screen.getByText(me.id.slice(0, 8))).toBeInTheDocument()
     expect(screen.getByText('나')).toBeInTheDocument()
     expect(screen.getByText('user-oth')).toBeInTheDocument()
+    // role 코드 원문 대신 라벨을 보여준다
+    expect(screen.getByText('소유자')).toBeInTheDocument()
+    // 섹션 라벨 "멤버"와 역할 배지 "멤버"가 함께 있다
+    expect(screen.getAllByText('멤버')).toHaveLength(2)
+    expect(screen.queryByText('OWNER')).not.toBeInTheDocument()
+  })
+
+  it('그룹 목록 로딩 중에는 로딩 표시만 하고 다른 그룹 참여 폼을 띄우지 않는다', () => {
+    groups = undefined
+    render(<GroupManager />)
+
+    expect(screen.getByRole('heading', { name: '그룹' })).toBeInTheDocument()
+    expect(screen.getByText('불러오는 중…')).toBeInTheDocument()
+    expect(screen.queryByText('다른 그룹 초대 코드로 참여')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '참여' })).not.toBeInTheDocument()
+  })
+
+  it('그룹 목록 조회에 실패하면 오류를 표시하고 다른 그룹 참여 폼을 띄우지 않는다', () => {
+    groups = undefined
+    groupsError = true
+    render(<GroupManager />)
+
+    expect(screen.getByText('그룹 정보를 불러오지 못했습니다.')).toBeInTheDocument()
+    expect(screen.queryByText('다른 그룹 초대 코드로 참여')).not.toBeInTheDocument()
   })
 })

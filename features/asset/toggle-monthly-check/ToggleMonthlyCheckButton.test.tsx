@@ -56,7 +56,7 @@ describe('ToggleMonthlyCheckButton', () => {
     const options = mutateMock.mock.calls.at(-1)?.[1] as { onSuccess: () => void }
     options.onSuccess()
 
-    expect(toastSuccessMock).toHaveBeenCalledWith('이번 달 기록 점검을 완료로 표시했습니다')
+    expect(toastSuccessMock).toHaveBeenCalledWith('2026년 8월 기록 점검을 완료로 표시했습니다')
   })
 
   it('aria-pressed로 현재 완료 상태를 노출한다', () => {
@@ -71,6 +71,6 @@ describe('ToggleMonthlyCheckButton', () => {
 
   it('미완료 상태에서는 완료 유도 문구를 보여준다', () => {
     render(<ToggleMonthlyCheckButton month="2026-08" completed={false} />)
-    expect(screen.getByRole('button', { name: '이번 달 기록 점검 완료로 표시' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '기록 점검 완료로 표시' })).toBeInTheDocument()
   })
 })

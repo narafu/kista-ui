@@ -10,6 +10,12 @@ interface Props {
   completed: boolean
 }
 
+// 'YYYY-MM' → "2026년 8월" — 자산 탭에서 지난 달을 골라도 토스트가 실제 대상 월을 가리키도록 한다
+function fmtYearMonthKo(month: string): string {
+  const [year, monthPart] = month.split('-')
+  return `${year}년 ${Number(monthPart)}월`
+}
+
 export function ToggleMonthlyCheckButton({ month, completed }: Props) {
   const mutation = useSetMonthlyClosingMutation()
 
@@ -18,7 +24,8 @@ export function ToggleMonthlyCheckButton({ month, completed }: Props) {
       { month, completed: !completed },
       {
         onSuccess: () => {
-          toast.success(completed ? '이번 달 기록 점검 완료를 해제했습니다' : '이번 달 기록 점검을 완료로 표시했습니다')
+          const label = fmtYearMonthKo(month)
+          toast.success(completed ? `${label} 기록 점검 완료를 해제했습니다` : `${label} 기록 점검을 완료로 표시했습니다`)
         },
       },
     )
@@ -38,7 +45,7 @@ export function ToggleMonthlyCheckButton({ month, completed }: Props) {
       )}
     >
       {completed ? <CheckCircle2 className="size-4" /> : <Circle className="size-4" />}
-      {mutation.isPending ? '저장 중...' : completed ? '기록 점검 완료됨' : '이번 달 기록 점검 완료로 표시'}
+      {mutation.isPending ? '저장 중...' : completed ? '기록 점검 완료됨' : '기록 점검 완료로 표시'}
     </button>
   )
 }
