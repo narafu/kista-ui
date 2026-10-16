@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function BulkRegisterPage() {
   return (
     <div>
-      <PageHeader eyebrow="가계부" eyebrowHref="/finance" title="모두 등록" />
+      <PageHeader eyebrow="가계부" eyebrowHref="/finance" title="일괄 등록" />
       <BulkRegisterForm />
     </div>
   )

@@ -159,7 +159,7 @@ export function BudgetForm({ type, initial, duplicateFrom, defaultCategoryId, di
         <ShareToGroupSwitch id="budgetShareToGroup" checked={shareToGroup} onCheckedChange={setShareToGroup} disabled={isPending} />
       )}
 
-      <FormActions onCancel={handleDone} isPending={isPending} canSubmit={canSubmit} label="저장" className="pt-2" />
+      <FormActions onCancel={handleDone} isPending={isPending} canSubmit={canSubmit} label={mode === 'edit' ? '수정' : '추가'} pendingLabel={mode === 'edit' ? '수정 중…' : '추가 중…'} className="pt-2" />
     </form>
   )
 }

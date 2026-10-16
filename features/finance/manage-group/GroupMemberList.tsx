@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@shared/ui/Badge'
 import { useRemoveFinanceGroupMemberMutation } from '@entities/finance'
 import type { FinanceGroupMember } from '@entities/finance'
 
@@ -22,6 +23,9 @@ import type { FinanceGroupMember } from '@entities/finance'
 function memberLabel(member: FinanceGroupMember) {
   return member.nickname ?? member.userId.slice(0, 8)
 }
+
+// kista-api가 role을 OWNER/MEMBER 코드로 내려준다 — 화면에는 원문 대신 이 라벨을 쓴다(미지 코드는 원문 폴백).
+const GROUP_ROLE_LABEL: Record<string, string> = { OWNER: '소유자', MEMBER: '멤버' }
 
 // features/finance/manage-categories·manage-accounts의 삭제 확인 다이얼로그와 동일하게
 // 목록이 open state를 소유하고 다이얼로그는 순수 controlled 프레젠테이션만 담당한다.
@@ -85,10 +89,8 @@ export function GroupMemberList({ groupId, members, isOwner, myUserId }: Props) 
         <div key={member.userId} className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
           <div className="flex items-center gap-2 min-w-0">
             <span className="truncate">{memberLabel(member)}</span>
-            <span className="text-xs rounded-full bg-muted px-2 py-0.5 text-muted-foreground shrink-0">{member.role}</span>
-            {member.userId === myUserId && (
-              <span className="text-xs rounded-full bg-primary/10 px-2 py-0.5 text-primary shrink-0">나</span>
-            )}
+            <Badge tone="neutral">{GROUP_ROLE_LABEL[member.role] ?? member.role}</Badge>
+            {member.userId === myUserId && <Badge tone="brand">나</Badge>}
           </div>
           {isOwner && member.userId !== myUserId && (
             <Button

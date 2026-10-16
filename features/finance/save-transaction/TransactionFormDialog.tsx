@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SaveButton } from '@shared/ui/SaveButton'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
+import { MonthClosedNotice } from '@shared/ui/MonthClosedNotice'
 import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
@@ -111,8 +112,16 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
                 value={transactionDate}
                 onChange={(e) => setTransactionDate(e.target.value)}
                 disabled={isPending}
+                aria-invalid={(transactionDate !== '' && !dateInWindow) || undefined}
+                aria-describedby={transactionDate !== '' && !dateInWindow ? 'transactionDateHint' : undefined}
                 className="h-11"
               />
+              {/* 직접 입력하면 min/max가 걸러주지 못해 저장 버튼만 비활성이 된다 — 이유를 알린다 */}
+              {transactionDate !== '' && !dateInWindow && (
+                <p id="transactionDateHint" className="text-xs text-destructive">
+                  {windowFrom && windowTo ? `${windowFrom} ~ ${windowTo} 사이 날짜만` : windowTo ? `${windowTo}까지만` : `${windowFrom}부터만`} 등록할 수 있습니다.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -152,6 +161,7 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
                 onChange={(e) => setMemo(e.target.value)}
                 disabled={isPending}
                 maxLength={255}
+                className="h-11"
               />
             </div>
 
@@ -160,18 +170,13 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
             )}
           </div>
 
-          {monthClosed && (
-            <p className="text-xs text-[var(--warn)]">
-              <span className="inline-block">기록 점검이 완료되어 잠겨 있습니다.</span>{' '}
-              <span className="inline-block">자산탭 기록 점검에서 완료를 해제하세요.</span>
-            </p>
-          )}
+          {monthClosed && <MonthClosedNotice className="mb-2" />}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
               취소
             </Button>
-            <SaveButton isPending={isPending} disabled={!canSubmit} />
+            <SaveButton isPending={isPending} disabled={!canSubmit} label={mode === 'edit' ? '수정' : '등록'} />
           </DialogFooter>
         </form>
       </DialogContent>

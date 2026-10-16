@@ -52,7 +52,7 @@ describe('BudgetForm', () => {
 
     await user.clear(screen.getByLabelText('적용 시작일'))
     await user.type(screen.getByLabelText('적용 시작일'), '2026-09-01')
-    await user.click(screen.getByRole('button', { name: '저장' }))
+    await user.click(screen.getByRole('button', { name: '추가' }))
 
     expect(createMutateMock).toHaveBeenCalledTimes(1)
     expect(createMutateMock.mock.calls[0][0]).toMatchObject({ categoryId: 'cat-food', amount: 100_000, applyStartDate: '2026-09-01' })
@@ -63,7 +63,7 @@ describe('BudgetForm', () => {
     const user = userEvent.setup()
     render(<BudgetForm type="EXPENSE" initial={source} />)
 
-    await user.click(screen.getByRole('button', { name: '저장' }))
+    await user.click(screen.getByRole('button', { name: '수정' }))
 
     expect(updateMutateMock).toHaveBeenCalledTimes(1)
     expect(createMutateMock).not.toHaveBeenCalled()
@@ -83,7 +83,7 @@ describe('BudgetForm', () => {
     await user.clear(screen.getByLabelText('월 예산 (원)'))
     await user.type(screen.getByLabelText('월 예산 (원)'), '0')
 
-    expect(screen.getByRole('button', { name: '저장' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '추가' })).toBeDisabled()
   })
 
   it('추가 폼은 이번 달 1일을 시작일 기본값으로 채운다', () => {
@@ -99,7 +99,7 @@ describe('BudgetForm', () => {
     await user.type(screen.getByLabelText('적용 종료일 (선택)'), '2026-04-30')
 
     expect(screen.getByText('종료일은 시작일 이후여야 합니다.')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '저장' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '추가' })).toBeDisabled()
   })
 
   it('dismiss=back이면 취소 시 router.back()', async () => {
@@ -117,7 +117,7 @@ describe('BudgetForm', () => {
     updateMutateMock.mockImplementation((_payload: unknown, opts: { onSuccess: () => void }) => opts.onSuccess())
     render(<BudgetForm type="EXPENSE" initial={source} />)
 
-    await user.click(screen.getByRole('button', { name: '저장' }))
+    await user.click(screen.getByRole('button', { name: '수정' }))
 
     expect(pushMock).toHaveBeenCalledWith('/finance/budgets/expense')
   })

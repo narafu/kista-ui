@@ -267,7 +267,7 @@ describe('AssetForm', () => {
     render(<AssetForm mode="edit" initial={existing} onSuccess={onSuccess} onCancel={onCancel} />)
 
     const notice = screen.getByText('기록 점검이 완료되어 잠겨 있습니다.').closest('p') as HTMLElement
-    expect(notice).toHaveTextContent('기록 점검이 완료되어 잠겨 있습니다. 자산탭 기록 점검에서 완료를 해제하세요.')
+    expect(notice).toHaveTextContent('기록 점검이 완료되어 잠겨 있습니다. 자산 탭 기록 점검에서 완료를 해제하세요.')
     // 안내가 버튼 영역 바로 앞에 온다.
     const submit = screen.getByRole('button', { name: '수정' })
     expect(notice.nextElementSibling).toBe(submit.parentElement)

@@ -39,18 +39,18 @@ describe('GroupManager', () => {
     groups = [sharedGroup]
   })
 
-  it('OWNER에게는 초대코드 발급 버튼과 그룹 탈퇴 버튼을 모두 보여준다', () => {
+  it('OWNER에게는 초대 코드 발급 버튼과 그룹 탈퇴 버튼을 모두 보여준다', () => {
     members = [
       { userId: me.id, role: 'OWNER' },
       { userId: 'user-other', role: 'MEMBER' },
     ]
     render(<GroupManager />)
 
-    expect(screen.getByRole('button', { name: '초대코드 발급' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '초대 코드 발급' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '그룹 탈퇴' })).toBeInTheDocument()
   })
 
-  it('일반 멤버에게는 그룹 탈퇴 버튼을 보여주고 초대코드 발급 버튼은 숨긴다', () => {
+  it('일반 멤버에게는 그룹 탈퇴 버튼을 보여주고 초대 코드 발급 버튼은 숨긴다', () => {
     members = [
       { userId: 'user-owner', role: 'OWNER' },
       { userId: me.id, role: 'MEMBER' },
@@ -58,15 +58,15 @@ describe('GroupManager', () => {
     render(<GroupManager />)
 
     expect(screen.getByRole('button', { name: '그룹 탈퇴' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: '초대코드 발급' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '초대 코드 발급' })).not.toBeInTheDocument()
   })
 
-  it('무그룹(개인) 상태에서는 초대코드 발급 버튼만 보여주고 멤버/탈퇴 UI는 없다(그룹 생성의 유일한 경로)', () => {
+  it('무그룹(개인) 상태에서는 초대 코드 발급 버튼만 보여주고 멤버/탈퇴 UI는 없다(그룹 생성의 유일한 경로)', () => {
     groups = []
     members = []
     render(<GroupManager />)
 
-    expect(screen.getByRole('button', { name: '초대코드 발급' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '초대 코드 발급' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '그룹 탈퇴' })).not.toBeInTheDocument()
   })
 

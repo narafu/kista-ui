@@ -2,10 +2,14 @@
 
 import { Fragment, useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
 import { GroupSharedBadge } from '@shared/ui/GroupSharedBadge'
+import { EmptyState } from '@shared/ui/EmptyState'
+import { LoadingRow } from '@shared/ui/LoadingRow'
+import { SectionError } from '@shared/ui/SectionError'
 import { cn } from '@shared/lib/utils'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { useMeta } from '@entities/meta'
@@ -91,7 +95,7 @@ export function AccountManager() {
   return (
     <div className={cn(cardClass, 'space-y-4')}>
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">계좌 관리</h2>
+        <h2 className="text-sm font-bold">계좌 관리</h2>
         <Button type="button" variant="brand-soft" size="sm" className="gap-1.5" onClick={() => setFormTarget('new')}>
           <Plus className="size-3.5" />
           계좌 추가
@@ -129,13 +133,13 @@ export function AccountManager() {
       )}
 
       {!data && isError ? (
-        <p className="text-sm text-muted-foreground py-6 text-center">계좌 목록을 불러오지 못했습니다.</p>
+        <SectionError message="계좌 목록을 불러오지 못했습니다." />
       ) : !data ? (
-        <p className="text-sm text-muted-foreground py-6 text-center">불러오는 중…</p>
+        <LoadingRow />
       ) : accounts.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-6 text-center">등록된 계좌가 없습니다.</p>
+        <EmptyState variant="text" message="등록된 계좌가 없습니다." />
       ) : visibleAccounts.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-6 text-center">조건에 맞는 계좌가 없습니다.</p>
+        <EmptyState variant="text" message="조건에 맞는 계좌가 없습니다." />
       ) : (
         <div className="space-y-4">
           {groupedAccounts.map((group) => (
@@ -155,8 +159,8 @@ export function AccountManager() {
                     <ShareableRowActions
                       canShare={canShare}
                       hasGroupId={!!account.groupId}
-                      onShare={() => shareMutation.mutate(account.id)}
-                      onUnshare={() => unshareMutation.mutate(account.id)}
+                      onShare={() => shareMutation.mutate(account.id, { onSuccess: () => toast.success('그룹에 공유했습니다') })}
+                      onUnshare={() => unshareMutation.mutate(account.id, { onSuccess: () => toast.success('개인 소유로 되돌렸습니다') })}
                       sharePending={shareMutation.isPending}
                       unsharePending={unshareMutation.isPending}
                       onEdit={() => setFormTarget(account)}

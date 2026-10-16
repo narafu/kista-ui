@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   Dialog,
   DialogContent,
@@ -17,10 +16,8 @@ import { SaveButton } from '@shared/ui/SaveButton'
 import { submitFormDialog } from '@shared/lib/form/submitFormDialog'
 import { getCascadeLevels, useCreateSystemFinanceCategoryMutation, useUpdateSystemFinanceCategoryMutation } from '@entities/finance'
 import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
-
-// Base UI Select는 빈 문자열 value를 허용하지 않는다 — AssetForm의 NO_ACCOUNT_VALUE와 동일한 센티널 패턴.
-const NO_PARENT_VALUE = 'NONE'
-const NO_PARENT_LABEL = '없음 (최상위로 생성)'
+import { ParentCategoryField } from './CategoryParentField'
+import { NO_PARENT_VALUE } from './categoryFormHelpers'
 
 interface Props {
   open: boolean
@@ -83,33 +80,7 @@ export function SystemCategoryFormDialog({ open, onOpenChange, type, l1Categorie
 
           <div className="space-y-4 py-2">
             {mode === 'create' && (
-              <div className="space-y-2">
-                <Label htmlFor="systemCategoryParentId">상위 카테고리</Label>
-                <div className="space-y-2">
-                  {cascadeLevels.map((level, levelIndex) => (
-                    <Select
-                      key={levelIndex}
-                      items={[
-                        { value: NO_PARENT_VALUE, label: NO_PARENT_LABEL },
-                        ...level.map((c) => ({ value: c.id, label: c.name })),
-                      ]}
-                      value={selectedPath[levelIndex] ?? NO_PARENT_VALUE}
-                      onValueChange={(value) => {
-                        if (!value) return
-                        setSelectedPath((prev) => (value === NO_PARENT_VALUE ? prev.slice(0, levelIndex) : [...prev.slice(0, levelIndex), value]))
-                      }}
-                    >
-                      <SelectTrigger id={levelIndex === 0 ? 'systemCategoryParentId' : undefined} aria-label={`상위 카테고리 ${levelIndex + 1}단계`} className="w-full h-10" disabled={isPending}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={NO_PARENT_VALUE}>{NO_PARENT_LABEL}</SelectItem>
-                        {level.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  ))}
-                </div>
-              </div>
+              <ParentCategoryField id="systemCategoryParentId" cascadeLevels={cascadeLevels} selectedPath={selectedPath} onPathChange={setSelectedPath} disabled={isPending} />
             )}
 
             <div className="space-y-2">

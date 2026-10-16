@@ -143,7 +143,7 @@ describe('AccountManager', () => {
 
     await user.click(within(rowOf('미래에셋증권')).getByRole('button', { name: '공유' }))
 
-    expect(shareMutateMock).toHaveBeenCalledWith('acc-1')
+    expect(shareMutateMock).toHaveBeenCalledWith('acc-1', expect.anything())
   })
 
   it('귀속 버튼을 누르면 해당 계좌 id로 귀속 mutation을 호출한다', async () => {
@@ -152,7 +152,7 @@ describe('AccountManager', () => {
 
     await user.click(within(rowOf('국민은행')).getByRole('button', { name: '귀속' }))
 
-    expect(unshareMutateMock).toHaveBeenCalledWith('acc-2')
+    expect(unshareMutateMock).toHaveBeenCalledWith('acc-2', expect.anything())
   })
 
   it('계좌 유형 필터를 적용하면 목록이 좁혀진다', async () => {

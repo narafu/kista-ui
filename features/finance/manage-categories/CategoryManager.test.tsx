@@ -149,7 +149,7 @@ describe('CategoryManager', () => {
     await user.click(screen.getByRole('combobox', { name: '상위 카테고리' }))
     await user.click(await screen.findByRole('option', { name: '기타자산' }))
     expect(screen.queryByRole('switch', { name: '그룹으로 저장' })).not.toBeInTheDocument()
-    expect(screen.getByText(/개인 카테고리 하위에는 그룹 공유 카테고리를 만들 수 없어요/)).toBeInTheDocument()
+    expect(screen.getByText(/개인 카테고리 하위에는 그룹 공유 카테고리를 만들 수 없습니다/)).toBeInTheDocument()
 
     // 그룹 소유 부모(공유대분류)로 바꾸면 토글이 다시 나타난다
     await user.click(screen.getByRole('combobox', { name: '상위 카테고리' }))

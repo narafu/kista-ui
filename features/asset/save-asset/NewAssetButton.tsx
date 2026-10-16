@@ -33,7 +33,7 @@ export function NewAssetButton({ className }: Props) {
       )}
     >
       {isPending ? <Spinner size={14} /> : <Plus className="size-3.5" />}
-      자산 등록
+      자산 기록 등록
     </button>
   )
 }

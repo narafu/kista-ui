@@ -9,9 +9,9 @@ vi.mock('@features/finance/manage-group', () => ({ GroupManager: () => null }))
 vi.mock('@features/finance/hide-amounts', () => ({ HideAmountsToggle: () => null }))
 
 describe('AssetSettingsPanel', () => {
-  it('최상단에 모두 등록 버튼이 /finance/bulk-register 로 연결된다', () => {
+  it('최상단에 일괄 등록 버튼이 /finance/bulk-register 로 연결된다', () => {
     render(<AssetSettingsPanel />)
-    const link = screen.getByRole('link', { name: '모두 등록' })
+    const link = screen.getByRole('link', { name: '일괄 등록' })
     expect(link).toHaveAttribute('href', '/finance/bulk-register')
   })
 })

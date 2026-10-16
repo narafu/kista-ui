@@ -20,10 +20,11 @@ describe('StrategySuggestionManager', () => {
     meState.data = { strategySuggestions: ['VR', 'INFINITE'] }
   })
 
-  it('유저 정보 로딩 전에는 렌더링하지 않는다', () => {
+  it('유저 정보 로딩 중에는 섹션 제목을 두고 로딩 상태를 표시한다', () => {
     meState.data = undefined
-    const { container } = render(<StrategySuggestionManager />)
-    expect(container).toBeEmptyDOMElement()
+    render(<StrategySuggestionManager />)
+    expect(screen.getByRole('heading', { name: '운용전략 관리' })).toBeInTheDocument()
+    expect(screen.getByText('불러오는 중…')).toBeInTheDocument()
   })
 
   it('새 운용전략을 추가하면 목록만 저장한다', async () => {

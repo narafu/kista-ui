@@ -27,6 +27,12 @@ export const MODE_LABEL: Record<AssetFormMode, string> = {
   duplicate: '복제 등록',
 }
 
+export const MODE_PENDING_LABEL: Record<AssetFormMode, string> = {
+  create: '등록 중…',
+  edit: '수정 중…',
+  duplicate: '등록 중…',
+}
+
 // 같은 이름의 계좌를 구분할 수 있도록 기관·소유자를 덧붙인다.
 export function accountOptionLabel(account: FinanceAccount): string {
   return [account.name, account.institution, account.owner].filter(Boolean).join(' · ')

@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Surface } from '@shared/ui/Surface'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
+import { MonthClosedNotice } from '@shared/ui/MonthClosedNotice'
+import { SectionError } from '@shared/ui/SectionError'
+import { LoadingRow } from '@shared/ui/LoadingRow'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { cn } from '@shared/lib/utils'
 import { digitsOnly, formatAmountDisplay, fmtKrw, todayKst } from '@shared/lib/format'
@@ -27,7 +30,7 @@ import {
   useFinanceTransactionsQuery,
   useMonthlyClosingsQuery,
 } from '@entities/finance'
-import type { CategoryGroupNode, BulkRegisterItem } from '@entities/finance'
+import type { AssetSnapshot, BulkRegisterItem, CategoryGroupNode, FinanceCategory, FinanceTransaction } from '@entities/finance'
 import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
 
 // todayKst() 사용 — new Date()의 getFullYear/getMonth는 브라우저 로컬 타임존이라
@@ -35,6 +38,17 @@ import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
 function thisMonth(): string {
   return todayKst().slice(0, 7)
 }
+
+// 'YYYY-MM' → "2026년 8월" — 문장 속 대상월 표기용(fmtShortYearMonth는 차트 축 축약형이라 맞지 않는다)
+function fmtYearMonthKo(month: string): string {
+  const [year, monthPart] = month.split('-')
+  return `${year}년 ${Number(monthPart)}월`
+}
+
+// 조회 전·실패 시 useMemo 의존성 참조를 고정한다
+const EMPTY_TRANSACTIONS: FinanceTransaction[] = []
+const EMPTY_SNAPSHOTS: AssetSnapshot[] = []
+const EMPTY_CATEGORIES: FinanceCategory[] = []
 
 interface RowState {
   included: boolean
@@ -70,12 +84,23 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
   const closingScopeGroupId = useMonthlyClosingScopeGroupId()
   const targetMonthClosed = isMonthClosed(monthlyClosings, targetMonth, closingScopeGroupId)
 
-  const { data: transactions = [] } = useFinanceTransactionsQuery(monthStartDate(sourceMonth), monthEndDate(sourceMonth))
-  const { data: assetSnapshots = [] } = useAssetSnapshotsQuery()
-  const { data: assetCategories = [] } = useFinanceCategoriesQuery('ASSET')
-  const { data: incomeCategories = [] } = useFinanceCategoriesQuery('INCOME')
-  const { data: expenseCategories = [] } = useFinanceCategoriesQuery('EXPENSE')
-  const { data: savingCategories = [] } = useFinanceCategoriesQuery('SAVING')
+  const transactionsQuery = useFinanceTransactionsQuery(monthStartDate(sourceMonth), monthEndDate(sourceMonth))
+  const assetSnapshotsQuery = useAssetSnapshotsQuery()
+  const assetCategoriesQuery = useFinanceCategoriesQuery('ASSET')
+  const incomeCategoriesQuery = useFinanceCategoriesQuery('INCOME')
+  const expenseCategoriesQuery = useFinanceCategoriesQuery('EXPENSE')
+  const savingCategoriesQuery = useFinanceCategoriesQuery('SAVING')
+  const transactions = transactionsQuery.data ?? EMPTY_TRANSACTIONS
+  const assetSnapshots = assetSnapshotsQuery.data ?? EMPTY_SNAPSHOTS
+  const assetCategories = assetCategoriesQuery.data ?? EMPTY_CATEGORIES
+  const incomeCategories = incomeCategoriesQuery.data ?? EMPTY_CATEGORIES
+  const expenseCategories = expenseCategoriesQuery.data ?? EMPTY_CATEGORIES
+  const savingCategories = savingCategoriesQuery.data ?? EMPTY_CATEGORIES
+  // 기본값으로 채운 빈 배열만 보면 로딩·실패가 "이 달 기록 없음"으로 보이고, 일부만 실패하면 그
+  // 섹션이 빠진 채 확정할 수 있다 — 원본 data 유무로 판정해 목록 대신 안내하고 확정을 막는다.
+  const sourceQueries = [transactionsQuery, assetSnapshotsQuery, assetCategoriesQuery, incomeCategoriesQuery, expenseCategoriesQuery, savingCategoriesQuery]
+  const loadFailed = sourceQueries.some((q) => q.isError && !q.data)
+  const loading = !loadFailed && sourceQueries.some((q) => !q.data)
 
   // AssetSnapshot 조회 API엔 기간 파라미터가 없어(전체 목록) 소스월 접두사로 클라이언트 필터링한다.
   const filteredSnapshots = useMemo(
@@ -156,9 +181,14 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
         onSuccess: (result) => {
           const succeeded = result.assetSuccessCount + result.transactionSuccessCount
           if (result.failures.length > 0) {
-            toast.warning(`${succeeded}건 등록, ${result.failures.length}건 실패. ${result.failures[0]}`)
+            // 성공분은 이미 저장돼 이 화면에서 다시 확정하면 중복 등록된다 — 머무르지 않고, 실패 사유를
+            // 전부 보여줘 어떤 항목을 직접 등록해야 하는지 알 수 있게 한다.
+            toast.warning(`${succeeded}건 등록, ${result.failures.length}건 실패`, {
+              description: result.failures.join(' / '),
+              duration: 15000,
+            })
           } else {
-            toast.success(`${succeeded}건 등록했습니다`)
+            toast.success(`${succeeded}건 일괄 등록했습니다`)
           }
           router.push('/finance')
         },
@@ -231,7 +261,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
         )}
       >
         <div className="flex items-center justify-between gap-3 mb-1">
-          <div className="text-xs font-semibold text-muted-foreground">{node.name}</div>
+          <h3 className="text-xs font-semibold text-muted-foreground">{node.name}</h3>
           {node.children.length > 0 && nodeItems.length > 0 && (
             <Switch
               checked={allIncluded}
@@ -250,9 +280,9 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
     const sectionItems = flattenNodes(nodes)
     const allIncluded = sectionItems.length > 0 && sectionItems.every((item) => rowState(item).included)
     return (
-      <Surface as="section" className="p-6">
+      <Surface as="section" aria-label={title} className="p-6">
         <div className="flex items-center justify-between gap-3 mb-3">
-          <div className="text-sm font-bold">{title}</div>
+          <h2 className="text-sm font-bold">{title}</h2>
           {sectionItems.length > 0 && (
             <Switch
               checked={allIncluded}
@@ -270,7 +300,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
     )
   }
 
-  const submitDisabled = mutation.isPending || includedCount === 0 || targetMonthClosed
+  const submitDisabled = mutation.isPending || includedCount === 0 || targetMonthClosed || loadFailed || loading
 
   return (
     <div className="space-y-[18px]">
@@ -284,15 +314,15 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
           <span>모두 등록</span>
         </div>
         <Button onClick={handleSubmit} disabled={submitDisabled} className="hidden sm:inline-flex">
-          이대로 확정하기
+          일괄 등록하기
         </Button>
       </div>
 
       {targetMonthClosed && (
-        <p className="rounded-[var(--r-md)] border border-[var(--warn)] bg-[var(--warn-bg)] px-3 py-2 text-sm text-[var(--warn)]">
-          <span className="inline-block">{targetMonth}은 기록 점검이 완료되어 잠겨 있습니다.</span>{' '}
-          <span className="inline-block">자산탭 기록 점검에서 완료를 해제하거나 다른 대상월을 고르세요.</span>
-        </p>
+        <MonthClosedNotice
+          subject={`${fmtYearMonthKo(targetMonth)}은 `}
+          hint="자산 탭 기록 점검에서 완료를 해제하거나 다른 대상월을 고르세요."
+        />
       )}
 
       {canShareToGroup && (
@@ -306,18 +336,24 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
         </Surface>
       )}
 
-      <div className="grid grid-cols-1 gap-[18px] lg:grid-cols-2">
-        <div>{renderSection('자산', items.asset, true)}</div>
-        <div className="space-y-[18px]">
-          {renderSection('수입', items.income)}
-          {renderSection('소비', items.expense)}
-          {renderSection('저축', items.saving)}
+      {loadFailed ? (
+        <SectionError message="일괄 등록할 기록을 불러오지 못했습니다." />
+      ) : loading ? (
+        <LoadingRow />
+      ) : (
+        <div className="grid grid-cols-1 gap-[18px] lg:grid-cols-2">
+          <div>{renderSection('자산', items.asset, true)}</div>
+          <div className="space-y-[18px]">
+            {renderSection('수입', items.income)}
+            {renderSection('소비', items.expense)}
+            {renderSection('저축', items.saving)}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 모바일은 상단 버튼을 숨기고 목록 맨 끝에 둔다 */}
       <Button onClick={handleSubmit} disabled={submitDisabled} size="form" className="sm:hidden w-full">
-        이대로 확정하기
+        일괄 등록하기
       </Button>
     </div>
   )

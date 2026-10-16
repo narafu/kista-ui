@@ -42,7 +42,7 @@ export function ComboField({
           items={suggestions.map((s) => ({ value: s, label: s }))}
           onValueChange={(next: string | null) => { if (next) onChange(next) }}
         >
-          <SelectTrigger aria-label={selectLabel} className="w-32 h-12 shrink-0" disabled={disabled}>
+          <SelectTrigger aria-label={selectLabel} className="w-32 h-11 shrink-0" disabled={disabled}>
             <SelectValue>목록</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -56,7 +56,7 @@ export function ComboField({
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
           maxLength={maxLength}
-          className="h-12 flex-1"
+          className="h-11 flex-1"
         />
       </div>
       {helperText && <p className="text-sm text-muted-foreground">{helperText}</p>}
@@ -81,7 +81,7 @@ export function MarketAssetClassFields({ meta, market, assetClass, onMarketChang
           value={market}
           onValueChange={(value) => { if (value) onMarketChange(value as Market) }}
         >
-          <SelectTrigger id="market" className="w-full h-12" disabled={disabled}>
+          <SelectTrigger id="market" className="w-full h-11" disabled={disabled}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -97,7 +97,7 @@ export function MarketAssetClassFields({ meta, market, assetClass, onMarketChang
           value={assetClass}
           onValueChange={(value) => { if (value) onAssetClassChange(value as AssetClass) }}
         >
-          <SelectTrigger id="assetClass" className="w-full h-12" disabled={disabled}>
+          <SelectTrigger id="assetClass" className="w-full h-11" disabled={disabled}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -109,12 +109,13 @@ export function MarketAssetClassFields({ meta, market, assetClass, onMarketChang
   )
 }
 
-export function AccountField({ accounts, accountsByType, value, onChange, disabled }: {
+export function AccountField({ accounts, accountsByType, value, onChange, disabled, loadFailed = false }: {
   accounts: FinanceAccount[]
   accountsByType: { type: string; label: string; accounts: FinanceAccount[] }[]
   value: string
   onChange: (value: string) => void
   disabled: boolean
+  loadFailed?: boolean
 }) {
   return (
     <div className="space-y-2">
@@ -124,7 +125,7 @@ export function AccountField({ accounts, accountsByType, value, onChange, disabl
         value={value}
         onValueChange={(next) => { if (next) onChange(next) }}
       >
-        <SelectTrigger id="account" className="w-full h-12" disabled={disabled}>
+        <SelectTrigger id="account" className="w-full h-11" disabled={disabled}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -137,6 +138,7 @@ export function AccountField({ accounts, accountsByType, value, onChange, disabl
           ))}
         </SelectContent>
       </Select>
+      {loadFailed && <p className="text-xs text-destructive">계좌 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>}
     </div>
   )
 }

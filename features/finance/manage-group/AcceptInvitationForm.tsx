@@ -15,7 +15,7 @@ export function AcceptInvitationForm() {
     if (!code.trim() || mutation.isPending) return
     mutation.mutate({ code: code.trim(), status: 'ACCEPTED' }, {
       onSuccess: () => {
-        toast.success('그룹에 합류했습니다')
+        toast.success('그룹에 참여했습니다')
         setCode('')
       },
     })
@@ -34,7 +34,7 @@ export function AcceptInvitationForm() {
           className="h-11 flex-1"
         />
         <Button type="button" className="h-11" disabled={mutation.isPending || !code.trim()} onClick={accept}>
-          등록
+          참여
         </Button>
       </div>
     </div>

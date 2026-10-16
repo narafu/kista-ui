@@ -61,8 +61,8 @@ describe('BulkRegisterForm', () => {
     closingsState.data = [{ month: '2026-08', completed: true }]
     render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
 
-    expect(await screen.findByText('2026-08은 기록 점검이 완료되어 잠겨 있습니다.')).toBeInTheDocument()
-    for (const button of screen.getAllByRole('button', { name: '이대로 확정하기' })) {
+    expect(await screen.findByText('2026년 8월은 기록 점검이 완료되어 잠겨 있습니다.')).toBeInTheDocument()
+    for (const button of screen.getAllByRole('button', { name: '일괄 등록하기' })) {
       expect(button).toBeDisabled()
     }
   })
@@ -85,7 +85,7 @@ describe('BulkRegisterForm', () => {
     render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
 
     await user.click(await screen.findByRole('switch', { name: '기본급 8월급 3,650,000원 포함' }))
-    await user.click(screen.getAllByRole('button', { name: '이대로 확정하기' })[0])
+    await user.click(screen.getAllByRole('button', { name: '일괄 등록하기' })[0])
 
     expect(mutateMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -100,7 +100,7 @@ describe('BulkRegisterForm', () => {
     render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
 
     await screen.findByRole('switch', { name: '기본급 8월급 3,650,000원 포함' })
-    await user.click(screen.getAllByRole('button', { name: '이대로 확정하기' })[0])
+    await user.click(screen.getAllByRole('button', { name: '일괄 등록하기' })[0])
 
     expect(mutateMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -121,7 +121,7 @@ describe('BulkRegisterForm', () => {
 
     expect(screen.getByRole('switch', { name: '기본급 8월급 3,650,000원 포함' })).not.toBeChecked()
     expect(screen.getByRole('switch', { name: '기본급 용돈 100,000원 포함' })).not.toBeChecked()
-    for (const btn of screen.getAllByRole('button', { name: '이대로 확정하기' })) {
+    for (const btn of screen.getAllByRole('button', { name: '일괄 등록하기' })) {
       expect(btn).toBeDisabled()
     }
   })
@@ -150,12 +150,12 @@ describe('BulkRegisterForm', () => {
     render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
 
     await screen.findByRole('switch', { name: '기본급 8월급 3,650,000원 포함' })
-    await user.click(screen.getAllByRole('button', { name: '이대로 확정하기' })[0])
+    await user.click(screen.getAllByRole('button', { name: '일괄 등록하기' })[0])
 
     const onSuccess = mutateMock.mock.calls[0][1].onSuccess
     onSuccess({ assetSuccessCount: 0, transactionSuccessCount: 1, failures: ['거래(용돈): 카테고리 없음'] })
 
-    expect(toastWarningMock).toHaveBeenCalledWith(expect.stringContaining('1건 실패'))
+    expect(toastWarningMock).toHaveBeenCalledWith(expect.stringContaining('1건 실패'), expect.objectContaining({ description: expect.any(String) }))
     expect(toastSuccessMock).not.toHaveBeenCalled()
   })
 
@@ -175,7 +175,7 @@ describe('BulkRegisterForm', () => {
     await screen.findByRole('switch', { name: '기본급 8월급 3,650,000원 포함' })
     expect(screen.getByRole('switch', { name: '그룹으로 저장' })).toBeChecked()
 
-    await user.click(screen.getAllByRole('button', { name: '이대로 확정하기' })[0])
+    await user.click(screen.getAllByRole('button', { name: '일괄 등록하기' })[0])
 
     expect(mutateMock).toHaveBeenCalledWith(
       expect.objectContaining({ shareToGroup: true }),
@@ -192,7 +192,7 @@ describe('BulkRegisterForm', () => {
     await user.click(screen.getByRole('switch', { name: '그룹으로 저장' }))
     expect(screen.getByRole('switch', { name: '그룹으로 저장' })).not.toBeChecked()
 
-    await user.click(screen.getAllByRole('button', { name: '이대로 확정하기' })[0])
+    await user.click(screen.getAllByRole('button', { name: '일괄 등록하기' })[0])
 
     expect(mutateMock).toHaveBeenCalledWith(
       expect.objectContaining({ shareToGroup: false }),

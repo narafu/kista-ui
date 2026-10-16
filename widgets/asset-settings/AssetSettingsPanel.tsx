@@ -21,15 +21,15 @@ export function AssetSettingsPanel() {
     <div className="flex flex-col gap-[18px]">
       <Surface as="section" className="p-6 flex items-center justify-between gap-4">
         <div>
-          <div className="text-sm font-bold mb-0.5">모두 등록</div>
-          <div className="text-sm text-muted-foreground">지난달 자산·수입·소비·저축 기록을 이번 달로 한 번에 등록합니다</div>
+          <h2 className="text-sm font-bold mb-0.5">일괄 등록</h2>
+          <div className="text-sm text-muted-foreground">지난달 자산·수입·소비·저축 기록을 이번 달로 한 번에 등록합니다.</div>
         </div>
         <Link
           href="/finance/bulk-register"
           className={cn(buttonVariants({ variant: 'brand-soft', size: 'sm' }), 'gap-1.5')}
         >
           <Plus className="size-3.5" />
-          모두 등록
+          일괄 등록
         </Link>
       </Surface>
 
@@ -38,8 +38,8 @@ export function AssetSettingsPanel() {
       </Surface>
 
       <Surface as="section" className="p-6">
-        <div className="text-sm font-bold mb-0.5">카테고리</div>
-        <div className="text-sm text-muted-foreground mb-[18px]">자산·수입·지출·저축 카테고리를 관리합니다.</div>
+        <h2 className="text-sm font-bold mb-0.5">카테고리</h2>
+        <div className="text-sm text-muted-foreground mb-[18px]">자산·수입·소비·저축 카테고리를 관리합니다.</div>
         <CategoryManager />
       </Surface>
 

@@ -203,7 +203,7 @@ export function BudgetManager({ type }: Props) {
                     <div className="flex min-w-0 flex-1 items-center gap-1.5">
                       <p className="min-w-0 truncate text-sm font-medium">{categoryName}</p>
                       {/* 기본 필터가 진행중이라 진행중 배지는 생략 — 예외 상태만 표시 */}
-                      {status === 'UPCOMING' && <Badge tone="none" className="bg-info-bg text-info">예정</Badge>}
+                      {status === 'UPCOMING' && <Badge tone="info">예정</Badge>}
                       {status === 'ENDED' && <Badge tone="neutral">종료</Badge>}
                       <GroupSharedBadge groupId={budget.groupId} />
                     </div>

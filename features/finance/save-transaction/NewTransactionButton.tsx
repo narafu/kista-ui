@@ -28,7 +28,7 @@ export function NewTransactionButton({ type, className, windowFrom, windowTo }: 
         className={cn(buttonVariants({ variant: 'brand', size: 'cta' }), className)}
       >
         <Plus className="size-3.5" />
-        내역 등록
+        거래내역 등록
       </button>
       {/* CategoryManager 등 다른 CRUD 다이얼로그와 동일하게 조건부 마운트 — 항상 마운트해두면
           내부 useState(날짜·카테고리·금액·메모)가 다음 열림에도 초기화되지 않고 이전 입력값이 남는다. */}

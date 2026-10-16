@@ -5,7 +5,8 @@ import { Label } from '@/components/ui/label'
 import type { FinanceCategory } from '@entities/finance'
 import { NO_PARENT_VALUE } from './categoryFormHelpers'
 
-export function ParentCategoryField({ cascadeLevels, selectedPath, onPathChange, disabled }: {
+export function ParentCategoryField({ id = 'parentId', cascadeLevels, selectedPath, onPathChange, disabled }: {
+  id?: string
   cascadeLevels: FinanceCategory[][]
   selectedPath: string[]
   onPathChange: (updater: (prev: string[]) => string[]) => void
@@ -13,7 +14,7 @@ export function ParentCategoryField({ cascadeLevels, selectedPath, onPathChange,
 }) {
   return (
     <div className="space-y-2">
-      <Label htmlFor="parentId">상위 카테고리</Label>
+      <Label htmlFor={id}>상위 카테고리</Label>
       <div className="space-y-2">
         {cascadeLevels.map((level, levelIndex) => (
           <Select
@@ -28,7 +29,8 @@ export function ParentCategoryField({ cascadeLevels, selectedPath, onPathChange,
               onPathChange((prev) => (value === NO_PARENT_VALUE ? prev.slice(0, levelIndex) : [...prev.slice(0, levelIndex), value]))
             }}
           >
-            <SelectTrigger id={levelIndex === 0 ? 'parentId' : undefined} className="w-full h-10" disabled={disabled}>
+            {/* 1단계는 Label과 연결되지만 2단계부터는 이름이 비므로 단계별 이름을 직접 단다 */}
+            <SelectTrigger id={levelIndex === 0 ? id : undefined} aria-label={levelIndex === 0 ? undefined : `상위 카테고리 ${levelIndex + 1}단계`} className="w-full h-10" disabled={disabled}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

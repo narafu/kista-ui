@@ -9,6 +9,8 @@ import {
 } from '@entities/finance'
 import { useMeQuery } from '@entities/user'
 import { cn } from '@shared/lib/utils'
+import { LoadingRow } from '@shared/ui/LoadingRow'
+import { SectionError } from '@shared/ui/SectionError'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { AcceptInvitationForm } from './AcceptInvitationForm'
 import { GroupMemberList } from './GroupMemberList'
@@ -80,17 +82,29 @@ function GroupSection({ groupId, myUserId }: GroupSectionProps) {
 }
 
 export function GroupManager() {
-  const { data: groups } = useFinanceGroupsQuery()
+  const { data: groups, isError } = useFinanceGroupsQuery()
   const { data: me } = useMeQuery()
   // 1인 1그룹 정책 — groups는 0개(개인) 또는 1개(그룹 소속)뿐이다.
   const group = groups?.[0]
 
+  // 소속 여부를 모르는 동안(로딩·실패)에는 무그룹 전용 UI(초대 코드 참여)를 띄우지 않는다 —
+  // 그룹 소속 사용자에게 다른 그룹 참여 폼이 잠깐 보이거나 실패 시 남는 것을 막는다.
+  if (!groups) {
+    return (
+      <section aria-labelledby="financeGroupTitle" className={cn(cardClass, 'space-y-4')}>
+        <h2 id="financeGroupTitle" className="text-sm font-bold">그룹</h2>
+        {isError ? <SectionError message="그룹 정보를 불러오지 못했습니다." /> : <LoadingRow />}
+      </section>
+    )
+  }
+
   return (
-    <div className={cn(cardClass, 'space-y-6')}>
-      {groups && group && (
+    <section aria-labelledby="financeGroupTitle" className={cn(cardClass, 'space-y-6')}>
+      <h2 id="financeGroupTitle" className="text-sm font-bold">그룹</h2>
+      {group && (
         <GroupSection groupId={group.id} myUserId={me?.id} />
       )}
-      {groups && !group && me?.id && (
+      {!group && me?.id && (
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">아직 소속된 그룹이 없습니다. 초대 코드를 발급하면 그룹이 만들어집니다.</p>
           <InviteDialog groupId={me.id} />
@@ -105,6 +119,6 @@ export function GroupManager() {
           <AcceptInvitationForm />
         </div>
       )}
-    </div>
+    </section>
   )
 }

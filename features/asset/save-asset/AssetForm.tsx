@@ -10,6 +10,7 @@ import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { cn } from '@shared/lib/utils'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import { FormActions } from '@shared/ui/FormActions'
+import { MonthClosedNotice } from '@shared/ui/MonthClosedNotice'
 import { useMeta } from '@entities/meta'
 import {
   isInvestmentCategoryId,
@@ -22,13 +23,17 @@ import {
   useMonthlyClosingsQuery,
   useUpdateAssetSnapshotMutation,
 } from '@entities/finance'
-import type { AssetClass, AssetSnapshot, FinanceAccount, Market } from '@entities/finance'
+import type { AssetClass, AssetSnapshot, FinanceAccount, FinanceCategory, Market } from '@entities/finance'
 import { DEFAULT_STRATEGY_SUGGESTIONS, useMeQuery } from '@entities/user'
 import { AccountField, ComboField, MarketAssetClassFields } from './AssetFormFields'
-import { FIXED_ASSET_META, MODE_LABEL, buildAssetPayload, categoryChangeEffect, initialFormValues, isEntryLocked } from './model/assetFormHelpers'
+import { FIXED_ASSET_META, MODE_LABEL, MODE_PENDING_LABEL, buildAssetPayload, categoryChangeEffect, initialFormValues, isEntryLocked } from './model/assetFormHelpers'
 import type { AssetFormMode } from './model/assetFormHelpers'
 
 export type { AssetFormMode }
+
+// 조회 전·실패 시 useMemo 의존성 참조를 고정한다
+const EMPTY_CATEGORIES: FinanceCategory[] = []
+const EMPTY_ACCOUNTS: FinanceAccount[] = []
 
 interface Props {
   mode: AssetFormMode
@@ -39,8 +44,13 @@ interface Props {
 
 export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
   const { meta } = useMeta()
-  const { data: categories = [] } = useFinanceCategoriesQuery('ASSET')
-  const { data: accounts = [] } = useFinanceAccountsQuery()
+  const categoriesQuery = useFinanceCategoriesQuery('ASSET')
+  const categories = categoriesQuery.data ?? EMPTY_CATEGORIES
+  const accountsQuery = useFinanceAccountsQuery()
+  const accounts = accountsQuery.data ?? EMPTY_ACCOUNTS
+  // 목록을 못 받으면 Select가 빈 채로 남아 저장이 왜 막혔는지 알 수 없다 — 이유를 필드 아래에 알린다.
+  const categoriesFailed = categoriesQuery.isError && !categoriesQuery.data
+  const accountsFailed = accountsQuery.isError && !accountsQuery.data
   // 계좌 Select 정렬: accountType별로 묶고(순서는 meta.financeAccountTypes 기준) 그룹 내에서는 이름 가나다순.
   const accountsByType = useMemo(() => {
     const groups: { type: string; label: string; accounts: FinanceAccount[] }[] = []
@@ -118,7 +128,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
               value={entryDate}
               onChange={(e) => setEntryDate(e.target.value)}
               disabled={isPending}
-              className="h-12"
+              className="h-11"
             />
           </div>
 
@@ -139,10 +149,13 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
                 }}
                 allowClear={false}
                 id="category"
-                className="w-full h-12"
+                className="w-full h-11"
                 disabled={isPending}
               />
             </div>
+            {categoriesFailed && (
+              <p className="text-xs text-destructive">카테고리 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
+            )}
           </div>
 
           {!fixedAssetMeta && (
@@ -156,7 +169,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
             />
           )}
 
-          <AccountField accounts={accounts} accountsByType={accountsByType} value={accountId} onChange={setAccountId} disabled={isPending} />
+          <AccountField accounts={accounts} accountsByType={accountsByType} value={accountId} onChange={setAccountId} disabled={isPending} loadFailed={accountsFailed} />
 
           <div className="space-y-2">
             <Label htmlFor="memo">메모 (선택)</Label>
@@ -167,7 +180,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
               onChange={(e) => setMemo(e.target.value)}
               disabled={isPending}
               maxLength={255}
-              className="h-12"
+              className="h-11"
             />
           </div>
 
@@ -196,7 +209,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
               onChange={(e) => setAmountDigits(digitsOnly(e.target.value))}
               onFocus={selectAllOnFocus}
               disabled={isPending}
-              className="h-12 text-right tabular-nums"
+              className="h-11 text-right tabular-nums"
             />
           </div>
 
@@ -204,15 +217,10 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
             <ShareToGroupSwitch id="assetShareToGroup" checked={shareToGroup} onCheckedChange={setShareToGroup} disabled={isPending} />
           )}
 
-          {/* 저장이 막힌 이유를 버튼 바로 위에서 알린다. 문장 단위 inline-block이라 줄바꿈되면 문장마다 끊긴다. */}
-          {monthClosed && (
-            <p className="text-xs text-[var(--warn)]">
-              <span className="inline-block">기록 점검이 완료되어 잠겨 있습니다.</span>{' '}
-              <span className="inline-block">자산탭 기록 점검에서 완료를 해제하세요.</span>
-            </p>
-          )}
+          {/* 저장이 막힌 이유를 버튼 바로 위에서 알린다 */}
+          {monthClosed && <MonthClosedNotice />}
 
-          <FormActions onCancel={onCancel} isPending={isPending} canSubmit={canSubmit} label={MODE_LABEL[mode]} className="pt-2" />
+          <FormActions onCancel={onCancel} isPending={isPending} canSubmit={canSubmit} label={MODE_LABEL[mode]} pendingLabel={MODE_PENDING_LABEL[mode]} className="pt-2" />
         </div>
       </div>
     </form>

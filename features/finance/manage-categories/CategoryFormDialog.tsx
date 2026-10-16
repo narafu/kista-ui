@@ -113,7 +113,7 @@ export function CategoryFormDialog({ open, onOpenChange, type, l1Categories, cat
               <ShareToGroupSwitch id="categoryShareToGroup" checked={shareToGroup} onCheckedChange={setShareToGroup} disabled={isPending} />
             )}
             {mode === 'create' && canShareToGroup && parentIsPersonal && (
-              <p className="text-xs text-muted-foreground">개인 카테고리 하위에는 그룹 공유 카테고리를 만들 수 없어요.</p>
+              <p className="text-xs text-muted-foreground">개인 카테고리 하위에는 그룹 공유 카테고리를 만들 수 없습니다.</p>
             )}
           </div>
 

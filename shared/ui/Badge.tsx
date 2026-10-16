@@ -9,6 +9,7 @@ const badgeVariants = cva(
       tone: {
         neutral: 'bg-muted text-muted-foreground',
         warn: 'bg-warn-bg text-warn',
+        info: 'bg-info-bg text-info',
         ok: 'bg-status-ok-bg text-status-ok',
         error: 'bg-[var(--status-error-bg)] text-[var(--status-error)]',
         brand: 'border border-[var(--rose-200)] bg-[var(--rose-50)] text-[var(--brand-fg-soft)]',

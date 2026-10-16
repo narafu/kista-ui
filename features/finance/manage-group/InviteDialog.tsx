@@ -72,12 +72,12 @@ export function InviteDialog({ groupId }: Props) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger className={cn(buttonVariants({ variant: 'brand-soft', size: 'sm' }), 'gap-1.5')}>
         <Plus className="size-3.5" />
-        초대코드 발급
+        초대 코드 발급
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>초대 코드 발급</DialogTitle>
-          <DialogDescription>발급된 코드를 전달받은 사람이 입력하면 이 그룹에 합류합니다.</DialogDescription>
+          <DialogDescription>발급된 코드를 전달받은 사람이 입력하면 이 그룹에 참여합니다.</DialogDescription>
         </DialogHeader>
 
         {invitation ? (
