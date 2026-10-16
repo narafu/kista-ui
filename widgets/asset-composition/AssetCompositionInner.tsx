@@ -101,7 +101,11 @@ function CompositionChart({ title, columns, segments, labelFor, colorFor }: Comp
                   tickLine={false}
                   axisLine={false}
                   width={32}
+                  // 항목별 비율 합이 부동소수 오차로 100을 살짝 넘으면(100.00000000000001) recharts가 domain을 늘려
+                  // 맨 위 눈금이 긴 소수로 그려지고 32px 축에서 앞자리가 잘려 "001%"처럼 보인다 — 0~100에 고정한다.
                   domain={[0, 100]}
+                  allowDataOverflow
+                  ticks={[0, 25, 50, 75, 100]}
                   tickFormatter={(value: number) => `${value}%`}
                 />
                 <Tooltip
