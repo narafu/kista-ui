@@ -7,6 +7,7 @@ describe('orderStatusBadgeClass', () => {
     ['FILLED', 'status-ok'],
     ['PARTIALLY_FILLED', 'warn'],
     ['FAILED', 'status-error'],
+    ['SUBMITTING', 'warn'],
   ])('%s uses the %s semantic token', (status, token) => {
     expect(orderStatusBadgeClass(status)).toContain(token)
   })
@@ -29,6 +30,7 @@ describe('ORDER_STATUS_LABEL', () => {
       FAILED: '실패',
       CANCELLED: '취소',
       PLANNED: '예정',
+      SUBMITTING: '접수 중',
     })
   })
 })

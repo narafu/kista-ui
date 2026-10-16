@@ -7,12 +7,12 @@ export interface PlacedOrder {
   orderType: string
   quantity: number
   price: string
-  status: 'PLANNED' | 'PLACED'
+  status: 'PLANNED' | 'SUBMITTING' | 'PLACED' // SUBMITTING: 증권사 접수 진행 중(결과 미확정)
 }
 
 // 주문 항목 응답(unknown) → 공통 필드 정규화. entities/strategy·entities/order 양쪽이 소비하며
 // entities 간 cross-import가 금지되어 있어 shared/model에 둔다. status는 원문 문자열 그대로 담고
-// (기본값 적용·'PLANNED'|'PLACED' 캐스팅은 호출부 책임), 호출부별 추가 필드는 스프레드로 유지한다.
+// (기본값 적용·PlacedOrder['status'] 캐스팅은 호출부 책임), 호출부별 추가 필드는 스프레드로 유지한다.
 export function normalizePlacedOrderBase(raw: unknown): Omit<PlacedOrder, 'status'> & { status: string } {
   const o = raw as Record<string, unknown>
   return {

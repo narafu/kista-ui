@@ -159,7 +159,7 @@ function normalizePlacedOrder(raw: unknown): PlacedOrder {
   const o = raw as Record<string, unknown>
   return {
     ...normalizePlacedOrderBase(raw),
-    status: str(o.status ?? 'PLACED') as 'PLANNED' | 'PLACED',
+    status: str(o.status ?? 'PLACED') as PlacedOrder['status'],
   }
 }
 

@@ -3151,7 +3151,7 @@ export interface components {
              * @example PLANNED
              * @enum {string}
              */
-            status?: "PLANNED" | "PLACED" | "FILLED" | "PARTIALLY_FILLED" | "FAILED" | "CANCELLED";
+            status?: "PLANNED" | "SUBMITTING" | "PLACED" | "FILLED" | "PARTIALLY_FILLED" | "FAILED" | "CANCELLED";
         };
         DcaExecutionPageResponse: {
             content?: components["schemas"]["Item"][];

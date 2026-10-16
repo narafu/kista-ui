@@ -30,7 +30,7 @@ export type OrderType = 'LOC' | 'MOC' | 'LIMIT'
 type ExactUnion<A, B> = [A] extends [B] ? ([B] extends [A] ? true : never) : never
 const _orderEnumPin: [
   ExactUnion<OrderDirection, 'BUY' | 'SELL'>,
-  ExactUnion<OrderStatus, 'PLANNED' | 'PLACED' | 'FILLED' | 'PARTIALLY_FILLED' | 'FAILED' | 'CANCELLED'>,
+  ExactUnion<OrderStatus, 'PLANNED' | 'SUBMITTING' | 'PLACED' | 'FILLED' | 'PARTIALLY_FILLED' | 'FAILED' | 'CANCELLED'>,
 ] = [true, true]
 void _orderEnumPin
 

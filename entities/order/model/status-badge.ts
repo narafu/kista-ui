@@ -2,6 +2,7 @@ const ORDER_STATUS_BADGE_CLS: Record<string, string> = {
   PLACED:           'bg-info-bg text-info',
   FILLED:           'bg-status-ok-bg text-status-ok',
   PARTIALLY_FILLED: 'bg-warn-bg text-warn',
+  SUBMITTING:       'bg-warn-bg text-warn', // 접수 결과 미확정 — 오래 남으면 관리자 정정 대상
   FAILED:           'bg-status-error-bg text-status-error',
 }
 
@@ -21,4 +22,5 @@ export const ORDER_STATUS_LABEL: Record<string, string> = {
   FAILED:           '실패',
   CANCELLED:        '취소',
   PLANNED:          '예정',
+  SUBMITTING:       '접수 중',
 }
