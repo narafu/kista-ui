@@ -37,6 +37,12 @@ export function fmtMonthDay(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })
 }
 
+/** 'YYYY-MM' → "2026년 8월" — 문장 속 대상월 표기용(차트 축 축약형은 fmtShortYearMonth) */
+export function fmtYearMonthKo(month: string): string {
+  const [year, monthPart] = month.split('-')
+  return `${year}년 ${Number(monthPart)}월`
+}
+
 /**
  * 'YYYY-MM' → "26.3월" — 월별 차트 축·툴팁용. 기록이 뜸하면 연도를 건너뛸 수 있어
  * (예: 2025-03, 2026-03) 연도 없이 "3월"만 쓰면 두 달이 같은 눈금으로 보인다.

@@ -13,7 +13,7 @@ import { SectionError } from '@shared/ui/SectionError'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { cn } from '@shared/lib/utils'
-import { digitsOnly, formatAmountDisplay, fmtKrw, todayKst } from '@shared/lib/format'
+import { digitsOnly, formatAmountDisplay, fmtKrw, fmtYearMonthKo, todayKst } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import {
   buildBulkRegisterItems,
@@ -37,12 +37,6 @@ import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
 // KST가 아닌 기기·자정 근처(UTC 기준 전날)에서 소스/타겟월 기본값이 하루 어긋날 수 있다.
 function thisMonth(): string {
   return todayKst().slice(0, 7)
-}
-
-// 'YYYY-MM' → "2026년 8월" — 문장 속 대상월 표기용(fmtShortYearMonth는 차트 축 축약형이라 맞지 않는다)
-function fmtYearMonthKo(month: string): string {
-  const [year, monthPart] = month.split('-')
-  return `${year}년 ${Number(monthPart)}월`
 }
 
 // 조회 전·실패 시 useMemo 의존성 참조를 고정한다

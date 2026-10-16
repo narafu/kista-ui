@@ -3,17 +3,12 @@
 import { CheckCircle2, Circle } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@shared/lib/utils'
+import { fmtYearMonthKo } from '@shared/lib/format'
 import { useSetMonthlyClosingMutation } from '@entities/finance'
 
 interface Props {
   month: string
   completed: boolean
-}
-
-// 'YYYY-MM' → "2026년 8월" — 자산 탭에서 지난 달을 골라도 토스트가 실제 대상 월을 가리키도록 한다
-function fmtYearMonthKo(month: string): string {
-  const [year, monthPart] = month.split('-')
-  return `${year}년 ${Number(monthPart)}월`
 }
 
 export function ToggleMonthlyCheckButton({ month, completed }: Props) {
