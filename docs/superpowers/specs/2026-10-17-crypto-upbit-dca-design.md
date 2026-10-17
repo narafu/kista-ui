@@ -146,3 +146,17 @@
 1. **kista-api**: ① 전체(메타, 계좌·연결 테스트, DCA 계약, 소수 수량, 코인 스케줄러, 업비트 어댑터, Crypto F&G 수집, 계좌 키 수정 경로, 키 만료 추적).
 2. **kista-infra**: alternative.me·업비트 API egress 확인, 서버 공인 IP 확인과 runtime-config `allowedIp` 값 설정.
 3. **kista-ui**: api 계약 머지 → `npm run gen:types` → ②③④ 구현. UI가 `amount`로 전환한 뒤 api에 `amountUsd` 제거를 요청한다.
+
+## api 계약 확정 내역 (2026-10-18)
+
+kista-api `feat/crypto-upbit-dca`는 두 단계로 나눠 진행한다. A(계약)는 `0dc739c6`에서 확정됐다. B(업비트 어댑터, 계좌, 키 수정, crypto-portfolio)는 진행 중이다. spec과 다른 점과 UI가 반영할 점만 적는다.
+
+- runtime-config `brokers.UPBIT` 기본값은 `{ enabled: false, allowedIp: '168.107.63.152' }`이다. 관리자 화면에서 켜야 노출된다. 관리자 설정 PUT에 UPBIT 키가 없으면 현재값을 유지한다.
+- 운영 DB 정책의 DCA 티커 목록에는 UPRO/QLD만 있다. BTC/ETH는 관리자 화면에서 추가해야 한다(`AdminSettingsForm`의 `DCA_TICKER_SUGGESTIONS`에도 BTC/ETH를 추가한다).
+- DCA 요청에 `amount`와 `amountUsd`를 동시에 다른 값으로 보내면 400이다. UI는 `amount`만 보낸다.
+- `quantity`가 number로 바뀐 곳은 주문, 체결, DCA 실행 이력, 관리자 거래다. `NextOrderItem`(다음 주문 미리보기)은 integer를 유지한다.
+- DCA skip 사유: `BELOW_MIN_ORDER_AMOUNT`, `EXCHANGE_API_ERROR`, `API_KEY_EXPIRED`. UI 라벨을 추가한다.
+- 생성 타입 이름이 바뀐다. `Item`·`SummaryDto`가 사라지고 `StrategyOrderItem`, `DcaExecutionItem`, `CyclePerformanceItem`, `PortfolioSummaryDto`, `DailyTransactionSummaryDto`, `NextOrderItem`, `RuntimeStrategySettings`로 나뉜다. `gen:types` 뒤 수기 참조를 확인한다.
+- `apiKeyExpiresAt`은 B에서 추가된다.
+- **UPBIT 계좌로 기존 `/api/accounts/{id}/portfolio`·`margin`·`daily-trades`·`prices`·통계를 호출하면 400(지원하지 않는 증권사)이다.** UI는 코인 계좌에서 이 쿼리들을 `enabled`로 막아야 한다. 막지 않으면 계좌 상세·대시보드에서 오류 화면이 뜬다. 코인 계좌 상세는 B의 `GET /api/accounts/{id}/crypto-portfolio`를 쓴다(응답 형태는 B 확정 후 반영).
+- 배포: V8·V9 마이그레이션 이후 이전 trading-core 이미지로는 롤백할 수 없다. root와 trading-core를 같은 커밋으로 배포한다. kista-ui는 api 배포 뒤에 배포한다.
