@@ -305,7 +305,7 @@ describe('useDcaExecutionsQuery', () => {
 
 describe('useReconfigureDcaMutation', () => {
   const dcaRequest = {
-    direction: 'BUY', amountUsd: 300, orderType: 'MOC', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, conditions: [],
+    direction: 'BUY', amount: 300, orderType: 'MOC', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, conditions: [],
   } as unknown as Parameters<ReturnType<typeof useReconfigureDcaMutation>['mutateAsync']>[0]
 
   it('전략 id로 재설정 API를 호출하고 상세·목록 캐시를 갱신한 뒤 onSuccess를 호출한다', async () => {

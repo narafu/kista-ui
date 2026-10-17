@@ -14,8 +14,12 @@ export function useStrategyFormData(accountId: string, broker: BrokerCode | unde
   const { meta, findStrategyType } = useMeta()
   const runtimeQuery = useRuntimeConfigQuery()
   const runtimeConfig = runtimeQuery.data
-  const enabledStrategyTypes = meta.strategyTypes.flatMap(({ code }) =>
-    runtimeConfig?.strategies[code as RuntimeStrategyType]?.enabled === true ? [code] : [])
+  // 코인 계좌는 코인 티커를 쓸 수 있는 유형만, 주식 계좌는 주식 티커를 쓸 수 있는 유형만 — 유형별 availableTickers가 SSOT.
+  // 숨겨진 유형이 기본 선택되지 않도록 활성 유형 자체를 시장으로 거른다(useTypeDefaults가 첫 활성 유형을 고른다)
+  const enabledStrategyTypes = meta.strategyTypes.flatMap(({ code, availableTickers }) =>
+    runtimeConfig?.strategies[code as RuntimeStrategyType]?.enabled === true
+      && availableTickers.some((t) => isCryptoMarket(meta.tickers.find((m) => m.code === t)?.market) === isCrypto)
+      ? [code] : [])
 
   const { data: meData } = useMeQuery()
   // 모의계좌는 실제 잔고가 없어 예수금 조회 자체가 무의미 — 항상 수동 입력

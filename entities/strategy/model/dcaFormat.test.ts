@@ -16,6 +16,14 @@ describe('formatDcaSchedule', () => {
   })
 })
 
+describe('formatDcaSchedule — 실행 시각', () => {
+  it('실행 시각이 있으면 스케줄 뒤에 시를 붙인다', () => {
+    expect(formatDcaSchedule({ frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, executionHour: 9 }, '매일')).toBe('매일 09시')
+    expect(formatDcaSchedule({ frequency: 'WEEKLY', dayOfWeek: 'SUNDAY', dayOfMonth: null, executionHour: 0 }, '매주')).toBe('매주 일요일 00시')
+    expect(formatDcaSchedule({ frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null }, '매월')).toBe('매월 말일')
+  })
+})
+
 describe('formatDcaCondition', () => {
   it('평단가는 부호 있는 %', () => {
     expect(formatDcaCondition({ indicator: 'AVG_PRICE', operator: 'LTE', threshold: -5 }, '평단가', '이하')).toBe('평단가 -5% 이하')

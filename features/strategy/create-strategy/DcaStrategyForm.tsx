@@ -3,6 +3,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
+import type { TradingMarket } from '@shared/lib/api-schema'
 import { FormActions } from '@shared/ui/FormActions'
 import { useMeta } from '@entities/meta'
 import { useCreateStrategyMutation, useReconfigureDcaMutation } from '@entities/strategy'
@@ -19,17 +20,18 @@ interface Props {
   initial?: Strategy
   availableTickers: string[] // 런타임 설정 허용 티커 (StrategyForm이 계산해 전달)
   defaultTicker: string // 런타임 설정 기본 티커 (deriveRuntimeFields가 허용 목록 기준으로 확정)
+  market: TradingMarket // 계좌 broker에서 정해지는 시장 — 금액 단위·주문 방식·실행 시각 규칙을 가른다
   onSuccess?: () => void
   onCancel?: () => void
 }
 
 // DCA 등록·수정 — 시드·분할·VR이 엮인 useStrategyForm과 분리된 자체 폼(spec A'안)
-export function DcaStrategyForm({ accountId, initial, availableTickers, defaultTicker, onSuccess, onCancel }: Props) {
+export function DcaStrategyForm({ accountId, initial, availableTickers, defaultTicker, market, onSuccess, onCancel }: Props) {
   const { findStrategyType } = useMeta()
   const typeMeta = findStrategyType('DCA')
   const form = useForm<DcaFormValues>({
     resolver: zodResolver(dcaFormSchema),
-    defaultValues: buildDcaFormDefaults(initial, defaultTicker),
+    defaultValues: buildDcaFormDefaults(initial, defaultTicker, market),
   })
   const done = () => {
     toast.success(initial ? '전략이 수정되었습니다' : '전략이 등록되었습니다')
@@ -69,11 +71,12 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
       <DcaSettingsSection
         form={form}
         isEdit={!!initial}
-        orderTypes={typeMeta?.orderTypes ?? []}
+        market={market}
+        orderTypes={(typeMeta?.orderTypes ?? []).filter((code) => (code === 'MARKET') === (market === 'CRYPTO_KRW'))}
         directions={typeMeta?.directions ?? []}
         frequencies={typeMeta?.frequencies ?? []}
       />
-      <DcaConditionsSection form={form} indicators={typeMeta?.conditionIndicators ?? []} direction={direction} />
+      <DcaConditionsSection form={form} market={market} indicators={typeMeta?.conditionIndicators ?? []} direction={direction} />
       <FormActions onCancel={onCancel} isPending={pending} canSubmit={!pending} label={initial ? '수정' : '등록'} className="py-6" />
     </form>
   )

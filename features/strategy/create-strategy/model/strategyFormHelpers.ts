@@ -62,9 +62,15 @@ export function watchVrFields(form: UseFormReturn<StrategyFormValues>): VrFields
 }
 
 // capability 파생 — isInfinite 휴리스틱 대신 백엔드 SSOT 사용
-export function deriveRuntimeFields(initial: Strategy | undefined, runtimeStrategy: RuntimeStrategySettings | undefined) {
+export function deriveRuntimeFields(
+  initial: Strategy | undefined,
+  runtimeStrategy: RuntimeStrategySettings | undefined,
+  isTickerAllowed: (code: string) => boolean, // 계좌 시장(주식/코인)과 맞는 티커만
+) {
   const divisionCountSettings = runtimeStrategy?.fields.divisionCount
-  const availableTickers = initial ? [initial.ticker] : runtimeStrategy?.fields.ticker.allowedValues ?? []
+  const availableTickers = initial
+    ? [initial.ticker]
+    : (runtimeStrategy?.fields.ticker.allowedValues ?? []).filter(isTickerAllowed)
   const configDefault = runtimeStrategy?.fields.ticker.defaultValue
   return {
     availableTickers,

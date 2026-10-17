@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
+import { isCryptoMarket } from '@shared/lib/api-schema'
 import { useStrategySeedPreviewQuery } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import type { BrokerCode, PriceMap } from '@entities/account'
@@ -45,6 +46,7 @@ export interface VrFields {
 }
 
 export interface UseStrategyFormReturn {
+  isCrypto: boolean // 업비트 등 코인 계좌 — DCA 폼의 시장 판정
   type: string
   setType: (t: string) => void
   usesDivisionCount: boolean
@@ -122,7 +124,7 @@ export function useStrategyForm({
 }: UseStrategyFormOptions): UseStrategyFormReturn {
   const queryClient = useQueryClient()
   const {
-    isMock, meta, findStrategyType, runtimeQuery, runtimeConfig, enabledStrategyTypes,
+    isMock, isCrypto, meta, findStrategyType, runtimeQuery, runtimeConfig, enabledStrategyTypes,
     balanceCheckEnabled, marginItems, marginLoading, marginError, prices, pricesError,
   } = useStrategyFormData(accountId, broker)
 
@@ -160,7 +162,10 @@ export function useStrategyForm({
   const runtimeStrategy = runtimeConfig?.strategies[type as RuntimeStrategyType]
   const {
     availableTickers, defaultTicker, divisionCountSettings, usesDivisionCount, tickerCustomizable, vrSettings,
-  } = deriveRuntimeFields(initial, runtimeStrategy)
+  } = deriveRuntimeFields(
+    initial, runtimeStrategy,
+    (code) => isCryptoMarket(meta.tickers.find((t) => t.code === code)?.market) === isCrypto,
+  )
   const requiresPrivacyBase = typeMeta?.requiresPrivacyBase ?? false
 
   const seedPreview = useStrategySeedPreviewQuery(
@@ -246,7 +251,7 @@ export function useStrategyForm({
     ticker, availableTickers, defaultTicker, basePrice, prices,
     pct, setPct, seedUsdInput, setSeedUsdInput, usdDeposit, minSeed, isBelowMinSeed, loadingBase,
     balanceCheckEnabled,
-    isMock,
+    isMock, isCrypto,
     autoStart, seedMode,
     divisionCount, divisionCountSettings, tickerCustomizable,
     enabledStrategyTypes, runtimeConfigUnavailable,

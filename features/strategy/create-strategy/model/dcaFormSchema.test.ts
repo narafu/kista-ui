@@ -4,7 +4,7 @@ import { todayKst } from '@shared/lib/format'
 import { buildDcaFormDefaults, dcaFormSchema, type DcaFormValues } from './dcaFormSchema'
 
 const base: DcaFormValues = {
-  ticker: 'UPRO', direction: 'BUY', amountUsd: 300, orderType: 'MOC', frequency: 'DAILY',
+  market: 'US_STOCK', ticker: 'UPRO', direction: 'BUY', amount: 300, orderType: 'MOC', frequency: 'DAILY', executionHour: null,
   dayOfWeek: null, dayOfMonth: null, scheduledStartDate: null, conditions: [],
 }
 
@@ -17,8 +17,8 @@ describe('dcaFormSchema', () => {
     expect(ok({ scheduledStartDate: '2000-01-01' })).toBe(false)
   })
   it('금액 0·null 거부', () => {
-    expect(ok({ amountUsd: 0 })).toBe(false)
-    expect(ok({ amountUsd: null })).toBe(false)
+    expect(ok({ amount: 0 })).toBe(false)
+    expect(ok({ amount: null })).toBe(false)
   })
   it('WEEKLY는 요일 필수', () => {
     expect(ok({ frequency: 'WEEKLY' })).toBe(false)
@@ -84,37 +84,37 @@ describe('buildDcaFormDefaults', () => {
     id: 's1', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'QLD', cycleSeedType: 'MAX',
     initialUsdDeposit: 0, divisionCount: 0, isReverseMode: false,
     dca: {
-      direction: 'SELL', amountUsd: 250, orderType: 'MOO', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: 15, conditions: [],
+      direction: 'SELL', amount: 250, orderType: 'MOO', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: 15, conditions: [],
       ...dca,
     },
   } as unknown as Strategy)
 
   it('initial이 없으면 기본값(월간·말일·MOC)을 돌려준다', () => {
-    expect(buildDcaFormDefaults(undefined, 'UPRO')).toEqual({
-      ticker: 'UPRO', direction: 'BUY', amountUsd: null, orderType: 'MOC', frequency: 'MONTHLY',
+    expect(buildDcaFormDefaults(undefined, 'UPRO', 'US_STOCK')).toEqual({
+      market: 'US_STOCK', ticker: 'UPRO', direction: 'BUY', amount: null, orderType: 'MOC', frequency: 'MONTHLY', executionHour: null,
       dayOfWeek: null, dayOfMonth: 'LAST', scheduledStartDate: todayKst(), conditions: [],
     })
   })
 
   it('initial에 dca 설정이 없어도 기본값을 돌려준다', () => {
     const noDca = { ...strategy({}), dca: undefined } as Strategy
-    expect(buildDcaFormDefaults(noDca, 'UPRO').ticker).toBe('UPRO')
+    expect(buildDcaFormDefaults(noDca, 'UPRO', 'US_STOCK').ticker).toBe('UPRO')
   })
 
   it('수정 모드는 initial.dca를 폼 값으로 역변환한다 (dayOfMonth 숫자 -> 문자열)', () => {
-    const v = buildDcaFormDefaults(strategy({}), 'UPRO')
+    const v = buildDcaFormDefaults(strategy({}), 'UPRO', 'US_STOCK')
     expect(v).toMatchObject({
-      ticker: 'QLD', direction: 'SELL', amountUsd: 250, orderType: 'MOO', frequency: 'MONTHLY',
+      ticker: 'QLD', direction: 'SELL', amount: 250, orderType: 'MOO', frequency: 'MONTHLY',
       dayOfWeek: null, dayOfMonth: '15', scheduledStartDate: null,
     })
   })
 
   it('MONTHLY에서 dayOfMonth null(말일)은 LAST로 변환한다', () => {
-    expect(buildDcaFormDefaults(strategy({ dayOfMonth: null }), 'UPRO').dayOfMonth).toBe('LAST')
+    expect(buildDcaFormDefaults(strategy({ dayOfMonth: null }), 'UPRO', 'US_STOCK').dayOfMonth).toBe('LAST')
   })
 
   it('MONTHLY가 아니면 dayOfMonth는 null이다', () => {
-    const v = buildDcaFormDefaults(strategy({ frequency: 'WEEKLY', dayOfWeek: 'FRIDAY', dayOfMonth: 15 }), 'UPRO')
+    const v = buildDcaFormDefaults(strategy({ frequency: 'WEEKLY', dayOfWeek: 'FRIDAY', dayOfMonth: 15 }), 'UPRO', 'US_STOCK')
     expect(v.dayOfMonth).toBeNull()
     expect(v.dayOfWeek).toBe('FRIDAY')
   })
@@ -125,10 +125,78 @@ describe('buildDcaFormDefaults', () => {
         { indicator: 'SMA', operator: 'LT', smaPeriod: 200 },
         { indicator: 'RSI', operator: 'LTE', threshold: 35 },
       ],
-    } as never), 'UPRO')
+    } as never), 'UPRO', 'US_STOCK')
     expect(v.conditions).toEqual([
       { indicator: 'SMA', operator: 'LT', threshold: null, smaPeriod: 200 },
       { indicator: 'RSI', operator: 'LTE', threshold: 35, smaPeriod: null },
     ])
+  })
+})
+
+const issueAt = (r: ReturnType<typeof dcaFormSchema.safeParse>, path: string) =>
+  r.success ? undefined : r.error.issues.find((i) => i.path.join('.') === path)?.message
+const crypto: DcaFormValues = { ...base, ticker: 'BTC', market: 'CRYPTO_KRW', orderType: 'MARKET', amount: 5000, executionHour: 9 }
+
+describe('dcaFormSchema — 코인', () => {
+  it('최소 주문 금액 5,000원은 통과한다', () => {
+    expect(dcaFormSchema.safeParse(crypto).success).toBe(true)
+  })
+
+  it('5,000원 미만과 소수 금액은 거부한다', () => {
+    expect(issueAt(dcaFormSchema.safeParse({ ...crypto, amount: 4999 }), 'amount')).toBe('최소 주문 금액은 5,000원입니다.')
+    expect(issueAt(dcaFormSchema.safeParse({ ...crypto, amount: 5000.5 }), 'amount')).toBe('원 단위 정수로 입력하세요.')
+  })
+
+  it('실행 시각 00시는 유효하고, 비어 있으면 거부한다', () => {
+    expect(dcaFormSchema.safeParse({ ...crypto, executionHour: 0 }).success).toBe(true)
+    expect(issueAt(dcaFormSchema.safeParse({ ...crypto, executionHour: null }), 'executionHour')).toBe('실행 시각을 선택하세요.')
+  })
+
+  it('코인은 시장가 주문만 허용한다', () => {
+    expect(issueAt(dcaFormSchema.safeParse({ ...crypto, orderType: 'MOC' }), 'orderType')).toBe('코인은 시장가 주문만 지원합니다.')
+  })
+
+  it('코인은 주말 요일을 고를 수 있다', () => {
+    expect(dcaFormSchema.safeParse({ ...crypto, frequency: 'WEEKLY', dayOfWeek: 'SUNDAY' }).success).toBe(true)
+  })
+})
+
+describe('dcaFormSchema — 주식', () => {
+  it('주식은 MARKET 주문을 거부한다', () => {
+    expect(issueAt(dcaFormSchema.safeParse({ ...base, orderType: 'MARKET' }), 'orderType')).toBe('주문 방식을 선택하세요.')
+  })
+
+  it('주식은 주말 요일을 거부한다', () => {
+    expect(issueAt(dcaFormSchema.safeParse({ ...base, frequency: 'WEEKLY', dayOfWeek: 'SATURDAY' }), 'dayOfWeek')).toBe('평일을 선택하세요.')
+    expect(issueAt(dcaFormSchema.safeParse({ ...base, frequency: 'WEEKLY', dayOfWeek: 'SUNDAY' }), 'dayOfWeek')).toBe('평일을 선택하세요.')
+  })
+
+  it('주식 금액은 소수 둘째 자리 USD를 허용하고 최소 금액 규칙을 걸지 않는다', () => {
+    expect(dcaFormSchema.safeParse({ ...base, amount: 0.5 }).success).toBe(true)
+  })
+})
+
+describe('buildDcaFormDefaults — 시장별', () => {
+  const cryptoStrategy = {
+    id: 's1', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'BTC', cycleSeedType: 'NONE', isReverseMode: false,
+    dca: { direction: 'BUY', amount: 10000, orderType: 'MARKET', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, executionHour: 0, conditions: [] },
+  } as unknown as Strategy
+
+  it('코인 등록 기본값은 시장가·09시다', () => {
+    expect(buildDcaFormDefaults(undefined, 'BTC', 'CRYPTO_KRW')).toMatchObject({ market: 'CRYPTO_KRW', orderType: 'MARKET', executionHour: 9, amount: null })
+  })
+
+  it('주식 등록 기본값은 MOC이고 실행 시각이 없다', () => {
+    expect(buildDcaFormDefaults(undefined, 'UPRO', 'US_STOCK')).toMatchObject({ orderType: 'MOC', executionHour: null })
+  })
+
+  it('수정 기본값은 응답의 금액·실행 시각을 채운다(00시 유지)', () => {
+    expect(buildDcaFormDefaults(cryptoStrategy, 'BTC', 'CRYPTO_KRW')).toMatchObject({ amount: 10000, executionHour: 0 })
+  })
+
+  it('실행 시각이 없는 구 코인 전략은 09시로 채우고, 구 주식 전략은 null이다', () => {
+    const noHour = { ...cryptoStrategy, dca: { ...cryptoStrategy.dca, executionHour: null } } as Strategy
+    expect(buildDcaFormDefaults(noHour, 'BTC', 'CRYPTO_KRW').executionHour).toBe(9)
+    expect(buildDcaFormDefaults(noHour, 'BTC', 'US_STOCK').executionHour).toBeNull()
   })
 })

@@ -7,6 +7,15 @@ export const WEEKDAY_LABEL: Record<DcaWeekday, string> = {
   WEDNESDAY: '수요일',
   THURSDAY: '목요일',
   FRIDAY: '금요일',
+  SATURDAY: '토요일',
+  SUNDAY: '일요일',
+}
+
+// 주식은 미국 거래일 기준이라 주말 실행을 고를 수 없다. 코인은 24/7이라 7일 모두 고른다
+export const STOCK_WEEKDAYS: DcaWeekday[] = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']
+
+export function formatExecutionHour(hour: number): string {
+  return `${String(hour).padStart(2, '0')}시`
 }
 
 // DCA 실행 결과 상태는 메타에 없음 — 카드·실행 이력이 같은 라벨을 쓰도록 로컬 상수 하나로 둔다
@@ -20,12 +29,15 @@ export function dcaExecutionStatusLabel(status: string): string {
 }
 
 export function formatDcaSchedule(
-  dca: Pick<DcaConfigRequest, 'frequency' | 'dayOfWeek' | 'dayOfMonth'>,
+  dca: Pick<DcaConfigRequest, 'frequency' | 'dayOfWeek' | 'dayOfMonth'> & { executionHour?: number | null },
   frequencyLabel: string,
 ): string {
-  if (dca.frequency === 'WEEKLY' && dca.dayOfWeek) return `${frequencyLabel} ${WEEKDAY_LABEL[dca.dayOfWeek]}`
-  if (dca.frequency === 'MONTHLY') return `${frequencyLabel} ${dca.dayOfMonth == null ? '말일' : `${dca.dayOfMonth}일`}`
-  return frequencyLabel
+  const day = dca.frequency === 'WEEKLY' && dca.dayOfWeek
+    ? `${frequencyLabel} ${WEEKDAY_LABEL[dca.dayOfWeek]}`
+    : dca.frequency === 'MONTHLY'
+      ? `${frequencyLabel} ${dca.dayOfMonth == null ? '말일' : `${dca.dayOfMonth}일`}`
+      : frequencyLabel
+  return dca.executionHour == null ? day : `${day} ${formatExecutionHour(dca.executionHour)}`
 }
 
 // 서버 검증상 SMA는 smaPeriod, 그 외는 threshold가 필수지만 응답 누락 시 'undefined' 노출 방지로 '-' 표기

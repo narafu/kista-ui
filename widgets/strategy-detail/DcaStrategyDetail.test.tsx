@@ -25,7 +25,7 @@ vi.mock('@entities/strategy', async (orig) => ({
 const strategy: Strategy = {
   id: 'd1', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false, currentHoldings: 12,
   dca: {
-    direction: 'BUY', amountUsd: 300, orderType: 'MOC', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null,
+    direction: 'BUY', amount: 300, orderType: 'MOC', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null,
     conditions: [{ indicator: 'RSI', operator: 'LTE', threshold: 35 }],
     nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' }, lastExecution: null,
   },

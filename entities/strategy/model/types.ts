@@ -25,14 +25,27 @@ export interface StrategyVrSummary {
 
 // DCA(정기 적립식) — 코드 값은 kista-api 계약(spec 7장) 그대로. 라벨은 메타(labelOf)가 SSOT
 export type DcaDirection = 'BUY' | 'SELL'
-export type DcaOrderType = 'MOO' | 'MOC'
+export type DcaOrderType = 'MOO' | 'MOC' | 'MARKET' // MARKET: 코인 시장가(업비트), MOO/MOC: 주식
 export type DcaFrequency = 'DAILY' | 'WEEKLY' | 'MONTHLY'
-export type DcaWeekday = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY'
+export type DcaWeekday = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY'
 export type DcaIndicator = 'AVG_PRICE' | 'SMA' | 'RSI' | 'FEAR_GREED'
 export type DcaOperator = 'LTE' | 'LT' | 'GTE' | 'GT'
 export interface DcaCondition { indicator: DcaIndicator; operator: DcaOperator; threshold?: number; smaPeriod?: number }
-export interface DcaConfigRequest { direction: DcaDirection; amountUsd: number; orderType: DcaOrderType; frequency: DcaFrequency; dayOfWeek: DcaWeekday | null; dayOfMonth: number | null; conditions: DcaCondition[] }
-export interface StrategyDcaSummary extends DcaConfigRequest { nextExecution: { usSessionDate: string; kstTradeDate: string } | null; lastExecution: { kstTradeDate: string; status: string; skipReason: string | null } | null }
+export interface DcaConfigRequest {
+  direction: DcaDirection
+  amount: number // 계좌 통화 단위(주식 USD, 코인 원 단위 정수)
+  orderType: DcaOrderType
+  frequency: DcaFrequency
+  dayOfWeek: DcaWeekday | null
+  dayOfMonth: number | null
+  executionHour?: number // 코인 전용 실행 시각(KST 0~23). 주식은 보내지 않는다
+  conditions: DcaCondition[]
+}
+export interface StrategyDcaSummary extends Omit<DcaConfigRequest, 'executionHour'> {
+  executionHour: number | null
+  nextExecution: { usSessionDate: string; kstTradeDate: string } | null
+  lastExecution: { kstTradeDate: string; status: string; skipReason: string | null } | null
+}
 export interface DcaExecution { kstTradeDate: string; usSessionDate?: string; status: string; skipReason: string | null; detail: string | null; referencePrice?: number; quantity?: number; order: { id: string; status: string; filledQuantity?: number; filledPrice?: number } | null }
 export interface DcaExecutionPage { content: DcaExecution[]; page: number; size: number; totalElements: number }
 

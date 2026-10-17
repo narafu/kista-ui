@@ -3,20 +3,21 @@ import userEvent from '@testing-library/user-event'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { describe, expect, it } from 'vitest'
+import type { TradingMarket } from '@shared/lib/api-schema'
 import { MetaProvider } from '@entities/meta'
 import { DcaConditionsSection } from './DcaConditionsSection'
 import { buildDcaFormDefaults, dcaFormSchema, type DcaFormValues } from '../model/dcaFormSchema'
 import { dcaTestMeta } from './__fixtures__/dcaTestMeta'
 
-function Harness({ direction = 'BUY', meta = dcaTestMeta, conditions = [] }: { direction?: 'BUY' | 'SELL'; meta?: typeof dcaTestMeta; conditions?: DcaFormValues['conditions'] }) {
+function Harness({ direction = 'BUY', market = 'US_STOCK', meta = dcaTestMeta, conditions = [] }: { direction?: 'BUY' | 'SELL'; market?: TradingMarket; meta?: typeof dcaTestMeta; conditions?: DcaFormValues['conditions'] }) {
   const form = useForm<DcaFormValues>({
     resolver: zodResolver(dcaFormSchema),
-    defaultValues: { ...buildDcaFormDefaults(undefined, 'UPRO'), direction, conditions },
+    defaultValues: { ...buildDcaFormDefaults(undefined, 'UPRO', market), direction, conditions },
   })
   return (
     <MetaProvider meta={meta}>
       <button type="button" onClick={() => void form.trigger()}>검증</button>
-      <DcaConditionsSection form={form} direction={direction} indicators={['AVG_PRICE', 'SMA', 'RSI', 'FEAR_GREED']} />
+      <DcaConditionsSection form={form} market={market} direction={direction} indicators={['AVG_PRICE', 'SMA', 'RSI', 'FEAR_GREED']} />
     </MetaProvider>
   )
 }
@@ -104,5 +105,24 @@ describe('DcaConditionsSection', () => {
   it('비교 연산자 메타가 비면 조건 추가 버튼을 숨긴다', () => {
     render(<Harness meta={{ ...dcaTestMeta, dcaOperators: [] }} />)
     expect(screen.queryByRole('button', { name: '조건 추가' })).not.toBeInTheDocument()
+  })
+
+  it('코인은 공포탐욕지수 출처를 Crypto로, 이동평균·RSI 기준을 업비트 일봉으로 안내한다', () => {
+    render(<Harness market="CRYPTO_KRW" conditions={[{ indicator: 'FEAR_GREED', operator: 'LTE', threshold: 20, smaPeriod: null }]} />)
+    expect(screen.getByText('주문 시점 Crypto Fear & Greed 지수가 20 이하일 때 주문')).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: '조건 1 지표' })).toHaveTextContent('공포탐욕지수(Crypto)')
+    expect(screen.getByText(/업비트 일봉\(09:00 KST 마감\) 기준/)).toBeInTheDocument()
+  })
+
+  it('코인 SMA 설명은 직전 일봉 종가 기준이다', () => {
+    render(<Harness market="CRYPTO_KRW" conditions={[{ indicator: 'SMA', operator: 'LTE', threshold: null, smaPeriod: 20 }]} />)
+    expect(screen.getByText('직전 일봉 종가가 20일 이동평균 이하일 때 주문')).toBeInTheDocument()
+  })
+
+  it('주식은 기존 문구(전일 종가·CNN 라벨)를 유지한다', () => {
+    render(<Harness conditions={[{ indicator: 'SMA', operator: 'LTE', threshold: null, smaPeriod: 20 }, { indicator: 'FEAR_GREED', operator: 'LTE', threshold: null, smaPeriod: null }]} />)
+    expect(screen.getByText('전일 종가가 20일 이동평균 이하일 때 주문')).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: '조건 2 지표' })).toHaveTextContent('공포탐욕지수(CNN)')
+    expect(screen.queryByText(/업비트 일봉/)).not.toBeInTheDocument()
   })
 })

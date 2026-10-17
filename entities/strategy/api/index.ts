@@ -52,11 +52,12 @@ function normalizeDca(raw: unknown): StrategyDcaSummary | undefined {
   const last = d.lastExecution as Record<string, unknown> | null | undefined
   return {
     direction: String(d.direction) as DcaDirection,
-    amountUsd: toNum(d.amountUsd),
+    amount: toNum(d.amount ?? d.amountUsd), // A 계약 전환기 — 구 응답은 amountUsd만 준다
     orderType: String(d.orderType) as DcaOrderType,
     frequency: String(d.frequency) as DcaFrequency,
     dayOfWeek: isDcaWeekday(d.dayOfWeek) ? d.dayOfWeek : null,
     dayOfMonth: d.dayOfMonth != null ? Number(d.dayOfMonth) : null,
+    executionHour: d.executionHour != null ? Number(d.executionHour) : null,
     conditions: ((d.conditions as unknown[] | undefined) ?? []).map(normalizeDcaCondition),
     nextExecution: next ? { usSessionDate: String(next.usSessionDate), kstTradeDate: String(next.kstTradeDate) } : null,
     lastExecution: last

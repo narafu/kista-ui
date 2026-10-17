@@ -67,8 +67,8 @@ const seedPreviewState = {
 vi.mock('@entities/meta', () => ({
   useMeta: () => ({
     meta: {
-      strategyTypes: [{ code: 'INFINITE' }, { code: 'PRIVACY' }, { code: 'VR' }],
-      tickers: [{ code: 'TSLA' }],
+      strategyTypes: [{ code: 'INFINITE', availableTickers: ['TSLA'] }, { code: 'PRIVACY', availableTickers: ['SOXL'] }, { code: 'VR', availableTickers: ['TQQQ'] }],
+      tickers: [{ code: 'TSLA' }, { code: 'SOXL' }, { code: 'TQQQ' }],
     },
     findStrategyType: (code: string) => code === 'VR'
       ? {

@@ -93,7 +93,7 @@ describe('DCA api', () => {
     }])
     const [s] = await listStrategies('a1')
     expect(s.dca).toEqual({
-      direction: 'BUY', amountUsd: 300, orderType: 'MOC', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null,
+      direction: 'BUY', amount: 300, orderType: 'MOC', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, executionHour: null,
       conditions: [{ indicator: 'RSI', operator: 'LTE', threshold: 35 }, { indicator: 'SMA', operator: 'LT', smaPeriod: 200 }],
       nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' },
       lastExecution: null,
@@ -104,13 +104,36 @@ describe('DCA api', () => {
     const { listStrategies } = await import('./index')
     fetchEitherMock.mockResolvedValueOnce([
       { id: 's3', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
-        dca: { direction: 'BUY', amountUsd: 100, orderType: 'MOC', frequency: 'WEEKLY', dayOfWeek: 'SATURDAY', dayOfMonth: null, conditions: [] } },
+        dca: { direction: 'BUY', amountUsd: 100, orderType: 'MOC', frequency: 'WEEKLY', dayOfWeek: 'FUNDAY', dayOfMonth: null, conditions: [] } },
       { id: 's4', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
         dca: { direction: 'BUY', amountUsd: 100, orderType: 'MOC', frequency: 'WEEKLY', dayOfWeek: 'FRIDAY', dayOfMonth: null, conditions: [] } },
     ])
     const [unknown, friday] = await listStrategies('a1')
     expect(unknown.dca?.dayOfWeek).toBeNull()
     expect(friday.dca?.dayOfWeek).toBe('FRIDAY')
+  })
+
+  const rawDca = { direction: 'BUY', orderType: 'MOC', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, conditions: [] }
+  const dcaOf = async (dca: Record<string, unknown>) => {
+    const { listStrategies } = await import('./index')
+    fetchEitherMock.mockResolvedValueOnce([{ id: 's9', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false, dca: { ...rawDca, ...dca } }])
+    return (await listStrategies('a1'))[0].dca
+  }
+
+  it('DCA 금액은 amount를 쓰고, 구 응답은 amountUsd로 채운다', async () => {
+    expect((await dcaOf({ amount: 50000 }))?.amount).toBe(50000)
+    expect((await dcaOf({ amountUsd: 300 }))?.amount).toBe(300)
+  })
+
+  it('executionHour 0은 null이 아니라 0으로 유지한다', async () => {
+    expect((await dcaOf({ amount: 5000, executionHour: 0 }))?.executionHour).toBe(0)
+    expect((await dcaOf({ amount: 5000 }))?.executionHour).toBeNull()
+  })
+
+  it('주말 요일과 MARKET 주문 유형을 받는다', async () => {
+    const dca = await dcaOf({ amount: 5000, frequency: 'WEEKLY', dayOfWeek: 'SUNDAY', orderType: 'MARKET' })
+    expect(dca?.dayOfWeek).toBe('SUNDAY')
+    expect(dca?.orderType).toBe('MARKET')
   })
 
   it('비DCA 응답은 dca undefined', async () => {
@@ -123,7 +146,7 @@ describe('DCA api', () => {
   it('reconfigureDca는 PUT /dca-config로 dca 객체만 보낸다', async () => {
     const { reconfigureDca } = await import('./index')
     fetchEitherMock.mockResolvedValueOnce({ id: 's1', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false, dca: null })
-    const body = { direction: 'BUY' as const, amountUsd: 100, orderType: 'MOO' as const, frequency: 'DAILY' as const, dayOfWeek: null, dayOfMonth: null, conditions: [] }
+    const body = { direction: 'BUY' as const, amount: 100, orderType: 'MOO' as const, frequency: 'DAILY' as const, dayOfWeek: null, dayOfMonth: null, conditions: [] }
     await reconfigureDca('s1', body)
     expect(fetchEitherMock).toHaveBeenLastCalledWith(
       expect.stringContaining('/api/trading-cycles/s1/dca-config'),

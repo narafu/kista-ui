@@ -20,7 +20,7 @@ interface Props {
 export function DcaStrategyCard({ accountId, strategy, accountLabel }: Props) {
   const { labelOf } = useMeta()
   const { dca } = strategy // 서버가 dca를 누락해도 카드 셸은 렌더한다
-  const summary = dca && `${formatDcaSchedule(dca, labelOf('dcaFrequencies', dca.frequency))} · $${fmtUsd(dca.amountUsd)} · ${labelOf('orderTypes', dca.orderType)}`
+  const summary = dca && `${formatDcaSchedule(dca, labelOf('dcaFrequencies', dca.frequency))} · $${fmtUsd(dca.amount)} · ${labelOf('orderTypes', dca.orderType)}`
   const last = dca?.lastExecution
   const lastLabel = last
     ? `${dcaExecutionStatusLabel(last.status)}${last.skipReason ? ` · ${labelOf('dcaSkipReasons', last.skipReason)}` : ''}`
