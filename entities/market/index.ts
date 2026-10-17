@@ -1,6 +1,4 @@
-export type { Candle, FearGreed, FearGreedSourceView, FearGreedPoint } from './model/types'
-export { marketKeys } from './model/queryKeys'
+export type { Candle, FearGreedSourceView, FearGreedPoint } from './model/types'
 export { CHART_CANDLE_COUNT } from './model/constants'
 export { monthlyHolidaysQueryOptions } from './model/queryOptions'
-export { getMonthlyHolidays, getMonthlyHolidaysPublic, getMonthlyHolidaysClient, getCandlesClient, getCandlesRangeClient, getFearGreedClient } from './api'
 export { useMonthlyHolidaysQuery, useCandlesQuery, useCandlesRangeQuery, useFearGreedQuery } from './hooks/useMarketQueries'

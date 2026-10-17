@@ -1,9 +1,9 @@
 import { apiFetch, clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
+import { buildQueryString } from '@shared/lib/query-string'
 import type {
   AdminUser,
   AdminStats,
   AdminAccount,
-  AdminTrade,
   AdminAuditLog,
   AdminAnomalies,
   AppErrorLog,
@@ -22,11 +22,7 @@ export async function listAdminUsers(
   from?: string,
   to?: string,
 ): Promise<AdminUser[]> {
-  const params = new URLSearchParams()
-  if (status) params.set('status', status)
-  if (from) params.set('from', from)
-  if (to) params.set('to', to)
-  const query = params.size ? `?${params}` : ''
+  const query = buildQueryString({ status, from, to })
   return fetchEither<AdminUser[]>(`/api/admin/users${query}`, { method: 'GET' }, token)
 }
 
@@ -46,19 +42,12 @@ export async function deleteAdminUser(userId: string): Promise<void> {
   await clientFetch<void>(`/api/admin/users/${userId}`, { method: 'DELETE' })
 }
 
-export async function getAdminStats(token: string): Promise<AdminStats> {
-  return apiFetch<AdminStats>('/api/admin/dashboard/stats', { method: 'GET' }, token)
-}
-
-export async function getAdminStatsClient(): Promise<AdminStats> {
-  return clientFetch<AdminStats>('/api/admin/dashboard/stats', { method: 'GET' })
+export async function getAdminStats(token?: string): Promise<AdminStats> {
+  return fetchEither<AdminStats>('/api/admin/dashboard/stats', { method: 'GET' }, token)
 }
 
 export async function listAdminAccounts(token?: string, from?: string, to?: string): Promise<AdminAccount[]> {
-  const params = new URLSearchParams()
-  if (from) params.set('from', from)
-  if (to) params.set('to', to)
-  const query = params.size ? `?${params}` : ''
+  const query = buildQueryString({ from, to })
   return fetchEither<AdminAccount[]>(`/api/admin/accounts${query}`, { method: 'GET' }, token)
 }
 
@@ -87,14 +76,6 @@ export async function updateAdminStrategyStatus(accountId: string, strategyId: s
   )
 }
 
-export async function listAdminTrades(token: string, from?: string, to?: string): Promise<AdminTrade[]> {
-  const params = new URLSearchParams()
-  if (from) params.set('from', from)
-  if (to) params.set('to', to)
-  const query = params.size ? `?${params}` : ''
-  return apiFetch<AdminTrade[]>(`/api/admin/trades${query}`, { method: 'GET' }, token)
-}
-
 export async function reorderAdminOrder(request: AdminReorderRequest): Promise<AdminReorderResponse> {
   return clientFetch<AdminReorderResponse>('/api/admin/trades/reorders', jsonBody('POST', request))
 }
@@ -109,34 +90,18 @@ export async function getReorderBuyBudget(orderIds: string[], tradeDate: string)
 }
 
 export async function listAdminAuditLogs(token: string, from?: string, to?: string): Promise<AdminAuditLog[]> {
-  const params = new URLSearchParams()
-  if (from) params.set('from', from)
-  if (to) params.set('to', to)
-  const query = params.size ? `?${params}` : ''
+  const query = buildQueryString({ from, to })
   return apiFetch<AdminAuditLog[]>(`/api/admin/logs/audit${query}`, { method: 'GET' }, token)
 }
 
 export async function getAdminAnomalies(token: string, inactiveDays?: number, from?: string, to?: string): Promise<AdminAnomalies> {
-  const params = new URLSearchParams()
-  if (inactiveDays != null) params.set('inactiveDays', String(inactiveDays))
-  if (from) params.set('from', from)
-  if (to) params.set('to', to)
-  const query = params.size ? `?${params}` : ''
+  const query = buildQueryString({ inactiveDays, from, to })
   return apiFetch<AdminAnomalies>(`/api/admin/logs/anomalies${query}`, { method: 'GET' }, token)
 }
 
-export async function listAdminErrorLogs(token: string, limit = 100, from?: string, to?: string): Promise<AppErrorLog[]> {
-  const params = new URLSearchParams({ limit: String(limit) })
-  if (from) params.set('from', from)
-  if (to) params.set('to', to)
-  return apiFetch<AppErrorLog[]>(`/api/admin/logs/errors?${params}`, { method: 'GET' }, token)
-}
-
-export async function listAdminErrorLogsClient(limit = 100, from?: string, to?: string): Promise<AppErrorLog[]> {
-  const params = new URLSearchParams({ limit: String(limit) })
-  if (from) params.set('from', from)
-  if (to) params.set('to', to)
-  return clientFetch<AppErrorLog[]>(`/api/admin/logs/errors?${params}`, { method: 'GET' })
+export async function listAdminErrorLogs(limit = 100, from?: string, to?: string, token?: string): Promise<AppErrorLog[]> {
+  const query = buildQueryString({ limit, from, to })
+  return fetchEither<AppErrorLog[]>(`/api/admin/logs/errors${query}`, { method: 'GET' }, token)
 }
 
 export async function softDeleteAdminErrorLog(id: string): Promise<void> {

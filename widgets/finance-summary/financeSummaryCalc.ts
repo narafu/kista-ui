@@ -1,7 +1,7 @@
 import { calcFlowSummary, elapsedMonthsInYear, filterByType, monthEndDate, periodRange, previousYearRange } from '@entities/finance'
 import type { CategoryIndex, FinanceCategoryType, FinanceTransaction, Period } from '@entities/finance'
 
-export function sumInRange(transactions: FinanceTransaction[], from: string, to: string): number {
+function sumInRange(transactions: FinanceTransaction[], from: string, to: string): number {
   return transactions
     .filter((t) => t.transactionDate >= from && t.transactionDate <= to)
     .reduce((sum, t) => sum + t.amount, 0)

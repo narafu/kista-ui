@@ -6,8 +6,6 @@ export type {
   AdminTrade,
   AdminStrategy,
   AdminStrategyOrder,
-  AdminReorderRequest,
-  AdminReorderResponse,
   AdminReorderTimingAvailability,
   AdminReorderBuyBudget,
   AdminAuditLog,
@@ -16,29 +14,12 @@ export type {
   AppErrorLog,
 } from './model/types'
 export { adminKeys } from './model/queryKeys'
-export type { AdminErrorLogsQueryParams, AdminTradesQueryParams, AdminUsersQueryParams } from './model/queryKeys'
+export type { AdminUsersQueryParams } from './model/queryKeys'
 export { adminErrorLogsQueryOptions, adminStatsQueryOptions, adminTradesQueryOptions, adminUsersQueryOptions } from './model/queryOptions'
 export {
-  listAdminUsers,
-  approveAdminUser,
-  rejectAdminUser,
-  changeAdminUserRole,
-  deleteAdminUser,
-  getAdminStats,
-  getAdminStatsClient,
   listAdminAccounts,
-  listAdminStrategies,
-  listAdminStrategyOrders,
-  updateAdminStrategyStatus,
-  listAdminTrades,
-  reorderAdminOrder,
-  getReorderTimingAvailability,
-  getReorderBuyBudget,
   listAdminAuditLogs,
   getAdminAnomalies,
-  listAdminErrorLogs,
-  listAdminErrorLogsClient,
-  softDeleteAdminErrorLog,
 } from './api'
 export {
   useAdminUsersQuery,

@@ -22,7 +22,7 @@ export const TRADE_DEPENDENT_KEYS = [
   statsKeys.housingComparisonAll(),
 ] as const
 
-export function invalidateTradeDependents(queryClient: QueryClient) {
+function invalidateTradeDependents(queryClient: QueryClient) {
   return Promise.all(
     TRADE_DEPENDENT_KEYS.map((queryKey) => queryClient.invalidateQueries({ queryKey }).catch(() => null)),
   )

@@ -11,7 +11,7 @@ export const CASH_THRESHOLD = 0.5
 export const PANEL_HEIGHT = { price: 'h-[260px]', cash: 'h-[110px]', pnl: 'h-[144px] sm:h-[176px]' }
 
 // 평단가-종가 괴리 단계 — 종가가 평단가에서 위아래로 10%·20% 이상 벌어지면 평단가를 색으로 강조한다
-export const AVG_GAP_LEVELS = [0.1, 0.2] as const
+const AVG_GAP_LEVELS = [0.1, 0.2] as const
 
 export function avgGapLevel(close: number | null, avgPrice: number | null): 0 | 1 | 2 {
   if (close == null || avgPrice == null || avgPrice <= 0) return 0

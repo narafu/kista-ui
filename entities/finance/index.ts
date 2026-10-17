@@ -3,8 +3,6 @@ export type {
   AssetClass,
   AssetSnapshot,
   AssetSnapshotRequest,
-  BulkFinanceRegisterRequest,
-  BulkFinanceRegisterResponse,
   FinanceAccount,
   FinanceAccountRequest,
   FinanceAccountType,
@@ -21,58 +19,14 @@ export type {
   Market,
   MonthlyClosing,
 } from './model/types'
-export { financeKeys } from './model/queryKeys'
 export {
   assetSnapshotListQueryOptions,
   budgetListQueryOptions,
-  financeAccountListQueryOptions,
   financeCategoryListQueryOptions,
   financeGroupListQueryOptions,
   monthlyClosingListQueryOptions,
-  transactionListQueryOptions,
 } from './model/queryOptions'
-export {
-  bulkRegisterFinance,
-  createAssetSnapshot,
-  createFinanceAccount,
-  createFinanceBudget,
-  createFinanceCategory,
-  createFinanceGroupInvitation,
-  createFinanceTransaction,
-  createSystemFinanceCategory,
-  deleteAssetSnapshot,
-  deleteFinanceAccount,
-  deleteFinanceBudget,
-  deleteFinanceCategory,
-  deleteFinanceTransaction,
-  deleteSystemFinanceCategory,
-  listAssetSnapshots,
-  listFinanceAccounts,
-  listFinanceBudgets,
-  listFinanceCategories,
-  listFinanceGroupMembers,
-  listFinanceGroups,
-  listFinanceTransactions,
-  listMonthlyClosings,
-  listSystemFinanceCategories,
-  removeFinanceGroupMember,
-  respondToInvitation,
-  setMonthlyClosing,
-  shareAssetSnapshot,
-  shareFinanceAccount,
-  shareFinanceBudget,
-  shareFinanceTransaction,
-  unshareAssetSnapshot,
-  unshareFinanceAccount,
-  unshareFinanceBudget,
-  unshareFinanceTransaction,
-  updateAssetSnapshot,
-  updateFinanceAccount,
-  updateFinanceBudget,
-  updateFinanceCategory,
-  updateFinanceTransaction,
-  updateSystemFinanceCategory,
-} from './api'
+export { listAssetSnapshots } from './api'
 export {
   useAssetSnapshotsQuery,
   useCanShareToGroup,
@@ -122,7 +76,6 @@ export {
   useUpdateFinanceTransactionMutation,
   useUpdateSystemFinanceCategoryMutation,
 } from './hooks/useFinanceMutations'
-export type { DeleteManyAssetSnapshotsResult } from './hooks/useFinanceMutations'
 export { assetCategoryBadgeTone, assetCategoryColor, assetClassColor } from './lib/colors'
 export {
   ASSET_CLASS_ORDER,
@@ -135,37 +88,30 @@ export {
   calcAssetClassComposition,
   calcCategoryBreakdown,
   calcCategoryComposition,
-  calcComposition,
   calcDateGroups,
   calcMissingAccounts,
   calcMissingCategories,
   calcMonthlySummary,
   calcMonthlyTrend,
   formatAssetL1CategoryLabel,
-  isLiability,
   isInvestmentCategoryId,
+  isLiability,
   isMonthClosed,
   listAvailableMonths,
   previousMonthOf,
 } from './lib/aggregate'
 export type {
-  AssetClassAmount,
-  CategoryAmount,
   CompositionColumn,
-  CompositionEntry,
-  DateGroup,
-  MonthlySummary,
   TrendMode,
-  TrendPoint,
 } from './lib/aggregate'
 export { collectSubtreeIds, getCascadeLevels, getCategoryPath, sortCategoryTree } from './lib/categoryTree'
-export { buildCategoryIndex, resolveCategory } from './lib/categoryIndex'
+export { buildCategoryIndex } from './lib/categoryIndex'
 export type { FlowType } from './lib/budgetRoutes'
-export { FLOW_TYPE_LABEL, budgetListHref, editBudgetHref, flowTypeFromSlug, flowTypeSlug, newBudgetHref } from './lib/budgetRoutes'
+export { FLOW_TYPE_LABEL, budgetListHref, editBudgetHref, flowTypeFromSlug, newBudgetHref } from './lib/budgetRoutes'
 export type { CategoryIndex, CategoryIndexEntry } from './lib/categoryIndex'
 export { buildBulkRegisterItems } from './lib/bulkRegisterPreview'
-export type { BulkRegisterItem, BulkRegisterItems, CategoryGroupNode } from './lib/bulkRegisterPreview'
-export { autoAdjustedMonth, daysInMonth, displayWindow, elapsedMonthsInYear, monthEndDate, monthStartDate, periodRange, previousYearRange, registerWindowUpperBound, shiftMonth, trendWindow, windowRange, yearsRange, MONTHLY_TREND_RANGE_OPTIONS, YEARLY_TREND_RANGE_OPTIONS } from './lib/period'
+export type { BulkRegisterItem, CategoryGroupNode } from './lib/bulkRegisterPreview'
+export { autoAdjustedMonth, displayWindow, elapsedMonthsInYear, monthEndDate, monthStartDate, periodRange, previousYearRange, registerWindowUpperBound, shiftMonth, trendWindow, MONTHLY_TREND_RANGE_OPTIONS, YEARLY_TREND_RANGE_OPTIONS } from './lib/period'
 export type { Period, PeriodMode, TrendRange } from './lib/period'
 export {
   buildBudgetProgressTree,
@@ -176,5 +122,5 @@ export {
   filterByType,
   unclassifiedTransactions,
 } from './lib/flowAggregate'
-export type { BudgetProgress, BudgetTreeNode, FlowSummary, FlowTrendPoint, UnbudgetedCategory } from './lib/flowAggregate'
+export type { BudgetTreeNode } from './lib/flowAggregate'
 export { flowCategoryColor } from './lib/colors'

@@ -1,3 +1,2 @@
-export type { BacktestType, BacktestParams, BacktestPoint, BacktestSummary, BacktestResult } from './model/types'
-export { getBacktest } from './api'
+export type { BacktestType, BacktestParams, BacktestSummary } from './model/types'
 export { useBacktestMutation } from './hooks/useBacktestMutation'

@@ -42,7 +42,7 @@ entities/{domain}/
 각 슬라이스 최상단 `index.ts`가 public API. 외부에서 내부 파일 직접 import 금지.
 
 ```ts
-import { deleteAccount } from '@entities/account'
+import { useDeleteAccountMutation } from '@entities/account'
 ```
 
 ## kista-api DTO 필드

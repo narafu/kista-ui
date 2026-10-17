@@ -1,13 +1,13 @@
 import { queryOptions } from '@tanstack/react-query'
 
-import { getMe, getMeClient } from '../api'
+import { getMe } from '../api'
 import { userKeys } from './queryKeys'
 import type { User } from './types'
 
 export function meQueryOptions(token?: string) {
   return queryOptions<User>({
     queryKey: userKeys.me(),
-    queryFn: () => token ? getMe(token) : getMeClient(),
+    queryFn: () => getMe(token),
     staleTime: 60_000,
   })
 }

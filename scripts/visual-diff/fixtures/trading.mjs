@@ -2,7 +2,7 @@
 // 기본 모드 real은 dev 시드 실데이터를 그대로 통과시킨다
 import { seed, tickerOf } from '../../shared/seed.mjs'
 
-export const MODES = ['real', 'deficit', 'uncertain', 'executed', 'skip', 'empty']
+const MODES = ['real', 'deficit', 'uncertain', 'executed', 'skip', 'empty']
 let mode = 'real'
 export const setMode = (m) => {
   if (!MODES.includes(m)) throw new Error(`unknown mode: ${m}`)

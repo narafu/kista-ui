@@ -10,7 +10,7 @@ export interface HousingQuintileContent {
   characteristics: string
 }
 
-export const HOUSING_QUINTILES: HousingQuintileContent[] = [
+const HOUSING_QUINTILES: HousingQuintileContent[] = [
   {
     quintile: 1,
     label: '서울 1분위',
@@ -127,7 +127,7 @@ const CAPITAL_AREA_QUINTILES: HousingQuintileContent[] = [
   },
 ]
 
-export const HOUSING_QUINTILES_BY_REGION: Record<HousingRegionName, HousingQuintileContent[]> = {
+const HOUSING_QUINTILES_BY_REGION: Record<HousingRegionName, HousingQuintileContent[]> = {
   전국: NATIONWIDE_QUINTILES,
   서울: HOUSING_QUINTILES,
   수도권: CAPITAL_AREA_QUINTILES,

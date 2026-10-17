@@ -1,8 +1,6 @@
 export type {
-  UserStatus,
   UserRole,
   NotificationChannel,
-  User,
 } from './model/types'
 export { DEFAULT_STRATEGY_SUGGESTIONS } from './model/types'
 export { userKeys } from './model/queryKeys'
@@ -16,16 +14,7 @@ export {
 } from './model/status'
 export {
   getMe,
-  getMeClient,
   reapply,
-  deleteMe,
-  updateNotificationChannel,
-  updateNotificationPref,
-  updateTelegram,
-  deleteTelegram,
-  updateBalanceCheckEnabled,
-  updateNickname,
-  updateStrategySuggestions,
 } from './api'
 export {
   useMeQuery,

@@ -1,10 +1,6 @@
 export type {
   TradeEvent,
-  OrderDirection,
-  OrderType,
-  OrderStatus,
   CycleHistoryItem,
-  PortfolioSummary,
 } from './model/types'
 export { tradeKeys } from './model/queryKeys'
 export { accountPortfolioQueryOptions } from './model/queryOptions'

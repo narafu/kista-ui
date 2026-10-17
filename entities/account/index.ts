@@ -5,11 +5,6 @@ export { accountDetailQueryOptions, accountListQueryOptions } from './model/quer
 export type { MarginItem, PriceMap } from './api'
 export {
   listAccounts,
-  createAccount,
-  updateAccount,
-  deleteAccount,
-  getMargin,
-  getPrices,
 } from './api'
 export {
   useAccountDetailQuery,

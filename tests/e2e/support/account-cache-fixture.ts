@@ -6,7 +6,7 @@ export type AccountOwnershipRecord = {
   nickname: string
 }
 
-export function normalizeAccountCacheApiBase(apiBase: string) {
+function normalizeAccountCacheApiBase(apiBase: string) {
   let url: URL
   try {
     url = new URL(apiBase)

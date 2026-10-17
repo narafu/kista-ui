@@ -1,10 +1,8 @@
 export type {
   SkipReason,
   NextOrderPreview,
-  PlacedOrder,
   StrategyOrder,
   BuyCompetitionSummary,
-  CompetingStrategy,
   SellSufficiencySummary,
 } from './model/types'
 export { orderKeys } from './model/queryKeys'

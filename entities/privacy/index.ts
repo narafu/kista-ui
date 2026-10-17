@@ -12,14 +12,6 @@ export { PRIVACY_ORDER_DIRECTIONS, PRIVACY_ORDER_TYPES } from './model/options'
 export { privacyKeys } from './model/queryKeys'
 export { adminPrivacyBasesQueryOptions } from './model/queryOptions'
 export { filterAdminPrivacyBasesByRange } from './model/filter'
-export {
-  listAdminPrivacyBases,
-  createAdminPrivacyBase,
-  updateAdminPrivacyBase,
-  updateAdminPrivacyOrder,
-  addAdminPrivacyOrder,
-  deleteAdminPrivacyOrder,
-} from './api'
 export { useAdminPrivacyBasesQuery } from './hooks/useAdminPrivacyBasesQuery'
 export {
   useCreateAdminPrivacyBaseMutation,

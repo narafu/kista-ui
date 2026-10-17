@@ -16,7 +16,7 @@ import {
 } from './useUserQueries'
 
 const {
-  getMeClientMock,
+  getMeMock,
   updateNicknameMock,
   updateNotificationChannelMock,
   updateTelegramMock,
@@ -25,7 +25,7 @@ const {
   updateNotificationPrefMock,
   toastErrorMock,
 } = vi.hoisted(() => ({
-  getMeClientMock: vi.fn(),
+  getMeMock: vi.fn(),
   updateNicknameMock: vi.fn(),
   updateNotificationChannelMock: vi.fn(),
   updateTelegramMock: vi.fn(),
@@ -40,7 +40,7 @@ vi.mock('sonner', () => ({
 }))
 
 vi.mock('../api', () => ({
-  getMeClient: getMeClientMock,
+  getMe: getMeMock,
   updateNickname: updateNicknameMock,
   updateNotificationChannel: updateNotificationChannelMock,
   updateTelegram: updateTelegramMock,
@@ -102,7 +102,7 @@ async function expectMutationToAwaitVisibleUserUpdate(
   const refresh = new Promise<User>((resolve) => {
     resolveRefresh = resolve
   })
-  getMeClientMock.mockImplementationOnce(() => {
+  getMeMock.mockImplementationOnce(() => {
     refreshStarted = true
     return refresh
   })
@@ -123,7 +123,7 @@ async function expectMutationToAwaitVisibleUserUpdate(
 describe('user query ownership', () => {
   beforeEach(() => {
     serverUser = baseUser
-    getMeClientMock.mockReset().mockImplementation(() => Promise.resolve(serverUser))
+    getMeMock.mockReset().mockImplementation(() => Promise.resolve(serverUser))
     updateNicknameMock.mockReset().mockImplementation((nickname: string) => {
       serverUser = { ...serverUser, nickname }
       return Promise.resolve()
@@ -206,7 +206,7 @@ describe('user query ownership', () => {
 describe('optimistic toggle mutations', () => {
   beforeEach(() => {
     serverUser = baseUser
-    getMeClientMock.mockReset().mockImplementation(() => Promise.resolve(serverUser))
+    getMeMock.mockReset().mockImplementation(() => Promise.resolve(serverUser))
   })
 
   it('flips balanceCheckEnabled in the me cache before the mutation resolves, then keeps it on success', async () => {

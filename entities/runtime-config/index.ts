@@ -1,4 +1,3 @@
-export { getRuntimeConfig } from './api'
 export { runtimeConfigKeys, useRuntimeConfigQuery } from './hooks/useRuntimeConfigQuery'
 export type {
   RuntimeConfig,

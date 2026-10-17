@@ -40,7 +40,7 @@ export function directionUnplacedMessage(direction: DirectionReadiness, copy: Di
 // 카드 상단 배너 문구(방향 1개분) — 확인 실패 > 부족 우선순위. 확인 실패 문구는 preview 모드에서만
 // 노출한다 — executed 모드에서는 아래 "미접수" 목록이 방향별로 확인 실패 사유까지 이미 안내하므로,
 // 배너에서 또 보여주면 중복이다
-export function directionBannerText(mode: 'preview' | 'executed', direction: DirectionReadiness, uncertainBannerMessage: string, formatDeficitBanner: (deficitAmount: number) => string): string | null {
+function directionBannerText(mode: 'preview' | 'executed', direction: DirectionReadiness, uncertainBannerMessage: string, formatDeficitBanner: (deficitAmount: number) => string): string | null {
   if (mode === 'preview' && direction.uncertain) return uncertainBannerMessage
   if (!direction.hasDeficit) return null
   return formatDeficitBanner(direction.deficitAmount)

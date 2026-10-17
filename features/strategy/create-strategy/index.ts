@@ -1,8 +1,4 @@
-export { StrategyFieldLabel } from './StrategyFieldLabel'
-export { StrategyForm } from './StrategyForm'
 export { StrategyFormPage } from './StrategyFormPage'
 export { NewStrategyButton } from './NewStrategyButton'
 export { AddStrategyButton } from './AddStrategyButton'
-export { useStrategyForm } from './model/useStrategyForm'
-export type { UseStrategyFormReturn } from './model/useStrategyForm'
 export { loadAccountForNewStrategy, loadAccountAndStrategyForEdit } from './model/loadStrategyFormContext'

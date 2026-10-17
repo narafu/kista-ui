@@ -1,12 +1,8 @@
-import { apiFetch, clientFetch, jsonBody } from '@shared/lib/api-client'
+import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import type { User } from '../model/types'
 
-export async function getMe(token: string): Promise<User> {
-  return apiFetch<User>('/api/auth/me', { method: 'GET' }, token)
-}
-
-export async function getMeClient(): Promise<User> {
-  return clientFetch<User>('/api/auth/me', { method: 'GET' })
+export async function getMe(token?: string): Promise<User> {
+  return fetchEither<User>('/api/auth/me', { method: 'GET' }, token)
 }
 
 export async function updateNotificationPref(type: string, enabled: boolean): Promise<void> {

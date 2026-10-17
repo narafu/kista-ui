@@ -79,11 +79,6 @@ export function registerWindowUpperBound(today: string): string {
   return monthEndDate(today.slice(0, 7))
 }
 
-export function daysInMonth(month: string): number {
-  const [y, m] = month.split('-').map(Number)
-  return new Date(y, m, 0).getDate()
-}
-
 // 연간 모드에서 "몇 개월치 실적인지" — periodRange와 동일한 규칙: 올해면 1월~오늘 달,
 // 과거 연도면 12개월 전체.
 export function elapsedMonthsInYear(month: string, today: string): number {

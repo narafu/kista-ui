@@ -1,5 +1,3 @@
-import { num, str } from '@shared/lib/normalize'
-
 export interface PlacedOrder {
   id: string
   ticker: string
@@ -16,12 +14,12 @@ export interface PlacedOrder {
 export function normalizePlacedOrderBase(raw: unknown): Omit<PlacedOrder, 'status'> & { status: string } {
   const o = raw as Record<string, unknown>
   return {
-    id: str(o.id),
-    ticker: str(o.ticker),
-    direction: str(o.direction) as 'BUY' | 'SELL',
-    orderType: str(o.orderType),
-    quantity: num(o.quantity),
-    price: str(o.price),
-    status: str(o.status),
+    id: String(o.id),
+    ticker: String(o.ticker),
+    direction: String(o.direction) as 'BUY' | 'SELL',
+    orderType: String(o.orderType),
+    quantity: Number(o.quantity),
+    price: String(o.price),
+    status: String(o.status),
   }
 }

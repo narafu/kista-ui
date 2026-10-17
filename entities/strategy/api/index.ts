@@ -1,6 +1,7 @@
 import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
-import { dec, num, optDec, optNum, optStr, str } from '@shared/lib/normalize'
+import { optDec, optNum, optStr } from '@shared/lib/normalize'
+import { buildQueryString } from '@shared/lib/query-string'
 import type { CycleSeedType, DcaCondition, DcaConfigRequest, DcaDirection, DcaExecution, DcaExecutionPage, DcaFrequency, DcaIndicator, DcaOperator, DcaOrderType, DcaWeekday, ReconfigureVrRequest, Strategy, StrategyDcaSummary, StrategyRequest, StrategySeedPreview, StrategyVrSummary } from '../model/types'
 import { WEEKDAY_LABEL } from '../model/dcaFormat'
 import type { PlacedOrder } from '@shared/model/placed-order'
@@ -11,32 +12,32 @@ function normalizeVrSummary(raw: unknown): StrategyVrSummary | undefined {
   if (raw == null) return undefined
   const v = raw as Record<string, unknown>
   return {
-    value: dec(v.value),
-    bandWidth: dec(v.bandWidth),
-    intervalWeeks: num(v.intervalWeeks),
-    recurringAmount: num(v.recurringAmount ?? 0),
-    poolLimit: dec(v.poolLimit),
+    value: toNum(v.value),
+    bandWidth: toNum(v.bandWidth),
+    intervalWeeks: Number(v.intervalWeeks),
+    recurringAmount: Number(v.recurringAmount ?? 0),
+    poolLimit: toNum(v.poolLimit),
     currentPool: optDec(v.currentPool),
-    poolLimitRate: dec(v.poolLimitRate),
-    gradient: num(v.gradient),
-    initialGradient: num(v.initialGradient),
-    gGraceWeeks: num(v.gGraceWeeks),
-    gStepWeeks: num(v.gStepWeeks),
-    gMax: num(v.gMax),
-    initialPoolLimitRate: dec(v.initialPoolLimitRate),
-    pGraceWeeks: num(v.pGraceWeeks),
-    pStepWeeks: num(v.pStepWeeks),
-    poolLimitFloor: dec(v.poolLimitFloor),
+    poolLimitRate: toNum(v.poolLimitRate),
+    gradient: Number(v.gradient),
+    initialGradient: Number(v.initialGradient),
+    gGraceWeeks: Number(v.gGraceWeeks),
+    gStepWeeks: Number(v.gStepWeeks),
+    gMax: Number(v.gMax),
+    initialPoolLimitRate: toNum(v.initialPoolLimitRate),
+    pGraceWeeks: Number(v.pGraceWeeks),
+    pStepWeeks: Number(v.pStepWeeks),
+    poolLimitFloor: toNum(v.poolLimitFloor),
   }
 }
 
 function normalizeDcaCondition(raw: unknown): DcaCondition {
   const c = raw as Record<string, unknown>
   return {
-    indicator: str(c.indicator) as DcaIndicator,
-    operator: str(c.operator) as DcaOperator,
-    ...(c.threshold != null ? { threshold: dec(c.threshold) } : {}),
-    ...(c.smaPeriod != null ? { smaPeriod: num(c.smaPeriod) } : {}),
+    indicator: String(c.indicator) as DcaIndicator,
+    operator: String(c.operator) as DcaOperator,
+    ...(c.threshold != null ? { threshold: toNum(c.threshold) } : {}),
+    ...(c.smaPeriod != null ? { smaPeriod: Number(c.smaPeriod) } : {}),
   }
 }
 
@@ -50,16 +51,16 @@ function normalizeDca(raw: unknown): StrategyDcaSummary | undefined {
   const next = d.nextExecution as Record<string, unknown> | null | undefined
   const last = d.lastExecution as Record<string, unknown> | null | undefined
   return {
-    direction: str(d.direction) as DcaDirection,
-    amountUsd: dec(d.amountUsd),
-    orderType: str(d.orderType) as DcaOrderType,
-    frequency: str(d.frequency) as DcaFrequency,
+    direction: String(d.direction) as DcaDirection,
+    amountUsd: toNum(d.amountUsd),
+    orderType: String(d.orderType) as DcaOrderType,
+    frequency: String(d.frequency) as DcaFrequency,
     dayOfWeek: isDcaWeekday(d.dayOfWeek) ? d.dayOfWeek : null,
-    dayOfMonth: d.dayOfMonth != null ? num(d.dayOfMonth) : null,
+    dayOfMonth: d.dayOfMonth != null ? Number(d.dayOfMonth) : null,
     conditions: ((d.conditions as unknown[] | undefined) ?? []).map(normalizeDcaCondition),
-    nextExecution: next ? { usSessionDate: str(next.usSessionDate), kstTradeDate: str(next.kstTradeDate) } : null,
+    nextExecution: next ? { usSessionDate: String(next.usSessionDate), kstTradeDate: String(next.kstTradeDate) } : null,
     lastExecution: last
-      ? { kstTradeDate: str(last.kstTradeDate), status: str(last.status), skipReason: optStr(last.skipReason) ?? null }
+      ? { kstTradeDate: String(last.kstTradeDate), status: String(last.status), skipReason: optStr(last.skipReason) ?? null }
       : null,
   }
 }
@@ -68,15 +69,15 @@ function normalizeDcaExecution(raw: unknown): DcaExecution {
   const e = raw as Record<string, unknown>
   const o = e.order as Record<string, unknown> | null | undefined
   return {
-    kstTradeDate: str(e.kstTradeDate),
+    kstTradeDate: String(e.kstTradeDate),
     usSessionDate: optStr(e.usSessionDate),
-    status: str(e.status),
+    status: String(e.status),
     skipReason: optStr(e.skipReason) ?? null,
     detail: optStr(e.detail) ?? null,
     referencePrice: optDec(e.referencePrice),
     quantity: optNum(e.quantity),
     order: o
-      ? { id: str(o.id), status: str(o.status), filledQuantity: optNum(o.filledQuantity), filledPrice: optDec(o.filledPrice) }
+      ? { id: String(o.id), status: String(o.status), filledQuantity: optNum(o.filledQuantity), filledPrice: optDec(o.filledPrice) }
       : null,
   }
 }
@@ -84,11 +85,11 @@ function normalizeDcaExecution(raw: unknown): DcaExecution {
 function normalizeStrategy(raw: unknown): Strategy {
   const s = raw as Record<string, unknown>
   return {
-    id: str(s.id),
-    accountId: str(s.accountId),
-    type: str(s.type),
-    status: str(s.status),
-    ticker: str(s.ticker),
+    id: String(s.id),
+    accountId: String(s.accountId),
+    type: String(s.type),
+    status: String(s.status),
+    ticker: String(s.ticker),
     cycleSeedType: (s.cycleSeedType as CycleSeedType) ?? 'NONE',
     initialUsdDeposit: optDec(s.initialUsdDeposit),
     divisionCount: optNum(s.divisionCount),
@@ -133,13 +134,13 @@ export async function reconfigureDca(id: string, data: DcaConfigRequest, token?:
 }
 
 export async function listDcaExecutions(id: string, page: number, size: number, token?: string): Promise<DcaExecutionPage> {
-  const qs = new URLSearchParams({ page: String(page), size: String(size) }).toString()
-  const raw = await fetchEither<Record<string, unknown>>(`/api/trading-cycles/${id}/dca-executions?${qs}`, undefined, token)
+  const qs = buildQueryString({ page, size })
+  const raw = await fetchEither<Record<string, unknown>>(`/api/trading-cycles/${id}/dca-executions${qs}`, undefined, token)
   return {
     content: ((raw.content as unknown[] | undefined) ?? []).map(normalizeDcaExecution),
-    page: num(raw.page),
-    size: num(raw.size),
-    totalElements: num(raw.totalElements),
+    page: Number(raw.page),
+    size: Number(raw.size),
+    totalElements: Number(raw.totalElements),
   }
 }
 
@@ -159,7 +160,7 @@ function normalizePlacedOrder(raw: unknown): PlacedOrder {
   const o = raw as Record<string, unknown>
   return {
     ...normalizePlacedOrderBase(raw),
-    status: str(o.status ?? 'PLACED') as PlacedOrder['status'],
+    status: String(o.status ?? 'PLACED') as PlacedOrder['status'],
   }
 }
 

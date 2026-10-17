@@ -1,7 +1,8 @@
 import { queryOptions } from '@tanstack/react-query'
 
 import { fetchEither } from '@shared/lib/api-client'
-import { getAdminStats, getAdminStatsClient, listAdminErrorLogs, listAdminErrorLogsClient, listAdminUsers } from '../api'
+import { buildQueryString } from '@shared/lib/query-string'
+import { getAdminStats, listAdminErrorLogs, listAdminUsers } from '../api'
 import { adminKeys } from './queryKeys'
 import type { AdminErrorLogsQueryParams, AdminTradesQueryParams, AdminUsersQueryParams } from './queryKeys'
 import type { AdminStats, AdminTrade, AdminUser, AppErrorLog } from './types'
@@ -17,7 +18,7 @@ export function adminUsersQueryOptions(filter?: UserStatus, params?: AdminUsersQ
 export function adminStatsQueryOptions(token?: string) {
   return queryOptions<AdminStats>({
     queryKey: adminKeys.stats(),
-    queryFn: () => token ? getAdminStats(token) : getAdminStatsClient(),
+    queryFn: () => getAdminStats(token),
   })
 }
 
@@ -25,9 +26,7 @@ export function adminErrorLogsQueryOptions(params?: AdminErrorLogsQueryParams, t
   const limit = params?.limit ?? 500
   return queryOptions<AppErrorLog[]>({
     queryKey: adminKeys.errorLogs(params),
-    queryFn: () => token
-      ? listAdminErrorLogs(token, limit, params?.from, params?.to)
-      : listAdminErrorLogsClient(limit, params?.from, params?.to),
+    queryFn: () => listAdminErrorLogs(limit, params?.from, params?.to, token),
   })
 }
 
@@ -37,10 +36,7 @@ export function adminTradesQueryOptions(params?: AdminTradesQueryParams, token?:
   return queryOptions<AdminTrade[]>({
     queryKey: adminKeys.trades(params),
     queryFn: () => {
-      const search = new URLSearchParams()
-      if (params?.from) search.set('from', params.from)
-      if (params?.to) search.set('to', params.to)
-      const query = search.size ? `?${search}` : ''
+      const query = buildQueryString({ from: params?.from, to: params?.to })
       return fetchEither<AdminTrade[]>(`/api/admin/trades${query}`, { method: 'GET' }, token)
     },
   })

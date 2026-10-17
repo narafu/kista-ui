@@ -85,7 +85,7 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 
 ## normalize
 
-- `normalize.ts` — API 응답(unknown) → 도메인 타입 정규화 경량 헬퍼(`str`/`optStr`/`num`/`optNum`/`dec`/`optDec`). zod 대체 아님, 반복되던 `String()`/`Number()`/`toNum()` 캐스팅만 추출
+- `normalize.ts` — API 응답(unknown) → 도메인 타입 정규화 경량 헬퍼(`optStr`/`optNum`/`optDec` — null이면 undefined). zod 대체 아님. null 분기 없는 캐스팅은 `String()`/`Number()`/`toNum()`을 직접 쓴다
 
 ## model
 

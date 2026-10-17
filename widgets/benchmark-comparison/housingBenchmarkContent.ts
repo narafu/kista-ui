@@ -14,7 +14,7 @@ export interface EtfBenchmarkContent {
   riskNotice?: string
 }
 
-export const ETF_BENCHMARKS: EtfBenchmarkContent[] = [
+const ETF_BENCHMARKS: EtfBenchmarkContent[] = [
   {
     symbol: 'SPY',
     label: 'SPY',

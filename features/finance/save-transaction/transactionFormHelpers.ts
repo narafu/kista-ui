@@ -1,7 +1,7 @@
 import { isMonthClosed } from '@entities/finance'
 import type { FinanceTransaction } from '@entities/finance'
 
-export function clampDate(date: string, min?: string, max?: string): string {
+function clampDate(date: string, min?: string, max?: string): string {
   if (min && date < min) return min
   if (max && date > max) return max
   return date

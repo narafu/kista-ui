@@ -1,23 +1,12 @@
-export type { CycleSeedType, DcaCondition, DcaConfigRequest, DcaDirection, DcaExecution, DcaExecutionPage, DcaFrequency, DcaIndicator, DcaOperator, DcaOrderType, DcaWeekday, StrategyDcaSummary, Strategy, StrategyRequest, ReconfigureVrRequest, StrategySeedPreview, StrategyVrSummary } from './model/types'
+export type { CycleSeedType, DcaCondition, DcaConfigRequest, DcaIndicator, DcaOperator, DcaWeekday, Strategy, StrategyRequest, ReconfigureVrRequest, StrategySeedPreview, StrategyVrSummary } from './model/types'
 export { dcaExecutionStatusLabel, formatDcaCondition, formatDcaSchedule, WEEKDAY_LABEL } from './model/dcaFormat'
 export { strategyKeys } from './model/queryKeys'
 export { seedBadgeClass, strategyStatusAccent, strategyTypeShort } from './model/badges'
 export { isScheduledStart, scheduledStartBadgeLabel } from './model/scheduled-start'
 export { nextVrRolloverDate } from './model/vr-rollover'
-export { applyGStepWeeksChange, applyPStepWeeksChange, POOL_LIMIT_FLOOR_ZERO_MESSAGE, vrRampInvalidReason } from './model/poolLimitRamp'
+export { applyPStepWeeksChange, POOL_LIMIT_FLOOR_ZERO_MESSAGE, vrRampInvalidReason } from './model/poolLimitRamp'
 export {
-  listAllStrategies,
   listStrategies,
-  createStrategy,
-  updateStrategy,
-  deleteStrategy,
-  pauseStrategy,
-  resumeStrategy,
-  executeStrategy,
-  getStrategySeedPreview,
-  reconfigureVr,
-  reconfigureDca,
-  listDcaExecutions,
 } from './api'
 export {
   useStrategySeedPreviewQuery,
