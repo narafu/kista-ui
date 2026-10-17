@@ -4,6 +4,7 @@ import { useState, useSyncExternalStore } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
 import { fmtUsd } from '@shared/lib/format'
+import { isCryptoBroker } from '@shared/lib/api-schema'
 import { Surface } from '@shared/ui/Surface'
 import { IconButton } from '@shared/ui/IconButton'
 import { Spinner } from '@shared/ui/Spinner'
@@ -175,7 +176,8 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
 
 export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: Props) {
   const { data: accounts } = useAccountsQuery({ enabled: isAuthenticated })
-  const accountIds = accounts?.map((account) => account.id) ?? []
+  // 일별 체결은 서버가 주식만 집계한다 — "대기" 배지·범례도 주식 계좌 기준으로 맞춘다
+  const accountIds = accounts?.filter((account) => !isCryptoBroker(account.broker)).map((account) => account.id) ?? []
 
   const [displayWeekStart, setDisplayWeekStart] = useState(
     () => new Date(initialWeekStartDate + 'T00:00:00'),

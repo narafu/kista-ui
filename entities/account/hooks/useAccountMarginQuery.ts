@@ -44,11 +44,11 @@ export function useAccountMarginQuery(accountId: string, options?: { enabled?: b
   return { items, isLoading, isError }
 }
 
-export function useAccountPricesQuery(accountId: string, tickers: string[]) {
+export function useAccountPricesQuery(accountId: string, tickers: string[], options?: { enabled?: boolean }) {
   return useQuery<PriceMap>({
     queryKey: accountKeys.prices(accountId, tickers),
     queryFn: () => getPrices(accountId, tickers),
-    enabled: !!accountId && tickers.length > 0,
+    enabled: options?.enabled !== false && !!accountId && tickers.length > 0,
     staleTime: 0,
   })
 }

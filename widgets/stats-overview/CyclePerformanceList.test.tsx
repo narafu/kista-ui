@@ -162,4 +162,25 @@ describe('CyclePerformanceList', () => {
     await user.click(await screen.findByRole('option', { name: '30개' }))
     expect(useStatsCyclesQueryMock).toHaveBeenLastCalledWith(expect.objectContaining({ page: 0, size: 30 }))
   })
+
+  it('코인 계좌는 계좌 선택지에서 뺀다', async () => {
+    const user = userEvent.setup()
+    useStatsCyclesQueryMock.mockReturnValue({
+      data: { items: [], page: 0, totalElements: 0, totalPages: 0 },
+      isLoading: false,
+      isError: false,
+    })
+    useAccountsQueryMock.mockReturnValue({
+      data: [
+        { id: 'a1', nickname: '주식계좌', accountNoMasked: '****0001', broker: 'KIS' },
+        { id: 'a2', nickname: '코인계좌', accountNoMasked: null, broker: 'UPBIT' },
+      ],
+    })
+
+    render(<CyclePerformanceList />)
+    await user.click(screen.getByRole('combobox', { name: '계좌' }))
+
+    expect(await screen.findByRole('option', { name: '주식계좌' })).toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: '코인계좌' })).not.toBeInTheDocument()
+  })
 })

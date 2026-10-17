@@ -6,8 +6,8 @@ import { ICON_LINK_GHOST_CLASS } from '@shared/ui/iconButtonStyles'
 
 import { useQuery } from '@tanstack/react-query'
 import { useAccountDetailQuery } from '@entities/account'
-import { accountPortfolioQueryOptions } from '@entities/trade'
-import { isMockBroker } from '@shared/lib/api-schema'
+import { accountPortfolioQueryOptions, cryptoPortfolioQueryOptions } from '@entities/trade'
+import { isCryptoBroker, isMockBroker } from '@shared/lib/api-schema'
 import { PageHeader } from '@widgets/page-header'
 import type { Account } from '@entities/account'
 import { AccountDetailTabs } from './AccountDetailTabs'
@@ -23,11 +23,13 @@ export function AccountDetailContent({
 }: Props) {
   const { data } = useAccountDetailQuery(accountId)
   const account = data === undefined ? initialAccount : data
-  // MOCK 계좌는 KIS-live 포트폴리오 조회 대상이 아니라 서버 prefetch와 동일하게 스킵
+  const isCrypto = !!account && isCryptoBroker(account.broker)
+  // MOCK·코인 계좌는 주식 포트폴리오 대상이 아니라 서버 prefetch와 같은 조건으로 스킵
   const { data: portfolio } = useQuery({
     ...accountPortfolioQueryOptions(accountId),
-    enabled: !!account && !isMockBroker(account.broker),
+    enabled: !!account && !isMockBroker(account.broker) && !isCrypto,
   })
+  const cryptoQuery = useQuery({ ...cryptoPortfolioQueryOptions(accountId), enabled: isCrypto })
 
   if (!account) return null
 
@@ -52,6 +54,8 @@ export function AccountDetailContent({
         account={account}
         usdDeposit={portfolio?.summary?.usdDeposit ?? 0}
         posEvalUsd={portfolio?.summary?.posEvalUsd ?? 0}
+        cryptoPortfolio={cryptoQuery.data}
+        cryptoPortfolioError={cryptoQuery.isError && !cryptoQuery.data}
       />
     </div>
   )

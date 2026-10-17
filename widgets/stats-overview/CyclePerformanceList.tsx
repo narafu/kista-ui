@@ -8,6 +8,7 @@ import { useMemo, useState } from 'react'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { Badge } from '@shared/ui/Badge'
+import { isCryptoBroker } from '@shared/lib/api-schema'
 import { CycleListBody, FilterSelect } from './CycleRows'
 
 const ALL = 'ALL'
@@ -45,7 +46,10 @@ export function CyclePerformanceList({ typeFilter }: Props) {
     [accountsQuery.data],
   )
   const accountOptions = useMemo(
-    () => [{ value: ALL, label: '전체 계좌' }, ...(accountsQuery.data ?? []).map((account) => ({ value: account.id, label: account.nickname }))],
+    () => [{ value: ALL, label: '전체 계좌' }, ...(accountsQuery.data ?? [])
+      // 코인 계좌는 DCA만 있어 사이클 성과가 없다
+      .filter((account) => !isCryptoBroker(account.broker))
+      .map((account) => ({ value: account.id, label: account.nickname }))],
     [accountsQuery.data],
   )
   // 삭제된 전략의 사이클은 서버 목록에서 제외되므로 현재 전략들의 티커만으로 선택지가 충분하다

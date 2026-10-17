@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Account } from '@entities/account'
 import { AccountSummaryCard } from './AccountSummaryCard'
 
@@ -63,5 +63,54 @@ describe('AccountSummaryCard', () => {
     expect(screen.queryByText('예수금(실계좌기준)')).not.toBeInTheDocument()
     expect(screen.queryByText('평가금(실계좌기준)')).not.toBeInTheDocument()
     expect(screen.getByText('모의계좌')).toBeInTheDocument()
+  })
+
+  it('업비트 계좌는 계좌번호 대신 원화 예수금·총자산을 보여준다', () => {
+    render(
+      <AccountSummaryCard
+        account={{ ...account, broker: 'UPBIT', accountNoMasked: null }}
+        usdDeposit={0}
+        posEvalUsd={0}
+        cryptoPortfolio={{ krwCash: 120000, totalAssetKrw: 1478024, holdings: [] }}
+      />,
+    )
+    expect(screen.queryByText('계좌번호')).not.toBeInTheDocument()
+    expect(screen.getByText('120,000원')).toBeInTheDocument()
+    expect(screen.getByText('1,478,024원')).toBeInTheDocument()
+    expect(screen.queryByText(/\$/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/현재가 확인 불가/)).not.toBeInTheDocument()
+  })
+
+  it('현재가 확인 불가 코인이 있으면 총자산에서 빠졌다고 알린다', () => {
+    render(
+      <AccountSummaryCard
+        account={{ ...account, broker: 'UPBIT', accountNoMasked: null }}
+        usdDeposit={0}
+        posEvalUsd={0}
+        cryptoPortfolio={{
+          krwCash: 120000,
+          totalAssetKrw: 120000,
+          holdings: [{ ticker: 'ETH', quantity: 0.5, avgBuyPrice: 5000000, currentPrice: null, evalAmountKrw: 0 }],
+        }}
+      />,
+    )
+    expect(screen.getByText('일부 코인은 현재가 확인 불가로 총자산에서 빠졌습니다.')).toBeInTheDocument()
+  })
+
+  it('키가 만료됐으면 재등록 필요를 보여준다', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-10-18T00:00:00+09:00'))
+    try {
+      render(
+        <AccountSummaryCard
+          account={{ ...account, broker: 'UPBIT', accountNoMasked: null, apiKeyExpiresAt: '2026-10-01T00:00:00+09:00' }}
+          usdDeposit={0}
+          posEvalUsd={0}
+        />,
+      )
+      expect(screen.getByText('API 키 재등록 필요')).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

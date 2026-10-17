@@ -2,6 +2,7 @@ import { fetchEither } from '@shared/lib/api-client'
 import { buildQueryString } from '@shared/lib/query-string'
 import { toNum } from '@shared/lib/utils'
 import type {
+  CryptoPortfolio,
   CycleHistoryPage,
   DailyTransactionResult,
   PortfolioSummary,
@@ -70,4 +71,25 @@ export async function getDailyTransactionsBatch(
 ): Promise<DailyTransactionResult> {
   const q = new URLSearchParams({ from: params.from, to: params.to })
   return fetchEither<DailyTransactionResult>(`/api/daily-trades?${q}`, { method: 'GET' }, token)
+}
+
+interface CryptoPortfolioRaw {
+  krwCash: number | string
+  totalAssetKrw: number | string
+  holdings?: Array<{ ticker: string; quantity: number | string; avgBuyPrice: number | string; currentPrice: number | string | null; evalAmountKrw: number | string }>
+}
+
+export async function getCryptoPortfolio(accountId: string, token?: string): Promise<CryptoPortfolio> {
+  const raw = await fetchEither<CryptoPortfolioRaw>(`/api/accounts/${accountId}/crypto-portfolio`, { method: 'GET' }, token)
+  return {
+    krwCash: toNum(raw.krwCash),
+    totalAssetKrw: toNum(raw.totalAssetKrw),
+    holdings: (raw.holdings ?? []).map((h) => ({
+      ticker: h.ticker,
+      quantity: toNum(h.quantity),
+      avgBuyPrice: toNum(h.avgBuyPrice),
+      currentPrice: h.currentPrice == null ? null : toNum(h.currentPrice),
+      evalAmountKrw: toNum(h.evalAmountKrw),
+    })),
+  }
 }

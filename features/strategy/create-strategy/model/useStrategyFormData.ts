@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { isMockBroker } from '@shared/lib/api-schema'
+import { isCryptoBroker, isCryptoMarket, isMockBroker } from '@shared/lib/api-schema'
 import { useMeta } from '@entities/meta'
 import { useAccountMarginQuery, useAccountPricesQuery } from '@entities/account'
 import type { BrokerCode } from '@entities/account'
@@ -9,6 +9,8 @@ import type { RuntimeStrategyType } from '@entities/runtime-config'
 
 export function useStrategyFormData(accountId: string, broker: BrokerCode | undefined) {
   const isMock = isMockBroker(broker)
+  // 코인 계좌로 주식 margin/prices를 부르면 400 — StrategyForm은 DCA 분기 전에 이 훅을 부르므로 여기서 막는다
+  const isCrypto = isCryptoBroker(broker)
   const { meta, findStrategyType } = useMeta()
   const runtimeQuery = useRuntimeConfigQuery()
   const runtimeConfig = runtimeQuery.data
@@ -17,7 +19,7 @@ export function useStrategyFormData(accountId: string, broker: BrokerCode | unde
 
   const { data: meData } = useMeQuery()
   // 모의계좌는 실제 잔고가 없어 예수금 조회 자체가 무의미 — 항상 수동 입력
-  const balanceCheckEnabled = (meData?.balanceCheckEnabled ?? true) && !isMock
+  const balanceCheckEnabled = (meData?.balanceCheckEnabled ?? true) && !isMock && !isCrypto
 
   // 잔고검증 OFF면 예수금 불필요 → margin 쿼리 skip
   // eslint-disable-next-line react-doctor/no-event-handler
@@ -25,13 +27,17 @@ export function useStrategyFormData(accountId: string, broker: BrokerCode | unde
     enabled: balanceCheckEnabled,
   })
 
-  // 티커 선택 버튼의 가격 표시용 — 여러 ticker 동시 (basePrice 계산엔 미사용)
-  const allTickerCodes = useMemo(() => meta.tickers.map((t) => t.code), [meta.tickers])
-  const { data: pricesData, isError: pricesError } = useAccountPricesQuery(accountId, allTickerCodes)
+  // 티커 선택 버튼의 가격 표시용 — 주식 시세 api라 코인 티커는 뺀다(api 상한 10개). basePrice 계산엔 미사용
+  const allTickerCodes = useMemo(
+    () => meta.tickers.filter((t) => !isCryptoMarket(t.market)).map((t) => t.code),
+    [meta.tickers],
+  )
+  const { data: pricesData, isError: pricesError } = useAccountPricesQuery(accountId, allTickerCodes, { enabled: !isCrypto })
   const prices = pricesData ?? null
 
   return {
     isMock,
+    isCrypto,
     meta,
     findStrategyType,
     runtimeQuery,

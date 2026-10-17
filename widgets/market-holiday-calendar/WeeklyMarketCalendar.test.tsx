@@ -19,7 +19,7 @@ const { useDailyTradesRangeQueryMock } = vi.hoisted(() => ({ useDailyTradesRange
 
 vi.mock('@entities/trade', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@entities/trade')>()),
-  useDailyTradesRangeQuery: () => useDailyTradesRangeQueryMock(),
+  useDailyTradesRangeQuery: (...args: unknown[]) => useDailyTradesRangeQueryMock(...args),
 }))
 
 describe('WeeklyMarketCalendar', () => {
@@ -108,5 +108,19 @@ describe('WeeklyMarketCalendar', () => {
 
     const badge = screen.getByTitle('매수 $12,345')
     expect(badge).toHaveTextContent('매수$12K')
+  })
+
+  it('코인 계좌는 일별 체결 조회 대상에서 뺀다', () => {
+    useAccountsQueryMock.mockReturnValue({
+      data: [
+        { id: 'a1', nickname: '주식', accountNoMasked: '****0001', broker: 'KIS' },
+        { id: 'a2', nickname: '코인', accountNoMasked: null, broker: 'UPBIT' },
+      ],
+    })
+
+    render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated />)
+
+    expect(useDailyTradesRangeQueryMock).toHaveBeenCalled()
+    expect(useDailyTradesRangeQueryMock.mock.lastCall?.[0]).toEqual(['a1'])
   })
 })

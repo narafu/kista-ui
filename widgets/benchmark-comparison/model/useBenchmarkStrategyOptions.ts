@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { useAllStrategiesQuery } from '@entities/strategy'
 import { useAccountsQuery } from '@entities/account'
+import { isCryptoBroker } from '@shared/lib/api-schema'
 
 // 전략+계좌 조합 옵션을 계산한다. 두 자산 탭 모두 전략 드롭다운이 항상 노출되므로
 // enabled(패널 전체 활성 여부)로만 게이팅한다 — 탭별 조건부 로딩 없음
@@ -20,7 +21,11 @@ export function useBenchmarkStrategyOptions(enabled: boolean) {
   // useMemo로 참조를 고정 — 그렇지 않으면 소비 측 useEffect(예: dangling 전략 id 복구)가 매 렌더 재실행된다
   const strategies = useMemo(
     () => (hasStrategyList
-      ? strategiesQuery.data.filter((strategy) => accountsById.get(strategy.accountId)?.broker !== 'MOCK')
+      ? strategiesQuery.data.filter((strategy) => {
+        const broker = accountsById.get(strategy.accountId)?.broker
+        // 모의계좌는 실제 투자 성과가 아니고, 코인 계좌는 1차 벤치마크 대상이 아니다
+        return broker !== 'MOCK' && !isCryptoBroker(broker)
+      })
       : []),
     [hasStrategyList, strategiesQuery.data, accountsById],
   )

@@ -124,4 +124,23 @@ describe('trade api', () => {
     expect(result.positions).toBeUndefined()
     expect(result.summary).toBeUndefined()
   })
+
+  it('getCryptoPortfolio converts amounts to numbers and keeps null currentPrice', async () => {
+    const { getCryptoPortfolio } = await import('./index')
+    fetchEitherMock.mockResolvedValueOnce({
+      krwCash: '120000',
+      totalAssetKrw: 1520000,
+      holdings: [
+        { ticker: 'BTC', quantity: '0.01234567', avgBuyPrice: '100000000', currentPrice: 110000000, evalAmountKrw: 1358024 },
+        { ticker: 'ETH', quantity: 0.5, avgBuyPrice: 5000000, currentPrice: null, evalAmountKrw: 0 },
+      ],
+    })
+
+    const result = await getCryptoPortfolio('a1')
+
+    expect(fetchEitherMock).toHaveBeenCalledWith('/api/accounts/a1/crypto-portfolio', { method: 'GET' }, undefined)
+    expect(result.krwCash).toBe(120000)
+    expect(result.holdings[0]).toEqual({ ticker: 'BTC', quantity: 0.01234567, avgBuyPrice: 100000000, currentPrice: 110000000, evalAmountKrw: 1358024 })
+    expect(result.holdings[1].currentPrice).toBeNull()
+  })
 })

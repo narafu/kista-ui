@@ -19,6 +19,10 @@ vi.mock('./TradesTab', () => ({
   TradesTab: ({ accountId }: { accountId: string }) => <div data-testid="trades-tab-stub">{accountId}</div>,
 }))
 
+vi.mock('./CryptoHoldingsCard', () => ({
+  CryptoHoldingsCard: () => <div data-testid="crypto-holdings-stub" />,
+}))
+
 vi.mock('@entities/strategy', () => ({
   useStrategiesQuery: (accountId: string) => useStrategiesQueryMock(accountId),
 }))
@@ -83,5 +87,15 @@ describe('AccountDetailTabs', () => {
     expect(strategyListMock).toHaveBeenCalledWith(
       expect.objectContaining({ accountId: 'account-1', strategies: [strategy] }),
     )
+  })
+
+  it('업비트 계좌는 사이클 이력 대신 보유 코인 카드를 렌더한다', () => {
+    useStrategiesQueryMock.mockReturnValue({ data: [] })
+    render(
+      <AccountDetailTabs account={{ ...account, broker: 'UPBIT', accountNoMasked: null }} usdDeposit={0} posEvalUsd={0} />,
+    )
+
+    expect(screen.queryByTestId('trades-tab-stub')).not.toBeInTheDocument()
+    expect(screen.getAllByTestId('crypto-holdings-stub').length).toBeGreaterThan(0)
   })
 })

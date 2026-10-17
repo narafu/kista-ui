@@ -4,7 +4,13 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { accountKeys, type Account } from '@entities/account'
 import { tradeKeys } from '@entities/trade'
+import { getAccountPortfolio, getCryptoPortfolio } from '@entities/trade/api'
 import { AccountDetailContent } from './AccountDetailContent'
+
+vi.mock('@entities/trade/api', () => ({
+  getAccountPortfolio: vi.fn(async () => ({})),
+  getCryptoPortfolio: vi.fn(async () => ({ krwCash: 1, totalAssetKrw: 2, holdings: [] })),
+}))
 
 const { tabsMock } = vi.hoisted(() => ({ tabsMock: vi.fn((_props: unknown) => null) }))
 
@@ -90,5 +96,15 @@ describe('AccountDetailContent', () => {
     await waitFor(() => {
       expect(tabsMock).toHaveBeenLastCalledWith(expect.objectContaining({ usdDeposit: 50, posEvalUsd: 250 }))
     })
+  })
+
+  it('업비트 계좌는 주식 포트폴리오를 부르지 않고 코인 포트폴리오를 부른다', async () => {
+    const crypto: Account = { ...serverAccount, broker: 'UPBIT', accountNoMasked: null }
+    const queryClient = createClient()
+    queryClient.setQueryData(accountKeys.detail(crypto.id), crypto)
+    render(<QueryClientProvider client={queryClient}>{content(crypto)}</QueryClientProvider>)
+
+    await waitFor(() => expect(getCryptoPortfolio).toHaveBeenCalledWith('account-1', undefined))
+    expect(getAccountPortfolio).not.toHaveBeenCalled()
   })
 })
