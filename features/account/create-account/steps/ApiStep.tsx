@@ -5,8 +5,9 @@ import { ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTestKisConnectionMutation } from '@entities/account'
 import type { BrokerCode } from '@entities/account'
+import { useRuntimeConfigQuery } from '@entities/runtime-config'
 import type { StepData } from '../CreateAccountStepper'
-import { ApiKeyField, ApiSecretField, ConnectionTest } from './ApiStepParts'
+import { ApiKeyField, ApiSecretField, ConnectionTest, UpbitKeyGuide } from './ApiStepParts'
 
 interface Props {
   data: StepData
@@ -78,6 +79,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
   })
   // KIS/TOSS 모두 훅을 호출해야 함 (조건부 훅 호출 금지)
   const testMutation = useTestKisConnectionMutation()
+  const { data: runtimeConfig } = useRuntimeConfigQuery()
 
   // MOCK은 이 스텝을 렌더하지 않는다(CreateAccountStepper가 건너뜀)
   const broker = data.broker as Exclude<BrokerCode, 'MOCK'>
@@ -128,6 +130,8 @@ export function ApiStep({ data, onNext, onBack }: Props) {
         />
       </div>
 
+      {broker === 'UPBIT' && <UpbitKeyGuide allowedIp={runtimeConfig?.brokers.UPBIT?.allowedIp} />}
+
       {config.needsTest && (
         <ConnectionTest
           keyLabel={config.keyLabel}
@@ -136,6 +140,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
           isPending={testMutation.isPending}
           isSuccess={testMutation.isSuccess}
           isError={testMutation.isError}
+          error={testMutation.error}
           onTest={() => testMutation.mutate({ appKey: apiKey, appSecret: apiSecret, broker })}
         />
       )}

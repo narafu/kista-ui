@@ -2,13 +2,13 @@
 
 import { useRouter } from 'next/navigation'
 
-import { useCreateAccountMutation } from '@entities/account'
+import { BROKER_CREDENTIAL, brokerErrorMessage, useCreateAccountMutation } from '@entities/account'
 import { useMeta } from '@entities/meta'
-import { apiErrorCode, apiMsg } from '@shared/lib/api-client'
+import { apiMsg } from '@shared/lib/api-client'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@shared/ui/Spinner'
-import { isMockBroker } from '@shared/lib/api-schema'
-import type { BrokerCode, AccountRequest } from '@entities/account'
+import { isCryptoBroker, isMockBroker } from '@shared/lib/api-schema'
+import type { BrokerCode, AccountRequest, CredentialBroker } from '@entities/account'
 import type { StepData } from '../CreateAccountStepper'
 
 interface Props {
@@ -23,6 +23,7 @@ export function ConfirmStep({ data, onBack }: Props) {
 
   const broker = (data.broker || 'KIS') as BrokerCode
   const isMock = isMockBroker(broker)
+  const hasAccountNo = !isMock && !isCryptoBroker(broker)
 
   function handleSubmit() {
     const req: AccountRequest = isMock
@@ -31,7 +32,7 @@ export function ConfirmStep({ data, onBack }: Props) {
         nickname: data.nickname,
         appKey: data.apiKey,
         secretKey: data.apiSecret,
-        accountNo: data.accountNo,
+        ...(hasAccountNo ? { accountNo: data.accountNo } : {}),
         broker,
       }
     mutate(req, {
@@ -42,11 +43,9 @@ export function ConfirmStep({ data, onBack }: Props) {
   }
 
   // 자격증명 오류만 증권사별 입력 항목을 짚어주고, 나머지(중복 계좌·호출 한도 등)는 서버 detail을 그대로 노출한다
-  const errorMessage = apiErrorCode(error) === 'BROKER_CREDENTIAL_INVALID'
-    ? broker === 'TOSS'
-      ? 'Toss 자격증명 인증에 실패했습니다. Client ID와 Client Secret을 확인하세요.'
-      : 'App Key, App Secret 또는 계좌번호를 다시 확인하세요.'
-    : apiMsg(error, '계좌 연결에 실패했습니다')
+  const errorMessage = isMock
+    ? apiMsg(error, '계좌 연결에 실패했습니다')
+    : brokerErrorMessage(error, BROKER_CREDENTIAL[broker as CredentialBroker].invalidMessage, '계좌 연결에 실패했습니다')
 
   return (
     <div className="flex flex-col gap-6">
@@ -68,10 +67,12 @@ export function ConfirmStep({ data, onBack }: Props) {
         </div>
         {!isMock && (
           <>
-            <div className="flex items-center justify-between px-4 py-3">
-              <span className="text-sm text-muted-foreground">계좌번호</span>
-              <span className="text-sm font-semibold font-mono">{data.accountNo}</span>
-            </div>
+            {hasAccountNo && (
+              <div className="flex items-center justify-between px-4 py-3">
+                <span className="text-sm text-muted-foreground">계좌번호</span>
+                <span className="text-sm font-semibold font-mono">{data.accountNo}</span>
+              </div>
+            )}
             <div className="flex items-center justify-between px-4 py-3">
               <span className="text-sm text-muted-foreground">API Key</span>
               <span className="text-sm font-semibold">

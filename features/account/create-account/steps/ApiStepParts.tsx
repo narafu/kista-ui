@@ -1,6 +1,9 @@
-import { Eye, EyeOff, CheckCircle2, XCircle } from 'lucide-react'
+import { Eye, EyeOff, CheckCircle2, XCircle, Copy } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@shared/ui/Spinner'
+import { IconButton } from '@shared/ui/IconButton'
+import { brokerErrorMessage } from '@entities/account'
 
 interface KeyFieldProps {
   label: string
@@ -85,10 +88,11 @@ interface ConnectionTestProps {
   isPending: boolean
   isSuccess: boolean
   isError: boolean
+  error: unknown
   onTest: () => void
 }
 
-export function ConnectionTest({ keyLabel, secretLabel, disabled, isPending, isSuccess, isError, onTest }: ConnectionTestProps) {
+export function ConnectionTest({ keyLabel, secretLabel, disabled, isPending, isSuccess, isError, error, onTest }: ConnectionTestProps) {
   return (
     <div className="flex flex-col gap-2">
       <Button
@@ -114,9 +118,42 @@ export function ConnectionTest({ keyLabel, secretLabel, disabled, isPending, isS
       {isError && (
         <div className="flex items-center gap-1.5 text-sm text-[var(--status-error)]">
           <XCircle className="size-4" />
-          증권사 API 인증에 실패했습니다. {keyLabel} 또는 {secretLabel}을 확인하세요.
+          {brokerErrorMessage(error, `증권사 API 인증에 실패했습니다. ${keyLabel} 또는 ${secretLabel}을 확인하세요.`, '연결 테스트에 실패했습니다. 잠시 후 다시 시도해주세요.')}
         </div>
       )}
+    </div>
+  )
+}
+
+export function UpbitKeyGuide({ allowedIp }: { allowedIp: string | undefined }) {
+  async function handleCopy() {
+    if (!allowedIp) return
+    try {
+      await navigator.clipboard.writeText(allowedIp)
+      toast.success('허용 IP를 복사했습니다')
+    } catch {
+      toast.error('복사에 실패했습니다. IP를 직접 선택해 복사해주세요.')
+    }
+  }
+
+  return (
+    <div className="space-y-2 rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm">
+      <p className="font-semibold">API 키 발급 시 설정</p>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-muted-foreground">허용 IP</span>
+        {allowedIp ? (
+          <span className="flex items-center gap-1">
+            <span className="font-mono font-semibold">{allowedIp}</span>
+            <IconButton aria-label="허용 IP 복사" onClick={handleCopy}>
+              <Copy className="size-4" />
+            </IconButton>
+          </span>
+        ) : (
+          <span className="text-muted-foreground">불러오지 못했습니다.</span>
+        )}
+      </div>
+      <p className="text-muted-foreground">권한은 자산 조회, 주문 조회, 주문하기만 켜세요.</p>
+      <p className="font-semibold text-[var(--warn)]">출금하기 권한은 켜지 마세요. 키가 유출돼도 출금은 막힙니다.</p>
     </div>
   )
 }

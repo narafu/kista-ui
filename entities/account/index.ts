@@ -18,3 +18,5 @@ export {
   useCreateAccountMutation,
   useTestKisConnectionMutation,
 } from './hooks/useAccountMarginQuery'
+export { BROKER_CREDENTIAL, brokerErrorMessage } from './model/brokerCredentials'
+export type { CredentialBroker } from './model/brokerCredentials'

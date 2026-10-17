@@ -3,7 +3,7 @@
 import { useEffect, useReducer } from 'react'
 import { Stepper } from '@shared/ui/stepper'
 import type { BrokerCode } from '@entities/account'
-import { isMockBroker } from '@shared/lib/api-schema'
+import { isCryptoBroker, isMockBroker } from '@shared/lib/api-schema'
 import { useRuntimeConfigQuery } from '@entities/runtime-config'
 import { BrokerStep } from './steps/BrokerStep'
 import { ApiStep } from './steps/ApiStep'
@@ -45,6 +45,7 @@ function reducer(state: State, action: Action): State {
 }
 
 const STEPS = ['증권사', 'API 키', '계좌 정보', '확인']
+const KEY_ONLY_STEPS = ['증권사', 'API 키', '계좌 별칭', '확인']
 const MOCK_STEPS = ['증권사', '계좌 별칭', '확인']
 
 type StepContext = { data: StepData; next: (payload: Partial<StepData>) => void; back: () => void }
@@ -76,11 +77,13 @@ export function CreateAccountStepper() {
   const back = () => dispatch({ type: 'BACK' })
 
   const flow = isMock ? MOCK_FLOW : DEFAULT_FLOW
+  // 계좌번호가 없는 거래소(업비트)는 흐름은 같고 3번째 스텝이 별칭만 받는다
+  const steps = isMock ? MOCK_STEPS : isCryptoBroker(data.broker) ? KEY_ONLY_STEPS : STEPS
 
   return (
     <div className="max-w-lg mx-auto">
       <div className="mb-8">
-        <Stepper steps={isMock ? MOCK_STEPS : STEPS} current={step} />
+        <Stepper steps={steps} current={step} />
       </div>
       {flow[step - 1]?.({ data, next, back })}
     </div>

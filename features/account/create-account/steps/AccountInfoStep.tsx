@@ -69,9 +69,9 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-lg font-bold mb-1">{isMock ? '계좌 별칭' : '계좌 정보'}</h2>
+        <h2 className="text-lg font-bold mb-1">{config ? '계좌 정보' : '계좌 별칭'}</h2>
         <p className="text-sm text-muted-foreground">
-          {isMock ? '모의계좌의 별칭을 입력하세요.' : '계좌 별칭과 계좌번호를 입력하세요.'}
+          {config ? '계좌 별칭과 계좌번호를 입력하세요.' : isMock ? '모의계좌의 별칭을 입력하세요.' : '계좌 별칭을 입력하세요.'}
         </p>
       </div>
       {isMock && (
@@ -82,7 +82,7 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
       <div className="flex flex-col gap-4">
         <NicknameField
           value={nickname}
-          placeholder={isMock ? '예: 모의 계좌' : '예: 메인 계좌'}
+          placeholder={isMock ? '예: 모의 계좌' : config ? '예: 메인 계좌' : '예: 코인 계좌'}
           showError={showNicknameError}
           onChange={setNickname}
           onBlur={() => setTouchedNickname(true)}

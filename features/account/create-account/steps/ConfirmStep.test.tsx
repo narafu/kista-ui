@@ -13,7 +13,8 @@ let mockState: { isPending: boolean; isError: boolean; error: unknown } = {
   error: null,
 }
 
-vi.mock('@entities/account', () => ({
+vi.mock('@entities/account', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@entities/account')>()),
   useCreateAccountMutation: () => ({ mutate: mutateMock, ...mockState }),
 }))
 
@@ -103,5 +104,24 @@ describe('ConfirmStep', () => {
     options.onSuccess({ id: 'account-1' })
 
     expect(pushMock).toHaveBeenCalledWith('/accounts/account-1')
+  })
+
+  it('업비트는 계좌번호 없이 키만 보낸다', async () => {
+    mockState = { isPending: false, isError: false, error: null }
+    const user = userEvent.setup()
+    render(<ConfirmStep data={{ broker: 'UPBIT', apiKey: 'access-key-1234', apiSecret: 'secret-key-1234', accountNo: '', nickname: '코인' }} onBack={vi.fn()} />)
+    expect(screen.queryByText('계좌번호')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '계좌 연결' }))
+    expect(mutateMock).toHaveBeenCalledWith(
+      { nickname: '코인', appKey: 'access-key-1234', secretKey: 'secret-key-1234', broker: 'UPBIT' },
+      expect.anything(),
+    )
+    expect(Object.keys(mutateMock.mock.calls.at(-1)?.[0])).not.toContain('accountNo')
+  })
+
+  it('업비트 자격증명 오류는 Access Key·Secret Key를 짚는다', () => {
+    mockState = { isPending: false, isError: true, error: new ApiError(422, { code: 'BROKER_CREDENTIAL_INVALID' }) }
+    render(<ConfirmStep data={{ broker: 'UPBIT', apiKey: 'k', apiSecret: 's', accountNo: '', nickname: '코인' }} onBack={vi.fn()} />)
+    expect(screen.getByText(/Access Key와 Secret Key를 다시 확인하세요/)).toBeInTheDocument()
   })
 })

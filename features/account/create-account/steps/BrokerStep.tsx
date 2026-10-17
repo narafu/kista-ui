@@ -1,6 +1,6 @@
 'use client'
 
-import { Building2, FlaskConical, TrendingUp } from 'lucide-react'
+import { Bitcoin, Building2, FlaskConical, TrendingUp } from 'lucide-react'
 import { useMeta } from '@entities/meta'
 import type { BrokerCode } from '@entities/account'
 import { useRuntimeConfigQuery } from '@entities/runtime-config'
@@ -14,6 +14,7 @@ interface Props {
 const BROKER_UI: Record<string, { description: string; Icon: React.ComponentType<{ className?: string }> }> = {
   TOSS: { description: 'Client ID / Client Secret 방식', Icon: TrendingUp },
   KIS: { description: 'App Key / App Secret 방식', Icon: Building2 },
+  UPBIT: { description: 'Access Key / Secret Key 방식', Icon: Bitcoin },
   MOCK: { description: '실제 자금 없이 매매를 체험합니다', Icon: FlaskConical },
 }
 

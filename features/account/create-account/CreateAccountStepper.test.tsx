@@ -9,6 +9,7 @@ vi.mock('@entities/meta', () => ({
       brokers: [
         { code: 'KIS', label: '한국투자증권' },
         { code: 'MOCK', label: '모의계좌' },
+        { code: 'UPBIT', label: '업비트' },
       ],
     },
     labelOf: (_category: string, code: string) => (code === 'MOCK' ? '모의계좌' : code),
@@ -17,11 +18,12 @@ vi.mock('@entities/meta', () => ({
 
 vi.mock('@entities/runtime-config', () => ({
   useRuntimeConfigQuery: () => ({
-    data: { brokers: { KIS: { enabled: true }, TOSS: { enabled: true }, MOCK: { enabled: true } } },
+    data: { brokers: { KIS: { enabled: true }, TOSS: { enabled: true }, MOCK: { enabled: true }, UPBIT: { enabled: true, allowedIp: '168.107.63.152' } } },
   }),
 }))
 
-vi.mock('@entities/account', () => ({
+vi.mock('@entities/account', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@entities/account')>()),
   useCreateAccountMutation: () => ({ mutate: vi.fn(), isPending: false, isError: false, error: null }),
   useTestKisConnectionMutation: () => ({ mutate: vi.fn(), reset: vi.fn(), isPending: false, isSuccess: false, isError: false }),
 }))
@@ -52,5 +54,13 @@ describe('CreateAccountStepper MOCK broker', () => {
     expect(screen.getByRole('button', { name: '계좌 연결' })).toBeInTheDocument()
     expect(screen.queryByText('계좌번호')).not.toBeInTheDocument()
     expect(screen.queryByText('API Key')).not.toBeInTheDocument()
+  })
+
+  it('업비트는 증권사 → API 키 → 계좌 별칭 → 확인 4단계다', async () => {
+    const user = userEvent.setup()
+    render(<CreateAccountStepper />)
+    await user.click(screen.getByRole('button', { name: /업비트/ }))
+    expect(screen.getByText('계좌 별칭')).toBeInTheDocument() // 스텝퍼 3번째 라벨
+    expect(screen.getByRole('heading', { name: '업비트 API 키 입력' })).toBeInTheDocument()
   })
 })

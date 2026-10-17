@@ -59,4 +59,15 @@ describe('AccountInfoStep', () => {
 
     expect(onNext).toHaveBeenCalledWith({ nickname: '모의 계좌', accountNo: '' })
   })
+
+  it('업비트는 계좌번호 없이 별칭만 받는다', async () => {
+    const onNext = vi.fn()
+    const user = userEvent.setup()
+    render(<AccountInfoStep data={{ ...baseData, broker: 'UPBIT' }} onNext={onNext} onBack={vi.fn()} />)
+    expect(screen.queryByLabelText(/계좌번호/)).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '계좌 별칭' })).toBeInTheDocument()
+    await user.type(screen.getByLabelText(/계좌 별칭/), '코인 계좌')
+    await user.click(screen.getByRole('button', { name: '다음' }))
+    expect(onNext).toHaveBeenCalledWith({ nickname: '코인 계좌', accountNo: '' })
+  })
 })
