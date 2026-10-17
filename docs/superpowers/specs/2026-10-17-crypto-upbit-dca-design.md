@@ -160,3 +160,14 @@ kista-api `feat/crypto-upbit-dca`는 두 단계로 나눠 진행한다. A(계약
 - `apiKeyExpiresAt`은 B에서 추가된다.
 - **UPBIT 계좌로 기존 `/api/accounts/{id}/portfolio`·`margin`·`daily-trades`·`prices`·통계를 호출하면 400(지원하지 않는 증권사)이다.** UI는 코인 계좌에서 이 쿼리들을 `enabled`로 막아야 한다. 막지 않으면 계좌 상세·대시보드에서 오류 화면이 뜬다. 코인 계좌 상세는 B의 `GET /api/accounts/{id}/crypto-portfolio`를 쓴다(응답 형태는 B 확정 후 반영).
 - 배포: V8·V9 마이그레이션 이후 이전 trading-core 이미지로는 롤백할 수 없다. root와 trading-core를 같은 커밋으로 배포한다. kista-ui는 api 배포 뒤에 배포한다.
+
+### B 확정 (2026-10-18, `8bbe3dc3`, A 이후 누적)
+
+- `POST /api/accounts`(UPBIT): `appKey`=Access Key, `secretKey`만 보낸다. `accountNo`는 보내지 않는다. 등록 시 키 검증과 만료일 저장을 한다. 중복 판정은 access key 기준이다. 중복이면 409 `DUPLICATE_ACCOUNT`이고 detail은 "이미 등록된 계좌입니다."(브로커 중립)다.
+- `POST /api/accounts/connection-tests`: UPBIT를 지원한다. 키가 필수이고 `accountId`만 보내면 422다. UPBIT가 비활성이면 400이다.
+- `PUT /api/accounts/{id}/credentials` `{ appKey, secretKey }`: 모든 브로커의 키를 교체한다. 연결 테스트를 통과해야 저장되고 만료일도 갱신된다. MOCK은 400, 다른 사용자 키와 중복이면 409다. 계좌 수정 화면의 키 재등록은 이 경로를 쓴다.
+- `GET /api/accounts/{accountId}/crypto-portfolio`: `krwCash`, `totalAssetKrw`, `holdings[{ ticker, quantity, avgBuyPrice, currentPrice, evalAmountKrw }]`. 금액은 KRW이고 평가금액은 원 단위(HALF_UP)다. 주식 계좌로 부르면 400이다. 현재가를 못 받은 코인은 `currentPrice: null`, `evalAmountKrw: 0`이다. UI는 이때 "현재가 확인 불가"로 표시하고 0원으로 보여주지 않는다.
+- `AccountResponse`: `apiKeyExpiresAt`(nullable) 추가. UPBIT는 `accountNo`·`accountNoMasked`가 null이다.
+- 연결 테스트·키 오류 코드(UI 문구 매핑 대상): 422 `BROKER_IP_NOT_ALLOWED`, 422 `BROKER_PERMISSION_DENIED`, 422 `BROKER_CREDENTIAL_INVALID`(키 오류·만료 키), 429 `BROKER_RATE_LIMITED`.
+- 관리자 계좌 목록에서 UPBIT 계좌번호는 "****"로 보인다(api 후속 정리 대상).
+- 아직 없는 것(api 묶음 C, 별도 세션): 코인 DCA 실행 스케줄러, 키 만료 D-30/D-7/당일 알림, 코인 전략의 `nextExecution`(지금은 미국 거래일 기준이라 부정확). C 전까지 UI는 코인 전략의 다음 실행일을 표시하지 않는다.
