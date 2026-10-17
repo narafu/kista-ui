@@ -1,7 +1,7 @@
 export const ACCOUNT_CACHE_USER_ID = '00000000-0000-0000-0000-000000000001'
 export const ACCOUNT_CACHE_PREFIX = 'e2e-account-cache-'
 
-export type AccountOwnershipRecord = {
+type AccountOwnershipRecord = {
   id: string
   nickname: string
 }

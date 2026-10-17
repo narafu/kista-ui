@@ -2,15 +2,15 @@ import type { BrokerCode, RecurringMode, StrategyType } from '@shared/lib/api-sc
 
 export type AdminBrokerCode = BrokerCode
 export type AdminStrategyType = StrategyType
-export type AdminRecurringMode = RecurringMode
+type AdminRecurringMode = RecurringMode
 
-export interface AdminFieldSettings<T> {
+interface AdminFieldSettings<T> {
   customizable: boolean
   allowedValues: T[]
   defaultValue: T
 }
 
-export interface AdminBenchmarkFieldSettings<T> {
+interface AdminBenchmarkFieldSettings<T> {
   allowedValues: T[]
   defaultValue: T
 }

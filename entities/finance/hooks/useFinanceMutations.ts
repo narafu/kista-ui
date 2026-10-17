@@ -118,7 +118,7 @@ export function useUpdateAssetSnapshotMutation(snapshotId: string) {
   })
 }
 
-export interface DeleteManyAssetSnapshotsResult {
+interface DeleteManyAssetSnapshotsResult {
   succeededIds: string[]
   failedCount: number
 }

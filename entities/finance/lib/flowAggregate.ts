@@ -31,7 +31,7 @@ export function unclassifiedTransactions(transactions: FinanceTransaction[], ind
   return transactions.filter((t) => !index.has(t.categoryId))
 }
 
-export interface FlowSummary {
+interface FlowSummary {
   total: number
   count: number
   // 월간 모드에서만 값이 들어온다. 연간(YTD) 모드는 null — "전월 대비" 카드를 숨기라는 신호로 쓴다
@@ -54,7 +54,7 @@ export function calcFlowSummary(transactions: FinanceTransaction[], period: Peri
 }
 
 // entities/finance/lib/aggregate.ts의 TrendPoint(AssetSnapshot 전용)와 이름이 겹쳐 Flow 접두를 붙인다.
-export interface FlowTrendPoint {
+interface FlowTrendPoint {
   period: string // 월간 모드: 'YYYY-MM', 연간 모드: 'YYYY' — 차트 x축 라벨
   amount: number
   byCategory: Record<string, number> // rootId -> 합계, 카테고리별 라인용
@@ -253,7 +253,7 @@ export function buildBudgetProgressTree(progress: BudgetProgress[], categoryTree
     .filter((built): built is BudgetTreeNode => built !== null)
 }
 
-export interface UnbudgetedCategory {
+interface UnbudgetedCategory {
   categoryId: string
   categoryName: string
   amount: number

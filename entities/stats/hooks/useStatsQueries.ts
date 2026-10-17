@@ -26,7 +26,7 @@ export function useStatsSummaryQuery() {
   return useQuery(statsSummaryQueryOptions())
 }
 
-export interface EquityCurveParams {
+interface EquityCurveParams {
   from?: string
   to?: string
   type?: string
@@ -49,7 +49,7 @@ export function useHousingBenchmarkQuery(params: HousingBenchmarkParams, enabled
   })
 }
 
-export interface RegionSeriesParams {
+interface RegionSeriesParams {
   from?: string
   to?: string
   regionCode?: string
@@ -75,7 +75,7 @@ export function useHousingPriceIndexSeriesQuery(params: RegionSeriesParams, enab
   })
 }
 
-export interface EtfSeriesParams {
+interface EtfSeriesParams {
   from?: string
   to?: string
   symbol: string

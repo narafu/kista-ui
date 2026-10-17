@@ -1,5 +1,5 @@
 // value(0~100) → 구간 라벨·색상. 게이지 색상/현재값 라벨의 SSOT.
-export interface FearGreedZone {
+interface FearGreedZone {
   min: number
   max: number
   label: string

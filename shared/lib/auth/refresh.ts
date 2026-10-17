@@ -5,7 +5,7 @@ import { KISTA_TOKEN_COOKIE, RT_COOKIE } from '@shared/lib/auth/cookies'
 // RT 쿠키로 kista-api /api/auth/refresh 를 호출해 새 AT + kista-api Set-Cookie(RT relay)를 얻는다.
 // kista-api는 안정 RT + 슬라이딩 갱신 방식: RT 회전 없음 → 동일 RT를 갱신된 maxAge로 돌려줌(드리프트 원천 불가).
 // Node.js 런타임에서 실행되므로 getSetCookie() 정상 동작(proxy.ts는 Next.js 16 Proxy 파일로 항상 Node runtime).
-export interface RefreshResult {
+interface RefreshResult {
   accessToken: string
   setCookieHeaders: string[]
 }

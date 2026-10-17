@@ -1,7 +1,5 @@
 import type { components } from '@shared/lib/api-types'
-import type { BenchmarkAssetType } from '@shared/lib/api-schema'
 
-export type { BenchmarkAssetType }
 export type EtfBenchmarkSymbol = string
 
 export interface StrategyTypeStats {
@@ -102,8 +100,6 @@ export type HousingBenchmarkSeries = HousingBenchmarkSchemas['HousingBenchmarkSe
 export type HousingBenchmarkRegion = HousingBenchmarkSchemas['HousingBenchmarkRegionItem']
 export type HousingBenchmarkRegionsList = HousingBenchmarkSchemas['HousingBenchmarkRegionsResponse']
 
-export type HousingPriceIndexSeriesPoint = HousingBenchmarkSchemas['HousingPriceIndexSeriesPoint']
 export type HousingPriceIndexSeries = HousingBenchmarkSchemas['HousingPriceIndexSeriesResponse']
 
-export type EtfPriceSeriesPoint = HousingBenchmarkSchemas['EtfPriceSeriesPoint']
 export type EtfPriceSeries = HousingBenchmarkSchemas['EtfPriceSeriesResponse']

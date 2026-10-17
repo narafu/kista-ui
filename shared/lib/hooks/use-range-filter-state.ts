@@ -5,7 +5,7 @@
 import { useState } from 'react'
 import type { RangePreset } from '@shared/lib/date-range'
 
-export type RangeFilterState = { rangeType: RangePreset; customFrom: string; customTo: string; pageSize: string }
+type RangeFilterState = { rangeType: RangePreset; customFrom: string; customTo: string; pageSize: string }
 
 const INITIAL: RangeFilterState = { rangeType: '7d', customFrom: '', customTo: '', pageSize: '10' }
 

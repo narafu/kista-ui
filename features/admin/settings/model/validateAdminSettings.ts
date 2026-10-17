@@ -1,7 +1,7 @@
 import { VR_RECURRING_MODE_LABEL } from '@entities/strategy'
 import { DEFAULT_RUNTIME_BENCHMARKS, type RuntimeConfig, type RuntimeFieldSettings } from '@entities/runtime-config'
 
-export type AdminSettingsErrors = Record<string, string>
+type AdminSettingsErrors = Record<string, string>
 
 function validateField<T>(key: string, field: RuntimeFieldSettings<T>, errors: AdminSettingsErrors) {
   if (field.allowedValues.length === 0) {

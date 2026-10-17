@@ -30,7 +30,7 @@ export interface PrivacyChartRow {
   [orderKey: `buy${number}` | `sell${number}`]: number | undefined
 }
 
-export interface PrivacyChartSeries {
+interface PrivacyChartSeries {
   rows: PrivacyChartRow[]
   maxBuyOrders: number
   maxSellOrders: number

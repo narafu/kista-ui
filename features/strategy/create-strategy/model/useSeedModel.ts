@@ -14,7 +14,7 @@ interface UseSeedModelOptions {
   quantity?: number | null
 }
 
-export interface UseSeedModelReturn {
+interface UseSeedModelReturn {
   pct: number
   setPct: (p: number) => void
   seedUsdInput: number | null

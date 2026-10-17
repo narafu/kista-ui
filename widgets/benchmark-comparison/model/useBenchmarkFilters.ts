@@ -16,7 +16,7 @@ type Scope = HousingBenchmarkParams['scope']
 
 // 투자 범위 토글과 전략 드롭다운을 하나로 합친 선택값. ETF·아파트 탭 공용.
 // 'ALL'=전체 포트폴리오, 'NONE'=비교 없이 벤치마크 원본 데이터만, 그 외=전략 id
-export type BenchmarkStrategySelection = 'ALL' | 'NONE' | string
+type BenchmarkStrategySelection = 'ALL' | 'NONE' | string
 
 export type BenchmarkSelection =
   | { type: 'HOUSING'; regionCode: string }

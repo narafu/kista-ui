@@ -34,7 +34,7 @@ export interface CategoryGroupNode {
   children: CategoryGroupNode[]
 }
 
-export interface BulkRegisterItems {
+interface BulkRegisterItems {
   asset: CategoryGroupNode[]
   income: CategoryGroupNode[]
   expense: CategoryGroupNode[]

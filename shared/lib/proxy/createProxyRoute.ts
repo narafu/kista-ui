@@ -7,7 +7,7 @@ import { noContent, relayUpstreamError, unauthorizedJson } from '@shared/lib/pro
 type Params = { params?: Promise<{ path?: string[] }> }
 type Handler = (req: NextRequest, ctx?: Params) => Promise<NextResponse>
 
-export type CreateProxyRouteOptions = {
+type CreateProxyRouteOptions = {
   basePath: string
   // true(기본)이면 토큰 없을 때 401. false면 비인증 상태로 kista-api 직접 전달 (GET /api/market/** 등 공개 엔드포인트용)
   requireAuth?: boolean

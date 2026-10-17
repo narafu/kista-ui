@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { IconButton } from '@shared/ui/IconButton'
 
-export type ValueSet<T extends string | number> = {
+type ValueSet<T extends string | number> = {
   allowedValues: T[]
   defaultValue: T
 }

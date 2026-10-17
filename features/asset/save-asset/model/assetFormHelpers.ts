@@ -38,7 +38,7 @@ export function accountOptionLabel(account: FinanceAccount): string {
   return [account.name, account.institution, account.owner].filter(Boolean).join(' · ')
 }
 
-export interface AssetFormInitialValues {
+interface AssetFormInitialValues {
   entryDate: string
   accountId: string
   assetClass: AssetClass
@@ -75,7 +75,7 @@ export function isEntryLocked(
   return isMonthClosed(closings, initial.entryDate.slice(0, 7), scopeGroupId)
 }
 
-export interface CategoryChangeEffect {
+interface CategoryChangeEffect {
   clearStrategy: boolean
   fixed?: { assetClass: AssetClass; market: Market }
 }

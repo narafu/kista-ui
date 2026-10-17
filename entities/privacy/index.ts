@@ -1,11 +1,7 @@
 export type {
   AdminPrivacyBase,
   AdminPrivacyOrder,
-  AdminPrivacyBaseCreateRequest,
-  AdminPrivacyBaseUpdateRequest,
   AdminPrivacyOrderRequest,
-  AdminPrivacyOrderUpdateRequest,
-  AdminPrivacyOrderCreateRequest,
 } from './model/types'
 export { orderRequiresQuantity } from './model/types'
 export { PRIVACY_ORDER_DIRECTIONS, PRIVACY_ORDER_TYPES } from './model/options'

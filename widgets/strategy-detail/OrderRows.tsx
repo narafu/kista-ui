@@ -8,7 +8,7 @@ import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 
-export interface OrderRowData {
+interface OrderRowData {
   id?: string
   ticker: string
   direction: string

@@ -239,7 +239,7 @@ export async function createFinanceGroupInvitation(
   )
 }
 
-export interface TransactionListOptions {
+interface TransactionListOptions {
   token?: string
   from?: string
   to?: string
@@ -301,7 +301,7 @@ export async function unshareFinanceTransaction(id: string, token?: string): Pro
   return withDefaultAmount(await shareToggle<FinanceTransaction>('/api/finance/transactions', 'unshare', id, token))
 }
 
-export interface BudgetListOptions {
+interface BudgetListOptions {
   token?: string
   categoryId?: string
   date?: string

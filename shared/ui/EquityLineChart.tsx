@@ -6,7 +6,7 @@ import { fmtMonthDay, fmtDate } from '@shared/lib/format'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 import { TOOLTIP_CONTENT_STYLE } from '@shared/lib/chart/tooltip'
 
-export interface EquityLineChartRow {
+interface EquityLineChartRow {
   date: string
   asset: number
   principal: number

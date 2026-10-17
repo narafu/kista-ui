@@ -70,7 +70,7 @@ export function listAvailableMonths(snapshots: AssetSnapshot[]): string[] {
   return Array.from(months).sort().reverse()
 }
 
-export interface MonthlySummary {
+interface MonthlySummary {
   netWorth: number
   totalAssets: number
   totalLiabilities: number
@@ -101,7 +101,7 @@ export function calcMonthlySummary(snapshots: AssetSnapshot[], month: string): M
   }
 }
 
-export interface CategoryAmount {
+interface CategoryAmount {
   category: string // L1 카테고리 ID
   amount: number
 }
@@ -114,7 +114,7 @@ export function calcCategoryBreakdown(snapshots: AssetSnapshot[], month: string)
   }))
 }
 
-export interface AssetClassAmount {
+interface AssetClassAmount {
   assetClass: string
   amount: number
 }
@@ -133,7 +133,7 @@ export function calcAssetClassBreakdown(snapshots: AssetSnapshot[], month: strin
 
 export type TrendMode = 'netWorth' | 'category' | 'assetClass'
 
-export interface TrendPoint {
+interface TrendPoint {
   month: string
   amount: number
   totalAssets?: number // netWorth 모드에서만 채운다 — 순자산 차트에 총자산을 비교선으로 겹쳐 그리기 위함
@@ -242,7 +242,7 @@ export function calcMissingAccounts(snapshots: AssetSnapshot[], month: string, p
   return Array.from(previousAccounts).filter((account) => !currentAccounts.has(account))
 }
 
-export interface DateGroup {
+interface DateGroup {
   date: string
   count: number
 }
