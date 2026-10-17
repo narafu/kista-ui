@@ -76,7 +76,7 @@
 - **BrokerStep**: `BROKER_UI`에 `UPBIT`(설명 "Access Key / Secret Key 방식", 아이콘 `Bitcoin`)를 추가한다. 목록·순서는 meta + runtime-config `enabled`.
 - **흐름**: UPBIT = Broker → Api → AccountInfo → Confirm. AccountInfoStep은 MOCK처럼 별칭만 받는다. 기존 `isMock` 분기를 "계좌번호가 필요 없는 broker" 판정으로 일반화한다(`ACCOUNT_CONFIG[broker]`가 없으면 별칭만).
 - **ApiStep**: `UPBIT` config(라벨 Access Key/Secret Key, 업비트 Open API 발급 링크)를 추가한다. KIS처럼 연결 테스트를 통과해야 다음으로 넘어간다. 테스트가 키와 허용 IP를 함께 검증한다.
-- **IP 안내 박스**: `brokers.UPBIT.allowedIp`를 표시하고 복사 버튼을 둔다. 필요한 권한(자산 조회, 주문 조회, 주문하기)도 함께 적는다.
+- **IP 안내 박스**: `brokers.UPBIT.allowedIp`를 표시하고 복사 버튼을 둔다. 필요한 권한(자산 조회, 주문 조회, 주문하기)도 함께 적고, 출금 권한은 체크하지 말라고 강조한다(키가 유출돼도 출금은 막힌다). 현재 값은 `168.107.63.152`(OCI Reserved IP, IPv4 하나).
 - `data.broker === 'TOSS' ? 'TOSS' : 'KIS'` 같은 이분법 하드코딩을 `Exclude<BrokerCode, 'MOCK'>` 기반 config 조회로 정리한다. ConfirmStep, EditAccountForm의 `broker === 'TOSS'` 분기도 점검한다. UPBIT는 계좌번호를 표시하지 않는다.
 
 ## ③ DCA 폼 (`features/strategy/create-strategy`)
@@ -122,6 +122,15 @@
 - 연결 테스트 에러 코드 매핑: `no_authorization_ip` → IP 미등록, `invalid_access_key`·`jwt_verification` → 키 오류, `out_of_scope` → 권한 부족, 그 외 → 일반 실패.
 - DCA 실행 실패는 기존 실행 이력·알림 경로를 쓴다. UI는 새 사유 코드 라벨만 추가한다.
 - 키 만료나 IP 변경으로 인한 주문 실패는 기존 계좌 오류 표시 패턴을 쓴다.
+
+### 업비트 키 만료
+
+업비트 Open API 키는 유효기간이 있다(1년으로 알려져 있으나 api 작업 시 확인한다). 만료되면 주문이 실패하므로 미리 알린다.
+
+- api: 계좌 등록·연결 테스트 시 업비트 API 키 조회(`GET /v1/api_keys`의 `expire_at`)로 만료일을 저장한다. `AccountResponse`에 `apiKeyExpiresAt`(nullable)을 추가한다. 만료 30일·7일 전, 만료 당일에 알림을 보낸다.
+- 만료된 키로 주문이 실패하면 skip 사유를 키 만료로 기록하고 알림을 보낸다.
+- UI: 계좌 카드·계좌 상세에 만료 30일 이내면 "API 키 만료 임박", 만료됐으면 "API 키 재등록 필요"를 표시한다. 재등록은 기존 EditAccountForm의 키 수정 경로를 쓴다(UPBIT도 연결 테스트 게이트 적용).
+- 서버 IP가 바뀌면 모든 업비트 사용자가 키를 다시 등록해야 한다. IP는 Reserved IP라 고정이며, UI는 runtime-config `allowedIp`만 읽으므로 화면 코드 변경은 없다.
 
 ### 테스트 (UI)
 
