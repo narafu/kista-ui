@@ -1,0 +1,19 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignoreExportsUsedInFile": true,
+  "ignore": [
+    "shared/lib/api-types.ts"
+  ],
+  "ignoreFiles": [
+    "scripts/visual-diff/sheet.mjs"
+  ],
+  "ignoreDependencies": [
+    "sharp"
+  ],
+  "ignoreIssues": {
+    "components/ui/**": [
+      "exports",
+      "types"
+    ]
+  }
+}

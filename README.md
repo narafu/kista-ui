@@ -24,6 +24,7 @@ npm run dev                  # http://localhost:3000
 |---|---|
 | `npm run typecheck` · `npm run lint` | 기본 검증 (lint 0 errors 유지) |
 | `npm run test:run` | Vitest 단위 테스트 |
+| `npm run knip` | 미사용 파일·export·의존성 점검 (0건 유지, CI 포함) |
 | `npm run gen:types` | `openapi.json` → `shared/lib/api-types.ts` 재생성 |
 
 전체 스크립트는 `package.json`, 작업 규칙은 `CLAUDE.md` · `docs/agents/` 참고.
