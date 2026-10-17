@@ -1,6 +1,6 @@
 // API 스펙에서 파생된 enum 타입 — 직접 정의 금지, openapi.json이 SSOT
 // 갱신: npm run gen:types (openapi.json 교체 후 실행)
-import type { components, operations } from './api-types'
+import type { components } from './api-types'
 
 // kista-api ProblemDetail 확장 프로퍼티 code — 상수는 추가만 되고 이름 변경·삭제되지 않는다
 export type ErrorCode = components['schemas']['ErrorCode']
@@ -35,12 +35,6 @@ const _orderEnumPin: [
 void _orderEnumPin
 
 export type SkipReason = NonNullable<components['schemas']['NextOrdersResponse']['skipReason']>
-
-// HousingBenchmarkDefinition.assetType/symbol 응답 필드는 String으로 직렬화되어 스펙에 enum이 없다 —
-// 같은 값의 enum 제약은 쿼리 파라미터(benchmarkType/symbol)에만 있어 그쪽에서 파생한다.
-type HousingBenchmarkQuery = NonNullable<operations['getHousingBenchmarkComparison']['parameters']['query']>
-/** @public 응답 필드에 enum이 없어 쿼리 파라미터에서 파생한 enum 별칭 */
-export type BenchmarkAssetType = NonNullable<HousingBenchmarkQuery['benchmarkType']>
 
 // recurringMode는 TradingCycleRequest에는 없다(VR은 recurringAmount의 부호로 방향 전달) —
 // 같은 값의 enum 제약은 admin-settings 필드 설정 스키마(FieldRequestRecurringMode)에 있어 그쪽에서 파생한다.
