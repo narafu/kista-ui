@@ -57,6 +57,10 @@ B 확정 내역에 따르면 UPBIT 계좌로 `portfolio`·`margin`·`daily-trade
 | 벤치마크 전략 목록 | `widgets/benchmark-comparison/model/useBenchmarkStrategyOptions.ts:21` | **숨김 (Task 4)** | MOCK 필터 옆에 코인 계좌 필터를 더한다 |
 | 백테스트 티커 | `features/backtest/run-backtest/model/useBacktestForm.ts:36` | **변경 불필요** | `BacktestType = 'INFINITE' \| 'PRIVACY' \| 'VR'`이고 이 타입들의 `availableTickers`에 코인이 없다 |
 
+DCA skip 사유 3종(`BELOW_MIN_ORDER_AMOUNT`, `EXCHANGE_API_ERROR`, `API_KEY_EXPIRED`) 라벨: 코드 변경 없음. 라벨은 meta `dcaSkipReasons`가 SSOT이고(`labelOf('dcaSkipReasons', ...)` — `DcaExecutionHistory.tsx:59`, `DcaStrategyCard.tsx:26`), 로컬 api의 meta가 이미 세 코드의 한글 라벨을 내려준다.
+
+주식 DCA의 `executionHour`: api가 null로 준다(`V9__dca_amount_execution_hour.sql` "주식은 NULL", `DcaResponse.java:22`). 그래서 `formatDcaSchedule`이 값이 있을 때만 시각을 붙여도 주식 카드에 "09시"가 붙지 않는다.
+
 대시보드 USD 합산 지점: 없다. `widgets/dashboard/DashboardContent.tsx`는 계좌 목록으로 빈 상태만 분기하고, `DashboardOverview.tsx`는 시장 지표만 그린다. 금액 합산은 `WeeklyMarketCalendar`의 일별 체결 요약뿐이고 서버가 주식만 넘긴다. 그래서 spec ④ "대시보드"는 이번에 할 일이 없다.
 
 ## 파일 구조
@@ -2074,26 +2078,34 @@ npm run typecheck && npm run lint 2>&1 | tail -5 && npm run knip 2>&1 | tail -10
 
 Expected: typecheck 오류 0, lint error·warning 0, knip 0건, 테스트 전부 PASS. knip이 새 export(`formatExecutionHour` 등)를 미사용으로 잡으면 쓰는 곳이 있는지 보고, 없으면 지운다.
 
-- [ ] **Step 2: 화면 확인 (dev 서버 + Playwright)**
+- [ ] **Step 2: 화면 확인 (dev 서버 + visual-diff 프록시)**
 
-전제: 로컬 kista-api(8080·8081)가 떠 있어야 한다. 떠 있지 않으면 "업비트 api" 세션에 기동을 요청한다(직접 띄우지 않는다). 로컬 DB에는 UPBIT 계좌가 없고 runtime-config에서 `UPBIT.enabled`가 false다. 로컬 DB 쓰기는 금지라서 Playwright `page.route`로 응답을 합성한다.
+전제: 로컬 kista-api(8080·8081)가 떠 있어야 한다. 떠 있지 않으면 "업비트 api" 세션에 기동을 요청한다(직접 띄우지 않는다). 로컬 DB에는 UPBIT 계좌가 없고 runtime-config의 `UPBIT.enabled`가 false다. 로컬 DB 쓰기는 금지다.
 
-- `GET /api/runtime-config`: 실제 응답을 받아 `brokers.UPBIT.enabled`만 `true`로 바꿔 돌려준다(`route.fetch()` 후 수정).
-- `GET /api/accounts`: 실제 목록 끝에 UPBIT 계좌 `{ id: '00000000-0000-0000-0000-00000000c0in', nickname: '코인 계좌', accountNoMasked: null, accountNo: null, broker: 'UPBIT', currency: 'KRW', apiKeyExpiresAt: <오늘+10일 ISO> }`를 붙인다.
-- `GET /api/accounts/<그 id>/crypto-portfolio`: `{ krwCash: 120000, totalAssetKrw: 1478024, holdings: [BTC 정상, ETH currentPrice null] }`.
-- `GET /api/accounts/<그 id>/trading-cycles`(전략 목록 경로는 `entities/strategy/api`에서 확인): 코인 DCA 전략 1건(`ticker: 'BTC'`, `dca.amount: 50000`, `orderType: 'MARKET'`, `executionHour: 9`).
-- 위 계좌로 `portfolio`·`margin`·`prices` 요청이 나가면 테스트를 실패시킨다(`page.on('request')`로 감시).
+`page.route`만으로는 안 된다. 계좌 상세·전략 등록·계좌 수정 화면은 Server Component가 계좌를 서버에서 직접 조회한다(`page.tsx`의 `fetchQuery(accountDetailQueryOptions)`, `loadAccountForNewStrategy`). 브라우저 요청만 가로채면 합성 계좌가 서버에 없어 `notFound()`가 된다. 그래서 trading(8081) 응답은 `scripts/visual-diff`의 GET 전용 프록시(`proxy.mjs`, :8181→8081, 쓰기 403)에서 합성한다.
 
-dev-token은 `POST localhost:8080/api/auth/dev-token`으로 받는다(memory "인증 페이지 시각 검증 제약"). 쿠키 주입 방식은 기존 `scripts/visual-diff` 또는 `scripts/a11y-check`의 로그인 처리를 그대로 쓴다.
+1. `scripts/visual-diff/fixtures/trading.mjs`에 `crypto` 모드를 추가한다. 기존 모드(`deficit` 등)의 구조를 따른다. 합성 계좌 id는 16진수 UUID `00000000-0000-4000-8000-0000000c0170`이다.
+   - `GET /api/accounts`: upstream 목록 끝에 `{ id, nickname: '코인 계좌', accountNoMasked: null, accountNo: null, broker: 'UPBIT', currency: 'KRW', apiKeyExpiresAt: <오늘+10일 ISO> }`를 붙인다.
+   - `GET /api/accounts/<id>/crypto-portfolio`: `{ krwCash: 120000, totalAssetKrw: 1478024, holdings: [{ ticker: 'BTC', quantity: 0.01234567, avgBuyPrice: 100000000, currentPrice: 110000000, evalAmountKrw: 1358024 }, { ticker: 'ETH', quantity: 0.5, avgBuyPrice: 5000000, currentPrice: null, evalAmountKrw: 0 }] }`
+   - 이 계좌의 전략 목록(경로는 `entities/strategy/api`의 계좌별 목록 함수에서 확인): 코인 DCA 1건(`ticker: 'BTC'`, `dca.amount: 50000`, `orderType: 'MARKET'`, `frequency: 'DAILY'`, `executionHour: 9`). DCA 실행 이력 경로는 빈 페이지로 응답한다.
+   - 이 계좌의 previews는 `{}`, cycle-history는 빈 페이지다.
+   - 이 계좌의 `portfolio`·`margin`·`prices`·`daily-trades` 요청이 오면 400을 돌려주고 `proxy.log`에 `CRYPTO_GATE_VIOLATION <path>`를 남긴다. 확인이 끝난 뒤 이 줄이 0건이어야 한다.
+2. 프록시와 dev 서버를 띄운다. 띄우는 방식(포트, `API_BASE_URL`·trading base URL 환경변수, 모드 지정)은 `scripts/visual-diff/run.mjs`가 프록시와 `next dev`를 띄우는 코드를 그대로 따른다. dev 서버는 이 워크트리에서 1개만 띄운다.
+3. 브라우저 요청 중 runtime-config만 Playwright `page.route('**/api/runtime-config', ...)`로 바꾼다(클라이언트가 Route Handler로 부르므로 가로챌 수 있다). `route.fetch()`로 실제 응답을 받아 `brokers.UPBIT.enabled`만 `true`로 바꿔 돌려준다. meta는 서버 layout이 실제 api에서 받으며 이미 UPBIT·BTC·ETH를 포함한다.
+4. 인증은 dev-token(`POST localhost:8080/api/auth/dev-token`, 8080 직접 호출)으로 받는다. 쿠키 주입은 `scripts/visual-diff/shoot.mjs`의 로그인 처리를 그대로 쓴다.
 
-확인할 화면과 스크린샷(1440×900, 390×844 두 크기, 스크래치패드에 저장):
+확인할 화면과 스크린샷(1440×900, 390×844, 스크래치패드에 저장):
 1. `/accounts/new`: 증권사 목록에 업비트 카드, 업비트 선택 후 API 키 스텝의 허용 IP 박스와 출금 경고
-2. `/accounts/<코인 id>`: 원화 예수금·총자산 KPI, 만료 임박 배지, 보유 코인 표(ETH "현재가 확인 불가"), 사이클 이력 표가 없음, 네트워크에 주식 조회 없음
+2. `/accounts/<코인 id>`: 원화 예수금·총자산 KPI, 만료 임박 배지, 보유 코인 표(ETH "현재가 확인 불가"), 사이클 이력 표 없음
 3. `/accounts/<코인 id>/edit`: 계좌번호 입력 없음, API 키 재등록 카드
 4. `/accounts/<코인 id>/strategies/new`: 유형에 DCA만, 티커 BTC/ETH, 금액 "(원)", 실행 시각 Select, 주문 방식 카드 없음, 휴장일 캡션 없음, WEEKLY 요일 7개
-5. 기존 KIS 계좌 `/accounts/<KIS id>/strategies/new`에서 DCA: 티커에 BTC/ETH 없음, MOO/MOC 카드, 평일 5개, `/prices` 요청에 BTC가 없음
+5. `/accounts/<코인 id>/strategies/<코인 전략 id>`: 원화 금액, "매일 09시", 다음 판정일 없음
+6. 시드 KIS·MOCK 계좌의 `/strategies/new`에서 DCA: 티커에 BTC/ETH 없음, MOO/MOC 카드, 평일 5개, `/prices` 요청 쿼리에 BTC 없음
+7. 시드 주식 DCA 전략 카드: "$" 금액, 시각 표시 없음(주식 `executionHour`는 api가 null로 준다 — `DcaResponse.java:22`, V9 마이그레이션 주석)
 
-등록·수정 제출과 키 재등록 제출은 실행하지 않는다(쓰기). 실주문은 실계좌가 필요해 미검증으로 남긴다.
+모든 화면을 본 뒤 `grep CRYPTO_GATE_VIOLATION proxy.log`가 0건인지 확인한다. 등록·수정·키 재등록 제출은 하지 않는다(쓰기). 실주문은 실계좌가 필요해 미검증으로 남긴다.
+
+`fixtures/trading.mjs`의 `crypto` 모드는 다음 작업에서도 쓰도록 남기고 Task 8 커밋에 포함한다(`scripts/visual-diff/README.md`의 fixture 모드 목록에 한 줄 추가).
 
 - [ ] **Step 3: 접근성 점검**
 
@@ -2107,3 +2119,12 @@ Run: `npm run a11y-check -- --url http://localhost:<dev 포트>` (Step 2의 rout
 - 운영에서 `brokers.UPBIT.enabled`를 켜고 DCA 허용 티커에 BTC/ETH를 추가하는 것은 관리자 화면 작업이다.
 - api 묶음 C(코인 스케줄러, 키 만료 알림, 코인 `nextExecution`) 이후 코인 전략 다음 실행일 표시를 추가한다.
 - 로컬 kista-api 종료는 사용자가 끝을 확정한 뒤 "업비트 api" 세션에 요청한다.
+
+- [ ] **Step 5: 커밋 (fixture 모드, 검증 중 고친 것)**
+
+```bash
+git add scripts/visual-diff/fixtures/trading.mjs scripts/visual-diff/README.md
+git commit -m "chore: visual-diff 프록시에 코인 계좌 fixture 모드를 추가한다"
+```
+
+검증 중 코드 결함을 고쳤다면 리뷰를 거친 뒤 해당 파일을 따로 커밋한다.
