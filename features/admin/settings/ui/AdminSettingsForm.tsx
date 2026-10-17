@@ -30,7 +30,7 @@ import { normalizeNumber, normalizeSymbol } from '../model/normalizers'
 const STRATEGY_TYPES: RuntimeStrategyType[] = ['INFINITE', 'PRIVACY', 'VR', 'DCA']
 
 // kista-api StrategyTicker의 DCA 전용 종목. 메타 availableTickers는 지금 편집 중인 허용값 자체라 후보 목록으로 쓸 수 없다
-const DCA_TICKER_SUGGESTIONS = ['UPRO', 'QLD']
+const DCA_TICKER_SUGGESTIONS = ['UPRO', 'QLD', 'BTC', 'ETH']
 
 function clone(value: RuntimeConfig): RuntimeConfig {
   const next = structuredClone(value)

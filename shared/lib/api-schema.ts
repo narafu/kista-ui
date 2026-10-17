@@ -49,6 +49,7 @@ const BROKER_LABEL: Record<string, string> = {
   KIS: '한국투자증권',
   TOSS: '토스증권',
   MOCK: '모의계좌',
+  UPBIT: '업비트',
 }
 
 export function formatBrokerLabel(broker: string): string {
@@ -60,3 +61,38 @@ export function isMockBroker(broker: string | null | undefined): boolean {
   return broker === 'MOCK'
 }
 
+export type TradingMarket = 'US_STOCK' | 'CRYPTO_KRW'
+export type Currency = 'USD' | 'KRW'
+
+// meta.brokers[].market과 같은 값이다. Server Component(계좌 상세 prefetch)에서도 판정해야 해서 정적 맵으로 둔다.
+// Record<BrokerCode, …>라 gen:types로 broker가 추가되면 typecheck가 여기서 깨진다.
+const BROKER_MARKET: Record<BrokerCode, TradingMarket> = {
+  KIS: 'US_STOCK',
+  TOSS: 'US_STOCK',
+  MOCK: 'US_STOCK',
+  UPBIT: 'CRYPTO_KRW',
+}
+
+const MARKET_CURRENCY: Record<TradingMarket, Currency> = {
+  US_STOCK: 'USD',
+  CRYPTO_KRW: 'KRW',
+}
+
+function brokerMarket(broker: string | null | undefined): TradingMarket {
+  return (broker && BROKER_MARKET[broker as BrokerCode]) || 'US_STOCK'
+}
+
+// 코인 거래소 계좌 — 주식 시세·잔고 엔드포인트(portfolio/margin/prices)를 부르면 400이라 쿼리를 막는 기준
+export function isCryptoBroker(broker: string | null | undefined): boolean {
+  return brokerMarket(broker) === 'CRYPTO_KRW'
+}
+
+// 계좌에 귀속된 금액의 표시 통화. 통화 간 환산은 하지 않는다
+export function brokerCurrency(broker: string | null | undefined): Currency {
+  return MARKET_CURRENCY[brokerMarket(broker)]
+}
+
+// 티커 시장(meta.tickers[].market) 판정 — 1h 메타 캐시로 market이 빠진 응답은 주식으로 본다
+export function isCryptoMarket(market: string | null | undefined): boolean {
+  return market === 'CRYPTO_KRW'
+}

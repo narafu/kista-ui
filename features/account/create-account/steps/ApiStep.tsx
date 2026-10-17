@@ -37,6 +37,17 @@ const BROKER_CONFIG = {
     hint: '로그인 후 우측 하단 [설정 - Open API] 메뉴에서 API 키를 발급받을 수 있습니다.',
     minLen: 10,
   },
+  UPBIT: {
+    title: '업비트 API 키 입력',
+    desc: '업비트 Open API 키를 입력하세요.',
+    keyLabel: 'Access Key',
+    secretLabel: 'Secret Key',
+    linkHref: 'https://upbit.com/mypage/open_api_management',
+    linkLabel: '업비트 Open API 키 발급',
+    needsTest: true,
+    hint: '로그인 후 마이페이지 [Open API 관리]에서 API 키를 발급받을 수 있습니다.',
+    minLen: 10,
+  },
 } as const
 
 type State = { apiKey: string; apiSecret: string; showSecret: boolean; touchedKey: boolean; touchedSecret: boolean }
@@ -68,8 +79,8 @@ export function ApiStep({ data, onNext, onBack }: Props) {
   // KIS/TOSS 모두 훅을 호출해야 함 (조건부 훅 호출 금지)
   const testMutation = useTestKisConnectionMutation()
 
-  // MOCK은 이 스텝을 렌더하지 않음(CreateAccountStepper에서 건너뜀) — KIS/TOSS만 도달
-  const broker = (data.broker === 'TOSS' ? 'TOSS' : 'KIS') as Exclude<BrokerCode, 'MOCK'>
+  // MOCK은 이 스텝을 렌더하지 않는다(CreateAccountStepper가 건너뜀)
+  const broker = data.broker as Exclude<BrokerCode, 'MOCK'>
   const config = BROKER_CONFIG[broker]
   const keyValid = apiKey.length >= config.minLen
   const secretValid = apiSecret.length >= config.minLen

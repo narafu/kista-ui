@@ -97,7 +97,7 @@ export function EditAccountForm({ account }: Props) {
             <Label htmlFor="accountNo">계좌번호</Label>
             <Input
               id="accountNo"
-              defaultValue={account.accountNoMasked}
+              defaultValue={account.accountNoMasked ?? ''}
               className="h-12"
               disabled
             />

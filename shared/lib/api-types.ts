@@ -1818,6 +1818,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/accounts/{id}/credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * 계좌 API 키 수정
+         * @description 새 앱 키·시크릿으로 증권사 연결을 검증한 뒤 저장하고 키 만료일(업비트)을 갱신. 모의계좌는 불가.
+         */
+        put: operations["updateCredentials"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/trading-cycles/{id}/execute": {
         parameters: {
             query?: never;
@@ -2314,6 +2334,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/accounts/{accountId}/crypto-portfolio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 코인 계좌 포트폴리오 조회
+         * @description 업비트 실잔고 기준 원화 예수금과 코인별 보유·평단·현재가·평가액(KRW). 주식 계좌는 400.
+         */
+        get: operations["getCryptoPortfolio"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/accounts/{accountId}/candles": {
         parameters: {
             query?: never;
@@ -2387,9 +2427,15 @@ export interface components {
         DcaConfigRequest: {
             /** @enum {string} */
             direction: "BUY" | "SELL";
-            amountUsd: number;
+            /** @description 회차당 금액 (계좌 통화 — 주식 USD, 코인 KRW 원 단위 정수). amount·amountUsd 중 하나 필수 */
+            amount?: number;
+            /**
+             * @deprecated
+             * @description 회차당 금액 (구 필드, amount와 같은 의미 — 둘 다 보내면 같은 값이어야 함)
+             */
+            amountUsd?: number;
             /** @enum {string} */
-            orderType: "LOC" | "MOC" | "LIMIT" | "MOO";
+            orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
             /** @enum {string} */
             frequency: "DAILY" | "WEEKLY" | "MONTHLY";
             /** @enum {string} */
@@ -2397,6 +2443,11 @@ export interface components {
             /** Format: int32 */
             dayOfMonth?: number;
             conditions?: components["schemas"]["DcaConditionRequest"][];
+            /**
+             * Format: int32
+             * @description 코인 실행 시각 (KST 0~23, 코인 필수). 주식 주문유형이면 무시
+             */
+            executionHour?: number;
         };
         TradingCycleRequest: {
             /**
@@ -2410,7 +2461,7 @@ export interface components {
              * @example TQQQ
              * @enum {string}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
+            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
             /**
              * @description 초기 입금액 (PRIVACY: 배수 자동 산출 기준, VR: 예수금=초기 pool)
              * @example 2000
@@ -2528,15 +2579,18 @@ export interface components {
         DcaResponse: {
             /** @enum {string} */
             direction?: "BUY" | "SELL";
+            amount?: number;
             amountUsd?: number;
             /** @enum {string} */
-            orderType?: "LOC" | "MOC" | "LIMIT" | "MOO";
+            orderType?: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
             /** @enum {string} */
             frequency?: "DAILY" | "WEEKLY" | "MONTHLY";
             /** @enum {string} */
             dayOfWeek?: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
             /** Format: int32 */
             dayOfMonth?: number;
+            /** Format: int32 */
+            executionHour?: number;
             conditions?: components["schemas"]["DcaConditionResponse"][];
             nextExecution?: components["schemas"]["NextExecution"];
             lastExecution?: components["schemas"]["LastExecution"];
@@ -2806,23 +2860,23 @@ export interface components {
              */
             nickname: string;
             /**
-             * @description 계좌번호 — KIS: XXXXXXXX-XX (예: 74420614-01), Toss: XXX-XX-XXXXXX (예: 131-01-001931), MOCK: 생략 가능(서버 자동 생성)
+             * @description 계좌번호 — KIS: XXXXXXXX-XX (예: 74420614-01), Toss: XXX-XX-XXXXXX (예: 131-01-001931), MOCK: 생략 가능(서버 자동 생성), UPBIT: 받지 않음(오면 무시)
              * @example 74420614-01
              */
             accountNo?: string;
             /**
-             * @description API 앱 키 (KIS App Key / Toss Client ID)
+             * @description API 앱 키 (KIS App Key / Toss Client ID / 업비트 Access Key)
              * @example PSxxxxxxxxxx
              */
             appKey?: string;
-            /** @description API 앱 시크릿 (KIS App Secret / Toss Client Secret) */
+            /** @description API 앱 시크릿 (KIS App Secret / Toss Client Secret / 업비트 Secret Key) */
             secretKey?: string;
             /**
              * @description 증권사 — null이면 KIS 기본값 적용
              * @example KIS
              * @enum {string}
              */
-            broker?: "KIS" | "TOSS" | "MOCK";
+            broker?: "KIS" | "TOSS" | "MOCK" | "UPBIT";
         };
         AccountResponse: {
             /**
@@ -2836,12 +2890,12 @@ export interface components {
              */
             nickname?: string;
             /**
-             * @description 마스킹된 계좌번호
+             * @description 마스킹된 계좌번호 (업비트는 null)
              * @example ****0614
              */
             accountNoMasked?: string;
             /**
-             * @description 전체 계좌번호 (본인 계좌, 토글 표시용)
+             * @description 전체 계좌번호 (본인 계좌, 토글 표시용 — 업비트는 null)
              * @example 74420614
              */
             accountNo?: string;
@@ -2850,6 +2904,22 @@ export interface components {
              * @example KIS
              */
             broker?: string;
+            /**
+             * @description 계좌 기준 통화(증권사 파생)
+             * @example USD
+             */
+            currency?: string;
+            /**
+             * Format: date-time
+             * @description 거래소 API 키 만료 시각 (업비트만, 그 외 null)
+             */
+            apiKeyExpiresAt?: string;
+        };
+        CredentialsRequest: {
+            /** @description 새 API 앱 키 (KIS App Key / Toss Client ID / 업비트 Access Key) */
+            appKey: string;
+            /** @description 새 API 앱 시크릿 (KIS App Secret / Toss Client Secret / 업비트 Secret Key) */
+            secretKey: string;
         };
         ExecuteOrdersResponse: {
             /** @description 증권사에 접수된 주문 목록 */
@@ -2876,10 +2946,7 @@ export interface components {
              * @example LOC
              */
             orderType?: string;
-            /**
-             * Format: int32
-             * @description 주문 수량
-             */
+            /** @description 주문 수량 */
             quantity?: number;
             /** @description 주문 가격 */
             price?: number;
@@ -2890,7 +2957,7 @@ export interface components {
              * @example KIS
              * @enum {string}
              */
-            broker?: "TOSS" | "KIS" | "MOCK";
+            broker?: "TOSS" | "KIS" | "MOCK" | "UPBIT";
             /** @description 증권사 앱 키 (신규 자격증명 테스트 시) */
             appKey?: string;
             /** @description 증권사 앱 시크릿 (신규 자격증명 테스트 시) */
@@ -2901,7 +2968,7 @@ export interface components {
              */
             accountId?: string;
         };
-        Item: {
+        StrategyOrderItem: {
             /**
              * Format: uuid
              * @description 주문 고유 ID
@@ -2922,10 +2989,7 @@ export interface components {
              * @example LOC
              */
             orderType?: string;
-            /**
-             * Format: int32
-             * @description 주문 수량
-             */
+            /** @description 주문 수량 */
             quantity?: number;
             /** @description 주문 가격 */
             price?: number;
@@ -2934,17 +2998,14 @@ export interface components {
              * @example PLACED
              */
             status?: string;
-            /**
-             * Format: int32
-             * @description 체결 수량 (미체결이면 null)
-             */
+            /** @description 체결 수량 (미체결이면 null) */
             filledQuantity?: number;
             /** @description 체결 가격 (미체결이면 null) */
             filledPrice?: number;
         };
         StrategyOrdersResponse: {
             /** @description 전략의 주문 목록 */
-            orders?: components["schemas"]["Item"][];
+            orders?: components["schemas"]["StrategyOrderItem"][];
         };
         CycleHistoryPageResponse: {
             /** @description 거래내역 항목 목록 */
@@ -3005,7 +3066,7 @@ export interface components {
              * @description 경쟁 전략 거래 종목
              * @enum {string}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
+            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
             /** @description 경쟁 전략 필요 매수금액 */
             requiredBuyUsd?: number;
             /**
@@ -3013,6 +3074,32 @@ export interface components {
              * @description 예산 배정 우선순위 (작을수록 먼저 승인)
              */
             priority?: number;
+        };
+        NextOrderItem: {
+            /**
+             * @description 거래 종목
+             * @enum {string}
+             */
+            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
+            /**
+             * @description 주문 유형
+             * @example LOC
+             * @enum {string}
+             */
+            orderType?: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
+            /**
+             * @description 매수/매도 방향
+             * @example BUY
+             * @enum {string}
+             */
+            direction?: "BUY" | "SELL";
+            /**
+             * Format: int32
+             * @description 주문 수량
+             */
+            quantity?: number;
+            /** @description 주문 가격 (LOC/MOC는 참고용) */
+            price?: number;
         };
         NextOrdersResponse: {
             /**
@@ -3023,7 +3110,7 @@ export interface components {
             /** @description INFINITE 전략 포지션 스냅샷 (PRIVACY 전략 또는 skip 시 null) */
             position?: components["schemas"]["PositionSnapshot"];
             /** @description 생성 예정 주문 목록 */
-            orders?: components["schemas"]["OrderItem"][];
+            orders?: components["schemas"]["NextOrderItem"][];
             /**
              * @description 주문 생성 skip 사유 (정상이면 null)
              * @example NO_PRIVACY_BASE
@@ -3039,38 +3126,12 @@ export interface components {
             /** @description SELL 판매가능수량 충족 시뮬레이션 결과 (대상 전략에 SELL 주문이 없으면 null, 근사치) */
             sellSufficiency?: components["schemas"]["SellSufficiencySummary"];
         };
-        OrderItem: {
-            /**
-             * @description 거래 종목
-             * @enum {string}
-             */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
-            /**
-             * @description 주문 유형
-             * @example LOC
-             * @enum {string}
-             */
-            orderType?: "LOC" | "MOC" | "LIMIT" | "MOO";
-            /**
-             * @description 매수/매도 방향
-             * @example BUY
-             * @enum {string}
-             */
-            direction?: "BUY" | "SELL";
-            /**
-             * Format: int32
-             * @description 주문 수량
-             */
-            quantity?: number;
-            /** @description 주문 가격 (LOC/MOC는 참고용) */
-            price?: number;
-        };
         PositionSnapshot: {
             /**
              * @description 거래 종목
              * @enum {string}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
+            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
             /**
              * Format: int32
              * @description 보유 수량
@@ -3139,10 +3200,7 @@ export interface components {
              * @example LOC
              */
             orderType?: string;
-            /**
-             * Format: int32
-             * @description 주문 수량
-             */
+            /** @description 주문 수량 */
             quantity?: number;
             /** @description 주문 가격 */
             price?: number;
@@ -3153,14 +3211,33 @@ export interface components {
              */
             status?: "PLANNED" | "SUBMITTING" | "PLACED" | "FILLED" | "PARTIALLY_FILLED" | "FAILED" | "CANCELLED";
         };
+        DcaExecutionItem: {
+            /** Format: date */
+            kstTradeDate?: string;
+            /** Format: date */
+            usSessionDate?: string;
+            status?: string;
+            skipReason?: string;
+            detail?: string;
+            referencePrice?: number;
+            quantity?: number;
+            order?: components["schemas"]["OrderSummary"];
+        };
         DcaExecutionPageResponse: {
-            content?: components["schemas"]["Item"][];
+            content?: components["schemas"]["DcaExecutionItem"][];
             /** Format: int32 */
             page?: number;
             /** Format: int32 */
             size?: number;
             /** Format: int64 */
             totalElements?: number;
+        };
+        OrderSummary: {
+            /** Format: uuid */
+            id?: string;
+            status?: string;
+            filledQuantity?: number;
+            filledPrice?: number;
         };
         StatsSummaryResponse: {
             totalRealizedPnl?: number;
@@ -3190,8 +3267,27 @@ export interface components {
         EquityCurveResponse: {
             points?: components["schemas"]["EquityCurvePoint"][];
         };
+        CyclePerformanceItem: {
+            /** Format: uuid */
+            cycleId?: string;
+            /** Format: uuid */
+            accountId?: string;
+            strategyType?: string;
+            ticker?: string;
+            /** Format: date */
+            startDate?: string;
+            /** Format: date */
+            endDate?: string;
+            startAmount?: number;
+            endAmount?: number;
+            pnl?: number;
+            returnRate?: number;
+            /** Format: int32 */
+            durationDays?: number;
+            closed?: boolean;
+        };
         CyclePerformancePageResponse: {
-            items?: components["schemas"]["Item"][];
+            items?: components["schemas"]["CyclePerformanceItem"][];
             /** Format: int32 */
             page?: number;
             /** Format: int64 */
@@ -3203,7 +3299,17 @@ export interface components {
             /** @description 일별 체결 내역 목록 */
             items?: components["schemas"]["ItemDto"][];
             /** @description 기간 합계 요약 */
-            summary?: components["schemas"]["SummaryDto"];
+            summary?: components["schemas"]["DailyTransactionSummaryDto"];
+        };
+        DailyTransactionSummaryDto: {
+            /** @description 외화매수금액합계 */
+            buyAmountFcr?: number;
+            /** @description 외화매도금액합계 */
+            sellAmountFcr?: number;
+            /** @description 국내수수료합계 */
+            domesticFee?: number;
+            /** @description 해외수수료합계 */
+            overseasFee?: number;
         };
         ItemDto: {
             /** @description 매매일 (KST 기준) */
@@ -3218,7 +3324,7 @@ export interface components {
              * @description 종목코드
              * @enum {string}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
+            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
             /** @description 종목명 */
             symbolName?: string;
             /**
@@ -3235,16 +3341,6 @@ export interface components {
              * @example USD
              */
             currency?: string;
-        };
-        SummaryDto: {
-            /** @description 외화매수금액합계 */
-            buyAmountFcr?: number;
-            /** @description 외화매도금액합계 */
-            sellAmountFcr?: number;
-            /** @description 국내수수료합계 */
-            domesticFee?: number;
-            /** @description 해외수수료합계 */
-            overseasFee?: number;
         };
         BacktestPoint: {
             /** Format: date */
@@ -3321,25 +3417,43 @@ export interface components {
              * @example TQQQ
              * @enum {string}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
+            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
             /**
              * @description 현재가 (USD)
              * @example 120.5
              */
             price?: number;
         };
+        PortfolioSummaryDto: {
+            /** @description 총자산 (KRW — 필드명은 usd지만 KRW 값을 담고 있는 KIS 응답 원본 quirk 유지) */
+            totalAssetUsd?: number;
+            /** @description 총평가손익 (KRW) */
+            totalEvalProfit?: number;
+            /** @description 총수익률 (%) */
+            totalReturnRate?: number;
+            /** @description USD 총자산 (포지션 평가금 + 예수금) */
+            totalAssetUsdActual?: number;
+            /** @description USD 평가손익 합계 */
+            evalProfitUsdSum?: number;
+            /** @description USD 예수금 */
+            usdDeposit?: number;
+            /** @description USD 평가금 (포지션 evalAmountUsd 합계) */
+            posEvalUsd?: number;
+            /** @description 환율 (1 USD = ? KRW) */
+            exchangeRateKrwPerUsd?: number;
+        };
         PortfolioSummaryResponse: {
             /** @description 종목별 잔고 목록 */
             positions?: components["schemas"]["PositionDto"][];
             /** @description 계좌 전체 요약 */
-            summary?: components["schemas"]["SummaryDto"];
+            summary?: components["schemas"]["PortfolioSummaryDto"];
         };
         PositionDto: {
             /**
              * @description 종목코드
              * @enum {string}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
+            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
             /**
              * Format: int32
              * @description 잔고수량
@@ -3409,6 +3523,29 @@ export interface components {
             rate?: number;
             /** @description 매매기준율 */
             midRate?: number;
+        };
+        CryptoHoldingResponse: {
+            /**
+             * @description 종목
+             * @example BTC
+             */
+            ticker?: string;
+            /** @description 보유 수량 (소수 8자리) */
+            quantity?: number;
+            /** @description 평균 매수가 (KRW) */
+            avgBuyPrice?: number;
+            /** @description 현재가 (KRW, 시세 없으면 null) */
+            currentPrice?: number;
+            /** @description 평가액 (KRW, 원 단위 HALF_UP) */
+            evalAmountKrw?: number;
+        };
+        CryptoPortfolioResponse: {
+            /** @description 원화 예수금 (가용 + 주문 대기) */
+            krwCash?: number;
+            /** @description 코인별 보유 */
+            holdings?: components["schemas"]["CryptoHoldingResponse"][];
+            /** @description 총자산 (KRW) = 예수금 + 평가액 합 */
+            totalAssetKrw?: number;
         };
         TossCandleResponse: {
             /**
@@ -3807,7 +3944,7 @@ export interface components {
         AdminSettingsRequest: {
             /** @description 가입 승인 정책 설정 */
             auth: components["schemas"]["AuthRequest"];
-            /** @description 증권사별 신규 등록/연결 테스트 활성화 설정 (key=Broker) */
+            /** @description 증권사별 신규 등록/연결 테스트 활성화 설정 (key=Broker, 생략한 증권사는 현재 값 유지) */
             brokers: {
                 [key: string]: components["schemas"]["BrokerRequest"];
             };
@@ -3873,12 +4010,12 @@ export interface components {
             /** @description 사용자 입력 허용 여부 */
             customizable: boolean;
             /** @description 허용 값 목록 */
-            allowedValues: ("MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD")[];
+            allowedValues: ("MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH")[];
             /**
              * @description 신규 생성 기본값
              * @enum {string}
              */
-            defaultValue: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
+            defaultValue: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
         };
         FieldRequests: {
             /** @description 종목 생성 필드 설정 */
@@ -3915,6 +4052,11 @@ export interface components {
         BrokerResponse: {
             /** @description 증권사 신규 계좌 등록 허용 여부 */
             enabled?: boolean;
+            /**
+             * @description 거래소 API 키에 등록할 서버 공인 IP (업비트만, 그 외 생략)
+             * @example 168.107.63.152
+             */
+            allowedIp?: string;
         };
         FieldResponses: {
             /** @description 종목 생성 설정 (customizable/allowedValues/defaultValue) */
@@ -3937,21 +4079,21 @@ export interface components {
             };
             /** @description 전략 타입별 생성 정책 설정 */
             strategies?: {
-                [key: string]: components["schemas"]["StrategyResponse"];
+                [key: string]: components["schemas"]["RuntimeStrategySettings"];
             };
             /** @description ETF 벤치마크 비교 자산 설정 */
             benchmarks?: components["schemas"]["BenchmarkResponse"];
+        };
+        RuntimeStrategySettings: {
+            /** @description 신규 전략 생성 허용 여부 */
+            enabled?: boolean;
+            /** @description 전략 타입별 생성 필드 정책 (적용 안 되는 필드는 생략) */
+            fields?: components["schemas"]["FieldResponses"];
         };
         StrategyFieldSettingsObject: {
             customizable?: boolean;
             allowedValues?: unknown[];
             defaultValue?: unknown;
-        };
-        StrategyResponse: {
-            /** @description 신규 전략 생성 허용 여부 */
-            enabled?: boolean;
-            /** @description 전략 타입별 생성 필드 정책 (적용 안 되는 필드는 생략) */
-            fields?: components["schemas"]["FieldResponses"];
         };
         CallbackQuery: {
             id?: string;
@@ -4336,7 +4478,7 @@ export interface components {
             /** Format: date */
             releaseDate: string;
             /** @enum {string} */
-            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
+            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
             currentCycleStart: number;
             currentCycleRealizedPnl: number;
             avgPrice?: number;
@@ -4348,7 +4490,7 @@ export interface components {
             /** @enum {string} */
             direction?: "BUY" | "SELL";
             /** @enum {string} */
-            orderType?: "LOC" | "MOC" | "LIMIT" | "MOO";
+            orderType?: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
             /** Format: int32 */
             quantity?: number;
             price?: number;
@@ -4411,7 +4553,7 @@ export interface components {
             /** @enum {string} */
             direction: "BUY" | "SELL";
             /** @enum {string} */
-            orderType: "LOC" | "MOC" | "LIMIT" | "MOO";
+            orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
             price: number;
             /** Format: int32 */
             quantity?: number;
@@ -4631,6 +4773,27 @@ export interface components {
         EtfPriceSeriesResponse: {
             points?: components["schemas"]["EtfPriceSeriesPoint"][];
         };
+        BrokerMeta: {
+            /**
+             * @description enum name() 값
+             * @example UPBIT
+             */
+            code?: string;
+            /** @description 한국어 표시 이름 */
+            label?: string;
+            /** @description UI 모바일 약칭 */
+            description?: string;
+            /**
+             * @description 거래 시장
+             * @example CRYPTO_KRW
+             */
+            market?: string;
+            /**
+             * @description 계좌 기준 통화
+             * @example KRW
+             */
+            currency?: string;
+        };
         DcaIndicatorMeta: {
             /**
              * @description enum name() 값
@@ -4661,7 +4824,7 @@ export interface components {
             /** @description 티커 목록 */
             tickers?: components["schemas"]["TickerMeta"][];
             /** @description 증권사 목록 */
-            brokers?: components["schemas"]["EnumMeta"][];
+            brokers?: components["schemas"]["BrokerMeta"][];
             /** @description 전략 상태 목록 */
             strategyStatuses?: components["schemas"]["EnumMeta"][];
             /** @description 연속 사이클 정책 목록 */
@@ -4729,6 +4892,11 @@ export interface components {
             description?: string;
             /** @description 익절 목표 수익률 */
             targetProfitRate?: number;
+            /**
+             * @description 거래 시장
+             * @example US_STOCK
+             */
+            market?: string;
         };
         MarketSessionResponse: {
             /** @enum {string} */
@@ -4853,10 +5021,7 @@ export interface components {
              * @example AT_OPEN
              */
             timing?: string;
-            /**
-             * Format: int32
-             * @description 주문 수량
-             */
+            /** @description 주문 수량 */
             quantity?: number;
             /** @description 주문 가격 */
             price?: number;
@@ -4867,10 +5032,7 @@ export interface components {
             status?: string;
             /** @description 브로커 측 주문 ID */
             externalOrderId?: string;
-            /**
-             * Format: int32
-             * @description 체결 수량 (미체결 시 null)
-             */
+            /** @description 체결 수량 (미체결 시 null) */
             filledQuantity?: number;
             /** @description 체결 가격 (미체결 시 null) */
             filledPrice?: number;
@@ -5068,7 +5230,7 @@ export interface components {
             adminId?: string;
         };
         /** @enum {string} */
-        ErrorCode: "BROKER_UNAVAILABLE" | "BROKER_CREDENTIAL_INVALID" | "BROKER_RATE_LIMITED" | "DUPLICATE_ACCOUNT" | "ALREADY_ORDERED_TODAY" | "DCA_MANUAL_EXECUTION_UNSUPPORTED" | "ORDER_NOT_CANCELLABLE" | "MONTH_CLOSED" | "ACCESS_DENIED" | "COOLDOWN_ACTIVE" | "TRADING_CORE_UNAVAILABLE";
+        ErrorCode: "BROKER_UNAVAILABLE" | "BROKER_CREDENTIAL_INVALID" | "BROKER_IP_NOT_ALLOWED" | "BROKER_PERMISSION_DENIED" | "BROKER_RATE_LIMITED" | "DUPLICATE_ACCOUNT" | "ALREADY_ORDERED_TODAY" | "DCA_MANUAL_EXECUTION_UNSUPPORTED" | "ORDER_NOT_CANCELLABLE" | "MONTH_CLOSED" | "ACCESS_DENIED" | "COOLDOWN_ACTIVE" | "TRADING_CORE_UNAVAILABLE";
     };
     responses: never;
     parameters: never;
@@ -8312,6 +8474,81 @@ export interface operations {
             };
         };
     };
+    updateCredentials: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description 계좌 ID
+                 * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CredentialsRequest"];
+            };
+        };
+        responses: {
+            /** @description 수정 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AccountResponse"];
+                };
+            };
+            /** @description 모의계좌이거나 다른 계좌의 키 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AccountResponse"];
+                };
+            };
+            /** @description 내 계좌가 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AccountResponse"];
+                };
+            };
+            /** @description 계좌를 찾을 수 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AccountResponse"];
+                };
+            };
+            /** @description 다른 계좌에 이미 등록된 키(업비트) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AccountResponse"];
+                };
+            };
+            /** @description 키가 유효하지 않거나 IP 미허용·권한 부족 */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AccountResponse"];
+                };
+            };
+        };
+    };
     executeManually: {
         parameters: {
             query?: never;
@@ -8703,7 +8940,7 @@ export interface operations {
             query?: {
                 type?: "INFINITE" | "PRIVACY" | "VR" | "DCA";
                 accountId?: string;
-                ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
+                ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
                 status?: "ACTIVE" | "CLOSED";
                 page?: number;
                 size?: number;
@@ -8760,7 +8997,7 @@ export interface operations {
         parameters: {
             query: {
                 type: "INFINITE" | "PRIVACY" | "VR" | "DCA";
-                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
+                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
                 from: string;
                 to: string;
                 seed?: number;
@@ -8826,7 +9063,7 @@ export interface operations {
         parameters: {
             query: {
                 type: "INFINITE" | "PRIVACY" | "VR" | "DCA";
-                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
+                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
                 divisionCount?: number;
             };
             header?: never;
@@ -8855,7 +9092,7 @@ export interface operations {
                  * @description 종목 코드
                  * @example SOXL
                  */
-                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
+                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
             };
             header?: never;
             path: {
@@ -8919,7 +9156,7 @@ export interface operations {
                  * @description 조회할 종목 코드 목록 (TQQQ/SOXL/USD)
                  * @example TQQQ,SOXL,USD
                  */
-                tickers: ("MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD")[];
+                tickers: ("MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH")[];
             };
             header?: never;
             path: {
@@ -9313,6 +9550,77 @@ export interface operations {
             };
         };
     };
+    getCryptoPortfolio: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description 계좌 ID
+                 * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                 */
+                accountId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CryptoPortfolioResponse"];
+                };
+            };
+            /** @description 코인 계좌가 아님 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CryptoPortfolioResponse"];
+                };
+            };
+            /** @description 내 계좌가 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CryptoPortfolioResponse"];
+                };
+            };
+            /** @description 계좌를 찾을 수 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CryptoPortfolioResponse"];
+                };
+            };
+            /** @description 거래소 API 키 오류·IP 미허용·권한 부족 */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CryptoPortfolioResponse"];
+                };
+            };
+            /** @description 거래소 API 호출 실패 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CryptoPortfolioResponse"];
+                };
+            };
+        };
+    };
     trading_getCandles: {
         parameters: {
             query: {
@@ -9320,7 +9628,7 @@ export interface operations {
                  * @description 종목 코드
                  * @example SOXL
                  */
-                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD";
+                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
                 /**
                  * @description 간격 (1D/1W/1M)
                  * @example 1D

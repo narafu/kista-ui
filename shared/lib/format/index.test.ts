@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fmtKrw, fmtKrwEok, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, nextTradeDateKst, fmtSignedPercent, fmtSignedPercentPoint, fmtDate } from './index'
+import { fmtKrw, fmtKrwEok, fmtMoney, fmtQuantity, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, nextTradeDateKst, fmtSignedPercent, fmtSignedPercentPoint, fmtDate } from './index'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -172,5 +172,32 @@ describe('nextTradeDateKst', () => {
 describe('fmtDate', () => {
   it('formats a date-only string as that calendar day regardless of viewer timezone', () => {
     expect(fmtDate('2026-10-31')).toBe('2026. 10. 31.')
+  })
+})
+
+describe('fmtMoney', () => {
+  it('USD는 $와 소수 둘째 자리로 표시한다', () => {
+    expect(fmtMoney(1234.5, 'USD')).toBe('$1,234.50')
+  })
+
+  it('KRW는 원 단위로 표시한다', () => {
+    expect(fmtMoney(1234567, 'KRW')).toBe('1,234,567원')
+  })
+})
+
+describe('fmtQuantity', () => {
+  it('정수는 그대로 표시한다', () => {
+    expect(fmtQuantity(12)).toBe('12')
+    expect(fmtQuantity(0)).toBe('0')
+  })
+
+  it('소수는 최대 8자리에서 끝의 0을 지운다', () => {
+    expect(fmtQuantity(0.000123)).toBe('0.000123')
+    expect(fmtQuantity(1.5)).toBe('1.5')
+    expect(fmtQuantity(0.123456789)).toBe('0.12345679')
+  })
+
+  it('8자리 아래로 내려가는 값은 0으로 표시한다', () => {
+    expect(fmtQuantity(0.000000001)).toBe('0')
   })
 })

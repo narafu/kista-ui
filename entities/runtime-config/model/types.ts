@@ -26,7 +26,7 @@ export interface RuntimeStrategyFields {
 
 export interface RuntimeConfig {
   auth: { approvalRequired: boolean }
-  brokers: Record<RuntimeBrokerCode, { enabled: boolean }>
+  brokers: Record<RuntimeBrokerCode, { enabled: boolean; allowedIp?: string }> // allowedIp: 업비트 허용 IP 안내용 서버 공인 IP
   strategies: Record<RuntimeStrategyType, { enabled: boolean; fields: RuntimeStrategyFields }>
   benchmarks?: RuntimeBenchmarkSettings
 }

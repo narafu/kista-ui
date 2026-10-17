@@ -44,6 +44,8 @@ const ACCOUNT_CONFIG = {
   },
 } as const
 
+type AccountNoConfig = (typeof ACCOUNT_CONFIG)[keyof typeof ACCOUNT_CONFIG]
+
 export function AccountInfoStep({ data, onNext, onBack }: Props) {
   // eslint-disable-next-line react-doctor/no-derived-useState
   const [nickname, setNickname] = useState(data.nickname)
@@ -54,15 +56,15 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
 
   const broker = (data.broker || 'KIS') as BrokerCode
   const isMock = isMockBroker(broker)
-  // MOCK은 계좌번호가 없음 — CreateAccountStepper가 KIS/TOSS일 때만 이 config를 참조하게 보장
-  const config = isMock ? null : ACCOUNT_CONFIG[broker as Exclude<BrokerCode, 'MOCK'>]
+  // 계좌번호 설정이 없는 broker(MOCK, UPBIT)는 별칭만 받는다
+  const config: AccountNoConfig | null = (ACCOUNT_CONFIG as Partial<Record<BrokerCode, AccountNoConfig>>)[broker] ?? null
 
   const nicknameValid = nickname.trim().length >= 1
-  const accountNoValid = isMock || !!config?.pattern.test(accountNo)
+  const accountNoValid = !config || config.pattern.test(accountNo)
   const valid = nicknameValid && accountNoValid
 
   const showNicknameError = touchedNickname && !nicknameValid
-  const showAccountNoError = !isMock && touchedAccountNo && accountNo.length > 0 && !accountNoValid
+  const showAccountNoError = !!config && touchedAccountNo && accountNo.length > 0 && !accountNoValid
 
   return (
     <div className="flex flex-col gap-6">
@@ -104,7 +106,7 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
           size="form"
           className="flex-1"
           disabled={!valid}
-          onClick={() => onNext({ nickname: nickname.trim(), accountNo: isMock ? '' : accountNo })}
+          onClick={() => onNext({ nickname: nickname.trim(), accountNo: config ? accountNo : '' })}
         >
           다음
         </Button>

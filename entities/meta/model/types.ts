@@ -30,6 +30,7 @@ export interface TickerMeta {
   description?: string
   exchangeCode: string
   targetProfitRate: string
+  market?: string // 'US_STOCK' | 'CRYPTO_KRW' — 1h 메타 캐시로 빠질 수 있어 optional, isCryptoMarket으로 판정
 }
 
 export interface MetaBundle {

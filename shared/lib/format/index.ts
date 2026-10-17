@@ -1,3 +1,5 @@
+import type { Currency } from '@shared/lib/api-schema'
+
 export function fmtUsd(n: number, digits = 2): string {
   return n.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits })
 }
@@ -85,6 +87,16 @@ export function fmtKrw(n: number): string {
 /** 부호 포함 원화 금액 — 양수는 +, 음수는 - */
 export function fmtSignedKrw(n: number): string {
   return n >= 0 ? `+${fmtKrw(n)}` : `-${fmtKrw(Math.abs(n))}`
+}
+
+/** 계좌 통화 금액 — USD는 "$1,234.50", KRW는 "1,234원" */
+export function fmtMoney(n: number, currency: Currency): string {
+  return currency === 'KRW' ? fmtKrw(n) : `$${fmtUsd(n)}`
+}
+
+/** 수량 — 주식은 정수 그대로, 코인은 최대 8자리 소수에서 끝의 0을 지운다 */
+export function fmtQuantity(n: number): string {
+  return Number.isInteger(n) ? String(n) : n.toFixed(8).replace(/\.?0+$/, '')
 }
 
 /** 금액 표시 문자열의 숫자만 ●로 가린다 (예: "1,234,567원" → "●,●●●,●●●원") — 금액 감추기 설정용 */
