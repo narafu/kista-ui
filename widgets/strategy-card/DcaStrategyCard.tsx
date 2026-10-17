@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
-import { fmtDate, fmtUsd } from '@shared/lib/format'
+import { fmtDate, fmtMoney } from '@shared/lib/format'
+import { isCryptoMarket } from '@shared/lib/api-schema'
 import { Badge } from '@shared/ui/Badge'
 import { useMeta } from '@entities/meta'
 import { dcaExecutionStatusLabel, formatDcaSchedule, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
@@ -18,9 +19,10 @@ interface Props {
 
 // DCA 카드 — 미리보기(readiness·시드) 없이 설정 요약·다음 판정일·최근 결과만 표시
 export function DcaStrategyCard({ accountId, strategy, accountLabel }: Props) {
-  const { labelOf } = useMeta()
+  const { labelOf, findTicker } = useMeta()
+  const isCrypto = isCryptoMarket(findTicker(strategy.ticker)?.market)
   const { dca } = strategy // 서버가 dca를 누락해도 카드 셸은 렌더한다
-  const summary = dca && `${formatDcaSchedule(dca, labelOf('dcaFrequencies', dca.frequency))} · $${fmtUsd(dca.amount)} · ${labelOf('orderTypes', dca.orderType)}`
+  const summary = dca && `${formatDcaSchedule(dca, labelOf('dcaFrequencies', dca.frequency))} · ${fmtMoney(dca.amount, isCrypto ? 'KRW' : 'USD')} · ${labelOf('orderTypes', dca.orderType)}`
   const last = dca?.lastExecution
   const lastLabel = last
     ? `${dcaExecutionStatusLabel(last.status)}${last.skipReason ? ` · ${labelOf('dcaSkipReasons', last.skipReason)}` : ''}`
@@ -52,10 +54,13 @@ export function DcaStrategyCard({ accountId, strategy, accountLabel }: Props) {
           {dca && (
             <>
               <p className="text-sm">{summary}</p>
-              <p className="text-xs text-muted-foreground">
-                다음 판정일 {dca.nextExecution ? fmtDate(dca.nextExecution.kstTradeDate) : '미정'}
-                {lastLabel && ` · 최근 ${lastLabel}`}
-              </p>
+              {/* 코인 전략의 nextExecution은 api C 전까지 미국 거래일 기준이라 부정확하다 — 표시하지 않는다 */}
+              {(!isCrypto || lastLabel) && (
+                <p className="text-xs text-muted-foreground">
+                  {!isCrypto && `다음 판정일 ${dca.nextExecution ? fmtDate(dca.nextExecution.kstTradeDate) : '미정'}`}
+                  {lastLabel && `${isCrypto ? '' : ' · '}최근 ${lastLabel}`}
+                </p>
+              )}
             </>
           )}
         </div>

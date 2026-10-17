@@ -32,9 +32,10 @@ const strategy: Strategy = {
 } as Strategy
 
 function renderDetail(s: Strategy = strategy) {
+  const tickers = [{ code: 'BTC', exchangeCode: 'UPBIT', targetProfitRate: '0', market: 'CRYPTO_KRW' }]
   return render(
     <QueryClientProvider client={new QueryClient()}>
-      <MetaProvider meta={{ ...dcaTestMeta, dcaSkipReasons: [{ code: 'CONDITION_NOT_MET', label: '조건 미충족' }] }}>
+      <MetaProvider meta={{ ...dcaTestMeta, tickers, dcaSkipReasons: [{ code: 'CONDITION_NOT_MET', label: '조건 미충족' }] }}>
         <DcaStrategyDetail accountId="a1" strategy={s} />
       </MetaProvider>
     </QueryClientProvider>,
@@ -42,6 +43,13 @@ function renderDetail(s: Strategy = strategy) {
 }
 
 describe('DcaStrategyDetail', () => {
+  it('코인 DCA 상세는 원화 금액·실행 시각·소수 수량을 보여주고 다음 판정일 행이 없다', () => {
+    renderDetail({ ...strategy, ticker: 'BTC', currentHoldings: 0.01234567, dca: { ...strategy.dca!, amount: 50000, frequency: 'DAILY', executionHour: 0 } })
+    expect(screen.getByText('50,000원')).toBeInTheDocument()
+    expect(screen.getByText(/00시/)).toBeInTheDocument()
+    expect(screen.getByText('0.01234567 BTC')).toBeInTheDocument()
+    expect(screen.queryByText('다음 판정일')).not.toBeInTheDocument()
+  })
   it('바로 주문 버튼이 없다', () => {
     renderDetail()
     expect(screen.queryByRole('button', { name: /바로 주문/ })).not.toBeInTheDocument()

@@ -56,6 +56,7 @@ vi.mock('@entities/meta', async () => {
       return { divisionCounts: [] }
     },
     labelOf: (group: string, value: string) => groups[group]?.find(i => i.code === value)?.label ?? value,
+    findTicker: () => undefined,
   }),
   }
 })

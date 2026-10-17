@@ -1,5 +1,6 @@
 import { useMeta } from '@entities/meta'
-import { fmtUsd } from '@shared/lib/format'
+import { fmtMoney, fmtQuantity } from '@shared/lib/format'
+import { isCryptoMarket } from '@shared/lib/api-schema'
 import { DIRECTION_LABEL, directionTextClass, orderTypeLabel } from '@entities/trade'
 import { orderStatusBadgeClass, ORDER_STATUS_LABEL } from '@entities/order'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -13,7 +14,7 @@ interface Props {
 }
 
 export function AdminTradesTable({ trades }: Props) {
-  const { labelOf } = useMeta()
+  const { labelOf, findTicker } = useMeta()
 
   if (trades.length === 0) {
     return (
@@ -52,8 +53,8 @@ export function AdminTradesTable({ trades }: Props) {
                   {DIRECTION_LABEL[trade.direction] ?? trade.direction}
                 </TableDataCell>
                 <TableDataCell className="text-xs text-muted-foreground whitespace-nowrap">{orderTypeLabel(trade.orderType)}</TableDataCell>
-                <TableDataCell className="whitespace-nowrap">{trade.quantity}</TableDataCell>
-                <TableDataCell className="font-mono text-xs whitespace-nowrap">${fmtUsd(trade.price)}</TableDataCell>
+                <TableDataCell className="whitespace-nowrap">{fmtQuantity(trade.quantity)}</TableDataCell>
+                <TableDataCell className="font-mono text-xs whitespace-nowrap">{fmtMoney(trade.price, isCryptoMarket(findTicker(trade.ticker)?.market) ? 'KRW' : 'USD')}</TableDataCell>
                 <TableDataCell className="whitespace-nowrap">
                   <Badge tone="none" className={orderStatusBadgeClass(trade.status)}>
                     {ORDER_STATUS_LABEL[trade.status] ?? trade.status}

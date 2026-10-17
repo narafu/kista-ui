@@ -8,7 +8,8 @@ import { useManageStrategyMutations } from '@features/strategy/manage-strategy'
 import { useMeta } from '@entities/meta'
 import { formatDcaCondition, formatDcaSchedule } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
-import { fmtDate, fmtUsd } from '@shared/lib/format'
+import { fmtDate, fmtMoney, fmtQuantity } from '@shared/lib/format'
+import { isCryptoMarket } from '@shared/lib/api-schema'
 import { DeleteStrategyDialog } from './DeleteStrategyDialog'
 import { DcaExecutionHistory } from './DcaExecutionHistory'
 
@@ -30,7 +31,8 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 // dca가 없어도(응답 누락) 보유 수량·이력·중지/삭제는 그대로 노출한다
 export function DcaStrategyDetail({ accountId, strategy }: Props) {
   const { push } = useRouter()
-  const { labelOf } = useMeta()
+  const { labelOf, findTicker } = useMeta()
+  const isCrypto = isCryptoMarket(findTicker(strategy.ticker)?.market)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const { dca } = strategy
   const { pause, resume, remove, isPausing, isResuming, isDeleting } = useManageStrategyMutations({
@@ -49,13 +51,13 @@ export function DcaStrategyDetail({ accountId, strategy }: Props) {
             <>
               <Row label="방향">{labelOf('orderDirections', dca.direction)}</Row>
               <Row label="주기">{formatDcaSchedule(dca, labelOf('dcaFrequencies', dca.frequency))}</Row>
-              <Row label="회차당 금액">${fmtUsd(dca.amount)}</Row>
+              <Row label="회차당 금액">{fmtMoney(dca.amount, isCrypto ? 'KRW' : 'USD')}</Row>
               <Row label="주문 방식">{labelOf('orderTypes', dca.orderType)}</Row>
-              <Row label="다음 판정일">{dca.nextExecution ? fmtDate(dca.nextExecution.kstTradeDate) : '미정'}</Row>
+              {!isCrypto && <Row label="다음 판정일">{dca.nextExecution ? fmtDate(dca.nextExecution.kstTradeDate) : '미정'}</Row>}
               <p className="text-xs text-muted-foreground">조건 충족 여부는 실행일에 판정</p>
             </>
           )}
-          <Row label="보유 수량">{strategy.currentHoldings != null ? `${strategy.currentHoldings}주` : '-'}</Row>
+          <Row label="보유 수량">{strategy.currentHoldings != null ? (isCrypto ? `${fmtQuantity(strategy.currentHoldings)} ${strategy.ticker}` : `${fmtQuantity(strategy.currentHoldings)}주`) : '-'}</Row>
           <p className="text-xs text-muted-foreground">계좌 전체 보유 기준</p>
           {dca && (
             <div className="pt-3">
@@ -74,7 +76,7 @@ export function DcaStrategyDetail({ accountId, strategy }: Props) {
         </CardContent>
       </Card>
 
-      <DcaExecutionHistory strategyId={strategy.id} />
+      <DcaExecutionHistory strategyId={strategy.id} ticker={strategy.ticker} />
 
       <Card>
         <CardContent className="p-5 flex gap-2">

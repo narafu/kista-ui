@@ -5,7 +5,7 @@ import { DcaExecutionHistory } from './DcaExecutionHistory'
 const { queryMock } = vi.hoisted(() => ({ queryMock: vi.fn() }))
 
 vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams() }))
-vi.mock('@entities/meta', () => ({ useMeta: () => ({ labelOf: (_g: string, v: string) => v }) }))
+vi.mock('@entities/meta', () => ({ useMeta: () => ({ labelOf: (_g: string, v: string) => v, findTicker: (c: string) => (c === 'BTC' ? { code: 'BTC', market: 'CRYPTO_KRW' } : undefined) }) }))
 vi.mock('@entities/strategy', async () => ({
   ...(await vi.importActual<typeof import('@entities/strategy')>('@entities/strategy')),
   useDcaExecutionsQuery: (...args: unknown[]) => queryMock(...args),
@@ -20,7 +20,7 @@ describe('DcaExecutionHistory', () => {
     queryMock.mockReturnValue({
       data: { content: [row], page: 0, size: 20, totalElements: 45 }, isLoading: false, isError: false,
     })
-    render(<DcaExecutionHistory strategyId="d1" />)
+    render(<DcaExecutionHistory strategyId="d1" ticker="UPRO" />)
     expect(queryMock).toHaveBeenLastCalledWith('d1', 0, 20)
 
     fireEvent.click(screen.getByRole('button', { name: '2' }))
@@ -31,8 +31,19 @@ describe('DcaExecutionHistory', () => {
     queryMock.mockReturnValue({
       data: { content: [row], page: 0, size: 20, totalElements: 1 }, isLoading: false, isError: false,
     })
-    render(<DcaExecutionHistory strategyId="d1" />)
+    render(<DcaExecutionHistory strategyId="d1" ticker="UPRO" />)
     const cells = screen.getAllByRole('row')[1].querySelectorAll('td')
     expect(cells[3]).toHaveTextContent('-')
+  })
+
+  it('코인 행은 원화 가격과 소수 수량으로 표시한다', () => {
+    queryMock.mockReturnValue({
+      data: { content: [{ kstTradeDate: '2026-10-18', status: 'SKIPPED', skipReason: 'BELOW_MIN_ORDER_AMOUNT', detail: null, referencePrice: 145000000, quantity: 0.00034482, order: { id: 'o1', status: 'FILLED', filledPrice: 145100000 } }], page: 0, size: 20, totalElements: 1 },
+      isLoading: false, isError: false,
+    })
+    render(<DcaExecutionHistory strategyId="d1" ticker="BTC" />)
+    expect(screen.getByText('145,000,000원')).toBeInTheDocument()
+    expect(screen.getByText('0.00034482')).toBeInTheDocument()
+    expect(screen.getByText(/145,100,000원/)).toBeInTheDocument()
   })
 })

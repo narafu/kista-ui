@@ -11,7 +11,7 @@ import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { RangeFilterControls } from '@shared/ui/range-filter/RangeFilterControls'
-import { fmtUsd } from '@shared/lib/format'
+import { fmtQuantity, fmtUsd } from '@shared/lib/format'
 import { toNum } from '@shared/lib/utils'
 import { resolveRangeStrict } from '@shared/lib/date-range'
 import { useRangeFilterState } from '@shared/lib/hooks/use-range-filter-state'
@@ -117,11 +117,11 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                       <TableDataCell className="whitespace-nowrap">
                         {o.filledQuantity != null ? (
                           <span>
-                            <span className="font-medium">{o.filledQuantity}</span>
-                            {o.filledQuantity !== o.quantity && <span className="text-muted-foreground text-xs">/{o.quantity}</span>}
+                            <span className="font-medium">{fmtQuantity(o.filledQuantity)}</span>
+                            {o.filledQuantity !== o.quantity && <span className="text-muted-foreground text-xs">/{fmtQuantity(o.quantity)}</span>}
                           </span>
                         ) : (
-                          o.quantity
+                          fmtQuantity(o.quantity)
                         )}
                       </TableDataCell>
                       <TableDataCell className="font-mono text-xs whitespace-nowrap">${fmtUsd(toNum(o.price))}</TableDataCell>

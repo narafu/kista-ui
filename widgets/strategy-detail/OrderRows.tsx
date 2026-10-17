@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@shared/lib/utils'
-import { fmtUsd } from '@shared/lib/format'
+import { fmtQuantity, fmtUsd } from '@shared/lib/format'
 import { toNum } from '@shared/lib/utils'
 import { DIRECTION_LABEL, directionBadgeClass } from '@entities/trade'
 import { Badge } from '@shared/ui/Badge'
@@ -53,7 +53,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
               </Badge>
             </div>
             <span className="font-medium">{o.ticker}</span>
-            <span className="text-muted-foreground">{o.quantity}</span>
+            <span className="text-muted-foreground">{fmtQuantity(o.quantity)}</span>
             <span className="font-semibold">${fmtUsd(toNum(o.price))}</span>
             {hasCancel && (
               <div className="flex justify-center">
@@ -96,7 +96,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
                 </Badge>
               </TableDataCell>
               <TableDataCell className="px-5 py-3 text-base font-semibold">{o.ticker}</TableDataCell>
-              <TableDataCell className="px-5 py-3 text-base text-muted-foreground">{o.quantity}</TableDataCell>
+              <TableDataCell className="px-5 py-3 text-base text-muted-foreground">{fmtQuantity(o.quantity)}</TableDataCell>
               <TableDataCell className="px-5 py-3 text-base font-semibold">${fmtUsd(toNum(o.price))}</TableDataCell>
               {hasCancel && (
                 <TableDataCell className="px-5 py-3">

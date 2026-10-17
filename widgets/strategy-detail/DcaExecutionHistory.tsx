@@ -9,12 +9,14 @@ import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { Badge } from '@shared/ui/Badge'
-import { fmtDate, fmtUsd } from '@shared/lib/format'
+import { fmtDate, fmtMoney, fmtQuantity } from '@shared/lib/format'
+import { isCryptoMarket } from '@shared/lib/api-schema'
 
 const PAGE_SIZE = 20
 
-export function DcaExecutionHistory({ strategyId }: { strategyId: string }) {
-  const { labelOf } = useMeta()
+export function DcaExecutionHistory({ strategyId, ticker }: { strategyId: string; ticker: string }) {
+  const { labelOf, findTicker } = useMeta()
+  const currency = isCryptoMarket(findTicker(ticker)?.market) ? 'KRW' : 'USD'
   const [page, setPage] = useState(1) // PaginationBar는 1-base, API는 0-base
   const { data, isLoading, isError } = useDcaExecutionsQuery(strategyId, page - 1, PAGE_SIZE)
   const rows = data?.content ?? []
@@ -59,11 +61,11 @@ export function DcaExecutionHistory({ strategyId }: { strategyId: string }) {
                       {r.skipReason && <div>{labelOf('dcaSkipReasons', r.skipReason)}</div>}
                       {r.detail && <div className="text-xs text-muted-foreground">{r.detail}</div>}
                     </td>
-                    <td className="px-4 py-2 text-right tabular-nums whitespace-nowrap">{r.referencePrice != null ? `$${fmtUsd(r.referencePrice)}` : '-'}</td>
-                    <td className="px-4 py-2 text-right tabular-nums whitespace-nowrap">{r.quantity ?? '-'}</td>
+                    <td className="px-4 py-2 text-right tabular-nums whitespace-nowrap">{r.referencePrice != null ? fmtMoney(r.referencePrice, currency) : '-'}</td>
+                    <td className="px-4 py-2 text-right tabular-nums whitespace-nowrap">{r.quantity != null ? fmtQuantity(r.quantity) : '-'}</td>
                     <td className="px-4 py-2 whitespace-nowrap">
                       {r.order
-                        ? `${ORDER_STATUS_LABEL[r.order.status] ?? r.order.status}${r.order.filledPrice != null ? ` · $${fmtUsd(r.order.filledPrice)}` : ''}`
+                        ? `${ORDER_STATUS_LABEL[r.order.status] ?? r.order.status}${r.order.filledPrice != null ? ` · ${fmtMoney(r.order.filledPrice, currency)}` : ''}`
                         : '-'}
                     </td>
                   </tr>

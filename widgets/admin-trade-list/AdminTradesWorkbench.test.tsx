@@ -19,6 +19,7 @@ import { AdminTradesWorkbench } from './AdminTradesWorkbench'
 vi.mock('@entities/meta', () => ({
   useMeta: () => ({
     labelOf: (group: string, code: string) => (group === 'strategyStatuses' ? ({ ACTIVE: '운영중', PAUSED: '일시중지' } as Record<string, string>)[code] : undefined) ?? code,
+    findTicker: () => undefined,
   }),
 }))
 
