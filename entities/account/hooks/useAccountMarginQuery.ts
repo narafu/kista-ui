@@ -8,6 +8,7 @@ import { upsertById, synchronizeListQueries } from '@shared/lib/query'
 import {
   createAccount,
   updateAccount,
+  updateCredentials,
   deleteAccount,
   getMargin,
   getPrices,
@@ -61,6 +62,18 @@ export function useUpdateAccountMutation(accountId: string) {
       await synchronizeAccountList(queryClient, (accounts) => upsertById(accounts, saved))
     },
     onError: (err) => toast.error(apiMsg(err, '수정에 실패했습니다.')),
+  })
+}
+
+// 실패 문구는 EditAccountForm이 거래소 오류 코드별로 인라인 표시한다 — 토스트를 두면 같은 피드백이 두 번 나온다
+export function useUpdateCredentialsMutation(accountId: string) {
+  const queryClient = useQueryClient()
+  return useMutation<Account, Error, { appKey: string; secretKey: string }>({
+    mutationFn: (body) => updateCredentials(accountId, body),
+    onSuccess: async (saved) => {
+      queryClient.setQueryData(accountKeys.detail(accountId), saved)
+      await synchronizeAccountList(queryClient, (accounts) => upsertById(accounts, saved))
+    },
   })
 }
 

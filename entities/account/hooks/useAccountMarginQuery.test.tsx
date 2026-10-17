@@ -9,6 +9,7 @@ import {
   useCreateAccountMutation,
   useDeleteAccountMutation,
   useUpdateAccountMutation,
+  useUpdateCredentialsMutation,
 } from './useAccountMarginQuery'
 
 vi.mock('sonner', () => ({
@@ -33,11 +34,13 @@ const {
   createAccountMock,
   updateAccountMock,
   deleteAccountMock,
+  updateCredentialsMock,
 } = vi.hoisted(() => ({
   listAccountsMock: vi.fn(),
   createAccountMock: vi.fn(),
   updateAccountMock: vi.fn(),
   deleteAccountMock: vi.fn(),
+  updateCredentialsMock: vi.fn(),
 }))
 
 vi.mock('../api', () => ({
@@ -45,6 +48,7 @@ vi.mock('../api', () => ({
   createAccount: createAccountMock,
   updateAccount: updateAccountMock,
   deleteAccount: deleteAccountMock,
+  updateCredentials: updateCredentialsMock,
   getMargin: vi.fn(),
   getPrices: vi.fn(),
   testKisConnection: vi.fn(),
@@ -87,6 +91,23 @@ function createTestQueryClient() {
 }
 
 describe('account mutations', () => {
+  it('replaces credentials and refreshes detail and list caches with the response account', async () => {
+    const queryClient = createTestQueryClient()
+    const saved = { ...accountA, apiKeyExpiresAt: '2027-10-18T00:00:00+09:00' }
+    queryClient.setQueryData(accountKeys.list(), [accountA, accountB])
+    updateCredentialsMock.mockResolvedValue(saved)
+
+    const { result } = renderHook(() => useUpdateCredentialsMutation(accountA.id), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    await result.current.mutateAsync({ appKey: 'new-key-1234', secretKey: 'new-secret-1234' })
+
+    expect(updateCredentialsMock).toHaveBeenCalledWith(accountA.id, { appKey: 'new-key-1234', secretKey: 'new-secret-1234' })
+    expect(queryClient.getQueryData(accountKeys.detail(accountA.id))).toEqual(saved)
+    expect(queryClient.getQueryData(accountKeys.list())).toEqual([saved, accountB])
+  })
+
   it('inserts a created account before feature navigation', async () => {
     const queryClient = createTestQueryClient()
     queryClient.setQueryData(accountKeys.list(), [accountA])

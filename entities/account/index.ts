@@ -16,7 +16,10 @@ export {
   useUpdateAccountMutation,
   useDeleteAccountMutation,
   useCreateAccountMutation,
+  useUpdateCredentialsMutation,
   useTestKisConnectionMutation,
 } from './hooks/useAccountMarginQuery'
 export { BROKER_CREDENTIAL, brokerErrorMessage } from './model/brokerCredentials'
 export type { CredentialBroker } from './model/brokerCredentials'
+export { apiKeyExpiryState, API_KEY_EXPIRY_LABEL } from './model/apiKeyExpiry'
+export type { ApiKeyExpiryState } from './model/apiKeyExpiry'

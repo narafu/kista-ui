@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 import { AccountCard } from './AccountCard'
@@ -54,6 +54,20 @@ describe('AccountCard', () => {
   beforeEach(() => {
     strategiesQueryData = []
     strategiesQueryState = null
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-10-18T00:00:00+09:00'))
+  })
+
+  afterEach(() => vi.useRealTimers())
+
+  it('API 키 만료가 30일 이내면 만료 임박 배지를 보여준다', () => {
+    render(<AccountCard account={{ ...baseAccount, broker: 'UPBIT', accountNoMasked: null, apiKeyExpiresAt: '2026-11-01T00:00:00+09:00' }} />)
+    expect(screen.getAllByText('API 키 만료 임박').length).toBeGreaterThan(0)
+  })
+
+  it('만료된 키는 재등록 필요 배지를 보여준다', () => {
+    render(<AccountCard account={{ ...baseAccount, apiKeyExpiresAt: '2026-10-01T00:00:00+09:00' }} />)
+    expect(screen.getAllByText('API 키 재등록 필요').length).toBeGreaterThan(0)
   })
 
   it('distinguishes loading and failed strategy queries from an empty strategy list', () => {

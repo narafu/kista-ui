@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { useMeta } from '@entities/meta'
 import { useStrategiesQuery, strategyStatusAccent, strategyTypeShort } from '@entities/strategy'
+import { apiKeyExpiryState, API_KEY_EXPIRY_LABEL } from '@entities/account'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 import { Badge } from '@shared/ui/Badge'
@@ -27,6 +28,7 @@ export function AccountCard({ account }: Props) {
   const { findBroker, labelOf } = useMeta()
   const broker = findBroker(account.broker)
   const brokerLabel = broker?.label ?? account.broker
+  const expiry = apiKeyExpiryState(account.apiKeyExpiresAt)
   // 하나라도 ACTIVE가 아니면 그 상태의 accent로 왼쪽 띠를 표시한다(모두 ACTIVE면 띠 없음)
   const inactive = strategies.find((s) => s.status !== 'ACTIVE')
   const aggregatedAccent = inactive ? strategyStatusAccent(inactive.status) : undefined
@@ -56,6 +58,9 @@ export function AccountCard({ account }: Props) {
           <span className="-ml-2 inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold shrink-0 bg-accent text-accent-foreground">
             {brokerLabel}
           </span>
+            {expiry && (
+              <Badge tone={expiry === 'EXPIRED' ? 'error' : 'warn'} size="sm">{API_KEY_EXPIRY_LABEL[expiry]}</Badge>
+            )}
         </div>
         {/* 2행: 닉네임 + 전략 수 + 상태 + 화살표 */}
         <div className="flex items-start gap-2">
@@ -89,10 +94,13 @@ export function AccountCard({ account }: Props) {
         {/* 헤더 */}
         <div className="pl-6 pr-5 pt-4 pb-3">
           {/* 브로커 배지 */}
-          <div className="flex items-center mb-2.5">
+          <div className="flex items-center gap-2 mb-2.5">
             <span className="-ml-2 inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold bg-accent text-accent-foreground">
               {brokerLabel}
             </span>
+            {expiry && (
+              <Badge tone={expiry === 'EXPIRED' ? 'error' : 'warn'} size="sm">{API_KEY_EXPIRY_LABEL[expiry]}</Badge>
+            )}
           </div>
           {/* 닉네임 + 집계 상태 */}
           <div className="h-[30px] flex items-center gap-2 overflow-hidden">
