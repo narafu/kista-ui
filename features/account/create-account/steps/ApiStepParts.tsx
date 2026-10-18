@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@shared/ui/Spinner'
 import { IconButton } from '@shared/ui/IconButton'
+import { Badge } from '@shared/ui/Badge'
 import { brokerErrorMessage } from '@entities/account'
 
 interface KeyFieldProps {
@@ -125,6 +126,8 @@ export function ConnectionTest({ keyLabel, secretLabel, disabled, isPending, isS
   )
 }
 
+const UPBIT_REQUIRED_PERMISSIONS = ['자산 조회', '주문 조회', '주문하기']
+
 export function UpbitKeyGuide({ allowedIp, isLoading }: { allowedIp: string | undefined; isLoading: boolean }) {
   async function handleCopy() {
     if (!allowedIp) return
@@ -152,8 +155,18 @@ export function UpbitKeyGuide({ allowedIp, isLoading }: { allowedIp: string | un
           <span className="text-muted-foreground">{isLoading ? '확인 중' : '불러오지 못했습니다.'}</span>
         )}
       </div>
-      <p className="text-muted-foreground">권한은 자산 조회, 주문 조회, 주문하기만 켜세요.</p>
-      <p className="font-semibold text-[var(--warn)]">출금하기 권한은 켜지 마세요. 키가 유출돼도 출금은 막힙니다.</p>
+      <p className="flex flex-wrap items-center gap-1">
+        권한은
+        {UPBIT_REQUIRED_PERMISSIONS.slice(0, -1).map((p) => <Badge key={p} tone="ok" size="md">{p}</Badge>)}
+        {/* 마지막 배지와 "만 켜세요."가 줄바꿈으로 갈라지지 않게 묶는다 */}
+        <span className="inline-flex items-center gap-0.5 whitespace-nowrap">
+          <Badge tone="ok" size="md">{UPBIT_REQUIRED_PERMISSIONS.at(-1)}</Badge>만 켜세요.
+        </span>
+      </p>
+      <p className="flex flex-wrap items-center gap-1 font-semibold text-[var(--warn)]">
+        <Badge tone="error" size="md">출금하기</Badge>
+        권한은 켜지 마세요. 키가 유출돼도 출금은 막힙니다.
+      </p>
     </div>
   )
 }

@@ -76,8 +76,10 @@ describe('ApiStep', () => {
     render(<ApiStep data={{ ...baseData, broker: 'UPBIT' }} onNext={vi.fn()} onBack={vi.fn()} />)
     expect(screen.getByText('168.107.63.152')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '허용 IP 복사' })).toBeInTheDocument()
-    expect(screen.getByText(/자산 조회, 주문 조회, 주문하기/)).toBeInTheDocument()
-    expect(screen.getByText(/출금하기 권한은 켜지 마세요/)).toBeInTheDocument()
+    for (const permission of ['자산 조회', '주문 조회', '주문하기', '출금하기']) {
+      expect(screen.getByText(permission)).toBeInTheDocument()
+    }
+    expect(screen.getByText(/권한은 켜지 마세요/)).toBeInTheDocument()
   })
 
   it('업비트도 연결 테스트를 통과해야 다음으로 넘어간다', async () => {
