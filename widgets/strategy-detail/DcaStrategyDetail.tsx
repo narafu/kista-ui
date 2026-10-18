@@ -32,7 +32,7 @@ const UNAVAILABLE = <span className="text-base font-normal text-muted-foreground
 const HOLDINGS_SUB = '계좌 전체 보유 기준'
 
 // 코인은 계좌 포트폴리오(업비트 잔고)에서 이 티커의 수량·평단가·평가금액을 찾는다 — 계좌 상세와 같은 쿼리 캐시를 공유.
-// api currentHoldings는 cycle_position 기반 Integer라 소수 단위 코인 수량을 담지 못해 쓰지 않는다
+// api는 코인 전략의 currentHoldings를 항상 null로 내려준다(코인 DCA는 cycle_position을 갱신하지 않음, kista-api 9bf959f6) — 코인 보유의 SSOT는 crypto-portfolio
 function CryptoHoldingGrid({ accountId, ticker }: { accountId: string; ticker: string }) {
   const { data, isError } = useQuery(cryptoPortfolioQueryOptions(accountId))
   if (isError && !data) {
