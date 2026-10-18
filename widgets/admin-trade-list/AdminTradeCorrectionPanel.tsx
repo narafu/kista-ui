@@ -126,7 +126,8 @@ export function AdminTradeCorrectionPanel({
             <option value="">계좌 선택</option>
             {accounts.map((account) => (
               <option key={account.id} value={account.id}>
-                {account.accountNoMasked}
+                {/* 업비트는 계좌번호가 없어 증권사명과 id 앞자리로 구분 */}
+                {account.accountNoMasked ?? `${formatBrokerLabel(account.broker)} ${account.id.slice(0, 8)}`}
               </option>
             ))}
           </select>

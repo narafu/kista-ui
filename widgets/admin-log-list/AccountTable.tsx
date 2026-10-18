@@ -16,10 +16,12 @@ export function AccountTable({ accounts, label }: { accounts: AdminAnomalyAccoun
             <tr key={a.id} className="hover:bg-muted/20">
               <td className="px-4 py-2.5 font-medium">{a.ownerNickname}</td>
               <td className="px-4 py-2.5 font-mono text-sm text-muted-foreground">
-                <RevealableValue
-                  value={a.accountNo ?? ''}
-                  hiddenDisplay={a.accountNoMasked ?? ''}
-                />
+                {a.accountNo == null ? '-' : (
+                  <RevealableValue
+                    value={a.accountNo}
+                    hiddenDisplay={a.accountNoMasked ?? ''}
+                  />
+                )}
               </td>
             </tr>
           ))}
