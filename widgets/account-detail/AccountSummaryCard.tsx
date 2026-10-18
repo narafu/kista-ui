@@ -61,10 +61,10 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, cryptoPort
               }
             />
           )}
-          <KpiCard label="증권사" value={<span className="text-xl font-semibold leading-snug">{brokerLabel}</span>} />
+          <KpiCard label="증권사" className={isCryptoBroker(account.broker) ? 'col-span-2 sm:col-span-1' : undefined} value={<span className="text-xl font-semibold leading-snug">{brokerLabel}</span>} />
           {isCryptoBroker(account.broker) ? (
             <>
-              <KpiCard label="원화 예수금" value={cryptoPortfolio ? fmtKrw(cryptoPortfolio.krwCash) : '-'} valueClassName={KRW_VALUE_CLASS} />
+              <KpiCard label="원화 예수금" className="col-span-2 sm:col-span-1" value={cryptoPortfolio ? fmtKrw(cryptoPortfolio.krwCash) : '-'} valueClassName={KRW_VALUE_CLASS} />
               <div className="col-span-2">
                 <KpiCard label="총자산" value={cryptoPortfolio ? fmtKrw(cryptoPortfolio.totalAssetKrw) : '-'} valueClassName={KRW_VALUE_CLASS} />
                 {hasUnpricedHolding && (
