@@ -62,11 +62,11 @@ function CredentialsCard({ account }: Props) {
       </div>
       <div className="space-y-2">
         <Label htmlFor="credential-key">{keyLabel}</Label>
-        <Input id="credential-key" className="h-12" value={appKey} onChange={(e) => setAppKey(e.target.value)} disabled={mutation.isPending} maxLength={256} autoComplete="off" />
+        <Input id="credential-key" className="h-12" value={appKey} onChange={(e) => { setAppKey(e.target.value); mutation.reset() }} disabled={mutation.isPending} maxLength={256} autoComplete="off" />
       </div>
       <div className="space-y-2">
         <Label htmlFor="credential-secret">{secretLabel}</Label>
-        <Input id="credential-secret" type="password" className="h-12" value={secretKey} onChange={(e) => setSecretKey(e.target.value)} disabled={mutation.isPending} maxLength={512} autoComplete="off" />
+        <Input id="credential-secret" type="password" className="h-12" value={secretKey} onChange={(e) => { setSecretKey(e.target.value); mutation.reset() }} disabled={mutation.isPending} maxLength={512} autoComplete="off" />
       </div>
       {mutation.isError && (
         <p className="text-sm text-[var(--status-error)]">{brokerErrorMessage(mutation.error, invalidMessage, 'API 키 재등록에 실패했습니다.')}</p>

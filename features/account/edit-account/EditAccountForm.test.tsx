@@ -12,6 +12,7 @@ const {
   pushMock,
   invalidateQueriesMock,
   toastSuccessMock,
+  credentialsResetMock,
 } = vi.hoisted(() => ({
   updateMutateMock: vi.fn(),
   deleteMutateMock: vi.fn(),
@@ -19,13 +20,14 @@ const {
   pushMock: vi.fn(),
   invalidateQueriesMock: vi.fn(() => Promise.resolve()),
   toastSuccessMock: vi.fn(),
+  credentialsResetMock: vi.fn(),
 }))
 
 let credentialsState: { isPending: boolean; isError: boolean; error?: Error } = { isPending: false, isError: false }
 
 vi.mock('@entities/account', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@entities/account')>()),
-  useUpdateCredentialsMutation: () => ({ mutate: credentialsMutateMock, ...credentialsState }),
+  useUpdateCredentialsMutation: () => ({ mutate: credentialsMutateMock, reset: credentialsResetMock, ...credentialsState }),
   useUpdateAccountMutation: () => ({ mutate: updateMutateMock, isPending: false }),
   useDeleteAccountMutation: () => ({ mutate: deleteMutateMock, isPending: false }),
 }))
@@ -70,6 +72,8 @@ const upbitAccount: Account = { id: 'u1', nickname: '코인', accountNoMasked: n
 describe('EditAccountForm', () => {
   beforeEach(() => {
     credentialsState = { isPending: false, isError: false }
+    credentialsResetMock.mockReset()
+    credentialsResetMock.mockImplementation(() => { credentialsState = { isPending: false, isError: false } })
   })
 
   it('업비트 계좌는 계좌번호 입력을 보여주지 않는다', () => {
@@ -90,6 +94,16 @@ describe('EditAccountForm', () => {
     credentialsState = { isPending: false, isError: true, error: new ApiError(422, { code: 'BROKER_IP_NOT_ALLOWED' }) }
     render(<EditAccountForm account={upbitAccount} />)
     expect(screen.getByText(/허용 IP가 등록되지 않았습니다/)).toBeInTheDocument()
+  })
+
+  it('키 재등록 실패 뒤 다시 입력하면 오류 문구가 사라진다', async () => {
+    credentialsState = { isPending: false, isError: true, error: new ApiError(422, { code: 'BROKER_IP_NOT_ALLOWED' }) }
+    const user = userEvent.setup()
+    render(<EditAccountForm account={upbitAccount} />)
+    expect(screen.getByText(/허용 IP가 등록되지 않았습니다/)).toBeInTheDocument()
+    await user.type(screen.getByLabelText('Access Key'), 'x')
+    expect(credentialsResetMock).toHaveBeenCalled()
+    expect(screen.queryByText(/허용 IP가 등록되지 않았습니다/)).not.toBeInTheDocument()
   })
 
   it('모의계좌는 키 재등록 섹션이 없다', () => {

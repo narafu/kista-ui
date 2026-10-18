@@ -1,6 +1,6 @@
 import { HydrationBoundary, QueryClient, QueryClientProvider, dehydrate } from '@tanstack/react-query'
 import { act, render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { accountKeys, type Account } from '@entities/account'
 import { tradeKeys } from '@entities/trade'
@@ -43,6 +43,10 @@ function content(account = serverAccount) {
 }
 
 describe('AccountDetailContent', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('keeps a newer prewarmed detail when stale destination hydration arrives', () => {
     const serverClient = createClient()
     serverClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount, { updatedAt: 100 })

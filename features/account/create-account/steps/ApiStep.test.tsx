@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiStep } from './ApiStep'
 import { ApiError } from '@shared/lib/api-client'
 import type { StepData } from '../CreateAccountStepper'
@@ -24,13 +24,22 @@ vi.mock('@entities/account', async (importOriginal) => ({
   }),
 }))
 
+let mockRuntimeLoading = false
 vi.mock('@entities/runtime-config', () => ({
-  useRuntimeConfigQuery: () => ({ data: { brokers: { UPBIT: { enabled: true, allowedIp: '168.107.63.152' } } } }),
+  useRuntimeConfigQuery: () =>
+    mockRuntimeLoading
+      ? { data: undefined, isLoading: true }
+      : { data: { brokers: { UPBIT: { enabled: true, allowedIp: '168.107.63.152' } } }, isLoading: false },
 }))
 
 const baseData: StepData = { broker: 'KIS', apiKey: '', apiSecret: '', accountNo: '', nickname: '' }
 
 describe('ApiStep', () => {
+  beforeEach(() => {
+    mockError = null
+    mockRuntimeLoading = false
+  })
+
   it('runs the KIS connection test with the entered credentials', async () => {
     mockState = { isPending: false, isSuccess: false, isError: false }
     const user = userEvent.setup()
@@ -86,6 +95,12 @@ describe('ApiStep', () => {
     mockError = new ApiError(422, { code: 'BROKER_IP_NOT_ALLOWED', detail: 'x' })
     render(<ApiStep data={{ ...baseData, broker: 'UPBIT', apiKey: 'access-key-1234', apiSecret: 'secret-key-1234' }} onNext={vi.fn()} onBack={vi.fn()} />)
     expect(screen.getByText(/허용 IP가 등록되지 않았습니다/)).toBeInTheDocument()
-    mockError = null
+  })
+
+  it('업비트 허용 IP를 불러오는 중에는 실패 문구 대신 확인 중을 보여준다', () => {
+    mockRuntimeLoading = true
+    render(<ApiStep data={{ ...baseData, broker: 'UPBIT' }} onNext={vi.fn()} onBack={vi.fn()} />)
+    expect(screen.getByText('확인 중')).toBeInTheDocument()
+    expect(screen.queryByText('불러오지 못했습니다.')).not.toBeInTheDocument()
   })
 })

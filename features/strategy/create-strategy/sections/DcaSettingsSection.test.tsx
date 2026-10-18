@@ -39,6 +39,7 @@ describe('DcaSettingsSection', () => {
   it('코인은 금액을 원 단위로 받고 주문 방식 대신 실행 시각을 보여준다', () => {
     render(<Harness market="CRYPTO_KRW" />)
     expect(screen.getByLabelText('회차당 금액 (원)')).toHaveAttribute('step', '1')
+    expect(screen.getByLabelText('회차당 금액 (원)')).toHaveAttribute('inputmode', 'numeric')
     expect(screen.queryByText('주문 방식')).not.toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: '실행 시각' })).toBeInTheDocument()
     expect(screen.queryByText(/휴장일이면/)).not.toBeInTheDocument()
@@ -62,6 +63,7 @@ describe('DcaSettingsSection', () => {
     expect(screen.queryByRole('option', { name: '토요일' })).not.toBeInTheDocument()
     expect(screen.queryByRole('option', { name: '일요일' })).not.toBeInTheDocument()
     expect(screen.getByLabelText('회차당 금액 (USD)')).toHaveAttribute('step', '0.01')
+    expect(screen.getByLabelText('회차당 금액 (USD)')).toHaveAttribute('inputmode', 'decimal')
     expect(screen.getByText('주문 방식')).toBeInTheDocument()
     expect(screen.queryByRole('combobox', { name: '실행 시각' })).not.toBeInTheDocument()
   })

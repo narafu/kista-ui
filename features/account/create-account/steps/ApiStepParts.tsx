@@ -125,7 +125,7 @@ export function ConnectionTest({ keyLabel, secretLabel, disabled, isPending, isS
   )
 }
 
-export function UpbitKeyGuide({ allowedIp }: { allowedIp: string | undefined }) {
+export function UpbitKeyGuide({ allowedIp, isLoading }: { allowedIp: string | undefined; isLoading: boolean }) {
   async function handleCopy() {
     if (!allowedIp) return
     try {
@@ -149,7 +149,7 @@ export function UpbitKeyGuide({ allowedIp }: { allowedIp: string | undefined }) 
             </IconButton>
           </span>
         ) : (
-          <span className="text-muted-foreground">불러오지 못했습니다.</span>
+          <span className="text-muted-foreground">{isLoading ? '확인 중' : '불러오지 못했습니다.'}</span>
         )}
       </div>
       <p className="text-muted-foreground">권한은 자산 조회, 주문 조회, 주문하기만 켜세요.</p>

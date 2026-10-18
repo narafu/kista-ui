@@ -58,9 +58,9 @@ export function AccountCard({ account }: Props) {
           <span className="-ml-2 inline-flex items-center px-2 h-[19px] rounded-sm text-xs font-semibold shrink-0 bg-accent text-accent-foreground">
             {brokerLabel}
           </span>
-            {expiry && (
-              <Badge tone={expiry === 'EXPIRED' ? 'error' : 'warn'} size="sm">{API_KEY_EXPIRY_LABEL[expiry]}</Badge>
-            )}
+          {expiry && (
+            <Badge tone={expiry === 'EXPIRED' ? 'error' : 'warn'} size="sm">{API_KEY_EXPIRY_LABEL[expiry]}</Badge>
+          )}
         </div>
         {/* 2행: 닉네임 + 전략 수 + 상태 + 화살표 */}
         <div className="flex items-start gap-2">

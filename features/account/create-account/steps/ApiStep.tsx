@@ -79,7 +79,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
   })
   // KIS/TOSS 모두 훅을 호출해야 함 (조건부 훅 호출 금지)
   const testMutation = useTestKisConnectionMutation()
-  const { data: runtimeConfig } = useRuntimeConfigQuery()
+  const { data: runtimeConfig, isLoading: isRuntimeConfigLoading } = useRuntimeConfigQuery()
 
   // MOCK은 이 스텝을 렌더하지 않는다(CreateAccountStepper가 건너뜀)
   const broker = data.broker as Exclude<BrokerCode, 'MOCK'>
@@ -130,7 +130,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
         />
       </div>
 
-      {broker === 'UPBIT' && <UpbitKeyGuide allowedIp={runtimeConfig?.brokers.UPBIT?.allowedIp} />}
+      {broker === 'UPBIT' && <UpbitKeyGuide allowedIp={runtimeConfig?.brokers.UPBIT?.allowedIp} isLoading={isRuntimeConfigLoading} />}
 
       {config.needsTest && (
         <ConnectionTest

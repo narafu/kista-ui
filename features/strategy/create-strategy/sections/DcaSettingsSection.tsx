@@ -38,6 +38,7 @@ export function DcaSettingsSection({ form, isEdit, market, orderTypes, direction
   const weekdays = isCrypto ? (Object.keys(WEEKDAY_LABEL) as DcaWeekday[]) : STOCK_WEEKDAYS
   const amountId = useId()
   const scheduleErrorId = useId()
+  const hourErrorId = useId()
   const { watch, setValue, register, formState: { errors } } = form
   const direction = watch('direction')
   const orderType = watch('orderType')
@@ -95,7 +96,7 @@ export function DcaSettingsSection({ form, isEdit, market, orderTypes, direction
           <Controller control={form.control} name="executionHour" render={({ field }) => (
             <Select items={HOUR_OPTIONS.map((h) => ({ value: String(h), label: formatExecutionHour(h) }))}
               value={field.value == null ? '' : String(field.value)} onValueChange={(v) => field.onChange(Number(v))}>
-              <SelectTrigger aria-label="실행 시각" aria-invalid={!!errors.executionHour} className="h-11 w-full"><SelectValue placeholder="시각 선택" /></SelectTrigger>
+              <SelectTrigger aria-label="실행 시각" aria-invalid={!!errors.executionHour} aria-describedby={errors.executionHour ? hourErrorId : undefined} className="h-11 w-full"><SelectValue placeholder="시각 선택" /></SelectTrigger>
               <SelectContent>
                 {HOUR_OPTIONS.map((h) => (
                   <SelectItem key={h} value={String(h)}>{formatExecutionHour(h)}</SelectItem>
@@ -103,7 +104,7 @@ export function DcaSettingsSection({ form, isEdit, market, orderTypes, direction
               </SelectContent>
             </Select>
           )} />
-          {errors.executionHour && <p className="mt-1 text-sm text-[var(--status-error)]">{errors.executionHour.message}</p>}
+          {errors.executionHour && <p id={hourErrorId} className="mt-1 text-sm text-[var(--status-error)]">{errors.executionHour.message}</p>}
           <Caption>한국 시간 기준, 시장가로 주문</Caption>
         </div>
       )}
