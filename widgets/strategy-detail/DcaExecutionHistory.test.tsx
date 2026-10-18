@@ -36,14 +36,14 @@ describe('DcaExecutionHistory', () => {
     expect(cells[3]).toHaveTextContent('-')
   })
 
-  it('코인 행은 원화 가격과 소수 수량으로 표시한다', () => {
+  it('코인 행은 원화 가격과 소수 수량·코인 단위로 표시한다', () => {
     queryMock.mockReturnValue({
       data: { content: [{ kstTradeDate: '2026-10-18', status: 'SKIPPED', skipReason: 'BELOW_MIN_ORDER_AMOUNT', detail: null, referencePrice: 145000000, quantity: 0.00034482, order: { id: 'o1', status: 'FILLED', filledPrice: 145100000 } }], page: 0, size: 20, totalElements: 1 },
       isLoading: false, isError: false,
     })
     render(<DcaExecutionHistory strategyId="d1" ticker="BTC" />)
     expect(screen.getByText('145,000,000원')).toBeInTheDocument()
-    expect(screen.getByText('0.00034482')).toBeInTheDocument()
+    expect(screen.getByText('0.00034482 BTC')).toBeInTheDocument()
     expect(screen.getByText(/145,100,000원/)).toBeInTheDocument()
   })
 })

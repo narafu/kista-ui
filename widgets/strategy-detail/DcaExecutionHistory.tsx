@@ -16,7 +16,8 @@ const PAGE_SIZE = 20
 
 export function DcaExecutionHistory({ strategyId, ticker }: { strategyId: string; ticker: string }) {
   const { labelOf, findTicker } = useMeta()
-  const currency = isCryptoMarket(findTicker(ticker)?.market) ? 'KRW' : 'USD'
+  const isCrypto = isCryptoMarket(findTicker(ticker)?.market)
+  const currency = isCrypto ? 'KRW' : 'USD'
   const [page, setPage] = useState(1) // PaginationBar는 1-base, API는 0-base
   const { data, isLoading, isError } = useDcaExecutionsQuery(strategyId, page - 1, PAGE_SIZE)
   const rows = data?.content ?? []
@@ -41,7 +42,7 @@ export function DcaExecutionHistory({ strategyId, ticker }: { strategyId: string
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-muted-foreground">
-                  <th className="px-4 py-2 font-medium whitespace-nowrap">거래일</th>
+                  <th className="px-4 py-2 font-medium whitespace-nowrap">{isCrypto ? '실행일' : '거래일'}</th>
                   <th className="px-4 py-2 font-medium whitespace-nowrap">결과</th>
                   <th className="px-4 py-2 font-medium whitespace-nowrap">사유</th>
                   <th className="px-4 py-2 font-medium text-right whitespace-nowrap">기준가</th>
@@ -62,7 +63,7 @@ export function DcaExecutionHistory({ strategyId, ticker }: { strategyId: string
                       {r.detail && <div className="text-xs text-muted-foreground">{r.detail}</div>}
                     </td>
                     <td className="px-4 py-2 text-right tabular-nums whitespace-nowrap">{r.referencePrice != null ? fmtMoney(r.referencePrice, currency) : '-'}</td>
-                    <td className="px-4 py-2 text-right tabular-nums whitespace-nowrap">{r.quantity != null ? fmtQuantity(r.quantity) : '-'}</td>
+                    <td className="px-4 py-2 text-right tabular-nums whitespace-nowrap">{r.quantity != null ? (isCrypto ? `${fmtQuantity(r.quantity)} ${ticker}` : `${fmtQuantity(r.quantity)}주`) : '-'}</td>
                     <td className="px-4 py-2 whitespace-nowrap">
                       {r.order
                         ? `${ORDER_STATUS_LABEL[r.order.status] ?? r.order.status}${r.order.filledPrice != null ? ` · ${fmtMoney(r.order.filledPrice, currency)}` : ''}`
