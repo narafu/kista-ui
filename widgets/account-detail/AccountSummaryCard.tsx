@@ -12,6 +12,9 @@ import { apiKeyExpiryState, API_KEY_EXPIRY_LABEL } from '@entities/account'
 import type { Account } from '@entities/account'
 import type { CryptoPortfolio } from '@entities/trade'
 
+// 금액은 "원"이 홀로 줄바꿈되지 않게 붙이되, 아주 긴 숫자는 넘치지 않고 줄바꿈한다
+const KRW_VALUE_CLASS = 'break-keep [overflow-wrap:anywhere]'
+
 interface Props {
   account: Account
   usdDeposit: number
@@ -61,9 +64,9 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, cryptoPort
           <KpiCard label="증권사" value={<span className="text-xl font-semibold leading-snug">{brokerLabel}</span>} />
           {isCryptoBroker(account.broker) ? (
             <>
-              <KpiCard label="원화 예수금" value={cryptoPortfolio ? fmtKrw(cryptoPortfolio.krwCash) : '-'} />
-              <div>
-                <KpiCard label="총자산" value={cryptoPortfolio ? fmtKrw(cryptoPortfolio.totalAssetKrw) : '-'} />
+              <KpiCard label="원화 예수금" value={cryptoPortfolio ? fmtKrw(cryptoPortfolio.krwCash) : '-'} valueClassName={KRW_VALUE_CLASS} />
+              <div className="col-span-2">
+                <KpiCard label="총자산" value={cryptoPortfolio ? fmtKrw(cryptoPortfolio.totalAssetKrw) : '-'} valueClassName={KRW_VALUE_CLASS} />
                 {hasUnpricedHolding && (
                   <p className="mt-1 text-xs text-muted-foreground">일부 코인은 현재가 확인 불가로 총자산에서 빠졌습니다.</p>
                 )}

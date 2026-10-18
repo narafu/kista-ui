@@ -38,6 +38,7 @@ describe('ApiStep', () => {
   beforeEach(() => {
     mockError = null
     mockRuntimeLoading = false
+    mockState = { isPending: false, isSuccess: false, isError: false }
   })
 
   it('runs the KIS connection test with the entered credentials', async () => {
