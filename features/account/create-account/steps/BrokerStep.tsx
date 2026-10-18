@@ -4,13 +4,14 @@ import { Bitcoin, Building2, FlaskConical, TrendingUp } from 'lucide-react'
 import { useMeta } from '@entities/meta'
 import type { BrokerCode } from '@entities/account'
 import { useRuntimeConfigQuery } from '@entities/runtime-config'
+import { isMockBroker } from '@shared/lib/api-schema'
 import type { StepData } from '../CreateAccountStepper'
 
 interface Props {
   onNext: (payload: Partial<StepData>) => void
 }
 
-// 아이콘·설명 문구는 UI 전용 — 순서·라벨은 API(meta.brokers)에서 수신
+// 아이콘·설명 문구는 UI 전용 — 순서·라벨은 API(meta.brokers)에서 수신하되 모의계좌는 항상 맨 뒤
 const BROKER_UI: Record<string, { description: string; Icon: React.ComponentType<{ className?: string }> }> = {
   TOSS: { description: 'Client ID / Client Secret 방식', Icon: TrendingUp },
   KIS: { description: 'App Key / App Secret 방식', Icon: Building2 },
@@ -23,6 +24,7 @@ export function BrokerStep({ onNext }: Props) {
   const { data: runtimeConfig, isLoading, isError, refetch } = useRuntimeConfigQuery()
   const enabledBrokers = meta.brokers.filter(({ code }) =>
     runtimeConfig?.brokers[code as keyof typeof runtimeConfig.brokers]?.enabled === true)
+    .sort((a, b) => Number(isMockBroker(a.code)) - Number(isMockBroker(b.code)))
 
   return (
     <div className="flex flex-col gap-6">

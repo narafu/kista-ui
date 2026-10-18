@@ -9,6 +9,7 @@ vi.mock('@entities/meta', () => ({
         { code: 'KIS', label: '한국투자증권' },
         { code: 'TOSS', label: '토스증권' },
         { code: 'MOCK', label: '모의계좌' },
+        { code: 'UPBIT', label: '업비트' },
       ],
     },
   }),
@@ -37,6 +38,15 @@ describe('BrokerStep runtime availability', () => {
     expect(mockCard).toBeInTheDocument()
     mockCard.click()
     expect(onNext).toHaveBeenCalledWith({ broker: 'MOCK' })
+  })
+
+  it('모의계좌는 meta 순서와 무관하게 맨 뒤에 둔다', () => {
+    useRuntimeConfigQueryMock.mockReturnValue({
+      data: { brokers: { KIS: { enabled: true }, TOSS: { enabled: true }, MOCK: { enabled: true }, UPBIT: { enabled: true } } },
+    })
+    render(<BrokerStep onNext={vi.fn()} />)
+    const names = screen.getAllByRole('button').map((b) => b.textContent ?? '')
+    expect(names.map((n) => n.match(/한국투자증권|토스증권|업비트|모의계좌/)?.[0])).toEqual(['한국투자증권', '토스증권', '업비트', '모의계좌'])
   })
 
   it('shows an unavailable state while no broker can be safely selected', () => {
