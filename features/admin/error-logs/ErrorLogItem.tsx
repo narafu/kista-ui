@@ -41,10 +41,10 @@ export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled =
           {/* message */}
           <p className="text-sm mt-1 font-medium break-words">{log.message}</p>
 
-          {/* context */}
+          {/* context — 값이 전부 문자열(API 계약)이라 "key: value" 한 줄씩 표시한다 */}
           {hasContext && (
-            <pre className="mt-1 text-xs text-muted-foreground bg-muted/40 rounded px-2 py-1 font-mono whitespace-pre-wrap break-all">
-              {JSON.stringify(log.context, null, 2)}
+            <pre className="mt-1 text-xs text-muted-foreground bg-muted/40 rounded px-2 py-1 font-mono whitespace-pre-wrap break-words">
+              {Object.entries(log.context).map(([key, value]) => `${key}: ${value}`).join('\n')}
             </pre>
           )}
 
