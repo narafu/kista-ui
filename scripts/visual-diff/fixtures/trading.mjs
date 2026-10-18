@@ -42,7 +42,7 @@ const STOCK_DCA_ID = '00000000-0000-4000-8000-0000000c0172'
 const stockAccountId = seed.infinite.accountId
 const stockDca = () => ({
   id: STOCK_DCA_ID, accountId: stockAccountId, type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
-  dca: { direction: 'BUY', amountUsd: '300.00', orderType: 'MOC', frequency: 'WEEKLY', dayOfWeek: 'FRIDAY', dayOfMonth: null, executionHour: null, conditions: [], nextExecution: { usSessionDate: '2026-10-09', kstTradeDate: '2026-10-10' }, lastExecution: null },
+  dca: { direction: 'BUY', amount: '300.00', orderType: 'MOC', frequency: 'WEEKLY', dayOfWeek: 'FRIDAY', dayOfMonth: null, executionHour: null, conditions: [], nextExecution: { usSessionDate: '2026-10-09', kstTradeDate: '2026-10-10' }, lastExecution: null },
 })
 const cryptoPortfolio = { krwCash: 120000, totalAssetKrw: 1478024, holdings: [
   { ticker: 'BTC', quantity: 0.01234567, avgBuyPrice: 100000000, currentPrice: 110000000, evalAmountKrw: 1358024 },

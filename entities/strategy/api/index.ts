@@ -52,7 +52,7 @@ function normalizeDca(raw: unknown): StrategyDcaSummary | undefined {
   const last = d.lastExecution as Record<string, unknown> | null | undefined
   return {
     direction: String(d.direction) as DcaDirection,
-    amount: toNum(d.amount ?? d.amountUsd), // A 계약 전환기 — 구 응답은 amountUsd만 준다
+    amount: toNum(d.amount),
     orderType: String(d.orderType) as DcaOrderType,
     frequency: String(d.frequency) as DcaFrequency,
     dayOfWeek: isDcaWeekday(d.dayOfWeek) ? d.dayOfWeek : null,

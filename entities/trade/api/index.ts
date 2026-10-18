@@ -76,7 +76,7 @@ export async function getDailyTransactionsBatch(
 interface CryptoPortfolioRaw {
   krwCash: number | string
   totalAssetKrw: number | string
-  holdings?: Array<{ ticker: string; quantity: number | string; avgBuyPrice: number | string; currentPrice: number | string | null; evalAmountKrw: number | string }>
+  holdings?: Array<{ ticker: string; quantity: number | string; avgBuyPrice: number | string; currentPrice: number | string | null; evalAmountKrw: number | string | null }>
 }
 
 export async function getCryptoPortfolio(accountId: string, token?: string): Promise<CryptoPortfolio> {

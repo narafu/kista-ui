@@ -132,7 +132,7 @@ describe('trade api', () => {
       totalAssetKrw: 1520000,
       holdings: [
         { ticker: 'BTC', quantity: '0.01234567', avgBuyPrice: '100000000', currentPrice: 110000000, evalAmountKrw: 1358024 },
-        { ticker: 'ETH', quantity: 0.5, avgBuyPrice: 5000000, currentPrice: null, evalAmountKrw: 0 },
+        { ticker: 'ETH', quantity: 0.5, avgBuyPrice: 5000000, currentPrice: null, evalAmountKrw: null },
       ],
     })
 
@@ -142,5 +142,6 @@ describe('trade api', () => {
     expect(result.krwCash).toBe(120000)
     expect(result.holdings[0]).toEqual({ ticker: 'BTC', quantity: 0.01234567, avgBuyPrice: 100000000, currentPrice: 110000000, evalAmountKrw: 1358024 })
     expect(result.holdings[1].currentPrice).toBeNull()
+    expect(result.holdings[1].evalAmountKrw).toBe(0)
   })
 })

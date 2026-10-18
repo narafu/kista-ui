@@ -76,7 +76,7 @@ export interface CryptoHolding {
   ticker: string
   quantity: number
   avgBuyPrice: number
-  currentPrice: number | null // 현재가 조회 실패 — 이때 evalAmountKrw는 0이라 화면에서 0원으로 보여주지 않는다
+  currentPrice: number | null // 현재가 조회 실패 — 이때 evalAmountKrw는 null(0으로 정규화)이라 화면에서 0원으로 보여주지 않는다
   evalAmountKrw: number
 }
 

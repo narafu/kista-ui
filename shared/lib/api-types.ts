@@ -2427,13 +2427,8 @@ export interface components {
         DcaConfigRequest: {
             /** @enum {string} */
             direction: "BUY" | "SELL";
-            /** @description 회차당 금액 (계좌 통화 — 주식 USD, 코인 KRW 원 단위 정수). amount·amountUsd 중 하나 필수 */
-            amount?: number;
-            /**
-             * @deprecated
-             * @description 회차당 금액 (구 필드, amount와 같은 의미 — 둘 다 보내면 같은 값이어야 함)
-             */
-            amountUsd?: number;
+            /** @description 회차당 금액 (계좌 통화 — 주식 USD, 코인 KRW 원 단위 정수) */
+            amount: number;
             /** @enum {string} */
             orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
             /** @enum {string} */
@@ -2580,7 +2575,6 @@ export interface components {
             /** @enum {string} */
             direction?: "BUY" | "SELL";
             amount?: number;
-            amountUsd?: number;
             /** @enum {string} */
             orderType?: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
             /** @enum {string} */
@@ -3535,9 +3529,9 @@ export interface components {
             /** @description 평균 매수가 (KRW) */
             avgBuyPrice?: number;
             /** @description 현재가 (KRW, 시세 없으면 null) */
-            currentPrice?: number;
-            /** @description 평가액 (KRW, 원 단위 HALF_UP) */
-            evalAmountKrw?: number;
+            currentPrice?: number | null;
+            /** @description 평가액 (KRW, 원 단위 HALF_UP, 시세 없으면 null) */
+            evalAmountKrw?: number | null;
         };
         CryptoPortfolioResponse: {
             /** @description 원화 예수금 (가용 + 주문 대기) */

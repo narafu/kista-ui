@@ -85,7 +85,7 @@ describe('DCA api', () => {
       id: 's1', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
       currentHoldings: 12,
       dca: {
-        direction: 'BUY', amountUsd: '300.00', orderType: 'MOC', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null,
+        direction: 'BUY', amount: '300.00', orderType: 'MOC', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null,
         conditions: [{ indicator: 'RSI', operator: 'LTE', threshold: '35' }, { indicator: 'SMA', operator: 'LT', threshold: null, smaPeriod: 200 }],
         nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' },
         lastExecution: null,
@@ -104,9 +104,9 @@ describe('DCA api', () => {
     const { listStrategies } = await import('./index')
     fetchEitherMock.mockResolvedValueOnce([
       { id: 's3', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
-        dca: { direction: 'BUY', amountUsd: 100, orderType: 'MOC', frequency: 'WEEKLY', dayOfWeek: 'FUNDAY', dayOfMonth: null, conditions: [] } },
+        dca: { direction: 'BUY', amount: 100, orderType: 'MOC', frequency: 'WEEKLY', dayOfWeek: 'FUNDAY', dayOfMonth: null, conditions: [] } },
       { id: 's4', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
-        dca: { direction: 'BUY', amountUsd: 100, orderType: 'MOC', frequency: 'WEEKLY', dayOfWeek: 'FRIDAY', dayOfMonth: null, conditions: [] } },
+        dca: { direction: 'BUY', amount: 100, orderType: 'MOC', frequency: 'WEEKLY', dayOfWeek: 'FRIDAY', dayOfMonth: null, conditions: [] } },
     ])
     const [unknown, friday] = await listStrategies('a1')
     expect(unknown.dca?.dayOfWeek).toBeNull()
@@ -120,9 +120,8 @@ describe('DCA api', () => {
     return (await listStrategies('a1'))[0].dca
   }
 
-  it('DCA 금액은 amount를 쓰고, 구 응답은 amountUsd로 채운다', async () => {
+  it('DCA 금액은 amount를 쓴다', async () => {
     expect((await dcaOf({ amount: 50000 }))?.amount).toBe(50000)
-    expect((await dcaOf({ amountUsd: 300 }))?.amount).toBe(300)
   })
 
   it('executionHour 0은 null이 아니라 0으로 유지한다', async () => {
