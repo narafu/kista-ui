@@ -46,14 +46,15 @@ function RangeFilterBarContent({ current, from, to, pageParamKeys = ['page'], pa
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap gap-2">
+      {/* 모바일에선 옆의 PageSizeSelector와 한 줄에 들어가도록 칩 간격·여백을 줄인다 */}
+      <div className="flex flex-wrap gap-1 sm:gap-2">
         {presets.map((r) => (
           <button
             key={r}
             type="button"
             aria-pressed={current === r}
             onClick={() => navigate(r, customFrom, customTo)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-2 sm:px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               current === r
                 ? 'bg-rose-50 text-[var(--brand-fg-soft)]'
                 : 'text-muted-foreground hover:bg-muted hover:text-foreground'
