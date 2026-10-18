@@ -1,7 +1,6 @@
 export type {
   TradeEvent,
   CycleHistoryItem,
-  CryptoHolding,
   CryptoPortfolio,
 } from './model/types'
 export { tradeKeys } from './model/queryKeys'
