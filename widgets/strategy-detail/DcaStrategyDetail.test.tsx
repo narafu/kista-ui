@@ -114,7 +114,7 @@ describe('DcaStrategyDetail', () => {
   })
   it('일시중지 상태와 시작 예정을 배지로 보여주고, 정상 상태면 배지가 없다', () => {
     const { unmount } = renderDetail()
-    expect(screen.queryByTestId('strategy-status-group')).not.toBeInTheDocument()
+    expect(screen.getByTestId('strategy-status-group')).toBeEmptyDOMElement()
     unmount()
     const [y, m, d] = todayKst().split('-').map(Number)
     const future = `${y + 1}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
@@ -123,9 +123,11 @@ describe('DcaStrategyDetail', () => {
     expect(group).toHaveTextContent('일시중지됨')
     expect(group).toHaveTextContent('시작예정')
   })
-  it('일정·매매 설정·보유 현황 섹션 제목을 보여준다', () => {
+  it('주식 전략 상세처럼 전략 정보 스트립과 설정 타일을 보여주고, 섹션 제목은 추가 조건·실행 이력이다', () => {
     renderDetail()
-    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['일정', '매매 설정', '보유 현황', '회차별 실행 이력'])
+    expect(screen.getByText('전략 정보')).toBeInTheDocument()
+    expect(screen.getByTestId('dca-config-grid')).toHaveTextContent('주기매월 말일')
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['추가 조건', '회차별 실행 이력'])
   })
   it('판정 안내 캡션은 추가 조건이 있을 때만 보여준다', () => {
     const { unmount } = renderDetail()
@@ -144,11 +146,10 @@ describe('DcaStrategyDetail', () => {
     expect(screen.getByText('1,100,000원')).toBeInTheDocument()
     expect(screen.getByText('+10.0%')).toHaveClass('text-pos')
   })
-  it('코인 현재가를 못 받으면 평가금액은 확인 불가, 수익률은 숨긴다', async () => {
+  it('코인 현재가를 못 받으면 평가금액·수익률은 확인 불가', async () => {
     cryptoPortfolio.result = { krwCash: 0, totalAssetKrw: 0, holdings: [{ ticker: 'BTC', quantity: 0.01, avgBuyPrice: 100_000_000, currentPrice: null, evalAmountKrw: 0 }] }
     renderDetail(btcStrategy)
-    expect(await screen.findByText('현재가 확인 불가')).toBeInTheDocument()
-    expect(screen.queryByText('수익률')).not.toBeInTheDocument()
+    expect(await screen.findAllByText('확인 불가')).toHaveLength(2) // 평가금액·수익률
   })
   it('코인 포트폴리오 조회 실패 시 안내 문구를 보여준다', async () => {
     cryptoPortfolio.result = new Error('fail')
@@ -160,7 +161,6 @@ describe('DcaStrategyDetail', () => {
     renderDetail({ ...btcStrategy, currentHoldings: 5 })
     expect(await screen.findByText('0 BTC')).toBeInTheDocument()
     expect(screen.queryByText('5 BTC')).not.toBeInTheDocument()
-    expect(screen.queryByText('평단가')).not.toBeInTheDocument()
   })
   it('주식은 포트폴리오 평단가 행이 없다', () => {
     renderDetail()

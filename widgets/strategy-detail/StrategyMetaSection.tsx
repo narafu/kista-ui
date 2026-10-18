@@ -19,7 +19,7 @@ interface Props {
   previewError: unknown
 }
 
-function StatusStrip({ strategy }: { strategy: Strategy }) {
+export function StatusStrip({ strategy }: { strategy: Strategy }) {
   const { labelOf } = useMeta()
   const scheduledStart = isScheduledStart(strategy) // startDate가 오늘 이후면 아직 매매 시작 전
   return (
