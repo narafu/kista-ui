@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDcaCondition, formatDcaSchedule } from './dcaFormat'
+import { dcaIndicatorLabel, formatCryptoNextExecution, formatDcaCondition, formatDcaSchedule } from './dcaFormat'
 
 describe('formatDcaSchedule', () => {
   it('DAILY는 빈도 라벨만', () => {
@@ -40,5 +40,22 @@ describe('formatDcaCondition', () => {
     expect(formatDcaCondition({ indicator: 'SMA', operator: 'LT' }, '이동평균선', '미만')).toBe('이동평균선(-) 미만')
     expect(formatDcaCondition({ indicator: 'AVG_PRICE', operator: 'LTE' }, '평단가', '이하')).toBe('평단가 - 이하')
     expect(formatDcaCondition({ indicator: 'RSI', operator: 'LTE', }, 'RSI(14)', '이하')).toBe('RSI(14) - 이하')
+  })
+})
+
+describe('formatCryptoNextExecution', () => {
+  it('KST 날짜를 M/D로, 실행 시각을 HH시로 붙인다', () => {
+    expect(formatCryptoNextExecution('2026-10-19', 9)).toBe('10/19 09시')
+  })
+  it('날짜가 없으면 미정', () => {
+    expect(formatCryptoNextExecution(undefined, 9)).toBe('미정')
+  })
+})
+
+describe('dcaIndicatorLabel', () => {
+  it('FEAR_GREED만 주식은 (CNN), 코인은 (Crypto)를 붙인다', () => {
+    expect(dcaIndicatorLabel('FEAR_GREED', '공포탐욕지수', false)).toBe('공포탐욕지수(CNN)')
+    expect(dcaIndicatorLabel('FEAR_GREED', '공포탐욕지수', true)).toBe('공포탐욕지수(Crypto)')
+    expect(dcaIndicatorLabel('RSI', 'RSI(14)', true)).toBe('RSI(14)')
   })
 })

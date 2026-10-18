@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useMeta } from '@entities/meta'
-import type { DcaIndicator, DcaOperator } from '@entities/strategy'
+import { dcaIndicatorLabel, type DcaIndicator, type DcaOperator } from '@entities/strategy'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import { MAX_DCA_CONDITIONS, type DcaConditionFormValue, type DcaFormValues } from '../model/dcaFormSchema'
 
@@ -19,8 +19,6 @@ interface Props {
   direction: DcaFormValues['direction']
 }
 
-// meta 라벨에 CNN 출처가 박혀 있다 — 코인 계좌는 alternative.me 지수를 쓰므로 라벨을 덮어쓴다
-const CRYPTO_INDICATOR_LABEL: Partial<Record<DcaIndicator, string>> = { FEAR_GREED: '공포탐욕지수(Crypto)' }
 const THRESHOLD_SUFFIX: Partial<Record<DcaIndicator, string>> = { AVG_PRICE: '%' }
 
 // 조건 풀이 — kista-api DcaCycleOrderStrategy.evaluate와 같은 비교식을 문장으로 보여준다
@@ -50,7 +48,7 @@ function describeCondition(c: DcaConditionFormValue | undefined, operatorLabel: 
 export function DcaConditionsSection({ form, market, indicators, direction }: Props) {
   const { meta, labelOf } = useMeta()
   const isCrypto = market === 'CRYPTO_KRW'
-  const indicatorLabel = (code: string) => (isCrypto && CRYPTO_INDICATOR_LABEL[code as DcaIndicator]) || labelOf('dcaIndicators', code)
+  const indicatorLabel = (code: string) => dcaIndicatorLabel(code, labelOf('dcaIndicators', code), isCrypto)
   const { fields, append, remove } = useFieldArray({ control: form.control, name: 'conditions' })
   const conditions = form.watch('conditions')
   const errorIdBase = useId()

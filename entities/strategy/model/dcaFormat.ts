@@ -18,6 +18,13 @@ export function formatExecutionHour(hour: number): string {
   return `${String(hour).padStart(2, '0')}시`
 }
 
+// 코인 nextExecution은 KST 날짜(usSessionDate와 같음)라 실행 시각 executionHour를 붙여 "10/19 09시"로 표시한다
+export function formatCryptoNextExecution(kstTradeDate: string | undefined, executionHour: number | null): string {
+  if (!kstTradeDate) return '미정'
+  const [, month, day] = kstTradeDate.split('-').map(Number)
+  return executionHour == null ? `${month}/${day}` : `${month}/${day} ${formatExecutionHour(executionHour)}`
+}
+
 // DCA 실행 결과 상태는 메타에 없음 — 카드·실행 이력이 같은 라벨을 쓰도록 로컬 상수 하나로 둔다
 const DCA_EXECUTION_STATUS_LABEL: Record<string, string> = {
   ORDERED: '주문됨',
@@ -38,6 +45,11 @@ export function formatDcaSchedule(
       ? `${frequencyLabel} ${dca.dayOfMonth == null ? '말일' : `${dca.dayOfMonth}일`}`
       : frequencyLabel
   return dca.executionHour == null ? day : `${day} ${formatExecutionHour(dca.executionHour)}`
+}
+
+// meta의 FEAR_GREED 라벨은 출처 중립('공포탐욕지수')이다 — 주식은 CNN, 코인은 alternative.me Crypto 지수라 출처를 붙인다
+export function dcaIndicatorLabel(code: string, metaLabel: string, isCrypto: boolean): string {
+  return code === 'FEAR_GREED' ? `${metaLabel}(${isCrypto ? 'Crypto' : 'CNN'})` : metaLabel
 }
 
 // 서버 검증상 SMA는 smaPeriod, 그 외는 threshold가 필수지만 응답 누락 시 'undefined' 노출 방지로 '-' 표기

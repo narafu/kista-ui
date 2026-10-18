@@ -12,6 +12,6 @@ export const dcaTestMeta = {
     { code: 'AVG_PRICE', label: '평단가', smaPeriods: [] },
     { code: 'SMA', label: '이동평균선', smaPeriods: [20, 50, 120, 200] },
     { code: 'RSI', label: 'RSI(14)', smaPeriods: [] },
-    { code: 'FEAR_GREED', label: '공포탐욕지수(CNN)', smaPeriods: [] },
+    { code: 'FEAR_GREED', label: '공포탐욕지수', smaPeriods: [] },
   ],
 } satisfies MetaBundle

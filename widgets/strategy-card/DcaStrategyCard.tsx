@@ -7,7 +7,7 @@ import { fmtDate, fmtMoney } from '@shared/lib/format'
 import { isCryptoMarket } from '@shared/lib/api-schema'
 import { Badge } from '@shared/ui/Badge'
 import { useMeta } from '@entities/meta'
-import { dcaExecutionStatusLabel, formatDcaSchedule, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
+import { dcaExecutionStatusLabel, formatCryptoNextExecution, formatDcaSchedule, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import { directionBadgeClass } from '@entities/trade'
 
@@ -54,13 +54,12 @@ export function DcaStrategyCard({ accountId, strategy, accountLabel }: Props) {
           {dca && (
             <>
               <p className="text-sm">{summary}</p>
-              {/* 코인 전략의 nextExecution은 api C 전까지 미국 거래일 기준이라 부정확하다 — 표시하지 않는다 */}
-              {(!isCrypto || lastLabel) && (
-                <p className="text-xs text-muted-foreground">
-                  {!isCrypto && `다음 판정일 ${dca.nextExecution ? fmtDate(dca.nextExecution.kstTradeDate) : '미정'}`}
-                  {lastLabel && `${isCrypto ? '' : ' · '}최근 ${lastLabel}`}
-                </p>
-              )}
+              <p className="text-xs text-muted-foreground">
+                {isCrypto
+                  ? `다음 실행 ${formatCryptoNextExecution(dca.nextExecution?.kstTradeDate, dca.executionHour)}`
+                  : `다음 판정일 ${dca.nextExecution ? fmtDate(dca.nextExecution.kstTradeDate) : '미정'}`}
+                {lastLabel && ` · 최근 ${lastLabel}`}
+              </p>
             </>
           )}
         </div>

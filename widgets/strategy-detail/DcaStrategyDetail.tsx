@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useManageStrategyMutations } from '@features/strategy/manage-strategy'
 import { useMeta } from '@entities/meta'
-import { formatDcaCondition, formatDcaSchedule } from '@entities/strategy'
+import { dcaIndicatorLabel, formatCryptoNextExecution, formatDcaCondition, formatDcaSchedule } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import { fmtDate, fmtMoney, fmtQuantity } from '@shared/lib/format'
 import { isCryptoMarket } from '@shared/lib/api-schema'
@@ -53,7 +53,9 @@ export function DcaStrategyDetail({ accountId, strategy }: Props) {
               <Row label="주기">{formatDcaSchedule(dca, labelOf('dcaFrequencies', dca.frequency))}</Row>
               <Row label="회차당 금액">{fmtMoney(dca.amount, isCrypto ? 'KRW' : 'USD')}</Row>
               <Row label="주문 방식">{labelOf('orderTypes', dca.orderType)}</Row>
-              {!isCrypto && <Row label="다음 판정일">{dca.nextExecution ? fmtDate(dca.nextExecution.kstTradeDate) : '미정'}</Row>}
+              {isCrypto
+                ? <Row label="다음 실행">{formatCryptoNextExecution(dca.nextExecution?.kstTradeDate, dca.executionHour)}</Row>
+                : <Row label="다음 판정일">{dca.nextExecution ? fmtDate(dca.nextExecution.kstTradeDate) : '미정'}</Row>}
               <p className="text-xs text-muted-foreground">조건 충족 여부는 실행일에 판정</p>
             </>
           )}
@@ -67,7 +69,7 @@ export function DcaStrategyDetail({ accountId, strategy }: Props) {
               ) : (
                 <ul className="mt-1 space-y-1 text-sm font-semibold">
                   {dca.conditions.map((c, i) => (
-                    <li key={i}>{formatDcaCondition(c, labelOf('dcaIndicators', c.indicator), labelOf('dcaOperators', c.operator))}</li>
+                    <li key={i}>{formatDcaCondition(c, dcaIndicatorLabel(c.indicator, labelOf('dcaIndicators', c.indicator), isCrypto), labelOf('dcaOperators', c.operator))}</li>
                   ))}
                 </ul>
               )}

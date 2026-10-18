@@ -43,12 +43,23 @@ function renderDetail(s: Strategy = strategy) {
 }
 
 describe('DcaStrategyDetail', () => {
-  it('코인 DCA 상세는 원화 금액·실행 시각·소수 수량을 보여주고 다음 판정일 행이 없다', () => {
-    renderDetail({ ...strategy, ticker: 'BTC', currentHoldings: 0.01234567, dca: { ...strategy.dca!, amount: 50000, frequency: 'DAILY', executionHour: 0 } })
+  it('코인 DCA 상세는 원화 금액·실행 시각·소수 수량·다음 실행을 보여주고 다음 판정일 행이 없다', () => {
+    renderDetail({ ...strategy, ticker: 'BTC', currentHoldings: 0.01234567, dca: { ...strategy.dca!, amount: 50000, frequency: 'DAILY', executionHour: 0, nextExecution: { usSessionDate: '2026-11-01', kstTradeDate: '2026-11-01' } } })
     expect(screen.getByText('50,000원')).toBeInTheDocument()
-    expect(screen.getByText(/00시/)).toBeInTheDocument()
+    expect(screen.getByText('매일 00시')).toBeInTheDocument()
     expect(screen.getByText('0.01234567 BTC')).toBeInTheDocument()
+    expect(screen.getByText('다음 실행')).toBeInTheDocument()
+    expect(screen.getByText('11/1 00시')).toBeInTheDocument()
     expect(screen.queryByText('다음 판정일')).not.toBeInTheDocument()
+  })
+  it('공포탐욕지수 조건은 주식이면 (CNN), 코인이면 (Crypto) 출처를 붙인다', () => {
+    const fg = { indicator: 'FEAR_GREED' as const, operator: 'LTE' as const, threshold: 20 }
+    const { unmount } = renderDetail({ ...strategy, dca: { ...strategy.dca!, conditions: [fg] } })
+    expect(screen.getByText(/공포탐욕지수\(CNN\) 20/)).toBeInTheDocument()
+    unmount()
+    renderDetail({ ...strategy, ticker: 'BTC', dca: { ...strategy.dca!, conditions: [fg], nextExecution: null } })
+    expect(screen.getByText(/공포탐욕지수\(Crypto\) 20/)).toBeInTheDocument()
+    expect(screen.getByText('미정')).toBeInTheDocument()
   })
   it('바로 주문 버튼이 없다', () => {
     renderDetail()

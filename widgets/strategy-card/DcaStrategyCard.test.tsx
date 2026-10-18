@@ -35,10 +35,10 @@ function withDca(patch: Partial<NonNullable<Strategy['dca']>>): Strategy {
 }
 
 describe('DcaStrategyCard', () => {
-  it('코인 DCA는 원화 금액·실행 시각을 보여주고 다음 판정일을 숨긴다', () => {
-    render(<DcaStrategyCard accountId="a1" strategy={{ ...withDca({ amount: 50000, orderType: 'MARKET', frequency: 'DAILY', executionHour: 9, nextExecution: { usSessionDate: '2026-10-18', kstTradeDate: '2026-10-19' } }), ticker: 'BTC' }} />)
+  it('코인 DCA는 원화 금액과 KST 날짜·실행 시각으로 다음 실행을 보여준다', () => {
+    render(<DcaStrategyCard accountId="a1" strategy={{ ...withDca({ amount: 50000, orderType: 'MARKET', frequency: 'DAILY', executionHour: 9, nextExecution: { usSessionDate: '2026-10-19', kstTradeDate: '2026-10-19' } }), ticker: 'BTC' }} />)
     expect(screen.getByText(/50,000원/)).toBeInTheDocument()
-    expect(screen.getByText(/09시/)).toBeInTheDocument()
+    expect(screen.getByText('다음 실행 10/19 09시')).toBeInTheDocument()
     expect(screen.queryByText(/다음 판정일/)).not.toBeInTheDocument()
   })
   it('주식 DCA는 달러 금액과 다음 판정일을 그대로 보여준다', () => {

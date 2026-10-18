@@ -35,7 +35,7 @@ const CRYPTO_STRATEGY_ID = '00000000-0000-4000-8000-0000000c0171'
 const cryptoAccount = () => ({ id: CRYPTO_ACCOUNT_ID, nickname: '코인 계좌', accountNoMasked: null, accountNo: null, broker: 'UPBIT', currency: 'KRW', apiKeyExpiresAt: new Date(Date.now() + 10 * 86400_000).toISOString() })
 const cryptoStrategy = () => ({
   id: CRYPTO_STRATEGY_ID, accountId: CRYPTO_ACCOUNT_ID, type: 'DCA', status: 'ACTIVE', ticker: 'BTC', cycleSeedType: 'NONE', isReverseMode: false,
-  dca: { direction: 'BUY', amount: 50000, orderType: 'MARKET', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, executionHour: 9, conditions: [], nextExecution: null, lastExecution: null },
+  dca: { direction: 'BUY', amount: 50000, orderType: 'MARKET', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, executionHour: 9, conditions: [], nextExecution: { usSessionDate: '2026-10-19', kstTradeDate: '2026-10-19' }, lastExecution: null },
 })
 // 시드에 주식 DCA 전략이 없어 대조용으로 MOCK 계좌에 합성한다("$" 금액, 시각 없음 확인용)
 const STOCK_DCA_ID = '00000000-0000-4000-8000-0000000c0172'
