@@ -49,18 +49,20 @@ const cryptoPortfolio = { krwCash: 120000, totalAssetKrw: 1478024, holdings: [
   { ticker: 'ETH', quantity: 0.5, avgBuyPrice: 5000000, currentPrice: null, evalAmountKrw: 0 },
 ] }
 const emptyPage = { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, last: true, hasNext: false }
-const upstreamList = async (url, req) => {
+// 실패를 []로 삼키지 않는다 — 던지면 프록시의 catch가 502로 응답하고 proxy.log에 남긴다
+const upstreamList = async (url, req, upstream) => {
   const headers = { authorization: req.headers.authorization ?? '', cookie: req.headers.cookie ?? '' }
-  const r = await fetch(`http://localhost:8081${url.pathname}`, { headers })
-  return r.ok ? r.json() : []
+  const r = await fetch(upstream + url.pathname, { headers })
+  if (!r.ok) throw new Error(`upstream ${r.status} ${url.pathname}`)
+  return r.json()
 }
 
-export async function route(url, req) {
+export async function route(url, req, { upstream, log }) {
   if (mode === 'crypto') {
     const p = url.pathname
-    if (p === '/api/accounts') return { body: [...(await upstreamList(url, req)), cryptoAccount()] }
-    if (p === '/api/trading-cycles') return { body: [...(await upstreamList(url, req)), cryptoStrategy(), stockDca()] }
-    if (p === `/api/accounts/${stockAccountId}/trading-cycles`) return { body: [...(await upstreamList(url, req)), stockDca()] }
+    if (p === '/api/accounts') return { body: [...(await upstreamList(url, req, upstream)), cryptoAccount()] }
+    if (p === '/api/trading-cycles') return { body: [...(await upstreamList(url, req, upstream)), cryptoStrategy(), stockDca()] }
+    if (p === `/api/accounts/${stockAccountId}/trading-cycles`) return { body: [...(await upstreamList(url, req, upstream)), stockDca()] }
     if (p === `/api/trading-cycles/${CRYPTO_STRATEGY_ID}/dca-executions`) return { body: emptyPage }
     if (p === `/api/trading-cycles/${CRYPTO_STRATEGY_ID}/history`) return { body: emptyPage }
     const m = p.match(/^\/api\/accounts\/([^/]+)\/(.+)$/)
@@ -71,7 +73,7 @@ export async function route(url, req) {
         case 'trading-cycles/previews': return { body: {} }
         case 'cycle-history': return { body: emptyPage }
         case 'portfolio': case 'margin': case 'prices': case 'daily-trades':
-          console.error(`CRYPTO_GATE_VIOLATION ${p}`)
+          log(`CRYPTO_GATE_VIOLATION ${p}`)
           return { status: 400, body: { title: 'CRYPTO_GATE_VIOLATION' } }
       }
     }
