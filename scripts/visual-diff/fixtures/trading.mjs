@@ -2,7 +2,7 @@
 // 기본 모드 real은 dev 시드 실데이터를 그대로 통과시킨다
 import { seed, tickerOf } from '../../shared/seed.mjs'
 
-const MODES = ['real', 'deficit', 'uncertain', 'executed', 'skip', 'empty']
+const MODES = ['real', 'deficit', 'uncertain', 'executed', 'skip', 'empty', 'crypto']
 let mode = 'real'
 export const setMode = (m) => {
   if (!MODES.includes(m)) throw new Error(`unknown mode: ${m}`)
@@ -28,7 +28,55 @@ function preview(ticker) {
   }
 }
 
-export function route(url) {
+// crypto: 로컬 DB에 없는 UPBIT 코인 계좌를 합성한다 — 계좌 목록 끝에 붙이고, 이 계좌의 조회는 코인용 응답으로 덮는다.
+// 주식 전용 조회(portfolio·margin·prices·daily-trades)가 오면 400 + CRYPTO_GATE_VIOLATION 로그(확인 후 0건이어야 한다)
+const CRYPTO_ACCOUNT_ID = '00000000-0000-4000-8000-0000000c0170'
+const CRYPTO_STRATEGY_ID = '00000000-0000-4000-8000-0000000c0171'
+const cryptoAccount = () => ({ id: CRYPTO_ACCOUNT_ID, nickname: '코인 계좌', accountNoMasked: null, accountNo: null, broker: 'UPBIT', currency: 'KRW', apiKeyExpiresAt: new Date(Date.now() + 10 * 86400_000).toISOString() })
+const cryptoStrategy = () => ({
+  id: CRYPTO_STRATEGY_ID, accountId: CRYPTO_ACCOUNT_ID, type: 'DCA', status: 'ACTIVE', ticker: 'BTC', cycleSeedType: 'NONE', isReverseMode: false,
+  dca: { direction: 'BUY', amount: 50000, orderType: 'MARKET', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, executionHour: 9, conditions: [], nextExecution: null, lastExecution: null },
+})
+// 시드에 주식 DCA 전략이 없어 대조용으로 MOCK 계좌에 합성한다("$" 금액, 시각 없음 확인용)
+const STOCK_DCA_ID = '00000000-0000-4000-8000-0000000c0172'
+const stockAccountId = seed.infinite.accountId
+const stockDca = () => ({
+  id: STOCK_DCA_ID, accountId: stockAccountId, type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
+  dca: { direction: 'BUY', amountUsd: '300.00', orderType: 'MOC', frequency: 'WEEKLY', dayOfWeek: 'FRIDAY', dayOfMonth: null, executionHour: null, conditions: [], nextExecution: { usSessionDate: '2026-10-09', kstTradeDate: '2026-10-10' }, lastExecution: null },
+})
+const cryptoPortfolio = { krwCash: 120000, totalAssetKrw: 1478024, holdings: [
+  { ticker: 'BTC', quantity: 0.01234567, avgBuyPrice: 100000000, currentPrice: 110000000, evalAmountKrw: 1358024 },
+  { ticker: 'ETH', quantity: 0.5, avgBuyPrice: 5000000, currentPrice: null, evalAmountKrw: 0 },
+] }
+const emptyPage = { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, last: true, hasNext: false }
+const upstreamList = async (url, req) => {
+  const headers = { authorization: req.headers.authorization ?? '', cookie: req.headers.cookie ?? '' }
+  const r = await fetch(`http://localhost:8081${url.pathname}`, { headers })
+  return r.ok ? r.json() : []
+}
+
+export async function route(url, req) {
+  if (mode === 'crypto') {
+    const p = url.pathname
+    if (p === '/api/accounts') return { body: [...(await upstreamList(url, req)), cryptoAccount()] }
+    if (p === '/api/trading-cycles') return { body: [...(await upstreamList(url, req)), cryptoStrategy(), stockDca()] }
+    if (p === `/api/accounts/${stockAccountId}/trading-cycles`) return { body: [...(await upstreamList(url, req)), stockDca()] }
+    if (p === `/api/trading-cycles/${CRYPTO_STRATEGY_ID}/dca-executions`) return { body: emptyPage }
+    if (p === `/api/trading-cycles/${CRYPTO_STRATEGY_ID}/history`) return { body: emptyPage }
+    const m = p.match(/^\/api\/accounts\/([^/]+)\/(.+)$/)
+    if (m?.[1] === CRYPTO_ACCOUNT_ID) {
+      switch (m[2]) {
+        case 'crypto-portfolio': return { body: cryptoPortfolio }
+        case 'trading-cycles': return { body: [cryptoStrategy()] }
+        case 'trading-cycles/previews': return { body: {} }
+        case 'cycle-history': return { body: emptyPage }
+        case 'portfolio': case 'margin': case 'prices': case 'daily-trades':
+          console.error(`CRYPTO_GATE_VIOLATION ${p}`)
+          return { status: 400, body: { title: 'CRYPTO_GATE_VIOLATION' } }
+      }
+    }
+    return
+  }
   if (mode === 'real') return
   let m
   if ((m = url.pathname.match(/^\/api\/trading-cycles\/([^/]+)\/preview$/))) return { body: preview(tickerOf(m[1])) }

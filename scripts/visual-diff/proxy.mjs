@@ -1,5 +1,5 @@
 // 검증용 읽기 전용 프록시 — GET/HEAD만 upstream에 넘기고 쓰기 요청은 전부 403(로컬 DB 실데이터 보호).
-// route(url)가 { status, body }를 돌려주면 fixture로 응답하고, undefined면 upstream으로 넘긴다.
+// route(url, req)가 { status, body }를 돌려주면 fixture로 응답하고, undefined면 upstream으로 넘긴다.
 // upstream 성공 응답(SSE 제외)은 실행 동안 메모이즈한다 — 실시간 가격·preview가 head/base 촬영 사이에 바뀌어 생기는 가짜 diff 방지
 import http from 'node:http'
 import { Readable } from 'node:stream'
@@ -19,7 +19,7 @@ export function startProxy({ name, port, upstream, route = () => {}, log }) {
       return json(res, 403, { title: `blocked by ${name}` })
     }
     try {
-      const hit = route(url)
+      const hit = await route(url, req)
       if (hit) return json(res, hit.status ?? 200, hit.body)
 
       const key = [req.method, url.pathname + url.search, req.headers.authorization, req.headers.cookie].join(' ')

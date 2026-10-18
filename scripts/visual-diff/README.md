@@ -48,6 +48,7 @@ node scripts/visual-diff/sheet.mjs <out-dir> --only '^m-inf-.*-pc$' --crop 300,5
 
 - `../shared/seed.mjs`(a11y-check와 공용): 시나리오가 여는 계좌·전략 ID. 실행 시 로컬 API에서 MOCK 시드 계좌·전략을 조회해 정하고(실패 시 기본값), `KISTA_DEV_SEED=<json>`을 주면 그 파일로 최상위 키 단위 덮어쓰기(동작 상세는 `../a11y-check/README.md` "전제와 안전장치").
 - `fixtures/trading.mjs`: preview·previews의 인위적 분기를 모드별로 응답한다(`deficit`/`uncertain`/`executed`/`skip`/`empty`). 시나리오의 `mode`로 고르고, 기본값 `real`은 실데이터를 그대로 통과시킨다.
+  - `crypto`: 로컬 DB에 없는 UPBIT 코인 계좌(id `00000000-0000-4000-8000-0000000c0170`)와 코인 DCA 전략을 합성하고, MOCK 계좌에 주식 DCA 전략 1건을 덧붙인다. 코인 계좌에 주식 전용 조회(portfolio·margin·prices·daily-trades)가 오면 400을 돌려주고 `CRYPTO_GATE_VIOLATION <path>`를 stderr에 남긴다. 시나리오가 아니라 프록시를 직접 띄워 쓴다(`startProxy({ route })` + `setMode('crypto')`). 브라우저 쪽은 `/api/runtime-config` 응답의 `brokers.UPBIT.enabled`·`strategies.DCA.enabled`를 `page.route`로 true로 바꿔야 한다.
 - kista-api(8080)는 fixture 없이 실데이터를 그대로 통과시킨다. `etf-series`는 09:00 KST cron에서만 수집되므로, 수집 전이면 ETF 벤치마크 탭이 "데이터 부족" 상태로만 비교된다.
 - 프록시는 실행 동안 upstream의 성공 응답(SSE 제외)을 메모이즈한다(URL·인증 헤더 기준). 진행 중인 요청도 공유하므로, head와 base가 병렬로 같은 데이터를 요청해도 실시간 가격이나 preview가 달라져 가짜 diff가 생기지 않는다.
 
