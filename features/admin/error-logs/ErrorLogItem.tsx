@@ -18,7 +18,7 @@ export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled =
 
   return (
     <div className="px-4 py-3 hover:bg-muted/20 transition-colors">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-start gap-3">
         <label className="mt-0.5 -m-1 inline-flex shrink-0 p-1">
           <input
             type="checkbox"
@@ -30,9 +30,12 @@ export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled =
           />
         </label>
         <div className="flex-1 min-w-0">
-          {/* errorType 뱃지 — 관리자 디버깅용으로 원본 코드를 그대로 표시한다 */}
-          <div className="flex items-center gap-2 flex-wrap">
+          {/* errorType 뱃지 — 관리자 디버깅용으로 원본 코드를 그대로 표시한다. 발생 시각은 같은 줄에 두고 좁은 화면에선 줄바꿈 */}
+          <div className="flex items-center justify-between gap-x-2 gap-y-1 flex-wrap">
             <Badge tone="brand" size="sm">{log.errorType}</Badge>
+            <time dateTime={log.createdAt} className="text-sm text-muted-foreground">
+              {fmtDateTime(log.createdAt)}
+            </time>
           </div>
 
           {/* message */}
@@ -40,9 +43,9 @@ export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled =
 
           {/* context */}
           {hasContext && (
-            <p className="mt-1 text-xs text-muted-foreground bg-muted/40 rounded px-2 py-1 font-mono whitespace-pre-wrap break-all">
-              {JSON.stringify(log.context)}
-            </p>
+            <pre className="mt-1 text-xs text-muted-foreground bg-muted/40 rounded px-2 py-1 font-mono whitespace-pre-wrap break-all">
+              {JSON.stringify(log.context, null, 2)}
+            </pre>
           )}
 
           {/* stackTrace 접기/펼치기 — 스택 없이 저장된 로그(클라이언트 보고 등)는 버튼 대신 안내 */}
@@ -65,11 +68,6 @@ export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled =
             <p className="mt-1.5 text-sm text-muted-foreground">스택트레이스 없음</p>
           )}
         </div>
-
-        {/* 발생 시각 */}
-        <time dateTime={log.createdAt} className="text-sm text-muted-foreground shrink-0">
-          {fmtDateTime(log.createdAt)}
-        </time>
       </div>
     </div>
   )
