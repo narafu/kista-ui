@@ -63,7 +63,7 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, cryptoPort
             <>
               <KpiCard label="원화 예수금" value={cryptoPortfolio ? fmtKrw(cryptoPortfolio.krwCash) : '-'} />
               <div>
-                <KpiCard label="총자산(원화 환산)" value={cryptoPortfolio ? fmtKrw(cryptoPortfolio.totalAssetKrw) : '-'} />
+                <KpiCard label="총자산" value={cryptoPortfolio ? fmtKrw(cryptoPortfolio.totalAssetKrw) : '-'} />
                 {hasUnpricedHolding && (
                   <p className="mt-1 text-xs text-muted-foreground">일부 코인은 현재가 확인 불가로 총자산에서 빠졌습니다.</p>
                 )}

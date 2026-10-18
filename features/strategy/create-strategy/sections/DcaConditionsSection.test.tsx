@@ -67,6 +67,11 @@ describe('DcaConditionsSection', () => {
     render(<Harness direction="SELL" />)
     expect(screen.queryByText('보유 0주일 때는 평단가 조건 없이 매수')).not.toBeInTheDocument()
   })
+  it('코인은 첫 매수 캡션을 수량 기준으로 쓴다', () => {
+    render(<Harness market="CRYPTO_KRW" />)
+    expect(screen.getByText('보유 수량이 0일 때는 평단가 조건 없이 매수')).toBeInTheDocument()
+    expect(screen.queryByText('보유 0주일 때는 평단가 조건 없이 매수')).not.toBeInTheDocument()
+  })
   it('오류는 해당 행 아래에 표시하고 입력에 aria-invalid·aria-describedby 연결', async () => {
     render(<Harness />)
     fireEvent.click(screen.getByRole('button', { name: '조건 추가' }))

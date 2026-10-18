@@ -65,7 +65,7 @@ export function DcaConditionsSection({ form, market, indicators, direction }: Pr
       <StrategyFieldLabel>추가 조건 (모두 충족 시 주문)</StrategyFieldLabel>
       <p className="mb-2 text-sm text-muted-foreground">평단가·보유 수량은 계좌 전체 보유 기준</p>
       {isCrypto && <p className="mb-2 text-sm text-muted-foreground">이동평균·RSI는 업비트 일봉(09:00 KST 마감) 기준</p>}
-      {direction === 'BUY' && <p className="mb-2 text-sm text-muted-foreground">보유 0주일 때는 평단가 조건 없이 매수</p>}
+      {direction === 'BUY' && <p className="mb-2 text-sm text-muted-foreground">{isCrypto ? '보유 수량이 0일 때는 평단가 조건 없이 매수' : '보유 0주일 때는 평단가 조건 없이 매수'}</p>}
 
       {fields.length === 0 && <p className="py-2 text-sm text-muted-foreground">조건 없이 매 회차 주문</p>}
 
