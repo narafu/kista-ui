@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { fmtCompactUsd, fmtSignedPercent } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { fmtCompactUsdTick, stepDecimals } from './niceTicks'
-import type { CryptoTickerIndicators } from '@entities/market'
+import type { CryptoMarketIndicators, CryptoTickerIndicators } from '@entities/market'
 
 const IndicatorLineChart = dynamic(() => import('./IndicatorLineChart'), {
   ssr: false,
@@ -24,6 +24,11 @@ type Days = (typeof DAYS_OPTIONS)[number]
 const fmtPct = (percent: number) => fmtSignedPercent(percent / 100, 2)
 // 펀딩비는 비율 원값(0.0001 = 0.01%) — 평상시 기준선이 0.01%라 소수 넷째 자리까지 보여준다
 const fmtFunding = (ratio: number) => fmtSignedPercent(ratio, 4)
+// 배수·비율은 1이 기준인 무단위 값이라 소수 둘째 자리까지
+const fmtMultiple = (v: number | null) => (v == null ? '—' : `${v.toFixed(2)}x`)
+const fmtUtcDate = (date: string) => `${date.replace(/-/g, '.')} UTC`
+const fmtKstDate = (instant: string) =>
+  new Date(instant).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: 'numeric', day: 'numeric' })
 const fmtKstTime = (instant: string) =>
   new Date(instant).toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false })
 
@@ -174,7 +179,7 @@ export function OpenInterestCard({ ticker, data }: { ticker: string; data: Crypt
 
   return (
     <IndicatorCard title={title} description={description}>
-      {latest && <Stat label={`${latest.date.replace(/-/g, '.')} UTC`} value={fmtCompactUsd(latest.valueUsd)} />}
+      {latest && <Stat label={fmtUtcDate(latest.date)} value={fmtCompactUsd(latest.valueUsd)} />}
       <ChartArea>
         <IndicatorLineChart
           data={data.history}
@@ -184,6 +189,114 @@ export function OpenInterestCard({ ticker, data }: { ticker: string; data: Crypt
           formatValue={fmtCompactUsd}
         />
       </ChartArea>
+    </IndicatorCard>
+  )
+}
+
+export function ValuationCard({ ticker, data }: { ticker: string; data: CryptoTickerIndicators['valuation'] }) {
+  const title = `${ticker} 장기 밸류에이션`
+  const description = '200주 배수: 종가 ÷ 200주 이동평균, 1 미만은 장기 저점권\n메이어 멀티플: 종가 ÷ 200일 이동평균\nATH 대비: 역대 최고가에서 내려온 폭'
+  const [days, setDays] = useState<Days>(200)
+  if (!data) {
+    return <IndicatorCard title={title} description={description}><Unavailable /></IndicatorCard>
+  }
+  const { current } = data
+
+  return (
+    <IndicatorCard title={title} description={description} days={days} onDaysChange={setDays}>
+      <div className="flex flex-wrap gap-x-6 gap-y-2">
+        <Stat label="200주 배수" value={fmtMultiple(current.wma200Multiple)} />
+        <Stat label="메이어 멀티플" value={fmtMultiple(current.mayerMultiple)} />
+        {/* 신고가 당일은 0이라 fmtPct가 +0.00%로 그린다 — 하락률이 양수로 읽히지 않게 부호 없이 둔다 */}
+        <Stat label="ATH 대비" value={current.athDrawdownPercent < 0 ? fmtPct(current.athDrawdownPercent) : '0.00%'} />
+      </div>
+      <p className="text-xs text-muted-foreground">{fmtUtcDate(current.date)} 종가 기준</p>
+      <ChartArea className="min-h-[164px]">
+        <IndicatorLineChart
+          data={data.history.slice(-days)}
+          series={[
+            { key: 'wma200Multiple', name: '200주 배수', color: 'var(--chart-1)' },
+            { key: 'mayerMultiple', name: '메이어 멀티플', color: 'var(--info)' },
+          ]}
+          title={`${title} 추이`}
+          formatAxis={(v, step) => `${v.toFixed(step ? stepDecimals(step) : 1)}x`}
+          formatValue={fmtMultiple}
+          referenceY={1}
+          yWidth={40}
+        />
+      </ChartArea>
+    </IndicatorCard>
+  )
+}
+
+export function LongShortRatioCard({ ticker, data }: { ticker: string; data: CryptoTickerIndicators['longShortRatio'] }) {
+  const title = `${ticker} 롱/숏 비율`
+  const description = '바이낸스 선물 롱/숏 계좌 수 비율, 최근 30일\n1보다 크면 롱 계좌가 더 많음\n계좌 수(사람) 기준이라 포지션 규모(돈) 기준인 펀딩비와 다름'
+  if (!data) {
+    return <IndicatorCard title={title} description={description}><Unavailable /></IndicatorCard>
+  }
+
+  return (
+    <IndicatorCard title={title} description={description}>
+      <div className="flex gap-6">
+        <Stat label="롱 계좌 비중" value={`${(data.longAccount * 100).toFixed(1)}%`} />
+        <Stat label="롱/숏" value={data.longShortRatio.toFixed(2)} />
+      </div>
+      <ChartArea>
+        <IndicatorLineChart
+          data={data.history}
+          series={[{ key: 'longShortRatio', name: '롱/숏', color: 'var(--chart-2)' }]}
+          title={`${title} 추이`}
+          formatAxis={(v, step) => v.toFixed(step ? stepDecimals(step) : 1)}
+          formatValue={(v) => v.toFixed(2)}
+          referenceY={1}
+          yWidth={40}
+        />
+      </ChartArea>
+    </IndicatorCard>
+  )
+}
+
+const HALVING_INTERVAL = 210_000 // 반감기 주기(블록)
+const DAY_MS = 86_400_000
+
+// 종목 무관 BTC 전용 지표라 응답 최상위 halving을 BTC 탭에만 놓는다
+export function HalvingCard({ data, asOf }: { data: CryptoMarketIndicators['halving']; asOf: string }) {
+  const title = 'BTC 반감기'
+  const description = '21만 블록마다 채굴 보상이 절반으로 줄어듦\n예상 시점은 블록당 10분으로 계산한 추정치\n블록 높이: mempool.space'
+  if (!data) {
+    return <IndicatorCard title={title} description={description}><Unavailable /></IndicatorCard>
+  }
+  const daysLeft = Math.max(0, Math.ceil((Date.parse(data.estimatedAt) - Date.parse(asOf)) / DAY_MS))
+  // 서버가 준 높이로만 계산하고 0~1로 묶어 막대·aria 값이 범위를 벗어나지 않게 한다
+  const progress = Math.min(1, Math.max(0, (data.currentHeight - (data.nextHalvingHeight - HALVING_INTERVAL)) / HALVING_INTERVAL))
+
+  return (
+    <IndicatorCard title={title} description={description}>
+      <div className="flex flex-wrap gap-x-6 gap-y-2">
+        <Stat label="남은 블록" value={data.blocksRemaining.toLocaleString('en-US')} />
+        <Stat label="예상 시점" value={`약 ${daysLeft.toLocaleString('en-US')}일 후`} />
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {fmtKstDate(data.estimatedAt)} 전후 · 블록 <span className="tabular-nums">{data.nextHalvingHeight.toLocaleString('en-US')}</span>
+      </p>
+      <div className="mt-auto flex flex-col gap-1.5 pt-2">
+        <div
+          role="progressbar"
+          aria-label="이번 반감기 주기 진행률"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progress * 100)}
+          className="h-2 overflow-hidden rounded-full bg-muted"
+        >
+          {/* 진행률은 런타임 값이라 Tailwind로 표현할 수 없다 */}
+          <div className="h-full rounded-full bg-chart-1" style={{ width: `${progress * 100}%` }} />
+        </div>
+        <div className="flex justify-between text-xs text-muted-foreground tabular-nums">
+          <span>현재 블록 {data.currentHeight.toLocaleString('en-US')}</span>
+          <span>{(progress * 100).toFixed(1)}%</span>
+        </div>
+      </div>
     </IndicatorCard>
   )
 }

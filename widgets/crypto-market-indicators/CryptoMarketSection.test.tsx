@@ -27,6 +27,11 @@ function ticker(name: string, overrides: Partial<CryptoTickerIndicators> = {}): 
     },
     fundingRate: { current: 0.0001, nextFundingTime: '2026-10-19T16:00:00Z', history: [{ date: '2026-10-18', value: 0.0001 }] },
     openInterest: { history: [{ date: '2026-10-18', valueUsd: 8_200_000_000 }] },
+    valuation: {
+      current: { date: '2026-10-18', close: 105_000, wma200: 52_500, wma200Multiple: 2.0, mayerMultiple: 1.234, athDrawdownPercent: -12.5 },
+      history: [{ date: '2026-10-18', close: 105_000, wma200: 52_500, wma200Multiple: 2.0, mayerMultiple: 1.234, athDrawdownPercent: -12.5 }],
+    },
+    longShortRatio: { longAccount: 0.6234, longShortRatio: 1.654, history: [{ date: '2026-10-18', longAccount: 0.6234, longShortRatio: 1.654 }] },
     ...overrides,
   }
 }
@@ -36,11 +41,12 @@ function indicators(overrides: Partial<CryptoMarketIndicators> = {}): CryptoMark
     asOf: '2026-10-19T05:00:00Z',
     usdtPremium: { current: 2.1, history: [{ date: '2026-10-18', value: 2.0 }] },
     tickers: [ticker('BTC'), ticker('ETH')],
+    halving: { currentHeight: 972_175, nextHalvingHeight: 1_050_000, blocksRemaining: 77_825, estimatedAt: '2028-04-12T04:10:00Z' },
     ...overrides,
   }
 }
 
-const EMPTY_TICKER = { kimchiPremium: null, fundingRate: null, openInterest: null }
+const EMPTY_TICKER = { kimchiPremium: null, fundingRate: null, openInterest: null, valuation: null, longShortRatio: null }
 
 describe('CryptoMarketSection', () => {
   beforeEach(() => {
@@ -61,6 +67,59 @@ describe('CryptoMarketSection', () => {
     expect(screen.getByText('$8.2B')).toBeInTheDocument()
   })
 
+  it('shows long-term valuation with its daily-close date and the long/short account ratio', () => {
+    useQueryMock.mockReturnValue({ data: indicators() })
+    render(<CryptoMarketSection />)
+
+    expect(screen.getByText('2.00x')).toBeInTheDocument() // 200주 배수
+    expect(screen.getByText('1.23x')).toBeInTheDocument() // 메이어 멀티플
+    expect(screen.getByText('-12.50%')).toBeInTheDocument() // ATH 대비
+    expect(screen.getByText('2026.10.18 UTC 종가 기준')).toBeInTheDocument()
+    expect(screen.getByText('62.3%')).toBeInTheDocument()
+    expect(screen.getByText('1.65')).toBeInTheDocument()
+    expect(screen.getByText('BTC 장기 밸류에이션 추이: 200주 배수, 메이어 멀티플')).toBeInTheDocument()
+    expect(screen.getByText('BTC 롱/숏 비율 추이: 롱/숏')).toBeInTheDocument()
+  })
+
+  it('never shows a positive drawdown on an all-time-high day', () => {
+    const point = { date: '2026-10-18', close: 126_000, wma200: 52_500, wma200Multiple: 2.4, mayerMultiple: 1.5, athDrawdownPercent: 0 }
+    useQueryMock.mockReturnValue({ data: indicators({ tickers: [ticker('BTC', { valuation: { current: point, history: [point] } })] }) })
+    render(<CryptoMarketSection />)
+
+    expect(screen.getByText('0.00%')).toBeInTheDocument()
+    expect(screen.queryByText('+0.00%')).not.toBeInTheDocument()
+  })
+
+  it('shows a dash for a valuation multiple the server could not compute', () => {
+    const point = { date: '2026-10-18', close: 105_000, wma200: null, wma200Multiple: null, mayerMultiple: 1.234, athDrawdownPercent: -12.5 }
+    useQueryMock.mockReturnValue({ data: indicators({ tickers: [ticker('BTC', { valuation: { current: point, history: [point] } })] }) })
+    render(<CryptoMarketSection />)
+
+    expect(screen.getByText('—')).toBeInTheDocument()
+    expect(screen.getByText('1.23x')).toBeInTheDocument()
+  })
+
+  it('shows the halving countdown only on the BTC tab', async () => {
+    useQueryMock.mockReturnValue({ data: indicators() })
+    render(<CryptoMarketSection />)
+
+    expect(screen.getByText('77,825')).toBeInTheDocument()
+    expect(screen.getByText('약 541일 후')).toBeInTheDocument() // asOf 2026-10-19T05:00Z → 2028-04-12T04:10Z
+    expect(screen.getByText(/2028\. 4\. 12\. 전후/)).toBeInTheDocument()
+    expect(screen.getByRole('progressbar', { name: '이번 반감기 주기 진행률' })).toHaveAttribute('aria-valuenow', '63')
+
+    await userEvent.setup().click(screen.getByRole('tab', { name: 'ETH' }))
+    expect(screen.queryByText('BTC 반감기')).not.toBeInTheDocument()
+  })
+
+  it('marks only the halving card as unavailable when block height failed', () => {
+    useQueryMock.mockReturnValue({ data: indicators({ halving: null }) })
+    render(<CryptoMarketSection />)
+
+    expect(screen.getByText('BTC 반감기')).toBeInTheDocument()
+    expect(screen.getAllByText('일시적으로 불러올 수 없습니다.')).toHaveLength(1)
+  })
+
   it('switches every card to the selected ticker', async () => {
     useQueryMock.mockReturnValue({ data: indicators() })
     render(<CryptoMarketSection />)
@@ -79,6 +138,24 @@ describe('CryptoMarketSection', () => {
     expect(screen.getAllByText('일시적으로 불러올 수 없습니다.')).toHaveLength(1)
     expect(screen.getByText(/^BTC 김치 프리미엄 추이/)).toBeInTheDocument()
     expect(screen.getByText(/^BTC 미결제약정 추이/)).toBeInTheDocument()
+  })
+
+  it('marks only the failed valuation and long/short cards as unavailable', () => {
+    useQueryMock.mockReturnValue({ data: indicators({ tickers: [ticker('BTC', { valuation: null, longShortRatio: null })] }) })
+    render(<CryptoMarketSection />)
+
+    expect(screen.getAllByText('일시적으로 불러올 수 없습니다.')).toHaveLength(2)
+    expect(screen.getByText('BTC 장기 밸류에이션')).toBeInTheDocument()
+    expect(screen.getByText('BTC 롱/숏 비율')).toBeInTheDocument()
+    expect(screen.getByText(/^BTC 펀딩비 일평균 추이/)).toBeInTheDocument()
+  })
+
+  it('keeps the section when only the new sections are available', () => {
+    useQueryMock.mockReturnValue({ data: indicators({ tickers: [ticker('BTC', { kimchiPremium: null, fundingRate: null, openInterest: null })] }) })
+    render(<CryptoMarketSection />)
+
+    expect(screen.queryByText('코인 시장 지표를 불러오지 못했습니다.')).not.toBeInTheDocument()
+    expect(screen.getByText(/^BTC 장기 밸류에이션 추이/)).toBeInTheDocument()
   })
 
   it('hides the official premium and its decomposition when only the exchange rate failed', () => {

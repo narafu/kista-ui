@@ -2129,7 +2129,7 @@ export interface paths {
         };
         /**
          * 코인 시장 지표 조회
-         * @description 김프(공식 환율·테더 기준)·테더 프리미엄·펀딩비·미결제약정. 실패한 섹션은 null.
+         * @description 김프(공식 환율·테더 기준)·테더 프리미엄·펀딩비·미결제약정·장기 밸류에이션(200주 이동평균·Mayer Multiple·ATH 대비 하락률)·롱/숏 계좌 비율·BTC 반감기 카운트다운. 실패한 섹션은 null.
          */
         get: operations["getCryptoMarketIndicators"];
         put?: never;
@@ -3356,6 +3356,17 @@ export interface components {
              */
             currency?: string;
         };
+        CryptoMarketIndicatorsDatedLongShortRatio: {
+            /**
+             * Format: date
+             * @description 기준 일자
+             */
+            date: string;
+            /** @description 롱 포지션 계좌 비율 (0~1) */
+            longAccount: number;
+            /** @description 롱 계좌 수 / 숏 계좌 수 */
+            longShortRatio: number;
+        };
         CryptoMarketIndicatorsDatedPremiumPair: {
             /**
              * Format: date
@@ -3366,6 +3377,23 @@ export interface components {
             official: number | null;
             /** @description 테더 기준 김프 (%) */
             tether: number;
+        };
+        CryptoMarketIndicatorsDatedValuation: {
+            /**
+             * Format: date
+             * @description 기준 일자 (UTC 일봉)
+             */
+            date: string;
+            /** @description 그날 종가 (USDT) */
+            close: number;
+            /** @description 200주 이동평균 (USDT, 1400일 단순평균 — 이력 1400일 미만이면 null) */
+            wma200: number | null;
+            /** @description 종가 / 200주 이동평균 배수 (200주 이동평균이 null이면 null) */
+            wma200Multiple: number | null;
+            /** @description Mayer Multiple — 종가 / 200일 이동평균 (이력 200일 미만이면 null) */
+            mayerMultiple: number | null;
+            /** @description 최고 종가(ATH) 대비 하락률 (%, 0 이하) */
+            athDrawdownPercent: number;
         };
         CryptoMarketIndicatorsDatedValue: {
             /**
@@ -3387,11 +3415,41 @@ export interface components {
             /** @description 일평균 추이 */
             history: components["schemas"]["CryptoMarketIndicatorsDatedValue"][];
         };
+        CryptoMarketIndicatorsHalving: {
+            /**
+             * Format: int64
+             * @description 현재 BTC 블록 높이
+             */
+            currentHeight: number;
+            /**
+             * Format: int64
+             * @description 다음 반감기 블록 높이 (210,000 배수)
+             */
+            nextHalvingHeight: number;
+            /**
+             * Format: int64
+             * @description 남은 블록 수
+             */
+            blocksRemaining: number;
+            /**
+             * Format: date-time
+             * @description 예상 반감기 시각 (조립 시각 + 남은 블록 × 10분, 추정치)
+             */
+            estimatedAt: string;
+        };
         CryptoMarketIndicatorsKimchiPremium: {
             /** @description 현재 김프 */
             current: components["schemas"]["CryptoMarketIndicatorsPremiumPair"];
             /** @description 일자별 추이 */
             history: components["schemas"]["CryptoMarketIndicatorsDatedPremiumPair"][];
+        };
+        CryptoMarketIndicatorsLongShortRatio: {
+            /** @description 최신 롱 포지션 계좌 비율 (0~1, 계좌 수 기준) */
+            longAccount: number;
+            /** @description 최신 롱 계좌 수 / 숏 계좌 수 */
+            longShortRatio: number;
+            /** @description 일자별 추이 (최근 30일 고정) */
+            history: components["schemas"]["CryptoMarketIndicatorsDatedLongShortRatio"][];
         };
         CryptoMarketIndicatorsOpenInterest: {
             /** @description 일자별 추이 */
@@ -3428,6 +3486,8 @@ export interface components {
             usdtPremium: components["schemas"]["CryptoMarketIndicatorsPremium"] | null;
             /** @description 종목별 지표 */
             tickers: components["schemas"]["CryptoMarketIndicatorsTicker"][];
+            /** @description BTC 반감기 카운트다운 (실패 시 null) */
+            halving: components["schemas"]["CryptoMarketIndicatorsHalving"] | null;
         };
         CryptoMarketIndicatorsTicker: {
             /**
@@ -3441,6 +3501,16 @@ export interface components {
             fundingRate: components["schemas"]["CryptoMarketIndicatorsFundingRate"] | null;
             /** @description 미결제약정 (실패 시 null) */
             openInterest: components["schemas"]["CryptoMarketIndicatorsOpenInterest"] | null;
+            /** @description 장기 밸류에이션 — 직전 완성 일봉 종가 기준 (실패 시 null) */
+            valuation: components["schemas"]["CryptoMarketIndicatorsValuation"] | null;
+            /** @description 롱/숏 계좌 비율 — 계좌 수(사람) 기준, 포지션 규모(돈) 기준인 펀딩비와 다름 (실패 시 null) */
+            longShortRatio: components["schemas"]["CryptoMarketIndicatorsLongShortRatio"] | null;
+        };
+        CryptoMarketIndicatorsValuation: {
+            /** @description 현재 값 — 실시간이 아니라 직전 완성 일봉 기준 (history 마지막 점과 같음) */
+            current: components["schemas"]["CryptoMarketIndicatorsDatedValuation"];
+            /** @description 일자별 추이 (각 일자는 그날까지의 일봉으로만 계산) */
+            history: components["schemas"]["CryptoMarketIndicatorsDatedValuation"][];
         };
         BacktestPoint: {
             /** Format: date */
