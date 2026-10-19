@@ -97,7 +97,7 @@ describe('AssetRecordList', () => {
     const desktopTable = screen.getByRole('table', { name: '자산 기록' })
     expect(within(desktopTable).getAllByLabelText('수정')[0]).toHaveAttribute('title', expect.stringContaining('기록 점검이 완료된 달'))
     expect(within(desktopTable).getAllByLabelText('삭제')[0]).toBeDisabled()
-    expect(within(desktopTable).getAllByRole('checkbox').find((el) => el.getAttribute('aria-label')?.includes('선택'))).toBeDisabled()
+    expect(within(desktopTable).getAllByRole('checkbox').find((el) => el.getAttribute('aria-label')?.includes('선택'))).toHaveAttribute('aria-disabled', 'true')
   })
 
   it('로딩 중에는 로딩 문구를 표시한다', () => {

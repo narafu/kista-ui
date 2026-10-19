@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Checkbox } from '@/components/ui/checkbox'
 import type { AppErrorLog } from '@entities/admin'
 import { fmtDateTime } from '@shared/lib/format'
 import { Badge } from '@shared/ui/Badge'
@@ -19,16 +20,13 @@ export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled =
   return (
     <div className="px-4 py-3 hover:bg-muted/30 transition-colors">
       <div className="flex items-start gap-3">
-        <label className="mt-0.5 -m-1 inline-flex shrink-0 p-1">
-          <input
-            type="checkbox"
-            aria-label={`오류 로그 선택 ${log.errorType} ${fmtDateTime(log.createdAt)}`}
-            checked={checked}
-            disabled={disabled}
-            onChange={(event) => onCheckedChange?.(event.target.checked)}
-            className="size-4 rounded border-border accent-primary"
-          />
-        </label>
+        <Checkbox
+          aria-label={`오류 로그 선택 ${log.errorType} ${fmtDateTime(log.createdAt)}`}
+          checked={checked}
+          disabled={disabled}
+          onCheckedChange={onCheckedChange}
+          className="mt-1.5"
+        />
         <div className="flex-1 min-w-0">
           {/* errorType 뱃지 — 관리자 디버깅용으로 원본 코드를 그대로 표시한다. 발생 시각은 같은 줄에 두고 좁은 화면에선 줄바꿈 */}
           <div className="flex items-center justify-between gap-x-2 gap-y-1 flex-wrap">

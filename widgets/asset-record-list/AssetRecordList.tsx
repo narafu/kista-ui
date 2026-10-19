@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -104,12 +104,6 @@ export function AssetRecordList({ month }: Props) {
   const pagedIds = useMemo(() => paged.map((snapshot) => snapshot.id), [paged])
   const allPagedSelected = pagedIds.length > 0 && pagedIds.every((id) => selectedIds.has(id))
   const somePagedSelected = pagedIds.some((id) => selectedIds.has(id))
-  const headerCheckboxRef = useRef<HTMLInputElement>(null)
-  useEffect(() => {
-    if (headerCheckboxRef.current) {
-      headerCheckboxRef.current.indeterminate = somePagedSelected && !allPagedSelected
-    }
-  }, [somePagedSelected, allPagedSelected])
 
   function toggleRow(id: string) {
     setSelectedIds((prev) => {
@@ -222,8 +216,8 @@ export function AssetRecordList({ month }: Props) {
             sortKey={sortKey}
             sortDirection={sortDirection}
             onSort={handleSort}
-            headerCheckboxRef={headerCheckboxRef}
             allPagedSelected={allPagedSelected}
+            somePagedSelected={somePagedSelected}
             onToggleAll={toggleAllOnPage}
           />
           <AssetRecordMobileList paged={paged} row={rowCtx} />

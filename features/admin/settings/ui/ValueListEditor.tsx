@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { IconButton } from '@shared/ui/IconButton'
 
 type ValueSet<T extends string | number> = {
@@ -66,29 +67,35 @@ export function ValueListEditor<T extends string | number>({ id, label, field, e
   return (
     <div className="space-y-2">
       <p className="text-xs text-muted-foreground">선택한 값이 기본값입니다.</p>
-      <div role="radiogroup" aria-label={`${label} 기본값`} className="space-y-1.5">
-        {field.allowedValues.map((value) => (
-          <div key={String(value)} className="flex min-h-11 items-center gap-2 rounded-md border border-border bg-background px-2">
-            <label className="-m-1 inline-flex shrink-0 p-1">
-              <input
-                type="radio"
-                name={`${id}-default`}
-                checked={Object.is(value, field.defaultValue)}
-                onChange={() => setDefault(value)}
-                aria-label={`${String(value)} 기본값`}
-                className="size-4 shrink-0 accent-primary"
-              />
-            </label>
-            <span className="min-w-0 flex-1 truncate font-mono text-sm">{String(value)}</span>
-            <IconButton
-              aria-label={`${String(value)} 삭제`}
-              onClick={() => deleteValue(value)}
-              className="text-destructive hover:text-destructive"
-            >
-              <Trash2 className="size-4" />
-            </IconButton>
-          </div>
-        ))}
+      {/* RadioGroup(composite)은 안의 버튼에서 누른 화살표 키도 가로채 기본값을 바꾼다 — 기본값 열과 삭제 열을 나눠 한 행처럼 이어 붙인다.
+          두 열 높이는 삭제 버튼(44px)+테두리에 맞춘다 */}
+      <div className="grid grid-cols-[1fr_auto]">
+        <RadioGroup
+          aria-label={`${label} 기본값`}
+          value={field.defaultValue}
+          onValueChange={(value) => setDefault(value as T)}
+          className="gap-1.5"
+        >
+          {field.allowedValues.map((value) => (
+            <div key={String(value)} className="flex h-[46px] items-center gap-2 rounded-l-md border border-r-0 border-border bg-background pl-2">
+              <RadioGroupItem value={value} aria-label={`${String(value)} 기본값`} />
+              <span className="min-w-0 flex-1 truncate font-mono text-sm">{String(value)}</span>
+            </div>
+          ))}
+        </RadioGroup>
+        <div className="space-y-1.5">
+          {field.allowedValues.map((value) => (
+            <div key={String(value)} className="flex h-[46px] items-center rounded-r-md border border-l-0 border-border bg-background pr-2 pl-2">
+              <IconButton
+                aria-label={`${String(value)} 삭제`}
+                onClick={() => deleteValue(value)}
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash2 className="size-4" />
+              </IconButton>
+            </div>
+          ))}
+        </div>
       </div>
       <div className="flex gap-2">
         <Input

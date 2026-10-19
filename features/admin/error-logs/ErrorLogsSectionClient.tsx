@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { toast } from 'sonner'
 import { buttonVariants } from '@/components/ui/button-variants'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +26,7 @@ interface Props {
 export function ErrorLogsSectionClient({ logs }: Props) {
   const [pickedIds, setPickedIds] = useState<string[]>([])
   const [open, setOpen] = useState(false)
+  const selectAllLabelId = useId()
   const mutation = useDeleteAdminErrorLogsMutation()
 
   // 페이지·목록이 바뀌어 사라진 로그의 선택은 렌더 시점에 걸러낸다
@@ -74,18 +76,16 @@ export function ErrorLogsSectionClient({ logs }: Props) {
     <div className="rounded-[var(--r-lg)] border border-border divide-y divide-border">
       <div className="flex items-center gap-3 px-4 py-3 bg-muted/10">
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
-          <input
-            type="checkbox"
-            aria-label="현재 페이지 오류 로그 전체 선택"
+          {/* Base UI는 감싼 label을 aria-labelledby로 연결해 aria-label을 덮는다 — 맥락을 담은 이름을 명시 aria-labelledby로 준다 */}
+          <Checkbox
+            aria-labelledby={selectAllLabelId}
             checked={allSelected}
-            ref={(node) => {
-              if (node) node.indeterminate = someSelected
-            }}
+            indeterminate={someSelected}
             disabled={mutation.isPending || logs.length === 0}
-            onChange={(event) => toggleAll(event.target.checked)}
-            className="size-4 rounded border-border accent-primary"
+            onCheckedChange={toggleAll}
           />
           전체 선택
+          <span id={selectAllLabelId} hidden>현재 페이지 오류 로그 전체 선택</span>
         </label>
         {selectedCount > 0 && <span className="text-sm text-muted-foreground">{selectedCount}건 선택됨</span>}
         <AlertDialog open={open} onOpenChange={setOpen}>

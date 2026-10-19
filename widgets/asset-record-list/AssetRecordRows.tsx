@@ -1,6 +1,6 @@
 'use client'
 
-import type { RefObject } from 'react'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@shared/ui/Badge'
 import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
 import { GroupSharedBadge } from '@shared/ui/GroupSharedBadge'
@@ -58,17 +58,14 @@ function RowActions({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowC
 
 function RowCheckbox({ snapshot, row, className }: { snapshot: AssetSnapshot; row: AssetRowContext; className?: string }) {
   return (
-    <label className="-m-1 inline-flex shrink-0 p-1">
-      <input
-        type="checkbox"
-        aria-label={`${fmtDate(snapshot.entryDate)} ${accountLabel(snapshot)} 선택`}
-        checked={row.selectedIds.has(snapshot.id)}
-        onChange={() => row.onToggleRow(snapshot.id)}
-        disabled={row.monthClosed}
-        title={row.monthClosed ? row.closedMonthTitle : undefined}
-        className={cn('size-4', className, row.monthClosed && 'opacity-40')}
-      />
-    </label>
+    <Checkbox
+      aria-label={`${fmtDate(snapshot.entryDate)} ${accountLabel(snapshot)} 선택`}
+      checked={row.selectedIds.has(snapshot.id)}
+      onCheckedChange={() => row.onToggleRow(snapshot.id)}
+      disabled={row.monthClosed}
+      title={row.monthClosed ? row.closedMonthTitle : undefined}
+      className={className}
+    />
   )
 }
 
@@ -112,30 +109,26 @@ interface TableProps {
   sortKey: SortKey
   sortDirection: 'asc' | 'desc'
   onSort: (key: SortKey) => void
-  headerCheckboxRef: RefObject<HTMLInputElement | null>
   allPagedSelected: boolean
+  somePagedSelected: boolean
   onToggleAll: () => void
 }
 
-export function AssetRecordTable({ paged, row, sortKey, sortDirection, onSort, headerCheckboxRef, allPagedSelected, onToggleAll }: TableProps) {
+export function AssetRecordTable({ paged, row, sortKey, sortDirection, onSort, allPagedSelected, somePagedSelected, onToggleAll }: TableProps) {
   return (
     <div className="hidden overflow-x-auto lg:block rounded-[var(--r-lg)] border border-border" role="region" aria-label="자산 기록 표" tabIndex={0}>
       <table className="w-full min-w-[1200px] text-sm" aria-label="자산 기록">
         <thead className="bg-muted/50">
           <tr>
             <TableHeadCell className="w-10">
-              <label className="-m-1 inline-flex shrink-0 p-1">
-                <input
-                  ref={headerCheckboxRef}
-                  type="checkbox"
-                  aria-label="현재 페이지 전체 선택"
-                  checked={allPagedSelected}
-                  onChange={onToggleAll}
-                  disabled={row.monthClosed}
-                  title={row.monthClosed ? row.closedMonthTitle : undefined}
-                  className={cn('size-4', row.monthClosed && 'opacity-40')}
-                />
-              </label>
+              <Checkbox
+                aria-label="현재 페이지 전체 선택"
+                checked={allPagedSelected}
+                indeterminate={somePagedSelected && !allPagedSelected}
+                onCheckedChange={onToggleAll}
+                disabled={row.monthClosed}
+                title={row.monthClosed ? row.closedMonthTitle : undefined}
+              />
             </TableHeadCell>
             <SortableHeadCell sortKey="entryDate" activeKey={sortKey} direction={sortDirection} onSort={onSort}>기준일</SortableHeadCell>
             <SortableHeadCell sortKey="category" activeKey={sortKey} direction={sortDirection} onSort={onSort}>카테고리</SortableHeadCell>

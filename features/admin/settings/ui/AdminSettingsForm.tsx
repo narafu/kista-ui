@@ -203,7 +203,6 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
           <FieldEditor id="vr-ticker" label="종목" fixed field={draft.strategies.VR.fields.ticker}
             onChange={(value) => setStrategyField('VR', 'ticker', value)} />
           <RecurringModeEditor
-            id="vr-recurring"
             label="정기 입출금 방식"
             field={draft.strategies.VR.fields.recurringMode!}
             error={attempted ? errors['VR.recurringMode'] : undefined}

@@ -55,7 +55,7 @@
 - **모달을 여는 트리거에 `disabled`를 걸지 않는다**: 트랜지션 대기 중 `disabled`가 되면 포커스가 body로 빠져, 모달을 닫은 뒤 트리거로 돌아오지 못한다. `aria-disabled` + 핸들러 가드를 쓴다(`NewStrategyButton`).
 - **heading 레벨을 건너뛰지 않는다**: 페이지 `h1`(`PageHeader`) 바로 아래 섹션 제목은 `h2`다. `CardTitle`은 `div`라 heading이 아니다.
 - **페이지 최상위에 `<main>` 랜드마크가 하나 있어야 한다**: `(main)`/`(admin)` 레이아웃 밖의 화면(`(auth)`, `/pending`, `/rejected`)은 각 layout이 `<main>`으로 감싼다.
-- **작은 체크박스·라디오(`size-4`)는 `<label className="-m-1 inline-flex shrink-0 p-1">`로 감싸** 레이아웃은 그대로 두고 터치 영역만 24px로 넓힌다.
+- **체크박스·라디오는 raw `<input>` 대신 `@/components/ui/checkbox`·`radio-group`을 쓴다**: 미체크 테두리(`border-muted-foreground`, 3:1 이상)·포커스 링·비활성(`data-disabled:`)·indeterminate(`indeterminate` prop, Minus 아이콘)가 컴포넌트에 들어 있고, `after:` 히트 영역(약 40×32px)이 내장돼 따로 label로 감싸 터치 영역을 넓히지 않는다. 텍스트 없는 label로 감싸지 않는다 — Base UI는 감싼 `<label>`을 찾아 `aria-labelledby`로 연결해 `aria-label`을 덮는다. 보이는 텍스트 label로 감쌌는데 이름에 맥락을 더해야 하면 명시 `aria-labelledby`를 준다(`ErrorLogsSectionClient` 전체 선택).
 
 ### TypeScript / React Query
 
