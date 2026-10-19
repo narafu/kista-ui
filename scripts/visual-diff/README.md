@@ -12,7 +12,7 @@ npm run visual-diff -- --list                        # 시나리오 목록
 ```
 
 - 결과는 `--out <dir>`(기본 `$TMPDIR/kista-visual-diff/<timestamp>`)에 남는다: `shots/{head,base}/*.png`, `report.json`, dev 서버 로그(`head.log`, `base.log`), `proxy.log`.
-- 차이가 있으면(픽셀 차이, 크기 불일치, 최종 URL·상태코드 불일치, head에만 있는 콘솔 에러) exit 1.
+- 차이가 있으면(픽셀 차이, 크기 불일치, 최종 URL·상태코드 불일치, head에만 있는 콘솔 에러) exit 1. 이동·step·캡처 실패(`NAV`·`SHOT`)는 양쪽에 같이 나도 `STEP ERR`로 실패 처리한다 — 양쪽이 같은 엉뚱한 화면으로 찍혀 diff 0이 나오기 때문이다(UI 라벨이 바뀌어 step이 깨진 경우 등).
 - head와 base는 시나리오·뷰포트마다 병렬로 찍는다(같은 trading 모드). 시나리오 사이는 순차다 — fixture 모드가 전역 상태라서.
 
 ## 결과 한 장으로 보기 (`sheet.mjs`)
@@ -65,7 +65,6 @@ node scripts/visual-diff/sheet.mjs <out-dir> --only '^m-inf-.*-pc$' --crop 300,5
 - `cookies`는 추가 쿠키다. warm-up도 같은 쿠키로 연다. `proxy.ts`는 `kista-user-status`·`kista-user-role` 쿠키가 둘 다 있으면 `/me` 대신 그 값을 쓰므로, dev 사용자(ACTIVE)로 대기·반려 화면을 연다(`pending`·`rejected`).
 - `setup(page)`는 `goto` 전에 실행한다. 브라우저 요청을 `page.route`로 덮을 때 쓴다. 예: `pending`은 상태 SSE가 ACTIVE를 보내면 `/dashboard`로 이동하므로 `/api/auth/status-stream`을 204로 닫는다.
 - 사용 비율 게이지(`PercentGauge`)는 KIS 계좌로 연다(`create-strategy-balance*`·`create-strategy-gauge-*`). MOCK 계좌는 사용자 설정과 무관하게 잔고 확인이 꺼져 예수금 입력칸만 나온다.
-- step이 실패해도 양쪽이 같은 상태로 찍혀 diff 0이 나온다. 실패는 `report.json`의 `errs`에 `NAV ...`로 남으니 새 시나리오는 이것도 확인한다.
 - PC 표와 모바일 카드를 함께 렌더하고 한쪽을 CSS로 숨기는 화면은 `:visible` locator로 누른다. `.first()`만 쓰면 숨은 쪽이 잡힌다.
 - diff 0은 안정성만 보여준다. 양쪽이 똑같이 리다이렉트되거나 엉뚱한 상태여도 0이다. 새 시나리오는 `report.json`의 최종 URL·상태코드와 PNG를 직접 확인한다.
 

@@ -170,11 +170,15 @@ async function warmUp(port, scenarios, tokens) {
   }
 }
 
+// 이동·step·캡처 실패(NAV/SHOT)는 양쪽에 같이 나도 실패다 — 양쪽이 같은 엉뚱한 화면으로 찍혀 diff 0으로 통과하기 때문
+const stepErrs = (l) => [...new Set([...l.head.errs, ...l.base.errs].filter((e) => /^(NAV|SHOT) /.test(e)))]
+
 function summarize(report) {
-  const bad = report.filter((l) => l.diff !== 0 || l.newErrs.length || l.head.url !== l.base.url || l.head.status !== l.base.status)
+  const bad = report.filter((l) => l.diff !== 0 || l.newErrs.length || stepErrs(l).length || l.head.url !== l.base.url || l.head.status !== l.base.status)
   log(`\n== ${report.length}쌍 중 차이 ${bad.length}건 — 결과: ${outDir}`)
   for (const l of bad) {
     log(`  ${l.name} ${l.vp}: diff=${l.diff} status=${l.head.status}/${l.base.status} url=${l.head.url}${l.head.url !== l.base.url ? ` (base ${l.base.url})` : ''}`)
+    for (const e of stepErrs(l).slice(0, 3)) log(`    STEP ERR: ${e.split('\n')[0].slice(0, 200)}`)
     for (const e of l.newErrs.slice(0, 3)) log(`    NEW ERR: ${e.slice(0, 200)}`)
   }
   return bad.length
