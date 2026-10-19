@@ -6,10 +6,10 @@ import { Surface } from '@shared/ui/Surface'
 import { SegmentedTabs } from '@shared/ui/SegmentedTabs'
 import { cn } from '@shared/lib/utils'
 import { Button } from '@/components/ui/button'
-import { CoinbasePremiumCard, FundingRateCard, KimchiPremiumCard, HalvingCard, LongShortRatioCard, OpenInterestCard, ValuationCard } from './CryptoIndicatorCards'
+import { CoinbasePremiumCard, FundingRateCard, KimchiPremiumCard, HalvingSummary, LongShortRatioCard, OpenInterestCard, ValuationCard } from './CryptoIndicatorCards'
 
 // 응답은 200이어도 모든 종목의 모든 섹션이 null이면(종목이 없어도) 카드로 보여줄 게 없어 전체 조회 불가로 본다.
-// 테더 프리미엄은 김프 카드 안의 분해 표시로만 쓰여 단독으로는 보여줄 자리가 없다. 반감기도 BTC 탭의 카드 하나뿐이라 판정에서 뺀다
+// 테더 프리미엄은 김프 카드 안의 분해 표시로만 쓰여 단독으로는 보여줄 자리가 없다. 반감기는 탭 밖 제목 줄의 참고 정보라 판정에서 뺀다 — 다른 지표가 전부 실패해도 제목 줄에는 그대로 보인다
 function isAllFailed(data: CryptoMarketIndicators) {
   return data.tickers.every((t) => !t.kimchiPremium && !t.coinbasePremium && !t.fundingRate && !t.openInterest && !t.valuation && !t.longShortRatio)
 }
@@ -31,16 +31,22 @@ function Message({ text, onRetry, retrying }: { text: string; onRetry?: () => vo
   )
 }
 
-// 대시보드 시장 차트 아래 셋째 줄(DashboardMarkets bottomPanels). 종목 탭 안에 카드 6개(BTC 탭은 반감기까지 7개).
+// 대시보드 시장 차트 아래 셋째 줄(DashboardMarkets bottomPanels). 종목 탭 안에 카드 6개, BTC 반감기는 제목 줄 오른쪽(실패하면 숨긴다).
 // PC 3열에서 첫 줄은 현물 수요·가격(김프·Coinbase 프리미엄·밸류에이션), 둘째 줄은 선물 포지션(펀딩비·롱/숏·미결제약정)으로 묶는다
 export function CryptoMarketSection() {
   const { data, isError, isFetching, refetch } = useCryptoMarketIndicatorsQuery()
 
   return (
     <section aria-labelledby="crypto-market-indicators-title" className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-baseline gap-x-2">
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
         <h2 id="crypto-market-indicators-title" className="text-sm font-semibold text-foreground">코인 시장 지표</h2>
         {data && <span className="text-xs text-muted-foreground">{fmtKstDateTime(data.asOf)} KST 기준</span>}
+        {data?.halving && (
+          // 모바일은 제목·기준 시각만으로 한 줄이 차 둘째 줄 왼쪽으로 내려가고, sm 이상에서는 제목 줄 오른쪽 끝에 붙는다
+          <div className="w-full sm:ml-auto sm:w-auto">
+            <HalvingSummary data={data.halving} asOf={data.asOf} />
+          </div>
+        )}
       </div>
       {data && !isAllFailed(data) ? (
         <SegmentedTabs
@@ -59,7 +65,6 @@ export function CryptoMarketSection() {
                 <FundingRateCard ticker={t.ticker} data={t.fundingRate} />
                 <LongShortRatioCard ticker={t.ticker} data={t.longShortRatio} />
                 <OpenInterestCard ticker={t.ticker} data={t.openInterest} />
-                {t.ticker === 'BTC' && <HalvingCard data={data.halving} asOf={data.asOf} />}
               </div>
             ),
           }))}

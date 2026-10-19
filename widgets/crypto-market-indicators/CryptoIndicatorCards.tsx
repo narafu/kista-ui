@@ -37,13 +37,24 @@ interface IndicatorCardProps {
   description: string
   days?: Days
   onDaysChange?: (days: Days) => void
-  className?: string
   children: ReactNode
 }
 
-function IndicatorCard({ title, description, days, onDaysChange, className, children }: IndicatorCardProps) {
+function InfoPopover({ title, description }: { title: string; description: string }) {
   return (
-    <Surface className={cn('flex flex-col gap-2 p-5', className)}>
+    <Popover>
+      <PopoverTrigger aria-label={`${title} 설명`} className="inline-flex size-6 -my-[5px] items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+        <Info className="size-3.5" />
+      </PopoverTrigger>
+      {/* 설명은 줄 단위로 쓰되 좁은 화면에서는 줄 안에서도 어절 단위로 접혀 화면 밖으로 넘치지 않게 한다 */}
+      <PopoverContent className="w-auto max-w-[calc(100vw-2rem)] text-sm break-keep whitespace-pre-line">{description}</PopoverContent>
+    </Popover>
+  )
+}
+
+function IndicatorCard({ title, description, days, onDaysChange, children }: IndicatorCardProps) {
+  return (
+    <Surface className="flex flex-col gap-2 p-5">
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
         <span className="text-sm font-semibold whitespace-nowrap text-foreground">{title}</span>
         <div className="ml-auto flex items-center gap-1">
@@ -56,13 +67,7 @@ function IndicatorCard({ title, description, days, onDaysChange, className, chil
               size="sm"
             />
           )}
-          <Popover>
-            <PopoverTrigger aria-label={`${title} 설명`} className="inline-flex size-6 -my-[5px] items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
-              <Info className="size-3.5" />
-            </PopoverTrigger>
-            {/* 설명은 줄 단위로 쓰되 좁은 화면에서는 줄 안에서도 어절 단위로 접혀 화면 밖으로 넘치지 않게 한다 */}
-            <PopoverContent className="w-auto max-w-[calc(100vw-2rem)] text-sm break-keep whitespace-pre-line">{description}</PopoverContent>
-          </Popover>
+          <InfoPopover title={title} description={description} />
         </div>
       </div>
       {children}
@@ -296,49 +301,38 @@ export function LongShortRatioCard({ ticker, data }: { ticker: string; data: Cry
 const HALVING_INTERVAL = 210_000 // 반감기 주기(블록)
 const DAY_MS = 86_400_000
 
-// 종목 무관 BTC 전용 지표라 응답 최상위 halving을 BTC 탭에만 놓는다
-export function HalvingCard({ data, asOf }: { data: CryptoMarketIndicators['halving']; asOf: string }) {
+// 종목 무관 BTC 전용 지표라 응답 최상위 halving을 탭 밖 섹션 제목 줄에 둔다(ETH 탭에서도 보인다 — 반감기는 코인 시장 전체 사이클의 기준).
+// 며칠 단위로만 바뀌는 참고 정보라 카드 대신 한 줄로 줄이고 세부 값은 설명 팝오버로 옮긴다
+export function HalvingSummary({ data, asOf }: { data: NonNullable<CryptoMarketIndicators['halving']>; asOf: string }) {
   const title = 'BTC 반감기'
-  const description = '21만 블록마다 채굴 보상이 절반으로 줄어듦\n예상 시점은 블록당 10분으로 계산한 추정치\n블록 높이: mempool.space'
-  // BTC 탭은 카드가 7개라 3열 그리드 마지막 줄에 혼자 남는다 — PC에서는 한 줄을 다 쓰는 가로 띠로 둔다
-  const className = 'lg:col-span-3'
-  if (!data) {
-    return <UnavailableCard title={title} description={description} className={className} />
-  }
   const daysLeft = Math.max(0, Math.ceil((Date.parse(data.estimatedAt) - Date.parse(asOf)) / DAY_MS))
   // 서버가 준 높이로만 계산하고 0~1로 묶어 막대·aria 값이 범위를 벗어나지 않게 한다
   const progress = Math.min(1, Math.max(0, (data.currentHeight - (data.nextHalvingHeight - HALVING_INTERVAL)) / HALVING_INTERVAL))
+  const block = (n: number) => n.toLocaleString('en-US')
+  const description = [
+    '21만 블록마다 채굴 보상이 절반으로 줄어듦',
+    `예상 시점: ${fmtKstDate(data.estimatedAt)} 전후(블록당 10분으로 계산한 추정치)`,
+    `남은 블록 ${block(data.blocksRemaining)} · 현재 블록 ${block(data.currentHeight)} / 반감기 블록 ${block(data.nextHalvingHeight)}`,
+    '블록 높이: mempool.space',
+  ].join('\n')
 
   return (
-    <IndicatorCard title={title} description={description} className={className}>
-      <div className="flex flex-1 flex-col gap-2 lg:flex-row lg:items-center lg:gap-10">
-        <div className="flex flex-col gap-2 lg:shrink-0">
-          <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <Stat label="남은 블록" value={data.blocksRemaining.toLocaleString('en-US')} />
-            <Stat label="예상 시점" value={`약 ${daysLeft.toLocaleString('en-US')}일 후`} />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {fmtKstDate(data.estimatedAt)} 전후 · 블록 <span className="tabular-nums">{data.nextHalvingHeight.toLocaleString('en-US')}</span>
-          </p>
-        </div>
-        <div className="flex flex-1 flex-col justify-center gap-1.5 pt-2 lg:pt-0">
-          <div
-            role="progressbar"
-            aria-label="이번 반감기 주기 진행률"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(progress * 100)}
-            className="h-2 overflow-hidden rounded-full bg-muted"
-          >
-            {/* 진행률은 런타임 값이라 Tailwind로 표현할 수 없다 */}
-            <div className="h-full rounded-full bg-chart-1" style={{ width: `${progress * 100}%` }} />
-          </div>
-          <div className="flex justify-between text-xs text-muted-foreground tabular-nums">
-            <span>현재 블록 {data.currentHeight.toLocaleString('en-US')}</span>
-            <span>{(progress * 100).toFixed(1)}%</span>
-          </div>
-        </div>
+    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <span className="font-medium text-foreground">{title}</span>
+      <span className="tabular-nums">약 {daysLeft.toLocaleString('en-US')}일 후</span>
+      <div
+        role="progressbar"
+        aria-label="이번 반감기 주기 진행률"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(progress * 100)}
+        className="h-1.5 w-16 overflow-hidden rounded-full bg-muted"
+      >
+        {/* 진행률은 런타임 값이라 Tailwind로 표현할 수 없다 */}
+        <div className="h-full rounded-full bg-chart-1" style={{ width: `${progress * 100}%` }} />
       </div>
-    </IndicatorCard>
+      <span className="tabular-nums">{(progress * 100).toFixed(1)}%</span>
+      <InfoPopover title={title} description={description} />
+    </div>
   )
 }

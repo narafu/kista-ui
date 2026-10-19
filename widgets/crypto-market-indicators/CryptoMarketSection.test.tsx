@@ -127,25 +127,37 @@ describe('CryptoMarketSection', () => {
     expect(screen.getByText('1.23x')).toBeInTheDocument()
   })
 
-  it('shows the halving countdown only on the BTC tab', async () => {
+  it('shows the halving countdown in the section header on every ticker tab', async () => {
     useQueryMock.mockReturnValue({ data: indicators() })
     render(<CryptoMarketSection />)
+    const user = userEvent.setup()
 
-    expect(screen.getByText('77,825')).toBeInTheDocument()
     expect(screen.getByText('약 541일 후')).toBeInTheDocument() // asOf 2026-10-19T05:00Z → 2028-04-12T04:10Z
-    expect(screen.getByText(/2028\. 4\. 12\. 전후/)).toBeInTheDocument()
     expect(screen.getByRole('progressbar', { name: '이번 반감기 주기 진행률' })).toHaveAttribute('aria-valuenow', '63')
+    // 남은 블록·예상 날짜는 설명 팝오버로 옮겼다
+    await user.click(screen.getByRole('button', { name: 'BTC 반감기 설명' }))
+    expect(await screen.findByText(/2028\. 4\. 12\. 전후/)).toBeInTheDocument()
+    expect(screen.getByText(/남은 블록 77,825/)).toBeInTheDocument()
 
-    await userEvent.setup().click(screen.getByRole('tab', { name: 'ETH' }))
-    expect(screen.queryByText('BTC 반감기')).not.toBeInTheDocument()
+    await user.keyboard('{Escape}')
+    await user.click(screen.getByRole('tab', { name: 'ETH' }))
+    expect(screen.getByText('BTC 반감기')).toBeInTheDocument()
   })
 
-  it('marks only the halving card as unavailable when block height failed', () => {
+  it('hides the halving countdown instead of warning when block height failed', () => {
     useQueryMock.mockReturnValue({ data: indicators({ halving: null }) })
     render(<CryptoMarketSection />)
 
+    expect(screen.queryByText('BTC 반감기')).not.toBeInTheDocument()
+    expect(screen.queryByText('일시적으로 불러올 수 없습니다.')).not.toBeInTheDocument()
+  })
+
+  it('keeps the halving countdown above the whole-area error', () => {
+    useQueryMock.mockReturnValue({ data: indicators({ tickers: [{ ticker: 'BTC', ...EMPTY_TICKER }] }) })
+    render(<CryptoMarketSection />)
+
+    expect(screen.getByText('코인 시장 지표를 불러오지 못했습니다.')).toBeInTheDocument()
     expect(screen.getByText('BTC 반감기')).toBeInTheDocument()
-    expect(screen.getAllByText('일시적으로 불러올 수 없습니다.')).toHaveLength(1)
   })
 
   it('switches every card to the selected ticker', async () => {
