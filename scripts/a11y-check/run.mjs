@@ -251,7 +251,7 @@ async function checkDialogs(page, path) {
 async function checkRouteModals(page, vp) {
   for (const [name, start, sel, mobileTab] of ROUTE_MODALS) {
     await open(page, start)
-    if (vp === 'mo' && mobileTab) { await page.getByRole('button', { name: mobileTab, exact: true }).click(); await page.waitForTimeout(800) }
+    if (vp === 'mo' && mobileTab) { await page.getByRole('tab', { name: mobileTab, exact: true }).click(); await page.waitForTimeout(800) }
     const link = page.locator(sel).first()
     if (!(await link.count())) { fail(`[modal] ${name} ${vp}: 트리거 링크 없음(${sel}) — 시드 데이터 확인`); continue }
     await link.focus()

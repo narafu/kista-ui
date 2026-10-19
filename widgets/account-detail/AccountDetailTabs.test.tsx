@@ -71,9 +71,28 @@ describe('AccountDetailTabs', () => {
       <AccountDetailTabs account={account} usdDeposit={1000} posEvalUsd={2000} />,
     )
 
-    await user.click(screen.getByRole('button', { name: '전략' }))
+    await user.click(screen.getByRole('tab', { name: '전략' }))
 
     // 모바일 탭이 전략으로 전환되면 모바일 영역에는 계좌 요약이 더 이상 없다 (데스크탑 영역은 항상 렌더링됨)
+    expect(screen.getAllByText('계좌 요약')).toHaveLength(1)
+    expect(screen.getByRole('tab', { name: '전략' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tabpanel', { name: '전략' })).toContainElement(screen.getAllByTestId('strategy-list-stub')[0])
+  })
+
+  it('모바일 탭은 화살표 키로 이동하면 바로 해당 패널로 전환된다', async () => {
+    useStrategiesQueryMock.mockReturnValue({ data: [strategy] })
+    const user = userEvent.setup()
+    render(
+      <AccountDetailTabs account={account} usdDeposit={1000} posEvalUsd={2000} />,
+    )
+
+    expect(screen.getByRole('tablist', { name: '계좌 상세 탭' })).toBeInTheDocument()
+    await user.tab()
+    expect(screen.getByRole('tab', { name: '계좌' })).toHaveFocus()
+    await user.keyboard('{ArrowRight}')
+
+    expect(screen.getByRole('tab', { name: '전략' })).toHaveFocus()
+    expect(screen.getByRole('tab', { name: '전략' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getAllByText('계좌 요약')).toHaveLength(1)
   })
 

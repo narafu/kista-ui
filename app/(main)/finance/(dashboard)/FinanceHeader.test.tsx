@@ -51,8 +51,8 @@ describe('FinanceHeader', () => {
     pathname = '/finance'
     render(<FinanceHeader />)
 
-    const group = screen.getByRole('group', { name: '가계부 탭' })
-    const labels = Array.from(group.querySelectorAll('a')).map((el) => el.textContent)
+    const nav = screen.getByRole('navigation', { name: '가계부 탭' })
+    const labels = Array.from(nav.querySelectorAll('a')).map((el) => el.textContent)
 
     expect(labels).toEqual(['자산', '수입', '소비', '저축', '설정'])
   })
