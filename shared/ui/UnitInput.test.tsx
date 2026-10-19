@@ -72,4 +72,16 @@ describe('UnitInput', () => {
 
     expect(screen.getByLabelText('평단가')).toHaveFocus()
   })
+
+  it('reads the unit as a description, not as part of the label name', () => {
+    render(
+      <>
+        <label htmlFor="grace">gradient 유예(주)</label>
+        <UnitInput id="grace" value={null} onChange={() => {}} unit="주" disabled={false} />
+      </>,
+    )
+
+    const input = screen.getByRole('textbox', { name: 'gradient 유예(주)' })
+    expect(input).toHaveAccessibleDescription('주')
+  })
 })

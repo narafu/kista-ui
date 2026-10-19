@@ -1,7 +1,7 @@
 'use client'
 
 import type { ChangeEvent } from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { cn } from '@shared/lib/utils'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 
@@ -51,6 +51,7 @@ export function UnitInput({
   unitClassName?: string
   maxDecimals?: number
 }) {
+  const unitId = useId()
   // 소수점 입력 중(예: "87.", "87.50") 문자열을 보존 — 매 렌더마다 value(파싱된 숫자)로 되돌리면 트레일링 점/0이 사라짐
   const [text, setText] = useState(value !== null ? String(value) : '')
   const emittedValueRef = useRef(value)
@@ -82,6 +83,8 @@ export function UnitInput({
         type="text"
         inputMode="decimal"
         aria-label={ariaLabel}
+        // 단위는 이름이 아니라 설명으로 읽힌다 — 감싸는 label에 포함되면 "gradient 유예(주) 주"처럼 이름에 겹쳐 붙는다
+        aria-describedby={unit ? unitId : undefined}
         value={text}
         onChange={handleChange}
         onFocus={selectAllOnFocus}
@@ -90,7 +93,7 @@ export function UnitInput({
         maxLength={20}
         className="flex-1 min-w-0 border-0 bg-transparent text-right text-base font-semibold outline-none disabled:pointer-events-none disabled:text-muted-foreground"
       />
-      <span className={cn('text-xs font-semibold text-muted-foreground', unitClassName)}>{unit}</span>
+      <span id={unitId} aria-hidden className={cn('text-xs font-semibold text-muted-foreground', unitClassName)}>{unit}</span>
     </label>
   )
 }
