@@ -9,6 +9,8 @@ import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { Badge } from '@shared/ui/Badge'
+import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { TableDataCell } from '@shared/ui/TableDataCell'
 import { fmtDate, fmtMoney, fmtQuantity } from '@shared/lib/format'
 import { isCryptoMarket } from '@shared/lib/api-schema'
 
@@ -40,35 +42,36 @@ export function DcaExecutionHistory({ strategyId, ticker }: { strategyId: string
         ) : (
           <div role="region" aria-label="회차별 실행 이력" tabIndex={0} className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-muted-foreground">
-                  <th className="px-4 py-2 font-medium whitespace-nowrap">{isCrypto ? '실행일' : '거래일'}</th>
-                  <th className="px-4 py-2 font-medium whitespace-nowrap">결과</th>
-                  <th className="px-4 py-2 font-medium whitespace-nowrap">사유</th>
-                  <th className="px-4 py-2 font-medium text-right whitespace-nowrap">기준가</th>
-                  <th className="px-4 py-2 font-medium text-right whitespace-nowrap">수량</th>
-                  <th className="px-4 py-2 font-medium whitespace-nowrap">체결</th>
+              <thead className="bg-muted/50">
+                <tr>
+                  <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">{isCrypto ? '실행일' : '거래일'}</TableHeadCell>
+                  <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">결과</TableHeadCell>
+                  <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">사유</TableHeadCell>
+                  <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">기준가</TableHeadCell>
+                  <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">수량</TableHeadCell>
+                  <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">체결</TableHeadCell>
                 </tr>
               </thead>
               <tbody>
                 {/* kista-api uq_dca_execution_strategy_trade_date(strategy_id, trade_date)로 전략당 거래일 1건 보장 */}
                 {rows.map((r) => (
-                  <tr key={r.kstTradeDate} className="border-t border-border">
-                    <td className="px-4 py-2 tabular-nums whitespace-nowrap">{fmtDate(r.kstTradeDate)}</td>
-                    <td className="px-4 py-2">
+                  <tr key={r.kstTradeDate} className="border-t hover:bg-muted/30 transition-colors">
+                    <TableDataCell className="text-muted-foreground text-xs whitespace-nowrap">{fmtDate(r.kstTradeDate)}</TableDataCell>
+                    <TableDataCell className="whitespace-nowrap">
                       <Badge tone={r.status === 'ORDERED' ? 'none' : 'neutral'} size="sm" className={r.status === 'ORDERED' ? 'bg-info-bg text-info' : undefined}>{dcaExecutionStatusLabel(r.status)}</Badge>
-                    </td>
-                    <td className="px-4 py-2">
+                    </TableDataCell>
+                    {/* detail은 가변 길이 자유 텍스트라 nowrap 대신 최소 너비로 글자 단위 줄바꿈만 막는다 */}
+                    <TableDataCell className="min-w-32">
                       {r.skipReason && <div>{labelOf('dcaSkipReasons', r.skipReason)}</div>}
                       {r.detail && <div className="text-xs text-muted-foreground">{r.detail}</div>}
-                    </td>
-                    <td className="px-4 py-2 text-right tabular-nums whitespace-nowrap">{r.referencePrice != null ? fmtMoney(r.referencePrice, currency) : '-'}</td>
-                    <td className="px-4 py-2 text-right tabular-nums whitespace-nowrap">{r.quantity != null ? (isCrypto ? `${fmtQuantity(r.quantity)} ${ticker}` : `${fmtQuantity(r.quantity)}주`) : '-'}</td>
-                    <td className="px-4 py-2 whitespace-nowrap">
+                    </TableDataCell>
+                    <TableDataCell className="font-mono text-xs whitespace-nowrap">{r.referencePrice != null ? fmtMoney(r.referencePrice, currency) : '-'}</TableDataCell>
+                    <TableDataCell className="whitespace-nowrap">{r.quantity != null ? (isCrypto ? `${fmtQuantity(r.quantity)} ${ticker}` : `${fmtQuantity(r.quantity)}주`) : '-'}</TableDataCell>
+                    <TableDataCell className="whitespace-nowrap">
                       {r.order
                         ? `${ORDER_STATUS_LABEL[r.order.status] ?? r.order.status}${r.order.filledPrice != null ? ` · ${fmtMoney(r.order.filledPrice, currency)}` : ''}`
                         : '-'}
-                    </td>
+                    </TableDataCell>
                   </tr>
                 ))}
               </tbody>
