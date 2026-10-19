@@ -1,6 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 
-const apiFetchMock = vi.fn()
 const clientFetchMock = vi.fn()
 
 vi.mock('@shared/lib/api-client', () => ({
@@ -12,13 +11,11 @@ vi.mock('@shared/lib/api-client', () => ({
       super(`API error ${status}`)
     }
   },
-  apiFetch: (...args: unknown[]) => apiFetchMock(...args),
   clientFetch: (...args: unknown[]) => clientFetchMock(...args),
 }))
 
 describe('market api', () => {
   beforeEach(() => {
-    apiFetchMock.mockReset()
     clientFetchMock.mockReset()
     // API_BASE_URL은 모듈 top-level에서 1회 평가되므로, env 스텁이 반영되도록 매 테스트 재-import한다
     vi.resetModules()
@@ -26,16 +23,6 @@ describe('market api', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals()
-  })
-
-  it('getMonthlyHolidays (Server Component) requests the year/month query via apiFetch', async () => {
-    const { getMonthlyHolidays } = await import('./index')
-    apiFetchMock.mockResolvedValueOnce(['2026-01-01'])
-
-    const result = await getMonthlyHolidays(2026, 1, 'token-1')
-
-    expect(apiFetchMock).toHaveBeenCalledWith('/api/market/holidays?year=2026&month=1', { method: 'GET' }, 'token-1')
-    expect(result).toEqual(['2026-01-01'])
   })
 
   it('getMonthlyHolidaysClient requests via clientFetch (Route Handler proxy)', async () => {

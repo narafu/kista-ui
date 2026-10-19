@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { NextRequest } from 'next/server'
+import { getAuthToken } from '@shared/lib/auth/token'
 import { createProxyRoute } from './createProxyRoute'
 
 vi.mock('@shared/lib/auth/token', () => ({
@@ -114,5 +115,36 @@ describe('createProxyRoute', () => {
       expect.stringContaining('https://kista-trading.test/api/stats/summary'),
       expect.any(Object),
     )
+  })
+
+  it.each([
+    [undefined, 'Bearer test-token'],
+    [true, 'Bearer test-token'],
+    [false, undefined],
+  ])('requireAuth=%s면 Authorization 헤더는 %s', async (requireAuth, expected) => {
+    vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
+    const fetchMock = vi.fn(async (_url: string, _init: RequestInit) => Response.json({}))
+    vi.stubGlobal('fetch', fetchMock)
+    const { GET } = createProxyRoute({ basePath: '/api/market', requireAuth })
+    const request = new NextRequest('https://kista.test/api/market/fear-greed')
+
+    await (GET as unknown as (request: NextRequest) => Promise<Response>)(request)
+
+    const headers = fetchMock.mock.calls[0][1].headers as Record<string, string>
+    expect(headers.Authorization).toBe(expected)
+  })
+
+  it('requireAuth=false면 토큰이 없어도 401 없이 업스트림으로 전달한다', async () => {
+    vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
+    vi.mocked(getAuthToken).mockResolvedValueOnce(undefined)
+    const fetchMock = vi.fn(async () => Response.json({ value: 1 }))
+    vi.stubGlobal('fetch', fetchMock)
+    const { GET } = createProxyRoute({ basePath: '/api/market', requireAuth: false })
+    const request = new NextRequest('https://kista.test/api/market/fear-greed')
+
+    const response = await (GET as unknown as (request: NextRequest) => Promise<Response>)(request)
+
+    expect(response.status).toBe(200)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })

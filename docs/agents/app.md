@@ -19,7 +19,7 @@ UI 캐시 소유권·hydration·mutation 동기화는 `docs/agents/entities.md`,
 - **Safari `Secure` 쿠키 + HTTP 차단**: Safari는 HTTP 연결의 `Secure` 쿠키 무시. `secure` 플래그는 `NODE_ENV`가 아닌 `x-forwarded-proto === 'https'`로 결정 (`app/auth/callback/route.ts` 참고)
 - **HTTP-only 쿠키 삭제**: Client JS 불가 → Route Handler에서 `response.cookies.set(name, '', { maxAge: 0 })`
 - **쿠키 수정 후 검증**: 재빌드만으로 기존 세션 미적용 — 브라우저 쿠키 삭제 후 카카오 재로그인. kista-api 로그에 `/api/auth/me` 없으면 `kista-token` 없다는 증거
-- **kista-api JWT 없는 요청 → 401**: `JwtAuthFilter`는 헤더 없으면 조용히 통과 → Spring Security 401. 로그에 WARN 없는 401 = 헤더 자체가 없는 것
+- **kista-api JWT 없는 요청 → 401**: `JwtAuthFilter`는 헤더 없으면 조용히 통과 → Spring Security 401. 로그에 WARN 없는 401 = 헤더 자체가 없는 것. 반대로 헤더가 있는데 디코딩 실패(만료 포함)·블랙리스트·stale role이면 permitAll 경로에서도 401(`JWT 인증 실패` WARN)
 - **Spring Security `/error` forward**: 예외 발생 → `/error` forward → anonymous 401. `SecurityConfig`에 `.requestMatchers("/error").permitAll()` 필수. 미설정 시 500이 401로 둔갑 → clientFetch 자동 로그아웃 유발
 - **KIS API 토큰 1분 제한 (EGW00133)**: 연결 테스트 직후 `kisTokenPort.testToken()` 재호출 → 403 → `/error` → 401. 계좌 등록/수정 시 UI가 이미 검증한 키를 서버에서 재검증 금지
 
@@ -27,7 +27,7 @@ UI 캐시 소유권·hydration·mutation 동기화는 `docs/agents/entities.md`,
 
 - **Docker standalone**: Route Handler(Node.js runtime)에서 origin → `request.headers.get('host')` + `request.headers.get('x-forwarded-proto')` 직접 구성. `request.url` 사용 금지
 - **API URL**: 모든 Route Handler·서버 fetch는 `getApiBaseUrl()`(`@shared/lib/env`) 사용 — `API_BASE_URL` 우선, 없으면 `NEXT_PUBLIC_API_BASE_URL` 폴백, 둘 다 없으면 throw. 실패 허용 경로(예: `proxy.ts` 토큰 갱신)는 `getApiBaseUrlOrNull()`. `process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL` 패턴을 직접 쓰지 말 것 (SSOT). 근거: `NEXT_PUBLIC_*` 단독 → Docker에서 ECONNREFUSED
-- **프록시 라우트 인증 게이트**: `createProxyRoute`(`@shared/lib/proxy/createProxyRoute`)의 `requireAuth` 옵션은 **기본값 `true`**(토큰 없으면 kista-api 호출 전에 401) — 실제로 공개(비인증) 엔드포인트를 프록시하려면 반드시 `requireAuth: false`를 명시해야 한다. 현재 `requireAuth: false`로 선언된 라우트: `app/api/client-errors`, `app/api/runtime-config`, `app/api/market/[[...path]]`. 신규 프록시 라우트 추가 시 kista-api 쪽 엔드포인트가 공개인지 반드시 확인하고 이 플래그를 맞출 것 — 안 맞추면 공개 엔드포인트인데도 401이 나거나, 반대로 인증 필요한 엔드포인트를 실수로 열어둘 위험이 있다
+- **프록시 라우트 인증 게이트**: `createProxyRoute`(`@shared/lib/proxy/createProxyRoute`)의 `requireAuth` 옵션은 **기본값 `true`**(토큰 없으면 kista-api 호출 전에 401) — 실제로 공개(비인증) 엔드포인트를 프록시하려면 반드시 `requireAuth: false`를 명시해야 한다. `requireAuth: false`면 쿠키에 토큰이 있어도 Bearer를 붙이지 않는다(아래 무효 토큰 401 참고 — 붙이면 만료 AT가 남은 비회원이 공개 패널 401 → clientFetch 로그아웃·리로드를 맞는다). 그래서 로그인 여부로 응답이 달라지는 엔드포인트에는 쓰지 않는다. 현재 `requireAuth: false`로 선언된 라우트: `app/api/client-errors`, `app/api/runtime-config`, `app/api/market/[[...path]]`, `app/api/crypto-market-indicators`. 신규 프록시 라우트 추가 시 kista-api 쪽 엔드포인트가 공개인지 반드시 확인하고 이 플래그를 맞출 것 — 안 맞추면 공개 엔드포인트인데도 401이 나거나, 반대로 인증 필요한 엔드포인트를 실수로 열어둘 위험이 있다
 - **SSE 인증**: 브라우저 `EventSource`는 커스텀 헤더 미지원 → Route Handler가 Bearer 토큰 포함 후 kista-api로 중계 (`app/api/auth/status-stream/route.ts` 참고)
 - **SSE 인증 실패 → 401 응답 금지**: `EventSource`는 4xx를 `onerror`로만 받아 상태 코드를 알 수 없음 → 클라이언트가 무한 재연결 루프에 빠짐. 토큰 없을 때 200 SSE 스트림으로 `event: auth-error` 보내고 클라이언트가 이를 받아 재연결 중단 (`app/api/trades/stream/route.ts` 참고)
 - **SSE `request.signal` 필수**: 미전달 시 클라이언트가 EventSource 닫아도 스트림 파이핑 계속 → `UND_ERR_SOCKET` 에러. `GET(request: NextRequest)` + `fetch(url, { signal: request.signal })`

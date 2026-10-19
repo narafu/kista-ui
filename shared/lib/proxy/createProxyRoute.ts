@@ -9,7 +9,8 @@ type Handler = (req: NextRequest, ctx?: Params) => Promise<NextResponse>
 
 type CreateProxyRouteOptions = {
   basePath: string
-  // true(기본)이면 토큰 없을 때 401. false면 비인증 상태로 kista-api 직접 전달 (GET /api/market/** 등 공개 엔드포인트용)
+  // true(기본)이면 토큰 없을 때 401. false면 토큰이 있어도 Bearer 없이 비인증으로 전달 (GET /api/market/** 등 공개 엔드포인트용)
+  // — kista-api JwtAuthFilter는 permitAll 경로에서도 무효 토큰(만료·블랙리스트·stale role)에 401을 줘, 붙이면 비회원이 clientFetch 로그아웃을 맞는다
   requireAuth?: boolean
   // 'api'(기본, 8080) | 'trading'(8081, kista-trading 분리 프로세스). 서브패스별로 소유 프로세스가 갈리면 함수로 분기(예: /api/stats/housing-benchmark만 'api')
   target?: 'api' | 'trading' | ((pathSegments: string[]) => 'api' | 'trading')
@@ -25,7 +26,8 @@ export function createProxyRoute(opts: CreateProxyRouteOptions): {
   const label = opts.basePath.replace(/^\/api\//, '')
 
   async function proxy(request: NextRequest, pathSegments: string[]) {
-    const token = await getAuthToken()
+    // 공개 라우트는 쿠키 토큰을 읽지도 붙이지도 않는다 (위 requireAuth 주석 참고)
+    const token = opts.requireAuth === false ? undefined : await getAuthToken()
     if (!token && opts.requireAuth !== false) return unauthorizedJson()
 
     const subPath = pathSegments.length > 0 ? `/${pathSegments.join('/')}` : ''

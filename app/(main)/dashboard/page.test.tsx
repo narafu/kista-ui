@@ -57,23 +57,23 @@ describe('DashboardPage holiday prefetch', () => {
     monthlyHolidaysQueryOptionsMock.mockReturnValue({ queryKey: ['market', 'holidays', 2026, 7] })
   })
 
-  it('prefetches holidays through monthlyHolidaysQueryOptions with the auth token regardless of auth state', async () => {
+  it('prefetches holidays through monthlyHolidaysQueryOptions without the auth token — public endpoint, stale AT would 401', async () => {
     getAuthTokenMock.mockResolvedValue('token-1')
     prefetchQueryMock.mockResolvedValue(undefined)
 
     render(await DashboardPage())
 
-    expect(monthlyHolidaysQueryOptionsMock).toHaveBeenCalledWith(expect.any(Number), expect.any(Number), 'token-1')
+    expect(monthlyHolidaysQueryOptionsMock).toHaveBeenCalledWith(expect.any(Number), expect.any(Number))
     expect(prefetchQueryMock).toHaveBeenCalledWith(expect.objectContaining({ queryKey: ['market', 'holidays', 2026, 7] }))
   })
 
-  it('still prefetches holidays for an unauthenticated visitor via the public branch inside monthlyHolidaysQueryOptions', async () => {
+  it('still prefetches holidays for an unauthenticated visitor', async () => {
     getAuthTokenMock.mockResolvedValue(undefined)
     prefetchQueryMock.mockResolvedValue(undefined)
 
     render(await DashboardPage())
 
-    expect(monthlyHolidaysQueryOptionsMock).toHaveBeenCalledWith(expect.any(Number), expect.any(Number), undefined)
+    expect(monthlyHolidaysQueryOptionsMock).toHaveBeenCalledWith(expect.any(Number), expect.any(Number))
   })
 
   it(

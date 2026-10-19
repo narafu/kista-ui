@@ -21,10 +21,10 @@ export default async function DashboardPage() {
   const initialWeekStartDate = kstWeekStartDate()
 
   const queryClient = createQueryClient()
-  // 비인증: 체결내역 없는 달력만 표시 (휴장일은 public 엔드포인트로 로드).
+  // 비인증: 체결내역 없는 달력만 표시 (휴장일은 로그인 여부와 무관하게 public 엔드포인트로 로드).
   // 실패한 조회는 dehydrate에 포함되지 않으므로(react-query 기본 shouldDehydrateQuery가
   // status:'success'만 직렬화) 성공한 빈 달로 24시간 hydrate되지 않고 클라이언트가 재조회한다.
-  await queryClient.prefetchQuery(monthlyHolidaysQueryOptions(calendarYear, calendarMonth, token)).catch(() => undefined)
+  await queryClient.prefetchQuery(monthlyHolidaysQueryOptions(calendarYear, calendarMonth)).catch(() => undefined)
   if (isAuthenticated) {
     await queryClient.prefetchQuery(accountListQueryOptions(token))
   }

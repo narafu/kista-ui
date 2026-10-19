@@ -1,13 +1,10 @@
-import { ApiError, apiFetch, clientFetch } from '@shared/lib/api-client'
+import { ApiError, clientFetch } from '@shared/lib/api-client'
 import { getApiBaseUrl } from '@shared/lib/env'
 import type { Candle, CryptoMarketIndicators, FearGreed } from '../model/types'
 import { CHART_CANDLE_COUNT } from '../model/constants'
 
-export function getMonthlyHolidays(year: number, month: number, token: string): Promise<string[]> {
-  return apiFetch<string[]>(`/api/market/holidays?year=${year}&month=${month}`, { method: 'GET' }, token)
-}
-
-// 비인증 Server Component용 — kista-api 직접 호출
+// Server Component용 — 공개 엔드포인트라 로그인 여부와 무관하게 토큰 없이 kista-api 직접 호출
+// (무효 토큰을 붙이면 permitAll 경로에서도 JwtAuthFilter가 401을 준다)
 export async function getMonthlyHolidaysPublic(year: number, month: number): Promise<string[]> {
   const response = await fetch(`${getApiBaseUrl()}/api/market/holidays?year=${year}&month=${month}`)
   if (!response.ok) {
