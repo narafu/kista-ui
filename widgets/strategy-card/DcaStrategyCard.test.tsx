@@ -37,22 +37,25 @@ function withDca(patch: Partial<NonNullable<Strategy['dca']>>): Strategy {
 describe('DcaStrategyCard', () => {
   it('코인 DCA는 원화 금액과 KST 날짜·실행 시각으로 다음 실행을 보여준다', () => {
     render(<DcaStrategyCard accountId="a1" strategy={{ ...withDca({ amount: 50000, orderType: 'MARKET', frequency: 'DAILY', executionHour: 9, nextExecution: { usSessionDate: '2026-10-19', kstTradeDate: '2026-10-19' } }), ticker: 'BTC' }} />)
-    expect(screen.getByText(/50,000원/)).toBeInTheDocument()
-    expect(screen.getByText('다음 실행 10/19 09시')).toBeInTheDocument()
+    expect(screen.getAllByText('50,000원').length).toBeGreaterThan(0)
+    expect(screen.getByText('다음 실행')).toBeInTheDocument()
+    expect(screen.getByText('10/19 09시')).toBeInTheDocument()
+    expect(screen.getByText('다음 실행 10/19 09시')).toBeInTheDocument() // 모바일 배지
     expect(screen.queryByText(/다음 판정일/)).not.toBeInTheDocument()
   })
   it('주식 DCA는 달러 금액과 다음 판정일을 그대로 보여준다', () => {
     render(<DcaStrategyCard accountId="a1" strategy={strategy} />)
-    expect(screen.getByText(/\$300\.00/)).toBeInTheDocument()
-    expect(screen.getByText(/다음 판정일/)).toBeInTheDocument()
+    expect(screen.getAllByText('$300.00').length).toBeGreaterThan(0)
+    expect(screen.getByText('다음 판정일')).toBeInTheDocument()
   })
   it('nextExecution이 null이면 다음 판정일을 미정으로 표시한다', () => {
     render(<DcaStrategyCard accountId="a1" strategy={withDca({ nextExecution: null })} />)
-    expect(screen.getByText(/다음 판정일 미정/)).toBeInTheDocument()
+    expect(screen.getByText('미정')).toBeInTheDocument()
+    expect(screen.getByText('다음 판정일 미정')).toBeInTheDocument() // 모바일 배지
   })
   it('nextExecution이 있으면 다음 판정일 날짜를 표시한다', () => {
     render(<DcaStrategyCard accountId="a1" strategy={strategy} />)
-    expect(screen.getByText(`다음 판정일 ${fmtDate('2026-10-31')}`, { exact: false })).toBeInTheDocument()
+    expect(screen.getByText(fmtDate('2026-10-31'))).toBeInTheDocument()
   })
   it('lastExecution이 null이면 최근 실행 문구를 표시하지 않는다', () => {
     render(<DcaStrategyCard accountId="a1" strategy={strategy} />)
@@ -61,6 +64,6 @@ describe('DcaStrategyCard', () => {
   it('lastExecution이 건너뜀이면 사유 라벨과 함께 표시한다', () => {
     const s = withDca({ lastExecution: { status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET' } as never })
     render(<DcaStrategyCard accountId="a1" strategy={s} />)
-    expect(screen.getByText(/최근 건너뜀 · 조건 미충족/)).toBeInTheDocument()
+    expect(screen.getAllByText('최근 건너뜀 · 조건 미충족').length).toBe(2) // 모바일·PC 배지 행
   })
 })

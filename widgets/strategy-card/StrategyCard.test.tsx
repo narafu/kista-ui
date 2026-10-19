@@ -485,7 +485,7 @@ describe('StrategyCard DCA', () => {
   it('일시중지된 DCA 카드는 회색 스트립과 상태 배지를 보여준다', () => {
     render(<StrategyCard accountId="a1" strategy={{ ...dcaStrategy, status: 'PAUSED' }} />)
     expect(screen.getByTestId('strategy-status-strip')).toHaveAttribute('style', expect.stringContaining('background: var(--muted-foreground);'))
-    expect(screen.getByText('일시중지')).toBeInTheDocument()
+    expect(screen.getAllByText('일시중지')).toHaveLength(2) // 모바일·PC 배지 행
   })
 
   it('DCA 카드는 단건 미리보기를 호출하지 않는다', () => {
@@ -495,16 +495,19 @@ describe('StrategyCard DCA', () => {
 
   it('dca 요약이 없는 DCA 전략도 미리보기 없이 카드 셸을 렌더한다', () => {
     render(<StrategyCard accountId="a1" strategy={{ ...dcaStrategy, dca: undefined }} />)
-    expect(screen.getByText('DCA')).toBeInTheDocument()
-    expect(screen.getByText('UPRO')).toBeInTheDocument()
+    expect(screen.getAllByText('DCA')).toHaveLength(2)
+    expect(screen.getAllByText('UPRO')).toHaveLength(2)
     expect(previewMock).not.toHaveBeenCalled()
   })
 
-  it('DCA 카드는 방향·주기 요약·다음 판정일·최근 결과를 보여준다', () => {
+  it('DCA 카드는 방향·주기·금액·주문 방식·다음 판정일·최근 결과를 보여준다', () => {
     render(<StrategyCard accountId="a1" strategy={dcaStrategy} />)
-    expect(screen.getByText('매수')).toBeInTheDocument()
-    expect(screen.getByText('매월 말일 · $300.00 · 장 마감 시장가')).toBeInTheDocument()
-    expect(screen.getByText(`다음 판정일 ${fmtDate('2026-10-31')}`, { exact: false })).toBeInTheDocument()
-    expect(screen.getByText(/최근 건너뜀 · 조건 미충족/)).toBeInTheDocument()
+    expect(screen.getAllByText('매수')).toHaveLength(2)
+    expect(screen.getAllByText('매월 말일')).toHaveLength(2)
+    expect(screen.getAllByText('$300.00')).toHaveLength(2)
+    expect(screen.getAllByText('장 마감 시장가')).toHaveLength(2)
+    expect(screen.getByText('다음 판정일')).toBeInTheDocument()
+    expect(screen.getByText(fmtDate('2026-10-31'))).toBeInTheDocument()
+    expect(screen.getAllByText('최근 건너뜀 · 조건 미충족')).toHaveLength(2)
   })
 })
