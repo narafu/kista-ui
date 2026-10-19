@@ -29,4 +29,4 @@ export interface FearGreed {
 type CryptoSchemas = components['schemas']
 
 export type CryptoMarketIndicators = CryptoSchemas['CryptoMarketIndicatorsResponse']
-export type CryptoTickerIndicators = CryptoSchemas['TickerResponse']
+export type CryptoTickerIndicators = CryptoSchemas['CryptoMarketIndicatorsTicker']
