@@ -280,7 +280,7 @@ export function HalvingCard({ data, asOf }: { data: CryptoMarketIndicators['halv
       <p className="text-xs text-muted-foreground">
         {fmtKstDate(data.estimatedAt)} 전후 · 블록 <span className="tabular-nums">{data.nextHalvingHeight.toLocaleString('en-US')}</span>
       </p>
-      <div className="mt-auto flex flex-col gap-1.5 pt-2">
+      <div className="flex flex-1 flex-col justify-center gap-1.5 pt-2">
         <div
           role="progressbar"
           aria-label="이번 반감기 주기 진행률"
