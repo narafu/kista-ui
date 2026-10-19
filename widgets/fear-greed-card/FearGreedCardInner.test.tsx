@@ -10,9 +10,9 @@ describe('FearGreedCardInner', () => {
       <FearGreedCardInner
         title="CNN 공포탐욕지수"
         data={undefined}
-        days={200}
+        days={365}
         onDaysChange={vi.fn()}
-        daysOptions={[200, 120, 50, 20]}
+        daysOptions={[365, 180, 90, 30]}
       />,
     )
 
@@ -26,9 +26,9 @@ describe('FearGreedCardInner', () => {
         title="CNN 공포탐욕지수"
         data={undefined}
         loading
-        days={200}
+        days={365}
         onDaysChange={vi.fn()}
-        daysOptions={[200, 120, 50, 20]}
+        daysOptions={[365, 180, 90, 30]}
       />,
     )
 
@@ -45,9 +45,9 @@ describe('FearGreedCardInner', () => {
       <FearGreedCardInner
         title="CNN 공포탐욕지수"
         data={data}
-        days={200}
+        days={365}
         onDaysChange={vi.fn()}
-        daysOptions={[200, 120, 50, 20]}
+        daysOptions={[365, 180, 90, 30]}
       />,
     )
 
@@ -62,15 +62,15 @@ describe('FearGreedCardInner', () => {
       <FearGreedCardInner
         title="CNN 공포탐욕지수"
         data={undefined}
-        days={200}
+        days={365}
         onDaysChange={onDaysChange}
-        daysOptions={[200, 120, 50, 20]}
+        daysOptions={[365, 180, 90, 30]}
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: '50' }))
+    await user.click(screen.getByRole('button', { name: '90' }))
 
-    expect(onDaysChange).toHaveBeenCalledWith(50)
+    expect(onDaysChange).toHaveBeenCalledWith(90)
   })
 
   it('shows day-over-day and week-over-week deltas from history', () => {
@@ -87,9 +87,9 @@ describe('FearGreedCardInner', () => {
       <FearGreedCardInner
         title="CNN 공포탐욕지수"
         data={data}
-        days={200}
+        days={365}
         onDaysChange={vi.fn()}
-        daysOptions={[200, 120, 50, 20]}
+        daysOptions={[365, 180, 90, 30]}
       />,
     )
 

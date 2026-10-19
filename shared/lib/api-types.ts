@@ -9175,7 +9175,7 @@ export interface operations {
         parameters: {
             query?: {
                 /**
-                 * @description 조회 기간(일)
+                 * @description 조회 기간(일, 1~365)
                  * @example 200
                  */
                 days?: number;

@@ -16,8 +16,8 @@ const IndicatorLineChart = dynamic(() => import('./IndicatorLineChart'), {
   loading: () => <div className="flex h-full items-center justify-center text-sm text-muted-foreground">차트 불러오는 중…</div>,
 })
 
-// 응답은 days=200으로 한 번 받고 기간 토글은 최근 N일만 잘라 보여준다(대시보드 다른 차트와 같은 선택지)
-const DAYS_OPTIONS = [200, 120, 50, 20] as const
+// 응답은 days=365로 한 번 받고 기간 토글은 최근 N일만 잘라 보여준다(1년·반년·분기·한 달 — 일봉 시장 차트의 200/120/50/20과 달리 달력 단위)
+const DAYS_OPTIONS = [365, 180, 90, 30] as const
 type Days = (typeof DAYS_OPTIONS)[number]
 
 // 프리미엄·펀딩비는 0 근처를 오가 아주 작은 음수가 반올림되면 -0.00%가 된다 — 색 없이 숫자만 보여주는 카드라 +0.00%로 통일한다
@@ -110,7 +110,7 @@ interface KimchiProps {
 export function KimchiPremiumCard({ ticker, data, usdtPremium }: KimchiProps) {
   const title = `${ticker} 김치 프리미엄`
   const description = '국내 원화가의 해외 대비 할증\n공식 환율 기준: 일반 김프 사이트와 같은 기준\n테더 기준: 원화 유출 제약을 뺀 국내 과열도'
-  const [days, setDays] = useState<Days>(200)
+  const [days, setDays] = useState<Days>(365)
   if (!data) {
     return <UnavailableCard title={title} description={description} />
   }
@@ -159,7 +159,7 @@ const fmtCoinbasePct = (percent: number) => signedPct(percent / 100, 4)
 export function CoinbasePremiumCard({ ticker, data }: { ticker: string; data: CryptoTickerIndicators['coinbasePremium'] }) {
   const title = `${ticker} Coinbase 프리미엄`
   const description = '코인베이스 USD가의 바이낸스 대비 할증(테더 보정)\n김프 = 한국 수요, Coinbase 프리미엄 = 미국 수요\n양수는 미국 현물 매수 우위'
-  const [days, setDays] = useState<Days>(200)
+  const [days, setDays] = useState<Days>(365)
   if (!data) {
     return <UnavailableCard title={title} description={description} />
   }
@@ -185,7 +185,7 @@ export function CoinbasePremiumCard({ ticker, data }: { ticker: string; data: Cr
 export function FundingRateCard({ ticker, data }: { ticker: string; data: CryptoTickerIndicators['fundingRate'] }) {
   const title = `${ticker} 펀딩비`
   const description = '바이낸스 무기한 선물, 8시간 정산\n양수는 롱 과열, 음수는 숏 우세\n점선은 평상시 기준 0.01%'
-  const [days, setDays] = useState<Days>(200)
+  const [days, setDays] = useState<Days>(365)
   if (!data) {
     return <UnavailableCard title={title} description={description} />
   }
@@ -240,7 +240,7 @@ export function OpenInterestCard({ ticker, data }: { ticker: string; data: Crypt
 export function ValuationCard({ ticker, data }: { ticker: string; data: CryptoTickerIndicators['valuation'] }) {
   const title = `${ticker} 장기 밸류에이션`
   const description = '200주 배수: 종가 ÷ 200주 이동평균, 1 미만은 장기 저점권\n메이어 멀티플: 종가 ÷ 200일 이동평균, 2.4 이상은 과열권\nATH 대비: 역대 최고가에서 내려온 폭'
-  const [days, setDays] = useState<Days>(200)
+  const [days, setDays] = useState<Days>(365)
   if (!data) {
     return <UnavailableCard title={title} description={description} />
   }

@@ -13,9 +13,9 @@ describe('FearGreedCard', () => {
         title="CNN 공포탐욕지수"
         data={undefined}
         error={true}
-        days={200}
+        days={365}
         onDaysChange={vi.fn()}
-        daysOptions={[200, 120, 50, 20]}
+        daysOptions={[365, 180, 90, 30]}
       />,
     )
 

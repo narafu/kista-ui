@@ -38,28 +38,23 @@ vi.mock('./FearGreedCard', () => ({
 }))
 
 describe('FearGreedSection', () => {
-  it('queries CNN (200) and crypto (365) with independent default day windows', () => {
+  it('queries both indices with the 365-day default window', () => {
     useFearGreedQueryMock.mockClear()
     render(<FearGreedSection />)
 
-    const calledDays = useFearGreedQueryMock.mock.calls.map((call) => call[0])
-    expect(calledDays).toContain(200)
-    expect(calledDays).toContain(365)
+    expect(useFearGreedQueryMock.mock.calls.map((call) => call[0])).toEqual([365, 365])
   })
 
   it('re-queries only the CNN window when its day button is clicked, leaving crypto at 365', async () => {
     const user = userEvent.setup()
     render(<FearGreedSection />)
 
-    // 클릭 이후 재렌더 호출만 확인 — 마운트 시점 호출은 제외
+    // 클릭 이후 재렌더 호출만 확인 — 마운트 시점 호출은 제외. 두 카드가 같은 선택지라 첫 번째 '90'이 CNN 카드다
     useFearGreedQueryMock.mockClear()
-    // CNN_OPTIONS(200/120/50/20)와 CRYPTO_OPTIONS(365/180/90/30)는 겹치지 않아 '50' 버튼은 CNN 카드에만 존재
-    await user.click(screen.getByRole('button', { name: '50' }))
+    await user.click(screen.getAllByRole('button', { name: '90' })[0])
 
-    const calledDays = useFearGreedQueryMock.mock.calls.map((call) => call[0])
-    expect(calledDays).toContain(50)
-    expect(calledDays).toContain(365)
-    expect(calledDays).not.toContain(200)
+    // 훅 호출 순서는 CNN → 크립토
+    expect(useFearGreedQueryMock.mock.calls.map((call) => call[0])).toEqual([90, 365])
   })
 
   it('renders both the CNN and crypto card titles', () => {

@@ -4,12 +4,13 @@ import { useState } from 'react'
 import { useFearGreedQuery } from '@entities/market'
 import { FearGreedCard } from './FearGreedCard'
 
-const CNN_OPTIONS = [200, 120, 50, 20] as const
-const CRYPTO_OPTIONS = [365, 180, 90, 30] as const
+// 두 지수 모두 일별 값이라 달력 단위(1년·반년·분기·한 달)로 고른다
+const DAYS_OPTIONS = [365, 180, 90, 30] as const
+type Days = (typeof DAYS_OPTIONS)[number]
 
 export function FearGreedSection() {
-  const [cnnDays, setCnnDays] = useState<(typeof CNN_OPTIONS)[number]>(200)
-  const [cryptoDays, setCryptoDays] = useState<(typeof CRYPTO_OPTIONS)[number]>(365)
+  const [cnnDays, setCnnDays] = useState<Days>(365)
+  const [cryptoDays, setCryptoDays] = useState<Days>(365)
 
   const { data: cnnData, isError: isCnnError, isPending: isCnnPending } = useFearGreedQuery(cnnDays)
   const { data: cryptoData, isError: isCryptoError, isPending: isCryptoPending } = useFearGreedQuery(cryptoDays)
@@ -22,8 +23,8 @@ export function FearGreedSection() {
         error={isCnnError}
         loading={isCnnPending}
         days={cnnDays}
-        onDaysChange={(d) => setCnnDays(d as (typeof CNN_OPTIONS)[number])}
-        daysOptions={CNN_OPTIONS}
+        onDaysChange={(d) => setCnnDays(d as Days)}
+        daysOptions={DAYS_OPTIONS}
       />
       <FearGreedCard
         title="크립토 공포탐욕지수"
@@ -31,8 +32,8 @@ export function FearGreedSection() {
         error={isCryptoError}
         loading={isCryptoPending}
         days={cryptoDays}
-        onDaysChange={(d) => setCryptoDays(d as (typeof CRYPTO_OPTIONS)[number])}
-        daysOptions={CRYPTO_OPTIONS}
+        onDaysChange={(d) => setCryptoDays(d as Days)}
+        daysOptions={DAYS_OPTIONS}
       />
     </>
   )

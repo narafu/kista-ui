@@ -32,7 +32,7 @@ export function getFearGreedClient(days = CHART_CANDLE_COUNT): Promise<FearGreed
   return clientFetch<FearGreed>(`/api/market/fear-greed?days=${days}`)
 }
 
-// kista-trading 소유(8081) — 서버가 10분 캐시하고 days(1~200)는 김프·펀딩비 추이 길이만 정한다
+// kista-trading 소유(8081) — 서버가 10분 캐시하고 days(1~365)는 김프·Coinbase 프리미엄·펀딩비·밸류에이션 추이 길이만 정한다
 export function getCryptoMarketIndicatorsClient(): Promise<CryptoMarketIndicators> {
-  return clientFetch<CryptoMarketIndicators>('/api/crypto-market-indicators?days=200')
+  return clientFetch<CryptoMarketIndicators>('/api/crypto-market-indicators?days=365')
 }
