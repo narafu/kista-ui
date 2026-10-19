@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react'
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   DEFAULT_HOUSING_REGION_CODE,
@@ -17,7 +18,7 @@ import type { HousingBenchmarkRegion } from '@entities/stats'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
 import { fmtDate, fmtKrwEok, pnlTextClass } from '@shared/lib/format'
-import { cn } from '@shared/lib/utils'
+import { cn, toSelectValue } from '@shared/lib/utils'
 import {
   calculateQuintileCagr,
   formatHousingBenchmarkAxisMonth,
@@ -71,6 +72,8 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
       .filter((region): region is HousingBenchmarkRegion => region != null)
     return allowed.length > 0 ? allowed : [SEOUL_FALLBACK_REGION]
   }, [regionsQuery.data])
+  // code는 생성 타입상 optional — 코드 없는 지역은 선택지에서 뺀다
+  const regionItems = regions.flatMap((region) => (region.code ? [{ value: region.code, label: region.name ?? region.code }] : []))
   const selectedRegion = regions.find((region) => region.code === regionCode) ?? regions[0]
   const regionLabel = selectedRegion.name
 
@@ -91,22 +94,26 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
         <div className="flex flex-col gap-3">
           <div>
             <CardTitle role="heading" aria-level={2} className="flex flex-wrap items-center gap-1.5 text-base lg:text-lg">
-              <select
-                aria-label="비교 지역"
-                value={regionCode}
-                onChange={(event) => {
-                  const code = event.target.value
+              <Select
+                items={regionItems}
+                value={toSelectValue(regionItems, regionCode)}
+                onValueChange={(code) => {
+                  if (!code) return
                   setRegionCode(code)
                   // 상위 기본값(서울)과 초기 선택이 같아 마운트 시 알릴 필요 없이 사용자 변경 시점에만 알린다
                   const region = regions.find((item) => item.code === code)
                   if (region) onRegionChange?.(region)
                 }}
-                className="min-h-8 rounded-md border border-[var(--border-strong)] bg-background px-2 text-base font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring lg:text-lg"
               >
-                {regions.map((region) => (
-                  <option key={region.code} value={region.code}>{region.name}</option>
-                ))}
-              </select>
+                <SelectTrigger aria-label="비교 지역" className="h-8 px-2 text-base font-semibold text-foreground lg:text-lg">
+                  <SelectValue placeholder="지역 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  {regionItems.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               아파트 5분위 가격 추이
             </CardTitle>
             <p className="mt-1 text-xs text-muted-foreground">월별 매매평균가격 (억원) · 상단 벤치마크 지역과 별도로 선택 · 배지는 조회 기간 연평균 상승률</p>

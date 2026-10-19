@@ -12,6 +12,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@shared/ui/Badge'
 import { directionTextClass } from '@entities/trade'
 import { useAdminReorderBuyBudgetQuery } from '@entities/admin'
@@ -20,6 +22,7 @@ import { orderStatusBadgeClass, ORDER_STATUS_LABEL } from '@entities/order'
 import { DIRECTION_LABEL, orderTypeLabel } from '@entities/trade'
 import type { OrderDirection } from '@shared/lib/api-schema'
 import { fmtUsd, nextTradeDateKst } from '@shared/lib/format'
+import { toSelectValue } from '@shared/lib/utils'
 
 export interface ReorderBatchItem {
   orderId: string
@@ -185,6 +188,8 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
 
   if (orders.length === 0) return null
 
+  const timingItems = TIMING_OPTIONS.map(({ value, label, availKey }) => ({ value, label: `${label}${!timingAvailability[availKey] ? ' (현재 불가)' : ''}` }))
+
   return (
     <form className="mt-4 rounded-[var(--r-lg)] border border-border bg-muted/10 p-4" onSubmit={handleSubmit}>
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -262,22 +267,26 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
               )}
 
               <div className="mt-3">
-                <label className="grid gap-2 text-sm">
-                  <span className="font-medium">주문시점</span>
-                  <select
-                    aria-label={`주문 ${index + 1} 주문시점`}
-                    value={draft.timing}
-                    onChange={(e) => handleDraftChange(order.id, 'timing', e.target.value)}
+                <div className="grid gap-2 text-sm">
+                  <Label htmlFor={`reorder-timing-${order.id}`} className="font-medium">주문시점</Label>
+                  <Select
+                    items={timingItems}
+                    value={toSelectValue(timingItems, draft.timing)}
+                    onValueChange={(value) => { if (value) handleDraftChange(order.id, 'timing', value) }}
                     disabled={disabled || isBlocked || isClosed}
-                    className="h-10 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {TIMING_OPTIONS.map(({ value, label, availKey }) => (
-                      <option key={value} value={value} disabled={!timingAvailability[availKey]}>
-                        {label}{!timingAvailability[availKey] ? ' (현재 불가)' : ''}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                    <SelectTrigger id={`reorder-timing-${order.id}`} aria-label={`주문 ${index + 1} 주문시점`} className="h-10 w-full">
+                      <SelectValue placeholder="주문시점 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TIMING_OPTIONS.map(({ value, label, availKey }) => (
+                        <SelectItem key={value} value={value} disabled={!timingAvailability[availKey]}>
+                          {label}{!timingAvailability[availKey] ? ' (현재 불가)' : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="mt-3 grid gap-3 md:grid-cols-3">

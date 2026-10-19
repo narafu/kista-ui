@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { HousingBenchmark, HousingBenchmarkComparison as HousingBenchmarkComparisonData } from '@entities/stats'
 import { HousingBenchmarkComparison } from './HousingBenchmarkComparison'
@@ -188,6 +188,11 @@ function mockQuery(data: HousingBenchmarkComparisonData | undefined = COMPARISON
   })
 }
 
+async function pick(user: ReturnType<typeof userEvent.setup>, name: string, option: string) {
+  await user.click(screen.getByRole('combobox', { name }))
+  await user.click(await screen.findByRole('option', { name: option }))
+}
+
 describe('HousingBenchmarkComparison', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -211,7 +216,7 @@ describe('HousingBenchmarkComparison', () => {
 
     // 전략 드롭다운이 두 자산 탭 모두 항상 노출되므로 진입 즉시 전략 목록을 불러온다
     expect(useAllStrategiesQueryMock).toHaveBeenLastCalledWith({ enabled: true })
-    expect(screen.getByLabelText('전략')).toHaveValue('ALL')
+    expect(screen.getByRole('combobox', { name: '전략' })).toHaveTextContent('전체')
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'PORTFOLIO',
       benchmarkType: 'ETF',
@@ -236,9 +241,9 @@ describe('HousingBenchmarkComparison', () => {
       from: '2025-07-17',
       to: '2026-07-17',
     }, true)
-    expect(screen.getByLabelText('전략')).toHaveValue('ALL')
+    expect(screen.getByRole('combobox', { name: '전략' })).toHaveTextContent('전체')
     expect(screen.getByRole('button', { name: '1년' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('1100000000')
+    expect(screen.getByRole('combobox', { name: '벤치마크 자산' })).toHaveTextContent('서울')
 
     expect(screen.getByText('+32.5%p')).toBeInTheDocument()
     expect(screen.getByText('+84.2%')).toBeInTheDocument()
@@ -257,17 +262,17 @@ describe('HousingBenchmarkComparison', () => {
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
     await user.click(screen.getByRole('button', { name: '아파트' }))
 
-    const strategySelect = screen.getByLabelText('전략')
-    expect(strategySelect).toHaveValue('ALL')
+    const strategySelect = screen.getByRole('combobox', { name: '전략' })
+    expect(strategySelect).toHaveTextContent('전체')
 
-    await user.selectOptions(strategySelect, 'strategy-1')
-    expect(strategySelect).toHaveValue('strategy-1')
+    await pick(user, '전략', '[메인계좌] INFINITE · SOXL')
+    expect(strategySelect).toHaveTextContent('[메인계좌] INFINITE · SOXL')
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(expect.objectContaining({
       scope: 'STRATEGY', strategyId: 'strategy-1',
     }), true)
 
-    await user.selectOptions(strategySelect, 'strategy-2')
-    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), '11680')
+    await pick(user, '전략', '[메인계좌] VR · TQQQ')
+    await pick(user, '벤치마크 자산', '강남구')
     await user.click(screen.getByRole('button', { name: '1년' }))
 
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
@@ -293,7 +298,7 @@ describe('HousingBenchmarkComparison', () => {
     const user = userEvent.setup()
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
-    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'QLD')
+    await pick(user, '벤치마크 자산', 'QLD (ProShares Ultra QQQ)')
 
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'PORTFOLIO',
@@ -321,10 +326,13 @@ describe('HousingBenchmarkComparison', () => {
       from: '2026-04-17',
       to: '2026-07-17',
     }, true)
-    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('IBIT')
+    expect(screen.getByRole('combobox', { name: '벤치마크 자산' })).toHaveTextContent('IBIT')
+    await user.click(screen.getByRole('combobox', { name: '벤치마크 자산' }))
+    await screen.findAllByRole('option')
     expect(screen.queryByRole('option', { name: /SPY/ })).not.toBeInTheDocument()
+    await user.keyboard('{Escape}')
 
-    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), 'QQQ')
+    await pick(user, '벤치마크 자산', 'QQQ (Invesco QQQ Trust)')
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(expect.objectContaining({
       benchmarkType: 'ETF',
       symbol: 'QQQ',
@@ -334,7 +342,7 @@ describe('HousingBenchmarkComparison', () => {
   it('runtime config가 로딩 후 새 ETF 기본값으로 응답하면 아직 직접 선택하지 않은 선택값을 갱신한다', () => {
     useRuntimeConfigQueryMock.mockReturnValue({ data: undefined })
     const { rerender } = render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
-    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('SPY')
+    expect(screen.getByRole('combobox', { name: '벤치마크 자산' })).toHaveTextContent('SPY')
 
     useRuntimeConfigQueryMock.mockReturnValue({
       data: {
@@ -343,10 +351,10 @@ describe('HousingBenchmarkComparison', () => {
     })
     rerender(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
-    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('QQQ')
+    expect(screen.getByRole('combobox', { name: '벤치마크 자산' })).toHaveTextContent('QQQ')
   })
 
-  it('runtime config에만 있는 ETF 심볼도 일반 ETF 옵션으로 표시한다', () => {
+  it('runtime config에만 있는 ETF 심볼도 일반 ETF 옵션으로 표시한다', async () => {
     useRuntimeConfigQueryMock.mockReturnValue({
       data: {
         benchmarks: { etf: { allowedValues: ['VOO'], defaultValue: 'VOO' } },
@@ -355,7 +363,8 @@ describe('HousingBenchmarkComparison', () => {
 
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
-    expect(screen.getByRole('option', { name: 'VOO (사용자 설정 ETF)' })).toBeInTheDocument()
+    await userEvent.setup().click(screen.getByRole('combobox', { name: '벤치마크 자산' }))
+    expect(await screen.findByRole('option', { name: 'VOO (사용자 설정 ETF)' })).toBeInTheDocument()
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(expect.objectContaining({
       benchmarkType: 'ETF',
       symbol: 'VOO',
@@ -367,17 +376,17 @@ describe('HousingBenchmarkComparison', () => {
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
     await user.click(screen.getByRole('button', { name: '아파트' }))
 
-    const strategySelect = screen.getByLabelText('전략')
-    expect(strategySelect).toHaveValue('ALL')
+    const strategySelect = screen.getByRole('combobox', { name: '전략' })
+    expect(strategySelect).toHaveTextContent('전체')
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(
       expect.objectContaining({ scope: 'PORTFOLIO' }), true,
     )
 
-    await user.selectOptions(strategySelect, 'NONE')
+    await pick(user, '전략', '없음 (벤치마크만 보기)')
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(expect.anything(), false)
     expect(screen.queryByText('전체 포트폴리오 (USD): investmentIndexUsd')).not.toBeInTheDocument()
 
-    await user.selectOptions(strategySelect, 'strategy-1')
+    await pick(user, '전략', '[메인계좌] INFINITE · SOXL')
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(
       expect.objectContaining({ scope: 'STRATEGY', strategyId: 'strategy-1' }), true,
     )
@@ -400,7 +409,7 @@ describe('HousingBenchmarkComparison', () => {
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" renderHousingExtras={renderHousingExtras} />)
     await user.click(screen.getByRole('button', { name: '아파트' }))
 
-    await user.selectOptions(screen.getByLabelText('전략'), 'NONE')
+    await pick(user, '전략', '없음 (벤치마크만 보기)')
 
     expect(useHousingPriceIndexSeriesQueryMock).toHaveBeenLastCalledWith(
       { from: '2025-07-17', to: '2026-07-17', regionCode: '1100000000' }, true,
@@ -425,11 +434,10 @@ describe('HousingBenchmarkComparison', () => {
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
     await user.click(screen.getByRole('button', { name: '아파트' }))
 
-    const strategySelect = screen.getByLabelText('전략')
-    await user.selectOptions(strategySelect, 'NONE')
+    await pick(user, '전략', '없음 (벤치마크만 보기)')
     expect(screen.queryByText('전체 포트폴리오 (USD): investmentIndexUsd')).not.toBeInTheDocument()
 
-    await user.selectOptions(strategySelect, 'ALL')
+    await pick(user, '전략', '전체')
 
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(
       expect.objectContaining({ scope: 'PORTFOLIO' }), true,
@@ -469,12 +477,12 @@ describe('HousingBenchmarkComparison', () => {
     const { rerender } = render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
     await user.click(screen.getByRole('button', { name: '아파트' }))
 
-    const strategySelect = screen.getByLabelText('전략')
-    await user.selectOptions(strategySelect, 'strategy-1')
-    await user.selectOptions(screen.getByLabelText('벤치마크 자산'), '11680')
+    const strategySelect = screen.getByRole('combobox', { name: '전략' })
+    await pick(user, '전략', '[메인계좌] INFINITE · SOXL')
+    await pick(user, '벤치마크 자산', '강남구')
 
-    expect(strategySelect).toHaveValue('strategy-1')
-    expect(screen.getByLabelText('벤치마크 자산')).toHaveValue('11680')
+    expect(strategySelect).toHaveTextContent('[메인계좌] INFINITE · SOXL')
+    expect(screen.getByRole('combobox', { name: '벤치마크 자산' })).toHaveTextContent('강남구')
     expect(screen.getByRole('status', { name: '갱신 중' })).toBeInTheDocument()
     expect(screen.getByText('+32.5%p')).toBeInTheDocument()
     expect(screen.getByText('전체 포트폴리오 · USD')).toBeInTheDocument()
@@ -515,22 +523,22 @@ describe('HousingBenchmarkComparison', () => {
     const user = userEvent.setup()
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
-    const strategySelect = screen.getByLabelText('전략')
-    expect(strategySelect).toHaveValue('ALL')
+    const strategySelect = screen.getByRole('combobox', { name: '전략' })
+    expect(strategySelect).toHaveTextContent('전체')
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(
       expect.objectContaining({ scope: 'PORTFOLIO', benchmarkType: 'ETF' }), true,
     )
 
-    await user.selectOptions(strategySelect, 'NONE')
+    await pick(user, '전략', '없음 (벤치마크만 보기)')
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(expect.anything(), false)
     expect(screen.queryByText('전체 포트폴리오 (USD): investmentIndexUsd')).not.toBeInTheDocument()
 
-    await user.selectOptions(strategySelect, 'strategy-1')
+    await pick(user, '전략', '[메인계좌] INFINITE · SOXL')
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(
       expect.objectContaining({ scope: 'STRATEGY', strategyId: 'strategy-1', benchmarkType: 'ETF' }), true,
     )
 
-    await user.selectOptions(strategySelect, 'ALL')
+    await pick(user, '전략', '전체')
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(
       expect.objectContaining({ scope: 'PORTFOLIO', benchmarkType: 'ETF' }), true,
     )
@@ -550,7 +558,7 @@ describe('HousingBenchmarkComparison', () => {
     })
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
-    await user.selectOptions(screen.getByLabelText('전략'), 'NONE')
+    await pick(user, '전략', '없음 (벤치마크만 보기)')
 
     expect(useEtfPriceSeriesQueryMock).toHaveBeenLastCalledWith(
       { from: '2026-04-17', to: '2026-07-17', symbol: 'SPY' }, true,
@@ -562,18 +570,20 @@ describe('HousingBenchmarkComparison', () => {
     expect(screen.getByText('SPY 안내')).toBeInTheDocument()
   })
 
-  it('전략 목록 로딩 중에는 드롭다운에 안내 옵션을 표시한다', () => {
+  it('전략 목록 로딩 중에는 드롭다운에 안내 옵션을 표시한다', async () => {
     useAllStrategiesQueryMock.mockReturnValue({ data: undefined, isLoading: true, isError: false })
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
-    expect(screen.getByRole('option', { name: '전략 목록 불러오는 중' })).toBeInTheDocument()
+    await userEvent.setup().click(screen.getByRole('combobox', { name: '전략' }))
+    expect(await screen.findByRole('option', { name: '전략 목록 불러오는 중' })).toBeInTheDocument()
   })
 
-  it('전략 목록 조회 실패 시 드롭다운에 안내 옵션을 표시한다', () => {
+  it('전략 목록 조회 실패 시 드롭다운에 안내 옵션을 표시한다', async () => {
     useAllStrategiesQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: true })
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
-    expect(screen.getByRole('option', { name: '전략 목록 조회 실패' })).toBeInTheDocument()
+    await userEvent.setup().click(screen.getByRole('combobox', { name: '전략' }))
+    expect(await screen.findByRole('option', { name: '전략 목록 조회 실패' })).toBeInTheDocument()
   })
 
   it('전략 목록 갱신이 실패해도 stale 데이터가 있으면 선택·비교를 계속할 수 있다', async () => {
@@ -582,43 +592,58 @@ describe('HousingBenchmarkComparison', () => {
     mockQuery(STRATEGY_COMPARISON)
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
-    await user.selectOptions(screen.getByLabelText('전략'), 'strategy-1')
+    await pick(user, '전략', '[메인계좌] INFINITE · SOXL')
 
-    expect(screen.getByLabelText('전략')).toHaveValue('strategy-1')
+    expect(screen.getByRole('combobox', { name: '전략' })).toHaveTextContent('[메인계좌] INFINITE · SOXL')
     expect(screen.getByTestId('housing-benchmark-chart')).toBeInTheDocument()
     expect(screen.queryByRole('option', { name: '전략 목록 조회 실패' })).not.toBeInTheDocument()
   })
 
-  it('실제 빈 전략 목록이면 드롭다운에 안내 옵션을 표시한다', () => {
+  it('실제 빈 전략 목록이면 드롭다운에 안내 옵션을 표시한다', async () => {
     useAllStrategiesQueryMock.mockReturnValue({ data: [], isLoading: false, isError: false })
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
-    expect(screen.getByRole('option', { name: '등록된 전략이 없습니다' })).toBeInTheDocument()
+    await userEvent.setup().click(screen.getByRole('combobox', { name: '전략' }))
+    expect(await screen.findByRole('option', { name: '등록된 전략이 없습니다' })).toBeInTheDocument()
   })
 
-  it('계좌 목록이 아직 로딩 중이면 모의계좌 필터링 전에는 전략 목록을 확정하지 않는다', () => {
+  it('계좌 목록이 아직 로딩 중이면 모의계좌 필터링 전에는 전략 목록을 확정하지 않는다', async () => {
     useAccountsQueryMock.mockReturnValue({ data: undefined, isLoading: true, isError: false })
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
-    expect(screen.getByRole('option', { name: '전략 목록 불러오는 중' })).toBeInTheDocument()
+    await userEvent.setup().click(screen.getByRole('combobox', { name: '전략' }))
+    expect(await screen.findByRole('option', { name: '전략 목록 불러오는 중' })).toBeInTheDocument()
     expect(screen.queryByRole('option', { name: /INFINITE|VR/ })).not.toBeInTheDocument()
   })
 
-  it('계좌 목록 조회가 실패하면 전략 목록도 오류로 표시한다', () => {
+  it('계좌 목록 조회가 실패하면 전략 목록도 오류로 표시한다', async () => {
     useAccountsQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: true })
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
-    expect(screen.getByRole('option', { name: '전략 목록 조회 실패' })).toBeInTheDocument()
+    await userEvent.setup().click(screen.getByRole('combobox', { name: '전략' }))
+    expect(await screen.findByRole('option', { name: '전략 목록 조회 실패' })).toBeInTheDocument()
   })
 
-  it('전략 선택 드롭다운 옵션 라벨 앞에 계좌 닉네임을 표시한다', () => {
+  it('전략 선택 드롭다운 옵션 라벨 앞에 계좌 닉네임을 표시한다', async () => {
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
-    expect(screen.getByRole('option', { name: '[메인계좌] INFINITE · SOXL' })).toBeInTheDocument()
+    await userEvent.setup().click(screen.getByRole('combobox', { name: '전략' }))
+    expect(await screen.findByRole('option', { name: '[메인계좌] INFINITE · SOXL' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: '[메인계좌] VR · TQQQ' })).toBeInTheDocument()
   })
 
-  it('모의계좌 소속 전략은 전략 드롭다운에서 제외한다', () => {
+  it('지역 목록이 아직 없으면 아파트 자산 Select에 지역 코드 대신 안내 placeholder를 표시한다', async () => {
+    const user = userEvent.setup()
+    useHousingBenchmarkRegionsQueryMock.mockReturnValue({ data: undefined, isLoading: true, isError: false })
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+    await user.click(screen.getByRole('button', { name: '아파트' }))
+
+    const trigger = screen.getByRole('combobox', { name: '벤치마크 자산' })
+    expect(trigger).toHaveTextContent('지역 목록 불러오는 중')
+    expect(trigger).not.toHaveTextContent('1100000000')
+  })
+
+  it('모의계좌 소속 전략은 전략 드롭다운에서 제외한다', async () => {
     useAccountsQueryMock.mockReturnValue({
       data: [
         ...ACCOUNTS,
@@ -638,15 +663,17 @@ describe('HousingBenchmarkComparison', () => {
     })
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('combobox', { name: '전략' }))
     expect(screen.queryByRole('option', { name: /MAGX/ })).not.toBeInTheDocument()
     // 전체/없음 옵션 2개 + 모의계좌 제외 전략 2개
-    expect(within(screen.getByLabelText('전략')).getAllByRole('option')).toHaveLength(4)
+    expect(await screen.findAllByRole('option')).toHaveLength(4)
   })
 
   it('선택된 전략이 목록에서 사라지면 전체로 되돌아간다', async () => {
     const user = userEvent.setup()
     const { rerender } = render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
-    await user.selectOptions(screen.getByLabelText('전략'), 'strategy-1')
+    await pick(user, '전략', '[메인계좌] INFINITE · SOXL')
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(
       expect.objectContaining({ scope: 'STRATEGY', strategyId: 'strategy-1' }), true,
     )
@@ -656,13 +683,13 @@ describe('HousingBenchmarkComparison', () => {
     useAllStrategiesQueryMock.mockReturnValue({ data: [STRATEGIES[1]], isLoading: false, isError: false })
     rerender(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
-    // DOM select value는 목록에 없는 값이면 첫 옵션으로 폴백해 보이므로(우연히 'ALL'과 같을 수 있음) 신뢰하지 않고
+    // 셀렉트 표시값은 목록에 없는 값이면 폴백해 보일 수 있으므로(우연히 'ALL'과 같을 수 있음) 신뢰하지 않고
     // 실제 파생 상태(쿼리에 전달된 scope/strategyId)로 복구 여부를 검증한다
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(
       expect.objectContaining({ scope: 'PORTFOLIO' }), true,
     )
     expect(useHousingBenchmarkQueryMock.mock.calls.at(-1)?.[0]).not.toHaveProperty('strategyId')
-    expect(screen.getByLabelText('전략')).toHaveValue('ALL')
+    expect(screen.getByRole('combobox', { name: '전략' })).toHaveTextContent('전체')
   })
 
   it('윤년 2월 29일에서 연도를 빼도 2월을 유지하고 유효한 말일로 보정한다', async () => {

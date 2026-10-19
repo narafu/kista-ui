@@ -4,13 +4,17 @@ import type { Account } from '@entities/account'
 import type { EtfBenchmarkSymbol, HousingBenchmarkRegion } from '@entities/stats'
 import type { Strategy } from '@entities/strategy'
 import { useMeta } from '@entities/meta'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { toSelectValue } from '@shared/lib/utils'
 import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
 import { toMonthInput } from './model/benchmarkPeriods'
 import type { EtfBenchmarkContent } from './housingBenchmarkContent'
 
-const ASSET_SELECT_CLASS = 'min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring'
-
 const DATE_INPUT_CLASS = 'min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring'
+
+// 목록이 비었을 때 안내용 비활성 항목 — disabled라 선택 불가이고 핸들러에서도 한 번 더 걸러낸다
+const EMPTY_ITEM = '__empty'
 
 type QueryStatus = { isLoading: boolean; isError: boolean }
 
@@ -32,32 +36,35 @@ export function StrategySelect({
   setStrategySelection: (value: string) => void
 }) {
   const { labelOf } = useMeta()
+  const strategyItems = [
+    { value: 'ALL', label: '전체' },
+    { value: 'NONE', label: '없음 (벤치마크만 보기)' },
+    ...strategies.map((strategy) => {
+      const nickname = accountsById.get(strategy.accountId)?.nickname
+      return { value: strategy.id, label: `${nickname ? `[${nickname}] ` : ''}${labelOf('strategyTypes', strategy.type)} · ${strategy.ticker}` }
+    }),
+  ]
   return (
-    <label className="grid gap-1 text-xs font-medium text-muted-foreground">
-      전략
-      <select
-        aria-label="전략"
-        value={strategySelection}
-        onChange={(event) => setStrategySelection(event.target.value)}
-        className={ASSET_SELECT_CLASS}
-      >
-        <option value="ALL">전체</option>
-        <option value="NONE">없음 (벤치마크만 보기)</option>
-        {strategies.length === 0 ? (
-          <option value="" disabled>
-            {emptyListLabel(strategiesQuery, '전략 목록 불러오는 중', '전략 목록 조회 실패', '등록된 전략이 없습니다')}
-          </option>
-        ) : null}
-        {strategies.map((strategy) => {
-          const nickname = accountsById.get(strategy.accountId)?.nickname
-          return (
-            <option key={strategy.id} value={strategy.id}>
-              {nickname ? `[${nickname}] ` : ''}{labelOf('strategyTypes', strategy.type)} · {strategy.ticker}
-            </option>
-          )
-        })}
-      </select>
-    </label>
+    <div className="grid gap-1">
+      <Label htmlFor="benchmark-strategy-select" className="text-xs font-medium text-muted-foreground">전략</Label>
+      <Select items={strategyItems} value={toSelectValue(strategyItems, strategySelection)} onValueChange={(value) => { if (value && value !== EMPTY_ITEM) setStrategySelection(value) }}>
+        <SelectTrigger id="benchmark-strategy-select" aria-label="전략" className="h-10 w-full">
+          <SelectValue placeholder={strategies.length === 0 ? emptyListLabel(strategiesQuery, '전략 목록 불러오는 중', '전략 목록 조회 실패', '등록된 전략이 없습니다') : '전체'} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="ALL">전체</SelectItem>
+          <SelectItem value="NONE">없음 (벤치마크만 보기)</SelectItem>
+          {strategies.length === 0 ? (
+            <SelectItem value={EMPTY_ITEM} disabled>
+              {emptyListLabel(strategiesQuery, '전략 목록 불러오는 중', '전략 목록 조회 실패', '등록된 전략이 없습니다')}
+            </SelectItem>
+          ) : null}
+          {strategyItems.slice(2).map((item) => (
+            <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   )
 }
 
@@ -80,41 +87,47 @@ export function BenchmarkAssetSelect({
   regions: HousingBenchmarkRegion[]
   regionsQuery: QueryStatus
 }) {
+  const etfItems = etfBenchmarks.map((item) => ({ value: item.symbol, label: `${item.label} (${item.fullName})` }))
+  // code는 생성 타입상 optional — 코드 없는 지역은 선택지에서 뺀다
+  const regionItems = regions.flatMap((region) => (region.code ? [{ value: region.code, label: region.name ?? region.code }] : []))
   return (
-    <label className="grid gap-1 text-xs font-medium text-muted-foreground">
-      벤치마크 자산
+    <div className="grid gap-1">
+      <Label htmlFor="benchmark-asset-select" className="text-xs font-medium text-muted-foreground">벤치마크 자산</Label>
       {activeAsset === 'ETF' ? (
-        <select
-          aria-label="벤치마크 자산"
-          value={etfSymbol}
-          onChange={(event) => handleEtfSymbolChange(event.target.value as EtfBenchmarkSymbol)}
-          className={ASSET_SELECT_CLASS}
+        <Select
+          items={etfItems}
+          value={toSelectValue(etfItems, etfSymbol)}
+          onValueChange={(value) => { if (value) handleEtfSymbolChange(value as EtfBenchmarkSymbol) }}
         >
-          {etfBenchmarks.map((item) => (
-            <option key={item.symbol} value={item.symbol}>
-              {item.label} ({item.fullName})
-            </option>
-          ))}
-        </select>
+          <SelectTrigger id="benchmark-asset-select" aria-label="벤치마크 자산" className="h-10 w-full">
+            <SelectValue placeholder="자산 선택" />
+          </SelectTrigger>
+          <SelectContent>
+            {etfBenchmarks.map((item) => (
+              <SelectItem key={item.symbol} value={item.symbol}>
+                {item.label} ({item.fullName})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       ) : (
-        <select
-          aria-label="벤치마크 자산"
-          value={regionCode}
-          onChange={(event) => setRegionCode(event.target.value)}
+        <Select
+          items={regionItems}
+          value={toSelectValue(regionItems, regionCode)}
+          onValueChange={(value) => { if (value) setRegionCode(value) }}
           disabled={regions.length === 0}
-          className={ASSET_SELECT_CLASS}
         >
-          {regions.length === 0 ? (
-            <option value="">
-              {emptyListLabel(regionsQuery, '지역 목록 불러오는 중', '지역 목록 조회 실패', '선택할 지역이 없습니다')}
-            </option>
-          ) : null}
-          {regions.map((region) => (
-            <option key={region.code} value={region.code}>{region.name}</option>
-          ))}
-        </select>
+          <SelectTrigger id="benchmark-asset-select" aria-label="벤치마크 자산" className="h-10 w-full">
+            <SelectValue placeholder={emptyListLabel(regionsQuery, '지역 목록 불러오는 중', '지역 목록 조회 실패', '선택할 지역이 없습니다')} />
+          </SelectTrigger>
+          <SelectContent>
+            {regionItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       )}
-    </label>
+    </div>
   )
 }
 

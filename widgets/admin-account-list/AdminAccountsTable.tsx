@@ -36,7 +36,7 @@ export function AdminAccountsTable({ accounts }: { accounts: AdminAccount[] }) {
         </thead>
         <tbody className="divide-y divide-border">
           {accounts.map((acc) => (
-            <tr key={acc.id} className="hover:bg-muted/20 transition-colors">
+            <tr key={acc.id} className="hover:bg-muted/30 transition-colors">
               <TableDataCell className="text-left font-medium">{acc.ownerNickname}</TableDataCell>
               <TableDataCell className="text-left text-muted-foreground">{acc.broker ? formatBrokerLabel(acc.broker) : '-'}</TableDataCell>
               {/* 서버가 이미 마스킹해 내려주는 번호라 공개 토글이 없다 */}

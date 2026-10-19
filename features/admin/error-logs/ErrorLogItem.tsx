@@ -17,7 +17,7 @@ export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled =
   const hasContext = Object.keys(log.context).length > 0
 
   return (
-    <div className="px-4 py-3 hover:bg-muted/20 transition-colors">
+    <div className="px-4 py-3 hover:bg-muted/30 transition-colors">
       <div className="flex items-start gap-3">
         <label className="mt-0.5 -m-1 inline-flex shrink-0 p-1">
           <input

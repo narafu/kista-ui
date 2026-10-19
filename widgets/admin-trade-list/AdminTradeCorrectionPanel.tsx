@@ -3,7 +3,10 @@
 import type { AdminAccount, AdminReorderTimingAvailability, AdminStrategy, AdminStrategyOrder } from '@entities/admin'
 import { useMeta } from '@entities/meta'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { formatBrokerLabel } from '@shared/lib/api-schema'
+import { toSelectValue } from '@shared/lib/utils'
 import { AdminBatchOrderCorrectionForm } from './AdminBatchOrderCorrectionForm'
 import type { ReorderBatchItem } from './AdminBatchOrderCorrectionForm'
 
@@ -68,6 +71,11 @@ export function AdminTradeCorrectionPanel({
 }: Props) {
   const { labelOf } = useMeta()
   const nextStrategyActionLabel = selectedStrategy?.status === 'ACTIVE' ? '전략 일시중지' : '전략 재개'
+  const userItems = users.map((user) => ({ value: user.id, label: user.label }))
+  const brokerItems = brokers.map((broker) => ({ value: broker, label: formatBrokerLabel(broker) }))
+  // 업비트는 계좌번호가 없어 증권사명과 id 앞자리로 구분
+  const accountItems = accounts.map((account) => ({ value: account.id, label: account.accountNoMasked ?? `${formatBrokerLabel(account.broker)} ${account.id.slice(0, 8)}` }))
+  const strategyItems = strategies.map((strategy) => ({ value: strategy.id, label: `${labelOf('strategyTypes', strategy.type)} · ${strategy.ticker}` }))
   const helperMessage = getHelperMessage({ brokers, accounts, strategies, orders, selectedUserId, selectedBroker, selectedAccountId, selectedStrategyId })
 
   return (
@@ -78,78 +86,81 @@ export function AdminTradeCorrectionPanel({
       </div>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <label className="grid min-w-0 gap-2 text-sm">
-          <span className="font-medium">사용자</span>
-          <select
-            aria-label="사용자 선택"
-            value={selectedUserId}
-            onChange={(event) => onUserChange(event.target.value)}
+        <div className="grid min-w-0 gap-2 text-sm">
+          <Label htmlFor="reorder-user-select" className="font-medium">사용자</Label>
+          <Select
+            items={userItems}
+            value={toSelectValue(userItems, selectedUserId)}
+            onValueChange={(value) => { if (value) onUserChange(value) }}
             disabled={reorderPending}
-            className="h-10 w-full min-w-0 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <option value="">사용자 선택</option>
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.label}
-              </option>
-            ))}
-          </select>
-        </label>
+            <SelectTrigger id="reorder-user-select" aria-label="사용자 선택" className="h-10 w-full min-w-0">
+              <SelectValue placeholder="사용자 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              {userItems.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-        <label className="grid min-w-0 gap-2 text-sm">
-          <span className="font-medium">증권사</span>
-          <select
-            aria-label="증권사 선택"
-            value={selectedBroker}
-            onChange={(event) => onBrokerChange(event.target.value)}
+        <div className="grid min-w-0 gap-2 text-sm">
+          <Label htmlFor="reorder-broker-select" className="font-medium">증권사</Label>
+          <Select
+            items={brokerItems}
+            value={toSelectValue(brokerItems, selectedBroker)}
+            onValueChange={(value) => { if (value) onBrokerChange(value) }}
             disabled={!selectedUserId || reorderPending}
-            className="h-10 w-full min-w-0 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <option value="">증권사 선택</option>
-            {brokers.map((broker) => (
-              <option key={broker} value={broker}>
-                {formatBrokerLabel(broker)}
-              </option>
-            ))}
-          </select>
-        </label>
+            <SelectTrigger id="reorder-broker-select" aria-label="증권사 선택" className="h-10 w-full min-w-0">
+              <SelectValue placeholder="증권사 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              {brokerItems.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-        <label className="grid min-w-0 gap-2 text-sm">
-          <span className="font-medium">계좌</span>
-          <select
-            aria-label="계좌 선택"
-            value={selectedAccountId}
-            onChange={(event) => onAccountChange(event.target.value)}
+        <div className="grid min-w-0 gap-2 text-sm">
+          <Label htmlFor="reorder-account-select" className="font-medium">계좌</Label>
+          <Select
+            items={accountItems}
+            value={toSelectValue(accountItems, selectedAccountId)}
+            onValueChange={(value) => { if (value) onAccountChange(value) }}
             disabled={!selectedBroker || reorderPending}
-            className="h-10 w-full min-w-0 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <option value="">계좌 선택</option>
-            {accounts.map((account) => (
-              <option key={account.id} value={account.id}>
-                {/* 업비트는 계좌번호가 없어 증권사명과 id 앞자리로 구분 */}
-                {account.accountNoMasked ?? `${formatBrokerLabel(account.broker)} ${account.id.slice(0, 8)}`}
-              </option>
-            ))}
-          </select>
-        </label>
+            <SelectTrigger id="reorder-account-select" aria-label="계좌 선택" className="h-10 w-full min-w-0">
+              <SelectValue placeholder="계좌 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              {accountItems.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-        <label className="grid min-w-0 gap-2 text-sm">
-          <span className="font-medium">전략</span>
-          <select
-            aria-label="전략 선택"
-            value={selectedStrategyId}
-            onChange={(event) => onStrategyChange(event.target.value)}
+        <div className="grid min-w-0 gap-2 text-sm">
+          <Label htmlFor="reorder-strategy-select" className="font-medium">전략</Label>
+          <Select
+            items={strategyItems}
+            value={toSelectValue(strategyItems, selectedStrategyId)}
+            onValueChange={(value) => { if (value) onStrategyChange(value) }}
             disabled={!selectedAccountId || reorderPending}
-            className="h-10 w-full min-w-0 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <option value="">전략 선택</option>
-            {strategies.map((strategy) => (
-              <option key={strategy.id} value={strategy.id}>
-                {labelOf('strategyTypes', strategy.type)} · {strategy.ticker}
-              </option>
-            ))}
-          </select>
-        </label>
+            <SelectTrigger id="reorder-strategy-select" aria-label="전략 선택" className="h-10 w-full min-w-0">
+              <SelectValue placeholder="전략 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              {strategyItems.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
 
       </div>

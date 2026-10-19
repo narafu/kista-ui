@@ -5,6 +5,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/** Base UI Select는 items에 없는 value를 raw 값으로 그리므로, 목록에 없으면 null(placeholder)로 바꾼다. */
+export function toSelectValue<T extends string>(items: { value: T }[], value: T | '' | null | undefined): T | null {
+  return value && items.some((item) => item.value === value) ? value : null
+}
+
 export function toNum(v: unknown): number {
   const n = typeof v === 'string' ? parseFloat(v) : (v as number)
   return Number.isFinite(n) ? n : 0

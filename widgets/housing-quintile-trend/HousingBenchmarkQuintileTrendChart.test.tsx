@@ -82,6 +82,11 @@ function mockRegionsQuery(data: HousingBenchmarkRegionsList | undefined = REGION
   })
 }
 
+async function pick(user: ReturnType<typeof userEvent.setup>, name: string, option: string) {
+  await user.click(screen.getByRole('combobox', { name }))
+  await user.click(await screen.findByRole('option', { name: option }))
+}
+
 describe('HousingBenchmarkQuintileTrendChart', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -143,21 +148,22 @@ describe('HousingBenchmarkQuintileTrendChart', () => {
     const user = userEvent.setup()
     render(<HousingBenchmarkQuintileTrendChart enabled from="2021-07-19" to="2026-07-19" />)
 
-    await user.selectOptions(screen.getByLabelText('비교 지역'), '0000000000')
+    await pick(user, '비교 지역', '전국')
 
     expect(useHousingBenchmarkSeriesQueryMock).toHaveBeenLastCalledWith(
       { from: '2021-07-19', to: '2026-07-19', regionCode: '0000000000' },
       true,
     )
-    expect(screen.getByLabelText('비교 지역')).toHaveValue('0000000000')
+    expect(screen.getByRole('combobox', { name: '비교 지역' })).toHaveTextContent('전국')
     expect(screen.getByLabelText(/전국 아파트 5분위 월별 매매평균가격 선 차트/)).toBeInTheDocument()
   })
 
-  it('비교 지역 옵션을 서울/수도권/전국 순서로만 표시하고, 그 외 지역(부산 등)은 제외한다', () => {
+  it('비교 지역 옵션을 서울/수도권/전국 순서로만 표시하고, 그 외 지역(부산 등)은 제외한다', async () => {
+    const user = userEvent.setup()
     render(<HousingBenchmarkQuintileTrendChart enabled />)
 
-    const select = screen.getByLabelText('비교 지역') as HTMLSelectElement
-    expect(Array.from(select.options).map((option) => option.textContent)).toEqual(['서울', '수도권', '전국'])
+    await user.click(screen.getByRole('combobox', { name: '비교 지역' }))
+    expect((await screen.findAllByRole('option')).map((option) => option.textContent)).toEqual(['서울', '수도권', '전국'])
     expect(screen.queryByRole('option', { name: '부산' })).not.toBeInTheDocument()
   })
 
@@ -169,17 +175,27 @@ describe('HousingBenchmarkQuintileTrendChart', () => {
     // 초기 선택(서울)은 상위 기본값과 같아 마운트 시에는 알리지 않는다
     expect(onRegionChange).not.toHaveBeenCalled()
 
-    await user.selectOptions(screen.getByLabelText('비교 지역'), '4100000000')
+    await pick(user, '비교 지역', '수도권')
 
     expect(onRegionChange).toHaveBeenLastCalledWith({ code: '4100000000', name: '수도권' })
   })
 
-  it('지역 목록 조회 실패 시 서울 하나만 fallback으로 표시한다', () => {
+  it('Select 값이 옵션 목록에 없으면 지역 코드 대신 placeholder를 표시한다', () => {
+    // 데이터가 달라 선택된 코드(서울)가 목록에서 사라진 상황은 mock으로 재현하기 어려워 fallback 지역을 쓴다 — 코드 문자열이 노출되면 안 된다
     useHousingBenchmarkRegionsQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: true })
     render(<HousingBenchmarkQuintileTrendChart enabled />)
 
-    const select = screen.getByLabelText('비교 지역') as HTMLSelectElement
-    expect(select.options).toHaveLength(1)
-    expect(select.options[0]).toHaveTextContent('서울')
+    expect(screen.getByRole('combobox', { name: '비교 지역' })).not.toHaveTextContent(/^\d{10}$/)
+  })
+
+  it('지역 목록 조회 실패 시 서울 하나만 fallback으로 표시한다', async () => {
+    const user = userEvent.setup()
+    useHousingBenchmarkRegionsQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: true })
+    render(<HousingBenchmarkQuintileTrendChart enabled />)
+
+    await user.click(screen.getByRole('combobox', { name: '비교 지역' }))
+    const options = await screen.findAllByRole('option')
+    expect(options).toHaveLength(1)
+    expect(options[0]).toHaveTextContent('서울')
   })
 })

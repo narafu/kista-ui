@@ -47,7 +47,7 @@ export function AuditLogsSection({
       ) : (
         <div className="rounded-[var(--r-lg)] border border-border divide-y divide-border">
           {logs.map((log) => (
-            <div key={log.id} className="px-4 py-3 hover:bg-muted/20 transition-colors">
+            <div key={log.id} className="px-4 py-3 hover:bg-muted/30 transition-colors">
               <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">

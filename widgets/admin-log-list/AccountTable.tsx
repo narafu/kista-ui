@@ -15,7 +15,7 @@ export function AccountTable({ accounts, label }: { accounts: AdminAnomalyAccoun
         </thead>
         <tbody className="divide-y divide-border">
           {accounts.map((a) => (
-            <tr key={a.id} className="hover:bg-muted/20">
+            <tr key={a.id} className="hover:bg-muted/30">
               <TableDataCell className="text-left font-medium">{a.ownerNickname}</TableDataCell>
               <TableDataCell className="text-left font-mono text-sm text-muted-foreground">
                 {a.accountNo == null ? '-' : (

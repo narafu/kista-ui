@@ -398,7 +398,7 @@ function FragmentRow({
 }) {
   return (
     <>
-      <tr className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={onToggle}>
+      <tr className="hover:bg-muted/30 transition-colors cursor-pointer" onClick={onToggle}>
         <TableDataCell className="px-2 py-3 text-muted-foreground">
           {/* 행 높이를 키우지 않도록 IconButton 기본 44px 대신 32px로 줄인다 — 행 전체 클릭으로도 펼쳐져 터치 영역은 그 이상이다 */}
           <IconButton

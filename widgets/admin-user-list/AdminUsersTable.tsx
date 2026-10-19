@@ -66,7 +66,7 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
           </thead>
           <tbody className="divide-y divide-border">
             {paged.map((user) => (
-              <tr key={user.id} className="hover:bg-muted/20 transition-colors">
+              <tr key={user.id} className="hover:bg-muted/30 transition-colors">
                 <TableDataCell className="text-left font-medium whitespace-nowrap">{user.nickname}</TableDataCell>
                 <TableDataCell className="text-left whitespace-nowrap">
                   <Badge tone={USER_STATUS_TONE[user.status]}>{ADMIN_USER_STATUS_LABEL[user.status]}</Badge>

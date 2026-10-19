@@ -37,6 +37,11 @@ const REGIONS: HousingBenchmarkRegionsList = {
   ],
 }
 
+async function pick(user: ReturnType<typeof userEvent.setup>, name: string, option: string) {
+  await user.click(screen.getByRole('combobox', { name }))
+  await user.click(await screen.findByRole('option', { name: option }))
+}
+
 describe('HousingQuintileTrend', () => {
   it('차트에서 지역을 변경하면 아래 안내 섹션의 지역명도 함께 바뀐다', async () => {
     const user = userEvent.setup()
@@ -47,7 +52,7 @@ describe('HousingQuintileTrend', () => {
 
     expect(screen.getByText('서울 아파트 5분위 안내')).toBeInTheDocument()
 
-    await user.selectOptions(screen.getByLabelText('비교 지역'), '4100000000')
+    await pick(user, '비교 지역', '수도권')
 
     expect(screen.getByText('수도권 아파트 5분위 안내')).toBeInTheDocument()
   })

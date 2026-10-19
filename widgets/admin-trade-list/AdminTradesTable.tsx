@@ -1,5 +1,5 @@
 import { useMeta } from '@entities/meta'
-import { fmtMoney, fmtQuantity } from '@shared/lib/format'
+import { fmtDate, fmtMoney, fmtQuantity } from '@shared/lib/format'
 import { isCryptoMarket } from '@shared/lib/api-schema'
 import { DIRECTION_LABEL, directionTextClass, orderTypeLabel } from '@entities/trade'
 import { orderStatusBadgeClass, ORDER_STATUS_LABEL } from '@entities/order'
@@ -43,9 +43,9 @@ export function AdminTradesTable({ trades }: Props) {
             return (
               <tr
                 key={trade.id}
-                className="hover:bg-muted/20 transition-colors"
+                className="hover:bg-muted/30 transition-colors"
               >
-                <TableDataCell className="text-muted-foreground text-xs whitespace-nowrap">{trade.tradeDate}</TableDataCell>
+                <TableDataCell className="text-muted-foreground text-xs whitespace-nowrap">{fmtDate(trade.tradeDate)}</TableDataCell>
                 <TableDataCell className="font-medium whitespace-nowrap">{trade.ownerNickname}</TableDataCell>
                 <TableDataCell className="text-xs text-muted-foreground whitespace-nowrap">{trade.strategyType ? labelOf('strategyTypes', trade.strategyType) : '-'}</TableDataCell>
                 <TableDataCell className="whitespace-nowrap">{trade.ticker}</TableDataCell>
