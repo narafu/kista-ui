@@ -8,6 +8,7 @@ import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { fmtCompactUsd, fmtSignedPercent } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
+import { fmtCompactUsdTick, stepDecimals } from './niceTicks'
 import type { CryptoTickerIndicators } from '@entities/market'
 
 const IndicatorLineChart = dynamic(() => import('./IndicatorLineChart'), {
@@ -122,7 +123,7 @@ export function KimchiPremiumCard({ ticker, data, usdtPremium }: KimchiProps) {
           data={data.history.slice(-days)}
           series={series}
           title={`${title} 추이`}
-          formatAxis={(v) => `${v.toFixed(1)}%`}
+          formatAxis={(v, step) => `${v.toFixed(step ? stepDecimals(step) : 1)}%`}
           formatValue={fmtPct}
           referenceY={0}
           yWidth={40}
@@ -153,7 +154,7 @@ export function FundingRateCard({ ticker, data }: { ticker: string; data: Crypto
           data={history}
           series={[{ key: 'value', name: '일평균 펀딩비', color: 'var(--chart-1)' }]}
           title={`${title} 일평균 추이`}
-          formatAxis={(v) => `${Number(v.toFixed(4))}%`}
+          formatAxis={(v, step) => `${step ? v.toFixed(stepDecimals(step)) : Number(v.toFixed(4))}%`}
           formatValue={(v) => fmtFunding(v / 100)}
           referenceY={0.01}
           yWidth={48}
@@ -179,7 +180,7 @@ export function OpenInterestCard({ ticker, data }: { ticker: string; data: Crypt
           data={data.history}
           series={[{ key: 'valueUsd', name: '미결제약정', color: 'var(--chart-2)' }]}
           title={`${title} 추이`}
-          formatAxis={fmtCompactUsd}
+          formatAxis={(v, step) => (step ? fmtCompactUsdTick(v, step) : fmtCompactUsd(v))}
           formatValue={fmtCompactUsd}
         />
       </ChartArea>

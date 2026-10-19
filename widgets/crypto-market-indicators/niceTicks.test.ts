@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { niceTicks } from './niceTicks'
+import { fmtCompactUsdTick, niceTicks, stepDecimals } from './niceTicks'
 
 describe('niceTicks', () => {
   it('picks 1·2·2.5·5 steps that cover the values', () => {
@@ -13,5 +13,13 @@ describe('niceTicks', () => {
   it('pads a flat series and returns nothing without values', () => {
     expect(niceTicks([0.01])).toEqual([0.009, 0.0095, 0.01, 0.0105, 0.011])
     expect(niceTicks([])).toBeUndefined()
+  })
+
+  it('formats every tick distinctly at the precision its step needs', () => {
+    expect([0.05, 2.5, 50, 0.0025, 1, 1e-7, 0.0025000000000000005].map(stepDecimals)).toEqual([2, 1, 0, 4, 0, 7, 4])
+    const usd = (ticks: number[]) => ticks.map((t) => fmtCompactUsdTick(t, ticks[1] - ticks[0]))
+    expect(usd(niceTicks([7.6e9, 7.75e9])!)).toEqual(['$7.60B', '$7.65B', '$7.70B', '$7.75B'])
+    expect(usd([1e9, 1.25e9, 1.5e9])).toEqual(['$1.00B', '$1.25B', '$1.50B'])
+    expect(usd([7.5e9, 8e9, 8.5e9])).toEqual(['$7.5B', '$8.0B', '$8.5B'])
   })
 })
