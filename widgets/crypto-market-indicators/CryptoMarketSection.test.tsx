@@ -118,6 +118,23 @@ describe('CryptoMarketSection', () => {
     expect(screen.queryByText('+0.00%')).not.toBeInTheDocument()
   })
 
+  it('never shows a negative zero for values that round to zero', () => {
+    const point = { date: '2026-10-18', close: 125_990, wma200: 52_500, wma200Multiple: 2.4, mayerMultiple: 1.5, athDrawdownPercent: -0.001 }
+    useQueryMock.mockReturnValue({
+      data: indicators({
+        tickers: [ticker('BTC', {
+          kimchiPremium: { current: { official: null, tether: -0.001 }, history: [{ date: '2026-10-18', official: null, tether: -0.001 }] },
+          valuation: { current: point, history: [point] },
+        })],
+      }),
+    })
+    render(<CryptoMarketSection />)
+
+    expect(screen.getByText('+0.00%')).toBeInTheDocument() // 테더 기준 김프
+    expect(screen.getByText('0.00%')).toBeInTheDocument() // ATH 대비는 양수로 읽히지 않게 부호 없이
+    expect(screen.queryByText('-0.00%')).not.toBeInTheDocument()
+  })
+
   it('shows a dash for a valuation multiple the server could not compute', () => {
     const point = { date: '2026-10-18', close: 105_000, wma200: null, wma200Multiple: null, mayerMultiple: 1.234, athDrawdownPercent: -12.5 }
     useQueryMock.mockReturnValue({ data: indicators({ tickers: [ticker('BTC', { valuation: { current: point, history: [point] } })] }) })

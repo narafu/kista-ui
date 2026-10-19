@@ -20,10 +20,13 @@ const IndicatorLineChart = dynamic(() => import('./IndicatorLineChart'), {
 const DAYS_OPTIONS = [200, 120, 50, 20] as const
 type Days = (typeof DAYS_OPTIONS)[number]
 
+// 프리미엄·펀딩비는 0 근처를 오가 아주 작은 음수가 반올림되면 -0.00%가 된다 — 색 없이 숫자만 보여주는 카드라 +0.00%로 통일한다
+// (공용 fmtSignedPercent는 손익 색(pnlTextClass)이 원값 부호를 따르는 화면이 많아 거기서 바꾸지 않는다)
+const signedPct = (ratio: number, digits: number) => fmtSignedPercent(ratio, digits).replace(/^-(0\.0+%)$/, '+$1')
 // 김프·테더 프리미엄은 이미 % 값이라 fmtSignedPercent(비율 입력)에 넘기기 전에 100으로 나눈다
-const fmtPct = (percent: number) => fmtSignedPercent(percent / 100, 2)
+const fmtPct = (percent: number) => signedPct(percent / 100, 2)
 // 펀딩비는 비율 원값(0.0001 = 0.01%) — 평상시 기준선이 0.01%라 소수 넷째 자리까지 보여준다
-const fmtFunding = (ratio: number) => fmtSignedPercent(ratio, 4)
+const fmtFunding = (ratio: number) => signedPct(ratio, 4)
 // 배수·비율은 1이 기준인 무단위 값이라 소수 둘째 자리까지
 const fmtMultiple = (v: number | null) => (v == null ? '—' : `${v.toFixed(2)}x`)
 const fmtUtcDate = (date: string) => `${date.replace(/-/g, '.')} UTC`
@@ -151,7 +154,7 @@ export function KimchiPremiumCard({ ticker, data, usdtPremium }: KimchiProps) {
 }
 
 // ±0.01% 수준까지 작아져 펀딩비처럼 소수 넷째 자리까지 보여준다
-const fmtCoinbasePct = (percent: number) => fmtSignedPercent(percent / 100, 4)
+const fmtCoinbasePct = (percent: number) => signedPct(percent / 100, 4)
 
 export function CoinbasePremiumCard({ ticker, data }: { ticker: string; data: CryptoTickerIndicators['coinbasePremium'] }) {
   const title = `${ticker} Coinbase 프리미엄`
@@ -248,8 +251,8 @@ export function ValuationCard({ ticker, data }: { ticker: string; data: CryptoTi
       <div className="flex flex-wrap gap-x-6 gap-y-2">
         <Stat label="200주 배수" value={fmtMultiple(current.wma200Multiple)} />
         <Stat label="메이어 멀티플" value={fmtMultiple(current.mayerMultiple)} />
-        {/* 신고가 당일은 0이라 fmtPct가 +0.00%로 그린다 — 하락률이 양수로 읽히지 않게 부호 없이 둔다 */}
-        <Stat label="ATH 대비" value={current.athDrawdownPercent < 0 ? fmtPct(current.athDrawdownPercent) : '0.00%'} />
+        {/* 신고가 당일(0)이나 0으로 반올림되는 작은 하락은 fmtPct가 +0.00%로 그린다 — 하락률이 양수로 읽히지 않게 + 부호를 뗀다 */}
+        <Stat label="ATH 대비" value={current.athDrawdownPercent < 0 ? fmtPct(current.athDrawdownPercent).replace('+', '') : '0.00%'} />
       </div>
       <p className="text-xs text-muted-foreground">{fmtUtcDate(current.date)} 종가 기준</p>
       <ChartArea className="min-h-[164px]">
