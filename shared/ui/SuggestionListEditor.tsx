@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog'
+import { IconButton } from './IconButton'
 
 function normalizeText(value: string) {
   return value.trim()
@@ -83,15 +84,14 @@ export function SuggestionListEditor({ id, label, values, onChange, disabled }: 
         {values.map((value) => (
           <li key={value} className="inline-flex items-center gap-1 rounded-full bg-muted py-1.5 pl-3 pr-1 text-sm font-medium">
             {value}
-            <button
-              type="button"
+            <IconButton
               aria-label={`${value} 삭제`}
               onClick={() => deleteDialog.request(value)}
               disabled={disabled}
-              className="-my-2.5 -mr-1 flex size-11 items-center justify-center rounded-full text-muted-foreground hover:text-destructive disabled:opacity-40 disabled:pointer-events-none"
+              className="-my-2.5 -mr-1 rounded-full hover:bg-transparent hover:text-destructive"
             >
               <X className="size-3.5" />
-            </button>
+            </IconButton>
           </li>
         ))}
       </ul>

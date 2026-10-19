@@ -40,7 +40,7 @@ function RuntimeConfigError({ onRetry }: { onRetry: () => void }) {
   return (
     <div className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-4 text-sm text-muted-foreground">
       <p>전략 설정을 불러오지 못했습니다.</p>
-      <Button type="button" variant="outline" onClick={onRetry} className="mt-3 h-9">
+      <Button type="button" variant="outline" size="sm" onClick={onRetry} className="mt-3">
         다시 시도
       </Button>
     </div>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { clientFetch } from '@shared/lib/api-client'
+import { buttonVariants } from '@/components/ui/button-variants'
 
 interface Props {
   className?: string
@@ -25,7 +26,7 @@ export function LogoutButton({ className, children, 'aria-label': ariaLabel }: P
       onClick={handleLogout}
       disabled={isLoading}
       aria-label={ariaLabel}
-      className={className ?? 'inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-transparent border border-border text-muted-foreground cursor-pointer hover:bg-accent transition-colors disabled:opacity-60'}
+      className={className ?? buttonVariants({ variant: 'outline', size: 'sm' })}
     >
       {children ?? (isLoading ? '로그아웃 중...' : '로그아웃')}
     </button>

@@ -4,9 +4,7 @@ import { toast } from 'sonner'
 import { AlertTriangle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCancelAllOrdersMutation, useCancelOneOrderMutation } from '@entities/order'
-import { cn } from '@shared/lib/utils'
 import { EmptyState } from '@shared/ui/EmptyState'
-import { buttonVariants } from '@/components/ui/button-variants'
 import type { Strategy } from '@entities/strategy'
 import type { NextOrderPreview, OrderReadiness } from '@entities/order'
 import { SKIP_REASON_LABELS, BUY_COPY, SELL_COPY, directionUnplacedMessage, previewErrorMsg } from './orderBannerCopy'
@@ -174,8 +172,9 @@ export function NextOrderCard({
               </p>
             </div>
             {canExecute && (
-              <button
+              <Button
                 type="button"
+                variant="brand"
                 onClick={() => {
                   const messages = executeBlockMessages(mode, marketStatusMessage, isConfirmedHoliday, readiness)
                   if (messages.length > 0) {
@@ -185,13 +184,9 @@ export function NextOrderCard({
                   execute()
                 }}
                 disabled={isExecuting || (mode === 'preview' && orders.length === 0)}
-                className={cn(
-                  buttonVariants({ variant: 'brand' }),
-                  'gap-1.5 text-sm px-3 py-1.5 rounded-md whitespace-nowrap shrink-0',
-                )}
               >
                 {isExecuting ? '주문 중...' : '바로 주문'}
-              </button>
+              </Button>
             )}
           </div>
         </CardHeader>

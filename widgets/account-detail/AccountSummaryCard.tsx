@@ -7,6 +7,7 @@ import { KpiCard } from '@widgets/kpi-card'
 import { fmtKrw, fmtUsd } from '@shared/lib/format'
 import { isCryptoBroker, isMockBroker } from '@shared/lib/api-schema'
 import { Badge } from '@shared/ui/Badge'
+import { IconButton } from '@shared/ui/IconButton'
 import { useMeta } from '@entities/meta'
 import { apiKeyExpiryState, API_KEY_EXPIRY_LABEL } from '@entities/account'
 import type { Account } from '@entities/account'
@@ -45,14 +46,13 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, cryptoPort
             <KpiCard
               label="계좌번호"
               labelAction={
-                <button
-                  type="button"
+                <IconButton
                   onClick={() => setRevealed((v) => !v)}
-                  className="-m-3.5 p-3.5 text-muted-foreground hover:text-foreground transition-colors shrink-0 cursor-pointer"
+                  className="-m-3.5 shrink-0 hover:bg-transparent"
                   aria-label={revealed ? '숨기기' : '보기'}
                 >
                   {revealed ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                </button>
+                </IconButton>
               }
               value={
                 <span className="font-mono tracking-wide text-lg lg:text-xl whitespace-nowrap">

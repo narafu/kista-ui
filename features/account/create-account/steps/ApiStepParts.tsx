@@ -99,7 +99,8 @@ export function ConnectionTest({ keyLabel, secretLabel, disabled, isPending, isS
       <Button
         type="button"
         variant="outline"
-        className="w-full h-10 gap-2 font-semibold"
+        size="form"
+        className="w-full"
         disabled={disabled}
         onClick={onTest}
       >

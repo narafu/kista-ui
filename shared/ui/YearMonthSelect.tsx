@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@shared/lib/utils'
+import { Button } from '@/components/ui/button'
 
 interface Props {
   value: string // YYYY-MM
@@ -55,25 +56,27 @@ export function YearMonthSelect({ value, onValueChange, today, label = '기준 �
       </PopoverTrigger>
       <PopoverContent className="w-56 gap-2">
         <div className="flex items-center justify-between">
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-xs"
             aria-label="이전 연도"
             disabled={viewYear <= lowerYear}
             onClick={() => setViewYear((y) => y - 1)}
-            className="rounded p-1 transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
           >
             <ChevronLeft className="size-4 text-muted-foreground" />
-          </button>
+          </Button>
           <span aria-live="polite" className="text-sm font-medium tabular-nums">{viewYear}년</span>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-xs"
             aria-label="다음 연도"
             disabled={viewYear >= upperYear}
             onClick={() => setViewYear((y) => y + 1)}
-            className="rounded p-1 transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-30"
           >
             <ChevronRight className="size-4 text-muted-foreground" />
-          </button>
+          </Button>
         </div>
         <div className="grid grid-cols-4 gap-1">
           {MONTHS.map((month) => {

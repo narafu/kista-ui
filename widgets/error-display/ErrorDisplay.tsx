@@ -6,6 +6,9 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { fmtTime } from '@shared/lib/format'
 import { useReportClientError } from '@entities/error-log'
+import { cn } from '@shared/lib/utils'
+import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button-variants'
 
 type ErrCfg = { badge: string; title: string; desc: string; colorVar: string; bgVar: string }
 // 호출부(app/**/error.tsx, not-found.tsx) 4곳이 실제로 전달하는 코드는 404·500뿐이다.
@@ -78,25 +81,17 @@ export function ErrorDisplay({ code, error, reset, standalone }: ErrorDisplayPro
       <div className="flex gap-2 justify-center flex-wrap mb-9">
         <Link
           href="/dashboard"
-          className="inline-flex items-center px-[22px] py-[9px] rounded-[var(--radius)] bg-primary text-primary-foreground text-sm font-semibold no-underline shadow-[var(--sh-rose)] tracking-[-0.01em]"
+          className={cn(buttonVariants({ size: 'form' }), 'px-6')}
         >
           대시보드
         </Link>
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="inline-flex items-center px-[22px] py-[9px] rounded-[var(--radius)] bg-secondary text-secondary-foreground text-sm font-semibold border border-border cursor-pointer tracking-[-0.01em]"
-        >
+        <Button type="button" variant="outline" size="form" className="px-6" onClick={() => router.back()}>
           이전 페이지
-        </button>
+        </Button>
         {reset && (
-          <button
-            type="button"
-            onClick={reset}
-            className="inline-flex items-center px-[22px] py-[9px] rounded-[var(--radius)] bg-transparent text-muted-foreground text-sm font-semibold border border-border cursor-pointer tracking-[-0.01em]"
-          >
+          <Button type="button" variant="outline" size="form" className="px-6" onClick={reset}>
             다시 시도
-          </button>
+          </Button>
         )}
       </div>
 

@@ -64,7 +64,7 @@ export function DashboardEmpty({ marketPanels }: Props) {
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
             한국투자증권 KIS API 키와 계좌번호를 입력하면<br />분할매매 자동화가 시작됩니다.
           </p>
-          <NewAccountButton className="w-full justify-center py-3">첫 계좌 등록하기</NewAccountButton>
+          <NewAccountButton className="w-full h-12 text-sm">첫 계좌 등록하기</NewAccountButton>
         </div>
         <div className="rounded-[var(--r-lg)] border border-border bg-card p-3.5 mb-4">
           <p className="text-sm font-bold mb-0.5">{NOTIFICATION_CARD.title}</p>

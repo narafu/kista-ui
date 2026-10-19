@@ -14,6 +14,7 @@ import { useRangeFilterState } from '@shared/lib/hooks/use-range-filter-state'
 import { resolveRangeStrict } from '@shared/lib/date-range'
 import { SectionError } from '@shared/ui/SectionError'
 import { LoadingRow } from '@shared/ui/LoadingRow'
+import { Button } from '@/components/ui/button'
 
 interface HistoryQueryResult {
   cycleHistory: CycleHistoryItem[]
@@ -157,14 +158,9 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
                 {isFetchNextPageError && !isFetchingNextPage && (
                   <p role="alert" className="text-sm text-[var(--status-error)]">다음 내역을 불러오지 못했습니다. 다시 시도해주세요.</p>
                 )}
-                <button
-                  type="button"
-                  onClick={fetchNextPage}
-                  disabled={isFetchingNextPage}
-                  className="px-4 py-2 text-sm font-medium text-rose-600 hover:text-rose-700 disabled:opacity-50"
-                >
+                <Button type="button" variant="outline" onClick={fetchNextPage} disabled={isFetchingNextPage}>
                   {isFetchingNextPage ? '불러오는 중…' : '더 보기'}
-                </button>
+                </Button>
               </div>
             )}
           </>

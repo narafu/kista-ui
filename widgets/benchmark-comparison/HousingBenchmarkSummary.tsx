@@ -3,6 +3,7 @@ import { cn } from '@shared/lib/utils'
 import { pnlTextClass, fmtSignedPercent, fmtSignedPercentPoint } from '@shared/lib/format'
 import type { HousingBenchmarkSummary as HousingBenchmarkSummaryData } from '@entities/stats'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { TableDataCell } from '@shared/ui/TableDataCell'
 
 interface Props {
   summary: HousingBenchmarkSummaryData
@@ -99,18 +100,18 @@ export function HousingBenchmarkSummary({ summary, investmentLabel, benchmarkLab
                   <th scope="row" className="px-2 py-3 text-left font-medium sm:px-4">
                     {metric.label}
                   </th>
-                  <td className={cn(
-                    'px-2 py-3 text-right tabular-nums sm:px-4',
+                  <TableDataCell className={cn(
+                    'px-2 text-right tabular-nums sm:px-4',
                     investmentValue != null && pnlTextClass(investmentValue),
                   )}>
                     {fmtSignedPercent(investmentValue, 2)}
-                  </td>
-                  <td className={cn(
-                    'px-2 py-3 text-right tabular-nums sm:px-4',
+                  </TableDataCell>
+                  <TableDataCell className={cn(
+                    'px-2 text-right tabular-nums sm:px-4',
                     benchmarkValue != null && pnlTextClass(benchmarkValue),
                   )}>
                     {fmtSignedPercent(benchmarkValue, 2)}
-                  </td>
+                  </TableDataCell>
                 </tr>
               )
             })}

@@ -3,8 +3,7 @@
 import { useState } from 'react'
 import { AccountCard } from '@widgets/account-card'
 import type { Account } from '@entities/account'
-import { cn } from '@shared/lib/utils'
-import { buttonVariants } from '@/components/ui/button-variants'
+import { Button } from '@/components/ui/button'
 
 const PAGE_SIZE = 12
 
@@ -26,13 +25,9 @@ export function AccountsGrid({ accounts }: Props) {
       </div>
       {hasMore && (
         <div className="flex justify-center mt-6">
-          <button
-            type="button"
-            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-            className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'px-5 text-muted-foreground')}
-          >
+          <Button type="button" variant="outline" onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}>
             더 보기 ({accounts.length - visibleCount}개 남음)
-          </button>
+          </Button>
         </div>
       )}
     </div>

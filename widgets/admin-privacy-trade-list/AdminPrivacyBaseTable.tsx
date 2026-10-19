@@ -26,9 +26,6 @@ import { latestYearlyResetByTicker } from './model/privacyChartSeries'
 // 조회 전·실패 시 useMemo 의존성 참조를 고정한다
 const EMPTY_BASES: AdminPrivacyBase[] = []
 
-// 수정·삭제 텍스트 버튼 — 높이 24px 이상의 터치 영역 확보
-const TEXT_BUTTON_CLASS = 'inline-flex min-h-6 items-center px-1.5 text-xs underline underline-offset-2'
-
 function describeOrder(order: AdminPrivacyOrder): string {
   const qty = order.quantity == null ? '' : ` × ${order.quantity}주`
   return `${DIRECTION_LABEL[order.direction] ?? order.direction} ${orderTypeLabel(order.orderType)} $${fmtUsd(order.price)}${qty}`
@@ -158,14 +155,14 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
               <thead className="bg-muted/50 border-b border-border">
                 <tr>
                   <TableHeadCell className="w-8 px-2"><span className="sr-only">펼치기</span></TableHeadCell>
-                  <TableHeadCell className="px-4 whitespace-nowrap">날짜</TableHeadCell>
-                  <TableHeadCell className="px-4 whitespace-nowrap">종목</TableHeadCell>
-                  <TableHeadCell className="px-4 whitespace-nowrap">사이클 시작금액</TableHeadCell>
-                  <TableHeadCell className="px-4 whitespace-nowrap">평단가</TableHeadCell>
-                  <TableHeadCell className="px-4 whitespace-nowrap">보유</TableHeadCell>
-                  <TableHeadCell className="px-4 whitespace-nowrap">실현손익</TableHeadCell>
-                  <TableHeadCell className="px-4 whitespace-nowrap">주문</TableHeadCell>
-                  <TableHeadCell className="w-16 px-4 whitespace-nowrap"><span className="sr-only">수정</span></TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">날짜</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">종목</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">사이클 시작금액</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">평단가</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">보유</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">실현손익</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">주문</TableHeadCell>
+                  <TableHeadCell className="w-16 whitespace-nowrap"><span className="sr-only">수정</span></TableHeadCell>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -266,9 +263,9 @@ function MobileBaseCard({
             </span>
           </button>
         </h3>
-        <button type="button" className={cn(TEXT_BUTTON_CLASS, 'font-medium text-foreground')} onClick={onEditBase} aria-label={`${b.releaseDate} ${b.ticker} 매매표 수정`}>
+        <Button type="button" variant="outline" size="xs" onClick={onEditBase} aria-label={`${b.releaseDate} ${b.ticker} 매매표 수정`}>
           수정
-        </button>
+        </Button>
       </div>
 
       {/* 지표 4개는 타일 대신 라벨-값 2열 목록 — 카드 하나가 화면을 덜 차지하게 */}
@@ -318,12 +315,11 @@ function OrderDetailsSection({
         <span className="text-xs font-medium text-muted-foreground">주문 {orders.length}건</span>
         <Button
           type="button"
-          size="sm"
+          size="xs"
           variant="outline"
-          className="h-7 gap-1 px-2 text-xs"
           onClick={(e) => { e.stopPropagation(); onAddOrder() }}
         >
-          <Plus className="size-3" />주문 추가
+          <Plus />주문 추가
         </Button>
       </div>
       {orders.length > 0 && <OrderDetailsTable orders={orders} onEditOrder={onEditOrder} onDeleteOrder={onDeleteOrder} />}
@@ -359,23 +355,25 @@ function OrderDetailsTable({
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right font-mono')}>${fmtUsd(o.price)}</TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right')}>{o.quantity ?? '-'}</TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right')}>
-              <span className="inline-flex items-center gap-3">
-                <button
+              <span className="inline-flex items-center gap-1.5">
+                <Button
                   type="button"
-                  className={cn(TEXT_BUTTON_CLASS, 'text-foreground')}
+                  variant="outline"
+                  size="xs"
                   onClick={(e) => { e.stopPropagation(); onEditOrder(o) }}
                   aria-label={`${describeOrder(o)} 수정`}
                 >
                   수정
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
-                  className={cn(TEXT_BUTTON_CLASS, 'text-destructive')}
+                  variant="destructive"
+                  size="xs"
                   onClick={(e) => { e.stopPropagation(); onDeleteOrder(o) }}
                   aria-label={`${describeOrder(o)} 삭제`}
                 >
                   삭제
-                </button>
+                </Button>
               </span>
             </TableDataCell>
           </tr>
@@ -411,24 +409,25 @@ function FragmentRow({
             {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
           </IconButton>
         </TableDataCell>
-        <TableDataCell className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">{b.releaseDate}</TableDataCell>
-        <TableDataCell className="px-4 py-3 whitespace-nowrap">{b.ticker}</TableDataCell>
-        <TableDataCell className="px-4 py-3 font-mono text-xs whitespace-nowrap">${fmtUsd(b.currentCycleStart)}</TableDataCell>
-        <TableDataCell className="px-4 py-3 font-mono text-xs whitespace-nowrap">{b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`}</TableDataCell>
-        <TableDataCell className="px-4 py-3 whitespace-nowrap">{b.holdings}</TableDataCell>
-        <TableDataCell className={`px-4 py-3 font-mono text-xs whitespace-nowrap ${pnlTextClass(b.currentCycleRealizedPnl)}`}>
+        <TableDataCell className="text-muted-foreground text-xs whitespace-nowrap">{b.releaseDate}</TableDataCell>
+        <TableDataCell className="whitespace-nowrap">{b.ticker}</TableDataCell>
+        <TableDataCell className="font-mono text-xs whitespace-nowrap">${fmtUsd(b.currentCycleStart)}</TableDataCell>
+        <TableDataCell className="font-mono text-xs whitespace-nowrap">{b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`}</TableDataCell>
+        <TableDataCell className="whitespace-nowrap">{b.holdings}</TableDataCell>
+        <TableDataCell className={`font-mono text-xs whitespace-nowrap ${pnlTextClass(b.currentCycleRealizedPnl)}`}>
           {fmtSignedUsd(b.currentCycleRealizedPnl)}
         </TableDataCell>
-        <TableDataCell className="px-4 py-3 text-muted-foreground whitespace-nowrap">{b.orders.length}건</TableDataCell>
-        <TableDataCell className="px-4 py-3 whitespace-nowrap">
-          <button
+        <TableDataCell className="text-muted-foreground whitespace-nowrap">{b.orders.length}건</TableDataCell>
+        <TableDataCell className="whitespace-nowrap">
+          <Button
             type="button"
-            className={cn(TEXT_BUTTON_CLASS, 'font-medium text-foreground')}
+            variant="outline"
+            size="xs"
             onClick={(e) => { e.stopPropagation(); onEditBase() }}
             aria-label={`${b.releaseDate} ${b.ticker} 매매표 수정`}
           >
             수정
-          </button>
+          </Button>
         </TableDataCell>
       </tr>
       {open && (

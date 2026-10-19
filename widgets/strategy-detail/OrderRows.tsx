@@ -71,31 +71,31 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
 
       {/* PC 테이블 */}
       <table className="hidden lg:table w-full text-sm">
-        <thead>
+        <thead className="bg-muted/50">
           <tr>
-            <TableHeadCell className="px-5 py-2.5 bg-muted/50 border-b border-border">구분</TableHeadCell>
-            <TableHeadCell className="px-5 py-2.5 bg-muted/50 border-b border-border">종목</TableHeadCell>
-            <TableHeadCell className="px-5 py-2.5 bg-muted/50 border-b border-border">수량</TableHeadCell>
-            <TableHeadCell className="px-5 py-2.5 bg-muted/50 border-b border-border">주문가</TableHeadCell>
+            <TableHeadCell>구분</TableHeadCell>
+            <TableHeadCell>종목</TableHeadCell>
+            <TableHeadCell className="text-right">수량</TableHeadCell>
+            <TableHeadCell className="text-right">주문가</TableHeadCell>
             {hasCancel && (
-              <TableHeadCell className="px-5 py-2.5 bg-muted/50 border-b border-border">취소</TableHeadCell>
+              <TableHeadCell>취소</TableHeadCell>
             )}
           </tr>
         </thead>
         <tbody>
           {orders.map((o, i) => (
             // eslint-disable-next-line react-doctor/no-array-index-as-key -- id 없는 주문의 fallback 키(재정렬 없는 읽기 전용 목록)
-            <tr key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className="border-b border-border last:border-b-0">
-              <TableDataCell className="px-5 py-3">
+            <tr key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className="border-t hover:bg-muted/30 transition-colors">
+              <TableDataCell>
                 <Badge tone="none" size="sm" className={cn('lg:h-[24px] lg:text-sm', directionBadgeClass(o.direction))}>
                   {DIRECTION_LABEL[o.direction] ?? o.direction}
                 </Badge>
               </TableDataCell>
-              <TableDataCell className="px-5 py-3 font-semibold">{o.ticker}</TableDataCell>
-              <TableDataCell className="px-5 py-3 text-muted-foreground">{fmtQuantity(o.quantity)}</TableDataCell>
-              <TableDataCell className="px-5 py-3 font-semibold">${fmtUsd(toNum(o.price))}</TableDataCell>
+              <TableDataCell className="font-semibold">{o.ticker}</TableDataCell>
+              <TableDataCell className="text-right tabular-nums text-muted-foreground">{fmtQuantity(o.quantity)}</TableDataCell>
+              <TableDataCell className="text-right tabular-nums font-semibold">${fmtUsd(toNum(o.price))}</TableDataCell>
               {hasCancel && (
-                <TableDataCell className="px-5 py-3">
+                <TableDataCell>
                   {o.id && (
                     <Button variant="destructive" size="xs" onClick={() => onCancelOne(o.id!)} disabled={cancelPending}>
                       {cancelPending && cancellingId === o.id ? '취소 중...' : '취소'}

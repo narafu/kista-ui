@@ -6,6 +6,7 @@ import type { BrokerCode } from '@entities/account'
 import { useRuntimeConfigQuery } from '@entities/runtime-config'
 import { isMockBroker } from '@shared/lib/api-schema'
 import type { StepData } from '../CreateAccountStepper'
+import { Button } from '@/components/ui/button'
 
 interface Props {
   onNext: (payload: Partial<StepData>) => void
@@ -41,9 +42,9 @@ export function BrokerStep({ onNext }: Props) {
         {isError && (
           <div className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
             <p>증권사 설정을 불러오지 못했습니다.</p>
-            <button type="button" onClick={() => refetch()} className="mt-2 font-bold text-foreground underline underline-offset-4">
+            <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => refetch()}>
               다시 시도
-            </button>
+            </Button>
           </div>
         )}
         {runtimeConfig && enabledBrokers.length === 0 && (

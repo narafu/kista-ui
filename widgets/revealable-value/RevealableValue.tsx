@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
+import { IconButton } from '@shared/ui/IconButton'
 
 interface Props {
   value: string
@@ -15,17 +16,16 @@ export function RevealableValue({ value, hiddenDisplay = '•••••••�
   return (
     <span className={`inline-flex items-center gap-1.5 ${className ?? ''}`}>
       <span className="font-mono tracking-wider">{revealed ? value : hiddenDisplay}</span>
-      <button
-        type="button"
+      <IconButton
         onClick={(e) => { e.stopPropagation(); setRevealed((v) => !v) }}
-        className="-m-3.5 p-3.5 text-muted-foreground hover:text-foreground transition-colors shrink-0 cursor-pointer"
+        className="-m-3.5 shrink-0 hover:bg-transparent"
         aria-label={revealed ? '숨기기' : '보기'}
       >
         {revealed
           ? <EyeOff className="size-4" />
           : <Eye className="size-4" />
         }
-      </button>
+      </IconButton>
     </span>
   )
 }
