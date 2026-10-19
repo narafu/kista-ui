@@ -1,14 +1,14 @@
 // 로컬 dev 시드(kista-api scripts/dev-seed/seed.sh)의 계좌·전략 ID. visual-diff(시나리오·trading fixture)와 a11y-check가 함께 참조한다.
-// 로컬 API(8080·8081)가 떠 있으면 MOCK 시드 계좌·전략 ID를 실행 시 조회해 덮는다. KISTA_DEV_SEED=<json 경로>를 주면 조회 대신 그 파일로 최상위 키 단위 덮어쓰기
+// 로컬 API(8080·8081)가 떠 있으면 MOCK·KIS 시드 계좌·전략 ID를 실행 시 조회해 덮는다. KISTA_DEV_SEED=<json 경로>를 주면 조회 대신 그 파일로 최상위 키 단위 덮어쓰기
 import { readFileSync } from 'node:fs'
 
 // MOCK 계좌: ACTIVE 전략, preview·prices 등 trading API가 실제로 200
 const MOCK = 'a24b77e4-4b7e-42bc-9a4d-b52a7a686c7f'
 const MOCK_INF = '07302a81-3628-4c3c-a17d-7658d1afe58f'
 const MOCK_VR = '4141787f-ec49-436a-8e92-f74f01df644d'
-// KIS 시드 계좌: 전략 PAUSED, preview 503
-const KIS1 = '5eed0000-0000-0000-0000-00000000a001'
-const KIS2 = '5eed0000-0000-0000-0000-00000000a002'
+// KIS 시드 계좌: 전략 PAUSED, preview·margin 503
+const KIS = '0a37eaa5-2b60-50c9-d45c-e1a5ae2f984a'
+const KIS_PAUSED = '5e4856a3-e121-52bd-a9bf-8025b19911cf'
 
 const defaults = {
   // 계좌 → 전략 ID → ticker. preview 모드 fixture가 previews 응답을 만들 때 사용
@@ -16,11 +16,12 @@ const defaults = {
   // 시나리오가 여는 대표 전략 상세
   infinite: { accountId: MOCK, strategyId: MOCK_INF },
   vr: { accountId: MOCK, strategyId: MOCK_VR },
-  paused: { accountId: KIS1, strategyId: '5eed0000-0000-0000-0000-000000000001' },
-  privacy: { accountId: KIS2, strategyId: '5eed0000-0000-0000-0000-000000000004' },
+  paused: { accountId: KIS, strategyId: KIS_PAUSED },
+  // 잔고 확인 화면용 실계좌(MOCK은 잔고 확인이 강제로 꺼진다)
+  kis: { accountId: KIS },
 }
 
-// seed.sh는 MOCK 계좌·전략을 API로 등록해 ID가 DB마다 달라진다 — 로컬 API에서 닉네임·type·ticker로 찾아 기본값을 덮는다.
+// seed.sh는 MOCK·KIS 계좌·전략을 API로 등록해 ID가 DB마다 달라진다 — 로컬 API에서 닉네임·type·ticker로 찾아 기본값을 덮는다.
 // API가 응답하지 않으면 기본값 그대로(조회만 하고 dev 토큰 외 쓰기 없음)
 async function resolveFromApi() {
   try {
@@ -31,10 +32,21 @@ async function resolveFromApi() {
       if (!r.ok) throw new Error(`${path} ${r.status}`)
       return r.json()
     }
-    const account = (await get('/api/accounts')).find((a) => a.broker === 'MOCK' && a.nickname === '[시드] 모의계좌')
+    const accounts = await get('/api/accounts')
+    // KIS 시드 계좌는 MOCK과 따로 찾는다 — 한쪽이 없어도 다른 쪽은 조회값을 쓴다
+    const kisResolved = { accounts: {} }
+    const kis = accounts.find((a) => a.broker === 'KIS' && a.nickname === '[시드] KIS 계좌')
+    if (kis) {
+      const kisStrategies = await get(`/api/accounts/${kis.id}/trading-cycles`)
+      kisResolved.kis = { accountId: kis.id }
+      kisResolved.accounts[kis.id] = Object.fromEntries(kisStrategies.map((s) => [s.id, s.ticker]))
+      const paused = kisStrategies.find((s) => s.status === 'PAUSED')
+      if (paused) kisResolved.paused = { accountId: kis.id, strategyId: paused.id }
+    } else console.warn('[seed] KIS 시드 계좌 없음 — kis·paused는 기본 ID 사용')
+    const account = accounts.find((a) => a.broker === 'MOCK' && a.nickname === '[시드] 모의계좌')
     if (!account) {
       console.warn('[seed] MOCK 시드 계좌 없음 — 기본 ID 사용(kista-api scripts/dev-seed/seed.sh 확인)')
-      return {}
+      return { ...kisResolved, accounts: { ...defaults.accounts, ...kisResolved.accounts } }
     }
     const strategies = await get(`/api/accounts/${account.id}/trading-cycles`)
     // seed.sh 기준 ticker(SOXL·TQQQ)의 ACTIVE를 우선하고, 없으면 같은 type의 ACTIVE, 그다음 아무 상태
@@ -49,7 +61,7 @@ async function resolveFromApi() {
       if (s) resolved[key] = { accountId: account.id, strategyId: s.id }
       else console.warn(`[seed] MOCK 계좌에 ${type} 전략 없음 — ${key}는 기본 ID 사용(해당 화면 점검 실패 예상, kista-api scripts/dev-seed/seed.sh 확인)`)
     }
-    return resolved
+    return { ...resolved, ...kisResolved, accounts: { ...resolved.accounts, ...kisResolved.accounts } }
   } catch (error) {
     console.warn(`[seed] 로컬 API 조회 실패 — 기본 ID 사용: ${error.message}`)
     return {}

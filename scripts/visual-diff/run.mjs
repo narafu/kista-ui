@@ -8,6 +8,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { parseArgs } from 'node:util'
 import { startProxy } from './proxy.mjs'
+import * as apiFixture from './fixtures/api.mjs'
 import * as tradingFixture from './fixtures/trading.mjs'
 import { scenarios as allScenarios } from './scenarios.mjs'
 import { seed } from '../shared/seed.mjs'
@@ -159,10 +160,12 @@ async function resolveContext(token) {
 async function warmUp(port, scenarios, tokens) {
   const seen = new Set()
   for (const s of scenarios) {
-    const key = `${s.path}|${!!s.admin}`
+    // 촬영과 같은 쿠키로 연다 — 다르면 리다이렉트된 엉뚱한 경로만 컴파일된다(예: 상태 쿠키 없는 /pending → /dashboard)
+    const cookies = { ...(s.guest ? {} : { 'kista-token': s.admin ? tokens.admin : tokens.user }), ...s.cookies }
+    const cookie = Object.entries(cookies).map(([k, v]) => `${k}=${v}`).join('; ')
+    const key = `${s.path}|${cookie}`
     if (seen.has(key)) continue
     seen.add(key)
-    const cookie = `kista-token=${s.admin ? tokens.admin : tokens.user}`
     await fetch(`http://localhost:${port}${s.path}`, { headers: { cookie }, redirect: 'manual', signal: AbortSignal.timeout(120_000) }).catch(() => {})
   }
 }
@@ -197,7 +200,7 @@ try {
   const ctx = await resolveContext(tokens.user)
   const scenarios = selected.map((s) => ({ ...s, path: typeof s.path === 'function' ? s.path(ctx) : s.path }))
 
-  proxies.push(await startProxy({ name: 'apiproxy', port: PORTS.api, upstream: UPSTREAM.api, log: plog }))
+  proxies.push(await startProxy({ name: 'apiproxy', port: PORTS.api, upstream: UPSTREAM.api, route: apiFixture.route, log: plog }))
   proxies.push(await startProxy({ name: 'tradingproxy', port: PORTS.trading, upstream: UPSTREAM.trading, route: tradingFixture.route, log: plog }))
 
   log(`head ${commits.head.slice(0, 8)}${dirtyPatch ? '+dirty' : ''} vs base ${commits.base.slice(0, 8)} — 시나리오 ${scenarios.length}개, 작업 트리 구성 중`)

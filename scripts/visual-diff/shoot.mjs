@@ -12,8 +12,11 @@ const PIXEL_THRESHOLD = 30
 
 async function capture(browser, { url, token, viewport, scenario, file }) {
   const ctx = await browser.newContext({ viewport, locale: 'ko-KR', timezoneId: 'Asia/Seoul', reducedMotion: 'reduce' })
-  await ctx.addCookies([{ name: 'kista-token', value: token, domain: 'localhost', path: '/', httpOnly: true, sameSite: 'Lax' }])
+  const cookies = { ...(scenario.guest ? {} : { 'kista-token': token }), ...scenario.cookies }
+  const cookieList = Object.entries(cookies).map(([name, value]) => ({ name, value, domain: 'localhost', path: '/', httpOnly: true, sameSite: 'Lax' }))
+  if (cookieList.length) await ctx.addCookies(cookieList)
   const page = await ctx.newPage()
+  if (scenario.setup) await scenario.setup(page)
   const errs = []
   page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text().slice(0, 300)) })
   page.on('pageerror', (e) => errs.push('PAGEERROR ' + String(e).slice(0, 300)))
