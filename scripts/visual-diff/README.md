@@ -64,7 +64,8 @@ node scripts/visual-diff/sheet.mjs <out-dir> --only '^m-inf-.*-pc$' --crop 300,5
 - `guest: true`는 `kista-token` 없이 비회원으로 연다(`dashboard-guest`).
 - `cookies`는 추가 쿠키다. warm-up도 같은 쿠키로 연다. `proxy.ts`는 `kista-user-status`·`kista-user-role` 쿠키가 둘 다 있으면 `/me` 대신 그 값을 쓰므로, dev 사용자(ACTIVE)로 대기·반려 화면을 연다(`pending`·`rejected`).
 - `setup(page)`는 `goto` 전에 실행한다. 브라우저 요청을 `page.route`로 덮을 때 쓴다. 예: `pending`은 상태 SSE가 ACTIVE를 보내면 `/dashboard`로 이동하므로 `/api/auth/status-stream`을 204로 닫는다.
-- 사용 비율 게이지(`PercentGauge`)는 KIS 계좌로 연다. MOCK 계좌는 사용자 설정과 무관하게 잔고 확인이 꺼져 예수금 입력칸만 나온다.
+- 사용 비율 게이지(`PercentGauge`)는 KIS 계좌로 연다(`create-strategy-balance*`·`create-strategy-gauge-*`). MOCK 계좌는 사용자 설정과 무관하게 잔고 확인이 꺼져 예수금 입력칸만 나온다.
+- step이 실패해도 양쪽이 같은 상태로 찍혀 diff 0이 나온다. 실패는 `report.json`의 `errs`에 `NAV ...`로 남으니 새 시나리오는 이것도 확인한다.
 - PC 표와 모바일 카드를 함께 렌더하고 한쪽을 CSS로 숨기는 화면은 `:visible` locator로 누른다. `.first()`만 쓰면 숨은 쪽이 잡힌다.
 - diff 0은 안정성만 보여준다. 양쪽이 똑같이 리다이렉트되거나 엉뚱한 상태여도 0이다. 새 시나리오는 `report.json`의 최종 URL·상태코드와 PNG를 직접 확인한다.
 

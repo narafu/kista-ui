@@ -26,6 +26,8 @@ const gaugeKeys = async (p) => {
 const scrollToBottom = async (p) => { await p.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight)); await p.waitForTimeout(500) }
 // PC 표와 모바일 카드가 함께 렌더되고 한쪽은 CSS로 숨겨져 있다 — 보이는 펼치기 버튼만 누른다
 const expandPrivacyBase = async (p) => { await p.locator('button[aria-label$="주문 명세"]:visible, article h3 button[aria-expanded]:visible').first().click(); await p.waitForTimeout(800) }
+// 전략 유형 버튼 라벨은 meta API의 한글 이름이다("VR" 텍스트는 없다)
+const pickVr = clickRole('button', /밸류리밸런싱/)
 const openAdvanced = async (p) => { await p.locator('summary', { hasText: '고급 설정' }).first().click(); await p.waitForTimeout(800) }
 // 계좌 → 전략 → 주문 cascading select를 시드/테스트 항목 우선으로 끝까지 고른다
 const adminCascade = async (p) => {
@@ -68,10 +70,10 @@ export const scenarios = [
   { name: 'account-new-kis', path: '/accounts/new', steps: [clickRole('button', /한국투자|KIS/)] },
   { name: 'account-new-mock', path: '/accounts/new', steps: [clickRole('button', /모의|MOCK|Mock/)] },
   { name: 'create-strategy', path: NEW_STRATEGY },
-  { name: 'create-strategy-vr', path: NEW_STRATEGY, steps: [clickText('VR')] },
-  { name: 'create-strategy-vr-advanced', path: NEW_STRATEGY, steps: [clickText('VR'), openAdvanced] },
-  { name: 'create-strategy-gauge-drag', path: NEW_STRATEGY, steps: [clickText('VR'), dragGauge] },
-  { name: 'create-strategy-gauge-keys', path: NEW_STRATEGY, steps: [clickText('VR'), gaugeKeys] },
+  { name: 'create-strategy-vr', path: NEW_STRATEGY, steps: [pickVr] },
+  { name: 'create-strategy-vr-advanced', path: NEW_STRATEGY, steps: [pickVr, openAdvanced] },
+  { name: 'create-strategy-gauge-drag', path: KIS_NEW_STRATEGY, setup: stubMargin, steps: [pickVr, dragGauge] },
+  { name: 'create-strategy-gauge-keys', path: KIS_NEW_STRATEGY, setup: stubMargin, steps: [pickVr, gaugeKeys] },
   { name: 'create-strategy-balance', path: KIS_NEW_STRATEGY, setup: stubMargin },
   { name: 'create-strategy-balance-max', path: KIS_NEW_STRATEGY, setup: stubMargin, steps: [clickRole('button', /^MAX$/)] },
   { name: 'reconfigure-vr', path: `${VR}/reconfigure-vr` },
