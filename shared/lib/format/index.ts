@@ -9,7 +9,7 @@ export function fmtSignedUsd(n: number, digits = 2, symbol = ''): string {
   return n >= 0 ? `+${symbol}${fmtUsd(n, digits)}` : `-${symbol}${fmtUsd(Math.abs(n), digits)}`
 }
 
-const compactUsdFormat = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 })
+const compactUsdFormat = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', minimumFractionDigits: 0, maximumFractionDigits: 1 })
 const narrowCompactUsdFormat = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumSignificantDigits: 2 })
 
 /** 달러 축약 표기, 소수 최대 1자리(예: "$7.6B", "$12.3B") */
