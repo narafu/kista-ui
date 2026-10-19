@@ -39,9 +39,9 @@ export default async function DashboardPage() {
             <>
               <WeeklyMarketCalendar initialWeekStartDate={initialWeekStartDate} isAuthenticated={isAuthenticated} />
               <FearGreedSection />
-              <CryptoMarketSection />
             </>
           }
+          bottomPanels={<CryptoMarketSection />}
         />
       </HydrationBoundary>
     </>

@@ -5,10 +5,11 @@ import { DashboardMarkets } from '@widgets/dashboard/DashboardMarkets'
 
 interface Props {
   marketPanels: ReactNode
+  bottomPanels?: ReactNode
   notice?: ReactNode
 }
 
-export function DashboardOverview({ marketPanels, notice }: Props) {
+export function DashboardOverview({ marketPanels, bottomPanels, notice }: Props) {
   return (
     <div className="reveal-stagger">
       <div className="hidden lg:block">
@@ -22,7 +23,7 @@ export function DashboardOverview({ marketPanels, notice }: Props) {
       </div>
       <h1 className="sr-only lg:hidden">대시보드</h1>
       {notice}
-      <DashboardMarkets marketPanels={marketPanels} />
+      <DashboardMarkets marketPanels={marketPanels} bottomPanels={bottomPanels} />
     </div>
   )
 }

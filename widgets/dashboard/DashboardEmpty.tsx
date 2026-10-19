@@ -8,6 +8,7 @@ import { Surface } from '@shared/ui/Surface'
 
 interface Props {
   marketPanels: ReactNode
+  bottomPanels?: ReactNode
 }
 
 const NOTIFICATION_CARD = {
@@ -17,7 +18,7 @@ const NOTIFICATION_CARD = {
   href: '/settings',
 }
 
-export function DashboardEmpty({ marketPanels }: Props) {
+export function DashboardEmpty({ marketPanels, bottomPanels }: Props) {
   return (
     <>
       {/* Desktop 안내 */}
@@ -75,7 +76,7 @@ export function DashboardEmpty({ marketPanels }: Props) {
         </div>
       </div>
 
-      <DashboardMarkets marketPanels={marketPanels} />
+      <DashboardMarkets marketPanels={marketPanels} bottomPanels={bottomPanels} />
     </>
   )
 }

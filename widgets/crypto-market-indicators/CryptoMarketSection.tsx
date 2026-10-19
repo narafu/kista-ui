@@ -31,12 +31,12 @@ function Message({ text, onRetry, retrying }: { text: string; onRetry?: () => vo
   )
 }
 
-// 대시보드 시장 패널 그리드(lg 3열)에서 한 줄 전체를 차지한다. 종목 탭 안에 김프·펀딩비·OI 카드 3개
+// 대시보드 시장 차트 아래 셋째 줄(DashboardMarkets bottomPanels). 종목 탭 안에 김프·펀딩비·OI 카드 3개
 export function CryptoMarketSection() {
   const { data, isError, isFetching, refetch } = useCryptoMarketIndicatorsQuery()
 
   return (
-    <section aria-labelledby="crypto-market-indicators-title" className="flex flex-col gap-3 lg:col-span-3">
+    <section aria-labelledby="crypto-market-indicators-title" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline gap-x-2">
         <h2 id="crypto-market-indicators-title" className="text-sm font-semibold text-foreground">코인 시장 지표</h2>
         {data && <span className="text-xs text-muted-foreground">{fmtKstDateTime(data.asOf)} KST 기준</span>}

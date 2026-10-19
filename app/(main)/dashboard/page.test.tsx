@@ -42,7 +42,7 @@ vi.mock('@widgets/crypto-market-indicators', () => ({
 }))
 
 vi.mock('@widgets/dashboard/DashboardContent', () => ({
-  DashboardContent: ({ marketPanels }: { marketPanels: React.ReactNode }) => <div>{marketPanels}</div>,
+  DashboardContent: ({ marketPanels, bottomPanels }: { marketPanels: React.ReactNode; bottomPanels?: React.ReactNode }) => <div>{marketPanels}{bottomPanels}</div>,
 }))
 
 vi.mock('@features/auth/logout', () => ({

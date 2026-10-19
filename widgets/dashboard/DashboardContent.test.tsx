@@ -34,11 +34,12 @@ const account: Account = {
 // marketPanels는 app/(main)/dashboard/page.tsx가 조립해 주입하는 slot이다 — DashboardContent는
 // 그 내용을 모른 채 그대로 전달만 하므로, 여기서는 식별 가능한 sentinel로 전달 여부만 검증한다.
 const marketPanelsSentinel = <div data-testid="market-panels-sentinel">market panels</div>
+const bottomPanelsSentinel = <div data-testid="bottom-panels-sentinel">bottom panels</div>
 
 function renderWithClient(client: QueryClient) {
   return render(
     <QueryClientProvider client={client}>
-      <DashboardContent marketPanels={marketPanelsSentinel} isAuthenticated />
+      <DashboardContent marketPanels={marketPanelsSentinel} bottomPanels={bottomPanelsSentinel} isAuthenticated />
     </QueryClientProvider>,
   )
 }
@@ -51,6 +52,7 @@ describe('DashboardContent', () => {
     renderWithClient(client)
     expect(screen.getByText('첫 계좌 등록')).toBeInTheDocument()
     expect(screen.getAllByTestId('market-panels-sentinel').length).toBeGreaterThan(0)
+    expect(screen.getByTestId('bottom-panels-sentinel')).toBeInTheDocument()
 
     client.setQueryData(accountKeys.list(), [account])
 
@@ -58,6 +60,7 @@ describe('DashboardContent', () => {
       expect(screen.queryByText('첫 계좌 등록')).not.toBeInTheDocument()
     })
     expect(screen.getAllByTestId('market-panels-sentinel').length).toBeGreaterThan(0)
+    expect(screen.getByTestId('bottom-panels-sentinel')).toBeInTheDocument()
   })
 
   it('renders the empty state without fetching accounts when unauthenticated', () => {
@@ -65,11 +68,12 @@ describe('DashboardContent', () => {
 
     render(
       <QueryClientProvider client={client}>
-        <DashboardContent marketPanels={marketPanelsSentinel} isAuthenticated={false} />
+        <DashboardContent marketPanels={marketPanelsSentinel} bottomPanels={bottomPanelsSentinel} isAuthenticated={false} />
       </QueryClientProvider>,
     )
 
     expect(screen.getByText('첫 계좌 등록')).toBeInTheDocument()
+    expect(screen.getByTestId('bottom-panels-sentinel')).toBeInTheDocument()
     // enabled: false면 useQuery는 큐리를 절대 fetch하지 않는다 — 게스트가 401 → 자동로그아웃
     // 리로드 루프에 빠지지 않는지를 이 fetchStatus/dataUpdateCount로 검증한다
     const queryState = client.getQueryState(accountKeys.list())

@@ -4,11 +4,13 @@ import { MARKET_CHART_CATEGORIES } from '@widgets/dashboard/marketChartCategorie
 
 interface Props {
   marketPanels: ReactNode
+  // 시장 차트 아래 셋째 줄 — 코인 시장 지표처럼 한 줄 전체를 쓰는 패널
+  bottomPanels?: ReactNode
 }
 
 // 시장 패널·차트는 PC·모바일 공용 트리 하나로 렌더한다 — 반응형 분기를 CSS 숨김으로 두 벌 마운트하면
 // 차트 인스턴스·조회 상태가 중복된다
-export function DashboardMarkets({ marketPanels }: Props) {
+export function DashboardMarkets({ marketPanels, bottomPanels }: Props) {
   return (
     <>
       {/* 달력 | CNN 공탐 | 크립토 공탐 */}
@@ -21,6 +23,7 @@ export function DashboardMarkets({ marketPanels }: Props) {
           <MarketChartCard key={category.title} category={category} />
         ))}
       </div>
+      {bottomPanels && <div className="mt-4">{bottomPanels}</div>}
     </>
   )
 }
