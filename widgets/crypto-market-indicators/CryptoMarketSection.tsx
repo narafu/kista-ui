@@ -31,7 +31,8 @@ function Message({ text, onRetry, retrying }: { text: string; onRetry?: () => vo
   )
 }
 
-// 대시보드 시장 차트 아래 셋째 줄(DashboardMarkets bottomPanels). 종목 탭 안에 김프·Coinbase 프리미엄·펀딩비·OI·밸류에이션·롱/숏 카드 6개(BTC 탭은 반감기까지 7개)
+// 대시보드 시장 차트 아래 셋째 줄(DashboardMarkets bottomPanels). 종목 탭 안에 카드 6개(BTC 탭은 반감기까지 7개).
+// PC 3열에서 첫 줄은 현물 수요·가격(김프·Coinbase 프리미엄·밸류에이션), 둘째 줄은 선물 포지션(펀딩비·롱/숏·미결제약정)으로 묶는다
 export function CryptoMarketSection() {
   const { data, isError, isFetching, refetch } = useCryptoMarketIndicatorsQuery()
 
@@ -54,10 +55,10 @@ export function CryptoMarketSection() {
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <KimchiPremiumCard ticker={t.ticker} data={t.kimchiPremium} usdtPremium={data.usdtPremium?.current ?? null} />
                 <CoinbasePremiumCard ticker={t.ticker} data={t.coinbasePremium} />
-                <FundingRateCard ticker={t.ticker} data={t.fundingRate} />
-                <OpenInterestCard ticker={t.ticker} data={t.openInterest} />
                 <ValuationCard ticker={t.ticker} data={t.valuation} />
+                <FundingRateCard ticker={t.ticker} data={t.fundingRate} />
                 <LongShortRatioCard ticker={t.ticker} data={t.longShortRatio} />
+                <OpenInterestCard ticker={t.ticker} data={t.openInterest} />
                 {t.ticker === 'BTC' && <HalvingCard data={data.halving} asOf={data.asOf} />}
               </div>
             ),
