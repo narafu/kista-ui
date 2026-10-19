@@ -138,6 +138,35 @@ export function KimchiPremiumCard({ ticker, data, usdtPremium }: KimchiProps) {
   )
 }
 
+// ±0.01% 수준까지 작아져 펀딩비처럼 소수 넷째 자리까지 보여준다
+const fmtCoinbasePct = (percent: number) => fmtSignedPercent(percent / 100, 4)
+
+export function CoinbasePremiumCard({ ticker, data }: { ticker: string; data: CryptoTickerIndicators['coinbasePremium'] }) {
+  const title = `${ticker} Coinbase 프리미엄`
+  const description = '코인베이스 USD가의 바이낸스 대비 할증(테더 보정)\n김프 = 한국 수요, Coinbase 프리미엄 = 미국 수요\n양수는 미국 현물 매수 우위'
+  const [days, setDays] = useState<Days>(200)
+  if (!data) {
+    return <IndicatorCard title={title} description={description}><Unavailable /></IndicatorCard>
+  }
+
+  return (
+    <IndicatorCard title={title} description={description} days={days} onDaysChange={setDays}>
+      <Stat label="현재" value={fmtCoinbasePct(data.current)} />
+      <ChartArea>
+        <IndicatorLineChart
+          data={data.history.slice(-days)}
+          series={[{ key: 'value', name: 'Coinbase 프리미엄', color: 'var(--chart-1)' }]}
+          title={`${title} 추이`}
+          formatAxis={(v, step) => `${step ? v.toFixed(stepDecimals(step)) : Number(v.toFixed(4))}%`}
+          formatValue={fmtCoinbasePct}
+          referenceY={0}
+          yWidth={48}
+        />
+      </ChartArea>
+    </IndicatorCard>
+  )
+}
+
 export function FundingRateCard({ ticker, data }: { ticker: string; data: CryptoTickerIndicators['fundingRate'] }) {
   const title = `${ticker} 펀딩비`
   const description = '바이낸스 무기한 선물, 8시간 정산\n양수는 롱 과열, 음수는 숏 우세\n점선은 평상시 기준 0.01%'

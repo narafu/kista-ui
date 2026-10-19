@@ -6,12 +6,12 @@ import { Surface } from '@shared/ui/Surface'
 import { SegmentedTabs } from '@shared/ui/SegmentedTabs'
 import { cn } from '@shared/lib/utils'
 import { Button } from '@/components/ui/button'
-import { FundingRateCard, KimchiPremiumCard, HalvingCard, LongShortRatioCard, OpenInterestCard, ValuationCard } from './CryptoIndicatorCards'
+import { CoinbasePremiumCard, FundingRateCard, KimchiPremiumCard, HalvingCard, LongShortRatioCard, OpenInterestCard, ValuationCard } from './CryptoIndicatorCards'
 
 // 응답은 200이어도 모든 종목의 모든 섹션이 null이면(종목이 없어도) 카드로 보여줄 게 없어 전체 조회 불가로 본다.
 // 테더 프리미엄은 김프 카드 안의 분해 표시로만 쓰여 단독으로는 보여줄 자리가 없다. 반감기도 BTC 탭의 카드 하나뿐이라 판정에서 뺀다
 function isAllFailed(data: CryptoMarketIndicators) {
-  return data.tickers.every((t) => !t.kimchiPremium && !t.fundingRate && !t.openInterest && !t.valuation && !t.longShortRatio)
+  return data.tickers.every((t) => !t.kimchiPremium && !t.coinbasePremium && !t.fundingRate && !t.openInterest && !t.valuation && !t.longShortRatio)
 }
 
 const fmtKstDateTime = (instant: string) =>
@@ -31,7 +31,7 @@ function Message({ text, onRetry, retrying }: { text: string; onRetry?: () => vo
   )
 }
 
-// 대시보드 시장 차트 아래 셋째 줄(DashboardMarkets bottomPanels). 종목 탭 안에 김프·펀딩비·OI·밸류에이션·롱/숏 카드 5개(BTC 탭은 반감기까지 6개)
+// 대시보드 시장 차트 아래 셋째 줄(DashboardMarkets bottomPanels). 종목 탭 안에 김프·Coinbase 프리미엄·펀딩비·OI·밸류에이션·롱/숏 카드 6개(BTC 탭은 반감기까지 7개)
 export function CryptoMarketSection() {
   const { data, isError, isFetching, refetch } = useCryptoMarketIndicatorsQuery()
 
@@ -53,6 +53,7 @@ export function CryptoMarketSection() {
             content: (
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <KimchiPremiumCard ticker={t.ticker} data={t.kimchiPremium} usdtPremium={data.usdtPremium?.current ?? null} />
+                <CoinbasePremiumCard ticker={t.ticker} data={t.coinbasePremium} />
                 <FundingRateCard ticker={t.ticker} data={t.fundingRate} />
                 <OpenInterestCard ticker={t.ticker} data={t.openInterest} />
                 <ValuationCard ticker={t.ticker} data={t.valuation} />

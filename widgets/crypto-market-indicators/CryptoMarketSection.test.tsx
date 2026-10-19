@@ -32,6 +32,7 @@ function ticker(name: string, overrides: Partial<CryptoTickerIndicators> = {}): 
       history: [{ date: '2026-10-18', close: 105_000, wma200: 52_500, wma200Multiple: 2.0, mayerMultiple: 1.234, athDrawdownPercent: -12.5 }],
     },
     longShortRatio: { longAccount: 0.6234, longShortRatio: 1.654, history: [{ date: '2026-10-18', longAccount: 0.6234, longShortRatio: 1.654 }] },
+    coinbasePremium: { current: -0.0098, history: [{ date: '2026-10-17', value: -0.0125 }, { date: '2026-10-18', value: -0.0079 }] },
     ...overrides,
   }
 }
@@ -46,7 +47,7 @@ function indicators(overrides: Partial<CryptoMarketIndicators> = {}): CryptoMark
   }
 }
 
-const EMPTY_TICKER = { kimchiPremium: null, fundingRate: null, openInterest: null, valuation: null, longShortRatio: null }
+const EMPTY_TICKER = { kimchiPremium: null, fundingRate: null, openInterest: null, valuation: null, longShortRatio: null, coinbasePremium: null }
 
 describe('CryptoMarketSection', () => {
   beforeEach(() => {
@@ -65,6 +66,33 @@ describe('CryptoMarketSection', () => {
     expect(screen.getByText('+0.0100%')).toBeInTheDocument() // 펀딩비 비율 ×100
     expect(screen.getByText('01:00 KST')).toBeInTheDocument()
     expect(screen.getByText('$8.2B')).toBeInTheDocument()
+  })
+
+  it('shows the Coinbase premium as a separate card next to the kimchi premium', () => {
+    useQueryMock.mockReturnValue({ data: indicators() })
+    render(<CryptoMarketSection />)
+
+    expect(screen.getByText('BTC Coinbase 프리미엄')).toBeInTheDocument()
+    expect(screen.getByText('-0.0098%')).toBeInTheDocument()
+    expect(screen.getByText(/^BTC Coinbase 프리미엄 추이/)).toHaveAttribute('data-points', '2')
+  })
+
+  it('keeps the section when only the Coinbase premium is available', () => {
+    const coinbasePremium = { current: -0.0098, history: [{ date: '2026-10-18', value: -0.0079 }] }
+    useQueryMock.mockReturnValue({ data: indicators({ tickers: [{ ticker: 'BTC', ...EMPTY_TICKER, coinbasePremium }] }) })
+    render(<CryptoMarketSection />)
+
+    expect(screen.queryByText('코인 시장 지표를 불러오지 못했습니다.')).not.toBeInTheDocument()
+    expect(screen.getByText(/^BTC Coinbase 프리미엄 추이/)).toBeInTheDocument()
+  })
+
+  it('marks only the Coinbase premium card as unavailable when that section failed', () => {
+    useQueryMock.mockReturnValue({ data: indicators({ tickers: [ticker('BTC', { coinbasePremium: null })] }) })
+    render(<CryptoMarketSection />)
+
+    expect(screen.getAllByText('일시적으로 불러올 수 없습니다.')).toHaveLength(1)
+    expect(screen.getByText('BTC Coinbase 프리미엄')).toBeInTheDocument()
+    expect(screen.getByText(/^BTC 김치 프리미엄 추이/)).toBeInTheDocument()
   })
 
   it('shows long-term valuation with its daily-close date and the long/short account ratio', () => {

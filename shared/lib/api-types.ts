@@ -3356,6 +3356,12 @@ export interface components {
              */
             currency?: string;
         };
+        CryptoMarketIndicatorsCoinbasePremium: {
+            /** @description 현재 코인베이스 프리미엄 (%) — (코인베이스 <코인>-USD ÷ (바이낸스 <코인>USDT × 코인베이스 USDT-USD) − 1) × 100 */
+            current: number;
+            /** @description 일자별 추이 (UTC 일봉 종가, 진행 중 봉 제외) */
+            history: components["schemas"]["CryptoMarketIndicatorsDatedValue"][];
+        };
         CryptoMarketIndicatorsDatedLongShortRatio: {
             /**
              * Format: date
@@ -3505,6 +3511,8 @@ export interface components {
             valuation: components["schemas"]["CryptoMarketIndicatorsValuation"] | null;
             /** @description 롱/숏 계좌 비율 — 계좌 수(사람) 기준, 포지션 규모(돈) 기준인 펀딩비와 다름 (실패 시 null) */
             longShortRatio: components["schemas"]["CryptoMarketIndicatorsLongShortRatio"] | null;
+            /** @description 테더 보정 코인베이스 프리미엄 — 미국 현물 수요 (실패 시 null) */
+            coinbasePremium: components["schemas"]["CryptoMarketIndicatorsCoinbasePremium"] | null;
         };
         CryptoMarketIndicatorsValuation: {
             /** @description 현재 값 — 실시간이 아니라 직전 완성 일봉 기준 (history 마지막 점과 같음) */
