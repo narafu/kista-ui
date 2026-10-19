@@ -30,7 +30,7 @@ export default function IndicatorLineChart({ data, series, title, formatAxis, fo
         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
         <XAxis dataKey="date" tickFormatter={(d) => fmtMonthDay(String(d))} tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={24} />
         <YAxis tickFormatter={(v) => formatAxis(Number(v))} tick={AXIS_TICK} tickLine={false} axisLine={false} width={yWidth} domain={['auto', 'auto']} />
-        {referenceY != null && <ReferenceLine y={referenceY} stroke="var(--muted-foreground)" strokeDasharray="4 4" />}
+        {referenceY != null && <ReferenceLine y={referenceY} ifOverflow="extendDomain" stroke="var(--muted-foreground)" strokeDasharray="4 4" />}
         <Tooltip
           formatter={(v, name) => [formatValue(Number(v)), name]}
           labelFormatter={(d) => `${String(d).replace(/-/g, '.')} UTC`}

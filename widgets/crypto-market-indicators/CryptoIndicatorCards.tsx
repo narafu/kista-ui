@@ -54,7 +54,7 @@ function IndicatorCard({ title, description, days, onDaysChange, children }: Ind
             <PopoverTrigger aria-label={`${title} 설명`} className="inline-flex size-6 -my-[5px] items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
               <Info className="size-3.5" />
             </PopoverTrigger>
-            <PopoverContent className="w-auto text-sm whitespace-nowrap">{description}</PopoverContent>
+            <PopoverContent className="w-auto text-sm whitespace-pre">{description}</PopoverContent>
           </Popover>
         </div>
       </div>
@@ -89,7 +89,7 @@ interface KimchiProps {
 
 export function KimchiPremiumCard({ ticker, data, usdtPremium }: KimchiProps) {
   const title = `${ticker} 김치 프리미엄`
-  const description = '국내 원화가의 해외 대비 할증'
+  const description = '국내 원화가의 해외 대비 할증\n공식 환율 기준: 일반 김프 사이트와 같은 기준\n테더 기준: 원화 유출 제약을 뺀 국내 과열도'
   const [days, setDays] = useState<Days>(200)
   if (!data) {
     return <IndicatorCard title={title} description={description}><Unavailable /></IndicatorCard>
@@ -135,7 +135,7 @@ export function KimchiPremiumCard({ ticker, data, usdtPremium }: KimchiProps) {
 
 export function FundingRateCard({ ticker, data }: { ticker: string; data: CryptoTickerIndicators['fundingRate'] }) {
   const title = `${ticker} 펀딩비`
-  const description = '바이낸스 무기한 선물, 8시간 정산'
+  const description = '바이낸스 무기한 선물, 8시간 정산\n양수는 롱 과열, 음수는 숏 우세\n점선은 평상시 기준 0.01%'
   const [days, setDays] = useState<Days>(200)
   if (!data) {
     return <IndicatorCard title={title} description={description}><Unavailable /></IndicatorCard>
