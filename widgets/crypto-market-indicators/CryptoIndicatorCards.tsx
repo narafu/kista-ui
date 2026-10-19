@@ -74,8 +74,13 @@ function ChartArea({ className, children }: { className?: string; children: Reac
   return <div className={cn('min-h-[140px] flex-1', className)}>{children}</div>
 }
 
-function Unavailable() {
-  return <div className="flex h-[200px] items-center justify-center text-sm text-warn">일시적으로 불러올 수 없습니다.</div>
+// 섹션이 null이면(지표별 실패 격리) 제목·설명은 그대로 두고 본문만 안내로 바꾼다
+function UnavailableCard(props: Omit<IndicatorCardProps, 'children'>) {
+  return (
+    <IndicatorCard {...props}>
+      <div className="flex h-[200px] items-center justify-center text-sm text-warn">일시적으로 불러올 수 없습니다.</div>
+    </IndicatorCard>
+  )
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
@@ -98,7 +103,7 @@ export function KimchiPremiumCard({ ticker, data, usdtPremium }: KimchiProps) {
   const description = '국내 원화가의 해외 대비 할증\n공식 환율 기준: 일반 김프 사이트와 같은 기준\n테더 기준: 원화 유출 제약을 뺀 국내 과열도'
   const [days, setDays] = useState<Days>(200)
   if (!data) {
-    return <IndicatorCard title={title} description={description}><Unavailable /></IndicatorCard>
+    return <UnavailableCard title={title} description={description} />
   }
   const { official, tether } = data.current
   // 환율 조회 실패(official null)면 공식 기준 현재값·분해를 숨긴다. 추이 선은 과거 값이 하나라도 있으면 그린다
@@ -147,7 +152,7 @@ export function CoinbasePremiumCard({ ticker, data }: { ticker: string; data: Cr
   const description = '코인베이스 USD가의 바이낸스 대비 할증(테더 보정)\n김프 = 한국 수요, Coinbase 프리미엄 = 미국 수요\n양수는 미국 현물 매수 우위'
   const [days, setDays] = useState<Days>(200)
   if (!data) {
-    return <IndicatorCard title={title} description={description}><Unavailable /></IndicatorCard>
+    return <UnavailableCard title={title} description={description} />
   }
 
   return (
@@ -173,7 +178,7 @@ export function FundingRateCard({ ticker, data }: { ticker: string; data: Crypto
   const description = '바이낸스 무기한 선물, 8시간 정산\n양수는 롱 과열, 음수는 숏 우세\n점선은 평상시 기준 0.01%'
   const [days, setDays] = useState<Days>(200)
   if (!data) {
-    return <IndicatorCard title={title} description={description}><Unavailable /></IndicatorCard>
+    return <UnavailableCard title={title} description={description} />
   }
   // 차트는 % 단위로 그린다 — 기준선 0.01%(평상시 8시간 펀딩비)
   const history = data.history.slice(-days).map((p) => ({ date: p.date, value: p.value * 100 }))
@@ -204,7 +209,7 @@ export function OpenInterestCard({ ticker, data }: { ticker: string; data: Crypt
   const description = '선물 레버리지 규모(USD), 최근 30일'
   const latest = data?.history.at(-1)
   if (!data) {
-    return <IndicatorCard title={title} description={description}><Unavailable /></IndicatorCard>
+    return <UnavailableCard title={title} description={description} />
   }
 
   return (
@@ -225,10 +230,10 @@ export function OpenInterestCard({ ticker, data }: { ticker: string; data: Crypt
 
 export function ValuationCard({ ticker, data }: { ticker: string; data: CryptoTickerIndicators['valuation'] }) {
   const title = `${ticker} 장기 밸류에이션`
-  const description = '200주 배수: 종가 ÷ 200주 이동평균, 1 미만은 장기 저점권\n메이어 멀티플: 종가 ÷ 200일 이동평균\nATH 대비: 역대 최고가에서 내려온 폭'
+  const description = '200주 배수: 종가 ÷ 200주 이동평균, 1 미만은 장기 저점권\n메이어 멀티플: 종가 ÷ 200일 이동평균, 2.4 이상은 과열권\nATH 대비: 역대 최고가에서 내려온 폭'
   const [days, setDays] = useState<Days>(200)
   if (!data) {
-    return <IndicatorCard title={title} description={description}><Unavailable /></IndicatorCard>
+    return <UnavailableCard title={title} description={description} />
   }
   const { current } = data
 
@@ -263,7 +268,7 @@ export function LongShortRatioCard({ ticker, data }: { ticker: string; data: Cry
   const title = `${ticker} 롱/숏 비율`
   const description = '바이낸스 선물 롱/숏 계좌 수 비율, 최근 30일\n1보다 크면 롱 계좌가 더 많음\n계좌 수(사람) 기준이라 포지션 규모(돈) 기준인 펀딩비와 다름'
   if (!data) {
-    return <IndicatorCard title={title} description={description}><Unavailable /></IndicatorCard>
+    return <UnavailableCard title={title} description={description} />
   }
 
   return (
@@ -297,7 +302,7 @@ export function HalvingCard({ data, asOf }: { data: CryptoMarketIndicators['halv
   // BTC 탭은 카드가 7개라 3열 그리드 마지막 줄에 혼자 남는다 — PC에서는 한 줄을 다 쓰는 가로 띠로 둔다
   const className = 'lg:col-span-3'
   if (!data) {
-    return <IndicatorCard title={title} description={description} className={className}><Unavailable /></IndicatorCard>
+    return <UnavailableCard title={title} description={description} className={className} />
   }
   const daysLeft = Math.max(0, Math.ceil((Date.parse(data.estimatedAt) - Date.parse(asOf)) / DAY_MS))
   // 서버가 준 높이로만 계산하고 0~1로 묶어 막대·aria 값이 범위를 벗어나지 않게 한다
