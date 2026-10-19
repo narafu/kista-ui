@@ -7,6 +7,7 @@ import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { fmtKrw, fmtQuantity } from '@shared/lib/format'
 import type { CryptoPortfolio } from '@entities/trade'
+import { SectionError } from '@shared/ui/SectionError'
 
 interface Props {
   portfolio: CryptoPortfolio | undefined
@@ -19,11 +20,11 @@ export function CryptoHoldingsCard({ portfolio, isError }: Props) {
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
-        <CardTitle role="heading" aria-level={2} className="text-base">보유 코인</CardTitle>
+        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">보유 코인</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         {isError ? (
-          <EmptyState variant="text" message="보유 코인을 불러오지 못했습니다." />
+          <div className="px-6 pb-6"><SectionError message="보유 코인을 불러오지 못했습니다." /></div>
         ) : !portfolio ? (
           <LoadingRow />
         ) : portfolio.holdings.length === 0 ? (

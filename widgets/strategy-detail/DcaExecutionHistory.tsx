@@ -13,6 +13,7 @@ import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { fmtDate, fmtMoney, fmtQuantity } from '@shared/lib/format'
 import { isCryptoMarket } from '@shared/lib/api-schema'
+import { SectionError } from '@shared/ui/SectionError'
 
 const PAGE_SIZE = 20
 
@@ -28,15 +29,13 @@ export function DcaExecutionHistory({ strategyId, ticker }: { strategyId: string
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base lg:text-lg">
-          <h2>회차별 실행 이력</h2>
-        </CardTitle>
+        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">회차별 실행 이력</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         {isLoading ? (
           <LoadingRow />
         ) : isError && !data ? (
-          <EmptyState variant="text" message="실행 이력을 불러오지 못했습니다." />
+          <div className="px-6 pb-6"><SectionError message="실행 이력을 불러오지 못했습니다." /></div>
         ) : rows.length === 0 ? (
           <EmptyState variant="text" message="아직 실행된 회차가 없습니다." />
         ) : (

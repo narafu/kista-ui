@@ -11,7 +11,7 @@ import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { RangeFilterControls } from '@shared/ui/range-filter/RangeFilterControls'
-import { fmtQuantity, fmtUsd } from '@shared/lib/format'
+import { fmtDate, fmtQuantity, fmtUsd } from '@shared/lib/format'
 import { toNum } from '@shared/lib/utils'
 import { resolveRangeStrict } from '@shared/lib/date-range'
 import { useRangeFilterState } from '@shared/lib/hooks/use-range-filter-state'
@@ -107,7 +107,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                 <tbody>
                   {pageOrders.map((o) => (
                     <tr key={o.id} className="border-t hover:bg-muted/30 transition-colors">
-                      <TableDataCell className="text-muted-foreground text-xs whitespace-nowrap">{o.tradeDate}</TableDataCell>
+                      <TableDataCell className="text-muted-foreground text-xs whitespace-nowrap">{fmtDate(o.tradeDate)}</TableDataCell>
                       <TableDataCell className={`font-semibold whitespace-nowrap ${directionTextClass(o.direction)}`}>{DIRECTION_LABEL[o.direction] ?? o.direction}</TableDataCell>
                       <TableDataCell className="whitespace-nowrap">
                         <Badge tone="neutral" size="sm">

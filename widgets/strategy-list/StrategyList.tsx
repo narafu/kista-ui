@@ -4,6 +4,7 @@ import { NewStrategyButton } from '@features/strategy/create-strategy'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import type { Strategy } from '@entities/strategy'
+import { SectionError } from '@shared/ui/SectionError'
 
 interface Props {
   accountId: string
@@ -17,13 +18,13 @@ export function StrategyList({ accountId, strategies, isError = false }: Props) 
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle role="heading" aria-level={2} className="text-base">전략</CardTitle>
+          <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">전략</CardTitle>
           <NewStrategyButton accountId={accountId} />
         </div>
       </CardHeader>
       <CardContent className="px-6 pb-6">
         {!strategies && isError ? (
-          <EmptyState variant="text" message="전략 목록을 불러오지 못했습니다." />
+          <SectionError message="전략 목록을 불러오지 못했습니다." />
         ) : !strategies ? (
           <LoadingRow />
         ) : strategies.length === 0 ? (

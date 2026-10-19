@@ -7,6 +7,7 @@ import { DIRECTION_LABEL, directionBadgeClass } from '@entities/trade'
 import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
+import { Button } from '@/components/ui/button'
 
 interface OrderRowData {
   id?: string
@@ -58,14 +59,9 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
             {hasCancel && (
               <div className="flex justify-center">
                 {o.id ? (
-                  <button
-                    type="button"
-                    onClick={() => onCancelOne(o.id!)}
-                    disabled={cancelPending}
-                    className="text-xs px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
-                  >
+                  <Button variant="destructive" size="xs" onClick={() => onCancelOne(o.id!)} disabled={cancelPending}>
                     {cancelPending && cancellingId === o.id ? '취소 중...' : '취소'}
-                  </button>
+                  </Button>
                 ) : <span />}
               </div>
             )}
@@ -101,14 +97,9 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
               {hasCancel && (
                 <TableDataCell className="px-5 py-3">
                   {o.id && (
-                    <button
-                      type="button"
-                      onClick={() => onCancelOne(o.id!)}
-                      disabled={cancelPending}
-                      className="px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
-                    >
+                    <Button variant="destructive" size="xs" onClick={() => onCancelOne(o.id!)} disabled={cancelPending}>
                       {cancelPending && cancellingId === o.id ? '취소 중...' : '취소'}
-                    </button>
+                    </Button>
                   )}
                 </TableDataCell>
               )}

@@ -11,6 +11,7 @@ import type { Strategy } from '@entities/strategy'
 import type { NextOrderPreview, OrderReadiness } from '@entities/order'
 import { SKIP_REASON_LABELS, BUY_COPY, SELL_COPY, directionUnplacedMessage, previewErrorMsg } from './orderBannerCopy'
 import { OrderRows } from './OrderRows'
+import { Button } from '@/components/ui/button'
 
 interface Props {
   strategy: Strategy
@@ -82,14 +83,9 @@ function ExecutedBody({ placedOrders, orders, unplacedDirections, readiness, onC
     <div>
       <div className="flex items-center justify-between px-6 py-3 border-b border-border">
         <p className="text-base uppercase tracking-widest font-semibold text-info">{executedHeaderLabel(placedOrders)}</p>
-        <button
-          type="button"
-          onClick={onCancelAll}
-          disabled={cancelAllPending}
-          className="text-base px-2.5 py-1 rounded-md border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 disabled:opacity-50"
-        >
+        <Button variant="destructive" size="sm" onClick={onCancelAll} disabled={cancelAllPending}>
           {cancelAllPending ? '취소 중...' : '전체 취소'}
-        </button>
+        </Button>
       </div>
       <OrderRows
         orders={placedOrders}

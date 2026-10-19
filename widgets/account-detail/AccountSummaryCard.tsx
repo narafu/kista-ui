@@ -34,7 +34,7 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, cryptoPort
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle role="heading" aria-level={2} className="flex items-center gap-2 text-base">
+        <CardTitle role="heading" aria-level={2} className="flex items-center gap-2 text-base lg:text-lg">
           계좌 요약
           {expiry && <Badge tone={expiry === 'EXPIRED' ? 'error' : 'warn'} size="sm">{API_KEY_EXPIRY_LABEL[expiry]}</Badge>}
         </CardTitle>

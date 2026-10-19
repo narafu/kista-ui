@@ -43,7 +43,7 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
     return (
       <Card className="overflow-hidden">
         <CardHeader className="pb-3">
-          <CardTitle role="heading" aria-level={2} className="text-base">{title}</CardTitle>
+          <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">{title}</CardTitle>
         </CardHeader>
         <CardContent>
           <EmptyState variant="text" message={emptyIdMessage} />

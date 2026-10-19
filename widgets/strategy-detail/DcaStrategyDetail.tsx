@@ -120,9 +120,7 @@ export function DcaStrategyDetail({ accountId, strategy }: Props) {
       {dca && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base lg:text-lg">
-              <h2>추가 조건</h2>
-            </CardTitle>
+            <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">추가 조건</CardTitle>
           </CardHeader>
           <CardContent className="text-sm">
             {dca.conditions.length === 0 ? (
