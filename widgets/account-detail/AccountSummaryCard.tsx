@@ -1,13 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { KpiCard } from '@widgets/kpi-card'
 import { fmtKrw, fmtUsd } from '@shared/lib/format'
 import { isCryptoBroker, isMockBroker } from '@shared/lib/api-schema'
 import { Badge } from '@shared/ui/Badge'
-import { IconButton } from '@shared/ui/IconButton'
+import { RevealableValue } from '@widgets/revealable-value'
 import { useMeta } from '@entities/meta'
 import { apiKeyExpiryState, API_KEY_EXPIRY_LABEL } from '@entities/account'
 import type { Account } from '@entities/account'
@@ -24,7 +22,6 @@ interface Props {
 }
 
 export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, cryptoPortfolio }: Props) {
-  const [revealed, setRevealed] = useState(false)
   const { labelOf } = useMeta()
   const brokerLabel = labelOf('brokers', account.broker)
   const isMock = isMockBroker(account.broker)
@@ -45,19 +42,12 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, cryptoPort
           {account.accountNoMasked != null && (
             <KpiCard
               label="계좌번호"
-              labelAction={
-                <IconButton
-                  onClick={() => setRevealed((v) => !v)}
-                  className="-m-3.5 shrink-0 hover:bg-transparent"
-                  aria-label={revealed ? '숨기기' : '보기'}
-                >
-                  {revealed ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                </IconButton>
-              }
               value={
-                <span className="font-mono tracking-wide text-lg lg:text-xl whitespace-nowrap">
-                  {revealed ? (account.accountNo ?? account.accountNoMasked) : account.accountNoMasked}
-                </span>
+                <RevealableValue
+                  value={account.accountNo ?? account.accountNoMasked}
+                  hiddenDisplay={account.accountNoMasked}
+                  className="text-lg lg:text-xl whitespace-nowrap"
+                />
               }
             />
           )}

@@ -33,8 +33,8 @@ export function AdminTradesTable({ trades }: Props) {
             <TableHeadCell className="whitespace-nowrap">종목</TableHeadCell>
             <TableHeadCell className="whitespace-nowrap">방향</TableHeadCell>
             <TableHeadCell className="whitespace-nowrap">유형</TableHeadCell>
-            <TableHeadCell className="whitespace-nowrap">수량</TableHeadCell>
-            <TableHeadCell className="whitespace-nowrap">가격</TableHeadCell>
+            <TableHeadCell className="text-right whitespace-nowrap">수량</TableHeadCell>
+            <TableHeadCell className="text-right whitespace-nowrap">가격</TableHeadCell>
             <TableHeadCell className="whitespace-nowrap">상태</TableHeadCell>
           </tr>
         </thead>
@@ -45,16 +45,16 @@ export function AdminTradesTable({ trades }: Props) {
                 key={trade.id}
                 className="hover:bg-muted/30 transition-colors"
               >
-                <TableDataCell className="text-muted-foreground text-xs whitespace-nowrap">{fmtDate(trade.tradeDate)}</TableDataCell>
+                <TableDataCell className="text-muted-foreground whitespace-nowrap">{fmtDate(trade.tradeDate)}</TableDataCell>
                 <TableDataCell className="font-medium whitespace-nowrap">{trade.ownerNickname}</TableDataCell>
-                <TableDataCell className="text-xs text-muted-foreground whitespace-nowrap">{trade.strategyType ? labelOf('strategyTypes', trade.strategyType) : '-'}</TableDataCell>
+                <TableDataCell className="text-muted-foreground whitespace-nowrap">{trade.strategyType ? labelOf('strategyTypes', trade.strategyType) : '-'}</TableDataCell>
                 <TableDataCell className="whitespace-nowrap">{trade.ticker}</TableDataCell>
                 <TableDataCell className={`font-semibold whitespace-nowrap ${directionTextClass(trade.direction)}`}>
                   {DIRECTION_LABEL[trade.direction] ?? trade.direction}
                 </TableDataCell>
-                <TableDataCell className="text-xs text-muted-foreground whitespace-nowrap">{orderTypeLabel(trade.orderType)}</TableDataCell>
-                <TableDataCell className="whitespace-nowrap">{fmtQuantity(trade.quantity)}</TableDataCell>
-                <TableDataCell className="font-mono text-xs whitespace-nowrap">{fmtMoney(trade.price, isCryptoMarket(findTicker(trade.ticker)?.market) ? 'KRW' : 'USD')}</TableDataCell>
+                <TableDataCell className="text-muted-foreground whitespace-nowrap">{orderTypeLabel(trade.orderType)}</TableDataCell>
+                <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtQuantity(trade.quantity)}</TableDataCell>
+                <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtMoney(trade.price, isCryptoMarket(findTicker(trade.ticker)?.market) ? 'KRW' : 'USD')}</TableDataCell>
                 <TableDataCell className="whitespace-nowrap">
                   <Badge tone="none" className={orderStatusBadgeClass(trade.status)}>
                     {ORDER_STATUS_LABEL[trade.status] ?? trade.status}

@@ -157,11 +157,11 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
                   <TableHeadCell className="w-8 px-2"><span className="sr-only">펼치기</span></TableHeadCell>
                   <TableHeadCell className="whitespace-nowrap">날짜</TableHeadCell>
                   <TableHeadCell className="whitespace-nowrap">종목</TableHeadCell>
-                  <TableHeadCell className="whitespace-nowrap">사이클 시작금액</TableHeadCell>
-                  <TableHeadCell className="whitespace-nowrap">평단가</TableHeadCell>
-                  <TableHeadCell className="whitespace-nowrap">보유</TableHeadCell>
-                  <TableHeadCell className="whitespace-nowrap">실현손익</TableHeadCell>
-                  <TableHeadCell className="whitespace-nowrap">주문</TableHeadCell>
+                  <TableHeadCell className="text-right whitespace-nowrap">사이클 시작금액</TableHeadCell>
+                  <TableHeadCell className="text-right whitespace-nowrap">평단가</TableHeadCell>
+                  <TableHeadCell className="text-right whitespace-nowrap">보유</TableHeadCell>
+                  <TableHeadCell className="text-right whitespace-nowrap">실현손익</TableHeadCell>
+                  <TableHeadCell className="text-right whitespace-nowrap">주문</TableHeadCell>
                   <TableHeadCell className="w-16 whitespace-nowrap"><span className="sr-only">수정</span></TableHeadCell>
                 </tr>
               </thead>
@@ -270,13 +270,13 @@ function MobileBaseCard({
 
       {/* 지표 4개는 타일 대신 라벨-값 2열 목록 — 카드 하나가 화면을 덜 차지하게 */}
       <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1">
-        <Metric label="시작금액" value={`$${fmtUsd(b.currentCycleStart)}`} valueClassName="font-mono" />
+        <Metric label="시작금액" value={`$${fmtUsd(b.currentCycleStart)}`} valueClassName="tabular-nums" />
         <Metric
           label="실현손익"
           value={fmtSignedUsd(b.currentCycleRealizedPnl)}
-          valueClassName={`font-mono ${pnlTextClass(b.currentCycleRealizedPnl)}`}
+          valueClassName={`tabular-nums ${pnlTextClass(b.currentCycleRealizedPnl)}`}
         />
-        <Metric label="평단가" value={b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`} valueClassName="font-mono" />
+        <Metric label="평단가" value={b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`} valueClassName="tabular-nums" />
         <Metric label="보유" value={String(b.holdings)} />
       </dl>
 
@@ -352,7 +352,7 @@ function OrderDetailsTable({
               {DIRECTION_LABEL[o.direction] ?? o.direction}
             </TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-left text-muted-foreground')}>{orderTypeLabel(o.orderType)}</TableDataCell>
-            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right font-mono')}>${fmtUsd(o.price)}</TableDataCell>
+            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right tabular-nums')}>${fmtUsd(o.price)}</TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right')}>{o.quantity ?? '-'}</TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right')}>
               <span className="inline-flex items-center gap-1.5">
@@ -409,15 +409,15 @@ function FragmentRow({
             {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
           </IconButton>
         </TableDataCell>
-        <TableDataCell className="text-muted-foreground text-xs whitespace-nowrap">{b.releaseDate}</TableDataCell>
+        <TableDataCell className="text-muted-foreground whitespace-nowrap">{b.releaseDate}</TableDataCell>
         <TableDataCell className="whitespace-nowrap">{b.ticker}</TableDataCell>
-        <TableDataCell className="font-mono text-xs whitespace-nowrap">${fmtUsd(b.currentCycleStart)}</TableDataCell>
-        <TableDataCell className="font-mono text-xs whitespace-nowrap">{b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`}</TableDataCell>
-        <TableDataCell className="whitespace-nowrap">{b.holdings}</TableDataCell>
-        <TableDataCell className={`font-mono text-xs whitespace-nowrap ${pnlTextClass(b.currentCycleRealizedPnl)}`}>
+        <TableDataCell className="text-right tabular-nums whitespace-nowrap">${fmtUsd(b.currentCycleStart)}</TableDataCell>
+        <TableDataCell className="text-right tabular-nums whitespace-nowrap">{b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`}</TableDataCell>
+        <TableDataCell className="text-right tabular-nums whitespace-nowrap">{b.holdings}</TableDataCell>
+        <TableDataCell className={`text-right tabular-nums whitespace-nowrap ${pnlTextClass(b.currentCycleRealizedPnl)}`}>
           {fmtSignedUsd(b.currentCycleRealizedPnl)}
         </TableDataCell>
-        <TableDataCell className="text-muted-foreground whitespace-nowrap">{b.orders.length}건</TableDataCell>
+        <TableDataCell className="text-right tabular-nums text-muted-foreground whitespace-nowrap">{b.orders.length}건</TableDataCell>
         <TableDataCell className="whitespace-nowrap">
           <Button
             type="button"

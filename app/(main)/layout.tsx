@@ -14,6 +14,8 @@ import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { ShieldCheck, LogOut, LogIn } from 'lucide-react'
 import { LogoutButton } from '@features/auth/logout'
+import { BASE_CLASS, ICON_LINK_GHOST_CLASS } from '@shared/ui/iconButtonStyles'
+import { cn } from '@shared/lib/utils'
 
 interface Props {
   children: React.ReactNode
@@ -50,12 +52,12 @@ export default async function MainLayout({ children, modal }: Props) {
                     <Link
                       href="/admin"
                       aria-label="관리자"
-                      className="flex items-center justify-center size-10 rounded-lg bg-admin-bg text-admin-fg"
+                      className={cn(BASE_CLASS, 'bg-admin-bg text-admin-fg')}
                     >
                       <ShieldCheck className="size-4" />
                     </Link>
                   )}
-                  <LogoutButton aria-label="로그아웃" className="flex items-center justify-center size-10 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer bg-transparent border-none">
+                  <LogoutButton aria-label="로그아웃" className={ICON_LINK_GHOST_CLASS}>
                     <LogOut className="size-4" />
                   </LogoutButton>
                 </div>
@@ -63,7 +65,7 @@ export default async function MainLayout({ children, modal }: Props) {
                 <Link
                   href="/login"
                   aria-label="로그인"
-                  className="flex items-center justify-center size-10 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                  className={ICON_LINK_GHOST_CLASS}
                 >
                   <LogIn className="size-4" />
                 </Link>

@@ -121,10 +121,10 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
                 <thead className="bg-muted/50 sticky top-0 z-10">
                   <tr>
                     <TableHeadCell>티커</TableHeadCell>
-                    <TableHeadCell>수량</TableHeadCell>
-                    <TableHeadCell>평단가</TableHeadCell>
-                    <TableHeadCell>예수금</TableHeadCell>
-                    <TableHeadCell>평가금액</TableHeadCell>
+                    <TableHeadCell className="text-right">수량</TableHeadCell>
+                    <TableHeadCell className="text-right">평단가</TableHeadCell>
+                    <TableHeadCell className="text-right">예수금</TableHeadCell>
+                    <TableHeadCell className="text-right">평가금액</TableHeadCell>
                   </tr>
                 </thead>
                 <tbody>
@@ -140,10 +140,10 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
                         return (
                           <tr key={entry.createdAt} className="border-t hover:bg-muted/30 transition-colors">
                             <TableDataCell className="font-medium">{entry.ticker ?? '-'}</TableDataCell>
-                            <TableDataCell className="tabular-nums">{entry.holdings}주</TableDataCell>
-                            <TableDataCell className="tabular-nums">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</TableDataCell>
-                            <TableDataCell className="tabular-nums font-medium">${fmtUsd(entry.usdDeposit ?? 0)}</TableDataCell>
-                            <TableDataCell className="tabular-nums font-medium">{evalAmount != null ? `$${fmtUsd(evalAmount)}` : '-'}</TableDataCell>
+                            <TableDataCell className="text-right tabular-nums">{entry.holdings}주</TableDataCell>
+                            <TableDataCell className="text-right tabular-nums">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</TableDataCell>
+                            <TableDataCell className="text-right tabular-nums font-medium">${fmtUsd(entry.usdDeposit ?? 0)}</TableDataCell>
+                            <TableDataCell className="text-right tabular-nums font-medium">{evalAmount != null ? `$${fmtUsd(evalAmount)}` : '-'}</TableDataCell>
                           </tr>
                         )
                       })}

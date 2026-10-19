@@ -98,23 +98,23 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                     <TableHeadCell className="whitespace-nowrap">날짜</TableHeadCell>
                     <TableHeadCell className="whitespace-nowrap">방향</TableHeadCell>
                     <TableHeadCell className="whitespace-nowrap">유형</TableHeadCell>
-                    <TableHeadCell className="whitespace-nowrap">수량</TableHeadCell>
-                    <TableHeadCell className="whitespace-nowrap">주문가</TableHeadCell>
-                    <TableHeadCell className="whitespace-nowrap">체결가</TableHeadCell>
+                    <TableHeadCell className="text-right whitespace-nowrap">수량</TableHeadCell>
+                    <TableHeadCell className="text-right whitespace-nowrap">주문가</TableHeadCell>
+                    <TableHeadCell className="text-right whitespace-nowrap">체결가</TableHeadCell>
                     <TableHeadCell className="whitespace-nowrap">상태</TableHeadCell>
                   </tr>
                 </thead>
                 <tbody>
                   {pageOrders.map((o) => (
                     <tr key={o.id} className="border-t hover:bg-muted/30 transition-colors">
-                      <TableDataCell className="text-muted-foreground text-xs whitespace-nowrap">{fmtDate(o.tradeDate)}</TableDataCell>
+                      <TableDataCell className="text-muted-foreground whitespace-nowrap">{fmtDate(o.tradeDate)}</TableDataCell>
                       <TableDataCell className={`font-semibold whitespace-nowrap ${directionTextClass(o.direction)}`}>{DIRECTION_LABEL[o.direction] ?? o.direction}</TableDataCell>
                       <TableDataCell className="whitespace-nowrap">
                         <Badge tone="neutral" size="sm">
                           {orderTypeLabel(o.orderType)}
                         </Badge>
                       </TableDataCell>
-                      <TableDataCell className="whitespace-nowrap">
+                      <TableDataCell className="text-right tabular-nums whitespace-nowrap">
                         {o.filledQuantity != null ? (
                           <span>
                             <span className="font-medium">{fmtQuantity(o.filledQuantity)}</span>
@@ -124,8 +124,8 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                           fmtQuantity(o.quantity)
                         )}
                       </TableDataCell>
-                      <TableDataCell className="font-mono text-xs whitespace-nowrap">${fmtUsd(toNum(o.price))}</TableDataCell>
-                      <TableDataCell className="font-mono text-xs whitespace-nowrap">
+                      <TableDataCell className="text-right tabular-nums whitespace-nowrap">${fmtUsd(toNum(o.price))}</TableDataCell>
+                      <TableDataCell className="text-right tabular-nums whitespace-nowrap">
                         {o.filledPrice != null ? `$${fmtUsd(toNum(o.filledPrice))}` : <span className="text-muted-foreground">-</span>}
                       </TableDataCell>
                       <TableDataCell className="whitespace-nowrap">

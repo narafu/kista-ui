@@ -55,7 +55,7 @@ export function DcaExecutionHistory({ strategyId, ticker }: { strategyId: string
                 {/* kista-api uq_dca_execution_strategy_trade_date(strategy_id, trade_date)로 전략당 거래일 1건 보장 */}
                 {rows.map((r) => (
                   <tr key={r.kstTradeDate} className="border-t hover:bg-muted/30 transition-colors">
-                    <TableDataCell className="text-muted-foreground text-xs whitespace-nowrap">{fmtDate(r.kstTradeDate)}</TableDataCell>
+                    <TableDataCell className="text-muted-foreground whitespace-nowrap">{fmtDate(r.kstTradeDate)}</TableDataCell>
                     <TableDataCell className="whitespace-nowrap">
                       <Badge tone={r.status === 'ORDERED' ? 'none' : 'neutral'} size="sm" className={r.status === 'ORDERED' ? 'bg-info-bg text-info' : undefined}>{dcaExecutionStatusLabel(r.status)}</Badge>
                     </TableDataCell>
