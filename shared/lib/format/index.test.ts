@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fmtKrw, fmtKrwEok, fmtMoney, fmtQuantity, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, nextTradeDateKst, fmtSignedPercent, fmtSignedPercentPoint, fmtDate, fmtMonthDay } from './index'
+import { fmtCompactUsd, fmtCompactUsdNarrow, fmtKrw, fmtKrwEok, fmtMoney, fmtQuantity, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, nextTradeDateKst, fmtSignedPercent, fmtSignedPercentPoint, fmtDate, fmtMonthDay } from './index'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -205,5 +205,23 @@ describe('fmtQuantity', () => {
 
   it('8자리 아래로 내려가는 값은 0으로 표시한다', () => {
     expect(fmtQuantity(0.000000001)).toBe('0')
+  })
+})
+
+describe('fmtCompactUsd', () => {
+  it('소수 최대 1자리로 축약한다', () => {
+    expect(fmtCompactUsd(7_600_000_000)).toBe('$7.6B')
+    expect(fmtCompactUsd(12_345_000_000)).toBe('$12.3B')
+    expect(fmtCompactUsd(12_500_000_000)).toBe('$12.5B')
+    expect(fmtCompactUsd(950)).toBe('$950')
+  })
+
+})
+
+describe('fmtCompactUsdNarrow', () => {
+  it('유효숫자 2자리로 축약한다', () => {
+    expect(fmtCompactUsdNarrow(12_345_000_000)).toBe('$12B')
+    expect(fmtCompactUsdNarrow(123_456)).toBe('$120K')
+    expect(fmtCompactUsdNarrow(1_234)).toBe('$1.2K')
   })
 })

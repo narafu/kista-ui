@@ -3,7 +3,7 @@
 import { useState, useSyncExternalStore } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
-import { fmtUsd } from '@shared/lib/format'
+import { fmtCompactUsdNarrow, fmtUsd } from '@shared/lib/format'
 import { isCryptoBroker } from '@shared/lib/api-schema'
 import { Surface } from '@shared/ui/Surface'
 import { IconButton } from '@shared/ui/IconButton'
@@ -18,9 +18,6 @@ interface Props {
 }
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
-
-// 7열 칸(모바일 약 33px)에 들어가도록 2자리 유효숫자 축약 — 정확한 금액은 title로 노출
-const compactUsd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumSignificantDigits: 2 })
 
 function pad(n: number) { return String(n).padStart(2, '0') }
 
@@ -57,6 +54,7 @@ interface CompactRowProps {
 // 주간 배지와 같은 2줄 배지 — 한 줄이면 이웃 칸 금액과 붙어 보인다
 const COMPACT_BADGE_CLASS = 'block rounded py-px text-[10px] leading-tight'
 
+// 배지 금액은 7열 칸(모바일 약 33px)에 들어가도록 유효숫자 2자리로 축약한다(fmtCompactUsdNarrow, 아래 CurrentRow 동일) — 정확한 금액은 title로 노출
 function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
   return Array.from({ length: 7 }, (_, i) => {
     const day = addDays(rowStart, i)
@@ -83,12 +81,12 @@ function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
           <span className="flex w-full flex-col items-stretch gap-0.5">
             {daySummary.buyCount > 0 && (
               <span className={cn(COMPACT_BADGE_CLASS, directionBadgeClass('BUY'))} title={`매수 $${fmtUsd(daySummary.buyAmountUsd, 0)}`}>
-                매수<br />{compactUsd.format(daySummary.buyAmountUsd)}
+                매수<br />{fmtCompactUsdNarrow(daySummary.buyAmountUsd)}
               </span>
             )}
             {daySummary.sellCount > 0 && (
               <span className={cn(COMPACT_BADGE_CLASS, directionBadgeClass('SELL'))} title={`매도 $${fmtUsd(daySummary.sellAmountUsd, 0)}`}>
-                매도<br />{compactUsd.format(daySummary.sellAmountUsd)}
+                매도<br />{fmtCompactUsdNarrow(daySummary.sellAmountUsd)}
               </span>
             )}
           </span>
@@ -136,12 +134,12 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
         <span className="flex w-full flex-col items-stretch gap-0.5">
           {summary.buyCount > 0 && (
             <span className={cn(DAY_BADGE_CLASS, directionBadgeClass('BUY'))} title={`매수 $${fmtUsd(summary.buyAmountUsd, 0)}`}>
-              매수<br />{compactUsd.format(summary.buyAmountUsd)}
+              매수<br />{fmtCompactUsdNarrow(summary.buyAmountUsd)}
             </span>
           )}
           {summary.sellCount > 0 && (
             <span className={cn(DAY_BADGE_CLASS, directionBadgeClass('SELL'))} title={`매도 $${fmtUsd(summary.sellAmountUsd, 0)}`}>
-              매도<br />{compactUsd.format(summary.sellAmountUsd)}
+              매도<br />{fmtCompactUsdNarrow(summary.sellAmountUsd)}
             </span>
           )}
         </span>

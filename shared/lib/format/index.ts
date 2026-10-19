@@ -9,6 +9,19 @@ export function fmtSignedUsd(n: number, digits = 2, symbol = ''): string {
   return n >= 0 ? `+${symbol}${fmtUsd(n, digits)}` : `-${symbol}${fmtUsd(Math.abs(n), digits)}`
 }
 
+const compactUsdFormat = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 })
+const narrowCompactUsdFormat = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumSignificantDigits: 2 })
+
+/** 달러 축약 표기, 소수 최대 1자리(예: "$7.6B", "$12.3B") */
+export function fmtCompactUsd(n: number): string {
+  return compactUsdFormat.format(n)
+}
+
+/** 달러 축약 표기, 유효숫자 2자리로 더 짧게(예: "$12B", "$120K") */
+export function fmtCompactUsdNarrow(n: number): string {
+  return narrowCompactUsdFormat.format(n)
+}
+
 /** 0~1 비율을 부호 포함 %로. null/undefined는 '—' */
 export function fmtSignedPercent(ratio: number | null | undefined, digits = 1): string {
   if (ratio == null) return '—'

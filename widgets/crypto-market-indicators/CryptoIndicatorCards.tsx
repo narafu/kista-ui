@@ -6,7 +6,7 @@ import { Info } from 'lucide-react'
 import { Surface } from '@shared/ui/Surface'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { fmtSignedPercent } from '@shared/lib/format'
+import { fmtCompactUsd, fmtSignedPercent } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import type { CryptoTickerIndicators } from '@entities/market'
 
@@ -19,7 +19,6 @@ const IndicatorLineChart = dynamic(() => import('./IndicatorLineChart'), {
 const DAYS_OPTIONS = [200, 120, 50, 20] as const
 type Days = (typeof DAYS_OPTIONS)[number]
 
-const compactUsd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 })
 // 김프·테더 프리미엄은 이미 % 값이라 fmtSignedPercent(비율 입력)에 넘기기 전에 100으로 나눈다
 const fmtPct = (percent: number) => fmtSignedPercent(percent / 100, 2)
 // 펀딩비는 비율 원값(0.0001 = 0.01%) — 평상시 기준선이 0.01%라 소수 넷째 자리까지 보여준다
@@ -174,14 +173,14 @@ export function OpenInterestCard({ ticker, data }: { ticker: string; data: Crypt
 
   return (
     <IndicatorCard title={title} description={description}>
-      {latest && <Stat label={`${latest.date.replace(/-/g, '.')} UTC`} value={compactUsd.format(latest.valueUsd)} />}
+      {latest && <Stat label={`${latest.date.replace(/-/g, '.')} UTC`} value={fmtCompactUsd(latest.valueUsd)} />}
       <ChartArea>
         <IndicatorLineChart
           data={data.history}
           series={[{ key: 'valueUsd', name: '미결제약정', color: 'var(--chart-2)' }]}
           title={`${title} 추이`}
-          formatAxis={(v) => compactUsd.format(v)}
-          formatValue={(v) => compactUsd.format(v)}
+          formatAxis={fmtCompactUsd}
+          formatValue={fmtCompactUsd}
         />
       </ChartArea>
     </IndicatorCard>
