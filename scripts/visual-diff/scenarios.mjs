@@ -29,16 +29,26 @@ const expandPrivacyBase = async (p) => { await p.locator('button[aria-label$="�
 // 전략 유형 버튼 라벨은 meta API의 한글 이름이다("VR" 텍스트는 없다)
 const pickVr = clickRole('button', /밸류리밸런싱/)
 const openAdvanced = async (p) => { await p.locator('summary', { hasText: '고급 설정' }).first().click(); await p.waitForTimeout(800) }
-// 계좌 → 전략 → 주문 cascading select를 시드/테스트 항목 우선으로 끝까지 고른다
+// 사용자 → 증권사 → 계좌 → 전략 cascading Select(Base UI)를 시드/테스트 항목 우선으로 끝까지 고른다
 const adminCascade = async (p) => {
-  const sel = p.locator('section[aria-label="재주문 대상 선택"] select')
+  const triggers = p.locator('section[aria-label="재주문 대상 선택"] [role="combobox"]')
   for (let i = 0; i < 4; i++) {
-    const el = sel.nth(i)
-    await p.waitForFunction((e) => e && !e.disabled && e.options.length > 1, await el.elementHandle(), { timeout: 8000 }).catch(() => {})
-    const opts = await el.locator('option').allTextContents()
-    if (opts.length < 2) break
-    const pick = opts.findIndex((t, k) => k > 0 && /시드|dev|테스트|SOXL|INFINITE/i.test(t))
-    await el.selectOption({ index: pick > 0 ? pick : 1 })
+    const trigger = triggers.nth(i)
+    // 앞 선택의 조회가 끝나야 활성화된다 — 끝내 비활성이면 고를 항목이 없는 것으로 보고 멈춘다
+    const enabled = await trigger.evaluate((el) => new Promise((resolve) => {
+      const ready = () => !el.disabled && !el.hasAttribute('data-disabled')
+      if (ready()) return resolve(true)
+      const timer = setInterval(() => { if (ready()) { clearInterval(timer); resolve(true) } }, 200)
+      setTimeout(() => { clearInterval(timer); resolve(false) }, 8000)
+    })).catch(() => false)
+    if (!enabled) break
+    await trigger.click()
+    const options = p.getByRole('option')
+    await options.first().waitFor({ timeout: 8000 }).catch(() => {})
+    const texts = await options.allTextContents()
+    if (!texts.length) { await p.keyboard.press('Escape'); break }
+    const pick = texts.findIndex((t) => /시드|dev|테스트|SOXL|INFINITE/i.test(t))
+    await options.nth(Math.max(pick, 0)).click()
     await p.waitForTimeout(1500)
   }
 }
@@ -81,7 +91,7 @@ export const scenarios = [
   { name: 'finance-month-popover', path: '/finance', steps: [clickRole('button', /^기준 연월/)] },
   { name: 'finance-expense', path: '/finance/expense' },
   { name: 'finance-expense-annual', path: '/finance/expense', steps: [clickText('연간')] },
-  { name: 'finance-expense-tx-dialog', path: '/finance/expense', steps: [clickText('내역 등록')] },
+  { name: 'finance-expense-tx-dialog', path: '/finance/expense', steps: [clickRole('button', '거래내역 등록')] },
   { name: 'finance-income', path: '/finance/income' },
   { name: 'finance-saving', path: '/finance/saving' },
   { name: 'finance-new', path: '/finance/new' },
@@ -102,7 +112,8 @@ export const scenarios = [
   { name: 'pending', path: '/pending', cookies: statusCookies('PENDING'), setup: stubStatusStream },
   { name: 'rejected', path: '/rejected', cookies: statusCookies('REJECTED') },
   { name: 'dashboard-guest', path: '/dashboard', guest: true },
-  { name: 'not-found', path: '/visual-diff-not-found' },
+  // 404 화면에 초 단위 시계가 있어 시계를 고정한다
+  { name: 'not-found', path: '/visual-diff-not-found', clock: true },
   { name: 'admin-trades-select', path: '/admin/trades', admin: true, steps: [adminCascade] },
   // 실데이터로 못 만드는 preview 분기 — 실데이터(real) 화면은 위 기본 시나리오가 담당
   ...modes('m-inf', INF, ['deficit', 'uncertain', 'executed', 'skip', 'empty']),
