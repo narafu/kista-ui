@@ -24,7 +24,7 @@ const WIZARD = '/accounts/new'
 const PAGES = {
   guest: ['/login', '/dashboard'],
   user: [
-    '/dashboard', '/accounts', WIZARD, ACCT, `${ACCT}/edit`, detail(seed.infinite), detail(seed.vr),
+    '/dashboard', '/accounts', WIZARD, ACCT, `${ACCT}/edit`, `${ACCT}/strategies/new`, detail(seed.infinite), detail(seed.vr),
     '/stats', '/stats/benchmark', '/stats/backtest',
     '/finance', '/finance/income', '/finance/expense', '/finance/saving', '/finance/settings', '/settings',
   ],
@@ -107,12 +107,19 @@ async function checkTabOrder(page, path, vp) {
   await page.evaluate(() => {
     document.activeElement?.blur()
     window.scrollTo(0, 0)
-    const style = (el) => { const cs = getComputedStyle(el); return `${cs.outlineStyle}|${cs.outlineWidth}|${cs.outlineColor}|${cs.boxShadow}|${cs.borderColor}` }
+    // outline-style이 none이면 폭·색이 바뀌어도 보이지 않는다(outline-none + focus 시 폭만 바뀌는 오탐).
+    // 단위·기호를 품은 컨테이너가 focus-within으로 링을 그리는 입력(UnitInput·SeedAmountInput·PercentGauge)이 있어 부모 2단계까지 본다.
+    // 카드처럼 큰 래퍼의 hover·focus-within 변화가 링으로 오인되지 않도록 입력칸 크기(높이 64px 이하)인 부모만 센다
+    const own = (el) => { const cs = getComputedStyle(el); const outline = cs.outlineStyle === 'none' ? 'none' : `${cs.outlineStyle}|${cs.outlineWidth}|${cs.outlineColor}`; return `${outline}|${cs.boxShadow}|${cs.borderColor}` }
+    const fieldBox = (el) => el && el.getBoundingClientRect().height <= 64
+    const style = (el) => [el, el.parentElement, el.parentElement?.parentElement].filter((n, i) => n && (i === 0 || fieldBox(n))).map(own).join('/')
     window.__a11yStyle = style
     window.__a11yRest = new WeakMap()
     for (const el of document.querySelectorAll('a[href],button,input,select,textarea,summary,[tabindex],[contenteditable]')) window.__a11yRest.set(el, style(el))
   })
   const seen = new Set()
+  let prev = null
+  let repeats = 0
   for (let i = 0; i < MAX_TABS; i++) {
     await page.keyboard.press('Tab')
     await page.waitForTimeout(TAB_WAIT_MS)
@@ -127,7 +134,12 @@ async function checkTabOrder(page, path, vp) {
       const name = (el.getAttribute('aria-label') || el.innerText || el.getAttribute('placeholder') || '').trim().replace(/\s+/g, ' ').slice(0, 30)
       return { id: `${el.tagName}|${name}|${Math.round(r.x)},${Math.round(r.y + scrollY)}`, label: `${el.tagName.toLowerCase()} "${name}"`, ring }
     })
-    if (!info || seen.has(info.id)) break
+    if (!info) break
+    // 네이티브 date input은 Tab이 연·월·일 칸 안에서 움직여 같은 요소가 연달아 잡힌다 — 그건 건너뛰고, 떨어져 있던 요소가 다시 오면 한 바퀴 돈 것
+    if (info.id === prev) { if (++repeats > 5) break; continue }
+    repeats = 0
+    if (seen.has(info.id)) break
+    prev = info.id
     seen.add(info.id)
     if (!info.ring) fail(`[tab] ${path} ${vp}: 포커스 링 없음 — ${info.label}`)
   }

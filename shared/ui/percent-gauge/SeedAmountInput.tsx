@@ -82,7 +82,8 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled, s
       <div
         className={cn(
           'min-w-0 rounded-lg border bg-card flex items-center px-3.5 h-11 mb-3',
-          disabled ? 'opacity-50' : 'border-[var(--rose-400)] shadow-[0_0_0_3px_rgba(203,131,106,0.18)]',
+          // 상시 rose 테두리는 강조라 포커스와 구분되지 않는다 — 포커스는 공용 Input과 같은 ring을 덧씌운다
+          disabled ? 'opacity-50' : 'border-[var(--rose-400)] shadow-[0_0_0_3px_rgba(203,131,106,0.18)] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50',
         )}
       >
         <span className="text-sm font-extrabold text-[var(--rose-600)] mr-1.5">$</span>

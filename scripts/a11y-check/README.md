@@ -3,7 +3,7 @@
 접근성 회귀 점검 도구. 이미 떠 있는 dev 서버를 Playwright로 열어 아래를 확인하고, 위반이 하나라도 있으면 exit 1.
 
 - **axe**: 비회원·user·admin 페이지를 PC(1440)·모바일(390) × 라이트·다크 4조합으로 검사한다. 태그는 `wcag2a/aa`, `wcag21a/aa`, `wcag22aa`, `best-practice`.
-- **포커스 링**: 라이트 모드에서 Tab으로 페이지를 순회하며, 포커스 전과 스타일(outline·box-shadow·border-color)이 달라지지 않는 요소를 잡는다.
+- **포커스 링**: 라이트 모드에서 Tab으로 페이지를 순회하며, 포커스 전과 스타일(outline·box-shadow·border-color)이 달라지지 않는 요소를 잡는다. `outline-style: none`인 outline 변화는 보이지 않으므로 무시하고, 컨테이너가 `focus-within`으로 링을 그리는 입력을 위해 부모 2단계까지 비교한다.
 - **다이얼로그**: `[data-slot=alert-dialog-trigger|dialog-trigger|sheet-trigger]`를 키보드로 열어 이름, 모달 전달(`aria-modal` 또는 배경 `main`의 `aria-hidden`/`inert` — base-ui는 후자), 초기 포커스, Tab·Shift+Tab 트랩, 모달 내부 axe, ESC로 닫힘, 같은 트리거 요소로 포커스 복귀를 본다.
 - **계좌 등록 위저드**: `/accounts/new`에서 KIS를 골라 2~4단계(API 키·계좌 정보·확인)마다 axe와 포커스 링을 본다.
 - **라우트 모달**: 인터셉팅 라우트 모달(RouteModal)을 PC·모바일에서 같은 기준으로 본다.

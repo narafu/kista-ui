@@ -45,7 +45,8 @@ function PercentInputRow({ value, onChange, minPct, allDisabled }: InputRowProps
       <div
         className={cn(
           'flex-1 relative rounded-lg border border-[var(--rose-400)] bg-card flex items-center px-3.5 w-[65%] h-11',
-          allDisabled ? 'opacity-50' : 'shadow-[0_0_0_3px_rgba(203,131,106,0.18)]',
+          // 상시 rose 강조와 별개로 포커스는 공용 Input과 같은 ring을 덧씌운다
+          allDisabled ? 'opacity-50' : 'shadow-[0_0_0_3px_rgba(203,131,106,0.18)] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50',
         )}
       >
         <input
