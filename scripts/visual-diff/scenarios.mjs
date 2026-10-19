@@ -23,6 +23,7 @@ const gaugeKeys = async (p) => {
   for (let i = 0; i < 3; i++) await s.press('ArrowLeft')
   await p.waitForTimeout(500)
 }
+const scrollToBottom = async (p) => { await p.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight)); await p.waitForTimeout(500) }
 // PC 표와 모바일 카드가 함께 렌더되고 한쪽은 CSS로 숨겨져 있다 — 보이는 펼치기 버튼만 누른다
 const expandPrivacyBase = async (p) => { await p.locator('button[aria-label$="주문 명세"]:visible, article h3 button[aria-expanded]:visible').first().click(); await p.waitForTimeout(800) }
 const openAdvanced = async (p) => { await p.locator('summary', { hasText: '고급 설정' }).first().click(); await p.waitForTimeout(800) }
@@ -93,7 +94,8 @@ export const scenarios = [
   { name: 'admin-trades', path: '/admin/trades', admin: true },
   { name: 'admin-accounts', path: '/admin/accounts', admin: true },
   // P 매매표는 로컬 DB에 없어 fixtures/api.mjs가 채운다
-  { name: 'admin-privacy-trades', path: '/admin/privacy-trades', admin: true },
+  // 차트 아래 정보 줄이 sticky bottom-0이라 스크롤 0에서는 화면 하단에 붙어 실현손익 차트를 덮는다 — 맨 아래로 내려 제자리에 찍는다
+  { name: 'admin-privacy-trades', path: '/admin/privacy-trades', admin: true, steps: [scrollToBottom] },
   { name: 'admin-privacy-trades-expanded', path: '/admin/privacy-trades', admin: true, steps: [expandPrivacyBase] },
   { name: 'pending', path: '/pending', cookies: statusCookies('PENDING'), setup: stubStatusStream },
   { name: 'rejected', path: '/rejected', cookies: statusCookies('REJECTED') },
