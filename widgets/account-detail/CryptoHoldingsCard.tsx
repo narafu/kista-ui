@@ -33,11 +33,11 @@ export function CryptoHoldingsCard({ portfolio, isError }: Props) {
             <table className="w-full text-sm">
               <thead className="bg-muted/50">
                 <tr>
-                  <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">종목</TableHeadCell>
-                  <TableHeadCell className="text-right text-xs lg:text-sm whitespace-nowrap">수량</TableHeadCell>
-                  <TableHeadCell className="text-right text-xs lg:text-sm whitespace-nowrap">평단가</TableHeadCell>
-                  <TableHeadCell className="text-right text-xs lg:text-sm whitespace-nowrap">현재가</TableHeadCell>
-                  <TableHeadCell className="text-right text-xs lg:text-sm whitespace-nowrap">평가금액</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">종목</TableHeadCell>
+                  <TableHeadCell className="text-right whitespace-nowrap">수량</TableHeadCell>
+                  <TableHeadCell className="text-right whitespace-nowrap">평단가</TableHeadCell>
+                  <TableHeadCell className="text-right whitespace-nowrap">현재가</TableHeadCell>
+                  <TableHeadCell className="text-right whitespace-nowrap">평가금액</TableHeadCell>
                 </tr>
               </thead>
               <tbody>

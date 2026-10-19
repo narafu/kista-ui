@@ -44,12 +44,12 @@ export function DcaExecutionHistory({ strategyId, ticker }: { strategyId: string
             <table className="w-full text-sm">
               <thead className="bg-muted/50">
                 <tr>
-                  <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">{isCrypto ? '실행일' : '거래일'}</TableHeadCell>
-                  <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">결과</TableHeadCell>
-                  <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">사유</TableHeadCell>
-                  <TableHeadCell className="text-right text-xs lg:text-sm whitespace-nowrap">기준가</TableHeadCell>
-                  <TableHeadCell className="text-right text-xs lg:text-sm whitespace-nowrap">수량</TableHeadCell>
-                  <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">체결</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">{isCrypto ? '실행일' : '거래일'}</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">결과</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">사유</TableHeadCell>
+                  <TableHeadCell className="text-right whitespace-nowrap">기준가</TableHeadCell>
+                  <TableHeadCell className="text-right whitespace-nowrap">수량</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">체결</TableHeadCell>
                 </tr>
               </thead>
               <tbody>

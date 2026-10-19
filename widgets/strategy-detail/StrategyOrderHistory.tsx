@@ -95,13 +95,13 @@ export function StrategyOrderHistory({ strategyId }: Props) {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>
-                    <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">날짜</TableHeadCell>
-                    <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">방향</TableHeadCell>
-                    <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">유형</TableHeadCell>
-                    <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">수량</TableHeadCell>
-                    <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">주문가</TableHeadCell>
-                    <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">체결가</TableHeadCell>
-                    <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">상태</TableHeadCell>
+                    <TableHeadCell className="whitespace-nowrap">날짜</TableHeadCell>
+                    <TableHeadCell className="whitespace-nowrap">방향</TableHeadCell>
+                    <TableHeadCell className="whitespace-nowrap">유형</TableHeadCell>
+                    <TableHeadCell className="whitespace-nowrap">수량</TableHeadCell>
+                    <TableHeadCell className="whitespace-nowrap">주문가</TableHeadCell>
+                    <TableHeadCell className="whitespace-nowrap">체결가</TableHeadCell>
+                    <TableHeadCell className="whitespace-nowrap">상태</TableHeadCell>
                   </tr>
                 </thead>
                 <tbody>

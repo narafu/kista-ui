@@ -301,7 +301,7 @@ function Metric({ label, value, valueClassName }: { label: string; value: string
   )
 }
 
-const ORDER_DETAILS_HEAD_CLASS = 'px-0 py-1 text-xs font-medium normal-case tracking-normal text-muted-foreground'
+const ORDER_DETAILS_HEAD_CLASS = 'px-0 py-1 text-xs lg:text-xs font-medium normal-case tracking-normal text-muted-foreground'
 const ORDER_DETAILS_CELL_CLASS = 'px-0 py-1 text-xs'
 
 function OrderDetailsSection({

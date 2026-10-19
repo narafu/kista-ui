@@ -25,7 +25,7 @@ export function StrategyTypeComparison({ byType }: Props) {
         ) : (
           <>
             <div className="hidden overflow-x-auto sm:block" role="region" aria-label="전략 유형 비교 표" tabIndex={0}>
-              <table className="w-full text-base">
+              <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>
                     <TableHeadCell>전략</TableHeadCell>

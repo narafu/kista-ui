@@ -85,9 +85,9 @@ export function HousingBenchmarkSummary({ summary, investmentLabel, benchmarkLab
         <table className="w-full table-fixed text-xs sm:text-sm" aria-label="장기 성과 지표 비교">
           <thead className="bg-muted/50">
             <tr>
-              <TableHeadCell className="w-[34%] px-2 text-left text-xs sm:px-4 sm:text-sm">지표</TableHeadCell>
-              <TableHeadCell className="w-[33%] px-2 text-right text-xs sm:px-4 sm:text-sm">투자</TableHeadCell>
-              <TableHeadCell className="w-[33%] px-2 text-right text-xs sm:px-4 sm:text-sm">벤치마크</TableHeadCell>
+              <TableHeadCell className="w-[34%] px-2 text-left sm:px-4">지표</TableHeadCell>
+              <TableHeadCell className="w-[33%] px-2 text-right sm:px-4">투자</TableHeadCell>
+              <TableHeadCell className="w-[33%] px-2 text-right sm:px-4">벤치마크</TableHeadCell>
             </tr>
           </thead>
           <tbody>

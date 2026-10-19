@@ -74,7 +74,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
       </ul>
 
       {/* PC 테이블 */}
-      <table className="hidden lg:table w-full">
+      <table className="hidden lg:table w-full text-sm">
         <thead>
           <tr>
             <TableHeadCell className="px-5 py-2.5 bg-muted/50 border-b border-border">구분</TableHeadCell>
@@ -95,9 +95,9 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
                   {DIRECTION_LABEL[o.direction] ?? o.direction}
                 </Badge>
               </TableDataCell>
-              <TableDataCell className="px-5 py-3 text-base font-semibold">{o.ticker}</TableDataCell>
-              <TableDataCell className="px-5 py-3 text-base text-muted-foreground">{fmtQuantity(o.quantity)}</TableDataCell>
-              <TableDataCell className="px-5 py-3 text-base font-semibold">${fmtUsd(toNum(o.price))}</TableDataCell>
+              <TableDataCell className="px-5 py-3 font-semibold">{o.ticker}</TableDataCell>
+              <TableDataCell className="px-5 py-3 text-muted-foreground">{fmtQuantity(o.quantity)}</TableDataCell>
+              <TableDataCell className="px-5 py-3 font-semibold">${fmtUsd(toNum(o.price))}</TableDataCell>
               {hasCancel && (
                 <TableDataCell className="px-5 py-3">
                   {o.id && (
@@ -105,7 +105,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
                       type="button"
                       onClick={() => onCancelOne(o.id!)}
                       disabled={cancelPending}
-                      className="text-base px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
+                      className="px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-rose-600 disabled:opacity-50"
                     >
                       {cancelPending && cancellingId === o.id ? '취소 중...' : '취소'}
                     </button>

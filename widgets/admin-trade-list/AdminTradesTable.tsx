@@ -27,15 +27,15 @@ export function AdminTradesTable({ trades }: Props) {
       <table className="min-w-[960px] w-full text-sm">
         <thead className="bg-muted/50 border-b border-border">
           <tr>
-            <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">날짜</TableHeadCell>
-            <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">소유자</TableHeadCell>
-            <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">전략</TableHeadCell>
-            <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">종목</TableHeadCell>
-            <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">방향</TableHeadCell>
-            <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">유형</TableHeadCell>
-            <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">수량</TableHeadCell>
-            <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">가격</TableHeadCell>
-            <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">상태</TableHeadCell>
+            <TableHeadCell className="whitespace-nowrap">날짜</TableHeadCell>
+            <TableHeadCell className="whitespace-nowrap">소유자</TableHeadCell>
+            <TableHeadCell className="whitespace-nowrap">전략</TableHeadCell>
+            <TableHeadCell className="whitespace-nowrap">종목</TableHeadCell>
+            <TableHeadCell className="whitespace-nowrap">방향</TableHeadCell>
+            <TableHeadCell className="whitespace-nowrap">유형</TableHeadCell>
+            <TableHeadCell className="whitespace-nowrap">수량</TableHeadCell>
+            <TableHeadCell className="whitespace-nowrap">가격</TableHeadCell>
+            <TableHeadCell className="whitespace-nowrap">상태</TableHeadCell>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
