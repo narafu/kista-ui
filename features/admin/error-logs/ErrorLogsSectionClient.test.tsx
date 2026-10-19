@@ -115,6 +115,8 @@ describe('ErrorLogsSectionClient', () => {
     render(<ErrorLogsSectionClient logs={logs} />)
 
     await user.click(screen.getByRole('checkbox', { name: /오류 로그 선택 API/ }))
+    // 일부만 선택하면 전체 선택은 indeterminate(mixed)
+    expect(screen.getByRole('checkbox', { name: '현재 페이지 오류 로그 전체 선택' })).toHaveAttribute('aria-checked', 'mixed')
     await user.click(screen.getByRole('button', { name: '선택 1건 삭제' }))
     await user.click(screen.getByRole('button', { name: '삭제' }))
 

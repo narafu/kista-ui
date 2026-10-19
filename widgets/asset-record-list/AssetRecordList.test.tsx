@@ -243,6 +243,8 @@ describe('AssetRecordList', () => {
     await user.click(rowCheckboxes[1])
 
     expect(screen.getByText('1건 선택됨')).toBeInTheDocument()
+    // 일부만 선택하면 헤더는 indeterminate(mixed)
+    expect(rowCheckboxes[0]).toHaveAttribute('aria-checked', 'mixed')
 
     await user.click(screen.getByRole('button', { name: '선택 삭제' }))
     await user.click(screen.getByRole('button', { name: '삭제' }))
