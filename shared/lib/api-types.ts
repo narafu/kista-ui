@@ -2131,7 +2131,7 @@ export interface paths {
          * 코인 시장 지표 조회
          * @description 김프(공식 환율·테더 기준)·테더 프리미엄·펀딩비·미결제약정. 실패한 섹션은 null.
          */
-        get: operations["get_1"];
+        get: operations["getCryptoMarketIndicators"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3361,86 +3361,86 @@ export interface components {
              * Format: date-time
              * @description 조립 시각
              */
-            asOf?: string;
+            asOf: string;
             /** @description 테더 프리미엄 (실패 시 null) */
-            usdtPremium?: components["schemas"]["PremiumResponse"];
+            usdtPremium: components["schemas"]["PremiumResponse"] | null;
             /** @description 종목별 지표 */
-            tickers?: components["schemas"]["TickerResponse"][];
+            tickers: components["schemas"]["TickerResponse"][];
         };
         DatedPremiumPairResponse: {
             /**
              * Format: date
              * @description 기준 일자
              */
-            date?: string;
+            date: string;
             /** @description 공식 환율 기준 김프 (%, 환율 없는 날 null) */
-            official?: number | null;
+            official: number | null;
             /** @description 테더 기준 김프 (%) */
-            tether?: number;
+            tether: number;
         };
         DatedValueResponse: {
             /**
              * Format: date
              * @description 기준 일자
              */
-            date?: string;
+            date: string;
             /** @description 값 */
-            value?: number;
+            value: number;
         };
         FundingRateResponse: {
             /** @description 현재 펀딩비 (비율, 예: 0.0001) */
-            current?: number;
+            current: number;
             /**
              * Format: date-time
              * @description 다음 펀딩 시각
              */
-            nextFundingTime?: string;
+            nextFundingTime: string;
             /** @description 일평균 추이 */
-            history?: components["schemas"]["DatedValueResponse"][];
+            history: components["schemas"]["DatedValueResponse"][];
         };
         KimchiPremiumResponse: {
             /** @description 현재 김프 */
-            current?: components["schemas"]["PremiumPairResponse"];
+            current: components["schemas"]["PremiumPairResponse"];
             /** @description 일자별 추이 */
-            history?: components["schemas"]["DatedPremiumPairResponse"][];
+            history: components["schemas"]["DatedPremiumPairResponse"][];
         };
         OpenInterestPointResponse: {
             /**
              * Format: date
              * @description 기준 일자
              */
-            date?: string;
+            date: string;
             /** @description 미결제약정 명목가 (USD) */
-            valueUsd?: number;
+            valueUsd: number;
         };
         OpenInterestResponse: {
             /** @description 일자별 추이 */
-            history?: components["schemas"]["OpenInterestPointResponse"][];
+            history: components["schemas"]["OpenInterestPointResponse"][];
         };
         PremiumPairResponse: {
             /** @description 공식 환율 기준 김프 (%, 환율 장애 시 null) */
-            official?: number | null;
+            official: number | null;
             /** @description 테더 기준 김프 (%) */
-            tether?: number;
+            tether: number;
         };
         PremiumResponse: {
             /** @description 현재 테더 프리미엄 (%) */
-            current?: number;
+            current: number;
             /** @description 일자별 추이 */
-            history?: components["schemas"]["DatedValueResponse"][];
+            history: components["schemas"]["DatedValueResponse"][];
         };
         TickerResponse: {
             /**
              * @description 종목
              * @example BTC
              */
-            ticker?: string;
+            ticker: string;
             /** @description 김치 프리미엄 (실패 시 null) */
-            kimchiPremium?: components["schemas"]["KimchiPremiumResponse"];
+            kimchiPremium: components["schemas"]["KimchiPremiumResponse"] | null;
             /** @description 펀딩비 (실패 시 null) */
-            fundingRate?: components["schemas"]["FundingRateResponse"];
+            fundingRate: components["schemas"]["FundingRateResponse"] | null;
             /** @description 미결제약정 (실패 시 null) */
-            openInterest?: components["schemas"]["OpenInterestResponse"];
+            openInterest: components["schemas"]["OpenInterestResponse"] | null;
         };
         BacktestPoint: {
             /** Format: date */
@@ -9093,7 +9093,7 @@ export interface operations {
             };
         };
     };
-    get_1: {
+    getCryptoMarketIndicators: {
         parameters: {
             query?: {
                 /**

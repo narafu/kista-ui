@@ -1,3 +1,5 @@
+import type { components } from '@shared/lib/api-types'
+
 export interface Candle {
   date: string
   open: number
@@ -23,28 +25,8 @@ export interface FearGreed {
   crypto: FearGreedSourceView
 }
 
-// GET /api/crypto-market-indicators — 생성 타입(api-types)은 모든 필드가 optional이고 $ref 섹션의 nullable이
-// 빠져 있어 kista-api CryptoMarketIndicatorsResponse 기준으로 직접 정의한다. 김프·프리미엄은 %, 펀딩비는 비율 원값
-export interface DatedValue {
-  date: string // UTC 일자 YYYY-MM-DD
-  value: number
-}
+// GET /api/crypto-market-indicators — kista-trading 응답. 실패한 섹션은 null, 김프·프리미엄은 %, 펀딩비는 비율 원값
+type CryptoSchemas = components['schemas']
 
-export interface KimchiPremiumPoint {
-  date: string
-  official: number | null // 환율이 없는 날·환율 조회 실패 시 null
-  tether: number
-}
-
-export interface CryptoTickerIndicators {
-  ticker: string
-  kimchiPremium: { current: { official: number | null; tether: number }; history: KimchiPremiumPoint[] } | null
-  fundingRate: { current: number; nextFundingTime: string; history: DatedValue[] } | null
-  openInterest: { history: { date: string; valueUsd: number }[] } | null // 최근 30일 고정
-}
-
-export interface CryptoMarketIndicators {
-  asOf: string
-  usdtPremium: { current: number; history: DatedValue[] } | null
-  tickers: CryptoTickerIndicators[]
-}
+export type CryptoMarketIndicators = CryptoSchemas['CryptoMarketIndicatorsResponse']
+export type CryptoTickerIndicators = CryptoSchemas['TickerResponse']
