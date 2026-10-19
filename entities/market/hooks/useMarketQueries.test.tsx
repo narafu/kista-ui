@@ -1,10 +1,11 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { useCandlesQuery, useFearGreedQuery, useMonthlyHolidaysQuery } from './useMarketQueries'
+import { useCandlesQuery, useCryptoMarketIndicatorsQuery, useFearGreedQuery, useMonthlyHolidaysQuery } from './useMarketQueries'
 import { marketKeys } from '../model/queryKeys'
 
-const { useQueryMock, getCandlesClientMock, getFearGreedClientMock, getMonthlyHolidaysClientMock } = vi.hoisted(() => ({
+const { useQueryMock, getCandlesClientMock, getCryptoMarketIndicatorsClientMock, getFearGreedClientMock, getMonthlyHolidaysClientMock } = vi.hoisted(() => ({
   useQueryMock: vi.fn(),
+  getCryptoMarketIndicatorsClientMock: vi.fn(),
   getCandlesClientMock: vi.fn(),
   getFearGreedClientMock: vi.fn(),
   getMonthlyHolidaysClientMock: vi.fn(),
@@ -21,6 +22,7 @@ vi.mock('@tanstack/react-query', async () => {
 vi.mock('../api', () => ({
   getCandlesClient: getCandlesClientMock,
   getFearGreedClient: getFearGreedClientMock,
+  getCryptoMarketIndicatorsClient: getCryptoMarketIndicatorsClientMock,
   getMonthlyHolidaysClient: getMonthlyHolidaysClientMock,
 }))
 
@@ -77,6 +79,22 @@ describe('market query freshness and error handling', () => {
     expect(options).toEqual(expect.objectContaining({
       queryKey: marketKeys.fearGreed(30),
       staleTime: 21_600_000,
+    }))
+    await expect(options.queryFn()).rejects.toThrow(failure)
+  })
+
+  it('keeps crypto market indicators fresh for the 10-minute server cache and gates the query by auth', async () => {
+    const failure = new Error('crypto indicators request failed')
+    getCryptoMarketIndicatorsClientMock.mockRejectedValueOnce(failure)
+    useQueryMock.mockReturnValue({ data: undefined })
+
+    renderHook(() => useCryptoMarketIndicatorsQuery(false))
+
+    const options = useQueryMock.mock.calls.at(-1)?.[0]
+    expect(options).toEqual(expect.objectContaining({
+      queryKey: marketKeys.cryptoIndicators(),
+      enabled: false,
+      staleTime: 600_000,
     }))
     await expect(options.queryFn()).rejects.toThrow(failure)
   })

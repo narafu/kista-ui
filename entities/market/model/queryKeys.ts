@@ -4,4 +4,5 @@ export const marketKeys = {
   candles: (ticker: string, count: number) => [...marketKeys.all, 'candles', ticker, count] as const,
   candlesRange: (ticker: string, from: string, to: string) => [...marketKeys.all, 'candles', ticker, from, to] as const,
   fearGreed: (days: number) => [...marketKeys.all, 'fear-greed', days] as const,
+  cryptoIndicators: () => [...marketKeys.all, 'crypto-indicators'] as const,
 }

@@ -37,6 +37,10 @@ vi.mock('@widgets/fear-greed-card', () => ({
   FearGreedSection: () => <div data-testid="fear-greed-section" />,
 }))
 
+vi.mock('@widgets/crypto-market-indicators', () => ({
+  CryptoMarketSection: ({ isAuthenticated }: { isAuthenticated: boolean }) => <div data-testid="crypto-market-section" data-authenticated={String(isAuthenticated)} />,
+}))
+
 vi.mock('@widgets/dashboard/DashboardContent', () => ({
   DashboardContent: ({ marketPanels }: { marketPanels: React.ReactNode }) => <div>{marketPanels}</div>,
 }))

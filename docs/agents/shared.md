@@ -36,6 +36,7 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 | runtime-config, admin-settings | 0 | 운영 설정 변경 즉시 반영, 필요 시 focus refetch |
 | market holidays | 24시간 | 월 단위 참조 데이터. 실패한 서버 조회는 dehydrate되지 않아 장기 빈 값으로 캐시되지 않음 |
 | candles | 10분 | 차트 조회 비용과 최신성 균형 |
+| crypto market indicators | 10분 | kista-trading 서버 캐시 TTL과 동일 |
 | fear/greed | 6시간 | 원본 갱신 주기의 절반 |
 | housing regions | 1시간 | 저빈도 참조 목록 |
 | Next reference cache | 1-24시간 | 데이터별 TTL/tag 필수 |

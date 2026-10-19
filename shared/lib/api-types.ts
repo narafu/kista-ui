@@ -2120,6 +2120,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/crypto-market-indicators": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 코인 시장 지표 조회
+         * @description 김프(공식 환율·테더 기준)·테더 프리미엄·펀딩비·미결제약정. 실패한 섹션은 null.
+         */
+        get: operations["get_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/backtest": {
         parameters: {
             query?: never;
@@ -3335,6 +3355,92 @@ export interface components {
              * @example USD
              */
             currency?: string;
+        };
+        CryptoMarketIndicatorsResponse: {
+            /**
+             * Format: date-time
+             * @description 조립 시각
+             */
+            asOf?: string;
+            /** @description 테더 프리미엄 (실패 시 null) */
+            usdtPremium?: components["schemas"]["PremiumResponse"];
+            /** @description 종목별 지표 */
+            tickers?: components["schemas"]["TickerResponse"][];
+        };
+        DatedPremiumPairResponse: {
+            /**
+             * Format: date
+             * @description 기준 일자
+             */
+            date?: string;
+            /** @description 공식 환율 기준 김프 (%, 환율 없는 날 null) */
+            official?: number | null;
+            /** @description 테더 기준 김프 (%) */
+            tether?: number;
+        };
+        DatedValueResponse: {
+            /**
+             * Format: date
+             * @description 기준 일자
+             */
+            date?: string;
+            /** @description 값 */
+            value?: number;
+        };
+        FundingRateResponse: {
+            /** @description 현재 펀딩비 (비율, 예: 0.0001) */
+            current?: number;
+            /**
+             * Format: date-time
+             * @description 다음 펀딩 시각
+             */
+            nextFundingTime?: string;
+            /** @description 일평균 추이 */
+            history?: components["schemas"]["DatedValueResponse"][];
+        };
+        KimchiPremiumResponse: {
+            /** @description 현재 김프 */
+            current?: components["schemas"]["PremiumPairResponse"];
+            /** @description 일자별 추이 */
+            history?: components["schemas"]["DatedPremiumPairResponse"][];
+        };
+        OpenInterestPointResponse: {
+            /**
+             * Format: date
+             * @description 기준 일자
+             */
+            date?: string;
+            /** @description 미결제약정 명목가 (USD) */
+            valueUsd?: number;
+        };
+        OpenInterestResponse: {
+            /** @description 일자별 추이 */
+            history?: components["schemas"]["OpenInterestPointResponse"][];
+        };
+        PremiumPairResponse: {
+            /** @description 공식 환율 기준 김프 (%, 환율 장애 시 null) */
+            official?: number | null;
+            /** @description 테더 기준 김프 (%) */
+            tether?: number;
+        };
+        PremiumResponse: {
+            /** @description 현재 테더 프리미엄 (%) */
+            current?: number;
+            /** @description 일자별 추이 */
+            history?: components["schemas"]["DatedValueResponse"][];
+        };
+        TickerResponse: {
+            /**
+             * @description 종목
+             * @example BTC
+             */
+            ticker?: string;
+            /** @description 김치 프리미엄 (실패 시 null) */
+            kimchiPremium?: components["schemas"]["KimchiPremiumResponse"];
+            /** @description 펀딩비 (실패 시 null) */
+            fundingRate?: components["schemas"]["FundingRateResponse"];
+            /** @description 미결제약정 (실패 시 null) */
+            openInterest?: components["schemas"]["OpenInterestResponse"];
         };
         BacktestPoint: {
             /** Format: date */
@@ -8983,6 +9089,41 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["DailyTransactionResponse"];
+                };
+            };
+        };
+    };
+    get_1: {
+        parameters: {
+            query?: {
+                /**
+                 * @description 조회 기간(일)
+                 * @example 200
+                 */
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CryptoMarketIndicatorsResponse"];
+                };
+            };
+            /** @description days 범위 오류 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CryptoMarketIndicatorsResponse"];
                 };
             };
         };

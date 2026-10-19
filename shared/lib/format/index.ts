@@ -36,7 +36,9 @@ export function fmtDateTime(dateStr: string): string {
 
 /** M월 D일 축약형 — 차트 축 등 */
 export function fmtMonthDay(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })
+  // 'yyyy-MM-dd'는 UTC 자정으로 파싱되므로 fmtDate와 같이 UTC로 포맷한다
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
+  return new Date(dateStr).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric', ...(dateOnly && { timeZone: 'UTC' }) })
 }
 
 /** 'YYYY-MM' → "2026년 8월" — 문장 속 대상월 표기용(차트 축 축약형은 fmtShortYearMonth) */

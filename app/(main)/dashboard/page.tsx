@@ -9,6 +9,7 @@ import { accountListQueryOptions } from '@entities/account'
 import { DashboardContent } from '@widgets/dashboard/DashboardContent'
 import { WeeklyMarketCalendar } from '@widgets/market-holiday-calendar'
 import { FearGreedSection } from '@widgets/fear-greed-card'
+import { CryptoMarketSection } from '@widgets/crypto-market-indicators'
 import { DashboardLogoutErrorToast } from '@features/auth/logout'
 import { createQueryClient } from '@shared/lib/query'
 
@@ -38,6 +39,7 @@ export default async function DashboardPage() {
             <>
               <WeeklyMarketCalendar initialWeekStartDate={initialWeekStartDate} isAuthenticated={isAuthenticated} />
               <FearGreedSection />
+              <CryptoMarketSection isAuthenticated={isAuthenticated} />
             </>
           }
         />

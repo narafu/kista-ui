@@ -1,6 +1,6 @@
 import { ApiError, apiFetch, clientFetch } from '@shared/lib/api-client'
 import { getApiBaseUrl } from '@shared/lib/env'
-import type { Candle, FearGreed } from '../model/types'
+import type { Candle, CryptoMarketIndicators, FearGreed } from '../model/types'
 import { CHART_CANDLE_COUNT } from '../model/constants'
 
 export function getMonthlyHolidays(year: number, month: number, token: string): Promise<string[]> {
@@ -33,4 +33,9 @@ export function getCandlesRangeClient(ticker: string, from: string, to: string):
 
 export function getFearGreedClient(days = CHART_CANDLE_COUNT): Promise<FearGreed> {
   return clientFetch<FearGreed>(`/api/market/fear-greed?days=${days}`)
+}
+
+// kista-trading 소유(8081) — 서버가 10분 캐시하고 days(1~200)는 김프·펀딩비 추이 길이만 정한다
+export function getCryptoMarketIndicatorsClient(): Promise<CryptoMarketIndicators> {
+  return clientFetch<CryptoMarketIndicators>('/api/crypto-market-indicators?days=200')
 }

@@ -1,8 +1,8 @@
 'use client'
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { getCandlesClient, getCandlesRangeClient, getFearGreedClient } from '../api'
-import type { Candle, FearGreed } from '../model/types'
+import { getCandlesClient, getCandlesRangeClient, getCryptoMarketIndicatorsClient, getFearGreedClient } from '../api'
+import type { Candle, CryptoMarketIndicators, FearGreed } from '../model/types'
 import { CHART_CANDLE_COUNT } from '../model/constants'
 import { marketKeys } from '../model/queryKeys'
 import { monthlyHolidaysQueryOptions } from '../model/queryOptions'
@@ -39,5 +39,15 @@ export function useFearGreedQuery(days = CHART_CANDLE_COUNT) {
     staleTime: 1000 * 60 * 60 * 6, // 6시간 — 서버 갱신 주기(KST 00:00/12:00, 12시간)의 절반
     // 일수 토글 시 새 키를 받는 동안 이전 차트를 유지해 "데이터 없음"이 깜빡이지 않게 한다
     placeholderData: keepPreviousData,
+  })
+}
+
+// 인증 필수 엔드포인트라 게스트는 enabled=false — 게스트가 401을 받으면 clientFetch 전역 처리로 로그아웃·리로드 루프에 빠진다
+export function useCryptoMarketIndicatorsQuery(enabled: boolean) {
+  return useQuery<CryptoMarketIndicators>({
+    queryKey: marketKeys.cryptoIndicators(),
+    queryFn: getCryptoMarketIndicatorsClient,
+    enabled,
+    staleTime: 1000 * 60 * 10, // 10분 — kista-trading 서버 캐시 TTL과 같다(프록시는 Cache-Control을 전달하지 않는다)
   })
 }
