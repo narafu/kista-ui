@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CryptoMarketIndicators, CryptoTickerIndicators } from '@entities/market'
@@ -13,7 +13,9 @@ vi.mock('@entities/market', () => ({
 
 // 차트는 next/dynamic(ssr:false)로 비동기 로드된다 — 이 스위트는 상태 분기만 보므로 동기 스텁으로 대체한다
 vi.mock('next/dynamic', () => ({
-  default: () => ({ title, series }: { title: string; series: { name: string }[] }) => <div>{title}: {series.map((s) => s.name).join(', ')}</div>,
+  default: () => ({ title, series, data }: { title: string; series: { name: string }[]; data: readonly unknown[] }) => (
+    <div data-points={data.length}>{title}: {series.map((s) => s.name).join(', ')}</div>
+  ),
 }))
 
 function ticker(name: string, overrides: Partial<CryptoTickerIndicators> = {}): CryptoTickerIndicators {
@@ -150,6 +152,18 @@ describe('CryptoMarketSection', () => {
 
     expect(screen.queryByText('공식 환율 기준')).not.toBeInTheDocument()
     expect(screen.getByText('BTC 김치 프리미엄 추이: 공식 환율 기준, 테더 기준')).toBeInTheDocument()
+  })
+
+  it('shows only the latest N days for the selected range of each card', async () => {
+    const history = Array.from({ length: 200 }, (_, i) => ({ date: `d${i}`, official: 3.0, tether: 1.0 }))
+    useQueryMock.mockReturnValue({ data: indicators({ tickers: [ticker('BTC', { kimchiPremium: { current: { official: 3.2, tether: 1.1 }, history } })] }) })
+    render(<CryptoMarketSection />)
+
+    const chart = screen.getByText(/^BTC 김치 프리미엄 추이/)
+    expect(chart).toHaveAttribute('data-points', '200')
+    const toggle = screen.getByRole('group', { name: 'BTC 김치 프리미엄 조회 기간(일)' })
+    await userEvent.setup().click(within(toggle).getByRole('button', { name: '20' }))
+    expect(chart).toHaveAttribute('data-points', '20')
   })
 
   it('keeps showing cached data when a refetch fails', () => {

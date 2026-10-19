@@ -25,7 +25,7 @@ interface Props {
 // 김프·펀딩비·OI 추이 공용 선 차트 — date는 UTC 일자(YYYY-MM-DD). null 값은 선을 끊어 "값 없는 날"을 드러낸다
 export default function IndicatorLineChart({ data, series, title, formatAxis, formatValue, referenceY, yWidth = 44 }: Props) {
   return (
-    <ResponsiveContainer width="100%" height={series.length > 1 ? 164 : 140}>
+    <ResponsiveContainer width="100%" height="100%">
       <LineChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} title={title}>
         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
         <XAxis dataKey="date" tickFormatter={(d) => fmtMonthDay(String(d))} tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={24} />
