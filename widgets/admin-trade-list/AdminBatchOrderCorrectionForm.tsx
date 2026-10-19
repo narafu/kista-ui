@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@shared/ui/Badge'
@@ -290,9 +291,10 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
               </div>
 
               <div className="mt-3 grid gap-3 md:grid-cols-3">
-                <label className="grid gap-2 text-sm">
-                  <span className="font-medium">재주문 수량</span>
-                  <input
+                <div className="grid gap-2 text-sm">
+                  <Label htmlFor={`reorder-quantity-${order.id}`} className="font-medium">재주문 수량</Label>
+                  <Input
+                    id={`reorder-quantity-${order.id}`}
                     aria-label={`주문 ${index + 1} 재주문 수량`}
                     type="number"
                     required
@@ -301,13 +303,14 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                     value={draft.quantity}
                     onChange={(e) => handleDraftChange(order.id, 'quantity', e.target.value)}
                     disabled={disabled || isBlocked || isClosed}
-                    className="h-10 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="h-10"
                   />
-                </label>
+                </div>
 
-                <label className="grid gap-2 text-sm">
-                  <span className="font-medium">재주문 가격</span>
-                  <input
+                <div className="grid gap-2 text-sm">
+                  <Label htmlFor={`reorder-price-${order.id}`} className="font-medium">재주문 가격</Label>
+                  <Input
+                    id={`reorder-price-${order.id}`}
                     aria-label={`주문 ${index + 1} 재주문 가격`}
                     type="number"
                     required
@@ -316,21 +319,22 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                     value={draft.price}
                     onChange={(e) => handleDraftChange(order.id, 'price', e.target.value)}
                     disabled={disabled || isBlocked || isClosed}
-                    className="h-10 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="h-10"
                   />
-                </label>
+                </div>
 
-                <label className="grid gap-2 text-sm">
-                  <span className="font-medium">메모</span>
-                  <input
+                <div className="grid gap-2 text-sm">
+                  <Label htmlFor={`reorder-memo-${order.id}`} className="font-medium">메모</Label>
+                  <Input
+                    id={`reorder-memo-${order.id}`}
                     aria-label={`주문 ${index + 1} 메모`}
                     value={draft.memo}
                     onChange={(e) => handleDraftChange(order.id, 'memo', e.target.value)}
                     disabled={disabled || isBlocked || isClosed}
                     maxLength={200}
-                    className="h-10 rounded-[var(--r-md)] border border-border bg-background px-3 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="h-10"
                   />
-                </label>
+                </div>
               </div>
             </section>
           )
