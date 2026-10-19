@@ -57,13 +57,13 @@ describe('market api', () => {
     await expect(getMonthlyHolidaysPublic(2026, 4)).rejects.toMatchObject({ status: 503 })
   })
 
-  it('getCandlesClient defaults count to CHART_CANDLE_COUNT (200) and builds ticker query', async () => {
+  it('getCandlesClient defaults count to CHART_CANDLE_COUNT (600) and builds ticker query', async () => {
     const { getCandlesClient } = await import('./index')
     clientFetchMock.mockResolvedValueOnce([])
 
     await getCandlesClient('TQQQ')
 
-    expect(clientFetchMock).toHaveBeenCalledWith('/api/market/candles?ticker=TQQQ&count=200')
+    expect(clientFetchMock).toHaveBeenCalledWith('/api/market/candles?ticker=TQQQ&count=600')
   })
 
   it('getFearGreedClient hits the fear-greed endpoint', async () => {

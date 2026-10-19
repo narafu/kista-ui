@@ -32,7 +32,7 @@ export function useCandlesRangeQuery(ticker: string, range: { from: string; to: 
   })
 }
 
-export function useFearGreedQuery(days = CHART_CANDLE_COUNT) {
+export function useFearGreedQuery(days: number) {
   return useQuery<FearGreed>({
     queryKey: marketKeys.fearGreed(days),
     queryFn: () => getFearGreedClient(days),

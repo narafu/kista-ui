@@ -21,8 +21,8 @@ beforeAll(() => {
 
 const useCandlesQueryMock = vi.fn((_ticker: string, _count: number): { data: unknown[] | undefined; isError?: boolean; isPending?: boolean } => ({ data: [] }))
 
-vi.mock('@entities/market', () => ({
-  CHART_CANDLE_COUNT: 200,
+vi.mock('@entities/market', async (importOriginal) => ({
+  CHART_CANDLE_COUNT: (await importOriginal<typeof import('@entities/market')>()).CHART_CANDLE_COUNT,
   useCandlesQuery: (ticker: string, count: number) => useCandlesQueryMock(ticker, count),
 }))
 
@@ -94,11 +94,13 @@ describe('MarketChartCardInner', () => {
     expect(screen.getByText('표시할 시세가 없습니다.')).toBeInTheDocument()
   })
 
-  it('queries candles for the first option at the default 200-candle count', () => {
+  it('queries 600 candles (400 visible + MA200 lead) and selects 400 by default', () => {
     useCandlesQueryMock.mockClear()
     render(<MarketChartCardInner category={category} />)
 
-    expect(useCandlesQueryMock).toHaveBeenCalledWith('SPY', 200)
+    expect(useCandlesQueryMock).toHaveBeenCalledWith('SPY', 600)
+    expect(screen.getByRole('button', { name: '400' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByText('MA200')).toBeInTheDocument()
   })
 
   it('shows the description label on the trigger for the initially selected option', () => {
@@ -115,7 +117,7 @@ describe('MarketChartCardInner', () => {
     await user.click(screen.getByRole('button', { name: '50' }))
 
     expect(screen.getByRole('button', { name: '50' })).toHaveAttribute('aria-pressed', 'true')
-    expect(useCandlesQueryMock).toHaveBeenLastCalledWith('SPY', 200)
+    expect(useCandlesQueryMock).toHaveBeenLastCalledWith('SPY', 600)
   })
 
   it('adds an RSI series on pane 1 only when the RSI toggle is on', async () => {
@@ -142,7 +144,7 @@ describe('MarketChartCardInner', () => {
     await user.click(screen.getByRole('combobox'))
     await user.click(await screen.findByRole('option', { name: 'QQQ · 나스닥 100' }))
 
-    expect(useCandlesQueryMock).toHaveBeenLastCalledWith('QQQ', 200)
+    expect(useCandlesQueryMock).toHaveBeenLastCalledWith('QQQ', 600)
   })
 
   it('keeps the description label on the trigger after selecting an option', async () => {

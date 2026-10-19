@@ -28,7 +28,7 @@ export function getCandlesRangeClient(ticker: string, from: string, to: string):
   return clientFetch<Candle[]>(`/api/market/candles?ticker=${ticker}&from=${from}&to=${to}`)
 }
 
-export function getFearGreedClient(days = CHART_CANDLE_COUNT): Promise<FearGreed> {
+export function getFearGreedClient(days: number): Promise<FearGreed> {
   return clientFetch<FearGreed>(`/api/market/fear-greed?days=${days}`)
 }
 

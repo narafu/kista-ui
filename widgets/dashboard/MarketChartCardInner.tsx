@@ -11,16 +11,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { MarketChartCategory } from './marketChartCategories'
 
-const CANDLE_OPTIONS = [200, 120, 50, 20] as const
+const CANDLE_OPTIONS = [400, 200, 120, 50] as const
 type CandleCount = (typeof CANDLE_OPTIONS)[number]
 
 const CHART_HEIGHT = 280
 const RSI_PANE_HEIGHT = 100
 const RSI_PERIOD = 14
-// 캔들이 상승 빨강(--pos)·하락 파랑(--neg)이라 겹치지 않는 금·초록 계열 자산 팔레트를 쓴다
+// 캔들이 상승 빨강(--pos)·하락 파랑(--neg)이라 겹치지 않는 금·초록·자주 계열 자산 팔레트를 쓰고(남색 4번은 RSI), 장기선 MA200은 회색으로 한 발 물린다
 const MA_LINES = [
   { period: 20, colorVar: '--asset-series-3' },
-  { period: 60, colorVar: '--asset-series-5' },
+  { period: 50, colorVar: '--asset-series-5' },
+  { period: 120, colorVar: '--asset-series-6' },
+  { period: 200, colorVar: '--muted-foreground' },
 ] as const
 const RSI_COLOR_VAR = '--asset-series-4'
 const LINE_OPTIONS = { lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false } as const
@@ -75,7 +77,7 @@ function readChartColors() {
 export default function MarketChartCardInner({ category }: Props) {
   // eslint-disable-next-line react-doctor/no-derived-useState
   const [symbol, setSymbol] = useState(category.options[0].symbol)
-  const [candleCount, setCandleCount] = useState<CandleCount>(200)
+  const [candleCount, setCandleCount] = useState<CandleCount>(400)
   const [showRsi, setShowRsi] = useState(false)
   const selected = category.options.find((o) => o.symbol === symbol) ?? category.options[0]
   // 이평선·RSI의 선행 구간을 채우려고 항상 최대치로 조회하고, 캔들 개수 선택은 보이는 범위로만 반영한다
