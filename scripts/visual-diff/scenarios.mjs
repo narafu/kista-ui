@@ -1,7 +1,7 @@
 // 촬영 시나리오. 뮤테이션 금지: 제출/저장 버튼은 누르지 않는다 — 열기·탭 전환·선택만.
 // { name, path(문자열 또는 실행 시 조회값 ctx를 받는 함수), admin?, steps?, mode?(trading fixture 모드, 기본 real=실데이터), clock?(평일 시계 고정 — 휴장일 배너가 부족 배너를 가리는 것 방지),
 //   guest?(kista-token 없이 비회원으로), cookies?({ 이름: 값 } 추가 쿠키), setup?(page => goto 전에 실행 — 브라우저 요청을 page.route로 덮을 때) }
-import { seed } from '../shared/seed.mjs'
+import { seed, stubMargin } from '../shared/seed.mjs'
 
 const clickText = (t) => async (p) => { await p.getByText(t, { exact: true }).first().click(); await p.waitForTimeout(800) }
 const clickRole = (role, name) => async (p) => { await p.getByRole(role, { name }).first().click(); await p.waitForTimeout(800) }
@@ -61,8 +61,6 @@ const ACCT = `/accounts/${seed.infinite.accountId}`
 const NEW_STRATEGY = `${ACCT}/strategies/new`
 // MOCK 계좌는 잔고 확인이 강제로 꺼져 예수금 입력칸만 나온다 — 사용 비율 게이지는 KIS 계좌로 연다
 const KIS_NEW_STRATEGY = `/accounts/${seed.kis.accountId}/strategies/new`
-// KIS 시드 계좌의 예수금 조회는 503이고 브라우저에서만 부른다 — page.route로 USD 예수금을 채운다
-const stubMargin = (p) => p.route(`**/api/accounts/${seed.kis.accountId}/margin`, (r) => r.fulfill({ json: [{ currency: 'USD', integratedOrderableAmount: 5000, foreignOrderableAmount: 5000, purchasableAmount: 5000 }] }))
 // 사용자 상태는 proxy.ts가 상태·역할 쿠키가 있으면 /me 대신 그 값을 쓴다 — dev 사용자(ACTIVE)로 대기·반려 화면을 연다
 const statusCookies = (status) => ({ 'kista-user-status': status, 'kista-user-role': 'USER' })
 // 대기 화면의 상태 SSE가 ACTIVE를 보내면 /dashboard로 이동한다 — 204로 닫아 재연결도 막는다

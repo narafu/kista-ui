@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { parseArgs } from 'node:util'
 import { chromium } from '@playwright/test'
-import { seed } from '../shared/seed.mjs'
+import { seed, stubMargin } from '../shared/seed.mjs'
 
 // axe-core는 eslint-plugin-jsx-a11y의 전이 의존성으로 설치돼 있다 — 별도 devDependency로 추가하지 않음
 const axeSrc = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8')
@@ -21,10 +21,12 @@ const MAX_TABS = 80
 const detail = ({ accountId, strategyId }) => `/accounts/${accountId}/strategies/${strategyId}`
 const ACCT = `/accounts/${seed.infinite.accountId}`
 const WIZARD = '/accounts/new'
+// MOCK 계좌는 잔고 확인이 강제로 꺼져 사용 비율 게이지(PercentGauge)가 안 뜬다 — KIS 시드 계좌로 열고 예수금은 stubMargin으로 채운다
+const KIS_NEW_STRATEGY = `/accounts/${seed.kis.accountId}/strategies/new`
 const PAGES = {
   guest: ['/login', '/dashboard'],
   user: [
-    '/dashboard', '/accounts', WIZARD, ACCT, `${ACCT}/edit`, `${ACCT}/strategies/new`, detail(seed.infinite), detail(seed.vr),
+    '/dashboard', '/accounts', WIZARD, ACCT, `${ACCT}/edit`, `${ACCT}/strategies/new`, KIS_NEW_STRATEGY, detail(seed.infinite), detail(seed.vr),
     '/stats', '/stats/benchmark', '/stats/backtest',
     '/finance', '/finance/income', '/finance/expense', '/finance/saving', '/finance/settings', '/settings',
   ],
@@ -272,6 +274,7 @@ try {
         console.log(`== ${role} ${vp}/${scheme}`)
         const ctx = await newContext(browser, tokens[role], vp, scheme)
         const page = await ctx.newPage()
+        if (role === 'user') await stubMargin(page)
         for (const path of pages) {
           await open(page, path)
           await checkPage(page, path, vp, scheme)

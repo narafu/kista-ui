@@ -74,3 +74,6 @@ export const seed = { ...defaults, ...override }
 
 export const tickerOf = (strategyId) =>
   Object.values(seed.accounts).map((s) => s[strategyId]).find(Boolean) ?? 'SOXL'
+
+// KIS 시드 계좌의 예수금 조회는 503이고 브라우저에서만 부른다 — page.route로 USD 예수금을 채워 전략 등록 폼의 사용 비율 게이지를 띄운다
+export const stubMargin = (p) => p.route(`**/api/accounts/${seed.kis.accountId}/margin`, (r) => r.fulfill({ json: [{ currency: 'USD', integratedOrderableAmount: 5000, foreignOrderableAmount: 5000, purchasableAmount: 5000 }] }))
