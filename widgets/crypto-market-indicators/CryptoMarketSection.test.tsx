@@ -166,6 +166,18 @@ describe('CryptoMarketSection', () => {
     expect(chart).toHaveAttribute('data-points', '20')
   })
 
+  it('applies the range to the funding rate chart independently of the kimchi premium chart', async () => {
+    const history = Array.from({ length: 200 }, (_, i) => ({ date: `d${i}`, value: 0.0001 }))
+    useQueryMock.mockReturnValue({ data: indicators({ tickers: [ticker('BTC', { fundingRate: { current: 0.0001, nextFundingTime: '2026-10-19T16:00:00Z', history } })] }) })
+    render(<CryptoMarketSection />)
+
+    const chart = screen.getByText(/^BTC 펀딩비 일평균 추이/)
+    const toggle = screen.getByRole('group', { name: 'BTC 펀딩비 조회 기간(일)' })
+    await userEvent.setup().click(within(toggle).getByRole('button', { name: '50' }))
+    expect(chart).toHaveAttribute('data-points', '50')
+    expect(within(screen.getByRole('group', { name: 'BTC 김치 프리미엄 조회 기간(일)' })).getByRole('button', { name: '200' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
   it('keeps showing cached data when a refetch fails', () => {
     useQueryMock.mockReturnValue({ data: indicators(), isError: true })
     render(<CryptoMarketSection />)

@@ -5,6 +5,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianG
 import { fmtMonthDay } from '@shared/lib/format'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 import { TOOLTIP_CONTENT_STYLE } from '@shared/lib/chart/tooltip'
+import { niceTicks } from './niceTicks'
 
 export interface IndicatorSeries {
   key: string
@@ -24,13 +25,16 @@ interface Props {
 
 // 김프·펀딩비·OI 추이 공용 선 차트 — date는 UTC 일자(YYYY-MM-DD). null 값은 선을 끊어 "값 없는 날"을 드러낸다
 export default function IndicatorLineChart({ data, series, title, formatAxis, formatValue, referenceY, yWidth = 44 }: Props) {
+  // 기준선도 눈금 범위에 넣어 데이터가 기준선에 못 미쳐도 점선이 차트 안에 보이게 한다
+  const values = data.flatMap((row) => series.map((s) => (row as Record<string, unknown>)[s.key])).filter((v): v is number => typeof v === 'number' && Number.isFinite(v))
+  const ticks = niceTicks(referenceY != null ? [...values, referenceY] : values)
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} title={title}>
         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
         <XAxis dataKey="date" tickFormatter={(d) => fmtMonthDay(String(d))} tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={24} />
-        <YAxis tickFormatter={(v) => formatAxis(Number(v))} tick={AXIS_TICK} tickLine={false} axisLine={false} width={yWidth} domain={['auto', 'auto']} />
-        {referenceY != null && <ReferenceLine y={referenceY} ifOverflow="extendDomain" stroke="var(--muted-foreground)" strokeDasharray="4 4" />}
+        <YAxis tickFormatter={(v) => formatAxis(Number(v))} tick={AXIS_TICK} tickLine={false} axisLine={false} width={yWidth} ticks={ticks} domain={ticks ? [ticks[0], ticks[ticks.length - 1]] : ['auto', 'auto']} />
+        {referenceY != null && <ReferenceLine y={referenceY} stroke="var(--muted-foreground)" strokeDasharray="4 4" />}
         <Tooltip
           formatter={(v, name) => [formatValue(Number(v)), name]}
           labelFormatter={(d) => `${String(d).replace(/-/g, '.')} UTC`}
