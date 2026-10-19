@@ -53,8 +53,15 @@ function tryRefreshToken(): Promise<boolean> {
   return refreshInFlight
 }
 
+// 동시 다발 401이 logout을 각자 호출하지 않도록 진행 중 요청을 공유한다(refreshInFlight와 동일하게 끝나면 해제).
+// 리다이렉트는 호출마다 그대로 해 bfcache로 복원된 페이지의 이후 401도 다시 logout·이동한다
+let logoutInFlight: Promise<void> | null = null
+
 async function doLogout(reason?: string): Promise<never> {
-  await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
+  logoutInFlight ??= fetch('/api/auth/logout', { method: 'POST' })
+    .then(() => {}, () => {})
+    .finally(() => { logoutInFlight = null })
+  await logoutInFlight
   window.location.href = reason ? `/dashboard?error=${reason}` : '/dashboard'
   await new Promise(() => {}) // 리다이렉트 완료 전까지 중단
   throw new Error('unreachable')

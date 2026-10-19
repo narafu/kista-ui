@@ -203,4 +203,26 @@ describe('clientFetch', () => {
     const refreshCalls = fetchMock.mock.calls.filter(([url]) => url === '/api/auth/refresh')
     expect(refreshCalls).toHaveLength(1)
   })
+
+  it('동시에 401이 여러 건 나고 refresh가 실패해도 logout은 한 번만 호출한다', async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url === '/api/auth/refresh') return jsonResponse(500, {})
+      if (url === '/api/auth/logout') return jsonResponse(200, {})
+      return jsonResponse(401, {})
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const { clientFetch } = await import('./index')
+
+    void clientFetch('/api/a')
+    void clientFetch('/api/b')
+    void clientFetch('/api/c')
+
+    await vi.waitFor(() => {
+      expect(window.location.href).toBe('/dashboard')
+    })
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    const callsTo = (target: string) => fetchMock.mock.calls.filter(([url]) => url === target)
+    expect(callsTo('/api/auth/refresh')).toHaveLength(1) // 세 요청 모두 같은 refresh 실패를 보고 doLogout에 도달
+    expect(callsTo('/api/auth/logout')).toHaveLength(1)
+  })
 })

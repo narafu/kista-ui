@@ -77,7 +77,8 @@ export default async function MainLayout({ children, modal }: Props) {
           <MobileBottomNav />
         </div>
         {isAuthenticated && <FcmBridge />}
-        <TradeNotificationBridge />
+        {/* 비회원은 체결 스트림 대상이 아니다 — 연결하면 auth-error 응답만 받고 끊긴다 */}
+        {isAuthenticated && <TradeNotificationBridge />}
         {modal}
         </div>
     </MetaProvider>
