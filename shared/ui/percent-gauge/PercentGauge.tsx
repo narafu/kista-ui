@@ -41,7 +41,7 @@ function PercentInputRow({ value, onChange, minPct, allDisabled }: InputRowProps
         </Button>
       )}
 
-      {/* 퍼센트 입력칸 */}
+      {/* 퍼센트 입력칸 — %를 품은 컨테이너가 테두리를 그리므로 안쪽은 공용 Input이 아닌 투명 raw input */}
       <div
         className={cn(
           'flex-1 relative rounded-lg border border-[var(--rose-400)] bg-card flex items-center px-3.5 w-[65%] h-11',

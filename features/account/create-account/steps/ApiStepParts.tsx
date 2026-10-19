@@ -1,6 +1,8 @@
 import { Eye, EyeOff, CheckCircle2, XCircle, Copy } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Spinner } from '@shared/ui/Spinner'
 import { IconButton } from '@shared/ui/IconButton'
 import { Badge } from '@shared/ui/Badge'
@@ -17,10 +19,10 @@ interface KeyFieldProps {
 export function ApiKeyField({ label, value, showError, onChange, onBlur }: KeyFieldProps) {
   return (
     <div>
-      <label htmlFor="api-key" className="text-sm font-semibold mb-1.5 block">
+      <Label htmlFor="api-key" className="mb-1.5 gap-1 font-semibold">
         {label} <span className="text-destructive">*</span>
-      </label>
-      <input
+      </Label>
+      <Input
         id="api-key"
         value={value}
         onChange={onChange}
@@ -29,7 +31,7 @@ export function ApiKeyField({ label, value, showError, onChange, onBlur }: KeyFi
         maxLength={256}
         aria-describedby={showError ? 'api-key-error' : undefined}
         aria-invalid={showError}
-        className="w-full px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="h-11"
       />
       {showError && (
         <p id="api-key-error" className="text-sm text-destructive mt-1">
@@ -48,11 +50,11 @@ interface SecretFieldProps extends KeyFieldProps {
 export function ApiSecretField({ label, value, showError, onChange, onBlur, showSecret, onToggle }: SecretFieldProps) {
   return (
     <div>
-      <label htmlFor="api-secret" className="text-sm font-semibold mb-1.5 block">
+      <Label htmlFor="api-secret" className="mb-1.5 gap-1 font-semibold">
         {label} <span className="text-destructive">*</span>
-      </label>
+      </Label>
       <div className="relative">
-        <input
+        <Input
           id="api-secret"
           type={showSecret ? 'text' : 'password'}
           value={value}
@@ -62,16 +64,15 @@ export function ApiSecretField({ label, value, showError, onChange, onBlur, show
           maxLength={512}
           aria-describedby={showError ? 'api-secret-error' : undefined}
           aria-invalid={showError}
-          className="w-full px-3 py-2.5 pr-10 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="h-11 pr-11"
         />
-        <button
-          type="button"
+        <IconButton
           onClick={onToggle}
           aria-label={showSecret ? '숨기기' : '보기'}
-          className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex size-9 items-center justify-center text-muted-foreground"
+          className="absolute right-0 top-1/2 -translate-y-1/2"
         >
           {showSecret ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-        </button>
+        </IconButton>
       </div>
       {showError && (
         <p id="api-secret-error" className="text-sm text-destructive mt-1">

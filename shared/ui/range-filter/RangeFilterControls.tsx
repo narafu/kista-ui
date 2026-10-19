@@ -3,8 +3,12 @@
 // 콜백은 상위에서 주입.
 'use client'
 
+import { Input } from '@/components/ui/input'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
+import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { DEFAULT_RANGE_PRESETS, RANGE_LABELS, type RangePreset } from '@shared/lib/date-range'
+
+const PRESET_OPTIONS = DEFAULT_RANGE_PRESETS.map((r) => ({ value: r, label: RANGE_LABELS[r] }))
 
 interface Props {
   rangeType: RangePreset
@@ -34,42 +38,28 @@ export function RangeFilterControls({
     <>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex gap-0.5 rounded-lg bg-muted p-1">
-            {DEFAULT_RANGE_PRESETS.map((r) => (
-              <button
-                key={r}
-                type="button"
-                aria-pressed={rangeType === r}
-                onClick={() => onRangeChange(r)}
-                className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-all whitespace-nowrap ${
-                  rangeType === r ? 'bg-background text-rose-600 shadow-sm' : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {RANGE_LABELS[r]}
-              </button>
-            ))}
-          </div>
+          <SegmentedToggle aria-label="기간" options={PRESET_OPTIONS} value={rangeType} onChange={onRangeChange} />
           {extraFilters && <div className="hidden lg:block">{extraFilters}</div>}
         </div>
         <PageSizeSelector value={pageSize} onChange={onPageSizeChange} />
       </div>
       {rangeType === 'custom' && (
         <div className="flex items-center gap-2 flex-wrap">
-          <input
+          <Input
             type="date"
             aria-label="시작 날짜"
             value={customFrom}
             onChange={(e) => onCustomFromChange(e.target.value)}
-            className="rounded-md border border-[var(--border-strong)] bg-background px-3 py-1.5 text-base sm:text-sm outline-none focus:ring-2 focus:ring-ring"
+            className="w-auto"
           />
           <span className="text-sm text-muted-foreground">~</span>
-          <input
+          <Input
             type="date"
             aria-label="종료 날짜"
             value={customTo}
             min={customFrom || undefined}
             onChange={(e) => onCustomToChange(e.target.value)}
-            className="rounded-md border border-[var(--border-strong)] bg-background px-3 py-1.5 text-base sm:text-sm outline-none focus:ring-2 focus:ring-ring"
+            className="w-auto"
           />
         </div>
       )}

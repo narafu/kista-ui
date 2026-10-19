@@ -1,3 +1,6 @@
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+
 interface FieldProps {
   value: string
   showError: boolean
@@ -8,10 +11,10 @@ interface FieldProps {
 export function NicknameField({ value, placeholder, showError, onChange, onBlur }: FieldProps & { placeholder: string }) {
   return (
     <div>
-      <label htmlFor="account-nickname" className="text-sm font-semibold mb-1.5 block">
+      <Label htmlFor="account-nickname" className="mb-1.5 gap-1 font-semibold">
         계좌 별칭 <span className="text-destructive">*</span>
-      </label>
-      <input
+      </Label>
+      <Input
         id="account-nickname"
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -20,7 +23,7 @@ export function NicknameField({ value, placeholder, showError, onChange, onBlur 
         maxLength={100}
         aria-describedby={showError ? 'nickname-error' : undefined}
         aria-invalid={showError}
-        className="w-full px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="h-11"
       />
       {showError && (
         <p id="nickname-error" className="text-sm text-destructive mt-1">별칭을 입력하세요.</p>
@@ -40,10 +43,10 @@ interface AccountNoConfig {
 export function AccountNoField({ config, value, showError, onChange, onBlur }: FieldProps & { config: AccountNoConfig }) {
   return (
     <div>
-      <label htmlFor="account-no" className="text-sm font-semibold mb-1.5 block">
+      <Label htmlFor="account-no" className="mb-1.5 gap-1 font-semibold">
         {config.label} <span className="text-destructive">*</span>
-      </label>
-      <input
+      </Label>
+      <Input
         id="account-no"
         value={value}
         onChange={(e) => onChange(config.format(e.target.value))}
@@ -52,7 +55,7 @@ export function AccountNoField({ config, value, showError, onChange, onBlur }: F
         maxLength={config.maxLen}
         aria-describedby={showError ? 'accountno-error' : 'accountno-hint'}
         aria-invalid={showError}
-        className="w-full px-3 py-2.5 rounded-[var(--r-md)] border border-border bg-background text-sm font-mono focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="h-11 font-mono"
       />
       {showError ? (
         <p id="accountno-error" className="text-sm text-destructive mt-1">

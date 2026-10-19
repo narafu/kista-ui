@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Pencil, Check, X } from 'lucide-react'
 import { useUpdateNicknameMutation } from '@entities/user'
+import { Input } from '@/components/ui/input'
 import { IconButton } from '@shared/ui/IconButton'
 
 const NICKNAME_REGEX = /^[\p{L}\d ]{1,10}$/u
@@ -66,7 +67,7 @@ export function NicknameEditor({ initialNickname }: Props) {
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-1.5">
-        <input
+        <Input
           ref={inputRef}
           type="text"
           value={value}
@@ -76,7 +77,7 @@ export function NicknameEditor({ initialNickname }: Props) {
           placeholder="1~10자"
           aria-label="닉네임"
           disabled={mutation.isPending}
-          className="w-32 h-7 px-2 text-sm rounded border border-border bg-background focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+          className="w-32"
         />
         <IconButton onClick={save} disabled={mutation.isPending} aria-label="저장" className="text-[var(--status-ok)] hover:text-[var(--status-ok)]">
           <Check className="size-4" />

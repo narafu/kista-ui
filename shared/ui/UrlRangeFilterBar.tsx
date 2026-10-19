@@ -2,8 +2,9 @@
 
 import { Suspense, useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
-import { cn } from '@shared/lib/utils'
-import { buttonVariants } from '@/components/ui/button-variants'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { DEFAULT_RANGE_PRESETS, RANGE_LABELS, type RangePreset } from '@shared/lib/date-range'
 
 export type { RangePreset }
@@ -46,50 +47,38 @@ function RangeFilterBarContent({ current, from, to, pageParamKeys = ['page'], pa
 
   return (
     <div className="space-y-2">
-      {/* 모바일에선 옆의 PageSizeSelector와 한 줄에 들어가도록 칩 간격·여백을 줄인다 */}
-      <div className="flex flex-wrap gap-1 sm:gap-2">
-        {presets.map((r) => (
-          <button
-            key={r}
-            type="button"
-            aria-pressed={current === r}
-            onClick={() => navigate(r, customFrom, customTo)}
-            className={`px-2 sm:px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              current === r
-                ? 'bg-rose-50 text-[var(--brand-fg-soft)]'
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-            }`}
-          >
-            {RANGE_LABELS[r]}
-          </button>
-        ))}
-      </div>
+      <SegmentedToggle
+        aria-label="기간"
+        options={presets.map((r) => ({ value: r, label: RANGE_LABELS[r] }))}
+        value={current}
+        onChange={(r) => navigate(r, customFrom, customTo)}
+      />
       {current === 'custom' && (
         <div className="flex items-center gap-2 flex-wrap">
-          <input
+          <Input
             type="date"
             aria-label="시작 날짜"
             value={customFrom}
             onChange={(e) => setCustomFrom(e.target.value)}
-            className="rounded-md border border-[var(--border-strong)] bg-background px-3 py-1.5 text-base sm:text-xs outline-none focus:ring-2 focus:ring-ring"
+            className="w-auto"
           />
           <span className="text-xs text-muted-foreground">~</span>
-          <input
+          <Input
             type="date"
             aria-label="종료 날짜"
             value={customTo}
             min={customFrom || undefined}
             onChange={(e) => setCustomTo(e.target.value)}
-            className="rounded-md border border-[var(--border-strong)] bg-background px-3 py-1.5 text-base sm:text-xs outline-none focus:ring-2 focus:ring-ring"
+            className="w-auto"
           />
-          <button
-            type="button"
+          <Button
+            variant="brand-soft"
+            size="sm"
             onClick={() => navigate('custom', customFrom, customTo)}
             disabled={!customFrom || !customTo || invalidRange}
-            className={cn(buttonVariants({ variant: 'brand-soft', size: 'sm' }))}
           >
             적용
-          </button>
+          </Button>
           {invalidRange && (
             <p role="alert" className="w-full text-xs text-destructive">시작 날짜가 종료 날짜보다 늦습니다.</p>
           )}

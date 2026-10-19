@@ -70,6 +70,7 @@ export function UnitInput({
 
   return (
     <div className={cn(inputBoxClass(disabled), wrapperClassName)}>
+      {/* 단위·기호를 품은 컨테이너가 테두리·포커스를 그리므로 안쪽은 공용 Input이 아닌 투명 raw input */}
       <input
         type="text"
         inputMode="decimal"

@@ -4,14 +4,13 @@ import type { Account } from '@entities/account'
 import type { EtfBenchmarkSymbol, HousingBenchmarkRegion } from '@entities/stats'
 import type { Strategy } from '@entities/strategy'
 import { useMeta } from '@entities/meta'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toSelectValue } from '@shared/lib/utils'
 import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
 import { toMonthInput } from './model/benchmarkPeriods'
 import type { EtfBenchmarkContent } from './housingBenchmarkContent'
-
-const DATE_INPUT_CLASS = 'min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 // 목록이 비었을 때 안내용 비활성 항목 — disabled라 선택 불가이고 핸들러에서도 한 번 더 걸러낸다
 const EMPTY_ITEM = '__empty'
@@ -146,23 +145,23 @@ export function CustomDateRange({
 }) {
   return (
     <div className="mt-2 flex items-center gap-2">
-      <input
+      <Input
         type="date"
         aria-label="시작일"
         value={customFromDate}
         max={customToDate}
         onChange={(event) => setCustomFromDate(event.target.value)}
-        className={DATE_INPUT_CLASS}
+        className="h-10"
       />
       <span className="shrink-0 text-xs text-muted-foreground">~</span>
-      <input
+      <Input
         type="date"
         aria-label="종료일"
         value={customToDate}
         min={customFromDate}
         max={defaultTo}
         onChange={(event) => setCustomToDate(event.target.value)}
-        className={DATE_INPUT_CLASS}
+        className="h-10"
       />
     </div>
   )

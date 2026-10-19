@@ -86,6 +86,7 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled, s
         )}
       >
         <span className="text-sm font-extrabold text-[var(--rose-600)] mr-1.5">$</span>
+        {/* 단위·기호를 품은 컨테이너가 테두리·포커스를 그리므로 안쪽은 공용 Input이 아닌 투명 raw input */}
         <input
           type="text"
           inputMode="decimal"
