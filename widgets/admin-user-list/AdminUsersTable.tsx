@@ -15,6 +15,7 @@ import { Badge } from '@shared/ui/Badge'
 import { ADMIN_USER_STATUS_LABEL, USER_ROLE_LABEL, USER_STATUS_TONE } from '@entities/user'
 import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
 import type { AdminUser } from '@entities/admin'
+import { TableDataCell } from '@shared/ui/TableDataCell'
 
 // 조회 전·실패 시에도 페이지네이션 훅 입력 참조를 고정한다
 const EMPTY_USERS: AdminUser[] = []
@@ -53,7 +54,7 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
 
       <div className="rounded-[var(--r-lg)] border border-border overflow-x-auto" role="region" aria-label="사용자 목록" tabIndex={0}>
         <table className="min-w-[720px] w-full text-sm">
-          <thead className="bg-muted/40">
+          <thead className="bg-muted/50">
             <tr>
               <TableHeadCell className="text-left whitespace-nowrap">닉네임</TableHeadCell>
               <TableHeadCell className="text-left whitespace-nowrap">상태</TableHeadCell>
@@ -66,31 +67,31 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
           <tbody className="divide-y divide-border">
             {paged.map((user) => (
               <tr key={user.id} className="hover:bg-muted/20 transition-colors">
-                <td className="px-4 py-3 font-medium whitespace-nowrap">{user.nickname}</td>
-                <td className="px-4 py-3 whitespace-nowrap">
+                <TableDataCell className="text-left font-medium whitespace-nowrap">{user.nickname}</TableDataCell>
+                <TableDataCell className="text-left whitespace-nowrap">
                   <Badge tone={USER_STATUS_TONE[user.status]}>{ADMIN_USER_STATUS_LABEL[user.status]}</Badge>
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap">
+                </TableDataCell>
+                <TableDataCell className="text-left whitespace-nowrap">
                   <Badge tone={user.role === 'ADMIN' ? 'admin' : 'neutral'}>{USER_ROLE_LABEL[user.role]}</Badge>
-                </td>
-                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                </TableDataCell>
+                <TableDataCell className="text-left text-muted-foreground whitespace-nowrap">
                   {fmtDate(user.createdAt)}
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-center">
+                </TableDataCell>
+                <TableDataCell className="whitespace-nowrap">
                   <ChangeRoleButton
                     userId={user.id}
                     nickname={user.nickname}
                     currentRole={user.role}
                     isSelf={currentUserId === user.id}
                   />
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-center">
+                </TableDataCell>
+                <TableDataCell className="whitespace-nowrap">
                   <WithdrawUserButton
                     userId={user.id}
                     nickname={user.nickname}
                     isSelf={currentUserId === user.id}
                   />
-                </td>
+                </TableDataCell>
               </tr>
             ))}
           </tbody>

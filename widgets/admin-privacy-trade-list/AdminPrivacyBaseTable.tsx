@@ -155,7 +155,7 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
 
           <div className="hidden rounded-[var(--r-lg)] border border-border overflow-x-auto sm:block" role="region" aria-label="P 매매표 목록" tabIndex={0} data-testid="admin-privacy-desktop-table-wrap">
             <table className="w-full text-sm min-w-[760px]" data-testid="admin-privacy-desktop-table">
-              <thead className="bg-muted/40 border-b border-border">
+              <thead className="bg-muted/50 border-b border-border">
                 <tr>
                   <TableHeadCell className="w-8 px-2"><span className="sr-only">펼치기</span></TableHeadCell>
                   <TableHeadCell className="px-4 whitespace-nowrap">날짜</TableHeadCell>

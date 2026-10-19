@@ -1,28 +1,30 @@
 import { RevealableValue } from '@widgets/revealable-value'
 import type { AdminAnomalyAccount } from '@entities/admin'
+import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { TableDataCell } from '@shared/ui/TableDataCell'
 
 export function AccountTable({ accounts, label }: { accounts: AdminAnomalyAccount[]; label: string }) {
   return (
     <div className="rounded-[var(--r-lg)] border border-border overflow-x-auto" role="region" aria-label={label} tabIndex={0}>
       <table className="min-w-[320px] w-full text-sm">
-        <thead className="bg-muted/40 border-b border-border">
+        <thead className="bg-muted/50 border-b border-border">
           <tr>
-            <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">소유자</th>
-            <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">계좌번호</th>
+            <TableHeadCell className="text-left text-xs lg:text-sm whitespace-nowrap">소유자</TableHeadCell>
+            <TableHeadCell className="text-left text-xs lg:text-sm whitespace-nowrap">계좌번호</TableHeadCell>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
           {accounts.map((a) => (
             <tr key={a.id} className="hover:bg-muted/20">
-              <td className="px-4 py-2.5 font-medium">{a.ownerNickname}</td>
-              <td className="px-4 py-2.5 font-mono text-sm text-muted-foreground">
+              <TableDataCell className="text-left font-medium">{a.ownerNickname}</TableDataCell>
+              <TableDataCell className="text-left font-mono text-sm text-muted-foreground">
                 {a.accountNo == null ? '-' : (
                   <RevealableValue
                     value={a.accountNo}
                     hiddenDisplay={a.accountNoMasked ?? ''}
                   />
                 )}
-              </td>
+              </TableDataCell>
             </tr>
           ))}
         </tbody>

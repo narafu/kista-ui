@@ -47,8 +47,8 @@ export function DcaExecutionHistory({ strategyId, ticker }: { strategyId: string
                   <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">{isCrypto ? '실행일' : '거래일'}</TableHeadCell>
                   <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">결과</TableHeadCell>
                   <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">사유</TableHeadCell>
-                  <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">기준가</TableHeadCell>
-                  <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">수량</TableHeadCell>
+                  <TableHeadCell className="text-right text-xs lg:text-sm whitespace-nowrap">기준가</TableHeadCell>
+                  <TableHeadCell className="text-right text-xs lg:text-sm whitespace-nowrap">수량</TableHeadCell>
                   <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">체결</TableHeadCell>
                 </tr>
               </thead>
@@ -65,8 +65,8 @@ export function DcaExecutionHistory({ strategyId, ticker }: { strategyId: string
                       {r.skipReason && <div>{labelOf('dcaSkipReasons', r.skipReason)}</div>}
                       {r.detail && <div className="text-xs text-muted-foreground">{r.detail}</div>}
                     </TableDataCell>
-                    <TableDataCell className="font-mono text-xs whitespace-nowrap">{r.referencePrice != null ? fmtMoney(r.referencePrice, currency) : '-'}</TableDataCell>
-                    <TableDataCell className="whitespace-nowrap">{r.quantity != null ? (isCrypto ? `${fmtQuantity(r.quantity)} ${ticker}` : `${fmtQuantity(r.quantity)}주`) : '-'}</TableDataCell>
+                    <TableDataCell className="text-right tabular-nums whitespace-nowrap">{r.referencePrice != null ? fmtMoney(r.referencePrice, currency) : '-'}</TableDataCell>
+                    <TableDataCell className="text-right tabular-nums whitespace-nowrap">{r.quantity != null ? (isCrypto ? `${fmtQuantity(r.quantity)} ${ticker}` : `${fmtQuantity(r.quantity)}주`) : '-'}</TableDataCell>
                     <TableDataCell className="whitespace-nowrap">
                       {r.order
                         ? `${ORDER_STATUS_LABEL[r.order.status] ?? r.order.status}${r.order.filledPrice != null ? ` · ${fmtMoney(r.order.filledPrice, currency)}` : ''}`

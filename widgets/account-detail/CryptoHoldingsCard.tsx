@@ -13,8 +13,7 @@ interface Props {
   isError: boolean // 호출부가 isError && !data로 계산해 넘긴다
 }
 
-// 금액 셀은 font-mono지만 안내 문구는 숫자가 아니라 본문 글꼴로 되돌린다
-const UNAVAILABLE = <span className="font-sans text-muted-foreground">현재가 확인 불가</span>
+const UNAVAILABLE = <span className="text-muted-foreground">현재가 확인 불가</span>
 
 export function CryptoHoldingsCard({ portfolio, isError }: Props) {
   return (
@@ -35,20 +34,20 @@ export function CryptoHoldingsCard({ portfolio, isError }: Props) {
               <thead className="bg-muted/50">
                 <tr>
                   <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">종목</TableHeadCell>
-                  <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">수량</TableHeadCell>
-                  <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">평단가</TableHeadCell>
-                  <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">현재가</TableHeadCell>
-                  <TableHeadCell className="text-xs lg:text-sm whitespace-nowrap">평가금액</TableHeadCell>
+                  <TableHeadCell className="text-right text-xs lg:text-sm whitespace-nowrap">수량</TableHeadCell>
+                  <TableHeadCell className="text-right text-xs lg:text-sm whitespace-nowrap">평단가</TableHeadCell>
+                  <TableHeadCell className="text-right text-xs lg:text-sm whitespace-nowrap">현재가</TableHeadCell>
+                  <TableHeadCell className="text-right text-xs lg:text-sm whitespace-nowrap">평가금액</TableHeadCell>
                 </tr>
               </thead>
               <tbody>
                 {portfolio.holdings.map((h) => (
                   <tr key={h.ticker} className="border-t hover:bg-muted/30 transition-colors">
                     <TableDataCell className="font-semibold whitespace-nowrap">{h.ticker}</TableDataCell>
-                    <TableDataCell className="whitespace-nowrap">{fmtQuantity(h.quantity)}</TableDataCell>
-                    <TableDataCell className="font-mono text-xs whitespace-nowrap">{fmtKrw(h.avgBuyPrice)}</TableDataCell>
-                    <TableDataCell className="font-mono text-xs whitespace-nowrap">{h.currentPrice == null ? UNAVAILABLE : fmtKrw(h.currentPrice)}</TableDataCell>
-                    <TableDataCell className="font-mono text-xs whitespace-nowrap">{h.currentPrice == null ? UNAVAILABLE : fmtKrw(h.evalAmountKrw)}</TableDataCell>
+                    <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtQuantity(h.quantity)}</TableDataCell>
+                    <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtKrw(h.avgBuyPrice)}</TableDataCell>
+                    <TableDataCell className="text-right tabular-nums whitespace-nowrap">{h.currentPrice == null ? UNAVAILABLE : fmtKrw(h.currentPrice)}</TableDataCell>
+                    <TableDataCell className="text-right tabular-nums whitespace-nowrap">{h.currentPrice == null ? UNAVAILABLE : fmtKrw(h.evalAmountKrw)}</TableDataCell>
                   </tr>
                 ))}
               </tbody>

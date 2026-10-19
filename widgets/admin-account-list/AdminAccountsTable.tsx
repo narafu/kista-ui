@@ -26,7 +26,7 @@ export function AdminAccountsTable({ accounts }: { accounts: AdminAccount[] }) {
   return (
     <div className="rounded-[var(--r-lg)] border border-border overflow-x-auto" role="region" aria-label="계좌 목록" tabIndex={0}>
       <table className="min-w-[720px] w-full text-sm">
-        <thead className="bg-muted/40 border-b border-border">
+        <thead className="bg-muted/50 border-b border-border">
           <tr>
             <TableHeadCell className={HEAD_CLASS}>소유자</TableHeadCell>
             <TableHeadCell className={HEAD_CLASS}>증권사</TableHeadCell>
