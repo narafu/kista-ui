@@ -80,7 +80,7 @@ function IndicatorCard({ title, description, days, onDaysChange, children }: Ind
 
 // 카드는 그리드 행 높이로 늘어나므로 차트가 남는 아래 여백을 채운다(한 열 배치에서는 최소 높이)
 function ChartArea({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cn('min-h-[140px] flex-1', className)}>{children}</div>
+  return <div className={cn('min-h-[200px] flex-1', className)}>{children}</div>
 }
 
 // 섹션이 null이면(지표별 실패 격리) 제목·설명은 그대로 두고 본문만 안내로 바꾼다
@@ -137,8 +137,8 @@ export function KimchiPremiumCard({ ticker, data, usdtPremium }: KimchiProps) {
         </p>
       )}
       {!hasOfficial && <p className="text-xs text-warn">환율을 불러오지 못해 공식 환율 기준 값을 표시하지 않습니다.</p>}
-      {/* 범례가 붙는 두 선 차트라 최소 높이를 더 준다 */}
-      <ChartArea className="min-h-[164px]">
+      {/* 공식 환율 선이 있으면 범례가 붙는 두 선 차트라 최소 높이를 더 준다 */}
+      <ChartArea className="min-h-[224px]">
         <IndicatorLineChart
           data={data.history.slice(-days)}
           series={series}
@@ -255,7 +255,7 @@ export function ValuationCard({ ticker, data }: { ticker: string; data: CryptoTi
         <Stat label="ATH 대비" value={current.athDrawdownPercent < 0 ? fmtPct(current.athDrawdownPercent).replace('+', '') : '0.00%'} />
       </div>
       <p className="text-xs text-muted-foreground">{fmtUtcDate(current.date)} 종가 기준</p>
-      <ChartArea className="min-h-[164px]">
+      <ChartArea className="min-h-[224px]">
         <IndicatorLineChart
           data={data.history.slice(-days)}
           series={[
