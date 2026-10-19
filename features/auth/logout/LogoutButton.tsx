@@ -20,6 +20,8 @@ export function LogoutButton({ className, children, 'aria-label': ariaLabel }: P
     window.location.href = '/dashboard'
   }
 
+  // 호출부가 className으로 형태 전체를 정한다(사이드바 nav 행·헤더 아이콘 링크 클래스 등) — 공용 Button은
+  // buttonVariants 기본(h-8·bg-primary)을 항상 병합해 그 형태가 깨지므로 raw button. 미지정 시만 outline sm
   return (
     <button
       type="button"

@@ -3,13 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { VrFields } from '../model/useStrategyForm'
 import { VrSettingsSection } from './VrSettingsSection'
 
-// Helper to find input within a label that contains specific text
 function getInputByLabelText(labelText: string) {
-  const labels = screen.getAllByText(labelText)
-  const labelElement = labels.find((el) => el.closest('label'))?.closest('label')
-  if (labelElement) {
-    return labelElement.querySelector('input') as HTMLInputElement
-  }
   return screen.getByLabelText(labelText) as HTMLInputElement
 }
 

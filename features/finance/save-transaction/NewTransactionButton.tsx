@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
-import { cn } from '@shared/lib/utils'
-import { buttonVariants } from '@/components/ui/button-variants'
+import { Button } from '@/components/ui/button'
 import type { FinanceCategoryType } from '@entities/finance'
 import { TransactionFormDialog } from './TransactionFormDialog'
 
@@ -22,14 +21,10 @@ export function NewTransactionButton({ type, className, windowFrom, windowTo }: 
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className={cn(buttonVariants({ variant: 'brand', size: 'cta' }), className)}
-      >
+      <Button variant="brand" size="cta" onClick={() => setOpen(true)} className={className}>
         <Plus className="size-3.5" />
         거래내역 등록
-      </button>
+      </Button>
       {/* CategoryManager 등 다른 CRUD 다이얼로그와 동일하게 조건부 마운트 — 항상 마운트해두면
           내부 useState(날짜·카테고리·금액·메모)가 다음 열림에도 초기화되지 않고 이전 입력값이 남는다. */}
       {open && (

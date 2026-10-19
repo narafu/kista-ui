@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { Checkbox } from '@/components/ui/checkbox'
 import type { AppErrorLog } from '@entities/admin'
 import { fmtDateTime } from '@shared/lib/format'
@@ -14,7 +13,6 @@ interface Props {
 }
 
 export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled = false }: Props) {
-  const [open, setOpen] = useState(false)
   const hasContext = Object.keys(log.context).length > 0
 
   return (
@@ -46,22 +44,18 @@ export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled =
             </pre>
           )}
 
-          {/* stackTrace 접기/펼치기 — 스택 없이 저장된 로그(클라이언트 보고 등)는 버튼 대신 안내 */}
+          {/* stackTrace 접기/펼치기 — 앱 공통 디스클로저(VrSettingsSection "고급 설정")와 같은 네이티브 details.
+              스택 없이 저장된 로그(클라이언트 보고 등)는 대신 안내 */}
           {log.stackTrace?.trim() ? (
-            <>
-              <button
-                type="button"
-                onClick={() => setOpen(v => !v)}
-                className="mt-1.5 text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
-              >
-                {open ? '스택트레이스 접기' : '스택트레이스 보기'}
-              </button>
-              {open && (
-                <pre className="mt-1 text-sm bg-muted/40 rounded p-2 overflow-x-auto whitespace-pre-wrap break-all">
-                  {log.stackTrace}
-                </pre>
-              )}
-            </>
+            <details className="group mt-1.5">
+              <summary className="cursor-pointer select-none text-sm font-medium text-muted-foreground list-none [&::-webkit-details-marker]:hidden flex items-center gap-1.5 hover:text-foreground">
+                <span aria-hidden className="transition-transform group-open:rotate-90">▸</span>
+                스택트레이스
+              </summary>
+              <pre className="mt-1 text-sm bg-muted/40 rounded p-2 overflow-x-auto whitespace-pre-wrap break-all">
+                {log.stackTrace}
+              </pre>
+            </details>
           ) : (
             <p className="mt-1.5 text-sm text-muted-foreground">스택트레이스 없음</p>
           )}

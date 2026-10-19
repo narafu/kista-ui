@@ -81,6 +81,7 @@ function BreakdownBar({ label, actual, allocated, remaining, percent, color, isG
 // depth별 들여쓰기 — 트리가 깊어져도 3단계 이상은 동일 들여쓰기로 묶는다.
 const INDENT_BY_DEPTH = ['', 'pl-4', 'pl-8', 'pl-10'] as const
 
+// 막대 차트까지 포함한 행 전체가 클릭 영역(카테고리 내역 보기)이라 공용 Button 대신 raw button + 이 클래스
 const ROW_BUTTON_CLASS = 'block w-full rounded-md px-1 py-0.5 text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 interface BudgetTreeRowProps {

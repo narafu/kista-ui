@@ -6,6 +6,7 @@ import { usePathname, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { useAdminPrivacyBasesQuery } from '@entities/privacy'
 import { useCandlesRangeQuery } from '@entities/market'
@@ -117,15 +118,15 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
         <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 pl-1 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-2">
             <Switch id="privacy-chart-show-orders" size="sm" checked={showOrders} onCheckedChange={setShowOrders} />
-            <label htmlFor="privacy-chart-show-orders" className="cursor-pointer">매수·매도 주문 표시</label>
+            <Label htmlFor="privacy-chart-show-orders" className="cursor-pointer text-xs font-normal">매수·매도 주문 표시</Label>
           </span>
           <span className="inline-flex items-center gap-2">
             <Switch id="privacy-chart-show-avg-gap" size="sm" checked={showAvgGap} onCheckedChange={setShowAvgGap} />
-            <label htmlFor="privacy-chart-show-avg-gap" className="cursor-pointer">평단가 괴리 강조</label>
+            <Label htmlFor="privacy-chart-show-avg-gap" className="cursor-pointer text-xs font-normal">평단가 괴리 강조</Label>
           </span>
           <span className="hidden items-center gap-2 sm:inline-flex">
             <Switch id="privacy-chart-show-pc-tooltip" size="sm" checked={showPcTooltip} onCheckedChange={setShowPcTooltip} />
-            <label htmlFor="privacy-chart-show-pc-tooltip" className="cursor-pointer">차트 툴팁 표시</label>
+            <Label htmlFor="privacy-chart-show-pc-tooltip" className="cursor-pointer text-xs font-normal">차트 툴팁 표시</Label>
           </span>
         </div>
 

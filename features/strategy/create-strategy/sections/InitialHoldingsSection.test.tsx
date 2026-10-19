@@ -1,14 +1,8 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { InitialHoldingsSection } from './InitialHoldingsSection'
 
-// Helper to find input within a label that contains specific text
 function getInputByLabelText(labelText: string) {
-  const labels = screen.getAllByText(labelText)
-  const labelElement = labels.find((el) => el.closest('label'))?.closest('label')
-  if (labelElement) {
-    return within(labelElement).getByRole('textbox') as HTMLInputElement
-  }
   return screen.getByLabelText(labelText) as HTMLInputElement
 }
 

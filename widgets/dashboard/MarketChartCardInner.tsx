@@ -25,6 +25,7 @@ const MA_LINES = [
 const RSI_COLOR_VAR = '--asset-series-4'
 const LINE_OPTIONS = { lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false } as const
 
+// RSI 단일 on/off 토글용 — SegmentedToggle은 택1 그룹이라 쓰지 않고, 같은 카드의 SegmentedToggle(sm) 항목과 같은 색·크기를 맞춘다
 function toggleButtonClass(active: boolean) {
   return cn(
     'text-xs px-1.5 py-1 rounded font-medium transition-colors',

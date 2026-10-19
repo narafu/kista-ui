@@ -1,5 +1,7 @@
 'use client'
 
+import { useId } from 'react'
+import { Label } from '@/components/ui/label'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import type { VrFields } from '../model/useStrategyForm'
 import type { RuntimeFieldSettings } from '@entities/runtime-config'
@@ -32,23 +34,25 @@ interface Props {
 function VrAdvancedSettings({
   fields, setField, disabled, vrRampDefaults, settings,
 }: Pick<Props, 'fields' | 'setField' | 'vrRampDefaults' | 'settings'> & { disabled: boolean }) {
+  const id = useId()
   return (
     <details className="mt-4 group">
-      <summary className="cursor-pointer select-none text-sm font-bold text-muted-foreground list-none flex items-center gap-1.5">
+      <summary className="cursor-pointer select-none text-sm font-bold text-muted-foreground list-none [&::-webkit-details-marker]:hidden flex items-center gap-1.5">
         <span className="transition-transform group-open:rotate-90">▸</span>
         고급 설정
       </summary>
       <div className="grid grid-cols-1 gap-y-5 mt-4">
-        <label>
-          <span className={VR_FIELD_LABEL_CLASS}>초기 V</span>
+        <div>
+          <Label htmlFor={`${id}-initialValue`} className={VR_FIELD_LABEL_CLASS}>초기 V</Label>
           <UnitInput
+            id={`${id}-initialValue`}
             value={fields.initialValue}
             onChange={(v) => setField('initialValue', v)}
             unit="USD"
             disabled={disabled}
             maxDecimals={2}
           />
-        </label>
+        </div>
         <OptionChoiceGroup
           label="밴드 폭"
           suffix="%"
@@ -74,6 +78,7 @@ function VrAdvancedSettings({
 
 export function VrSettingsSection({ fields, setField, recurringMode, setRecurringMode, loading, isEdit, initialVrValue, vrRampDefaults, settings }: Props) {
   const disabled = loading || isEdit
+  const id = useId()
 
   return (
     <div className="py-[18px] border-b border-border">
@@ -81,16 +86,17 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
 
       <div className="grid grid-cols-1 gap-y-5">
         {isEdit && (
-          <label>
-            <span className={VR_FIELD_LABEL_CLASS}>초기 V값</span>
+          <div>
+            <Label htmlFor={`${id}-initialVrValue`} className={VR_FIELD_LABEL_CLASS}>초기 V값</Label>
             <UnitInput
+              id={`${id}-initialVrValue`}
               value={initialVrValue}
               onChange={() => {}}
               unit="USD"
               disabled={disabled}
               unitClassName="ml-2"
             />
-          </label>
+          </div>
         )}
 
         <RecurringModeField

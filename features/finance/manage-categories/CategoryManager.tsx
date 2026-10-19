@@ -22,7 +22,7 @@ import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
 import { CategoryFormDialog } from './CategoryFormDialog'
 import { CategoryRow } from './CategoryRow'
 import { DeleteCategoryDialog } from './DeleteCategoryDialog'
-import { TypeButton } from './TypeButton'
+import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 
 // 4타입(ASSET/INCOME/EXPENSE/SAVING) 카테고리 트리를 사용자가 직접 생성·수정·삭제하는 화면.
 // 수입/지출/저축 탭 자체는 아직 미구현이지만 카테고리는 미리 만들어둘 수 있어야 해서 타입
@@ -63,13 +63,14 @@ export function CategoryManager() {
 
   return (
     <div className="space-y-4">
-      <div role="group" aria-label="카테고리 유형" className="grid w-full grid-cols-4 rounded-md border border-border p-0.5 sm:w-96">
-        {meta.financeCategoryTypes.map((t) => (
-          <TypeButton key={t.code} active={type === t.code} onClick={() => setType(t.code as FinanceCategoryType)}>
-            {t.label}
-          </TypeButton>
-        ))}
-      </div>
+      <SegmentedToggle
+        aria-label="카테고리 유형"
+        options={meta.financeCategoryTypes.map((t) => ({ value: t.code as FinanceCategoryType, label: t.label }))}
+        value={type}
+        onChange={setType}
+        className="grid w-full grid-cols-4 sm:w-96"
+        itemClassName="text-sm"
+      />
 
       <div className="flex justify-end">
         <Button type="button" variant="brand-soft" size="sm" className="gap-1.5" onClick={() => setFormTarget('new')}>

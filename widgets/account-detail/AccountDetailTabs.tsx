@@ -7,15 +7,17 @@ import { AccountSummaryCard } from './AccountSummaryCard'
 import { TradesTab } from './TradesTab'
 import { CryptoHoldingsCard } from './CryptoHoldingsCard'
 import { isCryptoBroker } from '@shared/lib/api-schema'
+import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import type { Account } from '@entities/account'
 import type { CryptoPortfolio } from '@entities/trade'
 
 type Tab = 'summary' | 'strategy'
 
-const TAB_LABELS: Record<Tab, string> = {
-  summary: '계좌',
-  strategy: '전략',
-}
+// 통계·가계부 탭바(SectionTabBar)와 같은 세그먼트 형태 — 라우트가 아닌 화면 내 상태 탭이라 SegmentedToggle
+const TAB_OPTIONS: { value: Tab; label: string }[] = [
+  { value: 'summary', label: '계좌' },
+  { value: 'strategy', label: '전략' },
+]
 
 interface Props {
   account: Account
@@ -36,18 +38,14 @@ export function AccountDetailTabs({ account, usdDeposit, posEvalUsd, cryptoPortf
   return (
     <div className="space-y-4">
       {/* 모바일 탭 헤더 */}
-      <div className="flex lg:hidden gap-1 border-b overflow-x-auto">
-        {(['summary', 'strategy'] as Tab[]).map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setActiveTab(tab)}
-            className={`flex-shrink-0 py-3 px-2 text-sm font-medium border-b-2 transition-colors ${activeTab === tab ? 'border-primary text-primary' : 'border-transparent text-muted-foreground'}`}
-          >
-            {TAB_LABELS[tab]}
-          </button>
-        ))}
-      </div>
+      <SegmentedToggle
+        aria-label="계좌 상세 탭"
+        options={TAB_OPTIONS}
+        value={activeTab}
+        onChange={setActiveTab}
+        className="grid w-full grid-cols-2 lg:hidden"
+        itemClassName="text-sm"
+      />
 
       {/* 모바일: 탭 콘텐츠 */}
       <div className="lg:hidden">

@@ -1,6 +1,8 @@
 'use client'
 
+import { useId } from 'react'
 import { UnitInput } from '@shared/ui/UnitInput'
+import { StrategyFieldLabel } from '../StrategyFieldLabel'
 
 interface Props {
   avgPrice: number | null
@@ -11,12 +13,14 @@ interface Props {
 
 // 중간부터 시작 — 이미 종목을 보유 중인 사용자가 기존 평단가·수량을 입력해 그 지점부터 전략을 시작하는 공통 입력(등록 전용)
 export function InitialHoldingsSection({ avgPrice, quantity, setField, loading }: Props) {
+  const id = useId()
   return (
     <div className="py-[18px] border-b border-border">
       <div className="grid grid-cols-2 gap-2">
-        <label>
-          <span className="block mb-1 text-xs font-semibold text-muted-foreground">평단가</span>
+        <div>
+          <StrategyFieldLabel htmlFor={`${id}-avgPrice`}>평단가</StrategyFieldLabel>
           <UnitInput
+            id={`${id}-avgPrice`}
             value={avgPrice}
             onChange={(value) => setField('avgPrice', value)}
             unit="USD"
@@ -24,17 +28,18 @@ export function InitialHoldingsSection({ avgPrice, quantity, setField, loading }
             unitClassName="ml-1.5"
             maxDecimals={2}
           />
-        </label>
-        <label>
-          <span className="block mb-1 text-xs font-semibold text-muted-foreground">수량</span>
+        </div>
+        <div>
+          <StrategyFieldLabel htmlFor={`${id}-quantity`}>수량</StrategyFieldLabel>
           <UnitInput
+            id={`${id}-quantity`}
             value={quantity}
             onChange={(value) => setField('quantity', value)}
             unit="주"
             disabled={loading}
             unitClassName="ml-1.5"
           />
-        </label>
+        </div>
       </div>
     </div>
   )

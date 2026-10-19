@@ -3,13 +3,11 @@
 import { useState } from 'react'
 import { Send, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { buttonVariants } from '@/components/ui/button-variants'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@shared/ui/Badge'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { useDeleteTelegramMutation } from '@entities/user'
-import { cn } from '@shared/lib/utils'
 import type { NotificationChannel } from '@entities/user'
 import { useTelegramConnectForm } from './useTelegramConnectForm'
 
@@ -53,14 +51,17 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
             <div className="text-sm font-bold font-mono truncate min-w-0">
               {telegramBotUsername ? `@${telegramBotUsername}` : '-'}
             </div>
-            <button
-              type="button"
+            {/* 확인 다이얼로그를 여는 트리거라 native disabled 대신 focusableWhenDisabled(aria-disabled) — 포커스가 body로 빠지지 않게 */}
+            <Button
+              variant="destructive"
+              size="sm"
               onClick={() => setIsDisconnectOpen(true)}
               disabled={isDeleteLoading}
-              className={cn(buttonVariants({ variant: 'destructive', size: 'sm' }), 'shrink-0')}
+              focusableWhenDisabled
+              className="shrink-0 aria-disabled:opacity-50"
             >
               {isDeleteLoading ? '해제 중...' : '연결 해제'}
-            </button>
+            </Button>
           </div>
           <ConfirmDeleteDialog
             open={isDisconnectOpen}

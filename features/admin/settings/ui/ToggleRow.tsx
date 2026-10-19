@@ -1,5 +1,6 @@
 'use client'
 
+import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 
 export function ToggleRow({ id, label, description, checked, onChange }: {
@@ -8,7 +9,7 @@ export function ToggleRow({ id, label, description, checked, onChange }: {
   return (
     <div className="flex items-center justify-between gap-5 py-3">
       <div>
-        <label htmlFor={id} className="text-sm font-semibold">{label}</label>
+        <Label htmlFor={id}>{label}</Label>
         {description && <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>}
       </div>
       <Switch id={id} checked={checked} onCheckedChange={onChange} aria-label={label} />

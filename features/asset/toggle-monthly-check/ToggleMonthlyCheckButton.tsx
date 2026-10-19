@@ -26,6 +26,7 @@ export function ToggleMonthlyCheckButton({ month, completed }: Props) {
     )
   }
 
+  // 완료/미완료 상태를 status 토큰·점선 pill로 보여주는 상태 토글 — buttonVariants에 해당 형태가 없어 raw button
   return (
     <button
       type="button"
@@ -33,7 +34,7 @@ export function ToggleMonthlyCheckButton({ month, completed }: Props) {
       disabled={mutation.isPending}
       aria-pressed={completed}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors disabled:opacity-60',
+        'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors disabled:opacity-50',
         completed
           ? 'border-[var(--status-ok)] bg-[var(--status-ok-bg)] text-[var(--status-ok)]'
           : 'border-dashed border-muted-foreground/50 bg-transparent text-muted-foreground hover:border-foreground/60 hover:text-foreground',

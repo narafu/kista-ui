@@ -15,6 +15,7 @@ import {
 import { useChangeUserRoleMutation } from '@entities/admin'
 import { USER_ROLE_LABEL } from '@entities/user'
 import type { UserRole } from '@entities/user'
+import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { Spinner } from '@shared/ui/Spinner'
 import { cn } from '@shared/lib/utils'
@@ -42,14 +43,9 @@ export function ChangeRoleButton({ userId, nickname, currentRole, isSelf = false
   if (isSelf) {
     return (
       <>
-        <button
-          type="button"
-          disabled
-          aria-describedby={`self-role-${userId}`}
-          className={cn(buttonVariants({ variant: 'outline', size: 'xs' }), 'opacity-40')}
-        >
+        <Button variant="outline" size="xs" disabled aria-describedby={`self-role-${userId}`}>
           → {newRoleLabel}
-        </button>
+        </Button>
         <span id={`self-role-${userId}`} className="sr-only">자신의 역할은 변경할 수 없습니다</span>
       </>
     )

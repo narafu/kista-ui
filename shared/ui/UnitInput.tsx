@@ -28,6 +28,7 @@ function inputBoxClass(disabled: boolean) {
 
 // 우측 정렬 숫자 입력 + 단위 라벨 — VR 상세 설정, 중간부터 시작(평단가·수량), 백테스트 폼 등 여러 도메인이 공유하는 마크업
 export function UnitInput({
+  id,
   value,
   onChange,
   unit,
@@ -38,6 +39,8 @@ export function UnitInput({
   unitClassName,
   maxDecimals,
 }: {
+  // 바깥 <Label htmlFor>와 연결
+  id?: string
   value: number | null
   onChange: (value: number | null) => void
   unit: string
@@ -71,9 +74,11 @@ export function UnitInput({
   }
 
   return (
-    <div className={cn(inputBoxClass(disabled), wrapperClassName)}>
+    // 상자 전체(패딩·단위 포함)를 눌러도 입력으로 포커스가 가도록 label로 감싼다 — 바깥 <Label htmlFor>와 별개
+    <label className={cn(inputBoxClass(disabled), wrapperClassName)}>
       {/* 단위·기호를 품은 컨테이너가 테두리·포커스를 그리므로 안쪽은 공용 Input이 아닌 투명 raw input */}
       <input
+        id={id}
         type="text"
         inputMode="decimal"
         aria-label={ariaLabel}
@@ -86,6 +91,6 @@ export function UnitInput({
         className="flex-1 min-w-0 border-0 bg-transparent text-right text-base font-semibold outline-none disabled:pointer-events-none disabled:text-muted-foreground"
       />
       <span className={cn('text-xs font-semibold text-muted-foreground', unitClassName)}>{unit}</span>
-    </div>
+    </label>
   )
 }

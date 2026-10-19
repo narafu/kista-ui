@@ -78,9 +78,10 @@ export function BacktestForm({ form }: Props) {
           </div>
         </div>
 
-        <label className="block">
-          <span className={FIELD_LABEL_CLASS}>예수금</span>
+        <div>
+          <Label htmlFor="backtestSeed" className={FIELD_LABEL_CLASS}>예수금</Label>
           <UnitInput
+            id="backtestSeed"
             value={form.seed}
             onChange={form.setSeed}
             unit="USD"
@@ -88,12 +89,13 @@ export function BacktestForm({ form }: Props) {
             unitClassName="ml-1.5"
             maxDecimals={2}
           />
-        </label>
+        </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <label>
-            <span className={FIELD_LABEL_CLASS}>평단가</span>
+          <div>
+            <Label htmlFor="backtestAvgPrice" className={FIELD_LABEL_CLASS}>평단가</Label>
             <UnitInput
+              id="backtestAvgPrice"
               value={form.avgPrice}
               onChange={form.setAvgPrice}
               unit="USD"
@@ -101,17 +103,18 @@ export function BacktestForm({ form }: Props) {
               unitClassName="ml-1.5"
               maxDecimals={2}
             />
-          </label>
-          <label>
-            <span className={FIELD_LABEL_CLASS}>수량</span>
+          </div>
+          <div>
+            <Label htmlFor="backtestQuantity" className={FIELD_LABEL_CLASS}>수량</Label>
             <UnitInput
+              id="backtestQuantity"
               value={form.quantity}
               onChange={(v) => form.setQuantity(v !== null ? Math.round(v) : null)}
               unit="주"
               disabled={form.isLoading}
               unitClassName="ml-1.5"
             />
-          </label>
+          </div>
         </div>
 
         {form.type === 'INFINITE' && form.divisionCountOptions.length > 0 && (
@@ -173,16 +176,17 @@ export function BacktestForm({ form }: Props) {
                 고급 설정
               </summary>
               <div className="grid grid-cols-1 gap-y-5 mt-4">
-                <label>
-                  <span className={VR_FIELD_LABEL_CLASS}>초기 V</span>
+                <div>
+                  <Label htmlFor="backtestVrInitialValue" className={VR_FIELD_LABEL_CLASS}>초기 V</Label>
                   <UnitInput
+                    id="backtestVrInitialValue"
                     value={form.vrInitialValue}
                     onChange={form.setVrInitialValue}
                     unit="USD"
                     disabled={form.isLoading}
                     maxDecimals={2}
                   />
-                </label>
+                </div>
                 <OptionChoiceGroup
                   label="밴드 폭"
                   suffix="%"

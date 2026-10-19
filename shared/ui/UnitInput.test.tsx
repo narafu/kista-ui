@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { UnitInput } from './UnitInput'
 
@@ -62,5 +63,13 @@ describe('UnitInput', () => {
     )
 
     expect(screen.getByLabelText('비활성 입력')).toHaveClass('disabled:pointer-events-none')
+  })
+
+  it('focuses the input when the unit inside the box is clicked', async () => {
+    render(<ControlledUnitInput />)
+
+    await userEvent.click(screen.getByText('USD'))
+
+    expect(screen.getByLabelText('평단가')).toHaveFocus()
   })
 })

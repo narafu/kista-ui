@@ -2,8 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import { useReportClientError } from '@entities/error-log'
-import { buttonVariants } from '@/components/ui/button-variants'
-import { cn } from '@shared/lib/utils'
+import { Button } from '@/components/ui/button'
 import './globals.css'
 
 export default function GlobalError({
@@ -60,13 +59,9 @@ export default function GlobalError({
             예상치 못한 내부 오류가 발생했습니다
           </p>
 
-          <button
-            type="button"
-            onClick={reset}
-            className={cn(buttonVariants({ size: 'form' }), 'px-6')}
-          >
+          <Button size="form" className="px-6" onClick={reset}>
             다시 시도
-          </button>
+          </Button>
         </div>
       </body>
     </html>

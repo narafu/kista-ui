@@ -95,16 +95,19 @@ describe('ErrorLogsSectionClient', () => {
 
     render(<ErrorLogsSectionClient logs={logs} />)
 
-    await user.click(screen.getAllByRole('button', { name: '스택트레이스 보기' })[0])
+    const summary = screen.getAllByText('스택트레이스', { selector: 'summary', exact: false })[0]
+    expect(summary.closest('details')).not.toHaveAttribute('open')
 
-    expect(screen.getByText('trace-1')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '스택트레이스 접기' })).toBeInTheDocument()
+    await user.click(summary)
+
+    expect(summary.closest('details')).toHaveAttribute('open')
+    expect(screen.getByText('trace-1')).toBeVisible()
   })
 
   it('shows a placeholder instead of the toggle when the stack trace is empty', () => {
     render(<ErrorLogsSectionClient logs={[{ ...logs[0], stackTrace: null }]} />)
 
-    expect(screen.queryByRole('button', { name: '스택트레이스 보기' })).not.toBeInTheDocument()
+    expect(screen.queryByText('스택트레이스', { selector: 'summary', exact: false })).not.toBeInTheDocument()
     expect(screen.getByText('스택트레이스 없음')).toBeInTheDocument()
   })
 

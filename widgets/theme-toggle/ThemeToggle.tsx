@@ -10,11 +10,14 @@ export function ThemeToggle({ className }: { className?: string }) {
   const mounted = useSyncExternalStore(() => () => {}, () => true, () => false)
   const isDark = mounted && resolvedTheme === 'dark'
 
+  // 공용 Switch는 thumb에 아이콘(해·달)을 넣을 자리가 없어 raw button — 의미는 role="switch"로 맞춘다
   return (
     <button
       type="button"
+      role="switch"
+      aria-checked={isDark}
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      aria-label="테마 전환"
+      aria-label="다크 모드"
       className={cn(
         'relative flex items-center w-11 h-6 rounded-full border border-border transition-colors cursor-pointer',
         isDark ? 'bg-rose-600' : 'bg-muted',

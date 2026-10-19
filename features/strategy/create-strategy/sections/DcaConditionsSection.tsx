@@ -105,13 +105,12 @@ export function DcaConditionsSection({ form, market, indicators, direction }: Pr
                     </Select>
                   )} />
                 ) : (
-                  <label className="flex items-center gap-1">
-                    <span className="sr-only">{`조건 ${i + 1} 기준값`}</span>
-                    <Input type="number" step="any" aria-invalid={!!rowError?.threshold} aria-describedby={errorId}
+                  <div className="flex items-center gap-1">
+                    <Input type="number" step="any" aria-label={`조건 ${i + 1} 기준값`} aria-invalid={!!rowError?.threshold} aria-describedby={errorId}
                       {...form.register(`conditions.${i}.threshold`, { setValueAs: (v) => (v === '' || v == null ? null : Number(v)) })}
                       className="h-11 w-20 rounded-[var(--r-sm)] px-2" />
                     {indicator && THRESHOLD_SUFFIX[indicator] && <span className="text-sm">{THRESHOLD_SUFFIX[indicator]}</span>}
-                  </label>
+                  </div>
                 )}
 
                 <Controller control={form.control} name={`conditions.${i}.operator`} render={({ field }) => (

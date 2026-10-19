@@ -89,12 +89,13 @@ function LoginPageContent() {
         </p>
       )}
 
-      {/* 카카오 로그인 */}
+      {/* 카카오 로그인 — 카카오 로그인 디자인 가이드 색(#FEE500/#3C1E1E)을 따라야 해 공용 Button variant 대신 raw button.
+          hover는 투명도 대신 명도(constraints 접근성 규칙, brand variant와 같은 brightness-95) */}
       <button
         type="button"
         onClick={handleKakaoLogin}
         disabled={isLoading}
-        className="flex items-center justify-center gap-2.5 w-full h-[52px] rounded-[10px] font-bold text-base transition-opacity hover:opacity-90 select-none cursor-pointer border-0 bg-[#FEE500] text-[#3C1E1E] disabled:opacity-60 disabled:cursor-not-allowed"
+        className="flex items-center justify-center gap-2.5 w-full h-[52px] rounded-[10px] font-bold text-base transition-[filter] enabled:hover:brightness-95 select-none cursor-pointer border-0 bg-[#FEE500] text-[#3C1E1E] disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {isLoading ? (
           <>

@@ -56,6 +56,8 @@ export function BrokerStep({ onNext }: Props) {
           const ui = BROKER_UI[code]
           if (!ui) return null
           const { description, Icon } = ui
+          // 누르면 바로 다음 단계로 가는 액션 카드 — SelectionCard는 aria-pressed(선택 상태)를 강제해 의미가 맞지 않는다.
+          // hover는 AccountCard·StrategyCard 링크 카드와 같은 패턴
           return (
             <button
               key={code}

@@ -14,7 +14,7 @@ import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
 import { CategoryRow } from './CategoryRow'
 import { DeleteCategoryDialog } from './DeleteCategoryDialog'
 import { SystemCategoryFormDialog } from './SystemCategoryFormDialog'
-import { TypeButton } from './TypeButton'
+import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 
 // 관리자 전용 시스템(공통) 카테고리 CRUD — CategoryManager와 거의 동일한 구조이되
 // /api/admin/finance/categories를 소비하고(캐시 네임스페이스 분리: systemCategoriesRoot),
@@ -42,13 +42,14 @@ export function SystemCategoryManager() {
 
   return (
     <div className="space-y-4">
-      <div role="group" aria-label="카테고리 유형" className="grid w-full grid-cols-4 rounded-md border border-border p-0.5 sm:w-96">
-        {meta.financeCategoryTypes.map((t) => (
-          <TypeButton key={t.code} active={type === t.code} onClick={() => setType(t.code as FinanceCategoryType)}>
-            {t.label}
-          </TypeButton>
-        ))}
-      </div>
+      <SegmentedToggle
+        aria-label="카테고리 유형"
+        options={meta.financeCategoryTypes.map((t) => ({ value: t.code as FinanceCategoryType, label: t.label }))}
+        value={type}
+        onChange={setType}
+        className="grid w-full grid-cols-4 sm:w-96"
+        itemClassName="text-sm"
+      />
 
       <div className="flex justify-end">
         <Button type="button" variant="brand-soft" size="sm" className="gap-1.5" onClick={() => setFormTarget('new')}>
