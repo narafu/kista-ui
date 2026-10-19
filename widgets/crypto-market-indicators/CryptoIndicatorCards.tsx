@@ -60,7 +60,8 @@ function IndicatorCard({ title, description, days, onDaysChange, className, chil
             <PopoverTrigger aria-label={`${title} 설명`} className="inline-flex size-6 -my-[5px] items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
               <Info className="size-3.5" />
             </PopoverTrigger>
-            <PopoverContent className="w-auto text-sm whitespace-pre">{description}</PopoverContent>
+            {/* 설명은 줄 단위로 쓰되 좁은 화면에서는 줄 안에서도 어절 단위로 접혀 화면 밖으로 넘치지 않게 한다 */}
+            <PopoverContent className="w-auto max-w-[calc(100vw-2rem)] text-sm break-keep whitespace-pre-line">{description}</PopoverContent>
           </Popover>
         </div>
       </div>
