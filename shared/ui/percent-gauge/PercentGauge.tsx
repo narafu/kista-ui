@@ -71,8 +71,7 @@ function PercentInputRow({ value, onChange, minPct, allDisabled, compact }: Inpu
             if (raw === '') { onChange(0); return }
             onChange(Math.min(100, Number(raw)))
           }}
-          className="flex-1 border-0 outline-none bg-transparent font-extrabold text-foreground text-right min-w-0"
-          style={{ fontSize: compact ? 16 : 18, fontFamily: 'inherit' }}
+          className={cn('flex-1 border-0 outline-none bg-transparent font-extrabold text-foreground text-right min-w-0', compact ? 'text-base' : 'text-lg')}
         />
         <span className="text-sm font-extrabold text-[var(--rose-600)] ml-1">%</span>
       </div>
@@ -82,15 +81,13 @@ function PercentInputRow({ value, onChange, minPct, allDisabled, compact }: Inpu
         type="button"
         disabled={allDisabled}
         onClick={() => onChange(100)}
-        style={{
-          background: allDisabled
-            ? 'var(--muted)'
-            : 'linear-gradient(135deg, var(--rose-400), var(--rose-600))',
-        }}
+        // 그라데이션은 brand variant와 같은 rose-500→700 — rose-400 시작점은 흰 글자 대비가 4.5:1 미만이고, 다크는 밝은 rose라 배경색 글자를 쓴다
         className={cn(
           'px-3.5 rounded-lg border border-[var(--rose-400)] text-xs font-bold tracking-[0.05em]',
           compact ? 'h-[38px]' : 'h-10',
-          allDisabled ? 'text-muted-foreground cursor-not-allowed opacity-50' : 'text-white cursor-pointer'
+          allDisabled
+            ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-50'
+            : 'bg-gradient-to-br from-rose-500 to-rose-700 text-white dark:text-background cursor-pointer'
         )}
       >
         MAX
@@ -189,11 +186,8 @@ function SliderRow({ value, onChange, allDisabled, handleSize, halfHandle, track
         >
           {/* 채워진 트랙 */}
           <div
-            className="absolute inset-y-[-1px] left-0 rounded-full border border-[var(--rose-500)]"
-            style={{
-              width: `${value}%`,
-              background: 'linear-gradient(90deg, var(--rose-300), var(--rose-500))',
-            }}
+            className="absolute inset-y-[-1px] left-0 rounded-full border border-[var(--rose-500)] bg-gradient-to-r from-[var(--rose-300)] to-[var(--rose-500)]"
+            style={{ width: `${value}%` }}
           />
         </div>
 
