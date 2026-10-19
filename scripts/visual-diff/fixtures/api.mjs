@@ -25,15 +25,28 @@ const errorLogs = [
 
 // 운영 설정: VR 정기 입출금 방식을 사용자 변경 허용 + 일부 허용으로 고정한다 — 로컬에서 설정을 바꿔도 허용 체크박스·기본값 라디오(비활성 포함)가 찍히게
 const pinRecurringMode = (settings) => {
-  if (settings.strategies?.VR?.fields) settings.strategies.VR.fields.recurringMode ={ customizable: true, allowedValues: ['DEPOSIT', 'HOLD'], defaultValue: 'HOLD' }
+  if (settings.strategies?.VR?.fields) settings.strategies.VR.fields.recurringMode = { customizable: true, allowedValues: ['DEPOSIT', 'HOLD'], defaultValue: 'HOLD' }
   return settings
+}
+
+// fixture 응답은 프록시 메모이즈를 거치지 않는다 — 실행 도중 설정이 바뀌어 head/base가 달라지지 않게 성공 응답을 인증 헤더별로 직접 메모이즈한다
+const settingsCache = new Map()
+const fetchSettings = async (url, req, upstream) => {
+  const up = await fetch(upstream + url.pathname, { headers: { authorization: req.headers.authorization ?? '', cookie: req.headers.cookie ?? '' } })
+  return up.ok ? { body: pinRecurringMode(await up.json()) } : { status: up.status, body: await up.json().catch(() => ({})) }
 }
 
 export async function route(url, req, { upstream }) {
   if (url.pathname === '/api/admin/privacy-trade-bases') return { body: privacyBases }
   if (url.pathname === '/api/admin/logs/errors') return { body: errorLogs }
   if (url.pathname === '/api/admin/settings') {
-    const up = await fetch(upstream + url.pathname, { headers: { authorization: req.headers.authorization ?? '', cookie: req.headers.cookie ?? '' } })
-    return up.ok ? { body: pinRecurringMode(await up.json()) } : { status: up.status, body: await up.json().catch(() => ({})) }
+    const key = req.headers.authorization ?? req.headers.cookie
+    let pending = settingsCache.get(key)
+    if (!pending) {
+      pending = fetchSettings(url, req, upstream)
+      settingsCache.set(key, pending)
+      pending.then((r) => { if (r.status) settingsCache.delete(key) }, () => settingsCache.delete(key))
+    }
+    return pending
   }
 }
