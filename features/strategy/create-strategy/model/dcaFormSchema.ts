@@ -61,7 +61,7 @@ export const dcaFormSchema = z.object({
     ctx.addIssue({ code: 'custom', path: ['dayOfMonth'], message: '1~31일 또는 말일을 선택하세요.' })
   }
   if (v.market === 'CRYPTO_KRW') {
-    if (v.orderType !== 'MARKET') ctx.addIssue({ code: 'custom', path: ['orderType'], message: '코인은 시장가 주문만 지원합니다.' })
+    if (v.orderType !== 'MARKET') ctx.addIssue({ code: 'custom', path: ['orderType'], message: '크립토는 시장가 주문만 지원합니다.' })
     // 00시가 유효값이라 == null로 판정한다(truthy 검사 금지)
     if (v.executionHour == null) ctx.addIssue({ code: 'custom', path: ['executionHour'], message: '실행 시각을 선택하세요.' })
     if (v.amount != null && !Number.isInteger(v.amount)) {

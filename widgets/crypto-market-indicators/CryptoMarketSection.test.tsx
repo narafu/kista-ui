@@ -13,8 +13,9 @@ vi.mock('@entities/market', () => ({
 
 // 차트는 next/dynamic(ssr:false)로 비동기 로드된다 — 이 스위트는 상태 분기만 보므로 동기 스텁으로 대체한다
 vi.mock('next/dynamic', () => ({
-  default: () => ({ title, series, data }: { title: string; series: { name: string }[]; data: readonly unknown[] }) => (
-    <div data-points={data.length}>{title}: {series.map((s) => s.name).join(', ')}</div>
+  // 이동평균은 첫·마지막 점 값만 노출해 "자르기 전 전체 추이로 계산했는지"를 확인한다
+  default: () => ({ title, series, data }: { title: string; series: { name: string }[]; data: readonly { ma?: number | null }[] }) => (
+    <div data-points={data.length} data-first-ma={String(data[0]?.ma)} data-last-ma={String(data.at(-1)?.ma)}>{title}: {series.map((s) => s.name).join(', ')}</div>
   ),
 }))
 
@@ -82,7 +83,7 @@ describe('CryptoMarketSection', () => {
     useQueryMock.mockReturnValue({ data: indicators({ tickers: [{ ticker: 'BTC', ...EMPTY_TICKER, coinbasePremium }] }) })
     render(<CryptoMarketSection />)
 
-    expect(screen.queryByText('코인 시장 지표를 불러오지 못했습니다.')).not.toBeInTheDocument()
+    expect(screen.queryByText('크립토 시장 지표를 불러오지 못했습니다.')).not.toBeInTheDocument()
     expect(screen.getByText(/^BTC Coinbase 프리미엄 추이/)).toBeInTheDocument()
   })
 
@@ -173,7 +174,7 @@ describe('CryptoMarketSection', () => {
     useQueryMock.mockReturnValue({ data: indicators({ tickers: [{ ticker: 'BTC', ...EMPTY_TICKER }] }) })
     render(<CryptoMarketSection />)
 
-    expect(screen.getByText('코인 시장 지표를 불러오지 못했습니다.')).toBeInTheDocument()
+    expect(screen.getByText('크립토 시장 지표를 불러오지 못했습니다.')).toBeInTheDocument()
     expect(screen.getByText('BTC 반감기')).toBeInTheDocument()
   })
 
@@ -211,7 +212,7 @@ describe('CryptoMarketSection', () => {
     useQueryMock.mockReturnValue({ data: indicators({ tickers: [ticker('BTC', { kimchiPremium: null, fundingRate: null, openInterest: null })] }) })
     render(<CryptoMarketSection />)
 
-    expect(screen.queryByText('코인 시장 지표를 불러오지 못했습니다.')).not.toBeInTheDocument()
+    expect(screen.queryByText('크립토 시장 지표를 불러오지 못했습니다.')).not.toBeInTheDocument()
     expect(screen.getByText(/^BTC 장기 밸류에이션 추이/)).toBeInTheDocument()
   })
 
@@ -228,7 +229,7 @@ describe('CryptoMarketSection', () => {
     expect(screen.queryByText(/테더 프리미엄/)).not.toBeInTheDocument()
     expect(screen.getByText('+1.10%')).toBeInTheDocument()
     expect(screen.getByText('환율을 불러오지 못해 공식 환율 기준 값을 표시하지 않습니다.')).toBeInTheDocument()
-    expect(screen.getByText('BTC 김치 프리미엄 추이: 테더 기준')).toBeInTheDocument()
+    expect(screen.getByText('BTC 김치 프리미엄 추이: 테더 기준, 테더 30일 평균')).toBeInTheDocument()
   })
 
   it('shows the whole-area error when every section is null even though the response is 200', () => {
@@ -236,7 +237,7 @@ describe('CryptoMarketSection', () => {
     useQueryMock.mockReturnValue({ data: indicators({ tickers: [ticker('BTC', EMPTY_TICKER), ticker('ETH', EMPTY_TICKER)] }) })
     render(<CryptoMarketSection />)
 
-    expect(screen.getByText('코인 시장 지표를 불러오지 못했습니다.')).toBeInTheDocument()
+    expect(screen.getByText('크립토 시장 지표를 불러오지 못했습니다.')).toBeInTheDocument()
     expect(screen.queryByRole('tab')).not.toBeInTheDocument()
   })
 
@@ -244,7 +245,7 @@ describe('CryptoMarketSection', () => {
     useQueryMock.mockReturnValue({ isError: true, refetch: refetchMock })
     render(<CryptoMarketSection />)
 
-    expect(screen.getByText('코인 시장 지표를 불러오지 못했습니다.')).toBeInTheDocument()
+    expect(screen.getByText('크립토 시장 지표를 불러오지 못했습니다.')).toBeInTheDocument()
     await userEvent.setup().click(screen.getByRole('button', { name: '다시 시도' }))
     expect(refetchMock).toHaveBeenCalled()
   })
@@ -273,7 +274,7 @@ describe('CryptoMarketSection', () => {
     useQueryMock.mockReturnValue({ data: indicators({ tickers: [] }) })
     render(<CryptoMarketSection />)
 
-    expect(screen.getByText('코인 시장 지표를 불러오지 못했습니다.')).toBeInTheDocument()
+    expect(screen.getByText('크립토 시장 지표를 불러오지 못했습니다.')).toBeInTheDocument()
   })
 
   it('keeps the official history line when only today\'s exchange rate is missing', () => {
@@ -285,7 +286,23 @@ describe('CryptoMarketSection', () => {
     render(<CryptoMarketSection />)
 
     expect(screen.queryByText('공식 환율 기준')).not.toBeInTheDocument()
-    expect(screen.getByText('BTC 김치 프리미엄 추이: 공식 환율 기준, 테더 기준')).toBeInTheDocument()
+    expect(screen.getByText('BTC 김치 프리미엄 추이: 공식 환율 기준, 테더 기준, 테더 30일 평균')).toBeInTheDocument()
+  })
+
+  it('overlays a 30-day moving average computed over the full history before slicing the range', async () => {
+    const history = Array.from({ length: 60 }, (_, i) => ({ date: `d${i}`, value: i }))
+    useQueryMock.mockReturnValue({ data: indicators({ tickers: [ticker('BTC', { coinbasePremium: { current: 59, history } })] }) })
+    render(<CryptoMarketSection />)
+
+    const chart = screen.getByText(/^BTC Coinbase 프리미엄 추이/)
+    expect(chart).toHaveTextContent('Coinbase 프리미엄, 30일 평균')
+    expect(chart).toHaveAttribute('data-first-ma', 'null') // 앞 29일은 평균을 낼 구간이 모자란다
+    expect(chart).toHaveAttribute('data-last-ma', '44.5') // 30~59의 평균
+
+    await userEvent.setup().click(within(screen.getByRole('group', { name: 'BTC Coinbase 프리미엄 조회 기간(일)' })).getByRole('button', { name: '30' }))
+    expect(chart).toHaveAttribute('data-points', '30')
+    expect(chart).toHaveAttribute('data-first-ma', '15.5') // 30일만 잘라도 첫 점의 평균은 그 앞 29일까지 써서 계산된다
+    expect(screen.getByText(/^BTC 펀딩비 일평균 추이/)).toHaveTextContent('일평균 펀딩비, 30일 평균')
   })
 
   it('shows only the latest N days for the selected range of each card', async () => {
@@ -316,7 +333,7 @@ describe('CryptoMarketSection', () => {
     useQueryMock.mockReturnValue({ data: indicators(), isError: true })
     render(<CryptoMarketSection />)
 
-    expect(screen.queryByText('코인 시장 지표를 불러오지 못했습니다.')).not.toBeInTheDocument()
+    expect(screen.queryByText('크립토 시장 지표를 불러오지 못했습니다.')).not.toBeInTheDocument()
     expect(screen.getByText('BTC 김치 프리미엄')).toBeInTheDocument()
   })
 })

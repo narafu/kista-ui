@@ -82,7 +82,7 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
       <div className="flex flex-col gap-4">
         <NicknameField
           value={nickname}
-          placeholder={isMock ? '예: 모의 계좌' : config ? '예: 메인 계좌' : '예: 코인 계좌'}
+          placeholder={isMock ? '예: 모의 계좌' : config ? '예: 메인 계좌' : '예: 크립토 계좌'}
           showError={showNicknameError}
           onChange={setNickname}
           onBlur={() => setTouchedNickname(true)}

@@ -7,6 +7,7 @@ import { Surface } from '@shared/ui/Surface'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { fmtCompactUsd, fmtSignedPercent } from '@shared/lib/format'
+import { sma } from '@shared/lib/indicators'
 import { cn } from '@shared/lib/utils'
 import { fmtCompactUsdTick, fmtPercentTick, stepDecimals } from './niceTicks'
 import type { CryptoMarketIndicators, CryptoTickerIndicators } from '@entities/market'
@@ -83,6 +84,14 @@ function ChartArea({ className, children }: { className?: string; children: Reac
   return <div className={cn('min-h-[200px] flex-1', className)}>{children}</div>
 }
 
+// 매일 크게 튀는 지표의 추세를 보이려고 30일 이동평균을 흐린 선으로 겹친다. 받은 전체 추이로 계산한 뒤 기간만큼 잘라 짧은 기간에서도 앞쪽 평균이 비지 않게 한다
+const MA_PERIOD = 30
+const MA_SERIES = { key: 'ma', name: '30일 평균', color: 'var(--muted-foreground)', strokeWidth: 1.5 }
+function withMovingAverage<T extends { date: string }>(rows: readonly T[], value: (row: T) => number) {
+  const ma = sma(rows.map(value), MA_PERIOD)
+  return rows.map((row, i) => ({ ...row, ma: ma[i] }))
+}
+
 // 섹션이 null이면(지표별 실패 격리) 제목·설명은 그대로 두고 본문만 안내로 바꾼다
 function UnavailableCard(props: Omit<IndicatorCardProps, 'children'>) {
   return (
@@ -121,6 +130,7 @@ export function KimchiPremiumCard({ ticker, data, usdtPremium }: KimchiProps) {
   const series = [
     ...(hasOfficialHistory ? [{ key: 'official', name: '공식 환율 기준', color: 'var(--chart-1)' }] : []),
     { key: 'tether', name: '테더 기준', color: 'var(--info)' },
+    { ...MA_SERIES, name: '테더 30일 평균' },
   ]
 
   return (
@@ -137,10 +147,10 @@ export function KimchiPremiumCard({ ticker, data, usdtPremium }: KimchiProps) {
         </p>
       )}
       {!hasOfficial && <p className="text-xs text-warn">환율을 불러오지 못해 공식 환율 기준 값을 표시하지 않습니다.</p>}
-      {/* 공식 환율 선이 있으면 범례가 붙는 두 선 차트라 최소 높이를 더 준다 */}
+      {/* 범례가 붙는 여러 선 차트라 최소 높이를 더 준다 */}
       <ChartArea className="min-h-[224px]">
         <IndicatorLineChart
-          data={data.history.slice(-days)}
+          data={withMovingAverage(data.history, (p) => p.tether).slice(-days)}
           series={series}
           title={`${title} 추이`}
           formatAxis={(v, step) => `${v.toFixed(step ? stepDecimals(step) : 1)}%`}
@@ -167,10 +177,10 @@ export function CoinbasePremiumCard({ ticker, data }: { ticker: string; data: Cr
   return (
     <IndicatorCard title={title} description={description} days={days} onDaysChange={setDays}>
       <Stat label="현재" value={fmtCoinbasePct(data.current)} />
-      <ChartArea>
+      <ChartArea className="min-h-[224px]">
         <IndicatorLineChart
-          data={data.history.slice(-days)}
-          series={[{ key: 'value', name: 'Coinbase 프리미엄', color: 'var(--chart-1)' }]}
+          data={withMovingAverage(data.history, (p) => p.value).slice(-days)}
+          series={[{ key: 'value', name: 'Coinbase 프리미엄', color: 'var(--chart-1)' }, MA_SERIES]}
           title={`${title} 추이`}
           formatAxis={fmtPercentTick}
           formatValue={fmtCoinbasePct}
@@ -190,7 +200,7 @@ export function FundingRateCard({ ticker, data }: { ticker: string; data: Crypto
     return <UnavailableCard title={title} description={description} />
   }
   // 차트는 % 단위로 그린다 — 기준선 0.01%(평상시 8시간 펀딩비)
-  const history = data.history.slice(-days).map((p) => ({ date: p.date, value: p.value * 100 }))
+  const history = withMovingAverage(data.history.map((p) => ({ date: p.date, value: p.value * 100 })), (p) => p.value).slice(-days)
 
   return (
     <IndicatorCard title={title} description={description} days={days} onDaysChange={setDays}>
@@ -198,10 +208,10 @@ export function FundingRateCard({ ticker, data }: { ticker: string; data: Crypto
         <Stat label="현재" value={fmtFunding(data.current)} />
         <Stat label="다음 정산" value={`${fmtKstTime(data.nextFundingTime)} KST`} />
       </div>
-      <ChartArea>
+      <ChartArea className="min-h-[224px]">
         <IndicatorLineChart
           data={history}
-          series={[{ key: 'value', name: '일평균 펀딩비', color: 'var(--chart-1)' }]}
+          series={[{ key: 'value', name: '일평균 펀딩비', color: 'var(--chart-1)' }, MA_SERIES]}
           title={`${title} 일평균 추이`}
           formatAxis={fmtPercentTick}
           formatValue={(v) => fmtFunding(v / 100)}
@@ -304,7 +314,7 @@ export function LongShortRatioCard({ ticker, data }: { ticker: string; data: Cry
 const HALVING_INTERVAL = 210_000 // 반감기 주기(블록)
 const DAY_MS = 86_400_000
 
-// 종목 무관 BTC 전용 지표라 응답 최상위 halving을 탭 밖 섹션 제목 줄에 둔다(ETH 탭에서도 보인다 — 반감기는 코인 시장 전체 사이클의 기준).
+// 종목 무관 BTC 전용 지표라 응답 최상위 halving을 탭 밖 섹션 제목 줄에 둔다(ETH 탭에서도 보인다 — 반감기는 크립토 시장 전체 사이클의 기준).
 // 며칠 단위로만 바뀌는 참고 정보라 카드 대신 한 줄로 줄이고 세부 값은 설명 팝오버로 옮긴다
 export function HalvingSummary({ data, asOf }: { data: NonNullable<CryptoMarketIndicators['halving']>; asOf: string }) {
   const title = 'BTC 반감기'

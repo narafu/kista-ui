@@ -39,7 +39,7 @@ export function CryptoMarketSection() {
   return (
     <section aria-labelledby="crypto-market-indicators-title" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <h2 id="crypto-market-indicators-title" className="text-sm font-semibold text-foreground">코인 시장 지표</h2>
+        <h2 id="crypto-market-indicators-title" className="text-sm font-semibold text-foreground">크립토 시장 지표</h2>
         {data && <span className="text-xs text-muted-foreground">{fmtKstDateTime(data.asOf)} KST 기준</span>}
         {data?.halving && (
           // 모바일은 제목·기준 시각만으로 한 줄이 차 둘째 줄 왼쪽으로 내려가고, sm 이상에서는 제목 줄 오른쪽 끝에 붙는다
@@ -50,7 +50,7 @@ export function CryptoMarketSection() {
       </div>
       {data && !isAllFailed(data) ? (
         <SegmentedTabs
-          aria-label="코인 시장 지표 종목"
+          aria-label="크립토 시장 지표 종목"
           defaultValue={data.tickers[0]?.ticker ?? ''}
           className="flex flex-col gap-3"
           listClassName="self-start"
@@ -71,7 +71,7 @@ export function CryptoMarketSection() {
         />
       ) : data || isError ? (
         // 전체 실패(200 + 전부 null)는 서버가 캐시하지 않아 재조회로 회복될 수 있다 — retry=0이라 버튼으로 다시 부른다
-        <Message text="코인 시장 지표를 불러오지 못했습니다." onRetry={() => void refetch()} retrying={isFetching} />
+        <Message text="크립토 시장 지표를 불러오지 못했습니다." onRetry={() => void refetch()} retrying={isFetching} />
       ) : (
         <Message text="불러오는 중…" />
       )}

@@ -4,7 +4,7 @@ import { MARKET_CHART_CATEGORIES } from '@widgets/dashboard/marketChartCategorie
 
 interface Props {
   marketPanels: ReactNode
-  // 시장 차트 아래 셋째 줄 — 코인 시장 지표처럼 한 줄 전체를 쓰는 패널
+  // 시장 차트 아래 셋째 줄 — 크립토 시장 지표처럼 한 줄 전체를 쓰는 패널
   bottomPanels?: ReactNode
 }
 

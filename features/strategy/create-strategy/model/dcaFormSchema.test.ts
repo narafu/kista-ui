@@ -153,7 +153,7 @@ describe('dcaFormSchema — 코인', () => {
   })
 
   it('코인은 시장가 주문만 허용한다', () => {
-    expect(issueAt(dcaFormSchema.safeParse({ ...crypto, orderType: 'MOC' }), 'orderType')).toBe('코인은 시장가 주문만 지원합니다.')
+    expect(issueAt(dcaFormSchema.safeParse({ ...crypto, orderType: 'MOC' }), 'orderType')).toBe('크립토는 시장가 주문만 지원합니다.')
   })
 
   it('코인은 주말 요일을 고를 수 있다', () => {

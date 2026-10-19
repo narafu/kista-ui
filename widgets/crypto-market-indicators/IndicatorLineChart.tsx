@@ -11,6 +11,7 @@ export interface IndicatorSeries {
   key: string
   name: string
   color: string
+  strokeWidth?: number // 기본 2 — 이동평균처럼 보조선은 가늘게
 }
 
 interface Props {
@@ -45,7 +46,7 @@ export default function IndicatorLineChart({ data, series, title, formatAxis, fo
         />
         {series.length > 1 && <Legend wrapperStyle={{ fontSize: 11, color: 'var(--muted-foreground)' }} />}
         {series.map((s) => (
-          <Line key={s.key} type="monotone" dataKey={s.key} name={s.name} stroke={s.color} strokeWidth={2} dot={false} connectNulls={false} />
+          <Line key={s.key} type="monotone" dataKey={s.key} name={s.name} stroke={s.color} strokeWidth={s.strokeWidth ?? 2} dot={false} connectNulls={false} />
         ))}
       </LineChart>
     </ResponsiveContainer>
