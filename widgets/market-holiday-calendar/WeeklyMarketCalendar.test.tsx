@@ -110,6 +110,20 @@ describe('WeeklyMarketCalendar', () => {
     expect(badge).toHaveTextContent('매수$12K')
   })
 
+  it('앞뒤 주 칸도 라벨·금액을 2줄 배지로 쌓는다', () => {
+    useAccountsQueryMock.mockReturnValue({ data: [{ id: 'a1' }] })
+    useDailyTradesRangeQueryMock.mockReturnValue({
+      data: new Map([['2026-06-23', { buyCount: 0, sellCount: 1, buyAmountUsd: 0, sellAmountUsd: 2700, tradeCount: 1 }]]),
+      isFetching: false,
+      isError: false,
+    })
+    render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated />)
+
+    const badge = screen.getByTitle('매도 $2,700')
+    expect(badge).toHaveTextContent('매도$2.7K')
+    expect(badge.querySelector('br')).not.toBeNull()
+  })
+
   it('코인 계좌는 일별 체결 조회 대상에서 뺀다', () => {
     useAccountsQueryMock.mockReturnValue({
       data: [

@@ -10,7 +10,7 @@ import { IconButton } from '@shared/ui/IconButton'
 import { Spinner } from '@shared/ui/Spinner'
 import { useAccountsQuery } from '@entities/account'
 import { useMonthlyHolidaysQuery } from '@entities/market'
-import { useDailyTradesRangeQuery, directionBadgeClass, directionTextClass, type DayTradeSummary } from '@entities/trade'
+import { useDailyTradesRangeQuery, directionBadgeClass, type DayTradeSummary } from '@entities/trade'
 
 interface Props {
   initialWeekStartDate: string // 'YYYY-MM-DD', 이번 주 일요일
@@ -54,6 +54,9 @@ interface CompactRowProps {
   holidaySet: Set<string>
 }
 
+// 주간 배지와 같은 2줄 배지 — 한 줄이면 이웃 칸 금액과 붙어 보인다
+const COMPACT_BADGE_CLASS = 'block rounded py-px text-[10px] leading-tight'
+
 function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
   return Array.from({ length: 7 }, (_, i) => {
     const day = addDays(rowStart, i)
@@ -77,15 +80,15 @@ function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
           <span className="text-[10px] leading-none text-[var(--gold)]">휴장</span>
         )}
         {!isWeekend && !isHoliday && daySummary && (
-          <span className="flex flex-col items-center gap-px">
+          <span className="flex w-full flex-col items-stretch gap-0.5">
             {daySummary.buyCount > 0 && (
-              <span className={cn('text-[10px] leading-none', directionTextClass('BUY'))} title={`매수 $${fmtUsd(daySummary.buyAmountUsd, 0)}`}>
-                {`매수 ${compactUsd.format(daySummary.buyAmountUsd)}`}
+              <span className={cn(COMPACT_BADGE_CLASS, directionBadgeClass('BUY'))} title={`매수 $${fmtUsd(daySummary.buyAmountUsd, 0)}`}>
+                매수<br />{compactUsd.format(daySummary.buyAmountUsd)}
               </span>
             )}
             {daySummary.sellCount > 0 && (
-              <span className={cn('text-[10px] leading-none', directionTextClass('SELL'))} title={`매도 $${fmtUsd(daySummary.sellAmountUsd, 0)}`}>
-                {`매도 ${compactUsd.format(daySummary.sellAmountUsd)}`}
+              <span className={cn(COMPACT_BADGE_CLASS, directionBadgeClass('SELL'))} title={`매도 $${fmtUsd(daySummary.sellAmountUsd, 0)}`}>
+                매도<br />{compactUsd.format(daySummary.sellAmountUsd)}
               </span>
             )}
           </span>
