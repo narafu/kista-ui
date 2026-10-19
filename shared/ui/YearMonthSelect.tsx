@@ -86,7 +86,7 @@ export function YearMonthSelect({ value, onValueChange, today, label = '기준 �
                 aria-pressed={active}
                 onClick={() => pick(month)}
                 className={cn(
-                  'rounded px-2 py-2 text-sm tabular-nums transition-colors hover:bg-accent',
+                  'whitespace-nowrap rounded px-1 py-2 text-sm tabular-nums transition-colors hover:bg-accent',
                   active && 'bg-[var(--brand-fg-soft)] text-[var(--background)] hover:bg-[var(--brand-fg-soft)]',
                 )}
               >
