@@ -8,7 +8,7 @@ import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { fmtCompactUsd, fmtSignedPercent } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
-import { fmtCompactUsdTick, stepDecimals } from './niceTicks'
+import { fmtCompactUsdTick, fmtPercentTick, stepDecimals } from './niceTicks'
 import type { CryptoMarketIndicators, CryptoTickerIndicators } from '@entities/market'
 
 const IndicatorLineChart = dynamic(() => import('./IndicatorLineChart'), {
@@ -37,12 +37,13 @@ interface IndicatorCardProps {
   description: string
   days?: Days
   onDaysChange?: (days: Days) => void
+  className?: string
   children: ReactNode
 }
 
-function IndicatorCard({ title, description, days, onDaysChange, children }: IndicatorCardProps) {
+function IndicatorCard({ title, description, days, onDaysChange, className, children }: IndicatorCardProps) {
   return (
-    <Surface className="flex flex-col gap-2 p-5">
+    <Surface className={cn('flex flex-col gap-2 p-5', className)}>
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
         <span className="text-sm font-semibold whitespace-nowrap text-foreground">{title}</span>
         <div className="ml-auto flex items-center gap-1">
@@ -157,7 +158,7 @@ export function CoinbasePremiumCard({ ticker, data }: { ticker: string; data: Cr
           data={data.history.slice(-days)}
           series={[{ key: 'value', name: 'Coinbase 프리미엄', color: 'var(--chart-1)' }]}
           title={`${title} 추이`}
-          formatAxis={(v, step) => `${step ? v.toFixed(stepDecimals(step)) : Number(v.toFixed(4))}%`}
+          formatAxis={fmtPercentTick}
           formatValue={fmtCoinbasePct}
           referenceY={0}
           yWidth={48}
@@ -188,7 +189,7 @@ export function FundingRateCard({ ticker, data }: { ticker: string; data: Crypto
           data={history}
           series={[{ key: 'value', name: '일평균 펀딩비', color: 'var(--chart-1)' }]}
           title={`${title} 일평균 추이`}
-          formatAxis={(v, step) => `${step ? v.toFixed(stepDecimals(step)) : Number(v.toFixed(4))}%`}
+          formatAxis={fmtPercentTick}
           formatValue={(v) => fmtFunding(v / 100)}
           referenceY={0.01}
           yWidth={48}
@@ -293,37 +294,43 @@ const DAY_MS = 86_400_000
 export function HalvingCard({ data, asOf }: { data: CryptoMarketIndicators['halving']; asOf: string }) {
   const title = 'BTC 반감기'
   const description = '21만 블록마다 채굴 보상이 절반으로 줄어듦\n예상 시점은 블록당 10분으로 계산한 추정치\n블록 높이: mempool.space'
+  // BTC 탭은 카드가 7개라 3열 그리드 마지막 줄에 혼자 남는다 — PC에서는 한 줄을 다 쓰는 가로 띠로 둔다
+  const className = 'lg:col-span-3'
   if (!data) {
-    return <IndicatorCard title={title} description={description}><Unavailable /></IndicatorCard>
+    return <IndicatorCard title={title} description={description} className={className}><Unavailable /></IndicatorCard>
   }
   const daysLeft = Math.max(0, Math.ceil((Date.parse(data.estimatedAt) - Date.parse(asOf)) / DAY_MS))
   // 서버가 준 높이로만 계산하고 0~1로 묶어 막대·aria 값이 범위를 벗어나지 않게 한다
   const progress = Math.min(1, Math.max(0, (data.currentHeight - (data.nextHalvingHeight - HALVING_INTERVAL)) / HALVING_INTERVAL))
 
   return (
-    <IndicatorCard title={title} description={description}>
-      <div className="flex flex-wrap gap-x-6 gap-y-2">
-        <Stat label="남은 블록" value={data.blocksRemaining.toLocaleString('en-US')} />
-        <Stat label="예상 시점" value={`약 ${daysLeft.toLocaleString('en-US')}일 후`} />
-      </div>
-      <p className="text-xs text-muted-foreground">
-        {fmtKstDate(data.estimatedAt)} 전후 · 블록 <span className="tabular-nums">{data.nextHalvingHeight.toLocaleString('en-US')}</span>
-      </p>
-      <div className="flex flex-1 flex-col justify-center gap-1.5 pt-2">
-        <div
-          role="progressbar"
-          aria-label="이번 반감기 주기 진행률"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={Math.round(progress * 100)}
-          className="h-2 overflow-hidden rounded-full bg-muted"
-        >
-          {/* 진행률은 런타임 값이라 Tailwind로 표현할 수 없다 */}
-          <div className="h-full rounded-full bg-chart-1" style={{ width: `${progress * 100}%` }} />
+    <IndicatorCard title={title} description={description} className={className}>
+      <div className="flex flex-1 flex-col gap-2 lg:flex-row lg:items-center lg:gap-10">
+        <div className="flex flex-col gap-2 lg:shrink-0">
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            <Stat label="남은 블록" value={data.blocksRemaining.toLocaleString('en-US')} />
+            <Stat label="예상 시점" value={`약 ${daysLeft.toLocaleString('en-US')}일 후`} />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {fmtKstDate(data.estimatedAt)} 전후 · 블록 <span className="tabular-nums">{data.nextHalvingHeight.toLocaleString('en-US')}</span>
+          </p>
         </div>
-        <div className="flex justify-between text-xs text-muted-foreground tabular-nums">
-          <span>현재 블록 {data.currentHeight.toLocaleString('en-US')}</span>
-          <span>{(progress * 100).toFixed(1)}%</span>
+        <div className="flex flex-1 flex-col justify-center gap-1.5 pt-2 lg:pt-0">
+          <div
+            role="progressbar"
+            aria-label="이번 반감기 주기 진행률"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(progress * 100)}
+            className="h-2 overflow-hidden rounded-full bg-muted"
+          >
+            {/* 진행률은 런타임 값이라 Tailwind로 표현할 수 없다 */}
+            <div className="h-full rounded-full bg-chart-1" style={{ width: `${progress * 100}%` }} />
+          </div>
+          <div className="flex justify-between text-xs text-muted-foreground tabular-nums">
+            <span>현재 블록 {data.currentHeight.toLocaleString('en-US')}</span>
+            <span>{(progress * 100).toFixed(1)}%</span>
+          </div>
         </div>
       </div>
     </IndicatorCard>

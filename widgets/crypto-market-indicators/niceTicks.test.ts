@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fmtCompactUsdTick, niceTicks, stepDecimals } from './niceTicks'
+import { fmtCompactUsdTick, fmtPercentTick, niceTicks, stepDecimals } from './niceTicks'
 
 describe('niceTicks', () => {
   it('picks 1·2·2.5·5 steps that cover the values', () => {
@@ -21,5 +21,8 @@ describe('niceTicks', () => {
     expect(usd(niceTicks([7.6e9, 7.75e9])!)).toEqual(['$7.60B', '$7.65B', '$7.70B', '$7.75B'])
     expect(usd([1e9, 1.25e9, 1.5e9])).toEqual(['$1.00B', '$1.25B', '$1.50B'])
     expect(usd([7.5e9, 8e9, 8.5e9])).toEqual(['$7.5B', '$8.0B', '$8.5B'])
+    const pct = (ticks: number[]) => ticks.map((t) => fmtPercentTick(t, ticks[1] - ticks[0]))
+    expect(pct(niceTicks([-0.0125, 0.0098])!)).toEqual(['-0.02%', '-0.01%', '0.00%', '0.01%'])
+    expect(fmtPercentTick(0.01)).toBe('0.01%')
   })
 })

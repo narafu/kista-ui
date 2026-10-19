@@ -31,3 +31,8 @@ export function fmtCompactUsdTick(value: number, step: number): string {
   const digits = stepDecimals(step / unit)
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value)
 }
+
+// 퍼센트 축 라벨 — 펀딩비·Coinbase 프리미엄처럼 0.01% 단위 값도 눈금 간격만큼 소수 자릿수를 둔다(간격을 모르면 넷째 자리까지)
+export function fmtPercentTick(value: number, step?: number): string {
+  return `${step ? value.toFixed(stepDecimals(step)) : Number(value.toFixed(4))}%`
+}
