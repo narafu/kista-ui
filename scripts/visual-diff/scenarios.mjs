@@ -107,6 +107,12 @@ export const scenarios = [
   // 차트 아래 정보 줄이 sticky bottom-0이라 스크롤 0에서는 화면 하단에 붙어 실현손익 차트를 덮는다 — 맨 아래로 내려 제자리에 찍는다
   { name: 'admin-privacy-trades', path: '/admin/privacy-trades', admin: true, steps: [scrollToBottom] },
   { name: 'admin-privacy-trades-expanded', path: '/admin/privacy-trades', admin: true, steps: [expandPrivacyBase] },
+  // 운영 설정의 VR 정기 입출금 방식과 오류 로그는 fixtures/api.mjs가 고정한다
+  { name: 'admin-settings', path: '/admin/settings', admin: true },
+  // 감사·이상 징후 섹션은 실데이터라 오류 로그 섹션만 연다
+  { name: 'admin-logs', path: '/admin/logs?type=error', admin: true },
+  // 행 하나만 고르면 전체 선택이 indeterminate가 된다 — 클라이언트 상태만 바뀌고 요청은 없다
+  { name: 'admin-logs-partial', path: '/admin/logs?type=error', admin: true, steps: [clickRole('checkbox', /^오류 로그 선택/)] },
   { name: 'pending', path: '/pending', cookies: statusCookies('PENDING'), setup: stubStatusStream },
   { name: 'rejected', path: '/rejected', cookies: statusCookies('REJECTED') },
   { name: 'dashboard-guest', path: '/dashboard', guest: true },

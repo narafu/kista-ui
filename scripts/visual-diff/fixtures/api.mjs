@@ -16,6 +16,24 @@ const privacyBases = [
   ] },
 ]
 
-export async function route(url) {
+// 오류 로그: 로컬 DB 로그는 최근 며칠 치만 남아 날마다 바뀌고 비어 있을 수도 있다 — 컨텍스트·스택 유무 분기를 고정 3건으로 채운다
+const errorLogs = [
+  { id: 'fx-err-1', errorType: 'KisApiException', message: 'KIS 토큰 확보 실패(송신 전): KIS 토큰 발급 실패', stackTrace: 'com.kista.tradingcore.broker.domain.model.kis.KisApiException: KIS 토큰 확보 실패\n\tat com.kista.tradingcore.broker.adapter.out.kis.KisHttpClient.executeWithRetry(KisHttpClient.java:114)', context: { caller: 'TradingExceptionHandler' }, createdAt: '2026-10-01T00:16:12Z' },
+  { id: 'fx-err-2', errorType: 'ClientError', message: "TypeError: Cannot read properties of undefined (reading 'map')", stackTrace: null, context: { path: '/dashboard', userAgent: 'Mozilla/5.0' }, createdAt: '2026-09-30T08:02:45Z' },
+  { id: 'fx-err-3', errorType: 'IllegalStateException', message: '전략 상태가 ACTIVE가 아니어서 주문을 건너뛰었습니다', stackTrace: 'java.lang.IllegalStateException: strategy not active\n\tat com.kista.trading.Strategy.order(Strategy.java:42)', context: {}, createdAt: '2026-09-29T23:30:00Z' },
+]
+
+// 운영 설정: VR 정기 입출금 방식을 사용자 변경 허용 + 일부 허용으로 고정한다 — 로컬에서 설정을 바꿔도 허용 체크박스·기본값 라디오(비활성 포함)가 찍히게
+const pinRecurringMode = (settings) => {
+  if (settings.strategies?.VR?.fields) settings.strategies.VR.fields.recurringMode ={ customizable: true, allowedValues: ['DEPOSIT', 'HOLD'], defaultValue: 'HOLD' }
+  return settings
+}
+
+export async function route(url, req, { upstream }) {
   if (url.pathname === '/api/admin/privacy-trade-bases') return { body: privacyBases }
+  if (url.pathname === '/api/admin/logs/errors') return { body: errorLogs }
+  if (url.pathname === '/api/admin/settings') {
+    const up = await fetch(upstream + url.pathname, { headers: { authorization: req.headers.authorization ?? '', cookie: req.headers.cookie ?? '' } })
+    return up.ok ? { body: pinRecurringMode(await up.json()) } : { status: up.status, body: await up.json().catch(() => ({})) }
+  }
 }
