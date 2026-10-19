@@ -81,7 +81,7 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled, s
     <div className="min-w-0">
       <div
         className={cn(
-          'min-w-0 rounded-lg border bg-card flex items-center px-3.5 h-10 mb-3',
+          'min-w-0 rounded-lg border bg-card flex items-center px-3.5 h-11 mb-3',
           disabled ? 'opacity-50' : 'border-[var(--rose-400)] shadow-[0_0_0_3px_rgba(203,131,106,0.18)]',
         )}
       >

@@ -1,6 +1,8 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, type ReactNode } from 'react'
+import { Minus, Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { cn } from '@shared/lib/utils'
 import { fmtUsd } from '@shared/lib/format'
 
@@ -9,7 +11,6 @@ interface Props {
   onChange: (value: number) => void
   deposit: number | null
   minSeed?: number | null
-  compact?: boolean
   disabled?: boolean
 }
 
@@ -28,33 +29,22 @@ interface InputRowProps {
   onChange: (value: number) => void
   minPct: number | null
   allDisabled: boolean | undefined
-  compact?: boolean
 }
 
-function PercentInputRow({ value, onChange, minPct, allDisabled, compact }: InputRowProps) {
+// MIN·MAX는 같은 급의 프리셋이라 같은 outline — brand는 화면당 최상위 CTA 전용(docs/agents/features.md). 높이는 같은 폼 입력칸(h-11)에 맞춘다
+function PercentInputRow({ value, onChange, minPct, allDisabled }: InputRowProps) {
   return (
-    <div className={cn('flex gap-1.5 items-center justify-around', compact ? 'mb-3' : 'mb-3.5')}>
-      {/* MIN 버튼 */}
+    <div className="flex gap-1.5 items-center justify-around mb-3.5">
       {minPct !== null && (
-        <button
-          type="button"
-          disabled={allDisabled}
-          onClick={() => onChange(minPct)}
-          className={cn(
-            'px-3 rounded-lg border border-border bg-muted text-xs font-bold tracking-[0.05em]',
-            compact ? 'h-[38px]' : 'h-10',
-            allDisabled ? 'text-muted-foreground cursor-not-allowed opacity-50' : 'text-foreground cursor-pointer'
-          )}
-        >
+        <Button type="button" variant="outline" className="h-11" disabled={allDisabled} onClick={() => onChange(minPct)}>
           MIN
-        </button>
+        </Button>
       )}
 
       {/* 퍼센트 입력칸 */}
       <div
         className={cn(
-          'flex-1 relative rounded-lg border border-[var(--rose-400)] bg-card flex items-center px-3.5 w-[65%]',
-          compact ? 'h-[38px]' : 'h-10',
+          'flex-1 relative rounded-lg border border-[var(--rose-400)] bg-card flex items-center px-3.5 w-[65%] h-11',
           allDisabled ? 'opacity-50' : 'shadow-[0_0_0_3px_rgba(203,131,106,0.18)]',
         )}
       >
@@ -71,27 +61,14 @@ function PercentInputRow({ value, onChange, minPct, allDisabled, compact }: Inpu
             if (raw === '') { onChange(0); return }
             onChange(Math.min(100, Number(raw)))
           }}
-          className={cn('flex-1 border-0 outline-none bg-transparent font-extrabold text-foreground text-right min-w-0', compact ? 'text-base' : 'text-lg')}
+          className="flex-1 border-0 outline-none bg-transparent font-extrabold text-foreground text-right min-w-0 text-lg"
         />
         <span className="text-sm font-extrabold text-[var(--rose-600)] ml-1">%</span>
       </div>
 
-      {/* MAX 버튼 */}
-      <button
-        type="button"
-        disabled={allDisabled}
-        onClick={() => onChange(100)}
-        // 그라데이션은 brand variant와 같은 rose-500→700 — rose-400 시작점은 흰 글자 대비가 4.5:1 미만이고, 다크는 밝은 rose라 배경색 글자를 쓴다
-        className={cn(
-          'px-3.5 rounded-lg border border-[var(--rose-400)] text-xs font-bold tracking-[0.05em]',
-          compact ? 'h-[38px]' : 'h-10',
-          allDisabled
-            ? 'bg-muted text-muted-foreground cursor-not-allowed opacity-50'
-            : 'bg-gradient-to-br from-rose-500 to-rose-700 text-white dark:text-background cursor-pointer'
-        )}
-      >
+      <Button type="button" variant="outline" className="h-11" disabled={allDisabled} onClick={() => onChange(100)}>
         MAX
-      </button>
+      </Button>
     </div>
   )
 }
@@ -100,23 +77,14 @@ interface StepButtonProps {
   disabled: boolean | undefined
   onClick: () => void
   label: string
-  children: string
+  children: ReactNode
 }
 
 function StepButton({ disabled, onClick, label, children }: StepButtonProps) {
   return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={onClick}
-      className={cn(
-        'shrink-0 size-7 rounded-md border border-border bg-muted text-sm font-bold leading-none grid place-items-center',
-        disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-muted/80'
-      )}
-      aria-label={label}
-    >
+    <Button type="button" variant="outline" size="icon-sm" disabled={disabled} onClick={onClick} aria-label={label}>
       {children}
-    </button>
+    </Button>
   )
 }
 
@@ -145,7 +113,7 @@ function SliderRow({ value, onChange, allDisabled, handleSize, halfHandle, track
   return (
     <div className="flex gap-2 items-center mb-2.5">
       <StepButton disabled={allDisabled || value <= 0} onClick={() => onChange(Math.max(0, value - 1))} label="1% 감소">
-        −
+        <Minus />
       </StepButton>
 
       {/* 드래그 가능한 트랙 영역 */}
@@ -215,7 +183,7 @@ function SliderRow({ value, onChange, allDisabled, handleSize, halfHandle, track
       </div>
 
       <StepButton disabled={allDisabled || value >= 100} onClick={() => onChange(Math.min(100, value + 1))} label="1% 증가">
-        +
+        <Plus />
       </StepButton>
     </div>
   )
@@ -226,16 +194,15 @@ interface PreviewProps {
   minSeed?: number | null
   depositInsufficient: boolean
   allocated: number | null
-  compact?: boolean
 }
 
-function AmountPreview({ deposit, minSeed, depositInsufficient, allocated, compact }: PreviewProps) {
+function AmountPreview({ deposit, minSeed, depositInsufficient, allocated }: PreviewProps) {
   if (depositInsufficient && minSeed != null) {
     return (
       <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--warn-bg)] border border-[var(--warn)]">
         <span className="text-sm text-[var(--warn)] font-bold">예수금 부족</span>
         <span
-          className={cn('font-extrabold text-[var(--warn)] tabular-nums', compact ? 'text-xs' : 'text-sm')}
+          className="font-extrabold text-[var(--warn)] tabular-nums text-sm"
         >
           필요: ${fmtUsd(minSeed)}
           <span className="text-sm font-semibold text-[var(--warn)] ml-1.5 opacity-80">
@@ -249,7 +216,7 @@ function AmountPreview({ deposit, minSeed, depositInsufficient, allocated, compa
     <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--brand-soft-bg)] border border-[var(--rose-200)]">
       <span className="text-sm text-[var(--brand-fg-soft)] font-bold">사용 금액 예상</span>
       <span
-        className={cn('font-extrabold text-[var(--brand-fg)] tabular-nums', compact ? 'text-xs' : 'text-sm')}
+        className="font-extrabold text-[var(--brand-fg)] tabular-nums text-sm"
       >
         ${allocated !== null ? fmtUsd(allocated) : '--'}
         <span className="text-sm font-semibold text-muted-foreground ml-1.5">
@@ -260,10 +227,10 @@ function AmountPreview({ deposit, minSeed, depositInsufficient, allocated, compa
   )
 }
 
-export function PercentGauge({ value, onChange, deposit, minSeed, compact, disabled }: Props) {
-  const handleSize = compact ? 18 : 22
+export function PercentGauge({ value, onChange, deposit, minSeed, disabled }: Props) {
+  const handleSize = 22
   const halfHandle = handleSize / 2
-  const trackH = compact ? 8 : 10
+  const trackH = 10
   const allocated = calcAllocated(deposit, value)
 
   const depositInsufficient = deposit != null && minSeed != null && deposit < minSeed
@@ -272,7 +239,7 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
 
   return (
     <div className="min-w-0">
-      <PercentInputRow value={value} onChange={onChange} minPct={minPct} allDisabled={allDisabled} compact={compact} />
+      <PercentInputRow value={value} onChange={onChange} minPct={minPct} allDisabled={allDisabled} />
 
       <SliderRow
         value={value}
@@ -302,7 +269,6 @@ export function PercentGauge({ value, onChange, deposit, minSeed, compact, disab
           minSeed={minSeed}
           depositInsufficient={depositInsufficient}
           allocated={allocated}
-          compact={compact}
         />
       )}
     </div>
