@@ -38,7 +38,7 @@ vi.mock('@widgets/fear-greed-card', () => ({
 }))
 
 vi.mock('@widgets/crypto-market-indicators', () => ({
-  CryptoMarketSection: ({ isAuthenticated }: { isAuthenticated: boolean }) => <div data-testid="crypto-market-section" data-authenticated={String(isAuthenticated)} />,
+  CryptoMarketSection: () => <div data-testid="crypto-market-section" />,
 }))
 
 vi.mock('@widgets/dashboard/DashboardContent', () => ({

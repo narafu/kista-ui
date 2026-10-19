@@ -83,17 +83,16 @@ describe('market query freshness and error handling', () => {
     await expect(options.queryFn()).rejects.toThrow(failure)
   })
 
-  it('keeps crypto market indicators fresh for the 10-minute server cache and gates the query by auth', async () => {
+  it('keeps crypto market indicators fresh for the 10-minute server cache and propagates request failures', async () => {
     const failure = new Error('crypto indicators request failed')
     getCryptoMarketIndicatorsClientMock.mockRejectedValueOnce(failure)
     useQueryMock.mockReturnValue({ data: undefined })
 
-    renderHook(() => useCryptoMarketIndicatorsQuery(false))
+    renderHook(() => useCryptoMarketIndicatorsQuery())
 
     const options = useQueryMock.mock.calls.at(-1)?.[0]
     expect(options).toEqual(expect.objectContaining({
       queryKey: marketKeys.cryptoIndicators(),
-      enabled: false,
       staleTime: 600_000,
     }))
     await expect(options.queryFn()).rejects.toThrow(failure)

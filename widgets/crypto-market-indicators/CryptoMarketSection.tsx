@@ -8,10 +8,6 @@ import { cn } from '@shared/lib/utils'
 import { Button } from '@/components/ui/button'
 import { FundingRateCard, KimchiPremiumCard, OpenInterestCard } from './CryptoIndicatorCards'
 
-interface Props {
-  isAuthenticated: boolean
-}
-
 // 응답은 200이어도 모든 종목의 모든 섹션이 null이면(종목이 없어도) 카드로 보여줄 게 없어 전체 조회 불가로 본다.
 // 테더 프리미엄은 김프 카드 안의 분해 표시로만 쓰여 단독으로는 보여줄 자리가 없다
 function isAllFailed(data: CryptoMarketIndicators) {
@@ -36,10 +32,8 @@ function Message({ text, onRetry, retrying }: { text: string; onRetry?: () => vo
 }
 
 // 대시보드 시장 패널 그리드(lg 3열)에서 한 줄 전체를 차지한다. 종목 탭 안에 김프·펀딩비·OI 카드 3개
-export function CryptoMarketSection({ isAuthenticated }: Props) {
-  const { data, isError, isFetching, refetch } = useCryptoMarketIndicatorsQuery(isAuthenticated)
-  // 인증 필수 엔드포인트 — 게스트에게는 영역을 그리지 않는다
-  if (!isAuthenticated) return null
+export function CryptoMarketSection() {
+  const { data, isError, isFetching, refetch } = useCryptoMarketIndicatorsQuery()
 
   return (
     <section aria-labelledby="crypto-market-indicators-title" className="flex flex-col gap-3 lg:col-span-3">

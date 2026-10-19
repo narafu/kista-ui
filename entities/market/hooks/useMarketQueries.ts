@@ -42,12 +42,11 @@ export function useFearGreedQuery(days = CHART_CANDLE_COUNT) {
   })
 }
 
-// 인증 필수 엔드포인트라 게스트는 enabled=false — 게스트가 401을 받으면 clientFetch 전역 처리로 로그아웃·리로드 루프에 빠진다
-export function useCryptoMarketIndicatorsQuery(enabled: boolean) {
+// 비인증 공개 엔드포인트 — 게스트도 조회한다(공포탐욕지수와 같은 대시보드 공개 패널)
+export function useCryptoMarketIndicatorsQuery() {
   return useQuery<CryptoMarketIndicators>({
     queryKey: marketKeys.cryptoIndicators(),
     queryFn: getCryptoMarketIndicatorsClient,
-    enabled,
     staleTime: 1000 * 60 * 10, // 10분 — kista-trading 서버 캐시 TTL과 같다(프록시는 Cache-Control을 전달하지 않는다)
   })
 }
