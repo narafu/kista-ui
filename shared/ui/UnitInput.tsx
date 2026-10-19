@@ -17,10 +17,12 @@ function exceedsMaxDecimals(raw: string, maxDecimals: number): boolean {
   return raw.length - dotIndex - 1 > maxDecimals
 }
 
+// 포커스 표시는 공용 Input(components/ui/input)과 같은 ring 토큰을 쓴다 — 같은 폼에 둘이 섞여 있다.
+// SeedAmountInput·PercentGauge의 상시 rose 테두리는 포커스 표시가 아니라 강조라 여기 맞추지 않는다
 function inputBoxClass(disabled: boolean) {
   return cn(
     'flex items-center h-11 rounded-[var(--r-sm)] bg-card px-3 border border-[var(--border-strong)] transition-[border-color,box-shadow] duration-150',
-    disabled ? 'opacity-50' : 'focus-within:border-[var(--rose-400)] focus-within:shadow-[0_0_0_3px_rgba(203,131,106,0.18)]',
+    disabled ? 'opacity-50' : 'focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50',
   )
 }
 
