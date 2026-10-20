@@ -46,8 +46,8 @@ export function DcaExecutionHistory({ strategyId, ticker }: { strategyId: string
                   <TableHeadCell className="whitespace-nowrap">{isCrypto ? '실행일' : '거래일'}</TableHeadCell>
                   <TableHeadCell className="whitespace-nowrap">결과</TableHeadCell>
                   <TableHeadCell className="whitespace-nowrap">사유</TableHeadCell>
-                  <TableHeadCell className="text-right whitespace-nowrap">기준가</TableHeadCell>
-                  <TableHeadCell className="text-right whitespace-nowrap">수량</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">기준가</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">수량</TableHeadCell>
                   <TableHeadCell className="whitespace-nowrap">체결</TableHeadCell>
                 </tr>
               </thead>

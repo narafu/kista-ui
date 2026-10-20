@@ -137,7 +137,7 @@ export function AssetRecordTable({ paged, row, sortKey, sortDirection, onSort, a
             <TableHeadCell>운용전략</TableHeadCell>
             <TableHeadCell>계좌명</TableHeadCell>
             <TableHeadCell>기관</TableHeadCell>
-            <SortableHeadCell sortKey="amount" activeKey={sortKey} direction={sortDirection} onSort={onSort} className="text-right">금액</SortableHeadCell>
+            <SortableHeadCell sortKey="amount" activeKey={sortKey} direction={sortDirection} onSort={onSort}>금액</SortableHeadCell>
             <TableHeadCell>메모</TableHeadCell>
             <TableHeadCell className="whitespace-nowrap">작업</TableHeadCell>
           </tr>

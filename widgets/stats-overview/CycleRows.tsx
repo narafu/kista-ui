@@ -39,8 +39,8 @@ function CycleTable({ cycles, accountsById }: Props) {
             <TableHeadCell>전략</TableHeadCell>
             <TableHeadCell>종목</TableHeadCell>
             <TableHeadCell>기간</TableHeadCell>
-            <TableHeadCell className="text-right">손익</TableHeadCell>
-            <TableHeadCell className="text-right">수익률</TableHeadCell>
+            <TableHeadCell>손익</TableHeadCell>
+            <TableHeadCell>수익률</TableHeadCell>
           </tr>
         </thead>
         <tbody>

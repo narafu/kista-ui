@@ -29,11 +29,11 @@ export function StrategyTypeComparison({ byType }: Props) {
                 <thead className="bg-muted/50">
                   <tr>
                     <TableHeadCell>전략</TableHeadCell>
-                    <TableHeadCell className="text-right">사이클</TableHeadCell>
-                    <TableHeadCell className="text-right">평균 수익률</TableHeadCell>
-                    <TableHeadCell className="text-right">평균 소요일</TableHeadCell>
-                    <TableHeadCell className="text-right">실현손익</TableHeadCell>
-                    <TableHeadCell className="text-right">미실현</TableHeadCell>
+                    <TableHeadCell>사이클</TableHeadCell>
+                    <TableHeadCell>평균 수익률</TableHeadCell>
+                    <TableHeadCell>평균 소요일</TableHeadCell>
+                    <TableHeadCell>실현손익</TableHeadCell>
+                    <TableHeadCell>미실현</TableHeadCell>
                   </tr>
                 </thead>
                 <tbody>

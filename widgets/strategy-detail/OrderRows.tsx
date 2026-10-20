@@ -75,8 +75,8 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
           <tr>
             <TableHeadCell>구분</TableHeadCell>
             <TableHeadCell>종목</TableHeadCell>
-            <TableHeadCell className="text-right">수량</TableHeadCell>
-            <TableHeadCell className="text-right">주문가</TableHeadCell>
+            <TableHeadCell>수량</TableHeadCell>
+            <TableHeadCell>주문가</TableHeadCell>
             {hasCancel && (
               <TableHeadCell>취소</TableHeadCell>
             )}

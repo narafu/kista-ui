@@ -8,7 +8,7 @@ import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 
-const HEAD_CLASS = 'text-left whitespace-nowrap'
+const HEAD_CLASS = 'whitespace-nowrap'
 
 function StrategyBadge({ strategy, statusLabel }: { strategy: AdminAccountStrategy; statusLabel: string }) {
   const color = strategyStatusAccent(strategy.status)

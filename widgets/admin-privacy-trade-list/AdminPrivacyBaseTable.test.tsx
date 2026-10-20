@@ -116,7 +116,7 @@ describe('AdminPrivacyBaseTable desktop table', () => {
     expect(document.getElementById('privacy-base-base-1-details')).not.toBeNull()
   })
 
-  it('centers text columns and right-aligns numeric columns', () => {
+  it('centers all headers and right-aligns numeric cells', () => {
     renderTable()
 
     const table = screen.getByTestId('admin-privacy-desktop-table')
@@ -140,11 +140,11 @@ describe('AdminPrivacyBaseTable desktop table', () => {
 
     expect(dateHeader).toHaveClass('text-center')
     expect(tickerHeader).toHaveClass('text-center')
-    expect(startHeader).toHaveClass('text-right')
-    expect(holdingsHeader).toHaveClass('text-right')
-    expect(avgHeader).toHaveClass('text-right')
-    expect(realizedHeader).toHaveClass('text-right')
-    expect(ordersHeader).toHaveClass('text-right')
+    expect(startHeader).toHaveClass('text-center')
+    expect(holdingsHeader).toHaveClass('text-center')
+    expect(avgHeader).toHaveClass('text-center')
+    expect(realizedHeader).toHaveClass('text-center')
+    expect(ordersHeader).toHaveClass('text-center')
 
     expect(dateCell).toHaveClass('text-center')
     expect(tickerCell).toHaveClass('text-center')

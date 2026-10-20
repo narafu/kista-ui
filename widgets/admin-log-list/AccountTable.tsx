@@ -9,8 +9,8 @@ export function AccountTable({ accounts, label }: { accounts: AdminAnomalyAccoun
       <table className="min-w-[320px] w-full text-sm">
         <thead className="bg-muted/50 border-b border-border">
           <tr>
-            <TableHeadCell className="text-left whitespace-nowrap">소유자</TableHeadCell>
-            <TableHeadCell className="text-left whitespace-nowrap">계좌번호</TableHeadCell>
+            <TableHeadCell className="whitespace-nowrap">소유자</TableHeadCell>
+            <TableHeadCell className="whitespace-nowrap">계좌번호</TableHeadCell>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">

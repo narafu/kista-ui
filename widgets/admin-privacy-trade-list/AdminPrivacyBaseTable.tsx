@@ -157,11 +157,11 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
                   <TableHeadCell className="w-8 px-2"><span className="sr-only">펼치기</span></TableHeadCell>
                   <TableHeadCell className="whitespace-nowrap">날짜</TableHeadCell>
                   <TableHeadCell className="whitespace-nowrap">종목</TableHeadCell>
-                  <TableHeadCell className="text-right whitespace-nowrap">사이클 시작금액</TableHeadCell>
-                  <TableHeadCell className="text-right whitespace-nowrap">평단가</TableHeadCell>
-                  <TableHeadCell className="text-right whitespace-nowrap">보유</TableHeadCell>
-                  <TableHeadCell className="text-right whitespace-nowrap">실현손익</TableHeadCell>
-                  <TableHeadCell className="text-right whitespace-nowrap">주문</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">사이클 시작금액</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">평단가</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">보유</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">실현손익</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">주문</TableHeadCell>
                   <TableHeadCell className="w-16 whitespace-nowrap"><span className="sr-only">수정</span></TableHeadCell>
                 </tr>
               </thead>
@@ -339,11 +339,11 @@ function OrderDetailsTable({
     <table className="w-full text-xs">
       <thead>
         <tr>
-          <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'text-left')}>방향</TableHeadCell>
-          <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'text-left')}>유형</TableHeadCell>
-          <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'text-right')}>가격</TableHeadCell>
-          <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'text-right')}>수량</TableHeadCell>
-          <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'text-right')}><span className="sr-only">수정·삭제</span></TableHeadCell>
+          <TableHeadCell className={ORDER_DETAILS_HEAD_CLASS}>방향</TableHeadCell>
+          <TableHeadCell className={ORDER_DETAILS_HEAD_CLASS}>유형</TableHeadCell>
+          <TableHeadCell className={ORDER_DETAILS_HEAD_CLASS}>가격</TableHeadCell>
+          <TableHeadCell className={ORDER_DETAILS_HEAD_CLASS}>수량</TableHeadCell>
+          <TableHeadCell className={ORDER_DETAILS_HEAD_CLASS}><span className="sr-only">수정·삭제</span></TableHeadCell>
         </tr>
       </thead>
       <tbody>

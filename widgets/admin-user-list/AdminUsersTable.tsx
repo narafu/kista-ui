@@ -56,10 +56,10 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
         <table className="min-w-[720px] w-full text-sm">
           <thead className="bg-muted/50">
             <tr>
-              <TableHeadCell className="text-left whitespace-nowrap">닉네임</TableHeadCell>
-              <TableHeadCell className="text-left whitespace-nowrap">상태</TableHeadCell>
-              <TableHeadCell className="text-left whitespace-nowrap">역할</TableHeadCell>
-              <TableHeadCell className="text-left whitespace-nowrap">가입일</TableHeadCell>
+              <TableHeadCell className="whitespace-nowrap">닉네임</TableHeadCell>
+              <TableHeadCell className="whitespace-nowrap">상태</TableHeadCell>
+              <TableHeadCell className="whitespace-nowrap">역할</TableHeadCell>
+              <TableHeadCell className="whitespace-nowrap">가입일</TableHeadCell>
               <TableHeadCell className="whitespace-nowrap">역할 변경</TableHeadCell>
               <TableHeadCell className="whitespace-nowrap">탈퇴 처리</TableHeadCell>
             </tr>
