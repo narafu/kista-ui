@@ -44,8 +44,23 @@ function indicators(overrides: Partial<CryptoMarketIndicators> = {}): CryptoMark
     usdtPremium: { current: 2.1, history: [{ date: '2026-10-18', value: 2.0 }] },
     tickers: [ticker('BTC'), ticker('ETH')],
     halving: { currentHeight: 972_175, nextHalvingHeight: 1_050_000, blocksRemaining: 77_825, estimatedAt: '2028-04-12T04:10:00Z' },
+    // 시장 전체 지표는 기본 null — 기존 상태 분기 테스트가 이 줄의 영향을 받지 않게 하고, 필요한 테스트만 MARKET으로 켠다
+    btcDominance: null,
+    altcoinSeason: null,
+    hashRibbons: null,
     ...overrides,
   }
+}
+
+const ribbon = (date: string, state: 'CAPITULATION' | 'RECOVERY' | null, buySignal = false) => ({ date, hashrateEh: 1012.3, sma30: 1000, sma60: 990, state, buySignal })
+
+const MARKET: Pick<CryptoMarketIndicators, 'btcDominance' | 'altcoinSeason' | 'hashRibbons'> = {
+  btcDominance: { current: 60.1834, history: [{ date: '2026-10-18', value: 59.9 }, { date: '2026-10-19', value: 60.1 }] },
+  altcoinSeason: { current: 57, history: [{ date: '2026-10-19', value: 55 }] },
+  hashRibbons: {
+    current: ribbon('2026-10-19', 'RECOVERY'),
+    history: [ribbon('2026-09-01', 'RECOVERY', true), ribbon('2026-10-01', 'RECOVERY', true), ribbon('2026-10-18', 'RECOVERY'), ribbon('2026-10-19', 'RECOVERY')],
+  },
 }
 
 const EMPTY_TICKER = { kimchiPremium: null, fundingRate: null, openInterest: null, valuation: null, longShortRatio: null, coinbasePremium: null }
@@ -230,6 +245,87 @@ describe('CryptoMarketSection', () => {
     expect(screen.getByText('+1.10%')).toBeInTheDocument()
     expect(screen.getByText('환율을 불러오지 못해 공식 환율 기준 값을 표시하지 않습니다.')).toBeInTheDocument()
     expect(screen.getByText('BTC 김치 프리미엄 추이: 테더 기준, 테더 30일 평균')).toBeInTheDocument()
+  })
+
+  it('shows the market-wide dominance, altcoin season and Hash Ribbons cards above the ticker tabs', () => {
+    useQueryMock.mockReturnValue({ data: indicators(MARKET) })
+    render(<CryptoMarketSection />)
+
+    expect(screen.getByText('60.18%')).toBeInTheDocument() // 이미 % 값 — 부호 없이
+    expect(screen.getByText('57')).toBeInTheDocument()
+    expect(screen.getByText('중립')).toBeInTheDocument()
+    expect(screen.getByText('회복')).toBeInTheDocument()
+    expect(screen.getByText('2026.10.01 UTC')).toBeInTheDocument() // 가장 최근 매수 신호
+    expect(screen.getByText('Hash Ribbons 추이: 30일 평균, 60일 평균')).toBeInTheDocument()
+    // 종목 탭 앞(문서 순서상 위)에 온다
+    expect(screen.getByText('BTC 도미넌스').compareDocumentPosition(screen.getByRole('tab', { name: 'BTC' }))).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+  })
+
+  it('names the altcoin season phase at the CMC bounds', () => {
+    useQueryMock.mockReturnValue({ data: indicators({ ...MARKET, altcoinSeason: { current: 75, history: [] } }) })
+    const { unmount } = render(<CryptoMarketSection />)
+    expect(screen.getByText('알트코인 시즌', { selector: 'span.text-xl' })).toBeInTheDocument()
+    unmount()
+
+    // 표시값이 반올림돼 25가 되면 구간도 같은 값으로 판정한다
+    useQueryMock.mockReturnValue({ data: indicators({ ...MARKET, altcoinSeason: { current: 25.4, history: [] } }) })
+    render(<CryptoMarketSection />)
+    expect(screen.getByText('25')).toBeInTheDocument()
+    expect(screen.getByText('비트코인 시즌')).toBeInTheDocument()
+  })
+
+  it('keeps the current altcoin season value without a chart when its history is empty', () => {
+    useQueryMock.mockReturnValue({ data: indicators({ ...MARKET, altcoinSeason: { current: 57, history: [] } }) })
+    render(<CryptoMarketSection />)
+
+    expect(screen.getByText('57')).toBeInTheDocument()
+    expect(screen.getByText('추이를 불러오지 못해 현재 값만 표시합니다.')).toBeInTheDocument()
+    expect(screen.queryByText(/^알트코인 시즌 추이/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: '알트코인 시즌 조회 기간(일)' })).not.toBeInTheDocument()
+  })
+
+  it('highlights miner capitulation and shows no buy signal when none happened', () => {
+    useQueryMock.mockReturnValue({
+      data: indicators({ ...MARKET, hashRibbons: { current: ribbon('2026-10-19', 'CAPITULATION'), history: [ribbon('2026-10-19', 'CAPITULATION')] } }),
+    })
+    render(<CryptoMarketSection />)
+
+    expect(screen.getByText('채굴자 항복')).toHaveClass('text-warn')
+    expect(screen.getByText('최근 1년 없음')).toBeInTheDocument()
+  })
+
+  it('shows a dash for the Hash Ribbons state before the 60-day average exists', () => {
+    useQueryMock.mockReturnValue({ data: indicators({ ...MARKET, hashRibbons: { current: ribbon('2026-10-19', null), history: [ribbon('2026-10-19', null)] } }) })
+    render(<CryptoMarketSection />)
+
+    expect(within(screen.getByText('상태').parentElement!).getByText('—')).toBeInTheDocument()
+  })
+
+  it('marks only the failed market-wide card as unavailable', () => {
+    useQueryMock.mockReturnValue({ data: indicators({ ...MARKET, btcDominance: null }) })
+    render(<CryptoMarketSection />)
+
+    expect(screen.getByText('BTC 도미넌스')).toBeInTheDocument()
+    expect(screen.getAllByText('일시적으로 불러올 수 없습니다.')).toHaveLength(1)
+    expect(screen.getByText(/^알트코인 시즌 추이/)).toBeInTheDocument()
+  })
+
+  it('hides the market-wide row when all three market-wide sections failed', () => {
+    useQueryMock.mockReturnValue({ data: indicators() })
+    render(<CryptoMarketSection />)
+
+    expect(screen.queryByText('BTC 도미넌스')).not.toBeInTheDocument()
+    expect(screen.queryByText('일시적으로 불러올 수 없습니다.')).not.toBeInTheDocument()
+  })
+
+  it('keeps the market-wide cards and replaces only the ticker tabs when every ticker section failed', () => {
+    useQueryMock.mockReturnValue({ data: indicators({ ...MARKET, tickers: [ticker('BTC', EMPTY_TICKER)] }) })
+    render(<CryptoMarketSection />)
+
+    expect(screen.queryByText('크립토 시장 지표를 불러오지 못했습니다.')).not.toBeInTheDocument()
+    expect(screen.getByText('종목별 지표를 불러오지 못했습니다.')).toBeInTheDocument()
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument()
+    expect(screen.getByText('60.18%')).toBeInTheDocument()
   })
 
   it('shows the whole-area error when every section is null even though the response is 200', () => {

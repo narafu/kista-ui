@@ -101,11 +101,11 @@ function UnavailableCard(props: Omit<IndicatorCardProps, 'children'>) {
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, valueClassName = 'text-foreground' }: { label: string; value: string; valueClassName?: string }) {
   return (
     <div className="flex flex-col">
       <span className="text-xs text-muted-foreground">{label}</span>
-      <span className="text-xl font-semibold tabular-nums text-foreground">{value}</span>
+      <span className={cn('text-xl font-semibold tabular-nums', valueClassName)}>{value}</span>
     </div>
   )
 }
@@ -305,6 +305,123 @@ export function LongShortRatioCard({ ticker, data }: { ticker: string; data: Cry
           formatValue={(v) => v.toFixed(2)}
           referenceY={1}
           yWidth={40}
+        />
+      </ChartArea>
+    </IndicatorCard>
+  )
+}
+
+// 아래 세 카드는 종목 무관 시장 전체 지표라 종목 탭 밖 한 줄에 둔다(응답 최상위 섹션)
+const fmtPlainPct = (percent: number) => `${percent.toFixed(2)}%`
+
+export function BtcDominanceCard({ data }: { data: CryptoMarketIndicators['btcDominance'] }) {
+  const title = 'BTC 도미넌스'
+  const description = '전체 크립토 시가총액 중 BTC 비중\n오르면 자금이 BTC로 몰림, 내리면 알트로 퍼짐\n출처: CoinMarketCap'
+  const [days, setDays] = useState<Days>(365)
+  if (!data) {
+    return <UnavailableCard title={title} description={description} />
+  }
+
+  return (
+    <IndicatorCard title={title} description={description} days={days} onDaysChange={setDays}>
+      <Stat label="현재" value={fmtPlainPct(data.current)} />
+      <ChartArea>
+        <IndicatorLineChart
+          data={data.history.slice(-days)}
+          series={[{ key: 'value', name: 'BTC 도미넌스', color: 'var(--chart-1)' }]}
+          title={`${title} 추이`}
+          formatAxis={(v, step) => `${v.toFixed(step ? stepDecimals(step) : 1)}%`}
+          formatValue={fmtPlainPct}
+          yWidth={40}
+        />
+      </ChartArea>
+    </IndicatorCard>
+  )
+}
+
+// CMC 관례: 75 이상 알트코인 시즌, 25 이하 비트코인 시즌
+const ALT_SEASON_BOUNDS = [25, 75] as const
+const altSeasonPhase = (index: number) => (index >= 75 ? '알트코인 시즌' : index <= 25 ? '비트코인 시즌' : '중립')
+
+export function AltcoinSeasonCard({ data }: { data: CryptoMarketIndicators['altcoinSeason'] }) {
+  const title = '알트코인 시즌'
+  const description = '상위 100개 알트 중 최근 90일 동안 BTC보다 많이 오른 비율(0~100)\n75 이상 알트코인 시즌, 25 이하 비트코인 시즌\n출처: CoinMarketCap'
+  const [days, setDays] = useState<Days>(365)
+  if (!data) {
+    return <UnavailableCard title={title} description={description} />
+  }
+  // 이력은 비공식 API라 실패하면 서버가 빈 배열로 주고 현재값만 살린다 — 빈 차트 대신 안내로 바꾼다
+  const hasHistory = data.history.length > 0
+  // 표시 숫자와 구간 판정이 경계(25·75)에서 어긋나지 않게 반올림한 값 하나로 둘 다 계산한다
+  const index = Math.round(data.current)
+
+  return (
+    <IndicatorCard title={title} description={description} days={hasHistory ? days : undefined} onDaysChange={setDays}>
+      <div className="flex gap-6">
+        <Stat label="현재" value={String(index)} />
+        <Stat label="구간" value={altSeasonPhase(index)} />
+      </div>
+      {hasHistory ? (
+        <ChartArea>
+          <IndicatorLineChart
+            data={data.history.slice(-days)}
+            series={[{ key: 'value', name: '알트코인 시즌 지수', color: 'var(--chart-1)' }]}
+            title={`${title} 추이`}
+            formatAxis={(v) => String(Math.round(v))}
+            formatValue={(v) => String(Math.round(v))}
+            referenceY={ALT_SEASON_BOUNDS}
+            yWidth={32}
+          />
+        </ChartArea>
+      ) : (
+        <p className="text-xs text-warn">추이를 불러오지 못해 현재 값만 표시합니다.</p>
+      )}
+    </IndicatorCard>
+  )
+}
+
+const fmtHashrate = (eh: number) => `${Math.round(eh).toLocaleString('en-US')} EH/s`
+
+export function HashRibbonsCard({ data }: { data: CryptoMarketIndicators['hashRibbons'] }) {
+  const title = 'Hash Ribbons'
+  const description = '채굴 해시레이트(EH/s)의 30일·60일 이동평균\n30일선이 60일선 아래면 채굴자 항복(바닥권 신호)\n항복에서 회복으로 돌아선 날이 매수 신호(세로 점선)\n출처: mempool.space'
+  const [days, setDays] = useState<Days>(365)
+  if (!data) {
+    return <UnavailableCard title={title} description={description} />
+  }
+  const { state } = data.current
+  // 최근 신호는 기간 토글과 무관하게 받은 전체 이력(최대 1년)에서 찾는다
+  const lastSignal = data.history.findLast((p) => p.buySignal)
+  const history = data.history.slice(-days)
+
+  return (
+    <IndicatorCard title={title} description={description} days={days} onDaysChange={setDays}>
+      <div className="flex flex-wrap gap-x-6 gap-y-2">
+        <Stat
+          label="상태"
+          value={state === 'CAPITULATION' ? '채굴자 항복' : state === 'RECOVERY' ? '회복' : '—'}
+          valueClassName={state === 'CAPITULATION' ? 'text-warn' : 'text-foreground'}
+        />
+        <Stat
+          label="최근 매수 신호"
+          value={lastSignal ? fmtUtcDate(lastSignal.date) : '최근 1년 없음'}
+          valueClassName={lastSignal ? 'text-pos' : 'text-foreground'}
+        />
+      </div>
+      <p className="text-xs text-muted-foreground">{fmtUtcDate(data.current.date)} 기준</p>
+      <ChartArea className="min-h-[224px]">
+        <IndicatorLineChart
+          data={history}
+          // 일 해시레이트 원값은 매일 크게 튀어 축을 넓히고 30·60일선 교차를 가린다 — 교차가 지표의 핵심이라 평균선만 그린다
+          series={[
+            { key: 'sma30', name: '30일 평균', color: 'var(--chart-1)' },
+            { key: 'sma60', name: '60일 평균', color: 'var(--info)' },
+          ]}
+          title={`${title} 추이`}
+          formatAxis={(v) => Math.round(v).toLocaleString('en-US')}
+          formatValue={fmtHashrate}
+          markerDates={history.filter((p) => p.buySignal).map((p) => p.date)}
+          yWidth={44}
         />
       </ChartArea>
     </IndicatorCard>

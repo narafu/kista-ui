@@ -1301,7 +1301,7 @@ export interface paths {
         };
         /**
          * 종목 일봉 캔들 조회 (계좌 무관 공용 시세)
-         * @description from·to를 함께 주면 기간(양끝 포함, 최대 5년) 조회 — 200개 한도 없음. 없으면 최신 count개(최대 200)
+         * @description from·to를 함께 주면 기간(양끝 포함, 최대 5년) 조회 — 200개 한도 없음. 없으면 최신 count개(최대 600)
          */
         get: operations["getCandles"];
         put?: never;
@@ -3362,6 +3362,32 @@ export interface components {
             /** @description 일자별 추이 (UTC 일봉 종가, 진행 중 봉 제외) */
             history: components["schemas"]["CryptoMarketIndicatorsDatedValue"][];
         };
+        CryptoMarketIndicatorsDailyIndicator: {
+            /** @description 현재 값 */
+            current: number;
+            /** @description 일자별 추이 */
+            history: components["schemas"]["CryptoMarketIndicatorsDatedValue"][];
+        };
+        CryptoMarketIndicatorsDatedHashRibbon: {
+            /**
+             * Format: date
+             * @description 기준 일자
+             */
+            date: string;
+            /** @description 일 평균 해시레이트 (EH/s) */
+            hashrateEh: number;
+            /** @description 30일 이동평균 (이력 30일 미만이면 null) */
+            sma30: number | null;
+            /** @description 60일 이동평균 (이력 60일 미만이면 null) */
+            sma60: number | null;
+            /**
+             * @description CAPITULATION: sma30 < sma60 (채굴자 항복), RECOVERY: 그 외 (sma60 없으면 null)
+             * @enum {string|null}
+             */
+            state: "CAPITULATION" | "RECOVERY" | null;
+            /** @description 매수 신호 — 전날 CAPITULATION → 당일 RECOVERY 전환일 */
+            buySignal: boolean;
+        };
         CryptoMarketIndicatorsDatedLongShortRatio: {
             /**
              * Format: date
@@ -3443,6 +3469,12 @@ export interface components {
              */
             estimatedAt: string;
         };
+        CryptoMarketIndicatorsHashRibbons: {
+            /** @description 최신 점 (history 마지막과 같음) */
+            current: components["schemas"]["CryptoMarketIndicatorsDatedHashRibbon"];
+            /** @description 일자별 추이 */
+            history: components["schemas"]["CryptoMarketIndicatorsDatedHashRibbon"][];
+        };
         CryptoMarketIndicatorsKimchiPremium: {
             /** @description 현재 김프 */
             current: components["schemas"]["CryptoMarketIndicatorsPremiumPair"];
@@ -3494,6 +3526,12 @@ export interface components {
             tickers: components["schemas"]["CryptoMarketIndicatorsTicker"][];
             /** @description BTC 반감기 카운트다운 (실패 시 null) */
             halving: components["schemas"]["CryptoMarketIndicatorsHalving"] | null;
+            /** @description BTC 도미넌스 — BTC 시가총액 비중 (%) (CMC 키 없음·실패 시 null) */
+            btcDominance: components["schemas"]["CryptoMarketIndicatorsDailyIndicator"] | null;
+            /** @description 알트코인 시즌 지수 0~100 (CMC — 상위 100 알트 중 90일간 BTC를 이긴 비율, 75↑ 알트 시즌·25↓ 비트코인 시즌). 이력은 비공식 API라 실패 시 빈 배열 (현재값 조회 실패 시 null) */
+            altcoinSeason: components["schemas"]["CryptoMarketIndicatorsDailyIndicator"] | null;
+            /** @description Hash Ribbons — 해시레이트(EH/s) 30·60일 이동평균, CAPITULATION: sma30 < sma60(채굴자 항복), buySignal: 항복→회복 전환일 (실패 시 null) */
+            hashRibbons: components["schemas"]["CryptoMarketIndicatorsHashRibbons"] | null;
         };
         CryptoMarketIndicatorsTicker: {
             /**
@@ -7893,7 +7931,7 @@ export interface operations {
                  */
                 ticker: string;
                 /**
-                 * @description 캔들 개수 (최대 200, from/to 지정 시 무시)
+                 * @description 캔들 개수 (최대 600, 초과 시 600으로 잘림, from/to 지정 시 무시)
                  * @example 200
                  */
                 count?: number;
