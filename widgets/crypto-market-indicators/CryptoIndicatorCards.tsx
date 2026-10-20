@@ -384,7 +384,7 @@ const fmtHashrate = (eh: number) => `${Math.round(eh).toLocaleString('en-US')} E
 
 export function HashRibbonsCard({ data }: { data: CryptoMarketIndicators['hashRibbons'] }) {
   const title = 'Hash Ribbons'
-  const description = '채굴 해시레이트(EH/s)의 30일·60일 이동평균\n30일선이 60일선 아래면 채굴자 항복(바닥권 신호)\n항복에서 회복으로 돌아선 날이 매수 신호(세로 점선)\n출처: mempool.space'
+  const description = '채굴 해시레이트(EH/s)의 30일·60일 이동평균\n30일선이 60일선 아래면 채굴자 항복(바닥권 신호)\n항복에서 회복한 뒤 BTC 종가 10일 평균이 20일 평균을 처음 넘은 날이 매수 신호(세로 점선)\n출처: mempool.space'
   const [days, setDays] = useState<Days>(365)
   if (!data) {
     return <UnavailableCard title={title} description={description} />
