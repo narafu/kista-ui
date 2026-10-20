@@ -9,8 +9,8 @@ const DAYS_OPTIONS = [365, 180, 90, 30] as const
 type Days = (typeof DAYS_OPTIONS)[number]
 
 export function FearGreedSection() {
-  const [cnnDays, setCnnDays] = useState<Days>(365)
-  const [cryptoDays, setCryptoDays] = useState<Days>(365)
+  const [cnnDays, setCnnDays] = useState<Days>(30)
+  const [cryptoDays, setCryptoDays] = useState<Days>(30)
 
   const { data: cnnData, isError: isCnnError, isPending: isCnnPending } = useFearGreedQuery(cnnDays)
   const { data: cryptoData, isError: isCryptoError, isPending: isCryptoPending } = useFearGreedQuery(cryptoDays)

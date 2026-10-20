@@ -119,7 +119,7 @@ interface KimchiProps {
 export function KimchiPremiumCard({ ticker, data, usdtPremium }: KimchiProps) {
   const title = `${ticker} 김치 프리미엄`
   const description = '국내 원화가의 해외 대비 할증\n공식 환율 기준: 일반 김프 사이트와 같은 기준\n테더 기준: 원화 유출 제약을 뺀 국내 과열도'
-  const [days, setDays] = useState<Days>(365)
+  const [days, setDays] = useState<Days>(30)
   if (!data) {
     return <UnavailableCard title={title} description={description} />
   }
@@ -169,7 +169,7 @@ const fmtCoinbasePct = (percent: number) => signedPct(percent / 100, 4)
 export function CoinbasePremiumCard({ ticker, data }: { ticker: string; data: CryptoTickerIndicators['coinbasePremium'] }) {
   const title = `${ticker} Coinbase 프리미엄`
   const description = '코인베이스 USD가의 바이낸스 대비 할증(테더 보정)\n김프 = 한국 수요, Coinbase 프리미엄 = 미국 수요\n양수는 미국 현물 매수 우위'
-  const [days, setDays] = useState<Days>(365)
+  const [days, setDays] = useState<Days>(30)
   if (!data) {
     return <UnavailableCard title={title} description={description} />
   }
@@ -195,7 +195,7 @@ export function CoinbasePremiumCard({ ticker, data }: { ticker: string; data: Cr
 export function FundingRateCard({ ticker, data }: { ticker: string; data: CryptoTickerIndicators['fundingRate'] }) {
   const title = `${ticker} 펀딩비`
   const description = '바이낸스 무기한 선물, 8시간 정산\n양수는 롱 과열, 음수는 숏 우세\n점선은 평상시 기준 0.01%'
-  const [days, setDays] = useState<Days>(365)
+  const [days, setDays] = useState<Days>(30)
   if (!data) {
     return <UnavailableCard title={title} description={description} />
   }
@@ -250,7 +250,7 @@ export function OpenInterestCard({ ticker, data }: { ticker: string; data: Crypt
 export function ValuationCard({ ticker, data }: { ticker: string; data: CryptoTickerIndicators['valuation'] }) {
   const title = `${ticker} 장기 밸류에이션`
   const description = '200주 배수: 종가 ÷ 200주 이동평균, 1 미만은 장기 저점권\n메이어 멀티플: 종가 ÷ 200일 이동평균, 2.4 이상은 과열권\nATH 대비: 역대 최고가에서 내려온 폭'
-  const [days, setDays] = useState<Days>(365)
+  const [days, setDays] = useState<Days>(30)
   if (!data) {
     return <UnavailableCard title={title} description={description} />
   }
@@ -317,7 +317,7 @@ const fmtPlainPct = (percent: number) => `${percent.toFixed(2)}%`
 export function BtcDominanceCard({ data }: { data: CryptoMarketIndicators['btcDominance'] }) {
   const title = 'BTC 도미넌스'
   const description = '전체 크립토 시가총액 중 BTC 비중\n오르면 자금이 BTC로 몰림, 내리면 알트로 퍼짐\n출처: CoinMarketCap'
-  const [days, setDays] = useState<Days>(365)
+  const [days, setDays] = useState<Days>(30)
   if (!data) {
     return <UnavailableCard title={title} description={description} />
   }
@@ -346,7 +346,7 @@ const altSeasonPhase = (index: number) => (index >= 75 ? '알트코인 시즌' :
 export function AltcoinSeasonCard({ data }: { data: CryptoMarketIndicators['altcoinSeason'] }) {
   const title = '알트코인 시즌'
   const description = '상위 100개 알트 중 최근 90일 동안 BTC보다 많이 오른 비율(0~100)\n75 이상 알트코인 시즌, 25 이하 비트코인 시즌\n출처: CoinMarketCap'
-  const [days, setDays] = useState<Days>(365)
+  const [days, setDays] = useState<Days>(30)
   if (!data) {
     return <UnavailableCard title={title} description={description} />
   }
@@ -385,7 +385,7 @@ const fmtHashrate = (eh: number) => `${Math.round(eh).toLocaleString('en-US')} E
 export function HashRibbonsCard({ data }: { data: CryptoMarketIndicators['hashRibbons'] }) {
   const title = 'Hash Ribbons'
   const description = '채굴 해시레이트(EH/s)의 30일·60일 이동평균\n30일선이 60일선 아래면 채굴자 항복(바닥권 신호)\n항복에서 회복한 뒤 BTC 종가 10일 평균이 20일 평균을 처음 넘은 날이 매수 신호(세로 점선)\n출처: mempool.space'
-  const [days, setDays] = useState<Days>(365)
+  const [days, setDays] = useState<Days>(30)
   if (!data) {
     return <UnavailableCard title={title} description={description} />
   }

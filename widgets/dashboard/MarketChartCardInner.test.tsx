@@ -94,12 +94,12 @@ describe('MarketChartCardInner', () => {
     expect(screen.getByText('표시할 시세가 없습니다.')).toBeInTheDocument()
   })
 
-  it('queries 600 candles (400 visible + MA200 lead) and selects 400 by default', () => {
+  it('queries 600 candles (up to 400 visible + MA200 lead) and selects 50 by default', () => {
     useCandlesQueryMock.mockClear()
     render(<MarketChartCardInner category={category} />)
 
     expect(useCandlesQueryMock).toHaveBeenCalledWith('SPY', 600)
-    expect(screen.getByRole('button', { name: '400' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: '50' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByText('MA200')).toBeInTheDocument()
   })
 

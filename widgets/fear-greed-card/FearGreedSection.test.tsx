@@ -38,14 +38,14 @@ vi.mock('./FearGreedCard', () => ({
 }))
 
 describe('FearGreedSection', () => {
-  it('queries both indices with the 365-day default window', () => {
+  it('queries both indices with the 30-day default window', () => {
     useFearGreedQueryMock.mockClear()
     render(<FearGreedSection />)
 
-    expect(useFearGreedQueryMock.mock.calls.map((call) => call[0])).toEqual([365, 365])
+    expect(useFearGreedQueryMock.mock.calls.map((call) => call[0])).toEqual([30, 30])
   })
 
-  it('re-queries only the CNN window when its day button is clicked, leaving crypto at 365', async () => {
+  it('re-queries only the CNN window when its day button is clicked, leaving crypto at 30', async () => {
     const user = userEvent.setup()
     render(<FearGreedSection />)
 
@@ -54,7 +54,7 @@ describe('FearGreedSection', () => {
     await user.click(screen.getAllByRole('button', { name: '90' })[0])
 
     // 훅 호출 순서는 CNN → 크립토
-    expect(useFearGreedQueryMock.mock.calls.map((call) => call[0])).toEqual([90, 365])
+    expect(useFearGreedQueryMock.mock.calls.map((call) => call[0])).toEqual([90, 30])
   })
 
   it('renders both the CNN and crypto card titles', () => {

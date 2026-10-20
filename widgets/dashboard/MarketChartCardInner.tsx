@@ -77,7 +77,7 @@ function readChartColors() {
 export default function MarketChartCardInner({ category }: Props) {
   // eslint-disable-next-line react-doctor/no-derived-useState
   const [symbol, setSymbol] = useState(category.options[0].symbol)
-  const [candleCount, setCandleCount] = useState<CandleCount>(400)
+  const [candleCount, setCandleCount] = useState<CandleCount>(50)
   const [showRsi, setShowRsi] = useState(false)
   const selected = category.options.find((o) => o.symbol === symbol) ?? category.options[0]
   // 이평선·RSI의 선행 구간을 채우려고 항상 최대치로 조회하고, 캔들 개수 선택은 보이는 범위로만 반영한다

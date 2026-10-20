@@ -395,12 +395,12 @@ describe('CryptoMarketSection', () => {
 
     const chart = screen.getByText(/^BTC Coinbase 프리미엄 추이/)
     expect(chart).toHaveTextContent('Coinbase 프리미엄, 30일 평균')
+    expect(chart).toHaveAttribute('data-points', '30') // 기본 기간 30일
+    expect(chart).toHaveAttribute('data-first-ma', '15.5') // 30일만 잘라도 첫 점의 평균은 그 앞 29일까지 써서 계산된다
+
+    await userEvent.setup().click(within(screen.getByRole('group', { name: 'BTC Coinbase 프리미엄 조회 기간(일)' })).getByRole('button', { name: '365' }))
     expect(chart).toHaveAttribute('data-first-ma', 'null') // 앞 29일은 평균을 낼 구간이 모자란다
     expect(chart).toHaveAttribute('data-last-ma', '44.5') // 30~59의 평균
-
-    await userEvent.setup().click(within(screen.getByRole('group', { name: 'BTC Coinbase 프리미엄 조회 기간(일)' })).getByRole('button', { name: '30' }))
-    expect(chart).toHaveAttribute('data-points', '30')
-    expect(chart).toHaveAttribute('data-first-ma', '15.5') // 30일만 잘라도 첫 점의 평균은 그 앞 29일까지 써서 계산된다
     expect(screen.getByText(/^BTC 펀딩비 일평균 추이/)).toHaveTextContent('일평균 펀딩비, 30일 평균')
   })
 
@@ -410,10 +410,10 @@ describe('CryptoMarketSection', () => {
     render(<CryptoMarketSection />)
 
     const chart = screen.getByText(/^BTC 김치 프리미엄 추이/)
-    expect(chart).toHaveAttribute('data-points', '365')
-    const toggle = screen.getByRole('group', { name: 'BTC 김치 프리미엄 조회 기간(일)' })
-    await userEvent.setup().click(within(toggle).getByRole('button', { name: '30' }))
     expect(chart).toHaveAttribute('data-points', '30')
+    const toggle = screen.getByRole('group', { name: 'BTC 김치 프리미엄 조회 기간(일)' })
+    await userEvent.setup().click(within(toggle).getByRole('button', { name: '365' }))
+    expect(chart).toHaveAttribute('data-points', '365')
   })
 
   it('applies the range to the funding rate chart independently of the kimchi premium chart', async () => {
@@ -425,7 +425,7 @@ describe('CryptoMarketSection', () => {
     const toggle = screen.getByRole('group', { name: 'BTC 펀딩비 조회 기간(일)' })
     await userEvent.setup().click(within(toggle).getByRole('button', { name: '90' }))
     expect(chart).toHaveAttribute('data-points', '90')
-    expect(within(screen.getByRole('group', { name: 'BTC 김치 프리미엄 조회 기간(일)' })).getByRole('button', { name: '365' })).toHaveAttribute('aria-pressed', 'true')
+    expect(within(screen.getByRole('group', { name: 'BTC 김치 프리미엄 조회 기간(일)' })).getByRole('button', { name: '30' })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('keeps showing cached data when a refetch fails', () => {
