@@ -29,11 +29,12 @@ vi.mock('@entities/market', async (importOriginal) => ({
 const addSeriesMock = vi.fn((..._args: unknown[]) => ({ setData: vi.fn(), applyOptions: vi.fn(), createPriceLine: vi.fn() }))
 
 const createChartMock = vi.fn()
+const setVisibleLogicalRangeMock = vi.fn()
 
 vi.mock('lightweight-charts', () => ({
   createChart: () => (createChartMock(), {
     addSeries: addSeriesMock,
-    timeScale: () => ({ setVisibleLogicalRange: vi.fn() }),
+    timeScale: () => ({ setVisibleLogicalRange: setVisibleLogicalRangeMock }),
     panes: () => [{ setHeight: vi.fn() }, { setHeight: vi.fn() }],
     applyOptions: vi.fn(),
     remove: vi.fn(),
@@ -101,6 +102,18 @@ describe('MarketChartCardInner', () => {
     expect(useCandlesQueryMock).toHaveBeenCalledWith('SPY', 600)
     expect(screen.getByRole('button', { name: '50' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByText('MA200')).toBeInTheDocument()
+  })
+
+  it('shows only the latest 50 candles by default and widens the range when another count is picked', async () => {
+    const data = Array.from({ length: 600 }, (_, i) => ({ date: `d${i}`, open: 1, high: 2, low: 1, close: 2, volume: 0 }))
+    useCandlesQueryMock.mockReturnValue({ data })
+    setVisibleLogicalRangeMock.mockClear()
+    render(<MarketChartCardInner category={category} />)
+
+    expect(setVisibleLogicalRangeMock).toHaveBeenLastCalledWith({ from: 549.5, to: 599.5 })
+
+    await userEvent.setup().click(screen.getByRole('button', { name: '400' }))
+    expect(setVisibleLogicalRangeMock).toHaveBeenLastCalledWith({ from: 199.5, to: 599.5 })
   })
 
   it('shows the description label on the trigger for the initially selected option', () => {
