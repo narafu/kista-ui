@@ -59,9 +59,9 @@ export function CryptoMarketSection() {
         <>
           {!marketFailed && (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+              <HashRibbonsCard data={data.hashRibbons} />
               <BtcDominanceCard data={data.btcDominance} />
               <AltcoinSeasonCard data={data.altcoinSeason} />
-              <HashRibbonsCard data={data.hashRibbons} />
             </div>
           )}
           {tickersFailed ? (

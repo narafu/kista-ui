@@ -325,10 +325,10 @@ export function BtcDominanceCard({ data }: { data: CryptoMarketIndicators['btcDo
   return (
     <IndicatorCard title={title} description={description} days={days} onDaysChange={setDays}>
       <Stat label="현재" value={fmtPlainPct(data.current)} />
-      <ChartArea>
+      <ChartArea className="min-h-[224px]">
         <IndicatorLineChart
-          data={data.history.slice(-days)}
-          series={[{ key: 'value', name: 'BTC 도미넌스', color: 'var(--chart-1)' }]}
+          data={withMovingAverage(data.history, (p) => p.value).slice(-days)}
+          series={[{ key: 'value', name: 'BTC 도미넌스', color: 'var(--chart-1)' }, MA_SERIES]}
           title={`${title} 추이`}
           formatAxis={(v, step) => `${v.toFixed(step ? stepDecimals(step) : 1)}%`}
           formatValue={fmtPlainPct}
@@ -362,10 +362,10 @@ export function AltcoinSeasonCard({ data }: { data: CryptoMarketIndicators['altc
         <Stat label="구간" value={altSeasonPhase(index)} />
       </div>
       {hasHistory ? (
-        <ChartArea>
+        <ChartArea className="min-h-[224px]">
           <IndicatorLineChart
-            data={data.history.slice(-days)}
-            series={[{ key: 'value', name: '알트코인 시즌 지수', color: 'var(--chart-1)' }]}
+            data={withMovingAverage(data.history, (p) => p.value).slice(-days)}
+            series={[{ key: 'value', name: '알트코인 시즌 지수', color: 'var(--chart-1)' }, MA_SERIES]}
             title={`${title} 추이`}
             formatAxis={(v) => String(Math.round(v))}
             formatValue={(v) => String(Math.round(v))}

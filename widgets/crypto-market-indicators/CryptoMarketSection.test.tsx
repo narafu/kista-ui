@@ -257,7 +257,10 @@ describe('CryptoMarketSection', () => {
     expect(screen.getByText('회복')).toBeInTheDocument()
     expect(screen.getByText('2026.10.01 UTC')).toBeInTheDocument() // 가장 최근 매수 신호
     expect(screen.getByText('Hash Ribbons 추이: 30일 평균, 60일 평균')).toBeInTheDocument()
-    // 종목 탭 앞(문서 순서상 위)에 온다
+    expect(screen.getByText('BTC 도미넌스 추이: BTC 도미넌스, 30일 평균')).toBeInTheDocument()
+    expect(screen.getByText('알트코인 시즌 추이: 알트코인 시즌 지수, 30일 평균')).toBeInTheDocument()
+    // Hash Ribbons가 줄 맨 앞, 줄 전체는 종목 탭 앞(문서 순서상 위)에 온다
+    expect(screen.getByText('Hash Ribbons').compareDocumentPosition(screen.getByText('BTC 도미넌스'))).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
     expect(screen.getByText('BTC 도미넌스').compareDocumentPosition(screen.getByRole('tab', { name: 'BTC' }))).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
   })
 
