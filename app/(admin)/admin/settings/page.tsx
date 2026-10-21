@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
@@ -6,6 +7,10 @@ import { AdminSettingsForm } from '@features/admin/settings'
 import { SystemCategoryManager } from '@features/finance/manage-categories'
 import { PageHeader } from '@widgets/page-header'
 import { createQueryClient } from '@shared/lib/query'
+
+export const metadata: Metadata = {
+  title: '운영 설정 | KISTA',
+}
 
 export default async function AdminSettingsPage() {
   const token = await getAuthToken()

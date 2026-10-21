@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { adminTradesQueryOptions } from '@entities/admin'
@@ -7,6 +8,10 @@ import { PageHeader } from '@widgets/page-header'
 import { AdminTradesWorkbench } from '@widgets/admin-trade-list'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
 import { createQueryClient } from '@shared/lib/query'
+
+export const metadata: Metadata = {
+  title: '주문 관리 | KISTA',
+}
 
 export default async function AdminTradesPage({
   searchParams,

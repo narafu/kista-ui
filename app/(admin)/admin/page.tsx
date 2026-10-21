@@ -1,9 +1,14 @@
+import type { Metadata } from 'next'
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { adminStatsQueryOptions, adminUsersQueryOptions } from '@entities/admin'
 import { AdminOverviewContent } from '@widgets/admin-user-list'
 import { PageHeader } from '@widgets/page-header'
 import { createQueryClient } from '@shared/lib/query'
+
+export const metadata: Metadata = {
+  title: '관리자 | KISTA',
+}
 
 export default async function AdminOverviewPage() {
   const token = await getAuthToken()

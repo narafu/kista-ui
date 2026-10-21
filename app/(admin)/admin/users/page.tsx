@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { adminUsersQueryOptions } from '@entities/admin'
@@ -5,6 +6,10 @@ import { getMe } from '@entities/user'
 import { AdminUsersContent } from '@widgets/admin-user-list'
 import { parseRangePreset, resolveRange } from '@shared/lib/date-range'
 import { createQueryClient } from '@shared/lib/query'
+
+export const metadata: Metadata = {
+  title: '사용자 목록 | KISTA',
+}
 
 export default async function AdminUsersPage({
   searchParams,

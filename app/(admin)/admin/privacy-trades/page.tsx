@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { adminPrivacyBasesQueryOptions } from '@entities/privacy'
@@ -10,6 +11,10 @@ import { createQueryClient } from '@shared/lib/query'
 
 // 매매표는 장기 추이를 보는 화면이라 7·30일 대신 올해·90·180일 프리셋을 노출한다
 const PRESETS: RangePreset[] = ['ytd', '90d', '180d', 'all', 'custom']
+
+export const metadata: Metadata = {
+  title: 'P 매매표 | KISTA',
+}
 
 export default async function AdminPrivacyTradesPage({
   searchParams,

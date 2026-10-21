@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { listAdminAccounts } from '@entities/admin'
 import type { AdminAccount } from '@entities/admin'
@@ -10,6 +11,10 @@ import { UrlRangeFilterBar } from '@shared/ui/UrlRangeFilterBar'
 import { PageHeader } from '@widgets/page-header'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
 import { AdminAccountsFilterBar } from './AdminAccountsFilterBar'
+
+export const metadata: Metadata = {
+  title: '계좌 현황 | KISTA',
+}
 
 export default async function AdminAccountsPage({
   searchParams,

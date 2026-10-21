@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
@@ -14,6 +15,10 @@ type LogType = (typeof LOG_TYPES)[number]
 
 function parseLogType(value?: string): LogType {
   return LOG_TYPES.find((type) => type === value) ?? 'all'
+}
+
+export const metadata: Metadata = {
+  title: '운영 로그 | KISTA',
 }
 
 export default async function AdminLogsPage({
