@@ -14,14 +14,14 @@ export function DashboardOverview({ marketPanels, bottomPanels, notice }: Props)
     <div className="reveal-stagger">
       <div className="hidden lg:block">
         <PageHeader
-          eyebrow="홈"
-          title="대시보드"
+          eyebrow="대시보드"
+          title="개요"
           actions={
             <NewAccountButton>계좌 등록</NewAccountButton>
           }
         />
       </div>
-      <h1 className="sr-only lg:hidden">대시보드</h1>
+      <h1 className="sr-only lg:hidden">개요</h1>
       {notice}
       <DashboardMarkets marketPanels={marketPanels} bottomPanels={bottomPanels} />
     </div>

@@ -10,6 +10,8 @@ export function AdminPendingPageContent() {
   return (
     <>
       <PageHeader
+        eyebrow="개요"
+        eyebrowHref="/admin"
         title="승인 대기"
         description={users.length > 0 ? `${users.length}명이 승인을 기다리고 있습니다.` : '가입 신청을 검토하고 승인하거나 거절합니다.'}
       />

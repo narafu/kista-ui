@@ -11,7 +11,7 @@ import type { Account } from '@entities/account'
 import { createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
-  title: '내 계좌 | KISTA',
+  title: '계좌 목록 | KISTA',
   description: '연결된 한국투자증권 계좌 목록',
 }
 
@@ -34,8 +34,8 @@ export default async function AccountsPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="계좌 관리"
-        title="내 계좌"
+        eyebrow="계좌"
+        title="계좌 목록"
         actions={
           <NewAccountButton>계좌 등록</NewAccountButton>
         }

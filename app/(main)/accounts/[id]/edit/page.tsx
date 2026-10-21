@@ -28,7 +28,8 @@ export default async function AccountEditPage({ params }: Props) {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="계좌 관리"
+        eyebrow={account.nickname}
+        eyebrowHref={`/accounts/${id}`}
         title="계좌 수정"
       />
 

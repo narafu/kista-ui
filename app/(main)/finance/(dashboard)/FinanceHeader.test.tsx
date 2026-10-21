@@ -16,11 +16,11 @@ vi.mock('@features/finance/save-transaction', () => ({
 }))
 
 describe('FinanceHeader', () => {
-  it('자산 탭에서는 제목이 "내 자산"이고 자산 등록 버튼만 보여준다', () => {
+  it('자산 탭에서는 제목이 "자산"이고 자산 등록 버튼만 보여준다', () => {
     pathname = '/finance'
     render(<FinanceHeader />)
 
-    expect(screen.getByRole('heading', { name: '내 자산' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '자산' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '자산 등록' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /예산 관리/ })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: '자산' })).toHaveAttribute('aria-current', 'page')

@@ -36,7 +36,8 @@ export function AccountDetailContent({
   return (
     <div className="space-y-4">
       <PageHeader
-        eyebrow="계좌 관리"
+        eyebrow="계좌 목록"
+        eyebrowHref="/accounts"
         title={account.nickname}
         actions={
           <Link

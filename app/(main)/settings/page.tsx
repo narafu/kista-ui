@@ -1,9 +1,14 @@
+import type { Metadata } from 'next'
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { meQueryOptions } from '@entities/user'
 import { PageHeader } from '@widgets/page-header'
 import { SettingsPageContent } from '@widgets/settings/SettingsPageContent'
 import { createQueryClient } from '@shared/lib/query'
+
+export const metadata: Metadata = {
+  title: '계정 설정 | KISTA',
+}
 
 export default async function SettingsPage() {
   const token = await getAuthToken()

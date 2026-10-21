@@ -23,7 +23,7 @@ export function DashboardEmpty({ marketPanels, bottomPanels }: Props) {
     <>
       {/* Desktop 안내 */}
       <div className="hidden lg:block">
-        <PageHeader eyebrow="홈" title="대시보드" />
+        <PageHeader eyebrow="대시보드" title="개요" />
         {/* Row 1: 안내 카드 2개 */}
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div
@@ -53,7 +53,7 @@ export function DashboardEmpty({ marketPanels, bottomPanels }: Props) {
 
       {/* Mobile 안내 */}
       <div className="lg:hidden">
-        <h1 className="sr-only">대시보드</h1>
+        <h1 className="sr-only">개요</h1>
         <div
           className="rounded-[var(--r-lg)] border border-rose-200 p-5 mb-4 text-center"
           style={{ background: 'var(--brand-soft-bg)' }}

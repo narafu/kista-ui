@@ -11,7 +11,7 @@ import type { Strategy } from '@entities/strategy'
 import { createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
-  title: '전략 | KISTA',
+  title: '전략 목록 | KISTA',
 }
 
 export default async function StrategiesPage() {
@@ -33,7 +33,7 @@ export default async function StrategiesPage() {
   return (
     <>
       <HydrationBoundary state={dehydrate(queryClient)}>
-        <PageHeader eyebrow="전략 관리" title="전략" actions={<AddStrategyButton />} />
+        <PageHeader eyebrow="전략" title="전략 목록" actions={<AddStrategyButton />} />
         <AllStrategiesList />
       </HydrationBoundary>
     </>

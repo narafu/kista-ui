@@ -164,7 +164,7 @@ test.describe('계좌 Router Cache 일관성', () => {
     await page.getByRole('link', { name: '대시보드', exact: true }).click()
 
     await expect(page).toHaveURL('/dashboard')
-    await expect(page.getByRole('heading', { name: '대시보드' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '개요' })).toBeVisible()
     await expect(page.getByText('첫 계좌 등록', { exact: true })).not.toBeVisible()
     await navigation.expectSurvived()
     navigation.dispose()
@@ -181,7 +181,7 @@ test.describe('계좌 Router Cache 일관성', () => {
     await deleteAccountThroughUi(page, request, nickname)
 
     await expect(page).toHaveURL('/accounts')
-    await expect(page.getByRole('heading', { name: '내 계좌' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '계좌 목록' })).toBeVisible()
     await expect(page.getByText('등록된 계좌가 없습니다', { exact: true })).toBeVisible()
     await expect(accountCard(page, nickname)).not.toBeVisible()
     await navigation.expectSurvived()
