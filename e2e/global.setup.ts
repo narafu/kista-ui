@@ -32,7 +32,7 @@ setup('dev 토큰으로 격리된 E2E storageState 생성', async ({ request }) 
 
   for (const [endpoint, file] of [
     ['dev-token', 'user.json'],
-    ['dev-token', 'account-cache.json'],
+    ['dev-e2e-token', 'account-cache.json'], // dev 시드가 없는 빈 사용자(...0003)
     ['dev-admin-token', 'admin.json'],
   ] as const) {
     const res = await request.post(`${API_BASE}/api/auth/${endpoint}`)
