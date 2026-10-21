@@ -74,17 +74,39 @@ describe('AssetRecordList', () => {
     toastSuccessMock.mockClear()
     toastWarningMock.mockClear()
     useMonthlyClosingsQueryMock.mockReturnValue({ data: [] })
+    useFinanceCategoriesQueryMock.mockReturnValue({ data: [] })
+  })
+
+  it('categoryPath가 주어지면 그 카테고리(하위 포함) 기록만 표시한다', () => {
+    useFinanceCategoriesQueryMock.mockReturnValue({
+      data: [
+        { id: 'root-a', name: 'A', children: [] },
+        { id: 'root-b', name: 'B', children: [] },
+      ],
+    } as never)
+    useAssetSnapshotsQueryMock.mockReturnValue({
+      data: [
+        snapshot({ id: 'a1', categoryId: 'root-a', accountName: '계좌A' }),
+        snapshot({ id: 'b1', categoryId: 'root-b', accountName: '계좌B' }),
+      ],
+      isLoading: false,
+      isError: false,
+    })
+    render(<AssetRecordList month="2026-08" categoryPath={['root-a']} onCategoryPathChange={vi.fn()} />)
+
+    expect(screen.getAllByText('계좌A').length).toBeGreaterThan(0)
+    expect(screen.queryByText('계좌B')).not.toBeInTheDocument()
   })
 
   it('필터 없이 선택한 달에 기록이 없으면 필터 조건이 아닌 월 기준 빈 상태 문구를 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({ entryDate: '2026-07-01' })], isLoading: false, isError: false })
-    render(<AssetRecordList month="2026-08" />)
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
     expect(screen.getByText('선택한 달에 자산 기록이 없습니다.')).toBeInTheDocument()
   })
 
   it('데스크탑 표 스크롤 컨테이너는 키보드로 스크롤할 수 있는 region이다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({})], isLoading: false, isError: false })
-    render(<AssetRecordList month="2026-08" />)
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
     expect(screen.getByRole('region', { name: '자산 기록 표' })).toHaveAttribute('tabindex', '0')
   })
 
@@ -92,7 +114,7 @@ describe('AssetRecordList', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({})], isLoading: false, isError: false })
     useMonthlyClosingsQueryMock.mockReturnValue({ data: [{ month: '2026-08', completed: true }] })
 
-    render(<AssetRecordList month="2026-08" />)
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
 
     const desktopTable = screen.getByRole('table', { name: '자산 기록' })
     expect(within(desktopTable).getAllByLabelText('수정')[0]).toHaveAttribute('title', expect.stringContaining('기록 점검이 완료된 달'))
@@ -102,25 +124,25 @@ describe('AssetRecordList', () => {
 
   it('로딩 중에는 로딩 문구를 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: undefined, isLoading: true, isError: false })
-    render(<AssetRecordList month="2026-08" />)
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
     expect(screen.getByText('불러오는 중…')).toBeInTheDocument()
   })
 
   it('조회 실패 시 에러 섹션을 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: true })
-    render(<AssetRecordList month="2026-08" />)
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
     expect(screen.getByText('자산 기록을 불러오지 못했습니다.')).toBeInTheDocument()
   })
 
   it('기록이 없으면 빈 상태를 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: [], isLoading: false, isError: false })
-    render(<AssetRecordList month="2026-08" />)
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
     expect(screen.getByText(/등록된 자산 기록이 없습니다/)).toBeInTheDocument()
   })
 
   it('금액과 카테고리를 포맷팅해 표시하고 수정·복제 링크를 연결한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({})], isLoading: false, isError: false })
-    render(<AssetRecordList month="2026-08" />)
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
 
     expect(screen.getAllByText('1,000,000원').length).toBeGreaterThan(0)
     expect(screen.getAllByText('투자').length).toBeGreaterThan(0)
@@ -134,7 +156,7 @@ describe('AssetRecordList', () => {
       isLoading: false,
       isError: false,
     })
-    render(<AssetRecordList month="2026-08" />)
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
 
     expect(screen.getAllByText('공유')).toHaveLength(2)
   })
@@ -147,7 +169,7 @@ describe('AssetRecordList', () => {
       isLoading: false,
       isError: false,
     })
-    render(<AssetRecordList month="2026-08" />)
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
 
     const desktopTable = screen.getByRole('table', { name: '자산 기록' })
     const dataRow = within(desktopTable).getAllByRole('row')[1]
@@ -170,7 +192,7 @@ describe('AssetRecordList', () => {
       isLoading: false,
       isError: false,
     })
-    render(<AssetRecordList month="2026-08" />)
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
 
     const desktopTable = screen.getByRole('table', { name: '자산 기록' })
     const dataRow = within(desktopTable).getAllByRole('row')[1]
@@ -191,7 +213,7 @@ describe('AssetRecordList', () => {
       isLoading: false,
       isError: false,
     })
-    render(<AssetRecordList month="2026-08" />)
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
 
     const mobileList = screen.getByRole('list', { name: '자산 기록' })
     const items = within(mobileList).getAllByRole('listitem')
@@ -208,7 +230,7 @@ describe('AssetRecordList', () => {
       isLoading: false,
       isError: false,
     })
-    render(<AssetRecordList month="2026-08" />)
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
 
     const items = within(screen.getByRole('list', { name: '자산 기록' })).getAllByRole('listitem')
     expect(within(items[0]).getByText('미래에셋증권 종합위탁 · 미래에셋증권')).toBeInTheDocument()
@@ -217,7 +239,7 @@ describe('AssetRecordList', () => {
 
   it('작업 버튼(아이콘)은 복제·수정·삭제 순서로 배치된다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({})], isLoading: false, isError: false })
-    render(<AssetRecordList month="2026-08" />)
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
 
     const desktopTable = screen.getByRole('table', { name: '자산 기록' })
     const dataRow = within(desktopTable).getAllByRole('row')[1]
@@ -235,7 +257,7 @@ describe('AssetRecordList', () => {
       isLoading: false,
       isError: false,
     })
-    render(<AssetRecordList month="2026-08" />)
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
 
     const desktopTable = screen.getByRole('table', { name: '자산 기록' })
     const rowCheckboxes = within(desktopTable).getAllByRole('checkbox').filter((el) => el.getAttribute('aria-label')?.includes('선택'))
@@ -255,7 +277,7 @@ describe('AssetRecordList', () => {
   it('행 단위 삭제 버튼은 해당 id 하나만으로 삭제 mutation을 호출한다', async () => {
     const user = userEvent.setup()
     useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({ id: 'a1' })], isLoading: false, isError: false })
-    render(<AssetRecordList month="2026-08" />)
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
 
     await user.click(screen.getAllByRole('button', { name: '삭제' })[0])
     await user.click(screen.getByRole('button', { name: '삭제' }))
@@ -273,7 +295,7 @@ describe('AssetRecordList', () => {
       isLoading: false,
       isError: false,
     })
-    render(<AssetRecordList month="2026-08" />)
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
 
     const desktopTable = screen.getByRole('table', { name: '자산 기록' })
     const rows = () => within(desktopTable).getAllByRole('row').slice(1)
@@ -289,7 +311,7 @@ describe('AssetRecordList', () => {
   it('전체 성공 시 성공 toast를 띄우고 선택을 비운다 — 전체 실패(succeededIds 빈 배열)는 건드리지 않는다', async () => {
     const user = userEvent.setup()
     useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({ id: 'a1' })], isLoading: false, isError: false })
-    render(<AssetRecordList month="2026-08" />)
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
 
     await user.click(screen.getAllByRole('button', { name: '삭제' })[0])
     await user.click(screen.getByRole('button', { name: '삭제' }))
@@ -308,7 +330,7 @@ describe('AssetRecordList', () => {
       isLoading: false,
       isError: false,
     })
-    render(<AssetRecordList month="2026-08" />)
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
 
     const desktopTable = screen.getByRole('table', { name: '자산 기록' })
     const rowCheckboxes = within(desktopTable).getAllByRole('checkbox').filter((el) => el.getAttribute('aria-label')?.includes('선택'))

@@ -33,9 +33,12 @@ import type { AssetRowContext, SortKey } from './AssetRecordRows'
 
 interface Props {
   month: string
+  // 카테고리 필터 경로 — 자산 요약의 카테고리 행 클릭과 공유하는 상태라 페이지(app)가 소유한다.
+  categoryPath: string[]
+  onCategoryPathChange: (path: string[]) => void
 }
 
-export function AssetRecordList({ month }: Props) {
+export function AssetRecordList({ month, categoryPath, onCategoryPathChange }: Props) {
   const { data, isLoading, isError } = useAssetSnapshotsQuery()
   const snapshots = useMemo(() => data ?? [], [data])
   const { data: categories = [] } = useFinanceCategoriesQuery('ASSET')
@@ -57,7 +60,6 @@ export function AssetRecordList({ month }: Props) {
     unshareMutation.mutate(id, { onSuccess: () => toast.success('개인 소유로 되돌렸습니다') })
   }
 
-  const [categoryPath, setCategoryPath] = useState<string[]>([])
   const [assetClass, setAssetClass] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
   const [market, setMarket] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
   const { sortKey, sortDirection, handleSort } = useTableSort<SortKey>('entryDate')
@@ -183,7 +185,7 @@ export function AssetRecordList({ month }: Props) {
           market={market}
           assetClasses={meta.assetClasses}
           markets={meta.markets}
-          onCategoryPathChange={setCategoryPath}
+          onCategoryPathChange={onCategoryPathChange}
           onAssetClassChange={setAssetClass}
           onMarketChange={setMarket}
         />

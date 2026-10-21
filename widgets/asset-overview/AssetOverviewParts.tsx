@@ -31,21 +31,21 @@ interface BreakdownBarProps {
 function BreakdownBar({ label, amount, percent, delta, color, isLiability = false }: BreakdownBarProps) {
   const { maskIfHidden } = useAmountHiddenPreference()
   return (
-    <div className="flex items-center gap-3">
+    <span className="flex items-center gap-3">
       <span className="w-24 shrink-0 truncate text-sm text-muted-foreground">{label}</span>
-      <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
-        <div
-          className="h-full rounded-full transition-[width] duration-500 ease-out"
+      <span className="block h-2 flex-1 overflow-hidden rounded-full bg-muted">
+        <span
+          className="block h-full rounded-full transition-[width] duration-500 ease-out"
           style={{ width: `${percent}%`, backgroundColor: color }}
         />
-      </div>
-      <div className="flex w-32 shrink-0 flex-col items-end">
+      </span>
+      <span className="flex w-32 shrink-0 flex-col items-end">
         <span className="text-sm font-medium tabular-nums">{maskIfHidden(fmtKrw(amount))}</span>
         <span className={cn('text-xs tabular-nums', delta === null ? 'text-muted-foreground' : pnlTextClass(isLiability ? -delta : delta))}>
           {delta === null ? '—' : maskIfHidden(fmtSignedKrw(delta))}
         </span>
-      </div>
-    </div>
+      </span>
+    </span>
   )
 }
 
@@ -100,9 +100,14 @@ export function SummaryKpis({ summary, previousSummary, amountValue, labelOf }: 
 
 const percentOf = (amount: number, total: number) => (total > 0 ? (amount / total) * 100 : 0)
 
-export function CategorySection({ breakdown, delta }: {
+// 막대 차트까지 포함한 행 전체가 클릭 영역(카테고리 내역 보기)이라 공용 Button 대신 raw button + 이 클래스
+const ROW_BUTTON_CLASS = 'block w-full rounded-md px-1 py-0.5 text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+
+export function CategorySection({ breakdown, delta, onCategorySelect }: {
   breakdown: CategoryBreakdown
   delta: (category: string, amount: number) => number | null
+  // 카테고리 행 클릭 — 아래 자산 기록 목록을 그 카테고리로 필터한다. 상태는 페이지(app)가 소유.
+  onCategorySelect: (categoryId: string) => void
 }) {
   const total = breakdown.reduce((sum, entry) => sum + entry.amount, 0)
   return (
@@ -110,15 +115,17 @@ export function CategorySection({ breakdown, delta }: {
       <h3 className="text-sm font-semibold text-foreground">카테고리별 현황</h3>
       <div className="space-y-2">
         {breakdown.map((entry) => (
-          <BreakdownBar
-            key={entry.category}
-            label={formatAssetL1CategoryLabel(entry.category)}
-            amount={entry.amount}
-            percent={percentOf(entry.amount, total)}
-            delta={delta(entry.category, entry.amount)}
-            color={assetCategoryColor(entry.category)}
-            isLiability={entry.category === SYSTEM_LOAN_CATEGORY_ID}
-          />
+          <button key={entry.category} type="button" onClick={() => onCategorySelect(entry.category)} className={ROW_BUTTON_CLASS}>
+            <BreakdownBar
+              label={formatAssetL1CategoryLabel(entry.category)}
+              amount={entry.amount}
+              percent={percentOf(entry.amount, total)}
+              delta={delta(entry.category, entry.amount)}
+              color={assetCategoryColor(entry.category)}
+              isLiability={entry.category === SYSTEM_LOAN_CATEGORY_ID}
+            />
+            <span className="sr-only">내역 보기</span>
+          </button>
         ))}
       </div>
     </div>

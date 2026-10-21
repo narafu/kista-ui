@@ -23,9 +23,10 @@ interface Props {
   months: string[]
   onMonthChange: (month: string) => void
   today: string
+  onCategorySelect: (categoryId: string) => void
 }
 
-export function AssetOverview({ month, months, onMonthChange, today }: Props) {
+export function AssetOverview({ month, months, onMonthChange, today, onCategorySelect }: Props) {
   const { data, isLoading, isError } = useAssetSnapshotsQuery()
   const snapshots = useMemo(() => data ?? [], [data])
   const { labelOf } = useMeta()
@@ -81,7 +82,7 @@ export function AssetOverview({ month, months, onMonthChange, today }: Props) {
         ) : (
           <div className="space-y-6">
             <SummaryKpis summary={summary} previousSummary={previousSummary} amountValue={amountValue} labelOf={labelOf} />
-            <CategorySection breakdown={categoryBreakdown} delta={categoryDelta} />
+            <CategorySection breakdown={categoryBreakdown} delta={categoryDelta} onCategorySelect={onCategorySelect} />
             <AssetClassSection breakdown={assetClassBreakdown} delta={assetClassDelta} labelOf={labelOf} />
           </div>
         )}
