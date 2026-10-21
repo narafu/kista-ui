@@ -23,8 +23,6 @@ NEXT_PUBLIC_FIREBASE_VAPID_KEY=     # 웹 푸시 VAPID 인증서 키
 - kista-api 로그에 요청이 없는데 403이면 CORS 필터 차단 가능성을 먼저 본다
 - `CORS_ALLOWED_ORIGINS`에 UI 도메인(`https://kista-app.com`)이 등록돼 있어야 한다 — SSOT는 `kista-infra` 레포의 `secrets/kista-api.env.gpg`(`scripts/env.sh edit kista-api`로 편집), kista-api 서버 `.env` 직접 수정은 다음 배포 때 덮어써져 무효
 - `kista-api` 연동 변경이 있으면 `../kista-api/CLAUDE.md`와 함께 확인한다.
-- `kista-api`의 추가 운영/구현 규칙이 필요하면 `../kista-api/AGENTS.md`도 함께 확인한다.
-
 ## Docker
 
 명령어는 `docs/agents/commands.md`의 "Docker / 로컬 연동" 참고.

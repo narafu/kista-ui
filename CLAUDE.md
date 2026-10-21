@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-이 파일은 Claude Code 진입점이다. Codex 진입점은 `AGENTS.md`이며, 실제 프로젝트 공통 지식은 `docs/agents/`에 둔다 — 여기 중복 기재하지 않는다.
+이 파일은 Claude Code 진입점이다. 실제 프로젝트 공통 지식은 `docs/agents/`에 둔다 — 여기 중복 기재하지 않는다.
 
 ## 프로젝트 개요
 
