@@ -7,6 +7,7 @@ import {
   assertAccountCacheOwnership,
   assertOnlyRecordedAccounts,
   cleanupRecordedAccounts,
+  selectLeftoverAccounts,
 } from './support/account-cache-fixture'
 import { acquireAccountCacheLock } from './support/account-cache-lock'
 import type { AccountCacheLock } from './support/account-cache-lock'
@@ -14,6 +15,7 @@ import type { AccountCacheLock } from './support/account-cache-lock'
 type TestAccount = {
   id: string
   nickname: string
+  broker: string
 }
 
 const API_BASE = process.env.E2E_API_BASE ?? 'http://localhost:8080'
@@ -39,26 +41,36 @@ function requireAccountCacheLock() {
   accountCacheLock.assertHeld()
 }
 
-async function inspectAccountsBeforeDelete(request: APIRequestContext) {
+// 삭제 전 공통 가드 — 잠금·루프백·사용자 ID를 확인한 뒤에만 목록을 넘긴다
+async function guardedListAccounts(request: APIRequestContext) {
   requireAccountCacheLock()
   await verifyAccountCacheIdentity(request)
-  const accounts = await listAccounts(request)
+  return listAccounts(request)
+}
+
+async function inspectAccountsBeforeDelete(request: APIRequestContext) {
+  const accounts = await guardedListAccounts(request)
   assertOnlyRecordedAccounts(accounts, createdAccountIds)
   return accounts
 }
 
+async function deleteAccount(request: APIRequestContext, account: Pick<TestAccount, 'id' | 'nickname'>) {
+  const response = await request.delete(`/api/accounts/${account.id}`)
+  expect(response.ok(), `테스트 계좌 정리 실패 (${account.nickname}): ${response.status()} ${await response.text()}`).toBe(true)
+}
+
 async function cleanupOwnedAccounts(request: APIRequestContext) {
   const accounts = await inspectAccountsBeforeDelete(request)
-  await cleanupRecordedAccounts(accounts, createdAccountIds, async (account) => {
-    const response = await request.delete(`/api/accounts/${account.id}`)
-    expect(response.ok(), `테스트 계좌 정리 실패 (${account.nickname}): ${response.status()}`).toBe(true)
-  })
+  await cleanupRecordedAccounts(accounts, createdAccountIds, (account) => deleteAccount(request, account))
   createdAccountIds.clear()
 }
 
+// 전용 E2E 사용자(...0003)에 중단된 이전 실행이 남긴 계좌(MOCK + 접두사)를 지우고 빈 상태에서 시작한다
 async function prepareFirstAccountState(request: APIRequestContext) {
-  const accounts = await inspectAccountsBeforeDelete(request)
-  expect(accounts, '고정 E2E 사용자의 계좌를 로컬 UI/API에서 수동 삭제한 뒤 다시 실행하세요').toEqual([])
+  for (const account of selectLeftoverAccounts(await guardedListAccounts(request))) {
+    await deleteAccount(request, account)
+  }
+  expect(await listAccounts(request), '이전 실행이 남긴 E2E 계좌 정리 실패').toEqual([])
 }
 
 async function createMockAccount(request: APIRequestContext, nickname: string) {

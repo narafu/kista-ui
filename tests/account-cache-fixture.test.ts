@@ -8,6 +8,7 @@ import {
   accountCleanupCandidates,
   assertAccountCacheOwnership,
   cleanupRecordedAccounts,
+  selectLeftoverAccounts,
 } from './e2e/support/account-cache-fixture'
 import { acquireAccountCacheLock } from './e2e/support/account-cache-lock'
 
@@ -43,9 +44,24 @@ describe('account cache E2E ownership', () => {
     const deleteAccount = vi.fn()
 
     await expect(cleanupRecordedAccounts([account], new Set(), deleteAccount)).rejects.toThrow(
-      /remove every account manually/i,
+      /no accounts were deleted/i,
     )
     expect(deleteAccount).not.toHaveBeenCalled()
+  })
+})
+
+describe('account cache E2E leftover cleanup', () => {
+  const leftover = { id: 'leftover-1', nickname: 'e2e-account-cache-create-0-1', broker: 'MOCK' }
+
+  it('selects MOCK accounts with the suite prefix left by an interrupted run', () => {
+    expect(selectLeftoverAccounts([leftover])).toEqual([leftover])
+  })
+
+  it.each([
+    { id: 'manual-1', nickname: 'manual-local-account', broker: 'MOCK' },
+    { id: 'real-1', nickname: 'e2e-account-cache-real', broker: 'KIS' },
+  ])('refuses to clean up when an account the suite did not create exists: $nickname ($broker)', (account) => {
+    expect(() => selectLeftoverAccounts([leftover, account])).toThrow(/no accounts were deleted/i)
   })
 })
 
