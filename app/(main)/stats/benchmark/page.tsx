@@ -8,7 +8,7 @@ import { createQueryClient } from '@shared/lib/query'
 import { todayKst } from '@shared/lib/format'
 
 export const metadata: Metadata = {
-  title: '벤치마크 | KISTA',
+  title: '벤치마크',
 }
 
 export default async function BenchmarkPage() {

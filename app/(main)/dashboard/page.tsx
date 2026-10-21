@@ -15,7 +15,7 @@ import { DashboardLogoutErrorToast } from '@features/auth/logout'
 import { createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
-  title: '대시보드 | KISTA',
+  title: '대시보드',
 }
 
 export default async function DashboardPage() {

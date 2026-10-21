@@ -15,7 +15,7 @@ interface Props {
 }
 
 export const metadata: Metadata = {
-  title: '계좌 상세 | KISTA',
+  title: '계좌 상세',
   description: '계좌 포트폴리오 및 거래 내역',
 }
 

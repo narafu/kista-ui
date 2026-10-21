@@ -9,7 +9,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const type = flowTypeFromSlug((await params).type)
   return {
-    title: type ? `${FLOW_TYPE_LABEL[type]} 예산 관리 | KISTA` : '예산 관리 | KISTA',
+    title: type ? `${FLOW_TYPE_LABEL[type]} 예산 관리` : '예산 관리',
     description: '카테고리별 월 예산을 관리합니다',
   }
 }

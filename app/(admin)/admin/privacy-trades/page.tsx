@@ -13,7 +13,7 @@ import { createQueryClient } from '@shared/lib/query'
 const PRESETS: RangePreset[] = ['ytd', '90d', '180d', 'all', 'custom']
 
 export const metadata: Metadata = {
-  title: 'P 매매표 | KISTA',
+  title: 'P 매매표',
 }
 
 export default async function AdminPrivacyTradesPage({

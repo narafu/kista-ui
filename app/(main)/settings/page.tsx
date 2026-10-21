@@ -7,7 +7,7 @@ import { SettingsPageContent } from '@widgets/settings/SettingsPageContent'
 import { createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
-  title: '계정 설정 | KISTA',
+  title: '계정 설정',
 }
 
 export default async function SettingsPage() {

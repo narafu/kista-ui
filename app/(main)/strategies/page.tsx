@@ -11,7 +11,7 @@ import type { Strategy } from '@entities/strategy'
 import { createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
-  title: '전략 목록 | KISTA',
+  title: '전략 목록',
 }
 
 export default async function StrategiesPage() {

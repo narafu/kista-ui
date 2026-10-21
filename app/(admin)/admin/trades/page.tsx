@@ -10,7 +10,7 @@ import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/li
 import { createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
-  title: '주문 관리 | KISTA',
+  title: '주문 관리',
 }
 
 export default async function AdminTradesPage({

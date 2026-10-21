@@ -85,6 +85,10 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 
 - `env.ts` — kista-api base URL 결정 SSOT. `getApiBaseUrl()`(서버 전용, `API_BASE_URL` 우선 → `NEXT_PUBLIC_API_BASE_URL` 폴백, 둘 다 없으면 throw) / `getApiBaseUrlOrNull()`(실패 허용 경로용). `process.env.API_BASE_URL`/`NEXT_PUBLIC_API_BASE_URL` 직접 참조 금지 — 반드시 이 함수 경유 (`app.md` "API URL" 항목 참고)
 
+## metadata
+
+- `metadata.ts` — 브라우저 탭 제목 접미사 `TITLE_TEMPLATE`(`'%s | KISTA'`) SSOT. 루트 layout과 하위 화면을 둔 중첩 layout(`finance/(dashboard)`·`rejected`)이 쓴다. 규칙은 `docs/agents/constraints.md` 카피 항목 참고
+
 ## normalize
 
 - `normalize.ts` — API 응답(unknown) → 도메인 타입 정규화 경량 헬퍼(`optStr`/`optNum`/`optDec` — null이면 undefined). zod 대체 아님. null 분기 없는 캐스팅은 `String()`/`Number()`/`toNum()`을 직접 쓴다

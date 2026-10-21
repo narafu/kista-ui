@@ -4,6 +4,7 @@ import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { assetSnapshotListQueryOptions, financeGroupListQueryOptions, monthlyClosingListQueryOptions } from '@entities/finance'
 import { createQueryClient } from '@shared/lib/query'
+import { TITLE_TEMPLATE } from '@shared/lib/metadata'
 import { FinanceHeader } from './FinanceHeader'
 import { FinancePeriodProvider } from './FinancePeriodProvider'
 
@@ -11,7 +12,8 @@ import { FinancePeriodProvider } from './FinancePeriodProvider'
 // 없다(Next.js 제약) — 그룹 전체에 하나의 정적 title만 부여한다. 기존에도 client 탭 전환이라
 // 탭 이동 시 title이 바뀌지 않았으므로 동작 변화는 없다.
 export const metadata: Metadata = {
-  title: '가계부 | KISTA',
+  // 문자열 title은 하위 탭으로 template 상속을 끊는다 — default + template 형태 유지
+  title: { default: '가계부', template: TITLE_TEMPLATE },
   description: '개인 자산·부채·수입·소비·저축 기록을 관리합니다',
 }
 

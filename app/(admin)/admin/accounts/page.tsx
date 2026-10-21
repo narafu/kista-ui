@@ -13,7 +13,7 @@ import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/li
 import { AdminAccountsFilterBar } from './AdminAccountsFilterBar'
 
 export const metadata: Metadata = {
-  title: '계좌 현황 | KISTA',
+  title: '계좌 현황',
 }
 
 export default async function AdminAccountsPage({

@@ -18,7 +18,7 @@ const STEPS = [
 ]
 
 export const metadata: Metadata = {
-  title: '승인 대기 | KISTA',
+  title: '승인 대기',
   description: '관리자 승인을 기다리고 있습니다',
 }
 

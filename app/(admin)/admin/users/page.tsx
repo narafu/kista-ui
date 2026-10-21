@@ -8,7 +8,7 @@ import { parseRangePreset, resolveRange } from '@shared/lib/date-range'
 import { createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
-  title: '사용자 목록 | KISTA',
+  title: '사용자 목록',
 }
 
 export default async function AdminUsersPage({

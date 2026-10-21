@@ -18,7 +18,7 @@ function parseLogType(value?: string): LogType {
 }
 
 export const metadata: Metadata = {
-  title: '운영 로그 | KISTA',
+  title: '운영 로그',
 }
 
 export default async function AdminLogsPage({

@@ -6,7 +6,7 @@ import { AdminPendingPageContent } from '@widgets/admin-user-list'
 import { createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
-  title: '가입 승인 대기 | KISTA',
+  title: '가입 승인 대기',
 }
 
 export default async function AdminPendingPage() {

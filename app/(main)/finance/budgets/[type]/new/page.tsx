@@ -7,7 +7,7 @@ interface Props {
 }
 
 export const metadata: Metadata = {
-  title: '예산 추가 | KISTA',
+  title: '예산 추가',
   description: '카테고리별 월 예산을 추가합니다',
 }
 

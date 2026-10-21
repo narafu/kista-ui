@@ -7,7 +7,7 @@ import { PageHeader } from '@widgets/page-header'
 import { createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
-  title: '계좌 수정 | KISTA',
+  title: '계좌 수정',
   description: '연결된 계좌 설정을 수정합니다',
 }
 

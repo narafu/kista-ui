@@ -9,7 +9,7 @@ import { PageHeader } from '@widgets/page-header'
 import { createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
-  title: '운영 설정 | KISTA',
+  title: '운영 설정',
 }
 
 export default async function AdminSettingsPage() {

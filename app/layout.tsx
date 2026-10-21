@@ -3,6 +3,7 @@ import { GeistMono } from 'geist/font/mono'
 import { Bricolage_Grotesque } from 'next/font/google'
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from '@shared/providers/Providers'
+import { TITLE_TEMPLATE } from '@shared/lib/metadata'
 import "./globals.css";
 
 const bricolageGrotesque = Bricolage_Grotesque({
@@ -13,7 +14,8 @@ const bricolageGrotesque = Bricolage_Grotesque({
 })
 
 export const metadata: Metadata = {
-  title: 'KISTA',
+  // 하위 화면은 title에 이름만 쓴다 — 접미사는 TITLE_TEMPLATE이 붙인다
+  title: { template: TITLE_TEMPLATE, default: 'KISTA' },
   description: 'Key Investment Strategy & Trading Automation (핵심 투자 전략 및 매매 자동화)',
   manifest: '/manifest.webmanifest',
   icons: {

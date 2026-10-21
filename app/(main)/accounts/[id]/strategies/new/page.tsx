@@ -6,7 +6,7 @@ interface Props {
 }
 
 export const metadata: Metadata = {
-  title: '전략 등록 | KISTA',
+  title: '전략 등록',
   description: '이 계좌에 적용할 매매 전략을 등록합니다',
 }
 

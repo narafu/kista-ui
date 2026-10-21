@@ -11,7 +11,7 @@ import type { Account } from '@entities/account'
 import { createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
-  title: '계좌 목록 | KISTA',
+  title: '계좌 목록',
   description: '연결된 한국투자증권 계좌 목록',
 }
 

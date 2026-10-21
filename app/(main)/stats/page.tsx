@@ -8,7 +8,7 @@ import { todayKst } from '@shared/lib/format'
 import { kstDateMinusDays } from '@shared/lib/date-range'
 
 export const metadata: Metadata = {
-  title: '성과 | KISTA',
+  title: '성과',
 }
 
 // StatsOverview 기본 range='3M'과 동일한 산식(90일 차감)이어야

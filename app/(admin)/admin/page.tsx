@@ -7,7 +7,7 @@ import { PageHeader } from '@widgets/page-header'
 import { createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
-  title: '관리자 | KISTA',
+  title: '관리자',
 }
 
 export default async function AdminOverviewPage() {

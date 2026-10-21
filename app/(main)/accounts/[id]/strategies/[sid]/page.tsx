@@ -13,7 +13,7 @@ interface Props {
 }
 
 export const metadata: Metadata = {
-  title: '전략 상세 | KISTA',
+  title: '전략 상세',
   description: '전략 상세 정보 및 다음 주문 미리보기',
 }
 

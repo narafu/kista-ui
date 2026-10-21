@@ -6,7 +6,7 @@ interface Props {
 }
 
 export const metadata: Metadata = {
-  title: '전략 수정 | KISTA',
+  title: '전략 수정',
   description: '전략 설정을 변경합니다',
 }
 

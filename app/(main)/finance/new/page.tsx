@@ -6,7 +6,7 @@ interface Props {
 }
 
 export const metadata: Metadata = {
-  title: '자산 기록 등록 | KISTA',
+  title: '자산 기록 등록',
   description: '자산·부채 기록을 등록합니다',
 }
 

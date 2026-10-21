@@ -3,7 +3,7 @@ import { PageHeader } from '@widgets/page-header'
 import { CreateAccountStepper } from '@features/account/create-account'
 
 export const metadata: Metadata = {
-  title: '새 계좌 연결 | KISTA',
+  title: '새 계좌 연결',
   description: '한국투자증권 KIS API 계좌를 연결합니다',
 }
 
