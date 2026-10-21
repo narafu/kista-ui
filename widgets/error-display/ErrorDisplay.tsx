@@ -18,14 +18,14 @@ const CFGS: Record<ErrorCode, ErrCfg> = {
   404: {
     badge: 'SYMBOL NOT FOUND',
     title: '종목을 찾을 수 없음',
-    desc: '상장 폐지된 종목이거나 존재하지 않는 경로입니다',
+    desc: '상장 폐지된 종목이거나 존재하지 않는 경로입니다.',
     colorVar: 'var(--neg)',
     bgVar: 'var(--neg-bg)',
   },
   500: {
     badge: 'CIRCUIT BREAKER',
     title: '서버 장애 감지',
-    desc: '예상치 못한 내부 오류가 발생했습니다',
+    desc: '예상치 못한 내부 오류가 발생했습니다.',
     colorVar: 'var(--pos)',
     bgVar: 'var(--pos-bg)',
   },
@@ -34,11 +34,12 @@ const CFGS: Record<ErrorCode, ErrCfg> = {
 interface ErrorDisplayProps {
   code: ErrorCode
   error?: Error & { digest?: string }
-  reset?: () => void
+  // error.tsx의 unstable_retry — reset()은 에러 상태만 지워 RSC를 다시 받지 않아 네트워크 실패(iOS "Load failed")로 난 오류는 복구되지 않는다
+  retry?: () => void
   standalone: boolean
 }
 
-export function ErrorDisplay({ code, error, reset, standalone }: ErrorDisplayProps) {
+export function ErrorDisplay({ code, error, retry, standalone }: ErrorDisplayProps) {
   const router = useRouter()
   const pathname = usePathname()
   const cfg = CFGS[code]
@@ -88,8 +89,8 @@ export function ErrorDisplay({ code, error, reset, standalone }: ErrorDisplayPro
         <Button type="button" variant="outline" size="form" className="px-6" onClick={() => router.back()}>
           이전 페이지
         </Button>
-        {reset && (
-          <Button type="button" variant="outline" size="form" className="px-6" onClick={reset}>
+        {retry && (
+          <Button type="button" variant="outline" size="form" className="px-6" onClick={retry}>
             다시 시도
           </Button>
         )}

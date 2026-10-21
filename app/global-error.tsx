@@ -8,9 +8,12 @@ import './globals.css'
 export default function GlobalError({
   error,
   reset,
+  unstable_retry,
 }: {
   error: Error & { digest?: string }
   reset: () => void
+  // Next 16.2 실험 prop — 이름이 바뀌거나 빠지면 reset으로 폴백해 재시도 버튼이 동작하게 한다
+  unstable_retry?: () => void
 }) {
   const pathname = usePathname()
 
@@ -56,10 +59,10 @@ export default function GlobalError({
             서버 장애 감지
           </h1>
           <p className="text-sm text-muted-foreground leading-relaxed mb-8">
-            예상치 못한 내부 오류가 발생했습니다
+            예상치 못한 내부 오류가 발생했습니다.
           </p>
 
-          <Button size="form" className="px-6" onClick={reset}>
+          <Button size="form" className="px-6" onClick={unstable_retry ?? reset}>
             다시 시도
           </Button>
         </div>

@@ -43,9 +43,10 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 
 ### router.refresh() 허용 범위
 
-일반 query mutation의 성공 처리에는 사용하지 않는다(캐시 동기화 대신 이동 전 `router.refresh()`를 호출하는 패턴 금지 — refresh는 현재 route만 갱신하고 목적지 Router Cache의 가변 상태를 보장하지 않는다). 현재 허용되는 예외는 다음 하나뿐이다.
+일반 query mutation의 성공 처리에는 사용하지 않는다(캐시 동기화 대신 이동 전 `router.refresh()`를 호출하는 패턴 금지 — refresh는 현재 route만 갱신하고 목적지 Router Cache의 가변 상태를 보장하지 않는다). 현재 허용되는 예외는 다음 둘이다.
 
 - `widgets/pull-to-refresh/PullToRefresh.tsx`: 사용자가 명시적으로 요청한 화면 전체 재동기화다. 특정 mutation의 누락된 캐시 처리를 가리는 수단이 아니라 모바일의 수동 recovery 동작이므로 허용한다.
+- 에러 바운더리(`app/**/error.tsx`·`global-error.tsx`)의 "다시 시도" — `unstable_retry`가 내부에서 refresh한다. 이미 깨진 화면의 사용자 요청 복구 동작이고, 네트워크 실패로 RSC payload를 못 받은 오류는 refresh 없이 복구되지 않는다.
 
 #### 체결 SSE는 refresh 없이 무효화만 한다
 

@@ -29,6 +29,13 @@ const describeElement = (el: Element | null) =>
 // 키보드 판정은 포커스된 편집 요소 기준 — innerHeight 자체가 키보드와 함께 줄어드는 경우가 있어 높이 비교는 못 쓴다.
 // 2026-10-15 MISMATCH 3건(iPhone standalone)은 포커스 이력 없이 마운트 시점부터 vvHeight가 innerHeight보다 318px 작았다 —
 // 키보드 닫힘 잔류(위)와 다른 패턴이라 콜드 스타트인지 앱 내 이동인지 가르려고 msSinceLoad를 남긴다.
+// 2026-10-18~21 로그 22행(iOS 26.6 standalone):
+//   - SHIFT 8개 에피소드(15행) 중 7개는 스크롤 끝(scrollY 0 + offsetTop 음수, 또는 scrollY + innerHeight = docScrollHeight + 양수)에서 시작해
+//     1.4~4.4초 뒤 resolved — html/body overscroll-behavior-y: none(427ac2b3)에도 바운스가 남는다. 최대 -446(네비가 화면 밖 4.2초).
+//     포커스 이력과 무관(msSinceFocusOut never 또는 44초 이상)해 키보드 잔류 버그와 다른 증상이다.
+//   - MISMATCH 7건 중 6건은 어긋남 = -offsetTop이라 같은 시점 SHIFT의 중복이었다 → MISMATCH는 offsetTop으로 설명되지 않는 어긋남만 남긴다.
+//   - 나머지 1건(10-20 08:48)이 318px 패턴 2번째 사례 — 편집 요소 포커스 없이(activeElement=svg g) vvHeight가 318 작았고
+//     msSinceLoad 67초라 콜드 스타트가 아니다. 2초 뒤 같은 상태에서 offsetTop 228 SHIFT가 시작돼 end 없이 끊겼다(남은 1개 에피소드).
 const SHIFT_LOG_MIN_MS = 300
 
 // 버그는 iOS에서만 재현된다. 크롤러(Googlebot이 문서 전체 높이로 렌더해 nav가 6887px)와 CSS가 안 먹은 데스크톱
@@ -50,9 +57,14 @@ function useNavViewportDiagnostics(navRef: React.RefObject<HTMLElement | null>) 
     let episode: { startedAt: number, trigger: string, maxShift: number, timer: number, reported: boolean } | null = null
     let mismatchTimer = 0
 
+    // offsetTop으로 설명되지 않는 어긋남(px) — offsetTop만큼 밀린 경우는 SHIFT가 기록한다
+    const mismatchResidual = () => {
+      const rect = navRef.current?.getBoundingClientRect()
+      return rect ? rect.bottom + vv.offsetTop - vv.height : 0
+    }
     const isMismatch = () => {
       const rect = navRef.current?.getBoundingClientRect()
-      return !!rect && rect.width > 0 && !isEditableFocused() && Math.abs(vv.scale - 1) < 0.01 && Math.abs(rect.bottom - vv.height) > 5
+      return !!rect && rect.width > 0 && !isEditableFocused() && Math.abs(vv.scale - 1) < 0.01 && Math.abs(mismatchResidual()) > 5
     }
 
     // throttle=false는 SHIFT start/end 짝 유지용 — 대신 상한을 늘려 에피소드 5개(start+end)를 담는다
@@ -128,7 +140,7 @@ function useNavViewportDiagnostics(navRef: React.RefObject<HTMLElement | null>) 
       if (isMismatch() && !mismatchTimer) {
         mismatchTimer = window.setTimeout(() => {
           mismatchTimer = 0
-          if (isMismatch()) report('MOBILE_NAV_VIEWPORT_MISMATCH', {})
+          if (isMismatch()) report('MOBILE_NAV_VIEWPORT_MISMATCH', { residual: String(mismatchResidual()) })
         }, SHIFT_LOG_MIN_MS)
       }
     }

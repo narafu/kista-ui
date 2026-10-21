@@ -38,7 +38,7 @@ UI 캐시 소유권·hydration·mutation 동기화는 `docs/agents/entities.md`,
 - **dynamic route params**: `Promise` → `const { id } = await params` (v15+)
 - **Route Handler cookies()**: async → `const cookieStore = await cookies()` (v15+)
 - **Next.js 16 dev 자동 수정**: 첫 `npm run dev` 시 `tsconfig.json`의 `jsx` → `"react-jsx"`, `include`에 `.next/dev/types/**/*.ts` 자동 추가 — 의도적 변경, 커밋 포함
-- **에러 페이지**: `app/error.tsx`(전체화면) + `app/(main)/error.tsx`(사이드바 유지) 모두 `'use client'` + `{ error, reset }` props. `app/global-error.tsx`는 `<html><body>` 직접 포함
+- **에러 페이지**: `app/error.tsx`(전체화면) + `app/(main)/error.tsx`(사이드바 유지) 모두 `'use client'`. 재시도 버튼은 `reset` 대신 `unstable_retry`(Next 16.2, `router.refresh()` + `reset()`)를 쓴다 — `reset()`은 에러 상태만 지워 RSC를 다시 받지 않아 네트워크 실패(iOS "Load failed")로 난 오류가 복구되지 않는다(2026-10-21 `/finance` 사례). 실험 prop이라 `unstable_retry ?? reset`으로 폴백한다. `app/global-error.tsx`는 `<html><body>` 직접 포함
 - **`new Date()` hydration 불일치**: `useState('')` + `useEffect(() => { setState(new Date()...) }, [])` 패턴
 - **next-themes hydration**: `useTheme()`의 `resolvedTheme`은 SSR에서 `undefined`. `const [mounted, setMounted] = useState(false)` + `useEffect(() => setMounted(true), [])` → `mounted && resolvedTheme === 'dark'`
 - **Next.js Image + Tailwind preflight**: `img { height: auto }` preflight + 비정사각형 이미지를 정사각형으로 지정 시 경고. 해결: `<Image>` 컴포넌트 `style` prop에 `height: N, width: N` 직접 명시
