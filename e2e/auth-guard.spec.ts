@@ -9,11 +9,11 @@ test.describe('proxy 인증 가드', () => {
     await context.close()
   })
 
-  test('비인증 사용자의 /accounts 접근은 /login으로 리다이렉트된다', async ({ browser }) => {
+  test('비인증 사용자의 /accounts 접근은 next를 담아 /login으로 리다이렉트된다', async ({ browser }) => {
     const context = await browser.newContext() // storageState 없음
     const page = await context.newPage()
     await page.goto('/accounts')
-    await expect(page).toHaveURL('/login')
+    await expect(page).toHaveURL((url) => url.pathname === '/login' && url.searchParams.get('next') === '/accounts')
     await context.close()
   })
 

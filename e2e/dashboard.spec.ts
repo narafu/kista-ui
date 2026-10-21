@@ -16,7 +16,7 @@ test.describe('대시보드 (비회원)', () => {
     const page = await context.newPage()
     await page.goto('/dashboard')
     await expect(page).toHaveURL('/dashboard')
-    await expect(page.getByText('첫 계좌 등록')).toBeVisible()
+    await expect(page.getByText('첫 계좌 등록', { exact: true })).toBeVisible()
     await context.close()
   })
 })
