@@ -23,10 +23,11 @@ interface Props {
   months: string[]
   onMonthChange: (month: string) => void
   today: string
+  selectedCategoryId?: string
   onCategorySelect: (categoryId: string) => void
 }
 
-export function AssetOverview({ month, months, onMonthChange, today, onCategorySelect }: Props) {
+export function AssetOverview({ month, months, onMonthChange, today, selectedCategoryId, onCategorySelect }: Props) {
   const { data, isLoading, isError } = useAssetSnapshotsQuery()
   const snapshots = useMemo(() => data ?? [], [data])
   const { labelOf } = useMeta()
@@ -82,7 +83,7 @@ export function AssetOverview({ month, months, onMonthChange, today, onCategoryS
         ) : (
           <div className="space-y-6">
             <SummaryKpis summary={summary} previousSummary={previousSummary} amountValue={amountValue} labelOf={labelOf} />
-            <CategorySection breakdown={categoryBreakdown} delta={categoryDelta} onCategorySelect={onCategorySelect} />
+            <CategorySection breakdown={categoryBreakdown} delta={categoryDelta} selectedCategoryId={selectedCategoryId} onCategorySelect={onCategorySelect} />
             <AssetClassSection breakdown={assetClassBreakdown} delta={assetClassDelta} labelOf={labelOf} />
           </div>
         )}

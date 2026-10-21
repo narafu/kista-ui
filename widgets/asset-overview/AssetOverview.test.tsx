@@ -47,6 +47,7 @@ function snapshot(overrides: Partial<AssetSnapshot>): AssetSnapshot {
 
 const onMonthChange = vi.fn()
 const TODAY = '2026-08-15'
+const noop = vi.fn()
 
 describe('AssetOverview', () => {
   beforeEach(() => {
@@ -55,19 +56,19 @@ describe('AssetOverview', () => {
 
   it('로딩 중에는 로딩 문구를 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: undefined, isLoading: true, isError: false })
-    render(<AssetOverview month="2026-08" months={[]} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={vi.fn()} />)
+    render(<AssetOverview month="2026-08" months={[]} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={noop} />)
     expect(screen.getByText('불러오는 중…')).toBeInTheDocument()
   })
 
   it('조회 실패 시 에러 섹션을 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: true })
-    render(<AssetOverview month="2026-08" months={[]} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={vi.fn()} />)
+    render(<AssetOverview month="2026-08" months={[]} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={noop} />)
     expect(screen.getByText('자산 요약을 불러오지 못했습니다.')).toBeInTheDocument()
   })
 
   it('재조회가 실패해도 이미 받은 기록은 오류로 덮지 않는다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({})], isLoading: false, isError: true })
-    render(<AssetOverview month="2026-08" months={['2026-08']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={vi.fn()} />)
+    render(<AssetOverview month="2026-08" months={['2026-08']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={noop} />)
     expect(screen.queryByText('자산 요약을 불러오지 못했습니다.')).not.toBeInTheDocument()
   })
 
@@ -77,13 +78,13 @@ describe('AssetOverview', () => {
       isLoading: false,
       isError: false,
     })
-    render(<AssetOverview month="2026-01" months={['2026-08']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={vi.fn()} />)
+    render(<AssetOverview month="2026-01" months={['2026-08']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={noop} />)
     expect(screen.getByText('표시할 자산 기록이 없습니다.')).toBeInTheDocument()
   })
 
   it('기록이 전혀 없어도 월 선택기는 항상 렌더링된다(임의 연도/월 자유 선택)', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: [], isLoading: false, isError: false })
-    render(<AssetOverview month="2026-08" months={[]} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={vi.fn()} />)
+    render(<AssetOverview month="2026-08" months={[]} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={noop} />)
     expect(screen.getByRole('button', { name: /기준 연월/ })).toBeInTheDocument()
   })
 
@@ -97,7 +98,7 @@ describe('AssetOverview', () => {
       isLoading: false,
       isError: false,
     })
-    render(<AssetOverview month="2026-08" months={['2026-08']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={vi.fn()} />)
+    render(<AssetOverview month="2026-08" months={['2026-08']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={noop} />)
 
     // 순자산 = 4,000,000 - 500,000 = 3,500,000
     expect(screen.getByText('3,500,000원')).toBeInTheDocument()
@@ -115,7 +116,7 @@ describe('AssetOverview', () => {
       isLoading: false,
       isError: false,
     })
-    render(<AssetOverview month="2026-08" months={['2026-08']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={vi.fn()} />)
+    render(<AssetOverview month="2026-08" months={['2026-08']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={noop} />)
 
     expect(screen.getByText('투자')).toBeInTheDocument()
     expect(screen.getByText('예적금')).toBeInTheDocument()
@@ -132,7 +133,7 @@ describe('AssetOverview', () => {
       isLoading: false,
       isError: false,
     })
-    render(<AssetOverview month="2026-08" months={['2026-08']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={vi.fn()} />)
+    render(<AssetOverview month="2026-08" months={['2026-08']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={noop} />)
 
     expect(screen.getAllByText('—').length).toBeGreaterThan(0)
   })
@@ -146,7 +147,7 @@ describe('AssetOverview', () => {
       isLoading: false,
       isError: false,
     })
-    render(<AssetOverview month="2026-08" months={['2026-08', '2026-07']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={vi.fn()} />)
+    render(<AssetOverview month="2026-08" months={['2026-08', '2026-07']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={noop} />)
 
     // 투자 카테고리·EQUITY 자산군 둘 다 이번달 3,000,000 - 지난달 2,000,000 = +1,000,000원
     expect(screen.getAllByText('+1,000,000원').length).toBe(2)
@@ -161,7 +162,7 @@ describe('AssetOverview', () => {
       isLoading: false,
       isError: false,
     })
-    render(<AssetOverview month="2026-08" months={['2026-08', '2026-07']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={vi.fn()} />)
+    render(<AssetOverview month="2026-08" months={['2026-08', '2026-07']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={noop} />)
 
     // 대출 500,000원 증가 = 나쁜 신호 → 손실 색상(text-neg), 이익 색상(text-pos)이면 안 됨
     const loanDelta = screen.getByText('+500,000원')
@@ -178,7 +179,7 @@ describe('AssetOverview', () => {
       isLoading: false,
       isError: false,
     })
-    render(<AssetOverview month="2026-08" months={['2026-08', '2026-07']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={vi.fn()} />)
+    render(<AssetOverview month="2026-08" months={['2026-08', '2026-07']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={noop} />)
 
     const zeroDelta = screen.getAllByText('+0원')[0]
     expect(zeroDelta).toHaveClass('text-muted-foreground')
@@ -195,7 +196,7 @@ describe('AssetOverview', () => {
       isLoading: false,
       isError: false,
     })
-    render(<AssetOverview month="2026-08" months={['2026-08']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={vi.fn()} />)
+    render(<AssetOverview month="2026-08" months={['2026-08']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={noop} />)
 
     expect(screen.getByText('선택한 달의 자산군 기록이 없습니다.')).toBeInTheDocument()
   })
@@ -206,9 +207,21 @@ describe('AssetOverview', () => {
       isLoading: false,
       isError: false,
     })
-    render(<AssetOverview month="2026-08" months={['2026-08', '2026-07']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={vi.fn()} />)
+    render(<AssetOverview month="2026-08" months={['2026-08', '2026-07']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={noop} />)
 
     expect(screen.getByRole('button', { name: /기준 연월/ })).toHaveTextContent('2026년 8월')
+  })
+
+  it('선택된 카테고리 행은 aria-pressed로 표시한다', () => {
+    useAssetSnapshotsQueryMock.mockReturnValue({
+      data: [snapshot({ id: 's1', rootCategoryId: SYSTEM_INVESTMENT_CATEGORY_ID, amount: 1_000_000 })],
+      isLoading: false,
+      isError: false,
+    })
+    render(<AssetOverview month="2026-08" months={['2026-08']} onMonthChange={onMonthChange} today={TODAY} selectedCategoryId={SYSTEM_INVESTMENT_CATEGORY_ID} onCategorySelect={noop} />)
+
+    expect(screen.getByRole('button', { name: /투자.*내역 보기/ })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /예적금.*내역 보기/ })).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('카테고리별 현황 행을 클릭하면 그 카테고리 id로 onCategorySelect를 호출한다', async () => {

@@ -35,18 +35,21 @@ export default function FinanceInvestmentPage() {
   function handleCategorySelect(categoryId: string) {
     setCategoryPath([categoryId])
     setListResetKey((key) => key + 1)
-    recordListRef.current?.scrollIntoView({ block: 'start' })
+    const list = recordListRef.current
+    list?.scrollIntoView({ block: 'start' })
+    // 키보드·스크린리더 사용자의 포커스가 화면 밖 클릭 행에 남지 않도록 목록으로 옮긴다
+    list?.focus({ preventScroll: true })
   }
 
   return (
     <div className="space-y-6">
-      <AssetOverview month={selectedMonth} months={months} onMonthChange={handleMonthChange} today={today} onCategorySelect={handleCategorySelect} />
+      <AssetOverview month={selectedMonth} months={months} onMonthChange={handleMonthChange} today={today} selectedCategoryId={categoryPath[0]} onCategorySelect={handleCategorySelect} />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <AssetTrend month={selectedMonth} range={trendMonths} onRangeChange={setTrendMonths} />
         <AssetComposition month={selectedMonth} range={trendMonths} onRangeChange={setTrendMonths} />
       </div>
       <AssetRecordCheck month={selectedMonth} />
-      <div ref={recordListRef} className="scroll-mt-20">
+      <div ref={recordListRef} tabIndex={-1} className="scroll-mt-20 focus-visible:outline-none">
         <AssetRecordList key={listResetKey} month={selectedMonth} categoryPath={categoryPath} onCategoryPathChange={setCategoryPath} />
       </div>
     </div>

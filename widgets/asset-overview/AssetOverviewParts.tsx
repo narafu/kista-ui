@@ -103,9 +103,11 @@ const percentOf = (amount: number, total: number) => (total > 0 ? (amount / tota
 // 막대 차트까지 포함한 행 전체가 클릭 영역(카테고리 내역 보기)이라 공용 Button 대신 raw button + 이 클래스
 const ROW_BUTTON_CLASS = 'block w-full rounded-md px-1 py-0.5 text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
-export function CategorySection({ breakdown, delta, onCategorySelect }: {
+export function CategorySection({ breakdown, delta, selectedCategoryId, onCategorySelect }: {
   breakdown: CategoryBreakdown
   delta: (category: string, amount: number) => number | null
+  // 지금 자산 기록 목록을 필터 중인 카테고리 — 해당 행을 눌린 상태로 표시한다.
+  selectedCategoryId: string | undefined
   // 카테고리 행 클릭 — 아래 자산 기록 목록을 그 카테고리로 필터한다. 상태는 페이지(app)가 소유.
   onCategorySelect: (categoryId: string) => void
 }) {
@@ -115,7 +117,13 @@ export function CategorySection({ breakdown, delta, onCategorySelect }: {
       <h3 className="text-sm font-semibold text-foreground">카테고리별 현황</h3>
       <div className="space-y-2">
         {breakdown.map((entry) => (
-          <button key={entry.category} type="button" onClick={() => onCategorySelect(entry.category)} className={ROW_BUTTON_CLASS}>
+          <button
+            key={entry.category}
+            type="button"
+            onClick={() => onCategorySelect(entry.category)}
+            aria-pressed={entry.category === selectedCategoryId}
+            className={cn(ROW_BUTTON_CLASS, entry.category === selectedCategoryId && 'bg-muted')}
+          >
             <BreakdownBar
               label={formatAssetL1CategoryLabel(entry.category)}
               amount={entry.amount}
