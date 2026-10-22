@@ -70,4 +70,20 @@ describe('InitialHoldingsSection', () => {
     expect(getInputByLabelText('평단가')).toBeDisabled()
     expect(getInputByLabelText('수량')).toBeDisabled()
   })
+
+  it('단위·소수 자릿수 prop을 받는다 (크립토)', () => {
+    render(<InitialHoldingsSection {...baseProps} quantityUnit="ETH" quantityMaxDecimals={8} priceUnit="원" priceMaxDecimals={8} />)
+    expect(screen.getByText('ETH')).toBeInTheDocument()
+    expect(screen.getByText('원')).toBeInTheDocument()
+    fireEvent.change(getInputByLabelText('수량'), { target: { value: '0.123456789' } })
+    expect(mockSetField).not.toHaveBeenCalled()
+    fireEvent.change(getInputByLabelText('수량'), { target: { value: '0.12345678' } })
+    expect(mockSetField).toHaveBeenCalledWith('quantity', 0.12345678)
+  })
+
+  it('prop이 없으면 기존 USD·주 단위', () => {
+    render(<InitialHoldingsSection {...baseProps} />)
+    expect(screen.getByText('USD')).toBeInTheDocument()
+    expect(screen.getByText('주')).toBeInTheDocument()
+  })
 })

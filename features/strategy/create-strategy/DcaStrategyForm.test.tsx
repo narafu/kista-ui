@@ -86,6 +86,44 @@ describe('DcaStrategyForm', () => {
     expect(reconfigureMutate).not.toHaveBeenCalled()
   })
 
+  it('등록: 평단가·수량 입력이 있고 수정 모드엔 없다', () => {
+    const { unmount } = renderForm()
+    expect(screen.getByLabelText('평단가')).toBeInTheDocument()
+    expect(screen.getByLabelText('수량')).toBeInTheDocument()
+    unmount()
+    renderForm(existing([rule('a', 100)]))
+    expect(screen.queryByLabelText('평단가')).not.toBeInTheDocument()
+  })
+
+  it('등록: 매도 규칙이 있고 수량이 비면 보유 0 캡션, 매수만이면 없다', async () => {
+    renderForm()
+    fireEvent.click(screen.getByRole('button', { name: '+ 매수 규칙 추가' }))
+    fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
+    fireEvent.click(screen.getByRole('button', { name: '완료' }))
+    await screen.findByText('규칙 (1/10)')
+    expect(screen.queryByText('보유 0에서 시작합니다. 이미 보유 중이면 입력하세요.')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: '+ 매도 규칙 추가' }))
+    fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '50' } })
+    fireEvent.click(screen.getByRole('button', { name: '완료' }))
+    await screen.findByText('규칙 (2/10)')
+    expect(screen.getByText('보유 0에서 시작합니다. 이미 보유 중이면 입력하세요.')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('수량'), { target: { value: '5' } })
+    expect(screen.queryByText('보유 0에서 시작합니다. 이미 보유 중이면 입력하세요.')).not.toBeInTheDocument()
+  })
+
+  it('등록: 수량·평단가를 입력하면 payload에 initialHoldings·initialAvgPrice', async () => {
+    renderForm()
+    fireEvent.click(screen.getByRole('button', { name: '+ 매수 규칙 추가' }))
+    fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
+    fireEvent.click(screen.getByRole('button', { name: '완료' }))
+    await screen.findByText('규칙 (1/10)')
+    fireEvent.change(screen.getByLabelText('평단가'), { target: { value: '45.5' } })
+    fireEvent.change(screen.getByLabelText('수량'), { target: { value: '10' } })
+    fireEvent.click(screen.getByRole('button', { name: '등록' }))
+    await waitFor(() => expect(createMutate).toHaveBeenCalled())
+    expect(createMutate.mock.calls[0][0]).toMatchObject({ initialHoldings: 10, initialAvgPrice: 45.5 })
+  })
+
   it('크립토 등록: 새 규칙은 부모 시장으로 실행 시각 09시·시장가를 보낸다', async () => {
     renderForm(undefined, 'BTC', 'CRYPTO_KRW')
     fireEvent.click(screen.getByRole('button', { name: '+ 매수 규칙 추가' }))

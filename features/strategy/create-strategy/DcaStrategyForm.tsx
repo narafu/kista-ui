@@ -11,6 +11,7 @@ import { useCreateStrategyMutation, useReconfigureDcaMutation } from '@entities/
 import type { DcaDirection, Strategy } from '@entities/strategy'
 import { StrategyTickerSection } from './sections/StrategyTickerSection'
 import { ScheduledStartSection } from './sections/ScheduledStartSection'
+import { InitialHoldingsSection } from './sections/InitialHoldingsSection'
 import { DcaRuleList } from './sections/DcaRuleList'
 import { DcaRuleEditor } from './sections/DcaRuleEditor'
 import { buildDcaFormDefaults, buildDcaRuleDefaults, dcaFormSchema, type DcaFormValues, type DcaRuleFormValues } from './model/dcaFormSchema'
@@ -64,6 +65,8 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
   const reconfigure = useReconfigureDcaMutation(initial?.id ?? '')
   const pending = create.isPending || reconfigure.isPending
   const ticker = form.watch('ticker')
+  const crypto = market === 'CRYPTO_KRW'
+  const needsHoldingsHint = form.watch('rules').some((r) => r.direction === 'SELL' || r.conditions.some((c) => c.indicator === 'AVG_PRICE'))
   const rulesError = form.formState.errors.rules
   const rulesErrorMessage = rulesError?.root?.message ?? rulesError?.message ?? (rulesError ? '규칙 입력값을 확인하세요.' : undefined)
 
@@ -129,6 +132,20 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
           onChange={(d) => form.setValue('scheduledStartDate', d, { shouldValidate: form.formState.isSubmitted })}
           loading={pending}
           error={form.formState.errors.scheduledStartDate?.message}
+        />
+      )}
+      {!initial && (
+        <InitialHoldingsSection
+          avgPrice={form.watch('initialAvgPrice')}
+          quantity={form.watch('initialHoldings')}
+          setField={(field, v) => form.setValue(field === 'avgPrice' ? 'initialAvgPrice' : 'initialHoldings', v, { shouldValidate: form.formState.isSubmitted })}
+          loading={pending}
+          priceUnit={crypto ? '원' : 'USD'}
+          priceMaxDecimals={crypto ? 8 : 2}
+          quantityUnit={crypto ? ticker : '주'}
+          quantityMaxDecimals={crypto ? 8 : undefined}
+          caption={needsHoldingsHint && form.watch('initialHoldings') == null ? '보유 0에서 시작합니다. 이미 보유 중이면 입력하세요.' : undefined}
+          error={form.formState.errors.initialHoldings?.message ?? form.formState.errors.initialAvgPrice?.message}
         />
       )}
       <div ref={listRef}>
