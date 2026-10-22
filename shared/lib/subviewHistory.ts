@@ -19,6 +19,11 @@ export function pushSubviewEntry(): string {
   return id
 }
 
+function setCurrentToken(token: string | null) {
+  const { [SUBVIEW_HISTORY_KEY]: _removed, ...rest } = (window.history.state ?? {}) as Record<string, unknown>
+  window.history.replaceState(token == null ? rest : { ...rest, [SUBVIEW_HISTORY_KEY]: token }, '')
+}
+
 export function isSubviewEntry(state: unknown = window.history.state): boolean {
   return subviewToken(state) != null
 }
@@ -38,11 +43,18 @@ export function useSubviewHistory(open: boolean, onPop: () => void): { leave: ()
 
   useEffect(() => {
     if (!open) return
+    // StrictMode 재실행: 직전 cleanup이 지운 이번 진입 표식을 같은 칸에 되살린다
+    if (entryId.current && subviewToken(window.history.state) == null) setCurrentToken(entryId.current)
     const listener = (event: PopStateEvent) => {
       if (subviewToken(event.state) !== entryId.current) handlePop()
     }
     window.addEventListener('popstate', listener)
-    return () => window.removeEventListener('popstate', listener)
+    return () => {
+      window.removeEventListener('popstate', listener)
+      // popstate 없이 사라지면(언마운트) 현재 칸에 표식이 남아 RouteModal이 go(-2)로 모달 출발 화면을 지나친다 —
+      // 이번 진입 표식만 지우고 Next의 __NA·트리 등 나머지 키는 남긴다. 이미 다른 칸이면 건드리지 않는다
+      if (subviewToken(window.history.state) === entryId.current) setCurrentToken(null)
+    }
   }, [open])
 
   return { leave: useCallback(() => window.history.back(), []) }

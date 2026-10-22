@@ -60,6 +60,7 @@ export function DcaRuleList({ rules, market, onSelect, onAdd, registerRowRef, er
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2 text-sm font-semibold">
                     <Badge tone="none" className={directionBadgeClass(r.direction)}>{direction}</Badge>
+                    {/* 접근성 이름에서 배지와 요약이 붙지 않게 하는 공백 */}
                     {' '}{rest.join(SUMMARY_SEPARATOR)}
                   </span>
                   <span className="mt-0.5 block text-sm text-muted-foreground">

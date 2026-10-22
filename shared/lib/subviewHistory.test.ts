@@ -39,6 +39,7 @@ describe('subviewHistory', () => {
     const push = vi.spyOn(window.history, 'pushState')
     renderHook(() => useSubviewHistory(true, () => {}), { wrapper: StrictMode })
     expect(push).toHaveBeenCalledTimes(1)
+    expect(isSubviewEntry()).toBe(true) // 재실행 cleanup이 지운 표식을 되살렸다
   })
 
   it('아래 칸에 이전 진입의 표식이 남아 있어도 leave하면 onPop', () => {
@@ -48,6 +49,24 @@ describe('subviewHistory', () => {
     const { result } = renderHook(() => useSubviewHistory(true, onPop))
     act(() => result.current.leave())
     expect(onPop).toHaveBeenCalledTimes(1)
+  })
+
+  it('popstate 없이 언마운트되면 현재 칸의 이번 표식만 지우고 다른 키는 남긴다', () => {
+    window.history.replaceState({ __NA: true, tree: 't' }, '')
+    const { unmount } = renderHook(() => useSubviewHistory(true, () => {}))
+    expect(isSubviewEntry()).toBe(true)
+    unmount()
+    expect(isSubviewEntry()).toBe(false)
+    expect(window.history.state).toEqual({ __NA: true, tree: 't' })
+  })
+
+  it('현재 칸이 이번 진입이 아니면(이미 뒤로 감) 닫힐 때 replaceState하지 않는다', () => {
+    const { rerender, unmount } = renderHook(({ open }) => useSubviewHistory(open, () => {}), { initialProps: { open: true } })
+    window.history.replaceState({ [SUBVIEW_HISTORY_KEY]: 'other' }, '') // 다른 칸으로 이동한 상태를 흉내낸다
+    const replace = vi.spyOn(window.history, 'replaceState')
+    rerender({ open: false })
+    unmount()
+    expect(replace).not.toHaveBeenCalled()
   })
 
   it('이번 진입 표식 state로 온 popstate는 무시하고, 닫힌 뒤엔 듣지 않는다', () => {
