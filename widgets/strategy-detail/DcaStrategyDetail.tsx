@@ -49,12 +49,12 @@ function DcaHoldingGrid({ accountId, strategy, isCrypto }: { accountId: string; 
   const unavailable = holdings != null && !priced && settled
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <KpiCard label="보유 수량" value={holdings != null ? (isCrypto ? `${fmtQuantity(holdings)} ${ticker}` : `${fmtQuantity(holdings)}주`) : '0'} sub={HOLDINGS_SUB} {...HOLDING_TILE} />
+      <KpiCard label="보유 수량" value={isCrypto ? `${fmtQuantity(holdings ?? 0)} ${ticker}` : `${fmtQuantity(holdings ?? 0)}주`} sub={HOLDINGS_SUB} {...HOLDING_TILE} />
       <KpiCard label="평단가" value={avg != null ? fmtMoney(avg, currency) : '-'} {...HOLDING_TILE} />
       <KpiCard label="평가금액" value={unavailable ? UNAVAILABLE : evalAmount != null ? fmtMoney(evalAmount, currency) : '-'} skeleton={loading} {...HOLDING_TILE} />
       <KpiCard
         label="수익률"
-        value={unavailable ? UNAVAILABLE : returnRatio != null ? <span className={pnlTextClass(returnRatio)}>{fmtSignedPercent(returnRatio, 2)}</span> : '-'}
+        value={unavailable ? UNAVAILABLE : returnRatio != null ? <span className={pnlTextClass(returnRatio)}>{fmtSignedPercent(returnRatio)}</span> : '-'}
         skeleton={loading}
         {...HOLDING_TILE}
       />

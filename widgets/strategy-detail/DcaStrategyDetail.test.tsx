@@ -76,7 +76,7 @@ describe('DcaStrategyDetail', () => {
     expect(screen.getByText('이 전략 체결 기준')).toBeInTheDocument()
     expect(screen.getByText('4,000,000원')).toBeInTheDocument()
     expect(await screen.findByText('2,200,000원')).toBeInTheDocument()
-    expect(screen.getByText('+10.00%')).toHaveClass('text-pos')
+    expect(screen.getByText('+10.0%')).toHaveClass('text-pos')
     expect(prices.calls.every((c) => (c[2] as { enabled?: boolean }).enabled === false)).toBe(true)
   })
   it('크립토 포트폴리오 조회 실패여도 보유·평단은 보이고 평가금액·수익률만 확인 불가', async () => {
@@ -97,13 +97,13 @@ describe('DcaStrategyDetail', () => {
     expect(screen.getAllByText('3주').length).toBeGreaterThan(0) // 보유 타일 + 이력 수량
     expect(screen.getByText('$80.00')).toBeInTheDocument()
     expect(screen.getByText('$300.00')).toBeInTheDocument()
-    expect(screen.getByText('+25.00%')).toBeInTheDocument()
+    expect(screen.getByText('+25.0%')).toBeInTheDocument()
     expect(screen.getByText('이 전략 체결 기준')).toBeInTheDocument()
   })
   it('currentHoldings가 null이면 보유 수량 0, 나머지는 -', () => {
     renderDetail({ ...strategy, dca: { rules: [rule], currentHoldings: null, avgPrice: null } })
     const tile = (label: string) => screen.getByText(label).parentElement!.parentElement!
-    expect(tile('보유 수량')).toHaveTextContent('0')
+    expect(tile('보유 수량')).toHaveTextContent('0주')
     for (const l of ['평단가', '평가금액', '수익률']) expect(tile(l)).toHaveTextContent('-')
   })
   it('규칙 카드: 요약·조건·부족 정책·다음 판정일, 옛 방향 타일·설정 그리드·추가 조건 카드는 없다', () => {
