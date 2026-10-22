@@ -3,7 +3,9 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useMeta } from '@entities/meta'
-import { dcaExecutionStatusLabel, useDcaExecutionsQuery } from '@entities/strategy'
+import { dcaExecutionStatusLabel, formatDcaRuleSummary, useDcaExecutionsQuery } from '@entities/strategy'
+import type { DcaRule } from '@entities/strategy'
+import { directionBadgeClass } from '@entities/trade'
 import { ORDER_STATUS_LABEL } from '@entities/order'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -17,7 +19,7 @@ import { SectionError } from '@shared/ui/SectionError'
 
 const PAGE_SIZE = 20
 
-export function DcaExecutionHistory({ strategyId, ticker }: { strategyId: string; ticker: string }) {
+export function DcaExecutionHistory({ strategyId, ticker, rules }: { strategyId: string; ticker: string; rules: DcaRule[] }) {
   const { labelOf, findTicker } = useMeta()
   const isCrypto = isCryptoMarket(findTicker(ticker)?.market)
   const currency = isCrypto ? 'KRW' : 'USD'
@@ -44,6 +46,7 @@ export function DcaExecutionHistory({ strategyId, ticker }: { strategyId: string
               <thead className="bg-muted/50">
                 <tr>
                   <TableHeadCell className="whitespace-nowrap">{isCrypto ? '실행일' : '거래일'}</TableHeadCell>
+                  <TableHeadCell className="whitespace-nowrap">규칙</TableHeadCell>
                   <TableHeadCell className="whitespace-nowrap">결과</TableHeadCell>
                   <TableHeadCell className="whitespace-nowrap">사유</TableHeadCell>
                   <TableHeadCell className="whitespace-nowrap">기준가</TableHeadCell>
@@ -52,10 +55,20 @@ export function DcaExecutionHistory({ strategyId, ticker }: { strategyId: string
                 </tr>
               </thead>
               <tbody>
-                {/* kista-api uq_dca_execution_strategy_trade_date(strategy_id, trade_date)로 전략당 거래일 1건 보장 */}
-                {rows.map((r) => (
-                  <tr key={r.kstTradeDate} className="border-t hover:bg-muted/30 transition-colors">
+                {/* kista-api uq_dca_execution_strategy_trade_date(strategy_id, trade_date, rule_key)로 (전략, 거래일, 규칙)당 1건 보장 */}
+                {rows.map((r) => {
+                  const rule = rules.find((x) => x.ruleKey === r.ruleKey)
+                  return (
+                  <tr key={`${r.kstTradeDate}-${r.ruleKey}`} className="border-t hover:bg-muted/30 transition-colors">
                     <TableDataCell className="text-muted-foreground whitespace-nowrap">{fmtDate(r.kstTradeDate)}</TableDataCell>
+                    <TableDataCell className="whitespace-nowrap">
+                      {rule ? formatDcaRuleSummary(rule, labelOf, isCrypto) : (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Badge tone="none" size="sm" className={directionBadgeClass(r.direction)}>{labelOf('orderDirections', r.direction)}</Badge>
+                          <span className="text-muted-foreground">삭제된 규칙</span>
+                        </span>
+                      )}
+                    </TableDataCell>
                     <TableDataCell className="whitespace-nowrap">
                       <Badge tone={r.status === 'ORDERED' ? 'none' : 'neutral'} size="sm" className={r.status === 'ORDERED' ? 'bg-info-bg text-info' : undefined}>{dcaExecutionStatusLabel(r.status)}</Badge>
                     </TableDataCell>
@@ -72,7 +85,8 @@ export function DcaExecutionHistory({ strategyId, ticker }: { strategyId: string
                         : '-'}
                     </TableDataCell>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           </div>
