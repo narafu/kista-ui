@@ -480,6 +480,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/dev-e2e-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * [DEV] E2E 전용 JWT 토큰 발급 — 로컬 프로파일 전용
+         * @description 고정 UUID(00000000-…-0003) E2E 유저를 자동 생성·승인 후 JWT 반환. dev 시드가 적용되지 않는 빈 사용자.
+         */
+        post: operations["devE2eToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/dev-approve/{userId}": {
         parameters: {
             query?: never;
@@ -2445,24 +2465,39 @@ export interface components {
             threshold?: number;
         };
         DcaConfigRequest: {
+            /** @description DCA 규칙 목록 (1~10개, 입력 순서 보존) */
+            rules: components["schemas"]["DcaRuleRequest"][];
+        };
+        DcaRuleRequest: {
+            /** @description 규칙 키 — 신규 null, 수정 시 기존 값 재전송(현재 버전에 없으면 400) */
+            ruleKey?: string;
             /** @enum {string} */
             direction: "BUY" | "SELL";
-            /** @description 회차당 금액 (계좌 통화 — 주식 USD, 코인 KRW 원 단위 정수) */
-            amount: number;
-            /** @enum {string} */
-            orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
             /** @enum {string} */
             frequency: "DAILY" | "WEEKLY" | "MONTHLY";
             /** @enum {string} */
             dayOfWeek?: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
             /** Format: int32 */
             dayOfMonth?: number;
-            conditions?: components["schemas"]["DcaConditionRequest"][];
+            /** @enum {string} */
+            orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
             /**
              * Format: int32
              * @description 코인 실행 시각 (KST 0~23, 코인 필수). 주식 주문유형이면 무시
              */
             executionHour?: number;
+            sizing: components["schemas"]["DcaSizingRequest"];
+            /** @enum {string} */
+            shortfall: "PARTIAL" | "REJECT";
+            conditions?: components["schemas"]["DcaConditionRequest"][];
+        };
+        DcaSizingRequest: {
+            /** @enum {string} */
+            type: "AMOUNT" | "HOLDING_PERCENT";
+            /** @description AMOUNT 전용 회차 금액 (계좌 통화 — 주식 USD, 코인 KRW 원 단위 정수 5,000 이상) */
+            amount?: number;
+            /** @description HOLDING_PERCENT 전용 원장 보유 비율 (0 초과 100 이하) */
+            percent?: number;
         };
         TradingCycleRequest: {
             /**
@@ -2495,8 +2530,7 @@ export interface components {
              */
             divisionCount?: number;
             /**
-             * Format: int32
-             * @description 중간부터 시작 — 등록 시점 기존 보유 수량 (null/0이면 빈 포지션에서 시작)
+             * @description 중간부터 시작 — 등록 시점 기존 보유 수량 (null/0이면 빈 포지션에서 시작, 주식 정수·코인 소수 8자리까지 — 숫자 또는 소수 문자열)
              * @example 10
              */
             initialHoldings?: number;
@@ -2592,19 +2626,27 @@ export interface components {
             threshold?: number;
         };
         DcaResponse: {
+            rules?: components["schemas"]["DcaRuleResponse"][];
+            currentHoldings?: number;
+            avgPrice?: number;
+        };
+        DcaRuleResponse: {
+            ruleKey?: string;
             /** @enum {string} */
             direction?: "BUY" | "SELL";
-            amount?: number;
-            /** @enum {string} */
-            orderType?: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
             /** @enum {string} */
             frequency?: "DAILY" | "WEEKLY" | "MONTHLY";
             /** @enum {string} */
             dayOfWeek?: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
             /** Format: int32 */
             dayOfMonth?: number;
+            /** @enum {string} */
+            orderType?: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
             /** Format: int32 */
             executionHour?: number;
+            sizing?: components["schemas"]["Sizing"];
+            /** @enum {string} */
+            shortfall?: "PARTIAL" | "REJECT";
             conditions?: components["schemas"]["DcaConditionResponse"][];
             nextExecution?: components["schemas"]["NextExecution"];
             lastExecution?: components["schemas"]["LastExecution"];
@@ -2620,6 +2662,12 @@ export interface components {
             usSessionDate?: string;
             /** Format: date */
             kstTradeDate?: string;
+        };
+        Sizing: {
+            /** @enum {string} */
+            type?: "AMOUNT" | "HOLDING_PERCENT";
+            amount?: number;
+            percent?: number;
         };
         TradingCycleResponse: {
             /**
@@ -3038,9 +3086,11 @@ export interface components {
              */
             ticker?: string;
             /**
-             * Format: int32
-             * @description 보유 수량
+             * @description 전략 유형 (전략 삭제 등으로 알 수 없으면 null) — DCA는 시드를 점유하지 않아 usdDeposit이 항상 0
+             * @example INFINITE
              */
+            strategyType?: string;
+            /** @description 보유 수량 */
             holdings?: number;
             /** @description 종가 (null 가능) */
             closingPrice?: number;
@@ -3146,10 +3196,7 @@ export interface components {
              * @enum {string}
              */
             ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
-            /**
-             * Format: int32
-             * @description 보유 수량
-             */
+            /** @description 보유 수량 */
             holdings?: number;
             /** @description 평균 매입가 (0회차: 전일종가) */
             averagePrice?: number;
@@ -3226,6 +3273,9 @@ export interface components {
             status?: "PLANNED" | "SUBMITTING" | "PLACED" | "FILLED" | "PARTIALLY_FILLED" | "FAILED" | "CANCELLED";
         };
         DcaExecutionItem: {
+            ruleKey?: string;
+            /** @enum {string} */
+            direction?: "BUY" | "SELL";
             /** Format: date */
             kstTradeDate?: string;
             /** Format: date */
@@ -3670,10 +3720,7 @@ export interface components {
              * @enum {string}
              */
             ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
-            /**
-             * Format: int32
-             * @description 잔고수량
-             */
+            /** @description 잔고수량 */
             holdings?: number;
             /** @description 평균단가 (USD) */
             avgPrice?: number;
@@ -4635,10 +4682,7 @@ export interface components {
              * @example BUY
              */
             direction: string;
-            /**
-             * Format: int32
-             * @description 체결 수량
-             */
+            /** @description 체결 수량 (주식 정수, 코인 소수 8자리까지) */
             quantity: number;
             /** @description 체결 가격 */
             price: number;
@@ -4668,10 +4712,7 @@ export interface components {
              * @description 처리된 체결 건수
              */
             processedCount?: number;
-            /**
-             * Format: int32
-             * @description 보정 후 최종 보유 수량
-             */
+            /** @description 보정 후 최종 보유 수량 */
             finalHoldings?: number;
             /** @description 보정 후 최종 평단가 */
             finalAvgPrice?: number;
@@ -5063,6 +5104,10 @@ export interface components {
             dcaOperators?: components["schemas"]["EnumMeta"][];
             /** @description DCA 회차 미주문 사유 목록 */
             dcaSkipReasons?: components["schemas"]["EnumMeta"][];
+            /** @description DCA 규칙 규모 유형 목록 */
+            dcaSizingTypes?: components["schemas"]["EnumMeta"][];
+            /** @description DCA 규칙 부족 정책 목록 */
+            dcaShortfallPolicies?: components["schemas"]["EnumMeta"][];
             /** @description DCA 조건 지표 목록 */
             dcaIndicators?: components["schemas"]["DcaIndicatorMeta"][];
         };
@@ -6585,6 +6630,26 @@ export interface operations {
         };
     };
     devToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 토큰 발급 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TokenResponse"];
+                };
+            };
+        };
+    };
+    devE2eToken: {
         parameters: {
             query?: never;
             header?: never;
