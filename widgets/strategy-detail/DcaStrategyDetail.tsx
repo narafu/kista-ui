@@ -8,12 +8,11 @@ import { Button } from '@/components/ui/button'
 import { KpiCard } from '@widgets/kpi-card'
 import { useManageStrategyMutations } from '@features/strategy/manage-strategy'
 import { useMeta } from '@entities/meta'
-import { dcaIndicatorLabel, formatCryptoNextExecution, formatDcaCondition, formatDcaSchedule } from '@entities/strategy'
+import { dcaExecutionStatusLabel, dcaIndicatorLabel, formatCryptoNextExecution, formatDcaCondition, formatDcaRuleSummary } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
-import { cryptoPortfolioQueryOptions, directionBadgeClass } from '@entities/trade'
-import { fmtDate, fmtKrw, fmtMoney, fmtQuantity, fmtSignedPercent, pnlTextClass } from '@shared/lib/format'
-import { Badge } from '@shared/ui/Badge'
-import { cn } from '@shared/lib/utils'
+import { useAccountPricesQuery } from '@entities/account'
+import { cryptoPortfolioQueryOptions } from '@entities/trade'
+import { fmtDate, fmtMoney, fmtQuantity, fmtSignedPercent, pnlTextClass } from '@shared/lib/format'
 import { isCryptoMarket } from '@shared/lib/api-schema'
 import { StatusStrip } from './StrategyMetaSection'
 import { DeleteStrategyDialog } from './DeleteStrategyDialog'
@@ -29,44 +28,41 @@ const TILE = { className: 'p-4 lg:p-5', valueClassName: 'text-xl lg:text-2xl tab
 // 보유 현황은 원화 9자리·코인 소수 8자리라 모바일 2열에서 한 단계 더 작게, 단위가 숫자와 떨어지지 않게 둔다
 const HOLDING_TILE = { className: TILE.className, valueClassName: 'text-base sm:text-xl lg:text-2xl tabular-nums break-keep' }
 const UNAVAILABLE = <span className="text-base font-normal text-muted-foreground">확인 불가</span>
-const HOLDINGS_SUB = '계좌 전체 보유 기준'
+const HOLDINGS_SUB = '이 전략 체결 기준'
 
-// 코인은 계좌 포트폴리오(업비트 잔고)에서 이 티커의 수량·평단가·평가금액을 찾는다 — 계좌 상세와 같은 쿼리 캐시를 공유.
-// api는 코인 전략의 currentHoldings를 항상 null로 내려준다(코인 DCA는 cycle_position을 갱신하지 않음, kista-api 9bf959f6) — 코인 보유의 SSOT는 crypto-portfolio
-function CryptoHoldingGrid({ accountId, ticker }: { accountId: string; ticker: string }) {
-  const { data, isError } = useQuery(cryptoPortfolioQueryOptions(accountId))
-  if (isError && !data) {
-    return (
-      <Card>
-        <CardContent className="p-5 text-center text-sm text-muted-foreground">보유 정보를 불러오지 못했습니다.</CardContent>
-      </Card>
-    )
-  }
-  if (!data) {
-    return (
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {['보유 수량', '평단가', '평가금액', '수익률'].map((label) => <KpiCard key={label} label={label} skeleton {...HOLDING_TILE} />)}
-      </div>
-    )
-  }
-  const holding = data.holdings.find((h) => h.ticker === ticker)
-  const priced = holding?.currentPrice != null
-  const returnRatio = holding && priced && holding.avgBuyPrice > 0 ? holding.currentPrice! / holding.avgBuyPrice - 1 : null
+// 보유 수량·평단가는 원장(dca.currentHoldings·avgPrice)이 SSOT, 현재가만 시장별로 따로 받는다.
+// 크립토는 계좌 상세와 캐시를 공유하는 crypto-portfolio, 주식은 prices — 크립토 계좌로 prices를 부르면 400이라 enabled로 갈라 둔다
+function DcaHoldingGrid({ accountId, strategy, isCrypto }: { accountId: string; strategy: Strategy; isCrypto: boolean }) {
+  const { ticker, dca } = strategy
+  const portfolio = useQuery({ ...cryptoPortfolioQueryOptions(accountId), enabled: isCrypto })
+  const prices = useAccountPricesQuery(accountId, [ticker], { enabled: !isCrypto })
+  const holdings = dca?.currentHoldings ?? null
+  const avg = dca?.avgPrice ?? null
+  const currency = isCrypto ? 'KRW' : 'USD'
+  const price = isCrypto ? portfolio.data?.holdings.find((h) => h.ticker === ticker)?.currentPrice : prices.data?.[ticker]
+  const settled = isCrypto ? !!portfolio.data || portfolio.isError : !!prices.data || prices.isError
+  const priced = price != null
+  const evalAmount = holdings != null && priced ? holdings * price : null
+  const returnRatio = priced && avg != null && avg > 0 ? price / avg - 1 : null
+  // 보유가 없으면 평가할 대상이 없어 -, 있는데 현재가가 없으면 확인 불가, 조회 중이면 스켈레톤
+  const loading = holdings != null && !priced && !settled
+  const unavailable = holdings != null && !priced && settled
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <KpiCard label="보유 수량" value={`${fmtQuantity(holding?.quantity ?? 0)} ${ticker}`} sub={HOLDINGS_SUB} {...HOLDING_TILE} />
-      <KpiCard label="평단가" value={holding ? fmtKrw(holding.avgBuyPrice) : '-'} {...HOLDING_TILE} />
-      <KpiCard label="평가금액" value={!holding ? '-' : priced ? fmtKrw(holding.evalAmountKrw) : UNAVAILABLE} {...HOLDING_TILE} />
+      <KpiCard label="보유 수량" value={holdings != null ? (isCrypto ? `${fmtQuantity(holdings)} ${ticker}` : `${fmtQuantity(holdings)}주`) : '0'} sub={HOLDINGS_SUB} {...HOLDING_TILE} />
+      <KpiCard label="평단가" value={avg != null ? fmtMoney(avg, currency) : '-'} {...HOLDING_TILE} />
+      <KpiCard label="평가금액" value={unavailable ? UNAVAILABLE : evalAmount != null ? fmtMoney(evalAmount, currency) : '-'} skeleton={loading} {...HOLDING_TILE} />
       <KpiCard
         label="수익률"
-        value={returnRatio == null ? (holding && !priced ? UNAVAILABLE : '-') : <span className={pnlTextClass(returnRatio)}>{fmtSignedPercent(returnRatio)}</span>}
+        value={unavailable ? UNAVAILABLE : returnRatio != null ? <span className={pnlTextClass(returnRatio)}>{fmtSignedPercent(returnRatio, 2)}</span> : '-'}
+        skeleton={loading}
         {...HOLDING_TILE}
       />
     </div>
   )
 }
 
-// DCA 상세 — 바로 주문·미리보기 미지원(409)이라 NextOrderCard 대신 설정 타일·보유 현황·추가 조건·회차 이력을 표시.
+// DCA 상세 — 바로 주문·미리보기 미지원(409)이라 NextOrderCard 대신 보유 현황·규칙 카드·회차 이력을 표시.
 // 구성은 주식 전략 상세(StatusStrip + KpiCard 그리드 → 이력 → 제어 카드)를 따른다
 // dca가 없어도(응답 누락) 보유 수량·이력·중지/삭제는 그대로 노출한다
 export function DcaStrategyDetail({ accountId, strategy }: Props) {
@@ -87,59 +83,42 @@ export function DcaStrategyDetail({ accountId, strategy }: Props) {
     <div className="space-y-4">
       <StatusStrip strategy={strategy} />
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3">
         <KpiCard label="전략타입" value={labelOf('strategyTypes', strategy.type)} {...TILE} />
-        {dca && (
-          <KpiCard
-            label="방향"
-            value={<Badge tone="none" size="md" className={cn('h-[28px] text-base lg:h-[36px]', directionBadgeClass(dca.direction))}>{labelOf('orderDirections', dca.direction)}</Badge>}
-            {...TILE}
-          />
-        )}
       </div>
 
-      {dca && (
-        <div data-testid="dca-config-grid" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <KpiCard label="주기" value={formatDcaSchedule(dca, labelOf('dcaFrequencies', dca.frequency))} {...TILE} />
-          {isCrypto
-            ? <KpiCard label="다음 실행" value={formatCryptoNextExecution(dca.nextExecution?.kstTradeDate, dca.executionHour)} {...TILE} />
-            : <KpiCard label="다음 판정일" value={dca.nextExecution ? fmtDate(dca.nextExecution.kstTradeDate) : '미정'} {...TILE} />}
-          <KpiCard label="회차당 금액" value={fmtMoney(dca.amount, isCrypto ? 'KRW' : 'USD')} {...TILE} />
-          <KpiCard label="주문 방식" value={labelOf('orderTypes', dca.orderType)} {...TILE} />
-        </div>
-      )}
-
-      {isCrypto ? (
-        <CryptoHoldingGrid accountId={accountId} ticker={strategy.ticker} />
-      ) : (
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <KpiCard label="보유 수량" value={strategy.currentHoldings != null ? `${fmtQuantity(strategy.currentHoldings)}주` : '-'} sub={HOLDINGS_SUB} {...TILE} />
-        </div>
-      )}
+      <DcaHoldingGrid accountId={accountId} strategy={strategy} isCrypto={isCrypto} />
 
       {dca && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">추가 조건</CardTitle>
+            <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">규칙</CardTitle>
           </CardHeader>
           <CardContent className="text-sm">
-            {dca.conditions.length === 0 ? (
-              <p>조건 없이 매 회차 주문</p>
-            ) : (
-              <>
-                <ul className="space-y-1 font-semibold">
-                  {dca.conditions.map((c, i) => (
-                    <li key={i}>{formatDcaCondition(c, dcaIndicatorLabel(c.indicator, labelOf('dcaIndicators', c.indicator), isCrypto), labelOf('dcaOperators', c.operator))}</li>
-                  ))}
-                </ul>
-                <p className="mt-2 text-xs text-muted-foreground">조건 충족 여부는 실행일에 판정</p>
-              </>
-            )}
+            <ul className="divide-y divide-border">
+              {dca.rules.map((r) => (
+                <li key={r.ruleKey} className="space-y-1 py-3 first:pt-0 last:pb-0">
+                  <p className="font-semibold">{formatDcaRuleSummary(r, labelOf, isCrypto)}</p>
+                  {r.conditions.length === 0 ? (
+                    <p>조건 없이 매 회차 주문</p>
+                  ) : (
+                    r.conditions.map((c, i) => (
+                      <p key={i}>{formatDcaCondition(c, dcaIndicatorLabel(c.indicator, labelOf('dcaIndicators', c.indicator), isCrypto), labelOf('dcaOperators', c.operator))}</p>
+                    ))
+                  )}
+                  <p className="text-muted-foreground">{labelOf('dcaShortfallPolicies', r.shortfall)}</p>
+                  <p className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+                    <span>{isCrypto ? '다음 실행' : '다음 판정일'} {!r.nextExecution ? '미정' : isCrypto ? formatCryptoNextExecution(r.nextExecution.kstTradeDate, r.executionHour) : fmtDate(r.nextExecution.kstTradeDate)}</span>
+                    {r.lastExecution && <span>최근 {dcaExecutionStatusLabel(r.lastExecution.status)}{r.lastExecution.skipReason && ` · ${labelOf('dcaSkipReasons', r.lastExecution.skipReason)}`}</span>}
+                  </p>
+                </li>
+              ))}
+            </ul>
           </CardContent>
         </Card>
       )}
 
-      <DcaExecutionHistory strategyId={strategy.id} ticker={strategy.ticker} />
+      <DcaExecutionHistory strategyId={strategy.id} ticker={strategy.ticker} rules={dca?.rules ?? []} />
 
       <Card>
         <CardContent className="p-5 flex gap-2">
