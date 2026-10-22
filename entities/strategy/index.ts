@@ -1,6 +1,5 @@
-export type { CycleSeedType, DcaCondition, DcaConfigRequest, DcaDirection, DcaIndicator, DcaOperator, DcaRule, DcaRuleExecution, DcaRuleRequest, DcaShortfallPolicy, DcaSizing, DcaSizingType, DcaWeekday, StrategyDcaSummary, Strategy, StrategyRequest, ReconfigureVrRequest, StrategySeedPreview, StrategyVrSummary } from './model/types'
-export type { DcaLabelOf, DcaRuleSummaryInput } from './model/dcaFormat'
-export { dcaExecutionStatusLabel, dcaIndicatorLabel, earliestNextExecution, formatCryptoNextExecution, formatDcaCondition, formatDcaRuleSummary, formatDcaSchedule, formatDcaSizing, latestLastExecution, formatExecutionHour, STOCK_WEEKDAYS, WEEKDAY_LABEL } from './model/dcaFormat'
+export type { CycleSeedType, DcaCondition, DcaConfigRequest, DcaDirection, DcaIndicator, DcaOperator, DcaRule, DcaRuleRequest, DcaWeekday, Strategy, StrategyRequest, ReconfigureVrRequest, StrategySeedPreview, StrategyVrSummary } from './model/types'
+export { dcaExecutionStatusLabel, dcaIndicatorLabel, earliestNextExecution, formatCryptoNextExecution, formatDcaCondition, formatDcaRuleSummary, latestLastExecution, formatExecutionHour, STOCK_WEEKDAYS, WEEKDAY_LABEL } from './model/dcaFormat'
 export { strategyKeys } from './model/queryKeys'
 export { seedBadgeClass, strategyStatusAccent, strategyTypeShort } from './model/badges'
 export { isScheduledStart, scheduledStartBadgeLabel } from './model/scheduled-start'
