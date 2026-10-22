@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { X } from 'lucide-react'
+import { isSubviewEntry } from '@shared/lib/subviewHistory'
 import { cn } from '@shared/lib/utils'
 import { IconButton } from './IconButton'
 
@@ -23,8 +24,10 @@ export function RouteModal({ children, className }: Props) {
   const titleId = useId()
   const descriptionId = useId()
 
+  // 하위 뷰(규칙 편집 화면 등)가 이력 한 칸을 쌓은 상태면 그 칸까지 두 칸 뒤로 가야 모달이 닫힌다
   function dismiss() {
-    router.back()
+    if (isSubviewEntry()) window.history.go(-2)
+    else router.back()
   }
 
   // ESC 닫기 + Tab 포커스 트랩 — 삭제된 shadcn Dialog(Radix 기반)가 기본 제공하던 모달 접근성을 셸에서 직접 구현
@@ -90,7 +93,7 @@ export function RouteModal({ children, className }: Props) {
       titleObserver.disconnect()
       previouslyFocused?.focus()
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- 마운트 시 1회만 포커스 트랩을 건다. dismiss는 매 렌더 새로 생기지만 router.back()만 호출해 stale 위험이 없고, 재실행되면 포커스가 컨테이너로 다시 튄다
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- 마운트 시 1회만 포커스 트랩을 건다. dismiss는 매 렌더 새로 생기지만 호출 시점의 history.state와 router.back()만 써서 stale 위험이 없고, 재실행되면 포커스가 컨테이너로 다시 튄다
   }, [])
 
   return (

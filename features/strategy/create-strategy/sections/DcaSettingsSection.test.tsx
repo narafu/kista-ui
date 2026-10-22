@@ -4,16 +4,16 @@ import type { TradingMarket } from '@shared/lib/api-schema'
 import { useForm } from 'react-hook-form'
 import { describe, expect, it } from 'vitest'
 import { MetaProvider } from '@entities/meta'
-import { DcaSettingsSection } from './DcaSettingsSection'
-import { buildDcaFormDefaults, type DcaFormValues } from '../model/dcaFormSchema'
+import { DcaSettingsSection, DcaSizingSection } from './DcaSettingsSection'
+import { buildDcaRuleDefaults, type DcaRuleFormValues } from '../model/dcaFormSchema'
 import { dcaTestMeta } from './__fixtures__/dcaTestMeta'
 
-function Harness({ isEdit = false, market = 'US_STOCK', defaults }: { isEdit?: boolean; market?: TradingMarket; defaults?: Partial<DcaFormValues> }) {
-  const form = useForm<DcaFormValues>({ defaultValues: { ...buildDcaFormDefaults(undefined, 'UPRO', market), ...defaults } })
+function Harness({ market = 'US_STOCK', defaults }: { market?: TradingMarket; defaults?: Partial<DcaRuleFormValues> }) {
+  const form = useForm<DcaRuleFormValues>({ defaultValues: { ...buildDcaRuleDefaults('BUY', market), ...defaults } })
   return (
     <MetaProvider meta={dcaTestMeta}>
-      <DcaSettingsSection form={form} isEdit={isEdit} market={market}
-        orderTypes={['MOO', 'MOC']} directions={['BUY', 'SELL']} frequencies={['DAILY', 'WEEKLY', 'MONTHLY']} />
+      <DcaSettingsSection form={form} market={market} orderTypes={['MOO', 'MOC']} frequencies={['DAILY', 'WEEKLY', 'MONTHLY']} />
+      <DcaSizingSection form={form} market={market} />
     </MetaProvider>
   )
 }
@@ -30,10 +30,10 @@ describe('DcaSettingsSection', () => {
     render(<Harness defaults={{ dayOfMonth: '31' }} />)
     expect(screen.getByText('해당 날짜가 없는 달은 말일에 실행')).toBeInTheDocument()
   })
-  it('수정 모드에서 방향은 읽기 전용', () => {
-    render(<Harness isEdit />)
+  it('방향 선택 UI가 없다(방향은 편집 화면 제목이 보여 준다)', () => {
+    render(<Harness />)
+    expect(screen.queryByRole('button', { name: '매수' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '매도' })).not.toBeInTheDocument()
-    expect(screen.getByText('매수')).toBeInTheDocument()
   })
 
   it('코인은 금액을 원 단위로 받고 주문 방식 대신 실행 시각을 보여준다', () => {

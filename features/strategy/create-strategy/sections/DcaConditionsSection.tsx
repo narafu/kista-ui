@@ -10,13 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useMeta } from '@entities/meta'
 import { dcaIndicatorLabel, type DcaIndicator, type DcaOperator } from '@entities/strategy'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
-import { MAX_DCA_CONDITIONS, type DcaConditionFormValue, type DcaFormValues } from '../model/dcaFormSchema'
+import { MAX_DCA_CONDITIONS, type DcaConditionFormValue, type DcaRuleFormValues } from '../model/dcaFormSchema'
 
 interface Props {
-  form: UseFormReturn<DcaFormValues>
+  form: UseFormReturn<DcaRuleFormValues>
   market: TradingMarket
   indicators: string[]
-  direction: DcaFormValues['direction']
+  direction: DcaRuleFormValues['direction']
 }
 
 const THRESHOLD_SUFFIX: Partial<Record<DcaIndicator, string>> = { AVG_PRICE: '%' }
@@ -60,8 +60,8 @@ export function DcaConditionsSection({ form, market, indicators, direction }: Pr
 
   return (
     <div className="py-[18px] border-b border-border">
-      <StrategyFieldLabel>추가 조건 (모두 충족 시 주문)</StrategyFieldLabel>
-      <p className="mb-2 text-sm text-muted-foreground">평단가·보유 수량은 계좌 전체 보유 기준</p>
+      <StrategyFieldLabel>조건 (모두 충족 시 주문)</StrategyFieldLabel>
+      <p className="mb-2 text-sm text-muted-foreground">평단가·보유 수량은 이 전략 체결 기준</p>
       {isCrypto && <p className="mb-2 text-sm text-muted-foreground">이동평균·RSI는 업비트 일봉(09:00 KST 마감) 기준</p>}
       {direction === 'BUY' && <p className="mb-2 text-sm text-muted-foreground">{isCrypto ? '보유 수량이 0일 때는 평단가 조건 없이 매수' : '보유 0주일 때는 평단가 조건 없이 매수'}</p>}
 

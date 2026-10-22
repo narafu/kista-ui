@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { SUBVIEW_HISTORY_KEY } from '@shared/lib/subviewHistory'
 import { RouteModal } from './RouteModal'
 
 const mockBack = vi.fn()
@@ -51,6 +52,19 @@ describe('RouteModal', () => {
     fireEvent.keyDown(document, { key: 'Escape' })
 
     expect(mockBack).toHaveBeenCalledTimes(1)
+  })
+
+  it('하위 뷰 이력 칸(편집 화면)에서 Escape면 그 칸까지 두 칸 뒤로 가 모달을 닫는다', () => {
+    const go = vi.spyOn(window.history, 'go').mockImplementation(() => {})
+    window.history.replaceState({ [SUBVIEW_HISTORY_KEY]: true }, '')
+    render(<RouteModal><p>content</p></RouteModal>)
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    expect(go).toHaveBeenCalledWith(-2)
+    expect(mockBack).not.toHaveBeenCalled()
+    window.history.replaceState(null, '')
+    go.mockRestore()
   })
 
   it('closes when clicking the backdrop', () => {

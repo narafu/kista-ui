@@ -6,13 +6,13 @@ import { describe, expect, it } from 'vitest'
 import type { TradingMarket } from '@shared/lib/api-schema'
 import { MetaProvider } from '@entities/meta'
 import { DcaConditionsSection } from './DcaConditionsSection'
-import { buildDcaFormDefaults, dcaFormSchema, type DcaFormValues } from '../model/dcaFormSchema'
+import { buildDcaRuleDefaults, dcaRuleSchema, type DcaRuleFormValues } from '../model/dcaFormSchema'
 import { dcaTestMeta } from './__fixtures__/dcaTestMeta'
 
-function Harness({ direction = 'BUY', market = 'US_STOCK', meta = dcaTestMeta, conditions = [] }: { direction?: 'BUY' | 'SELL'; market?: TradingMarket; meta?: typeof dcaTestMeta; conditions?: DcaFormValues['conditions'] }) {
-  const form = useForm<DcaFormValues>({
-    resolver: zodResolver(dcaFormSchema),
-    defaultValues: { ...buildDcaFormDefaults(undefined, 'UPRO', market), direction, conditions },
+function Harness({ direction = 'BUY', market = 'US_STOCK', meta = dcaTestMeta, conditions = [] }: { direction?: 'BUY' | 'SELL'; market?: TradingMarket; meta?: typeof dcaTestMeta; conditions?: DcaRuleFormValues['conditions'] }) {
+  const form = useForm<DcaRuleFormValues>({
+    resolver: zodResolver(dcaRuleSchema),
+    defaultValues: { ...buildDcaRuleDefaults(direction, market), amount: 100, conditions },
   })
   return (
     <MetaProvider meta={meta}>
@@ -56,9 +56,10 @@ describe('DcaConditionsSection', () => {
     expect(screen.getByText('직전 거래일 RSI(14)가 30 미만일 때 주문')).toBeInTheDocument()
     expect(screen.getByText('주문 시점 공포탐욕지수와 비교, 0~100 입력')).toBeInTheDocument()
   })
-  it('계좌 전체 보유 기준 캡션', () => {
+  it('이 전략 체결 기준 캡션과 조건 라벨', () => {
     render(<Harness />)
-    expect(screen.getByText('평단가·보유 수량은 계좌 전체 보유 기준')).toBeInTheDocument()
+    expect(screen.getByText('평단가·보유 수량은 이 전략 체결 기준')).toBeInTheDocument()
+    expect(screen.getByText('조건 (모두 충족 시 주문)')).toBeInTheDocument()
   })
   it('매수만 첫 매수 평단 조건 무시 캡션', () => {
     const { unmount } = render(<Harness />)
