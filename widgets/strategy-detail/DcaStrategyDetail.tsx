@@ -11,7 +11,7 @@ import { useMeta } from '@entities/meta'
 import { dcaExecutionStatusLabel, dcaIndicatorLabel, formatCryptoNextExecution, formatDcaCondition, formatDcaRuleSummary } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import { useAccountPricesQuery } from '@entities/account'
-import { cryptoPortfolioQueryOptions } from '@entities/trade'
+import { cryptoPortfolioQueryOptions, cryptoPricesQueryOptions } from '@entities/trade'
 import { fmtDate, fmtMoney, fmtQuantity, fmtSignedPercent, pnlTextClass } from '@shared/lib/format'
 import { isCryptoMarket } from '@shared/lib/api-schema'
 import { StatusStrip } from './StrategyMetaSection'
@@ -34,13 +34,19 @@ const HOLDINGS_SUB = '이 전략 체결 기준'
 // 크립토는 계좌 상세와 캐시를 공유하는 crypto-portfolio, 주식은 prices — 크립토 계좌로 prices를 부르면 400이라 enabled로 갈라 둔다
 function DcaHoldingGrid({ accountId, strategy, isCrypto }: { accountId: string; strategy: Strategy; isCrypto: boolean }) {
   const { ticker, dca } = strategy
-  const portfolio = useQuery({ ...cryptoPortfolioQueryOptions(accountId), enabled: isCrypto })
-  const prices = useAccountPricesQuery(accountId, [ticker], { enabled: !isCrypto })
   const holdings = dca?.currentHoldings ?? null
   const avg = dca?.avgPrice ?? null
   const currency = isCrypto ? 'KRW' : 'USD'
-  const price = isCrypto ? portfolio.data?.holdings.find((h) => h.ticker === ticker)?.currentPrice : prices.data?.[ticker]
-  const settled = isCrypto ? !!portfolio.data || portfolio.isError : !!prices.data || prices.isError
+  const portfolio = useQuery({ ...cryptoPortfolioQueryOptions(accountId), enabled: isCrypto })
+  const prices = useAccountPricesQuery(accountId, [ticker], { enabled: !isCrypto })
+  const balancePrice = portfolio.data?.holdings.find((h) => h.ticker === ticker)?.currentPrice
+  // 원장 보유가 실잔고에 없으면(거래소에서 직접 매도 등) 현재가도 없다 — 그때만 공개 시세로 채운다
+  const needsFallback = isCrypto && holdings != null && balancePrice == null && (!!portfolio.data || portfolio.isError)
+  const fallback = useQuery({ ...cryptoPricesQueryOptions(accountId, [ticker]), enabled: needsFallback })
+  const price = isCrypto ? balancePrice ?? fallback.data?.[ticker] : prices.data?.[ticker]
+  const settled = isCrypto
+    ? (!!portfolio.data || portfolio.isError) && (!needsFallback || !!fallback.data || fallback.isError)
+    : !!prices.data || prices.isError
   const priced = price != null
   // 크립토 소수 수량 × 원화 가격은 원 미만이 생긴다 — 원화는 원 단위로 반올림해 표시한다
   const evalAmount = holdings != null && priced ? (isCrypto ? Math.round(holdings * price) : holdings * price) : null

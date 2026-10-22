@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MetaProvider } from '@entities/meta'
 import type { DcaRule, Strategy } from '@entities/strategy'
@@ -8,11 +8,20 @@ import { DcaStrategyDetail } from './DcaStrategyDetail'
 import { dcaTestMeta } from '@features/strategy/create-strategy/sections/__fixtures__/dcaTestMeta'
 
 const cryptoPortfolio = vi.hoisted(() => ({ result: null as unknown }))
+// 공개 시세 폴백 — beforeEach가 실패로 되돌린다(폴백 없는 기존 테스트가 확인 불가를 그대로 기대한다)
+const cryptoPrices = vi.hoisted(() => ({ result: new Error('fail') as unknown, calls: 0 }))
 vi.mock('@entities/trade', async (orig) => ({
   ...(await orig<typeof import('@entities/trade')>()),
   cryptoPortfolioQueryOptions: (accountId: string) => ({
     queryKey: ['crypto-portfolio', accountId],
     queryFn: () => (cryptoPortfolio.result instanceof Error ? Promise.reject(cryptoPortfolio.result) : Promise.resolve(cryptoPortfolio.result)),
+  }),
+  cryptoPricesQueryOptions: (accountId: string, tickers: string[]) => ({
+    queryKey: ['crypto-prices', accountId, tickers],
+    queryFn: () => {
+      cryptoPrices.calls++
+      return cryptoPrices.result instanceof Error ? Promise.reject(cryptoPrices.result) : Promise.resolve(cryptoPrices.result)
+    },
   }),
 }))
 
@@ -68,6 +77,11 @@ function renderDetail(s: Strategy = strategy) {
 }
 
 describe('DcaStrategyDetail', () => {
+  beforeEach(() => {
+    cryptoPrices.result = new Error('fail')
+    cryptoPrices.calls = 0
+  })
+
   it('크립토: 원장 보유 수량·평단가와 현재가로 평가금액·수익률을 계산하고 prices는 호출하지 않는다', async () => {
     cryptoPortfolio.result = portfolio(4_400_000)
     prices.calls = []
@@ -79,20 +93,45 @@ describe('DcaStrategyDetail', () => {
     expect(screen.getByText('+10.0%')).toHaveClass('text-pos')
     expect(prices.calls.every((c) => (c[2] as { enabled?: boolean }).enabled === false)).toBe(true)
   })
+  it('크립토: 실잔고에 현재가가 있으면 공개 시세를 조회하지 않는다', async () => {
+    cryptoPortfolio.result = portfolio(4_400_000)
+    renderDetail(ethStrategy)
+    expect(await screen.findByText('2,200,000원')).toBeInTheDocument()
+    expect(cryptoPrices.calls).toBe(0)
+  })
+  it('크립토: 실잔고에 종목이 없으면 공개 시세로 평가금액·수익률을 계산한다', async () => {
+    cryptoPortfolio.result = { krwCash: 0, totalAssetKrw: 0, holdings: [] }
+    cryptoPrices.result = { ETH: 4_400_001 }
+    renderDetail(ethStrategy)
+    expect(await screen.findByText('2,200,001원')).toBeInTheDocument()
+    expect(screen.getByText('+10.0%')).toBeInTheDocument()
+  })
+  it('크립토: 포트폴리오 조회가 실패해도 공개 시세로 평가금액을 계산한다', async () => {
+    cryptoPortfolio.result = new Error('fail')
+    cryptoPrices.result = { ETH: 4_400_000 }
+    renderDetail(ethStrategy)
+    expect(await screen.findByText('2,200,000원')).toBeInTheDocument()
+  })
+  it('크립토: 공개 시세 응답에 종목이 없으면 확인 불가', async () => {
+    cryptoPortfolio.result = { krwCash: 0, totalAssetKrw: 0, holdings: [] }
+    cryptoPrices.result = {}
+    renderDetail(ethStrategy)
+    expect(await screen.findAllByText('확인 불가')).toHaveLength(2)
+  })
   it('크립토 평가금액은 원 단위로 반올림한다', async () => {
     cryptoPortfolio.result = portfolio(4_400_001)
     renderDetail(ethStrategy)
     expect(await screen.findByText('2,200,001원')).toBeInTheDocument()
   })
 
-  it('크립토 포트폴리오 조회 실패여도 보유·평단은 보이고 평가금액·수익률만 확인 불가', async () => {
+  it('크립토 포트폴리오·공개 시세 조회가 모두 실패해도 보유·평단은 보이고 평가금액·수익률만 확인 불가', async () => {
     cryptoPortfolio.result = new Error('fail')
     renderDetail(ethStrategy)
     expect(await screen.findAllByText('확인 불가')).toHaveLength(2)
     expect(screen.getByText('0.5 ETH')).toBeInTheDocument()
     expect(screen.getByText('4,000,000원')).toBeInTheDocument()
   })
-  it('크립토 현재가가 null이면 평가금액·수익률은 확인 불가', async () => {
+  it('크립토 현재가가 null이고 공개 시세도 실패하면 평가금액·수익률은 확인 불가', async () => {
     cryptoPortfolio.result = portfolio(null)
     renderDetail(ethStrategy)
     expect(await screen.findAllByText('확인 불가')).toHaveLength(2)

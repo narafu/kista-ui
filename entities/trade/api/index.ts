@@ -79,6 +79,13 @@ interface CryptoPortfolioRaw {
   holdings?: Array<{ ticker: string; quantity: number | string; avgBuyPrice: number | string; currentPrice: number | string | null; evalAmountKrw: number | string | null }>
 }
 
+// 잔고와 무관한 거래소 공개 시세 — 시세가 없는 종목은 결과에서 빠진다
+export async function getCryptoPrices(accountId: string, tickers: string[], token?: string): Promise<Record<string, number>> {
+  const q = new URLSearchParams({ tickers: tickers.join(',') })
+  const raw = await fetchEither<{ prices?: Array<{ ticker: string; price: number | string }> }>(`/api/accounts/${accountId}/crypto-prices?${q}`, { method: 'GET' }, token)
+  return Object.fromEntries((raw.prices ?? []).map((p) => [p.ticker, toNum(p.price)]))
+}
+
 export async function getCryptoPortfolio(accountId: string, token?: string): Promise<CryptoPortfolio> {
   const raw = await fetchEither<CryptoPortfolioRaw>(`/api/accounts/${accountId}/crypto-portfolio`, { method: 'GET' }, token)
   return {

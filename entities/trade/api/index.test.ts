@@ -144,4 +144,14 @@ describe('trade api', () => {
     expect(result.holdings[1].currentPrice).toBeNull()
     expect(result.holdings[1].evalAmountKrw).toBe(0)
   })
+
+  it('getCryptoPrices는 tickers 쿼리로 호출하고 종목→가격 맵으로 바꾼다', async () => {
+    const { getCryptoPrices } = await import('./index')
+    fetchEitherMock.mockResolvedValueOnce({ prices: [{ ticker: 'BTC', price: 150000000 }, { ticker: 'ETH', price: '5000000' }] })
+
+    const result = await getCryptoPrices('a1', ['BTC', 'ETH'])
+
+    expect(fetchEitherMock).toHaveBeenCalledWith('/api/accounts/a1/crypto-prices?tickers=BTC%2CETH', { method: 'GET' }, undefined)
+    expect(result).toEqual({ BTC: 150000000, ETH: 5000000 })
+  })
 })

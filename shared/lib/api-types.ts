@@ -2374,6 +2374,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/accounts/{accountId}/crypto-prices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 코인 현재가 조회
+         * @description 계좌 거래소의 공개 시세 기준 코인 현재가(KRW). 실잔고와 무관해 원장 보유 평가 폴백에 쓴다. 시세 없는 종목은 결과에서 빠진다. 주식 계좌는 400.
+         */
+        get: operations["getCryptoPrices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/accounts/{accountId}/crypto-portfolio": {
         parameters: {
             query?: never;
@@ -3786,6 +3806,22 @@ export interface components {
             rate?: number;
             /** @description 매매기준율 */
             midRate?: number;
+        };
+        CryptoPrice: {
+            /**
+             * @description 종목
+             * @example BTC
+             */
+            ticker?: string;
+            /**
+             * @description 현재가 (KRW)
+             * @example 150000000
+             */
+            price?: number;
+        };
+        CryptoPricesResponse: {
+            /** @description 종목별 현재가 — 시세가 없는 종목은 빠진다 */
+            prices?: components["schemas"]["CryptoPrice"][];
         };
         CryptoHoldingResponse: {
             /**
@@ -9862,6 +9898,74 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CycleHistoryPageResponse"];
+                };
+            };
+        };
+    };
+    getCryptoPrices: {
+        parameters: {
+            query: {
+                /**
+                 * @description 조회할 코인 종목 (BTC/ETH)
+                 * @example BTC,ETH
+                 */
+                tickers: ("MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH")[];
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description 계좌 ID
+                 * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                 */
+                accountId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CryptoPricesResponse"];
+                };
+            };
+            /** @description 코인 계좌가 아님 또는 코인 종목이 아니거나 비어 있음 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CryptoPricesResponse"];
+                };
+            };
+            /** @description 내 계좌가 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CryptoPricesResponse"];
+                };
+            };
+            /** @description 계좌를 찾을 수 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CryptoPricesResponse"];
+                };
+            };
+            /** @description 거래소 API 호출 실패 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CryptoPricesResponse"];
                 };
             };
         };
