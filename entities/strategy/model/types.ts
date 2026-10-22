@@ -31,22 +31,32 @@ export type DcaWeekday = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRID
 export type DcaIndicator = 'AVG_PRICE' | 'SMA' | 'RSI' | 'FEAR_GREED'
 export type DcaOperator = 'LTE' | 'LT' | 'GTE' | 'GT'
 export interface DcaCondition { indicator: DcaIndicator; operator: DcaOperator; threshold?: number; smaPeriod?: number }
-export interface DcaConfigRequest {
+export type DcaSizingType = 'AMOUNT' | 'HOLDING_PERCENT'
+export type DcaShortfallPolicy = 'PARTIAL' | 'REJECT'
+// AMOUNT: amount(주식 USD, 크립토 원 정수), HOLDING_PERCENT: SELL 전용 percent(0 초과 100 이하)
+export interface DcaSizing { type: DcaSizingType; amount: number | null; percent: number | null }
+export interface DcaRuleRequest {
+  ruleKey?: string | null // 등록: 보내지 않는다. 수정: 기존 규칙은 응답 ruleKey 재전송, 신규는 null
   direction: DcaDirection
-  amount: number // 계좌 통화 단위(주식 USD, 코인 원 단위 정수)
-  orderType: DcaOrderType
   frequency: DcaFrequency
   dayOfWeek: DcaWeekday | null
   dayOfMonth: number | null
-  executionHour?: number // 코인 전용 실행 시각(KST 0~23). 주식은 보내지 않는다
+  orderType: DcaOrderType
+  executionHour?: number // 크립토 전용 실행 시각(KST 0~23). 주식은 보내지 않는다
+  sizing: DcaSizing
+  shortfall: DcaShortfallPolicy
   conditions: DcaCondition[]
 }
-export interface StrategyDcaSummary extends Omit<DcaConfigRequest, 'executionHour'> {
+export interface DcaConfigRequest { rules: DcaRuleRequest[] }
+export interface DcaRuleExecution { kstTradeDate: string; status: string; skipReason: string | null }
+export interface DcaRule extends Omit<DcaRuleRequest, 'ruleKey' | 'executionHour'> {
+  ruleKey: string
   executionHour: number | null
   nextExecution: { usSessionDate: string; kstTradeDate: string } | null
-  lastExecution: { kstTradeDate: string; status: string; skipReason: string | null } | null
+  lastExecution: DcaRuleExecution | null
 }
-export interface DcaExecution { kstTradeDate: string; usSessionDate?: string; status: string; skipReason: string | null; detail: string | null; referencePrice?: number; quantity?: number; order: { id: string; status: string; filledQuantity?: number; filledPrice?: number } | null }
+export interface StrategyDcaSummary { rules: DcaRule[]; currentHoldings: number | null; avgPrice: number | null }
+export interface DcaExecution { ruleKey: string; direction: DcaDirection; kstTradeDate: string; usSessionDate?: string; status: string; skipReason: string | null; detail: string | null; referencePrice?: number; quantity?: number; order: { id: string; status: string; filledQuantity?: number; filledPrice?: number } | null }
 export interface DcaExecutionPage { content: DcaExecution[]; page: number; size: number; totalElements: number }
 
 export interface Strategy {
@@ -73,7 +83,7 @@ export interface StrategyRequest {
   cycleSeedType: CycleSeedType
   initialUsdDeposit?: number  // 등록 시 또는 holdings=0 수정 시 전송
   divisionCount?: number      // 분할 수 (20/30/40, 미전송 시 백엔드 기본값 20)
-  initialHoldings?: number    // 중간부터 시작 — 등록 시점 기존 보유 수량 (세 전략 공통, 등록 전용, null/0이면 빈 포지션)
+  initialHoldings?: number    // 중간부터 시작 — 등록 시점 기존 보유 수량 (세 전략 공통, 등록 전용, null/0이면 빈 포지션). 주식은 정수, 크립토 DCA는 소수 8자리
   initialAvgPrice?: number    // 중간부터 시작 — 등록 시점 기존 평단가 (initialHoldings>0이면 필수)
   intervalWeeks?: number      // VR 전용: 롤오버 주기 (주)
   bandWidth?: number          // VR 전용: 밴드 폭 (%)

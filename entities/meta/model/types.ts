@@ -48,5 +48,7 @@ export interface MetaBundle {
   dcaFrequencies: EnumMeta[]
   dcaOperators: EnumMeta[]
   dcaSkipReasons: EnumMeta[]
+  dcaSizingTypes: EnumMeta[]
+  dcaShortfallPolicies: EnumMeta[]
   dcaIndicators: DcaIndicatorMeta[]
 }

@@ -2,7 +2,7 @@ import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
 import { optDec, optNum, optStr } from '@shared/lib/normalize'
 import { buildQueryString } from '@shared/lib/query-string'
-import type { CycleSeedType, DcaCondition, DcaConfigRequest, DcaDirection, DcaExecution, DcaExecutionPage, DcaFrequency, DcaIndicator, DcaOperator, DcaOrderType, DcaWeekday, ReconfigureVrRequest, Strategy, StrategyDcaSummary, StrategyRequest, StrategySeedPreview, StrategyVrSummary } from '../model/types'
+import type { CycleSeedType, DcaCondition, DcaConfigRequest, DcaDirection, DcaExecution, DcaExecutionPage, DcaFrequency, DcaIndicator, DcaOperator, DcaOrderType, DcaRule, DcaShortfallPolicy, DcaSizing, DcaSizingType, DcaWeekday, ReconfigureVrRequest, Strategy, StrategyDcaSummary, StrategyRequest, StrategySeedPreview, StrategyVrSummary } from '../model/types'
 import { WEEKDAY_LABEL } from '../model/dcaFormat'
 import type { PlacedOrder } from '@shared/model/placed-order'
 import { normalizePlacedOrderBase } from '@shared/model/placed-order'
@@ -45,20 +45,26 @@ function isDcaWeekday(v: unknown): v is DcaWeekday {
   return typeof v === 'string' && Object.hasOwn(WEEKDAY_LABEL, v)
 }
 
-function normalizeDca(raw: unknown): StrategyDcaSummary | undefined {
-  if (raw == null) return undefined
-  const d = raw as Record<string, unknown>
-  const next = d.nextExecution as Record<string, unknown> | null | undefined
-  const last = d.lastExecution as Record<string, unknown> | null | undefined
+function normalizeDcaSizing(raw: unknown): DcaSizing {
+  const z = (raw ?? {}) as Record<string, unknown>
+  return { type: String(z.type) as DcaSizingType, amount: optDec(z.amount) ?? null, percent: optDec(z.percent) ?? null }
+}
+
+function normalizeDcaRule(raw: unknown): DcaRule {
+  const r = raw as Record<string, unknown>
+  const next = r.nextExecution as Record<string, unknown> | null | undefined
+  const last = r.lastExecution as Record<string, unknown> | null | undefined
   return {
-    direction: String(d.direction) as DcaDirection,
-    amount: toNum(d.amount),
-    orderType: String(d.orderType) as DcaOrderType,
-    frequency: String(d.frequency) as DcaFrequency,
-    dayOfWeek: isDcaWeekday(d.dayOfWeek) ? d.dayOfWeek : null,
-    dayOfMonth: d.dayOfMonth != null ? Number(d.dayOfMonth) : null,
-    executionHour: d.executionHour != null ? Number(d.executionHour) : null,
-    conditions: ((d.conditions as unknown[] | undefined) ?? []).map(normalizeDcaCondition),
+    ruleKey: String(r.ruleKey),
+    direction: String(r.direction) as DcaDirection,
+    frequency: String(r.frequency) as DcaFrequency,
+    dayOfWeek: isDcaWeekday(r.dayOfWeek) ? r.dayOfWeek : null,
+    dayOfMonth: r.dayOfMonth != null ? Number(r.dayOfMonth) : null,
+    orderType: String(r.orderType) as DcaOrderType,
+    executionHour: r.executionHour != null ? Number(r.executionHour) : null,
+    sizing: normalizeDcaSizing(r.sizing),
+    shortfall: String(r.shortfall) as DcaShortfallPolicy,
+    conditions: ((r.conditions as unknown[] | undefined) ?? []).map(normalizeDcaCondition),
     nextExecution: next ? { usSessionDate: String(next.usSessionDate), kstTradeDate: String(next.kstTradeDate) } : null,
     lastExecution: last
       ? { kstTradeDate: String(last.kstTradeDate), status: String(last.status), skipReason: optStr(last.skipReason) ?? null }
@@ -66,10 +72,22 @@ function normalizeDca(raw: unknown): StrategyDcaSummary | undefined {
   }
 }
 
+function normalizeDca(raw: unknown): StrategyDcaSummary | undefined {
+  if (raw == null) return undefined
+  const d = raw as Record<string, unknown>
+  return {
+    rules: ((d.rules as unknown[] | undefined) ?? []).map(normalizeDcaRule),
+    currentHoldings: optDec(d.currentHoldings) ?? null,
+    avgPrice: optDec(d.avgPrice) ?? null,
+  }
+}
+
 function normalizeDcaExecution(raw: unknown): DcaExecution {
   const e = raw as Record<string, unknown>
   const o = e.order as Record<string, unknown> | null | undefined
   return {
+    ruleKey: String(e.ruleKey),
+    direction: String(e.direction) as DcaDirection,
     kstTradeDate: String(e.kstTradeDate),
     usSessionDate: optStr(e.usSessionDate),
     status: String(e.status),

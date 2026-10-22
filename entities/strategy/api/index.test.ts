@@ -79,60 +79,52 @@ describe('strategy api normalization', () => {
 })
 
 describe('DCA api', () => {
-  it('DCA 응답의 dca 객체를 정규화한다 (금액 문자열 → number, 말일 null 유지)', async () => {
+  const rawRule = { ruleKey: 'k1', direction: 'BUY', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC', sizing: { type: 'AMOUNT', amount: '300.00', percent: null }, shortfall: 'PARTIAL', conditions: [], nextExecution: null, lastExecution: null }
+  const dcaOf = async (rule: Record<string, unknown>, top: Record<string, unknown> = {}) => {
     const { listStrategies } = await import('./index')
-    fetchEitherMock.mockResolvedValueOnce([{
-      id: 's1', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
-      currentHoldings: 12,
-      dca: {
-        direction: 'BUY', amount: '300.00', orderType: 'MOC', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null,
-        conditions: [{ indicator: 'RSI', operator: 'LTE', threshold: '35' }, { indicator: 'SMA', operator: 'LT', threshold: null, smaPeriod: 200 }],
-        nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' },
-        lastExecution: null,
-      },
-    }])
-    const [s] = await listStrategies('a1')
-    expect(s.dca).toEqual({
-      direction: 'BUY', amount: 300, orderType: 'MOC', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, executionHour: null,
-      conditions: [{ indicator: 'RSI', operator: 'LTE', threshold: 35 }, { indicator: 'SMA', operator: 'LT', smaPeriod: 200 }],
-      nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' },
-      lastExecution: null,
-    })
-  })
-
-  it('알 수 없는 dayOfWeek 값은 null로 버린다', async () => {
-    const { listStrategies } = await import('./index')
-    fetchEitherMock.mockResolvedValueOnce([
-      { id: 's3', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
-        dca: { direction: 'BUY', amount: 100, orderType: 'MOC', frequency: 'WEEKLY', dayOfWeek: 'FUNDAY', dayOfMonth: null, conditions: [] } },
-      { id: 's4', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
-        dca: { direction: 'BUY', amount: 100, orderType: 'MOC', frequency: 'WEEKLY', dayOfWeek: 'FRIDAY', dayOfMonth: null, conditions: [] } },
-    ])
-    const [unknown, friday] = await listStrategies('a1')
-    expect(unknown.dca?.dayOfWeek).toBeNull()
-    expect(friday.dca?.dayOfWeek).toBe('FRIDAY')
-  })
-
-  const rawDca = { direction: 'BUY', orderType: 'MOC', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, conditions: [] }
-  const dcaOf = async (dca: Record<string, unknown>) => {
-    const { listStrategies } = await import('./index')
-    fetchEitherMock.mockResolvedValueOnce([{ id: 's9', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false, dca: { ...rawDca, ...dca } }])
+    fetchEitherMock.mockResolvedValueOnce([{ id: 's9', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false, dca: { rules: [{ ...rawRule, ...rule }], currentHoldings: null, avgPrice: null, ...top } }])
     return (await listStrategies('a1'))[0].dca
   }
 
-  it('DCA 금액은 amount를 쓴다', async () => {
-    expect((await dcaOf({ amount: 50000 }))?.amount).toBe(50000)
+  it('DCA 응답의 rules를 정규화한다 (BigDecimal 문자열 → number, 말일 null 유지)', async () => {
+    const dca = await dcaOf({
+      ruleKey: 'k1', direction: 'SELL', sizing: { type: 'HOLDING_PERCENT', amount: null, percent: '50.00' }, shortfall: 'REJECT',
+      conditions: [{ indicator: 'RSI', operator: 'LTE', threshold: '35' }, { indicator: 'SMA', operator: 'LT', threshold: null, smaPeriod: 200 }],
+      nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' },
+      lastExecution: { kstTradeDate: '2026-10-21', status: 'SKIPPED', skipReason: 'INSUFFICIENT_HOLDINGS' },
+    }, { currentHoldings: '0.12345678', avgPrice: '4100000' })
+    expect(dca?.currentHoldings).toBe(0.12345678)
+    expect(dca?.avgPrice).toBe(4100000)
+    expect(dca?.rules).toEqual([{
+      ruleKey: 'k1', direction: 'SELL', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC', executionHour: null,
+      sizing: { type: 'HOLDING_PERCENT', amount: null, percent: 50 }, shortfall: 'REJECT',
+      conditions: [{ indicator: 'RSI', operator: 'LTE', threshold: 35 }, { indicator: 'SMA', operator: 'LT', smaPeriod: 200 }],
+      nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' },
+      lastExecution: { kstTradeDate: '2026-10-21', status: 'SKIPPED', skipReason: 'INSUFFICIENT_HOLDINGS' },
+    }])
+  })
+
+  it('AMOUNT 규모는 amount를 number로, 보유·평단 null은 null 유지', async () => {
+    const dca = await dcaOf({})
+    expect(dca?.rules[0].sizing).toEqual({ type: 'AMOUNT', amount: 300, percent: null })
+    expect(dca?.currentHoldings).toBeNull()
+    expect(dca?.avgPrice).toBeNull()
+  })
+
+  it('알 수 없는 dayOfWeek 값은 null로 버린다', async () => {
+    expect((await dcaOf({ frequency: 'WEEKLY', dayOfWeek: 'FUNDAY' }))?.rules[0].dayOfWeek).toBeNull()
+    expect((await dcaOf({ frequency: 'WEEKLY', dayOfWeek: 'FRIDAY' }))?.rules[0].dayOfWeek).toBe('FRIDAY')
   })
 
   it('executionHour 0은 null이 아니라 0으로 유지한다', async () => {
-    expect((await dcaOf({ amount: 5000, executionHour: 0 }))?.executionHour).toBe(0)
-    expect((await dcaOf({ amount: 5000 }))?.executionHour).toBeNull()
+    expect((await dcaOf({ executionHour: 0 }))?.rules[0].executionHour).toBe(0)
+    expect((await dcaOf({}))?.rules[0].executionHour).toBeNull()
   })
 
   it('주말 요일과 MARKET 주문 유형을 받는다', async () => {
-    const dca = await dcaOf({ amount: 5000, frequency: 'WEEKLY', dayOfWeek: 'SUNDAY', orderType: 'MARKET' })
-    expect(dca?.dayOfWeek).toBe('SUNDAY')
-    expect(dca?.orderType).toBe('MARKET')
+    const rule = (await dcaOf({ frequency: 'WEEKLY', dayOfWeek: 'SUNDAY', orderType: 'MARKET' }))?.rules[0]
+    expect(rule?.dayOfWeek).toBe('SUNDAY')
+    expect(rule?.orderType).toBe('MARKET')
   })
 
   it('비DCA 응답은 dca undefined', async () => {
@@ -142,10 +134,10 @@ describe('DCA api', () => {
     expect(s.dca).toBeUndefined()
   })
 
-  it('reconfigureDca는 PUT /dca-config로 dca 객체만 보낸다', async () => {
+  it('reconfigureDca는 PUT /dca-config로 rules 객체만 보낸다', async () => {
     const { reconfigureDca } = await import('./index')
     fetchEitherMock.mockResolvedValueOnce({ id: 's1', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false, dca: null })
-    const body = { direction: 'BUY' as const, amount: 100, orderType: 'MOO' as const, frequency: 'DAILY' as const, dayOfWeek: null, dayOfMonth: null, conditions: [] }
+    const body = { rules: [{ ruleKey: null, direction: 'BUY' as const, frequency: 'DAILY' as const, dayOfWeek: null, dayOfMonth: null, orderType: 'MOO' as const, sizing: { type: 'AMOUNT' as const, amount: 100, percent: null }, shortfall: 'PARTIAL' as const, conditions: [] }] }
     await reconfigureDca('s1', body)
     expect(fetchEitherMock).toHaveBeenLastCalledWith(
       expect.stringContaining('/api/trading-cycles/s1/dca-config'),
@@ -157,13 +149,14 @@ describe('DCA api', () => {
   it('listDcaExecutions는 page·size 쿼리로 조회하고 숫자를 정규화한다', async () => {
     const { listDcaExecutions } = await import('./index')
     fetchEitherMock.mockResolvedValueOnce({ content: [
-      { kstTradeDate: '2026-09-30', usSessionDate: '2026-09-29', status: 'ORDERED', skipReason: null, detail: null, referencePrice: null, quantity: 3, order: { id: 'o1', status: 'FILLED', filledQuantity: 3, filledPrice: '87.40' } },
-      { kstTradeDate: '2026-08-29', usSessionDate: '2026-08-28', status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET', detail: 'RSI(14) 48.20 > 35', referencePrice: '86.50', quantity: null, order: null },
+      { ruleKey: 'k1', direction: 'BUY', kstTradeDate: '2026-09-30', usSessionDate: '2026-09-29', status: 'ORDERED', skipReason: null, detail: null, referencePrice: null, quantity: 3, order: { id: 'o1', status: 'FILLED', filledQuantity: 3, filledPrice: '87.40' } },
+      { ruleKey: 'k2', direction: 'SELL', kstTradeDate: '2026-08-29', usSessionDate: '2026-08-28', status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET', detail: 'RSI(14) 48.20 > 35', referencePrice: '86.50', quantity: null, order: null },
     ], page: 0, size: 20, totalElements: 2 })
     const res = await listDcaExecutions('s1', 0, 20)
     expect(fetchEitherMock).toHaveBeenLastCalledWith('/api/trading-cycles/s1/dca-executions?page=0&size=20', undefined, undefined)
     // referencePrice는 주문 기준가(매수: max(전일 종가, 배치 시점 현재가), 매도: 전일 종가) — null은 기존 주문 복구 경로의 ORDERED 행뿐(content[0]이 그 경우)
-    expect(res.content[0]).toMatchObject({ referencePrice: undefined, quantity: 3, order: { filledPrice: 87.4 } })
+    expect(res.content[1]).toMatchObject({ ruleKey: 'k2', direction: 'SELL' })
+    expect(res.content[0]).toMatchObject({ ruleKey: 'k1', direction: 'BUY', referencePrice: undefined, quantity: 3, order: { filledPrice: 87.4 } })
     expect(res.content[1]).toMatchObject({ referencePrice: 86.5, quantity: undefined, order: null })
     expect(res.totalElements).toBe(2)
   })

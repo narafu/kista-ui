@@ -1,4 +1,5 @@
-import type { DcaCondition, DcaConfigRequest, DcaWeekday } from './types'
+import { fmtMoney } from '@shared/lib/format'
+import type { DcaCondition, DcaRule, DcaRuleExecution, DcaRuleRequest, DcaSizing, DcaWeekday } from './types'
 
 // java DayOfWeek 이름이라 메타에 없음 — 요일 한글명만 로컬 상수
 export const WEEKDAY_LABEL: Record<DcaWeekday, string> = {
@@ -36,7 +37,7 @@ export function dcaExecutionStatusLabel(status: string): string {
 }
 
 export function formatDcaSchedule(
-  dca: Pick<DcaConfigRequest, 'frequency' | 'dayOfWeek' | 'dayOfMonth'> & { executionHour?: number | null },
+  dca: Pick<DcaRuleRequest, 'frequency' | 'dayOfWeek' | 'dayOfMonth'> & { executionHour?: number | null },
   frequencyLabel: string,
 ): string {
   const day = dca.frequency === 'WEEKLY' && dca.dayOfWeek
@@ -58,4 +59,45 @@ export function formatDcaCondition(c: DcaCondition, indicatorLabel: string, oper
   if (c.threshold == null) return `${indicatorLabel} - ${operatorLabel}`
   if (c.indicator === 'AVG_PRICE') return `${indicatorLabel} ${c.threshold > 0 ? '+' : ''}${c.threshold}% ${operatorLabel}`
   return `${indicatorLabel} ${c.threshold} ${operatorLabel}`
+}
+
+// MetaProvider.labelOf(category: keyof MetaBundle)를 그대로 넘길 수 있게 필요한 카테고리만 좁힌 시그니처(파라미터 반공변)
+export type DcaLabelOf = (category: 'orderDirections' | 'dcaFrequencies' | 'orderTypes' | 'dcaShortfallPolicies' | 'dcaSkipReasons', code: string) => string
+
+export type DcaRuleSummaryInput = Pick<DcaRuleRequest, 'direction' | 'frequency' | 'dayOfWeek' | 'dayOfMonth' | 'orderType' | 'sizing'> & { executionHour?: number | null }
+
+export function formatDcaSizing(sizing: DcaSizing, isCrypto: boolean): string {
+  return sizing.type === 'HOLDING_PERCENT'
+    ? `보유 ${sizing.percent}%`
+    : fmtMoney(sizing.amount ?? 0, isCrypto ? 'KRW' : 'USD')
+}
+
+// "방향 · 주기[ 시각] · [주문방식 · ]규모" — 주문방식(MOO/MOC)은 주식만 시점으로 의미가 있다
+export function formatDcaRuleSummary(rule: DcaRuleSummaryInput, labelOf: DcaLabelOf, isCrypto: boolean): string {
+  return [
+    labelOf('orderDirections', rule.direction),
+    formatDcaSchedule(rule, labelOf('dcaFrequencies', rule.frequency)),
+    ...(isCrypto ? [] : [labelOf('orderTypes', rule.orderType)]),
+    formatDcaSizing(rule.sizing, isCrypto),
+  ].join(' · ')
+}
+
+// 날짜(kstTradeDate) 오름차순, 같으면 실행 시각 — nextExecution null 규칙은 제외
+export function earliestNextExecution(rules: DcaRule[]): DcaRule | null {
+  let best: DcaRule | null = null
+  for (const r of rules) {
+    if (!r.nextExecution) continue
+    const b = best?.nextExecution
+    const d = b ? r.nextExecution.kstTradeDate.localeCompare(b.kstTradeDate) : -1
+    if (d < 0 || (d === 0 && (r.executionHour ?? 0) < (best?.executionHour ?? 0))) best = r
+  }
+  return best
+}
+
+export function latestLastExecution(rules: DcaRule[]): DcaRuleExecution | null {
+  let best: DcaRuleExecution | null = null
+  for (const r of rules) {
+    if (r.lastExecution && (!best || r.lastExecution.kstTradeDate > best.kstTradeDate)) best = r.lastExecution
+  }
+  return best
 }
