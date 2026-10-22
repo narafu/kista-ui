@@ -119,6 +119,15 @@ describe('ConfirmStep', () => {
     expect(Object.keys(mutateMock.mock.calls.at(-1)?.[0])).not.toContain('accountNo')
   })
 
+  it('메리츠는 계좌번호 없이 키만 보낸다', async () => {
+    mockState = { isPending: false, isError: false, error: null }
+    const user = userEvent.setup()
+    render(<ConfirmStep data={{ broker: 'MERITZ', apiKey: 'app-key-1234', apiSecret: 'app-secret-1234', accountNo: '', nickname: '메리츠' }} onBack={vi.fn()} />)
+    expect(screen.queryByText('계좌번호')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '계좌 연결' }))
+    expect(Object.keys(mutateMock.mock.calls.at(-1)?.[0])).not.toContain('accountNo')
+  })
+
   it('업비트 자격증명 오류는 Access Key·Secret Key를 짚는다', () => {
     mockState = { isPending: false, isError: true, error: new ApiError(422, { code: 'BROKER_CREDENTIAL_INVALID' }) }
     render(<ConfirmStep data={{ broker: 'UPBIT', apiKey: 'k', apiSecret: 's', accountNo: '', nickname: '코인' }} onBack={vi.fn()} />)

@@ -3,7 +3,7 @@
 import { useEffect, useReducer } from 'react'
 import { Stepper } from '@shared/ui/stepper'
 import type { BrokerCode } from '@entities/account'
-import { isCryptoBroker, isMockBroker } from '@shared/lib/api-schema'
+import { isKeyOnlyBroker, isMockBroker } from '@shared/lib/api-schema'
 import { useRuntimeConfigQuery } from '@entities/runtime-config'
 import { BrokerStep } from './steps/BrokerStep'
 import { ApiStep } from './steps/ApiStep'
@@ -77,8 +77,8 @@ export function CreateAccountStepper() {
   const back = () => dispatch({ type: 'BACK' })
 
   const flow = isMock ? MOCK_FLOW : DEFAULT_FLOW
-  // 계좌번호가 없는 거래소(업비트)는 흐름은 같고 3번째 스텝이 별칭만 받는다
-  const steps = isMock ? MOCK_STEPS : isCryptoBroker(data.broker) ? KEY_ONLY_STEPS : STEPS
+  // 계좌번호가 없는 broker(업비트·메리츠)는 흐름은 같고 3번째 스텝이 별칭만 받는다
+  const steps = isMock ? MOCK_STEPS : isKeyOnlyBroker(data.broker) ? KEY_ONLY_STEPS : STEPS
 
   return (
     <div className="max-w-lg mx-auto">

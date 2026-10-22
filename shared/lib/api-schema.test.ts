@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { brokerCurrency, formatBrokerLabel, isCryptoBroker, isCryptoMarket } from './api-schema'
+import { brokerCurrency, formatBrokerLabel, isCryptoBroker, isCryptoMarket, isKeyOnlyBroker } from './api-schema'
 
 describe('isCryptoBroker', () => {
   it('업비트만 코인 거래소로 본다', () => {
@@ -14,6 +14,21 @@ describe('isCryptoBroker', () => {
     expect(isCryptoBroker(null)).toBe(false)
     expect(isCryptoBroker('')).toBe(false)
     expect(isCryptoBroker('BITHUMB')).toBe(false)
+  })
+})
+
+describe('isKeyOnlyBroker', () => {
+  it('계좌번호 없이 키만 받는 broker는 업비트·메리츠다', () => {
+    expect(isKeyOnlyBroker('UPBIT')).toBe(true)
+    expect(isKeyOnlyBroker('MERITZ')).toBe(true)
+    expect(isKeyOnlyBroker('KIS')).toBe(false)
+    expect(isKeyOnlyBroker('TOSS')).toBe(false)
+    expect(isKeyOnlyBroker('MOCK')).toBe(false)
+  })
+
+  it('메리츠는 주식 broker라 코인이 아니고 USD다', () => {
+    expect(isCryptoBroker('MERITZ')).toBe(false)
+    expect(brokerCurrency('MERITZ')).toBe('USD')
   })
 })
 

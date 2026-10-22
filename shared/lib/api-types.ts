@@ -2942,23 +2942,23 @@ export interface components {
              */
             nickname: string;
             /**
-             * @description 계좌번호 — KIS: XXXXXXXX-XX (예: 74420614-01), Toss: XXX-XX-XXXXXX (예: 131-01-001931), MOCK: 생략 가능(서버 자동 생성), UPBIT: 받지 않음(오면 무시)
+             * @description 계좌번호 — KIS: XXXXXXXX-XX (예: 74420614-01), Toss: XXX-XX-XXXXXX (예: 131-01-001931), MOCK: 생략 가능(서버 자동 생성), UPBIT·MERITZ: 받지 않음(오면 무시)
              * @example 74420614-01
              */
             accountNo?: string;
             /**
-             * @description API 앱 키 (KIS App Key / Toss Client ID / 업비트 Access Key)
+             * @description API 앱 키 (KIS App Key / Toss Client ID / 업비트 Access Key / 메리츠 App Key)
              * @example PSxxxxxxxxxx
              */
             appKey?: string;
-            /** @description API 앱 시크릿 (KIS App Secret / Toss Client Secret / 업비트 Secret Key) */
+            /** @description API 앱 시크릿 (KIS App Secret / Toss Client Secret / 업비트 Secret Key / 메리츠 App Secret) */
             secretKey?: string;
             /**
              * @description 증권사 — null이면 KIS 기본값 적용
              * @example KIS
              * @enum {string}
              */
-            broker?: "KIS" | "TOSS" | "MOCK" | "UPBIT";
+            broker?: "KIS" | "TOSS" | "MOCK" | "UPBIT" | "MERITZ";
         };
         AccountResponse: {
             /**
@@ -3039,7 +3039,7 @@ export interface components {
              * @example KIS
              * @enum {string}
              */
-            broker?: "TOSS" | "KIS" | "MOCK" | "UPBIT";
+            broker?: "TOSS" | "KIS" | "MOCK" | "UPBIT" | "MERITZ";
             /** @description 증권사 앱 키 (신규 자격증명 테스트 시) */
             appKey?: string;
             /** @description 증권사 앱 시크릿 (신규 자격증명 테스트 시) */

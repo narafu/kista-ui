@@ -28,7 +28,7 @@ export interface AdminAccount {
   id: string
   userId: string
   ownerNickname: string
-  accountNoMasked: string | null // 업비트는 계좌번호가 없어 null
+  accountNoMasked: string | null // 업비트·메리츠는 계좌번호가 없어 null
   broker: string
   strategies: AdminAccountStrategy[]
 }
@@ -124,7 +124,7 @@ export interface AdminAnomalyAccount {
   id: string
   userId: string
   ownerNickname: string
-  accountNoMasked: string | null // 업비트는 계좌번호가 없어 null
+  accountNoMasked: string | null // 업비트·메리츠는 계좌번호가 없어 null
   accountNo: string | null
 }
 

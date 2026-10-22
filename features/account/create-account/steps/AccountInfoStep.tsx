@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import type { BrokerCode } from '@entities/account'
-import { isMockBroker } from '@shared/lib/api-schema'
+import { isCryptoBroker, isMockBroker } from '@shared/lib/api-schema'
 import type { StepData } from '../CreateAccountStepper'
 import { NicknameField, AccountNoField } from './AccountInfoFields'
 
@@ -56,7 +56,7 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
 
   const broker = (data.broker || 'KIS') as BrokerCode
   const isMock = isMockBroker(broker)
-  // 계좌번호 설정이 없는 broker(MOCK, UPBIT)는 별칭만 받는다
+  // 계좌번호 설정이 없는 broker(MOCK, UPBIT, MERITZ)는 별칭만 받는다
   const config: AccountNoConfig | null = (ACCOUNT_CONFIG as Partial<Record<BrokerCode, AccountNoConfig>>)[broker] ?? null
 
   const nicknameValid = nickname.trim().length >= 1
@@ -82,7 +82,7 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
       <div className="flex flex-col gap-4">
         <NicknameField
           value={nickname}
-          placeholder={isMock ? '예: 모의 계좌' : config ? '예: 메인 계좌' : '예: 크립토 계좌'}
+          placeholder={isMock ? '예: 모의 계좌' : isCryptoBroker(broker) ? '예: 크립토 계좌' : '예: 메인 계좌'}
           showError={showNicknameError}
           onChange={setNickname}
           onBlur={() => setTouchedNickname(true)}

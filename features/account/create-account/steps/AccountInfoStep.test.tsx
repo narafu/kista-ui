@@ -70,4 +70,10 @@ describe('AccountInfoStep', () => {
     await user.click(screen.getByRole('button', { name: '다음' }))
     expect(onNext).toHaveBeenCalledWith({ nickname: '코인 계좌', accountNo: '' })
   })
+
+  it('메리츠는 계좌번호 없이 별칭만 받는다', () => {
+    render(<AccountInfoStep data={{ ...baseData, broker: 'MERITZ' }} onNext={vi.fn()} onBack={vi.fn()} />)
+    expect(screen.queryByLabelText(/계좌번호/)).not.toBeInTheDocument()
+    expect(screen.getByPlaceholderText('예: 메인 계좌')).toBeInTheDocument()
+  })
 })

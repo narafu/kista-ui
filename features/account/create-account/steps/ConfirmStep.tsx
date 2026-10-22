@@ -7,7 +7,7 @@ import { useMeta } from '@entities/meta'
 import { apiMsg } from '@shared/lib/api-client'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@shared/ui/Spinner'
-import { isCryptoBroker, isMockBroker } from '@shared/lib/api-schema'
+import { isKeyOnlyBroker, isMockBroker } from '@shared/lib/api-schema'
 import type { BrokerCode, AccountRequest, CredentialBroker } from '@entities/account'
 import type { StepData } from '../CreateAccountStepper'
 
@@ -23,7 +23,7 @@ export function ConfirmStep({ data, onBack }: Props) {
 
   const broker = (data.broker || 'KIS') as BrokerCode
   const isMock = isMockBroker(broker)
-  const hasAccountNo = !isMock && !isCryptoBroker(broker)
+  const hasAccountNo = !isMock && !isKeyOnlyBroker(broker)
 
   function handleSubmit() {
     const req: AccountRequest = isMock

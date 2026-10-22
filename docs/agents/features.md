@@ -29,12 +29,12 @@ features/{domain}/{slice}/
 
 ## 주요 슬라이스 quirk
 
-- **`create-account`**: KIS/TOSS/UPBIT는 4-step 플로우 `BrokerStep` → `ApiStep` → `AccountInfoStep` → `ConfirmStep`. MOCK(모의계좌) 선택 시 `CreateAccountStepper`가 3-step으로 축약(`BrokerStep` → `AccountInfoStep`(별칭 전용) → `ConfirmStep`) — API 키·계좌번호 스텝을 건너뜀
-- **`create-account/steps/BrokerStep`**: KIS / TOSS / UPBIT / MOCK 선택. `BrokerCode`는 `@shared/lib/api-schema`. `BROKER_UI`에 없는 코드는 카드가 렌더되지 않으므로(`return null`) 신규 브로커 추가 시 반드시 항목 추가 필요
-- **`create-account/steps/ApiStep`**: KIS는 `useTestKisConnectionMutation`, TOSS는 UI만 구현. UPBIT는 연결 테스트 통과가 다음 단계 조건이고 `UpbitKeyGuide`가 runtime-config `brokers.UPBIT.allowedIp`(허용 IP)와 필요한 권한을 안내한다. 거래소 오류 코드 문구는 `@entities/account`의 `brokerErrorMessage`. MOCK은 이 스텝 자체를 거치지 않음
-- **`create-account/steps/AccountInfoStep`**: KIS와 TOSS의 계좌번호 형식이 다름. `ACCOUNT_CONFIG`에 없는 broker(MOCK, UPBIT)는 계좌번호 입력 없이 별칭만 입력
+- **`create-account`**: KIS/TOSS/UPBIT/MERITZ는 4-step 플로우 `BrokerStep` → `ApiStep` → `AccountInfoStep` → `ConfirmStep`. MOCK(모의계좌) 선택 시 `CreateAccountStepper`가 3-step으로 축약(`BrokerStep` → `AccountInfoStep`(별칭 전용) → `ConfirmStep`) — API 키·계좌번호 스텝을 건너뜀
+- **`create-account/steps/BrokerStep`**: KIS / TOSS / UPBIT / MERITZ / MOCK 선택. `BrokerCode`는 `@shared/lib/api-schema`. `BROKER_UI`에 없는 코드는 카드가 렌더되지 않으므로(`return null`) 신규 브로커 추가 시 반드시 항목 추가 필요
+- **`create-account/steps/ApiStep`**: KIS는 `useTestKisConnectionMutation`, TOSS는 UI만 구현. UPBIT는 연결 테스트 통과가 다음 단계 조건이고 `UpbitKeyGuide`가 runtime-config `brokers.UPBIT.allowedIp`(허용 IP)와 필요한 권한을 안내한다. 거래소 오류 코드 문구는 `@entities/account`의 `brokerErrorMessage`. MERITZ는 Open API가 베타·실계좌 전용이라는 안내를 띄운다. MOCK은 이 스텝 자체를 거치지 않음
+- **`create-account/steps/AccountInfoStep`**: KIS와 TOSS의 계좌번호 형식이 다름. `ACCOUNT_CONFIG`에 없는 broker(MOCK, UPBIT, MERITZ)는 계좌번호 입력 없이 별칭만 입력. 앱키에 계좌가 묶인 broker(UPBIT·MERITZ)는 `isKeyOnlyBroker`가 기준이다 — 메리츠는 주식 broker라 `isCryptoBroker`로 판정하면 안 된다
 - **`create-account/steps/ConfirmStep`**: `useCreateAccountMutation` 사용. 생성 성공 후 entity 캐시 동기화가 끝난 뒤 `mutate(..., { onSuccess })`에서 `/accounts/{id}`로 이동한다. MOCK은 요청 바디에서 accountNo/appKey/secretKey를 생략(`{ nickname, broker }`)하고 요약 화면에서도 해당 행을 숨김
-- **`edit-account`**: `EditAccountForm`이 수정/삭제 성공 toast와 라우팅을 담당한다. 삭제 성공 후 전략·통계·주문·거래 캐시를 무효화한 다음 `/accounts`로 이동한다. MOCK 외 broker는 API 키 재등록 섹션(`PUT /api/accounts/{id}/credentials`, `useUpdateCredentialsMutation`)을 갖고, 계좌번호가 없는 UPBIT는 계좌번호 행을 숨긴다
+- **`edit-account`**: `EditAccountForm`이 수정/삭제 성공 toast와 라우팅을 담당한다. 삭제 성공 후 전략·통계·주문·거래 캐시를 무효화한 다음 `/accounts`로 이동한다. MOCK 외 broker는 API 키 재등록 섹션(`PUT /api/accounts/{id}/credentials`, `useUpdateCredentialsMutation`)을 갖고, 계좌번호가 없는 UPBIT·MERITZ는 계좌번호 행을 숨긴다
 - **`auth/reapply`**: `/api/auth/reapply-done` Route Handler 경유
 - **`strategy/create-strategy`**: 다이얼로그/드로어 없이 전용 라우트로 등록·수정한다 — `app/(main)/accounts/[id]/strategies/new`(등록), `.../strategies/[sid]/edit`(수정). `StrategyFormPage`가 `initial` prop 유무로 create/edit을 분기한다. 폼 내부는 반응형 분기 없이 모바일·PC 동일한 1열 레이아웃을 사용한다(`VrSettingsSection` 등). PC에서는 `app/(main)/@modal` 인터셉팅 라우트로 같은 페이지를 모달처럼 띄운다 — `docs/agents/app.md`의 인터셉팅 라우트 quirk 참고. `StrategyFormPage`의 `dismiss` prop(`'push'`|`'back'`)으로 일반 페이지(`router.push`)/모달(`router.back`) 종료 방식을 구분한다
 - **`strategy/create-strategy` 전략 목록 진입점**: `/strategies` 헤더의 `AddStrategyButton`은 계좌 0개면 숨김(빈 상태가 계좌 등록 안내), 1개면 `NewStrategyButton`으로 바로 이동, 2개 이상이면 Popover로 계좌를 고른 뒤 같은 `/accounts/{id}/strategies/new` 라우트로 보낸다 — 폼 안에서 계좌를 바꾸는 방식은 폼 전체가 accountId 기반 조회(증권사·예수금·현재가·시드 미리보기)를 전제해 채택하지 않았다

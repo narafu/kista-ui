@@ -50,6 +50,7 @@ const BROKER_LABEL: Record<string, string> = {
   TOSS: '토스증권',
   MOCK: '모의계좌',
   UPBIT: '업비트',
+  MERITZ: '메리츠증권',
 }
 
 export function formatBrokerLabel(broker: string): string {
@@ -71,6 +72,7 @@ const BROKER_MARKET: Record<BrokerCode, TradingMarket> = {
   TOSS: 'US_STOCK',
   MOCK: 'US_STOCK',
   UPBIT: 'CRYPTO_KRW',
+  MERITZ: 'US_STOCK',
 }
 
 const MARKET_CURRENCY: Record<TradingMarket, Currency> = {
@@ -85,6 +87,11 @@ function brokerMarket(broker: string | null | undefined): TradingMarket {
 // 코인 거래소 계좌 — 주식 시세·잔고 엔드포인트(portfolio/margin/prices)를 부르면 400이라 쿼리를 막는 기준
 export function isCryptoBroker(broker: string | null | undefined): boolean {
   return brokerMarket(broker) === 'CRYPTO_KRW'
+}
+
+// 앱키 하나에 계좌 하나가 묶여 계좌번호를 받지 않는 broker(업비트·메리츠). 계좌 등록 흐름에서 계좌번호 입력을 건너뛰는 기준
+export function isKeyOnlyBroker(broker: string | null | undefined): boolean {
+  return isCryptoBroker(broker) || broker === 'MERITZ'
 }
 
 // 계좌에 귀속된 금액의 표시 통화. 통화 간 환산은 하지 않는다

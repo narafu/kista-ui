@@ -49,6 +49,17 @@ const BROKER_CONFIG = {
     hint: '로그인 후 마이페이지 [Open API 관리]에서 API 키를 발급받을 수 있습니다.',
     minLen: 10,
   },
+  MERITZ: {
+    title: '메리츠증권 API 키 입력',
+    desc: '메리츠증권 Open API 자격증명을 입력하세요.',
+    keyLabel: 'App Key',
+    secretLabel: 'App Secret',
+    linkHref: 'https://openapi.imeritz.com',
+    linkLabel: '메리츠증권 Open API 키 발급',
+    needsTest: true,
+    hint: '메리츠증권 Open API 포털에 로그인한 뒤 API 키를 발급받을 수 있습니다.',
+    minLen: 10,
+  },
 } as const
 
 type State = { apiKey: string; apiSecret: string; showSecret: boolean; touchedKey: boolean; touchedSecret: boolean }
@@ -130,6 +141,11 @@ export function ApiStep({ data, onNext, onBack }: Props) {
         />
       </div>
 
+      {broker === 'MERITZ' && (
+        <p className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+          메리츠증권 Open API는 베타 서비스이며 모의계좌가 없어 실계좌로만 동작합니다. 앱키에 연결된 계좌가 그대로 등록됩니다.
+        </p>
+      )}
       {broker === 'UPBIT' && <UpbitKeyGuide allowedIp={runtimeConfig?.brokers.UPBIT?.allowedIp} isLoading={isRuntimeConfigLoading} />}
 
       {config.needsTest && (
