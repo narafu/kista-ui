@@ -125,4 +125,17 @@ describe('CycleHistoryTable', () => {
 
     expect(screen.queryByRole('button', { name: /더 보기|불러오는 중/ })).not.toBeInTheDocument()
   })
+
+  it('DCA 행은 예수금을 표시하지 않고, INFINITE·알 수 없음(null) 행은 그대로 표시한다', () => {
+    const base = { avgPrice: null, holdings: 0, usdDeposit: 0 }
+    const items: CycleHistoryItem[] = [
+      { ...base, createdAt: '2026-07-01T09:00:00Z', ticker: 'DCAT', strategyType: 'DCA' },
+      { ...base, createdAt: '2026-07-01T10:00:00Z', ticker: 'INFT', strategyType: 'INFINITE' },
+      { ...base, createdAt: '2026-07-01T11:00:00Z', ticker: 'NULT', strategyType: null },
+    ]
+    render(<CycleHistoryTable title="잔고 이력" id="a1"useHistoryQuery={makeHook({ cycleHistory: items })} />)
+
+    // 모바일 행 + 데스크톱 셀 각각: INFINITE·null 2행 × 2 = 4, DCA는 0
+    expect(screen.getAllByText('$0.00')).toHaveLength(4)
+  })
 })
