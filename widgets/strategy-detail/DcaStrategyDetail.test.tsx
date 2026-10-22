@@ -79,6 +79,12 @@ describe('DcaStrategyDetail', () => {
     expect(screen.getByText('+10.0%')).toHaveClass('text-pos')
     expect(prices.calls.every((c) => (c[2] as { enabled?: boolean }).enabled === false)).toBe(true)
   })
+  it('크립토 평가금액은 원 단위로 반올림한다', async () => {
+    cryptoPortfolio.result = portfolio(4_400_001)
+    renderDetail(ethStrategy)
+    expect(await screen.findByText('2,200,001원')).toBeInTheDocument()
+  })
+
   it('크립토 포트폴리오 조회 실패여도 보유·평단은 보이고 평가금액·수익률만 확인 불가', async () => {
     cryptoPortfolio.result = new Error('fail')
     renderDetail(ethStrategy)

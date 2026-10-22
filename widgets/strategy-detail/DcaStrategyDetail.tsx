@@ -42,7 +42,8 @@ function DcaHoldingGrid({ accountId, strategy, isCrypto }: { accountId: string; 
   const price = isCrypto ? portfolio.data?.holdings.find((h) => h.ticker === ticker)?.currentPrice : prices.data?.[ticker]
   const settled = isCrypto ? !!portfolio.data || portfolio.isError : !!prices.data || prices.isError
   const priced = price != null
-  const evalAmount = holdings != null && priced ? holdings * price : null
+  // 크립토 소수 수량 × 원화 가격은 원 미만이 생긴다 — 원화는 원 단위로 반올림해 표시한다
+  const evalAmount = holdings != null && priced ? (isCrypto ? Math.round(holdings * price) : holdings * price) : null
   const returnRatio = priced && avg != null && avg > 0 ? price / avg - 1 : null
   // 보유가 없으면 평가할 대상이 없어 -, 있는데 현재가가 없으면 확인 불가, 조회 중이면 스켈레톤
   const loading = holdings != null && !priced && !settled
