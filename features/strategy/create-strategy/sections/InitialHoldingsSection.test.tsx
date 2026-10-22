@@ -86,4 +86,18 @@ describe('InitialHoldingsSection', () => {
     expect(screen.getByText('USD')).toBeInTheDocument()
     expect(screen.getByText('주')).toBeInTheDocument()
   })
+
+  it('평단가·수량 오류를 각 입력칸 아래에 함께 보여 주고 입력칸에 연결한다', () => {
+    render(<InitialHoldingsSection {...baseProps} errors={{ avgPrice: '평단가 오류', quantity: '수량 오류' }} />)
+    expect(getInputByLabelText('평단가')).toHaveAttribute('aria-invalid', 'true')
+    expect(getInputByLabelText('평단가')).toHaveAccessibleDescription('USD 평단가 오류')
+    expect(getInputByLabelText('수량')).toHaveAttribute('aria-invalid', 'true')
+    expect(getInputByLabelText('수량')).toHaveAccessibleDescription('주 수량 오류')
+  })
+
+  it('오류가 없으면 aria-invalid를 달지 않는다', () => {
+    render(<InitialHoldingsSection {...baseProps} errors={{ quantity: '수량 오류' }} />)
+    expect(getInputByLabelText('평단가')).not.toHaveAttribute('aria-invalid')
+    expect(getInputByLabelText('평단가')).toHaveAccessibleDescription('USD')
+  })
 })

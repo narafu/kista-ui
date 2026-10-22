@@ -14,13 +14,13 @@ interface Props {
   quantityUnit?: string
   quantityMaxDecimals?: number
   caption?: ReactNode
-  error?: string
+  errors?: { avgPrice?: string; quantity?: string }
 }
 
 // 중간부터 시작 — 이미 종목을 보유 중인 사용자가 기존 평단가·수량을 입력해 그 지점부터 전략을 시작하는 공통 입력(등록 전용)
 export function InitialHoldingsSection({
   avgPrice, quantity, setField, loading,
-  priceUnit = 'USD', priceMaxDecimals = 2, quantityUnit = '주', quantityMaxDecimals, caption, error,
+  priceUnit = 'USD', priceMaxDecimals = 2, quantityUnit = '주', quantityMaxDecimals, caption, errors,
 }: Props) {
   const id = useId()
   return (
@@ -36,7 +36,9 @@ export function InitialHoldingsSection({
             disabled={loading}
             unitClassName="ml-1.5"
             maxDecimals={priceMaxDecimals}
+            errorId={errors?.avgPrice ? `${id}-avgPrice-error` : undefined}
           />
+          {errors?.avgPrice && <p id={`${id}-avgPrice-error`} role="alert" className="mt-1 text-sm text-[var(--status-error)]">{errors.avgPrice}</p>}
         </div>
         <div>
           <StrategyFieldLabel htmlFor={`${id}-quantity`}>수량</StrategyFieldLabel>
@@ -48,11 +50,12 @@ export function InitialHoldingsSection({
             disabled={loading}
             unitClassName="ml-1.5"
             maxDecimals={quantityMaxDecimals}
+            errorId={errors?.quantity ? `${id}-quantity-error` : undefined}
           />
+          {errors?.quantity && <p id={`${id}-quantity-error`} role="alert" className="mt-1 text-sm text-[var(--status-error)]">{errors.quantity}</p>}
         </div>
       </div>
       {caption && <p className="mt-2 text-sm text-muted-foreground">{caption}</p>}
-      {error && <p role="alert" className="mt-1 text-sm text-[var(--status-error)]">{error}</p>}
     </div>
   )
 }

@@ -37,10 +37,10 @@ function existing(rules: DcaRule[]): Strategy {
   }
 }
 
-function renderForm(initial?: Strategy, defaultTicker = 'UPRO', market: TradingMarket = 'US_STOCK') {
+function renderForm(initial?: Strategy, defaultTicker = 'UPRO', market: TradingMarket = 'US_STOCK', header?: React.ReactNode) {
   return render(
     <MetaProvider meta={meta}>
-      <DcaStrategyForm accountId="a1" initial={initial} availableTickers={market === 'CRYPTO_KRW' ? ['BTC'] : ['UPRO', 'QLD']} defaultTicker={defaultTicker} market={market} />
+      <DcaStrategyForm accountId="a1" initial={initial} availableTickers={market === 'CRYPTO_KRW' ? ['BTC'] : ['UPRO', 'QLD']} defaultTicker={defaultTicker} market={market} header={header} />
     </MetaProvider>,
   )
 }
@@ -190,6 +190,56 @@ describe('DcaStrategyForm', () => {
     expect(screen.getByRole('heading', { level: 2, name: '매수 규칙' })).toBeInTheDocument()
     window.dispatchEvent(new PopStateEvent('popstate', { state: null }))
     await waitFor(() => expect(row(/\$100/)).toHaveFocus())
+  })
+
+  it('header(유형 선택)는 목록 화면에만 있고 편집 화면엔 없다', async () => {
+    renderForm(existing([rule('a', 100)]), 'UPRO', 'US_STOCK', <div>type-section</div>)
+    expect(screen.getByText('type-section')).toBeInTheDocument()
+    fireEvent.click(row(/\$100/))
+    expect(screen.queryByText('type-section')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: '취소' }))
+    await screen.findByText('type-section')
+  })
+
+  it('등록: 매수 규칙에 평단가 조건이 있고 수량이 비면 보유 0 캡션', async () => {
+    renderForm()
+    fireEvent.click(screen.getByRole('button', { name: '+ 매수 규칙 추가' }))
+    fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
+    fireEvent.click(screen.getByRole('button', { name: '조건 추가' })) // 메타 첫 지표 = AVG_PRICE
+    fireEvent.change(screen.getByRole('spinbutton', { name: '조건 1 기준값' }), { target: { value: '-5' } })
+    fireEvent.click(screen.getByRole('button', { name: '완료' }))
+    await screen.findByText('규칙 (1/10)')
+    expect(screen.getByText('보유 0에서 시작합니다. 이미 보유 중이면 입력하세요.')).toBeInTheDocument()
+  })
+
+  it('완료를 연타해도 규칙은 한 번만 반영된다', async () => {
+    // 이력 이동이 끝나기 전(popstate 전) 두 번째 클릭이 들어오는 상황 — back을 no-op으로 두고 popstate는 직접 쏜다
+    vi.spyOn(window.history, 'back').mockImplementation(() => {})
+    renderForm()
+    fireEvent.click(screen.getByRole('button', { name: '+ 매수 규칙 추가' }))
+    fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
+    fireEvent.click(screen.getByRole('button', { name: '완료' }))
+    fireEvent.click(screen.getByRole('button', { name: '완료' }))
+    await waitFor(() => expect(window.history.back).toHaveBeenCalled())
+    await new Promise((r) => setTimeout(r, 0)) // 두 번째 제출의 비동기 검증까지 끝낸다
+    window.dispatchEvent(new PopStateEvent('popstate', { state: null }))
+    await screen.findByText('규칙 (1/10)')
+    expect(window.history.back).toHaveBeenCalledTimes(1)
+  })
+
+  it('등록 시도 후 보유 시작값 오류는 두 필드에 따로 표시되고, 고치면 반대쪽 오류도 사라진다', async () => {
+    renderForm()
+    fireEvent.click(screen.getByRole('button', { name: '+ 매수 규칙 추가' }))
+    fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
+    fireEvent.click(screen.getByRole('button', { name: '완료' }))
+    await screen.findByText('규칙 (1/10)')
+    fireEvent.change(screen.getByLabelText('수량'), { target: { value: '5' } })
+    fireEvent.click(screen.getByRole('button', { name: '등록' }))
+    await waitFor(() => expect(screen.getByLabelText('평단가')).toHaveAttribute('aria-invalid', 'true'))
+    expect(screen.getByLabelText('평단가')).toHaveAccessibleDescription(/보유 수량을 입력하면 평단가는 0보다 커야 합니다/)
+    fireEvent.change(screen.getByLabelText('수량'), { target: { value: '' } })
+    await waitFor(() => expect(screen.getByLabelText('평단가')).not.toHaveAttribute('aria-invalid'))
+    expect(createMutate).not.toHaveBeenCalled()
   })
 
   it('편집 진입 시 이력을 한 칸 쌓는다', () => {

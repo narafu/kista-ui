@@ -38,6 +38,7 @@ export function UnitInput({
   wrapperClassName,
   unitClassName,
   maxDecimals,
+  errorId,
 }: {
   // 바깥 <Label htmlFor>와 연결
   id?: string
@@ -50,6 +51,8 @@ export function UnitInput({
   wrapperClassName?: string
   unitClassName?: string
   maxDecimals?: number
+  // 바깥에 렌더한 오류 문구 id — 주면 aria-invalid와 함께 설명으로 연결한다
+  errorId?: string
 }) {
   const unitId = useId()
   // 소수점 입력 중(예: "87.", "87.50") 문자열을 보존 — 매 렌더마다 value(파싱된 숫자)로 되돌리면 트레일링 점/0이 사라짐
@@ -84,7 +87,8 @@ export function UnitInput({
         inputMode="decimal"
         aria-label={ariaLabel}
         // 단위는 이름이 아니라 설명으로 읽힌다 — 감싸는 label에 포함되면 "gradient 유예(주) 주"처럼 이름에 겹쳐 붙는다
-        aria-describedby={unit ? unitId : undefined}
+        aria-describedby={[unit && unitId, errorId].filter(Boolean).join(' ') || undefined}
+        aria-invalid={errorId ? true : undefined}
         value={text}
         onChange={handleChange}
         onFocus={selectAllOnFocus}

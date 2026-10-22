@@ -89,21 +89,19 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
   // DCA는 시드·분할·VR과 무관한 별도 폼 — 유형 선택(등록)만 공유하고 나머지는 DcaStrategyForm이 렌더
   if ((initial?.type ?? form.type) === 'DCA') {
     return (
-      <>
-        {!initial && (
+      <DcaStrategyForm
+        key={initial?.id ?? 'new'}
+        accountId={accountId}
+        initial={initial}
+        availableTickers={initial ? [initial.ticker] : form.availableTickers}
+        defaultTicker={form.defaultTicker}
+        market={form.isCrypto ? 'CRYPTO_KRW' : 'US_STOCK'}
+        onSuccess={onSuccess}
+        onCancel={onCancel}
+        header={!initial && (
           <StrategyTypeSection initial={initial} type={form.type} setType={form.setType} loading={form.loading} strategyTypes={strategyTypes} />
         )}
-        <DcaStrategyForm
-          key={initial?.id ?? 'new'}
-          accountId={accountId}
-          initial={initial}
-          availableTickers={initial ? [initial.ticker] : form.availableTickers}
-          defaultTicker={form.defaultTicker}
-          market={form.isCrypto ? 'CRYPTO_KRW' : 'US_STOCK'}
-          onSuccess={onSuccess}
-          onCancel={onCancel}
-        />
-      </>
+      />
     )
   }
 

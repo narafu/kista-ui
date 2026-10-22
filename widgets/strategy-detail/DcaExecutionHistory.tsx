@@ -59,32 +59,32 @@ export function DcaExecutionHistory({ strategyId, ticker, rules }: { strategyId:
                 {rows.map((r) => {
                   const rule = rules.find((x) => x.ruleKey === r.ruleKey)
                   return (
-                  <tr key={`${r.kstTradeDate}-${r.ruleKey}`} className="border-t hover:bg-muted/30 transition-colors">
-                    <TableDataCell className="text-muted-foreground whitespace-nowrap">{fmtDate(r.kstTradeDate)}</TableDataCell>
-                    <TableDataCell className="whitespace-nowrap">
-                      {rule ? formatDcaRuleSummary(rule, labelOf, isCrypto) : (
-                        <span className="inline-flex items-center gap-1.5">
-                          <Badge tone="none" size="sm" className={directionBadgeClass(r.direction)}>{labelOf('orderDirections', r.direction)}</Badge>
-                          <span className="text-muted-foreground">삭제된 규칙</span>
-                        </span>
-                      )}
-                    </TableDataCell>
-                    <TableDataCell className="whitespace-nowrap">
-                      <Badge tone={r.status === 'ORDERED' ? 'none' : 'neutral'} size="sm" className={r.status === 'ORDERED' ? 'bg-info-bg text-info' : undefined}>{dcaExecutionStatusLabel(r.status)}</Badge>
-                    </TableDataCell>
-                    {/* detail은 가변 길이 자유 텍스트라 nowrap 대신 최소 너비로 글자 단위 줄바꿈만 막는다 */}
-                    <TableDataCell className="min-w-32">
-                      {r.skipReason && <div>{labelOf('dcaSkipReasons', r.skipReason)}</div>}
-                      {r.detail && <div className="text-xs text-muted-foreground">{r.detail}</div>}
-                    </TableDataCell>
-                    <TableDataCell className="text-right tabular-nums whitespace-nowrap">{r.referencePrice != null ? fmtMoney(r.referencePrice, currency) : '-'}</TableDataCell>
-                    <TableDataCell className="text-right tabular-nums whitespace-nowrap">{r.quantity != null ? (isCrypto ? `${fmtQuantity(r.quantity)} ${ticker}` : `${fmtQuantity(r.quantity)}주`) : '-'}</TableDataCell>
-                    <TableDataCell className="whitespace-nowrap">
-                      {r.order
-                        ? `${ORDER_STATUS_LABEL[r.order.status] ?? r.order.status}${r.order.filledPrice != null ? ` · ${fmtMoney(r.order.filledPrice, currency)}` : ''}`
-                        : '-'}
-                    </TableDataCell>
-                  </tr>
+                    <tr key={`${r.kstTradeDate}-${r.ruleKey}`} className="border-t hover:bg-muted/30 transition-colors">
+                      <TableDataCell className="text-muted-foreground whitespace-nowrap">{fmtDate(r.kstTradeDate)}</TableDataCell>
+                      <TableDataCell className="whitespace-nowrap">
+                        {rule ? formatDcaRuleSummary(rule, labelOf, isCrypto) : (
+                          <span className="inline-flex items-center gap-1.5">
+                            <Badge tone="none" size="sm" className={directionBadgeClass(r.direction)}>{labelOf('orderDirections', r.direction)}</Badge>
+                            <span className="text-muted-foreground">삭제된 규칙</span>
+                          </span>
+                        )}
+                      </TableDataCell>
+                      <TableDataCell className="whitespace-nowrap">
+                        <Badge tone={r.status === 'ORDERED' ? 'none' : 'neutral'} size="sm" className={r.status === 'ORDERED' ? 'bg-info-bg text-info' : undefined}>{dcaExecutionStatusLabel(r.status)}</Badge>
+                      </TableDataCell>
+                      {/* detail은 가변 길이 자유 텍스트라 nowrap 대신 최소 너비로 글자 단위 줄바꿈만 막는다 */}
+                      <TableDataCell className="min-w-32">
+                        {r.skipReason && <div>{labelOf('dcaSkipReasons', r.skipReason)}</div>}
+                        {r.detail && <div className="text-xs text-muted-foreground">{r.detail}</div>}
+                      </TableDataCell>
+                      <TableDataCell className="text-right tabular-nums whitespace-nowrap">{r.referencePrice != null ? fmtMoney(r.referencePrice, currency) : '-'}</TableDataCell>
+                      <TableDataCell className="text-right tabular-nums whitespace-nowrap">{r.quantity != null ? (isCrypto ? `${fmtQuantity(r.quantity)} ${ticker}` : `${fmtQuantity(r.quantity)}주`) : '-'}</TableDataCell>
+                      <TableDataCell className="whitespace-nowrap">
+                        {r.order
+                          ? `${ORDER_STATUS_LABEL[r.order.status] ?? r.order.status}${r.order.filledPrice != null ? ` · ${fmtMoney(r.order.filledPrice, currency)}` : ''}`
+                          : '-'}
+                      </TableDataCell>
+                    </tr>
                   )
                 })}
               </tbody>

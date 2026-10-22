@@ -65,8 +65,11 @@ vi.mock('./sections/ScheduledStartSection', () => ({
 }))
 
 vi.mock('./DcaStrategyForm', () => ({
-  DcaStrategyForm: (props: { availableTickers: string[]; defaultTicker: string; market: string }) => (
-    <div data-testid="dca-strategy-form" data-market={props.market} data-default={props.defaultTicker}>{props.availableTickers.join(',')}</div>
+  DcaStrategyForm: (props: { availableTickers: string[]; defaultTicker: string; market: string; header?: React.ReactNode }) => (
+    <>
+      {props.header}
+      <div data-testid="dca-strategy-form" data-market={props.market} data-default={props.defaultTicker}>{props.availableTickers.join(',')}</div>
+    </>
   ),
 }))
 

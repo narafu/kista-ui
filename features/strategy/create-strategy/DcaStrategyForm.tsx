@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -25,6 +25,8 @@ interface Props {
   market: TradingMarket // 계좌 broker에서 정해지는 시장 — 금액 단위·주문 방식·실행 시각 규칙을 가른다
   onSuccess?: () => void
   onCancel?: () => void
+  // 목록 화면 위에만 둘 요소(등록의 유형 선택) — 편집 화면에서 유형을 바꾸면 폼이 언마운트돼 편집 이력 칸만 남는다
+  header?: ReactNode
 }
 
 // 편집 화면에서 돌아올 때 포커스 대상 — 규칙 줄 인덱스, 또는 줄이 없으면(새 규칙 취소·삭제) 해당 방향 추가 버튼
@@ -32,7 +34,7 @@ type FocusTarget = number | DcaDirection
 
 // DCA 등록·수정 — 규칙 목록 화면과 규칙 하나의 편집 화면을 같은 자리에서 전환한다(spec §3 결정 1·4).
 // 편집 화면은 브라우저 이력 한 칸을 쌓아 뒤로가기가 목록으로 돌아가게 한다(결정 7)
-export function DcaStrategyForm({ accountId, initial, availableTickers, defaultTicker, market, onSuccess, onCancel }: Props) {
+export function DcaStrategyForm({ accountId, initial, availableTickers, defaultTicker, market, onSuccess, onCancel, header }: Props) {
   const form = useForm<DcaFormValues>({
     resolver: zodResolver(dcaFormSchema),
     defaultValues: buildDcaFormDefaults(initial, defaultTicker, market),
@@ -115,53 +117,60 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
   }
 
   return (
-    <form onSubmit={submit}>
-      <StrategyTickerSection
-        initial={initial}
-        ticker={ticker}
-        availableTickers={availableTickers}
-        prices={null}
-        basePrice={null}
-        loading={pending}
-        onTickerChange={(code) => form.setValue('ticker', code)}
-        customizable={availableTickers.length > 1}
-      />
-      {!initial && (
-        <ScheduledStartSection
-          value={form.watch('scheduledStartDate')}
-          onChange={(d) => form.setValue('scheduledStartDate', d, { shouldValidate: form.formState.isSubmitted })}
+    <>
+      {header}
+      <form onSubmit={submit}>
+        <StrategyTickerSection
+          initial={initial}
+          ticker={ticker}
+          availableTickers={availableTickers}
+          prices={null}
+          basePrice={null}
           loading={pending}
-          error={form.formState.errors.scheduledStartDate?.message}
+          onTickerChange={(code) => form.setValue('ticker', code)}
+          customizable={availableTickers.length > 1}
         />
-      )}
-      {!initial && (
-        <InitialHoldingsSection
-          avgPrice={form.watch('initialAvgPrice')}
-          quantity={form.watch('initialHoldings')}
-          setField={(field, v) => form.setValue(field === 'avgPrice' ? 'initialAvgPrice' : 'initialHoldings', v, { shouldValidate: form.formState.isSubmitted })}
-          loading={pending}
-          priceUnit={crypto ? '원' : 'USD'}
-          priceMaxDecimals={crypto ? 8 : 2}
-          quantityUnit={crypto ? ticker : '주'}
-          quantityMaxDecimals={crypto ? 8 : undefined}
-          caption={needsHoldingsHint && form.watch('initialHoldings') == null ? '보유 0에서 시작합니다. 이미 보유 중이면 입력하세요.' : undefined}
-          error={form.formState.errors.initialHoldings?.message ?? form.formState.errors.initialAvgPrice?.message}
-        />
-      )}
-      <div ref={listRef}>
-        <DcaRuleList
-          rules={fields}
-          market={market}
-          onSelect={(i) => openEditor(i, fields[i].direction)}
-          onAdd={(direction) => openEditor(null, direction)}
-          registerRowRef={(i, el) => {
-            if (el) rowRefs.current.set(i, el)
-            else rowRefs.current.delete(i)
-          }}
-          error={rulesErrorMessage}
-        />
-      </div>
-      <FormActions onCancel={onCancel} isPending={pending} canSubmit={!pending} label={initial ? '수정' : '등록'} className="py-6" />
-    </form>
+        {!initial && (
+          <ScheduledStartSection
+            value={form.watch('scheduledStartDate')}
+            onChange={(d) => form.setValue('scheduledStartDate', d, { shouldValidate: form.formState.isSubmitted })}
+            loading={pending}
+            error={form.formState.errors.scheduledStartDate?.message}
+          />
+        )}
+        {!initial && (
+          <InitialHoldingsSection
+            avgPrice={form.watch('initialAvgPrice')}
+            quantity={form.watch('initialHoldings')}
+            setField={(field, v) => {
+              form.setValue(field === 'avgPrice' ? 'initialAvgPrice' : 'initialHoldings', v)
+              // 두 값은 서로를 검증한다 — 한쪽만 다시 검증하면 반대쪽 오류가 남는다
+              if (form.formState.isSubmitted) void form.trigger(['initialHoldings', 'initialAvgPrice'])
+            }}
+            loading={pending}
+            priceUnit={crypto ? '원' : 'USD'}
+            priceMaxDecimals={crypto ? 8 : 2}
+            quantityUnit={crypto ? ticker : '주'}
+            quantityMaxDecimals={crypto ? 8 : undefined}
+            caption={needsHoldingsHint && form.watch('initialHoldings') == null ? '보유 0에서 시작합니다. 이미 보유 중이면 입력하세요.' : undefined}
+            errors={{ avgPrice: form.formState.errors.initialAvgPrice?.message, quantity: form.formState.errors.initialHoldings?.message }}
+          />
+        )}
+        <div ref={listRef}>
+          <DcaRuleList
+            rules={fields}
+            market={market}
+            onSelect={(i) => openEditor(i, fields[i].direction)}
+            onAdd={(direction) => openEditor(null, direction)}
+            registerRowRef={(i, el) => {
+              if (el) rowRefs.current.set(i, el)
+              else rowRefs.current.delete(i)
+            }}
+            error={rulesErrorMessage}
+          />
+        </div>
+        <FormActions onCancel={onCancel} isPending={pending} canSubmit={!pending} label={initial ? '수정' : '등록'} className="py-6" />
+      </form>
+    </>
   )
 }
