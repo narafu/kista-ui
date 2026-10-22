@@ -18,7 +18,7 @@ export interface CycleHistoryItem {
   holdings: number
   avgPrice: number | null
   usdDeposit: number
-  strategyType?: string | null // INFINITE|PRIVACY|VR|DCA, null = 알 수 없음
+  strategyType?: string | null // INFINITE|PRIVACY|VR|DCA, null = unknown
 }
 
 export interface CycleHistoryPage {

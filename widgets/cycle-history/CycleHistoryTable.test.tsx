@@ -133,9 +133,19 @@ describe('CycleHistoryTable', () => {
       { ...base, createdAt: '2026-07-01T10:00:00Z', ticker: 'INFT', strategyType: 'INFINITE' },
       { ...base, createdAt: '2026-07-01T11:00:00Z', ticker: 'NULT', strategyType: null },
     ]
-    render(<CycleHistoryTable title="잔고 이력" id="a1"useHistoryQuery={makeHook({ cycleHistory: items })} />)
+    render(<CycleHistoryTable title="잔고 이력" id="a1" useHistoryQuery={makeHook({ cycleHistory: items })} />)
 
-    // 모바일 행 + 데스크톱 셀 각각: INFINITE·null 2행 × 2 = 4, DCA는 0
-    expect(screen.getAllByText('$0.00')).toHaveLength(4)
+    const rows = (ticker: string) => {
+      const [mobileBadge, desktopCell] = screen.getAllByText(ticker)
+      return { mobile: mobileBadge.parentElement!.parentElement!, desktop: desktopCell.closest('tr')! }
+    }
+    const dca = rows('DCAT')
+    expect(dca.mobile).not.toHaveTextContent('예수금')
+    expect(dca.desktop.cells[3]).toHaveTextContent(/^-$/)
+    for (const ticker of ['INFT', 'NULT']) {
+      const row = rows(ticker)
+      expect(row.mobile).toHaveTextContent('예수금 $0.00')
+      expect(row.desktop.cells[3]).toHaveTextContent('$0.00')
+    }
   })
 })
