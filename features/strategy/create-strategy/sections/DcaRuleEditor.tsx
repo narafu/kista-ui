@@ -22,7 +22,7 @@ interface Props {
   onCancel: () => void
 }
 
-// 규칙 하나의 편집 화면 — 자체 초안 폼이라 "취소"는 부모 규칙 목록을 건드리지 않는다.
+// 규칙 하나의 편집 화면 — 자체 초안 폼이라 "이전"은 부모 규칙 목록을 건드리지 않는다.
 // 부모 <form> 밖에서 렌더해야 한다(중첩 form이면 Enter·완료가 부모 제출로 이어진다)
 export function DcaRuleEditor({ market, initial, isNew, onDone, onDelete, onCancel }: Props) {
   const { findStrategyType, labelOf } = useMeta()
@@ -56,7 +56,7 @@ export function DcaRuleEditor({ market, initial, isNew, onDone, onDelete, onCanc
           규칙 삭제
         </Button>
       )}
-      <FormActions onCancel={onCancel} isPending={false} canSubmit label="완료" className="py-6" />
+      <FormActions onCancel={onCancel} cancelLabel="이전" isPending={false} canSubmit label="완료" className="py-6" />
     </form>
   )
 }

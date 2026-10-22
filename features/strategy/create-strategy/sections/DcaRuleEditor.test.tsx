@@ -92,10 +92,10 @@ describe('DcaRuleEditor', () => {
     expect(screen.queryByRole('button', { name: '규칙 삭제' })).not.toBeInTheDocument()
   })
 
-  it('취소·← 규칙 목록은 onCancel', () => {
+  it('이전·← 규칙 목록은 onCancel', () => {
     const { onCancel } = renderEditor()
     fireEvent.click(screen.getByRole('button', { name: '← 규칙 목록' }))
-    fireEvent.click(screen.getByRole('button', { name: '취소' }))
+    fireEvent.click(screen.getByRole('button', { name: '이전' }))
     expect(onCancel).toHaveBeenCalledTimes(2)
   })
 

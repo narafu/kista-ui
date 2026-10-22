@@ -9,6 +9,8 @@ interface Props {
   // 하면 cancelHref를 준다 — 둘 다 없으면 취소 버튼 없이 제출 버튼만 렌더한다.
   onCancel?: () => void
   cancelHref?: string
+  // 하위 화면에서 상위로 돌아가는 버튼이면 '이전' — 동작은 취소와 같다
+  cancelLabel?: string
   isPending: boolean
   canSubmit: boolean
   label: string
@@ -20,15 +22,15 @@ interface Props {
 
 // 폼 맨 끝에 놓이는 취소(outline) + 제출(spinner) 버튼 행 — 모바일·PC 모두 화면에 띄우지(fixed) 않고
 // 콘텐츠 흐름 안에 둔다. AssetForm·StrategyForm·EditAccountForm·ReconfigureVrForm이 공유한다.
-export function FormActions({ onCancel, cancelHref, isPending, canSubmit, label, pendingLabel = '저장 중...', submitVariant = 'default', className }: Props) {
+export function FormActions({ onCancel, cancelHref, cancelLabel = '취소', isPending, canSubmit, label, pendingLabel = '저장 중...', submitVariant = 'default', className }: Props) {
   const cancelClassName = cn(buttonVariants({ variant: 'outline', size: 'form' }), 'flex-1')
   return (
     <div className={cn('flex gap-3', className)}>
       {cancelHref ? (
-        <Link href={cancelHref} className={cancelClassName}>취소</Link>
+        <Link href={cancelHref} className={cancelClassName}>{cancelLabel}</Link>
       ) : onCancel ? (
         <button type="button" onClick={onCancel} disabled={isPending} className={cancelClassName}>
-          취소
+          {cancelLabel}
         </button>
       ) : null}
       <Button type="submit" variant={submitVariant} size="form" className="flex-1" disabled={isPending || !canSubmit}>

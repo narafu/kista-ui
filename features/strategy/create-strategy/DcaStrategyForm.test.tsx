@@ -162,11 +162,11 @@ describe('DcaStrategyForm', () => {
     expect(createMutate).not.toHaveBeenCalled()
   })
 
-  it('취소·← 규칙 목록은 편집 내용을 버리고 해당 줄로 포커스를 돌린다', async () => {
+  it('이전·← 규칙 목록은 편집 내용을 버리고 해당 줄로 포커스를 돌린다', async () => {
     renderForm(existing([rule('a', 100)]))
     fireEvent.click(row(/\$100/))
     fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '999' } })
-    fireEvent.click(screen.getByRole('button', { name: '취소' }))
+    fireEvent.click(screen.getByRole('button', { name: '이전' }))
     await waitFor(() => expect(row(/\$100/)).toHaveFocus())
 
     fireEvent.click(row(/\$100/))
@@ -176,15 +176,15 @@ describe('DcaStrategyForm', () => {
     expect(screen.queryByRole('button', { name: /\$999/ })).not.toBeInTheDocument()
   })
 
-  it('새 규칙을 취소하면 규칙이 늘지 않고 누른 추가 버튼으로 포커스가 돌아간다', async () => {
+  it('새 규칙에서 이전을 누르면 규칙이 늘지 않고 누른 추가 버튼으로 포커스가 돌아간다', async () => {
     renderForm()
     fireEvent.click(screen.getByRole('button', { name: '+ 매도 규칙 추가' }))
-    fireEvent.click(screen.getByRole('button', { name: '취소' }))
+    fireEvent.click(screen.getByRole('button', { name: '이전' }))
     await waitFor(() => expect(screen.getByRole('button', { name: '+ 매도 규칙 추가' })).toHaveFocus())
     expect(screen.getByText('규칙 (0/10)')).toBeInTheDocument()
   })
 
-  it('브라우저 뒤로가기(표식 없는 popstate)도 취소와 같다', async () => {
+  it('브라우저 뒤로가기(표식 없는 popstate)도 이전과 같다', async () => {
     renderForm(existing([rule('a', 100)]))
     fireEvent.click(row(/\$100/))
     expect(screen.getByRole('heading', { level: 2, name: '매수 규칙' })).toBeInTheDocument()
@@ -197,7 +197,7 @@ describe('DcaStrategyForm', () => {
     expect(screen.getByText('type-section')).toBeInTheDocument()
     fireEvent.click(row(/\$100/))
     expect(screen.queryByText('type-section')).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: '취소' }))
+    fireEvent.click(screen.getByRole('button', { name: '이전' }))
     await screen.findByText('type-section')
   })
 

@@ -25,6 +25,8 @@ vi.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ invalidateQueries: invalidateQueriesMock }),
 }))
 
+const runtimeQueryState = vi.hoisted(() => ({ isError: false }))
+
 vi.mock('@entities/runtime-config', () => ({
   useRuntimeConfigQuery: () => ({
     data: {
@@ -35,6 +37,7 @@ vi.mock('@entities/runtime-config', () => ({
       },
     },
     isLoading: false,
+    isError: runtimeQueryState.isError,
   }),
 }))
 
@@ -167,6 +170,16 @@ describe('useStrategyForm submit policy', () => {
     await act(async () => result.current.handleSubmit({ preventDefault() {} } as React.FormEvent))
     await waitFor(() => expect(mockCreateMutate).toHaveBeenCalled())
     expect(mockCreateMutate).toHaveBeenCalledWith(expect.objectContaining({ recurringAmount: serializedAmount }))
+  })
+
+  it('설정을 이미 받았으면 재조회가 실패해도 runtimeConfigError가 아니다', () => {
+    runtimeQueryState.isError = true
+    try {
+      const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+      expect(result.current.runtimeConfigError).toBe(false)
+    } finally {
+      runtimeQueryState.isError = false
+    }
   })
 
   it('invalidates order previews after strategy configuration changes', () => {
