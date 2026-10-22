@@ -6,8 +6,9 @@ import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { cn } from '@shared/lib/utils'
-import { fmtDate, fmtSignedUsd, pnlTextClass, fmtSignedPercent } from '@shared/lib/format'
+import { fmtDate, fmtSignedKrw, fmtSignedUsd, pnlTextClass, fmtSignedPercent } from '@shared/lib/format'
 import type { CyclePerformance } from '@entities/stats'
+import { brokerCurrency } from '@shared/lib/api-schema'
 import { useMeta } from '@entities/meta'
 import type { Account } from '@entities/account'
 
@@ -20,8 +21,10 @@ function pnlClass(value: number | null | undefined) {
   return cn('tabular-nums', value != null ? pnlTextClass(value) : 'text-muted-foreground')
 }
 
-function pnlText(pnl: CyclePerformance['pnl']) {
-  return pnl != null ? fmtSignedUsd(pnl, 2, '$') : '—'
+// 크립토 계좌(KRW) 행은 원화, 그 외는 USD — 통화는 계좌 broker로 정한다
+function pnlText(pnl: CyclePerformance['pnl'], broker: string | undefined) {
+  if (pnl == null) return '—'
+  return brokerCurrency(broker) === 'KRW' ? fmtSignedKrw(pnl) : fmtSignedUsd(pnl, 2, '$')
 }
 
 function Period({ cycle }: { cycle: CyclePerformance }) {
@@ -65,7 +68,7 @@ function CycleTable({ cycles, accountsById }: Props) {
                 <Period cycle={cycle} />
               </TableDataCell>
               <TableDataCell className={cn('text-right tabular-nums', pnlClass(cycle.pnl))}>
-                {pnlText(cycle.pnl)}
+                {pnlText(cycle.pnl, accountsById.get(cycle.accountId)?.broker)}
               </TableDataCell>
               <TableDataCell className={cn('text-right tabular-nums', pnlClass(cycle.returnRate))}>
                 {fmtSignedPercent(cycle.returnRate)}
@@ -107,7 +110,7 @@ function CycleCardList({ cycles, accountsById }: Props) {
               <span className="text-muted-foreground">
                 손익{' '}
                 <span className={pnlClass(cycle.pnl)}>
-                  {pnlText(cycle.pnl)}
+                  {pnlText(cycle.pnl, accountsById.get(cycle.accountId)?.broker)}
                 </span>
               </span>
               <span className="text-muted-foreground">

@@ -163,24 +163,30 @@ describe('CyclePerformanceList', () => {
     expect(useStatsCyclesQueryMock).toHaveBeenLastCalledWith(expect.objectContaining({ page: 0, size: 30 }))
   })
 
-  it('코인 계좌는 계좌 선택지에서 뺀다', async () => {
+  it('크립토 계좌도 계좌 선택지에 보이고, 그 행의 손익은 원화로 표시한다', async () => {
     const user = userEvent.setup()
+    const row = (cycleId: string, accountId: string, strategyType: string) => ({
+      cycleId, accountId, strategyType, ticker: 'X', startDate: '2026-01-01', endDate: null,
+      startAmount: 1000, endAmount: null, pnl: 12345, returnRate: 1, durationDays: null, closed: false,
+    })
     useStatsCyclesQueryMock.mockReturnValue({
-      data: { items: [], page: 0, totalElements: 0, totalPages: 0 },
+      data: { items: [row('c1', 'a2', 'DCA'), row('c2', 'a1', 'INFINITE')], page: 0, totalElements: 2, totalPages: 1 },
       isLoading: false,
       isError: false,
     })
     useAccountsQueryMock.mockReturnValue({
       data: [
         { id: 'a1', nickname: '주식계좌', accountNoMasked: '****0001', broker: 'KIS' },
-        { id: 'a2', nickname: '코인계좌', accountNoMasked: null, broker: 'UPBIT' },
+        { id: 'a2', nickname: '크립토계좌', accountNoMasked: null, broker: 'UPBIT' },
       ],
     })
 
     render(<CyclePerformanceList />)
-    await user.click(screen.getByRole('combobox', { name: '계좌' }))
 
-    expect(await screen.findByRole('option', { name: '주식계좌' })).toBeInTheDocument()
-    expect(screen.queryByRole('option', { name: '코인계좌' })).not.toBeInTheDocument()
+    // 데스크톱 표 + 모바일 행 각각 1개
+    expect(screen.getAllByText('+12,345원')).toHaveLength(2)
+    expect(screen.getAllByText('+$12,345.00')).toHaveLength(2)
+    await user.click(screen.getByRole('combobox', { name: '계좌' }))
+    expect(await screen.findByRole('option', { name: '크립토계좌' })).toBeInTheDocument()
   })
 })

@@ -8,7 +8,6 @@ import { useMemo, useState } from 'react'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { Badge } from '@shared/ui/Badge'
-import { isCryptoBroker } from '@shared/lib/api-schema'
 import { CycleListBody, FilterSelect } from './CycleRows'
 
 const ALL = 'ALL'
@@ -47,8 +46,6 @@ export function CyclePerformanceList({ typeFilter }: Props) {
   )
   const accountOptions = useMemo(
     () => [{ value: ALL, label: '전체 계좌' }, ...(accountsQuery.data ?? [])
-      // 코인 계좌는 DCA만 있어 사이클 성과가 없다
-      .filter((account) => !isCryptoBroker(account.broker))
       .map((account) => ({ value: account.id, label: account.nickname }))],
     [accountsQuery.data],
   )
