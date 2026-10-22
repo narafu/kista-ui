@@ -33,16 +33,30 @@ function preview(ticker) {
 const CRYPTO_ACCOUNT_ID = '00000000-0000-4000-8000-0000000c0170'
 const CRYPTO_STRATEGY_ID = '00000000-0000-4000-8000-0000000c0171'
 const cryptoAccount = () => ({ id: CRYPTO_ACCOUNT_ID, nickname: '코인 계좌', accountNoMasked: null, accountNo: null, broker: 'UPBIT', currency: 'KRW', apiKeyExpiresAt: new Date(Date.now() + 10 * 86400_000).toISOString() })
+// DCA 다중 규칙 응답 형태(kista-api 6668fafc) — 규칙별 다음 실행·최근 결과를 포함한다
+const dcaRule = (ruleKey, direction, orderType, executionHour, sizing, conditions, nextDate, frequency = 'DAILY') => ({
+  ruleKey, direction, frequency, dayOfWeek: frequency === 'WEEKLY' ? 'FRIDAY' : null, dayOfMonth: null, orderType, executionHour, sizing, shortfall: 'PARTIAL', conditions,
+  nextExecution: { usSessionDate: nextDate, kstTradeDate: nextDate }, lastExecution: null,
+})
 const cryptoStrategy = () => ({
   id: CRYPTO_STRATEGY_ID, accountId: CRYPTO_ACCOUNT_ID, type: 'DCA', status: 'ACTIVE', ticker: 'BTC', cycleSeedType: 'NONE', isReverseMode: false,
-  dca: { direction: 'BUY', amount: 50000, orderType: 'MARKET', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, executionHour: 9, conditions: [], nextExecution: { usSessionDate: '2026-10-19', kstTradeDate: '2026-10-19' }, lastExecution: null },
+  dca: {
+    currentHoldings: '0.01234567', avgPrice: '100000000',
+    rules: [
+      dcaRule('c-buy', 'BUY', 'MARKET', 9, { type: 'AMOUNT', amount: 50000, percent: null }, [{ indicator: 'RSI', operator: 'LTE', threshold: 30 }], '2026-10-19'),
+      dcaRule('c-sell', 'SELL', 'MARKET', 10, { type: 'HOLDING_PERCENT', amount: null, percent: '50.00' }, [{ indicator: 'AVG_PRICE', operator: 'GTE', threshold: 20 }], '2026-10-19'),
+    ],
+  },
 })
 // 시드에 주식 DCA 전략이 없어 대조용으로 MOCK 계좌에 합성한다("$" 금액, 시각 없음 확인용)
 const STOCK_DCA_ID = '00000000-0000-4000-8000-0000000c0172'
 const stockAccountId = seed.infinite.accountId
 const stockDca = () => ({
   id: STOCK_DCA_ID, accountId: stockAccountId, type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
-  dca: { direction: 'BUY', amount: '300.00', orderType: 'MOC', frequency: 'WEEKLY', dayOfWeek: 'FRIDAY', dayOfMonth: null, executionHour: null, conditions: [], nextExecution: { usSessionDate: '2026-10-09', kstTradeDate: '2026-10-10' }, lastExecution: null },
+  dca: {
+    currentHoldings: '3', avgPrice: '80.00',
+    rules: [dcaRule('s-buy', 'BUY', 'MOC', null, { type: 'AMOUNT', amount: '300.00', percent: null }, [], '2026-10-10', 'WEEKLY')],
+  },
 })
 const cryptoPortfolio = { krwCash: 120000, totalAssetKrw: 1478024, holdings: [
   { ticker: 'BTC', quantity: 0.01234567, avgBuyPrice: 100000000, currentPrice: 110000000, evalAmountKrw: 1358024 },
@@ -65,6 +79,11 @@ export async function route(url, req, { upstream, log }) {
     if (p === `/api/accounts/${stockAccountId}/trading-cycles`) return { body: [...(await upstreamList(url, req, upstream)), stockDca()] }
     if (p === `/api/trading-cycles/${CRYPTO_STRATEGY_ID}/dca-executions`) return { body: emptyPage }
     if (p === `/api/trading-cycles/${CRYPTO_STRATEGY_ID}/history`) return { body: emptyPage }
+    // 같은 날 현재 규칙 1건 + 삭제된 규칙 1건 — 이력의 규칙 열·"삭제된 규칙" 표시 확인용
+    if (p === `/api/trading-cycles/${STOCK_DCA_ID}/dca-executions`) return { body: { ...emptyPage, totalElements: 2, content: [
+      { ruleKey: 's-buy', direction: 'BUY', kstTradeDate: '2026-10-03', usSessionDate: '2026-10-02', status: 'ORDERED', skipReason: null, detail: null, referencePrice: '98.50', quantity: 3, order: null },
+      { ruleKey: 'gone', direction: 'SELL', kstTradeDate: '2026-10-03', usSessionDate: '2026-10-02', status: 'SKIPPED', skipReason: 'INSUFFICIENT_HOLDINGS', detail: null, referencePrice: null, quantity: null, order: null },
+    ] } }
     const m = p.match(/^\/api\/accounts\/([^/]+)\/(.+)$/)
     if (m?.[1] === CRYPTO_ACCOUNT_ID) {
       switch (m[2]) {
