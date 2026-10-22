@@ -56,7 +56,7 @@ describe('RouteModal', () => {
 
   it('하위 뷰 이력 칸(편집 화면)에서 Escape면 그 칸까지 두 칸 뒤로 가 모달을 닫는다', () => {
     const go = vi.spyOn(window.history, 'go').mockImplementation(() => {})
-    window.history.replaceState({ [SUBVIEW_HISTORY_KEY]: true }, '')
+    window.history.replaceState({ [SUBVIEW_HISTORY_KEY]: 'entry' }, '')
     render(<RouteModal><p>content</p></RouteModal>)
 
     fireEvent.keyDown(document, { key: 'Escape' })

@@ -63,6 +63,7 @@ export function DcaRuleList({ rules, market, onSelect, onAdd, registerRowRef, er
                     {' '}{rest.join(SUMMARY_SEPARATOR)}
                   </span>
                   <span className="mt-0.5 block text-sm text-muted-foreground">
+                    {/* 접근성 이름에서 1행과 2행이 붙지 않게 하는 공백 */}
                     {' '}{conditions}{SUMMARY_SEPARATOR}{labelOf('dcaShortfallPolicies', r.shortfall)}
                   </span>
                 </span>

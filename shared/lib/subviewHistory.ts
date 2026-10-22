@@ -8,30 +8,38 @@ import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
 // ponytail: 하위 뷰에서 새로고침하면 표식만 남은 칸이 생겨 뒤로가기 한 번이 no-op이 된다. 불편 보고가 오면 마운트에서 replaceState로 표식 제거
 export const SUBVIEW_HISTORY_KEY = '__kistaSubview'
 
-export function pushSubviewEntry(): void {
-  window.history.pushState({ ...window.history.state, [SUBVIEW_HISTORY_KEY]: true }, '')
+function subviewToken(state: unknown): unknown {
+  return typeof state === 'object' && state !== null ? (state as Record<string, unknown>)[SUBVIEW_HISTORY_KEY] : undefined
+}
+
+// 진입마다 고유 토큰을 남긴다 — 새로고침·언마운트로 남은 이전 표식 칸과 구분해야 leave()가 그 칸에 멈춰도 닫힌다
+export function pushSubviewEntry(): string {
+  const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
+  window.history.pushState({ ...window.history.state, [SUBVIEW_HISTORY_KEY]: id }, '')
+  return id
 }
 
 export function isSubviewEntry(state: unknown = window.history.state): boolean {
-  return typeof state === 'object' && state !== null && (state as Record<string, unknown>)[SUBVIEW_HISTORY_KEY] === true
+  return subviewToken(state) != null
 }
 
-// open이 false→true가 될 때 한 칸 쌓고, 그 칸을 벗어나는 popstate에서 onPop을 부른다.
+// open이 false→true가 될 때 한 칸 쌓고, 그 칸(이번 진입 토큰)을 벗어나는 popstate에서 onPop을 부른다.
 // leave()가 하위 뷰를 닫는 유일한 경로다 — 실제 닫기는 onPop이 한다(브라우저 뒤로가기와 같은 경로)
 export function useSubviewHistory(open: boolean, onPop: () => void): { leave: () => void } {
   const wasOpen = useRef(false)
+  const entryId = useRef<string | null>(null)
   const handlePop = useEffectEvent(onPop)
 
   useEffect(() => {
     // StrictMode 이펙트 재실행에도 한 칸만 쌓도록 직전 open을 기억한다
-    if (open && !wasOpen.current) pushSubviewEntry()
+    if (open && !wasOpen.current) entryId.current = pushSubviewEntry()
     wasOpen.current = open
   }, [open])
 
   useEffect(() => {
     if (!open) return
     const listener = (event: PopStateEvent) => {
-      if (!isSubviewEntry(event.state)) handlePop()
+      if (subviewToken(event.state) !== entryId.current) handlePop()
     }
     window.addEventListener('popstate', listener)
     return () => window.removeEventListener('popstate', listener)

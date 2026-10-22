@@ -74,6 +74,7 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
 
   const openEditor = (index: number | null, direction: DcaDirection) => {
     focusTarget.current = index ?? direction
+    leaving.current = false
     setEditing({ index, direction })
   }
   const exitEditor = (apply: () => void) => {

@@ -24,7 +24,8 @@ export function RouteModal({ children, className }: Props) {
   const titleId = useId()
   const descriptionId = useId()
 
-  // 하위 뷰(규칙 편집 화면 등)가 이력 한 칸을 쌓은 상태면 그 칸까지 두 칸 뒤로 가야 모달이 닫힌다
+  // 하위 뷰(규칙 편집 화면 등)가 이력 한 칸을 쌓은 상태면 그 칸까지 두 칸 뒤로 가야 모달이 닫힌다.
+  // 편집 중 Next 이동·server action이 history.state를 바꿔 표식이 빠지면 ESC가 편집 화면만 닫는다(모달은 남음 — 무해)
   function dismiss() {
     if (isSubviewEntry()) window.history.go(-2)
     else router.back()
