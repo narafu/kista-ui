@@ -8,6 +8,8 @@ export const dcaTestMeta = {
   dcaFrequencies: [{ code: 'DAILY', label: '매일' }, { code: 'WEEKLY', label: '매주' }, { code: 'MONTHLY', label: '매월' }],
   dcaOperators: [{ code: 'LTE', label: '이하' }, { code: 'LT', label: '미만' }, { code: 'GTE', label: '이상' }, { code: 'GT', label: '초과' }],
   dcaSkipReasons: [],
+  dcaSizingTypes: [{ code: 'AMOUNT', label: '고정 금액' }, { code: 'HOLDING_PERCENT', label: '보유 비율' }],
+  dcaShortfallPolicies: [{ code: 'PARTIAL', label: '가용만큼 주문' }, { code: 'REJECT', label: '주문하지 않음' }],
   dcaIndicators: [
     { code: 'AVG_PRICE', label: '평단가', smaPeriods: [] },
     { code: 'SMA', label: '이동평균선', smaPeriods: [20, 50, 120, 200] },
