@@ -33,6 +33,12 @@ interface Props {
   emptyIdMessage?: string
 }
 
+// 계좌 단위 이력은 한 배치에서 찍힌 여러 전략 스냅샷이 같은 createdAt을 가진다 — 응답에 id가 없고 생성 타입상 종목·유형도
+// optional이라 그룹 안 순번까지 붙인다(목록은 뒤에 이어 붙기만 해 순번이 바뀌지 않는다)
+function entryKey(entry: CycleHistoryItem, index: number) {
+  return `${entry.createdAt}-${entry.strategyType}-${entry.ticker}-${index}`
+}
+
 export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }: Props) {
   const { rangeType, customFrom, customTo, pageSize, setRangeType, setCustomFrom, setCustomTo, setPageSize } =
     useRangeFilterState()
@@ -94,8 +100,8 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
               {groups.map((g) => (
                 <div key={g.date} className="space-y-1.5">
                   <div className="px-1 pt-2 text-sm uppercase tracking-widest text-muted-foreground">{g.date}</div>
-                  {g.items.map((entry) => (
-                    <div key={entry.createdAt} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5 space-y-1.5">
+                  {g.items.map((entry, i) => (
+                    <div key={entryKey(entry, i)} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5 space-y-1.5">
                       <div className="flex items-center justify-between">
                         <Badge tone="brand" size="sm" className="px-2.5 font-bold">
                           {entry.ticker ?? '-'}
@@ -136,12 +142,12 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
                       <tr>
                         <td colSpan={5} className="bg-muted/30 px-4 py-2 text-xs lg:text-sm uppercase tracking-widest text-muted-foreground">{g.date}</td>
                       </tr>
-                      {g.items.map((entry) => {
+                      {g.items.map((entry, i) => {
                         const evalAmount = entry.avgPrice != null && entry.holdings > 0
                           ? entry.avgPrice * entry.holdings
                           : null
                         return (
-                          <tr key={entry.createdAt} className="border-t hover:bg-muted/30 transition-colors">
+                          <tr key={entryKey(entry, i)} className="border-t hover:bg-muted/30 transition-colors">
                             <TableDataCell className="font-medium">{entry.ticker ?? '-'}</TableDataCell>
                             <TableDataCell className="text-right tabular-nums">{entry.holdings}주</TableDataCell>
                             <TableDataCell className="text-right tabular-nums">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</TableDataCell>
