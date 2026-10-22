@@ -22,48 +22,65 @@ vi.mock('@entities/meta', async () => {
   }
 })
 
+const rule = (patch: Record<string, unknown>) => ({
+  ruleKey: 'a', direction: 'BUY', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC', executionHour: null,
+  sizing: { type: 'AMOUNT', amount: 300, percent: null }, shortfall: 'PARTIAL', conditions: [],
+  nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' }, lastExecution: null, ...patch,
+})
+
 const strategy = {
   id: 'd1', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
-  dca: {
-    direction: 'BUY', amount: 300, orderType: 'MOC', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, executionHour: null, conditions: [],
-    nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' }, lastExecution: null,
-  },
-} as Strategy
+  dca: { rules: [rule({})], currentHoldings: null, avgPrice: null },
+} as unknown as Strategy
 
-function withDca(patch: Partial<NonNullable<Strategy['dca']>>): Strategy {
-  return { ...strategy, dca: { ...strategy.dca!, ...patch } }
+function withRules(...rules: Array<Record<string, unknown>>): Strategy {
+  return { ...strategy, dca: { ...strategy.dca!, rules } } as unknown as Strategy
 }
 
+const threeRules = (ticker = 'UPRO') => ({
+  ...withRules(
+    rule({ ruleKey: 'a', frequency: 'DAILY', executionHour: 9, nextExecution: { usSessionDate: '2026-10-22', kstTradeDate: '2026-10-22' }, lastExecution: { kstTradeDate: '2026-10-20', status: 'ORDERED', skipReason: null } }),
+    rule({ ruleKey: 'b', executionHour: 21, nextExecution: { usSessionDate: '2026-10-21', kstTradeDate: '2026-10-21' }, lastExecution: { kstTradeDate: '2026-10-21', status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET' } }),
+    rule({ ruleKey: 'c', direction: 'SELL', nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' } }),
+  ),
+  ticker,
+})
+
 describe('DcaStrategyCard', () => {
-  it('코인 DCA는 원화 금액과 KST 날짜·실행 시각으로 다음 실행을 보여준다', () => {
-    render(<DcaStrategyCard accountId="a1" strategy={{ ...withDca({ amount: 50000, orderType: 'MARKET', frequency: 'DAILY', executionHour: 9, nextExecution: { usSessionDate: '2026-10-19', kstTradeDate: '2026-10-19' } }), ticker: 'BTC' }} />)
-    expect(screen.getAllByText('50,000원').length).toBeGreaterThan(0)
+  it('규칙 수와 방향별 개수를 요약하고 방향·주문 방식 배지·회차당 금액은 보이지 않는다', () => {
+    render(<DcaStrategyCard accountId="a1" strategy={threeRules()} />)
+    expect(screen.getAllByText('규칙 3개 · 매수 2 · 매도 1')).toHaveLength(2) // 모바일·PC
+    expect(screen.queryByText('회차당 금액')).not.toBeInTheDocument()
+    expect(screen.queryByText('장 마감 시장가')).not.toBeInTheDocument()
+    expect(screen.queryByText('매수')).not.toBeInTheDocument()
+  })
+  it('주식은 가장 이른 규칙의 다음 판정일을 보여준다', () => {
+    render(<DcaStrategyCard accountId="a1" strategy={threeRules()} />)
+    expect(screen.getByText('다음 판정일')).toBeInTheDocument()
+    expect(screen.getByText(fmtDate('2026-10-21'))).toBeInTheDocument()
+  })
+  it('코인은 가장 이른 규칙의 KST 날짜와 그 규칙의 실행 시각을 보여준다', () => {
+    render(<DcaStrategyCard accountId="a1" strategy={threeRules('BTC')} />)
     expect(screen.getByText('다음 실행')).toBeInTheDocument()
-    expect(screen.getByText('10/19 09시')).toBeInTheDocument()
-    expect(screen.getByText('다음 실행 10/19 09시')).toBeInTheDocument() // 모바일 배지
+    expect(screen.getByText('10/21 21시')).toBeInTheDocument()
+    expect(screen.getByText('다음 실행 10/21 21시')).toBeInTheDocument() // 모바일 배지
     expect(screen.queryByText(/다음 판정일/)).not.toBeInTheDocument()
   })
-  it('주식 DCA는 달러 금액과 다음 판정일을 그대로 보여준다', () => {
-    render(<DcaStrategyCard accountId="a1" strategy={strategy} />)
-    expect(screen.getAllByText('$300.00').length).toBeGreaterThan(0)
-    expect(screen.getByText('다음 판정일')).toBeInTheDocument()
+  it('최근 결과는 가장 최근 lastExecution 기준이다', () => {
+    render(<DcaStrategyCard accountId="a1" strategy={threeRules()} />)
+    expect(screen.getAllByText('최근 건너뜀 · 조건 미충족')).toHaveLength(2) // 모바일·PC 배지 행
   })
-  it('nextExecution이 null이면 다음 판정일을 미정으로 표시한다', () => {
-    render(<DcaStrategyCard accountId="a1" strategy={withDca({ nextExecution: null })} />)
+  it('모든 규칙의 nextExecution이 null이면 다음 판정일을 미정으로 표시한다', () => {
+    render(<DcaStrategyCard accountId="a1" strategy={withRules(rule({ nextExecution: null }))} />)
     expect(screen.getByText('미정')).toBeInTheDocument()
     expect(screen.getByText('다음 판정일 미정')).toBeInTheDocument() // 모바일 배지
   })
-  it('nextExecution이 있으면 다음 판정일 날짜를 표시한다', () => {
-    render(<DcaStrategyCard accountId="a1" strategy={strategy} />)
-    expect(screen.getByText(fmtDate('2026-10-31'))).toBeInTheDocument()
-  })
-  it('lastExecution이 null이면 최근 실행 문구를 표시하지 않는다', () => {
+  it('lastExecution이 모두 null이면 최근 실행 문구를 표시하지 않는다', () => {
     render(<DcaStrategyCard accountId="a1" strategy={strategy} />)
     expect(screen.queryByText(/최근/)).not.toBeInTheDocument()
   })
-  it('lastExecution이 건너뜀이면 사유 라벨과 함께 표시한다', () => {
-    const s = withDca({ lastExecution: { status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET' } as never })
-    render(<DcaStrategyCard accountId="a1" strategy={s} />)
-    expect(screen.getAllByText('최근 건너뜀 · 조건 미충족').length).toBe(2) // 모바일·PC 배지 행
+  it('dca가 없어도 카드 셸과 티커를 렌더한다', () => {
+    render(<DcaStrategyCard accountId="a1" strategy={{ ...strategy, dca: undefined }} />)
+    expect(screen.getAllByText('UPRO').length).toBeGreaterThan(0)
   })
 })

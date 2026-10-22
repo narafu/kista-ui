@@ -474,9 +474,13 @@ describe('StrategyCard DCA', () => {
   const dcaStrategy = {
     id: 'd1', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
     dca: {
-      direction: 'BUY', amount: 300, orderType: 'MOC', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, conditions: [],
-      nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' },
-      lastExecution: { kstTradeDate: '2026-09-30', status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET' },
+      rules: [{
+        ruleKey: 'a', direction: 'BUY', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC', executionHour: null,
+        sizing: { type: 'AMOUNT', amount: 300, percent: null }, shortfall: 'PARTIAL', conditions: [],
+        nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' },
+        lastExecution: { kstTradeDate: '2026-09-30', status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET' },
+      }],
+      currentHoldings: null, avgPrice: null,
     },
   } as unknown as Strategy
 
@@ -500,12 +504,9 @@ describe('StrategyCard DCA', () => {
     expect(previewMock).not.toHaveBeenCalled()
   })
 
-  it('DCA 카드는 방향·주기·금액·주문 방식·다음 판정일·최근 결과를 보여준다', () => {
+  it('DCA 카드는 규칙 수·다음 판정일·최근 결과를 보여준다', () => {
     render(<StrategyCard accountId="a1" strategy={dcaStrategy} />)
-    expect(screen.getAllByText('매수')).toHaveLength(2)
-    expect(screen.getAllByText('매월 말일')).toHaveLength(2)
-    expect(screen.getAllByText('$300.00')).toHaveLength(2)
-    expect(screen.getAllByText('장 마감 시장가')).toHaveLength(2)
+    expect(screen.getAllByText('규칙 1개 · 매수 1')).toHaveLength(2)
     expect(screen.getByText('다음 판정일')).toBeInTheDocument()
     expect(screen.getByText(fmtDate('2026-10-31'))).toBeInTheDocument()
     expect(screen.getAllByText('최근 건너뜀 · 조건 미충족')).toHaveLength(2)

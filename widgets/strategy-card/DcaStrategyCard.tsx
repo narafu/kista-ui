@@ -3,14 +3,13 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
-import { fmtDate, fmtMoney } from '@shared/lib/format'
+import { fmtDate } from '@shared/lib/format'
 import { isCryptoMarket } from '@shared/lib/api-schema'
 import { Badge } from '@shared/ui/Badge'
 import { cn } from '@shared/lib/utils'
 import { useMeta } from '@entities/meta'
-import { dcaExecutionStatusLabel, formatCryptoNextExecution, formatDcaSchedule, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
+import { dcaExecutionStatusLabel, earliestNextExecution, formatCryptoNextExecution, latestLastExecution, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
-import { directionBadgeClass } from '@entities/trade'
 
 interface Props {
   accountId: string
@@ -24,16 +23,25 @@ export function DcaStrategyCard({ accountId, strategy, accountLabel }: Props) {
   const { labelOf, findTicker } = useMeta()
   const isCrypto = isCryptoMarket(findTicker(strategy.ticker)?.market)
   const { dca } = strategy // 서버가 dca를 누락해도 카드 셸은 렌더한다
-  const schedule = dca && formatDcaSchedule(dca, labelOf('dcaFrequencies', dca.frequency))
-  const amount = dca && fmtMoney(dca.amount, isCrypto ? 'KRW' : 'USD')
-  const last = dca?.lastExecution
+  const rules = dca?.rules ?? []
+  const buyCount = rules.filter(r => r.direction === 'BUY').length
+  const sellCount = rules.length - buyCount
+  const summary = dca && [
+    `규칙 ${rules.length}개`,
+    ...(buyCount ? [`${labelOf('orderDirections', 'BUY')} ${buyCount}`] : []),
+    ...(sellCount ? [`${labelOf('orderDirections', 'SELL')} ${sellCount}`] : []),
+  ].join(' · ')
+  const last = latestLastExecution(rules)
   const lastLabel = last
     ? `최근 ${dcaExecutionStatusLabel(last.status)}${last.skipReason ? ` · ${labelOf('dcaSkipReasons', last.skipReason)}` : ''}`
     : null
+  const next = earliestNextExecution(rules)
   const nextLabel = isCrypto ? '다음 실행' : '다음 판정일'
-  const nextValue = isCrypto
-    ? formatCryptoNextExecution(dca?.nextExecution?.kstTradeDate, dca?.executionHour ?? null)
-    : dca?.nextExecution ? fmtDate(dca.nextExecution.kstTradeDate) : '미정'
+  const nextValue = !next?.nextExecution
+    ? '미정'
+    : isCrypto
+      ? formatCryptoNextExecution(next.nextExecution.kstTradeDate, next.executionHour)
+      : fmtDate(next.nextExecution.kstTradeDate)
   const scheduledStart = isScheduledStart(strategy)
   const statusLabel = strategy.status === 'ACTIVE' ? null : labelOf('strategyStatuses', strategy.status)
   const statusAccent = strategyStatusAccent(strategy.status)
@@ -42,8 +50,6 @@ export function DcaStrategyCard({ accountId, strategy, accountLabel }: Props) {
     <>
       <Badge tone="brand" size="sm" className={badgeCls}>DCA</Badge>
       {statusLabel && <Badge tone="neutral" size="sm" className={badgeCls}>{statusLabel}</Badge>}
-      {dca && <Badge tone="none" size="sm" className={cn(directionBadgeClass(dca.direction), badgeCls)}>{labelOf('orderDirections', dca.direction)}</Badge>}
-      {dca && <Badge tone="neutral" size="sm" className={cn('text-foreground', badgeCls)}>{labelOf('orderTypes', dca.orderType)}</Badge>}
       {lastLabel && <Badge tone="neutral" size="sm" className={badgeCls}>{lastLabel}</Badge>}
       {scheduledStart && (
         <Badge tone="none" size="sm" className={cn('bg-info-bg text-info', badgeCls)}>{scheduledStartBadgeLabel(strategy.startDate!)}</Badge>
@@ -71,8 +77,7 @@ export function DcaStrategyCard({ accountId, strategy, accountLabel }: Props) {
         </div>
         <div className="flex items-center gap-2">
           <span className="shrink-0 font-bold text-base text-foreground">{strategy.ticker}</span>
-          {schedule && <Badge tone="neutral" size="sm" className="min-w-0 truncate text-foreground">{schedule}</Badge>}
-          {amount && <span className="ml-auto shrink-0 whitespace-nowrap text-sm font-semibold text-foreground">{amount}</span>}
+          {summary && <span className="ml-auto min-w-0 truncate text-sm font-semibold text-foreground">{summary}</span>}
           {chevron}
         </div>
       </div>
@@ -86,20 +91,16 @@ export function DcaStrategyCard({ accountId, strategy, accountLabel }: Props) {
           </div>
           <div className="flex items-center justify-between">
             <span className="font-bold text-xl tracking-tight text-foreground leading-none">{strategy.ticker}</span>
-            {schedule && <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-foreground">{schedule}</span>}
+            {summary && <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-foreground">{summary}</span>}
             {!dca && chevron}
           </div>
         </div>
         {dca && (
           <>
-            <div className="flex items-center justify-between pl-5 pr-4 py-2 border-t border-border">
-              <span className="text-sm text-muted-foreground">{nextLabel}</span>
-              <span className="text-sm font-semibold text-foreground">{nextValue}</span>
-            </div>
             <div className="flex items-center justify-between pl-5 pr-4 py-2.5 border-t border-border bg-muted/30">
-              <span className="text-sm text-muted-foreground">회차당 금액</span>
+              <span className="text-sm text-muted-foreground">{nextLabel}</span>
               <div className="flex items-center gap-1.5">
-                <span className="text-sm font-semibold text-foreground">{amount}</span>
+                <span className="text-sm font-semibold text-foreground">{nextValue}</span>
                 {chevron}
               </div>
             </div>
