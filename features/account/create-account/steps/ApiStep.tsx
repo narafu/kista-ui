@@ -143,7 +143,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
 
       {broker === 'MERITZ' && (
         <p className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
-          메리츠증권 Open API는 베타 서비스이며 모의계좌가 없어 실계좌로만 동작합니다. 앱키에 연결된 계좌가 그대로 등록됩니다.
+          메리츠증권 Open API는 베타 서비스이며 모의계좌가 없어 실계좌로만 동작합니다. App Key 하나에 계좌 하나가 연결되므로, 계좌를 여러 개 등록하려면 계좌마다 App Key를 따로 발급받으세요.
         </p>
       )}
       {broker === 'UPBIT' && <UpbitKeyGuide allowedIp={runtimeConfig?.brokers.UPBIT?.allowedIp} isLoading={isRuntimeConfigLoading} />}
