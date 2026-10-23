@@ -59,7 +59,7 @@ export function StrategyDetailContent({
       />
 
       {strategy.type === 'DCA'
-        ? <DcaStrategyDetail accountId={accountId} strategy={strategy} />
+        ? <DcaStrategyDetail accountId={accountId} broker={account.broker} strategy={strategy} />
         : <StrategyDetail accountId={accountId} strategy={strategy} />}
     </div>
   )

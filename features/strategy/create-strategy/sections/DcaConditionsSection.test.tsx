@@ -7,12 +7,12 @@ import type { TradingMarket } from '@shared/lib/api-schema'
 import { MetaProvider } from '@entities/meta'
 import { DcaConditionsSection } from './DcaConditionsSection'
 import { buildDcaRuleDefaults, dcaRuleSchema, type DcaRuleFormValues } from '../model/dcaFormSchema'
-import { dcaTestMeta } from './__fixtures__/dcaTestMeta'
+import { dcaTestMeta, testOrderAmount } from './__fixtures__/dcaTestMeta'
 
 function Harness({ direction = 'BUY', market = 'US_STOCK', meta = dcaTestMeta, conditions = [] }: { direction?: 'BUY' | 'SELL'; market?: TradingMarket; meta?: typeof dcaTestMeta; conditions?: DcaRuleFormValues['conditions'] }) {
   const form = useForm<DcaRuleFormValues>({
     resolver: zodResolver(dcaRuleSchema),
-    defaultValues: { ...buildDcaRuleDefaults(direction, market), amount: 100, conditions },
+    defaultValues: { ...buildDcaRuleDefaults(direction, market, testOrderAmount(market)), amount: 100, conditions },
   })
   return (
     <MetaProvider meta={meta}>
@@ -113,11 +113,11 @@ describe('DcaConditionsSection', () => {
     expect(screen.queryByRole('button', { name: '조건 추가' })).not.toBeInTheDocument()
   })
 
-  it('코인은 공포탐욕지수 출처를 Crypto로, 이동평균·RSI 기준을 업비트 일봉으로 안내한다', () => {
+  it('코인은 공포탐욕지수 출처를 Crypto로, 이동평균·RSI 기준을 거래소 일봉으로 안내한다', () => {
     render(<Harness market="CRYPTO_KRW" conditions={[{ indicator: 'FEAR_GREED', operator: 'LTE', threshold: 20, smaPeriod: null }]} />)
     expect(screen.getByText('주문 시점 Crypto Fear & Greed 지수가 20 이하일 때 주문')).toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: '조건 1 지표' })).toHaveTextContent('공포탐욕지수(Crypto)')
-    expect(screen.getByText(/업비트 일봉\(09:00 KST 마감\) 기준/)).toBeInTheDocument()
+    expect(screen.getByText(/거래소 일봉\(09:00 KST 마감\) 기준/)).toBeInTheDocument()
   })
 
   it('코인 SMA 설명은 직전 일봉 종가 기준이다', () => {
@@ -129,6 +129,6 @@ describe('DcaConditionsSection', () => {
     render(<Harness conditions={[{ indicator: 'SMA', operator: 'LTE', threshold: null, smaPeriod: 20 }, { indicator: 'FEAR_GREED', operator: 'LTE', threshold: null, smaPeriod: null }]} />)
     expect(screen.getByText('전일 종가가 20일 이동평균 이하일 때 주문')).toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: '조건 2 지표' })).toHaveTextContent('공포탐욕지수(CNN)')
-    expect(screen.queryByText(/업비트 일봉/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/거래소 일봉/)).not.toBeInTheDocument()
   })
 })

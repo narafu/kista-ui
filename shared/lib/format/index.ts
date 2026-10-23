@@ -1,4 +1,4 @@
-import type { Currency } from '@shared/lib/api-schema'
+import { CURRENCY_SCALE, type Currency } from '@shared/lib/api-schema'
 
 export function fmtUsd(n: number, digits = 2): string {
   return n.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits })
@@ -104,9 +104,26 @@ export function fmtSignedKrw(n: number): string {
   return n >= 0 ? `+${fmtKrw(n)}` : `-${fmtKrw(Math.abs(n))}`
 }
 
-/** 계좌 통화 금액 — USD는 "$1,234.50", KRW는 "1,234원" */
+/** 계좌 통화 금액 — USD는 "$1,234.50", KRW는 "1,234원", USDT는 "1,234.50 USDT" */
 export function fmtMoney(n: number, currency: Currency): string {
-  return currency === 'KRW' ? fmtKrw(n) : `$${fmtUsd(n)}`
+  if (currency === 'KRW') return fmtKrw(n)
+  return currency === 'USDT' ? `${fmtUsd(n)} USDT` : `$${fmtUsd(n)}`
+}
+
+/** 입력 칸 뒤에 붙이는 통화 단위 — KRW는 "원", 그 외는 통화 코드(USD·USDT) */
+export function currencyUnit(currency: Currency): string {
+  return currency === 'KRW' ? '원' : currency
+}
+
+/** 부호 포함 계좌 통화 금액 — 예: "+$1.50", "-1,000원", "+1.50 USDT" */
+export function fmtSignedMoney(n: number, currency: Currency): string {
+  return `${n >= 0 ? '+' : '-'}${fmtMoney(Math.abs(n), currency)}`
+}
+
+/** 계좌 통화 표시 단위로 반올림 — 코인 소수 수량 × 가격의 단위 미만을 버린다 */
+export function roundMoney(n: number, currency: Currency): number {
+  const f = 10 ** CURRENCY_SCALE[currency]
+  return Math.round(n * f) / f
 }
 
 /** 수량 — 주식은 정수 그대로, 코인은 최대 8자리 소수에서 끝의 0을 지운다 */

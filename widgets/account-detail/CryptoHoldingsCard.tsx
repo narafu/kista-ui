@@ -5,7 +5,7 @@ import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
-import { fmtKrw, fmtQuantity } from '@shared/lib/format'
+import { fmtMoney, fmtQuantity } from '@shared/lib/format'
 import type { CryptoPortfolio } from '@entities/trade'
 import { SectionError } from '@shared/ui/SectionError'
 
@@ -46,9 +46,9 @@ export function CryptoHoldingsCard({ portfolio, isError }: Props) {
                   <tr key={h.ticker} className="border-t hover:bg-muted/30 transition-colors">
                     <TableDataCell className="font-semibold whitespace-nowrap">{h.ticker}</TableDataCell>
                     <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtQuantity(h.quantity)}</TableDataCell>
-                    <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtKrw(h.avgBuyPrice)}</TableDataCell>
-                    <TableDataCell className="text-right tabular-nums whitespace-nowrap">{h.currentPrice == null ? UNAVAILABLE : fmtKrw(h.currentPrice)}</TableDataCell>
-                    <TableDataCell className="text-right tabular-nums whitespace-nowrap">{h.currentPrice == null ? UNAVAILABLE : fmtKrw(h.evalAmountKrw)}</TableDataCell>
+                    <TableDataCell className="text-right tabular-nums whitespace-nowrap">{h.avgBuyPrice == null ? '-' : fmtMoney(h.avgBuyPrice, portfolio.currency)}</TableDataCell>
+                    <TableDataCell className="text-right tabular-nums whitespace-nowrap">{h.currentPrice == null ? UNAVAILABLE : fmtMoney(h.currentPrice, portfolio.currency)}</TableDataCell>
+                    <TableDataCell className="text-right tabular-nums whitespace-nowrap">{h.currentPrice == null ? UNAVAILABLE : fmtMoney(h.evalAmount, portfolio.currency)}</TableDataCell>
                   </tr>
                 ))}
               </tbody>

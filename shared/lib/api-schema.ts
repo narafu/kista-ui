@@ -51,6 +51,7 @@ const BROKER_LABEL: Record<string, string> = {
   MOCK: '모의계좌',
   UPBIT: '업비트',
   MERITZ: '메리츠증권',
+  BINANCE: '바이낸스',
 }
 
 export function formatBrokerLabel(broker: string): string {
@@ -62,8 +63,8 @@ export function isMockBroker(broker: string | null | undefined): boolean {
   return broker === 'MOCK'
 }
 
-export type TradingMarket = 'US_STOCK' | 'CRYPTO_KRW'
-export type Currency = 'USD' | 'KRW'
+export type TradingMarket = 'US_STOCK' | 'CRYPTO_KRW' | 'CRYPTO_USDT'
+export type Currency = 'USD' | 'KRW' | 'USDT'
 
 // meta.brokers[].market과 같은 값이다. Server Component(계좌 상세 prefetch)에서도 판정해야 해서 정적 맵으로 둔다.
 // Record<BrokerCode, …>라 gen:types로 broker가 추가되면 typecheck가 여기서 깨진다.
@@ -73,20 +74,22 @@ const BROKER_MARKET: Record<BrokerCode, TradingMarket> = {
   MOCK: 'US_STOCK',
   UPBIT: 'CRYPTO_KRW',
   MERITZ: 'US_STOCK',
+  BINANCE: 'CRYPTO_USDT',
 }
 
 const MARKET_CURRENCY: Record<TradingMarket, Currency> = {
   US_STOCK: 'USD',
   CRYPTO_KRW: 'KRW',
+  CRYPTO_USDT: 'USDT',
 }
 
-function brokerMarket(broker: string | null | undefined): TradingMarket {
+export function brokerMarket(broker: string | null | undefined): TradingMarket {
   return (broker && BROKER_MARKET[broker as BrokerCode]) || 'US_STOCK'
 }
 
 // 코인 거래소 계좌 — 주식 시세·잔고 엔드포인트(portfolio/margin/prices)를 부르면 400이라 쿼리를 막는 기준
 export function isCryptoBroker(broker: string | null | undefined): boolean {
-  return brokerMarket(broker) === 'CRYPTO_KRW'
+  return isCryptoMarket(brokerMarket(broker))
 }
 
 // 앱키 하나에 계좌 하나가 묶여 계좌번호를 받지 않는 broker(업비트·메리츠). 계좌 등록 흐름에서 계좌번호 입력을 건너뛰는 기준
@@ -99,7 +102,21 @@ export function brokerCurrency(broker: string | null | undefined): Currency {
   return MARKET_CURRENCY[brokerMarket(broker)]
 }
 
-// 티커 시장(meta.tickers[].market) 판정 — 1h 메타 캐시로 market이 빠진 응답은 주식으로 본다
+// 계좌 통화 표시 단위 — 서버 Currency.amountScale과 같다(KRW 원 단위, USD·USDT 센트)
+export const CURRENCY_SCALE: Record<Currency, number> = { KRW: 0, USD: 2, USDT: 2 }
+
+// 서버가 통화를 문자열로 내려 모르는 값이 올 수 있다 — Currency로 좁히고 아니면 undefined
+export function toCurrency(v: string | null | undefined): Currency | undefined {
+  return v === 'USD' || v === 'KRW' || v === 'USDT' ? v : undefined
+}
+
+export function marketCurrency(market: TradingMarket): Currency {
+  return MARKET_CURRENCY[market]
+}
+
+const CRYPTO_MARKETS: ReadonlySet<string> = new Set<TradingMarket>(['CRYPTO_KRW', 'CRYPTO_USDT'])
+
+// 계좌·티커 시장 판정 — 1h 메타 캐시로 market이 빠진 응답은 주식으로 본다
 export function isCryptoMarket(market: string | null | undefined): boolean {
-  return market === 'CRYPTO_KRW'
+  return !!market && CRYPTO_MARKETS.has(market)
 }

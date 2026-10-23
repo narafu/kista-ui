@@ -9,13 +9,15 @@ export const BROKER_CREDENTIAL: Record<CredentialBroker, { keyLabel: string; sec
   KIS: { keyLabel: 'App Key', secretLabel: 'App Secret', invalidMessage: 'App Key, App Secret 또는 계좌번호를 다시 확인하세요.' },
   TOSS: { keyLabel: 'Client ID', secretLabel: 'Client Secret', invalidMessage: 'Toss 자격증명 인증에 실패했습니다. Client ID와 Client Secret을 확인하세요.' },
   UPBIT: { keyLabel: 'Access Key', secretLabel: 'Secret Key', invalidMessage: 'Access Key와 Secret Key를 다시 확인하세요. 만료된 키는 업비트에서 새로 발급받으세요.' },
+  BINANCE: { keyLabel: 'API Key', secretLabel: 'Secret Key', invalidMessage: 'API Key와 Secret Key를 다시 확인하세요. 키가 맞다면 바이낸스 API 설정의 허용 IP 목록에 안내된 IP가 있는지 확인하세요.' },
   MERITZ: { keyLabel: 'App Key', secretLabel: 'App Secret', invalidMessage: 'App Key와 App Secret을 다시 확인하세요. 메리츠증권 Open API 포털에서 발급받은 키여야 합니다.' },
 }
 
-// 업비트·메리츠 모두 권한 부족(BROKER_PERMISSION_DENIED)을 돌려줄 수 있어 broker 공용 문구로 둔다. 업비트에 필요한 권한 목록은 UpbitKeyGuide가 안내한다
+// 업비트·메리츠·바이낸스 모두 권한 부족(BROKER_PERMISSION_DENIED)을 돌려줄 수 있어 broker 공용 문구로 둔다. 업비트·바이낸스에 필요한 권한 목록은 UpbitKeyGuide·BinanceKeyGuide가 안내한다
 const BROKER_ERROR_MESSAGE: Partial<Record<ErrorCode, string>> = {
   BROKER_IP_NOT_ALLOWED: '허용 IP가 등록되지 않았습니다. 거래소 API 키 설정에 안내된 IP를 추가하세요.',
   BROKER_PERMISSION_DENIED: 'API 키 권한이 부족합니다. 증권사·거래소의 API 키 설정에서 조회·주문 권한을 켜세요.',
+  BROKER_WITHDRAWAL_ENABLED: '출금 권한이 켜진 키는 사용할 수 없습니다. 출금 권한을 끈 키를 사용하세요.',
   BROKER_RATE_LIMITED: '요청이 많아 잠시 제한되었습니다. 잠시 후 다시 시도해주세요.',
 }
 

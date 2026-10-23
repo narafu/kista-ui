@@ -65,20 +65,35 @@ describe('AccountSummaryCard', () => {
     expect(screen.getByText('모의계좌')).toBeInTheDocument()
   })
 
-  it('업비트 계좌는 계좌번호 대신 원화 예수금·총자산을 보여준다', () => {
+  it('업비트 계좌는 계좌번호 대신 예수금·총자산을 보여준다', () => {
     render(
       <AccountSummaryCard
         account={{ ...account, broker: 'UPBIT', accountNoMasked: null }}
         usdDeposit={0}
         posEvalUsd={0}
-        cryptoPortfolio={{ krwCash: 120000, totalAssetKrw: 1478024, holdings: [] }}
+        cryptoPortfolio={{ currency: 'KRW', cash: 120000, totalAsset: 1478024, holdings: [] }}
       />,
     )
     expect(screen.queryByText('계좌번호')).not.toBeInTheDocument()
+    expect(screen.getByText('예수금')).toBeInTheDocument()
     expect(screen.getByText('120,000원')).toBeInTheDocument()
     expect(screen.getByText('1,478,024원')).toBeInTheDocument()
     expect(screen.queryByText(/\$/)).not.toBeInTheDocument()
     expect(screen.queryByText(/현재가 확인 불가/)).not.toBeInTheDocument()
+  })
+
+  it('바이낸스 계좌는 예수금·총자산을 USDT로 보여준다', () => {
+    render(
+      <AccountSummaryCard
+        account={{ ...account, broker: 'BINANCE', accountNoMasked: null }}
+        usdDeposit={0}
+        posEvalUsd={0}
+        cryptoPortfolio={{ currency: 'USDT', cash: 10.5, totalAsset: 75.25, holdings: [] }}
+      />,
+    )
+    expect(screen.getByText('10.50 USDT')).toBeInTheDocument()
+    expect(screen.getByText('75.25 USDT')).toBeInTheDocument()
+    expect(screen.queryByText(/원$/)).not.toBeInTheDocument()
   })
 
   it('현재가 확인 불가 코인이 있으면 총자산에서 빠졌다고 알린다', () => {
@@ -88,9 +103,10 @@ describe('AccountSummaryCard', () => {
         usdDeposit={0}
         posEvalUsd={0}
         cryptoPortfolio={{
-          krwCash: 120000,
-          totalAssetKrw: 120000,
-          holdings: [{ ticker: 'ETH', quantity: 0.5, avgBuyPrice: 5000000, currentPrice: null, evalAmountKrw: 0 }],
+          currency: 'KRW',
+          cash: 120000,
+          totalAsset: 120000,
+          holdings: [{ ticker: 'ETH', quantity: 0.5, avgBuyPrice: 5000000, currentPrice: null, evalAmount: 0 }],
         }}
       />,
     )

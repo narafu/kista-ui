@@ -14,6 +14,7 @@ import { DcaStrategyCard } from './DcaStrategyCard'
 
 interface Props {
   accountId: string
+  broker: string // 계좌 broker — DCA 카드가 크립토·통화를 판정한다(티커로는 시장을 정할 수 없다)
   strategy: Strategy
   accountLabel?: string | ReactNode
 }

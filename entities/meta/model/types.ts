@@ -30,13 +30,22 @@ export interface TickerMeta {
   description?: string
   exchangeCode: string
   targetProfitRate: string
-  market?: string // 'US_STOCK' | 'CRYPTO_KRW' — 1h 메타 캐시로 빠질 수 있어 optional, isCryptoMarket으로 판정
+  market?: string // deprecated(다음 api 릴리스에서 제거) — markets가 없는 응답의 폴백
+  markets?: string[] // 거래 가능 시장 — BTC·ETH는 CRYPTO_KRW·CRYPTO_USDT를 함께 갖는다. 1h 메타 캐시로 빠질 수 있어 optional
+}
+
+// 1h 메타 캐시로 새 필드가 빠질 수 있어 모두 optional — 소비처는 정적 맵(brokerMarket·brokerCurrency)으로 폴백한다
+export interface BrokerMeta extends EnumMeta {
+  market?: string
+  currency?: string
+  minOrderAmount?: string // 견적 통화 최소 주문 금액(plain decimal 문자열). 코인 시장에서만 의미가 있다
+  amountScale?: number // 금액 소수 자릿수 — KRW 0, USD·USDT 2
 }
 
 export interface MetaBundle {
   strategyTypes: StrategyTypeMeta[]
   tickers: TickerMeta[]
-  brokers: EnumMeta[]
+  brokers: BrokerMeta[]
   strategyStatuses: EnumMeta[]
   cycleSeedTypes: EnumMeta[]
   assetClasses: EnumMeta[]

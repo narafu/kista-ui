@@ -83,6 +83,7 @@ export function AllStrategiesList() {
               <StrategyCard
                 key={s.id}
                 accountId={s.accountId}
+                broker={account.broker}
                 strategy={s}
                 accountLabel={groupByAccount ? undefined : account.nickname}
               />

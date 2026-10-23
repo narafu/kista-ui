@@ -1,13 +1,13 @@
 'use client'
 
 import { createContext, use, useMemo } from 'react'
-import type { MetaBundle, StrategyTypeMeta, TickerMeta, EnumMeta } from '@entities/meta'
+import type { MetaBundle, StrategyTypeMeta, TickerMeta, EnumMeta, BrokerMeta } from '@entities/meta'
 
 interface MetaContextValue {
   meta: MetaBundle
   findStrategyType: (code: string) => StrategyTypeMeta | undefined
   findTicker: (code: string) => TickerMeta | undefined
-  findBroker: (code: string) => EnumMeta | undefined
+  findBroker: (code: string) => BrokerMeta | undefined
   findStrategyStatus: (code: string) => EnumMeta | undefined
   labelOf: (category: keyof MetaBundle, code: string) => string
 }

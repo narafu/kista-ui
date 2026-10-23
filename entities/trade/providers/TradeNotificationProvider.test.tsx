@@ -1,7 +1,8 @@
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { TradeNotificationProvider } from './TradeNotificationProvider'
 import type { TradeEvent } from '@entities/trade'
+import { TradeToast } from './TradeToast'
 
 const { refreshMock, toastCustomMock } = vi.hoisted(() => ({ refreshMock: vi.fn(), toastCustomMock: vi.fn() }))
 
@@ -93,5 +94,28 @@ describe('TradeNotificationProvider', () => {
     unmount()
 
     expect(closeSpy).toHaveBeenCalled()
+  })
+})
+
+describe('TradeToast 가격 통화', () => {
+  const base: TradeEvent = { kind: 'BUY', ticker: 'BTC', quantity: 1, price: 1500000, time: '2026-10-24T00:00:00Z', accountNickname: '내 계좌' }
+  it('currency가 없으면 달러로 표시한다', () => {
+    render(<TradeToast event={{ ...base, price: 87.4 }} />)
+    expect(screen.getByText(/@ \$87\.40/)).toBeInTheDocument()
+  })
+  it('업비트 KRW는 원으로 표시한다(달러 기호 결함 회귀)', () => {
+    render(<TradeToast event={{ ...base, currency: 'KRW' }} />)
+    expect(screen.getByText(/@ 1,500,000원/)).toBeInTheDocument()
+  })
+  it('바이낸스 USDT는 USDT로 표시한다', () => {
+    render(<TradeToast event={{ ...base, price: 65000.5, currency: 'USDT' }} />)
+    expect(screen.getByText(/@ 65,000\.50 USDT/)).toBeInTheDocument()
+  })
+  it('코인 수량은 주 단위 없이 소수로, 주식은 주 단위로 표시한다', () => {
+    const { unmount } = render(<TradeToast event={{ ...base, quantity: 0.00012, price: 65000.5, currency: 'USDT' }} />)
+    expect(screen.getByText(/^BTC 0\.00012 @/)).toBeInTheDocument()
+    unmount()
+    render(<TradeToast event={{ ...base, ticker: 'SOXL', quantity: 3, price: 20 }} />)
+    expect(screen.getByText(/^SOXL 3주 @/)).toBeInTheDocument()
   })
 })

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import { isCryptoBroker, isCryptoMarket, isMockBroker } from '@shared/lib/api-schema'
-import { useMeta } from '@entities/meta'
+import { brokerMarket, isCryptoBroker, isMockBroker } from '@shared/lib/api-schema'
+import { tickerTradesIn, useMeta } from '@entities/meta'
 import { useAccountMarginQuery, useAccountPricesQuery } from '@entities/account'
 import type { BrokerCode } from '@entities/account'
 import { useMeQuery } from '@entities/user'
@@ -11,6 +11,7 @@ export function useStrategyFormData(accountId: string, broker: BrokerCode | unde
   const isMock = isMockBroker(broker)
   // 코인 계좌로 주식 margin/prices를 부르면 400 — StrategyForm은 DCA 분기 전에 이 훅을 부르므로 여기서 막는다
   const isCrypto = isCryptoBroker(broker)
+  const market = brokerMarket(broker)
   const { meta, findStrategyType } = useMeta()
   const runtimeQuery = useRuntimeConfigQuery()
   const runtimeConfig = runtimeQuery.data
@@ -18,7 +19,7 @@ export function useStrategyFormData(accountId: string, broker: BrokerCode | unde
   // 숨겨진 유형이 기본 선택되지 않도록 활성 유형 자체를 시장으로 거른다(useTypeDefaults가 첫 활성 유형을 고른다)
   const enabledStrategyTypes = meta.strategyTypes.flatMap(({ code, availableTickers }) =>
     runtimeConfig?.strategies[code as RuntimeStrategyType]?.enabled === true
-      && availableTickers.some((t) => isCryptoMarket(meta.tickers.find((m) => m.code === t)?.market) === isCrypto)
+      && availableTickers.some((t) => tickerTradesIn(meta.tickers.find((m) => m.code === t), market))
       ? [code] : [])
 
   const { data: meData } = useMeQuery()
@@ -33,7 +34,7 @@ export function useStrategyFormData(accountId: string, broker: BrokerCode | unde
 
   // 티커 선택 버튼의 가격 표시용 — 주식 시세 api라 코인 티커는 뺀다(api 상한 10개). basePrice 계산엔 미사용
   const allTickerCodes = useMemo(
-    () => meta.tickers.filter((t) => !isCryptoMarket(t.market)).map((t) => t.code),
+    () => meta.tickers.filter((t) => tickerTradesIn(t, 'US_STOCK')).map((t) => t.code),
     [meta.tickers],
   )
   const { data: pricesData, isError: pricesError } = useAccountPricesQuery(accountId, allTickerCodes, { enabled: !isCrypto })
@@ -42,6 +43,7 @@ export function useStrategyFormData(accountId: string, broker: BrokerCode | unde
   return {
     isMock,
     isCrypto,
+    market,
     meta,
     findStrategyType,
     runtimeQuery,

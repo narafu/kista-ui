@@ -1,3 +1,4 @@
+import { isCryptoMarket } from '@shared/lib/api-schema'
 import type { DcaCondition, DcaConfigRequest, DcaRuleRequest, StrategyRequest } from '@entities/strategy'
 import { LAST_DAY, type DcaConditionFormValue, type DcaFormValues, type DcaRuleFormValues } from './dcaFormSchema'
 
@@ -20,7 +21,7 @@ function toRule(r: DcaRuleFormValues): DcaRuleRequest {
     dayOfMonth: r.frequency === 'MONTHLY' && r.dayOfMonth && r.dayOfMonth !== LAST_DAY ? Number(r.dayOfMonth) : null,
     orderType: r.orderType,
     // 크립토만 실행 시각을 보낸다 — 주식은 서버가 무시하지만 키 자체를 만들지 않는다
-    ...(r.market === 'CRYPTO_KRW' && r.executionHour != null ? { executionHour: r.executionHour } : {}),
+    ...(isCryptoMarket(r.market) && r.executionHour != null ? { executionHour: r.executionHour } : {}),
     sizing: r.sizingType === 'AMOUNT'
       ? { type: 'AMOUNT', amount: r.amount, percent: null }
       : { type: 'HOLDING_PERCENT', amount: null, percent: r.percent },

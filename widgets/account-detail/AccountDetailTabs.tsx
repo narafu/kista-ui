@@ -45,7 +45,7 @@ export function AccountDetailTabs({ account, usdDeposit, posEvalUsd, cryptoPortf
           {
             value: 'strategy',
             label: '전략',
-            content: <StrategyList accountId={account.id} strategies={strategies} isError={strategiesError} />,
+            content: <StrategyList accountId={account.id} broker={account.broker} strategies={strategies} isError={strategiesError} />,
           },
         ]}
         className="space-y-4 lg:hidden"
@@ -57,7 +57,7 @@ export function AccountDetailTabs({ account, usdDeposit, posEvalUsd, cryptoPortf
       <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6">
         <div className="space-y-6">
           <AccountSummaryCard account={account} usdDeposit={usdDeposit} posEvalUsd={posEvalUsd} cryptoPortfolio={cryptoPortfolio} />
-          <StrategyList accountId={account.id} strategies={strategies} isError={strategiesError} />
+          <StrategyList accountId={account.id} broker={account.broker} strategies={strategies} isError={strategiesError} />
         </div>
         {rightPanel}
       </div>

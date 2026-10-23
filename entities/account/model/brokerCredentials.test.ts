@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ApiError } from '@shared/lib/api-client'
-import { brokerErrorMessage } from './brokerCredentials'
+import { BROKER_CREDENTIAL, brokerErrorMessage } from './brokerCredentials'
 
 function apiError(status: number, code: string, detail = '서버 메시지') {
   return new ApiError(status, { code, detail })
@@ -16,6 +16,11 @@ describe('brokerErrorMessage', () => {
     expect(brokerErrorMessage(apiError(422, 'BROKER_IP_NOT_ALLOWED'), 'x', '실패')).toContain('허용 IP')
     expect(brokerErrorMessage(apiError(422, 'BROKER_PERMISSION_DENIED'), 'x', '실패')).toContain('권한')
     expect(brokerErrorMessage(apiError(429, 'BROKER_RATE_LIMITED'), 'x', '실패')).toContain('잠시 후')
+  })
+
+  it('출금 권한이 켜진 키는 전용 문구로 안내하고, 바이낸스 자격증명 문구는 허용 IP 확인을 함께 안내한다', () => {
+    expect(brokerErrorMessage(apiError(422, 'BROKER_WITHDRAWAL_ENABLED'), 'x', '실패')).toContain('출금 권한')
+    expect(BROKER_CREDENTIAL.BINANCE.invalidMessage).toContain('허용 IP')
   })
 
   it('그 외 코드는 서버 detail을 쓰고, detail이 없으면 fallback을 쓴다', () => {

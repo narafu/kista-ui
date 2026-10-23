@@ -2942,23 +2942,23 @@ export interface components {
              */
             nickname: string;
             /**
-             * @description 계좌번호 — KIS: XXXXXXXX-XX (예: 74420614-01), Toss: XXX-XX-XXXXXX (예: 131-01-001931), MOCK: 생략 가능(서버 자동 생성), UPBIT·MERITZ: 받지 않음(오면 무시)
+             * @description 계좌번호 — KIS: XXXXXXXX-XX (예: 74420614-01), Toss: XXX-XX-XXXXXX (예: 131-01-001931), MOCK: 생략 가능(서버 자동 생성), UPBIT·MERITZ·BINANCE: 받지 않음(오면 무시)
              * @example 74420614-01
              */
             accountNo?: string;
             /**
-             * @description API 앱 키 (KIS App Key / Toss Client ID / 업비트 Access Key / 메리츠 App Key)
+             * @description API 앱 키 (KIS App Key / Toss Client ID / 업비트 Access Key / 메리츠 App Key / 바이낸스 API Key)
              * @example PSxxxxxxxxxx
              */
             appKey?: string;
-            /** @description API 앱 시크릿 (KIS App Secret / Toss Client Secret / 업비트 Secret Key / 메리츠 App Secret) */
+            /** @description API 앱 시크릿 (KIS App Secret / Toss Client Secret / 업비트 Secret Key / 메리츠 App Secret / 바이낸스 Secret Key) */
             secretKey?: string;
             /**
              * @description 증권사 — null이면 KIS 기본값 적용
              * @example KIS
              * @enum {string}
              */
-            broker?: "KIS" | "TOSS" | "MOCK" | "UPBIT" | "MERITZ";
+            broker?: "KIS" | "TOSS" | "MOCK" | "UPBIT" | "MERITZ" | "BINANCE";
         };
         AccountResponse: {
             /**
@@ -3039,16 +3039,11 @@ export interface components {
              * @example KIS
              * @enum {string}
              */
-            broker?: "TOSS" | "KIS" | "MOCK" | "UPBIT" | "MERITZ";
+            broker?: "TOSS" | "KIS" | "MOCK" | "UPBIT" | "MERITZ" | "BINANCE";
             /** @description 증권사 앱 키 (신규 자격증명 테스트 시) */
             appKey?: string;
             /** @description 증권사 앱 시크릿 (신규 자격증명 테스트 시) */
             appSecret?: string;
-            /**
-             * Format: uuid
-             * @description 기존 계좌 ID (등록된 계좌로 테스트 시, 자격증명 생략 가능)
-             */
-            accountId?: string;
         };
         StrategyOrderItem: {
             /**
@@ -3791,7 +3786,7 @@ export interface components {
              * @example USD
              * @enum {string}
              */
-            currency?: "KRW" | "USD" | "JPY";
+            currency?: "KRW" | "USD" | "JPY" | "USDT";
             /** @description 통합주문가능금액 (통합증거금 ON일 때만 양수) */
             integratedOrderableAmount?: number;
             /** @description 외화일반주문가능금액 (통합증거금 무관, 항상 유효) */
@@ -3831,19 +3826,39 @@ export interface components {
             ticker?: string;
             /** @description 보유 수량 (소수 8자리) */
             quantity?: number;
-            /** @description 평균 매수가 (KRW) */
-            avgBuyPrice?: number;
-            /** @description 현재가 (KRW, 시세 없으면 null) */
+            /** @description 평균 매수가 (계좌 통화 = currency, 거래소 값 없으면 원장 평단, 둘 다 없으면 null) */
+            avgBuyPrice?: number | null;
+            /** @description 현재가 (계좌 통화 = currency, 시세 없으면 null) */
             currentPrice?: number | null;
-            /** @description 평가액 (KRW, 원 단위 HALF_UP, 시세 없으면 null) */
+            /** @description 평가액 (계좌 통화 = currency, 통화 scale HALF_UP, 시세 없으면 null) */
+            evalAmount?: number | null;
+            /**
+             * @deprecated
+             * @description 평가액 — evalAmount로 대체, kista-ui 전환 후 제거
+             */
             evalAmountKrw?: number | null;
         };
         CryptoPortfolioResponse: {
-            /** @description 원화 예수금 (가용 + 주문 대기) */
-            krwCash?: number;
+            /**
+             * @description 계좌 통화 (Currency name — KRW|USDT)
+             * @example USDT
+             */
+            currency?: string;
+            /** @description 예수금 (계좌 통화, 가용 + 주문 대기) */
+            cash?: number;
             /** @description 코인별 보유 */
             holdings?: components["schemas"]["CryptoHoldingResponse"][];
-            /** @description 총자산 (KRW) = 예수금 + 평가액 합 */
+            /** @description 총자산 (계좌 통화) = 예수금 + 평가액 합 */
+            totalAsset?: number;
+            /**
+             * @deprecated
+             * @description 예수금 — cash로 대체, kista-ui 전환 후 제거
+             */
+            krwCash?: number;
+            /**
+             * @deprecated
+             * @description 총자산 — totalAsset로 대체, kista-ui 전환 후 제거
+             */
             totalAssetKrw?: number;
         };
         TossCandleResponse: {
@@ -5086,6 +5101,17 @@ export interface components {
              * @example KRW
              */
             currency?: string;
+            /**
+             * @description 시장 최소 주문 금액 (견적 통화, plain 문자열 — 0은 하한 없음)
+             * @example 5000
+             */
+            minOrderAmount?: string;
+            /**
+             * Format: int32
+             * @description 주문 금액 소수 자릿수 (KRW 0, USDT 2)
+             * @example 0
+             */
+            amountScale?: number;
         };
         DcaIndicatorMeta: {
             /**
@@ -5190,10 +5216,12 @@ export interface components {
             /** @description 익절 목표 수익률 */
             targetProfitRate?: number;
             /**
-             * @description 거래 시장
+             * @description 대표 거래 시장 — markets로 대체, 다음 릴리스 제거
              * @example US_STOCK
              */
             market?: string;
+            /** @description 거래 가능 시장 목록 (Market name()) */
+            markets?: string[];
         };
         MarketSessionResponse: {
             /** @enum {string} */
@@ -5333,6 +5361,11 @@ export interface components {
             filledQuantity?: number;
             /** @description 체결 가격 (미체결 시 null) */
             filledPrice?: number;
+            /**
+             * @description price·filledPrice 통화 (Currency name, 계좌를 찾지 못하면 null)
+             * @example USDT
+             */
+            currency?: string | null;
         };
         ReorderTimingAvailabilityResponse: {
             /** @description AT_OPEN 접수 가능 여부 (개장 전에만 true) */
@@ -5527,7 +5560,7 @@ export interface components {
             adminId?: string;
         };
         /** @enum {string} */
-        ErrorCode: "BROKER_UNAVAILABLE" | "BROKER_CREDENTIAL_INVALID" | "BROKER_IP_NOT_ALLOWED" | "BROKER_PERMISSION_DENIED" | "BROKER_RATE_LIMITED" | "DUPLICATE_ACCOUNT" | "ALREADY_ORDERED_TODAY" | "DCA_MANUAL_EXECUTION_UNSUPPORTED" | "ORDER_NOT_CANCELLABLE" | "MONTH_CLOSED" | "ACCESS_DENIED" | "COOLDOWN_ACTIVE" | "TRADING_CORE_UNAVAILABLE";
+        ErrorCode: "BROKER_UNAVAILABLE" | "BROKER_CREDENTIAL_INVALID" | "BROKER_IP_NOT_ALLOWED" | "BROKER_PERMISSION_DENIED" | "BROKER_RATE_LIMITED" | "DUPLICATE_ACCOUNT" | "ALREADY_ORDERED_TODAY" | "DCA_MANUAL_EXECUTION_UNSUPPORTED" | "ORDER_NOT_CANCELLABLE" | "MONTH_CLOSED" | "ACCESS_DENIED" | "COOLDOWN_ACTIVE" | "TRADING_CORE_UNAVAILABLE" | "BROKER_WITHDRAWAL_ENABLED";
     };
     responses: never;
     parameters: never;

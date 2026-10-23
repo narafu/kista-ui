@@ -4,7 +4,7 @@ import type { TradingMarket } from '@shared/lib/api-schema'
 import { MetaProvider } from '@entities/meta'
 import type { DcaRule, Strategy } from '@entities/strategy'
 import { DcaStrategyForm } from './DcaStrategyForm'
-import { dcaTestMeta } from './sections/__fixtures__/dcaTestMeta'
+import { dcaTestMeta, testOrderAmount } from './sections/__fixtures__/dcaTestMeta'
 
 const createMutate = vi.fn()
 const reconfigureMutate = vi.fn()
@@ -40,7 +40,7 @@ function existing(rules: DcaRule[]): Strategy {
 function renderForm(initial?: Strategy, defaultTicker = 'UPRO', market: TradingMarket = 'US_STOCK', header?: React.ReactNode) {
   return render(
     <MetaProvider meta={meta}>
-      <DcaStrategyForm accountId="a1" initial={initial} availableTickers={market === 'CRYPTO_KRW' ? ['BTC'] : ['UPRO', 'QLD']} defaultTicker={defaultTicker} market={market} header={header} />
+      <DcaStrategyForm accountId="a1" initial={initial} availableTickers={market === 'CRYPTO_KRW' ? ['BTC'] : ['UPRO', 'QLD']} defaultTicker={defaultTicker} market={market} orderAmount={testOrderAmount(market)} header={header} />
     </MetaProvider>,
   )
 }

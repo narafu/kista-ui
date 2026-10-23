@@ -17,6 +17,7 @@ const BROKER_UI: Record<string, { description: string; Icon: React.ComponentType
   TOSS: { description: 'Client ID / Client Secret 방식', Icon: TrendingUp },
   KIS: { description: 'App Key / App Secret 방식', Icon: Building2 },
   UPBIT: { description: 'Access Key / Secret Key 방식', Icon: Bitcoin },
+  BINANCE: { description: 'API Key / Secret Key 방식', Icon: Bitcoin },
   MERITZ: { description: 'App Key / App Secret 방식 · 베타', Icon: Landmark },
   MOCK: { description: '실제 자금 없이 매매를 체험합니다', Icon: FlaskConical },
 }

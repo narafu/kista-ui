@@ -1,6 +1,6 @@
 import { useMeta } from '@entities/meta'
 import { fmtDate, fmtMoney, fmtQuantity } from '@shared/lib/format'
-import { isCryptoMarket } from '@shared/lib/api-schema'
+import { isCryptoMarket, toCurrency, type Currency } from '@shared/lib/api-schema'
 import { DIRECTION_LABEL, directionTextClass, orderTypeLabel } from '@entities/trade'
 import { orderStatusBadgeClass, ORDER_STATUS_LABEL } from '@entities/order'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -8,6 +8,12 @@ import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import type { AdminTrade } from '@entities/admin'
+
+// 통화는 계좌 기준(BTC는 KRW·USDT 시장 공유) — 계좌를 못 찾아 null이면 코인은 단위 없이 숫자만, 주식은 USD
+function fmtTradePrice(price: number, currency: Currency | undefined, isCryptoTicker: boolean): string {
+  if (currency) return fmtMoney(price, currency)
+  return isCryptoTicker ? price.toLocaleString('en-US', { maximumFractionDigits: 8 }) : fmtMoney(price, 'USD')
+}
 
 interface Props {
   trades: AdminTrade[]
@@ -54,7 +60,7 @@ export function AdminTradesTable({ trades }: Props) {
                 </TableDataCell>
                 <TableDataCell className="text-muted-foreground whitespace-nowrap">{orderTypeLabel(trade.orderType)}</TableDataCell>
                 <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtQuantity(trade.quantity)}</TableDataCell>
-                <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtMoney(trade.price, isCryptoMarket(findTicker(trade.ticker)?.market) ? 'KRW' : 'USD')}</TableDataCell>
+                <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtTradePrice(trade.price, toCurrency(trade.currency), isCryptoMarket(findTicker(trade.ticker)?.market))}</TableDataCell>
                 <TableDataCell className="whitespace-nowrap">
                   <Badge tone="none" className={orderStatusBadgeClass(trade.status)}>
                     {ORDER_STATUS_LABEL[trade.status] ?? trade.status}

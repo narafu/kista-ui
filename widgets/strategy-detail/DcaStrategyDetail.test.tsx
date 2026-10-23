@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MetaProvider } from '@entities/meta'
 import type { DcaRule, Strategy } from '@entities/strategy'
+import type { BrokerCode } from '@shared/lib/api-schema'
 import { fmtDate, todayKst } from '@shared/lib/format'
 import { DcaStrategyDetail } from './DcaStrategyDetail'
 import { dcaTestMeta } from '@features/strategy/create-strategy/sections/__fixtures__/dcaTestMeta'
@@ -58,19 +59,21 @@ const strategy: Strategy = {
 } as Strategy
 const ethRule: DcaRule = { ...rule, ruleKey: 'r2', frequency: 'DAILY', orderType: 'MARKET', executionHour: 9, sizing: { type: 'AMOUNT', amount: 50000, percent: null }, nextExecution: { usSessionDate: '2026-11-01', kstTradeDate: '2026-11-01' } }
 const ethStrategy: Strategy = { ...strategy, ticker: 'ETH', dca: { rules: [ethRule], currentHoldings: 0.5, avgPrice: 4_000_000 } }
-const portfolio = (currentPrice: number | null) => ({ krwCash: 0, totalAssetKrw: 0, holdings: [{ ticker: 'ETH', quantity: 0.5, avgBuyPrice: 1, currentPrice, evalAmountKrw: 1 }] })
+const portfolio = (currentPrice: number | null) => ({ currency: 'KRW', cash: 0, totalAsset: 0, holdings: [{ ticker: 'ETH', quantity: 0.5, avgBuyPrice: 1, currentPrice, evalAmount: 1 }] })
 
-function renderDetail(s: Strategy = strategy) {
+// broker를 생략하면 ETH는 업비트, 그 외는 주식 계좌로 둔다
+function renderDetail(s: Strategy = strategy, broker: BrokerCode = s.ticker === 'ETH' ? 'UPBIT' : 'KIS') {
   const tickers = [{ code: 'ETH', exchangeCode: 'UPBIT', targetProfitRate: '0', market: 'CRYPTO_KRW' }]
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
-    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+    <QueryClientProvider client={client}>
       <MetaProvider meta={{
         ...dcaTestMeta, tickers, strategyStatuses: [{ code: 'PAUSED', label: '일시중지됨' }],
         dcaSkipReasons: [{ code: 'CONDITION_NOT_MET', label: '조건 미충족' }],
         dcaSizingTypes: [{ code: 'AMOUNT', label: '고정 금액' }, { code: 'HOLDING_PERCENT', label: '보유 비율' }],
         dcaShortfallPolicies: [{ code: 'PARTIAL', label: '가용만큼 주문' }, { code: 'REJECT', label: '주문하지 않음' }],
       }}>
-        <DcaStrategyDetail accountId="a1" strategy={s} />
+        <DcaStrategyDetail accountId="a1" broker={broker} strategy={s} />
       </MetaProvider>
     </QueryClientProvider>,
   )
@@ -100,7 +103,7 @@ describe('DcaStrategyDetail', () => {
     expect(cryptoPrices.calls).toBe(0)
   })
   it('크립토: 실잔고에 종목이 없으면 공개 시세로 평가금액·수익률을 계산한다', async () => {
-    cryptoPortfolio.result = { krwCash: 0, totalAssetKrw: 0, holdings: [] }
+    cryptoPortfolio.result = { currency: 'KRW', cash: 0, totalAsset: 0, holdings: [] }
     cryptoPrices.result = { ETH: 4_400_001 }
     renderDetail(ethStrategy)
     expect(await screen.findByText('2,200,001원')).toBeInTheDocument()
@@ -113,10 +116,22 @@ describe('DcaStrategyDetail', () => {
     expect(await screen.findByText('2,200,000원')).toBeInTheDocument()
   })
   it('크립토: 공개 시세 응답에 종목이 없으면 확인 불가', async () => {
-    cryptoPortfolio.result = { krwCash: 0, totalAssetKrw: 0, holdings: [] }
+    cryptoPortfolio.result = { currency: 'KRW', cash: 0, totalAsset: 0, holdings: [] }
     cryptoPrices.result = {}
     renderDetail(ethStrategy)
     expect(await screen.findAllByText('확인 불가')).toHaveLength(2)
+  })
+  it('바이낸스 계좌: USDT로 평가금액을 소수 2자리까지 반올림해 표시한다', async () => {
+    cryptoPortfolio.result = { currency: 'USDT', cash: 0, totalAsset: 0, holdings: [{ ticker: 'ETH', quantity: 0.5, avgBuyPrice: 1, currentPrice: 3001.111, evalAmount: 1 }] }
+    renderDetail({ ...ethStrategy, dca: { ...ethStrategy.dca!, avgPrice: 2500.5 } }, 'BINANCE')
+    expect(screen.getByText('2,500.50 USDT')).toBeInTheDocument()
+    expect(await screen.findByText('1,500.56 USDT')).toBeInTheDocument()
+    expect(screen.queryByText(/원$/)).not.toBeInTheDocument()
+  })
+  it('업비트 계좌: 계좌 기준으로도 원 단위로 표시한다', async () => {
+    cryptoPortfolio.result = portfolio(4_400_001)
+    renderDetail(ethStrategy, 'UPBIT')
+    expect(await screen.findByText('2,200,001원')).toBeInTheDocument()
   })
   it('크립토 평가금액은 원 단위로 반올림한다', async () => {
     cryptoPortfolio.result = portfolio(4_400_001)

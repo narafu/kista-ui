@@ -23,7 +23,7 @@ describe('DcaExecutionHistory', () => {
     queryMock.mockReturnValue({
       data: { content: [row], page: 0, size: 20, totalElements: 45 }, isLoading: false, isError: false,
     })
-    render(<DcaExecutionHistory strategyId="d1" ticker="UPRO" rules={[rule]} />)
+    render(<DcaExecutionHistory strategyId="d1" ticker="UPRO" rules={[rule]} market="US_STOCK" />)
     expect(queryMock).toHaveBeenLastCalledWith('d1', 0, 20)
 
     fireEvent.click(screen.getByRole('button', { name: '2' }))
@@ -34,7 +34,7 @@ describe('DcaExecutionHistory', () => {
     queryMock.mockReturnValue({
       data: { content: [row], page: 0, size: 20, totalElements: 1 }, isLoading: false, isError: false,
     })
-    render(<DcaExecutionHistory strategyId="d1" ticker="UPRO" rules={[rule]} />)
+    render(<DcaExecutionHistory strategyId="d1" ticker="UPRO" rules={[rule]} market="US_STOCK" />)
     const cells = screen.getAllByRole('row')[1].querySelectorAll('td')
     expect(cells[4]).toHaveTextContent('-')
   })
@@ -44,10 +44,21 @@ describe('DcaExecutionHistory', () => {
       data: { content: [{ ruleKey: 'a', direction: 'BUY', kstTradeDate: '2026-10-18', status: 'SKIPPED', skipReason: 'BELOW_MIN_ORDER_AMOUNT', detail: null, referencePrice: 145000000, quantity: 0.00034482, order: { id: 'o1', status: 'FILLED', filledPrice: 145100000 } }], page: 0, size: 20, totalElements: 1 },
       isLoading: false, isError: false,
     })
-    render(<DcaExecutionHistory strategyId="d1" ticker="BTC" rules={[rule]} />)
+    render(<DcaExecutionHistory strategyId="d1" ticker="BTC" rules={[rule]} market="CRYPTO_KRW" />)
     expect(screen.getByText('145,000,000원')).toBeInTheDocument()
     expect(screen.getByText('0.00034482 BTC')).toBeInTheDocument()
     expect(screen.getByText(/145,100,000원/)).toBeInTheDocument()
+  })
+
+  it('바이낸스 행은 USDT 가격으로 표시한다', () => {
+    queryMock.mockReturnValue({
+      data: { content: [{ ruleKey: 'a', direction: 'BUY', kstTradeDate: '2026-10-18', status: 'ORDERED', skipReason: null, detail: null, referencePrice: 65000.5, quantity: 0.001, order: { id: 'o1', status: 'FILLED', filledPrice: 65010 } }], page: 0, size: 20, totalElements: 1 },
+      isLoading: false, isError: false,
+    })
+    render(<DcaExecutionHistory strategyId="d1" ticker="BTC" rules={[rule]} market="CRYPTO_USDT" />)
+    expect(screen.getByText('65,000.50 USDT')).toBeInTheDocument()
+    expect(screen.getByText(/65,010.00 USDT/)).toBeInTheDocument()
+    expect(screen.getByText('0.001 BTC')).toBeInTheDocument()
   })
 
   it('같은 날 규칙별 행을 모두 보여주고 삭제된 규칙은 방향 배지와 함께 표시한다', () => {
@@ -55,7 +66,7 @@ describe('DcaExecutionHistory', () => {
     queryMock.mockReturnValue({
       data: { content: [row, x], page: 0, size: 20, totalElements: 2 }, isLoading: false, isError: false,
     })
-    render(<DcaExecutionHistory strategyId="d1" ticker="UPRO" rules={[rule]} />)
+    render(<DcaExecutionHistory strategyId="d1" ticker="UPRO" rules={[rule]} market="US_STOCK" />)
     const rows = screen.getAllByRole('row')
     expect(rows).toHaveLength(3)
     expect(rows[1]).toHaveTextContent('매수 · 매일 · 장 마감 시장가 · $15,000.00')

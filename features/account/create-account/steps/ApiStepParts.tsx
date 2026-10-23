@@ -129,8 +129,33 @@ export function ConnectionTest({ keyLabel, secretLabel, disabled, isPending, isS
 }
 
 const UPBIT_REQUIRED_PERMISSIONS = ['자산 조회', '주문 조회', '주문하기']
+const BINANCE_REQUIRED_PERMISSIONS = ['읽기', '현물 및 마진 거래']
 
-export function UpbitKeyGuide({ allowedIp, isLoading }: { allowedIp: string | undefined; isLoading: boolean }) {
+interface KeyGuideProps {
+  allowedIp: string | undefined
+  isLoading: boolean
+  permissions: string[]
+  withdrawLabel: string
+  notes?: React.ReactNode
+}
+
+export function UpbitKeyGuide({ allowedIp, isLoading }: Pick<KeyGuideProps, 'allowedIp' | 'isLoading'>) {
+  return <KeyGuide allowedIp={allowedIp} isLoading={isLoading} permissions={UPBIT_REQUIRED_PERMISSIONS} withdrawLabel="출금하기" />
+}
+
+export function BinanceKeyGuide({ allowedIp, isLoading }: Pick<KeyGuideProps, 'allowedIp' | 'isLoading'>) {
+  return (
+    <KeyGuide
+      allowedIp={allowedIp}
+      isLoading={isLoading}
+      permissions={BINANCE_REQUIRED_PERMISSIONS}
+      withdrawLabel="출금"
+      notes={<p>키 유형은 시스템 생성(HMAC) 키만 사용할 수 있습니다. Ed25519·RSA 자가 생성 키는 쓸 수 없습니다.</p>}
+    />
+  )
+}
+
+function KeyGuide({ allowedIp, isLoading, permissions, withdrawLabel, notes }: KeyGuideProps) {
   async function handleCopy() {
     if (!allowedIp) return
     try {
@@ -144,6 +169,7 @@ export function UpbitKeyGuide({ allowedIp, isLoading }: { allowedIp: string | un
   return (
     <div className="space-y-2 rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm">
       <p className="font-semibold">API 키 발급 시 설정</p>
+      {notes}
       <div className="flex items-center justify-between gap-2">
         <span className="text-muted-foreground">허용 IP</span>
         {allowedIp ? (
@@ -159,14 +185,14 @@ export function UpbitKeyGuide({ allowedIp, isLoading }: { allowedIp: string | un
       </div>
       <p className="flex flex-wrap items-center gap-1">
         권한은
-        {UPBIT_REQUIRED_PERMISSIONS.slice(0, -1).map((p) => <Badge key={p} tone="ok" size="md">{p}</Badge>)}
+        {permissions.slice(0, -1).map((p) => <Badge key={p} tone="ok" size="md">{p}</Badge>)}
         {/* 마지막 배지와 "만 켜세요."가 줄바꿈으로 갈라지지 않게 묶는다 */}
         <span className="inline-flex items-center gap-0.5 whitespace-nowrap">
-          <Badge tone="ok" size="md">{UPBIT_REQUIRED_PERMISSIONS.at(-1)}</Badge>만 켜세요.
+          <Badge tone="ok" size="md">{permissions.at(-1)}</Badge>만 켜세요.
         </span>
       </p>
       <p className="flex flex-wrap items-center gap-1 font-semibold text-[var(--warn)]">
-        <Badge tone="error" size="md">출금하기</Badge>
+        <Badge tone="error" size="md">{withdrawLabel}</Badge>
         권한은 켜지 마세요. 키가 유출돼도 출금은 막힙니다.
       </p>
     </div>

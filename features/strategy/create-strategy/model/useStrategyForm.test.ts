@@ -67,11 +67,13 @@ const seedPreviewState = {
   isLoading: false,
 }
 
-vi.mock('@entities/meta', () => ({
+vi.mock('@entities/meta', async () => ({
+  ...(await vi.importActual<typeof import('@entities/meta')>('@entities/meta')),
   useMeta: () => ({
     meta: {
       strategyTypes: [{ code: 'INFINITE', availableTickers: ['TSLA'] }, { code: 'PRIVACY', availableTickers: ['SOXL'] }, { code: 'VR', availableTickers: ['TQQQ'] }],
       tickers: [{ code: 'TSLA' }, { code: 'SOXL' }, { code: 'TQQQ' }],
+      brokers: [],
     },
     findStrategyType: (code: string) => code === 'VR'
       ? {

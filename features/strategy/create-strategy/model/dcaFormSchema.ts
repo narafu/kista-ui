@@ -1,14 +1,14 @@
 import { z } from 'zod'
-import type { TradingMarket } from '@shared/lib/api-schema'
-import { todayKst } from '@shared/lib/format'
+import { isCryptoMarket, type TradingMarket } from '@shared/lib/api-schema'
+import { fmtMoney, todayKst } from '@shared/lib/format'
+import type { OrderAmountRule } from '@entities/meta'
 import { STOCK_WEEKDAYS, type DcaRule, type Strategy } from '@entities/strategy'
 
 export const LAST_DAY = 'LAST' // 매월 말일 — payload에서 dayOfMonth null로 직렬화
 export const DAY_OPTIONS = [...Array.from({ length: 31 }, (_, i) => String(i + 1)), LAST_DAY]
 export const MAX_DCA_RULES = 10 // kista-api 상한과 동일
 export const MAX_DCA_CONDITIONS = 10 // kista-api 상한과 동일
-export const MIN_CRYPTO_ORDER_KRW = 5000 // 업비트 최소 주문 금액
-export const DEFAULT_EXECUTION_HOUR = 9 // 업비트 일봉 마감(09:00 KST) 직후
+export const DEFAULT_EXECUTION_HOUR = 9 // 거래소 일봉 마감(09:00 KST) 직후
 
 const conditionSchema = z.object({
   indicator: z.enum(['AVG_PRICE', 'SMA', 'RSI', 'FEAR_GREED']),
@@ -35,8 +35,12 @@ const conditionSchema = z.object({
   }
 })
 
+const MARKETS = ['US_STOCK', 'CRYPTO_KRW', 'CRYPTO_USDT'] as const
+const SCALE_ORDINAL = ['', '첫째', '둘째', '셋째', '넷째', '다섯째', '여섯째', '일곱째', '여덟째']
+
 export const dcaRuleSchema = z.object({
-  market: z.enum(['US_STOCK', 'CRYPTO_KRW']), // 계좌 broker에서 정해지는 값 — 입력 필드가 아니다. 부모 폼이 각 규칙에 복사한다
+  market: z.enum(MARKETS), // 계좌 broker에서 정해지는 값 — 입력 필드가 아니다. 부모 폼이 각 규칙에 복사한다
+  orderAmount: z.object({ min: z.number(), scale: z.number().int(), currency: z.enum(['USD', 'KRW', 'USDT']) }), // market과 같이 부모가 복사하는 계좌 금액 제약 — 크립토 금액 검사 기준
   ruleKey: z.string().nullable(), // 수정 모드의 기존 규칙 식별자. 신규는 null
   direction: z.enum(['BUY', 'SELL']),
   orderType: z.enum(['MOO', 'MOC', 'MARKET']),
@@ -58,7 +62,7 @@ export const dcaRuleSchema = z.object({
   } else if (v.frequency === 'MONTHLY' && !DAY_OPTIONS.includes(v.dayOfMonth ?? '')) {
     ctx.addIssue({ code: 'custom', path: ['dayOfMonth'], message: '1~31일 또는 말일을 선택하세요.' })
   }
-  const isCrypto = v.market === 'CRYPTO_KRW'
+  const isCrypto = isCryptoMarket(v.market)
   if (isCrypto) {
     if (v.orderType !== 'MARKET') ctx.addIssue({ code: 'custom', path: ['orderType'], message: '크립토는 시장가 주문만 지원합니다.' })
     // 00시가 유효값이라 == null로 판정한다(truthy 검사 금지)
@@ -86,15 +90,22 @@ export const dcaRuleSchema = z.object({
     ctx.addIssue({ code: 'custom', path: ['amount'], message: '금액을 입력하세요.' })
   } else if (v.amount <= 0) {
     ctx.addIssue({ code: 'custom', path: ['amount'], message: '금액은 0보다 커야 합니다.' })
-  } else if (isCrypto && !Number.isInteger(v.amount)) {
-    ctx.addIssue({ code: 'custom', path: ['amount'], message: '원 단위 정수로 입력하세요.' })
-  } else if (isCrypto && v.amount < MIN_CRYPTO_ORDER_KRW) {
-    ctx.addIssue({ code: 'custom', path: ['amount'], message: '최소 주문 금액은 5,000원입니다.' })
+  } else if (isCrypto) {
+    const { min, scale, currency } = v.orderAmount
+    const factor = 10 ** scale
+    if (Math.abs(Math.round(v.amount * factor) / factor - v.amount) > 1e-9) {
+      ctx.addIssue({
+        code: 'custom', path: ['amount'],
+        message: scale === 0 ? '원 단위 정수로 입력하세요.' : `소수 ${SCALE_ORDINAL[scale] ?? `${scale}번째`} 자리까지 입력하세요.`,
+      })
+    } else if (min > 0 && v.amount < min) {
+      ctx.addIssue({ code: 'custom', path: ['amount'], message: `최소 주문 금액은 ${fmtMoney(min, currency)}입니다.` })
+    }
   }
 })
 
 export const dcaFormSchema = z.object({
-  market: z.enum(['US_STOCK', 'CRYPTO_KRW']),
+  market: z.enum(MARKETS),
   ticker: z.string().min(1, '종목을 선택하세요'),
   scheduledStartDate: z.string().nullable(),
   initialHoldings: z.number().nullable(), // 등록 시 보유 시작값 — 수정 모드는 항상 null(payload에 안 쓴다)
@@ -108,7 +119,7 @@ export const dcaFormSchema = z.object({
     ctx.addIssue({ code: 'custom', path: ['scheduledStartDate'], message: '시작예정일은 오늘 이후여야 합니다.' })
   }
   const { initialHoldings: q, initialAvgPrice: p } = v
-  const decimals = v.market === 'CRYPTO_KRW' ? 8 : 0
+  const decimals = isCryptoMarket(v.market) ? 8 : 0
   if (p != null && p < 0) {
     ctx.addIssue({ code: 'custom', path: ['initialAvgPrice'], message: '평단가는 0 이상이어야 합니다.' })
   }
@@ -130,23 +141,24 @@ export type DcaRuleFormValues = z.infer<typeof dcaRuleSchema>
 export type DcaFormValues = z.infer<typeof dcaFormSchema>
 export type DcaConditionFormValue = DcaRuleFormValues['conditions'][number]
 
-export function buildDcaRuleDefaults(direction: DcaRuleFormValues['direction'], market: TradingMarket): DcaRuleFormValues {
-  const isCrypto = market === 'CRYPTO_KRW'
+export function buildDcaRuleDefaults(direction: DcaRuleFormValues['direction'], market: TradingMarket, orderAmount: OrderAmountRule): DcaRuleFormValues {
+  const isCrypto = isCryptoMarket(market)
   return {
-    market, ruleKey: null, direction,
+    market, orderAmount, ruleKey: null, direction,
     orderType: isCrypto ? 'MARKET' : 'MOC', executionHour: isCrypto ? DEFAULT_EXECUTION_HOUR : null,
     frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: LAST_DAY,
     sizingType: 'AMOUNT', amount: null, percent: null, shortfall: 'PARTIAL', conditions: [],
   }
 }
 
-function ruleToFormValue(r: DcaRule, market: TradingMarket): DcaRuleFormValues {
+function ruleToFormValue(r: DcaRule, market: TradingMarket, orderAmount: OrderAmountRule): DcaRuleFormValues {
   return {
     market,
+    orderAmount,
     ruleKey: r.ruleKey,
     direction: r.direction,
     orderType: r.orderType,
-    executionHour: r.executionHour ?? (market === 'CRYPTO_KRW' ? DEFAULT_EXECUTION_HOUR : null),
+    executionHour: r.executionHour ?? (isCryptoMarket(market) ? DEFAULT_EXECUTION_HOUR : null),
     frequency: r.frequency,
     dayOfWeek: r.dayOfWeek,
     dayOfMonth: r.frequency === 'MONTHLY' ? (r.dayOfMonth == null ? LAST_DAY : String(r.dayOfMonth)) : null,
@@ -160,7 +172,7 @@ function ruleToFormValue(r: DcaRule, market: TradingMarket): DcaRuleFormValues {
   }
 }
 
-export function buildDcaFormDefaults(initial: Strategy | undefined, defaultTicker: string, market: TradingMarket): DcaFormValues {
+export function buildDcaFormDefaults(initial: Strategy | undefined, defaultTicker: string, market: TradingMarket, orderAmount: OrderAmountRule): DcaFormValues {
   const d = initial?.dca
   if (!initial || !d) {
     return {
@@ -169,6 +181,6 @@ export function buildDcaFormDefaults(initial: Strategy | undefined, defaultTicke
   }
   return {
     market, ticker: initial.ticker, scheduledStartDate: null, initialHoldings: null, initialAvgPrice: null,
-    rules: d.rules.map((r) => ruleToFormValue(r, market)),
+    rules: d.rules.map((r) => ruleToFormValue(r, market, orderAmount)),
   }
 }

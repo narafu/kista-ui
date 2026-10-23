@@ -3,6 +3,7 @@ export interface TradeEvent {
   ticker: string
   quantity?: number
   price?: number
+  currency?: Currency | null // price 통화 — 없으면 USD(주식)로 본다
   amount?: number
   time: string
   accountNickname: string
@@ -10,7 +11,7 @@ export interface TradeEvent {
 }
 
 export type { OrderDirection } from '@shared/lib/api-schema'
-import type { OrderDirection } from '@shared/lib/api-schema'
+import type { Currency, OrderDirection } from '@shared/lib/api-schema'
 
 export interface CycleHistoryItem {
   createdAt: string
@@ -76,13 +77,14 @@ export interface DailyTransactionResult {
 export interface CryptoHolding {
   ticker: string
   quantity: number
-  avgBuyPrice: number
-  currentPrice: number | null // 현재가 조회 실패 — 이때 evalAmountKrw는 null(0으로 정규화)이라 화면에서 0원으로 보여주지 않는다
-  evalAmountKrw: number
+  avgBuyPrice: number | null // 거래소 값도 원장 평단도 없으면 null
+  currentPrice: number | null // 현재가 조회 실패 — 이때 evalAmount는 null(0으로 정규화)이라 화면에서 0으로 보여주지 않는다
+  evalAmount: number
 }
 
 export interface CryptoPortfolio {
-  krwCash: number
-  totalAssetKrw: number
+  currency: Currency // 계좌 통화 — cash·totalAsset·holdings 금액 모두 이 통화다
+  cash: number
+  totalAsset: number
   holdings: CryptoHolding[]
 }

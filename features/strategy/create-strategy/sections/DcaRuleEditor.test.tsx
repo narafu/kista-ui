@@ -4,7 +4,7 @@ import type { TradingMarket } from '@shared/lib/api-schema'
 import { MetaProvider } from '@entities/meta'
 import { DcaRuleEditor } from './DcaRuleEditor'
 import { buildDcaRuleDefaults, type DcaRuleFormValues } from '../model/dcaFormSchema'
-import { dcaTestMeta } from './__fixtures__/dcaTestMeta'
+import { dcaTestMeta, testOrderAmount } from './__fixtures__/dcaTestMeta'
 
 const meta = {
   ...dcaTestMeta,
@@ -23,7 +23,7 @@ function renderEditor({ direction = 'BUY', market = 'US_STOCK', isNew = true, in
   const onCancel = vi.fn()
   render(
     <MetaProvider meta={meta}>
-      <DcaRuleEditor market={market} initial={{ ...buildDcaRuleDefaults(direction, market), ...initial }} isNew={isNew}
+      <DcaRuleEditor market={market} initial={{ ...buildDcaRuleDefaults(direction, market, testOrderAmount(market)), ...initial }} isNew={isNew}
         onDone={onDone} onDelete={onDelete} onCancel={onCancel} />
     </MetaProvider>,
   )

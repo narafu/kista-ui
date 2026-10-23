@@ -14,15 +14,16 @@ import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { fmtDate, fmtMoney, fmtQuantity } from '@shared/lib/format'
-import { isCryptoMarket } from '@shared/lib/api-schema'
+import { isCryptoMarket, marketCurrency } from '@shared/lib/api-schema'
+import type { TradingMarket } from '@shared/lib/api-schema'
 import { SectionError } from '@shared/ui/SectionError'
 
 const PAGE_SIZE = 20
 
-export function DcaExecutionHistory({ strategyId, ticker, rules }: { strategyId: string; ticker: string; rules: DcaRule[] }) {
-  const { labelOf, findTicker } = useMeta()
-  const isCrypto = isCryptoMarket(findTicker(ticker)?.market)
-  const currency = isCrypto ? 'KRW' : 'USD'
+export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { strategyId: string; ticker: string; rules: DcaRule[]; market: TradingMarket }) {
+  const { labelOf } = useMeta()
+  const isCrypto = isCryptoMarket(market)
+  const currency = marketCurrency(market)
   const [page, setPage] = useState(1) // PaginationBar는 1-base, API는 0-base
   const { data, isLoading, isError } = useDcaExecutionsQuery(strategyId, page - 1, PAGE_SIZE)
   const rows = data?.content ?? []
@@ -62,7 +63,7 @@ export function DcaExecutionHistory({ strategyId, ticker, rules }: { strategyId:
                     <tr key={`${r.kstTradeDate}-${r.ruleKey}`} className="border-t hover:bg-muted/30 transition-colors">
                       <TableDataCell className="text-muted-foreground whitespace-nowrap">{fmtDate(r.kstTradeDate)}</TableDataCell>
                       <TableDataCell className="whitespace-nowrap">
-                        {rule ? formatDcaRuleSummary(rule, labelOf, isCrypto) : (
+                        {rule ? formatDcaRuleSummary(rule, labelOf, market) : (
                           <span className="inline-flex items-center gap-1.5">
                             <Badge tone="none" size="sm" className={directionBadgeClass(r.direction)}>{labelOf('orderDirections', r.direction)}</Badge>
                             <span className="text-muted-foreground">삭제된 규칙</span>

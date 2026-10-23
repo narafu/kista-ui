@@ -12,14 +12,16 @@ import { dcaExecutionStatusLabel, dcaIndicatorLabel, formatCryptoNextExecution, 
 import type { Strategy } from '@entities/strategy'
 import { useAccountPricesQuery } from '@entities/account'
 import { cryptoPortfolioQueryOptions, cryptoPricesQueryOptions } from '@entities/trade'
-import { fmtDate, fmtMoney, fmtQuantity, fmtSignedPercent, pnlTextClass } from '@shared/lib/format'
-import { isCryptoMarket } from '@shared/lib/api-schema'
+import { fmtDate, fmtMoney, fmtQuantity, fmtSignedPercent, pnlTextClass, roundMoney } from '@shared/lib/format'
+import { brokerMarket, isCryptoMarket, marketCurrency } from '@shared/lib/api-schema'
+import type { TradingMarket } from '@shared/lib/api-schema'
 import { StatusStrip } from './StrategyMetaSection'
 import { DeleteStrategyDialog } from './DeleteStrategyDialog'
 import { DcaExecutionHistory } from './DcaExecutionHistory'
 
 interface Props {
   accountId: string
+  broker: string
   strategy: Strategy
 }
 
@@ -32,11 +34,12 @@ const HOLDINGS_SUB = '이 전략 체결 기준'
 
 // 보유 수량·평단가는 원장(dca.currentHoldings·avgPrice)이 SSOT, 현재가만 시장별로 따로 받는다.
 // 크립토는 계좌 상세와 캐시를 공유하는 crypto-portfolio, 주식은 prices — 크립토 계좌로 prices를 부르면 400이라 enabled로 갈라 둔다
-function DcaHoldingGrid({ accountId, strategy, isCrypto }: { accountId: string; strategy: Strategy; isCrypto: boolean }) {
+function DcaHoldingGrid({ accountId, strategy, market }: { accountId: string; strategy: Strategy; market: TradingMarket }) {
+  const isCrypto = isCryptoMarket(market)
   const { ticker, dca } = strategy
   const holdings = dca?.currentHoldings ?? null
   const avg = dca?.avgPrice ?? null
-  const currency = isCrypto ? 'KRW' : 'USD'
+  const currency = marketCurrency(market)
   const portfolio = useQuery({ ...cryptoPortfolioQueryOptions(accountId), enabled: isCrypto })
   const prices = useAccountPricesQuery(accountId, [ticker], { enabled: !isCrypto })
   const balancePrice = portfolio.data?.holdings.find((h) => h.ticker === ticker)?.currentPrice
@@ -48,8 +51,8 @@ function DcaHoldingGrid({ accountId, strategy, isCrypto }: { accountId: string; 
     ? (!!portfolio.data || portfolio.isError) && (!needsFallback || !!fallback.data || fallback.isError)
     : !!prices.data || prices.isError
   const priced = price != null
-  // 크립토 소수 수량 × 원화 가격은 원 미만이 생긴다 — 원화는 원 단위로 반올림해 표시한다
-  const evalAmount = holdings != null && priced ? (isCrypto ? Math.round(holdings * price) : holdings * price) : null
+  // 크립토 소수 수량 × 가격은 통화 최소 단위 미만이 생긴다(원 미만·센트 미만) — 계좌 통화 단위로 반올림해 표시한다
+  const evalAmount = holdings != null && priced ? (isCrypto ? roundMoney(holdings * price, currency) : holdings * price) : null
   const returnRatio = priced && avg != null && avg > 0 ? price / avg - 1 : null
   // 보유가 없으면 평가할 대상이 없어 -, 있는데 현재가가 없으면 확인 불가, 조회 중이면 스켈레톤
   const loading = holdings != null && !priced && !settled
@@ -72,10 +75,12 @@ function DcaHoldingGrid({ accountId, strategy, isCrypto }: { accountId: string; 
 // DCA 상세 — 바로 주문·미리보기 미지원(409)이라 NextOrderCard 대신 보유 현황·규칙 카드·회차 이력을 표시.
 // 구성은 주식 전략 상세(StatusStrip + KpiCard 그리드 → 이력 → 제어 카드)를 따른다
 // dca가 없어도(응답 누락) 보유 수량·이력·중지/삭제는 그대로 노출한다
-export function DcaStrategyDetail({ accountId, strategy }: Props) {
+export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
   const { push } = useRouter()
-  const { labelOf, findTicker } = useMeta()
-  const isCrypto = isCryptoMarket(findTicker(strategy.ticker)?.market)
+  const { labelOf } = useMeta()
+  // 통화·크립토 여부는 계좌 broker 기준 — BTC는 업비트(KRW)·바이낸스(USDT) 모두에 있어 티커로 정할 수 없다
+  const market = brokerMarket(broker)
+  const isCrypto = isCryptoMarket(market)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const { dca } = strategy
   const { pause, resume, remove, isPausing, isResuming, isDeleting } = useManageStrategyMutations({
@@ -94,7 +99,7 @@ export function DcaStrategyDetail({ accountId, strategy }: Props) {
         <KpiCard label="전략타입" value={labelOf('strategyTypes', strategy.type)} {...TILE} />
       </div>
 
-      <DcaHoldingGrid accountId={accountId} strategy={strategy} isCrypto={isCrypto} />
+      <DcaHoldingGrid accountId={accountId} strategy={strategy} market={market} />
 
       {dca && (
         <Card>
@@ -105,7 +110,7 @@ export function DcaStrategyDetail({ accountId, strategy }: Props) {
             <ul className="divide-y divide-border">
               {dca.rules.map((r) => (
                 <li key={r.ruleKey} className="space-y-1 py-3 first:pt-0 last:pb-0">
-                  <p className="font-semibold">{formatDcaRuleSummary(r, labelOf, isCrypto)}</p>
+                  <p className="font-semibold">{formatDcaRuleSummary(r, labelOf, market)}</p>
                   {r.conditions.length === 0 ? (
                     <p>조건 없이 매 회차 주문</p>
                   ) : (
@@ -125,7 +130,7 @@ export function DcaStrategyDetail({ accountId, strategy }: Props) {
         </Card>
       )}
 
-      <DcaExecutionHistory strategyId={strategy.id} ticker={strategy.ticker} rules={dca?.rules ?? []} />
+      <DcaExecutionHistory strategyId={strategy.id} ticker={strategy.ticker} rules={dca?.rules ?? []} market={market} />
 
       <Card>
         <CardContent className="p-5 flex gap-2">

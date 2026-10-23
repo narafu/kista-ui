@@ -29,7 +29,7 @@ vi.mock('@entities/runtime-config', () => ({
   useRuntimeConfigQuery: () =>
     mockRuntimeLoading
       ? { data: undefined, isLoading: true }
-      : { data: { brokers: { UPBIT: { enabled: true, allowedIp: '168.107.63.152' } } }, isLoading: false },
+      : { data: { brokers: { UPBIT: { enabled: true, allowedIp: '168.107.63.152' }, BINANCE: { enabled: true, allowedIp: '168.107.63.152' } } }, isLoading: false },
 }))
 
 const baseData: StepData = { broker: 'KIS', apiKey: '', apiSecret: '', accountNo: '', nickname: '' }
@@ -79,6 +79,18 @@ describe('ApiStep', () => {
     for (const permission of ['자산 조회', '주문 조회', '주문하기', '출금하기']) {
       expect(screen.getByText(permission)).toBeInTheDocument()
     }
+    expect(screen.getByText(/권한은 켜지 마세요/)).toBeInTheDocument()
+  })
+
+  it('바이낸스는 HMAC 키 유형·필요한 권한·허용 IP를 안내하고 출금 권한을 켜지 말라고 강조한다', () => {
+    render(<ApiStep data={{ ...baseData, broker: 'BINANCE' }} onNext={vi.fn()} onBack={vi.fn()} />)
+    expect(screen.getByLabelText(/API Key/)).toBeInTheDocument()
+    expect(screen.getByLabelText(/Secret Key/)).toBeInTheDocument()
+    expect(screen.getByText('168.107.63.152')).toBeInTheDocument()
+    for (const permission of ['읽기', '현물 및 마진 거래', '출금']) {
+      expect(screen.getByText(permission)).toBeInTheDocument()
+    }
+    expect(screen.getByText(/시스템 생성\(HMAC\)/)).toBeInTheDocument()
     expect(screen.getByText(/권한은 켜지 마세요/)).toBeInTheDocument()
   })
 

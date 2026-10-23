@@ -9,7 +9,8 @@ vi.mock('@entities/account', () => ({
 }))
 vi.mock('@entities/user', () => ({ useMeQuery: () => ({ data: { balanceCheckEnabled: true } }) }))
 vi.mock('@entities/runtime-config', () => ({ useRuntimeConfigQuery: () => ({ data: { strategies: { INFINITE: { enabled: true }, DCA: { enabled: true } } } }) }))
-vi.mock('@entities/meta', () => ({
+vi.mock('@entities/meta', async () => ({
+  ...(await vi.importActual<typeof import('@entities/meta')>('@entities/meta')),
   useMeta: () => ({
     meta: {
       strategyTypes: [

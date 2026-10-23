@@ -3,7 +3,7 @@
 import { useId } from 'react'
 import { Controller, useFieldArray, type UseFormReturn } from 'react-hook-form'
 import { Trash2 } from 'lucide-react'
-import type { TradingMarket } from '@shared/lib/api-schema'
+import { isCryptoMarket, type TradingMarket } from '@shared/lib/api-schema'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -47,7 +47,7 @@ function describeCondition(c: DcaConditionFormValue | undefined, operatorLabel: 
 
 export function DcaConditionsSection({ form, market, indicators, direction }: Props) {
   const { meta, labelOf } = useMeta()
-  const isCrypto = market === 'CRYPTO_KRW'
+  const isCrypto = isCryptoMarket(market)
   const indicatorLabel = (code: string) => dcaIndicatorLabel(code, labelOf('dcaIndicators', code), isCrypto)
   const { fields, append, remove } = useFieldArray({ control: form.control, name: 'conditions' })
   const conditions = form.watch('conditions')
@@ -62,7 +62,7 @@ export function DcaConditionsSection({ form, market, indicators, direction }: Pr
     <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel>조건 (모두 충족 시 주문)</StrategyFieldLabel>
       <p className="mb-2 text-sm text-muted-foreground">평단가·보유 수량은 이 전략 체결 기준</p>
-      {isCrypto && <p className="mb-2 text-sm text-muted-foreground">이동평균·RSI는 업비트 일봉(09:00 KST 마감) 기준</p>}
+      {isCrypto && <p className="mb-2 text-sm text-muted-foreground">이동평균·RSI는 거래소 일봉(09:00 KST 마감) 기준</p>}
       {direction === 'BUY' && <p className="mb-2 text-sm text-muted-foreground">{isCrypto ? '보유 수량이 0일 때는 평단가 조건 없이 매수' : '보유 0주일 때는 평단가 조건 없이 매수'}</p>}
 
       {fields.length === 0 && <p className="py-2 text-sm text-muted-foreground">조건 없이 매 회차 주문</p>}

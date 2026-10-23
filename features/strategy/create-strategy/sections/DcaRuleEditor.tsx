@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
-import type { TradingMarket } from '@shared/lib/api-schema'
+import { isCryptoMarket, type TradingMarket } from '@shared/lib/api-schema'
 import { Badge } from '@shared/ui/Badge'
 import { FormActions } from '@shared/ui/FormActions'
 import { useMeta } from '@entities/meta'
@@ -46,7 +46,7 @@ export function DcaRuleEditor({ market, initial, isNew, onDone, onDelete, onCanc
       <DcaSettingsSection
         form={form}
         market={market}
-        orderTypes={(typeMeta?.orderTypes ?? []).filter((code) => (code === 'MARKET') === (market === 'CRYPTO_KRW'))}
+        orderTypes={(typeMeta?.orderTypes ?? []).filter((code) => (code === 'MARKET') === isCryptoMarket(market))}
         frequencies={typeMeta?.frequencies ?? []}
       />
       <DcaConditionsSection form={form} market={market} indicators={typeMeta?.conditionIndicators ?? []} direction={direction} />

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fmtCompactUsd, fmtCompactUsdNarrow, fmtKrw, fmtKrwEok, fmtMoney, fmtQuantity, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, nextTradeDateKst, fmtSignedPercent, fmtSignedPercentPoint, fmtDate, fmtMonthDay } from './index'
+import { fmtCompactUsd, fmtCompactUsdNarrow, fmtKrw, fmtKrwEok, fmtMoney, fmtQuantity, fmtSignedMoney, roundMoney, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, nextTradeDateKst, fmtSignedPercent, fmtSignedPercentPoint, fmtDate, fmtMonthDay } from './index'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -223,5 +223,30 @@ describe('fmtCompactUsdNarrow', () => {
     expect(fmtCompactUsdNarrow(12_345_000_000)).toBe('$12B')
     expect(fmtCompactUsdNarrow(123_456)).toBe('$120K')
     expect(fmtCompactUsdNarrow(1_234)).toBe('$1.2K')
+  })
+})
+
+describe('fmtMoney', () => {
+  it('통화별 단위를 붙인다', () => {
+    expect(fmtMoney(1234.5, 'USD')).toBe('$1,234.50')
+    expect(fmtMoney(1234, 'KRW')).toBe('1,234원')
+    expect(fmtMoney(10.5, 'USDT')).toBe('10.50 USDT')
+  })
+})
+
+describe('fmtSignedMoney', () => {
+  it('부호를 통화 단위 앞에 둔다', () => {
+    expect(fmtSignedMoney(1.5, 'USD')).toBe('+$1.50')
+    expect(fmtSignedMoney(-1000, 'KRW')).toBe('-1,000원')
+    expect(fmtSignedMoney(-2.25, 'USDT')).toBe('-2.25 USDT')
+    expect(fmtSignedMoney(0, 'USDT')).toBe('+0.00 USDT')
+  })
+})
+
+describe('roundMoney', () => {
+  it('KRW는 원 단위, USD·USDT는 센트 단위로 반올림한다', () => {
+    expect(roundMoney(1234.5, 'KRW')).toBe(1235)
+    expect(roundMoney(10.555, 'USDT')).toBeCloseTo(10.56)
+    expect(roundMoney(10.554, 'USD')).toBe(10.55)
   })
 })

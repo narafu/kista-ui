@@ -315,7 +315,7 @@ describe('StrategyForm VR settings section', () => {
   })
 
   it('코인 계좌면 DcaStrategyForm에 CRYPTO_KRW 시장과 필터된 티커·기본 티커를 넘긴다', () => {
-    useStrategyFormMock.mockReturnValue({ ...baseFormState, type: 'DCA', isCrypto: true, availableTickers: ['BTC', 'ETH'], defaultTicker: 'BTC' })
+    useStrategyFormMock.mockReturnValue({ ...baseFormState, type: 'DCA', isCrypto: true, market: 'CRYPTO_KRW', availableTickers: ['BTC', 'ETH'], defaultTicker: 'BTC' })
 
     render(<StrategyForm accountId="account-1" broker="UPBIT" />)
 
@@ -326,7 +326,7 @@ describe('StrategyForm VR settings section', () => {
   })
 
   it('주식 계좌면 US_STOCK 시장을 넘긴다', () => {
-    useStrategyFormMock.mockReturnValue({ ...baseFormState, type: 'DCA', isCrypto: false, availableTickers: ['UPRO'] })
+    useStrategyFormMock.mockReturnValue({ ...baseFormState, type: 'DCA', isCrypto: false, market: 'US_STOCK', availableTickers: ['UPRO'] })
 
     render(<StrategyForm accountId="account-1" />)
 

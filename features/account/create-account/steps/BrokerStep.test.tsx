@@ -10,6 +10,7 @@ vi.mock('@entities/meta', () => ({
         { code: 'TOSS', label: '토스증권' },
         { code: 'MOCK', label: '모의계좌' },
         { code: 'UPBIT', label: '업비트' },
+        { code: 'BINANCE', label: '바이낸스' },
       ],
     },
   }),
@@ -47,6 +48,14 @@ describe('BrokerStep runtime availability', () => {
     render(<BrokerStep onNext={vi.fn()} />)
     const names = screen.getAllByRole('button').map((b) => b.textContent ?? '')
     expect(names.map((n) => n.match(/한국투자증권|토스증권|업비트|모의계좌/)?.[0])).toEqual(['한국투자증권', '토스증권', '업비트', '모의계좌'])
+  })
+
+  it('바이낸스 카드는 활성화됐을 때만 보이고 누르면 BINANCE로 넘어간다', () => {
+    useRuntimeConfigQueryMock.mockReturnValue({ data: { brokers: { KIS: { enabled: true }, BINANCE: { enabled: true } } } })
+    const onNext = vi.fn()
+    render(<BrokerStep onNext={onNext} />)
+    screen.getByRole('button', { name: /바이낸스/ }).click()
+    expect(onNext).toHaveBeenCalledWith({ broker: 'BINANCE' })
   })
 
   it('shows an unavailable state while no broker can be safely selected', () => {

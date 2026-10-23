@@ -2,7 +2,7 @@
 
 import { ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { TradingMarket } from '@shared/lib/api-schema'
+import { isCryptoMarket, type TradingMarket } from '@shared/lib/api-schema'
 import { cn } from '@shared/lib/utils'
 import { Badge } from '@shared/ui/Badge'
 import { useMeta } from '@entities/meta'
@@ -33,7 +33,7 @@ function toSummaryInput(r: DcaRuleFormValues) {
 
 export function DcaRuleList({ rules, market, onSelect, onAdd, registerRowRef, error }: Props) {
   const { labelOf } = useMeta()
-  const isCrypto = market === 'CRYPTO_KRW'
+  const isCrypto = isCryptoMarket(market)
 
   return (
     <div className="py-[18px] border-b border-border">
@@ -44,7 +44,7 @@ export function DcaRuleList({ rules, market, onSelect, onAdd, registerRowRef, er
       <ul className="space-y-2">
         {rules.map((r, i) => {
           // 요약 첫 토막은 방향 — 배지로 보여 주고 나머지를 이어 쓴다
-          const [direction, ...rest] = formatDcaRuleSummary(toSummaryInput(r), labelOf, isCrypto).split(SUMMARY_SEPARATOR)
+          const [direction, ...rest] = formatDcaRuleSummary(toSummaryInput(r), labelOf, market).split(SUMMARY_SEPARATOR)
           const conditions = r.conditions.length === 0
             ? '조건 없이 매 회차 주문'
             : r.conditions.map((c) => formatDcaCondition(

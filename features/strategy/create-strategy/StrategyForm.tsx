@@ -95,7 +95,8 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
         initial={initial}
         availableTickers={initial ? [initial.ticker] : form.availableTickers}
         defaultTicker={form.defaultTicker}
-        market={form.isCrypto ? 'CRYPTO_KRW' : 'US_STOCK'}
+        market={form.market}
+        orderAmount={form.orderAmount}
         onSuccess={onSuccess}
         onCancel={onCancel}
         header={!initial && (

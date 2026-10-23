@@ -8,12 +8,13 @@ import { SectionError } from '@shared/ui/SectionError'
 
 interface Props {
   accountId: string
+  broker: string
   /** undefined면 아직 조회 전(또는 실패) — 빈 목록 안내와 구분한다 */
   strategies: Strategy[] | undefined
   isError?: boolean
 }
 
-export function StrategyList({ accountId, strategies, isError = false }: Props) {
+export function StrategyList({ accountId, broker, strategies, isError = false }: Props) {
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -32,7 +33,7 @@ export function StrategyList({ accountId, strategies, isError = false }: Props) 
         ) : (
           <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 lg:gap-3">
             {strategies.map((s) => (
-              <StrategyCard key={s.id} accountId={accountId} strategy={s} />
+              <StrategyCard key={s.id} accountId={accountId} broker={broker} strategy={s} />
             ))}
           </div>
         )}

@@ -4,7 +4,8 @@ import { useId } from 'react'
 import { Controller, type UseFormReturn } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import type { TradingMarket } from '@shared/lib/api-schema'
+import { isCryptoMarket, type TradingMarket } from '@shared/lib/api-schema'
+import { currencyUnit, fmtMoney } from '@shared/lib/format'
 import { SelectionCard } from '@shared/ui/selection-card'
 import { useMeta } from '@entities/meta'
 import { formatExecutionHour, STOCK_WEEKDAYS, WEEKDAY_LABEL, type DcaWeekday } from '@entities/strategy'
@@ -32,7 +33,7 @@ function Caption({ children }: { children: React.ReactNode }) {
 // 규칙 편집 화면의 실행 시점·주기 — 방향은 편집 화면 제목이 보여 주고 바꿀 수 없다(규칙 정체성)
 export function DcaSettingsSection({ form, market, orderTypes, frequencies }: Props) {
   const { labelOf } = useMeta()
-  const isCrypto = market === 'CRYPTO_KRW'
+  const isCrypto = isCryptoMarket(market)
   // 주식은 미국 거래일 기준이라 평일만, 크립토는 24/7이라 7일 모두
   const weekdays = isCrypto ? (Object.keys(WEEKDAY_LABEL) as DcaWeekday[]) : STOCK_WEEKDAYS
   const scheduleErrorId = useId()
@@ -137,14 +138,17 @@ const toNumberOrNull = (v: unknown) => (v === '' || v == null ? null : Number(v)
 
 // 규칙 편집 화면의 규모·부족 시 정책 — 보유 비율은 매도 규칙만 쓴다
 export function DcaSizingSection({ form, market }: Pick<Props, 'form' | 'market'>) {
-  const isCrypto = market === 'CRYPTO_KRW'
+  const isCrypto = isCryptoMarket(market)
+  const { currency, scale, min } = form.watch('orderAmount')
+  const unit = currencyUnit(currency)
+  const amountStep = scale > 0 ? String(10 ** -scale) : '1'
   const amountId = useId()
   const percentId = useId()
   const { watch, setValue, register, formState: { errors } } = form
   const direction = watch('direction')
   const sizingType = watch('sizingType')
   const shortfall = watch('shortfall')
-  const shortfallLabel = direction === 'SELL' ? '보유가 부족할 때' : isCrypto ? '원화가 부족할 때' : '달러가 부족할 때'
+  const shortfallLabel = direction === 'SELL' ? '보유가 부족할 때' : `${currency === 'KRW' ? '원화' : currency === 'USDT' ? 'USDT' : '달러'}가 부족할 때`
 
   return (
     <>
@@ -173,9 +177,9 @@ export function DcaSizingSection({ form, market }: Pick<Props, 'form' | 'market'
           </>
         ) : (
           <>
-            <StrategyFieldLabel htmlFor={amountId}>{isCrypto ? '회차당 금액 (원)' : '회차당 금액 (USD)'}</StrategyFieldLabel>
-            <Input id={amountId} type="number" inputMode={isCrypto ? 'numeric' : 'decimal'} min={0} step={isCrypto ? '1' : '0.01'}
-              placeholder={isCrypto ? '5,000원 이상' : undefined}
+            <StrategyFieldLabel htmlFor={amountId}>{`회차당 금액 (${unit})`}</StrategyFieldLabel>
+            <Input id={amountId} type="number" inputMode={isCrypto && scale === 0 ? 'numeric' : 'decimal'} min={0} step={amountStep}
+              placeholder={isCrypto && min > 0 ? `${fmtMoney(min, currency)} 이상` : undefined}
               aria-invalid={!!errors.amount} aria-describedby={errors.amount ? `${amountId}-error` : undefined}
               {...register('amount', { setValueAs: toNumberOrNull })}
               className="h-11 rounded-[var(--r-sm)] px-3" />

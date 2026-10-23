@@ -3,7 +3,7 @@ import { buildDcaConfig, buildDcaCreatePayload } from './buildDcaPayload'
 import type { DcaFormValues, DcaRuleFormValues } from './dcaFormSchema'
 
 const rule: DcaRuleFormValues = {
-  market: 'US_STOCK', ruleKey: null, direction: 'SELL', orderType: 'MOO', executionHour: null,
+  market: 'US_STOCK', orderAmount: { min: 0, scale: 2, currency: 'USD' }, ruleKey: null, direction: 'SELL', orderType: 'MOO', executionHour: null,
   frequency: 'MONTHLY', dayOfWeek: 'TUESDAY', dayOfMonth: 'LAST',
   sizingType: 'AMOUNT', amount: 150, percent: null, shortfall: 'PARTIAL', conditions: [],
 }
@@ -11,6 +11,13 @@ const form = (rules: DcaRuleFormValues[], o: Partial<DcaFormValues> = {}): DcaFo
   market: 'US_STOCK', ticker: 'QLD', scheduledStartDate: null, initialHoldings: null, initialAvgPrice: null, rules, ...o,
 })
 const first = (r: Partial<DcaRuleFormValues>) => buildDcaConfig(form([{ ...rule, ...r }])).rules[0]
+
+describe('orderAmount', () => {
+  it('payload에 싣지 않는다', () => {
+    expect(first({})).not.toHaveProperty('orderAmount')
+    expect(buildDcaCreatePayload(form([rule])).dca?.rules[0]).not.toHaveProperty('orderAmount')
+  })
+})
 
 describe('buildDcaConfig', () => {
   it('말일(LAST)은 dayOfMonth null, MONTHLY면 남은 dayOfWeek는 null', () => {

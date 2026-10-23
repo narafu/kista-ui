@@ -9,7 +9,7 @@ import { AccountDetailContent } from './AccountDetailContent'
 
 vi.mock('@entities/trade/api', () => ({
   getAccountPortfolio: vi.fn(async () => ({})),
-  getCryptoPortfolio: vi.fn(async () => ({ krwCash: 1, totalAssetKrw: 2, holdings: [] })),
+  getCryptoPortfolio: vi.fn(async () => ({ currency: 'KRW', cash: 1, totalAsset: 2, holdings: [] })),
 }))
 
 const { tabsMock } = vi.hoisted(() => ({ tabsMock: vi.fn((_props: unknown) => null) }))

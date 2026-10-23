@@ -4,9 +4,11 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import type { TradingMarket } from '@shared/lib/api-schema'
+import { isCryptoMarket, marketCurrency, type TradingMarket } from '@shared/lib/api-schema'
+import { currencyUnit } from '@shared/lib/format'
 import { useSubviewHistory } from '@shared/lib/subviewHistory'
 import { FormActions } from '@shared/ui/FormActions'
+import type { OrderAmountRule } from '@entities/meta'
 import { useCreateStrategyMutation, useReconfigureDcaMutation } from '@entities/strategy'
 import type { DcaDirection, Strategy } from '@entities/strategy'
 import { StrategyTickerSection } from './sections/StrategyTickerSection'
@@ -23,6 +25,7 @@ interface Props {
   availableTickers: string[] // 런타임 설정 허용 티커 (StrategyForm이 계산해 전달)
   defaultTicker: string // 런타임 설정 기본 티커 (deriveRuntimeFields가 허용 목록 기준으로 확정)
   market: TradingMarket // 계좌 broker에서 정해지는 시장 — 금액 단위·주문 방식·실행 시각 규칙을 가른다
+  orderAmount: OrderAmountRule // 계좌 broker의 회차 금액 제약 — 규칙 금액 검증 기준
   onSuccess?: () => void
   onCancel?: () => void
   // 목록 화면 위에만 둘 요소(등록의 유형 선택) — 편집 화면에서 유형을 바꾸면 폼이 언마운트돼 편집 이력 칸만 남는다
@@ -34,10 +37,10 @@ type FocusTarget = number | DcaDirection
 
 // DCA 등록·수정 — 규칙 목록 화면과 규칙 하나의 편집 화면을 같은 자리에서 전환한다(spec §3 결정 1·4).
 // 편집 화면은 브라우저 이력 한 칸을 쌓아 뒤로가기가 목록으로 돌아가게 한다(결정 7)
-export function DcaStrategyForm({ accountId, initial, availableTickers, defaultTicker, market, onSuccess, onCancel, header }: Props) {
+export function DcaStrategyForm({ accountId, initial, availableTickers, defaultTicker, market, orderAmount, onSuccess, onCancel, header }: Props) {
   const form = useForm<DcaFormValues>({
     resolver: zodResolver(dcaFormSchema),
-    defaultValues: buildDcaFormDefaults(initial, defaultTicker, market),
+    defaultValues: buildDcaFormDefaults(initial, defaultTicker, market, orderAmount),
   })
   const { fields, append, update, remove } = useFieldArray({ control: form.control, name: 'rules' })
   const [editing, setEditing] = useState<{ index: number | null; direction: DcaDirection } | null>(null)
@@ -67,7 +70,7 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
   const reconfigure = useReconfigureDcaMutation(initial?.id ?? '')
   const pending = create.isPending || reconfigure.isPending
   const ticker = form.watch('ticker')
-  const crypto = market === 'CRYPTO_KRW'
+  const crypto = isCryptoMarket(market)
   const needsHoldingsHint = form.watch('rules').some((r) => r.direction === 'SELL' || r.conditions.some((c) => c.indicator === 'AVG_PRICE'))
   const rulesError = form.formState.errors.rules
   const rulesErrorMessage = rulesError?.root?.message ?? rulesError?.message ?? (rulesError ? '규칙 입력값을 확인하세요.' : undefined)
@@ -91,8 +94,8 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
 
   if (editing) {
     const { index, direction } = editing
-    // 규칙의 market은 항상 부모 값 — 어긋나면 크립토 executionHour가 payload에서 빠진다
-    const rule: DcaRuleFormValues = { ...(index == null ? buildDcaRuleDefaults(direction, market) : form.getValues(`rules.${index}`)), market }
+    // 규칙의 market·orderAmount는 항상 부모 값 — 어긋나면 크립토 executionHour가 payload에서 빠진다
+    const rule: DcaRuleFormValues = { ...(index == null ? buildDcaRuleDefaults(direction, market, orderAmount) : form.getValues(`rules.${index}`)), market, orderAmount }
     return (
       <DcaRuleEditor
         market={market}
@@ -148,7 +151,7 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
               if (form.formState.isSubmitted) void form.trigger(['initialHoldings', 'initialAvgPrice'])
             }}
             loading={pending}
-            priceUnit={crypto ? '원' : 'USD'}
+            priceUnit={currencyUnit(marketCurrency(market))}
             priceMaxDecimals={crypto ? 8 : 2}
             quantityUnit={crypto ? ticker : '주'}
             quantityMaxDecimals={crypto ? 8 : undefined}

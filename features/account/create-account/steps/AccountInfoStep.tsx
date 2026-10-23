@@ -56,7 +56,7 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
 
   const broker = (data.broker || 'KIS') as BrokerCode
   const isMock = isMockBroker(broker)
-  // 계좌번호 설정이 없는 broker(MOCK, UPBIT, MERITZ)는 별칭만 받는다
+  // 계좌번호 설정이 없는 broker(MOCK, UPBIT, MERITZ, BINANCE)는 별칭만 받는다
   const config: AccountNoConfig | null = (ACCOUNT_CONFIG as Partial<Record<BrokerCode, AccountNoConfig>>)[broker] ?? null
 
   const nicknameValid = nickname.trim().length >= 1

@@ -37,7 +37,7 @@
 2. **정적 맵은 market·currency만 갖는다.** Server Component(계좌 상세 prefetch)도 판정해야 하므로 `BROKER_MARKET`과 `MARKET_CURRENCY`는 정적 맵으로 둔다. `minOrderAmount`·`amountScale`은 Client 폼에서 `meta.brokers`로 읽는다. 이렇게 하면 하드코딩된 `MIN_CRYPTO_ORDER_KRW`를 없앨 수 있다.
 3. **zod 규칙에는 주문 금액 제약을 복사해 넣는다.** 지금도 부모 폼이 `market`을 각 규칙에 복사하는데, 같은 방식으로 `orderAmount: { min: number; scale: number; currency: Currency }`를 규칙 값에 넣는다. `buildDcaPayload.toRule`이 필드를 명시적으로 고르므로 payload로 새 나가지 않는다(테스트로 고정한다). 스키마 팩토리는 쓰지 않는다. `useForm` resolver를 다시 만들지 않아도 되고, 기존 패턴과도 같다.
 4. **메타 캐시 폴백.** 메타는 1h 캐시라 새 필드가 빠진 응답이 올 수 있다. 그래서 `minOrderAmount`·`amountScale`·`markets`는 optional로 둔다.
-   - 메타에 값이 없으면 크립토 폼은 `currency`로 정한 기본값을 쓴다. KRW는 min 0, scale 0이고, USDT는 min 0, scale 2다. 하한이 없으면 서버 400이 최종 방어선이 된다.
+   - 메타에 값이 없으면 크립토 폼은 통화별 폴백(KRW 5000·USDT 5, scale은 `CURRENCY_SCALE`)을 쓴다. 서버 400이 최종 방어선이다(구현 시 리뷰 반영으로 하한 0 대신 업비트 기존 동작을 보존하도록 바꿨다).
    - `markets`가 없으면 단수 `market`으로 폴백한다.
 5. **USDT 표기는 `10.50 USDT`로 한다.** 소수 2자리이고 단위는 뒤에 붙인다. `fmtMoney(n, 'USDT')` 하나로 처리한다. 이 표기는 기본값으로 정했고 사용자 확인이 필요하다. 바꾸게 되면 `fmtMoney` 한 곳만 고치면 된다.
 6. **`Math.round` 대신 통화 scale로 반올림한다.** `DcaStrategyDetail`의 평가금액 반올림(`5c834cd5`)은 원 미만 표시를 막으려고 의도적으로 넣은 것이다. 그래서 지우지 않고 `roundMoney(n, currency)`로 바꾼다. KRW는 0자리, USD·USDT는 2자리다.

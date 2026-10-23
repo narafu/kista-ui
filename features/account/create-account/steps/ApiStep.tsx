@@ -7,7 +7,7 @@ import { useTestKisConnectionMutation } from '@entities/account'
 import type { BrokerCode } from '@entities/account'
 import { useRuntimeConfigQuery } from '@entities/runtime-config'
 import type { StepData } from '../CreateAccountStepper'
-import { ApiKeyField, ApiSecretField, ConnectionTest, UpbitKeyGuide } from './ApiStepParts'
+import { ApiKeyField, ApiSecretField, BinanceKeyGuide, ConnectionTest, UpbitKeyGuide } from './ApiStepParts'
 
 interface Props {
   data: StepData
@@ -47,6 +47,17 @@ const BROKER_CONFIG = {
     linkLabel: '업비트 Open API 키 발급',
     needsTest: true,
     hint: '로그인 후 마이페이지 [Open API 관리]에서 API 키를 발급받을 수 있습니다.',
+    minLen: 10,
+  },
+  BINANCE: {
+    title: '바이낸스 API 키 입력',
+    desc: '바이낸스 API 키를 입력하세요.',
+    keyLabel: 'API Key',
+    secretLabel: 'Secret Key',
+    linkHref: 'https://www.binance.com/en/my/settings/api-management',
+    linkLabel: '바이낸스 API 키 발급',
+    needsTest: true,
+    hint: '로그인 후 [계정 - API 관리]에서 API 키를 발급받을 수 있습니다.',
     minLen: 10,
   },
   MERITZ: {
@@ -147,6 +158,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
         </p>
       )}
       {broker === 'UPBIT' && <UpbitKeyGuide allowedIp={runtimeConfig?.brokers.UPBIT?.allowedIp} isLoading={isRuntimeConfigLoading} />}
+      {broker === 'BINANCE' && <BinanceKeyGuide allowedIp={runtimeConfig?.brokers.BINANCE?.allowedIp} isLoading={isRuntimeConfigLoading} />}
 
       {config.needsTest && (
         <ConnectionTest

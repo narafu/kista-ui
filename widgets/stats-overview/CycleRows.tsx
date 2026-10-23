@@ -6,7 +6,7 @@ import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { cn } from '@shared/lib/utils'
-import { fmtDate, fmtSignedKrw, fmtSignedUsd, pnlTextClass, fmtSignedPercent } from '@shared/lib/format'
+import { fmtDate, fmtSignedMoney, pnlTextClass, fmtSignedPercent } from '@shared/lib/format'
 import type { CyclePerformance } from '@entities/stats'
 import { brokerCurrency } from '@shared/lib/api-schema'
 import { useMeta } from '@entities/meta'
@@ -21,10 +21,10 @@ function pnlClass(value: number | null | undefined) {
   return cn('tabular-nums', value != null ? pnlTextClass(value) : 'text-muted-foreground')
 }
 
-// 크립토 계좌(KRW) 행은 원화, 그 외는 USD — 통화는 계좌 broker로 정한다
+// 행 통화는 계좌 broker로 정한다(업비트 KRW, 바이낸스 USDT, 주식 USD)
 function pnlText(pnl: CyclePerformance['pnl'], broker: string | undefined) {
   if (pnl == null) return '—'
-  return brokerCurrency(broker) === 'KRW' ? fmtSignedKrw(pnl) : fmtSignedUsd(pnl, 2, '$')
+  return fmtSignedMoney(pnl, brokerCurrency(broker))
 }
 
 function Period({ cycle }: { cycle: CyclePerformance }) {

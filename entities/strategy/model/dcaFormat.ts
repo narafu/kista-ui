@@ -1,4 +1,5 @@
 import { fmtMoney } from '@shared/lib/format'
+import { isCryptoMarket, marketCurrency, type TradingMarket } from '@shared/lib/api-schema'
 import type { DcaCondition, DcaRule, DcaRuleExecution, DcaRuleRequest, DcaSizing, DcaWeekday } from './types'
 
 // java DayOfWeek 이름이라 메타에 없음 — 요일 한글명만 로컬 상수
@@ -66,19 +67,21 @@ export type DcaLabelOf = (category: 'orderDirections' | 'dcaFrequencies' | 'orde
 
 export type DcaRuleSummaryInput = Pick<DcaRuleRequest, 'direction' | 'frequency' | 'dayOfWeek' | 'dayOfMonth' | 'orderType' | 'sizing'> & { executionHour?: number | null }
 
-export function formatDcaSizing(sizing: DcaSizing, isCrypto: boolean): string {
+// 금액은 계좌 시장의 견적 통화(업비트 KRW, 바이낸스 USDT, 주식 USD)
+export function formatDcaSizing(sizing: DcaSizing, market: TradingMarket): string {
   return sizing.type === 'HOLDING_PERCENT'
     ? `보유 ${sizing.percent}%`
-    : fmtMoney(sizing.amount ?? 0, isCrypto ? 'KRW' : 'USD')
+    : fmtMoney(sizing.amount ?? 0, marketCurrency(market))
 }
 
 // "방향 · 주기[ 시각] · [주문방식 · ]규모" — 주문방식(MOO/MOC)은 주식만 시점으로 의미가 있다
-export function formatDcaRuleSummary(rule: DcaRuleSummaryInput, labelOf: DcaLabelOf, isCrypto: boolean): string {
+export function formatDcaRuleSummary(rule: DcaRuleSummaryInput, labelOf: DcaLabelOf, market: TradingMarket): string {
+  const isCrypto = isCryptoMarket(market)
   return [
     labelOf('orderDirections', rule.direction),
     formatDcaSchedule(rule, labelOf('dcaFrequencies', rule.frequency)),
     ...(isCrypto ? [] : [labelOf('orderTypes', rule.orderType)]),
-    formatDcaSizing(rule.sizing, isCrypto),
+    formatDcaSizing(rule.sizing, market),
   ].join(' · ')
 }
 

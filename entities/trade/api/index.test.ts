@@ -129,7 +129,7 @@ describe('trade api', () => {
     const { getCryptoPortfolio } = await import('./index')
     fetchEitherMock.mockResolvedValueOnce({
       krwCash: '120000',
-      totalAssetKrw: 1520000,
+      totalAssetKrw: 1520000, // currency·신규 필드가 없는 구버전 응답
       holdings: [
         { ticker: 'BTC', quantity: '0.01234567', avgBuyPrice: '100000000', currentPrice: 110000000, evalAmountKrw: 1358024 },
         { ticker: 'ETH', quantity: 0.5, avgBuyPrice: 5000000, currentPrice: null, evalAmountKrw: null },
@@ -139,10 +139,33 @@ describe('trade api', () => {
     const result = await getCryptoPortfolio('a1')
 
     expect(fetchEitherMock).toHaveBeenCalledWith('/api/accounts/a1/crypto-portfolio', { method: 'GET' }, undefined)
-    expect(result.krwCash).toBe(120000)
-    expect(result.holdings[0]).toEqual({ ticker: 'BTC', quantity: 0.01234567, avgBuyPrice: 100000000, currentPrice: 110000000, evalAmountKrw: 1358024 })
+    expect(result.currency).toBe('KRW')
+    expect(result.cash).toBe(120000)
+    expect(result.totalAsset).toBe(1520000)
+    expect(result.holdings[0]).toEqual({ ticker: 'BTC', quantity: 0.01234567, avgBuyPrice: 100000000, currentPrice: 110000000, evalAmount: 1358024 })
     expect(result.holdings[1].currentPrice).toBeNull()
-    expect(result.holdings[1].evalAmountKrw).toBe(0)
+    expect(result.holdings[1].evalAmount).toBe(0)
+  })
+
+  it('getCryptoPortfolio는 신규 필드(currency·cash·totalAsset·evalAmount)를 우선하고 평단 null을 0으로 바꾸지 않는다', async () => {
+    const { getCryptoPortfolio } = await import('./index')
+    fetchEitherMock.mockResolvedValueOnce({
+      currency: 'USDT',
+      cash: '10.5',
+      totalAsset: 100.25,
+      krwCash: 999,
+      totalAssetKrw: 999,
+      holdings: [{ ticker: 'BTC', quantity: 0.001, avgBuyPrice: null, currentPrice: '65000.5', evalAmount: '65.0', evalAmountKrw: 999 }],
+    })
+
+    const result = await getCryptoPortfolio('a1')
+
+    expect(result).toEqual({
+      currency: 'USDT',
+      cash: 10.5,
+      totalAsset: 100.25,
+      holdings: [{ ticker: 'BTC', quantity: 0.001, avgBuyPrice: null, currentPrice: 65000.5, evalAmount: 65 }],
+    })
   })
 
   it('getCryptoPrices는 tickers 쿼리로 호출하고 종목→가격 맵으로 바꾼다', async () => {

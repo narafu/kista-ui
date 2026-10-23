@@ -46,7 +46,7 @@ vi.mock('@entities/meta', () => ({
 
 const settings: RuntimeConfig = {
   auth: { approvalRequired: true },
-  brokers: { KIS: { enabled: true }, TOSS: { enabled: true }, MOCK: { enabled: true }, UPBIT: { enabled: true }, MERITZ: { enabled: true } },
+  brokers: { KIS: { enabled: true }, TOSS: { enabled: true }, MOCK: { enabled: true }, UPBIT: { enabled: true }, MERITZ: { enabled: true }, BINANCE: { enabled: true } },
   benchmarks: {
     etf: { allowedValues: ['SPY', 'QQQ'], defaultValue: 'SPY' },
   },
