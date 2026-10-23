@@ -19,15 +19,15 @@
 | # | 가정 | 확인 방법 |
 |---|---|---|
 | A1 | `BrokerCode`에 `BINANCE`가 추가된다 | gen:types 후 `BROKER_MARKET` `Record<BrokerCode,…>`에서 typecheck가 깨진다(의도된 신호) |
-| A2 | `GET /api/meta` `brokers[]` = `{code,label,description,market,currency,minOrderAmount:string,amountScale:number}`. BINANCE는 `market:"CRYPTO_USDT"`, `currency:"USDT"`, `minOrderAmount:"5"`, `amountScale:2`. UPBIT은 `"5000"`/0, US_STOCK broker는 `"0"`/2 | 로컬 api `curl /api/meta` |
+| A2 | `GET /api/meta` `brokers[]` = `{code,label,description,market,currency,minOrderAmount:string,amountScale:number}`. BINANCE는 `market:"CRYPTO_USDT"`, `currency:"USDT"`, `minOrderAmount:"5"`, `amountScale:2`. UPBIT은 `"5000"`/0, US_STOCK broker는 `"0"`/2 | 로컬 api `curl /api/meta`. 2026-10-23 바이낸스-api 사전 확인(계획 2 기준, MetaControllerTest 단언) |
 | A3 | `tickers[].markets: string[]`. BTC·ETH = `["CRYPTO_KRW","CRYPTO_USDT"]`. 단수 `market`은 다음 릴리스에 제거된다 | 동일 |
 | A4 | `crypto-portfolio`에 `currency`("KRW"\|"USDT"), `cash`, `totalAsset`, `holdings[].evalAmount`가 생긴다. `krwCash`·`totalAssetKrw`·`evalAmountKrw`는 deprecated(같은 값). `holdings[].avgBuyPrice`는 nullable | api-types 스키마 |
 | A5 | `AdminTradeResponse.currency`(nullable) | api-types |
-| A6 | SSE `TradeEventMessage.currency`("USD"\|"KRW"\|"USDT"\|null). null은 USD로 해석한다 | api-types 또는 kista-api 소스 |
+| A6 | SSE `TradeEventMessage.currency`("USD"\|"KRW"\|"USDT"\|null). null은 USD로 해석한다 | 2026-10-23 사전 확인: record 마지막 컴포넌트 `currency`, 키 개명 어노테이션 없음 — 구 메시지·INFO/FAIL은 null |
 | A7 | `ErrorCode`에 `BROKER_WITHDRAWAL_ENABLED`가 생긴다 | api-types |
 | A8 | 런타임 설정 `brokers.BINANCE = {enabled:false, allowedIp:"168.107.63.152"}` | `/api/admin/settings` 응답 |
 | A9 | BINANCE 계좌 등록: `appKey`=API Key, `secretKey`=Secret Key, `accountNo` 없음. 응답 `accountNo`·`accountNoMasked`·`apiKeyExpiresAt`은 null | api-types·로컬 등록은 실키 필요(미검증 대상) |
-| A10 | DCA 규칙 `sizing.amount`는 USDT 소수 2자리까지 서버가 받는다. `executionHour`는 크립토 시장 전체에 적용된다 | kista-api `DcaRuleRequest` 검증 소스 |
+| A10 | DCA 규칙 `sizing.amount`는 USDT 소수 2자리까지 서버가 받는다. `executionHour`는 크립토 시장 전체에 적용된다 | 2026-10-23 사전 확인: CRYPTO_USDT 소수 2자리·최소 5 USDT(`DcaRule.requireCompatible`). 거부 문구 "코인 DCA 금액은 소수 2자리까지 입력할 수 있습니다"·"코인 DCA 금액은 5.00 USDT 이상이어야 합니다". 코인 시장은 MARKET 필수, MARKET이면 executionHour(KST 0~23) 필수 |
 
 가정이 하나라도 틀리면 해당 태스크를 실제 계약에 맞춰 고치고, 계약 쪽 결함이면 바이낸스-api 세션에 알린다.
 
