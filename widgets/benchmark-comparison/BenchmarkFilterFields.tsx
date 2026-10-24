@@ -144,7 +144,8 @@ export function CustomDateRange({
   defaultTo: string
 }) {
   return (
-    <div className="mt-2 flex items-center gap-2">
+    // iOS 사파리의 date 입력은 고유 최소 폭이 있어 좁은 화면에서 둘을 한 줄에 두면 서로 겹친다 — 모바일은 세로로 쌓는다
+    <div className="mt-2 grid grid-cols-1 gap-2 sm:flex sm:items-center">
       <Input
         type="date"
         aria-label="시작일"
@@ -153,7 +154,7 @@ export function CustomDateRange({
         onChange={(event) => setCustomFromDate(event.target.value)}
         className="h-10"
       />
-      <span className="shrink-0 text-xs text-muted-foreground">~</span>
+      <span aria-hidden className="hidden shrink-0 text-xs text-muted-foreground sm:inline">~</span>
       <Input
         type="date"
         aria-label="종료일"
