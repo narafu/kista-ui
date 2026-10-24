@@ -7,9 +7,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SaveButton } from '@shared/ui/SaveButton'
-import { DIRECTION_LABEL, orderTypeLabel } from '@entities/trade'
 import { orderRequiresQuantity, useUpdateAdminPrivacyOrderMutation } from '@entities/privacy'
 import type { AdminPrivacyOrder } from '@entities/privacy'
+import { useMeta } from '@entities/meta'
 import { PrivacyOrderQuantityField } from './PrivacyOrderQuantityField'
 
 interface Props {
@@ -20,6 +20,7 @@ interface Props {
 }
 
 export function EditPrivacyOrderDialog({ baseId, order, open, onOpenChange }: Props) {
+  const { labelOf } = useMeta()
   const [price, setPrice] = useState(String(order.price))
   const [quantity, setQuantity] = useState(order.quantity == null ? '' : String(order.quantity))
   const updateMutation = useUpdateAdminPrivacyOrderMutation(baseId, order.id)
@@ -48,7 +49,7 @@ export function EditPrivacyOrderDialog({ baseId, order, open, onOpenChange }: Pr
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{DIRECTION_LABEL[order.direction] ?? order.direction} {orderTypeLabel(order.orderType)} 주문 수정</DialogTitle>
+            <DialogTitle>{labelOf('orderDirections', order.direction)} {labelOf('orderTypes', order.orderType)} 주문 수정</DialogTitle>
             <DialogDescription>가격, 수량을 입력하세요.</DialogDescription>
           </DialogHeader>
 

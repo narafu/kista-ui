@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useStrategyOrdersQuery, orderStatusBadgeClass, ORDER_STATUS_LABEL } from '@entities/order'
-import { DIRECTION_LABEL, directionTextClass, orderTypeLabel } from '@entities/trade'
+import { directionTextClass } from '@entities/trade'
+import { useMeta } from '@entities/meta'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export function StrategyOrderHistory({ strategyId }: Props) {
+  const { labelOf } = useMeta()
   const { rangeType, customFrom, customTo, pageSize, setRangeType, setCustomFrom, setCustomTo, setPageSize } = useRangeFilterState()
   const [page, setPage] = useState(1)
   const [directionFilter, setDirectionFilter] = useState<OrderHistoryFilterValue>(ALL_FILTER_VALUE)
@@ -108,10 +110,10 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                   {pageOrders.map((o) => (
                     <tr key={o.id} className="border-t hover:bg-muted/30 transition-colors">
                       <TableDataCell className="text-muted-foreground whitespace-nowrap">{fmtDate(o.tradeDate)}</TableDataCell>
-                      <TableDataCell className={`font-semibold whitespace-nowrap ${directionTextClass(o.direction)}`}>{DIRECTION_LABEL[o.direction] ?? o.direction}</TableDataCell>
+                      <TableDataCell className={`font-semibold whitespace-nowrap ${directionTextClass(o.direction)}`}>{labelOf('orderDirections', o.direction)}</TableDataCell>
                       <TableDataCell className="whitespace-nowrap">
                         <Badge tone="neutral" size="sm">
-                          {orderTypeLabel(o.orderType)}
+                          {labelOf('orderTypes', o.orderType)}
                         </Badge>
                       </TableDataCell>
                       <TableDataCell className="text-right tabular-nums whitespace-nowrap">

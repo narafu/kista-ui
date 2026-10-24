@@ -3,7 +3,7 @@ import { dcaIndicatorLabel, earliestNextExecution, formatCryptoNextExecution, fo
 import type { DcaLabelOf } from './dcaFormat'
 import type { DcaRule } from './types'
 
-const labelOf: DcaLabelOf = (_c, code) => ({ BUY: '매수', SELL: '매도', DAILY: '매일', MONTHLY: '매월', MOC: 'MOC' } as Record<string, string>)[code] ?? code
+const labelOf: DcaLabelOf = (_c, code) => ({ BUY: '매수', SELL: '매도', DAILY: '매일', MONTHLY: '매월', MOC: 'MOC(종가시장가)' } as Record<string, string>)[code] ?? code
 const BASE_RULE: DcaRule = {
   ruleKey: 'k', direction: 'BUY', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC', executionHour: null,
   sizing: { type: 'AMOUNT', amount: 100, percent: null }, shortfall: 'PARTIAL', conditions: [], nextExecution: null, lastExecution: null,

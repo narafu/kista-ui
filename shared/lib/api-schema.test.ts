@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { brokerCurrency, formatBrokerLabel, isCryptoBroker, isCryptoMarket, isKeyOnlyBroker } from './api-schema'
+import { brokerCurrency, isCryptoBroker, isCryptoMarket, isKeyOnlyBroker } from './api-schema'
 
 describe('isCryptoBroker', () => {
   it('업비트만 코인 거래소로 본다', () => {
@@ -37,7 +37,6 @@ describe('바이낸스', () => {
     expect(isCryptoBroker('BINANCE')).toBe(true)
     expect(isKeyOnlyBroker('BINANCE')).toBe(true)
     expect(brokerCurrency('BINANCE')).toBe('USDT')
-    expect(formatBrokerLabel('BINANCE')).toBe('바이낸스')
   })
 })
 
@@ -60,11 +59,5 @@ describe('isCryptoMarket', () => {
     expect(isCryptoMarket('US_STOCK')).toBe(false)
     // 1h 메타 캐시로 market이 빠진 티커는 주식으로 본다
     expect(isCryptoMarket(undefined)).toBe(false)
-  })
-})
-
-describe('formatBrokerLabel', () => {
-  it('업비트 라벨을 갖는다', () => {
-    expect(formatBrokerLabel('UPBIT')).toBe('업비트')
   })
 })

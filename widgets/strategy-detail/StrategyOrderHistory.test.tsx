@@ -4,6 +4,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { StrategyOrder } from '@entities/order'
 import { StrategyOrderHistory } from './StrategyOrderHistory'
 
+const ORDER_LABELS: Record<string, string> = { BUY: '매수', SELL: '매도', LOC: 'LOC(종가지정가)', MOC: 'MOC(종가시장가)', LIMIT: 'LIMIT(지정가)', MOO: 'MOO(시가시장가)', MARKET: 'MARKET(시장가)' }
+vi.mock('@entities/meta', () => ({
+  useMeta: () => ({
+    meta: { orderDirections: [{ code: 'BUY' }, { code: 'SELL' }], orderTypes: Object.keys(ORDER_LABELS).filter((c) => c !== 'BUY' && c !== 'SELL').map((code) => ({ code })) },
+    labelOf: (_g: string, code: string) => ORDER_LABELS[code] ?? code,
+  }),
+}))
+
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
@@ -85,7 +93,7 @@ describe('StrategyOrderHistory filters', () => {
   }, 15000)
 
   it.each([
-    ['유형', 'LOC(종가지정)', '$110.00', '$100.00'],
+    ['유형', 'LOC(종가지정가)', '$110.00', '$100.00'],
     ['상태', '체결', '$120.00', '$110.00'],
   ] as const)('%s 필터를 적용한다', async (label, option, visible, hidden) => {
     render(<StrategyOrderHistory strategyId="strategy-1" />)
@@ -101,7 +109,7 @@ describe('StrategyOrderHistory filters', () => {
     render(<StrategyOrderHistory strategyId="strategy-1" />)
 
     await selectOption('방향', '매도')
-    await selectOption('유형', 'LOC(종가지정)')
+    await selectOption('유형', 'LOC(종가지정가)')
     await selectOption('상태', '접수')
 
     expect(screen.getByText('$110.00')).toBeInTheDocument()
@@ -113,7 +121,7 @@ describe('StrategyOrderHistory filters', () => {
 
     await selectOption('상태', '전체')
     await selectOption('방향', '매수')
-    await selectOption('유형', 'LOC(종가지정)')
+    await selectOption('유형', 'LOC(종가지정가)')
 
     expect(screen.getByText('조건에 맞는 주문이 없습니다.')).toBeInTheDocument()
     expect(screen.queryByText('주문 내역이 없습니다.')).not.toBeInTheDocument()

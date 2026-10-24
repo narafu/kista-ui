@@ -10,7 +10,8 @@ import type { NextOrderPreview, OrderReadiness } from '@entities/order'
 import { SKIP_REASON_LABELS, BUY_COPY, SELL_COPY, directionUnplacedMessage, previewErrorMsg } from './orderBannerCopy'
 import { OrderRows } from './OrderRows'
 import { Button } from '@/components/ui/button'
-import { formatBrokerLabel, isMockBroker } from '@shared/lib/api-schema'
+import { isMockBroker } from '@shared/lib/api-schema'
+import { useMeta } from '@entities/meta'
 
 interface Props {
   strategy: Strategy
@@ -145,6 +146,7 @@ export function NextOrderCard({
   execute,
   isExecuting,
 }: Props) {
+  const { labelOf } = useMeta()
   const placedOrders = preview?.todayOrders ?? []
   const orders = preview?.orders ?? []
 
@@ -208,7 +210,7 @@ export function NextOrderCard({
                     } else if (r.credentialFailedCount > 0) {
                       toast.error(`${r.cancelledCount}건 취소, ${r.failedCount}건 실패. 증권사 키가 만료·철회돼 취소할 수 없습니다. 계좌 키를 다시 등록하세요.`)
                     } else {
-                      toast.warning(`${r.cancelledCount}건 취소, ${r.failedCount}건 실패. ${isMockBroker(broker) ? '잠시 후 다시 시도해주세요.' : `${broker ? formatBrokerLabel(broker) : '증권사'}에서 직접 확인하세요.`}`)
+                      toast.warning(`${r.cancelledCount}건 취소, ${r.failedCount}건 실패. ${isMockBroker(broker) ? '잠시 후 다시 시도해주세요.' : `${broker ? labelOf('brokers', broker) : '증권사'}에서 직접 확인하세요.`}`)
                     }
                   },
                 })

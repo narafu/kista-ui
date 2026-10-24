@@ -5,7 +5,6 @@ import { useMeta } from '@entities/meta'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { formatBrokerLabel } from '@shared/lib/api-schema'
 import { toSelectValue } from '@shared/lib/utils'
 import { AdminBatchOrderCorrectionForm } from './AdminBatchOrderCorrectionForm'
 import type { ReorderBatchItem } from './AdminBatchOrderCorrectionForm'
@@ -72,9 +71,9 @@ export function AdminTradeCorrectionPanel({
   const { labelOf } = useMeta()
   const nextStrategyActionLabel = selectedStrategy?.status === 'ACTIVE' ? '전략 일시중지' : '전략 재개'
   const userItems = users.map((user) => ({ value: user.id, label: user.label }))
-  const brokerItems = brokers.map((broker) => ({ value: broker, label: formatBrokerLabel(broker) }))
-  // 메리츠는 계좌번호가 없어 증권사명과 id 앞자리로 구분
-  const accountItems = accounts.map((account) => ({ value: account.id, label: account.accountNoMasked ?? `${formatBrokerLabel(account.broker)} ${account.id.slice(0, 8)}` }))
+  const brokerItems = brokers.map((broker) => ({ value: broker, label: labelOf('brokers', broker) }))
+  // 계좌번호가 없는 계좌(메리츠·바이낸스)는 증권사·거래소명과 id 앞자리로 구분
+  const accountItems = accounts.map((account) => ({ value: account.id, label: account.accountNoMasked ?? `${labelOf('brokers', account.broker)} ${account.id.slice(0, 8)}` }))
   const strategyItems = strategies.map((strategy) => ({ value: strategy.id, label: `${labelOf('strategyTypes', strategy.type)} · ${strategy.ticker}` }))
   const helperMessage = getHelperMessage({ brokers, accounts, strategies, orders, selectedUserId, selectedBroker, selectedAccountId, selectedStrategyId })
 

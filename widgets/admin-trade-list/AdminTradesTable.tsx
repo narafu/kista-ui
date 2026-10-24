@@ -1,7 +1,7 @@
 import { useMeta } from '@entities/meta'
 import { fmtDate, fmtMoney, fmtQuantity } from '@shared/lib/format'
 import { isCryptoMarket, toCurrency, type Currency } from '@shared/lib/api-schema'
-import { DIRECTION_LABEL, directionTextClass, orderTypeLabel } from '@entities/trade'
+import { directionTextClass } from '@entities/trade'
 import { orderStatusBadgeClass, ORDER_STATUS_LABEL } from '@entities/order'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Badge } from '@shared/ui/Badge'
@@ -56,9 +56,9 @@ export function AdminTradesTable({ trades }: Props) {
                 <TableDataCell className="text-muted-foreground whitespace-nowrap">{trade.strategyType ? labelOf('strategyTypes', trade.strategyType) : '-'}</TableDataCell>
                 <TableDataCell className="whitespace-nowrap">{trade.ticker}</TableDataCell>
                 <TableDataCell className={`font-semibold whitespace-nowrap ${directionTextClass(trade.direction)}`}>
-                  {DIRECTION_LABEL[trade.direction] ?? trade.direction}
+                  {labelOf('orderDirections', trade.direction)}
                 </TableDataCell>
-                <TableDataCell className="text-muted-foreground whitespace-nowrap">{orderTypeLabel(trade.orderType)}</TableDataCell>
+                <TableDataCell className="text-muted-foreground whitespace-nowrap">{labelOf('orderTypes', trade.orderType)}</TableDataCell>
                 <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtQuantity(trade.quantity)}</TableDataCell>
                 <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtTradePrice(trade.price, toCurrency(trade.currency), isCryptoMarket(findTicker(trade.ticker)?.market))}</TableDataCell>
                 <TableDataCell className="whitespace-nowrap">

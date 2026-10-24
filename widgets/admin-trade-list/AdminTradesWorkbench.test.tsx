@@ -18,7 +18,7 @@ import { AdminTradesWorkbench } from './AdminTradesWorkbench'
 
 vi.mock('@entities/meta', () => ({
   useMeta: () => ({
-    labelOf: (group: string, code: string) => (group === 'strategyStatuses' ? ({ ACTIVE: '운영중', PAUSED: '일시중지' } as Record<string, string>)[code] : undefined) ?? code,
+    labelOf: (group: string, code: string) => ((group === 'strategyStatuses' ? { ACTIVE: '운영중', PAUSED: '일시중지' } : group === 'brokers' ? { KIS: '한국투자증권', TOSS: '토스증권', MOCK: '모의계좌' } : group === 'orderDirections' ? { BUY: '매수', SELL: '매도' } : {}) as Record<string, string>)[code] ?? code,
     findTicker: () => undefined,
   }),
 }))

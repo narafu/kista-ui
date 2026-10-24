@@ -3,7 +3,6 @@
 import { Suspense } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { formatBrokerLabel } from '@shared/lib/api-schema'
 import { useMeta } from '@entities/meta'
 import { strategyTypeShort } from '@entities/strategy'
 
@@ -53,7 +52,7 @@ function AdminAccountsFilterBarContent({ owners, pageParamKeys = ['page'] }: Pro
       </Select>
 
       <Select
-        items={[{ value: ALL, label: '전체 증권사·거래소' }, ...meta.brokers.map((b) => ({ value: b.code, label: formatBrokerLabel(b.code) }))]}
+        items={[{ value: ALL, label: '전체 증권사·거래소' }, ...meta.brokers.map((b) => ({ value: b.code, label: labelOf('brokers', b.code) }))]}
         value={broker}
         onValueChange={(v) => { if (v) setParam('broker', v) }}
       >
@@ -62,7 +61,7 @@ function AdminAccountsFilterBarContent({ owners, pageParamKeys = ['page'] }: Pro
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={ALL}>전체 증권사·거래소</SelectItem>
-          {meta.brokers.map((b) => <SelectItem key={b.code} value={b.code}>{formatBrokerLabel(b.code)}</SelectItem>)}
+          {meta.brokers.map((b) => <SelectItem key={b.code} value={b.code}>{labelOf('brokers', b.code)}</SelectItem>)}
         </SelectContent>
       </Select>
 

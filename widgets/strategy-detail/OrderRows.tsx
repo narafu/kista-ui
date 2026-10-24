@@ -3,7 +3,8 @@
 import { cn } from '@shared/lib/utils'
 import { fmtQuantity, fmtUsd } from '@shared/lib/format'
 import { toNum } from '@shared/lib/utils'
-import { DIRECTION_LABEL, directionBadgeClass } from '@entities/trade'
+import { directionBadgeClass } from '@entities/trade'
+import { useMeta } from '@entities/meta'
 import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
@@ -26,6 +27,7 @@ interface Props {
 }
 
 export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: Props) {
+  const { labelOf } = useMeta()
   const hasCancel = !!onCancelOne
 
   return (
@@ -50,7 +52,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
           )}>
             <div className="flex justify-center">
               <Badge tone="none" size="sm" className={directionBadgeClass(o.direction)}>
-                {DIRECTION_LABEL[o.direction] ?? o.direction}
+                {labelOf('orderDirections', o.direction)}
               </Badge>
             </div>
             <span className="font-medium">{o.ticker}</span>
@@ -88,7 +90,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
             <tr key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className="border-t hover:bg-muted/30 transition-colors">
               <TableDataCell>
                 <Badge tone="none" size="sm" className={cn('lg:h-[24px] lg:text-sm', directionBadgeClass(o.direction))}>
-                  {DIRECTION_LABEL[o.direction] ?? o.direction}
+                  {labelOf('orderDirections', o.direction)}
                 </Badge>
               </TableDataCell>
               <TableDataCell className="font-semibold">{o.ticker}</TableDataCell>

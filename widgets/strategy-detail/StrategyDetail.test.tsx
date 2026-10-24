@@ -121,7 +121,7 @@ vi.mock('@entities/market', () => ({
 
 vi.mock('@entities/meta', () => ({
   useMeta: () => ({
-    labelOf: (group: string, value: string) => group === 'strategyStatuses' && value === 'PAUSED' ? '일시중지' : value,
+    labelOf: (group: string, value: string) => group === 'strategyStatuses' && value === 'PAUSED' ? '일시중지' : group === 'brokers' && value === 'TOSS' ? '토스증권' : value,
     findStrategyType: (code: string) => {
       if (code === 'INFINITE') return { divisionCounts: [20, 30, 40] }
       return { divisionCounts: [] }

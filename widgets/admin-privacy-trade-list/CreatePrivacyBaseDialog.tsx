@@ -13,7 +13,7 @@ import { SaveButton } from '@shared/ui/SaveButton'
 import { todayKst } from '@shared/lib/format'
 import { orderRequiresQuantity, useCreateAdminPrivacyBaseMutation } from '@entities/privacy'
 import type { AdminPrivacyOrder, AdminPrivacyOrderRequest } from '@entities/privacy'
-import { DIRECTION_ITEMS, ORDER_TYPE_ITEMS } from './orderSelectItems'
+import { usePrivacyOrderSelectItems } from './orderSelectItems'
 import { PrivacyOrderQuantityField } from './PrivacyOrderQuantityField'
 
 interface Props {
@@ -34,6 +34,7 @@ let nextOrderKey = 0
 const newDraftOrder = (): DraftOrder => ({ key: nextOrderKey++, direction: 'BUY', orderType: 'LOC', price: '', quantity: '' })
 
 export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
+  const { directionItems, orderTypeItems } = usePrivacyOrderSelectItems()
   const [releaseDate, setReleaseDate] = useState(() => todayKst())
   const [ticker, setTicker] = useState('SOXL')
   const [currentCycleStart, setCurrentCycleStart] = useState('')
@@ -133,19 +134,19 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
                 <div key={o.key} className="grid grid-cols-2 items-end gap-2 sm:flex rounded-[var(--r-sm)] border border-border p-3">
                   <div className="flex-1 space-y-1">
                     <Label htmlFor={`base-order-${i}-direction`} className="text-xs">방향</Label>
-                    <Select items={DIRECTION_ITEMS} value={o.direction} onValueChange={(v) => { if (v) updateOrder(i, { direction: v as DraftOrder['direction'] }) }}>
+                    <Select items={directionItems} value={o.direction} onValueChange={(v) => { if (v) updateOrder(i, { direction: v as DraftOrder['direction'] }) }}>
                       <SelectTrigger id={`base-order-${i}-direction`} className="h-10 w-full" disabled={isPending}><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {DIRECTION_ITEMS.map((it) => <SelectItem key={it.value} value={it.value}>{it.label}</SelectItem>)}
+                        {directionItems.map((it) => <SelectItem key={it.value} value={it.value}>{it.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="flex-1 space-y-1">
                     <Label htmlFor={`base-order-${i}-type`} className="text-xs">유형</Label>
-                    <Select items={ORDER_TYPE_ITEMS} value={o.orderType} onValueChange={(v) => { if (v) updateOrder(i, { orderType: v as DraftOrder['orderType'] }) }}>
+                    <Select items={orderTypeItems} value={o.orderType} onValueChange={(v) => { if (v) updateOrder(i, { orderType: v as DraftOrder['orderType'] }) }}>
                       <SelectTrigger id={`base-order-${i}-type`} className="h-10 w-full" disabled={isPending}><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {ORDER_TYPE_ITEMS.map((it) => <SelectItem key={it.value} value={it.value}>{it.label}</SelectItem>)}
+                        {orderTypeItems.map((it) => <SelectItem key={it.value} value={it.value}>{it.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>

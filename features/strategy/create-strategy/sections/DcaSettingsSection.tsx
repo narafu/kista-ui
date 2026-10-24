@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { isCryptoMarket, type TradingMarket } from '@shared/lib/api-schema'
 import { currencyUnit, fmtMoney } from '@shared/lib/format'
-import { orderTypeLabel } from '@shared/lib/orderType'
 import { SelectionCard } from '@shared/ui/selection-card'
 import { useMeta } from '@entities/meta'
 import { formatExecutionHour, STOCK_WEEKDAYS, WEEKDAY_LABEL, type DcaWeekday } from '@entities/strategy'
@@ -49,7 +48,7 @@ export function DcaSettingsSection({ form, market, orderTypes, frequencies }: Pr
             {orderTypes.map((code) => (
               <SelectionCard key={code} selected={orderType === code} onClick={() => setValue('orderType', code as DcaRuleFormValues['orderType'])}
                 className="flex-1 px-3 py-2 text-center">
-                <div className="text-sm font-[800]">{orderTypeLabel(code)}</div>
+                <div className="text-sm font-[800]">{labelOf('orderTypes', code)}</div>
               </SelectionCard>
             ))}
           </div>

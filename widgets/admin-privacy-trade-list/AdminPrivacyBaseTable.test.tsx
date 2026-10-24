@@ -5,6 +5,11 @@ import { privacyKeys } from '@entities/privacy'
 import type { AdminPrivacyBase } from '@entities/privacy'
 import { AdminPrivacyBaseTable } from './AdminPrivacyBaseTable'
 
+const ORDER_LABELS: Record<string, string> = { BUY: '매수', SELL: '매도', LOC: 'LOC(종가지정가)', MOC: 'MOC(종가시장가)', LIMIT: 'LIMIT(지정가)', MOO: 'MOO(시가시장가)', MARKET: 'MARKET(시장가)' }
+vi.mock('@entities/meta', () => ({
+  useMeta: () => ({ labelOf: (_g: string, code: string) => ORDER_LABELS[code] ?? code }),
+}))
+
 vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
@@ -84,7 +89,7 @@ describe('AdminPrivacyBaseTable mobile UX', () => {
     fireEvent.click(toggle)
 
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
-    expect(within(mobileList).getByText('LOC(종가지정)')).toBeInTheDocument()
+    expect(within(mobileList).getByText('LOC(종가지정가)')).toBeInTheDocument()
     expect(within(mobileList).getByText('$100.25')).toBeInTheDocument()
   })
 })
@@ -218,6 +223,6 @@ describe('AdminPrivacyBaseTable empty states', () => {
     const table = screen.getByTestId('admin-privacy-desktop-table')
     fireEvent.click(within(table).getByRole('button', { name: '2026-07-02 NVDA 주문 명세' }))
     fireEvent.click(within(table).getByRole('button', { name: /삭제$/ }))
-    expect(screen.getByText('매수 LOC(종가지정) $100.25 × 1주 주문을 삭제합니다.')).toBeInTheDocument()
+    expect(screen.getByText('매수 LOC(종가지정가) $100.25 × 1주 주문을 삭제합니다.')).toBeInTheDocument()
   })
 })

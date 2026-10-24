@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button'
 import { IconButton } from '@shared/ui/IconButton'
 import { fmtUsd, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
-import { DIRECTION_LABEL, directionTextClass, orderTypeLabel } from '@entities/trade'
+import { directionTextClass } from '@entities/trade'
+import { useMeta } from '@entities/meta'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
@@ -26,9 +27,12 @@ import { latestYearlyResetByTicker } from './model/privacyChartSeries'
 // 조회 전·실패 시 useMemo 의존성 참조를 고정한다
 const EMPTY_BASES: AdminPrivacyBase[] = []
 
-function describeOrder(order: AdminPrivacyOrder): string {
+// 필요한 카테고리만 좁힌 labelOf (MetaProvider.labelOf를 그대로 넘길 수 있다)
+type OrderLabelOf = (category: 'orderDirections' | 'orderTypes', code: string) => string
+
+function describeOrder(order: AdminPrivacyOrder, labelOf: OrderLabelOf): string {
   const qty = order.quantity == null ? '' : ` × ${order.quantity}주`
-  return `${DIRECTION_LABEL[order.direction] ?? order.direction} ${orderTypeLabel(order.orderType)} $${fmtUsd(order.price)}${qty}`
+  return `${labelOf('orderDirections', order.direction)} ${labelOf('orderTypes', order.orderType)} $${fmtUsd(order.price)}${qty}`
 }
 
 interface Props {
@@ -44,6 +48,7 @@ interface Props {
 }
 
 export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset = false, pageSize, page }: Props) {
+  const { labelOf } = useMeta()
   const { data, isError, isFetching, refetch } = useAdminPrivacyBasesQuery()
   const allBases = data ?? EMPTY_BASES
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
@@ -222,7 +227,7 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
         open={deleteOrderTarget != null}
         onOpenChange={(next) => { if (!next) setDeleteOrderRef(null) }}
         title="주문 삭제"
-        description={deleteOrderTarget ? `${describeOrder(deleteOrderTarget.order)} 주문을 삭제합니다.` : ''}
+        description={deleteOrderTarget ? `${describeOrder(deleteOrderTarget.order, labelOf)} 주문을 삭제합니다.` : ''}
         onConfirm={handleDeleteOrder}
         isPending={deleteOrderMutation.isPending}
       />
@@ -336,6 +341,7 @@ function OrderDetailsTable({
   onEditOrder: (order: AdminPrivacyOrder) => void
   onDeleteOrder: (order: AdminPrivacyOrder) => void
 }) {
+  const { labelOf } = useMeta()
   return (
     <table className="w-full text-xs">
       <thead>
@@ -351,22 +357,22 @@ function OrderDetailsTable({
         {orders.map((o) => (
           <tr key={o.id}>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-left font-semibold', directionTextClass(o.direction))}>
-              {DIRECTION_LABEL[o.direction] ?? o.direction}
+              {labelOf('orderDirections', o.direction)}
             </TableDataCell>
-            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-left text-muted-foreground')}>{orderTypeLabel(o.orderType)}</TableDataCell>
+            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-left text-muted-foreground')}>{labelOf('orderTypes', o.orderType)}</TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right tabular-nums')}>${fmtUsd(o.price)}</TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right')}>{o.quantity ?? '-'}</TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right')}>
               <span className="inline-flex items-center gap-1.5">
                 <IconButton
                   onClick={(e) => { e.stopPropagation(); onEditOrder(o) }}
-                  aria-label={`${describeOrder(o)} 수정`}
+                  aria-label={`${describeOrder(o, labelOf)} 수정`}
                 >
                   <Pencil className="size-4" />
                 </IconButton>
                 <IconButton
                   onClick={(e) => { e.stopPropagation(); onDeleteOrder(o) }}
-                  aria-label={`${describeOrder(o)} 삭제`}
+                  aria-label={`${describeOrder(o, labelOf)} 삭제`}
                   className="text-destructive hover:text-destructive"
                 >
                   <Trash2 className="size-4" />

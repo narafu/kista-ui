@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { SaveButton } from '@shared/ui/SaveButton'
 import { orderRequiresQuantity, useAddAdminPrivacyOrderMutation } from '@entities/privacy'
 import type { AdminPrivacyOrder } from '@entities/privacy'
-import { DIRECTION_ITEMS, ORDER_TYPE_ITEMS } from './orderSelectItems'
+import { usePrivacyOrderSelectItems } from './orderSelectItems'
 import { PrivacyOrderQuantityField } from './PrivacyOrderQuantityField'
 
 interface Props {
@@ -20,6 +20,7 @@ interface Props {
 }
 
 export function AddPrivacyOrderDialog({ baseId, open, onOpenChange }: Props) {
+  const { directionItems, orderTypeItems } = usePrivacyOrderSelectItems()
   const [direction, setDirection] = useState<AdminPrivacyOrder['direction']>('BUY')
   const [orderType, setOrderType] = useState<AdminPrivacyOrder['orderType']>('LOC')
   const [price, setPrice] = useState('')
@@ -60,19 +61,19 @@ export function AddPrivacyOrderDialog({ baseId, open, onOpenChange }: Props) {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="addOrderDirection">방향</Label>
-                <Select items={DIRECTION_ITEMS} value={direction} onValueChange={(v) => { if (v) setDirection(v as AdminPrivacyOrder['direction']) }}>
+                <Select items={directionItems} value={direction} onValueChange={(v) => { if (v) setDirection(v as AdminPrivacyOrder['direction']) }}>
                   <SelectTrigger id="addOrderDirection" className="h-11" disabled={isPending}><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {DIRECTION_ITEMS.map((i) => <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>)}
+                    {directionItems.map((i) => <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="addOrderType">유형</Label>
-                <Select items={ORDER_TYPE_ITEMS} value={orderType} onValueChange={(v) => { if (v) setOrderType(v as AdminPrivacyOrder['orderType']) }}>
+                <Select items={orderTypeItems} value={orderType} onValueChange={(v) => { if (v) setOrderType(v as AdminPrivacyOrder['orderType']) }}>
                   <SelectTrigger id="addOrderType" className="h-11" disabled={isPending}><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {ORDER_TYPE_ITEMS.map((i) => <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>)}
+                    {orderTypeItems.map((i) => <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>

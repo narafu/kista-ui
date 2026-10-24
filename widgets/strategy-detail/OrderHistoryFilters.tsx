@@ -1,7 +1,7 @@
 'use client'
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { DIRECTION_LABEL, ORDER_TYPE_LABEL } from '@entities/trade'
+import { useMeta } from '@entities/meta'
 import { ORDER_STATUS_LABEL } from '@entities/order'
 
 export type OrderHistoryFilterValue = 'ALL' | string
@@ -16,15 +16,6 @@ interface Props {
   onOrderTypeChange: (value: OrderHistoryFilterValue) => void
   onStatusChange: (value: OrderHistoryFilterValue) => void
 }
-
-const DIRECTION_OPTIONS = [
-  [ALL_FILTER_VALUE, '전체'],
-  ['BUY', DIRECTION_LABEL.BUY],
-  ['SELL', DIRECTION_LABEL.SELL],
-] as const
-
-// 유형 목록은 ORDER_TYPE_LABEL이 SSOT — 유형이 추가되면 라벨 맵만 고친다
-const ORDER_TYPE_OPTIONS: Array<readonly [string, string]> = [[ALL_FILTER_VALUE, '전체'], ...Object.entries(ORDER_TYPE_LABEL)]
 
 const STATUS_OPTIONS = [
   [ALL_FILTER_VALUE, '전체'],
@@ -45,18 +36,22 @@ export function OrderHistoryFilters({
   onOrderTypeChange,
   onStatusChange,
 }: Props) {
+  const { meta, labelOf } = useMeta()
+  // 방향·유형 목록은 메타 orderDirections·orderTypes가 SSOT — 값이 추가되면 서버 메타만 고친다
+  const directionOptions: Array<readonly [string, string]> = [[ALL_FILTER_VALUE, '전체'], ...meta.orderDirections.map((d): readonly [string, string] => [d.code, labelOf('orderDirections', d.code)])]
+  const orderTypeOptions: Array<readonly [string, string]> = [[ALL_FILTER_VALUE, '전체'], ...meta.orderTypes.map((t): readonly [string, string] => [t.code, labelOf('orderTypes', t.code)])]
   return (
     <div className="grid grid-cols-3 gap-2 lg:flex lg:items-center">
-      <Select items={DIRECTION_OPTIONS.map(([value, label]) => ({ value, label }))} value={direction} onValueChange={(value) => { if (value) onDirectionChange(value) }}>
+      <Select items={directionOptions.map(([value, label]) => ({ value, label }))} value={direction} onValueChange={(value) => { if (value) onDirectionChange(value) }}>
         <SelectTrigger aria-label="방향" className="w-full lg:w-28"><SelectValue /></SelectTrigger>
         <SelectContent>
-          {DIRECTION_OPTIONS.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
+          {directionOptions.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
         </SelectContent>
       </Select>
-      <Select items={ORDER_TYPE_OPTIONS.map(([value, label]) => ({ value, label }))} value={orderType} onValueChange={(value) => { if (value) onOrderTypeChange(value) }}>
+      <Select items={orderTypeOptions.map(([value, label]) => ({ value, label }))} value={orderType} onValueChange={(value) => { if (value) onOrderTypeChange(value) }}>
         <SelectTrigger aria-label="유형" className="w-full lg:w-28"><SelectValue /></SelectTrigger>
         <SelectContent>
-          {ORDER_TYPE_OPTIONS.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
+          {orderTypeOptions.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
         </SelectContent>
       </Select>
       <Select items={STATUS_OPTIONS.map(([value, label]) => ({ value, label }))} value={status} onValueChange={(value) => { if (value) onStatusChange(value) }}>

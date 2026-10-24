@@ -47,9 +47,9 @@ vi.mock('@entities/meta', () => ({
         { code: 'VR', availableTickers: ['TQQQ'], divisionCounts: [] },
       ],
       cycleSeedTypes: [
-        { code: 'NONE', label: 'OFF' },
-        { code: 'MAINTAIN', label: 'ON(유지)' },
-        { code: 'MAX', label: 'ON(MAX)' },
+        { code: 'NONE', label: '연속 안 함' },
+        { code: 'MAINTAIN', label: '시드 유지' },
+        { code: 'MAX', label: '시드 MAX' },
       ],
     },
   }),
