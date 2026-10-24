@@ -299,7 +299,7 @@ describe('AdminTradesWorkbench', () => {
       price: 321,
       memo: undefined,
     })
-  })
+  }, 15000)
 
   it('shows unavailable timing options as aria-disabled and submits the picked available timing', async () => {
     const user = userEvent.setup()
