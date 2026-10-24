@@ -36,7 +36,32 @@ const fetchSettings = async (url, req, upstream) => {
   return up.ok ? { body: pinRecurringMode(await up.json()) } : { status: up.status, body: await up.json().catch(() => ({})) }
 }
 
+// 모드 상태는 trading.mjs와 따로다 — run.mjs가 setMode를 두 모듈에 같이 넘긴다. binance만 meta·runtime-config를 보강한다
+let binance = false
+export const setMode = (m) => { binance = m === 'binance' }
+
+// 로컬(main) API에는 BINANCE 브로커·최소 주문 금액·시장 정보가 없다 — 계약(api-types BrokerMeta·TickerMeta)대로 덧붙인다
+const patchMeta = (m) => {
+  if (!m.brokers.some((b) => b.code === 'BINANCE')) m.brokers.push({ code: 'BINANCE', label: '바이낸스', description: '바이낸스', market: 'CRYPTO_USDT', currency: 'USDT' })
+  const limits = { UPBIT: { minOrderAmount: '5000', amountScale: 0 }, BINANCE: { minOrderAmount: '5', amountScale: 2 } }
+  for (const b of m.brokers) Object.assign(b, limits[b.code])
+  for (const t of m.tickers) if (t.code === 'BTC' || t.code === 'ETH') t.markets = ['CRYPTO_KRW', 'CRYPTO_USDT']
+  return m
+}
+const patchRuntime = (c) => {
+  c.brokers.BINANCE = { enabled: true, allowedIp: '168.107.63.152' }
+  c.strategies.DCA.enabled = true
+  return c
+}
+// 업스트림 오류(토큰 만료·API 다운)는 보강하지 않고 그대로 넘긴다 — patch가 TypeError로 502를 내면 원인이 가려진다
+const fetchPatched = async (url, req, upstream, patch) => {
+  const res = await fetch(upstream + url.pathname, { headers: { authorization: req.headers.authorization ?? '', cookie: req.headers.cookie ?? '' } })
+  return res.ok ? { body: patch(await res.json()) } : { status: res.status, body: await res.json().catch(() => ({})) }
+}
+
 export async function route(url, req, { upstream }) {
+  if (binance && url.pathname === '/api/meta') return fetchPatched(url, req, upstream, patchMeta)
+  if (binance && url.pathname === '/api/runtime-config') return fetchPatched(url, req, upstream, patchRuntime)
   if (url.pathname === '/api/admin/privacy-trade-bases') return { body: privacyBases }
   if (url.pathname === '/api/admin/logs/errors') return { body: errorLogs }
   if (url.pathname === '/api/admin/settings') {

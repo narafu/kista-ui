@@ -216,13 +216,16 @@ try {
   }
   await Promise.all(Object.entries(servers).map(([label, s]) => waitReady(s, PORTS[label])))
   log('dev 서버 준비 완료, warm-up 중')
+  // /api/meta는 Next 데이터 캐시(revalidate 1시간)에 첫 응답이 남는다 — binance 시나리오가 있으면 warm-up도 보강된 meta로 받아야 캐시에 BINANCE가 들어간다
+  apiFixture.setMode(scenarios.some((s) => s.mode === 'binance') ? 'binance' : 'real')
   await Promise.all(['head', 'base'].map((label) => warmUp(PORTS[label], scenarios, tokens)))
+  apiFixture.setMode('real')
 
   const report = await shoot({
     scenarios, tokens, log,
     servers: { head: PORTS.head, base: PORTS.base },
     outDir: path.join(outDir, 'shots'),
-    setMode: tradingFixture.setMode,
+    setMode: (m) => { tradingFixture.setMode(m); apiFixture.setMode(m) },
   })
   writeFileSync(path.join(outDir, 'report.json'), JSON.stringify({ commits, dirtyPatch, report }, null, 1))
   exitCode = summarize(report) ? 1 : 0

@@ -58,6 +58,7 @@ const INF = detail(seed.infinite)
 const VR = detail(seed.vr)
 const PAUSED = detail(seed.paused)
 const ACCT = `/accounts/${seed.infinite.accountId}`
+const BINANCE_ACCT = '/accounts/00000000-0000-4000-8000-0000000c0170'
 const NEW_STRATEGY = `${ACCT}/strategies/new`
 // MOCK 계좌는 잔고 확인이 강제로 꺼져 예수금 입력칸만 나온다 — 사용 비율 게이지는 KIS 계좌로 연다
 const KIS_NEW_STRATEGY = `/accounts/${seed.kis.accountId}/strategies/new`
@@ -124,6 +125,13 @@ export const scenarios = [
   ...modes('m-vr', VR, ['executed']),
   ...modes('m-list', '/strategies', ['deficit', 'executed']),
   ...modes('m-acct', ACCT, ['executed']),
+  // binance 모드: 합성 BINANCE(USDT) 계좌 — 계좌 상세·크립토 DCA 전략 상세·전략 생성·계좌 등록 API 키 스텝. meta·runtime-config는 fixtures/api.mjs가 보강
+  { name: 'binance-account', path: BINANCE_ACCT, mode: 'binance' },
+  { name: 'binance-strategy', path: `${BINANCE_ACCT}/strategies/00000000-0000-4000-8000-0000000c0171`, mode: 'binance' },
+  { name: 'binance-create-strategy', path: `${BINANCE_ACCT}/strategies/new`, mode: 'binance' },
+  { name: 'binance-strategies', path: '/strategies', mode: 'binance' },
+  // broker 카드를 누르면 바로 다음 스텝(API 키 입력)으로 넘어간다
+  { name: 'binance-account-new', path: '/accounts/new', mode: 'binance', steps: [clickText('바이낸스')] },
   ...modes('w-inf', INF, ['real', 'deficit', 'uncertain', 'executed'], { clock: true }),
   ...modes('w-list', '/strategies', ['deficit', 'executed'], { clock: true }),
 ]
