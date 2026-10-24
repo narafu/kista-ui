@@ -22,10 +22,6 @@ interface Props {
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, h) => h)
 const LATE_DAYS = new Set(['29', '30', '31'])
-const ORDER_TYPE_CAPTION: Record<string, string> = {
-  MOO: '장 시작 시 시장가 주문',
-  MOC: '장 마감 시 시장가 주문',
-}
 
 function Caption({ children }: { children: React.ReactNode }) {
   return <p className="mt-2 text-sm text-muted-foreground">{children}</p>
@@ -54,7 +50,6 @@ export function DcaSettingsSection({ form, market, orderTypes, frequencies }: Pr
               <SelectionCard key={code} selected={orderType === code} onClick={() => setValue('orderType', code as DcaRuleFormValues['orderType'])}
                 className="flex-1 px-3 py-2 text-center">
                 <div className="text-sm font-[800]">{orderTypeLabel(code)}</div>
-                <div className="text-xs text-muted-foreground mt-0.5">{ORDER_TYPE_CAPTION[code]}</div>
               </SelectionCard>
             ))}
           </div>
