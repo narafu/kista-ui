@@ -12,7 +12,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { buttonVariants } from '@/components/ui/button-variants'
-import { brokerKindLabel } from '@shared/lib/api-schema'
+import { brokerKindLabel, isMockBroker } from '@shared/lib/api-schema'
 import { cn } from '@shared/lib/utils'
 
 interface Props {
@@ -37,7 +37,7 @@ export function DeleteStrategyDialog({ open, onOpenChange, ticker, broker, onCon
       <AlertDialogContent size="sm">
         <AlertDialogHeader>
           <AlertDialogTitle>전략을 삭제하시겠습니까?</AlertDialogTitle>
-          <AlertDialogDescription>{ticker} 전략을 삭제하시겠습니까? {brokerKindLabel(broker)}에 접수된 미체결 주문을 먼저 취소하고, 전략과 사이클 기록을 더 이상 볼 수 없습니다.</AlertDialogDescription>
+          <AlertDialogDescription>{ticker} 전략을 삭제하시겠습니까? {isMockBroker(broker) ? '' : `${brokerKindLabel(broker)}에 접수된 `}미체결 주문을 먼저 취소하고, 전략과 사이클 기록을 더 이상 볼 수 없습니다.</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={disabled}>취소</AlertDialogCancel>

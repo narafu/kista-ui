@@ -214,7 +214,7 @@ async function pick(user: ReturnType<typeof userEvent.setup>, name: string, opti
 
 async function selectBrokeredOrderTarget(user: ReturnType<typeof userEvent.setup>) {
   await pick(user, '사용자 선택', '홍길동')
-  await pick(user, '증권사·거래소 선택', '한국투자증권')
+  await pick(user, '증권사 선택', '한국투자증권')
   await pick(user, '계좌 선택', '123-45****')
 }
 
@@ -423,7 +423,7 @@ describe('AdminTradesWorkbench', () => {
 
     renderWorkbench()
 
-    const brokerSelect = screen.getByRole('combobox', { name: '증권사·거래소 선택' })
+    const brokerSelect = screen.getByRole('combobox', { name: '증권사 선택' })
     const accountSelect = screen.getByRole('combobox', { name: '계좌 선택' })
     const strategySelect = screen.getByRole('combobox', { name: '전략 선택' })
 
@@ -436,7 +436,7 @@ describe('AdminTradesWorkbench', () => {
 
     await waitFor(() => expect(listAdminAccountsMock).toHaveBeenCalled())
     await waitFor(() => expect(brokerSelect).not.toBeDisabled())
-    await pick(user, '증권사·거래소 선택', '한국투자증권')
+    await pick(user, '증권사 선택', '한국투자증권')
 
     await waitFor(() => expect(accountSelect).not.toBeDisabled())
 
@@ -454,11 +454,27 @@ describe('AdminTradesWorkbench', () => {
     // 사용자 재선택 시 하위 단계 초기화
     await pick(user, '사용자 선택', '김영희')
 
-    await waitFor(() => expect(brokerSelect).toHaveTextContent('증권사·거래소 선택'))
+    await waitFor(() => expect(brokerSelect).toHaveTextContent('증권사 선택'))
     expect(accountSelect).toHaveTextContent('계좌 선택')
     expect(strategySelect).toHaveTextContent('전략 선택')
     expect(brokerSelect).not.toBeDisabled()
     expect(strategySelect).toBeDisabled()
+  })
+
+  it('크립토 계좌는 증권사 선택지에 나오지 않는다', async () => {
+    const user = userEvent.setup()
+    listAdminAccountsMock.mockReset().mockResolvedValue([
+      ...accounts,
+      { id: 'account-upbit', userId: 'user-1', ownerNickname: '홍길동', accountNoMasked: '', broker: 'UPBIT', strategies: [] },
+    ])
+
+    renderWorkbench()
+
+    await pick(user, '사용자 선택', '홍길동')
+    await waitFor(() => expect(screen.getByRole('combobox', { name: '증권사 선택' })).not.toBeDisabled())
+    await user.click(screen.getByRole('combobox', { name: '증권사 선택' }))
+    expect(await screen.findByRole('option', { name: '한국투자증권' })).toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: '업비트' })).not.toBeInTheDocument()
   })
 
   it('toggles selected strategy status and refreshes the strategy list', async () => {
@@ -512,7 +528,7 @@ describe('AdminTradesWorkbench', () => {
     await waitFor(() => expect(within(table).queryByText('김영희')).not.toBeInTheDocument())
     expect(within(table).getAllByText('홍길동').length).toBeGreaterThan(0)
 
-    await pick(user, '증권사·거래소 선택', '한국투자증권')
+    await pick(user, '증권사 선택', '한국투자증권')
     await pick(user, '계좌 선택', '123-45****')
     await pick(user, '전략 선택', 'INFINITE · TSLA')
 
@@ -549,7 +565,7 @@ describe('AdminTradesWorkbench', () => {
     await pick(user, '사용자 선택', '김영희')
 
     await waitFor(() => expect(screen.queryByLabelText('재주문 오류')).not.toBeInTheDocument())
-    await waitFor(() => expect(screen.getByRole('combobox', { name: '증권사·거래소 선택' })).not.toBeDisabled())
+    await waitFor(() => expect(screen.getByRole('combobox', { name: '증권사 선택' })).not.toBeDisabled())
   })
 
   it.each([

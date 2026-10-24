@@ -29,4 +29,9 @@ describe('DeleteStrategyDialog 안내 문구', () => {
     render(<DeleteStrategyDialog open onOpenChange={vi.fn()} ticker="BTC" broker={broker} onConfirm={vi.fn()} disabled={false} isDeleting={false} />)
     expect(screen.getByText(new RegExp(`${word} 접수된 미체결 주문`))).toBeInTheDocument()
   })
+  it('MOCK이면 "접수된" 없이 안내한다', () => {
+    render(<DeleteStrategyDialog open onOpenChange={vi.fn()} ticker="UPRO" broker="MOCK" onConfirm={vi.fn()} disabled={false} isDeleting={false} />)
+    const text = screen.getByText(/전략을 삭제하시겠습니까\? 미체결 주문을 먼저 취소하고/).textContent
+    expect(text).not.toContain('접수된')
+  })
 })

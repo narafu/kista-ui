@@ -16,6 +16,7 @@ import {
 } from '@entities/admin'
 import type { AdminTrade } from '@entities/admin'
 import { nextTradeDateKst } from '@shared/lib/format'
+import { isCryptoBroker } from '@shared/lib/api-schema'
 import { SectionError } from '@shared/ui/SectionError'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
@@ -69,7 +70,8 @@ export function AdminTradesWorkbench({ from, to, initialPage, initialSize }: Pro
   const reorderMutation = useReorderAdminOrderMutation()
 
   const trades = tradesQuery.data ?? EMPTY_TRADES
-  const accounts = accountsQuery.data ?? []
+  // 크립토 계좌는 kista-api가 재주문을 거부해 선택지에서 뺀다
+  const accounts = (accountsQuery.data ?? []).filter((account) => !isCryptoBroker(account.broker))
   const strategies = strategiesQuery.data ?? []
   const orders = ordersQuery.data ?? []
   const timingAvailability = timingQuery.data ?? DEFAULT_TIMING_AVAILABILITY

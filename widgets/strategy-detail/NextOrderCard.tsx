@@ -10,9 +10,11 @@ import type { NextOrderPreview, OrderReadiness } from '@entities/order'
 import { SKIP_REASON_LABELS, BUY_COPY, SELL_COPY, directionUnplacedMessage, previewErrorMsg } from './orderBannerCopy'
 import { OrderRows } from './OrderRows'
 import { Button } from '@/components/ui/button'
+import { formatBrokerLabel, isMockBroker } from '@shared/lib/api-schema'
 
 interface Props {
   strategy: Strategy
+  broker?: string
   preview: NextOrderPreview | undefined
   isLoadingPreview: boolean
   isPreviewError: boolean
@@ -129,6 +131,7 @@ function PreviewBody({ preview, orders, isLoadingPreview, isPreviewError, previe
 // eslint-disable-next-line react-doctor/no-many-boolean-props -- 상태별 플래그를 부모(StrategyDetail)가 계산해 내려주는 표시 전용 카드, props 리팩토링은 범위 밖
 export function NextOrderCard({
   strategy,
+  broker,
   preview,
   isLoadingPreview,
   isPreviewError,
@@ -205,7 +208,7 @@ export function NextOrderCard({
                     } else if (r.credentialFailedCount > 0) {
                       toast.error(`${r.cancelledCount}건 취소, ${r.failedCount}건 실패. 증권사 키가 만료·철회돼 취소할 수 없습니다. 계좌 키를 다시 등록하세요.`)
                     } else {
-                      toast.warning(`${r.cancelledCount}건 취소, ${r.failedCount}건 실패. KIS에서 직접 확인하세요.`)
+                      toast.warning(`${r.cancelledCount}건 취소, ${r.failedCount}건 실패. ${isMockBroker(broker) ? '잠시 후 다시 시도해주세요.' : `${broker ? formatBrokerLabel(broker) : '증권사'}에서 직접 확인하세요.`}`)
                     }
                   },
                 })

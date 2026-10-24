@@ -803,6 +803,30 @@ describe('StrategyDetail cancel-all toast', () => {
 
     expect(vi.mocked(toast.error)).toHaveBeenCalledWith(expect.stringContaining('계좌 키를 다시 등록하세요'))
   })
+
+  it.each([[undefined, '증권사에서 직접 확인하세요'], ['TOSS', '토스증권에서 직접 확인하세요']])('broker=%s로 일반 취소 실패하면 "%s"로 안내한다', (broker, text) => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [
+          { id: 'o1', ticker: 'TSLA', direction: 'BUY', orderType: 'LOC', quantity: 5, price: '20.00', status: 'PLACED' },
+        ],
+        position: null,
+        orders: [],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        competition: null,
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" broker={broker} strategy={baseStrategy} />)
+    fireEvent.click(screen.getByText('전체 취소'))
+    cancelAllSuccessHandler?.({ cancelledCount: 0, failedCount: 1, credentialFailedCount: 0 })
+
+    expect(vi.mocked(toast.warning)).toHaveBeenCalledWith(expect.stringContaining(text))
+  })
 })
 
 describe('StrategyDetail budget deficit badge', () => {

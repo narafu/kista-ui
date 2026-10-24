@@ -17,10 +17,11 @@ import { StrategyOrderHistory } from './StrategyOrderHistory'
 
 interface Props {
   accountId: string
+  broker?: string
   strategy: Strategy
 }
 
-export function StrategyDetail({ accountId, strategy }: Props) {
+export function StrategyDetail({ accountId, broker, strategy }: Props) {
   const { push } = useRouter()
   const [deleteOpen, setDeleteOpen] = useState(false)
 
@@ -67,6 +68,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
 
       <NextOrderCard
         strategy={strategy}
+        broker={broker}
         preview={preview}
         isLoadingPreview={isLoadingPreview}
         isPreviewError={isPreviewError}
@@ -95,6 +97,7 @@ export function StrategyDetail({ accountId, strategy }: Props) {
             open={deleteOpen}
             onOpenChange={setDeleteOpen}
             ticker={strategy.ticker}
+            broker={broker}
             onConfirm={() => remove(strategy)}
             disabled={loading}
             isDeleting={isDeleting}
