@@ -142,6 +142,7 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
             open={deleteOpen}
             onOpenChange={setDeleteOpen}
             ticker={strategy.ticker}
+            broker={broker}
             onConfirm={() => remove(strategy)}
             disabled={loading}
             isDeleting={isDeleting}

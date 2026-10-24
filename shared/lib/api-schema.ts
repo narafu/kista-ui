@@ -92,6 +92,11 @@ export function isCryptoBroker(broker: string | null | undefined): boolean {
   return isCryptoMarket(brokerMarket(broker))
 }
 
+// 계좌가 정해진 화면에서 broker를 가리키는 일반 명칭. 계좌가 정해지기 전(등록 1단계·관리자 필터)은 '증권사·거래소'로 쓴다
+export function brokerKindLabel(broker: string | null | undefined): '증권사' | '거래소' {
+  return isCryptoBroker(broker) ? '거래소' : '증권사'
+}
+
 // 앱키 하나에 계좌 하나가 묶여 계좌번호를 받지 않는 broker(업비트·메리츠). 계좌 등록 흐름에서 계좌번호 입력을 건너뛰는 기준
 export function isKeyOnlyBroker(broker: string | null | undefined): boolean {
   return isCryptoBroker(broker) || broker === 'MERITZ'

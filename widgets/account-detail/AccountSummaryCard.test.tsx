@@ -75,6 +75,8 @@ describe('AccountSummaryCard', () => {
       />,
     )
     expect(screen.queryByText('계좌번호')).not.toBeInTheDocument()
+    expect(screen.getByText('거래소')).toBeInTheDocument()
+    expect(screen.queryByText('증권사')).not.toBeInTheDocument()
     expect(screen.getByText('예수금')).toBeInTheDocument()
     expect(screen.getByText('120,000원')).toBeInTheDocument()
     expect(screen.getByText('1,478,024원')).toBeInTheDocument()

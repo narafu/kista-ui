@@ -29,7 +29,7 @@ export function AdminAccountsTable({ accounts }: { accounts: AdminAccount[] }) {
         <thead className="bg-muted/50 border-b border-border">
           <tr>
             <TableHeadCell className={HEAD_CLASS}>소유자</TableHeadCell>
-            <TableHeadCell className={HEAD_CLASS}>증권사</TableHeadCell>
+            <TableHeadCell className={HEAD_CLASS}>증권사·거래소</TableHeadCell>
             <TableHeadCell className={HEAD_CLASS}>계좌번호</TableHeadCell>
             <TableHeadCell className={HEAD_CLASS}>전략</TableHeadCell>
           </tr>

@@ -51,15 +51,15 @@ function AdminAccountsFilterBarContent({ owners, pageParamKeys = ['page'] }: Pro
       </Select>
 
       <Select
-        items={[{ value: ALL, label: '전체 증권사' }, ...meta.brokers.map((b) => ({ value: b.code, label: formatBrokerLabel(b.code) }))]}
+        items={[{ value: ALL, label: '전체 증권사·거래소' }, ...meta.brokers.map((b) => ({ value: b.code, label: formatBrokerLabel(b.code) }))]}
         value={broker}
         onValueChange={(v) => { if (v) setParam('broker', v) }}
       >
-        <SelectTrigger aria-label="증권사 필터" className="h-9 text-sm min-w-28">
+        <SelectTrigger aria-label="증권사·거래소 필터" className="h-9 text-sm min-w-28">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={ALL}>전체 증권사</SelectItem>
+          <SelectItem value={ALL}>전체 증권사·거래소</SelectItem>
           {meta.brokers.map((b) => <SelectItem key={b.code} value={b.code}>{formatBrokerLabel(b.code)}</SelectItem>)}
         </SelectContent>
       </Select>

@@ -61,7 +61,7 @@ describe('BrokerStep runtime availability', () => {
   it('shows an unavailable state while no broker can be safely selected', () => {
     useRuntimeConfigQueryMock.mockReturnValue({ data: undefined, isLoading: true })
     render(<BrokerStep onNext={vi.fn()} />)
-    expect(screen.getByText('등록 가능한 증권사를 확인하고 있습니다.')).toBeInTheDocument()
+    expect(screen.getByText('등록 가능한 증권사·거래소를 확인하고 있습니다.')).toBeInTheDocument()
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 

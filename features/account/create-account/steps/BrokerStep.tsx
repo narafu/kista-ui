@@ -32,18 +32,18 @@ export function BrokerStep({ onNext }: Props) {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-lg font-bold mb-1">증권사 선택</h2>
-        <p className="text-sm text-muted-foreground">연결할 증권사를 선택하세요.</p>
+        <h2 className="text-lg font-bold mb-1">증권사·거래소 선택</h2>
+        <p className="text-sm text-muted-foreground">연결할 증권사·거래소를 선택하세요.</p>
       </div>
       <div className="flex flex-col gap-3">
         {isLoading && (
           <p className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
-            등록 가능한 증권사를 확인하고 있습니다.
+            등록 가능한 증권사·거래소를 확인하고 있습니다.
           </p>
         )}
         {isError && (
           <div className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
-            <p>증권사 설정을 불러오지 못했습니다.</p>
+            <p>증권사·거래소 설정을 불러오지 못했습니다.</p>
             <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => refetch()}>
               다시 시도
             </Button>
@@ -51,7 +51,7 @@ export function BrokerStep({ onNext }: Props) {
         )}
         {runtimeConfig && enabledBrokers.length === 0 && (
           <p className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
-            현재 등록 가능한 증권사가 없습니다.
+            현재 등록 가능한 증권사·거래소가 없습니다.
           </p>
         )}
         {enabledBrokers.map(({ code, label }) => {

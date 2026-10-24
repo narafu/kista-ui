@@ -80,6 +80,7 @@ describe('ApiStep', () => {
       expect(screen.getByText(permission)).toBeInTheDocument()
     }
     expect(screen.getByText(/권한은 켜지 마세요/)).toBeInTheDocument()
+    expect(screen.queryByText(/IP 접근 제한/)).not.toBeInTheDocument()
   })
 
   it('바이낸스는 HMAC 키 유형·필요한 권한·허용 IP를 안내하고 출금 권한을 켜지 말라고 강조한다', () => {
@@ -91,6 +92,7 @@ describe('ApiStep', () => {
       expect(screen.getByText(permission)).toBeInTheDocument()
     }
     expect(screen.getByText(/시스템 생성\(HMAC\)/)).toBeInTheDocument()
+    expect(screen.getByText(/IP 접근 제한\(Restrict access to trusted IPs only\)을 반드시 켜고/)).toBeInTheDocument()
     expect(screen.getByText(/권한은 켜지 마세요/)).toBeInTheDocument()
   })
 
@@ -110,6 +112,16 @@ describe('ApiStep', () => {
     mockError = new ApiError(422, { code: 'BROKER_IP_NOT_ALLOWED', detail: 'x' })
     render(<ApiStep data={{ ...baseData, broker: 'UPBIT', apiKey: 'access-key-1234', apiSecret: 'secret-key-1234' }} onNext={vi.fn()} onBack={vi.fn()} />)
     expect(screen.getByText(/허용 IP가 등록되지 않았습니다/)).toBeInTheDocument()
+  })
+
+  it.each([
+    ['BINANCE', /API Key와 Secret Key를 다시 확인하세요\. 키가 맞다면 바이낸스 API 설정의 허용 IP/],
+    ['KIS', /증권사 API 인증에 실패했습니다\. App Key 또는 App Secret을 확인하세요\./],
+  ] as const)('%s 연결 테스트가 자격증명 오류로 실패하면 broker에 맞는 입력 항목을 짚는다', (broker, message) => {
+    mockState = { isPending: false, isSuccess: false, isError: true }
+    mockError = new ApiError(422, { code: 'BROKER_CREDENTIAL_INVALID', detail: 'x' })
+    render(<ApiStep data={{ ...baseData, broker }} onNext={vi.fn()} onBack={vi.fn()} />)
+    expect(screen.getByText(message)).toBeInTheDocument()
   })
 
   it('업비트 허용 IP를 불러오는 중에는 실패 문구 대신 확인 중을 보여준다', () => {

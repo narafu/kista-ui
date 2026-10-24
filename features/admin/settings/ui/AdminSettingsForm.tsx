@@ -153,7 +153,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
         </section>
 
         <section className="border-b border-border px-4 py-4 sm:px-5">
-          <h2 className="text-base font-bold">증권사 등록</h2>
+          <h2 className="text-base font-bold">증권사·거래소 등록</h2>
           {(Object.keys(draft.brokers) as BrokerCode[]).map((broker) => (
             <ToggleRow key={broker} id={`broker-${broker}`} label={labelOf('brokers', broker)} checked={draft.brokers[broker].enabled}
               onChange={(enabled) => setDraft((current) => ({ ...current, brokers: { ...current.brokers, [broker]: { enabled } } }))} />

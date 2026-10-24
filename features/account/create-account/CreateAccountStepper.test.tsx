@@ -40,6 +40,7 @@ describe('CreateAccountStepper MOCK broker', () => {
     await user.click(screen.getByRole('button', { name: /모의계좌/ }))
 
     // 3단계 스텝퍼: 증권사 / 계좌 별칭 / 확인 — 'API 키'/'계좌 정보' 라벨 없음
+    expect(screen.getByText('증권사')).toBeInTheDocument()
     expect(screen.getAllByText('계좌 별칭').length).toBeGreaterThan(0)
     expect(screen.queryByText('API 키')).not.toBeInTheDocument()
     expect(screen.queryByText('계좌 정보')).not.toBeInTheDocument()
@@ -56,10 +57,12 @@ describe('CreateAccountStepper MOCK broker', () => {
     expect(screen.queryByText('API Key')).not.toBeInTheDocument()
   })
 
-  it('업비트는 증권사 → API 키 → 계좌 별칭 → 확인 4단계다', async () => {
+  it('업비트는 거래소 → API 키 → 계좌 별칭 → 확인 4단계다', async () => {
     const user = userEvent.setup()
     render(<CreateAccountStepper />)
+    expect(screen.getByText('증권사·거래소')).toBeInTheDocument() // 고르기 전 스텝퍼 1번째 라벨
     await user.click(screen.getByRole('button', { name: /업비트/ }))
+    expect(screen.getByText('거래소')).toBeInTheDocument() // 스텝퍼 1번째 라벨
     expect(screen.getByText('계좌 별칭')).toBeInTheDocument() // 스텝퍼 3번째 라벨
     expect(screen.getByRole('heading', { name: '업비트 API 키 입력' })).toBeInTheDocument()
   })

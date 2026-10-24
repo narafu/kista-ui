@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label'
 import { Spinner } from '@shared/ui/Spinner'
 import { IconButton } from '@shared/ui/IconButton'
 import { Badge } from '@shared/ui/Badge'
-import { brokerErrorMessage } from '@entities/account'
+import { BROKER_CREDENTIAL, brokerErrorMessage, type CredentialBroker } from '@entities/account'
+import { isCryptoBroker } from '@shared/lib/api-schema'
 
 interface KeyFieldProps {
   label: string
@@ -84,6 +85,7 @@ export function ApiSecretField({ label, value, showError, onChange, onBlur, show
 }
 
 interface ConnectionTestProps {
+  broker: string
   keyLabel: string
   secretLabel: string
   disabled: boolean
@@ -94,7 +96,7 @@ interface ConnectionTestProps {
   onTest: () => void
 }
 
-export function ConnectionTest({ keyLabel, secretLabel, disabled, isPending, isSuccess, isError, error, onTest }: ConnectionTestProps) {
+export function ConnectionTest({ broker, keyLabel, secretLabel, disabled, isPending, isSuccess, isError, error, onTest }: ConnectionTestProps) {
   return (
     <div className="flex flex-col gap-2">
       <Button
@@ -121,7 +123,8 @@ export function ConnectionTest({ keyLabel, secretLabel, disabled, isPending, isS
       {isError && (
         <div className="flex items-center gap-1.5 text-sm text-[var(--status-error)]">
           <XCircle className="size-4" />
-          {brokerErrorMessage(error, `증권사 API 인증에 실패했습니다. ${keyLabel} 또는 ${secretLabel}을 확인하세요.`, '연결 테스트에 실패했습니다. 잠시 후 다시 시도해주세요.')}
+          {/* 거래소 키는 'Secret Key를'처럼 조사가 달라지고 바이낸스는 허용 IP도 짚어야 해 broker별 문구를 쓴다. KIS 문구는 이 단계에 없는 계좌번호를 짚어 증권사는 공통 문구로 둔다 */}
+          {brokerErrorMessage(error, isCryptoBroker(broker) ? BROKER_CREDENTIAL[broker as CredentialBroker].invalidMessage : `증권사 API 인증에 실패했습니다. ${keyLabel} 또는 ${secretLabel}을 확인하세요.`, '연결 테스트에 실패했습니다. 잠시 후 다시 시도해주세요.')}
         </div>
       )}
     </div>
@@ -150,7 +153,13 @@ export function BinanceKeyGuide({ allowedIp, isLoading }: Pick<KeyGuideProps, 'a
       isLoading={isLoading}
       permissions={BINANCE_REQUIRED_PERMISSIONS}
       withdrawLabel="출금"
-      notes={<p>키 유형은 시스템 생성(HMAC) 키만 사용할 수 있습니다. Ed25519·RSA 자가 생성 키는 쓸 수 없습니다.</p>}
+      notes={
+        <>
+          <p>키 유형은 시스템 생성(HMAC) 키만 사용할 수 있습니다. Ed25519·RSA 자가 생성 키는 쓸 수 없습니다.</p>
+          {/* IP 제한이 없는 키는 바이낸스 연결 테스트가 BROKER_IP_NOT_ALLOWED로 실패한다 */}
+          <p className="font-semibold">IP 접근 제한(Restrict access to trusted IPs only)을 반드시 켜고 아래 허용 IP를 등록하세요.</p>
+        </>
+      }
     />
   )
 }

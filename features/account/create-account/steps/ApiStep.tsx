@@ -162,6 +162,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
 
       {config.needsTest && (
         <ConnectionTest
+          broker={broker}
           keyLabel={config.keyLabel}
           secretLabel={config.secretLabel}
           disabled={!canTest || testMutation.isPending}

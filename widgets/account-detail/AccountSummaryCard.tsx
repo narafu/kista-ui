@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { KpiCard } from '@widgets/kpi-card'
 import { fmtMoney, fmtUsd } from '@shared/lib/format'
-import { isCryptoBroker, isMockBroker } from '@shared/lib/api-schema'
+import { brokerKindLabel, isCryptoBroker, isMockBroker } from '@shared/lib/api-schema'
 import { Badge } from '@shared/ui/Badge'
 import { RevealableValue } from '@widgets/revealable-value'
 import { useMeta } from '@entities/meta'
@@ -51,7 +51,7 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, cryptoPort
               }
             />
           )}
-          <KpiCard label="증권사" className={isCryptoBroker(account.broker) ? 'col-span-2 sm:col-span-1' : undefined} value={<span className="text-xl font-semibold leading-snug">{brokerLabel}</span>} />
+          <KpiCard label={brokerKindLabel(account.broker)} className={isCryptoBroker(account.broker) ? 'col-span-2 sm:col-span-1' : undefined} value={<span className="text-xl font-semibold leading-snug">{brokerLabel}</span>} />
           {isCryptoBroker(account.broker) ? (
             <>
               <KpiCard label="예수금" className="col-span-2 sm:col-span-1" value={cryptoPortfolio ? fmtMoney(cryptoPortfolio.cash, cryptoPortfolio.currency) : '-'} valueClassName={LONG_MONEY_CLASS} />

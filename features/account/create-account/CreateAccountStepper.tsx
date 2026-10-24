@@ -3,7 +3,7 @@
 import { useEffect, useReducer } from 'react'
 import { Stepper } from '@shared/ui/stepper'
 import type { BrokerCode } from '@entities/account'
-import { isKeyOnlyBroker, isMockBroker } from '@shared/lib/api-schema'
+import { brokerKindLabel, isKeyOnlyBroker, isMockBroker } from '@shared/lib/api-schema'
 import { useRuntimeConfigQuery } from '@entities/runtime-config'
 import { BrokerStep } from './steps/BrokerStep'
 import { ApiStep } from './steps/ApiStep'
@@ -44,9 +44,10 @@ function reducer(state: State, action: Action): State {
   return { step: (Math.min(4, state.step + 1) as 1 | 2 | 3 | 4), data: newData }
 }
 
-const STEPS = ['증권사', 'API 키', '계좌 정보', '확인']
-const KEY_ONLY_STEPS = ['증권사', 'API 키', '계좌 별칭', '확인']
-const MOCK_STEPS = ['증권사', '계좌 별칭', '확인']
+// 첫 스텝 라벨은 broker를 고른 뒤 '증권사'/'거래소'로 바뀐다
+const STEPS = ['API 키', '계좌 정보', '확인']
+const KEY_ONLY_STEPS = ['API 키', '계좌 별칭', '확인']
+const MOCK_STEPS = ['계좌 별칭', '확인']
 
 type StepContext = { data: StepData; next: (payload: Partial<StepData>) => void; back: () => void }
 type StepRenderer = (ctx: StepContext) => React.ReactNode
@@ -78,7 +79,7 @@ export function CreateAccountStepper() {
 
   const flow = isMock ? MOCK_FLOW : DEFAULT_FLOW
   // 계좌번호가 없는 broker(업비트·메리츠)는 흐름은 같고 3번째 스텝이 별칭만 받는다
-  const steps = isMock ? MOCK_STEPS : isKeyOnlyBroker(data.broker) ? KEY_ONLY_STEPS : STEPS
+  const steps = [data.broker ? brokerKindLabel(data.broker) : '증권사·거래소', ...(isMock ? MOCK_STEPS : isKeyOnlyBroker(data.broker) ? KEY_ONLY_STEPS : STEPS)]
 
   return (
     <div className="max-w-lg mx-auto">

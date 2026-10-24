@@ -5,7 +5,7 @@ import { useMeta } from '@entities/meta'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { formatBrokerLabel } from '@shared/lib/api-schema'
+import { brokerKindLabel, formatBrokerLabel } from '@shared/lib/api-schema'
 import { toSelectValue } from '@shared/lib/utils'
 import { AdminBatchOrderCorrectionForm } from './AdminBatchOrderCorrectionForm'
 import type { ReorderBatchItem } from './AdminBatchOrderCorrectionForm'
@@ -42,8 +42,8 @@ type HelperInput = Pick<Props, 'brokers' | 'accounts' | 'strategies' | 'orders' 
 // 선택 단계별 안내 문구 — 앞 단계가 비어 있으면 그 단계 안내가 우선
 function getHelperMessage({ brokers, accounts, strategies, orders, selectedUserId, selectedBroker, selectedAccountId, selectedStrategyId }: HelperInput): string | null {
   if (!selectedUserId) return '재주문할 사용자를 먼저 선택하세요.'
-  if (!selectedBroker) return brokers.length === 0 ? '선택한 사용자에 연결된 증권사 계좌가 없습니다.' : '재주문할 증권사를 선택하세요.'
-  if (!selectedAccountId) return accounts.length === 0 ? '선택한 증권사에 연결된 계좌가 없습니다.' : '재주문할 계좌를 선택하세요.'
+  if (!selectedBroker) return brokers.length === 0 ? '선택한 사용자에 연결된 계좌가 없습니다.' : '재주문할 증권사·거래소를 선택하세요.'
+  if (!selectedAccountId) return accounts.length === 0 ? `선택한 ${brokerKindLabel(selectedBroker)}에 연결된 계좌가 없습니다.` : '재주문할 계좌를 선택하세요.'
   if (!selectedStrategyId) return strategies.length === 0 ? '선택한 계좌에 연결된 전략이 없습니다.' : '재주문할 전략을 선택하세요.'
   return orders.length === 0 ? '선택한 전략의 재주문 대상 거래일 주문이 없습니다.' : null
 }
@@ -106,15 +106,15 @@ export function AdminTradeCorrectionPanel({
         </div>
 
         <div className="grid min-w-0 gap-2 text-sm">
-          <Label htmlFor="reorder-broker-select" className="font-medium">증권사</Label>
+          <Label htmlFor="reorder-broker-select" className="font-medium">증권사·거래소</Label>
           <Select
             items={brokerItems}
             value={toSelectValue(brokerItems, selectedBroker)}
             onValueChange={(value) => { if (value) onBrokerChange(value) }}
             disabled={!selectedUserId || reorderPending}
           >
-            <SelectTrigger id="reorder-broker-select" aria-label="증권사 선택" className="h-10 w-full min-w-0">
-              <SelectValue placeholder="증권사 선택" />
+            <SelectTrigger id="reorder-broker-select" aria-label="증권사·거래소 선택" className="h-10 w-full min-w-0">
+              <SelectValue placeholder="증권사·거래소 선택" />
             </SelectTrigger>
             <SelectContent>
               {brokerItems.map((o) => (

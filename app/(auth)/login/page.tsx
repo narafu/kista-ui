@@ -76,7 +76,7 @@ function LoginPageContent() {
           </div>
         </div>
         <p className="text-sm text-muted-foreground text-center leading-snug mt-1">
-          정밀한 투자 전략을 기반으로<br />다중 증권사 통합 자동매매 인프라
+          정밀한 투자 전략을 기반으로<br />다중 증권사·거래소 통합 자동매매 인프라
         </p>
       </div>
 

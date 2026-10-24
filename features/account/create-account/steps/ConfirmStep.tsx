@@ -7,7 +7,7 @@ import { useMeta } from '@entities/meta'
 import { apiMsg } from '@shared/lib/api-client'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@shared/ui/Spinner'
-import { isKeyOnlyBroker, isMockBroker } from '@shared/lib/api-schema'
+import { brokerKindLabel, isKeyOnlyBroker, isMockBroker } from '@shared/lib/api-schema'
 import type { BrokerCode, AccountRequest, CredentialBroker } from '@entities/account'
 import type { StepData } from '../CreateAccountStepper'
 
@@ -58,7 +58,7 @@ export function ConfirmStep({ data, onBack }: Props) {
 
       <div className="rounded-[var(--r-lg)] border border-border bg-card divide-y divide-border">
         <div className="flex items-center justify-between px-4 py-3">
-          <span className="text-sm text-muted-foreground">증권사</span>
+          <span className="text-sm text-muted-foreground">{brokerKindLabel(broker)}</span>
           <span className="text-sm font-semibold">{labelOf('brokers', broker)}</span>
         </div>
         <div className="flex items-center justify-between px-4 py-3">
