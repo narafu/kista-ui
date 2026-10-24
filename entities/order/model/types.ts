@@ -24,30 +24,11 @@ import type { SkipReason } from '@shared/lib/api-schema'
 export type { PlacedOrder } from '@shared/model/placed-order'
 import type { PlacedOrder } from '@shared/model/placed-order'
 
-export interface CompetingStrategy {
-  strategyId: string
-  type: string
-  ticker: string
-  requiredBuyUsd: string
-  priority: number
-}
-
-export interface BuyCompetitionSummary {
-  sufficientBudget: boolean
-  availableDeposit: string
-  requiredForThisStrategy: string
-  consumedByHigherPriority: string
-  blockedByHigherPriority: CompetingStrategy[]
-  uncertainStrategyIds: string[]
-  liveBalanceUnavailable: boolean   // 라이브 예수금 조회 자체 실패 시 true — sufficientBudget/availableDeposit 신뢰 불가
-}
-
-export interface SellSufficiencySummary {
-  sufficientQuantity: boolean
-  sellableQuantity: number
-  reservedQuantity: number
-  requiredQuantity: number
-  liveQuantityUnavailable: boolean  // 라이브 판매가능수량 조회 자체 실패 시 true — sufficientQuantity 신뢰 불가
+export interface LedgerCheck {
+  remainingLedger: number
+  requiredBuyUsd: number
+  sufficient: boolean // false면 그 사이클 신규 BUY 전체 거절
+  trimmed: boolean    // true면 원장에 맞춰 BUY를 축소 접수 (부족 아님, 정보성)
 }
 
 export interface NextOrderPreview {
@@ -57,8 +38,7 @@ export interface NextOrderPreview {
   skipReason: SkipReason | null
   todayOrders: PlacedOrder[]               // 오늘 이미 등록된 PLANNED + PLACED 주문 (없으면 빈 배열)
   otherStrategiesPlannedBuyUsd: string     // 계좌 내 타 전략 당일 PLANNED BUY 합계
-  competition: BuyCompetitionSummary | null // 계좌 내 BUY 예산 경쟁 시뮬레이션 결과 (BUY 없으면 null)
-  sellSufficiency: SellSufficiencySummary | null // SELL 판매가능수량 충족 시뮬레이션 결과 (SELL 없으면 null)
+  ledgerCheck: LedgerCheck | null          // 전략 원장 예수금 점검 결과 (DCA·신규 BUY 없음·skip이면 null)
 }
 
 export interface StrategyOrder {

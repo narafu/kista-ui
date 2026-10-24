@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fmtDate, todayKst } from '@shared/lib/format'
 import type { Strategy } from '@entities/strategy'
-import type { BuyCompetitionSummary, SellSufficiencySummary } from '@entities/order'
+import type { LedgerCheck } from '@entities/order'
 import { StrategyCard } from './StrategyCard'
 
 // todayKst() 기준 며칠 뒤/전 날짜를 yyyy-MM-dd로 계산 (달력일 산술만 필요 — UTC로 취급해도 안전)
@@ -14,16 +14,15 @@ function addDaysToKstDate(days: number): string {
 }
 
 // 실제 DTO에서 파생 — 목 리터럴에서 필요한 필드만 채우고 나머지는 Partial로 생략
-type CompetitionMock = Partial<BuyCompetitionSummary> & Pick<BuyCompetitionSummary, 'sufficientBudget'>
-type SellSufficiencyMock = Partial<SellSufficiencySummary> & Pick<SellSufficiencySummary, 'sufficientQuantity'>
+const SHORT: LedgerCheck = { remainingLedger: 50, requiredBuyUsd: 100, sufficient: false, trimmed: false }
+const OK: LedgerCheck = { remainingLedger: 500, requiredBuyUsd: 100, sufficient: true, trimmed: false }
 
 let previewState = {
   data: {
     orders: [] as Array<{ direction: string; price: string; quantity: number }>,
     todayOrders: [] as Array<{ status: 'PLANNED' | 'PLACED'; direction: 'BUY' | 'SELL' }>,
     otherStrategiesPlannedBuyUsd: '0',
-    competition: null as CompetitionMock | null,
-    sellSufficiency: null as SellSufficiencyMock | null,
+    ledgerCheck: null as LedgerCheck | null,
   },
   isLoading: false,
 }
@@ -85,8 +84,7 @@ describe('StrategyCard mobile row', () => {
         orders: [],
         todayOrders: [],
         otherStrategiesPlannedBuyUsd: '0',
-        competition: null,
-        sellSufficiency: null,
+        ledgerCheck: null,
       },
       isLoading: false,
     }
@@ -192,7 +190,7 @@ describe('StrategyCard mobile row', () => {
         ...previewState.data,
         orders: [{ direction: 'BUY', price: '1200', quantity: 1 }],
         todayOrders: [{ status: 'PLACED', direction: 'BUY' }],
-        competition: { sufficientBudget: true },
+        ledgerCheck: OK,
       },
     }
 
@@ -210,7 +208,7 @@ describe('StrategyCard mobile row', () => {
         ...previewState.data,
         orders: [{ direction: 'BUY', price: '1200', quantity: 1 }],
         todayOrders: [],
-        competition: { sufficientBudget: false },
+        ledgerCheck: SHORT,
       },
     }
 
@@ -218,7 +216,7 @@ describe('StrategyCard mobile row', () => {
 
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
     // 색만으로 전달하지 않도록 같은 판정을 배지 텍스트로도 보여준다 (모바일·PC 레이아웃 각각)
-    expect(screen.getAllByText('예수금 부족')).toHaveLength(2)
+    expect(screen.getAllByText('예수금 부족 · 원장 $50.00 / 필요 $100.00')).toHaveLength(2)
   })
 
   it('marks borders red when sell placed but buy is unplaced and still short on budget', () => {
@@ -231,7 +229,7 @@ describe('StrategyCard mobile row', () => {
           { direction: 'SELL', price: '1300', quantity: 1 },
         ],
         todayOrders: [{ status: 'PLACED', direction: 'SELL' }],
-        competition: { sufficientBudget: false },
+        ledgerCheck: SHORT,
       },
     }
 
@@ -240,7 +238,7 @@ describe('StrategyCard mobile row', () => {
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
   })
 
-  it('marks borders yellow when sell placed, buy unplaced, but budget is now sufficient', () => {
+  it('marks borders yellow when sell placed, buy unplaced, but ledger is sufficient', () => {
     previewState = {
       ...previewState,
       data: {
@@ -250,7 +248,7 @@ describe('StrategyCard mobile row', () => {
           { direction: 'SELL', price: '1300', quantity: 1 },
         ],
         todayOrders: [{ status: 'PLACED', direction: 'SELL' }],
-        competition: { sufficientBudget: true },
+        ledgerCheck: OK,
       },
     }
 
@@ -261,44 +259,7 @@ describe('StrategyCard mobile row', () => {
     expect(borderAccent).toHaveAttribute('style', expect.stringContaining('border-color: var(--warn);'))
   })
 
-  it('marks borders red when buy is unplaced and live balance could not be confirmed', () => {
-    previewState = {
-      ...previewState,
-      data: {
-        ...previewState.data,
-        orders: [
-          { direction: 'BUY', price: '1200', quantity: 1 },
-          { direction: 'SELL', price: '1300', quantity: 1 },
-        ],
-        todayOrders: [{ status: 'PLACED', direction: 'SELL' }],
-        competition: { sufficientBudget: true, liveBalanceUnavailable: true },
-      },
-    }
-
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
-
-    expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
-  })
-
-  it('marks borders yellow (not blank) when a buy is planned but live balance could not be confirmed before any attempt today', () => {
-    previewState = {
-      ...previewState,
-      data: {
-        ...previewState.data,
-        orders: [{ direction: 'BUY', price: '1200', quantity: 1 }],
-        todayOrders: [],
-        competition: { sufficientBudget: true, liveBalanceUnavailable: true },
-      },
-    }
-
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
-
-    const borderAccent = screen.getByTestId('strategy-order-border-accent')
-    expect(borderAccent).not.toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
-    expect(borderAccent).toHaveAttribute('style', expect.stringContaining('border-color: var(--warn);'))
-  })
-
-  it('marks borders red when sell is unplaced due to insufficient sellable quantity even though buy was placed', () => {
+  it('marks borders yellow (not green) when sell is unplaced', () => {
     previewState = {
       ...previewState,
       data: {
@@ -308,26 +269,6 @@ describe('StrategyCard mobile row', () => {
           { direction: 'SELL', price: '160', quantity: 9 },
         ],
         todayOrders: [{ status: 'PLACED', direction: 'BUY' }],
-        sellSufficiency: { sufficientQuantity: false, sellableQuantity: 6, reservedQuantity: 0, requiredQuantity: 9 },
-      },
-    }
-
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
-
-    expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
-  })
-
-  it('marks borders yellow (not green) when sell is unplaced even though the sellable quantity looks sufficient', () => {
-    previewState = {
-      ...previewState,
-      data: {
-        ...previewState.data,
-        orders: [
-          { direction: 'BUY', price: '155', quantity: 21 },
-          { direction: 'SELL', price: '160', quantity: 9 },
-        ],
-        todayOrders: [{ status: 'PLACED', direction: 'BUY' }],
-        sellSufficiency: { sufficientQuantity: true, sellableQuantity: 20, reservedQuantity: 0, requiredQuantity: 9 },
       },
     }
 
@@ -336,23 +277,6 @@ describe('StrategyCard mobile row', () => {
     const borderAccent = screen.getByTestId('strategy-order-border-accent')
     expect(borderAccent).not.toHaveAttribute('style', expect.stringContaining('border-color: var(--status-ok);'))
     expect(borderAccent).toHaveAttribute('style', expect.stringContaining('border-color: var(--warn);'))
-  })
-
-  it('marks borders yellow when a sell is planned and sellable quantity could not be confirmed before any attempt today', () => {
-    previewState = {
-      ...previewState,
-      data: {
-        ...previewState.data,
-        orders: [{ direction: 'SELL', price: '160', quantity: 9 }],
-        todayOrders: [],
-        sellSufficiency: { sufficientQuantity: true, liveQuantityUnavailable: true },
-      },
-    }
-
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
-
-    expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--warn);'))
-    expect(screen.getAllByText('잔고 확인 실패')).toHaveLength(2)
   })
 
   it('labels an unplaced direction as 미접수 주문', () => {
@@ -365,7 +289,7 @@ describe('StrategyCard mobile row', () => {
           { direction: 'SELL', price: '1300', quantity: 1 },
         ],
         todayOrders: [{ status: 'PLACED', direction: 'SELL' }],
-        competition: { sufficientBudget: true },
+        ledgerCheck: OK,
       },
     }
 
@@ -382,6 +306,14 @@ describe('StrategyCard mobile row', () => {
   })
 })
 
+describe('StrategyCard start seed label', () => {
+  it('labels the initial deposit as 시작 시드 on mobile and PC', () => {
+    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
+
+    expect(screen.getAllByText('시작 시드')).toHaveLength(2)
+  })
+})
+
 describe('StrategyCard scheduled start badge', () => {
   beforeEach(() => {
     previewState = {
@@ -389,8 +321,7 @@ describe('StrategyCard scheduled start badge', () => {
         orders: [],
         todayOrders: [],
         otherStrategiesPlannedBuyUsd: '0',
-        competition: null,
-        sellSufficiency: null,
+        ledgerCheck: null,
       },
       isLoading: false,
     }
@@ -430,8 +361,7 @@ describe('StrategyCard status', () => {
         orders: [],
         todayOrders: [],
         otherStrategiesPlannedBuyUsd: '0',
-        competition: null,
-        sellSufficiency: null,
+        ledgerCheck: null,
       },
       isLoading: false,
     }
@@ -450,8 +380,7 @@ describe('StrategyCard status', () => {
         orders: [{ direction: 'BUY' }],
         todayOrders: [],
         otherStrategiesPlannedBuyUsd: '0',
-        competition: { sufficientBudget: false, liveBalanceUnavailable: false, consumedByHigherPriority: '0', requiredForThisStrategy: '100', availableDeposit: '0' },
-        sellSufficiency: null,
+        ledgerCheck: SHORT,
       },
       isLoading: false,
     } as unknown as typeof previewState

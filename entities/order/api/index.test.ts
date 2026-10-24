@@ -248,24 +248,17 @@ describe('order api', () => {
     expect(Object.keys(result[0])).not.toContain('ticker')
   })
 
-  it('normalizes a null competition field to null', async () => {
+  it('normalizes a missing or null ledgerCheck to null', async () => {
     const { getStrategyOrdersPreview } = await import('./index')
-    clientFetchMock.mockResolvedValueOnce({
-      tradeDate: '2026-07-18',
-      position: null,
-      orders: [],
-      skipReason: 'NO_CYCLE_HISTORY',
-      todayOrders: [],
-      otherStrategiesPlannedBuyUsd: '0',
-      competition: null,
-    })
+    const base = { tradeDate: '2026-07-18', position: null, orders: [], skipReason: null, todayOrders: [], otherStrategiesPlannedBuyUsd: '0' }
+    clientFetchMock.mockResolvedValueOnce(base)
+    clientFetchMock.mockResolvedValueOnce({ ...base, ledgerCheck: null })
 
-    const result = await getStrategyOrdersPreview('strategy-1')
-
-    expect(result.competition).toBeNull()
+    expect((await getStrategyOrdersPreview('strategy-1')).ledgerCheck).toBeNull()
+    expect((await getStrategyOrdersPreview('strategy-1')).ledgerCheck).toBeNull()
   })
 
-  it('normalizes a populated competition field including nested competing strategies', async () => {
+  it('normalizes a populated ledgerCheck', async () => {
     const { getStrategyOrdersPreview } = await import('./index')
     clientFetchMock.mockResolvedValueOnce({
       tradeDate: '2026-07-18',
@@ -274,77 +267,11 @@ describe('order api', () => {
       skipReason: null,
       todayOrders: [],
       otherStrategiesPlannedBuyUsd: '0',
-      competition: {
-        sufficientBudget: false,
-        availableDeposit: 1000,
-        requiredForThisStrategy: 200,
-        consumedByHigherPriority: 900,
-        blockedByHigherPriority: [
-          { strategyId: 'vr-1', type: 'VR', ticker: 'TQQQ', requiredBuyUsd: 900, priority: 0 },
-        ],
-        uncertainStrategyIds: ['privacy-1'],
-        liveBalanceUnavailable: true,
-      },
+      ledgerCheck: { remainingLedger: '120.5', requiredBuyUsd: 200, sufficient: false, trimmed: false },
     })
 
     const result = await getStrategyOrdersPreview('strategy-1')
 
-    expect(result.competition).toEqual({
-      sufficientBudget: false,
-      availableDeposit: '1000',
-      requiredForThisStrategy: '200',
-      consumedByHigherPriority: '900',
-      blockedByHigherPriority: [
-        { strategyId: 'vr-1', type: 'VR', ticker: 'TQQQ', requiredBuyUsd: '900', priority: 0 },
-      ],
-      uncertainStrategyIds: ['privacy-1'],
-      liveBalanceUnavailable: true,
-    })
-  })
-
-  it('normalizes a null sellSufficiency field to null', async () => {
-    const { getStrategyOrdersPreview } = await import('./index')
-    clientFetchMock.mockResolvedValueOnce({
-      tradeDate: '2026-07-18',
-      position: null,
-      orders: [],
-      skipReason: 'NO_CYCLE_HISTORY',
-      todayOrders: [],
-      otherStrategiesPlannedBuyUsd: '0',
-      sellSufficiency: null,
-    })
-
-    const result = await getStrategyOrdersPreview('strategy-1')
-
-    expect(result.sellSufficiency).toBeNull()
-  })
-
-  it('normalizes a populated sellSufficiency field', async () => {
-    const { getStrategyOrdersPreview } = await import('./index')
-    clientFetchMock.mockResolvedValueOnce({
-      tradeDate: '2026-07-18',
-      position: null,
-      orders: [],
-      skipReason: null,
-      todayOrders: [],
-      otherStrategiesPlannedBuyUsd: '0',
-      sellSufficiency: {
-        sufficientQuantity: false,
-        sellableQuantity: 6,
-        reservedQuantity: 0,
-        requiredQuantity: 9,
-        liveQuantityUnavailable: false,
-      },
-    })
-
-    const result = await getStrategyOrdersPreview('strategy-1')
-
-    expect(result.sellSufficiency).toEqual({
-      sufficientQuantity: false,
-      sellableQuantity: 6,
-      reservedQuantity: 0,
-      requiredQuantity: 9,
-      liveQuantityUnavailable: false,
-    })
+    expect(result.ledgerCheck).toEqual({ remainingLedger: 120.5, requiredBuyUsd: 200, sufficient: false, trimmed: false })
   })
 })

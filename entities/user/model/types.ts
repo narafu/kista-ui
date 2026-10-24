@@ -9,7 +9,6 @@ export interface User {
   hasTelegram: boolean
   telegramBotUsername?: string | null
   notificationChannel?: NotificationChannel
-  balanceCheckEnabled: boolean
   notificationPrefs?: Record<string, boolean>
   strategySuggestions: string[]
 }

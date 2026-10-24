@@ -1,16 +1,6 @@
 'use client'
 
 import { useMemo, useState, type FormEvent } from 'react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -83,23 +73,47 @@ function buildInitialDrafts(orders: AdminStrategyOrder[], avail: AdminReorderTim
 type BuyBudgetSummary =
   | { state: 'loading' }
   | { state: 'unknown' }
-  | { state: 'ok'; remaining: number; required: number; over: boolean }
+  | { state: 'uncapped' }
+  | { state: 'ok'; remaining: number; required: number; excess: number }
 
-// 남은 예산 = liveOrderable − plannedBuy + Σ 재주문할 BUY 원본의 sourceRefunds.
-// 재주문하지 않는 행은 원본이 취소되지 않으므로 refund를 더하지 않는다.
-// 폼의 주문은 모두 선택된 한 계좌 소속 — 서버도 같은 계좌가 아니면 400
+// 사이클별 가용 = cycleRemaining[사이클] + Σ 그 사이클에서 재주문할 BUY 원본의 sourceRefunds.
+// 재주문하지 않는 행은 원본이 취소되지 않으므로 refund를 더하지 않는다. 서버는 사이클 단위로 409 차단하므로
+// 초과도 사이클마다 판정한다. 변경한 BUY가 없는 사이클은 원장이 이미 음수여도 이번 재주문과 무관하므로 판정·표시에서 뺀다.
+// 표시는 변경한 사이클(없으면 상한 있는 전체) 합계다 — 폼은 한 전략 소속이라 보통 사이클 1개.
+// cycleRemaining 자체가 없으면(구 API) 확인 불가, 키만 없으면 DCA 사이클이라 상한 없음
 function summarizeBuyBudget(
   query: { data?: AdminReorderBuyBudget; isPending: boolean; isError: boolean },
-  targets: { orderId: string; amount: number }[],
+  buyOrders: AdminStrategyOrder[],
+  targets: Map<string, number>, // 재주문할 BUY 원본 id → 변경한 금액
 ): BuyBudgetSummary {
   if (query.isError) return { state: 'unknown' }
   if (query.isPending) return { state: 'loading' }
   const budget = query.data
-  if (budget?.liveOrderable == null) return { state: 'unknown' }
-  const refund = targets.reduce((sum, t) => sum + (budget.sourceRefunds[t.orderId] ?? 0), 0)
-  const remaining = budget.liveOrderable - budget.plannedBuy + refund
-  const required = targets.reduce((sum, t) => sum + t.amount, 0)
-  return { state: 'ok', remaining, required, over: targets.length > 0 && required - remaining > 0.005 }
+  if (budget?.cycleRemaining == null || budget.sourceRefunds == null) return { state: 'unknown' }
+  if (buyOrders.some((order) => order.strategyCycleId == null)) return { state: 'unknown' }
+  const cycles = new Map<string, { remaining: number; required: number; changed: boolean }>()
+  for (const order of buyOrders) {
+    const limit = budget.cycleRemaining[order.strategyCycleId!]
+    if (limit == null) continue
+    const cycle = cycles.get(order.strategyCycleId!) ?? { remaining: limit, required: 0, changed: false }
+    const amount = targets.get(order.id)
+    if (amount != null) {
+      cycle.remaining += budget.sourceRefunds[order.id] ?? 0
+      cycle.required += amount
+      cycle.changed = true
+    }
+    cycles.set(order.strategyCycleId!, cycle)
+  }
+  if (cycles.size === 0) return { state: 'uncapped' }
+  const changed = [...cycles.values()].filter((c) => c.changed)
+  const shown = changed.length > 0 ? changed : [...cycles.values()]
+  const excess = changed.reduce((sum, c) => sum + Math.max(0, c.required - c.remaining), 0)
+  return {
+    state: 'ok',
+    remaining: shown.reduce((sum, c) => sum + c.remaining, 0),
+    required: shown.reduce((sum, c) => sum + c.required, 0),
+    excess: excess > 0.005 ? excess : 0,
+  }
 }
 
 function isDraftChanged(current: OrderDraft, initial: OrderDraft): boolean {
@@ -130,18 +144,18 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
     [orders, drafts, initialDrafts],
   )
   const changedSet = useMemo(() => new Set(changedOrderIds), [changedOrderIds])
-  const [confirmOpen, setConfirmOpen] = useState(false)
 
   // 재주문 POST와 같은 거래일(nextTradeDateKst) 기준 — 날짜가 바뀌면 queryKey가 달라져 재조회된다
   const buyOrders = orders.filter((order) => order.direction === 'BUY')
   const budgetQuery = useAdminReorderBuyBudgetQuery(buyOrders.map((order) => order.id), nextTradeDateKst())
   const budget = buyOrders.length === 0 ? null : summarizeBuyBudget(
     budgetQuery,
-    buyOrders.flatMap((order) => {
+    buyOrders,
+    new Map(buyOrders.flatMap((order) => {
       if (!changedSet.has(order.id)) return []
       const draft = drafts[order.id]
-      return [{ orderId: order.id, amount: Number(draft?.price) * Number(draft?.quantity) || 0 }]
-    }),
+      return [[order.id, Number(draft?.price) * Number(draft?.quantity) || 0] as const]
+    })),
   )
   const hasChangedBuy = buyOrders.some((order) => changedSet.has(order.id))
 
@@ -178,13 +192,11 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
     await onSubmit(items)
   }
 
-  // 예산 초과는 차단하지 않고 확인 후 진행한다 — 서버도 차단하지 않는다
+  // 원장 한도 초과는 서버가 409로 차단하므로 제출 버튼을 막는다
+  const isOverBudget = budget?.state === 'ok' && budget.excess > 0
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (budget?.state === 'ok' && budget.over) {
-      setConfirmOpen(true)
-      return
-    }
+    if (isOverBudget) return
     await submitItems()
   }
 
@@ -211,22 +223,22 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
       {budget && (
         <div aria-live="polite" className="mt-3 space-y-2 text-sm">
           {budget.state === 'loading' && (
-            <p className="text-muted-foreground">남은 주문가능금액 조회 중...</p>
+            <p className="text-muted-foreground">남은 원장 한도 조회 중...</p>
           )}
           {budget.state === 'unknown' && (
             <p className="rounded-[var(--r-md)] border border-dashed border-warn bg-warn-bg px-3 py-2 text-warn">
-              주문가능금액 조회 실패 — 예산 확인 불가
+              원장 한도 조회 실패 — 예산 확인 불가
             </p>
           )}
           {budget.state === 'ok' && (
             <>
               <p className="text-muted-foreground">
-                남은 주문가능금액 <span className="font-semibold text-foreground">${fmtUsd(budget.remaining)}</span>
+                남은 원장 한도 <span className="font-semibold text-foreground">${fmtUsd(budget.remaining)}</span>
                 {hasChangedBuy && <> · 변경한 매수 합계 <span className="font-semibold text-foreground">${fmtUsd(budget.required)}</span></>}
               </p>
-              {budget.over && (
+              {budget.excess > 0 && (
                 <p className="rounded-[var(--r-md)] border border-dashed border-warn bg-warn-bg px-3 py-2 text-warn">
-                  변경한 매수 주문 합계가 남은 주문가능금액을 ${fmtUsd(budget.required - budget.remaining)} 초과합니다. 그대로 진행하면 증권사에서 거절될 수 있습니다.
+                  변경한 매수 주문 합계가 남은 원장 한도를 ${fmtUsd(budget.excess)} 초과합니다. 전략 원장 예수금이 부족해 재주문할 수 없습니다.
                 </p>
               )}
             </>
@@ -346,27 +358,11 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
         {!isBlocked && changedOrderIds.length === 0 && orders.length > 0 && (
           <p className="text-sm text-muted-foreground">변경된 주문이 없습니다.</p>
         )}
-        <Button type="submit" variant="brand" disabled={disabled || changedOrderIds.length === 0 || isBlocked}>
+        <Button type="submit" variant="brand" disabled={disabled || changedOrderIds.length === 0 || isBlocked || isOverBudget}>
           {disabled ? '처리 중...' : `변경한 주문 ${changedOrderIds.length}건 재주문`}
         </Button>
       </div>
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>주문가능금액을 초과합니다</AlertDialogTitle>
-            <AlertDialogDescription>
-              {budget?.state === 'ok'
-                ? `변경한 매수 합계 $${fmtUsd(budget.required)}가 남은 주문가능금액 $${fmtUsd(budget.remaining)}를 넘습니다. 증권사에서 거절될 수 있습니다. 그래도 재주문하시겠습니까?`
-                : '변경한 매수 합계가 남은 주문가능금액을 넘습니다. 그래도 재주문하시겠습니까?'}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void submitItems()}>재주문</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </form>
   )
 }

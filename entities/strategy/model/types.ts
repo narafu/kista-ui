@@ -106,6 +106,8 @@ export interface StrategySeedPreview {
   basePrice: number | null
   minSeed: number | null
   skipReason: string | null
+  // 가용 예수금 — 모의계좌이거나 조회 실패면 null (참고값, 시드 검증에는 쓰지 않는다)
+  availableCash: number | null
 }
 
 // VR 전략 운영 중 재설정 — PUT /api/trading-cycles/{id}/vr-config 요청 바디, 16필드 전부 optional

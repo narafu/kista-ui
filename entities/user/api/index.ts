@@ -9,10 +9,6 @@ export async function updateNotificationPref(type: string, enabled: boolean): Pr
   await clientFetch<void>(`/api/settings/notifications/${type}`, jsonBody('PATCH', { enabled }))
 }
 
-export async function updateBalanceCheckEnabled(enabled: boolean): Promise<void> {
-  await clientFetch<void>('/api/settings/balance-check', jsonBody('PATCH', { enabled }))
-}
-
 export async function updateStrategySuggestions(suggestions: string[]): Promise<void> {
   await clientFetch<void>('/api/settings/strategy-suggestions', jsonBody('PUT', { suggestions }))
 }

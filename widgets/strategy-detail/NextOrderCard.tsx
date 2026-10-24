@@ -7,7 +7,7 @@ import { useCancelAllOrdersMutation, useCancelOneOrderMutation } from '@entities
 import { EmptyState } from '@shared/ui/EmptyState'
 import type { Strategy } from '@entities/strategy'
 import type { NextOrderPreview, OrderReadiness } from '@entities/order'
-import { SKIP_REASON_LABELS, BUY_COPY, SELL_COPY, directionUnplacedMessage, previewErrorMsg } from './orderBannerCopy'
+import { SKIP_REASON_LABELS, directionUnplacedMessage, previewErrorMsg } from './orderBannerCopy'
 import { OrderRows } from './OrderRows'
 import { Button } from '@/components/ui/button'
 import { isMockBroker } from '@shared/lib/api-schema'
@@ -42,14 +42,8 @@ function executeBlockMessages(
   if (mode === 'executed') return ['이미 접수된 주문이 있어 실행할 수 없습니다']
   if (marketStatusMessage) return [marketStatusMessage]
   if (isConfirmedHoliday) return ['오늘은 미국 증시 휴장일입니다']
-  // BUY/SELL 부족·확인 실패가 동시에 있을 수 있어 둘 다 확인해 각각 토스트로 안내한다 —
-  // 한쪽만 안내하면 사용자가 나머지 사유를 모른 채 재시도하게 된다
-  return [
-    readiness.buy.uncertain && '예수금 확인에 실패했습니다. 잠시 후 다시 확인해주세요.',
-    readiness.sell.uncertain && '판매가능수량 확인에 실패했습니다. 잠시 후 다시 확인해주세요.',
-    !readiness.buy.uncertain && readiness.buy.hasDeficit && '예수금이 부족합니다',
-    !readiness.sell.uncertain && readiness.sell.hasDeficit && '판매가능수량이 부족합니다',
-  ].filter((msg): msg is string => Boolean(msg))
+  if (readiness.ledgerShortfall) return ['전략 원장 예수금이 부족합니다']
+  return []
 }
 
 // executed 모드에서만 의미 있음: preview 모드는 "아직 시도 안 함"과 "전량 거절"을 구분할 수 없다
@@ -99,7 +93,7 @@ function ExecutedBody({ placedOrders, orders, unplacedDirections, readiness, onC
           <div className="flex flex-col gap-0.5 px-6 py-3 border-b border-border">
             {unplacedDirections.map((d) => (
               <p key={d} className="whitespace-pre-line text-base text-warn">
-                {d === 'BUY' ? directionUnplacedMessage(readiness.buy, BUY_COPY) : directionUnplacedMessage(readiness.sell, SELL_COPY)}
+                {directionUnplacedMessage(d, readiness)}
               </p>
             ))}
           </div>
@@ -232,6 +226,9 @@ export function NextOrderCard({
           )}
         </CardContent>
       </Card>
+      {readiness.ledgerTrimmed && (
+        <p className="text-base text-muted-foreground">전략 원장에 맞춰 매수 주문을 줄여 접수합니다.</p>
+      )}
     </div>
   )
 }

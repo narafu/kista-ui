@@ -2,7 +2,8 @@ import { clientFetch, fetchEither } from '@shared/lib/api-client'
 import { buildQueryString } from '@shared/lib/query-string'
 import { normalizePlacedOrderBase } from '@shared/model/placed-order'
 import type { PlacedOrder } from '@shared/model/placed-order'
-import type { BuyCompetitionSummary, CompetingStrategy, NextOrderPreview, SellSufficiencySummary, SkipReason, StrategyOrder } from '../model/types'
+import { toNum } from '@shared/lib/utils'
+import type { LedgerCheck, NextOrderPreview, SkipReason, StrategyOrder } from '../model/types'
 
 interface CancelOrdersResult {
   cancelledCount: number
@@ -10,42 +11,15 @@ interface CancelOrdersResult {
   credentialFailedCount: number // failedCount 중 증권사 키 만료·철회 건수 — 재시도로 안 풀려 계좌 키 재등록 필요
 }
 
-function normalizeCompetingStrategy(raw: unknown): CompetingStrategy {
-  const item = raw as Record<string, unknown>
-  return {
-    strategyId: String(item.strategyId),
-    type: String(item.type),
-    ticker: String(item.ticker),
-    requiredBuyUsd: String(item.requiredBuyUsd),
-    priority: Number(item.priority),
-  }
-}
-
-function normalizeNullable<T>(raw: unknown, mapper: (r: Record<string, unknown>) => T): T | null {
+function normalizeLedgerCheck(raw: unknown): LedgerCheck | null {
   if (raw == null) return null
-  return mapper(raw as Record<string, unknown>)
-}
-
-function normalizeCompetition(raw: unknown): BuyCompetitionSummary | null {
-  return normalizeNullable(raw, (r) => ({
-    sufficientBudget: Boolean(r.sufficientBudget),
-    availableDeposit: String(r.availableDeposit ?? '0'),
-    requiredForThisStrategy: String(r.requiredForThisStrategy ?? '0'),
-    consumedByHigherPriority: String(r.consumedByHigherPriority ?? '0'),
-    blockedByHigherPriority: ((r.blockedByHigherPriority as unknown[]) ?? []).map(normalizeCompetingStrategy),
-    uncertainStrategyIds: ((r.uncertainStrategyIds as unknown[]) ?? []).map(String),
-    liveBalanceUnavailable: Boolean(r.liveBalanceUnavailable),
-  }))
-}
-
-function normalizeSellSufficiency(raw: unknown): SellSufficiencySummary | null {
-  return normalizeNullable(raw, (r) => ({
-    sufficientQuantity: Boolean(r.sufficientQuantity),
-    sellableQuantity: Number(r.sellableQuantity ?? 0),
-    reservedQuantity: Number(r.reservedQuantity ?? 0),
-    requiredQuantity: Number(r.requiredQuantity ?? 0),
-    liveQuantityUnavailable: Boolean(r.liveQuantityUnavailable),
-  }))
+  const r = raw as Record<string, unknown>
+  return {
+    remainingLedger: toNum(r.remainingLedger),
+    requiredBuyUsd: toNum(r.requiredBuyUsd),
+    sufficient: Boolean(r.sufficient),
+    trimmed: Boolean(r.trimmed),
+  }
 }
 
 function normalizePreview(raw: unknown): NextOrderPreview {
@@ -80,9 +54,8 @@ function normalizePreview(raw: unknown): NextOrderPreview {
     (o): PlacedOrder => normalizePlacedOrderBase(o) as PlacedOrder,
   )
   const otherStrategiesPlannedBuyUsd = String(r.otherStrategiesPlannedBuyUsd ?? '0')
-  const competition = normalizeCompetition(r.competition)
-  const sellSufficiency = normalizeSellSufficiency(r.sellSufficiency)
-  return { tradeDate: String(r.tradeDate), position, orders, skipReason, todayOrders, otherStrategiesPlannedBuyUsd, competition, sellSufficiency }
+  const ledgerCheck = normalizeLedgerCheck(r.ledgerCheck)
+  return { tradeDate: String(r.tradeDate), position, orders, skipReason, todayOrders, otherStrategiesPlannedBuyUsd, ledgerCheck }
 }
 
 // token 있으면 Server Component에서 kista-api 직접 호출, 없으면 Client Component에서 Route Handler 경유

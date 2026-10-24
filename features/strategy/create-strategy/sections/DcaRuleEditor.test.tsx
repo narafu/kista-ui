@@ -31,6 +31,8 @@ function renderEditor({ direction = 'BUY', market = 'US_STOCK', isNew = true, in
   return { onDone, onDelete, onCancel }
 }
 
+const STOCK_BUY_NOTE = '주식 매수에는 적용되지 않습니다. 잔고가 부족하면 증권사에서 주문이 거절됩니다.'
+
 describe('DcaRuleEditor', () => {
   it('마운트 시 방향 제목(h2)에 포커스', () => {
     renderEditor({ direction: 'SELL' })
@@ -44,17 +46,20 @@ describe('DcaRuleEditor', () => {
     expect(screen.getByText('달러가 부족할 때')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '남은 금액만큼 매수' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: '주문 안 함' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByText(STOCK_BUY_NOTE)).toBeInTheDocument()
   })
 
   it('크립토 매수 부족 시 라벨은 원화', () => {
     renderEditor({ market: 'CRYPTO_KRW' })
     expect(screen.getByText('원화가 부족할 때')).toBeInTheDocument()
     expect(screen.getByLabelText('회차당 금액 (원)')).toBeInTheDocument()
+    expect(screen.queryByText(STOCK_BUY_NOTE)).not.toBeInTheDocument()
   })
 
   it('매도: 금액/보유 비율 토글, 비율 선택 시 비율 입력과 캡션', () => {
     renderEditor({ direction: 'SELL' })
     expect(screen.getByText('보유가 부족할 때')).toBeInTheDocument()
+    expect(screen.queryByText(STOCK_BUY_NOTE)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '잔량 전부 매도' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: '금액' })).toHaveAttribute('aria-pressed', 'true')
     fireEvent.click(screen.getByRole('button', { name: '보유 비율 %' }))

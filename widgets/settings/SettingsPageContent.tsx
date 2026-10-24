@@ -7,7 +7,6 @@ import { DeleteAccountButton } from '@features/settings/delete-user-account'
 import { TelegramSection } from '@features/settings/telegram-connect'
 import { NotificationSettings } from '@features/settings/notification-channel'
 import { ThemeCards } from '@features/settings/theme-select'
-import { BalanceCheckSetting } from '@features/settings/balance-check-setting'
 import { TradingAlertToggle } from '@features/settings/notification-prefs'
 import { NicknameEditor } from '@features/settings/edit-nickname'
 import { SectionError } from '@shared/ui/SectionError'
@@ -62,10 +61,9 @@ export function SettingsPageContent() {
 
       <Surface as="section" id="preferences" className="p-6">
         <h2 className="text-sm font-bold mb-0.5">환경설정</h2>
-        <div className="text-sm text-muted-foreground mb-[18px]">테마와 잔고 검증을 설정합니다.</div>
+        <div className="text-sm text-muted-foreground mb-[18px]">테마를 설정합니다.</div>
         <div className="text-sm font-semibold text-muted-foreground mb-2">테마</div>
         <ThemeCards />
-        <div className="mt-5 pt-4 border-t border-border"><BalanceCheckSetting /></div>
       </Surface>
 
       <section id="danger" className="rounded-[var(--r-lg)] border border-[var(--status-error-border)] bg-[var(--status-error-bg)] p-6">

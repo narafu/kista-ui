@@ -49,7 +49,6 @@ vi.mock('../api', () => ({
   updateAccount: updateAccountMock,
   deleteAccount: deleteAccountMock,
   updateCredentials: updateCredentialsMock,
-  getMargin: vi.fn(),
   getPrices: vi.fn(),
   testKisConnection: vi.fn(),
 }))
@@ -210,7 +209,6 @@ describe('account mutations', () => {
     const queryClient = createTestQueryClient()
     queryClient.setQueryData(accountKeys.list(), [accountA, accountB])
     queryClient.setQueryData(accountKeys.detail(accountA.id), accountA)
-    queryClient.setQueryData(accountKeys.margin(accountA.id), [{ currency: 'USD' }])
     deleteAccountMock.mockResolvedValue(undefined)
 
     const { result } = renderHook(() => useDeleteAccountMutation(accountA.id), {
@@ -221,7 +219,6 @@ describe('account mutations', () => {
 
     expect(queryClient.getQueryData(accountKeys.list())).toEqual([accountB])
     expect(queryClient.getQueryData(accountKeys.detail(accountA.id))).toBeUndefined()
-    expect(queryClient.getQueryData(accountKeys.margin(accountA.id))).toBeUndefined()
   })
 
   it('does not call router.push or router.refresh inside entity mutations', async () => {

@@ -1,7 +1,6 @@
 import type { UseFormReturn } from 'react-hook-form'
 import { todayKst } from '@shared/lib/format'
 import type { CycleSeedType, Strategy, StrategySeedPreview } from '@entities/strategy'
-import type { MarginItem } from '@entities/account'
 import type { RuntimeConfig, RuntimeFieldSettings, RuntimeStrategyType } from '@entities/runtime-config'
 import type { VrFields } from './useStrategyForm'
 import type { VrRecurringMode } from './vrDerived'
@@ -89,16 +88,14 @@ export function deriveRuntimeFields(
 
 // basePrice/minSeed는 백엔드 계산 — VR 전략은 시드 미리보기 불필요
 export function deriveSeedPreview(isVr: boolean, data: StrategySeedPreview | undefined) {
-  if (isVr) return { basePrice: null, minSeed: null, seedUnavailableReason: null }
+  if (isVr) return { basePrice: null, minSeed: null, seedUnavailableReason: null, availableCash: null }
   return {
     basePrice: data?.basePrice ?? null,
     minSeed: data?.minSeed ?? null,
     seedUnavailableReason: data?.skipReason ?? null,
+    // 서버 값은 증권사 주문가능액 − 다른 전략 원장이라 음수일 수 있다 — 참고값이므로 0으로 표시한다
+    availableCash: data?.availableCash == null ? null : Math.max(0, data.availableCash),
   }
-}
-
-export function findUsdDeposit(marginItems: MarginItem[]): number | null {
-  return marginItems.find((m) => m.currency === 'USD')?.purchasableAmount ?? null
 }
 
 // VR은 cycleSeedType 항상 NONE — 롤오버가 자체 사이클 교체 담당

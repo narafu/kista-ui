@@ -18,7 +18,7 @@ function exceedsMaxDecimals(raw: string, maxDecimals: number): boolean {
 }
 
 // 포커스 표시는 공용 Input(components/ui/input)과 같은 ring 토큰을 쓴다 — 같은 폼에 둘이 섞여 있다.
-// SeedAmountInput·PercentGauge의 상시 rose 테두리는 포커스가 아닌 강조라 유지하고, 포커스 ring만 같은 걸 덧씌운다
+// SeedAmountInput의 상시 rose 테두리는 포커스가 아닌 강조라 유지하고, 포커스 ring만 같은 걸 덧씌운다
 function inputBoxClass(disabled: boolean) {
   return cn(
     'flex items-center h-11 rounded-[var(--r-sm)] bg-card px-3 border border-[var(--border-strong)] transition-[border-color,box-shadow] duration-150',

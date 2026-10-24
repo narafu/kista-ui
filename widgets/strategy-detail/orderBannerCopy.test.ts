@@ -1,48 +1,31 @@
 import { describe, expect, it } from 'vitest'
 import { ApiError } from '@shared/lib/api-client'
-import type { DirectionReadiness, OrderReadiness } from '@entities/order'
-import { nextOrderBannerText, previewErrorMsg, recurringModeLabel } from './orderBannerCopy'
+import type { DirectionReadiness, LedgerCheck, OrderReadiness } from '@entities/order'
+import { directionUnplacedMessage, nextOrderBannerText, previewErrorMsg, recurringModeLabel } from './orderBannerCopy'
 
-function direction(overrides: Partial<DirectionReadiness> = {}): DirectionReadiness {
-  return {
-    hasOrders: false,
-    unplaced: false,
-    hasDeficit: false,
-    uncertain: false,
-    deficitAmount: 0,
-    ...overrides,
-  }
-}
+const BUY_DIRECTION: DirectionReadiness = { hasOrders: true, unplaced: false }
+const NO_DIRECTION: DirectionReadiness = { hasOrders: false, unplaced: false }
+const SHORT: LedgerCheck = { remainingLedger: 50, requiredBuyUsd: 100, sufficient: false, trimmed: false }
 
 function readiness(overrides: Partial<OrderReadiness> = {}): OrderReadiness {
   return {
-    buy: direction(),
-    sell: direction(),
+    buy: NO_DIRECTION,
+    sell: NO_DIRECTION,
+    ledgerShortfall: null,
+    ledgerTrimmed: false,
     ...overrides,
   }
 }
 
 describe('nextOrderBannerText', () => {
-  it('returns null when the strategy cannot execute, regardless of market status or deficits', () => {
-    const result = nextOrderBannerText(
-      false,
-      'preview',
-      true,
-      '미국 증시 휴장 여부를 확인하지 못했습니다',
-      readiness({ buy: direction({ hasOrders: true, hasDeficit: true, deficitAmount: 100 }) }),
-    )
+  it('returns null when the strategy cannot execute, regardless of market status or shortfall', () => {
+    const result = nextOrderBannerText(false, 'preview', true, '미국 증시 휴장 여부를 확인하지 못했습니다', readiness({ buy: BUY_DIRECTION, ledgerShortfall: SHORT }))
 
     expect(result).toBeNull()
   })
 
-  it('surfaces the market status message in preview mode before checking holiday/deficit state', () => {
-    const result = nextOrderBannerText(
-      true,
-      'preview',
-      true,
-      '미국 증시 휴장 여부를 확인하는 중입니다',
-      readiness({ buy: direction({ hasOrders: true, hasDeficit: true, deficitAmount: 100 }) }),
-    )
+  it('surfaces the market status message in preview mode before checking holiday/shortfall state', () => {
+    const result = nextOrderBannerText(true, 'preview', true, '미국 증시 휴장 여부를 확인하는 중입니다', readiness({ buy: BUY_DIRECTION, ledgerShortfall: SHORT }))
 
     expect(result).toBe('미국 증시 휴장 여부를 확인하는 중입니다')
   })
@@ -53,58 +36,25 @@ describe('nextOrderBannerText', () => {
     expect(result).toBe('오늘은 휴장일입니다')
   })
 
-  it('joins BUY deficit and SELL deficit messages with a line break when both occur simultaneously (preview mode has no attempt to retry yet)', () => {
-    const result = nextOrderBannerText(
-      true,
-      'preview',
-      false,
-      null,
-      readiness({
-        buy: direction({ hasOrders: true, hasDeficit: true, deficitAmount: 100 }),
-        sell: direction({ hasOrders: true, hasDeficit: true, deficitAmount: 3 }),
-      }),
-    )
+  it.each(['preview', 'executed'] as const)('shows the ledger shortfall without a retry promise in %s mode', (mode) => {
+    const result = nextOrderBannerText(true, mode, false, null, readiness({ buy: BUY_DIRECTION, ledgerShortfall: SHORT }))
 
-    expect(result).toBe('예수금 $100.00 부족\n판매가능수량 3주 부족')
+    expect(result).toBe('전략 원장 예수금 부족(원장 $50.00 / 필요 $100.00)')
   })
 
-  it('appends the schedule-specific follow-up wording in executed mode (BUY has not been attempted yet, SELL will be retried)', () => {
-    const result = nextOrderBannerText(
-      true,
-      'executed',
-      false,
-      null,
-      readiness({
-        buy: direction({ hasOrders: true, hasDeficit: true, deficitAmount: 100 }),
-        sell: direction({ hasOrders: true, hasDeficit: true, deficitAmount: 3 }),
-      }),
-    )
+  it('returns null when the ledger is sufficient', () => {
+    expect(nextOrderBannerText(true, 'preview', false, null, readiness({ buy: BUY_DIRECTION }))).toBeNull()
+  })
+})
 
-    expect(result).toBe('예수금 $100.00 부족(장 마감 시 매수 예정)\n판매가능수량 3주 부족(장 마감 시 매도 재시도 예정)')
+describe('directionUnplacedMessage', () => {
+  it('explains the ledger rejection for BUY (no retry) and promises a retry otherwise', () => {
+    expect(directionUnplacedMessage('BUY', readiness({ ledgerShortfall: SHORT }))).toBe('전략 원장 예수금 부족으로 매수 미접수')
+    expect(directionUnplacedMessage('BUY', readiness())).toBe('장 마감 시 매수 예정')
   })
 
-  it('shows the uncertain check-failed message in preview mode when the live balance lookup failed', () => {
-    const result = nextOrderBannerText(
-      true,
-      'preview',
-      false,
-      null,
-      readiness({ buy: direction({ hasOrders: true, uncertain: true }) }),
-    )
-
-    expect(result).toBe('예수금 확인 실패.\n잠시 후 다시 확인해주세요.')
-  })
-
-  it('does not surface the uncertain check-failed message in executed mode (the unplaced-direction list already covers it)', () => {
-    const result = nextOrderBannerText(
-      true,
-      'executed',
-      false,
-      null,
-      readiness({ buy: direction({ hasOrders: true, uncertain: true }) }),
-    )
-
-    expect(result).toBeNull()
+  it('always says SELL will be retried at market close', () => {
+    expect(directionUnplacedMessage('SELL', readiness({ ledgerShortfall: SHORT }))).toBe('장 마감 시 매도 재시도 예정')
   })
 })
 

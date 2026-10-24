@@ -193,6 +193,7 @@ export function DcaSizingSection({ form, market }: Pick<Props, 'form' | 'market'
             </SelectionCard>
           ))}
         </div>
+        {!isCrypto && direction === 'BUY' && <Caption>주식 매수에는 적용되지 않습니다. 잔고가 부족하면 증권사에서 주문이 거절됩니다.</Caption>}
       </div>
     </>
   )

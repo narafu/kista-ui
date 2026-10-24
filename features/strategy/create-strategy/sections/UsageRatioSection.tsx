@@ -1,105 +1,72 @@
 'use client'
 
-import { AlertTriangle } from 'lucide-react'
-import { Spinner } from '@shared/ui/Spinner'
 import { Badge } from '@shared/ui/Badge'
+import { Button } from '@/components/ui/button'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
-import { PercentGauge, SeedAmountInput } from '@shared/ui/percent-gauge'
+import { SeedAmountInput } from '@shared/ui/percent-gauge'
 import { fmtUsd } from '@shared/lib/format'
 
+const FILL_PERCENTS = [25, 50, 75, 100]
+
 interface Props {
-  hint?: React.ReactNode
-  pct: number
-  setPct: (pct: number) => void
+  hint?: string
   seedUsdInput: number | null
   setSeedUsdInput: (v: number | null) => void
-  usdDeposit: number | null
+  // 가용 예수금 — 참고값·비율 채우기용, 시드 검증에는 쓰지 않는다 (모의계좌·조회 실패는 null)
+  availableCash: number | null
   minSeed: number | null
   loading: boolean
-  loadingBase: boolean
-  isBelowMinSeed: boolean
-  seedUnavailableReason: string | null
-  balanceCheckEnabled?: boolean
-  offBadgeLabel?: string
+  mockBadgeLabel?: string
 }
 
-function defaultHint(isOff: boolean, offBadgeLabel?: string) {
-  if (!isOff) return 'USD 예수금 기준 · 드래그하거나 입력'
-  return <Badge tone="brand" size="md">{offBadgeLabel ?? '잔고검증 OFF'}</Badge>
-}
-
-function SeedWarningContent({
-  loadingBase, isBelowMinSeed, minSeed, seedUnavailableReason,
-}: Pick<Props, 'loadingBase' | 'isBelowMinSeed' | 'minSeed' | 'seedUnavailableReason'>) {
-  if (loadingBase) {
-    return (
-      <>
-        <Spinner size={14} className="text-muted-foreground" />
-        <span className="text-muted-foreground">예수금 조회 중...</span>
-      </>
-    )
+// 호출부 힌트(수정 모드 안내 등)가 있어도 가용 예수금은 함께 보여야 비율 버튼의 기준을 알 수 있다
+function seedHint(hint: string | undefined, availableCash: number | null, mockBadgeLabel?: string) {
+  if (availableCash !== null) {
+    const cash = `가용 예수금 $${fmtUsd(availableCash)}`
+    return hint ? `${hint} · ${cash}` : cash
   }
-  if (isBelowMinSeed && minSeed !== null) {
-    return (
-      <>
-        <AlertTriangle size={14} style={{ color: 'var(--warn)' }} />
-        <span style={{ color: 'var(--warn)' }}>최소 ${fmtUsd(minSeed)} 필요</span>
-      </>
-    )
-  }
-  if (seedUnavailableReason === 'NO_PRIVACY_BASE') {
-    return (
-      <>
-        <AlertTriangle size={14} style={{ color: 'var(--warn)' }} />
-        <span style={{ color: 'var(--warn)' }}>P 매매표가 없습니다</span>
-      </>
-    )
-  }
-  return null
+  if (hint) return hint
+  if (mockBadgeLabel) return <Badge tone="brand" size="md">{mockBadgeLabel}</Badge>
+  return undefined
 }
 
 export function UsageRatioSection({
   hint,
-  pct, setPct, seedUsdInput, setSeedUsdInput,
-  usdDeposit, minSeed, loading, loadingBase,
-  isBelowMinSeed, seedUnavailableReason,
-  balanceCheckEnabled = true,
-  offBadgeLabel,
+  seedUsdInput, setSeedUsdInput,
+  availableCash, minSeed, loading,
+  mockBadgeLabel,
 }: Props) {
-  const useSeedInput = !balanceCheckEnabled
-  const isOff = !balanceCheckEnabled
-  const showWarning = !isOff && (isBelowMinSeed || seedUnavailableReason !== null)
-
   return (
     <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel
-        hint={hint ?? defaultHint(isOff, offBadgeLabel)}
+        hint={seedHint(hint, availableCash, mockBadgeLabel)}
       >
-        {useSeedInput ? '예수금' : '사용 비율'}
+        시작 시드
       </StrategyFieldLabel>
 
-      {useSeedInput ? (
-        <SeedAmountInput
-          value={seedUsdInput}
-          onChange={setSeedUsdInput}
-          deposit={usdDeposit}
-          minSeed={minSeed}
-          disabled={loading}
-          showStatus={balanceCheckEnabled}
-        />
-      ) : (
-        <PercentGauge
-          value={pct}
-          onChange={setPct}
-          deposit={usdDeposit}
-          minSeed={minSeed}
-          disabled={loading || loadingBase}
-        />
-      )}
+      <SeedAmountInput
+        value={seedUsdInput}
+        onChange={setSeedUsdInput}
+        deposit={availableCash}
+        minSeed={minSeed}
+        disabled={loading}
+      />
 
-      {showWarning && (
-        <div className="inline-flex items-center gap-1.5 text-sm font-bold mt-3">
-          <SeedWarningContent loadingBase={loadingBase} isBelowMinSeed={isBelowMinSeed} minSeed={minSeed} seedUnavailableReason={seedUnavailableReason} />
+      {availableCash !== null && availableCash > 0 && (
+        <div className="flex gap-2 mt-3">
+          {FILL_PERCENTS.map((p) => (
+            <Button
+              key={p}
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={loading}
+              // 100%는 내림(예수금 초과 방지), 그 외는 올림(시드 부족 방지)
+              onClick={() => setSeedUsdInput(p === 100 ? Math.floor(availableCash) : Math.ceil((availableCash * p) / 100))}
+            >
+              {p}%
+            </Button>
+          ))}
         </div>
       )}
     </div>

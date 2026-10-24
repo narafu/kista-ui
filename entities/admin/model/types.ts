@@ -65,6 +65,7 @@ export interface AdminStrategyOrder {
   userId: string
   ownerNickname: string
   strategyType?: string | null
+  strategyCycleId?: string | null // 재주문 예산 cycleRemaining 키 — 구 API 응답엔 없다
   tradeDate: string
   ticker: string
   direction: OrderDirection
@@ -84,7 +85,8 @@ export interface AdminReorderTimingAvailability {
   immediate: boolean
 }
 
-// BUY 재주문 예산 — 같은 계좌 원본 주문 일괄 조회, live는 1회(실패 시 liveOrderable null).
+// BUY 재주문 예산 — 같은 계좌 원본 주문 일괄 조회. cycleRemaining은 사이클별 남은 원장 한도(키 없으면 DCA라 상한 없음),
+// sourceRefunds는 원본 주문별 취소 환급액. 서버는 이 한도를 넘는 재주문 BUY를 409로 차단한다.
 // 서버 record라 항상 전 필드를 보내지만 스펙엔 optional로 생성돼 Required로 고정한다.
 export type AdminReorderBuyBudget = Required<components['schemas']['ReorderBuyBudgetResponse']>
 

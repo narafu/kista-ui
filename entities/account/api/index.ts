@@ -2,13 +2,6 @@ import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
 import type { Account, AccountRequest } from '../model/types'
 
-export interface MarginItem {
-  currency: string
-  integratedOrderableAmount: number
-  foreignOrderableAmount: number
-  purchasableAmount: number
-}
-
 export type PriceMap = Record<string, number>
 
 export async function listAccounts(token?: string): Promise<Account[]> {
@@ -30,10 +23,6 @@ export async function updateCredentials(id: string, body: { appKey: string; secr
 
 export async function deleteAccount(id: string, token?: string): Promise<void> {
   return fetchEither<void>(`/api/accounts/${id}`, { method: 'DELETE' }, token)
-}
-
-export async function getMargin(accountId: string): Promise<MarginItem[]> {
-  return clientFetch<MarginItem[]>(`/api/accounts/${accountId}/margin`)
 }
 
 interface MultiPriceResponseRaw {

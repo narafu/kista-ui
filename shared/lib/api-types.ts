@@ -750,26 +750,6 @@ export interface paths {
         patch: operations["updateNickname"];
         trace?: never;
     };
-    "/api/settings/balance-check": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * 잔고 검증 설정
-         * @description false 시 실잔고 미확인 모드 — 예수금 부족해도 전략 등록·재등록 가능. body: {"enabled": false}
-         */
-        patch: operations["updateBalanceCheck"];
-        trace?: never;
-    };
     "/api/finance/transactions/{id}/unshare": {
         parameters: {
             query?: never;
@@ -3114,45 +3094,15 @@ export interface components {
             /** @description 통합주문가능금액 */
             usdDeposit?: number;
         };
-        BuyCompetitionSummary: {
-            /** @description 대상 전략 BUY가 실제 배치에서 승인될지 근사 판정 (liveBalanceUnavailable=true면 신뢰 불가) */
-            sufficientBudget?: boolean;
-            /** @description 라이브 예수금 - 타 전략 당일 PLANNED BUY 합계 (liveBalanceUnavailable=true면 null) */
-            availableDeposit?: number;
-            /** @description 대상 전략 오늘자 BUY 합계 */
-            requiredForThisStrategy?: number;
-            /** @description 대상 전략보다 우선순위 앞선 경쟁 전략 필요금액 합 */
-            consumedByHigherPriority?: number;
-            /** @description 우선순위가 앞선 경쟁 전략 목록 (우선순위 높은 순 정렬) */
-            blockedByHigherPriority?: components["schemas"]["CompetingStrategy"][];
-            /** @description 계산 실패/skip돼 0으로 처리된 전략 id 목록 */
-            uncertainStrategyIds?: string[];
-            /** @description true면 라이브 예수금 조회 자체가 실패해 경쟁 시뮬레이션을 생략함 — 이 경우 sufficientBudget/availableDeposit은 신뢰할 수 없음 */
-            liveBalanceUnavailable?: boolean;
-        };
-        CompetingStrategy: {
-            /**
-             * Format: uuid
-             * @description 경쟁 전략 ID
-             */
-            strategyId?: string;
-            /**
-             * @description 경쟁 전략 타입
-             * @enum {string}
-             */
-            type?: "INFINITE" | "PRIVACY" | "VR" | "DCA";
-            /**
-             * @description 경쟁 전략 거래 종목
-             * @enum {string}
-             */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
-            /** @description 경쟁 전략 필요 매수금액 */
+        LedgerCheckSummary: {
+            /** @description 전략 원장 잔여 (같은 날 저장된 BUY 차감 후, USD) */
+            remainingLedger?: number;
+            /** @description 오늘 신규 BUY 원본 합계 (USD) */
             requiredBuyUsd?: number;
-            /**
-             * Format: int32
-             * @description 예산 배정 우선순위 (작을수록 먼저 승인)
-             */
-            priority?: number;
+            /** @description false면 원장 부족으로 BUY 전체가 거절된다 */
+            sufficient?: boolean;
+            /** @description true면 원장에 맞춰 BUY가 축소돼 저장된다 */
+            trimmed?: boolean;
         };
         NextOrderItem: {
             /**
@@ -3200,10 +3150,8 @@ export interface components {
             todayOrders?: components["schemas"]["TodayOrderItem"][];
             /** @description 계좌 내 타 전략의 당일 PLANNED BUY 합계 (USD) */
             otherStrategiesPlannedBuyUsd?: number;
-            /** @description 계좌 내 BUY 예산 경쟁 시뮬레이션 결과 (대상 전략에 BUY 주문이 없으면 null, 근사치) */
-            competition?: components["schemas"]["BuyCompetitionSummary"];
-            /** @description SELL 판매가능수량 충족 시뮬레이션 결과 (대상 전략에 SELL 주문이 없으면 null, 근사치) */
-            sellSufficiency?: components["schemas"]["SellSufficiencySummary"];
+            /** @description 전략 원장 대비 BUY 경고 (DCA·신규 BUY 없음·skip이면 null) */
+            ledgerCheck?: components["schemas"]["LedgerCheckSummary"];
         };
         PositionSnapshot: {
             /**
@@ -3233,27 +3181,6 @@ export interface components {
             targetPrice?: number;
             /** @description 총 자산 (예수금 + 매입금액) */
             totalAssets?: number;
-        };
-        SellSufficiencySummary: {
-            /** @description 대상 전략 SELL이 실제 배치에서 승인될지 근사 판정 (liveQuantityUnavailable=true면 신뢰 불가) */
-            sufficientQuantity?: boolean;
-            /**
-             * Format: int32
-             * @description 브로커 판매가능수량 (liveQuantityUnavailable=true면 0)
-             */
-            sellableQuantity?: number;
-            /**
-             * Format: int32
-             * @description 동일 계좌·종목·거래일 기준 기존 PLANNED/PLACED SELL 예약 수량 합
-             */
-            reservedQuantity?: number;
-            /**
-             * Format: int32
-             * @description 대상 전략 오늘자 SELL 합계 수량
-             */
-            requiredQuantity?: number;
-            /** @description true면 브로커 판매가능수량 조회 자체가 실패해 충족 시뮬레이션을 생략함 — 이 경우 sufficientQuantity는 신뢰할 수 없음 */
-            liveQuantityUnavailable?: boolean;
         };
         TodayOrderItem: {
             /**
@@ -3660,6 +3587,8 @@ export interface components {
              * @example NO_PRIVACY_BASE
              */
             skipReason?: string;
+            /** @description 가용 예수금 = 증권사 매수가능금액 − 다른 전략 원장 합 (모의계좌·조회 실패면 null). 입력 시드가 넘으면 경고만 한다 */
+            availableCash?: number;
         };
         TossStockInfoResponse: {
             /**
@@ -4576,11 +4505,6 @@ export interface components {
              * @enum {string}
              */
             notificationChannel?: "NONE" | "TELEGRAM" | "FCM" | "ALL";
-            /**
-             * @description 전략 등록·재등록 시 실잔고 검증 여부 (false=바이패스)
-             * @example true
-             */
-            balanceCheckEnabled?: boolean;
             /** @description 알림 타입별 on/off (예: {"TRADING_ALERT": true}) */
             notificationPrefs?: {
                 [key: string]: boolean;
@@ -4871,13 +4795,6 @@ export interface components {
              * @example 나라부
              */
             nickname: string;
-        };
-        BalanceCheckRequest: {
-            /**
-             * @description 잔고 검증 활성화 여부 — true면 시드 등록/수정 시 가용금액 한도 검증
-             * @example true
-             */
-            enabled?: boolean;
         };
         MonthlyClosingRequest: {
             /** @description 완료 여부 */
@@ -5298,6 +5215,11 @@ export interface components {
              * @description 소속 전략 ID (조회 실패 시 null)
              */
             strategyId?: string;
+            /**
+             * Format: uuid
+             * @description 소속 전략 사이클 ID (리오더 예산 cycleRemaining 키, 사이클 미연결 시 null)
+             */
+            strategyCycleId?: string | null;
             /** @description 계좌 소유자 닉네임 */
             ownerNickname?: string;
             /**
@@ -5360,10 +5282,10 @@ export interface components {
             immediate?: boolean;
         };
         ReorderBuyBudgetResponse: {
-            /** @description 거래일 계좌 PLANNED BUY 합계 */
-            plannedBuy?: number;
-            /** @description live 주문가능금액(USD), 조회 실패 시 null */
-            liveOrderable?: number | null;
+            /** @description 전략 사이클 ID별 남은 원장 한도(USD) = 최신 원장 − 같은 거래일 저장된 BUY */
+            cycleRemaining?: {
+                [key: string]: number;
+            };
             /** @description 원본 주문 ID별 재주문 시 취소로 되돌려 받는 BUY 금액(해당 없으면 0) */
             sourceRefunds?: {
                 [key: string]: number;
@@ -7102,28 +7024,6 @@ export interface operations {
             };
             /** @description 유효하지 않은 닉네임 */
             400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    updateBalanceCheck: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BalanceCheckRequest"];
-            };
-        };
-        responses: {
-            /** @description 변경 성공 */
-            204: {
                 headers: {
                     [name: string]: unknown;
                 };

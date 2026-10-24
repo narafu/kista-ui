@@ -203,4 +203,13 @@ describe('reconfigureVr', () => {
     expect(result.vr?.bandWidth).toBe(20)
     expect(result.startDate).toBe('2026-08-01')
   })
+
+  it('getStrategySeedPreview는 availableCash를 숫자로 정규화하고 없으면 null이다', async () => {
+    const { getStrategySeedPreview } = await import('./index')
+    fetchEitherMock.mockResolvedValueOnce({ ticker: 'TQQQ', basePrice: '50', minSeed: '1000', skipReason: null, availableCash: '1234.5' })
+    expect((await getStrategySeedPreview('a1', { type: 'INFINITE', ticker: 'TQQQ', divisionCount: 40 })).availableCash).toBe(1234.5)
+
+    fetchEitherMock.mockResolvedValueOnce({ ticker: 'TQQQ', basePrice: null, minSeed: null, skipReason: null })
+    expect((await getStrategySeedPreview('a1', { type: 'INFINITE', ticker: 'TQQQ', divisionCount: 40 })).availableCash).toBeNull()
+  })
 })

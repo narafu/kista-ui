@@ -54,18 +54,12 @@ function SeedSection({ form, initial }: { form: UseStrategyFormReturn; initial?:
   return (
     <UsageRatioSection
       hint={seedHint(form.isVr, initial)}
-      pct={form.pct}
-      setPct={form.setPct}
       seedUsdInput={form.seedUsdInput}
       setSeedUsdInput={form.setSeedUsdInput}
-      usdDeposit={form.usdDeposit}
+      availableCash={form.availableCash}
       minSeed={form.minSeed}
       loading={form.loading}
-      loadingBase={form.loadingBase}
-      isBelowMinSeed={form.isBelowMinSeed}
-      seedUnavailableReason={form.seedUnavailableReason}
-      balanceCheckEnabled={form.balanceCheckEnabled}
-      offBadgeLabel={form.isMock ? '모의계좌' : undefined}
+      mockBadgeLabel={form.isMock ? '모의계좌' : undefined}
     />
   )
 }

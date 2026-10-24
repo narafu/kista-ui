@@ -14,7 +14,7 @@ describe('SeedAmountInput', () => {
       />,
     )
 
-    expect(screen.getByLabelText('예수금 (USD)')).toBeInTheDocument()
+    expect(screen.getByLabelText('시작 시드 (USD)')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '최소시드 단위 감소' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '최소시드 단위 증가' })).not.toBeInTheDocument()
   })
@@ -29,7 +29,7 @@ describe('SeedAmountInput', () => {
         minSeed={null}
       />,
     )
-    const input = screen.getByLabelText('예수금 (USD)')
+    const input = screen.getByLabelText('시작 시드 (USD)')
 
     await user.type(input, '123')
     expect(input).toHaveValue('123')
@@ -52,7 +52,7 @@ describe('SeedAmountInput', () => {
         minSeed={null}
       />,
     )
-    const input = screen.getByLabelText('예수금 (USD)')
+    const input = screen.getByLabelText('시작 시드 (USD)')
 
     await user.type(input, '123.45')
     onChange.mockClear()
@@ -72,9 +72,23 @@ describe('SeedAmountInput', () => {
         minSeed={null}
       />,
     )
-    const input = screen.getByLabelText('예수금 (USD)')
+    const input = screen.getByLabelText('시작 시드 (USD)')
 
     await user.type(input, '12.')
     expect(input).toHaveValue('12.')
+  })
+
+  it('예수금이 null이어도 조회 불가 안내 없이 최소 시드 안내로 떨어진다', () => {
+    render(<SeedAmountInput value={null} onChange={vi.fn()} deposit={null} minSeed={100} />)
+
+    expect(screen.queryByText('예수금 조회 불가')).not.toBeInTheDocument()
+    expect(screen.getByText('최소 $100.00')).toBeInTheDocument()
+  })
+
+  it('입력 시드가 예수금을 넘으면 경고성 안내만 보이고 입력은 막지 않는다', () => {
+    render(<SeedAmountInput value={1500} onChange={vi.fn()} deposit={1000} minSeed={100} />)
+
+    expect(screen.getByText('추가 입금 필요')).toBeInTheDocument()
+    expect(screen.getByLabelText('시작 시드 (USD)')).toBeEnabled()
   })
 })

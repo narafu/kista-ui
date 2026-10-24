@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { deleteMe, updateNotificationChannel, updateTelegram, deleteTelegram, updateBalanceCheckEnabled, updateNickname, updateNotificationPref, updateStrategySuggestions } from '../api'
+import { deleteMe, updateNotificationChannel, updateTelegram, deleteTelegram, updateNickname, updateNotificationPref, updateStrategySuggestions } from '../api'
 import { apiMsg } from '@shared/lib/api-client'
 import { userKeys } from '../model/queryKeys'
 import { meQueryOptions } from '../model/queryOptions'
@@ -47,28 +47,6 @@ export function useUpdateNotificationPrefMutation() {
         return { ...current, notificationPrefs }
       })
       toast.error(apiMsg(err, '알림 설정 변경에 실패했습니다.'))
-    },
-    onSettled: async () => {
-      await invalidateMe(queryClient)
-    },
-  })
-}
-
-export function useUpdateBalanceCheckEnabledMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (enabled: boolean) => updateBalanceCheckEnabled(enabled),
-    onMutate: async (enabled) => {
-      await queryClient.cancelQueries({ queryKey: userKeys.me() })
-      const previous = queryClient.getQueryData<User>(userKeys.me())
-      if (previous) queryClient.setQueryData<User>(userKeys.me(), { ...previous, balanceCheckEnabled: enabled })
-      return { previousEnabled: previous?.balanceCheckEnabled }
-    },
-    onError: (err, _vars, context) => {
-      queryClient.setQueryData<User>(userKeys.me(), (current) =>
-        current && context?.previousEnabled !== undefined ? { ...current, balanceCheckEnabled: context.previousEnabled } : current,
-      )
-      toast.error(apiMsg(err, '잔고 검증 설정 변경에 실패했습니다.'))
     },
     onSettled: async () => {
       await invalidateMe(queryClient)

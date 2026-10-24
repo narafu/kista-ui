@@ -40,10 +40,9 @@ const PRESERVED: QueryKey[] = [
   statsKeys.housingPriceIndexSeries(),
   statsKeys.etfPriceSeries(undefined, undefined, 'SPY'),
   statsKeys.housingRegions(),
-  // 계좌 메타(이름·증권사)는 체결과 무관. margin은 전략 생성 폼 전용 staleTime 0이라 refresh 시절에도 대상이 아니었다
+  // 계좌 메타(이름·증권사)는 체결과 무관
   strategyKeys.seedPreview('a1', 'INFINITE', 'TQQQ', 40),
   accountKeys.list(),
-  accountKeys.margin('a1'),
 ]
 
 describe('TradeNotificationBridge', () => {

@@ -43,13 +43,7 @@ vi.mock('@entities/runtime-config', () => ({
 
 const mockCreateMutate = vi.fn()
 const mockUpdateMutate = vi.fn()
-const meQueryState = {
-  data: { balanceCheckEnabled: true },
-}
-
 const seedModelState = {
-  pct: 100,
-  setPct: vi.fn(),
   seedUsdInput: 1200,
   setSeedUsdInput: vi.fn(),
   resetSeed: vi.fn(),
@@ -63,6 +57,7 @@ const seedPreviewState = {
     basePrice: 100 as number | null,
     minSeed: 500 as number | null,
     skipReason: null as string | null,
+    availableCash: null as number | null,
   },
   isLoading: false,
 }
@@ -96,10 +91,6 @@ vi.mock('@entities/meta', async () => ({
 }))
 
 vi.mock('@entities/account', () => ({
-  useAccountMarginQuery: () => ({
-    items: [{ currency: 'USD', purchasableAmount: 5000 }],
-    isLoading: false,
-  }),
   useAccountPricesQuery: () => ({
     data: { TSLA: 100 },
   }),
@@ -124,10 +115,6 @@ vi.mock('@entities/strategy', async () => ({
   useStrategySeedPreviewQuery: () => seedPreviewState,
 }))
 
-vi.mock('@entities/user', () => ({
-  useMeQuery: () => meQueryState,
-}))
-
 vi.mock('./useSeedModel', () => ({
   useSeedModel: () => seedModelState,
 }))
@@ -140,8 +127,6 @@ describe('useStrategyForm submit policy', () => {
     invalidateQueriesMock.mockClear()
     toastInfoMock.mockClear()
     createSuccessHandler = undefined
-    meQueryState.data.balanceCheckEnabled = true
-    seedModelState.pct = 100
     seedModelState.seedUsdInput = 1200
     seedModelState.seedUsd = 1200
     seedModelState.resetSeed.mockClear()
@@ -150,6 +135,7 @@ describe('useStrategyForm submit policy', () => {
     seedPreviewState.data.basePrice = 100
     seedPreviewState.data.minSeed = 500
     seedPreviewState.data.skipReason = null
+    seedPreviewState.data.availableCash = null
     seedPreviewState.isLoading = false
   })
 
@@ -779,9 +765,7 @@ describe('useStrategyForm submit policy', () => {
     expect(result.current.vrFields.recurringAmount).toBe(0)
   })
 
-  it('VR create with balance check off resets initial seed input to 0', async () => {
-    meQueryState.data.balanceCheckEnabled = false
-
+  it('VR create resets initial seed input to 0', async () => {
     const { result } = renderHook(() =>
       useStrategyForm({
         accountId: 'account-1',
@@ -1151,11 +1135,26 @@ describe('useStrategyForm submit policy', () => {
     expect(result.current.cannotSubmit).toBe(false)
   })
 
-  it('MOCK broker forces balanceCheckEnabled off regardless of user setting', () => {
-    meQueryState.data.balanceCheckEnabled = true
+  it('시드 미리보기의 availableCash를 노출하고 없으면 null이다', () => {
+    const { result, rerender } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    expect(result.current.availableCash).toBeNull()
+
+    seedPreviewState.data.availableCash = 5000
+    rerender()
+    expect(result.current.availableCash).toBe(5000)
+  })
+
+  it('시드가 availableCash를 넘어도 제출을 막지 않는다', () => {
+    seedPreviewState.data.availableCash = 1000
+    seedModelState.seedUsd = 1200
+    const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+
+    expect(result.current.cannotSubmit).toBe(false)
+  })
+
+  it('MOCK broker는 isMock을 노출한다', () => {
     const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1', broker: 'MOCK' }))
 
     expect(result.current.isMock).toBe(true)
-    expect(result.current.balanceCheckEnabled).toBe(false)
   })
 })

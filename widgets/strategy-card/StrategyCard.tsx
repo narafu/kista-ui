@@ -6,7 +6,7 @@ import { ChevronRight } from 'lucide-react'
 import { fmtUsd } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import { computeOrderReadiness, useStrategyOrderPreviewQuery } from '@entities/order'
-import type { DirectionReadiness, OrderReadiness } from '@entities/order'
+import type { OrderReadiness } from '@entities/order'
 import { seedBadgeClass, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import { Badge } from '@shared/ui/Badge'
@@ -19,18 +19,6 @@ interface Props {
   accountLabel?: string | ReactNode
 }
 
-// 부족 최우선. 미접수인데 라이브 잔고/판매가능수량 확인 자체가 실패했으면(uncertain) 충족으로 오인시키지
-// 않도록 부족과 동일하게 취급한다. 오늘 시도 전(preview)에도 방향별 계획이 있는데 조회가 실패한 상태는
-// "정상"과 구분되게 표시해야 하므로 unplaced 여부와 무관하게 경고로 취급한다. 미접수는 부족이 확인되지
-// 않아도(unplaced만으로도) 최소 경고 처리해 "타 방향은 접수됨" 하나만 보고 초록으로 오인시키지 않는다
-function directionHasError(d: DirectionReadiness): boolean {
-  return d.hasDeficit || (d.unplaced && d.uncertain)
-}
-
-function directionHasWarning(d: DirectionReadiness): boolean {
-  return d.unplaced || (d.hasOrders && d.uncertain)
-}
-
 interface OrderSignal {
   color: string
   // 색만으로 전달하지 않도록 같은 판정의 텍스트를 함께 둔다 — 정상(접수됨)은 배지 없이 스크린리더 텍스트만
@@ -38,14 +26,14 @@ interface OrderSignal {
   label: string
 }
 
-function getOrderSignal({ buy, sell }: OrderReadiness, hasTodayOrders: boolean): OrderSignal | null {
-  if (directionHasError(buy) || directionHasError(sell)) {
-    const label = buy.hasDeficit ? '예수금 부족' : sell.hasDeficit ? '판매가능수량 부족' : '잔고 확인 실패'
+// 전략 원장 예수금 부족 최우선. 미접수는 부족이 확인되지 않아도(unplaced만으로도) 최소 경고 처리해
+// "타 방향은 접수됨" 하나만 보고 초록으로 오인시키지 않는다
+function getOrderSignal({ buy, sell, ledgerShortfall }: OrderReadiness, hasTodayOrders: boolean): OrderSignal | null {
+  if (ledgerShortfall) {
+    const label = `예수금 부족 · 원장 $${fmtUsd(ledgerShortfall.remainingLedger)} / 필요 $${fmtUsd(ledgerShortfall.requiredBuyUsd)}`
     return { color: 'var(--status-error)', tone: 'error', label }
   }
-  if (directionHasWarning(buy) || directionHasWarning(sell)) {
-    return { color: 'var(--warn)', tone: 'warn', label: buy.unplaced || sell.unplaced ? '미접수 주문' : '잔고 확인 실패' }
-  }
+  if (buy.unplaced || sell.unplaced) return { color: 'var(--warn)', tone: 'warn', label: '미접수 주문' }
   if (hasTodayOrders) return { color: 'var(--status-ok)', tone: null, label: '오늘 주문 접수됨' }
   return null
 }
@@ -112,8 +100,11 @@ function MobileLayout({ strategy, accountLabel, usesDivisionCount, isVr, schedul
         {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
           <span className="shrink-0 whitespace-nowrap text-xs font-semibold text-foreground">{strategy.currentRound!.toFixed(1)}회차</span>
         )}
-        <span className="ml-auto text-sm font-semibold text-foreground">
-          <InitialDeposit value={strategy.initialUsdDeposit} />
+        <span className="ml-auto flex items-baseline gap-1">
+          <span className="whitespace-nowrap text-xs text-muted-foreground">시작 시드</span>
+          <span className="text-sm font-semibold text-foreground">
+            <InitialDeposit value={strategy.initialUsdDeposit} />
+          </span>
         </span>
         <ChevronRight className="size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
       </div>
@@ -176,9 +167,9 @@ function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledSt
           <Badge tone="none" size="sm" className={seedBadgeCls}>{seedLabel}</Badge>
         </div>
       )}
-      {/* 시작금액 푸터 */}
+      {/* 시작 시드 푸터 */}
       <div className="flex items-center justify-between pl-5 pr-4 py-2.5 border-t border-border bg-muted/30">
-        <span className="text-sm text-muted-foreground">시작금액</span>
+        <span className="text-sm text-muted-foreground">시작 시드</span>
         <div className="flex items-center gap-1.5">
           <span className="text-sm font-semibold text-foreground">
             <InitialDeposit value={strategy.initialUsdDeposit} />

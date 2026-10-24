@@ -10,10 +10,8 @@ import {
   updateAccount,
   updateCredentials,
   deleteAccount,
-  getMargin,
   getPrices,
   testKisConnection,
-  type MarginItem,
   type PriceMap,
 } from '../api'
 import type { Account, AccountRequest } from '../model/types'
@@ -32,16 +30,6 @@ async function synchronizeAccountList(
     }],
     update,
   )
-}
-
-export function useAccountMarginQuery(accountId: string, options?: { enabled?: boolean }) {
-  const { data: items = [], isLoading, isError } = useQuery<MarginItem[]>({
-    queryKey: accountKeys.margin(accountId),
-    queryFn: () => getMargin(accountId),
-    enabled: options?.enabled !== false,
-    staleTime: 0,
-  })
-  return { items, isLoading, isError }
 }
 
 export function useAccountPricesQuery(accountId: string, tickers: string[], options?: { enabled?: boolean }) {
@@ -83,7 +71,6 @@ export function useDeleteAccountMutation(accountId: string) {
     mutationFn: () => deleteAccount(accountId),
     onSuccess: async () => {
       queryClient.removeQueries({ queryKey: accountKeys.detail(accountId) })
-      queryClient.removeQueries({ queryKey: accountKeys.margin(accountId) })
       queryClient.removeQueries({ queryKey: accountKeys.pricesRoot(accountId) })
       await synchronizeAccountList(queryClient, (accounts) =>
         accounts.filter((account) => account.id !== accountId))

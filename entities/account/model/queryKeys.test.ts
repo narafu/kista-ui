@@ -7,7 +7,6 @@ describe('accountKeys', () => {
     expect(accountKeys.all).toEqual(['accounts'])
     expect(accountKeys.list()).toEqual(['accounts', 'list'])
     expect(accountKeys.detail('a1')).toEqual(['accounts', 'detail', 'a1'])
-    expect(accountKeys.margin('a1')).toEqual(['accounts', 'margin', 'a1'])
     expect(accountKeys.prices('a1', ['SOXL'])).toEqual(['accounts', 'prices', 'a1', 'SOXL'])
   })
 

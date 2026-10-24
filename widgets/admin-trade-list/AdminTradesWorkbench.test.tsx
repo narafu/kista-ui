@@ -13,7 +13,7 @@ import {
   getReorderBuyBudget,
 } from '@entities/admin/api'
 import { adminKeys } from '@entities/admin'
-import type { AdminAccount, AdminStrategy, AdminStrategyOrder, AdminTrade } from '@entities/admin'
+import type { AdminAccount, AdminReorderBuyBudget, AdminStrategy, AdminStrategyOrder, AdminTrade } from '@entities/admin'
 import { AdminTradesWorkbench } from './AdminTradesWorkbench'
 
 vi.mock('@entities/meta', async () => {
@@ -134,6 +134,7 @@ const orders: AdminStrategyOrder[] = [
     userId: 'user-1',
     ownerNickname: '홍길동',
     strategyType: 'INFINITE',
+    strategyCycleId: 'cycle-1',
     tradeDate: '2026-07-03',
     ticker: 'TSLA',
     direction: 'BUY',
@@ -149,6 +150,7 @@ const orders: AdminStrategyOrder[] = [
     userId: 'user-1',
     ownerNickname: '홍길동',
     strategyType: 'INFINITE',
+    strategyCycleId: 'cycle-1',
     tradeDate: '2026-07-03',
     ticker: 'TSLA',
     direction: 'SELL',
@@ -234,8 +236,7 @@ describe('AdminTradesWorkbench', () => {
       immediate: false,
     })
     getReorderBuyBudgetMock.mockReset().mockResolvedValue({
-      plannedBuy: 0,
-      liveOrderable: 1_000_000,
+      cycleRemaining: { 'cycle-1': 1_000_000 },
       sourceRefunds: {},
     })
   })
@@ -602,7 +603,7 @@ describe('AdminTradesWorkbench', () => {
     )
   })
 
-  it('sums changed BUY rows against one shared budget plus only their own refunds, then confirms before submit', async () => {
+  it('sums changed BUY rows against the cycle ledger plus only their own refunds, then blocks submit when over', async () => {
     const user = userEvent.setup()
     const buyOrders: AdminStrategyOrder[] = [
       orders[0],
@@ -611,8 +612,7 @@ describe('AdminTradesWorkbench', () => {
     ]
     listAdminStrategyOrdersMock.mockReset().mockResolvedValue(buyOrders)
     getReorderBuyBudgetMock.mockReset().mockResolvedValue({
-      plannedBuy: 1000,
-      liveOrderable: 1500,
+      cycleRemaining: { 'cycle-1': 500 },
       sourceRefunds: { 'order-1': 100, 'order-3': 200, 'order-4': 300 },
     })
     reorderAdminOrderMock.mockResolvedValue({
@@ -632,7 +632,7 @@ describe('AdminTradesWorkbench', () => {
     expect(getReorderBuyBudgetMock).toHaveBeenCalledTimes(1)
     expect(getReorderBuyBudgetMock).toHaveBeenCalledWith(['order-1', 'order-3', 'order-4'], '2026-07-03')
 
-    // order-1: 2 × 300 = 600, order-3: 1 × 500 = 500 → 1,100 vs 1500 − 1000 + 100 + 200 = 800
+    // order-1: 2 × 300 = 600, order-3: 1 × 500 = 500 → 1,100 vs 500 + 100 + 200 = 800
     await user.clear(screen.getByLabelText('주문 1 재주문 수량'))
     await user.type(screen.getByLabelText('주문 1 재주문 수량'), '2')
     await user.clear(screen.getByLabelText('주문 1 재주문 가격'))
@@ -642,23 +642,14 @@ describe('AdminTradesWorkbench', () => {
     await user.clear(screen.getByLabelText('주문 2 재주문 가격'))
     await user.type(screen.getByLabelText('주문 2 재주문 가격'), '500')
 
-    expect(await screen.findByText(/남은 주문가능금액을 \$300\.00 초과합니다/)).toBeInTheDocument()
-
-    await user.click(screen.getByRole('button', { name: '변경한 주문 2건 재주문' }))
-    const dialog = await screen.findByRole('alertdialog')
+    expect(await screen.findByText(/남은 원장 한도를 \$300\.00 초과합니다/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '변경한 주문 2건 재주문' })).toBeDisabled()
     expect(reorderAdminOrderMock).not.toHaveBeenCalled()
-    await user.click(within(dialog).getByRole('button', { name: '재주문' }))
-
-    await waitFor(() => expect(reorderAdminOrderMock).toHaveBeenCalledTimes(2))
   })
 
-  it('warns but submits without confirmation when live orderable amount is unavailable', async () => {
+  it('shows no budget for cycles without a ledger cap (DCA) and submits', async () => {
     const user = userEvent.setup()
-    getReorderBuyBudgetMock.mockReset().mockResolvedValue({
-      plannedBuy: 1000,
-      liveOrderable: null,
-      sourceRefunds: { 'order-1': 0 },
-    })
+    getReorderBuyBudgetMock.mockReset().mockResolvedValue({ cycleRemaining: {}, sourceRefunds: {} })
     reorderAdminOrderMock.mockResolvedValue({
       userId: 'user-1',
       accountId: 'account-1',
@@ -672,13 +663,37 @@ describe('AdminTradesWorkbench', () => {
     renderWorkbench()
 
     await selectStrategyTarget(user)
-    expect(await screen.findByText('주문가능금액 조회 실패 — 예산 확인 불가')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByLabelText('주문 1 재주문 수량')).toBeInTheDocument())
+    await user.clear(screen.getByLabelText('주문 1 재주문 수량'))
+    await user.type(screen.getByLabelText('주문 1 재주문 수량'), '5')
+    expect(screen.queryByText(/남은 원장 한도/)).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '변경한 주문 1건 재주문' }))
+
+    await waitFor(() => expect(reorderAdminOrderMock).toHaveBeenCalledTimes(1))
+  })
+
+  it('warns but still submits when the ledger budget is unavailable (old API response)', async () => {
+    const user = userEvent.setup()
+    getReorderBuyBudgetMock.mockReset().mockResolvedValue({ sourceRefunds: { 'order-1': 0 } } as unknown as AdminReorderBuyBudget)
+    reorderAdminOrderMock.mockResolvedValue({
+      userId: 'user-1',
+      accountId: 'account-1',
+      strategyId: 'strategy-1',
+      sourceOrderId: 'order-1',
+      originalStatus: 'PLACED',
+      resultingStatus: 'PLANNED',
+      newOrderExternalId: null,
+    })
+
+    renderWorkbench()
+
+    await selectStrategyTarget(user)
+    expect(await screen.findByText('원장 한도 조회 실패 — 예산 확인 불가')).toBeInTheDocument()
 
     await user.clear(screen.getByLabelText('주문 1 재주문 수량'))
     await user.type(screen.getByLabelText('주문 1 재주문 수량'), '5')
     await user.click(screen.getByRole('button', { name: '변경한 주문 1건 재주문' }))
 
     await waitFor(() => expect(reorderAdminOrderMock).toHaveBeenCalledTimes(1))
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
   })
 })

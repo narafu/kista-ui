@@ -1,9 +1,8 @@
 import { useMemo } from 'react'
 import { brokerMarket, isCryptoBroker, isMockBroker } from '@shared/lib/api-schema'
 import { tickerTradesIn, useMeta } from '@entities/meta'
-import { useAccountMarginQuery, useAccountPricesQuery } from '@entities/account'
+import { useAccountPricesQuery } from '@entities/account'
 import type { BrokerCode } from '@entities/account'
-import { useMeQuery } from '@entities/user'
 import { useRuntimeConfigQuery } from '@entities/runtime-config'
 import type { RuntimeStrategyType } from '@entities/runtime-config'
 
@@ -22,16 +21,6 @@ export function useStrategyFormData(accountId: string, broker: BrokerCode | unde
       && availableTickers.some((t) => tickerTradesIn(meta.tickers.find((m) => m.code === t), market))
       ? [code] : [])
 
-  const { data: meData } = useMeQuery()
-  // 모의계좌는 실제 잔고가 없어 예수금 조회 자체가 무의미 — 항상 수동 입력
-  const balanceCheckEnabled = (meData?.balanceCheckEnabled ?? true) && !isMock && !isCrypto
-
-  // 잔고검증 OFF면 예수금 불필요 → margin 쿼리 skip
-  // eslint-disable-next-line react-doctor/no-event-handler
-  const { items: marginItems, isLoading: marginLoading, isError: marginError } = useAccountMarginQuery(accountId, {
-    enabled: balanceCheckEnabled,
-  })
-
   // 티커 선택 버튼의 가격 표시용 — 주식 시세 api라 코인 티커는 뺀다(api 상한 10개). basePrice 계산엔 미사용
   const allTickerCodes = useMemo(
     () => meta.tickers.filter((t) => tickerTradesIn(t, 'US_STOCK')).map((t) => t.code),
@@ -49,10 +38,6 @@ export function useStrategyFormData(accountId: string, broker: BrokerCode | unde
     runtimeQuery,
     runtimeConfig,
     enabledStrategyTypes,
-    balanceCheckEnabled,
-    marginItems,
-    marginLoading,
-    marginError,
     prices,
     pricesError,
   }

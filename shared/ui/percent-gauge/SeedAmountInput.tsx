@@ -11,7 +11,6 @@ interface Props {
   deposit: number | null
   minSeed: number | null
   disabled?: boolean
-  showStatus?: boolean
 }
 
 interface StatusProps {
@@ -21,19 +20,11 @@ interface StatusProps {
 }
 
 function SeedStatus({ value, deposit, minSeed }: StatusProps) {
-  const positive = value !== null && value > 0
-  const shortage = deposit !== null && positive && deposit < value ? value - deposit : null
-  const sufficient = deposit !== null && positive && deposit >= value
+  const amount = value !== null && value > 0 ? value : null
+  const shortage = deposit !== null && amount !== null && deposit < amount ? amount - deposit : null
+  const sufficient = deposit !== null && amount !== null && deposit >= amount
 
-  if (deposit === null) {
-    return (
-      <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-muted border border-border">
-        <span className="text-sm text-muted-foreground font-bold">예수금 조회 불가</span>
-        <span className="text-sm text-muted-foreground">KIS 연결 확인 필요</span>
-      </div>
-    )
-  }
-  if (minSeed !== null && positive && value < minSeed) {
+  if (minSeed !== null && amount !== null && amount < minSeed) {
     return (
       <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--warn-bg)] border border-[var(--warn)]">
         <span className="text-sm text-[var(--warn)] font-bold">최소 시드 미달</span>
@@ -43,7 +34,7 @@ function SeedStatus({ value, deposit, minSeed }: StatusProps) {
       </div>
     )
   }
-  if (shortage !== null) {
+  if (shortage !== null && deposit !== null) {
     return (
       <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-muted border border-border">
         <span className="text-sm text-muted-foreground font-medium">추가 입금 필요</span>
@@ -66,7 +57,7 @@ function SeedStatus({ value, deposit, minSeed }: StatusProps) {
   }
   return (
     <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-muted border border-border">
-      <span className="text-sm text-muted-foreground font-bold">예수금 입력</span>
+      <span className="text-sm text-muted-foreground font-bold">시작 시드 입력</span>
       {minSeed !== null && (
         <span className="text-sm text-muted-foreground">최소 ${fmtUsd(minSeed)}</span>
       )}
@@ -74,7 +65,7 @@ function SeedStatus({ value, deposit, minSeed }: StatusProps) {
   )
 }
 
-export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled, showStatus = true }: Props) {
+export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled }: Props) {
   const { text, handleChange } = useDecimalAmountText({ value, onChange })
 
   return (
@@ -91,7 +82,7 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled, s
         <input
           type="text"
           inputMode="decimal"
-          aria-label="예수금 (USD)"
+          aria-label="시작 시드 (USD)"
           value={text}
           disabled={disabled}
           placeholder="0"
@@ -103,7 +94,7 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled, s
         <span className="text-xs font-semibold text-muted-foreground ml-1.5">USD</span>
       </div>
 
-      {showStatus && <SeedStatus value={value} deposit={deposit} minSeed={minSeed} />}
+      <SeedStatus value={value} deposit={deposit} minSeed={minSeed} />
     </div>
   )
 }

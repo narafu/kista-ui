@@ -82,17 +82,14 @@ const baseFormState = {
   handleTickerChange: vi.fn(),
   basePrice: 100,
   prices: { TSLA: 100 },
-  pct: 100,
-  setPct: vi.fn(),
   seedUsdInput: 1200,
   setSeedUsdInput: vi.fn(),
-  usdDeposit: 5000,
+  availableCash: 5000,
   minSeed: 500,
   isBelowMinSeed: false,
   loadingBase: false,
   canEditSeed: false,
   seedUnavailableReason: null,
-  balanceCheckEnabled: true,
   autoStart: true,
   setAutoStart: vi.fn(),
   seedMode: 'MAX' as const,
@@ -206,7 +203,7 @@ describe('StrategyForm seed section', () => {
     render(<StrategyForm accountId="account-1" initial={initialStrategy} />)
 
     expect(screen.queryByTestId('usage-ratio-section')).not.toBeInTheDocument()
-    expect(screen.getByText('시작금액')).toBeInTheDocument()
+    expect(screen.getByText('시작 시드')).toBeInTheDocument()
     expect(screen.getByText('시드는 전략 등록 후 수정할 수 없습니다')).toBeInTheDocument()
     expect(screen.getByText('$1,200.00')).toBeInTheDocument()
   })

@@ -23,7 +23,6 @@ export {
   useUpdateTelegramMutation,
   useDeleteTelegramMutation,
   useUpdateNotificationPrefMutation,
-  useUpdateBalanceCheckEnabledMutation,
   useUpdateNicknameMutation,
   useUpdateStrategySuggestionsMutation,
 } from './hooks/useUserQueries'

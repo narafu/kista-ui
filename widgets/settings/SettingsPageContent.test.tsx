@@ -10,7 +10,6 @@ vi.mock('@features/settings/delete-user-account', () => ({ DeleteAccountButton: 
 vi.mock('@features/settings/telegram-connect', () => ({ TelegramSection: () => null }))
 vi.mock('@features/settings/notification-channel', () => ({ NotificationSettings: () => null }))
 vi.mock('@features/settings/theme-select', () => ({ ThemeCards: () => null }))
-vi.mock('@features/settings/balance-check-setting', () => ({ BalanceCheckSetting: () => null }))
 vi.mock('@features/settings/edit-nickname', () => ({ NicknameEditor: () => null }))
 vi.mock('@features/settings/notification-prefs', () => ({
   TradingAlertToggle: ({ type }: { type: string }) => <span>toggle:{type}</span>,

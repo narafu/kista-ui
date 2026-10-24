@@ -17,7 +17,7 @@ import type { VrRecurringMode } from './vrDerived'
 import { isInvalidBootstrap, isInvalidScheduledStart, isInvalidVr, isRuntimeValueInvalid, computeCannotSubmit, computeSubmitDisabledReason } from './strategyFormGuards'
 import { buildStrategyPayload } from './buildStrategyPayload'
 import { useTypeDefaults } from './useTypeDefaults'
-import { buildStrategyFormDefaults, createFormSetters, deriveRuntimeFields, deriveSeedPreview, findUsdDeposit, toCycleSeedType, watchVrFields } from './strategyFormHelpers'
+import { buildStrategyFormDefaults, createFormSetters, deriveRuntimeFields, deriveSeedPreview, toCycleSeedType, watchVrFields } from './strategyFormHelpers'
 import { useInitialSeedReset, useInitializing, useLoadFailToast, useStrategyMutations } from './useStrategyFormEffects'
 import { strategyFormSchema, type DivisionCount, type StrategyFormValues } from './strategyFormSchema'
 
@@ -64,15 +64,12 @@ export interface UseStrategyFormReturn {
   basePrice: number | null
   prices: PriceMap | null
 
-  pct: number
-  setPct: (p: number) => void
   seedUsdInput: number | null
   setSeedUsdInput: (v: number | null) => void
-  usdDeposit: number | null
+  availableCash: number | null // 시드 미리보기의 가용 예수금 — 참고값·비율 채우기용 (모의계좌·조회 실패는 null)
   minSeed: number | null
   isBelowMinSeed: boolean
   loadingBase: boolean
-  balanceCheckEnabled: boolean
   isMock: boolean
 
   autoStart: boolean
@@ -128,7 +125,7 @@ export function useStrategyForm({
   const queryClient = useQueryClient()
   const {
     isMock, isCrypto, market, meta, findStrategyType, runtimeQuery, runtimeConfig, enabledStrategyTypes,
-    balanceCheckEnabled, marginItems, marginLoading, marginError, prices, pricesError,
+    prices, pricesError,
   } = useStrategyFormData(accountId, broker)
 
   const { submit, loading } = useStrategyMutations({ queryClient, accountId, initial, onSuccess })
@@ -176,27 +173,24 @@ export function useStrategyForm({
     { type, ticker, divisionCount },
     { enabled: !!type && !!ticker && !isVr && type !== 'DCA' },
   )
-  const { basePrice, minSeed, seedUnavailableReason } = deriveSeedPreview(isVr, seedPreview.data)
-  const loadingBase = seedPreview.isLoading || marginLoading
-
-  const usdDeposit = findUsdDeposit(marginItems)
+  const { basePrice, minSeed, seedUnavailableReason, availableCash } = deriveSeedPreview(isVr, seedPreview.data)
+  const loadingBase = seedPreview.isLoading
 
   const initializing = useInitializing(loadingBase, initial, runtimeQuery.isLoading)
 
-  useLoadFailToast(isMock, marginError, pricesError)
+  useLoadFailToast(isMock, pricesError)
 
   const {
-    pct, setPct,
     seedUsdInput, setSeedUsdInput,
     resetSeed,
     seedUsd,
     isBelowMinSeed, isInvalidSeed,
-  } = useSeedModel({ balanceCheckEnabled, initial, editableEdit: canEditSeed, usdDeposit, minSeed, avgPrice, quantity })
+  } = useSeedModel({ initial, minSeed, avgPrice, quantity })
 
   // type 변경 시 ticker·VR 기본값 설정 (effect + setType 공용) — 시드는 minSeed effect에서 처리
   const { setType } = useTypeDefaults({ form, initial, runtimeConfig, enabledStrategyTypes, availableTickers })
 
-  useInitialSeedReset({ initial, minSeed, usdDeposit, balanceCheckEnabled, isVr, resetSeed })
+  useInitialSeedReset({ initial, minSeed, isVr, resetSeed })
 
   const vrDerived = computeVrDerived({
     initial, avgPrice, quantity, initialValue, seedUsd,
@@ -252,8 +246,7 @@ export function useStrategyForm({
     ...setters,
     type, setType, usesDivisionCount, requiresPrivacyBase, canEditSeed, seedUnavailableReason,
     ticker, availableTickers, defaultTicker, basePrice, prices,
-    pct, setPct, seedUsdInput, setSeedUsdInput, usdDeposit, minSeed, isBelowMinSeed, loadingBase,
-    balanceCheckEnabled,
+    seedUsdInput, setSeedUsdInput, availableCash, minSeed, isBelowMinSeed, loadingBase,
     isMock, isCrypto, market,
     orderAmount: orderAmountRuleOf(broker ?? '', meta.brokers.find((b) => b.code === broker)),
     autoStart, seedMode,

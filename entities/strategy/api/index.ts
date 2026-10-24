@@ -203,6 +203,7 @@ export async function getStrategySeedPreview(
     basePrice: raw.basePrice != null ? toNum(raw.basePrice) : null,
     minSeed: raw.minSeed != null ? toNum(raw.minSeed) : null,
     skipReason: raw.skipReason != null ? String(raw.skipReason) : null,
+    availableCash: raw.availableCash != null ? toNum(raw.availableCash) : null,
   }
 }
 

@@ -8,7 +8,6 @@ import { userKeys } from '../model/queryKeys'
 import {
   useDeleteTelegramMutation,
   useMeQuery,
-  useUpdateBalanceCheckEnabledMutation,
   useUpdateNicknameMutation,
   useUpdateNotificationChannelMutation,
   useUpdateNotificationPrefMutation,
@@ -21,7 +20,6 @@ const {
   updateNotificationChannelMock,
   updateTelegramMock,
   deleteTelegramMock,
-  updateBalanceCheckEnabledMock,
   updateNotificationPrefMock,
   toastErrorMock,
 } = vi.hoisted(() => ({
@@ -30,7 +28,6 @@ const {
   updateNotificationChannelMock: vi.fn(),
   updateTelegramMock: vi.fn(),
   deleteTelegramMock: vi.fn(),
-  updateBalanceCheckEnabledMock: vi.fn(),
   updateNotificationPrefMock: vi.fn(),
   toastErrorMock: vi.fn(),
 }))
@@ -46,7 +43,6 @@ vi.mock('../api', () => ({
   updateTelegram: updateTelegramMock,
   deleteTelegram: deleteTelegramMock,
   deleteMe: vi.fn(),
-  updateBalanceCheckEnabled: updateBalanceCheckEnabledMock,
   updateNotificationPref: updateNotificationPrefMock,
 }))
 
@@ -56,7 +52,6 @@ const baseUser: User = {
   status: 'ACTIVE',
   role: 'USER',
   hasTelegram: false,
-  balanceCheckEnabled: true,
   notificationChannel: 'NONE',
   notificationPrefs: {},
   strategySuggestions: [],
@@ -86,7 +81,6 @@ function renderUserHooks(queryClient: QueryClient) {
     updateChannel: useUpdateNotificationChannelMutation(),
     updateTelegram: useUpdateTelegramMutation(),
     deleteTelegram: useDeleteTelegramMutation(),
-    updateBalanceCheckEnabled: useUpdateBalanceCheckEnabledMutation(),
     updateNotificationPref: useUpdateNotificationPrefMutation(),
   }), {
     wrapper: createWrapper(queryClient),
@@ -138,10 +132,6 @@ describe('user query ownership', () => {
     })
     deleteTelegramMock.mockReset().mockImplementation(() => {
       serverUser = { ...serverUser, hasTelegram: false, telegramBotUsername: null }
-      return Promise.resolve()
-    })
-    updateBalanceCheckEnabledMock.mockReset().mockImplementation((enabled: boolean) => {
-      serverUser = { ...serverUser, balanceCheckEnabled: enabled }
       return Promise.resolve()
     })
     updateNotificationPrefMock.mockReset().mockImplementation((type: string, enabled: boolean) => {
@@ -207,41 +197,6 @@ describe('optimistic toggle mutations', () => {
   beforeEach(() => {
     serverUser = baseUser
     getMeMock.mockReset().mockImplementation(() => Promise.resolve(serverUser))
-  })
-
-  it('flips balanceCheckEnabled in the me cache before the mutation resolves, then keeps it on success', async () => {
-    const queryClient = createTestQueryClient()
-    const { result } = renderUserHooks(queryClient)
-    await waitFor(() => expect(result.current.me.data).toEqual(baseUser))
-
-    let resolveUpdate: () => void = () => undefined
-    updateBalanceCheckEnabledMock.mockReset().mockImplementation(() => new Promise<void>((resolve) => { resolveUpdate = resolve }))
-
-    let mutation: Promise<unknown>
-    act(() => {
-      mutation = result.current.updateBalanceCheckEnabled.mutateAsync(false)
-    })
-    await waitFor(() => expect(queryClient.getQueryData<User>(userKeys.me())?.balanceCheckEnabled).toBe(false))
-
-    serverUser = { ...serverUser, balanceCheckEnabled: false }
-    resolveUpdate()
-    await mutation!
-    expect(queryClient.getQueryData<User>(userKeys.me())?.balanceCheckEnabled).toBe(false)
-  })
-
-  it('rolls back balanceCheckEnabled in the me cache when the mutation fails', async () => {
-    const queryClient = createTestQueryClient()
-    const { result } = renderUserHooks(queryClient)
-    await waitFor(() => expect(result.current.me.data).toEqual(baseUser))
-
-    updateBalanceCheckEnabledMock.mockReset().mockRejectedValue(new Error('network error'))
-
-    await act(async () => {
-      await result.current.updateBalanceCheckEnabled.mutateAsync(false).catch(() => undefined)
-    })
-
-    expect(queryClient.getQueryData<User>(userKeys.me())?.balanceCheckEnabled).toBe(true)
-    expect(toastErrorMock).toHaveBeenCalled()
   })
 
   it('rolls back a notification pref in the me cache when the mutation fails', async () => {
