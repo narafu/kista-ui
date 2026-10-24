@@ -16,15 +16,13 @@ vi.mock('@entities/finance', async () => {
   }
 })
 
-vi.mock('@entities/meta', () => ({
-  useMeta: () => ({
-    meta: {
-      assetClasses: [{ code: 'EQUITY', label: '미국주식' }, { code: 'CASH', label: '원화' }],
-      markets: [{ code: 'GLOBAL', label: '해외' }, { code: 'DOMESTIC', label: '국내' }],
-    },
-    labelOf: (_category: string, code: string) => ({ EQUITY: '미국주식', CASH: '원화' } as Record<string, string>)[code] ?? code,
-  }),
-}))
+vi.mock('@entities/meta', async () => {
+  const { testMeta, testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
+  return { useMeta: () => ({
+    meta: testMeta,
+    labelOf: testLabelOf,
+  }) }
+})
 
 const SYSTEM_INVESTMENT_CATEGORY_ID = 'f1000000-0000-4000-8000-000000000403'
 const SYSTEM_LOAN_CATEGORY_ID = 'f1000000-0000-4000-8000-000000000404'
@@ -106,8 +104,8 @@ describe('AssetOverview', () => {
     expect(screen.getByText('4,000,000원')).toBeInTheDocument()
     // 총부채 (카테고리별 현황의 '대출' 행에도 같은 금액이 나타나므로 개수만 확인)
     expect(screen.getAllByText('500,000원').length).toBeGreaterThan(0)
-    // 가장 큰 자산군 = 미국주식(EQUITY, 3,000,000) — 자산군별 현황 행에도 같은 라벨이 나타난다
-    expect(screen.getAllByText('미국주식').length).toBeGreaterThan(0)
+    // 가장 큰 자산군 = 주식(EQUITY, 3,000,000) — 자산군별 현황 행에도 같은 라벨이 나타난다
+    expect(screen.getAllByText('주식').length).toBeGreaterThan(0)
   })
 
   it('카테고리별 현황은 데이터가 없는 카테고리를 포함해 4개 모두 한글 라벨로 표시한다', () => {

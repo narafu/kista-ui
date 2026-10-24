@@ -3,9 +3,10 @@ import { describe, expect, it, vi } from 'vitest'
 import { FinanceSummary } from './FinanceSummary'
 import type { FinanceTransaction } from '@entities/finance'
 
-vi.mock('@entities/meta', () => ({
-  useMeta: () => ({ labelOf: () => '소비' }),
-}))
+vi.mock('@entities/meta', async () => {
+  const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
+  return { useMeta: () => ({ labelOf: testLabelOf }) }
+})
 
 const index = new Map([
   ['cat-1', { type: 'EXPENSE' as const, rootId: 'cat-1', name: '식비', path: [{ id: 'cat-1', name: '식비', sortOrder: 0 }], sortOrder: 0 }],

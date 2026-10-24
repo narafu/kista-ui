@@ -7,9 +7,10 @@ import type { TradingMarket } from '@shared/lib/api-schema'
 import { MetaProvider } from '@entities/meta'
 import { DcaConditionsSection } from './DcaConditionsSection'
 import { buildDcaRuleDefaults, dcaRuleSchema, type DcaRuleFormValues } from '../model/dcaFormSchema'
-import { dcaTestMeta, testOrderAmount } from './__fixtures__/dcaTestMeta'
+import { testMeta } from '@entities/meta/__fixtures__/testMeta'
+import { testOrderAmount } from './__fixtures__/dcaTestMeta'
 
-function Harness({ direction = 'BUY', market = 'US_STOCK', meta = dcaTestMeta, conditions = [] }: { direction?: 'BUY' | 'SELL'; market?: TradingMarket; meta?: typeof dcaTestMeta; conditions?: DcaRuleFormValues['conditions'] }) {
+function Harness({ direction = 'BUY', market = 'US_STOCK', meta = testMeta, conditions = [] }: { direction?: 'BUY' | 'SELL'; market?: TradingMarket; meta?: typeof testMeta; conditions?: DcaRuleFormValues['conditions'] }) {
   const form = useForm<DcaRuleFormValues>({
     resolver: zodResolver(dcaRuleSchema),
     defaultValues: { ...buildDcaRuleDefaults(direction, market, testOrderAmount(market)), amount: 100, conditions },
@@ -103,13 +104,13 @@ describe('DcaConditionsSection', () => {
     expect(screen.getByRole('combobox', { name: '조건 2 이동평균 기간' })).not.toHaveAttribute('aria-describedby')
   })
   it('새 조건 기본값은 메타 첫 지표·첫 비교 연산자', () => {
-    render(<Harness meta={{ ...dcaTestMeta, dcaOperators: [{ code: 'GT', label: '초과' }] }} />)
+    render(<Harness meta={{ ...testMeta, dcaOperators: [{ code: 'GT', label: '초과' }] }} />)
     fireEvent.click(screen.getByRole('button', { name: '조건 추가' }))
     expect(screen.getByRole('combobox', { name: '조건 1 지표' })).toHaveTextContent('평단가')
     expect(screen.getByRole('combobox', { name: '조건 1 비교' })).toHaveTextContent('초과')
   })
   it('비교 연산자 메타가 비면 조건 추가 버튼을 숨긴다', () => {
-    render(<Harness meta={{ ...dcaTestMeta, dcaOperators: [] }} />)
+    render(<Harness meta={{ ...testMeta, dcaOperators: [] }} />)
     expect(screen.queryByRole('button', { name: '조건 추가' })).not.toBeInTheDocument()
   })
 

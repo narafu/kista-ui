@@ -2,9 +2,10 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { OrderRows } from './OrderRows'
 
-vi.mock('@entities/meta', () => ({
-  useMeta: () => ({ labelOf: (_g: string, code: string) => ({ BUY: '매수', SELL: '매도' } as Record<string, string>)[code] ?? code }),
-}))
+vi.mock('@entities/meta', async () => {
+  const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
+  return { useMeta: () => ({ labelOf: testLabelOf }) }
+})
 
 describe('OrderRows', () => {
   it('shows cancel buttons for both planned and placed orders', () => {

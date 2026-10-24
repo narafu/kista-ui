@@ -8,7 +8,7 @@ import { isCryptoBroker } from '@shared/lib/api-schema'
 import { Badge } from '@shared/ui/Badge'
 import { cn } from '@shared/lib/utils'
 import { useMeta } from '@entities/meta'
-import { dcaExecutionStatusLabel, earliestNextExecution, formatCryptoNextExecution, latestLastExecution, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
+import { earliestNextExecution, formatCryptoNextExecution, latestLastExecution, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 
 interface Props {
@@ -35,7 +35,7 @@ export function DcaStrategyCard({ accountId, broker, strategy, accountLabel }: P
   ].join(' · ')
   const last = latestLastExecution(rules)
   const lastLabel = last
-    ? `최근 ${dcaExecutionStatusLabel(last.status)}${last.skipReason ? ` · ${labelOf('dcaSkipReasons', last.skipReason)}` : ''}`
+    ? `최근 ${labelOf('dcaExecutionStatuses', last.status)}${last.skipReason ? ` · ${labelOf('dcaSkipReasons', last.skipReason)}` : ''}`
     : null
   const next = earliestNextExecution(rules)
   const nextLabel = isCrypto ? '다음 실행' : '다음 판정일'

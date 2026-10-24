@@ -24,9 +24,10 @@ vi.mock('@entities/finance', async () => {
   }
 })
 
-vi.mock('@entities/meta', () => ({
-  useMeta: () => ({ labelOf: (_category: string, code: string) => (code === 'EQUITY' ? '주식' : code) }),
-}))
+vi.mock('@entities/meta', async () => {
+  const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
+  return { useMeta: () => ({ labelOf: testLabelOf }) }
+})
 
 vi.mock('@features/asset/toggle-monthly-check', () => ({
   ToggleMonthlyCheckButton: ({ month, completed }: { month: string; completed: boolean }) => (

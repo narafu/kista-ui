@@ -28,10 +28,9 @@ vi.mock('sonner', () => ({
   toast: { error: toastErrorMock, success: toastSuccessMock },
 }))
 
-const BROKER_LABELS: Record<string, string> = { KIS: '한국투자증권', TOSS: '토스증권', MOCK: '모의계좌' }
-
-vi.mock('@entities/meta', () => ({
-  useMeta: () => ({
+vi.mock('@entities/meta', async () => {
+  const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
+  return { useMeta: () => ({
     meta: {
       tickers: [
         { code: 'SOXL', name: 'Direxion Daily Semiconductor Bull 3X Shares' },
@@ -40,9 +39,9 @@ vi.mock('@entities/meta', () => ({
         { code: 'IBIT', name: 'iShares Bitcoin Trust' },
       ],
     },
-    labelOf: (_category: string, code: string) => BROKER_LABELS[code] ?? code,
-  }),
-}))
+    labelOf: testLabelOf,
+  }) }
+})
 
 const settings: RuntimeConfig = {
   auth: { approvalRequired: true },

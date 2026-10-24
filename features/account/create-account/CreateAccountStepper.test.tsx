@@ -3,18 +3,13 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { CreateAccountStepper } from './CreateAccountStepper'
 
-vi.mock('@entities/meta', () => ({
-  useMeta: () => ({
-    meta: {
-      brokers: [
-        { code: 'KIS', label: '한국투자증권' },
-        { code: 'MOCK', label: '모의계좌' },
-        { code: 'UPBIT', label: '업비트' },
-      ],
-    },
-    labelOf: (_category: string, code: string) => (code === 'MOCK' ? '모의계좌' : code),
-  }),
-}))
+vi.mock('@entities/meta', async () => {
+  const { testMeta, testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
+  return { useMeta: () => ({
+    meta: testMeta,
+    labelOf: testLabelOf,
+  }) }
+})
 
 vi.mock('@entities/runtime-config', () => ({
   useRuntimeConfigQuery: () => ({

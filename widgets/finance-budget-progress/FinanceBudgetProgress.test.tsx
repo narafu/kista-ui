@@ -3,9 +3,10 @@ import { describe, expect, it, vi } from 'vitest'
 import { FinanceBudgetProgress } from './FinanceBudgetProgress'
 import type { CategoryIndex, CategoryIndexEntry, FinanceBudget, FinanceCategory, FinanceTransaction } from '@entities/finance'
 
-vi.mock('@entities/meta', () => ({
-  useMeta: () => ({ labelOf: () => '소비' }),
-}))
+vi.mock('@entities/meta', async () => {
+  const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
+  return { useMeta: () => ({ labelOf: testLabelOf }) }
+})
 
 function cat(id: string, name: string, children: FinanceCategory[] = []): FinanceCategory {
   return { id, type: 'EXPENSE', name, sortOrder: 0, system: false, children }

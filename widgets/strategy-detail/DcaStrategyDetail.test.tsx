@@ -6,7 +6,7 @@ import type { DcaRule, Strategy } from '@entities/strategy'
 import type { BrokerCode } from '@shared/lib/api-schema'
 import { fmtDate, todayKst } from '@shared/lib/format'
 import { DcaStrategyDetail } from './DcaStrategyDetail'
-import { dcaTestMeta } from '@features/strategy/create-strategy/sections/__fixtures__/dcaTestMeta'
+import { testMeta } from '@entities/meta/__fixtures__/testMeta'
 
 const cryptoPortfolio = vi.hoisted(() => ({ result: null as unknown }))
 // 공개 시세 폴백 — beforeEach가 실패로 되돌린다(폴백 없는 기존 테스트가 확인 불가를 그대로 기대한다)
@@ -68,8 +68,7 @@ function renderDetail(s: Strategy = strategy, broker: BrokerCode = s.ticker === 
   return render(
     <QueryClientProvider client={client}>
       <MetaProvider meta={{
-        ...dcaTestMeta, tickers, strategyStatuses: [{ code: 'PAUSED', label: '일시중지됨' }],
-        dcaSkipReasons: [{ code: 'CONDITION_NOT_MET', label: '조건 미충족' }],
+        ...testMeta, tickers,
         dcaSizingTypes: [{ code: 'AMOUNT', label: '고정 금액' }, { code: 'HOLDING_PERCENT', label: '보유 비율' }],
         dcaShortfallPolicies: [{ code: 'PARTIAL', label: '가용만큼 주문' }, { code: 'REJECT', label: '주문하지 않음' }],
       }}>
@@ -225,7 +224,7 @@ describe('DcaStrategyDetail', () => {
     const future = `${y + 1}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
     renderDetail({ ...strategy, status: 'PAUSED', startDate: future })
     const group = screen.getByTestId('strategy-status-group')
-    expect(group).toHaveTextContent('일시중지됨')
+    expect(group).toHaveTextContent('일시중지')
     expect(group).toHaveTextContent('시작예정')
   })
 })

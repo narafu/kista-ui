@@ -119,15 +119,16 @@ vi.mock('@entities/market', () => ({
   useMonthlyHolidaysQuery: () => holidayQueryResult,
 }))
 
-vi.mock('@entities/meta', () => ({
-  useMeta: () => ({
-    labelOf: (group: string, value: string) => group === 'strategyStatuses' && value === 'PAUSED' ? '일시중지' : group === 'brokers' && value === 'TOSS' ? '토스증권' : value,
+vi.mock('@entities/meta', async () => {
+  const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
+  return { useMeta: () => ({
+    labelOf: testLabelOf,
     findStrategyType: (code: string) => {
       if (code === 'INFINITE') return { divisionCounts: [20, 30, 40] }
       return { divisionCounts: [] }
     },
-  }),
-}))
+  }) }
+})
 
 vi.mock('./OrderRows', () => ({
   OrderRows: ({ orders }: { orders: Array<{ ticker: string; direction: string }> }) => (

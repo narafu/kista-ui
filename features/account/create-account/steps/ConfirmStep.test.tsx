@@ -22,9 +22,10 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: pushMock }),
 }))
 
-vi.mock('@entities/meta', () => ({
-  useMeta: () => ({ labelOf: () => '한국투자증권' }),
-}))
+vi.mock('@entities/meta', async () => {
+  const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
+  return { useMeta: () => ({ labelOf: testLabelOf }) }
+})
 
 const data: StepData = {
   broker: 'KIS',

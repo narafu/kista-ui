@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useStrategyOrdersQuery, orderStatusBadgeClass, ORDER_STATUS_LABEL } from '@entities/order'
+import { useStrategyOrdersQuery, orderStatusBadgeClass } from '@entities/order'
 import { directionTextClass } from '@entities/trade'
 import { useMeta } from '@entities/meta'
 import { PaginationBar } from '@shared/ui/PaginationBar'
@@ -132,7 +132,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                       </TableDataCell>
                       <TableDataCell className="whitespace-nowrap">
                         <Badge tone="none" size="sm" className={orderStatusBadgeClass(o.status)}>
-                          {ORDER_STATUS_LABEL[o.status] ?? o.status}
+                          {labelOf('orderStatuses', o.status)}
                         </Badge>
                       </TableDataCell>
                     </tr>

@@ -16,13 +16,3 @@ export function orderStatusBadgeClass(status: string): string {
   return ORDER_STATUS_BADGE_CLS[status] ?? 'bg-muted text-muted-foreground'
 }
 
-/** 주문 상태 한국어 라벨 */
-export const ORDER_STATUS_LABEL: Record<string, string> = {
-  PLACED:           '접수',
-  FILLED:           '체결',
-  PARTIALLY_FILLED: '부분체결',
-  FAILED:           '실패',
-  CANCELLED:        '취소',
-  PLANNED:          '예정',
-  SUBMITTING:       '접수 중',
-} satisfies Record<OrderStatus, string> // 서버 enum 추가 시 라벨 누락을 컴파일에서 잡는다

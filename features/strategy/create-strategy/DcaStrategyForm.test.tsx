@@ -4,7 +4,8 @@ import type { TradingMarket } from '@shared/lib/api-schema'
 import { MetaProvider } from '@entities/meta'
 import type { DcaRule, Strategy } from '@entities/strategy'
 import { DcaStrategyForm } from './DcaStrategyForm'
-import { dcaTestMeta, testOrderAmount } from './sections/__fixtures__/dcaTestMeta'
+import { testMeta } from '@entities/meta/__fixtures__/testMeta'
+import { testOrderAmount } from './sections/__fixtures__/dcaTestMeta'
 
 const createMutate = vi.fn()
 const reconfigureMutate = vi.fn()
@@ -15,7 +16,7 @@ vi.mock('@entities/strategy', async (orig) => ({
 }))
 
 const meta = {
-  ...dcaTestMeta,
+  ...testMeta,
   strategyTypes: [{
     code: 'DCA', availableTickers: ['UPRO', 'QLD', 'BTC'], requiresPrivacyBase: false, tickerFixed: false, supportsReverseMode: false,
     divisionCounts: [], orderTypes: ['MOO', 'MOC', 'MARKET'], directions: ['BUY', 'SELL'],

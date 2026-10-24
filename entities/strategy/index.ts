@@ -1,5 +1,5 @@
 export type { CycleSeedType, DcaCondition, DcaConfigRequest, DcaDirection, DcaIndicator, DcaOperator, DcaRule, DcaRuleRequest, DcaWeekday, Strategy, StrategyRequest, ReconfigureVrRequest, StrategySeedPreview, StrategyVrSummary } from './model/types'
-export { dcaExecutionStatusLabel, dcaIndicatorLabel, earliestNextExecution, formatCryptoNextExecution, formatDcaCondition, formatDcaRuleSummary, latestLastExecution, formatExecutionHour, STOCK_WEEKDAYS, WEEKDAY_LABEL } from './model/dcaFormat'
+export { dcaIndicatorLabel, earliestNextExecution, formatCryptoNextExecution, formatDcaCondition, formatDcaRuleSummary, latestLastExecution, formatExecutionHour, STOCK_WEEKDAYS, WEEKDAY_LABEL } from './model/dcaFormat'
 export { strategyKeys } from './model/queryKeys'
 export { seedBadgeClass, strategyStatusAccent, strategyTypeShort } from './model/badges'
 export { isScheduledStart, scheduledStartBadgeLabel } from './model/scheduled-start'

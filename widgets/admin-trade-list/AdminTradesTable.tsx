@@ -2,7 +2,7 @@ import { useMeta } from '@entities/meta'
 import { fmtDate, fmtMoney, fmtQuantity } from '@shared/lib/format'
 import { isCryptoMarket, toCurrency, type Currency } from '@shared/lib/api-schema'
 import { directionTextClass } from '@entities/trade'
-import { orderStatusBadgeClass, ORDER_STATUS_LABEL } from '@entities/order'
+import { orderStatusBadgeClass } from '@entities/order'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
@@ -63,7 +63,7 @@ export function AdminTradesTable({ trades }: Props) {
                 <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtTradePrice(trade.price, toCurrency(trade.currency), isCryptoMarket(findTicker(trade.ticker)?.market))}</TableDataCell>
                 <TableDataCell className="whitespace-nowrap">
                   <Badge tone="none" className={orderStatusBadgeClass(trade.status)}>
-                    {ORDER_STATUS_LABEL[trade.status] ?? trade.status}
+                    {labelOf('orderStatuses', trade.status)}
                   </Badge>
                 </TableDataCell>
               </tr>

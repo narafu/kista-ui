@@ -20,7 +20,7 @@ import { directionTextClass } from '@entities/trade'
 import { useMeta } from '@entities/meta'
 import { useAdminReorderBuyBudgetQuery } from '@entities/admin'
 import type { AdminReorderBuyBudget, AdminReorderTimingAvailability, AdminStrategyOrder } from '@entities/admin'
-import { orderStatusBadgeClass, ORDER_STATUS_LABEL } from '@entities/order'
+import { orderStatusBadgeClass } from '@entities/order'
 import type { OrderDirection } from '@shared/lib/api-schema'
 import { fmtUsd, nextTradeDateKst } from '@shared/lib/format'
 import { toSelectValue } from '@shared/lib/utils'
@@ -258,7 +258,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                   </span>
                 )}
                 <Badge tone="none" className={`ml-auto ${orderStatusBadgeClass(order.status)}`}>
-                  {ORDER_STATUS_LABEL[order.status] ?? order.status}
+                  {labelOf('orderStatuses', order.status)}
                 </Badge>
               </div>
               {isClosed && (

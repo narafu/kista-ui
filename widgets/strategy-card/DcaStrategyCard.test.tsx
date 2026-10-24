@@ -9,14 +9,10 @@ vi.mock('next/link', () => ({
 }))
 
 vi.mock('@entities/meta', async () => {
-  const { dcaTestMeta } = await import('@features/strategy/create-strategy/sections/__fixtures__/dcaTestMeta')
-  const groups: Record<string, Array<{ code: string; label: string }>> = {
-    ...dcaTestMeta,
-    dcaSkipReasons: [{ code: 'CONDITION_NOT_MET', label: '조건 미충족' }],
-  }
+  const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
   return {
     useMeta: () => ({
-      labelOf: (group: string, value: string) => groups[group]?.find(i => i.code === value)?.label ?? value,
+      labelOf: testLabelOf,
       findTicker: (code: string) => (code === 'BTC' ? { code: 'BTC', market: 'CRYPTO_KRW' } : { code, market: 'US_STOCK' }),
     }),
   }

@@ -8,15 +8,16 @@ vi.mock('next/link', () => ({
   default: ({ children, href, ...props }: React.ComponentProps<'a'>) => <a href={href} {...props}>{children}</a>,
 }))
 
-vi.mock('@entities/meta', () => ({
-  useMeta: () => ({
+vi.mock('@entities/meta', async () => {
+  const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
+  return { useMeta: () => ({
     findBroker: () => ({
       label: '한국투자',
       description: 'KIS',
     }),
-    labelOf: (group: string, code: string) => (group === 'strategyStatuses' && code === 'PAUSED' ? '일시중지' : code),
-  }),
-}))
+    labelOf: testLabelOf,
+  }) }
+})
 
 vi.mock('@entities/strategy', () => ({
   useStrategiesQuery: () => strategiesQueryState ?? { data: strategiesQueryData },

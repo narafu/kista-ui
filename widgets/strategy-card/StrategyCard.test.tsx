@@ -44,21 +44,16 @@ vi.mock('@entities/order', async () => {
 })
 
 vi.mock('@entities/meta', async () => {
-  const { dcaTestMeta } = await import('@features/strategy/create-strategy/sections/__fixtures__/dcaTestMeta')
-  const groups: Record<string, Array<{ code: string; label: string }>> = {
-    ...dcaTestMeta,
-    dcaSkipReasons: [{ code: 'CONDITION_NOT_MET', label: '조건 미충족' }],
-    strategyStatuses: [{ code: 'ACTIVE', label: '운영중' }, { code: 'PAUSED', label: '일시중지' }],
-  }
+  const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
   return {
-  useMeta: () => ({
-    findStrategyType: (code: string) => {
-      if (code === 'INFINITE') return { divisionCounts: [20, 30, 40] }
-      return { divisionCounts: [] }
-    },
-    labelOf: (group: string, value: string) => groups[group]?.find(i => i.code === value)?.label ?? value,
-    findTicker: () => undefined,
-  }),
+    useMeta: () => ({
+      findStrategyType: (code: string) => {
+        if (code === 'INFINITE') return { divisionCounts: [20, 30, 40] }
+        return { divisionCounts: [] }
+      },
+      labelOf: testLabelOf,
+      findTicker: () => undefined,
+    }),
   }
 })
 
@@ -112,7 +107,7 @@ describe('StrategyCard mobile row', () => {
     const topRow = screen.getByTestId('strategy-card-mobile-top-row')
     const mainRow = screen.getByTestId('strategy-card-mobile-main-row')
 
-    expect(topRow).toHaveTextContent('INFINITEMAX')
+    expect(topRow).toHaveTextContent('INFINITE시드 MAX')
     expect(topRow).not.toHaveTextContent('20분할')
     expect(mainRow).not.toHaveTextContent('MAX')
     expect(mainRow).toHaveTextContent('20분할')

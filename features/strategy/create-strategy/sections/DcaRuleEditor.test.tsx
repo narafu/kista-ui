@@ -4,10 +4,11 @@ import type { TradingMarket } from '@shared/lib/api-schema'
 import { MetaProvider } from '@entities/meta'
 import { DcaRuleEditor } from './DcaRuleEditor'
 import { buildDcaRuleDefaults, type DcaRuleFormValues } from '../model/dcaFormSchema'
-import { dcaTestMeta, testOrderAmount } from './__fixtures__/dcaTestMeta'
+import { testMeta } from '@entities/meta/__fixtures__/testMeta'
+import { testOrderAmount } from './__fixtures__/dcaTestMeta'
 
 const meta = {
-  ...dcaTestMeta,
+  ...testMeta,
   strategyTypes: [{
     code: 'DCA', availableTickers: ['UPRO', 'BTC'], requiresPrivacyBase: false, tickerFixed: false, supportsReverseMode: false,
     divisionCounts: [], orderTypes: ['MOO', 'MOC', 'MARKET'], directions: ['BUY', 'SELL'],

@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RuntimeConfig } from '@entities/runtime-config'
+import type { MetaBundle } from '@entities/meta'
 import { AdminSettingsForm } from './AdminSettingsForm'
 
 const { invalidateQueriesMock, mutateMock, queryState } = vi.hoisted(() => ({
@@ -20,10 +21,11 @@ vi.mock('@tanstack/react-query', () => ({
 }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn() } }))
 
-const BROKER_LABELS: Record<string, string> = { KIS: '한국투자증권', TOSS: '토스증권', MOCK: '모의계좌', DCA: '적립식 분할매매', VR: '밸류리밸런싱' }
-
-vi.mock('@entities/meta', () => ({
-  useMeta: () => ({
+// testMeta.strategyTypes는 비어 있어 전략 유형 이름만 로컬로 둔다
+const STRATEGY_TYPE_LABELS: Record<string, string> = { DCA: '적립식 분할매매', VR: '밸류리밸런싱' }
+vi.mock('@entities/meta', async () => {
+  const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
+  return { useMeta: () => ({
     meta: {
       tickers: [
         { code: 'SOXL', name: 'Direxion Daily Semiconductor Bull 3X Shares' },
@@ -32,9 +34,9 @@ vi.mock('@entities/meta', () => ({
         { code: 'IBIT', name: 'iShares Bitcoin Trust' },
       ],
     },
-    labelOf: (_category: string, code: string) => BROKER_LABELS[code] ?? code,
-  }),
-}))
+    labelOf: (g: string, code: string) => (g === 'strategyTypes' ? STRATEGY_TYPE_LABELS[code] ?? code : testLabelOf(g as keyof MetaBundle, code)),
+  }) }
+})
 
 const settings: RuntimeConfig = {
   auth: { approvalRequired: true },

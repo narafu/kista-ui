@@ -3832,11 +3832,6 @@ export interface components {
             currentPrice?: number | null;
             /** @description 평가액 (계좌 통화 = currency, 통화 scale HALF_UP, 시세 없으면 null) */
             evalAmount?: number | null;
-            /**
-             * @deprecated
-             * @description 평가액 — evalAmount로 대체, kista-ui 전환 후 제거
-             */
-            evalAmountKrw?: number | null;
         };
         CryptoPortfolioResponse: {
             /**
@@ -3850,16 +3845,6 @@ export interface components {
             holdings?: components["schemas"]["CryptoHoldingResponse"][];
             /** @description 총자산 (계좌 통화) = 예수금 + 평가액 합 */
             totalAsset?: number;
-            /**
-             * @deprecated
-             * @description 예수금 — cash로 대체, kista-ui 전환 후 제거
-             */
-            krwCash?: number;
-            /**
-             * @deprecated
-             * @description 총자산 — totalAsset로 대체, kista-ui 전환 후 제거
-             */
-            totalAssetKrw?: number;
         };
         TossCandleResponse: {
             /**
@@ -5160,12 +5145,16 @@ export interface components {
             orderTypes?: components["schemas"]["EnumMeta"][];
             /** @description 주문 방향 목록 */
             orderDirections?: components["schemas"]["EnumMeta"][];
+            /** @description 주문 상태 목록 */
+            orderStatuses?: components["schemas"]["EnumMeta"][];
             /** @description DCA 실행 주기 목록 */
             dcaFrequencies?: components["schemas"]["EnumMeta"][];
             /** @description DCA 조건 연산자 목록 */
             dcaOperators?: components["schemas"]["EnumMeta"][];
             /** @description DCA 회차 미주문 사유 목록 */
             dcaSkipReasons?: components["schemas"]["EnumMeta"][];
+            /** @description DCA 회차 판정 상태 목록 */
+            dcaExecutionStatuses?: components["schemas"]["EnumMeta"][];
             /** @description DCA 규칙 규모 유형 목록 */
             dcaSizingTypes?: components["schemas"]["EnumMeta"][];
             /** @description DCA 규칙 부족 정책 목록 */
@@ -5215,11 +5204,6 @@ export interface components {
             description?: string;
             /** @description 익절 목표 수익률 */
             targetProfitRate?: number;
-            /**
-             * @description 대표 거래 시장 — markets로 대체, 다음 릴리스 제거
-             * @example US_STOCK
-             */
-            market?: string;
             /** @description 거래 가능 시장 목록 (Market name()) */
             markets?: string[];
         };

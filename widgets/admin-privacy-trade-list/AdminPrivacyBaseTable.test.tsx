@@ -5,10 +5,10 @@ import { privacyKeys } from '@entities/privacy'
 import type { AdminPrivacyBase } from '@entities/privacy'
 import { AdminPrivacyBaseTable } from './AdminPrivacyBaseTable'
 
-const ORDER_LABELS: Record<string, string> = { BUY: '매수', SELL: '매도', LOC: 'LOC(종가지정가)', MOC: 'MOC(종가시장가)', LIMIT: 'LIMIT(지정가)', MOO: 'MOO(시가시장가)', MARKET: 'MARKET(시장가)' }
-vi.mock('@entities/meta', () => ({
-  useMeta: () => ({ labelOf: (_g: string, code: string) => ORDER_LABELS[code] ?? code }),
-}))
+vi.mock('@entities/meta', async () => {
+  const { testMeta, testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
+  return { useMeta: () => ({ meta: testMeta, labelOf: testLabelOf }) }
+})
 
 vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),

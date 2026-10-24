@@ -28,12 +28,13 @@ vi.mock('@entities/finance', async () => {
   }
 })
 
-vi.mock('@entities/meta', () => ({
-  useMeta: () => ({
-    meta: { assetClasses: [{ code: 'EQUITY', label: '미국주식' }], markets: [{ code: 'GLOBAL', label: '해외' }] },
-    labelOf: (_category: string, code: string) => ({ EQUITY: '미국주식', GLOBAL: '해외' } as Record<string, string>)[code] ?? code,
-  }),
-}))
+vi.mock('@entities/meta', async () => {
+  const { testMeta, testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
+  return { useMeta: () => ({
+    meta: testMeta,
+    labelOf: testLabelOf,
+  }) }
+})
 
 vi.mock('next/link', () => ({
   default: ({ href, children, ...props }: React.ComponentProps<'a'>) => <a href={href} {...props}>{children}</a>,
@@ -178,7 +179,7 @@ describe('AssetRecordList', () => {
     // [체크박스, 기준일, 카테고리, 시장, 자산군, 운용전략, 계좌명, 기관, 금액, 메모, 작업]
     expect(cellTexts[2]).toBe('일반계좌')
     expect(cellTexts[3]).toBe('해외')
-    expect(cellTexts[4]).toBe('미국주식')
+    expect(cellTexts[4]).toBe('주식')
     expect(cellTexts[5]).toBe('VR')
     expect(cellTexts[6]).toBe('미래에셋증권')
     expect(cellTexts[7]).toBe('미래에셋')

@@ -3,10 +3,9 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useMeta } from '@entities/meta'
-import { dcaExecutionStatusLabel, formatDcaRuleSummary, useDcaExecutionsQuery } from '@entities/strategy'
+import { formatDcaRuleSummary, useDcaExecutionsQuery } from '@entities/strategy'
 import type { DcaRule } from '@entities/strategy'
 import { directionBadgeClass } from '@entities/trade'
-import { ORDER_STATUS_LABEL } from '@entities/order'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
@@ -71,7 +70,7 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
                         )}
                       </TableDataCell>
                       <TableDataCell className="whitespace-nowrap">
-                        <Badge tone={r.status === 'ORDERED' ? 'none' : 'neutral'} size="sm" className={r.status === 'ORDERED' ? 'bg-info-bg text-info' : undefined}>{dcaExecutionStatusLabel(r.status)}</Badge>
+                        <Badge tone={r.status === 'ORDERED' ? 'none' : 'neutral'} size="sm" className={r.status === 'ORDERED' ? 'bg-info-bg text-info' : undefined}>{labelOf('dcaExecutionStatuses', r.status)}</Badge>
                       </TableDataCell>
                       {/* detail은 가변 길이 자유 텍스트라 nowrap 대신 최소 너비로 글자 단위 줄바꿈만 막는다 */}
                       <TableDataCell className="min-w-32">
@@ -82,7 +81,7 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
                       <TableDataCell className="text-right tabular-nums whitespace-nowrap">{r.quantity != null ? (isCrypto ? `${fmtQuantity(r.quantity)} ${ticker}` : `${fmtQuantity(r.quantity)}주`) : '-'}</TableDataCell>
                       <TableDataCell className="whitespace-nowrap">
                         {r.order
-                          ? `${ORDER_STATUS_LABEL[r.order.status] ?? r.order.status}${r.order.filledPrice != null ? ` · ${fmtMoney(r.order.filledPrice, currency)}` : ''}`
+                          ? `${labelOf('orderStatuses', r.order.status)}${r.order.filledPrice != null ? ` · ${fmtMoney(r.order.filledPrice, currency)}` : ''}`
                           : '-'}
                       </TableDataCell>
                     </tr>

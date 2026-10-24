@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { orderStatusBadgeClass, ORDER_STATUS_LABEL } from './status-badge'
+import { orderStatusBadgeClass } from './status-badge'
 
 describe('orderStatusBadgeClass', () => {
   it.each([
@@ -18,19 +18,5 @@ describe('orderStatusBadgeClass', () => {
 
   it('unknown status falls back to the muted token', () => {
     expect(orderStatusBadgeClass('SOME_UNKNOWN_STATUS')).toContain('muted')
-  })
-})
-
-describe('ORDER_STATUS_LABEL', () => {
-  it('maps every known status to its Korean label', () => {
-    expect(ORDER_STATUS_LABEL).toEqual({
-      PLACED: '접수',
-      FILLED: '체결',
-      PARTIALLY_FILLED: '부분체결',
-      FAILED: '실패',
-      CANCELLED: '취소',
-      PLANNED: '예정',
-      SUBMITTING: '접수 중',
-    })
   })
 })

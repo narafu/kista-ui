@@ -6,12 +6,13 @@ import { describe, expect, it } from 'vitest'
 import { MetaProvider } from '@entities/meta'
 import { DcaSettingsSection, DcaSizingSection } from './DcaSettingsSection'
 import { buildDcaRuleDefaults, type DcaRuleFormValues } from '../model/dcaFormSchema'
-import { dcaTestMeta, testOrderAmount } from './__fixtures__/dcaTestMeta'
+import { testMeta } from '@entities/meta/__fixtures__/testMeta'
+import { testOrderAmount } from './__fixtures__/dcaTestMeta'
 
 function Harness({ market = 'US_STOCK', defaults }: { market?: TradingMarket; defaults?: Partial<DcaRuleFormValues> }) {
   const form = useForm<DcaRuleFormValues>({ defaultValues: { ...buildDcaRuleDefaults('BUY', market, testOrderAmount(market)), ...defaults } })
   return (
-    <MetaProvider meta={dcaTestMeta}>
+    <MetaProvider meta={testMeta}>
       <DcaSettingsSection form={form} market={market} orderTypes={['MOO', 'MOC']} frequencies={['DAILY', 'WEEKLY', 'MONTHLY']} />
       <DcaSizingSection form={form} market={market} />
     </MetaProvider>

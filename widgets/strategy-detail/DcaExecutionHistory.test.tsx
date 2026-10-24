@@ -6,8 +6,10 @@ import { DcaExecutionHistory } from './DcaExecutionHistory'
 const { queryMock } = vi.hoisted(() => ({ queryMock: vi.fn() }))
 
 vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams() }))
-const LABELS: Record<string, string> = { BUY: '매수', SELL: '매도', DAILY: '매일', MOC: 'MOC(종가시장가)', INSUFFICIENT_HOLDINGS: '보유 수량 부족' }
-vi.mock('@entities/meta', () => ({ useMeta: () => ({ labelOf: (_g: string, v: string) => LABELS[v] ?? v, findTicker: (c: string) => (c === 'BTC' ? { code: 'BTC', market: 'CRYPTO_KRW' } : undefined) }) }))
+vi.mock('@entities/meta', async () => {
+  const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
+  return { useMeta: () => ({ labelOf: testLabelOf, findTicker: (c: string) => (c === 'BTC' ? { code: 'BTC', market: 'CRYPTO_KRW' } : undefined) }) }
+})
 vi.mock('@entities/strategy', async () => ({
   ...(await vi.importActual<typeof import('@entities/strategy')>('@entities/strategy')),
   useDcaExecutionsQuery: (...args: unknown[]) => queryMock(...args),

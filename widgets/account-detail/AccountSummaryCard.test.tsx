@@ -4,11 +4,12 @@ import { describe, expect, it, vi } from 'vitest'
 import type { Account } from '@entities/account'
 import { AccountSummaryCard } from './AccountSummaryCard'
 
-vi.mock('@entities/meta', () => ({
-  useMeta: () => ({
-    labelOf: (_group: string, value: string) => (value === 'KIS' ? '한국투자증권' : value === 'MOCK' ? '모의계좌' : value),
-  }),
-}))
+vi.mock('@entities/meta', async () => {
+  const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
+  return { useMeta: () => ({
+    labelOf: testLabelOf,
+  }) }
+})
 
 const account: Account = {
   id: 'account-1',

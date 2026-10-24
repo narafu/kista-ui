@@ -1,4 +1,4 @@
-import { ORDER_STATUS_LABEL } from '@entities/order'
+import { useMeta } from '@entities/meta'
 import type { ReorderSummary } from './model/types'
 
 interface Props {
@@ -7,6 +7,7 @@ interface Props {
 }
 
 export function AdminTradesFeedback({ actionError, reorderResult }: Props) {
+  const { labelOf } = useMeta()
   return (
     <>
       {actionError ? (
@@ -29,7 +30,7 @@ export function AdminTradesFeedback({ actionError, reorderResult }: Props) {
           <p className="mt-1 text-sm">처리 {reorderResult.processed}건 · 제외 {reorderResult.skipped}건</p>
           <p className="mt-2 text-sm">
             {reorderResult.results
-              .map((r) => `${r.sourceOrderId.slice(-8)}: ${ORDER_STATUS_LABEL[r.originalStatus] ?? r.originalStatus} → ${ORDER_STATUS_LABEL[r.resultingStatus] ?? r.resultingStatus}`)
+              .map((r) => `${r.sourceOrderId.slice(-8)}: ${labelOf('orderStatuses', r.originalStatus)} → ${labelOf('orderStatuses', r.resultingStatus)}`)
               .join(' / ')}
           </p>
         </section>

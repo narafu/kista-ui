@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { KpiCard } from '@widgets/kpi-card'
 import { useManageStrategyMutations } from '@features/strategy/manage-strategy'
 import { useMeta } from '@entities/meta'
-import { dcaExecutionStatusLabel, dcaIndicatorLabel, formatCryptoNextExecution, formatDcaCondition, formatDcaRuleSummary } from '@entities/strategy'
+import { dcaIndicatorLabel, formatCryptoNextExecution, formatDcaCondition, formatDcaRuleSummary } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import { useAccountPricesQuery } from '@entities/account'
 import { cryptoPortfolioQueryOptions, cryptoPricesQueryOptions } from '@entities/trade'
@@ -121,7 +121,7 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
                   <p className="text-muted-foreground">{labelOf('dcaShortfallPolicies', r.shortfall)}</p>
                   <p className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
                     <span>{isCrypto ? '다음 실행' : '다음 판정일'} {!r.nextExecution ? '미정' : isCrypto ? formatCryptoNextExecution(r.nextExecution.kstTradeDate, r.executionHour) : fmtDate(r.nextExecution.kstTradeDate)}</span>
-                    {r.lastExecution && <span>최근 {dcaExecutionStatusLabel(r.lastExecution.status)}{r.lastExecution.skipReason && ` · ${labelOf('dcaSkipReasons', r.lastExecution.skipReason)}`}</span>}
+                    {r.lastExecution && <span>최근 {labelOf('dcaExecutionStatuses', r.lastExecution.status)}{r.lastExecution.skipReason && ` · ${labelOf('dcaSkipReasons', r.lastExecution.skipReason)}`}</span>}
                   </p>
                 </li>
               ))}
