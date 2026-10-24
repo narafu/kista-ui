@@ -88,7 +88,8 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
           </DialogHeader>
 
           <div className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-3">
+            {/* iOS 사파리의 date 입력은 고유 최소 폭이 있어 2열에서 옆 칸을 침범한다 — 모바일은 한 줄씩 둔다 */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="releaseDate">날짜</Label>
                 <Input id="releaseDate" type="date" value={releaseDate} onChange={(e) => setReleaseDate(e.target.value)} disabled={isPending} className="h-11" />
@@ -129,10 +130,10 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
                 </Button>
               </div>
 
-              {/* 좁은 화면은 2열(방향·유형 / 가격·수량), sm부터 한 줄 — 한 줄에 넷을 넣으면 입력칸이 찌그러진다 */}
+              {/* 2열(방향·유형 / 가격·수량) — 다이얼로그 폭이 좁아 PC에서도 한 줄에 넷을 넣으면 가격·수량 칸이 찌그러진다 */}
               {orders.map((o, i) => (
-                <div key={o.key} className="grid grid-cols-2 items-end gap-2 sm:flex rounded-[var(--r-sm)] border border-border p-3">
-                  <div className="flex-1 space-y-1">
+                <div key={o.key} className="grid grid-cols-2 items-end gap-2 rounded-[var(--r-sm)] border border-border p-3">
+                  <div className="space-y-1">
                     <Label htmlFor={`base-order-${i}-direction`} className="text-xs">방향</Label>
                     <Select items={directionItems} value={o.direction} onValueChange={(v) => { if (v) updateOrder(i, { direction: v as DraftOrder['direction'] }) }}>
                       <SelectTrigger id={`base-order-${i}-direction`} className="h-10 w-full" disabled={isPending}><SelectValue /></SelectTrigger>
@@ -141,7 +142,7 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="flex-1 space-y-1">
+                  <div className="space-y-1">
                     <Label htmlFor={`base-order-${i}-type`} className="text-xs">유형</Label>
                     <Select items={orderTypeItems} value={o.orderType} onValueChange={(v) => { if (v) updateOrder(i, { orderType: v as DraftOrder['orderType'] }) }}>
                       <SelectTrigger id={`base-order-${i}-type`} className="h-10 w-full" disabled={isPending}><SelectValue /></SelectTrigger>
@@ -150,7 +151,7 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="flex-1 space-y-1">
+                  <div className="space-y-1">
                     <Label htmlFor={`base-order-${i}-price`} className="text-xs">가격</Label>
                     <Input
                       id={`base-order-${i}-price`}
@@ -166,11 +167,11 @@ export function CreatePrivacyBaseDialog({ open, onOpenChange }: Props) {
                     />
                     {o.price !== '' && Number(o.price) <= 0 && <p id={`base-order-${i}-price-error`} className="text-xs text-destructive">가격은 0보다 커야 합니다.</p>}
                   </div>
-                  <div className="flex-1 space-y-1">
+                  <div className="space-y-1">
                     <PrivacyOrderQuantityField id={`base-order-${i}-quantity`} direction={o.direction} value={o.quantity} onChange={(v) => updateOrder(i, { quantity: v })} disabled={isPending} compact />
                   </div>
                   {orders.length > 1 && (
-                    <IconButton aria-label={`주문 ${i + 1} 삭제`} className="col-span-2 justify-self-end sm:col-auto" onClick={() => setOrders((prev) => prev.filter((_, idx) => idx !== i))} disabled={isPending}>
+                    <IconButton aria-label={`주문 ${i + 1} 삭제`} className="col-span-2 justify-self-end" onClick={() => setOrders((prev) => prev.filter((_, idx) => idx !== i))} disabled={isPending}>
                       <X className="size-4" />
                     </IconButton>
                   )}

@@ -33,7 +33,9 @@ const MARGIN_NARROW = { ...MARGIN, right: 12 }
 const ORDER_DOT_BUY = { r: 3, fill: 'var(--pos)', stroke: 'none' }
 const ORDER_DOT_SELL = { r: 3, fill: 'var(--card)', stroke: 'var(--neg)', strokeWidth: 1.5 }
 const CURSOR = { stroke: 'var(--muted-foreground)', strokeDasharray: '3 3' }
-const CASH_TICKS = [0, 0.5, 1]
+const CASH_TICKS = [0, 0.25, 0.5, 0.75, 1]
+// 경고 기준(50%) 외에 25%·75%도 눈금선보다 진한 보조선으로 그어 비중을 가늠하게 한다
+const CASH_GUIDES = [0.25, 0.75]
 
 function fmtPrices(prices: number[]) {
   return prices.length > 0 ? prices.map((p) => fmtUsd(p)).join(' · ') : '-'
@@ -335,6 +337,7 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAv
               <Tooltip content={() => null} cursor={CURSOR} />
               <ReferenceArea y1={0} y2={CASH_THRESHOLD} fill="var(--warn-bg)" ifOverflow="hidden" />
               <ReferenceLine y={CASH_THRESHOLD} stroke="var(--warn)" strokeDasharray="4 4" />
+              {CASH_GUIDES.map((y) => <ReferenceLine key={y} y={y} stroke="var(--muted-foreground)" strokeDasharray="2 3" />)}
               {boundaries.map((d) => <ReferenceLine key={d} x={d} stroke="var(--muted-foreground)" strokeDasharray="4 4" />)}
               <Area type="stepAfter" dataKey="cashRatio" stroke="var(--info)" strokeWidth={1.5} fill="var(--info)" fillOpacity={0.15} isAnimationActive={false} />
             </ComposedChart>
