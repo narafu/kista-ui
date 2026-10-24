@@ -306,13 +306,23 @@ describe('월별 기록 점검', () => {
       }),
     ]
 
-    const missing = calcMissingAccounts(snapshots, '2026-08', '2026-07')
+    const missing = calcMissingAccounts(snapshots, '2026-08', '2026-07', (code) => (code === 'CASH' ? '현금성' : code))
 
-    expect(missing).toEqual(['국민은행 · 전세자금대출 · CASH'])
+    expect(missing).toEqual(['국민은행 · 전세자금대출 · 현금성'])
+  })
+
+  it('calcMissingAccounts: 자산군 라벨이 같아도 코드가 다르면 다른 계좌로 비교한다', () => {
+    const snapshots = [
+      snapshot({ entryDate: '2026-07-01', accountName: '증권', categoryName: '투자', assetClass: 'EQUITY' }),
+      snapshot({ entryDate: '2026-07-01', accountName: '증권', categoryName: '투자', assetClass: 'CRYPTO' }),
+      snapshot({ entryDate: '2026-08-01', accountName: '증권', categoryName: '투자', assetClass: 'EQUITY' }),
+    ]
+
+    expect(calcMissingAccounts(snapshots, '2026-08', '2026-07', () => '위험자산')).toEqual(['증권 · 투자 · 위험자산'])
   })
 
   it('calcMissingAccounts: 이전 달이 없으면 빈 배열을 반환한다', () => {
-    expect(calcMissingAccounts([], '2026-08', null)).toEqual([])
+    expect(calcMissingAccounts([], '2026-08', null, (code) => code)).toEqual([])
   })
 
   it('calcDateGroups: 같은 달에 섞인 기준일을 날짜별로 집계한다', () => {

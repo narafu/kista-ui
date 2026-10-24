@@ -2,6 +2,7 @@
 
 import { SelectionCard } from '@shared/ui/selection-card'
 import { Switch } from '@/components/ui/switch'
+import { useMeta } from '@entities/meta'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 
 interface Props {
@@ -13,11 +14,12 @@ interface Props {
 }
 
 const SEED_MODES = [
-  { code: 'KEEP', label: '시드 유지', sub: '기존 시드만 사용' },
-  { code: 'MAX', label: '시드 MAX', sub: '예수금까지 전체 활용' },
+  { code: 'KEEP', seedType: 'MAINTAIN', sub: '기존 시드만 사용' },
+  { code: 'MAX', seedType: 'MAX', sub: '예수금까지 전체 활용' },
 ] as const
 
 export function CycleSeedSection({ autoStart, setAutoStart, seedMode, setSeedMode, loading }: Props) {
+  const { labelOf } = useMeta()
   return (
     <div className="pt-[18px]">
       <StrategyFieldLabel hint="">사이클 연속여부</StrategyFieldLabel>
@@ -58,7 +60,7 @@ export function CycleSeedSection({ autoStart, setAutoStart, seedMode, setSeedMod
                   className="flex-1 rounded-[7px] px-3 py-2.5 text-center"
                 >
                   <div className={active ? 'text-sm font-bold' : 'text-sm font-bold text-muted-foreground'}>
-                    {m.label}
+                    {labelOf('cycleSeedTypes', m.seedType)}
                   </div>
                   <div className="text-sm text-muted-foreground mt-0.5">
                     {m.sub}

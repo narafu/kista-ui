@@ -1,4 +1,5 @@
 import { fmtMoney } from '@shared/lib/format'
+import { orderTypeLabel } from '@shared/lib/orderType'
 import { isCryptoMarket, marketCurrency, type TradingMarket } from '@shared/lib/api-schema'
 import type { DcaCondition, DcaRule, DcaRuleExecution, DcaRuleRequest, DcaSizing, DcaWeekday } from './types'
 
@@ -80,7 +81,7 @@ export function formatDcaRuleSummary(rule: DcaRuleSummaryInput, labelOf: DcaLabe
   return [
     labelOf('orderDirections', rule.direction),
     formatDcaSchedule(rule, labelOf('dcaFrequencies', rule.frequency)),
-    ...(isCrypto ? [] : [labelOf('orderTypes', rule.orderType)]),
+    ...(isCrypto ? [] : [orderTypeLabel(rule.orderType)]),
     formatDcaSizing(rule.sizing, market),
   ].join(' · ')
 }

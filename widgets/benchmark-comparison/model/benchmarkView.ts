@@ -34,9 +34,9 @@ export function buildFallbackBenchmark(
       }
 }
 
-export function resolveInvestmentLabel(data: HousingBenchmarkComparison | undefined) {
+export function resolveInvestmentLabel(data: HousingBenchmarkComparison | undefined, strategyTypeLabel: (type: string) => string) {
   if (data?.scope !== 'STRATEGY') return '전체 포트폴리오'
   return data.strategy?.type && data.strategy.ticker
-    ? `${data.strategy.type} · ${data.strategy.ticker}`
+    ? `${strategyTypeLabel(data.strategy.type)} · ${data.strategy.ticker}`
     : '개별 전략'
 }

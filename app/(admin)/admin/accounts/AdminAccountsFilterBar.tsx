@@ -4,7 +4,6 @@ import { Suspense } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { formatBrokerLabel } from '@shared/lib/api-schema'
-import { strategyTypeShort } from '@entities/strategy'
 import { useMeta } from '@entities/meta'
 
 const ALL = 'ALL'
@@ -18,7 +17,7 @@ function AdminAccountsFilterBarContent({ owners, pageParamKeys = ['page'] }: Pro
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const { meta } = useMeta()
+  const { meta, labelOf } = useMeta()
 
   // 목록에 없는 owner 값(예전 링크 등)은 UUID가 그대로 보이므로 전체로 돌린다
   const rawOwner = searchParams.get('owner')
@@ -65,7 +64,7 @@ function AdminAccountsFilterBarContent({ owners, pageParamKeys = ['page'] }: Pro
       </Select>
 
       <Select
-        items={[{ value: ALL, label: '전체 전략' }, ...meta.strategyTypes.map((t) => ({ value: t.code, label: strategyTypeShort(t.code) }))]}
+        items={[{ value: ALL, label: '전체 전략' }, ...meta.strategyTypes.map((t) => ({ value: t.code, label: labelOf('strategyTypes', t.code) }))]}
         value={strategyType}
         onValueChange={(v) => { if (v) setParam('strategyType', v) }}
       >
@@ -74,7 +73,7 @@ function AdminAccountsFilterBarContent({ owners, pageParamKeys = ['page'] }: Pro
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={ALL}>전체 전략</SelectItem>
-          {meta.strategyTypes.map((t) => <SelectItem key={t.code} value={t.code}>{strategyTypeShort(t.code)}</SelectItem>)}
+          {meta.strategyTypes.map((t) => <SelectItem key={t.code} value={t.code}>{labelOf('strategyTypes', t.code)}</SelectItem>)}
         </SelectContent>
       </Select>
     </div>

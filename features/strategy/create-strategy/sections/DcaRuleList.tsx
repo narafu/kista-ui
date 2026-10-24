@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { isCryptoMarket, type TradingMarket } from '@shared/lib/api-schema'
 import { cn } from '@shared/lib/utils'
@@ -76,8 +76,8 @@ export function DcaRuleList({ rules, market, onSelect, onAdd, registerRowRef, er
       </ul>
       {rules.length < MAX_DCA_RULES && (
         <div className="mt-3 flex gap-2">
-          <Button type="button" variant="brand-soft" size="sm" data-add-direction="BUY" onClick={() => onAdd('BUY')}>+ 매수 규칙 추가</Button>
-          <Button type="button" variant="brand-soft" size="sm" data-add-direction="SELL" onClick={() => onAdd('SELL')}>+ 매도 규칙 추가</Button>
+          <Button type="button" variant="brand-soft" size="sm" className="gap-1.5" data-add-direction="BUY" onClick={() => onAdd('BUY')}><Plus className="size-3.5" />매수 규칙 추가</Button>
+          <Button type="button" variant="brand-soft" size="sm" className="gap-1.5" data-add-direction="SELL" onClick={() => onAdd('SELL')}><Plus className="size-3.5" />매도 규칙 추가</Button>
         </div>
       )}
     </div>

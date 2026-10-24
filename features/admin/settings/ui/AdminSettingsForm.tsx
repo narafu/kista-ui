@@ -26,7 +26,6 @@ import { RecurringModeEditor } from './RecurringModeEditor'
 import { FieldEditor } from './FieldEditor'
 import { normalizeNumber, normalizeSymbol } from '../model/normalizers'
 
-// 전략 유형 코드는 상품명 그대로 표기한다(메타 strategyTypes에는 라벨 필드가 없다)
 const STRATEGY_TYPES: RuntimeStrategyType[] = ['INFINITE', 'PRIVACY', 'VR', 'DCA']
 
 // kista-api StrategyTicker의 DCA 전용 종목. 메타 availableTickers는 지금 편집 중인 허용값 자체라 후보 목록으로 쓸 수 없다
@@ -165,13 +164,13 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
           {STRATEGY_TYPES
             .filter((strategy) => draft.strategies[strategy])
             .map((strategy) => (
-              <ToggleRow key={strategy} id={`strategy-${strategy}`} label={strategy}
+              <ToggleRow key={strategy} id={`strategy-${strategy}`} label={labelOf('strategyTypes', strategy)}
                 checked={draft.strategies[strategy].enabled} onChange={(enabled) => setStrategyEnabled(strategy, enabled)} />
             ))}
         </section>
 
         <section className="border-b border-border px-4 py-4 sm:px-5">
-          <h2 className="text-base font-bold">INFINITE 필드</h2>
+          <h2 className="text-base font-bold">{labelOf('strategyTypes', 'INFINITE')} 필드</h2>
           <FieldEditor
             id="infinite-ticker"
             label="종목"
@@ -193,13 +192,13 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
         </section>
 
         <section className="border-b border-border px-4 py-4 sm:px-5">
-          <h2 className="text-base font-bold">PRIVACY 필드</h2>
+          <h2 className="text-base font-bold">{labelOf('strategyTypes', 'PRIVACY')} 필드</h2>
           <FieldEditor id="privacy-ticker" label="종목" fixed field={draft.strategies.PRIVACY.fields.ticker}
             onChange={(value) => setStrategyField('PRIVACY', 'ticker', value)} />
         </section>
 
         <section className="border-b border-border px-4 py-4 sm:px-5">
-          <h2 className="text-base font-bold">VR 필드</h2>
+          <h2 className="text-base font-bold">{labelOf('strategyTypes', 'VR')} 필드</h2>
           <FieldEditor id="vr-ticker" label="종목" fixed field={draft.strategies.VR.fields.ticker}
             onChange={(value) => setStrategyField('VR', 'ticker', value)} />
           <RecurringModeEditor
@@ -215,7 +214,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
         </section>
 
         <section className="border-b border-border px-4 py-4 sm:px-5">
-          <h2 className="text-base font-bold">DCA 필드</h2>
+          <h2 className="text-base font-bold">{labelOf('strategyTypes', 'DCA')} 필드</h2>
           {dca ? (
             <FieldEditor
               id="dca-ticker"

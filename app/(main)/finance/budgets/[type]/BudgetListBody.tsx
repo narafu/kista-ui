@@ -25,7 +25,7 @@ export async function BudgetListBody({ params }: Props) {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <PageHeader eyebrow={FLOW_TYPE_LABEL[type]} eyebrowHref={`/finance/${slug}`} title={`${FLOW_TYPE_LABEL[type]} 예산 관리`} description="카테고리별 월 예산 등록·수정·삭제" />
+      <PageHeader eyebrow={FLOW_TYPE_LABEL[type]} eyebrowHref={`/finance/${slug}`} title={`${FLOW_TYPE_LABEL[type]} 예산 관리`} description="카테고리별 월 예산 추가·수정·삭제" />
       <BudgetManager type={type} />
     </HydrationBoundary>
   )

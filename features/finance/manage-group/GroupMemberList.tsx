@@ -95,10 +95,11 @@ export function GroupMemberList({ groupId, members, isOwner, myUserId }: Props) 
           {isOwner && member.userId !== myUserId && (
             <Button
               type="button"
-              variant="outline"
+              variant="destructive"
               size="sm"
               onClick={() => setKickTarget(member)}
               disabled={mutation.isPending}
+              focusableWhenDisabled
             >
               추방
             </Button>

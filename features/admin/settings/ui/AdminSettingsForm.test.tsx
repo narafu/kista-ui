@@ -20,7 +20,7 @@ vi.mock('@tanstack/react-query', () => ({
 }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn() } }))
 
-const BROKER_LABELS: Record<string, string> = { KIS: '한국투자증권', TOSS: '토스증권', MOCK: '모의계좌' }
+const BROKER_LABELS: Record<string, string> = { KIS: '한국투자증권', TOSS: '토스증권', MOCK: '모의계좌', DCA: '적립식 분할매매', VR: '밸류리밸런싱' }
 
 vi.mock('@entities/meta', () => ({
   useMeta: () => ({
@@ -78,7 +78,7 @@ describe('AdminSettingsForm', () => {
   it('DCA 전략 토글을 켜서 저장하면 strategies.DCA.enabled=true로 전송한다', async () => {
     const user = userEvent.setup()
     render(<AdminSettingsForm />)
-    await user.click(screen.getByRole('switch', { name: 'DCA' }))
+    await user.click(screen.getByRole('switch', { name: '적립식 분할매매' }))
     await user.click(screen.getByRole('button', { name: /변경 저장/ }))
     expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({
       strategies: expect.objectContaining({ DCA: expect.objectContaining({ enabled: true }) }),
@@ -87,7 +87,7 @@ describe('AdminSettingsForm', () => {
 
   it('DCA 종목 필드 편집기를 렌더한다', () => {
     render(<AdminSettingsForm />)
-    expect(screen.getByRole('heading', { name: 'DCA 필드' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '적립식 분할매매 필드' })).toBeInTheDocument()
   })
 
   it('런타임 설정에 DCA 키가 없으면 새로고침 안내를 띄우고 저장을 막는다', async () => {
@@ -98,7 +98,7 @@ describe('AdminSettingsForm', () => {
     expect(document.getElementById('dca-ticker')).toBeNull()
     expect(screen.getByText('설정 정보가 오래되어 저장할 수 없습니다. 페이지를 새로고침해야 합니다.')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('switch', { name: 'VR' }))
+    await user.click(screen.getByRole('switch', { name: '밸류리밸런싱' }))
     expect(screen.getByRole('button', { name: /변경 저장/ })).toBeDisabled()
     expect(mutateMock).not.toHaveBeenCalled()
   })

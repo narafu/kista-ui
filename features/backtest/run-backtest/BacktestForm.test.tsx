@@ -3,6 +3,11 @@ import { describe, expect, it, vi } from 'vitest'
 import { BacktestForm } from './BacktestForm'
 import type { UseBacktestFormResult } from './model/useBacktestForm'
 
+const LABELS: Record<string, string> = { INFINITE: '무한매수법', VR: 'VR', DCA: '적립식' }
+vi.mock('@entities/meta', () => ({
+  useMeta: () => ({ labelOf: (_: string, code: string) => LABELS[code] ?? code }),
+}))
+
 function makeForm(codes: string[]): UseBacktestFormResult {
   return {
     meta: { cycleSeedTypes: [], strategyTypes: codes.map((code) => ({ code, availableTickers: ['TQQQ', 'SOXL'] })) },
@@ -24,8 +29,8 @@ describe('BacktestForm 전략 유형 선택', () => {
   it('DCA는 백테스트 미지원이라 전략 카드에서 제외한다', () => {
     render(<BacktestForm form={makeForm(['INFINITE', 'VR', 'DCA'])} />)
 
-    expect(screen.getByText('INFINITE')).toBeInTheDocument()
+    expect(screen.getByText('무한매수법')).toBeInTheDocument()
     expect(screen.getByText('VR')).toBeInTheDocument()
-    expect(screen.queryByText('DCA')).not.toBeInTheDocument()
+    expect(screen.queryByText('적립식')).not.toBeInTheDocument()
   })
 })

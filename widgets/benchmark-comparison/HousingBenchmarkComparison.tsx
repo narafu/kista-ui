@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, type ReactNode } from 'react'
+import { useMeta } from '@entities/meta'
 import { useHousingBenchmarkQuery, useHousingBenchmarkRegionsQuery } from '@entities/stats'
 import { BenchmarkFilterBar } from './BenchmarkFilterBar'
 import { BenchmarkResult } from './BenchmarkResult'
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export function HousingBenchmarkComparison({ enabled, defaultTo, renderHousingExtras }: Props) {
+  const { labelOf } = useMeta()
   const { etfSymbols, defaultEtfSymbol, etfBenchmarks } = useEtfBenchmarkOptions()
   const filters = useBenchmarkFilters(defaultTo, { symbols: etfSymbols, defaultSymbol: defaultEtfSymbol })
   const { activeAsset, selection, from, to } = filters
@@ -55,7 +57,7 @@ export function HousingBenchmarkComparison({ enabled, defaultTo, renderHousingEx
   const benchmarkLabel = resolveBenchmarkLabel(selection, data, selectedRegionName)
   const benchmarkCurrency: 'USD' | 'KRW' = data?.quality?.benchmarkCurrency === 'USD' ? 'USD' : 'KRW'
   const fallbackBenchmark = buildFallbackBenchmark(selection, selectedRegionName, benchmarkLabel)
-  const investmentLabel = resolveInvestmentLabel(data)
+  const investmentLabel = resolveInvestmentLabel(data, (type) => labelOf('strategyTypes', type))
 
   return (
     <div className="flex flex-col gap-4">

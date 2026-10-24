@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { ChevronRight, ChevronDown, Plus } from 'lucide-react'
+import { ChevronRight, ChevronDown, Pencil, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { IconButton } from '@shared/ui/IconButton'
 import { fmtUsd, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
@@ -264,9 +264,9 @@ function MobileBaseCard({
             </span>
           </button>
         </h3>
-        <Button type="button" variant="outline" size="xs" onClick={onEditBase} aria-label={`${b.releaseDate} ${b.ticker} 매매표 수정`}>
-          수정
-        </Button>
+        <IconButton onClick={onEditBase} aria-label={`${b.releaseDate} ${b.ticker} 매매표 수정`}>
+          <Pencil className="size-4" />
+        </IconButton>
       </div>
 
       {/* 지표 4개는 타일 대신 라벨-값 2열 목록 — 카드 하나가 화면을 덜 차지하게 */}
@@ -316,11 +316,12 @@ function OrderDetailsSection({
         <span className="text-xs font-medium text-muted-foreground">주문 {orders.length}건</span>
         <Button
           type="button"
-          size="xs"
+          size="sm"
           variant="outline"
+          className="gap-1.5"
           onClick={(e) => { e.stopPropagation(); onAddOrder() }}
         >
-          <Plus />주문 추가
+          <Plus className="size-3.5" />주문 추가
         </Button>
       </div>
       {orders.length > 0 && <OrderDetailsTable orders={orders} onEditOrder={onEditOrder} onDeleteOrder={onDeleteOrder} />}
@@ -357,24 +358,19 @@ function OrderDetailsTable({
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right')}>{o.quantity ?? '-'}</TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right')}>
               <span className="inline-flex items-center gap-1.5">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="xs"
+                <IconButton
                   onClick={(e) => { e.stopPropagation(); onEditOrder(o) }}
                   aria-label={`${describeOrder(o)} 수정`}
                 >
-                  수정
-                </Button>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="xs"
+                  <Pencil className="size-4" />
+                </IconButton>
+                <IconButton
                   onClick={(e) => { e.stopPropagation(); onDeleteOrder(o) }}
                   aria-label={`${describeOrder(o)} 삭제`}
+                  className="text-destructive hover:text-destructive"
                 >
-                  삭제
-                </Button>
+                  <Trash2 className="size-4" />
+                </IconButton>
               </span>
             </TableDataCell>
           </tr>
@@ -420,15 +416,12 @@ function FragmentRow({
         </TableDataCell>
         <TableDataCell className="text-right tabular-nums text-muted-foreground whitespace-nowrap">{b.orders.length}건</TableDataCell>
         <TableDataCell className="whitespace-nowrap">
-          <Button
-            type="button"
-            variant="outline"
-            size="xs"
+          <IconButton
             onClick={(e) => { e.stopPropagation(); onEditBase() }}
             aria-label={`${b.releaseDate} ${b.ticker} 매매표 수정`}
           >
-            수정
-          </Button>
+            <Pencil className="size-4" />
+          </IconButton>
         </TableDataCell>
       </tr>
       {open && (

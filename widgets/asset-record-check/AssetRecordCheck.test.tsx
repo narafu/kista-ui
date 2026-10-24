@@ -24,6 +24,10 @@ vi.mock('@entities/finance', async () => {
   }
 })
 
+vi.mock('@entities/meta', () => ({
+  useMeta: () => ({ labelOf: (_category: string, code: string) => (code === 'EQUITY' ? '주식' : code) }),
+}))
+
 vi.mock('@features/asset/toggle-monthly-check', () => ({
   ToggleMonthlyCheckButton: ({ month, completed }: { month: string; completed: boolean }) => (
     <div data-testid="toggle-monthly-check">{month} / {completed ? '완료' : '미완료'}</div>
@@ -128,7 +132,7 @@ describe('AssetRecordCheck', () => {
     render(<AssetRecordCheck month="2026-08" />)
 
     expect(screen.getByText('전월 대비 누락 계좌')).toBeInTheDocument()
-    expect(screen.getByText('미래에셋증권 · 일반계좌 · EQUITY')).toBeInTheDocument()
+    expect(screen.getByText('미래에셋증권 · 일반계좌 · 주식')).toBeInTheDocument()
   })
 
   it('이번 달 기록이 여러 날짜에 걸쳐 있으면 기준일 혼재 경고를 표시한다', () => {

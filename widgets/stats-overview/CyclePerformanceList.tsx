@@ -1,6 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useMeta } from '@entities/meta'
 import { useStatsCyclesQuery, type CycleStatusFilter } from '@entities/stats'
 import { useAccountsQuery } from '@entities/account'
 import { useAllStrategiesQuery } from '@entities/strategy'
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export function CyclePerformanceList({ typeFilter }: Props) {
+  const { labelOf } = useMeta()
   const [selectedAccountId, setAccountId] = useState(ALL)
   const [selectedTicker, setTicker] = useState(ALL)
   const [status, setStatus] = useState('ACTIVE')
@@ -73,7 +75,7 @@ export function CyclePerformanceList({ typeFilter }: Props) {
         <div className="flex items-center gap-2">
           <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">사이클 성과</CardTitle>
           {/* 전략 타입 필터는 자산 추이 카드 헤더에 있지만 이 목록에도 걸린다 — 적용 중임을 여기서도 보여준다 */}
-          {typeFilter && <Badge tone="brand" size="sm">{typeFilter}</Badge>}
+          {typeFilter && <Badge tone="brand" size="sm">{labelOf('strategyTypes', typeFilter)}</Badge>}
         </div>
         <div className="flex flex-wrap gap-2">
           <FilterSelect items={STATUS_OPTIONS} value={status} onChange={withPageReset(setStatus)} ariaLabel="상태" triggerClassName="w-28" />

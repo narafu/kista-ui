@@ -134,7 +134,7 @@ describe('FinanceBudgetProgress 예산 미설정 빠른 등록', () => {
       index: new Map([idx('food', '식비')]),
     })
 
-    expect(screen.getByRole('link', { name: '식비 예산 등록' })).toHaveAttribute('href', '/finance/budgets/expense/new?categoryId=food')
+    expect(screen.getByRole('link', { name: '식비 예산 추가' })).toHaveAttribute('href', '/finance/budgets/expense/new?categoryId=food')
   })
 })
 

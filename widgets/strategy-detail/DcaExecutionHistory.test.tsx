@@ -69,7 +69,7 @@ describe('DcaExecutionHistory', () => {
     render(<DcaExecutionHistory strategyId="d1" ticker="UPRO" rules={[rule]} market="US_STOCK" />)
     const rows = screen.getAllByRole('row')
     expect(rows).toHaveLength(3)
-    expect(rows[1]).toHaveTextContent('매수 · 매일 · 장 마감 시장가 · $15,000.00')
+    expect(rows[1]).toHaveTextContent('매수 · 매일 · MOC(종가시장가) · $15,000.00')
     expect(rows[2]).toHaveTextContent('삭제된 규칙')
     expect(rows[2]).toHaveTextContent('매도')
     expect(rows[2]).toHaveTextContent('보유 수량 부족')

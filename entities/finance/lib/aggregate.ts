@@ -225,8 +225,8 @@ export function calcAssetClassComposition(snapshots: AssetSnapshot[], monthsLimi
 }
 
 // 계좌 식별용 — 계좌명·카테고리명·자산군 조합. 계좌 미연결(전세임차보증금 등)은 '계좌 미지정'으로 표시.
-function accountLabel(snapshot: AssetSnapshot): string {
-  return `${snapshot.accountName ?? '계좌 미지정'} · ${snapshot.categoryName} · ${snapshot.assetClass}`
+function accountLabel(snapshot: AssetSnapshot, assetClassLabel: (code: string) => string): string {
+  return `${snapshot.accountName ?? '계좌 미지정'} · ${snapshot.categoryName} · ${assetClassLabel(snapshot.assetClass)}`
 }
 
 export function calcMissingCategories(snapshots: AssetSnapshot[], month: string): string[] {
@@ -235,11 +235,20 @@ export function calcMissingCategories(snapshots: AssetSnapshot[], month: string)
   return ASSET_L1_CATEGORY_IDS.filter((category) => !present.has(category))
 }
 
-export function calcMissingAccounts(snapshots: AssetSnapshot[], month: string, previousMonth: string | null): string[] {
+// 비교는 자산군 코드로 하고 표시할 때만 라벨로 바꾼다 — 라벨이 겹치거나 메타가 늦게 와도 계좌가 합쳐지지 않게
+function accountKey(snapshot: AssetSnapshot): string {
+  return `${snapshot.accountName ?? '계좌 미지정'} · ${snapshot.categoryName} · ${snapshot.assetClass}`
+}
+
+export function calcMissingAccounts(snapshots: AssetSnapshot[], month: string, previousMonth: string | null, assetClassLabel: (code: string) => string): string[] {
   if (!previousMonth) return []
-  const currentAccounts = new Set(snapshotsInMonth(snapshots, month).map(accountLabel))
-  const previousAccounts = new Set(snapshotsInMonth(snapshots, previousMonth).map(accountLabel))
-  return Array.from(previousAccounts).filter((account) => !currentAccounts.has(account))
+  const currentAccounts = new Set(snapshotsInMonth(snapshots, month).map(accountKey))
+  const missing = new Map<string, AssetSnapshot>()
+  for (const snapshot of snapshotsInMonth(snapshots, previousMonth)) {
+    const key = accountKey(snapshot)
+    if (!currentAccounts.has(key)) missing.set(key, snapshot)
+  }
+  return Array.from(missing.values(), (snapshot) => accountLabel(snapshot, assetClassLabel))
 }
 
 interface DateGroup {

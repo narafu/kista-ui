@@ -17,6 +17,7 @@ import {
   useFinanceGroupsQuery,
   useMonthlyClosingsQuery,
 } from '@entities/finance'
+import { useMeta } from '@entities/meta'
 import { ToggleMonthlyCheckButton } from '@features/asset/toggle-monthly-check'
 
 interface Props {
@@ -30,6 +31,7 @@ function formatMonthDay(dateStr: string): string {
 }
 
 export function AssetRecordCheck({ month }: Props) {
+  const { labelOf } = useMeta()
   const assetsQuery = useAssetSnapshotsQuery()
   const checksQuery = useMonthlyClosingsQuery()
   const closingScopeGroupId = useMonthlyClosingScopeGroupId()
@@ -54,7 +56,7 @@ export function AssetRecordCheck({ month }: Props) {
   const months = listAvailableMonths(snapshots)
   const previousMonth = previousMonthOf(months, month)
   const missingCategories = calcMissingCategories(snapshots, month)
-  const missingAccounts = calcMissingAccounts(snapshots, month, previousMonth)
+  const missingAccounts = calcMissingAccounts(snapshots, month, previousMonth, (code) => labelOf('assetClasses', code))
   const dateGroups = calcDateGroups(snapshots, month)
   const completed = isMonthClosed(monthlyClosings, month, closingScopeGroupId)
 

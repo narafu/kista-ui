@@ -69,13 +69,13 @@ describe('DcaStrategyForm', () => {
 
   it('등록: 매수 규칙 추가 → 완료 → 요약 줄 → 등록 payload에 ruleKey 키가 없다', async () => {
     renderForm()
-    fireEvent.click(screen.getByRole('button', { name: '+ 매수 규칙 추가' }))
+    fireEvent.click(screen.getByRole('button', { name: '매수 규칙 추가' }))
     expect(screen.getByRole('heading', { level: 2, name: '매수 규칙' })).toHaveFocus()
     expect(screen.queryByRole('button', { name: '등록' })).not.toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
 
-    const summary = await screen.findByRole('button', { name: /매월 말일 · 장 마감 시장가 · \$300/ })
+    const summary = await screen.findByRole('button', { name: /매월 말일 · MOC\(종가시장가\) · \$300/ })
     await waitFor(() => expect(summary).toHaveFocus())
     expect(screen.getByText('규칙 (1/10)')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '등록' }))
@@ -97,12 +97,12 @@ describe('DcaStrategyForm', () => {
 
   it('등록: 매도 규칙이 있고 수량이 비면 보유 0 캡션, 매수만이면 없다', async () => {
     renderForm()
-    fireEvent.click(screen.getByRole('button', { name: '+ 매수 규칙 추가' }))
+    fireEvent.click(screen.getByRole('button', { name: '매수 규칙 추가' }))
     fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     await screen.findByText('규칙 (1/10)')
     expect(screen.queryByText('보유 0에서 시작합니다. 이미 보유 중이면 입력하세요.')).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: '+ 매도 규칙 추가' }))
+    fireEvent.click(screen.getByRole('button', { name: '매도 규칙 추가' }))
     fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '50' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     await screen.findByText('규칙 (2/10)')
@@ -113,7 +113,7 @@ describe('DcaStrategyForm', () => {
 
   it('등록: 수량·평단가를 입력하면 payload에 initialHoldings·initialAvgPrice', async () => {
     renderForm()
-    fireEvent.click(screen.getByRole('button', { name: '+ 매수 규칙 추가' }))
+    fireEvent.click(screen.getByRole('button', { name: '매수 규칙 추가' }))
     fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     await screen.findByText('규칙 (1/10)')
@@ -126,7 +126,7 @@ describe('DcaStrategyForm', () => {
 
   it('크립토 등록: 새 규칙은 부모 시장으로 실행 시각 09시·시장가를 보낸다', async () => {
     renderForm(undefined, 'BTC', 'CRYPTO_KRW')
-    fireEvent.click(screen.getByRole('button', { name: '+ 매수 규칙 추가' }))
+    fireEvent.click(screen.getByRole('button', { name: '매수 규칙 추가' }))
     fireEvent.change(screen.getByLabelText('회차당 금액 (원)'), { target: { value: '5000' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     await screen.findByText('규칙 (1/10)')
@@ -146,7 +146,7 @@ describe('DcaStrategyForm', () => {
     fireEvent.click(screen.getByRole('button', { name: '규칙 삭제' }))
     await waitFor(() => expect(screen.queryByRole('button', { name: /\$100/ })).not.toBeInTheDocument())
 
-    fireEvent.click(screen.getByRole('button', { name: '+ 매도 규칙 추가' }))
+    fireEvent.click(screen.getByRole('button', { name: '매도 규칙 추가' }))
     fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '50' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     await screen.findByText('규칙 (2/10)')
@@ -178,9 +178,9 @@ describe('DcaStrategyForm', () => {
 
   it('새 규칙에서 이전을 누르면 규칙이 늘지 않고 누른 추가 버튼으로 포커스가 돌아간다', async () => {
     renderForm()
-    fireEvent.click(screen.getByRole('button', { name: '+ 매도 규칙 추가' }))
+    fireEvent.click(screen.getByRole('button', { name: '매도 규칙 추가' }))
     fireEvent.click(screen.getByRole('button', { name: '이전' }))
-    await waitFor(() => expect(screen.getByRole('button', { name: '+ 매도 규칙 추가' })).toHaveFocus())
+    await waitFor(() => expect(screen.getByRole('button', { name: '매도 규칙 추가' })).toHaveFocus())
     expect(screen.getByText('규칙 (0/10)')).toBeInTheDocument()
   })
 
@@ -203,7 +203,7 @@ describe('DcaStrategyForm', () => {
 
   it('등록: 매수 규칙에 평단가 조건이 있고 수량이 비면 보유 0 캡션', async () => {
     renderForm()
-    fireEvent.click(screen.getByRole('button', { name: '+ 매수 규칙 추가' }))
+    fireEvent.click(screen.getByRole('button', { name: '매수 규칙 추가' }))
     fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
     fireEvent.click(screen.getByRole('button', { name: '조건 추가' })) // 메타 첫 지표 = AVG_PRICE
     fireEvent.change(screen.getByRole('spinbutton', { name: '조건 1 기준값' }), { target: { value: '-5' } })
@@ -216,7 +216,7 @@ describe('DcaStrategyForm', () => {
     // 이력 이동이 끝나기 전(popstate 전) 두 번째 클릭이 들어오는 상황 — back을 no-op으로 두고 popstate는 직접 쏜다
     vi.spyOn(window.history, 'back').mockImplementation(() => {})
     renderForm()
-    fireEvent.click(screen.getByRole('button', { name: '+ 매수 규칙 추가' }))
+    fireEvent.click(screen.getByRole('button', { name: '매수 규칙 추가' }))
     fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
@@ -229,7 +229,7 @@ describe('DcaStrategyForm', () => {
 
   it('등록 시도 후 보유 시작값 오류는 두 필드에 따로 표시되고, 고치면 반대쪽 오류도 사라진다', async () => {
     renderForm()
-    fireEvent.click(screen.getByRole('button', { name: '+ 매수 규칙 추가' }))
+    fireEvent.click(screen.getByRole('button', { name: '매수 규칙 추가' }))
     fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     await screen.findByText('규칙 (1/10)')
@@ -252,8 +252,8 @@ describe('DcaStrategyForm', () => {
   it('규칙 10개면 추가 버튼 두 개 모두 숨긴다', () => {
     renderForm(existing(Array.from({ length: 10 }, (_, i) => rule(`r${i}`, 100 + i))))
     expect(screen.getByText('규칙 (10/10)')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: '+ 매수 규칙 추가' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: '+ 매도 규칙 추가' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '매수 규칙 추가' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '매도 규칙 추가' })).not.toBeInTheDocument()
   })
 
   it('수정: 종목 변경 UI가 없다', () => {

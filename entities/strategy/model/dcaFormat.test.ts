@@ -20,7 +20,7 @@ describe('DCA 규칙 요약', () => {
   })
   it('주식 규칙은 주문 방식을 시점으로 표시', () => {
     expect(formatDcaRuleSummary({ direction: 'BUY', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC', sizing: { type: 'AMOUNT', amount: 100, percent: null } }, labelOf, 'US_STOCK'))
-      .toBe('매수 · 매월 말일 · MOC · $100.00')
+      .toBe('매수 · 매월 말일 · MOC(종가시장가) · $100.00')
   })
   it('보유 비율 매도', () => {
     expect(formatDcaSizing({ type: 'HOLDING_PERCENT', amount: null, percent: 50 }, 'CRYPTO_KRW')).toBe('보유 50%')

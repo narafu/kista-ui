@@ -10,6 +10,7 @@ import { Spinner } from '@shared/ui/Spinner'
 import { SelectionCard } from '@shared/ui/selection-card'
 import { UnitInput } from '@shared/ui/UnitInput'
 import type { BacktestType } from '@entities/backtest'
+import { useMeta } from '@entities/meta'
 import type { CycleSeedType } from '@entities/strategy'
 import { ChoiceButton, OptionChoiceGroup, RecurringModeField, VrRampFields, VR_FIELD_LABEL_CLASS } from '@entities/strategy'
 import type { UseBacktestFormResult } from './model/useBacktestForm'
@@ -21,6 +22,7 @@ interface Props {
 const FIELD_LABEL_CLASS = 'mb-2 block text-sm font-bold'
 
 export function BacktestForm({ form }: Props) {
+  const { labelOf } = useMeta()
   return (
     <Card>
       <CardContent className="flex flex-col gap-5 pt-6">
@@ -42,7 +44,7 @@ export function BacktestForm({ form }: Props) {
                   <span className={selected ? 'size-4 shrink-0 text-[var(--selection-fg)]' : 'size-4 shrink-0 text-muted-foreground'}>
                     {singleTicker ? <Activity size={16} /> : <Zap size={16} />}
                   </span>
-                  <span className="text-sm font-[800]">{t.code}</span>
+                  <span className="text-sm font-[800]">{labelOf('strategyTypes', t.code)}</span>
                 </SelectionCard>
               )
             })}

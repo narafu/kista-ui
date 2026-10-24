@@ -104,7 +104,7 @@ function accountCard(page: Page, nickname: string) {
 
 async function deleteAccountThroughUi(page: Page, request: APIRequestContext, nickname: string) {
   await accountCard(page, nickname).click()
-  await page.getByRole('link', { name: '계좌 수정' }).click()
+  await page.getByRole('link', { name: '수정', exact: true }).click()
   await page.getByRole('button', { name: '계좌 삭제', exact: true }).click()
   await page.getByPlaceholder(nickname).fill(nickname)
   await inspectAccountsBeforeDelete(request)

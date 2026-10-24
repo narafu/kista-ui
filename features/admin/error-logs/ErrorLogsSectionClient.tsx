@@ -90,7 +90,7 @@ export function ErrorLogsSectionClient({ logs }: Props) {
         {selectedCount > 0 && <span className="text-sm text-muted-foreground">{selectedCount}건 선택됨</span>}
         <AlertDialog open={open} onOpenChange={setOpen}>
           <AlertDialogTrigger
-            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'ml-auto aria-disabled:opacity-50')}
+            className={cn(buttonVariants({ variant: 'destructive', size: 'sm' }), 'ml-auto aria-disabled:opacity-50')}
             // disabled로 바꾸면 모달을 닫은 뒤 포커스가 body로 빠진다
             aria-disabled={selectedCount === 0 || mutation.isPending}
             onClick={(e) => { if (selectedCount === 0 || mutation.isPending) e.preventBaseUIHandler() }}

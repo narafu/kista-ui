@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
+import { getMetaBundle } from '@entities/meta'
 import { adminPrivacyBasesQueryOptions } from '@entities/privacy'
 import { AdminPrivacyBaseTable, PrivacyBaseChart } from '@widgets/admin-privacy-trade-list'
 import { PageHeader } from '@widgets/page-header'
@@ -28,6 +29,8 @@ export default async function AdminPrivacyTradesPage({
   const page = parsePage(rawPage)
 
   const token = await getAuthToken()
+  const privacyType = (await getMetaBundle()).strategyTypes.find((type) => type.code === 'PRIVACY')
+  const privacyLabel = privacyType?.label ?? privacyType?.description ?? 'PRIVACY'
   const queryClient = createQueryClient()
   if (token) await queryClient.prefetchQuery(adminPrivacyBasesQueryOptions(token))
 
@@ -38,7 +41,7 @@ export default async function AdminPrivacyTradesPage({
 
   return (
     <div>
-      <PageHeader title="P 매매표" description="PRIVACY 전략 P 매매표 및 주문 명세" />
+      <PageHeader title="P 매매표" description={`${privacyLabel} 매매표 및 주문 명세`} />
 
       <div className="mb-4">
         <UrlRangeFilterBar current={range} from={from} to={to} presets={PRESETS} />

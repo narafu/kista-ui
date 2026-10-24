@@ -173,10 +173,10 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
                       {/* 예산 없이 실적만 있는 카테고리 즉석 등록 — 카테고리만 프리필, 날짜·금액은 사용자가 입력 */}
                       <Link
                         href={newBudgetHref(type, { categoryId: entry.categoryId })}
-                        aria-label={`${entry.categoryName} 예산 등록`}
+                        aria-label={`${entry.categoryName} 예산 추가`}
                         className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'shrink-0')}
                       >
-                        예산 등록
+                        예산 추가
                       </Link>
                     </li>
                   ))}

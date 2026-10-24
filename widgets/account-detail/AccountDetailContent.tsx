@@ -1,14 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { Pencil } from 'lucide-react'
-import { ICON_LINK_GHOST_CLASS } from '@shared/ui/iconButtonStyles'
 
 import { useQuery } from '@tanstack/react-query'
 import { useAccountDetailQuery } from '@entities/account'
 import { accountPortfolioQueryOptions, cryptoPortfolioQueryOptions } from '@entities/trade'
 import { isCryptoBroker, isMockBroker } from '@shared/lib/api-schema'
 import { PageHeader } from '@widgets/page-header'
+import { buttonVariants } from '@/components/ui/button-variants'
+import { cn } from '@shared/lib/utils'
 import type { Account } from '@entities/account'
 import { AccountDetailTabs } from './AccountDetailTabs'
 
@@ -42,11 +42,9 @@ export function AccountDetailContent({
         actions={
           <Link
             href={`/accounts/${accountId}/edit`}
-            aria-label="계좌 수정"
-            title="계좌 수정"
-            className={ICON_LINK_GHOST_CLASS}
+            className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}
           >
-            <Pencil className="size-4" />
+            수정
           </Link>
         }
       />
