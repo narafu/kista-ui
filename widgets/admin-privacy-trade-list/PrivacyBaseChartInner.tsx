@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo, useState, useSyncExternalStore } from 'react'
-import type { ComponentProps, ReactNode } from 'react'
+import { useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import type { ComponentProps, ReactNode, TouchEvent } from 'react'
 import type { MouseHandlerDataParam } from 'recharts'
 // 부모 PrivacyBaseChart.tsx의 next/dynamic({ ssr: false }) 셸이 이 파일 자체를 지연 로드한다. 룰은 파일 간
 // 도달 가능성을 보지 않고 recharts import를 정적으로만 감지해 분리 구조와 무관하게 항상 발화한다
@@ -275,6 +275,17 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAv
     activeDateStore.set(String(state.activeLabel))
   }
 
+  // 터치는 mouseleave가 없어 한 번 만진 패널이 자기 hover를 쥔 채 남는다. recharts는 자기 hover를 다른 패널 sync보다
+  // 우선해, 다른 패널을 만져도 그 패널은 멈춘다(iOS에서 위 → 가운데 순서로 만지면 위 패널 점이 고정).
+  // 새 패널을 만지는 순간 나머지 패널에 mouseleave를 보내 hover를 놓게 한다 — React onMouseLeave는 mouseout에서 합성된다
+  const rootRef = useRef<HTMLDivElement>(null)
+  const releaseOtherPanels = (_: MouseHandlerDataParam, e: TouchEvent<SVGGraphicsElement>) => {
+    const touched = (e.target as Element).closest('.recharts-wrapper')
+    rootRef.current?.querySelectorAll('.recharts-wrapper').forEach((wrapper) => {
+      if (wrapper !== touched) wrapper.dispatchEvent(new MouseEvent('mouseout', { bubbles: true, relatedTarget: document.body }))
+    })
+  }
+
   const first = rows[0]
   const last = rows[rows.length - 1]
   const lastClose = rows.findLast((r) => r.close != null)
@@ -290,7 +301,7 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAv
   const pnlSummary = fmtSignedUsd(last.cumulativePnl)
 
   return (
-    <div className="space-y-3">
+    <div ref={rootRef} className="space-y-3">
       <figure className="w-full">
         <PanelCaption
           title={`${ticker} 가격`}
@@ -300,7 +311,7 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAv
         />
         <div className={PANEL_HEIGHT.price}>
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={rows} syncId={SYNC_ID} margin={narrow ? MARGIN_NARROW : MARGIN} onMouseMove={pickActive} onClick={pickActive} onTouchMove={pickActive} title={`${ticker} 종가·평단가·주문 가격`}>
+            <ComposedChart data={rows} syncId={SYNC_ID} margin={narrow ? MARGIN_NARROW : MARGIN} onMouseMove={pickActive} onClick={pickActive} onTouchMove={pickActive} onTouchStart={releaseOtherPanels} title={`${ticker} 종가·평단가·주문 가격`}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
               <XAxis dataKey="date" hide />
               <YAxis tickFormatter={(v) => fmtUsd(Number(v), 0)} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} domain={['auto', 'auto']} />
@@ -336,7 +347,7 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAv
         />
         <div className={PANEL_HEIGHT.cash}>
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={rows} syncId={SYNC_ID} margin={narrow ? MARGIN_NARROW : MARGIN} onMouseMove={pickActive} onClick={pickActive} onTouchMove={pickActive} title="현금비중">
+            <ComposedChart data={rows} syncId={SYNC_ID} margin={narrow ? MARGIN_NARROW : MARGIN} onMouseMove={pickActive} onClick={pickActive} onTouchMove={pickActive} onTouchStart={releaseOtherPanels} title="현금비중">
               <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
               <XAxis dataKey="date" hide />
               <YAxis domain={[0, 1]} ticks={CASH_TICKS} tickFormatter={(v) => fmtPercent(Number(v))} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} />
@@ -360,7 +371,7 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAv
         />
         <div className={PANEL_HEIGHT.pnl}>
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={rows} syncId={SYNC_ID} margin={narrow ? MARGIN_NARROW : MARGIN} onMouseMove={pickActive} onClick={pickActive} onTouchMove={pickActive} title="누적 실현손익">
+            <ComposedChart data={rows} syncId={SYNC_ID} margin={narrow ? MARGIN_NARROW : MARGIN} onMouseMove={pickActive} onClick={pickActive} onTouchMove={pickActive} onTouchStart={releaseOtherPanels} title="누적 실현손익">
               <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
               <XAxis dataKey="date" tickFormatter={(d) => fmtMonthDay(String(d))} tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={28} />
               <YAxis tickFormatter={(v) => fmtUsd(Number(v), 0)} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} />
