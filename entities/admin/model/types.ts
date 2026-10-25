@@ -1,146 +1,80 @@
 import type { components } from '@shared/lib/api-types'
-import type { OrderDirection, OrderStatus, OrderType, UserRole, UserStatus } from '@shared/lib/api-schema'
+import type { OrderDirection, OrderStatus, OrderType } from '@shared/lib/api-schema'
 
-export interface AdminUser {
-  id: string
-  nickname: string
-  status: UserStatus
-  role: UserRole
-  createdAt: string
-}
+// 서버 record라 항상 전 필드를 보내지만 스펙엔 optional로 생성돼 Required로 고정한다.
+// 스펙의 nullable 표기도 실제와 어긋나(@Schema nullable 누락) null이 오는 필드는 NullableFields로 따로 연다.
+type Schema<K extends keyof components['schemas']> = Required<components['schemas'][K]>
+type NullableFields<T, K extends keyof T> = { [P in K]: T[P] | null }
 
-export interface AdminStats {
-  totalUsers: number
-  pendingCount: number
-  activeCount: number
-  rejectedCount: number
-  totalAccounts: number
-}
+type AdminTradeSchema = Schema<'AdminTradeResponse'>
+type AdminStrategySchema = Schema<'AdminStrategyResponse'>
+type AdminAccountItemSchema = Schema<'AdminAccountItem'>
 
-export interface AdminAccountStrategy {
-  id: string
-  type: string
-  status: string
-  ticker: string
-}
+export type OrderTiming = 'AT_OPEN' | 'AT_CLOSE' | 'IMMEDIATE'
 
-export interface AdminAccount {
-  id: string
-  userId: string
-  ownerNickname: string
-  accountNoMasked: string | null // 업비트·메리츠는 계좌번호가 없어 null
-  broker: string
-  strategies: AdminAccountStrategy[]
-}
+export type AdminUser = Schema<'AdminUserResponse'>
 
-export interface AdminTrade {
-  id: string
-  userId: string
-  accountId: string
-  strategyId: string | null
-  ownerNickname: string
-  strategyType?: string
-  tradeDate: string
-  ticker: string
-  direction: OrderDirection
-  orderType: OrderType
-  quantity: number
-  price: number
-  // GET /api/admin/trades는 status 필터 없이 도메인 Order.status.name()을 그대로 내려
-  // OrderStatus 전체(PLANNED·SUBMITTING·PARTIALLY_FILLED·CANCELLED 포함)가 올 수 있다.
-  status: OrderStatus
-  currency?: string | null // price 통화(Currency name) — 계좌를 찾지 못하면 null, 종목으로는 정할 수 없다(BTC는 KRW·USDT 시장 공유)
-}
+export type AdminStats = Schema<'AdminDashboardResponse'>
 
-export interface AdminStrategy {
-  id: string
-  type: string
+export type AdminAccountStrategy = Pick<AdminStrategySchema, 'id' | 'type' | 'status' | 'ticker'>
+
+export type AdminAccount = Pick<Schema<'AdminAccountResponse'>, 'id' | 'userId' | 'ownerNickname' | 'broker'>
+  & NullableFields<Schema<'AdminAccountResponse'>, 'accountNoMasked'> // 업비트·메리츠는 계좌번호가 없어 null
+  & { strategies: AdminAccountStrategy[] }
+
+export type AdminTrade = Pick<AdminTradeSchema, 'id' | 'userId' | 'accountId' | 'ownerNickname' | 'tradeDate' | 'ticker' | 'quantity' | 'price'>
+  & NullableFields<AdminTradeSchema, 'strategyId' | 'strategyType'>
+  & {
+    direction: OrderDirection
+    orderType: OrderType
+    // GET /api/admin/trades는 status 필터 없이 도메인 Order.status.name()을 그대로 내려
+    // OrderStatus 전체(PLANNED·SUBMITTING·PARTIALLY_FILLED·CANCELLED 포함)가 올 수 있다.
+    status: OrderStatus
+    currency: AdminTradeSchema['currency'] // price 통화(Currency name) — 계좌를 찾지 못하면 null, 종목으로는 정할 수 없다(BTC는 KRW·USDT 시장 공유)
+  }
+
+export type AdminStrategy = Pick<AdminStrategySchema, 'id' | 'type' | 'ticker' | 'cycleSeedType'> & {
   status: 'ACTIVE' | 'PAUSED'
-  ticker: string
-  cycleSeedType: string
 }
 
-export interface AdminStrategyOrder {
-  id: string
-  userId: string
-  ownerNickname: string
-  strategyType?: string | null
-  strategyCycleId?: string | null // 재주문 예산 cycleRemaining 키 — 구 API 응답엔 없다
-  tradeDate: string
-  ticker: string
-  direction: OrderDirection
-  orderType: OrderType
-  timing: 'AT_OPEN' | 'AT_CLOSE' | 'IMMEDIATE'
-  quantity: number
-  price: number
-  status: OrderStatus
-  externalOrderId?: string | null
-  filledQuantity?: number | null
-  filledPrice?: number | null
-}
+export type AdminStrategyOrder = Pick<AdminTradeSchema, 'id' | 'userId' | 'ownerNickname' | 'strategyCycleId' | 'tradeDate' | 'ticker' | 'quantity' | 'price'>
+  & NullableFields<AdminTradeSchema, 'strategyType' | 'externalOrderId' | 'filledQuantity' | 'filledPrice'>
+  & {
+    direction: OrderDirection
+    orderType: OrderType
+    timing: OrderTiming
+    status: OrderStatus
+  }
 
-export interface AdminReorderTimingAvailability {
-  atOpen: boolean
-  atClose: boolean
-  immediate: boolean
-}
+export type AdminReorderTimingAvailability = Schema<'ReorderTimingAvailabilityResponse'>
 
 // BUY 재주문 예산 — 같은 계좌 원본 주문 일괄 조회. cycleRemaining은 사이클별 남은 원장 한도(키 없으면 DCA라 상한 없음),
 // sourceRefunds는 원본 주문별 취소 환급액. 서버는 이 한도를 넘는 재주문 BUY를 409로 차단한다.
-// 서버 record라 항상 전 필드를 보내지만 스펙엔 optional로 생성돼 Required로 고정한다.
-export type AdminReorderBuyBudget = Required<components['schemas']['ReorderBuyBudgetResponse']>
+export type AdminReorderBuyBudget = Schema<'ReorderBuyBudgetResponse'>
 
-export interface AdminReorderRequest {
-  userId: string
-  accountId: string
-  strategyId: string
-  orderId: string
-  timing: 'AT_OPEN' | 'AT_CLOSE' | 'IMMEDIATE'
-  tradeDate: string
+// 요청 스키마는 필수/선택 표기가 서버 @NotNull과 일치해 Required를 씌우지 않는다
+export type AdminReorderRequest = Omit<components['schemas']['AdminReorderRequest'], 'timing' | 'direction'> & {
+  timing: OrderTiming
   direction?: OrderDirection
-  quantity?: number
-  price?: number
-  memo?: string
 }
 
-export interface AdminReorderResponse {
-  userId: string
-  accountId: string
-  strategyId: string
-  sourceOrderId: string
-  originalStatus: OrderStatus
-  resultingStatus: OrderStatus
-  newOrderExternalId?: string | null
-}
+export type AdminReorderResponse = Pick<Schema<'AdminReorderResponse'>, 'userId' | 'accountId' | 'strategyId' | 'sourceOrderId'>
+  & Partial<NullableFields<Schema<'AdminReorderResponse'>, 'newOrderExternalId'>>
+  & {
+    originalStatus: OrderStatus
+    resultingStatus: OrderStatus
+  }
 
-export interface AdminAuditLog {
-  id: string
-  adminId: string
-  action: string
-  targetType: string | null
-  targetId: string | null
-  payload: Record<string, unknown> | null
-  createdAt: string
-}
+export type AdminAuditLog = Pick<Schema<'AuditLogResponse'>, 'id' | 'adminId' | 'action' | 'createdAt'>
+  & NullableFields<Schema<'AuditLogResponse'>, 'targetType' | 'targetId' | 'payload'>
 
-export interface AdminAnomalyAccount {
-  id: string
-  userId: string
-  ownerNickname: string
-  accountNoMasked: string | null // 업비트·메리츠는 계좌번호가 없어 null
-  accountNo: string | null
-}
+export type AdminAnomalyAccount = Pick<AdminAccountItemSchema, 'id' | 'userId' | 'ownerNickname'>
+  & NullableFields<AdminAccountItemSchema, 'accountNoMasked' | 'accountNo'> // 업비트·메리츠는 계좌번호가 없어 null
 
-export interface AdminAnomalies {
+export type AdminAnomalies = {
   pausedAccounts: AdminAnomalyAccount[]
   inactiveAccounts: AdminAnomalyAccount[]
 }
 
-export interface AppErrorLog {
-  id: string
-  errorType: string
-  message: string
-  stackTrace?: string | null
-  context: Record<string, string>
-  createdAt: string
-}
+export type AppErrorLog = Pick<Schema<'ErrorLogResponse'>, 'id' | 'errorType' | 'message' | 'context' | 'createdAt'>
+  & Partial<NullableFields<Schema<'ErrorLogResponse'>, 'stackTrace'>>

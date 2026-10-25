@@ -109,6 +109,7 @@ describe('entities/admin/api admin trade correction APIs', () => {
         userId: 'user-1',
         ownerNickname: 'privacy-user',
         strategyType: 'PRIVACY',
+        strategyCycleId: null,
         tradeDate: '2026-07-01',
         ticker: 'SOXL',
         direction: 'SELL',

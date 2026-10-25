@@ -74,6 +74,7 @@ const trades: AdminTrade[] = [
     quantity: 3,
     price: 312.45,
     status: 'PLACED',
+    currency: null,
   },
   {
     id: 'trade-2',
@@ -89,6 +90,7 @@ const trades: AdminTrade[] = [
     quantity: 1,
     price: 144.3,
     status: 'FILLED',
+    currency: null,
   },
 ]
 
@@ -144,6 +146,8 @@ const orders: AdminStrategyOrder[] = [
     price: 312.45,
     status: 'PLACED',
     externalOrderId: 'ext-1',
+    filledQuantity: null,
+    filledPrice: null,
   },
   {
     id: 'order-2',
@@ -160,6 +164,8 @@ const orders: AdminStrategyOrder[] = [
     price: 320.0,
     status: 'PLANNED',
     externalOrderId: 'ext-2',
+    filledQuantity: null,
+    filledPrice: null,
   },
 ]
 
