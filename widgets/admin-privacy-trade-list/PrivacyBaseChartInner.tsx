@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState, useSyncExternalStore } from 'react'
-import type { ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import type { MouseHandlerDataParam } from 'recharts'
 // 부모 PrivacyBaseChart.tsx의 next/dynamic({ ssr: false }) 셸이 이 파일 자체를 지연 로드한다. 룰은 파일 간
 // 도달 가능성을 보지 않고 recharts import를 정적으로만 감지해 분리 구조와 무관하게 항상 발화한다
@@ -11,7 +11,7 @@ import { Area, Brush, CartesianGrid, ComposedChart, Line, ReferenceArea, Referen
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 import { fmtMonthDay, fmtSignedPercent, fmtSignedUsd, fmtUsd, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
-import { CASH_THRESHOLD, PANEL_HEIGHT, SWATCH, Swatch, avgGapLevel, fmtPercent, useIsNarrow } from './privacyChartParts'
+import { CASH_THRESHOLD, LegendItems, PANEL_HEIGHT, PANEL_LEGEND, SWATCH, Swatch, avgGapLevel, fmtPercent, useIsNarrow } from './privacyChartParts'
 import type { PrivacyChartRow } from './model/privacyChartSeries'
 
 interface Props {
@@ -227,12 +227,16 @@ const confirmedProfit = (row: PrivacyChartRow) => Math.max(row.confirmedPnl, 0)
 const confirmedLoss = (row: PrivacyChartRow) => Math.min(row.confirmedPnl, 0)
 
 // 패널 제목 겸 요약 — 값이 툴팁에만 있으면 스크린리더·터치 사용자가 읽을 수 없어 최신 값을 캡션으로 노출한다
-function PanelCaption({ title, summary, srOnly }: { title: string; summary: string; srOnly: string }) {
+// legend는 이 패널에만 그려지는 장식의 범례 — 제목 줄 오른쪽에 둔다
+function PanelCaption({ title, summary, srOnly, legend }: { title: string; summary: string; srOnly: string; legend?: ComponentProps<typeof LegendItems>['items'] }) {
   return (
-    <figcaption className="pl-1 text-xs">
-      <span className="font-medium text-muted-foreground">{title}</span>
-      {summary && <span className="ml-2 tabular-nums text-foreground">{summary}</span>}
-      <span className="sr-only">{srOnly}</span>
+    <figcaption className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 pl-1 text-xs">
+      <span>
+        <span className="font-medium text-muted-foreground">{title}</span>
+        {summary && <span className="ml-2 tabular-nums text-foreground">{summary}</span>}
+        <span className="sr-only">{srOnly}</span>
+      </span>
+      {legend && legend.length > 0 && <LegendItems items={legend} label={`${title} 범례`} />}
     </figcaption>
   )
 }
@@ -292,6 +296,7 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAv
           title={`${ticker} 가격`}
           summary={priceSummary ? `${priceSummary} (최신)` : ''}
           srOnly={`${period}. 최신 ${last.date} 기준 ${priceSummary || '종가·평단가 없음'}.`}
+          legend={showAvgGap ? PANEL_LEGEND.avgGap : undefined}
         />
         <div className={PANEL_HEIGHT.price}>
           <ResponsiveContainer width="100%" height="100%">
@@ -327,6 +332,7 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAv
           title="현금비중"
           summary={cashSummary ? `${cashSummary} (최신)` : ''}
           srOnly={`${cashSummary ? `최신 ${lastCash?.date} 기준 ${cashSummary}` : '현금비중 데이터 없음'}. 50% 미만인 날 ${lowCashDays}일.`}
+          legend={PANEL_LEGEND.cash}
         />
         <div className={PANEL_HEIGHT.cash}>
           <ResponsiveContainer width="100%" height="100%">
@@ -350,6 +356,7 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAv
           title="누적 실현손익"
           summary={`${pnlSummary} (${fmtPeriod(first.date, last.date)})`}
           srOnly={`${period}. 기간 마지막 날 누적 실현손익 ${pnlSummary}.`}
+          legend={PANEL_LEGEND.pnl}
         />
         <div className={PANEL_HEIGHT.pnl}>
           <ResponsiveContainer width="100%" height="100%">

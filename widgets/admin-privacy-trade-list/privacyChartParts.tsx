@@ -45,20 +45,36 @@ export const SWATCH = {
   confirmed: 'h-2 w-4 rounded-sm bg-[linear-gradient(90deg,var(--pos)_50%,var(--neg)_50%)]',
 }
 
-// 범례 — 종가·평단가·주문·현금비중·누적 손익은 하단 정보 줄이 같은 표식과 값으로 보여줘, 정보 줄로 알 수 없는 차트 장식만 둔다.
-// 확정 손익 영역은 이익/손실 두 색이고 모바일 정보 줄에는 값이 없어 남긴다
-export const LEGEND_ITEMS: Array<{ label: string; swatch: string }> = [
-  { label: '사이클 경계', swatch: SWATCH.boundary },
-  { label: '현금비중 50% 미만', swatch: SWATCH.cashLow },
-  { label: '확정 손익(종료 사이클)', swatch: SWATCH.confirmed },
-]
+type LegendItem = { label: string; swatch: string }
 
-// 괴리 강조를 켰을 때만 괴리 단계 띠 표식을 덧붙인다
-export const LEGEND_ITEMS_WITH_AVG_GAP = [
-  ...LEGEND_ITEMS,
-  { label: '평단가 괴리 10% 이상', swatch: SWATCH.avgGap1 },
-  { label: '평단가 괴리 20% 이상', swatch: SWATCH.avgGap2 },
-]
+// 범례 — 종가·평단가·주문·현금비중·누적 손익은 하단 정보 줄이 같은 표식과 값으로 보여줘, 정보 줄로 알 수 없는 차트 장식만 둔다.
+// 세 패널에 모두 그려지는 사이클 경계는 카드 상단에, 한 패널에만 있는 장식은 그 패널 제목 줄에 둔다
+export const COMMON_LEGEND: LegendItem[] = [{ label: '사이클 경계', swatch: SWATCH.boundary }]
+
+export const PANEL_LEGEND: Record<'avgGap' | 'cash' | 'pnl', LegendItem[]> = {
+  // 괴리 강조를 켰을 때만 가격 패널에 붙는다
+  avgGap: [
+    { label: '평단가 괴리 10% 이상', swatch: SWATCH.avgGap1 },
+    { label: '평단가 괴리 20% 이상', swatch: SWATCH.avgGap2 },
+  ],
+  cash: [{ label: '50% 미만', swatch: SWATCH.cashLow }],
+  // 확정 손익 영역은 이익/손실 두 색이고 모바일 정보 줄에는 값이 없어 범례로 설명한다
+  pnl: [{ label: '확정 손익(종료 사이클)', swatch: SWATCH.confirmed }],
+}
+
+// 범례 묶음이 패널마다 생겨 스크린리더 그룹 목록에서 구분되도록 이름을 받는다
+export function LegendItems({ items, label = '범례', className }: { items: LegendItem[]; label?: string; className?: string }) {
+  return (
+    <span role="group" aria-label={label} className={cn('inline-flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground', className)}>
+      {items.map((item) => (
+        <span key={item.label} className="inline-flex items-center gap-1.5">
+          <Swatch className={item.swatch} />
+          {item.label}
+        </span>
+      ))}
+    </span>
+  )
+}
 
 export function Swatch({ className }: { className: string }) {
   return (

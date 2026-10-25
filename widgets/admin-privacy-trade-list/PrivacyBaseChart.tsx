@@ -12,7 +12,7 @@ import { useAdminPrivacyBasesQuery } from '@entities/privacy'
 import { useCandlesRangeQuery } from '@entities/market'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { buildPrivacyChartSeries, candleRangeFor, latestYearlyResetByTicker, sliceSeriesByRange } from './model/privacyChartSeries'
-import { ChartSkeleton, LEGEND_ITEMS, LEGEND_ITEMS_WITH_AVG_GAP, Swatch, useIsNarrow } from './privacyChartParts'
+import { ChartSkeleton, COMMON_LEGEND, LegendItems, useIsNarrow } from './privacyChartParts'
 
 // recharts는 무거워 Inner로 분리해 지연 로드한다 (asset-trend/AssetTrend + AssetTrendInner 패턴)
 const PrivacyBaseChartInner = dynamic(() => import('./PrivacyBaseChartInner'), {
@@ -90,16 +90,9 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
           <p className="pl-1 text-xs text-muted-foreground">종가 조회 범위(최대 5년) 밖이거나 종가가 없는 {missingCloseCount}일은 종가·현금비중을 표시하지 않습니다.</p>
         ) : null}
 
-        {/* 범례와 토글을 한 줄에 둔다 — 범례는 정보 줄에 없는 차트 장식만 있어 짧다 */}
+        {/* 공통 범례와 토글을 한 줄에 둔다 — 패널 전용 범례는 각 패널 제목 줄에 있다 */}
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 pl-1 text-xs text-muted-foreground">
-          <div role="group" aria-label="범례" className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            {(showAvgGap ? LEGEND_ITEMS_WITH_AVG_GAP : LEGEND_ITEMS).map((item) => (
-              <span key={item.label} className="inline-flex items-center gap-1.5">
-                <Swatch className={item.swatch} />
-                {item.label}
-              </span>
-            ))}
-          </div>
+          <LegendItems items={COMMON_LEGEND} label="공통 범례" />
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <span className="inline-flex items-center gap-2">
               <Switch id="privacy-chart-show-orders" size="sm" checked={showOrders} onCheckedChange={setShowOrders} />
