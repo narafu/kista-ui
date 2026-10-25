@@ -22,8 +22,9 @@ export type AdminAccount = Pick<Schema<'AdminAccountResponse'>, 'id' | 'userId' 
   & NullableFields<Schema<'AdminAccountResponse'>, 'accountNoMasked'> // 업비트·메리츠는 계좌번호가 없어 null
   & { strategies: AdminAccountStrategy[] }
 
-export type AdminTrade = Pick<AdminTradeSchema, 'id' | 'userId' | 'accountId' | 'ownerNickname' | 'tradeDate' | 'ticker' | 'quantity' | 'price'>
-  & NullableFields<AdminTradeSchema, 'strategyId' | 'strategyType'>
+export type AdminTrade = Pick<AdminTradeSchema, 'id' | 'accountId' | 'ownerNickname' | 'tradeDate' | 'ticker' | 'quantity' | 'price'>
+  // userId는 계좌를 찾지 못한 주문이면 null(닉네임 "(알 수 없음)") — 전략 주문 조회는 이때 404라 AdminStrategyOrder엔 없다
+  & NullableFields<AdminTradeSchema, 'userId' | 'strategyId' | 'strategyType'>
   & {
     direction: OrderDirection
     orderType: OrderType

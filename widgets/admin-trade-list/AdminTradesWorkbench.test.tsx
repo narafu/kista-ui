@@ -197,19 +197,19 @@ const reorderAdminOrderMock = vi.mocked(reorderAdminOrder)
 const getReorderTimingAvailabilityMock = vi.mocked(getReorderTimingAvailability)
 const getReorderBuyBudgetMock = vi.mocked(getReorderBuyBudget)
 
-function createWrapper() {
+function createWrapper(seedTrades: AdminTrade[] = trades) {
   // 거래 내역은 서버가 prefetch한 캐시를 읽는다 — staleTime을 무한으로 두어 시드한 값을 네트워크 없이 쓴다
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity }, mutations: { retry: false } } })
-  queryClient.setQueryData(adminKeys.trades({}), trades)
+  queryClient.setQueryData(adminKeys.trades({}), seedTrades)
   return function Wrapper({ children }: PropsWithChildren) {
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   }
 }
 
-function renderWorkbench(props: Partial<React.ComponentProps<typeof AdminTradesWorkbench>> = {}) {
+function renderWorkbench(props: Partial<React.ComponentProps<typeof AdminTradesWorkbench>> = {}, seedTrades?: AdminTrade[]) {
   return render(
     <AdminTradesWorkbench initialPage={1} initialSize={10} {...props} />,
-    { wrapper: createWrapper() },
+    { wrapper: createWrapper(seedTrades) },
   )
 }
 
@@ -464,6 +464,15 @@ describe('AdminTradesWorkbench', () => {
     expect(strategySelect).toHaveTextContent('전략 선택')
     expect(brokerSelect).not.toBeDisabled()
     expect(strategySelect).toBeDisabled()
+  })
+
+  it('계좌를 찾지 못한 거래(userId null)는 사용자 선택지에 나오지 않는다', async () => {
+    const user = userEvent.setup()
+    renderWorkbench({}, [...trades, { ...trades[0], id: 'trade-orphan', userId: null, ownerNickname: '(알 수 없음)' }])
+
+    await user.click(await screen.findByRole('combobox', { name: '사용자 선택' }))
+    expect(await screen.findByRole('option', { name: '홍길동' })).toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: '(알 수 없음)' })).not.toBeInTheDocument()
   })
 
   it('크립토 계좌는 증권사 선택지에 나오지 않는다', async () => {

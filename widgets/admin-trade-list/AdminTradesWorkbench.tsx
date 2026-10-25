@@ -85,7 +85,8 @@ export function AdminTradesWorkbench({ from, to, initialPage, initialSize }: Pro
   // 기간 필터에 걸린 거래만으로 후보를 만들면 그 기간에 거래가 없는 사용자는 재주문 대상으로 고를 수 없다 — 전체 계좌 소유자와 합친다
   const userOptions = uniqBy(
     [
-      ...trades.map((trade) => ({ id: trade.userId, label: trade.ownerNickname })),
+      // 계좌를 찾지 못한 거래(userId null)는 고를 계좌가 없어 후보에서 뺀다
+      ...trades.flatMap((trade) => (trade.userId ? [{ id: trade.userId, label: trade.ownerNickname }] : [])),
       ...(allAccountsQuery.data ?? []).map((account) => ({ id: account.userId, label: account.ownerNickname })),
     ],
     (user) => user.id,
