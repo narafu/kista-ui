@@ -12,6 +12,8 @@ import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { SectionError } from '@shared/ui/SectionError'
+import { useSearchParam } from '@shared/lib/hooks/use-search-param'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
   const hasAccounts = accounts.length > 0
@@ -44,7 +46,10 @@ function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
   )
 }
 
+const ALL = 'ALL'
+
 export function AllStrategiesList() {
+  const [param, setParam] = useSearchParam('account')
   const strategiesQuery = useAllStrategiesQuery()
   const accountsQuery = useAccountsQuery()
   const { findBroker } = useMeta()
@@ -67,10 +72,25 @@ export function AllStrategiesList() {
     return accountStrategies.length > 0 ? [{ account, strategies: accountStrategies }] : []
   })
 
-  // NOTE: 초대제 SaaS 규모상 전략 5개 수준 — 100+ 전략 시 페이지네이션 재검토
+  const showFilter = groupByAccount && groups.length > 1
+  const selected = showFilter && groups.some((g) => g.account.id === param) ? param! : ALL
+  const shown = selected === ALL ? groups : groups.filter((g) => g.account.id === selected)
+  const filterItems = [
+    { value: ALL, label: '전체 계좌' },
+    ...groups.map(({ account }) => ({ value: account.id, label: `${account.nickname} (${findBroker(account.broker)?.label ?? account.broker})` })),
+  ]
+
   return (
     <div className="space-y-6 reveal-stagger">
-      {groups.map(({ account, strategies: accountStrategies }) => (
+      {showFilter && (
+        <Select items={filterItems} value={selected} onValueChange={(value) => { if (value) setParam(value === ALL ? null : value) }}>
+          <SelectTrigger aria-label="계좌 필터" className="w-full lg:w-64"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {filterItems.map(({ value, label }) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      )}
+      {shown.map(({ account, strategies: accountStrategies }) => (
         <div key={account.id}>
           {groupByAccount && (
             <div className="flex items-center gap-2 mb-2.5">

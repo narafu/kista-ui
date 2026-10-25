@@ -31,7 +31,7 @@ export function AccountsPageContent() {
       <EmptyState
         icon={<Landmark className="size-7 text-muted-foreground" />}
         title="등록된 계좌가 없습니다"
-        message="한국투자증권 계좌를 연결해 자동 분할매매를 시작하세요."
+        message="증권사·거래소 계좌를 연결해 자동 분할매매를 시작하세요."
         action={<NewAccountButton>계좌 등록하기</NewAccountButton>}
       />
     )

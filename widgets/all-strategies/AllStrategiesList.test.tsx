@@ -5,10 +5,13 @@ import type { Strategy } from '@entities/strategy'
 import { AllStrategiesList } from './AllStrategiesList'
 
 const pushMock = vi.fn()
+let searchParamsValue = ''
 const strategyCardMock = vi.fn()
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: pushMock }),
+  usePathname: () => '/strategies',
+  useSearchParams: () => new URLSearchParams(searchParamsValue),
 }))
 
 vi.mock('next/link', () => ({
@@ -99,6 +102,7 @@ function setQueries(strategies: Strategy[], accounts: Account[]) {
 describe('AllStrategiesList', () => {
   beforeEach(() => {
     strategyCardMock.mockClear()
+    searchParamsValue = ''
     strategiesQueryError = false
     setQueries([], [])
   })
@@ -168,5 +172,38 @@ describe('AllStrategiesList', () => {
 
     expect(screen.getByRole('heading', { name: '토스 메인' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: '한투 서브' })).not.toBeInTheDocument()
+  })
+
+  it('shows the account filter and lists all groups by default when 2+ accounts have strategies', () => {
+    setQueries([strategyFor('account-1', 'strategy-1'), strategyFor('account-2', 'strategy-2')], multiAccounts)
+    render(<AllStrategiesList />)
+
+    expect(screen.getByRole('combobox', { name: '계좌 필터' })).toBeInTheDocument()
+    expect(screen.getAllByTestId('strategy-card-stub')).toHaveLength(2)
+  })
+
+  it('hides the account filter when only one account has strategies', () => {
+    setQueries([strategyFor('account-1', 'strategy-1')], multiAccounts)
+    render(<AllStrategiesList />)
+
+    expect(screen.queryByRole('combobox', { name: '계좌 필터' })).not.toBeInTheDocument()
+  })
+
+  it('shows only the selected account group from the account param', () => {
+    searchParamsValue = 'account=account-2'
+    setQueries([strategyFor('account-1', 'strategy-1'), strategyFor('account-2', 'strategy-2')], multiAccounts)
+    render(<AllStrategiesList />)
+
+    expect(screen.getAllByTestId('strategy-card-stub')).toHaveLength(1)
+    expect(screen.getByRole('heading', { name: '한투 서브' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: '토스 메인' })).not.toBeInTheDocument()
+  })
+
+  it('treats an unknown account param as all accounts', () => {
+    searchParamsValue = 'account=nope'
+    setQueries([strategyFor('account-1', 'strategy-1'), strategyFor('account-2', 'strategy-2')], multiAccounts)
+    render(<AllStrategiesList />)
+
+    expect(screen.getAllByTestId('strategy-card-stub')).toHaveLength(2)
   })
 })

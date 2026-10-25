@@ -12,7 +12,7 @@ import { createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
   title: '계좌 목록',
-  description: '연결된 한국투자증권 계좌 목록',
+  description: '연결된 증권사·거래소 계좌 목록',
 }
 
 export default async function AccountsPage() {
