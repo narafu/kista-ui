@@ -9,7 +9,7 @@ import { Badge } from '@shared/ui/Badge'
 import { directionTextClass } from '@entities/trade'
 import { useMeta } from '@entities/meta'
 import { useAdminReorderBuyBudgetQuery } from '@entities/admin'
-import type { AdminReorderBuyBudget, AdminReorderTimingAvailability, AdminStrategyOrder } from '@entities/admin'
+import type { AdminReorderBuyBudget, AdminReorderTimingAvailability, AdminStrategyOrder, OrderTiming } from '@entities/admin'
 import { orderStatusBadgeClass } from '@entities/order'
 import type { OrderDirection } from '@shared/lib/api-schema'
 import { fmtUsd, nextTradeDateKst } from '@shared/lib/format'
@@ -17,7 +17,7 @@ import { toSelectValue } from '@shared/lib/utils'
 
 export interface ReorderBatchItem {
   orderId: string
-  timing: 'AT_OPEN' | 'AT_CLOSE' | 'IMMEDIATE'
+  timing: OrderTiming
   direction: OrderDirection
   quantity: number
   price: number
@@ -25,7 +25,7 @@ export interface ReorderBatchItem {
 }
 
 interface OrderDraft {
-  timing: 'AT_OPEN' | 'AT_CLOSE' | 'IMMEDIATE'
+  timing: OrderTiming
   quantity: string
   price: string
   memo: string
@@ -39,7 +39,7 @@ interface Props {
 }
 
 const TIMING_OPTIONS: {
-  value: 'AT_OPEN' | 'AT_CLOSE' | 'IMMEDIATE'
+  value: OrderTiming
   label: string
   availKey: keyof AdminReorderTimingAvailability
 }[] = [
@@ -48,7 +48,7 @@ const TIMING_OPTIONS: {
   { value: 'IMMEDIATE', label: '즉시 접수',             availKey: 'immediate' },
 ]
 
-function getDefaultTiming(avail: AdminReorderTimingAvailability): 'AT_OPEN' | 'AT_CLOSE' | 'IMMEDIATE' {
+function getDefaultTiming(avail: AdminReorderTimingAvailability): OrderTiming {
   if (avail.atOpen) return 'AT_OPEN'
   if (avail.atClose) return 'AT_CLOSE'
   if (avail.immediate) return 'IMMEDIATE'

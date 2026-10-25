@@ -12,6 +12,7 @@ export type {
   AdminAnomalyAccount,
   AdminAnomalies,
   AppErrorLog,
+  OrderTiming,
 } from './model/types'
 export { adminKeys } from './model/queryKeys'
 export type { AdminUsersQueryParams } from './model/queryKeys'
