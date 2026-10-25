@@ -45,43 +45,20 @@ export const SWATCH = {
   confirmed: 'h-2 w-4 rounded-sm bg-[linear-gradient(90deg,var(--pos)_50%,var(--neg)_50%)]',
 }
 
-// 범례 — 패널마다 recharts Legend를 두면 차트 사이에 떠서 산만해 카드 상단에 패널별 묶음으로 모은다
-export const LEGEND_GROUPS: Array<{ title: string; items: Array<{ label: string; swatch: string }> }> = [
-  {
-    title: '가격',
-    items: [
-      { label: '종가', swatch: SWATCH.close },
-      { label: '평단가', swatch: SWATCH.avgPrice },
-      { label: '매수 주문', swatch: SWATCH.buy },
-      { label: '매도 주문', swatch: SWATCH.sell },
-    ],
-  },
-  {
-    title: '현금비중',
-    items: [
-      { label: '현금비중', swatch: SWATCH.cash },
-      { label: '현금비중 50% 미만', swatch: SWATCH.cashLow },
-    ],
-  },
-  {
-    title: '손익',
-    items: [
-      { label: '확정 손익(종료 사이클)', swatch: SWATCH.confirmed },
-      { label: '누적 실현손익(진행 포함)', swatch: SWATCH.cumulative },
-    ],
-  },
-  { title: '공통', items: [{ label: '사이클 경계', swatch: SWATCH.boundary }] },
+// 범례 — 종가·평단가·주문·현금비중·누적 손익은 하단 정보 줄이 같은 표식과 값으로 보여줘, 정보 줄로 알 수 없는 차트 장식만 둔다.
+// 확정 손익 영역은 이익/손실 두 색이고 모바일 정보 줄에는 값이 없어 남긴다
+export const LEGEND_ITEMS: Array<{ label: string; swatch: string }> = [
+  { label: '사이클 경계', swatch: SWATCH.boundary },
+  { label: '현금비중 50% 미만', swatch: SWATCH.cashLow },
+  { label: '확정 손익(종료 사이클)', swatch: SWATCH.confirmed },
 ]
 
-// 괴리 강조를 켰을 때만 가격 묶음에 괴리 단계 표식을 덧붙인다
-export const LEGEND_GROUPS_WITH_AVG_GAP = LEGEND_GROUPS.map((group) => group.title !== '가격' ? group : {
-  ...group,
-  items: [
-    ...group.items,
-    { label: '평단가 괴리 10% 이상', swatch: SWATCH.avgGap1 },
-    { label: '평단가 괴리 20% 이상', swatch: SWATCH.avgGap2 },
-  ],
-})
+// 괴리 강조를 켰을 때만 괴리 단계 띠 표식을 덧붙인다
+export const LEGEND_ITEMS_WITH_AVG_GAP = [
+  ...LEGEND_ITEMS,
+  { label: '평단가 괴리 10% 이상', swatch: SWATCH.avgGap1 },
+  { label: '평단가 괴리 20% 이상', swatch: SWATCH.avgGap2 },
+]
 
 export function Swatch({ className }: { className: string }) {
   return (

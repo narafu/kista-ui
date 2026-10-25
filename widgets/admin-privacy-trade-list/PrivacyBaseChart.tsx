@@ -12,7 +12,7 @@ import { useAdminPrivacyBasesQuery } from '@entities/privacy'
 import { useCandlesRangeQuery } from '@entities/market'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { buildPrivacyChartSeries, candleRangeFor, latestYearlyResetByTicker, sliceSeriesByRange } from './model/privacyChartSeries'
-import { ChartSkeleton, LEGEND_GROUPS, LEGEND_GROUPS_WITH_AVG_GAP, Swatch, useIsNarrow } from './privacyChartParts'
+import { ChartSkeleton, LEGEND_ITEMS, LEGEND_ITEMS_WITH_AVG_GAP, Swatch, useIsNarrow } from './privacyChartParts'
 
 // recharts는 무거워 Inner로 분리해 지연 로드한다 (asset-trend/AssetTrend + AssetTrendInner 패턴)
 const PrivacyBaseChartInner = dynamic(() => import('./PrivacyBaseChartInner'), {
@@ -79,24 +79,6 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
     if (allBases.length === 0) return <EmptyState variant="text" message="P 매매표가 없습니다." />
     if (rows.length === 0) return <EmptyState variant="text" message="선택한 기간에 매매표가 없습니다. 기간을 넓혀 보세요." />
     if (candlesQuery.isLoading) return <ChartSkeleton />
-    const legend = (
-      <div role="group" aria-label="범례" className="space-y-1 text-xs text-muted-foreground">
-            {(showAvgGap ? LEGEND_GROUPS_WITH_AVG_GAP : LEGEND_GROUPS).map((group) => (
-              // 묶음 제목 열을 고정하고 항목은 오른쪽 칸에서만 줄바꿈한다 — 좁은 화면에서 항목이 제목 아래로 흘러내리지 않게
-              <div key={group.title} className="flex items-start gap-3">
-                <span className="w-14 shrink-0 font-medium text-foreground">{group.title}</span>
-                <span className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1">
-                  {group.items.map((item) => (
-                    <span key={item.label} className="inline-flex items-center gap-1.5">
-                      <Swatch className={item.swatch} />
-                      {item.label}
-                    </span>
-                  ))}
-                </span>
-              </div>
-            ))}
-          </div>
-    )
     return (
       <div className="space-y-3">
         {candlesQuery.isError && !candlesQuery.data ? (
@@ -108,26 +90,30 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
           <p className="pl-1 text-xs text-muted-foreground">종가 조회 범위(최대 5년) 밖이거나 종가가 없는 {missingCloseCount}일은 종가·현금비중을 표시하지 않습니다.</p>
         ) : null}
 
-        {/* 패널마다 recharts Legend를 두면 차트 사이에 떠서 산만해, 카드 상단에 패널별 묶음으로 한 번만 둔다.
-            모바일은 화면이 좁아 범례가 5줄을 차지하므로 기본 접힘 — 하단 정보 줄에도 같은 색 표식이 붙어 있다 */}
-        <details className="pl-1 text-xs sm:hidden">
-          <summary className="cursor-pointer text-muted-foreground">범례</summary>
-          <div className="mt-2">{legend}</div>
-        </details>
-        <div className="hidden sm:block">{legend}</div>
-        <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 pl-1 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-2">
-            <Switch id="privacy-chart-show-orders" size="sm" checked={showOrders} onCheckedChange={setShowOrders} />
-            <Label htmlFor="privacy-chart-show-orders" className="cursor-pointer text-xs font-normal">매수·매도 주문 표시</Label>
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <Switch id="privacy-chart-show-avg-gap" size="sm" checked={showAvgGap} onCheckedChange={setShowAvgGap} />
-            <Label htmlFor="privacy-chart-show-avg-gap" className="cursor-pointer text-xs font-normal">평단가 괴리 강조</Label>
-          </span>
-          <span className="hidden items-center gap-2 sm:inline-flex">
-            <Switch id="privacy-chart-show-pc-tooltip" size="sm" checked={showPcTooltip} onCheckedChange={setShowPcTooltip} />
-            <Label htmlFor="privacy-chart-show-pc-tooltip" className="cursor-pointer text-xs font-normal">차트 툴팁 표시</Label>
-          </span>
+        {/* 범례와 토글을 한 줄에 둔다 — 범례는 정보 줄에 없는 차트 장식만 있어 짧다 */}
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 pl-1 text-xs text-muted-foreground">
+          <div role="group" aria-label="범례" className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            {(showAvgGap ? LEGEND_ITEMS_WITH_AVG_GAP : LEGEND_ITEMS).map((item) => (
+              <span key={item.label} className="inline-flex items-center gap-1.5">
+                <Swatch className={item.swatch} />
+                {item.label}
+              </span>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <span className="inline-flex items-center gap-2">
+              <Switch id="privacy-chart-show-orders" size="sm" checked={showOrders} onCheckedChange={setShowOrders} />
+              <Label htmlFor="privacy-chart-show-orders" className="cursor-pointer text-xs font-normal">매수·매도 주문 표시</Label>
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <Switch id="privacy-chart-show-avg-gap" size="sm" checked={showAvgGap} onCheckedChange={setShowAvgGap} />
+              <Label htmlFor="privacy-chart-show-avg-gap" className="cursor-pointer text-xs font-normal">평단가 괴리 강조</Label>
+            </span>
+            <span className="hidden items-center gap-2 sm:inline-flex">
+              <Switch id="privacy-chart-show-pc-tooltip" size="sm" checked={showPcTooltip} onCheckedChange={setShowPcTooltip} />
+              <Label htmlFor="privacy-chart-show-pc-tooltip" className="cursor-pointer text-xs font-normal">차트 툴팁 표시</Label>
+            </span>
+          </div>
         </div>
 
         {/* 종목·기간·건수가 바뀌거나 화면 폭이 모바일로 넘어가면(Brush가 사라져 되돌릴 수단이 없음) 구간을 처음(전체)으로 되돌리도록 다시 마운트한다 */}
