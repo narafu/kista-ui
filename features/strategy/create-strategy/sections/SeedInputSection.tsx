@@ -3,7 +3,7 @@
 import { Badge } from '@shared/ui/Badge'
 import { Button } from '@/components/ui/button'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
-import { SeedAmountInput } from '@shared/ui/percent-gauge'
+import { SeedAmountInput } from './SeedAmountInput'
 import { fmtUsd } from '@shared/lib/format'
 
 const FILL_PERCENTS = [25, 50, 75, 100]
@@ -30,7 +30,7 @@ function seedHint(hint: string | undefined, availableCash: number | null, mockBa
   return undefined
 }
 
-export function UsageRatioSection({
+export function SeedInputSection({
   hint,
   seedUsdInput, setSeedUsdInput,
   availableCash, minSeed, loading,

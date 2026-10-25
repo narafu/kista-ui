@@ -4,7 +4,7 @@ import type { Strategy } from '@entities/strategy'
 import { StrategyForm } from './StrategyForm'
 
 const useStrategyFormMock = vi.fn()
-const usageRatioSectionMock = vi.fn()
+const seedInputSectionMock = vi.fn()
 const initialHoldingsSectionMock = vi.fn()
 const scheduledStartSectionMock = vi.fn()
 
@@ -31,10 +31,10 @@ vi.mock('./sections/StrategyTickerSection', () => ({
   StrategyTickerSection: () => <div>ticker-section</div>,
 }))
 
-vi.mock('./sections/UsageRatioSection', () => ({
-  UsageRatioSection: (props: unknown) => {
-    usageRatioSectionMock(props)
-    return <div data-testid="usage-ratio-section">usage-ratio-section</div>
+vi.mock('./sections/SeedInputSection', () => ({
+  SeedInputSection: (props: unknown) => {
+    seedInputSectionMock(props)
+    return <div data-testid="seed-input-section">seed-input-section</div>
   },
 }))
 
@@ -202,7 +202,7 @@ describe('StrategyForm seed section', () => {
 
     render(<StrategyForm accountId="account-1" initial={initialStrategy} />)
 
-    expect(screen.queryByTestId('usage-ratio-section')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('seed-input-section')).not.toBeInTheDocument()
     expect(screen.getByText('시작 시드')).toBeInTheDocument()
     expect(screen.getByText('시드는 전략 등록 후 수정할 수 없습니다')).toBeInTheDocument()
     expect(screen.getByText('$1,200.00')).toBeInTheDocument()
@@ -216,21 +216,21 @@ describe('StrategyForm seed section', () => {
 
     render(<StrategyForm accountId="account-1" initial={{ ...initialStrategy, currentHoldings: 0 }} />)
 
-    expect(screen.getByTestId('usage-ratio-section')).toBeInTheDocument()
+    expect(screen.getByTestId('seed-input-section')).toBeInTheDocument()
   })
 
-  it('keeps the editable usage ratio section in create mode', () => {
+  it('keeps the editable seed input section in create mode', () => {
     useStrategyFormMock.mockReturnValue(baseFormState)
 
     render(<StrategyForm accountId="account-1" />)
 
-    expect(screen.getByTestId('usage-ratio-section')).toBeInTheDocument()
+    expect(screen.getByTestId('seed-input-section')).toBeInTheDocument()
   })
 })
 
 describe('StrategyForm VR settings section', () => {
   it('shows VR settings and hides cycle seed options for VR create mode', () => {
-    usageRatioSectionMock.mockClear()
+    seedInputSectionMock.mockClear()
     useStrategyFormMock.mockReturnValue({
       ...baseFormState,
       type: 'VR',
@@ -250,7 +250,7 @@ describe('StrategyForm VR settings section', () => {
 
     expect(screen.getByTestId('vr-settings-section')).toBeInTheDocument()
     expect(screen.queryByText('cycle-seed-section')).not.toBeInTheDocument()
-    expect(usageRatioSectionMock).toHaveBeenCalledWith(expect.objectContaining({
+    expect(seedInputSectionMock).toHaveBeenCalledWith(expect.objectContaining({
       hint: undefined,
     }))
   })
@@ -307,7 +307,7 @@ describe('StrategyForm VR settings section', () => {
 
     expect(screen.getByTestId('dca-strategy-form')).toHaveTextContent('UPRO,QLD')
     expect(screen.getByText('type-section')).toBeInTheDocument()
-    expect(screen.queryByTestId('usage-ratio-section')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('seed-input-section')).not.toBeInTheDocument()
     expect(screen.queryByText('division-count-section')).not.toBeInTheDocument()
   })
 
@@ -340,7 +340,7 @@ describe('StrategyForm DCA 수정 모드', () => {
     render(<StrategyForm accountId="account-1" initial={dcaInitial} />)
 
     expect(screen.getByTestId('dca-strategy-form')).toBeInTheDocument()
-    expect(screen.queryByTestId('usage-ratio-section')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('seed-input-section')).not.toBeInTheDocument()
     expect(screen.queryByText('division-count-section')).not.toBeInTheDocument()
   })
 

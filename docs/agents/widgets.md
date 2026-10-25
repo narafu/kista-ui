@@ -19,7 +19,7 @@ widget 슬라이스끼리 cross-import 금지. **단, 아래 "공용 UI 위젯" 
 페이지 위젯 목록은 `ls widgets/`로 확인한다. cross-import는 원칙적으로 금지되며, 아래 화이트리스트만 예외다.
 
 - 공용 UI 위젯 (cross-import 허용 화이트리스트, 닫힌 목록): `layout`, `page-header`, `kpi-card`, `revealable-value`, `glass-card`, `theme-toggle`, `timeline`, `pull-to-refresh`, `account-card`, `strategy-card`, `cycle-history`, `strategy-list`
-- `stepper`·`percent-gauge`·`SectionError`는 도메인 무관 UI로 `shared/ui`에 있다 (이동 배경 → `docs/agents/shared.md`)
+- `stepper`·`SectionError`는 도메인 무관 UI로 `shared/ui`에 있다 (이동 배경 → `docs/agents/shared.md`)
 
 ## shadcn / UI 컴포넌트
 

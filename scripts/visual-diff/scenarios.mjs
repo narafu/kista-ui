@@ -1,28 +1,11 @@
 // 촬영 시나리오. 뮤테이션 금지: 제출/저장 버튼은 누르지 않는다 — 열기·탭 전환·선택만.
 // { name, path(문자열 또는 실행 시 조회값 ctx를 받는 함수), admin?, steps?, mode?(trading fixture 모드, 기본 real=실데이터), clock?(평일 시계 고정 — 휴장일 배너가 부족 배너를 가리는 것 방지),
 //   guest?(kista-token 없이 비회원으로), cookies?({ 이름: 값 } 추가 쿠키), setup?(page => goto 전에 실행 — 브라우저 요청을 page.route로 덮을 때) }
-import { seed, stubMargin } from '../shared/seed.mjs'
+import { seed, stubSeedCash } from '../shared/seed.mjs'
 
 const clickText = (t) => async (p) => { await p.getByText(t, { exact: true }).first().click(); await p.waitForTimeout(800) }
 const clickRole = (role, name) => async (p) => { await p.getByRole(role, { name }).first().click(); await p.waitForTimeout(800) }
 
-const dragGauge = async (p) => {
-  const s = p.getByRole('slider').first()
-  await s.scrollIntoViewIfNeeded()
-  const b = await s.boundingBox()
-  await p.mouse.move(b.x + b.width / 2, b.y + b.height / 2)
-  await p.mouse.down()
-  const track = await s.locator('xpath=..').boundingBox()
-  await p.mouse.move(track.x + track.width * 0.4, b.y + b.height / 2, { steps: 8 })
-  await p.mouse.up()
-  await p.waitForTimeout(500)
-}
-const gaugeKeys = async (p) => {
-  const s = p.getByRole('slider').first()
-  await s.focus()
-  for (let i = 0; i < 3; i++) await s.press('ArrowLeft')
-  await p.waitForTimeout(500)
-}
 const scrollToBottom = async (p) => { await p.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight)); await p.waitForTimeout(500) }
 // PC 표와 모바일 카드가 함께 렌더되고 한쪽은 CSS로 숨겨져 있다 — 보이는 펼치기 버튼만 누른다
 const expandPrivacyBase = async (p) => { await p.locator('button[aria-label$="주문 명세"]:visible, article h3 button[aria-expanded]:visible').first().click(); await p.waitForTimeout(800) }
@@ -81,10 +64,8 @@ export const scenarios = [
   { name: 'create-strategy', path: NEW_STRATEGY },
   { name: 'create-strategy-vr', path: NEW_STRATEGY, steps: [pickVr] },
   { name: 'create-strategy-vr-advanced', path: NEW_STRATEGY, steps: [pickVr, openAdvanced] },
-  { name: 'create-strategy-gauge-drag', path: KIS_NEW_STRATEGY, setup: stubMargin, steps: [pickVr, dragGauge] },
-  { name: 'create-strategy-gauge-keys', path: KIS_NEW_STRATEGY, setup: stubMargin, steps: [pickVr, gaugeKeys] },
-  { name: 'create-strategy-balance', path: KIS_NEW_STRATEGY, setup: stubMargin },
-  { name: 'create-strategy-balance-max', path: KIS_NEW_STRATEGY, setup: stubMargin, steps: [clickRole('button', /^MAX$/)] },
+  { name: 'create-strategy-seed-cash', path: KIS_NEW_STRATEGY, setup: stubSeedCash },
+  { name: 'create-strategy-seed-fill', path: KIS_NEW_STRATEGY, setup: stubSeedCash, steps: [clickRole('button', /^50%$/)] },
   { name: 'reconfigure-vr', path: `${VR}/reconfigure-vr` },
   { name: 'finance', path: '/finance' },
   { name: 'finance-month-popover', path: '/finance', steps: [clickRole('button', /^기준 연월/)] },

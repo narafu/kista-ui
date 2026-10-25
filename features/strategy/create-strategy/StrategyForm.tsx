@@ -7,7 +7,7 @@ import { useStrategyForm } from './model/useStrategyForm'
 import type { UseStrategyFormReturn } from './model/useStrategyForm'
 import { StrategyTypeSection } from './sections/StrategyTypeSection'
 import { StrategyTickerSection } from './sections/StrategyTickerSection'
-import { UsageRatioSection } from './sections/UsageRatioSection'
+import { SeedInputSection } from './sections/SeedInputSection'
 import { ReadOnlySeedSection } from './sections/ReadOnlySeedSection'
 import { CycleSeedSection } from './sections/CycleSeedSection'
 import { DivisionCountSection } from './sections/DivisionCountSection'
@@ -52,7 +52,7 @@ function SeedSection({ form, initial }: { form: UseStrategyFormReturn; initial?:
     return <ReadOnlySeedSection initialUsdDeposit={initial.initialUsdDeposit} />
   }
   return (
-    <UsageRatioSection
+    <SeedInputSection
       hint={seedHint(form.isVr, initial)}
       seedUsdInput={form.seedUsdInput}
       setSeedUsdInput={form.setSeedUsdInput}

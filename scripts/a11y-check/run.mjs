@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { parseArgs } from 'node:util'
 import { chromium } from '@playwright/test'
-import { seed, stubMargin } from '../shared/seed.mjs'
+import { seed, stubSeedCash } from '../shared/seed.mjs'
 
 // axe-core는 eslint-plugin-jsx-a11y의 전이 의존성으로 설치돼 있다 — 별도 devDependency로 추가하지 않음
 const axeSrc = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8')
@@ -21,7 +21,7 @@ const MAX_TABS = 80
 const detail = ({ accountId, strategyId }) => `/accounts/${accountId}/strategies/${strategyId}`
 const ACCT = `/accounts/${seed.infinite.accountId}`
 const WIZARD = '/accounts/new'
-// MOCK 계좌는 잔고 확인이 강제로 꺼져 사용 비율 게이지(PercentGauge)가 안 뜬다 — KIS 시드 계좌로 열고 예수금은 stubMargin으로 채운다
+// 가용 예수금 힌트·채우기 버튼은 availableCash가 있어야 뜬다 — KIS 시드 계좌로 열고 stubSeedCash로 채운다
 const KIS_NEW_STRATEGY = `/accounts/${seed.kis.accountId}/strategies/new`
 const PAGES = {
   guest: ['/login', '/dashboard'],
@@ -110,7 +110,7 @@ async function checkTabOrder(page, path, vp) {
     document.activeElement?.blur()
     window.scrollTo(0, 0)
     // outline-style이 none이면 폭·색이 바뀌어도 보이지 않는다(outline-none + focus 시 폭만 바뀌는 오탐).
-    // 단위·기호를 품은 컨테이너가 focus-within으로 링을 그리는 입력(UnitInput·SeedAmountInput·PercentGauge)이 있어 부모 2단계까지 본다.
+    // 단위·기호를 품은 컨테이너가 focus-within으로 링을 그리는 입력(UnitInput·SeedAmountInput)이 있어 부모 2단계까지 본다.
     // 카드처럼 큰 래퍼의 hover·focus-within 변화가 링으로 오인되지 않도록 입력칸 크기(높이 64px 이하)인 부모만 센다
     const own = (el) => { const cs = getComputedStyle(el); const outline = cs.outlineStyle === 'none' ? 'none' : `${cs.outlineStyle}|${cs.outlineWidth}|${cs.outlineColor}`; return `${outline}|${cs.boxShadow}|${cs.borderColor}` }
     const fieldBox = (el) => el && el.getBoundingClientRect().height <= 64
@@ -274,7 +274,7 @@ try {
         console.log(`== ${role} ${vp}/${scheme}`)
         const ctx = await newContext(browser, tokens[role], vp, scheme)
         const page = await ctx.newPage()
-        if (role === 'user') await stubMargin(page)
+        if (role === 'user') await stubSeedCash(page)
         for (const path of pages) {
           await open(page, path)
           await checkPage(page, path, vp, scheme)

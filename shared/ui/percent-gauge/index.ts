@@ -1,1 +1,0 @@
-export { SeedAmountInput } from './SeedAmountInput'

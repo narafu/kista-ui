@@ -75,5 +75,10 @@ export const seed = { ...defaults, ...override }
 export const tickerOf = (strategyId) =>
   Object.values(seed.accounts).map((s) => s[strategyId]).find(Boolean) ?? 'SOXL'
 
-// KIS 시드 계좌의 예수금 조회는 503이고 브라우저에서만 부른다 — page.route로 USD 예수금을 채워 전략 등록 폼의 사용 비율 게이지를 띄운다
-export const stubMargin = (p) => p.route(`**/api/accounts/${seed.kis.accountId}/margin`, (r) => r.fulfill({ json: [{ currency: 'USD', integratedOrderableAmount: 5000, foreignOrderableAmount: 5000, purchasableAmount: 5000 }] }))
+// 로컬 시드 미리보기의 availableCash는 항상 null이고 브라우저에서만 부른다 — 실제 응답에 가용 예수금 5000을 덮어
+// 전략 등록 폼의 가용 예수금 힌트와 25·50·75·100% 채우기 버튼을 띄운다
+export const stubSeedCash = (p) => p.route(`**/api/accounts/${seed.kis.accountId}/strategy-seed-preview**`, async (r) => {
+  const res = await r.fetch()
+  // 원본 헤더(content-length·content-encoding)를 넘기면 바뀐 본문과 어긋난다 — 상태 코드만 옮긴다
+  r.fulfill({ status: res.status(), json: { ...(await res.json()), availableCash: 5000 } })
+})

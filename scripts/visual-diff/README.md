@@ -51,7 +51,7 @@ node scripts/visual-diff/sheet.mjs <out-dir> --only '^m-inf-.*-pc$' --crop 300,5
   - `crypto`: 로컬 DB에 없는 UPBIT 코인 계좌(id `00000000-0000-4000-8000-0000000c0170`)와 코인 DCA 전략을 합성하고, MOCK 계좌에 주식 DCA 전략 1건을 덧붙인다. 코인 계좌에 주식 전용 조회(portfolio·margin·prices·daily-trades)가 오면 400을 돌려주고 `CRYPTO_GATE_VIOLATION <path>`를 프록시 `log`(`proxy.log`)에 남긴다. 시나리오가 아니라 프록시를 직접 띄워 쓴다(`startProxy({ route })` + `setMode('crypto')`). 브라우저 쪽은 `/api/runtime-config` 응답의 `brokers.UPBIT.enabled`·`strategies.DCA.enabled`를 `page.route`로 true로 바꿔야 한다.
   - `binance`: `crypto`와 같은 합성 계좌·전략을 BINANCE(USDT)로 바꾼다(계좌 통화 USDT·만료일 없음, DCA 금액 10.50, 평단 없는 보유 행 포함 crypto-portfolio). 시나리오 `binance-*`가 쓴다(계좌 상세·전략 상세·전략 생성·계좌 등록 API 키 스텝). 로컬 API(main)의 `/api/meta`에는 BINANCE·`minOrderAmount`·`amountScale`·`tickers[].markets`가, `/api/runtime-config`에는 `brokers.BINANCE`가 없어 `fixtures/api.mjs`가 이 모드에서만 보강한다(`run.mjs`가 `setMode`를 두 fixture에 함께 넘긴다 — 두 모듈은 모드 상태를 따로 가진다). 로컬 API가 이미 BINANCE를 주는 브랜치여도 보강값이 덮는다. `/api/meta`는 Next 데이터 캐시(1시간)에 첫 응답이 남아 `run.mjs`가 binance 시나리오가 선택되면 warm-up도 보강 meta로 받는다 — 같은 실행의 다른 모드 시나리오도 보강된 meta를 보지만 head/base가 같아 비교에는 영향이 없다.
 - `fixtures/api.mjs`: kista-api(8080) 응답 중 로컬 DB에 없는 것만 덮는다. 지금은 P 매매표(`/api/admin/privacy-trade-bases`, 로컬 DB 0건) 3건, 오류 로그(`/api/admin/logs/errors`, 로컬 로그는 최근 며칠 치만 남아 날마다 바뀜) 3건, 운영 설정(`/api/admin/settings`)의 VR 정기 입출금 방식 고정(실응답을 받아 그 필드만 사용자 변경 허용·일부 허용으로 덮음 — `admin-settings`가 허용 체크박스·기본값 라디오를 찍게)이고, 나머지는 실데이터를 그대로 통과시킨다. 서버 컴포넌트 prefetch(`apiFetch`)는 브라우저를 거치지 않아 `page.route`로 못 바꾸므로 이쪽에 둔다.
-- 브라우저에서만 부르는 응답은 시나리오의 `setup`에서 `page.route`로 덮는다. 전역 fixture와 달리 그 시나리오에만 적용된다(예: KIS 시드 계좌 예수금 조회는 503이라 `create-strategy-balance*`가 USD 예수금을 채운다).
+- 브라우저에서만 부르는 응답은 시나리오의 `setup`에서 `page.route`로 덮는다. 전역 fixture와 달리 그 시나리오에만 적용된다(예: 로컬 시드 미리보기의 `availableCash`가 null이라 `create-strategy-seed-*`가 가용 예수금을 채운다).
 - PRIVACY 전략은 로컬 DB에 없어 PRIVACY 전략 상세 시나리오가 없다(예전 `detail-privacy`는 없는 ID를 열고 있어 삭제했다).
 - kista-api 실데이터 중 `etf-series`는 09:00 KST cron에서만 수집되므로, 수집 전이면 ETF 벤치마크 탭이 "데이터 부족" 상태로만 비교된다.
 - 프록시는 실행 동안 upstream의 성공 응답(SSE 제외)을 메모이즈한다(URL·인증 헤더 기준). 진행 중인 요청도 공유하므로, head와 base가 병렬로 같은 데이터를 요청해도 실시간 가격이나 preview가 달라져 가짜 diff가 생기지 않는다.
@@ -65,7 +65,7 @@ node scripts/visual-diff/sheet.mjs <out-dir> --only '^m-inf-.*-pc$' --crop 300,5
 - `guest: true`는 `kista-token` 없이 비회원으로 연다(`dashboard-guest`).
 - `cookies`는 추가 쿠키다. warm-up도 같은 쿠키로 연다. `proxy.ts`는 `kista-user-status`·`kista-user-role` 쿠키가 둘 다 있으면 `/me` 대신 그 값을 쓰므로, dev 사용자(ACTIVE)로 대기·반려 화면을 연다(`pending`·`rejected`).
 - `setup(page)`는 `goto` 전에 실행한다. 브라우저 요청을 `page.route`로 덮을 때 쓴다. 예: `pending`은 상태 SSE가 ACTIVE를 보내면 `/dashboard`로 이동하므로 `/api/auth/status-stream`을 204로 닫는다.
-- 사용 비율 게이지(`PercentGauge`)는 KIS 계좌로 연다(`create-strategy-balance*`·`create-strategy-gauge-*`). MOCK 계좌는 사용자 설정과 무관하게 잔고 확인이 꺼져 예수금 입력칸만 나온다.
+- 가용 예수금 힌트·채우기 버튼은 KIS 계좌에 `stubSeedCash`를 걸어 연다(`create-strategy-seed-*`).
 - PC 표와 모바일 카드를 함께 렌더하고 한쪽을 CSS로 숨기는 화면은 `:visible` locator로 누른다. `.first()`만 쓰면 숨은 쪽이 잡힌다.
 - diff 0은 안정성만 보여준다. 양쪽이 똑같이 리다이렉트되거나 엉뚱한 상태여도 0이다. 새 시나리오는 `report.json`의 최종 URL·상태코드와 PNG를 직접 확인한다.
 
