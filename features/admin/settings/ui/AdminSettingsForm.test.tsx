@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RuntimeConfig } from '@entities/runtime-config'
@@ -87,9 +87,46 @@ describe('AdminSettingsForm', () => {
     }))
   })
 
-  it('DCA 종목 필드 편집기를 렌더한다', () => {
+  it('꺼진 전략은 요약만 보이고 펼치면 설정을 편집할 수 있다', async () => {
+    const user = userEvent.setup()
     render(<AdminSettingsForm />)
-    expect(screen.getByRole('heading', { name: '적립식 분할매매 필드' })).toBeInTheDocument()
+    expect(screen.getByText('종목 UPRO')).toBeInTheDocument()
+    expect(document.getElementById('dca-ticker-add')).toBeNull()
+
+    const expand = screen.getByRole('button', { name: /설정 펼치기/ })
+    expect(expand).toHaveAttribute('aria-expanded', 'false')
+    await user.click(expand)
+    expect(document.getElementById('dca-ticker-add')).not.toBeNull()
+    expect(screen.getByRole('button', { name: /설정 접기/ })).toHaveAttribute('aria-controls', 'strategy-DCA-fields')
+
+    // 켰다가 다시 끄면 수동 펼침이 풀려 접힌다
+    await user.click(screen.getByRole('switch', { name: '적립식 분할매매' }))
+    await user.click(screen.getByRole('switch', { name: '적립식 분할매매' }))
+    expect(document.getElementById('dca-ticker-add')).toBeNull()
+  })
+
+  it('전략을 끄면 그 전략 설정을 접는다', async () => {
+    const user = userEvent.setup()
+    render(<AdminSettingsForm />)
+    expect(document.getElementById('vr-band-add')).not.toBeNull()
+
+    await user.click(screen.getByRole('switch', { name: '밸류리밸런싱' }))
+    expect(document.getElementById('vr-band-add')).toBeNull()
+    expect(screen.getByText('종목 TQQQ · 밴드 15% · 2주')).toBeInTheDocument()
+  })
+
+  it('저장 시 접힌 전략에 오류가 있으면 펼쳐서 보여준다', async () => {
+    const user = userEvent.setup()
+    queryState.data = { ...settings, strategies: { ...settings.strategies, DCA: { enabled: false, fields: { ticker: { customizable: true, allowedValues: ['UPRO'], defaultValue: 'BTC' } } } } }
+    render(<AdminSettingsForm />)
+    expect(document.getElementById('dca-ticker-add')).toBeNull()
+
+    await user.click(screen.getByRole('switch', { name: '한국투자증권' }))
+    await user.click(screen.getByRole('button', { name: /변경 저장/ }))
+    expect(document.getElementById('dca-ticker-add')).not.toBeNull()
+    expect(screen.getByText('기본값은 허용값에 포함되어야 합니다.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /설정 (펼치기|접기)/ })).not.toBeInTheDocument()
+    expect(mutateMock).not.toHaveBeenCalled()
   })
 
   it('런타임 설정에 DCA 키가 없으면 새로고침 안내를 띄우고 저장을 막는다', async () => {
@@ -97,7 +134,7 @@ describe('AdminSettingsForm', () => {
     const { DCA: _omit, ...legacy } = settings.strategies
     queryState.data = { ...settings, strategies: legacy as typeof settings.strategies }
     render(<AdminSettingsForm />)
-    expect(document.getElementById('dca-ticker')).toBeNull()
+    expect(document.getElementById('dca-ticker-add')).toBeNull()
     expect(screen.getByText('설정 정보가 오래되어 저장할 수 없습니다. 페이지를 새로고침해야 합니다.')).toBeInTheDocument()
 
     await user.click(screen.getByRole('switch', { name: '밸류리밸런싱' }))
@@ -105,9 +142,10 @@ describe('AdminSettingsForm', () => {
     expect(mutateMock).not.toHaveBeenCalled()
   })
 
-  it('renders a toggle for the MOCK broker', () => {
+  it('renders a toggle for the MOCK broker last', () => {
     render(<AdminSettingsForm />)
-    expect(screen.getByRole('switch', { name: '모의계좌' })).toBeInTheDocument()
+    const brokerSwitches = within(screen.getByRole('heading', { name: '증권사·거래소 등록' }).closest('section')!).getAllByRole('switch')
+    expect(brokerSwitches.at(-1)).toHaveAccessibleName('모의계좌')
   })
 
   it('restores the last server state when changes are discarded', async () => {

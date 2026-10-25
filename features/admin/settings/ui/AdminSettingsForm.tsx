@@ -1,16 +1,17 @@
 'use client'
 
-import { type FormEvent, useMemo, useRef, useState } from 'react'
+import { type FormEvent, type ReactNode, useMemo, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { AlertTriangle, RotateCcw, Save } from 'lucide-react'
+import { AlertTriangle, ChevronDown, RotateCcw, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LoadingRow } from '@shared/ui/LoadingRow'
+import { cn } from '@shared/lib/utils'
 import { SectionError } from '@shared/ui/SectionError'
 import { useAdminSettingsQuery, useUpdateAdminSettingsMutation } from '@entities/admin-settings'
 import { adminKeys } from '@entities/admin'
 import { useMeta } from '@entities/meta'
-import type { BrokerCode } from '@shared/lib/api-schema'
+import { isMockBroker, type BrokerCode } from '@shared/lib/api-schema'
 import {
   DEFAULT_RUNTIME_BENCHMARKS,
   runtimeConfigKeys,
@@ -26,10 +27,49 @@ import { RecurringModeEditor } from './RecurringModeEditor'
 import { FieldEditor } from './FieldEditor'
 import { normalizeNumber, normalizeSymbol } from '../model/normalizers'
 
-const STRATEGY_TYPES: RuntimeStrategyType[] = ['INFINITE', 'PRIVACY', 'VR', 'DCA']
-
 // kista-api StrategyTicker의 DCA 전용 종목. 메타 availableTickers는 지금 편집 중인 허용값 자체라 후보 목록으로 쓸 수 없다
 const DCA_TICKER_SUGGESTIONS = ['UPRO', 'QLD', 'BTC', 'ETH']
+
+const hasStrategyError = (errors: Record<string, string>, strategy: RuntimeStrategyType) =>
+  Object.keys(errors).some((key) => key.startsWith(`${strategy}.`))
+
+// 전략 토글 아래에 그 전략의 생성 설정을 붙인다. 꺼진 전략은 요약 한 줄로 접되, 켜기 전에 미리 맞출 수 있게 펼칠 수 있다.
+// 저장 시도 후 오류가 있으면 접힌 상태라도 펼친다 — 보이지 않는 오류로 저장만 막히지 않게
+function StrategyBlock({ strategy, label, enabled, onToggle, summary, hasError, children }: {
+  strategy: RuntimeStrategyType
+  label: string
+  enabled: boolean
+  onToggle: (enabled: boolean) => void
+  summary: string
+  hasError: boolean
+  children: ReactNode
+}) {
+  const [open, setOpen] = useState(false)
+  const expanded = enabled || open || hasError
+  const panelId = `strategy-${strategy}-fields`
+
+  return (
+    <div>
+      {/* 토글할 때마다 수동 펼침을 되돌린다 — 다시 끄면 접힌 상태로 돌아가게 */}
+      <ToggleRow id={`strategy-${strategy}`} label={label} checked={enabled} onChange={(next) => { setOpen(false); onToggle(next) }} />
+      {!enabled && (
+        <div className="-mt-1 flex items-center justify-between gap-3 pb-3">
+          <p className="min-w-0 truncate text-xs text-muted-foreground">{summary}</p>
+          {!hasError && (
+            <Button type="button" variant="ghost" size="sm" aria-expanded={expanded} aria-controls={expanded ? panelId : undefined} onClick={() => setOpen((v) => !v)}>
+              {expanded ? '설정 접기' : '설정 펼치기'} <ChevronDown className={cn('transition-transform', expanded && 'rotate-180')} />
+            </Button>
+          )}
+        </div>
+      )}
+      {expanded && (
+        <div id={panelId} className="mb-3 rounded-md border border-border bg-muted/30 px-3 sm:px-4">
+          {children}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function clone(value: RuntimeConfig): RuntimeConfig {
   const next = structuredClone(value)
@@ -153,7 +193,9 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
 
         <section className="border-b border-border px-4 py-4 sm:px-5">
           <h2 className="text-base font-bold">증권사·거래소 등록</h2>
-          {(Object.keys(draft.brokers) as BrokerCode[]).map((broker) => (
+          {(Object.keys(draft.brokers) as BrokerCode[])
+            .sort((a, b) => Number(isMockBroker(a)) - Number(isMockBroker(b)))
+            .map((broker) => (
             <ToggleRow key={broker} id={`broker-${broker}`} label={labelOf('brokers', broker)} checked={draft.brokers[broker].enabled}
               onChange={(enabled) => setDraft((current) => ({ ...current, brokers: { ...current.brokers, [broker]: { enabled } } }))} />
           ))}
@@ -161,73 +203,95 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
 
         <section className="border-b border-border px-4 py-4 sm:px-5">
           <h2 className="text-base font-bold">전략 생성</h2>
-          {STRATEGY_TYPES
-            .filter((strategy) => draft.strategies[strategy])
-            .map((strategy) => (
-              <ToggleRow key={strategy} id={`strategy-${strategy}`} label={labelOf('strategyTypes', strategy)}
-                checked={draft.strategies[strategy].enabled} onChange={(enabled) => setStrategyEnabled(strategy, enabled)} />
-            ))}
-        </section>
+          <div className="divide-y divide-border">
+            <StrategyBlock
+              strategy="INFINITE"
+              label={labelOf('strategyTypes', 'INFINITE')}
+              enabled={draft.strategies.INFINITE.enabled}
+              onToggle={(enabled) => setStrategyEnabled('INFINITE', enabled)}
+              summary={`종목 ${draft.strategies.INFINITE.fields.ticker.defaultValue} · 분할 ${draft.strategies.INFINITE.fields.divisionCount?.defaultValue ?? '-'}`}
+              hasError={attempted && hasStrategyError(errors, 'INFINITE')}
+            >
+              <FieldEditor
+                id="infinite-ticker"
+                label="종목"
+                field={draft.strategies.INFINITE.fields.ticker}
+                error={attempted ? errors['INFINITE.ticker'] : undefined}
+                suggestions={tickerSuggestions}
+                normalize={normalizeSymbol}
+                onChange={(value) => setStrategyField('INFINITE', 'ticker', value)}
+              />
+              <FieldEditor
+                id="infinite-division"
+                label="분할 수"
+                field={draft.strategies.INFINITE.fields.divisionCount!}
+                error={attempted ? errors['INFINITE.divisionCount'] : undefined}
+                inputType="number"
+                normalize={normalizeNumber}
+                onChange={(value) => setStrategyField('INFINITE', 'divisionCount', value)}
+              />
+            </StrategyBlock>
 
-        <section className="border-b border-border px-4 py-4 sm:px-5">
-          <h2 className="text-base font-bold">{labelOf('strategyTypes', 'INFINITE')} 필드</h2>
-          <FieldEditor
-            id="infinite-ticker"
-            label="종목"
-            field={draft.strategies.INFINITE.fields.ticker}
-            error={attempted ? errors['INFINITE.ticker'] : undefined}
-            suggestions={tickerSuggestions}
-            normalize={normalizeSymbol}
-            onChange={(value) => setStrategyField('INFINITE', 'ticker', value)}
-          />
-          <FieldEditor
-            id="infinite-division"
-            label="분할 수"
-            field={draft.strategies.INFINITE.fields.divisionCount!}
-            error={attempted ? errors['INFINITE.divisionCount'] : undefined}
-            inputType="number"
-            normalize={normalizeNumber}
-            onChange={(value) => setStrategyField('INFINITE', 'divisionCount', value)}
-          />
-        </section>
+            <StrategyBlock
+              strategy="PRIVACY"
+              label={labelOf('strategyTypes', 'PRIVACY')}
+              enabled={draft.strategies.PRIVACY.enabled}
+              onToggle={(enabled) => setStrategyEnabled('PRIVACY', enabled)}
+              summary={`종목 ${draft.strategies.PRIVACY.fields.ticker.defaultValue}`}
+              hasError={attempted && hasStrategyError(errors, 'PRIVACY')}
+            >
+              <FieldEditor id="privacy-ticker" label="종목" fixed field={draft.strategies.PRIVACY.fields.ticker}
+                onChange={(value) => setStrategyField('PRIVACY', 'ticker', value)} />
+            </StrategyBlock>
 
-        <section className="border-b border-border px-4 py-4 sm:px-5">
-          <h2 className="text-base font-bold">{labelOf('strategyTypes', 'PRIVACY')} 필드</h2>
-          <FieldEditor id="privacy-ticker" label="종목" fixed field={draft.strategies.PRIVACY.fields.ticker}
-            onChange={(value) => setStrategyField('PRIVACY', 'ticker', value)} />
-        </section>
+            <StrategyBlock
+              strategy="VR"
+              label={labelOf('strategyTypes', 'VR')}
+              enabled={draft.strategies.VR.enabled}
+              onToggle={(enabled) => setStrategyEnabled('VR', enabled)}
+              summary={`종목 ${draft.strategies.VR.fields.ticker.defaultValue} · 밴드 ${draft.strategies.VR.fields.bandWidth?.defaultValue ?? '-'}% · ${draft.strategies.VR.fields.intervalWeeks?.defaultValue ?? '-'}주`}
+              hasError={attempted && hasStrategyError(errors, 'VR')}
+            >
+              <FieldEditor id="vr-ticker" label="종목" fixed field={draft.strategies.VR.fields.ticker}
+                onChange={(value) => setStrategyField('VR', 'ticker', value)} />
+              <RecurringModeEditor
+                label="정기 입출금 방식"
+                field={draft.strategies.VR.fields.recurringMode!}
+                error={attempted ? errors['VR.recurringMode'] : undefined}
+                onChange={(value) => setStrategyField('VR', 'recurringMode', value)}
+              />
+              <FieldEditor id="vr-band" label="밴드 폭 (%)" field={draft.strategies.VR.fields.bandWidth!}
+                error={attempted ? errors['VR.bandWidth'] : undefined} inputType="number" normalize={normalizeNumber} onChange={(value) => setStrategyField('VR', 'bandWidth', value)} />
+              <FieldEditor id="vr-interval" label="주기 (주)" field={draft.strategies.VR.fields.intervalWeeks!}
+                error={attempted ? errors['VR.intervalWeeks'] : undefined} inputType="number" normalize={normalizeNumber} onChange={(value) => setStrategyField('VR', 'intervalWeeks', value)} />
+            </StrategyBlock>
 
-        <section className="border-b border-border px-4 py-4 sm:px-5">
-          <h2 className="text-base font-bold">{labelOf('strategyTypes', 'VR')} 필드</h2>
-          <FieldEditor id="vr-ticker" label="종목" fixed field={draft.strategies.VR.fields.ticker}
-            onChange={(value) => setStrategyField('VR', 'ticker', value)} />
-          <RecurringModeEditor
-            label="정기 입출금 방식"
-            field={draft.strategies.VR.fields.recurringMode!}
-            error={attempted ? errors['VR.recurringMode'] : undefined}
-            onChange={(value) => setStrategyField('VR', 'recurringMode', value)}
-          />
-          <FieldEditor id="vr-band" label="밴드 폭 (%)" field={draft.strategies.VR.fields.bandWidth!}
-            error={attempted ? errors['VR.bandWidth'] : undefined} inputType="number" normalize={normalizeNumber} onChange={(value) => setStrategyField('VR', 'bandWidth', value)} />
-          <FieldEditor id="vr-interval" label="주기 (주)" field={draft.strategies.VR.fields.intervalWeeks!}
-            error={attempted ? errors['VR.intervalWeeks'] : undefined} inputType="number" normalize={normalizeNumber} onChange={(value) => setStrategyField('VR', 'intervalWeeks', value)} />
-        </section>
-
-        <section className="border-b border-border px-4 py-4 sm:px-5">
-          <h2 className="text-base font-bold">{labelOf('strategyTypes', 'DCA')} 필드</h2>
-          {dca ? (
-            <FieldEditor
-              id="dca-ticker"
-              label="종목"
-              field={dca.fields.ticker}
-              error={attempted ? errors['DCA.ticker'] : undefined}
-              suggestions={DCA_TICKER_SUGGESTIONS}
-              normalize={normalizeSymbol}
-              onChange={(value) => setStrategyField('DCA', 'ticker', value)}
-            />
-          ) : (
-            <p className="mt-2 text-sm text-[var(--status-error)]">설정 정보가 오래되어 저장할 수 없습니다. 페이지를 새로고침해야 합니다.</p>
-          )}
+            {dca ? (
+              <StrategyBlock
+                strategy="DCA"
+                label={labelOf('strategyTypes', 'DCA')}
+                enabled={dca.enabled}
+                onToggle={(enabled) => setStrategyEnabled('DCA', enabled)}
+                summary={`종목 ${dca.fields.ticker.defaultValue}`}
+                hasError={attempted && hasStrategyError(errors, 'DCA')}
+              >
+                <FieldEditor
+                  id="dca-ticker"
+                  label="종목"
+                  field={dca.fields.ticker}
+                  error={attempted ? errors['DCA.ticker'] : undefined}
+                  suggestions={DCA_TICKER_SUGGESTIONS}
+                  normalize={normalizeSymbol}
+                  onChange={(value) => setStrategyField('DCA', 'ticker', value)}
+                />
+              </StrategyBlock>
+            ) : (
+              <div className="py-3">
+                <span className="text-sm font-medium">{labelOf('strategyTypes', 'DCA')}</span>
+                <p className="mt-1 text-sm text-[var(--status-error)]">설정 정보가 오래되어 저장할 수 없습니다. 페이지를 새로고침해야 합니다.</p>
+              </div>
+            )}
+          </div>
         </section>
 
         <section className="px-4 py-4 sm:px-5">
