@@ -102,7 +102,7 @@ export const scenarios = [
   { name: 'not-found', path: '/visual-diff-not-found', clock: true },
   { name: 'admin-trades-select', path: '/admin/trades', admin: true, steps: [adminCascade] },
   // 실데이터로 못 만드는 preview 분기 — 실데이터(real) 화면은 위 기본 시나리오가 담당
-  ...modes('m-inf', INF, ['deficit', 'uncertain', 'executed', 'skip', 'empty']),
+  ...modes('m-inf', INF, ['deficit', 'trimmed', 'executed', 'skip', 'empty']),
   ...modes('m-vr', VR, ['executed']),
   ...modes('m-list', '/strategies', ['deficit', 'executed']),
   ...modes('m-acct', ACCT, ['executed']),
@@ -113,6 +113,6 @@ export const scenarios = [
   { name: 'binance-strategies', path: '/strategies', mode: 'binance' },
   // broker 카드를 누르면 바로 다음 스텝(API 키 입력)으로 넘어간다
   { name: 'binance-account-new', path: '/accounts/new', mode: 'binance', steps: [clickText('바이낸스')] },
-  ...modes('w-inf', INF, ['real', 'deficit', 'uncertain', 'executed'], { clock: true }),
+  ...modes('w-inf', INF, ['real', 'deficit', 'trimmed', 'executed'], { clock: true }),
   ...modes('w-list', '/strategies', ['deficit', 'executed'], { clock: true }),
 ]

@@ -71,13 +71,13 @@ export function useAdminReorderTimingQuery() {
   })
 }
 
-// 같은 계좌 BUY 원본 주문 일괄 예산 — live 잔고는 서버가 1회만 조회
+// 같은 계좌 BUY 원본 주문 일괄 예산 — 사이클별 남은 원장 한도와 원본 환급액
 export function useAdminReorderBuyBudgetQuery(orderIds: string[], tradeDate: string) {
   return useQuery({
     queryKey: adminKeys.reorderBuyBudget(orderIds, tradeDate),
     queryFn: () => getReorderBuyBudget(orderIds, tradeDate),
     enabled: orderIds.length > 0,
-    staleTime: 0, // live 잔고 기반 예산
+    staleTime: 0, // 같은 거래일 다른 주문이 저장되면 한도가 바로 바뀐다
   })
 }
 
