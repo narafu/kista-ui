@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
@@ -178,7 +179,8 @@ describe('AllStrategiesList', () => {
     setQueries([strategyFor('account-1', 'strategy-1'), strategyFor('account-2', 'strategy-2')], multiAccounts)
     render(<AllStrategiesList />)
 
-    expect(screen.getByRole('combobox', { name: '계좌 필터' })).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: '계좌 필터' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '전체 2' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getAllByTestId('strategy-card-stub')).toHaveLength(2)
   })
 
@@ -186,7 +188,7 @@ describe('AllStrategiesList', () => {
     setQueries([strategyFor('account-1', 'strategy-1')], multiAccounts)
     render(<AllStrategiesList />)
 
-    expect(screen.queryByRole('combobox', { name: '계좌 필터' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: '계좌 필터' })).not.toBeInTheDocument()
   })
 
   it('shows only the selected account group from the account param', () => {
@@ -197,6 +199,16 @@ describe('AllStrategiesList', () => {
     expect(screen.getAllByTestId('strategy-card-stub')).toHaveLength(1)
     expect(screen.getByRole('heading', { name: '한투 서브' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: '토스 메인' })).not.toBeInTheDocument()
+  })
+
+  it('writes the selected account to the url', async () => {
+    setQueries([strategyFor('account-1', 'strategy-1'), strategyFor('account-2', 'strategy-2'), strategyFor('account-2', 'strategy-3')], multiAccounts)
+    render(<AllStrategiesList />)
+    const replaceState = vi.spyOn(window.history, 'replaceState')
+
+    await userEvent.click(screen.getByRole('button', { name: '한투 서브 2' }))
+    expect(replaceState).toHaveBeenCalledWith(null, '', '?account=account-2')
+    replaceState.mockRestore()
   })
 
   it('treats an unknown account param as all accounts', () => {

@@ -12,8 +12,8 @@ import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { SectionError } from '@shared/ui/SectionError'
+import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { useSearchParam } from '@shared/lib/hooks/use-search-param'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
   const hasAccounts = accounts.length > 0
@@ -75,20 +75,23 @@ export function AllStrategiesList() {
   const showFilter = groupByAccount && groups.length > 1
   const selected = showFilter && groups.some((g) => g.account.id === param) ? param! : ALL
   const shown = selected === ALL ? groups : groups.filter((g) => g.account.id === selected)
-  const filterItems = [
-    { value: ALL, label: '전체 계좌' },
-    ...groups.map(({ account }) => ({ value: account.id, label: `${account.nickname} (${findBroker(account.broker)?.label ?? account.broker})` })),
+  // 계좌 목록의 증권사 필터와 같은 모양 — 증권사는 아래 구역 제목 배지에 있어 버튼은 별칭만 쓴다
+  const filterOptions = [
+    { value: ALL, label: `전체 ${groups.reduce((sum, g) => sum + g.strategies.length, 0)}` },
+    ...groups.map(({ account, strategies: accountStrategies }) => ({ value: account.id, label: `${account.nickname} ${accountStrategies.length}` })),
   ]
 
   return (
     <div className="space-y-6 reveal-stagger">
       {showFilter && (
-        <Select items={filterItems} value={selected} onValueChange={(value) => { if (value) setParam(value === ALL ? null : value) }}>
-          <SelectTrigger aria-label="계좌 필터" className="w-full lg:w-64"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {filterItems.map(({ value, label }) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <div className="overflow-x-auto">
+          <SegmentedToggle
+            aria-label="계좌 필터"
+            options={filterOptions}
+            value={selected}
+            onChange={(next) => setParam(next === ALL ? null : next)}
+          />
+        </div>
       )}
       {shown.map(({ account, strategies: accountStrategies }) => (
         <div key={account.id}>
