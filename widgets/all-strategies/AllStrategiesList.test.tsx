@@ -33,7 +33,8 @@ vi.mock('@entities/strategy', () => ({
   }),
 }))
 
-vi.mock('@entities/account', () => ({
+vi.mock('@entities/account', async (importOriginal) => ({
+  sortMockLast: (await importOriginal<typeof import('@entities/account')>()).sortMockLast,
   useAccountsQuery: () => ({
     data: accountsQueryData,
     isError: false,
@@ -217,5 +218,30 @@ describe('AllStrategiesList', () => {
     render(<AllStrategiesList />)
 
     expect(screen.getAllByTestId('strategy-card-stub')).toHaveLength(2)
+  })
+
+  it('puts mock account groups and filter options last', () => {
+    const mock: Account = { id: 'account-m', nickname: '모의', accountNoMasked: null, broker: 'MOCK' }
+    setQueries(
+      [strategyFor('account-m', 'strategy-m'), strategyFor('account-1', 'strategy-1'), strategyFor('account-2', 'strategy-2')],
+      [mock, ...multiAccounts],
+    )
+    render(<AllStrategiesList />)
+
+    expect(screen.getAllByRole('heading').map((h) => h.textContent)).toEqual(['토스 메인', '한투 서브', '모의'])
+    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['전체 3', '토스 메인 1', '한투 서브 1', '모의 1'])
+    expect(strategyCardMock.mock.calls.map(([props]) => (props as { strategy: Strategy }).strategy.id)).toEqual([
+      'strategy-1',
+      'strategy-2',
+      'strategy-m',
+    ])
+  })
+
+  it('lists mock accounts last in the empty state', () => {
+    const mock: Account = { id: 'account-m', nickname: '모의', accountNoMasked: null, broker: 'MOCK' }
+    setQueries([], [mock, ...multiAccounts])
+    render(<AllStrategiesList />)
+
+    expect(screen.getAllByRole('link').map((l) => l.textContent)).toEqual(['토스 메인', '한투 서브', '모의'])
   })
 })

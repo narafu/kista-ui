@@ -5,7 +5,7 @@ import { TrendingUp, ChevronRight } from 'lucide-react'
 import { StrategyCard } from '@widgets/strategy-card'
 import { NewAccountButton } from '@features/account/create-account'
 import { useAllStrategiesQuery } from '@entities/strategy'
-import { useAccountsQuery } from '@entities/account'
+import { sortMockLast, useAccountsQuery } from '@entities/account'
 import { useMeta } from '@entities/meta'
 import type { Account } from '@entities/account'
 import { Badge } from '@shared/ui/Badge'
@@ -54,7 +54,8 @@ export function AllStrategiesList() {
   const accountsQuery = useAccountsQuery()
   const { findBroker } = useMeta()
   const strategies = strategiesQuery.data
-  const accounts = accountsQuery.data
+  // 계좌 목록과 같은 순서(모의계좌 마지막)로 빈 상태 계좌 링크·구역·필터를 그린다
+  const accounts = accountsQuery.data && sortMockLast(accountsQuery.data)
 
   // 계좌 목록이 없으면 전략을 계좌별로 묶을 수 없어 빈 화면이 되므로 두 쿼리를 함께 게이팅한다
   if ((!strategies && strategiesQuery.isError) || (!accounts && accountsQuery.isError))
@@ -66,7 +67,7 @@ export function AllStrategiesList() {
 
   const groupByAccount = accounts.length > 1
 
-  // 계좌 등록 순서를 유지한 채 계좌별 전략을 그룹핑 — 전략이 없는 계좌는 섹션 생략
+  // 계좌별 전략을 그룹핑 — 전략이 없는 계좌는 섹션 생략
   const groups = accounts.flatMap((account) => {
     const accountStrategies = strategies.filter((s) => s.accountId === account.id)
     return accountStrategies.length > 0 ? [{ account, strategies: accountStrategies }] : []

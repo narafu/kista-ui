@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { AccountCard } from '@widgets/account-card'
+import { sortMockLast } from '@entities/account'
 import type { Account } from '@entities/account'
 import { useMeta } from '@entities/meta'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
@@ -38,7 +39,8 @@ function AccountCards({ accounts }: Props) {
   )
 }
 
-export function AccountsGrid({ accounts }: Props) {
+export function AccountsGrid({ accounts: unsorted }: Props) {
+  const accounts = sortMockLast(unsorted)
   const [param, setParam] = useSearchParam('broker')
   const { findBroker } = useMeta()
 

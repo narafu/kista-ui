@@ -134,4 +134,15 @@ describe('AccountsPageContent', () => {
     })
     expect(screen.getByText('등록된 계좌가 없습니다')).toBeInTheDocument()
   })
+
+  it('puts mock accounts and the mock filter option last', () => {
+    const mock2: Account = { ...account, id: 'm2', nickname: '모의 2' }
+    renderAccounts([account, kis, mock2, upbit])
+
+    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['전체 4', '한국투자 1', 'UPBIT 1', 'MOCK 2'])
+    const names = ['한투 1', '업비트 1', '캐시 계좌', '모의 2'].map((name) => screen.getByText(name))
+    names.slice(1).forEach((node, i) => {
+      expect(names[i].compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    })
+  })
 })
