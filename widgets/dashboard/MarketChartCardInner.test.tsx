@@ -133,7 +133,7 @@ describe('MarketChartCardInner', () => {
     expect(useCandlesQueryMock).toHaveBeenLastCalledWith('SPY', 600)
   })
 
-  it('adds an RSI series on pane 1 only when the RSI toggle is on', async () => {
+  it('shows the RSI series on pane 1 by default and removes it when toggled off', async () => {
     useCandlesQueryMock.mockReturnValue({
       data: [{ date: '2026-10-01', open: 1, high: 2, low: 1, close: 2, volume: 0 }],
     })
@@ -141,12 +141,28 @@ describe('MarketChartCardInner', () => {
     const user = userEvent.setup()
     render(<MarketChartCardInner category={category} />)
 
-    expect(addSeriesMock.mock.calls.some((call) => call[2] === 1)).toBe(false)
-
-    await user.click(screen.getByRole('button', { name: 'RSI' }))
-
     expect(screen.getByRole('button', { name: 'RSI' })).toHaveAttribute('aria-pressed', 'true')
     expect(addSeriesMock.mock.calls.some((call) => call[2] === 1)).toBe(true)
+
+    addSeriesMock.mockClear()
+    await user.click(screen.getByRole('button', { name: 'RSI' }))
+
+    expect(screen.getByRole('button', { name: 'RSI' })).toHaveAttribute('aria-pressed', 'false')
+    expect(addSeriesMock.mock.calls.some((call) => call[2] === 1)).toBe(false)
+  })
+
+  it('attaches a zone color to every RSI point in the overbought zone', () => {
+    // 종가가 계속 오르면 RSI가 100 → 과매수 구간
+    const data = Array.from({ length: 20 }, (_, i) => ({ date: `d${String(i).padStart(2, '0')}`, open: 1, high: 2, low: 1, close: 1 + i, volume: 0 }))
+    useCandlesQueryMock.mockReturnValue({ data })
+    addSeriesMock.mockClear()
+    render(<MarketChartCardInner category={category} />)
+
+    const rsiCall = addSeriesMock.mock.calls.findIndex((call) => call[2] === 1)
+    const rsiSeries = addSeriesMock.mock.results[rsiCall].value
+    const points = rsiSeries.setData.mock.calls[0][0] as { value: number; color: string }[]
+    expect(points.length).toBeGreaterThan(0)
+    expect(points.every((p) => p.value >= 70 && p.color)).toBe(true)
   })
 
   it('switches the queried symbol when a different option is selected', async () => {

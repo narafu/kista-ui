@@ -17,6 +17,8 @@ type CandleCount = (typeof CANDLE_OPTIONS)[number]
 const CHART_HEIGHT = 280
 const RSI_PANE_HEIGHT = 100
 const RSI_PERIOD = 14
+const RSI_OVERBOUGHT = 70
+const RSI_OVERSOLD = 30
 // 캔들이 상승 빨강(--pos)·하락 파랑(--neg)이라 겹치지 않는 금·초록·자주 계열 자산 팔레트를 쓰고(남색 4번은 RSI), 장기선 MA200은 회색으로 한 발 물린다
 const MA_LINES = [
   { period: 20, colorVar: '--asset-series-3' },
@@ -78,13 +80,15 @@ export default function MarketChartCardInner({ category }: Props) {
   // eslint-disable-next-line react-doctor/no-derived-useState
   const [symbol, setSymbol] = useState(category.options[0].symbol)
   const [candleCount, setCandleCount] = useState<CandleCount>(50)
-  const [showRsi, setShowRsi] = useState(false)
+  const [showRsi, setShowRsi] = useState(true)
   const selected = category.options.find((o) => o.symbol === symbol) ?? category.options[0]
   // 이평선·RSI의 선행 구간을 채우려고 항상 최대치로 조회하고, 캔들 개수 선택은 보이는 범위로만 반영한다
   const { data: candles, isError, isPending } = useCandlesQuery(symbol, CHART_CANDLE_COUNT)
   // 컨테이너는 차트를 그릴 때만 마운트된다 — 다시 마운트될 때 새 컨테이너에 차트를 붙이도록 effect deps에 넣는다.
   // 재조회 실패는 이미 받은 candles를 덮지 않는다(데이터가 없을 때만 오류 표시)
   const showChart = !isPending && !!candles?.length
+  // 로딩·빈 상태 자리도 차트와 같은 높이로 잡아 로드 후 카드가 튀지 않게 한다
+  const chartHeightClass = showRsi ? 'h-[380px]' : 'h-[280px]'
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
 
@@ -127,6 +131,13 @@ export default function MarketChartCardInner({ category }: Props) {
     const closes = sorted.map((c) => c.close)
     const toLineData = (values: (number | null)[]) =>
       values.flatMap((value, index) => (value === null ? [] : [{ time: sorted[index].date, value }]))
+    const rsiValues = toLineData(showRsi ? rsi(closes, RSI_PERIOD) : [])
+    // 과매수(70 이상)는 상승색, 과매도(30 이하)는 하락색으로 점별 색을 입힌다 — 테마 전환 시 색을 다시 읽어 setData한다
+    const colorRsi = (colors: { pos: string; neg: string; rsi: string }) =>
+      rsiValues.map((point) => ({
+        ...point,
+        color: point.value >= RSI_OVERBOUGHT ? colors.pos : point.value <= RSI_OVERSOLD ? colors.neg : colors.rsi,
+      }))
 
     const maSeries = MA_LINES.map(({ period }, index) => {
       const line = chart.addSeries(LineSeries, { ...LINE_OPTIONS, color: maLines[index] })
@@ -149,12 +160,12 @@ export default function MarketChartCardInner({ category }: Props) {
         )
       : null
     const rsiGuideLines = rsiSeries
-      ? [70, 30].map((price) =>
+      ? [RSI_OVERBOUGHT, RSI_OVERSOLD].map((price) =>
           rsiSeries.createPriceLine({ price, color: mutedForeground, lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: false }),
         )
       : []
     if (rsiSeries) {
-      rsiSeries.setData(toLineData(rsi(closes, RSI_PERIOD)))
+      rsiSeries.setData(colorRsi({ pos, neg, rsi: rsiColor }))
       chart.panes()[1]?.setHeight(RSI_PANE_HEIGHT)
     }
 
@@ -178,6 +189,7 @@ export default function MarketChartCardInner({ category }: Props) {
       series.applyOptions({ upColor: colors.pos, downColor: colors.neg, borderVisible: false, wickUpColor: colors.pos, wickDownColor: colors.neg })
       maSeries.forEach((line, index) => line.applyOptions({ color: colors.maLines[index] }))
       rsiSeries?.applyOptions({ color: colors.rsi })
+      rsiSeries?.setData(colorRsi(colors))
       rsiGuideLines.forEach((line) => line.applyOptions({ color: colors.mutedForeground }))
     })
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
@@ -249,17 +261,17 @@ export default function MarketChartCardInner({ category }: Props) {
         </button>
       </div>
       {isError && !candles ? (
-        <div className="flex h-[280px] items-center justify-center text-sm text-warn">시장 차트를 불러오지 못했습니다.</div>
+        <div className={cn(chartHeightClass, 'flex items-center justify-center text-sm text-warn')}>시장 차트를 불러오지 못했습니다.</div>
       ) : isPending ? (
-        <div className="flex h-[280px] items-center justify-center text-sm text-muted-foreground">차트 불러오는 중…</div>
+        <div className={cn(chartHeightClass, 'flex items-center justify-center text-sm text-muted-foreground')}>차트 불러오는 중…</div>
       ) : !showChart ? (
-        <div className="flex h-[280px] items-center justify-center text-sm text-muted-foreground">표시할 시세가 없습니다.</div>
+        <div className={cn(chartHeightClass, 'flex items-center justify-center text-sm text-muted-foreground')}>표시할 시세가 없습니다.</div>
       ) : (
         <div
           ref={containerRef}
           role="figure"
           aria-label={`${selected.label} 일봉 차트`}
-          className={cn('w-full', showRsi ? 'h-[380px]' : 'h-[280px]')}
+          className={cn('w-full', chartHeightClass)}
         />
       )}
     </>
