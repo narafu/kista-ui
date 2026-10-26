@@ -93,8 +93,9 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
             <TableHeadCell>구분</TableHeadCell>
             <TableHeadCell>유형</TableHeadCell>
             <TableHeadCell>종목</TableHeadCell>
-            <TableHeadCell>수량</TableHeadCell>
-            <TableHeadCell>주문가</TableHeadCell>
+            {/* 숫자 열은 폭을 고정해 가운데 헤더와 오른쪽 정렬 값이 벌어지지 않게 한다 — 남는 폭은 유형·종목 열이 가진다 */}
+            <TableHeadCell className="w-28">수량</TableHeadCell>
+            <TableHeadCell className="w-32">주문가</TableHeadCell>
             {hasCancel && (
               <TableHeadCell>취소</TableHeadCell>
             )}
