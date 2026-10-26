@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { accountKeys } from '../model/queryKeys'
+import { sortMockLast } from '../model/sortAccounts'
 import { useAccountsQuery } from './useAccountQueries'
 
 const { useQueryMock } = vi.hoisted(() => ({
@@ -26,6 +27,7 @@ describe('useAccountsQuery', () => {
 
     expect(useQueryMock).toHaveBeenCalledWith(expect.objectContaining({
       queryKey: accountKeys.list(),
+      select: sortMockLast,
     }))
   })
 })

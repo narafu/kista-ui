@@ -20,5 +20,4 @@ export {
 } from './hooks/useAccountMarginQuery'
 export { BROKER_CREDENTIAL, brokerErrorMessage } from './model/brokerCredentials'
 export type { CredentialBroker } from './model/brokerCredentials'
-export { sortMockLast } from './model/sortAccounts'
 export { apiKeyExpiryState, API_KEY_EXPIRY_LABEL } from './model/apiKeyExpiry'
