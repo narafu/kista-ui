@@ -35,7 +35,7 @@ widget 슬라이스끼리 cross-import 금지. **단, 아래 "공용 UI 위젯" 
 - `--gold`는 다크 오버라이드 존재(`.dark { --gold: ... }`) — 휴장 표시 등 라이트 전용 골드값을 다크에서 그대로 쓰지 않는다
 - 손익/상태 액센트는 CSS 토큰 기반 인라인 style 사용 가능
 - 거래내역 테이블 헤더는 전용 클래스 패턴 유지
-- **테이블 정렬**: 열 헤더(`TableHeadCell`·`SortableHeadCell`)는 기본값 가운데 정렬이고 `text-right`/`text-left`로 덮어쓰지 않는다. 숫자 데이터 셀(`TableDataCell`)은 `text-right tabular-nums`로 자릿수를 맞추고, 그 열의 헤더는 `numeric` prop을 준다 — 오른쪽 정렬 + 열 폭을 내용에 맞게 좁힘(`w-px whitespace-nowrap`). 2026-10 `e8620dc0`에서 헤더를 전부 가운데로 통일했다가, 넓은 표에서 가운데 헤더와 오른쪽 값이 벌어져 보여 숫자 열만 이 방식으로 바꿨다(헤더만 오른쪽이면 넓은 열에서 칸 끝에 떨어져 보이고, 값까지 가운데면 길이가 다른 금액의 자릿수가 어긋난다). 열 폭을 퍼센트로 고정한 비교 표(`HousingBenchmarkSummary`)는 `w-px`와 충돌해 예외로 둔다
+- **테이블 정렬**: 열 헤더(`TableHeadCell`·`SortableHeadCell`)는 기본값 가운데 정렬이고 `text-right`/`text-left`로 덮어쓰지 않는다. 숫자 데이터 셀(`TableDataCell`)은 `text-right tabular-nums`로 자릿수를 맞추고, 그 열의 헤더는 `numeric` prop을 준다 — 헤더는 가운데 그대로 두고 열 폭만 내용에 맞게 좁힌다(`w-px whitespace-nowrap`, 숫자 데이터 셀도 `whitespace-nowrap`). 넓은 표에서 가운데 헤더와 오른쪽 값이 벌어져 보이던 것을 열 폭으로 해결했다(값까지 가운데면 길이가 다른 금액의 자릿수가 어긋난다). 열 폭을 퍼센트로 고정한 비교 표(`HousingBenchmarkSummary`)는 `w-px`와 충돌해 예외로 둔다
 - 로즈골드/다크모드 gradient는 `globals.css` 오버라이드 기준으로 맞춘다
 - **`.reveal-stagger`**: 컨테이너에 부여 시 직계 자식이 `revealUp` 키프레임으로 순차 페이드업(`nth-child(1~5)` 개별 delay, `n+6`은 동일 delay로 묶임 — 직계 자식 5개 이하 컨테이너에서 가장 효과적). `prefers-reduced-motion: reduce`에서 애니메이션 비활성화 자동 처리. 페이지 최초 진입(첫 페인트) 같은 고임팩트 순간에만 사용 — 남용 금지
 
