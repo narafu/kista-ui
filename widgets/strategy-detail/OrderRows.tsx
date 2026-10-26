@@ -28,10 +28,12 @@ interface Props {
   cancelPending?: boolean
 }
 
-// 기본값인 마감 접수(AT_CLOSE)는 생략 — 같은 LIMIT라도 INFINITE는 개장 선접수, PRIVACY는 마감 접수라 다를 때만 표시
-function TimingNote({ timing }: { timing?: string }) {
+// 주문 유형별로 흔한 접수 시점 — 이와 다를 때만 표시한다(LIMIT는 대개 개장 선접수라 PRIVACY의 마감 접수 LIMIT가 표시 대상)
+const USUAL_TIMING: Record<string, string> = { LOC: 'AT_CLOSE', MOC: 'AT_CLOSE', LIMIT: 'AT_OPEN', MOO: 'AT_OPEN' }
+
+function TimingNote({ orderType, timing }: { orderType: string; timing?: string }) {
   const { labelOf } = useMeta()
-  if (!timing || timing === 'AT_CLOSE') return null
+  if (!timing || timing === USUAL_TIMING[orderType]) return null
   return <span className="block break-keep text-xs text-muted-foreground mt-0.5">{labelOf('orderTimings', timing)}</span>
 }
 
@@ -68,7 +70,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
             {/* 모바일은 열 폭이 좁아 "LOC(장마감지정가)" 라벨 대신 코드만 표시 */}
             <span className="text-muted-foreground">
               {o.orderType}
-              <TimingNote timing={o.timing} />
+              <TimingNote orderType={o.orderType} timing={o.timing} />
             </span>
             <span className="font-medium">{o.ticker}</span>
             <span className="text-muted-foreground">{fmtQuantity(o.quantity)}</span>
@@ -113,7 +115,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
                 <Badge tone="neutral" size="sm" className="lg:h-[24px] lg:text-sm">
                   {labelOf('orderTypes', o.orderType)}
                 </Badge>
-                <TimingNote timing={o.timing} />
+                <TimingNote orderType={o.orderType} timing={o.timing} />
               </TableDataCell>
               <TableDataCell className="font-semibold">{o.ticker}</TableDataCell>
               <TableDataCell className="text-right tabular-nums whitespace-nowrap text-muted-foreground">{fmtQuantity(o.quantity)}</TableDataCell>
