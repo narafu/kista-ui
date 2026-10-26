@@ -14,8 +14,8 @@ describe('OrderRows', () => {
     render(
       <OrderRows
         orders={[
-          { id: 'order-1', ticker: 'TSLA', direction: 'SELL', quantity: 1, price: '250', status: 'PLANNED' },
-          { id: 'order-2', ticker: 'TSLA', direction: 'SELL', quantity: 1, price: '255', status: 'PLACED' },
+          { id: 'order-1', ticker: 'TSLA', direction: 'SELL', orderType: 'LOC', quantity: 1, price: '250', status: 'PLANNED' },
+          { id: 'order-2', ticker: 'TSLA', direction: 'SELL', orderType: 'LOC', quantity: 1, price: '255', status: 'PLACED' },
         ]}
         onCancelOne={onCancelOne}
         cancelPending={false}

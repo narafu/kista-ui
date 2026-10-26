@@ -14,6 +14,7 @@ interface OrderRowData {
   id?: string
   ticker: string
   direction: string
+  orderType: string
   quantity: number
   price: string
   status?: string
@@ -36,9 +37,10 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
       <ul className="lg:hidden">
         <li className={cn(
           'grid items-center px-6 py-2 border-b border-border bg-muted/50 text-xs text-muted-foreground text-center',
-          hasCancel ? 'grid-cols-5' : 'grid-cols-4',
+          hasCancel ? 'grid-cols-6' : 'grid-cols-5',
         )}>
           <span>구분</span>
+          <span>유형</span>
           <span>종목</span>
           <span>수량</span>
           <span>주문가</span>
@@ -48,13 +50,15 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
           // eslint-disable-next-line react-doctor/no-array-index-as-key -- id 없는 주문의 fallback 키(재정렬 없는 읽기 전용 목록)
           <li key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className={cn(
             'grid items-center text-sm px-6 py-3 border-b border-border last:border-b-0 text-center',
-            hasCancel ? 'grid-cols-5' : 'grid-cols-4',
+            hasCancel ? 'grid-cols-6' : 'grid-cols-5',
           )}>
             <div className="flex justify-center">
               <Badge tone="none" size="sm" className={directionBadgeClass(o.direction)}>
                 {labelOf('orderDirections', o.direction)}
               </Badge>
             </div>
+            {/* 모바일은 열 폭이 좁아 "LOC(장마감지정가)" 라벨 대신 코드만 표시 */}
+            <span className="text-muted-foreground">{o.orderType}</span>
             <span className="font-medium">{o.ticker}</span>
             <span className="text-muted-foreground">{fmtQuantity(o.quantity)}</span>
             <span className="font-semibold">${fmtUsd(toNum(o.price))}</span>
@@ -76,6 +80,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
         <thead className="bg-muted/50">
           <tr>
             <TableHeadCell>구분</TableHeadCell>
+            <TableHeadCell>유형</TableHeadCell>
             <TableHeadCell>종목</TableHeadCell>
             <TableHeadCell>수량</TableHeadCell>
             <TableHeadCell>주문가</TableHeadCell>
@@ -91,6 +96,11 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
               <TableDataCell>
                 <Badge tone="none" size="sm" className={cn('lg:h-[24px] lg:text-sm', directionBadgeClass(o.direction))}>
                   {labelOf('orderDirections', o.direction)}
+                </Badge>
+              </TableDataCell>
+              <TableDataCell>
+                <Badge tone="neutral" size="sm" className="lg:h-[24px] lg:text-sm">
+                  {labelOf('orderTypes', o.orderType)}
                 </Badge>
               </TableDataCell>
               <TableDataCell className="font-semibold">{o.ticker}</TableDataCell>
