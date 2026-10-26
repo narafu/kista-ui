@@ -100,9 +100,9 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                     <TableHeadCell className="whitespace-nowrap">날짜</TableHeadCell>
                     <TableHeadCell className="whitespace-nowrap">방향</TableHeadCell>
                     <TableHeadCell className="whitespace-nowrap">유형</TableHeadCell>
-                    <TableHeadCell className="whitespace-nowrap">수량</TableHeadCell>
-                    <TableHeadCell className="whitespace-nowrap">주문가</TableHeadCell>
-                    <TableHeadCell className="whitespace-nowrap">체결가</TableHeadCell>
+                    <TableHeadCell numeric className="whitespace-nowrap">수량</TableHeadCell>
+                    <TableHeadCell numeric className="whitespace-nowrap">주문가</TableHeadCell>
+                    <TableHeadCell numeric className="whitespace-nowrap">체결가</TableHeadCell>
                     <TableHeadCell className="whitespace-nowrap">상태</TableHeadCell>
                   </tr>
                 </thead>

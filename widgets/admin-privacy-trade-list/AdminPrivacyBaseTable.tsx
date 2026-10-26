@@ -162,11 +162,11 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
                   <TableHeadCell className="w-8 px-2"><span className="sr-only">펼치기</span></TableHeadCell>
                   <TableHeadCell className="whitespace-nowrap">날짜</TableHeadCell>
                   <TableHeadCell className="whitespace-nowrap">종목</TableHeadCell>
-                  <TableHeadCell className="whitespace-nowrap">사이클 시작금액</TableHeadCell>
-                  <TableHeadCell className="whitespace-nowrap">평단가</TableHeadCell>
-                  <TableHeadCell className="whitespace-nowrap">보유</TableHeadCell>
-                  <TableHeadCell className="whitespace-nowrap">실현손익</TableHeadCell>
-                  <TableHeadCell className="whitespace-nowrap">주문</TableHeadCell>
+                  <TableHeadCell numeric className="whitespace-nowrap">사이클 시작금액</TableHeadCell>
+                  <TableHeadCell numeric className="whitespace-nowrap">평단가</TableHeadCell>
+                  <TableHeadCell numeric className="whitespace-nowrap">보유</TableHeadCell>
+                  <TableHeadCell numeric className="whitespace-nowrap">실현손익</TableHeadCell>
+                  <TableHeadCell numeric className="whitespace-nowrap">주문</TableHeadCell>
                   <TableHeadCell className="w-16 whitespace-nowrap"><span className="sr-only">수정</span></TableHeadCell>
                 </tr>
               </thead>
@@ -348,8 +348,8 @@ function OrderDetailsTable({
         <tr>
           <TableHeadCell className={ORDER_DETAILS_HEAD_CLASS}>방향</TableHeadCell>
           <TableHeadCell className={ORDER_DETAILS_HEAD_CLASS}>유형</TableHeadCell>
-          <TableHeadCell className={ORDER_DETAILS_HEAD_CLASS}>가격</TableHeadCell>
-          <TableHeadCell className={ORDER_DETAILS_HEAD_CLASS}>수량</TableHeadCell>
+          <TableHeadCell numeric className={ORDER_DETAILS_HEAD_CLASS}>가격</TableHeadCell>
+          <TableHeadCell numeric className={ORDER_DETAILS_HEAD_CLASS}>수량</TableHeadCell>
           <TableHeadCell className={ORDER_DETAILS_HEAD_CLASS}><span className="sr-only">수정·삭제</span></TableHeadCell>
         </tr>
       </thead>
@@ -360,9 +360,9 @@ function OrderDetailsTable({
               {labelOf('orderDirections', o.direction)}
             </TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-left text-muted-foreground')}>{labelOf('orderTypes', o.orderType)}</TableDataCell>
-            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right tabular-nums')}>${fmtUsd(o.price)}</TableDataCell>
-            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right')}>{o.quantity ?? '-'}</TableDataCell>
-            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right')}>
+            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right tabular-nums whitespace-nowrap')}>${fmtUsd(o.price)}</TableDataCell>
+            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right whitespace-nowrap')}>{o.quantity ?? '-'}</TableDataCell>
+            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right whitespace-nowrap')}>
               <span className="inline-flex items-center gap-1.5">
                 <IconButton
                   onClick={(e) => { e.stopPropagation(); onEditOrder(o) }}

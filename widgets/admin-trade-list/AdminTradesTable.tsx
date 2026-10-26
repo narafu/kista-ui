@@ -39,8 +39,8 @@ export function AdminTradesTable({ trades }: Props) {
             <TableHeadCell className="whitespace-nowrap">종목</TableHeadCell>
             <TableHeadCell className="whitespace-nowrap">방향</TableHeadCell>
             <TableHeadCell className="whitespace-nowrap">유형</TableHeadCell>
-            <TableHeadCell className="whitespace-nowrap">수량</TableHeadCell>
-            <TableHeadCell className="whitespace-nowrap">가격</TableHeadCell>
+            <TableHeadCell numeric className="whitespace-nowrap">수량</TableHeadCell>
+            <TableHeadCell numeric className="whitespace-nowrap">가격</TableHeadCell>
             <TableHeadCell className="whitespace-nowrap">상태</TableHeadCell>
           </tr>
         </thead>

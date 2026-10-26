@@ -35,10 +35,10 @@ export function CryptoHoldingsCard({ portfolio, isError }: Props) {
               <thead className="bg-muted/50">
                 <tr>
                   <TableHeadCell className="whitespace-nowrap">종목</TableHeadCell>
-                  <TableHeadCell className="whitespace-nowrap">수량</TableHeadCell>
-                  <TableHeadCell className="whitespace-nowrap">평단가</TableHeadCell>
-                  <TableHeadCell className="whitespace-nowrap">현재가</TableHeadCell>
-                  <TableHeadCell className="whitespace-nowrap">평가금액</TableHeadCell>
+                  <TableHeadCell numeric className="whitespace-nowrap">수량</TableHeadCell>
+                  <TableHeadCell numeric className="whitespace-nowrap">평단가</TableHeadCell>
+                  <TableHeadCell numeric className="whitespace-nowrap">현재가</TableHeadCell>
+                  <TableHeadCell numeric className="whitespace-nowrap">평가금액</TableHeadCell>
                 </tr>
               </thead>
               <tbody>

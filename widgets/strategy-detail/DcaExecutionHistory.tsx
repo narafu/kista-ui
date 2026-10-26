@@ -49,8 +49,8 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
                   <TableHeadCell className="whitespace-nowrap">규칙</TableHeadCell>
                   <TableHeadCell className="whitespace-nowrap">결과</TableHeadCell>
                   <TableHeadCell className="whitespace-nowrap">사유</TableHeadCell>
-                  <TableHeadCell className="whitespace-nowrap">기준가</TableHeadCell>
-                  <TableHeadCell className="whitespace-nowrap">수량</TableHeadCell>
+                  <TableHeadCell numeric className="whitespace-nowrap">기준가</TableHeadCell>
+                  <TableHeadCell numeric className="whitespace-nowrap">수량</TableHeadCell>
                   <TableHeadCell className="whitespace-nowrap">체결</TableHeadCell>
                 </tr>
               </thead>

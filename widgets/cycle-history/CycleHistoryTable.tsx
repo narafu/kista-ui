@@ -130,10 +130,10 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
                 <thead className="bg-muted/50 sticky top-0 z-10">
                   <tr>
                     <TableHeadCell>티커</TableHeadCell>
-                    <TableHeadCell>수량</TableHeadCell>
-                    <TableHeadCell>평단가</TableHeadCell>
-                    <TableHeadCell>예수금</TableHeadCell>
-                    <TableHeadCell>평가금액</TableHeadCell>
+                    <TableHeadCell numeric>수량</TableHeadCell>
+                    <TableHeadCell numeric>평단가</TableHeadCell>
+                    <TableHeadCell numeric>예수금</TableHeadCell>
+                    <TableHeadCell numeric>평가금액</TableHeadCell>
                   </tr>
                 </thead>
                 <tbody>
@@ -149,10 +149,10 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
                         return (
                           <tr key={entryKey(entry, i)} className="border-t hover:bg-muted/30 transition-colors">
                             <TableDataCell className="font-medium">{entry.ticker ?? '-'}</TableDataCell>
-                            <TableDataCell className="text-right tabular-nums">{entry.holdings}주</TableDataCell>
-                            <TableDataCell className="text-right tabular-nums">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</TableDataCell>
-                            <TableDataCell className="text-right tabular-nums font-medium">{entry.strategyType === 'DCA' ? '-' : `$${fmtUsd(entry.usdDeposit ?? 0)}`}</TableDataCell>
-                            <TableDataCell className="text-right tabular-nums font-medium">{evalAmount != null ? `$${fmtUsd(evalAmount)}` : '-'}</TableDataCell>
+                            <TableDataCell className="text-right tabular-nums whitespace-nowrap">{entry.holdings}주</TableDataCell>
+                            <TableDataCell className="text-right tabular-nums whitespace-nowrap">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</TableDataCell>
+                            <TableDataCell className="text-right tabular-nums whitespace-nowrap font-medium">{entry.strategyType === 'DCA' ? '-' : `$${fmtUsd(entry.usdDeposit ?? 0)}`}</TableDataCell>
+                            <TableDataCell className="text-right tabular-nums whitespace-nowrap font-medium">{evalAmount != null ? `$${fmtUsd(evalAmount)}` : '-'}</TableDataCell>
                           </tr>
                         )
                       })}

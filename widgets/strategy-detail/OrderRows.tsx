@@ -93,9 +93,8 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
             <TableHeadCell>구분</TableHeadCell>
             <TableHeadCell>유형</TableHeadCell>
             <TableHeadCell>종목</TableHeadCell>
-            {/* 숫자 열은 폭을 고정해 가운데 헤더와 오른쪽 정렬 값이 벌어지지 않게 한다 — 남는 폭은 유형·종목 열이 가진다 */}
-            <TableHeadCell className="w-28">수량</TableHeadCell>
-            <TableHeadCell className="w-32">주문가</TableHeadCell>
+            <TableHeadCell numeric>수량</TableHeadCell>
+            <TableHeadCell numeric>주문가</TableHeadCell>
             {hasCancel && (
               <TableHeadCell>취소</TableHeadCell>
             )}
@@ -117,8 +116,8 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
                 <TimingNote timing={o.timing} />
               </TableDataCell>
               <TableDataCell className="font-semibold">{o.ticker}</TableDataCell>
-              <TableDataCell className="text-right tabular-nums text-muted-foreground">{fmtQuantity(o.quantity)}</TableDataCell>
-              <TableDataCell className="text-right tabular-nums font-semibold">${fmtUsd(toNum(o.price))}</TableDataCell>
+              <TableDataCell className="text-right tabular-nums whitespace-nowrap text-muted-foreground">{fmtQuantity(o.quantity)}</TableDataCell>
+              <TableDataCell className="text-right tabular-nums whitespace-nowrap font-semibold">${fmtUsd(toNum(o.price))}</TableDataCell>
               {hasCancel && (
                 <TableDataCell>
                   {o.id && (

@@ -29,11 +29,11 @@ export function StrategyTypeComparison({ byType }: Props) {
                 <thead className="bg-muted/50">
                   <tr>
                     <TableHeadCell>전략</TableHeadCell>
-                    <TableHeadCell>사이클</TableHeadCell>
-                    <TableHeadCell>평균 수익률</TableHeadCell>
-                    <TableHeadCell>평균 소요일</TableHeadCell>
-                    <TableHeadCell>실현손익</TableHeadCell>
-                    <TableHeadCell>미실현</TableHeadCell>
+                    <TableHeadCell numeric>사이클</TableHeadCell>
+                    <TableHeadCell numeric>평균 수익률</TableHeadCell>
+                    <TableHeadCell numeric>평균 소요일</TableHeadCell>
+                    <TableHeadCell numeric>실현손익</TableHeadCell>
+                    <TableHeadCell numeric>미실현</TableHeadCell>
                   </tr>
                 </thead>
                 <tbody>
@@ -44,15 +44,15 @@ export function StrategyTypeComparison({ byType }: Props) {
                           {labelOf('strategyTypes', t.type)}
                         </Badge>
                       </TableDataCell>
-                      <TableDataCell className="text-right tabular-nums text-muted-foreground">
+                      <TableDataCell className="text-right tabular-nums whitespace-nowrap text-muted-foreground">
                         종료 {t.closedCycleCount} · 진행 {t.activeCycleCount}
                       </TableDataCell>
-                      <TableDataCell className={cn('text-right tabular-nums', t.avgReturnRate != null && pnlTextClass(t.avgReturnRate))}>
+                      <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap', t.avgReturnRate != null && pnlTextClass(t.avgReturnRate))}>
                         {fmtSignedPercent(t.avgReturnRate)}
                       </TableDataCell>
-                      <TableDataCell className="text-right tabular-nums">{t.avgDurationDays != null ? `${t.avgDurationDays.toFixed(1)}일` : '—'}</TableDataCell>
-                      <TableDataCell className={cn('text-right tabular-nums font-medium', pnlTextClass(t.realizedPnl))}>{fmtSignedUsd(t.realizedPnl, 2, '$')}</TableDataCell>
-                      <TableDataCell className={cn('text-right tabular-nums font-medium', pnlTextClass(t.unrealizedPnl))}>{fmtSignedUsd(t.unrealizedPnl, 2, '$')}</TableDataCell>
+                      <TableDataCell className="text-right tabular-nums whitespace-nowrap">{t.avgDurationDays != null ? `${t.avgDurationDays.toFixed(1)}일` : '—'}</TableDataCell>
+                      <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap font-medium', pnlTextClass(t.realizedPnl))}>{fmtSignedUsd(t.realizedPnl, 2, '$')}</TableDataCell>
+                      <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap font-medium', pnlTextClass(t.unrealizedPnl))}>{fmtSignedUsd(t.unrealizedPnl, 2, '$')}</TableDataCell>
                     </tr>
                   ))}
                 </tbody>

@@ -42,8 +42,8 @@ function CycleTable({ cycles, accountsById }: Props) {
             <TableHeadCell>전략</TableHeadCell>
             <TableHeadCell>종목</TableHeadCell>
             <TableHeadCell>기간</TableHeadCell>
-            <TableHeadCell>손익</TableHeadCell>
-            <TableHeadCell>수익률</TableHeadCell>
+            <TableHeadCell numeric>손익</TableHeadCell>
+            <TableHeadCell numeric>수익률</TableHeadCell>
           </tr>
         </thead>
         <tbody>
@@ -67,10 +67,10 @@ function CycleTable({ cycles, accountsById }: Props) {
               <TableDataCell className="text-muted-foreground">
                 <Period cycle={cycle} />
               </TableDataCell>
-              <TableDataCell className={cn('text-right tabular-nums', pnlClass(cycle.pnl))}>
+              <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap', pnlClass(cycle.pnl))}>
                 {pnlText(cycle.pnl, accountsById.get(cycle.accountId)?.broker)}
               </TableDataCell>
-              <TableDataCell className={cn('text-right tabular-nums', pnlClass(cycle.returnRate))}>
+              <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap', pnlClass(cycle.returnRate))}>
                 {fmtSignedPercent(cycle.returnRate)}
               </TableDataCell>
             </tr>
