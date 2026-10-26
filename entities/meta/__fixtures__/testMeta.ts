@@ -54,7 +54,7 @@ export const testMeta = {
     { code: 'MARKET', label: 'MARKET(시장가)' },
   ],
   orderTimings: [
-    { code: 'AT_CLOSE', label: '마감 접수' },
+    { code: 'AT_CLOSE', label: '장마감 30분 전 접수' },
     { code: 'AT_OPEN', label: '개장 선접수' },
     { code: 'IMMEDIATE', label: '즉시 접수' },
   ],

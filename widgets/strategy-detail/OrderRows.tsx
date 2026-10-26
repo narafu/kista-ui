@@ -28,12 +28,11 @@ interface Props {
   cancelPending?: boolean
 }
 
-// 주문 유형별로 흔한 접수 시점 — 이와 다를 때만 표시한다(LIMIT는 대개 개장 선접수라 PRIVACY의 마감 접수 LIMIT가 표시 대상)
-const USUAL_TIMING: Record<string, string> = { LOC: 'AT_CLOSE', MOC: 'AT_CLOSE', LIMIT: 'AT_OPEN', MOO: 'AT_OPEN' }
-
+// 접수 시점은 LIMIT에서만 체결 기회가 달라진다(LOC·MOC·MOO는 언제 접수해도 결과가 같다).
+// LIMIT는 대개 개장 선접수라 그 외(PRIVACY의 장마감 30분 전 접수 등)만 표시한다
 function TimingNote({ orderType, timing }: { orderType: string; timing?: string }) {
   const { labelOf } = useMeta()
-  if (!timing || timing === USUAL_TIMING[orderType]) return null
+  if (orderType !== 'LIMIT' || !timing || timing === 'AT_OPEN') return null
   return <span className="block break-keep text-xs text-muted-foreground mt-0.5">{labelOf('orderTimings', timing)}</span>
 }
 

@@ -25,19 +25,20 @@ describe('OrderRows', () => {
     expect(screen.getAllByRole('button', { name: '취소' })).toHaveLength(4)
   })
 
-  it('shows timing only when it differs from the usual timing of the order type', () => {
+  it('shows timing only for LIMIT orders not submitted at open', () => {
     render(
       <OrderRows
         orders={[
           { ticker: 'SOXL', direction: 'SELL', orderType: 'LIMIT', timing: 'AT_OPEN', quantity: 1, price: '30' },
           { ticker: 'SOXL', direction: 'BUY', orderType: 'LOC', timing: 'AT_CLOSE', quantity: 1, price: '28' },
+          { ticker: 'SOXL', direction: 'SELL', orderType: 'LOC', timing: 'AT_OPEN', quantity: 1, price: '31' },
           { ticker: 'SOXL', direction: 'BUY', orderType: 'LIMIT', timing: 'AT_CLOSE', quantity: 1, price: '27' },
         ]}
       />,
     )
 
     // 모바일 리스트·PC 표 두 벌 — PRIVACY식 마감 접수 LIMIT 한 건만 표시
-    expect(screen.getAllByText('마감 접수')).toHaveLength(2)
+    expect(screen.getAllByText('장마감 30분 전 접수')).toHaveLength(2)
     expect(screen.queryByText('개장 선접수')).toBeNull()
   })
 })
