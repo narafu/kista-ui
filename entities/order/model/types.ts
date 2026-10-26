@@ -14,6 +14,7 @@ export interface NextOrderPositionSnapshot {
 export interface NextOrderItem {
   ticker: string
   orderType: string
+  timing?: string // OrderTiming(AT_CLOSE/AT_OPEN/IMMEDIATE) — kista-api f9a548829 이전 응답엔 없음
   direction: string
   quantity: number
   price: string
@@ -36,7 +37,7 @@ export interface NextOrderPreview {
   position: NextOrderPositionSnapshot | null
   orders: NextOrderItem[]
   skipReason: SkipReason | null
-  todayOrders: PlacedOrder[]               // 오늘 이미 등록된 PLANNED + PLACED 주문 (없으면 빈 배열)
+  todayOrders: Array<PlacedOrder & { timing?: string }>             // 오늘 이미 등록된 PLANNED + PLACED 주문 (없으면 빈 배열)
   otherStrategiesPlannedBuyUsd: string     // 계좌 내 타 전략 당일 PLANNED BUY 합계
   ledgerCheck: LedgerCheck | null          // 전략 원장 예수금 점검 결과 (DCA·신규 BUY 없음·skip이면 null)
 }

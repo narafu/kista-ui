@@ -53,6 +53,11 @@ export const testMeta = {
     { code: 'MOO', label: 'MOO(시가시장가)' },
     { code: 'MARKET', label: 'MARKET(시장가)' },
   ],
+  orderTimings: [
+    { code: 'AT_CLOSE', label: '마감 접수' },
+    { code: 'AT_OPEN', label: '개장 선접수' },
+    { code: 'IMMEDIATE', label: '즉시 접수' },
+  ],
   orderDirections: [
     { code: 'BUY', label: '매수' },
     { code: 'SELL', label: '매도' },

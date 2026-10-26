@@ -9,13 +9,13 @@ export const setMode = (m) => {
   mode = m
 }
 
-const ord = (ticker, direction, quantity, price, orderType = 'LOC') => ({ ticker, orderType, direction, quantity, price })
-const placed = (id, ticker, direction, quantity, price, status = 'PLACED') => ({ id, ticker, direction, orderType: 'LOC', quantity, price, status })
+const ord = (ticker, direction, quantity, price, orderType = 'LOC', timing = 'AT_CLOSE') => ({ ticker, orderType, timing, direction, quantity, price })
+const placed = (id, ticker, direction, quantity, price, status = 'PLACED') => ({ id, ticker, direction, orderType: 'LOC', timing: 'AT_CLOSE', quantity, price, status })
 const pos = (ticker) => ({ ticker, holdings: 42, averagePrice: '28.1500', usdDeposit: '1234.56', totalAssets: '3773.53', priceOffsetRate: '10.0', currentRound: 31.8, unitAmount: '125.00', referencePrice: '28.15', targetPrice: '30.97' })
 const okLedger = { remainingLedger: 1234.56, requiredBuyUsd: 250, sufficient: true, trimmed: false }
 
 function preview(ticker) {
-  const orders = [ord(ticker, 'BUY', 4, '28.15'), ord(ticker, 'BUY', 5, '27.50'), ord(ticker, 'SELL', 42, '30.97')]
+  const orders = [ord(ticker, 'BUY', 4, '28.15'), ord(ticker, 'BUY', 5, '27.50'), ord(ticker, 'SELL', 42, '30.97', 'LIMIT', 'AT_OPEN')] // INFINITE 목표가 매도 = LIMIT 개장 선접수
   const base = { tradeDate: '2026-10-05', position: pos(ticker), orders, skipReason: null, todayOrders: [], otherStrategiesPlannedBuyUsd: '100.00', ledgerCheck: okLedger }
   switch (mode) {
     case 'deficit': return { ...base, ledgerCheck: { ...okLedger, remainingLedger: 177, requiredBuyUsd: 304, sufficient: false } }

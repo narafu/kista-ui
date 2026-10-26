@@ -1476,7 +1476,7 @@ export interface paths {
         };
         /**
          * BUY 재주문 예산 일괄 조회
-         * @description 같은 계좌 원본 주문 1~50건. 남은 예산 = liveOrderable − plannedBuy + 재주문할 원본들의 sourceRefunds 합. live 조회 실패 시 liveOrderable은 null입니다.
+         * @description 같은 계좌 원본 주문 1~50건. 원본 주문의 BUY 재주문 가용액 = cycleRemaining[원본 strategyCycleId] + 해당 원본의 sourceRefunds. DCA 사이클은 원장 상한이 없어 cycleRemaining에 키가 없습니다.
          */
         get: operations["getReorderBuyBudget"];
         put?: never;
@@ -3129,6 +3129,12 @@ export interface components {
             quantity?: number;
             /** @description 주문 가격 (LOC/MOC는 참고용) */
             price?: number;
+            /**
+             * @description 접수 시점 (AT_OPEN=개장 선접수, AT_CLOSE=마감 배치, IMMEDIATE=즉시)
+             * @example AT_CLOSE
+             * @enum {string}
+             */
+            timing?: "AT_CLOSE" | "AT_OPEN" | "IMMEDIATE";
         };
         NextOrdersResponse: {
             /**
@@ -3213,6 +3219,12 @@ export interface components {
              * @enum {string}
              */
             status?: "PLANNED" | "SUBMITTING" | "PLACED" | "FILLED" | "PARTIALLY_FILLED" | "FAILED" | "CANCELLED";
+            /**
+             * @description 접수 시점 (AT_OPEN=개장 선접수, AT_CLOSE=마감 배치, IMMEDIATE=즉시)
+             * @example AT_CLOSE
+             * @enum {string}
+             */
+            timing?: "AT_CLOSE" | "AT_OPEN" | "IMMEDIATE";
         };
         DcaExecutionItem: {
             ruleKey?: string;
@@ -5064,6 +5076,8 @@ export interface components {
             orderDirections?: components["schemas"]["EnumMeta"][];
             /** @description 주문 상태 목록 */
             orderStatuses?: components["schemas"]["EnumMeta"][];
+            /** @description 주문 접수 시점 목록 */
+            orderTimings?: components["schemas"]["EnumMeta"][];
             /** @description DCA 실행 주기 목록 */
             dcaFrequencies?: components["schemas"]["EnumMeta"][];
             /** @description DCA 조건 연산자 목록 */

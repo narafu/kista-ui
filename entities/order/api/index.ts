@@ -30,6 +30,7 @@ function normalizePreview(raw: unknown): NextOrderPreview {
     return {
       ticker: String(item.ticker),
       orderType: String(item.orderType),
+      timing: item.timing == null ? undefined : String(item.timing),
       direction: String(item.direction),
       quantity: Number(item.quantity),
       price: String(item.price),
@@ -50,9 +51,10 @@ function normalizePreview(raw: unknown): NextOrderPreview {
       }
     : null
   const skipReason = (r.skipReason as SkipReason | null | undefined) ?? null
-  const todayOrders = ((r.todayOrders as unknown[]) ?? []).map(
-    (o): PlacedOrder => normalizePlacedOrderBase(o) as PlacedOrder,
-  )
+  const todayOrders = ((r.todayOrders as unknown[]) ?? []).map((o) => {
+    const timing = (o as Record<string, unknown>).timing
+    return { ...(normalizePlacedOrderBase(o) as PlacedOrder), timing: timing == null ? undefined : String(timing) }
+  })
   const otherStrategiesPlannedBuyUsd = String(r.otherStrategiesPlannedBuyUsd ?? '0')
   const ledgerCheck = normalizeLedgerCheck(r.ledgerCheck)
   return { tradeDate: String(r.tradeDate), position, orders, skipReason, todayOrders, otherStrategiesPlannedBuyUsd, ledgerCheck }

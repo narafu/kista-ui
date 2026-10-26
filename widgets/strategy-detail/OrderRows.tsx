@@ -15,6 +15,7 @@ interface OrderRowData {
   ticker: string
   direction: string
   orderType: string
+  timing?: string
   quantity: number
   price: string
   status?: string
@@ -25,6 +26,13 @@ interface Props {
   onCancelOne?: (id: string) => void
   cancellingId?: string | null
   cancelPending?: boolean
+}
+
+// 기본값인 마감 접수(AT_CLOSE)는 생략 — 같은 LIMIT라도 INFINITE는 개장 선접수, PRIVACY는 마감 접수라 다를 때만 표시
+function TimingNote({ timing }: { timing?: string }) {
+  const { labelOf } = useMeta()
+  if (!timing || timing === 'AT_CLOSE') return null
+  return <span className="block break-keep text-xs text-muted-foreground mt-0.5">{labelOf('orderTimings', timing)}</span>
 }
 
 export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: Props) {
@@ -58,7 +66,10 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
               </Badge>
             </div>
             {/* 모바일은 열 폭이 좁아 "LOC(장마감지정가)" 라벨 대신 코드만 표시 */}
-            <span className="text-muted-foreground">{o.orderType}</span>
+            <span className="text-muted-foreground">
+              {o.orderType}
+              <TimingNote timing={o.timing} />
+            </span>
             <span className="font-medium">{o.ticker}</span>
             <span className="text-muted-foreground">{fmtQuantity(o.quantity)}</span>
             <span className="font-semibold">${fmtUsd(toNum(o.price))}</span>
@@ -102,6 +113,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
                 <Badge tone="neutral" size="sm" className="lg:h-[24px] lg:text-sm">
                   {labelOf('orderTypes', o.orderType)}
                 </Badge>
+                <TimingNote timing={o.timing} />
               </TableDataCell>
               <TableDataCell className="font-semibold">{o.ticker}</TableDataCell>
               <TableDataCell className="text-right tabular-nums text-muted-foreground">{fmtQuantity(o.quantity)}</TableDataCell>

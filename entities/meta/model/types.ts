@@ -63,4 +63,5 @@ export interface MetaBundle {
   // 1h 메타 캐시가 이 키보다 오래됐을 수 있어 optional — labelOf가 code로 폴백한다
   orderStatuses?: EnumMeta[]
   dcaExecutionStatuses?: EnumMeta[]
+  orderTimings?: EnumMeta[]
 }
