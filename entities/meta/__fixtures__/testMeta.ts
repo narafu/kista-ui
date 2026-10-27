@@ -19,8 +19,8 @@ export const testMeta = {
   ],
   cycleSeedTypes: [
     { code: 'NONE', label: '연속 안 함' },
-    { code: 'MAINTAIN', label: '시드 유지' },
-    { code: 'MAX', label: '시드 MAX' },
+    { code: 'MAINTAIN', label: '투자금 유지' },
+    { code: 'MAX', label: '투자금 MAX' },
   ],
   assetClasses: [
     { code: 'CASH', label: '현금성' },

@@ -31,7 +31,7 @@ widget 슬라이스끼리 cross-import 금지. **단, 아래 "공용 UI 위젯" 
 ## CSS 토큰 · 스타일링
 
 - `--warn`, `--warn-bg`, `--status-ok`, `--status-ok-bg`, `--status-error`/`--status-error-bg` 계열 토큰 사용
-- **시맨틱 토큰 용도**: `--info`/`--info-bg`(대기·일반 정보성 상태 — 사이클 시드 MAX, 주문 PLACED/LOC 등) · `--admin-fg`/`--admin-bg`(관리자 전용 액센트, 골드 계열 — violet/indigo 하드코딩 대체) · `--status-error`/`--status-error-bg`(실패·에러, FAILED 배지 등). 셋 다 라이트·다크 값 `globals.css`에 정의됨
+- **시맨틱 토큰 용도**: `--info`/`--info-bg`(대기·일반 정보성 상태 — 사이클 투자금 MAX, 주문 PLACED/LOC 등) · `--admin-fg`/`--admin-bg`(관리자 전용 액센트, 골드 계열 — violet/indigo 하드코딩 대체) · `--status-error`/`--status-error-bg`(실패·에러, FAILED 배지 등). 셋 다 라이트·다크 값 `globals.css`에 정의됨
 - `--gold`는 다크 오버라이드 존재(`.dark { --gold: ... }`) — 휴장 표시 등 라이트 전용 골드값을 다크에서 그대로 쓰지 않는다
 - 손익/상태 액센트는 CSS 토큰 기반 인라인 style 사용 가능
 - 거래내역 테이블 헤더는 전용 클래스 패턴 유지

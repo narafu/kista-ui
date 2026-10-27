@@ -37,7 +37,7 @@ export function StrategyFormSkeleton({ hasCancel = true }: { hasCancel?: boolean
         <Skeleton className="h-[66px] rounded" />
       </div>
 
-      {/* 시드 모드 */}
+      {/* 투자금 모드 */}
       <div className="py-[18px] border-b border-border">
         <Skeleton className="h-3.5 w-14 mb-3 rounded" />
         <div className="grid grid-cols-2 gap-2.5">

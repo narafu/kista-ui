@@ -153,7 +153,7 @@ export function BacktestForm({ form }: Props) {
                 </ChoiceButton>
               ))}
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">익절로 사이클이 끝난 뒤 다음 사이클을 이어갈지와 시드 처리 방식</p>
+            <p className="mt-2 text-sm text-muted-foreground">익절로 사이클이 끝난 뒤 다음 사이클을 이어갈지와 투자금 처리 방식</p>
           </div>
         )}
 

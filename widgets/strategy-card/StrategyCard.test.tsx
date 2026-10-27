@@ -105,7 +105,7 @@ describe('StrategyCard mobile row', () => {
     const topRow = screen.getByTestId('strategy-card-mobile-top-row')
     const mainRow = screen.getByTestId('strategy-card-mobile-main-row')
 
-    expect(topRow).toHaveTextContent('INFINITE시드 MAX')
+    expect(topRow).toHaveTextContent('INFINITE투자금 MAX')
     expect(topRow).not.toHaveTextContent('20분할')
     expect(mainRow).not.toHaveTextContent('MAX')
     expect(mainRow).toHaveTextContent('20분할')

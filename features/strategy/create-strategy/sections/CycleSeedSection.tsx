@@ -14,7 +14,7 @@ interface Props {
 }
 
 const SEED_MODES = [
-  { code: 'KEEP', seedType: 'MAINTAIN', sub: '기존 시드만 사용' },
+  { code: 'KEEP', seedType: 'MAINTAIN', sub: '기존 투자금만 사용' },
   { code: 'MAX', seedType: 'MAX', sub: '예수금까지 전체 활용' },
 ] as const
 
@@ -42,11 +42,11 @@ export function CycleSeedSection({ autoStart, setAutoStart, seedMode, setSeedMod
         />
       </div>
 
-      {/* 시드 모드 세그먼트 */}
+      {/* 투자금 모드 세그먼트 */}
       {autoStart && (
         <>
           <div className="text-sm font-bold text-muted-foreground mb-1.5 tracking-[0.04em]">
-            시드 모드
+            투자금 모드
           </div>
           <div className="flex gap-1 p-[3px] bg-muted rounded-[10px]">
             {SEED_MODES.map((m) => {

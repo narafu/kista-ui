@@ -30,7 +30,7 @@ export function StatsKpiRow({ summary }: Props) {
       <KpiCard
         label="운용 원금"
         value={`$${fmtUsd(summary.activePrincipal)}`}
-        sub="진행 중 사이클 시드 합"
+        sub="진행 중 사이클 투자금 합"
         className="col-span-2 min-w-0 p-4 sm:col-span-1 sm:p-5"
         valueClassName="break-words text-xl sm:text-2xl lg:text-3xl"
       />

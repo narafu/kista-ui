@@ -18,7 +18,7 @@ describe('CycleSeedSection', () => {
       </MetaProvider>,
     )
 
-    expect(screen.getByRole('button', { name: /시드 MAX/ })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: /시드 유지/ })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: /투자금 MAX/ })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /투자금 유지/ })).toHaveAttribute('aria-pressed', 'false')
   })
 })

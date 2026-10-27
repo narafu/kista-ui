@@ -167,7 +167,7 @@
   --warn:       #855C13;   --warn-bg:#F6E5C2;
   --status-ok:  #28754A;   --status-ok-bg: #DCEFE0;   /* 정상·완료(체결·승인 등) — 초록 */
 
-  /* Info (정보성 상태 — 사이클 시드 MAX, 주문 PLACED/LOC 등) */
+  /* Info (정보성 상태 — 사이클 투자금 MAX, 주문 PLACED/LOC 등) */
   --info:    #46699C;   --info-bg: #E3EBF5;
   /* P 매매표 평단가-종가 괴리 10%↑/20%↑ — 차트의 빨강(매수)·파랑(매도)·금색(종가)과 겹치지 않는 보라 계열 */
   --avg-gap-1: #8B5CC7;  --avg-gap-2: #5B2A9E;
