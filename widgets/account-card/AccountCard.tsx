@@ -8,7 +8,6 @@ import { apiKeyExpiryState, API_KEY_EXPIRY_LABEL } from '@entities/account'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 import { Badge } from '@shared/ui/Badge'
-import { fmtUsd } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 
 const EMPTY_STRATEGIES: Strategy[] = []
@@ -128,11 +127,6 @@ export function AccountCard({ account }: Props) {
                     {formatStrategyBadge(s)}
                     {s.status !== 'ACTIVE' && ` · ${labelOf('strategyStatuses', s.status)}`}
                   </Badge>
-                  {s.initialUsdDeposit != null && (
-                    <span className="ml-auto shrink-0 text-sm font-semibold leading-none text-foreground tabular-nums">
-                      ${fmtUsd(s.initialUsdDeposit)}
-                    </span>
-                  )}
                 </li>
               ))}
             </ul>
