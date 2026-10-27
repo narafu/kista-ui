@@ -2184,7 +2184,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 전략 최소시드·기준가 미리보기 */
+        /** 전략 최소 투자금·기준가 미리보기 */
         get: operations["seedPreview"];
         put?: never;
         post?: never;
@@ -2223,7 +2223,7 @@ export interface paths {
         };
         /**
          * 복수 종목 전일종가 조회
-         * @description 최대 10개 종목의 전일종가를 단일 호출로 조회 (전략 생성 시 최소 시드 산정 기준). tickers는 TQQQ/SOXL/USD 중 1~10개.
+         * @description 최대 10개 종목의 전일종가를 단일 호출로 조회 (전략 생성 시 최소 투자금 산정 기준). tickers는 TQQQ/SOXL/USD 중 1~10개.
          */
         get: operations["getPrices"];
         put?: never;
@@ -3081,7 +3081,7 @@ export interface components {
              */
             ticker?: string;
             /**
-             * @description 전략 유형 (전략 삭제 등으로 알 수 없으면 null) — DCA는 시드를 점유하지 않아 usdDeposit이 항상 0
+             * @description 전략 유형 (전략 삭제 등으로 알 수 없으면 null) — DCA는 투자금을 점유하지 않아 usdDeposit이 항상 0
              * @example INFINITE
              */
             strategyType?: string;
@@ -3592,14 +3592,14 @@ export interface components {
             ticker?: string;
             /** @description 기준가 (계산 불가 시 null) */
             basePrice?: number;
-            /** @description 최소 필요 시드 (계산 불가 시 null) */
+            /** @description 최소 필요 투자금 (계산 불가 시 null) */
             minSeed?: number;
             /**
              * @description 계산 불가 사유 (정상이면 null)
              * @example NO_PRIVACY_BASE
              */
             skipReason?: string;
-            /** @description 가용 예수금 = 증권사 매수가능금액 − 다른 전략 원장 합 (모의계좌·조회 실패면 null). 입력 시드가 넘으면 경고만 한다 */
+            /** @description 가용 예수금 = 증권사 매수가능금액 − 다른 전략 원장 합 (모의계좌·조회 실패면 null). 입력 예수금이 넘으면 경고만 한다 */
             availableCash?: number;
         };
         TossStockInfoResponse: {
