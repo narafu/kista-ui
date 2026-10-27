@@ -183,18 +183,20 @@ export function DcaSizingSection({ form, market }: Pick<Props, 'form' | 'market'
         )}
       </div>
 
-      <div className="py-[18px] border-b border-border">
-        <StrategyFieldLabel>{shortfallLabel}</StrategyFieldLabel>
-        <div className="flex gap-2">
-          {SHORTFALLS.map((code) => (
-            <SelectionCard key={code} selected={shortfall === code} onClick={() => setValue('shortfall', code)}
-              className="flex-1 px-3 py-2 text-center text-sm font-[800]">
-              {SHORTFALL_CARD[direction][code]}
-            </SelectionCard>
-          ))}
+      {/* 주식 매수는 kista-api가 정책을 쓰지 않는다 — 잔고 부족 시 증권사가 주문을 거절 */}
+      {(isCrypto || direction === 'SELL') && (
+        <div className="py-[18px] border-b border-border">
+          <StrategyFieldLabel>{shortfallLabel}</StrategyFieldLabel>
+          <div className="flex gap-2">
+            {SHORTFALLS.map((code) => (
+              <SelectionCard key={code} selected={shortfall === code} onClick={() => setValue('shortfall', code)}
+                className="flex-1 px-3 py-2 text-center text-sm font-[800]">
+                {SHORTFALL_CARD[direction][code]}
+              </SelectionCard>
+            ))}
+          </div>
         </div>
-        {!isCrypto && direction === 'BUY' && <Caption>주식 매수에는 적용되지 않습니다. 잔고가 부족하면 증권사에서 주문이 거절됩니다.</Caption>}
-      </div>
+      )}
     </>
   )
 }

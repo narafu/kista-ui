@@ -118,7 +118,8 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
                       <p key={i}>{formatDcaCondition(c, dcaIndicatorLabel(c.indicator, labelOf('dcaIndicators', c.indicator), isCrypto), labelOf('dcaOperators', c.operator))}</p>
                     ))
                   )}
-                  <p className="text-muted-foreground">{labelOf('dcaShortfallPolicies', r.shortfall)}</p>
+                  {/* 주식 매수는 부족 정책이 적용되지 않는다 */}
+                  {(isCrypto || r.direction === 'SELL') && <p className="text-muted-foreground">{labelOf('dcaShortfallPolicies', r.shortfall)}</p>}
                   <p className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
                     <span>{isCrypto ? '다음 실행' : '다음 판정일'} {!r.nextExecution ? '미정' : isCrypto ? formatCryptoNextExecution(r.nextExecution.kstTradeDate, r.executionHour) : fmtDate(r.nextExecution.kstTradeDate)}</span>
                     {r.lastExecution && <span>최근 {labelOf('dcaExecutionStatuses', r.lastExecution.status)}{r.lastExecution.skipReason && ` · ${labelOf('dcaSkipReasons', r.lastExecution.skipReason)}`}</span>}

@@ -262,8 +262,12 @@ describe('DcaStrategyForm', () => {
     expect(screen.queryByRole('button', { name: 'UPRO' })).not.toBeInTheDocument()
   })
 
-  it('줄 2행에 조건과 부족 시 정책 라벨을 보여 준다', () => {
-    renderForm(existing([rule('a', 100, { shortfall: 'REJECT', conditions: [{ indicator: 'RSI', operator: 'LTE', threshold: 30 }] })]))
-    expect(row(/RSI\(14\) 30 이하 · 주문하지 않음/)).toBeInTheDocument()
+  it('줄 2행에 조건과 부족 시 정책 라벨을 보여 준다 — 주식 매수는 정책이 적용되지 않아 생략', () => {
+    renderForm(existing([
+      rule('a', 100, { shortfall: 'REJECT', conditions: [{ indicator: 'RSI', operator: 'LTE', threshold: 30 }] }),
+      rule('b', 100, { direction: 'SELL', shortfall: 'REJECT', conditions: [{ indicator: 'RSI', operator: 'GTE', threshold: 70 }] }),
+    ]))
+    expect(row(/RSI\(14\) 30 이하$/)).toBeInTheDocument()
+    expect(row(/RSI\(14\) 70 이상 · 주문하지 않음/)).toBeInTheDocument()
   })
 })
