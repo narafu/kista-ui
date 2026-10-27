@@ -56,10 +56,6 @@ interface LayoutProps {
   orderSignal: OrderSignal | null
 }
 
-function InitialDeposit({ value }: { value: Strategy['initialUsdDeposit'] }) {
-  return value != null ? `$${fmtUsd(value)}` : <span className="text-muted-foreground font-normal">미설정</span>
-}
-
 function MobileLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, typeLabel, seedLabel, seedBadgeCls, statusLabel, orderSignal }: LayoutProps) {
   // 모바일: 2행 레이아웃
   return (
@@ -100,13 +96,7 @@ function MobileLayout({ strategy, accountLabel, usesDivisionCount, isVr, schedul
         {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
           <span className="shrink-0 whitespace-nowrap text-xs font-semibold text-foreground">{strategy.currentRound!.toFixed(1)}회차</span>
         )}
-        <span className="ml-auto flex items-baseline gap-1">
-          <span className="whitespace-nowrap text-xs text-muted-foreground">시작 예수금</span>
-          <span className="text-sm font-semibold text-foreground">
-            <InitialDeposit value={strategy.initialUsdDeposit} />
-          </span>
-        </span>
-        <ChevronRight className="size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
+        <ChevronRight className="ml-auto size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
       </div>
     </div>
   )
@@ -156,8 +146,9 @@ function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledSt
           </span>
           {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
           {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
-            <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-foreground">{strategy.currentRound!.toFixed(1)}회차</span>
+            <span className="ml-auto shrink-0 whitespace-nowrap text-sm font-semibold text-foreground">{strategy.currentRound!.toFixed(1)}회차</span>
           )}
+          <ChevronRight className="ml-2 size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
         </div>
       </div>
       {/* 시드 정보 행 */}
@@ -167,16 +158,6 @@ function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledSt
           <Badge tone="none" size="sm" className={seedBadgeCls}>{seedLabel}</Badge>
         </div>
       )}
-      {/* 시작 예수금 푸터 */}
-      <div className="flex items-center justify-between pl-5 pr-4 py-2.5 border-t border-border bg-muted/30">
-        <span className="text-sm text-muted-foreground">시작 예수금</span>
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm font-semibold text-foreground">
-            <InitialDeposit value={strategy.initialUsdDeposit} />
-          </span>
-          <ChevronRight className="size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
-        </div>
-      </div>
     </div>
   )
 }
