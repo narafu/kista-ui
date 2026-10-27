@@ -27,7 +27,7 @@ function SeedStatus({ value, deposit, minSeed }: StatusProps) {
   if (minSeed !== null && amount !== null && amount < minSeed) {
     return (
       <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--warn-bg)] border border-[var(--warn)]">
-        <span className="text-sm text-[var(--warn)] font-bold">최소 시드 미달</span>
+        <span className="text-sm text-[var(--warn)] font-bold">최소 투자금 미달</span>
         <span className="text-sm font-extrabold text-[var(--warn)] tabular-nums">
           최소 ${fmtUsd(minSeed)}
         </span>

@@ -184,7 +184,7 @@ export function computeSubmitDisabledReason(input: {
         })()
       : (() => {
           if (seedUnavailableReason === 'NO_PRIVACY_BASE') return 'P 매매표가 없어 등록할 수 없습니다.'
-          if (isBelowMinSeed && minSeed !== null) return `최소 시드 $${fmtUsd(minSeed)} 이상이 필요합니다.`
+          if (isBelowMinSeed && minSeed !== null) return `최소 투자금 $${fmtUsd(minSeed)} 이상이 필요합니다.`
           if (isInvalidSeed) return '예수금은 0보다 커야 합니다.'
           if (basePrice === null && seedUnavailableReason === null) return '기준 가격을 불러오는 중입니다.'
           return null
