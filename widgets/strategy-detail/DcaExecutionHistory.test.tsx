@@ -1,6 +1,7 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { DcaRule } from '@entities/strategy'
+import { testLabelOf } from '@entities/meta/__fixtures__/testMeta'
 import { DcaExecutionHistory } from './DcaExecutionHistory'
 
 const { queryMock } = vi.hoisted(() => ({ queryMock: vi.fn() }))
@@ -17,6 +18,8 @@ vi.mock('@entities/strategy', async () => ({
 
 const rule = { ruleKey: 'a', direction: 'BUY', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC', executionHour: null, sizing: { type: 'AMOUNT', amount: 15000, percent: null }, shortfall: 'PARTIAL', conditions: [], nextExecution: null, lastExecution: null } as DcaRule
 const row = { ruleKey: 'a', direction: 'BUY', kstTradeDate: '2026-09-30', status: 'ORDERED', skipReason: null, detail: null, quantity: 3, order: null }
+
+const table = () => within(screen.getByRole('region', { name: '회차별 실행 이력' }))
 
 describe('DcaExecutionHistory', () => {
   beforeEach(() => queryMock.mockReset())
@@ -37,7 +40,7 @@ describe('DcaExecutionHistory', () => {
       data: { content: [row], page: 0, size: 20, totalElements: 1 }, isLoading: false, isError: false,
     })
     render(<DcaExecutionHistory strategyId="d1" ticker="UPRO" rules={[rule]} market="US_STOCK" />)
-    const cells = screen.getAllByRole('row')[1].querySelectorAll('td')
+    const cells = table().getAllByRole('row')[1].querySelectorAll('td')
     expect(cells[4]).toHaveTextContent('-')
   })
 
@@ -47,9 +50,9 @@ describe('DcaExecutionHistory', () => {
       isLoading: false, isError: false,
     })
     render(<DcaExecutionHistory strategyId="d1" ticker="BTC" rules={[rule]} market="CRYPTO_KRW" />)
-    expect(screen.getByText('145,000,000원')).toBeInTheDocument()
-    expect(screen.getByText('0.00034482 BTC')).toBeInTheDocument()
-    expect(screen.getByText(/145,100,000원/)).toBeInTheDocument()
+    expect(table().getByText('145,000,000원')).toBeInTheDocument()
+    expect(table().getByText('0.00034482 BTC')).toBeInTheDocument()
+    expect(table().getByText(/145,100,000원/)).toBeInTheDocument()
   })
 
   it('바이낸스 행은 USDT 가격으로 표시한다', () => {
@@ -58,9 +61,9 @@ describe('DcaExecutionHistory', () => {
       isLoading: false, isError: false,
     })
     render(<DcaExecutionHistory strategyId="d1" ticker="BTC" rules={[rule]} market="CRYPTO_USDT" />)
-    expect(screen.getByText('65,000.50 USDT')).toBeInTheDocument()
-    expect(screen.getByText(/65,010.00 USDT/)).toBeInTheDocument()
-    expect(screen.getByText('0.001 BTC')).toBeInTheDocument()
+    expect(table().getByText('65,000.50 USDT')).toBeInTheDocument()
+    expect(table().getByText(/65,010.00 USDT/)).toBeInTheDocument()
+    expect(table().getByText('0.001 BTC')).toBeInTheDocument()
   })
 
   it('같은 날 규칙별 행을 모두 보여주고 삭제된 규칙은 방향 배지와 함께 표시한다', () => {
@@ -69,11 +72,25 @@ describe('DcaExecutionHistory', () => {
       data: { content: [row, x], page: 0, size: 20, totalElements: 2 }, isLoading: false, isError: false,
     })
     render(<DcaExecutionHistory strategyId="d1" ticker="UPRO" rules={[rule]} market="US_STOCK" />)
-    const rows = screen.getAllByRole('row')
+    const rows = table().getAllByRole('row')
     expect(rows).toHaveLength(3)
     expect(rows[1]).toHaveTextContent('매수 · 매일 · MOC(종가시장가) · $15,000.00')
     expect(rows[2]).toHaveTextContent('삭제된 규칙')
     expect(rows[2]).toHaveTextContent('매도')
     expect(rows[2]).toHaveTextContent('보유 수량 부족')
+  })
+
+  it('모바일 카드에 날짜 그룹·규칙·결과·기준가·수량·체결·사유를 표시한다', () => {
+    queryMock.mockReturnValue({
+      data: { content: [{ ruleKey: 'a', direction: 'BUY', kstTradeDate: '2026-10-18', status: 'SKIPPED', skipReason: 'BELOW_MIN_ORDER_AMOUNT', detail: null, referencePrice: 145000000, quantity: 0.00034482, order: { id: 'o1', status: 'FILLED', filledPrice: 145100000 } }], page: 0, size: 20, totalElements: 1 },
+      isLoading: false, isError: false,
+    })
+    const { container } = render(<DcaExecutionHistory strategyId="d1" ticker="BTC" rules={[rule]} market="CRYPTO_KRW" />)
+    const card = within(container.querySelector('.lg\\:hidden') as HTMLElement)
+    expect(card.getByText('145,000,000원')).toBeInTheDocument()
+    expect(card.getByText('0.00034482 BTC')).toBeInTheDocument()
+    expect(card.getByText(/145,100,000원/)).toBeInTheDocument()
+    expect(card.getByText(/매수 · 매일/)).toBeInTheDocument()
+    expect(card.getByText(testLabelOf('dcaSkipReasons', 'BELOW_MIN_ORDER_AMOUNT'))).toBeInTheDocument()
   })
 })

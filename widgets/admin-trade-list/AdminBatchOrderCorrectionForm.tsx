@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@shared/ui/Badge'
-import { directionTextClass } from '@entities/trade'
+import { directionBadgeClass } from '@entities/trade'
 import { useMeta } from '@entities/meta'
 import { useAdminReorderBuyBudgetQuery } from '@entities/admin'
 import type { AdminReorderBuyBudget, AdminReorderTimingAvailability, AdminStrategyOrder, OrderTiming } from '@entities/admin'
@@ -261,7 +261,7 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
           return (
             <section key={order.id} className={`rounded-[var(--r-md)] border bg-background p-3 ${isChanged ? 'border-primary' : 'border-border'}`}>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-medium"><span className={directionTextClass(order.direction)}>{labelOf('orderDirections', order.direction)}</span> · {labelOf('orderTypes', order.orderType)}</span>
+                <span className="font-medium"><Badge tone="none" size="sm" className={directionBadgeClass(order.direction)}>{labelOf('orderDirections', order.direction)}</Badge> · {labelOf('orderTypes', order.orderType)}</span>
                 <span className="text-muted-foreground">· {order.quantity}주</span>
                 <span className="text-muted-foreground">· {order.ticker}</span>
                 {isChanged && (
@@ -305,22 +305,6 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
 
               <div className="mt-3 grid gap-3 md:grid-cols-3">
                 <div className="grid gap-2 text-sm">
-                  <Label htmlFor={`reorder-quantity-${order.id}`} className="font-medium">재주문 수량</Label>
-                  <Input
-                    id={`reorder-quantity-${order.id}`}
-                    aria-label={`주문 ${index + 1} 재주문 수량`}
-                    type="number"
-                    required
-                    min="1"
-                    step="1"
-                    value={draft.quantity}
-                    onChange={(e) => handleDraftChange(order.id, 'quantity', e.target.value)}
-                    disabled={disabled || isBlocked || isClosed}
-                    className="h-10"
-                  />
-                </div>
-
-                <div className="grid gap-2 text-sm">
                   <Label htmlFor={`reorder-price-${order.id}`} className="font-medium">재주문 가격</Label>
                   <Input
                     id={`reorder-price-${order.id}`}
@@ -331,6 +315,22 @@ export function AdminBatchOrderCorrectionForm({ orders, disabled, timingAvailabi
                     step="0.01"
                     value={draft.price}
                     onChange={(e) => handleDraftChange(order.id, 'price', e.target.value)}
+                    disabled={disabled || isBlocked || isClosed}
+                    className="h-10"
+                  />
+                </div>
+
+                <div className="grid gap-2 text-sm">
+                  <Label htmlFor={`reorder-quantity-${order.id}`} className="font-medium">재주문 수량</Label>
+                  <Input
+                    id={`reorder-quantity-${order.id}`}
+                    aria-label={`주문 ${index + 1} 재주문 수량`}
+                    type="number"
+                    required
+                    min="1"
+                    step="1"
+                    value={draft.quantity}
+                    onChange={(e) => handleDraftChange(order.id, 'quantity', e.target.value)}
                     disabled={disabled || isBlocked || isClosed}
                     className="h-10"
                   />

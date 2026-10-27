@@ -1,6 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
@@ -30,7 +31,32 @@ export function CryptoHoldingsCard({ portfolio, isError }: Props) {
         ) : portfolio.holdings.length === 0 ? (
           <EmptyState variant="text" message="보유한 코인이 없습니다." />
         ) : (
-          <div role="region" aria-label="보유 코인 목록" tabIndex={0} className="overflow-x-auto">
+          <>
+            {/* 모바일: 카드 리스트 */}
+            <div className="space-y-2 p-4 lg:hidden">
+              {portfolio.holdings.map((h) => (
+                <div key={h.ticker} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Badge tone="brand" size="sm" className="px-2.5 font-bold">{h.ticker}</Badge>
+                    <span className="text-sm font-semibold">{fmtQuantity(h.quantity)}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2 text-sm">
+                    <span className="text-muted-foreground">
+                      평단가 <span className="font-semibold text-foreground">{h.avgBuyPrice == null ? '-' : fmtMoney(h.avgBuyPrice, portfolio.currency)}</span>
+                    </span>
+                    <span className="text-muted-foreground">
+                      현재가 <span className="font-semibold text-foreground">{h.currentPrice == null ? UNAVAILABLE : fmtMoney(h.currentPrice, portfolio.currency)}</span>
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">평가금액</span>
+                    <span className="font-semibold text-foreground">{h.currentPrice == null ? UNAVAILABLE : fmtMoney(h.evalAmount, portfolio.currency)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* 데스크탑: 테이블 */}
+            <div role="region" aria-label="보유 코인 목록" tabIndex={0} className="hidden overflow-x-auto lg:block">
             <table className="w-full text-sm">
               <thead className="bg-muted/50">
                 <tr>
@@ -53,7 +79,8 @@ export function CryptoHoldingsCard({ portfolio, isError }: Props) {
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )}
       </CardContent>
     </Card>

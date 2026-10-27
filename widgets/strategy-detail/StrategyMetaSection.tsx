@@ -111,7 +111,7 @@ function SummaryGrid({ strategy, usesDivisionCount }: { strategy: Strategy; uses
 function VrGrid({ vr, startDate }: { vr: NonNullable<Strategy['vr']>; startDate: Strategy['startDate'] }) {
   return (
     <div data-testid="strategy-vr-grid" className="space-y-3">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-2 gap-3">
         <KpiCard label="밴드 폭" value={`${vr.bandWidth}%`} />
         <KpiCard label="주기" value={`${vr.intervalWeeks}주`} />
         <KpiCard label="시작일" value={startDate ? fmtDate(startDate) : '미설정'} />
@@ -120,7 +120,7 @@ function VrGrid({ vr, startDate }: { vr: NonNullable<Strategy['vr']>; startDate:
           value={startDate ? fmtDate(nextVrRolloverDate(startDate, vr.intervalWeeks)) : '미설정'}
         />
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-2 gap-3">
         <KpiCard label="G" value={`${vr.gradient}`} />
         <KpiCard label="V" value={`$${fmtUsd(vr.value)}`} />
         <KpiCard
@@ -153,7 +153,7 @@ interface PositionGridProps {
 function PositionGrid({ preview, isLoadingPreview, isPreviewError, previewError }: PositionGridProps) {
   const position = preview?.position ?? null
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-2 gap-3">
       {isLoadingPreview ? (
         <>
           <KpiCard label="회차(T)" skeleton />
@@ -162,7 +162,7 @@ function PositionGrid({ preview, isLoadingPreview, isPreviewError, previewError 
           <KpiCard label="목표가" skeleton />
         </>
       ) : isPreviewError ? (
-        <Card className="col-span-2 lg:col-span-4">
+        <Card className="col-span-2 lg:col-span-4 xl:col-span-2">
           <CardContent className="p-5 text-sm text-muted-foreground text-center">{previewErrorMsg(previewError)}</CardContent>
         </Card>
       ) : position ? (
@@ -173,7 +173,7 @@ function PositionGrid({ preview, isLoadingPreview, isPreviewError, previewError 
           <KpiCard label="목표가" value={`$${fmtUsd(toNum(position.targetPrice))}`} />
         </>
       ) : (
-        <Card className="col-span-2 lg:col-span-4">
+        <Card className="col-span-2 lg:col-span-4 xl:col-span-2">
           <CardContent className="whitespace-pre-line p-5 text-sm text-muted-foreground text-center">
             {preview?.skipReason ? SKIP_REASON_LABELS[preview.skipReason] : '다음 주문 정보를 불러올 수 없습니다.'}
           </CardContent>

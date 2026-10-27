@@ -111,7 +111,7 @@ describe('StatsOverview', () => {
     expect(screen.queryByRole('button', { name: 'QLD' })).not.toBeInTheDocument()
     expect(await screen.findAllByText('SOXL')).toHaveLength(2)
     const cycleTable = screen.getByRole('table', { name: '사이클 성과' })
-    expect(cycleTable.parentElement).toHaveClass('hidden', 'sm:block')
+    expect(cycleTable.parentElement).toHaveClass('hidden', 'lg:block')
     for (const header of ['전략', '종목', '기간', '손익', '수익률']) {
       expect(within(cycleTable).getByRole('columnheader', { name: header })).toBeInTheDocument()
     }
@@ -123,12 +123,12 @@ describe('StatsOverview', () => {
     const strategyTable = screen.getByRole('columnheader', { name: '사이클' }).closest('table')
     expect(strategyTable).not.toBeNull()
     if (!strategyTable) throw new Error('전략 유형 비교 table을 찾을 수 없습니다')
-    expect(strategyTable.parentElement).toHaveClass('hidden', 'sm:block')
+    expect(strategyTable.parentElement).toHaveClass('hidden', 'lg:block')
     expect(within(strategyTable).getByText('INFINITE')).toBeInTheDocument()
     expect(within(strategyTable).getByText('PRIVACY')).toBeInTheDocument()
 
     const cycleMobile = screen.getByRole('list', { name: '사이클 성과' })
-    expect(cycleMobile).toHaveClass('sm:hidden')
+    expect(cycleMobile).toHaveClass('lg:hidden')
     for (const label of ['손익', '수익률']) {
       expect(within(cycleMobile).getByText(label)).toBeInTheDocument()
     }
@@ -138,7 +138,7 @@ describe('StatsOverview', () => {
     expect(activeCycleCard.textContent?.match(/진행 중/g)).toHaveLength(1)
 
     const strategyMobile = screen.getByRole('list', { name: '전략 유형 비교' })
-    expect(strategyMobile).toHaveClass('sm:hidden')
+    expect(strategyMobile).toHaveClass('lg:hidden')
     for (const label of ['사이클', '평균 수익률', '평균 소요일', '실현손익', '미실현']) {
       expect(within(strategyMobile).getAllByText(label).length).toBeGreaterThan(0)
     }

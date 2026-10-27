@@ -1,8 +1,11 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { StrategyOrder } from '@entities/order'
 import { StrategyOrderHistory } from './StrategyOrderHistory'
+
+// 모바일 카드와 PC 표가 함께 렌더되므로 PC 표 영역으로 한정해 조회한다
+const inTable = () => within(screen.getByRole('region', { name: '주문 내역' }))
 
 vi.mock('@entities/meta', async () => {
   const { testMeta, testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
@@ -69,8 +72,16 @@ describe('StrategyOrderHistory filters', () => {
   it('상태 필터 기본값은 체결이다', async () => {
     render(<StrategyOrderHistory strategyId="strategy-1" />)
 
-    expect(screen.getByText('$120.00')).toBeInTheDocument()
-    expect(screen.queryByText('$100.00')).not.toBeInTheDocument()
+    expect(inTable().getByText('$120.00')).toBeInTheDocument()
+    expect(inTable().queryByText('$100.00')).not.toBeInTheDocument()
+  })
+
+  it('모바일 카드는 주문가 다음에 수량을 표시하고 표는 주문가 열이 수량 열보다 앞선다', () => {
+    render(<StrategyOrderHistory strategyId="strategy-1" />)
+
+    const headers = inTable().getAllByRole('columnheader').map((h) => h.textContent)
+    expect(headers.indexOf('주문가')).toBe(headers.indexOf('수량') - 1)
+    expect(screen.getAllByText(/주문가/).some((el) => /주문가\s*\$120\.00\s*·\s*수량/.test(el.textContent ?? ''))).toBe(true)
   })
 
   // userEvent 연속 클릭 2회(Select 드롭다운 열기+옵션 선택 ×2) — 전체 스위트 동시 실행 시
@@ -80,13 +91,13 @@ describe('StrategyOrderHistory filters', () => {
 
     await selectOption('상태', '전체')
 
-    expect(screen.getByText('$100.00')).toBeInTheDocument()
-    expect(screen.getByText('$110.00')).toBeInTheDocument()
+    expect(inTable().getByText('$100.00')).toBeInTheDocument()
+    expect(inTable().getByText('$110.00')).toBeInTheDocument()
 
     await selectOption('방향', '매수')
 
-    expect(screen.getByText('$100.00')).toBeInTheDocument()
-    expect(screen.queryByText('$110.00')).not.toBeInTheDocument()
+    expect(inTable().getByText('$100.00')).toBeInTheDocument()
+    expect(inTable().queryByText('$110.00')).not.toBeInTheDocument()
   }, 15000)
 
   it.each([
@@ -98,8 +109,8 @@ describe('StrategyOrderHistory filters', () => {
     await selectOption('상태', '전체')
     await selectOption(label, option)
 
-    expect(screen.getByText(visible)).toBeInTheDocument()
-    expect(screen.queryByText(hidden)).not.toBeInTheDocument()
+    expect(inTable().getByText(visible)).toBeInTheDocument()
+    expect(inTable().queryByText(hidden)).not.toBeInTheDocument()
   })
 
   it('방향, 유형, 상태 필터를 AND 조건으로 결합한다', async () => {
@@ -109,8 +120,8 @@ describe('StrategyOrderHistory filters', () => {
     await selectOption('유형', 'LOC(종가지정가)')
     await selectOption('상태', '접수')
 
-    expect(screen.getByText('$110.00')).toBeInTheDocument()
-    expect(screen.queryByText('$130.00')).not.toBeInTheDocument()
+    expect(inTable().getByText('$110.00')).toBeInTheDocument()
+    expect(inTable().queryByText('$130.00')).not.toBeInTheDocument()
   })
 
   it('원본 주문은 있지만 필터 결과가 없으면 전용 빈 상태를 표시한다', async () => {
@@ -131,11 +142,11 @@ describe('StrategyOrderHistory filters', () => {
     render(<StrategyOrderHistory strategyId="strategy-1" />)
     await selectOption('상태', '전체')
     await user.click(screen.getByText('2'))
-    expect(screen.getByText('$111.00')).toBeInTheDocument()
+    expect(inTable().getByText('$111.00')).toBeInTheDocument()
 
     await selectOption('방향', '매수')
 
-    expect(screen.getByText('$101.00')).toBeInTheDocument()
-    expect(screen.queryByText('$111.00')).not.toBeInTheDocument()
+    expect(inTable().getByText('$101.00')).toBeInTheDocument()
+    expect(inTable().queryByText('$111.00')).not.toBeInTheDocument()
   })
 })

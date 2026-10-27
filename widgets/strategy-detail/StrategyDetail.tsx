@@ -58,34 +58,48 @@ export function StrategyDetail({ accountId, broker, strategy }: Props) {
 
   return (
     <div className="space-y-4">
-      <StrategyMetaSection
-        strategy={strategy}
-        preview={preview}
-        isLoadingPreview={isLoadingPreview}
-        isPreviewError={isPreviewError}
-        previewError={previewError}
-      />
+      {/* PC: 전략 정보 / 다음 주문 2단 — 행 높이는 왼쪽이 정하고, 더 긴 다음 주문은 카드 안에서 스크롤한다. 왼쪽이 짧아도 목록이 너무 줄지 않게 최소 높이를 둔다 */}
+      <div className="space-y-4 xl:grid xl:grid-cols-2 xl:gap-4 xl:space-y-0">
+        <div className="space-y-4">
+          <StrategyMetaSection
+            strategy={strategy}
+            preview={preview}
+            isLoadingPreview={isLoadingPreview}
+            isPreviewError={isPreviewError}
+            previewError={previewError}
+          />
+        </div>
 
-      <NextOrderCard
-        strategy={strategy}
-        broker={broker}
-        preview={preview}
-        isLoadingPreview={isLoadingPreview}
-        isPreviewError={isPreviewError}
-        previewError={previewError}
-        readiness={readiness}
-        mode={mode}
-        canExecute={canExecute}
-        bannerText={bannerText}
-        marketStatusMessage={marketStatusMessage}
-        isConfirmedHoliday={isConfirmedHoliday}
-        execute={execute}
-        isExecuting={isExecuting}
-      />
+        <div className="xl:relative xl:min-h-96">
+          <NextOrderCard
+            strategy={strategy}
+            broker={broker}
+            preview={preview}
+            isLoadingPreview={isLoadingPreview}
+            isPreviewError={isPreviewError}
+            previewError={previewError}
+            readiness={readiness}
+            mode={mode}
+            canExecute={canExecute}
+            bannerText={bannerText}
+            marketStatusMessage={marketStatusMessage}
+            isConfirmedHoliday={isConfirmedHoliday}
+            execute={execute}
+            isExecuting={isExecuting}
+          />
+        </div>
+      </div>
 
-      <StrategyOrderHistory strategyId={strategy.id} />
+      <div className="space-y-4 xl:grid xl:grid-cols-2 xl:items-start xl:gap-4 xl:space-y-0">
+        {/* 모바일은 주문 내역이 먼저, PC 2단은 잔고 이력이 왼쪽 */}
+        <div className="xl:order-2">
+          <StrategyOrderHistory strategyId={strategy.id} />
+        </div>
 
-      <StrategyTradesTab strategyId={strategy.id} />
+        <div className="xl:order-1">
+          <StrategyTradesTab strategyId={strategy.id} />
+        </div>
+      </div>
 
       <Card>
         <CardContent className="p-5 flex gap-2">

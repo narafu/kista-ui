@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { CryptoHoldingsCard } from './CryptoHoldingsCard'
 
@@ -12,17 +12,19 @@ const portfolio = {
   ],
 }
 
+const table = () => within(screen.getByRole('region', { name: '보유 코인 목록' }))
+
 describe('CryptoHoldingsCard', () => {
   it('보유 코인의 수량·평단·현재가·평가금액을 원화로 보여준다', () => {
     render(<CryptoHoldingsCard portfolio={portfolio} isError={false} />)
-    expect(screen.getByText('0.01234567')).toBeInTheDocument()
-    expect(screen.getByText('110,000,000원')).toBeInTheDocument()
-    expect(screen.getByText('1,358,024원')).toBeInTheDocument()
+    expect(table().getByText('0.01234567')).toBeInTheDocument()
+    expect(table().getByText('110,000,000원')).toBeInTheDocument()
+    expect(table().getByText('1,358,024원')).toBeInTheDocument()
   })
 
   it('현재가를 못 받은 코인은 확인 불가로 표시하고 0원을 보여주지 않는다', () => {
     render(<CryptoHoldingsCard portfolio={portfolio} isError={false} />)
-    expect(screen.getAllByText('현재가 확인 불가').length).toBeGreaterThan(0)
+    expect(table().getAllByText('현재가 확인 불가').length).toBeGreaterThan(0)
     expect(screen.queryByText('0원')).not.toBeInTheDocument()
   })
 
@@ -38,9 +40,9 @@ describe('CryptoHoldingsCard', () => {
         isError={false}
       />,
     )
-    expect(screen.getByText('65,000.50 USDT')).toBeInTheDocument()
-    expect(screen.getByText('65.00 USDT')).toBeInTheDocument()
-    expect(screen.getByText('-')).toBeInTheDocument()
+    expect(table().getByText('65,000.50 USDT')).toBeInTheDocument()
+    expect(table().getByText('65.00 USDT')).toBeInTheDocument()
+    expect(table().getByText('-')).toBeInTheDocument()
     expect(screen.queryByText(/원$/)).not.toBeInTheDocument()
   })
 
@@ -52,5 +54,16 @@ describe('CryptoHoldingsCard', () => {
   it('데이터 없이 실패하면 오류 문구를 보여준다', () => {
     render(<CryptoHoldingsCard portfolio={undefined} isError />)
     expect(screen.getByText('보유 코인을 불러오지 못했습니다.')).toBeInTheDocument()
+  })
+
+  it('모바일 카드에 종목·수량·평단가·현재가·평가금액을 보여준다', () => {
+    const { container } = render(<CryptoHoldingsCard portfolio={portfolio} isError={false} />)
+    const card = within(container.querySelector('.lg\\:hidden') as HTMLElement)
+    expect(card.getByText('BTC')).toBeInTheDocument()
+    expect(card.getByText('0.01234567')).toBeInTheDocument()
+    expect(card.getByText('100,000,000원')).toBeInTheDocument()
+    expect(card.getByText('110,000,000원')).toBeInTheDocument()
+    expect(card.getByText('1,358,024원')).toBeInTheDocument()
+    expect(card.getAllByText('현재가 확인 불가')).toHaveLength(2)
   })
 })

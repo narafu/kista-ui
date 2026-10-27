@@ -4,8 +4,3 @@ import type { OrderDirection } from './types'
 export function directionBadgeClass(direction: OrderDirection | string): string {
   return direction === 'BUY' ? 'bg-pos-bg text-pos' : 'bg-neg-bg text-neg'
 }
-
-/** 매수/매도 방향에 따른 텍스트 색 클래스를 반환한다. (BUY=pos 빨강, SELL=neg 파랑) */
-export function directionTextClass(direction: OrderDirection | string): string {
-  return direction === 'BUY' ? 'text-pos' : 'text-neg'
-}

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MetaProvider } from '@entities/meta'
@@ -205,10 +205,11 @@ describe('DcaStrategyDetail', () => {
   })
   it('회차 이력: 주문됨/건너뜀 + 사유·detail', () => {
     renderDetail()
-    expect(screen.getByText('주문됨')).toBeInTheDocument()
-    expect(screen.getByText('조건 미충족')).toBeInTheDocument()
-    expect(screen.getByText('RSI(14) 48.20 > 35')).toBeInTheDocument()
-    expect(screen.getByRole('region', { name: '회차별 실행 이력' })).toHaveAttribute('tabindex', '0')
+    const region = screen.getByRole('region', { name: '회차별 실행 이력' })
+    expect(within(region).getByText('주문됨')).toBeInTheDocument()
+    expect(within(region).getByText('조건 미충족')).toBeInTheDocument()
+    expect(within(region).getByText('RSI(14) 48.20 > 35')).toBeInTheDocument()
+    expect(region).toHaveAttribute('tabindex', '0')
   })
   it('dca가 없어도 이력·일시중지 버튼을 렌더하고 규칙 카드는 없다', () => {
     renderDetail({ ...strategy, dca: undefined })

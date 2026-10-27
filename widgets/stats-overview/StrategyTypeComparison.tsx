@@ -24,7 +24,7 @@ export function StrategyTypeComparison({ byType }: Props) {
           <EmptyState variant="text" message="비교할 전략 데이터가 없습니다." />
         ) : (
           <>
-            <div className="hidden overflow-x-auto sm:block" role="region" aria-label="전략 유형 비교 표" tabIndex={0}>
+            <div className="hidden overflow-x-auto lg:block" role="region" aria-label="전략 유형 비교 표" tabIndex={0}>
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>
@@ -58,7 +58,7 @@ export function StrategyTypeComparison({ byType }: Props) {
                 </tbody>
               </table>
             </div>
-            <ul className="divide-y sm:hidden list-none p-0 m-0" aria-label="전략 유형 비교">
+            <ul className="divide-y lg:hidden list-none p-0 m-0" aria-label="전략 유형 비교">
               {byType.map((item) => (
                 <li key={item.type} className="px-4 py-4">
                   <Badge tone="brand" size="md">

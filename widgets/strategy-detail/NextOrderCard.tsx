@@ -154,14 +154,14 @@ export function NextOrderCard({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 xl:absolute xl:inset-0 xl:flex xl:flex-col">
       {bannerText && (
         <div className="flex items-center gap-2 rounded-[var(--r-md)] bg-warn-bg px-3.5 py-2.5 text-base font-semibold text-warn">
           <AlertTriangle className="size-4 shrink-0" />
           <span className="whitespace-pre-line">{bannerText}</span>
         </div>
       )}
-      <Card>
+      <Card className="xl:min-h-0 xl:flex-1">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between gap-2">
             <div>
@@ -189,7 +189,7 @@ export function NextOrderCard({
             )}
           </div>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 xl:min-h-0 xl:overflow-y-auto" role="region" aria-label="다음 주문 목록" tabIndex={0}>
           {mode === 'executed' ? (
             <ExecutedBody
               placedOrders={placedOrders}
@@ -224,6 +224,8 @@ export function NextOrderCard({
               canExecute={canExecute}
             />
           )}
+          {/* PC 2단에서 목록이 카드 안에서 스크롤될 때 아래에 더 있음을 알린다 — 끝까지 내리면 마지막 행 아래 빈 영역에 놓인다 */}
+          <div aria-hidden className="pointer-events-none sticky bottom-0 hidden h-12 bg-gradient-to-t from-card to-transparent xl:block" />
         </CardContent>
       </Card>
       {readiness.ledgerTrimmed && (

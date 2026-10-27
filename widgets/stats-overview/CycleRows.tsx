@@ -34,7 +34,7 @@ function Period({ cycle }: { cycle: CyclePerformance }) {
 function CycleTable({ cycles, accountsById }: Props) {
   const { labelOf } = useMeta()
   return (
-    <div className="hidden overflow-x-auto sm:block" role="region" aria-label="사이클 성과 표" tabIndex={0}>
+    <div className="hidden overflow-x-auto lg:block" role="region" aria-label="사이클 성과 표" tabIndex={0}>
       <table className="w-full min-w-[800px] text-sm" aria-label="사이클 성과">
         <thead className="bg-muted/50">
           <tr>
@@ -84,7 +84,7 @@ function CycleTable({ cycles, accountsById }: Props) {
 function CycleCardList({ cycles, accountsById }: Props) {
   const { labelOf } = useMeta()
   return (
-    <ul className="divide-y sm:hidden list-none p-0 m-0" aria-label="사이클 성과">
+    <ul className="divide-y lg:hidden list-none p-0 m-0" aria-label="사이클 성과">
       {cycles.map((cycle) => (
         <li key={cycle.cycleId} className="px-4 py-4">
           <div className="flex flex-wrap items-center justify-between gap-1.5">

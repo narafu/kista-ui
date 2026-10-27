@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button'
 import { IconButton } from '@shared/ui/IconButton'
 import { fmtUsd, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
-import { directionTextClass } from '@entities/trade'
+import { directionBadgeClass } from '@entities/trade'
 import { useMeta } from '@entities/meta'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { Badge } from '@shared/ui/Badge'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
@@ -356,8 +357,8 @@ function OrderDetailsTable({
       <tbody>
         {orders.map((o) => (
           <tr key={o.id}>
-            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-left font-semibold', directionTextClass(o.direction))}>
-              {labelOf('orderDirections', o.direction)}
+            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-left')}>
+              <Badge tone="none" size="sm" className={directionBadgeClass(o.direction)}>{labelOf('orderDirections', o.direction)}</Badge>
             </TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-left text-muted-foreground')}>{labelOf('orderTypes', o.orderType)}</TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right tabular-nums whitespace-nowrap')}>${fmtUsd(o.price)}</TableDataCell>

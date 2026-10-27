@@ -6,7 +6,7 @@ import { toNum } from '@shared/lib/utils'
 import { directionBadgeClass } from '@entities/trade'
 import { useMeta } from '@entities/meta'
 import { Badge } from '@shared/ui/Badge'
-import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { TABLE_HEAD_TEXT_CLASS, TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { Button } from '@/components/ui/button'
 
@@ -45,14 +45,15 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
       {/* 모바일 리스트 */}
       <ul className="lg:hidden">
         <li className={cn(
-          'grid items-center px-6 py-2 border-b border-border bg-muted/50 text-xs text-muted-foreground text-center',
+          'grid items-center px-6 py-3 border-b border-border bg-muted/50 text-center',
+          TABLE_HEAD_TEXT_CLASS,
           hasCancel ? 'grid-cols-6' : 'grid-cols-5',
         )}>
-          <span>구분</span>
+          <span>방향</span>
           <span>유형</span>
           <span>종목</span>
-          <span>수량</span>
           <span>주문가</span>
+          <span>수량</span>
           {hasCancel && <span>취소</span>}
         </li>
         {orders.map((o, i) => (
@@ -72,8 +73,8 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
               <TimingNote orderType={o.orderType} timing={o.timing} />
             </span>
             <span className="font-medium">{o.ticker}</span>
-            <span className="text-muted-foreground">{fmtQuantity(o.quantity)}</span>
             <span className="font-semibold">${fmtUsd(toNum(o.price))}</span>
+            <span className="text-muted-foreground">{fmtQuantity(o.quantity)}</span>
             {hasCancel && (
               <div className="flex justify-center">
                 {o.id ? (
@@ -89,13 +90,14 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
 
       {/* PC 테이블 */}
       <table className="hidden lg:table w-full text-sm">
-        <thead className="bg-muted/50">
-          <tr>
-            <TableHeadCell>구분</TableHeadCell>
+        {/* PC 2단에서 카드 안 스크롤 시 열 이름을 고정한다 — 반투명 행 배경 아래에 카드 배경을 깔아 비침을 막는다 */}
+        <thead className="sticky top-0 z-10 bg-card">
+          <tr className="bg-muted/50">
+            <TableHeadCell>방향</TableHeadCell>
             <TableHeadCell>유형</TableHeadCell>
             <TableHeadCell>종목</TableHeadCell>
-            <TableHeadCell numeric>수량</TableHeadCell>
             <TableHeadCell numeric>주문가</TableHeadCell>
+            <TableHeadCell numeric>수량</TableHeadCell>
             {hasCancel && (
               <TableHeadCell>취소</TableHeadCell>
             )}
@@ -117,8 +119,8 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
                 <TimingNote orderType={o.orderType} timing={o.timing} />
               </TableDataCell>
               <TableDataCell className="font-semibold">{o.ticker}</TableDataCell>
-              <TableDataCell className="text-right tabular-nums whitespace-nowrap text-muted-foreground">{fmtQuantity(o.quantity)}</TableDataCell>
               <TableDataCell className="text-right tabular-nums whitespace-nowrap font-semibold">${fmtUsd(toNum(o.price))}</TableDataCell>
+              <TableDataCell className="text-right tabular-nums whitespace-nowrap text-muted-foreground">{fmtQuantity(o.quantity)}</TableDataCell>
               {hasCancel && (
                 <TableDataCell>
                   {o.id && (
