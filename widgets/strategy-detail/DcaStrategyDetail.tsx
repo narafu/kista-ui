@@ -8,10 +8,10 @@ import { Button } from '@/components/ui/button'
 import { KpiCard } from '@widgets/kpi-card'
 import { useManageStrategyMutations } from '@features/strategy/manage-strategy'
 import { useMeta } from '@entities/meta'
-import { dcaIndicatorLabel, formatCryptoNextExecution, formatDcaCondition, formatDcaRuleSummary } from '@entities/strategy'
+import { dcaIndicatorLabel, formatCryptoNextExecution, formatDcaCondition, DcaRuleSummaryLabel } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import { useAccountPricesQuery } from '@entities/account'
-import { cryptoPortfolioQueryOptions, cryptoPricesQueryOptions } from '@entities/trade'
+import { cryptoPortfolioQueryOptions, cryptoPricesQueryOptions, directionBadgeClass } from '@entities/trade'
 import { fmtDate, fmtMoney, fmtQuantity, fmtSignedPercent, pnlTextClass, roundMoney } from '@shared/lib/format'
 import { brokerMarket, isCryptoMarket, marketCurrency } from '@shared/lib/api-schema'
 import type { TradingMarket } from '@shared/lib/api-schema'
@@ -110,7 +110,7 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
             <ul className="divide-y divide-border">
               {dca.rules.map((r) => (
                 <li key={r.ruleKey} className="space-y-1 py-3 first:pt-0 last:pb-0">
-                  <p className="font-semibold">{formatDcaRuleSummary(r, labelOf, market)}</p>
+                  <p className="font-semibold"><DcaRuleSummaryLabel rule={r} labelOf={labelOf} market={market} size="sm" badgeClassName={directionBadgeClass(r.direction)} /></p>
                   {r.conditions.length === 0 ? (
                     <p>조건 없이 매 회차 주문</p>
                   ) : (

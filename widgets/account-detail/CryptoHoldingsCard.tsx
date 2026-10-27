@@ -23,15 +23,15 @@ export function CryptoHoldingsCard({ portfolio, isError }: Props) {
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
-        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">보유 코인</CardTitle>
+        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">보유 종목</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         {isError ? (
-          <div className="px-6 pb-6"><SectionError message="보유 코인을 불러오지 못했습니다." /></div>
+          <div className="px-6 pb-6"><SectionError message="보유 종목을 불러오지 못했습니다." /></div>
         ) : !portfolio ? (
           <LoadingRow />
         ) : portfolio.holdings.length === 0 ? (
-          <EmptyState variant="text" message="보유한 코인이 없습니다." />
+          <EmptyState variant="text" message="보유한 종목이 없습니다." />
         ) : (
           <>
             {/* 모바일: 카드 리스트 */}
@@ -58,7 +58,7 @@ export function CryptoHoldingsCard({ portfolio, isError }: Props) {
               ))}
             </div>
             {/* 데스크탑: 테이블 */}
-            <div role="region" aria-label="보유 코인 목록" tabIndex={0} className="hidden overflow-x-auto lg:block">
+            <div role="region" aria-label="보유 종목 목록" tabIndex={0} className="hidden overflow-x-auto lg:block">
             <table className="w-full text-sm">
               <thead className="bg-muted/50">
                 <tr>

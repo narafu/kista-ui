@@ -113,7 +113,7 @@ describe('AccountSummaryCard', () => {
         }}
       />,
     )
-    expect(screen.getByText('일부 코인은 현재가 확인 불가로 총자산에서 빠졌습니다.')).toBeInTheDocument()
+    expect(screen.getByText('일부 종목은 현재가 확인 불가로 총자산에서 빠졌습니다.')).toBeInTheDocument()
   })
 
   it('키가 만료됐으면 재등록 필요를 보여준다', () => {

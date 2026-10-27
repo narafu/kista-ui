@@ -12,10 +12,10 @@ const portfolio = {
   ],
 }
 
-const table = () => within(screen.getByRole('region', { name: '보유 코인 목록' }))
+const table = () => within(screen.getByRole('region', { name: '보유 종목 목록' }))
 
 describe('CryptoHoldingsCard', () => {
-  it('보유 코인의 수량·평단·현재가·평가금액을 원화로 보여준다', () => {
+  it('보유 종목의 수량·평단·현재가·평가금액을 원화로 보여준다', () => {
     render(<CryptoHoldingsCard portfolio={portfolio} isError={false} />)
     expect(table().getByText('0.01234567')).toBeInTheDocument()
     expect(table().getByText('110,000,000원')).toBeInTheDocument()
@@ -46,14 +46,14 @@ describe('CryptoHoldingsCard', () => {
     expect(screen.queryByText(/원$/)).not.toBeInTheDocument()
   })
 
-  it('보유 코인이 없으면 빈 상태 문구를 보여준다', () => {
+  it('보유 종목이 없으면 빈 상태 문구를 보여준다', () => {
     render(<CryptoHoldingsCard portfolio={{ ...portfolio, holdings: [] }} isError={false} />)
-    expect(screen.getByText('보유한 코인이 없습니다.')).toBeInTheDocument()
+    expect(screen.getByText('보유한 종목이 없습니다.')).toBeInTheDocument()
   })
 
   it('데이터 없이 실패하면 오류 문구를 보여준다', () => {
     render(<CryptoHoldingsCard portfolio={undefined} isError />)
-    expect(screen.getByText('보유 코인을 불러오지 못했습니다.')).toBeInTheDocument()
+    expect(screen.getByText('보유 종목을 불러오지 못했습니다.')).toBeInTheDocument()
   })
 
   it('모바일 카드에 종목·수량·평단가·현재가·평가금액을 보여준다', () => {

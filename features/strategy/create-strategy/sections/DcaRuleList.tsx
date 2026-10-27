@@ -4,9 +4,8 @@ import { ChevronRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { isCryptoMarket, type TradingMarket } from '@shared/lib/api-schema'
 import { cn } from '@shared/lib/utils'
-import { Badge } from '@shared/ui/Badge'
 import { useMeta } from '@entities/meta'
-import { dcaIndicatorLabel, formatDcaCondition, formatDcaRuleSummary, type DcaDirection } from '@entities/strategy'
+import { dcaIndicatorLabel, formatDcaCondition, DcaRuleSummaryLabel, type DcaDirection } from '@entities/strategy'
 import { directionBadgeClass } from '@entities/trade'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import { LAST_DAY, MAX_DCA_RULES, type DcaRuleFormValues } from '../model/dcaFormSchema'
@@ -43,8 +42,6 @@ export function DcaRuleList({ rules, market, onSelect, onAdd, registerRowRef, er
       )}
       <ul className="space-y-2">
         {rules.map((r, i) => {
-          // 요약 첫 토막은 방향 — 배지로 보여 주고 나머지를 이어 쓴다
-          const [direction, ...rest] = formatDcaRuleSummary(toSummaryInput(r), labelOf, market).split(SUMMARY_SEPARATOR)
           const conditions = r.conditions.length === 0
             ? '조건 없이 매 회차 주문'
             : r.conditions.map((c) => formatDcaCondition(
@@ -59,9 +56,7 @@ export function DcaRuleList({ rules, market, onSelect, onAdd, registerRowRef, er
                 className="flex w-full items-center gap-3 rounded-[var(--r-sm)] border border-border bg-card px-3 py-2.5 text-left hover:border-[var(--selection-hover-border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2 text-sm font-semibold">
-                    <Badge tone="none" className={directionBadgeClass(r.direction)}>{direction}</Badge>
-                    {/* 접근성 이름에서 배지와 요약이 붙지 않게 하는 공백 */}
-                    {' '}{rest.join(SUMMARY_SEPARATOR)}
+                    <DcaRuleSummaryLabel rule={toSummaryInput(r)} labelOf={labelOf} market={market} badgeClassName={directionBadgeClass(r.direction)} />
                   </span>
                   <span className="mt-0.5 block text-sm text-muted-foreground">
                     {/* 접근성 이름에서 1행과 2행이 붙지 않게 하는 공백 */}

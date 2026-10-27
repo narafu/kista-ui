@@ -58,7 +58,7 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, cryptoPort
               <div className="col-span-2">
                 <KpiCard label="총자산" value={cryptoPortfolio ? fmtMoney(cryptoPortfolio.totalAsset, cryptoPortfolio.currency) : '-'} valueClassName={LONG_MONEY_CLASS} />
                 {hasUnpricedHolding && (
-                  <p className="mt-1 text-xs text-muted-foreground">일부 코인은 현재가 확인 불가로 총자산에서 빠졌습니다.</p>
+                  <p className="mt-1 text-xs text-muted-foreground">일부 종목은 현재가 확인 불가로 총자산에서 빠졌습니다.</p>
                 )}
               </div>
             </>

@@ -108,7 +108,7 @@ describe('AccountDetailTabs', () => {
     )
   })
 
-  it('업비트 계좌는 사이클 이력 대신 보유 코인 카드를 렌더한다', () => {
+  it('업비트 계좌는 사이클 이력 대신 보유 종목 카드를 렌더한다', () => {
     useStrategiesQueryMock.mockReturnValue({ data: [] })
     render(
       <AccountDetailTabs account={{ ...account, broker: 'UPBIT', accountNoMasked: null }} usdDeposit={0} posEvalUsd={0} />,

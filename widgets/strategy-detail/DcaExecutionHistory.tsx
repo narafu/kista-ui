@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useMeta } from '@entities/meta'
-import { formatDcaRuleSummary, useDcaExecutionsQuery } from '@entities/strategy'
+import { DcaRuleSummaryLabel, useDcaExecutionsQuery } from '@entities/strategy'
 import type { DcaRule } from '@entities/strategy'
 import { directionBadgeClass } from '@entities/trade'
 import { PaginationBar } from '@shared/ui/PaginationBar'
@@ -35,7 +35,7 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
   // 표·카드 공용 셀 렌더러
   const ruleCell = (r: ExecutionItem) => {
     const rule = rules.find((x) => x.ruleKey === r.ruleKey)
-    return rule ? formatDcaRuleSummary(rule, labelOf, market) : (
+    return rule ? <DcaRuleSummaryLabel rule={rule} labelOf={labelOf} market={market} size="sm" badgeClassName={directionBadgeClass(rule.direction)} /> : (
       <span className="inline-flex items-center gap-1.5">
         <Badge tone="none" size="sm" className={directionBadgeClass(r.direction)}>{labelOf('orderDirections', r.direction)}</Badge>
         <span className="text-muted-foreground">삭제된 규칙</span>

@@ -167,7 +167,8 @@ describe('DcaStrategyDetail', () => {
   })
   it('규칙 카드: 요약·조건·부족 정책·다음 판정일, 옛 방향 타일·설정 그리드·추가 조건 카드는 없다', () => {
     renderDetail()
-    expect(screen.getByText('매수 · 매월 말일 · MOC(종가시장가) · $300.00')).toBeInTheDocument()
+    expect(screen.getByText('매월 말일 · MOC(종가시장가) · $300.00')).toBeInTheDocument()
+    expect(screen.getByText('매수')).toBeInTheDocument()
     expect(screen.getByText('RSI(14) 35 이하')).toBeInTheDocument()
     expect(screen.getByText('가용만큼 주문')).toBeInTheDocument()
     expect(screen.getByText(`다음 판정일 ${fmtDate('2026-10-31')}`)).toBeInTheDocument()
