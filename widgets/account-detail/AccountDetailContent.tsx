@@ -24,7 +24,7 @@ export function AccountDetailContent({
   const { data } = useAccountDetailQuery(accountId)
   const account = data === undefined ? initialAccount : data
   const isCrypto = !!account && isCryptoBroker(account.broker)
-  // MOCK·코인 계좌는 주식 포트폴리오 대상이 아니라 서버 prefetch와 같은 조건으로 스킵
+  // MOCK·크립토 계좌는 주식 포트폴리오 대상이 아니라 서버 prefetch와 같은 조건으로 스킵
   const { data: portfolio } = useQuery({
     ...accountPortfolioQueryOptions(accountId),
     enabled: !!account && !isMockBroker(account.broker) && !isCrypto,

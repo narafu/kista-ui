@@ -26,7 +26,7 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, cryptoPort
   const brokerLabel = labelOf('brokers', account.broker)
   const isMock = isMockBroker(account.broker)
   const expiry = apiKeyExpiryState(account.apiKeyExpiresAt)
-  // 현재가를 못 받은 코인은 평가금액이 0으로 들어와 총자산에서 빠진다
+  // 현재가를 못 받은 종목은 평가금액이 0으로 들어와 총자산에서 빠진다
   const hasUnpricedHolding = cryptoPortfolio?.holdings.some((h) => h.currentPrice == null) ?? false
 
   return (

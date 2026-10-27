@@ -102,7 +102,7 @@ describe('AccountDetailContent', () => {
     })
   })
 
-  it('업비트 계좌는 주식 포트폴리오를 부르지 않고 코인 포트폴리오를 부른다', async () => {
+  it('업비트 계좌는 주식 포트폴리오를 부르지 않고 크립토 포트폴리오를 부른다', async () => {
     const crypto: Account = { ...serverAccount, broker: 'UPBIT', accountNoMasked: null }
     const queryClient = createClient()
     queryClient.setQueryData(accountKeys.detail(crypto.id), crypto)

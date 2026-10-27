@@ -99,7 +99,7 @@ describe('AccountSummaryCard', () => {
     expect(screen.queryByText(/원$/)).not.toBeInTheDocument()
   })
 
-  it('현재가 확인 불가 코인이 있으면 총자산에서 빠졌다고 알린다', () => {
+  it('현재가 확인 불가 종목이 있으면 총자산에서 빠졌다고 알린다', () => {
     render(
       <AccountSummaryCard
         account={{ ...account, broker: 'UPBIT', accountNoMasked: null }}

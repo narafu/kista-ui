@@ -22,7 +22,7 @@ describe('CryptoHoldingsCard', () => {
     expect(table().getByText('1,358,024원')).toBeInTheDocument()
   })
 
-  it('현재가를 못 받은 코인은 확인 불가로 표시하고 0원을 보여주지 않는다', () => {
+  it('현재가를 못 받은 종목은 확인 불가로 표시하고 0원을 보여주지 않는다', () => {
     render(<CryptoHoldingsCard portfolio={portfolio} isError={false} />)
     expect(table().getAllByText('현재가 확인 불가').length).toBeGreaterThan(0)
     expect(screen.queryByText('0원')).not.toBeInTheDocument()

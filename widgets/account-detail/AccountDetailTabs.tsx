@@ -20,7 +20,7 @@ interface Props {
 
 export function AccountDetailTabs({ account, usdDeposit, posEvalUsd, cryptoPortfolio, cryptoPortfolioError }: Props) {
   const { data: strategies, isError: strategiesError } = useStrategiesQuery(account.id)
-  // 코인 계좌는 사이클 이력(USD 예수금 열) 대신 보유 종목을 보여준다
+  // 크립토 계좌는 사이클 이력(USD 예수금 열) 대신 보유 종목을 보여준다
   const rightPanel = isCryptoBroker(account.broker)
     ? <CryptoHoldingsCard portfolio={cryptoPortfolio} isError={cryptoPortfolioError ?? false} />
     : <TradesTab accountId={account.id} />

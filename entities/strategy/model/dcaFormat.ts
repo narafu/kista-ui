@@ -64,15 +64,19 @@ export function formatDcaSizing(sizing: DcaSizing, market: TradingMarket): strin
     : fmtMoney(sizing.amount ?? 0, marketCurrency(market))
 }
 
-// "방향 · 주기[ 시각] · [주문방식 · ]규모" — 주문방식(MOO/MOC)은 주식만 시점으로 의미가 있다
-export function formatDcaRuleSummary(rule: DcaRuleSummaryInput, labelOf: DcaLabelOf, market: TradingMarket): string {
+// "주기[ 시각] · [주문방식 · ]규모" — 방향을 뺀 요약. 주문방식(MOO/MOC)은 주식만 시점으로 의미가 있다
+export function formatDcaRuleDetail(rule: DcaRuleSummaryInput, labelOf: DcaLabelOf, market: TradingMarket): string {
   const isCrypto = isCryptoMarket(market)
   return [
-    labelOf('orderDirections', rule.direction),
     formatDcaSchedule(rule, labelOf('dcaFrequencies', rule.frequency)),
     ...(isCrypto ? [] : [labelOf('orderTypes', rule.orderType)]),
     formatDcaSizing(rule.sizing, market),
   ].join(' · ')
+}
+
+// "방향 · 주기[ 시각] · [주문방식 · ]규모"
+export function formatDcaRuleSummary(rule: DcaRuleSummaryInput, labelOf: DcaLabelOf, market: TradingMarket): string {
+  return `${labelOf('orderDirections', rule.direction)} · ${formatDcaRuleDetail(rule, labelOf, market)}`
 }
 
 // 날짜(kstTradeDate) 오름차순, 같으면 실행 시각 — nextExecution null 규칙은 제외
