@@ -43,4 +43,28 @@ describe('useScrolledToEnd', () => {
     act(() => resizeCb())
     expect(result.current).toBe(false)
   })
+
+  it('자식·텍스트 변화(MutationObserver)에도 다시 측정한다', async () => {
+    const { el, ref, m } = setup({ scrollTop: 0, clientHeight: 100, scrollHeight: 100 })
+    const { result } = renderHook(() => useScrolledToEnd(ref))
+    m.scrollHeight = 300
+    await act(async () => { el.appendChild(document.createElement('p')) })
+    expect(result.current).toBe(false)
+  })
+
+  it('언마운트하면 리스너와 옵저버를 해제한다', () => {
+    const disconnect = vi.fn()
+    vi.stubGlobal('ResizeObserver', class {
+      observe() {}
+      disconnect = disconnect
+    })
+    const mutationDisconnect = vi.spyOn(MutationObserver.prototype, 'disconnect')
+    const { el, ref } = setup({ scrollTop: 0, clientHeight: 100, scrollHeight: 100 })
+    const remove = vi.spyOn(el, 'removeEventListener')
+    renderHook(() => useScrolledToEnd(ref)).unmount()
+    expect(disconnect).toHaveBeenCalled()
+    expect(mutationDisconnect).toHaveBeenCalled()
+    expect(remove).toHaveBeenCalledWith('scroll', expect.any(Function))
+    mutationDisconnect.mockRestore()
+  })
 })

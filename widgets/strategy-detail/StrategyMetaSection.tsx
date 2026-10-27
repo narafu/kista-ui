@@ -14,6 +14,7 @@ interface Props {
   strategy: Strategy
   preview: NextOrderPreview | undefined
   isLoadingPreview: boolean
+  isPreviewError: boolean
 }
 
 export function StatusStrip({ strategy }: { strategy: Strategy }) {
@@ -143,12 +144,13 @@ function VrGrid({ vr, startDate }: { vr: NonNullable<Strategy['vr']>; startDate:
 interface PositionGridProps {
   preview: NextOrderPreview | undefined
   isLoadingPreview: boolean
+  isPreviewError: boolean
 }
 
-// 미리보기 오류·주문 없음 사유는 다음 주문 카드가 안내한다 — 여기선 값이 있을 때만 타일을 그린다
-function PositionGrid({ preview, isLoadingPreview }: PositionGridProps) {
+// 미리보기 오류·주문 없음 사유(skipReason)는 다음 주문 카드가 안내한다 — 그 외에 값이 없으면 타일을 '-'로 남긴다
+function PositionGrid({ preview, isLoadingPreview, isPreviewError }: PositionGridProps) {
   const position = preview?.position ?? null
-  if (!isLoadingPreview && !position) return null
+  if (!isLoadingPreview && (isPreviewError || preview?.skipReason)) return null
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-2 gap-3">
       {position ? (
@@ -158,19 +160,26 @@ function PositionGrid({ preview, isLoadingPreview }: PositionGridProps) {
           <KpiCard label="기준가" value={`$${fmtUsd(toNum(position.referencePrice))}`} />
           <KpiCard label="목표가" value={`$${fmtUsd(toNum(position.targetPrice))}`} />
         </>
-      ) : (
+      ) : isLoadingPreview ? (
         <>
           <KpiCard label="회차(T)" skeleton />
           <KpiCard label="단위금액(회)" skeleton />
           <KpiCard label="기준가" skeleton />
           <KpiCard label="목표가" skeleton />
         </>
+      ) : (
+        <>
+          <KpiCard label="회차(T)" value="-" />
+          <KpiCard label="단위금액(회)" value="-" />
+          <KpiCard label="기준가" value="-" />
+          <KpiCard label="목표가" value="-" />
+        </>
       )}
     </div>
   )
 }
 
-export function StrategyMetaSection({ strategy, preview, isLoadingPreview }: Props) {
+export function StrategyMetaSection({ strategy, preview, isLoadingPreview, isPreviewError }: Props) {
   const { labelOf, findStrategyType } = useMeta()
   const cycleSeedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
   const strategyTypeMeta = findStrategyType(strategy.type)
@@ -187,7 +196,7 @@ export function StrategyMetaSection({ strategy, preview, isLoadingPreview }: Pro
       {strategy.vr && <VrGrid vr={strategy.vr} startDate={strategy.startDate} />}
 
       {usesDivisionCount ? (
-        <PositionGrid preview={preview} isLoadingPreview={isLoadingPreview} />
+        <PositionGrid preview={preview} isLoadingPreview={isLoadingPreview} isPreviewError={isPreviewError} />
       ) : null}
     </>
   )

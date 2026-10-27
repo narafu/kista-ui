@@ -109,6 +109,8 @@ export const scenarios = [
   // binance 모드: 합성 BINANCE(USDT) 계좌 — 계좌 상세·크립토 DCA 전략 상세·전략 생성·계좌 등록 API 키 스텝. meta·runtime-config는 fixtures/api.mjs가 보강
   { name: 'binance-account', path: BINANCE_ACCT, mode: 'binance' },
   { name: 'binance-strategy', path: `${BINANCE_ACCT}/strategies/00000000-0000-4000-8000-0000000c0171`, mode: 'binance' },
+  // 주식 DCA(합성, 시드 무한매수 계좌) — 실행 이력 2건(현재 규칙·삭제된 규칙) 렌더 확인용
+  { name: 'stock-dca-strategy', path: `/accounts/${seed.infinite.accountId}/strategies/00000000-0000-4000-8000-0000000c0172`, mode: 'binance' },
   { name: 'binance-create-strategy', path: `${BINANCE_ACCT}/strategies/new`, mode: 'binance' },
   { name: 'binance-strategies', path: '/strategies', mode: 'binance' },
   // broker 카드를 누르면 바로 다음 스텝(API 키 입력)으로 넘어간다

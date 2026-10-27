@@ -64,6 +64,6 @@ describe('CryptoHoldingsCard', () => {
     expect(card.getByText('100,000,000원')).toBeInTheDocument()
     expect(card.getByText('110,000,000원')).toBeInTheDocument()
     expect(card.getByText('1,358,024원')).toBeInTheDocument()
-    expect(card.getAllByText('현재가 확인 불가')).toHaveLength(2)
+    expect(card.getAllByText('확인 불가')).toHaveLength(2)
   })
 })

@@ -16,6 +16,8 @@ interface Props {
 }
 
 const UNAVAILABLE = <span className="text-muted-foreground">현재가 확인 불가</span>
+// 모바일 카드는 "현재가"·"평가금액" 라벨이 앞에 붙어 있어 라벨을 반복하지 않는다
+const CARD_UNAVAILABLE = <span className="text-muted-foreground">확인 불가</span>
 
 export function CryptoHoldingsCard({ portfolio, isError }: Props) {
   return (
@@ -45,12 +47,12 @@ export function CryptoHoldingsCard({ portfolio, isError }: Props) {
                       평단가 <span className="font-semibold text-foreground">{h.avgBuyPrice == null ? '-' : fmtMoney(h.avgBuyPrice, portfolio.currency)}</span>
                     </span>
                     <span className="text-muted-foreground">
-                      현재가 <span className="font-semibold text-foreground">{h.currentPrice == null ? UNAVAILABLE : fmtMoney(h.currentPrice, portfolio.currency)}</span>
+                      현재가 <span className="font-semibold text-foreground">{h.currentPrice == null ? CARD_UNAVAILABLE : fmtMoney(h.currentPrice, portfolio.currency)}</span>
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">평가금액</span>
-                    <span className="font-semibold text-foreground">{h.currentPrice == null ? UNAVAILABLE : fmtMoney(h.evalAmount, portfolio.currency)}</span>
+                    <span className="font-semibold text-foreground">{h.currentPrice == null ? CARD_UNAVAILABLE : fmtMoney(h.evalAmount, portfolio.currency)}</span>
                   </div>
                 </div>
               ))}
