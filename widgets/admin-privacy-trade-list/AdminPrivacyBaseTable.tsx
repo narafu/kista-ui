@@ -138,7 +138,7 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
         <>
           {/* 위 차트 카드 제목(h2) 아래에 모바일 카드 h3이 이어 붙지 않도록 이 목록 자체의 제목을 둔다 */}
           <h2 className="sr-only">P 매매표 목록</h2>
-          <div className="space-y-3 sm:hidden" data-testid="admin-privacy-mobile-list">
+          <div className="space-y-3 lg:hidden" data-testid="admin-privacy-mobile-list">
             {bases.map((b) => {
               const open = expanded.has(b.id)
               return (
@@ -156,7 +156,7 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
             })}
           </div>
 
-          <div className="hidden rounded-[var(--r-lg)] border border-border overflow-x-auto sm:block" role="region" aria-label="P 매매표 목록" tabIndex={0} data-testid="admin-privacy-desktop-table-wrap">
+          <div className="hidden rounded-[var(--r-lg)] border border-border overflow-x-auto lg:block" role="region" aria-label="P 매매표 목록" tabIndex={0} data-testid="admin-privacy-desktop-table-wrap">
             <table className="w-full text-sm min-w-[760px]" data-testid="admin-privacy-desktop-table">
               <thead className="bg-muted/50 border-b border-border">
                 <tr>

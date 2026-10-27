@@ -211,6 +211,33 @@ describe('StrategyDetail header card', () => {
     expect(resumeMutate).toHaveBeenCalledWith(paused)
   })
 
+  describe('주문이 없는 사유 안내 위치', () => {
+    const defaultPreviewImpl = mockPreviewQuery.getMockImplementation()!
+    afterEach(() => mockPreviewQuery.mockImplementation(defaultPreviewImpl))
+
+    it('일시중지 + 사이클 종료 사유는 다음 주문 카드에만 보이고 전략 정보에는 없다', () => {
+      mockPreviewQuery.mockReturnValue({
+        data: { todayOrders: [], position: null, orders: [], skipReason: 'CYCLE_ENDED', otherStrategiesPlannedBuyUsd: '0', ledgerCheck: null } as Partial<NextOrderPreview>,
+        isLoading: false,
+        isError: false,
+        error: null,
+      })
+      render(<StrategyDetail accountId="account-1" strategy={{ ...baseStrategy, status: 'PAUSED' }} />)
+
+      expect(screen.getAllByText(/사이클이 종료되었습니다/)).toHaveLength(1)
+      expect(screen.getByText(/재개하면 새 사이클이 시작됩니다/)).toBeInTheDocument()
+      expect(screen.queryByText(/일시중지 후 재개/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/이 계획대로 매매가 진행됩니다/)).not.toBeInTheDocument()
+    })
+
+    it('미리보기 오류 문구는 화면에 한 번만 나온다', () => {
+      mockPreviewQuery.mockReturnValue({ data: undefined as unknown as Partial<NextOrderPreview>, isLoading: false, isError: true, error: new Error('boom') })
+      render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+      expect(screen.getAllByText('주문 미리보기를 불러오는 중 오류가 발생했습니다.')).toHaveLength(1)
+    })
+  })
+
   it('shows an alternate operating mode label when the strategy type has no division count', () => {
     render(<StrategyDetail accountId="account-1" strategy={{ ...baseStrategy, type: 'PRIVACY', divisionCount: 0 }} />)
 

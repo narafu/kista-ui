@@ -42,3 +42,18 @@ class MockEventSource {
 }
 
 globalThis.EventSource = MockEventSource as unknown as typeof EventSource
+
+// jsdom에 없는 브라우저 API 기본 스텁 — 개별 테스트가 필요하면 vi.stubGlobal로 덮어쓴다
+if (typeof window !== 'undefined') {
+  window.matchMedia ??= ((query: string) => ({
+    matches: false,
+    media: query,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  })) as unknown as typeof window.matchMedia
+  globalThis.ResizeObserver ??= class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+}

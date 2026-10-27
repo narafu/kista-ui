@@ -1,6 +1,6 @@
 'use client'
 
-import { useSyncExternalStore } from 'react'
+import { useMediaQuery } from '@shared/lib/hooks/use-media-query'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@shared/lib/utils'
 
@@ -94,13 +94,7 @@ export function ChartSkeleton() {
   )
 }
 
-// sm(640px) 미만 여부 — 서버 스냅샷은 false(PC 기준), 클라이언트 첫 렌더 직후 실제 값으로 맞춰진다
-const NARROW_QUERY = '(max-width: 639px)'
-function subscribeNarrow(onChange: () => void) {
-  const mq = window.matchMedia(NARROW_QUERY)
-  mq.addEventListener('change', onChange)
-  return () => mq.removeEventListener('change', onChange)
-}
+// lg(1024px) 미만 여부 — 표(AdminPrivacyBaseTable)와 같은 경계. 서버 스냅샷은 false(PC 기준)
 export function useIsNarrow() {
-  return useSyncExternalStore(subscribeNarrow, () => window.matchMedia(NARROW_QUERY).matches, () => false)
+  return useMediaQuery('(max-width: 1023px)')
 }

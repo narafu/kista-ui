@@ -51,9 +51,9 @@ describe('AdminPrivacyBaseTable mobile UX', () => {
     const mobileList = screen.getByTestId('admin-privacy-mobile-list')
     const desktopWrap = screen.getByTestId('admin-privacy-desktop-table-wrap')
 
-    expect(mobileList).toHaveClass('sm:hidden')
+    expect(mobileList).toHaveClass('lg:hidden')
     expect(desktopWrap).toHaveClass('hidden')
-    expect(desktopWrap).toHaveClass('sm:block')
+    expect(desktopWrap).toHaveClass('lg:block')
   })
 
   it('shows the important trade-base values in the mobile card', () => {

@@ -132,7 +132,7 @@ function InfoSections({ row, ticker, showAvgGap }: { row: PrivacyChartRow; ticke
 // 세 패널이 같은 syncId라 어느 패널을 가리켜도 같은 날짜로 바뀐다
 function PcInfoBar({ row, ticker, showAvgGap }: { row: PrivacyChartRow; ticker: string; showAvgGap: boolean }) {
   return (
-    <div className="sticky bottom-0 z-10 hidden grid-cols-3 gap-x-6 gap-y-1.5 border-t border-border bg-card/95 px-3 py-2 text-xs backdrop-blur sm:grid">
+    <div className="sticky bottom-0 z-10 hidden grid-cols-3 gap-x-6 gap-y-1.5 border-t border-border bg-card/95 px-3 py-2 text-xs backdrop-blur lg:grid">
       <div className="col-span-3 font-semibold">{row.date}</div>
       <InfoSections row={row} ticker={ticker} showAvgGap={showAvgGap} />
     </div>
@@ -156,7 +156,7 @@ function ChartTooltip({ row, ticker, showAvgGap }: { row: PrivacyChartRow | unde
 function MobileInfoBar({ row, showAvgGap }: { row: PrivacyChartRow; showAvgGap: boolean }) {
   const cashLow = row.cashRatio != null && row.cashRatio < CASH_THRESHOLD
   return (
-    <div className="sticky bottom-0 z-10 -mx-2 border-t border-border bg-card/95 px-3 py-2 text-xs backdrop-blur sm:hidden">
+    <div className="sticky bottom-0 z-10 -mx-2 border-t border-border bg-card/95 px-3 py-2 text-xs backdrop-blur lg:hidden">
       <div className="mb-1 font-semibold">{row.date}</div>
       <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 tabular-nums">
         {/* 평단가에 손익률이 붙어 반칸 폭이면 잘려, 종가와 함께 내용 폭대로 양끝 정렬한다 */}
@@ -317,7 +317,7 @@ export default function PrivacyBaseChartInner({ rows, ticker, showOrders, showAv
               <YAxis tickFormatter={(v) => fmtUsd(Number(v), 0)} tick={AXIS_TICK} tickLine={false} axisLine={false} width={Y_AXIS_WIDTH} domain={['auto', 'auto']} />
               {/* 아래 패널을 눌러도 툴팁이 가격 패널 위쪽에 고정돼 화면 밖으로 밀리지 않게 y를 고정한다 */}
               {/* 아래 패널을 눌러도 툴팁이 가격 패널 위쪽에 고정돼 화면 밖으로 밀리지 않게 y를 고정한다 */}
-              <Tooltip position={{ y: 0 }} content={({ active, label }) => showPcTooltip && <div className="hidden sm:block"><ChartTooltip row={active ? rowByDate.get(String(label)) : undefined} ticker={ticker} showAvgGap={showAvgGap} /></div>} cursor={CURSOR} />
+              <Tooltip position={{ y: 0 }} content={({ active, label }) => showPcTooltip && <div className="hidden lg:block"><ChartTooltip row={active ? rowByDate.get(String(label)) : undefined} ticker={ticker} showAvgGap={showAvgGap} /></div>} cursor={CURSOR} />
               {/* 괴리 구간은 패널 전체 높이 배경 띠 — 선 굵기만으로는 눈에 덜 띄어 면적으로 보여준다(현금비중 50% 미만 음영과 같은 방식) */}
               {avgGapBands.map((b) => (
                 <ReferenceArea key={b.x1} x1={b.x1} x2={b.x2} fill={b.level === 2 ? 'var(--avg-gap-2-bg)' : 'var(--avg-gap-1-bg)'} fillOpacity={1} ifOverflow="hidden" />

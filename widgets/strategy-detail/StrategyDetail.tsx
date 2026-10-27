@@ -65,8 +65,6 @@ export function StrategyDetail({ accountId, broker, strategy }: Props) {
             strategy={strategy}
             preview={preview}
             isLoadingPreview={isLoadingPreview}
-            isPreviewError={isPreviewError}
-            previewError={previewError}
           />
         </div>
 

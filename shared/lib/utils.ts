@@ -23,3 +23,14 @@ export function toNum(v: unknown): number {
 export function isSectionTabActive(pathname: string, href: string, rootHref: string) {
   return href === rootHref ? pathname === rootHref : pathname.startsWith(href)
 }
+
+/** 연속된 같은 키끼리 묶는다 — 입력 순서를 유지하고, 떨어져 있는 같은 키는 별도 그룹이 된다. */
+export function groupConsecutiveBy<T>(items: T[], keyOf: (item: T) => string): { key: string; items: T[] }[] {
+  return items.reduce<{ key: string; items: T[] }[]>((acc, item) => {
+    const key = keyOf(item)
+    const last = acc[acc.length - 1]
+    if (last && last.key === key) last.items.push(item)
+    else acc.push({ key, items: [item] })
+    return acc
+  }, [])
+}

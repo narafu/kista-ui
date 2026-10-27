@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef } from 'react'
 import { toast } from 'sonner'
 import { AlertTriangle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -7,11 +8,13 @@ import { useCancelAllOrdersMutation, useCancelOneOrderMutation } from '@entities
 import { EmptyState } from '@shared/ui/EmptyState'
 import type { Strategy } from '@entities/strategy'
 import type { NextOrderPreview, OrderReadiness } from '@entities/order'
-import { SKIP_REASON_LABELS, directionUnplacedMessage, previewErrorMsg } from './orderBannerCopy'
+import { directionUnplacedMessage, pausedSkipReasonLabel, previewErrorMsg, SKIP_REASON_LABELS } from './orderBannerCopy'
 import { OrderRows } from './OrderRows'
 import { Button } from '@/components/ui/button'
 import { isMockBroker } from '@shared/lib/api-schema'
 import { useMeta } from '@entities/meta'
+import { useMediaQuery } from '@shared/lib/hooks/use-media-query'
+import { useScrolledToEnd } from '@shared/lib/hooks/use-scrolled-to-end'
 
 interface Props {
   strategy: Strategy
@@ -118,7 +121,10 @@ function PreviewBody({ preview, orders, isLoadingPreview, isPreviewError, previe
   if (isPreviewError) return <p className="text-base text-muted-foreground text-center px-6 py-4">{previewErrorMsg(previewError)}</p>
   // 미리보기는 전략 상태·휴장 무관 강제 계산이라(kista-api: preview() "휴장·상태 무관 강제 계산"),
   // 일시중지 중에도 값이 나온다 — 그대로 노출하면 오늘 배치에서 실행될 주문처럼 오해할 수 있어 숨긴다
-  if (!canExecute) return <EmptyState variant="text" message={'일시중지 중입니다\n재개하면 이 계획대로 매매가 진행됩니다'} />
+  // 사유가 있으면 "계획대로 진행" 안내가 사실과 어긋난다 — 예: 사이클 종료
+  if (!canExecute) {
+    return <EmptyState variant="text" message={preview?.skipReason ? pausedSkipReasonLabel(preview.skipReason) : '일시중지 중입니다\n재개하면 이 계획대로 매매가 진행됩니다'} />
+  }
   if (orders.length === 0) return <EmptyState variant="text" message={preview?.skipReason ? SKIP_REASON_LABELS[preview.skipReason] : '예정된 주문이 없습니다.'} />
   return <OrderRows orders={orders} />
 }
@@ -141,6 +147,11 @@ export function NextOrderCard({
   isExecuting,
 }: Props) {
   const { labelOf } = useMeta()
+  const listRef = useRef<HTMLDivElement>(null)
+  // PC 2단(xl)에서만 CardContent가 스크롤 컨테이너다 — 그때만 키보드 스크롤 영역(region)으로 노출한다
+  // (넘침 여부로 tabIndex를 토글하면 포커스 중 body로 빠진다)
+  const isXl = useMediaQuery('(min-width: 1280px)')
+  const atEnd = useScrolledToEnd(listRef)
   const placedOrders = preview?.todayOrders ?? []
   const orders = preview?.orders ?? []
 
@@ -189,7 +200,11 @@ export function NextOrderCard({
             )}
           </div>
         </CardHeader>
-        <CardContent className="p-0 xl:min-h-0 xl:overflow-y-auto" role="region" aria-label="다음 주문 목록" tabIndex={0}>
+        <CardContent
+          ref={listRef}
+          className="p-0 xl:min-h-0 xl:overflow-y-auto"
+          {...(isXl && { role: 'region', 'aria-label': '다음 주문 목록', tabIndex: 0 })}
+        >
           {mode === 'executed' ? (
             <ExecutedBody
               placedOrders={placedOrders}
@@ -224,8 +239,10 @@ export function NextOrderCard({
               canExecute={canExecute}
             />
           )}
-          {/* PC 2단에서 목록이 카드 안에서 스크롤될 때 아래에 더 있음을 알린다 — 끝까지 내리면 마지막 행 아래 빈 영역에 놓인다 */}
-          <div aria-hidden className="pointer-events-none sticky bottom-0 hidden h-12 bg-gradient-to-t from-card to-transparent xl:block" />
+          {/* PC 2단에서 목록이 카드 안에서 스크롤될 때 아래에 더 있음을 알린다 — -mt-12로 순 높이 0이라 scrollHeight에 영향이 없다 */}
+          {isXl && !atEnd && (
+            <div aria-hidden className="pointer-events-none sticky bottom-0 -mt-12 h-12 bg-gradient-to-t from-card to-transparent" />
+          )}
         </CardContent>
       </Card>
       {readiness.ledgerTrimmed && (

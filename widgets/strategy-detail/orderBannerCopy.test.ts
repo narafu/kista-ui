@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ApiError } from '@shared/lib/api-client'
 import type { DirectionReadiness, LedgerCheck, OrderReadiness } from '@entities/order'
-import { directionUnplacedMessage, nextOrderBannerText, previewErrorMsg, recurringModeLabel } from './orderBannerCopy'
+import { directionUnplacedMessage, nextOrderBannerText, pausedSkipReasonLabel, previewErrorMsg, recurringModeLabel } from './orderBannerCopy'
 
 const BUY_DIRECTION: DirectionReadiness = { hasOrders: true, unplaced: false }
 const NO_DIRECTION: DirectionReadiness = { hasOrders: false, unplaced: false }
@@ -90,5 +90,12 @@ describe('previewErrorMsg', () => {
 
   it('shows a generic message for any other error', () => {
     expect(previewErrorMsg(new Error('boom'))).toBe('주문 미리보기를 불러오는 중 오류가 발생했습니다.')
+  })
+})
+
+describe('pausedSkipReasonLabel', () => {
+  it('사이클 종료만 일시중지용 문구로 바꾼다', () => {
+    expect(pausedSkipReasonLabel('CYCLE_ENDED')).toBe('사이클이 종료되었습니다.\n재개하면 새 사이클이 시작됩니다.')
+    expect(pausedSkipReasonLabel('NO_PRIVACY_BASE')).toBe('P 매매표가 없습니다.')
   })
 })

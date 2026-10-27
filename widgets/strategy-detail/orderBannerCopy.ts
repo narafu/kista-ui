@@ -10,6 +10,12 @@ export const SKIP_REASON_LABELS: Record<SkipReason, string> = {
   PRIVACY_BASE_BLOCKED: 'P 매매표 점검 이슈로 오늘은 주문하지 않습니다.',
 }
 
+// 일시중지 중에는 "일시중지 후 재개" 안내가 어긋나므로 사이클 종료 문구만 바꾼다
+export function pausedSkipReasonLabel(reason: SkipReason): string {
+  if (reason === 'CYCLE_ENDED') return '사이클이 종료되었습니다.\n재개하면 새 사이클이 시작됩니다.'
+  return SKIP_REASON_LABELS[reason]
+}
+
 // "미접수" 목록 문구 — BUY는 원장 부족이면 재시도 없이 거절되므로 사유를 안내하고, 그 외 미접수는 장 마감 시 재시도된다
 export function directionUnplacedMessage(direction: 'BUY' | 'SELL', readiness: OrderReadiness): string {
   if (direction === 'SELL') return '장 마감 시 매도 재시도 예정'

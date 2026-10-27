@@ -7,7 +7,8 @@ import type { CycleHistoryItem } from '@entities/trade'
 import type { DateParams } from '@entities/trade/hooks/useCycleHistory'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Badge } from '@shared/ui/Badge'
-import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { groupConsecutiveBy } from '@shared/lib/utils'
+import { DATE_GROUP_LABEL_CLASS, TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { RangeFilterControls } from '@shared/ui/range-filter/RangeFilterControls'
 import { useRangeFilterState } from '@shared/lib/hooks/use-range-filter-state'
@@ -60,13 +61,7 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
   }
 
   // 날짜(fmtDate 결과)별 그룹 — 입력 순서(최신순) 유지
-  const groups = cycleHistory.reduce<{ date: string; items: CycleHistoryItem[] }[]>((acc, item) => {
-    const date = fmtDate(item.createdAt)
-    const last = acc[acc.length - 1]
-    if (last && last.date === date) last.items.push(item)
-    else acc.push({ date, items: [item] })
-    return acc
-  }, [])
+  const groups = groupConsecutiveBy(cycleHistory, (item) => fmtDate(item.createdAt))
 
   return (
     <Card className="overflow-hidden">
@@ -97,9 +92,9 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
           <>
             {/* 모바일: 카드 리스트 */}
             <div className="space-y-2 p-4 lg:hidden">
-              {groups.map((g) => (
-                <div key={g.date} className="space-y-1.5">
-                  <div className="px-1 pt-2 text-sm uppercase tracking-widest text-muted-foreground">{g.date}</div>
+              {groups.map((g, i) => (
+                <div key={`${g.key}-${i}`} className="space-y-1.5">
+                  <div className={DATE_GROUP_LABEL_CLASS}>{g.key}</div>
                   {g.items.map((entry, i) => (
                     <div key={entryKey(entry, i)} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5 space-y-1.5">
                       <div className="flex items-center justify-between">
@@ -137,10 +132,10 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
                   </tr>
                 </thead>
                 <tbody>
-                  {groups.map((g) => (
-                    <Fragment key={g.date}>
+                  {groups.map((g, i) => (
+                    <Fragment key={`${g.key}-${i}`}>
                       <tr>
-                        <td colSpan={5} className="bg-muted/30 px-4 py-2 text-xs lg:text-sm uppercase tracking-widest text-muted-foreground">{g.date}</td>
+                        <td colSpan={5} className="bg-muted/30 px-4 py-2 text-xs lg:text-sm uppercase tracking-widest text-muted-foreground">{g.key}</td>
                       </tr>
                       {g.items.map((entry, i) => {
                         const evalAmount = entry.avgPrice != null && entry.holdings > 0

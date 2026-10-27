@@ -10,7 +10,8 @@ import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { Badge } from '@shared/ui/Badge'
-import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { groupConsecutiveBy } from '@shared/lib/utils'
+import { DATE_GROUP_LABEL_CLASS, TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { fmtDate, fmtMoney, fmtQuantity } from '@shared/lib/format'
 import { isCryptoMarket, marketCurrency } from '@shared/lib/api-schema'
@@ -49,13 +50,7 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
     ? `${labelOf('orderStatuses', r.order.status)}${r.order.filledPrice != null ? ` · ${fmtMoney(r.order.filledPrice, currency)}` : ''}`
     : '-')
   // 날짜(fmtDate 결과)별 그룹 — 입력 순서 유지
-  const groups = rows.reduce<{ date: string; items: ExecutionItem[] }[]>((acc, r) => {
-    const date = fmtDate(r.kstTradeDate)
-    const last = acc[acc.length - 1]
-    if (last && last.date === date) last.items.push(r)
-    else acc.push({ date, items: [r] })
-    return acc
-  }, [])
+  const groups = groupConsecutiveBy(rows, (r) => fmtDate(r.kstTradeDate))
 
   return (
     <Card className="overflow-hidden">
@@ -74,8 +69,8 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
             {/* 모바일: 카드 리스트 */}
             <div className="space-y-2 p-4 lg:hidden">
               {groups.map((g, i) => (
-                <div key={`${g.date}-${i}`} className="space-y-1.5">
-                  <div className="px-1 pt-2 text-sm uppercase tracking-widest text-muted-foreground">{g.date}</div>
+                <div key={`${g.key}-${i}`} className="space-y-1.5">
+                  <div className={DATE_GROUP_LABEL_CLASS}>{g.key}</div>
                   {g.items.map((r) => (
                     <div key={r.ruleKey} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5 space-y-1.5">
                       <div className="flex items-center justify-between gap-2 text-sm">

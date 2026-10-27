@@ -1,6 +1,5 @@
 'use client'
 
-import { Card, CardContent } from '@/components/ui/card'
 import { KpiCard } from '@widgets/kpi-card'
 import { seedBadgeClass, isScheduledStart, scheduledStartBadgeLabel, nextVrRolloverDate } from '@entities/strategy'
 import { useMeta } from '@entities/meta'
@@ -9,14 +8,12 @@ import { fmtDate, fmtUsd } from '@shared/lib/format'
 import { Badge } from '@shared/ui/Badge'
 import type { Strategy } from '@entities/strategy'
 import type { NextOrderPreview } from '@entities/order'
-import { SKIP_REASON_LABELS, previewErrorMsg, recurringModeLabel } from './orderBannerCopy'
+import { recurringModeLabel } from './orderBannerCopy'
 
 interface Props {
   strategy: Strategy
   preview: NextOrderPreview | undefined
   isLoadingPreview: boolean
-  isPreviewError: boolean
-  previewError: unknown
 }
 
 export function StatusStrip({ strategy }: { strategy: Strategy }) {
@@ -146,26 +143,15 @@ function VrGrid({ vr, startDate }: { vr: NonNullable<Strategy['vr']>; startDate:
 interface PositionGridProps {
   preview: NextOrderPreview | undefined
   isLoadingPreview: boolean
-  isPreviewError: boolean
-  previewError: unknown
 }
 
-function PositionGrid({ preview, isLoadingPreview, isPreviewError, previewError }: PositionGridProps) {
+// 미리보기 오류·주문 없음 사유는 다음 주문 카드가 안내한다 — 여기선 값이 있을 때만 타일을 그린다
+function PositionGrid({ preview, isLoadingPreview }: PositionGridProps) {
   const position = preview?.position ?? null
+  if (!isLoadingPreview && !position) return null
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-2 gap-3">
-      {isLoadingPreview ? (
-        <>
-          <KpiCard label="회차(T)" skeleton />
-          <KpiCard label="단위금액(회)" skeleton />
-          <KpiCard label="기준가" skeleton />
-          <KpiCard label="목표가" skeleton />
-        </>
-      ) : isPreviewError ? (
-        <Card className="col-span-2 lg:col-span-4 xl:col-span-2">
-          <CardContent className="p-5 text-sm text-muted-foreground text-center">{previewErrorMsg(previewError)}</CardContent>
-        </Card>
-      ) : position ? (
+      {position ? (
         <>
           <KpiCard label="회차(T)" value={`${position.currentRound.toFixed(1)}회차`} />
           <KpiCard label="단위금액(회)" value={`$${fmtUsd(toNum(position.unitAmount))}`} />
@@ -173,17 +159,18 @@ function PositionGrid({ preview, isLoadingPreview, isPreviewError, previewError 
           <KpiCard label="목표가" value={`$${fmtUsd(toNum(position.targetPrice))}`} />
         </>
       ) : (
-        <Card className="col-span-2 lg:col-span-4 xl:col-span-2">
-          <CardContent className="whitespace-pre-line p-5 text-sm text-muted-foreground text-center">
-            {preview?.skipReason ? SKIP_REASON_LABELS[preview.skipReason] : '다음 주문 정보를 불러올 수 없습니다.'}
-          </CardContent>
-        </Card>
+        <>
+          <KpiCard label="회차(T)" skeleton />
+          <KpiCard label="단위금액(회)" skeleton />
+          <KpiCard label="기준가" skeleton />
+          <KpiCard label="목표가" skeleton />
+        </>
       )}
     </div>
   )
 }
 
-export function StrategyMetaSection({ strategy, preview, isLoadingPreview, isPreviewError, previewError }: Props) {
+export function StrategyMetaSection({ strategy, preview, isLoadingPreview }: Props) {
   const { labelOf, findStrategyType } = useMeta()
   const cycleSeedLabel = labelOf('cycleSeedTypes', strategy.cycleSeedType)
   const strategyTypeMeta = findStrategyType(strategy.type)
@@ -200,7 +187,7 @@ export function StrategyMetaSection({ strategy, preview, isLoadingPreview, isPre
       {strategy.vr && <VrGrid vr={strategy.vr} startDate={strategy.startDate} />}
 
       {usesDivisionCount ? (
-        <PositionGrid preview={preview} isLoadingPreview={isLoadingPreview} isPreviewError={isPreviewError} previewError={previewError} />
+        <PositionGrid preview={preview} isLoadingPreview={isLoadingPreview} />
       ) : null}
     </>
   )

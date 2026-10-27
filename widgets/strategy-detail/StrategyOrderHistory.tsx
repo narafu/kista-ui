@@ -9,11 +9,11 @@ import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { Badge } from '@shared/ui/Badge'
-import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { DATE_GROUP_LABEL_CLASS, TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { RangeFilterControls } from '@shared/ui/range-filter/RangeFilterControls'
 import { fmtDate, fmtQuantity, fmtUsd } from '@shared/lib/format'
-import { toNum } from '@shared/lib/utils'
+import { groupConsecutiveBy, toNum } from '@shared/lib/utils'
 import { resolveRangeStrict } from '@shared/lib/date-range'
 import { useRangeFilterState } from '@shared/lib/hooks/use-range-filter-state'
 import { ALL_FILTER_VALUE, OrderHistoryFilters, type OrderHistoryFilterValue } from './OrderHistoryFilters'
@@ -56,13 +56,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
   const totalPages = Math.ceil(filteredOrders.length / size)
   const pageOrders = filteredOrders.slice((page - 1) * size, page * size)
   // 날짜(fmtDate 결과)별 그룹 — 입력 순서 유지
-  const groups = pageOrders.reduce<{ date: string; items: StrategyOrder[] }[]>((acc, o) => {
-    const date = fmtDate(o.tradeDate)
-    const last = acc[acc.length - 1]
-    if (last && last.date === date) last.items.push(o)
-    else acc.push({ date, items: [o] })
-    return acc
-  }, [])
+  const groups = groupConsecutiveBy(pageOrders, (o) => fmtDate(o.tradeDate))
 
   return (
     <Card className="overflow-hidden">
@@ -115,8 +109,8 @@ export function StrategyOrderHistory({ strategyId }: Props) {
             {/* 모바일: 카드 리스트 */}
             <div className="space-y-2 p-4 lg:hidden">
               {groups.map((g, i) => (
-                <div key={`${g.date}-${i}`} className="space-y-1.5">
-                  <div className="px-1 pt-2 text-sm uppercase tracking-widest text-muted-foreground">{g.date}</div>
+                <div key={`${g.key}-${i}`} className="space-y-1.5">
+                  <div className={DATE_GROUP_LABEL_CLASS}>{g.key}</div>
                   {g.items.map((o) => (
                     <div key={o.id} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5 space-y-1.5">
                       <div className="flex items-center justify-between gap-2">
