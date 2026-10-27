@@ -41,7 +41,7 @@ export function SeedInputSection({
       <StrategyFieldLabel
         hint={seedHint(hint, availableCash, mockBadgeLabel)}
       >
-        시작 시드
+        예수금
       </StrategyFieldLabel>
 
       <SeedAmountInput

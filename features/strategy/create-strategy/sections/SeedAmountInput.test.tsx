@@ -14,7 +14,7 @@ describe('SeedAmountInput', () => {
       />,
     )
 
-    expect(screen.getByLabelText('시작 시드 (USD)')).toBeInTheDocument()
+    expect(screen.getByLabelText('예수금 (USD)')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '최소시드 단위 감소' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '최소시드 단위 증가' })).not.toBeInTheDocument()
   })
@@ -29,7 +29,7 @@ describe('SeedAmountInput', () => {
         minSeed={null}
       />,
     )
-    const input = screen.getByLabelText('시작 시드 (USD)')
+    const input = screen.getByLabelText('예수금 (USD)')
 
     await user.type(input, '123')
     expect(input).toHaveValue('123')
@@ -52,7 +52,7 @@ describe('SeedAmountInput', () => {
         minSeed={null}
       />,
     )
-    const input = screen.getByLabelText('시작 시드 (USD)')
+    const input = screen.getByLabelText('예수금 (USD)')
 
     await user.type(input, '123.45')
     onChange.mockClear()
@@ -72,7 +72,7 @@ describe('SeedAmountInput', () => {
         minSeed={null}
       />,
     )
-    const input = screen.getByLabelText('시작 시드 (USD)')
+    const input = screen.getByLabelText('예수금 (USD)')
 
     await user.type(input, '12.')
     expect(input).toHaveValue('12.')
@@ -89,6 +89,6 @@ describe('SeedAmountInput', () => {
     render(<SeedAmountInput value={1500} onChange={vi.fn()} deposit={1000} minSeed={100} />)
 
     expect(screen.getByText('추가 입금 필요')).toBeInTheDocument()
-    expect(screen.getByLabelText('시작 시드 (USD)')).toBeEnabled()
+    expect(screen.getByLabelText('예수금 (USD)')).toBeEnabled()
   })
 })

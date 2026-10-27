@@ -25,7 +25,7 @@ test.describe('시드 폼 가용 예수금 (USER)', () => {
     await page.goto(`/accounts/${accountId}/strategies/new`)
     await expect(page.getByText('가용 예수금 $5,000.00')).toBeVisible()
 
-    const seed = page.getByLabel('시작 시드 (USD)')
+    const seed = page.getByLabel('예수금 (USD)')
     await seed.fill('8000')
     await expect(page.getByText('추가 입금 필요')).toBeVisible()
 

@@ -203,8 +203,8 @@ describe('StrategyForm seed section', () => {
     render(<StrategyForm accountId="account-1" initial={initialStrategy} />)
 
     expect(screen.queryByTestId('seed-input-section')).not.toBeInTheDocument()
-    expect(screen.getByText('시작 시드')).toBeInTheDocument()
-    expect(screen.getByText('시드는 전략 등록 후 수정할 수 없습니다')).toBeInTheDocument()
+    expect(screen.getByText('예수금')).toBeInTheDocument()
+    expect(screen.getByText('예수금은 전략 등록 후 수정할 수 없습니다')).toBeInTheDocument()
     expect(screen.getByText('$1,200.00')).toBeInTheDocument()
   })
 

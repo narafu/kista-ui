@@ -18,7 +18,7 @@ describe('SeedInputSection', () => {
     render(<SeedInputSection {...baseProps} setSeedUsdInput={setSeedUsdInput} />)
 
     expect(screen.queryByLabelText('사용 비율 (%)')).not.toBeInTheDocument()
-    const input = screen.getByLabelText('시작 시드 (USD)')
+    const input = screen.getByLabelText('예수금 (USD)')
     await user.type(input, '500.5')
 
     expect(input).toHaveValue('500.5')

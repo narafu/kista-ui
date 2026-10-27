@@ -57,7 +57,7 @@ function SeedStatus({ value, deposit, minSeed }: StatusProps) {
   }
   return (
     <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-muted border border-border">
-      <span className="text-sm text-muted-foreground font-bold">시작 시드 입력</span>
+      <span className="text-sm text-muted-foreground font-bold">예수금 입력</span>
       {minSeed !== null && (
         <span className="text-sm text-muted-foreground">최소 ${fmtUsd(minSeed)}</span>
       )}
@@ -82,7 +82,7 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled }:
         <input
           type="text"
           inputMode="decimal"
-          aria-label="시작 시드 (USD)"
+          aria-label="예수금 (USD)"
           value={text}
           disabled={disabled}
           placeholder="0"

@@ -93,7 +93,7 @@ function SummaryGrid({ strategy, usesDivisionCount }: { strategy: Strategy; uses
         valueClassName="text-xl lg:text-2xl"
       />
       <KpiCard
-        label="시작 시드"
+        label="시작 예수금"
         value={
           strategy.initialUsdDeposit != null ? (
             <span className="inline-flex items-center text-xl lg:text-3xl font-bold">{`$${fmtUsd(strategy.initialUsdDeposit)}`}</span>

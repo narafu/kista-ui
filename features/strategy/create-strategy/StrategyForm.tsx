@@ -33,7 +33,7 @@ function divisionCountOptions(form: UseStrategyFormReturn, initial?: Strategy): 
 
 function seedHint(isVr: boolean, initial?: Strategy) {
   if (isVr || !initial) return undefined
-  return '첫 매매 전이라 시드 수정이 가능합니다'
+  return '첫 매매 전이라 예수금 수정이 가능합니다'
 }
 
 function RuntimeConfigError({ onRetry }: { onRetry: () => void }) {

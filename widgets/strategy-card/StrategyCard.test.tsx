@@ -307,10 +307,10 @@ describe('StrategyCard mobile row', () => {
 })
 
 describe('StrategyCard start seed label', () => {
-  it('labels the initial deposit as 시작 시드 on mobile and PC', () => {
+  it('labels the initial deposit as 시작 예수금 on mobile and PC', () => {
     render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
 
-    expect(screen.getAllByText('시작 시드')).toHaveLength(2)
+    expect(screen.getAllByText('시작 예수금')).toHaveLength(2)
   })
 })
 
