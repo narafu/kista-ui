@@ -11,6 +11,7 @@ describe('SeedAmountInput', () => {
         onChange={vi.fn()}
         deposit={null}
         minSeed={null}
+        belowMinSeed={false}
       />,
     )
 
@@ -27,6 +28,7 @@ describe('SeedAmountInput', () => {
         onChange={vi.fn()}
         deposit={null}
         minSeed={null}
+        belowMinSeed={false}
       />,
     )
     const input = screen.getByLabelText('예수금 (USD)')
@@ -50,6 +52,7 @@ describe('SeedAmountInput', () => {
         onChange={onChange}
         deposit={null}
         minSeed={null}
+        belowMinSeed={false}
       />,
     )
     const input = screen.getByLabelText('예수금 (USD)')
@@ -70,6 +73,7 @@ describe('SeedAmountInput', () => {
         onChange={vi.fn()}
         deposit={null}
         minSeed={null}
+        belowMinSeed={false}
       />,
     )
     const input = screen.getByLabelText('예수금 (USD)')
@@ -79,14 +83,22 @@ describe('SeedAmountInput', () => {
   })
 
   it('예수금이 null이어도 조회 불가 안내 없이 최소 시드 안내로 떨어진다', () => {
-    render(<SeedAmountInput value={null} onChange={vi.fn()} deposit={null} minSeed={100} />)
+    render(<SeedAmountInput value={null} onChange={vi.fn()} deposit={null} minSeed={100} belowMinSeed={false} />)
 
     expect(screen.queryByText('예수금 조회 불가')).not.toBeInTheDocument()
     expect(screen.getByText('최소 $100.00')).toBeInTheDocument()
   })
 
+  it('최소 투자금 미달은 폼 판정(보유 평가금액 합산)을 따른다 — 예수금만 최소보다 작아도 미달로 보지 않는다', () => {
+    const { rerender } = render(<SeedAmountInput value={50} onChange={vi.fn()} deposit={null} minSeed={100} belowMinSeed={false} />)
+    expect(screen.queryByText('최소 투자금 미달')).not.toBeInTheDocument()
+
+    rerender(<SeedAmountInput value={50} onChange={vi.fn()} deposit={null} minSeed={100} belowMinSeed />)
+    expect(screen.getByText('최소 투자금 미달')).toBeInTheDocument()
+  })
+
   it('입력 시드가 예수금을 넘으면 경고성 안내만 보이고 입력은 막지 않는다', () => {
-    render(<SeedAmountInput value={1500} onChange={vi.fn()} deposit={1000} minSeed={100} />)
+    render(<SeedAmountInput value={1500} onChange={vi.fn()} deposit={1000} minSeed={100} belowMinSeed={false} />)
 
     expect(screen.getByText('추가 입금 필요')).toBeInTheDocument()
     expect(screen.getByLabelText('예수금 (USD)')).toBeEnabled()

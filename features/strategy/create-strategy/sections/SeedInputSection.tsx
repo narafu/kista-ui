@@ -15,6 +15,7 @@ interface Props {
   // 가용 예수금 — 참고값·비율 채우기용, 시드 검증에는 쓰지 않는다 (모의계좌·조회 실패는 null)
   availableCash: number | null
   minSeed: number | null
+  isBelowMinSeed: boolean
   loading: boolean
   mockBadgeLabel?: string
 }
@@ -33,7 +34,7 @@ function seedHint(hint: string | undefined, availableCash: number | null, mockBa
 export function SeedInputSection({
   hint,
   seedUsdInput, setSeedUsdInput,
-  availableCash, minSeed, loading,
+  availableCash, minSeed, isBelowMinSeed, loading,
   mockBadgeLabel,
 }: Props) {
   return (
@@ -49,6 +50,7 @@ export function SeedInputSection({
         onChange={setSeedUsdInput}
         deposit={availableCash}
         minSeed={minSeed}
+        belowMinSeed={isBelowMinSeed}
         disabled={loading}
       />
 

@@ -10,6 +10,8 @@ interface Props {
   onChange: (v: number | null) => void
   deposit: number | null
   minSeed: number | null
+  // 최소 투자금 판정은 보유 평가금액까지 합산하는 폼 검증(useSeedModel)을 그대로 따른다
+  belowMinSeed: boolean
   disabled?: boolean
 }
 
@@ -17,14 +19,15 @@ interface StatusProps {
   value: number | null
   deposit: number | null
   minSeed: number | null
+  belowMinSeed: boolean
 }
 
-function SeedStatus({ value, deposit, minSeed }: StatusProps) {
+function SeedStatus({ value, deposit, minSeed, belowMinSeed }: StatusProps) {
   const amount = value !== null && value > 0 ? value : null
   const shortage = deposit !== null && amount !== null && deposit < amount ? amount - deposit : null
   const sufficient = deposit !== null && amount !== null && deposit >= amount
 
-  if (minSeed !== null && amount !== null && amount < minSeed) {
+  if (belowMinSeed && minSeed !== null) {
     return (
       <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--warn-bg)] border border-[var(--warn)]">
         <span className="text-sm text-[var(--warn)] font-bold">최소 투자금 미달</span>
@@ -65,7 +68,7 @@ function SeedStatus({ value, deposit, minSeed }: StatusProps) {
   )
 }
 
-export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled }: Props) {
+export function SeedAmountInput({ value, onChange, deposit, minSeed, belowMinSeed, disabled }: Props) {
   const { text, handleChange } = useDecimalAmountText({ value, onChange })
 
   return (
@@ -94,7 +97,7 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, disabled }:
         <span className="text-xs font-semibold text-muted-foreground ml-1.5">USD</span>
       </div>
 
-      <SeedStatus value={value} deposit={deposit} minSeed={minSeed} />
+      <SeedStatus value={value} deposit={deposit} minSeed={minSeed} belowMinSeed={belowMinSeed} />
     </div>
   )
 }

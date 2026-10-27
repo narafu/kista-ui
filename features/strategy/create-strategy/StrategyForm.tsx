@@ -58,6 +58,7 @@ function SeedSection({ form, initial }: { form: UseStrategyFormReturn; initial?:
       setSeedUsdInput={form.setSeedUsdInput}
       availableCash={form.availableCash}
       minSeed={form.minSeed}
+      isBelowMinSeed={form.isBelowMinSeed}
       loading={form.loading}
       mockBadgeLabel={form.isMock ? '모의계좌' : undefined}
     />

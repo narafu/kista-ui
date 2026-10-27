@@ -8,10 +8,19 @@ const baseProps = {
   setSeedUsdInput: vi.fn(),
   availableCash: null,
   minSeed: null,
+  isBelowMinSeed: false,
   loading: false,
 }
 
 describe('SeedInputSection', () => {
+  it('폼의 최소 투자금 판정을 입력칸 상태로 전달한다', () => {
+    const { rerender } = render(<SeedInputSection {...baseProps} seedUsdInput={50} minSeed={100} />)
+    expect(screen.queryByText('최소 투자금 미달')).not.toBeInTheDocument()
+
+    rerender(<SeedInputSection {...baseProps} seedUsdInput={50} minSeed={100} isBelowMinSeed />)
+    expect(screen.getByText('최소 투자금 미달')).toBeInTheDocument()
+  })
+
   it('항상 예수금 직접입력을 렌더하고 소수점 둘째 자리까지 입력된다', async () => {
     const setSeedUsdInput = vi.fn()
     const user = userEvent.setup()
