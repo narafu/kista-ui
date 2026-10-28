@@ -67,14 +67,14 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
           <tbody className="divide-y divide-border">
             {paged.map((user) => (
               <tr key={user.id} className="hover:bg-muted/30 transition-colors">
-                <TableDataCell className="text-left font-medium whitespace-nowrap">{user.nickname}</TableDataCell>
-                <TableDataCell className="text-left whitespace-nowrap">
+                <TableDataCell className="font-medium whitespace-nowrap">{user.nickname}</TableDataCell>
+                <TableDataCell className="whitespace-nowrap">
                   <Badge tone={USER_STATUS_TONE[user.status]}>{ADMIN_USER_STATUS_LABEL[user.status]}</Badge>
                 </TableDataCell>
-                <TableDataCell className="text-left whitespace-nowrap">
+                <TableDataCell className="whitespace-nowrap">
                   <Badge tone={user.role === 'ADMIN' ? 'admin' : 'neutral'}>{USER_ROLE_LABEL[user.role]}</Badge>
                 </TableDataCell>
-                <TableDataCell className="text-left text-muted-foreground whitespace-nowrap">
+                <TableDataCell className="text-muted-foreground whitespace-nowrap">
                   {fmtDate(user.createdAt)}
                 </TableDataCell>
                 <TableDataCell className="whitespace-nowrap">
