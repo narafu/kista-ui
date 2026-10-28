@@ -305,8 +305,8 @@ function Metric({ label, value, valueClassName }: { label: string; value: string
   )
 }
 
-const ORDER_DETAILS_HEAD_CLASS = 'px-0 py-1 text-xs lg:text-xs font-medium normal-case tracking-normal text-muted-foreground'
-const ORDER_DETAILS_CELL_CLASS = 'px-0 py-1 text-xs'
+const ORDER_DETAILS_HEAD_CLASS = 'px-3 py-1 text-xs lg:text-xs font-medium normal-case tracking-normal text-muted-foreground'
+const ORDER_DETAILS_CELL_CLASS = 'px-3 py-1 text-xs'
 
 function OrderDetailsSection({
   orders, onEditOrder, onAddOrder, onDeleteOrder,
@@ -351,7 +351,7 @@ function OrderDetailsTable({
           <TableHeadCell className={ORDER_DETAILS_HEAD_CLASS}>유형</TableHeadCell>
           <TableHeadCell numeric className={ORDER_DETAILS_HEAD_CLASS}>가격</TableHeadCell>
           <TableHeadCell numeric className={ORDER_DETAILS_HEAD_CLASS}>수량</TableHeadCell>
-          <TableHeadCell className={ORDER_DETAILS_HEAD_CLASS}><span className="sr-only">수정·삭제</span></TableHeadCell>
+          <TableHeadCell className={cn(ORDER_DETAILS_HEAD_CLASS, 'w-px')}><span className="sr-only">수정·삭제</span></TableHeadCell>
         </tr>
       </thead>
       <tbody>

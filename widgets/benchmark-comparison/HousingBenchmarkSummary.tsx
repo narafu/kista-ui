@@ -97,17 +97,17 @@ export function HousingBenchmarkSummary({ summary, investmentLabel, benchmarkLab
               const benchmarkValue = summary[metric.benchmarkKey]
               return (
                 <tr key={metric.label} className="border-t">
-                  <th scope="row" className="px-2 py-3 text-left font-medium sm:px-4">
+                  <th scope="row" className="px-2 py-3 text-center font-medium sm:px-4">
                     {metric.label}
                   </th>
                   <TableDataCell className={cn(
-                    'px-2 text-right tabular-nums sm:px-4',
+                    'px-2 tabular-nums sm:px-4',
                     investmentValue != null && pnlTextClass(investmentValue),
                   )}>
                     {fmtSignedPercent(investmentValue, 2)}
                   </TableDataCell>
                   <TableDataCell className={cn(
-                    'px-2 text-right tabular-nums sm:px-4',
+                    'px-2 tabular-nums sm:px-4',
                     benchmarkValue != null && pnlTextClass(benchmarkValue),
                   )}>
                     {fmtSignedPercent(benchmarkValue, 2)}
