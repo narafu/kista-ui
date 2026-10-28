@@ -357,12 +357,12 @@ function OrderDetailsTable({
       <tbody>
         {orders.map((o) => (
           <tr key={o.id}>
-            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-left')}>
+            <TableDataCell className={ORDER_DETAILS_CELL_CLASS}>
               <Badge tone="none" size="sm" className={directionBadgeClass(o.direction)}>{labelOf('orderDirections', o.direction)}</Badge>
             </TableDataCell>
-            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-left text-muted-foreground')}>{labelOf('orderTypes', o.orderType)}</TableDataCell>
+            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-muted-foreground')}>{labelOf('orderTypes', o.orderType)}</TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right tabular-nums whitespace-nowrap')}>${fmtUsd(o.price)}</TableDataCell>
-            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right whitespace-nowrap')}>{o.quantity ?? '-'}</TableDataCell>
+            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right tabular-nums whitespace-nowrap')}>{o.quantity ?? '-'}</TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right whitespace-nowrap')}>
               <span className="inline-flex items-center gap-1.5">
                 <IconButton
