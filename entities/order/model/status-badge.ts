@@ -13,6 +13,6 @@ const ORDER_STATUS_BADGE_CLS: Record<string, string> = {
  * 시맨틱 토큰 기반 — 라이트/다크는 토큰(`--info`·`--status-ok`·`--warn`)이 자동 전환한다.
  */
 export function orderStatusBadgeClass(status: string): string {
-  return ORDER_STATUS_BADGE_CLS[status] ?? 'bg-muted text-muted-foreground'
+  return ORDER_STATUS_BADGE_CLS[status] ?? 'bg-muted text-foreground'
 }
 
