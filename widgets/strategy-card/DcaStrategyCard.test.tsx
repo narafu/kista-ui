@@ -44,9 +44,9 @@ const threeRules = (ticker = 'UPRO') => ({
 })
 
 describe('DcaStrategyCard', () => {
-  it('규칙 수와 방향별 개수를 요약하고 방향·주문 방식 배지·회차당 금액은 보이지 않는다', () => {
+  it('방향별 규칙 개수를 요약하고 방향·주문 방식 배지·회차당 금액은 보이지 않는다', () => {
     render(<DcaStrategyCard accountId="a1" broker="KIS" strategy={threeRules()} />)
-    expect(screen.getAllByText('규칙 3개 · 매수 2 · 매도 1')).toHaveLength(2) // 모바일·PC
+    expect(screen.getAllByText('매수 2 · 매도 1')).toHaveLength(2) // 모바일·PC
     expect(screen.queryByText('회차당 금액')).not.toBeInTheDocument()
     expect(screen.queryByText('장 마감 시장가')).not.toBeInTheDocument()
     expect(screen.queryByText('매수')).not.toBeInTheDocument()

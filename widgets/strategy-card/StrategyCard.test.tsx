@@ -432,9 +432,9 @@ describe('StrategyCard DCA', () => {
     expect(previewMock).not.toHaveBeenCalled()
   })
 
-  it('DCA 카드는 규칙 수·다음 판정일·최근 결과를 보여준다', () => {
+  it('DCA 카드는 방향별 규칙 개수·다음 판정일·최근 결과를 보여준다', () => {
     render(<StrategyCard accountId="a1" broker="KIS" strategy={dcaStrategy} />)
-    expect(screen.getAllByText('규칙 1개 · 매수 1')).toHaveLength(2)
+    expect(screen.getAllByText('매수 1')).toHaveLength(2)
     expect(screen.getByText('다음 판정일')).toBeInTheDocument()
     expect(screen.getByText(fmtDate('2026-10-31'))).toBeInTheDocument()
     expect(screen.getAllByText('최근 건너뜀 · 조건 미충족')).toHaveLength(2)

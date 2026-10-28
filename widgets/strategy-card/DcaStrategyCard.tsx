@@ -29,7 +29,6 @@ export function DcaStrategyCard({ accountId, broker, strategy, accountLabel }: P
   const buyCount = rules.filter(r => r.direction === 'BUY').length
   const sellCount = rules.length - buyCount
   const summary = dca && [
-    `규칙 ${rules.length}개`,
     ...(buyCount ? [`${labelOf('orderDirections', 'BUY')} ${buyCount}`] : []),
     ...(sellCount ? [`${labelOf('orderDirections', 'SELL')} ${sellCount}`] : []),
   ].join(' · ')
