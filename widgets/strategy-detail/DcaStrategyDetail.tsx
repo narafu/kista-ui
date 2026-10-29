@@ -12,6 +12,7 @@ import { dcaIndicatorLabel, formatCryptoNextExecution, formatDcaCondition, DcaRu
 import type { Strategy } from '@entities/strategy'
 import { useAccountPricesQuery } from '@entities/account'
 import { cryptoPortfolioQueryOptions, cryptoPricesQueryOptions, directionBadgeClass } from '@entities/trade'
+import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtMoney, fmtQuantity, fmtSignedPercent, pnlTextClass, roundMoney } from '@shared/lib/format'
 import { brokerMarket, isCryptoMarket, marketCurrency } from '@shared/lib/api-schema'
 import type { TradingMarket } from '@shared/lib/api-schema'
@@ -30,7 +31,6 @@ const TILE = { className: 'p-4 lg:p-5', valueClassName: 'text-xl lg:text-2xl tab
 // 보유 현황은 원화 9자리·코인 소수 8자리라 모바일 2열에서 한 단계 더 작게, 단위가 숫자와 떨어지지 않게 둔다
 const HOLDING_TILE = { className: TILE.className, valueClassName: 'text-base sm:text-xl lg:text-2xl tabular-nums break-keep' }
 const UNAVAILABLE = <span className="text-base font-normal text-muted-foreground">확인 불가</span>
-const HOLDINGS_SUB = '이 전략 체결 기준'
 
 // 보유 수량·평단가는 원장(dca.currentHoldings·avgPrice)이 SSOT, 현재가만 시장별로 따로 받는다.
 // 크립토는 계좌 상세와 캐시를 공유하는 crypto-portfolio, 주식은 prices — 크립토 계좌로 prices를 부르면 400이라 enabled로 갈라 둔다
@@ -59,7 +59,7 @@ function DcaHoldingGrid({ accountId, strategy, market }: { accountId: string; st
   const unavailable = holdings != null && !priced && settled
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <KpiCard label="보유 수량" value={isCrypto ? `${fmtQuantity(holdings ?? 0)} ${ticker}` : `${fmtQuantity(holdings ?? 0)}주`} sub={HOLDINGS_SUB} {...HOLDING_TILE} />
+      <KpiCard label="보유 수량" value={isCrypto ? `${fmtQuantity(holdings ?? 0)} ${ticker}` : `${fmtQuantity(holdings ?? 0)}주`} {...HOLDING_TILE} />
       <KpiCard label="평단가" value={avg != null ? fmtMoney(avg, currency) : '-'} {...HOLDING_TILE} />
       <KpiCard label="평가금액" value={unavailable ? UNAVAILABLE : evalAmount != null ? fmtMoney(evalAmount, currency) : '-'} skeleton={loading} {...HOLDING_TILE} />
       <KpiCard
@@ -68,6 +68,15 @@ function DcaHoldingGrid({ accountId, strategy, market }: { accountId: string; st
         skeleton={loading}
         {...HOLDING_TILE}
       />
+    </div>
+  )
+}
+
+function RuleField({ label, className, children }: { label: string; className?: string; children: React.ReactNode }) {
+  return (
+    <div className={className}>
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="mt-0.5">{children}</dd>
     </div>
   )
 }
@@ -101,37 +110,46 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
 
       <DcaHoldingGrid accountId={accountId} strategy={strategy} market={market} />
 
-      {dca && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">규칙</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm">
-            <ul className="divide-y divide-border">
-              {dca.rules.map((r) => (
-                <li key={r.ruleKey} className="space-y-1 py-3 first:pt-0 last:pb-0">
-                  <p className="font-semibold"><DcaRuleSummaryLabel rule={r} labelOf={labelOf} market={market} size="sm" badgeClassName={directionBadgeClass(r.direction)} /></p>
-                  {r.conditions.length === 0 ? (
-                    <p>조건 없이 매 회차 주문</p>
-                  ) : (
-                    r.conditions.map((c, i) => (
-                      <p key={i}>{formatDcaCondition(c, dcaIndicatorLabel(c.indicator, labelOf('dcaIndicators', c.indicator), isCrypto), labelOf('dcaOperators', c.operator))}</p>
-                    ))
-                  )}
-                  {/* 주식 매수는 부족 정책이 적용되지 않는다 */}
-                  {(isCrypto || r.direction === 'SELL') && <p className="text-muted-foreground">{labelOf('dcaShortfallPolicies', r.shortfall)}</p>}
-                  <p className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
-                    <span>{isCrypto ? '다음 실행' : '다음 판정일'} {!r.nextExecution ? '미정' : isCrypto ? formatCryptoNextExecution(r.nextExecution.kstTradeDate, r.executionHour) : fmtDate(r.nextExecution.kstTradeDate)}</span>
-                    {r.lastExecution && <span>최근 {labelOf('dcaExecutionStatuses', r.lastExecution.status)}{r.lastExecution.skipReason && ` · ${labelOf('dcaSkipReasons', r.lastExecution.skipReason)}`}</span>}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
+      {/* PC: 규칙 / 회차별 실행 이력 2단 — 주식 전략 상세의 잔고 이력·주문 내역과 같은 배치. 규칙이 없으면 이력이 전체 폭 */}
+      <div className={cn('space-y-4', dca && 'xl:grid xl:grid-cols-2 xl:items-start xl:gap-4 xl:space-y-0')}>
+        {dca && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">규칙</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm">
+              <ul className="space-y-3">
+                {dca.rules.map((r) => (
+                  <li key={r.ruleKey} className="rounded-[var(--r-md)] border border-border px-3 py-2.5">
+                    <p className="font-semibold"><DcaRuleSummaryLabel rule={r} labelOf={labelOf} market={market} size="sm" badgeClassName={directionBadgeClass(r.direction)} /></p>
+                    <dl className="mt-2.5 grid grid-cols-2 gap-x-4 gap-y-2">
+                      <RuleField label="조건" className="col-span-2">
+                        {r.conditions.length === 0 ? '조건 없이 매 회차 주문' : r.conditions.map((c, i) => (
+                          <div key={i}>{formatDcaCondition(c, dcaIndicatorLabel(c.indicator, labelOf('dcaIndicators', c.indicator), isCrypto), labelOf('dcaOperators', c.operator))}</div>
+                        ))}
+                      </RuleField>
+                      {/* 주식 매수는 부족 정책이 적용되지 않는다 */}
+                      {(isCrypto || r.direction === 'SELL') && (
+                        <RuleField label={r.direction === 'SELL' ? '보유가 부족할 때' : '잔고가 부족할 때'} className="col-span-2">
+                          {labelOf('dcaShortfallPolicies', r.shortfall)}
+                        </RuleField>
+                      )}
+                      <RuleField label={isCrypto ? '다음 실행' : '다음 판정일'}>
+                        {!r.nextExecution ? '미정' : isCrypto ? formatCryptoNextExecution(r.nextExecution.kstTradeDate, r.executionHour) : fmtDate(r.nextExecution.kstTradeDate)}
+                      </RuleField>
+                      <RuleField label="최근 결과">
+                        {r.lastExecution ? `${labelOf('dcaExecutionStatuses', r.lastExecution.status)}${r.lastExecution.skipReason ? ` · ${labelOf('dcaSkipReasons', r.lastExecution.skipReason)}` : ''}` : '-'}
+                      </RuleField>
+                    </dl>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        )}
 
-      <DcaExecutionHistory strategyId={strategy.id} ticker={strategy.ticker} rules={dca?.rules ?? []} market={market} />
+        <DcaExecutionHistory strategyId={strategy.id} ticker={strategy.ticker} rules={dca?.rules ?? []} market={market} />
+      </div>
 
       <Card>
         <CardContent className="p-5 flex gap-2">

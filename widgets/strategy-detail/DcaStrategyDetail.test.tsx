@@ -78,6 +78,9 @@ function renderDetail(s: Strategy = strategy, broker: BrokerCode = s.ticker === 
   )
 }
 
+// 규칙 카드의 라벨(dt)에 딸린 값(dd)
+const ruleField = (label: string) => screen.getByText(label, { selector: 'dt' }).nextElementSibling as HTMLElement
+
 describe('DcaStrategyDetail', () => {
   beforeEach(() => {
     cryptoPrices.result = new Error('fail')
@@ -89,7 +92,7 @@ describe('DcaStrategyDetail', () => {
     prices.calls = []
     renderDetail(ethStrategy)
     expect(screen.getByText('0.5 ETH')).toBeInTheDocument()
-    expect(screen.getByText('이 전략 체결 기준')).toBeInTheDocument()
+    expect(screen.queryByText('이 전략 체결 기준')).not.toBeInTheDocument()
     expect(screen.getByText('4,000,000원')).toBeInTheDocument()
     expect(await screen.findByText('2,200,000원')).toBeInTheDocument()
     expect(screen.getByText('+10.0%')).toHaveClass('text-pos')
@@ -157,7 +160,7 @@ describe('DcaStrategyDetail', () => {
     expect(screen.getByText('$80.00')).toBeInTheDocument()
     expect(screen.getByText('$300.00')).toBeInTheDocument()
     expect(screen.getByText('+25.0%')).toBeInTheDocument()
-    expect(screen.getByText('이 전략 체결 기준')).toBeInTheDocument()
+    expect(screen.queryByText('이 전략 체결 기준')).not.toBeInTheDocument()
   })
   it('currentHoldings가 null이면 보유 수량 0, 나머지는 -', () => {
     renderDetail({ ...strategy, dca: { rules: [rule], currentHoldings: null, avgPrice: null } })
@@ -171,8 +174,9 @@ describe('DcaStrategyDetail', () => {
     expect(screen.getByText('매수')).toBeInTheDocument()
     expect(screen.getByText('RSI(14) 35 이하')).toBeInTheDocument()
     expect(screen.queryByText('가용만큼 주문')).not.toBeInTheDocument()
-    expect(screen.getByText(`다음 판정일 ${fmtDate('2026-10-31')}`)).toBeInTheDocument()
-    expect(screen.queryByText(/^최근/)).not.toBeInTheDocument()
+    expect(ruleField('다음 판정일')).toHaveTextContent(fmtDate('2026-10-31'))
+    expect(ruleField('최근 결과')).toHaveTextContent('-')
+    expect(screen.queryByText('잔고가 부족할 때')).not.toBeInTheDocument()
     expect(screen.queryByText('방향')).not.toBeInTheDocument()
     expect(screen.queryByTestId('dca-config-grid')).not.toBeInTheDocument()
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['규칙', '회차별 실행 이력'])
@@ -181,15 +185,19 @@ describe('DcaStrategyDetail', () => {
     cryptoPortfolio.result = portfolio(1)
     const r = { ...ethRule, conditions: [], shortfall: 'REJECT' as const, lastExecution: { kstTradeDate: '2026-10-21', status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET' } }
     renderDetail({ ...ethStrategy, dca: { ...ethStrategy.dca!, rules: [r] } })
-    expect(screen.getByText('다음 실행 11/1 09시')).toBeInTheDocument()
-    expect(screen.getByText('최근 건너뜀 · 조건 미충족')).toBeInTheDocument()
+    expect(ruleField('다음 실행')).toHaveTextContent('11/1 09시')
+    expect(ruleField('최근 결과')).toHaveTextContent('건너뜀 · 조건 미충족')
     expect(screen.getByText('조건 없이 매 회차 주문')).toBeInTheDocument()
-    expect(screen.getByText('주문하지 않음')).toBeInTheDocument()
+    expect(ruleField('잔고가 부족할 때')).toHaveTextContent('주문하지 않음')
     expect(screen.queryByText(/다음 판정일/)).not.toBeInTheDocument()
+  })
+  it('규칙 카드: 매도 규칙은 주식이어도 보유 부족 정책을 보여 준다', () => {
+    renderDetail({ ...strategy, dca: { ...strategy.dca!, rules: [{ ...rule, direction: 'SELL' }] } })
+    expect(ruleField('보유가 부족할 때')).toHaveTextContent('가용만큼 주문')
   })
   it('nextExecution이 null이면 미정', () => {
     renderDetail({ ...strategy, dca: { ...strategy.dca!, rules: [{ ...rule, nextExecution: null }] } })
-    expect(screen.getByText('다음 판정일 미정')).toBeInTheDocument()
+    expect(ruleField('다음 판정일')).toHaveTextContent('미정')
   })
   it('공포탐욕지수 조건은 주식이면 (CNN), 크립토면 (Crypto) 출처를 붙인다', () => {
     const fg = { indicator: 'FEAR_GREED' as const, operator: 'LTE' as const, threshold: 20 }
