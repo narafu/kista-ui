@@ -41,7 +41,7 @@ function existing(rules: DcaRule[]): Strategy {
 function renderForm(initial?: Strategy, defaultTicker = 'UPRO', market: TradingMarket = 'US_STOCK', header?: React.ReactNode) {
   return render(
     <MetaProvider meta={meta}>
-      <DcaStrategyForm accountId="a1" initial={initial} availableTickers={market === 'CRYPTO_KRW' ? ['BTC'] : ['UPRO', 'QLD']} defaultTicker={defaultTicker} market={market} orderAmount={testOrderAmount(market)} header={header} />
+      <DcaStrategyForm accountId="a1" initial={initial} availableTickers={market === 'US_STOCK' ? ['UPRO', 'QLD'] : ['BTC']} defaultTicker={defaultTicker} market={market} orderAmount={testOrderAmount(market)} header={header} />
     </MetaProvider>,
   )
 }
@@ -255,6 +255,22 @@ describe('DcaStrategyForm', () => {
     expect(screen.getByText('규칙 (10/10)')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '매수 규칙 추가' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '매도 규칙 추가' })).not.toBeInTheDocument()
+  })
+
+  it('종목은 코인이면 거래 시장을 붙여 보여 주고 주식은 티커만 보여 준다', () => {
+    const { unmount } = renderForm(undefined, 'BTC', 'CRYPTO_KRW')
+    expect(screen.getByText('BTC/KRW')).toBeInTheDocument()
+    unmount()
+    const usdt = renderForm(undefined, 'BTC', 'CRYPTO_USDT')
+    expect(screen.getByText('BTC/USDT')).toBeInTheDocument()
+    usdt.unmount()
+    renderForm()
+    expect(screen.getByRole('button', { name: 'UPRO' })).toBeInTheDocument()
+  })
+
+  it('수정: 코인 종목도 거래 시장을 붙여 보여 준다', () => {
+    renderForm({ ...existing([rule('a', 10000)]), ticker: 'BTC' }, 'BTC', 'CRYPTO_KRW')
+    expect(screen.getByText('BTC/KRW')).toBeInTheDocument()
   })
 
   it('수정: 종목 변경 UI가 없다', () => {

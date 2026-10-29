@@ -15,10 +15,12 @@ interface Props {
   loading: boolean
   onTickerChange: (code: string) => void
   customizable: boolean
+  /** 종목 표시 라벨 — 코인은 거래 시장을 붙인다(BTC/KRW). 값(code)은 그대로 둔다 */
+  tickerLabel?: (code: string) => string
 }
 
 export function StrategyTickerSection({
-  initial, ticker, availableTickers, prices, basePrice, loading, onTickerChange, customizable,
+  initial, ticker, availableTickers, prices, basePrice, loading, onTickerChange, customizable, tickerLabel = (code) => code,
 }: Props) {
   return (
     <div className="py-[18px] border-b border-border">
@@ -26,7 +28,7 @@ export function StrategyTickerSection({
       {initial ? (
         <div className="flex items-center justify-between px-[14px] py-3 rounded-[var(--r-sm)] border border-border bg-muted">
           <div className="flex items-center gap-2.5">
-            <span className="text-sm font-[800]">{initial.ticker}</span>
+            <span className="text-sm font-[800]">{tickerLabel(initial.ticker)}</span>
           </div>
           {basePrice !== null && (
             <span className="text-sm text-muted-foreground tabular-nums">
@@ -48,7 +50,7 @@ export function StrategyTickerSection({
                 className="min-w-0 flex-1 px-3 py-2 text-center"
               >
                 <div className="text-sm font-[800]">
-                  {code}
+                  {tickerLabel(code)}
                 </div>
                 {price !== undefined && (
                   <div className="text-sm text-muted-foreground mt-0.5 tabular-nums">
@@ -62,7 +64,7 @@ export function StrategyTickerSection({
       ) : availableTickers.length === 1 ? (
         <div className="flex items-center justify-between px-[14px] py-3 rounded-[var(--r-sm)] border border-border bg-muted">
           <div className="flex items-center gap-2.5">
-            <span className="text-sm font-[800]">{availableTickers[0]}</span>
+            <span className="text-sm font-[800]">{tickerLabel(availableTickers[0])}</span>
           </div>
           {prices?.[availableTickers[0]] !== undefined && (
             <span className="text-sm text-muted-foreground tabular-nums">

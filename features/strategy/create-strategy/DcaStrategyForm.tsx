@@ -132,6 +132,7 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
           loading={pending}
           onTickerChange={(code) => form.setValue('ticker', code)}
           customizable={availableTickers.length > 1}
+          tickerLabel={crypto ? (code) => `${code}/${marketCurrency(market)}` : undefined}
         />
         {!initial && (
           <ScheduledStartSection
