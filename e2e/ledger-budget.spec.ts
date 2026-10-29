@@ -62,7 +62,7 @@ test.describe('관리자 재주문 원장 한도 (ADMIN)', () => {
     })
 
     await page.goto('/admin/trades')
-    for (const [name, option] of [['사용자 선택', 'e2e 사용자'], ['증권사 선택', /한국투자/], ['계좌 선택', '999-99****'], ['전략 선택', /TSLA/]] as const) {
+    for (const [name, option] of [['사용자 선택', 'e2e 사용자'], ['증권사 선택', /한국투자/], ['계좌 선택', 'e2e 계좌 · 999-99****'], ['전략 선택', /TSLA/]] as const) {
       await page.getByRole('combobox', { name }).click()
       await page.getByRole('option', { name: option }).click()
     }

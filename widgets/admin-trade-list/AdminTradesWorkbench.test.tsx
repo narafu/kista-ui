@@ -223,7 +223,7 @@ async function pick(user: ReturnType<typeof userEvent.setup>, name: string, opti
 async function selectBrokeredOrderTarget(user: ReturnType<typeof userEvent.setup>) {
   await pick(user, '사용자 선택', '홍길동')
   await pick(user, '증권사 선택', '한국투자증권')
-  await pick(user, '계좌 선택', '123-45****')
+  await pick(user, '계좌 선택', '홍길동 계좌 · 123-45****')
 }
 
 async function selectStrategyTarget(user: ReturnType<typeof userEvent.setup>) {
@@ -447,7 +447,7 @@ describe('AdminTradesWorkbench', () => {
 
     await waitFor(() => expect(accountSelect).not.toBeDisabled())
 
-    await pick(user, '계좌 선택', '123-45****')
+    await pick(user, '계좌 선택', '홍길동 계좌 · 123-45****')
 
     await waitFor(() => expect(listAdminStrategiesMock).toHaveBeenCalledWith('account-1'))
     await waitFor(() => expect(strategySelect).not.toBeDisabled())
@@ -491,6 +491,22 @@ describe('AdminTradesWorkbench', () => {
     await user.click(screen.getByRole('combobox', { name: '증권사 선택' }))
     expect(await screen.findByRole('option', { name: '한국투자증권' })).toBeInTheDocument()
     expect(screen.queryByRole('option', { name: '업비트' })).not.toBeInTheDocument()
+  })
+
+  it('계좌 선택지는 계좌명과 마스킹 번호로, 계좌번호가 없는 계좌는 계좌명만으로 보여 준다', async () => {
+    const user = userEvent.setup()
+    listAdminAccountsMock.mockReset().mockResolvedValue([
+      ...accounts,
+      { id: 'account-no-number', userId: 'user-1', ownerNickname: '홍길동', nickname: '메리츠 계좌', accountNoMasked: null, broker: 'KIS', strategies: [] },
+    ])
+
+    renderWorkbench()
+
+    await pick(user, '사용자 선택', '홍길동')
+    await pick(user, '증권사 선택', '한국투자증권')
+    await user.click(await screen.findByRole('combobox', { name: '계좌 선택' }))
+    expect(await screen.findByRole('option', { name: '홍길동 계좌 · 123-45****' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: '메리츠 계좌' })).toBeInTheDocument()
   })
 
   it('toggles selected strategy status and refreshes the strategy list', async () => {
@@ -545,7 +561,7 @@ describe('AdminTradesWorkbench', () => {
     expect(within(table).getAllByText('홍길동').length).toBeGreaterThan(0)
 
     await pick(user, '증권사 선택', '한국투자증권')
-    await pick(user, '계좌 선택', '123-45****')
+    await pick(user, '계좌 선택', '홍길동 계좌 · 123-45****')
     await pick(user, '전략 선택', 'INFINITE · TSLA')
 
     await waitFor(() => expect(within(table).queryByText('김영희')).not.toBeInTheDocument())

@@ -72,8 +72,8 @@ export function AdminTradeCorrectionPanel({
   const nextStrategyActionLabel = selectedStrategy?.status === 'ACTIVE' ? '전략 일시중지' : '전략 재개'
   const userItems = users.map((user) => ({ value: user.id, label: user.label }))
   const brokerItems = brokers.map((broker) => ({ value: broker, label: labelOf('brokers', broker) }))
-  // 계좌번호가 없는 계좌(메리츠·바이낸스)는 증권사·거래소명과 id 앞자리로 구분
-  const accountItems = accounts.map((account) => ({ value: account.id, label: account.accountNoMasked ?? `${labelOf('brokers', account.broker)} ${account.id.slice(0, 8)}` }))
+  // 계좌명(별칭) + 마스킹 번호. 계좌번호가 없는 계좌(메리츠)는 계좌명만으로 구분한다
+  const accountItems = accounts.map((account) => ({ value: account.id, label: account.accountNoMasked ? `${account.nickname} · ${account.accountNoMasked}` : account.nickname }))
   const strategyItems = strategies.map((strategy) => ({ value: strategy.id, label: `${labelOf('strategyTypes', strategy.type)} · ${strategy.ticker}` }))
   const helperMessage = getHelperMessage({ brokers, accounts, strategies, orders, selectedUserId, selectedBroker, selectedAccountId, selectedStrategyId })
 
