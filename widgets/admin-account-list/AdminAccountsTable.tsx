@@ -28,6 +28,7 @@ export function AdminAccountsTable({ accounts }: { accounts: AdminAccount[] }) {
         <thead className="bg-muted/50 border-b border-border">
           <tr>
             <TableHeadCell className={HEAD_CLASS}>소유자</TableHeadCell>
+            <TableHeadCell className={HEAD_CLASS}>계좌명</TableHeadCell>
             <TableHeadCell className={HEAD_CLASS}>증권사·거래소</TableHeadCell>
             <TableHeadCell className={HEAD_CLASS}>계좌번호</TableHeadCell>
             <TableHeadCell className={HEAD_CLASS}>전략</TableHeadCell>
@@ -37,6 +38,7 @@ export function AdminAccountsTable({ accounts }: { accounts: AdminAccount[] }) {
           {accounts.map((acc) => (
             <tr key={acc.id} className="hover:bg-muted/30 transition-colors">
               <TableDataCell className="font-medium">{acc.ownerNickname}</TableDataCell>
+              <TableDataCell className="whitespace-nowrap">{acc.nickname || '-'}</TableDataCell>
               <TableDataCell className="text-muted-foreground">{acc.broker ? labelOf('brokers', acc.broker) : '-'}</TableDataCell>
               {/* 서버가 이미 마스킹해 내려주는 번호라 공개 토글이 없다 */}
               <TableDataCell className="text-muted-foreground font-mono">{acc.accountNoMasked || '-'}</TableDataCell>

@@ -99,6 +99,7 @@ const accounts: AdminAccount[] = [
     id: 'account-1',
     userId: 'user-1',
     ownerNickname: '홍길동',
+    nickname: '홍길동 계좌',
     accountNoMasked: '123-45****',
     broker: 'KIS',
     strategies: [],
@@ -107,6 +108,7 @@ const accounts: AdminAccount[] = [
     id: 'account-2',
     userId: 'user-2',
     ownerNickname: '김영희',
+    nickname: '김영희 계좌',
     accountNoMasked: '987-65****',
     broker: 'KIS',
     strategies: [],
@@ -479,7 +481,7 @@ describe('AdminTradesWorkbench', () => {
     const user = userEvent.setup()
     listAdminAccountsMock.mockReset().mockResolvedValue([
       ...accounts,
-      { id: 'account-upbit', userId: 'user-1', ownerNickname: '홍길동', accountNoMasked: '', broker: 'UPBIT', strategies: [] },
+      { id: 'account-upbit', userId: 'user-1', ownerNickname: '홍길동', nickname: '업비트', accountNoMasked: '', broker: 'UPBIT', strategies: [] },
     ])
 
     renderWorkbench()

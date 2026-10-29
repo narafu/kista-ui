@@ -10,6 +10,7 @@ export function AccountTable({ accounts, label }: { accounts: AdminAnomalyAccoun
         <thead className="bg-muted/50 border-b border-border">
           <tr>
             <TableHeadCell className="whitespace-nowrap">소유자</TableHeadCell>
+            <TableHeadCell className="whitespace-nowrap">계좌명</TableHeadCell>
             <TableHeadCell className="whitespace-nowrap">계좌번호</TableHeadCell>
           </tr>
         </thead>
@@ -17,6 +18,7 @@ export function AccountTable({ accounts, label }: { accounts: AdminAnomalyAccoun
           {accounts.map((a) => (
             <tr key={a.id} className="hover:bg-muted/30">
               <TableDataCell className="font-medium">{a.ownerNickname}</TableDataCell>
+              <TableDataCell className="whitespace-nowrap">{a.nickname || '-'}</TableDataCell>
               <TableDataCell className="font-mono text-sm text-muted-foreground">
                 {a.accountNo == null ? '-' : (
                   <RevealableValue

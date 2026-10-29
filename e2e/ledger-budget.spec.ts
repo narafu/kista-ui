@@ -39,7 +39,7 @@ test.describe('시드 폼 가용 예수금 (USER)', () => {
 test.describe('관리자 재주문 원장 한도 (ADMIN)', () => {
   test.use({ storageState: 'e2e/.auth/admin.json' })
 
-  const account = { id: 'e2e-account', userId: 'e2e-user', ownerNickname: 'e2e 사용자', accountNoMasked: '999-99****', broker: 'KIS', strategies: [] }
+  const account = { id: 'e2e-account', userId: 'e2e-user', ownerNickname: 'e2e 사용자', nickname: 'e2e 계좌', accountNoMasked: '999-99****', broker: 'KIS', strategies: [] }
   const strategy = { id: 'e2e-strategy', type: 'INFINITE', status: 'ACTIVE', ticker: 'TSLA', cycleSeedType: 'NONE' }
   // 원본 BUY 2주 × $100. 남은 원장 $50 + 원본 환급 $200 = 가용 $250. 폼은 tradeDate를 읽지 않는다(표시용 값)
   const order = {

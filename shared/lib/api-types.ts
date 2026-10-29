@@ -3571,6 +3571,8 @@ export interface components {
         BacktestResponse: {
             points?: components["schemas"]["BacktestPoint"][];
             summary?: components["schemas"]["BacktestSummary"];
+            /** @description 두 번째 사이클부터 각 사이클이 시작된 날짜(points의 date와 같은 축, 오름차순). 첫 사이클 시작일(points[0].date)은 포함하지 않는다. 개수 = summary.cycleCount - 1 (cycleCount는 진행 중인 마지막 사이클까지 센다). 사이클 전환이 없으면 빈 배열 */
+            cycleStartDates?: string[];
             warnings?: string[];
         };
         BacktestSummary: {
@@ -5373,6 +5375,8 @@ export interface components {
             userId?: string;
             /** @description 소유자 닉네임 (사용자 조회 실패 시 "(알 수 없음)") */
             ownerNickname?: string;
+            /** @description 계좌 별칭 */
+            nickname?: string;
             /**
              * @description 마스킹된 계좌번호
              * @example ****1234
@@ -5435,6 +5439,8 @@ export interface components {
             userId?: string;
             /** @description 소유자 닉네임 */
             ownerNickname?: string;
+            /** @description 계좌 별칭 */
+            nickname?: string;
             /**
              * @description 마스킹된 계좌번호
              * @example ****1234

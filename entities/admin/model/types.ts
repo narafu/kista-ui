@@ -18,7 +18,7 @@ export type AdminStats = Schema<'AdminDashboardResponse'>
 
 export type AdminAccountStrategy = Pick<AdminStrategySchema, 'id' | 'type' | 'status' | 'ticker'>
 
-export type AdminAccount = Pick<Schema<'AdminAccountResponse'>, 'id' | 'userId' | 'ownerNickname' | 'broker'>
+export type AdminAccount = Pick<Schema<'AdminAccountResponse'>, 'id' | 'userId' | 'ownerNickname' | 'nickname' | 'broker'>
   & NullableFields<Schema<'AdminAccountResponse'>, 'accountNoMasked'> // 업비트·메리츠는 계좌번호가 없어 null
   & { strategies: AdminAccountStrategy[] }
 
@@ -69,7 +69,7 @@ export type AdminReorderResponse = Pick<Schema<'AdminReorderResponse'>, 'userId'
 export type AdminAuditLog = Pick<Schema<'AuditLogResponse'>, 'id' | 'adminId' | 'action' | 'createdAt'>
   & NullableFields<Schema<'AuditLogResponse'>, 'targetType' | 'targetId' | 'payload'>
 
-export type AdminAnomalyAccount = Pick<AdminAccountItemSchema, 'id' | 'userId' | 'ownerNickname'>
+export type AdminAnomalyAccount = Pick<AdminAccountItemSchema, 'id' | 'userId' | 'ownerNickname' | 'nickname'>
   & NullableFields<AdminAccountItemSchema, 'accountNoMasked' | 'accountNo'> // 업비트·메리츠는 계좌번호가 없어 null
 
 export type AdminAnomalies = {
