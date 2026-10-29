@@ -61,7 +61,6 @@ export function DcaConditionsSection({ form, market, indicators, direction }: Pr
   return (
     <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel>조건 (모두 충족 시 주문)</StrategyFieldLabel>
-      <p className="mb-2 text-sm text-muted-foreground">평단가·보유 수량은 이 전략 체결 기준</p>
       {isCrypto && <p className="mb-2 text-sm text-muted-foreground">이동평균·RSI는 거래소 일봉(09:00 KST 마감) 기준</p>}
       {direction === 'BUY' && <p className="mb-2 text-sm text-muted-foreground">{isCrypto ? '보유 수량이 0일 때는 평단가 조건 없이 매수' : '보유 0주일 때는 평단가 조건 없이 매수'}</p>}
 

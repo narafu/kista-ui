@@ -57,9 +57,9 @@ describe('DcaConditionsSection', () => {
     expect(screen.getByText('직전 거래일 RSI(14)가 30 미만일 때 주문')).toBeInTheDocument()
     expect(screen.getByText('주문 시점 공포탐욕지수와 비교, 0~100 입력')).toBeInTheDocument()
   })
-  it('이 전략 체결 기준 캡션과 조건 라벨', () => {
+  it('조건 라벨, 체결 기준 캡션 없음', () => {
     render(<Harness />)
-    expect(screen.getByText('평단가·보유 수량은 이 전략 체결 기준')).toBeInTheDocument()
+    expect(screen.queryByText('평단가·보유 수량은 이 전략 체결 기준')).not.toBeInTheDocument()
     expect(screen.getByText('조건 (모두 충족 시 주문)')).toBeInTheDocument()
   })
   it('매수만 첫 매수 평단 조건 무시 캡션', () => {
