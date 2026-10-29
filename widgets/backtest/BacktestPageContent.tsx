@@ -47,6 +47,8 @@ export function BacktestPageContent() {
               yAxisWidth={44}
               yAxisTickFormatter={(v) => fmtUsd(v, 0)}
               dateTickFormatter={fmtDate}
+              markerDates={result.cycleStartDates}
+              markerLabel="사이클 시작"
             />
           </div>
           <BacktestWarnings warnings={result.warnings} />

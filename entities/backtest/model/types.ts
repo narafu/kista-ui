@@ -48,5 +48,7 @@ export interface BacktestSummary {
 export interface BacktestResult {
   points: BacktestPoint[]
   summary: BacktestSummary
+  // 두 번째 사이클부터 각 사이클 시작일(points.date와 같은 축). 첫 사이클 시작일은 포함하지 않는다
+  cycleStartDates: string[]
   warnings: string[]
 }

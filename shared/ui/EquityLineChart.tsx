@@ -1,7 +1,7 @@
 'use client'
 
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine } from 'recharts'
 import { fmtMonthDay, fmtDate } from '@shared/lib/format'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 import { TOOLTIP_CONTENT_STYLE } from '@shared/lib/chart/tooltip'
@@ -26,6 +26,9 @@ interface Props {
   yAxisTickFormatter?: (value: number) => string
   /** X축 눈금 날짜 포맷터. 기본값은 기존 동작(fmtMonthDay, 연도 미포함)을 그대로 유지한다 */
   dateTickFormatter?: (value: string) => string
+  /** 세로 점선으로 표시할 날짜(rows의 date와 같은 값). 비어 있으면 범례 항목도 숨긴다 */
+  markerDates?: string[]
+  markerLabel?: string
 }
 
 export function EquityLineChart({
@@ -37,6 +40,8 @@ export function EquityLineChart({
   yAxisWidth = 32,
   yAxisTickFormatter,
   dateTickFormatter = fmtMonthDay,
+  markerDates = [],
+  markerLabel,
 }: Props) {
   if (rows.length === 0) {
     return <p className="py-10 text-center text-sm text-muted-foreground">표시할 자산 추이 데이터가 없습니다.</p>
@@ -53,6 +58,12 @@ export function EquityLineChart({
           <span className="inline-block h-0 w-3.5 border-t-2 border-dashed" style={{ borderColor: 'var(--muted-foreground)' }} />
           {principalLabel}
         </span>
+        {markerDates.length > 0 && markerLabel && (
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block h-3 w-0 border-l border-dashed" style={{ borderColor: 'var(--muted-foreground)' }} />
+            {markerLabel}
+          </span>
+        )}
       </div>
       <div className="h-[240px] w-full sm:h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
@@ -79,6 +90,7 @@ export function EquityLineChart({
               formatter={(value, name) => [typeof value === 'number' ? valueFormatter(value) : String(value), String(name)]}
               contentStyle={TOOLTIP_CONTENT_STYLE}
             />
+            {markerDates.map((d) => <ReferenceLine key={d} x={d} stroke="var(--muted-foreground)" strokeDasharray="2 4" />)}
             <Line type="monotone" dataKey="principal" name={principalLabel} stroke="var(--muted-foreground)" strokeWidth={2} strokeDasharray="5 4" dot={false} />
             <Line type="monotone" dataKey="asset" name={assetLabel} stroke="var(--chart-1)" strokeWidth={2.5} dot={false} />
           </LineChart>
