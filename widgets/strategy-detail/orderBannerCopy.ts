@@ -16,13 +16,15 @@ export function pausedSkipReasonLabel(reason: SkipReason): string {
   return SKIP_REASON_LABELS[reason]
 }
 
-// "미접수" 목록 문구 — BUY는 원장 부족이면 재시도 없이 거절되므로 사유를 안내하고, 그 외 미접수는 장 마감 시 재시도된다
+// "미접수" 목록 문구 — BUY는 원장 부족이면 재시도 없이 거절되고, 계좌 예수금 부족(조회 시점 추정)이면 증권사가 거절할 수 있어 사유를 안내한다. 그 외 미접수는 장 마감 시 재시도된다
 export function directionUnplacedMessage(direction: 'BUY' | 'SELL', readiness: OrderReadiness): string {
   if (direction === 'SELL') return '장 마감 시 매도 재시도 예정'
-  return readiness.ledgerShortfall ? '전략 원장 예수금 부족으로 매수 미접수' : '장 마감 시 매수 예정'
+  if (readiness.ledgerShortfall) return '전략 원장 예수금 부족으로 매수 미접수'
+  if (readiness.accountCashShortfall) return '계좌 예수금 부족으로 매수 거절 가능'
+  return '장 마감 시 매수 예정'
 }
 
-// 카드 상단 배너 문구 — 휴장일/전략 원장 예수금 부족을 "바로 주문" 가능 여부와 함께 안내한다.
+// 카드 상단 배너 문구 — 휴장일/전략 원장·계좌 예수금 부족을 "바로 주문" 가능 여부와 함께 안내한다.
 // 원장 거절은 재시도가 없어 preview·executed 모두 "장 마감 시 매수 예정" 같은 약속 문구를 붙이지 않는다
 export function nextOrderBannerText(canExecute: boolean, mode: 'preview' | 'executed', isHoliday: boolean, marketStatusMessage: string | null, readiness: OrderReadiness): string | null {
   if (!canExecute) return null
@@ -30,8 +32,11 @@ export function nextOrderBannerText(canExecute: boolean, mode: 'preview' | 'exec
   if (mode === 'preview' && isHoliday) return '오늘은 휴장일입니다'
 
   const shortfall = readiness.ledgerShortfall
-  if (!shortfall) return null
-  return `전략 원장 예수금 부족(원장 $${fmtUsd(shortfall.remainingLedger)} / 필요 $${fmtUsd(shortfall.requiredBuyUsd)})`
+  if (shortfall) return `전략 원장 예수금 부족(원장 $${fmtUsd(shortfall.remainingLedger)} / 필요 $${fmtUsd(shortfall.requiredBuyUsd)})`
+  // 계좌 단위 값이라 필요 금액은 이 전략이 아니라 계좌 전체 BUY 합계다
+  const cash = readiness.accountCashShortfall
+  if (!cash) return null
+  return `계좌 예수금 부족(주문가능 $${fmtUsd(cash.availableUsd)} / 계좌 전체 필요 $${fmtUsd(cash.requiredBuyUsd)})`
 }
 
 // 404만 화면 고유 문구, 나머지는 서버 detail을 그대로 노출한다 — 증권사 장애 503·API 키 오류 422·호출 한도 429는

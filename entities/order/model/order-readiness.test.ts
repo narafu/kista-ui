@@ -11,6 +11,7 @@ function basePreview(overrides: Partial<NextOrderPreview>): NextOrderPreview {
     todayOrders: [],
     otherStrategiesPlannedBuyUsd: '0',
     ledgerCheck: null,
+    accountCashCheck: null,
     ...overrides,
   }
 }
@@ -27,6 +28,7 @@ describe('computeOrderReadiness', () => {
       sell: { hasOrders: false, unplaced: false },
       ledgerShortfall: null,
       ledgerTrimmed: false,
+      accountCashShortfall: null,
     })
   })
 
@@ -68,5 +70,16 @@ describe('computeOrderReadiness', () => {
     expect(computeOrderReadiness(basePreview({ orders: [BUY], ledgerCheck: trimmed })).ledgerTrimmed).toBe(true)
     expect(computeOrderReadiness(basePreview({ orders: [BUY], ledgerCheck: { ...trimmed, sufficient: false } })).ledgerTrimmed).toBe(false)
     expect(computeOrderReadiness(basePreview({ orders: [SELL], ledgerCheck: trimmed })).ledgerTrimmed).toBe(false)
+  })
+
+  it('reports account cash shortfall only when buy is planned and the ledger did not reject it', () => {
+    const cashShort = { availableUsd: 300, requiredBuyUsd: 1000, sufficient: false }
+
+    expect(computeOrderReadiness(basePreview({ orders: [BUY], accountCashCheck: cashShort })).accountCashShortfall).toEqual(cashShort)
+    expect(computeOrderReadiness(basePreview({ orders: [BUY], accountCashCheck: { ...cashShort, sufficient: true } })).accountCashShortfall).toBeNull()
+    // 계좌 단위 값이라 BUY 계획이 없는 전략에는 경고를 붙이지 않는다
+    expect(computeOrderReadiness(basePreview({ orders: [SELL], accountCashCheck: cashShort })).accountCashShortfall).toBeNull()
+    // 원장 거절이면 BUY가 증권사로 나가지 않는다
+    expect(computeOrderReadiness(basePreview({ orders: [BUY], ledgerCheck: SHORT, accountCashCheck: cashShort })).accountCashShortfall).toBeNull()
   })
 })

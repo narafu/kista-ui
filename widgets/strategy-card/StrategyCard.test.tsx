@@ -23,6 +23,7 @@ let previewState = {
     todayOrders: [] as Array<{ status: 'PLANNED' | 'PLACED'; direction: 'BUY' | 'SELL' }>,
     otherStrategiesPlannedBuyUsd: '0',
     ledgerCheck: null as LedgerCheck | null,
+    accountCashCheck: null as { availableUsd: number; requiredBuyUsd: number; sufficient: boolean } | null,
   },
   isLoading: false,
 }
@@ -85,6 +86,7 @@ describe('StrategyCard mobile row', () => {
         todayOrders: [],
         otherStrategiesPlannedBuyUsd: '0',
         ledgerCheck: null,
+        accountCashCheck: null,
       },
       isLoading: false,
     }
@@ -219,6 +221,24 @@ describe('StrategyCard mobile row', () => {
     expect(screen.getAllByText('예수금 부족 · 원장 $50.00 / 필요 $100.00')).toHaveLength(2)
   })
 
+  it('marks borders red with an account-level badge when the account cash is short', () => {
+    previewState = {
+      ...previewState,
+      data: {
+        ...previewState.data,
+        orders: [{ direction: 'BUY', price: '1200', quantity: 1 }],
+        todayOrders: [],
+        ledgerCheck: OK,
+        accountCashCheck: { availableUsd: 300, requiredBuyUsd: 1200, sufficient: false },
+      },
+    }
+
+    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
+
+    expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
+    expect(screen.getAllByText('계좌 예수금 부족 · 주문가능 $300.00 / 필요 $1,200.00')).toHaveLength(2)
+  })
+
   it('marks borders red when sell placed but buy is unplaced and still short on budget', () => {
     previewState = {
       ...previewState,
@@ -323,6 +343,7 @@ describe('StrategyCard scheduled start badge', () => {
         todayOrders: [],
         otherStrategiesPlannedBuyUsd: '0',
         ledgerCheck: null,
+        accountCashCheck: null,
       },
       isLoading: false,
     }
@@ -363,6 +384,7 @@ describe('StrategyCard status', () => {
         todayOrders: [],
         otherStrategiesPlannedBuyUsd: '0',
         ledgerCheck: null,
+        accountCashCheck: null,
       },
       isLoading: false,
     }

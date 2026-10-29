@@ -3158,6 +3158,8 @@ export interface components {
             otherStrategiesPlannedBuyUsd?: number;
             /** @description 전략 원장 대비 BUY 경고 (DCA·신규 BUY 없음·skip이면 null) */
             ledgerCheck?: components["schemas"]["LedgerCheckSummary"];
+            /** @description 계좌 주문가능 USD 대비 오늘 BUY 경고 — 계좌 단위(계좌 내 모든 전략 동일 값), 조회 시점 추정, 경고 전용. MOCK·코인·필요 BUY 없음·증권사 조회 실패면 null */
+            accountCashCheck?: components["schemas"]["AccountCashCheckSummary"];
         };
         PositionSnapshot: {
             /**
@@ -5487,6 +5489,14 @@ export interface components {
         };
         /** @enum {string} */
         ErrorCode: "BROKER_UNAVAILABLE" | "BROKER_CREDENTIAL_INVALID" | "BROKER_IP_NOT_ALLOWED" | "BROKER_PERMISSION_DENIED" | "BROKER_RATE_LIMITED" | "DUPLICATE_ACCOUNT" | "ALREADY_ORDERED_TODAY" | "DCA_MANUAL_EXECUTION_UNSUPPORTED" | "ORDER_NOT_CANCELLABLE" | "MONTH_CLOSED" | "ACCESS_DENIED" | "COOLDOWN_ACTIVE" | "TRADING_CORE_UNAVAILABLE" | "BROKER_WITHDRAWAL_ENABLED";
+        AccountCashCheckSummary: {
+            /** @description 증권사 USD 주문가능금액 (조회 시점, 접수 완료 주문은 증권사가 차감) */
+            availableUsd?: number;
+            /** @description 계좌 전체 오늘 BUY 필요 금액 (PLANNED·SUBMITTING BUY + 전략별 원장 반영 후 신규 BUY, USD) — SUBMITTING은 증권사 차감 여부가 불확실해 보수적으로 포함 */
+            requiredBuyUsd?: number;
+            /** @description false면 배치 접수 시 증권사가 BUY를 거절할 수 있다 */
+            sufficient?: boolean;
+        };
     };
     responses: never;
     parameters: never;

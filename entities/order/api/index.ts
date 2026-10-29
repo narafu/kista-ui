@@ -3,7 +3,7 @@ import { buildQueryString } from '@shared/lib/query-string'
 import { normalizePlacedOrderBase } from '@shared/model/placed-order'
 import type { PlacedOrder } from '@shared/model/placed-order'
 import { toNum } from '@shared/lib/utils'
-import type { LedgerCheck, NextOrderPreview, SkipReason, StrategyOrder } from '../model/types'
+import type { AccountCashCheck, LedgerCheck, NextOrderPreview, SkipReason, StrategyOrder } from '../model/types'
 
 interface CancelOrdersResult {
   cancelledCount: number
@@ -20,6 +20,12 @@ function normalizeLedgerCheck(raw: unknown): LedgerCheck | null {
     sufficient: Boolean(r.sufficient),
     trimmed: Boolean(r.trimmed),
   }
+}
+
+function normalizeAccountCashCheck(raw: unknown): AccountCashCheck | null {
+  if (raw == null) return null
+  const r = raw as Record<string, unknown>
+  return { availableUsd: toNum(r.availableUsd), requiredBuyUsd: toNum(r.requiredBuyUsd), sufficient: Boolean(r.sufficient) }
 }
 
 function normalizePreview(raw: unknown): NextOrderPreview {
@@ -57,7 +63,8 @@ function normalizePreview(raw: unknown): NextOrderPreview {
   })
   const otherStrategiesPlannedBuyUsd = String(r.otherStrategiesPlannedBuyUsd ?? '0')
   const ledgerCheck = normalizeLedgerCheck(r.ledgerCheck)
-  return { tradeDate: String(r.tradeDate), position, orders, skipReason, todayOrders, otherStrategiesPlannedBuyUsd, ledgerCheck }
+  const accountCashCheck = normalizeAccountCashCheck(r.accountCashCheck)
+  return { tradeDate: String(r.tradeDate), position, orders, skipReason, todayOrders, otherStrategiesPlannedBuyUsd, ledgerCheck, accountCashCheck }
 }
 
 // token 있으면 Server Component에서 kista-api 직접 호출, 없으면 Client Component에서 Route Handler 경유

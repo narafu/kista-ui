@@ -32,6 +32,13 @@ export interface LedgerCheck {
   trimmed: boolean    // true면 원장에 맞춰 BUY를 축소 접수 (부족 아님, 정보성)
 }
 
+// 계좌 단위 — 같은 계좌의 모든 전략 미리보기에 같은 값이 온다
+export interface AccountCashCheck {
+  availableUsd: number   // 증권사 USD 주문가능금액 (조회 시점, 접수 완료 주문은 증권사가 이미 차감)
+  requiredBuyUsd: number // 계좌 전체 오늘 BUY 필요 금액
+  sufficient: boolean    // false면 배치 접수 시 증권사가 BUY를 거절할 수 있다 (경고 전용)
+}
+
 export interface NextOrderPreview {
   tradeDate: string
   position: NextOrderPositionSnapshot | null
@@ -40,6 +47,7 @@ export interface NextOrderPreview {
   todayOrders: Array<PlacedOrder & { timing?: string }>             // 오늘 이미 등록된 PLANNED + PLACED 주문 (없으면 빈 배열)
   otherStrategiesPlannedBuyUsd: string     // 계좌 내 타 전략 당일 PLANNED BUY 합계
   ledgerCheck: LedgerCheck | null          // 전략 원장 예수금 점검 결과 (DCA·신규 BUY 없음·skip이면 null)
+  accountCashCheck: AccountCashCheck | null // 계좌 주문가능 USD 점검 (MOCK·코인·필요 BUY 없음·조회 실패면 null)
 }
 
 export interface StrategyOrder {
