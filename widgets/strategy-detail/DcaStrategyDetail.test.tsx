@@ -179,7 +179,7 @@ describe('DcaStrategyDetail', () => {
     expect(screen.queryByText('잔고가 부족할 때')).not.toBeInTheDocument()
     expect(screen.queryByText('방향')).not.toBeInTheDocument()
     expect(screen.queryByTestId('dca-config-grid')).not.toBeInTheDocument()
-    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['규칙', '회차별 실행 이력'])
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['전략 정보', '규칙', '회차별 실행 이력'])
   })
   it('규칙 카드: 크립토는 다음 실행 + 시각, 최근 결과와 skip 사유, 조건 없음 문구', () => {
     cryptoPortfolio.result = portfolio(1)

@@ -16,7 +16,7 @@ import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtMoney, fmtQuantity, fmtSignedPercent, pnlTextClass, roundMoney } from '@shared/lib/format'
 import { brokerMarket, isCryptoMarket, marketCurrency } from '@shared/lib/api-schema'
 import type { TradingMarket } from '@shared/lib/api-schema'
-import { StatusStrip } from './StrategyMetaSection'
+import { StrategyInfoCard } from './StrategyMetaSection'
 import { DeleteStrategyDialog } from './DeleteStrategyDialog'
 import { DcaExecutionHistory } from './DcaExecutionHistory'
 
@@ -82,7 +82,7 @@ function RuleField({ label, className, children }: { label: string; className?: 
 }
 
 // DCA 상세 — 바로 주문·미리보기 미지원(409)이라 NextOrderCard 대신 보유 현황·규칙 카드·회차 이력을 표시.
-// 구성은 주식 전략 상세(StatusStrip + KpiCard 그리드 → 이력 → 제어 카드)를 따른다
+// 구성은 주식 전략 상세(전략 정보 카드 + KpiCard 그리드 → 이력 → 제어 카드)를 따른다
 // dca가 없어도(응답 누락) 보유 수량·이력·중지/삭제는 그대로 노출한다
 export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
   const { push } = useRouter()
@@ -102,13 +102,10 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
 
   return (
     <div className="space-y-4">
-      <StatusStrip strategy={strategy} />
-
-      <div className="grid grid-cols-1 gap-3">
+      <StrategyInfoCard strategy={strategy}>
         <KpiCard label="전략타입" value={labelOf('strategyTypes', strategy.type)} {...TILE} />
-      </div>
-
-      <DcaHoldingGrid accountId={accountId} strategy={strategy} market={market} />
+        <DcaHoldingGrid accountId={accountId} strategy={strategy} market={market} />
+      </StrategyInfoCard>
 
       {/* PC: 규칙 / 회차별 실행 이력 2단 — 주식 전략 상세의 잔고 이력·주문 내역과 같은 배치. 규칙이 없으면 이력이 전체 폭 */}
       <div className={cn('space-y-4', dca && 'xl:grid xl:grid-cols-2 xl:items-start xl:gap-4 xl:space-y-0')}>

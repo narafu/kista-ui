@@ -31,6 +31,7 @@ vi.mock('@/components/ui/card', () => ({
   CardHeader: ({ children, className }: React.ComponentProps<'div'>) => <div className={className}>{children}</div>,
   CardContent: ({ children, className }: React.ComponentProps<'div'>) => <div className={className}>{children}</div>,
   CardTitle: ({ children, className }: React.ComponentProps<'div'>) => <div className={className}>{children}</div>,
+  CardAction: (props: React.ComponentProps<'div'>) => <div {...props} />,
 }))
 
 vi.mock('@/components/ui/button', () => ({

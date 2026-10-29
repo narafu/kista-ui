@@ -1,5 +1,6 @@
 'use client'
 
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { KpiCard } from '@widgets/kpi-card'
 import { seedBadgeClass, isScheduledStart, scheduledStartBadgeLabel, nextVrRolloverDate } from '@entities/strategy'
 import { useMeta } from '@entities/meta'
@@ -17,17 +18,15 @@ interface Props {
   isPreviewError: boolean
 }
 
-export function StatusStrip({ strategy }: { strategy: Strategy }) {
+// 계좌 상세의 "계좌 요약"과 같은 틀 — 제목 있는 카드 안에 타일 그리드를 둔다. 상태 배지는 제목 오른쪽(CardAction)
+export function StrategyInfoCard({ strategy, children }: { strategy: Strategy; children: React.ReactNode }) {
   const { labelOf } = useMeta()
   const scheduledStart = isScheduledStart(strategy) // startDate가 오늘 이후면 아직 매매 시작 전
   return (
-    <>
-      {/* 전략 정보 헤더 스트립 — 카드 중첩 대신 얇은 라벨 행 + 균일 타일 그리드 (감사 A-20) */}
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--brand-fg-soft)]">
-          전략 정보
-        </p>
-        <div data-testid="strategy-status-group" className="flex flex-wrap items-center justify-end gap-2">
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">전략 정보</CardTitle>
+        <CardAction data-testid="strategy-status-group" className="flex flex-wrap items-center justify-end gap-2">
           {scheduledStart && (
             <Badge tone="none" size="md" className="bg-info-bg text-info">
               {scheduledStartBadgeLabel(strategy.startDate!)}
@@ -41,9 +40,10 @@ export function StatusStrip({ strategy }: { strategy: Strategy }) {
               {labelOf('strategyStatuses', strategy.status)}
             </Badge>
           )}
-        </div>
-      </div>
-    </>
+        </CardAction>
+      </CardHeader>
+      <CardContent className="space-y-3 px-6 pb-6">{children}</CardContent>
+    </Card>
   )
 }
 
@@ -186,8 +186,7 @@ export function StrategyMetaSection({ strategy, preview, isLoadingPreview, isPre
   const usesDivisionCount = (strategyTypeMeta?.divisionCounts?.length ?? 0) > 0
 
   return (
-    <>
-      <StatusStrip strategy={strategy} />
+    <StrategyInfoCard strategy={strategy}>
       <TopGrid strategy={strategy} cycleSeedLabel={cycleSeedLabel} />
 
       {!strategy.vr && <SummaryGrid strategy={strategy} usesDivisionCount={usesDivisionCount} />}
@@ -198,6 +197,6 @@ export function StrategyMetaSection({ strategy, preview, isLoadingPreview, isPre
       {usesDivisionCount ? (
         <PositionGrid preview={preview} isLoadingPreview={isLoadingPreview} isPreviewError={isPreviewError} />
       ) : null}
-    </>
+    </StrategyInfoCard>
   )
 }
