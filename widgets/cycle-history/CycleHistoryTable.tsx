@@ -125,6 +125,7 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 sticky top-0 z-10">
                   <tr>
+                    <TableHeadCell className="w-px whitespace-nowrap">날짜</TableHeadCell>
                     <TableHeadCell>티커</TableHeadCell>
                     <TableHeadCell numeric>수량</TableHeadCell>
                     <TableHeadCell numeric>평단가</TableHeadCell>
@@ -135,15 +136,16 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
                 <tbody>
                   {groups.map((g, i) => (
                     <Fragment key={`${g.key}-${i}`}>
-                      <tr>
-                        <td colSpan={5} className="bg-muted/30 px-4 py-2 text-xs lg:text-sm uppercase tracking-widest text-muted-foreground">{g.key}</td>
-                      </tr>
                       {g.items.map((entry, i) => {
                         const evalAmount = entry.avgPrice != null && entry.holdings > 0
                           ? entry.avgPrice * entry.holdings
                           : null
                         return (
                           <tr key={entryKey(entry, i)} className="border-t hover:bg-muted/30 transition-colors">
+                            {/* 하루 여러 건은 날짜 셀 하나로 묶는다 */}
+                            {i === 0 && (
+                              <TableDataCell rowSpan={g.items.length} className="whitespace-nowrap tabular-nums text-muted-foreground align-middle">{g.key}</TableDataCell>
+                            )}
                             <TableDataCell className="font-medium">{entry.ticker ?? '-'}</TableDataCell>
                             <TableDataCell className="text-right tabular-nums whitespace-nowrap">{entry.holdings}주</TableDataCell>
                             <TableDataCell className="text-right tabular-nums whitespace-nowrap">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</TableDataCell>

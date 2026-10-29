@@ -108,6 +108,16 @@ describe('CycleHistoryTable', () => {
     expect(dashCells.length).toBeGreaterThan(0)
   })
 
+  it('PC 표는 날짜 열을 두고 같은 날 여러 건을 날짜 셀 하나로 묶는다', () => {
+    const itemC: CycleHistoryItem = { ...itemA, createdAt: '2026-06-30T09:00:00Z', ticker: 'AAPL' }
+    const useHistoryQuery = makeHook({ cycleHistory: [itemA, itemB, itemC] })
+    render(<CycleHistoryTable title="잔고 이력" id="account-1" useHistoryQuery={useHistoryQuery} />)
+
+    expect(screen.getByRole('columnheader', { name: '날짜' })).toBeInTheDocument()
+    const dateCells = screen.getAllByRole('cell').filter((c) => c.hasAttribute('rowspan'))
+    expect(dateCells.map((c) => c.getAttribute('rowspan'))).toEqual(['2', '1'])
+  })
+
   it('calls fetchNextPage when 더 보기 is clicked and disables it while fetching', async () => {
     const fetchNextPage = vi.fn()
     const useHistoryQuery = makeHook({ cycleHistory: [itemA], hasNextPage: true, fetchNextPage })
