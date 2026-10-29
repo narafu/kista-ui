@@ -5,6 +5,7 @@ import {
   useStatsSummaryQuery,
   useEquityCurveQuery,
 } from '@entities/stats'
+import { cn } from '@shared/lib/utils'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { CardSkeleton } from '@shared/ui/CardSkeleton'
 import { normalizeEquityCurve } from './lib/normalizeEquityCurve'
@@ -90,9 +91,11 @@ export function StatsOverview({ defaultFrom, defaultTo }: Props) {
             onStrategyTypeFilterChange={setStrategyTypeFilter}
           />
 
-          <CyclePerformanceList typeFilter={strategyTypeFilter} />
-
-          {summaryFailed ? null : <StrategyTypeComparison byType={byType} />}
+          {/* 넓은 PC(2xl): 사이클 성과 / 전략 유형 비교 2단. 두 표가 6열이라 xl 반쪽 폭에서는 잘려 2xl부터 나눈다. 비교가 없으면 사이클 성과가 전체 폭 */}
+          <div className={cn('flex flex-col gap-4', !summaryFailed && '2xl:grid 2xl:grid-cols-2 2xl:items-start')}>
+            <CyclePerformanceList typeFilter={strategyTypeFilter} />
+            {summaryFailed ? null : <StrategyTypeComparison byType={byType} />}
+          </div>
         </>
       )}
     </div>

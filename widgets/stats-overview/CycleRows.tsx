@@ -27,15 +27,21 @@ function pnlText(pnl: CyclePerformance['pnl'], broker: string | undefined) {
   return fmtSignedMoney(pnl, brokerCurrency(broker))
 }
 
+// 날짜 안에서는 줄을 바꾸지 않는다 — PC 반쪽 폭에서도 "~" 앞뒤로만 나뉜다
 function Period({ cycle }: { cycle: CyclePerformance }) {
-  return <>{fmtDate(cycle.startDate)} ~ {cycle.endDate ? fmtDate(cycle.endDate) : '진행 중'}</>
+  return (
+    <>
+      <span className="whitespace-nowrap">{fmtDate(cycle.startDate)} ~</span>{' '}
+      <span className="whitespace-nowrap">{cycle.endDate ? fmtDate(cycle.endDate) : '진행 중'}</span>
+    </>
+  )
 }
 
 function CycleTable({ cycles, accountsById }: Props) {
   const { labelOf } = useMeta()
   return (
     <div className="hidden overflow-x-auto lg:block" role="region" aria-label="사이클 성과 표" tabIndex={0}>
-      <table className="w-full min-w-[800px] text-sm" aria-label="사이클 성과">
+      <table className="w-full text-sm" aria-label="사이클 성과">
         <thead className="bg-muted/50">
           <tr>
             <TableHeadCell>계좌</TableHeadCell>
@@ -87,39 +93,38 @@ function CycleCardList({ cycles, accountsById }: Props) {
     <ul className="divide-y lg:hidden list-none p-0 m-0" aria-label="사이클 성과">
       {cycles.map((cycle) => (
         <li key={cycle.cycleId} className="px-4 py-4">
-          <div className="flex flex-wrap items-center justify-between gap-1.5">
-            <div className="flex flex-wrap items-center gap-1.5">
-              {accountsById.get(cycle.accountId) && (
-                <Badge tone="neutral" size="sm">
-                  {accountsById.get(cycle.accountId)?.nickname}
+          {/* 종목을 제목으로 두고 계좌명은 아래 보조 텍스트로 — 둘 다 굵은 글씨면 어느 쪽이 종목인지 구분되지 않는다 */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="font-semibold tabular-nums">{cycle.ticker ?? '—'}</span>
+                <Badge tone="brand" size="sm">
+                  {labelOf('strategyTypes', cycle.strategyType)}
                 </Badge>
+              </div>
+              {accountsById.get(cycle.accountId) && (
+                <div className="mt-1 truncate text-xs text-muted-foreground">
+                  {accountsById.get(cycle.accountId)?.nickname}
+                </div>
               )}
-              <Badge tone="brand" size="sm">
-                {labelOf('strategyTypes', cycle.strategyType)}
-              </Badge>
             </div>
-            <span className="text-xs text-muted-foreground">
+            <span className="shrink-0 text-right text-xs text-muted-foreground">
               <Period cycle={cycle} />
             </span>
           </div>
-          <div className="mt-3 flex items-center justify-between gap-4 border-t pt-3 text-sm">
-            <span className="font-semibold tabular-nums">
-              {cycle.ticker ?? '—'}
+          <div className="mt-3 flex items-center justify-end gap-4 border-t pt-3 text-sm">
+            <span className="text-muted-foreground">
+              손익{' '}
+              <span className={pnlClass(cycle.pnl)}>
+                {pnlText(cycle.pnl, accountsById.get(cycle.accountId)?.broker)}
+              </span>
             </span>
-            <div className="flex items-center gap-4">
-              <span className="text-muted-foreground">
-                손익{' '}
-                <span className={pnlClass(cycle.pnl)}>
-                  {pnlText(cycle.pnl, accountsById.get(cycle.accountId)?.broker)}
-                </span>
+            <span className="text-muted-foreground">
+              수익률{' '}
+              <span className={pnlClass(cycle.returnRate)}>
+                {fmtSignedPercent(cycle.returnRate)}
               </span>
-              <span className="text-muted-foreground">
-                수익률{' '}
-                <span className={pnlClass(cycle.returnRate)}>
-                  {fmtSignedPercent(cycle.returnRate)}
-                </span>
-              </span>
-            </div>
+            </span>
           </div>
         </li>
       ))}

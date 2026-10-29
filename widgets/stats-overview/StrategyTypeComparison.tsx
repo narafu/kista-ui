@@ -24,8 +24,9 @@ export function StrategyTypeComparison({ byType }: Props) {
           <EmptyState variant="text" message="비교할 전략 데이터가 없습니다." />
         ) : (
           <>
+            {/* 2xl에서는 사이클 성과 옆 반쪽 폭이라 셀 좌우 여백을 줄여 6열을 넣는다 */}
             <div className="hidden overflow-x-auto lg:block" role="region" aria-label="전략 유형 비교 표" tabIndex={0}>
-              <table className="w-full text-sm">
+              <table className="w-full text-sm 2xl:[&_td]:px-3 2xl:[&_th]:px-3">
                 <thead className="bg-muted/50">
                   <tr>
                     <TableHeadCell>전략</TableHeadCell>
@@ -44,8 +45,10 @@ export function StrategyTypeComparison({ byType }: Props) {
                           {labelOf('strategyTypes', t.type)}
                         </Badge>
                       </TableDataCell>
-                      <TableDataCell className="text-right tabular-nums whitespace-nowrap text-muted-foreground">
-                        종료 {t.closedCycleCount} · 진행 {t.activeCycleCount}
+                      {/* 반쪽 폭(2xl 2단)에서는 "·" 뒤에서만 줄을 바꾼다 */}
+                      <TableDataCell className="text-right tabular-nums text-muted-foreground">
+                        <span className="whitespace-nowrap">종료 {t.closedCycleCount} ·</span>{' '}
+                        <span className="whitespace-nowrap">진행 {t.activeCycleCount}</span>
                       </TableDataCell>
                       <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap', t.avgReturnRate != null && pnlTextClass(t.avgReturnRate))}>
                         {fmtSignedPercent(t.avgReturnRate)}
