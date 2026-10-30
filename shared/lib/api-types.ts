@@ -2194,26 +2194,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/accounts/{accountId}/stock-info": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 종목 기본정보 조회 (Toss 전용)
-         * @description Toss API — 종목명·거래소·통화 등 기본 정보 조회.
-         */
-        get: operations["getStockInfo"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/accounts/{accountId}/prices": {
         parameters: {
             query?: never;
@@ -2246,46 +2226,6 @@ export interface paths {
          * @description 브로커 어댑터 경유(KIS: CTRP6504R+TTTC2101R 보정 / Toss: 보유종목+예수금 직접 산출) — 체결 기준 현재 보유 종목별 잔고 및 평가손익 조회.
          */
         get: operations["getPresentBalance"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/accounts/{accountId}/market-calendar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 장 운영 일정 조회 (Toss 전용)
-         * @description Toss API — 지정 기간 미국 시장 개장 여부 및 프리/정규/애프터마켓 시간 조회.
-         */
-        get: operations["getMarketCalendar"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/accounts/{accountId}/exchange-rate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 환율 조회 (Toss 전용)
-         * @description Toss API — USD/KRW 매수 환율 및 매매기준율 조회.
-         */
-        get: operations["getExchangeRate"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2366,46 +2306,6 @@ export interface paths {
          * @description 업비트 실잔고 기준 원화 예수금과 코인별 보유·평단·현재가·평가액(KRW). 주식 계좌는 400.
          */
         get: operations["getCryptoPortfolio"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/accounts/{accountId}/candles": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 캔들차트 조회 (Toss 전용)
-         * @description Toss API — 지정 종목의 OHLCV 캔들 데이터 조회.
-         */
-        get: operations["trading_getCandles"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/accounts/{accountId}/broker-accounts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 증권사 계좌 목록 조회 (Toss 전용)
-         * @description Toss API — 연결된 증권사 계좌 일련번호·계좌번호 목록 조회.
-         */
-        get: operations["getBrokerAccounts"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3588,32 +3488,6 @@ export interface components {
             /** @description 가용 예수금 = 증권사 매수가능금액 − 다른 전략 원장 합 (모의계좌·조회 실패면 null). 입력 예수금이 넘으면 경고만 한다 */
             availableCash?: number;
         };
-        TossStockInfoResponse: {
-            /**
-             * @description 종목 코드
-             * @example SOXL
-             */
-            symbol?: string;
-            /** @description 한글 종목명 */
-            name?: string;
-            /** @description 영문 종목명 */
-            englishName?: string;
-            /**
-             * @description 거래소/시장
-             * @example NYSE ARCA
-             */
-            market?: string;
-            /**
-             * @description 통화
-             * @example USD
-             */
-            currency?: string;
-            /**
-             * @description 종목 상태
-             * @example NORMAL
-             */
-            status?: string;
-        };
         /** @description 복수 종목 현재가 조회 응답 */
         MultiPriceResponse: {
             /** @description 종목별 현재가 목록 */
@@ -3680,39 +3554,6 @@ export interface components {
              */
             exchangeCode?: string;
         };
-        SessionResponse: {
-            /**
-             * Format: date-time
-             * @description 세션 시작 시각 (ISO-8601 UTC)
-             */
-            startTime?: string;
-            /**
-             * Format: date-time
-             * @description 세션 종료 시각 (ISO-8601 UTC)
-             */
-            endTime?: string;
-        };
-        TossMarketSessionResponse: {
-            /**
-             * Format: date
-             * @description 날짜 (US 현지 기준)
-             */
-            date?: string;
-            /** @description 정규장 개장일 여부 (regularMarket != null) */
-            isOpen?: boolean;
-            /** @description 프리마켓 세션 (휴장일이면 null) */
-            preMarket?: components["schemas"]["SessionResponse"];
-            /** @description 정규장 세션 (휴장일·주말이면 null) */
-            regularMarket?: components["schemas"]["SessionResponse"];
-            /** @description 애프터마켓 세션 (휴장일이면 null) */
-            afterMarket?: components["schemas"]["SessionResponse"];
-        };
-        TossExchangeRateResponse: {
-            /** @description 매수 환율 (1 USD 기준 KRW) */
-            rate?: number;
-            /** @description 매매기준율 */
-            midRate?: number;
-        };
         CryptoPrice: {
             /**
              * @description 종목
@@ -3776,15 +3617,6 @@ export interface components {
              * @description 거래량
              */
             volume?: number;
-        };
-        TossAccountInfoResponse: {
-            /**
-             * Format: int32
-             * @description 계좌 일련번호 (brokerAccountCode에 저장되는 값)
-             */
-            accountSeq?: number;
-            /** @description 계좌번호 (마스킹 포함 가능) */
-            accountNo?: string;
         };
         CancelOrdersResponse: {
             /**
@@ -9358,70 +9190,6 @@ export interface operations {
             };
         };
     };
-    getStockInfo: {
-        parameters: {
-            query: {
-                /**
-                 * @description 종목 코드
-                 * @example SOXL
-                 */
-                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
-            };
-            header?: never;
-            path: {
-                accountId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 조회 성공 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossStockInfoResponse"];
-                };
-            };
-            /** @description Toss 계좌가 아님 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossStockInfoResponse"];
-                };
-            };
-            /** @description 내 계좌가 아님 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossStockInfoResponse"];
-                };
-            };
-            /** @description 계좌를 찾을 수 없음 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossStockInfoResponse"];
-                };
-            };
-            /** @description Toss API 호출 실패 */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossStockInfoResponse"];
-                };
-            };
-        };
-    };
     getPrices: {
         parameters: {
             query: {
@@ -9539,133 +9307,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PortfolioSummaryResponse"];
-                };
-            };
-        };
-    };
-    getMarketCalendar: {
-        parameters: {
-            query: {
-                /**
-                 * @description 조회 시작일
-                 * @example 2025-01-01
-                 */
-                from: string;
-                /**
-                 * @description 조회 종료일
-                 * @example 2025-01-31
-                 */
-                to: string;
-            };
-            header?: never;
-            path: {
-                accountId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 조회 성공 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossMarketSessionResponse"][];
-                };
-            };
-            /** @description Toss 계좌가 아님 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossMarketSessionResponse"][];
-                };
-            };
-            /** @description 내 계좌가 아님 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossMarketSessionResponse"][];
-                };
-            };
-            /** @description 계좌를 찾을 수 없음 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossMarketSessionResponse"][];
-                };
-            };
-            /** @description Toss API 호출 실패 */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossMarketSessionResponse"][];
-                };
-            };
-        };
-    };
-    getExchangeRate: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                accountId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 조회 성공 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossExchangeRateResponse"];
-                };
-            };
-            /** @description Toss 계좌가 아님 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossExchangeRateResponse"];
-                };
-            };
-            /** @description 내 계좌가 아님 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossExchangeRateResponse"];
-                };
-            };
-            /** @description 계좌를 찾을 수 없음 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossExchangeRateResponse"];
-                };
-            };
-            /** @description Toss API 호출 실패 */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossExchangeRateResponse"];
                 };
             };
         };
@@ -9905,143 +9546,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CryptoPortfolioResponse"];
-                };
-            };
-        };
-    };
-    trading_getCandles: {
-        parameters: {
-            query: {
-                /**
-                 * @description 종목 코드
-                 * @example SOXL
-                 */
-                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
-                /**
-                 * @description 간격 (1D/1W/1M)
-                 * @example 1D
-                 */
-                interval: string;
-                /**
-                 * @description 조회 시작일
-                 * @example 2025-01-01
-                 */
-                from: string;
-                /**
-                 * @description 조회 종료일
-                 * @example 2025-01-31
-                 */
-                to: string;
-            };
-            header?: never;
-            path: {
-                accountId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 조회 성공 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossCandleResponse"][];
-                };
-            };
-            /** @description Toss 계좌가 아님 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossCandleResponse"][];
-                };
-            };
-            /** @description 내 계좌가 아님 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossCandleResponse"][];
-                };
-            };
-            /** @description 계좌를 찾을 수 없음 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossCandleResponse"][];
-                };
-            };
-            /** @description Toss API 호출 실패 */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossCandleResponse"][];
-                };
-            };
-        };
-    };
-    getBrokerAccounts: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                accountId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 조회 성공 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossAccountInfoResponse"][];
-                };
-            };
-            /** @description Toss 계좌가 아님 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossAccountInfoResponse"][];
-                };
-            };
-            /** @description 내 계좌가 아님 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossAccountInfoResponse"][];
-                };
-            };
-            /** @description 계좌를 찾을 수 없음 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossAccountInfoResponse"][];
-                };
-            };
-            /** @description Toss API 호출 실패 */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TossAccountInfoResponse"][];
                 };
             };
         };
