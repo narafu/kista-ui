@@ -240,7 +240,7 @@ describe('StrategyDetail header card', () => {
   })
 
   it('shows an alternate operating mode label when the strategy type has no division count', () => {
-    render(<StrategyDetail accountId="account-1" strategy={{ ...baseStrategy, type: 'PRIVACY', divisionCount: 0 }} />)
+    render(<StrategyDetail accountId="account-1" strategy={{ ...baseStrategy, type: 'PRIVACY', divisionCount: undefined }} />)
 
     expect(screen.getByTestId('strategy-summary-grid')).toHaveTextContent('운용 방식')
     expect(screen.getByTestId('strategy-summary-grid')).toHaveTextContent('매매표')

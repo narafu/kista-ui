@@ -65,6 +65,7 @@ export function deriveRuntimeFields(
   initial: Strategy | undefined,
   runtimeStrategy: RuntimeStrategySettings | undefined,
   isTickerAllowed: (code: string) => boolean, // 계좌 시장(주식/코인)과 맞는 티커만
+  typeUsesDivisionCount: boolean, // meta divisionCounts 비어 있지 않음 — 카드·상세와 같은 기준
 ) {
   const divisionCountSettings = runtimeStrategy?.fields.divisionCount
   const availableTickers = initial
@@ -76,7 +77,8 @@ export function deriveRuntimeFields(
     // 설정 기본값이 허용 목록 밖이면(설정 드리프트) 첫 허용값으로 대체한다
     defaultTicker: configDefault && availableTickers.includes(configDefault) ? configDefault : availableTickers[0] ?? '',
     divisionCountSettings,
-    usesDivisionCount: initial ? initial.divisionCount !== undefined : !!divisionCountSettings,
+    // 수정은 응답의 divisionCount 유무가 아니라 유형 meta로 판정 — 등록 응답이 PRIVACY에도 값을 싣던 적이 있다
+    usesDivisionCount: initial ? typeUsesDivisionCount : !!divisionCountSettings,
     tickerCustomizable: initial ? false : runtimeStrategy?.fields.ticker.customizable ?? false,
     vrSettings: {
       recurringMode: runtimeStrategy?.fields.recurringMode as RuntimeFieldSettings<string> | undefined,

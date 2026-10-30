@@ -165,6 +165,7 @@ export function useStrategyForm({
   } = deriveRuntimeFields(
     initial, runtimeStrategy,
     (code) => tickerTradesIn(meta.tickers.find((t) => t.code === code), market),
+    (typeMeta?.divisionCounts.length ?? 0) > 0,
   )
   const requiresPrivacyBase = typeMeta?.requiresPrivacyBase ?? false
 
