@@ -31,31 +31,35 @@ function renderEditor({ direction = 'BUY', market = 'US_STOCK', isNew = true, in
   return { onDone, onDelete, onCancel }
 }
 
+const STOCK_BUY_NOTE = '증권사 주문가능 달러에서 같은 계좌 다른 전략의 원장 예수금을 뺀 남은 달러 기준입니다.'
+
 describe('DcaRuleEditor', () => {
   it('마운트 시 방향 제목(h2)에 포커스', () => {
     renderEditor({ direction: 'SELL' })
     expect(screen.getByRole('heading', { level: 2, name: '매도 규칙' })).toHaveFocus()
   })
 
-  it('주식 매수: 규모 토글 없이 금액만, 부족 시 정책은 숨김(증권사가 거절)', () => {
+  it('매수: 규모 토글 없이 금액만, 부족 시 정책은 주식 달러·크립토 원화 라벨, 기본 PARTIAL', () => {
     renderEditor()
     expect(screen.queryByRole('button', { name: '보유 비율 %' })).not.toBeInTheDocument()
     expect(screen.getByLabelText('회차당 금액 (USD)')).toBeInTheDocument()
-    expect(screen.queryByText('달러가 부족할 때')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: '남은 금액만큼 매수' })).not.toBeInTheDocument()
+    expect(screen.getByText('달러가 부족할 때')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '남은 금액만큼 매수' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: '주문 안 함' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByText(STOCK_BUY_NOTE)).toBeInTheDocument()
   })
 
-  it('크립토 매수: 부족 시 라벨은 원화, 기본 PARTIAL', () => {
+  it('크립토 매수 부족 시 라벨은 원화', () => {
     renderEditor({ market: 'CRYPTO_KRW' })
     expect(screen.getByText('원화가 부족할 때')).toBeInTheDocument()
     expect(screen.getByLabelText('회차당 금액 (원)')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '남은 금액만큼 매수' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: '주문 안 함' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.queryByText(STOCK_BUY_NOTE)).not.toBeInTheDocument()
   })
 
   it('매도: 금액/보유 비율 토글, 비율 선택 시 비율 입력과 캡션', () => {
     renderEditor({ direction: 'SELL' })
     expect(screen.getByText('보유가 부족할 때')).toBeInTheDocument()
+    expect(screen.queryByText(STOCK_BUY_NOTE)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '잔량 전부 매도' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: '금액' })).toHaveAttribute('aria-pressed', 'true')
     fireEvent.click(screen.getByRole('button', { name: '보유 비율 %' }))

@@ -183,20 +183,18 @@ export function DcaSizingSection({ form, market }: Pick<Props, 'form' | 'market'
         )}
       </div>
 
-      {/* 주식 매수는 kista-api가 정책을 쓰지 않는다 — 잔고 부족 시 증권사가 주문을 거절 */}
-      {(isCrypto || direction === 'SELL') && (
-        <div className="py-[18px] border-b border-border">
-          <StrategyFieldLabel>{shortfallLabel}</StrategyFieldLabel>
-          <div className="flex gap-2">
-            {SHORTFALLS.map((code) => (
-              <SelectionCard key={code} selected={shortfall === code} onClick={() => setValue('shortfall', code)}
-                className="flex-1 px-3 py-2 text-center text-sm font-[800]">
-                {SHORTFALL_CARD[direction][code]}
-              </SelectionCard>
-            ))}
-          </div>
+      <div className="py-[18px] border-b border-border">
+        <StrategyFieldLabel>{shortfallLabel}</StrategyFieldLabel>
+        <div className="flex gap-2">
+          {SHORTFALLS.map((code) => (
+            <SelectionCard key={code} selected={shortfall === code} onClick={() => setValue('shortfall', code)}
+              className="flex-1 px-3 py-2 text-center text-sm font-[800]">
+              {SHORTFALL_CARD[direction][code]}
+            </SelectionCard>
+          ))}
         </div>
-      )}
+        {!isCrypto && direction === 'BUY' && <Caption>증권사 주문가능 달러에서 같은 계좌 다른 전략의 원장 예수금을 뺀 남은 달러 기준입니다.</Caption>}
+      </div>
     </>
   )
 }

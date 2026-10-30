@@ -125,12 +125,9 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
                           <div key={i}>{formatDcaCondition(c, dcaIndicatorLabel(c.indicator, labelOf('dcaIndicators', c.indicator), isCrypto), labelOf('dcaOperators', c.operator))}</div>
                         ))}
                       </RuleField>
-                      {/* 주식 매수는 부족 정책이 적용되지 않는다 */}
-                      {(isCrypto || r.direction === 'SELL') && (
-                        <RuleField label={r.direction === 'SELL' ? '보유가 부족할 때' : '잔고가 부족할 때'} inline className="col-span-2">
-                          {labelOf('dcaShortfallPolicies', r.shortfall)}
-                        </RuleField>
-                      )}
+                      <RuleField label={r.direction === 'SELL' ? '보유가 부족할 때' : '잔고가 부족할 때'} inline className="col-span-2">
+                        {labelOf('dcaShortfallPolicies', r.shortfall)}
+                      </RuleField>
                       <RuleField label={isCrypto ? '다음 실행' : '다음 판정일'}>
                         {!r.nextExecution ? '미정' : isCrypto ? formatCryptoNextExecution(r.nextExecution.kstTradeDate, r.executionHour) : fmtDate(r.nextExecution.kstTradeDate)}
                       </RuleField>

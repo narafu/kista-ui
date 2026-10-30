@@ -168,15 +168,14 @@ describe('DcaStrategyDetail', () => {
     expect(tile('보유 수량')).toHaveTextContent('0주')
     for (const l of ['평단가', '평가금액', '수익률']) expect(tile(l)).toHaveTextContent('-')
   })
-  it('규칙 카드: 요약·조건·다음 판정일, 주식 매수는 부족 정책 생략, 옛 방향 타일·설정 그리드·추가 조건 카드는 없다', () => {
+  it('규칙 카드: 요약·조건·부족 정책·다음 판정일, 옛 방향 타일·설정 그리드·추가 조건 카드는 없다', () => {
     renderDetail()
     expect(screen.getByText('매월 말일 · MOC(종가시장가) · $300.00')).toBeInTheDocument()
     expect(screen.getByText('매수')).toBeInTheDocument()
     expect(screen.getByText('RSI(14) 35 이하')).toBeInTheDocument()
-    expect(screen.queryByText('가용만큼 주문')).not.toBeInTheDocument()
+    expect(ruleField('잔고가 부족할 때')).toHaveTextContent('가용만큼 주문')
     expect(ruleField('다음 판정일')).toHaveTextContent(fmtDate('2026-10-31'))
     expect(ruleField('최근 결과')).toHaveTextContent('-')
-    expect(screen.queryByText('잔고가 부족할 때')).not.toBeInTheDocument()
     expect(screen.queryByText('방향')).not.toBeInTheDocument()
     expect(screen.queryByTestId('dca-config-grid')).not.toBeInTheDocument()
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['전략 정보', '규칙', '회차별 실행 이력'])
