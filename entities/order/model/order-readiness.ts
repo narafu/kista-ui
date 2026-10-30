@@ -1,4 +1,4 @@
-import type { AccountCashCheck, LedgerCheck, NextOrderPreview } from './types'
+import type { AccountCashCheck, AccountHoldingsCheck, LedgerCheck, NextOrderPreview } from './types'
 
 export interface DirectionReadiness {
   hasOrders: boolean
@@ -11,6 +11,7 @@ export interface OrderReadiness {
   ledgerShortfall: LedgerCheck | null // 전략 원장 예수금 부족으로 신규 BUY 전체 거절 (BUY 계획이 있고 sufficient=false일 때만)
   ledgerTrimmed: boolean              // 원장에 맞춰 BUY를 줄여 접수 (부족 아님, 정보성)
   accountCashShortfall: AccountCashCheck | null // 계좌 주문가능 USD 부족 — 증권사가 BUY를 거절할 수 있음 (원장 거절이면 BUY가 안 나가므로 null)
+  holdingsShortfall: AccountHoldingsCheck | null // 계좌 종목 판매 가능 수량 부족 — 증권사가 SELL을 거절할 수 있음
 }
 
 // 카드/상세 두 위젯이 공유하는 순수 판정 로직 — BUY/SELL 각 방향에 대해 "오늘 계획된 주문 중
@@ -21,6 +22,7 @@ export function computeOrderReadiness(preview: NextOrderPreview | undefined): Or
   const todayOrders = preview?.todayOrders ?? []
   const ledgerCheck = preview?.ledgerCheck ?? null
   const accountCashCheck = preview?.accountCashCheck ?? null
+  const accountHoldingsCheck = preview?.accountHoldingsCheck ?? null
   const hasTodayOrders = todayOrders.length > 0
 
   const plannedDirections = new Set(orders.map((o) => o.direction))
@@ -43,5 +45,6 @@ export function computeOrderReadiness(preview: NextOrderPreview | undefined): Or
     ledgerTrimmed: hasBuyOrders && ledgerCheck?.sufficient === true && ledgerCheck.trimmed,
     // 계좌 단위 값이라 이 전략에 BUY 계획이 있을 때만 이 전략의 경고로 본다
     accountCashShortfall: hasBuyOrders && !ledgerRejected && accountCashCheck?.sufficient === false ? accountCashCheck : null,
+    holdingsShortfall: hasSellOrders && accountHoldingsCheck?.sufficient === false ? accountHoldingsCheck : null,
   }
 }

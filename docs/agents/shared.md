@@ -32,7 +32,7 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 | 공통 기본값, accounts, strategies | 30초 | 화면 재진입 재사용과 mutation 직접 동기화의 균형 |
 | me, order preview/history, stats | 60초 | 자주 읽지만 mutation에서 명시적으로 무효화 |
 | trade/cycle history, daily trades | 5분 | 과거 이력 중심 |
-| margin, prices, admin 재주문(당일 주문·예산·시각) | 0 | 거래 판단에 쓰는 라이브 값. 재주문 시각은 60초 주기 재조회 |
+| prices, admin 재주문(당일 주문·예산·시각) | 0 | 거래 판단에 쓰는 라이브 값. 재주문 시각은 60초 주기 재조회 |
 | runtime-config, admin-settings | 0 | 운영 설정 변경 즉시 반영, 필요 시 focus refetch |
 | market holidays | 24시간 | 월 단위 참조 데이터. 실패한 서버 조회는 dehydrate되지 않아 장기 빈 값으로 캐시되지 않음 |
 | candles | 10분 | 차트 조회 비용과 최신성 균형 |
@@ -66,7 +66,6 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 - **제외 키**:
   - housing·etf 시장 시계열과 regions 같은 외부 참조 데이터는 체결과 무관하다(`statsKeys.all` 사용 금지).
   - `strategyKeys.seedPreview`는 시세 기반이다. 전략 폼이 열린 중 재조회되면 minSeed가 바뀌어 사용자가 조정한 시드가 초기화될 수 있다(`strategyKeys.all` 사용 금지).
-  - `accountKeys.margin`은 전략 폼 전용 클라이언트 쿼리(`staleTime: 0`)라 refresh 시절에도 갱신 대상이 아니었다.
   - 대상·제외 키는 `TradeNotificationBridge.test.tsx`가 고정한다.
 - **서버 TTL**: summary·equity-curve·housing-comparison의 kista-api 서버 TTL 캐시는 체결 시 사용자 단위로 비워지므로 재조회가 새 값을 받는다. Redis 메시지 유실이나 계산 중 경합이 생기면 TTL이 지나야 갱신된다(`entities.md` "stats 서버 TTL" 참고).
 - **브리지에 두는 이유**: `entities/trade`에서 `@entities/order`·`@entities/stats`·`@entities/strategy`를 import하면 같은 계층 cross-import가 된다.

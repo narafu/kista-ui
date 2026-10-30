@@ -2274,26 +2274,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/accounts/{accountId}/margin": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 해외증거금 조회
-         * @description 브로커 어댑터 경유(KIS: TTTC2101R / Toss: buying-power) — USD·KRW 통화별 통합주문가능금액(예수금) 조회.
-         */
-        get: operations["getMargin"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/accounts/{accountId}/exchange-rate": {
         parameters: {
             query?: never;
@@ -3160,6 +3140,8 @@ export interface components {
             ledgerCheck?: components["schemas"]["LedgerCheckSummary"];
             /** @description 계좌 주문가능 USD 대비 오늘 BUY 경고 — 계좌 단위(계좌 내 모든 전략 동일 값), 조회 시점 추정, 경고 전용. MOCK·코인·필요 BUY 없음·증권사 조회 실패면 null */
             accountCashCheck?: components["schemas"]["AccountCashCheckSummary"];
+            /** @description 계좌 보유(판매 가능) 수량 대비 오늘 SELL 경고 — (계좌, 종목) 단위(같은 종목 전략 동일 값), 조회 시점 추정, 경고 전용. MOCK·코인·필요 SELL 없음·증권사 조회 실패면 null */
+            accountHoldingsCheck?: components["schemas"]["AccountHoldingsCheckSummary"];
         };
         PositionSnapshot: {
             /**
@@ -3724,22 +3706,6 @@ export interface components {
             regularMarket?: components["schemas"]["SessionResponse"];
             /** @description 애프터마켓 세션 (휴장일이면 null) */
             afterMarket?: components["schemas"]["SessionResponse"];
-        };
-        MarginResponse: {
-            /**
-             * @description 통화코드
-             * @example USD
-             * @enum {string}
-             */
-            currency?: "KRW" | "USD" | "JPY" | "USDT";
-            /** @description 통합주문가능금액 (통합증거금 ON일 때만 양수) */
-            integratedOrderableAmount?: number;
-            /** @description 외화일반주문가능금액 (통합증거금 무관, 항상 유효) */
-            foreignOrderableAmount?: number;
-            /** @description 실제 매수 가능 USD (통합·외화주문가능금액 중 큰 값) */
-            purchasableAmount?: number;
-            /** @description 기준환율 (1 USD = ? KRW) */
-            usdToKrwRate?: number;
         };
         TossExchangeRateResponse: {
             /** @description 매수 환율 (1 USD 기준 KRW) */
@@ -5495,6 +5461,14 @@ export interface components {
             /** @description 계좌 전체 오늘 BUY 필요 금액 (PLANNED·SUBMITTING BUY + 전략별 원장 반영 후 신규 BUY, USD) — SUBMITTING은 증권사 차감 여부가 불확실해 보수적으로 포함 */
             requiredBuyUsd?: number;
             /** @description false면 배치 접수 시 증권사가 BUY를 거절할 수 있다 */
+            sufficient?: boolean;
+        };
+        AccountHoldingsCheckSummary: {
+            /** @description 증권사 판매 가능 수량 (조회 시점, 미체결 매도 차감 전 보유 수량) */
+            availableQuantity?: number;
+            /** @description 종목 전체 오늘 SELL 필요 수량 (PLANNED·SUBMITTING·PLACED SELL + 신규 SELL) — 판매 가능 수량이 미체결 매도를 차감하기 전 보유 수량이라 접수 완료(PLACED) SELL도 포함한다. 장중 일부 체결된 PLACED SELL은 주문 수량 전체로 세므로 보수적으로(부족 쪽으로) 표시될 수 있다 */
+            requiredSellQuantity?: number;
+            /** @description false면 배치 접수 시 증권사가 SELL을 거절할 수 있다 */
             sufficient?: boolean;
         };
     };
@@ -9634,59 +9608,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["TossMarketSessionResponse"][];
-                };
-            };
-        };
-    };
-    getMargin: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description 계좌 ID
-                 * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
-                 */
-                accountId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 조회 성공 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["MarginResponse"][];
-                };
-            };
-            /** @description 내 계좌가 아님 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["MarginResponse"][];
-                };
-            };
-            /** @description 계좌를 찾을 수 없음 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["MarginResponse"][];
-                };
-            };
-            /** @description 브로커 API 호출 실패 */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["MarginResponse"][];
                 };
             };
         };

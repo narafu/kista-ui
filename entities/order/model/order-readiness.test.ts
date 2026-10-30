@@ -12,6 +12,7 @@ function basePreview(overrides: Partial<NextOrderPreview>): NextOrderPreview {
     otherStrategiesPlannedBuyUsd: '0',
     ledgerCheck: null,
     accountCashCheck: null,
+    accountHoldingsCheck: null,
     ...overrides,
   }
 }
@@ -29,6 +30,7 @@ describe('computeOrderReadiness', () => {
       ledgerShortfall: null,
       ledgerTrimmed: false,
       accountCashShortfall: null,
+      holdingsShortfall: null,
     })
   })
 
@@ -81,5 +83,14 @@ describe('computeOrderReadiness', () => {
     expect(computeOrderReadiness(basePreview({ orders: [SELL], accountCashCheck: cashShort })).accountCashShortfall).toBeNull()
     // 원장 거절이면 BUY가 증권사로 나가지 않는다
     expect(computeOrderReadiness(basePreview({ orders: [BUY], ledgerCheck: SHORT, accountCashCheck: cashShort })).accountCashShortfall).toBeNull()
+  })
+
+  it('reports holdings shortfall only when sell is planned', () => {
+    const holdingsShort = { availableQuantity: 10, requiredSellQuantity: 30, sufficient: false }
+
+    expect(computeOrderReadiness(basePreview({ orders: [SELL], accountHoldingsCheck: holdingsShort })).holdingsShortfall).toEqual(holdingsShort)
+    expect(computeOrderReadiness(basePreview({ orders: [SELL], accountHoldingsCheck: { ...holdingsShort, sufficient: true } })).holdingsShortfall).toBeNull()
+    // (계좌, 종목) 단위 값이라 SELL 계획이 없는 전략에는 경고를 붙이지 않는다
+    expect(computeOrderReadiness(basePreview({ orders: [BUY], accountHoldingsCheck: holdingsShort })).holdingsShortfall).toBeNull()
   })
 })

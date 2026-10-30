@@ -7,6 +7,7 @@ const BUY_DIRECTION: DirectionReadiness = { hasOrders: true, unplaced: false }
 const NO_DIRECTION: DirectionReadiness = { hasOrders: false, unplaced: false }
 const SHORT: LedgerCheck = { remainingLedger: 50, requiredBuyUsd: 100, sufficient: false, trimmed: false }
 const CASH_SHORT = { availableUsd: 30, requiredBuyUsd: 200, sufficient: false }
+const HOLDINGS_SHORT = { availableQuantity: 5, requiredSellQuantity: 12, sufficient: false }
 
 function readiness(overrides: Partial<OrderReadiness> = {}): OrderReadiness {
   return {
@@ -15,6 +16,7 @@ function readiness(overrides: Partial<OrderReadiness> = {}): OrderReadiness {
     ledgerShortfall: null,
     ledgerTrimmed: false,
     accountCashShortfall: null,
+    holdingsShortfall: null,
     ...overrides,
   }
 }
@@ -50,6 +52,12 @@ describe('nextOrderBannerText', () => {
     expect(result).toBe('계좌 예수금 부족(주문가능 $30.00 / 계좌 전체 필요 $200.00)')
   })
 
+  it('shows the holdings shortfall on its own line under a buy shortfall', () => {
+    const result = nextOrderBannerText(true, 'executed', false, null, readiness({ buy: BUY_DIRECTION, accountCashShortfall: CASH_SHORT, holdingsShortfall: HOLDINGS_SHORT }))
+
+    expect(result).toBe('계좌 예수금 부족(주문가능 $30.00 / 계좌 전체 필요 $200.00)\n보유 수량 부족(판매가능 5주 / 종목 전체 필요 12주)')
+  })
+
   it('returns null when the ledger is sufficient', () => {
     expect(nextOrderBannerText(true, 'preview', false, null, readiness({ buy: BUY_DIRECTION }))).toBeNull()
   })
@@ -64,6 +72,7 @@ describe('directionUnplacedMessage', () => {
 
   it('always says SELL will be retried at market close', () => {
     expect(directionUnplacedMessage('SELL', readiness({ ledgerShortfall: SHORT }))).toBe('장 마감 시 매도 재시도 예정')
+    expect(directionUnplacedMessage('SELL', readiness({ holdingsShortfall: HOLDINGS_SHORT }))).toBe('보유 수량 부족으로 매도 거절 가능')
   })
 })
 

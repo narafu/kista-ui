@@ -24,6 +24,7 @@ let previewState = {
     otherStrategiesPlannedBuyUsd: '0',
     ledgerCheck: null as LedgerCheck | null,
     accountCashCheck: null as { availableUsd: number; requiredBuyUsd: number; sufficient: boolean } | null,
+    accountHoldingsCheck: null as { availableQuantity: number; requiredSellQuantity: number; sufficient: boolean } | null,
   },
   isLoading: false,
 }
@@ -87,6 +88,7 @@ describe('StrategyCard mobile row', () => {
         otherStrategiesPlannedBuyUsd: '0',
         ledgerCheck: null,
         accountCashCheck: null,
+        accountHoldingsCheck: null,
       },
       isLoading: false,
     }
@@ -239,6 +241,23 @@ describe('StrategyCard mobile row', () => {
     expect(screen.getAllByText('계좌 예수금 부족 · 주문가능 $300.00 / 필요 $1,200.00')).toHaveLength(2)
   })
 
+  it('marks borders red with a holdings badge when the account holds fewer shares than today sells need', () => {
+    previewState = {
+      ...previewState,
+      data: {
+        ...previewState.data,
+        orders: [{ direction: 'SELL', price: '1300', quantity: 12 }],
+        todayOrders: [],
+        accountHoldingsCheck: { availableQuantity: 5, requiredSellQuantity: 12, sufficient: false },
+      },
+    }
+
+    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
+
+    expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
+    expect(screen.getAllByText('보유 수량 부족 · 판매가능 5주 / 필요 12주')).toHaveLength(2)
+  })
+
   it('marks borders red when sell placed but buy is unplaced and still short on budget', () => {
     previewState = {
       ...previewState,
@@ -344,6 +363,7 @@ describe('StrategyCard scheduled start badge', () => {
         otherStrategiesPlannedBuyUsd: '0',
         ledgerCheck: null,
         accountCashCheck: null,
+        accountHoldingsCheck: null,
       },
       isLoading: false,
     }
@@ -385,6 +405,7 @@ describe('StrategyCard status', () => {
         otherStrategiesPlannedBuyUsd: '0',
         ledgerCheck: null,
         accountCashCheck: null,
+        accountHoldingsCheck: null,
       },
       isLoading: false,
     }

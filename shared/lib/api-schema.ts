@@ -74,7 +74,7 @@ export function brokerMarket(broker: string | null | undefined): TradingMarket {
   return (broker && BROKER_MARKET[broker as BrokerCode]) || 'US_STOCK'
 }
 
-// 코인 거래소 계좌 — 주식 시세·잔고 엔드포인트(portfolio/margin/prices)를 부르면 400이라 쿼리를 막는 기준
+// 코인 거래소 계좌 — 주식 시세·잔고 엔드포인트(portfolio/prices)를 부르면 400이라 쿼리를 막는 기준
 export function isCryptoBroker(broker: string | null | undefined): boolean {
   return isCryptoMarket(brokerMarket(broker))
 }

@@ -8,7 +8,7 @@ import type { RuntimeStrategyType } from '@entities/runtime-config'
 
 export function useStrategyFormData(accountId: string, broker: BrokerCode | undefined) {
   const isMock = isMockBroker(broker)
-  // 코인 계좌로 주식 margin/prices를 부르면 400 — StrategyForm은 DCA 분기 전에 이 훅을 부르므로 여기서 막는다
+  // 코인 계좌로 주식 prices를 부르면 400 — StrategyForm은 DCA 분기 전에 이 훅을 부르므로 여기서 막는다
   const isCrypto = isCryptoBroker(broker)
   const market = brokerMarket(broker)
   const { meta, findStrategyType } = useMeta()

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
-import { fmtUsd } from '@shared/lib/format'
+import { fmtQuantity, fmtUsd } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import { computeOrderReadiness, useStrategyOrderPreviewQuery } from '@entities/order'
 import type { OrderReadiness } from '@entities/order'
@@ -26,15 +26,19 @@ interface OrderSignal {
   label: string
 }
 
-// 전략 원장 예수금 부족 최우선, 다음은 계좌 예수금 부족(계좌 단위 — 증권사 거절 가능). 미접수는 부족이 확인되지 않아도(unplaced만으로도) 최소 경고 처리해
+// 전략 원장 예수금 부족 최우선, 다음은 계좌 예수금·보유 수량 부족(계좌 단위 — 증권사 거절 가능). 미접수는 부족이 확인되지 않아도(unplaced만으로도) 최소 경고 처리해
 // "타 방향은 접수됨" 하나만 보고 초록으로 오인시키지 않는다
-function getOrderSignal({ buy, sell, ledgerShortfall, accountCashShortfall }: OrderReadiness, hasTodayOrders: boolean): OrderSignal | null {
+function getOrderSignal({ buy, sell, ledgerShortfall, accountCashShortfall, holdingsShortfall }: OrderReadiness, hasTodayOrders: boolean): OrderSignal | null {
   if (ledgerShortfall) {
     const label = `예수금 부족 · 원장 $${fmtUsd(ledgerShortfall.remainingLedger)} / 필요 $${fmtUsd(ledgerShortfall.requiredBuyUsd)}`
     return { color: 'var(--status-error)', tone: 'error', label }
   }
   if (accountCashShortfall) {
     const label = `계좌 예수금 부족 · 주문가능 $${fmtUsd(accountCashShortfall.availableUsd)} / 필요 $${fmtUsd(accountCashShortfall.requiredBuyUsd)}`
+    return { color: 'var(--status-error)', tone: 'error', label }
+  }
+  if (holdingsShortfall) {
+    const label = `보유 수량 부족 · 판매가능 ${fmtQuantity(holdingsShortfall.availableQuantity)}주 / 필요 ${fmtQuantity(holdingsShortfall.requiredSellQuantity)}주`
     return { color: 'var(--status-error)', tone: 'error', label }
   }
   if (buy.unplaced || sell.unplaced) return { color: 'var(--warn)', tone: 'warn', label: '미접수 주문' }
