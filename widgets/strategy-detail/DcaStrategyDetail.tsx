@@ -72,11 +72,11 @@ function DcaHoldingGrid({ accountId, strategy, market }: { accountId: string; st
   )
 }
 
-function RuleField({ label, className, children }: { label: string; className?: string; children: React.ReactNode }) {
+function RuleField({ label, className, inline, children }: { label: string; className?: string; inline?: boolean; children: React.ReactNode }) {
   return (
-    <div className={className}>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5">{children}</dd>
+    <div className={cn(inline && 'flex items-baseline gap-2', className)}>
+      <dt className={cn('text-xs text-muted-foreground', inline && 'shrink-0')}>{label}</dt>
+      <dd className={cn(!inline && 'mt-0.5')}>{children}</dd>
     </div>
   )
 }
@@ -120,14 +120,14 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
                   <li key={r.ruleKey} className="rounded-[var(--r-md)] border border-border px-3 py-2.5">
                     <p className="font-semibold"><DcaRuleSummaryLabel rule={r} labelOf={labelOf} market={market} size="sm" badgeClassName={directionBadgeClass(r.direction)} /></p>
                     <dl className="mt-2.5 grid grid-cols-2 gap-x-4 gap-y-2">
-                      <RuleField label="조건" className="col-span-2">
+                      <RuleField label="조건" inline className="col-span-2">
                         {r.conditions.length === 0 ? '조건 없이 매 회차 주문' : r.conditions.map((c, i) => (
                           <div key={i}>{formatDcaCondition(c, dcaIndicatorLabel(c.indicator, labelOf('dcaIndicators', c.indicator), isCrypto), labelOf('dcaOperators', c.operator))}</div>
                         ))}
                       </RuleField>
                       {/* 주식 매수는 부족 정책이 적용되지 않는다 */}
                       {(isCrypto || r.direction === 'SELL') && (
-                        <RuleField label={r.direction === 'SELL' ? '보유가 부족할 때' : '잔고가 부족할 때'} className="col-span-2">
+                        <RuleField label={r.direction === 'SELL' ? '보유가 부족할 때' : '잔고가 부족할 때'} inline className="col-span-2">
                           {labelOf('dcaShortfallPolicies', r.shortfall)}
                         </RuleField>
                       )}

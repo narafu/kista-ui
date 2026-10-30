@@ -76,7 +76,7 @@ describe('DcaStrategyForm', () => {
     fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
 
-    const summary = await screen.findByRole('button', { name: /매월 말일 · MOC\(종가시장가\) · \$300/ })
+    const summary = await screen.findByRole('button', { name: /매일 · MOC\(종가시장가\) · \$300/ })
     await waitFor(() => expect(summary).toHaveFocus())
     expect(screen.getByText('규칙 (1/10)')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '등록' }))

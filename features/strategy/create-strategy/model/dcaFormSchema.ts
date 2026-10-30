@@ -146,7 +146,7 @@ export function buildDcaRuleDefaults(direction: DcaRuleFormValues['direction'], 
   return {
     market, orderAmount, ruleKey: null, direction,
     orderType: isCrypto ? 'MARKET' : 'MOC', executionHour: isCrypto ? DEFAULT_EXECUTION_HOUR : null,
-    frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: LAST_DAY,
+    frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null,
     sizingType: 'AMOUNT', amount: null, percent: null, shortfall: 'PARTIAL', conditions: [],
   }
 }

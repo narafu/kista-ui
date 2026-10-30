@@ -20,15 +20,15 @@ function Harness({ market = 'US_STOCK', defaults }: { market?: TradingMarket; de
 }
 
 describe('DcaSettingsSection', () => {
-  it('MONTHLY 기본값이면 날짜 셀렉트, WEEKLY로 바꾸면 요일 셀렉트', () => {
-    render(<Harness />)
+  it('MONTHLY면 날짜 셀렉트, WEEKLY로 바꾸면 요일 셀렉트', () => {
+    render(<Harness defaults={{ frequency: 'MONTHLY', dayOfMonth: 'LAST' }} />)
     expect(screen.getByRole('combobox', { name: '실행 날짜' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '매주' }))
     expect(screen.getByRole('combobox', { name: '실행 요일' })).toBeInTheDocument()
     expect(screen.queryByRole('combobox', { name: '실행 날짜' })).not.toBeInTheDocument()
   })
   it('29~31일 선택 시 말일 보정 캡션', () => {
-    render(<Harness defaults={{ dayOfMonth: '31' }} />)
+    render(<Harness defaults={{ frequency: 'MONTHLY', dayOfMonth: '31' }} />)
     expect(screen.getByText('해당 날짜가 없는 달은 말일에 실행')).toBeInTheDocument()
   })
   it('방향 선택 UI가 없다(방향은 편집 화면 제목이 보여 준다)', () => {

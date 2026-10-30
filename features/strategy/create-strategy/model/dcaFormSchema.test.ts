@@ -175,7 +175,7 @@ describe('buildDcaRuleDefaults', () => {
   it('크립토 SELL 기본값', () => {
     expect(buildDcaRuleDefaults('SELL', 'CRYPTO_KRW', testOrderAmount('CRYPTO_KRW'))).toEqual({
       market: 'CRYPTO_KRW', orderAmount: testOrderAmount('CRYPTO_KRW'), ruleKey: null, direction: 'SELL', orderType: 'MARKET', executionHour: 9,
-      frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: 'LAST',
+      frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null,
       sizingType: 'AMOUNT', amount: null, percent: null, shortfall: 'PARTIAL', conditions: [],
     })
   })
