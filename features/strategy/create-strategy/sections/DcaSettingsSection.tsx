@@ -194,6 +194,7 @@ export function DcaSizingSection({ form, market }: Pick<Props, 'form' | 'market'
           ))}
         </div>
         {!isCrypto && direction === 'BUY' && <Caption>증권사 주문가능 달러에서 같은 계좌 다른 전략의 원장 예수금을 뺀 남은 달러 기준입니다.</Caption>}
+        {!isCrypto && direction === 'SELL' && <Caption>전략 보유 수량과 증권사 판매가능 수량 중 적은 쪽 기준입니다.</Caption>}
       </div>
     </>
   )

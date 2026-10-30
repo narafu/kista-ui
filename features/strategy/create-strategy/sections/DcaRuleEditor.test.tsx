@@ -59,6 +59,7 @@ describe('DcaRuleEditor', () => {
   it('매도: 금액/보유 비율 토글, 비율 선택 시 비율 입력과 캡션', () => {
     renderEditor({ direction: 'SELL' })
     expect(screen.getByText('보유가 부족할 때')).toBeInTheDocument()
+    expect(screen.getByText('전략 보유 수량과 증권사 판매가능 수량 중 적은 쪽 기준입니다.')).toBeInTheDocument()
     expect(screen.queryByText(STOCK_BUY_NOTE)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '잔량 전부 매도' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: '금액' })).toHaveAttribute('aria-pressed', 'true')
