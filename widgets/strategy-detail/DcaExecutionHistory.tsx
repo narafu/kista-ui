@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useMeta } from '@entities/meta'
-import { DcaRuleSummaryLabel, dcaIndicatorLabel, formatDcaCondition, formatDcaSchedule, useDcaExecutionsQuery } from '@entities/strategy'
+import { dcaIndicatorLabel, formatDcaCondition, formatDcaSchedule, useDcaExecutionsQuery } from '@entities/strategy'
 import type { DcaRule } from '@entities/strategy'
 import { directionBadgeClass } from '@entities/trade'
 import { PaginationBar } from '@shared/ui/PaginationBar'
@@ -32,17 +32,7 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
   const rows = data?.content ?? []
   const totalPages = Math.ceil((data?.totalElements ?? 0) / PAGE_SIZE)
 
-  // 모바일 카드 셀 렌더러
-  const ruleCell = (r: ExecutionItem) => {
-    const rule = rules.find((x) => x.ruleKey === r.ruleKey)
-    return rule ? <DcaRuleSummaryLabel rule={rule} labelOf={labelOf} market={market} size="sm" badgeClassName={directionBadgeClass(rule.direction)} /> : (
-      <span className="inline-flex items-center gap-1.5">
-        <Badge tone="none" size="sm" className={directionBadgeClass(r.direction)}>{labelOf('orderDirections', r.direction)}</Badge>
-        <span className="text-muted-foreground">삭제된 규칙</span>
-      </span>
-    )
-  }
-  // PC 표는 방향·주기·조건을 칸으로 나눈다 — 삭제된 규칙은 응답의 방향만 남는다
+  // 방향·주기·조건을 따로 그린다(PC 표 칸, 모바일 카드 줄) — 삭제된 규칙은 응답의 방향만 남는다
   const directionBadge = (r: ExecutionItem) => (
     <Badge tone="none" size="sm" className={directionBadgeClass(r.direction)}>{labelOf('orderDirections', r.direction)}</Badge>
   )
@@ -50,8 +40,9 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
     const rule = rules.find((x) => x.ruleKey === r.ruleKey)
     return rule ? formatDcaSchedule(rule, labelOf('dcaFrequencies', rule.frequency)) : <span className="text-muted-foreground">삭제된 규칙</span>
   }
+  const conditionsOf = (r: ExecutionItem) => rules.find((x) => x.ruleKey === r.ruleKey)?.conditions ?? []
   const conditionCell = (r: ExecutionItem) => {
-    const conditions = rules.find((x) => x.ruleKey === r.ruleKey)?.conditions ?? []
+    const conditions = conditionsOf(r)
     return conditions.length === 0 ? '-' : conditions.map((c, i) => (
       <div key={i}>{formatDcaCondition(c, dcaIndicatorLabel(c.indicator, labelOf('dcaIndicators', c.indicator), isCrypto), labelOf('dcaOperators', c.operator))}</div>
     ))
@@ -64,6 +55,8 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
   const filledText = (r: ExecutionItem) => (r.order
     ? `${labelOf('orderStatuses', r.order.status)}${r.order.filledPrice != null ? ` · ${fmtMoney(r.order.filledPrice, currency)}` : ''}`
     : '-')
+  // 모바일 카드는 칸 이름이 '체결가'라 상태 라벨을 반복하지 않는다 — 체결가가 없을 때만 주문 상태를 보여 준다
+  const fillPriceText = (r: ExecutionItem) => (!r.order ? '-' : r.order.filledPrice != null ? fmtMoney(r.order.filledPrice, currency) : labelOf('orderStatuses', r.order.status))
   // 날짜(fmtDate 결과)별 그룹 — 입력 순서 유지
   const groups = groupConsecutiveBy(rows, (r) => fmtDate(r.kstTradeDate))
 
@@ -87,19 +80,24 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
                 <div key={`${g.key}-${i}`} className="space-y-1.5">
                   <div className={DATE_GROUP_LABEL_CLASS}>{g.key}</div>
                   {g.items.map((r) => (
-                    <div key={r.ruleKey} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5 space-y-1.5">
-                      <div className="flex items-center justify-between gap-2 text-sm">
-                        <div>{ruleCell(r)}</div>
+                    <div key={r.ruleKey} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5 space-y-2">
+                      <div className="flex items-start justify-between gap-2 text-sm">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">{directionBadge(r)}{scheduleCell(r)}</div>
+                          {/* 조건이 없으면 '-' 줄을 따로 두지 않는다 */}
+                          {conditionsOf(r).length > 0 && <div className="mt-1 text-xs text-muted-foreground">{conditionCell(r)}</div>}
+                        </div>
                         <div className="shrink-0">{statusBadge(r)}</div>
                       </div>
-                      <div className="flex items-center justify-between gap-2 text-sm">
-                        <span className="text-muted-foreground">
-                          기준가 <span className="font-semibold text-foreground">{priceText(r)}</span> · 수량 <span className="font-semibold text-foreground">{quantityText(r)}</span>
-                        </span>
-                        <span className="text-muted-foreground">
-                          체결 <span className="font-semibold text-foreground">{filledText(r)}</span>
-                        </span>
-                      </div>
+                      {/* 3칸 고정 — 금액이 길면 단위 앞에서 줄바꿈해 칸을 넘지 않는다 */}
+                      <dl className="grid grid-cols-3 gap-2 text-sm">
+                        {([['기준가', priceText(r)], ['수량', quantityText(r)], ['체결가', fillPriceText(r)]] as const).map(([label, value]) => (
+                          <div key={label} className="min-w-0">
+                            <dt className="text-xs text-muted-foreground">{label}</dt>
+                            <dd className="mt-0.5 font-semibold tabular-nums break-keep">{value}</dd>
+                          </div>
+                        ))}
+                      </dl>
                       {(r.skipReason || r.detail) && (
                         <div className="text-xs text-muted-foreground">
                           {r.skipReason && <div>{labelOf('dcaSkipReasons', r.skipReason)}</div>}

@@ -189,7 +189,7 @@ describe('DcaStrategyDetail', () => {
     expect(ruleField('최근 결과')).toHaveTextContent('조건 미충족')
     expect(ruleField('최근 결과')).not.toHaveTextContent('건너뜀')
     expect(screen.getByText('조건 없이 매 회차 주문')).toBeInTheDocument()
-    expect(ruleField('잔고가 부족할 때')).toHaveTextContent('없음')
+    expect(ruleField('잔고가 부족할 때')).toHaveTextContent('주문 안 함')
     expect(screen.queryByText(/다음 판정일/)).not.toBeInTheDocument()
   })
   it('규칙 카드: 주문된 최근 결과는 상태 라벨을 보여 준다', () => {

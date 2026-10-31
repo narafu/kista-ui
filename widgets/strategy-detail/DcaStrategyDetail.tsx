@@ -31,7 +31,7 @@ const TILE = { className: 'p-4 lg:p-5', valueClassName: 'text-xl lg:text-2xl tab
 // 보유 현황은 원화 9자리·코인 소수 8자리라 모바일 2열에서 한 단계 더 작게, 단위가 숫자와 떨어지지 않게 둔다
 const HOLDING_TILE = { className: TILE.className, valueClassName: 'text-base sm:text-xl lg:text-2xl tabular-nums break-keep' }
 // 규칙 카드는 한 줄 배치라 메타 라벨(가용만큼 주문·주문하지 않음) 대신 짧게 — 모르는 코드는 메타 라벨로
-const SHORTFALL_SHORT: Record<string, string> = { PARTIAL: '잔량', REJECT: '없음' }
+const SHORTFALL_SHORT: Record<string, string> = { PARTIAL: '잔량', REJECT: '주문 안 함' }
 const UNAVAILABLE = <span className="text-base font-normal text-muted-foreground">확인 불가</span>
 
 // 보유 수량·평단가는 원장(dca.currentHoldings·avgPrice)이 SSOT, 현재가만 시장별로 따로 받는다.

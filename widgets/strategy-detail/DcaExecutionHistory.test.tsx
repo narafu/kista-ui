@@ -89,8 +89,24 @@ describe('DcaExecutionHistory', () => {
     const card = within(container.querySelector('.lg\\:hidden') as HTMLElement)
     expect(card.getByText('145,000,000원')).toBeInTheDocument()
     expect(card.getByText('0.00034482 BTC')).toBeInTheDocument()
-    expect(card.getByText(/145,100,000원/)).toBeInTheDocument()
-    expect(card.getByText(/매일 · /)).toBeInTheDocument()
+    expect(card.getByText('145,100,000원')).toBeInTheDocument() // 체결가 칸은 상태 라벨 없이 가격만
+    expect(card.getByText('매일')).toBeInTheDocument() // 금액 요약 없이 주기만
+    expect(card.queryByText('-')).not.toBeInTheDocument() // 조건 없으면 줄 생략
     expect(card.getByText(testLabelOf('dcaSkipReasons', 'BELOW_MIN_ORDER_AMOUNT'))).toBeInTheDocument()
+  })
+  it('모바일 카드: 조건이 있으면 조건 줄, 체결가가 없으면 주문 상태, 주문이 없으면 -', () => {
+    const withCondition = { ...rule, conditions: [{ indicator: 'RSI', operator: 'LTE', threshold: 30 }] } as DcaRule
+    queryMock.mockReturnValue({
+      data: { content: [
+        { ruleKey: 'a', direction: 'BUY', kstTradeDate: '2026-10-18', status: 'ORDERED', skipReason: null, detail: null, referencePrice: 100, quantity: 1, order: { id: 'o1', status: 'SUBMITTED' } },
+        { ruleKey: 'gone', direction: 'SELL', kstTradeDate: '2026-10-17', status: 'SKIPPED', skipReason: null, detail: null, referencePrice: 100, quantity: null, order: null },
+      ], page: 0, size: 20, totalElements: 2 },
+      isLoading: false, isError: false,
+    })
+    const { container } = render(<DcaExecutionHistory strategyId="d1" ticker="BTC" rules={[withCondition]} market="CRYPTO_KRW" />)
+    const [ordered, skipped] = [...(container.querySelector('.lg\\:hidden') as HTMLElement).querySelectorAll('dl')].map((dl) => dl.parentElement!)
+    expect(within(ordered).getByText(/RSI\(14\) 30/)).toBeInTheDocument()
+    expect(within(ordered).getByText('체결가').nextElementSibling).toHaveTextContent(testLabelOf('orderStatuses', 'SUBMITTED'))
+    expect(within(skipped).getByText('체결가').nextElementSibling).toHaveTextContent('-')
   })
 })
