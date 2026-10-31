@@ -41,7 +41,7 @@ describe('DcaExecutionHistory', () => {
     })
     render(<DcaExecutionHistory strategyId="d1" ticker="UPRO" rules={[rule]} market="US_STOCK" />)
     const cells = table().getAllByRole('row')[1].querySelectorAll('td')
-    expect(cells[4]).toHaveTextContent('-')
+    expect(cells[6]).toHaveTextContent('-')
   })
 
   it('코인 행은 원화 가격과 소수 수량·코인 단위로 표시한다', () => {
@@ -74,7 +74,7 @@ describe('DcaExecutionHistory', () => {
     render(<DcaExecutionHistory strategyId="d1" ticker="UPRO" rules={[rule]} market="US_STOCK" />)
     const rows = table().getAllByRole('row')
     expect(rows).toHaveLength(3)
-    expect(rows[1]).toHaveTextContent('매수 매일 · MOC(종가시장가) · $15,000.00')
+    expect([...rows[1].querySelectorAll('td')].slice(1, 4).map((c) => c.textContent)).toEqual(['매수', '매일', '-'])
     expect(rows[2]).toHaveTextContent('삭제된 규칙')
     expect(rows[2]).toHaveTextContent('매도')
     expect(rows[2]).toHaveTextContent('보유 수량 부족')

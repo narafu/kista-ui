@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useMeta } from '@entities/meta'
-import { DcaRuleSummaryLabel, useDcaExecutionsQuery } from '@entities/strategy'
+import { DcaRuleSummaryLabel, dcaIndicatorLabel, formatDcaCondition, formatDcaSchedule, useDcaExecutionsQuery } from '@entities/strategy'
 import type { DcaRule } from '@entities/strategy'
 import { directionBadgeClass } from '@entities/trade'
 import { PaginationBar } from '@shared/ui/PaginationBar'
@@ -32,7 +32,7 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
   const rows = data?.content ?? []
   const totalPages = Math.ceil((data?.totalElements ?? 0) / PAGE_SIZE)
 
-  // 표·카드 공용 셀 렌더러
+  // 모바일 카드 셀 렌더러
   const ruleCell = (r: ExecutionItem) => {
     const rule = rules.find((x) => x.ruleKey === r.ruleKey)
     return rule ? <DcaRuleSummaryLabel rule={rule} labelOf={labelOf} market={market} size="sm" badgeClassName={directionBadgeClass(rule.direction)} /> : (
@@ -41,6 +41,20 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
         <span className="text-muted-foreground">삭제된 규칙</span>
       </span>
     )
+  }
+  // PC 표는 방향·주기·조건을 칸으로 나눈다 — 삭제된 규칙은 응답의 방향만 남는다
+  const directionBadge = (r: ExecutionItem) => (
+    <Badge tone="none" size="sm" className={directionBadgeClass(r.direction)}>{labelOf('orderDirections', r.direction)}</Badge>
+  )
+  const scheduleCell = (r: ExecutionItem) => {
+    const rule = rules.find((x) => x.ruleKey === r.ruleKey)
+    return rule ? formatDcaSchedule(rule, labelOf('dcaFrequencies', rule.frequency)) : <span className="text-muted-foreground">삭제된 규칙</span>
+  }
+  const conditionCell = (r: ExecutionItem) => {
+    const conditions = rules.find((x) => x.ruleKey === r.ruleKey)?.conditions ?? []
+    return conditions.length === 0 ? '-' : conditions.map((c, i) => (
+      <div key={i}>{formatDcaCondition(c, dcaIndicatorLabel(c.indicator, labelOf('dcaIndicators', c.indicator), isCrypto), labelOf('dcaOperators', c.operator))}</div>
+    ))
   }
   const statusBadge = (r: ExecutionItem) => (
     <Badge tone={r.status === 'ORDERED' ? 'none' : 'neutral'} size="sm" className={r.status === 'ORDERED' ? 'bg-info-bg text-info' : undefined}>{labelOf('dcaExecutionStatuses', r.status)}</Badge>
@@ -103,6 +117,8 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
                 <thead className="bg-muted/50">
                   <tr>
                     <TableHeadCell className="whitespace-nowrap">{isCrypto ? '실행일' : '거래일'}</TableHeadCell>
+                    <TableHeadCell className="whitespace-nowrap">방향</TableHeadCell>
+                    <TableHeadCell className="whitespace-nowrap">주기</TableHeadCell>
                     <TableHeadCell className="whitespace-nowrap">규칙</TableHeadCell>
                     <TableHeadCell className="whitespace-nowrap">결과</TableHeadCell>
                     <TableHeadCell className="whitespace-nowrap">사유</TableHeadCell>
@@ -116,7 +132,9 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
                   {rows.map((r) => (
                     <tr key={`${r.kstTradeDate}-${r.ruleKey}`} className="border-t hover:bg-muted/30 transition-colors">
                       <TableDataCell className="text-muted-foreground whitespace-nowrap">{fmtDate(r.kstTradeDate)}</TableDataCell>
-                      <TableDataCell className="whitespace-nowrap">{ruleCell(r)}</TableDataCell>
+                      <TableDataCell className="whitespace-nowrap">{directionBadge(r)}</TableDataCell>
+                      <TableDataCell className="whitespace-nowrap">{scheduleCell(r)}</TableDataCell>
+                      <TableDataCell className="whitespace-nowrap">{conditionCell(r)}</TableDataCell>
                       <TableDataCell className="whitespace-nowrap">{statusBadge(r)}</TableDataCell>
                       {/* detail은 가변 길이 자유 텍스트라 nowrap 대신 최소 너비로 글자 단위 줄바꿈만 막는다 */}
                       <TableDataCell className="min-w-32">
