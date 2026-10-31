@@ -6,7 +6,7 @@ import { directionUnplacedMessage, nextOrderBannerText, pausedSkipReasonLabel, p
 const BUY_DIRECTION: DirectionReadiness = { hasOrders: true, unplaced: false }
 const NO_DIRECTION: DirectionReadiness = { hasOrders: false, unplaced: false }
 const SHORT: LedgerCheck = { remainingLedger: 50, requiredBuyUsd: 100, sufficient: false, trimmed: false }
-const CASH_SHORT = { availableUsd: 30, requiredBuyUsd: 200, sufficient: false }
+const CASH_SHORT = { availableUsd: 30, requiredBuyUsd: 200, correctionBuyUsd: 0, sufficient: false }
 const HOLDINGS_SHORT = { availableQuantity: 5, requiredSellQuantity: 12, sufficient: false }
 
 function readiness(overrides: Partial<OrderReadiness> = {}): OrderReadiness {
@@ -16,6 +16,8 @@ function readiness(overrides: Partial<OrderReadiness> = {}): OrderReadiness {
     ledgerShortfall: null,
     ledgerTrimmed: false,
     accountCashShortfall: null,
+    accountCashPartial: false,
+    correctionExcludedBuyUsd: null,
     holdingsShortfall: null,
     ...overrides,
   }
@@ -49,13 +51,27 @@ describe('nextOrderBannerText', () => {
   it.each(['preview', 'executed'] as const)('shows the account cash shortfall with the account-wide requirement in %s mode', (mode) => {
     const result = nextOrderBannerText(true, mode, false, null, readiness({ buy: BUY_DIRECTION, accountCashShortfall: CASH_SHORT }))
 
-    expect(result).toBe('계좌 예수금 부족(주문가능 $30.00 / 계좌 전체 필요 $200.00)')
+    expect(result).toBe('계좌 예수금 부족(주문가능 $30.00 / 계좌 전체 접수 필요 $200.00)')
+  })
+
+  it('adds the amount excluding correction orders to the account cash shortfall', () => {
+    const cash = { availableUsd: 100, requiredBuyUsd: 326.41, correctionBuyUsd: 115.6, sufficient: false }
+
+    expect(nextOrderBannerText(true, 'executed', false, null, readiness({ buy: BUY_DIRECTION, accountCashShortfall: cash, correctionExcludedBuyUsd: 210.81 })))
+      .toBe('계좌 예수금 부족(주문가능 $100.00 / 계좌 전체 접수 필요 $326.41 · 보정 주문 제외 $210.81)')
+  })
+
+  it('softens to a partial rejection warning when excluding correction orders makes the cash sufficient', () => {
+    const cash = { availableUsd: 250, requiredBuyUsd: 326.41, correctionBuyUsd: 115.6, sufficient: false }
+
+    expect(nextOrderBannerText(true, 'executed', false, null, readiness({ buy: BUY_DIRECTION, accountCashShortfall: cash, accountCashPartial: true, correctionExcludedBuyUsd: 210.81 })))
+      .toBe('일부 매수 주문 접수 거절 가능(주문가능 $250.00 / 계좌 전체 접수 필요 $326.41 · 보정 주문 제외 $210.81)')
   })
 
   it('shows the holdings shortfall on its own line under a buy shortfall', () => {
     const result = nextOrderBannerText(true, 'executed', false, null, readiness({ buy: BUY_DIRECTION, accountCashShortfall: CASH_SHORT, holdingsShortfall: HOLDINGS_SHORT }))
 
-    expect(result).toBe('계좌 예수금 부족(주문가능 $30.00 / 계좌 전체 필요 $200.00)\n보유 수량 부족(판매가능 5주 / 종목 전체 필요 12주)')
+    expect(result).toBe('계좌 예수금 부족(주문가능 $30.00 / 계좌 전체 접수 필요 $200.00)\n보유 수량 부족(판매가능 5주 / 종목 전체 필요 12주)')
   })
 
   it('returns null when the ledger is sufficient', () => {
@@ -67,6 +83,7 @@ describe('directionUnplacedMessage', () => {
   it('explains the ledger rejection for BUY (no retry) and promises a retry otherwise', () => {
     expect(directionUnplacedMessage('BUY', readiness({ ledgerShortfall: SHORT }))).toBe('전략 원장 예수금 부족으로 매수 미접수')
     expect(directionUnplacedMessage('BUY', readiness({ accountCashShortfall: CASH_SHORT }))).toBe('계좌 예수금 부족으로 매수 거절 가능')
+    expect(directionUnplacedMessage('BUY', readiness({ accountCashShortfall: CASH_SHORT, accountCashPartial: true }))).toBe('계좌 예수금 부족으로 일부 매수 주문 접수 거절 가능')
     expect(directionUnplacedMessage('BUY', readiness())).toBe('장 마감 시 매수 예정')
   })
 

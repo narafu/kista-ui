@@ -2974,6 +2974,24 @@ export interface components {
             /** @description 통합주문가능금액 */
             usdDeposit?: number;
         };
+        AccountCashCheckSummary: {
+            /** @description 증권사 USD 주문가능금액 (조회 시점, 접수 완료 주문은 증권사가 차감) */
+            availableUsd?: number;
+            /** @description 계좌 전체 오늘 BUY 필요 금액 (PLANNED·SUBMITTING BUY + 전략별 원장 반영 후 신규 BUY, USD) — SUBMITTING은 증권사 차감 여부가 불확실해 보수적으로 포함 */
+            requiredBuyUsd?: number;
+            /** @description requiredBuyUsd 중 INFINITE 보정 주문(LOC 1주) 지정가 합계 — 보정 제외 금액은 requiredBuyUsd − correctionBuyUsd. 접수 시에는 지정가 전체가 주문가능금액에서 묶이지만 실제 체결은 전략별 단위금액 안에서 끝난다. 보정 주문이 없으면 0 */
+            correctionBuyUsd?: number;
+            /** @description false면 배치 접수 시 증권사가 BUY를 거절할 수 있다 */
+            sufficient?: boolean;
+        };
+        AccountHoldingsCheckSummary: {
+            /** @description 증권사 판매 가능 수량 (조회 시점, 미체결 매도 차감 전 보유 수량) */
+            availableQuantity?: number;
+            /** @description 종목 전체 오늘 SELL 필요 수량 (PLANNED·SUBMITTING·PLACED SELL + 신규 SELL) — 판매 가능 수량이 미체결 매도를 차감하기 전 보유 수량이라 접수 완료(PLACED) SELL도 포함한다. 장중 일부 체결된 PLACED SELL은 주문 수량 전체로 세므로 보수적으로(부족 쪽으로) 표시될 수 있다 */
+            requiredSellQuantity?: number;
+            /** @description false면 배치 접수 시 증권사가 SELL을 거절할 수 있다 */
+            sufficient?: boolean;
+        };
         LedgerCheckSummary: {
             /** @description 전략 원장 잔여 (같은 날 저장된 BUY 차감 후, USD) */
             remainingLedger?: number;
@@ -3597,26 +3615,6 @@ export interface components {
             holdings?: components["schemas"]["CryptoHoldingResponse"][];
             /** @description 총자산 (계좌 통화) = 예수금 + 평가액 합 */
             totalAsset?: number;
-        };
-        TossCandleResponse: {
-            /**
-             * Format: date
-             * @description 기준일
-             */
-            date?: string;
-            /** @description 시가 */
-            open?: number;
-            /** @description 고가 */
-            high?: number;
-            /** @description 저가 */
-            low?: number;
-            /** @description 종가 */
-            close?: number;
-            /**
-             * Format: int64
-             * @description 거래량
-             */
-            volume?: number;
         };
         CancelOrdersResponse: {
             /**
@@ -4972,6 +4970,26 @@ export interface components {
             /** @description 추이 이력 (오름차순 정렬) */
             history?: components["schemas"]["Point"][];
         };
+        TossCandleResponse: {
+            /**
+             * Format: date
+             * @description 기준일
+             */
+            date?: string;
+            /** @description 시가 */
+            open?: number;
+            /** @description 고가 */
+            high?: number;
+            /** @description 저가 */
+            low?: number;
+            /** @description 종가 */
+            close?: number;
+            /**
+             * Format: int64
+             * @description 거래량
+             */
+            volume?: number;
+        };
         FinanceGroupMemberResponse: {
             /**
              * Format: uuid
@@ -5287,22 +5305,6 @@ export interface components {
         };
         /** @enum {string} */
         ErrorCode: "BROKER_UNAVAILABLE" | "BROKER_CREDENTIAL_INVALID" | "BROKER_IP_NOT_ALLOWED" | "BROKER_PERMISSION_DENIED" | "BROKER_RATE_LIMITED" | "DUPLICATE_ACCOUNT" | "ALREADY_ORDERED_TODAY" | "DCA_MANUAL_EXECUTION_UNSUPPORTED" | "ORDER_NOT_CANCELLABLE" | "MONTH_CLOSED" | "ACCESS_DENIED" | "COOLDOWN_ACTIVE" | "TRADING_CORE_UNAVAILABLE" | "BROKER_WITHDRAWAL_ENABLED";
-        AccountCashCheckSummary: {
-            /** @description 증권사 USD 주문가능금액 (조회 시점, 접수 완료 주문은 증권사가 차감) */
-            availableUsd?: number;
-            /** @description 계좌 전체 오늘 BUY 필요 금액 (PLANNED·SUBMITTING BUY + 전략별 원장 반영 후 신규 BUY, USD) — SUBMITTING은 증권사 차감 여부가 불확실해 보수적으로 포함 */
-            requiredBuyUsd?: number;
-            /** @description false면 배치 접수 시 증권사가 BUY를 거절할 수 있다 */
-            sufficient?: boolean;
-        };
-        AccountHoldingsCheckSummary: {
-            /** @description 증권사 판매 가능 수량 (조회 시점, 미체결 매도 차감 전 보유 수량) */
-            availableQuantity?: number;
-            /** @description 종목 전체 오늘 SELL 필요 수량 (PLANNED·SUBMITTING·PLACED SELL + 신규 SELL) — 판매 가능 수량이 미체결 매도를 차감하기 전 보유 수량이라 접수 완료(PLACED) SELL도 포함한다. 장중 일부 체결된 PLACED SELL은 주문 수량 전체로 세므로 보수적으로(부족 쪽으로) 표시될 수 있다 */
-            requiredSellQuantity?: number;
-            /** @description false면 배치 접수 시 증권사가 SELL을 거절할 수 있다 */
-            sufficient?: boolean;
-        };
     };
     responses: never;
     parameters: never;

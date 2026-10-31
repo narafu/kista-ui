@@ -25,7 +25,7 @@ function normalizeLedgerCheck(raw: unknown): LedgerCheck | null {
 function normalizeAccountCashCheck(raw: unknown): AccountCashCheck | null {
   if (raw == null) return null
   const r = raw as Record<string, unknown>
-  return { availableUsd: toNum(r.availableUsd), requiredBuyUsd: toNum(r.requiredBuyUsd), sufficient: Boolean(r.sufficient) }
+  return { availableUsd: toNum(r.availableUsd), requiredBuyUsd: toNum(r.requiredBuyUsd), correctionBuyUsd: toNum(r.correctionBuyUsd), sufficient: Boolean(r.sufficient) }
 }
 
 function normalizeAccountHoldingsCheck(raw: unknown): AccountHoldingsCheck | null {

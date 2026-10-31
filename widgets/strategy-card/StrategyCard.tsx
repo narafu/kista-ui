@@ -28,14 +28,16 @@ interface OrderSignal {
 
 // 전략 원장 예수금 부족 최우선, 다음은 계좌 예수금·보유 수량 부족(계좌 단위 — 증권사 거절 가능). 미접수는 부족이 확인되지 않아도(unplaced만으로도) 최소 경고 처리해
 // "타 방향은 접수됨" 하나만 보고 초록으로 오인시키지 않는다
-function getOrderSignal({ buy, sell, ledgerShortfall, accountCashShortfall, holdingsShortfall }: OrderReadiness, hasTodayOrders: boolean): OrderSignal | null {
+function getOrderSignal({ buy, sell, ledgerShortfall, accountCashShortfall, accountCashPartial, correctionExcludedBuyUsd, holdingsShortfall }: OrderReadiness, hasTodayOrders: boolean): OrderSignal | null {
   if (ledgerShortfall) {
     const label = `예수금 부족 · 원장 $${fmtUsd(ledgerShortfall.remainingLedger)} / 필요 $${fmtUsd(ledgerShortfall.requiredBuyUsd)}`
     return { color: 'var(--status-error)', tone: 'error', label }
   }
   if (accountCashShortfall) {
-    const label = `계좌 예수금 부족 · 주문가능 $${fmtUsd(accountCashShortfall.availableUsd)} / 필요 $${fmtUsd(accountCashShortfall.requiredBuyUsd)}`
-    return { color: 'var(--status-error)', tone: 'error', label }
+    const amounts = `주문가능 $${fmtUsd(accountCashShortfall.availableUsd)} / 접수 필요 $${fmtUsd(accountCashShortfall.requiredBuyUsd)}${correctionExcludedBuyUsd == null ? '' : ` · 보정 주문 제외 $${fmtUsd(correctionExcludedBuyUsd)}`}`
+    // 보정 주문을 빼면 충분하면 일부만 거절될 수 있어 경고로 낮춘다 — 전략 간 접수 순서가 정해지지 않아 어느 주문인지는 단정하지 않는다
+    if (accountCashPartial) return { color: 'var(--warn)', tone: 'warn', label: `일부 매수 주문 접수 거절 가능 · ${amounts}` }
+    return { color: 'var(--status-error)', tone: 'error', label: `계좌 예수금 부족 · ${amounts}` }
   }
   if (holdingsShortfall) {
     const label = `보유 수량 부족 · 판매가능 ${fmtQuantity(holdingsShortfall.availableQuantity)}주 / 필요 ${fmtQuantity(holdingsShortfall.requiredSellQuantity)}주`

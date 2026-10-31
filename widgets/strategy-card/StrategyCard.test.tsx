@@ -23,7 +23,7 @@ let previewState = {
     todayOrders: [] as Array<{ status: 'PLANNED' | 'PLACED'; direction: 'BUY' | 'SELL' }>,
     otherStrategiesPlannedBuyUsd: '0',
     ledgerCheck: null as LedgerCheck | null,
-    accountCashCheck: null as { availableUsd: number; requiredBuyUsd: number; sufficient: boolean } | null,
+    accountCashCheck: null as { availableUsd: number; requiredBuyUsd: number; correctionBuyUsd: number; sufficient: boolean } | null,
     accountHoldingsCheck: null as { availableQuantity: number; requiredSellQuantity: number; sufficient: boolean } | null,
   },
   isLoading: false,
@@ -231,14 +231,32 @@ describe('StrategyCard mobile row', () => {
         orders: [{ direction: 'BUY', price: '1200', quantity: 1 }],
         todayOrders: [],
         ledgerCheck: OK,
-        accountCashCheck: { availableUsd: 300, requiredBuyUsd: 1200, sufficient: false },
+        accountCashCheck: { availableUsd: 300, requiredBuyUsd: 1200, correctionBuyUsd: 0, sufficient: false },
       },
     }
 
     render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
 
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
-    expect(screen.getAllByText('계좌 예수금 부족 · 주문가능 $300.00 / 필요 $1,200.00')).toHaveLength(2)
+    expect(screen.getAllByText('계좌 예수금 부족 · 주문가능 $300.00 / 접수 필요 $1,200.00')).toHaveLength(2)
+  })
+
+  it('marks borders with a warn badge when only some buys may be rejected once correction orders are excluded', () => {
+    previewState = {
+      ...previewState,
+      data: {
+        ...previewState.data,
+        orders: [{ direction: 'BUY', price: '326.41', quantity: 1 }],
+        todayOrders: [],
+        ledgerCheck: OK,
+        accountCashCheck: { availableUsd: 250, requiredBuyUsd: 326.41, correctionBuyUsd: 115.6, sufficient: false },
+      },
+    }
+
+    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
+
+    expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--warn);'))
+    expect(screen.getAllByText('일부 매수 주문 접수 거절 가능 · 주문가능 $250.00 / 접수 필요 $326.41 · 보정 주문 제외 $210.81')).toHaveLength(2)
   })
 
   it('marks borders red with a holdings badge when the account holds fewer shares than today sells need', () => {

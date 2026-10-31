@@ -20,6 +20,7 @@ export function pausedSkipReasonLabel(reason: SkipReason): string {
 export function directionUnplacedMessage(direction: 'BUY' | 'SELL', readiness: OrderReadiness): string {
   if (direction === 'SELL') return readiness.holdingsShortfall ? '보유 수량 부족으로 매도 거절 가능' : '장 마감 시 매도 재시도 예정'
   if (readiness.ledgerShortfall) return '전략 원장 예수금 부족으로 매수 미접수'
+  if (readiness.accountCashPartial) return '계좌 예수금 부족으로 일부 매수 주문 접수 거절 가능'
   if (readiness.accountCashShortfall) return '계좌 예수금 부족으로 매수 거절 가능'
   return '장 마감 시 매수 예정'
 }
@@ -34,11 +35,17 @@ export function nextOrderBannerText(canExecute: boolean, mode: 'preview' | 'exec
   return [buyShortfallText(readiness), sellShortfallText(readiness)].filter(Boolean).join('\n') || null
 }
 
-function buyShortfallText({ ledgerShortfall, accountCashShortfall }: OrderReadiness): string | null {
+function buyShortfallText({ ledgerShortfall, accountCashShortfall, accountCashPartial, correctionExcludedBuyUsd }: OrderReadiness): string | null {
   if (ledgerShortfall) return `전략 원장 예수금 부족(원장 $${fmtUsd(ledgerShortfall.remainingLedger)} / 필요 $${fmtUsd(ledgerShortfall.requiredBuyUsd)})`
+  if (!accountCashShortfall) return null
   // 계좌 단위 값이라 필요 금액은 이 전략이 아니라 계좌 전체 BUY 합계다
-  if (accountCashShortfall) return `계좌 예수금 부족(주문가능 $${fmtUsd(accountCashShortfall.availableUsd)} / 계좌 전체 필요 $${fmtUsd(accountCashShortfall.requiredBuyUsd)})`
-  return null
+  const amounts = `주문가능 $${fmtUsd(accountCashShortfall.availableUsd)} / 계좌 전체 접수 필요 $${fmtUsd(accountCashShortfall.requiredBuyUsd)}${correctionExcludedText(correctionExcludedBuyUsd)}`
+  return accountCashPartial ? `일부 매수 주문 접수 거절 가능(${amounts})` : `계좌 예수금 부족(${amounts})`
+}
+
+// 상세 배너·카드 배지가 같은 구성으로 보정 제외 금액을 덧붙인다
+function correctionExcludedText(correctionExcludedBuyUsd: number | null): string {
+  return correctionExcludedBuyUsd == null ? '' : ` · 보정 주문 제외 $${fmtUsd(correctionExcludedBuyUsd)}`
 }
 
 // (계좌, 종목) 단위 값이라 필요 수량은 같은 종목 전략 전체 SELL 합계다

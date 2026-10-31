@@ -36,6 +36,7 @@ export interface LedgerCheck {
 export interface AccountCashCheck {
   availableUsd: number   // 증권사 USD 주문가능금액 (조회 시점, 접수 완료 주문은 증권사가 이미 차감)
   requiredBuyUsd: number // 계좌 전체 오늘 BUY 필요 금액
+  correctionBuyUsd: number // requiredBuyUsd 중 INFINITE 보정 주문 지정가 합계 — 접수 시엔 묶이지만 실제 체결은 단위금액 안에서 끝난다 (없으면 0)
   sufficient: boolean    // false면 배치 접수 시 증권사가 BUY를 거절할 수 있다 (경고 전용)
 }
 
