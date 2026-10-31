@@ -11,7 +11,7 @@ export interface OrderReadiness {
   ledgerShortfall: LedgerCheck | null // 전략 원장 예수금 부족으로 신규 BUY 전체 거절 (BUY 계획이 있고 sufficient=false일 때만)
   ledgerTrimmed: boolean              // 원장에 맞춰 BUY를 줄여 접수 (부족 아님, 정보성)
   accountCashShortfall: AccountCashCheck | null // 계좌 주문가능 USD 부족 — 증권사가 BUY를 거절할 수 있음 (원장 거절이면 BUY가 안 나가므로 null)
-  accountCashPartial: boolean // 부족이지만 보정 주문을 빼면 충분 — 일부 BUY만 거절될 수 있음 (전략 간 접수 순서가 정해지지 않아 어느 주문인지는 단정하지 않는다)
+  accountCashPartial: boolean // 부족이지만 보정 주문을 빼면 충분 — 일부 BUY만 거절될 수 있음
   correctionExcludedBuyUsd: number | null // 계좌 부족 시 보정 주문 제외 필요 금액 — 보정 지정가는 접수 시 묶이지만 실제 체결은 단위금액 안에서 끝난다 (보정 없으면 null)
   holdingsShortfall: AccountHoldingsCheck | null // 계좌 종목 판매 가능 수량 부족 — 증권사가 SELL을 거절할 수 있음
 }

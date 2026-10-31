@@ -220,7 +220,7 @@ describe('StrategyCard mobile row', () => {
 
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
     // 색만으로 전달하지 않도록 같은 판정을 배지 텍스트로도 보여준다 (모바일·PC 레이아웃 각각)
-    expect(screen.getAllByText('예수금 부족 · 원장 $50.00 / 필요 $100.00')).toHaveLength(2)
+    expect(screen.getAllByText('예수금 부족')).toHaveLength(2)
   })
 
   it('marks borders red with an account-level badge when the account cash is short', () => {
@@ -238,7 +238,7 @@ describe('StrategyCard mobile row', () => {
     render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
 
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
-    expect(screen.getAllByText('계좌 예수금 부족 · 주문가능 $300.00 / 접수 필요 $1,200.00')).toHaveLength(2)
+    expect(screen.getAllByText('계좌 예수금 부족')).toHaveLength(2)
   })
 
   it('marks borders with a warn badge when only some buys may be rejected once correction orders are excluded', () => {
@@ -256,7 +256,7 @@ describe('StrategyCard mobile row', () => {
     render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
 
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--warn);'))
-    expect(screen.getAllByText('일부 매수 주문 접수 거절 가능 · 주문가능 $250.00 / 접수 필요 $326.41 · 보정 주문 제외 $210.81')).toHaveLength(2)
+    expect(screen.getAllByText('보정 주문 거절 가능')).toHaveLength(2)
   })
 
   it('marks borders red with a holdings badge when the account holds fewer shares than today sells need', () => {
@@ -273,7 +273,7 @@ describe('StrategyCard mobile row', () => {
     render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
 
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
-    expect(screen.getAllByText('보유 수량 부족 · 판매가능 5주 / 필요 12주')).toHaveLength(2)
+    expect(screen.getAllByText('보유 수량 부족')).toHaveLength(2)
   })
 
   it('marks borders red when sell placed but buy is unplaced and still short on budget', () => {

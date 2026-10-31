@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
-import { fmtQuantity, fmtUsd } from '@shared/lib/format'
+import { fmtUsd } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import { computeOrderReadiness, useStrategyOrderPreviewQuery } from '@entities/order'
 import type { OrderReadiness } from '@entities/order'
@@ -27,22 +27,13 @@ interface OrderSignal {
 }
 
 // 전략 원장 예수금 부족 최우선, 다음은 계좌 예수금·보유 수량 부족(계좌 단위 — 증권사 거절 가능). 미접수는 부족이 확인되지 않아도(unplaced만으로도) 최소 경고 처리해
-// "타 방향은 접수됨" 하나만 보고 초록으로 오인시키지 않는다
-function getOrderSignal({ buy, sell, ledgerShortfall, accountCashShortfall, accountCashPartial, correctionExcludedBuyUsd, holdingsShortfall }: OrderReadiness, hasTodayOrders: boolean): OrderSignal | null {
-  if (ledgerShortfall) {
-    const label = `예수금 부족 · 원장 $${fmtUsd(ledgerShortfall.remainingLedger)} / 필요 $${fmtUsd(ledgerShortfall.requiredBuyUsd)}`
-    return { color: 'var(--status-error)', tone: 'error', label }
-  }
-  if (accountCashShortfall) {
-    const amounts = `주문가능 $${fmtUsd(accountCashShortfall.availableUsd)} / 접수 필요 $${fmtUsd(accountCashShortfall.requiredBuyUsd)}${correctionExcludedBuyUsd == null ? '' : ` · 보정 주문 제외 $${fmtUsd(correctionExcludedBuyUsd)}`}`
-    // 보정 주문을 빼면 충분하면 일부만 거절될 수 있어 경고로 낮춘다 — 전략 간 접수 순서가 정해지지 않아 어느 주문인지는 단정하지 않는다
-    if (accountCashPartial) return { color: 'var(--warn)', tone: 'warn', label: `일부 매수 주문 접수 거절 가능 · ${amounts}` }
-    return { color: 'var(--status-error)', tone: 'error', label: `계좌 예수금 부족 · ${amounts}` }
-  }
-  if (holdingsShortfall) {
-    const label = `보유 수량 부족 · 판매가능 ${fmtQuantity(holdingsShortfall.availableQuantity)}주 / 필요 ${fmtQuantity(holdingsShortfall.requiredSellQuantity)}주`
-    return { color: 'var(--status-error)', tone: 'error', label }
-  }
+// "타 방향은 접수됨" 하나만 보고 초록으로 오인시키지 않는다. 배지는 한 줄 고정이라 상태만 보여주고 금액은 상세 배너에 둔다
+function getOrderSignal({ buy, sell, ledgerShortfall, accountCashShortfall, accountCashPartial, holdingsShortfall }: OrderReadiness, hasTodayOrders: boolean): OrderSignal | null {
+  if (ledgerShortfall) return { color: 'var(--status-error)', tone: 'error', label: '예수금 부족' }
+  // 보정 주문을 빼면 충분하면 일부만 거절될 수 있어 경고로 낮춘다
+  if (accountCashPartial) return { color: 'var(--warn)', tone: 'warn', label: '보정 주문 거절 가능' }
+  if (accountCashShortfall) return { color: 'var(--status-error)', tone: 'error', label: '계좌 예수금 부족' }
+  if (holdingsShortfall) return { color: 'var(--status-error)', tone: 'error', label: '보유 수량 부족' }
   if (buy.unplaced || sell.unplaced) return { color: 'var(--warn)', tone: 'warn', label: '미접수 주문' }
   if (hasTodayOrders) return { color: 'var(--status-ok)', tone: null, label: '오늘 주문 접수됨' }
   return null
