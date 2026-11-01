@@ -1,7 +1,7 @@
 # DCA 전략 UI 설계
 
 - 작성일: 2026-10-13
-- 백엔드 SSOT: `kista-api` `docs/superpowers/specs/2026-10-13-dca-strategy-design.md` (커밋 3eceed94, 7장 API 계약)
+- 백엔드 SSOT: `kista-api` `docs/superpowers/specs/archive/2026-10-13-dca-strategy-design.md` (커밋 3eceed94, 7장 API 계약)
 - 이 문서는 kista-ui 쪽 변경만 다룬다. 계약 필드 정의는 백엔드 spec 7장을 따르고, 여기에는 UI가 소비하는 방식만 적는다.
 
 ## 1. 목표와 확정 요구사항

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 16.2.6 App Router · React Hook Form + zod · React Query · vitest + Testing Library
 
-**Spec:** `docs/superpowers/specs/2026-10-21-dca-multi-rule-ui-design.md`(UX SSOT, §3 사용자 결정 7개). 계약 원본: `../kista-api/.superpowers/sdd/2026-10-21-dca-multi-rule/kista-ui-contract.md`(아래 "계약 요약"에 필요한 부분을 옮겨 두었다. 원본이 사라져도 이 문서로 충분하다). kista-api 코드: `git -C ../kista-api diff 7fd9cea8..6668fafc`.
+**Spec:** `docs/superpowers/specs/archive/2026-10-21-dca-multi-rule-ui-design.md`(UX SSOT, §3 사용자 결정 7개). 계약 원본: `../kista-api/.superpowers/sdd/2026-10-21-dca-multi-rule/kista-ui-contract.md`(아래 "계약 요약"에 필요한 부분을 옮겨 두었다. 원본이 사라져도 이 문서로 충분하다). kista-api 코드: `git -C ../kista-api diff 7fd9cea8..6668fafc`.
 
 ## Global Constraints
 

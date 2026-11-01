@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- 설계 스펙: `docs/superpowers/specs/2026-07-18-buy-competition-preview-ui-design.md` (승인 완료) — 세부 규칙 SSOT.
+- 설계 스펙: `docs/superpowers/specs/archive/2026-07-18-buy-competition-preview-ui-design.md` (승인 완료) — 세부 규칙 SSOT.
 - 범위: 전략 상세 페이지(`widgets/strategy-detail/StrategyDetail.tsx`)만. 전략 목록/대시보드(`StrategyCard.tsx`)는 범위 밖.
 - `openapi.json`이 SSOT — `api-types.ts` 직접 수정 금지, 반드시 `npm run fetch:spec && npm run gen:types`로 재생성.
 - `CompetingStrategy.type`/`.ticker` 필드는 `entities/order` 모듈의 기존 관례(`NextOrderItem.ticker/direction`이 loose `string`)를 따라 `string`으로 정의 — 표시 전용이라 정밀 enum 불필요. 반면 조건 분기에 쓰이는 `skipReason` 같은 필드만 `api-schema.ts`의 정밀 타입을 재사용하는 게 이 프로젝트의 기존 구분 기준.

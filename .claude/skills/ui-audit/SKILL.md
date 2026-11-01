@@ -21,9 +21,9 @@ user-invocable: true
 | # | 관점 | 기준 문서 / 확인 방법 |
 |---|---|---|
 | 1 | 상태표현 | 같은 색이 다른 뜻으로 쓰임, 같은 상태가 화면마다 다른 단어·색, 색으로만 전달(텍스트 없음), enum 코드 원문 노출(`labelOf` 미사용). 토큰 의미는 `app/globals.css` 주석, 기존 헬퍼(`strategyStatusAccent`, `orderStatusBadgeClass`, `directionBadgeClass`)와 대조 |
-| 2 | 카피 | `docs/agents/constraints.md` "카피" 절 — 종결 패턴, 토스트 마침표 레이어 규칙, 동의어 혼용(트리거 버튼·다이얼로그 제목·토스트 동사 일치), 앱 전역 grep으로 다수 표현 확인 |
-| 3 | 접근성 | `docs/agents/constraints.md` "접근성" 절. 런타임 확인이 필요하면 `npm run a11y-check -- --url <url>` 실행 여부를 사용자에게 묻는다 |
-| 4 | 상태관리 | `docs/agents/constraints.md` "TypeScript / React Query" 절 — 서버 상태 `useState` 복사, `onError` 토스트 중복, 게스트 401 게이팅(`docs/agents/architecture.md`) |
+| 2 | 카피 | `docs/agents/copy.md` — 종결 패턴, 토스트 마침표 레이어 규칙, 동의어 혼용(트리거 버튼·다이얼로그 제목·토스트 동사 일치), 앱 전역 grep으로 다수 표현 확인 |
+| 3 | 접근성 | `docs/agents/a11y.md`. 런타임 확인이 필요하면 `npm run a11y-check -- --url <url>` 실행 여부를 사용자에게 묻는다 |
+| 4 | 상태관리 | `docs/agents/react-query.md` — 서버 상태 `useState` 복사, `onError` 토스트 중복, 게스트 401 게이팅(`docs/agents/architecture.md`) |
 | 5 | 빈·로딩·에러 | 데이터 0건, 로딩, 실패 각각의 화면이 있는지·서로 구분되는지·다음 행동을 안내하는지 |
 | 6 | 모바일 | 가로 넘침, 고정 폭, 터치 영역(24px+/아이콘 버튼 `IconButton`), `docs/agents/widgets.md` 반응형 절 |
 | 7 | 레이어·구조 | FSD 위반·widget cross-import(`docs/agents/widgets.md` 화이트리스트), 같은 라벨/색 맵의 로컬 중복 정의 |
@@ -41,4 +41,4 @@ user-invocable: true
 
 ## 4. `--fix`일 때
 
-보고 후 상/중 항목만 수정한다(하는 목록만). 공용 `entities/`·`shared/` 헬퍼를 바꿔야 하면 먼저 그것부터 고치고 소비처를 맞춘다. 수정 후 관련 테스트만 좁혀 돌리고, 커밋 전 검토자 검수 규칙(`docs/agents/constraints.md`)을 따른다.
+보고 후 상/중 항목만 수정한다(하는 목록만). 공용 `entities/`·`shared/` 헬퍼를 바꿔야 하면 먼저 그것부터 고치고 소비처를 맞춘다. 수정 후 관련 테스트만 좁혀 돌리고, 커밋 전 검토자 검수 규칙(전역 `~/.claude/CLAUDE.md`)을 따른다.

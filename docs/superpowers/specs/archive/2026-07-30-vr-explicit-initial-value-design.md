@@ -2,7 +2,7 @@
 
 ## 배경
 
-VR 전략 등록 시 초기 V값(리밸런싱 기준선)은 지금까지 평단가·수량(중간부터 시작 공통 입력)을 통한 평가금으로만 결정할 수 있었다. kista-api에 `initialVrValue` 필드가 추가되어(백엔드 설계는 `kista-api/docs/superpowers/specs/2026-07-30-vr-explicit-initial-value-design.md` 참고) 초기 V값을 직접 지정할 수 있게 된다. 프론트엔드에 이 입력을 노출한다.
+VR 전략 등록 시 초기 V값(리밸런싱 기준선)은 지금까지 평단가·수량(중간부터 시작 공통 입력)을 통한 평가금으로만 결정할 수 있었다. kista-api에 `initialVrValue` 필드가 추가되어(백엔드 설계는 `kista-api/docs/superpowers/specs/archive/2026-07-30-vr-explicit-initial-value-design.md` 참고) 초기 V값을 직접 지정할 수 있게 된다. 프론트엔드에 이 입력을 노출한다.
 
 ## 우선순위 (서버와 동일)
 

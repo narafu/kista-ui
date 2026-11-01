@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 16, React Query, TypeScript, vitest + @testing-library/react
 
-**참고 문서:** `docs/superpowers/specs/2026-08-21-finance-budget-tabs-design.md`
+**참고 문서:** `docs/superpowers/specs/archive/2026-08-21-finance-budget-tabs-design.md`
 
 ---
 

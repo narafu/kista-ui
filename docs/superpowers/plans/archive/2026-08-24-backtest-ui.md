@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 16 App Router, TypeScript, TanStack Query, recharts, shadcn/ui(Base UI Select), Tailwind CSS, vitest + @testing-library/react
 
-**Spec:** `docs/superpowers/specs/2026-08-24-backtest-ui-design.md`
+**Spec:** `docs/superpowers/specs/archive/2026-08-24-backtest-ui-design.md`
 
 ## Global Constraints
 

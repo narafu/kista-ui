@@ -3,8 +3,8 @@
 > 상태: 계획 (2026-10-23). **착수 조건: 바이낸스-api 세션의 "계획 2 배포" 알림.** 그 전에는 gen:types·코드 수정을 하지 않는다.
 >
 > 계약 출처(kista-api main 79da7f1d, push됨):
-> - `kista-api/docs/superpowers/plans/2026-10-23-binance-dca-phase2-binance.md` — "kista-ui 세션 인계" 절
-> - `kista-api/docs/superpowers/specs/2026-10-23-binance-spot-dca-design.md` — 10절
+> - `kista-api/docs/superpowers/plans/archive/2026-10-23-binance-dca-phase2-binance.md` — "kista-ui 세션 인계" 절
+> - `kista-api/docs/superpowers/specs/archive/2026-10-23-binance-spot-dca-design.md` — 10절
 >
 > 선행 UI 작업(DCA 다중 규칙 UI `cd5bf396`~`a0cea00f`, 메리츠 UI `50b0908a`·`8e9efa42`)은 main에 커밋돼 있다. 2026-10-23 기준 메리츠-ui 세션은 idle이다. 착수 시 `ListAgents`로 겹치는 파일(`api-schema.ts`·`dcaFormSchema.ts`·`DcaSettingsSection.tsx`)을 편집 중인 세션이 없는지 다시 확인한다.
 

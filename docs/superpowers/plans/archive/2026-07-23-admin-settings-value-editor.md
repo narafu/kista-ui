@@ -409,7 +409,7 @@ Run:
 
 ```bash
 git status --short
-git add features/admin/settings/ui/AdminSettingsForm.tsx features/admin/settings/ui/AdminSettingsForm.test.tsx docs/superpowers/plans/2026-07-23-admin-settings-value-editor.md
+git add features/admin/settings/ui/AdminSettingsForm.tsx features/admin/settings/ui/AdminSettingsForm.test.tsx docs/superpowers/plans/archive/2026-07-23-admin-settings-value-editor.md
 git commit -m "관리자 설정 값 목록 편집기 적용"
 ```
 

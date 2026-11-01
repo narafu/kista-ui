@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- 설계 스펙: `docs/superpowers/specs/2026-07-18-strategy-card-deficit-accuracy-design.md` (승인 완료) — 세부 규칙 SSOT.
+- 설계 스펙: `docs/superpowers/specs/archive/2026-07-18-strategy-card-deficit-accuracy-design.md` (승인 완료) — 세부 규칙 SSOT.
 - 범위: `widgets/strategy-card/StrategyCard.tsx` + `widgets/strategy-card/StrategyCard.test.tsx`만. 다른 파일 수정 금지.
 - kista-api 변경 없음 — `NextOrdersResponse.competition`은 이미 존재하는 필드를 소비만 한다.
 - 싱글 쿼트, 세미콜론 없음, import 중괄호 공백 유지, 인라인 `style` 금지(기존 파일의 CSS 변수 style 속성은 예외로 유지 — 이미 존재하는 패턴).

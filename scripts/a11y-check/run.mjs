@@ -237,7 +237,7 @@ async function checkDialogs(page, path) {
     const label = ((await trigger.getAttribute('aria-label')) || (await trigger.innerText()).trim()).slice(0, 20)
     if (seen.has(label)) continue
     seen.add(label)
-    // 모달 트리거는 disabled 대신 aria-disabled를 쓴다(constraints.md) — 진짜 비활성 버튼만 건너뛴다
+    // 모달 트리거는 disabled 대신 aria-disabled를 쓴다(docs/agents/a11y.md) — 진짜 비활성 버튼만 건너뛴다
     if (await trigger.isDisabled()) continue
     await trigger.focus()
     await page.keyboard.press('Enter')

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 16 App Router, TypeScript, React Query, react-hook-form + zod, shadcn/ui, Vitest + RTL
 
-**Spec:** `docs/superpowers/specs/2026-10-13-dca-strategy-ui-design.md` (백엔드 SSOT: `../kista-api/docs/superpowers/specs/2026-10-13-dca-strategy-design.md` 7장)
+**Spec:** `docs/superpowers/specs/archive/2026-10-13-dca-strategy-ui-design.md` (백엔드 SSOT: `../kista-api/docs/superpowers/specs/archive/2026-10-13-dca-strategy-design.md` 7장)
 
 ## Global Constraints
 

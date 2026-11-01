@@ -1,6 +1,6 @@
 # 폼 다이얼로그 제출 오케스트레이션 통합 설계
 
-배경: `docs/superpowers/specs/2026-09-10-ui-refactor-audit.md` 우선순위 중간 "폼 보일러플레이트" 항목. `features/finance/*FormDialog.tsx` 5개(Account/Budget/Category/SystemCategory/Transaction)가 mode(생성/수정)별 mutation 선택 + toast + onSuccess + shareToGroup 병합을 각자 복제하고 있다.
+배경: `docs/superpowers/specs/archive/2026-09-10-ui-refactor-audit.md` 우선순위 중간 "폼 보일러플레이트" 항목. `features/finance/*FormDialog.tsx` 5개(Account/Budget/Category/SystemCategory/Transaction)가 mode(생성/수정)별 mutation 선택 + toast + onSuccess + shareToGroup 병합을 각자 복제하고 있다.
 
 ## 범위
 

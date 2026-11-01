@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 21 / Spring Boot 3 / Flyway / Mockito·MockRestServiceServer (kista-api), Next.js 16 / React Query / recharts / Vitest (kista-ui)
 
-**Spec:** `docs/superpowers/specs/2026-07-17-strategy-stats-design.md`
+**Spec:** `docs/superpowers/specs/archive/2026-07-17-strategy-stats-design.md`
 
 ## Global Constraints
 

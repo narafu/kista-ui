@@ -21,7 +21,7 @@ Git Bash에서는 `--only '^/accounts'`의 `/`로 시작하는 인자가 Windows
 MSYS_NO_PATHCONV=1 npm run a11y-check -- --url http://localhost:3000 --only '^/accounts'
 ```
 
-규칙의 근거는 `docs/agents/constraints.md`의 "접근성" 섹션이다.
+규칙의 근거는 `docs/agents/a11y.md`이다.
 
 ## 전제와 안전장치
 

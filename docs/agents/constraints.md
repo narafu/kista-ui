@@ -1,17 +1,11 @@
 ## 작업 방식
 
-- 기존 오류, 명백한 타입 오류, 컴파일 오류, 분명한 버그를 발견하면 현재 작업과 직접 무관해도 범위가 작으면 바로 수정한다 (범위가 넓으면 먼저 언급).
-- 확실하지 않아도 버그나 설계 이상 징후가 보이면 묻어두지 말고 언급한다 — "확실하지 않지만 X가 이상해 보입니다" 형태.
-- 반복 객체 생성, 불필요한 중간 변수, 유틸 함수로 추출 가능한 보일러플레이트는 별도 제안 없이 바로 정리한다.
 - 코드 중복, FSD 계층 위반, 불필요한 복잡도는 기회적 리팩토링 후보로 본다 — 즉시 수정하지 말고 작업 완료 후 별도 제안한다.
-- 코드를 변경하는 작업은 커밋 직전에 반드시 별도 검토자(리뷰어 서브에이전트 또는 code-review 계열 skill/workflow)의 검수를 거친다 — 발견된 실제 결함은 커밋 전에 수정·재검증한다. 문서 전용 변경은 예외.
 - `/code-review` effort level은 diff 규모에 맞춰 고른다: 파일 10개·수백 줄 이하면 `medium`으로 충분. `high`(8앵글 병렬 파인더 + 검증) 이상은 인증/토큰/쿠키 흐름 등 보안·세션 민감 변경이 섞였거나 diff가 큰(수십 개 파일) 경우로 아낀다 — `high`는 파인더·검증 서브에이전트가 각자 콜드 스타트로 diff와 관련 파일을 중복해서 다시 읽어 토큰 비용이 크다.
-- 작업 요청이 완전히 끝나면(코드 변경이면 위 검토자 검수까지 끝난 뒤) 자동으로 커밋을 만든다. 단, `git push`는 별도 요청이 있을 때만 한다.
 - `kista-api` 연계 작업(API 응답 형식 변경, 인증/토큰 흐름 등)이면 즉시 `../kista-api/CLAUDE.md`를 Read로 확인한다 — 세션 시작 디렉토리가 아닌 저장소의 CLAUDE.md는 자동 로드되지 않는다.
 
 ## Git 규칙
 
-- `git push`는 사용자가 명시적으로 요청할 때만 실행한다.
 - author 확인: `narafu <narafu@kakao.com>`
 - 커밋 메시지는 한글로 작성한다.
 - 괄호가 포함된 경로는 `git add "app/(main)/layout.tsx"`처럼 큰따옴표로 감싼다.
@@ -20,10 +14,8 @@
 
 ### 포맷
 
-- 싱글 쿼트
-- 세미콜론 없음
-- import 중괄호 공백 유지
-- 기능 작업 중 기존 파일 포맷을 일괄 변경하지 않는다
+- `.prettierrc` 기준
+- 기능 작업 중 기존 파일 포맷을 일괄 변경하지 않는다. 포맷 변경이 필요하면 별도 커밋으로 분리한다.
 
 ### 스타일링
 
@@ -31,45 +23,8 @@
 - 예외는 CSS 토큰 값이나 픽셀 계산처럼 Tailwind로 대체하기 어려운 경우다
 - 동적 클래스는 `cn()`을 우선 사용하고, 복잡한 변형은 `cva`로 정의한다
 
-### 카피(한국어 UI 문구)
-
-2026-09 전수조사(설정·계좌·전략·통계·가계부·관리자·대시보드·인증)에서 실제로 발견된 드리프트 패턴만 규칙화한다 — 추측성 규칙 금지, 새 규칙을 추가할 땐 실제 사례를 근거로 남긴다.
-
-- **종결 패턴 — 역할별로 고정**: 카드/리스트/토글 항목의 짧은 설명은 명사구로 끝내고 마침표를 붙이지 않는다(예: "매매 체결 결과 알림"). 섹션 부제·다이얼로그 설명·경고문처럼 완전한 문장은 "~습니다."로 끝내고 마침표를 붙인다. 해요체 서술형("~해요", "~드려요")은 쓰지 않는다 — 전체 합니다체로 통일. 예외로 사용자에게 행동을 요청·안내하는 문장은 UI 관행대로 "~하세요."/"~해주세요."를 쓰고, 둘은 역할로 나눈다: 입력 안내·검증 오류·다음 행동 안내는 "~하세요."(예: "별칭을 입력하세요.", "KIS에서 직접 확인하세요."), 시스템 실패 뒤 재시도·재확인 요청은 "~해주세요."(예: "잠시 후 다시 시도해주세요."). 2026-10 전수조사에서 같은 동사가 두 형태로 섞여 있던 것(확인하세요 8 vs 확인해주세요 8 등)을 이 기준으로 맞췄다. 화면 안에 내용 대신 표시되는 에러·빈 상태 문구(`SectionError`·`EmptyState` message, 차트 자리의 "~불러오지 못했습니다"·"표시할 ~가 없습니다")도 완전한 문장이라 마침표를 붙인다 — 2026-10 에러 문구 대부분이 마침표 없이 쓰여 같은 화면의 빈 상태 문구(대부분 마침표 있음)와 섞여 보이던 것을 일괄로 맞췄다.
-- **토스트 마침표는 레이어별로 컨벤션이 다르다 — 섞지 않는다**: `entities/*/hooks/*.ts`의 mutation 훅 `onError` 토스트는 문장 수와 무관하게 항상 마침표를 붙인다(예: `'역할 변경에 실패했습니다.'`). `features/`·`widgets/`의 호출부 인라인 토스트(`toast.success(...)`/`mutate(data, { onSuccess })` 등)는 한 문장이면 마침표를 붙이지 않고(예: `'계좌가 추가되었습니다'`), 두 문장 이상을 이어 쓸 때만 문장마다 마침표를 붙인다(예: `'복사에 실패했습니다. 코드를 직접 선택해 복사해주세요.'`). 새 토스트를 추가할 때 이 파일이 어느 레이어인지부터 확인하고 그 레이어의 컨벤션을 따른다.
-- **같은 사실을 두 곳 이상에서 설명할 때 열거 방식을 맞춘다**: 쉼표 나열과 가운뎃점(·) 나열을 같은 대상에 섞어 쓰지 않는다. 항목 구성(몇 개를 나열하는지)도 일치시킨다 — 다이얼로그 설명과 그 아래 보조 캡션이 같은 삭제 대상을 각자 다른 개수·단어로 나열하다 발견된 사례 있음(`DeleteAccountButton.tsx`).
-- **같은 개념·행위는 한 플로우 안에서 하나의 용어로 통일한다**: 특히 "등록/추가", "재요청/재신청" 같은 동의어가 같은 폼의 트리거 버튼·다이얼로그 제목·성공 토스트 사이에서 각각 다르게 쓰이기 쉽다 — 폼을 새로 만들거나 수정할 때 트리거 버튼 라벨, 다이얼로그 제목, 성공 토스트 세 곳의 동사가 일치하는지 확인한다.
-  - **예외 — 의도적으로 분리된 용어는 건드리지 않는다**: `entities/user/model/status.ts`의 `USER_STATUS_LABEL`(본인 화면, REJECTED="반려")과 `ADMIN_USER_STATUS_LABEL`(관리자 화면, REJECTED="거절")처럼 화면 맥락에 따라 의도적으로 다른 단어를 쓰는 경우가 있다 — 코드에 "의도적으로 다름" 주석이 있으면 통일하지 말고, 그 경계를 넘어선 진짜 자기모순(예: 관리자 화면 안에서 자기 버튼과 다른 단어를 쓰는 경우)만 고친다. 새로 의도적 용어 분리가 필요하면 이 파일처럼 이유를 주석으로 남긴다.
-- **새 카피를 쓰기 전에 기존 문구를 grep한다**: 같은 개념을 가리키는 문구가 이미 있으면(`grep -rn "<키워드>" --include="*.tsx" .`) 그 표현을 재사용한다. 좁은 화면/도메인 단위로만 비교하면 실제로는 다른 레이어·다른 역할의 정당한 컨벤션을 "불일치"로 오판하기 쉽다(예: `entities/` 레이어 mutation 훅과 `features/`·`widgets/` 인라인 토스트는 서로 다른 정당한 마침표 컨벤션을 갖는다) — 앱 전역 grep으로 실제 다수 패턴을 확인한 뒤 고친다.
-- **nav/메뉴 라벨과 `PageHeader` eyebrow는 전부 한글로 쓴다**: 영문 라벨(예: "Overview", eyebrow "Dashboard")이 섞여 들어가는 걸 발견하면 바로 한글화한다.
-- **`PageHeader` eyebrow·제목은 화면 위치로 정한다**: 사이드바 메뉴 화면은 eyebrow를 사이드바 라벨 그대로(링크 없음) 쓰고, 제목은 그 화면이 보여주는 내용으로 쓴다(탭이 있으면 탭 라벨과 똑같이 — "가계부 / 자산", "통계 / 성과"). 하위 화면은 eyebrow를 `eyebrowHref`가 있는 `← 상위 화면 제목` 링크로 쓴다(예: 계좌 상세 "← 계좌 목록", 계좌 수정 "← {계좌 별칭}"). 관리자 영역은 사이드바 화면에 eyebrow를 두지 않는다(제목 = 사이드바 라벨). 하위 화면 규칙만 같다(승인 대기 "← 개요"). 브라우저 탭 제목은 `제목 | KISTA`이다. 접미사는 `app/layout.tsx`의 `title.template`(`TITLE_TEMPLATE`, `@shared/lib/metadata`)이 붙이므로 각 화면의 `metadata.title`에는 제목만 쓴다. 하위에 화면이 있는 중첩 layout은 title을 문자열 대신 `{ default, template: TITLE_TEMPLATE }`로 쓴다. 문자열 title은 하위 라우트로 template 상속을 끊는다. 두 규칙은 `shared/lib/metadata.test.ts`가 소스를 훑어 강제한다. 이때 제목만으로 뜻이 모호하면(대시보드 "개요", 가계부 탭들) 섹션 이름을 쓴다. 제목이 사용자 데이터인 상세 화면(계좌 상세 = 계좌 별칭, 전략 상세 = 티커)은 탭 제목 때문에 `generateMetadata`에서 다시 조회하지 않고 "계좌 상세"·"전략 상세" 같은 일반 명칭을 쓴다. 등록·복제를 한 화면이 겸하는 경우도 탭 제목은 기본 동작("예산 추가", "자산 기록 등록")으로 둔다. 2026-10 전수조사에서 "홈 / 대시보드"·"계좌 관리 / 내 계좌"·"전략 관리 / 전략"처럼 메뉴에 없는 eyebrow와, 하위 화면인데 링크가 없거나 섹션 이름을 쓰는 back-link가 섞여 있던 것을 이 기준으로 맞췄다.
-- **mutation 훅의 `onError`를 호출부에서 다시 덮어쓰지 않는다**: `entities/*/hooks/*.ts`의 mutation 훅이 이미 `onError`에 `toast.error`를 두고 있다면(`docs/agents/entities.md` 패턴), feature 호출부의 `mutate(data, { onError })`에 또 다른 토스트를 넣지 않는다 — React Query는 훅 레벨과 호출 레벨 `onError`를 둘 다 실행하므로 실패 시 토스트가 두 번 뜬다(`ChangeRoleButton.tsx`/`WithdrawUserButton.tsx`에서 실제 발견된 버그). 호출부는 성공 후 추가 동작만 `onSuccess`로 넣는다.
-
-### 접근성
-
-`eslint-plugin-jsx-a11y` strict가 lint에 걸려 있다. 화면 단위 회귀는 `npm run a11y-check`(axe·포커스 링·다이얼로그, `scripts/a11y-check/README.md`)로 확인한다. 아래는 lint로 잡히지 않아 2026-10 axe·키보드 점검에서 실제로 발견된 결함만 규칙화한 것이다.
-
-- **아이콘만 있는 버튼·링크, `SelectTrigger`에는 `aria-label`을 단다**: `role="combobox"`는 안의 텍스트(선택값)로 이름이 계산되지 않는다. `PageSizeSelector`, 대시보드 차트 종목 셀렉트, 모바일 헤더 아이콘 링크가 이름 없이 남아 있던 사례가 있다.
-- **색 토큰 대비는 실제로 놓이는 배경 기준으로 4.5:1을 맞춘다**: 흰 배경만 확인하면 `bg-*-bg` 배지(예: `bg-pos-bg text-pos`)나 `bg-muted` 위에서 깨진다. 토큰을 바꿀 때 해당 `*-bg` 조합까지 계산한다. 포커스 링(`--ring`)은 배경 대비 3:1 이상이다. 텍스트에 `opacity-*`나 `/40` 같은 투명도를 걸거나 `hover:opacity-*`를 쓰면 대비가 떨어진다. 비활성 상태가 아니면 쓰지 않는다. 텍스트 링크 hover는 `hover:underline`을 쓴다.
-- **가로 스크롤 표 컨테이너는 `role="region"` + `aria-label` + `tabIndex={0}`**: 키보드로 스크롤할 수 있어야 한다. lint의 `no-noninteractive-tabindex`는 `region`을 허용하도록 설정돼 있다.
-- **recharts 차트에는 `title`을 준다**: recharts 3의 `accessibilityLayer`가 svg를 탭 순서에 넣는데, 이름이 없으면 이름 없는 포커스 지점이 된다.
-- **모달을 여는 트리거에 `disabled`를 걸지 않는다**: 트랜지션 대기 중 `disabled`가 되면 포커스가 body로 빠져, 모달을 닫은 뒤 트리거로 돌아오지 못한다. 공용 `Button`은 `disabled` + `focusableWhenDisabled`를 쓴다 — Base UI가 native `disabled` 대신 `aria-disabled`를 걸고 클릭·키 입력을 막는다(`NewStrategyButton`, 흐림은 `aria-disabled:opacity-50`). `AlertDialogTrigger`는 이 prop이 없어 `aria-disabled` + `onClick`의 `e.preventBaseUIHandler()` 가드를 쓴다(`ChangeRoleButton`).
-- **heading 레벨을 건너뛰지 않는다**: 페이지 `h1`(`PageHeader`) 바로 아래 섹션 제목은 `h2`다. `CardTitle`은 `div`라 heading이 아니다.
-- **페이지 최상위에 `<main>` 랜드마크가 하나 있어야 한다**: `(main)`/`(admin)` 레이아웃 밖의 화면(`(auth)`, `/pending`, `/rejected`)은 각 layout이 `<main>`으로 감싼다.
-- **체크박스·라디오는 raw `<input>` 대신 `@/components/ui/checkbox`·`radio-group`을 쓴다**: 미체크 테두리(`border-muted-foreground`, 3:1 이상)·포커스 링·비활성(`data-disabled:`)·indeterminate(`indeterminate` prop, Minus 아이콘)가 컴포넌트에 들어 있고, `after:` 히트 영역(약 40×32px)이 내장돼 따로 label로 감싸 터치 영역을 넓히지 않는다. 텍스트 없는 label로 감싸지 않는다 — Base UI는 감싼 `<label>`을 찾아 `aria-labelledby`로 연결해 `aria-label`을 덮는다. 보이는 텍스트 label로 감쌌는데 이름에 맥락을 더해야 하면 명시 `aria-labelledby`를 준다(`ErrorLogsSectionClient` 전체 선택).
-
-### TypeScript / React Query
-
-- `any` 금지 — 제네릭·`?.`·`??`로 대체한다
-- **서버 상태를 `useState`에 복사하지 않는다 — React Query가 서버 상태의 SSOT.** 2026-09 전수조사로 실제 위반 3건이 나온 규칙이라 예외 없이 적용한다: Server Component가 넘긴 prop을 그대로 `useState(prop)`로 받아 로컬에서 관리하는 패턴(`AdminPrivacyBaseTable`의 `bases`), api 함수를 `useEffect`에서 직접 호출해 `useReducer`/`useState`에 담는 패턴(`AdminTradesWorkbench`의 계좌→전략→주문 cascading select), `useMeQuery()` 값을 prop으로 받아 `useState(initialEnabled)`로 미러링하는 패턴(`TradingAlertToggle`)이 전부 이 위반이었다. **이 작업과 무관한 코드를 보다가 위 패턴 중 하나를 발견하면, 하던 작업을 멈추지 않고 즉시 사용자에게 리팩토링을 제안한다** — 나중으로 미루면 같은 클래스의 버그(등록/수정 후 자동 반영 안 됨, 여러 화면 간 캐시 불일치)가 계속 새로 생긴다. `entities/{domain}`에 `hooks/` 디렉토리가 없으면 그 도메인의 모든 소비처가 이 패턴일 가능성이 높다는 신호다(`ls entities/{domain}`로 먼저 확인). 낙관적 업데이트가 필요한 토글류는 컴포넌트가 아니라 mutation 훅의 `onMutate`/`onError`에 캡슐화하고, 롤백은 실패한 필드만 "현재" 캐시에 되돌린다(전체 스냅샷 복원 금지 — 같은 화면에 동시에 열린 다른 mutation이 그 사이 성공시킨 값을 덮어쓰는 레이스가 생긴다, `useUpdateNotificationPrefMutation` 참고). userId처럼 매개변수화된 조회를 공용 키+`select` 필터로 캐싱할 때는(중복 조회 방지) 그 키가 실패한 뒤 멈춰 있지 않도록 선택 변경 시점에 명시적 `refetch()`를 챙긴다(`enabled`만으론 이미 활성화된 키의 에러 상태가 저절로 재시도되지 않는다).
-- **오류 화면은 `isError && !data`일 때만 띄운다.** React Query는 이미 데이터가 있는 상태에서 재조회가 실패해도 `isError=true`가 되고 `data`는 그대로 남는다. `isError`만 보면 멀쩡한 데이터를 버리고 `SectionError`를 띄운다. 2026-10 전수조사에서 위젯·훅 십여 곳이 이 패턴이었다(`67d1044c`). RQ 5.101의 `isLoadingError`도 `isError && data === undefined`로 계산되지만, 훅 mock이 `{ data, isError }`만 반환하므로 `isError && !data`로 쓴다. `data: x = []`처럼 기본값을 채우면 "아직 못 받음"과 "빈 목록"을 구분할 수 없다. 원본 `data`를 남겨 두고 파생한다(예: `useMemo(() => data ?? [], [data])`, 훅 deps에 들어가지 않으면 `data ?? []`로 충분하다). 위젯이 기본값이 채워진 배열과 `isError` prop만 받는다면, 위젯 안에서는 판정할 수 없다. `data` 유무를 아는 훅이나 호출부에서 계산해 넘긴다(`useFinanceFlowData`, `CyclePerformanceList` 참고). 무한 쿼리는 "더 보기" 실패도 `isError`가 된다. 그래서 목록 오류는 `isError && !data`로 막고, 다음 페이지 실패는 `isFetchNextPageError`로 목록 아래에 따로 안내한다(`useCycleHistory`·`CycleHistoryTable`). RQ의 `isFetchNextPageError`는 포커스·무효화 같은 다른 재조회가 일어나면 꺼진다. 그래서 `useCycleHistory`는 "더 보기" 결과를 직접 기록해 다음 시도나 조회 조건 변경 전까지 안내를 유지한다. 예외로, 금액 계산처럼 이전 값을 쓰면 위험한 곳은 재조회가 실패해도 "확인 불가"로 둔다(`AdminBatchOrderCorrectionForm`의 매수 예산).
-- 전역 QueryClient 기본값은 `@shared/lib/query/createQueryClient`에서만 변경한다 (`staleTime=30s`, `gcTime=10m`, `retry=0`, `refetchOnWindowFocus=false`)
-- `Promise.all`의 독립 호출은 fail-fast 방지를 위해 각 항목에 `.catch(() => null)`을 붙인다
+카피는 `copy.md`, 접근성은 `a11y.md`, React Query·TypeScript는 `react-query.md` — 각 레이어 CLAUDE.md가 import한다.
 
 ## 구현 quirk
 
-- Client Component에서 직접 `kista-api` 호출 금지
 - Route Handler URL 변경 시 보통 `entities/{domain}/api/` 호출부만 수정한다
-- 새 `NEXT_PUBLIC_*` 환경변수를 추가하면 예제 env 파일도 같이 맞춘다
-- `openapi.json`이 SSOT이며, 타입은 `npm run gen:types`로 재생성한다
-- 기본 검증은 `npm run typecheck`와 `npm run lint`(error·warning 0건 유지)를 사용한다.

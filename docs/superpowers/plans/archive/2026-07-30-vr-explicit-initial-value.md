@@ -8,7 +8,7 @@
 
 **Tech Stack:** Java 21 / Spring Boot 3 (kista-api), Next.js 16 / TypeScript / react-hook-form / zod (kista-ui)
 
-**설계 문서:** `kista-api/docs/superpowers/specs/2026-07-30-vr-explicit-initial-value-design.md`, `kista-ui/docs/superpowers/specs/2026-07-30-vr-explicit-initial-value-design.md`
+**설계 문서:** `kista-api/docs/superpowers/specs/archive/2026-07-30-vr-explicit-initial-value-design.md`, `kista-ui/docs/superpowers/specs/archive/2026-07-30-vr-explicit-initial-value-design.md`
 
 ---
 

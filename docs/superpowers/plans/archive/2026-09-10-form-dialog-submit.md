@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 16, TypeScript, React Query(`@tanstack/react-query`), `sonner`(toast), Vitest.
 
-**Spec:** `docs/superpowers/specs/2026-09-10-form-dialog-submit-design.md`
+**Spec:** `docs/superpowers/specs/archive/2026-09-10-form-dialog-submit-design.md`
 
 ## Global Constraints
 

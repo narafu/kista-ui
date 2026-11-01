@@ -2,13 +2,13 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
-**Goal:** `docs/superpowers/plans/2026-07-09-full-project-cleanup.md`의 열린 질문 중 진행 결정된 4건(로그아웃 리다이렉트 통일, FCM 토큰 해제, admin/logs 위젯 분리, entities/admin 분리)을 구현한다.
+**Goal:** `docs/superpowers/plans/archive/2026-07-09-full-project-cleanup.md`의 열린 질문 중 진행 결정된 4건(로그아웃 리다이렉트 통일, FCM 토큰 해제, admin/logs 위젯 분리, entities/admin 분리)을 구현한다.
 
 **Architecture:** 4개 독립 하위 작업을 순서대로 실행한다. 앞의 2건(로그아웃, FCM)은 기능 추가이고 뒤의 2건(위젯 분리, entities/admin 분리)은 순수 구조 리팩토링이다. `entities/admin` 분리는 반드시 `admin/logs 위젯 분리` 이후에 실행해야 한다 — 위젯 분리로 새로 생긴 파일들도 entities/admin import 전환 대상이기 때문이다.
 
 **Tech Stack:** Next.js 16 (App Router) · TypeScript · React Query · Vitest · Tailwind CSS
 
-**디자인 스펙:** `docs/superpowers/specs/2026-07-10-post-cleanup-followups-design.md`
+**디자인 스펙:** `docs/superpowers/specs/archive/2026-07-10-post-cleanup-followups-design.md`
 
 ## Global Constraints
 

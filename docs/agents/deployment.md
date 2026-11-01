@@ -1,18 +1,6 @@
 ## 환경변수
 
-```text
-NEXT_PUBLIC_KAKAO_CLIENT_ID=   # 카카오 REST API 키
-NEXT_PUBLIC_API_BASE_URL=      # kista-api 도메인 (https://api.kista-app.com — OCI 이전 후 현재 값)
-
-# Firebase FCM
-NEXT_PUBLIC_FIREBASE_API_KEY=
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
-NEXT_PUBLIC_FIREBASE_APP_ID=
-NEXT_PUBLIC_FIREBASE_VAPID_KEY=     # 웹 푸시 VAPID 인증서 키
-```
+목록은 `.env.example`이 SSOT다(`NEXT_PUBLIC_*` 9개: 카카오 클라이언트 ID, kista-api 도메인 `NEXT_PUBLIC_API_BASE_URL`, Firebase FCM 7개).
 
 - 새 `NEXT_PUBLIC_*` 추가 시 `.env.example`과 레포 루트 `.env.production.public`(평문 커밋, 빌드 타임 로드용) 동기화 필수
 - Docker에서는 `NEXT_PUBLIC_*`가 빌드 타임 인라인되므로 `Dockerfile`의 `ARG`/`ENV`와 `docker-compose.yml` 전달을 함께 맞춰야 한다.
@@ -38,7 +26,7 @@ NEXT_PUBLIC_FIREBASE_VAPID_KEY=     # 웹 푸시 VAPID 인증서 키
 
 kista-ui는 OCI(Oracle Cloud, arm64) 단일 인스턴스 `kista-api-server`에서 `kista-api`와 함께 운영된다(2026-08-07 `kista-ui-server` 인스턴스 통합 완료). 토폴로지 상세는 `deploy/server/README.md` 참고.
 
-- 배포 파일: `deploy/server/{docker-compose.yml,README.md}`(롤백 runbook 등 상세), `.github/workflows/server-deploy.yml`
+- 배포 파일·롤백 runbook: `deploy/server/README.md`가 SSOT, 워크플로는 `.github/workflows/server-deploy.yml`
 - 도메인: apex `kista-app.com` (kista-api `api.kista-app.com`, fida `fida.kista-app.com`와 구분)
 - 헬스체크 대상: `app/api/health/route.ts` — 인증 불필요, Caddy·Docker healthcheck 공용
 - `NEXT_PUBLIC_*` 9개는 이미지 빌드 타임에 인라인되며, 레포 루트 `.env.production.public`(평문 커밋 — 공개 클라이언트 번들 노출값이라 평문 커밋이 안전하다는 판단)에서 로드된다. GitHub Secrets는 미사용

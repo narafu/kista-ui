@@ -23,13 +23,14 @@ KISTA V2 — 한국투자증권 KIS API 기반 해외주식 자동 분할매매 
 
 ## 레이어별 상세 문서 (해당 디렉토리 작업 시 로드)
 
-각 FSD 디렉토리의 `CLAUDE.md`가 해당 문서를 import한다 — 그 디렉토리의 파일을 다루면 자동 로드된다. 디렉토리 밖에서 해당 레이어 지식이 필요하면 직접 Read할 것.
+각 FSD 디렉토리(`app/`·`entities/`·`features/`·`widgets/`·`shared/`)의 `CLAUDE.md`가 `docs/agents/<layer>.md`를 import한다 — 그 디렉토리의 파일을 다루면 자동 로드된다. 디렉토리 밖에서 필요하면 직접 Read할 것.
 
-- `docs/agents/app.md` — proxy·쿠키·Route Handler·SSE·PWA quirk
-- `docs/agents/entities.md` — 도메인 모델·kista-api DTO·queryKey·KIS quirk
-- `docs/agents/features.md` — 사용자 시나리오·뮤테이션 훅 규칙
-- `docs/agents/widgets.md` — 페이지 합성·shadcn·CSS 토큰·UI 패턴
-- `docs/agents/shared.md` — api-client·format·cache·providers
+- 공통 규칙 문서도 레이어별로 로드된다: `copy.md`(카피) — app·entities·features·widgets, `a11y.md`(접근성) — widgets·features·shared, `react-query.md`(React Query·TS) — entities·features·widgets.
+
+## 필요시 Read (자동 로드 아님)
+
+- `docs/agents/finance.md` — 가계부(finance) 도메인
+- `docs/agents/strategy.md` — 전략·DCA·크립토·브로커 분기
 
 ## 운영 도구
 

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 16, React, TypeScript, Vitest + Testing Library, recharts
 
-**Spec:** `docs/superpowers/specs/2026-09-25-benchmark-comparison-slice-split-design.md`
+**Spec:** `docs/superpowers/specs/archive/2026-09-25-benchmark-comparison-slice-split-design.md`
 
 ## Global Constraints
 

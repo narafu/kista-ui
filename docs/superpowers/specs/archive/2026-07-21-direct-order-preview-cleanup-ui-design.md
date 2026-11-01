@@ -1,6 +1,6 @@
 # 바로주문/미리보기 정리 (UI)
 
-> kista-api companion: `../../../kista-api/docs/superpowers/specs/2026-07-21-direct-order-preview-cleanup-api-design.md`
+> kista-api companion: `../../../kista-api/docs/superpowers/specs/archive/2026-07-21-direct-order-preview-cleanup-api-design.md`
 > 관련 선행 스펙: `2026-07-18-buy-competition-preview-ui-design.md`, `2026-07-18-strategy-card-deficit-accuracy-design.md`(카드 예산부족 배지의 존재 이유), `2026-07-21-order-rejection-banner-frontend-diff-design.md`(오늘 오전 추가한 `unplacedDirections` 배너 — 이번 작업에서 무변경)
 
 ## 배경

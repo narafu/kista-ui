@@ -6,7 +6,7 @@
 
 **Architecture:** Phase 0에서 전 화면 스크린샷·정적 코드 감사로 증거 기반 문제 목록을 만들고, 그 결과가 Phase 1(일관성)→2(UX)→3(비주얼)→4(admin) 작업 항목을 확정한다. Phase 0의 마지막 태스크가 이 플랜의 부록 A~D를 실제 작업 목록으로 갱신하는 2단계 플랜 구조다.
 
-**Tech Stack:** Next.js 16 · Tailwind CSS(토큰 기반) · shadcn/ui · Playwright CLI · 스펙: `docs/superpowers/specs/2026-07-12-ui-ux-improvement-design.md`
+**Tech Stack:** Next.js 16 · Tailwind CSS(토큰 기반) · shadcn/ui · Playwright CLI · 스펙: `docs/superpowers/specs/archive/2026-07-12-ui-ux-improvement-design.md`
 
 ## Global Constraints
 
@@ -192,7 +192,7 @@ git commit -m "docs: UI 정적 코드 감사 결과 추가 — 하드코딩 스�
 **실행 모델:** Fable (우선순위·범위 판단)
 
 **Files:**
-- Modify: `docs/superpowers/plans/2026-07-12-ui-ux-improvement.md` (본 문서 부록 A~D를 실제 작업 목록으로 갱신)
+- Modify: `docs/superpowers/plans/archive/2026-07-12-ui-ux-improvement.md` (본 문서 부록 A~D를 실제 작업 목록으로 갱신)
 
 **Interfaces:**
 - Consumes: 감사 문서의 A-nn·S-nn 전체
@@ -205,7 +205,7 @@ git commit -m "docs: UI 정적 코드 감사 결과 추가 — 하드코딩 스�
 - [ ] **Step 3: 갱신된 플랜을 사용자에게 리뷰 요청 후 커밋**
 
 ```bash
-git add docs/superpowers/plans/2026-07-12-ui-ux-improvement.md
+git add docs/superpowers/plans/archive/2026-07-12-ui-ux-improvement.md
 git commit -m "docs: 감사 결과 기반 Phase 1~4 작업 항목 확정"
 ```
 
@@ -238,7 +238,7 @@ git commit -m "docs: 감사 결과 기반 Phase 1~4 작업 항목 확정"
 **실행 모델:** Fable (UX 판단)
 
 **Files:**
-- Create: `docs/superpowers/specs/2026-07-12-ux-flow-design.md`
+- Create: `docs/superpowers/specs/archive/2026-07-12-ux-flow-design.md`
 
 **Interfaces:**
 - Consumes: 부록 B 항목

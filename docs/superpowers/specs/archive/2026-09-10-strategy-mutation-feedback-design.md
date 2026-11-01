@@ -1,6 +1,6 @@
 # 전략 관리 뮤테이션 액션 피드백 통합 설계
 
-배경: `docs/superpowers/specs/2026-09-10-ui-refactor-audit.md` 우선순위 중간 "뮤테이션 훅 골격 반복" 항목. 감사는 `useManageStrategyMutations.ts`, `EditAccountForm.tsx`, `useStrategyForm.ts` 3개 파일이 동일한 `invalidateQueries + toast.success + onError:apiMsg` 4종 세트를 복제한다고 지적했다.
+배경: `docs/superpowers/specs/archive/2026-09-10-ui-refactor-audit.md` 우선순위 중간 "뮤테이션 훅 골격 반복" 항목. 감사는 `useManageStrategyMutations.ts`, `EditAccountForm.tsx`, `useStrategyForm.ts` 3개 파일이 동일한 `invalidateQueries + toast.success + onError:apiMsg` 4종 세트를 복제한다고 지적했다.
 
 ## 범위 재조정 (조사 결과)
 

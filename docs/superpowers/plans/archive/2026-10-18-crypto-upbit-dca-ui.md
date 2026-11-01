@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 16 App Router, TypeScript, React Query 5, react-hook-form + zod, Vitest + Testing Library, shadcn/ui
 
-**Spec:** `docs/superpowers/specs/2026-10-17-crypto-upbit-dca-design.md`. 끝부분 "api 계약 확정 내역"(A `0dc739c6`, B `8bbe3dc3`)이 본문보다 우선한다.
+**Spec:** `docs/superpowers/specs/archive/2026-10-17-crypto-upbit-dca-design.md`. 끝부분 "api 계약 확정 내역"(A `0dc739c6`, B `8bbe3dc3`)이 본문보다 우선한다.
 
 ## Global Constraints
 

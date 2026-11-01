@@ -2,13 +2,13 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-> **승인 후 저장 위치**: `docs/superpowers/plans/2026-07-31-bold-refactoring.md`
+> **승인 후 저장 위치**: `docs/superpowers/plans/archive/2026-07-31-bold-refactoring.md`
 
 ## Context
 
 2026-07-31 코드베이스 전수 탐색 결과, 기능 동작에는 문제가 없으나 구조적 부채가 확인됐다: ① `process.env.API_BASE_URL ?? NEXT_PUBLIC_API_BASE_URL` 패턴 14곳 산재와 인증 쿠키 이름 하드코딩 4곳, ② 개별 Route Handler 8개의 인증·에러 매핑 5줄 중복, ③ 225줄 단일 `proxy()` 함수의 RT 갱신 로직이 `api/auth/refresh`와 이중 구현, ④ 400줄+ 다책임 컴포넌트 4개(587/550/523/456줄), ⑤ queryOptions 부재 도메인의 prop-drilling 드리프트, ⑥ 포맷터·상태 맵·normalizer 중복, ⑦ FSD 위젯 cross-import 위반 7개소.
 
-`docs/superpowers/plans/2026-07-31-speed-uiux-improvements.md`(이하 **speed 플랜**)는 **2026-08-01 기준 8개 태스크 전부 main에 머지 완료**(`d21821f`~`ddfe0cd`). 따라서 원래 "충돌 그룹(Group 3)"의 speed 플랜 대기 게이트는 **해제**됐고, speed 플랜이 수정한 파일도 이제 자유롭게 손댈 수 있다. 또한 T15의 fcm 부분(`NotificationChannel`을 `@shared/lib/api-schema`에서 직접 import)은 이미 `7b18875`로 완료 → **T15는 종료**하고 잔여분만 T1(meta)·T2(layout)로 흡수한다.
+`docs/superpowers/plans/archive/2026-07-31-speed-uiux-improvements.md`(이하 **speed 플랜**)는 **2026-08-01 기준 8개 태스크 전부 main에 머지 완료**(`d21821f`~`ddfe0cd`). 따라서 원래 "충돌 그룹(Group 3)"의 speed 플랜 대기 게이트는 **해제**됐고, speed 플랜이 수정한 파일도 이제 자유롭게 손댈 수 있다. 또한 T15의 fcm 부분(`NotificationChannel`을 `@shared/lib/api-schema`에서 직접 import)은 이미 `7b18875`로 완료 → **T15는 종료**하고 잔여분만 T1(meta)·T2(layout)로 흡수한다.
 
 **Goal:** 인프라 SSOT화(API URL·쿠키 상수·Route Handler·proxy), 대형 컴포넌트 4개 분해, queryOptions 규약 정합, 중복 제거(포맷터·상태 맵·normalizer), FSD 위젯 계층 위반 해소.
 

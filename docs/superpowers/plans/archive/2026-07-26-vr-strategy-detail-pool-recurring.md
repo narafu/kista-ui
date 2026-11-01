@@ -20,7 +20,7 @@
 
 ## 참고 자료 (구현 전 확인)
 
-- 설계 문서: `docs/superpowers/specs/2026-07-26-vr-strategy-detail-pool-recurring-design.md`
+- 설계 문서: `docs/superpowers/specs/archive/2026-07-26-vr-strategy-detail-pool-recurring-design.md`
 - `entities/strategy/model/types.ts`의 `StrategyVrSummary`: `{ value, bandWidth, intervalWeeks, recurringAmount, poolLimit, gradient }` (모두 number)
 - `shared/lib/format/index.ts`의 `fmtUsd(n: number, digits = 2): string` — `$` 없이 `"1,234.00"` 형태만 반환
 - `widgets/kpi-card/KpiCard.tsx`의 `Props`: `{ label: string, value?: ReactNode, className?: string, valueClassName?: string, ... }`

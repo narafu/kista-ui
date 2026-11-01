@@ -29,8 +29,9 @@ npm run a11y-check -- --url http://localhost:3000   # 접근성 회귀 점검: a
 
 참고:
 
-- `npm run lint`는 `--max-warnings 0`이라 warning도 실패로 처리한다(2026-10 기준 0건) — 새 error·warning을 만들지 않는다. 의도된 미사용 변수·인자는 `_` 접두로 표기한다. react-doctor 규칙은 `eslint.config.mjs` stub으로 등록돼 있다. 기본 검증은 `npm run typecheck` + `npm run lint`.
+- `npm run lint`는 `--max-warnings 0`이라 warning도 실패로 처리한다 — 새 error·warning을 만들지 않는다. 의도된 미사용 변수·인자는 `_` 접두로 표기한다. react-doctor 규칙은 `eslint.config.mjs` stub으로 등록돼 있다. 기본 검증은 `npm run typecheck` + `npm run lint`.
 - `npm run knip`은 미사용 파일·export·의존성 점검이며 0건 상태다 — 의도적 예외(자동 생성 파일, 수동 실행 스크립트, 공개 API 유지 export)는 `knip.json` 또는 해당 export의 `/** @public */` 태그로 관리한다. 새로 잡힌 항목은 지우는 게 기본이고, 남겨야 하면 이유와 함께 예외를 추가한다.
+- dev 서버가 떠 있으면 `.next` 잠금 때문에 `test:e2e` webServer가 "was not able to start"로 실패한다(포트 문제 아님). 임시 worktree에서 돌린다 — `node_modules` symlink는 Turbopack 패닉이라 금지, `cp -cR`(APFS 복제)로 복사: `git worktree add --detach <scratchpad>/e2e-wt <sha>` → `cp -cR node_modules <wt>/node_modules` → `.env` 복사 → worktree에서 `npm run test:e2e` → `git worktree remove --force <wt>`. 로컬 API 전제는 아래 `test:e2e` 항목과 같다.
 - Playwright 첫 실행 시 브라우저 설치가 필요하면 `npx playwright install chromium`.
 - `npm run test:e2e`는 CI에서 돌지 않는다. 로컬 kista-api(:8080, local 프로파일)와 kista-trading(:8081)이 떠 있어야 한다. 화면 흐름·라우팅·문구를 바꾼 작업은 커밋 전에 로컬에서 한 번 돌린다. CI가 잡지 못하므로 낡은 단언이 조용히 쌓이기 쉽다.
 - 포트 충돌: Docker가 3000 점유 시 `npm run dev`는 3001 등으로 fallback — 실제 포트는 `cat /tmp/kista_dev.log | grep "Local:"`로 확인.

@@ -8,7 +8,7 @@
 
 **Tech Stack:** Next.js 16 App Router(parallel + intercepting routes), React Query(HydrationBoundary), Vitest + Testing Library, Playwright(실측).
 
-**Spec:** `docs/superpowers/specs/2026-10-03-budget-route-modal-design.md`
+**Spec:** `docs/superpowers/specs/archive/2026-10-03-budget-route-modal-design.md`
 
 ## Global Constraints
 
@@ -1008,7 +1008,7 @@ Run: `grep -rn "BudgetFormDialog\|BudgetManagerDialog" --include='*.ts' --includ
 - [ ] **Step 6: 커밋** — `git diff --cached`로 남의 staged 변경 혼입 없는지 확인 후:
 
 ```bash
-git add entities/finance features/finance/manage-budgets widgets/finance-budget-progress widgets/asset-settings shared/ui/RouteModal.tsx shared/ui/RouteModal.test.tsx docs/agents docs/superpowers/plans/2026-10-03-budget-route-modal.md
+git add entities/finance features/finance/manage-budgets widgets/finance-budget-progress widgets/asset-settings shared/ui/RouteModal.tsx shared/ui/RouteModal.test.tsx docs/agents docs/superpowers/plans/archive/2026-10-03-budget-route-modal.md
 git add "app/(main)/finance/budgets" "app/(main)/@modal/(.)finance/budgets" "app/(main)/finance/(dashboard)/FinanceHeader.tsx" "app/(main)/finance/(dashboard)/FinanceHeader.test.tsx"
 git commit -m "feat(finance): 예산 관리 중첩 모달을 인터셉팅 라우트로 전환
 

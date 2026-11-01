@@ -10,7 +10,6 @@ UI 캐시 소유권·hydration·mutation 동기화는 `docs/agents/entities.md`,
 - **/me 실패 처리**: JWT 만료/무효 → `STATUS_COOKIE`, `ROLE_COOKIE` 강제 삭제 필수. 미삭제 시 캐시 히트로 재호출 안됨
 - **PENDING 쿠키 캐싱 금지**: `kista-user-status`에 PENDING 저장 시 승인 후에도 PENDING 화면 유지 버그. `status !== 'PENDING'`일 때만 저장
 - **리다이렉트 origin 구성**: `request.url`/`request.nextUrl.origin` 사용 금지 (컨테이너 hostname 반환). `request.nextUrl.clone()` + `url.pathname = '/...'` 패턴 사용
-- **Next.js 16 파일 컨벤션**: `middleware.ts` → `proxy.ts`, export `middleware` → `proxy`. 마이그레이션: `npx @next/codemod@canary middleware-to-proxy .`
 
 ## 쿠키
 
@@ -21,13 +20,12 @@ UI 캐시 소유권·hydration·mutation 동기화는 `docs/agents/entities.md`,
 - **쿠키 수정 후 검증**: 재빌드만으로 기존 세션 미적용 — 브라우저 쿠키 삭제 후 카카오 재로그인. kista-api 로그에 `/api/auth/me` 없으면 `kista-token` 없다는 증거
 - **kista-api JWT 없는 요청 → 401**: `JwtAuthFilter`는 헤더 없으면 조용히 통과 → Spring Security 401. 로그에 WARN 없는 401 = 헤더 자체가 없는 것. 반대로 헤더가 있는데 디코딩 실패(만료 포함)·블랙리스트·stale role이면 permitAll 경로에서도 401(`JWT 인증 실패` WARN)
 - **Spring Security `/error` forward**: 예외 발생 → `/error` forward → anonymous 401. `SecurityConfig`에 `.requestMatchers("/error").permitAll()` 필수. 미설정 시 500이 401로 둔갑 → clientFetch 자동 로그아웃 유발
-- **KIS API 토큰 1분 제한 (EGW00133)**: 연결 테스트 직후 `kisTokenPort.testToken()` 재호출 → 403 → `/error` → 401. 계좌 등록/수정 시 UI가 이미 검증한 키를 서버에서 재검증 금지
 
 ## Route Handler
 
 - **Docker standalone**: Route Handler(Node.js runtime)에서 origin → `request.headers.get('host')` + `request.headers.get('x-forwarded-proto')` 직접 구성. `request.url` 사용 금지
-- **API URL**: 모든 Route Handler·서버 fetch는 `getApiBaseUrl()`(`@shared/lib/env`) 사용 — `API_BASE_URL` 우선, 없으면 `NEXT_PUBLIC_API_BASE_URL` 폴백, 둘 다 없으면 throw. 실패 허용 경로(예: `proxy.ts` 토큰 갱신)는 `getApiBaseUrlOrNull()`. `process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL` 패턴을 직접 쓰지 말 것 (SSOT). 근거: `NEXT_PUBLIC_*` 단독 → Docker에서 ECONNREFUSED
-- **프록시 라우트 인증 게이트**: `createProxyRoute`(`@shared/lib/proxy/createProxyRoute`)의 `requireAuth` 옵션은 **기본값 `true`**(토큰 없으면 kista-api 호출 전에 401) — 실제로 공개(비인증) 엔드포인트를 프록시하려면 반드시 `requireAuth: false`를 명시해야 한다. `requireAuth: false`면 쿠키에 토큰이 있어도 Bearer를 붙이지 않는다(아래 무효 토큰 401 참고 — 붙이면 만료 AT가 남은 비회원이 공개 패널 401 → clientFetch 로그아웃·리로드를 맞는다). 그래서 로그인 여부로 응답이 달라지는 엔드포인트에는 쓰지 않는다. 현재 `requireAuth: false`로 선언된 라우트: `app/api/client-errors`, `app/api/runtime-config`, `app/api/market/[[...path]]`, `app/api/crypto-market-indicators`. 신규 프록시 라우트 추가 시 kista-api 쪽 엔드포인트가 공개인지 반드시 확인하고 이 플래그를 맞출 것 — 안 맞추면 공개 엔드포인트인데도 401이 나거나, 반대로 인증 필요한 엔드포인트를 실수로 열어둘 위험이 있다
+- **API URL**: `getApiBaseUrl()`(`@shared/lib/env`) 경유 필수, `process.env.API_BASE_URL` 직접 참조 금지 — 상세는 `docs/agents/shared.md` `env.ts` 항목
+- **프록시 라우트 인증 게이트**: `createProxyRoute`(`@shared/lib/proxy/createProxyRoute`)의 `requireAuth` 옵션은 **기본값 `true`**(토큰 없으면 kista-api 호출 전에 401) — 실제로 공개(비인증) 엔드포인트를 프록시하려면 반드시 `requireAuth: false`를 명시해야 한다. `requireAuth: false`면 쿠키에 토큰이 있어도 Bearer를 붙이지 않는다(아래 무효 토큰 401 참고 — 붙이면 만료 AT가 남은 비회원이 공개 패널 401 → clientFetch 로그아웃·리로드를 맞는다). 그래서 로그인 여부로 응답이 달라지는 엔드포인트에는 쓰지 않는다. 신규 프록시 라우트 추가 시 kista-api 쪽 엔드포인트가 공개인지 반드시 확인하고 이 플래그를 맞출 것 — 안 맞추면 공개 엔드포인트인데도 401이 나거나, 반대로 인증 필요한 엔드포인트를 실수로 열어둘 위험이 있다
 - **SSE 인증**: 브라우저 `EventSource`는 커스텀 헤더 미지원 → Route Handler가 Bearer 토큰 포함 후 kista-api로 중계 (`app/api/auth/status-stream/route.ts` 참고)
 - **SSE 인증 실패 → 401 응답 금지**: `EventSource`는 4xx를 `onerror`로만 받아 상태 코드를 알 수 없음 → 클라이언트가 무한 재연결 루프에 빠짐. 토큰 없을 때 200 SSE 스트림으로 `event: auth-error` 보내고 클라이언트가 이를 받아 재연결 중단 (`app/api/trades/stream/route.ts` 참고)
 - **SSE `request.signal` 필수**: 미전달 시 클라이언트가 EventSource 닫아도 스트림 파이핑 계속 → `UND_ERR_SOCKET` 에러. `GET(request: NextRequest)` + `fetch(url, { signal: request.signal })`
@@ -35,25 +33,19 @@ UI 캐시 소유권·hydration·mutation 동기화는 `docs/agents/entities.md`,
 
 ## Next.js quirk
 
-- **dynamic route params**: `Promise` → `const { id } = await params` (v15+)
-- **Route Handler cookies()**: async → `const cookieStore = await cookies()` (v15+)
-- **Next.js 16 dev 자동 수정**: 첫 `npm run dev` 시 `tsconfig.json`의 `jsx` → `"react-jsx"`, `include`에 `.next/dev/types/**/*.ts` 자동 추가 — 의도적 변경, 커밋 포함
-- **에러 페이지**: `app/error.tsx`(전체화면) + `app/(main)/error.tsx`(사이드바 유지) 모두 `'use client'`. 재시도 버튼은 `reset` 대신 `unstable_retry`(Next 16.2, `router.refresh()` + `reset()`)를 쓴다 — `reset()`은 에러 상태만 지워 RSC를 다시 받지 않아 네트워크 실패(iOS "Load failed")로 난 오류가 복구되지 않는다(2026-10-21 `/finance` 사례). 실험 prop이라 `unstable_retry ?? reset`으로 폴백한다. `app/global-error.tsx`는 `<html><body>` 직접 포함
-- **`new Date()` hydration 불일치**: `useState('')` + `useEffect(() => { setState(new Date()...) }, [])` 패턴
-- **next-themes hydration**: `useTheme()`의 `resolvedTheme`은 SSR에서 `undefined`. `const [mounted, setMounted] = useState(false)` + `useEffect(() => setMounted(true), [])` → `mounted && resolvedTheme === 'dark'`
+- **에러 페이지**: `app/error.tsx`(전체화면) + `app/(main)/error.tsx`(사이드바 유지) 모두 `'use client'`. 재시도 버튼은 `reset` 대신 `unstable_retry`(Next 16.2, `router.refresh()` + `reset()`)를 쓴다 — `reset()`은 에러 상태만 지워 RSC를 다시 받지 않아 네트워크 실패(iOS "Load failed")로 난 오류가 복구되지 않는다. 실험 prop이라 `unstable_retry ?? reset`으로 폴백한다. `app/global-error.tsx`는 `<html><body>` 직접 포함
 - **Next.js Image + Tailwind preflight**: `img { height: auto }` preflight + 비정사각형 이미지를 정사각형으로 지정 시 경고. 해결: `<Image>` 컴포넌트 `style` prop에 `height: N, width: N` 직접 명시
-- **`loading.tsx`**: `app/(main)/dashboard|accounts|strategies|settings/loading.tsx` — `animate-pulse` + 실제 레이아웃을 모방한 skeleton
+- **`loading.tsx`**: `app/**/loading.tsx`(main·admin·pending·rejected 및 `@modal` 인터셉트 쌍 포함) — `animate-pulse` + 실제 레이아웃을 모방한 skeleton. 새 라우트를 추가하면 같이 둔다
 - **인증 레이아웃의 동적 렌더링 명시 필요**: `(main)/layout.tsx`는 proxy가 `/me` 응답으로 캐싱한 `ROLE_COOKIE`를 직접 읽어 `getMe()` SSR 왕복을 건너뛴다(쿠키 없을 때만 폴백 호출). 이처럼 레이아웃에서 `cookies()`/`getAuthToken()` 등 동적 API 호출을 모두 제거하면 Next.js가 정적 프리렌더 대상으로 오인해 빌드 타임에 인증 없는 fetch가 실행되며 빌드가 깨질 수 있다(`(admin)/layout.tsx` 회귀 사례) — 사용자별 인증 콘텐츠를 다루는 레이아웃은 `export const dynamic = 'force-dynamic'`을 명시한다
-- **인터셉팅 라우트 모달**: `app/(main)/@modal`(parallel route) + `default.tsx`(`null` 반환) + `[...catchAll]/page.tsx`(`null` 반환 — 소프트 네비게이션에선 매칭 안 된 slot이 직전 상태를 유지해, 모달 안 `PageHeader` eyebrow 링크 등으로 이동하면 URL만 바뀌고 모달이 남는다)로 `(main)/layout.tsx`가 `modal` prop을 받아 렌더링한다. `(.)accounts/[id]/strategies/new`처럼 `@modal` 기준 상대 경로로 실제 라우트를 인터셉트 — 앱 내부 클라이언트 네비게이션(Link/router.push)에서만 가로채지고, 새로고침·직접 진입은 일반 `page.tsx`가 렌더링된다. `shared/ui/RouteModal.tsx`가 PC(`sm:`)는 배경 위 모달, 모바일은 일반 페이지와 동일한 전체화면으로 반응형 렌더링하며 모바일 스크롤 컨테이너에는 `touch-pan-y`를 유지한다. 대화상자 이름은 자식 안의 첫 `h1`(보통 `PageHeader` 제목)을 찾아 `aria-labelledby`로 연결하므로, 모달로 띄우는 폼 조립에는 `h1`이 있어야 한다. 닫기(X·배경 클릭)는 `router.back()`을 쓴다 — 일반 `page.tsx`와 인터셉트된 `@modal` 버전 양쪽에 동일 콘텐츠를 유지해야 하므로 폼 컴포넌트에 `dismiss`류 prop으로 종료 방식(`push`/`back`)을 분기한다. `strategy/create-strategy` 참고
+- **인터셉팅 라우트 모달**: 다이얼로그/드로어 폼을 페이지로 바꿀 때 PC에서 전체 페이지 전환이 불편해, PC는 모달처럼·모바일은 풀페이지로 보이게 절충한 패턴이다. `app/(main)/@modal`(parallel route) + `default.tsx`(`null`) + `[...catchAll]/page.tsx`(`null` — 소프트 네비게이션에선 매칭 안 된 slot이 직전 상태를 유지해, 모달 안 `PageHeader` eyebrow 링크 등으로 이동하면 URL만 바뀌고 모달이 남는다)를 두고 `(main)/layout.tsx`가 `modal` prop으로 렌더링한다. `(.)accounts/[id]/strategies/new`처럼 `@modal` 기준 상대 경로로 인터셉트 — 앱 내부 클라이언트 네비게이션에서만 가로채지고 새로고침·직접 진입은 일반 `page.tsx`가 렌더링된다. `shared/ui/RouteModal.tsx`가 PC(`sm:`)는 모달, 모바일은 전체화면으로 렌더링하며 모바일 스크롤 컨테이너에는 `touch-pan-y`를 유지한다. 대화상자 이름은 자식 안의 첫 `h1`을 `aria-labelledby`로 연결하므로 모달로 띄우는 폼 조립에는 `h1`이 있어야 한다. 닫기(X·배경 클릭)는 `router.back()` — 일반 `page.tsx`와 `@modal` 버전 양쪽에 같은 콘텐츠를 유지해야 하므로 폼 컴포넌트에 `dismiss` prop(`push`/`back`)으로 종료 방식을 분기한다. `strategy/create-strategy` 참고
 - **모달 안 하위 뷰 이력**: 폼 안에서 같은 화면 하위 뷰(예: DCA 규칙 편집)를 열면 `shared/lib/subviewHistory`로 이력 항목을 하나 쌓는다. `RouteModal`은 표식이 남아 있으면 닫을 때 `router.back()` 대신 `go(-2)`로 하위 뷰 항목까지 되돌린다.
 - **인터셉팅 라우트 쌍의 로더+PageHeader+폼 조립 중복 제거**: 일반 `page.tsx`와 `@modal` 인터셉트 버전은 데이터 로딩(`requirePageToken`/`getAuthToken` 등)·`notFound()` 가드·`PageHeader`·폼 컴포넌트 조립이 완전히 동일하고 래퍼(`<div className="max-w-lg mx-auto">` vs `<RouteModal>`)와 `dismiss` 값만 다르다 — 이 조립을 `app/(main)/.../{route}/XxxFormBody.tsx`(일반 `page.tsx`와 같은 디렉토리, `dismiss?: 'push' | 'back'` prop을 받는 async 함수)로 한 번만 작성하고, `@modal` 버전은 `@app/*` alias로 그 파일을 import해 `<RouteModal>`로 감싸기만 한다. `PageHeader`가 `widgets/` 계층이라 이 조립은 `features/`에 둘 수 없다(FSD 역방향 import 금지) — `app/` 레이어(라우팅 전용이지만 페이지 파일이 아닌 일반 `.tsx` 공존 허용)가 유일하게 합법적인 위치다. `app/` 내부의 이 `@app/*` cross-import는 이 패턴 전용 예외이며, 새 인터셉팅 라우트 쌍을 추가할 때만 사용한다 — 그 외 일반적인 app-레이어 간 cross-import는 여전히 금지. 예: `app/(main)/finance/new/NewAssetFormBody.tsx` ↔ `app/(main)/@modal/(.)finance/new/page.tsx`
 - **목록 자체가 라우트 모달인 경우**(예산 관리 `/finance/budgets/[type]`, `/new`, `/[id]/edit`): 목록 → 폼 이동은 `@modal` 슬롯 교체라 모달이 중첩되지 않는 대신 목록이 unmount된다. 그래서 목록 필터·페이지는 searchParams에 두고 `window.history.replaceState`로 쓴다 — 서버 왕복·인터셉트 재평가 없이 `useSearchParams`와 동기화되고, 폼에서 `router.back()`으로 돌아오면 그대로 복원된다(`BudgetManager`). 예산 응답에 type이 없어 경로에 type 슬러그(`income|expense|saving`, `entities/finance/lib/budgetRoutes.ts`)를 싣는다. 모달이 떠 있는 동안 배경 레이아웃의 `usePathname()`도 모달 경로로 바뀌므로, 경로로 탭·제목을 고르는 배경 컴포넌트는 원래 탭 경로로 되돌려 판정한다(`FinanceHeader` + `SectionTabBar activePathname`). `RouteModal`의 ESC는 포커스가 컨테이너 밖 포털에 있거나 하위 오버레이(`alertdialog`·`listbox`·`menu`)가 열려 있으면 무시한다 — 확인창·Select만 닫히고 라우트 모달은 남는다
 
 ## 캐싱 (Server Component)
 
-- **가변 인증 데이터**: `accounts`·`strategies`·`me`는 Next.js persistent cache를 사용하지 않는다. 요청별 `createQueryClient()` + `prefetchQuery()` + `<HydrationBoundary>`로 넘기고 Client Content가 목록/빈 상태를 결정한다
-- **서버용 query options**: Server Component가 호출하는 factory는 `'use client'` hook 파일이 아니라 `entities/*/model/queryOptions.ts`에 둔다
-- **Next.js persistent cache**: 현재는 비인증 public meta fallback에만 1시간 TTL을 적용한다. market holidays의 visible state는 React Query 소유이며 persistent cache directive가 없다. 세부 기준은 `docs/agents/entities.md`, `router.refresh()` 예외는 `docs/agents/shared.md` 참고
+- **가변 인증 데이터**: `accounts`·`strategies`·`me`는 Next.js persistent cache 없이 요청별 `createQueryClient()` + `prefetchQuery()` + `<HydrationBoundary>`로 넘기고 Client Content가 목록/빈 상태를 결정한다. 서버용 query options factory는 `'use client'` hook 파일이 아니라 `entities/*/model/queryOptions.ts`에 둔다
+- **Next.js persistent cache**: 비인증 public meta fallback에만 1시간 TTL. market holidays는 React Query 소유다. 세부 기준은 `docs/agents/entities.md`·`docs/agents/shared.md`
 
 ## Toaster · UI 전역
 

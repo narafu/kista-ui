@@ -290,6 +290,6 @@ Expected: tests pass, typecheck exits 0, and `git diff --check` prints no output
 - [ ] **Step 6: Commit verification fixes and completed plan state**
 
 ```bash
-git add widgets/stats-overview docs/superpowers/plans/2026-07-18-stats-mobile-layout.md
+git add widgets/stats-overview docs/superpowers/plans/archive/2026-07-18-stats-mobile-layout.md
 git commit -m '통계 페이지 모바일 레이아웃 개선 완료'
 ```

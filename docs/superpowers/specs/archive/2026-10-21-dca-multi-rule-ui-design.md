@@ -1,7 +1,7 @@
 # DCA 다중 규칙 화면 설계 (kista-ui)
 
 - 작성일: 2026-10-21
-- 선행 spec: kista-api `docs/superpowers/specs/2026-10-21-dca-multi-rule-ledger-design.md`(커밋 3c9a4953) §1·§3·§4.1·§6
+- 선행 spec: kista-api `docs/superpowers/specs/archive/2026-10-21-dca-multi-rule-ledger-design.md`(커밋 3c9a4953) §1·§3·§4.1·§6
 - 상태: UX 설계 확정, **구현 보류**. kista-api 구현이 끝나 확정 계약(openapi diff)이 오면 `gen:types` 후 이 문서로 계획을 세운다. 필드 이름은 spec §6 초안 기준이라 바뀔 수 있다
 
 ## 1. 의도

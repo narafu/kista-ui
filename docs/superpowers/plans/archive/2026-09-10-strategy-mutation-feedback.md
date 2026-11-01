@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript, React Query(`@tanstack/react-query`), `sonner`(toast), Vitest.
 
-**Spec:** `docs/superpowers/specs/2026-09-10-strategy-mutation-feedback-design.md`
+**Spec:** `docs/superpowers/specs/archive/2026-09-10-strategy-mutation-feedback-design.md`
 
 ## Global Constraints
 

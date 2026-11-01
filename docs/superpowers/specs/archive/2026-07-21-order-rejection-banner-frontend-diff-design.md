@@ -1,8 +1,8 @@
 # 미접수 주문 배너 — 프론트엔드 diff (v3, 최종 채택)
 
 > kista-api 세션에서 같은 문제로 v1(orders에 REJECTED row 영속화)·v2(`order_rejections` 전용 테이블 영속화)를 스펙·계획까지 작성했으나 사용자가 "최대한 심플하게"를 재차 요청하면서 보류(DEFERRED)됐다. v3는 백엔드를 전혀 건드리지 않고 kista-ui가 이미 받고 있는 두 필드(`preview.orders`, `preview.todayOrders`)를 비교하는 것만으로 같은 목적을 달성한다.
-> - v2 스펙: `../../../kista-api/docs/superpowers/specs/2026-07-20-rejected-order-persistence-design.md` (DEFERRED)
-> - v2 계획: `../../../kista-api/docs/superpowers/plans/2026-07-20-order-rejection-banner.md` (DEFERRED)
+> - v2 스펙: `../../../kista-api/docs/superpowers/specs/archive/2026-07-20-rejected-order-persistence-design.md` (DEFERRED)
+> - v2 계획: `../../../kista-api/docs/superpowers/plans/archive/2026-07-20-order-rejection-banner.md` (DEFERRED)
 > - 관련 선행 작업: `2026-07-18-strategy-card-deficit-accuracy-design.md` — 같은 근본 문제("매도만 접수되고 매수 부족 여부를 알 수 없음")를 목록 카드(`StrategyCard.tsx`)에서 다룬 스펙. 이번 v3는 그 문제의 상세 페이지(`StrategyDetail.tsx`, "다음 주문" 카드) 쪽 마무리다.
 
 ## 배경
