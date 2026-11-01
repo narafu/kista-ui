@@ -13,6 +13,7 @@ const base = {
   accountName: '연금',
   assetClass: 'EQUITY',
   market: 'GLOBAL',
+  memo: '적립',
 }
 
 function sortIds(items: (typeof base)[]) {
@@ -20,20 +21,22 @@ function sortIds(items: (typeof base)[]) {
 }
 
 describe('compareAssetDetail', () => {
-  it('키 우선순위: 소유자 → 전략 → 기관 → 계좌명 → 자산군 → 시장 → 금액 큰 순 → id', () => {
+  it('키 우선순위: 소유자 → 기관 → 계좌명 → 전략 → 시장 → 자산군 → 금액 큰 순 → 메모 → id', () => {
+    // 각 항목은 자기 키만 base보다 뒤로 가고, 그다음 키는 base보다 앞으로 당겨 앞 키가 이기는지 확인한다
     const items = [
-      { ...base, id: 'owner', accountOwner: '아내', strategy: '가' },
-      { ...base, id: 'strategy', strategy: '성장', accountInstitution: '가' },
+      { ...base, id: 'owner', accountOwner: '아내', accountInstitution: '가' },
       { ...base, id: 'institution', accountInstitution: '현대', accountName: '가' },
-      { ...base, id: 'account', accountName: '일반', assetClass: 'EQUITY' },
-      { ...base, id: 'assetClass', assetClass: 'CASH', market: 'GLOBAL' },
-      { ...base, id: 'market', market: 'DOMESTIC', amount: 999 },
-      { ...base, id: 'small', amount: 50 },
+      { ...base, id: 'account', accountName: '일반', strategy: '가' },
+      { ...base, id: 'strategy', strategy: '성장', market: 'GLOBAL' },
+      { ...base, id: 'market', market: 'DOMESTIC', assetClass: 'EQUITY' },
+      { ...base, id: 'assetClass', assetClass: 'CASH', amount: 999 },
+      { ...base, id: 'small', amount: 50, memo: '가' },
+      { ...base, id: 'memo', memo: '하' },
       { ...base, id: 'b-tie' },
       { ...base, id: 'a-tie' },
     ]
-    // 나 < 아내, 배당 < 성장, 한투 < 현대, 연금 < 일반, EQUITY < CASH, GLOBAL < DOMESTIC, 100 > 50, a < b
-    expect(sortIds(items)).toEqual(['a-tie', 'b-tie', 'small', 'market', 'assetClass', 'account', 'institution', 'strategy', 'owner'])
+    // 나 < 아내, 한투 < 현대, 연금 < 일반, 배당 < 성장, GLOBAL < DOMESTIC, EQUITY < CASH, 100 > 50, 적립 < 하, a < b
+    expect(sortIds(items)).toEqual(['a-tie', 'b-tie', 'memo', 'small', 'assetClass', 'market', 'strategy', 'account', 'institution', 'owner'])
   })
 
   it('빈 값(null·undefined·빈 문자열)과 순서에 없는 enum은 맨 뒤', () => {

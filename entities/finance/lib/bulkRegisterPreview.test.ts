@@ -99,7 +99,7 @@ describe('buildBulkRegisterItems', () => {
     expect(result.asset[0].children[0].items[0]).toMatchObject({ categoryId: 'leaf-1', amount: 5000000 })
   })
 
-  it('같은 카테고리의 자산 항목은 공용 compareAssetDetail 순서(소유자→…→금액 큰 순)로 정렬한다', () => {
+  it('같은 카테고리의 자산 항목은 공용 compareAssetDetail 순서(소유자 우선, 같으면 금액 큰 순)로 정렬한다', () => {
     const leaf: FinanceCategory = { id: 'leaf', type: 'ASSET', name: '예금', sortOrder: 0, system: false, children: [] }
     const index = buildCategoryIndex({ ASSET: [leaf] })
     const snap = (id: string, accountOwner: string, amount: number) => ({

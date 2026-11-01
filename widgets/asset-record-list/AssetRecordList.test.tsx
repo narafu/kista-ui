@@ -162,7 +162,7 @@ describe('AssetRecordList', () => {
     expect(screen.getAllByText('공유')).toHaveLength(2)
   })
 
-  it('컬럼 순서(기준일·카테고리·소유자·기관·계좌명·운용전략·자산군·시장·금액·메모)대로 값을 표시한다', () => {
+  it('컬럼 순서(기준일·카테고리·소유자·기관·계좌명·운용전략·시장·자산군·금액·메모)대로 값을 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({
       data: [snapshot({
         categoryName: '일반계좌', accountOwner: '나', assetClass: 'EQUITY', market: 'GLOBAL', strategy: 'VR', memo: '해외ETF 적립', accountName: '미래에셋증권', accountInstitution: '미래에셋', amount: 1_000_000,
@@ -176,14 +176,14 @@ describe('AssetRecordList', () => {
     const dataRow = within(desktopTable).getAllByRole('row')[1]
     const cellTexts = within(dataRow).getAllByRole('cell').map((cell) => cell.textContent)
 
-    // [체크박스, 기준일, 카테고리, 소유자, 기관, 계좌명, 운용전략, 자산군, 시장, 금액, 메모, 작업]
+    // [체크박스, 기준일, 카테고리, 소유자, 기관, 계좌명, 운용전략, 시장, 자산군, 금액, 메모, 작업]
     expect(cellTexts[2]).toBe('일반계좌')
     expect(cellTexts[3]).toBe('나')
     expect(cellTexts[4]).toBe('미래에셋')
     expect(cellTexts[5]).toBe('미래에셋증권')
     expect(cellTexts[6]).toBe('VR')
-    expect(cellTexts[7]).toBe('주식')
-    expect(cellTexts[8]).toBe('해외')
+    expect(cellTexts[7]).toBe('해외')
+    expect(cellTexts[8]).toBe('주식')
     expect(cellTexts[9]).toContain('1,000,000')
     expect(cellTexts[10]).toBe('해외ETF 적립')
   })

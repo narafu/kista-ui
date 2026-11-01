@@ -88,8 +88,8 @@ function DesktopRow({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowC
       <TableDataCell className={cn(!snapshot.accountInstitution && 'text-muted-foreground')}>{snapshot.accountInstitution ?? '—'}</TableDataCell>
       <TableDataCell className={cn(!snapshot.accountName && 'text-muted-foreground')}>{snapshot.accountName ?? '—'}</TableDataCell>
       <TableDataCell className={cn(!snapshot.strategy && 'text-muted-foreground')}>{snapshot.strategy ?? '—'}</TableDataCell>
-      <TableDataCell>{labelOf('assetClasses', snapshot.assetClass)}</TableDataCell>
       <TableDataCell>{labelOf('markets', snapshot.market)}</TableDataCell>
+      <TableDataCell>{labelOf('assetClasses', snapshot.assetClass)}</TableDataCell>
       {/* 부채는 카테고리 배지로 구분한다 — 금액을 빨강으로 칠하면 요약의 상승(text-pos)과 같은 색이 돼 뜻이 섞인다 */}
       <TableDataCell className="text-right tabular-nums whitespace-nowrap">
         {maskIfHidden(fmtKrw(snapshot.amount))}
@@ -137,8 +137,8 @@ export function AssetRecordTable({ paged, row, sortKey, sortDirection, onSort, a
             <TableHeadCell>기관</TableHeadCell>
             <TableHeadCell>계좌명</TableHeadCell>
             <TableHeadCell>운용전략</TableHeadCell>
-            <TableHeadCell>자산군</TableHeadCell>
             <TableHeadCell>시장</TableHeadCell>
+            <TableHeadCell>자산군</TableHeadCell>
             <SortableHeadCell numeric sortKey="amount" activeKey={sortKey} direction={sortDirection} onSort={onSort}>금액</SortableHeadCell>
             <TableHeadCell>메모</TableHeadCell>
             <TableHeadCell className="whitespace-nowrap">작업</TableHeadCell>
@@ -175,11 +175,11 @@ function MobileItem({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowC
             </span>
           </div>
           {/* 소유자·기관·계좌명·전략은 길어 작업 버튼과 같은 줄에 두면 거의 항상 잘린다 — 버튼 없는 별도 줄로 분리한다.
-              순서는 데스크톱 표 컬럼(소유자→기관→계좌명→전략→자산군→시장)과 같다. */}
+              순서는 데스크톱 표 컬럼(소유자→기관→계좌명→전략→시장→자산군)과 같다. */}
           {accountLine && <p className="mt-1 truncate text-xs text-muted-foreground">{accountLine}</p>}
           <div className="mt-1 flex items-center justify-between gap-2">
             <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-              {[labelOf('assetClasses', snapshot.assetClass), labelOf('markets', snapshot.market)].filter(Boolean).join(' · ')}
+              {[labelOf('markets', snapshot.market), labelOf('assetClasses', snapshot.assetClass)].filter(Boolean).join(' · ')}
             </p>
             <RowActions snapshot={snapshot} row={row} />
           </div>

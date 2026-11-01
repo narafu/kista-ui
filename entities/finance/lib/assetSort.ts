@@ -2,7 +2,7 @@ import type { CategoryIndexEntry } from './categoryIndex'
 
 // 자산 항목 공용 정렬 — 자산탭 목록(widgets/asset-record-list)과 일괄등록 투자 섹션
 // (bulkRegisterPreview)이 같은 순서를 쓴다.
-// 키 순서: 카테고리 경로 → 소유자 → 전략 → 기관 → 계좌명 → 자산군 → 시장 → 금액 큰 순 → id.
+// 키 순서(자산탭 표 컬럼 순서와 같음): 카테고리 경로 → 소유자 → 기관 → 계좌명 → 전략 → 시장 → 자산군 → 금액 큰 순 → 메모 → id.
 // 문자열은 'ko' 비교, 빈 값(null/undefined/'')은 키마다 맨 뒤.
 
 // 자산군·시장 enum 선언 순서 — entities/meta를 import할 수 없어(같은 계층) 호출부가 /api/meta 순서를 넘긴다.
@@ -20,6 +20,7 @@ interface AssetSortFields {
   accountName?: string
   assetClass?: string
   market?: string
+  memo?: string
 }
 
 type CategoryPath = CategoryIndexEntry['path']
@@ -49,16 +50,17 @@ export function compareCategoryPath(a: CategoryPath | undefined, b: CategoryPath
   return a.length - b.length
 }
 
-// 2~8번 키 — 카테고리가 같을 때(또는 일괄등록처럼 카테고리로 이미 그룹핑된 경우)의 순서
+// 카테고리 다음 키 — 카테고리가 같을 때(또는 일괄등록처럼 카테고리로 이미 그룹핑된 경우)의 순서
 export function compareAssetDetail(a: AssetSortFields, b: AssetSortFields, order: AssetEnumOrder): number {
   return (
     compareText(a.accountOwner, b.accountOwner) ||
-    compareText(a.strategy, b.strategy) ||
     compareText(a.accountInstitution, b.accountInstitution) ||
     compareText(a.accountName, b.accountName) ||
-    compareEnum(order.assetClasses, a.assetClass, b.assetClass) ||
+    compareText(a.strategy, b.strategy) ||
     compareEnum(order.markets, a.market, b.market) ||
+    compareEnum(order.assetClasses, a.assetClass, b.assetClass) ||
     b.amount - a.amount ||
+    compareText(a.memo, b.memo) ||
     (a.id < b.id ? -1 : a.id > b.id ? 1 : 0) // 로케일 무관 코드 단위 비교 — SSR·브라우저에서 같은 순서
   )
 }

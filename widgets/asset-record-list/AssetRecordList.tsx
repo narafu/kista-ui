@@ -83,7 +83,7 @@ export function AssetRecordList({ month, categoryPath, onCategoryPathChange }: P
 
   const categoryIndex = useMemo(() => buildCategoryIndex({ ASSET: categories }), [categories])
 
-  // 기본 정렬은 카테고리 헤더 asc = 공용 체인(카테고리 경로→소유자→…→금액 큰 순→id, 일괄등록 투자 섹션과 동일).
+  // 기본 정렬은 카테고리 헤더 asc = 공용 체인(카테고리 경로→소유자→기관→계좌명→전략→시장→자산군→금액 큰 순→메모→id, 일괄등록 투자 섹션과 동일).
   // 기준일·금액 헤더는 그 값으로 먼저 정렬하고 동점이면 체인 asc로 순서를 고정한다.
   const sorted = useMemo(() => {
     const enumOrder = { assetClasses: meta.assetClasses.map((c) => c.code), markets: meta.markets.map((c) => c.code) }
