@@ -162,10 +162,10 @@ describe('AssetRecordList', () => {
     expect(screen.getAllByText('공유')).toHaveLength(2)
   })
 
-  it('컬럼 순서(기준일·카테고리·시장·자산군·운용전략·계좌명·기관·금액·메모)대로 값을 표시한다', () => {
+  it('컬럼 순서(기준일·카테고리·소유자·운용전략·기관·계좌명·자산군·시장·금액·메모)대로 값을 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({
       data: [snapshot({
-        categoryName: '일반계좌', assetClass: 'EQUITY', market: 'GLOBAL', strategy: 'VR', memo: '해외ETF 적립', accountName: '미래에셋증권', accountInstitution: '미래에셋', amount: 1_000_000,
+        categoryName: '일반계좌', accountOwner: '나', assetClass: 'EQUITY', market: 'GLOBAL', strategy: 'VR', memo: '해외ETF 적립', accountName: '미래에셋증권', accountInstitution: '미래에셋', amount: 1_000_000,
       })],
       isLoading: false,
       isError: false,
@@ -176,20 +176,21 @@ describe('AssetRecordList', () => {
     const dataRow = within(desktopTable).getAllByRole('row')[1]
     const cellTexts = within(dataRow).getAllByRole('cell').map((cell) => cell.textContent)
 
-    // [체크박스, 기준일, 카테고리, 시장, 자산군, 운용전략, 계좌명, 기관, 금액, 메모, 작업]
+    // [체크박스, 기준일, 카테고리, 소유자, 운용전략, 기관, 계좌명, 자산군, 시장, 금액, 메모, 작업]
     expect(cellTexts[2]).toBe('일반계좌')
-    expect(cellTexts[3]).toBe('해외')
-    expect(cellTexts[4]).toBe('주식')
-    expect(cellTexts[5]).toBe('VR')
+    expect(cellTexts[3]).toBe('나')
+    expect(cellTexts[4]).toBe('VR')
+    expect(cellTexts[5]).toBe('미래에셋')
     expect(cellTexts[6]).toBe('미래에셋증권')
-    expect(cellTexts[7]).toBe('미래에셋')
-    expect(cellTexts[8]).toContain('1,000,000')
-    expect(cellTexts[9]).toBe('해외ETF 적립')
+    expect(cellTexts[7]).toBe('주식')
+    expect(cellTexts[8]).toBe('해외')
+    expect(cellTexts[9]).toContain('1,000,000')
+    expect(cellTexts[10]).toBe('해외ETF 적립')
   })
 
-  it('운용전략·계좌명·기관·메모가 없으면 해당 컬럼에 — 로 표시한다', () => {
+  it('소유자·운용전략·기관·계좌명·메모가 없으면 해당 컬럼에 — 로 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({
-      data: [snapshot({ strategy: undefined, memo: undefined, accountName: undefined, accountInstitution: null })],
+      data: [snapshot({ accountOwner: null, strategy: undefined, memo: undefined, accountName: undefined, accountInstitution: null })],
       isLoading: false,
       isError: false,
     })
@@ -199,10 +200,11 @@ describe('AssetRecordList', () => {
     const dataRow = within(desktopTable).getAllByRole('row')[1]
     const cellTexts = within(dataRow).getAllByRole('cell').map((cell) => cell.textContent)
 
+    expect(cellTexts[3]).toBe('—')
+    expect(cellTexts[4]).toBe('—')
     expect(cellTexts[5]).toBe('—')
     expect(cellTexts[6]).toBe('—')
-    expect(cellTexts[7]).toBe('—')
-    expect(cellTexts[9]).toBe('—')
+    expect(cellTexts[10]).toBe('—')
   })
 
   it('모바일 카드는 메모가 있을 때만 별도 줄로 표시한다', () => {
@@ -222,10 +224,10 @@ describe('AssetRecordList', () => {
     expect(within(items[1]).queryByText('해외ETF 적립')).not.toBeInTheDocument()
   })
 
-  it('모바일 카드는 계좌명·기관을 작업 버튼과 분리된 별도 줄로 표시하고, 둘 다 없으면 그 줄을 생략한다', () => {
+  it('모바일 카드는 소유자·전략·기관·계좌명을 작업 버튼과 분리된 별도 줄로 표시하고, 모두 없으면 그 줄을 생략한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({
       data: [
-        snapshot({ id: 'a-acct', accountName: '미래에셋증권 종합위탁', accountInstitution: '미래에셋증권' }),
+        snapshot({ id: 'a-acct', accountOwner: '나', strategy: 'VR', accountName: '미래에셋증권 종합위탁', accountInstitution: '미래에셋증권' }),
         snapshot({ id: 'a-none', categoryName: '정기예금', accountName: undefined, accountInstitution: null }),
       ],
       isLoading: false,
@@ -234,7 +236,7 @@ describe('AssetRecordList', () => {
     render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
 
     const items = within(screen.getByRole('list', { name: '자산 기록' })).getAllByRole('listitem')
-    expect(within(items[0]).getByText('미래에셋증권 종합위탁 · 미래에셋증권')).toBeInTheDocument()
+    expect(within(items[0]).getByText('나 · VR · 미래에셋증권 · 미래에셋증권 종합위탁')).toBeInTheDocument()
     expect(within(items[1]).queryByText(/·.*증권/)).not.toBeInTheDocument()
   })
 

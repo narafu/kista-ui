@@ -84,11 +84,12 @@ function DesktopRow({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowC
           <GroupSharedBadge groupId={snapshot.groupId} />
         </span>
       </TableDataCell>
-      <TableDataCell>{labelOf('markets', snapshot.market)}</TableDataCell>
-      <TableDataCell>{labelOf('assetClasses', snapshot.assetClass)}</TableDataCell>
+      <TableDataCell className={cn(!snapshot.accountOwner && 'text-muted-foreground')}>{snapshot.accountOwner || '—'}</TableDataCell>
       <TableDataCell className={cn(!snapshot.strategy && 'text-muted-foreground')}>{snapshot.strategy ?? '—'}</TableDataCell>
-      <TableDataCell className={cn(!snapshot.accountName && 'text-muted-foreground')}>{snapshot.accountName ?? '—'}</TableDataCell>
       <TableDataCell className={cn(!snapshot.accountInstitution && 'text-muted-foreground')}>{snapshot.accountInstitution ?? '—'}</TableDataCell>
+      <TableDataCell className={cn(!snapshot.accountName && 'text-muted-foreground')}>{snapshot.accountName ?? '—'}</TableDataCell>
+      <TableDataCell>{labelOf('assetClasses', snapshot.assetClass)}</TableDataCell>
+      <TableDataCell>{labelOf('markets', snapshot.market)}</TableDataCell>
       {/* 부채는 카테고리 배지로 구분한다 — 금액을 빨강으로 칠하면 요약의 상승(text-pos)과 같은 색이 돼 뜻이 섞인다 */}
       <TableDataCell className="text-right tabular-nums whitespace-nowrap">
         {maskIfHidden(fmtKrw(snapshot.amount))}
@@ -132,11 +133,12 @@ export function AssetRecordTable({ paged, row, sortKey, sortDirection, onSort, a
             </TableHeadCell>
             <SortableHeadCell sortKey="entryDate" activeKey={sortKey} direction={sortDirection} onSort={onSort}>기준일</SortableHeadCell>
             <SortableHeadCell sortKey="category" activeKey={sortKey} direction={sortDirection} onSort={onSort}>카테고리</SortableHeadCell>
-            <TableHeadCell>시장</TableHeadCell>
-            <TableHeadCell>자산군</TableHeadCell>
+            <TableHeadCell>소유자</TableHeadCell>
             <TableHeadCell>운용전략</TableHeadCell>
-            <TableHeadCell>계좌명</TableHeadCell>
             <TableHeadCell>기관</TableHeadCell>
+            <TableHeadCell>계좌명</TableHeadCell>
+            <TableHeadCell>자산군</TableHeadCell>
+            <TableHeadCell>시장</TableHeadCell>
             <SortableHeadCell numeric sortKey="amount" activeKey={sortKey} direction={sortDirection} onSort={onSort}>금액</SortableHeadCell>
             <TableHeadCell>메모</TableHeadCell>
             <TableHeadCell className="whitespace-nowrap">작업</TableHeadCell>
@@ -155,6 +157,7 @@ export function AssetRecordTable({ paged, row, sortKey, sortDirection, onSort, a
 function MobileItem({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowContext }) {
   const { maskIfHidden } = useAmountHiddenPreference()
   const { labelOf } = row
+  const accountLine = [snapshot.accountOwner, snapshot.strategy, snapshot.accountInstitution, snapshot.accountName].filter(Boolean).join(' · ')
   return (
     <li className="px-4 py-4">
       <div className="flex items-start gap-3">
@@ -166,23 +169,17 @@ function MobileItem({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowC
             <span className="text-xs text-muted-foreground">{fmtDate(snapshot.entryDate)}</span>
           </div>
           <div className="flex items-baseline justify-between gap-2">
-            <p className="min-w-0 truncate text-sm font-medium">
-              {labelOf('assetClasses', snapshot.assetClass)}
-              {snapshot.memo && <span className="ml-1.5 font-normal text-muted-foreground">{snapshot.memo}</span>}
-            </p>
+            <p className="min-w-0 truncate text-sm text-muted-foreground">{snapshot.memo}</p>
             <span className="shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums">
               {maskIfHidden(fmtKrw(snapshot.amount))}
             </span>
           </div>
-          {/* 계좌명·기관은 길어 작업 버튼과 같은 줄에 두면 거의 항상 잘린다 — 버튼 없는 별도 줄로 분리한다. */}
-          {(snapshot.accountName || snapshot.accountInstitution) && (
-            <p className="mt-1 truncate text-xs text-muted-foreground">
-              {[snapshot.accountName, snapshot.accountInstitution].filter(Boolean).join(' · ')}
-            </p>
-          )}
+          {/* 소유자·전략·기관·계좌명은 길어 작업 버튼과 같은 줄에 두면 거의 항상 잘린다 — 버튼 없는 별도 줄로 분리한다.
+              순서는 데스크톱 표 컬럼(소유자→전략→기관→계좌명→자산군→시장)과 같다. */}
+          {accountLine && <p className="mt-1 truncate text-xs text-muted-foreground">{accountLine}</p>}
           <div className="mt-1 flex items-center justify-between gap-2">
             <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-              {[labelOf('markets', snapshot.market), snapshot.strategy].filter(Boolean).join(' · ')}
+              {[labelOf('assetClasses', snapshot.assetClass), labelOf('markets', snapshot.market)].filter(Boolean).join(' · ')}
             </p>
             <RowActions snapshot={snapshot} row={row} />
           </div>
