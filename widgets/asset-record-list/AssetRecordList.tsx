@@ -14,8 +14,10 @@ import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
 import { useTableSort } from '@shared/lib/hooks/use-table-sort'
 import { useMeta } from '@entities/meta'
 import {
-  ASSET_L1_CATEGORY_IDS,
+  buildCategoryIndex,
   collectSubtreeIds,
+  compareAssetDetail,
+  compareCategoryPath,
   isMonthClosed,
   useMonthlyClosingScopeGroupId,
   useAssetSnapshotsQuery,
@@ -62,7 +64,7 @@ export function AssetRecordList({ month, categoryPath, onCategoryPathChange }: P
 
   const [assetClass, setAssetClass] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
   const [market, setMarket] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
-  const { sortKey, sortDirection, handleSort } = useTableSort<SortKey>('entryDate')
+  const { sortKey, sortDirection, handleSort } = useTableSort<SortKey>('category', 'asc')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const deleteDialog = useConfirmDialog<string[]>()
 
@@ -79,17 +81,20 @@ export function AssetRecordList({ month, categoryPath, onCategoryPathChange }: P
     (market === ALL_FILTER_VALUE || snapshot.market === market),
   ), [snapshots, month, categorySubtreeIds, assetClass, market])
 
+  const categoryIndex = useMemo(() => buildCategoryIndex({ ASSET: categories }), [categories])
+
+  // 기본 정렬은 카테고리 헤더 asc = 공용 체인(카테고리 경로→소유자→…→금액 큰 순→id, 일괄등록 투자 섹션과 동일).
+  // 기준일·금액 헤더는 그 값으로 먼저 정렬하고 동점이면 체인 asc로 순서를 고정한다.
   const sorted = useMemo(() => {
-    const copy = [...filtered]
-    copy.sort((a, b) => {
-      let diff = 0
-      if (sortKey === 'entryDate') diff = a.entryDate.localeCompare(b.entryDate)
-      else if (sortKey === 'category') diff = ASSET_L1_CATEGORY_IDS.indexOf(a.rootCategoryId) - ASSET_L1_CATEGORY_IDS.indexOf(b.rootCategoryId)
-      else diff = a.amount - b.amount
-      return sortDirection === 'asc' ? diff : -diff
+    const enumOrder = { assetClasses: meta.assetClasses.map((c) => c.code), markets: meta.markets.map((c) => c.code) }
+    const chain = (a: (typeof filtered)[number], b: (typeof filtered)[number]) =>
+      compareCategoryPath(categoryIndex.get(a.categoryId)?.path, categoryIndex.get(b.categoryId)?.path) ||
+      compareAssetDetail(a, b, enumOrder)
+    return [...filtered].sort((a, b) => {
+      const diff = sortKey === 'category' ? chain(a, b) : sortKey === 'entryDate' ? a.entryDate.localeCompare(b.entryDate) : a.amount - b.amount
+      return (sortDirection === 'asc' ? diff : -diff) || chain(a, b)
     })
-    return copy
-  }, [filtered, sortKey, sortDirection])
+  }, [filtered, sortKey, sortDirection, categoryIndex, meta.assetClasses, meta.markets])
 
   const { page: currentPage, setPage, size, totalPages, paged, handlePageSizeChange } = useClientPagination(sorted)
 

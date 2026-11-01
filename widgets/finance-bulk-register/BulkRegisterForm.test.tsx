@@ -16,7 +16,7 @@ const { mutateMock, pushMock, toastSuccessMock, toastWarningMock, groupState, cl
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: pushMock }) }))
 vi.mock('sonner', () => ({ toast: { success: toastSuccessMock, warning: toastWarningMock, error: vi.fn() } }))
 vi.mock('@entities/meta', () => ({
-  useMeta: () => ({ labelOf: (_category: string, code: string) => code }),
+  useMeta: () => ({ meta: { assetClasses: [], markets: [] }, labelOf: (_category: string, code: string) => code }),
 }))
 
 // 대분류(월급, 하위 카테고리 있음) > 소분류(기본급, 리프) 2단 트리 — 대분류는 전체 토글을

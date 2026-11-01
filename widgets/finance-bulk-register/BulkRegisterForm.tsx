@@ -63,7 +63,7 @@ function flattenNodes(nodes: CategoryGroupNode[]): BulkRegisterItem[] {
 
 export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Props) {
   const router = useRouter()
-  const { labelOf } = useMeta()
+  const { meta, labelOf } = useMeta()
   const today = todayKst()
   const currentYear = Number(today.slice(0, 4))
   const [sourceMonth, setSourceMonth] = useState(defaultSourceMonth ?? shiftMonth(thisMonth(), -1))
@@ -105,9 +105,13 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
     () => buildCategoryIndex({ ASSET: assetCategories, INCOME: incomeCategories, EXPENSE: expenseCategories, SAVING: savingCategories }),
     [assetCategories, incomeCategories, expenseCategories, savingCategories],
   )
+  const enumOrder = useMemo(
+    () => ({ assetClasses: meta.assetClasses.map((c) => c.code), markets: meta.markets.map((c) => c.code) }),
+    [meta.assetClasses, meta.markets],
+  )
   const items = useMemo(
-    () => buildBulkRegisterItems({ transactions, assetSnapshots: filteredSnapshots, index }),
-    [transactions, filteredSnapshots, index],
+    () => buildBulkRegisterItems({ transactions, assetSnapshots: filteredSnapshots, index, enumOrder }),
+    [transactions, filteredSnapshots, index, enumOrder],
   )
 
   // 소스월에 실제로 등록된 데이터만 매번 다시 조회해 만드는 목록이라, 제외 토글을 끈 항목은

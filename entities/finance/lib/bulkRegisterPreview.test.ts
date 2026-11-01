@@ -3,6 +3,8 @@ import { buildBulkRegisterItems } from './bulkRegisterPreview'
 import { buildCategoryIndex } from './categoryIndex'
 import type { FinanceCategory } from '../model/types'
 
+const enumOrder = { assetClasses: ['CASH', 'EQUITY'], markets: ['DOMESTIC', 'GLOBAL'] }
+
 const incomeCategory: FinanceCategory = {
   id: 'cat-income', type: 'INCOME', name: '월급', sortOrder: 0, system: false, children: [],
 }
@@ -18,7 +20,7 @@ describe('buildBulkRegisterItems', () => {
       { id: 't2', categoryId: 'cat-expense', memo: '생활비카드', amount: 480000, transactionDate: '2026-07-10' },
     ]
 
-    const result = buildBulkRegisterItems({ transactions, assetSnapshots: [], index })
+    const result = buildBulkRegisterItems({ transactions, assetSnapshots: [], index, enumOrder })
 
     expect(result.income).toHaveLength(1)
     expect(result.income[0].items).toHaveLength(1)
@@ -30,7 +32,7 @@ describe('buildBulkRegisterItems', () => {
     const index = buildCategoryIndex({ INCOME: [incomeCategory] })
     const transactions = [{ id: 't1', categoryId: 'deleted-cat', memo: undefined, amount: 1000, transactionDate: '2026-07-01' }]
 
-    const result = buildBulkRegisterItems({ transactions, assetSnapshots: [], index })
+    const result = buildBulkRegisterItems({ transactions, assetSnapshots: [], index, enumOrder })
 
     expect(result.income).toHaveLength(0)
     expect(result.expense).toHaveLength(0)
@@ -48,7 +50,7 @@ describe('buildBulkRegisterItems', () => {
     const index = buildCategoryIndex({ EXPENSE: [tree] })
     const transactions = [{ id: 't1', categoryId: 'l3', memo: '점심', amount: 12000, transactionDate: '2026-07-05' }]
 
-    const result = buildBulkRegisterItems({ transactions, assetSnapshots: [], index })
+    const result = buildBulkRegisterItems({ transactions, assetSnapshots: [], index, enumOrder })
 
     expect(result.expense).toHaveLength(1)
     expect(result.expense[0]).toMatchObject({ id: 'l1', name: '생활', items: [] })
@@ -67,7 +69,7 @@ describe('buildBulkRegisterItems', () => {
       },
     ]
 
-    const result = buildBulkRegisterItems({ transactions: [], assetSnapshots, index })
+    const result = buildBulkRegisterItems({ transactions: [], assetSnapshots, index, enumOrder })
 
     expect(result.asset).toHaveLength(1)
     expect(result.asset[0].children).toHaveLength(1)
@@ -91,9 +93,23 @@ describe('buildBulkRegisterItems', () => {
       },
     ]
 
-    const result = buildBulkRegisterItems({ transactions: [], assetSnapshots, index })
+    const result = buildBulkRegisterItems({ transactions: [], assetSnapshots, index, enumOrder })
 
     expect(result.asset[0]).toMatchObject({ id: 'f1000000-0000-4000-8000-000000000401', name: '예적금' })
     expect(result.asset[0].children[0].items[0]).toMatchObject({ categoryId: 'leaf-1', amount: 5000000 })
+  })
+
+  it('같은 카테고리의 자산 항목은 공용 compareAssetDetail 순서(소유자→…→금액 큰 순)로 정렬한다', () => {
+    const leaf: FinanceCategory = { id: 'leaf', type: 'ASSET', name: '예금', sortOrder: 0, system: false, children: [] }
+    const index = buildCategoryIndex({ ASSET: [leaf] })
+    const snap = (id: string, accountOwner: string, amount: number) => ({
+      id, groupId: undefined, categoryId: 'leaf', rootCategoryId: 'leaf', categoryName: '예금',
+      entryDate: '2026-07-01', assetClass: 'CASH' as const, market: 'DOMESTIC' as const, accountOwner, amount,
+    })
+    const assetSnapshots = [snap('s1', '아내', 9), snap('s2', '나', 1), snap('s3', '나', 5)]
+
+    const result = buildBulkRegisterItems({ transactions: [], assetSnapshots, index, enumOrder })
+
+    expect(result.asset[0].items.map((item) => item.id)).toEqual(['s3', 's2', 's1'])
   })
 })

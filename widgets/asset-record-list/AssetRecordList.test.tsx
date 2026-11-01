@@ -209,7 +209,7 @@ describe('AssetRecordList', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({
       data: [
         snapshot({ id: 'a-with-memo', memo: '해외ETF 적립' }),
-        snapshot({ id: 'a-no-memo', categoryName: '정기예금', memo: undefined }),
+        snapshot({ id: 'b-no-memo', categoryName: '정기예금', memo: undefined }),
       ],
       isLoading: false,
       isError: false,
@@ -290,8 +290,8 @@ describe('AssetRecordList', () => {
     const user = userEvent.setup()
     useAssetSnapshotsQueryMock.mockReturnValue({
       data: [
-        snapshot({ id: 'a-old', entryDate: '2026-08-01', categoryName: '오래된기록' }),
-        snapshot({ id: 'a-new', entryDate: '2026-08-15', categoryName: '최신기록' }),
+        snapshot({ id: 'a1-old', entryDate: '2026-08-01', categoryName: '오래된기록' }),
+        snapshot({ id: 'a2-new', entryDate: '2026-08-15', categoryName: '최신기록' }),
       ],
       isLoading: false,
       isError: false,
@@ -301,11 +301,14 @@ describe('AssetRecordList', () => {
     const desktopTable = screen.getByRole('table', { name: '자산 기록' })
     const rows = () => within(desktopTable).getAllByRole('row').slice(1)
 
-    // 기본 정렬: 기준일 내림차순(최신 먼저)
+    // 기본 정렬: 공용 체인(카테고리·금액이 같으면 id 순)
+    expect(within(rows()[0]).getByText('오래된기록')).toBeInTheDocument()
+
+    // 처음 클릭은 내림차순(최신 먼저), 다시 클릭하면 오름차순
+    await user.click(screen.getByRole('button', { name: /기준일/ }))
     expect(within(rows()[0]).getByText('최신기록')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /기준일/ }))
-
     expect(within(rows()[0]).getByText('오래된기록')).toBeInTheDocument()
   })
 

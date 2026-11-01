@@ -2,6 +2,8 @@ import type { AssetClass, AssetSnapshot, FinanceTransaction, Market } from '../m
 import type { CategoryIndex } from './categoryIndex'
 import { resolveCategory } from './categoryIndex'
 import { formatAssetL1CategoryLabel } from './aggregate'
+import type { AssetEnumOrder } from './assetSort'
+import { compareAssetDetail } from './assetSort'
 
 // 일괄 등록 프리뷰 한 행 — id는 소스월 원본(스냅샷/거래) id를 그대로 쓴다(행별 포함/제외·금액
 // 수정 상태를 이 id로 키잉하므로 소스 데이터가 바뀌지 않는 한 안정적이다).
@@ -41,16 +43,10 @@ interface BulkRegisterItems {
   saving: CategoryGroupNode[]
 }
 
-function sortItems(items: BulkRegisterItem[]): BulkRegisterItem[] {
-  return [...items].sort((a, b) =>
-    (a.accountName ?? '').localeCompare(b.accountName ?? '', 'ko') ||
-    (a.strategy ?? '').localeCompare(b.strategy ?? '', 'ko') ||
-    (a.market ?? '').localeCompare(b.market ?? '') ||
-    (a.assetClass ?? '').localeCompare(b.assetClass ?? '') ||
-    (a.memo ?? '').localeCompare(b.memo ?? '') ||
-    a.amount - b.amount,
-  )
-}
+type ItemCompare = (a: BulkRegisterItem, b: BulkRegisterItem) => number
+
+// 수입·지출·저축 항목 순서(계좌·전략·시장·자산군 필드가 없는 항목) — 자산은 공용 compareAssetDetail(assetSort.ts)을 쓴다
+const compareFlowItem: ItemCompare = (a, b) => (a.memo ?? '').localeCompare(b.memo ?? '') || a.amount - b.amount
 
 interface MutableNode {
   id: string
@@ -62,20 +58,20 @@ interface MutableNode {
 
 // sortOrder 오름차순, 동순위는 가나다순 — categoryTree.sortCategoryTree와 동일한 tie-break 규칙(관리자
 // 카테고리 화면 정렬순서를 그대로 반영, 이름순이 아니다).
-function finalizeGroupTree(map: Map<string, MutableNode>): CategoryGroupNode[] {
+function finalizeGroupTree(map: Map<string, MutableNode>, compare: ItemCompare): CategoryGroupNode[] {
   const nodes = [...map.values()].map((n) => ({
     id: n.id,
     name: n.name,
     sortOrder: n.sortOrder,
-    items: sortItems(n.items),
-    children: finalizeGroupTree(n.childMap),
+    items: [...n.items].sort(compare),
+    children: finalizeGroupTree(n.childMap, compare),
   }))
   nodes.sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name, 'ko'))
   return nodes
 }
 
 // item.categoryPath(대분류→…→자신)를 그대로 트리 경로로 삼아 items를 중첩 그룹으로 묶는다.
-function buildGroupTree(items: BulkRegisterItem[]): CategoryGroupNode[] {
+function buildGroupTree(items: BulkRegisterItem[], compare: ItemCompare): CategoryGroupNode[] {
   const rootMap = new Map<string, MutableNode>()
   for (const item of items) {
     let siblingMap = rootMap
@@ -91,7 +87,7 @@ function buildGroupTree(items: BulkRegisterItem[]): CategoryGroupNode[] {
     }
     node?.items.push(item)
   }
-  return finalizeGroupTree(rootMap)
+  return finalizeGroupTree(rootMap, compare)
 }
 
 // 소스월의 자산 스냅샷 + 거래내역을 프리뷰 화면용 편집 가능 아이템으로 변환한다. 거래내역은
@@ -103,10 +99,12 @@ export function buildBulkRegisterItems({
   transactions,
   assetSnapshots,
   index,
+  enumOrder,
 }: {
   transactions: FinanceTransaction[]
   assetSnapshots: AssetSnapshot[]
   index: CategoryIndex
+  enumOrder: AssetEnumOrder // 자산 항목의 자산군·시장 정렬 순서(/api/meta 순서)
 }): BulkRegisterItems {
   const income: BulkRegisterItem[] = []
   const expense: BulkRegisterItem[] = []
@@ -156,9 +154,9 @@ export function buildBulkRegisterItems({
   })
 
   return {
-    asset: buildGroupTree(asset),
-    income: buildGroupTree(income),
-    expense: buildGroupTree(expense),
-    saving: buildGroupTree(saving),
+    asset: buildGroupTree(asset, (a, b) => compareAssetDetail(a, b, enumOrder)),
+    income: buildGroupTree(income, compareFlowItem),
+    expense: buildGroupTree(expense, compareFlowItem),
+    saving: buildGroupTree(saving, compareFlowItem),
   }
 }

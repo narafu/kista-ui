@@ -112,6 +112,7 @@ export { FLOW_TYPE_LABEL, budgetListHref, editBudgetHref, flowTypeFromSlug, newB
 export type { CategoryIndex, CategoryIndexEntry } from './lib/categoryIndex'
 export { buildBulkRegisterItems } from './lib/bulkRegisterPreview'
 export type { BulkRegisterItem, CategoryGroupNode } from './lib/bulkRegisterPreview'
+export { compareAssetDetail, compareCategoryPath } from './lib/assetSort'
 export { autoAdjustedMonth, displayWindow, elapsedMonthsInYear, monthEndDate, monthStartDate, periodRange, previousYearRange, registerWindowUpperBound, shiftMonth, trendWindow, MONTHLY_TREND_RANGE_OPTIONS, YEARLY_TREND_RANGE_OPTIONS } from './lib/period'
 export type { Period, PeriodMode, TrendRange } from './lib/period'
 export {
