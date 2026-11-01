@@ -2,7 +2,7 @@
 
 사용자의 단일 액션을 구현하는 레이어. `entities/`와 `shared/`만 import 가능.
 
-- **가계부(finance) 작업 시 docs/agents/finance.md 필수 Read** (화면은 finance-widgets.md, 폼·뮤테이션은 finance-features.md) — 관련: `features/finance/*`, `features/asset/save-asset`, `AssetForm`, `TransactionFormDialog`, `CategoryManager`, `AccountManager`, `manage-group`, `manage-budgets`, `useShareFinanceTransactionMutation`
+- **가계부(finance) 작업 시 docs/agents/finance.md 필수 Read** (화면은 finance-widgets.md, 폼·뮤테이션은 각 `features/finance/<slice>/CLAUDE.md`·`features/asset/save-asset/CLAUDE.md`) — 관련: `features/finance/*`, `features/asset/save-asset`, `AssetForm`, `TransactionFormDialog`, `CategoryManager`, `AccountManager`, `manage-group`, `manage-budgets`, `useShareFinanceTransactionMutation`
 - **전략·DCA·크립토·브로커 분기 작업 시 docs/agents/strategy.md 필수 Read** — 관련: `strategy/create-strategy`, `StrategyFormPage`, `DcaStrategyForm`, `VrSettingsSection`, `InitialHoldingsSection`, `BrokerStep`, `BROKER_UI`, `ApiStep`, `isKeyOnlyBroker`, `backtest/run-backtest`
 
 ## 의존성 규칙

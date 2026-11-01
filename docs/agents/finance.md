@@ -4,7 +4,7 @@ entities/features/widgets에 흩어져 있던 가계부 서술을 원 출처별 
 
 하위 문서:
 
-- `finance-features.md` — features/finance/*, features/asset/* 작업 시(해당 디렉토리 CLAUDE.md가 자동 로드)
+- 각 `features/finance/<slice>/CLAUDE.md`·`features/asset/save-asset/CLAUDE.md` — 해당 슬라이스 작업 시 자동 로드. 그룹 공유 전환 공통은 `finance-group-share.md`
 - `finance-widgets.md` — /finance 탭 화면, widgets/finance-*·widgets/asset-* 작업 시 필수 Read
 
 ## entities
