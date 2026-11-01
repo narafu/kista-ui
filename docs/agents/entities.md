@@ -3,7 +3,7 @@
 FSD 계층에서 가장 저수준 도메인 레이어. `shared/`만 import 가능. 동일 계층 cross-import 금지.
 router.refresh() 허용 범위와 stale time 표는 `docs/agents/shared.md`를 따른다.
 
-- **가계부(finance) 작업 시 docs/agents/finance.md 필수 Read** — 관련: `entities/finance`, `financeKeys`, `useFinanceQueries`, `isMonthClosed`, `useMonthlyClosingScopeGroupId`, `FinanceTransactionResponse`, `FinanceCategoryResponse`, `FinanceGroupMember`, `useShareFinanceTransactionMutation`
+- **가계부(finance) 작업 시 docs/agents/finance.md 필수 Read** (화면은 finance-widgets.md, 폼·뮤테이션은 finance-features.md) — 관련: `entities/finance`, `financeKeys`, `useFinanceQueries`, `isMonthClosed`, `useMonthlyClosingScopeGroupId`, `FinanceTransactionResponse`, `FinanceCategoryResponse`, `FinanceGroupMember`, `useShareFinanceTransactionMutation`
 - **전략·DCA·크립토·브로커 분기 작업 시 docs/agents/strategy.md 필수 Read** — 관련: `TradingCycleResponse`, `normalizeStrategy`, `StrategyRequest`, `isScheduledStart`, `DCA rules[]`, `isCryptoBroker`, `cryptoPortfolioQueryOptions`, `cryptoPricesQueryOptions`, `useStrategySeedPreviewQuery`
 
 ## 의존성 규칙
