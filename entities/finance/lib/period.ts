@@ -1,5 +1,5 @@
 // 수입·소비·저축 탭의 기간 계산. 월간/연간(YTD) 두 모드를 단일 12개월 윈도우 쿼리로
-// 덮기 위한 순수 함수 모음 — 설계 근거는 docs/agents/entities.md finance 항목 참고.
+// 덮기 위한 순수 함수 모음 — 설계 근거는 docs/agents/finance.md entities 절 참고.
 
 export type PeriodMode = 'monthly' | 'yearly'
 

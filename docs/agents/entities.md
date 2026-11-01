@@ -62,6 +62,7 @@ import { useDeleteAccountMutation } from '@entities/account'
 
 ## KIS live API quirk
 
+- **필드명 대조**: KIS live 응답은 UI 타입과 필드명이 다를 수 있다 — 새 엔드포인트를 소비할 때 실제 응답과 필드명을 대조하고, 불일치는 `entities/*/api`의 normalizer에서 변환한다
 - **`getPrices` 쿼리 직렬화**: 반복 파라미터만 허용
 - **MultiPriceResponse**: 응답 `{ prices: [{ticker, price}] }`를 `PriceMap`으로 정규화해야 함
 - **통화 주의**: `positions[].evalAmountUsd`는 USD, `summary.totalAssetUsd`/`totalEvalProfit`은 KRW

@@ -95,7 +95,7 @@ export {
   calcMonthlyTrend,
   formatAssetL1CategoryLabel,
   isInvestmentCategoryId,
-  /** @public 부채 판정 공개 API(docs/agents/entities.md) — 외부 소비처가 없어도 유지 */
+  /** @public 부채 판정 공개 API(docs/agents/finance.md) — 외부 소비처가 없어도 유지 */
   isLiability,
   isMonthClosed,
   listAvailableMonths,

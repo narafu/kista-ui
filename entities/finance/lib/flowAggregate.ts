@@ -7,7 +7,7 @@ import type { FinanceBudget, FinanceCategory, FinanceCategoryType, FinanceTransa
 // 수입/소비/저축 탭 공용 집계 — entities/finance/lib/aggregate.ts(AssetSnapshot 전용, entryDate/
 // rootCategoryId/assetClass 형태)와는 형태가 달라 일반화하지 않고 별도 모듈로 둔다.
 // 모든 함수는 12개월 윈도우 쿼리(windowRange)로 받아온 거래 목록을 입력으로 받아 클라이언트에서
-// 기간별로 잘라 쓴다 — 설계 근거는 docs/agents/entities.md finance 항목 참고.
+// 기간별로 잘라 쓴다 — 설계 근거는 docs/agents/finance.md entities 절 참고.
 
 function sumAmount(list: FinanceTransaction[]): number {
   return list.reduce((total, t) => total + t.amount, 0)
