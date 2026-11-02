@@ -69,7 +69,7 @@ export function WithdrawCapitalForm({ accountId, strategy, dismiss = 'push' }: P
       <div className="space-y-1 text-sm text-muted-foreground">
         {strategy.ledgerUsdDeposit != null && <p>현재 장부 예수금 ${fmtUsd(floorToCents(strategy.ledgerUsdDeposit))}</p>}
         <p>
-          체결 전·장중 취소된 매수 주문 금액은 인출할 수 없습니다. 다음 거래일 주문부터 반영되고, 이번 사이클 수익률에서는 인출분이 빠집니다. {effectCaption}
+          체결 전 매수 주문 금액과 장중 취소 전에 체결된 매수 금액은 인출할 수 없습니다. 다음 거래일 주문부터 반영되고, 이번 사이클 수익률에서는 인출분이 빠집니다. {effectCaption}
         </p>
         <p>실제 계좌 출금은 증권사에서 직접 해야 합니다.</p>
       </div>
