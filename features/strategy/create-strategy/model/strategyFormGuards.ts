@@ -162,8 +162,8 @@ export function computeSubmitDisabledReason(input: {
           }
           if (recurringMode !== 'HOLD' && recurringMagnitude <= 0) {
             return recurringMode === 'DEPOSIT'
-              ? '적립 금액을 0보다 크게 입력하세요.'
-              : '인출 금액을 0보다 크게 입력하세요.'
+              ? '적립금을 0보다 크게 입력하세요.'
+              : '인출금을 0보다 크게 입력하세요.'
           }
           if (normalizedRecurringAmount <= 0 && initialAssets <= 0) {
             // 등록 모드는 평단가·수량 입력 필드가 있어 "수량"으로 안내, 수정 모드는 해당 입력이 없어 읽기전용 "초기 V값" 문구 유지

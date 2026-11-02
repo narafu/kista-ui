@@ -119,7 +119,7 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
 
       <ParamsSection form={form} vr={vr} disabled={disabled} />
 
-      <RampSection form={form} vr={vr} disabled={disabled} />
+      <RampSection form={form} disabled={disabled} />
 
       <InjectSection form={form} disabled={disabled} />
 

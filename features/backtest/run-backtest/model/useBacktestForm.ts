@@ -89,7 +89,7 @@ export function useBacktestForm() {
       if (vrIntervalWeeks == null || vrIntervalWeeks <= 0) return 'VR 리밸런싱 주기를 선택하세요.'
       // 초기 V는 선택 — 비우면 서버가 첫 거래일 종가×보유수량으로 산출한다(운영 등록과 같은 규칙)
       if (vrInitialValue != null && vrInitialValue < 0) return 'VR 초기 V값은 0 이상이어야 합니다.'
-      if (vrRecurringMode !== 'HOLD' && !vrRecurringAmountAbs) return '적립/인출 금액을 입력하세요.'
+      if (vrRecurringMode !== 'HOLD' && !vrRecurringAmountAbs) return '적립금/인출금을 입력하세요.'
       // 서버 Integer 필드 — 소수 입력은 보존하고 여기서 차단(전략 등록 폼과 같은 방식)
       const integerRampFields = [vrRamp.initialGradient, vrRamp.gGraceWeeks, vrRamp.gStepWeeks, vrRamp.gMax, vrRamp.pGraceWeeks, vrRamp.pStepWeeks]
       if (integerRampFields.some((v) => v != null && !Number.isInteger(v))) return 'gradient와 주 단위 값은 정수로 입력하세요.'

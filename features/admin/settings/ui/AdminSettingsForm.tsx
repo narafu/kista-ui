@@ -260,9 +260,9 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
                 error={attempted ? errors['VR.recurringMode'] : undefined}
                 onChange={(value) => setStrategyField('VR', 'recurringMode', value)}
               />
-              <FieldEditor id="vr-band" label="밴드 폭 (%)" field={draft.strategies.VR.fields.bandWidth!}
+              <FieldEditor id="vr-band" label="밴드 폭" unit="%" field={draft.strategies.VR.fields.bandWidth!}
                 error={attempted ? errors['VR.bandWidth'] : undefined} inputType="number" normalize={normalizeNumber} onChange={(value) => setStrategyField('VR', 'bandWidth', value)} />
-              <FieldEditor id="vr-interval" label="주기 (주)" field={draft.strategies.VR.fields.intervalWeeks!}
+              <FieldEditor id="vr-interval" label="주기" unit="주" field={draft.strategies.VR.fields.intervalWeeks!}
                 error={attempted ? errors['VR.intervalWeeks'] : undefined} inputType="number" normalize={normalizeNumber} onChange={(value) => setStrategyField('VR', 'intervalWeeks', value)} />
             </StrategyBlock>
 

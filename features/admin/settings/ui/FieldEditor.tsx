@@ -5,13 +5,14 @@ import type { RuntimeFieldSettings } from '@entities/runtime-config'
 import { normalizeText } from '../model/normalizers'
 import { ValueListEditor } from './ValueListEditor'
 
-export function FieldEditor<T extends string | number>({ id, label, field, error, fixed, suggestions, inputType = 'text', normalize, onChange }: {
+export function FieldEditor<T extends string | number>({ id, label, field, error, fixed, suggestions, unit, inputType = 'text', normalize, onChange }: {
   id: string
   label: string
   field: RuntimeFieldSettings<T>
   error?: string
   fixed?: boolean
   suggestions?: string[]
+  unit?: string
   inputType?: 'text' | 'number'
   normalize?: (value: string) => T | null
   onChange: (field: RuntimeFieldSettings<T>) => void
@@ -54,6 +55,7 @@ export function FieldEditor<T extends string | number>({ id, label, field, error
             error={error}
             inputType={inputType}
             suggestions={suggestions}
+            unit={unit}
             normalize={normalizeValue}
             onChange={(value) => onChange({ ...field, ...value })}
           />

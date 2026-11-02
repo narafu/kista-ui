@@ -73,7 +73,7 @@ describe('DcaStrategyForm', () => {
     fireEvent.click(screen.getByRole('button', { name: '매수 규칙 추가' }))
     expect(screen.getByRole('heading', { level: 2, name: '매수 규칙' })).toHaveFocus()
     expect(screen.queryByRole('button', { name: '등록' })).not.toBeInTheDocument()
-    fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
+    fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '300' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
 
     const summary = await screen.findByRole('button', { name: /매일 · MOC\(종가시장가\) · \$300/ })
@@ -99,12 +99,12 @@ describe('DcaStrategyForm', () => {
   it('등록: 매도 규칙이 있고 수량이 비면 보유 0 캡션, 매수만이면 없다', async () => {
     renderForm()
     fireEvent.click(screen.getByRole('button', { name: '매수 규칙 추가' }))
-    fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
+    fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '300' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     await screen.findByText('규칙 (1/10)')
     expect(screen.queryByText('보유 0에서 시작합니다. 이미 보유 중이면 입력하세요.')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '매도 규칙 추가' }))
-    fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '50' } })
+    fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '50' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     await screen.findByText('규칙 (2/10)')
     expect(screen.getByText('보유 0에서 시작합니다. 이미 보유 중이면 입력하세요.')).toBeInTheDocument()
@@ -115,7 +115,7 @@ describe('DcaStrategyForm', () => {
   it('등록: 수량·평단가를 입력하면 payload에 initialHoldings·initialAvgPrice', async () => {
     renderForm()
     fireEvent.click(screen.getByRole('button', { name: '매수 규칙 추가' }))
-    fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
+    fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '300' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     await screen.findByText('규칙 (1/10)')
     fireEvent.change(screen.getByLabelText('평단가'), { target: { value: '45.5' } })
@@ -128,7 +128,7 @@ describe('DcaStrategyForm', () => {
   it('크립토 등록: 새 규칙은 부모 시장으로 실행 시각 09시·시장가를 보낸다', async () => {
     renderForm(undefined, 'BTC', 'CRYPTO_KRW')
     fireEvent.click(screen.getByRole('button', { name: '매수 규칙 추가' }))
-    fireEvent.change(screen.getByLabelText('회차당 금액 (원)'), { target: { value: '5000' } })
+    fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '5000' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     await screen.findByText('규칙 (1/10)')
     fireEvent.click(screen.getByRole('button', { name: '등록' }))
@@ -139,7 +139,7 @@ describe('DcaStrategyForm', () => {
   it('수정: 편집·삭제·추가 후 기존 ruleKey는 보존하고 새 규칙은 null로 보낸다', async () => {
     renderForm(existing([rule('a', 100), rule('b', 200)]))
     fireEvent.click(row(/\$200/))
-    fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '250' } })
+    fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '250' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     await screen.findByRole('button', { name: /\$250/ })
 
@@ -148,7 +148,7 @@ describe('DcaStrategyForm', () => {
     await waitFor(() => expect(screen.queryByRole('button', { name: /\$100/ })).not.toBeInTheDocument())
 
     fireEvent.click(screen.getByRole('button', { name: '매도 규칙 추가' }))
-    fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '50' } })
+    fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '50' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     await screen.findByText('규칙 (2/10)')
 
@@ -166,12 +166,12 @@ describe('DcaStrategyForm', () => {
   it('이전·← 규칙 목록은 편집 내용을 버리고 해당 줄로 포커스를 돌린다', async () => {
     renderForm(existing([rule('a', 100)]))
     fireEvent.click(row(/\$100/))
-    fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '999' } })
+    fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '999' } })
     fireEvent.click(screen.getByRole('button', { name: '이전' }))
     await waitFor(() => expect(row(/\$100/)).toHaveFocus())
 
     fireEvent.click(row(/\$100/))
-    fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '999' } })
+    fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '999' } })
     fireEvent.click(screen.getByRole('button', { name: '← 규칙 목록' }))
     await waitFor(() => expect(row(/\$100/)).toHaveFocus())
     expect(screen.queryByRole('button', { name: /\$999/ })).not.toBeInTheDocument()
@@ -205,7 +205,7 @@ describe('DcaStrategyForm', () => {
   it('등록: 매수 규칙에 평단가 조건이 있고 수량이 비면 보유 0 캡션', async () => {
     renderForm()
     fireEvent.click(screen.getByRole('button', { name: '매수 규칙 추가' }))
-    fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
+    fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '300' } })
     fireEvent.click(screen.getByRole('button', { name: '조건 추가' })) // 메타 첫 지표 = AVG_PRICE
     fireEvent.change(screen.getByRole('spinbutton', { name: '조건 1 기준값' }), { target: { value: '-5' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
@@ -218,7 +218,7 @@ describe('DcaStrategyForm', () => {
     vi.spyOn(window.history, 'back').mockImplementation(() => {})
     renderForm()
     fireEvent.click(screen.getByRole('button', { name: '매수 규칙 추가' }))
-    fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
+    fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '300' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     await waitFor(() => expect(window.history.back).toHaveBeenCalled())
@@ -231,7 +231,7 @@ describe('DcaStrategyForm', () => {
   it('등록 시도 후 보유 시작값 오류는 두 필드에 따로 표시되고, 고치면 반대쪽 오류도 사라진다', async () => {
     renderForm()
     fireEvent.click(screen.getByRole('button', { name: '매수 규칙 추가' }))
-    fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
+    fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '300' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     await screen.findByText('규칙 (1/10)')
     fireEvent.change(screen.getByLabelText('수량'), { target: { value: '5' } })

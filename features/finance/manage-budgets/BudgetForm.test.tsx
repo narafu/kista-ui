@@ -42,7 +42,7 @@ describe('BudgetForm', () => {
     render(<BudgetForm type="EXPENSE" duplicateFrom={source} />)
 
     expect(screen.getByLabelText('카테고리')).toHaveTextContent('식비')
-    expect(screen.getByLabelText('월 예산 (원)')).toHaveValue('100,000')
+    expect(screen.getByLabelText('월 예산')).toHaveValue('100,000')
     expect(screen.getByLabelText('적용 시작일')).toHaveValue('2026-01-01')
   })
 
@@ -73,15 +73,15 @@ describe('BudgetForm', () => {
     render(<BudgetForm type="EXPENSE" defaultCategoryId="cat-transit" />)
 
     expect(screen.getByLabelText('카테고리')).toHaveTextContent('교통')
-    expect(screen.getByLabelText('월 예산 (원)')).toHaveValue('')
+    expect(screen.getByLabelText('월 예산')).toHaveValue('')
   })
 
   it('월 예산이 0원이면 저장 버튼이 비활성화된다', async () => {
     const user = userEvent.setup()
     render(<BudgetForm type="EXPENSE" duplicateFrom={source} />)
 
-    await user.clear(screen.getByLabelText('월 예산 (원)'))
-    await user.type(screen.getByLabelText('월 예산 (원)'), '0')
+    await user.clear(screen.getByLabelText('월 예산'))
+    await user.type(screen.getByLabelText('월 예산'), '0')
 
     expect(screen.getByRole('button', { name: '추가' })).toBeDisabled()
   })

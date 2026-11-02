@@ -142,17 +142,21 @@ export function BudgetForm({ type, initial, duplicateFrom, defaultCategoryId, di
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="budgetAmount">월 예산 (원)</Label>
-        <Input
-          id="budgetAmount"
-          inputMode="numeric"
-          placeholder="0"
-          value={formatAmountDisplay(amountDigits)}
-          onChange={(e) => setAmountDigits(digitsOnly(e.target.value))}
-          onFocus={selectAllOnFocus}
-          disabled={isPending}
-          className="h-11 text-right tabular-nums"
-        />
+        <Label htmlFor="budgetAmount">월 예산</Label>
+        <div className="relative">
+          <Input
+            aria-describedby="budgetAmountUnit"
+            id="budgetAmount"
+            inputMode="numeric"
+            placeholder="0"
+            value={formatAmountDisplay(amountDigits)}
+            onChange={(e) => setAmountDigits(digitsOnly(e.target.value))}
+            onFocus={selectAllOnFocus}
+            disabled={isPending}
+            className="h-11 pr-8 text-right tabular-nums"
+          />
+          <span id="budgetAmountUnit" aria-hidden className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">원</span>
+        </div>
       </div>
 
       {mode === 'create' && canShareToGroup && (

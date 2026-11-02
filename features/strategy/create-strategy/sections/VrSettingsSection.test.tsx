@@ -319,7 +319,7 @@ describe('VrSettingsSection', () => {
         />,
       )
 
-      fireEvent.change(getInputByLabelText('gradient 단계주기(주)'), { target: { value: '0' } })
+      fireEvent.change(getInputByLabelText('gradient 단계주기'), { target: { value: '0' } })
 
       expect(mockSetField).toHaveBeenCalledWith('gStepWeeks', 0)
       expect(mockSetField).toHaveBeenCalledWith('gMax', 0)
@@ -336,7 +336,7 @@ describe('VrSettingsSection', () => {
       )
 
       expect(getInputByLabelText('gradient 상한')).toBeDisabled()
-      expect(getInputByLabelText('gradient 유예(주)')).toBeDisabled()
+      expect(getInputByLabelText('gradient 유예')).toBeDisabled()
     })
 
     it('gradient 단계주기를 0에서 다시 활성화하면 상한과 유예를 비운다', () => {
@@ -348,7 +348,7 @@ describe('VrSettingsSection', () => {
         />,
       )
 
-      fireEvent.change(getInputByLabelText('gradient 단계주기(주)'), { target: { value: '26' } })
+      fireEvent.change(getInputByLabelText('gradient 단계주기'), { target: { value: '26' } })
 
       expect(mockSetField).toHaveBeenCalledWith('gStepWeeks', 26)
       expect(mockSetField).toHaveBeenCalledWith('gMax', null)

@@ -106,16 +106,16 @@ describe('AssetForm', () => {
     const user = userEvent.setup()
     render(<AssetForm mode="create" onSuccess={onSuccess} onCancel={onCancel} />)
 
-    await user.type(screen.getByLabelText('금액 (원)'), '1234567')
+    await user.type(screen.getByLabelText('금액'), '1234567')
 
-    expect(screen.getByLabelText('금액 (원)')).toHaveValue('1,234,567')
+    expect(screen.getByLabelText('금액')).toHaveValue('1,234,567')
   })
 
   it('create 모드는 카테고리 미선택 상태로 시작해 제출 버튼이 비활성화된다', async () => {
     const user = userEvent.setup()
     render(<AssetForm mode="create" onSuccess={onSuccess} onCancel={onCancel} />)
 
-    await user.type(screen.getByLabelText('금액 (원)'), '1000')
+    await user.type(screen.getByLabelText('금액'), '1000')
 
     // 기준일은 오늘 날짜로 기본 채워지지만 카테고리를 아직 선택하지 않았다
     expect(screen.getAllByRole('button', { name: '등록' })[0]).toBeDisabled()
@@ -126,7 +126,7 @@ describe('AssetForm', () => {
     render(<AssetForm mode="edit" initial={existing} onSuccess={onSuccess} onCancel={onCancel} />)
 
     expect(screen.getByLabelText('기준일')).toHaveValue('2026-08-01')
-    expect(screen.getByLabelText('금액 (원)')).toHaveValue('1,000,000')
+    expect(screen.getByLabelText('금액')).toHaveValue('1,000,000')
 
     await user.click(screen.getAllByRole('button', { name: '수정' })[0])
 
@@ -190,7 +190,7 @@ describe('AssetForm', () => {
     const user = userEvent.setup()
     render(<AssetForm mode="duplicate" initial={existing} onSuccess={onSuccess} onCancel={onCancel} />)
 
-    expect(screen.getByLabelText('금액 (원)')).toHaveValue('1,000,000')
+    expect(screen.getByLabelText('금액')).toHaveValue('1,000,000')
     expect(screen.getAllByRole('button', { name: '복제 등록' })[0]).not.toBeDisabled()
 
     await user.click(screen.getAllByRole('button', { name: '복제 등록' })[0])

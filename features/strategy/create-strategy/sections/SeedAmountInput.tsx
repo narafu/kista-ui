@@ -58,12 +58,12 @@ function SeedStatus({ value, deposit, minSeed, belowMinSeed }: StatusProps) {
       </div>
     )
   }
+  // 최소 투자금이 없으면(VR 등) 알릴 내용이 없다 — 라벨만 반복하는 빈 줄을 두지 않는다
+  if (minSeed === null) return null
   return (
     <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-muted border border-border">
       <span className="text-sm text-muted-foreground font-bold">예수금 입력</span>
-      {minSeed !== null && (
-        <span className="text-sm text-muted-foreground">최소 ${fmtUsd(minSeed)}</span>
-      )}
+      <span className="text-sm text-muted-foreground">최소 ${fmtUsd(minSeed)}</span>
     </div>
   )
 }

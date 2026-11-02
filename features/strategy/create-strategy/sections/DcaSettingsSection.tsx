@@ -2,11 +2,11 @@
 
 import { useId } from 'react'
 import { Controller, type UseFormReturn } from 'react-hook-form'
-import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { isCryptoMarket, type TradingMarket } from '@shared/lib/api-schema'
 import { currencyUnit, fmtMoney } from '@shared/lib/format'
 import { SelectionCard } from '@shared/ui/selection-card'
+import { UnitInput } from '@shared/ui/UnitInput'
 import { useMeta } from '@entities/meta'
 import { formatExecutionHour, STOCK_WEEKDAYS, WEEKDAY_LABEL, type DcaWeekday } from '@entities/strategy'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
@@ -129,17 +129,15 @@ const SHORTFALL_CARD: Record<DcaRuleFormValues['direction'], Record<DcaRuleFormV
   SELL: { PARTIAL: '잔량 전부 매도', REJECT: '주문 안 함' },
 }
 const SHORTFALLS = ['PARTIAL', 'REJECT'] as const
-const toNumberOrNull = (v: unknown) => (v === '' || v == null ? null : Number(v))
 
 // 규칙 편집 화면의 규모·부족 시 정책 — 보유 비율은 매도 규칙만 쓴다
 export function DcaSizingSection({ form, market }: Pick<Props, 'form' | 'market'>) {
   const isCrypto = isCryptoMarket(market)
   const { currency, scale, min } = form.watch('orderAmount')
   const unit = currencyUnit(currency)
-  const amountStep = scale > 0 ? String(10 ** -scale) : '1'
   const amountId = useId()
   const percentId = useId()
-  const { watch, setValue, register, formState: { errors } } = form
+  const { watch, setValue, formState: { errors } } = form
   const direction = watch('direction')
   const sizingType = watch('sizingType')
   const shortfall = watch('shortfall')
@@ -162,22 +160,22 @@ export function DcaSizingSection({ form, market }: Pick<Props, 'form' | 'market'
         )}
         {sizingType === 'HOLDING_PERCENT' ? (
           <>
-            <StrategyFieldLabel htmlFor={percentId}>보유 비율 (%)</StrategyFieldLabel>
-            <Input id={percentId} type="number" inputMode="decimal" min={0} max={100} step="0.01"
-              aria-invalid={!!errors.percent} aria-describedby={errors.percent ? `${percentId}-error` : undefined}
-              {...register('percent', { setValueAs: toNumberOrNull })}
-              className="h-11 rounded-[var(--r-sm)] px-3" />
+            <StrategyFieldLabel htmlFor={percentId}>보유 비율</StrategyFieldLabel>
+            <Controller control={form.control} name="percent" render={({ field }) => (
+              <UnitInput id={percentId} value={field.value} ref={field.ref} onBlur={field.onBlur} onChange={field.onChange} unit="%" maxDecimals={2} disabled={false}
+                errorId={errors.percent ? `${percentId}-error` : undefined} />
+            )} />
             {errors.percent && <p id={`${percentId}-error`} className="mt-1 text-sm text-[var(--status-error)]">{errors.percent.message}</p>}
             <Caption>100% = 보유 전량</Caption>
           </>
         ) : (
           <>
-            <StrategyFieldLabel htmlFor={amountId}>{`회차당 금액 (${unit})`}</StrategyFieldLabel>
-            <Input id={amountId} type="number" inputMode={isCrypto && scale === 0 ? 'numeric' : 'decimal'} min={0} step={amountStep}
-              placeholder={isCrypto && min > 0 ? `${fmtMoney(min, currency)} 이상` : undefined}
-              aria-invalid={!!errors.amount} aria-describedby={errors.amount ? `${amountId}-error` : undefined}
-              {...register('amount', { setValueAs: toNumberOrNull })}
-              className="h-11 rounded-[var(--r-sm)] px-3" />
+            <StrategyFieldLabel htmlFor={amountId}>회차당 금액</StrategyFieldLabel>
+            <Controller control={form.control} name="amount" render={({ field }) => (
+              <UnitInput id={amountId} value={field.value} ref={field.ref} onBlur={field.onBlur} onChange={field.onChange} unit={unit} maxDecimals={scale} disabled={false}
+                placeholder={isCrypto && min > 0 ? `${fmtMoney(min, currency)} 이상` : undefined}
+                errorId={errors.amount ? `${amountId}-error` : undefined} />
+            )} />
             {errors.amount && <p id={`${amountId}-error`} className="mt-1 text-sm text-[var(--status-error)]">{errors.amount.message}</p>}
           </>
         )}

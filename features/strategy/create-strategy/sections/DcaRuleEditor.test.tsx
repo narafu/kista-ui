@@ -42,7 +42,7 @@ describe('DcaRuleEditor', () => {
   it('매수: 규모 토글 없이 금액만, 부족 시 정책은 주식 달러·크립토 원화 라벨, 기본 PARTIAL', () => {
     renderEditor()
     expect(screen.queryByRole('button', { name: '보유 비율 %' })).not.toBeInTheDocument()
-    expect(screen.getByLabelText('회차당 금액 (USD)')).toBeInTheDocument()
+    expect(screen.getByLabelText('회차당 금액')).toBeInTheDocument()
     expect(screen.getByText('달러가 부족할 때')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '남은 금액만큼 매수' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: '주문 안 함' })).toHaveAttribute('aria-pressed', 'false')
@@ -52,7 +52,7 @@ describe('DcaRuleEditor', () => {
   it('크립토 매수 부족 시 라벨은 원화', () => {
     renderEditor({ market: 'CRYPTO_KRW' })
     expect(screen.getByText('원화가 부족할 때')).toBeInTheDocument()
-    expect(screen.getByLabelText('회차당 금액 (원)')).toBeInTheDocument()
+    expect(screen.getByLabelText('회차당 금액')).toBeInTheDocument()
     expect(screen.queryByText(STOCK_BUY_NOTE)).not.toBeInTheDocument()
   })
 
@@ -64,15 +64,15 @@ describe('DcaRuleEditor', () => {
     expect(screen.getByRole('button', { name: '잔량 전부 매도' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: '금액' })).toHaveAttribute('aria-pressed', 'true')
     fireEvent.click(screen.getByRole('button', { name: '보유 비율 %' }))
-    expect(screen.queryByLabelText('회차당 금액 (USD)')).not.toBeInTheDocument()
-    expect(screen.getByLabelText('보유 비율 (%)')).toBeInTheDocument()
+    expect(screen.queryByLabelText('회차당 금액')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('보유 비율')).toBeInTheDocument()
     expect(screen.getByText('100% = 보유 전량')).toBeInTheDocument()
   })
 
   it('매도 비율로 완료하면 sizingType·percent·shortfall이 담긴다', async () => {
     const { onDone } = renderEditor({ direction: 'SELL' })
     fireEvent.click(screen.getByRole('button', { name: '보유 비율 %' }))
-    fireEvent.change(screen.getByLabelText('보유 비율 (%)'), { target: { value: '25' } })
+    fireEvent.change(screen.getByLabelText('보유 비율'), { target: { value: '25' } })
     fireEvent.click(screen.getByRole('button', { name: '주문 안 함' }))
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     await waitFor(() => expect(onDone).toHaveBeenCalledWith(expect.objectContaining({ sizingType: 'HOLDING_PERCENT', percent: 25, shortfall: 'REJECT' })))
@@ -83,7 +83,7 @@ describe('DcaRuleEditor', () => {
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     expect(await screen.findByText('금액을 입력하세요.')).toBeInTheDocument()
     expect(onDone).not.toHaveBeenCalled()
-    fireEvent.change(screen.getByLabelText('회차당 금액 (USD)'), { target: { value: '300' } })
+    fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '300' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     await waitFor(() => expect(onDone).toHaveBeenCalledWith(expect.objectContaining({ direction: 'BUY', amount: 300, sizingType: 'AMOUNT' })))
   })

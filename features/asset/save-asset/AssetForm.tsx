@@ -200,17 +200,21 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="amount">금액 (원)</Label>
-            <Input
-              id="amount"
-              inputMode="numeric"
-              placeholder="0"
-              value={formatAmountDisplay(amountDigits)}
-              onChange={(e) => setAmountDigits(digitsOnly(e.target.value))}
-              onFocus={selectAllOnFocus}
-              disabled={isPending}
-              className="h-11 text-right tabular-nums"
-            />
+            <Label htmlFor="amount">금액</Label>
+            <div className="relative">
+              <Input
+                aria-describedby="amountUnit"
+                id="amount"
+                inputMode="numeric"
+                placeholder="0"
+                value={formatAmountDisplay(amountDigits)}
+                onChange={(e) => setAmountDigits(digitsOnly(e.target.value))}
+                onFocus={selectAllOnFocus}
+                disabled={isPending}
+                className="h-11 pr-8 text-right tabular-nums"
+              />
+              <span id="amountUnit" aria-hidden className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">원</span>
+            </div>
           </div>
 
           {mode !== 'edit' && canShareToGroup && (

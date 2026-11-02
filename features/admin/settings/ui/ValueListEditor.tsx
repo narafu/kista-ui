@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,16 +12,18 @@ type ValueSet<T extends string | number> = {
   defaultValue: T
 }
 
-export function ValueListEditor<T extends string | number>({ id, label, field, error, inputType = 'text', suggestions, normalize, onChange }: {
+export function ValueListEditor<T extends string | number>({ id, label, field, error, inputType = 'text', suggestions, unit, normalize, onChange }: {
   id: string
   label: string
   field: ValueSet<T>
   error?: string
   inputType?: 'text' | 'number'
   suggestions?: string[]
+  unit?: string
   normalize: (value: string) => T | null
   onChange: (field: ValueSet<T>) => void
 }) {
+  const unitId = useId()
   const [raw, setRaw] = useState('')
   const [inputError, setInputError] = useState<string>()
   const datalistId = suggestions && suggestions.length > 0 ? `${id}-suggestions` : undefined
@@ -78,8 +80,9 @@ export function ValueListEditor<T extends string | number>({ id, label, field, e
         >
           {field.allowedValues.map((value) => (
             <div key={String(value)} className="flex h-[46px] items-center gap-2 rounded-l-md border border-r-0 border-border bg-background pl-2">
-              <RadioGroupItem value={value} aria-label={`${String(value)} 기본값`} />
+              <RadioGroupItem value={value} aria-label={`${String(value)}${unit ?? ''} 기본값`} />
               <span className="min-w-0 flex-1 truncate font-mono text-sm">{String(value)}</span>
+              {unit && <span aria-hidden className="pr-2 text-xs font-semibold text-muted-foreground">{unit}</span>}
             </div>
           ))}
         </RadioGroup>
@@ -87,7 +90,7 @@ export function ValueListEditor<T extends string | number>({ id, label, field, e
           {field.allowedValues.map((value) => (
             <div key={String(value)} className="flex h-[46px] items-center rounded-r-md border border-l-0 border-border bg-background pr-2 pl-2">
               <IconButton
-                aria-label={`${String(value)} 삭제`}
+                aria-label={`${String(value)}${unit ?? ''} 삭제`}
                 onClick={() => deleteValue(value)}
                 className="text-destructive hover:text-destructive"
               >
@@ -98,26 +101,31 @@ export function ValueListEditor<T extends string | number>({ id, label, field, e
         </div>
       </div>
       <div className="flex gap-2">
-        <Input
-          id={`${id}-add`}
-          value={raw}
-          type="text"
-          list={datalistId}
-          inputMode={inputType === 'number' ? 'decimal' : undefined}
-          maxLength={100}
-          aria-label={`${label} 추가`}
-          aria-invalid={Boolean(inputError || error)}
-          onChange={(event) => {
-            setRaw(event.target.value)
-            setInputError(undefined)
-          }}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault()
-              addValue()
-            }
-          }}
-        />
+        <div className="relative flex-1">
+          <Input
+            id={`${id}-add`}
+            value={raw}
+            type="text"
+            list={datalistId}
+            inputMode={inputType === 'number' ? 'decimal' : undefined}
+            maxLength={100}
+            aria-label={`${label} 추가`}
+            aria-describedby={unit ? unitId : undefined}
+            className={unit ? 'pr-10' : undefined}
+            aria-invalid={Boolean(inputError || error)}
+            onChange={(event) => {
+              setRaw(event.target.value)
+              setInputError(undefined)
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                addValue()
+              }
+            }}
+          />
+          {unit && <span id={unitId} aria-hidden className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-semibold text-muted-foreground">{unit}</span>}
+        </div>
         <Button type="button" variant="outline" size="icon" className="size-11" aria-label={`${label} 추가 확정`} onClick={addValue}>
           <Plus />
         </Button>

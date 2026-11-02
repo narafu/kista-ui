@@ -1,6 +1,6 @@
 'use client'
 
-import type { ChangeEvent } from 'react'
+import type { ChangeEvent, Ref } from 'react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { cn } from '@shared/lib/utils'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
@@ -39,6 +39,8 @@ export function UnitInput({
   unitClassName,
   maxDecimals,
   errorId,
+  ref,
+  onBlur,
 }: {
   // 바깥 <Label htmlFor>와 연결
   id?: string
@@ -53,6 +55,9 @@ export function UnitInput({
   maxDecimals?: number
   // 바깥에 렌더한 오류 문구 id — 주면 aria-invalid와 함께 설명으로 연결한다
   errorId?: string
+  // react-hook-form Controller의 field.ref/onBlur 연결용 — 제출 실패 시 첫 오류 필드 포커스 이동
+  ref?: Ref<HTMLInputElement>
+  onBlur?: () => void
 }) {
   const unitId = useId()
   // 소수점 입력 중(예: "87.", "87.50") 문자열을 보존 — 매 렌더마다 value(파싱된 숫자)로 되돌리면 트레일링 점/0이 사라짐
@@ -69,7 +74,10 @@ export function UnitInput({
   }, [value])
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
-    const raw = event.target.value
+    // 붙여넣기 "1,000" → 1000. 숫자·소수점·선행 '-' 외(지수 표기, 통화기호 등)는 거부
+    const raw = event.target.value.replace(/[,\s]/g, '')
+    if (!/^-?\d*(\.\d*)?$/.test(raw)) return
+    if (maxDecimals === 0 && raw.includes('.')) return
     if (maxDecimals !== undefined && exceedsMaxDecimals(raw, maxDecimals)) return
     setText(raw)
     const parsed = parseNumber(raw)
@@ -82,9 +90,11 @@ export function UnitInput({
     <label className={cn(inputBoxClass(disabled), wrapperClassName)}>
       {/* 단위·기호를 품은 컨테이너가 테두리·포커스를 그리므로 안쪽은 공용 Input이 아닌 투명 raw input */}
       <input
+        ref={ref}
+        onBlur={onBlur}
         id={id}
         type="text"
-        inputMode="decimal"
+        inputMode={maxDecimals === 0 ? 'numeric' : 'decimal'}
         aria-label={ariaLabel}
         // 단위는 이름이 아니라 설명으로 읽힌다 — 감싸는 label에 포함되면 "gradient 유예(주) 주"처럼 이름에 겹쳐 붙는다
         aria-describedby={[unit && unitId, errorId].filter(Boolean).join(' ') || undefined}

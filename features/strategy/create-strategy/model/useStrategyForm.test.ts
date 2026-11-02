@@ -150,7 +150,7 @@ describe('useStrategyForm submit policy', () => {
     act(() => result.current.setType('VR'))
     expect(result.current.recurringMode).toBe(mode)
     expect(result.current.cannotSubmit).toBe(true)
-    expect(result.current.submitDisabledReason).toContain('금액을 0보다 크게 입력하세요')
+    expect(result.current.submitDisabledReason).toContain('금을 0보다 크게 입력하세요')
 
     act(() => result.current.setVrField('recurringAmount', 250))
     expect(result.current.cannotSubmit).toBe(false)

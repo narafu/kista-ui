@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { UnitInput } from './UnitInput'
 
 function ControlledUnitInput({ maxDecimals }: { maxDecimals?: number } = {}) {
@@ -49,6 +49,30 @@ describe('UnitInput', () => {
     fireEvent.change(input, { target: { value: '87.505' } })
 
     expect(input.value).toBe('87.50')
+  })
+
+  it('strips commas before emitting the value', () => {
+    const onChange = vi.fn()
+    render(<UnitInput value={null} onChange={onChange} unit="USD" disabled={false} ariaLabel="금액" />)
+    fireEvent.change(screen.getByLabelText('금액'), { target: { value: '1,000' } })
+    expect(onChange).toHaveBeenLastCalledWith(1000)
+  })
+
+  it('ignores exponent input', () => {
+    render(<ControlledUnitInput />)
+    const input = screen.getByLabelText('평단가') as HTMLInputElement
+    fireEvent.change(input, { target: { value: '5' } })
+    fireEvent.change(input, { target: { value: '5e-1' } })
+    expect(input.value).toBe('5')
+  })
+
+  it('uses numeric inputmode and rejects a dot when maxDecimals is 0', () => {
+    render(<ControlledUnitInput maxDecimals={0} />)
+    const input = screen.getByLabelText('평단가') as HTMLInputElement
+    expect(input).toHaveAttribute('inputmode', 'numeric')
+    fireEvent.change(input, { target: { value: '5' } })
+    fireEvent.change(input, { target: { value: '5.' } })
+    expect(input.value).toBe('5')
   })
 
   it('lets touch gestures pass through a disabled input to its scroll container', () => {

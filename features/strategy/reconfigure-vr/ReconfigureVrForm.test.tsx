@@ -70,7 +70,7 @@ describe('ReconfigureVrForm', () => {
   it('램프 필드 초깃값을 gradient/poolLimit이 아닌 initialGradient/initialPoolLimitRate에서 채운다', () => {
     render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
     const initialGradientInput = screen.getByLabelText('초기 gradient(G)') as HTMLInputElement
-    const initialPoolLimitRateInput = screen.getByLabelText('초기 poolLimitRate (%)') as HTMLInputElement
+    const initialPoolLimitRateInput = screen.getByLabelText('초기 poolLimitRate') as HTMLInputElement
     expect(initialGradientInput.value).toBe('10')
     // initialPoolLimitRate는 0~1 비율로 저장되지만 화면엔 %로 환산해 표시(0.75 → 75)
     expect(initialPoolLimitRateInput.value).toBe('75')
@@ -175,17 +175,17 @@ describe('ReconfigureVrForm', () => {
 
   it('injectShares가 0보다 클 때만 매수단가 필드를 노출한다', () => {
     render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
-    expect(screen.queryByLabelText('매수단가 (USD)')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('매수단가')).not.toBeInTheDocument()
 
     fireEvent.change(screen.getByLabelText('편입 주식 수'), { target: { value: '10' } })
 
-    expect(screen.getByLabelText('매수단가 (USD)')).toBeInTheDocument()
+    expect(screen.getByLabelText('매수단가')).toBeInTheDocument()
   })
 
   it('추가 예수금은 소수점 둘째 자리까지만 입력되고 제출값에도 그대로 반영된다', async () => {
     const user = userEvent.setup()
     render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
-    const input = screen.getByLabelText('추가 예수금 (USD)') as HTMLInputElement
+    const input = screen.getByLabelText('추가 예수금') as HTMLInputElement
 
     await user.type(input, '123.456')
     expect(input.value).toBe('123.45')
@@ -200,7 +200,7 @@ describe('ReconfigureVrForm', () => {
   it('추가 예수금에 음수를 입력하면(부호가 조용히 사라지지 않고) 검증 에러가 표시되고 제출이 막힌다', async () => {
     const user = userEvent.setup()
     render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
-    const input = screen.getByLabelText('추가 예수금 (USD)') as HTMLInputElement
+    const input = screen.getByLabelText('추가 예수금') as HTMLInputElement
 
     await user.type(input, '-50')
     expect(input.value).toBe('-50')
@@ -215,7 +215,7 @@ describe('ReconfigureVrForm', () => {
   it('인출 주식 수·인출 예수금을 입력하면 제출값에 그대로 반영된다', async () => {
     render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
     fireEvent.change(screen.getByLabelText('인출 주식 수'), { target: { value: '4' } })
-    fireEvent.change(screen.getByLabelText('인출 예수금 (USD)'), { target: { value: '150' } })
+    fireEvent.change(screen.getByLabelText('인출 예수금'), { target: { value: '150' } })
 
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
     fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
@@ -228,7 +228,7 @@ describe('ReconfigureVrForm', () => {
   it('인출 예수금은 소수점 둘째 자리까지만 입력되고 제출값에도 그대로 반영된다', async () => {
     const user = userEvent.setup()
     render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
-    const input = screen.getByLabelText('인출 예수금 (USD)') as HTMLInputElement
+    const input = screen.getByLabelText('인출 예수금') as HTMLInputElement
 
     await user.type(input, '99.999')
     expect(input.value).toBe('99.99')
