@@ -23,9 +23,9 @@ interface Props {
   strategyId: string
 }
 
-// 체결 수량이 있으면 체결/주문 수량, 없으면 주문 수량
+// 체결 수량이 있으면 체결/주문 수량, 없거나 0이면(장중 취소 후 미체결 포함) 주문 수량
 function OrderQuantity({ o }: { o: StrategyOrder }) {
-  if (o.filledQuantity == null) return <>{fmtQuantity(o.quantity)}</>
+  if (!o.filledQuantity) return <>{fmtQuantity(o.quantity)}</>
   return (
     <span>
       <span className="font-medium">{fmtQuantity(o.filledQuantity)}</span>

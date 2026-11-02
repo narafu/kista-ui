@@ -149,4 +149,17 @@ describe('StrategyOrderHistory filters', () => {
     expect(inTable().getByText('$101.00')).toBeInTheDocument()
     expect(inTable().queryByText('$111.00')).not.toBeInTheDocument()
   })
+
+  it('체결 0건으로 취소된 주문은 주문 수량만, 부분 체결 후 취소는 체결/주문 수량을 표시한다', async () => {
+    mockOrders([
+      { id: 'c0', tradeDate: '2026-07-30', direction: 'BUY', orderType: 'LOC', quantity: 5, price: '140', status: 'CANCELLED', filledQuantity: 0, filledPrice: null },
+      { id: 'c3', tradeDate: '2026-07-30', direction: 'BUY', orderType: 'LOC', quantity: 7, price: '150', status: 'CANCELLED', filledQuantity: 3, filledPrice: '149' },
+    ])
+    render(<StrategyOrderHistory strategyId="strategy-1" />)
+    await selectOption('상태', '전체')
+
+    expect(inTable().queryByText('/5')).not.toBeInTheDocument()
+    expect(inTable().getByText('5')).toBeInTheDocument()
+    expect(inTable().getByText('/7')).toBeInTheDocument()
+  }, 15000)
 })
