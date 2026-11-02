@@ -2,7 +2,7 @@ import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
 import { optDec, optNum, optStr } from '@shared/lib/normalize'
 import { buildQueryString } from '@shared/lib/query-string'
-import type { CycleSeedType, DcaCondition, DcaConfigRequest, DcaDirection, DcaExecution, DcaExecutionPage, DcaFrequency, DcaIndicator, DcaOperator, DcaOrderType, DcaRule, DcaShortfallPolicy, DcaSizing, DcaSizingType, DcaWeekday, ReconfigureVrRequest, Strategy, StrategyDcaSummary, StrategyRequest, StrategySeedPreview, StrategyVrSummary } from '../model/types'
+import type { CycleSeedType, DcaCondition, CapitalInjectionRequest, DcaConfigRequest, DcaDirection, DcaExecution, DcaExecutionPage, DcaFrequency, DcaIndicator, DcaOperator, DcaOrderType, DcaRule, DcaShortfallPolicy, DcaSizing, DcaSizingType, DcaWeekday, ReconfigureVrRequest, Strategy, StrategyDcaSummary, StrategyRequest, StrategySeedPreview, StrategyVrSummary } from '../model/types'
 import { WEEKDAY_LABEL } from '../model/dcaFormat'
 import type { PlacedOrder } from '@shared/model/placed-order'
 import { normalizePlacedOrderBase } from '@shared/model/placed-order'
@@ -144,6 +144,11 @@ export async function updateStrategy(id: string, data: Partial<StrategyRequest>,
 
 export async function reconfigureVr(id: string, data: ReconfigureVrRequest, token?: string): Promise<Strategy> {
   const raw = await fetchEither<unknown>(`/api/trading-cycles/${id}/vr-config`, jsonBody('PUT', data), token)
+  return normalizeStrategy(raw)
+}
+
+export async function injectCapital(id: string, data: CapitalInjectionRequest, token?: string): Promise<Strategy> {
+  const raw = await fetchEither<unknown>(`/api/trading-cycles/${id}/capital-injection`, jsonBody('POST', data), token)
   return normalizeStrategy(raw)
 }
 

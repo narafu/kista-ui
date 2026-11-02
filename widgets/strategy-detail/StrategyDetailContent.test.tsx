@@ -99,4 +99,20 @@ describe('StrategyDetailContent', () => {
     expect(screen.getByTestId('dca-detail')).toBeInTheDocument()
     expect(screen.queryByTestId('infinite-detail')).not.toBeInTheDocument()
   })
+
+  it.each([
+    ['INFINITE', true],
+    ['PRIVACY', true],
+    ['VR', false],
+    ['DCA', false],
+  ] as const)('%s 전략의 "자금 추가" 링크 노출은 %s', (type, visible) => {
+    const queryClient = createClient()
+    queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
+    queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, type })
+    render(<QueryClientProvider client={queryClient}>{content()}</QueryClientProvider>)
+
+    const link = screen.queryByRole('link', { name: '자금 추가' })
+    if (visible) expect(link).toHaveAttribute('href', '/accounts/account-1/strategies/strategy-1/inject-capital')
+    else expect(link).not.toBeInTheDocument()
+  })
 })

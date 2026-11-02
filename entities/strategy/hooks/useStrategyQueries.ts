@@ -9,6 +9,7 @@ import {
   createStrategy,
   updateStrategy,
   reconfigureVr,
+  injectCapital,
   reconfigureDca,
   listDcaExecutions,
   deleteStrategy,
@@ -17,7 +18,7 @@ import {
   executeStrategy,
   getStrategySeedPreview,
 } from '../api'
-import type { DcaConfigRequest, DcaExecutionPage, ReconfigureVrRequest, Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
+import type { CapitalInjectionRequest, DcaConfigRequest, DcaExecutionPage, ReconfigureVrRequest, Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
 import { strategyKeys } from '../model/queryKeys'
 import {
   strategyDetailQueryOptions,
@@ -114,6 +115,20 @@ export function useReconfigureVrMutation(strategyId: string, onSuccess?: () => v
       return onSuccess?.()
     },
     onError: (err) => toast.error(apiMsg(err, '재설정에 실패했습니다.')),
+  })
+}
+
+export function useInjectCapitalMutation(strategyId: string, onSuccess?: () => void | Promise<void>) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: CapitalInjectionRequest) => injectCapital(strategyId, data),
+    onSuccess: async (saved) => {
+      toast.success('자금을 추가했습니다')
+      queryClient.setQueryData(strategyKeys.detail(saved.id), saved)
+      await synchronizeStrategyLists(queryClient, saved.accountId, (strategies) => upsertById(strategies, saved))
+      return onSuccess?.()
+    },
+    onError: (err) => toast.error(apiMsg(err, '자금 추가에 실패했습니다.')),
   })
 }
 

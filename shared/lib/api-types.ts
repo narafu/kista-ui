@@ -1856,6 +1856,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/trading-cycles/{id}/capital-injection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 진행 중 사이클 자금 추가 */
+        post: operations["injectCapital"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/accounts": {
         parameters: {
             query?: never;
@@ -2892,6 +2909,24 @@ export interface components {
             quantity?: number;
             /** @description 주문 가격 */
             price?: number;
+        };
+        CapitalInjectionRequest: {
+            /**
+             * @description 추가할 예수금 (USD, null=추가 없음)
+             * @example 500
+             */
+            depositAmount?: number;
+            /**
+             * Format: int32
+             * @description 추가할 주식 수 (null=추가 없음, sharePrice와 함께 지정)
+             * @example 10
+             */
+            shares?: number;
+            /**
+             * @description 추가할 주식의 매수단가 (shares와 함께 지정)
+             * @example 45.5
+             */
+            sharePrice?: number;
         };
         TestConnectionRequest: {
             /**
@@ -8661,6 +8696,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CancelOrdersResponse"];
+                };
+            };
+        };
+    };
+    injectCapital: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CapitalInjectionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TradingCycleResponse"];
                 };
             };
         };

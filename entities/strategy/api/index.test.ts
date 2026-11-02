@@ -204,6 +204,29 @@ describe('reconfigureVr', () => {
     expect(result.startDate).toBe('2026-08-01')
   })
 
+  it('injectCapital은 POST /api/trading-cycles/{id}/capital-injection 로 요청하고 응답을 정규화한다', async () => {
+    const { injectCapital } = await import('./index')
+    fetchEitherMock.mockResolvedValueOnce({
+      id: 'strategy-1',
+      accountId: 'account-1',
+      type: 'INFINITE',
+      status: 'ACTIVE',
+      ticker: 'TQQQ',
+      cycleSeedType: 'NONE',
+      isReverseMode: false,
+      initialUsdDeposit: '1500.00',
+    })
+
+    const result = await injectCapital('strategy-1', { depositAmount: 500, shares: 10, sharePrice: 62.5 })
+
+    expect(fetchEitherMock).toHaveBeenCalledWith(
+      '/api/trading-cycles/strategy-1/capital-injection',
+      { method: 'POST', body: JSON.stringify({ depositAmount: 500, shares: 10, sharePrice: 62.5 }) },
+      undefined,
+    )
+    expect(result.initialUsdDeposit).toBe(1500)
+  })
+
   it('getStrategySeedPreview는 availableCash를 숫자로 정규화하고 없으면 null이다', async () => {
     const { getStrategySeedPreview } = await import('./index')
     fetchEitherMock.mockResolvedValueOnce({ ticker: 'TQQQ', basePrice: '50', minSeed: '1000', skipReason: null, availableCash: '1234.5' })

@@ -110,6 +110,14 @@ export interface StrategySeedPreview {
   availableCash: number | null
 }
 
+// PRIVACY·INFINITE 진행 중 사이클 자금 추가 — POST /api/trading-cycles/{id}/capital-injection 요청 바디.
+// 최소 하나 필수, shares·sharePrice는 함께 보낸다
+export interface CapitalInjectionRequest {
+  depositAmount?: number
+  shares?: number
+  sharePrice?: number
+}
+
 // VR 전략 운영 중 재설정 — PUT /api/trading-cycles/{id}/vr-config 요청 바디, 16필드 전부 optional
 export interface ReconfigureVrRequest {
   bandWidth?: number
