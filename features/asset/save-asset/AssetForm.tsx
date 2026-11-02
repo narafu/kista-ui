@@ -10,6 +10,7 @@ import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { cn } from '@shared/lib/utils'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import { FormActions } from '@shared/ui/FormActions'
+import { InputWithUnit } from '@shared/ui/InputUnitSuffix'
 import { MonthClosedNotice } from '@shared/ui/MonthClosedNotice'
 import { useMeta } from '@entities/meta'
 import {
@@ -201,7 +202,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
 
           <div className="space-y-2">
             <Label htmlFor="amount">금액</Label>
-            <div className="relative">
+            <InputWithUnit unit="원" unitId="amountUnit">
               <Input
                 aria-describedby="amountUnit"
                 id="amount"
@@ -213,8 +214,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
                 disabled={isPending}
                 className="h-11 pr-8 text-right tabular-nums"
               />
-              <span id="amountUnit" aria-hidden className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">원</span>
-            </div>
+            </InputWithUnit>
           </div>
 
           {mode !== 'edit' && canShareToGroup && (

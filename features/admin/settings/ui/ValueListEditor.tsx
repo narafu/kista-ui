@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { IconButton } from '@shared/ui/IconButton'
+import { InputWithUnit } from '@shared/ui/InputUnitSuffix'
 
 type ValueSet<T extends string | number> = {
   allowedValues: T[]
@@ -101,7 +102,7 @@ export function ValueListEditor<T extends string | number>({ id, label, field, e
         </div>
       </div>
       <div className="flex gap-2">
-        <div className="relative flex-1">
+        <InputWithUnit unit={unit ?? ''} unitId={unitId} className="flex-1">
           <Input
             id={`${id}-add`}
             value={raw}
@@ -124,8 +125,7 @@ export function ValueListEditor<T extends string | number>({ id, label, field, e
               }
             }}
           />
-          {unit && <span id={unitId} aria-hidden className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-semibold text-muted-foreground">{unit}</span>}
-        </div>
+        </InputWithUnit>
         <Button type="button" variant="outline" size="icon" className="size-11" aria-label={`${label} 추가 확정`} onClick={addValue}>
           <Plus />
         </Button>

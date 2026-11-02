@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SaveButton } from '@shared/ui/SaveButton'
+import { InputWithUnit } from '@shared/ui/InputUnitSuffix'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { MonthClosedNotice } from '@shared/ui/MonthClosedNotice'
 import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
@@ -141,7 +142,7 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
 
             <div className="space-y-2">
               <Label htmlFor="amount">금액</Label>
-              <div className="relative">
+              <InputWithUnit unit="원" unitId="amountUnit">
                 <Input
                   aria-describedby="amountUnit"
                   id="amount"
@@ -153,8 +154,7 @@ export function TransactionFormDialog({ open, onOpenChange, type, initial, dupli
                   disabled={isPending}
                   className="h-11 pr-8 text-right tabular-nums"
                 />
-                <span id="amountUnit" aria-hidden className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">원</span>
-              </div>
+              </InputWithUnit>
             </div>
 
             <div className="space-y-2">
