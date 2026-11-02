@@ -181,15 +181,38 @@ describe('ReconfigureVrForm', () => {
     expect(mutateMock.mock.calls[0][0].recurringAmount).toBe(-100)
   })
 
-  it('금액 칸을 비우고 제출하면 현재 값을 이어받지 않고 0으로 보낸다', async () => {
+  it('인출 모드에서 금액 칸을 비우면 거치로 바꾸지 않고 오류로 막는다', async () => {
+    // fixture는 recurringAmount: -100 — 초기 모드 WITHDRAW
     render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
     fireEvent.change(screen.getByLabelText('적립금(+)/인출금(-)'), { target: { value: '' } })
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
 
+    expect(await screen.findByText('인출금을 0보다 크게 입력하세요.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '재설정 확정' })).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('적립금(+)/인출금(-)'), { target: { value: '50' } })
+    await waitFor(() => expect(screen.queryByText('인출금을 0보다 크게 입력하세요.')).not.toBeInTheDocument())
+  })
+
+  it('거치에서 적립으로 바꾼 직후엔 오류를 띄우지 않고, 금액 없이 제출하면 적립금 오류로 막는다', async () => {
+    const holdStrategy: ReconfigureVrStrategy = { ...strategy, vr: { ...strategy.vr, recurringAmount: 0 } }
+    render(<ReconfigureVrForm accountId="account-1" strategy={holdStrategy} />)
+    fireEvent.click(screen.getByRole('button', { name: '+ 적립' }))
+    expect(screen.queryByText('적립금을 0보다 크게 입력하세요.')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+    expect(await screen.findByText('적립금을 0보다 크게 입력하세요.')).toBeInTheDocument()
+  })
+
+  it('거치 모드로 바꾸면 0으로 보낸다', async () => {
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    fireEvent.click(screen.getByRole('button', { name: '거치' }))
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
     fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
 
     await waitFor(() => expect(mutateMock).toHaveBeenCalled())
     expect(mutateMock.mock.calls[0][0].recurringAmount).toBe(0)
+    expect(mutateMock.mock.calls[0][0]).not.toHaveProperty('recurringMode')
   })
 
   it('gMax가 initialGradient보다 작으면 확인 다이얼로그를 열지 않는다', async () => {

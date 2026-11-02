@@ -23,7 +23,7 @@ import type { ReconfigureVrRequest } from '@entities/strategy'
 import { createReconfigureVrFormSchema, type ReconfigureVrFormValues } from './model/reconfigureVrFormSchema'
 import type { ReconfigureVrStrategy } from './model/loadStrategyForReconfigure'
 import type { DismissMode } from '@shared/lib/dismiss'
-import { ParamsSection, RampSection, InjectSection, WithdrawSection } from './ReconfigureVrSections'
+import { ParamsSection, RampSection, InjectSection, WithdrawSection, initialRecurringMode } from './ReconfigureVrSections'
 
 interface Props {
   accountId: string
@@ -38,7 +38,7 @@ function toReconfigureVrRequest(values: ReconfigureVrFormValues): ReconfigureVrR
   return {
     bandWidth: values.bandWidth ?? undefined,
     intervalWeeks: values.intervalWeeks ?? undefined,
-    // 입력칸을 비우면 null — 이전 동작대로 0(거치)으로 보낸다(undefined는 서버가 현재 값을 이어받음)
+    // 거치 모드에서 비운 칸(null)은 0 — undefined면 서버가 현재 값을 이어받는다. 적립·인출의 빈 칸은 스키마가 막는다
     recurringAmount: values.recurringAmount ?? 0,
     initialGradient: values.initialGradient ?? undefined,
     gGraceWeeks: values.gGraceWeeks ?? undefined,
@@ -89,6 +89,7 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
       bandWidth: vr.bandWidth,
       intervalWeeks: vr.intervalWeeks,
       recurringAmount: vr.recurringAmount,
+      recurringMode: initialRecurringMode(vr.recurringAmount),
       initialGradient: vr.initialGradient,
       gGraceWeeks: vr.gGraceWeeks,
       gStepWeeks: vr.gStepWeeks,
@@ -111,7 +112,7 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
   // zodResolver는 항상 Promise를 반환하므로 form.handleSubmit()을 거치는 이상
   // 이 콜백은 비동기일 수밖에 없다. 대신 여기서 명시적으로 form.trigger()를 await해
   // reconfigureVrFormSchema의 superRefine 교차 검증(gMax>=initialGradient,
-  // poolLimitFloor<=initialPoolLimitRate, injectShares>0이면 injectSharePrice 필수)을
+  // poolLimitFloor<=initialPoolLimitRate, 적립·인출 금액>0, injectShares>0이면 injectSharePrice 필수)을
   // 통과했을 때만 확인 다이얼로그를 연다 — 검증 실패 시 다이얼로그 자체가 뜨지 않는다.
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()

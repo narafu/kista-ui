@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -26,13 +25,14 @@ function parseOptionalNumber(raw: string): number | undefined {
 // 기존 전략 재설정은 런타임 허용 목록(신규 생성 제약)을 적용하지 않는다 — setting을 생략하면 전부 잠기므로 모두 허용으로 넘긴다
 const ALL_RECURRING_MODES = { customizable: true, allowedValues: ['DEPOSIT', 'HOLD', 'WITHDRAW'] }
 
-function initialRecurringMode(recurringAmount: number): VrRecurringMode {
+export function initialRecurringMode(recurringAmount: number): VrRecurringMode {
   if (recurringAmount > 0) return 'DEPOSIT'
   return recurringAmount < 0 ? 'WITHDRAW' : 'HOLD'
 }
 
 export function ParamsSection({ form, vr, disabled }: SectionProps) {
-  const [recurringMode, setRecurringMode] = useState<VrRecurringMode>(() => initialRecurringMode(vr.recurringAmount))
+  const recurringMode = form.watch('recurringMode') ?? initialRecurringMode(vr.recurringAmount)
+  const recurringError = form.formState.errors.recurringAmount?.message
 
   // 폼 값은 부호 있는 금액, 입력칸은 크기만 다룬다 — 부호는 mode가 결정. 비운 칸(null)은 제출 시 0
   function signed(mode: VrRecurringMode, magnitude: number | null) {
@@ -41,8 +41,11 @@ export function ParamsSection({ form, vr, disabled }: SectionProps) {
   }
 
   function handleRecurringModeChange(mode: VrRecurringMode) {
-    setRecurringMode(mode)
-    form.setValue('recurringAmount', signed(mode, mode === 'HOLD' ? 0 : form.getValues('recurringAmount') ?? null), { shouldValidate: true })
+    form.setValue('recurringMode', mode)
+    // 거치에서 적립으로 막 바꾼 순간(금액 0)엔 오류를 띄우지 않는다 — 이미 떠 있는 오류만 새 모드로 다시 검사
+    form.setValue('recurringAmount', signed(mode, mode === 'HOLD' ? 0 : form.getValues('recurringAmount') ?? null), {
+      shouldValidate: Boolean(form.formState.errors.recurringAmount),
+    })
   }
 
   return (
@@ -65,7 +68,9 @@ export function ParamsSection({ form, vr, disabled }: SectionProps) {
           setAmount={(v) => form.setValue('recurringAmount', signed(recurringMode, v), { shouldValidate: true })}
           disabled={disabled}
           setting={ALL_RECURRING_MODES}
+          errorId={recurringError ? 'recurringAmount-error' : undefined}
         />
+        {recurringError && <p id="recurringAmount-error" className="mt-1 text-sm text-destructive">{recurringError}</p>}
       </section>
   )
 }

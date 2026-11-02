@@ -62,7 +62,7 @@ const RECURRING_MODES: { mode: VrRecurringMode; label: string }[] = [
 
 // amount는 부호 없는 크기로 다룬다 — 부호는 mode가 결정
 export function RecurringModeField({
-  mode, setMode, amount, setAmount, disabled, setting,
+  mode, setMode, amount, setAmount, disabled, setting, errorId,
 }: {
   mode: VrRecurringMode
   setMode: (mode: VrRecurringMode) => void
@@ -70,6 +70,8 @@ export function RecurringModeField({
   setAmount: (value: number | null) => void
   disabled: boolean
   setting?: ChoiceSetting<string>
+  // 바깥에 렌더한 금액 오류 문구 id
+  errorId?: string
 }) {
   function handleModeChange(next: VrRecurringMode) {
     setMode(next)
@@ -100,6 +102,7 @@ export function RecurringModeField({
         placeholder="0"
         wrapperClassName="mt-2.5"
         unitClassName="ml-2"
+        errorId={errorId}
       />
     </div>
   )

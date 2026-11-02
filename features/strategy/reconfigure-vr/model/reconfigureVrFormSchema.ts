@@ -17,6 +17,8 @@ export function createReconfigureVrFormSchema(current?: CurrentVrRamp) {
     bandWidth: z.number().positive().nullable().optional(),
     intervalWeeks: z.number().int().positive().nullable().optional(),
     recurringAmount: z.number().int().nullable().optional(),
+    // 요청 바디에는 없는 화면 상태 — 부호만으로는 "적립을 골랐는데 금액 0"을 거치와 구분할 수 없어 함께 검증한다
+    recurringMode: z.enum(['DEPOSIT', 'HOLD', 'WITHDRAW']).optional(),
     initialGradient: z.number().int().positive().nullable().optional(),
     gGraceWeeks: z.number().int().nonnegative().nullable().optional(),
     gStepWeeks: z.number().int().nonnegative().nullable().optional(),
@@ -47,6 +49,13 @@ export function createReconfigureVrFormSchema(current?: CurrentVrRamp) {
     }
     if (poolLimitFloor === 0 && pStepWeeks !== 0) {
       ctx.addIssue({ code: 'custom', path: ['poolLimitFloor'], message: POOL_LIMIT_FLOOR_ZERO_MESSAGE })
+    }
+    if (data.recurringMode && data.recurringMode !== 'HOLD' && !data.recurringAmount) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['recurringAmount'],
+        message: data.recurringMode === 'DEPOSIT' ? '적립금을 0보다 크게 입력하세요.' : '인출금을 0보다 크게 입력하세요.',
+      })
     }
     if (data.injectShares != null && data.injectShares > 0 && (data.injectSharePrice == null || data.injectSharePrice <= 0)) {
       ctx.addIssue({ code: 'custom', path: ['injectSharePrice'], message: '주식을 편입하려면 매수단가를 입력하세요.' })
