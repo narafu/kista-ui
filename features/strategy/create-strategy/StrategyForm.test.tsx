@@ -47,20 +47,24 @@ vi.mock('./sections/DivisionCountSection', () => ({
 }))
 
 vi.mock('./sections/VrSettingsSection', () => ({
-  VrSettingsSection: () => <div data-testid="vr-settings-section">vr-settings-section</div>,
+  VrSettingsSection: (props: { recurringError?: string }) => (
+    <div data-testid="vr-settings-section">
+      {props.recurringError}
+    </div>
+  ),
 }))
 
 vi.mock('./sections/InitialHoldingsSection', () => ({
   InitialHoldingsSection: (props: unknown) => {
     initialHoldingsSectionMock(props)
-    return <div data-testid="initial-holdings-section">initial-holdings-section</div>
+    return <div data-testid="initial-holdings-section">initial-holdings-section{(props as { error?: string }).error}</div>
   },
 }))
 
 vi.mock('./sections/ScheduledStartSection', () => ({
   ScheduledStartSection: (props: unknown) => {
     scheduledStartSectionMock(props)
-    return <div data-testid="scheduled-start-section">scheduled-start-section</div>
+    return <div data-testid="scheduled-start-section">scheduled-start-section{(props as { error?: string }).error}</div>
   },
 }))
 
@@ -124,6 +128,7 @@ const baseFormState = {
   initializing: false,
   cannotSubmit: false,
   submitDisabledReason: null,
+  submitDisabledField: null,
   handleSubmit: vi.fn((e: React.FormEvent) => e.preventDefault()),
 }
 
@@ -279,12 +284,58 @@ describe('StrategyForm VR settings section', () => {
       ...baseFormState,
       cannotSubmit: true,
       submitDisabledReason: '리밸런싱 주기는 1 이상 정수여야 합니다.',
+      isVr: true,
     })
 
     render(<StrategyForm accountId="account-1" />)
 
     expect(screen.getByText('리밸런싱 주기는 1 이상 정수여야 합니다.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '등록' })).toBeDisabled()
+  })
+
+  it('shows a field reason once, inline only, not at the form bottom', () => {
+    useStrategyFormMock.mockReturnValue({
+      ...baseFormState,
+      cannotSubmit: true,
+      submitDisabledReason: '적립금을 0보다 크게 입력하세요.',
+      isVr: true,
+      submitDisabledField: 'recurring',
+    })
+
+    render(<StrategyForm accountId="account-1" />)
+
+    expect(screen.getAllByText('적립금을 0보다 크게 입력하세요.')).toHaveLength(1)
+    expect(screen.getByTestId('vr-settings-section')).toHaveTextContent('적립금을 0보다 크게 입력하세요.')
+  })
+
+  it.each([
+    ['holdings', 'initial-holdings-section'],
+    ['scheduledStart', 'scheduled-start-section'],
+  ] as const)('shows a %s reason inline only, not at the form bottom', (field, testId) => {
+    useStrategyFormMock.mockReturnValue({
+      ...baseFormState,
+      cannotSubmit: true,
+      submitDisabledReason: '필드 사유입니다.',
+      submitDisabledField: field,
+    })
+
+    render(<StrategyForm accountId="account-1" />)
+
+    expect(screen.getAllByText('필드 사유입니다.', { exact: false })).toHaveLength(1)
+    expect(screen.getByTestId(testId)).toHaveTextContent('필드 사유입니다.')
+  })
+
+  it('shows a reason without a field at the form bottom', () => {
+    useStrategyFormMock.mockReturnValue({
+      ...baseFormState,
+      cannotSubmit: true,
+      submitDisabledReason: '현재 등록 가능한 전략이 없습니다.',
+      submitDisabledField: null,
+    })
+
+    render(<StrategyForm accountId="account-1" />)
+
+    expect(screen.getByText('현재 등록 가능한 전략이 없습니다.')).toBeInTheDocument()
   })
 
   it('shows a resolver validation reason even when the pre-submit guard did not block', () => {

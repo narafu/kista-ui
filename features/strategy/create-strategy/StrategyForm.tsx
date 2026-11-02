@@ -1,5 +1,6 @@
 'use client'
 
+import type { SubmitReasonField } from './model/strategyFormGuards'
 import { FormActions } from '@shared/ui/FormActions'
 import { Button } from '@/components/ui/button'
 import { useMeta } from '@entities/meta'
@@ -101,6 +102,8 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
     )
   }
 
+  const fieldError = (f: SubmitReasonField) => (form.submitDisabledField === f ? form.submitDisabledReason ?? undefined : undefined)
+
   return (
     <form onSubmit={form.handleSubmit}>
       <StrategyTypeSection
@@ -138,6 +141,7 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
           quantity={form.vrFields.quantity}
           setField={form.setVrField}
           loading={form.loading}
+          error={fieldError('holdings')}
         />
       )}
 
@@ -146,6 +150,7 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
           value={form.scheduledStartDate}
           onChange={form.setScheduledStartDate}
           loading={form.loading}
+          error={fieldError('scheduledStart')}
         />
       )}
 
@@ -160,6 +165,7 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
           initialVrValue={initial?.vr?.value ?? 0}
           vrRampDefaults={form.vrRampDefaults}
           settings={form.vrSettings}
+          recurringError={fieldError('recurring')}
         />
       )}
 
@@ -175,7 +181,7 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
         />
       )}
 
-      {form.submitDisabledReason && (
+      {form.submitDisabledReason && !form.submitDisabledField && (
         <p className="text-sm font-semibold text-[var(--warn)] py-3">
           {form.submitDisabledReason}
         </p>

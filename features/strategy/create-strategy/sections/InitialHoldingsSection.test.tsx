@@ -20,6 +20,18 @@ describe('InitialHoldingsSection', () => {
     mockSetField.mockClear()
   })
 
+  it('links the pair error to both inputs', () => {
+    const msg = '평단가를 입력하면 수량은 0보다 커야 합니다.'
+    render(<InitialHoldingsSection {...baseProps} error={msg} />)
+
+    const errorId = screen.getByText(msg).id
+    for (const label of ['평단가', '수량']) {
+      const input = getInputByLabelText(label)
+      expect(input).toHaveAttribute('aria-invalid', 'true')
+      expect(input.getAttribute('aria-describedby')).toContain(errorId)
+    }
+  })
+
   it('parses decimal input for avg price and calls setField', () => {
     render(<InitialHoldingsSection {...baseProps} />)
 

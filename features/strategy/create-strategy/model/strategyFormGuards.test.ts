@@ -3,7 +3,7 @@ import { todayKst } from '@shared/lib/format'
 import type { RuntimeConfig, RuntimeStrategyType } from '@entities/runtime-config'
 import {
   computeCannotSubmit,
-  computeSubmitDisabledReason,
+  computeSubmitDisabled,
   isInvalidBootstrap,
   isInvalidScheduledStart,
   isInvalidVr,
@@ -130,7 +130,7 @@ describe('isRuntimeValueInvalid', () => {
   })
 })
 
-describe('computeCannotSubmit vs computeSubmitDisabledReason non-equivalence', () => {
+describe('computeCannotSubmit vs computeSubmitDisabled non-equivalence', () => {
   const baseGuards = {
     runtimeConfigUnavailable: false,
     isInvalidBootstrap: false,
@@ -147,9 +147,9 @@ describe('computeCannotSubmit vs computeSubmitDisabledReason non-equivalence', (
       basePrice: 100 as number | null, seedUnavailableReason: null as string | null,
     }
     expect(computeCannotSubmit(common)).toBe(false)
-    expect(computeSubmitDisabledReason({
+    expect(computeSubmitDisabled({
       ...common, vrFields: vrFields(), recurringMode: 'HOLD', vrDerived: derive(vrFields(), 'HOLD', 100), minSeed: null,
-    })).toBeNull()
+    })?.message ?? null).toBeNull()
   })
 
   it('a non-VR runtime-invalid value blocks submit yet yields no disabled reason', () => {
@@ -160,15 +160,15 @@ describe('computeCannotSubmit vs computeSubmitDisabledReason non-equivalence', (
     // cannotSubmit ORs in isRuntimeValueInvalid ...
     expect(computeCannotSubmit({ ...common, isRuntimeValueInvalid: true })).toBe(true)
     // ... but the non-VR reason chain never inspects it → reason stays null
-    const reason = computeSubmitDisabledReason({
+    const reason = computeSubmitDisabled({
       ...common, isRuntimeValueInvalid: true,
       vrFields: vrFields(), recurringMode: 'HOLD', vrDerived: derive(vrFields(), 'HOLD', 2000), minSeed: 500,
-    })
+    })?.message ?? null
     expect(reason).toBeNull()
   })
 })
 
-describe('computeSubmitDisabledReason messages', () => {
+describe('computeSubmitDisabled messages', () => {
   const create = {
     initial: undefined, canEditSeed: true, runtimeConfigUnavailable: false,
     isInvalidScheduledStart: false, isRuntimeValueInvalid: false,
@@ -178,15 +178,29 @@ describe('computeSubmitDisabledReason messages', () => {
 
   it('reports the gradient-cap message for VR', () => {
     const f = vrFields({ intervalWeeks: 4, bandWidth: 15, initialGradient: 10, gMax: 5 })
-    expect(computeSubmitDisabledReason({
+    expect(computeSubmitDisabled({
       ...create, isVr: true, vrFields: f, recurringMode: 'HOLD', vrDerived: derive(f, 'HOLD', 2000),
-    })).toBe('gradient 상한은 초기값 이상이어야 합니다.')
+    })?.message ?? null).toBe('gradient 상한은 초기값 이상이어야 합니다.')
   })
 
   it('reports the quantity-integer message before checking VR/seed', () => {
     const f = vrFields({ avgPrice: 45.5, quantity: 10.5 })
-    expect(computeSubmitDisabledReason({
+    expect(computeSubmitDisabled({
       ...create, isVr: false, vrFields: f, recurringMode: 'HOLD', vrDerived: derive(f, 'HOLD', 2000),
-    })).toContain('수량은 정수여야 합니다')
+    })?.message ?? null).toContain('수량은 정수여야 합니다')
+  })
+
+  it('tags field-specific reasons with their input and leaves cross-field reasons untagged', () => {
+    const base = { ...create, isVr: true }
+    const dep = vrFields({ intervalWeeks: 4, bandWidth: 15 })
+    expect(computeSubmitDisabled({
+      ...base, vrFields: dep, recurringMode: 'DEPOSIT', vrDerived: derive(dep, 'DEPOSIT', 2000),
+    })).toEqual({ message: '적립금을 0보다 크게 입력하세요.', field: 'recurring' })
+    const wd = vrFields({ intervalWeeks: 4, bandWidth: 15, recurringAmount: 100000 })
+    const result = computeSubmitDisabled({
+      ...base, vrFields: wd, recurringMode: 'WITHDRAW', vrDerived: derive(wd, 'WITHDRAW', 2000),
+    })
+    expect(result?.message).toContain('인출식은 초기 자산이')
+    expect(result?.field).toBeNull()
   })
 })

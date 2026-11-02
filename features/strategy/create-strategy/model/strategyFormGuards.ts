@@ -111,9 +111,19 @@ export function computeCannotSubmit(input: {
     : runtimeConfigUnavailable || isRuntimeValueInvalid || isInvalidBootstrap || isInvalidScheduledStart || isInvalidVr || isBelowMinSeed || (!isVr && isInvalidSeed) || (!isVr && basePrice === null && seedUnavailableReason === null)
 }
 
+// 제출 불가 사유를 표시할 입력칸 — null이면 폼 하단에 둔다(여러 칸에 걸친 사유, 접힌 고급 설정 안의 밴드 폭·주기·램프)
+export type SubmitReasonField = 'holdings' | 'scheduledStart' | 'recurring'
+
+export interface SubmitDisabled {
+  message: string
+  field: SubmitReasonField | null
+}
+
+const reason = (message: string, field: SubmitReasonField | null = null): SubmitDisabled => ({ message, field })
+
 // submitDisabledReason의 사전 사유(resolver 거부 사유는 호출부에서 ?? 로 이어붙임).
 // 분기 순서는 특정 메시지를 검증하는 테스트에 의해 고정 — 재배열 금지.
-export function computeSubmitDisabledReason(input: {
+export function computeSubmitDisabled(input: {
   initial?: Strategy
   canEditSeed: boolean
   runtimeConfigUnavailable: boolean
@@ -128,7 +138,7 @@ export function computeSubmitDisabledReason(input: {
   minSeed: number | null
   isInvalidSeed: boolean
   basePrice: number | null
-}): string | null {
+}): SubmitDisabled | null {
   const {
     initial, canEditSeed, runtimeConfigUnavailable, isInvalidScheduledStart, isVr, vrFields, recurringMode,
     vrDerived, isRuntimeValueInvalid, seedUnavailableReason, isBelowMinSeed, minSeed, isInvalidSeed, basePrice,
@@ -138,55 +148,53 @@ export function computeSubmitDisabledReason(input: {
   return initial && !canEditSeed
     ? null
     : runtimeConfigUnavailable
-      ? '현재 등록 가능한 전략이 없습니다.'
+      ? reason('현재 등록 가능한 전략이 없습니다.')
       : avgPrice !== null && avgPrice < 0
-      ? '평단가는 0 이상이어야 합니다.'
+      ? reason('평단가는 0 이상이어야 합니다.', 'holdings')
       : quantity !== null && quantity < 0
-      ? '수량은 0 이상이어야 합니다.'
+      ? reason('수량은 0 이상이어야 합니다.', 'holdings')
       : quantity !== null && !Number.isInteger(quantity)
-      ? '수량은 정수여야 합니다.'
+      ? reason('수량은 정수여야 합니다.', 'holdings')
       : quantity !== null && quantity > 0 && (avgPrice === null || avgPrice <= 0)
-      ? '보유 수량을 입력하면 평단가는 0보다 커야 합니다.'
+      ? reason('보유 수량을 입력하면 평단가는 0보다 커야 합니다.', 'holdings')
       : avgPrice !== null && avgPrice > 0 && (quantity === null || quantity <= 0)
-      ? '평단가를 입력하면 수량은 0보다 커야 합니다.'
+      ? reason('평단가를 입력하면 수량은 0보다 커야 합니다.', 'holdings')
       : isInvalidScheduledStart
-      ? '시작예정일은 오늘 이후여야 합니다.'
+      ? reason('시작예정일은 오늘 이후여야 합니다.', 'scheduledStart')
       : isVr
       ? (() => {
           if (intervalWeeks === null || intervalWeeks < 1 || !Number.isInteger(intervalWeeks)) {
-            return '리밸런싱 주기는 1 이상 정수여야 합니다.'
+            return reason('리밸런싱 주기는 1 이상 정수여야 합니다.')
           }
-          if (bandWidth === null || bandWidth <= 0) return '밴드 폭은 0보다 커야 합니다.'
+          if (bandWidth === null || bandWidth <= 0) return reason('밴드 폭은 0보다 커야 합니다.')
           if (recurringAmount !== null && !Number.isInteger(recurringAmount)) {
-            return '적립금(+)/인출금(-)은 정수여야 합니다.'
+            return reason('적립금(+)/인출금(-)은 정수여야 합니다.', 'recurring')
           }
           if (recurringMode !== 'HOLD' && recurringMagnitude <= 0) {
-            return recurringMode === 'DEPOSIT'
-              ? '적립금을 0보다 크게 입력하세요.'
-              : '인출금을 0보다 크게 입력하세요.'
+            return reason(recurringMode === 'DEPOSIT' ? '적립금을 0보다 크게 입력하세요.' : '인출금을 0보다 크게 입력하세요.', 'recurring')
           }
           if (normalizedRecurringAmount <= 0 && initialAssets <= 0) {
             // 등록 모드는 평단가·수량 입력 필드가 있어 "수량"으로 안내, 수정 모드는 해당 입력이 없어 읽기전용 "초기 V값" 문구 유지
-            return initial
+            return reason(initial
               ? '거치식/인출식은 초기 V값 또는 예수금이 0보다 커야 합니다.'
-              : '거치식/인출식은 수량 또는 예수금이 0보다 커야 합니다.'
+              : '거치식/인출식은 수량 또는 예수금이 0보다 커야 합니다.')
           }
           if (normalizedRecurringAmount < 0 && evaluatedAssets < requiredWithdrawalAssets) {
-            return `인출식은 초기 자산이 $${fmtUsd(requiredWithdrawalAssets)} 이상이어야 합니다.`
+            return reason(`인출식은 초기 자산이 $${fmtUsd(requiredWithdrawalAssets)} 이상이어야 합니다.`)
           }
           const rampReason = vrRampInvalidReason({
             gStepWeeks, gMax, pStepWeeks, poolLimitFloor,
             initialGradient: effectiveInitialGradient, initialPoolLimitRate: effectiveInitialPoolLimitRate,
           })
-          if (rampReason) return rampReason
-          if (isRuntimeValueInvalid) return '현재 허용되지 않는 설정이 선택되었습니다.'
+          if (rampReason) return reason(rampReason)
+          if (isRuntimeValueInvalid) return reason('현재 허용되지 않는 설정이 선택되었습니다.')
           return null
         })()
       : (() => {
-          if (seedUnavailableReason === 'NO_PRIVACY_BASE') return 'P 매매표가 없어 등록할 수 없습니다.'
-          if (isBelowMinSeed && minSeed !== null) return `최소 투자금 $${fmtUsd(minSeed)} 이상이 필요합니다.`
-          if (isInvalidSeed) return '예수금은 0보다 커야 합니다.'
-          if (basePrice === null && seedUnavailableReason === null) return '기준 가격을 불러오는 중입니다.'
+          if (seedUnavailableReason === 'NO_PRIVACY_BASE') return reason('P 매매표가 없어 등록할 수 없습니다.')
+          if (isBelowMinSeed && minSeed !== null) return reason(`최소 투자금 $${fmtUsd(minSeed)} 이상이 필요합니다.`)
+          if (isInvalidSeed) return reason('예수금은 0보다 커야 합니다.')
+          if (basePrice === null && seedUnavailableReason === null) return reason('기준 가격을 불러오는 중입니다.')
           return null
         })()
 }

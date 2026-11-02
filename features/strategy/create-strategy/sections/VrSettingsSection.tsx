@@ -29,6 +29,8 @@ interface Props {
     bandWidth?: RuntimeFieldSettings<number>
     intervalWeeks?: RuntimeFieldSettings<number>
   }
+  // 제출 불가 사유를 적립금 입력 아래에 표시
+  recurringError?: string
 }
 
 function VrAdvancedSettings({
@@ -76,9 +78,10 @@ function VrAdvancedSettings({
   )
 }
 
-export function VrSettingsSection({ fields, setField, recurringMode, setRecurringMode, loading, isEdit, initialVrValue, vrRampDefaults, settings }: Props) {
+export function VrSettingsSection({ fields, setField, recurringMode, setRecurringMode, loading, isEdit, initialVrValue, vrRampDefaults, settings, recurringError }: Props) {
   const disabled = loading || isEdit
   const id = useId()
+  const recurringErrorId = recurringError ? `${id}-recurring-error` : undefined
 
   return (
     <div className="py-[18px] border-b border-border">
@@ -99,14 +102,18 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
           </div>
         )}
 
-        <RecurringModeField
-          mode={recurringMode}
-          setMode={setRecurringMode}
-          amount={fields.recurringAmount}
-          setAmount={(value) => setField('recurringAmount', value)}
-          disabled={disabled}
-          setting={settings.recurringMode}
-        />
+        <div>
+          <RecurringModeField
+            mode={recurringMode}
+            setMode={setRecurringMode}
+            amount={fields.recurringAmount}
+            setAmount={(value) => setField('recurringAmount', value)}
+            disabled={disabled}
+            setting={settings.recurringMode}
+            errorId={recurringErrorId}
+          />
+          {recurringError && <p id={recurringErrorId} className="mt-1 text-sm text-[var(--status-error)]">{recurringError}</p>}
+        </div>
       </div>
 
       {!isEdit && (

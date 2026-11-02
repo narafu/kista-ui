@@ -46,6 +46,13 @@ describe('VrSettingsSection', () => {
     mockSetField.mockClear()
   })
 
+  it('links recurringError to the recurring amount input', () => {
+    render(<VrSettingsSection fields={baseFields} {...baseProps} recurringError="적립금을 0보다 크게 입력하세요." />)
+
+    const errorId = screen.getByText('적립금을 0보다 크게 입력하세요.').id
+    expect(getInputByLabelText('적립금(+)/인출금(-)').getAttribute('aria-describedby')).toContain(errorId)
+  })
+
   describe('number parsing', () => {
     it('sets recurring amount sign with deposit and withdrawal toggles', () => {
       const { rerender } = render(

@@ -14,7 +14,7 @@ import { useStrategyFormData } from './useStrategyFormData'
 import { useSeedModel } from './useSeedModel'
 import { computeVrDerived } from './vrDerived'
 import type { VrRecurringMode } from './vrDerived'
-import { isInvalidBootstrap, isInvalidScheduledStart, isInvalidVr, isRuntimeValueInvalid, computeCannotSubmit, computeSubmitDisabledReason } from './strategyFormGuards'
+import { isInvalidBootstrap, isInvalidScheduledStart, isInvalidVr, isRuntimeValueInvalid, computeCannotSubmit, computeSubmitDisabled, type SubmitReasonField } from './strategyFormGuards'
 import { buildStrategyPayload } from './buildStrategyPayload'
 import { useTypeDefaults } from './useTypeDefaults'
 import { buildStrategyFormDefaults, createFormSetters, deriveRuntimeFields, deriveSeedPreview, toCycleSeedType, watchVrFields } from './strategyFormHelpers'
@@ -113,6 +113,7 @@ export interface UseStrategyFormReturn {
   initializing: boolean
   cannotSubmit: boolean
   submitDisabledReason: string | null
+  submitDisabledField: SubmitReasonField | null
   handleSubmit: (e: React.FormEvent) => void
 }
 
@@ -216,7 +217,7 @@ export function useStrategyForm({
     isBelowMinSeed, isVr, isInvalidSeed, basePrice, seedUnavailableReason,
   })
 
-  const preSubmitDisabledReason = computeSubmitDisabledReason({
+  const preSubmitDisabled = computeSubmitDisabled({
     initial, canEditSeed, runtimeConfigUnavailable,
     isInvalidScheduledStart: invalidScheduledStart,
     isVr, vrFields, recurringMode, vrDerived,
@@ -224,7 +225,9 @@ export function useStrategyForm({
     seedUnavailableReason, isBelowMinSeed, minSeed, isInvalidSeed, basePrice,
   })
 
-  const submitDisabledReason = preSubmitDisabledReason ?? resolverValidationReason
+  const submitDisabledReason = preSubmitDisabled?.message ?? resolverValidationReason
+  // 특정 입력칸의 사유면 그 칸 아래에 표시한다(하단은 여러 칸에 걸친 사유·resolver 사유만)
+  const submitDisabledField = preSubmitDisabled?.field ?? null
 
   const cycleSeedType = toCycleSeedType(isVr, autoStart, seedMode)
 
@@ -269,6 +272,7 @@ export function useStrategyForm({
     initializing,
     cannotSubmit,
     submitDisabledReason,
+    submitDisabledField,
     handleSubmit,
   }
 }
