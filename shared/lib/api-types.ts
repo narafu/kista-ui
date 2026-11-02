@@ -1865,7 +1865,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 진행 중 사이클 자금 추가 */
+        /** 진행 중 사이클 투자금 추가 */
         post: operations["injectCapital"];
         delete?: never;
         options?: never;
@@ -2636,7 +2636,7 @@ export interface components {
             /** @description DCA 전략 상세 (DCA 전략만 non-null) */
             dca?: components["schemas"]["DcaResponse"];
             /**
-             * @description 진행 중인 사이클 존재 여부 — false면 사이클 없음 또는 최신 사이클 종료(자금 추가 불가, NO_ACTIVE_CYCLE과 동일 기준)
+             * @description 진행 중인 사이클 존재 여부 — false면 사이클 없음 또는 최신 사이클 종료(투자금 추가 불가, NO_ACTIVE_CYCLE과 동일 기준)
              * @example true
              */
             cycleInProgress?: boolean;
@@ -2791,28 +2791,28 @@ export interface components {
             poolLimitFloor?: number;
             /**
              * Format: int32
-             * @description 자본 주입: 매수단가 편입할 주식 수 (null=주입 없음)
+             * @description 투자금 추가: 매수단가 편입할 주식 수 (null=추가 없음)
              * @example 10
              */
             injectShares?: number;
             /**
-             * @description 자본 주입: 위 주식의 매수단가 (injectShares>0이면 필수)
+             * @description 투자금 추가: 위 주식의 매수단가 (injectShares>0이면 필수)
              * @example 45.5
              */
             injectSharePrice?: number;
             /**
-             * @description 자본 주입: 추가 예수금 (USD, null/0=주입 없음)
+             * @description 투자금 추가: 추가 예수금 (USD, null/0=추가 없음)
              * @example 500
              */
             injectDeposit?: number;
             /**
              * Format: int32
-             * @description 자본 인출: 보유 수량에서 차감할 주식 수 (null=인출 없음, 보유 수량 초과 불가)
+             * @description 투자금 인출: 보유 수량에서 차감할 주식 수 (null=인출 없음, 보유 수량 초과 불가)
              * @example 5
              */
             withdrawShares?: number;
             /**
-             * @description 자본 인출: 예수금 차감액 (USD, null/0=인출 없음, 보유 예수금 초과 불가)
+             * @description 투자금 인출: 예수금 차감액 (USD, null/0=인출 없음, 보유 예수금 초과 불가)
              * @example 200
              */
             withdrawDeposit?: number;
