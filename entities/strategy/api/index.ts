@@ -2,7 +2,7 @@ import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
 import { optDec, optNum, optStr } from '@shared/lib/normalize'
 import { buildQueryString } from '@shared/lib/query-string'
-import type { CycleSeedType, DcaCondition, CapitalInjectionRequest, DcaConfigRequest, DcaDirection, DcaExecution, DcaExecutionPage, DcaFrequency, DcaIndicator, DcaOperator, DcaOrderType, DcaRule, DcaShortfallPolicy, DcaSizing, DcaSizingType, DcaWeekday, ReconfigureVrRequest, Strategy, StrategyDcaSummary, StrategyRequest, StrategySeedPreview, StrategyVrSummary } from '../model/types'
+import type { CycleSeedType, DcaCondition, CapitalInjectionRequest, CapitalWithdrawalRequest, DcaConfigRequest, DcaDirection, DcaExecution, DcaExecutionPage, DcaFrequency, DcaIndicator, DcaOperator, DcaOrderType, DcaRule, DcaShortfallPolicy, DcaSizing, DcaSizingType, DcaWeekday, ReconfigureVrRequest, Strategy, StrategyDcaSummary, StrategyRequest, StrategySeedPreview, StrategyVrSummary } from '../model/types'
 import { WEEKDAY_LABEL } from '../model/dcaFormat'
 import type { PlacedOrder } from '@shared/model/placed-order'
 import { normalizePlacedOrderBase } from '@shared/model/placed-order'
@@ -114,6 +114,7 @@ function normalizeStrategy(raw: unknown): Strategy {
     divisionCount: optNum(s.divisionCount),
     isReverseMode: Boolean(s.isReverseMode),
     cycleInProgress: Boolean(s.cycleInProgress),
+    ledgerUsdDeposit: optDec(s.ledgerUsdDeposit),
     currentRound: optNum(s.currentRound),
     currentHoldings: optNum(s.currentHoldings),
     vr: normalizeVrSummary(s.vr),
@@ -155,6 +156,11 @@ export async function reconfigureVr(id: string, data: ReconfigureVrRequest, toke
 
 export async function injectCapital(id: string, data: CapitalInjectionRequest, token?: string): Promise<Strategy> {
   const raw = await fetchEither<unknown>(`/api/trading-cycles/${id}/capital-injection`, jsonBody('POST', data), token)
+  return normalizeStrategy(raw)
+}
+
+export async function withdrawCapital(id: string, data: CapitalWithdrawalRequest, token?: string): Promise<Strategy> {
+  const raw = await fetchEither<unknown>(`/api/trading-cycles/${id}/capital-withdrawal`, jsonBody('POST', data), token)
   return normalizeStrategy(raw)
 }
 

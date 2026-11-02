@@ -18,6 +18,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { FormActions } from '@shared/ui/FormActions'
 import { UnitInput } from '@shared/ui/UnitInput'
+import { fmtUsd } from '@shared/lib/format'
 import { orderKeys } from '@entities/order'
 import { useInjectCapitalMutation } from '@entities/strategy'
 import type { CapitalInjectionRequest, Strategy } from '@entities/strategy'
@@ -43,8 +44,6 @@ function toRequest(values: InjectCapitalFormValues): CapitalInjectionRequest {
 type FieldName = keyof InjectCapitalFormValues
 // 포커스 이동 순서(등록 순서)와 교차 재검증 대상
 const FIELD_NAMES: FieldName[] = ['depositAmount', 'shares', 'sharePrice']
-
-const usd = (n: number) => `$${n.toLocaleString('en-US', { maximumFractionDigits: 2 })}`
 
 export function InjectCapitalForm({ accountId, strategy, dismiss = 'push' }: Props) {
   const router = useRouter()
@@ -91,8 +90,8 @@ export function InjectCapitalForm({ accountId, strategy, dismiss = 'push' }: Pro
   )
 
   const summary = [
-    depositAmount ? `예수금 ${usd(depositAmount)}` : null,
-    shares && sharePrice ? `${strategy.ticker} ${shares.toLocaleString('en-US')}주(매수단가 ${usd(sharePrice)})` : null,
+    depositAmount ? `예수금 $${fmtUsd(depositAmount)}` : null,
+    shares && sharePrice ? `${strategy.ticker} ${shares.toLocaleString('en-US')}주(매수단가 $${fmtUsd(sharePrice)})` : null,
   ].filter(Boolean).join(', ')
 
   const effectCaption = strategy.type === 'INFINITE'

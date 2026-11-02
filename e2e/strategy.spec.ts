@@ -51,10 +51,28 @@ test.describe('전략 (USER)', () => {
     await expect(page.getByText('투자금을 추가하시겠습니까?')).toHaveCount(0)
   })
 
+  test('투자금 인출 폼은 칸 아래에 오류를 보이고 확인 다이얼로그에서 취소할 수 있다', async ({ page }) => {
+    // 실제 데이터가 있는 로컬 DB라 최종 "인출 확정"은 절대 누르지 않는다
+    const { seed } = await import('../scripts/shared/seed.mjs')
+    await page.goto(`/accounts/${seed.infinite.accountId}/strategies/${seed.infinite.strategyId}`)
+    await page.getByRole('link', { name: '투자금 인출' }).click()
+    await expect(page.getByRole('heading', { name: '투자금 인출' })).toBeVisible()
+
+    await page.getByRole('button', { name: '인출', exact: true }).click()
+    await expect(page.getByText('인출할 예수금을 입력하세요.')).toBeVisible()
+
+    await page.getByLabel('인출 예수금').fill('0.01')
+    await page.getByRole('button', { name: '인출', exact: true }).click()
+    await expect(page.getByText('투자금을 인출하시겠습니까?')).toBeVisible()
+    await page.getByRole('button', { name: '취소' }).click()
+    await expect(page.getByText('투자금을 인출하시겠습니까?')).toHaveCount(0)
+  })
+
   test('VR 전략 상세에는 투자금 추가 링크가 없다', async ({ page }) => {
     const { seed } = await import('../scripts/shared/seed.mjs')
     await page.goto(`/accounts/${seed.vr.accountId}/strategies/${seed.vr.strategyId}`)
     await expect(page.getByRole('link', { name: 'VR 재설정' })).toBeVisible()
     await expect(page.getByRole('link', { name: '투자금 추가' })).toHaveCount(0)
+    await expect(page.getByRole('link', { name: '투자금 인출' })).toHaveCount(0)
   })
 })

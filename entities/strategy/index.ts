@@ -4,7 +4,7 @@ export { DcaRuleSummaryLabel } from './ui/DcaRuleSummaryLabel'
 export { strategyKeys } from './model/queryKeys'
 export { seedBadgeClass, strategyStatusAccent, strategyTypeShort } from './model/badges'
 export { isScheduledStart, scheduledStartBadgeLabel } from './model/scheduled-start'
-export { supportsCapitalInjection } from './model/capitalInjection'
+export { supportsCapitalAdjustment, canWithdrawCapital, floorToCents } from './model/capitalAdjustment'
 export { nextVrRolloverDate } from './model/vr-rollover'
 export { POOL_LIMIT_FLOOR_ZERO_MESSAGE, vrRampInvalidReason } from './model/poolLimitRamp'
 export {
@@ -19,6 +19,7 @@ export {
   useUpdateStrategyMutation,
   useReconfigureVrMutation,
   useInjectCapitalMutation,
+  useWithdrawCapitalMutation,
   useReconfigureDcaMutation,
   useDcaExecutionsQuery,
   useDeleteStrategyMutation,

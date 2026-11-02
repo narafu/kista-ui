@@ -125,4 +125,43 @@ describe('StrategyDetailContent', () => {
 
     expect(screen.queryByRole('link', { name: '투자금 추가' })).not.toBeInTheDocument()
   })
+
+  it.each([
+    ['INFINITE', true],
+    ['PRIVACY', true],
+    ['VR', false],
+    ['DCA', false],
+  ] as const)('%s 전략의 "투자금 인출" 링크 노출은 %s', (type, visible) => {
+    const queryClient = createClient()
+    queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
+    queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, type })
+    render(<QueryClientProvider client={queryClient}>{content()}</QueryClientProvider>)
+
+    const link = screen.queryByRole('link', { name: '투자금 인출' })
+    if (visible) expect(link).toHaveAttribute('href', '/accounts/account-1/strategies/strategy-1/withdraw-capital')
+    else expect(link).not.toBeInTheDocument()
+  })
+
+  it('진행 중 사이클이 없으면 "투자금 인출" 링크를 숨긴다', () => {
+    const queryClient = createClient()
+    queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
+    queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, cycleInProgress: false })
+    render(<QueryClientProvider client={queryClient}>{content()}</QueryClientProvider>)
+
+    expect(screen.queryByRole('link', { name: '투자금 인출' })).not.toBeInTheDocument()
+  })
+
+  it.each([
+    [0.009, false],
+    [0, false],
+    [0.01, true],
+    [undefined, true],
+  ] as const)('장부 예수금 %s이면 "투자금 인출" 링크 노출은 %s', (ledgerUsdDeposit, visible) => {
+    const queryClient = createClient()
+    queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
+    queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, ledgerUsdDeposit })
+    render(<QueryClientProvider client={queryClient}>{content()}</QueryClientProvider>)
+
+    expect(!!screen.queryByRole('link', { name: '투자금 인출' })).toBe(visible)
+  })
 })

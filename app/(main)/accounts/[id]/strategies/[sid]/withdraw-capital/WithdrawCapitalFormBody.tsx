@@ -1,0 +1,28 @@
+import { notFound } from 'next/navigation'
+import { PageHeader } from '@widgets/page-header'
+import { canWithdrawCapital, findStrategy } from '@entities/strategy'
+import { WithdrawCapitalForm } from '@features/strategy/withdraw-capital'
+import { requirePageToken } from '@shared/lib/auth/token'
+import type { DismissMode } from '@shared/lib/dismiss'
+
+interface Props {
+  params: Promise<{ id: string; sid: string }>
+  // 'push'(기본): 일반 페이지 라우트. 'back': 인터셉팅 라우트(@modal)
+  dismiss?: DismissMode
+}
+
+export async function WithdrawCapitalFormBody({ params, dismiss }: Props) {
+  const { params: { id, sid }, token } = await requirePageToken(params)
+
+  const strategy = await findStrategy(id, sid, token)
+  if (!strategy || !canWithdrawCapital(strategy)) {
+    return notFound()
+  }
+
+  return (
+    <>
+      <PageHeader eyebrow={strategy.ticker} eyebrowHref={`/accounts/${id}/strategies/${sid}`} title="투자금 인출" description="진행 중인 사이클에서 예수금을 인출" />
+      <WithdrawCapitalForm accountId={id} strategy={strategy} dismiss={dismiss} />
+    </>
+  )
+}

@@ -1856,6 +1856,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/trading-cycles/{id}/capital-withdrawal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 진행 중 사이클 투자금 인출 */
+        post: operations["withdrawCapital"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/trading-cycles/{id}/capital-injection": {
         parameters: {
             query?: never;
@@ -2640,6 +2657,11 @@ export interface components {
              * @example true
              */
             cycleInProgress?: boolean;
+            /**
+             * @description 최신 포지션 장부 예수금 (USD, 포지션 없으면 null) — 투자금 인출 최대 기준(체결 전 매수 주문 금액은 인출 시 추가로 제외)
+             * @example 1500
+             */
+            ledgerUsdDeposit?: number;
             /** @description 등록 응답 전용 — 오늘 시작인데 오늘 개장 배치(22:00 KST, 월~금) 이후 등록돼 오늘 밤 장 시작 주문(INFINITE 매도·VR 사다리)이 자동 생성되지 않으면 true(PRIVACY는 항상 false, 미국 휴장일엔 거짓 양성 가능). 등록 외 응답에선 생략 */
             todayOpenBatchMissed?: boolean;
         };
@@ -2914,6 +2936,13 @@ export interface components {
             quantity?: number;
             /** @description 주문 가격 */
             price?: number;
+        };
+        CapitalWithdrawalRequest: {
+            /**
+             * @description 인출할 예수금 (USD, 0보다 커야 함)
+             * @example 500
+             */
+            amount: number;
         };
         CapitalInjectionRequest: {
             /**
@@ -8701,6 +8730,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CancelOrdersResponse"];
+                };
+            };
+        };
+    };
+    withdrawCapital: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CapitalWithdrawalRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TradingCycleResponse"];
                 };
             };
         };

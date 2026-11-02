@@ -3,7 +3,7 @@
 import Link from 'next/link'
 
 import { useAccountDetailQuery } from '@entities/account'
-import { supportsCapitalInjection, useStrategyDetailQuery } from '@entities/strategy'
+import { canWithdrawCapital, supportsCapitalAdjustment, useStrategyDetailQuery } from '@entities/strategy'
 import { PageHeader } from '@widgets/page-header'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { cn } from '@shared/lib/utils'
@@ -48,13 +48,23 @@ export function StrategyDetailContent({
                 VR 재설정
               </Link>
             )}
-            {supportsCapitalInjection(strategy) && (
-              <Link
-                href={`/accounts/${accountId}/strategies/${strategyId}/inject-capital`}
-                className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}
-              >
-                투자금 추가
-              </Link>
+            {supportsCapitalAdjustment(strategy) && (
+              <>
+                <Link
+                  href={`/accounts/${accountId}/strategies/${strategyId}/inject-capital`}
+                  className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}
+                >
+                  투자금 추가
+                </Link>
+                {canWithdrawCapital(strategy) && (
+                  <Link
+                    href={`/accounts/${accountId}/strategies/${strategyId}/withdraw-capital`}
+                    className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}
+                  >
+                    투자금 인출
+                  </Link>
+                )}
+              </>
             )}
             <Link
               href={`/accounts/${accountId}/strategies/${strategyId}/edit`}

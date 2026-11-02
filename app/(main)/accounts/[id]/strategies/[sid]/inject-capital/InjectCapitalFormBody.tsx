@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { PageHeader } from '@widgets/page-header'
-import { findStrategy, supportsCapitalInjection } from '@entities/strategy'
+import { findStrategy, supportsCapitalAdjustment } from '@entities/strategy'
 import { InjectCapitalForm } from '@features/strategy/inject-capital'
 import { requirePageToken } from '@shared/lib/auth/token'
 import type { DismissMode } from '@shared/lib/dismiss'
@@ -15,7 +15,7 @@ export async function InjectCapitalFormBody({ params, dismiss }: Props) {
   const { params: { id, sid }, token } = await requirePageToken(params)
 
   const strategy = await findStrategy(id, sid, token)
-  if (!strategy || !supportsCapitalInjection(strategy)) {
+  if (!strategy || !supportsCapitalAdjustment(strategy)) {
     return notFound()
   }
 

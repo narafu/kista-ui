@@ -10,6 +10,7 @@ import {
   updateStrategy,
   reconfigureVr,
   injectCapital,
+  withdrawCapital,
   reconfigureDca,
   listDcaExecutions,
   deleteStrategy,
@@ -18,7 +19,7 @@ import {
   executeStrategy,
   getStrategySeedPreview,
 } from '../api'
-import type { CapitalInjectionRequest, DcaConfigRequest, DcaExecutionPage, ReconfigureVrRequest, Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
+import type { CapitalInjectionRequest, CapitalWithdrawalRequest, DcaConfigRequest, DcaExecutionPage, ReconfigureVrRequest, Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
 import { strategyKeys } from '../model/queryKeys'
 import {
   strategyDetailQueryOptions,
@@ -45,6 +46,26 @@ async function synchronizeStrategyLists(
     ],
     update,
   )
+}
+
+// 저장 응답(Strategy)으로 상세·목록 캐시를 갱신하는 공통 mutation — 성공 토스트가 없으면 successMessage 생략
+function useStrategySaveMutation<TVars>({ mutationFn, successMessage, errorMessage, onSuccess }: {
+  mutationFn: (data: TVars) => Promise<Strategy>
+  successMessage?: string
+  errorMessage: string
+  onSuccess?: () => void | Promise<void>
+}) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn,
+    onSuccess: async (saved) => {
+      if (successMessage) toast.success(successMessage)
+      queryClient.setQueryData(strategyKeys.detail(saved.id), saved)
+      await synchronizeStrategyLists(queryClient, saved.accountId, (strategies) => upsertById(strategies, saved))
+      return onSuccess?.()
+    },
+    onError: (err) => toast.error(apiMsg(err, errorMessage)),
+  })
 }
 
 function updateStrategyStatus(strategies: Strategy[], id: string, status: string) {
@@ -92,56 +113,45 @@ export function useCreateStrategyMutation(accountId: string, onSuccess?: (saved:
 }
 
 export function useUpdateStrategyMutation(strategyId: string, onSuccess?: () => void | Promise<void>) {
-  const queryClient = useQueryClient()
-  return useMutation({
+  return useStrategySaveMutation({
     mutationFn: (data: Partial<StrategyRequest>) => updateStrategy(strategyId, data),
-    onSuccess: async (saved) => {
-      queryClient.setQueryData(strategyKeys.detail(saved.id), saved)
-      await synchronizeStrategyLists(queryClient, saved.accountId, (strategies) => upsertById(strategies, saved))
-      return onSuccess?.()
-    },
-    onError: (err) => toast.error(apiMsg(err, '저장에 실패했습니다.')),
+    errorMessage: '저장에 실패했습니다.',
+    onSuccess,
   })
 }
 
 export function useReconfigureVrMutation(strategyId: string, onSuccess?: () => void | Promise<void>) {
-  const queryClient = useQueryClient()
-  return useMutation({
+  return useStrategySaveMutation({
     mutationFn: (data: ReconfigureVrRequest) => reconfigureVr(strategyId, data),
-    onSuccess: async (saved) => {
-      toast.success('VR 전략이 재설정되었습니다')
-      queryClient.setQueryData(strategyKeys.detail(saved.id), saved)
-      await synchronizeStrategyLists(queryClient, saved.accountId, (strategies) => upsertById(strategies, saved))
-      return onSuccess?.()
-    },
-    onError: (err) => toast.error(apiMsg(err, '재설정에 실패했습니다.')),
+    successMessage: 'VR 전략이 재설정되었습니다',
+    errorMessage: '재설정에 실패했습니다.',
+    onSuccess,
   })
 }
 
 export function useInjectCapitalMutation(strategyId: string, onSuccess?: () => void | Promise<void>) {
-  const queryClient = useQueryClient()
-  return useMutation({
+  return useStrategySaveMutation({
     mutationFn: (data: CapitalInjectionRequest) => injectCapital(strategyId, data),
-    onSuccess: async (saved) => {
-      toast.success('투자금을 추가했습니다')
-      queryClient.setQueryData(strategyKeys.detail(saved.id), saved)
-      await synchronizeStrategyLists(queryClient, saved.accountId, (strategies) => upsertById(strategies, saved))
-      return onSuccess?.()
-    },
-    onError: (err) => toast.error(apiMsg(err, '투자금 추가에 실패했습니다.')),
+    successMessage: '투자금을 추가했습니다',
+    errorMessage: '투자금 추가에 실패했습니다.',
+    onSuccess,
+  })
+}
+
+export function useWithdrawCapitalMutation(strategyId: string, onSuccess?: () => void | Promise<void>) {
+  return useStrategySaveMutation({
+    mutationFn: (data: CapitalWithdrawalRequest) => withdrawCapital(strategyId, data),
+    successMessage: '투자금을 인출했습니다',
+    errorMessage: '투자금 인출에 실패했습니다.',
+    onSuccess,
   })
 }
 
 export function useReconfigureDcaMutation(strategyId: string, onSuccess?: () => void | Promise<void>) {
-  const queryClient = useQueryClient()
-  return useMutation({
+  return useStrategySaveMutation({
     mutationFn: (data: DcaConfigRequest) => reconfigureDca(strategyId, data),
-    onSuccess: async (saved) => {
-      queryClient.setQueryData(strategyKeys.detail(saved.id), saved)
-      await synchronizeStrategyLists(queryClient, saved.accountId, (strategies) => upsertById(strategies, saved))
-      return onSuccess?.()
-    },
-    onError: (err) => toast.error(apiMsg(err, '저장에 실패했습니다.')),
+    errorMessage: '저장에 실패했습니다.',
+    onSuccess,
   })
 }
 
