@@ -38,7 +38,8 @@ function toReconfigureVrRequest(values: ReconfigureVrFormValues): ReconfigureVrR
   return {
     bandWidth: values.bandWidth ?? undefined,
     intervalWeeks: values.intervalWeeks ?? undefined,
-    recurringAmount: values.recurringAmount ?? undefined,
+    // 입력칸을 비우면 null — 이전 동작대로 0(거치)으로 보낸다(undefined는 서버가 현재 값을 이어받음)
+    recurringAmount: values.recurringAmount ?? 0,
     initialGradient: values.initialGradient ?? undefined,
     gGraceWeeks: values.gGraceWeeks ?? undefined,
     gStepWeeks: values.gStepWeeks ?? undefined,

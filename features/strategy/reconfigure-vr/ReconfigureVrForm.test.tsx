@@ -181,6 +181,17 @@ describe('ReconfigureVrForm', () => {
     expect(mutateMock.mock.calls[0][0].recurringAmount).toBe(-100)
   })
 
+  it('금액 칸을 비우고 제출하면 현재 값을 이어받지 않고 0으로 보낸다', async () => {
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    fireEvent.change(screen.getByLabelText('적립금(+)/인출금(-)'), { target: { value: '' } })
+
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+    fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
+
+    await waitFor(() => expect(mutateMock).toHaveBeenCalled())
+    expect(mutateMock.mock.calls[0][0].recurringAmount).toBe(0)
+  })
+
   it('gMax가 initialGradient보다 작으면 확인 다이얼로그를 열지 않는다', async () => {
     render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
     fireEvent.change(screen.getByLabelText('gradient 상한'), { target: { value: '5' } }) // initialGradient=10보다 작음

@@ -4,10 +4,8 @@ import { useState } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { SelectionCard } from '@shared/ui/selection-card'
-import { cn } from '@shared/lib/utils'
 import { UnitInput } from '@shared/ui/UnitInput'
-import { VrRampFields, type VrRampValues } from '@entities/strategy'
+import { RecurringModeField, VrRampFields, type VrRampValues, type VrRecurringMode } from '@entities/strategy'
 import type { ReconfigureVrFormValues } from './model/reconfigureVrFormSchema'
 import type { ReconfigureVrStrategy } from './model/loadStrategyForReconfigure'
 
@@ -17,8 +15,6 @@ interface SectionProps {
   disabled: boolean
 }
 
-type RecurringMode = 'DEPOSIT' | 'HOLD' | 'WITHDRAW'
-
 const toUndef = (v: number | null) => v ?? undefined
 
 function parseOptionalNumber(raw: string): number | undefined {
@@ -27,47 +23,26 @@ function parseOptionalNumber(raw: string): number | undefined {
   return Number.isFinite(n) ? n : undefined
 }
 
-function ModeButton({
-  children,
-  selected,
-  disabled,
-  onClick,
-}: {
-  children: React.ReactNode
-  selected: boolean
-  disabled: boolean
-  onClick: () => void
-}) {
-  return (
-    <SelectionCard
-      selected={selected}
-      disabled={disabled}
-      onClick={onClick}
-      className={cn('h-11 px-3 text-center text-sm font-extrabold', !selected && 'text-muted-foreground')}
-    >
-      {children}
-    </SelectionCard>
-  )
-}
+// 기존 전략 재설정은 런타임 허용 목록(신규 생성 제약)을 적용하지 않는다 — setting을 생략하면 전부 잠기므로 모두 허용으로 넘긴다
+const ALL_RECURRING_MODES = { customizable: true, allowedValues: ['DEPOSIT', 'HOLD', 'WITHDRAW'] }
 
-function initialRecurringMode(recurringAmount: number): RecurringMode {
+function initialRecurringMode(recurringAmount: number): VrRecurringMode {
   if (recurringAmount > 0) return 'DEPOSIT'
   return recurringAmount < 0 ? 'WITHDRAW' : 'HOLD'
 }
 
 export function ParamsSection({ form, vr, disabled }: SectionProps) {
-  const [recurringMode, setRecurringMode] = useState<RecurringMode>(() => initialRecurringMode(vr.recurringAmount))
-  const recurringAmountAbs = Math.abs(form.watch('recurringAmount') ?? 0)
+  const [recurringMode, setRecurringMode] = useState<VrRecurringMode>(() => initialRecurringMode(vr.recurringAmount))
 
-  function handleRecurringModeChange(mode: RecurringMode) {
-    setRecurringMode(mode)
-    const abs = Math.abs(form.getValues('recurringAmount') ?? 0)
-    form.setValue('recurringAmount', mode === 'WITHDRAW' ? -abs : mode === 'DEPOSIT' ? abs : 0, { shouldValidate: true })
+  // 폼 값은 부호 있는 금액, 입력칸은 크기만 다룬다 — 부호는 mode가 결정. 비운 칸(null)은 제출 시 0
+  function signed(mode: VrRecurringMode, magnitude: number | null) {
+    if (magnitude === null || magnitude === 0) return magnitude
+    return mode === 'WITHDRAW' ? -Math.abs(magnitude) : mode === 'DEPOSIT' ? Math.abs(magnitude) : 0
   }
 
-  function handleRecurringAmountChange(raw: string) {
-    const magnitude = raw.trim() === '' ? 0 : Math.abs(Number(raw))
-    form.setValue('recurringAmount', recurringMode === 'WITHDRAW' ? -magnitude : magnitude, { shouldValidate: true })
+  function handleRecurringModeChange(mode: VrRecurringMode) {
+    setRecurringMode(mode)
+    form.setValue('recurringAmount', signed(mode, mode === 'HOLD' ? 0 : form.getValues('recurringAmount') ?? null), { shouldValidate: true })
   }
 
   return (
@@ -83,23 +58,14 @@ export function ParamsSection({ form, vr, disabled }: SectionProps) {
           <UnitInput id="intervalWeeks" maxDecimals={0} unit="주" disabled={disabled} value={form.watch('intervalWeeks') ?? null}
             onChange={(v) => form.setValue('intervalWeeks', toUndef(v), { shouldValidate: true })} />
         </div>
-        <div className="space-y-2">
-          <Label>적립금(+)/인출금(-)</Label>
-          <div className="grid grid-cols-3 gap-2">
-            <ModeButton selected={recurringMode === 'DEPOSIT'} disabled={disabled} onClick={() => handleRecurringModeChange('DEPOSIT')}>+ 적립</ModeButton>
-            <ModeButton selected={recurringMode === 'HOLD'} disabled={disabled} onClick={() => handleRecurringModeChange('HOLD')}>거치</ModeButton>
-            <ModeButton selected={recurringMode === 'WITHDRAW'} disabled={disabled} onClick={() => handleRecurringModeChange('WITHDRAW')}>- 인출</ModeButton>
-          </div>
-          <Input
-            key={recurringMode}
-            type="text"
-            inputMode="decimal"
-            aria-label="적립금(+)/인출금(-)"
-            disabled={disabled || recurringMode === 'HOLD'}
-            defaultValue={recurringAmountAbs || ''}
-            onChange={(e) => handleRecurringAmountChange(e.target.value)}
-          />
-        </div>
+        <RecurringModeField
+          mode={recurringMode}
+          setMode={handleRecurringModeChange}
+          amount={form.watch('recurringAmount') ?? null}
+          setAmount={(v) => form.setValue('recurringAmount', signed(recurringMode, v), { shouldValidate: true })}
+          disabled={disabled}
+          setting={ALL_RECURRING_MODES}
+        />
       </section>
   )
 }
