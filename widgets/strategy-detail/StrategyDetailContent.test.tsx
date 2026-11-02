@@ -30,6 +30,7 @@ const serverStrategy: Strategy = {
   initialUsdDeposit: 1000,
   divisionCount: 20,
   isReverseMode: false,
+  cycleInProgress: true,
 }
 
 function createClient() {
@@ -105,14 +106,23 @@ describe('StrategyDetailContent', () => {
     ['PRIVACY', true],
     ['VR', false],
     ['DCA', false],
-  ] as const)('%s 전략의 "자금 추가" 링크 노출은 %s', (type, visible) => {
+  ] as const)('%s 전략의 "투자금 추가" 링크 노출은 %s', (type, visible) => {
     const queryClient = createClient()
     queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
     queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, type })
     render(<QueryClientProvider client={queryClient}>{content()}</QueryClientProvider>)
 
-    const link = screen.queryByRole('link', { name: '자금 추가' })
+    const link = screen.queryByRole('link', { name: '투자금 추가' })
     if (visible) expect(link).toHaveAttribute('href', '/accounts/account-1/strategies/strategy-1/inject-capital')
     else expect(link).not.toBeInTheDocument()
+  })
+
+  it('INFINITE 전략도 진행 중 사이클이 없으면 "투자금 추가" 링크를 숨긴다', () => {
+    const queryClient = createClient()
+    queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
+    queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, cycleInProgress: false })
+    render(<QueryClientProvider client={queryClient}>{content()}</QueryClientProvider>)
+
+    expect(screen.queryByRole('link', { name: '투자금 추가' })).not.toBeInTheDocument()
   })
 })

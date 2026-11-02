@@ -49,6 +49,7 @@ const baseStrategy: Strategy = {
   initialUsdDeposit: 1000,
   divisionCount: 20,
   isReverseMode: false,
+  cycleInProgress: true,
 }
 
 describe('AccountCard', () => {

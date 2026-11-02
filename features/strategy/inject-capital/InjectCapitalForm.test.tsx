@@ -34,6 +34,7 @@ const strategy: Strategy = {
   ticker: 'TQQQ',
   cycleSeedType: 'NONE',
   isReverseMode: false,
+  cycleInProgress: true,
 }
 
 function type(label: string, value: string) {
@@ -60,7 +61,7 @@ describe('InjectCapitalForm', () => {
     render(<InjectCapitalForm accountId="account-1" strategy={strategy} />)
     fireEvent.click(screen.getByRole('button', { name: '추가' }))
     expect(await screen.findByText('추가할 예수금이나 편입할 주식을 입력하세요.')).toBeInTheDocument()
-    expect(screen.queryByText('자금을 추가하시겠습니까?')).not.toBeInTheDocument()
+    expect(screen.queryByText('투자금을 추가하시겠습니까?')).not.toBeInTheDocument()
   })
 
   it('수량만 입력하면 매수단가 칸 아래에 오류를 보인다', async () => {
@@ -97,7 +98,7 @@ describe('InjectCapitalForm', () => {
     type('편입 주식 수', '10')
     type('매수단가', '62.5')
     fireEvent.click(screen.getByRole('button', { name: '추가' }))
-    expect(await screen.findByText('자금을 추가하시겠습니까?')).toBeInTheDocument()
+    expect(await screen.findByText('투자금을 추가하시겠습니까?')).toBeInTheDocument()
     expect(mutateMock).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole('button', { name: '추가 확정' }))
     expect(mutateMock).toHaveBeenCalledWith({ depositAmount: 500, shares: 10, sharePrice: 62.5 })

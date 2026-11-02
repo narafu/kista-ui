@@ -121,7 +121,7 @@ export function InjectCapitalForm({ accountId, strategy, dismiss = 'push' }: Pro
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent size="sm">
           <AlertDialogHeader>
-            <AlertDialogTitle>자금을 추가하시겠습니까?</AlertDialogTitle>
+            <AlertDialogTitle>투자금을 추가하시겠습니까?</AlertDialogTitle>
             <AlertDialogDescription>
               {summary}을(를) 진행 중인 사이클에 추가합니다. 다음 거래일 주문부터 반영되며, 이 작업은 되돌릴 수 없습니다.
             </AlertDialogDescription>

@@ -53,7 +53,7 @@ export function StrategyDetailContent({
                 href={`/accounts/${accountId}/strategies/${strategyId}/inject-capital`}
                 className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}
               >
-                자금 추가
+                투자금 추가
               </Link>
             )}
             <Link

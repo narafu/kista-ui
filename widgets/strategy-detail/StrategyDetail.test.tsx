@@ -151,6 +151,7 @@ const baseStrategy: Strategy = {
   initialUsdDeposit: 1200,
   divisionCount: 20,
   isReverseMode: false,
+  cycleInProgress: true,
   currentRound: 0,
 }
 

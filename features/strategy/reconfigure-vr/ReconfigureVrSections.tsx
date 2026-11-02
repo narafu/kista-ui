@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { UnitInput } from '@shared/ui/UnitInput'
 import { RecurringModeField, VrRampFields, type VrRampValues, type VrRecurringMode } from '@entities/strategy'
 import type { ReconfigureVrFormValues } from './model/reconfigureVrFormSchema'
-import type { ReconfigureVrStrategy } from './model/loadStrategyForReconfigure'
+import type { ReconfigureVrStrategy } from './model/reconfigureVrStrategy'
 
 interface SectionProps {
   form: UseFormReturn<ReconfigureVrFormValues>
@@ -105,8 +105,8 @@ export function InjectSection({ form, disabled }: Omit<SectionProps, 'vr'>) {
 
   return (
       <section className="space-y-4 rounded-[var(--r-sm)] border border-border p-4">
-        <h2 className="text-sm font-bold text-foreground">자본 주입 (선택)</h2>
-        <p className="text-xs text-muted-foreground">설정 변경과 별개로 보유 주식·예수금을 추가로 편입합니다. 비워두면 주입하지 않습니다.</p>
+        <h2 className="text-sm font-bold text-foreground">투자금 추가 (선택)</h2>
+        <p className="text-xs text-muted-foreground">설정 변경과 별개로 보유 주식·예수금을 추가로 편입합니다. 비워두면 추가하지 않습니다.</p>
         <div className="space-y-2">
           <Label htmlFor="injectShares">편입 주식 수</Label>
           <Input id="injectShares" type="text" inputMode="numeric" placeholder="0" disabled={disabled}
@@ -135,7 +135,7 @@ export function InjectSection({ form, disabled }: Omit<SectionProps, 'vr'>) {
 export function WithdrawSection({ form, disabled }: Omit<SectionProps, 'vr'>) {
   return (
       <section className="space-y-4 rounded-[var(--r-sm)] border border-border p-4">
-        <h2 className="text-sm font-bold text-foreground">자본 인출 (선택)</h2>
+        <h2 className="text-sm font-bold text-foreground">투자금 인출 (선택)</h2>
         <p className="text-xs text-muted-foreground">보유 주식·예수금 중 일부를 전략에서 빼냅니다. 비워두면 인출하지 않습니다.</p>
         <div className="space-y-2">
           <Label htmlFor="withdrawShares">인출 주식 수</Label>

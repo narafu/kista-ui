@@ -88,6 +88,7 @@ function strategyFor(accountId: string, id: string): Strategy {
     initialUsdDeposit: 1000,
     divisionCount: 20,
     isReverseMode: false,
+    cycleInProgress: true,
   }
 }
 

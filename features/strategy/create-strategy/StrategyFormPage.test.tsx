@@ -29,6 +29,7 @@ const initial: Strategy = {
   initialUsdDeposit: 1000,
   divisionCount: 20,
   isReverseMode: false,
+  cycleInProgress: true,
 }
 
 function withClient(client: QueryClient, ui: ReactNode) {

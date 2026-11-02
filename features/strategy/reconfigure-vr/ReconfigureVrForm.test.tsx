@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { orderKeys } from '@entities/order'
 import { ReconfigureVrForm } from './ReconfigureVrForm'
-import type { ReconfigureVrStrategy } from './model/loadStrategyForReconfigure'
+import type { ReconfigureVrStrategy } from './model/reconfigureVrStrategy'
 
 const mutateMock = vi.fn()
 const routerPushMock = vi.fn()
@@ -35,6 +35,7 @@ const strategy: ReconfigureVrStrategy = {
   ticker: 'TQQQ',
   cycleSeedType: 'NONE',
   isReverseMode: false,
+  cycleInProgress: true,
   vr: {
     value: 3000,
     bandWidth: 15,

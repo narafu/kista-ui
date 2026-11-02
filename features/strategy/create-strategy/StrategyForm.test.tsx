@@ -142,6 +142,7 @@ const initialStrategy: Strategy = {
   initialUsdDeposit: 1200,
   divisionCount: 20,
   isReverseMode: false,
+  cycleInProgress: true,
   currentHoldings: 3,
 }
 

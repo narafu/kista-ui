@@ -21,7 +21,7 @@ import { orderKeys } from '@entities/order'
 import { useReconfigureVrMutation } from '@entities/strategy'
 import type { ReconfigureVrRequest } from '@entities/strategy'
 import { createReconfigureVrFormSchema, type ReconfigureVrFormValues } from './model/reconfigureVrFormSchema'
-import type { ReconfigureVrStrategy } from './model/loadStrategyForReconfigure'
+import type { ReconfigureVrStrategy } from './model/reconfigureVrStrategy'
 import type { DismissMode } from '@shared/lib/dismiss'
 import { ParamsSection, RampSection, InjectSection, WithdrawSection, initialRecurringMode } from './ReconfigureVrSections'
 

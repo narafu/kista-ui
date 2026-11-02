@@ -123,12 +123,12 @@ export function useInjectCapitalMutation(strategyId: string, onSuccess?: () => v
   return useMutation({
     mutationFn: (data: CapitalInjectionRequest) => injectCapital(strategyId, data),
     onSuccess: async (saved) => {
-      toast.success('자금을 추가했습니다')
+      toast.success('투자금을 추가했습니다')
       queryClient.setQueryData(strategyKeys.detail(saved.id), saved)
       await synchronizeStrategyLists(queryClient, saved.accountId, (strategies) => upsertById(strategies, saved))
       return onSuccess?.()
     },
-    onError: (err) => toast.error(apiMsg(err, '자금 추가에 실패했습니다.')),
+    onError: (err) => toast.error(apiMsg(err, '투자금 추가에 실패했습니다.')),
   })
 }
 

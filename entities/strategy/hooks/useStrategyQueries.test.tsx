@@ -69,6 +69,7 @@ const strategyA: Strategy = {
   initialUsdDeposit: 1000,
   divisionCount: 20,
   isReverseMode: false,
+  cycleInProgress: true,
 }
 
 const strategyB: Strategy = {

@@ -113,6 +113,7 @@ function normalizeStrategy(raw: unknown): Strategy {
     initialUsdDeposit: optDec(s.initialUsdDeposit),
     divisionCount: optNum(s.divisionCount),
     isReverseMode: Boolean(s.isReverseMode),
+    cycleInProgress: Boolean(s.cycleInProgress),
     currentRound: optNum(s.currentRound),
     currentHoldings: optNum(s.currentHoldings),
     vr: normalizeVrSummary(s.vr),
@@ -130,6 +131,11 @@ export async function listAllStrategies(token?: string): Promise<Strategy[]> {
 export async function listStrategies(accountId: string, token?: string): Promise<Strategy[]> {
   const raw = await fetchEither<unknown[]>(`/api/accounts/${accountId}/trading-cycles`, undefined, token)
   return raw.map(normalizeStrategy)
+}
+
+// 단건 조회 엔드포인트가 없어 계좌 전략 목록에서 찾는다. 조회 실패는 던지고, 없으면 null.
+export async function findStrategy(accountId: string, strategyId: string, token?: string): Promise<Strategy | null> {
+  return (await listStrategies(accountId, token)).find((s) => s.id === strategyId) ?? null
 }
 
 export async function createStrategy(accountId: string, data: StrategyRequest, token?: string): Promise<Strategy> {

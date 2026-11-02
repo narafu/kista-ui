@@ -6,7 +6,7 @@ interface Props {
 }
 
 export const metadata: Metadata = {
-  title: '자금 추가',
+  title: '투자금 추가',
   description: '진행 중인 사이클에 예수금이나 보유 주식을 추가합니다',
 }
 

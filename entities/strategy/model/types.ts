@@ -69,6 +69,7 @@ export interface Strategy {
   initialUsdDeposit?: number
   divisionCount?: number  // 분할 수 (INFINITE: 20/30/40, VR/PRIVACY: undefined)
   isReverseMode: boolean  // 리버스모드 활성 여부 (소진 후 모드)
+  cycleInProgress: boolean // 진행 중 사이클 존재(최신 사이클 endDate 없음) — 투자금 추가 진입 조건
   currentRound?: number   // 현재 회차 (INFINITE 전략만, 이력 없으면 0)
   currentHoldings?: number
   vr?: StrategyVrSummary  // VR 전략 전용 요약 (타 전략 undefined)
@@ -110,7 +111,7 @@ export interface StrategySeedPreview {
   availableCash: number | null
 }
 
-// PRIVACY·INFINITE 진행 중 사이클 자금 추가 — POST /api/trading-cycles/{id}/capital-injection 요청 바디.
+// PRIVACY·INFINITE 진행 중 사이클 투자금 추가 — POST /api/trading-cycles/{id}/capital-injection 요청 바디.
 // 최소 하나 필수, shares·sharePrice는 함께 보낸다
 export interface CapitalInjectionRequest {
   depositAmount?: number

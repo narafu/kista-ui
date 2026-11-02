@@ -26,6 +26,7 @@ describe('strategy api normalization', () => {
         cycleSeedType: 'NONE',
         divisionCount: null,
         isReverseMode: false,
+        cycleInProgress: true,
         currentRound: null,
         currentHoldings: 4,
         startDate: '2026-08-01',
@@ -54,6 +55,7 @@ describe('strategy api normalization', () => {
     expect(result[0]).toEqual(expect.objectContaining({
       type: 'VR',
       ticker: 'TQQQ',
+      cycleInProgress: true,
       divisionCount: undefined,
       currentHoldings: 4,
       startDate: '2026-08-01',
@@ -75,6 +77,14 @@ describe('strategy api normalization', () => {
         poolLimitFloor: 0.5,
       },
     }))
+  })
+})
+
+describe('strategy cycleInProgress', () => {
+  it('누락되면 false로 정규화한다', async () => {
+    const { listStrategies } = await import('./index')
+    fetchEitherMock.mockResolvedValueOnce([{ id: 's1', accountId: 'a1', type: 'INFINITE', status: 'ACTIVE', ticker: 'TQQQ', cycleSeedType: 'MAX', isReverseMode: false }])
+    expect((await listStrategies('a1'))[0].cycleInProgress).toBe(false)
   })
 })
 

@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { PageHeader } from '@widgets/page-header'
-import { ReconfigureVrForm, loadAccountAndStrategyForReconfigure } from '@features/strategy/reconfigure-vr'
+import { findStrategy } from '@entities/strategy'
+import { ReconfigureVrForm, hasVr } from '@features/strategy/reconfigure-vr'
 import { requirePageToken } from '@shared/lib/auth/token'
 import type { DismissMode } from '@shared/lib/dismiss'
 
@@ -13,15 +14,14 @@ interface Props {
 export async function ReconfigureVrFormBody({ params, dismiss }: Props) {
   const { params: { id, sid }, token } = await requirePageToken(params)
 
-  const context = await loadAccountAndStrategyForReconfigure(id, sid, token)
-  if (!context) {
+  const strategy = await findStrategy(id, sid, token)
+  if (!strategy || !hasVr(strategy)) {
     return notFound()
   }
-  const { strategy } = context
 
   return (
     <>
-      <PageHeader eyebrow={strategy.ticker} eyebrowHref={`/accounts/${id}/strategies/${sid}`} title="VR 재설정" description="VR 파라미터와 자본 주입·인출 재설정" />
+      <PageHeader eyebrow={strategy.ticker} eyebrowHref={`/accounts/${id}/strategies/${sid}`} title="VR 재설정" description="VR 파라미터와 투자금 추가·인출 재설정" />
       <ReconfigureVrForm accountId={id} strategy={strategy} dismiss={dismiss} />
     </>
   )

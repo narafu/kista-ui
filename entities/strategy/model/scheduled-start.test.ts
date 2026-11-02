@@ -11,6 +11,7 @@ const baseStrategy: Strategy = {
   ticker: 'TSLA',
   cycleSeedType: 'MAX',
   isReverseMode: false,
+  cycleInProgress: true,
 }
 
 function addDaysToKstDate(days: number): string {

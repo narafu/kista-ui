@@ -1,2 +1,2 @@
 export { ReconfigureVrForm } from './ReconfigureVrForm'
-export { loadAccountAndStrategyForReconfigure } from './model/loadStrategyForReconfigure'
+export { hasVr } from './model/reconfigureVrStrategy'

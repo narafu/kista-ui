@@ -8,7 +8,7 @@ export { supportsCapitalInjection } from './model/capitalInjection'
 export { nextVrRolloverDate } from './model/vr-rollover'
 export { POOL_LIMIT_FLOOR_ZERO_MESSAGE, vrRampInvalidReason } from './model/poolLimitRamp'
 export {
-  listStrategies,
+  findStrategy,
 } from './api'
 export {
   useStrategySeedPreviewQuery,
