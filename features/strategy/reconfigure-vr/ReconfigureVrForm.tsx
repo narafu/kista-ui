@@ -2,7 +2,7 @@
 
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AlertTriangle } from 'lucide-react'
@@ -20,7 +20,7 @@ import { FormActions } from '@shared/ui/FormActions'
 import { orderKeys } from '@entities/order'
 import { useReconfigureVrMutation } from '@entities/strategy'
 import type { ReconfigureVrRequest } from '@entities/strategy'
-import { reconfigureVrFormSchema, type ReconfigureVrFormValues } from './model/reconfigureVrFormSchema'
+import { createReconfigureVrFormSchema, type ReconfigureVrFormValues } from './model/reconfigureVrFormSchema'
 import type { ReconfigureVrStrategy } from './model/loadStrategyForReconfigure'
 import type { DismissMode } from '@shared/lib/dismiss'
 import { ParamsSection, RampSection, InjectSection, WithdrawSection } from './ReconfigureVrSections'
@@ -70,8 +70,20 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
 
   const [confirmOpen, setConfirmOpen] = useState(false)
 
+  const schema = useMemo(
+    () => createReconfigureVrFormSchema({
+      initialGradient: vr.initialGradient,
+      gStepWeeks: vr.gStepWeeks,
+      gMax: vr.gMax,
+      initialPoolLimitRate: vr.initialPoolLimitRate,
+      pStepWeeks: vr.pStepWeeks,
+      poolLimitFloor: vr.poolLimitFloor,
+    }),
+    [vr.initialGradient, vr.gStepWeeks, vr.gMax, vr.initialPoolLimitRate, vr.pStepWeeks, vr.poolLimitFloor],
+  )
+
   const form = useForm<ReconfigureVrFormValues>({
-    resolver: zodResolver(reconfigureVrFormSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       bandWidth: vr.bandWidth,
       intervalWeeks: vr.intervalWeeks,
@@ -119,7 +131,7 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
 
       <ParamsSection form={form} vr={vr} disabled={disabled} />
 
-      <RampSection form={form} disabled={disabled} />
+      <RampSection form={form} vr={vr} disabled={disabled} />
 
       <InjectSection form={form} disabled={disabled} />
 

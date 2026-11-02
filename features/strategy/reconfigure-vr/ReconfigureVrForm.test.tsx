@@ -19,7 +19,8 @@ vi.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ invalidateQueries: invalidateQueriesMock }),
 }))
 
-vi.mock('@entities/strategy', () => ({
+vi.mock('@entities/strategy', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@entities/strategy')>()),
   useReconfigureVrMutation: (_strategyId: string, onSuccess?: () => void | Promise<void>) => {
     reconfigureSuccessHandler = onSuccess
     return { mutate: mutateMock, isPending: false }
@@ -74,6 +75,37 @@ describe('ReconfigureVrForm', () => {
     expect(initialGradientInput.value).toBe('10')
     // initialPoolLimitRate는 0~1 비율로 저장되지만 화면엔 %로 환산해 표시(0.75 → 75)
     expect(initialPoolLimitRateInput.value).toBe('75')
+  })
+
+  it('gradient 단계주기를 0으로 바꾸면 상한·유예가 0으로 비활성되고, 0에서 벗어나면 빈 칸으로 리셋된다', () => {
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    const step = screen.getByLabelText('gradient 단계주기') as HTMLInputElement
+    const gMax = screen.getByLabelText('gradient 상한') as HTMLInputElement
+    const grace = screen.getByLabelText('gradient 유예') as HTMLInputElement
+    fireEvent.change(step, { target: { value: '0' } })
+    expect(gMax).toBeDisabled()
+    expect(gMax.value).toBe('0')
+    expect(grace).toBeDisabled()
+    expect(grace.value).toBe('0')
+    fireEvent.change(step, { target: { value: '10' } })
+    expect(gMax).not.toBeDisabled()
+    expect(gMax.value).toBe('')
+    expect(grace.value).toBe('')
+  })
+
+  it('poolLimitRate 단계주기를 0으로 바꾸면 하한·유예가 0으로 비활성되고, 0에서 벗어나면 빈 칸으로 리셋된다', () => {
+    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    const step = screen.getByLabelText('poolLimitRate 단계주기') as HTMLInputElement
+    const floor = screen.getByLabelText('poolLimitRate 하한') as HTMLInputElement
+    const grace = screen.getByLabelText('poolLimitRate 유예') as HTMLInputElement
+    fireEvent.change(step, { target: { value: '0' } })
+    expect(floor).toBeDisabled()
+    expect(floor.value).toBe('0')
+    expect(grace).toBeDisabled()
+    fireEvent.change(step, { target: { value: '8' } })
+    expect(floor).not.toBeDisabled()
+    expect(floor.value).toBe('')
+    expect(grace.value).toBe('')
   })
 
   it('제출 시 즉시 뮤테이션을 호출하지 않고 확인 다이얼로그를 먼저 띄운다', async () => {

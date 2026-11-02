@@ -135,7 +135,7 @@ export function OptionChoiceGroup({
 }
 
 export function VrRampFields({
-  fields, setField, disabled, rampDefaults,
+  fields, setField, disabled, rampDefaults, errors,
 }: {
   fields: VrRampValues
   setField: (field: keyof VrRampValues, value: number | null) => void
@@ -146,9 +146,19 @@ export function VrRampFields({
     gMax: number
     initialPoolLimitRate: number
     poolLimitFloor: number
+    // 단계주기·유예 placeholder — 생략 시 신규 생성 기본값(26/52)
+    gGraceWeeks?: number
+    gStepWeeks?: number
+    pGraceWeeks?: number
+    pStepWeeks?: number
   }
+  // 필드 아래에 표시할 오류 문구 — 재설정 폼처럼 필드 단위 검증 메시지가 있는 곳에서만 넘긴다
+  errors?: Partial<Record<keyof VrRampValues, string>>
 }) {
   const id = useId()
+  const errorId = (f: keyof VrRampValues) => (errors?.[f] ? `${id}-${f}-error` : undefined)
+  const fieldError = (f: keyof VrRampValues) =>
+    errors?.[f] ? <p id={errorId(f)} className="mt-1 text-sm text-destructive">{errors[f]}</p> : null
   const gStepWeeksIsZero = fields.gStepWeeks === 0
   const pStepWeeksIsZero = fields.pStepWeeks === 0
 
@@ -176,15 +186,16 @@ export function VrRampFields({
       </div>
       <div>
         <Label htmlFor={`${id}-gGraceWeeks`} className={VR_FIELD_LABEL_CLASS}>gradient 유예</Label>
-        <UnitInput id={`${id}-gGraceWeeks`} maxDecimals={0} value={fields.gGraceWeeks} onChange={(v) => setField('gGraceWeeks', v)} unit="주" disabled={disabled || gStepWeeksIsZero} placeholder="52" />
+        <UnitInput id={`${id}-gGraceWeeks`} maxDecimals={0} value={fields.gGraceWeeks} onChange={(v) => setField('gGraceWeeks', v)} unit="주" disabled={disabled || gStepWeeksIsZero} placeholder={String(rampDefaults.gGraceWeeks ?? 52)} />
       </div>
       <div>
         <Label htmlFor={`${id}-gMax`} className={VR_FIELD_LABEL_CLASS}>gradient 상한</Label>
-        <UnitInput id={`${id}-gMax`} maxDecimals={0} value={fields.gMax} onChange={(v) => setField('gMax', v)} unit="" disabled={disabled || gStepWeeksIsZero} placeholder={String(rampDefaults.gMax)} />
+        <UnitInput id={`${id}-gMax`} maxDecimals={0} value={fields.gMax} onChange={(v) => setField('gMax', v)} unit="" disabled={disabled || gStepWeeksIsZero} placeholder={String(rampDefaults.gMax)} errorId={errorId('gMax')} />
+        {fieldError('gMax')}
       </div>
       <div>
         <Label htmlFor={`${id}-gStepWeeks`} className={VR_FIELD_LABEL_CLASS}>gradient 단계주기</Label>
-        <UnitInput id={`${id}-gStepWeeks`} maxDecimals={0} value={fields.gStepWeeks} onChange={handleGStepWeeksChange} unit="주" disabled={disabled} placeholder="26" />
+        <UnitInput id={`${id}-gStepWeeks`} maxDecimals={0} value={fields.gStepWeeks} onChange={handleGStepWeeksChange} unit="주" disabled={disabled} placeholder={String(rampDefaults.gStepWeeks ?? 26)} />
       </div>
       <div>
         <Label htmlFor={`${id}-initialPoolLimitRate`} className={VR_FIELD_LABEL_CLASS}>초기 poolLimitRate</Label>
@@ -200,7 +211,7 @@ export function VrRampFields({
       </div>
       <div>
         <Label htmlFor={`${id}-pGraceWeeks`} className={VR_FIELD_LABEL_CLASS}>poolLimitRate 유예</Label>
-        <UnitInput id={`${id}-pGraceWeeks`} maxDecimals={0} value={fields.pGraceWeeks} onChange={(v) => setField('pGraceWeeks', v)} unit="주" disabled={disabled || pStepWeeksIsZero} placeholder="52" />
+        <UnitInput id={`${id}-pGraceWeeks`} maxDecimals={0} value={fields.pGraceWeeks} onChange={(v) => setField('pGraceWeeks', v)} unit="주" disabled={disabled || pStepWeeksIsZero} placeholder={String(rampDefaults.pGraceWeeks ?? 52)} />
       </div>
       <div>
         <Label htmlFor={`${id}-poolLimitFloor`} className={VR_FIELD_LABEL_CLASS}>poolLimitRate 하한</Label>
@@ -212,11 +223,13 @@ export function VrRampFields({
           disabled={disabled || pStepWeeksIsZero}
           placeholder={String(ratioToPercent(rampDefaults.poolLimitFloor))}
           maxDecimals={0}
+          errorId={errorId('poolLimitFloor')}
         />
+        {fieldError('poolLimitFloor')}
       </div>
       <div>
         <Label htmlFor={`${id}-pStepWeeks`} className={VR_FIELD_LABEL_CLASS}>poolLimitRate 단계주기</Label>
-        <UnitInput id={`${id}-pStepWeeks`} maxDecimals={0} value={fields.pStepWeeks} onChange={handlePStepWeeksChange} unit="주" disabled={disabled} placeholder="26" />
+        <UnitInput id={`${id}-pStepWeeks`} maxDecimals={0} value={fields.pStepWeeks} onChange={handlePStepWeeksChange} unit="주" disabled={disabled} placeholder={String(rampDefaults.pStepWeeks ?? 26)} />
       </div>
     </div>
   )

@@ -6,9 +6,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SelectionCard } from '@shared/ui/selection-card'
 import { cn } from '@shared/lib/utils'
-import { ratioToPercent, percentToRatio } from '@shared/lib/format'
 import { UnitInput } from '@shared/ui/UnitInput'
-import { applyPStepWeeksChange } from '@entities/strategy'
+import { VrRampFields, type VrRampValues } from '@entities/strategy'
 import type { ReconfigureVrFormValues } from './model/reconfigureVrFormSchema'
 import type { ReconfigureVrStrategy } from './model/loadStrategyForReconfigure'
 
@@ -21,8 +20,6 @@ interface SectionProps {
 type RecurringMode = 'DEPOSIT' | 'HOLD' | 'WITHDRAW'
 
 const toUndef = (v: number | null) => v ?? undefined
-const toPercentOrNull = (ratio: number | null | undefined) => (ratio == null ? null : ratioToPercent(ratio))
-const toRatioOrUndef = (percent: number | null) => (percent === null ? undefined : percentToRatio(percent))
 
 function parseOptionalNumber(raw: string): number | undefined {
   if (raw.trim() === '') return undefined
@@ -107,69 +104,27 @@ export function ParamsSection({ form, vr, disabled }: SectionProps) {
   )
 }
 
-export function RampSection({ form, disabled }: Omit<SectionProps, 'vr'>) {
-  const pStepWeeksIsZero = form.watch('pStepWeeks') === 0
+const RAMP_FIELDS = [
+  'initialGradient', 'gGraceWeeks', 'gStepWeeks', 'gMax',
+  'initialPoolLimitRate', 'pGraceWeeks', 'pStepWeeks', 'poolLimitFloor',
+] as const
 
-  // 단계주기 0이면 하한/유예는 0 표시+비활성, 0→비영값 전환 시 applyPStepWeeksChange가 null로 리셋해 빈 칸이 된다(form 값이 SSOT)
-  function handlePStepWeeksChange(value: number | null) {
-    const wasZero = form.getValues('pStepWeeks') === 0
-    applyPStepWeeksChange(value, wasZero, {
-      setPStepWeeks: (v) => form.setValue('pStepWeeks', v, { shouldValidate: true }),
-      setPoolLimitFloor: (v) => form.setValue('poolLimitFloor', v, { shouldValidate: true }),
-      setPGraceWeeks: (v) => form.setValue('pGraceWeeks', v, { shouldValidate: true }),
-    })
-  }
-
-  const num = (name: 'initialGradient' | 'gStepWeeks' | 'gMax' | 'gGraceWeeks' | 'pGraceWeeks') => ({
-    value: form.watch(name) ?? null,
-    onChange: (v: number | null) => form.setValue(name, toUndef(v), { shouldValidate: true }),
-  })
+export function RampSection({ form, vr, disabled }: SectionProps) {
+  const values = form.watch()
+  const fields = Object.fromEntries(RAMP_FIELDS.map((f) => [f, values[f] ?? null])) as unknown as VrRampValues
+  const { errors } = form.formState
 
   return (
       <section className="space-y-4">
         <h2 className="text-sm font-bold text-foreground">램프 설정</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="initialGradient">초기 gradient(G)</Label>
-            <UnitInput id="initialGradient" maxDecimals={0} unit="" disabled={disabled} {...num('initialGradient')} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="gStepWeeks">gradient 단계주기</Label>
-            <UnitInput id="gStepWeeks" maxDecimals={0} unit="주" disabled={disabled} {...num('gStepWeeks')} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="gMax">gradient 상한</Label>
-            <UnitInput id="gMax" maxDecimals={0} unit="" disabled={disabled} {...num('gMax')} />
-            {form.formState.errors.gMax && <p className="text-sm text-destructive">{form.formState.errors.gMax.message}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="gGraceWeeks">gradient 유예</Label>
-            <UnitInput id="gGraceWeeks" maxDecimals={0} unit="주" disabled={disabled} {...num('gGraceWeeks')} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="initialPoolLimitRate">초기 poolLimitRate</Label>
-            {/* poolLimitRate는 DB에 비율 소수 2자리(NUMERIC(6,2))로 저장 — %는 정수만 입력받아야 표시값과 저장값이 어긋나지 않는다 */}
-            <UnitInput id="initialPoolLimitRate" unit="%" maxDecimals={0} disabled={disabled}
-              value={toPercentOrNull(form.watch('initialPoolLimitRate'))}
-              onChange={(v) => form.setValue('initialPoolLimitRate', toRatioOrUndef(v), { shouldValidate: true })} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="pStepWeeks">poolLimitRate 단계주기</Label>
-            <UnitInput id="pStepWeeks" maxDecimals={0} unit="주" disabled={disabled}
-              value={form.watch('pStepWeeks') ?? null} onChange={handlePStepWeeksChange} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="poolLimitFloor">poolLimitRate 하한</Label>
-            <UnitInput id="poolLimitFloor" unit="%" maxDecimals={0} disabled={disabled || pStepWeeksIsZero}
-              value={toPercentOrNull(form.watch('poolLimitFloor'))}
-              onChange={(v) => form.setValue('poolLimitFloor', toRatioOrUndef(v), { shouldValidate: true })} />
-            {form.formState.errors.poolLimitFloor && <p className="text-sm text-destructive">{form.formState.errors.poolLimitFloor.message}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="pGraceWeeks">poolLimitRate 유예</Label>
-            <UnitInput id="pGraceWeeks" maxDecimals={0} unit="주" disabled={disabled || pStepWeeksIsZero} {...num('pGraceWeeks')} />
-          </div>
-        </div>
+        {/* 비운 램프 값은 서버가 현재 활성 버전 값을 그대로 이어받는다(inheritFrom) — placeholder도 현재 값 */}
+        <VrRampFields
+          fields={fields}
+          setField={(f, v) => form.setValue(f, v ?? undefined, { shouldValidate: true, shouldDirty: true })}
+          disabled={disabled}
+          rampDefaults={vr}
+          errors={{ gMax: errors.gMax?.message, poolLimitFloor: errors.poolLimitFloor?.message }}
+        />
       </section>
   )
 }
