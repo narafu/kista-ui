@@ -14,6 +14,16 @@ describe('normalizeEquityCurve', () => {
     expect(rows[1].principal).toBeCloseTo(100)
   })
 
+  it('첫 자산이 0이면 첫 양수 자산을 기준으로 정규화한다', () => {
+    const rows = normalizeEquityCurve([
+      { date: '2026-06-01', totalAsset: 0, principal: 0 },
+      { date: '2026-06-02', totalAsset: 200, principal: 200 },
+      { date: '2026-06-03', totalAsset: 300, principal: 200 },
+    ])
+    expect(rows.map((r) => r.asset)).toEqual([0, 100, 150])
+    expect(rows.map((r) => r.principal)).toEqual([0, 100, 100])
+  })
+
   it('빈 입력이면 빈 배열', () => {
     expect(normalizeEquityCurve([])).toEqual([])
   })
