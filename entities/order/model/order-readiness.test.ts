@@ -52,6 +52,35 @@ describe('computeOrderReadiness', () => {
     expect(result.ledgerShortfall).toEqual(SHORT)
   })
 
+  it('does not mark AT_CLOSE buy as unplaced while only AT_OPEN sell is pre-placed', () => {
+    const result = computeOrderReadiness(basePreview({
+      orders: [{ ...BUY, timing: 'AT_CLOSE' }, { ...SELL, timing: 'AT_OPEN' }],
+      todayOrders: [{ ...PLACED_SELL, timing: 'AT_OPEN' }],
+    }))
+
+    expect(result.buy.hasOrders).toBe(true)
+    expect(result.buy.unplaced).toBe(false)
+    expect(result.sell.unplaced).toBe(false)
+  })
+
+  it('marks AT_CLOSE buy as unplaced once an AT_CLOSE sell was placed', () => {
+    const result = computeOrderReadiness(basePreview({
+      orders: [{ ...BUY, timing: 'AT_CLOSE' }, { ...SELL, timing: 'AT_CLOSE' }],
+      todayOrders: [{ ...PLACED_SELL, timing: 'AT_CLOSE' }],
+    }))
+
+    expect(result.buy.unplaced).toBe(true)
+  })
+
+  it('marks AT_OPEN sell as unplaced when it was not pre-placed', () => {
+    const result = computeOrderReadiness(basePreview({
+      orders: [{ ...BUY, timing: 'AT_OPEN' }, { ...SELL, timing: 'AT_OPEN' }],
+      todayOrders: [{ ...PLACED_SELL, direction: 'BUY', timing: 'AT_OPEN' }],
+    }))
+
+    expect(result.sell.unplaced).toBe(true)
+  })
+
   it('marks sell as unplaced when only buy was placed', () => {
     const result = computeOrderReadiness(basePreview({
       orders: [BUY, SELL],

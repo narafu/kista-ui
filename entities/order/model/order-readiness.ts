@@ -2,7 +2,7 @@ import type { AccountCashCheck, AccountHoldingsCheck, LedgerCheck, NextOrderPrev
 
 export interface DirectionReadiness {
   hasOrders: boolean
-  unplaced: boolean    // 계획엔 있는데 오늘 실제 미접수 (오늘 시도 자체가 없으면 false)
+  unplaced: boolean    // 접수 시점이 지난 계획 주문인데 오늘 실제 미접수 (오늘 시도 자체가 없거나 마감 접수 전 AT_CLOSE면 false)
 }
 
 export interface OrderReadiness {
@@ -28,6 +28,10 @@ export function computeOrderReadiness(preview: NextOrderPreview | undefined): Or
   const hasTodayOrders = todayOrders.length > 0
 
   const plannedDirections = new Set(orders.map((o) => o.direction))
+  // AT_CLOSE는 마감 배치(04:30 KST) 대상이라 개장 선접수(AT_OPEN)만 된 시점엔 아직 접수 전이다 — 오늘 AT_CLOSE 주문이
+  // 하나라도 접수됐으면(수동 실행 등) 마감 접수가 시도된 것으로 보고 판정 대상에 넣는다 (timing 없는 구 응답은 기존처럼 판정)
+  const closePlaced = todayOrders.some((o) => o.timing === 'AT_CLOSE')
+  const dueDirections = new Set(orders.filter((o) => o.timing !== 'AT_CLOSE' || closePlaced).map((o) => o.direction))
   const placedDirections = new Set(todayOrders.map((o) => o.direction))
 
   const hasBuyOrders = plannedDirections.has('BUY')
@@ -44,11 +48,11 @@ export function computeOrderReadiness(preview: NextOrderPreview | undefined): Or
   return {
     buy: {
       hasOrders: hasBuyOrders,
-      unplaced: hasTodayOrders && hasBuyOrders && !placedDirections.has('BUY'),
+      unplaced: hasTodayOrders && dueDirections.has('BUY') && !placedDirections.has('BUY'),
     },
     sell: {
       hasOrders: hasSellOrders,
-      unplaced: hasTodayOrders && hasSellOrders && !placedDirections.has('SELL'),
+      unplaced: hasTodayOrders && dueDirections.has('SELL') && !placedDirections.has('SELL'),
     },
     ledgerShortfall: ledgerRejected ? ledgerCheck : null,
     ledgerTrimmed: hasBuyOrders && ledgerCheck?.sufficient === true && ledgerCheck.trimmed,
