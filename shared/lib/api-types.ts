@@ -557,23 +557,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/admin/trades/reorders": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** 관리자 재주문 */
-        post: operations["reorder"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/admin/trades/manual-fills": {
         parameters: {
             query?: never;
@@ -1447,46 +1430,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/admin/trades/reorder-timing": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 재주문 시점 가용성 조회
-         * @description UI 주문시점 셀렉터의 disable 여부 판단에 사용합니다.
-         */
-        get: operations["getReorderTiming"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/trades/reorder-buy-budget": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * BUY 재주문 예산 일괄 조회
-         * @description 같은 계좌 원본 주문 1~50건. 원본 주문의 BUY 재주문 가용액 = cycleRemaining[원본 strategyCycleId] + 해당 원본의 sourceRefunds. DCA 사이클은 원장 상한이 없어 cycleRemaining에 키가 없습니다.
-         */
-        get: operations["getReorderBuyBudget"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/admin/logs/errors": {
         parameters: {
             query?: never;
@@ -1613,26 +1556,6 @@ export interface paths {
         };
         /** 전략별 거래일 목록 조회 */
         get: operations["listStrategyTradeDates"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/accounts/{accountId}/strategies/{strategyId}/orders": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 전략별 주문 목록 조회
-         * @description 지정한 거래일(tradeDate)의 주문 목록을 반환합니다.
-         */
-        get: operations["listStrategyOrders"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2658,7 +2581,7 @@ export interface components {
              */
             cycleInProgress?: boolean;
             /**
-             * @description 최신 포지션 장부 예수금 (USD, 포지션 없으면 null) — 투자금 인출 최대 기준(체결 전 매수 주문 금액은 인출 시 추가로 제외)
+             * @description 최신 포지션 장부 예수금 (USD, 포지션 없으면 null) — 투자금 인출 최대 기준(체결 전·장중 취소된 매수 주문 금액은 인출 시 추가로 제외)
              * @example 1500
              */
             ledgerUsdDeposit?: number;
@@ -3097,11 +3020,11 @@ export interface components {
             /** @description 주문 가격 (LOC/MOC는 참고용) */
             price?: number;
             /**
-             * @description 접수 시점 (AT_OPEN=개장 선접수, AT_CLOSE=마감 배치, IMMEDIATE=즉시)
+             * @description 접수 시점 (AT_OPEN=개장 선접수, AT_CLOSE=마감 배치)
              * @example AT_CLOSE
              * @enum {string}
              */
-            timing?: "AT_CLOSE" | "AT_OPEN" | "IMMEDIATE";
+            timing?: "AT_CLOSE" | "AT_OPEN";
         };
         NextOrdersResponse: {
             /**
@@ -3191,11 +3114,11 @@ export interface components {
              */
             status?: "PLANNED" | "SUBMITTING" | "PLACED" | "FILLED" | "PARTIALLY_FILLED" | "FAILED" | "CANCELLED";
             /**
-             * @description 접수 시점 (AT_OPEN=개장 선접수, AT_CLOSE=마감 배치, IMMEDIATE=즉시)
+             * @description 접수 시점 (AT_OPEN=개장 선접수, AT_CLOSE=마감 배치)
              * @example AT_CLOSE
              * @enum {string}
              */
-            timing?: "AT_CLOSE" | "AT_OPEN" | "IMMEDIATE";
+            timing?: "AT_CLOSE" | "AT_OPEN";
         };
         DcaExecutionItem: {
             ruleKey?: string;
@@ -4413,86 +4336,6 @@ export interface components {
              */
             expiresIn?: number;
         };
-        AdminReorderRequest: {
-            /**
-             * Format: uuid
-             * @description 대상 사용자 ID
-             */
-            userId: string;
-            /**
-             * Format: uuid
-             * @description 대상 계좌 ID
-             */
-            accountId: string;
-            /**
-             * Format: uuid
-             * @description 대상 전략 ID
-             */
-            strategyId: string;
-            /**
-             * Format: uuid
-             * @description 재주문 대상 원본 주문 ID
-             */
-            orderId: string;
-            /**
-             * @description 재주문 접수 시점
-             * @example AT_OPEN
-             */
-            timing: string;
-            /**
-             * Format: date
-             * @description 거래일 (KST)
-             */
-            tradeDate: string;
-            /**
-             * @description 매매 방향 (생략 시 원본 주문 값 사용)
-             * @example BUY
-             */
-            direction?: string;
-            /**
-             * Format: int32
-             * @description 주문 수량
-             */
-            quantity: number;
-            /** @description 주문 가격 */
-            price: number;
-            /** @description 메모 (선택) */
-            memo?: string;
-        };
-        AdminReorderResponse: {
-            /**
-             * Format: uuid
-             * @description 대상 사용자 ID
-             */
-            userId?: string;
-            /**
-             * Format: uuid
-             * @description 대상 계좌 ID
-             */
-            accountId?: string;
-            /**
-             * Format: uuid
-             * @description 대상 전략 ID
-             */
-            strategyId?: string;
-            /**
-             * Format: uuid
-             * @description 원본 주문 ID
-             */
-            sourceOrderId?: string;
-            /**
-             * @description 원본 주문 상태
-             * @example PLANNED
-             */
-            originalStatus?: string;
-            /**
-             * @description 재주문 처리 결과 상태
-             * @example PLACED
-             */
-            resultingStatus?: string;
-            /** @description 신규 접수 주문의 브로커 측 ID (IMMEDIATE 즉시 접수 성공 시만 non-null) */
-            newOrderExternalId?: string;
-        };
         AdminManualTradeCorrectionRequest: {
             /**
              * Format: uuid
@@ -5175,24 +5018,6 @@ export interface components {
              * @example USDT
              */
             currency?: string | null;
-        };
-        ReorderTimingAvailabilityResponse: {
-            /** @description AT_OPEN 접수 가능 여부 (개장 전에만 true) */
-            atOpen?: boolean;
-            /** @description AT_CLOSE 접수 가능 여부 (마감 전에만 true) */
-            atClose?: boolean;
-            /** @description 즉시 접수 가능 여부 (정규장 중에만 true) */
-            immediate?: boolean;
-        };
-        ReorderBuyBudgetResponse: {
-            /** @description 전략 사이클 ID별 남은 원장 한도(USD) = 최신 원장 − 같은 거래일 저장된 BUY */
-            cycleRemaining?: {
-                [key: string]: number;
-            };
-            /** @description 원본 주문 ID별 재주문 시 취소로 되돌려 받는 BUY 금액(해당 없으면 0) */
-            sourceRefunds?: {
-                [key: string]: number;
-            };
         };
         ErrorLogResponse: {
             /**
@@ -6627,30 +6452,6 @@ export interface operations {
             };
         };
     };
-    reorder: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AdminReorderRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["AdminReorderResponse"];
-                };
-            };
-        };
-    };
     correctManualFills: {
         parameters: {
             query?: never;
@@ -8065,49 +7866,6 @@ export interface operations {
             };
         };
     };
-    getReorderTiming: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ReorderTimingAvailabilityResponse"];
-                };
-            };
-        };
-    };
-    getReorderBuyBudget: {
-        parameters: {
-            query: {
-                orderIds: string[];
-                tradeDate?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ReorderBuyBudgetResponse"];
-                };
-            };
-        };
-    };
     listErrorLogs: {
         parameters: {
             query?: {
@@ -8263,31 +8021,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": string[];
-                };
-            };
-        };
-    };
-    listStrategyOrders: {
-        parameters: {
-            query: {
-                tradeDate: string;
-            };
-            header?: never;
-            path: {
-                accountId: string;
-                strategyId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["AdminTradeResponse"][];
                 };
             };
         };
