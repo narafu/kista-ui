@@ -77,6 +77,11 @@ export function executedHeaderLabel(placedOrders: NextOrderPreview['todayOrders'
 }
 
 function ExecutedBody({ placedOrders, orders, unplacedDirections, readiness, onCancelAll, cancelAllPending, onCancelOne, cancellingId, cancelPending }: ExecutedBodyProps) {
+  const { labelOf } = useMeta()
+  // 마감 접수가 아직 없으면 AT_CLOSE 계획은 접수 시점 전이다(예: INFINITE 개장 매도 선접수 후 마감 배치 대상 BUY) —
+  // computeOrderReadiness의 closePlaced와 같은 기준. 미접수 방향은 위 미접수 목록이 이미 보여주므로 뺀다
+  const closePlaced = placedOrders.some((o) => o.timing === 'AT_CLOSE')
+  const pendingOrders = closePlaced ? [] : orders.filter((o) => o.timing === 'AT_CLOSE' && !unplacedDirections.some((d) => d === o.direction))
   return (
     <div>
       <div className="flex items-center justify-between px-6 py-3 border-b border-border">
@@ -101,6 +106,12 @@ function ExecutedBody({ placedOrders, orders, unplacedDirections, readiness, onC
             ))}
           </div>
           <OrderRows orders={orders.filter((o) => unplacedDirections.some((d) => d === o.direction))} />
+        </div>
+      )}
+      {pendingOrders.length > 0 && (
+        <div className="border-t border-border">
+          <p className="px-6 py-3 border-b border-border text-base text-muted-foreground">{labelOf('orderTimings', 'AT_CLOSE')} 예정</p>
+          <OrderRows orders={pendingOrders} />
         </div>
       )}
     </div>

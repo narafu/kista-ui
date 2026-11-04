@@ -503,6 +503,36 @@ describe('StrategyDetail market-holiday failure', () => {
 })
 
 describe('StrategyDetail unplaced order banner', () => {
+  it('lists an AT_CLOSE buy as pending (not unplaced) while only the AT_OPEN sell is pre-placed', () => {
+    mockPreviewQuery.mockReturnValueOnce({
+      data: {
+        todayOrders: [
+          { id: 'o1', ticker: 'TSLA', direction: 'SELL', orderType: 'LIMIT', timing: 'AT_OPEN', quantity: 1, price: '25.00', status: 'PLACED' },
+        ],
+        position: null,
+        orders: [
+          { ticker: 'TSLA', orderType: 'LOC', timing: 'AT_CLOSE', direction: 'BUY', quantity: 5, price: '20.00' },
+          { ticker: 'TSLA', orderType: 'LIMIT', timing: 'AT_OPEN', direction: 'SELL', quantity: 1, price: '25.00' },
+        ],
+        skipReason: null,
+        otherStrategiesPlannedBuyUsd: '0',
+        ledgerCheck: null,
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    expect(screen.queryByText(/미접수/)).not.toBeInTheDocument()
+    expect(screen.getByText('장마감 30분 전 접수 예정')).toBeInTheDocument()
+    const orderTables = screen.getAllByTestId('order-rows')
+    expect(orderTables).toHaveLength(2)
+    expect(orderTables[0]).toHaveTextContent('SELL-TSLA')
+    expect(orderTables[1]).toHaveTextContent('BUY-TSLA')
+  })
+
   it('shows a buy-unplaced banner when today plan has BUY but no BUY was placed', () => {
     mockPreviewQuery.mockReturnValueOnce({
       data: {
