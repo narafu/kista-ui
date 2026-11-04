@@ -744,7 +744,7 @@ describe('HousingBenchmarkComparison', () => {
     })
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
     expect(screen.getByRole('alert')).toHaveTextContent('벤치마크 비교를 불러오지 못했습니다.')
-    expect(screen.queryByText('총 실현손익')).not.toBeInTheDocument()
+    expect(screen.queryByText('종료 사이클 손익')).not.toBeInTheDocument()
   })
 
   it('최초 로딩 중 차트 높이를 보존하는 상태를 표시한다', () => {

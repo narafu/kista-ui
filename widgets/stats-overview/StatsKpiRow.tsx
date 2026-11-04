@@ -14,9 +14,9 @@ export function StatsKpiRow({ summary }: Props) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
       <KpiCard
-        label="총 실현손익"
+        label="종료 사이클 손익"
         value={fmtSignedUsd(summary.totalRealizedPnl, 2, '$')}
-        sub={`종료 사이클 ${closedCount}개 누적`}
+        sub={`${closedCount}개 누적 · VR은 롤오버 평가액 기준`}
         className="min-w-0 p-4 sm:p-5"
         valueClassName={cn('break-words text-xl sm:text-2xl lg:text-3xl', pnlTextClass(summary.totalRealizedPnl))}
       />
