@@ -10,7 +10,7 @@ import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/li
 import { createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
-  title: '주문 관리',
+  title: '거래 내역',
 }
 
 export default async function AdminTradesPage({
@@ -32,7 +32,7 @@ export default async function AdminTradesPage({
 
   return (
     <div className="reveal-stagger">
-      <PageHeader title="주문 관리" description={loaded ? `조회 기간 총 ${loaded.length}건` : undefined} />
+      <PageHeader title="거래 내역" description={loaded ? `조회 기간 총 ${loaded.length}건` : undefined} />
 
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <UrlRangeFilterBar current={range} from={from} to={to} />

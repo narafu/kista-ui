@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { href: '/admin', label: '개요', icon: LayoutDashboard, exact: true },
   { href: '/admin/users', label: '사용자', icon: Users },
   { href: '/admin/accounts', label: '계좌', icon: Wallet },
-  { href: '/admin/trades', label: '주문', icon: ArrowLeftRight },
+  { href: '/admin/trades', label: '거래', icon: ArrowLeftRight },
   { href: '/admin/privacy-trades', label: '매매표', icon: Table2 },
   { href: '/admin/logs', label: '로그', icon: ClipboardList },
   { href: '/admin/settings', label: '설정', icon: Settings },
