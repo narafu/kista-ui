@@ -32,7 +32,7 @@ describe('/api/admin proxy route', () => {
     expect(response.headers.get('cache-control')).toBe('no-store')
   })
 
-  it.each([['GET', ['users']], ['POST', ['trades', 'reorder']]] as const)('sets no-store on non-settings %s responses too', async (method, path) => {
+  it.each([['GET', ['users']], ['POST', ['privacy-trade-bases']]] as const)('sets no-store on non-settings %s responses too', async (method, path) => {
     const handlers = await import('./route')
     const request = new Request(`https://kista.test/api/admin/${path.join('/')}`, { method })
     const response = await handlers[method](request as never, { params: Promise.resolve({ path: [...path] }) })

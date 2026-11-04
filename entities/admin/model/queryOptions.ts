@@ -31,7 +31,7 @@ export function adminErrorLogsQueryOptions(params?: AdminErrorLogsQueryParams, t
 }
 
 // 서버(token)·클라이언트 겸용 — 서버가 prefetch한 캐시를 클라이언트 재시도·무효화가 같은 키로 이어받는다.
-// 재주문 워크벤치의 거래 내역이 SSR props가 아니라 이 쿼리를 읽어야 재주문 후 invalidate로 갱신된다.
+// 워크벤치의 거래 내역이 SSR props가 아니라 이 쿼리를 읽어야 invalidate로 갱신된다.
 export function adminTradesQueryOptions(params?: AdminTradesQueryParams, token?: string) {
   return queryOptions<AdminTrade[]>({
     queryKey: adminKeys.trades(params),

@@ -1,31 +1,22 @@
 'use client'
 
 import { useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
 import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
 import {
-  adminKeys,
   useAdminAccountsByUserQuery,
   useAdminAllAccountsQuery,
   useAdminTradesQuery,
   useAdminStrategiesByAccountQuery,
-  useAdminStrategyOrdersQuery,
-  useAdminReorderTimingQuery,
   useUpdateAdminStrategyStatusMutation,
-  useReorderAdminOrderMutation,
 } from '@entities/admin'
 import type { AdminTrade } from '@entities/admin'
-import { nextTradeDateKst } from '@shared/lib/format'
-import { isCryptoBroker } from '@shared/lib/api-schema'
 import { SectionError } from '@shared/ui/SectionError'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { LoadingRow } from '@shared/ui/LoadingRow'
-import { AdminTradeCorrectionPanel } from './AdminTradeCorrectionPanel'
+import { AdminTradeFilterPanel } from './AdminTradeFilterPanel'
 import { AdminTradesFeedback } from './AdminTradesFeedback'
 import { AdminTradesTable } from './AdminTradesTable'
-import type { ReorderSummary } from './model/types'
-import type { ReorderBatchItem } from './AdminBatchOrderCorrectionForm'
 
 interface Props {
   from?: string
@@ -35,7 +26,6 @@ interface Props {
 }
 
 const EMPTY_TRADES: AdminTrade[] = []
-const DEFAULT_TIMING_AVAILABILITY = { atOpen: false, atClose: true, immediate: false }
 
 function uniqBy<T>(items: T[], getKey: (item: T) => string): T[] {
   const seen = new Set<string>()
@@ -48,41 +38,27 @@ function uniqBy<T>(items: T[], getKey: (item: T) => string): T[] {
 }
 
 export function AdminTradesWorkbench({ from, to, initialPage, initialSize }: Props) {
-  const queryClient = useQueryClient()
-
   const [selectedUserId, setSelectedUserId] = useState('')
   const [selectedBroker, setSelectedBroker] = useState('')
   const [selectedAccountId, setSelectedAccountId] = useState('')
   const [selectedStrategyId, setSelectedStrategyId] = useState('')
-  const [reorderResult, setReorderResult] = useState<ReorderSummary | null>(null)
-  const [reorderPending, setReorderPending] = useState(false)
-  // 계좌/전략/주문 조회 실패, 재주문 실패는 toast가 아니라 이 인라인 배너(AdminTradesFeedback)로
-  // 표시한다 — 운영 개입 화면이라 사라지는 토스트보다 고정 배너가 낫다는 기존 설계를 유지.
-  const [manualError, setManualError] = useState<string | null>(null)
 
   const tradesQuery = useAdminTradesQuery({ from, to })
   const allAccountsQuery = useAdminAllAccountsQuery()
   const accountsQuery = useAdminAccountsByUserQuery(selectedUserId)
   const strategiesQuery = useAdminStrategiesByAccountQuery(selectedAccountId)
-  const ordersQuery = useAdminStrategyOrdersQuery(selectedAccountId, selectedStrategyId, nextTradeDateKst())
-  const timingQuery = useAdminReorderTimingQuery()
   const statusMutation = useUpdateAdminStrategyStatusMutation()
-  const reorderMutation = useReorderAdminOrderMutation()
 
   const trades = tradesQuery.data ?? EMPTY_TRADES
-  // 크립토 계좌는 kista-api가 재주문을 거부해 선택지에서 뺀다
-  const accounts = (accountsQuery.data ?? []).filter((account) => !isCryptoBroker(account.broker))
+  const accounts = accountsQuery.data ?? []
   const strategies = strategiesQuery.data ?? []
-  const orders = ordersQuery.data ?? []
-  const timingAvailability = timingQuery.data ?? DEFAULT_TIMING_AVAILABILITY
 
+  // 계좌/전략 조회 실패는 toast가 아니라 이 인라인 배너(AdminTradesFeedback)로 표시한다 — 운영 개입 화면이라 고정 배너가 낫다
   const actionError =
-    manualError
-    ?? (selectedUserId && accountsQuery.isError ? '계좌 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.' : null)
+    (selectedUserId && accountsQuery.isError ? '계좌 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.' : null)
     ?? (strategiesQuery.isError ? '전략 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.' : null)
-    ?? (ordersQuery.isError ? '주문 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.' : null)
 
-  // 기간 필터에 걸린 거래만으로 후보를 만들면 그 기간에 거래가 없는 사용자는 재주문 대상으로 고를 수 없다 — 전체 계좌 소유자와 합친다
+  // 기간 필터에 걸린 거래만으로 후보를 만들면 그 기간에 거래가 없는 사용자는 선택지에서 고를 수 없다 — 전체 계좌 소유자와 합친다
   const userOptions = uniqBy(
     [
       // 계좌를 찾지 못한 거래(userId null)는 고를 계좌가 없어 후보에서 뺀다
@@ -109,16 +85,8 @@ export function AdminTradesWorkbench({ from, to, initialPage, initialSize }: Pro
   // 페이지네이션은 클라이언트 상태(URL에 반영하지 않음) — 선택한 사용자·전략 필터가 클라이언트 상태라 필터 후 목록을 자르기 때문이다
   const { page: currentPage, setPage, size, totalPages, paged: pagedTrades, handlePageSizeChange } = useClientPagination(filteredTrades, { initialPage, initialSize })
 
-  // 선택 단계가 바뀔 때마다 반복되는 피드백 초기화 + 1페이지 복귀 — 예전 reducer의
-  // FEEDBACK_CLEAR 상수와 같은 역할, 새 선택 핸들러 추가 시 이 호출을 빠뜨리지 않도록 모은다.
-  function clearFeedbackAndResetPage() {
-    setManualError(null)
-    setReorderResult(null)
-    setPage(1)
-  }
-
   function handleUserChange(userId: string) {
-    clearFeedbackAndResetPage()
+    setPage(1)
     setSelectedUserId(userId)
     setSelectedBroker('')
     setSelectedAccountId('')
@@ -130,125 +98,51 @@ export function AdminTradesWorkbench({ from, to, initialPage, initialSize }: Pro
   }
 
   function handleBrokerChange(broker: string) {
-    clearFeedbackAndResetPage()
+    setPage(1)
     setSelectedBroker(broker)
     setSelectedAccountId('')
     setSelectedStrategyId('')
   }
 
   function handleAccountChange(accountId: string) {
-    clearFeedbackAndResetPage()
+    setPage(1)
     setSelectedAccountId(accountId)
     setSelectedStrategyId('')
   }
 
   function handleStrategyChange(strategyId: string) {
-    clearFeedbackAndResetPage()
+    setPage(1)
     setSelectedStrategyId(strategyId)
   }
 
   function handleStrategyStatusToggle() {
     if (!selectedAccountId || !selectedStrategy) return
     const nextStatus = selectedStrategy.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE'
-    setManualError(null)
     // 실패 토스트는 mutation 훅의 onError가 띄운다 — 여기서 배너를 또 띄우면 중복이다
     statusMutation.mutate({ accountId: selectedAccountId, strategyId: selectedStrategy.id, status: nextStatus })
   }
 
-  async function handleReorderSubmit(items: ReorderBatchItem[]) {
-    if (!selectedUserId || !selectedAccountId || !selectedStrategyId || items.length === 0) return
-
-    // skipped 계산은 리로드 前 클로저 orders.length 기준
-    const ordersCountBeforeReload = orders.length
-
-    setManualError(null)
-    setReorderResult(null)
-    setReorderPending(true)
-
-    // 재주문 시점 가용성 재조회 (제출 시점에 시장 단계가 바뀔 수 있음) — 실패 시 기존 값 유지
-    await queryClient.invalidateQueries({ queryKey: adminKeys.reorderTiming() }).catch(() => {})
-
-    try {
-      const results: Array<{ sourceOrderId: string; originalStatus: string; resultingStatus: string }> = []
-      let failedCount = 0
-
-      for (const item of items) {
-        try {
-          // eslint-disable-next-line react-doctor/async-await-in-loop
-          const result = await reorderMutation.mutateAsync({
-            userId: selectedUserId,
-            accountId: selectedAccountId,
-            strategyId: selectedStrategyId,
-            tradeDate: nextTradeDateKst(),
-            orderId: item.orderId,
-            timing: item.timing,
-            direction: item.direction,
-            quantity: item.quantity,
-            price: item.price,
-            memo: item.memo,
-          })
-          results.push({
-            sourceOrderId: result.sourceOrderId,
-            originalStatus: result.originalStatus,
-            resultingStatus: result.resultingStatus,
-          })
-        } catch {
-          failedCount++
-        }
-      }
-
-      if (results.length > 0) {
-        await queryClient.invalidateQueries({
-          queryKey: adminKeys.strategyOrders(selectedAccountId, selectedStrategyId, nextTradeDateKst()),
-        }).catch(() => {}) // 재주문은 적용됐으므로 목록 갱신 실패는 무시
-        // 재주문으로 계좌 PLANNED BUY 합계가 바뀌어 예산도 다시 조회
-        await queryClient.invalidateQueries({ queryKey: adminKeys.reorderBuyBudgetRoot() }).catch(() => {})
-        // 아래 거래 내역 표의 원본 주문 상태(취소 등)도 다시 조회
-        await queryClient.invalidateQueries({ queryKey: adminKeys.tradesRoot() }).catch(() => {})
-        setReorderResult({
-          processed: results.length,
-          skipped: Math.max(0, ordersCountBeforeReload - items.length),
-          results,
-        })
-      }
-
-      if (failedCount > 0) {
-        setManualError(
-          results.length > 0
-            ? `${results.length}건 재주문 완료, ${failedCount}건 실패. 실패한 주문을 다시 확인하세요.`
-            : '재주문에 실패했습니다. 입력값과 주문 상태를 다시 확인하세요.',
-        )
-      }
-    } finally {
-      setReorderPending(false)
-    }
-  }
-
   return (
     <div className="space-y-4">
-      <AdminTradeCorrectionPanel
+      <AdminTradeFilterPanel
         users={userOptions}
         brokers={brokerOptions}
         accounts={filteredAccounts}
         strategies={strategies}
-        orders={orders}
         selectedStrategy={selectedStrategy}
         selectedUserId={selectedUserId}
         selectedBroker={selectedBroker}
         selectedAccountId={selectedAccountId}
         selectedStrategyId={selectedStrategyId}
         strategyStatusPending={statusMutation.isPending}
-        reorderPending={reorderPending}
-        timingAvailability={timingAvailability}
         onUserChange={handleUserChange}
         onBrokerChange={handleBrokerChange}
         onAccountChange={handleAccountChange}
         onStrategyChange={handleStrategyChange}
         onStrategyStatusToggle={handleStrategyStatusToggle}
-        onReorderSubmit={handleReorderSubmit}
       />
 
-      <AdminTradesFeedback actionError={actionError} reorderResult={reorderResult} />
+      <AdminTradesFeedback actionError={actionError} />
 
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <h2 className="text-base font-semibold">

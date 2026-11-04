@@ -8,11 +8,6 @@ import type {
   AdminAnomalies,
   AppErrorLog,
   AdminStrategy,
-  AdminStrategyOrder,
-  AdminReorderRequest,
-  AdminReorderResponse,
-  AdminReorderTimingAvailability,
-  AdminReorderBuyBudget,
 } from '../model/types'
 import type { UserRole, UserStatus } from '@shared/lib/api-schema'
 
@@ -55,38 +50,11 @@ export async function listAdminStrategies(accountId: string, token?: string): Pr
   return fetchEither<AdminStrategy[]>(`/api/admin/accounts/${accountId}/strategies`, { method: 'GET' }, token)
 }
 
-export async function listAdminStrategyOrders(
-  accountId: string,
-  strategyId: string,
-  tradeDate: string,
-  token?: string,
-): Promise<AdminStrategyOrder[]> {
-  const params = new URLSearchParams({ tradeDate })
-  return fetchEither<AdminStrategyOrder[]>(
-    `/api/admin/accounts/${accountId}/strategies/${strategyId}/orders?${params.toString()}`,
-    { method: 'GET' },
-    token,
-  )
-}
-
 export async function updateAdminStrategyStatus(accountId: string, strategyId: string, status: AdminStrategy['status']): Promise<void> {
   await clientFetch<void>(
     `/api/admin/accounts/${accountId}/strategies/${strategyId}/status`,
     jsonBody('PATCH', { status }),
   )
-}
-
-export async function reorderAdminOrder(request: AdminReorderRequest): Promise<AdminReorderResponse> {
-  return clientFetch<AdminReorderResponse>('/api/admin/trades/reorders', jsonBody('POST', request))
-}
-
-export async function getReorderTimingAvailability(): Promise<AdminReorderTimingAvailability> {
-  return clientFetch<AdminReorderTimingAvailability>('/api/admin/trades/reorder-timing', { method: 'GET' })
-}
-
-export async function getReorderBuyBudget(orderIds: string[], tradeDate: string): Promise<AdminReorderBuyBudget> {
-  const params = new URLSearchParams([...orderIds.map((id) => ['orderIds', id]), ['tradeDate', tradeDate]])
-  return clientFetch<AdminReorderBuyBudget>(`/api/admin/trades/reorder-buy-budget?${params}`, { method: 'GET' })
 }
 
 export async function listAdminAuditLogs(token: string, from?: string, to?: string): Promise<AdminAuditLog[]> {

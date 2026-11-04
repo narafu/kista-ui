@@ -28,7 +28,7 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 | 공통 기본값, accounts, strategies | 30초 | 화면 재진입 재사용과 mutation 직접 동기화의 균형 |
 | me, order preview/history, stats | 60초 | 자주 읽지만 mutation에서 명시적으로 무효화 |
 | trade/cycle history, daily trades | 5분 | 과거 이력 중심 |
-| prices, admin 재주문(당일 주문·예산·시각) | 0 | 거래 판단에 쓰는 라이브 값. 재주문 시각은 60초 주기 재조회 |
+| prices | 0 | 거래 판단에 쓰는 라이브 값 |
 | runtime-config, admin-settings | 0 | 운영 설정 변경 즉시 반영, 필요 시 focus refetch |
 | market holidays | 24시간 | 월 단위 참조 데이터. 실패한 서버 조회는 dehydrate되지 않아 장기 빈 값으로 캐시되지 않음 |
 | candles | 10분 | 차트 조회 비용과 최신성 균형 |

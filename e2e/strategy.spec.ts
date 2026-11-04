@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 // 실제 kista-api 응답 → 정규화 → 렌더 경로 스모크. dev 시드 데이터에 의존하므로 특정 전략·금액은 단언하지 않는다.
-// 원장 부족 배지·재주문 한도 같은 분기는 컴포넌트 단위 테스트가 맡는다
+// 원장 부족 배지 같은 분기는 컴포넌트 단위 테스트가 맡는다
 test.describe('전략 (USER)', () => {
   test.use({ storageState: 'e2e/.auth/user.json' })
 

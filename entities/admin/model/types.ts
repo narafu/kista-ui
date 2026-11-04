@@ -10,8 +10,6 @@ type AdminTradeSchema = Schema<'AdminTradeResponse'>
 type AdminStrategySchema = Schema<'AdminStrategyResponse'>
 type AdminAccountItemSchema = Schema<'AdminAccountItem'>
 
-export type OrderTiming = 'AT_OPEN' | 'AT_CLOSE' | 'IMMEDIATE'
-
 export type AdminUser = Schema<'AdminUserResponse'>
 
 export type AdminStats = Schema<'AdminDashboardResponse'>
@@ -23,7 +21,7 @@ export type AdminAccount = Pick<Schema<'AdminAccountResponse'>, 'id' | 'userId' 
   & { strategies: AdminAccountStrategy[] }
 
 export type AdminTrade = Pick<AdminTradeSchema, 'id' | 'accountId' | 'ownerNickname' | 'tradeDate' | 'ticker' | 'quantity' | 'price'>
-  // userId는 계좌를 찾지 못한 주문이면 null(닉네임 "(알 수 없음)") — 전략 주문 조회는 이때 404라 AdminStrategyOrder엔 없다
+  // userId는 계좌를 찾지 못한 주문이면 null(닉네임 "(알 수 없음)")
   & NullableFields<AdminTradeSchema, 'userId' | 'strategyId' | 'strategyType'>
   & {
     direction: OrderDirection
@@ -37,34 +35,6 @@ export type AdminTrade = Pick<AdminTradeSchema, 'id' | 'accountId' | 'ownerNickn
 export type AdminStrategy = Pick<AdminStrategySchema, 'id' | 'type' | 'ticker' | 'cycleSeedType'> & {
   status: 'ACTIVE' | 'PAUSED'
 }
-
-export type AdminStrategyOrder = Pick<AdminTradeSchema, 'id' | 'userId' | 'ownerNickname' | 'strategyCycleId' | 'tradeDate' | 'ticker' | 'quantity' | 'price'>
-  & NullableFields<AdminTradeSchema, 'strategyType' | 'externalOrderId' | 'filledQuantity' | 'filledPrice'>
-  & {
-    direction: OrderDirection
-    orderType: OrderType
-    timing: OrderTiming
-    status: OrderStatus
-  }
-
-export type AdminReorderTimingAvailability = Schema<'ReorderTimingAvailabilityResponse'>
-
-// BUY 재주문 예산 — 같은 계좌 원본 주문 일괄 조회. cycleRemaining은 사이클별 남은 원장 한도(키 없으면 DCA라 상한 없음),
-// sourceRefunds는 원본 주문별 취소 환급액. 서버는 이 한도를 넘는 재주문 BUY를 409로 차단한다.
-export type AdminReorderBuyBudget = Schema<'ReorderBuyBudgetResponse'>
-
-// 요청 스키마는 필수/선택 표기가 서버 @NotNull과 일치해 Required를 씌우지 않는다
-export type AdminReorderRequest = Omit<components['schemas']['AdminReorderRequest'], 'timing' | 'direction'> & {
-  timing: OrderTiming
-  direction?: OrderDirection
-}
-
-export type AdminReorderResponse = Pick<Schema<'AdminReorderResponse'>, 'userId' | 'accountId' | 'strategyId' | 'sourceOrderId'>
-  & Partial<NullableFields<Schema<'AdminReorderResponse'>, 'newOrderExternalId'>>
-  & {
-    originalStatus: OrderStatus
-    resultingStatus: OrderStatus
-  }
 
 export type AdminAuditLog = Pick<Schema<'AuditLogResponse'>, 'id' | 'adminId' | 'action' | 'createdAt'>
   & NullableFields<Schema<'AuditLogResponse'>, 'targetType' | 'targetId' | 'payload'>

@@ -14,7 +14,7 @@ const pickVr = clickRole('button', /밸류리밸런싱/)
 const openAdvanced = async (p) => { await p.locator('summary', { hasText: '고급 설정' }).first().click(); await p.waitForTimeout(800) }
 // 사용자 → 증권사 → 계좌 → 전략 cascading Select(Base UI)를 시드/테스트 항목 우선으로 끝까지 고른다
 const adminCascade = async (p) => {
-  const triggers = p.locator('section[aria-label="재주문 대상 선택"] [role="combobox"]')
+  const triggers = p.locator('section[aria-label="거래 내역 필터"] [role="combobox"]')
   for (let i = 0; i < 4; i++) {
     const trigger = triggers.nth(i)
     // 앞 선택의 조회가 끝나야 활성화된다 — 끝내 비활성이면 고를 항목이 없는 것으로 보고 멈춘다

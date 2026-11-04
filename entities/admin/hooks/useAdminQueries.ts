@@ -9,13 +9,9 @@ import {
   deleteAdminUser,
   listAdminAccounts,
   listAdminStrategies,
-  listAdminStrategyOrders,
   updateAdminStrategyStatus,
-  reorderAdminOrder,
-  getReorderTimingAvailability,
-  getReorderBuyBudget,
 } from '../api'
-import type { AdminReorderRequest, AdminStats, AdminStrategy, AdminUser } from '../model/types'
+import type { AdminStats, AdminStrategy, AdminUser } from '../model/types'
 import type { UserRole, UserStatus } from '@shared/lib/api-schema'
 import { apiMsg } from '@shared/lib/api-client'
 import { toKstDateString } from '@shared/lib/format'
@@ -31,7 +27,7 @@ export function useAdminStatsQuery() {
   return useQuery(adminStatsQueryOptions())
 }
 
-// 거래일 재주문 워크벤치(admin-trade-list) 전용 — 사용자 선택 → 계좌 → 전략 → 오늘 주문 순으로
+// 관리자 거래 내역 워크벤치(admin-trade-list) 전용 — 사용자 선택 → 계좌 → 전략 순으로
 // 이어지는 dependent query 체인. `enabled`로 선행 선택이 비었을 때 조회 자체를 막는다.
 // 계좌 전체 목록을 userId 무관 공용 키 하나로 캐싱하고 select로 필터링한다 — userId별로 키를
 // 나누면 사용자를 바꿀 때마다 동일한 전체 목록을 중복 조회·중복 캐싱하게 된다.
@@ -52,35 +48,6 @@ export function useAdminStrategiesByAccountQuery(accountId: string) {
   })
 }
 
-export function useAdminStrategyOrdersQuery(accountId: string, strategyId: string, tradeDate: string) {
-  return useQuery({
-    queryKey: adminKeys.strategyOrders(accountId, strategyId, tradeDate),
-    queryFn: () => listAdminStrategyOrders(accountId, strategyId, tradeDate),
-    enabled: !!accountId && !!strategyId && !!tradeDate,
-    staleTime: 0, // 재주문 판단에 쓰는 당일 주문 상태 — 라이브 값
-  })
-}
-
-export function useAdminReorderTimingQuery() {
-  return useQuery({
-    queryKey: adminKeys.reorderTiming(),
-    queryFn: getReorderTimingAvailability,
-    // 장 시각에 따라 바뀌는 값 — 탭을 열어둔 채 시각이 넘어가도 갱신되도록 주기 재조회
-    staleTime: 0,
-    refetchInterval: 60_000,
-  })
-}
-
-// 같은 계좌 BUY 원본 주문 일괄 예산 — 사이클별 남은 원장 한도와 원본 환급액
-export function useAdminReorderBuyBudgetQuery(orderIds: string[], tradeDate: string) {
-  return useQuery({
-    queryKey: adminKeys.reorderBuyBudget(orderIds, tradeDate),
-    queryFn: () => getReorderBuyBudget(orderIds, tradeDate),
-    enabled: orderIds.length > 0,
-    staleTime: 0, // 같은 거래일 다른 주문이 저장되면 한도가 바로 바뀐다
-  })
-}
-
 export function useUpdateAdminStrategyStatusMutation() {
   const queryClient = useQueryClient()
   return useMutation({
@@ -89,17 +56,6 @@ export function useUpdateAdminStrategyStatusMutation() {
     onSuccess: (_result, { accountId }) =>
       queryClient.invalidateQueries({ queryKey: adminKeys.strategiesByAccount(accountId) }),
     onError: (err) => toast.error(apiMsg(err, '전략 상태 변경에 실패했습니다.')),
-  })
-}
-
-// onError에 toast를 두지 않는다 — 호출부(AdminTradesWorkbench)가 배치의 여러 주문을 순차
-// mutateAsync로 호출한 뒤 실패 건수를 하나의 인라인 배너로 합쳐 보여준다. 여기서 toast까지 붙이면
-// 재주문 10건 중 3건 실패 시 토스트 3개가 동시에 쌓이는 스팸이 된다 — 집계된 배너 하나가 맞다.
-// 캐시 무효화도 같은 이유로 호출부가 배치 종료 후 한 번에 수행한다(건별 invalidate 시 재조회 폭주).
-export function useReorderAdminOrderMutation() {
-  // eslint-disable-next-line react-doctor/query-mutation-missing-invalidation -- 위 사유: 호출부가 배치 종료 후 일괄 무효화
-  return useMutation({
-    mutationFn: (request: AdminReorderRequest) => reorderAdminOrder(request),
   })
 }
 

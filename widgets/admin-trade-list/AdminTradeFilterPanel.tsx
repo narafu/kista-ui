@@ -1,13 +1,11 @@
 'use client'
 
-import type { AdminAccount, AdminReorderTimingAvailability, AdminStrategy, AdminStrategyOrder } from '@entities/admin'
+import type { AdminAccount, AdminStrategy } from '@entities/admin'
 import { useMeta } from '@entities/meta'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toSelectValue } from '@shared/lib/utils'
-import { AdminBatchOrderCorrectionForm } from './AdminBatchOrderCorrectionForm'
-import type { ReorderBatchItem } from './AdminBatchOrderCorrectionForm'
 
 interface UserOption {
   id: string
@@ -19,54 +17,45 @@ interface Props {
   brokers: string[]
   accounts: AdminAccount[]
   strategies: AdminStrategy[]
-  orders: AdminStrategyOrder[]
   selectedStrategy: AdminStrategy | null
   selectedUserId: string
   selectedBroker: string
   selectedAccountId: string
   selectedStrategyId: string
   strategyStatusPending: boolean
-  reorderPending: boolean
-  timingAvailability: AdminReorderTimingAvailability
   onUserChange: (userId: string) => void
   onBrokerChange: (broker: string) => void
   onAccountChange: (accountId: string) => void
   onStrategyChange: (strategyId: string) => void
   onStrategyStatusToggle: () => void
-  onReorderSubmit: (items: ReorderBatchItem[]) => Promise<void>
 }
 
-type HelperInput = Pick<Props, 'brokers' | 'accounts' | 'strategies' | 'orders' | 'selectedUserId' | 'selectedBroker' | 'selectedAccountId' | 'selectedStrategyId'>
+type HelperInput = Pick<Props, 'brokers' | 'accounts' | 'strategies' | 'selectedUserId' | 'selectedBroker' | 'selectedAccountId'>
 
-// 선택 단계별 안내 문구 — 앞 단계가 비어 있으면 그 단계 안내가 우선
-function getHelperMessage({ brokers, accounts, strategies, orders, selectedUserId, selectedBroker, selectedAccountId, selectedStrategyId }: HelperInput): string | null {
-  if (!selectedUserId) return '재주문할 사용자를 먼저 선택하세요.'
-  if (!selectedBroker) return brokers.length === 0 ? '선택한 사용자에 연결된 증권사 계좌가 없습니다.' : '재주문할 증권사를 선택하세요.'
-  if (!selectedAccountId) return accounts.length === 0 ? '선택한 증권사에 연결된 계좌가 없습니다.' : '재주문할 계좌를 선택하세요.'
-  if (!selectedStrategyId) return strategies.length === 0 ? '선택한 계좌에 연결된 전략이 없습니다.' : '재주문할 전략을 선택하세요.'
-  return orders.length === 0 ? '선택한 전략의 재주문 대상 거래일 주문이 없습니다.' : null
+// 선택한 단계의 하위 목록이 비어 있을 때만 안내한다 — 각 선택은 독립적으로 거래 내역을 거른다
+function getHelperMessage({ brokers, accounts, strategies, selectedUserId, selectedBroker, selectedAccountId }: HelperInput): string | null {
+  if (selectedUserId && brokers.length === 0) return '선택한 사용자에 연결된 증권사 계좌가 없습니다.'
+  if (selectedBroker && accounts.length === 0) return '선택한 증권사에 연결된 계좌가 없습니다.'
+  if (selectedAccountId && strategies.length === 0) return '선택한 계좌에 연결된 전략이 없습니다.'
+  return null
 }
 
-export function AdminTradeCorrectionPanel({
+export function AdminTradeFilterPanel({
   users,
   brokers,
   accounts,
   strategies,
-  orders,
   selectedStrategy,
   selectedUserId,
   selectedBroker,
   selectedAccountId,
   selectedStrategyId,
   strategyStatusPending,
-  reorderPending,
-  timingAvailability,
   onUserChange,
   onBrokerChange,
   onAccountChange,
   onStrategyChange,
   onStrategyStatusToggle,
-  onReorderSubmit,
 }: Props) {
   const { labelOf } = useMeta()
   const nextStrategyActionLabel = selectedStrategy?.status === 'ACTIVE' ? '전략 일시중지' : '전략 재개'
@@ -75,25 +64,24 @@ export function AdminTradeCorrectionPanel({
   // 계좌명(별칭) + 마스킹 번호. 계좌번호가 없는 계좌(메리츠)는 계좌명만으로 구분한다
   const accountItems = accounts.map((account) => ({ value: account.id, label: account.accountNoMasked ? `${account.nickname} · ${account.accountNoMasked}` : account.nickname }))
   const strategyItems = strategies.map((strategy) => ({ value: strategy.id, label: `${labelOf('strategyTypes', strategy.type)} · ${strategy.ticker}` }))
-  const helperMessage = getHelperMessage({ brokers, accounts, strategies, orders, selectedUserId, selectedBroker, selectedAccountId, selectedStrategyId })
+  const helperMessage = getHelperMessage({ brokers, accounts, strategies, selectedUserId, selectedBroker, selectedAccountId })
 
   return (
-    <section className="rounded-[var(--r-lg)] border border-border bg-background p-4" aria-label="재주문 대상 선택">
+    <section className="rounded-[var(--r-lg)] border border-border bg-background p-4" aria-label="거래 내역 필터">
       <div>
-        <h2 className="text-base font-semibold">재주문 대상 선택</h2>
-        <p className="mt-1 text-sm text-muted-foreground">사용자부터 전략까지 순서대로 선택한 뒤, 값을 바꾼 주문만 다음 거래일 기준으로 재주문합니다.</p>
+        <h2 className="text-base font-semibold">거래 내역 필터</h2>
+        <p className="mt-1 text-sm text-muted-foreground">사용자부터 전략까지 순서대로 선택하면 거래 내역을 좁혀 보고 전략을 일시중지·재개할 수 있습니다.</p>
       </div>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <div className="grid min-w-0 gap-2 text-sm">
-          <Label htmlFor="reorder-user-select" className="font-medium">사용자</Label>
+          <Label htmlFor="trade-filter-user-select" className="font-medium">사용자</Label>
           <Select
             items={userItems}
             value={toSelectValue(userItems, selectedUserId)}
             onValueChange={(value) => { if (value) onUserChange(value) }}
-            disabled={reorderPending}
           >
-            <SelectTrigger id="reorder-user-select" aria-label="사용자 선택" className="h-10 w-full min-w-0">
+            <SelectTrigger id="trade-filter-user-select" aria-label="사용자 선택" className="h-10 w-full min-w-0">
               <SelectValue placeholder="사용자 선택" />
             </SelectTrigger>
             <SelectContent>
@@ -105,14 +93,14 @@ export function AdminTradeCorrectionPanel({
         </div>
 
         <div className="grid min-w-0 gap-2 text-sm">
-          <Label htmlFor="reorder-broker-select" className="font-medium">증권사</Label>
+          <Label htmlFor="trade-filter-broker-select" className="font-medium">증권사</Label>
           <Select
             items={brokerItems}
             value={toSelectValue(brokerItems, selectedBroker)}
             onValueChange={(value) => { if (value) onBrokerChange(value) }}
-            disabled={!selectedUserId || reorderPending}
+            disabled={!selectedUserId}
           >
-            <SelectTrigger id="reorder-broker-select" aria-label="증권사 선택" className="h-10 w-full min-w-0">
+            <SelectTrigger id="trade-filter-broker-select" aria-label="증권사 선택" className="h-10 w-full min-w-0">
               <SelectValue placeholder="증권사 선택" />
             </SelectTrigger>
             <SelectContent>
@@ -124,14 +112,14 @@ export function AdminTradeCorrectionPanel({
         </div>
 
         <div className="grid min-w-0 gap-2 text-sm">
-          <Label htmlFor="reorder-account-select" className="font-medium">계좌</Label>
+          <Label htmlFor="trade-filter-account-select" className="font-medium">계좌</Label>
           <Select
             items={accountItems}
             value={toSelectValue(accountItems, selectedAccountId)}
             onValueChange={(value) => { if (value) onAccountChange(value) }}
-            disabled={!selectedBroker || reorderPending}
+            disabled={!selectedBroker}
           >
-            <SelectTrigger id="reorder-account-select" aria-label="계좌 선택" className="h-10 w-full min-w-0">
+            <SelectTrigger id="trade-filter-account-select" aria-label="계좌 선택" className="h-10 w-full min-w-0">
               <SelectValue placeholder="계좌 선택" />
             </SelectTrigger>
             <SelectContent>
@@ -143,14 +131,14 @@ export function AdminTradeCorrectionPanel({
         </div>
 
         <div className="grid min-w-0 gap-2 text-sm">
-          <Label htmlFor="reorder-strategy-select" className="font-medium">전략</Label>
+          <Label htmlFor="trade-filter-strategy-select" className="font-medium">전략</Label>
           <Select
             items={strategyItems}
             value={toSelectValue(strategyItems, selectedStrategyId)}
             onValueChange={(value) => { if (value) onStrategyChange(value) }}
-            disabled={!selectedAccountId || reorderPending}
+            disabled={!selectedAccountId}
           >
-            <SelectTrigger id="reorder-strategy-select" aria-label="전략 선택" className="h-10 w-full min-w-0">
+            <SelectTrigger id="trade-filter-strategy-select" aria-label="전략 선택" className="h-10 w-full min-w-0">
               <SelectValue placeholder="전략 선택" />
             </SelectTrigger>
             <SelectContent>
@@ -160,8 +148,6 @@ export function AdminTradeCorrectionPanel({
             </SelectContent>
           </Select>
         </div>
-
-
       </div>
 
       {helperMessage ? (
@@ -182,16 +168,6 @@ export function AdminTradeCorrectionPanel({
             전략 상태 변경 후 목록을 다시 불러와 최신 상태를 반영합니다.
           </p>
         </div>
-      ) : null}
-
-      {orders.length > 0 ? (
-        <AdminBatchOrderCorrectionForm
-          key={`${orders.map((o) => o.id).join(',')}-${Number(timingAvailability.atOpen)}${Number(timingAvailability.atClose)}${Number(timingAvailability.immediate)}`}
-          orders={orders}
-          disabled={reorderPending}
-          timingAvailability={timingAvailability}
-          onSubmit={onReorderSubmit}
-        />
       ) : null}
     </section>
   )

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fmtCompactUsd, fmtCompactUsdNarrow, fmtKrw, fmtKrwEok, fmtMoney, fmtQuantity, fmtSignedMoney, roundMoney, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, nextTradeDateKst, fmtSignedPercent, fmtSignedPercentPoint, fmtDate, fmtMonthDay } from './index'
+import { fmtCompactUsd, fmtCompactUsdNarrow, fmtKrw, fmtKrwEok, fmtMoney, fmtQuantity, fmtSignedMoney, roundMoney, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, fmtSignedPercent, fmtSignedPercentPoint, fmtDate, fmtMonthDay } from './index'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -149,23 +149,6 @@ describe('fmtSignedPercentPoint', () => {
 
   it('digits 파라미터로 소수 자릿수를 지정할 수 있다', () => {
     expect(fmtSignedPercentPoint(0.12345, 2)).toBe('+12.35%p')
-  })
-})
-
-describe('nextTradeDateKst', () => {
-  it('KST 04:30 전이면 오늘 거래일', () => {
-    // 2026-07-17 04:29 KST
-    expect(nextTradeDateKst(new Date('2026-07-16T19:29:00Z'))).toBe('2026-07-17')
-  })
-
-  it('KST 04:30부터는 다음 날 거래일', () => {
-    // 2026-07-17 04:30 KST
-    expect(nextTradeDateKst(new Date('2026-07-16T19:30:00Z'))).toBe('2026-07-18')
-  })
-
-  it('KST 자정 직후는 같은 날 거래일', () => {
-    // 2026-07-17 00:05 KST
-    expect(nextTradeDateKst(new Date('2026-07-16T15:05:00Z'))).toBe('2026-07-17')
   })
 })
 

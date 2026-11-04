@@ -1,20 +1,15 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import {
-  reorderAdminOrder,
   listAdminUsers,
   listAdminAccounts,
   listAdminErrorLogs,
   listAdminStrategies,
-  listAdminStrategyOrders,
   softDeleteAdminErrorLog,
   updateAdminStrategyStatus,
 } from './index'
 import type {
   AdminAccount,
-  AdminReorderRequest,
-  AdminReorderResponse,
   AdminStrategy,
-  AdminStrategyOrder,
 } from '../model/types'
 
 const {
@@ -103,39 +98,6 @@ describe('entities/admin/api admin trade correction APIs', () => {
     )
   })
 
-  it('lists strategy orders for a trade date with bearer token auth', async () => {
-    const orders: AdminStrategyOrder[] = [
-      {
-        id: 'order-1',
-        userId: 'user-1',
-        ownerNickname: 'privacy-user',
-        strategyType: 'PRIVACY',
-        strategyCycleId: null,
-        tradeDate: '2026-07-01',
-        ticker: 'SOXL',
-        direction: 'SELL',
-        orderType: 'LOC',
-        timing: 'AT_CLOSE',
-        quantity: 2,
-        price: 267.37,
-        status: 'PLACED',
-        externalOrderId: 'BROKER-1',
-        filledQuantity: null,
-        filledPrice: null,
-      },
-    ]
-    fetchEitherMock.mockResolvedValue(orders)
-
-    const result = await listAdminStrategyOrders('account-1', 'strategy-1', '2026-07-01', 'admin-token')
-
-    expect(result).toEqual(orders)
-    expect(fetchEitherMock).toHaveBeenCalledWith(
-      '/api/admin/accounts/account-1/strategies/strategy-1/orders?tradeDate=2026-07-01',
-      { method: 'GET' },
-      'admin-token',
-    )
-  })
-
   it('updates admin strategy status through the client route handler', async () => {
     clientFetchMock.mockResolvedValue(undefined)
 
@@ -145,40 +107,6 @@ describe('entities/admin/api admin trade correction APIs', () => {
     expect(clientFetchMock).toHaveBeenCalledWith(
       '/api/admin/accounts/account-1/strategies/strategy-1/status',
       { method: 'PATCH', body: { status: 'PAUSED' } },
-    )
-  })
-
-  it('posts admin reorder through the client route handler', async () => {
-    const request: AdminReorderRequest = {
-      userId: 'user-1',
-      accountId: 'account-1',
-      strategyId: 'strategy-1',
-      orderId: 'order-1',
-      timing: 'AT_CLOSE',
-      tradeDate: '2026-07-01',
-      quantity: 3,
-      price: 250,
-      memo: 'price fix',
-    }
-    const response: AdminReorderResponse = {
-      userId: 'user-1',
-      accountId: 'account-1',
-      strategyId: 'strategy-1',
-      sourceOrderId: 'order-1',
-      originalStatus: 'PLANNED',
-      resultingStatus: 'PLANNED',
-      newOrderExternalId: null,
-    }
-    jsonBodyMock.mockReturnValue({ method: 'POST', body: request })
-    clientFetchMock.mockResolvedValue(response)
-
-    const result = await reorderAdminOrder(request)
-
-    expect(result).toEqual(response)
-    expect(jsonBodyMock).toHaveBeenCalledWith('POST', request)
-    expect(clientFetchMock).toHaveBeenCalledWith(
-      '/api/admin/trades/reorders',
-      { method: 'POST', body: request },
     )
   })
 

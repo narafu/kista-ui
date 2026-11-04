@@ -14,7 +14,7 @@ export interface NextOrderPositionSnapshot {
 export interface NextOrderItem {
   ticker: string
   orderType: string
-  timing?: string // OrderTiming(AT_CLOSE/AT_OPEN/IMMEDIATE) — kista-api f9a548829 이전 응답엔 없음
+  timing?: string // OrderTiming(AT_CLOSE/AT_OPEN) — kista-api f9a548829 이전 응답엔 없음
   direction: string
   quantity: number
   price: string
