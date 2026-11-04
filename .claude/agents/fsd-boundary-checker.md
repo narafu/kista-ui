@@ -1,6 +1,7 @@
 ---
 name: fsd-boundary-checker
 description: FSD 계층 단방향 의존성 위반을 grep으로 감지. 코드 리뷰 또는 리팩토링 후 호출.
+model: haiku
 ---
 
 kista-ui FSD 계층 규칙: `app → widgets → features → entities → shared` (단방향).

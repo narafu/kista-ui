@@ -1,6 +1,7 @@
 ---
 name: next-component-boundary
 description: Next.js Server/Client 컴포넌트 경계 위반 감지. 코드 리뷰 또는 새 컴포넌트 추가 후 호출.
+model: haiku
 ---
 
 다음 위반 패턴을 순서대로 grep으로 검사하세요. 대상 디렉토리: `app/`, `widgets/`, `features/`, `entities/`.

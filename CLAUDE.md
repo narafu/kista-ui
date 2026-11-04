@@ -5,7 +5,6 @@
 ## 프로젝트 개요
 
 KISTA V2 — 한국투자증권 KIS API 기반 해외주식 자동 분할매매 **초대제 멀티 사용자 SaaS** 프론트엔드.
-기술 스택: **Next.js 16** · TypeScript · Tailwind CSS · shadcn/ui · React Query · Firebase (FCM)
 
 ## 작업 방식
 
@@ -19,7 +18,6 @@ KISTA V2 — 한국투자증권 KIS API 기반 해외주식 자동 분할매매 
 @docs/agents/commands.md
 @docs/agents/architecture.md
 @docs/agents/constraints.md
-@docs/agents/deployment.md
 
 ## 레이어별 상세 문서 (해당 디렉토리 작업 시 로드)
 
@@ -31,6 +29,7 @@ KISTA V2 — 한국투자증권 KIS API 기반 해외주식 자동 분할매매 
 
 - `docs/agents/finance.md` — 가계부(finance) 도메인 공통 규칙. 하위: 각 `features/finance/<slice>/CLAUDE.md`·`features/asset/save-asset/CLAUDE.md`(해당 슬라이스 작업 시 자동 로드, 그룹 공유 전환 공통은 `finance-group-share.md`), `finance-widgets.md`(가계부 화면 작업 시 Read)
 - `docs/agents/strategy.md` — 전략·DCA·크립토·브로커 분기
+- `docs/agents/deployment.md` — 환경변수·CORS·Docker·OCI 배포. `Dockerfile`·`docker-compose.yml`·`.env*`·`deploy/`·`.github/workflows/`·CORS·`/api/meta` 계약 변경 작업 시 반드시 Read
 
 ## 운영 도구
 

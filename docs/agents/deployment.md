@@ -14,8 +14,6 @@
 - `/api/meta` 계약이 바뀌는 배포(거래소·종목 메타 추가 등)는 kista-api를 먼저 배포하고 kista-ui를 나중에 배포한다 — UI 서버가 메타를 1시간 Data Cache(`getMetaBundle`, `revalidate: 3600`)에 담아, UI가 먼저 뜨면 구 메타가 최대 1시간 남는다(2026-10-24 바이낸스가 계좌 등록 목록에 안 보인 사례). 이미 순서가 뒤집혔으면 kista-ui Server Deploy를 재실행해 새 컨테이너로 캐시를 비운다(`docker restart`는 컨테이너 파일시스템이 남아 무효).
 ## Docker
 
-명령어는 `docs/agents/commands.md`의 "Docker / 로컬 연동" 참고.
-
 설정:
 - `NEXT_PUBLIC_*` 빌드 타임 인라인 → `Dockerfile` `ARG`/`ENV` 필수
 - API URL: `API_BASE_URL=http://host.docker.internal:8080` + `docker-compose.yml` `extra_hosts: host-gateway` 설정

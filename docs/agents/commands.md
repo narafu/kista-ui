@@ -8,14 +8,6 @@ npm 스크립트 목록은 `package.json`이 SSOT다 (`dev`/`build`/`typecheck`/
 npx shadcn@latest add <component> --yes
 ```
 
-### Docker / 로컬 연동
-
-```bash
-docker compose up -d --build
-docker compose down
-docker compose logs
-```
-
 ### 개발 로그 / 디버깅
 
 ```bash
