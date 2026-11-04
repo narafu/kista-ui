@@ -80,6 +80,19 @@ describe('DcaExecutionHistory', () => {
     expect(rows[2]).toHaveTextContent('보유 수량 부족')
   })
 
+  it('같은 날 행은 규칙 카드 순서로, 삭제된 규칙은 그날 맨 뒤로 표시하고 날짜 내림차순은 유지한다', () => {
+    const ruleB = { ...rule, ruleKey: 'b', direction: 'SELL' } as DcaRule
+    const at = (ruleKey: string, kstTradeDate: string) => ({ ...row, ruleKey, kstTradeDate, direction: ruleKey === 'b' ? 'SELL' : 'BUY' })
+    queryMock.mockReturnValue({
+      // API 순서: 같은 날 기록 역순(gone → b → a)
+      data: { content: [at('gone', '2026-10-01'), at('b', '2026-10-01'), at('a', '2026-10-01'), at('b', '2026-09-30'), at('a', '2026-09-30')], page: 0, size: 20, totalElements: 5 },
+      isLoading: false, isError: false,
+    })
+    render(<DcaExecutionHistory strategyId="d1" ticker="UPRO" rules={[rule, ruleB]} market="US_STOCK" />)
+    const order = table().getAllByRole('row').slice(1).map((r) => (r.textContent?.includes('삭제된 규칙') ? '삭제' : r.querySelectorAll('td')[1].textContent))
+    expect(order).toEqual(['매수', '매도', '삭제', '매수', '매도'])
+  })
+
   it('모바일 카드에 날짜 그룹·규칙·결과·기준가·수량·체결·사유를 표시한다', () => {
     queryMock.mockReturnValue({
       data: { content: [{ ruleKey: 'a', direction: 'BUY', kstTradeDate: '2026-10-18', status: 'SKIPPED', skipReason: 'BELOW_MIN_ORDER_AMOUNT', detail: null, referencePrice: 145000000, quantity: 0.00034482, order: { id: 'o1', status: 'FILLED', filledPrice: 145100000 } }], page: 0, size: 20, totalElements: 1 },

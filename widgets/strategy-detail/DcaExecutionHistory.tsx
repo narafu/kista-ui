@@ -29,7 +29,15 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
   const currency = marketCurrency(market)
   const [page, setPage] = useState(1) // PaginationBar는 1-base, API는 0-base
   const { data, isLoading, isError } = useDcaExecutionsQuery(strategyId, page - 1, PAGE_SIZE)
-  const rows = data?.content ?? []
+  // API는 같은 거래일 안에서 기록 역순으로 준다 — 날짜 내림차순은 유지하고 같은 날 안에서는 규칙 카드 순서로, 삭제된 규칙은 맨 뒤로
+  // ponytail: 페이지 단위 정렬 — 한 거래일이 페이지 경계에 걸치면 경계 너머 순서는 못 맞춘다(같은 날 행 수 ≤ 규칙 수라 드묾). 필요해지면 API 정렬 키로 이관
+  const ruleRank = (key: string) => {
+    const i = rules.findIndex((x) => x.ruleKey === key)
+    return i === -1 ? rules.length : i
+  }
+  const rows = [...(data?.content ?? [])].sort(
+    (a, b) => b.kstTradeDate.localeCompare(a.kstTradeDate) || ruleRank(a.ruleKey) - ruleRank(b.ruleKey),
+  )
   const totalPages = Math.ceil((data?.totalElements ?? 0) / PAGE_SIZE)
 
   // 방향·주기·조건을 따로 그린다(PC 표 칸, 모바일 카드 줄) — 삭제된 규칙은 응답의 방향만 남는다
