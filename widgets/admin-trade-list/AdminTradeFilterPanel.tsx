@@ -164,9 +164,6 @@ export function AdminTradeFilterPanel({
               {strategyStatusPending ? '처리 중...' : nextStrategyActionLabel}
             </Button>
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            전략 상태 변경 후 목록을 다시 불러와 최신 상태를 반영합니다.
-          </p>
         </div>
       ) : null}
     </section>
