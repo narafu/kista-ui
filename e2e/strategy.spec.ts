@@ -29,22 +29,19 @@ test.describe('전략 (USER)', () => {
     await expect(page.getByText(/잔고 ?검증/)).toHaveCount(0)
   })
 
-  test('투자금 추가 폼은 입력칸별 오류를 보이고 확인 다이얼로그에서 취소할 수 있다', async ({ page }) => {
+  test('투자금 추가 폼은 칸 아래에 오류를 보이고 확인 다이얼로그에서 취소할 수 있다', async ({ page }) => {
     // 실제 데이터가 있는 로컬 DB라 최종 "추가 확정"은 절대 누르지 않는다
     const { seed } = await import('../scripts/shared/seed.mjs')
     await page.goto(`/accounts/${seed.infinite.accountId}/strategies/${seed.infinite.strategyId}`)
     await page.getByRole('link', { name: '투자금 추가' }).click()
     await expect(page.getByRole('heading', { name: '투자금 추가' })).toBeVisible()
 
-    const empty = '추가할 예수금이나 편입할 주식을 입력하세요.'
     await page.getByRole('button', { name: '추가', exact: true }).click()
-    await expect(page.getByText(empty)).toBeVisible()
+    await expect(page.getByText('추가할 예수금을 입력하세요.')).toBeVisible()
+    // 주식 편입 입력은 제거됐다(예수금만 받는다)
+    await expect(page.getByLabel('편입 주식 수')).toHaveCount(0)
 
-    await page.getByLabel('편입 주식 수').fill('10')
-    await expect(page.getByText(empty)).toHaveCount(0)
-    await expect(page.getByText('주식을 편입하려면 매수단가를 입력하세요.')).toBeVisible()
-
-    await page.getByLabel('매수단가').fill('62.5')
+    await page.getByLabel('추가 예수금').fill('0.01')
     await page.getByRole('button', { name: '추가', exact: true }).click()
     await expect(page.getByText('투자금을 추가하시겠습니까?')).toBeVisible()
     await page.getByRole('button', { name: '취소' }).click()
