@@ -20,6 +20,8 @@ import { FormActions } from '@shared/ui/FormActions'
 import { UnitInput } from '@shared/ui/UnitInput'
 import { fmtUsd } from '@shared/lib/format'
 import { orderKeys } from '@entities/order'
+import { statsKeys } from '@entities/stats'
+import { tradeKeys } from '@entities/trade'
 import { floorToCents, useWithdrawCapitalMutation } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import type { DismissMode } from '@shared/lib/dismiss'
@@ -42,7 +44,12 @@ export function WithdrawCapitalForm({ accountId, strategy, dismiss = 'push' }: P
 
   // 다음 거래일 주문이 바뀌므로 주문 미리보기를 무효화 — 다른 도메인(order) 무효화이므로 feature가 소유한다
   const handleSuccess = async () => {
-    await queryClient.invalidateQueries({ queryKey: orderKeys.preview(strategy.id) }).catch(() => null)
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: orderKeys.preview(strategy.id) }).catch(() => null),
+      // 잔고 이력(cycle-history)·성과에 추가·인출 결과가 바로 보이도록 함께 무효화한다
+      queryClient.invalidateQueries({ queryKey: tradeKeys.all }).catch(() => null),
+      queryClient.invalidateQueries({ queryKey: statsKeys.all }).catch(() => null),
+    ])
     handleDone()
   }
 
@@ -68,10 +75,7 @@ export function WithdrawCapitalForm({ accountId, strategy, dismiss = 'push' }: P
     <form onSubmit={onSubmit} className="space-y-6">
       <div className="space-y-1 text-sm text-muted-foreground">
         {strategy.ledgerUsdDeposit != null && <p>현재 장부 예수금 ${fmtUsd(floorToCents(strategy.ledgerUsdDeposit))}</p>}
-        <p>
-          체결 전 매수 주문 금액과 장중 취소 전에 체결된 매수 금액은 인출할 수 없습니다. 다음 거래일 주문부터 반영되고, 이번 사이클 수익률에서는 인출분이 빠집니다. {effectCaption}
-        </p>
-        <p>실제 계좌 출금은 증권사에서 직접 해야 합니다.</p>
+        <p>다음 거래일 주문부터 반영되고, 이번 사이클 수익률에서는 인출분이 빠집니다. {effectCaption}</p>
       </div>
 
       <div className="space-y-2">

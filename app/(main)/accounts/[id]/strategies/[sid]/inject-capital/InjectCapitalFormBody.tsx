@@ -21,7 +21,7 @@ export async function InjectCapitalFormBody({ params, dismiss }: Props) {
 
   return (
     <>
-      <PageHeader eyebrow={strategy.ticker} eyebrowHref={`/accounts/${id}/strategies/${sid}`} title="투자금 추가" description="예수금이나 보유 주식을 진행 중인 사이클에 추가" />
+      <PageHeader eyebrow={strategy.ticker} eyebrowHref={`/accounts/${id}/strategies/${sid}`} title="투자금 추가" description="진행 중인 사이클에 예수금을 추가" />
       <InjectCapitalForm accountId={id} strategy={strategy} dismiss={dismiss} />
     </>
   )

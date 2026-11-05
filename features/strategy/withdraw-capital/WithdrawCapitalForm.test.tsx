@@ -1,6 +1,8 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { orderKeys } from '@entities/order'
+import { statsKeys } from '@entities/stats'
+import { tradeKeys } from '@entities/trade'
 import type { Strategy } from '@entities/strategy'
 import { WithdrawCapitalForm } from './WithdrawCapitalForm'
 
@@ -92,6 +94,8 @@ describe('WithdrawCapitalForm', () => {
     const { unmount } = render(<WithdrawCapitalForm accountId="account-1" strategy={strategy} />)
     await successHandler?.()
     expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: orderKeys.preview('strategy-1') })
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: tradeKeys.all })
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: statsKeys.all })
     expect(routerPushMock).toHaveBeenCalledWith('/accounts/account-1/strategies/strategy-1')
     unmount()
     render(<WithdrawCapitalForm accountId="account-1" strategy={strategy} dismiss="back" />)

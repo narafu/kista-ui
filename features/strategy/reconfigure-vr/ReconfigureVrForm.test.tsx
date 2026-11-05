@@ -2,6 +2,8 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { orderKeys } from '@entities/order'
+import { statsKeys } from '@entities/stats'
+import { tradeKeys } from '@entities/trade'
 import { ReconfigureVrForm } from './ReconfigureVrForm'
 import type { ReconfigureVrStrategy } from './model/reconfigureVrStrategy'
 
@@ -136,6 +138,8 @@ describe('ReconfigureVrForm', () => {
     await reconfigureSuccessHandler?.()
 
     expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: orderKeys.preview(strategy.id) })
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: tradeKeys.all })
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: statsKeys.all })
     expect(routerPushMock).toHaveBeenCalledWith(`/accounts/account-1/strategies/${strategy.id}`)
   })
 
