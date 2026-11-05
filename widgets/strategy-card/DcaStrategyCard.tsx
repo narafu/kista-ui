@@ -78,8 +78,8 @@ export function DcaStrategyCard({ accountId, broker, strategy, accountLabel }: P
         </div>
         <div className="flex items-center gap-2">
           <span className="shrink-0 font-bold text-base text-foreground">{strategy.ticker}</span>
-          {summary && <span className="ml-auto min-w-0 truncate text-sm font-semibold text-foreground">{summary}</span>}
-          {chevron}
+          {summary && <span className="min-w-0 truncate text-sm font-semibold text-foreground">{summary}</span>}
+          <span className="ml-auto shrink-0">{chevron}</span>
         </div>
       </div>
 
@@ -90,10 +90,11 @@ export function DcaStrategyCard({ accountId, broker, strategy, accountLabel }: P
             <div className="flex flex-wrap items-center gap-1.5">{badges('h-[22px]')}</div>
             {accountLabel && <span className="ml-3 min-w-0 truncate text-xs font-semibold text-muted-foreground">{accountLabel}</span>}
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
             <span className="font-bold text-xl tracking-tight text-foreground leading-none">{strategy.ticker}</span>
+            {/* 사이클 카드처럼 규칙 요약을 티커 바로 옆에 둔다 */}
             {summary && <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-foreground">{summary}</span>}
-            {!dca && chevron}
+            {!dca && <span className="ml-auto shrink-0">{chevron}</span>}
           </div>
         </div>
         {dca && (
