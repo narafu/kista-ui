@@ -1,178 +1,10 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, CreditCard, ListChecks, TrendingUp, Wallet, Settings } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
-import { reportClientError } from '@entities/error-log'
 import { isNavItemActive } from './nav-utils'
-
-const isEditableFocused = () => {
-  const el = document.activeElement
-  return el instanceof HTMLElement && (el.matches('input:not([type=checkbox], [type=radio], [type=button], [type=submit], [type=range]), textarea, select') || el.isContentEditable)
-}
-
-const describeElement = (el: Element | null) =>
-  el ? [el.tagName.toLowerCase(), el.getAttribute('type'), el.id || el.getAttribute('name')].filter(Boolean).join(':') : 'none'
-
-// iOS standalone PWA: 키보드가 닫힌 뒤 visualViewport.offsetTop이 0으로 복귀하지 않고 남아
-// position:fixed 네비가 navBottom = innerHeight - offsetTop 위치로 떠 있거나 화면 밖으로 밀린다
-// (app_error_logs MOBILE_NAV_VIEWPORT_MISMATCH 2026-09-21~28, 키보드 닫힌 행 전부 이 관계식 성립). 원인 미확정 — 진단만 한다.
-// translateY(offsetTop) 보정(e163aa9e)은 제거했다: 2026-10-01 로그 19행 전부 보정 전 네비가 이미 innerHeight에 있었는데
-// (iPhone 일반 스크롤 중 offsetTop이 ±466까지 흔들림, Android Chrome까지 적용돼 네비를 231px 화면 밖으로 밀어냄) 보정이 오히려 네비를 밀어냈다.
-// ponytail: 실기기 검증 불가라 진단 로그만 유지 — 원인 확정되면 로그 블록 제거.
-//   MOBILE_NAV_VIEWPORT_SHIFT phase=start/end: 키보드 닫힘 + 줌 없음 상태에서 SHIFT_LOG_MIN_MS 넘게 지속된 offsetTop 잔류 구간.
-//     하단 러버밴드·긴 페이지→짧은 페이지 탭 이동은 8~35ms 내 자연 복귀해 2026-09-30 로그 전부가 이 노이즈였다.
-//   MOBILE_NAV_VIEWPORT_MISMATCH: 네비가 visual viewport 하단과 SHIFT_LOG_MIN_MS 넘게 어긋난 경우(원래 버그 시그니처).
-//     키보드가 닫히는 도중엔 포커스가 먼저 빠져 isEditableFocused()가 false인데 vvHeight는 아직 작아 순간 오탐이 났다(2026-09-30 2건) — 지속 여부로 거른다.
-// 키보드 판정은 포커스된 편집 요소 기준 — innerHeight 자체가 키보드와 함께 줄어드는 경우가 있어 높이 비교는 못 쓴다.
-// 2026-10-15 MISMATCH 3건(iPhone standalone)은 포커스 이력 없이 마운트 시점부터 vvHeight가 innerHeight보다 318px 작았다 —
-// 키보드 닫힘 잔류(위)와 다른 패턴이라 콜드 스타트인지 앱 내 이동인지 가르려고 msSinceLoad를 남긴다.
-// 2026-10-18~21 로그 22행(iOS 26.6 standalone):
-//   - SHIFT 8개 에피소드(15행) 중 7개는 스크롤 끝(scrollY 0 + offsetTop 음수, 또는 scrollY + innerHeight = docScrollHeight + 양수)에서 시작해
-//     1.4~4.4초 뒤 resolved — html/body overscroll-behavior-y: none(427ac2b3)에도 바운스가 남는다. 최대 -446(네비가 화면 밖 4.2초).
-//     포커스 이력과 무관(msSinceFocusOut never 또는 44초 이상)해 키보드 잔류 버그와 다른 증상이다.
-//   - MISMATCH 7건 중 6건은 어긋남 = -offsetTop이라 같은 시점 SHIFT의 중복이었다 → MISMATCH는 offsetTop으로 설명되지 않는 어긋남만 남긴다.
-//   - 나머지 1건(10-20 08:48)이 318px 패턴 2번째 사례 — 편집 요소 포커스 없이(activeElement=svg g) vvHeight가 318 작았고
-//     msSinceLoad 67초라 콜드 스타트가 아니다. 2초 뒤 같은 상태에서 offsetTop 228 SHIFT가 시작돼 end 없이 끊겼다(남은 1개 에피소드).
-const SHIFT_LOG_MIN_MS = 300
-
-// 버그는 iOS에서만 재현된다. 크롤러(Googlebot이 문서 전체 높이로 렌더해 nav가 6887px)와 CSS가 안 먹은 데스크톱
-// 환경(nav 높이 20px)이 MISMATCH로 쌓여 iOS 실기기만 본다(iPadOS 데스크톱 UA는 터치 지점으로 판별)
-const isIosDevice = () =>
-  !/bot|crawler|spider/i.test(navigator.userAgent)
-  && (/iP(hone|ad|od)/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1))
-
-function useNavViewportDiagnostics(navRef: React.RefObject<HTMLElement | null>) {
-  useEffect(() => {
-    const vv = window.visualViewport
-    if (!vv || !isIosDevice()) return
-    const lastLoggedAt: Record<string, number> = {}
-    const logCounts: Record<string, number> = {}
-    let rafId = 0
-    let lastEvent = 'mount'
-    let lastFocusOutAt = 0
-    let lastBlurred = 'none'
-    let episode: { startedAt: number, trigger: string, maxShift: number, timer: number, reported: boolean } | null = null
-    let mismatchTimer = 0
-
-    // offsetTop으로 설명되지 않는 어긋남(px) — offsetTop만큼 밀린 경우는 SHIFT가 기록한다
-    const mismatchResidual = () => {
-      const rect = navRef.current?.getBoundingClientRect()
-      return rect ? rect.bottom + vv.offsetTop - vv.height : 0
-    }
-    const isMismatch = () => {
-      const rect = navRef.current?.getBoundingClientRect()
-      return !!rect && rect.width > 0 && !isEditableFocused() && Math.abs(vv.scale - 1) < 0.01 && Math.abs(mismatchResidual()) > 5
-    }
-
-    // throttle=false는 SHIFT start/end 짝 유지용 — 대신 상한을 늘려 에피소드 5개(start+end)를 담는다
-    const report = (errorType: string, extra: Record<string, string>, throttle = true) => {
-      const now = Date.now()
-      if ((logCounts[errorType] ?? 0) >= (throttle ? 5 : 10)) return
-      if (throttle && now - (lastLoggedAt[errorType] ?? 0) < 15000) return
-      lastLoggedAt[errorType] = now
-      logCounts[errorType] = (logCounts[errorType] ?? 0) + 1
-      const rect = navRef.current?.getBoundingClientRect()
-      reportClientError({
-        errorType,
-        context: {
-          ...extra,
-          navTop: String(rect?.top ?? 'none'),
-          navBottom: String(rect?.bottom ?? 'none'),
-          innerHeight: String(window.innerHeight),
-          screenHeight: String(window.screen.height),
-          vvHeight: String(vv.height),
-          vvOffsetTop: String(vv.offsetTop),
-          vvPageTop: String(vv.pageTop),
-          vvScale: String(vv.scale),
-          scrollY: String(window.scrollY),
-          docScrollHeight: String(document.documentElement.scrollHeight),
-          lastEvent,
-          activeElement: describeElement(document.activeElement),
-          lastBlurred,
-          msSinceFocusOut: lastFocusOutAt ? String(now - lastFocusOutAt) : 'never',
-          msSinceLoad: String(Math.round(performance.now())),
-          pathname: window.location.pathname,
-          standalone: String(window.matchMedia('(display-mode: standalone)').matches),
-          userAgent: navigator.userAgent,
-        },
-      })
-    }
-
-    const update = () => {
-      rafId = 0
-      const nav = navRef.current
-      if (!nav) return
-      const keyboardOpen = isEditableFocused()
-      const shift = !keyboardOpen && Math.abs(vv.scale - 1) < 0.01 ? vv.offsetTop : 0
-
-      if (nav.getBoundingClientRect().width === 0) { // lg:hidden 데스크탑 — 진행 중 에피소드는 짝 없는 start가 남지 않게 버린다
-        if (episode) clearTimeout(episode.timer)
-        episode = null
-        return
-      }
-      if (Math.abs(shift) > 5) {
-        if (!episode) {
-          const current = { startedAt: Date.now(), trigger: lastEvent, maxShift: shift, timer: 0, reported: false }
-          current.timer = window.setTimeout(() => {
-            // offsetTop이 이벤트 없이 0으로 돌아왔으면 update를 다시 돌려 에피소드 무기록 종료
-            if (Math.abs(vv.offsetTop) <= 5) return schedule()
-            current.reported = true
-            report('MOBILE_NAV_VIEWPORT_SHIFT', { phase: 'start', startTrigger: current.trigger }, false)
-          }, SHIFT_LOG_MIN_MS)
-          episode = current
-        } else if (Math.abs(shift) > Math.abs(episode.maxShift)) {
-          episode.maxShift = shift
-        }
-      } else if (episode) {
-        clearTimeout(episode.timer)
-        if (episode.reported) report('MOBILE_NAV_VIEWPORT_SHIFT', {
-          phase: 'end',
-          durationMs: String(Date.now() - episode.startedAt),
-          startTrigger: episode.trigger,
-          maxShift: String(episode.maxShift),
-          endReason: keyboardOpen ? 'keyboardOpen' : 'resolved',
-        }, false)
-        episode = null
-      }
-      if (isMismatch() && !mismatchTimer) {
-        mismatchTimer = window.setTimeout(() => {
-          mismatchTimer = 0
-          if (isMismatch()) report('MOBILE_NAV_VIEWPORT_MISMATCH', { residual: String(mismatchResidual()) })
-        }, SHIFT_LOG_MIN_MS)
-      }
-    }
-    const schedule = (e?: Event) => {
-      if (e) {
-        lastEvent = `${e.target === vv ? 'vv:' : ''}${e.type}`
-        if (e.type === 'focusout') {
-          lastFocusOutAt = Date.now()
-          lastBlurred = describeElement(e.target instanceof Element ? e.target : null)
-        }
-      }
-      if (rafId) return
-      rafId = requestAnimationFrame(update)
-    }
-    vv.addEventListener('resize', schedule)
-    vv.addEventListener('scroll', schedule)
-    window.addEventListener('scroll', schedule, { passive: true })
-    document.addEventListener('focusin', schedule)
-    document.addEventListener('focusout', schedule)
-    schedule() // 마운트 시점에 이미 offsetTop이 남아 있을 수 있다
-    return () => {
-      if (rafId) cancelAnimationFrame(rafId)
-      if (episode) clearTimeout(episode.timer)
-      clearTimeout(mismatchTimer)
-      vv.removeEventListener('resize', schedule)
-      vv.removeEventListener('scroll', schedule)
-      window.removeEventListener('scroll', schedule)
-      document.removeEventListener('focusin', schedule)
-      document.removeEventListener('focusout', schedule)
-    }
-  }, [navRef])
-}
 
 const TABS = [
   { href: '/dashboard',  label: '대시보드', icon: LayoutDashboard },
@@ -185,13 +17,10 @@ const TABS = [
 
 export function MobileBottomNav() {
   const pathname = usePathname()
-  const navRef = useRef<HTMLElement>(null)
-  useNavViewportDiagnostics(navRef)
   return (
     <nav
-      ref={navRef}
       aria-label="주요 메뉴"
-      className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border flex overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] pb-[env(safe-area-inset-bottom)] bg-sidebar-bg"
+      className="lg:hidden shrink-0 border-t border-border flex overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] pb-[env(safe-area-inset-bottom)] bg-sidebar-bg"
     >
       {TABS.map(({ href, label, icon: Icon }) => {
         const active = isNavItemActive(pathname, href)

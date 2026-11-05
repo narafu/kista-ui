@@ -42,4 +42,30 @@ describe('PullToRefresh', () => {
     fireTouch('touchend', 140)
     expect(invalidateSpy).not.toHaveBeenCalled()
   })
+
+  it.each([
+    { scrollTop: 0, refreshes: true },
+    { scrollTop: 200, refreshes: false },
+  ])('모바일 스크롤 컨테이너(data-scroll-root) scrollTop $scrollTop이면 refresh=$refreshes', async ({ scrollTop, refreshes }) => {
+    const client = new QueryClient()
+    const invalidateSpy = vi.spyOn(client, 'invalidateQueries')
+    const scrollRoot = document.createElement('main')
+    scrollRoot.setAttribute('data-scroll-root', '')
+    Object.defineProperty(scrollRoot, 'scrollTop', { value: scrollTop })
+    document.body.appendChild(scrollRoot)
+    try {
+      render(
+        <QueryClientProvider client={client}>
+          <PullToRefresh />
+        </QueryClientProvider>,
+      )
+      fireTouch('touchstart', 100)
+      fireTouch('touchmove', 260)
+      fireTouch('touchend', 260)
+      if (refreshes) await vi.waitFor(() => expect(invalidateSpy).toHaveBeenCalled())
+      else expect(invalidateSpy).not.toHaveBeenCalled()
+    } finally {
+      scrollRoot.remove()
+    }
+  })
 })

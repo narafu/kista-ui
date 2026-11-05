@@ -23,7 +23,8 @@ export function PullToRefresh() {
     const target = e.target as Element | null
     // 드로어/다이얼로그 등 오버레이 내부 터치는 PTR 대상에서 제외
     if (target?.closest('[data-slot="drawer-content"], [data-slot="dialog-content"]')) return
-    if (window.scrollY > 0) return
+    // (main) 모바일은 main[data-scroll-root]가 스크롤 컨테이너라 window.scrollY는 항상 0이다 — admin은 문서 스크롤
+    if (window.scrollY > 0 || (document.querySelector('[data-scroll-root]')?.scrollTop ?? 0) > 0) return
     startYRef.current = e.touches[0].clientY
     isPullingRef.current = true
   }, [])
