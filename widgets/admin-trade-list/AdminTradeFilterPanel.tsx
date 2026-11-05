@@ -68,10 +68,7 @@ export function AdminTradeFilterPanel({
 
   return (
     <section className="rounded-[var(--r-lg)] border border-border bg-background p-4" aria-label="거래 내역 필터">
-      <div>
-        <h2 className="text-base font-semibold">거래 내역 필터</h2>
-        <p className="mt-1 text-sm text-muted-foreground">사용자부터 전략까지 순서대로 선택하면 거래 내역을 좁혀 보고 전략을 일시중지·재개할 수 있습니다.</p>
-      </div>
+      <h2 className="text-base font-semibold">거래 내역 필터</h2>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <div className="grid min-w-0 gap-2 text-sm">

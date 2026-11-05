@@ -87,8 +87,11 @@ function ChartArea({ className, children }: { className?: string; children: Reac
 // 매일 크게 튀는 지표의 추세를 보이려고 30일 이동평균을 흐린 선으로 겹친다. 받은 전체 추이로 계산한 뒤 기간만큼 잘라 짧은 기간에서도 앞쪽 평균이 비지 않게 한다
 const MA_PERIOD = 30
 const MA_SERIES = { key: 'ma', name: '30일 평균', color: 'var(--muted-foreground)', strokeWidth: 1.5 }
-function withMovingAverage<T extends { date: string }>(rows: readonly T[], value: (row: T) => number) {
-  const ma = sma(rows.map(value), MA_PERIOD)
+// 바이낸스 미결제약정·롱숏 이력은 최근 30일(일봉)만 제공돼 30일 평균은 점 하나뿐이다 — 7일 평균을 쓴다
+const SHORT_MA_PERIOD = 7
+const SHORT_MA_SERIES = { ...MA_SERIES, name: '7일 평균' }
+function withMovingAverage<T extends { date: string }>(rows: readonly T[], value: (row: T) => number, period = MA_PERIOD) {
+  const ma = sma(rows.map(value), period)
   return rows.map((row, i) => ({ ...row, ma: ma[i] }))
 }
 
@@ -236,10 +239,10 @@ export function OpenInterestCard({ ticker, data }: { ticker: string; data: Crypt
   return (
     <IndicatorCard title={title} description={description}>
       {latest && <Stat label={fmtUtcDate(latest.date)} value={fmtCompactUsd(latest.valueUsd)} />}
-      <ChartArea>
+      <ChartArea className="min-h-[224px]">
         <IndicatorLineChart
-          data={data.history}
-          series={[{ key: 'valueUsd', name: '미결제약정', color: 'var(--chart-2)' }]}
+          data={withMovingAverage(data.history, (p) => p.valueUsd, SHORT_MA_PERIOD)}
+          series={[{ key: 'valueUsd', name: '미결제약정', color: 'var(--chart-2)' }, SHORT_MA_SERIES]}
           title={`${title} 추이`}
           formatAxis={(v, step) => (step ? fmtCompactUsdTick(v, step) : fmtCompactUsd(v))}
           formatValue={fmtCompactUsd}
@@ -298,10 +301,10 @@ export function LongShortRatioCard({ ticker, data }: { ticker: string; data: Cry
         <Stat label="롱 계좌 비중" value={`${(data.longAccount * 100).toFixed(1)}%`} />
         <Stat label="롱/숏" value={data.longShortRatio.toFixed(2)} />
       </div>
-      <ChartArea>
+      <ChartArea className="min-h-[224px]">
         <IndicatorLineChart
-          data={data.history}
-          series={[{ key: 'longShortRatio', name: '롱/숏', color: 'var(--chart-2)' }]}
+          data={withMovingAverage(data.history, (p) => p.longShortRatio, SHORT_MA_PERIOD)}
+          series={[{ key: 'longShortRatio', name: '롱/숏', color: 'var(--chart-2)' }, SHORT_MA_SERIES]}
           title={`${title} 추이`}
           formatAxis={(v, step) => v.toFixed(step ? stepDecimals(step) : 1)}
           formatValue={(v) => v.toFixed(2)}

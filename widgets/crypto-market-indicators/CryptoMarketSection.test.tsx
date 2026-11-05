@@ -122,7 +122,7 @@ describe('CryptoMarketSection', () => {
     expect(screen.getByText('62.3%')).toBeInTheDocument()
     expect(screen.getByText('1.65')).toBeInTheDocument()
     expect(screen.getByText('BTC 장기 밸류에이션 추이: 200주 배수, 메이어 멀티플')).toBeInTheDocument()
-    expect(screen.getByText('BTC 롱/숏 비율 추이: 롱/숏')).toBeInTheDocument()
+    expect(screen.getByText('BTC 롱/숏 비율 추이: 롱/숏, 7일 평균')).toBeInTheDocument()
   })
 
   it('never shows a positive drawdown on an all-time-high day', () => {
@@ -210,7 +210,7 @@ describe('CryptoMarketSection', () => {
 
     expect(screen.getAllByText('일시적으로 불러올 수 없습니다.')).toHaveLength(1)
     expect(screen.getByText(/^BTC 김치 프리미엄 추이/)).toBeInTheDocument()
-    expect(screen.getByText(/^BTC 미결제약정 추이/)).toBeInTheDocument()
+    expect(screen.getByText('BTC 미결제약정 추이: 미결제약정, 7일 평균')).toBeInTheDocument()
   })
 
   it('marks only the failed valuation and long/short cards as unavailable', () => {
