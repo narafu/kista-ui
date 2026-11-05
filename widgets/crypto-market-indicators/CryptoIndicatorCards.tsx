@@ -177,6 +177,8 @@ export function CoinbasePremiumCard({ ticker, data }: { ticker: string; data: Cr
   return (
     <IndicatorCard title={title} description={description} days={days} onDaysChange={setDays}>
       <Stat label="현재" value={fmtCoinbasePct(data.current)} />
+      {/* 현재값은 실시간 시세, 추이는 진행 중인 오늘을 뺀 UTC 일봉 종가라 마지막 점과 다를 수 있다 */}
+      <p className="text-xs text-muted-foreground">현재는 실시간 시세, 추이는 전일까지 UTC 일봉 종가 기준</p>
       <ChartArea className="min-h-[224px]">
         <IndicatorLineChart
           data={withMovingAverage(data.history, (p) => p.value).slice(-days)}
