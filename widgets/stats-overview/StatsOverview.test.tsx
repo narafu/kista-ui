@@ -139,7 +139,7 @@ describe('StatsOverview', () => {
 
     const strategyMobile = screen.getByRole('list', { name: '전략 유형 비교' })
     expect(strategyMobile).toHaveClass('lg:hidden')
-    for (const label of ['사이클', '평균 수익률', '평균 소요일', '종료 손익', '미실현']) {
+    for (const label of ['사이클', '평균 수익률', '평균 소요일', '실현손익', '미실현']) {
       expect(within(strategyMobile).getAllByText(label).length).toBeGreaterThan(0)
     }
     expect(within(strategyTable).queryByRole('columnheader', { name: '승률' })).not.toBeInTheDocument()
