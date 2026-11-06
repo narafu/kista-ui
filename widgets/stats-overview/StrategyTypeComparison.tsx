@@ -33,7 +33,7 @@ export function StrategyTypeComparison({ byType }: Props) {
                     <TableHeadCell numeric>사이클</TableHeadCell>
                     <TableHeadCell numeric>평균 수익률</TableHeadCell>
                     <TableHeadCell numeric>평균 소요일</TableHeadCell>
-                    {/* 의도적으로 KPI(종료 사이클 손익·미실현 평가손익)보다 짧게 — 6열 표 폭 때문에 '미실현'과 같은 방식으로 줄인다 */}
+                    {/* 의도적으로 KPI(실현손익·미실현 평가손익)보다 짧게 — 6열 표 폭 때문에 '미실현'과 같은 방식으로 줄인다 */}
                     <TableHeadCell numeric>종료 손익</TableHeadCell>
                     <TableHeadCell numeric>미실현</TableHeadCell>
                   </tr>

@@ -14,9 +14,9 @@ export function StatsKpiRow({ summary }: Props) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
       <KpiCard
-        label="종료 사이클 손익"
+        label="실현손익"
         value={fmtSignedUsd(summary.totalRealizedPnl, 2, '$')}
-        sub={`${closedCount}개 누적 · 매도 확정분(평균단가 기준), VR 승계 보유분 평가익은 미실현에 포함`}
+        sub={`${closedCount}개 종료 · 매도 확정분 (VR 승계분은 미실현)`}
         className="min-w-0 p-4 sm:p-5"
         valueClassName={cn('break-words text-xl sm:text-2xl lg:text-3xl', pnlTextClass(summary.totalRealizedPnl))}
       />

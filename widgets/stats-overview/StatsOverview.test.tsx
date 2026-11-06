@@ -104,7 +104,7 @@ describe('StatsOverview', () => {
         client.setQueryData(statsKeys.equityCurve('2026-04-17', '2026-07-17', 'ALL'), CURVE)
       },
     )
-    expect(screen.getByText('종료 사이클 손익')).toBeInTheDocument()
+    expect(screen.getByText('실현손익')).toBeInTheDocument()
     expect(screen.queryByText('지수 대비 초과수익')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'SPY' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'QQQ' })).not.toBeInTheDocument()
