@@ -16,7 +16,7 @@ export function StatsKpiRow({ summary }: Props) {
       <KpiCard
         label="종료 사이클 손익"
         value={fmtSignedUsd(summary.totalRealizedPnl, 2, '$')}
-        sub={`${closedCount}개 누적 · VR은 롤오버 평가액 기준`}
+        sub={`${closedCount}개 누적 · 매도 확정분(평균단가 기준), VR 승계 보유분 평가익은 미실현에 포함`}
         className="min-w-0 p-4 sm:p-5"
         valueClassName={cn('break-words text-xl sm:text-2xl lg:text-3xl', pnlTextClass(summary.totalRealizedPnl))}
       />
