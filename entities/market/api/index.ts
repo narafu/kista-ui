@@ -1,6 +1,6 @@
 import { ApiError, clientFetch } from '@shared/lib/api-client'
 import { getApiBaseUrl } from '@shared/lib/env'
-import type { Candle, CryptoMarketIndicators, FearGreed } from '../model/types'
+import type { Candle, MarketSession, CryptoMarketIndicators, FearGreed } from '../model/types'
 import { CHART_CANDLE_COUNT } from '../model/constants'
 
 // Server Component용 — 공개 엔드포인트라 로그인 여부와 무관하게 토큰 없이 kista-api 직접 호출
@@ -17,6 +17,10 @@ export async function getMonthlyHolidaysPublic(year: number, month: number): Pro
 
 export function getMonthlyHolidaysClient(year: number, month: number): Promise<string[]> {
   return clientFetch<string[]>(`/api/market/holidays?year=${year}&month=${month}`)
+}
+
+export function getMarketSessionClient(): Promise<MarketSession> {
+  return clientFetch<MarketSession>('/api/market/session')
 }
 
 export function getCandlesClient(ticker: string, count = CHART_CANDLE_COUNT): Promise<Candle[]> {

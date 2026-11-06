@@ -1,8 +1,8 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { getCandlesClient, getCandlesRangeClient, getCryptoMarketIndicatorsClient, getFearGreedClient } from '../api'
-import type { Candle, CryptoMarketIndicators, FearGreed } from '../model/types'
+import { getCandlesClient, getMarketSessionClient, getCandlesRangeClient, getCryptoMarketIndicatorsClient, getFearGreedClient } from '../api'
+import type { Candle, CryptoMarketIndicators, FearGreed, MarketSession } from '../model/types'
 import { CHART_CANDLE_COUNT } from '../model/constants'
 import { marketKeys } from '../model/queryKeys'
 import { monthlyHolidaysQueryOptions } from '../model/queryOptions'
@@ -13,6 +13,16 @@ import { monthlyHolidaysQueryOptions } from '../model/queryOptions'
 export function useMonthlyHolidaysQuery(year: number, month: number) {
   const { data: holidays = [], isFetching, isError } = useQuery(monthlyHolidaysQueryOptions(year, month))
   return { holidays, loading: isFetching, isError }
+}
+
+// 서버 거래일(KST)·거래일 여부 — 거래일은 KST 04:30 경계로 바뀌므로 짧게 캐시한다. 공개 엔드포인트
+export function useMarketSessionQuery() {
+  const { data, isFetching, isError } = useQuery<MarketSession>({
+    queryKey: marketKeys.session(),
+    queryFn: getMarketSessionClient,
+    staleTime: 1000 * 60 * 5,
+  })
+  return { session: data, loading: isFetching, isError }
 }
 
 export function useCandlesQuery(ticker: string, count = CHART_CANDLE_COUNT) {

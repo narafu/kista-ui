@@ -12,6 +12,7 @@ const pauseMutate = vi.fn()
 const resumeMutate = vi.fn()
 let deleteSuccessHandler: (() => void) | undefined
 let holidayQueryResult: { holidays: string[]; isError?: boolean; loading?: boolean } = { holidays: [] }
+let sessionQueryResult: { session?: { tradeDateKst?: string | null; tradingDay?: boolean }; loading?: boolean; isError?: boolean } = {}
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
@@ -118,6 +119,7 @@ vi.mock('@entities/order', async () => {
 
 vi.mock('@entities/market', () => ({
   useMonthlyHolidaysQuery: () => holidayQueryResult,
+  useMarketSessionQuery: () => sessionQueryResult,
 }))
 
 vi.mock('@entities/meta', async () => {
@@ -158,6 +160,7 @@ const baseStrategy: Strategy = {
 describe('StrategyDetail header card', () => {
   beforeEach(() => {
     holidayQueryResult = { holidays: [] }
+    sessionQueryResult = {}
     pauseMutate.mockReset()
     resumeMutate.mockReset()
   })
@@ -412,6 +415,66 @@ describe('StrategyDetail header card', () => {
     />)
 
     expect(screen.getByTestId('strategy-meta-grid')).toHaveTextContent('거치식')
+  })
+})
+
+describe('StrategyDetail server trading day (KST 토요일 새벽 = 미국 금요일 장 중)', () => {
+  const previewWithOrder = {
+    data: {
+      todayOrders: [],
+      position: null,
+      orders: [{ ticker: 'TSLA', orderType: 'LOC', direction: 'BUY', quantity: 1, price: '20.00' }],
+      skipReason: null,
+      otherStrategiesPlannedBuyUsd: '0',
+      ledgerCheck: null,
+    },
+    isLoading: false,
+    isError: false,
+    error: null,
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-11-07T00:50:00+09:00')) // KST 토요일
+    executeMutate.mockClear()
+    vi.mocked(toast.info).mockClear()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    sessionQueryResult = {}
+    executeMutate.mockClear()
+  })
+
+  it('KST 주말이어도 서버가 거래일이라 하면 휴장 배너 없이 바로 주문한다', () => {
+    sessionQueryResult = { session: { tradeDateKst: '2026-11-07', tradingDay: true } }
+    mockPreviewQuery.mockReturnValueOnce(previewWithOrder)
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+    fireEvent.click(screen.getByText('바로 주문'))
+
+    expect(screen.queryByText('오늘은 휴장일입니다')).not.toBeInTheDocument()
+    expect(executeMutate).toHaveBeenCalled()
+  })
+
+  it('서버가 거래일이 아니라고 하면 휴장 배너를 띄우고 실행을 막는다', () => {
+    sessionQueryResult = { session: { tradeDateKst: '2026-11-07', tradingDay: false } }
+    mockPreviewQuery.mockReturnValueOnce(previewWithOrder)
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+    fireEvent.click(screen.getByText('바로 주문'))
+
+    expect(screen.getByText('오늘은 휴장일입니다')).toBeInTheDocument()
+    expect(executeMutate).not.toHaveBeenCalled()
+  })
+
+  it('서버 거래일이 null이면 KST 날짜 판정으로 폴백한다', () => {
+    sessionQueryResult = { session: { tradeDateKst: null, tradingDay: false } }
+    mockPreviewQuery.mockReturnValueOnce(previewWithOrder)
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    expect(screen.getByText('오늘은 휴장일입니다')).toBeInTheDocument()
   })
 })
 
