@@ -61,6 +61,31 @@ describe('SeedInputSection', () => {
     expect(setSeedUsdInput).toHaveBeenLastCalledWith(1001)
   })
 
+  it('USDT 계좌는 단위·표기를 USDT로, 채우기는 센트 단위로 한다', async () => {
+    const setSeedUsdInput = vi.fn()
+    const user = userEvent.setup()
+    render(<SeedInputSection {...baseProps} currency="USDT" availableCash={15.75} setSeedUsdInput={setSeedUsdInput} />)
+
+    expect(screen.getByText('가용 예수금 15.75 USDT')).toBeInTheDocument()
+    expect(screen.getByLabelText('예수금 (USDT)')).toBeInTheDocument()
+    expect(screen.queryByText('$')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '25%' }))
+    expect(setSeedUsdInput).toHaveBeenLastCalledWith(3.94)
+    await user.click(screen.getByRole('button', { name: '100%' }))
+    expect(setSeedUsdInput).toHaveBeenLastCalledWith(15.75)
+  })
+
+  it('KRW 계좌는 원 단위 정수만 입력된다', async () => {
+    const setSeedUsdInput = vi.fn()
+    const user = userEvent.setup()
+    render(<SeedInputSection {...baseProps} currency="KRW" setSeedUsdInput={setSeedUsdInput} />)
+
+    const input = screen.getByLabelText('예수금 (KRW)')
+    await user.type(input, '5000.')
+    expect(input).toHaveValue('5000')
+    expect(setSeedUsdInput).toHaveBeenLastCalledWith(5000)
+  })
+
   it('가용 예수금이 없거나 0이면 비율 버튼을 보이지 않는다', () => {
     const { rerender } = render(<SeedInputSection {...baseProps} availableCash={null} />)
     expect(screen.queryByRole('button', { name: '50%' })).not.toBeInTheDocument()

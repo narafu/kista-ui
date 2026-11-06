@@ -9,10 +9,15 @@ import { testOrderAmount } from './sections/__fixtures__/dcaTestMeta'
 
 const createMutate = vi.fn()
 const reconfigureMutate = vi.fn()
+const seedPreview = vi.hoisted(() => ({ availableCash: null as number | null, calls: [] as unknown[][] }))
 vi.mock('@entities/strategy', async (orig) => ({
   ...(await orig<typeof import('@entities/strategy')>()),
   useCreateStrategyMutation: () => ({ mutate: createMutate, isPending: false }),
   useReconfigureDcaMutation: () => ({ mutate: reconfigureMutate, isPending: false }),
+  useStrategySeedPreviewQuery: (...args: unknown[]) => {
+    seedPreview.calls.push(args)
+    return { data: { ticker: 'UPRO', basePrice: null, minSeed: null, skipReason: null, availableCash: seedPreview.availableCash } }
+  },
 }))
 
 const meta = {
@@ -52,6 +57,8 @@ describe('DcaStrategyForm', () => {
   beforeEach(() => {
     createMutate.mockClear()
     reconfigureMutate.mockClear()
+    seedPreview.availableCash = null
+    seedPreview.calls = []
     // jsdom의 history.back은 popstate를 비동기로 쏘거나 생략할 수 있어 동기 popstate로 고정한다
     vi.spyOn(window.history, 'back').mockImplementation(() => window.dispatchEvent(new PopStateEvent('popstate', { state: null })))
   })
@@ -94,6 +101,28 @@ describe('DcaStrategyForm', () => {
     unmount()
     renderForm(existing([rule('a', 100)]))
     expect(screen.queryByLabelText('평단가')).not.toBeInTheDocument()
+  })
+
+  it('등록: 가용 예수금을 계좌 통화로 보여주고 100% 채우기 값이 initialUsdDeposit으로 실린다', async () => {
+    seedPreview.availableCash = 15000
+    renderForm(undefined, 'BTC', 'CRYPTO_KRW')
+    expect(seedPreview.calls[0][1]).toMatchObject({ type: 'DCA', ticker: 'BTC' })
+    expect(screen.getByText('가용 예수금 15,000원')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: '100%' }))
+    expect(screen.getByLabelText('예수금 (KRW)')).toHaveValue('15000')
+    fireEvent.click(screen.getByRole('button', { name: '매수 규칙 추가' }))
+    fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '10000' } })
+    fireEvent.click(screen.getByRole('button', { name: '완료' }))
+    await screen.findByText('규칙 (1/10)')
+    fireEvent.click(screen.getByRole('button', { name: '등록' }))
+    await waitFor(() => expect(createMutate).toHaveBeenCalled())
+    expect(createMutate.mock.calls[0][0]).toMatchObject({ initialUsdDeposit: 15000 })
+  })
+
+  it('수정: 예수금 칸이 없고 가용 예수금을 조회하지 않는다', () => {
+    renderForm(existing([rule('a', 100)]))
+    expect(screen.queryByLabelText(/^예수금/)).not.toBeInTheDocument()
+    expect(seedPreview.calls.every((c) => (c[2] as { enabled?: boolean }).enabled === false)).toBe(true)
   })
 
   it('등록: 매도 규칙이 있고 수량이 비면 보유 0 캡션, 매수만이면 없다', async () => {

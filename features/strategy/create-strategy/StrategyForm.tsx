@@ -93,6 +93,7 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
         defaultTicker={form.defaultTicker}
         market={form.market}
         orderAmount={form.orderAmount}
+        isMock={form.isMock}
         onSuccess={onSuccess}
         onCancel={onCancel}
         header={!initial && (

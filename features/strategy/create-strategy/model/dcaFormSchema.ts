@@ -119,9 +119,6 @@ export const dcaFormSchema = z.object({
   if (v.scheduledStartDate && v.scheduledStartDate < todayKst()) {
     ctx.addIssue({ code: 'custom', path: ['scheduledStartDate'], message: '시작예정일은 오늘 이후여야 합니다.' })
   }
-  if (v.initialDeposit != null && v.initialDeposit < 0) {
-    ctx.addIssue({ code: 'custom', path: ['initialDeposit'], message: '예수금은 0 이상이어야 합니다.' })
-  }
   const { initialHoldings: q, initialAvgPrice: p } = v
   const decimals = isCryptoMarket(v.market) ? 8 : 0
   if (p != null && p < 0) {

@@ -169,10 +169,6 @@ describe('dcaFormSchema', () => {
       expect(formIssue({ initialHoldings: 1, initialAvgPrice: -1 }, 'initialAvgPrice')).toBe('평단가는 0 이상이어야 합니다.')
     })
   })
-  it('예수금은 0 이상만 허용한다', () => {
-    expect(formIssue({ initialDeposit: -1 }, 'initialDeposit')).toBe('예수금은 0 이상이어야 합니다.')
-    expect(formOk({ initialDeposit: 0 })).toBe(true)
-  })
 })
 
 describe('buildDcaRuleDefaults', () => {

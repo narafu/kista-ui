@@ -18,7 +18,8 @@ interface UseDecimalAmountTextOptions {
 
 export function useDecimalAmountText({ value, onChange, maxDecimals = 2, allowNegative = false }: UseDecimalAmountTextOptions) {
   const pattern = useMemo(
-    () => new RegExp(`^${allowNegative ? '-?' : ''}\\d*\\.?\\d{0,${maxDecimals}}$`),
+    // maxDecimals=0(원 단위 등)은 소수점 자체를 받지 않는다 — "5000."이 입력칸에 남지 않게
+    () => new RegExp(`^${allowNegative ? '-?' : ''}\\d*${maxDecimals > 0 ? `(\\.\\d{0,${maxDecimals}})?` : ''}$`),
     [allowNegative, maxDecimals],
   )
   const allowedChars = useMemo(() => new RegExp(`[^\\d.${allowNegative ? '-' : ''}]`, 'g'), [allowNegative])

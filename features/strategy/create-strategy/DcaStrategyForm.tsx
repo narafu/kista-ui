@@ -4,19 +4,18 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import { CURRENCY_SCALE, isCryptoMarket, marketCurrency, type TradingMarket } from '@shared/lib/api-schema'
+import { isCryptoMarket, marketCurrency, type TradingMarket } from '@shared/lib/api-schema'
 import { currencyUnit } from '@shared/lib/format'
 import { useSubviewHistory } from '@shared/lib/subviewHistory'
 import { FormActions } from '@shared/ui/FormActions'
-import { UnitInput } from '@shared/ui/UnitInput'
 import type { OrderAmountRule } from '@entities/meta'
-import { useCreateStrategyMutation, useReconfigureDcaMutation } from '@entities/strategy'
+import { useCreateStrategyMutation, useReconfigureDcaMutation, useStrategySeedPreviewQuery } from '@entities/strategy'
 import type { DcaDirection, Strategy } from '@entities/strategy'
 import { StrategyTickerSection } from './sections/StrategyTickerSection'
 import { ScheduledStartSection } from './sections/ScheduledStartSection'
+import { SeedInputSection } from './sections/SeedInputSection'
 import { InitialHoldingsSection } from './sections/InitialHoldingsSection'
 import { DcaRuleList } from './sections/DcaRuleList'
-import { StrategyFieldLabel } from './StrategyFieldLabel'
 import { DcaRuleEditor } from './sections/DcaRuleEditor'
 import { buildDcaFormDefaults, buildDcaRuleDefaults, dcaFormSchema, type DcaFormValues, type DcaRuleFormValues } from './model/dcaFormSchema'
 import { buildDcaConfig, buildDcaCreatePayload } from './model/buildDcaPayload'
@@ -28,6 +27,7 @@ interface Props {
   defaultTicker: string // 런타임 설정 기본 티커 (deriveRuntimeFields가 허용 목록 기준으로 확정)
   market: TradingMarket // 계좌 broker에서 정해지는 시장 — 금액 단위·주문 방식·실행 시각 규칙을 가른다
   orderAmount: OrderAmountRule // 계좌 broker의 회차 금액 제약 — 규칙 금액 검증 기준
+  isMock?: boolean // 모의계좌 — 가용 예수금이 없어 예수금 칸에 배지를 대신 둔다
   onSuccess?: () => void
   onCancel?: () => void
   // 목록 화면 위에만 둘 요소(등록의 유형 선택) — 편집 화면에서 유형을 바꾸면 폼이 언마운트돼 편집 이력 칸만 남는다
@@ -39,7 +39,7 @@ type FocusTarget = number | DcaDirection
 
 // DCA 등록·수정 — 규칙 목록 화면과 규칙 하나의 편집 화면을 같은 자리에서 전환한다(spec §3 결정 1·4).
 // 편집 화면은 브라우저 이력 한 칸을 쌓아 뒤로가기가 목록으로 돌아가게 한다(결정 7)
-export function DcaStrategyForm({ accountId, initial, availableTickers, defaultTicker, market, orderAmount, onSuccess, onCancel, header }: Props) {
+export function DcaStrategyForm({ accountId, initial, availableTickers, defaultTicker, market, orderAmount, isMock = false, onSuccess, onCancel, header }: Props) {
   const form = useForm<DcaFormValues>({
     resolver: zodResolver(dcaFormSchema),
     defaultValues: buildDcaFormDefaults(initial, defaultTicker, market, orderAmount),
@@ -73,6 +73,10 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
   const pending = create.isPending || reconfigure.isPending
   const ticker = form.watch('ticker')
   const crypto = isCryptoMarket(market)
+  // 가용 예수금(계좌 미배정 금액, 계좌 통화) — 다른 전략처럼 참고값·비율 채우기용이고 초과해도 막지 않는다. 등록만 조회
+  // divisionCount는 DCA와 무관한 필수 쿼리 파라미터라 서버 기본값(20)을 보낸다
+  const seedPreview = useStrategySeedPreviewQuery(accountId, { type: 'DCA', ticker, divisionCount: 20 }, { enabled: !initial && !!ticker })
+  const availableCash = seedPreview.data?.availableCash == null ? null : Math.max(0, seedPreview.data.availableCash)
   const needsHoldingsHint = form.watch('rules').some((r) => r.direction === 'SELL' || r.conditions.some((c) => c.indicator === 'AVG_PRICE'))
   const rulesError = form.formState.errors.rules
   const rulesErrorMessage = rulesError?.root?.message ?? rulesError?.message ?? (rulesError ? '규칙 입력값을 확인하세요.' : undefined)
@@ -145,22 +149,17 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
           />
         )}
         {!initial && (
-          // 매수는 이 원장 예수금 안에서만 나간다 — 등록 후 증감은 투자금 추가·인출로
-          <div className="py-[18px] border-b border-border">
-            <StrategyFieldLabel htmlFor="dca-initialDeposit">예수금</StrategyFieldLabel>
-            <UnitInput
-              id="dca-initialDeposit"
-              value={form.watch('initialDeposit')}
-              onChange={(v) => form.setValue('initialDeposit', v, { shouldValidate: form.formState.isSubmitted })}
-              unit={currencyUnit(marketCurrency(market))}
-              disabled={pending}
-              unitClassName="ml-1.5"
-              maxDecimals={CURRENCY_SCALE[marketCurrency(market)]}
-              placeholder="0"
-              errorId={form.formState.errors.initialDeposit ? 'dca-initialDeposit-error' : undefined}
-            />
-            {form.formState.errors.initialDeposit && <p id="dca-initialDeposit-error" role="alert" className="mt-1 text-sm text-[var(--status-error)]">{form.formState.errors.initialDeposit.message}</p>}
-          </div>
+          // 매수는 이 원장 예수금 안에서만 나간다 — 등록 후 증감은 투자금 추가·인출로. 입력 칸이 음수·자릿수 초과를 막는다
+          <SeedInputSection
+            seedUsdInput={form.watch('initialDeposit')}
+            setSeedUsdInput={(v) => form.setValue('initialDeposit', v)}
+            availableCash={availableCash}
+            minSeed={null}
+            isBelowMinSeed={false}
+            loading={pending}
+            mockBadgeLabel={isMock ? '모의계좌' : undefined}
+            currency={marketCurrency(market)}
+          />
         )}
         {!initial && (
           <InitialHoldingsSection
