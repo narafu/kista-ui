@@ -42,6 +42,8 @@ export function buildDcaCreatePayload(v: DcaFormValues): StrategyRequest {
     ticker: v.ticker,
     cycleSeedType: 'NONE', // 필수 필드 충족용 — DCA는 서버가 무시
     ...(v.scheduledStartDate ? { scheduledStartDate: v.scheduledStartDate } : {}),
+    // 시작 원장 예수금 — 서버 필드명은 다른 전략과 공유하는 initialUsdDeposit이지만 값은 계좌 통화다. 생략하면 서버가 0으로 둔다
+    ...(v.initialDeposit != null && v.initialDeposit > 0 ? { initialUsdDeposit: v.initialDeposit } : {}),
     ...(v.initialHoldings != null && v.initialHoldings > 0
       ? { initialHoldings: v.initialHoldings, initialAvgPrice: v.initialAvgPrice ?? undefined }
       : {}),

@@ -25,6 +25,11 @@ describe('createWithdrawCapitalFormSchema', () => {
     expect(messages(createWithdrawCapitalFormSchema(1234.5), { amount: 1234.51 })).toEqual(['장부 예수금 $1,234.50 이하로 입력하세요.'])
   })
 
+  it('한도 문구는 계좌 통화로 표기한다', () => {
+    expect(messages(createWithdrawCapitalFormSchema(15000, 'KRW'), { amount: 15001 })).toEqual(['장부 예수금 15,000원 이하로 입력하세요.'])
+    expect(messages(createWithdrawCapitalFormSchema(10.5, 'USDT'), { amount: 11 })).toEqual(['장부 예수금 10.50 USDT 이하로 입력하세요.'])
+  })
+
   it('장부 예수금은 센트 미만을 절사해 한도로 쓴다', () => {
     const schema = createWithdrawCapitalFormSchema(1000.005)
     expect(schema.safeParse({ amount: 1000 }).success).toBe(true)

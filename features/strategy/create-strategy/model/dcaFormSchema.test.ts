@@ -13,7 +13,7 @@ const rule: DcaRuleFormValues = {
   sizingType: 'AMOUNT', amount: 300, percent: null, shortfall: 'PARTIAL', conditions: [],
 }
 const base: DcaFormValues = {
-  market: 'US_STOCK', ticker: 'UPRO', scheduledStartDate: null, initialHoldings: null, initialAvgPrice: null, rules: [rule],
+  market: 'US_STOCK', ticker: 'UPRO', scheduledStartDate: null, initialDeposit: null, initialHoldings: null, initialAvgPrice: null, rules: [rule],
 }
 
 const ok = (v: Partial<DcaRuleFormValues>) => dcaRuleSchema.safeParse({ ...rule, ...v }).success
@@ -169,6 +169,10 @@ describe('dcaFormSchema', () => {
       expect(formIssue({ initialHoldings: 1, initialAvgPrice: -1 }, 'initialAvgPrice')).toBe('평단가는 0 이상이어야 합니다.')
     })
   })
+  it('예수금은 0 이상만 허용한다', () => {
+    expect(formIssue({ initialDeposit: -1 }, 'initialDeposit')).toBe('예수금은 0 이상이어야 합니다.')
+    expect(formOk({ initialDeposit: 0 })).toBe(true)
+  })
 })
 
 describe('buildDcaRuleDefaults', () => {
@@ -197,7 +201,7 @@ describe('buildDcaFormDefaults', () => {
 
   it('등록 기본값은 규칙 없음', () => {
     expect(buildDcaFormDefaults(undefined, 'UPRO', 'US_STOCK', testOrderAmount('US_STOCK'))).toEqual({
-      market: 'US_STOCK', ticker: 'UPRO', scheduledStartDate: todayKst(), initialHoldings: null, initialAvgPrice: null, rules: [],
+      market: 'US_STOCK', ticker: 'UPRO', scheduledStartDate: todayKst(), initialDeposit: null, initialHoldings: null, initialAvgPrice: null, rules: [],
     })
   })
   it('dca가 없는 initial도 기본값', () => {

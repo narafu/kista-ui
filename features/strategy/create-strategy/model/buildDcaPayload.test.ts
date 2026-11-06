@@ -8,7 +8,7 @@ const rule: DcaRuleFormValues = {
   sizingType: 'AMOUNT', amount: 150, percent: null, shortfall: 'PARTIAL', conditions: [],
 }
 const form = (rules: DcaRuleFormValues[], o: Partial<DcaFormValues> = {}): DcaFormValues => ({
-  market: 'US_STOCK', ticker: 'QLD', scheduledStartDate: null, initialHoldings: null, initialAvgPrice: null, rules, ...o,
+  market: 'US_STOCK', ticker: 'QLD', scheduledStartDate: null, initialDeposit: null, initialHoldings: null, initialAvgPrice: null, rules, ...o,
 })
 const first = (r: Partial<DcaRuleFormValues>) => buildDcaConfig(form([{ ...rule, ...r }])).rules[0]
 
@@ -78,5 +78,10 @@ describe('buildDcaCreatePayload', () => {
     const p = buildDcaCreatePayload(form([rule], { initialHoldings: q, initialAvgPrice: null }))
     expect(p).not.toHaveProperty('initialHoldings')
     expect(p).not.toHaveProperty('initialAvgPrice')
+  })
+  it('예수금>0이면 initialUsdDeposit으로 싣고, 비우거나 0이면 키 없음', () => {
+    expect(buildDcaCreatePayload(form([rule], { initialDeposit: 15000 }))).toMatchObject({ initialUsdDeposit: 15000 })
+    expect(buildDcaCreatePayload(form([rule], { initialDeposit: 0 }))).not.toHaveProperty('initialUsdDeposit')
+    expect(buildDcaCreatePayload(form([rule]))).not.toHaveProperty('initialUsdDeposit')
   })
 })

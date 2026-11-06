@@ -70,7 +70,7 @@ export interface Strategy {
   divisionCount?: number  // 분할 수 (INFINITE: 20/30/40, VR/PRIVACY: undefined)
   isReverseMode: boolean  // 리버스모드 활성 여부 (소진 후 모드)
   cycleInProgress: boolean // 진행 중 사이클 존재(최신 사이클 endDate 없음) — 투자금 추가·인출 진입 조건
-  ledgerUsdDeposit?: number // 최신 포지션 장부 예수금 — 투자금 인출 한도의 상한(미체결 매수 주문분은 서버가 추가 차감)
+  ledgerDeposit?: number // 최신 포지션 장부 예수금 — 투자금 인출 한도의 상한(미체결 매수 주문분은 서버가 추가 차감)
   currentRound?: number   // 현재 회차 (INFINITE 전략만, 이력 없으면 0)
   currentHoldings?: number
   vr?: StrategyVrSummary  // VR 전략 전용 요약 (타 전략 undefined)

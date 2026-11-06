@@ -108,6 +108,7 @@ export const dcaFormSchema = z.object({
   market: z.enum(MARKETS),
   ticker: z.string().min(1, '종목을 선택하세요'),
   scheduledStartDate: z.string().nullable(),
+  initialDeposit: z.number().nullable(), // 등록 시 시작 원장 예수금(계좌 통화) — 비우면 0, 수정 모드는 항상 null
   initialHoldings: z.number().nullable(), // 등록 시 보유 시작값 — 수정 모드는 항상 null(payload에 안 쓴다)
   initialAvgPrice: z.number().nullable(),
   rules: z.array(dcaRuleSchema)
@@ -117,6 +118,9 @@ export const dcaFormSchema = z.object({
   // 등록 화면을 자정(KST) 넘겨 열어두면 기본값(오늘)이 어제가 된다 — 서버는 과거 날짜를 거부. 수정 모드는 null
   if (v.scheduledStartDate && v.scheduledStartDate < todayKst()) {
     ctx.addIssue({ code: 'custom', path: ['scheduledStartDate'], message: '시작예정일은 오늘 이후여야 합니다.' })
+  }
+  if (v.initialDeposit != null && v.initialDeposit < 0) {
+    ctx.addIssue({ code: 'custom', path: ['initialDeposit'], message: '예수금은 0 이상이어야 합니다.' })
   }
   const { initialHoldings: q, initialAvgPrice: p } = v
   const decimals = isCryptoMarket(v.market) ? 8 : 0
@@ -176,11 +180,11 @@ export function buildDcaFormDefaults(initial: Strategy | undefined, defaultTicke
   const d = initial?.dca
   if (!initial || !d) {
     return {
-      market, ticker: defaultTicker, scheduledStartDate: todayKst(), initialHoldings: null, initialAvgPrice: null, rules: [],
+      market, ticker: defaultTicker, scheduledStartDate: todayKst(), initialDeposit: null, initialHoldings: null, initialAvgPrice: null, rules: [],
     }
   }
   return {
-    market, ticker: initial.ticker, scheduledStartDate: null, initialHoldings: null, initialAvgPrice: null,
+    market, ticker: initial.ticker, scheduledStartDate: null, initialDeposit: null, initialHoldings: null, initialAvgPrice: null,
     rules: d.rules.map((r) => ruleToFormValue(r, market, orderAmount)),
   }
 }

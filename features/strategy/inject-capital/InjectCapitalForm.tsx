@@ -18,7 +18,8 @@ import {
 import { Label } from '@/components/ui/label'
 import { FormActions } from '@shared/ui/FormActions'
 import { UnitInput } from '@shared/ui/UnitInput'
-import { fmtUsd } from '@shared/lib/format'
+import { currencyUnit, fmtMoney } from '@shared/lib/format'
+import { CURRENCY_SCALE, type Currency } from '@shared/lib/api-schema'
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
 import { tradeKeys } from '@entities/trade'
@@ -30,11 +31,12 @@ import { injectCapitalFormSchema, type InjectCapitalFormValues } from './model/i
 interface Props {
   accountId: string
   strategy: Strategy
+  currency: Currency // 계좌 통화 — 입력 단위·자릿수·금액 표기
   // 'push': 일반 페이지 라우트. 'back': 인터셉팅 라우트(모달)
   dismiss?: DismissMode
 }
 
-export function InjectCapitalForm({ accountId, strategy, dismiss = 'push' }: Props) {
+export function InjectCapitalForm({ accountId, strategy, currency, dismiss = 'push' }: Props) {
   const router = useRouter()
   const queryClient = useQueryClient()
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -65,20 +67,23 @@ export function InjectCapitalForm({ accountId, strategy, dismiss = 'push' }: Pro
   // 검증을 통과했을 때만 확인 다이얼로그를 연다. 실패 시 handleSubmit이 오류 칸으로 포커스를 옮긴다
   const onSubmit = form.handleSubmit(() => setConfirmOpen(true))
 
-  const effectCaption = strategy.type === 'INFINITE'
+  // DCA는 거래일 배치가 아니라 규칙 회차마다 주문한다 — 반영 시점을 회차로 쓰고, 예수금 외에 바뀌는 계산이 없어 효과 문구는 두지 않는다
+  const isDca = strategy.type === 'DCA'
+  const timing = isDca ? '다음 회차' : '다음 거래일 주문'
+  const effectCaption = isDca ? '' : strategy.type === 'INFINITE'
     ? '1회 매수금이 커지고 회차가 앞당겨집니다.'
     : '추가 금액에 맞춰 배수가 다시 계산됩니다.'
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
       <p className="text-sm text-muted-foreground">
-        다음 거래일 주문부터 반영되고, 이번 사이클 수익률에서는 추가분이 빠집니다. {effectCaption}
+        {timing}부터 반영되고, 이번 사이클 수익률에서는 추가분이 빠집니다. {effectCaption}
       </p>
 
       <div className="space-y-2">
         <Label htmlFor="depositAmount">추가 예수금</Label>
         <Controller control={form.control} name="depositAmount" render={({ field }) => (
-          <UnitInput id="depositAmount" unit="USD" unitClassName="ml-2" maxDecimals={2} placeholder="0" disabled={disabled}
+          <UnitInput id="depositAmount" unit={currencyUnit(currency)} unitClassName="ml-2" maxDecimals={CURRENCY_SCALE[currency]} placeholder="0" disabled={disabled}
             ref={field.ref} onBlur={field.onBlur}
             errorId={errors.depositAmount ? 'depositAmount-error' : undefined}
             value={field.value ?? null}
@@ -94,7 +99,7 @@ export function InjectCapitalForm({ accountId, strategy, dismiss = 'push' }: Pro
           <AlertDialogHeader>
             <AlertDialogTitle>투자금을 추가하시겠습니까?</AlertDialogTitle>
             <AlertDialogDescription>
-              예수금 ${fmtUsd(depositAmount ?? 0)}을(를) 진행 중인 사이클에 추가합니다. 다음 거래일 주문부터 반영되며, 이 작업은 되돌릴 수 없습니다.
+              예수금 {fmtMoney(depositAmount ?? 0, currency)}을(를) 진행 중인 사이클에 추가합니다. {timing}부터 반영되며, 이 작업은 되돌릴 수 없습니다.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

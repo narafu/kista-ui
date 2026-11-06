@@ -4,10 +4,11 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import { isCryptoMarket, marketCurrency, type TradingMarket } from '@shared/lib/api-schema'
+import { CURRENCY_SCALE, isCryptoMarket, marketCurrency, type TradingMarket } from '@shared/lib/api-schema'
 import { currencyUnit } from '@shared/lib/format'
 import { useSubviewHistory } from '@shared/lib/subviewHistory'
 import { FormActions } from '@shared/ui/FormActions'
+import { UnitInput } from '@shared/ui/UnitInput'
 import type { OrderAmountRule } from '@entities/meta'
 import { useCreateStrategyMutation, useReconfigureDcaMutation } from '@entities/strategy'
 import type { DcaDirection, Strategy } from '@entities/strategy'
@@ -15,6 +16,7 @@ import { StrategyTickerSection } from './sections/StrategyTickerSection'
 import { ScheduledStartSection } from './sections/ScheduledStartSection'
 import { InitialHoldingsSection } from './sections/InitialHoldingsSection'
 import { DcaRuleList } from './sections/DcaRuleList'
+import { StrategyFieldLabel } from './StrategyFieldLabel'
 import { DcaRuleEditor } from './sections/DcaRuleEditor'
 import { buildDcaFormDefaults, buildDcaRuleDefaults, dcaFormSchema, type DcaFormValues, type DcaRuleFormValues } from './model/dcaFormSchema'
 import { buildDcaConfig, buildDcaCreatePayload } from './model/buildDcaPayload'
@@ -141,6 +143,24 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
             loading={pending}
             error={form.formState.errors.scheduledStartDate?.message}
           />
+        )}
+        {!initial && (
+          // 매수는 이 원장 예수금 안에서만 나간다 — 등록 후 증감은 투자금 추가·인출로
+          <div className="py-[18px] border-b border-border">
+            <StrategyFieldLabel htmlFor="dca-initialDeposit">예수금</StrategyFieldLabel>
+            <UnitInput
+              id="dca-initialDeposit"
+              value={form.watch('initialDeposit')}
+              onChange={(v) => form.setValue('initialDeposit', v, { shouldValidate: form.formState.isSubmitted })}
+              unit={currencyUnit(marketCurrency(market))}
+              disabled={pending}
+              unitClassName="ml-1.5"
+              maxDecimals={CURRENCY_SCALE[marketCurrency(market)]}
+              placeholder="0"
+              errorId={form.formState.errors.initialDeposit ? 'dca-initialDeposit-error' : undefined}
+            />
+            {form.formState.errors.initialDeposit && <p id="dca-initialDeposit-error" role="alert" className="mt-1 text-sm text-[var(--status-error)]">{form.formState.errors.initialDeposit.message}</p>}
+          </div>
         )}
         {!initial && (
           <InitialHoldingsSection

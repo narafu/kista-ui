@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation'
 import { PageHeader } from '@widgets/page-header'
 import { findStrategy, supportsCapitalAdjustment } from '@entities/strategy'
 import { InjectCapitalForm } from '@features/strategy/inject-capital'
+import { listAccounts } from '@entities/account'
+import { brokerCurrency } from '@shared/lib/api-schema'
 import { requirePageToken } from '@shared/lib/auth/token'
 import type { DismissMode } from '@shared/lib/dismiss'
 
@@ -14,15 +16,17 @@ interface Props {
 export async function InjectCapitalFormBody({ params, dismiss }: Props) {
   const { params: { id, sid }, token } = await requirePageToken(params)
 
-  const strategy = await findStrategy(id, sid, token)
-  if (!strategy || !supportsCapitalAdjustment(strategy)) {
+  // 입력 단위·자릿수가 계좌 통화를 따른다(주식 USD, 업비트 KRW, 바이낸스 USDT)
+  const [strategy, accounts] = await Promise.all([findStrategy(id, sid, token), listAccounts(token)])
+  const account = accounts.find((a) => a.id === id)
+  if (!strategy || !account || !supportsCapitalAdjustment(strategy)) {
     return notFound()
   }
 
   return (
     <>
       <PageHeader eyebrow={strategy.ticker} eyebrowHref={`/accounts/${id}/strategies/${sid}`} title="투자금 추가" description="진행 중인 사이클에 예수금을 추가" />
-      <InjectCapitalForm accountId={id} strategy={strategy} dismiss={dismiss} />
+      <InjectCapitalForm accountId={id} strategy={strategy} currency={brokerCurrency(account.broker)} dismiss={dismiss} />
     </>
   )
 }

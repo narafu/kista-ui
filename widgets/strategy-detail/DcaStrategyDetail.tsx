@@ -8,10 +8,10 @@ import { Button } from '@/components/ui/button'
 import { KpiCard } from '@widgets/kpi-card'
 import { useManageStrategyMutations } from '@features/strategy/manage-strategy'
 import { useMeta } from '@entities/meta'
-import { dcaIndicatorLabel, formatCryptoNextExecution, formatDcaCondition, DcaRuleSummaryLabel } from '@entities/strategy'
+import { dcaIndicatorLabel, floorToCents, formatCryptoNextExecution, formatDcaCondition, DcaRuleSummaryLabel } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import { useAccountPricesQuery } from '@entities/account'
-import { cryptoPortfolioQueryOptions, cryptoPricesQueryOptions, directionBadgeClass } from '@entities/trade'
+import { cryptoPricesQueryOptions, directionBadgeClass } from '@entities/trade'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtMoney, fmtQuantity, fmtSignedPercent, pnlTextClass, roundMoney } from '@shared/lib/format'
 import { brokerMarket, isCryptoMarket, marketCurrency } from '@shared/lib/api-schema'
@@ -34,24 +34,19 @@ const HOLDING_TILE = { className: TILE.className, valueClassName: 'text-base sm:
 const SHORTFALL_SHORT: Record<string, string> = { PARTIAL: '잔량', REJECT: '주문 안 함' }
 const UNAVAILABLE = <span className="text-base font-normal text-muted-foreground">확인 불가</span>
 
-// 보유 수량·평단가는 원장(dca.currentHoldings·avgPrice)이 SSOT, 현재가만 시장별로 따로 받는다.
-// 크립토는 계좌 상세와 캐시를 공유하는 crypto-portfolio, 주식은 prices — 크립토 계좌로 prices를 부르면 400이라 enabled로 갈라 둔다
+// 보유 수량·평단가는 원장(dca.currentHoldings·avgPrice)이 SSOT, 현재가만 시장별 시세로 받는다(실잔고는 보지 않는다).
+// 크립토 계좌로 prices를 부르면 400이라 enabled로 갈라 둔다
 function DcaHoldingGrid({ accountId, strategy, market }: { accountId: string; strategy: Strategy; market: TradingMarket }) {
   const isCrypto = isCryptoMarket(market)
   const { ticker, dca } = strategy
   const holdings = dca?.currentHoldings ?? null
   const avg = dca?.avgPrice ?? null
   const currency = marketCurrency(market)
-  const portfolio = useQuery({ ...cryptoPortfolioQueryOptions(accountId), enabled: isCrypto })
+  const cryptoPrices = useQuery({ ...cryptoPricesQueryOptions(accountId, [ticker]), enabled: isCrypto })
   const prices = useAccountPricesQuery(accountId, [ticker], { enabled: !isCrypto })
-  const balancePrice = portfolio.data?.holdings.find((h) => h.ticker === ticker)?.currentPrice
-  // 원장 보유가 실잔고에 없으면(거래소에서 직접 매도 등) 현재가도 없다 — 그때만 공개 시세로 채운다
-  const needsFallback = isCrypto && holdings != null && balancePrice == null && (!!portfolio.data || portfolio.isError)
-  const fallback = useQuery({ ...cryptoPricesQueryOptions(accountId, [ticker]), enabled: needsFallback })
-  const price = isCrypto ? balancePrice ?? fallback.data?.[ticker] : prices.data?.[ticker]
-  const settled = isCrypto
-    ? (!!portfolio.data || portfolio.isError) && (!needsFallback || !!fallback.data || fallback.isError)
-    : !!prices.data || prices.isError
+  const priceQuery = isCrypto ? cryptoPrices : prices
+  const price = priceQuery.data?.[ticker]
+  const settled = !!priceQuery.data || priceQuery.isError
   const priced = price != null
   // 크립토 소수 수량 × 가격은 통화 최소 단위 미만이 생긴다(원 미만·센트 미만) — 계좌 통화 단위로 반올림해 표시한다
   const evalAmount = holdings != null && priced ? (isCrypto ? roundMoney(holdings * price, currency) : holdings * price) : null
@@ -105,7 +100,10 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
   return (
     <div className="space-y-4">
       <StrategyInfoCard strategy={strategy}>
-        <KpiCard label="전략타입" value={labelOf('strategyTypes', strategy.type)} {...TILE} />
+        <div className="grid grid-cols-2 gap-3">
+          <KpiCard label="전략타입" value={labelOf('strategyTypes', strategy.type)} {...TILE} />
+          <KpiCard label="예수금" value={strategy.ledgerDeposit != null ? fmtMoney(floorToCents(strategy.ledgerDeposit), marketCurrency(market)) : '-'} {...TILE} />
+        </div>
         <DcaHoldingGrid accountId={accountId} strategy={strategy} market={market} />
       </StrategyInfoCard>
 

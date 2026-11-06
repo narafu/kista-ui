@@ -8,15 +8,10 @@ import { fmtDate, todayKst } from '@shared/lib/format'
 import { DcaStrategyDetail } from './DcaStrategyDetail'
 import { testMeta } from '@entities/meta/__fixtures__/testMeta'
 
-const cryptoPortfolio = vi.hoisted(() => ({ result: null as unknown }))
-// 공개 시세 폴백 — beforeEach가 실패로 되돌린다(폴백 없는 기존 테스트가 확인 불가를 그대로 기대한다)
+// 크립토 현재가 — beforeEach가 실패로 되돌린다
 const cryptoPrices = vi.hoisted(() => ({ result: new Error('fail') as unknown, calls: 0 }))
 vi.mock('@entities/trade', async (orig) => ({
   ...(await orig<typeof import('@entities/trade')>()),
-  cryptoPortfolioQueryOptions: (accountId: string) => ({
-    queryKey: ['crypto-portfolio', accountId],
-    queryFn: () => (cryptoPortfolio.result instanceof Error ? Promise.reject(cryptoPortfolio.result) : Promise.resolve(cryptoPortfolio.result)),
-  }),
   cryptoPricesQueryOptions: (accountId: string, tickers: string[]) => ({
     queryKey: ['crypto-prices', accountId, tickers],
     queryFn: () => {
@@ -59,7 +54,6 @@ const strategy: Strategy = {
 } as Strategy
 const ethRule: DcaRule = { ...rule, ruleKey: 'r2', frequency: 'DAILY', orderType: 'MARKET', executionHour: 9, sizing: { type: 'AMOUNT', amount: 50000, percent: null }, nextExecution: { usSessionDate: '2026-11-01', kstTradeDate: '2026-11-01' } }
 const ethStrategy: Strategy = { ...strategy, ticker: 'ETH', dca: { rules: [ethRule], currentHoldings: 0.5, avgPrice: 4_000_000 } }
-const portfolio = (currentPrice: number | null) => ({ currency: 'KRW', cash: 0, totalAsset: 0, holdings: [{ ticker: 'ETH', quantity: 0.5, avgBuyPrice: 1, currentPrice, evalAmount: 1 }] })
 
 // broker를 생략하면 ETH는 업비트, 그 외는 주식 계좌로 둔다
 function renderDetail(s: Strategy = strategy, broker: BrokerCode = s.ticker === 'ETH' ? 'UPBIT' : 'KIS') {
@@ -87,71 +81,46 @@ describe('DcaStrategyDetail', () => {
     cryptoPrices.calls = 0
   })
 
-  it('크립토: 원장 보유 수량·평단가와 현재가로 평가금액·수익률을 계산하고 prices는 호출하지 않는다', async () => {
-    cryptoPortfolio.result = portfolio(4_400_000)
+  it('크립토: 원장 보유 수량·평단가와 공개 시세로 평가금액·수익률을 계산하고 prices는 호출하지 않는다', async () => {
+    cryptoPrices.result = { ETH: 4_400_000 }
     prices.calls = []
     renderDetail(ethStrategy)
     expect(screen.getByText('0.5 ETH')).toBeInTheDocument()
-    expect(screen.queryByText('이 전략 체결 기준')).not.toBeInTheDocument()
     expect(screen.getByText('4,000,000원')).toBeInTheDocument()
     expect(await screen.findByText('2,200,000원')).toBeInTheDocument()
     expect(screen.getByText('+10.0%')).toHaveClass('text-pos')
     expect(prices.calls.every((c) => (c[2] as { enabled?: boolean }).enabled === false)).toBe(true)
   })
-  it('크립토: 실잔고에 현재가가 있으면 공개 시세를 조회하지 않는다', async () => {
-    cryptoPortfolio.result = portfolio(4_400_000)
-    renderDetail(ethStrategy)
-    expect(await screen.findByText('2,200,000원')).toBeInTheDocument()
-    expect(cryptoPrices.calls).toBe(0)
-  })
-  it('크립토: 실잔고에 종목이 없으면 공개 시세로 평가금액·수익률을 계산한다', async () => {
-    cryptoPortfolio.result = { currency: 'KRW', cash: 0, totalAsset: 0, holdings: [] }
-    cryptoPrices.result = { ETH: 4_400_001 }
-    renderDetail(ethStrategy)
-    expect(await screen.findByText('2,200,001원')).toBeInTheDocument()
-    expect(screen.getByText('+10.0%')).toBeInTheDocument()
-  })
-  it('크립토: 포트폴리오 조회가 실패해도 공개 시세로 평가금액을 계산한다', async () => {
-    cryptoPortfolio.result = new Error('fail')
-    cryptoPrices.result = { ETH: 4_400_000 }
-    renderDetail(ethStrategy)
-    expect(await screen.findByText('2,200,000원')).toBeInTheDocument()
-  })
   it('크립토: 공개 시세 응답에 종목이 없으면 확인 불가', async () => {
-    cryptoPortfolio.result = { currency: 'KRW', cash: 0, totalAsset: 0, holdings: [] }
     cryptoPrices.result = {}
     renderDetail(ethStrategy)
     expect(await screen.findAllByText('확인 불가')).toHaveLength(2)
   })
   it('바이낸스 계좌: USDT로 평가금액을 소수 2자리까지 반올림해 표시한다', async () => {
-    cryptoPortfolio.result = { currency: 'USDT', cash: 0, totalAsset: 0, holdings: [{ ticker: 'ETH', quantity: 0.5, avgBuyPrice: 1, currentPrice: 3001.111, evalAmount: 1 }] }
+    cryptoPrices.result = { ETH: 3001.111 }
     renderDetail({ ...ethStrategy, dca: { ...ethStrategy.dca!, avgPrice: 2500.5 } }, 'BINANCE')
     expect(screen.getByText('2,500.50 USDT')).toBeInTheDocument()
     expect(await screen.findByText('1,500.56 USDT')).toBeInTheDocument()
     expect(screen.queryByText(/원$/)).not.toBeInTheDocument()
   })
-  it('업비트 계좌: 계좌 기준으로도 원 단위로 표시한다', async () => {
-    cryptoPortfolio.result = portfolio(4_400_001)
-    renderDetail(ethStrategy, 'UPBIT')
-    expect(await screen.findByText('2,200,001원')).toBeInTheDocument()
-  })
   it('크립토 평가금액은 원 단위로 반올림한다', async () => {
-    cryptoPortfolio.result = portfolio(4_400_001)
+    cryptoPrices.result = { ETH: 4_400_001 }
     renderDetail(ethStrategy)
     expect(await screen.findByText('2,200,001원')).toBeInTheDocument()
   })
-
-  it('크립토 포트폴리오·공개 시세 조회가 모두 실패해도 보유·평단은 보이고 평가금액·수익률만 확인 불가', async () => {
-    cryptoPortfolio.result = new Error('fail')
+  it('크립토 시세 조회가 실패해도 보유·평단은 보이고 평가금액·수익률만 확인 불가', async () => {
     renderDetail(ethStrategy)
     expect(await screen.findAllByText('확인 불가')).toHaveLength(2)
     expect(screen.getByText('0.5 ETH')).toBeInTheDocument()
     expect(screen.getByText('4,000,000원')).toBeInTheDocument()
   })
-  it('크립토 현재가가 null이고 공개 시세도 실패하면 평가금액·수익률은 확인 불가', async () => {
-    cryptoPortfolio.result = portfolio(null)
-    renderDetail(ethStrategy)
-    expect(await screen.findAllByText('확인 불가')).toHaveLength(2)
+  it('예수금: 원장 예수금을 계좌 통화로, 모르면 -', () => {
+    const { unmount } = renderDetail({ ...ethStrategy, ledgerDeposit: 15000 })
+    const tile = (label: string) => screen.getByText(label).parentElement!.parentElement!
+    expect(tile('예수금')).toHaveTextContent('15,000원')
+    unmount()
+    renderDetail()
+    expect(tile('예수금')).toHaveTextContent('-')
   })
   it('주식: prices 현재가로 평가금액·수익률을 계산한다', () => {
     prices.data = { UPRO: 100 }
@@ -182,7 +151,6 @@ describe('DcaStrategyDetail', () => {
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['전략 정보', '규칙', '회차별 실행 이력'])
   })
   it('규칙 카드: 크립토는 다음 실행 + 시각, 최근 결과와 skip 사유, 조건 없음 문구', () => {
-    cryptoPortfolio.result = portfolio(1)
     const r = { ...ethRule, conditions: [], shortfall: 'REJECT' as const, lastExecution: { kstTradeDate: '2026-10-21', status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET' } }
     renderDetail({ ...ethStrategy, dca: { ...ethStrategy.dca!, rules: [r] } })
     expect(ruleField('다음 실행')).toHaveTextContent('11/1 09시')
@@ -209,7 +177,6 @@ describe('DcaStrategyDetail', () => {
     const { unmount } = renderDetail({ ...strategy, dca: { ...strategy.dca!, rules: [{ ...rule, conditions: [fg] }] } })
     expect(ruleField('조건')).toHaveTextContent(/공포탐욕지수\(CNN\) 20/)
     unmount()
-    cryptoPortfolio.result = portfolio(1)
     renderDetail({ ...ethStrategy, dca: { ...ethStrategy.dca!, rules: [{ ...ethRule, conditions: [fg] }] } })
     expect(ruleField('조건')).toHaveTextContent(/공포탐욕지수\(Crypto\) 20/)
   })

@@ -114,7 +114,7 @@ function normalizeStrategy(raw: unknown): Strategy {
     divisionCount: optNum(s.divisionCount),
     isReverseMode: Boolean(s.isReverseMode),
     cycleInProgress: Boolean(s.cycleInProgress),
-    ledgerUsdDeposit: optDec(s.ledgerUsdDeposit),
+    ledgerDeposit: optDec(s.ledgerDeposit),
     currentRound: optNum(s.currentRound),
     currentHoldings: optNum(s.currentHoldings),
     vr: normalizeVrSummary(s.vr),

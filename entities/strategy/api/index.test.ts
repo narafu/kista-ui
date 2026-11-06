@@ -248,11 +248,11 @@ describe('reconfigureVr', () => {
 })
 
 describe('withdrawCapital', () => {
-  it('withdrawCapital은 POST /api/trading-cycles/{id}/capital-withdrawal 로 요청하고 ledgerUsdDeposit을 정규화한다', async () => {
+  it('withdrawCapital은 POST /api/trading-cycles/{id}/capital-withdrawal 로 요청하고 ledgerDeposit을 정규화한다', async () => {
     const { withdrawCapital } = await import('./index')
     fetchEitherMock.mockResolvedValueOnce({
       id: 'strategy-1', accountId: 'account-1', type: 'INFINITE', status: 'ACTIVE', ticker: 'TQQQ',
-      cycleSeedType: 'NONE', isReverseMode: false, ledgerUsdDeposit: '1234.50',
+      cycleSeedType: 'NONE', isReverseMode: false, ledgerDeposit: '1234.50',
     })
     const result = await withdrawCapital('strategy-1', { amount: 100 })
     expect(fetchEitherMock).toHaveBeenCalledWith(
@@ -260,8 +260,8 @@ describe('withdrawCapital', () => {
       { method: 'POST', body: JSON.stringify({ amount: 100 }) },
       undefined,
     )
-    expect(result.ledgerUsdDeposit).toBe(1234.5)
-    fetchEitherMock.mockResolvedValueOnce({ id: 's', accountId: 'a', type: 'INFINITE', status: 'ACTIVE', ticker: 'TQQQ', ledgerUsdDeposit: null })
-    expect((await withdrawCapital('s', { amount: 1 })).ledgerUsdDeposit).toBeUndefined()
+    expect(result.ledgerDeposit).toBe(1234.5)
+    fetchEitherMock.mockResolvedValueOnce({ id: 's', accountId: 'a', type: 'INFINITE', status: 'ACTIVE', ticker: 'TQQQ', ledgerDeposit: null })
+    expect((await withdrawCapital('s', { amount: 1 })).ledgerDeposit).toBeUndefined()
   })
 })

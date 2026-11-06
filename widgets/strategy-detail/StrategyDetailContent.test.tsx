@@ -105,7 +105,7 @@ describe('StrategyDetailContent', () => {
     ['INFINITE', true],
     ['PRIVACY', true],
     ['VR', false],
-    ['DCA', false],
+    ['DCA', true],
   ] as const)('%s 전략의 "투자금 추가" 링크 노출은 %s', (type, visible) => {
     const queryClient = createClient()
     queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
@@ -130,7 +130,7 @@ describe('StrategyDetailContent', () => {
     ['INFINITE', true],
     ['PRIVACY', true],
     ['VR', false],
-    ['DCA', false],
+    ['DCA', true],
   ] as const)('%s 전략의 "투자금 인출" 링크 노출은 %s', (type, visible) => {
     const queryClient = createClient()
     queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
@@ -156,10 +156,10 @@ describe('StrategyDetailContent', () => {
     [0, false],
     [0.01, true],
     [undefined, true],
-  ] as const)('장부 예수금 %s이면 "투자금 인출" 링크 노출은 %s', (ledgerUsdDeposit, visible) => {
+  ] as const)('장부 예수금 %s이면 "투자금 인출" 링크 노출은 %s', (ledgerDeposit, visible) => {
     const queryClient = createClient()
     queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
-    queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, ledgerUsdDeposit })
+    queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, ledgerDeposit })
     render(<QueryClientProvider client={queryClient}>{content()}</QueryClientProvider>)
 
     expect(!!screen.queryByRole('link', { name: '투자금 인출' })).toBe(visible)

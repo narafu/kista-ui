@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-// 투자금 추가는 예수금만 받는다(주식 편입은 받지 않음). 서버 계약: depositAmount > 0(USD)
+// 투자금 추가는 예수금만 받는다(주식 편입은 받지 않음). 서버 계약: depositAmount > 0(계좌 통화)
 export const injectCapitalFormSchema = z.object({
   depositAmount: z
     .number('추가할 예수금을 입력하세요.')
