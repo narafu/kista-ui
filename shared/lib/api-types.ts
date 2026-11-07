@@ -1231,6 +1231,9 @@ export interface paths {
          * @description 현재 KST 기준 미국 시장 세션을 반환합니다.
          *     DIRECT: 프리마켓+정규장 (주문 가능) — DST: 17:00~05:00 / 비DST: 18:00~06:00 KST
          *     BLOCKED: 장마감~프리마켓 전 (주문 불가) — DST: 05:00~17:00 / 비DST: 06:00~18:00 KST
+         *     session은 시간대 기준이라 주말 KST는 항상 BLOCKED이며, 거래일 휴장 여부는 알려주지 않습니다.
+         *     tradeDateKst: 현재 시각 기준 KST 거래일 (04:30 KST 이후면 익일)
+         *     tradingDay: tradeDateKst에 미국 장이 열리는지 (휴장일·주말이면 false)
          */
         get: operations["getSession"];
         put?: never;
@@ -1910,6 +1913,26 @@ export interface paths {
          * @description 오늘 미체결 주문을 정리(PLANNED 삭제·PLACED 증권사 취소)한 뒤 PAUSED로 바꾼다. 취소 실패분은 관리자에게 알리고 일시중지는 진행.
          */
         patch: operations["pause"];
+        trace?: never;
+    };
+    "/api/trading-cycles/{id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * 전략 보관
+         * @description 보유 수량이 없고 당일 접수 주문이 마감 반영된 전략만 보관한다. 미체결 주문을 정리한 뒤 ARCHIVED로 바꾸며 되돌릴 수 없다.
+         */
+        patch: operations["archive"];
         trace?: never;
     };
     "/api/trading-cycles": {
@@ -4598,7 +4621,7 @@ export interface components {
              * @example PAUSED
              * @enum {string}
              */
-            status?: "ACTIVE" | "PAUSED";
+            status?: "ACTIVE" | "PAUSED" | "ARCHIVED";
         };
         SseEmitter: {
             /** Format: int64 */
@@ -8706,9 +8729,31 @@ export interface operations {
             };
         };
     };
-    listMine: {
+    archive: {
         parameters: {
             query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listMine: {
+        parameters: {
+            query?: {
+                includeArchived?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
