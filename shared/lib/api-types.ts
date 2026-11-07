@@ -3037,11 +3037,11 @@ export interface components {
             /** @description 생성 예정 주문 목록 */
             orders?: components["schemas"]["NextOrderItem"][];
             /**
-             * @description 주문 생성 skip 사유 (정상이면 null)
+             * @description 주문 생성 skip 사유 (정상이면 null, MARKET_CLOSED=다음 거래일 휴장)
              * @example NO_PRIVACY_BASE
              * @enum {string}
              */
-            skipReason?: "NO_CYCLE_HISTORY" | "NO_PRIVACY_BASE" | "SCHEDULED_START_NOT_REACHED" | "CYCLE_ENDED" | "PRIVACY_BASE_BLOCKED";
+            skipReason?: "NO_CYCLE_HISTORY" | "NO_PRIVACY_BASE" | "SCHEDULED_START_NOT_REACHED" | "CYCLE_ENDED" | "PRIVACY_BASE_BLOCKED" | "MARKET_CLOSED";
             /** @description 오늘 이미 등록된 PLANNED·PLACED 주문 목록 */
             todayOrders?: components["schemas"]["TodayOrderItem"][];
             /** @description 계좌 내 타 전략의 당일 PLANNED BUY 합계 (USD) */
@@ -4854,6 +4854,14 @@ export interface components {
             /** @enum {string} */
             session?: "DIRECT" | "BLOCKED";
             isDst?: boolean;
+            /**
+             * Format: date
+             * @description 현재 시각 기준 KST 거래일 (04:30 KST 이후면 익일)
+             * @example 2026-07-20
+             */
+            tradeDateKst?: string;
+            /** @description tradeDateKst에 미국 장이 열리는지 (휴장일·주말이면 false) */
+            tradingDay?: boolean;
         };
         FearGreedResponse: {
             /** @description CNN 공포탐욕지수 현재값 + 추이 이력 */

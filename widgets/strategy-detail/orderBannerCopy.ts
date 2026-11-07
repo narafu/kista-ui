@@ -8,6 +8,7 @@ export const SKIP_REASON_LABELS: Record<SkipReason, string> = {
   SCHEDULED_START_NOT_REACHED: '시작예정일 전입니다.\n시작예정일 밤 미국장부터 매매합니다.',
   CYCLE_ENDED: '사이클이 종료되었습니다.\n전략을 일시중지 후 재개하면 새 사이클이 시작됩니다.',
   PRIVACY_BASE_BLOCKED: 'P 매매표 점검 이슈로 오늘은 주문하지 않습니다.',
+  MARKET_CLOSED: '다음 거래일이 미국 증시 휴장일입니다.\n개장일에 주문이 생성됩니다.',
 }
 
 // 일시중지 중에는 "일시중지 후 재개" 안내가 어긋나므로 사이클 종료 문구만 바꾼다
