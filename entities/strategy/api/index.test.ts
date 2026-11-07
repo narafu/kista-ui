@@ -265,3 +265,21 @@ describe('withdrawCapital', () => {
     expect((await withdrawCapital('s', { amount: 1 })).ledgerDeposit).toBeUndefined()
   })
 })
+
+describe('strategy api archive', () => {
+  it('listAllStrategies adds includeArchived only when requested', async () => {
+    const { listAllStrategies } = await import('./index')
+    fetchEitherMock.mockResolvedValue([])
+    await listAllStrategies()
+    await listAllStrategies(undefined, true)
+    expect(fetchEitherMock).toHaveBeenCalledWith('/api/trading-cycles', undefined, undefined)
+    expect(fetchEitherMock).toHaveBeenCalledWith('/api/trading-cycles?includeArchived=true', undefined, undefined)
+  })
+
+  it('archiveStrategy PATCHes the archive endpoint', async () => {
+    const { archiveStrategy } = await import('./index')
+    fetchEitherMock.mockResolvedValueOnce(undefined)
+    await archiveStrategy('s1')
+    expect(fetchEitherMock).toHaveBeenCalledWith('/api/trading-cycles/s1/archive', { method: 'PATCH' }, undefined)
+  })
+})

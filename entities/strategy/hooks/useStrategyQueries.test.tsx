@@ -8,6 +8,7 @@ import { ApiError } from '@shared/lib/api-client'
 import type { Strategy } from '../model/types'
 import { strategyKeys } from '../model/queryKeys'
 import {
+  useArchiveStrategyMutation,
   useCreateStrategyMutation,
   useDcaExecutionsQuery,
   useDeleteStrategyMutation,
@@ -26,6 +27,7 @@ const {
   reconfigureVrMock,
   reconfigureDcaMock,
   deleteStrategyMock,
+  archiveStrategyMock,
   pauseStrategyMock,
   resumeStrategyMock,
   listDcaExecutionsMock,
@@ -37,6 +39,7 @@ const {
   reconfigureVrMock: vi.fn(),
   reconfigureDcaMock: vi.fn(),
   deleteStrategyMock: vi.fn(),
+  archiveStrategyMock: vi.fn(),
   pauseStrategyMock: vi.fn(),
   resumeStrategyMock: vi.fn(),
   listDcaExecutionsMock: vi.fn(),
@@ -50,6 +53,7 @@ vi.mock('../api', () => ({
   reconfigureVr: reconfigureVrMock,
   reconfigureDca: reconfigureDcaMock,
   deleteStrategy: deleteStrategyMock,
+  archiveStrategy: archiveStrategyMock,
   pauseStrategy: pauseStrategyMock,
   resumeStrategy: resumeStrategyMock,
   listDcaExecutions: listDcaExecutionsMock,
@@ -159,6 +163,24 @@ describe('strategy mutations', () => {
 
     expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([strategyA])
     expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([strategyA])
+  })
+
+  it('removes an archived strategy from both lists and invalidates the include-archived list', async () => {
+    const queryClient = createTestQueryClient()
+    seedStrategyLists(queryClient, [strategyA, strategyB])
+    queryClient.setQueryData(strategyKeys.listAllWithArchived(), [strategyA, strategyB])
+    archiveStrategyMock.mockResolvedValue(undefined)
+
+    const { result } = renderHook(() => useArchiveStrategyMutation(), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    await result.current.mutateAsync(strategyA)
+
+    expect(archiveStrategyMock).toHaveBeenCalledWith(strategyA.id)
+    expect(queryClient.getQueryData(strategyKeys.listAll())).toEqual([strategyB])
+    expect(queryClient.getQueryData(strategyKeys.listByAccount('account-1'))).toEqual([strategyB])
+    expect(queryClient.getQueryState(strategyKeys.listAllWithArchived())?.isInvalidated).toBe(true)
   })
 
   it('removes a deleted strategy from both lists', async () => {

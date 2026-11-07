@@ -12,6 +12,7 @@ import { useManageStrategyMutations } from './useManageStrategyMutations'
 const pauseMutate = vi.fn()
 const resumeMutate = vi.fn()
 const deleteMutate = vi.fn()
+const archiveMutate = vi.fn()
 const executeMutate = vi.fn()
 let executeSuccessHandler: (() => void | Promise<void>) | undefined
 const { toastSuccessMock } = vi.hoisted(() => ({ toastSuccessMock: vi.fn() }))
@@ -20,6 +21,7 @@ vi.mock('@entities/strategy', () => ({
   usePauseStrategyMutation: () => ({ mutate: pauseMutate, isPending: false }),
   useResumeStrategyMutation: () => ({ mutate: resumeMutate, isPending: false }),
   useDeleteStrategyMutation: () => ({ mutate: deleteMutate, isPending: false }),
+  useArchiveStrategyMutation: () => ({ mutate: archiveMutate, isPending: false }),
   useExecuteStrategyMutation: (_strategyId: string | undefined, onSuccess?: () => void | Promise<void>) => {
     executeSuccessHandler = onSuccess
     return { mutate: executeMutate, isPending: false }
@@ -92,6 +94,25 @@ describe('useManageStrategyMutations', () => {
       expect(queryClient.getQueryState(orderKeys.preview(strategy.id))?.isInvalidated).toBe(true)
       expect(queryClient.getQueryState(statsKeys.summary())?.isInvalidated).toBe(true)
       expect(queryClient.getQueryState(tradeKeys.strategyCycleHistory(strategy.id, null))?.isInvalidated).toBe(true)
+    })
+  })
+
+  it('shows a toast, invalidates dependencies and then calls onArchived after archive', async () => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    queryClient.setQueryData(statsKeys.summary(), { total: 1 })
+    archiveMutate.mockImplementation((_strategy, options) => options.onSuccess())
+    const onArchived = vi.fn()
+
+    const { result } = renderHook(() => useManageStrategyMutations({ onArchived }), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    act(() => result.current.archive(strategy))
+
+    await waitFor(() => {
+      expect(toastSuccessMock).toHaveBeenCalledWith('전략을 보관했습니다')
+      expect(queryClient.getQueryState(statsKeys.summary())?.isInvalidated).toBe(true)
+      expect(onArchived).toHaveBeenCalled()
     })
   })
 

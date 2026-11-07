@@ -28,7 +28,8 @@ vi.mock('@entities/account', async (orig) => ({
 }))
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
-vi.mock('@features/strategy/manage-strategy', () => ({
+vi.mock('@features/strategy/manage-strategy', async (orig) => ({
+  ...(await orig<typeof import('@features/strategy/manage-strategy')>()),
   useManageStrategyMutations: () => ({ pause: vi.fn(), resume: vi.fn(), remove: vi.fn(), execute: vi.fn(), isPausing: false, isResuming: false, isDeleting: false, isExecuting: false }),
 }))
 vi.mock('@entities/strategy', async (orig) => ({

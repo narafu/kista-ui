@@ -33,7 +33,7 @@ export type AdminTrade = Pick<AdminTradeSchema, 'id' | 'accountId' | 'ownerNickn
   }
 
 export type AdminStrategy = Pick<AdminStrategySchema, 'id' | 'type' | 'ticker' | 'cycleSeedType'> & {
-  status: 'ACTIVE' | 'PAUSED'
+  status: 'ACTIVE' | 'PAUSED' | 'ARCHIVED'
 }
 
 export type AdminAuditLog = Pick<Schema<'AuditLogResponse'>, 'id' | 'adminId' | 'action' | 'createdAt'>

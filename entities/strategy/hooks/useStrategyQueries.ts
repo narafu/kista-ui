@@ -13,6 +13,7 @@ import {
   withdrawCapital,
   reconfigureDca,
   listDcaExecutions,
+  archiveStrategy,
   deleteStrategy,
   pauseStrategy,
   resumeStrategy,
@@ -24,6 +25,7 @@ import { strategyKeys } from '../model/queryKeys'
 import {
   strategyDetailQueryOptions,
   strategyListAllQueryOptions,
+  strategyListAllWithArchivedQueryOptions,
   strategyListByAccountQueryOptions,
 } from '../model/queryOptions'
 
@@ -46,6 +48,8 @@ async function synchronizeStrategyLists(
     ],
     update,
   )
+  // 통계용 보관 포함 목록은 부분 갱신 대신 무효화 — 보관 행은 새 목록을 받은 뒤에야 바뀐다
+  await queryClient.invalidateQueries({ queryKey: strategyKeys.listAllWithArchived() })
 }
 
 // 저장 응답(Strategy)으로 상세·목록 캐시를 갱신하는 공통 mutation — 성공 토스트가 없으면 successMessage 생략
@@ -89,6 +93,10 @@ export function useAllStrategiesQuery(options?: { enabled?: boolean }) {
     ...strategyListAllQueryOptions(),
     enabled: options?.enabled ?? true,
   })
+}
+
+export function useAllStrategiesWithArchivedQuery() {
+  return useQuery(strategyListAllWithArchivedQueryOptions())
 }
 
 export function useStrategiesQuery(accountId: string) {
@@ -193,16 +201,29 @@ export function useResumeStrategyMutation() {
   })
 }
 
-export function useDeleteStrategyMutation() {
+// 삭제·보관 공통 — 상세 캐시를 지우고 일반 목록에서 뺀다. 보관 포함 목록(통계용)은 synchronizeStrategyLists가 무효화한다
+function useRemoveFromListsMutation(mutationFn: (id: string) => Promise<void>, { dropFromArchivedList = false } = {}) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (strategy: Strategy) => deleteStrategy(strategy.id),
+    mutationFn: (strategy: Strategy) => mutationFn(strategy.id),
     onSuccess: async (_result, strategy) => {
       queryClient.removeQueries({ queryKey: strategyKeys.detail(strategy.id) })
+      // 삭제는 통계에서도 사라지므로 즉시 뺀다. 보관은 행이 새 목록 로드 전까지 남도록 건드리지 않는다
+      if (dropFromArchivedList) {
+        queryClient.setQueryData<Strategy[]>(strategyKeys.listAllWithArchived(), (list) => list?.filter((item) => item.id !== strategy.id))
+      }
       await synchronizeStrategyLists(queryClient, strategy.accountId, (strategies) =>
         strategies.filter((item) => item.id !== strategy.id))
     },
   })
+}
+
+export function useDeleteStrategyMutation() {
+  return useRemoveFromListsMutation((id) => deleteStrategy(id), { dropFromArchivedList: true })
+}
+
+export function useArchiveStrategyMutation() {
+  return useRemoveFromListsMutation((id) => archiveStrategy(id))
 }
 
 export function useExecuteStrategyMutation(strategyId: string | undefined, onSuccess?: () => void | Promise<void>) {

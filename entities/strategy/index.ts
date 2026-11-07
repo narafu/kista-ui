@@ -22,6 +22,8 @@ export {
   useWithdrawCapitalMutation,
   useReconfigureDcaMutation,
   useDcaExecutionsQuery,
+  useAllStrategiesWithArchivedQuery,
+  useArchiveStrategyMutation,
   useDeleteStrategyMutation,
   usePauseStrategyMutation,
   useResumeStrategyMutation,

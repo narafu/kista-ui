@@ -2,7 +2,7 @@
 
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { useDeleteStrategyMutation, useExecuteStrategyMutation, usePauseStrategyMutation, useResumeStrategyMutation } from '@entities/strategy'
+import { useArchiveStrategyMutation, useDeleteStrategyMutation, useExecuteStrategyMutation, usePauseStrategyMutation, useResumeStrategyMutation } from '@entities/strategy'
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
 import { tradeKeys } from '@entities/trade'
@@ -11,14 +11,16 @@ import type { Strategy } from '@entities/strategy'
 
 interface Options {
   onDeleted?: () => void
+  onArchived?: () => void
   strategyId?: string
 }
 
-export function useManageStrategyMutations({ onDeleted, strategyId }: Options = {}) {
+export function useManageStrategyMutations({ onDeleted, onArchived, strategyId }: Options = {}) {
   const queryClient = useQueryClient()
   const pauseMutation = usePauseStrategyMutation()
   const resumeMutation = useResumeStrategyMutation()
   const deleteMutation = useDeleteStrategyMutation()
+  const archiveMutation = useArchiveStrategyMutation()
 
   async function invalidateDependents() {
     await Promise.all([
@@ -59,6 +61,10 @@ export function useManageStrategyMutations({ onDeleted, strategyId }: Options = 
     withActionFeedback(deleteMutation, strategy, '전략이 삭제되었습니다', '삭제에 실패했습니다', onDeleted)
   }
 
+  function archive(strategy: Strategy) {
+    withActionFeedback(archiveMutation, strategy, '전략을 보관했습니다', '보관에 실패했습니다', onArchived)
+  }
+
   function execute() {
     executeMutation.mutate()
   }
@@ -67,10 +73,12 @@ export function useManageStrategyMutations({ onDeleted, strategyId }: Options = 
     pause,
     resume,
     remove,
+    archive,
     execute,
     isPausing: pauseMutation.isPending,
     isResuming: resumeMutation.isPending,
     isDeleting: deleteMutation.isPending,
+    isArchiving: archiveMutation.isPending,
     isExecuting: executeMutation.isPending,
   }
 }

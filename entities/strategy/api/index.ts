@@ -124,8 +124,9 @@ function normalizeStrategy(raw: unknown): Strategy {
   }
 }
 
-export async function listAllStrategies(token?: string): Promise<Strategy[]> {
-  const raw = await fetchEither<unknown[]>(`/api/trading-cycles`, undefined, token)
+export async function listAllStrategies(token?: string, includeArchived = false): Promise<Strategy[]> {
+  const qs = buildQueryString({ includeArchived: includeArchived ? 'true' : undefined })
+  const raw = await fetchEither<unknown[]>(`/api/trading-cycles${qs}`, undefined, token)
   return raw.map(normalizeStrategy)
 }
 
@@ -186,6 +187,10 @@ export async function deleteStrategy(id: string, token?: string): Promise<void> 
 
 export async function pauseStrategy(id: string, token?: string): Promise<void> {
   return fetchEither<void>(`/api/trading-cycles/${id}/pause`, { method: 'PATCH' }, token)
+}
+
+export async function archiveStrategy(id: string, token?: string): Promise<void> {
+  return fetchEither<void>(`/api/trading-cycles/${id}/archive`, { method: 'PATCH' }, token)
 }
 
 export async function resumeStrategy(id: string, token?: string): Promise<void> {

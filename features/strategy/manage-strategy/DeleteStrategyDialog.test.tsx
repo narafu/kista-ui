@@ -35,3 +35,15 @@ describe('DeleteStrategyDialog 안내 문구', () => {
     expect(text).not.toContain('접수된')
   })
 })
+
+describe('DeleteStrategyDialog 통계 안내', () => {
+  it('보관되지 않은 전략이면 통계에서 사라진다는 안내와 보관 권유를 보여 준다', () => {
+    render(<DeleteStrategyDialog open onOpenChange={vi.fn()} ticker="UPRO" onConfirm={vi.fn()} disabled={false} isDeleting={false} />)
+    expect(screen.getByText(/통계에서도 이 전략의 성과가 사라집니다\. 통계를 남기려면 보관하세요\./)).toBeInTheDocument()
+  })
+  it('보관된 전략이면 보관 권유를 뺀다', () => {
+    render(<DeleteStrategyDialog open onOpenChange={vi.fn()} ticker="UPRO" onConfirm={vi.fn()} disabled={false} isDeleting={false} isArchived />)
+    const text = screen.getByText(/통계에서도 이 전략의 성과가 사라집니다/).textContent
+    expect(text).not.toContain('보관하세요')
+  })
+})

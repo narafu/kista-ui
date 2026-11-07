@@ -11,6 +11,14 @@ export function strategyListAllQueryOptions(token?: string) {
   })
 }
 
+// 보관 전략 포함 — 통계 화면 전용(보관 전략의 성과도 통계에 남는다)
+export function strategyListAllWithArchivedQueryOptions(token?: string) {
+  return queryOptions<Strategy[]>({
+    queryKey: strategyKeys.listAllWithArchived(),
+    queryFn: () => listAllStrategies(token, true),
+  })
+}
+
 export function strategyListByAccountQueryOptions(accountId: string, token?: string) {
   return queryOptions<Strategy[]>({
     queryKey: strategyKeys.listByAccount(accountId),

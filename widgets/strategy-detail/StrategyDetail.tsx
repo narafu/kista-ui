@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { StrategyTradesTab } from '@widgets/cycle-history'
-import { useManageStrategyMutations } from '@features/strategy/manage-strategy'
+import { DeleteStrategyDialog, useManageStrategyMutations } from '@features/strategy/manage-strategy'
 import { useStrategyOrderPreviewQuery, computeOrderReadiness } from '@entities/order'
 import type { Strategy } from '@entities/strategy'
 import { nextOrderBannerText } from './orderBannerCopy'
 import { useTodayMarketStatus } from './useTodayMarketStatus'
 import { StrategyMetaSection } from './StrategyMetaSection'
 import { NextOrderCard } from './NextOrderCard'
-import { DeleteStrategyDialog } from './DeleteStrategyDialog'
+import { ArchiveStrategyDialog } from './ArchiveStrategyDialog'
 import { StrategyOrderHistory } from './StrategyOrderHistory'
 
 interface Props {
@@ -24,6 +24,7 @@ interface Props {
 export function StrategyDetail({ accountId, broker, strategy }: Props) {
   const { push } = useRouter()
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [archiveOpen, setArchiveOpen] = useState(false)
 
   const { data: preview, isLoading: isLoadingPreview, isError, error: previewError } = useStrategyOrderPreviewQuery(strategy.id)
   // 재조회 실패는 이미 받은 미리보기를 덮지 않는다 — 데이터가 없을 때만 오류로 본다
@@ -39,12 +40,13 @@ export function StrategyDetail({ accountId, broker, strategy }: Props) {
   const canExecute = strategy.status === 'ACTIVE'
   const bannerText = nextOrderBannerText(canExecute, mode, isConfirmedHoliday, marketStatusMessage, readiness)
 
-  const { pause, resume, remove, execute, isPausing, isResuming, isDeleting, isExecuting } = useManageStrategyMutations({
+  const { pause, resume, remove, archive, execute, isPausing, isResuming, isDeleting, isArchiving, isExecuting } = useManageStrategyMutations({
     onDeleted: () => push(`/accounts/${accountId}`),
+    onArchived: () => push(`/accounts/${accountId}`),
     strategyId: strategy.id,
   })
   const toggleLoading = isPausing || isResuming
-  const loading = toggleLoading || isDeleting
+  const loading = toggleLoading || isDeleting || isArchiving
 
   function handleToggle() {
     if (strategy.status === 'ACTIVE') {
@@ -101,10 +103,20 @@ export function StrategyDetail({ accountId, broker, strategy }: Props) {
       </div>
 
       <Card>
-        <CardContent className="p-5 flex gap-2">
+        <CardContent className="p-5 flex flex-wrap gap-2">
           <Button variant="outline" size="sm" className="flex-1" onClick={handleToggle} disabled={loading}>
             {toggleLabel}
           </Button>
+
+          <ArchiveStrategyDialog
+            open={archiveOpen}
+            onOpenChange={setArchiveOpen}
+            ticker={strategy.ticker}
+            hasHoldings={!!strategy.currentHoldings}
+            onConfirm={() => archive(strategy)}
+            disabled={loading}
+            isArchiving={isArchiving}
+          />
 
           <DeleteStrategyDialog
             open={deleteOpen}

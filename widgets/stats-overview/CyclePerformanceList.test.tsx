@@ -15,14 +15,19 @@ vi.mock('next/navigation', async (importOriginal) => ({
 
 const useStatsCyclesQueryMock = vi.fn()
 const useAccountsQueryMock = vi.fn()
-const useAllStrategiesQueryMock = vi.fn(() => ({ data: [] as { ticker: string }[] }))
+const useAllStrategiesQueryMock = vi.fn(() => ({ data: [] as { ticker: string; id?: string; accountId?: string; type?: string; status?: string }[] }))
 
 vi.mock('@entities/stats', () => ({
   useStatsCyclesQuery: (filters: unknown) => useStatsCyclesQueryMock(filters),
 }))
 
 vi.mock('@entities/strategy', () => ({
-  useAllStrategiesQuery: () => useAllStrategiesQueryMock(),
+  useAllStrategiesWithArchivedQuery: () => useAllStrategiesQueryMock(),
+}))
+
+vi.mock('@features/strategy/manage-strategy', () => ({
+  useManageStrategyMutations: () => ({ remove: vi.fn(), isDeleting: false }),
+  DeleteStrategyDialog: ({ ticker, isArchived }: { ticker: string; isArchived?: boolean }) => <button>{`삭제-${ticker}-${String(isArchived)}`}</button>,
 }))
 
 vi.mock('@entities/account', () => ({
@@ -188,5 +193,30 @@ describe('CyclePerformanceList', () => {
     expect(screen.getAllByText('+$12,345.00')).toHaveLength(2)
     await user.click(screen.getByRole('combobox', { name: '계좌' }))
     expect(await screen.findByRole('option', { name: '크립토계좌' })).toBeInTheDocument()
+  })
+
+  it('보관된 전략만 "보관된 전략" 섹션에 종목·유형·계좌와 삭제 버튼으로 보여 준다', () => {
+    useStatsCyclesQueryMock.mockReturnValue({ data: { items: [], page: 0, totalElements: 0, totalPages: 0 }, isLoading: false, isError: false })
+    useAccountsQueryMock.mockReturnValue({ data: [{ id: 'account-1', nickname: '메인', broker: 'KIS' }] })
+    useAllStrategiesQueryMock.mockReturnValue({ data: [
+      { id: 's1', accountId: 'account-1', type: 'INFINITE', status: 'ARCHIVED', ticker: 'SOXL' },
+      { id: 's2', accountId: 'account-1', type: 'INFINITE', status: 'ACTIVE', ticker: 'TQQQ' },
+    ] })
+
+    render(<CyclePerformanceList />)
+
+    expect(screen.getByRole('heading', { name: '보관된 전략' })).toBeInTheDocument()
+    expect(screen.getByText('삭제-SOXL-true')).toBeInTheDocument()
+    expect(screen.queryByText('삭제-TQQQ-true')).not.toBeInTheDocument()
+  })
+
+  it('보관된 전략이 없으면 섹션을 그리지 않는다', () => {
+    useStatsCyclesQueryMock.mockReturnValue({ data: { items: [], page: 0, totalElements: 0, totalPages: 0 }, isLoading: false, isError: false })
+    useAccountsQueryMock.mockReturnValue({ data: [] })
+    useAllStrategiesQueryMock.mockReturnValue({ data: [] })
+
+    render(<CyclePerformanceList />)
+
+    expect(screen.queryByRole('heading', { name: '보관된 전략' })).not.toBeInTheDocument()
   })
 })

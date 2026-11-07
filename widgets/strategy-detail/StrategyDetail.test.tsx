@@ -11,6 +11,8 @@ const executeMutate = vi.fn()
 const pauseMutate = vi.fn()
 const resumeMutate = vi.fn()
 let deleteSuccessHandler: (() => void) | undefined
+let archiveSuccessHandler: (() => void) | undefined
+const archiveMutate = vi.fn()
 let holidayQueryResult: { holidays: string[]; isError?: boolean; loading?: boolean } = { holidays: [] }
 let sessionQueryResult: { session?: { tradeDateKst?: string | null; tradingDay?: boolean }; loading?: boolean; isError?: boolean } = {}
 
@@ -77,13 +79,17 @@ vi.mock('@entities/strategy', async () => {
   }
 })
 
-vi.mock('@features/strategy/manage-strategy', () => ({
-  useManageStrategyMutations: ({ onDeleted }: { onDeleted?: () => void }) => {
+vi.mock('@features/strategy/manage-strategy', async (orig) => ({
+  ...(await orig<typeof import('@features/strategy/manage-strategy')>()),
+  useManageStrategyMutations: ({ onDeleted, onArchived }: { onDeleted?: () => void; onArchived?: () => void }) => {
     deleteSuccessHandler = onDeleted
+    archiveSuccessHandler = onArchived
     return {
       pause: pauseMutate,
       resume: resumeMutate,
       remove: deleteMutate,
+      archive: archiveMutate,
+      isArchiving: false,
       execute: executeMutate,
       isPausing: false,
       isResuming: false,
@@ -257,6 +263,30 @@ describe('StrategyDetail header card', () => {
     deleteSuccessHandler?.()
 
     expect(mockPush).toHaveBeenCalledWith('/accounts/account-1')
+  })
+
+  it('redirects to the account page after archiving a strategy', () => {
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    archiveSuccessHandler?.()
+
+    expect(mockPush).toHaveBeenCalledWith('/accounts/account-1')
+  })
+
+  it('보유 수량이 없으면 보관 버튼이 활성이고 확인 시 archive를 호출한다', () => {
+    render(<StrategyDetail accountId="account-1" strategy={{ ...baseStrategy, currentHoldings: 0 }} />)
+
+    expect(screen.queryByText('보유 수량을 모두 매도한 뒤 보관할 수 있습니다.')).not.toBeInTheDocument()
+    expect(screen.getByText(/전략을 보관하시겠습니까\? 매매가 멈추고/)).toBeInTheDocument()
+    fireEvent.click(screen.getAllByRole('button', { name: '보관' }).at(-1)!) // 모킹된 다이얼로그는 항상 열려 있어 마지막이 확인 버튼
+    expect(archiveMutate).toHaveBeenCalled()
+  })
+
+  it('보유 수량이 있으면 보관을 막고 사유 문구를 노출한다', () => {
+    render(<StrategyDetail accountId="account-1" strategy={{ ...baseStrategy, currentHoldings: 5 }} />)
+
+    expect(screen.getByText('보유 수량을 모두 매도한 뒤 보관할 수 있습니다.')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: '보관' })[0]).toHaveAttribute('aria-disabled', 'true')
   })
 
   it('shows recurring withdrawal mode in the operating-mode card without duplicating the strategy type', () => {

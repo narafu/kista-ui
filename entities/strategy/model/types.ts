@@ -63,7 +63,7 @@ export interface Strategy {
   id: string
   accountId: string
   type: string        // 메타의 StrategyTypeMeta.code
-  status: string      // 'ACTIVE' | 'PAUSED'
+  status: string      // 'ACTIVE' | 'PAUSED' | 'ARCHIVED'
   ticker: string      // 메타의 TickerMeta.code
   cycleSeedType: CycleSeedType
   initialUsdDeposit?: number

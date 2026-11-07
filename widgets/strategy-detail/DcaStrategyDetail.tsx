@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { KpiCard } from '@widgets/kpi-card'
-import { useManageStrategyMutations } from '@features/strategy/manage-strategy'
+import { DeleteStrategyDialog, useManageStrategyMutations } from '@features/strategy/manage-strategy'
 import { useMeta } from '@entities/meta'
 import { dcaIndicatorLabel, floorToCents, formatCryptoNextExecution, formatDcaCondition, DcaRuleSummaryLabel } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
@@ -17,7 +17,7 @@ import { fmtDate, fmtMoney, fmtQuantity, fmtSignedPercent, pnlTextClass, roundMo
 import { brokerMarket, isCryptoMarket, marketCurrency } from '@shared/lib/api-schema'
 import type { TradingMarket } from '@shared/lib/api-schema'
 import { StrategyInfoCard } from './StrategyMetaSection'
-import { DeleteStrategyDialog } from './DeleteStrategyDialog'
+import { ArchiveStrategyDialog } from './ArchiveStrategyDialog'
 import { DcaExecutionHistory } from './DcaExecutionHistory'
 
 interface Props {
@@ -88,13 +88,15 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
   const market = brokerMarket(broker)
   const isCrypto = isCryptoMarket(market)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [archiveOpen, setArchiveOpen] = useState(false)
   const { dca } = strategy
-  const { pause, resume, remove, isPausing, isResuming, isDeleting } = useManageStrategyMutations({
+  const { pause, resume, remove, archive, isPausing, isResuming, isDeleting, isArchiving } = useManageStrategyMutations({
     onDeleted: () => push(`/accounts/${accountId}`),
+    onArchived: () => push(`/accounts/${accountId}`),
     strategyId: strategy.id,
   })
   const toggleLoading = isPausing || isResuming
-  const loading = toggleLoading || isDeleting
+  const loading = toggleLoading || isDeleting || isArchiving
   const toggleLabel = toggleLoading ? '처리 중...' : strategy.status === 'ACTIVE' ? '일시중지' : '재개'
 
   return (
@@ -147,11 +149,20 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
       </div>
 
       <Card>
-        <CardContent className="p-5 flex gap-2">
+        <CardContent className="p-5 flex flex-wrap gap-2">
           <Button variant="outline" size="sm" className="flex-1" disabled={loading}
             onClick={() => (strategy.status === 'ACTIVE' ? pause(strategy) : resume(strategy))}>
             {toggleLabel}
           </Button>
+          <ArchiveStrategyDialog
+            open={archiveOpen}
+            onOpenChange={setArchiveOpen}
+            ticker={strategy.ticker}
+            hasHoldings={!!dca?.currentHoldings}
+            onConfirm={() => archive(strategy)}
+            disabled={loading}
+            isArchiving={isArchiving}
+          />
           <DeleteStrategyDialog
             open={deleteOpen}
             onOpenChange={setDeleteOpen}
