@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dcaIndicatorLabel, earliestNextExecution, formatCryptoNextExecution, formatDcaCondition, formatDcaRuleSummary, formatDcaSchedule, formatDcaSizing, latestLastExecution } from './dcaFormat'
+import { dcaIndicatorLabel, earliestNextExecution, formatCryptoNextExecution, formatDcaCondition, formatDcaRuleWhen, formatDcaSchedule, formatDcaSizing, latestLastExecution } from './dcaFormat'
 import type { DcaLabelOf } from './dcaFormat'
 import type { DcaRule } from './types'
 
@@ -10,17 +10,18 @@ const BASE_RULE: DcaRule = {
 }
 
 describe('DCA 규칙 요약', () => {
-  it('크립토 매수 금액 규칙 요약', () => {
-    expect(formatDcaRuleSummary({ direction: 'BUY', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, orderType: 'MARKET', executionHour: 9, sizing: { type: 'AMOUNT', amount: 15000, percent: null } }, labelOf, 'CRYPTO_KRW'))
-      .toBe('매수 · 매일 09시 · 15,000원')
+  it('크립토 규칙은 주문 방식 없이 주기·시각만, 금액은 원화', () => {
+    const rule = { direction: 'BUY', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, orderType: 'MARKET', executionHour: 9, sizing: { type: 'AMOUNT', amount: 15000, percent: null } } as const
+    expect(formatDcaRuleWhen(rule, labelOf, 'CRYPTO_KRW')).toBe('매일 09시')
+    expect(formatDcaSizing(rule.sizing, 'CRYPTO_KRW')).toBe('15,000원')
   })
   it('바이낸스 규칙 금액은 USDT로 표시', () => {
-    expect(formatDcaRuleSummary({ direction: 'BUY', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, orderType: 'MARKET', executionHour: 9, sizing: { type: 'AMOUNT', amount: 10.5, percent: null } }, labelOf, 'CRYPTO_USDT'))
-      .toBe('매수 · 매일 09시 · 10.50 USDT')
+    expect(formatDcaSizing({ type: 'AMOUNT', amount: 10.5, percent: null }, 'CRYPTO_USDT')).toBe('10.50 USDT')
   })
   it('주식 규칙은 주문 방식을 시점으로 표시', () => {
-    expect(formatDcaRuleSummary({ direction: 'BUY', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC', sizing: { type: 'AMOUNT', amount: 100, percent: null } }, labelOf, 'US_STOCK'))
-      .toBe('매수 · 매월 말일 · MOC(종가시장가) · $100.00')
+    expect(formatDcaRuleWhen({ direction: 'BUY', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC', sizing: { type: 'AMOUNT', amount: 100, percent: null } }, labelOf, 'US_STOCK'))
+      .toBe('매월 말일 · MOC(종가시장가)')
+    expect(formatDcaSizing({ type: 'AMOUNT', amount: 100, percent: null }, 'US_STOCK')).toBe('$100.00')
   })
   it('보유 비율 매도', () => {
     expect(formatDcaSizing({ type: 'HOLDING_PERCENT', amount: null, percent: 50 }, 'CRYPTO_KRW')).toBe('보유 50%')

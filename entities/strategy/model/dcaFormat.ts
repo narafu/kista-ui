@@ -72,16 +72,6 @@ export function formatDcaRuleWhen(rule: DcaRuleSummaryInput, labelOf: DcaLabelOf
   ].join(' · ')
 }
 
-// "주기[ 시각] · [주문방식 · ]규모" — 방향을 뺀 요약
-function formatDcaRuleDetail(rule: DcaRuleSummaryInput, labelOf: DcaLabelOf, market: TradingMarket): string {
-  return `${formatDcaRuleWhen(rule, labelOf, market)} · ${formatDcaSizing(rule.sizing, market)}`
-}
-
-// "방향 · 주기[ 시각] · [주문방식 · ]규모"
-export function formatDcaRuleSummary(rule: DcaRuleSummaryInput, labelOf: DcaLabelOf, market: TradingMarket): string {
-  return `${labelOf('orderDirections', rule.direction)} · ${formatDcaRuleDetail(rule, labelOf, market)}`
-}
-
 // 날짜(kstTradeDate) 오름차순, 같으면 실행 시각 — nextExecution null 규칙은 제외
 export function earliestNextExecution(rules: DcaRule[]): DcaRule | null {
   let best: DcaRule | null = null
