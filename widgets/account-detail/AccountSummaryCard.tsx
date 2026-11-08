@@ -15,7 +15,7 @@ import type { CryptoPortfolio } from '@entities/trade'
 const LONG_MONEY_CLASS = 'break-keep [overflow-wrap:anywhere]'
 
 // 조회 실패·로딩 중 금액 자리
-const NO_VALUE = '—'
+const NO_VALUE = '-'
 
 interface Props {
   account: Account

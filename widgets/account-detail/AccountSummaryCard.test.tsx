@@ -52,7 +52,7 @@ describe('AccountSummaryCard', () => {
     expect(screen.getByText('123-45****')).toBeInTheDocument()
   })
 
-  it('MOCK 계좌는 증권사 기준 없이 전략 합산만 보여주고 미배정 예수금은 —이다', () => {
+  it('MOCK 계좌는 증권사 기준 없이 전략 합산만 보여주고 미배정 예수금은 -이다', () => {
     render(
       <AccountSummaryCard
         account={{ ...account, broker: 'MOCK' }}
@@ -64,7 +64,7 @@ describe('AccountSummaryCard', () => {
 
     expect(screen.getByText('$160.00')).toBeInTheDocument()
     expect(screen.getByText('$50.00')).toBeInTheDocument()
-    expect(screen.getByText('—')).toBeInTheDocument()
+    expect(screen.getByText('-')).toBeInTheDocument()
     expect(screen.queryByText('증권사 기준')).not.toBeInTheDocument()
     expect(screen.queryByText('$1,000.00')).not.toBeInTheDocument()
     expect(screen.getByText('모의계좌')).toBeInTheDocument()
@@ -90,7 +90,7 @@ describe('AccountSummaryCard', () => {
     expect(screen.getByText('$2,000.00')).toBeInTheDocument()
   })
 
-  it('평가금·미배정 예수금이 null이면 —로 보여준다', () => {
+  it('평가금·미배정 예수금이 null이면 -로 보여준다', () => {
     render(
       <AccountSummaryCard
         account={account}
@@ -99,12 +99,12 @@ describe('AccountSummaryCard', () => {
         ledgerTotals={{ currency: 'USD', deposit: 160, evaluation: null, unassignedCash: null }}
       />,
     )
-    expect(screen.getAllByText('—')).toHaveLength(2)
+    expect(screen.getAllByText('-')).toHaveLength(2)
   })
 
-  it('전략 합산 조회가 실패하면 —와 함께 불러오지 못했다는 안내를 보여준다', () => {
+  it('전략 합산 조회가 실패하면 -와 함께 불러오지 못했다는 안내를 보여준다', () => {
     render(<AccountSummaryCard account={account} usdDeposit={0} posEvalUsd={0} ledgerTotalsError />)
-    expect(screen.getAllByText('—')).toHaveLength(3)
+    expect(screen.getAllByText('-')).toHaveLength(3)
     expect(screen.getByText('전략 합산 금액을 불러오지 못했습니다.')).toBeInTheDocument()
   })
 
