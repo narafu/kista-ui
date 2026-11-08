@@ -10,11 +10,15 @@ import { testMeta } from '@entities/meta/__fixtures__/testMeta'
 import { testOrderAmount } from './sections/__fixtures__/dcaTestMeta'
 
 const createMutate = vi.fn()
+const hookSuccess = vi.hoisted(() => ({ create: undefined as (() => Promise<void>) | undefined }))
 const reconfigureMutate = vi.fn()
 const seedPreview = vi.hoisted(() => ({ availableCash: null as number | null, calls: [] as unknown[][] }))
 vi.mock('@entities/strategy', async (orig) => ({
   ...(await orig<typeof import('@entities/strategy')>()),
-  useCreateStrategyMutation: () => ({ mutate: createMutate, isPending: false }),
+  useCreateStrategyMutation: (_accountId: string, onSuccess?: () => Promise<void>) => {
+    hookSuccess.create = onSuccess
+    return { mutate: createMutate, isPending: false }
+  },
   useReconfigureDcaMutation: () => ({ mutate: reconfigureMutate, isPending: false }),
   useStrategySeedPreviewQuery: (...args: unknown[]) => {
     seedPreview.calls.push(args)
@@ -97,7 +101,7 @@ describe('DcaStrategyForm', () => {
     expect(payload.dca.rules[0]).not.toHaveProperty('ruleKey')
     // 성공하면 전략 합산 예수금 캐시를 무효화한다
     const invalidate = vi.spyOn(queryClient, 'invalidateQueries')
-    createMutate.mock.calls[0][1].onSuccess()
+    await hookSuccess.create?.()
     expect(invalidate).toHaveBeenCalledWith({ queryKey: accountKeys.ledgerTotals('a1') })
     expect(reconfigureMutate).not.toHaveBeenCalled()
   })

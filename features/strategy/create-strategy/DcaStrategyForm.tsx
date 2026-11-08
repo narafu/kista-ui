@@ -70,19 +70,22 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
   }, [editing])
 
   const queryClient = useQueryClient()
-  const done = async () => {
-    // DCA는 공용 전략 폼 효과(useStrategyFormEffects)를 거치지 않아 같은 캐시를 직접 무효화한다. 폼이 닫히기 전에 끝낸다
+  // 훅 레벨 onSuccess로 넘겨 refetch가 끝날 때까지 mutation을 pending으로 둔다 — 호출부 onSuccess는 이미 success 상태라 등록 버튼이 다시 눌린다
+  // DCA는 공용 전략 폼 효과(useStrategyFormEffects)를 거치지 않아 같은 캐시를 직접 무효화한다
+  const invalidateDependents = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: orderKeys.all }).catch(() => null),
       queryClient.invalidateQueries({ queryKey: statsKeys.all }).catch(() => null),
       queryClient.invalidateQueries({ queryKey: tradeKeys.all }).catch(() => null),
       invalidateLedgerTotals(queryClient, accountId),
     ])
+  }
+  const done = () => {
     toast.success(initial ? '전략이 수정되었습니다' : '전략이 등록되었습니다')
     onSuccess?.()
   }
-  const create = useCreateStrategyMutation(accountId)
-  const reconfigure = useReconfigureDcaMutation(initial?.id ?? '')
+  const create = useCreateStrategyMutation(accountId, invalidateDependents)
+  const reconfigure = useReconfigureDcaMutation(initial?.id ?? '', invalidateDependents)
   const pending = create.isPending || reconfigure.isPending
   const ticker = form.watch('ticker')
   const crypto = isCryptoMarket(market)
