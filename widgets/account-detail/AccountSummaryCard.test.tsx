@@ -102,6 +102,12 @@ describe('AccountSummaryCard', () => {
     expect(screen.getAllByText('—')).toHaveLength(2)
   })
 
+  it('전략 합산 조회가 실패하면 —와 함께 불러오지 못했다는 안내를 보여준다', () => {
+    render(<AccountSummaryCard account={account} usdDeposit={0} posEvalUsd={0} ledgerTotalsError />)
+    expect(screen.getAllByText('—')).toHaveLength(3)
+    expect(screen.getByText('전략 합산 금액을 불러오지 못했습니다.')).toBeInTheDocument()
+  })
+
   it('업비트 계좌는 계좌번호 대신 예수금·총자산을 보여준다', () => {
     render(
       <AccountSummaryCard

@@ -3,6 +3,7 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { accountKeys, type Account } from '@entities/account'
+import { getAccountLedgerTotals } from '@entities/account/api'
 import { tradeKeys } from '@entities/trade'
 import { getAccountPortfolio, getCryptoPortfolio } from '@entities/trade/api'
 import { AccountDetailContent } from './AccountDetailContent'
@@ -104,6 +105,18 @@ describe('AccountDetailContent', () => {
 
     await waitFor(() => {
       expect(tabsMock).toHaveBeenLastCalledWith(expect.objectContaining({ usdDeposit: 50, posEvalUsd: 250 }))
+    })
+  })
+
+  it('전략 합산 조회가 실패하면 ledgerTotalsError를 넘긴다', async () => {
+    vi.mocked(getAccountLedgerTotals).mockRejectedValueOnce(new Error('boom'))
+    const liveAccount: Account = { ...serverAccount, broker: 'KIS' }
+    const queryClient = createClient()
+    queryClient.setQueryData(accountKeys.detail(liveAccount.id), liveAccount)
+    render(<QueryClientProvider client={queryClient}>{content(liveAccount)}</QueryClientProvider>)
+
+    await waitFor(() => {
+      expect(tabsMock).toHaveBeenCalledWith(expect.objectContaining({ ledgerTotalsError: true }))
     })
   })
 

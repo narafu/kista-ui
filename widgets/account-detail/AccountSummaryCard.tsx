@@ -22,10 +22,11 @@ interface Props {
   usdDeposit: number
   posEvalUsd: number
   ledgerTotals?: AccountLedgerTotals
+  ledgerTotalsError?: boolean
   cryptoPortfolio?: CryptoPortfolio
 }
 
-export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, ledgerTotals, cryptoPortfolio }: Props) {
+export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, ledgerTotals, ledgerTotalsError, cryptoPortfolio }: Props) {
   const { labelOf } = useMeta()
   const brokerLabel = labelOf('brokers', account.broker)
   const isMock = isMockBroker(account.broker)
@@ -61,6 +62,9 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, ledgerTota
           <KpiCard label="예수금 (전략 합산)" value={ledgerMoney(ledgerTotals?.deposit)} valueClassName={LONG_MONEY_CLASS} />
           <KpiCard label="평가금 (전략 합산)" value={ledgerMoney(ledgerTotals?.evaluation)} valueClassName={LONG_MONEY_CLASS} />
           <KpiCard label="미배정 예수금 (주문 가능 기준)" className="col-span-2" value={ledgerMoney(ledgerTotals?.unassignedCash)} valueClassName={LONG_MONEY_CLASS} />
+          {ledgerTotalsError && (
+            <p role="status" className="col-span-2 text-xs text-muted-foreground">전략 합산 금액을 불러오지 못했습니다.</p>
+          )}
           {isCryptoBroker(account.broker) ? (
             <>
               <p className="col-span-2 mt-1 text-xs font-medium text-muted-foreground">거래소 기준</p>

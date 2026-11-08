@@ -29,7 +29,7 @@ export function AccountDetailContent({
     ...accountPortfolioQueryOptions(accountId),
     enabled: !!account && !isMockBroker(account.broker) && !isCrypto,
   })
-  const { data: ledgerTotals } = useQuery({
+  const ledgerQuery = useQuery({
     ...accountLedgerTotalsQueryOptions(accountId),
     enabled: !!account,
   })
@@ -57,7 +57,8 @@ export function AccountDetailContent({
         account={account}
         usdDeposit={portfolio?.summary?.usdDeposit ?? 0}
         posEvalUsd={portfolio?.summary?.posEvalUsd ?? 0}
-        ledgerTotals={ledgerTotals}
+        ledgerTotals={ledgerQuery.data}
+        ledgerTotalsError={ledgerQuery.isError && !ledgerQuery.data}
         cryptoPortfolio={cryptoQuery.data}
         cryptoPortfolioError={cryptoQuery.isError && !cryptoQuery.data}
       />
