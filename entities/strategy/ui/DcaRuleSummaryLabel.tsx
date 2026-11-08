@@ -13,7 +13,7 @@ interface Props {
 }
 
 // 규칙의 방향 배지 + 주기를 왼쪽에, 금액을 오른쪽에 라벨과 함께 둔다 — 폼 목록·상세 공용.
-// sm 이상에서는 상세 규칙 카드 그리드(grid-cols-2)의 오른쪽 열 시작과 맞추고, 좁은 화면에서는 오른쪽 끝에 붙인다
+// sm 이상에서는 컨테이너 절반 위치(상세 규칙 카드에서는 그리드 오른쪽 열 시작과 일치)에서 시작하고, 좁은 화면에서는 오른쪽 끝에 붙인다
 export function DcaRuleSummaryLabel({ rule, labelOf, market, badgeClassName, size }: Props) {
   return (
     <span className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-4 sm:grid-cols-2">

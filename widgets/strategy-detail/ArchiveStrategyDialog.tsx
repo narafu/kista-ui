@@ -31,7 +31,7 @@ export function ArchiveStrategyDialog({ open, onOpenChange, ticker, hasHoldings,
   const blockedId = useId()
   const blocked = disabled || hasHoldings
   return (
-    <div className="flex min-w-0 flex-1 flex-col gap-1">
+    <div className="flex min-w-0 flex-col gap-1">
       <AlertDialog
         open={open}
         onOpenChange={(next) => {

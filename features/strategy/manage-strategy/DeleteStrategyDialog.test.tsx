@@ -24,6 +24,17 @@ describe('DeleteStrategyDialog', () => {
   })
 })
 
+describe('DeleteStrategyDialog 캡션', () => {
+  it('caption이 있으면 트리거의 접근성 설명으로 연결한다', () => {
+    render(<DeleteStrategyDialog open={false} onOpenChange={vi.fn()} ticker="UPRO" onConfirm={vi.fn()} disabled={false} isDeleting={false} caption="통계에서도 삭제" />)
+    expect(screen.getByRole('button', { name: '삭제' })).toHaveAccessibleDescription('통계에서도 삭제')
+  })
+  it('caption이 없으면 설명을 연결하지 않는다', () => {
+    renderDialog(false)
+    expect(screen.getByRole('button', { name: '삭제' })).not.toHaveAttribute('aria-describedby')
+  })
+})
+
 describe('DeleteStrategyDialog 안내 문구', () => {
   it.each([[undefined, '증권사에'], ['UPBIT', '거래소에']])('broker=%s면 "%s 접수된"으로 안내한다', (broker, word) => {
     render(<DeleteStrategyDialog open onOpenChange={vi.fn()} ticker="BTC" broker={broker} onConfirm={vi.fn()} disabled={false} isDeleting={false} />)

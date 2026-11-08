@@ -58,7 +58,7 @@ export function DeleteStrategyDialog({ open, onOpenChange, ticker, broker, onCon
   )
   if (!caption) return dialog
   return (
-    <div className="flex min-w-0 flex-1 flex-col gap-1">
+    <div className="flex min-w-0 flex-col gap-1">
       {dialog}
       <p id={captionId} className="text-xs text-muted-foreground">{caption}</p>
     </div>
