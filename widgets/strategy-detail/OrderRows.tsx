@@ -7,6 +7,9 @@ import { directionBadgeClass } from '@entities/trade'
 import { useMeta } from '@entities/meta'
 import { Badge } from '@shared/ui/Badge'
 import { TABLE_HEAD_TEXT_CLASS, TableHeadCell } from '@shared/ui/TableHeadCell'
+import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
+import { MobileSortControl } from '@shared/ui/MobileSortControl'
+import { useTableSort } from '@shared/lib/hooks/use-table-sort'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { Button } from '@/components/ui/button'
 
@@ -36,12 +39,34 @@ function TimingNote({ orderType, timing }: { orderType: string; timing?: string 
   return <span className="block break-keep text-xs text-muted-foreground mt-0.5">{labelOf('orderTimings', timing)}</span>
 }
 
+type SortKey = 'default' | 'direction' | 'orderType' | 'ticker' | 'price' | 'quantity'
+
+const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+  { key: 'direction', label: '방향' },
+  { key: 'orderType', label: '유형' },
+  { key: 'ticker', label: '종목' },
+  { key: 'price', label: '주문가' },
+  { key: 'quantity', label: '수량' },
+]
+
 export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: Props) {
   const { labelOf } = useMeta()
   const hasCancel = !!onCancelOne
+  // 'default'는 헤더에 없는 키 — 전달받은 순서 유지
+  const { sortKey, sortDirection, handleSort } = useTableSort<SortKey>('default')
+  const head = { activeKey: sortKey, direction: sortDirection, onSort: handleSort }
+  const sorted = sortKey === 'default' ? orders : [...orders].sort((a, b) => {
+    const dir = sortDirection === 'asc' ? 1 : -1
+    if (sortKey === 'direction') return dir * labelOf('orderDirections', a.direction).localeCompare(labelOf('orderDirections', b.direction), 'ko')
+    if (sortKey === 'orderType') return dir * labelOf('orderTypes', a.orderType).localeCompare(labelOf('orderTypes', b.orderType), 'ko')
+    if (sortKey === 'ticker') return dir * a.ticker.localeCompare(b.ticker, 'ko')
+    if (sortKey === 'quantity') return dir * (a.quantity - b.quantity)
+    return dir * (toNum(a.price) - toNum(b.price))
+  })
 
   return (
     <>
+      <MobileSortControl {...head} options={SORT_OPTIONS} />
       {/* 모바일 리스트 */}
       <ul className="lg:hidden">
         <li className={cn(
@@ -56,8 +81,8 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
           <span>수량</span>
           {hasCancel && <span>취소</span>}
         </li>
-        {orders.map((o, i) => (
-          // eslint-disable-next-line react-doctor/no-array-index-as-key -- id 없는 주문의 fallback 키(재정렬 없는 읽기 전용 목록)
+        {sorted.map((o, i) => (
+          // eslint-disable-next-line react-doctor/no-array-index-as-key -- id 없는 주문의 fallback 키(행 상태가 없는 읽기 전용 목록이라 정렬로 인덱스가 바뀌어도 무방)
           <li key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className={cn(
             'grid items-center text-sm px-6 py-3 border-b border-border last:border-b-0 text-center',
             hasCancel ? 'grid-cols-6' : 'grid-cols-5',
@@ -93,19 +118,19 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
         {/* PC 2단에서 카드 안 스크롤 시 열 이름을 고정한다 — 반투명 행 배경 아래에 카드 배경을 깔아 비침을 막는다 */}
         <thead className="sticky top-0 z-10 bg-card">
           <tr className="bg-muted/50">
-            <TableHeadCell>방향</TableHeadCell>
-            <TableHeadCell>유형</TableHeadCell>
-            <TableHeadCell>종목</TableHeadCell>
-            <TableHeadCell numeric>주문가</TableHeadCell>
-            <TableHeadCell numeric>수량</TableHeadCell>
+            <SortableHeadCell sortKey="direction" {...head}>방향</SortableHeadCell>
+            <SortableHeadCell sortKey="orderType" {...head}>유형</SortableHeadCell>
+            <SortableHeadCell sortKey="ticker" {...head}>종목</SortableHeadCell>
+            <SortableHeadCell sortKey="price" numeric {...head}>주문가</SortableHeadCell>
+            <SortableHeadCell sortKey="quantity" numeric {...head}>수량</SortableHeadCell>
             {hasCancel && (
               <TableHeadCell>취소</TableHeadCell>
             )}
           </tr>
         </thead>
         <tbody>
-          {orders.map((o, i) => (
-            // eslint-disable-next-line react-doctor/no-array-index-as-key -- id 없는 주문의 fallback 키(재정렬 없는 읽기 전용 목록)
+          {sorted.map((o, i) => (
+            // eslint-disable-next-line react-doctor/no-array-index-as-key -- id 없는 주문의 fallback 키(행 상태가 없는 읽기 전용 목록이라 정렬로 인덱스가 바뀌어도 무방)
             <tr key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className="border-t hover:bg-muted/30 transition-colors">
               <TableDataCell>
                 <Badge tone="none" size="sm" className={cn('lg:h-[24px] lg:text-sm', directionBadgeClass(o.direction))}>

@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { OrderRows } from './OrderRows'
 
@@ -40,5 +41,20 @@ describe('OrderRows', () => {
     // 모바일 리스트·PC 표 두 벌 — PRIVACY식 마감 접수 LIMIT 한 건만 표시
     expect(screen.getAllByText('장마감 30분 전 접수')).toHaveLength(2)
     expect(screen.queryByText('개장 선접수')).toBeNull()
+  })
+
+  it('sorts by price when the header is clicked, keeping other rows intact', async () => {
+    render(
+      <OrderRows
+        orders={[
+          { id: 'a', ticker: 'AAA', direction: 'BUY', orderType: 'LOC', quantity: 1, price: '10' },
+          { id: 'b', ticker: 'BBB', direction: 'BUY', orderType: 'LOC', quantity: 1, price: '30' },
+          { id: 'c', ticker: 'CCC', direction: 'BUY', orderType: 'LOC', quantity: 1, price: '20' },
+        ]}
+      />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: '주문가' })) // desc로 시작
+    const tickers = () => within(screen.getByRole('table')).getAllByRole('row').slice(1).map((r) => r.children[2].textContent)
+    expect(tickers()).toEqual(['BBB', 'CCC', 'AAA'])
   })
 })

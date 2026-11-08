@@ -314,6 +314,29 @@ describe('AssetRecordList', () => {
     expect(within(rows()[0]).getByText('오래된기록')).toBeInTheDocument()
   })
 
+  it('소유자 헤더 정렬은 값이 없는 행을 방향과 무관하게 맨 아래에 둔다', async () => {
+    const user = userEvent.setup()
+    useAssetSnapshotsQueryMock.mockReturnValue({
+      data: [
+        snapshot({ id: 'a1', accountOwner: undefined, categoryName: '무소유' }),
+        snapshot({ id: 'a2', accountOwner: '가나', categoryName: '가나소유' }),
+        snapshot({ id: 'a3', accountOwner: '다라', categoryName: '다라소유' }),
+      ],
+      isLoading: false,
+      isError: false,
+    })
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
+    const desktopTable = screen.getByRole('table', { name: '자산 기록' })
+    const rows = () => within(desktopTable).getAllByRole('row').slice(1)
+
+    await user.click(screen.getByRole('button', { name: /소유자/ })) // desc
+    expect(within(rows()[0]).getByText('다라소유')).toBeInTheDocument()
+    expect(within(rows()[2]).getByText('무소유')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /소유자/ })) // asc
+    expect(within(rows()[0]).getByText('가나소유')).toBeInTheDocument()
+    expect(within(rows()[2]).getByText('무소유')).toBeInTheDocument()
+  })
+
   it('전체 성공 시 성공 toast를 띄우고 선택을 비운다 — 전체 실패(succeededIds 빈 배열)는 건드리지 않는다', async () => {
     const user = userEvent.setup()
     useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({ id: 'a1' })], isLoading: false, isError: false })

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { AdminAnomalies, AdminAnomalyAccount } from '@entities/admin'
 import { AnomaliesSection } from './AnomaliesSection'
@@ -65,5 +65,16 @@ describe('AnomaliesSection', () => {
     expect(screen.getByText('키움 메인')).toBeInTheDocument()
     const row = screen.getByText('메리츠 계좌').closest('tr')!
     expect(row).toHaveTextContent('-')
+  })
+
+  it('sorts rows by owner when the header is clicked', () => {
+    const anomalies: AdminAnomalies = { pausedAccounts: [pausedAccount, inactiveAccount], inactiveAccounts: [] }
+    render(<AnomaliesSection anomalies={anomalies} range="7d" />)
+
+    fireEvent.click(screen.getByRole('button', { name: /소유자/ })) // desc 시작: 홍길동 → 김영희
+    const owners = () => screen.getAllByRole('row').slice(1).map((r) => r.firstChild?.textContent)
+    expect(owners()).toEqual(['홍길동', '김영희'])
+    fireEvent.click(screen.getByRole('button', { name: /소유자/ }))
+    expect(owners()).toEqual(['김영희', '홍길동'])
   })
 })

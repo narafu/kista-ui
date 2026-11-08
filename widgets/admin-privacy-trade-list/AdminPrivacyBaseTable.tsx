@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { ChevronRight, ChevronDown, Pencil, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -13,6 +14,9 @@ import { EmptyState } from '@shared/ui/EmptyState'
 import { Badge } from '@shared/ui/Badge'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
+import { MobileSortControl } from '@shared/ui/MobileSortControl'
+import { useTableSort } from '@shared/lib/hooks/use-table-sort'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
@@ -36,6 +40,31 @@ function describeOrder(order: AdminPrivacyOrder, labelOf: OrderLabelOf): string 
   return `${labelOf('orderDirections', order.direction)} ${labelOf('orderTypes', order.orderType)} $${fmtUsd(order.price)}${qty}`
 }
 
+type SortKey = 'default' | 'releaseDate' | 'ticker' | 'currentCycleStart' | 'avgPrice' | 'holdings' | 'currentCycleRealizedPnl' | 'orders'
+
+const SORT_OPTIONS: { key: Exclude<SortKey, 'default'>; label: string }[] = [
+  { key: 'releaseDate', label: '날짜' },
+  { key: 'ticker', label: '종목' },
+  { key: 'currentCycleStart', label: '사이클 시작금액' },
+  { key: 'avgPrice', label: '평단가' },
+  { key: 'holdings', label: '보유' },
+  { key: 'currentCycleRealizedPnl', label: '실현손익' },
+  { key: 'orders', label: '주문' },
+]
+
+export function sortAdminPrivacyBases(items: AdminPrivacyBase[], sortKey: SortKey, direction: 'asc' | 'desc'): AdminPrivacyBase[] {
+  if (sortKey === 'default') return items // 헤더에 없는 키 — 조회 순서 유지
+  const dir = direction === 'asc' ? 1 : -1
+  return [...items].sort((a, b) => {
+    if (sortKey === 'releaseDate' || sortKey === 'ticker') return dir * a[sortKey].localeCompare(b[sortKey], 'ko')
+    const av = sortKey === 'orders' ? a.orders.length : a[sortKey]
+    const bv = sortKey === 'orders' ? b.orders.length : b[sortKey]
+    if (av == null) return bv == null ? 0 : 1 // null(평단가 없음)은 방향과 무관하게 맨 아래
+    if (bv == null) return -1
+    return dir * (av - bv)
+  })
+}
+
 interface Props {
   // 기간 필터·페이지 조회 조건. windowFrom/windowTo는 URL 쿼리 그대로, page도 원본(클램프 전) 값을
   // 그대로 받는다 — totalPages는 여기서 canonical 쿼리 캐시로부터 매번 다시 계산해 뮤테이션 직후에도
@@ -50,6 +79,7 @@ interface Props {
 
 export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset = false, pageSize, page }: Props) {
   const { labelOf } = useMeta()
+  const router = useRouter()
   const { data, isError, isFetching, refetch } = useAdminPrivacyBasesQuery()
   const allBases = data ?? EMPTY_BASES
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
@@ -70,10 +100,13 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
     },
     [allBases, windowFrom, windowTo, sinceYearlyReset],
   )
-  const totalCount = filtered.length
+  const { sortKey, sortDirection, handleSort } = useTableSort<SortKey>('default')
+  const head = { activeKey: sortKey, direction: sortDirection, onSort: handleSort }
+  const sorted = useMemo(() => sortAdminPrivacyBases(filtered, sortKey, sortDirection), [filtered, sortKey, sortDirection])
+  const totalCount = sorted.length
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
   const currentPage = Math.min(page, totalPages)
-  const bases = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  const bases = sorted.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   const findOrder = (ref: { baseId: string; orderId: string } | null) => {
     if (!ref) return undefined
@@ -85,6 +118,17 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
   const deleteOrderTarget = findOrder(deleteOrderRef)
   const addOrderBase = allBases.find((b) => b.id === addOrderBaseId)
   const isRangeFiltered = sinceYearlyReset || Boolean(windowFrom || windowTo)
+
+  // 정렬은 전량에 적용되므로 기준이 바뀌면 1페이지로 — page는 URL이 SSOT
+  const onSort = (key: SortKey) => {
+    handleSort(key)
+    if (page !== 1) {
+      const params = new URLSearchParams(window.location.search)
+      params.set('page', '1')
+      router.push(`?${params.toString()}`)
+    }
+  }
+  const sortHead = { ...head, onSort }
 
   const toggle = (id: string) => {
     setExpanded((prev) => {
@@ -138,6 +182,7 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
         <>
           {/* 위 차트 카드 제목(h2) 아래에 모바일 카드 h3이 이어 붙지 않도록 이 목록 자체의 제목을 둔다 */}
           <h2 className="sr-only">P 매매표 목록</h2>
+          <MobileSortControl options={SORT_OPTIONS} activeKey={sortKey} direction={sortDirection} onSort={onSort} />
           <div className="space-y-3 lg:hidden" data-testid="admin-privacy-mobile-list">
             {bases.map((b) => {
               const open = expanded.has(b.id)
@@ -161,13 +206,13 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
               <thead className="bg-muted/50 border-b border-border">
                 <tr>
                   <TableHeadCell className="w-8 px-2"><span className="sr-only">펼치기</span></TableHeadCell>
-                  <TableHeadCell className="whitespace-nowrap">날짜</TableHeadCell>
-                  <TableHeadCell className="whitespace-nowrap">종목</TableHeadCell>
-                  <TableHeadCell numeric className="whitespace-nowrap">사이클 시작금액</TableHeadCell>
-                  <TableHeadCell numeric className="whitespace-nowrap">평단가</TableHeadCell>
-                  <TableHeadCell numeric className="whitespace-nowrap">보유</TableHeadCell>
-                  <TableHeadCell numeric className="whitespace-nowrap">실현손익</TableHeadCell>
-                  <TableHeadCell numeric className="whitespace-nowrap">주문</TableHeadCell>
+                  <SortableHeadCell sortKey="releaseDate" {...sortHead} className="whitespace-nowrap">날짜</SortableHeadCell>
+                  <SortableHeadCell sortKey="ticker" {...sortHead} className="whitespace-nowrap">종목</SortableHeadCell>
+                  <SortableHeadCell sortKey="currentCycleStart" numeric {...sortHead} className="whitespace-nowrap">사이클 시작금액</SortableHeadCell>
+                  <SortableHeadCell sortKey="avgPrice" numeric {...sortHead} className="whitespace-nowrap">평단가</SortableHeadCell>
+                  <SortableHeadCell sortKey="holdings" numeric {...sortHead} className="whitespace-nowrap">보유</SortableHeadCell>
+                  <SortableHeadCell sortKey="currentCycleRealizedPnl" numeric {...sortHead} className="whitespace-nowrap">실현손익</SortableHeadCell>
+                  <SortableHeadCell sortKey="orders" numeric {...sortHead} className="whitespace-nowrap">주문</SortableHeadCell>
                   <TableHeadCell className="w-16 whitespace-nowrap"><span className="sr-only">수정</span></TableHeadCell>
                 </tr>
               </thead>

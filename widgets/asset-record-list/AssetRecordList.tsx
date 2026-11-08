@@ -7,6 +7,7 @@ import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { SectionError } from '@shared/ui/SectionError'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
+import { MobileSortControl } from '@shared/ui/MobileSortControl'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
@@ -30,7 +31,7 @@ import {
 } from '@entities/finance'
 import { AssetRecordFilters, ALL_FILTER_VALUE } from './AssetRecordFilters'
 import type { AssetFilterValue } from './AssetRecordFilters'
-import { AssetRecordTable, AssetRecordMobileList } from './AssetRecordRows'
+import { AssetRecordTable, AssetRecordMobileList, SORT_OPTIONS } from './AssetRecordRows'
 import type { AssetRowContext, SortKey } from './AssetRecordRows'
 
 interface Props {
@@ -90,11 +91,30 @@ export function AssetRecordList({ month, categoryPath, onCategoryPathChange }: P
     const chain = (a: (typeof filtered)[number], b: (typeof filtered)[number]) =>
       compareCategoryPath(categoryIndex.get(a.categoryId)?.path, categoryIndex.get(b.categoryId)?.path) ||
       compareAssetDetail(a, b, enumOrder)
+    // 값이 없는 행(null·빈 문자열)은 방향과 무관하게 맨 아래, 동점은 체인 asc로 고정한다.
+    const valueOf = (s: (typeof filtered)[number]): string | number | null => {
+      switch (sortKey) {
+        case 'entryDate': return s.entryDate
+        case 'amount': return s.amount
+        case 'owner': return s.accountOwner || null
+        case 'institution': return s.accountInstitution || null
+        case 'accountName': return s.accountName || null
+        case 'strategy': return s.strategy || null
+        case 'market': return labelOf('markets', s.market) || null
+        case 'assetClass': return labelOf('assetClasses', s.assetClass) || null
+        case 'memo': return s.memo || null
+        default: return null
+      }
+    }
     return [...filtered].sort((a, b) => {
-      const diff = sortKey === 'category' ? chain(a, b) : sortKey === 'entryDate' ? a.entryDate.localeCompare(b.entryDate) : a.amount - b.amount
+      if (sortKey === 'category') return (sortDirection === 'asc' ? 1 : -1) * chain(a, b) || chain(a, b)
+      const va = valueOf(a)
+      const vb = valueOf(b)
+      if (va === null || vb === null) return va === vb ? chain(a, b) : va === null ? 1 : -1
+      const diff = typeof va === 'number' && typeof vb === 'number' ? va - vb : String(va).localeCompare(String(vb), 'ko')
       return (sortDirection === 'asc' ? diff : -diff) || chain(a, b)
     })
-  }, [filtered, sortKey, sortDirection, categoryIndex, meta.assetClasses, meta.markets])
+  }, [filtered, sortKey, sortDirection, categoryIndex, meta.assetClasses, meta.markets, labelOf])
 
   const { page: currentPage, setPage, size, totalPages, paged, handlePageSizeChange } = useClientPagination(sorted)
 
@@ -227,6 +247,7 @@ export function AssetRecordList({ month, categoryPath, onCategoryPathChange }: P
             somePagedSelected={somePagedSelected}
             onToggleAll={toggleAllOnPage}
           />
+          <MobileSortControl options={SORT_OPTIONS} activeKey={sortKey} direction={sortDirection} onSort={handleSort} />
           <AssetRecordMobileList paged={paged} row={rowCtx} />
 
           {totalPages > 1 && (

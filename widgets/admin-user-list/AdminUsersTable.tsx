@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { useAdminUsersQuery } from '@entities/admin'
 import type { AdminUsersQueryParams } from '@entities/admin'
 import { ChangeRoleButton } from '@features/admin/change-role'
@@ -11,11 +12,15 @@ import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { SectionError } from '@shared/ui/SectionError'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
 import { Badge } from '@shared/ui/Badge'
 import { ADMIN_USER_STATUS_LABEL, USER_ROLE_LABEL, USER_STATUS_TONE } from '@entities/user'
+import { useTableSort } from '@shared/lib/hooks/use-table-sort'
 import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
 import type { AdminUser } from '@entities/admin'
 import { TableDataCell } from '@shared/ui/TableDataCell'
+
+type SortKey = 'default' | 'nickname' | 'status' | 'role' | 'createdAt'
 
 // 조회 전·실패 시에도 페이지네이션 훅 입력 참조를 고정한다
 const EMPTY_USERS: AdminUser[] = []
@@ -29,7 +34,19 @@ interface Props {
 export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props) {
   const { data, isError } = useAdminUsersQuery(undefined, queryParams)
   const users = data ?? EMPTY_USERS
-  const { page: currentPage, setPage, size, totalPages, paged, handlePageSizeChange } = useClientPagination(users)
+  // 'default'는 헤더에 없는 키 — API 응답 순서 유지
+  const { sortKey, sortDirection, handleSort } = useTableSort<SortKey>('default')
+  const sorted = useMemo(() => {
+    if (sortKey === 'default') return users
+    const dir = sortDirection === 'asc' ? 1 : -1
+    const text = (u: AdminUser) => sortKey === 'status' ? ADMIN_USER_STATUS_LABEL[u.status]
+      : sortKey === 'role' ? USER_ROLE_LABEL[u.role] : u.nickname
+    return [...users].sort((a, b) => sortKey === 'createdAt'
+      ? dir * (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+      : dir * text(a).localeCompare(text(b), 'ko'))
+  }, [users, sortKey, sortDirection])
+  const { page: currentPage, setPage, size, totalPages, paged, handlePageSizeChange } = useClientPagination(sorted)
+  const head = { activeKey: sortKey, direction: sortDirection, onSort: (k: SortKey) => { handleSort(k); setPage(1) } }
 
   if (!data && isError) return <SectionError message="사용자 목록을 불러오지 못했습니다." />
   if (!data) return <LoadingRow />
@@ -56,10 +73,10 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
         <table className="min-w-[720px] w-full text-sm">
           <thead className="bg-muted/50">
             <tr>
-              <TableHeadCell className="whitespace-nowrap">닉네임</TableHeadCell>
-              <TableHeadCell className="whitespace-nowrap">상태</TableHeadCell>
-              <TableHeadCell className="whitespace-nowrap">역할</TableHeadCell>
-              <TableHeadCell className="whitespace-nowrap">가입일</TableHeadCell>
+              <SortableHeadCell sortKey="nickname" className="whitespace-nowrap" {...head}>닉네임</SortableHeadCell>
+              <SortableHeadCell sortKey="status" className="whitespace-nowrap" {...head}>상태</SortableHeadCell>
+              <SortableHeadCell sortKey="role" className="whitespace-nowrap" {...head}>역할</SortableHeadCell>
+              <SortableHeadCell sortKey="createdAt" className="whitespace-nowrap" {...head}>가입일</SortableHeadCell>
               <TableHeadCell className="whitespace-nowrap">역할 변경</TableHeadCell>
               <TableHeadCell className="whitespace-nowrap">탈퇴 처리</TableHeadCell>
             </tr>

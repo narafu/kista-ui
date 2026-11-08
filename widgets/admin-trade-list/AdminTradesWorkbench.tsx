@@ -16,7 +16,7 @@ import { PaginationBar } from '@shared/ui/PaginationBar'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { AdminTradeFilterPanel } from './AdminTradeFilterPanel'
 import { AdminTradesFeedback } from './AdminTradesFeedback'
-import { AdminTradesTable } from './AdminTradesTable'
+import { AdminTradesTable, useTradeSort } from './AdminTradesTable'
 
 interface Props {
   from?: string
@@ -83,7 +83,13 @@ export function AdminTradesWorkbench({ from, to, initialPage, initialSize }: Pro
     return true
   })
   // 페이지네이션은 클라이언트 상태(URL에 반영하지 않음) — 선택한 사용자·전략 필터가 클라이언트 상태라 필터 후 목록을 자르기 때문이다
-  const { page: currentPage, setPage, size, totalPages, paged: pagedTrades, handlePageSizeChange } = useClientPagination(filteredTrades, { initialPage, initialSize })
+  const { sorted: sortedTrades, sort } = useTradeSort(filteredTrades)
+  const { page: currentPage, setPage, size, totalPages, paged: pagedTrades, handlePageSizeChange } = useClientPagination(sortedTrades, { initialPage, initialSize })
+
+  function handleSort(key: typeof sort.activeKey) {
+    setPage(1)
+    sort.onSort(key)
+  }
 
   function handleUserChange(userId: string) {
     setPage(1)
@@ -157,7 +163,7 @@ export function AdminTradesWorkbench({ from, to, initialPage, initialSize }: Pro
       ) : tradesQuery.isPending ? (
         <LoadingRow />
       ) : (
-        <AdminTradesTable trades={pagedTrades} />
+        <AdminTradesTable trades={pagedTrades} sort={{ ...sort, onSort: handleSort }} />
       )}
 
       <PaginationBar page={currentPage} totalPages={totalPages} onPageChange={setPage} />

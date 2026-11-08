@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
+import { MobileSortControl } from '@shared/ui/MobileSortControl'
 import { useTableSort } from '@shared/lib/hooks/use-table-sort'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { Badge } from '@shared/ui/Badge'
@@ -75,8 +76,19 @@ export function StrategyTypeComparison({ byType }: Props) {
                 </tbody>
               </table>
             </div>
+            <MobileSortControl
+              {...head}
+              options={[
+                { key: 'type', label: '전략' },
+                { key: 'cycles', label: '사이클' },
+                { key: 'avgReturnRate', label: '평균 수익률' },
+                { key: 'avgDurationDays', label: '평균 소요일' },
+                { key: 'realizedPnl', label: '실현손익' },
+                { key: 'unrealizedPnl', label: '미실현' },
+              ]}
+            />
             <ul className="divide-y lg:hidden list-none p-0 m-0" aria-label="전략 유형 비교">
-              {byType.map((item) => (
+              {sorted.map((item) => (
                 <li key={item.type} className="px-4 py-4">
                   <Badge tone="brand" size="md">
                     {labelOf('strategyTypes', item.type)}

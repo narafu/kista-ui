@@ -14,7 +14,21 @@ import { useMeta } from '@entities/meta'
 import { assetCategoryBadgeTone } from '@entities/finance'
 import type { AssetSnapshot } from '@entities/finance'
 
-export type SortKey = 'entryDate' | 'category' | 'amount'
+export type SortKey = 'entryDate' | 'category' | 'owner' | 'institution' | 'accountName' | 'strategy' | 'market' | 'assetClass' | 'amount' | 'memo'
+
+/** 모바일 정렬 컨트롤 옵션 — 데스크탑 표 헤더 문구와 같다. */
+export const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+  { key: 'entryDate', label: '기준일' },
+  { key: 'category', label: '카테고리' },
+  { key: 'owner', label: '소유자' },
+  { key: 'institution', label: '기관' },
+  { key: 'accountName', label: '계좌명' },
+  { key: 'strategy', label: '운용전략' },
+  { key: 'market', label: '시장' },
+  { key: 'assetClass', label: '자산군' },
+  { key: 'amount', label: '금액' },
+  { key: 'memo', label: '메모' },
+]
 
 // 체크박스 aria-label 전용 — 컬럼 분리 이후 화면에는 이 조합 문자열이 그대로 보이지 않지만,
 // 카테고리명을 먼저 말해 화면(왼쪽 카테고리·오른쪽 계좌 등) 순서와 맞춘다.
@@ -133,14 +147,14 @@ export function AssetRecordTable({ paged, row, sortKey, sortDirection, onSort, a
             </TableHeadCell>
             <SortableHeadCell sortKey="entryDate" activeKey={sortKey} direction={sortDirection} onSort={onSort}>기준일</SortableHeadCell>
             <SortableHeadCell sortKey="category" activeKey={sortKey} direction={sortDirection} onSort={onSort}>카테고리</SortableHeadCell>
-            <TableHeadCell>소유자</TableHeadCell>
-            <TableHeadCell>기관</TableHeadCell>
-            <TableHeadCell>계좌명</TableHeadCell>
-            <TableHeadCell>운용전략</TableHeadCell>
-            <TableHeadCell>시장</TableHeadCell>
-            <TableHeadCell>자산군</TableHeadCell>
+            <SortableHeadCell sortKey="owner" activeKey={sortKey} direction={sortDirection} onSort={onSort}>소유자</SortableHeadCell>
+            <SortableHeadCell sortKey="institution" activeKey={sortKey} direction={sortDirection} onSort={onSort}>기관</SortableHeadCell>
+            <SortableHeadCell sortKey="accountName" activeKey={sortKey} direction={sortDirection} onSort={onSort}>계좌명</SortableHeadCell>
+            <SortableHeadCell sortKey="strategy" activeKey={sortKey} direction={sortDirection} onSort={onSort}>운용전략</SortableHeadCell>
+            <SortableHeadCell sortKey="market" activeKey={sortKey} direction={sortDirection} onSort={onSort}>시장</SortableHeadCell>
+            <SortableHeadCell sortKey="assetClass" activeKey={sortKey} direction={sortDirection} onSort={onSort}>자산군</SortableHeadCell>
             <SortableHeadCell numeric sortKey="amount" activeKey={sortKey} direction={sortDirection} onSort={onSort}>금액</SortableHeadCell>
-            <TableHeadCell>메모</TableHeadCell>
+            <SortableHeadCell sortKey="memo" activeKey={sortKey} direction={sortDirection} onSort={onSort}>메모</SortableHeadCell>
             <TableHeadCell className="whitespace-nowrap">작업</TableHeadCell>
           </tr>
         </thead>

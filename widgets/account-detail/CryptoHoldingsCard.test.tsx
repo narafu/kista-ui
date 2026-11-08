@@ -58,7 +58,7 @@ describe('CryptoHoldingsCard', () => {
 
   it('모바일 카드에 종목·수량·평단가·현재가·평가금액을 보여준다', () => {
     const { container } = render(<CryptoHoldingsCard portfolio={portfolio} isError={false} />)
-    const card = within(container.querySelector('.lg\\:hidden') as HTMLElement)
+    const card = within(container.querySelector('.space-y-2.lg\\:hidden') as HTMLElement)
     expect(card.getByText('BTC')).toBeInTheDocument()
     expect(card.getByText('0.01234567')).toBeInTheDocument()
     expect(card.getByText('100,000,000원')).toBeInTheDocument()

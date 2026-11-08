@@ -4,7 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
-import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
+import { MobileSortControl } from '@shared/ui/MobileSortControl'
+import { useTableSort } from '@shared/lib/hooks/use-table-sort'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { fmtMoney, fmtQuantity } from '@shared/lib/format'
 import type { CryptoPortfolio } from '@entities/trade'
@@ -19,7 +21,36 @@ const UNAVAILABLE = <span className="text-muted-foreground">현재가 확인 불
 // 모바일 카드는 "현재가"·"평가금액" 라벨이 앞에 붙어 있어 라벨을 반복하지 않는다
 const CARD_UNAVAILABLE = <span className="text-muted-foreground">확인 불가</span>
 
+type CryptoHolding = CryptoPortfolio['holdings'][number]
+type SortKey = 'default' | 'ticker' | 'quantity' | 'avgBuyPrice' | 'currentPrice' | 'evalAmount'
+
+const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+  { key: 'ticker', label: '종목' },
+  { key: 'quantity', label: '수량' },
+  { key: 'avgBuyPrice', label: '평단가' },
+  { key: 'currentPrice', label: '현재가' },
+  { key: 'evalAmount', label: '평가금액' },
+]
+
+// 현재가 조회 실패 시 evalAmount는 0으로 정규화돼 있어 null로 취급한다
+function sortValue(h: CryptoHolding, key: Exclude<SortKey, 'default' | 'ticker'>) {
+  if (key === 'evalAmount') return h.currentPrice == null ? null : h.evalAmount
+  return h[key]
+}
+
 export function CryptoHoldingsCard({ portfolio, isError }: Props) {
+  // 'default'는 헤더에 없는 키 — API 응답 순서 유지
+  const { sortKey, sortDirection, handleSort } = useTableSort<SortKey>('default')
+  const holdings = portfolio?.holdings ?? []
+  const sorted = sortKey === 'default' ? holdings : [...holdings].sort((a, b) => {
+    const dir = sortDirection === 'asc' ? 1 : -1
+    if (sortKey === 'ticker') return dir * a.ticker.localeCompare(b.ticker, 'ko')
+    const av = sortValue(a, sortKey), bv = sortValue(b, sortKey)
+    if (av == null) return bv == null ? 0 : 1 // null은 방향과 무관하게 맨 아래
+    if (bv == null) return -1
+    return dir * (av - bv)
+  })
+  const head = { activeKey: sortKey, direction: sortDirection, onSort: handleSort }
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
@@ -35,8 +66,9 @@ export function CryptoHoldingsCard({ portfolio, isError }: Props) {
         ) : (
           <>
             {/* 모바일: 카드 리스트 */}
-            <div className="space-y-2 p-4 lg:hidden">
-              {portfolio.holdings.map((h) => (
+            <MobileSortControl {...head} options={SORT_OPTIONS} />
+            <div className="space-y-2 px-4 pb-4 lg:hidden">
+              {sorted.map((h) => (
                 <div key={h.ticker} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5 space-y-1.5">
                   <div className="flex items-center justify-between">
                     <Badge tone="brand" size="sm" className="px-2.5 font-bold">{h.ticker}</Badge>
@@ -62,15 +94,15 @@ export function CryptoHoldingsCard({ portfolio, isError }: Props) {
             <table className="w-full text-sm">
               <thead className="bg-muted/50">
                 <tr>
-                  <TableHeadCell className="whitespace-nowrap">종목</TableHeadCell>
-                  <TableHeadCell numeric className="whitespace-nowrap">수량</TableHeadCell>
-                  <TableHeadCell numeric className="whitespace-nowrap">평단가</TableHeadCell>
-                  <TableHeadCell numeric className="whitespace-nowrap">현재가</TableHeadCell>
-                  <TableHeadCell numeric className="whitespace-nowrap">평가금액</TableHeadCell>
+                  <SortableHeadCell sortKey="ticker" {...head} className="whitespace-nowrap">종목</SortableHeadCell>
+                  <SortableHeadCell sortKey="quantity" numeric {...head} className="whitespace-nowrap">수량</SortableHeadCell>
+                  <SortableHeadCell sortKey="avgBuyPrice" numeric {...head} className="whitespace-nowrap">평단가</SortableHeadCell>
+                  <SortableHeadCell sortKey="currentPrice" numeric {...head} className="whitespace-nowrap">현재가</SortableHeadCell>
+                  <SortableHeadCell sortKey="evalAmount" numeric {...head} className="whitespace-nowrap">평가금액</SortableHeadCell>
                 </tr>
               </thead>
               <tbody>
-                {portfolio.holdings.map((h) => (
+                {sorted.map((h) => (
                   <tr key={h.ticker} className="border-t hover:bg-muted/30 transition-colors">
                     <TableDataCell className="font-semibold whitespace-nowrap">{h.ticker}</TableDataCell>
                     <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtQuantity(h.quantity)}</TableDataCell>

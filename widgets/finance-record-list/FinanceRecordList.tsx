@@ -12,6 +12,7 @@ import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
+import { MobileSortControl } from '@shared/ui/MobileSortControl'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
@@ -40,7 +41,14 @@ import {
 import type { CategoryIndex, FinanceCategory, FinanceCategoryType, FinanceTransaction, Period } from '@entities/finance'
 import { TransactionFormDialog } from '@features/finance/save-transaction'
 
-type SortKey = 'transactionDate' | 'category' | 'amount'
+type SortKey = 'transactionDate' | 'category' | 'amount' | 'memo'
+
+const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+  { key: 'transactionDate', label: '날짜' },
+  { key: 'category', label: '카테고리' },
+  { key: 'amount', label: '금액' },
+  { key: 'memo', label: '메모' },
+]
 
 interface Props {
   type: FinanceCategoryType
@@ -116,9 +124,12 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
   const sorted = useMemo(() => {
     const copy = [...filtered]
     copy.sort((a, b) => {
+      // 메모가 없는 행은 방향과 무관하게 맨 아래
+      if (sortKey === 'memo' && (!a.memo || !b.memo)) return !a.memo === !b.memo ? 0 : !a.memo ? 1 : -1
       let diff = 0
       if (sortKey === 'transactionDate') diff = a.transactionDate.localeCompare(b.transactionDate)
       else if (sortKey === 'category') diff = (index.get(a.categoryId)?.name ?? '').localeCompare(index.get(b.categoryId)?.name ?? '')
+      else if (sortKey === 'memo') diff = (a.memo ?? '').localeCompare(b.memo ?? '', 'ko')
       else diff = a.amount - b.amount
       return sortDirection === 'asc' ? diff : -diff
     })
@@ -187,7 +198,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                       <SortableHeadCell sortKey="transactionDate" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>날짜</SortableHeadCell>
                       <SortableHeadCell sortKey="category" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>카테고리</SortableHeadCell>
                       <SortableHeadCell numeric sortKey="amount" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>금액</SortableHeadCell>
-                      <TableHeadCell>메모</TableHeadCell>
+                      <SortableHeadCell sortKey="memo" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>메모</SortableHeadCell>
                       <TableHeadCell className="whitespace-nowrap">작업</TableHeadCell>
                     </tr>
                   </thead>
@@ -235,6 +246,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                 </table>
               </div>
 
+              <MobileSortControl options={SORT_OPTIONS} activeKey={sortKey} direction={sortDirection} onSort={handleSort} />
               <ul className="m-0 list-none divide-y rounded-[var(--r-lg)] border border-border p-0 lg:hidden" aria-label="거래내역">
                 {paged.map((t) => {
                   const entry = index.get(t.categoryId)
