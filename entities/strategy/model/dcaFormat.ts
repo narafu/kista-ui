@@ -64,14 +64,17 @@ export function formatDcaSizing(sizing: DcaSizing, market: TradingMarket): strin
     : fmtMoney(sizing.amount ?? 0, marketCurrency(market))
 }
 
-// "주기[ 시각] · [주문방식 · ]규모" — 방향을 뺀 요약. 주문방식(MOO/MOC)은 주식만 시점으로 의미가 있다
-export function formatDcaRuleDetail(rule: DcaRuleSummaryInput, labelOf: DcaLabelOf, market: TradingMarket): string {
-  const isCrypto = isCryptoMarket(market)
+// 주기[ 시각][ · 주문방식] — 규모를 뺀 앞부분. 주문방식(MOO/MOC)은 주식만 시점으로 의미가 있다
+export function formatDcaRuleWhen(rule: DcaRuleSummaryInput, labelOf: DcaLabelOf, market: TradingMarket): string {
   return [
     formatDcaSchedule(rule, labelOf('dcaFrequencies', rule.frequency)),
-    ...(isCrypto ? [] : [labelOf('orderTypes', rule.orderType)]),
-    formatDcaSizing(rule.sizing, market),
+    ...(isCryptoMarket(market) ? [] : [labelOf('orderTypes', rule.orderType)]),
   ].join(' · ')
+}
+
+// "주기[ 시각] · [주문방식 · ]규모" — 방향을 뺀 요약
+function formatDcaRuleDetail(rule: DcaRuleSummaryInput, labelOf: DcaLabelOf, market: TradingMarket): string {
+  return `${formatDcaRuleWhen(rule, labelOf, market)} · ${formatDcaSizing(rule.sizing, market)}`
 }
 
 // "방향 · 주기[ 시각] · [주문방식 · ]규모"
