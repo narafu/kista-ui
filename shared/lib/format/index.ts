@@ -22,16 +22,16 @@ export function fmtCompactUsdNarrow(n: number): string {
   return narrowCompactUsdFormat.format(n)
 }
 
-/** 0~1 비율을 부호 포함 %로. null/undefined는 '—' */
+/** 0~1 비율을 부호 포함 %로. null/undefined는 '-' */
 export function fmtSignedPercent(ratio: number | null | undefined, digits = 1): string {
-  if (ratio == null) return '—'
+  if (ratio == null) return '-'
   const percent = Math.abs(ratio * 100).toFixed(digits)
   return `${ratio >= 0 ? '+' : '-'}${percent}%`
 }
 
-/** 0~1 비율을 부호 포함 %p로. null/undefined는 '—' */
+/** 0~1 비율을 부호 포함 %p로. null/undefined는 '-' */
 export function fmtSignedPercentPoint(ratio: number | null | undefined, digits = 1): string {
-  if (ratio == null) return '—'
+  if (ratio == null) return '-'
   const percent = Math.abs(ratio * 100).toFixed(digits)
   return `${ratio >= 0 ? '+' : '-'}${percent}%p`
 }

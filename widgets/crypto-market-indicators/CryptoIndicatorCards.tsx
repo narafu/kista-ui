@@ -29,7 +29,7 @@ const fmtPct = (percent: number) => signedPct(percent / 100, 2)
 // 펀딩비는 비율 원값(0.0001 = 0.01%) — 평상시 기준선이 0.01%라 소수 넷째 자리까지 보여준다
 const fmtFunding = (ratio: number) => signedPct(ratio, 4)
 // 배수·비율은 1이 기준인 무단위 값이라 소수 둘째 자리까지
-const fmtMultiple = (v: number | null) => (v == null ? '—' : `${v.toFixed(2)}x`)
+const fmtMultiple = (v: number | null) => (v == null ? '-' : `${v.toFixed(2)}x`)
 const fmtUtcDate = (date: string) => `${date.replace(/-/g, '.')} UTC`
 const fmtKstDate = (instant: string) =>
   new Date(instant).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: 'numeric', day: 'numeric' })
@@ -404,7 +404,7 @@ export function HashRibbonsCard({ data }: { data: CryptoMarketIndicators['hashRi
       <div className="flex flex-wrap gap-x-6 gap-y-2">
         <Stat
           label="상태"
-          value={state === 'CAPITULATION' ? '채굴자 항복' : state === 'RECOVERY' ? '회복' : '—'}
+          value={state === 'CAPITULATION' ? '채굴자 항복' : state === 'RECOVERY' ? '회복' : '-'}
           valueClassName={state === 'CAPITULATION' ? 'text-warn' : 'text-foreground'}
         />
         <Stat

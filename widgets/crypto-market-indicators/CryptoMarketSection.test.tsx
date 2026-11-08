@@ -156,7 +156,7 @@ describe('CryptoMarketSection', () => {
     useQueryMock.mockReturnValue({ data: indicators({ tickers: [ticker('BTC', { valuation: { current: point, history: [point] } })] }) })
     render(<CryptoMarketSection />)
 
-    expect(screen.getByText('—')).toBeInTheDocument()
+    expect(screen.getByText('-')).toBeInTheDocument()
     expect(screen.getByText('1.23x')).toBeInTheDocument()
   })
 
@@ -301,7 +301,7 @@ describe('CryptoMarketSection', () => {
     useQueryMock.mockReturnValue({ data: indicators({ ...MARKET, hashRibbons: { current: ribbon('2026-10-19', null), history: [ribbon('2026-10-19', null)] } }) })
     render(<CryptoMarketSection />)
 
-    expect(within(screen.getByText('상태').parentElement!).getByText('—')).toBeInTheDocument()
+    expect(within(screen.getByText('상태').parentElement!).getByText('-')).toBeInTheDocument()
   })
 
   it('marks only the failed market-wide card as unavailable', () => {

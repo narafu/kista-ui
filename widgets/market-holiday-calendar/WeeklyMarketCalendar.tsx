@@ -146,7 +146,7 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
       )
       sub = <span className="text-xs text-muted-foreground">{summary.tradeCount}체결</span>
     } else {
-      badge = <span className="text-xs text-muted-foreground">—</span>
+      badge = <span className="text-xs text-muted-foreground">-</span>
     }
 
     return (

@@ -54,7 +54,7 @@ export function StrategyTypeComparison({ byType }: Props) {
                       <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap', t.avgReturnRate != null && pnlTextClass(t.avgReturnRate))}>
                         {fmtSignedPercent(t.avgReturnRate)}
                       </TableDataCell>
-                      <TableDataCell className="text-right tabular-nums whitespace-nowrap">{t.avgDurationDays != null ? `${t.avgDurationDays.toFixed(1)}일` : '—'}</TableDataCell>
+                      <TableDataCell className="text-right tabular-nums whitespace-nowrap">{t.avgDurationDays != null ? `${t.avgDurationDays.toFixed(1)}일` : '-'}</TableDataCell>
                       <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap font-medium', pnlTextClass(t.realizedPnl))}>{fmtSignedUsd(t.realizedPnl, 2, '$')}</TableDataCell>
                       <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap font-medium', pnlTextClass(t.unrealizedPnl))}>{fmtSignedUsd(t.unrealizedPnl, 2, '$')}</TableDataCell>
                     </tr>
@@ -83,7 +83,7 @@ export function StrategyTypeComparison({ byType }: Props) {
                     </div>
                     <div>
                       <dt className="text-xs text-muted-foreground">평균 소요일</dt>
-                      <dd className="mt-0.5 tabular-nums">{item.avgDurationDays != null ? `${item.avgDurationDays.toFixed(1)}일` : '—'}</dd>
+                      <dd className="mt-0.5 tabular-nums">{item.avgDurationDays != null ? `${item.avgDurationDays.toFixed(1)}일` : '-'}</dd>
                     </div>
                     <div>
                       <dt className="text-xs text-muted-foreground">실현손익</dt>

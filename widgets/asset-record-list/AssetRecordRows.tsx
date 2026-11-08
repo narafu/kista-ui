@@ -84,17 +84,17 @@ function DesktopRow({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowC
           <GroupSharedBadge groupId={snapshot.groupId} />
         </span>
       </TableDataCell>
-      <TableDataCell className={cn(!snapshot.accountOwner && 'text-muted-foreground')}>{snapshot.accountOwner || '—'}</TableDataCell>
-      <TableDataCell className={cn(!snapshot.accountInstitution && 'text-muted-foreground')}>{snapshot.accountInstitution ?? '—'}</TableDataCell>
-      <TableDataCell className={cn(!snapshot.accountName && 'text-muted-foreground')}>{snapshot.accountName ?? '—'}</TableDataCell>
-      <TableDataCell className={cn(!snapshot.strategy && 'text-muted-foreground')}>{snapshot.strategy ?? '—'}</TableDataCell>
+      <TableDataCell className={cn(!snapshot.accountOwner && 'text-muted-foreground')}>{snapshot.accountOwner || '-'}</TableDataCell>
+      <TableDataCell className={cn(!snapshot.accountInstitution && 'text-muted-foreground')}>{snapshot.accountInstitution ?? '-'}</TableDataCell>
+      <TableDataCell className={cn(!snapshot.accountName && 'text-muted-foreground')}>{snapshot.accountName ?? '-'}</TableDataCell>
+      <TableDataCell className={cn(!snapshot.strategy && 'text-muted-foreground')}>{snapshot.strategy ?? '-'}</TableDataCell>
       <TableDataCell>{labelOf('markets', snapshot.market)}</TableDataCell>
       <TableDataCell>{labelOf('assetClasses', snapshot.assetClass)}</TableDataCell>
       {/* 부채는 카테고리 배지로 구분한다 — 금액을 빨강으로 칠하면 요약의 상승(text-pos)과 같은 색이 돼 뜻이 섞인다 */}
       <TableDataCell className="text-right tabular-nums whitespace-nowrap">
         {maskIfHidden(fmtKrw(snapshot.amount))}
       </TableDataCell>
-      <TableDataCell title={snapshot.memo} className={cn('max-w-48 truncate', !snapshot.memo && 'text-muted-foreground')}>{snapshot.memo ?? '—'}</TableDataCell>
+      <TableDataCell title={snapshot.memo} className={cn('max-w-48 truncate', !snapshot.memo && 'text-muted-foreground')}>{snapshot.memo ?? '-'}</TableDataCell>
       <TableDataCell>
         <div className="flex items-center justify-center">
           <RowActions snapshot={snapshot} row={row} />

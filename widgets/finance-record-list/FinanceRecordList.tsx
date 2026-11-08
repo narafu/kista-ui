@@ -209,7 +209,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                             </span>
                           </TableDataCell>
                           <TableDataCell className="text-right tabular-nums whitespace-nowrap">{maskIfHidden(fmtKrw(t.amount))}</TableDataCell>
-                          <TableDataCell className={cn(!t.memo && 'text-muted-foreground')}>{t.memo ?? '—'}</TableDataCell>
+                          <TableDataCell className={cn(!t.memo && 'text-muted-foreground')}>{t.memo ?? '-'}</TableDataCell>
                           <TableDataCell>
                             <div className="flex items-center justify-center">
                               <ShareableRowActions
@@ -256,7 +256,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                         <span className="shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums">{maskIfHidden(fmtKrw(t.amount))}</span>
                       </div>
                       <div className="mt-1 flex items-center justify-between gap-2">
-                        <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{t.memo ?? '—'}</p>
+                        <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{t.memo ?? '-'}</p>
                         <ShareableRowActions
                           onEdit={() => editDialog.request(t)}
                           onDuplicate={() => duplicateDialog.request(t)}

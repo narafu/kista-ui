@@ -42,7 +42,7 @@ function BreakdownBar({ label, amount, percent, delta, color, isLiability = fals
       <span className="flex w-32 shrink-0 flex-col items-end">
         <span className="text-sm font-medium tabular-nums">{maskIfHidden(fmtKrw(amount))}</span>
         <span className={cn('text-xs tabular-nums', delta === null ? 'text-muted-foreground' : pnlTextClass(isLiability ? -delta : delta))}>
-          {delta === null ? '—' : maskIfHidden(fmtSignedKrw(delta))}
+          {delta === null ? '-' : maskIfHidden(fmtSignedKrw(delta))}
         </span>
       </span>
     </span>
@@ -91,7 +91,7 @@ export function SummaryKpis({ summary, previousSummary, amountValue, labelOf }: 
       />
       <KpiCard
         label="가장 큰 자산군"
-        value={summary.largestAssetClass ? labelOf('assetClasses', summary.largestAssetClass.assetClass) : '—'}
+        value={summary.largestAssetClass ? labelOf('assetClasses', summary.largestAssetClass.assetClass) : '-'}
         sub={summary.largestAssetClass ? amountValue(fmtKrw(summary.largestAssetClass.amount)) : undefined}
       />
     </div>

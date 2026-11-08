@@ -110,9 +110,9 @@ describe('fmtSignedPercent', () => {
     expect(fmtSignedPercent(0)).toBe('+0.0%')
   })
 
-  it('null/undefined는 —를 반환한다', () => {
-    expect(fmtSignedPercent(null)).toBe('—')
-    expect(fmtSignedPercent(undefined)).toBe('—')
+  it('null/undefined는 -를 반환한다', () => {
+    expect(fmtSignedPercent(null)).toBe('-')
+    expect(fmtSignedPercent(undefined)).toBe('-')
   })
 
   it('digits 파라미터로 소수 자릿수를 지정할 수 있다', () => {
@@ -142,9 +142,9 @@ describe('fmtSignedPercentPoint', () => {
     expect(fmtSignedPercentPoint(0)).toBe('+0.0%p')
   })
 
-  it('null/undefined는 —를 반환한다', () => {
-    expect(fmtSignedPercentPoint(null)).toBe('—')
-    expect(fmtSignedPercentPoint(undefined)).toBe('—')
+  it('null/undefined는 -를 반환한다', () => {
+    expect(fmtSignedPercentPoint(null)).toBe('-')
+    expect(fmtSignedPercentPoint(undefined)).toBe('-')
   })
 
   it('digits 파라미터로 소수 자릿수를 지정할 수 있다', () => {

@@ -188,7 +188,7 @@ describe('AssetRecordList', () => {
     expect(cellTexts[10]).toBe('해외ETF 적립')
   })
 
-  it('소유자·기관·계좌명·운용전략·메모가 없으면 해당 컬럼에 — 로 표시한다', () => {
+  it('소유자·기관·계좌명·운용전략·메모가 없으면 해당 컬럼에 -로 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({
       data: [snapshot({ accountOwner: null, strategy: undefined, memo: undefined, accountName: undefined, accountInstitution: null })],
       isLoading: false,
@@ -200,11 +200,11 @@ describe('AssetRecordList', () => {
     const dataRow = within(desktopTable).getAllByRole('row')[1]
     const cellTexts = within(dataRow).getAllByRole('cell').map((cell) => cell.textContent)
 
-    expect(cellTexts[3]).toBe('—')
-    expect(cellTexts[4]).toBe('—')
-    expect(cellTexts[5]).toBe('—')
-    expect(cellTexts[6]).toBe('—')
-    expect(cellTexts[10]).toBe('—')
+    expect(cellTexts[3]).toBe('-')
+    expect(cellTexts[4]).toBe('-')
+    expect(cellTexts[5]).toBe('-')
+    expect(cellTexts[6]).toBe('-')
+    expect(cellTexts[10]).toBe('-')
   })
 
   it('모바일 카드는 메모가 있을 때만 별도 줄로 표시한다', () => {

@@ -122,7 +122,7 @@ describe('AssetOverview', () => {
     expect(screen.getByText('부동산')).toBeInTheDocument()
   })
 
-  it('지난달 기록이 없으면 카테고리별 현황 각 행에 —를 표시한다', () => {
+  it('지난달 기록이 없으면 카테고리별 현황 각 행에 -를 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({
       data: [
         snapshot({ id: 's1', rootCategoryId: SYSTEM_INVESTMENT_CATEGORY_ID, amount: 3_000_000 }),
@@ -133,7 +133,7 @@ describe('AssetOverview', () => {
     })
     render(<AssetOverview month="2026-08" months={['2026-08']} onMonthChange={onMonthChange} today={TODAY} onCategorySelect={noop} />)
 
-    expect(screen.getAllByText('—').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('-').length).toBeGreaterThan(0)
   })
 
   it('지난달 기록이 있으면 카테고리별 현황 각 행에 지난달 대비 증감(부호 포함 금액)을 표시한다', () => {

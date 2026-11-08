@@ -23,7 +23,7 @@ function pnlClass(value: number | null | undefined) {
 
 // 행 통화는 계좌 broker로 정한다(업비트 KRW, 바이낸스 USDT, 주식 USD)
 function pnlText(pnl: CyclePerformance['pnl'], broker: string | undefined) {
-  if (pnl == null) return '—'
+  if (pnl == null) return '-'
   return fmtSignedMoney(pnl, brokerCurrency(broker))
 }
 
@@ -61,7 +61,7 @@ function CycleTable({ cycles, accountsById }: Props) {
                     {accountsById.get(cycle.accountId)?.nickname}
                   </Badge>
                 ) : (
-                  <span className="text-muted-foreground">—</span>
+                  <span className="text-muted-foreground">-</span>
                 )}
               </TableDataCell>
               <TableDataCell>
@@ -69,7 +69,7 @@ function CycleTable({ cycles, accountsById }: Props) {
                   {labelOf('strategyTypes', cycle.strategyType)}
                 </Badge>
               </TableDataCell>
-              <TableDataCell className="font-medium tabular-nums">{cycle.ticker ?? '—'}</TableDataCell>
+              <TableDataCell className="font-medium tabular-nums">{cycle.ticker ?? '-'}</TableDataCell>
               <TableDataCell className="text-muted-foreground">
                 <Period cycle={cycle} />
               </TableDataCell>
@@ -97,7 +97,7 @@ function CycleCardList({ cycles, accountsById }: Props) {
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="font-semibold tabular-nums">{cycle.ticker ?? '—'}</span>
+                <span className="font-semibold tabular-nums">{cycle.ticker ?? '-'}</span>
                 <Badge tone="brand" size="sm">
                   {labelOf('strategyTypes', cycle.strategyType)}
                 </Badge>
