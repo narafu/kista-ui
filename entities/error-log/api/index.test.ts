@@ -24,7 +24,7 @@ describe('entities/error-log/api reportClientError', () => {
 
     expect(clientFetchMock).toHaveBeenCalledWith(
       '/api/client-errors',
-      { method: 'POST', body: { errorType: 'TypeError', message: 'boom' } },
+      { method: 'POST', body: { errorType: 'TypeError', message: 'boom' }, keepalive: true },
     )
   })
 

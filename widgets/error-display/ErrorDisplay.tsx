@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { fmtTime } from '@shared/lib/format'
 import { useReportClientError } from '@entities/error-log'
 import { cn } from '@shared/lib/utils'
+import { useReloadOnChunkError } from '@shared/lib/hooks/use-reload-on-chunk-error'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button-variants'
 
@@ -50,6 +51,7 @@ export function ErrorDisplay({ code, error, retry, standalone }: ErrorDisplayPro
   )
 
   useReportClientError(error, pathname)
+  useReloadOnChunkError(error)
 
   const content = (
     <div className="text-center max-w-[440px] w-full px-6">

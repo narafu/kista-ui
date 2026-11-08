@@ -5,6 +5,8 @@
 - 새 `NEXT_PUBLIC_*` 추가 시 `.env.example`과 레포 루트 `.env.production.public`(평문 커밋, 빌드 타임 로드용) 동기화 필수
 - Docker에서는 `NEXT_PUBLIC_*`가 빌드 타임 인라인되므로 `Dockerfile`의 `ARG`/`ENV`와 `docker-compose.yml` 전달을 함께 맞춰야 한다.
 
+- `DEPLOYMENT_VERSION`(빌드 인자, `server-deploy.yml`이 커밋 SHA로 전달)는 `next.config.ts`의 `deploymentId`로 쓰인다 — 배포 뒤 열려 있던 탭이 옛 청크를 요청하면 Next가 전체 새로고침으로 복구한다. 그래도 `ChunkLoadError`가 나면 `useReloadOnChunkError`가 30초 안에 1회 새로고침한다. 로컬 개발은 미설정.
+
 ## CORS / API 연동
 
 - Server Component fetch도 서버 간 호출이므로 CORS 영향이 있다.

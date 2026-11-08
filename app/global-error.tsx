@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import { useReportClientError } from '@entities/error-log'
+import { useReloadOnChunkError } from '@shared/lib/hooks/use-reload-on-chunk-error'
 import { Button } from '@/components/ui/button'
 import './globals.css'
 
@@ -18,6 +19,7 @@ export default function GlobalError({
   const pathname = usePathname()
 
   useReportClientError(error, pathname)
+  useReloadOnChunkError(error)
 
   return (
     <html lang="ko" className="dark">

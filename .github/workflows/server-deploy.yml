@@ -100,6 +100,7 @@ jobs:
           cache-to: type=gha,mode=max
           tags: ${{ steps.image.outputs.image }}
           build-args: |
+            DEPLOYMENT_VERSION=${{ github.sha }}
             NEXT_PUBLIC_KAKAO_CLIENT_ID=${{ env.NEXT_PUBLIC_KAKAO_CLIENT_ID }}
             NEXT_PUBLIC_API_BASE_URL=${{ env.NEXT_PUBLIC_API_BASE_URL }}
             NEXT_PUBLIC_FIREBASE_API_KEY=${{ env.NEXT_PUBLIC_FIREBASE_API_KEY }}
