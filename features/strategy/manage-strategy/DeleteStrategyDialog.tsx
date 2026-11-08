@@ -1,5 +1,6 @@
 'use client'
 
+import { useId } from 'react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,16 +27,19 @@ interface Props {
   isDeleting: boolean
   // 보관된 전략이면 "보관하세요" 안내를 뺀다
   isArchived?: boolean
+  // 버튼 아래 한 줄 설명 — 있으면 버튼과 함께 세로 열로 묶는다(부모는 열 배치)
+  caption?: string
   // 목록 안에서 여러 개가 보일 때 트리거 이름에 종목을 붙인다
   triggerAriaLabel?: string
 }
 
-export function DeleteStrategyDialog({ open, onOpenChange, ticker, broker, onConfirm, disabled, isDeleting, isArchived, triggerAriaLabel }: Props) {
-  return (
+export function DeleteStrategyDialog({ open, onOpenChange, ticker, broker, onConfirm, disabled, isDeleting, isArchived, triggerAriaLabel, caption }: Props) {
+  const captionId = useId()
+  const dialog = (
     // 처리 중 열기만 막는다 — 삭제 진행 중 닫기 동작은 기존과 동일
     <AlertDialog open={open} onOpenChange={(next) => { if (!(next && disabled)) onOpenChange(next) }}>
       {/* disabled로 바꾸면 포커스가 body로 빠져 모달을 닫은 뒤 이 버튼으로 복귀하지 못한다 */}
-      <AlertDialogTrigger className={cn(buttonVariants({ variant: 'destructive', size: 'sm' }), 'flex-1 aria-disabled:opacity-50')} aria-disabled={disabled} aria-label={triggerAriaLabel}>
+      <AlertDialogTrigger className={cn(buttonVariants({ variant: 'destructive', size: 'sm' }), caption ? 'w-full aria-disabled:opacity-50' : 'flex-1 aria-disabled:opacity-50')} aria-disabled={disabled} aria-label={triggerAriaLabel} aria-describedby={caption ? captionId : undefined}>
         삭제
       </AlertDialogTrigger>
       <AlertDialogContent size="sm">
@@ -51,5 +55,12 @@ export function DeleteStrategyDialog({ open, onOpenChange, ticker, broker, onCon
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  )
+  if (!caption) return dialog
+  return (
+    <div className="flex min-w-0 flex-1 flex-col gap-1">
+      {dialog}
+      <p id={captionId} className="text-xs text-muted-foreground">{caption}</p>
+    </div>
   )
 }

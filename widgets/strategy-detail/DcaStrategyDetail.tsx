@@ -149,7 +149,7 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
       </div>
 
       <Card>
-        <CardContent className="p-5 flex flex-wrap gap-2">
+        <CardContent className="p-5 grid grid-cols-3 items-start gap-x-3 gap-y-1">
           <Button variant="outline" size="sm" className="flex-1" disabled={loading}
             onClick={() => (strategy.status === 'ACTIVE' ? pause(strategy) : resume(strategy))}>
             {toggleLabel}
@@ -164,6 +164,7 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
             isArchiving={isArchiving}
           />
           <DeleteStrategyDialog
+            caption="통계에서도 삭제"
             open={deleteOpen}
             onOpenChange={setDeleteOpen}
             ticker={strategy.ticker}

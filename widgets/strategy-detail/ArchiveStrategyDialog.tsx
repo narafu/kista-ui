@@ -26,12 +26,12 @@ interface Props {
   isArchiving: boolean
 }
 
-// 보관 버튼 + 확인 다이얼로그. 사유 문구는 flex 행에서 줄바꿈되도록 basis-full — 부모는 flex-wrap이어야 한다
+// 보관 버튼 + 확인 다이얼로그. 버튼 아래 한 줄은 평소 결과 설명, 보관할 수 없으면 사유로 바꾼다 — 부모는 grid-cols-3 같은 열 배치여야 한다
 export function ArchiveStrategyDialog({ open, onOpenChange, ticker, hasHoldings, onConfirm, disabled, isArchiving }: Props) {
   const blockedId = useId()
   const blocked = disabled || hasHoldings
   return (
-    <>
+    <div className="flex min-w-0 flex-1 flex-col gap-1">
       <AlertDialog
         open={open}
         onOpenChange={(next) => {
@@ -40,9 +40,9 @@ export function ArchiveStrategyDialog({ open, onOpenChange, ticker, hasHoldings,
       >
         {/* disabled 대신 aria-disabled — DeleteStrategyDialog와 같은 이유(포커스 복귀) */}
         <AlertDialogTrigger
-          className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'flex-1 aria-disabled:opacity-50')}
+          className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'w-full aria-disabled:opacity-50')}
           aria-disabled={blocked}
-          aria-describedby={hasHoldings ? blockedId : undefined}
+          aria-describedby={blockedId}
         >
           보관
         </AlertDialogTrigger>
@@ -59,11 +59,9 @@ export function ArchiveStrategyDialog({ open, onOpenChange, ticker, hasHoldings,
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      {hasHoldings && (
-        <p id={blockedId} className="basis-full text-xs text-muted-foreground">
-          보유 수량이 남아 있으면 보관할 수 없습니다.
-        </p>
-      )}
-    </>
+      <p id={blockedId} className="text-xs text-muted-foreground">
+        {hasHoldings ? '보유 수량이 남아 있으면 보관할 수 없습니다.' : '통계에 성과 유지'}
+      </p>
+    </div>
   )
 }

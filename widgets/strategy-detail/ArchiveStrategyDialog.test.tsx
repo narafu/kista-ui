@@ -14,6 +14,7 @@ describe('ArchiveStrategyDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: '보관' }))
     expect(onOpenChange).toHaveBeenCalledWith(true)
     expect(screen.queryByText('보유 수량이 남아 있으면 보관할 수 없습니다.')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '보관' })).toHaveAccessibleDescription('통계에 성과 유지')
   })
 
   it('보유 수량이 있으면 aria-disabled로 막고 사유를 설명으로 연결한다', () => {

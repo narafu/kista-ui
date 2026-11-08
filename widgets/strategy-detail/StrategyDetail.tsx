@@ -103,7 +103,7 @@ export function StrategyDetail({ accountId, broker, strategy }: Props) {
       </div>
 
       <Card>
-        <CardContent className="p-5 flex flex-wrap gap-2">
+        <CardContent className="p-5 grid grid-cols-3 items-start gap-x-3 gap-y-1">
           <Button variant="outline" size="sm" className="flex-1" onClick={handleToggle} disabled={loading}>
             {toggleLabel}
           </Button>
@@ -119,6 +119,7 @@ export function StrategyDetail({ accountId, broker, strategy }: Props) {
           />
 
           <DeleteStrategyDialog
+            caption="통계에서도 삭제"
             open={deleteOpen}
             onOpenChange={setDeleteOpen}
             ticker={strategy.ticker}

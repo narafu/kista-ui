@@ -113,6 +113,9 @@ export const scenarios = [
   { name: 'stock-dca-strategy', path: `/accounts/${seed.infinite.accountId}/strategies/00000000-0000-4000-8000-0000000c0172`, mode: 'binance' },
   { name: 'binance-create-strategy', path: `${BINANCE_ACCT}/strategies/new`, mode: 'binance' },
   { name: 'binance-strategies', path: '/strategies', mode: 'binance' },
+  // 규칙 요약 줄(방향 배지·주기·금액) 렌더 확인용 — 매수 규칙 1개를 추가해 완료한다
+  { name: 'binance-create-dca-rules', path: `${BINANCE_ACCT}/strategies/new`, mode: 'binance',
+    steps: [clickRole('button', '매수 규칙 추가'), async (p) => { await p.getByLabel('회차당 금액').fill('20'); await p.waitForTimeout(300) }, clickRole('button', '완료'), clickRole('button', '매도 규칙 추가'), clickRole('button', '보유 비율 %'), async (p) => { await p.getByLabel('보유 비율', { exact: true }).fill('50').catch(() => {}); await p.waitForTimeout(300) }, clickRole('button', '완료')] },
   // broker 카드를 누르면 바로 다음 스텝(API 키 입력)으로 넘어간다
   { name: 'binance-account-new', path: '/accounts/new', mode: 'binance', steps: [clickText('바이낸스')] },
   ...modes('w-inf', INF, ['real', 'deficit', 'trimmed', 'executed'], { clock: true }),

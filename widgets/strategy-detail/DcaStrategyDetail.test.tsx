@@ -141,8 +141,8 @@ describe('DcaStrategyDetail', () => {
   it('규칙 카드: 요약·조건·부족 정책·다음 판정일, 옛 방향 타일·설정 그리드·추가 조건 카드는 없다', () => {
     renderDetail()
     const card = screen.getByRole('heading', { name: '규칙' }).closest('[data-slot="card"]') as HTMLElement
-    expect(within(card).getByText('$300.00').tagName).toBe('STRONG') // 금액만 강조
-    expect(card).toHaveTextContent('매월 말일 · MOC(종가시장가) · $300.00')
+    expect(within(card).getByText('$300.00')).toBeInTheDocument() // 금액은 오른쪽 열
+    expect(card).toHaveTextContent('주기 매월 말일 · MOC(종가시장가) 금액 $300.00')
     expect(within(card).getByText('매수')).toBeInTheDocument()
     expect(ruleField('조건')).toHaveTextContent('RSI(14) 35 이하')
     expect(ruleField('잔고가 부족할 때')).toHaveTextContent('잔량')

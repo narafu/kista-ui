@@ -32,6 +32,8 @@ async function capture(browser, { url, token, viewport, scenario, file }) {
   } catch (e) { errs.push('NAV ' + String(e).slice(0, 200)) }
   // Next dev 표시 배지("N"·"1 Issue")는 에러 유무·애니메이션에 따라 달라져 가짜 diff를 만든다 — 에러는 errs로 따로 비교한다
   await page.addStyleTag({ content: 'nextjs-portal { display: none !important }' }).catch(() => {})
+  // 모바일은 앱 셸(h-dvh) 안의 main만 스크롤해 fullPage가 뷰포트 한 장만 찍는다 — 촬영 때만 셸을 풀어 전체 높이로 찍는다
+  await page.addStyleTag({ content: '@media (max-width: 1023px) { .max-lg\\:h-dvh { height: auto !important; overflow: visible !important } [data-scroll-root] { overflow: visible !important } }' }).catch(() => {})
   await page.screenshot({ path: file, fullPage: true, animations: 'disabled', caret: 'hide' }).catch((e) => errs.push('SHOT ' + e))
   const finalUrl = new URL(page.url()).pathname
   await ctx.close()
