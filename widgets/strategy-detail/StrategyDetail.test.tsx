@@ -273,20 +273,28 @@ describe('StrategyDetail header card', () => {
     expect(mockPush).toHaveBeenCalledWith('/accounts/account-1')
   })
 
-  it('보유 수량이 없으면 보관 버튼이 활성이고 확인 시 archive를 호출한다', () => {
+  it('보유 수량이 없으면 기본 선택이 보관이고 확인 시 archive를 호출한다', () => {
     render(<StrategyDetail accountId="account-1" strategy={{ ...baseStrategy, currentHoldings: 0 }} />)
 
-    expect(screen.queryByText('보유 수량이 남아 있으면 보관할 수 없습니다.')).not.toBeInTheDocument()
-    expect(screen.getByText(/전략을 보관하시겠습니까\? 매매가 멈추고/)).toBeInTheDocument()
-    fireEvent.click(screen.getAllByRole('button', { name: '보관' }).at(-1)!) // 모킹된 다이얼로그는 항상 열려 있어 마지막이 확인 버튼
+    expect(screen.getByRole('radio', { name: /^보관/ })).toBeChecked()
+    fireEvent.click(screen.getByRole('button', { name: '보관' })) // 모킹된 다이얼로그는 항상 열려 있다
     expect(archiveMutate).toHaveBeenCalled()
   })
 
-  it('보유 수량이 있으면 보관을 막고 사유 문구를 노출한다', () => {
+  it('삭제를 고르고 확인하면 remove를 호출한다', () => {
+    render(<StrategyDetail accountId="account-1" strategy={{ ...baseStrategy, currentHoldings: 0 }} />)
+
+    fireEvent.click(screen.getByRole('radio', { name: /^삭제/ }))
+    fireEvent.click(screen.getByRole('button', { name: '삭제' }))
+    expect(deleteMutate).toHaveBeenCalled()
+  })
+
+  it('보유 수량이 있으면 보관 선택지를 막고 삭제가 선택된다', () => {
     render(<StrategyDetail accountId="account-1" strategy={{ ...baseStrategy, currentHoldings: 5 }} />)
 
     expect(screen.getByText('보유 수량이 남아 있으면 보관할 수 없습니다.')).toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: '보관' })[0]).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByRole('radio', { name: /^보관/ })).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByRole('radio', { name: /^삭제/ })).toBeChecked()
   })
 
   it('shows recurring withdrawal mode in the operating-mode card without duplicating the strategy type', () => {

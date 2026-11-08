@@ -4,9 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { KpiCard } from '@widgets/kpi-card'
-import { DeleteStrategyDialog, useManageStrategyMutations } from '@features/strategy/manage-strategy'
+import { useManageStrategyMutations } from '@features/strategy/manage-strategy'
 import { useMeta } from '@entities/meta'
 import { dcaIndicatorLabel, floorToCents, formatCryptoNextExecution, formatDcaCondition, DcaRuleSummaryLabel } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
@@ -17,7 +16,8 @@ import { fmtDate, fmtMoney, fmtQuantity, fmtSignedPercent, pnlTextClass, roundMo
 import { brokerMarket, isCryptoMarket, marketCurrency } from '@shared/lib/api-schema'
 import type { TradingMarket } from '@shared/lib/api-schema'
 import { StrategyInfoCard } from './StrategyMetaSection'
-import { ArchiveStrategyDialog } from './ArchiveStrategyDialog'
+import { CloseStrategyDialog } from './CloseStrategyDialog'
+import { StrategyToggleButton } from './StrategyToggleButton'
 import { DcaExecutionHistory } from './DcaExecutionHistory'
 
 interface Props {
@@ -87,8 +87,7 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
   // 통화·크립토 여부는 계좌 broker 기준 — BTC는 업비트(KRW)·바이낸스(USDT) 모두에 있어 티커로 정할 수 없다
   const market = brokerMarket(broker)
   const isCrypto = isCryptoMarket(market)
-  const [deleteOpen, setDeleteOpen] = useState(false)
-  const [archiveOpen, setArchiveOpen] = useState(false)
+  const [closeOpen, setCloseOpen] = useState(false)
   const { dca } = strategy
   const { pause, resume, remove, archive, isPausing, isResuming, isDeleting, isArchiving } = useManageStrategyMutations({
     onDeleted: () => push(`/accounts/${accountId}`),
@@ -149,28 +148,19 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
       </div>
 
       <Card>
-        <CardContent className="p-5 grid grid-cols-3 items-start gap-x-3 gap-y-1">
-          <Button variant="outline" size="sm" className="flex-1" disabled={loading}
-            onClick={() => (strategy.status === 'ACTIVE' ? pause(strategy) : resume(strategy))}>
-            {toggleLabel}
-          </Button>
-          <ArchiveStrategyDialog
-            open={archiveOpen}
-            onOpenChange={setArchiveOpen}
-            ticker={strategy.ticker}
-            hasHoldings={!!dca?.currentHoldings}
-            onConfirm={() => archive(strategy)}
-            disabled={loading}
-            isArchiving={isArchiving}
-          />
-          <DeleteStrategyDialog
-            caption="통계에서도 삭제"
-            open={deleteOpen}
-            onOpenChange={setDeleteOpen}
+        <CardContent className="p-5 grid grid-cols-2 items-start gap-x-3 gap-y-1">
+          <StrategyToggleButton active={strategy.status === 'ACTIVE'} loading={loading} label={toggleLabel}
+            onClick={() => (strategy.status === 'ACTIVE' ? pause(strategy) : resume(strategy))} />
+          <CloseStrategyDialog
+            open={closeOpen}
+            onOpenChange={setCloseOpen}
             ticker={strategy.ticker}
             broker={broker}
-            onConfirm={() => remove(strategy)}
+            hasHoldings={!!dca?.currentHoldings}
+            onArchive={() => archive(strategy)}
+            onDelete={() => remove(strategy)}
             disabled={loading}
+            isArchiving={isArchiving}
             isDeleting={isDeleting}
           />
         </CardContent>

@@ -3,16 +3,16 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { StrategyTradesTab } from '@widgets/cycle-history'
-import { DeleteStrategyDialog, useManageStrategyMutations } from '@features/strategy/manage-strategy'
+import { useManageStrategyMutations } from '@features/strategy/manage-strategy'
 import { useStrategyOrderPreviewQuery, computeOrderReadiness } from '@entities/order'
 import type { Strategy } from '@entities/strategy'
 import { nextOrderBannerText } from './orderBannerCopy'
 import { useTodayMarketStatus } from './useTodayMarketStatus'
 import { StrategyMetaSection } from './StrategyMetaSection'
 import { NextOrderCard } from './NextOrderCard'
-import { ArchiveStrategyDialog } from './ArchiveStrategyDialog'
+import { CloseStrategyDialog } from './CloseStrategyDialog'
+import { StrategyToggleButton } from './StrategyToggleButton'
 import { StrategyOrderHistory } from './StrategyOrderHistory'
 
 interface Props {
@@ -23,8 +23,7 @@ interface Props {
 
 export function StrategyDetail({ accountId, broker, strategy }: Props) {
   const { push } = useRouter()
-  const [deleteOpen, setDeleteOpen] = useState(false)
-  const [archiveOpen, setArchiveOpen] = useState(false)
+  const [closeOpen, setCloseOpen] = useState(false)
 
   const { data: preview, isLoading: isLoadingPreview, isError, error: previewError } = useStrategyOrderPreviewQuery(strategy.id)
   // 재조회 실패는 이미 받은 미리보기를 덮지 않는다 — 데이터가 없을 때만 오류로 본다
@@ -103,29 +102,19 @@ export function StrategyDetail({ accountId, broker, strategy }: Props) {
       </div>
 
       <Card>
-        <CardContent className="p-5 grid grid-cols-3 items-start gap-x-3 gap-y-1">
-          <Button variant="outline" size="sm" className="flex-1" onClick={handleToggle} disabled={loading}>
-            {toggleLabel}
-          </Button>
+        <CardContent className="p-5 grid grid-cols-2 items-start gap-x-3 gap-y-1">
+          <StrategyToggleButton active={strategy.status === 'ACTIVE'} loading={loading} label={toggleLabel} onClick={handleToggle} />
 
-          <ArchiveStrategyDialog
-            open={archiveOpen}
-            onOpenChange={setArchiveOpen}
-            ticker={strategy.ticker}
-            hasHoldings={!!strategy.currentHoldings}
-            onConfirm={() => archive(strategy)}
-            disabled={loading}
-            isArchiving={isArchiving}
-          />
-
-          <DeleteStrategyDialog
-            caption="통계에서도 삭제"
-            open={deleteOpen}
-            onOpenChange={setDeleteOpen}
+          <CloseStrategyDialog
+            open={closeOpen}
+            onOpenChange={setCloseOpen}
             ticker={strategy.ticker}
             broker={broker}
-            onConfirm={() => remove(strategy)}
+            hasHoldings={!!strategy.currentHoldings}
+            onArchive={() => archive(strategy)}
+            onDelete={() => remove(strategy)}
             disabled={loading}
+            isArchiving={isArchiving}
             isDeleting={isDeleting}
           />
         </CardContent>

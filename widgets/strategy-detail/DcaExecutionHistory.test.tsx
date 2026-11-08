@@ -137,9 +137,7 @@ describe('DcaExecutionHistory', () => {
   it('필터 적용 중 빈 결과는 조건 문구, 기본(전체)은 기존 문구를 보여 준다', async () => {
     queryMock.mockReturnValue({ data: { content: [], page: 0, size: 10, totalElements: 0 }, isLoading: false, isError: false })
     render(<DcaExecutionHistory strategyId="d1" ticker="UPRO" rules={[rule]} market="US_STOCK" />)
-    expect(screen.getByText('아직 실행된 회차가 없습니다.')).toBeInTheDocument() // 기본 기간은 전체
-    fireEvent.click(screen.getByRole('button', { name: '7일' }))
-    expect(screen.getByText('조건에 맞는 실행 이력이 없습니다.')).toBeInTheDocument()
+    expect(screen.getByText('조건에 맞는 실행 이력이 없습니다.')).toBeInTheDocument() // 기본 기간은 7일
     fireEvent.click(screen.getByRole('button', { name: '전체' }))
     expect(screen.getByText('아직 실행된 회차가 없습니다.')).toBeInTheDocument()
     await selectOption('방향', '매수')

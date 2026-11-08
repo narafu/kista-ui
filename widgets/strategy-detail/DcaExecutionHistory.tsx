@@ -30,8 +30,7 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
   const { labelOf } = useMeta()
   const isCrypto = isCryptoMarket(market)
   const currency = marketCurrency(market)
-  // DCA는 월 단위 규칙도 있어 기본 기간을 '전체'로 둔다
-  const range$ = useRangeFilterState('all')
+  const range$ = useRangeFilterState()
   const { rangeType, customFrom, customTo, pageSize } = range$
   const [direction, setDirectionRaw] = useState(ALL_FILTER_VALUE)
   const [ruleKey, setRuleKeyRaw] = useState(ALL_FILTER_VALUE)
