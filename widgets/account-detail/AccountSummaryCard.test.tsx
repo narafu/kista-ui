@@ -52,18 +52,21 @@ describe('AccountSummaryCard', () => {
     expect(screen.getByText('123-45****')).toBeInTheDocument()
   })
 
-  it('hides deposit/eval KPIs for MOCK broker accounts', () => {
+  it('MOCK 계좌는 증권사 기준 없이 전략 합산만 보여주고 미배정 예수금은 —이다', () => {
     render(
       <AccountSummaryCard
         account={{ ...account, broker: 'MOCK' }}
         usdDeposit={1000}
         posEvalUsd={2000}
+        ledgerTotals={{ currency: 'USD', deposit: 160, evaluation: 50, unassignedCash: null }}
       />,
     )
 
-    expect(screen.queryByText('예수금 (전략 합산)')).not.toBeInTheDocument()
-    expect(screen.queryByText('평가금 (전략 합산)')).not.toBeInTheDocument()
+    expect(screen.getByText('$160.00')).toBeInTheDocument()
+    expect(screen.getByText('$50.00')).toBeInTheDocument()
+    expect(screen.getByText('—')).toBeInTheDocument()
     expect(screen.queryByText('증권사 기준')).not.toBeInTheDocument()
+    expect(screen.queryByText('$1,000.00')).not.toBeInTheDocument()
     expect(screen.getByText('모의계좌')).toBeInTheDocument()
   })
 
@@ -116,6 +119,23 @@ describe('AccountSummaryCard', () => {
     expect(screen.getByText('1,478,024원')).toBeInTheDocument()
     expect(screen.queryByText(/\$/)).not.toBeInTheDocument()
     expect(screen.queryByText(/현재가 확인 불가/)).not.toBeInTheDocument()
+  })
+
+  it('크립토 계좌도 전략 합산을 거래소 통화로 보여주고 거래소 기준을 보조로 둔다', () => {
+    render(
+      <AccountSummaryCard
+        account={{ ...account, broker: 'UPBIT', accountNoMasked: null }}
+        usdDeposit={0}
+        posEvalUsd={0}
+        ledgerTotals={{ currency: 'KRW', deposit: 50000, evaluation: 70000, unassignedCash: 3000 }}
+        cryptoPortfolio={{ currency: 'KRW', cash: 120000, totalAsset: 1478024, holdings: [] }}
+      />,
+    )
+    expect(screen.getByText('50,000원')).toBeInTheDocument()
+    expect(screen.getByText('70,000원')).toBeInTheDocument()
+    expect(screen.getByText('3,000원')).toBeInTheDocument()
+    expect(screen.getByText('거래소 기준')).toBeInTheDocument()
+    expect(screen.getByText('120,000원')).toBeInTheDocument()
   })
 
   it('바이낸스 계좌는 예수금·총자산을 USDT로 보여준다', () => {

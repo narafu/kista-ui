@@ -31,7 +31,7 @@ export function AccountDetailContent({
   })
   const { data: ledgerTotals } = useQuery({
     ...accountLedgerTotalsQueryOptions(accountId),
-    enabled: !!account && !isMockBroker(account.broker) && !isCrypto,
+    enabled: !!account,
   })
   const cryptoQuery = useQuery({ ...cryptoPortfolioQueryOptions(accountId), enabled: isCrypto })
 

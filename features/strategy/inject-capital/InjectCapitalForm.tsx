@@ -22,6 +22,7 @@ import { currencyUnit, fmtMoney } from '@shared/lib/format'
 import { CURRENCY_SCALE, type Currency } from '@shared/lib/api-schema'
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
+import { accountKeys } from '@entities/account'
 import { tradeKeys } from '@entities/trade'
 import { useInjectCapitalMutation } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
@@ -49,6 +50,8 @@ export function InjectCapitalForm({ accountId, strategy, currency, dismiss = 'pu
       queryClient.invalidateQueries({ queryKey: orderKeys.preview(strategy.id) }).catch(() => null),
       // 잔고 이력(cycle-history)·성과에 추가·인출 결과가 바로 보이도록 함께 무효화한다
       queryClient.invalidateQueries({ queryKey: tradeKeys.all }).catch(() => null),
+      // 전략 합산 예수금·평가금·미배정 예수금이 바로 반영되도록 함께 무효화한다
+      queryClient.invalidateQueries({ queryKey: accountKeys.ledgerTotalsRoot() }).catch(() => null),
       queryClient.invalidateQueries({ queryKey: statsKeys.all }).catch(() => null),
     ])
     handleDone()

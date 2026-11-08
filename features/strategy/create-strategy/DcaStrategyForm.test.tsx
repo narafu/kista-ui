@@ -1,6 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { TradingMarket } from '@shared/lib/api-schema'
+import { accountKeys } from '@entities/account'
 import { MetaProvider } from '@entities/meta'
 import type { DcaRule, Strategy } from '@entities/strategy'
 import { DcaStrategyForm } from './DcaStrategyForm'
@@ -43,11 +45,13 @@ function existing(rules: DcaRule[]): Strategy {
   }
 }
 
+const queryClient = new QueryClient()
+
 function renderForm(initial?: Strategy, defaultTicker = 'UPRO', market: TradingMarket = 'US_STOCK', header?: React.ReactNode) {
   return render(
-    <MetaProvider meta={meta}>
+    <QueryClientProvider client={queryClient}><MetaProvider meta={meta}>
       <DcaStrategyForm accountId="a1" initial={initial} availableTickers={market === 'US_STOCK' ? ['UPRO', 'QLD'] : ['BTC']} defaultTicker={defaultTicker} market={market} orderAmount={testOrderAmount(market)} header={header} />
-    </MetaProvider>,
+    </MetaProvider></QueryClientProvider>,
   )
 }
 
@@ -91,6 +95,10 @@ describe('DcaStrategyForm', () => {
     const payload = createMutate.mock.calls[0][0]
     expect(payload).toMatchObject({ type: 'DCA', ticker: 'UPRO', dca: { rules: [{ direction: 'BUY', sizing: { type: 'AMOUNT', amount: 300, percent: null } }] } })
     expect(payload.dca.rules[0]).not.toHaveProperty('ruleKey')
+    // 성공하면 전략 합산 예수금 캐시를 무효화한다
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries')
+    createMutate.mock.calls[0][1].onSuccess()
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: accountKeys.ledgerTotalsRoot() })
     expect(reconfigureMutate).not.toHaveBeenCalled()
   })
 

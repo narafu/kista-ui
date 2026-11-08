@@ -30,6 +30,8 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, ledgerTota
   const brokerLabel = labelOf('brokers', account.broker)
   const isMock = isMockBroker(account.broker)
   const expiry = apiKeyExpiryState(account.apiKeyExpiresAt)
+  // 조회 중·실패(undefined)와 서버가 null로 준 값(조회 실패·MOCK 미배정)은 모두 NO_VALUE
+  const ledgerMoney = (v: number | null | undefined) => (ledgerTotals && v != null ? fmtMoney(v, ledgerTotals.currency) : NO_VALUE)
   // 현재가를 못 받은 종목은 평가금액이 0으로 들어와 총자산에서 빠진다
   const hasUnpricedHolding = cryptoPortfolio?.holdings.some((h) => h.currentPrice == null) ?? false
 
@@ -55,9 +57,13 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, ledgerTota
               }
             />
           )}
-          <KpiCard label={brokerKindLabel(account.broker)} className={isCryptoBroker(account.broker) ? 'col-span-2 sm:col-span-1' : undefined} value={<span className="text-xl font-semibold leading-snug">{brokerLabel}</span>} />
+          <KpiCard label={brokerKindLabel(account.broker)} className={account.accountNoMasked == null ? 'col-span-2' : undefined} value={<span className="text-xl font-semibold leading-snug">{brokerLabel}</span>} />
+          <KpiCard label="예수금 (전략 합산)" value={ledgerMoney(ledgerTotals?.deposit)} valueClassName={LONG_MONEY_CLASS} />
+          <KpiCard label="평가금 (전략 합산)" value={ledgerMoney(ledgerTotals?.evaluation)} valueClassName={LONG_MONEY_CLASS} />
+          <KpiCard label="미배정 예수금 (주문 가능 기준)" className="col-span-2" value={ledgerMoney(ledgerTotals?.unassignedCash)} valueClassName={LONG_MONEY_CLASS} />
           {isCryptoBroker(account.broker) ? (
             <>
+              <p className="col-span-2 mt-1 text-xs font-medium text-muted-foreground">거래소 기준</p>
               <KpiCard label="예수금" className="col-span-2 sm:col-span-1" value={cryptoPortfolio ? fmtMoney(cryptoPortfolio.cash, cryptoPortfolio.currency) : '-'} valueClassName={LONG_MONEY_CLASS} />
               <div className="col-span-2">
                 <KpiCard label="총자산" value={cryptoPortfolio ? fmtMoney(cryptoPortfolio.totalAsset, cryptoPortfolio.currency) : '-'} valueClassName={LONG_MONEY_CLASS} />
@@ -68,9 +74,6 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, ledgerTota
             </>
           ) : !isMock && (
             <>
-              <KpiCard label="예수금 (전략 합산)" value={ledgerTotals ? fmtMoney(ledgerTotals.deposit, ledgerTotals.currency) : NO_VALUE} valueClassName={LONG_MONEY_CLASS} />
-              <KpiCard label="평가금 (전략 합산)" value={ledgerTotals?.evaluation != null ? fmtMoney(ledgerTotals.evaluation, ledgerTotals.currency) : NO_VALUE} valueClassName={LONG_MONEY_CLASS} />
-              <KpiCard label="미배정 예수금 (주문 가능 기준)" className="col-span-2" value={ledgerTotals?.unassignedCash != null ? fmtMoney(ledgerTotals.unassignedCash, ledgerTotals.currency) : NO_VALUE} valueClassName={LONG_MONEY_CLASS} />
               <p className="col-span-2 mt-1 text-xs font-medium text-muted-foreground">증권사 기준</p>
               <KpiCard label="예수금" value={`$${fmtUsd(usdDeposit)}`} />
               <KpiCard label="평가금" value={`$${fmtUsd(posEvalUsd)}`} />

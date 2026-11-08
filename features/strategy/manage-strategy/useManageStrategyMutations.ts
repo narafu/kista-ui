@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { useArchiveStrategyMutation, useDeleteStrategyMutation, useExecuteStrategyMutation, usePauseStrategyMutation, useResumeStrategyMutation } from '@entities/strategy'
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
+import { accountKeys } from '@entities/account'
 import { tradeKeys } from '@entities/trade'
 import { apiMsg } from '@shared/lib/api-client'
 import type { Strategy } from '@entities/strategy'
@@ -27,6 +28,8 @@ export function useManageStrategyMutations({ onDeleted, onArchived, strategyId }
       queryClient.invalidateQueries({ queryKey: orderKeys.all }).catch(() => null),
       queryClient.invalidateQueries({ queryKey: statsKeys.all }).catch(() => null),
       queryClient.invalidateQueries({ queryKey: tradeKeys.all }).catch(() => null),
+      // 전략 합산 예수금·평가금·미배정 예수금이 바로 반영되도록 함께 무효화한다
+      queryClient.invalidateQueries({ queryKey: accountKeys.ledgerTotalsRoot() }).catch(() => null),
     ])
   }
 

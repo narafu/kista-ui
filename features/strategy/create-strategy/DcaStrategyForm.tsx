@@ -3,11 +3,13 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { isCryptoMarket, marketCurrency, type TradingMarket } from '@shared/lib/api-schema'
 import { currencyUnit } from '@shared/lib/format'
 import { useSubviewHistory } from '@shared/lib/subviewHistory'
 import { FormActions } from '@shared/ui/FormActions'
+import { accountKeys } from '@entities/account'
 import type { OrderAmountRule } from '@entities/meta'
 import { useCreateStrategyMutation, useReconfigureDcaMutation, useStrategySeedPreviewQuery } from '@entities/strategy'
 import type { DcaDirection, Strategy } from '@entities/strategy'
@@ -64,7 +66,10 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
     else listRef.current?.querySelector<HTMLButtonElement>(`[data-add-direction="${target}"]`)?.focus()
   }, [editing])
 
-  const done = () => {
+  const queryClient = useQueryClient()
+  const done = async () => {
+    // 전략 합산 예수금·미배정 예수금 갱신 — DCA는 공용 전략 폼 효과를 거치지 않는다. 폼이 닫히기 전에 끝낸다
+    await queryClient.invalidateQueries({ queryKey: accountKeys.ledgerTotalsRoot() }).catch(() => null)
     toast.success(initial ? '전략이 수정되었습니다' : '전략이 등록되었습니다')
     onSuccess?.()
   }

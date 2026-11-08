@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
+import { accountKeys } from '@entities/account'
 import { tradeKeys } from '@entities/trade'
 import type { Strategy } from '@entities/strategy'
 import { useManageStrategyMutations } from './useManageStrategyMutations'
@@ -160,6 +161,7 @@ describe('useManageStrategyMutations', () => {
       { queryKey: orderKeys.all },
       { queryKey: statsKeys.all },
       { queryKey: tradeKeys.all },
+      { queryKey: accountKeys.ledgerTotalsRoot() },
     ])
     expect(onDeleted).not.toHaveBeenCalled()
 
