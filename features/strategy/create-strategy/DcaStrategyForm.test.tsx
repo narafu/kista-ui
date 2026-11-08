@@ -98,7 +98,7 @@ describe('DcaStrategyForm', () => {
     // 성공하면 전략 합산 예수금 캐시를 무효화한다
     const invalidate = vi.spyOn(queryClient, 'invalidateQueries')
     createMutate.mock.calls[0][1].onSuccess()
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: accountKeys.ledgerTotalsRoot() })
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: accountKeys.ledgerTotals('a1') })
     expect(reconfigureMutate).not.toHaveBeenCalled()
   })
 

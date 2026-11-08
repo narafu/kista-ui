@@ -19,6 +19,7 @@ import {
 import { FormActions } from '@shared/ui/FormActions'
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
+import { invalidateLedgerTotals } from '@entities/account'
 import { tradeKeys } from '@entities/trade'
 import { useReconfigureVrMutation } from '@entities/strategy'
 import type { ReconfigureVrRequest } from '@entities/strategy'
@@ -72,6 +73,7 @@ export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Pro
       // 잔고 이력(cycle-history)·성과에 추가·인출 결과가 바로 보이도록 함께 무효화한다
       queryClient.invalidateQueries({ queryKey: tradeKeys.all }).catch(() => null),
       queryClient.invalidateQueries({ queryKey: statsKeys.all }).catch(() => null),
+      invalidateLedgerTotals(queryClient, accountId),
     ])
     handleDone()
   }

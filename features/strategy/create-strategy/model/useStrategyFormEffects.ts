@@ -7,7 +7,7 @@ import { useCreateStrategyMutation, useUpdateStrategyMutation } from '@entities/
 import type { Strategy, StrategyRequest } from '@entities/strategy'
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
-import { accountKeys } from '@entities/account'
+import { invalidateLedgerTotals } from '@entities/account'
 import { tradeKeys } from '@entities/trade'
 import type { useSeedModel } from './useSeedModel'
 
@@ -33,7 +33,7 @@ export function useStrategyMutations({
       queryClient.invalidateQueries({ queryKey: statsKeys.all }).catch(() => null),
       queryClient.invalidateQueries({ queryKey: tradeKeys.all }).catch(() => null),
       // 전략 합산 예수금·평가금·미배정 예수금이 바로 반영되도록 함께 무효화한다
-      queryClient.invalidateQueries({ queryKey: accountKeys.ledgerTotalsRoot() }).catch(() => null),
+      invalidateLedgerTotals(queryClient, accountId),
     ])
     onSuccess?.()
   }

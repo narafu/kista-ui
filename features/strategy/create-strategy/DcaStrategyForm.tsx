@@ -9,7 +9,10 @@ import { isCryptoMarket, marketCurrency, type TradingMarket } from '@shared/lib/
 import { currencyUnit } from '@shared/lib/format'
 import { useSubviewHistory } from '@shared/lib/subviewHistory'
 import { FormActions } from '@shared/ui/FormActions'
-import { accountKeys } from '@entities/account'
+import { invalidateLedgerTotals } from '@entities/account'
+import { orderKeys } from '@entities/order'
+import { statsKeys } from '@entities/stats'
+import { tradeKeys } from '@entities/trade'
 import type { OrderAmountRule } from '@entities/meta'
 import { useCreateStrategyMutation, useReconfigureDcaMutation, useStrategySeedPreviewQuery } from '@entities/strategy'
 import type { DcaDirection, Strategy } from '@entities/strategy'
@@ -68,8 +71,13 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
 
   const queryClient = useQueryClient()
   const done = async () => {
-    // 전략 합산 예수금·미배정 예수금 갱신 — DCA는 공용 전략 폼 효과를 거치지 않는다. 폼이 닫히기 전에 끝낸다
-    await queryClient.invalidateQueries({ queryKey: accountKeys.ledgerTotalsRoot() }).catch(() => null)
+    // DCA는 공용 전략 폼 효과(useStrategyFormEffects)를 거치지 않아 같은 캐시를 직접 무효화한다. 폼이 닫히기 전에 끝낸다
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: orderKeys.all }).catch(() => null),
+      queryClient.invalidateQueries({ queryKey: statsKeys.all }).catch(() => null),
+      queryClient.invalidateQueries({ queryKey: tradeKeys.all }).catch(() => null),
+      invalidateLedgerTotals(queryClient, accountId),
+    ])
     toast.success(initial ? '전략이 수정되었습니다' : '전략이 등록되었습니다')
     onSuccess?.()
   }

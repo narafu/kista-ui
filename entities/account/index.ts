@@ -1,6 +1,7 @@
 // entities/account public API
 export type { Account, AccountRequest, BrokerCode } from './model/types'
 export { accountKeys } from './model/queryKeys'
+export { invalidateLedgerTotals } from './model/invalidate'
 export { accountDetailQueryOptions, accountListQueryOptions, accountLedgerTotalsQueryOptions } from './model/queryOptions'
 export type { PriceMap, AccountLedgerTotals } from './api'
 export {

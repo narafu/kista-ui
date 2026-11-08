@@ -91,7 +91,7 @@ vi.mock('@entities/meta', async () => ({
 }))
 
 vi.mock('@entities/account', () => ({
-  accountKeys: { ledgerTotalsRoot: () => ['accounts', 'ledger-totals'] },
+  invalidateLedgerTotals: (qc: { invalidateQueries: (o: unknown) => unknown }, id?: string) => Promise.resolve(qc.invalidateQueries({ queryKey: ['ledger', id] })).catch(() => null),
   useAccountPricesQuery: () => ({
     data: { TSLA: 100 },
   }),
@@ -179,7 +179,7 @@ describe('useStrategyForm submit policy', () => {
     expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: orderKeys.all })
     expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: statsKeys.all })
     expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: tradeKeys.all })
-    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: ['accounts', 'ledger-totals'] })
+    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: ['ledger', 'account-1'] })
   })
 
   it('still calls the form onSuccess callback after save even if one dependent invalidation rejects', async () => {
