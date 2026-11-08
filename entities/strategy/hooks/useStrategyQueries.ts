@@ -20,7 +20,7 @@ import {
   executeStrategy,
   getStrategySeedPreview,
 } from '../api'
-import type { CapitalInjectionRequest, CapitalWithdrawalRequest, DcaConfigRequest, DcaExecutionPage, ReconfigureVrRequest, Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
+import type { CapitalInjectionRequest, CapitalWithdrawalRequest, DcaConfigRequest, DcaExecutionFilters, DcaExecutionPage, ReconfigureVrRequest, Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
 import { strategyKeys } from '../model/queryKeys'
 import {
   strategyDetailQueryOptions,
@@ -163,10 +163,11 @@ export function useReconfigureDcaMutation(strategyId: string, onSuccess?: () => 
   })
 }
 
-export function useDcaExecutionsQuery(strategyId: string, page: number, size: number) {
+export function useDcaExecutionsQuery(strategyId: string, page: number, size: number, filters?: DcaExecutionFilters, options?: { enabled?: boolean }) {
   return useQuery<DcaExecutionPage>({
-    queryKey: strategyKeys.dcaExecutions(strategyId, page, size),
-    queryFn: () => listDcaExecutions(strategyId, page, size),
+    queryKey: strategyKeys.dcaExecutions(strategyId, page, size, filters),
+    queryFn: () => listDcaExecutions(strategyId, page, size, filters),
+    enabled: options?.enabled !== false,
     placeholderData: (prev) => prev, // 페이지 전환 중 이전 페이지 유지 — 표·페이지네이션 깜빡임 방지
   })
 }

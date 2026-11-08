@@ -10,8 +10,8 @@ type RangeFilterState = { rangeType: RangePreset; customFrom: string; customTo: 
 const INITIAL: RangeFilterState = { rangeType: '7d', customFrom: '', customTo: '', pageSize: '10' }
 
 /** 기간 프리셋 + 커스텀 날짜 + 페이지 크기 상태와 필드별 setter를 반환한다. */
-export function useRangeFilterState() {
-  const [state, setState] = useState<RangeFilterState>(INITIAL)
+export function useRangeFilterState(initialRangeType: RangePreset = INITIAL.rangeType) {
+  const [state, setState] = useState<RangeFilterState>({ ...INITIAL, rangeType: initialRangeType })
   const set = <K extends keyof RangeFilterState>(key: K) =>
     (value: RangeFilterState[K]) => setState((prev) => ({ ...prev, [key]: value }))
 

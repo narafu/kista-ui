@@ -2,7 +2,7 @@ import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
 import { optDec, optNum, optStr } from '@shared/lib/normalize'
 import { buildQueryString } from '@shared/lib/query-string'
-import type { CycleSeedType, DcaCondition, CapitalInjectionRequest, CapitalWithdrawalRequest, DcaConfigRequest, DcaDirection, DcaExecution, DcaExecutionPage, DcaFrequency, DcaIndicator, DcaOperator, DcaOrderType, DcaRule, DcaShortfallPolicy, DcaSizing, DcaSizingType, DcaWeekday, ReconfigureVrRequest, Strategy, StrategyDcaSummary, StrategyRequest, StrategySeedPreview, StrategyVrSummary } from '../model/types'
+import type { CycleSeedType, DcaCondition, CapitalInjectionRequest, CapitalWithdrawalRequest, DcaConfigRequest, DcaDirection, DcaExecution, DcaExecutionFilters, DcaExecutionPage, DcaFrequency, DcaIndicator, DcaOperator, DcaOrderType, DcaRule, DcaShortfallPolicy, DcaSizing, DcaSizingType, DcaWeekday, ReconfigureVrRequest, Strategy, StrategyDcaSummary, StrategyRequest, StrategySeedPreview, StrategyVrSummary } from '../model/types'
 import { WEEKDAY_LABEL } from '../model/dcaFormat'
 import type { PlacedOrder } from '@shared/model/placed-order'
 import { normalizePlacedOrderBase } from '@shared/model/placed-order'
@@ -170,8 +170,8 @@ export async function reconfigureDca(id: string, data: DcaConfigRequest, token?:
   return normalizeStrategy(raw)
 }
 
-export async function listDcaExecutions(id: string, page: number, size: number, token?: string): Promise<DcaExecutionPage> {
-  const qs = buildQueryString({ page, size })
+export async function listDcaExecutions(id: string, page: number, size: number, filters?: DcaExecutionFilters, token?: string): Promise<DcaExecutionPage> {
+  const qs = buildQueryString({ page, size, from: filters?.from, to: filters?.to, direction: filters?.direction, ruleKey: filters?.ruleKey })
   const raw = await fetchEither<Record<string, unknown>>(`/api/trading-cycles/${id}/dca-executions${qs}`, undefined, token)
   return {
     content: ((raw.content as unknown[] | undefined) ?? []).map(normalizeDcaExecution),

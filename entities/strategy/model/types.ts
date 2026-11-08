@@ -57,6 +57,8 @@ export interface DcaRule extends Omit<DcaRuleRequest, 'ruleKey' | 'executionHour
 }
 export interface StrategyDcaSummary { rules: DcaRule[]; currentHoldings: number | null; avgPrice: number | null }
 export interface DcaExecution { ruleKey: string; direction: DcaDirection; kstTradeDate: string; usSessionDate?: string; status: string; skipReason: string | null; detail: string | null; referencePrice?: number; quantity?: number; order: { id: string; status: string; filledQuantity?: number; filledPrice?: number } | null }
+/** 실행 이력 서버 필터 — 모두 선택, 비어 있으면 쿼리에 싣지 않는다(from·to는 yyyy-MM-dd 거래일) */
+export interface DcaExecutionFilters { from?: string; to?: string; direction?: string; ruleKey?: string }
 export interface DcaExecutionPage { content: DcaExecution[]; page: number; size: number; totalElements: number }
 
 export interface Strategy {

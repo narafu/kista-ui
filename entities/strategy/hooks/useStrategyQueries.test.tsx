@@ -324,6 +324,18 @@ describe('useDcaExecutionsQuery', () => {
     resolve1({ ...page0, page: 1 })
     await waitFor(() => expect(result.current.data?.page).toBe(1))
   })
+
+  it('필터가 바뀌면 키가 분리돼 새로 호출하고 필터를 API에 넘긴다', async () => {
+    const empty = { content: [], page: 0, size: 10, totalElements: 0 }
+    listDcaExecutionsMock.mockResolvedValue(empty)
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const wrapper = ({ children }: PropsWithChildren) => <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    const { result, rerender } = renderHook(({ direction }: { direction?: string }) => useDcaExecutionsQuery('s1', 0, 10, { direction }), { wrapper, initialProps: {} as { direction?: string } })
+    await waitFor(() => expect(result.current.data).toEqual(empty))
+    rerender({ direction: 'SELL' })
+    await waitFor(() => expect(listDcaExecutionsMock).toHaveBeenLastCalledWith('s1', 0, 10, { direction: 'SELL' }))
+    expect(client.getQueryData(strategyKeys.dcaExecutions('s1', 0, 10, { direction: 'SELL' }))).toEqual(empty)
+  })
 })
 
 describe('useReconfigureDcaMutation', () => {

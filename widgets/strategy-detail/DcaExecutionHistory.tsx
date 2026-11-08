@@ -18,8 +18,11 @@ import { fmtDate, fmtMoney, fmtQuantity } from '@shared/lib/format'
 import { isCryptoMarket, marketCurrency } from '@shared/lib/api-schema'
 import type { TradingMarket } from '@shared/lib/api-schema'
 import { SectionError } from '@shared/ui/SectionError'
-
-const PAGE_SIZE = 10
+import { RangeFilterControls } from '@shared/ui/range-filter/RangeFilterControls'
+import { resolveRangeStrict } from '@shared/lib/date-range'
+import { useRangeFilterState } from '@shared/lib/hooks/use-range-filter-state'
+import { DcaExecutionFilters } from './DcaExecutionFilters'
+import { ALL_FILTER_VALUE } from './OrderHistoryFilters'
 
 type ExecutionItem = NonNullable<ReturnType<typeof useDcaExecutionsQuery>['data']>['content'][number]
 
@@ -27,8 +30,28 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
   const { labelOf } = useMeta()
   const isCrypto = isCryptoMarket(market)
   const currency = marketCurrency(market)
+  // DCA는 월 단위 규칙도 있어 기본 기간을 '전체'로 둔다
+  const range$ = useRangeFilterState('all')
+  const { rangeType, customFrom, customTo, pageSize } = range$
+  const [direction, setDirectionRaw] = useState(ALL_FILTER_VALUE)
+  const [ruleKey, setRuleKeyRaw] = useState(ALL_FILTER_VALUE)
   const [page, setPage] = useState(1) // PaginationBar는 1-base, API는 0-base
-  const { data, isLoading, isError } = useDcaExecutionsQuery(strategyId, page - 1, PAGE_SIZE)
+  // 필터·페이지 크기 변경 핸들러에서 페이지를 함께 1로 리셋 (effect는 한 렌더 늦어 page>1 + 새 필터로 먼저 요청이 나간다)
+  const resetPage = <T,>(set: (v: T) => void) => (v: T) => { set(v); setPage(1) }
+  const setRangeType = resetPage(range$.setRangeType)
+  const setCustomFrom = resetPage(range$.setCustomFrom)
+  const setCustomTo = resetPage(range$.setCustomTo)
+  const setPageSize = resetPage(range$.setPageSize)
+  const setDirection = resetPage(setDirectionRaw)
+  const setRuleKey = resetPage(setRuleKeyRaw)
+  const range = resolveRangeStrict(rangeType, customFrom, customTo) // null이면 커스텀 기간 미완성 — 조회 보류
+  const size = Number(pageSize)
+  const { data, isLoading, isError, isPlaceholderData } = useDcaExecutionsQuery(
+    strategyId, page - 1, size,
+    { from: range?.from, to: range?.to, direction: direction === ALL_FILTER_VALUE ? undefined : direction, ruleKey: ruleKey === ALL_FILTER_VALUE ? undefined : ruleKey },
+    { enabled: range !== null },
+  )
+  const filtered = rangeType !== 'all' || direction !== ALL_FILTER_VALUE || ruleKey !== ALL_FILTER_VALUE
   // API는 같은 거래일 안에서 기록 역순으로 준다 — 날짜 내림차순은 유지하고 같은 날 안에서는 규칙 카드 순서로, 삭제된 규칙은 맨 뒤로
   // ponytail: 페이지 단위 정렬 — 한 거래일이 페이지 경계에 걸치면 경계 너머 순서는 못 맞춘다(같은 날 행 수 ≤ 규칙 수라 드묾). 필요해지면 API 정렬 키로 이관
   const ruleRank = (key: string) => {
@@ -38,7 +61,7 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
   const rows = [...(data?.content ?? [])].sort(
     (a, b) => b.kstTradeDate.localeCompare(a.kstTradeDate) || ruleRank(a.ruleKey) - ruleRank(b.ruleKey),
   )
-  const totalPages = Math.ceil((data?.totalElements ?? 0) / PAGE_SIZE)
+  const totalPages = Math.ceil((data?.totalElements ?? 0) / size)
 
   // 방향·주기·조건을 따로 그린다(PC 표 칸, 모바일 카드 줄) — 삭제된 규칙은 응답의 방향만 남는다
   const directionBadge = (r: ExecutionItem) => (
@@ -67,7 +90,23 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
-        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">회차별 실행 이력</CardTitle>
+        <div className="space-y-2">
+          <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">회차별 실행 이력</CardTitle>
+          <RangeFilterControls
+            rangeType={rangeType}
+            onRangeChange={setRangeType}
+            pageSize={pageSize}
+            onPageSizeChange={setPageSize}
+            customFrom={customFrom}
+            customTo={customTo}
+            onCustomFromChange={setCustomFrom}
+            onCustomToChange={setCustomTo}
+            extraFilters={<DcaExecutionFilters rules={rules} direction={direction} ruleKey={ruleKey} onDirectionChange={setDirection} onRuleKeyChange={setRuleKey} />}
+          />
+          <div className="lg:hidden">
+            <DcaExecutionFilters rules={rules} direction={direction} ruleKey={ruleKey} onDirectionChange={setDirection} onRuleKeyChange={setRuleKey} />
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         {isLoading ? (
@@ -75,9 +114,9 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
         ) : isError && !data ? (
           <div className="px-6 pb-6"><SectionError message="실행 이력을 불러오지 못했습니다." /></div>
         ) : rows.length === 0 ? (
-          <EmptyState variant="text" message="아직 실행된 회차가 없습니다." />
+          <EmptyState variant="text" message={filtered ? '조건에 맞는 실행 이력이 없습니다.' : '아직 실행된 회차가 없습니다.'} />
         ) : (
-          <>
+          <div className={isPlaceholderData ? 'opacity-60 transition-opacity' : 'transition-opacity'}>
             {/* 모바일: 카드 리스트 */}
             <div className="space-y-2 p-4 lg:hidden">
               {groups.map((g, i) => (
@@ -151,7 +190,7 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
                 ))}
               </table>
             </div>
-          </>
+          </div>
         )}
         {totalPages > 1 && (
           <div className="px-4 pb-4">

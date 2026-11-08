@@ -1,4 +1,4 @@
-export type { CycleSeedType, DcaCondition, DcaConfigRequest, DcaDirection, DcaIndicator, DcaOperator, DcaRule, DcaRuleRequest, DcaWeekday, Strategy, StrategyRequest, ReconfigureVrRequest, StrategySeedPreview, StrategyVrSummary } from './model/types'
+export type { CycleSeedType, DcaCondition, DcaConfigRequest, DcaDirection, DcaExecutionFilters, DcaIndicator, DcaOperator, DcaRule, DcaRuleRequest, DcaWeekday, Strategy, StrategyRequest, ReconfigureVrRequest, StrategySeedPreview, StrategyVrSummary } from './model/types'
 export { dcaIndicatorLabel, earliestNextExecution, formatCryptoNextExecution, formatDcaCondition, formatDcaSchedule, latestLastExecution, formatExecutionHour, STOCK_WEEKDAYS, WEEKDAY_LABEL } from './model/dcaFormat'
 export { DcaRuleSummaryLabel } from './ui/DcaRuleSummaryLabel'
 export { strategyKeys } from './model/queryKeys'

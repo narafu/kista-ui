@@ -156,6 +156,15 @@ describe('DCA api', () => {
     )
   })
 
+  it('listDcaExecutions는 필터를 쿼리에 싣고 빈 값은 뺀다', async () => {
+    const { listDcaExecutions } = await import('./index')
+    fetchEitherMock.mockResolvedValue({ content: [], page: 0, size: 10, totalElements: 0 })
+    await listDcaExecutions('s1', 0, 10, { from: '2026-01-01', to: '2026-01-31', direction: 'SELL', ruleKey: 'k1' }, 'tok')
+    expect(fetchEitherMock).toHaveBeenLastCalledWith('/api/trading-cycles/s1/dca-executions?page=0&size=10&from=2026-01-01&to=2026-01-31&direction=SELL&ruleKey=k1', undefined, 'tok')
+    await listDcaExecutions('s1', 0, 10, { from: undefined, ruleKey: '' })
+    expect(fetchEitherMock).toHaveBeenLastCalledWith('/api/trading-cycles/s1/dca-executions?page=0&size=10', undefined, undefined)
+  })
+
   it('listDcaExecutions는 page·size 쿼리로 조회하고 숫자를 정규화한다', async () => {
     const { listDcaExecutions } = await import('./index')
     fetchEitherMock.mockResolvedValueOnce({ content: [
