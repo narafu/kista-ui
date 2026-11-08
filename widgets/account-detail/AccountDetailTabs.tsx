@@ -7,18 +7,19 @@ import { TradesTab } from './TradesTab'
 import { CryptoHoldingsCard } from './CryptoHoldingsCard'
 import { isCryptoBroker } from '@shared/lib/api-schema'
 import { SegmentedTabs } from '@shared/ui/SegmentedTabs'
-import type { Account } from '@entities/account'
+import type { Account, AccountLedgerTotals } from '@entities/account'
 import type { CryptoPortfolio } from '@entities/trade'
 
 interface Props {
   account: Account
   usdDeposit: number
   posEvalUsd: number
+  ledgerTotals?: AccountLedgerTotals
   cryptoPortfolio?: CryptoPortfolio
   cryptoPortfolioError?: boolean
 }
 
-export function AccountDetailTabs({ account, usdDeposit, posEvalUsd, cryptoPortfolio, cryptoPortfolioError }: Props) {
+export function AccountDetailTabs({ account, usdDeposit, posEvalUsd, ledgerTotals, cryptoPortfolio, cryptoPortfolioError }: Props) {
   const { data: strategies, isError: strategiesError } = useStrategiesQuery(account.id)
   // 크립토 계좌는 사이클 이력(USD 예수금 열) 대신 보유 종목을 보여준다
   const rightPanel = isCryptoBroker(account.broker)
@@ -37,7 +38,7 @@ export function AccountDetailTabs({ account, usdDeposit, posEvalUsd, cryptoPortf
             label: '계좌',
             content: (
               <div className="space-y-4">
-                <AccountSummaryCard account={account} usdDeposit={usdDeposit} posEvalUsd={posEvalUsd} cryptoPortfolio={cryptoPortfolio} />
+                <AccountSummaryCard account={account} usdDeposit={usdDeposit} posEvalUsd={posEvalUsd} ledgerTotals={ledgerTotals} cryptoPortfolio={cryptoPortfolio} />
                 {rightPanel}
               </div>
             ),
@@ -56,7 +57,7 @@ export function AccountDetailTabs({ account, usdDeposit, posEvalUsd, cryptoPortf
       {/* 데스크탑: 전체 레이아웃 */}
       <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6">
         <div className="space-y-6">
-          <AccountSummaryCard account={account} usdDeposit={usdDeposit} posEvalUsd={posEvalUsd} cryptoPortfolio={cryptoPortfolio} />
+          <AccountSummaryCard account={account} usdDeposit={usdDeposit} posEvalUsd={posEvalUsd} ledgerTotals={ledgerTotals} cryptoPortfolio={cryptoPortfolio} />
           <StrategyList accountId={account.id} broker={account.broker} strategies={strategies} isError={strategiesError} />
         </div>
         {rightPanel}

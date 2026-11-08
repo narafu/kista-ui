@@ -3,7 +3,7 @@
 import Link from 'next/link'
 
 import { useQuery } from '@tanstack/react-query'
-import { useAccountDetailQuery } from '@entities/account'
+import { accountLedgerTotalsQueryOptions, useAccountDetailQuery } from '@entities/account'
 import { accountPortfolioQueryOptions, cryptoPortfolioQueryOptions } from '@entities/trade'
 import { isCryptoBroker, isMockBroker } from '@shared/lib/api-schema'
 import { PageHeader } from '@widgets/page-header'
@@ -27,6 +27,10 @@ export function AccountDetailContent({
   // MOCK·크립토 계좌는 주식 포트폴리오 대상이 아니라 서버 prefetch와 같은 조건으로 스킵
   const { data: portfolio } = useQuery({
     ...accountPortfolioQueryOptions(accountId),
+    enabled: !!account && !isMockBroker(account.broker) && !isCrypto,
+  })
+  const { data: ledgerTotals } = useQuery({
+    ...accountLedgerTotalsQueryOptions(accountId),
     enabled: !!account && !isMockBroker(account.broker) && !isCrypto,
   })
   const cryptoQuery = useQuery({ ...cryptoPortfolioQueryOptions(accountId), enabled: isCrypto })
@@ -53,6 +57,7 @@ export function AccountDetailContent({
         account={account}
         usdDeposit={portfolio?.summary?.usdDeposit ?? 0}
         posEvalUsd={portfolio?.summary?.posEvalUsd ?? 0}
+        ledgerTotals={ledgerTotals}
         cryptoPortfolio={cryptoQuery.data}
         cryptoPortfolioError={cryptoQuery.isError && !cryptoQuery.data}
       />

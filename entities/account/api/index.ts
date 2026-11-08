@@ -1,8 +1,17 @@
 import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
+import type { Currency } from '@shared/lib/api-schema'
 import type { Account, AccountRequest } from '../model/types'
 
 export type PriceMap = Record<string, number>
+
+/** 계좌 원장 합산 — 금액은 모두 계좌 통화. evaluation·unassignedCash는 시세·잔고 조회 실패 시 null */
+export interface AccountLedgerTotals {
+  currency: Currency
+  deposit: number
+  evaluation: number | null
+  unassignedCash: number | null
+}
 
 export async function listAccounts(token?: string): Promise<Account[]> {
   return fetchEither<Account[]>('/api/accounts', { method: 'GET' }, token)
@@ -37,4 +46,21 @@ export async function getPrices(accountId: string, tickers: string[]): Promise<P
 
 export async function testKisConnection(appKey: string, appSecret: string, broker?: string): Promise<void> {
   await clientFetch<void>('/api/accounts/connection-tests', jsonBody('POST', { broker, appKey, appSecret }))
+}
+
+interface AccountLedgerTotalsRaw {
+  currency: Currency
+  deposit: number | string
+  evaluation: number | string | null
+  unassignedCash: number | string | null
+}
+
+export async function getAccountLedgerTotals(accountId: string, token?: string): Promise<AccountLedgerTotals> {
+  const raw = await fetchEither<AccountLedgerTotalsRaw>(`/api/accounts/${accountId}/ledger-totals`, { method: 'GET' }, token)
+  return {
+    currency: raw.currency,
+    deposit: toNum(raw.deposit),
+    evaluation: raw.evaluation == null ? null : toNum(raw.evaluation),
+    unassignedCash: raw.unassignedCash == null ? null : toNum(raw.unassignedCash),
+  }
 }

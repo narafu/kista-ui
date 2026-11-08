@@ -8,20 +8,24 @@ import { Badge } from '@shared/ui/Badge'
 import { RevealableValue } from '@widgets/revealable-value'
 import { useMeta } from '@entities/meta'
 import { apiKeyExpiryState, API_KEY_EXPIRY_LABEL } from '@entities/account'
-import type { Account } from '@entities/account'
+import type { Account, AccountLedgerTotals } from '@entities/account'
 import type { CryptoPortfolio } from '@entities/trade'
 
 // 통화 단위(원·USDT)가 홀로 줄바꿈되지 않게 붙이되, 아주 긴 숫자는 넘치지 않고 줄바꿈한다
 const LONG_MONEY_CLASS = 'break-keep [overflow-wrap:anywhere]'
 
+// 조회 실패·로딩 중 금액 자리
+const NO_VALUE = '—'
+
 interface Props {
   account: Account
   usdDeposit: number
   posEvalUsd: number
+  ledgerTotals?: AccountLedgerTotals
   cryptoPortfolio?: CryptoPortfolio
 }
 
-export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, cryptoPortfolio }: Props) {
+export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, ledgerTotals, cryptoPortfolio }: Props) {
   const { labelOf } = useMeta()
   const brokerLabel = labelOf('brokers', account.broker)
   const isMock = isMockBroker(account.broker)
@@ -64,8 +68,12 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, cryptoPort
             </>
           ) : !isMock && (
             <>
-              <KpiCard label="예수금(실계좌기준)" value={`$${fmtUsd(usdDeposit)}`} />
-              <KpiCard label="평가금(실계좌기준)" value={`$${fmtUsd(posEvalUsd)}`} />
+              <KpiCard label="예수금 (전략 합산)" value={ledgerTotals ? fmtMoney(ledgerTotals.deposit, ledgerTotals.currency) : NO_VALUE} valueClassName={LONG_MONEY_CLASS} />
+              <KpiCard label="평가금 (전략 합산)" value={ledgerTotals?.evaluation != null ? fmtMoney(ledgerTotals.evaluation, ledgerTotals.currency) : NO_VALUE} valueClassName={LONG_MONEY_CLASS} />
+              <KpiCard label="미배정 예수금 (주문 가능 기준)" className="col-span-2" value={ledgerTotals?.unassignedCash != null ? fmtMoney(ledgerTotals.unassignedCash, ledgerTotals.currency) : NO_VALUE} valueClassName={LONG_MONEY_CLASS} />
+              <p className="col-span-2 mt-1 text-xs font-medium text-muted-foreground">증권사 기준</p>
+              <KpiCard label="예수금" value={`$${fmtUsd(usdDeposit)}`} />
+              <KpiCard label="평가금" value={`$${fmtUsd(posEvalUsd)}`} />
             </>
           )}
         </div>

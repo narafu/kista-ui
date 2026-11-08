@@ -12,6 +12,11 @@ vi.mock('@entities/trade/api', () => ({
   getCryptoPortfolio: vi.fn(async () => ({ currency: 'KRW', cash: 1, totalAsset: 2, holdings: [] })),
 }))
 
+vi.mock('@entities/account/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@entities/account/api')>()),
+  getAccountLedgerTotals: vi.fn(async () => ({ currency: 'USD', deposit: 0, evaluation: null, unassignedCash: null })),
+}))
+
 const { tabsMock } = vi.hoisted(() => ({ tabsMock: vi.fn((_props: unknown) => null) }))
 
 vi.mock('./AccountDetailTabs', () => ({

@@ -1,8 +1,8 @@
 // entities/account public API
 export type { Account, AccountRequest, BrokerCode } from './model/types'
 export { accountKeys } from './model/queryKeys'
-export { accountDetailQueryOptions, accountListQueryOptions } from './model/queryOptions'
-export type { PriceMap } from './api'
+export { accountDetailQueryOptions, accountListQueryOptions, accountLedgerTotalsQueryOptions } from './model/queryOptions'
+export type { PriceMap, AccountLedgerTotals } from './api'
 export {
   listAccounts,
 } from './api'

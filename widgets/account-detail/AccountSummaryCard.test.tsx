@@ -61,9 +61,42 @@ describe('AccountSummaryCard', () => {
       />,
     )
 
-    expect(screen.queryByText('예수금(실계좌기준)')).not.toBeInTheDocument()
-    expect(screen.queryByText('평가금(실계좌기준)')).not.toBeInTheDocument()
+    expect(screen.queryByText('예수금 (전략 합산)')).not.toBeInTheDocument()
+    expect(screen.queryByText('평가금 (전략 합산)')).not.toBeInTheDocument()
+    expect(screen.queryByText('증권사 기준')).not.toBeInTheDocument()
     expect(screen.getByText('모의계좌')).toBeInTheDocument()
+  })
+
+  it('주식 계좌는 전략 합산·미배정 예수금을 먼저, 증권사 기준을 보조로 보여준다', () => {
+    render(
+      <AccountSummaryCard
+        account={account}
+        usdDeposit={1000}
+        posEvalUsd={2000}
+        ledgerTotals={{ currency: 'USD', deposit: 160, evaluation: 50, unassignedCash: 7.5 }}
+      />,
+    )
+    expect(screen.getByText('예수금 (전략 합산)')).toBeInTheDocument()
+    expect(screen.getByText('$160.00')).toBeInTheDocument()
+    expect(screen.getByText('평가금 (전략 합산)')).toBeInTheDocument()
+    expect(screen.getByText('$50.00')).toBeInTheDocument()
+    expect(screen.getByText('미배정 예수금 (주문 가능 기준)')).toBeInTheDocument()
+    expect(screen.getByText('$7.50')).toBeInTheDocument()
+    expect(screen.getByText('증권사 기준')).toBeInTheDocument()
+    expect(screen.getByText('$1,000.00')).toBeInTheDocument()
+    expect(screen.getByText('$2,000.00')).toBeInTheDocument()
+  })
+
+  it('평가금·미배정 예수금이 null이면 —로 보여준다', () => {
+    render(
+      <AccountSummaryCard
+        account={account}
+        usdDeposit={0}
+        posEvalUsd={0}
+        ledgerTotals={{ currency: 'USD', deposit: 160, evaluation: null, unassignedCash: null }}
+      />,
+    )
+    expect(screen.getAllByText('—')).toHaveLength(2)
   })
 
   it('업비트 계좌는 계좌번호 대신 예수금·총자산을 보여준다', () => {
