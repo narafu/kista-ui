@@ -100,6 +100,14 @@ describe('StrategyOrderHistory filters', () => {
     expect(inTable().queryByText('$110.00')).not.toBeInTheDocument()
   }, 15000)
 
+  it('표는 날짜 열 없이 같은 날짜 행을 소제목 아래로 묶는다', async () => {
+    render(<StrategyOrderHistory strategyId="strategy-1" />)
+    await selectOption('상태', '전체')
+    expect(inTable().queryByRole('columnheader', { name: '날짜' })).not.toBeInTheDocument()
+    const groups = inTable().getAllByRole('rowheader').map((h) => h.textContent)
+    expect(groups).toHaveLength(2) // 07-29, 07-28 두 날짜
+  }, 15000)
+
   it.each([
     ['유형', 'LOC(종가지정가)', '$110.00', '$100.00'],
     ['상태', '체결', '$120.00', '$110.00'],

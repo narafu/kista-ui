@@ -141,11 +141,10 @@ export function StrategyOrderHistory({ strategyId }: Props) {
               ))}
             </div>
             <div className="hidden overflow-x-auto lg:block" role="region" aria-label="주문 내역" tabIndex={0}>
-              {/* PC 2단(xl)에서는 반 폭에 7열이 들어가도록 셀 여백·머리글 자간을 줄인다 */}
+              {/* PC 2단(xl)에서는 반 폭에 6열이 들어가도록 셀 여백·머리글 자간을 줄인다 */}
               <table className="w-full text-sm xl:[&_td]:px-1.5 xl:[&_th]:px-1.5 xl:[&_th]:tracking-normal">
                 <thead className="bg-muted/50">
                   <tr>
-                    <TableHeadCell className="whitespace-nowrap">날짜</TableHeadCell>
                     <TableHeadCell className="whitespace-nowrap">방향</TableHeadCell>
                     <TableHeadCell className="whitespace-nowrap">유형</TableHeadCell>
                     <TableHeadCell numeric className="whitespace-nowrap">주문가</TableHeadCell>
@@ -154,35 +153,40 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                     <TableHeadCell className="whitespace-nowrap">상태</TableHeadCell>
                   </tr>
                 </thead>
-                <tbody>
-                  {pageOrders.map((o) => (
-                    <tr key={o.id} className="border-t hover:bg-muted/30 transition-colors">
-                      <TableDataCell className="text-muted-foreground whitespace-nowrap">{fmtDate(o.tradeDate)}</TableDataCell>
-                      <TableDataCell className="whitespace-nowrap">
-                        <Badge tone="none" size="sm" className={directionBadgeClass(o.direction)}>
-                          {labelOf('orderDirections', o.direction)}
-                        </Badge>
-                      </TableDataCell>
-                      <TableDataCell className="whitespace-nowrap">
-                        <Badge tone="neutral" size="sm">
-                          {labelOf('orderTypes', o.orderType)}
-                        </Badge>
-                      </TableDataCell>
-                      <TableDataCell className="text-right tabular-nums whitespace-nowrap">${fmtUsd(toNum(o.price))}</TableDataCell>
-                      <TableDataCell className="text-right tabular-nums whitespace-nowrap">
-                        <OrderQuantity o={o} />
-                      </TableDataCell>
-                      <TableDataCell className="text-right tabular-nums whitespace-nowrap">
-                        {o.filledPrice != null ? `$${fmtUsd(toNum(o.filledPrice))}` : <span className="text-muted-foreground">-</span>}
-                      </TableDataCell>
-                      <TableDataCell className="whitespace-nowrap">
-                        <Badge tone="none" size="sm" className={orderStatusBadgeClass(o.status)}>
-                          {labelOf('orderStatuses', o.status)}
-                        </Badge>
-                      </TableDataCell>
+                {groups.map((g, i) => (
+                  <tbody key={`${g.key}-${i}`}>
+                    {/* 같은 날짜 행을 날짜 소제목(rowgroup 헤더) 아래로 묶는다 */}
+                    <tr className="border-t bg-muted/30">
+                      <th colSpan={6} scope="rowgroup" className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">{g.key}</th>
                     </tr>
-                  ))}
-                </tbody>
+                    {g.items.map((o) => (
+                      <tr key={o.id} className="border-t hover:bg-muted/30 transition-colors">
+                        <TableDataCell className="whitespace-nowrap">
+                          <Badge tone="none" size="sm" className={directionBadgeClass(o.direction)}>
+                            {labelOf('orderDirections', o.direction)}
+                          </Badge>
+                        </TableDataCell>
+                        <TableDataCell className="whitespace-nowrap">
+                          <Badge tone="neutral" size="sm">
+                            {labelOf('orderTypes', o.orderType)}
+                          </Badge>
+                        </TableDataCell>
+                        <TableDataCell className="text-right tabular-nums whitespace-nowrap">${fmtUsd(toNum(o.price))}</TableDataCell>
+                        <TableDataCell className="text-right tabular-nums whitespace-nowrap">
+                          <OrderQuantity o={o} />
+                        </TableDataCell>
+                        <TableDataCell className="text-right tabular-nums whitespace-nowrap">
+                          {o.filledPrice != null ? `$${fmtUsd(toNum(o.filledPrice))}` : <span className="text-muted-foreground">-</span>}
+                        </TableDataCell>
+                        <TableDataCell className="whitespace-nowrap">
+                          <Badge tone="none" size="sm" className={orderStatusBadgeClass(o.status)}>
+                            {labelOf('orderStatuses', o.status)}
+                          </Badge>
+                        </TableDataCell>
+                      </tr>
+                    ))}
+                  </tbody>
+                ))}
               </table>
             </div>
             {totalPages > 1 && (
