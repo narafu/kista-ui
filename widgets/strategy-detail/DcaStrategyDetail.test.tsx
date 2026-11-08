@@ -186,10 +186,9 @@ describe('DcaStrategyDetail', () => {
     renderDetail()
     expect(screen.queryByRole('button', { name: /바로 주문/ })).not.toBeInTheDocument()
   })
-  it('회차 이력: 주문됨/건너뜀 + 사유·detail', () => {
+  it('회차 이력: 건너뜀 사유·detail (결과 열 없음)', () => {
     renderDetail()
     const region = screen.getByRole('region', { name: '회차별 실행 이력' })
-    expect(within(region).getByText('주문됨')).toBeInTheDocument()
     expect(within(region).getByText('조건 미충족')).toBeInTheDocument()
     expect(within(region).getByText('RSI(14) 48.20 > 35')).toBeInTheDocument()
     expect(region).toHaveAttribute('tabindex', '0')
@@ -197,10 +196,10 @@ describe('DcaStrategyDetail', () => {
   it('회차 이력 표: 방향·주기·규칙(조건)을 칸으로 나누고, 삭제된 규칙은 주기 자리에 표시·조건은 -', () => {
     renderDetail()
     const region = screen.getByRole('region', { name: '회차별 실행 이력' })
-    const [, ordered, skipped] = within(region).getAllByRole('row')
+    const [ordered, skipped] = within(region).getAllByRole('row').filter((tr) => tr.querySelector('td')) // 날짜 소제목 행 제외
     const cells = (row: HTMLElement) => within(row).getAllByRole('cell').map((c) => c.textContent)
-    expect(cells(ordered).slice(1, 4)).toEqual(['매수', '매월 말일', 'RSI(14) 35 이하'])
-    expect(cells(skipped).slice(1, 4)).toEqual(['매도', '삭제된 규칙', '-'])
+    expect(cells(ordered).slice(0, 3)).toEqual(['매수', '매월 말일', 'RSI(14) 35 이하'])
+    expect(cells(skipped).slice(0, 3)).toEqual(['매도', '삭제된 규칙', '-'])
   })
   it('dca가 없어도 이력·일시중지 버튼을 렌더하고 규칙 카드는 없다', () => {
     renderDetail({ ...strategy, dca: undefined })

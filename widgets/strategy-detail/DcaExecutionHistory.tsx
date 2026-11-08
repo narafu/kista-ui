@@ -19,7 +19,7 @@ import { isCryptoMarket, marketCurrency } from '@shared/lib/api-schema'
 import type { TradingMarket } from '@shared/lib/api-schema'
 import { SectionError } from '@shared/ui/SectionError'
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 10
 
 type ExecutionItem = NonNullable<ReturnType<typeof useDcaExecutionsQuery>['data']>['content'][number]
 
@@ -58,12 +58,8 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
   const statusBadge = (r: ExecutionItem) => (
     <Badge tone={r.status === 'ORDERED' ? 'none' : 'neutral'} size="sm" className={r.status === 'ORDERED' ? 'bg-info-bg text-info' : undefined}>{labelOf('dcaExecutionStatuses', r.status)}</Badge>
   )
-  const priceText = (r: ExecutionItem) => (r.referencePrice != null ? fmtMoney(r.referencePrice, currency) : '-')
   const quantityText = (r: ExecutionItem) => (r.quantity != null ? (isCrypto ? `${fmtQuantity(r.quantity)} ${ticker}` : `${fmtQuantity(r.quantity)}주`) : '-')
-  const filledText = (r: ExecutionItem) => (r.order
-    ? `${labelOf('orderStatuses', r.order.status)}${r.order.filledPrice != null ? ` · ${fmtMoney(r.order.filledPrice, currency)}` : ''}`
-    : '-')
-  // 모바일 카드는 칸 이름이 '체결가'라 상태 라벨을 반복하지 않는다 — 체결가가 없을 때만 주문 상태를 보여 준다
+  // 칸 이름이 '체결가'(모바일)·'체결'(PC)이라 상태 라벨을 반복하지 않는다 — 체결가가 없을 때만 주문 상태를 보여 준다
   const fillPriceText = (r: ExecutionItem) => (!r.order ? '-' : r.order.filledPrice != null ? fmtMoney(r.order.filledPrice, currency) : labelOf('orderStatuses', r.order.status))
   // 날짜(fmtDate 결과)별 그룹 — 입력 순서 유지
   const groups = groupConsecutiveBy(rows, (r) => fmtDate(r.kstTradeDate))
@@ -97,9 +93,9 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
                         </div>
                         <div className="shrink-0">{statusBadge(r)}</div>
                       </div>
-                      {/* 3칸 고정 — 금액이 길면 단위 앞에서 줄바꿈해 칸을 넘지 않는다 */}
-                      <dl className="grid grid-cols-3 gap-2 text-sm">
-                        {([['기준가', priceText(r)], ['수량', quantityText(r)], ['체결가', fillPriceText(r)]] as const).map(([label, value]) => (
+                      {/* 2칸 고정 — 금액이 길면 단위 앞에서 줄바꿈해 칸을 넘지 않는다 */}
+                      <dl className="grid grid-cols-2 gap-2 text-sm">
+                        {([['수량', quantityText(r)], ['체결가', fillPriceText(r)]] as const).map(([label, value]) => (
                           <div key={label} className="min-w-0">
                             <dt className="text-xs text-muted-foreground">{label}</dt>
                             <dd className="mt-0.5 font-semibold tabular-nums break-keep">{value}</dd>
@@ -122,37 +118,37 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>
-                    <TableHeadCell className="whitespace-nowrap">{isCrypto ? '실행일' : '거래일'}</TableHeadCell>
                     <TableHeadCell className="whitespace-nowrap">방향</TableHeadCell>
                     <TableHeadCell className="whitespace-nowrap">주기</TableHeadCell>
                     <TableHeadCell className="whitespace-nowrap">규칙</TableHeadCell>
-                    <TableHeadCell className="whitespace-nowrap">결과</TableHeadCell>
-                    <TableHeadCell className="whitespace-nowrap">사유</TableHeadCell>
-                    <TableHeadCell numeric className="whitespace-nowrap">기준가</TableHeadCell>
                     <TableHeadCell numeric className="whitespace-nowrap">수량</TableHeadCell>
                     <TableHeadCell className="whitespace-nowrap">체결</TableHeadCell>
+                    <TableHeadCell className="whitespace-nowrap">사유</TableHeadCell>
                   </tr>
                 </thead>
-                <tbody>
-                  {/* kista-api uq_dca_execution_strategy_trade_date(strategy_id, trade_date, rule_key)로 (전략, 거래일, 규칙)당 1건 보장 */}
-                  {rows.map((r) => (
-                    <tr key={`${r.kstTradeDate}-${r.ruleKey}`} className="border-t hover:bg-muted/30 transition-colors">
-                      <TableDataCell className="text-muted-foreground whitespace-nowrap">{fmtDate(r.kstTradeDate)}</TableDataCell>
-                      <TableDataCell className="whitespace-nowrap">{directionBadge(r)}</TableDataCell>
-                      <TableDataCell className="whitespace-nowrap">{scheduleCell(r)}</TableDataCell>
-                      <TableDataCell className="whitespace-nowrap">{conditionCell(r)}</TableDataCell>
-                      <TableDataCell className="whitespace-nowrap">{statusBadge(r)}</TableDataCell>
-                      {/* detail은 가변 길이 자유 텍스트라 nowrap 대신 최소 너비로 글자 단위 줄바꿈만 막는다 */}
-                      <TableDataCell className="min-w-32">
-                        {r.skipReason && <div>{labelOf('dcaSkipReasons', r.skipReason)}</div>}
-                        {r.detail && <div className="text-xs text-muted-foreground">{r.detail}</div>}
-                      </TableDataCell>
-                      <TableDataCell className="text-right tabular-nums whitespace-nowrap">{priceText(r)}</TableDataCell>
-                      <TableDataCell className="text-right tabular-nums whitespace-nowrap">{quantityText(r)}</TableDataCell>
-                      <TableDataCell className="whitespace-nowrap">{filledText(r)}</TableDataCell>
+                {/* kista-api uq_dca_execution_strategy_trade_date(strategy_id, trade_date, rule_key)로 (전략, 거래일, 규칙)당 1건 보장 */}
+                {groups.map((g, i) => (
+                  <tbody key={`${g.key}-${i}`}>
+                    {/* 같은 거래일(실행일) 행을 날짜 소제목(rowgroup 헤더) 아래로 묶는다 */}
+                    <tr className="border-t bg-muted/30">
+                      <th colSpan={6} scope="rowgroup" className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">{g.key}</th>
                     </tr>
-                  ))}
-                </tbody>
+                    {g.items.map((r) => (
+                      <tr key={`${r.kstTradeDate}-${r.ruleKey}`} className="border-t hover:bg-muted/30 transition-colors">
+                        <TableDataCell className="whitespace-nowrap">{directionBadge(r)}</TableDataCell>
+                        <TableDataCell className="whitespace-nowrap">{scheduleCell(r)}</TableDataCell>
+                        <TableDataCell className="whitespace-nowrap">{conditionCell(r)}</TableDataCell>
+                        <TableDataCell className="text-right tabular-nums whitespace-nowrap">{quantityText(r)}</TableDataCell>
+                        <TableDataCell className="whitespace-nowrap">{fillPriceText(r)}</TableDataCell>
+                        {/* detail은 가변 길이 자유 텍스트라 nowrap 대신 최소 너비로 글자 단위 줄바꿈만 막는다 */}
+                        <TableDataCell className="min-w-32">
+                          {r.skipReason && <div>{labelOf('dcaSkipReasons', r.skipReason)}</div>}
+                          {r.detail && <div className="text-xs text-muted-foreground">{r.detail}</div>}
+                        </TableDataCell>
+                      </tr>
+                    ))}
+                  </tbody>
+                ))}
               </table>
             </div>
           </>

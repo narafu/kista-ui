@@ -29,19 +29,19 @@ describe('DcaExecutionHistory', () => {
       data: { content: [row], page: 0, size: 20, totalElements: 45 }, isLoading: false, isError: false,
     })
     render(<DcaExecutionHistory strategyId="d1" ticker="UPRO" rules={[rule]} market="US_STOCK" />)
-    expect(queryMock).toHaveBeenLastCalledWith('d1', 0, 20)
+    expect(queryMock).toHaveBeenLastCalledWith('d1', 0, 10)
 
     fireEvent.click(screen.getByRole('button', { name: '2' }))
-    expect(queryMock).toHaveBeenLastCalledWith('d1', 1, 20)
+    expect(queryMock).toHaveBeenLastCalledWith('d1', 1, 10)
   })
 
-  it('ORDERED 행에 referencePrice가 없으면 기준가 칸에 -를 표시한다', () => {
+  it('PC 표는 결과·기준가 열 없이 수량·체결 뒤 맨 오른쪽에 사유를 둔다', () => {
     queryMock.mockReturnValue({
       data: { content: [row], page: 0, size: 20, totalElements: 1 }, isLoading: false, isError: false,
     })
     render(<DcaExecutionHistory strategyId="d1" ticker="UPRO" rules={[rule]} market="US_STOCK" />)
-    const cells = table().getAllByRole('row')[1].querySelectorAll('td')
-    expect(cells[6]).toHaveTextContent('-')
+    const heads = table().getAllByRole('columnheader').map((h) => h.textContent)
+    expect(heads).toEqual(['방향', '주기', '규칙', '수량', '체결', '사유'])
   })
 
   it('코인 행은 원화 가격과 소수 수량·코인 단위로 표시한다', () => {
@@ -50,9 +50,8 @@ describe('DcaExecutionHistory', () => {
       isLoading: false, isError: false,
     })
     render(<DcaExecutionHistory strategyId="d1" ticker="BTC" rules={[rule]} market="CRYPTO_KRW" />)
-    expect(table().getByText('145,000,000원')).toBeInTheDocument()
     expect(table().getByText('0.00034482 BTC')).toBeInTheDocument()
-    expect(table().getByText(/145,100,000원/)).toBeInTheDocument()
+    expect(table().getByText('145,100,000원')).toBeInTheDocument() // 체결 칸은 상태 라벨 없이 가격만
   })
 
   it('바이낸스 행은 USDT 가격으로 표시한다', () => {
@@ -61,8 +60,7 @@ describe('DcaExecutionHistory', () => {
       isLoading: false, isError: false,
     })
     render(<DcaExecutionHistory strategyId="d1" ticker="BTC" rules={[rule]} market="CRYPTO_USDT" />)
-    expect(table().getByText('65,000.50 USDT')).toBeInTheDocument()
-    expect(table().getByText(/65,010.00 USDT/)).toBeInTheDocument()
+    expect(table().getByText('65,010.00 USDT')).toBeInTheDocument()
     expect(table().getByText('0.001 BTC')).toBeInTheDocument()
   })
 
@@ -72,12 +70,12 @@ describe('DcaExecutionHistory', () => {
       data: { content: [row, x], page: 0, size: 20, totalElements: 2 }, isLoading: false, isError: false,
     })
     render(<DcaExecutionHistory strategyId="d1" ticker="UPRO" rules={[rule]} market="US_STOCK" />)
-    const rows = table().getAllByRole('row')
-    expect(rows).toHaveLength(3)
-    expect([...rows[1].querySelectorAll('td')].slice(1, 4).map((c) => c.textContent)).toEqual(['매수', '매일', '-'])
-    expect(rows[2]).toHaveTextContent('삭제된 규칙')
-    expect(rows[2]).toHaveTextContent('매도')
-    expect(rows[2]).toHaveTextContent('보유 수량 부족')
+    const rows = table().getAllByRole('row').filter((tr) => tr.querySelector('td')) // 날짜 소제목 행 제외
+    expect(rows).toHaveLength(2)
+    expect([...rows[0].querySelectorAll('td')].slice(0, 3).map((c) => c.textContent)).toEqual(['매수', '매일', '-'])
+    expect(rows[1]).toHaveTextContent('삭제된 규칙')
+    expect(rows[1]).toHaveTextContent('매도')
+    expect(rows[1]).toHaveTextContent('보유 수량 부족')
   })
 
   it('같은 날 행은 규칙 카드 순서로, 삭제된 규칙은 그날 맨 뒤로 표시하고 날짜 내림차순은 유지한다', () => {
@@ -89,18 +87,20 @@ describe('DcaExecutionHistory', () => {
       isLoading: false, isError: false,
     })
     render(<DcaExecutionHistory strategyId="d1" ticker="UPRO" rules={[rule, ruleB]} market="US_STOCK" />)
-    const order = table().getAllByRole('row').slice(1).map((r) => (r.textContent?.includes('삭제된 규칙') ? '삭제' : r.querySelectorAll('td')[1].textContent))
+    const order = table().getAllByRole('row').filter((tr) => tr.querySelector('td')).map((r) => (r.textContent?.includes('삭제된 규칙') ? '삭제' : r.querySelectorAll('td')[0].textContent))
     expect(order).toEqual(['매수', '매도', '삭제', '매수', '매도'])
+    // 같은 거래일은 소제목 한 줄로 묶인다 — 10-01, 09-30 두 그룹
+    expect(table().getAllByRole('row').filter((tr) => tr.querySelector('th[scope="rowgroup"]'))).toHaveLength(2)
   })
 
-  it('모바일 카드에 날짜 그룹·규칙·결과·기준가·수량·체결·사유를 표시한다', () => {
+  it('모바일 카드에 날짜 그룹·규칙·결과·수량·체결가·사유를 표시한다', () => {
     queryMock.mockReturnValue({
       data: { content: [{ ruleKey: 'a', direction: 'BUY', kstTradeDate: '2026-10-18', status: 'SKIPPED', skipReason: 'BELOW_MIN_ORDER_AMOUNT', detail: null, referencePrice: 145000000, quantity: 0.00034482, order: { id: 'o1', status: 'FILLED', filledPrice: 145100000 } }], page: 0, size: 20, totalElements: 1 },
       isLoading: false, isError: false,
     })
     const { container } = render(<DcaExecutionHistory strategyId="d1" ticker="BTC" rules={[rule]} market="CRYPTO_KRW" />)
     const card = within(container.querySelector('.lg\\:hidden') as HTMLElement)
-    expect(card.getByText('145,000,000원')).toBeInTheDocument()
+    expect(card.queryByText('145,000,000원')).not.toBeInTheDocument() // 기준가는 표시하지 않는다
     expect(card.getByText('0.00034482 BTC')).toBeInTheDocument()
     expect(card.getByText('145,100,000원')).toBeInTheDocument() // 체결가 칸은 상태 라벨 없이 가격만
     expect(card.getByText('매일')).toBeInTheDocument() // 금액 요약 없이 주기만
